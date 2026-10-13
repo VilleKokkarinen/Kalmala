@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 9,
+  "schemaVersion": 10,
   "itemFiles": [
     "items/materials.json",
     "items/stations.json",
@@ -93,5 +93,8 @@
   ],
   "toolUpgradeFiles": [
     "recipes/upgrades.json"
+  ],
+  "levelUpRewardFiles": [
+    "tools/LevelUpRewards.json"
   ]
 }

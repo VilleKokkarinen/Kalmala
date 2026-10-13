@@ -208,7 +208,7 @@ namespace
             return false;
         }
 
-        OutValues.Reset();
+        // Append so item-family profiles survive the additional utility-tool file pass.
         for (const TSharedPtr<FJsonValue>& FileValue : *FileValues)
         {
             if (!FileValue.IsValid() || FileValue->Type != EJson::String)
@@ -311,7 +311,7 @@ namespace
         }
 
         double SchemaVersion = 0.0;
-        if (!Root->TryGetNumberField(TEXT("schemaVersion"), SchemaVersion) || SchemaVersion != 9.0)
+        if (!Root->TryGetNumberField(TEXT("schemaVersion"), SchemaVersion) || SchemaVersion != 10.0)
         {
             UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue manifest has an unsupported schema: %s"), *JsonPath);
             return false;
@@ -323,6 +323,7 @@ namespace
         TArray<TSharedPtr<FJsonValue>> ToolProfileValues;
         TArray<TSharedPtr<FJsonValue>> ToolRecipeValues;
         TArray<TSharedPtr<FJsonValue>> ToolUpgradeValues;
+        TArray<TSharedPtr<FJsonValue>> LevelUpRewardValues;
         if (!LoadCategoryFiles(Root, TEXT("itemFiles"), TEXT("items"), TEXT("items"),
                 UKalmalaItemCatalogue::MaxDefinitions, TotalJsonCharacters, ItemValues)
             || !LoadCategoryFiles(Root, TEXT("recipeFiles"), TEXT("recipes"), TEXT("recipes"),
@@ -336,6 +337,8 @@ namespace
                 UKalmalaToolCatalogue::MaxRecipes, TotalJsonCharacters, ToolRecipeValues)
             || !LoadCategoryFiles(Root, TEXT("toolUpgradeFiles"), TEXT("toolUpgradeCosts"), TEXT("recipes"),
                 UKalmalaToolCatalogue::MaxRecipes, TotalJsonCharacters, ToolUpgradeValues)
+            || !LoadCategoryFiles(Root, TEXT("levelUpRewardFiles"), TEXT("levelUpRewards"), TEXT("tools"),
+                UKalmalaToolCatalogue::MaxProfiles, TotalJsonCharacters, LevelUpRewardValues)
             || !OrderCategoryValues(Root, TEXT("toolProfileOrder"), TEXT("ToolId"), ToolProfileValues)
             || !OrderCategoryValues(Root, TEXT("toolRecipeOrder"), TEXT("RecipeId"), ToolRecipeValues))
         {
@@ -355,6 +358,7 @@ namespace
         TArray<FKalmalaToolProfileData> ParsedToolProfiles;
         TArray<FKalmalaToolRecipeData> ParsedToolRecipes;
         TArray<FKalmalaToolRecipeData> ParsedUpgradeCosts;
+        TArray<FKalmalaLevelUpRewardGroupData> ParsedLevelUpRewards;
         if (!FJsonObjectConverter::JsonArrayToUStruct<FKalmalaItemDefinition>(ItemValues, &ParsedItems, 0, 0, true)
             || !FJsonObjectConverter::JsonArrayToUStruct<FKalmalaRecipe>(RecipeValues, &ParsedRecipes, 0, 0, true)
             || !FJsonObjectConverter::JsonArrayToUStruct<FKalmalaToolProfileData>(
@@ -362,7 +366,9 @@ namespace
             || !FJsonObjectConverter::JsonArrayToUStruct<FKalmalaToolRecipeData>(
                 ToolRecipeValues, &ParsedToolRecipes, 0, 0, true)
             || !FJsonObjectConverter::JsonArrayToUStruct<FKalmalaToolRecipeData>(
-                ToolUpgradeValues, &ParsedUpgradeCosts, 0, 0, true))
+                ToolUpgradeValues, &ParsedUpgradeCosts, 0, 0, true)
+            || !FJsonObjectConverter::JsonArrayToUStruct<FKalmalaLevelUpRewardGroupData>(
+                LevelUpRewardValues, &ParsedLevelUpRewards, 0, 0, true))
         {
             UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue data does not match its item, recipe, and tool definitions: %s"), *JsonPath);
             return false;
@@ -376,6 +382,7 @@ namespace
         ToolCatalogue->Profiles = MoveTemp(ParsedToolProfiles);
         ToolCatalogue->Recipes = MoveTemp(ParsedToolRecipes);
         ToolCatalogue->UpgradeCosts = MoveTemp(ParsedUpgradeCosts);
+        ToolCatalogue->LevelUpRewards = MoveTemp(ParsedLevelUpRewards);
         if (!ItemCatalogue->IsValidCatalogue() || !RecipeCatalogue->IsValidCatalogue()
             || !ToolCatalogue->IsValidCatalogue(ItemCatalogue))
         {
@@ -384,6 +391,7 @@ namespace
             ToolCatalogue->Profiles.Reset();
             ToolCatalogue->Recipes.Reset();
             ToolCatalogue->UpgradeCosts.Reset();
+            ToolCatalogue->LevelUpRewards.Reset();
             UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue JSON failed item, recipe, or tool validation: %s"), *JsonPath);
             return false;
         }

@@ -42,19 +42,45 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
     BoundaryCatalogue->Profiles = AuthoredCatalogue->Profiles;
     BoundaryCatalogue->Recipes = AuthoredCatalogue->Recipes;
     BoundaryCatalogue->UpgradeCosts = AuthoredCatalogue->UpgradeCosts;
+    BoundaryCatalogue->LevelUpRewards = AuthoredCatalogue->LevelUpRewards;
     FKalmalaToolProfileData* BoundaryAxe = BoundaryCatalogue->Profiles.FindByPredicate(
         [](const FKalmalaToolProfileData& Profile) { return Profile.ToolId == TEXT("BronzeAxe"); });
     if (TestNotNull(TEXT("Boundary catalogue contains Bronze Axe"), BoundaryAxe))
     {
         FKalmalaToolLevelStats Stats;
-        TestTrue(TEXT("Reward definition produces level twenty"), BoundaryAxe->GetLevelStats(20, Stats));
+        TestTrue(TEXT("Reward definition produces level twenty"), BoundaryCatalogue->GetLevelStats(TEXT("BronzeAxe"), 20, Stats));
         TestEqual(TEXT("Durability adds the reward nineteen times"), Stats.MaxDurability, 1050);
         TestEqual(TEXT("Slash adds the reward nineteen times"), Stats.DamageBonuses.Slash, 145.0f);
-        TestFalse(TEXT("Reward calculation rejects level twenty-one"), BoundaryAxe->GetLevelStats(21, Stats));
-        TestFalse(TEXT("Reward calculation rejects level zero"), BoundaryAxe->GetLevelStats(0, Stats));
+        TestFalse(TEXT("Reward calculation rejects level twenty-one"), BoundaryCatalogue->GetLevelStats(TEXT("BronzeAxe"), 21, Stats));
+        TestFalse(TEXT("Reward calculation rejects level zero"), BoundaryCatalogue->GetLevelStats(TEXT("BronzeAxe"), 0, Stats));
         TestTrue(TEXT("Reward catalogue remains valid through the hard cap"), BoundaryCatalogue->IsValidCatalogue());
-        BoundaryAxe->LevelUpReward.MaxDurability = -1;
-        TestFalse(TEXT("Negative durability rewards are rejected"), BoundaryCatalogue->IsValidCatalogue());
+        for (const FName ItemId : {FName(TEXT("StoneAxe")), FName(TEXT("BronzeAxe")), FName(TEXT("IronAxe"))})
+        {
+            const FKalmalaToolProfileData* Profile = BoundaryCatalogue->FindProfile(ItemId);
+            if (TestNotNull(TEXT("Shared reward axe exists"), Profile)
+                && TestTrue(TEXT("Shared reward resolves axe level two"), BoundaryCatalogue->GetLevelStats(ItemId, 2, Stats)))
+            {
+                TestEqual(TEXT("Every axe gains fifty durability"), Stats.MaxDurability, Profile->MaxDurability + 50);
+                TestEqual(TEXT("Every axe gains five slash"), Stats.DamageBonuses.Slash, Profile->DamageBonuses.Slash + 5.0f);
+            }
+        }
+        const int32 GroupIndex = BoundaryCatalogue->LevelUpRewards.IndexOfByPredicate(
+            [](const FKalmalaLevelUpRewardGroupData& Group) { return Group.ItemIds.Contains(TEXT("BronzeAxe")); });
+        if (TestTrue(TEXT("Axes share an authored reward group"), GroupIndex != INDEX_NONE))
+        {
+            const FKalmalaLevelUpRewardGroupData Original = BoundaryCatalogue->LevelUpRewards[GroupIndex];
+            BoundaryCatalogue->LevelUpRewards[GroupIndex].LevelUpReward.MaxDurability = -1;
+            TestFalse(TEXT("Negative shared rewards are rejected"), BoundaryCatalogue->IsValidCatalogue());
+            BoundaryCatalogue->LevelUpRewards[GroupIndex] = Original;
+            BoundaryCatalogue->LevelUpRewards[GroupIndex].ItemIds.Add(TEXT("UnknownTool"));
+            TestFalse(TEXT("Unknown reward IDs are rejected"), BoundaryCatalogue->IsValidCatalogue());
+            BoundaryCatalogue->LevelUpRewards[GroupIndex] = Original;
+            BoundaryCatalogue->LevelUpRewards[GroupIndex].ItemIds.Add(TEXT("BronzeAxe"));
+            TestFalse(TEXT("Duplicate IDs within a reward are rejected"), BoundaryCatalogue->IsValidCatalogue());
+            BoundaryCatalogue->LevelUpRewards[GroupIndex] = Original;
+            BoundaryCatalogue->LevelUpRewards.Add(Original);
+            TestFalse(TEXT("Overlapping reward groups are rejected"), BoundaryCatalogue->IsValidCatalogue());
+        }
 
     }
 

@@ -32,6 +32,20 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
     const UKalmalaItemCatalogue* Items = ItemDefinitions ? ItemDefinitions : UKalmalaItemCatalogue::Get();
     if (!Items || !Items->IsValidCatalogue()) return false;
 
+    if (LevelUpRewards.Num() > MaxProfiles) return false;
+    TSet<FName> RewardedIds;
+    for (const FKalmalaLevelUpRewardGroupData& Group : LevelUpRewards)
+    {
+        if (Group.ItemIds.IsEmpty() || Group.ItemIds.Num() > MaxProfiles
+            || Group.LevelUpReward.MaxDurability < 0 || Group.LevelUpReward.MaxDurability > 1000
+            || !Group.LevelUpReward.DamageBonuses.IsValid(1000.0f)) return false;
+        for (const FName ItemId : Group.ItemIds)
+        {
+            if (ItemId.IsNone() || RewardedIds.Contains(ItemId) || !FindProfile(ItemId)) return false;
+            RewardedIds.Add(ItemId);
+        }
+    }
+
     TSet<FName> SeenToolIds;
     TSet<FString> SeenToolKinds;
     int32 StarterCount = 0;
@@ -54,9 +68,7 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
                 TEXT("Mining"), TEXT("Crafting"), TEXT("Cooking"), TEXT("Survival")})
             || Profile.MinimumSkillLevel < 1 || Profile.MinimumSkillLevel > 10
             || Profile.MaxDurability < 1 || Profile.MaxDurability > 1000
-            || !Profile.DamageBonuses.IsValid(1000.0f)
-            || Profile.LevelUpReward.MaxDurability < 0 || Profile.LevelUpReward.MaxDurability > 1000
-            || !Profile.LevelUpReward.DamageBonuses.IsValid(1000.0f))
+            || !Profile.DamageBonuses.IsValid(1000.0f))
         {
             return false;
         }
@@ -80,7 +92,7 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
         for (int32 ToolLevel = 1; ToolLevel <= MaxLevels; ++ToolLevel)
         {
             FKalmalaToolLevelStats Stats;
-            if (!Profile.GetLevelStats(ToolLevel, Stats)
+            if (!Profile.GetLevelStats(ToolLevel, GetLevelUpReward(Profile.ToolId), Stats)
                 || (Profile.ToolKind == TEXT("ConstructionHammer") ? Stats.DamageBonuses.Total() != 0.0f
                     : Stats.DamageBonuses.Total() <= 0.0f)) return false;
         }
@@ -195,18 +207,33 @@ const FKalmalaToolProfileData* UKalmalaToolCatalogue::FindProfile(const FName To
     });
 }
 
-bool FKalmalaToolProfileData::GetLevelStats(const int32 ToolLevel, FKalmalaToolLevelStats& OutStats) const
+bool FKalmalaToolProfileData::GetLevelStats(const int32 ToolLevel, const FKalmalaToolRewardData& Reward, FKalmalaToolLevelStats& OutStats) const
 {
     OutStats = {};
     if (ToolLevel < 1 || ToolLevel > FKalmalaToolLifecycleContract::MaxToolLevel
         || MaxDurability < 1 || MaxDurability > 1000 || !DamageBonuses.IsValid(1000.0f)
-        || LevelUpReward.MaxDurability < 0 || LevelUpReward.MaxDurability > 1000
-        || !LevelUpReward.DamageBonuses.IsValid(1000.0f)) return false;
-    const int64 Durability = int64(MaxDurability) + int64(ToolLevel - 1) * LevelUpReward.MaxDurability;
-    const FKalmalaDamageChannels Bonuses = DamageBonuses.Added(LevelUpReward.DamageBonuses.Scaled(ToolLevel - 1));
+        || Reward.MaxDurability < 0 || Reward.MaxDurability > 1000
+        || !Reward.DamageBonuses.IsValid(1000.0f)) return false;
+    const int64 Durability = int64(MaxDurability) + int64(ToolLevel - 1) * Reward.MaxDurability;
+    const FKalmalaDamageChannels Bonuses = DamageBonuses.Added(Reward.DamageBonuses.Scaled(ToolLevel - 1));
     if (Durability > MAX_int32 || !Bonuses.IsValid()) return false;
     OutStats.ToolLevel = ToolLevel;
     OutStats.MaxDurability = static_cast<int32>(Durability);
     OutStats.DamageBonuses = Bonuses;
     return true;
+}
+
+const FKalmalaToolRewardData& UKalmalaToolCatalogue::GetLevelUpReward(const FName ToolId) const
+{
+    const FKalmalaLevelUpRewardGroupData* Group = LevelUpRewards.FindByPredicate(
+        [ToolId](const FKalmalaLevelUpRewardGroupData& Entry) { return Entry.ItemIds.Contains(ToolId); });
+    static const FKalmalaToolRewardData NoReward;
+    return Group ? Group->LevelUpReward : NoReward;
+}
+
+bool UKalmalaToolCatalogue::GetLevelStats(const FName ToolId, const int32 ToolLevel, FKalmalaToolLevelStats& OutStats) const
+{
+    OutStats = {};
+    const FKalmalaToolProfileData* Profile = FindProfile(ToolId);
+    return Profile && Profile->GetLevelStats(ToolLevel, GetLevelUpReward(ToolId), OutStats);
 }

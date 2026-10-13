@@ -18,6 +18,19 @@ struct KALMALAGAMEPLAY_API FKalmalaToolRewardData
     FKalmalaDamageChannels DamageBonuses;
 };
 
+/** One shared per-level reward for an explicit non-overlapping group of item IDs. */
+USTRUCT()
+struct KALMALAGAMEPLAY_API FKalmalaLevelUpRewardGroupData
+{
+    GENERATED_BODY()
+
+    UPROPERTY(EditAnywhere)
+    TArray<FName> ItemIds;
+
+    UPROPERTY(EditAnywhere)
+    FKalmalaToolRewardData LevelUpReward;
+};
+
 USTRUCT()
 struct KALMALAGAMEPLAY_API FKalmalaToolProfileData
 {
@@ -56,11 +69,7 @@ struct KALMALAGAMEPLAY_API FKalmalaToolProfileData
     UPROPERTY(EditAnywhere)
     FKalmalaDamageChannels DamageBonuses;
 
-    /** Flat gains added for each level after level one. */
-    UPROPERTY(EditAnywhere)
-    FKalmalaToolRewardData LevelUpReward;
-
-    bool GetLevelStats(int32 ToolLevel, FKalmalaToolLevelStats& OutStats) const;
+    bool GetLevelStats(int32 ToolLevel, const FKalmalaToolRewardData& Reward, FKalmalaToolLevelStats& OutStats) const;
 };
 
 USTRUCT()
@@ -130,8 +139,14 @@ public:
     UPROPERTY(EditDefaultsOnly)
     TArray<FKalmalaToolRecipeData> UpgradeCosts;
 
+    /** Shared item-group gains, authored separately from individual profiles. */
+    UPROPERTY(EditDefaultsOnly)
+    TArray<FKalmalaLevelUpRewardGroupData> LevelUpRewards;
+
     static bool ScaleUpgradeCosts(const TArray<FKalmalaToolRecipeIngredientData>& BaseCosts,
         int32 CurrentLevel, TArray<FKalmalaToolRecipeIngredientData>& OutCosts);
+    const FKalmalaToolRewardData& GetLevelUpReward(FName ToolId) const;
+    bool GetLevelStats(FName ToolId, int32 ToolLevel, FKalmalaToolLevelStats& OutStats) const;
     static const UKalmalaToolCatalogue* Get();
     bool IsValidCatalogue(const UKalmalaItemCatalogue* ItemDefinitions = nullptr) const;
     const FKalmalaToolProfileData* FindProfile(FName ToolId) const;

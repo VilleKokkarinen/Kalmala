@@ -49,7 +49,7 @@ namespace
         return EKalmalaSkill::None;
     }
 
-    FKalmalaToolDefinition ConvertProfile(const FKalmalaToolProfileData& Profile)
+    FKalmalaToolDefinition ConvertProfile(const FKalmalaToolProfileData& Profile, const UKalmalaToolCatalogue& Catalogue)
     {
         FKalmalaToolDefinition Definition;
         Definition.ToolId = Profile.ToolId;
@@ -61,7 +61,7 @@ namespace
         for (int32 ToolLevel = 1; ToolLevel <= FKalmalaToolLifecycleContract::MaxToolLevel; ++ToolLevel)
         {
             FKalmalaToolLevelStats Level;
-            if (!Profile.GetLevelStats(ToolLevel, Level)) return FKalmalaToolDefinition();
+            if (!Catalogue.GetLevelStats(Profile.ToolId, ToolLevel, Level)) return FKalmalaToolDefinition();
             Definition.LevelStats.Add(Level);
             if (ToolLevel == 1)
             {
@@ -79,7 +79,7 @@ namespace
         if (!Catalogue) return Definitions;
         for (const FKalmalaToolProfileData& Profile : Catalogue->Profiles)
         {
-            if (Profile.ToolSet == ToolSet) Definitions.Add(ConvertProfile(Profile));
+            if (Profile.ToolSet == ToolSet) Definitions.Add(ConvertProfile(Profile, *Catalogue));
         }
         return Definitions;
     }
@@ -103,7 +103,7 @@ namespace
             const UKalmalaToolCatalogue* Catalogue = UKalmalaToolCatalogue::Get();
             const FKalmalaToolProfileData* Profile = Catalogue
                 ? Catalogue->FindProfile(TEXT("ConstructionHammer")) : nullptr;
-            return Profile ? ConvertProfile(*Profile) : FKalmalaToolDefinition();
+            return Profile ? ConvertProfile(*Profile, *Catalogue) : FKalmalaToolDefinition();
         }();
         return Definition;
     }

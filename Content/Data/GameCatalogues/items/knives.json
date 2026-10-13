@@ -34,19 +34,6 @@
         "Water": 0.0,
         "Holy": 0.0,
         "Poison": 0.0
-      },
-      "LevelUpReward": {
-        "MaxDurability": 0,
-        "DamageBonuses": {
-          "Slash": 0.0,
-          "Stab": 0.0,
-          "Crush": 0.0,
-          "Pierce": 0.0,
-          "Fire": 0.0,
-          "Water": 0.0,
-          "Holy": 0.0,
-          "Poison": 0.0
-        }
       }
     },
     {
@@ -83,19 +70,6 @@
         "Water": 0.0,
         "Holy": 0.0,
         "Poison": 0.0
-      },
-      "LevelUpReward": {
-        "MaxDurability": 0,
-        "DamageBonuses": {
-          "Slash": 0.0,
-          "Stab": 0.0,
-          "Crush": 0.0,
-          "Pierce": 0.0,
-          "Fire": 0.0,
-          "Water": 0.0,
-          "Holy": 0.0,
-          "Poison": 0.0
-        }
       }
     },
     {
@@ -132,19 +106,6 @@
         "Water": 0.0,
         "Holy": 0.0,
         "Poison": 0.0
-      },
-      "LevelUpReward": {
-        "MaxDurability": 0,
-        "DamageBonuses": {
-          "Slash": 0.0,
-          "Stab": 0.0,
-          "Crush": 0.0,
-          "Pierce": 0.0,
-          "Fire": 0.0,
-          "Water": 0.0,
-          "Holy": 0.0,
-          "Poison": 0.0
-        }
       }
     }
   ]
