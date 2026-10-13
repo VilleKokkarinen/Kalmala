@@ -1,5 +1,13 @@
 # Autonomous development progress
 
+## Workspace cleanup 2026-10-13 — Remove merged M13 checkout
+
+- **Work completed:** removed the clean, inactive `wt/m13` checkout and its stale tracked Git link. Its branch tip was already an ancestor of `master`, so there were no unique changes to merge; retained the local `codex/m13-inventory-context` branch ref. The main checkout has no other worktree changes to merge.
+- **Files changed:** removed the tracked `wt/m13` Git link and updated this progress record. The pre-existing `Scripts/Render-Menu-folder.lnk` modification remains untouched.
+- **Checks:** confirmed the M13 checkout had no tracked or untracked changes, confirmed its branch had zero commits absent from `master`, and verified it was not associated with an active Codex task.
+- **Verification:** housekeeping only; no build or tests were run.
+- **Next eligible task:** surface all Stone, Bronze, and Iron tool acquisitions, authored stats, and material costs in station and Inventory Craft views through the server-authoritative progression action.
+
 ## User-directed increment 2026-10-13 — Finish CampFire identifier cleanup
 
 - **Work completed:** replaced the superseded catalogue, native component, icon, manifest, fixture, and current documentation names with canonical `CampFire`. The internal construction identity remains `CampfireKit`.
