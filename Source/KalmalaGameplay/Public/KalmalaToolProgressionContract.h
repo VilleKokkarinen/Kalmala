@@ -88,6 +88,7 @@ public:
         bool bAlreadyUpgraded,
         FString& Reason);
     static bool IsCatalogueValid();
+    /** Station/material/item transaction; the legacy skill-ledger argument is ignored. */
     static bool BuildServerUpgrade(
         bool bServerAuthority,
         const FKalmalaSkillProgressionLedger* ServerSkills,

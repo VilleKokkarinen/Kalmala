@@ -3203,9 +3203,9 @@ bool UKalmalaCraftingWidget::VerifyForgeUpgradeScopeForTest()
         && Details.Contains(TEXT("Harvesting tier remains tied to item identity"))
         && !Details.Contains(TEXT("Ironheart trunks (Densewood)"));
     const bool bRequirements = Entry && Entry->RequiredStation == EKalmalaToolStationKind::Forge
-        && Entry->RequiredStationLevel == 2 && Entry->RequiredSkill == EKalmalaSkill::Crafting
-        && Entry->RequiredSkillLevel == 5
-        && Details.Contains(TEXT("Requirements: Forge level 2, Crafting level 5 + second-tier unlock"));
+        && Entry->RequiredStationLevel == 2
+        && Details.Contains(TEXT("Requirements: Forge level 2"))
+        && !Details.Contains(TEXT("Crafting level")) && !Details.Contains(TEXT("second-tier unlock"));
     bool bMaterials = Entry && !Entry->MaterialCosts.IsEmpty();
     const UKalmalaItemCatalogue* Items = UKalmalaItemCatalogue::Get();
     if (Entry && Items)

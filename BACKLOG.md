@@ -31,6 +31,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-13 — Station-only crafting/upgrade eligibility:** remove obsolete player-skill/unlock checks and requirement text, retain station/material/item constraints, and regress missing/uninitialized ledgers. Lightweight checks passed; Unreal verification deferred.
+
 - [x] **2026-10-13 — Omit default item skill levels:** remove MinimumSkillLevel from all equipment JSON and default it internally to 1. Lightweight checks passed; Unreal verification deferred.
 
 - [x] **2026-10-13 — Remove empty recipe skill requirements:** omit None/0 skill properties from all authored acquisition/upgrade JSON and default them in the loader. Lightweight checks passed; Unreal verification deferred.

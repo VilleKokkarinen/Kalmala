@@ -129,7 +129,8 @@ bool FKalmalaM9ToolStationProgressionTest::RunTest(const FString& Parameters)
     };
     TArray<FKalmalaToolState> UpgradedTools;
     TArray<FKalmalaInventoryStack> UpgradedInventory;
-    for (const FKalmalaSkillProgressionLedger* Skills : {&CraftingLevelOne, &CraftingLevelFour,
+    FKalmalaSkillProgressionLedger EmptySkills;
+    for (const FKalmalaSkillProgressionLedger* Skills : {&CraftingLevelOne, &CraftingLevelFour, &EmptySkills,
         static_cast<FKalmalaSkillProgressionLedger*>(nullptr)})
     {
         TestTrue(TEXT("Upgrade succeeds independently of skill level or a skill ledger"),

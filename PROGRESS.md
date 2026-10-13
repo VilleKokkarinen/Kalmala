@@ -1,5 +1,13 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-13 — Station-only crafting/upgrade eligibility
+
+- **Completed/files:** ToolProgressionContract.cpp removes player-skill/second-tier-unlock gating and character skill-component lookup; its header documents the ignored compatibility ledger argument. CraftingComponent.cpp removes skill requirement/blocker text and skill-state lookup from equipment progression presentation. CraftingSubsystem.cpp Forge verification now expects station-only requirements. M9ToolStationProgressionTest.cpp additionally supplies an uninitialized ledger to demonstrate independence. Core design/architecture/setup docs and BACKLOG updated.
+- **Checks:** source inspection confirmed ordinary crafting gates are station/material/capacity checks; crafting XP awards remain rewards. Equipment transaction still enforces authority, matching station/level, materials, current item level and capacity while ignoring player progression. Narrow source checks found no skill-level/unlock gate in crafting/upgrading or its requirements presentation; git diff --check and staged MAX_PATH/scope checks passed. Regression updated but not executed.
+- **Impact/authority:** player levels cannot block craft/acquisition/upgrade requests or display misleading prerequisites. Server-owned station, costs and item progression remain authoritative. No authored balance, saved fields or client RPC changes. Existing user item/reward changes and unrelated edits preserved and excluded.
+- **Verification/limitations:** normal increment; full Unreal build/automation/menu runtime verification deferred. The legacy pure upgrade helper still accepts an ignored skill-ledger pointer for existing callers. Harvesting skills and crafting/cooking XP rewards remain separate. Existing station level matching was retained.
+- **Next eligible task:** convert decorative generated forest into individually attackable sources with compatible depletion/streaming policy.
+
 ## User-directed increment 2026-10-13 — Implicit minimum equipment skill level
 
 - **Completed/files:** removed MinimumSkillLevel from all 16 equipment profiles in five item-family JSON files and tools/building-hammer.json. GameCatalogueLoader.cpp supplies the existing default 1 before strict conversion. Architecture/setup docs and BACKLOG updated.

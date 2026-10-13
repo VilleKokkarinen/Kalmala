@@ -803,9 +803,6 @@ FString UKalmalaCraftingComponent::GetToolProgressionText(const FName StationFil
     const UKalmalaItemCatalogue* Items = UKalmalaItemCatalogue::Get();
     if (!Character || !Inventory || !Items) return TEXT("Tool upgrade details unavailable.\n");
 
-    const UKalmalaSkillProgressionComponent* SkillProgression = Character->GetSkillProgressionComponent();
-    const TArray<FKalmalaSkillState>* SkillStates = SkillProgression
-        ? &SkillProgression->GetDetailedProgression() : nullptr;
     const TArray<FKalmalaToolState>& CarriedTools = Character->GetCarriedToolInventory();
     FString Text = StationFilterKit.IsNone()
         ? TEXT("\nTOOL UPGRADES — OWNER ONLY\n")
@@ -890,12 +887,6 @@ FString UKalmalaCraftingComponent::GetToolProgressionText(const FName StationFil
         }
 
         Text += FString::Printf(TEXT("Requires: %s level %d"), StationName, Entry.RequiredStationLevel);
-        if (Entry.RequiredSkill != EKalmalaSkill::None)
-        {
-            const TCHAR* SkillName = Entry.RequiredSkill == EKalmalaSkill::Crafting
-                ? TEXT("Crafting") : TEXT("Skill");
-            Text += FString::Printf(TEXT(", %s level %d + second-tier unlock"), SkillName, Entry.RequiredSkillLevel);
-        }
         Text += TEXT(".\nCost: ");
 
         for (int32 Index = 0; Index < Entry.MaterialCosts.Num(); ++Index)
@@ -920,28 +911,6 @@ FString UKalmalaCraftingComponent::GetToolProgressionText(const FName StationFil
         {
             Blocker = FString::Printf(TEXT("Nearby %s is level %d; level %d is required"),
                 StationName, Level, Entry.RequiredStationLevel);
-        }
-        else if (Entry.RequiredSkill != EKalmalaSkill::None)
-        {
-            const FKalmalaSkillState* SkillState = SkillStates
-                ? SkillStates->FindByPredicate([&Entry](const FKalmalaSkillState& State)
-                    { return State.Skill == Entry.RequiredSkill; })
-                : nullptr;
-            if (!SkillState || !SkillState->IsValid())
-            {
-                Blocker = TEXT("Skill requirement is unavailable");
-            }
-            else if (SkillState->Level < Entry.RequiredSkillLevel)
-            {
-                Blocker = FString::Printf(TEXT("Need %s level %d"),
-                    Entry.RequiredSkill == EKalmalaSkill::Crafting ? TEXT("Crafting") : TEXT("Skill"),
-                    Entry.RequiredSkillLevel);
-            }
-            else if ((SkillState->UnlockMask & static_cast<uint8>(EKalmalaSkillUnlock::SecondTier)) == 0)
-            {
-                Blocker = FString::Printf(TEXT("Need the %s second-tier unlock"),
-                    Entry.RequiredSkill == EKalmalaSkill::Crafting ? TEXT("Crafting") : TEXT("skill"));
-            }
         }
 
         if (Blocker.IsEmpty() && !Entry.PreviousToolId.IsNone()
