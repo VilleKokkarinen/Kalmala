@@ -135,7 +135,7 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 - [ ] **2026-10-13 — Add three theme-appropriate tiers of weapons and tools:** add original weapons and tools across the Stone, Bronze, and Iron tiers, with item-specific stats and matching recipes; preserve the rule that upgrades improve the same item and do not grant a different item's gathering tier.
   - [x] Establish the Stone starting set with per-item combat stats and a Stone Spear identity/icon; keep harvesting access tied to each existing item identity.
-  - [ ] Add Bronze Knife, Axe, Pick, and Spear stats and their matching acquisition recipes; retain Bronze Axe's same-item level upgrade.
+  - [x] Add Bronze Knife, Axe, Pick, and Spear stats and their matching acquisition recipes; retain Bronze Axe's same-item level upgrade.
   - [ ] Add Iron Knife, Axe, Pick, and Spear stats, matching recipes, and an obtainable Iron source without turning Bronze items into Iron upgrades.
   - [ ] Expose all new tier gear and stats through the shared crafting and inventory views with canonical themed icons.
 

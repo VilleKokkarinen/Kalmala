@@ -152,7 +152,9 @@ bool UKalmalaIconWidget::FindCatalogueIcon(FName Id, EKalmalaIcon& OutIcon, int3
         {TEXT("CarrotSeed"),EKalmalaIcon::Seed,0}, {TEXT("PotatoSeed"),EKalmalaIcon::Seed,1}, {TEXT("RutabagaSeed"),EKalmalaIcon::Seed,2}, {TEXT("OnionSeed"),EKalmalaIcon::Seed,3},
         {TEXT("ReedKnife"),EKalmalaIcon::Knife,0}, {TEXT("FieldHatchet"),EKalmalaIcon::Axe,0}, {TEXT("StonePick"),EKalmalaIcon::Pick,0},
         {TEXT("StoneSpear"),EKalmalaIcon::Spear,0},
-        {TEXT("BronzeAxe"),EKalmalaIcon::Axe,1}, {TEXT("IronAxe"),EKalmalaIcon::Axe,2}, {TEXT("ConstructionHammer"),EKalmalaIcon::Hammer,0},
+        {TEXT("BronzeAxe"),EKalmalaIcon::Axe,1}, {TEXT("BronzeKnife"),EKalmalaIcon::Knife,1},
+        {TEXT("BronzePick"),EKalmalaIcon::Pick,1}, {TEXT("BronzeSpear"),EKalmalaIcon::Spear,1},
+        {TEXT("IronAxe"),EKalmalaIcon::Axe,2}, {TEXT("ConstructionHammer"),EKalmalaIcon::Hammer,0},
         {TEXT("MendingScroll"),EKalmalaIcon::Cross,0}, {TEXT("HearthShieldScroll"),EKalmalaIcon::Shield,0},
         {TEXT("BearsVigorScroll"),EKalmalaIcon::Paw,0}, {TEXT("DeerCallScroll"),EKalmalaIcon::Antlers,0}
     };

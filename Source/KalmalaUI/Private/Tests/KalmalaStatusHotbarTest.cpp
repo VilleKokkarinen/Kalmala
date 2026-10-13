@@ -353,7 +353,7 @@ bool FKalmalaCatalogueIconTest::RunTest(const FString&)
     TestEqual(TEXT("Audited inventory item count"), Items->Items.Num(), 45);
     for (const auto& Item : Items->Items) Check(Item.ItemId);
     for (const auto& Tool : FKalmalaToolLifecycleContract::GetDefinitions()) Check(Tool.ToolId);
-    for (const auto& Tool : FKalmalaToolLifecycleContract::GetTieredAxeDefinitions()) Check(Tool.ToolId);
+    for (const auto& Tool : FKalmalaToolLifecycleContract::GetTieredToolDefinitions()) Check(Tool.ToolId);
     Check(FKalmalaToolLifecycleContract::GetConstructionHammerDefinition().ToolId);
     const auto* Recipes = UKalmalaRecipeCatalogue::Get();
     TestEqual(TEXT("Audited recipe/build count"), Recipes->Recipes.Num(), 20);

@@ -16,10 +16,10 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
 {
     const TArray<FKalmalaToolProgressionEntry>& Entries = FKalmalaToolProgressionContract::GetEntries();
-    TestTrue(TEXT("Axe progression catalogue is bounded and internally valid"),
+    TestTrue(TEXT("Crafted tool progression catalogue is bounded and internally valid"),
         FKalmalaToolProgressionContract::IsCatalogueValid());
-    TestEqual(TEXT("Bronze Axe progression has an acquisition and one same-item upgrade entry"), Entries.Num(),
-        FKalmalaToolProgressionContract::MaxAxeProgressionEntries);
+    TestEqual(TEXT("Tool progression entries stay within their authored bound"), Entries.Num(),
+        FKalmalaToolProgressionContract::MaxToolProgressionEntries);
 
     const FKalmalaToolProgressionEntry* Bronze = FKalmalaToolProgressionContract::FindEntry(TEXT("BronzeAxe"));
     TestNotNull(TEXT("Bronze Axe has a progression entry"), Bronze);

@@ -3783,8 +3783,7 @@ void AKalmalaGameMode::RunReconnectVerification(APawn* ServerPawn)
                     FKalmalaToolServerSelection Selection;
                     if (FKalmalaToolLifecycleContract::BuildServerSelection(Node->GetGatheringSourceId(), Selection))
                     {
-                        const FKalmalaToolDefinition* Tool = FKalmalaToolLifecycleContract::GetDefinitions().FindByPredicate(
-                            [&Selection](const FKalmalaToolDefinition& Definition) { return Definition.Kind == Selection.RequiredTool; });
+                        const FKalmalaToolDefinition* Tool = FKalmalaToolLifecycleContract::FindMinimumQualifiedTool(Selection);
                         if (Tool != nullptr)
                         {
                             bHarvestAccepted = Node->InteractWithToolIntentFromServer(Interactor, 0.0f,

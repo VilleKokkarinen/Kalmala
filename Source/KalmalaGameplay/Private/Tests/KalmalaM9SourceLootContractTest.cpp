@@ -32,9 +32,9 @@ bool FKalmalaM9SourceLootContractTest::RunTest(const FString& Parameters)
         { TEXT("elderwood-ironheart-trunk"), TEXT("ironheart-trunk-harvest"), TEXT("Densewood"), 50,
             EKalmalaToolAction::Woodcutting, EKalmalaToolKind::None, EKalmalaToolTier::Iron },
         { TEXT("mire-peat-amber-seam"), TEXT("peat-amber-seam"), TEXT("PeatAmber"), 40,
-            EKalmalaToolAction::Mining, EKalmalaToolKind::StonePick, EKalmalaToolTier::None },
+            EKalmalaToolAction::Mining, EKalmalaToolKind::None, EKalmalaToolTier::Stone },
         { TEXT("tundra-frost-salt-deposit"), TEXT("tundra-salt-crystals"), TEXT("FrostSalt"), 40,
-            EKalmalaToolAction::Mining, EKalmalaToolKind::StonePick, EKalmalaToolTier::None }
+            EKalmalaToolAction::Mining, EKalmalaToolKind::None, EKalmalaToolTier::Stone }
     };
 
     const UKalmalaItemCatalogue* Catalogue = UKalmalaItemCatalogue::Get();

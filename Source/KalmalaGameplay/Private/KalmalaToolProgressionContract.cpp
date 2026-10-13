@@ -63,7 +63,41 @@ namespace
                 {TEXT("Fibre"), 2}
             };
 
-            return TArray<FKalmalaToolProgressionEntry>{BronzeAxe, BronzeAxeLevelTwo};
+            FKalmalaToolProgressionEntry BronzeKnife;
+            BronzeKnife.ToolId = TEXT("BronzeKnife");
+            BronzeKnife.TargetToolLevel = 1;
+            BronzeKnife.RequiredStation = EKalmalaToolStationKind::Workbench;
+            BronzeKnife.RequiredStationLevel = 1;
+            BronzeKnife.MaterialCosts = {
+                {TEXT("Wood"), 2},
+                {TEXT("Stone"), 2},
+                {TEXT("Fibre"), 3}
+            };
+
+            FKalmalaToolProgressionEntry BronzePick;
+            BronzePick.ToolId = TEXT("BronzePick");
+            BronzePick.TargetToolLevel = 1;
+            BronzePick.RequiredStation = EKalmalaToolStationKind::Workbench;
+            BronzePick.RequiredStationLevel = 1;
+            BronzePick.MaterialCosts = {
+                {TEXT("Wood"), 4},
+                {TEXT("Stone"), 4},
+                {TEXT("Fibre"), 2}
+            };
+
+            FKalmalaToolProgressionEntry BronzeSpear;
+            BronzeSpear.ToolId = TEXT("BronzeSpear");
+            BronzeSpear.TargetToolLevel = 1;
+            BronzeSpear.RequiredStation = EKalmalaToolStationKind::Workbench;
+            BronzeSpear.RequiredStationLevel = 1;
+            BronzeSpear.MaterialCosts = {
+                {TEXT("Wood"), 4},
+                {TEXT("Stone"), 3},
+                {TEXT("Fibre"), 3}
+            };
+
+            return TArray<FKalmalaToolProgressionEntry>{
+                BronzeAxe, BronzeAxeLevelTwo, BronzeKnife, BronzePick, BronzeSpear};
         }();
         return Entries;
     }
@@ -156,7 +190,7 @@ bool FKalmalaToolProgressionContract::IsCatalogueValid()
     const TArray<FKalmalaToolProgressionEntry>& Entries = ToolProgressionEntries();
     const UKalmalaItemCatalogue* ItemCatalogue = UKalmalaItemCatalogue::Get();
     const TArray<FKalmalaStationAttachmentDefinition>& Attachments = StationAttachmentDefinitions();
-    if (Entries.Num() != MaxAxeProgressionEntries || Attachments.Num() != 2 || ItemCatalogue == nullptr
+    if (Entries.Num() != MaxToolProgressionEntries || Attachments.Num() != 2 || ItemCatalogue == nullptr
         || !ItemCatalogue->IsValidCatalogue()) return false;
 
     TSet<FName> SeenAttachmentIds;

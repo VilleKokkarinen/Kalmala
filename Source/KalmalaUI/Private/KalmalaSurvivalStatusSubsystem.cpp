@@ -214,7 +214,7 @@ void UKalmalaSurvivalStatusSubsystem::Tick(float DeltaTime)
             };
             for (const auto& Item : UKalmalaItemCatalogue::Get()->Items) AddCanonicalRow(Item.ItemId, Item.DisplayName);
             for (const auto& Tool : FKalmalaToolLifecycleContract::GetDefinitions()) AddCanonicalRow(Tool.ToolId, Tool.ToolId.ToString());
-            for (const auto& Tool : FKalmalaToolLifecycleContract::GetTieredAxeDefinitions()) AddCanonicalRow(Tool.ToolId, Tool.ToolId.ToString());
+            for (const auto& Tool : FKalmalaToolLifecycleContract::GetTieredToolDefinitions()) AddCanonicalRow(Tool.ToolId, Tool.ToolId.ToString());
             const FName Hammer = FKalmalaToolLifecycleContract::GetConstructionHammerDefinition().ToolId;
             AddCanonicalRow(Hammer, Hammer.ToString());
             for (const auto& Recipe : UKalmalaRecipeCatalogue::Get()->Recipes)

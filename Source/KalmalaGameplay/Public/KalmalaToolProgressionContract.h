@@ -53,11 +53,11 @@ struct KALMALAGAMEPLAY_API FKalmalaStationAttachmentCandidate
     bool bInitialized = false;
 };
 
-/** Bounded authored progression catalogue for tiered axe acquisition and same-item upgrades. */
+/** Bounded authored progression catalogue for crafted-tool acquisition and same-item upgrades. */
 class KALMALAGAMEPLAY_API FKalmalaToolProgressionContract
 {
 public:
-    static constexpr int32 MaxAxeProgressionEntries = 2;
+    static constexpr int32 MaxToolProgressionEntries = 5;
     static constexpr int32 MaxStationAttachments = 32;
     static constexpr int32 MaxStationLevel = 2;
     static constexpr float MaxAttachmentDistanceCm = 125.0f;

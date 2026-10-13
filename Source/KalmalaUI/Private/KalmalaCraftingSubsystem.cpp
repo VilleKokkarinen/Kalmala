@@ -109,7 +109,11 @@ FString GetReadableToolName(const FName ToolId)
     if (ToolId == TEXT("ReedKnife")) return TEXT("Reed Knife");
     if (ToolId == TEXT("FieldHatchet")) return TEXT("Field Hatchet");
     if (ToolId == TEXT("StonePick")) return TEXT("Stone Pick");
+    if (ToolId == TEXT("StoneSpear")) return TEXT("Stone Spear");
     if (ToolId == TEXT("BronzeAxe")) return TEXT("Bronze Axe");
+    if (ToolId == TEXT("BronzeKnife")) return TEXT("Bronze Knife");
+    if (ToolId == TEXT("BronzePick")) return TEXT("Bronze Pick");
+    if (ToolId == TEXT("BronzeSpear")) return TEXT("Bronze Spear");
     if (ToolId == TEXT("IronAxe")) return TEXT("Iron Axe");
     if (ToolId == TEXT("ConstructionHammer")) return TEXT("Construction Hammer");
     return ToolId.ToString();
@@ -3846,7 +3850,7 @@ void UKalmalaCraftingWidget::Refresh()
             ToolLevel, Condition, MaxDurability, Condition < MaxDurability ? TEXT("damaged") : TEXT("full"));
     };
     for (const FKalmalaToolDefinition& Definition : FKalmalaToolLifecycleContract::GetDefinitions()) AppendToolCondition(Definition);
-    for (const FKalmalaToolDefinition& Definition : FKalmalaToolLifecycleContract::GetTieredAxeDefinitions()) AppendToolCondition(Definition);
+    for (const FKalmalaToolDefinition& Definition : FKalmalaToolLifecycleContract::GetTieredToolDefinitions()) AppendToolCondition(Definition);
     AppendToolCondition(FKalmalaToolLifecycleContract::GetConstructionHammerDefinition());
     if (CarriedToolConditionCount == 0) ToolConditionText += TEXT("\nNo carried tools.");
     const bool bStandaloneBuild = bInventoryCompanion || (!bEmbeddedContext && StationFilterKit.IsNone());

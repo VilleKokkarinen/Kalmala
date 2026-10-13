@@ -39,6 +39,9 @@ FString GetCarriedToolDisplayName(const FName ToolId)
     if (ToolId == TEXT("StonePick")) return TEXT("Stone Pick");
     if (ToolId == TEXT("StoneSpear")) return TEXT("Stone Spear");
     if (ToolId == TEXT("BronzeAxe")) return TEXT("Bronze Axe");
+    if (ToolId == TEXT("BronzeKnife")) return TEXT("Bronze Knife");
+    if (ToolId == TEXT("BronzePick")) return TEXT("Bronze Pick");
+    if (ToolId == TEXT("BronzeSpear")) return TEXT("Bronze Spear");
     if (ToolId == TEXT("IronAxe")) return TEXT("Iron Axe");
     if (ToolId == TEXT("ConstructionHammer")) return TEXT("Construction Hammer");
     return ToolId.ToString();

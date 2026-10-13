@@ -22,7 +22,7 @@ namespace
         return Definitions;
     }
 
-    const TArray<FKalmalaToolDefinition>& TieredAxeDefinitions()
+    const TArray<FKalmalaToolDefinition>& TieredToolDefinitions()
     {
         static const TArray<FKalmalaToolDefinition> Definitions = []
         {
@@ -37,6 +37,39 @@ namespace
             Bronze.DamageType = EKalmalaWeaponDamageType::Slash;
             Bronze.CombatDamage = 50.0f;
 
+            FKalmalaToolDefinition BronzeKnife;
+            BronzeKnife.ToolId = TEXT("BronzeKnife");
+            BronzeKnife.Kind = EKalmalaToolKind::BronzeKnife;
+            BronzeKnife.Action = EKalmalaToolAction::Gathering;
+            BronzeKnife.RequiredSkill = EKalmalaSkill::Gathering;
+            BronzeKnife.MinimumSkillLevel = 1;
+            BronzeKnife.MaxDurability = 48;
+            BronzeKnife.DurabilityCost = 1;
+            BronzeKnife.DamageType = EKalmalaWeaponDamageType::Slash;
+            BronzeKnife.CombatDamage = 42.0f;
+
+            FKalmalaToolDefinition BronzePick;
+            BronzePick.ToolId = TEXT("BronzePick");
+            BronzePick.Kind = EKalmalaToolKind::BronzePick;
+            BronzePick.Action = EKalmalaToolAction::Mining;
+            BronzePick.RequiredSkill = EKalmalaSkill::Mining;
+            BronzePick.MinimumSkillLevel = 1;
+            BronzePick.MaxDurability = 90;
+            BronzePick.DurabilityCost = 1;
+            BronzePick.DamageType = EKalmalaWeaponDamageType::Blunt;
+            BronzePick.CombatDamage = 38.0f;
+
+            FKalmalaToolDefinition BronzeSpear;
+            BronzeSpear.ToolId = TEXT("BronzeSpear");
+            BronzeSpear.Kind = EKalmalaToolKind::BronzeSpear;
+            BronzeSpear.Action = EKalmalaToolAction::None;
+            BronzeSpear.RequiredSkill = EKalmalaSkill::None;
+            BronzeSpear.MinimumSkillLevel = 1;
+            BronzeSpear.MaxDurability = 90;
+            BronzeSpear.DurabilityCost = 1;
+            BronzeSpear.DamageType = EKalmalaWeaponDamageType::Pierce;
+            BronzeSpear.CombatDamage = 58.0f;
+
             FKalmalaToolDefinition Iron;
             Iron.ToolId = TEXT("IronAxe");
             Iron.Kind = EKalmalaToolKind::IronAxe;
@@ -45,7 +78,7 @@ namespace
             Iron.MinimumSkillLevel = 1;
             Iron.MaxDurability = 24;
             Iron.DurabilityCost = 1;
-            return TArray<FKalmalaToolDefinition>{Bronze, Iron};
+            return TArray<FKalmalaToolDefinition>{Bronze, BronzeKnife, BronzePick, BronzeSpear, Iron};
         }();
         return Definitions;
     }
@@ -87,9 +120,9 @@ const TArray<FKalmalaToolDefinition>& FKalmalaToolLifecycleContract::GetDefiniti
     return ToolDefinitions();
 }
 
-const TArray<FKalmalaToolDefinition>& FKalmalaToolLifecycleContract::GetTieredAxeDefinitions()
+const TArray<FKalmalaToolDefinition>& FKalmalaToolLifecycleContract::GetTieredToolDefinitions()
 {
-    return TieredAxeDefinitions();
+    return TieredToolDefinitions();
 }
 
 const FKalmalaToolDefinition& FKalmalaToolLifecycleContract::GetConstructionHammerDefinition()
@@ -130,7 +163,7 @@ const FKalmalaToolDefinition* FKalmalaToolLifecycleContract::FindDefinition(cons
         return Candidate.ToolId == ToolId;
     });
     if (Definition != nullptr) return Definition;
-    Definition = TieredAxeDefinitions().FindByPredicate([ToolId](const FKalmalaToolDefinition& Candidate)
+    Definition = TieredToolDefinitions().FindByPredicate([ToolId](const FKalmalaToolDefinition& Candidate)
     {
         return Candidate.ToolId == ToolId;
     });
@@ -208,7 +241,10 @@ EKalmalaToolTier FKalmalaToolLifecycleContract::GetToolTier(const EKalmalaToolKi
     case EKalmalaToolKind::FieldHatchet:
     case EKalmalaToolKind::StonePick:
     case EKalmalaToolKind::StoneSpear: return EKalmalaToolTier::Stone;
-    case EKalmalaToolKind::BronzeAxe: return EKalmalaToolTier::Bronze;
+    case EKalmalaToolKind::BronzeAxe:
+    case EKalmalaToolKind::BronzeKnife:
+    case EKalmalaToolKind::BronzePick:
+    case EKalmalaToolKind::BronzeSpear: return EKalmalaToolTier::Bronze;
     case EKalmalaToolKind::IronAxe: return EKalmalaToolTier::Iron;
     default: return EKalmalaToolTier::None;
     }
@@ -231,15 +267,18 @@ bool FKalmalaToolLifecycleContract::BuildServerSelection(
 
     if (ServerSourceId == TEXT("meadows-birch-bark") || ServerSourceId == TEXT("elderwood-resinwood"))
     {
-        OutSelection = { ServerSourceId, EKalmalaToolAction::Woodcutting, EKalmalaToolKind::FieldHatchet, EKalmalaSkill::Woodcutting, TEXT("Wood"), 1 };
+        OutSelection = { ServerSourceId, EKalmalaToolAction::Woodcutting, EKalmalaToolKind::None,
+            EKalmalaSkill::Woodcutting, TEXT("Wood"), 1, EKalmalaToolTier::Stone };
     }
     else if (ServerSourceId == TEXT("lakes-reed-cluster") || ServerSourceId == TEXT("tundra-frostmoss"))
     {
-        OutSelection = { ServerSourceId, EKalmalaToolAction::Gathering, EKalmalaToolKind::ReedKnife, EKalmalaSkill::Gathering, TEXT("Fibre"), 1 };
+        OutSelection = { ServerSourceId, EKalmalaToolAction::Gathering, EKalmalaToolKind::None,
+            EKalmalaSkill::Gathering, TEXT("Fibre"), 1, EKalmalaToolTier::Stone };
     }
     else if (ServerSourceId == TEXT("mire-bog-iron") || ServerSourceId == TEXT("mountains-slate-vein"))
     {
-        OutSelection = { ServerSourceId, EKalmalaToolAction::Mining, EKalmalaToolKind::StonePick, EKalmalaSkill::Mining, TEXT("Stone"), 1 };
+        OutSelection = { ServerSourceId, EKalmalaToolAction::Mining, EKalmalaToolKind::None,
+            EKalmalaSkill::Mining, TEXT("Stone"), 1, EKalmalaToolTier::Stone };
     }
     else if (ServerSourceId == TEXT("meadows-birch-trunk"))
     {
@@ -253,8 +292,8 @@ bool FKalmalaToolLifecycleContract::BuildServerSelection(
     {
         FName RewardItemId;
         if (!FKalmalaM9SourceLootContract::GetPrimaryItemId(ServerSourceId, RewardItemId)) return false;
-        OutSelection = { ServerSourceId, EKalmalaToolAction::Mining, EKalmalaToolKind::StonePick,
-            EKalmalaSkill::Mining, RewardItemId, 1 };
+        OutSelection = { ServerSourceId, EKalmalaToolAction::Mining, EKalmalaToolKind::None,
+            EKalmalaSkill::Mining, RewardItemId, 1, EKalmalaToolTier::Stone };
     }
 
     const UKalmalaItemCatalogue* Catalogue = UKalmalaItemCatalogue::Get();
@@ -300,7 +339,7 @@ const FKalmalaToolDefinition* FKalmalaToolLifecycleContract::FindMinimumQualifie
         if (Best == nullptr || static_cast<uint8>(Tier) < static_cast<uint8>(GetToolTier(Best->Kind))) Best = &Definition;
     };
     for (const FKalmalaToolDefinition& Definition : GetDefinitions()) ConsiderDefinition(Definition);
-    for (const FKalmalaToolDefinition& Definition : GetTieredAxeDefinitions()) ConsiderDefinition(Definition);
+    for (const FKalmalaToolDefinition& Definition : GetTieredToolDefinitions()) ConsiderDefinition(Definition);
     return Best;
 }
 

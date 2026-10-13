@@ -21,6 +21,9 @@ enum class EKalmalaToolKind : uint8
     FieldHatchet,
     StonePick,
     BronzeAxe,
+    BronzeKnife,
+    BronzePick,
+    BronzeSpear,
     IronAxe,
     StoneSpear,
     ConstructionHammer
@@ -105,11 +108,11 @@ class KALMALAGAMEPLAY_API FKalmalaToolLifecycleContract
 {
 public:
     static constexpr int32 MaxFirstWaveToolDefinitions = 4;
-    static constexpr int32 MaxCarriedToolRecords = 6;
+    static constexpr int32 MaxCarriedToolRecords = 16;
     static constexpr float DefaultMaximumRange = 250.0f;
 
     static const TArray<FKalmalaToolDefinition>& GetDefinitions();
-    static const TArray<FKalmalaToolDefinition>& GetTieredAxeDefinitions();
+    static const TArray<FKalmalaToolDefinition>& GetTieredToolDefinitions();
     static const FKalmalaToolDefinition& GetConstructionHammerDefinition();
     static TArray<FKalmalaToolState> BuildInitialCarriedTools();
     static const FKalmalaToolDefinition* FindDefinition(FName ToolId);

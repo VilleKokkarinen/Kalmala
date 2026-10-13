@@ -1295,6 +1295,10 @@ Each raster fills its scaled 64x64 box. Status layout wraps within a 384-unit ro
 
 The accepted catalogue icon baseline covers 48 canonical item/tool/construction identities and nine status identities. The post-roadmap Stone Spear addition has its own imported icon, bringing the current catalogue total to 49. Views reuse canonical IDs and one image per identity; aliases and recipes do not get duplicate art. Unknown IDs retain a question-mark fallback; missing imported textures retain existing vector fallbacks. Current runtime/catalogue additions must receive explicit coverage rather than assuming the historical counts include them.
 
+The post-roadmap Bronze Knife, Pick, and Spear identities currently use their
+matching vector icon fallbacks until their dedicated 64×64 canonical art is
+imported. They do not increase the imported catalogue-icon count yet.
+
 Original PNGs live in Content/Kalmala/UI/Source/IconOriginals and prepared PNGs in Source/Icons below that UI directory. Catalogue and status importers prepare transparent 64x64 artwork and import UI textures with sRGB, no mipmaps, and no streaming. Code constructs icon paths dynamically; both catalogue/status directories must be included in package cooks. The CSV manifests are machine inputs used by import/validation scripts, not disposable narrative reports. Their pre-existing working-tree deletions were preserved by this cleanup; those tools require the manifests to be supplied/restored before use.
 
 ## Item and recipe details
@@ -2344,6 +2348,20 @@ tier or resource access. It refreshes the
 carried level from local owner state and reports an already-upgraded tool
 without offering another upgrade. It adds no
 request, equipment state, stat authority, replication field, or save data.
+
+The post-roadmap Bronze tier also defines independent Bronze Knife (48
+durability, 42 slash), Bronze Pick (90 durability, 38 blunt), and Bronze Spear
+(90 durability, 58 pierce) identities. Their level-one acquisitions, plus the
+existing Bronze Axe acquisition, are authored at Workbench level 1. The
+existing Bronze Axe level-two entry remains a same-item upgrade (150 durability
+and 55 slash); it cannot create an Axe, Pick, Knife, or Spear identity. Bronze
+Knife and Pick use their own action profiles and can satisfy Stone-tier
+gathering/mining sources; Bronze Axe satisfies matching woodcutting sources.
+Every harvesting tier is derived from the item's identity, never from its
+upgrade level. The carried-tool cap is 16 so the
+planned four-item sets can coexist with starter tools and the construction
+hammer. Dedicated Bronze icon textures and generic station-menu exposure for
+the new acquisitions remain in the next post-roadmap increments.
 
 ## Allowed and forbidden sources
 

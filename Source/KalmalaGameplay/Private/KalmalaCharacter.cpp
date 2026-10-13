@@ -827,7 +827,7 @@ bool AKalmalaCharacter::GetLocalHarvestInteractionIntent(const AKalmalaHarvestNo
 
     const FKalmalaToolDefinition* Definition = nullptr;
     int32 DefinitionLevel = 0;
-    for (const FKalmalaToolDefinition& Candidate : FKalmalaToolLifecycleContract::GetTieredAxeDefinitions())
+    for (const FKalmalaToolDefinition& Candidate : FKalmalaToolLifecycleContract::GetTieredToolDefinitions())
     {
         const int32 CandidateLevel = GetCarriedToolLevel(Candidate.ToolId);
         if (CandidateLevel < 1 || !FKalmalaToolLifecycleContract::IsToolSuitableForSelection(

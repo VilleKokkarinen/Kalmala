@@ -46,8 +46,20 @@ FString GetToolDisplayName(const FName ToolId)
     if (ToolId == TEXT("StonePick")) return TEXT("Stone Pick");
     if (ToolId == TEXT("StoneSpear")) return TEXT("Stone Spear");
     if (ToolId == TEXT("BronzeAxe")) return TEXT("Bronze Axe");
+    if (ToolId == TEXT("BronzeKnife")) return TEXT("Bronze Knife");
+    if (ToolId == TEXT("BronzePick")) return TEXT("Bronze Pick");
+    if (ToolId == TEXT("BronzeSpear")) return TEXT("Bronze Spear");
     if (ToolId == TEXT("IronAxe")) return TEXT("Iron Axe");
     return ToolId.ToString();
+}
+
+FString GetToolCombatSummary(const FName ToolId, const int32 ToolLevel)
+{
+    const float Damage = FKalmalaToolLifecycleContract::GetWeaponDamage(ToolId, ToolLevel);
+    if (Damage <= 0.0f) return TEXT("No combat damage");
+    const TCHAR* DamageType = FKalmalaToolLifecycleContract::GetWeaponDamageTypeLabel(
+        FKalmalaToolLifecycleContract::GetWeaponDamageType(ToolId));
+    return FString::Printf(TEXT("%s damage %.0f"), DamageType, Damage);
 }
 
 FString GetStationDisplayName(const FName KitId)
@@ -806,7 +818,7 @@ FString UKalmalaCraftingComponent::GetToolProgressionText(const FName StationFil
         const FKalmalaToolDefinition* TargetDefinition = FKalmalaToolLifecycleContract::FindDefinition(Entry.ToolId);
         if (!TargetDefinition)
         {
-            TargetDefinition = FKalmalaToolLifecycleContract::GetTieredAxeDefinitions().FindByPredicate(
+            TargetDefinition = FKalmalaToolLifecycleContract::GetTieredToolDefinitions().FindByPredicate(
                 [&Entry](const FKalmalaToolDefinition& Definition) { return Definition.ToolId == Entry.ToolId; });
         }
         if (!TargetDefinition) continue;
@@ -817,9 +829,9 @@ FString UKalmalaCraftingComponent::GetToolProgressionText(const FName StationFil
                 Entry.ToolId, ExistingTarget->ToolLevel);
             Text += FString::Printf(TEXT("%s is already level %d.\nStatus: Already at this level.\n"),
                 *GetToolDisplayName(Entry.ToolId), ExistingTarget->ToolLevel);
-            Text += FString::Printf(TEXT("Condition: %d/%d durability · Slash damage: %.0f.\n"),
+            Text += FString::Printf(TEXT("Condition: %d/%d durability · %s.\n"),
                 ExistingTarget->Durability, MaxDurability,
-                FKalmalaToolLifecycleContract::GetSlashDamage(Entry.ToolId, ExistingTarget->ToolLevel));
+                *GetToolCombatSummary(Entry.ToolId, ExistingTarget->ToolLevel));
             continue;
         }
         if (ExistingTarget && Entry.PreviousToolId.IsNone())
@@ -837,7 +849,7 @@ FString UKalmalaCraftingComponent::GetToolProgressionText(const FName StationFil
             : FKalmalaToolLifecycleContract::FindDefinition(Entry.PreviousToolId);
         if (!PreviousDefinition && !Entry.PreviousToolId.IsNone())
         {
-            PreviousDefinition = FKalmalaToolLifecycleContract::GetTieredAxeDefinitions().FindByPredicate(
+            PreviousDefinition = FKalmalaToolLifecycleContract::GetTieredToolDefinitions().FindByPredicate(
                 [&Entry](const FKalmalaToolDefinition& Definition) { return Definition.ToolId == Entry.PreviousToolId; });
         }
         if (Entry.PreviousToolId == Entry.ToolId)
@@ -846,14 +858,16 @@ FString UKalmalaCraftingComponent::GetToolProgressionText(const FName StationFil
                 Entry.PreviousToolId, Entry.PreviousToolLevel);
             const int32 TargetMaxDurability = FKalmalaToolLifecycleContract::GetMaxDurability(
                 Entry.ToolId, Entry.TargetToolLevel);
-            const float PreviousSlashDamage = FKalmalaToolLifecycleContract::GetSlashDamage(
+            const float PreviousDamage = FKalmalaToolLifecycleContract::GetWeaponDamage(
                 Entry.PreviousToolId, Entry.PreviousToolLevel);
-            const float TargetSlashDamage = FKalmalaToolLifecycleContract::GetSlashDamage(
+            const float TargetDamage = FKalmalaToolLifecycleContract::GetWeaponDamage(
                 Entry.ToolId, Entry.TargetToolLevel);
-            Text += FString::Printf(TEXT("Comparison: %s level %d → level %d.\nDurability: %d → %d (+%d).\nSlash damage: %.0f → %.0f (+%.0f).\n"),
+            const TCHAR* DamageType = FKalmalaToolLifecycleContract::GetWeaponDamageTypeLabel(
+                FKalmalaToolLifecycleContract::GetWeaponDamageType(Entry.ToolId));
+            Text += FString::Printf(TEXT("Comparison: %s level %d → level %d.\nDurability: %d → %d (+%d).\n%s damage: %.0f → %.0f (+%.0f).\n"),
                 *GetToolDisplayName(Entry.ToolId), Entry.PreviousToolLevel, Entry.TargetToolLevel,
                 PreviousMaxDurability, TargetMaxDurability, TargetMaxDurability - PreviousMaxDurability,
-                PreviousSlashDamage, TargetSlashDamage, TargetSlashDamage - PreviousSlashDamage);
+                DamageType, PreviousDamage, TargetDamage, TargetDamage - PreviousDamage);
         }
         else if (!Entry.PreviousToolId.IsNone())
         {
@@ -869,10 +883,11 @@ FString UKalmalaCraftingComponent::GetToolProgressionText(const FName StationFil
         }
         else
         {
-            Text += FString::Printf(TEXT("New tool: %s %d (starts at %d/%d condition).\n"),
+            Text += FString::Printf(TEXT("New tool: %s %d (starts at %d/%d condition · %s).\n"),
                 *GetToolDisplayName(Entry.ToolId), Entry.TargetToolLevel,
                 FKalmalaToolLifecycleContract::GetMaxDurability(Entry.ToolId, Entry.TargetToolLevel),
-                FKalmalaToolLifecycleContract::GetMaxDurability(Entry.ToolId, Entry.TargetToolLevel));
+                FKalmalaToolLifecycleContract::GetMaxDurability(Entry.ToolId, Entry.TargetToolLevel),
+                *GetToolCombatSummary(Entry.ToolId, Entry.TargetToolLevel));
         }
 
         Text += FString::Printf(TEXT("Requires: %s level %d"), StationName, Entry.RequiredStationLevel);
