@@ -2680,6 +2680,29 @@ underway voyage and owner feedback.
 
 Check each runner's supported parameters before invoking it. For milestone-final acceptance, use a successfully built integrated tree, the prescribed full Kalmala automation namespace, fresh isolated profiles, and the relevant live/rendered/package checks. A static contract PASS never proves rendered or physical input acceptance. Run UnrealBuildTool with normal read/write access to %LOCALAPPDATA%/UnrealBuildTool. Use short paths and avoid generating Binaries, Intermediate, Saved, or DerivedDataCache inside the source checkout during autonomous work.
 
+## Native-format support tools
+
+The non-PowerShell tools directly under `Scripts/` are optional maintenance helpers;
+they are not required to launch, build, or package the game. They remain Python
+where that gives them direct access to image-processing libraries or Unreal's
+editor API. The `.csv` icon manifests and `WorldMapPreview.params` file are data
+inputs, not executable tools; the manifests keep IDs and batches editable as
+tables, while the preview file is consumed by the PowerShell map exporter.
+
+| Tool | Runtime requirements | Why it stays Python |
+| --- | --- | --- |
+| `Prepare-StatusIconBatch.py` | Standalone Python 3 and Pillow (`PIL`); uses only the standard library otherwise. Run `python Scripts/Prepare-StatusIconBatch.py --batch 01` (or `02`/`03`). | Pillow handles PNG decoding, alpha-bound cropping, Lanczos resizing, RGBA compositing, and output validation directly. |
+| `Import-CatalogueIconBatch.py` | Run by the `Import-CatalogueIconBatch.ps1` wrapper inside Unreal Editor 5.8 commandlet with `PythonScriptPlugin` and `EditorScriptingUtilities` enabled; the wrapper supplies the batch and repository-root environment variables. | It uses Unreal's `unreal` module to import, configure, and save `Texture2D` assets and to verify canonical aliases against the manifest. |
+| `Import-StatusIconAssets.py` | Run by `Import-StatusIconAssets.ps1` inside the same Unreal Editor 5.8 commandlet setup; no third-party Python package is used. | It uses Unreal's asset-import and editor-save APIs to create and validate the nine status texture assets. |
+| `Setup-PrototypeEnvironment.py` | Unreal Editor 5.8 commandlet with `PythonScriptPlugin` and `EditorScriptingUtilities`; invoke with `UnrealEditor-Cmd.exe <project> -run=pythonscript -script=<absolute-script-path>`. Close other editor/test processes first because it saves `L_Prototype`. | It uses Unreal's editor world, actor, lighting, and map-save APIs to update the existing prototype map idempotently. |
+
+The two icon import Python files are implementation modules for their PowerShell
+wrappers, not separate user-facing launchers. The wrappers prepare isolated
+content-only projects and logs; the Python side performs asset operations that
+require Unreal's embedded API. Keep generated PNGs and imported `.uasset`
+packages distinct: the packages are game content, while the source images and
+these authoring/import helpers are only needed when icon content changes.
+
 ## Fresh-player co-op acceptance
 
 The retained M5 charter is one normal packaged, tool-free 20–30 minute listen-host/client session: start and orient, choose/gather/build a camp, travel by choice, exercise optional creatures/discoveries/support, return or recover, then reconnect to the same world. Use normal input and joining rather than verification flags, teleports, fixed routes, developer commands, or hidden-content queries. Cover Mireling/boar/deer and all four support effects without direct-damage magic. Observe shared world identity, paid transactions, readable non-colour feedback, private entitlement/reward state, and exact-once matching-world restoration.

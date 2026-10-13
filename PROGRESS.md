@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-13 — Document native support tools
+
+- **Completed:** documented all four non-PowerShell Python support tools, their actual runtime requirements, launch paths or wrappers, and why image and Unreal editor operations remain Python. Clarified that the CSV manifests and World Map preview parameters are data inputs, not executable tools, and separated authoring helpers from runtime game content.
+- **Files changed:** `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** inventoried non-`.ps1` files under `Scripts/`, read each Python tool and the icon-import wrappers, and searched callers and documented Unreal Python plugin requirements. Confirmed no active Kalmala/Unreal/render process was running and the only pre-existing working-tree change is the unrelated `Scripts/Render-Menu-folder.lnk`. `git diff --check` passed. No test, Unreal build, or support tool was executed; full verification remains deferred.
+- **Impact and authority:** documentation-only; no gameplay, networking, save, build, or runtime behavior changed. Network authority assessment: not applicable.
+- **Verification/limitations:** normal backlog child increment, not milestone-final. The icon preparation helper requires Pillow in the standalone Python environment; Unreal editor scripts require the documented UE 5.8 editor Python plugins. No output assets were generated.
+- **Next eligible task:** add three theme-appropriate tiers of weapons and tools with item-specific stats and matching recipes, preserving item identity and gathering-tier rules.
+
 ## Autonomous increment 2026-10-13 — Audit verification entrypoints
 
 - **Completed:** audited the current `Verify-*` script inventory, documentation callers, wrapper references, and overlapping ocean-reconnect checks. Retired the standalone skiff reconnect launcher after confirming its seat restore, late-join privacy, and discovery-replay assertions are also required by the integrated journey/reconnect runner. Kept the standalone skiff crossing because it uniquely checks fixed-origin stability, and kept/disclosed the otherwise undocumented construction movement runner because its floor/wall/roof movement and replicated exposure coverage has no equivalent current runner. The verification index now lists every remaining runner.

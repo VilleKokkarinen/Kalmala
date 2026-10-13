@@ -118,7 +118,7 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 - [x] **2026-10-12 — Correct crafting list content alignment:** stretch each list button's content slot so item icons and left-justified labels start at the row's left inset in Workbench, Forge, and Inventory Craft.
 - [x] **2026-10-12 — Show station levels in Workbench/Forge headers:** replace attachment-state text with each station's effective level, using level 1 as its base and adding a level for a compatible upgrade.
 
-- [ ] **2026-10-12 — Streamline verification scripts:** reduce redundant or obsolete test entrypoints while retaining required acceptance coverage; distinguish test runners from Python support tools.
+- [x] **2026-10-12 — Streamline verification scripts:** reduce redundant or obsolete test entrypoints while retaining required acceptance coverage; distinguish test runners from Python support tools.
   - [x] Retire the superseded standalone integrated ocean skiff journey runner; the integrated reconnect runner already covers its journey/discovery/weather checks and adds late-join/restart coverage.
   - [x] Merge ocean weather and fixed-origin assertions into the focused two-peer journey runner; remove their separate launchers.
   - [x] Combine settings runtime and no-build contract verification under `Verify-SettingsAccessibility.ps1`, retaining a contract-only mode.
@@ -131,7 +131,9 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
   - [x] Consolidate the optional procedural audio-source generators into one selectable tool; keep checked-in WAV and Unreal assets as game content and document that generation is not a runtime/build step.
     - [x] Consolidate catalogue and status icon validation into one parameterized maintenance script; document that imported icon packages are runtime content while their source-art tools are optional.
   - [x] Audit remaining `Verify-*` entrypoints against current acceptance requirements, callers, and equivalent coverage; retire or consolidate only confirmed duplicates. Retained the unique construction movement runner, documented it, and retired the skiff reconnect launcher whose checks are covered by the integrated journey/reconnect runner.
-  - [ ] Document the non-`.ps1` support tools, their runtime requirements, and why they remain in their native formats.
+  - [x] Document the non-`.ps1` support tools, their runtime requirements, and why they remain in their native formats.
+
+- [ ] **2026-10-13 — Add three theme-appropriate tiers of weapons and tools:** add original weapons and tools across three existing progression tiers, with item-specific stats and matching recipes; preserve the rule that upgrades improve the same item and do not grant a different item's gathering tier.
 
 - [x] **2026-10-11 — Fix Build card fill and visible icon scale:** prevent the shared selectable-fill animation from overwriting the standalone Build menu's brown card overlay, and compensate for transparent margins in the 64×64 catalogue canvases while preserving icon proportions. Source inspection and `git diff --check` only; build/render verification deferred.
 
