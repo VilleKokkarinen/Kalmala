@@ -62,7 +62,7 @@ bool FKalmalaItemDetailTest::RunTest(const FString& Parameters)
     }
     TestTrue(TEXT("High-contrast scaled panel binds current owner-visible data"), bFoundDetails);
     TestTrue(TEXT("Selected item detail shows its imported catalogue image"), bFoundLoadedItemImage);
-    Panel->SetCarriedTool(TEXT("ReedKnife"), TEXT("Reed Knife"), TEXT("Condition 17/40"), 100, 0);
+    Panel->SetCarriedTool(TEXT("ReedKnife"), TEXT("Stone Knife"), TEXT("Condition 17/40"), 100, 0);
     TArray<UWidget*> ToolWidgets;
     Panel->WidgetTree->GetAllWidgets(ToolWidgets);
     bool bFoundToolDetails = false;

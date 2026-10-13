@@ -16,7 +16,7 @@ bool FKalmalaInventoryInspectTest::RunTest(const FString& Parameters)
     Panel->TakeWidget();
     TestNotNull(TEXT("Slate construction creates inspection root before first owner refresh"), Panel->GetRootWidget());
     TArray<FKalmalaCatalogueRow> Rows = {{TEXT("Wood"), TEXT("Wood"), TEXT("Count 7"), false},
-        {TEXT("FieldHatchet"), TEXT("Field Hatchet"), TEXT("Condition 17/40"), true}};
+        {TEXT("FieldHatchet"), TEXT("Stone Axe"), TEXT("Condition 17/40"), true}};
     Panel->SetRows(Rows, 150, 1);
     TestTrue(TEXT("Inspection is focusable within modal"), Panel->IsFocusable());
     TestEqual(TEXT("First supplied slot selected"), Panel->GetSelectedItem(), FName(TEXT("Wood")));

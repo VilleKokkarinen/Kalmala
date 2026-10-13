@@ -563,9 +563,9 @@ gathered material cost from current condition and publishes payment and repair
 together. Run `Kalmala.Gameplay.Crafting.NetworkContract` and the same
 reconnect script to check the payload boundary, validated station, atomic
 material failure/success, and owner-only condition. The same reconnect fixture
-wears the Field Hatchet through accepted server harvests and verifies its
+wears the Stone Axe through accepted server harvests and verifies its
 replacement, then wears the Stone Pick through server-selected mining harvests
-and verifies its replacement, then gathers Fibre with the Reed Knife and
+and verifies its replacement, then gathers Fibre with the Stone Knife and
 verifies its replacement: zero-condition and visible-workbench gates, exact
 material payments, no mutation on intact-tool, missing-station, or missing-
 material attempts, owner-only condition restoration, post-payment Crafting

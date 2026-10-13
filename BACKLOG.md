@@ -29,6 +29,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-13 — Rename Stone starter tools:** display ReedKnife as Stone Knife and FieldHatchet as Stone Axe across inventory, crafting, repair labels, and item details. Preserve both canonical IDs for existing saves and gameplay contracts.
+
 - [x] **2026-10-13 — Finish Bronze Axe level-two gains:** keep harvesting tier tied to item identity; set level 1 to 100 durability/50 slash damage and level 2 to 150/55, apply the slash values in server combat, and show the stat deltas in the upgrade comparison.
   - [x] Remove the named-item upgrade button text and the carried-level prerequisite sentence from the comparison header; stop Bronze Axe level from unlocking Iron harvesting.
   - [x] Apply and display the specified durability and slash-damage values at both levels.

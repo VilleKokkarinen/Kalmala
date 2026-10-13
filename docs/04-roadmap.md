@@ -187,7 +187,7 @@ M7 has nine ordered goals:
    Smoke-frame recipes are the first optional Cooking level-2 unlock; the
    crafting panel shows the requirement and current level, and the server
    checks the owner's progression before attempting station or pack access.
-   The first tool replacement recipe rebuilds a Field Hatchet only at zero
+   The first tool replacement recipe rebuilds the Stone Axe only at zero
    condition through a visible workbench and atomic two-Wood/two-Stone/one-
    Fibre payment; it restores the existing owner-only condition and awards a
    fixed 10 Crafting experience only after payment succeeds.
@@ -195,7 +195,7 @@ M7 has nine ordered goals:
    condition, for two Wood, three Stone, and one Fibre at a visible same-world
    workbench; accepted payment restores its existing owner-only condition and
    awards the same fixed transient Crafting experience.
-   A Reed Knife replacement is also available only at zero condition, for one
+   A Stone Knife replacement is also available only at zero condition, for one
    Wood, one Stone, and two Fibre at a visible same-world workbench; accepted
    payment restores its existing owner-only condition and awards the same
    fixed transient Crafting experience.

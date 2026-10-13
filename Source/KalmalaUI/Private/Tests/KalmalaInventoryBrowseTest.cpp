@@ -13,7 +13,7 @@ bool FKalmalaInventoryBrowseTest::RunTest(const FString& Parameters)
     auto* Panel = NewObject<UKalmalaInventoryInspectWidget>(); Panel->Initialize(); Panel->TakeWidget();
     const TArray<FKalmalaCatalogueRow> Source = {
         {TEXT("Wood"), TEXT("Wood"), TEXT("Count 7"), false},
-        {TEXT("FieldHatchet"), TEXT("Field Hatchet"), TEXT("Condition 17/40"), true},
+        {TEXT("FieldHatchet"), TEXT("Stone Axe"), TEXT("Condition 17/40"), true},
         {TEXT("Stone"), TEXT("Stone"), TEXT("Count 3"), false},
         {TEXT("Fibre"), TEXT("Reed Fibre"), TEXT("Count 4"), false}};
     Panel->SetRows(Source, 150, 1);

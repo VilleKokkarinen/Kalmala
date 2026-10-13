@@ -18,7 +18,7 @@ bool FKalmalaInventoryMenuSelectionTest::RunTest(const FString& Parameters)
     auto* OwnerB = NewObject<UKalmalaInventoryMenuWidget>(); OwnerB->Initialize();
     const TArray<FKalmalaCatalogueRow> Rows = {
         {TEXT("Wood"), TEXT("Wood"), TEXT("× 7"), false},
-        {TEXT("ReedKnife"), TEXT("Reed Knife"), TEXT("Level 1\nCondition 17/40"), true}};
+        {TEXT("ReedKnife"), TEXT("Stone Knife"), TEXT("Level 1\nCondition 17/40"), true}};
     OwnerA->SetInventoryRowsForVerification(Rows, 150, 1);
     OwnerB->SetInventoryRowsForVerification({{TEXT("Stone"), TEXT("Stone"), TEXT("× 93"), false}}, 100, 0);
     const auto DetailText = [](UKalmalaInventoryMenuWidget* Menu)

@@ -106,8 +106,8 @@ bool IsCookingMenuRecipe(const FName StationKit, const FKalmalaRecipe& Recipe)
 
 FString GetReadableToolName(const FName ToolId)
 {
-    if (ToolId == TEXT("ReedKnife")) return TEXT("Reed Knife");
-    if (ToolId == TEXT("FieldHatchet")) return TEXT("Field Hatchet");
+    if (ToolId == TEXT("ReedKnife")) return TEXT("Stone Knife");
+    if (ToolId == TEXT("FieldHatchet")) return TEXT("Stone Axe");
     if (ToolId == TEXT("StonePick")) return TEXT("Stone Pick");
     if (ToolId == TEXT("StoneSpear")) return TEXT("Stone Spear");
     if (ToolId == TEXT("BronzeAxe")) return TEXT("Bronze Axe");
@@ -640,8 +640,8 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     StationCraftExcludedWidgets.Add(RepairActions);
     BuildExcludedWidgets.Add(RepairText);
     BuildExcludedWidgets.Add(RepairActions);
-    AddButton(TEXT("Repair Reed Knife"), RepairActions)->OnClicked.AddDynamic(this, &ThisClass::RepairReedKnife);
-    AddButton(TEXT("Repair Field Hatchet"), RepairActions)->OnClicked.AddDynamic(this, &ThisClass::RepairFieldHatchet);
+    AddButton(TEXT("Repair Stone Knife"), RepairActions)->OnClicked.AddDynamic(this, &ThisClass::RepairReedKnife);
+    AddButton(TEXT("Repair Stone Axe"), RepairActions)->OnClicked.AddDynamic(this, &ThisClass::RepairFieldHatchet);
     AddButton(TEXT("Repair Stone Pick"), RepairActions)->OnClicked.AddDynamic(this, &ThisClass::RepairStonePick);
     auto* AxeRepairActions = WidgetTree->ConstructWidget<UHorizontalBox>(); Column->AddChild(AxeRepairActions);
     StationCraftExcludedWidgets.Add(AxeRepairActions);
