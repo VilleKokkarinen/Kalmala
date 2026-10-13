@@ -57,7 +57,6 @@ namespace
         Definition.Action = ParseToolAction(Profile.Action);
         Definition.RequiredSkill = ParseToolSkill(Profile.RequiredSkill);
         Definition.MinimumSkillLevel = Profile.MinimumSkillLevel;
-        Definition.DurabilityCost = Profile.DurabilityCost;
         Definition.Attacks = Profile.Attacks;
         for (const FKalmalaToolLevelData& LevelData : Profile.Levels)
         {
@@ -407,9 +406,9 @@ bool FKalmalaToolLifecycleContract::ApplyServerUse(
     OutRewardQuantity = 0;
     const FKalmalaToolDefinition* Definition = FindDefinition(ClientToolId);
     if (!IsUseAllowed(Context, ClientToolId, ClientAction, ToolState, SkillState, ServerSelection)
-        || Definition == nullptr || ToolState.Durability < Definition->DurabilityCost) return false;
+        || Definition == nullptr || ToolState.Durability < DurabilityPerUse) return false;
 
-    ToolState.Durability -= Definition->DurabilityCost;
+    ToolState.Durability -= DurabilityPerUse;
     ToolState.ToolId = Definition->ToolId;
     OutRewardItemId = ServerSelection.RewardItemId;
     OutRewardQuantity = ServerSelection.RewardQuantity;

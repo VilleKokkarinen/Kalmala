@@ -9,7 +9,6 @@
       "Action": "Woodcutting",
       "RequiredSkill": "Woodcutting",
       "MinimumSkillLevel": 1,
-      "DurabilityCost": 1,
       "Levels": [
         {
           "ToolLevel": 1,
@@ -51,7 +50,6 @@
       "Action": "Woodcutting",
       "RequiredSkill": "Woodcutting",
       "MinimumSkillLevel": 1,
-      "DurabilityCost": 1,
       "Levels": [
         {
           "ToolLevel": 1,
@@ -107,7 +105,6 @@
       "Action": "Woodcutting",
       "RequiredSkill": "Woodcutting",
       "MinimumSkillLevel": 1,
-      "DurabilityCost": 1,
       "Levels": [
         {
           "ToolLevel": 1,

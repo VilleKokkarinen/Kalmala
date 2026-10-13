@@ -29,6 +29,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-13 — Simplify durability costs:** remove DurabilityCost from every tool profile/runtime definition and use a shared server cost of one point per accepted durability-consuming use.
+
 - [x] **2026-10-13 — Add mace tiers and icons:** Stone/Bronze/Iron maces use knife-tier durability and costs with crush bonuses, starter/station acquisition, inventory/detail/icon mappings and imported original transparent icons.
 
 - [x] **2026-10-13 — Allow negative per-type resistance:** bounded negative reductions act as flat weaknesses on active damage channels; retain nonnegative damage/Armor and prevent absent channels from adding damage.

@@ -60,7 +60,6 @@ struct KALMALAGAMEPLAY_API FKalmalaToolDefinition
     EKalmalaSkill RequiredSkill = EKalmalaSkill::None;
     int32 MinimumSkillLevel = 1;
     int32 MaxDurability = 0;
-    int32 DurabilityCost = 1;
     FKalmalaDamageChannels DamageBonuses;
     TArray<FKalmalaToolLevelStats> LevelStats;
     TArray<FKalmalaWeaponAttackData> Attacks;
@@ -115,6 +114,8 @@ class KALMALAGAMEPLAY_API FKalmalaToolLifecycleContract
 public:
     /** Absolute item-level limit, including non-station sources. */
     static constexpr int32 MaxToolLevel = 20;
+    /** Every accepted durability-consuming use spends exactly one condition point. */
+    static constexpr int32 DurabilityPerUse = 1;
     static constexpr int32 MaxFirstWaveToolDefinitions = 5;
     static constexpr int32 MaxCarriedToolRecords = 16;
     static constexpr float DefaultMaximumRange = 250.0f;

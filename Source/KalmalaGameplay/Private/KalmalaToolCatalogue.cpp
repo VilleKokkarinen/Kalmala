@@ -53,7 +53,6 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
             || !IsOneOf(Profile.RequiredSkill, {TEXT("None"), TEXT("Gathering"), TEXT("Woodcutting"),
                 TEXT("Mining"), TEXT("Crafting"), TEXT("Cooking"), TEXT("Survival")})
             || Profile.MinimumSkillLevel < 1 || Profile.MinimumSkillLevel > 10
-            || Profile.DurabilityCost < 0 || Profile.DurabilityCost > 10
             || Profile.Levels.IsEmpty() || Profile.Levels.Num() > MaxLevels)
         {
             return false;

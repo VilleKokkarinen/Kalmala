@@ -51,9 +51,6 @@ struct KALMALAGAMEPLAY_API FKalmalaToolProfileData
     int32 MinimumSkillLevel = 1;
 
     UPROPERTY(EditAnywhere)
-    int32 DurabilityCost = 1;
-
-    UPROPERTY(EditAnywhere)
     TArray<FKalmalaWeaponAttackData> Attacks;
 
     UPROPERTY(EditAnywhere)

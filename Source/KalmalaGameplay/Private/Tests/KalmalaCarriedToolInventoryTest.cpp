@@ -28,8 +28,6 @@ bool FKalmalaCarriedToolInventoryTest::RunTest(const FString& Parameters)
     }
     TestTrue(TEXT("The starter construction hammer is carried at level one"), InitialTools.ContainsByPredicate(
         [](const FKalmalaToolState& State) { return State.ToolId == TEXT("ConstructionHammer") && State.ToolLevel == 1; }));
-    TestEqual(TEXT("The hammer has no use durability cost"),
-        FKalmalaToolLifecycleContract::GetConstructionHammerDefinition().DurabilityCost, 0);
 
     UClass* CharacterClass = AKalmalaCharacter::StaticClass();
     CharacterClass->SetUpRuntimeReplicationData();

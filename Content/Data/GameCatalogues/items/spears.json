@@ -9,7 +9,6 @@
       "Action": "None",
       "RequiredSkill": "None",
       "MinimumSkillLevel": 1,
-      "DurabilityCost": 1,
       "Levels": [
         {
           "ToolLevel": 1,
@@ -51,7 +50,6 @@
       "Action": "None",
       "RequiredSkill": "None",
       "MinimumSkillLevel": 1,
-      "DurabilityCost": 1,
       "Levels": [
         {
           "ToolLevel": 1,
@@ -93,7 +91,6 @@
       "Action": "None",
       "RequiredSkill": "None",
       "MinimumSkillLevel": 1,
-      "DurabilityCost": 1,
       "Levels": [
         {
           "ToolLevel": 1,
