@@ -1,6 +1,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "KalmalaSettingsWidget.h"
+#include "KalmalaSettingsSubsystem.h"
 #include "Engine/UserInterfaceSettings.h"
 #include "InputCoreTypes.h"
 #include "Misc/App.h"
@@ -12,9 +13,9 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaSettingsWidgetTest, "Kalmala.UI.Setting
 
 bool FKalmalaSettingsWidgetTest::RunTest(const FString& Parameters)
 {
-    TestEqual(TEXT("Render distance quality keeps its lowest supported level"), UKalmalaSettingsWidget::ClampViewDistanceQuality(-1), 0);
-    TestEqual(TEXT("Render distance quality preserves supported levels"), UKalmalaSettingsWidget::ClampViewDistanceQuality(2), 2);
-    TestEqual(TEXT("Render distance quality clamps to Unreal scalability's highest supported level"), UKalmalaSettingsWidget::ClampViewDistanceQuality(4), 3);
+    TestEqual(TEXT("Render distance clamps to the lowest supported meter value"), UKalmalaSettingsSubsystem::ClampRenderDistanceMeters(-1), 64);
+    TestEqual(TEXT("Render distance snaps to 32-meter increments"), UKalmalaSettingsSubsystem::ClampRenderDistanceMeters(321), 320);
+    TestEqual(TEXT("Render distance clamps to the highest supported meter value"), UKalmalaSettingsSubsystem::ClampRenderDistanceMeters(600), 576);
 
     TestEqual(TEXT("Master volume clamps below silence"), UKalmalaSettingsWidget::ClampMasterVolume(-0.25f), 0.0f);
     TestEqual(TEXT("Master volume preserves an in-range level"), UKalmalaSettingsWidget::ClampMasterVolume(0.5f), 0.5f);

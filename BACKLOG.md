@@ -29,7 +29,9 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
-- [x] **2026-10-13 — Make Graphics render distance a slider:** replace the text-in-button cycle control with the shared snapped 0–3 slider row and keep its current quality value visible.
+- [x] **2026-10-13 — Set Graphics render distance in meters:** use 64–576 m values in 32 m increments and apply them as local primitive-component cull-distance caps while retaining shorter authored limits.
+
+- [x] **2026-10-13 — Make Graphics render distance a slider:** replace the text-in-button cycle control with the shared snapped slider row and keep its selected value visible; the follow-up meter increment defines the current range and behavior.
 
 - [x] **2026-10-13 — Restyle Graphics settings controls:** use the shared stone checkbox for V-Sync, shared dropdowns for resolution presets and window mode, and an optional bounded custom resolution input with separate width/height fields.
 

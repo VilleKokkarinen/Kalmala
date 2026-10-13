@@ -87,7 +87,6 @@ public:
     bool IsOptionsPanelCenterAnchoredForVerification() const;
 #endif
 
-    static int32 ClampViewDistanceQuality(int32 Quality);
     static float ClampMasterVolume(float Volume);
     static float GetStoredMasterVolume();
     static bool IsAudioMuted();

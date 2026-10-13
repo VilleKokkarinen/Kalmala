@@ -27,6 +27,8 @@
 #include "GameFramework/InputSettings.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/PlayerInput.h"
+#include "Engine/LocalPlayer.h"
+#include "KalmalaSettingsSubsystem.h"
 #include "InputCoreTypes.h"
 #include "HAL/PlatformTime.h"
 #include "Misc/App.h"
@@ -872,11 +874,6 @@ void UKalmalaSettingsWidget::ApplyHomeMenuPalette()
     }
 }
 
-int32 UKalmalaSettingsWidget::ClampViewDistanceQuality(const int32 Quality)
-{
-    return FMath::Clamp(Quality, 0, 3);
-}
-
 float UKalmalaSettingsWidget::ClampMasterVolume(const float Volume)
 {
     return FMath::IsFinite(Volume) ? FMath::Clamp(Volume, 0.0f, 1.0f) : DefaultMasterVolume;
@@ -1632,13 +1629,23 @@ void UKalmalaSettingsWidget::ShowGraphicsTab()
     }
     WindowModeDropdown->SetSelectedOption(CurrentWindowMode);
 
-    const int32 ViewDistanceQuality = ClampViewDistanceQuality(
-        Settings->ScalabilityQuality.ViewDistanceQuality);
+    int32 RenderDistanceMeters = 576;
+    if (APlayerController* OwningPlayer = GetOwningPlayer())
+    {
+        if (ULocalPlayer* LocalPlayer = OwningPlayer->GetLocalPlayer())
+        {
+            if (UKalmalaSettingsSubsystem* SettingsSubsystem =
+                LocalPlayer->GetSubsystem<UKalmalaSettingsSubsystem>())
+            {
+                RenderDistanceMeters = SettingsSubsystem->GetRenderDistanceMeters();
+            }
+        }
+    }
     const FSettingsSliderWidgets ViewDistance = AddSettingsSliderRow(*WidgetTree, *ContentBox,
-        TEXT("Render Distance"), TEXT("ViewDistanceSlider"), 0.0f, 3.0f, 1.0f,
-        static_cast<float>(ViewDistanceQuality),
-        FText::FromString(FString::Printf(TEXT("%d / 3"), ViewDistanceQuality)),
-        FText::FromString(TEXT("Adjust render-distance quality from 0 to 3.")),
+        TEXT("Render Distance"), TEXT("ViewDistanceSlider"), 64.0f, 576.0f, 32.0f,
+        static_cast<float>(RenderDistanceMeters),
+        FText::FromString(FString::Printf(TEXT("%d m"), RenderDistanceMeters)),
+        FText::FromString(TEXT("Set the maximum draw distance for local world objects from 64 to 576 meters.")),
         TextScalePercent, ContrastMode);
     ViewDistanceSlider = ViewDistance.Slider;
     ViewDistanceValueLabel = ViewDistance.Value;
@@ -1994,16 +2001,26 @@ void UKalmalaSettingsWidget::UpdateVideoLabels()
         VSyncCheckMarkLabel->SetText(FText::FromString(
             Settings->IsVSyncEnabled() ? TEXT("✓") : TEXT("")));
     }
-    const int32 ViewDistanceQuality = ClampViewDistanceQuality(
-        Settings->ScalabilityQuality.ViewDistanceQuality);
+    int32 RenderDistanceMeters = 576;
+    if (APlayerController* OwningPlayer = GetOwningPlayer())
+    {
+        if (ULocalPlayer* LocalPlayer = OwningPlayer->GetLocalPlayer())
+        {
+            if (UKalmalaSettingsSubsystem* SettingsSubsystem =
+                LocalPlayer->GetSubsystem<UKalmalaSettingsSubsystem>())
+            {
+                RenderDistanceMeters = SettingsSubsystem->GetRenderDistanceMeters();
+            }
+        }
+    }
     if (ViewDistanceSlider != nullptr)
     {
-        ViewDistanceSlider->SetValue(static_cast<float>(ViewDistanceQuality));
+        ViewDistanceSlider->SetValue(static_cast<float>(RenderDistanceMeters));
     }
     if (ViewDistanceValueLabel != nullptr)
     {
         ViewDistanceValueLabel->SetText(FText::FromString(
-            FString::Printf(TEXT("%d / 3"), ViewDistanceQuality)));
+            FString::Printf(TEXT("%d m"), RenderDistanceMeters)));
     }
     if (WindowModeDropdown != nullptr)
     {
@@ -2316,13 +2333,18 @@ void UKalmalaSettingsWidget::HandleCustomResolutionApplyClicked()
 void UKalmalaSettingsWidget::HandleViewDistanceChanged(const float Value)
 {
     if (bUpdatingGraphicsControls) return;
-    if (UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings())
+    if (APlayerController* OwningPlayer = GetOwningPlayer())
     {
-        const int32 Quality = ClampViewDistanceQuality(FMath::RoundToInt(Value));
-        if (Settings->ScalabilityQuality.ViewDistanceQuality == Quality) return;
-        Settings->ScalabilityQuality.ViewDistanceQuality = Quality;
-        ApplyVideoSettings();
+        if (ULocalPlayer* LocalPlayer = OwningPlayer->GetLocalPlayer())
+        {
+            if (UKalmalaSettingsSubsystem* SettingsSubsystem =
+                LocalPlayer->GetSubsystem<UKalmalaSettingsSubsystem>())
+            {
+                SettingsSubsystem->SetRenderDistanceMeters(FMath::RoundToInt(Value));
+            }
+        }
     }
+    UpdateVideoLabels();
 }
 void UKalmalaSettingsWidget::HandleMasterVolumeChanged(const float Value)
 {

@@ -1,11 +1,15 @@
 #include "KalmalaSettingsSubsystem.h"
 
 #include "Components/InputComponent.h"
+#include "Components/PrimitiveComponent.h"
 #include "Engine/World.h"
+#include "EngineUtils.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/PlayerInput.h"
+#include "GameFramework/Pawn.h"
 #include "HighResScreenshot.h"
 #include "InputCoreTypes.h"
+#include "Misc/ConfigCacheIni.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
 #include "KalmalaCharacter.h"
@@ -19,6 +23,16 @@
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "GameFramework/GameUserSettings.h"
 #include "Engine/UserInterfaceSettings.h"
+
+namespace
+{
+    constexpr int32 MinRenderDistanceMeters = 64;
+    constexpr int32 MaxRenderDistanceMeters = 576;
+    constexpr int32 RenderDistanceStepMeters = 32;
+    constexpr int32 FullViewDistanceQuality = 3;
+    const TCHAR* RenderDistanceSettingsSection = TEXT("/Script/KalmalaUI.KalmalaSettingsWidget");
+    const TCHAR* RenderDistanceSettingsKey = TEXT("RenderDistanceMeters");
+}
 
 #if !UE_BUILD_SHIPPING
 namespace
@@ -51,6 +65,13 @@ namespace
 void UKalmalaSettingsSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
     Super::Initialize(Collection);
+    int32 StoredRenderDistanceMeters = MaxRenderDistanceMeters;
+    if (GConfig != nullptr)
+    {
+        GConfig->GetInt(RenderDistanceSettingsSection, RenderDistanceSettingsKey,
+            StoredRenderDistanceMeters, GGameUserSettingsIni);
+    }
+    RenderDistanceMeters = ClampRenderDistanceMeters(StoredRenderDistanceMeters);
     UKalmalaSettingsWidget::ApplySavedMasterVolume();
     UKalmalaSettingsWidget::ApplySavedInterfaceScale();
 #if !UE_BUILD_SHIPPING
@@ -69,12 +90,201 @@ void UKalmalaSettingsSubsystem::Tick(float DeltaTime)
     if (FoundController == nullptr || !FoundController->IsLocalController()) return;
     LocalController = FoundController;
     BindLocalInput(LocalController);
+    BindRenderDistanceWorld(GetWorld());
+    if (bRenderDistanceConfigDirty)
+    {
+        RenderDistanceSaveDelay += DeltaTime;
+        if (RenderDistanceSaveDelay >= 0.35f)
+        {
+            if (GConfig != nullptr) GConfig->Flush(false, GGameUserSettingsIni);
+            bRenderDistanceConfigDirty = false;
+            RenderDistanceSaveDelay = 0.0f;
+        }
+    }
 #if !UE_BUILD_SHIPPING
     RunDeveloperSettingsVerification(DeltaTime);
 #endif
 }
 
-void UKalmalaSettingsSubsystem::Deinitialize() { ReleaseController(); Super::Deinitialize(); }
+void UKalmalaSettingsSubsystem::Deinitialize()
+{
+    ClearRenderDistanceWorld();
+    if (bRenderDistanceConfigDirty && GConfig != nullptr)
+    {
+        GConfig->Flush(false, GGameUserSettingsIni);
+    }
+    ReleaseController();
+    Super::Deinitialize();
+}
+
+int32 UKalmalaSettingsSubsystem::ClampRenderDistanceMeters(const int32 Meters)
+{
+    const int32 ClampedMeters = FMath::Clamp(Meters, MinRenderDistanceMeters, MaxRenderDistanceMeters);
+    const int32 Steps = FMath::RoundToInt(static_cast<float>(ClampedMeters - MinRenderDistanceMeters)
+        / RenderDistanceStepMeters);
+    return MinRenderDistanceMeters + Steps * RenderDistanceStepMeters;
+}
+
+void UKalmalaSettingsSubsystem::SetRenderDistanceMeters(const int32 Meters)
+{
+    const int32 ClampedMeters = ClampRenderDistanceMeters(Meters);
+    if (RenderDistanceMeters == ClampedMeters) return;
+
+    RenderDistanceMeters = ClampedMeters;
+    if (GConfig != nullptr)
+    {
+        GConfig->SetInt(RenderDistanceSettingsSection, RenderDistanceSettingsKey,
+            RenderDistanceMeters, GGameUserSettingsIni);
+        bRenderDistanceConfigDirty = true;
+        RenderDistanceSaveDelay = 0.0f;
+    }
+    ApplyRenderDistanceToTrackedComponents();
+}
+
+void UKalmalaSettingsSubsystem::BindRenderDistanceWorld(UWorld* World)
+{
+    if (RenderDistanceWorld.Get() == World)
+    {
+        APawn* CurrentPawn = LocalController != nullptr ? LocalController->GetPawn() : nullptr;
+        APawn* PreviousPawn = RenderDistanceExcludedPawn.Get();
+        if (PreviousPawn != CurrentPawn)
+        {
+            RenderDistanceExcludedPawn = CurrentPawn;
+            if (PreviousPawn != nullptr) ApplyRenderDistanceToActor(PreviousPawn);
+            if (CurrentPawn != nullptr) RestoreRenderDistanceForActor(CurrentPawn);
+        }
+        return;
+    }
+
+    ClearRenderDistanceWorld();
+    if (World == nullptr) return;
+
+    RenderDistanceWorld = World;
+    RenderDistanceExcludedPawn = LocalController != nullptr ? LocalController->GetPawn() : nullptr;
+    RenderDistanceActorSpawnedHandle = World->AddOnActorSpawnedHandler(
+        FOnActorSpawned::FDelegate::CreateUObject(this, &ThisClass::HandleRenderDistanceActorSpawned));
+
+    if (UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings();
+        Settings != nullptr && Settings->ScalabilityQuality.ViewDistanceQuality != FullViewDistanceQuality)
+    {
+        Settings->ScalabilityQuality.ViewDistanceQuality = FullViewDistanceQuality;
+        Settings->ApplySettings(false);
+        Settings->SaveSettings();
+    }
+
+    ApplyRenderDistanceToWorld(World);
+}
+
+void UKalmalaSettingsSubsystem::ClearRenderDistanceWorld()
+{
+    UWorld* World = RenderDistanceWorld.Get();
+    if (World != nullptr && RenderDistanceActorSpawnedHandle.IsValid())
+    {
+        World->RemoveOnActorSpawnedHandler(RenderDistanceActorSpawnedHandle);
+    }
+    RenderDistanceActorSpawnedHandle.Reset();
+    RestoreRenderDistanceForWorld();
+    RenderDistanceWorld.Reset();
+    RenderDistanceExcludedPawn.Reset();
+}
+
+void UKalmalaSettingsSubsystem::HandleRenderDistanceActorSpawned(AActor* Actor)
+{
+    if (Actor != nullptr && Actor->GetWorld() == RenderDistanceWorld.Get())
+    {
+        ApplyRenderDistanceToActor(Actor);
+    }
+}
+
+void UKalmalaSettingsSubsystem::ApplyRenderDistanceToWorld(UWorld* World)
+{
+    if (World == nullptr) return;
+    for (TActorIterator<AActor> ActorIt(World); ActorIt; ++ActorIt)
+    {
+        ApplyRenderDistanceToActor(*ActorIt);
+    }
+}
+
+void UKalmalaSettingsSubsystem::ApplyRenderDistanceToActor(AActor* Actor)
+{
+    if (Actor == nullptr || Actor->GetWorld() != RenderDistanceWorld.Get()) return;
+    if (Actor == RenderDistanceExcludedPawn.Get())
+    {
+        RestoreRenderDistanceForActor(Actor);
+        return;
+    }
+
+    TArray<UPrimitiveComponent*> Components;
+    Actor->GetComponents<UPrimitiveComponent>(Components);
+    for (UPrimitiveComponent* Component : Components)
+    {
+        if (Component == nullptr || !Component->IsRegistered())
+        {
+            continue;
+        }
+        const TWeakObjectPtr<UPrimitiveComponent> ComponentKey(Component);
+        if (!OriginalCullDistances.Contains(ComponentKey))
+        {
+            OriginalCullDistances.Add(ComponentKey, Component->LDMaxDrawDistance);
+        }
+        ApplyRenderDistanceToComponent(Component);
+    }
+}
+
+void UKalmalaSettingsSubsystem::ApplyRenderDistanceToTrackedComponents()
+{
+    for (auto ComponentIt = OriginalCullDistances.CreateIterator(); ComponentIt; ++ComponentIt)
+    {
+        UPrimitiveComponent* Component = ComponentIt.Key().Get();
+        if (Component == nullptr || Component->GetWorld() != RenderDistanceWorld.Get())
+        {
+            ComponentIt.RemoveCurrent();
+            continue;
+        }
+        ApplyRenderDistanceToComponent(Component);
+    }
+}
+
+void UKalmalaSettingsSubsystem::ApplyRenderDistanceToComponent(UPrimitiveComponent* Component)
+{
+    if (Component == nullptr) return;
+    const float UserCullDistanceCm = RenderDistanceMeters * 100.0f;
+    const TWeakObjectPtr<UPrimitiveComponent> ComponentKey(Component);
+    const float* OriginalCullDistance = OriginalCullDistances.Find(ComponentKey);
+    if (OriginalCullDistance == nullptr) return;
+    const float EffectiveCullDistanceCm = *OriginalCullDistance > 0.0f
+        ? FMath::Min(*OriginalCullDistance, UserCullDistanceCm) : UserCullDistanceCm;
+    Component->SetCullDistance(EffectiveCullDistanceCm);
+}
+
+void UKalmalaSettingsSubsystem::RestoreRenderDistanceForActor(AActor* Actor)
+{
+    if (Actor == nullptr) return;
+    TArray<UPrimitiveComponent*> Components;
+    Actor->GetComponents<UPrimitiveComponent>(Components);
+    for (UPrimitiveComponent* Component : Components)
+    {
+        if (Component == nullptr) continue;
+        const TWeakObjectPtr<UPrimitiveComponent> ComponentKey(Component);
+        if (const float* OriginalCullDistance = OriginalCullDistances.Find(ComponentKey))
+        {
+            Component->SetCullDistance(*OriginalCullDistance);
+            OriginalCullDistances.Remove(ComponentKey);
+        }
+    }
+}
+
+void UKalmalaSettingsSubsystem::RestoreRenderDistanceForWorld()
+{
+    for (const TPair<TWeakObjectPtr<UPrimitiveComponent>, float>& Entry : OriginalCullDistances)
+    {
+        if (UPrimitiveComponent* Component = Entry.Key.Get())
+        {
+            Component->SetCullDistance(Entry.Value);
+        }
+    }
+    OriginalCullDistances.Reset();
+}
 
 void UKalmalaSettingsSubsystem::ReleaseController()
 {

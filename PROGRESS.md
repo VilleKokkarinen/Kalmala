@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-13 — Set Graphics render distance in meters
+
+- **Completed:** changed the Graphics render-distance slider to 17 values from 64 m through 576 m in 32 m increments. Values persist locally and cap registered local-world primitive components' maximum draw distance, preserving shorter authored limits. Unreal's view-distance scalability is kept at its full setting so the meter cap remains the controlling distance.
+- **Files changed:** `Source/KalmalaUI/Private/KalmalaSettingsSubsystem.cpp`, `Source/KalmalaUI/Public/KalmalaSettingsSubsystem.h`, `Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp`, `Source/KalmalaUI/Public/KalmalaSettingsWidget.h`, `Source/KalmalaUI/Private/Tests/KalmalaSettingsWidgetTest.cpp`, `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** `Scripts/Render-Menu.ps1 -Menu settings.video -BuildModules -TimeoutSeconds 300 -Output C:\Users\Ville\AppData\Local\Temp\kmmenu-meter-distance.png` compiled the affected modules and rendered Graphics successfully; inspected the preview and confirmed the 576 m selected value and slider layout. `git diff --check` passed; source inspection confirmed both endpoints, 32 m steps, centimeter conversion for component cull distances, and config persistence. No automation suite ran; full verification remains deferred.
+- **Impact and authority:** this is a local graphics preference and local-world rendering cap only. It changes no RPC, replicated state, server gameplay authority, or saved gameplay schema.
+- **Verification/limitations:** normal user-directed increment, not milestone-final. The meter value is an actual Unreal world-unit cull cap for registered local-world primitive components. Full runtime persistence and visual culling behavior remain for follow-up verification.
+- **Next eligible work:** continue auditing `Verify-*` entrypoints against active acceptance requirements, callers, and equivalent coverage under the script-streamlining task.
+
 ## User-directed increment 2026-10-13 — Make Graphics render distance a slider
 
 - **Completed:** replaced the text-bearing render-distance cycle button with the shared label/slider/value row. The slider snaps across quality levels 0–3, displays the selected value, and immediately applies/saves through the existing local `GameUserSettings` path.

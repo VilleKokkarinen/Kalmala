@@ -5,9 +5,13 @@
 #include "Tickable.h"
 #include "KalmalaSettingsSubsystem.generated.h"
 
+class AActor;
+class APawn;
 class APlayerController;
+class UPrimitiveComponent;
 class UInputComponent;
 class UKalmalaSettingsWidget;
+class UWorld;
 
 /** Owns the local Escape binding and settings widget for one local player. */
 UCLASS()
@@ -23,10 +27,23 @@ public:
     virtual TStatId GetStatId() const override { RETURN_QUICK_DECLARE_CYCLE_STAT(UKalmalaSettingsSubsystem, STATGROUP_Tickables); }
     virtual bool IsTickable() const override { return !IsTemplate(); }
 
+    static int32 ClampRenderDistanceMeters(int32 Meters);
+    int32 GetRenderDistanceMeters() const { return RenderDistanceMeters; }
+    void SetRenderDistanceMeters(int32 Meters);
+
 private:
     void BindLocalInput(APlayerController* InLocalController);
     void ReleaseController();
     void HandleSettingsMenu();
+    void BindRenderDistanceWorld(UWorld* World);
+    void ClearRenderDistanceWorld();
+    void HandleRenderDistanceActorSpawned(AActor* Actor);
+    void ApplyRenderDistanceToWorld(UWorld* World);
+    void ApplyRenderDistanceToActor(AActor* Actor);
+    void ApplyRenderDistanceToTrackedComponents();
+    void ApplyRenderDistanceToComponent(UPrimitiveComponent* Component);
+    void RestoreRenderDistanceForActor(AActor* Actor);
+    void RestoreRenderDistanceForWorld();
 #if !UE_BUILD_SHIPPING
     void RunDeveloperSettingsVerification(float DeltaTime);
 #endif
@@ -36,6 +53,13 @@ private:
     UPROPERTY(Transient)
     TObjectPtr<APlayerController> LocalController;
     TWeakObjectPtr<UInputComponent> BoundInputComponent;
+    TWeakObjectPtr<UWorld> RenderDistanceWorld;
+    TWeakObjectPtr<APawn> RenderDistanceExcludedPawn;
+    FDelegateHandle RenderDistanceActorSpawnedHandle;
+    TMap<TWeakObjectPtr<UPrimitiveComponent>, float> OriginalCullDistances;
+    int32 RenderDistanceMeters = 576;
+    bool bRenderDistanceConfigDirty = false;
+    float RenderDistanceSaveDelay = 0.0f;
 #if !UE_BUILD_SHIPPING
     bool bDeveloperSettingsVerificationStarted = false;
     bool bDeveloperSettingsVerificationCompleted = false;
