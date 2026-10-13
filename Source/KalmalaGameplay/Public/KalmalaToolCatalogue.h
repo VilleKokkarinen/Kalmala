@@ -7,12 +7,9 @@
 class UKalmalaItemCatalogue;
 
 USTRUCT()
-struct KALMALAGAMEPLAY_API FKalmalaToolLevelData
+struct KALMALAGAMEPLAY_API FKalmalaToolRewardData
 {
     GENERATED_BODY()
-
-    UPROPERTY(EditAnywhere)
-    int32 ToolLevel = 0;
 
     UPROPERTY(EditAnywhere)
     int32 MaxDurability = 0;
@@ -54,7 +51,16 @@ struct KALMALAGAMEPLAY_API FKalmalaToolProfileData
     TArray<FKalmalaWeaponAttackData> Attacks;
 
     UPROPERTY(EditAnywhere)
-    TArray<FKalmalaToolLevelData> Levels;
+    int32 MaxDurability = 0;
+
+    UPROPERTY(EditAnywhere)
+    FKalmalaDamageChannels DamageBonuses;
+
+    /** Flat gains added for each level after level one. */
+    UPROPERTY(EditAnywhere)
+    FKalmalaToolRewardData LevelUpReward;
+
+    bool GetLevelStats(int32 ToolLevel, FKalmalaToolLevelStats& OutStats) const;
 };
 
 USTRUCT()

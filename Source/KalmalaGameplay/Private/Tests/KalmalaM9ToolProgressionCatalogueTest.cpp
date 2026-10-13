@@ -46,22 +46,16 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
         [](const FKalmalaToolProfileData& Profile) { return Profile.ToolId == TEXT("BronzeAxe"); });
     if (TestNotNull(TEXT("Boundary catalogue contains Bronze Axe"), BoundaryAxe))
     {
-        while (BoundaryAxe->Levels.Num() < FKalmalaToolLifecycleContract::MaxToolLevel)
-        {
-            const int32 NextLevel = BoundaryAxe->Levels.Num() + 1;
-            FKalmalaToolLevelData& Stats = BoundaryAxe->Levels.AddDefaulted_GetRef();
-            Stats.ToolLevel = NextLevel;
-            Stats.MaxDurability = 150;
-            Stats.DamageBonuses.Slash = 55.0f;
-        }
-        TestTrue(TEXT("Twenty authored levels are valid without level-twenty stations"),
-            BoundaryCatalogue->IsValidCatalogue());
-        FKalmalaToolLevelData& TooHigh = BoundaryAxe->Levels.AddDefaulted_GetRef();
-        TooHigh.ToolLevel = 21;
-        TooHigh.MaxDurability = 150;
-        TooHigh.DamageBonuses.Slash = 55.0f;
-        TestFalse(TEXT("The catalogue rejects authored level twenty-one"),
-            BoundaryCatalogue->IsValidCatalogue());
+        FKalmalaToolLevelStats Stats;
+        TestTrue(TEXT("Reward definition produces level twenty"), BoundaryAxe->GetLevelStats(20, Stats));
+        TestEqual(TEXT("Durability adds the reward nineteen times"), Stats.MaxDurability, 1050);
+        TestEqual(TEXT("Slash adds the reward nineteen times"), Stats.DamageBonuses.Slash, 145.0f);
+        TestFalse(TEXT("Reward calculation rejects level twenty-one"), BoundaryAxe->GetLevelStats(21, Stats));
+        TestFalse(TEXT("Reward calculation rejects level zero"), BoundaryAxe->GetLevelStats(0, Stats));
+        TestTrue(TEXT("Reward catalogue remains valid through the hard cap"), BoundaryCatalogue->IsValidCatalogue());
+        BoundaryAxe->LevelUpReward.MaxDurability = -1;
+        TestFalse(TEXT("Negative durability rewards are rejected"), BoundaryCatalogue->IsValidCatalogue());
+
     }
 
     TArray<FKalmalaToolRecipeIngredientData> BaseCosts;
@@ -88,7 +82,7 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
     const TArray<FKalmalaToolProgressionEntry>& Entries = FKalmalaToolProgressionContract::GetEntries();
     TestTrue(TEXT("Crafted tool progression catalogue is bounded and internally valid"),
         FKalmalaToolProgressionContract::IsCatalogueValid());
-    TestEqual(TEXT("Current authored stats generate eleven progression entries"), Entries.Num(), 11);
+    TestEqual(TEXT("Current authored stats generate nineteen progression entries"), Entries.Num(), 19);
     TestTrue(TEXT("Generated entries remain bounded"), Entries.Num() <= FKalmalaToolProgressionContract::MaxToolProgressionEntries);
 
     const FKalmalaToolProgressionEntry* Bronze = FKalmalaToolProgressionContract::FindEntry(TEXT("BronzeAxe"));

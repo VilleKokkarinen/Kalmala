@@ -9,22 +9,6 @@
       "Action": "Mining",
       "RequiredSkill": "Mining",
       "MinimumSkillLevel": 1,
-      "Levels": [
-        {
-          "ToolLevel": 1,
-          "MaxDurability": 20,
-          "DamageBonuses": {
-            "Slash": 0.0,
-            "Stab": 0.0,
-            "Crush": 26.0,
-            "Pierce": 0.0,
-            "Fire": 0.0,
-            "Water": 0.0,
-            "Holy": 0.0,
-            "Poison": 0.0
-          }
-        }
-      ],
       "Attacks": [
         {
           "AttackId": "Basic",
@@ -39,7 +23,31 @@
             "Poison": 0.0
           }
         }
-      ]
+      ],
+      "MaxDurability": 20,
+      "DamageBonuses": {
+        "Slash": 0.0,
+        "Stab": 0.0,
+        "Crush": 26.0,
+        "Pierce": 0.0,
+        "Fire": 0.0,
+        "Water": 0.0,
+        "Holy": 0.0,
+        "Poison": 0.0
+      },
+      "LevelUpReward": {
+        "MaxDurability": 0,
+        "DamageBonuses": {
+          "Slash": 0.0,
+          "Stab": 0.0,
+          "Crush": 0.0,
+          "Pierce": 0.0,
+          "Fire": 0.0,
+          "Water": 0.0,
+          "Holy": 0.0,
+          "Poison": 0.0
+        }
+      }
     },
     {
       "ToolId": "BronzePick",
@@ -50,22 +58,6 @@
       "Action": "Mining",
       "RequiredSkill": "Mining",
       "MinimumSkillLevel": 1,
-      "Levels": [
-        {
-          "ToolLevel": 1,
-          "MaxDurability": 90,
-          "DamageBonuses": {
-            "Slash": 0.0,
-            "Stab": 0.0,
-            "Crush": 38.0,
-            "Pierce": 0.0,
-            "Fire": 0.0,
-            "Water": 0.0,
-            "Holy": 0.0,
-            "Poison": 0.0
-          }
-        }
-      ],
       "Attacks": [
         {
           "AttackId": "Basic",
@@ -80,7 +72,31 @@
             "Poison": 0.0
           }
         }
-      ]
+      ],
+      "MaxDurability": 90,
+      "DamageBonuses": {
+        "Slash": 0.0,
+        "Stab": 0.0,
+        "Crush": 38.0,
+        "Pierce": 0.0,
+        "Fire": 0.0,
+        "Water": 0.0,
+        "Holy": 0.0,
+        "Poison": 0.0
+      },
+      "LevelUpReward": {
+        "MaxDurability": 0,
+        "DamageBonuses": {
+          "Slash": 0.0,
+          "Stab": 0.0,
+          "Crush": 0.0,
+          "Pierce": 0.0,
+          "Fire": 0.0,
+          "Water": 0.0,
+          "Holy": 0.0,
+          "Poison": 0.0
+        }
+      }
     },
     {
       "ToolId": "IronPick",
@@ -91,22 +107,6 @@
       "Action": "Mining",
       "RequiredSkill": "Mining",
       "MinimumSkillLevel": 1,
-      "Levels": [
-        {
-          "ToolLevel": 1,
-          "MaxDurability": 160,
-          "DamageBonuses": {
-            "Slash": 0.0,
-            "Stab": 0.0,
-            "Crush": 52.0,
-            "Pierce": 0.0,
-            "Fire": 0.0,
-            "Water": 0.0,
-            "Holy": 0.0,
-            "Poison": 0.0
-          }
-        }
-      ],
       "Attacks": [
         {
           "AttackId": "Basic",
@@ -121,7 +121,31 @@
             "Poison": 0.0
           }
         }
-      ]
+      ],
+      "MaxDurability": 160,
+      "DamageBonuses": {
+        "Slash": 0.0,
+        "Stab": 0.0,
+        "Crush": 52.0,
+        "Pierce": 0.0,
+        "Fire": 0.0,
+        "Water": 0.0,
+        "Holy": 0.0,
+        "Poison": 0.0
+      },
+      "LevelUpReward": {
+        "MaxDurability": 0,
+        "DamageBonuses": {
+          "Slash": 0.0,
+          "Stab": 0.0,
+          "Crush": 0.0,
+          "Pierce": 0.0,
+          "Fire": 0.0,
+          "Water": 0.0,
+          "Holy": 0.0,
+          "Poison": 0.0
+        }
+      }
     }
   ]
 }

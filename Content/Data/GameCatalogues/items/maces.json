@@ -9,22 +9,6 @@
       "Action": "None",
       "RequiredSkill": "None",
       "MinimumSkillLevel": 1,
-      "Levels": [
-        {
-          "ToolLevel": 1,
-          "MaxDurability": 16,
-          "DamageBonuses": {
-            "Slash": 0.0,
-            "Stab": 0.0,
-            "Crush": 30.0,
-            "Pierce": 0.0,
-            "Fire": 0.0,
-            "Water": 0.0,
-            "Holy": 0.0,
-            "Poison": 0.0
-          }
-        }
-      ],
       "Attacks": [
         {
           "AttackId": "Basic",
@@ -39,7 +23,31 @@
             "Poison": 0.0
           }
         }
-      ]
+      ],
+      "MaxDurability": 16,
+      "DamageBonuses": {
+        "Slash": 0.0,
+        "Stab": 0.0,
+        "Crush": 30.0,
+        "Pierce": 0.0,
+        "Fire": 0.0,
+        "Water": 0.0,
+        "Holy": 0.0,
+        "Poison": 0.0
+      },
+      "LevelUpReward": {
+        "MaxDurability": 0,
+        "DamageBonuses": {
+          "Slash": 0.0,
+          "Stab": 0.0,
+          "Crush": 0.0,
+          "Pierce": 0.0,
+          "Fire": 0.0,
+          "Water": 0.0,
+          "Holy": 0.0,
+          "Poison": 0.0
+        }
+      }
     },
     {
       "ToolId": "BronzeMace",
@@ -50,22 +58,6 @@
       "Action": "None",
       "RequiredSkill": "None",
       "MinimumSkillLevel": 1,
-      "Levels": [
-        {
-          "ToolLevel": 1,
-          "MaxDurability": 48,
-          "DamageBonuses": {
-            "Slash": 0.0,
-            "Stab": 0.0,
-            "Crush": 42.0,
-            "Pierce": 0.0,
-            "Fire": 0.0,
-            "Water": 0.0,
-            "Holy": 0.0,
-            "Poison": 0.0
-          }
-        }
-      ],
       "Attacks": [
         {
           "AttackId": "Basic",
@@ -80,7 +72,31 @@
             "Poison": 0.0
           }
         }
-      ]
+      ],
+      "MaxDurability": 48,
+      "DamageBonuses": {
+        "Slash": 0.0,
+        "Stab": 0.0,
+        "Crush": 42.0,
+        "Pierce": 0.0,
+        "Fire": 0.0,
+        "Water": 0.0,
+        "Holy": 0.0,
+        "Poison": 0.0
+      },
+      "LevelUpReward": {
+        "MaxDurability": 0,
+        "DamageBonuses": {
+          "Slash": 0.0,
+          "Stab": 0.0,
+          "Crush": 0.0,
+          "Pierce": 0.0,
+          "Fire": 0.0,
+          "Water": 0.0,
+          "Holy": 0.0,
+          "Poison": 0.0
+        }
+      }
     },
     {
       "ToolId": "IronMace",
@@ -91,22 +107,6 @@
       "Action": "None",
       "RequiredSkill": "None",
       "MinimumSkillLevel": 1,
-      "Levels": [
-        {
-          "ToolLevel": 1,
-          "MaxDurability": 80,
-          "DamageBonuses": {
-            "Slash": 0.0,
-            "Stab": 0.0,
-            "Crush": 58.0,
-            "Pierce": 0.0,
-            "Fire": 0.0,
-            "Water": 0.0,
-            "Holy": 0.0,
-            "Poison": 0.0
-          }
-        }
-      ],
       "Attacks": [
         {
           "AttackId": "Basic",
@@ -121,7 +121,31 @@
             "Poison": 0.0
           }
         }
-      ]
+      ],
+      "MaxDurability": 80,
+      "DamageBonuses": {
+        "Slash": 0.0,
+        "Stab": 0.0,
+        "Crush": 58.0,
+        "Pierce": 0.0,
+        "Fire": 0.0,
+        "Water": 0.0,
+        "Holy": 0.0,
+        "Poison": 0.0
+      },
+      "LevelUpReward": {
+        "MaxDurability": 0,
+        "DamageBonuses": {
+          "Slash": 0.0,
+          "Stab": 0.0,
+          "Crush": 0.0,
+          "Pierce": 0.0,
+          "Fire": 0.0,
+          "Water": 0.0,
+          "Holy": 0.0,
+          "Poison": 0.0
+        }
+      }
     }
   ]
 }

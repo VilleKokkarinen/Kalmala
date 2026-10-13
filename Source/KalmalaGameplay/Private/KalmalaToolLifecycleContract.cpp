@@ -58,13 +58,12 @@ namespace
         Definition.RequiredSkill = ParseToolSkill(Profile.RequiredSkill);
         Definition.MinimumSkillLevel = Profile.MinimumSkillLevel;
         Definition.Attacks = Profile.Attacks;
-        for (const FKalmalaToolLevelData& LevelData : Profile.Levels)
+        for (int32 ToolLevel = 1; ToolLevel <= FKalmalaToolLifecycleContract::MaxToolLevel; ++ToolLevel)
         {
-            FKalmalaToolLevelStats& Level = Definition.LevelStats.AddDefaulted_GetRef();
-            Level.ToolLevel = LevelData.ToolLevel;
-            Level.MaxDurability = LevelData.MaxDurability;
-            Level.DamageBonuses = LevelData.DamageBonuses;
-            if (Level.ToolLevel == 1)
+            FKalmalaToolLevelStats Level;
+            if (!Profile.GetLevelStats(ToolLevel, Level)) return FKalmalaToolDefinition();
+            Definition.LevelStats.Add(Level);
+            if (ToolLevel == 1)
             {
                 Definition.MaxDurability = Level.MaxDurability;
                 Definition.DamageBonuses = Level.DamageBonuses;

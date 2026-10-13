@@ -29,6 +29,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-13 — Replace item Levels with LevelUpReward:** define base durability/damage plus additive per-level gains; derive stats through 20 and configured station upgrade recipes through 10, preserving existing level-one/two gains.
+
 - [x] **2026-10-13 — Simplify durability costs:** remove DurabilityCost from every tool profile/runtime definition and use a shared server cost of one point per accepted durability-consuming use.
 
 - [x] **2026-10-13 — Add mace tiers and icons:** Stone/Bronze/Iron maces use knife-tier durability and costs with crush bonuses, starter/station acquisition, inventory/detail/icon mappings and imported original transparent icons.

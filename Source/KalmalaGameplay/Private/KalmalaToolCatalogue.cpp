@@ -53,7 +53,10 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
             || !IsOneOf(Profile.RequiredSkill, {TEXT("None"), TEXT("Gathering"), TEXT("Woodcutting"),
                 TEXT("Mining"), TEXT("Crafting"), TEXT("Cooking"), TEXT("Survival")})
             || Profile.MinimumSkillLevel < 1 || Profile.MinimumSkillLevel > 10
-            || Profile.Levels.IsEmpty() || Profile.Levels.Num() > MaxLevels)
+            || Profile.MaxDurability < 1 || Profile.MaxDurability > 1000
+            || !Profile.DamageBonuses.IsValid(1000.0f)
+            || Profile.LevelUpReward.MaxDurability < 0 || Profile.LevelUpReward.MaxDurability > 1000
+            || !Profile.LevelUpReward.DamageBonuses.IsValid(1000.0f))
         {
             return false;
         }
@@ -74,24 +77,13 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
         }
         if (!SeenAttacks.Contains(TEXT("Basic"))) return false;
 
-        TSet<int32> SeenLevels;
-        bool bHasLevelOne = false;
-        for (const FKalmalaToolLevelData& Level : Profile.Levels)
+        for (int32 ToolLevel = 1; ToolLevel <= MaxLevels; ++ToolLevel)
         {
-            if (Level.ToolLevel < 1 || Level.ToolLevel > MaxLevels || SeenLevels.Contains(Level.ToolLevel)
-                || Level.MaxDurability < 1 || Level.MaxDurability > 1000
-                || !Level.DamageBonuses.IsValid(1000.0f)
-                || (Profile.ToolKind == TEXT("ConstructionHammer") ? Level.DamageBonuses.Total() != 0.0f
-                    : Level.DamageBonuses.Total() <= 0.0f))
-            {
-                return false;
-            }
-            SeenLevels.Add(Level.ToolLevel);
-            bHasLevelOne |= Level.ToolLevel == 1;
+            FKalmalaToolLevelStats Stats;
+            if (!Profile.GetLevelStats(ToolLevel, Stats)
+                || (Profile.ToolKind == TEXT("ConstructionHammer") ? Stats.DamageBonuses.Total() != 0.0f
+                    : Stats.DamageBonuses.Total() <= 0.0f)) return false;
         }
-        if (!bHasLevelOne) return false;
-        for (int32 Level = 1; Level <= Profile.Levels.Num(); ++Level)
-            if (!SeenLevels.Contains(Level)) return false;
 
         if (Profile.ToolSet == TEXT("Crafted"))
         {
@@ -125,12 +117,6 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
             return false;
         }
 
-        const bool bHasTargetLevel = Profile->Levels.ContainsByPredicate([&Recipe](const FKalmalaToolLevelData& Level)
-        {
-            return Level.ToolLevel == Recipe.Level;
-        });
-        if (!bHasTargetLevel) return false;
-
         if (Recipe.Level != 1 || Recipe.RecipeId != Recipe.ToolId
             || Recipe.RequiredSkill != TEXT("None") || Recipe.RequiredSkillLevel != 0) return false;
 
@@ -150,7 +136,7 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
     for (const FKalmalaToolRecipeData& Upgrade : UpgradeCosts)
     {
         const FKalmalaToolProfileData* Profile = FindProfile(Upgrade.ToolId);
-        if (!Profile || Profile->ToolSet != TEXT("Crafted") || Profile->Levels.Num() < 2
+        if (!Profile || Profile->ToolSet != TEXT("Crafted")
             || SeenUpgradeIds.Contains(Upgrade.ToolId) || Upgrade.RecipeId != Upgrade.ToolId
             || Upgrade.Level != 1 || Upgrade.RequiredStationLevel != 0
             || !IsOneOf(Upgrade.RequiredStation, {TEXT("Workbench"), TEXT("Forge")})
@@ -165,7 +151,7 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
             if (SeenCostIds.Contains(Cost.ItemId) || !Items->IsValidStack(Cost.ItemId, Cost.Quantity)) return false;
             SeenCostIds.Add(Cost.ItemId);
         }
-        const int32 StationTargetCap = FMath::Min(Profile->Levels.Num(), FKalmalaToolProgressionContract::MaxStationToolLevel);
+        const int32 StationTargetCap = FKalmalaToolProgressionContract::MaxStationToolLevel;
         for (int32 CurrentLevel = 1; CurrentLevel < StationTargetCap; ++CurrentLevel)
         {
             TArray<FKalmalaToolRecipeIngredientData> ScaledCosts;
@@ -175,8 +161,6 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
         }
     }
     if (UpgradeCosts.Num() > MaxRecipes) return false;
-    for (const FKalmalaToolProfileData& Profile : Profiles)
-        if (Profile.Levels.Num() > 1 && !SeenUpgradeIds.Contains(Profile.ToolId)) return false;
     return true;
 }
 
@@ -209,4 +193,20 @@ const FKalmalaToolProfileData* UKalmalaToolCatalogue::FindProfile(const FName To
     {
         return Profile.ToolId == ToolId;
     });
+}
+
+bool FKalmalaToolProfileData::GetLevelStats(const int32 ToolLevel, FKalmalaToolLevelStats& OutStats) const
+{
+    OutStats = {};
+    if (ToolLevel < 1 || ToolLevel > FKalmalaToolLifecycleContract::MaxToolLevel
+        || MaxDurability < 1 || MaxDurability > 1000 || !DamageBonuses.IsValid(1000.0f)
+        || LevelUpReward.MaxDurability < 0 || LevelUpReward.MaxDurability > 1000
+        || !LevelUpReward.DamageBonuses.IsValid(1000.0f)) return false;
+    const int64 Durability = int64(MaxDurability) + int64(ToolLevel - 1) * LevelUpReward.MaxDurability;
+    const FKalmalaDamageChannels Bonuses = DamageBonuses.Added(LevelUpReward.DamageBonuses.Scaled(ToolLevel - 1));
+    if (Durability > MAX_int32 || !Bonuses.IsValid()) return false;
+    OutStats.ToolLevel = ToolLevel;
+    OutStats.MaxDurability = static_cast<int32>(Durability);
+    OutStats.DamageBonuses = Bonuses;
+    return true;
 }

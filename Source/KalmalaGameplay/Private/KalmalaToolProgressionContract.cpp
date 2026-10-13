@@ -78,7 +78,7 @@ namespace
             {
                 const FKalmalaToolProfileData* Profile = Catalogue->FindProfile(Upgrade.ToolId);
                 if (!Profile) return TArray<FKalmalaToolProgressionEntry>();
-                const int32 StationTargetCap = FMath::Min(Profile->Levels.Num(), FKalmalaToolProgressionContract::MaxStationToolLevel);
+                const int32 StationTargetCap = FKalmalaToolProgressionContract::MaxStationToolLevel;
                 for (int32 CurrentLevel = 1; CurrentLevel < StationTargetCap; ++CurrentLevel)
                 {
                     TArray<FKalmalaToolRecipeIngredientData> Costs;
