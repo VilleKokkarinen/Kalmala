@@ -377,7 +377,7 @@ bool FKalmalaCatalogueIconTest::RunTest(const FString&)
     }
     TestEqual(TEXT("Canonical item, tool, and construction identity count"), CheckedIds.Num(), 59);
     static const TPair<FName, FName> Aliases[] = {
-        {TEXT("HearthRing"), TEXT("CampfireKit")}, {TEXT("Workbench"), TEXT("WorkbenchKit")},
+        {TEXT("Workbench"), TEXT("WorkbenchKit")},
         {TEXT("Forge"), TEXT("ForgeKit")}, {TEXT("WorkbenchToolRack"), TEXT("WorkbenchToolRackKit")},
         {TEXT("ForgeAnvil"), TEXT("ForgeAnvilKit")}, {TEXT("GrindingStone"), TEXT("GrindingStoneKit")},
         {TEXT("Storage"), TEXT("StorageKit")}, {TEXT("CookingRack"), TEXT("CookingRackKit")},

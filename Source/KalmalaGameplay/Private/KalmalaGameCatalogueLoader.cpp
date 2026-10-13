@@ -24,7 +24,7 @@ namespace
 
     FName ToRuntimeItemId(const FName CatalogueItemId)
     {
-        if (CatalogueItemId == TEXT("CampFire") || CatalogueItemId == TEXT("HearthRing")) return TEXT("CampfireKit");
+        if (CatalogueItemId == TEXT("CampFire")) return TEXT("CampfireKit");
         if (CatalogueItemId == TEXT("Workbench")) return TEXT("WorkbenchKit");
         if (CatalogueItemId == TEXT("Forge")) return TEXT("ForgeKit");
         if (CatalogueItemId == TEXT("WorkbenchToolRack")) return TEXT("WorkbenchToolRackKit");

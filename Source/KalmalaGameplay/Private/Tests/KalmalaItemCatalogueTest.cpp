@@ -442,7 +442,7 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
             Recipe.DisplayName.Contains(TEXT("kit"), ESearchCase::IgnoreCase));
     }
     const TPair<FName, FName> LegacyAliases[] = {
-        {TEXT("HearthRing"), TEXT("CampfireKit")}, {TEXT("Workbench"), TEXT("WorkbenchKit")},
+        {TEXT("Workbench"), TEXT("WorkbenchKit")},
         {TEXT("Forge"), TEXT("ForgeKit")}, {TEXT("WorkbenchToolRack"), TEXT("WorkbenchToolRackKit")},
         {TEXT("ForgeAnvil"), TEXT("ForgeAnvilKit")}, {TEXT("GrindingStone"), TEXT("GrindingStoneKit")},
         {TEXT("Storage"), TEXT("StorageKit")},

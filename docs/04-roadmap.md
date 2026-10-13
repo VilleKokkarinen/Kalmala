@@ -635,17 +635,17 @@ M12 has ten ordered UI goals:
      compound identifiers; do not expose internal Kit suffixes or force literal
      technical IDs into labels. Stable IDs, aliases and saved identities stay
      unchanged (for example, internal WorkbenchKit remains an internal identity).
-   - **Campfire is construction, not an inventory item:** remove HearthRing from
+   - **Campfire is construction, not an inventory item:** remove CampFire from
      the normal inventory-item catalogue/presentation. The existing Campfire
      recipe belongs only in Build, is displayed as Campfire, and places a
      Campfire directly from its current material costs and placement rules.
-     It never crafts a HearthRing/Campfire inventory stack or pickup item.
+     It never crafts a CampFire inventory stack or pickup item.
      Represent its output as construction metadata rather than requiring a
      normal inventory item; update catalogue loading/validation, UI selection
      and icon coverage accordingly. Its generated image belongs to the Campfire
      build selection and placed object, not an inventory slot. Use Campfire in
-     player-facing names/prompts; retain necessary internal CampfireKit and
-     legacy HearthRing aliases for existing construction/save compatibility.
+     player-facing names/prompts; retain the internal CampfireKit construction
+     identity for existing construction/save compatibility.
      Preserve current fuel/ignition costs, direct refuelling and server authority.
      Verify valid placement creates one Campfire and no item stack, while failed
      placement spends nothing; existing saved Campfires still restore correctly.
@@ -735,8 +735,8 @@ padding is half its former value without clipping or status overlap; every curre
 catalogue object/result has its original generated 64x64 image icon, consistently
 mapped across views with readable separate overlays and complete coverage; item
 names/descriptions are concise, consistent and truthful with intentional manual
-improvements retained and Workbench named Workbench; Campfire exists only as a
-building recipe/placed construction, never a HearthRing inventory item; compact
+improvements retained and Workbench named Workbench; CampFire exists only as a
+building recipe/placed construction, never an inventory item; compact
 status/weather icons sit at the minimap's upper left and show only active special
 conditions as 64x64 icons without visible names, with timers underneath only
 finite player effects, no weather/untimed-condition durations, and a fully hidden

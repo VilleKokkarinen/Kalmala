@@ -40,7 +40,7 @@ AKalmalaCampfire::AKalmalaCampfire()
     FireLight->SetAttenuationRadius(KalmalaCampfire::WarmthRadius);
     FireLight->SetIntensity(0.0f);
 
-    HearthMesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("HearthRing"));
+    HearthMesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("CampFire"));
     HearthMesh->SetupAttachment(RootComponent);
     HearthMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     TArray<FVector> Vertices; TArray<int32> Triangles;
