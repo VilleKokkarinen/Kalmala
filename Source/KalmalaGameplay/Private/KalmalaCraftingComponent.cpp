@@ -812,15 +812,20 @@ FString UKalmalaCraftingComponent::GetToolProgressionText(const FName StationFil
 
         if (ExistingTarget && ExistingTarget->ToolLevel >= Entry.TargetToolLevel)
         {
+            const int32 MaxDurability = FKalmalaToolLifecycleContract::GetMaxDurability(
+                Entry.ToolId, ExistingTarget->ToolLevel);
             Text += FString::Printf(TEXT("%s is already level %d.\nStatus: Already at this level.\n"),
                 *GetToolDisplayName(Entry.ToolId), ExistingTarget->ToolLevel);
+            Text += FString::Printf(TEXT("Condition: %d/%d durability · Slash damage: %.0f.\n"),
+                ExistingTarget->Durability, MaxDurability,
+                FKalmalaToolLifecycleContract::GetSlashDamage(Entry.ToolId, ExistingTarget->ToolLevel));
             continue;
         }
         if (ExistingTarget && Entry.PreviousToolId.IsNone())
         {
             Text += FString::Printf(TEXT("%s %d · carried, condition %d/%d.\nStatus: Already carried.\n"),
                 *GetToolDisplayName(Entry.ToolId), ExistingTarget->ToolLevel, ExistingTarget->Durability,
-                TargetDefinition->MaxDurability);
+                FKalmalaToolLifecycleContract::GetMaxDurability(Entry.ToolId, ExistingTarget->ToolLevel));
             continue;
         }
 
@@ -836,24 +841,37 @@ FString UKalmalaCraftingComponent::GetToolProgressionText(const FName StationFil
         }
         if (Entry.PreviousToolId == Entry.ToolId)
         {
-            Text += FString::Printf(TEXT("Comparison: %s level %d → level %d.\nHarvesting tier remains tied to item identity.\n"),
-                *GetToolDisplayName(Entry.ToolId), Entry.PreviousToolLevel, Entry.TargetToolLevel);
+            const int32 PreviousMaxDurability = FKalmalaToolLifecycleContract::GetMaxDurability(
+                Entry.PreviousToolId, Entry.PreviousToolLevel);
+            const int32 TargetMaxDurability = FKalmalaToolLifecycleContract::GetMaxDurability(
+                Entry.ToolId, Entry.TargetToolLevel);
+            const float PreviousSlashDamage = FKalmalaToolLifecycleContract::GetSlashDamage(
+                Entry.PreviousToolId, Entry.PreviousToolLevel);
+            const float TargetSlashDamage = FKalmalaToolLifecycleContract::GetSlashDamage(
+                Entry.ToolId, Entry.TargetToolLevel);
+            Text += FString::Printf(TEXT("Comparison: %s level %d → level %d.\nDurability: %d → %d (+%d).\nSlash damage: %.0f → %.0f (+%.0f).\n"),
+                *GetToolDisplayName(Entry.ToolId), Entry.PreviousToolLevel, Entry.TargetToolLevel,
+                PreviousMaxDurability, TargetMaxDurability, TargetMaxDurability - PreviousMaxDurability,
+                PreviousSlashDamage, TargetSlashDamage, TargetSlashDamage - PreviousSlashDamage);
         }
         else if (!Entry.PreviousToolId.IsNone())
         {
             const FString PreviousState = PreviousTool && PreviousDefinition
                 ? FString::Printf(TEXT("%s %d (%d/%d condition)"), *GetToolDisplayName(Entry.PreviousToolId),
-                    PreviousTool->ToolLevel, PreviousTool->Durability, PreviousDefinition->MaxDurability)
+                    PreviousTool->ToolLevel, PreviousTool->Durability,
+                    FKalmalaToolLifecycleContract::GetMaxDurability(Entry.PreviousToolId, PreviousTool->ToolLevel))
                 : FString::Printf(TEXT("%s (not carried)"), *GetToolDisplayName(Entry.PreviousToolId));
             Text += FString::Printf(TEXT("Comparison: %s → %s %d (starts at %d/%d condition).\n"),
                 *PreviousState, *GetToolDisplayName(Entry.ToolId), Entry.TargetToolLevel,
-                TargetDefinition->MaxDurability, TargetDefinition->MaxDurability);
+                FKalmalaToolLifecycleContract::GetMaxDurability(Entry.ToolId, Entry.TargetToolLevel),
+                FKalmalaToolLifecycleContract::GetMaxDurability(Entry.ToolId, Entry.TargetToolLevel));
         }
         else
         {
             Text += FString::Printf(TEXT("New tool: %s %d (starts at %d/%d condition).\n"),
                 *GetToolDisplayName(Entry.ToolId), Entry.TargetToolLevel,
-                TargetDefinition->MaxDurability, TargetDefinition->MaxDurability);
+                FKalmalaToolLifecycleContract::GetMaxDurability(Entry.ToolId, Entry.TargetToolLevel),
+                FKalmalaToolLifecycleContract::GetMaxDurability(Entry.ToolId, Entry.TargetToolLevel));
         }
 
         Text += FString::Printf(TEXT("Requires: %s level %d"), StationName, Entry.RequiredStationLevel);

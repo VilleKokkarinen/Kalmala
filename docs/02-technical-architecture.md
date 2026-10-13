@@ -545,7 +545,7 @@ First-wave sources remain birch bark and resinwood for Wood, reed clusters and f
 
 Tools occupy the same forty-cell inventory as materials, rather than extra carrying slots. The owner-only CarriedTools array has at most six unique known records; condition and authored tool level are independent of the transient player skill ledger. Starting tools are Reed Knife, Field Hatchet, Stone Pick, and level-one Construction Hammer. The hammer has 100 condition and no use wear; axes must be crafted.
 
-Bronze Axe level 1 costs 4 Wood, 3 Stone, and 2 Fibre at a level-one Workbench. Bronze Axe level 2 upgrades that same carried item at a level-two Forge, requires Crafting level 5, and costs 3 Lightwood, 2 PeatAmber, 4 Stone, and 2 Fibre. An upgrade may change only item-authored stats, currently limited by user direction to durability and slash damage; exact level-two values are pending. Tool level never changes the item's harvesting tier or unlocks resources. It preserves item ID, inventory cell, and current condition. The server-selected station family and effective level must match the authored progression step exactly; rejection leaves both candidates unchanged. Legacy Iron Axe records remain readable but are not created as an upgrade result.
+Bronze Axe level 1 costs 4 Wood, 3 Stone, and 2 Fibre at a level-one Workbench. Its authored stats are 100 maximum durability and 50 slash damage. Bronze Axe level 2 upgrades that same carried item at a level-two Forge, requires Crafting level 5, and costs 3 Lightwood, 2 PeatAmber, 4 Stone, and 2 Fibre; its stats become 150 maximum durability and 55 slash damage. An upgrade changes only those item-authored stats; tool level never changes the item's harvesting tier or unlocks resources. It preserves item ID, inventory cell, and current condition. The server-selected station family and effective level must match the authored progression step exactly; rejection leaves both candidates unchanged. Legacy Iron Axe records remain readable but are not created as an upgrade result.
 
 A paid Tool Rack or Forge Anvil within 125 cm adds one level to its matching station. One attachment per station, a level-two ceiling, 32 attachments, and 128 total construction records bound progression. Placement and station use recheck visibility and the normal 250 cm range. Station levels are derived from placed actors, not saved as numbers.
 
@@ -638,7 +638,7 @@ Chest Store/Take transfers one selected allowlisted item through the existing se
 
 ## Combat and support magic
 
-The committed basic attack sends only a monotonically increasing request sequence. The server traces living wildlife within 220 cm, uses a 0.18-second windup, rechecks target validity, applies its fixed 25 damage, and enforces 0.36-second recovery. Wildlife has 100 health; defeat joins the existing unique server-owned sparse callback. There is no arbitrary damage endpoint or client target. Public action phase/serial and owner-only target-free results provide readable feedback.
+The committed basic attack sends only a monotonically increasing request sequence. The server traces living wildlife within 220 cm, uses a 0.18-second windup, rechecks target validity, and enforces 0.36-second recovery. It applies the active usable carried tool's authored slash damage (Bronze Axe level 1: 50; level 2: 55); without one, it applies 25 unarmed damage. Bear's Vigor continues to apply its server-owned strength multiplier. Wildlife has 100 health; defeat joins the existing unique server-owned sparse callback. There is no arbitrary damage endpoint or client target. Public action phase/serial and owner-only target-free results provide readable feedback.
 
 Mirelings scavenge and threaten camps, boar defend territory with committed charges, and deer use bounded wary-herd flee behavior. Server-owned ecological behavior and defeat rewards never use client-selected archetypes, targets, or loot. Optional discoveries and boss scrolls commit authenticated-player entitlement before acknowledgement; duplicate claims grant nothing and failed saves leave the encounter/discovery recoverable.
 
@@ -1285,7 +1285,7 @@ invalid numbers/paths, missing assets, and a transient in-memory image reference
 The settings and Inventory menu tests remain required alongside it. No
 custom project font or rendered image appearance has been reviewed.
 
-Hover, keyboard/controller focus, selection, and disabled states share theme brushes and non-colour cues. Decorative images/animation yield to local high contrast and reduced motion. Inline Forge Upgrade comparison reads current/target authored axe level and condition; equal values are neutral, absent axes have an explicit missing state, and other service views collapse the comparison. No invented combat statistics are displayed.
+Hover, keyboard/controller focus, selection, and disabled states share theme brushes and non-colour cues. Decorative images/animation yield to local high contrast and reduced motion. Inline Forge Upgrade comparison reads current/target authored axe level and condition; equal values are neutral, absent axes have an explicit missing state, and other service views collapse the comparison. It displays the Bronze Axe's authored durability and slash-damage gains.
 
 ## Status and catalogue icons
 

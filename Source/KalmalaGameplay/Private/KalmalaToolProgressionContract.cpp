@@ -340,9 +340,10 @@ bool FKalmalaToolProgressionContract::BuildServerUpgrade(
     for (const FKalmalaToolState& State : ExistingTools)
     {
         const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(State.ToolId);
+        const int32 MaxDurability = FKalmalaToolLifecycleContract::GetMaxDurability(State.ToolId, State.ToolLevel);
         if (!Definition || SeenTools.Contains(State.ToolId) || !IsValidToolLevel(State.ToolId, State.ToolLevel)
             || State.ToolLevel > GetMaximumToolLevel(State.ToolId)
-            || State.Durability < 0 || State.Durability > Definition->MaxDurability)
+            || MaxDurability <= 0 || State.Durability < 0 || State.Durability > MaxDurability)
         {
             return false;
         }
@@ -409,7 +410,8 @@ bool FKalmalaToolProgressionContract::BuildServerUpgrade(
         FKalmalaToolState& OutputState = CandidateTools.AddDefaulted_GetRef();
         OutputState.ToolId = Entry->ToolId;
         OutputState.ToolLevel = Entry->TargetToolLevel;
-        OutputState.Durability = OutputDefinition->MaxDurability;
+        OutputState.Durability = FKalmalaToolLifecycleContract::GetMaxDurability(
+            OutputState.ToolId, OutputState.ToolLevel);
     }
 
     TArray<FKalmalaInventoryStack> Costs;

@@ -1020,7 +1020,8 @@ int32* AKalmalaCharacter::FindToolDurabilityFromServer(const FName ToolId)
 
     const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(ToolId);
     if (LegacyCondition != nullptr && Definition != nullptr && *LegacyCondition >= 0
-        && *LegacyCondition <= Definition->MaxDurability && CarriedTools.Num() < FKalmalaToolLifecycleContract::MaxCarriedToolRecords)
+        && *LegacyCondition <= FKalmalaToolLifecycleContract::GetMaxDurability(ToolId, 1)
+        && CarriedTools.Num() < FKalmalaToolLifecycleContract::MaxCarriedToolRecords)
     {
         FKalmalaToolState SeededState;
         SeededState.ToolId = ToolId;
@@ -1065,7 +1066,7 @@ bool AKalmalaCharacter::CommitToolHarvestFromServer(AKalmalaHarvestNode* Node, c
     Context.TraceDistance = TraceDistance;
     Context.MaximumRange = MaximumRange;
 
-    FKalmalaToolState CandidateToolState{ClientToolId, *CurrentDurability};
+    FKalmalaToolState CandidateToolState{ClientToolId, *CurrentDurability, GetCarriedToolLevel(ClientToolId)};
     FName RewardItemId = NAME_None;
     int32 RewardQuantity = 0;
     if (!FKalmalaToolLifecycleContract::ApplyServerUse(CandidateToolState, Context, ClientToolId,

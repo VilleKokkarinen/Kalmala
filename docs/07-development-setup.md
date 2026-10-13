@@ -287,8 +287,8 @@ Physical devices and packaged/cooked output remain outside this editor check.
 The local crafting/forge details compare the owner's carried Bronze Axe level
 1 with its same-item level 2 upgrade. The comparison shows the level increase
 and only its item-specific stat gains; tool level must not change the axe's
-harvesting tier or resource access. The currently directed gains are durability
-and slash damage, with level-two values pending user specification. Missing or
+harvesting tier or resource access. Bronze Axe level 1 shows 100 durability and
+50 slash damage; level 2 shows 150 durability and 55 slash damage. Missing or
 already upgraded state must be described clearly rather than using fabricated values.
 The display refreshes from owner state while the panel is open and does not
 submit an upgrade request.
@@ -2362,9 +2362,9 @@ execution and rendered inspection remain in M12's final acceptance.
 The Forge menu opens Craft by default and lets the owner switch to Upgrade
 without closing the accepted station context. Upgrade shows the carried
 Bronze Axe level 1 against the same Bronze Axe at level 2, including its
-item-specific durability and slash-damage gains without changing the Bronze
-harvesting tier or unlocking Ironheart trunks/Densewood. Their values are
-pending user specification. It lists Forge level 2, Crafting level 5 and the second-tier unlock, the
+item-specific durability and slash-damage gains (100→150 durability and
+50→55 slash damage) without changing the Bronze harvesting tier or unlocking
+Ironheart trunks/Densewood. It lists Forge level 2, Crafting level 5 and the second-tier unlock, the
 level-one prerequisite, and every material cost with the owner's current
 counts. It presents the first unmet requirement and enables the
 existing Upgrade action only when the owner-visible progression is ready. The

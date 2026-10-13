@@ -157,7 +157,11 @@ int32 UKalmalaInventoryGridWidget::NativePaint(const FPaintArgs& Args, const FGe
         if (Character)
             if (const auto* Tool = FKalmalaToolLifecycleContract::FindDefinition(Id))
             {
-                const float Fraction = FMath::Clamp(float(Character->GetToolDurability(Id)) / FMath::Max(1, Tool->MaxDurability), 0.0f, 1.0f);
+                const int32 ToolLevel = Character->GetCarriedToolLevel(Id);
+                const int32 MaxDurability = FKalmalaToolLifecycleContract::GetMaxDurability(Id, ToolLevel);
+                const float Fraction = MaxDurability > 0
+                    ? FMath::Clamp(float(Character->GetToolDurability(Id)) / MaxDurability, 0.0f, 1.0f)
+                    : 0.0f;
                 FSlateDrawElement::MakeBox(Elements, Layer, G.ToPaintGeometry(FVector2D(Cell - 8, 3),
                     FSlateLayoutTransform(P + FVector2D(4, Cell - 5))), Brush, ESlateDrawEffect::None, FLinearColor(0.3f, 0.08f, 0.06f, 1));
                 FSlateDrawElement::MakeBox(Elements, Layer + 1, G.ToPaintGeometry(FVector2D((Cell - 8) * Fraction, 3),

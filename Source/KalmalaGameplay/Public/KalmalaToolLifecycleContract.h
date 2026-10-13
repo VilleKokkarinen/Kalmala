@@ -100,6 +100,10 @@ public:
     static const FKalmalaToolDefinition& GetConstructionHammerDefinition();
     static TArray<FKalmalaToolState> BuildInitialCarriedTools();
     static const FKalmalaToolDefinition* FindDefinition(FName ToolId);
+    /** Level-aware condition capacity; zero means the tool/level combination is invalid. */
+    static int32 GetMaxDurability(FName ToolId, int32 ToolLevel);
+    /** Authored combat slash damage for an equipped item level; zero means no weapon override. */
+    static float GetSlashDamage(FName ToolId, int32 ToolLevel);
     static bool IsKnownAction(EKalmalaToolAction Action);
     static bool IsKnownTool(EKalmalaToolKind Tool);
     static bool IsKnownToolTier(EKalmalaToolTier Tier);

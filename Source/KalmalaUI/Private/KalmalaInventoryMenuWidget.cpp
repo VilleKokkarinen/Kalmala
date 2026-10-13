@@ -43,13 +43,16 @@ FString GetCarriedToolDisplayName(const FName ToolId)
     return ToolId.ToString();
 }
 
-FString BuildToolInspectionText(const FKalmalaToolState& Tool, const FKalmalaToolDefinition& Definition)
+FString BuildToolInspectionText(const FKalmalaToolState& Tool)
 {
+    const int32 MaxDurability = FKalmalaToolLifecycleContract::GetMaxDurability(Tool.ToolId, Tool.ToolLevel);
     FString Text = UKalmalaCatalogueRowsWidget::BuildToolDetail(
-        Tool.ToolLevel, Tool.Durability, Definition.MaxDurability);
-    if (Tool.ToolLevel < 1 || Tool.Durability < 0 || Tool.Durability > Definition.MaxDurability)
+        Tool.ToolLevel, Tool.Durability, MaxDurability);
+    if (MaxDurability <= 0 || Tool.Durability < 0 || Tool.Durability > MaxDurability)
         return Text + TEXT("\nRepair unavailable.");
-    return Text + (Tool.Durability < Definition.MaxDurability
+    const float SlashDamage = FKalmalaToolLifecycleContract::GetSlashDamage(Tool.ToolId, Tool.ToolLevel);
+    if (SlashDamage > 0.0f) Text += FString::Printf(TEXT("\nSlash damage: %.0f."), SlashDamage);
+    return Text + (Tool.Durability < MaxDurability
         ? TEXT("\nFree repair at a visible Workbench or Forge.")
         : TEXT("\nNo repair needed."));
 }
@@ -262,7 +265,7 @@ void UKalmalaInventoryMenuWidget::RefreshOwnerInventory()
             if (Definition == nullptr) continue;
             SeenToolIds.Add(Tool.ToolId);
             InventoryRows.Add({ Tool.ToolId, GetCarriedToolDisplayName(Tool.ToolId),
-                BuildToolInspectionText(Tool, *Definition), true });
+                BuildToolInspectionText(Tool), true });
         }
     }
 
@@ -478,9 +481,11 @@ void UKalmalaInventoryMenuWidget::RefreshSelectionPresentation(const int32 TextS
             ? Character->GetCarriedToolInventory().FindByPredicate([SelectedRow](const FKalmalaToolState& Entry)
                 { return Entry.ToolId == SelectedRow->Id; }) : nullptr;
         const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(SelectedRow->Id);
+        const int32 MaxDurability = Tool
+            ? FKalmalaToolLifecycleContract::GetMaxDurability(Tool->ToolId, Tool->ToolLevel) : 0;
         const bool bToolStateValid = Tool != nullptr && Definition != nullptr && Tool->ToolLevel >= 1
-            && Tool->Durability >= 0 && Tool->Durability <= Definition->MaxDurability;
-        const bool bNeedsRepair = bToolStateValid && Tool->Durability < Definition->MaxDurability;
+            && MaxDurability > 0 && Tool->Durability >= 0 && Tool->Durability <= MaxDurability;
+        const bool bNeedsRepair = bToolStateValid && Tool->Durability < MaxDurability;
         const bool bHasRepairAction = Character != nullptr
             && Character->FindComponentByClass<UKalmalaCraftingComponent>() != nullptr;
         RepairToolButton->SetIsEnabled(bNeedsRepair && bHasRepairAction);
@@ -644,8 +649,11 @@ void UKalmalaInventoryMenuWidget::RepairSelectedTool()
     UKalmalaCraftingComponent* Crafting = Character
         ? Character->FindComponentByClass<UKalmalaCraftingComponent>()
         : nullptr;
+    const int32 MaxDurability = Tool
+        ? FKalmalaToolLifecycleContract::GetMaxDurability(Tool->ToolId, Tool->ToolLevel) : 0;
     if (Controller == nullptr || !Controller->IsLocalController() || Tool == nullptr || Definition == nullptr
-        || Tool->ToolLevel < 1 || Tool->Durability < 0 || Tool->Durability >= Definition->MaxDurability || Crafting == nullptr)
+        || Tool->ToolLevel < 1 || MaxDurability <= 0 || Tool->Durability < 0
+        || Tool->Durability >= MaxDurability || Crafting == nullptr)
     {
         RefreshSelectionPresentation(UKalmalaSettingsWidget::ClampTextScale(
             UKalmalaSettingsWidget::GetTextScalePercent()), UKalmalaSettingsWidget::GetContrastMode());

@@ -27,7 +27,7 @@ namespace
             Bronze.Action = EKalmalaToolAction::Woodcutting;
             Bronze.RequiredSkill = EKalmalaSkill::Woodcutting;
             Bronze.MinimumSkillLevel = 1;
-            Bronze.MaxDurability = 24;
+            Bronze.MaxDurability = 100;
             Bronze.DurabilityCost = 1;
 
             FKalmalaToolDefinition Iron;
@@ -129,6 +129,31 @@ const FKalmalaToolDefinition* FKalmalaToolLifecycleContract::FindDefinition(cons
     });
     if (Definition != nullptr) return Definition;
     return ToolId == ConstructionHammerDefinition().ToolId ? &ConstructionHammerDefinition() : nullptr;
+}
+
+int32 FKalmalaToolLifecycleContract::GetMaxDurability(const FName ToolId, const int32 ToolLevel)
+{
+    const FKalmalaToolDefinition* Definition = FindDefinition(ToolId);
+    if (Definition == nullptr || ToolLevel < 1) return 0;
+    if (ToolId == TEXT("BronzeAxe"))
+    {
+        if (ToolLevel == 1) return 100;
+        if (ToolLevel == 2) return 150;
+        return 0;
+    }
+    // Older saves may contain an Iron Axe at level 2 from the superseded cross-item upgrade.
+    if (ToolId == TEXT("IronAxe")) return ToolLevel <= 2 ? Definition->MaxDurability : 0;
+    return ToolLevel == 1 ? Definition->MaxDurability : 0;
+}
+
+float FKalmalaToolLifecycleContract::GetSlashDamage(const FName ToolId, const int32 ToolLevel)
+{
+    if (ToolId == TEXT("BronzeAxe"))
+    {
+        if (ToolLevel == 1) return 50.0f;
+        if (ToolLevel == 2) return 55.0f;
+    }
+    return 0.0f;
 }
 
 bool FKalmalaToolLifecycleContract::IsKnownAction(const EKalmalaToolAction Action)
@@ -266,7 +291,7 @@ bool FKalmalaToolLifecycleContract::IsUseAllowed(
         || !IsToolSuitableForSelection(*Definition, ToolState.ToolLevel, ServerSelection)
         || Definition->RequiredSkill != ServerSelection.RequiredSkill
         || ToolState.ToolId != ClientToolId
-        || ToolState.Durability <= 0 || ToolState.Durability > Definition->MaxDurability
+        || ToolState.Durability <= 0 || ToolState.Durability > GetMaxDurability(ToolState.ToolId, ToolState.ToolLevel)
         || !SkillState.IsValid() || SkillState.Skill != ServerSelection.RequiredSkill
         || SkillState.Level < Definition->MinimumSkillLevel) return false;
 
@@ -303,11 +328,11 @@ bool FKalmalaToolLifecycleContract::BuildServerFreeRepair(
     FKalmalaToolState& OutRepairedState)
 {
     OutRepairedState = ToolState;
-    const FKalmalaToolDefinition* Definition = FindDefinition(ToolState.ToolId);
-    if (!bServerAuthority || !bAtValidatedRepairStation || Definition == nullptr
-        || ToolState.Durability < 0 || ToolState.Durability >= Definition->MaxDurability) return false;
+    const int32 MaxDurability = GetMaxDurability(ToolState.ToolId, ToolState.ToolLevel);
+    if (!bServerAuthority || !bAtValidatedRepairStation || MaxDurability <= 0
+        || ToolState.Durability < 0 || ToolState.Durability >= MaxDurability) return false;
 
-    OutRepairedState.Durability = Definition->MaxDurability;
+    OutRepairedState.Durability = MaxDurability;
     return true;
 }
 
@@ -327,16 +352,16 @@ bool FKalmalaToolLifecycleContract::BuildServerRepairAll(
     {
         const FKalmalaToolState& ToolState = ToolStates[Index];
         const FKalmalaToolDefinition* Definition = FindDefinition(ToolState.ToolId);
+        const int32 MaxDurability = GetMaxDurability(ToolState.ToolId, ToolState.ToolLevel);
         if (!Definition || ToolState.ToolId.IsNone() || SeenToolIds.Contains(ToolState.ToolId)
-            || ToolState.ToolLevel < 1 || ToolState.Durability < 0
-            || ToolState.Durability > Definition->MaxDurability)
+            || MaxDurability <= 0 || ToolState.Durability < 0 || ToolState.Durability > MaxDurability)
         {
             OutRepairedStates = ToolStates;
             OutRepairedCount = 0;
             return false;
         }
         SeenToolIds.Add(ToolState.ToolId);
-        if (ToolState.Durability == Definition->MaxDurability) continue;
+        if (ToolState.Durability == MaxDurability) continue;
 
         FKalmalaToolState RepairedState;
         if (!BuildServerFreeRepair(true, true, ToolState, RepairedState))

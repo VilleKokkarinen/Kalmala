@@ -107,10 +107,11 @@ bool UKalmalaPlayerDiscoverySaveGameV2::IsValidM9ClaimId(const FString& Id)
 bool UKalmalaPlayerDiscoverySaveGameV2::IsValidToolRecord(const FKalmalaPlayerToolSaveRecord& Record)
 {
     const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(Record.ToolId);
+    const int32 MaxDurability = FKalmalaToolLifecycleContract::GetMaxDurability(Record.ToolId, Record.ToolLevel);
     return Definition != nullptr
         && Record.ToolId.ToString() == Definition->ToolId.ToString()
         && FKalmalaToolProgressionContract::IsValidToolLevel(Record.ToolId, Record.ToolLevel)
-        && Record.Condition >= 0 && Record.Condition <= Definition->MaxDurability;
+        && MaxDurability > 0 && Record.Condition >= 0 && Record.Condition <= MaxDurability;
 }
 
 bool UKalmalaPlayerDiscoverySaveGameV2::MatchesPlayer(

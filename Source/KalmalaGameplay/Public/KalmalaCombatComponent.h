@@ -35,7 +35,7 @@ private:
     void BeginRecovery();
     void PublishFeedbackFromServer(EKalmalaCombatFeedback NewFeedback);
     static constexpr float AttackRange = 220.0f;
-    static constexpr float AttackDamage = 25.0f;
+    static constexpr float UnarmedAttackDamage = 25.0f;
     static constexpr float WindupSeconds = 0.18f;
     static constexpr float RecoverySeconds = 0.36f;
     UPROPERTY(Replicated) EKalmalaCombatActionPhase ActionPhase = EKalmalaCombatActionPhase::Idle;

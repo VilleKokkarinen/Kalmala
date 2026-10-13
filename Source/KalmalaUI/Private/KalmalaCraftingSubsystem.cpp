@@ -710,7 +710,7 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     UpgradeTargetIconBox->SetVisibility(ESlateVisibility::Collapsed);
     ToolProgressionActions->AddChildToHorizontalBox(UpgradeTargetIconBox)->SetVerticalAlignment(VAlign_Center);
     UpgradeBronzeAxeButton = AddButton(TEXT("Upgrade"), ToolProgressionActions,
-        TEXT("Upgrade the carried Bronze Axe to level 2. Its item identity, harvesting tier, and inventory slot are preserved."));
+        TEXT("Upgrade the carried Bronze Axe to level 2: durability 150 and slash damage 55. Its item identity and harvesting tier are preserved."));
     UpgradeBronzeAxeButton->OnClicked.AddDynamic(this, &ThisClass::UpgradeBronzeAxe);
     auto* UpgradePanelContent = WidgetTree->ConstructWidget<UHorizontalBox>();
     StationUpgradePanel = WidgetTree->ConstructWidget<UBorder>();
@@ -1428,7 +1428,7 @@ void UKalmalaCraftingWidget::ConfigureStationContextPresentation(const FString& 
     {
         if (HeaderText) HeaderText->SetText(FText::FromString(TEXT("Forge — Upgrade")));
         if (InstructionsText) InstructionsText->SetText(FText::FromString(
-            TEXT("Upgrade the carried Bronze Axe without changing its identity or harvesting tier.")));
+            TEXT("Upgrade the carried Bronze Axe's durability and slash damage without changing its identity or harvesting tier.")));
     }
     else
     {
@@ -1795,6 +1795,8 @@ void UKalmalaCraftingWidget::RefreshWorkbenchRepairState(UKalmalaCraftingCompone
         : nullptr;
     const FKalmalaToolDefinition* Definition = SelectedToolId == TEXT("ConstructionHammer")
         ? nullptr : FKalmalaToolLifecycleContract::FindDefinition(SelectedToolId);
+    const int32 MaxDurability = Tool
+        ? FKalmalaToolLifecycleContract::GetMaxDurability(Tool->ToolId, Tool->ToolLevel) : 0;
     const AKalmalaConstructionActor* ContextStation = ContextStationActor.Get();
     const bool bRepairContext = bWorkbenchRepairContext || bForgeRepairContext;
     const bool bContextKitMatches = (bWorkbenchRepairContext && StationFilterKit == TEXT("WorkbenchKit"))
@@ -1803,8 +1805,8 @@ void UKalmalaCraftingWidget::RefreshWorkbenchRepairState(UKalmalaCraftingCompone
         && IsStationContextValid() && IsValid(ContextStation)
         && ContextStation->GetConstructionKit() == StationFilterKit;
     const bool bToolStateValid = Tool && Definition && Tool->ToolLevel >= 1
-        && Tool->Durability >= 0 && Tool->Durability <= Definition->MaxDurability;
-    const bool bNeedsRepair = bToolStateValid && Tool->Durability < Definition->MaxDurability;
+        && MaxDurability > 0 && Tool->Durability >= 0 && Tool->Durability <= MaxDurability;
+    const bool bNeedsRepair = bToolStateValid && Tool->Durability < MaxDurability;
     WorkbenchRepairButton->SetIsEnabled(bContextValid && PC && PC->IsLocalController()
         && bNeedsRepair && !bWorkbenchRepairPending);
 
@@ -3561,11 +3563,12 @@ void UKalmalaCraftingWidget::Refresh()
         for (const auto& Tool : Character->GetCarriedToolInventory())
         {
             const auto* Definition = FKalmalaToolLifecycleContract::FindDefinition(Tool.ToolId);
+            const int32 MaxDurability = FKalmalaToolLifecycleContract::GetMaxDurability(Tool.ToolId, Tool.ToolLevel);
             const bool bValidCondition = Definition && Tool.ToolLevel >= 1 && Tool.Durability >= 0
-                && Tool.Durability <= Definition->MaxDurability;
+                && MaxDurability > 0 && Tool.Durability <= MaxDurability;
             const FString VisibleState = bValidCondition
                 ? FString::Printf(TEXT("Level %d\nCondition %d/%d — %s"), Tool.ToolLevel,
-                    Tool.Durability, Definition->MaxDurability, Tool.Durability == 0 ? TEXT("Broken") : TEXT("Usable"))
+                    Tool.Durability, MaxDurability, Tool.Durability == 0 ? TEXT("Broken") : TEXT("Usable"))
                 : TEXT("Condition unavailable");
             const FKalmalaCatalogueRow ToolRow{Tool.ToolId, GetReadableToolName(Tool.ToolId), VisibleState, true};
             if (Tool.ToolId != TEXT("ConstructionHammer") && Definition)
@@ -3833,13 +3836,14 @@ void UKalmalaCraftingWidget::Refresh()
         if (ToolLevel <= 0) return;
         ++CarriedToolConditionCount;
         const int32 Condition = Character->GetToolDurability(Definition.ToolId);
-        if (Condition < 0 || Condition > Definition.MaxDurability)
+        const int32 MaxDurability = FKalmalaToolLifecycleContract::GetMaxDurability(Definition.ToolId, ToolLevel);
+        if (MaxDurability <= 0 || Condition < 0 || Condition > MaxDurability)
         {
             ToolConditionText += FString::Printf(TEXT("\n%s: condition unavailable"), *GetReadableToolName(Definition.ToolId));
             return;
         }
         ToolConditionText += FString::Printf(TEXT("\n%s level %d: %d/%d · %s"), *GetReadableToolName(Definition.ToolId),
-            ToolLevel, Condition, Definition.MaxDurability, Condition < Definition.MaxDurability ? TEXT("damaged") : TEXT("full"));
+            ToolLevel, Condition, MaxDurability, Condition < MaxDurability ? TEXT("damaged") : TEXT("full"));
     };
     for (const FKalmalaToolDefinition& Definition : FKalmalaToolLifecycleContract::GetDefinitions()) AppendToolCondition(Definition);
     for (const FKalmalaToolDefinition& Definition : FKalmalaToolLifecycleContract::GetTieredAxeDefinitions()) AppendToolCondition(Definition);
@@ -3915,14 +3919,25 @@ void UKalmalaCraftingWidget::RefreshInlineToolUpgradeComparison(
             ? FString::Printf(TEXT("Already level %d."), Upgrade->TargetToolLevel)
             : FString::Printf(TEXT("Tool level: %d → %d (+1)."),
                 Upgrade->PreviousToolLevel, Upgrade->TargetToolLevel);
+    const int32 PreviousMaxDurability = bValidUpgrade
+        ? FKalmalaToolLifecycleContract::GetMaxDurability(TEXT("BronzeAxe"), Upgrade->PreviousToolLevel) : 0;
+    const int32 TargetMaxDurability = bValidUpgrade
+        ? FKalmalaToolLifecycleContract::GetMaxDurability(TEXT("BronzeAxe"), Upgrade->TargetToolLevel) : 0;
+    const float PreviousSlashDamage = bValidUpgrade
+        ? FKalmalaToolLifecycleContract::GetSlashDamage(TEXT("BronzeAxe"), Upgrade->PreviousToolLevel) : 0.0f;
+    const float TargetSlashDamage = bValidUpgrade
+        ? FKalmalaToolLifecycleContract::GetSlashDamage(TEXT("BronzeAxe"), Upgrade->TargetToolLevel) : 0.0f;
+    const FString BenefitComparison = bValidUpgrade
+        ? FString::Printf(TEXT("Durability: %d → %d (+%d) · Slash damage: %.0f → %.0f (+%.0f)."),
+            PreviousMaxDurability, TargetMaxDurability, TargetMaxDurability - PreviousMaxDurability,
+            PreviousSlashDamage, TargetSlashDamage, TargetSlashDamage - PreviousSlashDamage)
+        : FString(TEXT("Upgrade gains unavailable."));
 
     ToolUpgradeComparisonTitle->SetText(FText::FromString(bValidUpgrade
         ? TEXT("Bronze Axe · Level 1 → Level 2")
         : TEXT("Upgrade comparison unavailable")));
     ToolUpgradeLevelComparison->SetText(FText::FromString(LevelComparison));
-    ToolUpgradeBenefitComparison->SetText(FText::FromString(bValidUpgrade
-        ? TEXT("Harvesting tier remains Bronze.")
-        : TEXT("Upgrade gains unavailable.")));
+    ToolUpgradeBenefitComparison->SetText(FText::FromString(BenefitComparison));
 
     ToolUpgradeComparisonTitle->SetColorAndOpacity(FSlateColor(Theme.TextColor(false, ContrastMode)));
     const FLinearColor BenefitColor = bValidUpgrade
@@ -4055,12 +4070,14 @@ void UKalmalaCraftingWidget::RepairWorkbenchSelectedTool()
         : nullptr;
     const FKalmalaToolDefinition* Definition = SelectedToolId == TEXT("ConstructionHammer")
         ? nullptr : FKalmalaToolLifecycleContract::FindDefinition(SelectedToolId);
+    const int32 MaxDurability = Tool
+        ? FKalmalaToolLifecycleContract::GetMaxDurability(Tool->ToolId, Tool->ToolLevel) : 0;
     const bool bRepairContext = bWorkbenchRepairContext || bForgeRepairContext;
     const bool bContextKitMatches = (bWorkbenchRepairContext && StationFilterKit == TEXT("WorkbenchKit"))
         || (bForgeRepairContext && StationFilterKit == TEXT("ForgeKit"));
     if (!PC || !PC->IsLocalController() || !Character || !Crafting || !bRepairContext
         || !bContextKitMatches || !IsStationContextValid() || !Tool || !Definition
-        || Tool->ToolLevel < 1 || Tool->Durability < 0 || Tool->Durability >= Definition->MaxDurability
+        || Tool->ToolLevel < 1 || MaxDurability <= 0 || Tool->Durability < 0 || Tool->Durability >= MaxDurability
         || bWorkbenchRepairPending) return;
 
     WorkbenchRepairResultSerial = Crafting->GetResultSerial();

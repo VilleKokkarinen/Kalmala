@@ -29,9 +29,9 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
-- [ ] **2026-10-13 — Finish Bronze Axe level-two gains:** keep harvesting tier tied to item identity and show only item-specific durability and slash-damage gains. The upgrade button and comparison-heading cleanup is implemented; level-two stat values and their server gameplay effect await user specification.
+- [x] **2026-10-13 — Finish Bronze Axe level-two gains:** keep harvesting tier tied to item identity; set level 1 to 100 durability/50 slash damage and level 2 to 150/55, apply the slash values in server combat, and show the stat deltas in the upgrade comparison.
   - [x] Remove the named-item upgrade button text and the carried-level prerequisite sentence from the comparison header; stop Bronze Axe level from unlocking Iron harvesting.
-  - [ ] Apply and display the user-specified level-two durability and slash-damage values.
+  - [x] Apply and display the specified durability and slash-damage values at both levels.
 
 - [x] **2026-10-13 — Fix duplicate progression format compile error:** use separate checked format literals in the shared progression contract, matching the server result-message fix.
 

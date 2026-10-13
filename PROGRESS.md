@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-13 — Apply Bronze Axe level stats
+
+- **Completed:** set Bronze Axe level 1 to 100 maximum durability / 50 slash damage and level 2 to 150 / 55. The server uses the active carried Bronze Axe's level and condition to resolve combat damage; otherwise it retains the unarmed 25 damage. Level-aware durability now flows through upgrades, harvesting validation, repair, save validation, inventory displays, and the Forge comparison, which shows +50 durability and +5 slash damage.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp`, `Source/KalmalaGameplay/Private/KalmalaCombatComponent.cpp`, `Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp`, `Source/KalmalaGameplay/Private/KalmalaPlayerDiscoverySaveGame.cpp`, `Source/KalmalaGameplay/Private/KalmalaToolLifecycleContract.cpp`, `Source/KalmalaGameplay/Private/KalmalaToolProgressionContract.cpp`, `Source/KalmalaGameplay/Public/KalmalaCombatComponent.h`, `Source/KalmalaGameplay/Public/KalmalaToolLifecycleContract.h`, `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`, `Source/KalmalaUI/Private/KalmalaInventoryCraftLayout.cpp`, `Source/KalmalaUI/Private/KalmalaInventoryGridWidget.cpp`, `Source/KalmalaUI/Private/KalmalaInventoryMenuWidget.cpp`, `docs/02-technical-architecture.md`, `docs/05-decision-log.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** source inspection confirmed level-aware capacity is used by gameplay/save/UI validation and repair, server combat derives slash damage from its authoritative active-item and carried-tool state, and the architecture notes match the new combat behavior. `git diff --check` passed. No tests, Unreal build, or menu render were run; full verification remains deferred.
+- **Impact and authority:** weapon damage is resolved on the server; clients cannot submit a damage amount. Condition capacity follows the carried tool level through the existing save record, with no schema change or new RPC.
+- **Verification/limitations:** normal user-directed increment, not milestone-final. Iron Axe retains its existing legacy condition cap; the new authored slash values apply to Bronze Axe levels 1 and 2. Full build and runtime combat/repair/save verification remain deferred.
+- **Next eligible task:** audit remaining `Verify-*` entrypoints against current acceptance requirements, callers, and equivalent coverage under the script-streamlining task.
+
 ## User-directed increment 2026-10-13 — Correct Bronze Axe upgrade scope and screen
 
 - **Completed:** changed the Forge action label to “Upgrade,” removed the carried-level prerequisite sentence from the comparison heading, and stopped Bronze Axe level 2 from gaining Iron harvesting access. Updated the upgrade copy and architecture notes to reserve level-two gains for item-specific durability and slash damage.

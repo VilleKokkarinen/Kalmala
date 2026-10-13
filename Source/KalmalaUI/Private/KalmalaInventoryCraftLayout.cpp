@@ -362,8 +362,15 @@ void UKalmalaCraftingWidget::RefreshInventoryCraftLayout()
     InventoryCraftDescription->SetText(FText::FromString(Crafting ? Crafting->GetRecipeDescription(Recipe.RecipeId) : FString()));
     InventoryCraftIcon->SetVisibility(ESlateVisibility::HitTestInvisible);
     InventoryCraftIcon->SetCatalogueIcon(Recipe.GetOutputIdentity());
-    const auto* Tool = FKalmalaToolLifecycleContract::FindDefinition(Recipe.Output);
-    InventoryCraftStats->SetText(FText::FromString(Tool ? FString::Printf(TEXT("Durability: %d"), Tool->MaxDurability) : FString()));
+    const bool bToolOutput = FKalmalaToolLifecycleContract::FindDefinition(Recipe.Output) != nullptr;
+    const int32 OutputDurability = bToolOutput
+        ? FKalmalaToolLifecycleContract::GetMaxDurability(Recipe.Output, 1) : 0;
+    const float OutputSlashDamage = bToolOutput
+        ? FKalmalaToolLifecycleContract::GetSlashDamage(Recipe.Output, 1) : 0.0f;
+    FString OutputStats = bToolOutput ? FString::Printf(TEXT("Durability: %d"), OutputDurability) : FString();
+    if (OutputSlashDamage > 0.0f)
+        OutputStats += FString::Printf(TEXT(" · Slash damage: %.0f"), OutputSlashDamage);
+    InventoryCraftStats->SetText(FText::FromString(OutputStats));
     TArray<FKalmalaInventoryStack> Costs, After;
     int32 OutputCount = 0;
     const bool bValidCosts = UKalmalaRecipeCatalogue::Scale(Recipe, 1, Costs, OutputCount);
