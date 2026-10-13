@@ -22,13 +22,24 @@ enum class EKalmalaToolKind : uint8
     StonePick,
     BronzeAxe,
     IronAxe,
+    StoneSpear,
     ConstructionHammer
+};
+
+/** Damage profile used for item inspection; wildlife currently consumes the authored scalar. */
+enum class EKalmalaWeaponDamageType : uint8
+{
+    None,
+    Slash,
+    Pierce,
+    Blunt
 };
 
 /** M9 harvesting tiers; station level is validated only by later craft/upgrade transactions. */
 enum class EKalmalaToolTier : uint8
 {
     None,
+    Stone,
     Bronze,
     Iron
 };
@@ -42,6 +53,8 @@ struct KALMALAGAMEPLAY_API FKalmalaToolDefinition
     int32 MinimumSkillLevel = 1;
     int32 MaxDurability = 0;
     int32 DurabilityCost = 1;
+    EKalmalaWeaponDamageType DamageType = EKalmalaWeaponDamageType::None;
+    float CombatDamage = 0.0f;
 };
 
 USTRUCT(BlueprintType)
@@ -91,7 +104,7 @@ struct KALMALAGAMEPLAY_API FKalmalaToolServerSelection
 class KALMALAGAMEPLAY_API FKalmalaToolLifecycleContract
 {
 public:
-    static constexpr int32 MaxFirstWaveToolDefinitions = 3;
+    static constexpr int32 MaxFirstWaveToolDefinitions = 4;
     static constexpr int32 MaxCarriedToolRecords = 6;
     static constexpr float DefaultMaximumRange = 250.0f;
 
@@ -104,6 +117,10 @@ public:
     static int32 GetMaxDurability(FName ToolId, int32 ToolLevel);
     /** Authored combat slash damage for an equipped item level; zero means no weapon override. */
     static float GetSlashDamage(FName ToolId, int32 ToolLevel);
+    /** Authored combat damage for an equipped weapon at this level. */
+    static float GetWeaponDamage(FName ToolId, int32 ToolLevel);
+    static EKalmalaWeaponDamageType GetWeaponDamageType(FName ToolId);
+    static const TCHAR* GetWeaponDamageTypeLabel(EKalmalaWeaponDamageType DamageType);
     static bool IsKnownAction(EKalmalaToolAction Action);
     static bool IsKnownTool(EKalmalaToolKind Tool);
     static bool IsKnownToolTier(EKalmalaToolTier Tier);

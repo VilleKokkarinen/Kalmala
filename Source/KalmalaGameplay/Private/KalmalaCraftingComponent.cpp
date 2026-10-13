@@ -44,6 +44,7 @@ FString GetToolDisplayName(const FName ToolId)
     if (ToolId == TEXT("ReedKnife")) return TEXT("Reed Knife");
     if (ToolId == TEXT("FieldHatchet")) return TEXT("Field Hatchet");
     if (ToolId == TEXT("StonePick")) return TEXT("Stone Pick");
+    if (ToolId == TEXT("StoneSpear")) return TEXT("Stone Spear");
     if (ToolId == TEXT("BronzeAxe")) return TEXT("Bronze Axe");
     if (ToolId == TEXT("IronAxe")) return TEXT("Iron Axe");
     return ToolId.ToString();

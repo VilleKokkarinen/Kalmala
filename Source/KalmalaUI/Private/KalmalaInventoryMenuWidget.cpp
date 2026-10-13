@@ -37,6 +37,7 @@ FString GetCarriedToolDisplayName(const FName ToolId)
     if (ToolId == TEXT("ReedKnife")) return TEXT("Reed Knife");
     if (ToolId == TEXT("FieldHatchet")) return TEXT("Field Hatchet");
     if (ToolId == TEXT("StonePick")) return TEXT("Stone Pick");
+    if (ToolId == TEXT("StoneSpear")) return TEXT("Stone Spear");
     if (ToolId == TEXT("BronzeAxe")) return TEXT("Bronze Axe");
     if (ToolId == TEXT("IronAxe")) return TEXT("Iron Axe");
     if (ToolId == TEXT("ConstructionHammer")) return TEXT("Construction Hammer");
@@ -50,8 +51,13 @@ FString BuildToolInspectionText(const FKalmalaToolState& Tool)
         Tool.ToolLevel, Tool.Durability, MaxDurability);
     if (MaxDurability <= 0 || Tool.Durability < 0 || Tool.Durability > MaxDurability)
         return Text + TEXT("\nRepair unavailable.");
-    const float SlashDamage = FKalmalaToolLifecycleContract::GetSlashDamage(Tool.ToolId, Tool.ToolLevel);
-    if (SlashDamage > 0.0f) Text += FString::Printf(TEXT("\nSlash damage: %.0f."), SlashDamage);
+    const float WeaponDamage = FKalmalaToolLifecycleContract::GetWeaponDamage(Tool.ToolId, Tool.ToolLevel);
+    if (WeaponDamage > 0.0f)
+    {
+        const TCHAR* DamageType = FKalmalaToolLifecycleContract::GetWeaponDamageTypeLabel(
+            FKalmalaToolLifecycleContract::GetWeaponDamageType(Tool.ToolId));
+        Text += FString::Printf(TEXT("\n%s damage: %.0f."), DamageType, WeaponDamage);
+    }
     return Text + (Tool.Durability < MaxDurability
         ? TEXT("\nFree repair at a visible Workbench or Forge.")
         : TEXT("\nNo repair needed."));

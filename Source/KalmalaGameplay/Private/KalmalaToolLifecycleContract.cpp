@@ -10,9 +10,14 @@ namespace
     {
         static const TArray<FKalmalaToolDefinition> Definitions =
         {
-            { TEXT("ReedKnife"), EKalmalaToolKind::ReedKnife, EKalmalaToolAction::Gathering, EKalmalaSkill::Gathering, 1, 16, 1 },
-            { TEXT("FieldHatchet"), EKalmalaToolKind::FieldHatchet, EKalmalaToolAction::Woodcutting, EKalmalaSkill::Woodcutting, 1, 24, 1 },
-            { TEXT("StonePick"), EKalmalaToolKind::StonePick, EKalmalaToolAction::Mining, EKalmalaSkill::Mining, 1, 20, 1 },
+            { TEXT("ReedKnife"), EKalmalaToolKind::ReedKnife, EKalmalaToolAction::Gathering, EKalmalaSkill::Gathering, 1, 16, 1,
+                EKalmalaWeaponDamageType::Slash, 30.0f },
+            { TEXT("FieldHatchet"), EKalmalaToolKind::FieldHatchet, EKalmalaToolAction::Woodcutting, EKalmalaSkill::Woodcutting, 1, 24, 1,
+                EKalmalaWeaponDamageType::Slash, 34.0f },
+            { TEXT("StonePick"), EKalmalaToolKind::StonePick, EKalmalaToolAction::Mining, EKalmalaSkill::Mining, 1, 20, 1,
+                EKalmalaWeaponDamageType::Blunt, 26.0f },
+            { TEXT("StoneSpear"), EKalmalaToolKind::StoneSpear, EKalmalaToolAction::None, EKalmalaSkill::None, 1, 36, 1,
+                EKalmalaWeaponDamageType::Pierce, 42.0f },
         };
         return Definitions;
     }
@@ -29,6 +34,8 @@ namespace
             Bronze.MinimumSkillLevel = 1;
             Bronze.MaxDurability = 100;
             Bronze.DurabilityCost = 1;
+            Bronze.DamageType = EKalmalaWeaponDamageType::Slash;
+            Bronze.CombatDamage = 50.0f;
 
             FKalmalaToolDefinition Iron;
             Iron.ToolId = TEXT("IronAxe");
@@ -148,12 +155,34 @@ int32 FKalmalaToolLifecycleContract::GetMaxDurability(const FName ToolId, const 
 
 float FKalmalaToolLifecycleContract::GetSlashDamage(const FName ToolId, const int32 ToolLevel)
 {
-    if (ToolId == TEXT("BronzeAxe"))
+    if (GetWeaponDamageType(ToolId) != EKalmalaWeaponDamageType::Slash) return 0.0f;
+    return GetWeaponDamage(ToolId, ToolLevel);
+}
+
+float FKalmalaToolLifecycleContract::GetWeaponDamage(const FName ToolId, const int32 ToolLevel)
+{
+    if (ToolId.IsNone() || GetMaxDurability(ToolId, ToolLevel) <= 0) return 0.0f;
+    if (ToolId == TEXT("BronzeAxe") && ToolLevel == 2) return 55.0f;
+    const FKalmalaToolDefinition* Definition = FindDefinition(ToolId);
+    return Definition ? Definition->CombatDamage : 0.0f;
+}
+
+EKalmalaWeaponDamageType FKalmalaToolLifecycleContract::GetWeaponDamageType(const FName ToolId)
+{
+    const FKalmalaToolDefinition* Definition = FindDefinition(ToolId);
+    return Definition ? Definition->DamageType : EKalmalaWeaponDamageType::None;
+}
+
+const TCHAR* FKalmalaToolLifecycleContract::GetWeaponDamageTypeLabel(
+    const EKalmalaWeaponDamageType DamageType)
+{
+    switch (DamageType)
     {
-        if (ToolLevel == 1) return 50.0f;
-        if (ToolLevel == 2) return 55.0f;
+    case EKalmalaWeaponDamageType::Slash: return TEXT("Slash");
+    case EKalmalaWeaponDamageType::Pierce: return TEXT("Pierce");
+    case EKalmalaWeaponDamageType::Blunt: return TEXT("Blunt");
+    default: return TEXT("Damage");
     }
-    return 0.0f;
 }
 
 bool FKalmalaToolLifecycleContract::IsKnownAction(const EKalmalaToolAction Action)
@@ -168,13 +197,17 @@ bool FKalmalaToolLifecycleContract::IsKnownTool(const EKalmalaToolKind Tool)
 
 bool FKalmalaToolLifecycleContract::IsKnownToolTier(const EKalmalaToolTier Tier)
 {
-    return Tier >= EKalmalaToolTier::Bronze && Tier <= EKalmalaToolTier::Iron;
+    return Tier >= EKalmalaToolTier::Stone && Tier <= EKalmalaToolTier::Iron;
 }
 
 EKalmalaToolTier FKalmalaToolLifecycleContract::GetToolTier(const EKalmalaToolKind Tool)
 {
     switch (Tool)
     {
+    case EKalmalaToolKind::ReedKnife:
+    case EKalmalaToolKind::FieldHatchet:
+    case EKalmalaToolKind::StonePick:
+    case EKalmalaToolKind::StoneSpear: return EKalmalaToolTier::Stone;
     case EKalmalaToolKind::BronzeAxe: return EKalmalaToolTier::Bronze;
     case EKalmalaToolKind::IronAxe: return EKalmalaToolTier::Iron;
     default: return EKalmalaToolTier::None;

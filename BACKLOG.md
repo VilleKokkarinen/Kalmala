@@ -133,7 +133,11 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
   - [x] Audit remaining `Verify-*` entrypoints against current acceptance requirements, callers, and equivalent coverage; retire or consolidate only confirmed duplicates. Retained the unique construction movement runner, documented it, and retired the skiff reconnect launcher whose checks are covered by the integrated journey/reconnect runner.
   - [x] Document the non-`.ps1` support tools, their runtime requirements, and why they remain in their native formats.
 
-- [ ] **2026-10-13 — Add three theme-appropriate tiers of weapons and tools:** add original weapons and tools across three existing progression tiers, with item-specific stats and matching recipes; preserve the rule that upgrades improve the same item and do not grant a different item's gathering tier.
+- [ ] **2026-10-13 — Add three theme-appropriate tiers of weapons and tools:** add original weapons and tools across the Stone, Bronze, and Iron tiers, with item-specific stats and matching recipes; preserve the rule that upgrades improve the same item and do not grant a different item's gathering tier.
+  - [x] Establish the Stone starting set with per-item combat stats and a Stone Spear identity/icon; keep harvesting access tied to each existing item identity.
+  - [ ] Add Bronze Knife, Axe, Pick, and Spear stats and their matching acquisition recipes; retain Bronze Axe's same-item level upgrade.
+  - [ ] Add Iron Knife, Axe, Pick, and Spear stats, matching recipes, and an obtainable Iron source without turning Bronze items into Iron upgrades.
+  - [ ] Expose all new tier gear and stats through the shared crafting and inventory views with canonical themed icons.
 
 - [x] **2026-10-11 — Fix Build card fill and visible icon scale:** prevent the shared selectable-fill animation from overwriting the standalone Build menu's brown card overlay, and compensate for transparent margins in the 64×64 catalogue canvases while preserving icon proportions. Source inspection and `git diff --check` only; build/render verification deferred.
 

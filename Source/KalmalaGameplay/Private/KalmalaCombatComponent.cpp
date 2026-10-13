@@ -61,9 +61,9 @@ void UKalmalaCombatComponent::TickComponent(const float DeltaTime, const ELevelT
             const UKalmalaInventoryComponent* Inventory = OwnerCharacter ? OwnerCharacter->GetInventoryComponent() : nullptr;
             const FName EquippedItem = Inventory ? Inventory->GetActiveItem() : NAME_None;
             const int32 EquippedLevel = OwnerCharacter ? OwnerCharacter->GetCarriedToolLevel(EquippedItem) : 0;
-            const float SlashDamage = FKalmalaToolLifecycleContract::GetSlashDamage(EquippedItem, EquippedLevel);
+            const float WeaponDamage = FKalmalaToolLifecycleContract::GetWeaponDamage(EquippedItem, EquippedLevel);
             const float BaseDamage = OwnerCharacter && OwnerCharacter->GetToolDurability(EquippedItem) > 0
-                && SlashDamage > 0.0f ? SlashDamage : UnarmedAttackDamage;
+                && WeaponDamage > 0.0f ? WeaponDamage : UnarmedAttackDamage;
             const float Damage = UKalmalaSupportMagicComponent::CalculateBearsVigorDamage(true,
                 Support && Support->GetBearsVigorExpiry() > Now, BaseDamage, Support ? Support->GetBearsVigorStrengthMultiplier() : 1.0f);
             const bool bDefeated = Target->GetHealth() <= Damage;

@@ -2581,12 +2581,12 @@ requirements. Run `Kalmala.UI.CatalogueIcons.CompleteCoverage` after an affected
 editor build to verify imported texture paths and loads for all current item,
 tool and recipe-output identities. `Scripts/Tests/Construction/Verify-Crafting.ps1` also requires
 `Catalogue icons: Grid=1 Selected=1 Upgrade=1` from both peers; the grid flag
-checks each visible recipe output against its canonical loaded texture. Before an editor build, run `Scripts/Validate-UIIcons.ps1 -Category Catalogue` to check all 48 identity-ledger rows, original/prepared PNGs, runtime lookup mappings, and imported packages. The ledger lives in `Scripts/Data/catalogue-icon-manifest.csv`, outside the consolidated historical documentation set.
+checks each visible recipe output against its canonical loaded texture. Before an editor build, run `Scripts/Validate-UIIcons.ps1 -Category Catalogue` to check all 49 identity-ledger rows, original/prepared PNGs, runtime lookup mappings, and imported packages. The ledger lives in `Scripts/Data/catalogue-icon-manifest.csv`, outside the consolidated historical documentation set. New carried-tool icons use import batch D; the earlier A–C batches remain unchanged.
 
-The catalogue image ledger contains 48 imported textures: 45 normal item
-definitions, six carried tools, and the Campfire construction identity. Four
+The catalogue image ledger contains 49 imported textures: 41 regular item
+definitions, seven carried tools, and the Campfire construction identity. Four
 support-scroll item identities reuse their matching imported status textures,
-so the runtime lookup covers 52 item/tool/construction identities with those
+so the runtime lookup covers 53 item/tool/construction identities with those
 four shared paths. CampfireKit remains in the shared icon map and
 recipe/build/preview views but is not a pack or storage item. The nine-entry
 status gallery includes the four shared support textures and other status

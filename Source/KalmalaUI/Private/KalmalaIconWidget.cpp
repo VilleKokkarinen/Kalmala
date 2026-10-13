@@ -107,6 +107,7 @@ int32 UKalmalaIconWidget::NativePaint(const FPaintArgs& Args, const FGeometry& G
         Path({{18,12},{14,5},{9,4}}); Path({{18,12},{22,5},{27,4}}); break;
     case EKalmalaIcon::Seed: Path({{8,12},{28,12},{27,31},{9,31}},true); Path({{8,8},{28,8}}); Circle({18,22},4); break;
     case EKalmalaIcon::Axe: Path({{11,32},{21,7}}); Path({{19,7},{29,8},{31,19},{23,20},{17,13}},true); break;
+    case EKalmalaIcon::Spear: Path({{5,31},{29,7}}); Path({{23,7},{31,5},{29,13}},true); Path({{13,23},{18,28}}); break;
     case EKalmalaIcon::Knife: Path({{10,31},{15,22},{29,5},{29,15},{19,25},{16,23}},true); Path({{12,21},{20,27}}); break;
     case EKalmalaIcon::Pick: Path({{12,32},{21,9}}); Path({{5,13},{17,6},{27,8},{32,17},{23,12},{15,12},{5,13}}); break;
     case EKalmalaIcon::Hammer: Path({{14,32},{20,14}}); Path({{9,5},{28,10},{26,18},{7,13}},true); break;
@@ -150,6 +151,7 @@ bool UKalmalaIconWidget::FindCatalogueIcon(FName Id, EKalmalaIcon& OutIcon, int3
         {TEXT("Carrot"),EKalmalaIcon::Root,0}, {TEXT("Potato"),EKalmalaIcon::Root,1}, {TEXT("Rutabaga"),EKalmalaIcon::Root,2}, {TEXT("Onion"),EKalmalaIcon::Root,3},
         {TEXT("CarrotSeed"),EKalmalaIcon::Seed,0}, {TEXT("PotatoSeed"),EKalmalaIcon::Seed,1}, {TEXT("RutabagaSeed"),EKalmalaIcon::Seed,2}, {TEXT("OnionSeed"),EKalmalaIcon::Seed,3},
         {TEXT("ReedKnife"),EKalmalaIcon::Knife,0}, {TEXT("FieldHatchet"),EKalmalaIcon::Axe,0}, {TEXT("StonePick"),EKalmalaIcon::Pick,0},
+        {TEXT("StoneSpear"),EKalmalaIcon::Spear,0},
         {TEXT("BronzeAxe"),EKalmalaIcon::Axe,1}, {TEXT("IronAxe"),EKalmalaIcon::Axe,2}, {TEXT("ConstructionHammer"),EKalmalaIcon::Hammer,0},
         {TEXT("MendingScroll"),EKalmalaIcon::Cross,0}, {TEXT("HearthShieldScroll"),EKalmalaIcon::Shield,0},
         {TEXT("BearsVigorScroll"),EKalmalaIcon::Paw,0}, {TEXT("DeerCallScroll"),EKalmalaIcon::Antlers,0}
