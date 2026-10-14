@@ -1,7 +1,6 @@
 {
-  "recipes": [
+  "upgrades": [
     {
-      "RecipeId": "BronzeAxe",
       "DisplayName": "Bronze Axe",
       "ToolId": "BronzeAxe",
       "RequiredStation": "Forge",

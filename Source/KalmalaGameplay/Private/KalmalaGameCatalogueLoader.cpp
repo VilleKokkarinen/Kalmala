@@ -349,7 +349,7 @@ namespace
         }
 
         double SchemaVersion = 0.0;
-        if (!Root->TryGetNumberField(TEXT("schemaVersion"), SchemaVersion) || SchemaVersion != 12.0)
+        if (!Root->TryGetNumberField(TEXT("schemaVersion"), SchemaVersion) || SchemaVersion != 13.0)
         {
             UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue manifest has an unsupported schema: %s"), *JsonPath);
             return false;
@@ -372,7 +372,7 @@ namespace
                 UKalmalaToolCatalogue::MaxProfiles, TotalJsonCharacters, ToolProfileValues, TEXT("equipment"))
             || !LoadCategoryFiles(Root, TEXT("itemRecipeFiles"), TEXT("recipes"), TEXT("recipes"),
                 UKalmalaToolCatalogue::MaxRecipes, TotalJsonCharacters, ToolRecipeValues, TEXT("stations"))
-            || !LoadCategoryFiles(Root, TEXT("itemUpgradeFiles"), TEXT("recipes"), TEXT("upgrades"),
+            || !LoadCategoryFiles(Root, TEXT("itemUpgradeFiles"), TEXT("upgrades"), TEXT("upgrades"),
                 UKalmalaToolCatalogue::MaxRecipes, TotalJsonCharacters, ToolUpgradeValues)
             || !LoadCategoryFiles(Root, TEXT("levelUpRewardFiles"), TEXT("levelUpRewards"), TEXT("progression"),
                 UKalmalaToolCatalogue::MaxProfiles, TotalJsonCharacters, LevelUpRewardValues)
@@ -382,7 +382,7 @@ namespace
             || !SortCategoryValues(RecipeValues, TEXT("RecipeId"))
             || !SortCategoryValues(ToolProfileValues, TEXT("ItemId"))
             || !SortCategoryValues(ToolRecipeValues, TEXT("RecipeId"))
-            || !SortCategoryValues(ToolUpgradeValues, TEXT("RecipeId")))
+            || !SortCategoryValues(ToolUpgradeValues, TEXT("ToolId")))
         {
             UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue manifest could not load its category files: %s"), *JsonPath);
             return false;

@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-14 — Give upgrade costs their own schema
+
+- **Completed:** changed upgrade files to a top-level `upgrades` array and made `ToolId` the sole authored identity for each upgrade-cost record. The loader now validates and sorts upgrade records by `ToolId`; acquisition recipes retain `RecipeId`. Advanced the catalogue schema from 12 to 13. Preserved the existing working-copy upgrade-cost content.
+- **Files changed:** `Content/Data/GameCatalogues.json`, `Content/Data/GameCatalogues/upgrades/upgrades.json`, `Source/KalmalaGameplay/Private/KalmalaGameCatalogueLoader.cpp`, `Source/KalmalaGameplay/Private/KalmalaToolCatalogue.cpp`, `docs/02-technical-architecture.md`, `docs/05-decision-log.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** JSON parse and focused schema/identity/reference checks plus `git diff --check`; no Unreal build or test suite ran.
+- **Impact/authority:** only the authored catalogue format and its loader validation changed. Server-side tool progression, material costs, RPCs, and saved-data schemas are unchanged.
+- **Verification/limitations:** full Unreal compilation and gameplay automation remain deferred.
+- **Next eligible task:** convert decorative generated forest trees into individually attackable sources and integrate their depletion/streaming policy.
+
 ## User-directed increment 2026-10-14 — Rename Peat Amber to Amber
 
 - **Completed:** renamed the ordinary item display name and catalogue ID to `Amber`; updated the Forge cost, mire harvest reward, icon lookup, test expectations, and current documentation. Storage loading maps old `PeatAmber` chest stacks to `Amber` and merges any matching stacks.

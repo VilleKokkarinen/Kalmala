@@ -4,6 +4,7 @@ Add new decisions at the top. A decision records what agents should treat as set
 
 | Date | Decision | Status | Rationale |
 | --- | --- | --- | --- |
+| 2026-10-14 | Give item upgrade costs a top-level `upgrades` array and use only `ToolId` as each record's identity. | User-directed | Bump the catalogue schema to 13; continue using `RecipeId` for acquisition recipes. Supersedes the earlier choice to reuse the `recipes` root for upgrade costs. |
 | 2026-10-14 | Rename the Peat Amber item to Amber, including its ItemId. | User-directed | Keep old `PeatAmber` chest stacks readable by migrating them to `Amber` on storage load. |
 | 2026-10-14 | Group ordinary materials by wood, ore, metal, cooking ingredients, crafting ingredients, and others. | User-directed | Frost Salt is a cooking ingredient; Fibre and Amber remain crafting ingredients. |
 | 2026-10-14 | Keep ordinary materials in `items/materials/` by wood, ore, metal, ingredient, and other categories. | Superseded 2026-10-14 | Material items share one schema and runtime catalogue, with file grouping used for maintainable source organization. |
@@ -16,7 +17,7 @@ Add new decisions at the top. A decision records what agents should treat as set
 | 2026-10-14 | Keep common and natural materials together in `items/materials.json`. | Superseded 2026-10-14 | These definitions share the same item schema and runtime catalogue; a separate natural-material file adds no useful distinction. |
 
 | 2026-10-14 | Sort catalogue items, recipes, profiles, and progression records by ID. | User-directed | Remove duplicated manifest order arrays; after loading category files, sort each collection by its own ID while retaining malformed/duplicate-ID rejection. |
-| 2026-10-14 | Store item upgrade costs in `upgrades/upgrades.json`, outside `recipes/`. | User-directed | Keep upgrades in their own catalogue folder. `itemUpgradeFiles` loads the same `recipes` array root from `upgrades/`; costs, schema, validation and gameplay behavior stay unchanged. |
+| 2026-10-14 | Store item upgrade costs in `upgrades/upgrades.json`, outside `recipes/`. | Superseded 2026-10-14 | Keep upgrades in their own catalogue folder; the new `upgrades` array root and `ToolId` identity are recorded above. |
 | 2026-10-14 | Group carried equipment profile and progression files as item data in the manifest. | User-directed | Treat weapons and the Building Hammer as carried items in manifest grouping and file organization; route profiles, acquisition recipes and upgrade costs through item-named manifest fields while retaining the existing runtime tool catalogue and server behavior. |
 | 2026-10-14 | Open Build by right-clicking while the Construction Hammer is active; omit a separate Build action from Control-bound keys and place the starter hammer in hotbar slot 1, active on spawn. | User-directed | The server already validates the carried hammer for Build and construction requests; right-click invokes the owner-local menu without adding a gameplay payload. |
 | 2026-10-13 | Share attack-style stats per weapon family in Attacks.json. | User-directed | Schema 11 assigns explicit item IDs to named family lists across material tiers. Every item resolves one list; unknown, duplicated, overlapping or missing assignments fail closed. Preserve current Basic bonuses and server-only attack selection. |
