@@ -264,6 +264,10 @@ private:
     UPROPERTY(Transient) TObjectPtr<class UHorizontalBox> ToolUpgradeBenefitRow;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> ToolUpgradeBenefitComparison;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> ToolUpgradeBenefitDelta;
+    UPROPERTY(Transient) TObjectPtr<class UVerticalBox> ToolUpgradeAdditionalStatsBox;
+    UPROPERTY(Transient) TArray<TObjectPtr<class UHorizontalBox>> ToolUpgradeAdditionalStatRows;
+    UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> ToolUpgradeAdditionalStatValues;
+    UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> ToolUpgradeAdditionalStatDeltas;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> StorageText;
     UPROPERTY(Transient) TObjectPtr<class UVerticalBox> StorageContextPanel;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> StorageContextStatusText;

@@ -31,6 +31,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-14 — Show all nonzero Forge Upgrade stats:** display maximum durability and every nonzero damage-bonus channel from the item's current/target levels; omit zero channels and use shared increase/decrease colors. Lightweight source inspection and whitespace checks passed; Unreal verification deferred.
+
 - [x] **2026-10-14 — Add configurable alternate keyboard bindings:** show keyboard/mouse primary bindings and a matching Alternative keys group; save and apply both bindings to the same action/axis, with I primary and Tab alternate for Inventory. Lightweight source inspection and whitespace checks passed; Unreal verification deferred.
 
 - [x] **2026-10-14 — Keep Forge upgrade bonus inline:** stop stretching the baseline text across the comparison row so the green bonus sits beside its opening parenthesis. Lightweight source inspection and whitespace checks passed; Unreal verification deferred.

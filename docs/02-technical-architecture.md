@@ -1289,7 +1289,7 @@ invalid numbers/paths, missing assets, and a transient in-memory image reference
 The settings and Inventory menu tests remain required alongside it. No
 custom project font or rendered image appearance has been reviewed.
 
-Hover, keyboard/controller focus, selection, and disabled states share theme brushes and non-colour cues. Decorative images/animation yield to local high contrast and reduced motion. The Forge Upgrade card shows the Bronze Axe and a level icon for the target level, then its slash-bonus baseline and authored gain. Requirements and material counts stay in the adjacent requirements panel. Level gains and losses use the shared `LevelUpColor` and `LevelDownColor` theme values; generic stat comparisons use the same colors. The compact card is owner-only and submits no request.
+Hover, keyboard/controller focus, selection, and disabled states share theme brushes and non-colour cues. Decorative images/animation yield to local high contrast and reduced motion. The Forge Upgrade card shows the Bronze Axe and a level icon for the target level, then every nonzero authored item stat across the current and target levels: maximum durability and each damage-bonus channel. Zero-valued channels are omitted. Requirements and material counts stay in the adjacent requirements panel. Stat increases and decreases use the shared `LevelUpColor` and `LevelDownColor` theme values; unchanged values use the neutral text color. The compact card is owner-only and submits no request.
 
 ## Status and catalogue icons
 
@@ -2284,8 +2284,10 @@ Forge Upgrade uses the same wood-backed content area and top inset as station
 Craft. Its framed requirements column centers the material summary and Upgrade
 action together; the adjacent frame keeps the owner-only comparison. Its
 comparison header reads `Bronze Axe -` followed
-by a level icon and target level; the next row reads the slash-bonus baseline
-with only the positive gain in the shared level-up color. The Upgrade button is
+by a level icon and target level; subsequent rows show every nonzero stat from
+the current and target levels, including maximum durability and all nonzero
+damage-bonus channels. Zero-valued channels are omitted. Increases and decreases
+use the shared level-up and level-down colors. The Upgrade button is
 text-only and labeled `Upgrade`. Repair All keeps the current Craft or Upgrade view
 open and reports the server result in the station header.
 The existing progression RPC remains responsible for authoritative checks,

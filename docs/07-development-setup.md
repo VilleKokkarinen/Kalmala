@@ -285,12 +285,15 @@ Physical devices and packaged/cooked output remain outside this editor check.
 ## M11 inline stat comparisons
 
 The local Forge Upgrade card reads `Bronze Axe -` followed by the level icon and
-target level, then `Slash bonus - 50 (+5)` with only `+5` in the shared
-`Theme.LevelUpColor`. The requirements and material counts remain in their own
-panel. The action is a text-only `Upgrade` button without a tool icon or extended
-tooltip. Tool level must not change the axe's harvesting tier or resource
-access. The display uses the authored level-one and target-level values and does
-not submit an upgrade request.
+target level, then displays every nonzero authored stat across the current and
+target levels: maximum durability and each nonzero damage-bonus channel. Zero
+damage channels are omitted. Increases and decreases use the shared
+`Theme.LevelUpColor` and `Theme.LevelDownColor`; unchanged values use the neutral
+text color. The requirements and material counts remain in their own panel. The
+action is a text-only `Upgrade` button without a tool icon or extended tooltip.
+Tool level must not change the axe's harvesting tier or resource access. The
+display uses the authored level-one and target-level values and does not submit
+an upgrade request.
 
 `Kalmala.UI.Crafting.StatComparisonPresentation` uses presentation-only
 crush/slash values from the approved Iron Sword/Iron Mace example to check the
@@ -2354,9 +2357,10 @@ execution and rendered inspection remain in M12's final acceptance.
 
 The Forge menu opens Craft by default and lets the owner switch to Upgrade
 without closing the accepted station context. Its comparison card shows the
-Bronze Axe, a level icon with target level 2, and `Slash bonus - 50 (+5)`, with
-the gain in the shared level-up color. The button reads only `Upgrade` and has
-no tool icon. The upgrade changes the same carried Bronze Axe without changing
+Bronze Axe, a level icon with target level 2, and every nonzero stat across the
+current and target levels, including durability and damage bonuses. Increases
+and decreases use the shared level-up and level-down colors. The button reads
+only `Upgrade` and has no tool icon. The upgrade changes the same carried Bronze Axe without changing
 its harvesting tier or unlocking Ironheart trunks/Densewood. It lists Forge
 level 2, with no skill requirement, the
 level-one prerequisite, and every material cost with the owner's current

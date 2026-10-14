@@ -125,6 +125,18 @@ FString GetReadableToolName(const FName ToolId)
     return ToolId.ToString();
 }
 
+FString FormatUpgradeStatValue(const float Value)
+{
+    FString Text = FString::SanitizeFloat(Value);
+    int32 DecimalPointIndex = INDEX_NONE;
+    if (Text.FindChar(TEXT('.'), DecimalPointIndex))
+    {
+        while (Text.EndsWith(TEXT("0"))) Text.LeftChopInline(1);
+        if (Text.EndsWith(TEXT("."))) Text.LeftChopInline(1);
+    }
+    return Text;
+}
+
 bool IsInWorldCookingStation(const FName KitId)
 {
     return KitId == TEXT("CookingRackKit") || KitId == TEXT("CauldronKit") || KitId == TEXT("FryingPanKit");
@@ -726,6 +738,34 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     ToolUpgradeLevelComparison = AddText(TEXT(""), 16);
     ToolUpgradeBenefitComparison = AddText(TEXT(""), 16);
     ToolUpgradeBenefitDelta = AddText(TEXT(""), 16);
+    ToolUpgradeAdditionalStatsBox = WidgetTree->ConstructWidget<UVerticalBox>();
+    const TCHAR* AdditionalStatLabels[] = {
+        TEXT("Durability"), TEXT("Stab bonus"), TEXT("Crush bonus"), TEXT("Pierce bonus"),
+        TEXT("Fire bonus"), TEXT("Water bonus"), TEXT("Holy bonus"), TEXT("Poison bonus")
+    };
+    for (const TCHAR* StatLabel : AdditionalStatLabels)
+    {
+        UHorizontalBox* Row = WidgetTree->ConstructWidget<UHorizontalBox>();
+        UTextBlock* Value = WidgetTree->ConstructWidget<UTextBlock>();
+        Value->SetAutoWrapText(false);
+        Value->SetFont(FSlateFontInfo(FCoreStyle::GetDefaultFont(), 16));
+        Value->SetText(FText::FromString(StatLabel));
+        UHorizontalBoxSlot* ValueSlot = Row->AddChildToHorizontalBox(Value);
+        ValueSlot->SetVerticalAlignment(VAlign_Center);
+
+        UTextBlock* Delta = WidgetTree->ConstructWidget<UTextBlock>();
+        Delta->SetAutoWrapText(false);
+        Delta->SetFont(FSlateFontInfo(FCoreStyle::GetDefaultFont(), 16));
+        UHorizontalBoxSlot* DeltaSlot = Row->AddChildToHorizontalBox(Delta);
+        DeltaSlot->SetVerticalAlignment(VAlign_Center);
+
+        UVerticalBoxSlot* RowSlot = ToolUpgradeAdditionalStatsBox->AddChildToVerticalBox(Row);
+        RowSlot->SetPadding(FMargin(0.0f, 0.0f, 0.0f, 6.0f));
+        Row->SetVisibility(ESlateVisibility::Collapsed);
+        ToolUpgradeAdditionalStatRows.Add(Row);
+        ToolUpgradeAdditionalStatValues.Add(Value);
+        ToolUpgradeAdditionalStatDeltas.Add(Delta);
+    }
     ToolUpgradeComparisonTitle->SetVisibility(ESlateVisibility::Collapsed);
     ToolUpgradeLevelComparison->SetVisibility(ESlateVisibility::Collapsed);
     ToolUpgradeBenefitComparison->SetVisibility(ESlateVisibility::Collapsed);
@@ -803,6 +843,7 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
         UpgradeSlot->SetPadding(FMargin(0.0f, 0.0f, 0.0f, 6.0f));
         UpgradeSlot->SetHorizontalAlignment(HAlign_Fill);
     }
+    UpgradeComparison->AddChildToVerticalBox(ToolUpgradeAdditionalStatsBox);
     auto* ComparisonSlot = UpgradePanelContent->AddChildToHorizontalBox(UpgradeComparisonFrame);
     FSlateChildSize ComparisonSize(ESlateSizeRule::Fill);
     ComparisonSize.Value = 0.38f;
@@ -816,6 +857,7 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     StationCraftExcludedWidgets.Add(AddText(TEXT("Chest contents use the shared 16-stack interface. Accepted construction and storage records are saved for this world; rejected transfers leave both inventories unchanged."), 16));
     BuildExcludedWidgets.Add(StationCraftExcludedWidgets.Last());
     BuildExcludedWidgets.Append({ToolUpgradeComparisonHeadingRow, ToolUpgradeBenefitRow});
+    BuildExcludedWidgets.Add(ToolUpgradeAdditionalStatsBox);
     StorageText = AddText(TEXT(""), 18);
     StationCraftExcludedWidgets.Add(StorageText);
     BuildExcludedWidgets.Add(StorageText);
@@ -1617,6 +1659,9 @@ void UKalmalaCraftingWidget::ApplyStationCraftLayout()
             ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
     if (ToolUpgradeBenefitRow)
         ToolUpgradeBenefitRow->SetVisibility(bForgeUpgradeContext
+            ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+    if (ToolUpgradeAdditionalStatsBox)
+        ToolUpgradeAdditionalStatsBox->SetVisibility(bForgeUpgradeContext
             ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
     const bool bStandaloneBuild = bInventoryCompanion || (!bEmbeddedContext && StationFilterKit.IsNone());
     if (bStandaloneBuild)
@@ -3757,6 +3802,10 @@ void UKalmalaCraftingWidget::Refresh()
         ToolUpgradeBenefitComparison->SetVisibility(ESlateVisibility::Collapsed);
         ToolUpgradeBenefitDelta->SetVisibility(ESlateVisibility::Collapsed);
         ToolUpgradeLevelIconBox->SetVisibility(ESlateVisibility::Collapsed);
+        if (ToolUpgradeAdditionalStatsBox)
+            ToolUpgradeAdditionalStatsBox->SetVisibility(ESlateVisibility::Collapsed);
+        for (UHorizontalBox* Row : ToolUpgradeAdditionalStatRows)
+            if (Row) Row->SetVisibility(ESlateVisibility::Collapsed);
     }
     if (StoragePackInspector)
         StoragePackInspector->SetRows(StoragePackRows, TextScalePercent, ContrastMode,
@@ -4019,7 +4068,7 @@ FString UKalmalaCraftingWidget::GetPresentationText() const
 void UKalmalaCraftingWidget::RefreshInlineToolUpgradeComparison(const int32 ContrastMode)
 {
     if (!ToolUpgradeComparisonTitle || !ToolUpgradeLevelComparison || !ToolUpgradeBenefitComparison
-        || !ToolUpgradeBenefitDelta || !ToolUpgradeLevelIconBox) return;
+        || !ToolUpgradeBenefitDelta || !ToolUpgradeLevelIconBox || !ToolUpgradeAdditionalStatsBox) return;
 
     const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
     const FKalmalaToolProgressionEntry* Upgrade = FKalmalaToolProgressionContract::FindEntry(
@@ -4027,19 +4076,30 @@ void UKalmalaCraftingWidget::RefreshInlineToolUpgradeComparison(const int32 Cont
     const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(TEXT("BronzeAxe"));
     const bool bValidUpgrade = Upgrade && Definition && Upgrade->PreviousToolId == Upgrade->ToolId
         && Upgrade->PreviousToolLevel == 1 && Upgrade->TargetToolLevel == 2;
-    const float PreviousSlashDamage = bValidUpgrade
-        ? FKalmalaToolLifecycleContract::GetSlashDamage(TEXT("BronzeAxe"), Upgrade->PreviousToolLevel) : 0.0f;
-    const float TargetSlashDamage = bValidUpgrade
-        ? FKalmalaToolLifecycleContract::GetSlashDamage(TEXT("BronzeAxe"), Upgrade->TargetToolLevel) : 0.0f;
-    const FString BenefitComparison = bValidUpgrade
-        ? FString::Printf(TEXT("Slash bonus - %.0f ("), PreviousSlashDamage)
-        : FString(TEXT("Slash bonus unavailable."));
-    const FString BenefitDelta = bValidUpgrade
-        ? FString::Printf(TEXT("+%d)"), FMath::RoundToInt(TargetSlashDamage - PreviousSlashDamage))
-        : FString();
+    const int32 PreviousDurability = bValidUpgrade
+        ? FKalmalaToolLifecycleContract::GetMaxDurability(Upgrade->ToolId, Upgrade->PreviousToolLevel) : 0;
+    const int32 TargetDurability = bValidUpgrade
+        ? FKalmalaToolLifecycleContract::GetMaxDurability(Upgrade->ToolId, Upgrade->TargetToolLevel) : 0;
+    const FKalmalaDamageChannels PreviousDamage = bValidUpgrade
+        ? FKalmalaToolLifecycleContract::GetWeaponDamageBonuses(Upgrade->ToolId, Upgrade->PreviousToolLevel)
+        : FKalmalaDamageChannels();
+    const FKalmalaDamageChannels TargetDamage = bValidUpgrade
+        ? FKalmalaToolLifecycleContract::GetWeaponDamageBonuses(Upgrade->ToolId, Upgrade->TargetToolLevel)
+        : FKalmalaDamageChannels();
+    const bool bHasSlash = bValidUpgrade && (PreviousDamage.Slash != 0.0f || TargetDamage.Slash != 0.0f);
+    const float SlashDelta = TargetDamage.Slash - PreviousDamage.Slash;
+    FString SlashDeltaText = FormatUpgradeStatValue(SlashDelta);
+    if (SlashDelta > 0.0f) SlashDeltaText = TEXT("+") + SlashDeltaText;
+    if (FMath::IsNearlyZero(SlashDelta)) SlashDeltaText = TEXT("0");
+    FString BenefitComparison;
+    if (!bValidUpgrade)
+        BenefitComparison = TEXT("Slash bonus unavailable.");
+    else if (bHasSlash)
+        BenefitComparison = TEXT("Slash bonus - ") + FormatUpgradeStatValue(PreviousDamage.Slash) + TEXT(" (");
+    const FString BenefitDelta = bHasSlash ? SlashDeltaText + TEXT(")") : FString();
 
     ToolUpgradeComparisonTitle->SetText(FText::FromString(bValidUpgrade
-        ? TEXT("Bronze Axe -")
+        ? GetReadableToolName(Upgrade->ToolId) + TEXT(" -")
         : TEXT("Upgrade comparison unavailable")));
     ToolUpgradeLevelComparison->SetText(bValidUpgrade
         ? FText::AsNumber(Upgrade->TargetToolLevel) : FText::GetEmpty());
@@ -4049,14 +4109,66 @@ void UKalmalaCraftingWidget::RefreshInlineToolUpgradeComparison(const int32 Cont
     ToolUpgradeComparisonTitle->SetColorAndOpacity(FSlateColor(Theme.TextColor(false, ContrastMode)));
     ToolUpgradeLevelComparison->SetColorAndOpacity(FSlateColor(Theme.LevelUpColor));
     ToolUpgradeBenefitComparison->SetColorAndOpacity(FSlateColor(Theme.TextColor(false, ContrastMode)));
-    ToolUpgradeBenefitDelta->SetColorAndOpacity(FSlateColor(Theme.LevelUpColor));
+    ToolUpgradeBenefitDelta->SetColorAndOpacity(FSlateColor(SlashDelta > 0.0f ? Theme.LevelUpColor
+        : SlashDelta < 0.0f ? Theme.LevelDownColor : Theme.TextColor(false, ContrastMode)));
     ToolUpgradeLevelIconBox->SetVisibility(bValidUpgrade
         ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
     ToolUpgradeComparisonTitle->SetVisibility(ESlateVisibility::HitTestInvisible);
     ToolUpgradeLevelComparison->SetVisibility(bValidUpgrade
         ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
-    ToolUpgradeBenefitComparison->SetVisibility(ESlateVisibility::HitTestInvisible);
-    ToolUpgradeBenefitDelta->SetVisibility(bValidUpgrade
+    ToolUpgradeBenefitRow->SetVisibility(!bValidUpgrade || bHasSlash
+        ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+    ToolUpgradeBenefitComparison->SetVisibility(!bValidUpgrade || bHasSlash
+        ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+    ToolUpgradeBenefitDelta->SetVisibility(bHasSlash
+        ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+
+    struct FAdditionalStatValues
+    {
+        const TCHAR* Label;
+        float Previous;
+        float Target;
+    };
+    const FAdditionalStatValues AdditionalStats[] = {
+        { TEXT("Durability"), static_cast<float>(PreviousDurability), static_cast<float>(TargetDurability) },
+        { TEXT("Stab bonus"), PreviousDamage.Stab, TargetDamage.Stab },
+        { TEXT("Crush bonus"), PreviousDamage.Crush, TargetDamage.Crush },
+        { TEXT("Pierce bonus"), PreviousDamage.Pierce, TargetDamage.Pierce },
+        { TEXT("Fire bonus"), PreviousDamage.Fire, TargetDamage.Fire },
+        { TEXT("Water bonus"), PreviousDamage.Water, TargetDamage.Water },
+        { TEXT("Holy bonus"), PreviousDamage.Holy, TargetDamage.Holy },
+        { TEXT("Poison bonus"), PreviousDamage.Poison, TargetDamage.Poison }
+    };
+    bool bHasAdditionalStats = false;
+    const int32 AdditionalStatCount = static_cast<int32>(UE_ARRAY_COUNT(AdditionalStats));
+    const int32 StatCount = FMath::Min(AdditionalStatCount,
+        FMath::Min(ToolUpgradeAdditionalStatRows.Num(),
+            FMath::Min(ToolUpgradeAdditionalStatValues.Num(), ToolUpgradeAdditionalStatDeltas.Num())));
+    for (int32 Index = 0; Index < StatCount; ++Index)
+    {
+        UHorizontalBox* Row = ToolUpgradeAdditionalStatRows[Index];
+        UTextBlock* Value = ToolUpgradeAdditionalStatValues[Index];
+        UTextBlock* Delta = ToolUpgradeAdditionalStatDeltas[Index];
+        if (!Row || !Value || !Delta) continue;
+
+        const FAdditionalStatValues& Stat = AdditionalStats[Index];
+        const bool bStatIsPresent = bValidUpgrade && (Stat.Previous != 0.0f || Stat.Target != 0.0f);
+        Row->SetVisibility(bStatIsPresent ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+        if (!bStatIsPresent) continue;
+        bHasAdditionalStats = true;
+
+        const float DeltaValue = Stat.Target - Stat.Previous;
+        FString DeltaText = FormatUpgradeStatValue(DeltaValue);
+        if (DeltaValue > 0.0f) DeltaText = TEXT("+") + DeltaText;
+        if (FMath::IsNearlyZero(DeltaValue)) DeltaText = TEXT("0");
+        Value->SetText(FText::FromString(FString::Printf(TEXT("%s - %s ("),
+            Stat.Label, *FormatUpgradeStatValue(Stat.Previous))));
+        Delta->SetText(FText::FromString(DeltaText + TEXT(")")));
+        Value->SetColorAndOpacity(FSlateColor(Theme.TextColor(false, ContrastMode)));
+        Delta->SetColorAndOpacity(FSlateColor(DeltaValue > 0.0f ? Theme.LevelUpColor
+            : DeltaValue < 0.0f ? Theme.LevelDownColor : Theme.TextColor(false, ContrastMode)));
+    }
+    ToolUpgradeAdditionalStatsBox->SetVisibility(bHasAdditionalStats
         ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
 }
 

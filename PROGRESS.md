@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-14 — Show all nonzero Forge Upgrade stats
+
+- **Completed:** expanded the owner-only Forge Upgrade comparison to show maximum durability and every nonzero damage-bonus channel across the current and target item levels. Zero-valued channels are omitted; increases/decreases use shared level-up/level-down theme colors, with unchanged values neutral. Kept the existing slash comparison and target-level icon.
+- **Files changed:** `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`, `Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`, `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** inspected the tool level-stat data model, UI construction/visibility paths, stat formatting, and theme-color use; `git diff --check` passed. No tests, Unreal build, automation, or runtime render ran.
+- **Impact/authority:** owner-local Forge UI presentation only; progression requests, server validation, material costs, networking, and saved data are unchanged.
+- **Verification/limitations:** normal user-directed increment; full Unreal compilation, automation, and rendered Forge verification remain deferred.
+- **Next eligible task:** convert decorative generated forest trees into individually attackable sources and integrate their depletion/streaming policy.
+
 ## User-directed increment 2026-10-14 — Add configurable alternate keyboard bindings
 
 - **Completed:** added a matching Alternative keys group under Keyboard & Mouse controls. Keyboard actions and movement axes now retain separate primary and alternate local settings, and both keys invoke the existing action/axis. Inventory defaults to I with Tab as its alternate; other action pairs are E/F, Space/C, Left/Right Shift, Escape/O, and M/N, with arrow keys as movement alternatives. Mouse-only look and Attack remain unchanged.
