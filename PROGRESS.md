@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-14 — Keep Options scrolling vertical and themed
+
+- **Completed:** made the Controls page content fill the available scroll viewport and explicitly use vertical scrolling. The shared scroll theme now uses a rounded bronze thumb on a dark wood-toned track, with a white thumb and black track in high contrast.
+- **Files changed:** `Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp`, `Source/KalmalaUI/Private/KalmalaUITheme.cpp`, `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** inspected the Controls layout and Unreal 5.8 scroll-box/bar style API; `git diff --check` passed. No tests, Unreal build, automation, or runtime render ran.
+- **Impact/authority:** local Options presentation only. Input actions, gameplay state, server authority, networking, and saved data are unchanged.
+- **Verification/limitations:** normal user-directed increment; compilation and rendered Options verification remain deferred.
+- **Next eligible task:** convert decorative generated forest trees into individually attackable sources and integrate their depletion/streaming policy.
+
 ## User-directed increment 2026-10-14 — Allow unbound alternate controls
 
 - **Completed:** made alternate bindings explicitly optional. The Alternative keys group shows `Not bound` by default except Inventory's Tab; each alternate can cycle through its allowlisted keys and back to `Not bound`. Empty values persist locally and do not add an input mapping. Removed the default F/C/Right Shift/O/N and arrow-key alternatives from `DefaultInput.ini`; primary defaults remain.

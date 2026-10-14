@@ -743,6 +743,31 @@ void FKalmalaUITheme::ApplyScroll(UScrollBox& Scroll, const bool bReducedMotion)
     Scroll.SetAnimateWheelScrolling(bAnimateScrolling && !bReducedMotion
         && !UKalmalaSettingsWidget::IsReducedMotionEnabled());
     Scroll.SetScrollAnimationInterpolationSpeed(ScrollSpeed);
+
+    const bool bHighContrast = UKalmalaSettingsWidget::GetContrastMode() > 0;
+    const FLinearColor TrackFill = bHighContrast
+        ? FLinearColor::Black : FLinearColor(0.075f, 0.045f, 0.025f, 0.96f);
+    const FLinearColor ThumbFill = bHighContrast
+        ? FLinearColor::White : FLinearColor(0.48f, 0.29f, 0.08f, 1.0f);
+    const FLinearColor ThumbHoveredFill = bHighContrast
+        ? FLinearColor::White : FLinearColor(0.68f, 0.43f, 0.13f, 1.0f);
+    const FLinearColor ThumbOutline = bHighContrast ? FLinearColor::White : ListViewRowBorderColor;
+    const float OutlineWidth = bHighContrast ? 1.0f : 0.75f;
+    const auto MakeScrollBrush = [ThumbOutline, OutlineWidth](const FLinearColor& Fill)
+    {
+        return FSlateRoundedBoxBrush(Fill, 3.0f, ThumbOutline, OutlineWidth);
+    };
+
+    FScrollBarStyle BarStyle = Scroll.GetWidgetBarStyle();
+    BarStyle.SetVerticalBackgroundImage(MakeScrollBrush(TrackFill));
+    BarStyle.SetVerticalTopSlotImage(MakeScrollBrush(TrackFill));
+    BarStyle.SetVerticalBottomSlotImage(MakeScrollBrush(TrackFill));
+    BarStyle.SetNormalThumbImage(MakeScrollBrush(ThumbFill));
+    BarStyle.SetHoveredThumbImage(MakeScrollBrush(ThumbHoveredFill));
+    BarStyle.SetDraggedThumbImage(MakeScrollBrush(ThumbHoveredFill));
+    BarStyle.SetThickness(12.0f);
+    Scroll.SetWidgetBarStyle(BarStyle);
+    Scroll.SetScrollbarThickness(FVector2D(12.0f, 12.0f));
 }
 
 bool FKalmalaUITheme::ShouldAnimateOptionsOpening() const

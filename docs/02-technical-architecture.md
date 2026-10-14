@@ -1968,6 +1968,9 @@ width into equal buttons with matching horizontal gutters. A shared divider
 uses the transparent medieval knotwork ornament over a fine rule, followed by a
 10-unit gap; high contrast uses a geometric rule without the decorative image.
 Pages omit explanatory footer text.
+The Controls content fills its available viewport and scrolls vertically only.
+Its rounded bronze thumb sits on a dark wood-toned track; high contrast uses a
+white thumb on a black track.
 Audio places its shared stone mute checkbox above a grouped set of volume sliders.
 Each row changes only its own key within the existing positive/negative
 movement-axis pair. Action and look bindings replace only the selected keyboard

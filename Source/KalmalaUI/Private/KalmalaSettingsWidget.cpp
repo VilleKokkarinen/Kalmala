@@ -1915,13 +1915,15 @@ void UKalmalaSettingsWidget::ShowInputTab(const bool bGamepad)
     UButton* Restore = AddButton(ContentBox, FText::FromString(TEXT("Restore default controls")), TEXT("RestoreControlsButton"));
     Restore->OnClicked.AddDynamic(this, &ThisClass::HandleRestoreControlsClicked);
     UScrollBox* Scroll = WidgetTree->ConstructWidget<UScrollBox>(UScrollBox::StaticClass(), TEXT("ControlsScroll"));
+    Scroll->SetOrientation(Orient_Vertical);
+    Scroll->SetScrollBarVisibility(ESlateVisibility::Visible);
     FKalmalaUITheme::Get().ApplyScroll(*Scroll);
     UVerticalBoxSlot* ScrollSlot = ContentBox->AddChildToVerticalBox(Scroll);
     ScrollSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
     UVerticalBox* InputGroups = WidgetTree->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(),
         TEXT("InputControlGroups"));
     UScrollBoxSlot* GroupsSlot = Cast<UScrollBoxSlot>(Scroll->AddChild(InputGroups));
-    if (GroupsSlot != nullptr) GroupsSlot->SetHorizontalAlignment(HAlign_Center);
+    if (GroupsSlot != nullptr) GroupsSlot->SetHorizontalAlignment(HAlign_Fill);
 
     const auto CreateColumnGroup = [this, InputGroups](const TCHAR* Name,
         UVerticalBox*& OutLeftColumn, UVerticalBox*& OutRightColumn)
@@ -1931,9 +1933,9 @@ void UKalmalaSettingsWidget::ShowInputTab(const bool bGamepad)
             FName(*(BaseName + TEXT("Columns"))));
         USizeBox* CenteredColumns = WidgetTree->ConstructWidget<USizeBox>(USizeBox::StaticClass(),
             FName(*(BaseName + TEXT("CenteredColumns"))));
-        CenteredColumns->SetWidthOverride(880.0f);
         CenteredColumns->SetContent(Columns);
-        InputGroups->AddChildToVerticalBox(CenteredColumns);
+        UVerticalBoxSlot* CenteredColumnsSlot = InputGroups->AddChildToVerticalBox(CenteredColumns);
+        CenteredColumnsSlot->SetHorizontalAlignment(HAlign_Fill);
 
         OutLeftColumn = WidgetTree->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(),
             FName(*(BaseName + TEXT("LeftColumn"))));

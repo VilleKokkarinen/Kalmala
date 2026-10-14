@@ -1084,6 +1084,9 @@ horizontal gutters. The selected
 Options tab is highlighted without a text marker. Each right-aligned label
 sits beside a binding button within its half of the panel, using balanced
 horizontal padding and compact vertical row spacing.
+Controls fills the available page width and scrolls vertically only. Its shared
+rounded bronze scrollbar uses a dark track, with a white thumb on a black track
+in high contrast.
 Each movement button cycles only its direction's keys within the existing axis
 mapping. Other controls cycle through a small allowlisted set of alternatives
 and the `Not bound` state. Restore default controls clears only the local
