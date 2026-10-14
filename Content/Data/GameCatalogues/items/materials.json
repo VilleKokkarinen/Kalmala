@@ -29,6 +29,30 @@
       "DisplayName": "Reed Fibre",
       "Description": "Plant strands used in simple tools and camp furnishings.",
       "MaxStack": 50
+    },
+    {
+      "ItemId": "Lightwood",
+      "DisplayName": "Lightwood",
+      "Description": "Pale birch timber for stronger tools.",
+      "MaxStack": 50
+    },
+    {
+      "ItemId": "Densewood",
+      "DisplayName": "Densewood",
+      "Description": "Dark, dense timber from Ironheart trunks that burns as hearth fuel.",
+      "MaxStack": 50
+    },
+    {
+      "ItemId": "PeatAmber",
+      "DisplayName": "Peat Amber",
+      "Description": "Dark peat threaded with amber from the Mire.",
+      "MaxStack": 40
+    },
+    {
+      "ItemId": "FrostSalt",
+      "DisplayName": "Frost Salt",
+      "Description": "Pale mineral crystals gathered in the tundra.",
+      "MaxStack": 40
     }
   ]
 }

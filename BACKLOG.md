@@ -31,6 +31,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-14 — Combine material catalogue files:** move natural material definitions into `items/materials.json` and remove the separate manifest file entry. The item records are preserved; lightweight JSON/path validation and `git diff --check` passed; Unreal verification deferred.
+
 - [x] **2026-10-14 — Sort catalogue records by ID:** remove manual recipe, item-profile, and item-acquisition order lists; sort ordinary items, recipes, carried profiles, acquisitions, and upgrade costs alphabetically by their IDs during loading. Preserve duplicate-ID rejection. Lightweight manifest/source checks and `git diff --check` passed; Unreal verification deferred.
 
 - [x] **2026-10-14 — Group carried equipment as item data:** route all carried profiles, acquisition recipes, and upgrade costs through item-named manifest groups; move the Building Hammer profile into `items/`. The loader still feeds the existing runtime tool catalogue. Lightweight manifest JSON/path/order validation and `git diff --check` passed; Unreal verification deferred.

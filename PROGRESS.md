@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-14 — Combine material catalogue files
+
+- **Completed:** merged the natural material records into `items/materials.json` and removed the separate natural-material manifest entry and file. Natural and common materials remain ordinary items with unchanged IDs and properties.
+- **Files changed:** `Content/Data/GameCatalogues/items/materials.json`, deleted `Content/Data/GameCatalogues/items/natural-materials.json`, `Content/Data/GameCatalogues.json`, `docs/02-technical-architecture.md`, `docs/05-decision-log.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** parsed the manifest and all ordinary item files; verified every source natural-material record is preserved exactly, item IDs remain unique, all manifest paths resolve, and the ordinary item count remains within the loader limit. `git diff --check` passed. No tests, build, or automation ran.
+- **Impact/authority:** catalogue organization only. Natural materials continue loading through the same server-side ordinary item catalogue; crafting, replication, server authority, and saved data are unchanged.
+- **Verification/limitations:** normal user-directed increment; full Unreal build and catalogue automation remain deferred.
+- **Next eligible task:** convert decorative generated forest trees into individually attackable sources with a compatible depletion/streaming policy.
+
 ## User-directed increment 2026-10-14 — Sort catalogue records by ID
 
 - **Completed:** removed `recipeOrder`, `itemProfileOrder`, and `itemRecipeOrder` from the manifest. The loader now sorts ordinary items, ordinary recipes, carried profiles, acquisitions, and upgrade-cost records alphabetically by their ID after loading all category files. Sorting still rejects malformed records, empty IDs, and duplicate IDs.
