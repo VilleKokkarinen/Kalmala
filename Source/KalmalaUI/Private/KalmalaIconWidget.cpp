@@ -95,7 +95,7 @@ int32 UKalmalaIconWidget::NativePaint(const FPaintArgs& Args, const FGeometry& G
     case EKalmalaIcon::Paw: Circle({9,10},3); Circle({17,7},3); Circle({25,10},3); Path({{10,23},{13,17},{23,17},{28,24},{25,30},{12,30}},true); break;
     case EKalmalaIcon::Antlers: Path({{18,31},{18,18},{10,12},{9,4}}); Path({{18,18},{26,12},{27,4}}); Path({{10,12},{4,9},{4,4}}); Path({{26,12},{32,9},{32,4}}); break;
     case EKalmalaIcon::Log: Path({{9,7},{28,7},{31,12},{31,25},{27,29},{9,29}},true); Circle({9,18},10); Circle({9,18},4); Path({{18,12},{27,12}}); break;
-    case EKalmalaIcon::Fibre: Path({{10,31},{16,12},{14,5}}); Path({{16,31},{21,10},{25,5}}); Path({{22,31},{27,14},{31,11}}); Path({{9,24},{25,24}}); break;
+    case EKalmalaIcon::Gathering: Path({{10,31},{16,12},{14,5}}); Path({{16,31},{21,10},{25,5}}); Path({{22,31},{27,14},{31,11}}); Path({{9,24},{25,24}}); break;
     case EKalmalaIcon::Rock: Path({{5,26},{8,14},{17,6},{27,11},{32,25},{23,31},{12,31}},true); Path({{8,14},{18,19},{27,11}}); Path({{18,19},{23,31}}); break;
     case EKalmalaIcon::Ingot: Path({{4,21},{10,12},{26,12},{32,21},{27,28},{9,28}},true); Path({{4,21},{32,21}}); break;
     case EKalmalaIcon::Hide: Path({{8,5},{15,10},{22,10},{28,5},{31,13},{25,17},{27,27},{22,31},{18,28},{13,31},{8,27},{10,17},{5,13}},true); break;
@@ -138,7 +138,7 @@ bool UKalmalaIconWidget::FindCatalogueIcon(FName Id, EKalmalaIcon& OutIcon, int3
     static const FMapping Mappings[] = {
         {TEXT("Wood"),EKalmalaIcon::Log,0}, {TEXT("Lightwood"),EKalmalaIcon::Log,1}, {TEXT("Densewood"),EKalmalaIcon::Log,2},
         {TEXT("Coal"),EKalmalaIcon::Rock,1}, {TEXT("Stone"),EKalmalaIcon::Rock,0}, {TEXT("Iron"),EKalmalaIcon::Ingot,0},
-        {TEXT("Fibre"),EKalmalaIcon::Fibre,0}, {TEXT("Amber"),EKalmalaIcon::Rock,2}, {TEXT("FrostSalt"),EKalmalaIcon::Snow,0},
+        {TEXT("Amber"),EKalmalaIcon::Rock,2}, {TEXT("FrostSalt"),EKalmalaIcon::Snow,0},
         {TEXT("CampfireKit"),EKalmalaIcon::Fire,0}, {TEXT("CampFire"),EKalmalaIcon::Fire,0},
         {TEXT("WorkbenchKit"),EKalmalaIcon::Bench,0}, {TEXT("ForgeKit"),EKalmalaIcon::Forge,0},
         {TEXT("WorkbenchToolRackKit"),EKalmalaIcon::Rack,1}, {TEXT("ForgeAnvilKit"),EKalmalaIcon::Ingot,1},

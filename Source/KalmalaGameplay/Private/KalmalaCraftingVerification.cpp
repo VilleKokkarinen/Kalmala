@@ -121,8 +121,8 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
         Check(!CraftFromServer(TEXT("CampFire"),1,Reason), TEXT("Campfire cannot be crafted into an inventory item"));
         Check(!CraftFromServer(TEXT("Forged"),1,Reason), TEXT("Unknown recipe"));
         for (int32 Batch : {MIN_int32,-1,0,MAX_int32}) Check(!CraftFromServer(TEXT("Workbench"),Batch,Reason),TEXT("Malformed batch"));
-        Check(I->TryGrantFromServer(TEXT("Wood"),50) && I->TryGrantFromServer(TEXT("Stone"),40)
-            && I->TryGrantFromServer(TEXT("Fibre"),50),TEXT("Seed bounded test materials"));
+        Check(I->TryGrantFromServer(TEXT("Wood"),50) && I->TryGrantFromServer(TEXT("Stone"),40),
+            TEXT("Seed bounded test materials"));
         const FVector StationProbeOrigin=C->GetActorLocation();
         C->SetActorLocation(StationProbeOrigin+FVector(0,0,10000));
         Check(!CraftFromServer(TEXT("Floor"),1,Reason),TEXT("Missing station rejects craft"));
@@ -405,7 +405,8 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
         Fire->TryLightFromServer(C); Fire->AdvanceFromServer(0,0,0);
         Check(Fire->IsLit() && Fire->GetFuelSeconds()==60 && Fire->GetEffectiveWarmth()==1,TEXT("Dry replicated fixture"));
         const auto Stacks=I->GetStacks(); for(const auto& Stack:Stacks) I->TryConsumeFromServer(Stack.ItemId,Stack.Quantity);
-        Check(I->TryGrantFromServer(TEXT("Wood"),18) && I->TryGrantFromServer(TEXT("Fibre"),12) && I->TryGrantFromServer(TEXT("Stone"),4),TEXT("Seed real raw-material RPC transactions"));
+        Check(I->TryGrantFromServer(TEXT("Wood"),18) && I->TryGrantFromServer(TEXT("Stone"),4),
+            TEXT("Seed real raw-material RPC transactions"));
         UE_LOG(LogTemp,Display,TEXT("Crafting server gates: Passed=%d Player=%d Placement=1 Atomic=1 Malformed=1 Locked=1 Distant=1 Fuel=1 Rain=1"),bVerificationPassed,C->GetPlayerState()->GetPlayerId());
         UE_LOG(LogTemp,Display,TEXT("Crafting fire server: Name=%s Fuel=60 Lit=1 Wet=0 Warmth=1 State=1"),*Fire->GetName());
         PublishResult(TEXT("Verification ready"), true); VerificationStage=1; VerificationElapsed=0;
@@ -420,7 +421,8 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
     }
     if (C->HasAuthority() && VerificationStage==2 && VerificationElapsed>12)
     {
-        const bool Passed=I->GetQuantity(TEXT("WorkbenchKit"))==2 && I->GetQuantity(TEXT("Wood"))==0 && I->GetQuantity(TEXT("Fibre"))==0 && I->GetQuantity(TEXT("Stone"))==0 && I->GetStacks().Num()==1;
+        const bool Passed=I->GetQuantity(TEXT("WorkbenchKit"))==2 && I->GetQuantity(TEXT("Wood"))==0
+            && I->GetQuantity(TEXT("Stone"))==0 && I->GetStacks().Num()==1;
         UE_LOG(LogTemp,Display,TEXT("Crafting server final: Passed=%d Player=%d WorkbenchKit=%d Slots=%d"),Passed,C->GetPlayerState()->GetPlayerId(),I->GetQuantity(TEXT("WorkbenchKit")),I->GetStacks().Num());
         VerificationStage=3;
     }
@@ -604,8 +606,8 @@ void UKalmalaCraftingComponent::RunPersistedCampVerification(float DeltaTime)
         if (PlayerCount < 2) return;
         FString Reason;
         // These are deliberately harvested from initialized nodes instead of granted: one complete
-        // personal camp needs direct Wood, Stone, and Fibre costs, including raw hearth fuel.
-        const TMap<FName, int32> Required = { { TEXT("Wood"), 37 }, { TEXT("Stone"), 7 }, { TEXT("Fibre"), 32 } };
+        // personal camp needs direct Wood and Stone costs, including raw hearth fuel.
+        const TMap<FName, int32> Required = { { TEXT("Wood"), 37 }, { TEXT("Stone"), 7 } };
         const bool bGathered = GatherPersistedCampMaterials(Character, Inventory, Required);
         const bool bHearthMaterialsReady = bGathered;
         const bool bHearthPlaced = bHearthMaterialsReady && PlacePersistedCampfireNearTerrain(this, Character, Reason);

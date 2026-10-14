@@ -7,10 +7,6 @@
         {
           "ItemId": "Wood",
           "Quantity": 6
-        },
-        {
-          "ItemId": "Fibre",
-          "Quantity": 6
         }
       ],
       "Output": "WorkbenchToolRack",
@@ -28,10 +24,6 @@
         {
           "ItemId": "Wood",
           "Quantity": 6
-        },
-        {
-          "ItemId": "Fibre",
-          "Quantity": 4
         },
         {
           "ItemId": "Stone",

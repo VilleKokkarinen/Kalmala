@@ -7,10 +7,6 @@
         {
           "ItemId": "Wood",
           "Quantity": 6
-        },
-        {
-          "ItemId": "Fibre",
-          "Quantity": 4
         }
       ],
       "Output": "Floor",
@@ -27,10 +23,6 @@
       "Ingredients": [
         {
           "ItemId": "Wood",
-          "Quantity": 6
-        },
-        {
-          "ItemId": "Fibre",
           "Quantity": 6
         }
       ],
@@ -49,10 +41,6 @@
         {
           "ItemId": "Wood",
           "Quantity": 6
-        },
-        {
-          "ItemId": "Fibre",
-          "Quantity": 8
         }
       ],
       "Output": "Roof",
@@ -93,10 +81,6 @@
           "Quantity": 9
         },
         {
-          "ItemId": "Fibre",
-          "Quantity": 6
-        },
-        {
           "ItemId": "Stone",
           "Quantity": 2
         }
@@ -118,10 +102,6 @@
           "Quantity": 15
         },
         {
-          "ItemId": "Fibre",
-          "Quantity": 10
-        },
-        {
           "ItemId": "Stone",
           "Quantity": 6
         }
@@ -141,10 +121,6 @@
         {
           "ItemId": "Wood",
           "Quantity": 6
-        },
-        {
-          "ItemId": "Fibre",
-          "Quantity": 8
         }
       ],
       "Output": "Storage",
@@ -162,10 +138,6 @@
         {
           "ItemId": "Wood",
           "Quantity": 9
-        },
-        {
-          "ItemId": "Fibre",
-          "Quantity": 8
         }
       ],
       "Output": "CookingRack",
@@ -183,10 +155,6 @@
         {
           "ItemId": "Wood",
           "Quantity": 9
-        },
-        {
-          "ItemId": "Fibre",
-          "Quantity": 6
         },
         {
           "ItemId": "Stone",
@@ -208,10 +176,6 @@
         {
           "ItemId": "Wood",
           "Quantity": 9
-        },
-        {
-          "ItemId": "Fibre",
-          "Quantity": 6
         },
         {
           "ItemId": "Stone",

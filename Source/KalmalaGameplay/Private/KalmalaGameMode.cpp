@@ -3285,8 +3285,7 @@ void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)
                     UKalmalaInventoryComponent* Inventory = TestCharacter->FindComponentByClass<UKalmalaInventoryComponent>();
                     UKalmalaCraftingComponent* Crafting = TestCharacter->FindComponentByClass<UKalmalaCraftingComponent>();
                     if (Inventory == nullptr || Crafting == nullptr) return;
-                    const bool bIngredientsGranted = Inventory->TryGrantFromServer(TEXT("Wood"), 9)
-                        && Inventory->TryGrantFromServer(TEXT("Fibre"), 8);
+                    const bool bIngredientsGranted = Inventory->TryGrantFromServer(TEXT("Wood"), 9);
                     const uint32 PreviousSerial = Crafting->GetResultSerial();
                     if (bIngredientsGranted)
                     {

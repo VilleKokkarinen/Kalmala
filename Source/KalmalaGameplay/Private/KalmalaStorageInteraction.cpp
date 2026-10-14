@@ -175,7 +175,7 @@ void UKalmalaCraftingComponent::InteractWithConstructionFromServer(AKalmalaConst
         PublishResult(TEXT("Frying Pan opened"), true);
     else if (Construction->GetConstructionKit() == TEXT("SmokeFrameKit"))
         PublishResult(TEXT("Smoke frame ready; use Camp crafting with a lit hearth and one extra raw fuel item per serving"), true);
-    else PublishResult(TEXT("Workbench ready; use the Construction Hammer menu to build floors, walls, and roofs from Wood and Fibre"), true);
+    else PublishResult(TEXT("Workbench ready; use the Construction Hammer menu to build floors, walls, and roofs from Wood"), true);
 }
 
 bool UKalmalaCraftingComponent::IsStationContextTargetCurrent(AKalmalaConstructionActor* ExpectedActor,

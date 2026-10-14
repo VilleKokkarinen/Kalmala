@@ -34,6 +34,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-14 — Retire Reed Fibre:** remove its catalogue item and active ID references, remove recipe costs, and redirect harvest/discovery rewards to existing items. Normalize storage by dropping retired or unknown item rows; no save-schema change. Lightweight JSON/reference and diff checks passed; Unreal verification deferred.
+
 - [x] **2026-10-14 — Give inventory instances GUID identity:** assign unique GUIDs to carried tool instances and inventory stacks, remove the separate carried-tool record limit, allow duplicate item IDs, and split/fill stacks according to each item's stack limit within the shared 40-cell inventory. Preserve the starter hammer in hotbar slot 1. Lightweight source and diff checks passed; full Unreal verification deferred.
 - [x] **2026-10-14 — Give every item unit a GUID:** create an identity for each unit in stackable items as they are granted or crafted, preserve unit IDs through stack changes, send exact item GUIDs for storage transfers, and upgrade chest saves to schema 2 with migrated per-item IDs. Lightweight source/diff checks passed; Unreal verification deferred.
 

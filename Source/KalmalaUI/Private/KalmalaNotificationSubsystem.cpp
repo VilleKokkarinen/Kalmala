@@ -43,7 +43,7 @@ EKalmalaIcon SkillIcon(EKalmalaSkill Skill)
 {
     switch (Skill)
     {
-    case EKalmalaSkill::Gathering: return EKalmalaIcon::Fibre;
+    case EKalmalaSkill::Gathering: return EKalmalaIcon::Gathering;
     case EKalmalaSkill::Woodcutting: return EKalmalaIcon::Axe;
     case EKalmalaSkill::Mining: return EKalmalaIcon::Pick;
     case EKalmalaSkill::Crafting: return EKalmalaIcon::Hammer;

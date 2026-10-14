@@ -16,17 +16,13 @@ bool FKalmalaStorageSaveTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Empty identity container is valid"), Save->MatchesWorld(Config));
     TArray<FKalmalaInventoryStack> LegacyStacks = {{TEXT("Wood"),4},{TEXT("Fuel"),2},{TEXT("ConstructionSupply"),3},{TEXT("MirelingAsh"),2}};
     TestTrue(TEXT("Retired saved item IDs normalize without a schema change"), UKalmalaStorageSaveGame::NormalizeLegacyStacks(LegacyStacks));
-    TestEqual(TEXT("Legacy raw materials merge into bounded Wood and Fibre stacks"), LegacyStacks.Num(), 2);
+    TestEqual(TEXT("Legacy raw materials merge into one bounded Wood stack"), LegacyStacks.Num(), 1);
     TestFalse(TEXT("Retired loot is discarded without removing other saved contents"), LegacyStacks.ContainsByPredicate(
         [](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == TEXT("MirelingAsh"); }));
     const FKalmalaInventoryStack* MigratedWood = LegacyStacks.FindByPredicate(
         [](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == TEXT("Wood"); });
-    const FKalmalaInventoryStack* MigratedFibre = LegacyStacks.FindByPredicate(
-        [](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == TEXT("Fibre"); });
     TestNotNull(TEXT("Legacy conversion retains its wood value"), MigratedWood);
-    TestNotNull(TEXT("Legacy construction supply retains its fibre value"), MigratedFibre);
-    if (MigratedWood) TestEqual(TEXT("Four wood, two fuel, and three supplies become fifteen wood"), MigratedWood->Quantity, 15);
-    if (MigratedFibre) TestEqual(TEXT("Three construction supplies become six fibre"), MigratedFibre->Quantity, 6);
+    if (MigratedWood) TestEqual(TEXT("Four wood, two fuel, and three supplies become twenty-one wood"), MigratedWood->Quantity, 21);
     TestTrue(TEXT("Store two materials"), Save->UpsertRecord(TEXT("chest-1"), {{TEXT("Wood"),3},{TEXT("Stone"),2}}));
     for (const int32 Quantity : {0, -1, MIN_int32, MAX_int32})
         TestFalse(TEXT("Invalid stack rejected"), Save->UpsertRecord(TEXT("chest-1"), {{TEXT("Wood"),Quantity}}));
@@ -87,7 +83,7 @@ bool FKalmalaStorageTransferTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Exhausted chest slot removed"), RestoredChest.Num(), 1);
     for (const int32 Quantity : {0,-1,MIN_int32,MAX_int32})
         TestFalse(TEXT("Malformed quantity rejected"), UKalmalaInventoryComponent::BuildTransfer(Pack,Chest,TEXT("Wood"),Quantity,NextPack,NextChest,Reason));
-    TestFalse(TEXT("Missing item rejected"), UKalmalaInventoryComponent::BuildTransfer(Pack,Chest,TEXT("Fibre"),1,NextPack,NextChest,Reason));
+    TestFalse(TEXT("Missing item rejected"), UKalmalaInventoryComponent::BuildTransfer(Pack,Chest,TEXT("Amber"),1,NextPack,NextChest,Reason));
     TestFalse(TEXT("Unknown item rejected"), UKalmalaInventoryComponent::BuildTransfer(Pack,Chest,TEXT("Forged"),1,NextPack,NextChest,Reason));
     const auto* Wood = UKalmalaItemCatalogue::Get()->FindItem(TEXT("Wood"));
     TArray<FKalmalaInventoryStack> FullDestination;

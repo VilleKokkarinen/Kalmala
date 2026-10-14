@@ -15,13 +15,13 @@ bool FKalmalaInventoryBrowseTest::RunTest(const FString& Parameters)
         {TEXT("Wood"), TEXT("Wood"), TEXT("Count 7"), false},
         {TEXT("StoneAxe"), TEXT("Stone Axe"), TEXT("Condition 17/40"), true},
         {TEXT("Stone"), TEXT("Stone"), TEXT("Count 3"), false},
-        {TEXT("Fibre"), TEXT("Reed Fibre"), TEXT("Count 4"), false}};
+        {TEXT("Amber"), TEXT("Amber"), TEXT("Count 4"), false}};
     Panel->SetRows(Source, 150, 1);
     TArray<UWidget*> InitialWidgets;
     Panel->WidgetTree->GetAllWidgets(InitialWidgets);
     int32 InitialIconCount = 0;
     bool bInitialIconsLoaded = true;
-    bool bReedFibreVisible = false;
+    bool bAmberVisible = false;
     for (UWidget* Widget : InitialWidgets)
     {
         if (const auto* Icon = Cast<UKalmalaIconWidget>(Widget))
@@ -30,25 +30,25 @@ bool FKalmalaInventoryBrowseTest::RunTest(const FString& Parameters)
             bInitialIconsLoaded &= Icon->HasCatalogueTexture();
         }
         if (const auto* Text = Cast<UTextBlock>(Widget))
-            bReedFibreVisible |= Text->GetText().ToString().Contains(TEXT("Reed Fibre"));
+            bAmberVisible |= Text->GetText().ToString().Contains(TEXT("Amber"));
     }
-    EKalmalaIcon FibreIcon = EKalmalaIcon::Fibre;
-    int32 FibreIconVariant = INDEX_NONE;
-    TestTrue(TEXT("Reviewed Reed Fibre name is visible on its inventory row"), bReedFibreVisible);
-    TestTrue(TEXT("Reed Fibre retains the canonical Fibre icon mapping"),
-        UKalmalaIconWidget::FindCatalogueIcon(FName(TEXT("Fibre")), FibreIcon, FibreIconVariant));
+    EKalmalaIcon AmberIcon = EKalmalaIcon::Rock;
+    int32 AmberIconVariant = INDEX_NONE;
+    TestTrue(TEXT("Current Amber name is visible on its inventory row"), bAmberVisible);
+    TestTrue(TEXT("Amber retains its canonical icon mapping"),
+        UKalmalaIconWidget::FindCatalogueIcon(FName(TEXT("Amber")), AmberIcon, AmberIconVariant));
     TestEqual(TEXT("Every inventory row retains its canonical icon widget"), InitialIconCount, Source.Num());
     TestTrue(TEXT("Inventory rows load their canonical item and tool icons"), bInitialIconsLoaded);
     Panel->Navigate(EKeys::Right);
     Panel->SetSort(1);
     TestEqual(TEXT("Name sorting retains selected canonical identity"), Panel->GetSelectedItem(), FName(TEXT("StoneAxe")));
     Panel->Navigate(EKeys::Right);
-    TestEqual(TEXT("Name sorting uses the reviewed Reed Fibre display name"), Panel->GetSelectedItem(), FName(TEXT("Fibre")));
+    TestEqual(TEXT("Name sorting uses the current Amber display name"), Panel->GetSelectedItem(), FName(TEXT("Amber")));
     Panel->Navigate(EKeys::Right);
-    TestEqual(TEXT("Name sorting navigates from Reed Fibre to Stone"), Panel->GetSelectedItem(), FName(TEXT("Stone")));
-    Panel->SetSearch(TEXT("  REED FIBRE  "));
+    TestEqual(TEXT("Name sorting navigates from Amber to Stone"), Panel->GetSelectedItem(), FName(TEXT("Stone")));
+    Panel->SetSearch(TEXT("  AMBER  "));
     TestEqual(TEXT("Trimmed search finds the reviewed item display name"), Panel->GetVisibleCount(), 1);
-    TestEqual(TEXT("Display-name search retains the canonical item identity"), Panel->GetSelectedItem(), FName(TEXT("Fibre")));
+    TestEqual(TEXT("Display-name search retains the canonical item identity"), Panel->GetSelectedItem(), FName(TEXT("Amber")));
     Panel->SetSearch(TEXT(""));
     Panel->SetCategory(3);
     TestEqual(TEXT("Weapons filter contains only supplied weapon"), Panel->GetVisibleCount(), 1);
@@ -73,7 +73,7 @@ bool FKalmalaInventoryBrowseTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Actual text-change binding filters supplied rows"), Panel->GetVisibleCount(), 1);
     Panel->SetSearch(TEXT("")); Panel->SetCategory(0); Panel->SetSort(2);
     Panel->Navigate(EKeys::Gamepad_DPad_Right);
-    TestEqual(TEXT("Grouped view wraps from tool to first named item"), Panel->GetSelectedItem(), FName(TEXT("Fibre")));
+    TestEqual(TEXT("Grouped view wraps from tool to first named item"), Panel->GetSelectedItem(), FName(TEXT("Amber")));
     Panel->SetSort(0); Panel->Navigate(EKeys::Left);
     TestEqual(TEXT("Owner order is unchanged after sorting"), Panel->GetSelectedItem(), FName(TEXT("Stone")));
     TestEqual(TEXT("Caller inventory order remains unchanged"), Source[0].Id, FName(TEXT("Wood")));

@@ -109,9 +109,7 @@ bool UKalmalaStorageSaveGame::NormalizeLegacyStacks(TArray<FKalmalaInventoryStac
         }
         else if (Stack.ItemId == TEXT("ConstructionSupply"))
         {
-            const int64 SupplyCount = Stack.Quantity;
-            if (!AddMaterial(TEXT("Wood"), SupplyCount * 3, Stack.InstanceGuid, {})
-                || !AddMaterial(TEXT("Fibre"), SupplyCount * 2, FGuid(), {})) return false;
+            if (!AddMaterial(TEXT("Wood"), int64(Stack.Quantity) * 5, Stack.InstanceGuid, {})) return false;
         }
         else if (Stack.ItemId == TEXT("PeatAmber"))
         {
@@ -121,8 +119,14 @@ bool UKalmalaStorageSaveGame::NormalizeLegacyStacks(TArray<FKalmalaInventoryStac
         {
             // Retired loot is discarded while preserving the rest of an existing chest save.
         }
-        else if (!Items->FindItem(Stack.ItemId)
-            || !AddMaterial(Stack.ItemId, Stack.Quantity, Stack.InstanceGuid, Stack.ItemGuids)) return false;
+        else if (Items->FindItem(Stack.ItemId))
+        {
+            if (!AddMaterial(Stack.ItemId, Stack.Quantity, Stack.InstanceGuid, Stack.ItemGuids)) return false;
+        }
+        else
+        {
+            // Retired or unknown item IDs are discarded while preserving the rest of an existing chest save.
+        }
     }
     for (const FName ItemId : LegacyOrder)
         if (!AddNormalized(ItemId, LegacyQuantities.FindRef(ItemId), FGuid(), LegacyItemGuids.FindRef(ItemId))) return false;

@@ -87,7 +87,7 @@ bool FKalmalaInventoryInspectTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Second owner selection is independent"), OtherOwner->GetSelectedItem(), FName(TEXT("Stone")));
     auto* ChestView = NewObject<UKalmalaInventoryInspectWidget>();
     ChestView->Initialize(); ChestView->TakeWidget();
-    ChestView->SetRows({{TEXT("Fibre"), TEXT("Reed Fibre"), TEXT("Count 4"), false},
+    ChestView->SetRows({{TEXT("Amber"), TEXT("Amber"), TEXT("Count 4"), false},
         {TEXT("Wood"), TEXT("Wood"), TEXT("Count 7"), false}}, 100, 0,
         TEXT("This chest"), TEXT("This chest is empty."), false, 2);
     TArray<UWidget*> ChestWidgets; ChestView->WidgetTree->GetAllWidgets(ChestWidgets);
@@ -113,7 +113,7 @@ bool FKalmalaInventoryInspectTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Chest selector uses two columns for readable image/count cards"), MaxChestColumn, 1);
     TestTrue(TEXT("Chest selector keeps both item counts beside their images"),
         ChestCardText.Contains(TEXT("Count 4")) && ChestCardText.Contains(TEXT("Count 7")));
-    TestTrue(TEXT("Chest selector shows the reviewed Reed Fibre item name"), ChestCardText.Contains(TEXT("Reed Fibre")));
+    TestTrue(TEXT("Chest selector shows the current Amber item name"), ChestCardText.Contains(TEXT("Amber")));
     auto* UnknownView = NewObject<UKalmalaInventoryInspectWidget>();
     UnknownView->Initialize(); UnknownView->TakeWidget();
     UnknownView->SetRows({{TEXT("Forged"), TEXT("Unknown item"), TEXT("Count 1"), false}}, 100, 0);

@@ -112,9 +112,9 @@ bool FKalmalaCraftingTransactionsTest::RunTest(const FString& Parameters)
     struct FExpectedBuildCost { FName Id; TArray<FKalmalaInventoryStack> Costs; };
     const TArray<FExpectedBuildCost> DirectBuildCosts = {
         {TEXT("CampfireKit"), {{TEXT("Stone"),5},{TEXT("Wood"),3}}},
-        {TEXT("FloorKit"), {{TEXT("Wood"),6},{TEXT("Fibre"),4}}},
-        {TEXT("WallKit"), {{TEXT("Wood"),6},{TEXT("Fibre"),6}}},
-        {TEXT("RoofKit"), {{TEXT("Wood"),6},{TEXT("Fibre"),8}}},
+        {TEXT("FloorKit"), {{TEXT("Wood"),6}}},
+        {TEXT("WallKit"), {{TEXT("Wood"),6}}},
+        {TEXT("RoofKit"), {{TEXT("Wood"),6}}},
     };
     for (const FExpectedBuildCost& Expected : DirectBuildCosts)
     {

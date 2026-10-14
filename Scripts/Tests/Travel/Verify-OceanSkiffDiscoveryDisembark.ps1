@@ -124,8 +124,8 @@ try {
             throw 'Ocean discovery/disembark peer verification failed; inspect retained logs.'
         }
 
-        $serverAccepted = $hostText -match 'Ocean discovery-stop server passed: Seed=418 Players=2 Discovery=.+ Reward=(?:Wood|Fibre|Stone):[12] Claims=2 Mode=Moored Disembarked=2'
-        $clientAccepted = $clientText -match 'Ocean discovery-stop peer replica passed: Authority=0 Seat=Helm Discovery=.+ DiscoveryFeedback=LandmarkFound Reward=(?:Wood|Fibre|Stone):[12] Disembarked=1 EmptySeats=1 Mode=Moored'
+        $serverAccepted = $hostText -match 'Ocean discovery-stop server passed: Seed=418 Players=2 Discovery=.+ Reward=(?:Wood|Stone):[12] Claims=2 Mode=Moored Disembarked=2'
+        $clientAccepted = $clientText -match 'Ocean discovery-stop peer replica passed: Authority=0 Seat=Helm Discovery=.+ DiscoveryFeedback=LandmarkFound Reward=(?:Wood|Stone):[12] Disembarked=1 EmptySeats=1 Mode=Moored'
         $clientWorld = $clientText -match 'Client received world-generation identity: Seed=418'
         $profileMatch = [regex]::Match($hostText, 'World profile: InitialGenerationMs=(?<generation>[0-9.]+) UsedPhysicalMB=(?<used>[0-9.]+) AvailablePhysicalMB=(?<available>[0-9.]+) Actors=(?<actors>[0-9]+) ReplicatedActors=(?<replicated>[0-9]+) TerrainPatches=(?<patches>[0-9]+) PopulationKeys=(?<population>[0-9]+) SaveBytes=(?<save>[0-9]+) SaveSerialized=(?<serialized>[01]) LateJoinPlayers=(?<players>[0-9]+)\.')
         $networkProfileMatch = [regex]::Match($hostText, 'Ocean M8 peer connection profile: Peer=Client WindowSeconds=(?<window>[0-9.]+) InBytes=(?<inBytes>[0-9]+) OutBytes=(?<outBytes>[0-9]+) InPackets=(?<inPackets>[0-9]+) OutPackets=(?<outPackets>[0-9]+)')

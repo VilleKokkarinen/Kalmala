@@ -14,10 +14,6 @@
         {
           "ItemId": "Wood",
           "Quantity": 3
-        },
-        {
-          "ItemId": "Fibre",
-          "Quantity": 2
         }
       ],
       "Level": 1
@@ -35,10 +31,6 @@
         },
         {
           "ItemId": "Wood",
-          "Quantity": 2
-        },
-        {
-          "ItemId": "Fibre",
           "Quantity": 2
         }
       ],
@@ -80,10 +72,6 @@
         {
           "ItemId": "Wood",
           "Quantity": 3
-        },
-        {
-          "ItemId": "Fibre",
-          "Quantity": 1
         }
       ],
       "Level": 1
@@ -101,10 +89,6 @@
         },
         {
           "ItemId": "Wood",
-          "Quantity": 2
-        },
-        {
-          "ItemId": "Fibre",
           "Quantity": 2
         }
       ],
@@ -124,10 +108,6 @@
         {
           "ItemId": "Stone",
           "Quantity": 3
-        },
-        {
-          "ItemId": "Fibre",
-          "Quantity": 2
         }
       ],
       "Level": 1
@@ -146,10 +126,6 @@
         {
           "ItemId": "Stone",
           "Quantity": 2
-        },
-        {
-          "ItemId": "Fibre",
-          "Quantity": 3
         }
       ],
       "Level": 1
@@ -168,10 +144,6 @@
         {
           "ItemId": "Stone",
           "Quantity": 4
-        },
-        {
-          "ItemId": "Fibre",
-          "Quantity": 2
         }
       ],
       "Level": 1
@@ -189,10 +161,6 @@
         },
         {
           "ItemId": "Stone",
-          "Quantity": 3
-        },
-        {
-          "ItemId": "Fibre",
           "Quantity": 3
         }
       ],
@@ -212,10 +180,6 @@
         {
           "ItemId": "Stone",
           "Quantity": 2
-        },
-        {
-          "ItemId": "Fibre",
-          "Quantity": 3
         }
       ],
       "Level": 1

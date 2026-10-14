@@ -562,7 +562,7 @@ bool UKalmalaCraftingComponent::PlaceConstructionFromServer(const FName Buildabl
         return false;
     }
     Reason = UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(BuildableId)
-        ? TEXT("Built directly from Wood and Fibre with the construction hammer")
+        ? TEXT("Built directly from Wood with the construction hammer")
         : bStationAttachment
         ? TEXT("Placed the paid station attachment; its level bonus is saved for this world")
         : TEXT("Placed construction; server accepted the buildable and ground");

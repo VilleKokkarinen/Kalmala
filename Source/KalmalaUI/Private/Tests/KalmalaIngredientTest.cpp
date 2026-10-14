@@ -35,29 +35,29 @@ bool FKalmalaIngredientTest::RunTest(const FString& Parameters)
         }
     TestEqual(TEXT("Ingredient row retains one image beside readable owned/required counts"), IngredientImageCount, 1);
     TestTrue(TEXT("Ingredient image uses the imported canonical texture"), bIngredientImageLoaded);
-    FKalmalaInventoryStack FibreCost;
-    FibreCost.ItemId = TEXT("Fibre");
-    FibreCost.Quantity = 2;
-    TestTrue(TEXT("Reed Fibre grant accepted"), Owner->TryGrantFromServer(TEXT("Fibre"), 3));
-    Widget->SetIngredients({FibreCost}, Owner, 100, 0);
-    TestTrue(TEXT("Ingredient presentation uses the reviewed Reed Fibre label"),
-        Widget->GetPresentationText().Contains(TEXT("Fibre | Reed Fibre: owned 3 / required 2 — Enough")));
-    TArray<UWidget*> FibreWidgets;
-    Widget->WidgetTree->GetAllWidgets(FibreWidgets);
-    bool bReedFibreLabelVisible = false;
-    bool bReedFibreIconLoaded = false;
-    for (UWidget* Child : FibreWidgets)
+    FKalmalaInventoryStack AmberCost;
+    AmberCost.ItemId = TEXT("Amber");
+    AmberCost.Quantity = 2;
+    TestTrue(TEXT("Amber grant accepted"), Owner->TryGrantFromServer(TEXT("Amber"), 3));
+    Widget->SetIngredients({AmberCost}, Owner, 100, 0);
+    TestTrue(TEXT("Ingredient presentation uses the current Amber label"),
+        Widget->GetPresentationText().Contains(TEXT("Amber | Amber: owned 3 / required 2 — Enough")));
+    TArray<UWidget*> AmberWidgets;
+    Widget->WidgetTree->GetAllWidgets(AmberWidgets);
+    bool bAmberLabelVisible = false;
+    bool bAmberIconLoaded = false;
+    for (UWidget* Child : AmberWidgets)
     {
         if (const auto* Text = Cast<UTextBlock>(Child))
-            bReedFibreLabelVisible |= Text->GetText().ToString().Contains(TEXT("Reed Fibre: owned 3 / required 2"));
+            bAmberLabelVisible |= Text->GetText().ToString().Contains(TEXT("Amber: owned 3 / required 2"));
         if (const auto* Icon = Cast<UKalmalaIconWidget>(Child))
-            bReedFibreIconLoaded |= Icon->HasCatalogueTexture();
+            bAmberIconLoaded |= Icon->HasCatalogueTexture();
     }
-    EKalmalaIcon FibreIcon = EKalmalaIcon::Fibre;
-    int32 FibreIconVariant = INDEX_NONE;
-    TestTrue(TEXT("Ingredient row visibly uses the current Reed Fibre name"), bReedFibreLabelVisible);
-    TestTrue(TEXT("Ingredient row keeps its canonical Fibre icon"), bReedFibreIconLoaded
-        && UKalmalaIconWidget::FindCatalogueIcon(FName(TEXT("Fibre")), FibreIcon, FibreIconVariant));
+    EKalmalaIcon AmberIcon = EKalmalaIcon::Rock;
+    int32 AmberIconVariant = INDEX_NONE;
+    TestTrue(TEXT("Ingredient row visibly uses the current Amber name"), bAmberLabelVisible);
+    TestTrue(TEXT("Ingredient row keeps its canonical Amber icon"), bAmberIconLoaded
+        && UKalmalaIconWidget::FindCatalogueIcon(FName(TEXT("Amber")), AmberIcon, AmberIconVariant));
     TestTrue(TEXT("Accepted consumption"), Owner->TryConsumeFromServer(TEXT("Wood"), 5));
     Widget->SetIngredients(Costs, Owner, 150, 1);
     TestTrue(TEXT("Refresh follows consumption and missing state"), Widget->GetPresentationText().Contains(TEXT("owned 4 / required 6 — Missing")));

@@ -31,7 +31,7 @@ const TArray<FKalmalaOceanDiscoveryDefinition>& FKalmalaOceanDiscoveryCatalogue:
     static const TArray<FKalmalaOceanDiscoveryDefinition> Definitions =
     {
         { TEXT("ocean-driftwood-cache"), TEXT("driftwood-cache-marker"), TEXT("Driftwood cache"), TEXT("Wood"), 2, true },
-        { TEXT("ocean-shellbank-shoal"), TEXT("shellbank-shoal-marker"), TEXT("Shellbank shoal"), TEXT("Fibre"), 2, true },
+        { TEXT("ocean-shellbank-shoal"), TEXT("shellbank-shoal-marker"), TEXT("Shellbank shoal"), TEXT("Stone"), 2, true },
         { TEXT("ocean-stormmark-islet"), TEXT("stormmark-islet-marker"), TEXT("Stormmark islet"), TEXT("Stone"), 1, true }
     };
     return Definitions;

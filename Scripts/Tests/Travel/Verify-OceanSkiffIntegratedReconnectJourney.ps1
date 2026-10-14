@@ -104,7 +104,7 @@ function Stop-OceanPeer {
 function Read-JourneyOutcome {
     param([string]$Log)
     $text = Get-LogText $Log
-    $pattern = 'Ocean integrated reconnect journey server passed: Seed=418 HostId=(?<host>[0-9a-f]{8}) HelmId=(?<helm>[0-9a-f]{8}) Players=3 Discovery=(?<discovery>[^ ]+) Reward=(?<item>Wood|Fibre|Stone):(?<quantity>[12]) Claims=2 Distance=(?<distance>[0-9]+).*StopX=(?<x>-?[0-9]+) StopY=(?<y>-?[0-9]+)'
+    $pattern = 'Ocean integrated reconnect journey server passed: Seed=418 HostId=(?<host>[0-9a-f]{8}) HelmId=(?<helm>[0-9a-f]{8}) Players=3 Discovery=(?<discovery>[^ ]+) Reward=(?<item>Wood|Stone):(?<quantity>[12]) Claims=2 Distance=(?<distance>[0-9]+).*StopX=(?<x>-?[0-9]+) StopY=(?<y>-?[0-9]+)'
     $match = [regex]::Match($text, $pattern)
     if (!$match.Success) { throw 'Could not parse the integrated voyage identity, discovery, reward, and accepted moored stop.' }
     return $match
@@ -113,7 +113,7 @@ function Read-JourneyOutcome {
 function Read-ResumeIdentity {
     param([string]$Log)
     $text = Get-LogText $Log
-    $pattern = 'Ocean skiff reconnect resume server passed: Seed=418 VesselActors=1 VesselId=ocean-skiff:primary HostId=(?<host>[0-9a-f]{8}) HelmId=(?<helm>[0-9a-f]{8}) Seats=Helm,Passenger Discovery=(?<discovery>[^ ]+) Reward=(?<item>Wood|Fibre|Stone):(?<quantity>[12]) ClaimState=AlreadyFound InventoryQuantity=0'
+    $pattern = 'Ocean skiff reconnect resume server passed: Seed=418 VesselActors=1 VesselId=ocean-skiff:primary HostId=(?<host>[0-9a-f]{8}) HelmId=(?<helm>[0-9a-f]{8}) Seats=Helm,Passenger Discovery=(?<discovery>[^ ]+) Reward=(?<item>Wood|Stone):(?<quantity>[12]) ClaimState=AlreadyFound InventoryQuantity=0'
     $match = [regex]::Match($text, $pattern)
     if (!$match.Success) { throw 'Could not parse the resumed vessel, identities, and discovery replay result.' }
     return $match
@@ -158,7 +158,7 @@ try {
 
     Wait-ForLogPatterns -Checks @(
         @{ Log = $hostPeer.Log; Pattern = 'Ocean integrated reconnect journey server passed: Seed=418 HostId=[0-9a-f]{8} HelmId=[0-9a-f]{8} Players=3 Discovery=.+ Claims=2 Distance=2[3-4][0-9]{4} Crosswind=1 Calm=1 .*LateJoin=Underway RewardLeak=0 Seats=Helm,Passenger Mode=Moored StopX=-?[0-9]+ StopY=-?[0-9]+' },
-        @{ Log = $owner.Log; Pattern = 'Ocean integrated reconnect journey peer passed: Authority=0 Seat=Helm Discovery=.+ DiscoveryFeedback=LandmarkFound Reward=(?:Wood|Fibre|Stone):[12] Distance=2[3-4][0-9]{4} Crosswind=1 Calm=1 Attached=1 Seats=Helm,Passenger Mode=Moored' },
+        @{ Log = $owner.Log; Pattern = 'Ocean integrated reconnect journey peer passed: Authority=0 Seat=Helm Discovery=.+ DiscoveryFeedback=LandmarkFound Reward=(?:Wood|Stone):[12] Distance=2[3-4][0-9]{4} Crosswind=1 Calm=1 Attached=1 Seats=Helm,Passenger Mode=Moored' },
         @{ Log = $owner.Log; Pattern = 'Client received world-generation identity: Seed=418' },
         @{ Log = $hostPeer.Log; Pattern = 'Ocean weather peer result: Authority=1 Cycle=7001 Direction=90 Strength=1\.000 .*Passed=1' },
         @{ Log = $hostPeer.Log; Pattern = 'Ocean weather peer result: Authority=1 Cycle=7002 Direction=0 Strength=0\.000 .*Passed=1' },
@@ -178,8 +178,8 @@ try {
     Wait-ForLogPatterns -Checks @(@{ Log = $hostPeer.Log; Pattern = 'GameNetDriver.*listening on port' }) -ActiveProcesses @($hostPeer.Process) -Seconds 90 -FailureMessage 'Restarted journey listen-server startup failed.'
     $owner = Start-OceanPeer -Role 'owner' -Phase 'Resume' -Url "127.0.0.1:$Port`?Name=KalmalaReconnectOwner" -UserDirectory $ownerDirectory -ExpectedX $expectedX -ExpectedY $expectedY
     Wait-ForLogPatterns -Checks @(
-        @{ Log = $hostPeer.Log; Pattern = 'Ocean skiff reconnect resume server passed: Seed=418 VesselActors=1 VesselId=ocean-skiff:primary HostId=[0-9a-f]{8} HelmId=[0-9a-f]{8} Seats=Helm,Passenger Discovery=.+ Reward=(?:Wood|Fibre|Stone):[12] ClaimState=AlreadyFound InventoryQuantity=0' },
-        @{ Log = $owner.Log; Pattern = 'Ocean skiff reconnect resume owner peer passed: Authority=0 Seat=Helm Seed=418 DiscoveryFeedback=AlreadyFound Reward=(?:Wood|Fibre|Stone):0 VesselActors=1' },
+        @{ Log = $hostPeer.Log; Pattern = 'Ocean skiff reconnect resume server passed: Seed=418 VesselActors=1 VesselId=ocean-skiff:primary HostId=[0-9a-f]{8} HelmId=[0-9a-f]{8} Seats=Helm,Passenger Discovery=.+ Reward=(?:Wood|Stone):[12] ClaimState=AlreadyFound InventoryQuantity=0' },
+        @{ Log = $owner.Log; Pattern = 'Ocean skiff reconnect resume owner peer passed: Authority=0 Seat=Helm Seed=418 DiscoveryFeedback=AlreadyFound Reward=(?:Wood|Stone):0 VesselActors=1' },
         @{ Log = $owner.Log; Pattern = 'Client received world-generation identity: Seed=418' }
     ) -ActiveProcesses @($hostPeer.Process, $owner.Process) -Seconds $TimeoutSeconds -FailureMessage 'Authenticated journey restart/reconnect failed.'
 

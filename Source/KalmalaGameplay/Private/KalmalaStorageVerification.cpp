@@ -71,12 +71,12 @@ void UKalmalaCraftingComponent::RunStorageVerification(float DeltaTime)
             for (int32 Turn = 0; Turn < 8 && !BenchPlaced; ++Turn)
             { C->SetActorRotation(FRotator(0, Turn*45, 0)); BenchPlaced = PlaceConstructionFromServer(TEXT("WorkbenchKit"), Reason); }
             Check(BenchPlaced && FindNearbyWorkbench()
-                && Pack->TryGrantFromServer(TEXT("Wood"), 6) && Pack->TryGrantFromServer(TEXT("Fibre"), 4)
+                && Pack->TryGrantFromServer(TEXT("Wood"), 6)
                 && !CraftFromServer(TEXT("Floor"), 1, Reason)
                 && GetRecipeAvailability(TEXT("Floor")) == TEXT("Ready")
                 && Pack->GetQuantity(TEXT("FloorKit")) == 0,
                 TEXT("Floor is a direct hammer build with raw material costs and no kit output"));
-            Check(Pack->TryConsumeFromServer(TEXT("Wood"), 6) && Pack->TryConsumeFromServer(TEXT("Fibre"), 4),
+            Check(Pack->TryConsumeFromServer(TEXT("Wood"), 6),
                 TEXT("Clear direct-build probe costs before chest privacy checks"));
         }
         // Give each owner a position where the no-target inspect RPC resolves its assigned chest.

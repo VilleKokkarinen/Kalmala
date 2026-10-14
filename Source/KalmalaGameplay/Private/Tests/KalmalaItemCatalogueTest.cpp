@@ -84,8 +84,6 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         { TEXT("Coal"), TEXT("Coal"), TEXT("A dense, black mineral that burns directly as hearth fuel."), 40 },
         { TEXT("Stone"), TEXT("Stone"), TEXT("Add some googly eyes, and it becomes a friendly pet rock."), 40 },
         { TEXT("Iron"), TEXT("Iron"), TEXT("A forged iron bar used for durable tools and camp equipment."), 50 },
-        { TEXT("Fibre"), TEXT("Reed Fibre"),
-            TEXT("Plant strands used in simple tools and camp furnishings."), 50 },
         { TEXT("Amber"), TEXT("Amber"), TEXT("Dark peat threaded with amber from the Mire."), 40 },
     };
     for (const FExpectedBatchOneCopy& Expected : BatchOneCopy)
@@ -475,7 +473,7 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         TestEqual(TEXT("Clean output identity maps to the existing construction identity"), GrindingStone->Output, FName(TEXT("GrindingStoneKit")));
         TestTrue(TEXT("Clean station identity maps to the existing station identity"), GrindingStone->RequiredStation.Contains(TEXT("WorkbenchKit")));
     }
-    for (const FName Id : {FName(TEXT("Wood")), FName(TEXT("Stone")), FName(TEXT("Fibre")),
+    for (const FName Id : {FName(TEXT("Wood")), FName(TEXT("Stone")),
         FName(TEXT("Lightwood")), FName(TEXT("Densewood")), FName(TEXT("Coal"))})
     {
         const FKalmalaItemDefinition* Item = Catalogue->FindItem(Id);

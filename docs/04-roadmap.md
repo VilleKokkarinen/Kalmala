@@ -188,15 +188,15 @@ M7 has nine ordered goals:
    crafting panel shows the requirement and current level, and the server
    checks the owner's progression before attempting station or pack access.
    The first tool replacement recipe rebuilds the Stone Axe only at zero
-   condition through a visible workbench and atomic two-Wood/two-Stone/one-
-   Fibre payment; it restores the existing owner-only condition and awards a
+   condition through a visible workbench and atomic two-Wood/two-Stone payment;
+   it restores the existing owner-only condition and awards a
    fixed 10 Crafting experience only after payment succeeds.
    The next first-tier replacement rebuilds a Stone Pick only at zero
-   condition, for two Wood, three Stone, and one Fibre at a visible same-world
+   condition, for two Wood and three Stone at a visible same-world
    workbench; accepted payment restores its existing owner-only condition and
    awards the same fixed transient Crafting experience.
    A Stone Knife replacement is also available only at zero condition, for one
-   Wood, one Stone, and two Fibre at a visible same-world workbench; accepted
+   Wood and one Stone at a visible same-world workbench; accepted
    payment restores its existing owner-only condition and awards the same
    fixed transient Crafting experience.
 6. **Add biome-specific hazards and active-weather pressure.** Extend the
@@ -338,7 +338,7 @@ M9 has five ordered goals:
    - Treat these as candidate directions for a curated catalogue, not a locked list. Every approved gameplay entry needs a canonical ID, server-derived source or placement rule, bounded activation budget, and existing-item reward or recipe mapping where applicable. Ocean content must use M8 travel interactions; placement, depletion, hazards, claims, and rewards remain server-owned and deterministic. Do not add open-ended drop tables or client-authored content data.
 
 2. **Camp and equipment progression.** Add level upgrades for tools and matching workstation progression. Use a carried, wielded Construction Hammer to open the build menu and place constructions directly from server-validated raw-material costs, then extend camp utility through the existing inventory, crafting, construction, station, and accessibility contracts.
-   - The menu starts with floors, walls, and roofs, built directly from Wood and Fibre without producing kit items. Keep their existing internal construction identities and save records stable. Migrate the remaining camp kits through the same menu and server transaction in later bounded increments.
+   - The menu starts with floors, walls, and roofs, built directly from Wood without producing kit items. Keep their existing internal construction identities and save records stable. Migrate the remaining camp kits through the same menu and server transaction in later bounded increments.
    - **Tool level and workstation matching:**
      - Give each carried tool an authored level path. Tool level is distinct from the player's skill level and remains server-owned, with detailed tool state visible only to its owner.
      - Extend the existing owner-only tool-condition records into the carried-tool inventory shown to that owner; the current first-wave tools are condition fields rather than pack stacks. The server, not the client, supplies the eligible tool list to repair and upgrade actions.

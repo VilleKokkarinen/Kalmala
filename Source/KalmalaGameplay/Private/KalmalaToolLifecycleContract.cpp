@@ -292,10 +292,15 @@ bool FKalmalaToolLifecycleContract::BuildServerSelection(
         OutSelection = { ServerSourceId, EKalmalaToolAction::Woodcutting, EKalmalaToolKind::None,
             EKalmalaSkill::Woodcutting, TEXT("Wood"), 1, EKalmalaToolTier::Stone };
     }
-    else if (ServerSourceId == TEXT("lakes-reed-cluster") || ServerSourceId == TEXT("tundra-frostmoss"))
+    else if (ServerSourceId == TEXT("lakes-reed-cluster"))
     {
         OutSelection = { ServerSourceId, EKalmalaToolAction::Gathering, EKalmalaToolKind::None,
-            EKalmalaSkill::Gathering, TEXT("Fibre"), 1, EKalmalaToolTier::Stone };
+            EKalmalaSkill::Gathering, TEXT("Wood"), 1, EKalmalaToolTier::Stone };
+    }
+    else if (ServerSourceId == TEXT("tundra-frostmoss"))
+    {
+        OutSelection = { ServerSourceId, EKalmalaToolAction::Gathering, EKalmalaToolKind::None,
+            EKalmalaSkill::Gathering, TEXT("FrostSalt"), 1, EKalmalaToolTier::Stone };
     }
     else if (ServerSourceId == TEXT("mire-bog-iron"))
     {

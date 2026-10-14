@@ -122,14 +122,12 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
         TestEqual(TEXT("Bronze Axe station level matches its target"), Bronze->RequiredStationLevel, 1);
         TestTrue(TEXT("Bronze Axe is the first step in this axe path"),
             Bronze->PreviousToolId.IsNone() && Bronze->PreviousToolLevel == 0);
-        TestEqual(TEXT("Bronze Axe acquisition has three bounded materials"), Bronze->MaterialCosts.Num(), 3);
+        TestEqual(TEXT("Bronze Axe acquisition has two bounded materials"), Bronze->MaterialCosts.Num(), 2);
         TestTrue(TEXT("Bronze Axe uses the early-game material set"),
             Bronze->MaterialCosts.ContainsByPredicate([](const FKalmalaToolMaterialCost& Cost)
                 { return Cost.ItemId == TEXT("Wood") && Cost.Quantity == 4; })
             && Bronze->MaterialCosts.ContainsByPredicate([](const FKalmalaToolMaterialCost& Cost)
-                { return Cost.ItemId == TEXT("Stone") && Cost.Quantity == 3; })
-            && Bronze->MaterialCosts.ContainsByPredicate([](const FKalmalaToolMaterialCost& Cost)
-                { return Cost.ItemId == TEXT("Fibre") && Cost.Quantity == 2; }));
+                { return Cost.ItemId == TEXT("Stone") && Cost.Quantity == 3; }));
     }
 
     const FKalmalaToolProgressionEntry* BronzeLevelTwo =
@@ -142,16 +140,14 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
         TestEqual(TEXT("Forge level matches the Bronze Axe target"), BronzeLevelTwo->RequiredStationLevel, 2);
         TestEqual(TEXT("Upgrade keeps the same item identity"), BronzeLevelTwo->PreviousToolId, FName(TEXT("BronzeAxe")));
         TestEqual(TEXT("Upgrade requires Bronze Axe level one"), BronzeLevelTwo->PreviousToolLevel, 1);
-        TestEqual(TEXT("Bronze Axe upgrade has four bounded materials"), BronzeLevelTwo->MaterialCosts.Num(), 4);
-        TestTrue(TEXT("Bronze Axe upgrade uses Lightwood, Amber, Stone, and Fibre"),
+        TestEqual(TEXT("Bronze Axe upgrade has three bounded materials"), BronzeLevelTwo->MaterialCosts.Num(), 3);
+        TestTrue(TEXT("Bronze Axe upgrade uses Lightwood, Amber, and Stone"),
             BronzeLevelTwo->MaterialCosts.ContainsByPredicate([](const FKalmalaToolMaterialCost& Cost)
                 { return Cost.ItemId == TEXT("Lightwood") && Cost.Quantity == 3; })
             && BronzeLevelTwo->MaterialCosts.ContainsByPredicate([](const FKalmalaToolMaterialCost& Cost)
                 { return Cost.ItemId == TEXT("Amber") && Cost.Quantity == 2; })
             && BronzeLevelTwo->MaterialCosts.ContainsByPredicate([](const FKalmalaToolMaterialCost& Cost)
-                { return Cost.ItemId == TEXT("Stone") && Cost.Quantity == 4; })
-            && BronzeLevelTwo->MaterialCosts.ContainsByPredicate([](const FKalmalaToolMaterialCost& Cost)
-                { return Cost.ItemId == TEXT("Fibre") && Cost.Quantity == 2; }));
+                { return Cost.ItemId == TEXT("Stone") && Cost.Quantity == 4; }));
         TestFalse(TEXT("Bronze Axe level two does not require Densewood gated behind itself"),
             BronzeLevelTwo->MaterialCosts.ContainsByPredicate([](const FKalmalaToolMaterialCost& Cost)
                 { return Cost.ItemId == TEXT("Densewood"); }));
@@ -232,15 +228,11 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
         TestEqual(TEXT("Forge recipe yields its buildable kit"), ForgeRecipe->Output, FName(TEXT("ForgeKit")));
         const FKalmalaInventoryStack* WoodCost = ForgeRecipe->Ingredients.FindByPredicate(
             [](const FKalmalaInventoryStack& Cost) { return Cost.ItemId == TEXT("Wood"); });
-        const FKalmalaInventoryStack* FibreCost = ForgeRecipe->Ingredients.FindByPredicate(
-            [](const FKalmalaInventoryStack& Cost) { return Cost.ItemId == TEXT("Fibre"); });
         const FKalmalaInventoryStack* StoneCost = ForgeRecipe->Ingredients.FindByPredicate(
             [](const FKalmalaInventoryStack& Cost) { return Cost.ItemId == TEXT("Stone"); });
         TestNotNull(TEXT("Forge recipe includes raw wood"), WoodCost);
-        TestNotNull(TEXT("Forge recipe includes raw fibre"), FibreCost);
         TestNotNull(TEXT("Forge recipe includes fieldstone"), StoneCost);
         if (WoodCost) TestEqual(TEXT("Forge recipe uses the direct wood value of five former supplies"), WoodCost->Quantity, 15);
-        if (FibreCost) TestEqual(TEXT("Forge recipe uses the direct fibre value of five former supplies"), FibreCost->Quantity, 10);
         if (StoneCost) TestEqual(TEXT("Forge kit costs six fieldstone"), StoneCost->Quantity, 6);
     }
 

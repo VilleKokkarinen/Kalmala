@@ -48,7 +48,7 @@ const TArray<FKalmalaM9ExplorationRewardDefinition>& FKalmalaM9ExplorationReward
         { TEXT("lakes-rillworn-marker"), TEXT("three-run-rillstone-marker"), TEXT("Three-Run Rillstone"),
             TEXT("Rillstone: three channels meet"), TEXT("Stone"), 2, true },
         { TEXT("mountains-leeward-grain"), TEXT("leeward-grain-marker"), TEXT("Leeward Grain"),
-            TEXT("Leeward Grain: fibre rests in lee"), TEXT("Fibre"), 2, true }
+            TEXT("Leeward Grain: sheltered seed heads bend in the lee"), TEXT("Wood"), 2, true }
     };
     return Definitions;
 }

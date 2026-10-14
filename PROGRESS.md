@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-14 — Retire Reed Fibre
+
+- **Completed:** removed the material definition and active item-ID references, and removed it from build, station, upgrade, and discovery costs. Generated harvest now yields Wood or Stone; reed clusters yield Wood, frostmoss yields Frost Salt, and the two discovery rewards use Wood and Stone. Renamed the generic gathering icon so it no longer carries the retired item name. Legacy construction supplies now convert to five Wood; chest normalization drops retired or unknown item rows while preserving valid contents, without a save-schema change.
+- **Files changed:** `Content/Data/GameCatalogues/items/materials/crafting-ingredients.json`, `Content/Data/GameCatalogues/recipes/building.json`, `Content/Data/GameCatalogues/recipes/stations/forge-item-recipes.json`, `Content/Data/GameCatalogues/recipes/stations/workbench.json`, `Scripts/Data/catalogue-icon-manifest.csv`, `Scripts/Tests/Travel/Verify-OceanSkiffDiscoveryDisembark.ps1`, `Scripts/Tests/Travel/Verify-OceanSkiffIntegratedReconnectJourney.ps1`, `Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp`, `KalmalaCraftingVerification.cpp`, `KalmalaGameMode.cpp`, `KalmalaHarvestNode.cpp`, `KalmalaM9ExplorationRewardCatalogue.cpp`, `KalmalaOceanDiscoveryCatalogue.cpp`, `KalmalaStorageInteraction.cpp`, `KalmalaStorageSaveGame.cpp`, `KalmalaStorageVerification.cpp`, `KalmalaToolLifecycleContract.cpp`, gameplay fixtures `KalmalaCraftingTest.cpp`, `KalmalaItemCatalogueTest.cpp`, `KalmalaM9ToolProgressionCatalogueTest.cpp`, `KalmalaM9ToolStationProgressionTest.cpp`, and `KalmalaStorageTest.cpp`, UI `KalmalaIconWidget.cpp`, `KalmalaIconWidget.h`, `KalmalaNotificationSubsystem.cpp`, `KalmalaIngredientTest.cpp`, `KalmalaInventoryBrowseTest.cpp`, `KalmalaInventoryInspectTest.cpp`, `docs/02-technical-architecture.md`, `docs/04-roadmap.md`, `docs/05-decision-log.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** parsed all catalogue JSON, checked manifest-backed item and recipe references, confirmed the retired ID is absent from active data/code/scripts and icon lookup, and passed `git diff --check`. No automation test or Unreal build was run.
+- **Impact/authority:** recipe costs and harvest/discovery rewards use valid catalogue items; server-side grants and crafting validation remain authoritative. Chest saves retain their schema; retired or unknown item rows are discarded during normalization, and ConstructionSupply migration preserves its former total quantity as Wood.
+- **Verification/limitations:** full Unreal compilation, gameplay automation, peer verification, and runtime UI checks remain deferred.
+- **Next eligible backlog task:** convert decorative generated forest trees into individually attackable sources and integrate their depletion/streaming policy.
+
 ## User-directed increment 2026-10-14 — Assign GUIDs to every item unit
 
 - **Completed:** each physical unit in an inventory stack now has its own server-generated GUID, including stackable materials. Grants and crafted outputs create unit GUIDs; consuming removes the consumed IDs, while stack merges, splits, and storage moves preserve them. Storage actions send one item GUID to the server, which validates the exact source unit before persisting the chest update and publishing the changed pack. Storage save schema 2 migrates schema-1 chest contents, assigns per-unit GUIDs, and immediately saves the upgraded data.
@@ -25,7 +34,7 @@
 - **Lightweight checks:** parsed the manifest, food, and hides JSON; confirmed the manifest path resolves, both hide IDs exist only in the new file, and all item IDs across manifest files remain unique; `git diff --check` passed. No tests or Unreal build were run.
 - **Impact/authority:** catalogue organization and documentation changed; item lookup still loads both hides into the same ordinary item catalogue. The server-owned wildlife reward flow remains unchanged.
 - **Verification/limitations:** full Unreal compilation and catalogue automation remain deferred. No save schema or runtime behavior changed.
-- **Next eligible backlog task:** convert decorative generated forest trees into individually attackable sources and integrate their depletion/streaming policy. Reed Fibre removal remains pending as a separate user-directed request.
+- **Next eligible backlog task:** convert decorative generated forest trees into individually attackable sources and integrate their depletion/streaming policy.
 
 ## User-directed increment 2026-10-14 — Remove the Mireling Ash item
 
@@ -34,7 +43,7 @@
 - **Lightweight checks:** parsed the edited item JSON; confirmed no catalogue, recipe, icon lookup, manifest, or combat reward references remain; inspected the deliberate old-storage cleanup path and combat fixture; parsed all three affected peer scripts; `git diff --check` passed. The legacy migration and its regression case retain the old ID solely to discard stored copies. No tests or Unreal build were run.
 - **Impact/authority:** Mirelings no longer grant a material on defeat; the separate boss-scroll flow remains unchanged. The server still controls wildlife defeat rewards. No save schema changed; normalization safely drops only the removed stack from old chest contents.
 - **Verification/limitations:** full Unreal compilation, automation, and peer verification remain deferred. Historical M13 acceptance evidence is retained verbatim; it records the removed asset paths for that prior build. No active catalogue or runtime icon assets remain for the item.
-- **Next eligible backlog task:** convert decorative generated forest trees into individually attackable sources and integrate their depletion/streaming policy. The earlier user-directed Reed Fibre removal request remains pending as a separate increment.
+- **Next eligible backlog task:** convert decorative generated forest trees into individually attackable sources and integrate their depletion/streaming policy.
 
 ## User-directed increment 2026-10-14 — Allow multiple carried Building Hammers
 
@@ -43,7 +52,7 @@
 - **Lightweight checks:** inspected all tool-ID uniqueness gates and the craft/save/repair call paths; added regression assertions for multiple hammer records, save round-trip, slot-cap enforcement, and Repair All. `git diff --check` passed with only existing CRLF conversion warnings. Full tests and Unreal build were not run.
 - **Impact/authority:** only the local craft-button eligibility and inventory count presentation are client-side. The server still validates recipe, materials, carried-tool capacity, and player-state persistence atomically. No save-record shape or schema version changed.
 - **Verification/limitations:** full Unreal compilation and automation remain deferred. Copies share the same ConstructionHammer identity and are grouped in the Inventory list; selection remains by item identity.
-- **Next eligible backlog task:** convert decorative generated forest trees into individually attackable sources and integrate their depletion/streaming policy. The user's Reed Fibre removal request is pending as a separate increment.
+- **Next eligible backlog task:** convert decorative generated forest trees into individually attackable sources and integrate their depletion/streaming policy.
 
 ## User-directed increment 2026-10-14 — Route Forge construction and Bronze acquisitions
 

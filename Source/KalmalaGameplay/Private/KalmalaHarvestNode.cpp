@@ -293,7 +293,7 @@ void AKalmalaHarvestNode::CommitHarvestedStateFromServer()
 FName AKalmalaHarvestNode::GetHarvestItemId() const
 {
     if (PersistentSpawnId.IsEmpty()) return NAME_None;
-    static const FName Materials[] = { TEXT("Wood"), TEXT("Stone"), TEXT("Fibre") };
+    static const FName Materials[] = { TEXT("Wood"), TEXT("Stone") };
     return Materials[FCrc::StrCrc32(*PersistentSpawnId) % UE_ARRAY_COUNT(Materials)];
 }
 
