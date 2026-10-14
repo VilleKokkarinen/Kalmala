@@ -29,19 +29,19 @@ foreach ($retiredSupportAction in @(
     }
 }
 $requiredMappings = @{
-    MoveForward = @('W', 'S', 'Gamepad_LeftY', 'Up', 'Down')
-    MoveRight = @('D', 'A', 'Gamepad_LeftX', 'Right', 'Left')
+    MoveForward = @('W', 'S', 'Gamepad_LeftY')
+    MoveRight = @('D', 'A', 'Gamepad_LeftX')
     Turn = @('MouseX', 'Gamepad_RightX')
     LookUp = @('MouseY', 'Gamepad_RightY')
     MinimapZoom = @('MouseWheelAxis')
 }
 $requiredActions = @{
-    Interact = @('E', 'F', 'Gamepad_FaceButton_Bottom')
+    Interact = @('E', 'Gamepad_FaceButton_Bottom')
     Attack = @('LeftMouseButton', 'Gamepad_RightShoulder')
-    Jump = @('SpaceBar', 'C', 'Gamepad_FaceButton_Left')
-    Sprint = @('LeftShift', 'RightShift', 'Gamepad_LeftThumbstick')
-    SettingsMenu = @('Escape', 'O')
-    WorldMap = @('M', 'N')
+    Jump = @('SpaceBar', 'Gamepad_FaceButton_Left')
+    Sprint = @('LeftShift', 'Gamepad_LeftThumbstick')
+    SettingsMenu = @('Escape')
+    WorldMap = @('M')
     InventoryMenu = @('I', 'Tab')
     Hotbar1 = @('One')
     Hotbar2 = @('Two')

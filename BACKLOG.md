@@ -31,6 +31,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-14 — Allow unbound alternate controls:** default alternative bindings to `Not bound` except Inventory Tab; let each alternate cycle through its allowlisted keys and back to unbound, and remove other secondary keys from `DefaultInput.ini`. Lightweight source inspection and whitespace checks passed; no test, build, or render ran.
+
 - [x] **2026-10-14 — Show all nonzero Forge Upgrade stats:** display maximum durability and every nonzero damage-bonus channel from the item's current/target levels; omit zero channels and use shared increase/decrease colors. Lightweight source inspection and whitespace checks passed; Unreal verification deferred.
 
 - [x] **2026-10-14 — Add configurable alternate keyboard bindings:** show keyboard/mouse primary bindings and a matching Alternative keys group; save and apply both bindings to the same action/axis, with I primary and Tab alternate for Inventory. Lightweight source inspection and whitespace checks passed; Unreal verification deferred.

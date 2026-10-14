@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-14 — Allow unbound alternate controls
+
+- **Completed:** made alternate bindings explicitly optional. The Alternative keys group shows `Not bound` by default except Inventory's Tab; each alternate can cycle through its allowlisted keys and back to `Not bound`. Empty values persist locally and do not add an input mapping. Removed the default F/C/Right Shift/O/N and arrow-key alternatives from `DefaultInput.ini`; primary defaults remain.
+- **Files changed:** `Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp`, `Config/DefaultInput.ini`, `Scripts/Tests/Presentation/Verify-LocalInputContract.ps1`, `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** inspected default selection, labels, cycle order, empty-value persistence, action/axis map rebuilding, and the baseline checker updates; `git diff --check` and PowerShell syntax parsing passed. No test, Unreal build, automation, or runtime render ran.
+- **Impact/authority:** keyboard remapping remains local to the owning player; alternative choices add/remove existing action or axis mappings only. No network requests, server validation, or saved game schema changed.
+- **Verification/limitations:** normal user-directed increment; full Unreal compilation, input automation, and rendered Settings verification remain deferred.
+- **Next eligible task:** convert decorative generated forest trees into individually attackable sources and integrate their depletion/streaming policy.
+
 ## User-directed increment 2026-10-14 — Show all nonzero Forge Upgrade stats
 
 - **Completed:** expanded the owner-only Forge Upgrade comparison to show maximum durability and every nonzero damage-bonus channel across the current and target item levels. Zero-valued channels are omitted; increases/decreases use shared level-up/level-down theme colors, with unchanged values neutral. Kept the existing slash comparison and target-level icon.

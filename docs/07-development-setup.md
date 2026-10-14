@@ -412,8 +412,9 @@ combinations. The map keeps its symbol legend, category state, and concise
 share/ping action names. Options > Controls and Options > Controller are
 the only player-facing views that show current bindings. Controls presents the
 keyboard/mouse primary bindings first, followed by a matching Alternative keys
-group; each alternate maps to the same action or axis and can be configured
-independently. Controller bindings stay in their existing group.
+group; alternatives start unbound except Inventory's Tab. Each alternate can be
+configured independently and maps to the same action or axis. Controller
+bindings stay in their existing group.
 Run `Scripts/Tests/Presentation/Verify-MenuInputCopy.ps1` for the narrow source audit of visible
 copy, binding-label resolution, retained action names, and keyboard/controller
 navigation seams. After an affected UI build, run the focused map, status,
@@ -1084,14 +1085,15 @@ Options tab is highlighted without a text marker. Each right-aligned label
 sits beside a binding button within its half of the panel, using balanced
 horizontal padding and compact vertical row spacing.
 Each movement button cycles only its direction's keys within the existing axis
-mapping. Other controls cycle through a small allowlisted set of alternatives.
-Restore default controls clears only the local overrides. The runtime applies
-overrides to the owning `UPlayerInput` and stores them in the local
-`GameUserSettings` configuration, so `Config/DefaultInput.ini` and server
-validation remain unchanged. Escape remains an always-available modal close
-path even if the alternate Settings key is changed. The settings automation
-checks bounded labels, local persistence, rejection of an out-of-set key, and
-restore defaults.
+mapping. Other controls cycle through a small allowlisted set of alternatives
+and the `Not bound` state. Restore default controls clears only the local
+overrides. The runtime applies overrides to the owning `UPlayerInput` and stores
+them in the local `GameUserSettings` configuration; `Config/DefaultInput.ini`
+contains primary defaults and the Inventory Tab alternative. Server validation
+remains unchanged. Escape stays available as a modal safety key when a bound
+alternate Settings key is set; leaving that alternate unbound does not install
+a hidden Escape mapping. The settings automation checks bounded labels, local
+persistence, rejection of an out-of-set key, and restore defaults.
 
 ### Local Accessibility group
 
