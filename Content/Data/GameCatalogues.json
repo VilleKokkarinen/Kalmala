@@ -92,7 +92,7 @@
     "IronMace"
   ],
   "toolUpgradeFiles": [
-    "recipes/upgrades.json"
+    "upgrades/upgrades.json"
   ],
   "levelUpRewardFiles": [
     "tools/LevelUpRewards.json"

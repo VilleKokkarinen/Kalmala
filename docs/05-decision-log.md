@@ -4,6 +4,7 @@ Add new decisions at the top. A decision records what agents should treat as set
 
 | Date | Decision | Status | Rationale |
 | --- | --- | --- | --- |
+| 2026-10-14 | Store tool upgrade costs in `upgrades/upgrades.json`, outside `recipes/`. | User-directed | Keep upgrades in their own catalogue folder alongside the tools domain. `toolUpgradeFiles` loads the same `recipes` array root from `upgrades/`; costs, ordering, schema, validation and gameplay behavior stay unchanged. |
 | 2026-10-14 | Open Build by right-clicking while the Construction Hammer is active; omit a separate Build action from Control-bound keys and place the starter hammer in hotbar slot 1, active on spawn. | User-directed | The server already validates the carried hammer for Build and construction requests; right-click invokes the owner-local menu without adding a gameplay payload. |
 | 2026-10-13 | Share attack-style stats per weapon family in Attacks.json. | User-directed | Schema 11 assigns explicit item IDs to named family lists across material tiers. Every item resolves one list; unknown, duplicated, overlapping or missing assignments fail closed. Preserve current Basic bonuses and server-only attack selection. |
 | 2026-10-13 | Share item level gains through LevelUpRewards.json groups. | User-directed | Schema 10 removes reward properties from item profiles. Explicit ItemIds share one reward; unknown/duplicate/overlapping IDs fail closed, and unlisted items receive zero gains. All Stone/Bronze/Iron axes gain +50 durability and +5 slash each level. |

@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-14 — Move tool upgrade catalogue
+
+- **Completed:** moved `recipes/upgrades.json` to `upgrades/upgrades.json`, updated the manifest, and changed the catalogue loader's folder allowlist for `toolUpgradeFiles`. The file's `recipes` array and contents are unchanged.
+- **Files changed:** `Content/Data/GameCatalogues/recipes/upgrades.json` (moved to `Content/Data/GameCatalogues/upgrades/upgrades.json`), `Content/Data/GameCatalogues.json`, `Source/KalmalaGameplay/Private/KalmalaGameCatalogueLoader.cpp`, `docs/02-technical-architecture.md`, `docs/05-decision-log.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** inspected the loader's category-path validation, manifest route, and unchanged JSON body; `git diff --check` passed. No test, build, or Unreal runtime verification ran.
+- **Impact/authority:** catalogue organization only. Upgrade definitions and server-side transaction, validation, and authority behavior are unchanged; no saved data or network contract changed.
+- **Verification/limitations:** normal user-directed increment; full catalogue automation and Unreal verification remain deferred.
+- **Next eligible task:** convert decorative generated forest trees into individually attackable sources and integrate their depletion/streaming policy.
+
 ## User-directed increment 2026-10-14 — Batch menu preview renders
 
 - **Completed:** changed `Render-Menu.ps1` to launch Unreal once for a requested set of preview images. The commandlet reuses the process and Slate renderer while rendering each menu in its own fresh preview world. Returned objects include per-image and whole-batch timing; timeout tracking resets after each completed PNG.

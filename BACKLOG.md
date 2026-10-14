@@ -31,6 +31,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-14 — Move tool upgrades into their own catalogue folder:** move the existing costs to `upgrades/upgrades.json` and route `toolUpgradeFiles` through the loader's `upgrades/` path validation. Preserve the JSON data and runtime behavior; lightweight path/source inspection and whitespace checks passed, full Unreal verification deferred.
+
 - [x] **2026-10-14 — Batch menu preview renders:** render a menu set in one Unreal commandlet process, preserve an isolated preview world per image, and report per-image and batch timing. PowerShell parsing and `git diff --check` passed; Unreal verification and timing comparison deferred.
 
 - [x] **2026-10-14 — Match Forge Upgrade to Craft detail layout:** give the owner comparison the wider right detail frame, with material icon tiles and the Upgrade action in a bottom footer; retain prerequisite and availability text in the left frame. Lightweight source inspection and whitespace checks passed; Unreal verification deferred.
