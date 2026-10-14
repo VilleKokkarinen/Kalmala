@@ -22,28 +22,6 @@
     "recipes/cauldron.json",
     "recipes/cooking.json"
   ],
-  "recipeOrder": [
-    "BuildingHammer",
-    "CampFire",
-    "Workbench",
-    "Forge",
-    "FryingPanRecipe",
-    "WorkbenchToolRack",
-    "ForgeAnvil",
-    "GrindingStone",
-    "Storage",
-    "CookingRack",
-    "Cauldron",
-    "Floor",
-    "Wall",
-    "Roof",
-    "CookedBoarMeatRecipe",
-    "CookedDeerMeatRecipe",
-    "MeatStewRecipe",
-    "RootVegetableSoupRecipe",
-    "RoastedRootVegetablesRecipe",
-    "DeerRootRoastRecipe"
-  ],
   "itemProfileFiles": [
     "items/axes.json",
     "items/knives.json",
@@ -52,42 +30,12 @@
     "items/maces.json",
     "items/building-hammer.json"
   ],
-  "itemProfileOrder": [
-    "StoneKnife",
-    "StoneAxe",
-    "StonePick",
-    "StoneSpear",
-    "BronzeAxe",
-    "BronzeKnife",
-    "BronzePick",
-    "BronzeSpear",
-    "IronAxe",
-    "IronKnife",
-    "IronPick",
-    "IronSpear",
-    "StoneMace",
-    "BronzeMace",
-    "IronMace",
-    "ConstructionHammer"
-  ],
   "itemRecipeFiles": [
     "recipes/axes.json",
     "recipes/knives.json",
     "recipes/pickaxes.json",
     "recipes/spears.json",
     "recipes/maces.json"
-  ],
-  "itemRecipeOrder": [
-    "BronzeAxe",
-    "BronzeKnife",
-    "BronzePick",
-    "BronzeSpear",
-    "IronKnife",
-    "IronAxe",
-    "IronPick",
-    "IronSpear",
-    "BronzeMace",
-    "IronMace"
   ],
   "itemUpgradeFiles": [
     "upgrades/upgrades.json"

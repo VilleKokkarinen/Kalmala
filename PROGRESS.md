@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-14 — Sort catalogue records by ID
+
+- **Completed:** removed `recipeOrder`, `itemProfileOrder`, and `itemRecipeOrder` from the manifest. The loader now sorts ordinary items, ordinary recipes, carried profiles, acquisitions, and upgrade-cost records alphabetically by their ID after loading all category files. Sorting still rejects malformed records, empty IDs, and duplicate IDs.
+- **Files changed:** `Content/Data/GameCatalogues.json`, `Source/KalmalaGameplay/Private/KalmalaGameCatalogueLoader.cpp`, `docs/02-technical-architecture.md`, `docs/05-decision-log.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** parsed the manifest and category JSON; confirmed unique IDs across all five collections. Source inspection confirmed each collection is sorted case-insensitively by ID and no explicit order-list references remain in the loader. `git diff --check` passed. No tests, build, or automation ran.
+- **Impact/authority:** deterministic catalogue ordering by ID replaces manifest-maintained lists. The unsorted crafting view now follows RecipeId order; alphabetical UI sorting remains unchanged. Gameplay transactions, networking, server authority, and saved data are unchanged.
+- **Verification/limitations:** normal user-directed increment; full Unreal build and catalogue automation remain deferred.
+- **Next eligible task:** convert decorative generated forest trees into individually attackable sources with a compatible depletion/streaming policy.
+
 ## User-directed increment 2026-10-14 — Group carried equipment as item data
 
 - **Completed:** renamed the manifest's equipment profile, acquisition, and upgrade groups to `itemProfileFiles`/`itemProfileOrder`, `itemRecipeFiles`/`itemRecipeOrder`, and `itemUpgradeFiles`. Moved `tools/building-hammer.json` to `items/building-hammer.json` and loaded all 16 carried profiles through the item-profile group. The existing runtime tool catalogue and server-side progression behavior are unchanged.

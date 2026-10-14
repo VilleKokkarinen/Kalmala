@@ -3,6 +3,7 @@
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaRecipeCatalogue.h"
 #include "KalmalaToolCatalogue.h"
+#include "Containers/Set.h"
 #include "Dom/JsonObject.h"
 #include "JsonObjectConverter.h"
 #include "Misc/FileHelper.h"
@@ -291,43 +292,33 @@ namespace
         return true;
     }
 
-    bool OrderCategoryValues(const TSharedPtr<FJsonObject>& Manifest, const TCHAR* OrderField,
-        const TCHAR* IdField, TArray<TSharedPtr<FJsonValue>>& InOutValues)
+    bool SortCategoryValues(TArray<TSharedPtr<FJsonValue>>& InOutValues, const TCHAR* IdField)
     {
-        const TArray<TSharedPtr<FJsonValue>>* OrderedIds = nullptr;
-        if (!Manifest.IsValid() || !Manifest->TryGetArrayField(OrderField, OrderedIds)
-            || OrderedIds == nullptr || OrderedIds->Num() != InOutValues.Num())
-        {
-            UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue manifest has an invalid ordering list: %s"), OrderField);
-            return false;
-        }
-
-        TMap<FName, TSharedPtr<FJsonValue>> ValuesById;
+        TArray<TPair<FString, TSharedPtr<FJsonValue>>> ValuesWithIds;
+        ValuesWithIds.Reserve(InOutValues.Num());
+        TSet<FName> SeenIds;
         for (const TSharedPtr<FJsonValue>& Value : InOutValues)
         {
             if (!Value.IsValid() || Value->Type != EJson::Object) return false;
             FString IdString;
             if (!Value->AsObject()->TryGetStringField(IdField, IdString) || IdString.IsEmpty()) return false;
             const FName Id(*IdString);
-            if (Id.IsNone() || ValuesById.Contains(Id)) return false;
-            ValuesById.Add(Id, Value);
+            if (Id.IsNone() || SeenIds.Contains(Id)) return false;
+            SeenIds.Add(Id);
+            ValuesWithIds.Emplace(IdString, Value);
         }
 
-        TArray<TSharedPtr<FJsonValue>> OrderedValues;
-        OrderedValues.Reserve(OrderedIds->Num());
-        for (const TSharedPtr<FJsonValue>& OrderedIdValue : *OrderedIds)
+        ValuesWithIds.Sort([](const TPair<FString, TSharedPtr<FJsonValue>>& A,
+            const TPair<FString, TSharedPtr<FJsonValue>>& B)
         {
-            if (!OrderedIdValue.IsValid() || OrderedIdValue->Type != EJson::String
-                || OrderedIdValue->AsString().IsEmpty()) return false;
-            const FName Id(*OrderedIdValue->AsString());
-            TSharedPtr<FJsonValue>* Value = ValuesById.Find(Id);
-            if (Value == nullptr) return false;
-            OrderedValues.Add(*Value);
-            ValuesById.Remove(Id);
-        }
+            return A.Key.Compare(B.Key, ESearchCase::IgnoreCase) < 0;
+        });
 
-        if (!ValuesById.IsEmpty()) return false;
-        InOutValues = MoveTemp(OrderedValues);
+        InOutValues.Reset(ValuesWithIds.Num());
+        for (const TPair<FString, TSharedPtr<FJsonValue>>& Entry : ValuesWithIds)
+        {
+            InOutValues.Add(Entry.Value);
+        }
         return true;
     }
 
@@ -368,7 +359,6 @@ namespace
                 UKalmalaItemCatalogue::MaxDefinitions, TotalJsonCharacters, ItemValues)
             || !LoadCategoryFiles(Root, TEXT("recipeFiles"), TEXT("recipes"), TEXT("recipes"),
                 32, TotalJsonCharacters, RecipeValues)
-            || !OrderCategoryValues(Root, TEXT("recipeOrder"), TEXT("RecipeId"), RecipeValues)
             || !LoadCategoryFiles(Root, TEXT("itemProfileFiles"), TEXT("items"), TEXT("items"),
                 UKalmalaToolCatalogue::MaxProfiles, TotalJsonCharacters, ToolProfileValues)
             || !LoadCategoryFiles(Root, TEXT("itemRecipeFiles"), TEXT("recipes"), TEXT("recipes"),
@@ -379,8 +369,11 @@ namespace
                 UKalmalaToolCatalogue::MaxProfiles, TotalJsonCharacters, LevelUpRewardValues)
             || !LoadCategoryFiles(Root, TEXT("attackFiles"), TEXT("attackLists"), TEXT("tools"),
                 UKalmalaToolCatalogue::MaxProfiles, TotalJsonCharacters, AttackListValues)
-            || !OrderCategoryValues(Root, TEXT("itemProfileOrder"), TEXT("ItemId"), ToolProfileValues)
-            || !OrderCategoryValues(Root, TEXT("itemRecipeOrder"), TEXT("RecipeId"), ToolRecipeValues))
+            || !SortCategoryValues(ItemValues, TEXT("ItemId"))
+            || !SortCategoryValues(RecipeValues, TEXT("RecipeId"))
+            || !SortCategoryValues(ToolProfileValues, TEXT("ItemId"))
+            || !SortCategoryValues(ToolRecipeValues, TEXT("RecipeId"))
+            || !SortCategoryValues(ToolUpgradeValues, TEXT("RecipeId")))
         {
             UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue manifest could not load its category files: %s"), *JsonPath);
             return false;
