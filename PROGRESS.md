@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-14 — Build station upgrades directly from the hammer menu
+
+- **Completed:** moved the Workbench Tool Rack recipe from Workbench crafting to the shared Build recipe catalogue. Workbench, Forge, Workbench Tool Rack, and Forge Anvil now use direct construction recipes: the Build menu shows their raw-material costs, placement consumes those materials, and no portable inventory item is created. Station attachments are grouped under Stations, excluded from station crafting, and still require their matching station during server placement.
+- **Files changed:** `Content/Data/GameCatalogues/recipes/building.json`, `Content/Data/GameCatalogues/recipes/stations/workbench.json`, `Source/KalmalaGameplay/Private/KalmalaRecipeCatalogue.cpp`, `KalmalaCraftingComponent.cpp`, `KalmalaCraftingVerification.cpp`, gameplay tests `KalmalaCraftingTest.cpp`, `KalmalaItemCatalogueTest.cpp`, `KalmalaM9ToolProgressionCatalogueTest.cpp`, `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`, `KalmalaRecipeRequirements.cpp`, UI tests `KalmalaRecipeBrowseTest.cpp`, `KalmalaRecipeActivityReceiptTest.cpp`, `Scripts/Tests/Construction/Verify-Crafting.ps1`, `docs/02-technical-architecture.md`, `docs/05-decision-log.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** parsed catalogue recipe JSON and confirmed unique recipe IDs, all four buildables use direct Build recipes with no inventory output, and the Tool Rack is absent from Workbench service recipes. Inspected the client and server placement/cost routes, parsed the updated PowerShell verification runner, and passed `git diff --check`. No Unreal build or automation tests were run.
+- **Impact/authority:** the menu sends the selected buildable identity through existing server-authoritative placement. The server continues to derive and validate raw-material costs, station match, range, and placement outcome; no saved-data schema or inventory state changed.
+- **Verification/limitations:** full Unreal compilation, gameplay automation, multiplayer placement, and runtime UI verification remain deferred.
+- **Next eligible backlog task:** convert decorative generated forest trees into individually attackable sources and integrate their depletion/streaming policy.
+
 ## User-directed increment 2026-10-14 — Retire Reed Fibre
 
 - **Completed:** removed the material definition and active item-ID references, and removed it from build, station, upgrade, and discovery costs. Generated harvest now yields Wood or Stone; reed clusters yield Wood, frostmoss yields Frost Salt, and the two discovery rewards use Wood and Stone. Renamed the generic gathering icon so it no longer carries the retired item name. Legacy construction supplies now convert to five Wood; chest normalization drops retired or unknown item rows while preserving valid contents, without a save-schema change.

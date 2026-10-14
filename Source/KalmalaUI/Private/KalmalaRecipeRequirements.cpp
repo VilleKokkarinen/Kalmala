@@ -19,6 +19,12 @@ FString FKalmalaRecipeRequirements::Describe(const FKalmalaRecipe& Recipe,
             CarriedHammerLevel < 0 ? TEXT("Waiting for your tool state")
                 : CarriedHammerLevel >= 1 ? TEXT("Present") : TEXT("Missing"));
         Text += TEXT("Placement: clear, dry ground with a gentle slope and room for the structure.\n");
+        if (FKalmalaToolProgressionContract::IsStationAttachmentKit(Recipe.BuildableOutput))
+        {
+            const FName StationKit = FKalmalaToolProgressionContract::GetAttachmentStationKit(Recipe.BuildableOutput);
+            const TCHAR* StationName = StationKit == TEXT("WorkbenchKit") ? TEXT("Workbench") : TEXT("Forge");
+            Text += FString::Printf(TEXT("Attachment placement: within 1.25 m of its matching station (%s).\n"), StationName);
+        }
         if (Recipe.BuildableOutput == TEXT("CampfireKit"))
             Text += TEXT("Campfire fuel: one raw Wood, Lightwood, Densewood, or Coal; starts with 60 seconds.\n");
         const FString Blocker = !Recipe.bEnabled

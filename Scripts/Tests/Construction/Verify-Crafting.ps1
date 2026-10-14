@@ -39,8 +39,8 @@ try {
         if (($serverText + $clientText) -match 'Fatal error:|Assertion failed:|Ensure condition failed:|Crafting fixture FAILED:|Crafting [^\r\n]*Passed=0|M9 camp [^\r\n]*Passed=0|Restored=0') { throw 'Crafting verification failed; inspect retained logs.' }
         $ready = [regex]::Matches($serverText, 'Crafting server gates: Passed=1').Count -eq 2 `
             -and [regex]::Matches($serverText, 'Crafting server final: Passed=1').Count -eq 2 `
-            -and $serverText.Contains('Crafting owner final: Passed=1 Authority=1 WorkbenchKit=2 Slots=1') `
-            -and $clientText.Contains('Crafting owner final: Passed=1 Authority=0 WorkbenchKit=2 Slots=1') `
+            -and $serverText.Contains('Crafting owner final: Passed=1 Authority=1 WorkbenchKit=0 Wood=18 Stone=4') `
+            -and $clientText.Contains('Crafting owner final: Passed=1 Authority=0 WorkbenchKit=0 Wood=18 Stone=4') `
             -and $serverText.Contains('Crafting presentation: Passed=1 Restored=1') `
             -and $clientText.Contains('Crafting presentation: Passed=1 Restored=1') `
             -and $serverText.Contains('Interaction prompt modal: Hidden=1') `

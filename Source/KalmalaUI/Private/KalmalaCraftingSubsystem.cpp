@@ -935,7 +935,8 @@ int32 UKalmalaCraftingWidget::GetBuildBrowseGroup(const FName Output)
 {
     if (!FKalmalaPlacementPreview::IsSupportedKit(Output)) return 0;
     if (Output == TEXT("FloorKit") || AKalmalaConstructionActor::IsShelterKit(Output)) return 4;
-    if (AKalmalaConstructionActor::IsCraftingStationKit(Output) || Output == TEXT("ForgeAnvilKit")) return 5;
+    if (AKalmalaConstructionActor::IsCraftingStationKit(Output)
+        || FKalmalaToolProgressionContract::IsStationAttachmentKit(Output)) return 5;
     return 6;
 }
 
@@ -948,9 +949,7 @@ bool UKalmalaCraftingWidget::CanInventoryMenuCraftRecipe(const FKalmalaRecipe& R
 bool UKalmalaCraftingWidget::CanBuildMenuCraftRecipe(const FKalmalaRecipe& Recipe)
 {
     return GetBuildBrowseGroup(Recipe.GetOutputIdentity()) != 0
-        && Recipe.RequiredStation.IsEmpty()
-        && (Recipe.GetOutputIdentity() == TEXT("ForgeAnvilKit")
-            || !FKalmalaToolProgressionContract::IsStationAttachmentKit(Recipe.GetOutputIdentity()));
+        && Recipe.RequiredStation.IsEmpty();
 }
 
 FString UKalmalaCraftingWidget::GetBrowseCategoryLabel(const int32 Category)
@@ -1008,14 +1007,10 @@ TArray<int32> UKalmalaCraftingWidget::GetVisibleRecipeIndices() const
                 || (RecipeCategory == 3 && BuildGroup != 0)
                 || (RecipeCategory == 7 && (IsRecipeFavorite(Recipe.RecipeId) || IsRecipeRecent(Recipe.RecipeId)))
                 || (RecipeCategory >= 4 && RecipeCategory <= 6 && BuildGroup == RecipeCategory);
-        const bool bMatchingAttachment = Recipe.GetOutputIdentity() != TEXT("ForgeAnvilKit")
-            && FKalmalaToolProgressionContract::IsStationAttachmentKit(Recipe.GetOutputIdentity())
-            && FKalmalaToolProgressionContract::GetAttachmentStationKit(Recipe.GetOutputIdentity()) == StationFilterKit;
         const bool bMatchesStation = Recipe.RequiredStation.Contains(StationFilterKit)
             || (StationFilterKit == TEXT("CookingRackKit") && Recipe.RequiredStation.Contains(TEXT("CookingRack")))
             || (StationFilterKit == TEXT("CauldronKit") && Recipe.RequiredStation.Contains(TEXT("Cauldron")))
-            || (StationFilterKit == TEXT("FryingPanKit") && Recipe.RequiredStation.Contains(TEXT("FryingPan")))
-            || bMatchingAttachment;
+            || (StationFilterKit == TEXT("FryingPanKit") && Recipe.RequiredStation.Contains(TEXT("FryingPan")));
         if ((StationFilterKit == TEXT("CookingRackKit") || StationFilterKit == TEXT("CauldronKit")
                 || StationFilterKit == TEXT("FryingPanKit"))
             && !IsCookingMenuRecipe(StationFilterKit, Recipe)) continue;
@@ -2597,12 +2592,17 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
     SetRecipeBrowse(TEXT(""), 3, false);
     const auto Builds = GetVisibleRecipeIndices();
     const auto& BuildRecipes = UKalmalaRecipeCatalogue::Get()->Recipes;
-    const bool bForgeAnvilBuildRoute = Builds.ContainsByPredicate([&BuildRecipes](const int32 Index)
+    const auto HasStationAttachmentBuildRoute = [&BuildRecipes, &Builds](const FName RecipeId)
     {
-        return BuildRecipes.IsValidIndex(Index) && BuildRecipes[Index].RecipeId == TEXT("ForgeAnvil")
-            && GetBuildBrowseGroup(BuildRecipes[Index].GetOutputIdentity()) == 5
-            && CanBuildMenuCraftRecipe(BuildRecipes[Index]);
-    });
+        return Builds.ContainsByPredicate([&BuildRecipes, RecipeId](const int32 Index)
+        {
+            return BuildRecipes.IsValidIndex(Index) && BuildRecipes[Index].RecipeId == RecipeId
+                && GetBuildBrowseGroup(BuildRecipes[Index].GetOutputIdentity()) == 5
+                && CanBuildMenuCraftRecipe(BuildRecipes[Index]);
+        });
+    };
+    const bool bWorkbenchToolRackBuildRoute = HasStationAttachmentBuildRoute(TEXT("WorkbenchToolRack"));
+    const bool bForgeAnvilBuildRoute = HasStationAttachmentBuildRoute(TEXT("ForgeAnvil"));
     bool bBuildGroups = !Builds.IsEmpty();
     for (int32 Group = 4; Group <= 6; ++Group)
     {
@@ -2650,7 +2650,7 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
     bRecipeNameSort = false;
     const TArray<int32> WorkbenchIndices = GetVisibleRecipeIndices();
     bool bHasGrindingStone = false;
-    bool bHasToolRack = false;
+    bool bToolRackExcluded = true;
     bool bNoUnrelatedRecipes = true;
     const auto& Recipes = UKalmalaRecipeCatalogue::Get()->Recipes;
     for (const int32 RecipeIndex : WorkbenchIndices)
@@ -2658,10 +2658,8 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
         if (!Recipes.IsValidIndex(RecipeIndex)) { bNoUnrelatedRecipes = false; continue; }
         const FKalmalaRecipe& Recipe = Recipes[RecipeIndex];
         bHasGrindingStone |= Recipe.Output == TEXT("GrindingStoneKit");
-        bHasToolRack |= Recipe.Output == TEXT("WorkbenchToolRackKit");
-        const bool bMatchingAttachment = FKalmalaToolProgressionContract::IsStationAttachmentKit(Recipe.Output)
-            && FKalmalaToolProgressionContract::GetAttachmentStationKit(Recipe.Output) == TEXT("WorkbenchKit");
-        bNoUnrelatedRecipes &= Recipe.RequiredStation.Contains(TEXT("WorkbenchKit")) || bMatchingAttachment;
+        bToolRackExcluded &= Recipe.GetOutputIdentity() != TEXT("WorkbenchToolRackKit");
+        bNoUnrelatedRecipes &= Recipe.RequiredStation.Contains(TEXT("WorkbenchKit"));
     }
     const FString WorkbenchToolOptions = Model()
         ? Model()->GetToolProgressionText(TEXT("WorkbenchKit")) : FString();
@@ -2714,10 +2712,8 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
     {
         if (!Recipes.IsValidIndex(RecipeIndex)) { bForgeOnlyRecipes = false; continue; }
         const FKalmalaRecipe& Recipe = Recipes[RecipeIndex];
-        const bool bMatchingAttachment = FKalmalaToolProgressionContract::IsStationAttachmentKit(Recipe.Output)
-            && FKalmalaToolProgressionContract::GetAttachmentStationKit(Recipe.Output) == TEXT("ForgeKit");
-        bForgeOnlyRecipes &= Recipe.RequiredStation.Contains(TEXT("ForgeKit")) || bMatchingAttachment;
-        bForgeAnvilExcluded &= Recipe.Output != TEXT("ForgeAnvilKit");
+        bForgeOnlyRecipes &= Recipe.RequiredStation.Contains(TEXT("ForgeKit"));
+        bForgeAnvilExcluded &= Recipe.GetOutputIdentity() != TEXT("ForgeAnvilKit");
         if (Recipe.Output == TEXT("FryingPanKit"))
         {
             bHasFryingPan = true;
@@ -2790,8 +2786,8 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
     const bool bCauldronScope = VerifyCauldronScopeForTest();
     const bool bFryingPanScope = VerifyFryingPanScopeForTest();
     const bool bChestScope = VerifyStorageContextScopeForTest();
-    UE_LOG(LogTemp, Display, TEXT("Workbench Craft scope: NoBronzeAxe=%d GrindingStone=%d ToolRack=%d NoUnrelated=%d NoToolOptions=%d StationLevel=%d UiScope=%d"),
-        !bBronzeAxeScoped, bHasGrindingStone, bHasToolRack, bNoUnrelatedRecipes, bNoWorkbenchToolOptions, bWorkbenchLevelShown, bWorkbenchUiScope);
+    UE_LOG(LogTemp, Display, TEXT("Workbench Craft scope: NoBronzeAxe=%d GrindingStone=%d ToolRackExcluded=%d NoUnrelated=%d NoToolOptions=%d StationLevel=%d UiScope=%d"),
+        !bBronzeAxeScoped, bHasGrindingStone, bToolRackExcluded, bNoUnrelatedRecipes, bNoWorkbenchToolOptions, bWorkbenchLevelShown, bWorkbenchUiScope);
     UE_LOG(LogTemp, Display, TEXT("Forge Craft scope: FryingPan=%d AnvilInBuild=%d AnvilExcluded=%d BronzeAxe=%d Materials=%d Station=%d NoUnrelated=%d Route=%d StationLevel=%d UiScope=%d"),
         bHasFryingPan, bForgeAnvilBuildRoute, bForgeAnvilExcluded, bBronzeAxeScoped, bFryingPanMaterials, bFryingPanStation,
         bForgeOnlyRecipes, bForgeInteractionRoute, bForgeLevelShown, bForgeUiScope);
@@ -2799,7 +2795,8 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
         && bKeyboardAdvanced && bKeyboardRestored && bControllerAdvanced && bControllerRestored && bScrollable
         && bSelectionKept && bCategoryWorked && bNoResults && bRestored && bSearchFocusSafe
         && bBuildMenuCleanup && bBuildGroups && bBuildSelection && bBuildKeys && bBuildEmpty
-        && bForgeAnvilBuildRoute && bBronzeAxeScoped && bHasGrindingStone && bHasToolRack && bNoUnrelatedRecipes
+        && bForgeAnvilBuildRoute && bWorkbenchToolRackBuildRoute && bBronzeAxeScoped && bHasGrindingStone
+        && bToolRackExcluded && bNoUnrelatedRecipes
         && bNoWorkbenchToolOptions && bWorkbenchLevelShown && bWorkbenchUiScope && bWorkbenchRepairScope && bForgeUpgradeScope
         && bForgeRepairScope
         && bHasFryingPan && bForgeAnvilExcluded && bFryingPanRequirements && bForgeOnlyRecipes

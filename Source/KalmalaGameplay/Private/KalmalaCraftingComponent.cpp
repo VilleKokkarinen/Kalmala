@@ -32,7 +32,7 @@ FName FindUniqueRecipeIdForOutput(const FName Output)
     const FKalmalaRecipe* Match = nullptr;
     for (const FKalmalaRecipe& Recipe : Catalogue->Recipes)
     {
-        if (Recipe.Output != Output) continue;
+        if (Recipe.GetOutputIdentity() != Output) continue;
         if (Match) return NAME_None;
         Match = &Recipe;
     }
@@ -742,6 +742,16 @@ FString UKalmalaCraftingComponent::GetRecipeAvailability(FName Id) const
     const auto* R = UKalmalaRecipeCatalogue::Get()->Find(Id);
     if (!R || !R->bEnabled) return TEXT("Recipe unavailable");
     auto* Character = GetCharacter();
+    const FName OutputIdentity = R->GetOutputIdentity();
+    if (FKalmalaToolProgressionContract::IsStationAttachmentKit(OutputIdentity))
+    {
+        const FName StationKit = FKalmalaToolProgressionContract::GetAttachmentStationKit(OutputIdentity);
+        if (!FindNearbyToolProgressionStation(StationKit))
+        {
+            const TCHAR* StationName = StationKit == TEXT("WorkbenchKit") ? TEXT("Workbench") : TEXT("Forge");
+            return FString::Printf(TEXT("Need a visible same-world %s within 2.5 m"), StationName);
+        }
+    }
     if (UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(R->BuildableOutput))
     {
         if (!Character || Character->GetCarriedToolLevel(TEXT("ConstructionHammer")) < 1)
@@ -756,15 +766,6 @@ FString UKalmalaCraftingComponent::GetRecipeAvailability(FName Id) const
         TArray<FKalmalaInventoryStack> Candidate;
         UKalmalaInventoryComponent::BuildExchange(Inventory->GetStacks(), Costs, NAME_None, 0, Candidate, Reason);
         return Reason;
-    }
-    if (FKalmalaToolProgressionContract::IsStationAttachmentKit(R->Output))
-    {
-        const FName StationKit = FKalmalaToolProgressionContract::GetAttachmentStationKit(R->Output);
-        if (!FindNearbyToolProgressionStation(StationKit))
-        {
-            const TCHAR* StationName = StationKit == TEXT("WorkbenchKit") ? TEXT("Workbench") : TEXT("Forge");
-            return FString::Printf(TEXT("Need a visible same-world %s within 2.5 m"), StationName);
-        }
     }
     const AKalmalaConstructionActor* RequiredStation = R->RequiredStation.IsEmpty()
         ? nullptr : FindNearbyConstruction(R->RequiredStation);

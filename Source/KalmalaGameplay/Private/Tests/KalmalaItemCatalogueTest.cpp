@@ -146,8 +146,16 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
             TestNotNull(FString::Printf(TEXT("Batch 02 recipe %s output item remains available"), *Expected.Key.ToString()), Output);
             TestEqual(FString::Printf(TEXT("Batch 02 recipe %s matches its output name"), *Expected.Key.ToString()),
                 Recipe->DisplayName, Output ? Output->DisplayName : FString());
-            TestEqual(FString::Printf(TEXT("Batch 02 recipe %s preserves its output identity"), *Expected.Key.ToString()),
-                Recipe->Output, Expected.Value);
+            if (UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(Recipe->GetOutputIdentity()))
+            {
+                TestEqual(FString::Printf(TEXT("Batch 02 recipe %s preserves its build identity"), *Expected.Key.ToString()),
+                    Recipe->BuildableOutput, Expected.Value);
+                TestTrue(FString::Printf(TEXT("Batch 02 recipe %s does not create an inventory item"), *Expected.Key.ToString()),
+                    Recipe->Output.IsNone());
+            }
+            else
+                TestEqual(FString::Printf(TEXT("Batch 02 recipe %s preserves its output identity"), *Expected.Key.ToString()),
+                    Recipe->Output, Expected.Value);
         }
     }
     struct FExpectedBatchThreeCopy
@@ -464,7 +472,9 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
     if (TestNotNull(TEXT("Workbench keeps its stable recipe identity"), WorkbenchRecipe))
     {
         TestEqual(TEXT("Workbench recipe uses its current display name"), WorkbenchRecipe->DisplayName, FString(TEXT("Workbench")));
-        TestEqual(TEXT("Workbench recipe still produces its stable item identity"), WorkbenchRecipe->Output, FName(TEXT("WorkbenchKit")));
+        TestEqual(TEXT("Workbench recipe directly places its stable buildable identity"),
+            WorkbenchRecipe->BuildableOutput, FName(TEXT("WorkbenchKit")));
+        TestTrue(TEXT("Workbench construction does not produce an inventory item"), WorkbenchRecipe->Output.IsNone());
     }
     const FKalmalaRecipe* GrindingStone = Recipes->Find(TEXT("GrindingStone"));
     TestNotNull(TEXT("Grinding Stone recipe loads"), GrindingStone);

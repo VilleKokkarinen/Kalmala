@@ -34,6 +34,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-14 — Build stations and upgrades directly from the hammer menu:** route Workbench, Forge, Workbench Tool Rack, and Forge Anvil from `recipes/building.json` through direct world placement with raw-material costs, never through inventory item output. Catalogue/UI source checks and `git diff --check` passed; Unreal verification deferred.
+
 - [x] **2026-10-14 — Retire Reed Fibre:** remove its catalogue item and active ID references, remove recipe costs, and redirect harvest/discovery rewards to existing items. Normalize storage by dropping retired or unknown item rows; no save-schema change. Lightweight JSON/reference and diff checks passed; Unreal verification deferred.
 
 - [x] **2026-10-14 — Give inventory instances GUID identity:** assign unique GUIDs to carried tool instances and inventory stacks, remove the separate carried-tool record limit, allow duplicate item IDs, and split/fill stacks according to each item's stack limit within the shared 40-cell inventory. Preserve the starter hammer in hotbar slot 1. Lightweight source and diff checks passed; full Unreal verification deferred.
@@ -45,7 +47,7 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 - [x] **2026-10-14 — Allow multiple carried Building Hammers:** make Inventory Craft allow additional hammers, preserve them in the existing carried-tool save records, enforce the existing slot cap, and show their grouped count. Lightweight source and diff checks passed; Unreal verification deferred.
 
-- [x] **2026-10-14 — Route Forge construction and Bronze acquisitions:** build Forge and Forge Anvil kits from the hammer Build menu, keep Anvil placement bound to a matching Forge, and move all Bronze equipment acquisition recipes to Forge. Catalogue/record checks and `git diff --check` passed; Unreal verification deferred.
+- [x] **2026-10-14 — Route Forge construction and Bronze acquisitions:** place Forge and Forge Anvil directly from raw materials through the hammer Build menu, keep Anvil placement bound to a matching Forge, and keep Bronze equipment acquisition recipes at Forge. Catalogue/record checks and `git diff --check` passed; Unreal verification deferred.
 
 - [x] **2026-10-14 — Give upgrade costs their own schema:** use an `upgrades` array, key upgrade-cost records only by `ToolId`, and advance the catalogue schema to 13. Lightweight JSON/source checks and `git diff --check` passed; Unreal verification deferred.
 

@@ -81,9 +81,17 @@ bool FKalmalaRecipeBrowseTest::RunTest(const FString& Parameters)
     if (TestNotNull(TEXT("Workbench-required Grinding Stone recipe"), Stone))
         TestFalse(TEXT("Workbench-required production stays in its service menu"), Widget->CanBuildMenuCraftRecipe(*Stone));
     if (TestNotNull(TEXT("Workbench Tool Rack attachment recipe"), ToolRack))
-        TestFalse(TEXT("Tool Rack production stays in its service menu"), Widget->CanBuildMenuCraftRecipe(*ToolRack));
+    {
+        TestTrue(TEXT("Tool Rack placement is available from the Build menu"), Widget->CanBuildMenuCraftRecipe(*ToolRack));
+        TestEqual(TEXT("Tool Rack is grouped with station builds"),
+            Widget->GetBuildBrowseGroup(ToolRack->GetOutputIdentity()), 5);
+    }
     if (TestNotNull(TEXT("Forge Anvil attachment recipe"), Anvil))
-        TestTrue(TEXT("Anvil production is available from the Build menu"), Widget->CanBuildMenuCraftRecipe(*Anvil));
+    {
+        TestTrue(TEXT("Anvil placement is available from the Build menu"), Widget->CanBuildMenuCraftRecipe(*Anvil));
+        TestEqual(TEXT("Anvil is grouped with station builds"),
+            Widget->GetBuildBrowseGroup(Anvil->GetOutputIdentity()), 5);
+    }
 
     Widget->SetRecipeBrowse(TEXT("  zzz-no-build  "), 3, true);
     TestEqual(TEXT("No results stays inside Build scope"), Widget->GetVisibleRecipeIndices().Num(), 0);

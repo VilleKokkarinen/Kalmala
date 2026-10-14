@@ -421,25 +421,26 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
     }
     if (C->HasAuthority() && VerificationStage==2 && VerificationElapsed>12)
     {
-        const bool Passed=I->GetQuantity(TEXT("WorkbenchKit"))==2 && I->GetQuantity(TEXT("Wood"))==0
-            && I->GetQuantity(TEXT("Stone"))==0 && I->GetStacks().Num()==1;
-        UE_LOG(LogTemp,Display,TEXT("Crafting server final: Passed=%d Player=%d WorkbenchKit=%d Slots=%d"),Passed,C->GetPlayerState()->GetPlayerId(),I->GetQuantity(TEXT("WorkbenchKit")),I->GetStacks().Num());
+        const bool Passed=I->GetQuantity(TEXT("WorkbenchKit"))==0 && I->GetQuantity(TEXT("Wood"))==18
+            && I->GetQuantity(TEXT("Stone"))==4;
+        UE_LOG(LogTemp,Display,TEXT("Crafting server final: Passed=%d Player=%d WorkbenchKit=%d Wood=%d Stone=%d"),
+            Passed,C->GetPlayerState()->GetPlayerId(),I->GetQuantity(TEXT("WorkbenchKit")),I->GetQuantity(TEXT("Wood")),I->GetQuantity(TEXT("Stone")));
         VerificationStage=3;
     }
     if (!C->IsLocallyControlled()) return;
     LocalVerificationElapsed+=DeltaTime;
     if(LocalVerificationStage==0 && LastResult==TEXT("Verification ready") && I->GetQuantity(TEXT("Wood"))==18)
     {
-        ServerCraft(TEXT("Workbench"),1); ServerCraft(TEXT("Workbench"),1); // immediate duplicate is rate-limited
+        ServerCraft(TEXT("Workbench"),1);
         LocalVerificationStage=1; LocalVerificationElapsed=0;
     }
-    else if(LocalVerificationStage==1 && LocalVerificationElapsed>2 && I->GetQuantity(TEXT("WorkbenchKit"))==1)
+    else if(LocalVerificationStage==1 && LocalVerificationElapsed>2)
     {
         ServerCraft(TEXT("Workbench"),1); LocalVerificationStage=2; LocalVerificationElapsed=0;
     }
-    else if(LocalVerificationStage==2 && LocalVerificationElapsed>2 && I->GetQuantity(TEXT("WorkbenchKit"))==2)
+    else if(LocalVerificationStage==2 && LocalVerificationElapsed>2)
     {
-        ServerCraft(TEXT("Workbench"),1); LocalVerificationStage=3; LocalVerificationElapsed=0; // insufficient
+        ServerCraft(TEXT("Workbench"),1); LocalVerificationStage=3; LocalVerificationElapsed=0;
     }
     else if(LocalVerificationStage==3 && LocalVerificationElapsed>2)
     {
@@ -462,8 +463,10 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
             const float FuelBefore=Fire->GetFuelSeconds(); Fire->AdvanceFromServer(1000,1,1);
             Rejected &= Fire->GetFuelSeconds()==FuelBefore && !Fire->TryRefuelFromServer(C) && !Fire->CanInteract_Implementation(C);
         }
-        const bool Passed=Rejected && I->GetQuantity(TEXT("WorkbenchKit"))==2 && I->GetStacks().Num()==1;
-        UE_LOG(LogTemp,Display,TEXT("Crafting owner final: Passed=%d Authority=%d WorkbenchKit=%d Slots=%d"),Passed,C->HasAuthority(),I->GetQuantity(TEXT("WorkbenchKit")),I->GetStacks().Num());
+        const bool Passed=Rejected && I->GetQuantity(TEXT("WorkbenchKit"))==0
+            && I->GetQuantity(TEXT("Wood"))==18 && I->GetQuantity(TEXT("Stone"))==4;
+        UE_LOG(LogTemp,Display,TEXT("Crafting owner final: Passed=%d Authority=%d WorkbenchKit=%d Wood=%d Stone=%d"),
+            Passed,C->HasAuthority(),I->GetQuantity(TEXT("WorkbenchKit")),I->GetQuantity(TEXT("Wood")),I->GetQuantity(TEXT("Stone")));
         LocalVerificationStage = 10;
     }
 #endif

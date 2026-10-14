@@ -225,7 +225,8 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
     TestNotNull(TEXT("Forge has a paid build recipe"), ForgeRecipe);
     if (ForgeRecipe)
     {
-        TestEqual(TEXT("Forge recipe yields its buildable kit"), ForgeRecipe->Output, FName(TEXT("ForgeKit")));
+        TestEqual(TEXT("Forge recipe directly places its buildable identity"), ForgeRecipe->BuildableOutput, FName(TEXT("ForgeKit")));
+        TestTrue(TEXT("Forge construction does not produce an inventory item"), ForgeRecipe->Output.IsNone());
         const FKalmalaInventoryStack* WoodCost = ForgeRecipe->Ingredients.FindByPredicate(
             [](const FKalmalaInventoryStack& Cost) { return Cost.ItemId == TEXT("Wood"); });
         const FKalmalaInventoryStack* StoneCost = ForgeRecipe->Ingredients.FindByPredicate(
@@ -237,7 +238,7 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
     }
 
     const UKalmalaRecipeCatalogue* Recipes = UKalmalaRecipeCatalogue::Get();
-    TestTrue(TEXT("The complete recipe catalogue accepts both paid station attachment recipes"),
+    TestTrue(TEXT("The complete recipe catalogue accepts both paid build-menu attachment recipes"),
         Recipes->IsValidCatalogue());
     const FKalmalaRecipe* RackRecipe = Recipes->Find(TEXT("WorkbenchToolRack"));
     const FKalmalaRecipe* AnvilRecipe = Recipes->Find(TEXT("ForgeAnvil"));
@@ -245,16 +246,20 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
     TestNotNull(TEXT("Forge anvil has a paid build recipe"), AnvilRecipe);
     if (RackRecipe)
     {
-        TestEqual(TEXT("Rack recipe yields a Workbench attachment kit"), RackRecipe->Output, FName(TEXT("WorkbenchToolRackKit")));
-        TestEqual(TEXT("Rack recipe selects the Workbench family from its output kit"),
-            FKalmalaToolProgressionContract::GetAttachmentStationKit(RackRecipe->Output), FName(TEXT("WorkbenchKit")));
+        TestEqual(TEXT("Rack recipe places a Workbench attachment"), RackRecipe->BuildableOutput, FName(TEXT("WorkbenchToolRackKit")));
+        TestEqual(TEXT("Rack recipe selects the Workbench family from its placed identity"),
+            FKalmalaToolProgressionContract::GetAttachmentStationKit(RackRecipe->BuildableOutput), FName(TEXT("WorkbenchKit")));
+        TestTrue(TEXT("Rack placement does not produce an inventory item"), RackRecipe->Output.IsNone());
+        TestTrue(TEXT("Rack recipe is built from the hammer Build menu"), RackRecipe->RequiredStation.IsEmpty());
         TestTrue(TEXT("Rack recipe has paid material costs"), !RackRecipe->Ingredients.IsEmpty());
     }
     if (AnvilRecipe)
     {
-        TestEqual(TEXT("Anvil recipe yields a Forge attachment kit"), AnvilRecipe->Output, FName(TEXT("ForgeAnvilKit")));
-        TestEqual(TEXT("Anvil recipe selects the Forge family from its output kit"),
-            FKalmalaToolProgressionContract::GetAttachmentStationKit(AnvilRecipe->Output), FName(TEXT("ForgeKit")));
+        TestEqual(TEXT("Anvil recipe places a Forge attachment"), AnvilRecipe->BuildableOutput, FName(TEXT("ForgeAnvilKit")));
+        TestEqual(TEXT("Anvil recipe selects the Forge family from its placed identity"),
+            FKalmalaToolProgressionContract::GetAttachmentStationKit(AnvilRecipe->BuildableOutput), FName(TEXT("ForgeKit")));
+        TestTrue(TEXT("Anvil placement does not produce an inventory item"), AnvilRecipe->Output.IsNone());
+        TestTrue(TEXT("Anvil recipe is built from the hammer Build menu"), AnvilRecipe->RequiredStation.IsEmpty());
         TestTrue(TEXT("Anvil recipe has paid material costs"), !AnvilRecipe->Ingredients.IsEmpty());
     }
 

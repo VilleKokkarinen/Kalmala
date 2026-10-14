@@ -115,6 +115,10 @@ bool FKalmalaCraftingTransactionsTest::RunTest(const FString& Parameters)
         {TEXT("FloorKit"), {{TEXT("Wood"),6}}},
         {TEXT("WallKit"), {{TEXT("Wood"),6}}},
         {TEXT("RoofKit"), {{TEXT("Wood"),6}}},
+        {TEXT("WorkbenchKit"), {{TEXT("Wood"),9},{TEXT("Stone"),2}}},
+        {TEXT("ForgeKit"), {{TEXT("Wood"),15},{TEXT("Stone"),6}}},
+        {TEXT("WorkbenchToolRackKit"), {{TEXT("Wood"),6}}},
+        {TEXT("ForgeAnvilKit"), {{TEXT("Wood"),9},{TEXT("Stone"),4}}},
     };
     for (const FExpectedBuildCost& Expected : DirectBuildCosts)
     {

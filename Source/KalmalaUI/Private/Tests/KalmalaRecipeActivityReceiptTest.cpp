@@ -39,7 +39,7 @@ bool FKalmalaRecipeActivityReceiptTest::RunTest(const FString& Parameters)
     FName CookRecipeId = NAME_None;
     for (const FKalmalaRecipe& Recipe : Catalogue->Recipes)
     {
-        if (FKalmalaPlacementPreview::IsSupportedKit(Recipe.Output))
+        if (FKalmalaPlacementPreview::IsSupportedKit(Recipe.GetOutputIdentity()))
             BuildRecipeId = BuildRecipeId.IsNone() ? Recipe.RecipeId : BuildRecipeId;
         else if (Recipe.ExperienceSkill == EKalmalaSkill::Cooking)
             CookRecipeId = CookRecipeId.IsNone() ? Recipe.RecipeId : CookRecipeId;
