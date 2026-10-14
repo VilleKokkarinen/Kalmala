@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-14 — Batch menu preview renders
+
+- **Completed:** changed `Render-Menu.ps1` to launch Unreal once for a requested set of preview images. The commandlet reuses the process and Slate renderer while rendering each menu in its own fresh preview world. Returned objects include per-image and whole-batch timing; timeout tracking resets after each completed PNG.
+- **Files changed:** `Scripts/Render-Menu.ps1`, `Source/KalmalaEditor/Private/RenderMenuCommandlet.cpp`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** PowerShell parser passed; `git diff --check` passed. No Unreal build or render ran, so the time saving has not yet been measured.
+- **Impact/authority:** developer-only preview workflow. No gameplay, network authority, runtime input, or saved-data behavior changed.
+- **Verification/limitations:** normal user-directed increment; rebuild the editor module with `-BuildModules` before rendering. Confirm image parity and compare a full-set run against the previous per-image timings; full Unreal verification remains deferred.
+- **Next eligible task:** convert decorative generated forest trees into individually attackable sources and integrate their depletion/streaming policy.
+
 ## User-directed increment 2026-10-14 — Match Forge Upgrade to Craft detail layout
 
 - **Completed:** changed Forge Upgrade to the Craft list/detail proportions. Prerequisite and availability text stays in the narrower left frame; the wider right detail panel keeps the owner comparison at the top and places material icon/count tiles above the Upgrade action at the bottom. Material counts reflect owner inventory and retain missing-material cues and tooltips.

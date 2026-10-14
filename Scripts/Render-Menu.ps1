@@ -154,25 +154,58 @@ if (!($singleMenu -and $Output)) {
         Remove-Item -LiteralPath $staleRenderedPNG.FullName
     }
 }
+$session = Join-Path $Cache ('run/' + [guid]::NewGuid().ToString('N').Substring(0,8))
+Assert-ShortPath (Join-Path $session 'user/Saved/Config/WindowsEditor/GameUserSettings.ini')
+New-Item -ItemType Directory -Force -Path $session | Out-Null
+foreach ($target in $renderTargets) {
+    New-Item -ItemType Directory -Force -Path (Split-Path -Path $target.PNG -Parent) | Out-Null
+}
+$log = Join-Path $session 'render.log'
+# Arguments are passed to an executable, not interpreted by another shell.
+$arguments = @("`"$project`"", '-run=RenderMenu', "-Width=$Width", "-Height=$Height",
+    "-TextScale=$TextScale", "-Contrast=$Contrast", '-AllowCommandletRendering','-RenderOffscreen','-sm6','-unattended',
+    '-nop4','-nosplash','-nosound',
+    "-UserDir=`"$session/user`"", "-abslog=`"$log`"")
+if ($singleMenu) {
+    $arguments += "-Menu=$($renderTargets[0].Menu)"
+    $arguments += "-Output=`"$($renderTargets[0].PNG)`""
+}
+else {
+    $menuList = (@($renderTargets | ForEach-Object { $_.Menu }) -join '|')
+    $outputList = (@($renderTargets | ForEach-Object { $_.PNG }) -join '|')
+    $arguments += "-Menus=`"$menuList`""
+    $arguments += "-Outputs=`"$outputList`""
+}
+if ($Empty) { $arguments += '-Empty' }
+if ($WidgetClass) { $arguments += "-WidgetClass=`"$WidgetClass`"" }
+$timer = [Diagnostics.Stopwatch]::StartNew()
+$process = Start-Process -FilePath $EditorCmd -ArgumentList $arguments -PassThru -WindowStyle Hidden
+$lastRenderProgress = [Diagnostics.Stopwatch]::StartNew()
+$completedRenderCount = 0
+while (!$process.WaitForExit(1000)) {
+    $newCompletedRenderCount = @($renderTargets | Where-Object { Test-Path -LiteralPath $_.PNG }).Count
+    if ($newCompletedRenderCount -gt $completedRenderCount) {
+        $completedRenderCount = $newCompletedRenderCount
+        $lastRenderProgress.Restart()
+    }
+    if ($lastRenderProgress.Elapsed.TotalSeconds -ge $TimeoutSeconds) {
+        $process.Kill()
+        throw "Menu render timed out after $TimeoutSeconds seconds without a completed image. Log: $log"
+    }
+}
+if ($process.ExitCode -ne 0) { throw "Menu render set failed ($($process.ExitCode)). Log: $log" }
+$renderLogText = Get-Content -LiteralPath $log -Raw
 foreach ($target in $renderTargets) {
     $menuId = $target.Menu
     $outputPath = $target.PNG
-    $session = Join-Path $Cache ('run/' + [guid]::NewGuid().ToString('N').Substring(0,8))
-    Assert-ShortPath (Join-Path $session 'user/Saved/Config/WindowsEditor/GameUserSettings.ini')
-    New-Item -ItemType Directory -Force -Path $session, (Split-Path -Path $outputPath -Parent) | Out-Null
-    $log = Join-Path $session 'render.log'
-    # Arguments are passed to an executable, not interpreted by another shell.
-    $arguments = @("`"$project`"", '-run=RenderMenu', "-Menu=$menuId", "-Output=`"$outputPath`"", "-Width=$Width", "-Height=$Height",
-        "-TextScale=$TextScale", "-Contrast=$Contrast", '-AllowCommandletRendering','-RenderOffscreen','-sm6','-unattended',
-        '-nop4','-nosplash','-nosound',
-        "-UserDir=`"$session/user`"", "-abslog=`"$log`"")
-    if ($Empty) { $arguments += '-Empty' }
-    if ($WidgetClass) { $arguments += "-WidgetClass=`"$WidgetClass`"" }
-    $timer = [Diagnostics.Stopwatch]::StartNew()
-    $process = Start-Process -FilePath $EditorCmd -ArgumentList $arguments -PassThru -WindowStyle Hidden
-    if (!$process.WaitForExit($TimeoutSeconds * 1000)) { $process.Kill(); throw "Render timed out. Log: $log" }
-    if ($process.ExitCode -ne 0 -or !(Test-Path -LiteralPath $outputPath)) { throw "Menu render '$menuId' failed ($($process.ExitCode)). Log: $log" }
+    if (!(Test-Path -LiteralPath $outputPath)) { throw "Menu render '$menuId' did not produce an image. Log: $log" }
     $pngBytes = [IO.File]::ReadAllBytes($outputPath)
     if ($pngBytes.Length -lt 24 -or [BitConverter]::ToString($pngBytes[0..7]) -ne '89-50-4E-47-0D-0A-1A-0A') { throw "Renderer did not produce a PNG for '$menuId'." }
-    [pscustomobject]@{ Menu=$menuId; PNG=$outputPath; Width=$Width; Height=$Height; Seconds=[math]::Round($timer.Elapsed.TotalSeconds,2); Log=$log }
+    $durationPattern = 'MenuRender: Menu=' + [regex]::Escape($menuId) + ' Size=\d+x\d+ Saved=1 Seconds=([0-9.]+)'
+    $durationMatch = [regex]::Match($renderLogText, $durationPattern)
+    $seconds = if ($durationMatch.Success) {
+        [double]::Parse($durationMatch.Groups[1].Value, [Globalization.CultureInfo]::InvariantCulture)
+    }
+    else { $timer.Elapsed.TotalSeconds }
+    [pscustomobject]@{ Menu=$menuId; PNG=$outputPath; Width=$Width; Height=$Height; Seconds=[math]::Round($seconds,2); BatchSeconds=[math]::Round($timer.Elapsed.TotalSeconds,2); Log=$log }
 }

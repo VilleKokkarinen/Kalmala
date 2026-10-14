@@ -31,6 +31,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-14 — Batch menu preview renders:** render a menu set in one Unreal commandlet process, preserve an isolated preview world per image, and report per-image and batch timing. PowerShell parsing and `git diff --check` passed; Unreal verification and timing comparison deferred.
+
 - [x] **2026-10-14 — Match Forge Upgrade to Craft detail layout:** give the owner comparison the wider right detail frame, with material icon tiles and the Upgrade action in a bottom footer; retain prerequisite and availability text in the left frame. Lightweight source inspection and whitespace checks passed; Unreal verification deferred.
 
 - [x] **2026-10-14 — Keep Options scrolling vertical and themed:** make Controls content fill its viewport, use vertical-only scrolling, and apply a shared bronze-on-wood scrollbar with a high-contrast treatment. Lightweight source inspection and whitespace checks passed; Unreal verification deferred.

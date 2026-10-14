@@ -21,6 +21,7 @@
 #include "Modules/ModuleManager.h"
 #include "RenderingThread.h"
 #include "HAL/FileManager.h"
+#include "HAL/PlatformTime.h"
 #include "TextureResource.h"
 #include "AssetCompilingManager.h"
 
@@ -31,13 +32,42 @@ URenderMenuCommandlet::URenderMenuCommandlet()
 
 int32 URenderMenuCommandlet::Main(const FString& Params)
 {
-    FString Menu, Output, WidgetClass;
+    FString Menu, Output, Menus, Outputs, WidgetClass;
     int32 Width = 1920, Height = 1080, TextScale = 100, Contrast = 0;
     FParse::Value(*Params, TEXT("Menu="), Menu);
     FParse::Value(*Params, TEXT("Output="), Output);
+    const bool bHasMenus = FParse::Value(*Params, TEXT("Menus="), Menus);
+    const bool bHasOutputs = FParse::Value(*Params, TEXT("Outputs="), Outputs);
     FParse::Value(*Params, TEXT("WidgetClass="), WidgetClass);
     FParse::Value(*Params, TEXT("Width="), Width); FParse::Value(*Params, TEXT("Height="), Height);
     FParse::Value(*Params, TEXT("TextScale="), TextScale); FParse::Value(*Params, TEXT("Contrast="), Contrast);
+    if (bHasMenus || bHasOutputs)
+    {
+        TArray<FString> MenuNames, OutputNames;
+        Menus.ParseIntoArray(MenuNames, TEXT("|"), true);
+        Outputs.ParseIntoArray(OutputNames, TEXT("|"), true);
+        if (!bHasMenus || !bHasOutputs || MenuNames.IsEmpty() || MenuNames.Num() != OutputNames.Num())
+        {
+            UE_LOG(LogTemp, Error, TEXT("Batch rendering requires matching -Menus and -Outputs lists separated by |."));
+            return 1;
+        }
+        // Reuse this process but keep each preview on the normal isolated-world path.
+        for (int32 Index = 0; Index < MenuNames.Num(); ++Index)
+        {
+            FString SingleParams = FString::Printf(TEXT("-Menu=\"%s\" -Output=\"%s\" -Width=%d -Height=%d -TextScale=%d -Contrast=%d"),
+                *MenuNames[Index], *OutputNames[Index], Width, Height, TextScale, Contrast);
+            if (FParse::Param(*Params, TEXT("Empty"))) SingleParams += TEXT(" -Empty");
+            if (!WidgetClass.IsEmpty()) SingleParams += FString::Printf(TEXT(" -WidgetClass=\"%s\""), *WidgetClass);
+
+            const int32 Result = Main(SingleParams);
+            if (Result != 0)
+            {
+                UE_LOG(LogTemp, Error, TEXT("MenuRender batch stopped: Menu=%s Code=%d"), *MenuNames[Index], Result);
+                return Result;
+            }
+        }
+        return 0;
+    }
     Menu.ToLowerInline();
     const TMap<FString, int32> Tabs = {{TEXT("settings.home"),5},{TEXT("settings.options"),4},
         {TEXT("settings.audio"),0},{TEXT("settings.controls"),1},{TEXT("settings.accessibility"),2},
@@ -55,10 +85,16 @@ int32 URenderMenuCommandlet::Main(const FString& Params)
     }
     Output = FPaths::ConvertRelativePathToFull(Output);
     if (Output.Len() >= 260 || FPaths::GetExtension(Output).ToLower() != TEXT("png") || FPaths::FileExists(Output)) return 2;
-    if (!FSlateApplication::IsInitialized())
-        FSlateApplication::InitializeAsStandaloneApplication(FModuleManager::LoadModuleChecked<ISlateRHIRendererModule>(TEXT("SlateRHIRenderer")).CreateSlateRHIRenderer());
-    else
-        FSlateApplication::Get().InitializeRenderer(FModuleManager::LoadModuleChecked<ISlateRHIRendererModule>(TEXT("SlateRHIRenderer")).CreateSlateRHIRenderer());
+    const double RenderStartSeconds = FPlatformTime::Seconds();
+    static bool bSlateRendererInitialized = false;
+    if (!bSlateRendererInitialized)
+    {
+        if (!FSlateApplication::IsInitialized())
+            FSlateApplication::InitializeAsStandaloneApplication(FModuleManager::LoadModuleChecked<ISlateRHIRendererModule>(TEXT("SlateRHIRenderer")).CreateSlateRHIRenderer());
+        else
+            FSlateApplication::Get().InitializeRenderer(FModuleManager::LoadModuleChecked<ISlateRHIRendererModule>(TEXT("SlateRHIRenderer")).CreateSlateRHIRenderer());
+        bSlateRendererInitialized = true;
+    }
     UKalmalaSettingsWidget::SetTextScalePercent(TextScale);
     UKalmalaSettingsWidget::SetContrastMode(Contrast);
     UKalmalaSettingsWidget::SetReducedMotionEnabled(true);
@@ -157,6 +193,7 @@ int32 URenderMenuCommandlet::Main(const FString& Params)
     FImageUtils::PNGCompressImageArray(Width, Height, TArrayView64<const FColor>(Pixels.GetData(),Pixels.Num()), PNG);
     const bool bSaved = FFileHelper::SaveArrayToFile(PNG, *Output, &IFileManager::Get(), FILEWRITE_NoReplaceExisting);
     Widgets.Reset(); World->DestroyWorld(false);
-    UE_LOG(LogTemp, Display, TEXT("MenuRender: Menu=%s Size=%dx%d Saved=%d Output=%s"), *Menu, Width, Height, bSaved, *Output);
+    UE_LOG(LogTemp, Display, TEXT("MenuRender: Menu=%s Size=%dx%d Saved=%d Seconds=%.2f Output=%s"),
+        *Menu, Width, Height, bSaved, FPlatformTime::Seconds() - RenderStartSeconds, *Output);
     return bSaved ? 0 : 6;
 }

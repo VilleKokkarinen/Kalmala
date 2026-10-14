@@ -2762,9 +2762,11 @@ Do not infer a passing game build from successful generation or solution validat
 ## Offscreen menu preview images
 
 Run `Scripts/Render-Menu.ps1` without `-Menu` to render its eleven default menu
-views sequentially. The `inventory-crafting` view combines Inventory and
-player crafting, so the redundant standalone Inventory capture is omitted from
-the default set. The `crafting` view previews the Workbench Craft section.
+views in one Unreal commandlet process. Each image still gets a fresh preview
+world, while engine and Slate startup are shared across the set. The
+`inventory-crafting` view combines Inventory and player crafting, so the
+redundant standalone Inventory capture is omitted from the default set. The
+`crafting` view previews the Workbench Craft section.
 Repair All is a direct station action, so there are no separate
 `workbench.repair` or `forge.repair` render targets; inspect those buttons in
 the Workbench Craft and Forge views.
@@ -2774,9 +2776,11 @@ every Options selection, run
 for Controls, Controller, Graphics, Audio, and Accessibility. It writes one PNG
 per rendered view to `%TEMP%\kmmenu\png` by default,
 using names like `inventory-crafting-<random>.png`; the returned objects include
-each PNG and its render log path. Before directory-mode rendering, it removes prior
-renderer-named PNGs from the selected output directory while preserving other
-files there. `-Menu inventory` selects one menu. For a single menu,
+each PNG, its per-image render time, the full batch elapsed time, and the shared
+batch log path. The timeout applies separately to each image after the previous
+image completes. Before directory-mode rendering, it removes prior renderer-
+named PNGs from the selected output directory while preserving other files
+there. `-Menu inventory` selects one menu. For a single menu,
 `-Output <new-file.png>` sets the exact PNG path and leaves its parent directory
 alone; when rendering a menu set, `-Output <directory>` selects the destination
 folder. `-Cache` changes the default cache and therefore the default PNG and log
