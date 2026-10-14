@@ -34,6 +34,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-14 — Allow multiple carried Building Hammers:** make Inventory Craft allow additional hammers, preserve them in the existing carried-tool save records, enforce the existing slot cap, and show their grouped count. Lightweight source and diff checks passed; Unreal verification deferred.
+
 - [x] **2026-10-14 — Route Forge construction and Bronze acquisitions:** build Forge and Forge Anvil kits from the hammer Build menu, keep Anvil placement bound to a matching Forge, and move all Bronze equipment acquisition recipes to Forge. Catalogue/record checks and `git diff --check` passed; Unreal verification deferred.
 
 - [x] **2026-10-14 — Give upgrade costs their own schema:** use an `upgrades` array, key upgrade-cost records only by `ToolId`, and advance the catalogue schema to 13. Lightweight JSON/source checks and `git diff --check` passed; Unreal verification deferred.

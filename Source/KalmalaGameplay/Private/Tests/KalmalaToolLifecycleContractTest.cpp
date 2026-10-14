@@ -14,6 +14,18 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 bool FKalmalaToolLifecycleContractTest::RunTest(const FString& Parameters)
 {
+    TArray<FKalmalaToolState> HammerCopies = {
+        { TEXT("ConstructionHammer"), 40, 1 }, { TEXT("ConstructionHammer"), 75, 1 }
+    };
+    TArray<FKalmalaToolState> RepairedHammerCopies;
+    int32 RepairedHammerCount = 0;
+    TestTrue(TEXT("Repair All accepts repeated Construction Hammer records"),
+        FKalmalaToolLifecycleContract::BuildServerRepairAll(true, true, HammerCopies,
+            RepairedHammerCopies, RepairedHammerCount));
+    TestEqual(TEXT("Repair All handles each carried hammer"), RepairedHammerCount, 2);
+    TestTrue(TEXT("Repair All restores every hammer copy"), RepairedHammerCopies.Num() == 2
+        && RepairedHammerCopies[0].Durability == 100 && RepairedHammerCopies[1].Durability == 100);
+
     const TArray<FName> Sources =
     {
         TEXT("meadows-birch-bark"), TEXT("lakes-reed-cluster"), TEXT("elderwood-resinwood"),

@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-14 — Allow multiple carried Building Hammers
+
+- **Completed:** Inventory Craft can craft additional Construction Hammers even when one is already carried. The server adds one separate carried-tool record per hammer, retains the 16-record cap and atomic material/save transaction, and Inventory groups matching copies into one row with a count. Repeated hammer records are accepted by the existing player-save validator and Repair All contract; other tool IDs remain unique.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp`, `Source/KalmalaGameplay/Private/KalmalaPlayerDiscoverySaveGame.cpp`, `Source/KalmalaGameplay/Private/KalmalaToolLifecycleContract.cpp`, `Source/KalmalaGameplay/Private/Tests/KalmalaPlayerDiscoverySaveGameTest.cpp`, `Source/KalmalaGameplay/Private/Tests/KalmalaToolLifecycleContractTest.cpp`, `Source/KalmalaUI/Private/KalmalaInventoryCraftLayout.cpp`, `Source/KalmalaUI/Private/KalmalaInventoryMenuWidget.cpp`, `docs/02-technical-architecture.md`, `docs/05-decision-log.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** inspected all tool-ID uniqueness gates and the craft/save/repair call paths; added regression assertions for multiple hammer records, save round-trip, slot-cap enforcement, and Repair All. `git diff --check` passed with only existing CRLF conversion warnings. Full tests and Unreal build were not run.
+- **Impact/authority:** only the local craft-button eligibility and inventory count presentation are client-side. The server still validates recipe, materials, carried-tool capacity, and player-state persistence atomically. No save-record shape or schema version changed.
+- **Verification/limitations:** full Unreal compilation and automation remain deferred. Copies share the same ConstructionHammer identity and are grouped in the Inventory list; selection remains by item identity.
+- **Next eligible backlog task:** convert decorative generated forest trees into individually attackable sources and integrate their depletion/streaming policy. The user's Reed Fibre removal request is pending as a separate increment.
+
 ## User-directed increment 2026-10-14 — Route Forge construction and Bronze acquisitions
 
 - **Completed:** moved Forge Anvil's paid recipe into `recipes/building.json` beside Forge, enabled it in the Construction Hammer Build menu, and kept its Forge placement validation. Moved all five Bronze acquisition records from Workbench to Forge and moved the existing Bronze Axe/Mace craft actions into Forge Craft. Workbench craft no longer offers those Bronze actions.

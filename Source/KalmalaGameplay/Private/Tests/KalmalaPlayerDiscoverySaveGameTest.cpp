@@ -246,10 +246,41 @@ bool FKalmalaPlayerDiscoverySaveGameV2Test::RunTest(const FString& Parameters)
     {
         TestTrue(TEXT("Canonical carried tools fit within the six-record cap"), FullTools->AddToolRecord(Tool));
     }
-    TestFalse(TEXT("Carried-tool cap plus one is rejected without replacing an existing tool"),
+    TestFalse(TEXT("A repeated non-hammer tool ID is rejected"),
         FullTools->AddToolRecord(AllTools[0]));
-    TestEqual(TEXT("Rejected carried-tool addition leaves all six records"), FullTools->GetToolRecords().Num(),
+    TestEqual(TEXT("Rejected duplicate leaves all six records"), FullTools->GetToolRecords().Num(),
         UKalmalaPlayerDiscoverySaveGameV2::MaxCarriedTools);
+
+    UKalmalaPlayerDiscoverySaveGameV2* MultipleHammers = NewObject<UKalmalaPlayerDiscoverySaveGameV2>(GetTransientPackage());
+    MultipleHammers->InitializeForPlayer(World, PlayerIdentity);
+    for (int32 Index = 0; Index < UKalmalaPlayerDiscoverySaveGameV2::MaxCarriedTools; ++Index)
+    {
+        TestTrue(TEXT("Carried hammer copies are accepted up to the normal tool-slot cap"),
+            MultipleHammers->AddToolRecord(MakeToolRecord(TEXT("ConstructionHammer"), 1, 100)));
+    }
+    TestEqual(TEXT("All carried hammer copies are retained"), MultipleHammers->GetToolRecords().Num(),
+        UKalmalaPlayerDiscoverySaveGameV2::MaxCarriedTools);
+    TestTrue(TEXT("A full repeated-hammer inventory still matches its player save"),
+        MultipleHammers->MatchesPlayer(World, PlayerIdentity));
+    TestFalse(TEXT("The normal carried-tool cap still rejects one more hammer"),
+        MultipleHammers->AddToolRecord(MakeToolRecord(TEXT("ConstructionHammer"), 1, 100)));
+    TArray<FKalmalaPlayerToolSaveRecord> HammerReplacement;
+    HammerReplacement.Add(MakeToolRecord(TEXT("ConstructionHammer"), 1, 100));
+    HammerReplacement.Add(MakeToolRecord(TEXT("ConstructionHammer"), 1, 50));
+    TestTrue(TEXT("Complete carried-tool replacements preserve repeated hammer copies"),
+        MultipleHammers->TryReplaceToolRecords(HammerReplacement));
+    TArray<uint8> HammerBytes;
+    TestTrue(TEXT("Repeated hammer copies serialize in the existing tool-record array"),
+        Serialize(MultipleHammers, HammerBytes));
+    UKalmalaPlayerDiscoverySaveGameV2* ReloadedHammers =
+        Cast<UKalmalaPlayerDiscoverySaveGameV2>(UGameplayStatics::LoadGameFromMemory(HammerBytes));
+    if (TestNotNull(TEXT("Repeated hammer copies reload with their save type"), ReloadedHammers))
+    {
+        TestTrue(TEXT("Repeated hammer copies survive the existing save format"),
+            ReloadedHammers->MatchesPlayer(World, PlayerIdentity)
+            && ReloadedHammers->GetToolRecords().Num() == 2
+            && ReloadedHammers->GetToolRecords()[1].Condition == 50);
+    }
     TestFalse(TEXT("Unknown tool IDs are rejected"), UKalmalaPlayerDiscoverySaveGameV2::IsValidToolRecord(MakeToolRecord(TEXT("UnknownTool"), 1, 0)));
     TestFalse(TEXT("Negative tool condition is rejected"), UKalmalaPlayerDiscoverySaveGameV2::IsValidToolRecord(MakeToolRecord(TEXT("StoneKnife"), 1, -1)));
     TestTrue(TEXT("Zero-reward items can retain level twenty without station recipes"), UKalmalaPlayerDiscoverySaveGameV2::IsValidToolRecord(MakeToolRecord(TEXT("IronAxe"), 20, 24)));

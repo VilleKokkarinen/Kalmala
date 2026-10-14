@@ -223,8 +223,6 @@ bool UKalmalaCraftingComponent::CraftFromServer(FName RecipeId, int32 Batch, FSt
     if (Recipe->Output == TEXT("ConstructionHammer"))
     {
         auto* Inventory = Character->FindComponentByClass<UKalmalaInventoryComponent>();
-        Reason = TEXT("Already carrying a building hammer");
-        if (Character->GetCarriedToolLevel(TEXT("ConstructionHammer")) > 0) return false;
         Reason = TEXT("Carried tool slots are full");
         if (!Inventory || Character->CarriedTools.Num() >= FKalmalaToolLifecycleContract::MaxCarriedToolRecords) return false;
         const TArray<FKalmalaInventoryStack> Before = Inventory->GetStacks();
@@ -787,8 +785,6 @@ FString UKalmalaCraftingComponent::GetRecipeAvailability(FName Id) const
     FString Reason;
     if (!UKalmalaRecipeCatalogue::Scale(*R, 1, Costs, OutputCount)) return TEXT("Recipe material list is invalid");
     TArray<FKalmalaInventoryStack> Next;
-    if (R->Output == TEXT("ConstructionHammer") && C->GetCarriedToolLevel(TEXT("ConstructionHammer")) > 0)
-        return TEXT("Already carrying a building hammer");
     UKalmalaInventoryComponent::BuildExchange(Inv->GetStacks(), Costs,
         R->Output == TEXT("ConstructionHammer") ? NAME_None : R->Output,
         R->Output == TEXT("ConstructionHammer") ? 0 : OutputCount, Next, Reason);

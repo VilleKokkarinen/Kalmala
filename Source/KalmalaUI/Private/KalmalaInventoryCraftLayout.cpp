@@ -423,7 +423,6 @@ void UKalmalaCraftingWidget::RefreshInventoryCraftLayout()
         ? Recipe.bEnabled && bMaterials && Inventory && Character && IsStationContextValid()
             && Crafting && Availability.IsEmpty()
         : Recipe.bEnabled && bMaterials && Inventory && Character
-            && Character->GetCarriedToolLevel(Recipe.Output) == 0
             && Character->GetCarriedToolInventory().Num() < FKalmalaToolLifecycleContract::MaxCarriedToolRecords
             && UKalmalaInventoryComponent::BuildExchange(Inventory->GetStacks(), Costs, NAME_None, 0, After, Reason)
             && Inventory->CanFitContents(After, Character->GetCarriedToolInventory().Num() + 1);

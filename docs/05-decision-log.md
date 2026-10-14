@@ -4,6 +4,7 @@ Add new decisions at the top. A decision records what agents should treat as set
 
 | Date | Decision | Status | Rationale |
 | --- | --- | --- | --- |
+| 2026-10-14 | Allow multiple Construction Hammers in carried inventory and craft them through Inventory Craft. | User-directed | Store each copy as a separate existing tool record, count each against the current slot cap, and show the grouped count in Inventory; keep all other tool identities unique. |
 | 2026-10-14 | Build Forge and Forge Anvil kits from the Construction Hammer Build menu; require a Forge to place its Anvil. Move all Bronze item acquisitions to the Forge. | User-directed | Keep both buildable Forge definitions in `items/buildItems/forge.json`, their kits in `recipes/building.json`, and Bronze acquisition recipes with the Forge item recipes; server-side placement and progression checks remain authoritative. |
 | 2026-10-14 | Give item upgrade costs a top-level `upgrades` array and use only `ToolId` as each record's identity. | User-directed | Bump the catalogue schema to 13; continue using `RecipeId` for acquisition recipes. Supersedes the earlier choice to reuse the `recipes` root for upgrade costs. |
 | 2026-10-14 | Rename the Peat Amber item to Amber, including its ItemId. | User-directed | Keep old `PeatAmber` chest stacks readable by migrating them to `Amber` on storage load. |

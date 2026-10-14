@@ -151,8 +151,9 @@ bool UKalmalaPlayerDiscoverySaveGameV2::MatchesPlayer(
     for (const FKalmalaPlayerToolSaveRecord& ToolRecord : ToolRecords)
     {
         const FName CanonicalId = FKalmalaToolLifecycleContract::CanonicalizeToolId(ToolRecord.ToolId);
-        if (!IsValidToolRecord(ToolRecord) || SeenToolIds.Contains(CanonicalId)) return false;
-        SeenToolIds.Add(CanonicalId);
+        if (!IsValidToolRecord(ToolRecord)
+            || (SeenToolIds.Contains(CanonicalId) && CanonicalId != TEXT("ConstructionHammer"))) return false;
+        if (CanonicalId != TEXT("ConstructionHammer")) SeenToolIds.Add(CanonicalId);
     }
     return true;
 }
@@ -199,10 +200,11 @@ bool UKalmalaPlayerDiscoverySaveGameV2::AddToolRecord(const FKalmalaPlayerToolSa
     CanonicalRecord.ToolId = FKalmalaToolLifecycleContract::CanonicalizeToolId(Record.ToolId);
     if (!MatchesPlayer(WorldConfig, PlayerIdentity) || !IsValidToolRecord(Record)
         || ToolRecords.Num() >= MaxCarriedTools
-        || ToolRecords.ContainsByPredicate([&CanonicalRecord](const FKalmalaPlayerToolSaveRecord& Existing)
+        || (CanonicalRecord.ToolId != TEXT("ConstructionHammer")
+            && ToolRecords.ContainsByPredicate([&CanonicalRecord](const FKalmalaPlayerToolSaveRecord& Existing)
         {
             return FKalmalaToolLifecycleContract::CanonicalizeToolId(Existing.ToolId) == CanonicalRecord.ToolId;
-        })) return false;
+        }))) return false;
     ToolRecords.Add(CanonicalRecord);
     return true;
 }
@@ -216,8 +218,9 @@ bool UKalmalaPlayerDiscoverySaveGameV2::TryReplaceToolRecords(
     for (const FKalmalaPlayerToolSaveRecord& Record : Records)
     {
         const FName CanonicalId = FKalmalaToolLifecycleContract::CanonicalizeToolId(Record.ToolId);
-        if (!IsValidToolRecord(Record) || SeenToolIds.Contains(CanonicalId)) return false;
-        SeenToolIds.Add(CanonicalId);
+        if (!IsValidToolRecord(Record)
+            || (SeenToolIds.Contains(CanonicalId) && CanonicalId != TEXT("ConstructionHammer"))) return false;
+        if (CanonicalId != TEXT("ConstructionHammer")) SeenToolIds.Add(CanonicalId);
     }
 
     ToolRecords = Records;

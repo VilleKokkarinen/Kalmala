@@ -270,11 +270,18 @@ void UKalmalaInventoryMenuWidget::RefreshOwnerInventory()
         for (int32 Index = 0; Index < BoundedToolCount; ++Index)
         {
             const FKalmalaToolState& Tool = CarriedTools[Index];
-            if (Tool.ToolId.IsNone() || SeenToolIds.Contains(Tool.ToolId)) continue;
-            const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(Tool.ToolId);
+            const FName CanonicalToolId = FKalmalaToolLifecycleContract::CanonicalizeToolId(Tool.ToolId);
+            if (CanonicalToolId.IsNone() || SeenToolIds.Contains(CanonicalToolId)) continue;
+            const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(CanonicalToolId);
             if (Definition == nullptr) continue;
-            SeenToolIds.Add(Tool.ToolId);
-            InventoryRows.Add({ Tool.ToolId, GetCarriedToolDisplayName(Tool.ToolId),
+            SeenToolIds.Add(CanonicalToolId);
+            int32 Copies = 0;
+            for (int32 CopyIndex = 0; CopyIndex < BoundedToolCount; ++CopyIndex)
+                if (FKalmalaToolLifecycleContract::CanonicalizeToolId(CarriedTools[CopyIndex].ToolId) == CanonicalToolId)
+                    ++Copies;
+            FString DisplayName = GetCarriedToolDisplayName(CanonicalToolId);
+            if (Copies > 1) DisplayName += FString::Printf(TEXT(" × %d"), Copies);
+            InventoryRows.Add({ CanonicalToolId, DisplayName,
                 BuildToolInspectionText(Tool), true });
         }
     }

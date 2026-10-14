@@ -474,16 +474,18 @@ bool FKalmalaToolLifecycleContract::BuildServerRepairAll(
     for (int32 Index = 0; Index < ToolStates.Num(); ++Index)
     {
         const FKalmalaToolState& ToolState = ToolStates[Index];
+        const FName CanonicalId = CanonicalizeToolId(ToolState.ToolId);
         const FKalmalaToolDefinition* Definition = FindDefinition(ToolState.ToolId);
         const int32 MaxDurability = GetMaxDurability(ToolState.ToolId, ToolState.ToolLevel);
-        if (!Definition || ToolState.ToolId.IsNone() || SeenToolIds.Contains(ToolState.ToolId)
+        if (!Definition || ToolState.ToolId.IsNone()
+            || (SeenToolIds.Contains(CanonicalId) && CanonicalId != TEXT("ConstructionHammer"))
             || MaxDurability <= 0 || ToolState.Durability < 0 || ToolState.Durability > MaxDurability)
         {
             OutRepairedStates = ToolStates;
             OutRepairedCount = 0;
             return false;
         }
-        SeenToolIds.Add(ToolState.ToolId);
+        if (CanonicalId != TEXT("ConstructionHammer")) SeenToolIds.Add(CanonicalId);
         if (ToolState.Durability == MaxDurability) continue;
 
         FKalmalaToolState RepairedState;
