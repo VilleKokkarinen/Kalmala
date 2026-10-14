@@ -55,6 +55,10 @@ bool UKalmalaStorageSaveGame::NormalizeLegacyStacks(TArray<FKalmalaInventoryStac
         {
             if (!AddQuantity(TEXT("Amber"), Stack.Quantity)) return false;
         }
+        else if (Stack.ItemId == TEXT("MirelingAsh"))
+        {
+            // Retired loot is discarded while preserving the rest of an existing chest save.
+        }
         else if (!Items->FindItem(Stack.ItemId) || !AddQuantity(Stack.ItemId, Stack.Quantity)) return false;
     }
 

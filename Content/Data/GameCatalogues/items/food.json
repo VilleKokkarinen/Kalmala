@@ -1,12 +1,6 @@
 {
   "items": [
     {
-      "ItemId": "MirelingAsh",
-      "DisplayName": "Mireling Ember Ash",
-      "Description": "Fine, soot-dark ash left by a Mireling.",
-      "MaxStack": 25
-    },
-    {
       "ItemId": "BoarMeat",
       "DisplayName": "Boar Meat",
       "Description": "Rich boar meat for roasting over a fire.",

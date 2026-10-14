@@ -577,8 +577,7 @@ void AKalmalaWildlifeSpawn::GrantDefeatReward()
     AKalmalaCharacter* Attacker = LastValidatedAttacker.Get();
     UKalmalaInventoryComponent* Inventory = Attacker ? Attacker->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
     if (Inventory == nullptr || !Inventory->GetOwner() || !Inventory->GetOwner()->HasAuthority()) return;
-    if (Archetype == EKalmalaWildlifeArchetype::Mireling) Inventory->TryGrantFromServer(TEXT("MirelingAsh"), 1);
-    else if (Archetype == EKalmalaWildlifeArchetype::Boar)
+    if (Archetype == EKalmalaWildlifeArchetype::Boar)
     {
         Inventory->TryGrantFromServer(TEXT("BoarMeat"), 1);
         Inventory->TryGrantFromServer(TEXT("BoarHide"), 1);

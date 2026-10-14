@@ -110,7 +110,6 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
     };
     const FExpectedBatchTwoCopy BatchTwoCopy[] = {
         { TEXT("FrostSalt"), TEXT("Frost Salt"), TEXT("Pale mineral crystals gathered in the tundra."), 40 },
-        { TEXT("MirelingAsh"), TEXT("Mireling Ember Ash"), TEXT("Fine, soot-dark ash left by a Mireling."), 25 },
         { TEXT("WorkbenchKit"), TEXT("Workbench"), TEXT("A camp workbench for making furnishings and repairing tools."), 5 },
         { TEXT("ForgeKit"), TEXT("Forge"), TEXT("A stone-and-timber forge for making and repairing advanced tools."), 5 },
         { TEXT("WorkbenchToolRackKit"), TEXT("Workbench Tool Rack"),

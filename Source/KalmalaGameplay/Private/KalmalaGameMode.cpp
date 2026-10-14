@@ -1128,20 +1128,22 @@ void AKalmalaGameMode::DriveCombatPeerTest()
     if (CombatPeerTestStage == 2 && CombatPeerTestSequence == 4 && AttackerCombat->GetActionPhase() == EKalmalaCombatActionPhase::Idle && Now - CombatPeerTestStageTime >= 0.1f)
     {
         const bool bSavedDefeat = Target->IsDefeated() && !Target->GetPersistentSpawnId().IsEmpty() && PopulationSaveGame != nullptr && PopulationSaveGame->IsDefeated(Target->GetPersistentSpawnId());
-        const int32 Ash = Attacker->GetInventoryComponent() ? Attacker->GetInventoryComponent()->GetQuantity(TEXT("MirelingAsh")) : 0;
-        const int32 RemoteAsh = Remote->GetInventoryComponent() ? Remote->GetInventoryComponent()->GetQuantity(TEXT("MirelingAsh")) : 0;
-        const int32 Meat = Attacker->GetInventoryComponent() ? Attacker->GetInventoryComponent()->GetQuantity(TEXT("BoarMeat")) : 0;
-        const int32 Hide = Attacker->GetInventoryComponent() ? Attacker->GetInventoryComponent()->GetQuantity(TEXT("BoarHide")) : 0;
-        const int32 RemoteMeat = Remote->GetInventoryComponent() ? Remote->GetInventoryComponent()->GetQuantity(TEXT("BoarMeat")) : 0;
-        const int32 RemoteHide = Remote->GetInventoryComponent() ? Remote->GetInventoryComponent()->GetQuantity(TEXT("BoarHide")) : 0;
-        const int32 DeerMeat = Attacker->GetInventoryComponent() ? Attacker->GetInventoryComponent()->GetQuantity(TEXT("DeerMeat")) : 0;
-        const int32 DeerHide = Attacker->GetInventoryComponent() ? Attacker->GetInventoryComponent()->GetQuantity(TEXT("DeerHide")) : 0;
-        const int32 RemoteDeerMeat = Remote->GetInventoryComponent() ? Remote->GetInventoryComponent()->GetQuantity(TEXT("DeerMeat")) : 0;
-        const int32 RemoteDeerHide = Remote->GetInventoryComponent() ? Remote->GetInventoryComponent()->GetQuantity(TEXT("DeerHide")) : 0;
-        const bool bRewardValid = bMirelingPeerTest ? (Ash == 1 && RemoteAsh == 0) : (bBoarPeerTest ? (Meat == 1 && Hide == 1 && RemoteMeat == 0 && RemoteHide == 0) : (!bDeerPeerTest || (DeerMeat == 1 && DeerHide == 1 && RemoteDeerMeat == 0 && RemoteDeerHide == 0)));
+        UKalmalaInventoryComponent* AttackerInventory = Attacker->GetInventoryComponent();
+        UKalmalaInventoryComponent* RemoteInventory = Remote->GetInventoryComponent();
+        const bool bMirelingDropAbsent = AttackerInventory != nullptr && RemoteInventory != nullptr
+            && AttackerInventory->GetStacks().IsEmpty() && RemoteInventory->GetStacks().IsEmpty();
+        const int32 Meat = AttackerInventory ? AttackerInventory->GetQuantity(TEXT("BoarMeat")) : 0;
+        const int32 Hide = AttackerInventory ? AttackerInventory->GetQuantity(TEXT("BoarHide")) : 0;
+        const int32 RemoteMeat = RemoteInventory ? RemoteInventory->GetQuantity(TEXT("BoarMeat")) : 0;
+        const int32 RemoteHide = RemoteInventory ? RemoteInventory->GetQuantity(TEXT("BoarHide")) : 0;
+        const int32 DeerMeat = AttackerInventory ? AttackerInventory->GetQuantity(TEXT("DeerMeat")) : 0;
+        const int32 DeerHide = AttackerInventory ? AttackerInventory->GetQuantity(TEXT("DeerHide")) : 0;
+        const int32 RemoteDeerMeat = RemoteInventory ? RemoteInventory->GetQuantity(TEXT("DeerMeat")) : 0;
+        const int32 RemoteDeerHide = RemoteInventory ? RemoteInventory->GetQuantity(TEXT("DeerHide")) : 0;
+        const bool bRewardValid = bMirelingPeerTest ? bMirelingDropAbsent : (bBoarPeerTest ? (Meat == 1 && Hide == 1 && RemoteMeat == 0 && RemoteHide == 0) : (!bDeerPeerTest || (DeerMeat == 1 && DeerHide == 1 && RemoteDeerMeat == 0 && RemoteDeerHide == 0)));
         if (AttackerCombat->GetActionSerial() == 4 && bSavedDefeat && bRewardValid && (!bDeerPeerTest || bCombatPeerTestHerdAlertObserved))
         {
-            UE_LOG(LogTemp, Display, TEXT("%s verification server: Passed=1 SeedReproduced=1 BoundedActivation=1 HerdAlert=%d InvalidRejected=1 ActionSerial=%u Health=%.1f PlayerHealth=%.1f Defeated=1 Saved=1 Ash=%d RemoteAsh=%d Meat=%d Hide=%d RemoteMeat=%d RemoteHide=%d DeerMeat=%d DeerHide=%d RemoteDeerMeat=%d RemoteDeerHide=%d"), VerificationName, bCombatPeerTestHerdAlertObserved, AttackerCombat->GetActionSerial(), Target->GetHealth(), Attacker->GetHealth(), Ash, RemoteAsh, Meat, Hide, RemoteMeat, RemoteHide, DeerMeat, DeerHide, RemoteDeerMeat, RemoteDeerHide);
+            UE_LOG(LogTemp, Display, TEXT("%s verification server: Passed=1 SeedReproduced=1 BoundedActivation=1 HerdAlert=%d InvalidRejected=1 ActionSerial=%u Health=%.1f PlayerHealth=%.1f Defeated=1 Saved=1 Meat=%d Hide=%d RemoteMeat=%d RemoteHide=%d DeerMeat=%d DeerHide=%d RemoteDeerMeat=%d RemoteDeerHide=%d"), VerificationName, bCombatPeerTestHerdAlertObserved, AttackerCombat->GetActionSerial(), Target->GetHealth(), Attacker->GetHealth(), Meat, Hide, RemoteMeat, RemoteHide, DeerMeat, DeerHide, RemoteDeerMeat, RemoteDeerHide);
         }
         else
         {
