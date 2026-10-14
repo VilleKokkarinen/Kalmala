@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-14 — Restore Forge upgrade icon coverage
+
+- **Completed:** replaced the deleted Bronze Axe texture check with a check for the configured Forge Upgrade level icon, restored an explicit coverage log, and aligned `Verify-Crafting.ps1` with the icon now displayed in the comparison.
+- **Files changed:** `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`, `Scripts/Tests/Construction/Verify-Crafting.ps1`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** inspected the verifier scope, current level-icon setup, and all marker references; `git diff --check` passed. The reported Unreal build was not rerun; no tests or automation ran.
+- **Impact/authority:** test-only owner-local presentation coverage. No gameplay request, authority, inventory, progression, or save behavior changed.
+- **Verification/limitations:** normal user-directed increment; full Unreal build, automated crafting verification, and rendered inspection remain deferred.
+- **Next eligible task:** convert decorative generated forest trees into individually attackable sources with a compatible depletion/streaming policy.
+
 ## User-directed increment 2026-10-14 — Fix world-map compile shadowing
 
 - **Completed:** renamed the acceptance-evidence block's pawn coordinate to `EvidencePawnLocation`, removing C4456 shadowing of the map-centering check's `PawnLocation` local.

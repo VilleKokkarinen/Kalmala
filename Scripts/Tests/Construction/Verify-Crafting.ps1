@@ -50,7 +50,8 @@ try {
         $ready = $ready -and $serverText.Contains('Grinding Stone interaction: AcceptedOnce=1 NoExtraMutation=1 ActionOnlyFeedback=1 NoMenu=1')
         $ready = $ready -and $serverText.Contains('Campfire interaction: AddedOne=1 RefuelNoLighting=1 Light=1 FullLitNoRefuel=1 NoFuelRejected=1 RangeRejected=1')
         foreach ($peerText in @($serverText, $clientText)) {
-            $ready = $ready -and $peerText.Contains('Catalogue icons: Grid=1 Selected=1 Upgrade=1')
+            $ready = $ready -and $peerText.Contains('Catalogue icons: Grid=1 Selected=1')
+            $ready = $ready -and $peerText.Contains('Forge upgrade level icon: Configured=1')
             $ready = $ready -and $peerText.Contains('Build context cleanup: Headerless=1 BrowseControls=1 ObsoleteHidden=1 GridAndRequirements=1 CardActionsHidden=1 RelightRemoved=1 StatusHidden=1 StorageShell=1')
             $ready = $ready -and $peerText.Contains('Recipe browsing: SelectionKept=1 Category=1 NoResults=1 Restored=1 SearchFocus=1')
             $ready = $ready -and $peerText.Contains('Build browsing: Groups=1 SelectionKept=1 CategoryKey=1 NoResults=1')

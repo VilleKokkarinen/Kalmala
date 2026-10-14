@@ -2433,8 +2433,12 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
         && RecipeCatalogueEntries.IsValidIndex(InitialIndices[Selected]) && SelectedIcon
         && SelectedIcon->GetCatalogueIdForTest() == RecipeCatalogueEntries[InitialIndices[Selected]].GetOutputIdentity()
         && SelectedIcon->HasCatalogueTexture();
+    const bool bUpgradeLevelIconConfigured = ToolUpgradeLevelIcon && ToolUpgradeLevelIconBox
+        && ToolUpgradeLevelIconBox->GetContent() == ToolUpgradeLevelIcon;
     UE_LOG(LogTemp, Display, TEXT("Catalogue icons: Grid=%d Selected=%d"),
         bGridIconsLoaded, bSelectedIconLoaded);
+    UE_LOG(LogTemp, Display, TEXT("Forge upgrade level icon: Configured=%d"),
+        bUpgradeLevelIconConfigured);
     const bool bBuildMenuCleanup = VerifyBuildMenuCleanupForTest();
     const int32 InitialSelection = Selected;
     const FModifierKeysState NoModifiers;
@@ -2660,7 +2664,7 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
     UE_LOG(LogTemp, Display, TEXT("Forge Craft scope: FryingPan=%d ForgeAnvil=%d Materials=%d Station=%d NoUnrelated=%d Route=%d StationLevel=%d UiScope=%d"),
         bHasFryingPan, bHasForgeAnvil, bFryingPanMaterials, bFryingPanStation,
         bForgeOnlyRecipes, bForgeInteractionRoute, bForgeLevelShown, bForgeUiScope);
-    return bGridIconsLoaded && bSelectedIconLoaded && bUpgradeIconLoaded
+    return bGridIconsLoaded && bSelectedIconLoaded && bUpgradeLevelIconConfigured
         && bKeyboardAdvanced && bKeyboardRestored && bControllerAdvanced && bControllerRestored && bScrollable
         && bSelectionKept && bCategoryWorked && bNoResults && bRestored && bSearchFocusSafe
         && bBuildMenuCleanup && bBuildGroups && bBuildSelection && bBuildKeys && bBuildEmpty

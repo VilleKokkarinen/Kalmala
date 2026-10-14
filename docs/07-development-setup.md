@@ -2584,8 +2584,9 @@ its own player-facing name, availability, selection/focus and structured
 requirements. Run `Kalmala.UI.CatalogueIcons.CompleteCoverage` after an affected
 editor build to verify imported texture paths and loads for all current item,
 tool and recipe-output identities. `Scripts/Tests/Construction/Verify-Crafting.ps1` also requires
-`Catalogue icons: Grid=1 Selected=1 Upgrade=1` from both peers; the grid flag
-checks each visible recipe output against its canonical loaded texture. Before an editor build, run `Scripts/Validate-UIIcons.ps1 -Category Catalogue` to check all 55 identity-ledger rows, original/prepared PNGs, runtime lookup mappings, and imported packages. The ledger lives in `Scripts/Data/catalogue-icon-manifest.csv`, outside the consolidated historical documentation set. The Stone Spear uses import batch D; the Bronze and Iron Knife/Pick/Spear icons use import batch E. Earlier A–C batches remain unchanged.
+`Catalogue icons: Grid=1 Selected=1` and `Forge upgrade level icon: Configured=1` from both peers;
+the grid flag checks each visible recipe output against its canonical loaded texture, while the
+Forge marker checks the level icon now shown in the upgrade comparison. Before an editor build, run `Scripts/Validate-UIIcons.ps1 -Category Catalogue` to check all 55 identity-ledger rows, original/prepared PNGs, runtime lookup mappings, and imported packages. The ledger lives in `Scripts/Data/catalogue-icon-manifest.csv`, outside the consolidated historical documentation set. The Stone Spear uses import batch D; the Bronze and Iron Knife/Pick/Spear icons use import batch E. Earlier A–C batches remain unchanged.
 
 The catalogue image ledger contains 55 imported textures: 41 regular item
 definitions, thirteen carried tools, and the Campfire construction identity.
