@@ -1,0 +1,16 @@
+{
+  "items": [
+    {
+      "ItemId": "BoarHide",
+      "DisplayName": "Boar Hide",
+      "Description": "A coarse, bristled hide taken from a boar.",
+      "MaxStack": 20
+    },
+    {
+      "ItemId": "DeerHide",
+      "DisplayName": "Deer Hide",
+      "Description": "A soft hide taken from a deer.",
+      "MaxStack": 20
+    }
+  ]
+}

@@ -3,6 +3,7 @@
   "itemFiles": [
     "items/materials/cooking-ingredients.json",
     "items/materials/crafting-ingredients.json",
+    "items/materials/hides.json",
     "items/materials/metal.json",
     "items/materials/ore.json",
     "items/materials/others.json",

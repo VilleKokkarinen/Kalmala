@@ -34,6 +34,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-14 — Group hides as materials:** move Boar Hide and Deer Hide from `items/food.json` to `items/materials/hides.json` and update the item manifest and catalogue documentation. Lightweight JSON/path and diff checks passed; Unreal verification deferred.
+
 - [x] **2026-10-14 — Remove the Mireling Ash item:** drop it from the item catalogue, defeat rewards, UI icon mapping, catalogue icon manifest, and its dedicated icon assets; discard legacy chest stacks without changing save schema. Lightweight source/data and diff checks passed; Unreal verification deferred.
 
 - [x] **2026-10-14 — Allow multiple carried Building Hammers:** make Inventory Craft allow additional hammers, preserve them in the existing carried-tool save records, enforce the existing slot cap, and show their grouped count. Lightweight source and diff checks passed; Unreal verification deferred.

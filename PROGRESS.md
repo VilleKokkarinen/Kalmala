@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-14 — Group hides as materials
+
+- **Completed:** moved Boar Hide and Deer Hide from `items/food.json` into the new `items/materials/hides.json` file and registered the file in the ordinary item manifest. Item IDs, item data, and runtime reward references are unchanged.
+- **Files changed:** `Content/Data/GameCatalogues.json`, `Content/Data/GameCatalogues/items/food.json`, `Content/Data/GameCatalogues/items/materials/hides.json`, `docs/02-technical-architecture.md`, `docs/05-decision-log.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** parsed the manifest, food, and hides JSON; confirmed the manifest path resolves, both hide IDs exist only in the new file, and all item IDs across manifest files remain unique; `git diff --check` passed. No tests or Unreal build were run.
+- **Impact/authority:** catalogue organization and documentation changed; item lookup still loads both hides into the same ordinary item catalogue. The server-owned wildlife reward flow remains unchanged.
+- **Verification/limitations:** full Unreal compilation and catalogue automation remain deferred. No save schema or runtime behavior changed.
+- **Next eligible backlog task:** convert decorative generated forest trees into individually attackable sources and integrate their depletion/streaming policy. Reed Fibre removal remains pending as a separate user-directed request.
+
 ## User-directed increment 2026-10-14 — Remove the Mireling Ash item
 
 - **Completed:** removed the item from the ordinary catalogue, wildlife drop reward, runtime icon mapping, and catalogue icon manifest. The Mireling peer fixture and combat scripts no longer expect the retired loot field. Existing storage saves discard only stacks of this retired drop during legacy normalization, preserving other chest contents and schema version.
