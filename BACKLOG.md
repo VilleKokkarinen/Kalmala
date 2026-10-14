@@ -31,6 +31,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-14 — Default upgrade cost station level:** supply the implicit zero `RequiredStationLevel` before strict tool-catalogue conversion so the crafting menu renderer can load its recipe data. Lightweight JSON/source inspection and whitespace checks passed; Unreal verification deferred.
+
 - [x] **2026-10-14 — Restore Forge upgrade icon coverage:** remove the stale axe-texture check and report the configured level icon shown by the current comparison; align the crafting verifier and setup docs. Lightweight inspection and whitespace checks passed; Unreal verification deferred.
 
 - [x] **2026-10-14 — Fix world-map compile shadowing:** give the acceptance-evidence pawn coordinate its own name so it no longer hides the player-centering local (C4456). Lightweight inspection and whitespace checks passed; Unreal verification deferred.

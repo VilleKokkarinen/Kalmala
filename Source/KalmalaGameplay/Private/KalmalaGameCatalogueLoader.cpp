@@ -449,6 +449,17 @@ namespace
             }
         }
 
+        // Upgrade-cost records have no independent station-level requirement.
+        for (const TSharedPtr<FJsonValue>& Value : ToolUpgradeValues)
+        {
+            const TSharedPtr<FJsonObject> Object = Value->AsObject();
+            if (!Object.IsValid()) return false;
+            if (!Object->HasField(TEXT("RequiredStationLevel")))
+            {
+                Object->SetNumberField(TEXT("RequiredStationLevel"), 0.0);
+            }
+        }
+
         // Zero skill requirements are implicit for acquisitions and upgrade-cost records.
         for (const TArray<TSharedPtr<FJsonValue>>* Values : { &ToolRecipeValues, &ToolUpgradeValues })
         {

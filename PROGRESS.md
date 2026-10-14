@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-14 — Default upgrade cost station level
+
+- **Completed:** defaulted omitted `RequiredStationLevel` to zero for upgrade-cost records before strict JSON conversion. This matches the catalogue validator and keeps the authored level-one upgrade costs concise.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaGameCatalogueLoader.cpp`, `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** inspected the failing upgrade record and loader validation contract; parsed all recipe JSON and confirmed acquisition recipes retain explicit station levels while the upgrade-cost record omits its zero default; `git diff --check` passed. The reported menu render was not rerun; no tests or automation ran.
+- **Impact/authority:** catalogue loading only. Server-side crafting, station checks, material costs, upgrade progression, and saved data are unchanged.
+- **Verification/limitations:** normal user-directed increment; Unreal build and rendered menu verification remain deferred.
+- **Next eligible task:** convert decorative generated forest trees into individually attackable sources with a compatible depletion/streaming policy.
+
 ## User-directed increment 2026-10-14 — Restore Forge upgrade icon coverage
 
 - **Completed:** replaced the deleted Bronze Axe texture check with a check for the configured Forge Upgrade level icon, restored an explicit coverage log, and aligned `Verify-Crafting.ps1` with the icon now displayed in the comparison.
