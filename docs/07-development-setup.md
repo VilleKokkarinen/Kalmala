@@ -284,24 +284,24 @@ Physical devices and packaged/cooked output remain outside this editor check.
 
 ## M11 inline stat comparisons
 
-The local crafting/forge details compare the owner's carried Bronze Axe level
-1 with its same-item level 2 upgrade. The comparison shows the level increase
-and only its item-specific stat gains; tool level must not change the axe's
-harvesting tier or resource access. Bronze Axe level 1 shows 100 durability and
-50 slash damage; level 2 shows 150 durability and 55 slash bonus. Missing or
-already upgraded state must be described clearly rather than using fabricated values.
-The display refreshes from owner state while the panel is open and does not
-submit an upgrade request.
+The local Forge Upgrade card reads `Bronze Axe -` followed by the level icon and
+target level, then `Slash bonus - 50 (+5)` with only `+5` in the shared
+`Theme.LevelUpColor`. The requirements and material counts remain in their own
+panel. The action is a text-only `Upgrade` button without a tool icon or extended
+tooltip. Tool level must not change the axe's harvesting tier or resource
+access. The display uses the authored level-one and target-level values and does
+not submit an upgrade request.
 
 `Kalmala.UI.Crafting.StatComparisonPresentation` uses presentation-only
 crush/slash values from the approved Iron Sword/Iron Mace example to check the
 exact `crush 60 (+60)` and `slash 0 (-40)` text, signed deltas, improvement and
 decrease treatments, equal values, lower-is-better semantics, and unavailable
-comparisons. These fixture labels and numbers are not catalogue or combat
-data. Run this test in M11's final full automation pass; rendered host/client
+comparisons. Improvement and decrease colors use the shared `LevelUpColor` and
+`LevelDownColor` theme values. These fixture labels and numbers are not
+catalogue or combat data. Run this test in M11's final full automation pass; rendered host/client
 acceptance must inspect text scaling and high contrast with a valid owner
-comparison and with the prior tool absent. No comparison card, gameplay stat,
-damage type, RPC, or saved field is introduced.
+comparison and with the prior tool absent. This presentation adds no gameplay
+stat, damage type, RPC, or saved field.
 
 ## M11 status parent and complete icon verification
 
@@ -2351,11 +2351,12 @@ execution and rendered inspection remain in M12's final acceptance.
 ## M12 Forge Upgrade section
 
 The Forge menu opens Craft by default and lets the owner switch to Upgrade
-without closing the accepted station context. Upgrade shows the carried
-Bronze Axe level 1 against the same Bronze Axe at level 2, including its
-item-specific durability and slash-bonus gains (100→150 durability and
-50→55 slash bonus) without changing the Bronze harvesting tier or unlocking
-Ironheart trunks/Densewood. It lists Forge level 2, with no skill requirement, the
+without closing the accepted station context. Its comparison card shows the
+Bronze Axe, a level icon with target level 2, and `Slash bonus - 50 (+5)`, with
+the gain in the shared level-up color. The button reads only `Upgrade` and has
+no tool icon. The upgrade changes the same carried Bronze Axe without changing
+its harvesting tier or unlocking Ironheart trunks/Densewood. It lists Forge
+level 2, with no skill requirement, the
 level-one prerequisite, and every material cost with the owner's current
 counts. It presents the first unmet requirement and enables the
 existing Upgrade action only when the owner-visible progression is ready. The

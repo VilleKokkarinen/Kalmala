@@ -31,6 +31,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-14 — Simplify the Forge Upgrade card:** show Bronze Axe with a target-level icon and slash bonus baseline/gain; color the gain through shared level-up theme colors; remove the separate axe tile and keep the button/tooltip to `Upgrade`. Lightweight source inspection and whitespace checks passed; Unreal verification deferred.
+
 - [x] **2026-10-14 — Show the Inventory Tab alternative:** label the Controls choice as Tab/I and explain that clicking it switches between the keys. Existing single-key selection behavior is unchanged; lightweight source inspection and whitespace checks passed; Unreal verification deferred.
 
 - [x] **2026-10-14 — Open Build with the active hammer:** remove Build from Control-bound keys, open the standalone Build menu with right-click only while Construction Hammer is active, and start new characters with the hammer active in hotbar slot 1. Lightweight source inspection and whitespace checks passed; Unreal verification deferred.

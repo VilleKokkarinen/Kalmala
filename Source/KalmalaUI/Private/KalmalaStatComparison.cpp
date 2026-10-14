@@ -43,9 +43,9 @@ FLinearColor FKalmalaStatComparisonLine::ResolveColor(
     switch (Tone)
     {
     case EKalmalaStatComparisonTone::Improved:
-        return Theme.StatusCueStartedColor;
+        return Theme.LevelUpColor;
     case EKalmalaStatComparisonTone::Worsened:
-        return Theme.StatusCueEndedColor;
+        return Theme.LevelDownColor;
     case EKalmalaStatComparisonTone::Neutral:
     case EKalmalaStatComparisonTone::Unavailable:
     default:

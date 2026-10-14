@@ -213,8 +213,7 @@ private:
     UFUNCTION() void WithdrawStorage();
     UFUNCTION() void CloseClicked();
     void Refresh();
-    void RefreshInlineToolUpgradeComparison(const AKalmalaCharacter* Character,
-        int32 ContrastMode);
+    void RefreshInlineToolUpgradeComparison(int32 ContrastMode);
     void RefreshRecipeGrid(const TArray<int32>& VisibleIndices, UKalmalaCraftingComponent* Crafting,
         int32 TextScalePercent, int32 ContrastMode);
     UPROPERTY(Transient) TObjectPtr<UTextBlock> RecipesText;
@@ -257,9 +256,14 @@ private:
     UPROPERTY(Transient) TObjectPtr<UTextBlock> FoodText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> RepairText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> ToolProgressionText;
+    UPROPERTY(Transient) TObjectPtr<class UHorizontalBox> ToolUpgradeComparisonHeadingRow;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> ToolUpgradeComparisonTitle;
+    UPROPERTY(Transient) TObjectPtr<class USizeBox> ToolUpgradeLevelIconBox;
+    UPROPERTY(Transient) TObjectPtr<UKalmalaIconWidget> ToolUpgradeLevelIcon;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> ToolUpgradeLevelComparison;
+    UPROPERTY(Transient) TObjectPtr<class UHorizontalBox> ToolUpgradeBenefitRow;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> ToolUpgradeBenefitComparison;
+    UPROPERTY(Transient) TObjectPtr<UTextBlock> ToolUpgradeBenefitDelta;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> StorageText;
     UPROPERTY(Transient) TObjectPtr<class UVerticalBox> StorageContextPanel;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> StorageContextStatusText;
@@ -277,9 +281,6 @@ private:
     UPROPERTY(Transient) TObjectPtr<UButton> CraftIronMaceButton;
     UPROPERTY(Transient) TObjectPtr<class UHorizontalBox> MaceCraftActions;
     UPROPERTY(Transient) TObjectPtr<UButton> UpgradeBronzeAxeButton;
-    UPROPERTY(Transient) TObjectPtr<class USizeBox> UpgradeTargetIconBox;
-    UPROPERTY(Transient) TObjectPtr<UBorder> UpgradeTargetIconTile;
-    UPROPERTY(Transient) TObjectPtr<class UKalmalaIconWidget> UpgradeTargetIcon;
     UPROPERTY(Transient) TObjectPtr<class UHorizontalBox> ToolProgressionActions;
     UPROPERTY(Transient) TObjectPtr<UButton> WorkbenchCraftSectionButton;
     UPROPERTY(Transient) TObjectPtr<UButton> WorkbenchRepairSectionButton;

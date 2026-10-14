@@ -65,6 +65,8 @@ struct KALMALAUI_API FKalmalaUITheme
     FLinearColor StatusCueStartedColor = FLinearColor(0.28f, 0.72f, 0.42f, 1);
     FLinearColor StatusCueRefreshedColor = FLinearColor(0.95f, 0.69f, 0.24f, 1);
     FLinearColor StatusCueEndedColor = FLinearColor(0.88f, 0.36f, 0.29f, 1);
+    FLinearColor LevelUpColor = FLinearColor(0.28f, 0.72f, 0.42f, 1);
+    FLinearColor LevelDownColor = FLinearColor(0.88f, 0.36f, 0.29f, 1);
     FName FavoriteMarkerStyle = TEXT("Both");
     float FavoriteMarkerBorderWidth = 2.0f;
     FLinearColor FavoriteMarkerColor = FLinearColor(0.98f, 0.78f, 0.20f, 1);

@@ -165,7 +165,24 @@ FString BuildForgeUpgradePresentationText(const UKalmalaCraftingComponent* Craft
     Text.ReplaceInline(TEXT("Status: Ready to upgrade."), TEXT("Ready to upgrade."));
     Text.ReplaceInline(TEXT("Status: Blocked — "), TEXT("Unavailable: "));
     Text.ReplaceInline(TEXT("Status: Already at this level."), TEXT("Bronze Axe is already at this level."));
-    return Text.TrimStartAndEnd();
+
+    TArray<FString> Lines;
+    Text.ParseIntoArrayLines(Lines);
+    FString RequirementsText;
+    bool bSkippingComparison = false;
+    for (const FString& Line : Lines)
+    {
+        const FString CleanLine = Line.TrimStartAndEnd();
+        if (CleanLine.StartsWith(TEXT("Comparison:"), ESearchCase::IgnoreCase))
+            bSkippingComparison = true;
+        else if (bSkippingComparison && CleanLine.StartsWith(TEXT("Requirements:"), ESearchCase::IgnoreCase))
+            bSkippingComparison = false;
+
+        if (bSkippingComparison) continue;
+        if (!RequirementsText.IsEmpty()) RequirementsText += TEXT("\n");
+        RequirementsText += CleanLine;
+    }
+    return RequirementsText.TrimStartAndEnd();
 }
 
 FString GetInitialStationContextSection(const FName KitId)
@@ -708,9 +725,22 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     ToolUpgradeComparisonTitle = AddText(TEXT(""), 16);
     ToolUpgradeLevelComparison = AddText(TEXT(""), 16);
     ToolUpgradeBenefitComparison = AddText(TEXT(""), 16);
+    ToolUpgradeBenefitDelta = AddText(TEXT(""), 16);
     ToolUpgradeComparisonTitle->SetVisibility(ESlateVisibility::Collapsed);
     ToolUpgradeLevelComparison->SetVisibility(ESlateVisibility::Collapsed);
     ToolUpgradeBenefitComparison->SetVisibility(ESlateVisibility::Collapsed);
+    ToolUpgradeBenefitDelta->SetVisibility(ESlateVisibility::Collapsed);
+    ToolUpgradeComparisonTitle->SetAutoWrapText(false);
+    ToolUpgradeLevelComparison->SetAutoWrapText(false);
+    ToolUpgradeBenefitRow = WidgetTree->ConstructWidget<UHorizontalBox>();
+    ToolUpgradeComparisonHeadingRow = WidgetTree->ConstructWidget<UHorizontalBox>();
+    ToolUpgradeLevelIconBox = WidgetTree->ConstructWidget<USizeBox>();
+    ToolUpgradeLevelIconBox->SetWidthOverride(22.0f);
+    ToolUpgradeLevelIconBox->SetHeightOverride(22.0f);
+    ToolUpgradeLevelIcon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
+    ToolUpgradeLevelIcon->SetIcon(EKalmalaIcon::Level);
+    ToolUpgradeLevelIconBox->SetContent(ToolUpgradeLevelIcon);
+    ToolUpgradeLevelIconBox->SetVisibility(ESlateVisibility::Collapsed);
     BuildExcludedWidgets.Add(ToolProgressionText);
     ToolProgressionActions = WidgetTree->ConstructWidget<UHorizontalBox>(); Column->AddChild(ToolProgressionActions);
     BuildExcludedWidgets.Add(ToolProgressionActions);
@@ -724,22 +754,7 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     CraftBronzeMaceButton->OnClicked.AddDynamic(this, &ThisClass::CraftBronzeMace);
     CraftIronMaceButton = AddButton(TEXT("Craft Iron Mace"), MaceCraftActions);
     CraftIronMaceButton->OnClicked.AddDynamic(this, &ThisClass::CraftIronMace);
-    UpgradeTargetIconBox = WidgetTree->ConstructWidget<USizeBox>();
-    UpgradeTargetIconBox->SetWidthOverride(FKalmalaUITheme::Get().ItemIconTileSize);
-    UpgradeTargetIconBox->SetHeightOverride(FKalmalaUITheme::Get().ItemIconTileSize);
-    UpgradeTargetIconTile = WidgetTree->ConstructWidget<UBorder>();
-    auto* UpgradeIconContent = WidgetTree->ConstructWidget<USizeBox>();
-    UpgradeIconContent->SetWidthOverride(FKalmalaUITheme::Get().ItemIconTileSize);
-    UpgradeIconContent->SetHeightOverride(FKalmalaUITheme::Get().ItemIconTileSize);
-    UpgradeTargetIcon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
-    UpgradeTargetIcon->SetCatalogueIcon(TEXT("BronzeAxe"));
-    UpgradeIconContent->SetContent(UpgradeTargetIcon);
-    UpgradeTargetIconTile->SetContent(UpgradeIconContent);
-    UpgradeTargetIconBox->SetContent(UpgradeTargetIconTile);
-    UpgradeTargetIconBox->SetVisibility(ESlateVisibility::Collapsed);
-    ToolProgressionActions->AddChildToHorizontalBox(UpgradeTargetIconBox)->SetVerticalAlignment(VAlign_Center);
-    UpgradeBronzeAxeButton = AddButton(TEXT("Upgrade"), ToolProgressionActions,
-        TEXT("Upgrade the carried Bronze Axe to level 2: durability 150 and slash bonus 55. Its item identity and harvesting tier are preserved."));
+    UpgradeBronzeAxeButton = AddButton(TEXT("Upgrade"), ToolProgressionActions, TEXT("Upgrade"));
     UpgradeBronzeAxeButton->OnClicked.AddDynamic(this, &ThisClass::UpgradeBronzeAxe);
     auto* UpgradePanelContent = WidgetTree->ConstructWidget<UHorizontalBox>();
     StationUpgradePanel = WidgetTree->ConstructWidget<UBorder>();
@@ -758,9 +773,26 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     auto* UpgradeComparison = WidgetTree->ConstructWidget<UVerticalBox>();
     UpgradeComparisonFrame = WidgetTree->ConstructWidget<UBorder>();
     UpgradeComparisonFrame->SetContent(UpgradeComparison);
-    for (UWidget* UpgradeControl : {static_cast<UWidget*>(ToolUpgradeComparisonTitle.Get()),
-            static_cast<UWidget*>(ToolUpgradeLevelComparison.Get()),
-            static_cast<UWidget*>(ToolUpgradeBenefitComparison.Get()),
+    ToolUpgradeComparisonTitle->RemoveFromParent();
+    ToolUpgradeLevelComparison->RemoveFromParent();
+    ToolUpgradeBenefitComparison->RemoveFromParent();
+    ToolUpgradeBenefitDelta->RemoveFromParent();
+    auto* UpgradeTitleSlot = ToolUpgradeComparisonHeadingRow->AddChildToHorizontalBox(ToolUpgradeComparisonTitle);
+    UpgradeTitleSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+    UpgradeTitleSlot->SetVerticalAlignment(VAlign_Center);
+    auto* LevelIconSlot = ToolUpgradeComparisonHeadingRow->AddChildToHorizontalBox(ToolUpgradeLevelIconBox);
+    LevelIconSlot->SetPadding(FMargin(3.0f, 0.0f, 1.0f, 0.0f));
+    LevelIconSlot->SetVerticalAlignment(VAlign_Center);
+    auto* LevelNumberSlot = ToolUpgradeComparisonHeadingRow->AddChildToHorizontalBox(ToolUpgradeLevelComparison);
+    LevelNumberSlot->SetPadding(FMargin(1.0f, 0.0f, 0.0f, 0.0f));
+    LevelNumberSlot->SetVerticalAlignment(VAlign_Center);
+    auto* BenefitValueSlot = ToolUpgradeBenefitRow->AddChildToHorizontalBox(ToolUpgradeBenefitComparison);
+    BenefitValueSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+    BenefitValueSlot->SetVerticalAlignment(VAlign_Center);
+    ToolUpgradeBenefitRow->AddChildToHorizontalBox(ToolUpgradeBenefitDelta)
+        ->SetVerticalAlignment(VAlign_Center);
+    for (UWidget* UpgradeControl : {static_cast<UWidget*>(ToolUpgradeComparisonHeadingRow.Get()),
+            static_cast<UWidget*>(ToolUpgradeBenefitRow.Get()),
             static_cast<UWidget*>(ToolProgressionActions.Get())})
     {
         UpgradeControl->RemoveFromParent();
@@ -780,7 +812,7 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     BuildExcludedWidgets.Add(StationCraftExcludedWidgets.Last());
     StationCraftExcludedWidgets.Add(AddText(TEXT("Chest contents use the shared 16-stack interface. Accepted construction and storage records are saved for this world; rejected transfers leave both inventories unchanged."), 16));
     BuildExcludedWidgets.Add(StationCraftExcludedWidgets.Last());
-    BuildExcludedWidgets.Append({ToolUpgradeComparisonTitle, ToolUpgradeLevelComparison, ToolUpgradeBenefitComparison});
+    BuildExcludedWidgets.Append({ToolUpgradeComparisonHeadingRow, ToolUpgradeBenefitRow});
     StorageText = AddText(TEXT(""), 18);
     StationCraftExcludedWidgets.Add(StorageText);
     BuildExcludedWidgets.Add(StorageText);
@@ -1577,9 +1609,12 @@ void UKalmalaCraftingWidget::ApplyStationCraftLayout()
     if (StationUpgradePanel)
         StationUpgradePanel->SetVisibility(bForgeUpgradeContext
             ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
-    if (UpgradeTargetIconBox)
-        UpgradeTargetIconBox->SetVisibility(bForgeUpgradeContext
-            ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+    if (ToolUpgradeComparisonHeadingRow)
+        ToolUpgradeComparisonHeadingRow->SetVisibility(bForgeUpgradeContext
+            ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+    if (ToolUpgradeBenefitRow)
+        ToolUpgradeBenefitRow->SetVisibility(bForgeUpgradeContext
+            ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
     const bool bStandaloneBuild = bInventoryCompanion || (!bEmbeddedContext && StationFilterKit.IsNone());
     if (bStandaloneBuild)
         for (UWidget* Excluded : BuildExcludedWidgets)
@@ -2394,11 +2429,8 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
         && RecipeCatalogueEntries.IsValidIndex(InitialIndices[Selected]) && SelectedIcon
         && SelectedIcon->GetCatalogueIdForTest() == RecipeCatalogueEntries[InitialIndices[Selected]].GetOutputIdentity()
         && SelectedIcon->HasCatalogueTexture();
-    const bool bUpgradeIconLoaded = UpgradeTargetIcon
-        && UpgradeTargetIcon->GetCatalogueIdForTest() == TEXT("BronzeAxe")
-        && UpgradeTargetIcon->HasCatalogueTexture();
-    UE_LOG(LogTemp, Display, TEXT("Catalogue icons: Grid=%d Selected=%d Upgrade=%d"),
-        bGridIconsLoaded, bSelectedIconLoaded, bUpgradeIconLoaded);
+    UE_LOG(LogTemp, Display, TEXT("Catalogue icons: Grid=%d Selected=%d"),
+        bGridIconsLoaded, bSelectedIconLoaded);
     const bool bBuildMenuCleanup = VerifyBuildMenuCleanupForTest();
     const int32 InitialSelection = Selected;
     const FModifierKeysState NoModifiers;
@@ -3199,9 +3231,9 @@ bool UKalmalaCraftingWidget::VerifyForgeUpgradeScopeForTest()
     const FString UpgradeSection(TEXT("Upgrade"));
     const FString Details = BuildForgeUpgradePresentationText(Model());
     const FKalmalaToolProgressionEntry* Entry = FKalmalaToolProgressionContract::FindEntry(BronzeAxe, 2);
-    const bool bComparison = Details.Contains(TEXT("Comparison: Bronze Axe level 1 → level 2"))
-        && Details.Contains(TEXT("Harvesting tier remains tied to item identity"))
-        && !Details.Contains(TEXT("Ironheart trunks (Densewood)"));
+    const bool bComparison = !Details.Contains(TEXT("Comparison:"))
+        && !Details.Contains(TEXT("Durability:"))
+        && !Details.Contains(TEXT("Woodcutting tier:"));
     const bool bRequirements = Entry && Entry->RequiredStation == EKalmalaToolStationKind::Forge
         && Entry->RequiredStationLevel == 2
         && Details.Contains(TEXT("Requirements: Forge level 2"))
@@ -3257,6 +3289,8 @@ bool UKalmalaCraftingWidget::VerifyForgeUpgradeScopeForTest()
     ContextConstructionId.Reset();
     ConfigureStationContextPresentation(UpgradeSection);
     RefreshForgeUpgradeState(Model());
+    RefreshInlineToolUpgradeComparison(UKalmalaSettingsWidget::ClampContrastMode(
+        UKalmalaSettingsWidget::GetContrastMode()));
     const bool bContextUnavailable = ToolProgressionText
         && ToolProgressionText->GetText().ToString().Contains(TEXT("Forge context unavailable"))
         && UpgradeBronzeAxeButton && !UpgradeBronzeAxeButton->GetIsEnabled()
@@ -3275,9 +3309,15 @@ bool UKalmalaCraftingWidget::VerifyForgeUpgradeScopeForTest()
         && WorkbenchRepairSectionButton && WorkbenchRepairSectionButton->GetVisibility() == ESlateVisibility::Collapsed
         && ToolProgressionText && ToolProgressionText->GetVisibility() == ESlateVisibility::Visible
         && ToolProgressionActions && ToolProgressionActions->GetVisibility() == ESlateVisibility::Visible
-        && UpgradeTargetIconBox && UpgradeTargetIconBox->GetVisibility() == ESlateVisibility::HitTestInvisible
-        && UpgradeTargetIcon && UpgradeTargetIcon->GetCatalogueIdForTest() == TEXT("BronzeAxe")
-        && UpgradeTargetIcon->HasCatalogueTexture()
+        && ToolUpgradeComparisonTitle && ToolUpgradeComparisonTitle->GetText().ToString() == TEXT("Bronze Axe -")
+        && ToolUpgradeLevelIconBox && ToolUpgradeLevelIconBox->GetVisibility() == ESlateVisibility::HitTestInvisible
+        && ToolUpgradeLevelComparison && ToolUpgradeLevelComparison->GetText().ToString() == TEXT("2")
+        && ToolUpgradeBenefitComparison && ToolUpgradeBenefitComparison->GetText().ToString() == TEXT("Slash bonus - 50 (")
+        && ToolUpgradeBenefitDelta && ToolUpgradeBenefitDelta->GetText().ToString() == TEXT("+5)")
+        && FMath::IsNearlyEqual(ToolUpgradeBenefitDelta->GetColorAndOpacity().GetSpecifiedColor().G,
+            FKalmalaUITheme::Get().LevelUpColor.G)
+        && UpgradeBronzeAxeButton && Cast<UTextBlock>(UpgradeBronzeAxeButton->GetContent())
+        && Cast<UTextBlock>(UpgradeBronzeAxeButton->GetContent())->GetText().ToString() == TEXT("Upgrade")
         && UpgradeBronzeAxeButton && UpgradeBronzeAxeButton->GetVisibility() == ESlateVisibility::Visible
         && !UpgradeBronzeAxeButton->GetIsEnabled()
         && CraftBronzeAxeButton && CraftBronzeAxeButton->GetVisibility() == ESlateVisibility::Collapsed
@@ -3608,7 +3648,6 @@ void UKalmalaCraftingWidget::Refresh()
     const int32 ContrastMode = UKalmalaSettingsWidget::ClampContrastMode(
         UKalmalaSettingsWidget::GetContrastMode());
     if (SelectedIconTile) FKalmalaUITheme::Get().ApplyItemIconTile(*SelectedIconTile, ContrastMode);
-    if (UpgradeTargetIconTile) FKalmalaUITheme::Get().ApplyItemIconTile(*UpgradeTargetIconTile, ContrastMode);
     TArray<FKalmalaCatalogueRow> WorkbenchRepairRows;
     TArray<FKalmalaCatalogueRow> StoragePackRows;
     TArray<FKalmalaCatalogueRow> StorageContentsRows;
@@ -3703,12 +3742,14 @@ void UKalmalaCraftingWidget::Refresh()
         || bForgeUpgradeContext || bForgeRepairContext)
         ApplyStationCraftLayout();
     if (bForgeUpgradeContext)
-        RefreshInlineToolUpgradeComparison(Cast<AKalmalaCharacter>(OwnerPawn), ContrastMode);
+        RefreshInlineToolUpgradeComparison(ContrastMode);
     else
     {
         ToolUpgradeComparisonTitle->SetVisibility(ESlateVisibility::Collapsed);
         ToolUpgradeLevelComparison->SetVisibility(ESlateVisibility::Collapsed);
         ToolUpgradeBenefitComparison->SetVisibility(ESlateVisibility::Collapsed);
+        ToolUpgradeBenefitDelta->SetVisibility(ESlateVisibility::Collapsed);
+        ToolUpgradeLevelIconBox->SetVisibility(ESlateVisibility::Collapsed);
     }
     if (StoragePackInspector)
         StoragePackInspector->SetRows(StoragePackRows, TextScalePercent, ContrastMode,
@@ -3968,55 +4009,48 @@ FString UKalmalaCraftingWidget::GetPresentationText() const
             + ReadVisibleText(StorageText) : FString();
 }
 
-void UKalmalaCraftingWidget::RefreshInlineToolUpgradeComparison(
-    const AKalmalaCharacter* Character,
-    const int32 ContrastMode)
+void UKalmalaCraftingWidget::RefreshInlineToolUpgradeComparison(const int32 ContrastMode)
 {
-    if (!ToolUpgradeComparisonTitle || !ToolUpgradeLevelComparison || !ToolUpgradeBenefitComparison) return;
+    if (!ToolUpgradeComparisonTitle || !ToolUpgradeLevelComparison || !ToolUpgradeBenefitComparison
+        || !ToolUpgradeBenefitDelta || !ToolUpgradeLevelIconBox) return;
 
     const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
     const FKalmalaToolProgressionEntry* Upgrade = FKalmalaToolProgressionContract::FindEntry(
         TEXT("BronzeAxe"), 2);
     const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(TEXT("BronzeAxe"));
-    const FKalmalaToolState* CurrentTool = Character
-        ? Character->GetCarriedToolInventory().FindByPredicate([](const FKalmalaToolState& Tool)
-            { return Tool.ToolId == TEXT("BronzeAxe"); })
-        : nullptr;
     const bool bValidUpgrade = Upgrade && Definition && Upgrade->PreviousToolId == Upgrade->ToolId
         && Upgrade->PreviousToolLevel == 1 && Upgrade->TargetToolLevel == 2;
-    const FString LevelComparison = !bValidUpgrade ? TEXT("Tool level comparison unavailable.")
-        : CurrentTool && CurrentTool->ToolLevel >= Upgrade->TargetToolLevel
-            ? FString::Printf(TEXT("Already level %d."), Upgrade->TargetToolLevel)
-            : FString::Printf(TEXT("Tool level: %d → %d (+1)."),
-                Upgrade->PreviousToolLevel, Upgrade->TargetToolLevel);
-    const int32 PreviousMaxDurability = bValidUpgrade
-        ? FKalmalaToolLifecycleContract::GetMaxDurability(TEXT("BronzeAxe"), Upgrade->PreviousToolLevel) : 0;
-    const int32 TargetMaxDurability = bValidUpgrade
-        ? FKalmalaToolLifecycleContract::GetMaxDurability(TEXT("BronzeAxe"), Upgrade->TargetToolLevel) : 0;
     const float PreviousSlashDamage = bValidUpgrade
         ? FKalmalaToolLifecycleContract::GetSlashDamage(TEXT("BronzeAxe"), Upgrade->PreviousToolLevel) : 0.0f;
     const float TargetSlashDamage = bValidUpgrade
         ? FKalmalaToolLifecycleContract::GetSlashDamage(TEXT("BronzeAxe"), Upgrade->TargetToolLevel) : 0.0f;
     const FString BenefitComparison = bValidUpgrade
-        ? FString::Printf(TEXT("Durability: %d → %d (+%d) · Slash bonus: %.0f → %.0f (+%.0f)."),
-            PreviousMaxDurability, TargetMaxDurability, TargetMaxDurability - PreviousMaxDurability,
-            PreviousSlashDamage, TargetSlashDamage, TargetSlashDamage - PreviousSlashDamage)
-        : FString(TEXT("Upgrade gains unavailable."));
+        ? FString::Printf(TEXT("Slash bonus - %.0f ("), PreviousSlashDamage)
+        : FString(TEXT("Slash bonus unavailable."));
+    const FString BenefitDelta = bValidUpgrade
+        ? FString::Printf(TEXT("+%d)"), FMath::RoundToInt(TargetSlashDamage - PreviousSlashDamage))
+        : FString();
 
     ToolUpgradeComparisonTitle->SetText(FText::FromString(bValidUpgrade
-        ? TEXT("Bronze Axe · Level 1 → Level 2")
+        ? TEXT("Bronze Axe -")
         : TEXT("Upgrade comparison unavailable")));
-    ToolUpgradeLevelComparison->SetText(FText::FromString(LevelComparison));
+    ToolUpgradeLevelComparison->SetText(bValidUpgrade
+        ? FText::AsNumber(Upgrade->TargetToolLevel) : FText::GetEmpty());
     ToolUpgradeBenefitComparison->SetText(FText::FromString(BenefitComparison));
+    ToolUpgradeBenefitDelta->SetText(FText::FromString(BenefitDelta));
 
     ToolUpgradeComparisonTitle->SetColorAndOpacity(FSlateColor(Theme.TextColor(false, ContrastMode)));
-    const FLinearColor BenefitColor = bValidUpgrade
-        ? Theme.StatusCueStartedColor : Theme.TextColor(false, ContrastMode);
-    ToolUpgradeLevelComparison->SetColorAndOpacity(FSlateColor(BenefitColor));
-    ToolUpgradeBenefitComparison->SetColorAndOpacity(FSlateColor(BenefitColor));
+    ToolUpgradeLevelComparison->SetColorAndOpacity(FSlateColor(Theme.LevelUpColor));
+    ToolUpgradeBenefitComparison->SetColorAndOpacity(FSlateColor(Theme.TextColor(false, ContrastMode)));
+    ToolUpgradeBenefitDelta->SetColorAndOpacity(FSlateColor(Theme.LevelUpColor));
+    ToolUpgradeLevelIconBox->SetVisibility(bValidUpgrade
+        ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
     ToolUpgradeComparisonTitle->SetVisibility(ESlateVisibility::HitTestInvisible);
-    ToolUpgradeLevelComparison->SetVisibility(ESlateVisibility::HitTestInvisible);
+    ToolUpgradeLevelComparison->SetVisibility(bValidUpgrade
+        ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
     ToolUpgradeBenefitComparison->SetVisibility(ESlateVisibility::HitTestInvisible);
+    ToolUpgradeBenefitDelta->SetVisibility(bValidUpgrade
+        ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
 }
 
 void UKalmalaCraftingWidget::NativeTick(const FGeometry& G,float D)

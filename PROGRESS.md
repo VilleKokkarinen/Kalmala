@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-14 — Simplify the Forge Upgrade card
+
+- **Completed:** removed the Bronze Axe tile beside the action and shortened its label and tooltip to `Upgrade`. The comparison card now shows `Bronze Axe -` with a level icon and target level, followed by the slash bonus baseline and gain (`Slash bonus - 50 (+5)`) with the gain colored from the shared level-up theme. Removed duplicate stat-comparison lines from the requirements panel.
+- **Files changed:** `Config/DefaultKalmalaTheme.ini`, `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`, `Source/KalmalaUI/Private/KalmalaIconWidget.cpp`, `Source/KalmalaUI/Private/KalmalaStatComparison.cpp`, `Source/KalmalaUI/Private/KalmalaUITheme.cpp`, `Source/KalmalaUI/Private/Tests/KalmalaStatComparisonTest.cpp`, `Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`, `Source/KalmalaUI/Public/KalmalaIconWidget.h`, `Source/KalmalaUI/Public/KalmalaUITheme.h`, `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** inspected Forge Upgrade panel construction, theme loading, and comparison formatting; checked that the removed tool-tile references are gone; `git diff --check` passed. No test, Unreal build, or runtime render ran.
+- **Impact/authority:** owner-only Forge Upgrade presentation and shared UI colors. The existing server-authoritative progression request, requirements, material costs, persistence, networking, and save data remain unchanged.
+- **Verification/limitations:** normal user-directed increment; full Unreal build, automation, and rendered UI verification remain deferred.
+- **Next eligible task:** convert decorative generated forest trees into individually attackable sources with a compatible depletion/streaming policy.
+
 ## User-directed increment 2026-10-14 — Show the Inventory Tab alternative
 
 - **Completed:** made the Controls row display `Inventory (Tab / I)` and added a tooltip explaining that clicking its current key switches between Tab and I. The existing bounded single-key remapping still applies the selected key through the InventoryMenu action.

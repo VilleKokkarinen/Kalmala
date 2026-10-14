@@ -45,10 +45,10 @@ bool FKalmalaStatComparisonTest::RunTest(const FString& Parameters)
         Missing.Text.Contains(TEXT(" 0 ")));
 
     const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
-    TestTrue(TEXT("Improvement color reuses the established positive theme cue"),
-        Crush.ResolveColor(Theme, 0) == Theme.StatusCueStartedColor);
-    TestTrue(TEXT("Worsening color reuses the established ended theme cue"),
-        Slash.ResolveColor(Theme, 0) == Theme.StatusCueEndedColor);
+    TestTrue(TEXT("Improvement color uses the shared level-up theme color"),
+        Crush.ResolveColor(Theme, 0) == Theme.LevelUpColor);
+    TestTrue(TEXT("Worsening color uses the shared level-down theme color"),
+        Slash.ResolveColor(Theme, 0) == Theme.LevelDownColor);
     TestTrue(TEXT("Unavailable text uses the normal accessible text color"),
         Missing.ResolveColor(Theme, 1) == Theme.TextColor(false, 1));
     return true;

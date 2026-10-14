@@ -169,6 +169,8 @@ FKalmalaUITheme FKalmalaUITheme::FromConfig(const FConfigFile& Config)
     ReadColor(Config, TEXT("StatusCueStartedColor"), Theme.StatusCueStartedColor);
     ReadColor(Config, TEXT("StatusCueRefreshedColor"), Theme.StatusCueRefreshedColor);
     ReadColor(Config, TEXT("StatusCueEndedColor"), Theme.StatusCueEndedColor);
+    ReadColor(Config, TEXT("LevelUpColor"), Theme.LevelUpColor);
+    ReadColor(Config, TEXT("LevelDownColor"), Theme.LevelDownColor);
     ReadColor(Config, TEXT("FavoriteMarkerColor"), Theme.FavoriteMarkerColor);
     ReadColor(Config, TEXT("RankGoldColor"), Theme.RankGoldColor);
     ReadColor(Config, TEXT("RankSilverColor"), Theme.RankSilverColor);

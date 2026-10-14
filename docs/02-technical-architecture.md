@@ -1289,7 +1289,7 @@ invalid numbers/paths, missing assets, and a transient in-memory image reference
 The settings and Inventory menu tests remain required alongside it. No
 custom project font or rendered image appearance has been reviewed.
 
-Hover, keyboard/controller focus, selection, and disabled states share theme brushes and non-colour cues. Decorative images/animation yield to local high contrast and reduced motion. Inline Forge Upgrade comparison reads current/target authored axe level and condition; equal values are neutral, absent axes have an explicit missing state, and other service views collapse the comparison. It displays the Bronze Axe's authored durability and slash-damage gains.
+Hover, keyboard/controller focus, selection, and disabled states share theme brushes and non-colour cues. Decorative images/animation yield to local high contrast and reduced motion. The Forge Upgrade card shows the Bronze Axe and a level icon for the target level, then its slash-bonus baseline and authored gain. Requirements and material counts stay in the adjacent requirements panel. Level gains and losses use the shared `LevelUpColor` and `LevelDownColor` theme values; generic stat comparisons use the same colors. The compact card is owner-only and submits no request.
 
 ## Status and catalogue icons
 
@@ -2272,7 +2272,10 @@ The selected Workbench/Forge tab uses the shared gold text accent without a
 leading selection marker.
 Forge Upgrade uses the same wood-backed content area and top inset as station
 Craft, pairing its requirement summary with the owner-only comparison and action
-in matching framed columns. Repair All keeps the current Craft or Upgrade view
+in matching framed columns. Its comparison header reads `Bronze Axe -` followed
+by a level icon and target level; the next row reads the slash-bonus baseline
+with only the positive gain in the shared level-up color. The Upgrade button is
+text-only and labeled `Upgrade`. Repair All keeps the current Craft or Upgrade view
 open and reports the server result in the station header.
 The existing progression RPC remains responsible for authoritative checks,
 material exchange, and persistence.
