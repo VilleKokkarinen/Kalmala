@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-14 — Fix world-map compile shadowing
+
+- **Completed:** renamed the acceptance-evidence block's pawn coordinate to `EvidencePawnLocation`, removing C4456 shadowing of the map-centering check's `PawnLocation` local.
+- **Files changed:** `Source/KalmalaUI/Private/KalmalaWorldMapWidget.cpp`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** inspected both local scopes and all acceptance-evidence uses; `git diff --check` passed. The reported Unreal build was not rerun, and no tests or automation ran.
+- **Impact/authority:** local developer-verification variable naming only; map rendering, player centering, pin behavior, and networking are unchanged.
+- **Verification/limitations:** normal user-directed increment; full Unreal build and rendered map verification remain deferred.
+- **Next eligible task:** convert decorative generated forest trees into individually attackable sources with a compatible depletion/streaming policy.
+
 ## User-directed increment 2026-10-14 — Center crafting and upgrade requirements
 
 - **Completed:** centered the Workbench/Inventory Craft material row over its `Craft` action. Centered the Forge Upgrade requirement summary over its `Upgrade` action in one frame, keeping the level/stat comparison in the adjacent frame.

@@ -234,22 +234,22 @@ void UKalmalaWorldMapWidget::RunDeveloperVerification()
     if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaWorldMapAcceptanceEvidence")))
     {
         FKalmalaWorldGenerationConfig Config;
-        FVector2D PawnLocation;
-        if (ViewModel->GetPresentationInputs(Config, PawnLocation))
+        FVector2D EvidencePawnLocation;
+        if (ViewModel->GetPresentationInputs(Config, EvidencePawnLocation))
         {
             EnsureExplorationForWorld(Config);
             EnsurePinsForWorld(Config);
             const int32 CellsBefore = ExplorationSave->GetExploredCellCount();
-            BeginPinPlacement(PawnLocation + FVector2D(-2000.0, 1000.0));
+            BeginPinPlacement(EvidencePawnLocation + FVector2D(-2000.0, 1000.0));
             PendingPinStyle = EKalmalaWorldMapPinStyle::Lantern;
             CommitPinPlacement();
-            BeginPinPlacement(PawnLocation + FVector2D(2000.0, -1000.0));
+            BeginPinPlacement(EvidencePawnLocation + FVector2D(2000.0, -1000.0));
             PendingPinStyle = EKalmalaWorldMapPinStyle::Thread;
             PendingPinLabel = GetOwningPlayer()->HasAuthority() ? TEXT("Host trail") : TEXT("Client trail");
             CommitPinPlacement();
-            const auto RemoteFog = BuildFogPixels(FVector2D(1000000.0, 0.0), FVector2D(1.0), PawnLocation,
+            const auto RemoteFog = BuildFogPixels(FVector2D(1000000.0, 0.0), FVector2D(1.0), EvidencePawnLocation,
                 FIntPoint(1), ExplorationSave);
-            SendMapPing(PawnLocation + FVector2D(3000.0, 2500.0));
+            SendMapPing(EvidencePawnLocation + FVector2D(3000.0, 2500.0));
             UE_LOG(LogTemp, Display, TEXT("World map acceptance: Owner=%s Pins=%d Blank=%d Label=%s CoverageUnchanged=%d RemoteOpaque=%d TextScale=%d Contrast=%d ApplicationScale=%.2f Zoom=%.0f."),
                 GetOwningPlayer()->HasAuthority() ? TEXT("Host") : TEXT("Client"), LocalPins.Num(),
                 LocalPins[LocalPins.Num() - 2].Label.IsEmpty() ? 1 : 0, *LocalPins.Last().Label,
