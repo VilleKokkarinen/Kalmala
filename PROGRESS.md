@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-14 — Separate cooking and crafting ingredients
+
+- **Completed:** moved Frost Salt into `items/materials/cooking-ingredients.json`; moved Fibre and Peat Amber into `crafting-ingredients.json`. The previous mixed `ingredient.json` is removed, and `ore.json` now contains Stone only. Item IDs, descriptions, stack limits, and item behavior are unchanged.
+- **Files changed:** `Content/Data/GameCatalogues/items/materials/ingredient.json` (split into cooking and crafting ingredient files), `Content/Data/GameCatalogues/items/materials/ore.json`, `Content/Data/GameCatalogues.json`, `docs/02-technical-architecture.md`, `docs/05-decision-log.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** parse manifest and item files; verify exact record preservation, unique item IDs, manifest path resolution, and `git diff --check`. No tests, build, or automation ran.
+- **Impact/authority:** material file organization only. Catalogue loading and server-side item authority are unchanged.
+- **Verification/limitations:** full Unreal build and catalogue automation remain deferred.
+- **Next eligible task:** convert decorative generated forest trees into individually attackable sources with a compatible depletion/streaming policy.
+
 ## User-directed increment 2026-10-14 — Group material catalogue files by type
 
 - **Completed:** split the ordinary materials catalogue into `items/materials/wood.json` (Wood, Lightwood, Densewood), `ore.json` (Stone, Frost Salt), `metal.json` (Iron), `ingredient.json` (Fibre, Peat Amber), and `others.json` (Coal). Updated `itemFiles` and allowed these exact material subfolder paths for ordinary item data. All nine item records, IDs, descriptions, stack limits, and runtime catalogue behavior are preserved.

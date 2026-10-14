@@ -4,7 +4,9 @@ Add new decisions at the top. A decision records what agents should treat as set
 
 | Date | Decision | Status | Rationale |
 | --- | --- | --- | --- |
-| 2026-10-14 | Keep ordinary materials in `items/materials/` by wood, ore, metal, ingredient, and other categories. | User-directed | Material items share one schema and runtime catalogue, with file grouping used for maintainable source organization. |
+| 2026-10-14 | Group ordinary materials by wood, ore, metal, cooking ingredients, crafting ingredients, and others. | User-directed | Frost Salt is a cooking ingredient; Fibre and Peat Amber remain crafting ingredients. |
+| 2026-10-14 | Keep ordinary materials in `items/materials/` by wood, ore, metal, ingredient, and other categories. | Superseded 2026-10-14 | Material items share one schema and runtime catalogue, with file grouping used for maintainable source organization. |
+
 | 2026-10-14 | Store shared attack data under `attacks/` and level-up rewards under `progression/`. | User-directed | Keep each catalogue in a folder named for its purpose and outside the equipment data folder. |
 | 2026-10-14 | Group crafting recipes by station under `recipes/stations/`. | User-directed | Split station-bound recipes by their required station, include Inventory as the Building Hammer's crafting context, and keep item-acquisition records in station-specific companion files. Build-menu recipes remain in `recipes/building.json`. |
 | 2026-10-14 | Group buildable items under `items/buildItems/`. | User-directed | Keep each station and its upgrade items together, while grouping Storage and construction pieces in `other.json`; load the files as ordinary items. |

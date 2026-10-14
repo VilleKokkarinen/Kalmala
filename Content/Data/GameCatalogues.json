@@ -1,7 +1,8 @@
 {
   "schemaVersion": 12,
   "itemFiles": [
-    "items/materials/ingredient.json",
+    "items/materials/cooking-ingredients.json",
+    "items/materials/crafting-ingredients.json",
     "items/materials/metal.json",
     "items/materials/ore.json",
     "items/materials/others.json",
