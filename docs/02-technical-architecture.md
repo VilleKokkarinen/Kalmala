@@ -543,7 +543,7 @@ First-wave sources remain birch bark and resinwood for Wood, reed clusters and f
 
 ## Tools and station progression
 
-Tools occupy the same forty-cell inventory as materials, rather than extra carrying slots. The owner-only CarriedTools array has at most sixteen unique known records; condition and authored tool level are independent of the transient player skill ledger. The Stone-tier starting loadout is Stone Knife (`StoneKnife`, 16 durability, 30 slash), Stone Axe (`StoneAxe`, 24 durability, 34 slash), Stone Pick (20 durability, 26 crush), Stone Spear (36 durability, 42 stab), and Stone Mace (16 durability, 30 crush), plus a level-one Construction Hammer. Saves containing `ReedKnife` or `FieldHatchet` are accepted and normalized to the canonical IDs without changing the save schema. The hammer has 100 condition. Construction does not currently invoke durability consumption; consuming uses always spend one point. Spear combat damage is server-authored and uses the same active-carried-tool validation as other weapons; its condition does not wear from attacks.
+Tools occupy the same forty-cell inventory as materials, rather than extra carrying slots. The owner-only CarriedTools array has at most sixteen unique known records; condition and authored tool level are independent of the transient player skill ledger. The Stone-tier starting loadout is Stone Knife (`StoneKnife`, 16 durability, 30 slash), Stone Axe (`StoneAxe`, 24 durability, 34 slash), Stone Pick (20 durability, 26 crush), Stone Spear (36 durability, 42 stab), and Stone Mace (16 durability, 30 crush), plus a level-one Construction Hammer. New characters begin with the hammer in hotbar slot 1 and active; right-click opens the Build menu while it is active. Saves containing `ReedKnife` or `FieldHatchet` are accepted and normalized to the canonical IDs without changing the save schema. The hammer has 100 condition. Construction does not currently invoke durability consumption; consuming uses always spend one point. Spear combat damage is server-authored and uses the same active-carried-tool validation as other weapons; its condition does not wear from attacks.
 
 Bronze Axe level 1 costs 4 Wood, 3 Stone, and 2 Fibre at a level-one Workbench. Its authored stats are 100 maximum durability and 50 slash bonus. Bronze Axe level 2 upgrades that same carried item at a level-two Forge, has no skill requirement, and costs 3 Lightwood, 2 PeatAmber, 4 Stone, and 2 Fibre; its stats become 150 maximum durability and 55 slash bonus. An upgrade changes only those item-authored stats; tool level never changes the item's harvesting tier or unlocks resources. It preserves item ID, inventory cell, and current condition. The server-selected station family and effective level must match the authored progression step exactly; rejection leaves both candidates unchanged. Legacy Iron Axe records remain readable but are not created as an upgrade result.
 
@@ -1362,8 +1362,8 @@ Local per-menu memory keeps query/category/sort/selection/scroll in the widget s
 
 The 2026-10-10 M13 request supersedes the standalone Build menu's older entry,
 card, search-memory, and lighting-button behavior above. With the Construction
-Hammer active in gameplay, right-click opens Build; the existing remappable
-keyboard/controller entry remains available. Build cards display only their
+Hammer active in gameplay, right-click opens Build; no separate action binding
+is provided. Build cards display only their
 original Kalmala icon. Hovering or focusing a card shows its name, short
 description, applicable required-station icon, and existing material costs and
 owner-visible carried counts in a tidy detail area below the menu. Existing
@@ -2018,8 +2018,10 @@ becomes a gameplay signal.
 ## Existing input baseline
 
 The current normal-player baseline in `Config/DefaultInput.ini` is the source
-for the Keyboard & Mouse and Controller groups' initial labels. It must remain available while local
-remapping is added:
+for mapped actions and axes in the Keyboard & Mouse and Controller groups. The
+Build input is a fixed right-click action while the Construction Hammer is
+active, so it is not a remappable Control-bound key. These baselines must remain
+available while local remapping is added:
 
 | Action or axis | Keyboard/mouse baseline | Controller baseline |
 | --- | --- | --- |
@@ -2034,7 +2036,7 @@ remapping is added:
 | SettingsMenu | Escape / O | — |
 | WorldMap | M | — |
 | InventoryMenu | Tab / I | — |
-| Build and crafting menu (`CraftMenu`) | B | Special left |
+| Build menu (Construction Hammer active) | Right mouse button | — |
 | Numbered inventory hotbar | 1–9, 0 | Inventory grid via D-pad and A |
 | Support selection | F1–F4 | D-pad directions |
 | Support activation | Q | Face button top |
@@ -2283,7 +2285,7 @@ current recipe or Upgrade selection unchanged. The server requires a visible
 same-world Workbench or Forge within 250 cm, validates the entire bounded
 owner-only carried-tool array, repairs every damaged known tool, and persists
 the complete candidate before publication. The Inventory panel retains its
-selected-tool repair action. The legacy CraftMenu path remains available.
+selected-tool repair action. The standalone Build menu opens by right-clicking with the Construction Hammer active.
 An accepted Chest interaction opens a Store section with separate selectors
 backed by the owning pawn's private pack and its owner-only current chest view.
 Each list shows the item's current count; the summary reports both 16-stack

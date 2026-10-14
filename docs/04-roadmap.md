@@ -913,8 +913,8 @@ saved-data schemas, introduce new online services, or expand platform scope.
   intro-skip settings marked “add but hide for now” in the architecture's Settings checklist must not expose
   controls yet. Values remain local, and modal/input, accessibility, and the
   transparent Escape home list remain correct.
-- With the Construction Hammer active, right-click opens the Build menu; its
-  existing keyboard/controller entry remains available. Build entries show
+- With the Construction Hammer active, right-click opens the Build menu; no
+  separate action binding is provided. Build entries show
   icons only. Hover/focus presents the selected piece's name, description,
   applicable required-station icon, and owner-visible material costs/counts
   below the menu. Icon-only filter/group controls sit at the top with no

@@ -43,7 +43,6 @@ $requiredActions = @{
     SettingsMenu = @('Escape')
     WorldMap = @('M')
     InventoryMenu = @('Tab', 'I')
-    CraftMenu = @('B', 'Gamepad_Special_Left')
     Hotbar1 = @('One')
     Hotbar2 = @('Two')
     Hotbar3 = @('Three')

@@ -169,7 +169,19 @@ void AKalmalaCharacter::BeginPlay()
     if (HasAuthority())
     {
         CarriedTools = FKalmalaToolLifecycleContract::BuildInitialCarriedTools();
-        if (Inventory) Inventory->SynchronizeGridFromServer();
+        if (Inventory)
+        {
+            Inventory->SynchronizeGridFromServer();
+            const FName ConstructionHammerId(TEXT("ConstructionHammer"));
+            const int32 HammerSlot = Inventory->GetGridSlots().IndexOfByKey(ConstructionHammerId);
+            bool bHammerInFirstHotbarSlot = HammerSlot == 0;
+            if (HammerSlot > 0)
+            {
+                bHammerInFirstHotbarSlot = Inventory->MoveSlotFromServer(
+                    HammerSlot, 0, ConstructionHammerId, Inventory->GetSlotItem(0));
+            }
+            if (bHammerInFirstHotbarSlot) Inventory->ServerUseHotbarSlot(0);
+        }
         ForceNetUpdate();
     }
     bTraversalTelemetryEnabled = FParse::Param(FCommandLine::Get(), TEXT("KalmalaTraversalTest"));

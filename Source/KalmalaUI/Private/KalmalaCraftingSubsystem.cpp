@@ -4309,7 +4309,6 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
         CancelBuildPlacementInput();
     if(PC->InputComponent && BoundInput.Get()!=PC->InputComponent)
     {
-        PC->InputComponent->BindAction(TEXT("CraftMenu"),IE_Pressed,this,&ThisClass::Toggle).bConsumeInput=true;
         FInputKeyBinding& BuildMouseBinding = PC->InputComponent->BindKey(
             EKeys::RightMouseButton, IE_Pressed, this, &ThisClass::OpenBuildFromRightClick);
         BuildMouseBinding.bConsumeInput = false;
@@ -5112,30 +5111,6 @@ void UKalmalaCraftingSubsystem::CancelBuildPlacementInput()
 {
     PendingBuildPlacementKit = NAME_None;
     PendingBuildPlacementStartedFrame = 0;
-}
-
-void UKalmalaCraftingSubsystem::Toggle()
-{
-    if(!Controller) return;
-    if (!PendingBuildPlacementKit.IsNone()) CancelBuildPlacementInput();
-    if (const ULocalPlayer* LocalPlayer = Controller->GetLocalPlayer())
-        if (const UKalmalaInventoryMenuSubsystem* InventoryMenu = LocalPlayer->GetSubsystem<UKalmalaInventoryMenuSubsystem>();
-            InventoryMenu && InventoryMenu->IsMenuOpen()) return;
-    if (StationContextWidget && StationContextWidget->IsOpen())
-    {
-        StationContextWidget->Close();
-        return;
-    }
-    if(!Widget) { Widget=CreateWidget<UKalmalaCraftingWidget>(Controller); if(Widget) Widget->AddToPlayerScreen(160); }
-    if (Widget)
-    {
-        if (Widget->IsOpen()) Widget->Close();
-        else
-        {
-            if (!Widget->IsInViewport()) Widget->AddToPlayerScreen(160);
-            Widget->Open();
-        }
-    }
 }
 
 void UKalmalaCraftingSubsystem::OpenBuildFromRightClick()

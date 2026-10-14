@@ -394,7 +394,6 @@ private:
     UFUNCTION() void OpenBuildFromRightClick();
     void ConfirmBuildPlacementInput();
     void CancelBuildPlacementInput();
-    void Toggle();
     void Release();
     void ObserveRecipeActivity(UKalmalaCraftingComponent* Crafting);
     void RecordAcceptedRecipeActivity(const FKalmalaAcceptedCraftingActionReceipt& Receipt);

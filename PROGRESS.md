@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-14 — Open Build with the active hammer
+
+- **Completed:** Removed Build from Control-bound keys and deleted the keyboard/controller toggle path. Right-click opens the existing owner-local Build menu only when the Construction Hammer is active. New characters receive the existing server-created hammer in hotbar slot 1 and it is selected on spawn.
+- **Files changed:** `Config/DefaultInput.ini`, `Scripts/Tests/Presentation/Verify-LocalInputContract.ps1`, `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp`, `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`, `Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp`, `Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`, `docs/02-technical-architecture.md`, `docs/04-roadmap.md`, `docs/05-decision-log.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** inspected the right-click active-hammer gate, server-owned starter loadout, shared inventory grid placement and active-item path; searched for obsolete Build bindings and updated the existing input contract verifier; parsed the changed PowerShell script and ran `git diff --check`. No Unreal build, automation, or runtime check ran.
+- **Impact/authority:** the Build menu remains local presentation, gated by the player's active hammer. Spawn-time hotbar placement and selection run on the server using existing inventory methods and owner-only replicated state. No new client request, save field, or gameplay authority was added.
+- **Verification/limitations:** normal user-directed increment; full Unreal build, automation and rendered peer verification remain deferred. Right-click remains the fixed Build-menu input while the hammer is active.
+- **Next eligible task:** convert decorative generated forest trees into individually attackable sources with a compatible depletion/streaming policy.
+
 ## User-directed increment 2026-10-14 — Keep the expanded map centred on the player
 
 - **Completed:** removed Recenter map from Control bindings and local input actions; the expanded map now opens on and follows the owning player, and mouse/keyboard/controller zoom stays around that centre. Removed map pan input and kept the development-only overview fixture available.

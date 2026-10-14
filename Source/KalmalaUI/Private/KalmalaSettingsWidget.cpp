@@ -373,8 +373,6 @@ namespace
                 { EKeys::M, EKeys::N }, { EKeys::Gamepad_Special_Right }));
             Result.Add(MakeSingleInput(TEXT("InventoryMenu"), TEXT("Inventory"), ELocalInputMappingKind::Action,
                 { EKeys::Tab, EKeys::I }, {}));
-            Result.Add(MakeSingleInput(TEXT("CraftMenu"), TEXT("Build"), ELocalInputMappingKind::Action,
-                { EKeys::B, EKeys::C }, { EKeys::Gamepad_Special_Left, EKeys::Gamepad_Special_Right }));
             return Result;
         }();
         return Definitions;

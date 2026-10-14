@@ -31,6 +31,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-14 — Open Build with the active hammer:** remove Build from Control-bound keys, open the standalone Build menu with right-click only while Construction Hammer is active, and start new characters with the hammer active in hotbar slot 1. Lightweight source inspection and whitespace checks passed; Unreal verification deferred.
+
 - [x] **2026-10-14 — Keep the expanded map centred on the player:** remove pan/recenter controls and the Recenter map binding row; keep the owning player at the view centre on open and zoom. PowerShell parser and whitespace checks passed; Unreal verification deferred.
 
 - [x] **2026-10-13 — Standard recipe arrays:** use recipes roots for all categories, including equipment acquisitions and upgrade costs; update loader routing. Lightweight checks passed; Unreal verification deferred.
