@@ -217,7 +217,8 @@ namespace
         TArray<FString> PathParts;
         OutNormalizedPath.ParseIntoArray(PathParts, TEXT("/"), false);
         const bool bIsEquipmentSubdirectory = bAllowEquipmentSubdirectory && PathParts.Num() == 3
-            && FCString::Strcmp(ExpectedDirectory, TEXT("items")) == 0
+            && (FCString::Strcmp(ExpectedDirectory, TEXT("items")) == 0
+                || FCString::Strcmp(ExpectedDirectory, TEXT("recipes")) == 0)
             && PathParts[1] == TEXT("equipment");
         const bool bHasExpectedDepth = PathParts.Num() == 2 || bIsEquipmentSubdirectory;
         if (!bHasExpectedDepth || PathParts[0] != ExpectedDirectory || PathParts.Last().IsEmpty()
@@ -254,7 +255,7 @@ namespace
             return false;
         }
 
-        // Append so each item-profile group can be assembled from multiple category files.
+        // Append so each equipment group can be assembled from multiple category files.
         for (const TSharedPtr<FJsonValue>& FileValue : *FileValues)
         {
             if (!FileValue.IsValid() || FileValue->Type != EJson::String)
@@ -369,7 +370,7 @@ namespace
             || !LoadCategoryFiles(Root, TEXT("itemProfileFiles"), TEXT("items"), TEXT("items"),
                 UKalmalaToolCatalogue::MaxProfiles, TotalJsonCharacters, ToolProfileValues, true)
             || !LoadCategoryFiles(Root, TEXT("itemRecipeFiles"), TEXT("recipes"), TEXT("recipes"),
-                UKalmalaToolCatalogue::MaxRecipes, TotalJsonCharacters, ToolRecipeValues)
+                UKalmalaToolCatalogue::MaxRecipes, TotalJsonCharacters, ToolRecipeValues, true)
             || !LoadCategoryFiles(Root, TEXT("itemUpgradeFiles"), TEXT("recipes"), TEXT("upgrades"),
                 UKalmalaToolCatalogue::MaxRecipes, TotalJsonCharacters, ToolUpgradeValues)
             || !LoadCategoryFiles(Root, TEXT("levelUpRewardFiles"), TEXT("levelUpRewards"), TEXT("tools"),

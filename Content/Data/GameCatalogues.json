@@ -30,11 +30,11 @@
     "items/equipment/building-hammer.json"
   ],
   "itemRecipeFiles": [
-    "recipes/axes.json",
-    "recipes/knives.json",
-    "recipes/pickaxes.json",
-    "recipes/spears.json",
-    "recipes/maces.json"
+    "recipes/equipment/axes.json",
+    "recipes/equipment/knives.json",
+    "recipes/equipment/pickaxes.json",
+    "recipes/equipment/spears.json",
+    "recipes/equipment/maces.json"
   ],
   "itemUpgradeFiles": [
     "upgrades/upgrades.json"

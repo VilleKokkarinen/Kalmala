@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-14 — Group equipment recipes under recipes/equipment
+
+- **Completed:** moved the axe, knife, pickaxe, spear, and mace acquisition recipe files under `recipes/equipment/`, updated `itemRecipeFiles`, and allowed that specific nested folder for item-recipe loading. Recipe IDs, costs, and runtime assembly are unchanged.
+- **Files changed:** `Content/Data/GameCatalogues.json`, five recipe file moves under `Content/Data/GameCatalogues/recipes/equipment/`, `Source/KalmalaGameplay/Private/KalmalaGameCatalogueLoader.cpp`, `docs/02-technical-architecture.md`, `docs/05-decision-log.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** manifest and moved recipe JSON parsing, manifest path resolution, exact recipe-content preservation, and `git diff --check`. No tests, build, or automation ran.
+- **Impact/authority:** catalogue file organization and path validation only. Recipes still load into the existing server-side item-recipe catalogue; crafting transactions and server authority are unchanged.
+- **Verification/limitations:** normal user-directed increment; full Unreal build and catalogue automation remain deferred.
+- **Next eligible task:** convert decorative generated forest trees into individually attackable sources with a compatible depletion/streaming policy.
+
 ## User-directed increment 2026-10-14 — Group equipment profiles under items/equipment
 
 - **Completed:** moved the axe, knife, pickaxe, spear, mace, and Building Hammer profile files under `items/equipment/`, updated `itemProfileFiles`, and allowed that specific nested folder for item-profile loading. Existing ItemIds, data, runtime catalogue assembly, and server authority are unchanged.
