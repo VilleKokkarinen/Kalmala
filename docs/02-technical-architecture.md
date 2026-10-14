@@ -2023,28 +2023,38 @@ Build input is a fixed right-click action while the Construction Hammer is
 active, so it is not a remappable Control-bound key. These baselines must remain
 available while local remapping is added:
 
+Keyboard & Mouse pairs list the primary key or key pair first and the
+configurable alternative second. Movement keys are written as positive/negative
+pairs.
+
 | Action or axis | Keyboard/mouse baseline | Controller baseline |
 | --- | --- | --- |
-| MoveForward | W/S and Up/Down | Left stick Y |
-| MoveRight | A/D and Left/Right | Left stick X |
+| MoveForward | W/S, Up/Down | Left stick Y |
+| MoveRight | A/D, Left/Right | Left stick X |
 | Turn / LookUp | Mouse X / Mouse Y | Right stick X / Right stick Y |
 | MinimapZoom | Mouse wheel | — |
-| Interact | E | Face button bottom |
+| Interact | E / F | Face button bottom |
 | Attack | Left mouse button | Right shoulder |
-| Jump | Space | Face button left |
+| Jump | Space / C | Face button left |
 | Sprint | Left Shift / Right Shift | Left stick click |
 | SettingsMenu | Escape / O | — |
-| WorldMap | M | — |
-| InventoryMenu | Tab / I | — |
+| WorldMap | M / N | — |
+| InventoryMenu | I / Tab | — |
 | Build menu (Construction Hammer active) | Right mouse button | — |
 | Numbered inventory hotbar | 1–9, 0 | Inventory grid via D-pad and A |
 | Support selection | F1–F4 | D-pad directions |
 | Support activation | Q | Face button top |
 
-The baseline check proves that these existing names and inputs are present; it
-does not make them remappable. A runtime remapping presenter must display the
-actual current binding, retain a keyboard/controller path to cancel or reset,
-and send the same existing intent rather than a new gameplay payload.
+Keyboard & Mouse shows primary bindings in its first group and configurable
+alternative bindings in a second group beneath it. Both keys invoke the same
+existing action or axis; movement alternatives use the arrow keys, and the
+action alternatives follow the order in this table. Look axes and Attack remain
+mouse-bound. Controller bindings remain in their separate group. The baseline
+check proves that these names and default inputs are present. Runtime remapping
+stores the primary and alternative locally and applies both to the same action
+or axis. A remapping presenter must display the current bindings, retain a
+keyboard/controller path to cancel or reset, and send the same existing intent
+rather than a new gameplay payload.
 
 The owner-local Inventory menu opens only when no other modal is ignoring
 movement or look input. This keeps it exclusive with crafting, Settings, and

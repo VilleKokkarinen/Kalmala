@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-14 — Add configurable alternate keyboard bindings
+
+- **Completed:** added a matching Alternative keys group under Keyboard & Mouse controls. Keyboard actions and movement axes now retain separate primary and alternate local settings, and both keys invoke the existing action/axis. Inventory defaults to I with Tab as its alternate; other action pairs are E/F, Space/C, Left/Right Shift, Escape/O, and M/N, with arrow keys as movement alternatives. Mouse-only look and Attack remain unchanged.
+- **Files changed:** `Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp`, `Source/KalmalaUI/Public/KalmalaSettingsWidget.h`, `Config/DefaultInput.ini`, `Scripts/Tests/Presentation/Verify-LocalInputContract.ps1`, `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** inspected binding defaults, independent config keys, UI row ordering, action/axis application, restore-default cleanup, and the existing input contract checker; `git diff --check` passed. No test, Unreal build, automation, or rendered menu ran.
+- **Impact/authority:** input bindings and Controls presentation are local-player settings; each pair reuses existing gameplay actions/axes. No network payload, server authority path, or save schema changed.
+- **Verification/limitations:** normal user-directed increment; full Unreal compilation, automation, and rendered Settings verification remain deferred.
+- **Next eligible task:** convert decorative generated forest trees into individually attackable sources and integrate their depletion/streaming policy.
+
 ## User-directed increment 2026-10-14 — Keep Forge upgrade bonus inline
 
 - **Completed:** removed the fill-width layout from the Forge Upgrade baseline text slot, keeping the green `+5)` adjacent to `Slash bonus - 50 (` rather than at the far edge of the comparison frame.

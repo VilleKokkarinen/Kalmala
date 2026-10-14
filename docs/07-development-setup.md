@@ -407,8 +407,10 @@ Gameplay prompts, inventory and service menus, the expanded map, status/detail
 views, and the Settings home screen do not print key/button names or control
 combinations. The map keeps its symbol legend, category state, and concise
 share/ping action names. Options > Controls and Options > Controller are
-the only player-facing views that show current bindings; all existing input
-paths and remapping behavior remain.
+the only player-facing views that show current bindings. Controls presents the
+keyboard/mouse primary bindings first, followed by a matching Alternative keys
+group; each alternate maps to the same action or axis and can be configured
+independently. Controller bindings stay in their existing group.
 Run `Scripts/Tests/Presentation/Verify-MenuInputCopy.ps1` for the narrow source audit of visible
 copy, binding-label resolution, retained action names, and keyboard/controller
 navigation seams. After an affected UI build, run the focused map, status,
