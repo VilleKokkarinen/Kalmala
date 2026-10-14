@@ -1,0 +1,22 @@
+{
+  "items": [
+    {
+      "ItemId": "Densewood",
+      "DisplayName": "Densewood",
+      "Description": "Dark, dense timber from Ironheart trunks that burns as hearth fuel.",
+      "MaxStack": 50
+    },
+    {
+      "ItemId": "Lightwood",
+      "DisplayName": "Lightwood",
+      "Description": "Pale birch timber for stronger tools.",
+      "MaxStack": 50
+    },
+    {
+      "ItemId": "Wood",
+      "DisplayName": "Wood",
+      "Description": "Common timber for tools, structures, and camp equipment.",
+      "MaxStack": 50
+    }
+  ]
+}

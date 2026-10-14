@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-14 — Group material catalogue files by type
+
+- **Completed:** split the ordinary materials catalogue into `items/materials/wood.json` (Wood, Lightwood, Densewood), `ore.json` (Stone, Frost Salt), `metal.json` (Iron), `ingredient.json` (Fibre, Peat Amber), and `others.json` (Coal). Updated `itemFiles` and allowed these exact material subfolder paths for ordinary item data. All nine item records, IDs, descriptions, stack limits, and runtime catalogue behavior are preserved.
+- **Files changed:** `Content/Data/GameCatalogues/items/materials.json` (split into five files under `items/materials/`), `Content/Data/GameCatalogues.json`, `Source/KalmalaGameplay/Private/KalmalaGameCatalogueLoader.cpp`, `docs/02-technical-architecture.md`, `docs/05-decision-log.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** parse the manifest and every listed item file; verify the five groups contain each source record exactly once, IDs remain unique, allowed folder paths resolve, and `git diff --check`. No tests, build, or automation ran.
+- **Impact/authority:** ordinary item catalogue organization and path validation only. Runtime item definitions and server-side gameplay authority are unchanged.
+- **Verification/limitations:** normal user-directed increment; full Unreal build and catalogue automation remain deferred.
+- **Next eligible task:** convert decorative generated forest trees into individually attackable sources with a compatible depletion/streaming policy.
+
 ## User-directed increment 2026-10-14 — Move attacks and level-up rewards into dedicated folders
 
 - **Completed:** moved shared attack definitions from `tools/Attacks.json` to `attacks/attacks.json` and level-up rewards from `tools/LevelUpRewards.json` to `progression/level-up-rewards.json`; updated manifest routes and loader folder validation. JSON schema, item IDs, progression values, runtime catalogue behavior, and server authority are unchanged.

@@ -1,0 +1,16 @@
+{
+  "items": [
+    {
+      "ItemId": "FrostSalt",
+      "DisplayName": "Frost Salt",
+      "Description": "Pale mineral crystals gathered in the tundra.",
+      "MaxStack": 40
+    },
+    {
+      "ItemId": "Stone",
+      "DisplayName": "Stone",
+      "Description": "Add some googly eyes, and it becomes a friendly pet rock.",
+      "MaxStack": 40
+    }
+  ]
+}

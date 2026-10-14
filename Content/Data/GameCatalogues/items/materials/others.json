@@ -1,0 +1,10 @@
+{
+  "items": [
+    {
+      "ItemId": "Coal",
+      "DisplayName": "Coal",
+      "Description": "A dense, black mineral that burns directly as hearth fuel.",
+      "MaxStack": 40
+    }
+  ]
+}

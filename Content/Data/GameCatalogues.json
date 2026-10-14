@@ -1,7 +1,11 @@
 {
   "schemaVersion": 12,
   "itemFiles": [
-    "items/materials.json",
+    "items/materials/ingredient.json",
+    "items/materials/metal.json",
+    "items/materials/ore.json",
+    "items/materials/others.json",
+    "items/materials/wood.json",
     "items/buildItems/cauldron.json",
     "items/buildItems/cooking-rack.json",
     "items/buildItems/forge.json",

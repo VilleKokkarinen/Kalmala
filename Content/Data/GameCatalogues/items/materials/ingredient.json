@@ -1,0 +1,16 @@
+{
+  "items": [
+    {
+      "ItemId": "Fibre",
+      "DisplayName": "Reed Fibre",
+      "Description": "Plant strands used in simple tools and camp furnishings.",
+      "MaxStack": 50
+    },
+    {
+      "ItemId": "PeatAmber",
+      "DisplayName": "Peat Amber",
+      "Description": "Dark peat threaded with amber from the Mire.",
+      "MaxStack": 40
+    }
+  ]
+}

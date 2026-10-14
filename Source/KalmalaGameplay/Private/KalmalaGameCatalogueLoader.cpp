@@ -205,7 +205,8 @@ namespace
     }
 
     bool IsValidCategoryPath(const FString& RelativePath, const TCHAR* ExpectedDirectory,
-        FString& OutNormalizedPath, const TCHAR* AllowedSubdirectory)
+        FString& OutNormalizedPath, const TCHAR* AllowedSubdirectory,
+        const TCHAR* AdditionalAllowedSubdirectory)
     {
         OutNormalizedPath = RelativePath.Replace(TEXT("\\"), TEXT("/"));
         if (OutNormalizedPath.IsEmpty() || OutNormalizedPath.StartsWith(TEXT("/"))
@@ -216,8 +217,9 @@ namespace
 
         TArray<FString> PathParts;
         OutNormalizedPath.ParseIntoArray(PathParts, TEXT("/"), false);
-        const bool bIsAllowedSubdirectory = AllowedSubdirectory != nullptr && PathParts.Num() == 3
-            && PathParts[1] == AllowedSubdirectory;
+        const bool bIsAllowedSubdirectory = PathParts.Num() == 3
+            && ((AllowedSubdirectory != nullptr && PathParts[1] == AllowedSubdirectory)
+                || (AdditionalAllowedSubdirectory != nullptr && PathParts[1] == AdditionalAllowedSubdirectory));
         const bool bHasExpectedDepth = PathParts.Num() == 2 || bIsAllowedSubdirectory;
         if (!bHasExpectedDepth || PathParts[0] != ExpectedDirectory || PathParts.Last().IsEmpty()
             || !PathParts.Last().EndsWith(TEXT(".json"), ESearchCase::IgnoreCase))
@@ -243,7 +245,7 @@ namespace
     bool LoadCategoryFiles(const TSharedPtr<FJsonObject>& Manifest, const TCHAR* ManifestField,
         const TCHAR* ArrayField, const TCHAR* ExpectedDirectory, int32 MaxEntries,
         int32& InOutJsonCharacters, TArray<TSharedPtr<FJsonValue>>& OutValues,
-        const TCHAR* AllowedSubdirectory = nullptr)
+        const TCHAR* AllowedSubdirectory = nullptr, const TCHAR* AdditionalAllowedSubdirectory = nullptr)
     {
         const TArray<TSharedPtr<FJsonValue>>* FileValues = nullptr;
         if (!Manifest.IsValid() || !Manifest->TryGetArrayField(ManifestField, FileValues)
@@ -264,7 +266,7 @@ namespace
 
             FString RelativePath;
             if (!IsValidCategoryPath(FileValue->AsString(), ExpectedDirectory, RelativePath,
-                    AllowedSubdirectory))
+                    AllowedSubdirectory, AdditionalAllowedSubdirectory))
             {
                 UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue manifest contains an unsafe category path: %s"),
                     *FileValue->AsString());
@@ -362,7 +364,8 @@ namespace
         TArray<TSharedPtr<FJsonValue>> LevelUpRewardValues;
         TArray<TSharedPtr<FJsonValue>> AttackListValues;
         if (!LoadCategoryFiles(Root, TEXT("itemFiles"), TEXT("items"), TEXT("items"),
-                UKalmalaItemCatalogue::MaxDefinitions, TotalJsonCharacters, ItemValues, TEXT("buildItems"))
+                UKalmalaItemCatalogue::MaxDefinitions, TotalJsonCharacters, ItemValues,
+                TEXT("buildItems"), TEXT("materials"))
             || !LoadCategoryFiles(Root, TEXT("recipeFiles"), TEXT("recipes"), TEXT("recipes"),
                 32, TotalJsonCharacters, RecipeValues, TEXT("stations"))
             || !LoadCategoryFiles(Root, TEXT("itemProfileFiles"), TEXT("items"), TEXT("items"),

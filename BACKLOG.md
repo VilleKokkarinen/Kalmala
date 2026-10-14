@@ -10,6 +10,7 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 - [x] **2026-10-13 — Omit unused item damage channels:** remove zero-valued item DamageBonuses fields and default omissions to zero before strict loading. Lightweight checks passed; Unreal verification deferred.
 - [x] **2026-10-14 — Move attacks and level-up rewards into dedicated folders:** keep shared attack lists under `attacks/` and item level gains under `progression/`, with manifest validation matching those categories.
+- [x] **2026-10-14 — Group ordinary material files by type:** split the materials catalogue into `items/materials/wood.json`, `ore.json`, `metal.json`, `ingredient.json`, and `others.json`, preserving item data and loader validation.
 
 ## Completed roadmap log
 
