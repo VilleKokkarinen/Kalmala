@@ -9,6 +9,7 @@ This is the short execution queue and completion index. The roadmap and feature 
 M0–M14 and world-generation Phases 1–9 are complete under their recorded acceptance scope and limitations. M13 integrated-main acceptance passed on 2026-10-11; M14 integrated-main acceptance passed on 2026-10-12. See [M14 integration evidence](docs/evidence/m14/main-integration.md).
 
 - [x] **2026-10-13 — Omit unused item damage channels:** remove zero-valued item DamageBonuses fields and default omissions to zero before strict loading. Lightweight checks passed; Unreal verification deferred.
+- [x] **2026-10-14 — Move attacks and level-up rewards into dedicated folders:** keep shared attack lists under `attacks/` and item level gains under `progression/`, with manifest validation matching those categories.
 
 ## Completed roadmap log
 

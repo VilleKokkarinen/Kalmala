@@ -4,6 +4,7 @@ Add new decisions at the top. A decision records what agents should treat as set
 
 | Date | Decision | Status | Rationale |
 | --- | --- | --- | --- |
+| 2026-10-14 | Store shared attack data under `attacks/` and level-up rewards under `progression/`. | User-directed | Keep each catalogue in a folder named for its purpose and outside the equipment data folder. |
 | 2026-10-14 | Group crafting recipes by station under `recipes/stations/`. | User-directed | Split station-bound recipes by their required station, include Inventory as the Building Hammer's crafting context, and keep item-acquisition records in station-specific companion files. Build-menu recipes remain in `recipes/building.json`. |
 | 2026-10-14 | Group buildable items under `items/buildItems/`. | User-directed | Keep each station and its upgrade items together, while grouping Storage and construction pieces in `other.json`; load the files as ordinary items. |
 | 2026-10-14 | Store equipment acquisition recipes under `recipes/equipment/`. | Superseded 2026-10-14 | Originally grouped by family; the user later directed station-based grouping. The separate `itemRecipeFiles` runtime category remains. |

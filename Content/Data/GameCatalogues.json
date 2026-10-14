@@ -38,9 +38,9 @@
     "upgrades/upgrades.json"
   ],
   "levelUpRewardFiles": [
-    "tools/LevelUpRewards.json"
+    "progression/level-up-rewards.json"
   ],
   "attackFiles": [
-    "tools/Attacks.json"
+    "attacks/attacks.json"
   ]
 }

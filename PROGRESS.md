@@ -1,5 +1,13 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-14 — Move attacks and level-up rewards into dedicated folders
+
+- **Completed:** moved shared attack definitions from `tools/Attacks.json` to `attacks/attacks.json` and level-up rewards from `tools/LevelUpRewards.json` to `progression/level-up-rewards.json`; updated manifest routes and loader folder validation. JSON schema, item IDs, progression values, runtime catalogue behavior, and server authority are unchanged.
+- **Files changed:** `Content/Data/GameCatalogues/tools/Attacks.json` (moved to `attacks/attacks.json`), `Content/Data/GameCatalogues/tools/LevelUpRewards.json` (moved to `progression/level-up-rewards.json`), `Content/Data/GameCatalogues.json`, `Source/KalmalaGameplay/Private/KalmalaGameCatalogueLoader.cpp`, `docs/02-technical-architecture.md`, `docs/05-decision-log.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** parse manifest and both relocated JSON files, verify referenced paths and loader directory rules, confirm existing content edits remain at the new paths and outside the commit, and run `git diff --check`. No tests or build ran.
+- **Impact/authority:** data-file organization and manifest path validation only. Server-side catalogue loading and gameplay authority are unchanged.
+- **Verification/limitations:** normal user-directed increment; full Unreal build and catalogue automation remain deferred. Existing uncommitted edits to the two JSON files are preserved at their new paths and excluded from this increment's commit.
+- **Next eligible task:** convert decorative generated forest trees into individually attackable sources with a compatible depletion/streaming policy.
 ## User-directed increment 2026-10-14 — Group crafting recipes by station
 
 - **Completed:** moved station-bound ordinary recipes into `recipes/stations/` files for Inventory, Workbench, Forge, Cauldron, Cooking Rack, and Frying Pan. Inventory contains the Building Hammer recipe; build-menu construction recipes remain in `recipes/building.json`. Grouped equipment acquisitions by their required Workbench/Forge station in companion files loaded through `itemRecipeFiles`.
