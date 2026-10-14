@@ -4,6 +4,7 @@ Add new decisions at the top. A decision records what agents should treat as set
 
 | Date | Decision | Status | Rationale |
 | --- | --- | --- | --- |
+| 2026-10-14 | Assign one stable GUID to every physical item, including each unit in stackable items; preserve identity through stack changes and storage transfers. | User-directed | Generate identities on the server when items are granted or crafted. Storage transfer requests identify the exact unit, and schema-2 chest saves retain its GUID through reload; schema-1 storage is migrated and rewritten with per-item IDs. |
 | 2026-10-14 | Give every inventory stack and carried tool instance a unique GUID; do not apply a separate tool-count cap. | User-directed | All entries share the existing 40 cells. Duplicate item IDs are valid; stackable quantities fill/split across cells by MaxStack, while non-stackable copies occupy one cell each. Keep the starter Construction Hammer first in the hotbar. |
 | 2026-10-14 | Group Boar Hide and Deer Hide under `items/materials/hides.json`. | User-directed | Hides are crafting materials, not food; keep their item IDs, definitions, rewards, and references unchanged. |
 | 2026-10-14 | Remove the Mireling Ash item and its dedicated icon assets; stop granting it when Mirelings are defeated. | User-directed | Keep the Mireling encounter and its separate boss-scroll reward; discard legacy chest stacks for the retired loot so the rest of the storage save remains usable. |

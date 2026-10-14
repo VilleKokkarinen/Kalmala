@@ -145,7 +145,8 @@ void UKalmalaInventoryInspectWidget::SetRows(const TArray<FKalmalaCatalogueRow>&
     FString Key = FString::Printf(TEXT("%d|%d|%s|%s|%d|%d"), Scale, Contrast, *InListLabel,
         *InEmptyLabel, bInAllowToolFilter, BoundedGridColumns);
     Key += bInUseSplitLayout ? TEXT("|split") : TEXT("|stacked");
-    for (const auto& Row : InRows) Key += TEXT("|") + Row.Id.ToString() + Row.Name + Row.Detail + (Row.bCarriedTool ? TEXT("T") : TEXT("I"));
+    for (const auto& Row : InRows) Key += TEXT("|") + Row.Id.ToString() + Row.Name + Row.Detail
+        + Row.ItemGuid.ToString() + (Row.bCarriedTool ? TEXT("T") : TEXT("I"));
     if (Column && Key == LastRows) return;
     LastRows = Key;
     OwnerRows = InRows; TextScale = Scale; ContrastMode = Contrast;
@@ -227,6 +228,11 @@ void UKalmalaInventoryInspectWidget::Refilter()
 FName UKalmalaInventoryInspectWidget::GetSelectedItem() const
 {
     return Rows.IsValidIndex(Selected) ? Rows[Selected].Id : NAME_None;
+}
+
+FGuid UKalmalaInventoryInspectWidget::GetSelectedItemGuid() const
+{
+    return Rows.IsValidIndex(Selected) ? Rows[Selected].ItemGuid : FGuid();
 }
 
 void UKalmalaInventoryInspectWidget::Refresh()

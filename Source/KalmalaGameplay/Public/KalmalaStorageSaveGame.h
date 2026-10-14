@@ -19,14 +19,14 @@ class KALMALAGAMEPLAY_API UKalmalaStorageSaveGame : public USaveGame
 {
     GENERATED_BODY()
 public:
-    static constexpr int32 CurrentSchemaVersion = 1;
+    static constexpr int32 CurrentSchemaVersion = 2;
     static constexpr int32 MaxRecords = 128;
     static constexpr int32 MaxStorageSlots = 16;
     void InitializeForWorld(const FKalmalaWorldGenerationConfig& Config);
     bool MatchesWorld(const FKalmalaWorldGenerationConfig& Config) const;
     static bool IsValidConstructionId(const FString& Id);
     static bool IsValidStacks(const TArray<FKalmalaInventoryStack>& Stacks);
-    /** Rewrite retired raw-material aliases in loaded records without changing the save schema. */
+    /** Migrate retired aliases and assign/persist per-item GUIDs for legacy saved stacks. */
     static bool NormalizeLegacyStacks(TArray<FKalmalaInventoryStack>& Stacks);
     bool MigrateLegacyItemIds();
     const FKalmalaStorageSaveRecord* FindRecord(const FString& Id) const;

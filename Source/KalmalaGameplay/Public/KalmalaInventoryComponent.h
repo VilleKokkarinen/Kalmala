@@ -12,6 +12,8 @@ struct FKalmalaInventoryStack
     UPROPERTY(EditAnywhere) int32 Quantity = 0;
     /** Stable identity for this stack row; non-stackable copies each occupy a separate row. */
     UPROPERTY(EditAnywhere, SaveGame) FGuid InstanceGuid;
+    /** Stable identity for every physical item unit represented by Quantity. */
+    UPROPERTY(EditAnywhere, SaveGame) TArray<FGuid> ItemGuids;
 };
 
 /** Pawn-lifetime inventory. Only trusted server gameplay may mutate its contents. */
@@ -72,9 +74,16 @@ public:
     bool TryExchangeFromServer(const TArray<FKalmalaInventoryStack>& Costs,
         FName Output, int32 OutputCount, FString& Reason);
     static bool BuildTransfer(const TArray<FKalmalaInventoryStack>& Source,
+        const TArray<FKalmalaInventoryStack>& Destination, FGuid ItemGuid,
+        TArray<FKalmalaInventoryStack>& NextSource, TArray<FKalmalaInventoryStack>& NextDestination, FString& Reason);
+    /** Compatibility helper for trusted callers that request a count by type; units are selected in source order. */
+    static bool BuildTransfer(const TArray<FKalmalaInventoryStack>& Source,
         const TArray<FKalmalaInventoryStack>& Destination, FName ItemId, int32 Quantity,
         TArray<FKalmalaInventoryStack>& NextSource, TArray<FKalmalaInventoryStack>& NextDestination, FString& Reason);
     /** Persist the scratch chest before publishing this pack; failed validation/writes mutate neither. */
+    bool TransferStorageFromServer(const TArray<FKalmalaInventoryStack>& Storage, FGuid ItemGuid, bool bDeposit,
+        TFunctionRef<bool(const TArray<FKalmalaInventoryStack>&)> Persist, FString& Reason);
+    /** Trusted type-based helper retained for server-side verification and migration callers. */
     bool TransferStorageFromServer(const TArray<FKalmalaInventoryStack>& Storage, FName ItemId, bool bDeposit,
         TFunctionRef<bool(const TArray<FKalmalaInventoryStack>&)> Persist, FString& Reason);
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;

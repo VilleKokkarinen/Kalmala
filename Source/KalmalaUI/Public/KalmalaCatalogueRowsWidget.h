@@ -8,6 +8,8 @@ struct FKalmalaCatalogueRow
     FString Name;
     FString Detail;
     bool bCarriedTool = false;
+    /** Selected physical stack unit, used for exact owner-validated storage moves. */
+    FGuid ItemGuid;
 };
 
 /** Read-only pack slots plus separately framed carried tools. */

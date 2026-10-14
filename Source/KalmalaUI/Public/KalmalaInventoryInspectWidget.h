@@ -16,6 +16,7 @@ public:
         bool bAllowToolFilter = true, int32 GridColumns = 4, bool bUseSplitLayout = false);
     bool Navigate(FKey Key);
     FName GetSelectedItem() const;
+    FGuid GetSelectedItemGuid() const;
     const FString& GetSearch() const { return Search; }
     void SetSearch(const FString& Query);
     void SetCategory(int32 Category);

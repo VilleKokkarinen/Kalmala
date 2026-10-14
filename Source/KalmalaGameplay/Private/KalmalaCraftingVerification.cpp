@@ -618,8 +618,12 @@ void UKalmalaCraftingComponent::RunPersistedCampVerification(float DeltaTime)
             && PlacePersistedCampConstruction(this, Character, TEXT("RoofKit"), Reason, Roof)
             && PlacePersistedCampConstruction(this, Character, TEXT("WorkbenchKit"), Reason, Workbench)
             && PlacePersistedCampConstruction(this, Character, TEXT("StorageKit"), Reason, Storage);
-        const bool bStorage = bBuilt && Inventory->TryGrantFromServer(TEXT("Wood"), 1) && OpenPersistedCampStorage(this, Character, Storage)
-            && TransferStorageFromServer(TEXT("Wood"), true, Reason) && HasStorageView() && StorageView.Num() == 1 && StorageView[0].ItemId == TEXT("Wood") && StorageView[0].Quantity == 1;
+        const bool bStorageWoodGranted = bBuilt && Inventory->TryGrantFromServer(TEXT("Wood"), 1);
+        const FKalmalaInventoryStack* StorageWood = Inventory->GetStacks().FindByPredicate(
+            [](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == TEXT("Wood") && !Stack.ItemGuids.IsEmpty(); });
+        const bool bStorage = bStorageWoodGranted && OpenPersistedCampStorage(this, Character, Storage)
+            && StorageWood && TransferStorageFromServer(StorageWood->ItemGuids[0], true, Reason) && HasStorageView()
+            && StorageView.Num() == 1 && StorageView[0].ItemId == TEXT("Wood") && StorageView[0].Quantity == 1;
         const bool bPaid = bStorage && Inventory->GetStacks().IsEmpty();
         const bool bPassed = bGathered && bHearthMaterialsReady && bHearthPlaced && bKitsCrafted && bBuilt && bStorage && bPaid;
         const AKalmalaCampfire* OwnedFire = FindOwnedPersistedCampfire(GetWorld(), Character);

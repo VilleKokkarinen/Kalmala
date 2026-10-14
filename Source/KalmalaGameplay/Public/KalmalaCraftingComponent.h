@@ -48,8 +48,8 @@ public:
     UFUNCTION(Server, Reliable) void ServerConsumeFood(FName FoodItemId);
     UFUNCTION(Server, Reliable) void ServerOpenStorage();
     UFUNCTION(Server, Reliable) void ServerCloseStorage();
-    UFUNCTION(Server, Reliable) void ServerDepositStorage(FName ItemId);
-    UFUNCTION(Server, Reliable) void ServerWithdrawStorage(FName ItemId);
+    UFUNCTION(Server, Reliable) void ServerDepositStorage(FGuid ItemGuid);
+    UFUNCTION(Server, Reliable) void ServerWithdrawStorage(FGuid ItemGuid);
     void InteractWithConstructionFromServer(AKalmalaConstructionActor* Construction);
     FName GetLastInteractedCookingStationKit() const { return LastInteractedCookingStationKit; }
     uint32 GetCookingStationInteractionSerial() const { return CookingStationInteractionSerial; }
@@ -63,7 +63,7 @@ public:
     bool IsStationContextUsable(AKalmalaConstructionActor* ExpectedActor, FName ExpectedKit,
         const FString& ExpectedConstructionId) const;
     bool OpenStorageFromServer(AKalmalaConstructionActor* Construction);
-    bool TransferStorageFromServer(FName ItemId, bool bDeposit, FString& Reason);
+    bool TransferStorageFromServer(FGuid ItemGuid, bool bDeposit, FString& Reason);
     const TArray<FKalmalaInventoryStack>& GetStorageView() const { return StorageView; }
     bool HasStorageView() const { return bStorageViewOpen; }
     uint32 GetResultSerial() const { return ResultSerial; }

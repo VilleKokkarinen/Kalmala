@@ -3801,17 +3801,20 @@ void UKalmalaCraftingWidget::Refresh()
     {
         TArray<FName> ItemOrder;
         TMap<FName, int32> Quantities;
+        TMap<FName, FGuid> FirstItemGuids;
         for (const FKalmalaInventoryStack& Stack : Stacks)
         {
             if (Stack.ItemId.IsNone() || Stack.Quantity <= 0) continue;
             if (!Quantities.Contains(Stack.ItemId)) ItemOrder.Add(Stack.ItemId);
             Quantities.FindOrAdd(Stack.ItemId) += Stack.Quantity;
+            if (!FirstItemGuids.Contains(Stack.ItemId) && !Stack.ItemGuids.IsEmpty())
+                FirstItemGuids.Add(Stack.ItemId, Stack.ItemGuids[0]);
         }
         for (const FName ItemId : ItemOrder)
         {
             const auto* Item = UKalmalaItemCatalogue::Get()->FindItem(ItemId);
             OutRows.Add({ItemId, Item ? Item->DisplayName : ItemId.ToString(),
-                FString::Printf(TEXT("Count %d"), Quantities.FindRef(ItemId)), false});
+                FString::Printf(TEXT("Count %d"), Quantities.FindRef(ItemId)), false, FirstItemGuids.FindRef(ItemId)});
         }
     };
     if (OwnerInventory) AppendGroupedStackRows(OwnerInventory->GetStacks(), StoragePackRows);
@@ -4462,34 +4465,48 @@ void UKalmalaCraftingWidget::DepositStorage()
     if (bStorageContext)
     {
         auto* M = Model();
-        const FName ItemId = StoragePackInspector ? StoragePackInspector->GetSelectedItem() : NAME_None;
-        if (!M || !IsStationContextValid() || !M->HasStorageView() || ItemId.IsNone()
+        const FGuid ItemGuid = StoragePackInspector ? StoragePackInspector->GetSelectedItemGuid() : FGuid();
+        if (!M || !IsStationContextValid() || !M->HasStorageView() || !ItemGuid.IsValid()
             || !StorageStoreButton || !StorageStoreButton->GetIsEnabled()) return;
 #if !UE_BUILD_SHIPPING
         ++StorageTransferRequestCountForTest;
 #endif
-        M->ServerDepositStorage(ItemId);
+        M->ServerDepositStorage(ItemGuid);
         return;
     }
     const auto& Items = UKalmalaItemCatalogue::Get()->Items;
-    if (auto* M=Model(); M && Items.IsValidIndex(SelectedStorageItem)) M->ServerDepositStorage(Items[SelectedStorageItem].ItemId);
+    if (auto* M=Model(); M && Items.IsValidIndex(SelectedStorageItem))
+    {
+        const auto* Pawn = GetOwningPlayerPawn();
+        const auto* Inventory = Pawn ? Pawn->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
+        const FName ItemId = Items[SelectedStorageItem].ItemId;
+        const FKalmalaInventoryStack* Stack = Inventory ? Inventory->GetStacks().FindByPredicate([ItemId](const auto& Candidate)
+            { return Candidate.ItemId == ItemId && !Candidate.ItemGuids.IsEmpty(); }) : nullptr;
+        if (Stack) M->ServerDepositStorage(Stack->ItemGuids[0]);
+    }
 }
 void UKalmalaCraftingWidget::WithdrawStorage()
 {
     if (bStorageContext)
     {
         auto* M = Model();
-        const FName ItemId = StorageContentsInspector ? StorageContentsInspector->GetSelectedItem() : NAME_None;
-        if (!M || !IsStationContextValid() || !M->HasStorageView() || ItemId.IsNone()
+        const FGuid ItemGuid = StorageContentsInspector ? StorageContentsInspector->GetSelectedItemGuid() : FGuid();
+        if (!M || !IsStationContextValid() || !M->HasStorageView() || !ItemGuid.IsValid()
             || !StorageWithdrawButton || !StorageWithdrawButton->GetIsEnabled()) return;
 #if !UE_BUILD_SHIPPING
         ++StorageTransferRequestCountForTest;
 #endif
-        M->ServerWithdrawStorage(ItemId);
+        M->ServerWithdrawStorage(ItemGuid);
         return;
     }
     const auto& Items = UKalmalaItemCatalogue::Get()->Items;
-    if (auto* M=Model(); M && Items.IsValidIndex(SelectedStorageItem)) M->ServerWithdrawStorage(Items[SelectedStorageItem].ItemId);
+    if (auto* M=Model(); M && Items.IsValidIndex(SelectedStorageItem))
+    {
+        const FName ItemId = Items[SelectedStorageItem].ItemId;
+        const FKalmalaInventoryStack* Stack = M->GetStorageView().FindByPredicate([ItemId](const auto& Candidate)
+            { return Candidate.ItemId == ItemId && !Candidate.ItemGuids.IsEmpty(); });
+        if (Stack) M->ServerWithdrawStorage(Stack->ItemGuids[0]);
+    }
 }
 void UKalmalaCraftingWidget::CloseClicked() { Close(); }
 FReply UKalmalaCraftingWidget::NativeOnPreviewMouseButtonDown(

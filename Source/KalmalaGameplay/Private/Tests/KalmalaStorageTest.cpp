@@ -32,10 +32,14 @@ bool FKalmalaStorageSaveTest::RunTest(const FString& Parameters)
         TestFalse(TEXT("Invalid stack rejected"), Save->UpsertRecord(TEXT("chest-1"), {{TEXT("Wood"),Quantity}}));
     const FGuid WoodGuidA = FGuid::NewGuid();
     const FGuid WoodGuidB = FGuid::NewGuid();
+    FKalmalaInventoryStack WoodStackA{TEXT("Wood"),1,FGuid::NewGuid()}; WoodStackA.ItemGuids.Add(WoodGuidA);
+    FKalmalaInventoryStack WoodStackB{TEXT("Wood"),1,FGuid::NewGuid()}; WoodStackB.ItemGuids.Add(WoodGuidB);
+    FKalmalaInventoryStack DuplicateWoodStack{TEXT("Wood"),1,FGuid::NewGuid()};
+    DuplicateWoodStack.ItemGuids.Add(WoodGuidA);
     TestTrue(TEXT("Matching item types can occupy separate GUID-addressed stacks"), UKalmalaStorageSaveGame::IsValidStacks(
-        {{TEXT("Wood"),1,WoodGuidA},{TEXT("Wood"),1,WoodGuidB}}));
+        {WoodStackA,WoodStackB}));
     TestFalse(TEXT("Duplicate item instance GUID rejected"), UKalmalaStorageSaveGame::IsValidStacks(
-        {{TEXT("Wood"),1,WoodGuidA},{TEXT("Wood"),1,WoodGuidA}}));
+        {WoodStackA,DuplicateWoodStack}));
     TestFalse(TEXT("Unknown item rejected"), Save->UpsertRecord(TEXT("chest-1"), {{TEXT("Forged"),1}}));
     TestFalse(TEXT("Path-like identity rejected"), Save->UpsertRecord(TEXT("../chest"), {}));
     TestFalse(TEXT("Empty identity rejected"), Save->UpsertRecord(TEXT(""), {}));
@@ -115,7 +119,7 @@ bool FKalmalaStorageNetworkTest::RunTest(const FString& Parameters)
         TestTrue(TEXT("Storage intent runs on server"), Function->HasAllFunctionFlags(FUNC_Net | FUNC_NetServer));
         const bool Transfer = Name == TEXT("ServerDepositStorage") || Name == TEXT("ServerWithdrawStorage");
         TestEqual(TEXT("No client target, count, save or snapshot payload"), int32(Function->NumParms), Transfer ? 1 : 0);
-        if (Transfer) TestNotNull(TEXT("Transfer supplies only item identity"), Function->FindPropertyByName(TEXT("ItemId")));
+        if (Transfer) TestNotNull(TEXT("Transfer supplies only exact item identity"), Function->FindPropertyByName(TEXT("ItemGuid")));
     }
     TArray<FLifetimeProperty> Props; GetDefault<UKalmalaCraftingComponent>()->GetLifetimeReplicatedProps(Props);
     for (const FName Name : {FName(TEXT("StorageView")), FName(TEXT("bStorageViewOpen")),

@@ -23,6 +23,11 @@ void UKalmalaCraftingComponent::RunStorageVerification(float DeltaTime)
             if (Stack.ItemId == TEXT("Wood")) Total += Stack.Quantity;
         return Total;
     };
+    auto FirstItemGuid = [](const TArray<FKalmalaInventoryStack>& Stacks, const FName ItemId) {
+        const FKalmalaInventoryStack* Stack = Stacks.FindByPredicate([ItemId](const FKalmalaInventoryStack& Candidate)
+            { return Candidate.ItemId == ItemId && !Candidate.ItemGuids.IsEmpty(); });
+        return Stack ? Stack->ItemGuids[0] : FGuid();
+    };
     if (C->HasAuthority() && StorageVerificationStage == 0 && StorageVerificationElapsed > 3)
     {
         int32 Players = 0;
@@ -83,7 +88,7 @@ void UKalmalaCraftingComponent::RunStorageVerification(float DeltaTime)
         { StorageVerificationStage = 99; return; }
         const FVector Original = C->GetActorLocation();
         C->SetActorLocation(Original + FVector(0,0,1000));
-        Check(!TransferStorageFromServer(TEXT("Wood"), false, Reason) && !HasStorageView(), TEXT("Distant transfer rejected and view cleared"));
+        Check(!TransferStorageFromServer(FirstItemGuid(StorageView, TEXT("Wood")), false, Reason) && !HasStorageView(), TEXT("Distant transfer rejected and view cleared"));
         C->SetActorLocation(Original);
         auto* Blocker = GetWorld()->SpawnActor<AActor>();
         auto* Box = NewObject<UBoxComponent>(Blocker); Blocker->SetRootComponent(Box); Blocker->AddInstanceComponent(Box);
@@ -92,7 +97,7 @@ void UKalmalaCraftingComponent::RunStorageVerification(float DeltaTime)
         Check(!OpenStorageFromServer(Chest), TEXT("Opaque obstruction rejects chest inspection"));
         Blocker->Destroy();
         Check(OpenStorageFromServer(Chest), TEXT("Unblocked chest can be reopened"));
-        Check(!TransferStorageFromServer(TEXT("Forged"), false, Reason) && Quantity(StorageView) == 3, TEXT("Unknown item cannot alter storage"));
+        Check(!TransferStorageFromServer(FGuid(), false, Reason) && Quantity(StorageView) == 3, TEXT("Unknown item cannot alter storage"));
         Check(Pack->TryGrantFromServer(TEXT("Wood"), 1), TEXT("Seed one item for owning RPC transfer"));
         Check(!Pack->TransferStorageFromServer(StorageView, TEXT("Wood"), true, [](const auto&) { return false; }, Reason)
             && Pack->GetQuantity(TEXT("Wood")) == 1 && Quantity(StorageView) == 3, TEXT("Failed persistence leaves pack and chest unchanged"));
@@ -116,18 +121,18 @@ void UKalmalaCraftingComponent::RunStorageVerification(float DeltaTime)
     if (LocalVerificationStage == 0 && LastResult == TEXT("Storage fixture ready") && Pack->GetQuantity(TEXT("Wood")) == 1)
     { ServerOpenStorage(); LocalVerificationStage = 1; LocalVerificationElapsed = 0; }
     else if (LocalVerificationStage == 1 && LocalVerificationElapsed > 1 && HasStorageView() && Quantity(StorageView) == 3)
-    { ServerDepositStorage(TEXT("Wood")); LocalVerificationStage = 2; LocalVerificationElapsed = 0; }
+    { ServerDepositStorage(FirstItemGuid(Pack->GetStacks(), TEXT("Wood"))); LocalVerificationStage = 2; LocalVerificationElapsed = 0; }
     else if (LocalVerificationStage == 2 && LocalVerificationElapsed > 1 && Quantity(StorageView) == 4 && Pack->GetQuantity(TEXT("Wood")) == 0)
-    { ServerWithdrawStorage(TEXT("Wood")); LocalVerificationStage = 3; LocalVerificationElapsed = 0; }
+    { ServerWithdrawStorage(FirstItemGuid(StorageView, TEXT("Wood"))); LocalVerificationStage = 3; LocalVerificationElapsed = 0; }
     else if (LocalVerificationStage == 3 && LocalVerificationElapsed > 1 && Quantity(StorageView) == 3 && Pack->GetQuantity(TEXT("Wood")) == 1)
-    { ServerWithdrawStorage(TEXT("Forged")); LocalVerificationStage = 4; LocalVerificationElapsed = 0; }
+    { ServerWithdrawStorage(FGuid()); LocalVerificationStage = 4; LocalVerificationElapsed = 0; }
     else if (LocalVerificationStage == 4 && LocalVerificationElapsed > 1)
     {
         bool Private = true;
         if (!C->HasAuthority())
         {
             FString Reason;
-            Private &= !TransferStorageFromServer(TEXT("Wood"), false, Reason);
+            Private &= !TransferStorageFromServer(FirstItemGuid(StorageView, TEXT("Wood")), false, Reason);
             for (TActorIterator<AKalmalaCharacter> It(GetWorld()); It; ++It) if (*It != C && It->GetPlayerState())
             {
                 const auto* Other = It->FindComponentByClass<UKalmalaCraftingComponent>();
