@@ -31,6 +31,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-14 — Group buildable items by station:** move station and upgrade item definitions into `items/buildItems/` station files, group Storage and construction pieces in `other.json`, and allow that nested path only for ordinary items. Item preservation, manifest path validation, and `git diff --check` passed; Unreal verification deferred.
+
 - [x] **2026-10-14 — Group equipment recipes under recipes/equipment:** move the axe, knife, pickaxe, spear, and mace acquisition recipe files; allow this nested folder only for item recipes. Manifest JSON/path validation and `git diff --check` passed; Unreal verification deferred.
 
 - [x] **2026-10-14 — Group equipment profiles under items/equipment:** move the axe, knife, pickaxe, spear, mace, and Building Hammer profile files; permit only this nested item-profile folder in catalogue path validation. Manifest JSON/path validation and `git diff --check` passed; Unreal verification deferred.

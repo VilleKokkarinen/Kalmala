@@ -4,6 +4,7 @@ Add new decisions at the top. A decision records what agents should treat as set
 
 | Date | Decision | Status | Rationale |
 | --- | --- | --- | --- |
+| 2026-10-14 | Group buildable items under `items/buildItems/`. | User-directed | Keep each station and its upgrade items together, while grouping Storage and construction pieces in `other.json`; load the files as ordinary items. |
 | 2026-10-14 | Store equipment acquisition recipes under `recipes/equipment/`. | User-directed | Keep axe, knife, pickaxe, spear, and mace recipes grouped with the equipment catalogue while retaining their family-specific files and existing runtime item-recipe catalogue. |
 | 2026-10-14 | Store carried equipment profiles under `items/equipment/`. | User-directed | Keep axes, knives, pickaxes, spears, maces, and Building Hammer profiles together in one folder while retaining their family-specific files and existing runtime tool catalogue. |
 | 2026-10-14 | Keep common and natural materials together in `items/materials.json`. | User-directed | These definitions share the same item schema and runtime catalogue; a separate natural-material file adds no useful distinction. |

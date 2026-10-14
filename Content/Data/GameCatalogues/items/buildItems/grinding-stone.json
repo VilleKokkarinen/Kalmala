@@ -1,0 +1,10 @@
+{
+  "items": [
+    {
+      "ItemId": "GrindingStone",
+      "DisplayName": "Grinding Stone",
+      "Description": "A stone wheel for repairing all worn tools at once.",
+      "MaxStack": 5
+    }
+  ]
+}

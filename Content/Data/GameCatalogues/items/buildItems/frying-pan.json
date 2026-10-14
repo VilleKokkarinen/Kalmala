@@ -1,0 +1,10 @@
+{
+  "items": [
+    {
+      "ItemId": "FryingPan",
+      "DisplayName": "Frying Pan",
+      "Description": "An iron pan for cooking over a lit hearth.",
+      "MaxStack": 1
+    }
+  ]
+}

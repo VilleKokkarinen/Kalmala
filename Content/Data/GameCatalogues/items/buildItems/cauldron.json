@@ -1,0 +1,10 @@
+{
+  "items": [
+    {
+      "ItemId": "Cauldron",
+      "DisplayName": "Cauldron",
+      "Description": "A pot for simmering soups over a fire.",
+      "MaxStack": 5
+    }
+  ]
+}

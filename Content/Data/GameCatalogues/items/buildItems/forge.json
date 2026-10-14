@@ -1,0 +1,16 @@
+{
+  "items": [
+    {
+      "ItemId": "Forge",
+      "DisplayName": "Forge",
+      "Description": "A stone-and-timber forge for making and repairing advanced tools.",
+      "MaxStack": 5
+    },
+    {
+      "ItemId": "ForgeAnvil",
+      "DisplayName": "Forge Anvil",
+      "Description": "An anvil that lets a Forge support higher-tier tools.",
+      "MaxStack": 5
+    }
+  ]
+}

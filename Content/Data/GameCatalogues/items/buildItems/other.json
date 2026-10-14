@@ -1,0 +1,28 @@
+{
+  "items": [
+    {
+      "ItemId": "Floor",
+      "DisplayName": "Timber Floor",
+      "Description": "Timber boards for the floor of a camp shelter.",
+      "MaxStack": 10
+    },
+    {
+      "ItemId": "Roof",
+      "DisplayName": "Reed Roof",
+      "Description": "A reed roof that shields a small camp from rain.",
+      "MaxStack": 10
+    },
+    {
+      "ItemId": "Storage",
+      "DisplayName": "Chest",
+      "Description": "A shared chest for storing camp supplies.",
+      "MaxStack": 5
+    },
+    {
+      "ItemId": "Wall",
+      "DisplayName": "Windbreak Wall",
+      "Description": "A light timber-and-reed wall that blocks wind around camp.",
+      "MaxStack": 10
+    }
+  ]
+}

@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-14 — Group buildable items by station
+
+- **Completed:** replaced the mixed `items/stations.json` with `items/buildItems/` files for Workbench (including Tool Rack), Forge (including Anvil), Grinding Stone, Cooking Rack, Frying Pan, and Cauldron; grouped Storage and Floor/Wall/Roof in `other.json`. Updated ordinary item manifest paths and allowed the exact `buildItems` nested folder only for `itemFiles`.
+- **Files changed:** `Content/Data/GameCatalogues.json`, `Content/Data/GameCatalogues/items/stations.json` (split into seven files under `items/buildItems/`), `Source/KalmalaGameplay/Private/KalmalaGameCatalogueLoader.cpp`, `docs/02-technical-architecture.md`, `docs/05-decision-log.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** compare all split item records to the source JSON, parse the manifest and all listed item files, validate manifest paths and unique item IDs, inspect strict nested-path allowance, and run `git diff --check`. No tests, build, or automation ran.
+- **Impact/authority:** catalogue organization and path validation only. Item IDs, properties, runtime catalogue assembly, server authority, and saved data are unchanged.
+- **Verification/limitations:** normal user-directed increment; full Unreal build and catalogue automation remain deferred.
+- **Next eligible task:** convert decorative generated forest trees into individually attackable sources with a compatible depletion/streaming policy.
+
 ## User-directed increment 2026-10-14 — Group equipment recipes under recipes/equipment
 
 - **Completed:** moved the axe, knife, pickaxe, spear, and mace acquisition recipe files under `recipes/equipment/`, updated `itemRecipeFiles`, and allowed that specific nested folder for item-recipe loading. Recipe IDs, costs, and runtime assembly are unchanged.

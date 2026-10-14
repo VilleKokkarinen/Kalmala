@@ -1,0 +1,16 @@
+{
+  "items": [
+    {
+      "ItemId": "Workbench",
+      "DisplayName": "Workbench",
+      "Description": "A camp workbench for making furnishings and repairing tools.",
+      "MaxStack": 5
+    },
+    {
+      "ItemId": "WorkbenchToolRack",
+      "DisplayName": "Workbench Tool Rack",
+      "Description": "A tool rack that raises a Workbench to level 2.",
+      "MaxStack": 5
+    }
+  ]
+}

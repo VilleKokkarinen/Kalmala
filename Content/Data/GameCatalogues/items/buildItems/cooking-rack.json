@@ -1,0 +1,10 @@
+{
+  "items": [
+    {
+      "ItemId": "CookingRack",
+      "DisplayName": "Cooking Rack",
+      "Description": "A rack for roasting boar and deer over a fire.",
+      "MaxStack": 5
+    }
+  ]
+}

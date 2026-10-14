@@ -205,7 +205,7 @@ namespace
     }
 
     bool IsValidCategoryPath(const FString& RelativePath, const TCHAR* ExpectedDirectory,
-        FString& OutNormalizedPath, bool bAllowEquipmentSubdirectory)
+        FString& OutNormalizedPath, const TCHAR* AllowedSubdirectory)
     {
         OutNormalizedPath = RelativePath.Replace(TEXT("\\"), TEXT("/"));
         if (OutNormalizedPath.IsEmpty() || OutNormalizedPath.StartsWith(TEXT("/"))
@@ -216,11 +216,9 @@ namespace
 
         TArray<FString> PathParts;
         OutNormalizedPath.ParseIntoArray(PathParts, TEXT("/"), false);
-        const bool bIsEquipmentSubdirectory = bAllowEquipmentSubdirectory && PathParts.Num() == 3
-            && (FCString::Strcmp(ExpectedDirectory, TEXT("items")) == 0
-                || FCString::Strcmp(ExpectedDirectory, TEXT("recipes")) == 0)
-            && PathParts[1] == TEXT("equipment");
-        const bool bHasExpectedDepth = PathParts.Num() == 2 || bIsEquipmentSubdirectory;
+        const bool bIsAllowedSubdirectory = AllowedSubdirectory != nullptr && PathParts.Num() == 3
+            && PathParts[1] == AllowedSubdirectory;
+        const bool bHasExpectedDepth = PathParts.Num() == 2 || bIsAllowedSubdirectory;
         if (!bHasExpectedDepth || PathParts[0] != ExpectedDirectory || PathParts.Last().IsEmpty()
             || !PathParts.Last().EndsWith(TEXT(".json"), ESearchCase::IgnoreCase))
         {
@@ -245,7 +243,7 @@ namespace
     bool LoadCategoryFiles(const TSharedPtr<FJsonObject>& Manifest, const TCHAR* ManifestField,
         const TCHAR* ArrayField, const TCHAR* ExpectedDirectory, int32 MaxEntries,
         int32& InOutJsonCharacters, TArray<TSharedPtr<FJsonValue>>& OutValues,
-        bool bAllowEquipmentSubdirectory = false)
+        const TCHAR* AllowedSubdirectory = nullptr)
     {
         const TArray<TSharedPtr<FJsonValue>>* FileValues = nullptr;
         if (!Manifest.IsValid() || !Manifest->TryGetArrayField(ManifestField, FileValues)
@@ -255,7 +253,7 @@ namespace
             return false;
         }
 
-        // Append so each equipment group can be assembled from multiple category files.
+        // Append so each category can be assembled from multiple files.
         for (const TSharedPtr<FJsonValue>& FileValue : *FileValues)
         {
             if (!FileValue.IsValid() || FileValue->Type != EJson::String)
@@ -266,7 +264,7 @@ namespace
 
             FString RelativePath;
             if (!IsValidCategoryPath(FileValue->AsString(), ExpectedDirectory, RelativePath,
-                    bAllowEquipmentSubdirectory))
+                    AllowedSubdirectory))
             {
                 UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue manifest contains an unsafe category path: %s"),
                     *FileValue->AsString());
@@ -364,13 +362,13 @@ namespace
         TArray<TSharedPtr<FJsonValue>> LevelUpRewardValues;
         TArray<TSharedPtr<FJsonValue>> AttackListValues;
         if (!LoadCategoryFiles(Root, TEXT("itemFiles"), TEXT("items"), TEXT("items"),
-                UKalmalaItemCatalogue::MaxDefinitions, TotalJsonCharacters, ItemValues)
+                UKalmalaItemCatalogue::MaxDefinitions, TotalJsonCharacters, ItemValues, TEXT("buildItems"))
             || !LoadCategoryFiles(Root, TEXT("recipeFiles"), TEXT("recipes"), TEXT("recipes"),
                 32, TotalJsonCharacters, RecipeValues)
             || !LoadCategoryFiles(Root, TEXT("itemProfileFiles"), TEXT("items"), TEXT("items"),
-                UKalmalaToolCatalogue::MaxProfiles, TotalJsonCharacters, ToolProfileValues, true)
+                UKalmalaToolCatalogue::MaxProfiles, TotalJsonCharacters, ToolProfileValues, TEXT("equipment"))
             || !LoadCategoryFiles(Root, TEXT("itemRecipeFiles"), TEXT("recipes"), TEXT("recipes"),
-                UKalmalaToolCatalogue::MaxRecipes, TotalJsonCharacters, ToolRecipeValues, true)
+                UKalmalaToolCatalogue::MaxRecipes, TotalJsonCharacters, ToolRecipeValues, TEXT("equipment"))
             || !LoadCategoryFiles(Root, TEXT("itemUpgradeFiles"), TEXT("recipes"), TEXT("upgrades"),
                 UKalmalaToolCatalogue::MaxRecipes, TotalJsonCharacters, ToolUpgradeValues)
             || !LoadCategoryFiles(Root, TEXT("levelUpRewardFiles"), TEXT("levelUpRewards"), TEXT("tools"),
