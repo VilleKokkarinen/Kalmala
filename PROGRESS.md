@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-14 — Keep Forge upgrade bonus inline
+
+- **Completed:** removed the fill-width layout from the Forge Upgrade baseline text slot, keeping the green `+5)` adjacent to `Slash bonus - 50 (` rather than at the far edge of the comparison frame.
+- **Files changed:** `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** inspected the comparison-row slot sizing and verified the two existing text blocks retain their separate theme colors and expected text; `git diff --check` passed. No test, Unreal build, or rendered menu ran.
+- **Impact/authority:** owner-local UI presentation only; upgrade eligibility, server requests, material costs, and progression remain unchanged.
+- **Verification/limitations:** normal user-directed increment; rendered confirmation and full Unreal verification remain deferred.
+- **Next eligible task:** convert decorative generated forest trees into individually attackable sources with a compatible depletion/streaming policy.
+
 ## User-directed increment 2026-10-14 — Default upgrade cost station level
 
 - **Completed:** defaulted omitted `RequiredStationLevel` to zero for upgrade-cost records before strict JSON conversion. This matches the catalogue validator and keeps the authored level-one upgrade costs concise.

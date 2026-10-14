@@ -792,7 +792,6 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     LevelNumberSlot->SetPadding(FMargin(1.0f, 0.0f, 0.0f, 0.0f));
     LevelNumberSlot->SetVerticalAlignment(VAlign_Center);
     auto* BenefitValueSlot = ToolUpgradeBenefitRow->AddChildToHorizontalBox(ToolUpgradeBenefitComparison);
-    BenefitValueSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
     BenefitValueSlot->SetVerticalAlignment(VAlign_Center);
     ToolUpgradeBenefitRow->AddChildToHorizontalBox(ToolUpgradeBenefitDelta)
         ->SetVerticalAlignment(VAlign_Center);
