@@ -204,7 +204,8 @@ namespace
         return true;
     }
 
-    bool IsValidCategoryPath(const FString& RelativePath, const TCHAR* ExpectedDirectory, FString& OutNormalizedPath)
+    bool IsValidCategoryPath(const FString& RelativePath, const TCHAR* ExpectedDirectory,
+        FString& OutNormalizedPath, bool bAllowEquipmentSubdirectory)
     {
         OutNormalizedPath = RelativePath.Replace(TEXT("\\"), TEXT("/"));
         if (OutNormalizedPath.IsEmpty() || OutNormalizedPath.StartsWith(TEXT("/"))
@@ -215,8 +216,12 @@ namespace
 
         TArray<FString> PathParts;
         OutNormalizedPath.ParseIntoArray(PathParts, TEXT("/"), false);
-        if (PathParts.Num() != 2 || PathParts[0] != ExpectedDirectory
-            || PathParts[1].IsEmpty() || !PathParts[1].EndsWith(TEXT(".json"), ESearchCase::IgnoreCase))
+        const bool bIsEquipmentSubdirectory = bAllowEquipmentSubdirectory && PathParts.Num() == 3
+            && FCString::Strcmp(ExpectedDirectory, TEXT("items")) == 0
+            && PathParts[1] == TEXT("equipment");
+        const bool bHasExpectedDepth = PathParts.Num() == 2 || bIsEquipmentSubdirectory;
+        if (!bHasExpectedDepth || PathParts[0] != ExpectedDirectory || PathParts.Last().IsEmpty()
+            || !PathParts.Last().EndsWith(TEXT(".json"), ESearchCase::IgnoreCase))
         {
             return false;
         }
@@ -238,7 +243,8 @@ namespace
 
     bool LoadCategoryFiles(const TSharedPtr<FJsonObject>& Manifest, const TCHAR* ManifestField,
         const TCHAR* ArrayField, const TCHAR* ExpectedDirectory, int32 MaxEntries,
-        int32& InOutJsonCharacters, TArray<TSharedPtr<FJsonValue>>& OutValues)
+        int32& InOutJsonCharacters, TArray<TSharedPtr<FJsonValue>>& OutValues,
+        bool bAllowEquipmentSubdirectory = false)
     {
         const TArray<TSharedPtr<FJsonValue>>* FileValues = nullptr;
         if (!Manifest.IsValid() || !Manifest->TryGetArrayField(ManifestField, FileValues)
@@ -258,7 +264,8 @@ namespace
             }
 
             FString RelativePath;
-            if (!IsValidCategoryPath(FileValue->AsString(), ExpectedDirectory, RelativePath))
+            if (!IsValidCategoryPath(FileValue->AsString(), ExpectedDirectory, RelativePath,
+                    bAllowEquipmentSubdirectory))
             {
                 UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue manifest contains an unsafe category path: %s"),
                     *FileValue->AsString());
@@ -360,7 +367,7 @@ namespace
             || !LoadCategoryFiles(Root, TEXT("recipeFiles"), TEXT("recipes"), TEXT("recipes"),
                 32, TotalJsonCharacters, RecipeValues)
             || !LoadCategoryFiles(Root, TEXT("itemProfileFiles"), TEXT("items"), TEXT("items"),
-                UKalmalaToolCatalogue::MaxProfiles, TotalJsonCharacters, ToolProfileValues)
+                UKalmalaToolCatalogue::MaxProfiles, TotalJsonCharacters, ToolProfileValues, true)
             || !LoadCategoryFiles(Root, TEXT("itemRecipeFiles"), TEXT("recipes"), TEXT("recipes"),
                 UKalmalaToolCatalogue::MaxRecipes, TotalJsonCharacters, ToolRecipeValues)
             || !LoadCategoryFiles(Root, TEXT("itemUpgradeFiles"), TEXT("recipes"), TEXT("upgrades"),

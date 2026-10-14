@@ -22,12 +22,12 @@
     "recipes/cooking.json"
   ],
   "itemProfileFiles": [
-    "items/axes.json",
-    "items/knives.json",
-    "items/pickaxes.json",
-    "items/spears.json",
-    "items/maces.json",
-    "items/building-hammer.json"
+    "items/equipment/axes.json",
+    "items/equipment/knives.json",
+    "items/equipment/pickaxes.json",
+    "items/equipment/spears.json",
+    "items/equipment/maces.json",
+    "items/equipment/building-hammer.json"
   ],
   "itemRecipeFiles": [
     "recipes/axes.json",

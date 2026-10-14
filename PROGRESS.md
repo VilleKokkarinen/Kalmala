@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-14 — Group equipment profiles under items/equipment
+
+- **Completed:** moved the axe, knife, pickaxe, spear, mace, and Building Hammer profile files under `items/equipment/`, updated `itemProfileFiles`, and allowed that specific nested folder for item-profile loading. Existing ItemIds, data, runtime catalogue assembly, and server authority are unchanged.
+- **Files changed:** `Content/Data/GameCatalogues.json`, six profile file moves under `Content/Data/GameCatalogues/items/equipment/`, `Source/KalmalaGameplay/Private/KalmalaGameCatalogueLoader.cpp`, `docs/02-technical-architecture.md`, `docs/05-decision-log.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** manifest and moved profile JSON parsing, manifest path resolution, exact profile-content preservation, and `git diff --check`. No tests, build, or automation ran.
+- **Impact/authority:** catalogue file organization and path validation only. The loader still assembles the same profiles into the server-side tool catalogue; transactions, networking, save data, and gameplay authority are unchanged.
+- **Verification/limitations:** normal user-directed increment; full Unreal build and catalogue automation remain deferred. Existing uncommitted profile edits were preserved at their new paths and are not part of this increment's commit.
+- **Next eligible task:** convert decorative generated forest trees into individually attackable sources with a compatible depletion/streaming policy.
+
 ## User-directed increment 2026-10-14 — Combine material catalogue files
 
 - **Completed:** merged the natural material records into `items/materials.json` and removed the separate natural-material manifest entry and file. Natural and common materials remain ordinary items with unchanged IDs and properties.
