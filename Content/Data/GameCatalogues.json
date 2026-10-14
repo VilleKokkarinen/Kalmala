@@ -15,17 +15,12 @@
   ],
   "recipeFiles": [
     "recipes/building.json",
-    "recipes/campfire.json",
-    "recipes/workbench.json",
-    "recipes/forge.json",
-    "recipes/frying-pan.json",
-    "recipes/workbench-tool-rack.json",
-    "recipes/forge-anvil.json",
-    "recipes/grinding-stone.json",
-    "recipes/storage.json",
-    "recipes/cooking-rack.json",
-    "recipes/cauldron.json",
-    "recipes/cooking.json"
+    "recipes/stations/cauldron.json",
+    "recipes/stations/cooking-rack.json",
+    "recipes/stations/forge.json",
+    "recipes/stations/frying-pan.json",
+    "recipes/stations/inventory.json",
+    "recipes/stations/workbench.json"
   ],
   "itemProfileFiles": [
     "items/equipment/axes.json",
@@ -36,11 +31,8 @@
     "items/equipment/building-hammer.json"
   ],
   "itemRecipeFiles": [
-    "recipes/equipment/axes.json",
-    "recipes/equipment/knives.json",
-    "recipes/equipment/pickaxes.json",
-    "recipes/equipment/spears.json",
-    "recipes/equipment/maces.json"
+    "recipes/stations/forge-item-recipes.json",
+    "recipes/stations/workbench-item-recipes.json"
   ],
   "itemUpgradeFiles": [
     "upgrades/upgrades.json"

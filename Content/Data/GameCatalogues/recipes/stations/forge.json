@@ -1,6 +1,25 @@
 {
   "recipes": [
     {
+      "RecipeId": "FryingPanRecipe",
+      "DisplayName": "Frying Pan",
+      "Ingredients": [
+        {
+          "ItemId": "Iron",
+          "Quantity": 5
+        }
+      ],
+      "Output": "FryingPan",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "RequiredStation": [
+        "Forge"
+      ],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
+    },
+    {
       "RecipeId": "ForgeAnvil",
       "DisplayName": "Forge Anvil",
       "Ingredients": [

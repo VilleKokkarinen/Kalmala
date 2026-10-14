@@ -1,0 +1,58 @@
+{
+  "recipes": [
+    {
+      "RecipeId": "RoastedRootVegetablesRecipe",
+      "DisplayName": "Roasted Root Vegetables",
+      "Ingredients": [
+        {
+          "ItemId": "Carrot",
+          "Quantity": 1
+        },
+        {
+          "ItemId": "Potato",
+          "Quantity": 1
+        },
+        {
+          "ItemId": "Onion",
+          "Quantity": 1
+        }
+      ],
+      "Output": "RoastedRootVegetables",
+      "OutputCount": 1,
+      "MaxBatch": 5,
+      "RequiredStation": [
+        "FryingPan"
+      ],
+      "ExperienceSkill": "Cooking",
+      "ExperienceAward": 10,
+      "bEnabled": true
+    },
+    {
+      "RecipeId": "DeerRootRoastRecipe",
+      "DisplayName": "Deer and Rutabaga Roast",
+      "Ingredients": [
+        {
+          "ItemId": "DeerMeat",
+          "Quantity": 1
+        },
+        {
+          "ItemId": "Rutabaga",
+          "Quantity": 1
+        },
+        {
+          "ItemId": "Onion",
+          "Quantity": 1
+        }
+      ],
+      "Output": "DeerRootRoast",
+      "OutputCount": 1,
+      "MaxBatch": 5,
+      "RequiredStation": [
+        "FryingPan"
+      ],
+      "ExperienceSkill": "Cooking",
+      "ExperienceAward": 10,
+      "bEnabled": true
+    }
+  ]
+}

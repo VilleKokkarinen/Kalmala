@@ -1,0 +1,66 @@
+{
+  "recipes": [
+    {
+      "RecipeId": "MeatStewRecipe",
+      "DisplayName": "Meat Stew",
+      "Ingredients": [
+        {
+          "ItemId": "BoarMeat",
+          "Quantity": 1
+        },
+        {
+          "ItemId": "DeerMeat",
+          "Quantity": 1
+        },
+        {
+          "ItemId": "Carrot",
+          "Quantity": 2
+        },
+        {
+          "ItemId": "Potato",
+          "Quantity": 2
+        }
+      ],
+      "Output": "MeatStew",
+      "OutputCount": 1,
+      "MaxBatch": 5,
+      "RequiredStation": [
+        "Cauldron"
+      ],
+      "ExperienceSkill": "Cooking",
+      "ExperienceAward": 10,
+      "bEnabled": true
+    },
+    {
+      "RecipeId": "RootVegetableSoupRecipe",
+      "DisplayName": "Root Vegetable Soup",
+      "Ingredients": [
+        {
+          "ItemId": "Carrot",
+          "Quantity": 1
+        },
+        {
+          "ItemId": "Potato",
+          "Quantity": 1
+        },
+        {
+          "ItemId": "Rutabaga",
+          "Quantity": 1
+        },
+        {
+          "ItemId": "Onion",
+          "Quantity": 1
+        }
+      ],
+      "Output": "RootVegetableSoup",
+      "OutputCount": 1,
+      "MaxBatch": 5,
+      "RequiredStation": [
+        "Cauldron"
+      ],
+      "ExperienceSkill": "Cooking",
+      "ExperienceAward": 10,
+      "bEnabled": true
+    }
+  ]
+}

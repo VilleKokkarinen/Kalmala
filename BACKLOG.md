@@ -31,6 +31,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-14 — Group crafting recipes by station:** group station-bound recipes and equipment acquisitions under `recipes/stations/`, include Inventory as a crafting context, and keep build-menu recipes in `recipes/building.json`. Exact record preservation, station routing, manifest paths, and `git diff --check` passed; Unreal verification deferred.
+
 - [x] **2026-10-14 — Group buildable items by station:** move station and upgrade item definitions into `items/buildItems/` station files, group Storage and construction pieces in `other.json`, and allow that nested path only for ordinary items. Item preservation, manifest path validation, and `git diff --check` passed; Unreal verification deferred.
 
 - [x] **2026-10-14 — Group equipment recipes under recipes/equipment:** move the axe, knife, pickaxe, spear, and mace acquisition recipe files; allow this nested folder only for item recipes. Manifest JSON/path validation and `git diff --check` passed; Unreal verification deferred.

@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-14 — Group crafting recipes by station
+
+- **Completed:** moved station-bound ordinary recipes into `recipes/stations/` files for Inventory, Workbench, Forge, Cauldron, Cooking Rack, and Frying Pan. Inventory contains the Building Hammer recipe; build-menu construction recipes remain in `recipes/building.json`. Grouped equipment acquisitions by their required Workbench/Forge station in companion files loaded through `itemRecipeFiles`.
+- **Files changed:** `Content/Data/GameCatalogues.json`, ordinary recipe files under `Content/Data/GameCatalogues/recipes/`, station-specific equipment acquisition files under `recipes/stations/`, `Source/KalmalaGameplay/Private/KalmalaGameCatalogueLoader.cpp`, `docs/02-technical-architecture.md`, `docs/05-decision-log.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** compare all source and destination records, confirm station grouping and unique IDs, parse the manifest and all listed recipe files, validate category-specific path allowlists, and run `git diff --check`. No tests, build, or automation ran.
+- **Impact/authority:** recipe catalogue organization and loader path validation only. All 20 ordinary recipes and 10 equipment acquisition records, their station requirements, and runtime catalogue separation are preserved; gameplay, networking, server authority, and saved data are unchanged.
+- **Verification/limitations:** normal user-directed increment; full Unreal build and catalogue automation remain deferred.
+- **Next eligible task:** convert decorative generated forest trees into individually attackable sources with a compatible depletion/streaming policy.
+
 ## User-directed increment 2026-10-14 — Group buildable items by station
 
 - **Completed:** replaced the mixed `items/stations.json` with `items/buildItems/` files for Workbench (including Tool Rack), Forge (including Anvil), Grinding Stone, Cooking Rack, Frying Pan, and Cauldron; grouped Storage and Floor/Wall/Roof in `other.json`. Updated ordinary item manifest paths and allowed the exact `buildItems` nested folder only for `itemFiles`.

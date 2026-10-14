@@ -1,19 +1,19 @@
 {
   "recipes": [
     {
-      "RecipeId": "Storage",
-      "DisplayName": "Chest",
+      "RecipeId": "BuildingHammer",
+      "DisplayName": "Building Hammer",
       "Ingredients": [
         {
           "ItemId": "Wood",
-          "Quantity": 6
+          "Quantity": 3
         },
         {
-          "ItemId": "Fibre",
-          "Quantity": 8
+          "ItemId": "Stone",
+          "Quantity": 1
         }
       ],
-      "Output": "Storage",
+      "Output": "ConstructionHammer",
       "OutputCount": 1,
       "MaxBatch": 1,
       "RequiredStation": [],

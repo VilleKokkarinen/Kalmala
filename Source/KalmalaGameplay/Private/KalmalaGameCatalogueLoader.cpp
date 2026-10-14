@@ -364,11 +364,11 @@ namespace
         if (!LoadCategoryFiles(Root, TEXT("itemFiles"), TEXT("items"), TEXT("items"),
                 UKalmalaItemCatalogue::MaxDefinitions, TotalJsonCharacters, ItemValues, TEXT("buildItems"))
             || !LoadCategoryFiles(Root, TEXT("recipeFiles"), TEXT("recipes"), TEXT("recipes"),
-                32, TotalJsonCharacters, RecipeValues)
+                32, TotalJsonCharacters, RecipeValues, TEXT("stations"))
             || !LoadCategoryFiles(Root, TEXT("itemProfileFiles"), TEXT("items"), TEXT("items"),
                 UKalmalaToolCatalogue::MaxProfiles, TotalJsonCharacters, ToolProfileValues, TEXT("equipment"))
             || !LoadCategoryFiles(Root, TEXT("itemRecipeFiles"), TEXT("recipes"), TEXT("recipes"),
-                UKalmalaToolCatalogue::MaxRecipes, TotalJsonCharacters, ToolRecipeValues, TEXT("equipment"))
+                UKalmalaToolCatalogue::MaxRecipes, TotalJsonCharacters, ToolRecipeValues, TEXT("stations"))
             || !LoadCategoryFiles(Root, TEXT("itemUpgradeFiles"), TEXT("recipes"), TEXT("upgrades"),
                 UKalmalaToolCatalogue::MaxRecipes, TotalJsonCharacters, ToolUpgradeValues)
             || !LoadCategoryFiles(Root, TEXT("levelUpRewardFiles"), TEXT("levelUpRewards"), TEXT("tools"),

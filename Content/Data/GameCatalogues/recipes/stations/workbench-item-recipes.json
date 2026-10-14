@@ -1,0 +1,114 @@
+{
+  "recipes": [
+    {
+      "RecipeId": "BronzeAxe",
+      "DisplayName": "Bronze Axe",
+      "ToolId": "BronzeAxe",
+      "RequiredStation": "Workbench",
+      "RequiredStationLevel": 1,
+      "Ingredients": [
+        {
+          "ItemId": "Wood",
+          "Quantity": 4
+        },
+        {
+          "ItemId": "Stone",
+          "Quantity": 3
+        },
+        {
+          "ItemId": "Fibre",
+          "Quantity": 2
+        }
+      ],
+      "Level": 1
+    },
+    {
+      "RecipeId": "BronzeKnife",
+      "DisplayName": "Bronze Knife",
+      "ToolId": "BronzeKnife",
+      "RequiredStation": "Workbench",
+      "RequiredStationLevel": 1,
+      "Ingredients": [
+        {
+          "ItemId": "Wood",
+          "Quantity": 2
+        },
+        {
+          "ItemId": "Stone",
+          "Quantity": 2
+        },
+        {
+          "ItemId": "Fibre",
+          "Quantity": 3
+        }
+      ],
+      "Level": 1
+    },
+    {
+      "RecipeId": "BronzePick",
+      "DisplayName": "Bronze Pick",
+      "ToolId": "BronzePick",
+      "RequiredStation": "Workbench",
+      "RequiredStationLevel": 1,
+      "Ingredients": [
+        {
+          "ItemId": "Wood",
+          "Quantity": 4
+        },
+        {
+          "ItemId": "Stone",
+          "Quantity": 4
+        },
+        {
+          "ItemId": "Fibre",
+          "Quantity": 2
+        }
+      ],
+      "Level": 1
+    },
+    {
+      "RecipeId": "BronzeSpear",
+      "DisplayName": "Bronze Spear",
+      "ToolId": "BronzeSpear",
+      "RequiredStation": "Workbench",
+      "RequiredStationLevel": 1,
+      "Ingredients": [
+        {
+          "ItemId": "Wood",
+          "Quantity": 4
+        },
+        {
+          "ItemId": "Stone",
+          "Quantity": 3
+        },
+        {
+          "ItemId": "Fibre",
+          "Quantity": 3
+        }
+      ],
+      "Level": 1
+    },
+    {
+      "RecipeId": "BronzeMace",
+      "DisplayName": "Bronze Mace",
+      "ToolId": "BronzeMace",
+      "RequiredStation": "Workbench",
+      "RequiredStationLevel": 1,
+      "Ingredients": [
+        {
+          "ItemId": "Wood",
+          "Quantity": 2
+        },
+        {
+          "ItemId": "Stone",
+          "Quantity": 2
+        },
+        {
+          "ItemId": "Fibre",
+          "Quantity": 3
+        }
+      ],
+      "Level": 1
+    }
+  ]
+}

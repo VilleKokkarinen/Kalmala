@@ -1,0 +1,42 @@
+{
+  "recipes": [
+    {
+      "RecipeId": "CookedBoarMeatRecipe",
+      "DisplayName": "Cooked Boar Meat",
+      "Ingredients": [
+        {
+          "ItemId": "BoarMeat",
+          "Quantity": 1
+        }
+      ],
+      "Output": "CookedBoarMeat",
+      "OutputCount": 1,
+      "MaxBatch": 5,
+      "RequiredStation": [
+        "CookingRack"
+      ],
+      "ExperienceSkill": "Cooking",
+      "ExperienceAward": 10,
+      "bEnabled": true
+    },
+    {
+      "RecipeId": "CookedDeerMeatRecipe",
+      "DisplayName": "Cooked Deer Meat",
+      "Ingredients": [
+        {
+          "ItemId": "DeerMeat",
+          "Quantity": 1
+        }
+      ],
+      "Output": "CookedDeerMeat",
+      "OutputCount": 1,
+      "MaxBatch": 5,
+      "RequiredStation": [
+        "CookingRack"
+      ],
+      "ExperienceSkill": "Cooking",
+      "ExperienceAward": 10,
+      "bEnabled": true
+    }
+  ]
+}
