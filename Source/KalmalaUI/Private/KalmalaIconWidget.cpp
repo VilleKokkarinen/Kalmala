@@ -138,7 +138,7 @@ bool UKalmalaIconWidget::FindCatalogueIcon(FName Id, EKalmalaIcon& OutIcon, int3
     static const FMapping Mappings[] = {
         {TEXT("Wood"),EKalmalaIcon::Log,0}, {TEXT("Lightwood"),EKalmalaIcon::Log,1}, {TEXT("Densewood"),EKalmalaIcon::Log,2},
         {TEXT("Coal"),EKalmalaIcon::Rock,1}, {TEXT("Stone"),EKalmalaIcon::Rock,0}, {TEXT("Iron"),EKalmalaIcon::Ingot,0},
-        {TEXT("Fibre"),EKalmalaIcon::Fibre,0}, {TEXT("PeatAmber"),EKalmalaIcon::Rock,2}, {TEXT("FrostSalt"),EKalmalaIcon::Snow,0},
+        {TEXT("Fibre"),EKalmalaIcon::Fibre,0}, {TEXT("Amber"),EKalmalaIcon::Rock,2}, {TEXT("FrostSalt"),EKalmalaIcon::Snow,0},
         {TEXT("MirelingAsh"),EKalmalaIcon::Fire,1},
         {TEXT("CampfireKit"),EKalmalaIcon::Fire,0}, {TEXT("CampFire"),EKalmalaIcon::Fire,0},
         {TEXT("WorkbenchKit"),EKalmalaIcon::Bench,0}, {TEXT("ForgeKit"),EKalmalaIcon::Forge,0},

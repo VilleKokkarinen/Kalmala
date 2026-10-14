@@ -125,7 +125,7 @@ bool FKalmalaM9ToolStationProgressionTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Missing materials leave candidate inventory unchanged"), MissingMaterialInventory.IsEmpty());
 
     const TArray<FKalmalaInventoryStack> UpgradeMaterials = {
-        {TEXT("Lightwood"), 3}, {TEXT("PeatAmber"), 2}, {TEXT("Stone"), 4}, {TEXT("Fibre"), 2}
+        {TEXT("Lightwood"), 3}, {TEXT("Amber"), 2}, {TEXT("Stone"), 4}, {TEXT("Fibre"), 2}
     };
     TArray<FKalmalaToolState> UpgradedTools;
     TArray<FKalmalaInventoryStack> UpgradedInventory;

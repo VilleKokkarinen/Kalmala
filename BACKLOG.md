@@ -11,7 +11,7 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 - [x] **2026-10-13 — Omit unused item damage channels:** remove zero-valued item DamageBonuses fields and default omissions to zero before strict loading. Lightweight checks passed; Unreal verification deferred.
 - [x] **2026-10-14 — Move attacks and level-up rewards into dedicated folders:** keep shared attack lists under `attacks/` and item level gains under `progression/`, with manifest validation matching those categories.
 - [x] **2026-10-14 — Group ordinary material files by type:** split the materials catalogue into `items/materials/wood.json`, `ore.json`, `metal.json`, `ingredient.json`, and `others.json`, preserving item data and loader validation.
-- [x] **2026-10-14 — Split cooking and crafting ingredients:** move Frost Salt to `cooking-ingredients.json`; keep Fibre and Peat Amber in `crafting-ingredients.json`.
+- [x] **2026-10-14 — Split cooking and crafting ingredients:** move Frost Salt to `cooking-ingredients.json`; keep Fibre and Amber in `crafting-ingredients.json`.
 
 ## Completed roadmap log
 
@@ -33,6 +33,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 - **M14 — Expanded world map:** isolated acceptance passed 2026-10-10 on source 1a411c6; integrated-main build, acceptance matrix, and final 123/123 automation queue passed 2026-10-12. Evidence is in docs/evidence/m14/.
 
 ## Post-roadmap user-directed work
+
+- [x] **2026-10-14 — Rename Peat Amber to Amber:** change the item ID and display name, update harvesting and upgrade references, rename the icon sources/package, and migrate saved chest stacks from `PeatAmber`. Catalogue/reference checks, batch-F icon import, targeted icon validation, and `git diff --check` passed; full Unreal verification deferred.
 
 - [x] **2026-10-14 — Group crafting recipes by station:** group station-bound recipes and equipment acquisitions under `recipes/stations/`, include Inventory as a crafting context, and keep build-menu recipes in `recipes/building.json`. Exact record preservation, station routing, manifest paths, and `git diff --check` passed; Unreal verification deferred.
 

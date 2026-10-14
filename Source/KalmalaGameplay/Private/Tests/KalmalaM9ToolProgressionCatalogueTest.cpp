@@ -143,11 +143,11 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
         TestEqual(TEXT("Upgrade keeps the same item identity"), BronzeLevelTwo->PreviousToolId, FName(TEXT("BronzeAxe")));
         TestEqual(TEXT("Upgrade requires Bronze Axe level one"), BronzeLevelTwo->PreviousToolLevel, 1);
         TestEqual(TEXT("Bronze Axe upgrade has four bounded materials"), BronzeLevelTwo->MaterialCosts.Num(), 4);
-        TestTrue(TEXT("Bronze Axe upgrade uses Lightwood, Peat Amber, Stone, and Fibre"),
+        TestTrue(TEXT("Bronze Axe upgrade uses Lightwood, Amber, Stone, and Fibre"),
             BronzeLevelTwo->MaterialCosts.ContainsByPredicate([](const FKalmalaToolMaterialCost& Cost)
                 { return Cost.ItemId == TEXT("Lightwood") && Cost.Quantity == 3; })
             && BronzeLevelTwo->MaterialCosts.ContainsByPredicate([](const FKalmalaToolMaterialCost& Cost)
-                { return Cost.ItemId == TEXT("PeatAmber") && Cost.Quantity == 2; })
+                { return Cost.ItemId == TEXT("Amber") && Cost.Quantity == 2; })
             && BronzeLevelTwo->MaterialCosts.ContainsByPredicate([](const FKalmalaToolMaterialCost& Cost)
                 { return Cost.ItemId == TEXT("Stone") && Cost.Quantity == 4; })
             && BronzeLevelTwo->MaterialCosts.ContainsByPredicate([](const FKalmalaToolMaterialCost& Cost)

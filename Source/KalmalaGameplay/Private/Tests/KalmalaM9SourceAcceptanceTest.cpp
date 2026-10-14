@@ -37,7 +37,7 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
     {
         { TEXT("meadows-birch-trunk"), TEXT("Lightwood"), TEXT("BronzeAxe"), 1, EKalmalaToolAction::Woodcutting },
         { TEXT("elderwood-ironheart-trunk"), TEXT("Densewood"), TEXT("IronAxe"), 2, EKalmalaToolAction::Woodcutting },
-        { TEXT("mire-peat-amber-seam"), TEXT("PeatAmber"), TEXT("StonePick"), 1, EKalmalaToolAction::Mining },
+        { TEXT("mire-peat-amber-seam"), TEXT("Amber"), TEXT("StonePick"), 1, EKalmalaToolAction::Mining },
         { TEXT("tundra-frost-salt-deposit"), TEXT("FrostSalt"), TEXT("StonePick"), 1, EKalmalaToolAction::Mining },
     };
 

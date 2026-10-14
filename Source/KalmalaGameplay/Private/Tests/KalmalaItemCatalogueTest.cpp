@@ -86,7 +86,7 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         { TEXT("Iron"), TEXT("Iron"), TEXT("A forged iron bar used for durable tools and camp equipment."), 50 },
         { TEXT("Fibre"), TEXT("Reed Fibre"),
             TEXT("Plant strands used in simple tools and camp furnishings."), 50 },
-        { TEXT("PeatAmber"), TEXT("Peat Amber"), TEXT("Dark peat threaded with amber from the Mire."), 40 },
+        { TEXT("Amber"), TEXT("Amber"), TEXT("Dark peat threaded with amber from the Mire."), 40 },
     };
     for (const FExpectedBatchOneCopy& Expected : BatchOneCopy)
     {

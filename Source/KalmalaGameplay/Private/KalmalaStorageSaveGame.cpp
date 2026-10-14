@@ -51,6 +51,10 @@ bool UKalmalaStorageSaveGame::NormalizeLegacyStacks(TArray<FKalmalaInventoryStac
             const int64 SupplyCount = Stack.Quantity;
             if (!AddQuantity(TEXT("Wood"), SupplyCount * 3) || !AddQuantity(TEXT("Fibre"), SupplyCount * 2)) return false;
         }
+        else if (Stack.ItemId == TEXT("PeatAmber"))
+        {
+            if (!AddQuantity(TEXT("Amber"), Stack.Quantity)) return false;
+        }
         else if (!Items->FindItem(Stack.ItemId) || !AddQuantity(Stack.ItemId, Stack.Quantity)) return false;
     }
 

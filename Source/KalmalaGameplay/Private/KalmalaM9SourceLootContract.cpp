@@ -16,7 +16,7 @@ bool FKalmalaM9SourceLootContract::GetPrimaryItemId(const FName SourceId, FName&
     OutItemId = NAME_None;
     if (SourceId == TEXT("meadows-birch-trunk")) OutItemId = TEXT("Lightwood");
     else if (SourceId == TEXT("elderwood-ironheart-trunk")) OutItemId = TEXT("Densewood");
-    else if (SourceId == TEXT("mire-peat-amber-seam")) OutItemId = TEXT("PeatAmber");
+    else if (SourceId == TEXT("mire-peat-amber-seam")) OutItemId = TEXT("Amber");
     else if (SourceId == TEXT("tundra-frost-salt-deposit")) OutItemId = TEXT("FrostSalt");
     return !OutItemId.IsNone();
 }

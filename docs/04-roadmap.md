@@ -332,7 +332,7 @@ M9 has five ordered goals:
      - Elderwood — ironheart tree (new tree and harvest source).
        - Densewood from the trunk, requires an iron axe or better to harvest.
      - Mossy Mire — peat bank (new harvest source).
-       - Peat amber from hardened seams in the bank.
+       - Amber from hardened seams in the bank.
      - Freezing Tundra — salt deposits (new harvest source).
        - Frost salt, new mining resource
    - Treat these as candidate directions for a curated catalogue, not a locked list. Every approved gameplay entry needs a canonical ID, server-derived source or placement rule, bounded activation budget, and existing-item reward or recipe mapping where applicable. Ocean content must use M8 travel interactions; placement, depletion, hazards, claims, and rewards remain server-owned and deterministic. Do not add open-ended drop tables or client-authored content data.

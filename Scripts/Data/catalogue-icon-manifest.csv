@@ -6,7 +6,7 @@ image_batch,import_batch,canonical_id,art_subject,identity_kind,catalogue_aliase
 02,A,Stone,Stone,item,none,none,PackInventory;ItemDetail;Storage;Ingredient,pack,
 02,A,Iron,Iron,item,none,none,PackInventory;ItemDetail;Storage;Ingredient,pack,
 02,A,Fibre,Reed fibre,item,none,none,PackInventory;ItemDetail;Storage;Ingredient,pack,
-02,A,PeatAmber,Peat Amber,item,none,none,PackInventory;ItemDetail;Storage,pack,
+02,F,Amber,Amber,item,none,none,PackInventory;ItemDetail;Storage,pack,
 03,A,FrostSalt,Frost Salt,item,none,none,PackInventory;ItemDetail;Storage,pack,
 03,A,MirelingAsh,Mireling ember ash,item,none,none,PackInventory;ItemDetail;Storage,pack,
 03,A,CampfireKit,Campfire construction (CampFire source identity),construction,CampFire,CampFire,RecipeResult;BuildGrid;BuildResult;PlacementPreview,construction_only,CampfireKit

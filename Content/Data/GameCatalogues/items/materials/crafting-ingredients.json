@@ -7,8 +7,8 @@
       "MaxStack": 50
     },
     {
-      "ItemId": "PeatAmber",
-      "DisplayName": "Peat Amber",
+      "ItemId": "Amber",
+      "DisplayName": "Amber",
       "Description": "Dark peat threaded with amber from the Mire.",
       "MaxStack": 40
     }

@@ -4,7 +4,8 @@ Add new decisions at the top. A decision records what agents should treat as set
 
 | Date | Decision | Status | Rationale |
 | --- | --- | --- | --- |
-| 2026-10-14 | Group ordinary materials by wood, ore, metal, cooking ingredients, crafting ingredients, and others. | User-directed | Frost Salt is a cooking ingredient; Fibre and Peat Amber remain crafting ingredients. |
+| 2026-10-14 | Rename the Peat Amber item to Amber, including its ItemId. | User-directed | Keep old `PeatAmber` chest stacks readable by migrating them to `Amber` on storage load. |
+| 2026-10-14 | Group ordinary materials by wood, ore, metal, cooking ingredients, crafting ingredients, and others. | User-directed | Frost Salt is a cooking ingredient; Fibre and Amber remain crafting ingredients. |
 | 2026-10-14 | Keep ordinary materials in `items/materials/` by wood, ore, metal, ingredient, and other categories. | Superseded 2026-10-14 | Material items share one schema and runtime catalogue, with file grouping used for maintainable source organization. |
 
 | 2026-10-14 | Store shared attack data under `attacks/` and level-up rewards under `progression/`. | User-directed | Keep each catalogue in a folder named for its purpose and outside the equipment data folder. |
