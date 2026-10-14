@@ -774,6 +774,8 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     ToolUpgradeLevelComparison->SetAutoWrapText(false);
     ToolUpgradeBenefitRow = WidgetTree->ConstructWidget<UHorizontalBox>();
     ToolUpgradeComparisonHeadingRow = WidgetTree->ConstructWidget<UHorizontalBox>();
+    ToolUpgradeMaterialCosts = WidgetTree->ConstructWidget<UHorizontalBox>();
+    ToolUpgradeMaterialCosts->SetVisibility(ESlateVisibility::Collapsed);
     ToolUpgradeLevelIconBox = WidgetTree->ConstructWidget<USizeBox>();
     ToolUpgradeLevelIconBox->SetWidthOverride(22.0f);
     ToolUpgradeLevelIconBox->SetHeightOverride(22.0f);
@@ -805,17 +807,14 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     ToolProgressionText->RemoveFromParent();
     ToolProgressionText->SetJustification(ETextJustify::Center);
     UpgradeRequirements->AddChildToVerticalBox(ToolProgressionText);
-    ToolProgressionActions->RemoveFromParent();
-    auto* UpgradeActionSlot = UpgradeRequirements->AddChildToVerticalBox(ToolProgressionActions);
-    UpgradeActionSlot->SetPadding(FMargin(0.0f, 8.0f, 0.0f, 0.0f));
-    UpgradeActionSlot->SetHorizontalAlignment(HAlign_Center);
     auto* RequirementsSlot = UpgradePanelContent->AddChildToHorizontalBox(UpgradeRequirementsFrame);
     FSlateChildSize RequirementsSize(ESlateSizeRule::Fill);
-    RequirementsSize.Value = 0.62f;
+    RequirementsSize.Value = 0.36f;
     RequirementsSlot->SetSize(RequirementsSize);
     RequirementsSlot->SetPadding(FMargin(0.0f, 0.0f, 8.0f, 0.0f));
 
     auto* UpgradeComparison = WidgetTree->ConstructWidget<UVerticalBox>();
+    auto* UpgradeStats = WidgetTree->ConstructWidget<UVerticalBox>();
     UpgradeComparisonFrame = WidgetTree->ConstructWidget<UBorder>();
     UpgradeComparisonFrame->SetContent(UpgradeComparison);
     ToolUpgradeComparisonTitle->RemoveFromParent();
@@ -839,14 +838,23 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
             static_cast<UWidget*>(ToolUpgradeBenefitRow.Get())})
     {
         UpgradeControl->RemoveFromParent();
-        auto* UpgradeSlot = UpgradeComparison->AddChildToVerticalBox(UpgradeControl);
+        auto* UpgradeSlot = UpgradeStats->AddChildToVerticalBox(UpgradeControl);
         UpgradeSlot->SetPadding(FMargin(0.0f, 0.0f, 0.0f, 6.0f));
         UpgradeSlot->SetHorizontalAlignment(HAlign_Fill);
     }
-    UpgradeComparison->AddChildToVerticalBox(ToolUpgradeAdditionalStatsBox);
+    UpgradeStats->AddChildToVerticalBox(ToolUpgradeAdditionalStatsBox);
+    auto* UpgradeStatsSlot = UpgradeComparison->AddChildToVerticalBox(UpgradeStats);
+    UpgradeStatsSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+    auto* UpgradeCostsSlot = UpgradeComparison->AddChildToVerticalBox(ToolUpgradeMaterialCosts);
+    UpgradeCostsSlot->SetPadding(FMargin(0.0f, 8.0f, 0.0f, 0.0f));
+    UpgradeCostsSlot->SetHorizontalAlignment(HAlign_Center);
+    ToolProgressionActions->RemoveFromParent();
+    auto* UpgradeActionSlot = UpgradeComparison->AddChildToVerticalBox(ToolProgressionActions);
+    UpgradeActionSlot->SetPadding(FMargin(0.0f, 4.0f, 0.0f, 0.0f));
+    UpgradeActionSlot->SetHorizontalAlignment(HAlign_Center);
     auto* ComparisonSlot = UpgradePanelContent->AddChildToHorizontalBox(UpgradeComparisonFrame);
     FSlateChildSize ComparisonSize(ESlateSizeRule::Fill);
-    ComparisonSize.Value = 0.38f;
+    ComparisonSize.Value = 0.64f;
     ComparisonSlot->SetSize(ComparisonSize);
     Column->AddChildToVerticalBox(StationUpgradePanel);
     BuildExcludedWidgets.Add(CraftBronzeAxeButton);
@@ -1827,6 +1835,8 @@ void UKalmalaCraftingWidget::RefreshForgeUpgradeState(UKalmalaCraftingComponent*
     }
 
     const APlayerController* PC = GetOwningPlayer();
+    const AKalmalaCharacter* Character = PC ? Cast<AKalmalaCharacter>(PC->GetPawn()) : nullptr;
+    const UKalmalaInventoryComponent* Inventory = Character ? Character->GetInventoryComponent() : nullptr;
     const AKalmalaConstructionActor* Station = ContextStationActor.Get();
     const bool bContextValid = IsStationContextValid() && StationFilterKit == TEXT("ForgeKit")
         && IsValid(Station) && Station->GetConstructionKit() == TEXT("ForgeKit");
@@ -1836,6 +1846,66 @@ void UKalmalaCraftingWidget::RefreshForgeUpgradeState(UKalmalaCraftingComponent*
         ToolProgressionText->SetText(FText::FromString(Details));
     UpgradeBronzeAxeButton->SetIsEnabled(bContextValid && PC && PC->IsLocalController()
         && Details.Contains(TEXT("Ready to upgrade.")));
+
+    const FKalmalaToolProgressionEntry* Upgrade = FKalmalaToolProgressionContract::FindEntry(
+        FName(TEXT("BronzeAxe")), 2);
+    const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
+    const int32 TextScalePercent = UKalmalaSettingsWidget::ClampTextScale(
+        UKalmalaSettingsWidget::GetTextScalePercent());
+    const int32 ContrastMode = UKalmalaSettingsWidget::ClampContrastMode(
+        UKalmalaSettingsWidget::GetContrastMode());
+    FString CostSignature = FString::Printf(TEXT("%d/%d"), TextScalePercent, ContrastMode);
+    if (Upgrade)
+    {
+        for (const FKalmalaToolMaterialCost& Cost : Upgrade->MaterialCosts)
+        {
+            const int32 Owned = Inventory ? Inventory->GetQuantity(Cost.ItemId) : 0;
+            CostSignature += FString::Printf(TEXT("/%s:%d:%d"), *Cost.ItemId.ToString(), Cost.Quantity, Owned);
+        }
+    }
+    if (ToolUpgradeMaterialCosts && CostSignature != ToolUpgradeMaterialCostSignature)
+    {
+        ToolUpgradeMaterialCostSignature = MoveTemp(CostSignature);
+        ToolUpgradeMaterialCosts->ClearChildren();
+        const UKalmalaItemCatalogue* Items = UKalmalaItemCatalogue::Get();
+        if (Upgrade)
+        {
+            for (const FKalmalaToolMaterialCost& Cost : Upgrade->MaterialCosts)
+            {
+                const int32 Owned = Inventory ? Inventory->GetQuantity(Cost.ItemId) : 0;
+                UVerticalBox* CostColumn = WidgetTree->ConstructWidget<UVerticalBox>();
+                USizeBox* IconSize = WidgetTree->ConstructWidget<USizeBox>();
+                IconSize->SetWidthOverride(Theme.ItemIconTileSize);
+                IconSize->SetHeightOverride(Theme.ItemIconTileSize);
+                UKalmalaIconWidget* Icon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
+                Icon->SetCatalogueIcon(Cost.ItemId);
+                IconSize->SetContent(Icon);
+                UBorder* IconFrame = WidgetTree->ConstructWidget<UBorder>();
+                Theme.ApplyRequirementIconFrame(*IconFrame, ContrastMode);
+                IconFrame->SetContent(IconSize);
+                CostColumn->AddChildToVerticalBox(IconFrame)->SetHorizontalAlignment(HAlign_Center);
+
+                UTextBlock* Amount = WidgetTree->ConstructWidget<UTextBlock>();
+                Amount->SetText(FText::AsNumber(Cost.Quantity));
+                Amount->SetJustification(ETextJustify::Center);
+                Theme.ApplyText(*Amount, 16, true, TextScalePercent, ContrastMode);
+                if (ContrastMode <= 0 && Owned < Cost.Quantity)
+                    Amount->SetColorAndOpacity(FSlateColor(FLinearColor(1.0f, 0.35f, 0.25f)));
+                CostColumn->AddChild(Amount);
+
+                const FKalmalaItemDefinition* Item = Items ? Items->FindItem(Cost.ItemId) : nullptr;
+                CostColumn->SetToolTipText(FText::FromString(FString::Printf(
+                    TEXT("%s: %d owned, %d required"),
+                    Item ? *Item->DisplayName : *Cost.ItemId.ToString(), Owned, Cost.Quantity)));
+                const float TileEdgeMargin = Theme.ItemIconTileMargin * 0.5f;
+                ToolUpgradeMaterialCosts->AddChildToHorizontalBox(CostColumn)
+                    ->SetPadding(FMargin(TileEdgeMargin, 0.0f));
+            }
+        }
+    }
+    if (ToolUpgradeMaterialCosts)
+        ToolUpgradeMaterialCosts->SetVisibility(Upgrade && !Upgrade->MaterialCosts.IsEmpty()
+            ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
 }
 
 void UKalmalaCraftingWidget::SelectWorkbenchCraftSection()
@@ -3690,7 +3760,6 @@ void UKalmalaCraftingWidget::Refresh()
         ToolProgressionText->SetText(FText::FromString(M->GetToolProgressionText(ProgressionStation)));
     }
     RefreshStationContextState();
-    RefreshForgeUpgradeState(M);
     RefreshMaceCraftState();
     RefreshStationRepairActionState(M);
     const auto& Recipes=UKalmalaRecipeCatalogue::Get()->Recipes;
@@ -3793,6 +3862,7 @@ void UKalmalaCraftingWidget::Refresh()
     if (bWorkbenchCraftContext || bWorkbenchRepairContext || bForgeCraftContext
         || bForgeUpgradeContext || bForgeRepairContext)
         ApplyStationCraftLayout();
+    RefreshForgeUpgradeState(M);
     if (bForgeUpgradeContext)
         RefreshInlineToolUpgradeComparison(ContrastMode);
     else

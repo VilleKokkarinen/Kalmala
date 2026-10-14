@@ -1289,7 +1289,7 @@ invalid numbers/paths, missing assets, and a transient in-memory image reference
 The settings and Inventory menu tests remain required alongside it. No
 custom project font or rendered image appearance has been reviewed.
 
-Hover, keyboard/controller focus, selection, and disabled states share theme brushes and non-colour cues. Decorative images/animation yield to local high contrast and reduced motion. The Forge Upgrade card shows the Bronze Axe and a level icon for the target level, then every nonzero authored item stat across the current and target levels: maximum durability and each damage-bonus channel. Zero-valued channels are omitted. Requirements and material counts stay in the adjacent requirements panel. Stat increases and decreases use the shared `LevelUpColor` and `LevelDownColor` theme values; unchanged values use the neutral text color. The compact card is owner-only and submits no request.
+Hover, keyboard/controller focus, selection, and disabled states share theme brushes and non-colour cues. Decorative images/animation yield to local high contrast and reduced motion. The Forge Upgrade card shows the Bronze Axe and a level icon for the target level, then every nonzero authored item stat across the current and target levels: maximum durability and each damage-bonus channel. Zero-valued channels are omitted. The wider right detail frame keeps this comparison at the top and places the material tiles and Upgrade action together at the bottom; the left frame retains prerequisite and availability text. Stat increases and decreases use the shared `LevelUpColor` and `LevelDownColor` theme values; unchanged values use the neutral text color. The compact card is owner-only and submits no request.
 
 ## Status and catalogue icons
 
@@ -2280,8 +2280,10 @@ catalogue icon, name, and level sit at the top-right.
 The selected Workbench/Forge tab uses the shared gold text accent without a
 leading selection marker.
 Forge Upgrade uses the same wood-backed content area and top inset as station
-Craft. Its framed requirements column centers the material summary and Upgrade
-action together; the adjacent frame keeps the owner-only comparison. Its
+Craft. Its split follows the Craft list/detail proportions: the left frame keeps
+prerequisite and availability text, while the wider right detail frame shows
+the owner-only comparison above a centered material tile row and Upgrade action
+at the bottom. Its
 comparison header reads `Bronze Axe -` followed
 by a level icon and target level; subsequent rows show every nonzero stat from
 the current and target levels, including maximum durability and all nonzero

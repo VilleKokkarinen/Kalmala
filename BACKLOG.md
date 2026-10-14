@@ -31,6 +31,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-14 — Match Forge Upgrade to Craft detail layout:** give the owner comparison the wider right detail frame, with material icon tiles and the Upgrade action in a bottom footer; retain prerequisite and availability text in the left frame. Lightweight source inspection and whitespace checks passed; Unreal verification deferred.
+
 - [x] **2026-10-14 — Keep Options scrolling vertical and themed:** make Controls content fill its viewport, use vertical-only scrolling, and apply a shared bronze-on-wood scrollbar with a high-contrast treatment. Lightweight source inspection and whitespace checks passed; Unreal verification deferred.
 
 - [x] **2026-10-14 — Allow unbound alternate controls:** default alternative bindings to `Not bound` except Inventory Tab; let each alternate cycle through its allowlisted keys and back to unbound, and remove other secondary keys from `DefaultInput.ini`. Lightweight source inspection and whitespace checks passed; no test, build, or render ran.

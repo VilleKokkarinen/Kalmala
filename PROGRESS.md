@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-14 — Match Forge Upgrade to Craft detail layout
+
+- **Completed:** changed Forge Upgrade to the Craft list/detail proportions. Prerequisite and availability text stays in the narrower left frame; the wider right detail panel keeps the owner comparison at the top and places material icon/count tiles above the Upgrade action at the bottom. Material counts reflect owner inventory and retain missing-material cues and tooltips.
+- **Files changed:** `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`, `Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`, `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** source inspection of Forge state, the Craft detail cost tiles, and layout ownership; `git diff --check` passed. No tests, Unreal build, automation, or runtime render ran.
+- **Impact/authority:** owner-local Forge presentation only. The existing owner-state request, station validation, material payment, server authority, networking, and save data remain unchanged.
+- **Verification/limitations:** normal user-directed increment; compilation and rendered Forge verification remain deferred.
+- **Next eligible task:** convert decorative generated forest trees into individually attackable sources and integrate their depletion/streaming policy.
+
 ## User-directed increment 2026-10-14 — Keep Options scrolling vertical and themed
 
 - **Completed:** made the Controls page content fill the available scroll viewport and explicitly use vertical scrolling. The shared scroll theme now uses a rounded bronze thumb on a dark wood-toned track, with a white thumb and black track in high contrast.

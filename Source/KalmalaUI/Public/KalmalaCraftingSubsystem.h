@@ -265,6 +265,7 @@ private:
     UPROPERTY(Transient) TObjectPtr<UTextBlock> ToolUpgradeBenefitComparison;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> ToolUpgradeBenefitDelta;
     UPROPERTY(Transient) TObjectPtr<class UVerticalBox> ToolUpgradeAdditionalStatsBox;
+    UPROPERTY(Transient) TObjectPtr<class UHorizontalBox> ToolUpgradeMaterialCosts;
     UPROPERTY(Transient) TArray<TObjectPtr<class UHorizontalBox>> ToolUpgradeAdditionalStatRows;
     UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> ToolUpgradeAdditionalStatValues;
     UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> ToolUpgradeAdditionalStatDeltas;
@@ -318,6 +319,7 @@ private:
     FName StationFilterKit;
     FString GeneralInstructions;
     int32 SelectedStorageItem = 0;
+    FString ToolUpgradeMaterialCostSignature;
     int32 LastDetailTextScalePercent = INDEX_NONE;
     int32 LastDetailContrastMode = INDEX_NONE;
     int32 LastMenuPanelContext = INDEX_NONE;
