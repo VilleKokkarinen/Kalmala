@@ -117,8 +117,8 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
     if (Bronze != nullptr)
     {
         TestEqual(TEXT("Bronze Axe is authored as tool level one"), Bronze->TargetToolLevel, 1);
-        TestEqual(TEXT("Bronze Axe uses the level-one Workbench"),
-            Bronze->RequiredStation, EKalmalaToolStationKind::Workbench);
+        TestEqual(TEXT("Bronze Axe uses the level-one Forge"),
+            Bronze->RequiredStation, EKalmalaToolStationKind::Forge);
         TestEqual(TEXT("Bronze Axe station level matches its target"), Bronze->RequiredStationLevel, 1);
         TestTrue(TEXT("Bronze Axe is the first step in this axe path"),
             Bronze->PreviousToolId.IsNone() && Bronze->PreviousToolLevel == 0);

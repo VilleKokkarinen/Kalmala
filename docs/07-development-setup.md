@@ -1774,7 +1774,7 @@ ingredients, stations, and outputs, use the catalogue contract in
 `docs/02-technical-architecture.md` and the focused current-catalogue tests
 listed below.
 
-The Cooking Rack, Cauldron, and Frying Pan use the existing paid construction path and schema-1 construction record; none adds a save field, private inventory, or persistent fuel authority. The server resolves each required station and derives heat needs from its cooking identity. A food recipe requires a usable Lit hearth with finite positive heat within 250 cm of both player and station. Looking at a rack, cauldron, frying pan, or Workbench shows a remappable Interact prompt; the default E interaction is rerun by the server, which replicates the selected station identity only to its owner. The shared themed shell opens the Cooking Rack, Cauldron, and Frying Pan Cook sections and the Workbench Craft section. Workbench Craft filters to recipes requiring that station or producing its matching Tool Rack attachment, plus the Bronze Axe tool operation; it reports material requirements, effective level, and current Tool Rack state. The exact accepted actor and stable construction ID bind the section, and the shell closes if that actor is destroyed, leaves range, or the owning pawn changes. The standalone Build menu opens by right-clicking with the Construction Hammer active. The filter and shell do not authorize crafting: the server independently validates each recipe/tool request against the visible same-world station, required levels, private inventory, and atomic material exchange. `Kalmala.Gameplay.Food.CookingStationHeat` asserts the exact accepted Cooking Rack context and Workbench interaction identity; the M12 `Verify-Crafting.ps1` presentation check also audits Workbench Craft's limited outputs and Bronze Axe prerequisites on both peers. Each recipe exchange consumes only the listed ingredients; the hearth burns its fuel by elapsed server time at the ordinary one-fuel-second-per-second rate. A serving batch creates no raw-fuel item debit or hidden timer. The owner food request carries only the allowlisted food item ID. The server checks its private inventory and one-meal slot before consuming an accepted meal and publishing the existing 120-second server status that multiplies stamina use by 0.90. Duplicate use and alternate-food replacement are rejected without consuming food or changing the active timer; server status time expires the effect and restores ordinary stamina costs. `HearthBroth` remains an item without a production recipe; food recipes and outputs are enumerated in `docs/02-technical-architecture.md`. Food remains optional, with no hunger drain or travel requirement. Food and the effect remain transient; no save schema changed.
+The Cooking Rack, Cauldron, and Frying Pan use the existing paid construction path and schema-1 construction record; none adds a save field, private inventory, or persistent fuel authority. The server resolves each required station and derives heat needs from its cooking identity. A food recipe requires a usable Lit hearth with finite positive heat within 250 cm of both player and station. Looking at a rack, cauldron, frying pan, or Workbench shows a remappable Interact prompt; the default E interaction is rerun by the server, which replicates the selected station identity only to its owner. The shared themed shell opens the Cooking Rack, Cauldron, and Frying Pan Cook sections and the Workbench Craft section. Workbench Craft filters to recipes requiring that station or producing its matching Tool Rack attachment; it reports material requirements, effective level, and current Tool Rack state. Forge Craft exposes Bronze Axe and Bronze Mace actions alongside Forge recipes. The exact accepted actor and stable construction ID bind the section, and the shell closes if that actor is destroyed, leaves range, or the owning pawn changes. The standalone Build menu opens by right-clicking with the Construction Hammer active. The filter and shell do not authorize crafting: the server independently validates each recipe/tool request against the visible same-world station, required levels, private inventory, and atomic material exchange. `Kalmala.Gameplay.Food.CookingStationHeat` asserts the exact accepted Cooking Rack context and Workbench interaction identity; the M12 `Verify-Crafting.ps1` presentation check also audits Workbench Craft's limited outputs and Forge Craft's Bronze Axe/Mace actions on both peers. Each recipe exchange consumes only the listed ingredients; the hearth burns its fuel by elapsed server time at the ordinary one-fuel-second-per-second rate. A serving batch creates no raw-fuel item debit or hidden timer. The owner food request carries only the allowlisted food item ID. The server checks its private inventory and one-meal slot before consuming an accepted meal and publishing the existing 120-second server status that multiplies stamina use by 0.90. Duplicate use and alternate-food replacement are rejected without consuming food or changing the active timer; server status time expires the effect and restores ordinary stamina costs. `HearthBroth` remains an item without a production recipe; food recipes and outputs are enumerated in `docs/02-technical-architecture.md`. Food remains optional, with no hunger drain or travel requirement. Food and the effect remain transient; no save schema changed.
 
 Each successful prepared-food recipe transaction awards one fixed 10 Cooking experience through the existing server-owned skill component, regardless of its serving batch. The award happens only after the atomic private-pack exchange succeeds. Rejected stations, heat, quantities, inputs, or output capacity award no experience; client-side calls cannot reach the award path. The award is transient. `Kalmala.Gameplay.Food.CookingStationHeat` checks the station-local heat rule, no recipe fuel debit, and time-based fire burn; `Kalmala.Gameplay.Crafting.Transactions` checks recipe batches and raw-fuel selection for hearth refuelling.
 
@@ -2029,10 +2029,10 @@ host/client acceptance; they do not replace a live damaged-tool repair review.
 
 The former combined M9 Build-panel text probe was retired when M12 removed the
 legacy progression panel from standalone Build. Tool progression remains in
-its Workbench Craft and Forge Upgrade contexts. `Scripts/Tests/Construction/Verify-Crafting.ps1`
-requires both peer markers for the Workbench Bronze Axe prerequisites and
-passive Tool Rack status, plus Forge Upgrade requirements/comparison and the
-passive Anvil status. These checks inspect the current station-scoped
+Forge Craft and Forge Upgrade contexts. `Scripts/Tests/Construction/Verify-Crafting.ps1`
+requires both peer markers for the Workbench Tool Rack state and no Bronze
+acquisition actions, plus Forge Craft Bronze Axe/Mace actions and Forge Upgrade
+requirements/comparison with passive Anvil status. These checks inspect the current station-scoped
 presentation; they add no server request, gameplay authority, replicated
 field, or save schema.
 
@@ -2341,21 +2341,22 @@ M12 final acceptance.
 ## M12 Forge Craft section
 
 An accepted Forge interaction opens the shared station shell in Craft. Its
-recipe filter includes only recipes requiring the Forge and recipes producing
-its matching attachment, including Frying Pan production and Forge Anvil.
+recipe filter includes recipes requiring the Forge, including Frying Pan
+production. Forge Anvil is produced through the hammer Build menu and remains
+restricted to placement on a matching Forge.
 Ingredient rows and selected recipe requirements retain the catalogue costs,
 station requirement, and current availability. A status line reads the
 effective level and Anvil attachment state from the accepted Forge actor. Craft
 requests continue through the existing recipe-ID/batch RPC without a
 client-selected station or costs; the server revalidates station
 visibility/range, recipe identity, inventory and material exchange. The Craft
-section hides Workbench-only Bronze Axe operations and
+section shows the Forge-scoped Bronze Axe and Bronze Mace actions and hides
 unrelated build, food, repair, and storage controls.
 
 `Verify-Crafting.ps1` expects a `Forge Craft scope` marker from both host and
 client. Its prepared source assertion covers the Frying Pan's five-Iron Forge
-recipe, matching Forge Anvil attachment, station-only recipe filter, accepted
-interaction routing, and focused Craft presentation. The focused
+recipe, Forge Anvil Build-menu routing and station-restricted placement, Forge-only
+recipe filter, Bronze acquisition actions, accepted interaction routing, and focused Craft presentation. The focused
 `Kalmala.Gameplay.Food.CookingStationHeatContract` also checks the owner's exact
 accepted Forge actor/kit/ID and interaction serial. Full runtime host/client
 execution and rendered inspection remain in M12's final acceptance.
@@ -2888,7 +2889,7 @@ Entity defaults expose `UKalmalaResistanceComponent::Profile`: Armor plus Slash,
 
 ## Mace tier and icon authoring
 
-`items/equipment/maces.json` defines Stone/Bronze/Iron mace profiles with the corresponding knife durability and damage amount, using Crush exclusively and no harvesting action. Bronze and Iron acquisition recipes are grouped under Workbench and Forge respectively in `recipes/stations/workbench-item-recipes.json` and `recipes/stations/forge-item-recipes.json`. The starting carried loadout has six records including Stone Mace; Bronze and Iron Mace use explicit station Craft buttons and the existing server item-ID-only transaction. The assembled catalogue has 16 profiles, 10 acquisition recipes and 11 derived progression steps. No upgrade stats beyond mace level 1 are authored.
+`items/equipment/maces.json` defines Stone/Bronze/Iron mace profiles with the corresponding knife durability and damage amount, using Crush exclusively and no harvesting action. Bronze and Iron acquisition recipes are grouped under Forge in `recipes/stations/forge-item-recipes.json`. The starting carried loadout has six records including Stone Mace; Bronze and Iron Mace use explicit Forge Craft buttons and the existing server item-ID-only transaction. The assembled catalogue has 16 profiles, 10 acquisition recipes and 11 derived progression steps. No upgrade stats beyond mace level 1 are authored.
 
 The built-in imagegen prompts, original paths, prepared paths and Texture2D paths are recorded in [mace icon provenance](mace-icons.md). Batch F is pinned to the three new mace identities. `Scripts/Import-CatalogueIconBatch.ps1 -Batch F` imported and validated the assets from an isolated content-only project. An initial sandbox attempt produced no import log; the normal-access retry succeeded. Each original is transparent 1254×1254 RGBA, and each prepared icon is transparent 64×64 RGBA. The catalogue manifest has 58 imported canonical identities and 62 runtime identities including four shared scroll mappings.
 

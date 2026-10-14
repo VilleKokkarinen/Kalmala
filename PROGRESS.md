@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-14 — Route Forge construction and Bronze acquisitions
+
+- **Completed:** moved Forge Anvil's paid recipe into `recipes/building.json` beside Forge, enabled it in the Construction Hammer Build menu, and kept its Forge placement validation. Moved all five Bronze acquisition records from Workbench to Forge and moved the existing Bronze Axe/Mace craft actions into Forge Craft. Workbench craft no longer offers those Bronze actions.
+- **Files changed:** `Content/Data/GameCatalogues.json`, `Content/Data/GameCatalogues/recipes/building.json`, `Content/Data/GameCatalogues/recipes/stations/forge.json`, `Content/Data/GameCatalogues/recipes/stations/forge-item-recipes.json`, `Content/Data/GameCatalogues/recipes/stations/workbench-item-recipes.json`, `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`, `Source/KalmalaGameplay/Private/Tests/KalmalaM9ToolProgressionCatalogueTest.cpp`, `Source/KalmalaGameplay/Private/Tests/KalmalaM9ToolStationProgressionTest.cpp`, `Source/KalmalaUI/Private/Tests/KalmalaRecipeBrowseTest.cpp`, `Scripts/Tests/Construction/Verify-Crafting.ps1`, `docs/02-technical-architecture.md`, `docs/05-decision-log.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** parsed all manifest-listed catalogue JSON and validated paths, Forge/Build routing, and five Bronze IDs; compared pre-change and moved recipe records (only the Bronze station changed); parsed `Verify-Crafting.ps1`; `git diff --check` passed. No tests, Unreal build, or runtime render ran.
+- **Impact/authority:** catalogue routing and local menu visibility changed. The server continues to validate tool progression and materials at the selected station and validates Forge Anvil placement against a matching Forge; no save schema or RPC payload changed.
+- **Verification/limitations:** full Unreal compilation, gameplay automation, and rendered verification remain deferred. Dedicated acquisition actions for Bronze Knife, Pick, and Spear remain outside this increment; Bronze Axe and Mace actions now match their Forge recipes.
+- **Next eligible task:** convert decorative generated forest trees into individually attackable sources with a compatible depletion/streaming policy.
+
 ## User-directed increment 2026-10-14 — Give upgrade costs their own schema
 
 - **Completed:** changed upgrade files to a top-level `upgrades` array and made `ToolId` the sole authored identity for each upgrade-cost record. The loader now validates and sorts upgrade records by `ToolId`; acquisition recipes retain `RecipeId`. Advanced the catalogue schema from 12 to 13. Preserved the existing working-copy upgrade-cost content.

@@ -200,6 +200,31 @@
       "ExperienceSkill": "None",
       "ExperienceAward": 0,
       "bEnabled": true
+    },
+    {
+      "RecipeId": "ForgeAnvil",
+      "DisplayName": "Forge Anvil",
+      "Ingredients": [
+        {
+          "ItemId": "Wood",
+          "Quantity": 9
+        },
+        {
+          "ItemId": "Fibre",
+          "Quantity": 6
+        },
+        {
+          "ItemId": "Stone",
+          "Quantity": 4
+        }
+      ],
+      "Output": "ForgeAnvil",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "RequiredStation": [],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
     }
   ]
 }

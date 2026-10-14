@@ -786,12 +786,12 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     BuildExcludedWidgets.Add(ToolProgressionText);
     ToolProgressionActions = WidgetTree->ConstructWidget<UHorizontalBox>(); Column->AddChild(ToolProgressionActions);
     BuildExcludedWidgets.Add(ToolProgressionActions);
-    CraftBronzeAxeButton = AddButton(TEXT("Craft Bronze Axe"), ToolProgressionActions,
-        TEXT("Ask the server to craft the level-one Bronze Axe at a visible same-world level-one Workbench. The server checks materials and private tool inventory."));
-    CraftBronzeAxeButton->OnClicked.AddDynamic(this, &ThisClass::CraftBronzeAxe);
     MaceCraftActions = WidgetTree->ConstructWidget<UHorizontalBox>();
     Column->AddChild(MaceCraftActions);
     BuildExcludedWidgets.Add(MaceCraftActions);
+    CraftBronzeAxeButton = AddButton(TEXT("Craft Bronze Axe"), MaceCraftActions,
+        TEXT("Ask the server to craft the level-one Bronze Axe at a visible same-world level-one Forge. The server checks materials and private tool inventory."));
+    CraftBronzeAxeButton->OnClicked.AddDynamic(this, &ThisClass::CraftBronzeAxe);
     CraftBronzeMaceButton = AddButton(TEXT("Craft Bronze Mace"), MaceCraftActions);
     CraftBronzeMaceButton->OnClicked.AddDynamic(this, &ThisClass::CraftBronzeMace);
     CraftIronMaceButton = AddButton(TEXT("Craft Iron Mace"), MaceCraftActions);
@@ -935,7 +935,7 @@ int32 UKalmalaCraftingWidget::GetBuildBrowseGroup(const FName Output)
 {
     if (!FKalmalaPlacementPreview::IsSupportedKit(Output)) return 0;
     if (Output == TEXT("FloorKit") || AKalmalaConstructionActor::IsShelterKit(Output)) return 4;
-    if (AKalmalaConstructionActor::IsCraftingStationKit(Output)) return 5;
+    if (AKalmalaConstructionActor::IsCraftingStationKit(Output) || Output == TEXT("ForgeAnvilKit")) return 5;
     return 6;
 }
 
@@ -949,7 +949,8 @@ bool UKalmalaCraftingWidget::CanBuildMenuCraftRecipe(const FKalmalaRecipe& Recip
 {
     return GetBuildBrowseGroup(Recipe.GetOutputIdentity()) != 0
         && Recipe.RequiredStation.IsEmpty()
-        && !FKalmalaToolProgressionContract::IsStationAttachmentKit(Recipe.Output);
+        && (Recipe.GetOutputIdentity() == TEXT("ForgeAnvilKit")
+            || !FKalmalaToolProgressionContract::IsStationAttachmentKit(Recipe.GetOutputIdentity()));
 }
 
 FString UKalmalaCraftingWidget::GetBrowseCategoryLabel(const int32 Category)
@@ -1007,7 +1008,8 @@ TArray<int32> UKalmalaCraftingWidget::GetVisibleRecipeIndices() const
                 || (RecipeCategory == 3 && BuildGroup != 0)
                 || (RecipeCategory == 7 && (IsRecipeFavorite(Recipe.RecipeId) || IsRecipeRecent(Recipe.RecipeId)))
                 || (RecipeCategory >= 4 && RecipeCategory <= 6 && BuildGroup == RecipeCategory);
-        const bool bMatchingAttachment = FKalmalaToolProgressionContract::IsStationAttachmentKit(Recipe.GetOutputIdentity())
+        const bool bMatchingAttachment = Recipe.GetOutputIdentity() != TEXT("ForgeAnvilKit")
+            && FKalmalaToolProgressionContract::IsStationAttachmentKit(Recipe.GetOutputIdentity())
             && FKalmalaToolProgressionContract::GetAttachmentStationKit(Recipe.GetOutputIdentity()) == StationFilterKit;
         const bool bMatchesStation = Recipe.RequiredStation.Contains(StationFilterKit)
             || (StationFilterKit == TEXT("CookingRackKit") && Recipe.RequiredStation.Contains(TEXT("CookingRack")))
@@ -1530,13 +1532,13 @@ void UKalmalaCraftingWidget::ConfigureStationContextPresentation(const FString& 
     {
         if (HeaderText) HeaderText->SetText(FText::FromString(TEXT("Workbench — Craft")));
         if (InstructionsText) InstructionsText->SetText(FText::FromString(
-            TEXT("Only recipes for this Workbench and the Bronze Axe tool operation are shown. The server checks station, materials, and tool state when you craft.")));
+            TEXT("Only recipes for this Workbench and its matching Tool Rack are shown. The server checks station, materials, and tool state when you craft.")));
     }
     else if (bForgeCraftContext)
     {
         if (HeaderText) HeaderText->SetText(FText::FromString(TEXT("Forge — Craft")));
         if (InstructionsText) InstructionsText->SetText(FText::FromString(
-            TEXT("Only Forge-compatible recipes and attachments are shown. Ingredient rows and selected requirements show their material and station needs; the server checks them again when you craft.")));
+            TEXT("Only recipes for this Forge are shown. Bronze Axe and Mace crafting actions are also available here; the server checks station, materials, and tool state when you craft.")));
     }
     else if (bForgeUpgradeContext)
     {
@@ -1648,13 +1650,13 @@ void UKalmalaCraftingWidget::ApplyStationCraftLayout()
         UpgradeBronzeAxeButton->SetVisibility(bInventoryCompanion || bCookingContext || bWorkbenchCraftContext || bForgeCraftContext || bWorkbenchRepairContext || bStorageContext
             ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
     if (CraftBronzeAxeButton)
-        CraftBronzeAxeButton->SetVisibility(bInventoryCompanion || bCookingContext || bForgeCraftContext || bForgeUpgradeContext || bWorkbenchRepairContext || bStorageContext
+        CraftBronzeAxeButton->SetVisibility(bInventoryCompanion || bCookingContext || bWorkbenchCraftContext || bForgeUpgradeContext || bWorkbenchRepairContext || bStorageContext
             ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
     if (ToolProgressionText)
         ToolProgressionText->SetVisibility(bInventoryCompanion || bCookingContext || bForgeCraftContext || bRepairContext || bStorageContext
             ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
     if (MaceCraftActions)
-        MaceCraftActions->SetVisibility(!bInventoryCompanion && (bWorkbenchCraftContext || bForgeCraftContext)
+        MaceCraftActions->SetVisibility(!bInventoryCompanion && bForgeCraftContext
             ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
     if (ToolProgressionActions)
         ToolProgressionActions->SetVisibility(bInventoryCompanion || bCookingContext || bForgeCraftContext || bRepairContext || bStorageContext
@@ -1791,9 +1793,9 @@ void UKalmalaCraftingWidget::RefreshStationContextState()
 void UKalmalaCraftingWidget::RefreshMaceCraftState()
 {
     if (!MaceCraftActions || !CraftBronzeMaceButton || !CraftIronMaceButton) return;
-    const bool bVisible = !bInventoryCompanion && (bWorkbenchCraftContext || bForgeCraftContext);
+    const bool bVisible = !bInventoryCompanion && bForgeCraftContext;
     MaceCraftActions->SetVisibility(bVisible ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
-    CraftBronzeMaceButton->SetVisibility(bWorkbenchCraftContext ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+    CraftBronzeMaceButton->SetVisibility(bForgeCraftContext ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
     CraftIronMaceButton->SetVisibility(bForgeCraftContext ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
     const APlayerController* PC = GetOwningPlayer();
     const AKalmalaCharacter* Owner = PC ? Cast<AKalmalaCharacter>(PC->GetPawn()) : nullptr;
@@ -2594,6 +2596,13 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
         && Ingredients->GetPresentationText().IsEmpty();
     SetRecipeBrowse(TEXT(""), 3, false);
     const auto Builds = GetVisibleRecipeIndices();
+    const auto& BuildRecipes = UKalmalaRecipeCatalogue::Get()->Recipes;
+    const bool bForgeAnvilBuildRoute = Builds.ContainsByPredicate([&BuildRecipes](const int32 Index)
+    {
+        return BuildRecipes.IsValidIndex(Index) && BuildRecipes[Index].RecipeId == TEXT("ForgeAnvil")
+            && GetBuildBrowseGroup(BuildRecipes[Index].GetOutputIdentity()) == 5
+            && CanBuildMenuCraftRecipe(BuildRecipes[Index]);
+    });
     bool bBuildGroups = !Builds.IsEmpty();
     for (int32 Group = 4; Group <= 6; ++Group)
     {
@@ -2656,22 +2665,21 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
     }
     const FString WorkbenchToolOptions = Model()
         ? Model()->GetToolProgressionText(TEXT("WorkbenchKit")) : FString();
+    const FString ForgeToolOptions = Model()
+        ? Model()->GetToolProgressionText(TEXT("ForgeKit")) : FString();
     const FKalmalaToolProgressionEntry* BronzeAxe = FKalmalaToolProgressionContract::FindEntry(TEXT("BronzeAxe"));
     const bool bBronzeAxeScoped = BronzeAxe != nullptr
-        && BronzeAxe->RequiredStation == EKalmalaToolStationKind::Workbench
-        && WorkbenchToolOptions.Contains(TEXT("Bronze Axe"))
-        && !WorkbenchToolOptions.Contains(TEXT("Iron Axe"));
-    const AKalmalaCharacter* ToolOwner = Cast<AKalmalaCharacter>(GetOwningPlayerPawn());
-    const bool bBronzeAlreadyCarried = ToolOwner && ToolOwner->GetCarriedToolLevel(TEXT("BronzeAxe")) > 0;
-    const bool bToolPrerequisites = bBronzeAlreadyCarried
-        ? WorkbenchToolOptions.Contains(TEXT("Already at this level"))
-        : WorkbenchToolOptions.Contains(TEXT("Cost:"))
-            && WorkbenchToolOptions.Contains(TEXT("Requires: Workbench level 1"));
+        && BronzeAxe->RequiredStation == EKalmalaToolStationKind::Forge
+        && ForgeToolOptions.Contains(TEXT("Bronze Axe"))
+        && ForgeToolOptions.Contains(TEXT("Requires: Forge level 1"));
+    const bool bNoWorkbenchToolOptions = !WorkbenchToolOptions.Contains(TEXT("Bronze Axe"))
+        && !WorkbenchToolOptions.Contains(TEXT("Cost:"));
     const bool bPreviousWorkbenchContext = bWorkbenchCraftContext;
     const bool bPreviousWorkbenchForgeRepairContext = bForgeRepairContext;
     bWorkbenchCraftContext = true;
     bForgeRepairContext = false;
     ApplyStationCraftLayout();
+    RefreshMaceCraftState();
     RefreshStationContextState();
     const FString WorkbenchStatus = StationContextStatusText
         ? StationContextStatusText->GetText().ToString() : FString();
@@ -2681,7 +2689,10 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
         && StationContextStatusText->GetVisibility() == ESlateVisibility::Visible
         && bWorkbenchLevelShown
         && CraftButton && CraftButton->GetVisibility() != ESlateVisibility::Collapsed
-        && CraftBronzeAxeButton && CraftBronzeAxeButton->GetVisibility() != ESlateVisibility::Collapsed
+        && CraftBronzeAxeButton && CraftBronzeAxeButton->GetVisibility() == ESlateVisibility::Collapsed
+        && MaceCraftActions && MaceCraftActions->GetVisibility() == ESlateVisibility::Collapsed
+        && CraftBronzeMaceButton && CraftBronzeMaceButton->GetVisibility() == ESlateVisibility::Collapsed
+        && CraftIronMaceButton && CraftIronMaceButton->GetVisibility() == ESlateVisibility::Collapsed
         && UpgradeBronzeAxeButton && UpgradeBronzeAxeButton->GetVisibility() == ESlateVisibility::Collapsed;
     for (const TObjectPtr<UWidget>& ExcludedWidget : StationCraftExcludedWidgets)
     {
@@ -2697,7 +2708,7 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
     bool bFryingPanMaterials = false;
     bool bFryingPanStation = false;
     bool bFryingPanRequirements = false;
-    bool bHasForgeAnvil = false;
+    bool bForgeAnvilExcluded = true;
     bool bForgeOnlyRecipes = true;
     for (const int32 RecipeIndex : ForgeIndices)
     {
@@ -2706,7 +2717,7 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
         const bool bMatchingAttachment = FKalmalaToolProgressionContract::IsStationAttachmentKit(Recipe.Output)
             && FKalmalaToolProgressionContract::GetAttachmentStationKit(Recipe.Output) == TEXT("ForgeKit");
         bForgeOnlyRecipes &= Recipe.RequiredStation.Contains(TEXT("ForgeKit")) || bMatchingAttachment;
-        bHasForgeAnvil |= Recipe.Output == TEXT("ForgeAnvilKit") && bMatchingAttachment;
+        bForgeAnvilExcluded &= Recipe.Output != TEXT("ForgeAnvilKit");
         if (Recipe.Output == TEXT("FryingPanKit"))
         {
             bHasFryingPan = true;
@@ -2731,6 +2742,7 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
     bForgeUpgradeContext = false;
     bForgeRepairContext = false;
     ApplyStationCraftLayout();
+    RefreshMaceCraftState();
     RefreshStationContextState();
     const FString ForgeStatus = StationContextStatusText
         ? StationContextStatusText->GetText().ToString() : FString();
@@ -2745,6 +2757,11 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
         && RequirementText && RequirementText->GetVisibility() != ESlateVisibility::Collapsed
         && ToolProgressionText && ToolProgressionText->GetVisibility() == ESlateVisibility::Collapsed
         && ToolProgressionActions && ToolProgressionActions->GetVisibility() == ESlateVisibility::Collapsed
+        && CraftBronzeAxeButton && CraftBronzeAxeButton->GetVisibility() == ESlateVisibility::Visible
+        && UpgradeBronzeAxeButton && UpgradeBronzeAxeButton->GetVisibility() == ESlateVisibility::Collapsed
+        && MaceCraftActions && MaceCraftActions->GetVisibility() == ESlateVisibility::Visible
+        && CraftBronzeMaceButton && CraftBronzeMaceButton->GetVisibility() == ESlateVisibility::Visible
+        && CraftIronMaceButton && CraftIronMaceButton->GetVisibility() == ESlateVisibility::Visible
         && StationSectionSwitcher && StationSectionSwitcher->GetVisibility() == ESlateVisibility::Visible
         && ForgeCraftSectionButton && ForgeCraftSectionButton->GetVisibility() == ESlateVisibility::Visible
         && ForgeUpgradeSectionButton && ForgeUpgradeSectionButton->GetVisibility() == ESlateVisibility::Visible
@@ -2773,19 +2790,19 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
     const bool bCauldronScope = VerifyCauldronScopeForTest();
     const bool bFryingPanScope = VerifyFryingPanScopeForTest();
     const bool bChestScope = VerifyStorageContextScopeForTest();
-    UE_LOG(LogTemp, Display, TEXT("Workbench Craft scope: BronzeAxe=%d GrindingStone=%d ToolRack=%d NoUnrelated=%d ToolPrerequisites=%d StationLevel=%d UiScope=%d"),
-        bBronzeAxeScoped, bHasGrindingStone, bHasToolRack, bNoUnrelatedRecipes, bToolPrerequisites, bWorkbenchLevelShown, bWorkbenchUiScope);
-    UE_LOG(LogTemp, Display, TEXT("Forge Craft scope: FryingPan=%d ForgeAnvil=%d Materials=%d Station=%d NoUnrelated=%d Route=%d StationLevel=%d UiScope=%d"),
-        bHasFryingPan, bHasForgeAnvil, bFryingPanMaterials, bFryingPanStation,
+    UE_LOG(LogTemp, Display, TEXT("Workbench Craft scope: NoBronzeAxe=%d GrindingStone=%d ToolRack=%d NoUnrelated=%d NoToolOptions=%d StationLevel=%d UiScope=%d"),
+        !bBronzeAxeScoped, bHasGrindingStone, bHasToolRack, bNoUnrelatedRecipes, bNoWorkbenchToolOptions, bWorkbenchLevelShown, bWorkbenchUiScope);
+    UE_LOG(LogTemp, Display, TEXT("Forge Craft scope: FryingPan=%d AnvilInBuild=%d AnvilExcluded=%d BronzeAxe=%d Materials=%d Station=%d NoUnrelated=%d Route=%d StationLevel=%d UiScope=%d"),
+        bHasFryingPan, bForgeAnvilBuildRoute, bForgeAnvilExcluded, bBronzeAxeScoped, bFryingPanMaterials, bFryingPanStation,
         bForgeOnlyRecipes, bForgeInteractionRoute, bForgeLevelShown, bForgeUiScope);
     return bGridIconsLoaded && bSelectedIconLoaded && bUpgradeLevelIconConfigured
         && bKeyboardAdvanced && bKeyboardRestored && bControllerAdvanced && bControllerRestored && bScrollable
         && bSelectionKept && bCategoryWorked && bNoResults && bRestored && bSearchFocusSafe
         && bBuildMenuCleanup && bBuildGroups && bBuildSelection && bBuildKeys && bBuildEmpty
-        && bBronzeAxeScoped && bHasGrindingStone && bHasToolRack && bNoUnrelatedRecipes
-        && bToolPrerequisites && bWorkbenchLevelShown && bWorkbenchUiScope && bWorkbenchRepairScope && bForgeUpgradeScope
+        && bForgeAnvilBuildRoute && bBronzeAxeScoped && bHasGrindingStone && bHasToolRack && bNoUnrelatedRecipes
+        && bNoWorkbenchToolOptions && bWorkbenchLevelShown && bWorkbenchUiScope && bWorkbenchRepairScope && bForgeUpgradeScope
         && bForgeRepairScope
-        && bHasFryingPan && bHasForgeAnvil && bFryingPanRequirements && bForgeOnlyRecipes
+        && bHasFryingPan && bForgeAnvilExcluded && bFryingPanRequirements && bForgeOnlyRecipes
         && bForgeInteractionRoute && bForgeLevelShown && bForgeUiScope && bCookingRackScope && bCauldronScope && bFryingPanScope
         && bChestScope;
 }
@@ -4386,7 +4403,7 @@ void UKalmalaCraftingWidget::RepairWorkbenchSelectedTool()
 }
 void UKalmalaCraftingWidget::CraftBronzeMace()
 {
-    if (!bWorkbenchCraftContext || StationFilterKit != TEXT("WorkbenchKit") || !IsStationContextValid()) return;
+    if (!bForgeCraftContext || StationFilterKit != TEXT("ForgeKit") || !IsStationContextValid()) return;
     if (auto* M = Model()) M->ServerProgressTool(TEXT("BronzeMace"));
 }
 void UKalmalaCraftingWidget::CraftIronMace()
@@ -4394,7 +4411,11 @@ void UKalmalaCraftingWidget::CraftIronMace()
     if (!bForgeCraftContext || StationFilterKit != TEXT("ForgeKit") || !IsStationContextValid()) return;
     if (auto* M = Model()) M->ServerProgressTool(TEXT("IronMace"));
 }
-void UKalmalaCraftingWidget::CraftBronzeAxe() { if(auto* M=Model()) M->ServerProgressTool(TEXT("BronzeAxe")); }
+void UKalmalaCraftingWidget::CraftBronzeAxe()
+{
+    if (!bForgeCraftContext || StationFilterKit != TEXT("ForgeKit") || !IsStationContextValid()) return;
+    if (auto* M = Model()) M->ServerProgressTool(TEXT("BronzeAxe"));
+}
 void UKalmalaCraftingWidget::UpgradeBronzeAxe()
 {
     UKalmalaCraftingComponent* Crafting = Model();

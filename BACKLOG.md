@@ -34,6 +34,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-14 — Route Forge construction and Bronze acquisitions:** build Forge and Forge Anvil kits from the hammer Build menu, keep Anvil placement bound to a matching Forge, and move all Bronze equipment acquisition recipes to Forge. Catalogue/record checks and `git diff --check` passed; Unreal verification deferred.
+
 - [x] **2026-10-14 — Give upgrade costs their own schema:** use an `upgrades` array, key upgrade-cost records only by `ToolId`, and advance the catalogue schema to 13. Lightweight JSON/source checks and `git diff --check` passed; Unreal verification deferred.
 
 - [x] **2026-10-14 — Rename Peat Amber to Amber:** change the item ID and display name, update harvesting and upgrade references, rename the icon sources/package, and migrate saved chest stacks from `PeatAmber`. Catalogue/reference checks, batch-F icon import, targeted icon validation, and `git diff --check` passed; full Unreal verification deferred.

@@ -36,8 +36,7 @@
     "items/equipment/building-hammer.json"
   ],
   "itemRecipeFiles": [
-    "recipes/stations/forge-item-recipes.json",
-    "recipes/stations/workbench-item-recipes.json"
+    "recipes/stations/forge-item-recipes.json"
   ],
   "itemUpgradeFiles": [
     "upgrades/upgrades.json"
