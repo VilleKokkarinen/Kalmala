@@ -3645,9 +3645,14 @@ bool UKalmalaCraftingWidget::VerifyStorageContextScopeForTest()
 
     const auto* Inventory = GetOwningPlayerPawn()
         ? GetOwningPlayerPawn()->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
-    const int32 ExpectedChestRows = Crafting->HasStorageView() ? Crafting->GetStorageView().Num() : 0;
+    TSet<FName> ExpectedPackItems;
+    if (Inventory) for (const FKalmalaInventoryStack& Stack : Inventory->GetStacks()) ExpectedPackItems.Add(Stack.ItemId);
+    TSet<FName> ExpectedChestItems;
+    if (Crafting->HasStorageView())
+        for (const FKalmalaInventoryStack& Stack : Crafting->GetStorageView()) ExpectedChestItems.Add(Stack.ItemId);
+    const int32 ExpectedChestRows = Crafting->HasStorageView() ? ExpectedChestItems.Num() : 0;
     const bool bOwnerPackRows = Inventory
-        && StoragePackInspector->GetVisibleCount() == Inventory->GetStacks().Num();
+        && StoragePackInspector->GetVisibleCount() == ExpectedPackItems.Num();
     const bool bOwnerChestRows = StorageContentsInspector->GetVisibleCount() == ExpectedChestRows;
     const FString CapacityStatus = StorageContextStatusText ? StorageContextStatusText->GetText().ToString() : FString();
     const bool bCapacityFeedback = CapacityStatus.Contains(TEXT("Inventory slots:"))
@@ -3791,21 +3796,26 @@ void UKalmalaCraftingWidget::Refresh()
     TArray<FKalmalaCatalogueRow> StorageContentsRows;
     const auto* OwnerPawn = GetOwningPlayerPawn();
     const auto* OwnerInventory = OwnerPawn ? OwnerPawn->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
-    if (OwnerInventory)
-        for (const auto& Stack : OwnerInventory->GetStacks())
+    const auto AppendGroupedStackRows = [](const TArray<FKalmalaInventoryStack>& Stacks,
+        TArray<FKalmalaCatalogueRow>& OutRows)
+    {
+        TArray<FName> ItemOrder;
+        TMap<FName, int32> Quantities;
+        for (const FKalmalaInventoryStack& Stack : Stacks)
         {
-            const auto* Item = UKalmalaItemCatalogue::Get()->FindItem(Stack.ItemId);
-            const FKalmalaCatalogueRow Row{Stack.ItemId, Item ? Item->DisplayName : Stack.ItemId.ToString(),
-                FString::Printf(TEXT("Count %d"), Stack.Quantity), false};
-            StoragePackRows.Add(Row);
+            if (Stack.ItemId.IsNone() || Stack.Quantity <= 0) continue;
+            if (!Quantities.Contains(Stack.ItemId)) ItemOrder.Add(Stack.ItemId);
+            Quantities.FindOrAdd(Stack.ItemId) += Stack.Quantity;
         }
-    if (M->HasStorageView())
-        for (const auto& Stack : M->GetStorageView())
+        for (const FName ItemId : ItemOrder)
         {
-            const auto* Item = UKalmalaItemCatalogue::Get()->FindItem(Stack.ItemId);
-            StorageContentsRows.Add({Stack.ItemId, Item ? Item->DisplayName : Stack.ItemId.ToString(),
-                FString::Printf(TEXT("Count %d"), Stack.Quantity), false});
+            const auto* Item = UKalmalaItemCatalogue::Get()->FindItem(ItemId);
+            OutRows.Add({ItemId, Item ? Item->DisplayName : ItemId.ToString(),
+                FString::Printf(TEXT("Count %d"), Quantities.FindRef(ItemId)), false});
         }
+    };
+    if (OwnerInventory) AppendGroupedStackRows(OwnerInventory->GetStacks(), StoragePackRows);
+    if (M->HasStorageView()) AppendGroupedStackRows(M->GetStorageView(), StorageContentsRows);
     if (const auto* Character = Cast<AKalmalaCharacter>(OwnerPawn))
         for (const auto& Tool : Character->GetCarriedToolInventory())
         {
@@ -3920,24 +3930,21 @@ void UKalmalaCraftingWidget::Refresh()
         const FName DepositId = StoragePackInspector ? StoragePackInspector->GetSelectedItem() : NAME_None;
         const FName WithdrawId = StorageContentsInspector ? StorageContentsInspector->GetSelectedItem() : NAME_None;
         const UKalmalaItemCatalogue* ItemsCatalogue = UKalmalaItemCatalogue::Get();
-        const auto* DepositStack = OwnerInventory ? OwnerInventory->GetStacks().FindByPredicate(
-            [DepositId](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == DepositId; }) : nullptr;
-        const auto* ChestDepositStack = ChestStacks.FindByPredicate(
-            [DepositId](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == DepositId; });
-        const bool bCanStoreSelected = DepositStack && ItemsCatalogue && ItemsCatalogue->FindItem(DepositId)
-            && M->HasStorageView()
-            && (ChestDepositStack
-                ? ItemsCatalogue->CanAddToStack(DepositId, ChestDepositStack->Quantity, 1)
-                : ChestStacks.Num() < UKalmalaStorageSaveGame::MaxStorageSlots);
-        const auto* ChestWithdrawStack = ChestStacks.FindByPredicate(
-            [WithdrawId](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == WithdrawId; });
-        const auto* PackWithdrawStack = OwnerInventory ? OwnerInventory->GetStacks().FindByPredicate(
-            [WithdrawId](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == WithdrawId; }) : nullptr;
-        const bool bCanTakeSelected = ChestWithdrawStack && OwnerInventory && ItemsCatalogue
-            && ItemsCatalogue->FindItem(WithdrawId)
-            && (PackWithdrawStack
-                ? ItemsCatalogue->CanAddToStack(WithdrawId, PackWithdrawStack->Quantity, 1)
-                : OwnedSlotCount < UKalmalaInventoryComponent::MaxSlots);
+        const auto HasStackSpace = [ItemsCatalogue](const TArray<FKalmalaInventoryStack>& Stacks, const FName ItemId,
+            const int32 SlotCount, const int32 SlotLimit)
+        {
+            if (!ItemsCatalogue || !ItemsCatalogue->FindItem(ItemId)) return false;
+            for (const FKalmalaInventoryStack& Stack : Stacks)
+                if (Stack.ItemId == ItemId && ItemsCatalogue->CanAddToStack(ItemId, Stack.Quantity, 1)) return true;
+            return SlotCount < SlotLimit;
+        };
+        const bool bHasDeposit = OwnerInventory && OwnerInventory->GetQuantity(DepositId) > 0;
+        const bool bCanStoreSelected = bHasDeposit && M->HasStorageView()
+            && HasStackSpace(ChestStacks, DepositId, ChestStacks.Num(), UKalmalaStorageSaveGame::MaxStorageSlots);
+        const bool bHasWithdrawal = ChestStacks.ContainsByPredicate(
+            [WithdrawId](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == WithdrawId && Stack.Quantity > 0; });
+        const bool bCanTakeSelected = bHasWithdrawal && OwnerInventory
+            && HasStackSpace(OwnerInventory->GetStacks(), WithdrawId, OwnedSlotCount, UKalmalaInventoryComponent::MaxSlots);
         if (!M->HasStorageView()) ContextStatus += TEXT("\nChest view unavailable.");
         else if (!bStorageContextValid) ContextStatus += TEXT("\nChest context expired. Interact with a nearby Chest again.");
         else if (!bCanStoreSelected && !DepositId.IsNone()) ContextStatus += TEXT("\nStore unavailable: chest stack or slot capacity reached.");
@@ -4125,10 +4132,17 @@ void UKalmalaCraftingWidget::Refresh()
     if (M->HasStorageView())
     {
         if (M->GetStorageView().IsEmpty()) ChestText += TEXT("Empty\n");
+        TArray<FName> ItemOrder;
+        TMap<FName, int32> Quantities;
         for (const auto& Stack : M->GetStorageView())
         {
-            const auto* Item = Catalogue->FindItem(Stack.ItemId);
-            ChestText += FString::Printf(TEXT("%s: %d\n"), Item ? *Item->DisplayName : TEXT("Unknown item"), Stack.Quantity);
+            if (!Quantities.Contains(Stack.ItemId)) ItemOrder.Add(Stack.ItemId);
+            Quantities.FindOrAdd(Stack.ItemId) += Stack.Quantity;
+        }
+        for (const FName ItemId : ItemOrder)
+        {
+            const auto* Item = Catalogue->FindItem(ItemId);
+            ChestText += FString::Printf(TEXT("%s: %d\n"), Item ? *Item->DisplayName : TEXT("Unknown item"), Quantities.FindRef(ItemId));
         }
     }
     StorageText->SetText(FText::FromString(ChestText));

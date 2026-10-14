@@ -239,47 +239,35 @@ void UKalmalaInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProp
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
     DOREPLIFETIME_CONDITION(UKalmalaInventoryComponent, Stacks, COND_OwnerOnly);
     DOREPLIFETIME_CONDITION(UKalmalaInventoryComponent, GridSlots, COND_OwnerOnly);
+    DOREPLIFETIME_CONDITION(UKalmalaInventoryComponent, GridInstanceGuids, COND_OwnerOnly);
     DOREPLIFETIME_CONDITION(UKalmalaInventoryComponent, ActiveItem, COND_OwnerOnly);
+    DOREPLIFETIME_CONDITION(UKalmalaInventoryComponent, ActiveInstanceGuid, COND_OwnerOnly);
 }
 
 int32 UKalmalaInventoryComponent::GetQuantity(FName ItemId) const
 {
-    const auto* Stack = Stacks.FindByPredicate([ItemId](const FKalmalaInventoryStack& Entry) { return Entry.ItemId == ItemId; });
-    return Stack ? Stack->Quantity : 0;
+    int32 Quantity = 0;
+    for (const FKalmalaInventoryStack& Stack : Stacks)
+        if (Stack.ItemId == ItemId) Quantity += Stack.Quantity;
+    return Quantity;
 }
 
 bool UKalmalaInventoryComponent::TryGrantFromServer(FName ItemId, int32 Quantity)
 {
     if (!GetOwner() || !GetOwner()->HasAuthority()) return false;
-    const auto* Catalogue = UKalmalaItemCatalogue::Get();
-    if (!Catalogue->CanAddToStack(ItemId, GetQuantity(ItemId), Quantity)) return false;
-    auto* Stack = Stacks.FindByPredicate([ItemId](const FKalmalaInventoryStack& Entry) { return Entry.ItemId == ItemId; });
-    if (!Stack)
-    {
-        const auto* Character = Cast<AKalmalaCharacter>(GetOwner());
-        const int32 ToolCount = Character ? Character->GetCarriedToolInventory().Num() : 0;
-        if (Stacks.Num() + ToolCount >= MaxSlots) return false;
-        Stack = &Stacks.AddDefaulted_GetRef();
-        Stack->ItemId = ItemId;
-    }
-    Stack->Quantity += Quantity;
-    SynchronizeGridFromServer();
-    ClientAcceptedGain(ItemId, Quantity);
-    GetOwner()->ForceNetUpdate();
-    return true;
+    FString Reason;
+    TArray<FKalmalaInventoryStack> Candidate;
+    return BuildGrant(Stacks, ItemId, Quantity, Candidate, Reason)
+        && TryCommitStacksFromServer(Stacks, Candidate);
 }
 
 bool UKalmalaInventoryComponent::TryConsumeFromServer(FName ItemId, int32 Quantity)
 {
-    if (!GetOwner() || !GetOwner()->HasAuthority()
-        || !UKalmalaItemCatalogue::Get()->IsValidStack(ItemId, Quantity)) return false;
-    const int32 Index = Stacks.IndexOfByPredicate([ItemId](const FKalmalaInventoryStack& Entry) { return Entry.ItemId == ItemId; });
-    if (Index == INDEX_NONE || Stacks[Index].Quantity < Quantity) return false;
-    Stacks[Index].Quantity -= Quantity;
-    if (Stacks[Index].Quantity == 0) Stacks.RemoveAt(Index);
-    SynchronizeGridFromServer();
-    GetOwner()->ForceNetUpdate();
-    return true;
+    if (!GetOwner() || !GetOwner()->HasAuthority()) return false;
+    FString Reason;
+    TArray<FKalmalaInventoryStack> Candidate;
+    return BuildExchange(Stacks, {{ItemId, Quantity}}, NAME_None, 0, Candidate, Reason)
+        && TryCommitStacksFromServer(Stacks, Candidate);
 }
 
 void UKalmalaInventoryComponent::BeginPlay()
@@ -290,7 +278,9 @@ void UKalmalaInventoryComponent::BeginPlay()
 
 void UKalmalaInventoryComponent::ClientAcceptedGain_Implementation(FName ItemId, int32 Quantity)
 {
-    if (!UKalmalaItemCatalogue::Get()->IsValidStack(ItemId, Quantity)) return;
+    const UKalmalaItemCatalogue* Catalogue = UKalmalaItemCatalogue::Get();
+    const FKalmalaItemDefinition* Definition = Catalogue ? Catalogue->FindItem(ItemId) : nullptr;
+    if (!Definition || Quantity <= 0 || int64(Quantity) > int64(Definition->MaxStack) * MaxSlots) return;
     if (GainReceipts.Num() == MaxGainReceipts) GainReceipts.RemoveAt(0);
     GainReceipts.Add({++GainSequence, ItemId, Quantity});
 }
@@ -298,11 +288,15 @@ void UKalmalaInventoryComponent::ClientAcceptedGain_Implementation(FName ItemId,
 void UKalmalaInventoryComponent::RecordAcceptedGains(const TArray<FKalmalaInventoryStack>& Before,
     const TArray<FKalmalaInventoryStack>& After)
 {
+    TMap<FName, int32> BeforeTotals;
+    TMap<FName, int32> AfterTotals;
+    for (const FKalmalaInventoryStack& Stack : Before) BeforeTotals.FindOrAdd(Stack.ItemId) += Stack.Quantity;
     for (const auto& Stack : After)
+        AfterTotals.FindOrAdd(Stack.ItemId) += Stack.Quantity;
+    for (const TPair<FName, int32>& Entry : AfterTotals)
     {
-        const auto* Previous = Before.FindByPredicate([&Stack](const auto& Row) { return Row.ItemId == Stack.ItemId; });
-        const int32 Increase = Stack.Quantity - (Previous ? Previous->Quantity : 0);
-        if (Increase > 0) ClientAcceptedGain(Stack.ItemId, Increase);
+        const int32 Increase = Entry.Value - BeforeTotals.FindRef(Entry.Key);
+        if (Increase > 0) ClientAcceptedGain(Entry.Key, Increase);
     }
 }
 

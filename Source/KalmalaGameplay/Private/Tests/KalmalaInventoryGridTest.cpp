@@ -12,35 +12,44 @@ bool FKalmalaInventoryGridTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Ten columns"), UKalmalaInventoryComponent::Columns, 10);
     TestEqual(TEXT("Four rows"), UKalmalaInventoryComponent::Rows, 4);
     TestEqual(TEXT("World chest capacity retains its existing contract"), UKalmalaStorageSaveGame::MaxStorageSlots, 16);
-    TArray<FName> Before;
-    Before.Init(NAME_None, 40);
-    Before[9] = TEXT("Wood");
-    Before[14] = TEXT("StoneAxe");
-    Before[31] = TEXT("Stone");
-    TArray<FName> After;
-    TestTrue(TEXT("Tools and stacks fit in one grid"), UKalmalaInventoryComponent::BuildGridLayout(
-        {TEXT("StoneAxe"), TEXT("Wood"), TEXT("Stone")}, Before, After));
-    TestEqual(TEXT("Custom hotbar assignment survives refresh"), After[9], FName(TEXT("Wood")));
-    TestEqual(TEXT("Tool uses a regular inventory cell"), After[14], FName(TEXT("StoneAxe")));
+    const FGuid WoodGuid = FGuid::NewGuid();
+    const FGuid AxeGuid = FGuid::NewGuid();
+    const FGuid HammerGuidA = FGuid::NewGuid();
+    const FGuid HammerGuidB = FGuid::NewGuid();
+    const FGuid StoneGuid = FGuid::NewGuid();
+    TArray<FGuid> Before;
+    Before.Init(FGuid(), 40);
+    Before[9] = WoodGuid;
+    Before[14] = AxeGuid;
+    Before[31] = StoneGuid;
+    TArray<FGuid> After;
+    TestTrue(TEXT("Tools and stacks fit in one GUID-addressed grid"), UKalmalaInventoryComponent::BuildGridLayout(
+        {AxeGuid, WoodGuid, StoneGuid}, Before, After));
+    TestTrue(TEXT("Custom hotbar assignment survives refresh"), After[9] == WoodGuid);
+    TestTrue(TEXT("Tool uses a regular inventory cell"), After[14] == AxeGuid);
     TestTrue(TEXT("Reconciliation preserves all gaps"), Before == After);
     TestTrue(TEXT("Exhausted stack is removed"), UKalmalaInventoryComponent::BuildGridLayout(
-        {TEXT("StoneAxe"), TEXT("Stone")}, Before, After));
-    TestEqual(TEXT("Exhausted hotbar remains empty"), After[9], NAME_None);
-    TestEqual(TEXT("Unrelated material stays in its assigned cell"), After[31], FName(TEXT("Stone")));
+        {AxeGuid, StoneGuid}, Before, After));
+    TestFalse(TEXT("Exhausted hotbar remains empty"), After[9].IsValid());
+    TestTrue(TEXT("Unrelated material stays in its assigned cell"), After[31] == StoneGuid);
     Before = After;
     TestTrue(TEXT("New item uses free space"), UKalmalaInventoryComponent::BuildGridLayout(
-        {TEXT("StoneAxe"), TEXT("Stone"), TEXT("Fibre")}, Before, After));
-    TestEqual(TEXT("New stack fills first empty cell"), After[0], FName(TEXT("Fibre")));
-    const auto Valid = After;
-    TestFalse(TEXT("Duplicate identities fail closed"), UKalmalaInventoryComponent::BuildGridLayout(
-        {TEXT("Wood"), TEXT("Wood")}, Before, After));
-    TestTrue(TEXT("Rejected input preserves output"), After == Valid);
-    TArray<FName> Full;
-    for (int32 I = 0; I < 40; ++I) Full.Add(FName(*FString::Printf(TEXT("Item%d"), I)));
+        {AxeGuid, StoneGuid, WoodGuid, HammerGuidA}, Before, After));
+    TestTrue(TEXT("New item fills first empty cell"), After[0] == HammerGuidA);
+    TestTrue(TEXT("Same-type items occupy distinct cells through unique GUIDs"),
+        UKalmalaInventoryComponent::BuildGridLayout({HammerGuidA, HammerGuidB}, {}, After));
+    TestTrue(TEXT("First identical hammer has its own slot"), After[0] == HammerGuidA);
+    TestTrue(TEXT("Second identical hammer has a separate slot"), After[1] == HammerGuidB);
+    const auto BeforeRejectedDuplicateGuid = After;
+    TestFalse(TEXT("Duplicate instance GUIDs fail closed"), UKalmalaInventoryComponent::BuildGridLayout(
+        {HammerGuidA, HammerGuidA}, Before, After));
+    TestTrue(TEXT("Rejected input preserves output"), After == BeforeRejectedDuplicateGuid);
+    TArray<FGuid> Full;
+    for (int32 I = 0; I < 40; ++I) Full.Add(FGuid::NewGuid());
     TestTrue(TEXT("Exactly forty identities fit"), UKalmalaInventoryComponent::BuildGridLayout(Full, {}, After));
-    Full.Add(TEXT("Overflow"));
+    Full.Add(FGuid::NewGuid());
     TestFalse(TEXT("Forty-first identity cannot enter the grid"), UKalmalaInventoryComponent::BuildGridLayout(Full, {}, After));
-    TestFalse(TEXT("Empty identity cannot occupy a cell"), UKalmalaInventoryComponent::BuildGridLayout({NAME_None}, {}, After));
+    TestFalse(TEXT("Invalid GUID cannot occupy a cell"), UKalmalaInventoryComponent::BuildGridLayout({FGuid()}, {}, After));
     auto* Inventory = NewObject<UKalmalaInventoryComponent>();
     TArray<FKalmalaInventoryStack> Stacks;
     Stacks.SetNum(36);

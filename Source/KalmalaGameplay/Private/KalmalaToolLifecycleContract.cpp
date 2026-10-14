@@ -141,25 +141,23 @@ const FKalmalaToolDefinition& FKalmalaToolLifecycleContract::GetConstructionHamm
 TArray<FKalmalaToolState> FKalmalaToolLifecycleContract::BuildInitialCarriedTools()
 {
     TArray<FKalmalaToolState> CarriedTools;
-    CarriedTools.Reserve(FMath::Min(GetDefinitions().Num() + 1, MaxCarriedToolRecords));
+    CarriedTools.Reserve(GetDefinitions().Num() + 1);
+    FKalmalaToolState HammerState;
+    HammerState.ToolId = ConstructionHammerDefinition().ToolId;
+    HammerState.ToolLevel = 1;
+    HammerState.Durability = ConstructionHammerDefinition().MaxDurability;
+    HammerState.InstanceGuid = FGuid::NewGuid();
+    CarriedTools.Add(HammerState);
     for (const FKalmalaToolDefinition& Definition : GetDefinitions())
     {
-        if (CarriedTools.Num() >= MaxCarriedToolRecords || Definition.ToolId.IsNone()
-            || Definition.MaxDurability <= 0) break;
+        if (Definition.ToolId.IsNone() || Definition.MaxDurability <= 0) continue;
 
         FKalmalaToolState State;
         State.ToolId = Definition.ToolId;
         State.ToolLevel = 1;
         State.Durability = Definition.MaxDurability;
+        State.InstanceGuid = FGuid::NewGuid();
         CarriedTools.Add(State);
-    }
-    if (CarriedTools.Num() < MaxCarriedToolRecords)
-    {
-        FKalmalaToolState HammerState;
-        HammerState.ToolId = ConstructionHammerDefinition().ToolId;
-        HammerState.ToolLevel = 1;
-        HammerState.Durability = ConstructionHammerDefinition().MaxDurability;
-        CarriedTools.Add(HammerState);
     }
     return CarriedTools;
 }
@@ -468,24 +466,20 @@ bool FKalmalaToolLifecycleContract::BuildServerRepairAll(
 {
     OutRepairedStates = ToolStates;
     OutRepairedCount = 0;
-    if (!bServerAuthority || !bAtValidatedRepairStation || ToolStates.Num() > MaxCarriedToolRecords) return false;
+    if (!bServerAuthority || !bAtValidatedRepairStation) return false;
 
-    TSet<FName> SeenToolIds;
     for (int32 Index = 0; Index < ToolStates.Num(); ++Index)
     {
         const FKalmalaToolState& ToolState = ToolStates[Index];
-        const FName CanonicalId = CanonicalizeToolId(ToolState.ToolId);
         const FKalmalaToolDefinition* Definition = FindDefinition(ToolState.ToolId);
         const int32 MaxDurability = GetMaxDurability(ToolState.ToolId, ToolState.ToolLevel);
         if (!Definition || ToolState.ToolId.IsNone()
-            || (SeenToolIds.Contains(CanonicalId) && CanonicalId != TEXT("ConstructionHammer"))
             || MaxDurability <= 0 || ToolState.Durability < 0 || ToolState.Durability > MaxDurability)
         {
             OutRepairedStates = ToolStates;
             OutRepairedCount = 0;
             return false;
         }
-        if (CanonicalId != TEXT("ConstructionHammer")) SeenToolIds.Add(CanonicalId);
         if (ToolState.Durability == MaxDurability) continue;
 
         FKalmalaToolState RepairedState;

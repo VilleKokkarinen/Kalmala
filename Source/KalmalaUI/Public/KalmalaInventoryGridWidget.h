@@ -38,20 +38,21 @@ protected:
 private:
     int32 SlotAt(const FGeometry& Geometry, FVector2D ScreenPosition) const;
     void SelectSlot(int32 SlotIndex);
-    void RequestMove(int32 Source, int32 Target, FName SourceId, FName TargetId);
+    void RequestMove(int32 Source, int32 Target, FGuid SourceGuid, FGuid TargetGuid);
     UPROPERTY(Transient) TObjectPtr<UCanvasPanel> Canvas;
     UPROPERTY(Transient) TArray<TObjectPtr<UKalmalaIconWidget>> Icons;
     UPROPERTY(Transient) TArray<TObjectPtr<UBorder>> Backgrounds;
     UPROPERTY(Transient) TObjectPtr<UKalmalaInventoryComponent> OwnerInventory;
     TArray<FName> SlotItems;
+    TArray<FGuid> SlotInstanceGuids;
     TArray<int32> DisplaySlots;
     bool bHotbarOnly = false;
     FName SelectedItem;
     FName HoveredItem;
     int32 FocusedSlot = 0;
     int32 DragSource = INDEX_NONE;
-    FName DragItem;
+    FGuid DragInstanceGuid;
     int32 MoveSource = INDEX_NONE;
-    FName MoveItem;
+    FGuid MoveInstanceGuid;
     FVector2D LastSize = FVector2D::ZeroVector;
 };

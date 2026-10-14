@@ -58,11 +58,19 @@ void UKalmalaInventoryGridWidget::Refresh(UKalmalaInventoryComponent* Inventory,
     SelectedItem = Selected;
     TArray<FName> Next;
     Next.Init(NAME_None, 40);
-    if (Inventory) for (int32 SlotIndex = 0; SlotIndex < 40; ++SlotIndex) Next[SlotIndex] = Inventory->GetSlotItem(SlotIndex);
-    if (Next != SlotItems)
+    TArray<FGuid> NextGuids;
+    NextGuids.Init(FGuid(), 40);
+    if (Inventory) for (int32 SlotIndex = 0; SlotIndex < 40; ++SlotIndex)
     {
+        Next[SlotIndex] = Inventory->GetSlotItem(SlotIndex);
+        NextGuids[SlotIndex] = Inventory->GetSlotInstanceGuid(SlotIndex);
+    }
+    if (Next != SlotItems || NextGuids != SlotInstanceGuids)
+    {
+        const bool bItemIdsChanged = Next != SlotItems;
         SlotItems = MoveTemp(Next);
-        if (Icons.Num() == 40)
+        SlotInstanceGuids = MoveTemp(NextGuids);
+        if (bItemIdsChanged && Icons.Num() == 40)
             for (int32 SlotIndex = 0; SlotIndex < 40; ++SlotIndex)
                 if (!SlotItems[SlotIndex].IsNone()) Icons[SlotIndex]->SetCatalogueIcon(SlotItems[SlotIndex]);
         LastSize = FVector2D::ZeroVector;
@@ -152,22 +160,25 @@ int32 UKalmalaInventoryGridWidget::NativePaint(const FPaintArgs& Args, const FGe
         };
         Text(SlotLabel(SlotIndex), FVector2D(4, 2));
         const FName Id = SlotItems[SlotIndex];
-        const int32 Quantity = OwnerInventory ? OwnerInventory->GetQuantity(Id) : 0;
+        const int32 Quantity = OwnerInventory ? OwnerInventory->GetSlotQuantity(SlotIndex) : 0;
         if (Quantity > 1) Text(FString::FromInt(Quantity), FVector2D(4, Cell * .72f));
-        if (Character)
-            if (const auto* Tool = FKalmalaToolLifecycleContract::FindDefinition(Id))
+        if (Character && FKalmalaToolLifecycleContract::FindDefinition(Id))
             {
-                const int32 ToolLevel = Character->GetCarriedToolLevel(Id);
+                const FGuid InstanceGuid = SlotInstanceGuids.IsValidIndex(SlotIndex)
+                    ? SlotInstanceGuids[SlotIndex] : FGuid();
+                const int32 ToolLevel = Character->GetCarriedToolLevel(InstanceGuid);
                 const int32 MaxDurability = FKalmalaToolLifecycleContract::GetMaxDurability(Id, ToolLevel);
                 const float Fraction = MaxDurability > 0
-                    ? FMath::Clamp(float(Character->GetToolDurability(Id)) / MaxDurability, 0.0f, 1.0f)
+                    ? FMath::Clamp(float(Character->GetToolDurability(InstanceGuid)) / MaxDurability, 0.0f, 1.0f)
                     : 0.0f;
                 FSlateDrawElement::MakeBox(Elements, Layer, G.ToPaintGeometry(FVector2D(Cell - 8, 3),
                     FSlateLayoutTransform(P + FVector2D(4, Cell - 5))), Brush, ESlateDrawEffect::None, FLinearColor(0.3f, 0.08f, 0.06f, 1));
                 FSlateDrawElement::MakeBox(Elements, Layer + 1, G.ToPaintGeometry(FVector2D((Cell - 8) * Fraction, 3),
                     FSlateLayoutTransform(P + FVector2D(4, Cell - 5))), Brush, ESlateDrawEffect::None, Theme.TextColor(false, Contrast));
             }
-        if (OwnerInventory && Id == OwnerInventory->GetActiveItem() && !Id.IsNone())
+        if (OwnerInventory && SlotInstanceGuids.IsValidIndex(SlotIndex)
+            && SlotInstanceGuids[SlotIndex].IsValid()
+            && SlotInstanceGuids[SlotIndex] == OwnerInventory->GetActiveInstanceGuid())
             FSlateDrawElement::MakeBox(Elements, Layer + 1, G.ToPaintGeometry(FVector2D(Cell - 8, 2),
                 FSlateLayoutTransform(P + FVector2D(4, Cell - 2))), Brush, ESlateDrawEffect::None, Theme.TextColor(true, Contrast));
     }
@@ -199,10 +210,11 @@ void UKalmalaInventoryGridWidget::ClearHover()
     OnItemHovered.Broadcast(NAME_None);
 }
 
-void UKalmalaInventoryGridWidget::RequestMove(const int32 Source, const int32 Target, const FName SourceId, const FName TargetId)
+void UKalmalaInventoryGridWidget::RequestMove(const int32 Source, const int32 Target,
+    const FGuid SourceGuid, const FGuid TargetGuid)
 {
-    if (OwnerInventory && Source != Target && !SourceId.IsNone())
-        OwnerInventory->ServerMoveSlot(Source, Target, SourceId, TargetId);
+    if (OwnerInventory && Source != Target && SourceGuid.IsValid())
+        OwnerInventory->ServerMoveSlotByInstance(Source, Target, SourceGuid, TargetGuid);
 }
 
 FReply UKalmalaInventoryGridWidget::NativeOnMouseButtonDown(const FGeometry& G, const FPointerEvent& Event)
@@ -212,14 +224,15 @@ FReply UKalmalaInventoryGridWidget::NativeOnMouseButtonDown(const FGeometry& G, 
     if (SlotIndex == INDEX_NONE) return FReply::Unhandled();
     if (MoveSource != INDEX_NONE)
     {
-        RequestMove(MoveSource, SlotIndex, MoveItem, SlotItems[SlotIndex]);
+        RequestMove(MoveSource, SlotIndex, MoveInstanceGuid, SlotInstanceGuids[SlotIndex]);
         MoveSource = INDEX_NONE;
+        MoveInstanceGuid.Invalidate();
         SelectSlot(SlotIndex);
         return FReply::Handled();
     }
     SelectSlot(SlotIndex);
     DragSource = SlotIndex;
-    DragItem = SlotItems[SlotIndex];
+    DragInstanceGuid = SlotInstanceGuids.IsValidIndex(SlotIndex) ? SlotInstanceGuids[SlotIndex] : FGuid();
     return FReply::Handled().CaptureMouse(TakeWidget()).SetUserFocus(TakeWidget());
 }
 
@@ -227,8 +240,10 @@ FReply UKalmalaInventoryGridWidget::NativeOnMouseButtonUp(const FGeometry& G, co
 {
     if (Event.GetEffectingButton() != EKeys::LeftMouseButton || DragSource == INDEX_NONE) return FReply::Unhandled();
     const int32 Target = SlotAt(G, Event.GetScreenSpacePosition());
-    if (Target != INDEX_NONE) RequestMove(DragSource, Target, DragItem, SlotItems[Target]);
+    if (Target != INDEX_NONE && SlotInstanceGuids.IsValidIndex(Target))
+        RequestMove(DragSource, Target, DragInstanceGuid, SlotInstanceGuids[Target]);
     DragSource = INDEX_NONE;
+    DragInstanceGuid.Invalidate();
     return FReply::Handled().ReleaseMouseCapture();
 }
 
@@ -274,13 +289,27 @@ FReply UKalmalaInventoryGridWidget::NativeOnKeyDown(const FGeometry& G, const FK
     if (Step) { SelectSlot(FMath::Clamp(FocusedSlot + Step, 0, 39)); return FReply::Handled(); }
     if (Key == EKeys::Enter || Key == EKeys::Gamepad_FaceButton_Bottom)
     {
-        if (MoveSource == INDEX_NONE) { MoveSource = FocusedSlot; MoveItem = SlotItems[FocusedSlot]; }
-        else { RequestMove(MoveSource, FocusedSlot, MoveItem, SlotItems[FocusedSlot]); MoveSource = INDEX_NONE; }
+        if (MoveSource == INDEX_NONE)
+        {
+            MoveSource = FocusedSlot;
+            MoveInstanceGuid = SlotInstanceGuids.IsValidIndex(FocusedSlot) ? SlotInstanceGuids[FocusedSlot] : FGuid();
+        }
+        else
+        {
+            RequestMove(MoveSource, FocusedSlot, MoveInstanceGuid, SlotInstanceGuids[FocusedSlot]);
+            MoveSource = INDEX_NONE;
+            MoveInstanceGuid.Invalidate();
+        }
         return FReply::Handled();
     }
     if (Key == EKeys::Escape || Key == EKeys::Gamepad_FaceButton_Right)
     {
-        if (MoveSource != INDEX_NONE) { MoveSource = INDEX_NONE; return FReply::Handled(); }
+        if (MoveSource != INDEX_NONE)
+        {
+            MoveSource = INDEX_NONE;
+            MoveInstanceGuid.Invalidate();
+            return FReply::Handled();
+        }
     }
     return Super::NativeOnKeyDown(G, Event);
 }
@@ -288,5 +317,6 @@ FReply UKalmalaInventoryGridWidget::NativeOnKeyDown(const FGeometry& G, const FK
 void UKalmalaInventoryGridWidget::CancelMove()
 {
     MoveSource = DragSource = INDEX_NONE;
-    MoveItem = DragItem = NAME_None;
+    MoveInstanceGuid.Invalidate();
+    DragInstanceGuid.Invalidate();
 }

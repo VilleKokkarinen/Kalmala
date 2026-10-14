@@ -4,6 +4,16 @@
 
 namespace
 {
+    bool IsValidToolRecordData(const FKalmalaPlayerToolSaveRecord& Record)
+    {
+        const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(Record.ToolId);
+        const FName CanonicalId = FKalmalaToolLifecycleContract::CanonicalizeToolId(Record.ToolId);
+        const int32 MaxDurability = FKalmalaToolLifecycleContract::GetMaxDurability(Record.ToolId, Record.ToolLevel);
+        return Definition != nullptr && CanonicalId == Definition->ToolId
+            && FKalmalaToolProgressionContract::IsValidToolLevel(Record.ToolId, Record.ToolLevel)
+            && MaxDurability > 0 && Record.Condition >= 0 && Record.Condition <= MaxDurability;
+    }
+
     bool IsKnownLearnedEffectId(const FString& Id)
     {
         return Id == TEXT("Effect:mending")
@@ -106,13 +116,7 @@ bool UKalmalaPlayerDiscoverySaveGameV2::IsValidM9ClaimId(const FString& Id)
 
 bool UKalmalaPlayerDiscoverySaveGameV2::IsValidToolRecord(const FKalmalaPlayerToolSaveRecord& Record)
 {
-    const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(Record.ToolId);
-    const FName CanonicalId = FKalmalaToolLifecycleContract::CanonicalizeToolId(Record.ToolId);
-    const int32 MaxDurability = FKalmalaToolLifecycleContract::GetMaxDurability(Record.ToolId, Record.ToolLevel);
-    return Definition != nullptr
-        && CanonicalId == Definition->ToolId
-        && FKalmalaToolProgressionContract::IsValidToolLevel(Record.ToolId, Record.ToolLevel)
-        && MaxDurability > 0 && Record.Condition >= 0 && Record.Condition <= MaxDurability;
+    return Record.InstanceGuid.IsValid() && IsValidToolRecordData(Record);
 }
 
 bool UKalmalaPlayerDiscoverySaveGameV2::MatchesPlayer(
@@ -125,7 +129,7 @@ bool UKalmalaPlayerDiscoverySaveGameV2::MatchesPlayer(
         || !Identity.Matches(FKalmalaM7SaveIdentity::ForPlayer(InWorld.WorldSeed, InPlayerIdentity))
         || DiscoveryIds.Num() > MaxLegacyDiscoveries || M9ClaimIds.Num() > MaxM9Claims
         || DiscoveryIds.Num() + M9ClaimIds.Num() > MaxCombinedDiscoveries
-        || LearnedEffectIds.Num() > MaxLearnedEffects || ToolRecords.Num() > MaxCarriedTools)
+        || LearnedEffectIds.Num() > MaxLearnedEffects || ToolRecords.Num() > MaxInventorySlots)
     {
         return false;
     }
@@ -147,13 +151,11 @@ bool UKalmalaPlayerDiscoverySaveGameV2::MatchesPlayer(
         if (!IsKnownLearnedEffectId(EffectId)) return false;
     }
 
-    TSet<FName> SeenToolIds;
+    TSet<FGuid> SeenToolGuids;
     for (const FKalmalaPlayerToolSaveRecord& ToolRecord : ToolRecords)
     {
-        const FName CanonicalId = FKalmalaToolLifecycleContract::CanonicalizeToolId(ToolRecord.ToolId);
-        if (!IsValidToolRecord(ToolRecord)
-            || (SeenToolIds.Contains(CanonicalId) && CanonicalId != TEXT("ConstructionHammer"))) return false;
-        if (CanonicalId != TEXT("ConstructionHammer")) SeenToolIds.Add(CanonicalId);
+        if (!IsValidToolRecord(ToolRecord) || SeenToolGuids.Contains(ToolRecord.InstanceGuid)) return false;
+        SeenToolGuids.Add(ToolRecord.InstanceGuid);
     }
     return true;
 }
@@ -198,13 +200,11 @@ bool UKalmalaPlayerDiscoverySaveGameV2::AddToolRecord(const FKalmalaPlayerToolSa
 {
     FKalmalaPlayerToolSaveRecord CanonicalRecord = Record;
     CanonicalRecord.ToolId = FKalmalaToolLifecycleContract::CanonicalizeToolId(Record.ToolId);
-    if (!MatchesPlayer(WorldConfig, PlayerIdentity) || !IsValidToolRecord(Record)
-        || ToolRecords.Num() >= MaxCarriedTools
-        || (CanonicalRecord.ToolId != TEXT("ConstructionHammer")
-            && ToolRecords.ContainsByPredicate([&CanonicalRecord](const FKalmalaPlayerToolSaveRecord& Existing)
-        {
-            return FKalmalaToolLifecycleContract::CanonicalizeToolId(Existing.ToolId) == CanonicalRecord.ToolId;
-        }))) return false;
+    if (!CanonicalRecord.InstanceGuid.IsValid()) CanonicalRecord.InstanceGuid = FGuid::NewGuid();
+    if (!MatchesPlayer(WorldConfig, PlayerIdentity) || !IsValidToolRecord(CanonicalRecord)
+        || ToolRecords.Num() >= MaxInventorySlots
+        || ToolRecords.ContainsByPredicate([&CanonicalRecord](const FKalmalaPlayerToolSaveRecord& Existing)
+            { return Existing.InstanceGuid == CanonicalRecord.InstanceGuid; })) return false;
     ToolRecords.Add(CanonicalRecord);
     return true;
 }
@@ -212,21 +212,37 @@ bool UKalmalaPlayerDiscoverySaveGameV2::AddToolRecord(const FKalmalaPlayerToolSa
 bool UKalmalaPlayerDiscoverySaveGameV2::TryReplaceToolRecords(
     const TArray<FKalmalaPlayerToolSaveRecord>& Records)
 {
-    if (!MatchesPlayer(WorldConfig, PlayerIdentity) || Records.Num() > MaxCarriedTools) return false;
+    if (!MatchesPlayer(WorldConfig, PlayerIdentity) || Records.Num() > MaxInventorySlots) return false;
 
-    TSet<FName> SeenToolIds;
-    for (const FKalmalaPlayerToolSaveRecord& Record : Records)
-    {
-        const FName CanonicalId = FKalmalaToolLifecycleContract::CanonicalizeToolId(Record.ToolId);
-        if (!IsValidToolRecord(Record)
-            || (SeenToolIds.Contains(CanonicalId) && CanonicalId != TEXT("ConstructionHammer"))) return false;
-        if (CanonicalId != TEXT("ConstructionHammer")) SeenToolIds.Add(CanonicalId);
-    }
-
-    ToolRecords = Records;
-    for (FKalmalaPlayerToolSaveRecord& Record : ToolRecords)
+    TArray<FKalmalaPlayerToolSaveRecord> Candidate = Records;
+    TSet<FGuid> SeenGuids;
+    for (FKalmalaPlayerToolSaveRecord& Record : Candidate)
     {
         Record.ToolId = FKalmalaToolLifecycleContract::CanonicalizeToolId(Record.ToolId);
+        if (!Record.InstanceGuid.IsValid()) Record.InstanceGuid = FGuid::NewGuid();
+        if (!IsValidToolRecord(Record) || SeenGuids.Contains(Record.InstanceGuid)) return false;
+        SeenGuids.Add(Record.InstanceGuid);
+    }
+
+    ToolRecords = MoveTemp(Candidate);
+    return true;
+}
+
+bool UKalmalaPlayerDiscoverySaveGameV2::EnsureToolInstanceGuids(bool& bOutChanged)
+{
+    bOutChanged = false;
+    if (ToolRecords.Num() > MaxInventorySlots) return false;
+    TSet<FGuid> SeenGuids;
+    for (FKalmalaPlayerToolSaveRecord& Record : ToolRecords)
+    {
+        if (!IsValidToolRecordData(Record)) return false;
+        if (!Record.InstanceGuid.IsValid())
+        {
+            do { Record.InstanceGuid = FGuid::NewGuid(); } while (!Record.InstanceGuid.IsValid() || SeenGuids.Contains(Record.InstanceGuid));
+            bOutChanged = true;
+        }
+        if (SeenGuids.Contains(Record.InstanceGuid)) return false;
+        SeenGuids.Add(Record.InstanceGuid);
     }
     return true;
 }

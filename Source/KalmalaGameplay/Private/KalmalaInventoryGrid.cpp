@@ -8,8 +8,33 @@
 
 FName UKalmalaInventoryComponent::GetSlotItem(const int32 Slot) const
 {
-    const FName Id = GridSlots.IsValidIndex(Slot) ? GridSlots[Slot] : NAME_None;
-    return OwnsGridItem(Id) ? Id : NAME_None;
+    const FGuid Guid = GetSlotInstanceGuid(Slot);
+    if (!Guid.IsValid()) return NAME_None;
+    if (const FKalmalaInventoryStack* Stack = Stacks.FindByPredicate(
+        [Guid](const FKalmalaInventoryStack& Candidate) { return Candidate.InstanceGuid == Guid; })) return Stack->ItemId;
+    if (const auto* Character = Cast<AKalmalaCharacter>(GetOwner()))
+        if (const FKalmalaToolState* Tool = Character->GetCarriedToolInventory().FindByPredicate(
+            [Guid](const FKalmalaToolState& Candidate) { return Candidate.InstanceGuid == Guid; })) return Tool->ToolId;
+    return NAME_None;
+}
+
+FGuid UKalmalaInventoryComponent::GetSlotInstanceGuid(const int32 Slot) const
+{
+    const FGuid Guid = GridInstanceGuids.IsValidIndex(Slot) ? GridInstanceGuids[Slot] : FGuid();
+    if (!Guid.IsValid()) return FGuid();
+    if (Stacks.ContainsByPredicate([Guid](const FKalmalaInventoryStack& Stack) { return Stack.InstanceGuid == Guid; })) return Guid;
+    const auto* Character = Cast<AKalmalaCharacter>(GetOwner());
+    return Character && Character->GetCarriedToolInventory().ContainsByPredicate(
+        [Guid](const FKalmalaToolState& Tool) { return Tool.InstanceGuid == Guid; }) ? Guid : FGuid();
+}
+
+int32 UKalmalaInventoryComponent::GetSlotQuantity(const int32 Slot) const
+{
+    const FGuid Guid = GetSlotInstanceGuid(Slot);
+    if (!Guid.IsValid()) return 0;
+    if (const FKalmalaInventoryStack* Stack = Stacks.FindByPredicate(
+        [Guid](const FKalmalaInventoryStack& Candidate) { return Candidate.InstanceGuid == Guid; })) return Stack->Quantity;
+    return 1;
 }
 
 bool UKalmalaInventoryComponent::OwnsGridItem(const FName Id) const
@@ -21,9 +46,9 @@ bool UKalmalaInventoryComponent::OwnsGridItem(const FName Id) const
         [Id](const FKalmalaToolState& Tool) { return Tool.ToolId == Id; });
 }
 
-bool UKalmalaInventoryComponent::CanFitContents(const TArray<FKalmalaInventoryStack>& Items, const int32 ToolCount) const
+bool UKalmalaInventoryComponent::CanFitContents(const TArray<FKalmalaInventoryStack>& Items, const int32 OtherItemCount) const
 {
-    return ToolCount >= 0 && ToolCount <= MaxSlots && Items.Num() <= MaxSlots - ToolCount;
+    return OtherItemCount >= 0 && OtherItemCount <= MaxSlots && Items.Num() <= MaxSlots - OtherItemCount;
 }
 
 float UKalmalaInventoryComponent::GetCarriedWeight() const
@@ -37,27 +62,27 @@ float UKalmalaInventoryComponent::GetCarriedWeight() const
     return Weight;
 }
 
-bool UKalmalaInventoryComponent::BuildGridLayout(const TArray<FName>& Owned,
-    const TArray<FName>& Before, TArray<FName>& After)
+bool UKalmalaInventoryComponent::BuildGridLayout(const TArray<FGuid>& Owned,
+    const TArray<FGuid>& Before, TArray<FGuid>& After)
 {
     if (Owned.Num() > MaxSlots) return false;
-    TSet<FName> Remaining;
-    for (const FName Id : Owned)
+    TSet<FGuid> Remaining;
+    for (const FGuid& Guid : Owned)
     {
-        if (Id.IsNone() || Remaining.Contains(Id)) return false;
-        Remaining.Add(Id);
+        if (!Guid.IsValid() || Remaining.Contains(Guid)) return false;
+        Remaining.Add(Guid);
     }
-    TArray<FName> Candidate;
-    Candidate.Init(NAME_None, MaxSlots);
+    TArray<FGuid> Candidate;
+    Candidate.Init(FGuid(), MaxSlots);
     for (int32 Slot = 0; Slot < FMath::Min(Before.Num(), MaxSlots); ++Slot)
         if (Remaining.Remove(Before[Slot])) Candidate[Slot] = Before[Slot];
-    for (const FName Id : Owned)
-        if (Remaining.Contains(Id))
+    for (const FGuid& Guid : Owned)
+        if (Remaining.Contains(Guid))
         {
-            const int32 Empty = Candidate.IndexOfByKey(NAME_None);
+            const int32 Empty = Candidate.IndexOfByKey(FGuid());
             if (Empty == INDEX_NONE) return false;
-            Candidate[Empty] = Id;
-            Remaining.Remove(Id);
+            Candidate[Empty] = Guid;
+            Remaining.Remove(Guid);
         }
     After = MoveTemp(Candidate);
     return true;
@@ -66,40 +91,86 @@ bool UKalmalaInventoryComponent::BuildGridLayout(const TArray<FName>& Owned,
 void UKalmalaInventoryComponent::SynchronizeGridFromServer()
 {
     if (!GetOwner() || !GetOwner()->HasAuthority()) return;
-    TArray<FName> Owned;
-    if (const auto* Character = Cast<AKalmalaCharacter>(GetOwner()))
-        for (const auto& Tool : Character->GetCarriedToolInventory()) Owned.Add(Tool.ToolId);
-    for (const auto& Stack : Stacks) Owned.Add(Stack.ItemId);
-    TArray<FName> Candidate;
-    if (!BuildGridLayout(Owned, GridSlots, Candidate)) return;
-    bool bChanged = Candidate != GridSlots;
-    if (bChanged) GridSlots = MoveTemp(Candidate);
-    if (!ActiveItem.IsNone() && !Owned.Contains(ActiveItem)) { ActiveItem = NAME_None; bChanged = true; }
+    auto* Character = Cast<AKalmalaCharacter>(GetOwner());
+    if (Character) Character->EnsureToolInstanceGuidsFromServer();
+
+    TArray<FGuid> Owned;
+    TMap<FGuid, FName> ItemByGuid;
+    TSet<FGuid> Seen;
+    auto AddInstance = [&Owned, &ItemByGuid, &Seen](FGuid& Guid, const FName ItemId)
+    {
+        if (ItemId.IsNone()) return;
+        if (!Guid.IsValid() || Seen.Contains(Guid))
+        {
+            do { Guid = FGuid::NewGuid(); } while (!Guid.IsValid() || Seen.Contains(Guid));
+        }
+        Seen.Add(Guid);
+        Owned.Add(Guid);
+        ItemByGuid.Add(Guid, ItemId);
+    };
+    if (Character)
+        for (FKalmalaToolState& Tool : Character->CarriedTools) AddInstance(Tool.InstanceGuid, Tool.ToolId);
+    for (FKalmalaInventoryStack& Stack : Stacks) AddInstance(Stack.InstanceGuid, Stack.ItemId);
+
+    TArray<FGuid> CandidateGuids;
+    if (!BuildGridLayout(Owned, GridInstanceGuids, CandidateGuids)) return;
+    TArray<FName> CandidateItems;
+    CandidateItems.Init(NAME_None, MaxSlots);
+    for (int32 Slot = 0; Slot < CandidateGuids.Num(); ++Slot)
+        if (CandidateGuids[Slot].IsValid()) CandidateItems[Slot] = ItemByGuid.FindRef(CandidateGuids[Slot]);
+
+    bool bChanged = CandidateGuids != GridInstanceGuids || CandidateItems != GridSlots;
+    if (bChanged)
+    {
+        GridInstanceGuids = MoveTemp(CandidateGuids);
+        GridSlots = MoveTemp(CandidateItems);
+    }
+    if (!ActiveInstanceGuid.IsValid() || !ItemByGuid.Contains(ActiveInstanceGuid))
+    {
+        if (!ActiveItem.IsNone() || ActiveInstanceGuid.IsValid()) bChanged = true;
+        ActiveItem = NAME_None;
+        ActiveInstanceGuid.Invalidate();
+    }
+    else
+    {
+        const FName CurrentActiveId = ItemByGuid.FindRef(ActiveInstanceGuid);
+        if (ActiveItem != CurrentActiveId) { ActiveItem = CurrentActiveId; bChanged = true; }
+    }
     if (bChanged) GetOwner()->ForceNetUpdate();
 }
 
 void UKalmalaInventoryComponent::ReplaceGridItemFromServer(const FName Previous, const FName Replacement)
 {
-    if (!GetOwner() || !GetOwner()->HasAuthority() || Previous.IsNone() || !OwnsGridItem(Replacement)) return;
+    if (!GetOwner() || !GetOwner()->HasAuthority() || Previous.IsNone() || Replacement.IsNone()) return;
     const int32 Slot = GridSlots.IndexOfByKey(Previous);
-    if (Slot != INDEX_NONE && !GridSlots.Contains(Replacement))
+    if (Slot != INDEX_NONE)
     {
         GridSlots[Slot] = Replacement;
-        if (ActiveItem == Previous) ActiveItem = Replacement;
+        if (ActiveInstanceGuid.IsValid() && GridInstanceGuids.IsValidIndex(Slot)
+            && GridInstanceGuids[Slot] == ActiveInstanceGuid) ActiveItem = Replacement;
     }
     SynchronizeGridFromServer();
+}
+
+bool UKalmalaInventoryComponent::MoveSlotByInstanceFromServer(const int32 Source, const int32 Target,
+    const FGuid ExpectedSource, const FGuid ExpectedTarget)
+{
+    if (!GetOwner() || !GetOwner()->HasAuthority() || Source < 0 || Source >= MaxSlots
+        || Target < 0 || Target >= MaxSlots || Source == Target || !ExpectedSource.IsValid()) return false;
+    SynchronizeGridFromServer();
+    if (GridInstanceGuids.Num() != MaxSlots || GetSlotInstanceGuid(Source) != ExpectedSource
+        || GetSlotInstanceGuid(Target) != ExpectedTarget) return false;
+    GridInstanceGuids.Swap(Source, Target);
+    GridSlots.Swap(Source, Target);
+    GetOwner()->ForceNetUpdate();
+    return true;
 }
 
 bool UKalmalaInventoryComponent::MoveSlotFromServer(const int32 Source, const int32 Target,
     const FName ExpectedSource, const FName ExpectedTarget)
 {
-    if (!GetOwner() || !GetOwner()->HasAuthority() || Source < 0 || Source >= MaxSlots
-        || Target < 0 || Target >= MaxSlots || Source == Target || ExpectedSource.IsNone()) return false;
-    SynchronizeGridFromServer();
-    if (GridSlots.Num() != MaxSlots || GetSlotItem(Source) != ExpectedSource || GetSlotItem(Target) != ExpectedTarget) return false;
-    GridSlots.Swap(Source, Target);
-    GetOwner()->ForceNetUpdate();
-    return true;
+    if (GetSlotItem(Source) != ExpectedSource || GetSlotItem(Target) != ExpectedTarget) return false;
+    return MoveSlotByInstanceFromServer(Source, Target, GetSlotInstanceGuid(Source), GetSlotInstanceGuid(Target));
 }
 
 void UKalmalaInventoryComponent::ServerMoveSlot_Implementation(const int32 Source, const int32 Target,
@@ -112,6 +183,16 @@ void UKalmalaInventoryComponent::ServerMoveSlot_Implementation(const int32 Sourc
     MoveSlotFromServer(Source, Target, ExpectedSource, ExpectedTarget);
 }
 
+void UKalmalaInventoryComponent::ServerMoveSlotByInstance_Implementation(const int32 Source, const int32 Target,
+    const FGuid ExpectedSource, const FGuid ExpectedTarget)
+{
+    if (!GetWorld()) return;
+    const double Now = GetWorld()->GetTimeSeconds();
+    if (LastLayoutRequestTime >= 0.0 && Now - LastLayoutRequestTime < 0.05) return;
+    LastLayoutRequestTime = Now;
+    MoveSlotByInstanceFromServer(Source, Target, ExpectedSource, ExpectedTarget);
+}
+
 void UKalmalaInventoryComponent::ServerUseHotbarSlot_Implementation(const int32 Slot)
 {
     if (!GetOwner() || !GetOwner()->HasAuthority() || !GetWorld() || Slot < 0 || Slot >= Columns) return;
@@ -122,17 +203,17 @@ void UKalmalaInventoryComponent::ServerUseHotbarSlot_Implementation(const int32 
     LastHotbarRequestTime = Now;
     SynchronizeGridFromServer();
     const FName Id = GetSlotItem(Slot);
-    if (Id.IsNone()) return;
+    const FGuid Guid = GetSlotInstanceGuid(Slot);
+    if (Id.IsNone() || !Guid.IsValid()) return;
     const EKalmalaSupportEffect SupportEffect = UKalmalaSupportMagicComponent::FromScrollItemId(Id);
     if (SupportEffect != EKalmalaSupportEffect::None)
     {
         if (UKalmalaSupportMagicComponent* Support = Character->GetSupportMagicComponent())
-        {
             Support->ActivateSupportEffectFromHotbarServer(SupportEffect);
-        }
         return;
     }
     ActiveItem = Id;
+    ActiveInstanceGuid = Guid;
     if (UKalmalaPlayerStatusComponent::IsKnownFoodItem(Id))
         if (auto* Crafting = GetOwner()->FindComponentByClass<UKalmalaCraftingComponent>()) Crafting->ServerConsumeFood(Id);
     GetOwner()->ForceNetUpdate();

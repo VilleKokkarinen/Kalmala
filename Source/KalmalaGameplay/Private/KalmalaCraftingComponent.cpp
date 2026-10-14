@@ -223,8 +223,7 @@ bool UKalmalaCraftingComponent::CraftFromServer(FName RecipeId, int32 Batch, FSt
     if (Recipe->Output == TEXT("ConstructionHammer"))
     {
         auto* Inventory = Character->FindComponentByClass<UKalmalaInventoryComponent>();
-        Reason = TEXT("Carried tool slots are full");
-        if (!Inventory || Character->CarriedTools.Num() >= FKalmalaToolLifecycleContract::MaxCarriedToolRecords) return false;
+        if (!Inventory) return false;
         const TArray<FKalmalaInventoryStack> Before = Inventory->GetStacks();
         TArray<FKalmalaInventoryStack> After;
         if (!UKalmalaInventoryComponent::BuildExchange(Before, Costs, NAME_None, 0, After, Reason)
@@ -234,6 +233,7 @@ bool UKalmalaCraftingComponent::CraftFromServer(FName RecipeId, int32 Batch, FSt
         Hammer.ToolId = TEXT("ConstructionHammer");
         Hammer.ToolLevel = 1;
         Hammer.Durability = FKalmalaToolLifecycleContract::GetConstructionHammerDefinition().MaxDurability;
+        Hammer.InstanceGuid = FGuid::NewGuid();
         if (!Inventory->TryCommitStacksFromServer(Before, After)) return false;
         Character->CarriedTools.Add(Hammer);
         auto* GameMode = GetWorld() ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
@@ -915,10 +915,26 @@ FString UKalmalaCraftingComponent::GetToolProgressionText(const FName StationFil
             Blocker = FString::Printf(TEXT("Need a carried %s level %d"),
                 *GetToolDisplayName(Entry.PreviousToolId), Entry.PreviousToolLevel);
         }
-        if (Blocker.IsEmpty() && Entry.PreviousToolId.IsNone()
-            && CarriedTools.Num() >= FKalmalaToolLifecycleContract::MaxCarriedToolRecords)
+        if (Blocker.IsEmpty() && Entry.PreviousToolId.IsNone())
         {
-            Blocker = TEXT("Carried tool slots are full");
+            TArray<FKalmalaInventoryStack> Costs;
+            for (const FKalmalaToolMaterialCost& Cost : Entry.MaterialCosts)
+            {
+                FKalmalaInventoryStack& Required = Costs.AddDefaulted_GetRef();
+                Required.ItemId = Cost.ItemId;
+                Required.Quantity = Cost.Quantity;
+            }
+            TArray<FKalmalaInventoryStack> CandidateInventory;
+            FString CapacityReason;
+            if (!UKalmalaInventoryComponent::BuildExchange(
+                    Inventory->GetStacks(), Costs, NAME_None, 0, CandidateInventory, CapacityReason))
+            {
+                Blocker = CapacityReason;
+            }
+            else if (!Inventory->CanFitContents(CandidateInventory, CarriedTools.Num() + 1))
+            {
+                Blocker = TEXT("Inventory is full");
+            }
         }
         if (Blocker.IsEmpty())
         {

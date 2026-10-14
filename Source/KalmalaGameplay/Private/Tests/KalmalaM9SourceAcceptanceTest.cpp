@@ -85,9 +85,10 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
         });
         if (ToolState == nullptr)
         {
-            if (CarriedTools.Num() >= FKalmalaToolLifecycleContract::MaxCarriedToolRecords) return false;
+            if (CarriedTools.Num() >= UKalmalaInventoryComponent::MaxSlots) return false;
             ToolState = &CarriedTools.AddDefaulted_GetRef();
             ToolState->ToolId = ToolId;
+            ToolState->InstanceGuid = FGuid::NewGuid();
         }
         ToolState->ToolLevel = ToolLevel;
         ToolState->Durability = Condition;

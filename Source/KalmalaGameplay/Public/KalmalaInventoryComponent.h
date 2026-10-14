@@ -10,6 +10,8 @@ struct FKalmalaInventoryStack
     GENERATED_BODY()
     UPROPERTY(EditAnywhere) FName ItemId;
     UPROPERTY(EditAnywhere) int32 Quantity = 0;
+    /** Stable identity for this stack row; non-stackable copies each occupy a separate row. */
+    UPROPERTY(EditAnywhere, SaveGame) FGuid InstanceGuid;
 };
 
 /** Pawn-lifetime inventory. Only trusted server gameplay may mutate its contents. */
@@ -30,19 +32,25 @@ public:
     static constexpr int32 Rows = 4;
     static constexpr int32 MaxSlots = Columns * Rows;
     const TArray<FName>& GetGridSlots() const { return GridSlots; }
+    const TArray<FGuid>& GetGridInstanceGuids() const { return GridInstanceGuids; }
     FName GetSlotItem(int32 Slot) const;
+    FGuid GetSlotInstanceGuid(int32 Slot) const;
+    int32 GetSlotQuantity(int32 Slot) const;
     FName GetActiveItem() const { return ActiveItem; }
+    FGuid GetActiveInstanceGuid() const { return ActiveInstanceGuid; }
     bool OwnsGridItem(FName ItemId) const;
     float GetCarriedWeight() const;
     float GetCarryCapacity() const { return CarryCapacity; }
-    bool CanFitContents(const TArray<FKalmalaInventoryStack>& Items, int32 ToolCount) const;
-    /** Stable, gap-preserving placement; tools and stacks share these same cells. */
-    static bool BuildGridLayout(const TArray<FName>& Owned, const TArray<FName>& Before, TArray<FName>& After);
+    bool CanFitContents(const TArray<FKalmalaInventoryStack>& Items, int32 OtherItemCount) const;
+    /** Stable, gap-preserving placement; every inventory entry shares these same cells. */
+    static bool BuildGridLayout(const TArray<FGuid>& Owned, const TArray<FGuid>& Before, TArray<FGuid>& After);
     void SynchronizeGridFromServer();
     /** Retain a cell when a trusted tool-upgrade transaction replaces its identity. */
     void ReplaceGridItemFromServer(FName Previous, FName Replacement);
     bool MoveSlotFromServer(int32 Source, int32 Target, FName ExpectedSource, FName ExpectedTarget);
+    bool MoveSlotByInstanceFromServer(int32 Source, int32 Target, FGuid ExpectedSource, FGuid ExpectedTarget);
     UFUNCTION(Server, Reliable) void ServerMoveSlot(int32 Source, int32 Target, FName ExpectedSource, FName ExpectedTarget);
+    UFUNCTION(Server, Reliable) void ServerMoveSlotByInstance(int32 Source, int32 Target, FGuid ExpectedSource, FGuid ExpectedTarget);
     UFUNCTION(Server, Reliable) void ServerUseHotbarSlot(int32 Slot);
     const TArray<FKalmalaInventoryStack>& GetStacks() const { return Stacks; }
     /** Local owner receipt buffer, never used as inventory authority or persistence. */
@@ -81,7 +89,9 @@ private:
     int64 GainSequence = 0;
     UPROPERTY(Replicated) TArray<FKalmalaInventoryStack> Stacks;
     UPROPERTY(Replicated) TArray<FName> GridSlots;
+    UPROPERTY(Replicated) TArray<FGuid> GridInstanceGuids;
     UPROPERTY(Replicated) FName ActiveItem;
+    UPROPERTY(Replicated) FGuid ActiveInstanceGuid;
     UPROPERTY(EditDefaultsOnly, Category = "Inventory", meta = (ClampMin = "1.0")) float CarryCapacity = 300.0f;
     double LastLayoutRequestTime = -1.0;
     double LastHotbarRequestTime = -1.0;

@@ -5,6 +5,7 @@
 #include "KalmalaToolCatalogue.h"
 #include "KalmalaConstructionActor.h"
 #include "KalmalaCharacter.h"
+#include "KalmalaInventoryComponent.h"
 #include "EngineUtils.h"
 
 namespace
@@ -350,21 +351,20 @@ bool FKalmalaToolProgressionContract::BuildServerUpgrade(
     Reason = TEXT("Tool progression catalogue unavailable");
     if (!IsCatalogueValid()) return false;
 
-    Reason = TEXT("Carried tool inventory is invalid or full");
-    if (ExistingTools.IsEmpty() || ExistingTools.Num() > FKalmalaToolLifecycleContract::MaxCarriedToolRecords)
+    Reason = TEXT("Carried item state is invalid");
+    if (ExistingTools.IsEmpty() || ExistingTools.Num() > UKalmalaInventoryComponent::MaxSlots
+        || ExistingInventory.Num() + ExistingTools.Num() > UKalmalaInventoryComponent::MaxSlots)
         return false;
-    TSet<FName> SeenTools;
     for (const FKalmalaToolState& State : ExistingTools)
     {
         const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(State.ToolId);
         const int32 MaxDurability = FKalmalaToolLifecycleContract::GetMaxDurability(State.ToolId, State.ToolLevel);
-        if (!Definition || SeenTools.Contains(State.ToolId) || !IsValidToolLevel(State.ToolId, State.ToolLevel)
+        if (!Definition || !IsValidToolLevel(State.ToolId, State.ToolLevel)
             || State.ToolLevel > GetMaximumToolLevel(State.ToolId)
             || MaxDurability <= 0 || State.Durability < 0 || State.Durability > MaxDurability)
         {
             return false;
         }
-        SeenTools.Add(State.ToolId);
     }
 
     const FKalmalaToolState* ExistingTarget = ExistingTools.FindByPredicate([ToolId](const FKalmalaToolState& State)
@@ -403,8 +403,7 @@ bool FKalmalaToolProgressionContract::BuildServerUpgrade(
 
     const FKalmalaToolDefinition* OutputDefinition = FKalmalaToolLifecycleContract::FindDefinition(Entry->ToolId);
     Reason = TEXT("Tool definition is invalid");
-    if (!OutputDefinition || (PreviousIndex == INDEX_NONE
-        && ExistingTools.Num() >= FKalmalaToolLifecycleContract::MaxCarriedToolRecords)) return false;
+    if (!OutputDefinition) return false;
 
     TArray<FKalmalaToolState> CandidateTools = ExistingTools;
     if (PreviousIndex != INDEX_NONE)
@@ -417,6 +416,7 @@ bool FKalmalaToolProgressionContract::BuildServerUpgrade(
         FKalmalaToolState& OutputState = CandidateTools.AddDefaulted_GetRef();
         OutputState.ToolId = Entry->ToolId;
         OutputState.ToolLevel = Entry->TargetToolLevel;
+        OutputState.InstanceGuid = FGuid::NewGuid();
         OutputState.Durability = FKalmalaToolLifecycleContract::GetMaxDurability(
             OutputState.ToolId, OutputState.ToolLevel);
     }
@@ -433,6 +433,11 @@ bool FKalmalaToolProgressionContract::BuildServerUpgrade(
     if (!UKalmalaInventoryComponent::BuildExchange(
         ExistingInventory, Costs, NAME_None, 0, CandidateInventory, Reason))
     {
+        return false;
+    }
+    if (CandidateTools.Num() + CandidateInventory.Num() > UKalmalaInventoryComponent::MaxSlots)
+    {
+        Reason = TEXT("Inventory is full");
         return false;
     }
 

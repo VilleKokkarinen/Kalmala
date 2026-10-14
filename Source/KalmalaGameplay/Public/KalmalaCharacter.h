@@ -62,7 +62,10 @@ public:
     UKalmalaSkillProgressionComponent* GetSkillProgressionComponent() const { return SkillProgression; }
     UKalmalaOceanTravelFeedbackComponent* GetOceanTravelFeedbackComponent() const { return OceanTravelFeedback; }
     int32 GetToolDurability(FName ToolId) const;
+    int32 GetToolDurability(const FGuid& InstanceGuid) const;
     int32 GetCarriedToolLevel(FName ToolId) const;
+    int32 GetCarriedToolLevel(const FGuid& InstanceGuid) const;
+    void EnsureToolInstanceGuidsFromServer();
     float GetInteractionRange() const { return InteractionRange; }
     /** Owner-local candidate from the same short view trace used to choose interaction intent. */
     bool GetLocalInteractionCandidate(FHitResult& OutHit) const;
@@ -87,6 +90,7 @@ protected:
     virtual void OnRep_ReplicatedMovement() override;
 
 private:
+    friend class UKalmalaInventoryComponent;
     friend class AKalmalaHarvestNode;
     friend class UKalmalaCraftingComponent;
     friend class AKalmalaGameMode;
@@ -94,6 +98,7 @@ private:
     bool CommitToolHarvestFromServer(AKalmalaHarvestNode* Node, float TraceDistance, float MaximumRange,
         FName ClientToolId, uint8 ClientAction);
     int32* FindToolDurabilityFromServer(FName ToolId);
+    int32* FindToolDurabilityFromServer(const FGuid& InstanceGuid);
 
     UPROPERTY(VisibleAnywhere, Category="Crafting") TObjectPtr<UKalmalaCraftingComponent> Crafting;
     UPROPERTY(VisibleAnywhere, Category="Combat") TObjectPtr<UKalmalaCombatComponent> Combat;

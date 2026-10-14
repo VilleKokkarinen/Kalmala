@@ -6,15 +6,83 @@
 
 namespace
 {
-bool IsValidInventoryState(const TArray<FKalmalaInventoryStack>& Stacks)
+bool IsValidInventoryState(const TArray<FKalmalaInventoryStack>& Stacks, const bool bRequireInstanceGuids = false)
 {
     const auto* Catalogue = UKalmalaItemCatalogue::Get();
     if (Stacks.Num() > UKalmalaInventoryComponent::MaxSlots || Catalogue == nullptr) return false;
-    TSet<FName> Seen;
+    TSet<FGuid> SeenGuids;
     for (const FKalmalaInventoryStack& Stack : Stacks)
     {
-        if (Seen.Contains(Stack.ItemId) || !Catalogue->IsValidStack(Stack.ItemId, Stack.Quantity)) return false;
-        Seen.Add(Stack.ItemId);
+        if (!Catalogue->IsValidStack(Stack.ItemId, Stack.Quantity)) return false;
+        if (bRequireInstanceGuids && !Stack.InstanceGuid.IsValid()) return false;
+        if (Stack.InstanceGuid.IsValid())
+        {
+            if (SeenGuids.Contains(Stack.InstanceGuid)) return false;
+            SeenGuids.Add(Stack.InstanceGuid);
+        }
+    }
+    return true;
+}
+
+bool IsValidInventoryQuantity(const UKalmalaItemCatalogue* Catalogue, const FName ItemId, const int32 Quantity)
+{
+    const FKalmalaItemDefinition* Definition = Catalogue ? Catalogue->FindItem(ItemId) : nullptr;
+    return Definition && Definition->MaxStack > 0 && Quantity > 0
+        && int64(Quantity) <= int64(Definition->MaxStack) * UKalmalaInventoryComponent::MaxSlots;
+}
+
+bool EnsureStackInstanceGuids(TArray<FKalmalaInventoryStack>& Stacks)
+{
+    TSet<FGuid> Seen;
+    for (FKalmalaInventoryStack& Stack : Stacks)
+    {
+        if (!Stack.InstanceGuid.IsValid())
+        {
+            do { Stack.InstanceGuid = FGuid::NewGuid(); } while (!Stack.InstanceGuid.IsValid() || Seen.Contains(Stack.InstanceGuid));
+        }
+        if (Seen.Contains(Stack.InstanceGuid)) return false;
+        Seen.Add(Stack.InstanceGuid);
+    }
+    return true;
+}
+
+bool AddQuantityToStacks(TArray<FKalmalaInventoryStack>& Stacks, const FName ItemId, const int32 Quantity,
+    const TArray<FGuid>& PreferredGuids = {})
+{
+    const UKalmalaItemCatalogue* Catalogue = UKalmalaItemCatalogue::Get();
+    const FKalmalaItemDefinition* Definition = Catalogue ? Catalogue->FindItem(ItemId) : nullptr;
+    if (!IsValidInventoryQuantity(Catalogue, ItemId, Quantity) || !Definition) return false;
+
+    int64 Remaining = Quantity;
+    for (FKalmalaInventoryStack& Stack : Stacks)
+    {
+        if (Stack.ItemId != ItemId || Stack.Quantity >= Definition->MaxStack) continue;
+        const int32 Added = int32(FMath::Min<int64>(Remaining, Definition->MaxStack - Stack.Quantity));
+        Stack.Quantity += Added;
+        Remaining -= Added;
+        if (Remaining == 0) return true;
+    }
+
+    int32 PreferredIndex = 0;
+    while (Remaining > 0)
+    {
+        if (Stacks.Num() >= UKalmalaInventoryComponent::MaxSlots) return false;
+        FKalmalaInventoryStack& Stack = Stacks.AddDefaulted_GetRef();
+        Stack.ItemId = ItemId;
+        Stack.Quantity = int32(FMath::Min<int64>(Remaining, Definition->MaxStack));
+        Remaining -= Stack.Quantity;
+        if (PreferredGuids.IsValidIndex(PreferredIndex) && PreferredGuids[PreferredIndex].IsValid())
+        {
+            Stack.InstanceGuid = PreferredGuids[PreferredIndex++];
+            if (Stacks.Num() > 1 && Stacks.ContainsByPredicate([&Stack](const FKalmalaInventoryStack& Other)
+                { return &Other != &Stack && Other.InstanceGuid == Stack.InstanceGuid; })) return false;
+        }
+        else
+        {
+            do { Stack.InstanceGuid = FGuid::NewGuid(); }
+            while (!Stack.InstanceGuid.IsValid() || Stacks.ContainsByPredicate([&Stack](const FKalmalaInventoryStack& Other)
+                { return &Other != &Stack && Other.InstanceGuid == Stack.InstanceGuid; }));
+        }
     }
     return true;
 }
@@ -25,7 +93,8 @@ bool AreInventoryStatesEqual(const TArray<FKalmalaInventoryStack>& Left,
     if (Left.Num() != Right.Num()) return false;
     for (int32 Index = 0; Index < Left.Num(); ++Index)
     {
-        if (Left[Index].ItemId != Right[Index].ItemId || Left[Index].Quantity != Right[Index].Quantity) return false;
+        if (Left[Index].ItemId != Right[Index].ItemId || Left[Index].Quantity != Right[Index].Quantity
+            || Left[Index].InstanceGuid != Right[Index].InstanceGuid) return false;
     }
     return true;
 }
@@ -38,37 +107,39 @@ bool UKalmalaInventoryComponent::BuildExchange(const TArray<FKalmalaInventorySta
     const auto* Catalogue = UKalmalaItemCatalogue::Get();
     Reason = TEXT("Invalid transaction");
     if (Before.Num() > MaxSlots || Costs.IsEmpty() || Costs.Num() > MaxSlots
-        || (Output.IsNone() ? OutputCount != 0 : !Catalogue->IsValidStack(Output, OutputCount))) return false;
-    TSet<FName> Seen;
-    for (const auto& Stack : Before)
-    {
-        if (Seen.Contains(Stack.ItemId) || !Catalogue->IsValidStack(Stack.ItemId, Stack.Quantity)) return false;
-        Seen.Add(Stack.ItemId);
-    }
+        || (Output.IsNone() ? OutputCount != 0 : !IsValidInventoryQuantity(Catalogue, Output, OutputCount))) return false;
+    if (!IsValidInventoryState(Before)) return false;
     auto Candidate = Before;
-    Seen.Reset();
+    if (!EnsureStackInstanceGuids(Candidate)) return false;
+    TSet<FName> SeenCosts;
     for (const auto& Cost : Costs)
     {
-        if (Seen.Contains(Cost.ItemId) || !Catalogue->IsValidStack(Cost.ItemId, Cost.Quantity)) return false;
-        Seen.Add(Cost.ItemId);
-        const int32 Index = Candidate.IndexOfByPredicate([&](const auto& S) { return S.ItemId == Cost.ItemId; });
-        if (Index == INDEX_NONE || Candidate[Index].Quantity < Cost.Quantity)
+        if (SeenCosts.Contains(Cost.ItemId) || !IsValidInventoryQuantity(Catalogue, Cost.ItemId, Cost.Quantity)) return false;
+        SeenCosts.Add(Cost.ItemId);
+        int64 Available = 0;
+        for (const FKalmalaInventoryStack& Stack : Candidate)
+            if (Stack.ItemId == Cost.ItemId) Available += Stack.Quantity;
+        if (Available < Cost.Quantity)
         {
             const auto* Item = Catalogue->FindItem(Cost.ItemId);
             Reason = FString::Printf(TEXT("Need %d %s"), Cost.Quantity, *Item->DisplayName);
             return false;
         }
-        Candidate[Index].Quantity -= Cost.Quantity;
-        if (!Candidate[Index].Quantity) Candidate.RemoveAt(Index);
+        int32 Remaining = Cost.Quantity;
+        for (int32 Index = 0; Index < Candidate.Num() && Remaining > 0;)
+        {
+            FKalmalaInventoryStack& Stack = Candidate[Index];
+            if (Stack.ItemId != Cost.ItemId) { ++Index; continue; }
+            const int32 Removed = FMath::Min(Remaining, Stack.Quantity);
+            Stack.Quantity -= Removed;
+            Remaining -= Removed;
+            if (Stack.Quantity == 0) Candidate.RemoveAt(Index);
+            else ++Index;
+        }
     }
-    if (!Output.IsNone())
+    if (!Output.IsNone() && !AddQuantityToStacks(Candidate, Output, OutputCount))
     {
-        int32 Index = Candidate.IndexOfByPredicate([&](const auto& S) { return S.ItemId == Output; });
-        if (!Catalogue->CanAddToStack(Output, Index == INDEX_NONE ? 0 : Candidate[Index].Quantity, OutputCount)
-            || (Index == INDEX_NONE && Candidate.Num() >= MaxSlots))
-        { Reason = TEXT("Pack output capacity reached"); return false; }
-        if (Index == INDEX_NONE) { Index = Candidate.AddDefaulted(); Candidate[Index].ItemId = Output; }
-        Candidate[Index].Quantity += OutputCount;
+        Reason = TEXT("Pack output capacity reached"); return false;
     }
     After = MoveTemp(Candidate);
     Reason = TEXT("Ready");
@@ -80,22 +151,15 @@ bool UKalmalaInventoryComponent::BuildGrant(const TArray<FKalmalaInventoryStack>
 {
     Reason = TEXT("Invalid grant");
     const auto* Catalogue = UKalmalaItemCatalogue::Get();
-    if (!IsValidInventoryState(Before) || Catalogue == nullptr || !Catalogue->IsValidStack(ItemId, Quantity)) return false;
+    if (!IsValidInventoryState(Before) || !IsValidInventoryQuantity(Catalogue, ItemId, Quantity)) return false;
 
     TArray<FKalmalaInventoryStack> Candidate = Before;
-    int32 Index = Candidate.IndexOfByPredicate([ItemId](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == ItemId; });
-    if (!Catalogue->CanAddToStack(ItemId, Index == INDEX_NONE ? 0 : Candidate[Index].Quantity, Quantity)
-        || (Index == INDEX_NONE && Candidate.Num() >= MaxSlots))
+    if (!EnsureStackInstanceGuids(Candidate)) return false;
+    if (!AddQuantityToStacks(Candidate, ItemId, Quantity))
     {
         Reason = TEXT("Pack output capacity reached");
         return false;
     }
-    if (Index == INDEX_NONE)
-    {
-        Index = Candidate.AddDefaulted();
-        Candidate[Index].ItemId = ItemId;
-    }
-    Candidate[Index].Quantity += Quantity;
     After = MoveTemp(Candidate);
     Reason = TEXT("Ready");
     return true;
@@ -106,13 +170,14 @@ bool UKalmalaInventoryComponent::TryCommitStacksFromServer(
     const TArray<FKalmalaInventoryStack>& CandidateAfter)
 {
     AActor* Owner = GetOwner();
-    if (!Owner || !Owner->HasAuthority() || !AreInventoryStatesEqual(Stacks, ExpectedBefore)
-        || !IsValidInventoryState(CandidateAfter)) return false;
+    TArray<FKalmalaInventoryStack> Candidate = CandidateAfter;
+    if (!EnsureStackInstanceGuids(Candidate) || !Owner || !Owner->HasAuthority()
+        || !AreInventoryStatesEqual(Stacks, ExpectedBefore) || !IsValidInventoryState(Candidate, true)) return false;
     const auto* Character = Cast<AKalmalaCharacter>(Owner);
-    if (!CanFitContents(CandidateAfter, Character ? Character->GetCarriedToolInventory().Num() : 0)) return false;
+    if (!CanFitContents(Candidate, Character ? Character->GetCarriedToolInventory().Num() : 0)) return false;
 
     const auto Before = Stacks;
-    Stacks = CandidateAfter;
+    Stacks = MoveTemp(Candidate);
     SynchronizeGridFromServer();
     RecordAcceptedGains(Before, Stacks);
     Owner->ForceNetUpdate();
@@ -135,17 +200,30 @@ bool UKalmalaInventoryComponent::BuildTransfer(const TArray<FKalmalaInventorySta
 {
     Reason = TEXT("Invalid storage transfer");
     const auto* Catalogue = UKalmalaItemCatalogue::Get();
-    if (&NextSource == &NextDestination || !Catalogue->IsValidStack(ItemId, Quantity)
+    if (&NextSource == &NextDestination || !IsValidInventoryQuantity(Catalogue, ItemId, Quantity)
         || !IsValidInventoryState(Source) || !IsValidInventoryState(Destination)) return false;
+    TArray<FKalmalaInventoryStack> SourceWithGuids = Source;
+    if (!EnsureStackInstanceGuids(SourceWithGuids)) return false;
     TArray<FKalmalaInventoryStack> From;
-    if (!BuildExchange(Source, {{ItemId, Quantity}}, NAME_None, 0, From, Reason)) return false;
+    if (!BuildExchange(SourceWithGuids, {{ItemId, Quantity}}, NAME_None, 0, From, Reason)) return false;
     auto To = Destination;
-    int32 Index = To.IndexOfByPredicate([&](const auto& Stack) { return Stack.ItemId == ItemId; });
-    if (!Catalogue->CanAddToStack(ItemId, Index == INDEX_NONE ? 0 : To[Index].Quantity, Quantity)
-        || (Index == INDEX_NONE && To.Num() >= MaxSlots))
+    if (!EnsureStackInstanceGuids(To)) return false;
+    TArray<FGuid> PreservedGuids;
+    const FKalmalaItemDefinition* Definition = Catalogue->FindItem(ItemId);
+    if (Definition && Definition->MaxStack == 1)
+    {
+        int32 Remaining = Quantity;
+        for (const FKalmalaInventoryStack& Stack : SourceWithGuids)
+        {
+            if (Stack.ItemId != ItemId) continue;
+            const int32 Moved = FMath::Min(Remaining, Stack.Quantity);
+            for (int32 Unit = 0; Unit < Moved; ++Unit) PreservedGuids.Add(Stack.InstanceGuid);
+            Remaining -= Moved;
+            if (Remaining == 0) break;
+        }
+    }
+    if (!AddQuantityToStacks(To, ItemId, Quantity, PreservedGuids))
     { Reason = TEXT("Destination capacity reached"); return false; }
-    if (Index == INDEX_NONE) { Index = To.AddDefaulted(); To[Index].ItemId = ItemId; }
-    To[Index].Quantity += Quantity;
     NextSource = MoveTemp(From); NextDestination = MoveTemp(To); Reason = TEXT("Ready");
     return true;
 }

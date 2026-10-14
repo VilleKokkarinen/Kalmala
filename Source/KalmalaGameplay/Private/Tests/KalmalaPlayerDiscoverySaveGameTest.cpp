@@ -15,6 +15,7 @@ namespace
         Record.ToolId = ToolId;
         Record.ToolLevel = ToolLevel;
         Record.Condition = Condition;
+        Record.InstanceGuid = FGuid::NewGuid();
         return Record;
     }
 
@@ -62,15 +63,17 @@ bool FKalmalaPlayerDiscoverySaveGameV2Test::RunTest(const FString& Parameters)
     TestFalse(TEXT("A duplicate first-wave discovery is rejected without mutation"), Current->AddDiscovery(PoiId));
     TestFalse(TEXT("A duplicate M9 claim is rejected without mutation"), Current->AddM9Claim(M9RillstoneId));
     TestFalse(TEXT("A malformed M9 identity is rejected"), Current->AddM9Claim(TEXT("land-discovery:m9:1:unknown:0,0")));
-    TestFalse(TEXT("A repeated tool record is rejected"), Current->AddToolRecord(MakeToolRecord(TEXT("IronAxe"), 2, 20)));
+    TestTrue(TEXT("A second tool of the same type is accepted as a separate item instance"),
+        Current->AddToolRecord(MakeToolRecord(TEXT("IronAxe"), 2, 20)));
+    TestFalse(TEXT("A repeated instance GUID is rejected"), Current->AddToolRecord(Current->GetToolRecords()[0]));
     TestFalse(TEXT("An unapproved learned effect is rejected"), Current->AddLearnedEffect(TEXT("Effect:unknown")));
-    TestEqual(TEXT("Rejected additions leave the candidate unchanged"), Current->GetToolRecords().Num(), 3);
+    TestEqual(TEXT("Only the duplicate GUID rejection leaves the candidate unchanged"), Current->GetToolRecords().Num(), 4);
 
     UKalmalaPlayerDiscoverySaveGameV2* ToolReplacement = DuplicateObject<UKalmalaPlayerDiscoverySaveGameV2>(
         Current, GetTransientPackage());
     TArray<FKalmalaPlayerToolSaveRecord> InvalidReplacement = { MakeToolRecord(TEXT("IronAxe"), 21, 20) };
     TestFalse(TEXT("Invalid complete tool replacement is rejected"), ToolReplacement->TryReplaceToolRecords(InvalidReplacement));
-    TestEqual(TEXT("Rejected tool replacement preserves the original records"), ToolReplacement->GetToolRecords().Num(), 3);
+    TestEqual(TEXT("Rejected tool replacement preserves the original records"), ToolReplacement->GetToolRecords().Num(), 4);
     TestEqual(TEXT("Rejected tool replacement preserves the original Iron Axe level"),
         ToolReplacement->GetToolRecords()[2].ToolLevel, 2);
 
@@ -244,25 +247,25 @@ bool FKalmalaPlayerDiscoverySaveGameV2Test::RunTest(const FString& Parameters)
     };
     for (const FKalmalaPlayerToolSaveRecord& Tool : AllTools)
     {
-        TestTrue(TEXT("Canonical carried tools fit within the six-record cap"), FullTools->AddToolRecord(Tool));
+        TestTrue(TEXT("Carried tool instances are accepted independently by their GUIDs"), FullTools->AddToolRecord(Tool));
     }
-    TestFalse(TEXT("A repeated non-hammer tool ID is rejected"),
-        FullTools->AddToolRecord(AllTools[0]));
-    TestEqual(TEXT("Rejected duplicate leaves all six records"), FullTools->GetToolRecords().Num(),
-        UKalmalaPlayerDiscoverySaveGameV2::MaxCarriedTools);
+    TestTrue(TEXT("A repeated non-hammer item type is accepted with a new GUID"),
+        FullTools->AddToolRecord(MakeToolRecord(AllTools[0].ToolId, AllTools[0].ToolLevel, AllTools[0].Condition)));
+    TestEqual(TEXT("All seven unique tool instances are retained"), FullTools->GetToolRecords().Num(), 7);
+    TestFalse(TEXT("Reusing an existing item GUID is rejected"), FullTools->AddToolRecord(AllTools[0]));
 
     UKalmalaPlayerDiscoverySaveGameV2* MultipleHammers = NewObject<UKalmalaPlayerDiscoverySaveGameV2>(GetTransientPackage());
     MultipleHammers->InitializeForPlayer(World, PlayerIdentity);
-    for (int32 Index = 0; Index < UKalmalaPlayerDiscoverySaveGameV2::MaxCarriedTools; ++Index)
+    for (int32 Index = 0; Index < UKalmalaPlayerDiscoverySaveGameV2::MaxInventorySlots; ++Index)
     {
-        TestTrue(TEXT("Carried hammer copies are accepted up to the normal tool-slot cap"),
+        TestTrue(TEXT("Hammer instances can fill each ordinary inventory slot"),
             MultipleHammers->AddToolRecord(MakeToolRecord(TEXT("ConstructionHammer"), 1, 100)));
     }
     TestEqual(TEXT("All carried hammer copies are retained"), MultipleHammers->GetToolRecords().Num(),
-        UKalmalaPlayerDiscoverySaveGameV2::MaxCarriedTools);
+        UKalmalaPlayerDiscoverySaveGameV2::MaxInventorySlots);
     TestTrue(TEXT("A full repeated-hammer inventory still matches its player save"),
         MultipleHammers->MatchesPlayer(World, PlayerIdentity));
-    TestFalse(TEXT("The normal carried-tool cap still rejects one more hammer"),
+    TestFalse(TEXT("A forty-first item cannot exceed the shared inventory capacity"),
         MultipleHammers->AddToolRecord(MakeToolRecord(TEXT("ConstructionHammer"), 1, 100)));
     TArray<FKalmalaPlayerToolSaveRecord> HammerReplacement;
     HammerReplacement.Add(MakeToolRecord(TEXT("ConstructionHammer"), 1, 100));
@@ -296,7 +299,7 @@ bool FKalmalaPlayerDiscoverySaveGameV2Test::RunTest(const FString& Parameters)
     OverCapCurrent = DuplicateObject<UKalmalaPlayerDiscoverySaveGameV2>(FullTools, GetTransientPackage());
     const FKalmalaPlayerToolSaveRecord OverCapToolRecord = AllTools[0];
     OverCapCurrent->ToolRecords.Add(OverCapToolRecord);
-    RejectCurrentCandidate(OverCapCurrent, TEXT("Current-over-cap-tools"));
+    RejectCurrentCandidate(OverCapCurrent, TEXT("Current-duplicate-tool-instance-guid"));
 
     return true;
 }

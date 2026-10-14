@@ -1014,6 +1014,9 @@ void AKalmalaCharacter::ServerSubmitOceanSkiffSteeringInput_Implementation(const
 int32 AKalmalaCharacter::GetToolDurability(const FName ToolId) const
 {
     const FName CanonicalId = FKalmalaToolLifecycleContract::CanonicalizeToolId(ToolId);
+    if (Inventory && Inventory->GetActiveItem() == CanonicalId)
+        if (const int32 ActiveDurability = GetToolDurability(Inventory->GetActiveInstanceGuid()); ActiveDurability >= 0)
+            return ActiveDurability;
     if (const FKalmalaToolState* State = CarriedTools.FindByPredicate([CanonicalId](const FKalmalaToolState& Candidate)
         { return Candidate.ToolId == CanonicalId; })) return State->Durability;
 #if WITH_EDITORONLY_DATA
@@ -1027,9 +1030,20 @@ int32 AKalmalaCharacter::GetToolDurability(const FName ToolId) const
     return 0;
 }
 
+int32 AKalmalaCharacter::GetToolDurability(const FGuid& InstanceGuid) const
+{
+    if (!InstanceGuid.IsValid()) return -1;
+    const FKalmalaToolState* State = CarriedTools.FindByPredicate([&InstanceGuid](const FKalmalaToolState& Candidate)
+        { return Candidate.InstanceGuid == InstanceGuid; });
+    return State ? State->Durability : -1;
+}
+
 int32 AKalmalaCharacter::GetCarriedToolLevel(const FName ToolId) const
 {
     const FName CanonicalId = FKalmalaToolLifecycleContract::CanonicalizeToolId(ToolId);
+    if (Inventory && Inventory->GetActiveItem() == CanonicalId)
+        if (const int32 ActiveLevel = GetCarriedToolLevel(Inventory->GetActiveInstanceGuid()); ActiveLevel >= 1)
+            return ActiveLevel;
     const FKalmalaToolState* State = CarriedTools.FindByPredicate([CanonicalId](const FKalmalaToolState& Candidate)
     {
         return Candidate.ToolId == CanonicalId;
@@ -1037,10 +1051,37 @@ int32 AKalmalaCharacter::GetCarriedToolLevel(const FName ToolId) const
     return State ? State->ToolLevel : 0;
 }
 
+int32 AKalmalaCharacter::GetCarriedToolLevel(const FGuid& InstanceGuid) const
+{
+    if (!InstanceGuid.IsValid()) return 0;
+    const FKalmalaToolState* State = CarriedTools.FindByPredicate([&InstanceGuid](const FKalmalaToolState& Candidate)
+    {
+        return Candidate.InstanceGuid == InstanceGuid;
+    });
+    return State ? State->ToolLevel : 0;
+}
+
+void AKalmalaCharacter::EnsureToolInstanceGuidsFromServer()
+{
+    if (!HasAuthority()) return;
+    TSet<FGuid> Seen;
+    for (FKalmalaToolState& Tool : CarriedTools)
+    {
+        if (!Tool.InstanceGuid.IsValid() || Seen.Contains(Tool.InstanceGuid))
+        {
+            do { Tool.InstanceGuid = FGuid::NewGuid(); } while (!Tool.InstanceGuid.IsValid() || Seen.Contains(Tool.InstanceGuid));
+        }
+        Seen.Add(Tool.InstanceGuid);
+    }
+}
+
 int32* AKalmalaCharacter::FindToolDurabilityFromServer(const FName ToolId)
 {
     if (!HasAuthority()) return nullptr;
     const FName CanonicalId = FKalmalaToolLifecycleContract::CanonicalizeToolId(ToolId);
+    if (Inventory && Inventory->GetActiveItem() == CanonicalId)
+        if (int32* ActiveDurability = FindToolDurabilityFromServer(Inventory->GetActiveInstanceGuid()))
+            return ActiveDurability;
     if (FKalmalaToolState* State = CarriedTools.FindByPredicate([CanonicalId](FKalmalaToolState& Candidate)
         { return Candidate.ToolId == CanonicalId; })) return &State->Durability;
 #if WITH_EDITORONLY_DATA
@@ -1054,16 +1095,25 @@ int32* AKalmalaCharacter::FindToolDurabilityFromServer(const FName ToolId)
     const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(CanonicalId);
     if (LegacyCondition != nullptr && Definition != nullptr && *LegacyCondition >= 0
         && *LegacyCondition <= FKalmalaToolLifecycleContract::GetMaxDurability(CanonicalId, 1)
-        && CarriedTools.Num() < FKalmalaToolLifecycleContract::MaxCarriedToolRecords)
+        && Inventory && Inventory->CanFitContents(Inventory->GetStacks(), CarriedTools.Num() + 1))
     {
         FKalmalaToolState SeededState;
         SeededState.ToolId = CanonicalId;
         SeededState.ToolLevel = 1;
         SeededState.Durability = *LegacyCondition;
+        SeededState.InstanceGuid = FGuid::NewGuid();
         CarriedTools.Add(SeededState);
         return &CarriedTools.Last().Durability;
     }
 #endif
+    return nullptr;
+}
+
+int32* AKalmalaCharacter::FindToolDurabilityFromServer(const FGuid& InstanceGuid)
+{
+    if (!HasAuthority() || !InstanceGuid.IsValid()) return nullptr;
+    if (FKalmalaToolState* State = CarriedTools.FindByPredicate([&InstanceGuid](FKalmalaToolState& Candidate)
+        { return Candidate.InstanceGuid == InstanceGuid; })) return &State->Durability;
     return nullptr;
 }
 

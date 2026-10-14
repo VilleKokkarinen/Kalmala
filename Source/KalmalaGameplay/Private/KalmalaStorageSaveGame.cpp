@@ -17,11 +17,12 @@ bool UKalmalaStorageSaveGame::IsValidConstructionId(const FString& Id)
 bool UKalmalaStorageSaveGame::IsValidStacks(const TArray<FKalmalaInventoryStack>& Stacks)
 {
     if (Stacks.Num() > MaxStorageSlots) return false;
-    TSet<FName> Seen;
+    TSet<FGuid> SeenGuids;
     for (const auto& Stack : Stacks)
     {
-        if (Seen.Contains(Stack.ItemId) || !UKalmalaItemCatalogue::Get()->IsValidStack(Stack.ItemId, Stack.Quantity)) return false;
-        Seen.Add(Stack.ItemId);
+        if (!UKalmalaItemCatalogue::Get()->IsValidStack(Stack.ItemId, Stack.Quantity)
+            || !Stack.InstanceGuid.IsValid() || SeenGuids.Contains(Stack.InstanceGuid)) return false;
+        SeenGuids.Add(Stack.InstanceGuid);
     }
     return true;
 }
@@ -30,13 +31,43 @@ bool UKalmalaStorageSaveGame::NormalizeLegacyStacks(TArray<FKalmalaInventoryStac
 {
     if (Stacks.Num() > MaxStorageSlots) return false;
     const UKalmalaItemCatalogue* Items = UKalmalaItemCatalogue::Get();
-    TArray<FName> ItemOrder;
-    TMap<FName, int64> Quantities;
-    const auto AddQuantity = [&ItemOrder, &Quantities](const FName ItemId, const int64 Quantity)
+    TArray<FName> LegacyOrder;
+    TMap<FName, int64> LegacyQuantities;
+    TArray<FKalmalaInventoryStack> Normalized;
+    TSet<FGuid> SeenGuids;
+    const auto AddNormalized = [&Items, &Normalized, &SeenGuids](const FName ItemId, int64 Quantity, const FGuid PreferredGuid)
+    {
+        const FKalmalaItemDefinition* Definition = Items->FindItem(ItemId);
+        if (!Definition || Definition->MaxStack <= 0 || Quantity <= 0) return false;
+        bool bUsePreferredGuid = PreferredGuid.IsValid() && !SeenGuids.Contains(PreferredGuid);
+        while (Quantity > 0)
+        {
+            if (Normalized.Num() >= MaxStorageSlots) return false;
+            FKalmalaInventoryStack& Stack = Normalized.AddDefaulted_GetRef();
+            Stack.ItemId = ItemId;
+            Stack.Quantity = int32(FMath::Min<int64>(Quantity, Definition->MaxStack));
+            Quantity -= Stack.Quantity;
+            if (bUsePreferredGuid)
+            {
+                Stack.InstanceGuid = PreferredGuid;
+                bUsePreferredGuid = false;
+            }
+            else
+            {
+                do { Stack.InstanceGuid = FGuid::NewGuid(); }
+                while (!Stack.InstanceGuid.IsValid() || SeenGuids.Contains(Stack.InstanceGuid));
+            }
+            SeenGuids.Add(Stack.InstanceGuid);
+        }
+        return true;
+    };
+    const auto AddMaterial = [&LegacyOrder, &LegacyQuantities, &AddNormalized](const FName ItemId,
+        const int64 Quantity, const FGuid PreferredGuid)
     {
         if (Quantity <= 0) return false;
-        if (!Quantities.Contains(ItemId)) ItemOrder.Add(ItemId);
-        Quantities.FindOrAdd(ItemId) += Quantity;
+        if (PreferredGuid.IsValid()) return AddNormalized(ItemId, Quantity, PreferredGuid);
+        if (!LegacyQuantities.Contains(ItemId)) LegacyOrder.Add(ItemId);
+        LegacyQuantities.FindOrAdd(ItemId) += Quantity;
         return true;
     };
     for (const FKalmalaInventoryStack& Stack : Stacks)
@@ -44,39 +75,27 @@ bool UKalmalaStorageSaveGame::NormalizeLegacyStacks(TArray<FKalmalaInventoryStac
         if (Stack.Quantity <= 0 || Stack.ItemId.IsNone()) return false;
         if (Stack.ItemId == TEXT("Fuel"))
         {
-            if (!AddQuantity(TEXT("Wood"), Stack.Quantity)) return false;
+            if (!AddMaterial(TEXT("Wood"), Stack.Quantity, Stack.InstanceGuid)) return false;
         }
         else if (Stack.ItemId == TEXT("ConstructionSupply"))
         {
             const int64 SupplyCount = Stack.Quantity;
-            if (!AddQuantity(TEXT("Wood"), SupplyCount * 3) || !AddQuantity(TEXT("Fibre"), SupplyCount * 2)) return false;
+            if (!AddMaterial(TEXT("Wood"), SupplyCount * 3, Stack.InstanceGuid)
+                || !AddMaterial(TEXT("Fibre"), SupplyCount * 2, FGuid())) return false;
         }
         else if (Stack.ItemId == TEXT("PeatAmber"))
         {
-            if (!AddQuantity(TEXT("Amber"), Stack.Quantity)) return false;
+            if (!AddMaterial(TEXT("Amber"), Stack.Quantity, Stack.InstanceGuid)) return false;
         }
         else if (Stack.ItemId == TEXT("MirelingAsh"))
         {
             // Retired loot is discarded while preserving the rest of an existing chest save.
         }
-        else if (!Items->FindItem(Stack.ItemId) || !AddQuantity(Stack.ItemId, Stack.Quantity)) return false;
+        else if (!Items->FindItem(Stack.ItemId)
+            || !AddMaterial(Stack.ItemId, Stack.Quantity, Stack.InstanceGuid)) return false;
     }
-
-    TArray<FKalmalaInventoryStack> Normalized;
-    for (const FName ItemId : ItemOrder)
-    {
-        const FKalmalaItemDefinition* Definition = Items->FindItem(ItemId);
-        if (!Definition) return false;
-        int64 Remaining = Quantities.FindRef(ItemId);
-        while (Remaining > 0)
-        {
-            if (Normalized.Num() >= MaxStorageSlots) return false;
-            FKalmalaInventoryStack& Stack = Normalized.AddDefaulted_GetRef();
-            Stack.ItemId = ItemId;
-            Stack.Quantity = int32(FMath::Min<int64>(Remaining, Definition->MaxStack));
-            Remaining -= Stack.Quantity;
-        }
-    }
+    for (const FName ItemId : LegacyOrder)
+        if (!AddNormalized(ItemId, LegacyQuantities.FindRef(ItemId), FGuid())) return false;
     Stacks = MoveTemp(Normalized);
     return IsValidStacks(Stacks);
 }
@@ -109,14 +128,28 @@ const FKalmalaStorageSaveRecord* UKalmalaStorageSaveGame::FindRecord(const FStri
 
 bool UKalmalaStorageSaveGame::UpsertRecord(const FString& Id, const TArray<FKalmalaInventoryStack>& Stacks)
 {
-    if (!MatchesWorld(WorldConfig) || !IsValidConstructionId(Id) || !IsValidStacks(Stacks)) return false;
+    if (!MatchesWorld(WorldConfig) || !IsValidConstructionId(Id) || Stacks.Num() > MaxStorageSlots) return false;
+    TArray<FKalmalaInventoryStack> Candidate = Stacks;
+    TSet<FGuid> SeenGuids;
+    for (FKalmalaInventoryStack& Stack : Candidate)
+    {
+        if (!UKalmalaItemCatalogue::Get()->IsValidStack(Stack.ItemId, Stack.Quantity)) return false;
+        if (!Stack.InstanceGuid.IsValid())
+        {
+            do { Stack.InstanceGuid = FGuid::NewGuid(); }
+            while (!Stack.InstanceGuid.IsValid() || SeenGuids.Contains(Stack.InstanceGuid));
+        }
+        if (SeenGuids.Contains(Stack.InstanceGuid)) return false;
+        SeenGuids.Add(Stack.InstanceGuid);
+    }
+    if (!IsValidStacks(Candidate)) return false;
     auto* Record = Records.FindByPredicate([&](const auto& Entry) { return Entry.ConstructionId == Id; });
     if (!Record)
     {
         if (Records.Num() >= MaxRecords) return false;
         Record = &Records.AddDefaulted_GetRef(); Record->ConstructionId = Id;
     }
-    Record->Stacks = Stacks;
+    Record->Stacks = MoveTemp(Candidate);
     return true;
 }
 

@@ -253,12 +253,19 @@ void UKalmalaInventoryMenuWidget::RefreshOwnerInventory()
     if (Inventory != nullptr)
     {
         const UKalmalaItemCatalogue* Catalogue = UKalmalaItemCatalogue::Get();
+        TArray<FName> StackIds;
+        TMap<FName, int32> StackQuantities;
         for (const FKalmalaInventoryStack& Stack : Inventory->GetStacks())
         {
             if (Stack.ItemId.IsNone() || Stack.Quantity <= 0) continue;
-            const FKalmalaItemDefinition* Definition = Catalogue ? Catalogue->FindItem(Stack.ItemId) : nullptr;
-            InventoryRows.Add({ Stack.ItemId, Definition ? Definition->DisplayName : Stack.ItemId.ToString(),
-                FString::Printf(TEXT("× %d"), Stack.Quantity), false });
+            if (!StackQuantities.Contains(Stack.ItemId)) StackIds.Add(Stack.ItemId);
+            StackQuantities.FindOrAdd(Stack.ItemId) += Stack.Quantity;
+        }
+        for (const FName ItemId : StackIds)
+        {
+            const FKalmalaItemDefinition* Definition = Catalogue ? Catalogue->FindItem(ItemId) : nullptr;
+            InventoryRows.Add({ ItemId, Definition ? Definition->DisplayName : ItemId.ToString(),
+                FString::Printf(TEXT("× %d"), StackQuantities.FindRef(ItemId)), false });
         }
     }
 
@@ -266,7 +273,7 @@ void UKalmalaInventoryMenuWidget::RefreshOwnerInventory()
     {
         const TArray<FKalmalaToolState>& CarriedTools = Character->GetCarriedToolInventory();
         TSet<FName> SeenToolIds;
-        const int32 BoundedToolCount = FMath::Min(CarriedTools.Num(), FKalmalaToolLifecycleContract::MaxCarriedToolRecords);
+        const int32 BoundedToolCount = CarriedTools.Num();
         for (int32 Index = 0; Index < BoundedToolCount; ++Index)
         {
             const FKalmalaToolState& Tool = CarriedTools[Index];

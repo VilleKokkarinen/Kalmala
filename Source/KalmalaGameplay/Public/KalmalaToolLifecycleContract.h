@@ -79,6 +79,10 @@ struct KALMALAGAMEPLAY_API FKalmalaToolState
     /** Authored tool progression, independent of the owner's skill ledger. */
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tools", meta = (ClampMin = "1"))
     int32 ToolLevel = 1;
+
+    /** Unique identity of this non-stackable inventory item instance. */
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tools", SaveGame)
+    FGuid InstanceGuid;
 };
 
 /** Server-derived trace and node facts; clients cannot author these values. */
@@ -117,7 +121,6 @@ public:
     /** Every accepted durability-consuming use spends exactly one condition point. */
     static constexpr int32 DurabilityPerUse = 1;
     static constexpr int32 MaxFirstWaveToolDefinitions = 5;
-    static constexpr int32 MaxCarriedToolRecords = 16;
     static constexpr float DefaultMaximumRange = 250.0f;
 
     static const TArray<FKalmalaToolDefinition>& GetDefinitions();

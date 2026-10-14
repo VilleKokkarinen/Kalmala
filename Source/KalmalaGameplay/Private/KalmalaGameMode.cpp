@@ -2322,11 +2322,17 @@ UKalmalaPlayerDiscoverySaveGameV2* AKalmalaGameMode::GetPlayerDiscoverySave(
         USaveGame* Loaded = UGameplayStatics::LoadGameFromSlot(Slot, 0);
         if (UKalmalaPlayerDiscoverySaveGameV2* Current = Cast<UKalmalaPlayerDiscoverySaveGameV2>(Loaded))
         {
-            bool bValidClaims = Current->MatchesPlayer(WorldGenerationConfig, OutIdentity);
+            bool bMigratedToolGuids = false;
+            bool bValidClaims = Current->EnsureToolInstanceGuids(bMigratedToolGuids)
+                && Current->MatchesPlayer(WorldGenerationConfig, OutIdentity);
             for (const FString& ClaimId : Current->GetM9ClaimIds())
             {
                 bValidClaims = bValidClaims && IsCurrentM9ClaimId(ClaimId);
                 if (!bValidClaims) break;
+            }
+            if (bValidClaims && bMigratedToolGuids)
+            {
+                bValidClaims = UGameplayStatics::SaveGameToSlot(Current, Slot, 0);
             }
             if (bValidClaims) Save = Current;
         }
@@ -2367,6 +2373,7 @@ UKalmalaPlayerDiscoverySaveGameV2* AKalmalaGameMode::GetPlayerDiscoverySave(
             ToolState.ToolId = FKalmalaToolLifecycleContract::CanonicalizeToolId(Record.ToolId);
             ToolState.ToolLevel = Record.ToolLevel;
             ToolState.Durability = Record.Condition;
+            ToolState.InstanceGuid = Record.InstanceGuid;
             Interactor->CarriedTools.Add(ToolState);
         }
         Interactor->ForceNetUpdate();
@@ -2414,6 +2421,7 @@ bool AKalmalaGameMode::PersistPlayerStateFromServer(
         Record.ToolId = ToolState.ToolId;
         Record.ToolLevel = ToolState.ToolLevel;
         Record.Condition = ToolState.Durability;
+        Record.InstanceGuid = ToolState.InstanceGuid;
     }
     if (!Candidate->TryReplaceToolRecords(ToolRecords)) return false;
 
@@ -3605,6 +3613,7 @@ void AKalmalaGameMode::RunM9Schema2CandidatePlayerPeerTest(APlayerController* Pl
         ToolState.ToolId = Record.ToolId;
         ToolState.ToolLevel = Record.ToolLevel;
         ToolState.Durability = Record.Condition;
+        ToolState.InstanceGuid = Record.InstanceGuid;
         Character->CarriedTools.Add(ToolState);
     }
     Character->ForceNetUpdate();

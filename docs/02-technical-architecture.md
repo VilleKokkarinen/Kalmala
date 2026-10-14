@@ -545,7 +545,7 @@ First-wave sources remain birch bark and resinwood for Wood, reed clusters and f
 
 ## Tools and station progression
 
-Tools occupy the same forty-cell inventory as materials, rather than extra carrying slots. The owner-only CarriedTools array has at most sixteen unique known records; condition and authored tool level are independent of the transient player skill ledger. The Stone-tier starting loadout is Stone Knife (`StoneKnife`, 16 durability, 30 slash), Stone Axe (`StoneAxe`, 24 durability, 34 slash), Stone Pick (20 durability, 26 crush), Stone Spear (36 durability, 42 stab), and Stone Mace (16 durability, 30 crush), plus a level-one Construction Hammer. New characters begin with the hammer in hotbar slot 1 and active; right-click opens the Build menu while it is active. Saves containing `ReedKnife` or `FieldHatchet` are accepted and normalized to the canonical IDs without changing the save schema. The hammer has 100 condition. Construction does not currently invoke durability consumption; consuming uses always spend one point. Spear combat damage is server-authored and uses the same active-carried-tool validation as other weapons; its condition does not wear from attacks.
+Every carried entry occupies one of the same forty inventory cells; there is no separate carried-tool record cap. Each stack row and each carried tool instance has a unique GUID, so matching item IDs may occupy multiple cells. Stackable quantities fill stacks up to their catalogue limit and split across cells as needed; non-stackable copies each occupy a cell. Tool durability and level remain per-instance metadata. The Stone-tier starting loadout is Stone Knife (`StoneKnife`, 16 durability, 30 slash), Stone Axe (`StoneAxe`, 24 durability, 34 slash), Stone Pick (20 durability, 26 crush), Stone Spear (36 durability, 42 stab), and Stone Mace (16 durability, 30 crush), plus a level-one Construction Hammer. New characters begin with the hammer in hotbar slot 1 and active; right-click opens the Build menu while it is active. Existing player saves receive GUIDs for legacy carried-tool records and persist the additive identity field without a schema-version change. Saves containing `ReedKnife` or `FieldHatchet` are accepted and normalized to the canonical IDs. The hammer has 100 condition. Construction does not currently invoke durability consumption; consuming uses always spend one point. Spear combat damage is server-authored and uses the same active-carried-tool validation as other weapons; its condition does not wear from attacks.
 
 Bronze Axe level 1 costs 4 Wood, 3 Stone, and 2 Fibre at a level-one Forge. Its authored stats are 100 maximum durability and 50 slash bonus. Bronze Axe level 2 upgrades that same carried item at a level-two Forge, has no skill requirement, and costs 3 Lightwood, 2 Amber, 4 Stone, and 2 Fibre; its stats become 150 maximum durability and 55 slash bonus. An upgrade changes only those item-authored stats; tool level never changes the item's harvesting tier or unlocks resources. It preserves item ID, inventory cell, and current condition. The server-selected station family and effective level must match the authored progression step exactly; rejection leaves both candidates unchanged. Legacy Iron Axe records remain readable but are not created as an upgrade result.
 
@@ -2308,9 +2308,9 @@ the complete candidate before publication. The Inventory panel retains its
 selected-tool repair action. The standalone Build menu opens by right-clicking with the Construction Hammer active.
 An accepted Chest interaction opens a Store section with separate selectors
 backed by the owning pawn's private pack and its owner-only current chest view.
-Each list shows the item's current count; the summary reports both 16-stack
-limits and disables a transfer when its current stack or destination slots are
-full. Store/Take submit only the selected item ID through the existing
+Each list groups matching item IDs and shows their total count; the summary
+reports the 40-cell pack and 16-cell chest limits and disables a transfer when
+no matching stack has room and no destination cell is free. Store/Take submit only the selected item ID through the existing
 one-item server transactions, which revalidate the active chest and persist
 before changing the pack. Closing the shell, losing range, changing pawn, or
 destroying the chest expires the view and shell.
@@ -2380,9 +2380,9 @@ and 55 slash); it cannot create an Axe, Pick, Knife, or Spear identity. Bronze
 Knife and Pick use their own action profiles and can satisfy Stone-tier
 gathering/mining sources; Bronze Axe satisfies matching woodcutting sources.
 Every harvesting tier is derived from the item's identity, never from its
-upgrade level. The carried-tool cap is 16 so the
-planned four-item sets can coexist with starter tools and the construction
-hammer. Dedicated Bronze icon textures and generic station-menu exposure for
+upgrade level. The 40-cell inventory capacity is shared by all stacks and
+carried tool instances; there is no separate tool count cap and duplicate item
+IDs are allowed. Dedicated Bronze icon textures and generic station-menu exposure for
 the new acquisitions remain in the next post-roadmap increments.
 
 ## Allowed and forbidden sources
@@ -2687,4 +2687,4 @@ Ordinary material definitions, including natural materials, are grouped in `item
 
 Recipe category JSON uses the root `recipes` array, including equipment acquisitions. Ordinary recipes under `recipes/stations/` are grouped by their crafting station; the Inventory group contains the Building Hammer recipe, while build-menu construction remains in `recipes/building.json`. Equipment acquisitions use station-specific companion files under `recipes/stations/` but remain a separate manifest category and runtime catalogue. Item base upgrade costs remain in `upgrades/upgrades.json`. The loader sorts ordinary recipes, acquisitions and upgrade costs by RecipeId. Cost scaling, station requirements and validation are preserved; retired `toolRecipes`/`toolUpgradeCosts` roots are not read.
 
-Inventory Craft may create multiple Construction Hammers. Each copy occupies one carried-tool slot and is saved as another record in the existing tool array; other tool IDs remain unique. Inventory groups matching hammer copies in one row with their count. The existing save schema and server-authoritative material transaction are unchanged.
+Inventory Craft may create multiple Construction Hammers. Each copy has its own GUID, occupies one of the forty shared inventory cells, and is saved as a separate carried-tool record. The starter hammer is placed first in the hotbar. Inventory groups matching hammer copies in one row with their count. Other non-stackable item types may also have multiple GUID-addressed copies; stackable items fill and split across stacks using their authored maximum. The server-authoritative material transaction remains in place.

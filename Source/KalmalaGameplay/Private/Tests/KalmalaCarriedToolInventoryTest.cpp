@@ -1,6 +1,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "KalmalaCharacter.h"
+#include "KalmalaInventoryComponent.h"
 #include "KalmalaToolLifecycleContract.h"
 #include "Misc/AutomationTest.h"
 #include "Net/UnrealNetwork.h"
@@ -15,8 +16,8 @@ bool FKalmalaCarriedToolInventoryTest::RunTest(const FString& Parameters)
 {
     const TArray<FKalmalaToolState> InitialTools = FKalmalaToolLifecycleContract::BuildInitialCarriedTools();
     TestEqual(TEXT("Starting inventory contains three gathering tools, the Stone Spear, Stone Mace, and the construction hammer"), InitialTools.Num(), 6);
-    TestTrue(TEXT("Starting tool records stay within the carried-tool cap"),
-        InitialTools.Num() <= FKalmalaToolLifecycleContract::MaxCarriedToolRecords);
+    TestTrue(TEXT("Starting item instances fit within the inventory grid"),
+        InitialTools.Num() <= UKalmalaInventoryComponent::MaxSlots);
 
     for (const FKalmalaToolState& State : InitialTools)
     {

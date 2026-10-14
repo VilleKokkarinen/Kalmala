@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/SaveGame.h"
 #include "KalmalaM7PersistenceContract.h"
+#include "KalmalaInventoryComponent.h"
 #include "KalmalaToolLifecycleContract.h"
 #include "KalmalaWorldGenerationConfig.h"
 #include "KalmalaPlayerDiscoverySaveGame.generated.h"
@@ -42,6 +43,7 @@ struct KALMALAGAMEPLAY_API FKalmalaPlayerToolSaveRecord
     UPROPERTY(SaveGame) FName ToolId = NAME_None;
     UPROPERTY(SaveGame) int32 ToolLevel = 1;
     UPROPERTY(SaveGame) int32 Condition = 0;
+    UPROPERTY(SaveGame) FGuid InstanceGuid;
 };
 
 /**
@@ -58,7 +60,7 @@ public:
     static constexpr int32 MaxM9Claims = 64;
     static constexpr int32 MaxCombinedDiscoveries = MaxLegacyDiscoveries + MaxM9Claims;
     static constexpr int32 MaxLearnedEffects = 4;
-    static constexpr int32 MaxCarriedTools = FKalmalaToolLifecycleContract::MaxCarriedToolRecords;
+    static constexpr int32 MaxInventorySlots = UKalmalaInventoryComponent::MaxSlots;
 
     void InitializeForPlayer(const FKalmalaWorldGenerationConfig& InWorld, const FString& InPlayerIdentity);
     bool MatchesPlayer(const FKalmalaWorldGenerationConfig& InWorld, const FString& InPlayerIdentity) const;
@@ -67,6 +69,8 @@ public:
     bool AddLearnedEffect(const FString& Id);
     bool AddToolRecord(const FKalmalaPlayerToolSaveRecord& Record);
     bool TryReplaceToolRecords(const TArray<FKalmalaPlayerToolSaveRecord>& Records);
+    /** Fills missing GUIDs in older additive save records before strict validation and rewrites. */
+    bool EnsureToolInstanceGuids(bool& bOutChanged);
     bool HasDiscovery(const FString& Id) const;
     bool HasLearnedEffect(const FString& Id) const;
 

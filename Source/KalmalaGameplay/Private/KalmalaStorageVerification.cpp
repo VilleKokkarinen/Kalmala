@@ -18,8 +18,10 @@ void UKalmalaCraftingComponent::RunStorageVerification(float DeltaTime)
         return Passed;
     };
     auto Quantity = [](const TArray<FKalmalaInventoryStack>& Stacks) {
-        const auto* Wood = Stacks.FindByPredicate([](const auto& S) { return S.ItemId == TEXT("Wood"); });
-        return Wood ? Wood->Quantity : 0;
+        int32 Total = 0;
+        for (const FKalmalaInventoryStack& Stack : Stacks)
+            if (Stack.ItemId == TEXT("Wood")) Total += Stack.Quantity;
+        return Total;
     };
     if (C->HasAuthority() && StorageVerificationStage == 0 && StorageVerificationElapsed > 3)
     {
