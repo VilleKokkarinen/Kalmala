@@ -2360,9 +2360,10 @@ level 2, with no skill requirement, the
 level-one prerequisite, and every material cost with the owner's current
 counts. It presents the first unmet requirement and enables the
 existing Upgrade action only when the owner-visible progression is ready. The
-station view pairs the requirement summary with the owner-only comparison and
-Upgrade action in framed columns matching the station Craft layout. The
-action calls `ServerProgressTool` with only `BronzeAxe`; the server still chooses
+station view centers the requirement summary with the Upgrade action in one
+framed column, beside the owner-only comparison in its own frame. Station Craft
+centers its material row with the Craft action. The action calls
+`ServerProgressTool` with only `BronzeAxe`; the server still chooses
 a visible same-world Forge, validates the exact authored same-item progression
 step, charges the materials, preserves tool condition and inventory slot, and
 persists the owner state. A stale or invalid

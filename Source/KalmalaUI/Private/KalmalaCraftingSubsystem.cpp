@@ -763,7 +763,12 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     UpgradeRequirementsFrame = WidgetTree->ConstructWidget<UBorder>();
     UpgradeRequirementsFrame->SetContent(UpgradeRequirements);
     ToolProgressionText->RemoveFromParent();
+    ToolProgressionText->SetJustification(ETextJustify::Center);
     UpgradeRequirements->AddChildToVerticalBox(ToolProgressionText);
+    ToolProgressionActions->RemoveFromParent();
+    auto* UpgradeActionSlot = UpgradeRequirements->AddChildToVerticalBox(ToolProgressionActions);
+    UpgradeActionSlot->SetPadding(FMargin(0.0f, 8.0f, 0.0f, 0.0f));
+    UpgradeActionSlot->SetHorizontalAlignment(HAlign_Center);
     auto* RequirementsSlot = UpgradePanelContent->AddChildToHorizontalBox(UpgradeRequirementsFrame);
     FSlateChildSize RequirementsSize(ESlateSizeRule::Fill);
     RequirementsSize.Value = 0.62f;
@@ -792,8 +797,7 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     ToolUpgradeBenefitRow->AddChildToHorizontalBox(ToolUpgradeBenefitDelta)
         ->SetVerticalAlignment(VAlign_Center);
     for (UWidget* UpgradeControl : {static_cast<UWidget*>(ToolUpgradeComparisonHeadingRow.Get()),
-            static_cast<UWidget*>(ToolUpgradeBenefitRow.Get()),
-            static_cast<UWidget*>(ToolProgressionActions.Get())})
+            static_cast<UWidget*>(ToolUpgradeBenefitRow.Get())})
     {
         UpgradeControl->RemoveFromParent();
         auto* UpgradeSlot = UpgradeComparison->AddChildToVerticalBox(UpgradeControl);

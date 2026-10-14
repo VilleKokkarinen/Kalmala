@@ -2271,8 +2271,9 @@ catalogue icon, name, and level sit at the top-right.
 The selected Workbench/Forge tab uses the shared gold text accent without a
 leading selection marker.
 Forge Upgrade uses the same wood-backed content area and top inset as station
-Craft, pairing its requirement summary with the owner-only comparison and action
-in matching framed columns. Its comparison header reads `Bronze Axe -` followed
+Craft. Its framed requirements column centers the material summary and Upgrade
+action together; the adjacent frame keeps the owner-only comparison. Its
+comparison header reads `Bronze Axe -` followed
 by a level icon and target level; the next row reads the slash-bonus baseline
 with only the positive gain in the shared level-up color. The Upgrade button is
 text-only and labeled `Upgrade`. Repair All keeps the current Craft or Upgrade view

@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-14 — Center crafting and upgrade requirements
+
+- **Completed:** centered the Workbench/Inventory Craft material row over its `Craft` action. Centered the Forge Upgrade requirement summary over its `Upgrade` action in one frame, keeping the level/stat comparison in the adjacent frame.
+- **Files changed:** `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`, `Source/KalmalaUI/Private/KalmalaInventoryCraftLayout.cpp`, `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** inspected both panel layouts and their parent/slot alignment; `git diff --check` passed. No tests, Unreal build, automation, or runtime render ran.
+- **Impact/authority:** owner-local UI layout only. Crafting and progression still use their existing server-authoritative validation and transactions.
+- **Verification/limitations:** normal user-directed increment; full Unreal build, automation, and rendered UI verification remain deferred.
+- **Next eligible task:** convert decorative generated forest trees into individually attackable sources with a compatible depletion/streaming policy.
+
 ## User-directed increment 2026-10-14 — Simplify the Forge Upgrade card
 
 - **Completed:** removed the Bronze Axe tile beside the action and shortened its label and tooltip to `Upgrade`. The comparison card now shows `Bronze Axe -` with a level icon and target level, followed by the slash bonus baseline and gain (`Slash bonus - 50 (+5)`) with the gain colored from the shared level-up theme. Removed duplicate stat-comparison lines from the requirements panel.

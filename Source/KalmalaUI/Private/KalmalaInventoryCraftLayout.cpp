@@ -174,14 +174,18 @@ void UKalmalaCraftingWidget::BuildInventoryCraftLayout()
     AddText(InventoryCraftDescription);
     AddText(InventoryCraftStats);
     InventoryCraftCosts = WidgetTree->ConstructWidget<UHorizontalBox>();
-    Details->AddChildToVerticalBox(InventoryCraftCosts)->SetPadding(FMargin(0, 8));
+    auto* InventoryCraftCostsSlot = Details->AddChildToVerticalBox(InventoryCraftCosts);
+    InventoryCraftCostsSlot->SetPadding(FMargin(0, 8));
+    InventoryCraftCostsSlot->SetHorizontalAlignment(HAlign_Center);
     InventoryCraftButton = WidgetTree->ConstructWidget<UKalmalaThemedButton>();
     auto* CraftText = WidgetTree->ConstructWidget<UTextBlock>();
     CraftText->SetText(FText::FromString(TEXT("Craft")));
     CraftText->SetJustification(ETextJustify::Center);
     InventoryCraftButton->SetContent(CraftText);
     InventoryCraftButton->OnClicked.AddDynamic(this, &ThisClass::Craft);
-    Details->AddChildToVerticalBox(InventoryCraftButton)->SetPadding(FMargin(0, 4, 0, 0));
+    auto* InventoryCraftButtonSlot = Details->AddChildToVerticalBox(InventoryCraftButton);
+    InventoryCraftButtonSlot->SetPadding(FMargin(0, 4, 0, 0));
+    InventoryCraftButtonSlot->SetHorizontalAlignment(HAlign_Center);
 }
 
 void UKalmalaCraftingWidget::RefreshBuildRequirements(const FString& Title,
