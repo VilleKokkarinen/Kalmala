@@ -48,8 +48,7 @@ void UKalmalaWorldMapSubsystem::BindLocalInput(APlayerController* InLocalControl
     if (InLocalController == nullptr || InLocalController->InputComponent == nullptr || BoundInputComponent.Get() == InLocalController->InputComponent) return;
     FInputActionBinding& Binding = InLocalController->InputComponent->BindAction(TEXT("WorldMap"), IE_Pressed, this, &ThisClass::ToggleMap);
     Binding.bConsumeInput = true;
-    FInputActionBinding& RecenterBinding = InLocalController->InputComponent->BindAction(TEXT("WorldMapRecenter"), IE_Pressed, this, &ThisClass::RecenterMap);
-    RecenterBinding.bConsumeInput = true; BoundInputComponent = InLocalController->InputComponent;
+    BoundInputComponent = InLocalController->InputComponent;
 }
 
 void UKalmalaWorldMapSubsystem::ToggleMap()
@@ -64,9 +63,4 @@ bool UKalmalaWorldMapSubsystem::CloseMapIfOpen()
 {
     if (MapWidget == nullptr || !MapWidget->IsMapOpen()) return false;
     MapWidget->Close(); return true;
-}
-
-void UKalmalaWorldMapSubsystem::RecenterMap()
-{
-    if (MapWidget != nullptr && MapWidget->IsMapOpen()) MapWidget->Recenter();
 }

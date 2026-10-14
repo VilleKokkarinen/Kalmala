@@ -41,7 +41,6 @@ public:
     void Open();
     void Close();
     bool IsMapOpen() const { return bMapOpen; }
-    void Recenter();
     void RunDeveloperVerification();
     bool HasDeveloperClosedExploration() const { return bDeveloperClosedExplorationLogged; }
     /** Services local asynchronous tiles from either Slate or the owning local-player subsystem. */
@@ -77,7 +76,6 @@ protected:
     virtual int32 NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect,
         FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
     virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
-    virtual FReply NativeOnMouseButtonUp(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
     virtual FReply NativeOnMouseMove(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
     virtual FReply NativeOnMouseWheel(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
     virtual FReply NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent) override;
@@ -153,10 +151,9 @@ private:
     void LogDeveloperTileFingerprint();
     void LogDeveloperProfile();
     void ResetTileCacheForWorldChange();
+    void Recenter();
     static TArray<FColor> BuildTilePixels(FKalmalaWorldGenerationConfig Config, FIntPoint TileCoordinate, float WorldSize = 10000.0f);
     static TArray<FIntPoint> BuildPrioritizedTileCoordinates(const FVector2D& Centre, const FVector2D& Extent, float WorldSize = 10000.0f);
-    void PanByScreenDelta(const FVector2D& ScreenDelta, const FVector2D& MapSize);
-    void ZoomAtScreenPosition(float WheelDelta, const FVector2D& ScreenPosition, const FVector2D& MapSize);
     FVector2D ScreenToWorld(const FVector2D& ScreenPosition, const FVector2D& MapSize) const;
     int32 FindVisiblePinAtScreenPosition(const FVector2D& ScreenPosition, const FVector2D& MapSize) const;
     void BeginPinPlacement(const FVector2D& WorldLocation);
@@ -166,7 +163,6 @@ private:
     bool ToggleSelectedPinCompletion();
     bool ToggleSelectedPinVisibility();
     bool RemoveSelectedPin();
-    void PanByKeyboardDelta(const FVector2D& ScreenDelta);
     void ZoomAtMapCentre(float WheelDelta);
     int32 DrawPins(const FGeometry& AllottedGeometry, const FVector2D& MapSize, int32 LayerId, FSlateWindowElementList& OutDrawElements) const;
     void DrawMapPings(const FGeometry& Geometry, FVector2D MapSize, int32 LayerId, FSlateWindowElementList& Elements) const;
@@ -204,14 +200,10 @@ private:
     uint32 TileEpoch = 1;
     uint64 TileUseSerial = 0;
     bool bMapOpen = false;
-    /** Keep the local pan/zoom view when the collapsed map is opened again. */
-    bool bHasOpenedMap = false;
     bool bPinPlacementArmed = false;
     int32 HoveredPinStyleIndex = INDEX_NONE;
-    bool bDragging = false;
     bool bPinLabelEntry = false;
     int32 SelectedPinIndex = INDEX_NONE;
-    FVector2D LastDragPosition = FVector2D::ZeroVector;
     FVector2D PendingPinLocation = FVector2D::ZeroVector;
     FString PendingPinLabel;
     EKalmalaWorldMapPinStyle PendingPinStyle = EKalmalaWorldMapPinStyle::Cairn;

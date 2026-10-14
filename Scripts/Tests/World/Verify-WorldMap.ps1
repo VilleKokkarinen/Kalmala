@@ -74,7 +74,7 @@ for ($index = 0; $index -lt $cases.Count; $index++) {
                 throw "Host/client tile count or presentation fingerprint disagrees at $label."
             }
             if (($serverText + $clientText) -match 'Fatal error:|Assertion failed:') { throw "Unreal reported an error at $label." }
-            if ($serverText -match 'World map verification: Open=1 Input=1 ZoomMin=1 ZoomMax=1 Pan=1 Recenter=1.' -and
+            if ($serverText -match 'World map verification: Open=1 Input=1 ZoomMin=1 ZoomMax=1 PlayerCentered=1.' -and
                 $serverText -match 'World map marker filters: PointerTargets=1 Keyboard=1 Controller=1 PinsPreserved=1.' -and
                 $clientText -match 'World map marker filters: PointerTargets=1 Keyboard=1 Controller=1 PinsPreserved=1.' -and
                 $serverText -match 'World map gameplay exploration: Closed=1 Cells=[1-9][0-9]* Tiles=0' -and
@@ -82,7 +82,7 @@ for ($index = 0; $index -lt $cases.Count; $index++) {
                 $serverText -match 'World map fog presentation: Seed=418 Cells=[1-9][0-9]* Loaded=0 Remote=0\.' -and
                 $clientText -match 'World map fog presentation: Seed=418 Cells=[1-9][0-9]* Loaded=0 Remote=0\.' -and
                 $clientText -match "Client received world-generation identity: Seed=418" -and
-                $clientText -match 'World map verification: Open=1 Input=1 ZoomMin=1 ZoomMax=1 Pan=1 Recenter=1.' -and
+                $clientText -match 'World map verification: Open=1 Input=1 ZoomMin=1 ZoomMax=1 PlayerCentered=1.' -and
                 $serverText -match 'World map paint verification: FullViewport=1 .*ReadyTiles=[1-9][0-9]* Fog=1' -and
                 $clientText -match 'World map paint verification: FullViewport=1 .*ReadyTiles=[1-9][0-9]* Fog=1' -and
                 $serverTileMatch.Success -and $clientTileMatch.Success -and
@@ -101,7 +101,7 @@ for ($index = 0; $index -lt $cases.Count; $index++) {
                 }
                 $other = if ($owner -eq 'Host') { 'Client' } else { 'Host' }
                 if ($logText -match "Label=$other trail") { throw "Another owner's pin label leaked at $label." }
-                $cache = [regex]::Match($logText, 'World map cache acceptance: Ready=(\d+) Reused=(\d+) Bounded=1 PanZoomMs=([\d.]+)')
+                $cache = [regex]::Match($logText, 'World map cache acceptance: Ready=(\d+) Reused=(\d+) Bounded=1 ZoomMs=([\d.]+)')
                 if (!$cache.Success -or [int]$cache.Groups[1].Value -le 0 -or $cache.Groups[1].Value -ne $cache.Groups[2].Value) {
                     throw "Ready terrain textures were not reused for $owner at $label."
                 }

@@ -31,7 +31,7 @@
 namespace
 {
     TAutoConsoleVariable<int32> RevealWorldMap(TEXT("kalmala.Map.RevealAll"), 0, TEXT("Debug: show all generated terrain without changing exploration."));
-    TAutoConsoleVariable<int32> FitWorldMap(TEXT("kalmala.Map.FitWorldOnOpen"), 1, TEXT("Debug: open M at world origin and fit the full 16 km radius."));
+    TAutoConsoleVariable<int32> FitWorldMap(TEXT("kalmala.Map.FitWorldOnOpen"), 0, TEXT("Debug: override the player-centred map with a full-world overview."));
 
     float DrawMapLabel(FSlateWindowElementList& Elements, int32 Layer, const FGeometry& Geometry,
         FVector2D Position, const FString& Text, int32 SizeOffset, bool bHeading = false)
@@ -171,14 +171,8 @@ void UKalmalaWorldMapWidget::Open()
         DeveloperProfileGameThreadTicks = 0;
         bDeveloperProfileLogged = false;
     }
-    if (!bHasOpenedMap)
-    {
-        // Preserve the established first-open default; later opens retain the
-        // owner's transient centre, zoom and whole-world view mode.
-        Recenter();
-        bFitWholeWorld = FitWorldMap.GetValueOnGameThread() != 0;
-        bHasOpenedMap = true;
-    }
+    Recenter();
+    bFitWholeWorld = FitWorldMap.GetValueOnGameThread() != 0;
     SetVisibility(ESlateVisibility::Visible);
     APlayerController* Controller = GetOwningPlayer();
     Controller->SetShowMouseCursor(true);
@@ -193,7 +187,6 @@ void UKalmalaWorldMapWidget::Close()
 {
     if (!bMapOpen) return;
     bMapOpen = false;
-    bDragging = false;
     CancelPinPlacement();
     HoveredPinStyleIndex = INDEX_NONE;
     bMarkerFilterNavigationActive = false;
@@ -221,14 +214,15 @@ void UKalmalaWorldMapWidget::RunDeveloperVerification()
     if (!bMapOpen || ViewModel == nullptr || bDeveloperVerificationLogged) return;
     Recenter();
     const FVector2D InitialCentre = ViewModel->GetMapCentre();
-    ZoomAtScreenPosition(1000.0f, FVector2D(400.0f, 300.0f), FVector2D(800.0f, 600.0f));
+    ZoomAtMapCentre(1000.0f);
     const bool bMinimumZoom = FMath::IsNearlyEqual(MapZoom, MinZoom);
-    ZoomAtScreenPosition(-100000.0f, FVector2D(400.0f, 300.0f), FVector2D(800.0f, 600.0f));
+    ZoomAtMapCentre(-100000.0f);
     const bool bMaximumZoom = FMath::IsNearlyEqual(MapZoom, MaxZoom);
-    PanByScreenDelta(FVector2D(160.0f, -120.0f), FVector2D(800.0f, 600.0f));
-    const bool bPanChangedCentre = !ViewModel->GetMapCentre().Equals(InitialCentre, 1.0f);
-    Recenter();
-    const bool bRecentered = ViewModel->GetMapCentre().Equals(InitialCentre, 1.0f);
+    FKalmalaWorldGenerationConfig CentreConfig;
+    FVector2D PawnLocation;
+    const bool bPlayerCentered = ViewModel->GetPresentationInputs(CentreConfig, PawnLocation)
+        && ViewModel->GetMapCentre().Equals(PawnLocation, 1.0f)
+        && ViewModel->GetMapCentre().Equals(InitialCentre, 1.0f);
     MapZoom = 18000.0f;
     Recenter();
     float CaptureZoom = MapZoom;
@@ -302,9 +296,9 @@ void UKalmalaWorldMapWidget::RunDeveloperVerification()
     FocusedMarkerCategoryIndex = 0;
     UE_LOG(LogTemp, Display, TEXT("World map marker filters: PointerTargets=%d Keyboard=%d Controller=%d PinsPreserved=%d."),
         bPointerTargets ? 1 : 0, bKeyboardFocus ? 1 : 0, bControllerFocus ? 1 : 0, bPinsPreserved ? 1 : 0);
-    UE_LOG(LogTemp, Display, TEXT("World map verification: Open=%d Input=%d ZoomMin=%d ZoomMax=%d Pan=%d Recenter=%d."),
+    UE_LOG(LogTemp, Display, TEXT("World map verification: Open=%d Input=%d ZoomMin=%d ZoomMax=%d PlayerCentered=%d."),
         bMapOpen ? 1 : 0, GetOwningPlayer() && GetOwningPlayer()->IsMoveInputIgnored() && GetOwningPlayer()->IsLookInputIgnored() ? 1 : 0,
-        bMinimumZoom ? 1 : 0, bMaximumZoom ? 1 : 0, bPanChangedCentre ? 1 : 0, bRecentered ? 1 : 0);
+        bMinimumZoom ? 1 : 0, bMaximumZoom ? 1 : 0, bPlayerCentered ? 1 : 0);
 }
 
 float UKalmalaWorldMapWidget::FullWorldZoom(float AspectRatio)
@@ -720,8 +714,8 @@ void UKalmalaWorldMapWidget::ResetTileCacheForWorldChange()
 {
     ++TileEpoch;
     if (TileEpoch == 0) ++TileEpoch;
-    // Tile pixels depend on immutable world identity. Pan and zoom do not
-    // invalidate world-aligned data; their tile-size key selects another cache
+    // Tile pixels depend on immutable world identity. Zoom and player movement
+    // do not invalidate world-aligned data; the tile-size key selects a cache
     // entry instead. A new identity drops every handle and rejects old workers.
     Tiles.Reset();
     TileUseSerial = 0;
@@ -1158,18 +1152,19 @@ void UKalmalaWorldMapWidget::NativeTick(const FGeometry& MyGeometry, const float
                 const float ZoomBefore = MapZoom;
                 const bool bFitBefore = bFitWholeWorld;
                 const double Started = FPlatformTime::Seconds();
-                PanByScreenDelta(FVector2D(1.0, 1.0), MyGeometry.GetLocalSize() - FVector2D(88.0));
                 ZoomAtMapCentre(0.001f);
+                ViewModel->SetMapCentre(CentreBefore);
                 RefreshTiles(MyGeometry.GetLocalSize() - FVector2D(88.0));
                 int32 Reused = 0;
                 for (const auto& Pair : ReadyTextures)
                     if (const auto* Tile = Tiles.Find(Pair.Key); Tile && Tile->Texture.Get() == Pair.Value) ++Reused;
                 MapZoom = ZoomBefore;
                 bFitWholeWorld = bFitBefore;
-                ViewModel->SetMapCentre(CentreBefore);
+                if (bFitBefore) ViewModel->SetMapCentre(CentreBefore);
+                else ViewModel->RecenterOnOwningPlayer();
                 ViewModel->SetMapRadius(MapZoom);
                 RefreshTiles(MyGeometry.GetLocalSize() - FVector2D(88.0));
-                UE_LOG(LogTemp, Display, TEXT("World map cache acceptance: Ready=%d Reused=%d Bounded=%d PanZoomMs=%.3f."),
+                UE_LOG(LogTemp, Display, TEXT("World map cache acceptance: Ready=%d Reused=%d Bounded=%d ZoomMs=%.3f."),
                     ReadyTextures.Num(), Reused, Tiles.Num() <= MaxCachedTiles ? 1 : 0,
                     (FPlatformTime::Seconds() - Started) * 1000.0);
             }
@@ -1342,7 +1337,6 @@ int32 UKalmalaWorldMapWidget::FindVisiblePinAtScreenPosition(const FVector2D& Sc
 
 void UKalmalaWorldMapWidget::BeginPinPlacement(const FVector2D& WorldLocation)
 {
-    bDragging = false;
     bPinLabelEntry = true;
     bPinPlacementArmed = false;
     PendingPinLocation = WorldLocation;
@@ -1503,16 +1497,13 @@ void UKalmalaWorldMapWidget::DrawPinPalette(const FGeometry& Geometry, const int
     }
 }
 
-void UKalmalaWorldMapWidget::PanByKeyboardDelta(const FVector2D& ScreenDelta)
-{
-    const FVector2D MapSize = GetCachedGeometry().GetLocalSize() - FVector2D(88.0f);
-    PanByScreenDelta(ScreenDelta, MapSize);
-}
-
 void UKalmalaWorldMapWidget::ZoomAtMapCentre(const float WheelDelta)
 {
-    const FVector2D MapSize = GetCachedGeometry().GetLocalSize() - FVector2D(88.0f);
-    ZoomAtScreenPosition(WheelDelta, MapSize * 0.5f, MapSize);
+    if (ViewModel == nullptr || FMath::IsNearlyZero(WheelDelta)) return;
+    bFitWholeWorld = false;
+    MapZoom = ClampMapZoom(MapZoom * (1.0f - WheelDelta * ZoomStep), MinZoom, MaxZoom);
+    ViewModel->SetMapRadius(MapZoom);
+    ViewModel->RecenterOnOwningPlayer();
 }
 
 void UKalmalaWorldMapWidget::CancelPinPlacement()
@@ -1563,26 +1554,6 @@ int32 UKalmalaWorldMapWidget::DrawPins(const FGeometry& AllottedGeometry, const 
                 ESlateDrawEffect::None, FKalmalaUITheme::Get().TextColor(false, UKalmalaSettingsWidget::GetContrastMode()));
     }
     return EligibleCount;
-}
-
-void UKalmalaWorldMapWidget::PanByScreenDelta(const FVector2D& ScreenDelta, const FVector2D& MapSize)
-{
-    if (ViewModel == nullptr || MapSize.X <= 0.0f || MapSize.Y <= 0.0f) return;
-    const FVector2D Extent = ViewModel->GetMapExtent();
-    const FVector2D WorldDelta(-ScreenDelta.X / MapSize.X * 2.0f * Extent.X, -ScreenDelta.Y / MapSize.Y * 2.0f * Extent.Y);
-    bFitWholeWorld = false;
-    ViewModel->SetMapCentre(ViewModel->GetMapCentre() + WorldDelta);
-}
-
-void UKalmalaWorldMapWidget::ZoomAtScreenPosition(const float WheelDelta, const FVector2D& ScreenPosition, const FVector2D& MapSize)
-{
-    if (ViewModel == nullptr || FMath::IsNearlyZero(WheelDelta) || MapSize.X <= 0.0f || MapSize.Y <= 0.0f) return;
-    const FVector2D Normalized((ScreenPosition.X / MapSize.X - 0.5f) * 2.0f, (ScreenPosition.Y / MapSize.Y - 0.5f) * 2.0f);
-    const FVector2D PinnedWorld = ViewModel->GetMapCentre() + Normalized * ViewModel->GetMapExtent();
-    bFitWholeWorld = false;
-    MapZoom = ClampMapZoom(MapZoom * (1.0f - WheelDelta * ZoomStep), MinZoom, MaxZoom);
-    ViewModel->SetMapRadius(MapZoom);
-    ViewModel->SetMapCentre(PinnedWorld - Normalized * ViewModel->GetMapExtent());
 }
 
 FReply UKalmalaWorldMapWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
@@ -1644,37 +1615,25 @@ FReply UKalmalaWorldMapWidget::NativeOnMouseButtonDown(const FGeometry& InGeomet
             return FReply::Handled();
         }
         if (InMouseEvent.IsShiftDown()) { BeginPinPlacement(ScreenToWorld(MapPosition, MapSize)); return FReply::Handled(); }
-        bDragging = true; LastDragPosition = MapPosition; return FReply::Handled().CaptureMouse(TakeWidget());
+        if (bInsideMap) return FReply::Handled();
     }
     return Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
 }
 
-FReply UKalmalaWorldMapWidget::NativeOnMouseButtonUp(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
-{
-    if (bDragging && InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton) { bDragging = false; return FReply::Handled().ReleaseMouseCapture(); }
-    return Super::NativeOnMouseButtonUp(InGeometry, InMouseEvent);
-}
-
 FReply UKalmalaWorldMapWidget::NativeOnMouseMove(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
-    if (!bDragging)
+    const FVector2D WidgetPosition = InGeometry.AbsoluteToLocal(InMouseEvent.GetScreenSpacePosition());
+    const int32 PinStyleIndex = IsInsidePinPalette(WidgetPosition, InGeometry.GetLocalSize())
+        ? GetPinStyleIndexAtPosition(WidgetPosition, InGeometry.GetLocalSize()) : INDEX_NONE;
+    const int32 HoveredIndex = IsInsideMarkerLegend(WidgetPosition, InGeometry.GetLocalSize())
+        ? GetMarkerCategoryAtPosition(WidgetPosition, InGeometry.GetLocalSize()) : INDEX_NONE;
+    if (HoveredIndex != HoveredMarkerCategoryIndex || PinStyleIndex != HoveredPinStyleIndex)
     {
-        const FVector2D WidgetPosition = InGeometry.AbsoluteToLocal(InMouseEvent.GetScreenSpacePosition());
-        const int32 PinStyleIndex = IsInsidePinPalette(WidgetPosition, InGeometry.GetLocalSize())
-            ? GetPinStyleIndexAtPosition(WidgetPosition, InGeometry.GetLocalSize()) : INDEX_NONE;
-        const int32 HoveredIndex = IsInsideMarkerLegend(WidgetPosition, InGeometry.GetLocalSize())
-            ? GetMarkerCategoryAtPosition(WidgetPosition, InGeometry.GetLocalSize()) : INDEX_NONE;
-        if (HoveredIndex != HoveredMarkerCategoryIndex || PinStyleIndex != HoveredPinStyleIndex)
-        {
-            HoveredMarkerCategoryIndex = HoveredIndex;
-            HoveredPinStyleIndex = PinStyleIndex;
-            Invalidate(EInvalidateWidget::Paint);
-        }
-        return Super::NativeOnMouseMove(InGeometry, InMouseEvent);
+        HoveredMarkerCategoryIndex = HoveredIndex;
+        HoveredPinStyleIndex = PinStyleIndex;
+        Invalidate(EInvalidateWidget::Paint);
     }
-    const FVector2D Position = InGeometry.AbsoluteToLocal(InMouseEvent.GetScreenSpacePosition()) - FVector2D(44.0f);
-    PanByScreenDelta(Position - LastDragPosition, InGeometry.GetLocalSize() - FVector2D(88.0f)); LastDragPosition = Position;
-    return FReply::Handled();
+    return Super::NativeOnMouseMove(InGeometry, InMouseEvent);
 }
 
 FReply UKalmalaWorldMapWidget::NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent)
@@ -1718,11 +1677,6 @@ FReply UKalmalaWorldMapWidget::NativeOnKeyDown(const FGeometry& InGeometry, cons
     }
     if (Key == EKeys::H || Key == EKeys::Gamepad_FaceButton_Right) { ToggleSelectedPinVisibility(); return FReply::Handled(); }
     if (Key == EKeys::Delete || Key == EKeys::Gamepad_LeftTrigger) { RemoveSelectedPin(); return FReply::Handled(); }
-    if (Key == EKeys::R || Key == EKeys::Gamepad_FaceButton_Top) { Recenter(); return FReply::Handled(); }
-    if (Key == EKeys::Left || Key == EKeys::Gamepad_DPad_Left) { PanByKeyboardDelta(FVector2D(64.0f, 0.0f)); return FReply::Handled(); }
-    if (Key == EKeys::Right || Key == EKeys::Gamepad_DPad_Right) { PanByKeyboardDelta(FVector2D(-64.0f, 0.0f)); return FReply::Handled(); }
-    if (Key == EKeys::Up || Key == EKeys::Gamepad_DPad_Up) { PanByKeyboardDelta(FVector2D(0.0f, -64.0f)); return FReply::Handled(); }
-    if (Key == EKeys::Down || Key == EKeys::Gamepad_DPad_Down) { PanByKeyboardDelta(FVector2D(0.0f, 64.0f)); return FReply::Handled(); }
     if (Key == EKeys::PageUp || Key == EKeys::Gamepad_RightShoulder) { ZoomAtMapCentre(1.0f); return FReply::Handled(); }
     if (Key == EKeys::PageDown || Key == EKeys::Gamepad_LeftShoulder) { ZoomAtMapCentre(-1.0f); return FReply::Handled(); }
     return FReply::Unhandled();
@@ -1742,6 +1696,6 @@ FReply UKalmalaWorldMapWidget::NativeOnKeyChar(const FGeometry& InGeometry, cons
 FReply UKalmalaWorldMapWidget::NativeOnMouseWheel(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
     if (!bMapOpen) return Super::NativeOnMouseWheel(InGeometry, InMouseEvent);
-    ZoomAtScreenPosition(InMouseEvent.GetWheelDelta(), InGeometry.AbsoluteToLocal(InMouseEvent.GetScreenSpacePosition()) - FVector2D(44.0f), InGeometry.GetLocalSize() - FVector2D(88.0f));
+    ZoomAtMapCentre(InMouseEvent.GetWheelDelta());
     return FReply::Handled();
 }

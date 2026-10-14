@@ -27,7 +27,6 @@ private:
     void BindLocalInput(APlayerController* InLocalController);
     void ReleaseController();
     void ToggleMap();
-    void RecenterMap();
 
     UPROPERTY(Transient)
     TObjectPtr<UKalmalaWorldMapWidget> MapWidget;

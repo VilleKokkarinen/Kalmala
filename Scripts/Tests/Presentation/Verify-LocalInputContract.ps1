@@ -42,7 +42,6 @@ $requiredActions = @{
     Sprint = @('LeftShift', 'RightShift', 'Gamepad_LeftThumbstick')
     SettingsMenu = @('Escape')
     WorldMap = @('M')
-    WorldMapRecenter = @('R')
     InventoryMenu = @('Tab', 'I')
     CraftMenu = @('B', 'Gamepad_Special_Left')
     Hotbar1 = @('One')
@@ -55,6 +54,9 @@ $requiredActions = @{
     Hotbar8 = @('Eight')
     Hotbar9 = @('Nine')
     Hotbar0 = @('Zero')
+}
+if ($text -match 'ActionName="WorldMapRecenter"') {
+    throw 'Retired map-recenter action remains in the default input configuration.'
 }
 
 foreach ($mapping in $requiredMappings.GetEnumerator()) {

@@ -371,8 +371,6 @@ namespace
                 { EKeys::Escape, EKeys::O }, {}));
             Result.Add(MakeSingleInput(TEXT("WorldMap"), TEXT("Map"), ELocalInputMappingKind::Action,
                 { EKeys::M, EKeys::N }, { EKeys::Gamepad_Special_Right }));
-            Result.Add(MakeSingleInput(TEXT("WorldMapRecenter"), TEXT("Recenter map"), ELocalInputMappingKind::Action,
-                { EKeys::R, EKeys::T }, {}));
             Result.Add(MakeSingleInput(TEXT("InventoryMenu"), TEXT("Inventory"), ELocalInputMappingKind::Action,
                 { EKeys::Tab, EKeys::I }, {}));
             Result.Add(MakeSingleInput(TEXT("CraftMenu"), TEXT("Build"), ELocalInputMappingKind::Action,

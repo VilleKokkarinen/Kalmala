@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-14 — Keep the expanded map centred on the player
+
+- **Completed:** removed Recenter map from Control bindings and local input actions; the expanded map now opens on and follows the owning player, and mouse/keyboard/controller zoom stays around that centre. Removed map pan input and kept the development-only overview fixture available.
+- **Files changed:** `Config/DefaultInput.ini`, `Scripts/Tests/Presentation/Verify-LocalInputContract.ps1`, `Scripts/Tests/World/Verify-WorldMap.ps1`, `Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp`, `Source/KalmalaUI/Private/KalmalaWorldMapSubsystem.cpp`, `Source/KalmalaUI/Private/KalmalaWorldMapWidget.cpp`, `Source/KalmalaUI/Public/KalmalaWorldMapSubsystem.h`, `Source/KalmalaUI/Public/KalmalaWorldMapWidget.h`, `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** inspected the map-centre update and input paths, searched for retired pan/recenter handlers and binding references, parsed both changed PowerShell verification scripts, and ran `git diff --check`. No Unreal build, automation, or rendered peer scenario ran.
+- **Impact/authority:** local map presentation and controls only. No gameplay authority, RPC, exploration/pin saves, or network state changed.
+- **Verification/limitations:** normal user-directed increment; full Unreal verification remains deferred. The explicit development-only whole-world overview fixture remains available.
+- **Next eligible task:** convert decorative generated forest trees into individually attackable sources with a compatible depletion/streaming policy.
+
 ## User-directed increment 2026-10-13 — Standard recipe arrays
 
 - **Completed/files:** recipes/axes,knives,maces,pickaxes,spears.json rename toolRecipes to recipes; recipes/upgrades.json renames toolUpgradeCosts to recipes. GameCatalogueLoader.cpp reads recipes for both equipment passes, with ordinary recipes already using that key. Architecture/setup docs and BACKLOG updated.
