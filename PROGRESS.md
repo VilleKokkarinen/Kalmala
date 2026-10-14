@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-14 — Show the Inventory Tab alternative
+
+- **Completed:** made the Controls row display `Inventory (Tab / I)` and added a tooltip explaining that clicking its current key switches between Tab and I. The existing bounded single-key remapping still applies the selected key through the InventoryMenu action.
+- **Files changed:** `Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** inspected the InventoryMenu candidate list, bounded cycle, runtime mapping application and Control row; ran `git diff --check`. No Unreal build, automation, or runtime check ran.
+- **Impact/authority:** presentation clarifies the existing local key choices; the selected key continues to route the same owner-local inventory menu action. No gameplay authority, request, or save state changed.
+- **Verification/limitations:** normal user-directed increment; full Unreal build, automation and rendered UI verification remain deferred.
+- **Next eligible task:** convert decorative generated forest trees into individually attackable sources with a compatible depletion/streaming policy.
+
 ## User-directed increment 2026-10-14 — Open Build with the active hammer
 
 - **Completed:** Removed Build from Control-bound keys and deleted the keyboard/controller toggle path. Right-click opens the existing owner-local Build menu only when the Construction Hammer is active. New characters receive the existing server-created hammer in hotbar slot 1 and it is selected on spawn.

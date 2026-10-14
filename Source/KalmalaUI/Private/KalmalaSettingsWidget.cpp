@@ -371,7 +371,7 @@ namespace
                 { EKeys::Escape, EKeys::O }, {}));
             Result.Add(MakeSingleInput(TEXT("WorldMap"), TEXT("Map"), ELocalInputMappingKind::Action,
                 { EKeys::M, EKeys::N }, { EKeys::Gamepad_Special_Right }));
-            Result.Add(MakeSingleInput(TEXT("InventoryMenu"), TEXT("Inventory"), ELocalInputMappingKind::Action,
+            Result.Add(MakeSingleInput(TEXT("InventoryMenu"), TEXT("Inventory (Tab / I)"), ELocalInputMappingKind::Action,
                 { EKeys::Tab, EKeys::I }, {}));
             return Result;
         }();
@@ -1790,6 +1790,8 @@ void UKalmalaSettingsWidget::ShowInputTab(const bool bGamepad)
             UKalmalaControlButton::StaticClass());
         ApplyButtonPalette(Button);
         Button->Configure(ControlName, bGamepad, bAxisPairSide, bPositiveAxisSide);
+        if (ControlName == TEXT("InventoryMenu") && !bGamepad)
+            Button->SetToolTipText(FText::FromString(TEXT("Click to switch between Tab and I.")));
         Button->SetDisplayText(FText::GetEmpty());
         Button->OnControlBindingClicked.AddDynamic(this, &ThisClass::HandleControlBindingClicked);
         USizeBox* ButtonSize = WidgetTree->ConstructWidget<USizeBox>(USizeBox::StaticClass());
