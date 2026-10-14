@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-14 — Group carried equipment as item data
+
+- **Completed:** renamed the manifest's equipment profile, acquisition, and upgrade groups to `itemProfileFiles`/`itemProfileOrder`, `itemRecipeFiles`/`itemRecipeOrder`, and `itemUpgradeFiles`. Moved `tools/building-hammer.json` to `items/building-hammer.json` and loaded all 16 carried profiles through the item-profile group. The existing runtime tool catalogue and server-side progression behavior are unchanged.
+- **Files changed:** `Content/Data/GameCatalogues.json`, `Content/Data/GameCatalogues/tools/building-hammer.json` (moved to `Content/Data/GameCatalogues/items/building-hammer.json`), `Source/KalmalaGameplay/Private/KalmalaGameCatalogueLoader.cpp`, `docs/02-technical-architecture.md`, `docs/05-decision-log.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** parsed the manifest and referenced item-profile, acquisition-recipe, and upgrade files; confirmed all 16 profile IDs and 10 acquisition IDs are covered by their ordering lists and that the upgrade path resolves. `git diff --check` passed. No build, tests, or automation ran.
+- **Impact/authority:** catalogue grouping and file organization only. Runtime definitions are still loaded by the existing server-side tool catalogue; gameplay transactions remain server-authoritative. No item IDs, stats, costs, networking, or save schema changed.
+- **Verification/limitations:** normal user-directed increment; full Unreal build and catalogue automation remain deferred.
+- **Next eligible task:** convert decorative generated forest trees into individually attackable sources with a compatible depletion/streaming policy.
+
 ## User-directed increment 2026-10-14 — Move tool upgrade catalogue
 
 - **Completed:** moved `recipes/upgrades.json` to `upgrades/upgrades.json`, updated the manifest, and changed the catalogue loader's folder allowlist for `toolUpgradeFiles`. The file's `recipes` array and contents are unchanged.

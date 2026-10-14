@@ -44,17 +44,15 @@
     "RoastedRootVegetablesRecipe",
     "DeerRootRoastRecipe"
   ],
-  "toolProfileFiles": [
+  "itemProfileFiles": [
     "items/axes.json",
     "items/knives.json",
     "items/pickaxes.json",
     "items/spears.json",
-    "items/maces.json"
+    "items/maces.json",
+    "items/building-hammer.json"
   ],
-  "toolFiles": [
-    "tools/building-hammer.json"
-  ],
-  "toolProfileOrder": [
+  "itemProfileOrder": [
     "StoneKnife",
     "StoneAxe",
     "StonePick",
@@ -72,14 +70,14 @@
     "IronMace",
     "ConstructionHammer"
   ],
-  "toolRecipeFiles": [
+  "itemRecipeFiles": [
     "recipes/axes.json",
     "recipes/knives.json",
     "recipes/pickaxes.json",
     "recipes/spears.json",
     "recipes/maces.json"
   ],
-  "toolRecipeOrder": [
+  "itemRecipeOrder": [
     "BronzeAxe",
     "BronzeKnife",
     "BronzePick",
@@ -91,7 +89,7 @@
     "BronzeMace",
     "IronMace"
   ],
-  "toolUpgradeFiles": [
+  "itemUpgradeFiles": [
     "upgrades/upgrades.json"
   ],
   "levelUpRewardFiles": [

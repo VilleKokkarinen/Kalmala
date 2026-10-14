@@ -247,7 +247,7 @@ namespace
             return false;
         }
 
-        // Append so item-family profiles survive the additional utility-tool file pass.
+        // Append so each item-profile group can be assembled from multiple category files.
         for (const TSharedPtr<FJsonValue>& FileValue : *FileValues)
         {
             if (!FileValue.IsValid() || FileValue->Type != EJson::String)
@@ -369,20 +369,18 @@ namespace
             || !LoadCategoryFiles(Root, TEXT("recipeFiles"), TEXT("recipes"), TEXT("recipes"),
                 32, TotalJsonCharacters, RecipeValues)
             || !OrderCategoryValues(Root, TEXT("recipeOrder"), TEXT("RecipeId"), RecipeValues)
-            || !LoadCategoryFiles(Root, TEXT("toolProfileFiles"), TEXT("items"), TEXT("items"),
+            || !LoadCategoryFiles(Root, TEXT("itemProfileFiles"), TEXT("items"), TEXT("items"),
                 UKalmalaToolCatalogue::MaxProfiles, TotalJsonCharacters, ToolProfileValues)
-            || !LoadCategoryFiles(Root, TEXT("toolFiles"), TEXT("items"), TEXT("tools"),
-                UKalmalaToolCatalogue::MaxProfiles, TotalJsonCharacters, ToolProfileValues)
-            || !LoadCategoryFiles(Root, TEXT("toolRecipeFiles"), TEXT("recipes"), TEXT("recipes"),
+            || !LoadCategoryFiles(Root, TEXT("itemRecipeFiles"), TEXT("recipes"), TEXT("recipes"),
                 UKalmalaToolCatalogue::MaxRecipes, TotalJsonCharacters, ToolRecipeValues)
-            || !LoadCategoryFiles(Root, TEXT("toolUpgradeFiles"), TEXT("recipes"), TEXT("upgrades"),
+            || !LoadCategoryFiles(Root, TEXT("itemUpgradeFiles"), TEXT("recipes"), TEXT("upgrades"),
                 UKalmalaToolCatalogue::MaxRecipes, TotalJsonCharacters, ToolUpgradeValues)
             || !LoadCategoryFiles(Root, TEXT("levelUpRewardFiles"), TEXT("levelUpRewards"), TEXT("tools"),
                 UKalmalaToolCatalogue::MaxProfiles, TotalJsonCharacters, LevelUpRewardValues)
             || !LoadCategoryFiles(Root, TEXT("attackFiles"), TEXT("attackLists"), TEXT("tools"),
                 UKalmalaToolCatalogue::MaxProfiles, TotalJsonCharacters, AttackListValues)
-            || !OrderCategoryValues(Root, TEXT("toolProfileOrder"), TEXT("ItemId"), ToolProfileValues)
-            || !OrderCategoryValues(Root, TEXT("toolRecipeOrder"), TEXT("RecipeId"), ToolRecipeValues))
+            || !OrderCategoryValues(Root, TEXT("itemProfileOrder"), TEXT("ItemId"), ToolProfileValues)
+            || !OrderCategoryValues(Root, TEXT("itemRecipeOrder"), TEXT("RecipeId"), ToolRecipeValues))
         {
             UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue manifest could not load its category files: %s"), *JsonPath);
             return false;
