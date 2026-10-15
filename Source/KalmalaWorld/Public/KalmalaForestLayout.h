@@ -15,11 +15,16 @@ struct KALMALAWORLD_API FKalmalaForestTreeDescriptor
     float CanopyHeight = 0.0f;
     float Yaw = 0.0f;
     bool bElderwood = false;
+    FString PersistentSpawnId;
 };
 
 /** Shared deterministic placement for forest rendering and server resource materialization. */
 struct KALMALAWORLD_API FKalmalaForestLayout
 {
+    /** World/patch/candidate identity; empty for invalid inputs. Never derived from filtered array order. */
+    static FString GetPersistentSpawnId(const FKalmalaWorldGenerationConfig& Config,
+        const FVector2D& PatchCenter, int32 CandidateIndex);
+
     static TArray<FKalmalaForestTreeDescriptor> Generate(
         const FKalmalaWorldGenerationConfig& Config, const FVector2D& PatchCenter);
 };

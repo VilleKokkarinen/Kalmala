@@ -188,6 +188,7 @@ Current first-incomplete item: under “Attack-driven tree harvesting,” conver
   - [x] Integrate the server-authoritative tree/trunk/drop loop into existing wood-resource actors, preserving tiers, yields and sparse depletion; replicate stages and remove tree interaction harvesting.
   - [ ] Convert decorative generated forest trees into individually attackable sources and integrate their depletion/streaming policy.
     - Shared placement increment (2026-10-15): extracted `FKalmalaForestLayout` descriptors and made the existing renderer consume them. Original candidate ordinals, exact local/world positions, biome and shape are available for server materialization. Source-equivalence checks passed; attackable actors and depletion/streaming integration remain pending.
+    - Stable identity increment (2026-10-15): generated descriptors now carry `forest:v1` identities derived from the full world seed, exact patch center and original candidate ordinal, independent of filtered array order. No depletion writer or actor integration yet; child remains incomplete.
   - [ ] Add a moving fall/log presentation and verify the integrated tree flow in Unreal and on peers.
 
 - [x] **2026-10-13 — Remove redundant item categories:** derive weapon/tool classification from item family; remove ItemCategory authoring/runtime property while retaining Inventory grouping. Lightweight checks passed; Unreal verification deferred.

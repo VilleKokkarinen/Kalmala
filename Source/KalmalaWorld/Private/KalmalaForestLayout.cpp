@@ -14,6 +14,18 @@ namespace
     constexpr uint64 TreeSeedSalt = 0xD1B54A32D192ED03ull;
 }
 
+FString FKalmalaForestLayout::GetPersistentSpawnId(const FKalmalaWorldGenerationConfig& Config,
+    const FVector2D& PatchCenter, const int32 CandidateIndex)
+{
+    if (!Config.IsValid() || PatchCenter.ContainsNaN()
+        || CandidateIndex < 0 || CandidateIndex >= ElderwoodTreeCandidateCount) return FString();
+    // Seventeen significant digits preserve distinct double patch centers. Normalize signed zero.
+    return FString::Printf(TEXT("forest:v1:%llu:%.17g:%.17g:%d"),
+        static_cast<unsigned long long>(Config.WorldSeed),
+        PatchCenter.X == 0.0 ? 0.0 : PatchCenter.X,
+        PatchCenter.Y == 0.0 ? 0.0 : PatchCenter.Y, CandidateIndex);
+}
+
 TArray<FKalmalaForestTreeDescriptor> FKalmalaForestLayout::Generate(
     const FKalmalaWorldGenerationConfig& WorldGenerationConfig, const FVector2D& PatchCenter)
 {
@@ -58,6 +70,7 @@ TArray<FKalmalaForestTreeDescriptor> FKalmalaForestLayout::Generate(
         Result.Add({CandidateIndex, FVector(SamplePosition.X, SamplePosition.Y, SurfaceHeight),
             FVector(LocalPosition.X, LocalPosition.Y, SurfaceHeight),
             TrunkRadius, TrunkHeight, CanopyRadius, CanopyHeight, TreeYaw, bElderwood});
+        Result.Last().PersistentSpawnId = GetPersistentSpawnId(WorldGenerationConfig, PatchCenter, CandidateIndex);
     }
     return Result;
 }

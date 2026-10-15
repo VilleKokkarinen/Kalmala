@@ -2781,7 +2781,13 @@ The Inventory popup now reads the owner's six replicated wearable slots and disp
 `FKalmalaForestLayout::Generate` supplies the terrain patch renderer with
 individual Meadow/Elderwood tree descriptors: original candidate ordinal, world
 and exact local position, biome flag, dimensions and yaw. The ordinal is local
-to the world seed and patch center, not a globally unique depletion ID. Rejected
+to the world seed and patch center. Each descriptor now also carries a
+`forest:v1:<world-seed>:<patch-x>:<patch-y>:<candidate>` persistent spawn identity.
+Patch coordinates here are exact world-space patch centers, formatted with 17
+significant digits and signed zero normalized; they are not rounded tree positions.
+The full unsigned seed and original candidate ordinal avoid filtered-order and
+cross-patch aliasing. Invalid centers or ordinals return an empty identity.
+This reserved identity is not yet written into the sparse depletion ledger. Rejected
 candidates do not renumber accepted trees. The extraction preserves existing
 random draw order, density gates, dimensions, bounds and height sampling.
 

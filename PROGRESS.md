@@ -1,5 +1,12 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-15 — Identify generated forest trees
+
+- **Completed/files:** added GetPersistentSpawnId and populated shared forest descriptors with forest:v1 identities from full unsigned seed, exact patch center (17 significant digits; signed zero normalized), and original candidate ordinal. Invalid center/ordinal inputs return empty. Changed KalmalaForestLayout.h/.cpp, architecture, BACKLOG and PROGRESS. First unchecked generated-tree child remains incomplete.
+- **Checks:** Python comparison against HEAD confirmed Generate unchanged apart from identity assignment; formatting model checked 864 seed/patch/ordinal combinations for uniqueness and the 128-character limit. Inspected C++ format types, guards and assignment. Diff whitespace checks passed. No C++ execution, Unreal build, automation or peer checks; full verification deferred for this normal partial increment.
+- **Impact/authority:** renderer-consumed descriptors expose stable cross-patch identities for future authoritative actor/ledger wiring. No RPC, reward, save schema or authority changes. Trees remain decorative; no depletion writer consumes the identities yet.
+- **Next eligible:** same generated-tree child: authoritative actors, cosmetic suppression and depletion/streaming ownership. Main checkout used directly, no handoff synchronization needed. Checkout began clean. Only this Kalmala run active in app; process-table access unavailable.
+
 ## Autonomous increment 2026-10-15 — Share generated forest placement
 
 - **Completed:** the smallest integrated part of the first unchecked generated-tree conversion child: extracted deterministic placement into `FKalmalaForestLayout` and switched terrain tree rendering to its descriptors. Each candidate exposes its original ordinal, world and exact local position, biome flag, dimensions and yaw for later server materialization. The selected child remains unchecked.
