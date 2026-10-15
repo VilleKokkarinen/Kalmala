@@ -2825,3 +2825,19 @@ No streaming caller is enabled yet: live trees remain decorative. Matching mesh
 suppression, descriptor-sized presentation, patch-owned spawning/eviction and
 sparse reload filtering remain required. No depletion is persisted without a
 bound callback. No save schema or client RPC changes. Runtime checks are deferred.
+
+### Individual forest cosmetic suppression (2026-10-15)
+
+`AKalmalaGeneratedTerrainPatch::SetSuppressedForestCandidatesServer` accepts
+original candidate ordinals only on an authoritative configured patch. It
+regenerates the shared layout, rejects duplicate or absent candidates atomically,
+and sorts accepted lists before publishing. The replicated list filters matching
+trunks, canopies and root buttresses from the decorative mesh. Its notification
+invalidates and rebuilds only trees. If generation data has not arrived, the
+existing generation notification builds with the retained list. Empty lists
+restore all candidates; patch initialization resets suppression.
+
+No live lifecycle caller exists yet. Patch materialization must supply the union
+of represented harvest actors and depleted candidates. Spawning/eviction and
+sparse filtering remain pending; live trees remain decorative. No client RPC or
+save schema changes. Runtime replication/rendering verification is deferred.

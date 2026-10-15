@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-15 — Suppress individual decorative forest trees
+
+- **Completed:** partial first unchecked generated-tree child. Added authority/config-guarded suppression by original candidate ordinal, rejecting duplicate/absent candidates before mutation. Canonical lists replicate and rebuild only tree meshes, skipping trunks, canopies and roots. Empty lists restore trees; initialization resets suppression. Child remains unchecked.
+- **Files changed:** `Source/KalmalaWorld/Public/KalmalaGeneratedTerrainPatch.h`, `Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp`, `docs/02-technical-architecture.md`, `BACKLOG.md`, and this file.
+- **Lightweight checks:** focused Python source assertions passed for authority, atomic validation, canonical ordering, replication, mesh filtering/clearing and invalidation. Four Python model cases covered sorting, duplicate/unknown rejection and empty restoration. Working/staged whitespace, scope and MAX_PATH checks passed. No Unreal build, automation, rendering or peers; full verification remains deferred for this normal partial increment.
+- **Impact/authority:** provides cosmetic replacement infrastructure without a Gameplay dependency in World. Replication arriving before generation data is retained for the existing generation notification. No client RPC, reward or save-schema change.
+- **Limitations:** no live lifecycle caller yet; generated trees remain decorative. Runtime delivery/rendering unverified. Patch spawning/eviction and sparse depletion binding/filtering remain pending; moving fall/log presentation is later scope.
+- **Next eligible task:** same generated-tree child: patch-owned spawning/eviction and sparse depletion integration using suppression. Main checkout used directly; no handoff synchronization required. Initially clean; only this Kalmala chat active in app state. CIM process inventory unavailable.
+
 ## Autonomous increment 2026-10-15 — Replicate reconstructed forest transforms
 
 - **Completed:** partial increment of the first unchecked generated-tree harvesting child. Successful server reconstruction enables actor movement replication before setting generated position/yaw; the existing forced network update follows shape/source initialization. Child remains unchecked.

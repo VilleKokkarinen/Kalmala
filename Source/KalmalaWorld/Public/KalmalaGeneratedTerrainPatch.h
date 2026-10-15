@@ -21,6 +21,9 @@ public:
     AKalmalaGeneratedTerrainPatch();
 
     void Initialize(const FKalmalaWorldGenerationConfig& InConfig, const FVector2D InPatchCenter);
+    // Suppress candidates represented by harvest actors or persisted depletion.
+    // Only server-generated ordinals belonging to this configured patch are accepted.
+    bool SetSuppressedForestCandidatesServer(const TArray<int32>& CandidateIndices);
     bool HasGenerationData() const { return bIsConfigured && WorldGenerationConfig.IsValid(); }
     FVector2D GetGeneratedPatchCenter() const { return PatchCenter; }
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -58,6 +61,12 @@ private:
 
     UPROPERTY(ReplicatedUsing = OnRep_GenerationData)
     bool bIsConfigured = false;
+
+    UPROPERTY(ReplicatedUsing = OnRep_SuppressedForestCandidates)
+    TArray<int32> SuppressedForestCandidates;
+
+    UFUNCTION()
+    void OnRep_SuppressedForestCandidates();
 
     bool bVisualSurfaceBuilt = false;
     bool bSurfaceWaterBuilt = false;

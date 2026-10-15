@@ -254,6 +254,7 @@ void AKalmalaGeneratedTerrainPatch::Initialize(const FKalmalaWorldGenerationConf
     WorldGenerationConfig = InConfig;
     PatchCenter = InPatchCenter;
     bIsConfigured = true;
+    SuppressedForestCandidates.Reset();
     bVisualSurfaceBuilt = false;
     bSurfaceWaterBuilt = false;
     bShimmeringLakeTreatmentBuilt = false;
@@ -281,6 +282,35 @@ void AKalmalaGeneratedTerrainPatch::Initialize(const FKalmalaWorldGenerationConf
         UE_LOG(LogTemp, Display, TEXT("Server built %d deterministic Meadow/Elderwood trees and roots."), MeadowTreeCount);
     }
     ForceNetUpdate();
+}
+
+bool AKalmalaGeneratedTerrainPatch::SetSuppressedForestCandidatesServer(const TArray<int32>& CandidateIndices)
+{
+    if (!HasAuthority() || !HasGenerationData()) return false;
+    const TArray<FKalmalaForestTreeDescriptor> Trees = FKalmalaForestLayout::Generate(WorldGenerationConfig, PatchCenter);
+    if (CandidateIndices.Num() > Trees.Num()) return false;
+    TArray<int32> Validated;
+    Validated.Reserve(CandidateIndices.Num());
+    for (const int32 CandidateIndex : CandidateIndices)
+    {
+        if (Validated.Contains(CandidateIndex) || !Trees.ContainsByPredicate(
+            [CandidateIndex](const FKalmalaForestTreeDescriptor& Tree) { return Tree.CandidateIndex == CandidateIndex; })) return false;
+        Validated.Add(CandidateIndex);
+    }
+    Validated.Sort();
+    if (Validated == SuppressedForestCandidates) return true;
+    SuppressedForestCandidates = MoveTemp(Validated);
+    OnRep_SuppressedForestCandidates();
+    ForceNetUpdate();
+    return true;
+}
+
+void AKalmalaGeneratedTerrainPatch::OnRep_SuppressedForestCandidates()
+{
+    // A suppression update may arrive before generation data; its notification
+    // will build the trees with this list once the descriptor is ready.
+    bMeadowTreesBuilt = false;
+    BuildMeadowTrees();
 }
 
 void AKalmalaGeneratedTerrainPatch::OnRep_GenerationData()
@@ -482,6 +512,7 @@ bool AKalmalaGeneratedTerrainPatch::BuildMeadowTrees()
     MeadowTreeCount = 0;
     for (const FKalmalaForestTreeDescriptor& Tree : FKalmalaForestLayout::Generate(WorldGenerationConfig, PatchCenter))
     {
+        if (SuppressedForestCandidates.Contains(Tree.CandidateIndex)) continue;
         const FVector& LocalPosition = Tree.LocalPosition;
         KalmalaGeneratedTerrainPatch::AppendTaperedTree(
             TrunkVertices, TrunkTriangles, TrunkNormals, TrunkUVs, TrunkColors, TrunkTangents,
@@ -514,4 +545,5 @@ void AKalmalaGeneratedTerrainPatch::GetLifetimeReplicatedProps(TArray<FLifetimeP
     DOREPLIFETIME(AKalmalaGeneratedTerrainPatch, WorldGenerationConfig);
     DOREPLIFETIME(AKalmalaGeneratedTerrainPatch, PatchCenter);
     DOREPLIFETIME(AKalmalaGeneratedTerrainPatch, bIsConfigured);
+    DOREPLIFETIME(AKalmalaGeneratedTerrainPatch, SuppressedForestCandidates);
 }
