@@ -34,6 +34,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-15 — Fix Bronze item upgrade costs:** charge Bronze bars instead of Stone for all five Bronze equipment upgrades, retaining each item Wood and Bronze quantities. Lightweight JSON/reference checks and `git diff --check` passed; Unreal verification deferred.
+
 - [x] **2026-10-15 — Group item level-up data:** move item upgrade-cost files into `Content/Data/GameCatalogues/item-level-up/costs/` and move level-up rewards to `item-level-up/rewards/item-stats.json`; update the manifest, loader path validation, and current documentation. JSON/path/source checks and `git diff --check` passed; Unreal verification deferred.
 
 - [x] **2026-10-15 — Add an upgrade cost for every equipment family item:** author costs for Stone, Bronze, and Iron Axe, Knife, Pick, Spear, and Mace entries using their acquisition materials; allow Starter, Crafted, and Utility profiles in upgrade validation. Lightweight JSON/source checks and `git diff --check` passed; Unreal verification deferred.

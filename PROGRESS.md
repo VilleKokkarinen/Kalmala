@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-15 — Fix Bronze item upgrade costs
+
+- **Completed:** changed all five Bronze upgrade records to consume Bronze bars instead of Stone. Wood quantities and the former Stone quantities are retained unchanged.
+- **Files changed:** `Content/Data/GameCatalogues/item-level-up/costs/axes.json`, `knives.json`, `pickaxes.json`, `spears.json`, and `maces.json`; `docs/02-technical-architecture.md`, `docs/05-decision-log.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** parsed the cost and material JSON, confirmed all five Bronze IDs use Bronze and retain their quantities, and ran `git diff --check`. No Unreal build or automation tests were run.
+- **Impact/authority:** authored upgrade costs only; existing server-side payment and station validation remains authoritative, with no RPC or save-schema changes.
+- **Verification/limitations:** full Unreal compilation and gameplay progression remain unverified. The Bronze bar definition is present in a pre-existing local change to `items/materials/metal.json`, which remains unstaged and outside this increment. No catalogue recipe producing Bronze was found; this increment does not author its production path.
+- **Next eligible backlog task:** convert decorative generated forest trees into individually attackable sources and integrate their depletion/streaming policy.
+
 ## User-directed increment 2026-10-15 — Group item level-up data
 
 - **Completed:** moved six equipment upgrade-cost files into `item-level-up/costs/` and the shared item-stat rewards file to `item-level-up/rewards/item-stats.json`. Updated the manifest, strict category path validation, and current documentation.
