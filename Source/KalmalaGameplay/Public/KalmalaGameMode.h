@@ -163,6 +163,7 @@ private:
     FVector2D TerrainPatchOrigin = FVector2D::ZeroVector;
     TSet<FIntPoint> ActiveTerrainPatchCoordinates;
     TMap<FIntPoint, TObjectPtr<class AKalmalaGeneratedTerrainPatch>> ActiveTerrainPatches;
+    TMap<FIntPoint, TArray<TWeakObjectPtr<class AKalmalaHarvestNode>>> ActiveForestNodes;
     TSet<FIntPoint> ActivePopulationSpatialKeys;
     TSet<FIntPoint> ActiveShimmeringLakeDiscoveryKeys;
     TSet<FIntPoint> ActiveElderwoodDiscoveryKeys;

@@ -3900,20 +3900,42 @@ void AKalmalaGameMode::ActivateTerrainPatch(const FIntPoint& PatchCoordinate)
     }
 
     TerrainPatch->Initialize(WorldGenerationConfig, PatchCenter);
-    // Restore sparse forest depletion before publishing this active patch.
-    // Use original ordinals, never positions in the filtered descriptor array.
-    if (PopulationSaveGame != nullptr && PopulationSaveGame->MatchesWorld(WorldGenerationConfig))
+    TArray<int32> SuppressedForestCandidates;
+    TArray<TWeakObjectPtr<AKalmalaHarvestNode>> ForestNodes;
+    const bool bMatchingPopulationSave = PopulationSaveGame != nullptr && PopulationSaveGame->MatchesWorld(WorldGenerationConfig);
+    for (const FKalmalaForestTreeDescriptor& Tree : FKalmalaForestLayout::Generate(WorldGenerationConfig, PatchCenter))
     {
-        TArray<int32> DepletedForestCandidates;
-        for (const FKalmalaForestTreeDescriptor& Tree : FKalmalaForestLayout::Generate(WorldGenerationConfig, PatchCenter))
+        if (bMatchingPopulationSave && PopulationSaveGame->IsHarvested(Tree.PersistentSpawnId))
         {
-            if (PopulationSaveGame->IsHarvested(Tree.PersistentSpawnId))
-            {
-                DepletedForestCandidates.Add(Tree.CandidateIndex);
-            }
+            SuppressedForestCandidates.Add(Tree.CandidateIndex);
+            continue;
         }
-        TerrainPatch->SetSuppressedForestCandidatesServer(DepletedForestCandidates);
+        FActorSpawnParameters SpawnParameters;
+        SpawnParameters.Owner = TerrainPatch;
+        SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+        AKalmalaHarvestNode* Node = GetWorld()->SpawnActor<AKalmalaHarvestNode>(
+            AKalmalaHarvestNode::StaticClass(), Tree.Location, FRotator(0.0f, Tree.Yaw, 0.0f), SpawnParameters);
+        if (Node == nullptr) continue; // Retain the decorative tree on allocation failure.
+        if (!Node->InitializeForestServer(WorldGenerationConfig, PatchCenter, Tree.CandidateIndex))
+        {
+            Node->Destroy();
+            continue;
+        }
+        Node->OnHarvested.AddUObject(this, &AKalmalaGameMode::RecordHarvestedSpawn);
+        ForestNodes.Add(Node);
+        SuppressedForestCandidates.Add(Tree.CandidateIndex);
     }
+    if (!TerrainPatch->SetSuppressedForestCandidatesServer(SuppressedForestCandidates))
+    {
+        // Do not publish overlapping actor/cosmetic trees if validation fails.
+        for (const TWeakObjectPtr<AKalmalaHarvestNode>& Node : ForestNodes)
+        {
+            if (Node.IsValid()) Node->Destroy();
+        }
+        TerrainPatch->Destroy();
+        return;
+    }
+    ActiveForestNodes.Add(PatchCoordinate, MoveTemp(ForestNodes));
     ActiveTerrainPatchCoordinates.Add(PatchCoordinate);
     ActiveTerrainPatches.Add(PatchCoordinate, TerrainPatch);
     UE_LOG(LogTemp, Display, TEXT("Server activated terrain patch (%d, %d) at %s; %d/%d active."), PatchCoordinate.X, PatchCoordinate.Y, *TerrainPatch->GetActorLocation().ToCompactString(), ActiveTerrainPatchCoordinates.Num(), KalmalaGameMode::MaxActiveTerrainPatches);
@@ -3957,6 +3979,15 @@ void AKalmalaGameMode::RefreshTerrainPatchNeighborhoods()
     {
         if (!RequiredPatches.Contains(Iterator.Key()))
         {
+            if (TArray<TWeakObjectPtr<AKalmalaHarvestNode>>* Nodes = ActiveForestNodes.Find(Iterator.Key()))
+            {
+                // Eviction is not harvesting: never emit rewards or depletion.
+                for (const TWeakObjectPtr<AKalmalaHarvestNode>& Node : *Nodes)
+                {
+                    if (Node.IsValid()) Node->Destroy();
+                }
+                ActiveForestNodes.Remove(Iterator.Key());
+            }
             if (AKalmalaGeneratedTerrainPatch* Patch = Iterator.Value()) Patch->Destroy();
             ActiveTerrainPatchCoordinates.Remove(Iterator.Key());
             Iterator.RemoveCurrent();

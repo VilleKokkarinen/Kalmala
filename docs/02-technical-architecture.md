@@ -2847,3 +2847,17 @@ Future actor materialization must extend this list with represented live actors.
 Actor spawning/eviction and depletion callback binding remain pending; live
 undepleted trees remain decorative. No client RPC or save schema changes.
 Runtime replication/rendering verification is deferred.
+
+### Patch-owned forest materialization (2026-10-15)
+
+Superseding the no-caller notes above, terrain activation now materializes each
+undepleted shared candidate as a server-initialized harvest node, owned by its
+terrain patch and tracked through weak references by patch coordinate. Its
+OnHarvested callback records the existing sparse population ID. Cosmetics are
+suppressed for saved depletion and successful actors only; allocation or
+initialization failures retain decorative trees. Suppression failure rolls back
+the entire new patch before registration. Terrain eviction explicitly destroys
+tracked nodes without invoking harvesting. Partial damage and uncollected
+trunks/drops are session state and reset on eviction; only pickup persists
+forest depletion. No new save fields or RPCs are introduced. Runtime collision,
+replication, reload behavior and activation cost remain unverified.

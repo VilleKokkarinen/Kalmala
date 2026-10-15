@@ -1,5 +1,15 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-15 — Materialize patch-owned forest harvest actors
+
+- **Completed:** partial first unchecked generated-tree child. Terrain activation spawns undepleted shared candidates with server-selected transforms, initializes existing forest harvest nodes, binds OnHarvested to sparse save recording and suppresses both depleted and successfully represented candidates. Failed allocation/initialization retains cosmetics; failed suppression destroys new actors and patch before registration. Patch eviction destroys tracked actors without rewards or depletion.
+- **Files changed:** Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Public/KalmalaGameMode.h, BACKLOG.md, docs/02-technical-architecture.md and this file.
+- **Lightweight checks:** focused source assertions for authority, matching-save filtering, exact candidate reconstruction, callback binding, suppression-before-registration, rollback and eviction ordering passed. Inspected existing harvest callback routing and suppression validation. Working/staged diff checks and MAX_PATH audit passed. No Unreal compile, runtime automation, rendering or peer execution; full verification deferred for this normal increment.
+- **Impact/authority:** generated forest candidates now enter the existing server-authoritative axe/tree/trunk/pickup flow for active terrain patches. Server-owned patch tracking bounds lifetime to the existing player neighborhood union. No client input, RPC, reward definition or save schema changes.
+- **Limitations:** runtime integration remains unverified; initial replication can briefly overlap cosmetics and nodes. Uncollected fallen/drop stages and partial damage reset on patch eviction; only accepted pickup records sparse depletion. Existing save write failure handling is unchanged. Per-node reconstruction regenerates the patch layout, so activation performance needs measurement. Primitive collision/presentation matching and peer lifecycle coverage need inspection before checking the child.
+- **Next eligible task:** same generated-tree child: focused lifecycle/depletion coverage and runtime integration validation, including collision/relevance and stream-out/reload behavior. Moving fall presentation remains the later child. Main checkout used directly; no handoff synchronization needed. Checkout began clean; no other active Kalmala chat found (CIM process inventory unavailable).
+
+
 ## Autonomous increment 2026-10-15 — Restore sparse forest cosmetic depletion
 
 - **Completed:** partial first unchecked generated-tree child. Terrain activation reads shared descriptors against the matching population save, suppressing harvested candidates by original ordinal after patch initialization and before active registration. Reactivation uses the same path. Child remains unchecked.
