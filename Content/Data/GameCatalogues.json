@@ -37,15 +37,15 @@
     "items/equipment/building-hammer.json"
   ],
   "itemUpgradeFiles": [
-    "upgrades/axes.json",
-    "upgrades/knives.json",
-    "upgrades/pickaxes.json",
-    "upgrades/spears.json",
-    "upgrades/maces.json",
-    "upgrades/construction-hammer.json"
+    "item-level-up/costs/axes.json",
+    "item-level-up/costs/knives.json",
+    "item-level-up/costs/pickaxes.json",
+    "item-level-up/costs/spears.json",
+    "item-level-up/costs/maces.json",
+    "item-level-up/costs/construction-hammer.json"
   ],
   "levelUpRewardFiles": [
-    "progression/level-up-rewards.json"
+    "item-level-up/rewards/item-stats.json"
   ],
   "attackFiles": [
     "attacks/attacks.json"

@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-15 — Group item level-up data
+
+- **Completed:** moved six equipment upgrade-cost files into `item-level-up/costs/` and the shared item-stat rewards file to `item-level-up/rewards/item-stats.json`. Updated the manifest, strict category path validation, and current documentation.
+- **Files changed:** `Content/Data/GameCatalogues.json`; the seven relocated catalogue files; `Source/KalmalaGameplay/Private/KalmalaGameCatalogueLoader.cpp`; `docs/02-technical-architecture.md`, `docs/05-decision-log.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** validate manifest paths, JSON category roots and parsed data, verify old catalogue paths are absent, inspect loader path constraints, and run `git diff --check`. No Unreal build or automation tests were run.
+- **Impact/authority:** catalogue organization and loading paths only; item-level rewards and costs, server authority, networking, and save schemas are unchanged.
+- **Verification/limitations:** full Unreal compilation and packaged-data loading remain deferred. Pre-existing stat-tuning edits in the reward JSON were preserved at the new path and excluded from this commit.
+- **Next eligible backlog task:** convert decorative generated forest trees into individually attackable sources and integrate their depletion/streaming policy.
+
 ## User-directed increment 2026-10-15 — Add an upgrade cost for every equipment family item
 
 - **Completed:** added level-one upgrade-cost records for all 15 Stone, Bronze, and Iron Axe, Knife, Pick, Spear, and Mace items. Each cost matches the item's existing acquisition ingredients; Stone upgrades use Workbench, and Bronze/Iron upgrades use Forge. Upgrade validation now accepts Starter, Crafted, and Utility profiles, covering these records and the existing Construction Hammer entry.

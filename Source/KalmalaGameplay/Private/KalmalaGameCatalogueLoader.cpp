@@ -374,11 +374,11 @@ namespace
                 TEXT("stations"), nullptr, true)
             || !LoadCategoryFiles(Root, TEXT("itemProfileFiles"), TEXT("items"), TEXT("items"),
                 UKalmalaToolCatalogue::MaxProfiles, TotalJsonCharacters, ToolProfileValues, TEXT("equipment"))
-            || !LoadCategoryFiles(Root, TEXT("itemUpgradeFiles"), TEXT("upgrades"), TEXT("upgrades"),
+            || !LoadCategoryFiles(Root, TEXT("itemUpgradeFiles"), TEXT("upgrades"), TEXT("item-level-up"),
                 UKalmalaToolCatalogue::MaxRecipes, TotalJsonCharacters, ToolUpgradeValues,
-                nullptr, nullptr, true)
-            || !LoadCategoryFiles(Root, TEXT("levelUpRewardFiles"), TEXT("levelUpRewards"), TEXT("progression"),
-                UKalmalaToolCatalogue::MaxProfiles, TotalJsonCharacters, LevelUpRewardValues)
+                TEXT("costs"), nullptr, true)
+            || !LoadCategoryFiles(Root, TEXT("levelUpRewardFiles"), TEXT("levelUpRewards"), TEXT("item-level-up"),
+                UKalmalaToolCatalogue::MaxProfiles, TotalJsonCharacters, LevelUpRewardValues, TEXT("rewards"))
             || !LoadCategoryFiles(Root, TEXT("attackFiles"), TEXT("attackLists"), TEXT("attacks"),
                 UKalmalaToolCatalogue::MaxProfiles, TotalJsonCharacters, AttackListValues)
             || !SortCategoryValues(ItemValues, TEXT("ItemId"))
