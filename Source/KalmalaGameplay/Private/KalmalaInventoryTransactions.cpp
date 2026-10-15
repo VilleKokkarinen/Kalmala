@@ -142,6 +142,84 @@ bool AreInventoryStatesEqual(const TArray<FKalmalaInventoryStack>& Left,
     }
     return true;
 }
+
+bool TryGetGearSlot(const FString& SlotName, EKalmalaGearSlot& OutSlot)
+{
+    if (SlotName == TEXT("Head")) OutSlot = EKalmalaGearSlot::Head;
+    else if (SlotName == TEXT("Cape")) OutSlot = EKalmalaGearSlot::Cape;
+    else if (SlotName == TEXT("Chest")) OutSlot = EKalmalaGearSlot::Chest;
+    else if (SlotName == TEXT("Shield")) OutSlot = EKalmalaGearSlot::Shield;
+    else if (SlotName == TEXT("Legs")) OutSlot = EKalmalaGearSlot::Legs;
+    else if (SlotName == TEXT("Boots")) OutSlot = EKalmalaGearSlot::Boots;
+    else return false;
+    return true;
+}
+
+bool IsValidGearSlot(const EKalmalaGearSlot Slot)
+{
+    return static_cast<uint8>(Slot) <= static_cast<uint8>(EKalmalaGearSlot::Boots);
+}
+
+bool IsValidGearState(const TArray<FKalmalaInventoryStack>& Stacks,
+    const TArray<FKalmalaEquippedGear>& Gear, const TArray<FGuid>& OtherOwnedGuids)
+{
+    if (Gear.Num() > 6) return false;
+    TSet<FGuid> SeenItemGuids;
+    for (const FKalmalaInventoryStack& Stack : Stacks)
+        for (const FGuid& ItemGuid : Stack.ItemGuids) SeenItemGuids.Add(ItemGuid);
+
+    TSet<FGuid> SeenOtherGuids;
+    for (const FGuid& Guid : OtherOwnedGuids)
+    {
+        if (!Guid.IsValid() || SeenOtherGuids.Contains(Guid) || SeenItemGuids.Contains(Guid)) return false;
+        SeenOtherGuids.Add(Guid);
+    }
+
+    TSet<uint8> SeenSlots;
+    TSet<FGuid> SeenGearGuids;
+    const UKalmalaItemCatalogue* Catalogue = UKalmalaItemCatalogue::Get();
+    if (!Catalogue) return false;
+    for (const FKalmalaEquippedGear& Entry : Gear)
+    {
+        if (!IsValidGearSlot(Entry.Slot) || !Entry.ItemGuid.IsValid()
+            || SeenSlots.Contains(static_cast<uint8>(Entry.Slot)) || SeenGearGuids.Contains(Entry.ItemGuid)
+            || SeenItemGuids.Contains(Entry.ItemGuid) || SeenOtherGuids.Contains(Entry.ItemGuid)) return false;
+        const FKalmalaItemDefinition* Item = Catalogue->FindItem(Entry.ItemId);
+        EKalmalaGearSlot ItemSlot = EKalmalaGearSlot::Head;
+        if (!Item || Item->MaxStack != 1 || !TryGetGearSlot(Item->GearSlot, ItemSlot) || ItemSlot != Entry.Slot)
+            return false;
+        SeenSlots.Add(static_cast<uint8>(Entry.Slot));
+        SeenGearGuids.Add(Entry.ItemGuid);
+    }
+    return true;
+}
+
+bool AddEquippedGearToStacks(TArray<FKalmalaInventoryStack>& Stacks, const FKalmalaEquippedGear& Gear,
+    const TArray<FKalmalaEquippedGear>& AllGear, const TArray<FGuid>& OtherOwnedGuids)
+{
+    if (Stacks.Num() >= UKalmalaInventoryComponent::MaxSlots - OtherOwnedGuids.Num()) return false;
+    const UKalmalaItemCatalogue* Catalogue = UKalmalaItemCatalogue::Get();
+    const FKalmalaItemDefinition* Item = Catalogue ? Catalogue->FindItem(Gear.ItemId) : nullptr;
+    if (!Item || Item->MaxStack != 1 || !Gear.ItemGuid.IsValid()) return false;
+
+    TSet<FGuid> Seen;
+    for (const FKalmalaInventoryStack& Stack : Stacks)
+    {
+        if (Stack.InstanceGuid.IsValid()) Seen.Add(Stack.InstanceGuid);
+        for (const FGuid& ItemGuid : Stack.ItemGuids) Seen.Add(ItemGuid);
+    }
+    for (const FKalmalaEquippedGear& Entry : AllGear) Seen.Add(Entry.ItemGuid);
+    for (const FGuid& Guid : OtherOwnedGuids) Seen.Add(Guid);
+    Seen.Add(Gear.ItemGuid);
+
+    FKalmalaInventoryStack ReturnedItem;
+    ReturnedItem.ItemId = Gear.ItemId;
+    ReturnedItem.Quantity = 1;
+    ReturnedItem.InstanceGuid = MakeUniqueGuid(Seen);
+    ReturnedItem.ItemGuids.Add(Gear.ItemGuid);
+    Stacks.Add(MoveTemp(ReturnedItem));
+    return true;
+}
 }
 
 bool UKalmalaInventoryComponent::BuildExchange(const TArray<FKalmalaInventoryStack>& Before,
@@ -206,6 +284,117 @@ bool UKalmalaInventoryComponent::BuildGrant(const TArray<FKalmalaInventoryStack>
         return false;
     }
     After = MoveTemp(Candidate);
+    Reason = TEXT("Ready");
+    return true;
+}
+
+bool UKalmalaInventoryComponent::BuildEquipGearTransaction(
+    const TArray<FKalmalaInventoryStack>& BeforeStacks, const TArray<FKalmalaEquippedGear>& BeforeGear,
+    const FGuid ItemGuid, const TArray<FGuid>& OtherOwnedGuids,
+    TArray<FKalmalaInventoryStack>& AfterStacks, TArray<FKalmalaEquippedGear>& AfterGear, FString& Reason)
+{
+    Reason = TEXT("Invalid equipment transaction");
+    if (!ItemGuid.IsValid() || !IsValidInventoryState(BeforeStacks, true)
+        || !IsValidGearState(BeforeStacks, BeforeGear, OtherOwnedGuids)
+        || BeforeStacks.Num() > MaxSlots - OtherOwnedGuids.Num()) return false;
+
+    int32 SourceIndex = INDEX_NONE;
+    int32 SourceItemIndex = INDEX_NONE;
+    for (int32 Index = 0; Index < BeforeStacks.Num(); ++Index)
+    {
+        const int32 ItemIndex = BeforeStacks[Index].ItemGuids.IndexOfByKey(ItemGuid);
+        if (ItemIndex == INDEX_NONE) continue;
+        SourceIndex = Index;
+        SourceItemIndex = ItemIndex;
+        break;
+    }
+    if (SourceIndex == INDEX_NONE)
+    {
+        Reason = TEXT("Item is not in carried inventory");
+        return false;
+    }
+
+    const UKalmalaItemCatalogue* Catalogue = UKalmalaItemCatalogue::Get();
+    const FKalmalaInventoryStack& Source = BeforeStacks[SourceIndex];
+    const FKalmalaItemDefinition* Item = Catalogue ? Catalogue->FindItem(Source.ItemId) : nullptr;
+    EKalmalaGearSlot Slot = EKalmalaGearSlot::Head;
+    if (!Item || Item->MaxStack != 1 || Source.Quantity != 1
+        || Source.ItemGuids.Num() != 1 || !TryGetGearSlot(Item->GearSlot, Slot))
+    {
+        Reason = TEXT("Item cannot occupy a gear slot");
+        return false;
+    }
+
+    TArray<FKalmalaInventoryStack> CandidateStacks = BeforeStacks;
+    TArray<FKalmalaEquippedGear> CandidateGear = BeforeGear;
+    CandidateStacks[SourceIndex].ItemGuids.RemoveAt(SourceItemIndex);
+    --CandidateStacks[SourceIndex].Quantity;
+    CandidateStacks.RemoveAt(SourceIndex);
+
+    const int32 ExistingSlotIndex = CandidateGear.IndexOfByPredicate(
+        [Slot](const FKalmalaEquippedGear& Entry) { return Entry.Slot == Slot; });
+    if (ExistingSlotIndex != INDEX_NONE
+        && !AddEquippedGearToStacks(CandidateStacks, CandidateGear[ExistingSlotIndex], CandidateGear, OtherOwnedGuids))
+    {
+        Reason = TEXT("No inventory slot for replaced gear");
+        return false;
+    }
+
+    FKalmalaEquippedGear Equipped;
+    Equipped.Slot = Slot;
+    Equipped.ItemId = Source.ItemId;
+    Equipped.ItemGuid = ItemGuid;
+    if (ExistingSlotIndex == INDEX_NONE) CandidateGear.Add(Equipped);
+    else CandidateGear[ExistingSlotIndex] = Equipped;
+
+    if (CandidateStacks.Num() > MaxSlots - OtherOwnedGuids.Num()
+        || !IsValidInventoryState(CandidateStacks, true)
+        || !IsValidGearState(CandidateStacks, CandidateGear, OtherOwnedGuids))
+    {
+        Reason = TEXT("Inventory or gear state is invalid");
+        return false;
+    }
+    AfterStacks = MoveTemp(CandidateStacks);
+    AfterGear = MoveTemp(CandidateGear);
+    Reason = TEXT("Ready");
+    return true;
+}
+
+bool UKalmalaInventoryComponent::BuildUnequipGearTransaction(
+    const TArray<FKalmalaInventoryStack>& BeforeStacks, const TArray<FKalmalaEquippedGear>& BeforeGear,
+    const EKalmalaGearSlot Slot, const TArray<FGuid>& OtherOwnedGuids,
+    TArray<FKalmalaInventoryStack>& AfterStacks, TArray<FKalmalaEquippedGear>& AfterGear, FString& Reason)
+{
+    Reason = TEXT("Invalid equipment transaction");
+    if (!IsValidGearSlot(Slot) || !IsValidInventoryState(BeforeStacks, true)
+        || !IsValidGearState(BeforeStacks, BeforeGear, OtherOwnedGuids)) return false;
+
+    const int32 GearIndex = BeforeGear.IndexOfByPredicate(
+        [Slot](const FKalmalaEquippedGear& Entry) { return Entry.Slot == Slot; });
+    if (GearIndex == INDEX_NONE)
+    {
+        Reason = TEXT("Gear slot is empty");
+        return false;
+    }
+
+    TArray<FKalmalaInventoryStack> CandidateStacks = BeforeStacks;
+    TArray<FKalmalaEquippedGear> CandidateGear = BeforeGear;
+    const FKalmalaEquippedGear RemovedGear = CandidateGear[GearIndex];
+    if (!AddEquippedGearToStacks(CandidateStacks, RemovedGear, CandidateGear, OtherOwnedGuids))
+    {
+        Reason = TEXT("No inventory space for gear");
+        return false;
+    }
+    CandidateGear.RemoveAt(GearIndex);
+    if (!IsValidInventoryState(CandidateStacks, true)
+        || !IsValidGearState(CandidateStacks, CandidateGear, OtherOwnedGuids))
+    {
+        Reason = TEXT("Inventory or gear state is invalid");
+        return false;
+    }
+
+    AfterStacks = MoveTemp(CandidateStacks);
+    AfterGear = MoveTemp(CandidateGear);
     Reason = TEXT("Ready");
     return true;
 }

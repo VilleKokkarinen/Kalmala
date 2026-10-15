@@ -16,6 +16,26 @@ struct FKalmalaInventoryStack
     UPROPERTY(EditAnywhere, SaveGame) TArray<FGuid> ItemGuids;
 };
 
+UENUM(BlueprintType)
+enum class EKalmalaGearSlot : uint8
+{
+    Head,
+    Cape,
+    Chest,
+    Shield,
+    Legs,
+    Boots
+};
+
+/** A wearable item moved out of the grid while it occupies its matching slot. */
+USTRUCT()
+struct FKalmalaEquippedGear
+{
+    GENERATED_BODY()
+    UPROPERTY() EKalmalaGearSlot Slot = EKalmalaGearSlot::Head;
+    UPROPERTY() FName ItemId;
+    UPROPERTY() FGuid ItemGuid;
+};
 /** Pawn-lifetime inventory. Only trusted server gameplay may mutate its contents. */
 struct FKalmalaItemGainReceipt
 {
@@ -38,6 +58,16 @@ public:
     FName GetSlotItem(int32 Slot) const;
     FGuid GetSlotInstanceGuid(int32 Slot) const;
     int32 GetSlotQuantity(int32 Slot) const;
+    const TArray<FKalmalaEquippedGear>& GetEquippedGear() const { return EquippedGear; }
+    const FKalmalaEquippedGear* FindEquippedGear(EKalmalaGearSlot Slot) const;
+    bool EquipGearFromServer(FGuid ItemGuid, FString& Reason);
+    bool UnequipGearFromServer(EKalmalaGearSlot Slot, FString& Reason);
+    static bool BuildEquipGearTransaction(const TArray<FKalmalaInventoryStack>& BeforeStacks,
+        const TArray<FKalmalaEquippedGear>& BeforeGear, FGuid ItemGuid, const TArray<FGuid>& OtherOwnedGuids,
+        TArray<FKalmalaInventoryStack>& AfterStacks, TArray<FKalmalaEquippedGear>& AfterGear, FString& Reason);
+    static bool BuildUnequipGearTransaction(const TArray<FKalmalaInventoryStack>& BeforeStacks,
+        const TArray<FKalmalaEquippedGear>& BeforeGear, EKalmalaGearSlot Slot, const TArray<FGuid>& OtherOwnedGuids,
+        TArray<FKalmalaInventoryStack>& AfterStacks, TArray<FKalmalaEquippedGear>& AfterGear, FString& Reason);
     FName GetActiveItem() const { return ActiveItem; }
     FGuid GetActiveInstanceGuid() const { return ActiveInstanceGuid; }
     bool OwnsGridItem(FName ItemId) const;
@@ -54,6 +84,8 @@ public:
     UFUNCTION(Server, Reliable) void ServerMoveSlot(int32 Source, int32 Target, FName ExpectedSource, FName ExpectedTarget);
     UFUNCTION(Server, Reliable) void ServerMoveSlotByInstance(int32 Source, int32 Target, FGuid ExpectedSource, FGuid ExpectedTarget);
     UFUNCTION(Server, Reliable) void ServerUseHotbarSlot(int32 Slot);
+    UFUNCTION(Server, Reliable) void ServerEquipGear(FGuid ItemGuid);
+    UFUNCTION(Server, Reliable) void ServerUnequipGear(EKalmalaGearSlot Slot);
     const TArray<FKalmalaInventoryStack>& GetStacks() const { return Stacks; }
     /** Local owner receipt buffer, never used as inventory authority or persistence. */
     const TArray<FKalmalaItemGainReceipt>& GetGainReceipts() const { return GainReceipts; }
@@ -97,6 +129,7 @@ private:
     TArray<FKalmalaItemGainReceipt> GainReceipts;
     int64 GainSequence = 0;
     UPROPERTY(Replicated) TArray<FKalmalaInventoryStack> Stacks;
+    UPROPERTY(Replicated) TArray<FKalmalaEquippedGear> EquippedGear;
     UPROPERTY(Replicated) TArray<FName> GridSlots;
     UPROPERTY(Replicated) TArray<FGuid> GridInstanceGuids;
     UPROPERTY(Replicated) FName ActiveItem;
@@ -104,6 +137,7 @@ private:
     UPROPERTY(EditDefaultsOnly, Category = "Inventory", meta = (ClampMin = "1.0")) float CarryCapacity = 300.0f;
     double LastLayoutRequestTime = -1.0;
     double LastHotbarRequestTime = -1.0;
+    double LastGearRequestTime = -1.0;
     bool bVerificationComplete = false;
 #if !UE_BUILD_SHIPPING
     void TickMenuReview(float DeltaTime);

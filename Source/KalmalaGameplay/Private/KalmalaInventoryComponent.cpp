@@ -234,10 +234,88 @@ UKalmalaInventoryComponent::UKalmalaInventoryComponent()
     PrimaryComponentTick.TickInterval = 0.25f;
 }
 
+const FKalmalaEquippedGear* UKalmalaInventoryComponent::FindEquippedGear(const EKalmalaGearSlot Slot) const
+{
+    return EquippedGear.FindByPredicate(
+        [Slot](const FKalmalaEquippedGear& Entry) { return Entry.Slot == Slot; });
+}
+
+bool UKalmalaInventoryComponent::EquipGearFromServer(const FGuid ItemGuid, FString& Reason)
+{
+    AActor* Owner = GetOwner();
+    auto* Character = Cast<AKalmalaCharacter>(Owner);
+    if (!Owner || !Owner->HasAuthority() || !Character)
+    {
+        Reason = TEXT("Server authority required");
+        return false;
+    }
+    Character->EnsureToolInstanceGuidsFromServer();
+    TArray<FGuid> OtherOwnedGuids;
+    for (const FKalmalaToolState& Tool : Character->GetCarriedToolInventory())
+        OtherOwnedGuids.Add(Tool.InstanceGuid);
+
+    TArray<FKalmalaInventoryStack> CandidateStacks;
+    TArray<FKalmalaEquippedGear> CandidateGear;
+    if (!BuildEquipGearTransaction(Stacks, EquippedGear, ItemGuid, OtherOwnedGuids,
+        CandidateStacks, CandidateGear, Reason)) return false;
+
+    Stacks = MoveTemp(CandidateStacks);
+    EquippedGear = MoveTemp(CandidateGear);
+    SynchronizeGridFromServer();
+    Owner->ForceNetUpdate();
+    return true;
+}
+
+bool UKalmalaInventoryComponent::UnequipGearFromServer(const EKalmalaGearSlot Slot, FString& Reason)
+{
+    AActor* Owner = GetOwner();
+    auto* Character = Cast<AKalmalaCharacter>(Owner);
+    if (!Owner || !Owner->HasAuthority() || !Character)
+    {
+        Reason = TEXT("Server authority required");
+        return false;
+    }
+    Character->EnsureToolInstanceGuidsFromServer();
+    TArray<FGuid> OtherOwnedGuids;
+    for (const FKalmalaToolState& Tool : Character->GetCarriedToolInventory())
+        OtherOwnedGuids.Add(Tool.InstanceGuid);
+
+    TArray<FKalmalaInventoryStack> CandidateStacks;
+    TArray<FKalmalaEquippedGear> CandidateGear;
+    if (!BuildUnequipGearTransaction(Stacks, EquippedGear, Slot, OtherOwnedGuids,
+        CandidateStacks, CandidateGear, Reason)) return false;
+
+    Stacks = MoveTemp(CandidateStacks);
+    EquippedGear = MoveTemp(CandidateGear);
+    SynchronizeGridFromServer();
+    Owner->ForceNetUpdate();
+    return true;
+}
+
+void UKalmalaInventoryComponent::ServerEquipGear_Implementation(const FGuid ItemGuid)
+{
+    if (!GetWorld()) return;
+    const double Now = GetWorld()->GetTimeSeconds();
+    if (LastGearRequestTime >= 0.0 && Now - LastGearRequestTime < 0.1) return;
+    LastGearRequestTime = Now;
+    FString Reason;
+    EquipGearFromServer(ItemGuid, Reason);
+}
+
+void UKalmalaInventoryComponent::ServerUnequipGear_Implementation(const EKalmalaGearSlot Slot)
+{
+    if (!GetWorld()) return;
+    const double Now = GetWorld()->GetTimeSeconds();
+    if (LastGearRequestTime >= 0.0 && Now - LastGearRequestTime < 0.1) return;
+    LastGearRequestTime = Now;
+    FString Reason;
+    UnequipGearFromServer(Slot, Reason);
+}
 void UKalmalaInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
     DOREPLIFETIME_CONDITION(UKalmalaInventoryComponent, Stacks, COND_OwnerOnly);
+    DOREPLIFETIME_CONDITION(UKalmalaInventoryComponent, EquippedGear, COND_OwnerOnly);
     DOREPLIFETIME_CONDITION(UKalmalaInventoryComponent, GridSlots, COND_OwnerOnly);
     DOREPLIFETIME_CONDITION(UKalmalaInventoryComponent, GridInstanceGuids, COND_OwnerOnly);
     DOREPLIFETIME_CONDITION(UKalmalaInventoryComponent, ActiveItem, COND_OwnerOnly);

@@ -32,11 +32,35 @@ bool FKalmalaInventoryNetworkContractTest::RunTest(const FString& Parameters)
         for (TFieldIterator<UFunction> Function(Class, EFieldIteratorFlags::ExcludeSuper); Function; ++Function)
         {
             const bool bLayoutIntent = Class == UKalmalaInventoryComponent::StaticClass()
-                && (Function->GetFName() == TEXT("ServerMoveSlot") || Function->GetFName() == TEXT("ServerUseHotbarSlot"));
-            TestTrue(*FString::Printf(TEXT("Only validated grid/hotbar intents are client-callable: %s"), *Function->GetName()),
+                && (Function->GetFName() == TEXT("ServerMoveSlot")
+                    || Function->GetFName() == TEXT("ServerMoveSlotByInstance")
+                    || Function->GetFName() == TEXT("ServerUseHotbarSlot")
+                    || Function->GetFName() == TEXT("ServerEquipGear")
+                    || Function->GetFName() == TEXT("ServerUnequipGear"));
+            TestTrue(*FString::Printf(TEXT("Only validated inventory intents are client-callable: %s"), *Function->GetName()),
                 !Function->HasAllFunctionFlags(FUNC_Net | FUNC_NetServer) || bLayoutIntent);
         }
     }
+    const UFunction* EquipGear = UKalmalaInventoryComponent::StaticClass()->FindFunctionByName(TEXT("ServerEquipGear"));
+    if (TestNotNull(TEXT("Wearable equip RPC exists"), EquipGear))
+    {
+        const FStructProperty* ItemGuid = CastField<FStructProperty>(EquipGear->FindPropertyByName(TEXT("ItemGuid")));
+        TestEqual(TEXT("Equip sends one exact physical item identity"), int32(EquipGear->NumParms), 1);
+        TestTrue(TEXT("Equip intent carries a GUID rather than a client item ID"),
+            ItemGuid && ItemGuid->Struct == TBaseStructure<FGuid>::Get());
+    }
+    const UFunction* UnequipGear = UKalmalaInventoryComponent::StaticClass()->FindFunctionByName(TEXT("ServerUnequipGear"));
+    if (TestNotNull(TEXT("Wearable unequip RPC exists"), UnequipGear))
+    {
+        const FEnumProperty* Slot = CastField<FEnumProperty>(UnequipGear->FindPropertyByName(TEXT("Slot")));
+        TestEqual(TEXT("Unequip sends one bounded slot identity"), int32(UnequipGear->NumParms), 1);
+        TestTrue(TEXT("Unequip intent uses the authored gear-slot enum"),
+            Slot && Slot->GetEnum() == StaticEnum<EKalmalaGearSlot>());
+    }
+    const FProperty* EquippedGearProperty = FindFProperty<FProperty>(
+        UKalmalaInventoryComponent::StaticClass(), TEXT("EquippedGear"));
+    TestTrue(TEXT("Equipped gear is a replicated inventory field"),
+        EquippedGearProperty && EquippedGearProperty->HasAnyPropertyFlags(CPF_Net));
     auto* Inventory = NewObject<UKalmalaInventoryComponent>();
     TestTrue(TEXT("New inventory is empty"), Inventory->GetStacks().IsEmpty());
     TestFalse(TEXT("An ownerless component cannot mint items"), Inventory->TryGrantFromServer(TEXT("Wood"), 1));
