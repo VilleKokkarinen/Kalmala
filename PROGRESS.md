@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed repair 2026-10-15 — Fix storage compile errors
+
+- **Completed:** removed the duplicate `SeenItemGuids` declaration in storage upsert so the existing set continues to track identities from other chest records and candidate contents. The initial storage fixture now transfers the current Wood item GUID through the GUID-based server API.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaStorageSaveGame.cpp`, `Source/KalmalaGameplay/Private/KalmalaStorageVerification.cpp`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** `git diff --check` passed. Focused source/API checks confirmed one item-GUID set declaration in `UpsertRecord`, a GUID-based fixture deposit, the declared API signature, and changed paths below 260 characters.
+- **Impact and authority:** addresses both reported compile errors while retaining GUID-based saved-item uniqueness and server transfer validation. No authority, replication, or save-schema behavior changed.
+- **Verification/limitations:** normal development repair, not milestone-final. The Unreal build and storage automation were not rerun; full compilation and live storage verification remain deferred.
+- **Next eligible backlog task:** make gear slots a distinct GUID-addressable part of carried inventory, implement validated equip/unequip and replacement capacity behavior, and route tools/weapons through Main Hand.
+
 ## User-directed increment 2026-10-15 — Add Inventory Worn Gear presentation
 
 - **Completed:** added a separate Worn Gear section beneath the unchanged 40-cell inventory grid. It shows framed, theme-styled tiles for Main Hand, Head, Cape, Chest, Shield, Legs, and Boots, each labeled Empty. Added assertions for the complete list and empty state to the existing Inventory menu automation. Checked the selected UI child task; GUID-addressable equipment slots are next.

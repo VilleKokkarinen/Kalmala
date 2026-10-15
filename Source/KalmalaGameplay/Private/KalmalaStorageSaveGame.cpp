@@ -200,7 +200,6 @@ bool UKalmalaStorageSaveGame::UpsertRecord(const FString& Id, const TArray<FKalm
     }
     TArray<FKalmalaInventoryStack> Candidate = Stacks;
     TSet<FGuid> SeenStackGuids;
-    TSet<FGuid> SeenItemGuids;
     for (FKalmalaInventoryStack& Stack : Candidate)
     {
         if (!UKalmalaItemCatalogue::Get()->IsValidStack(Stack.ItemId, Stack.Quantity)) return false;

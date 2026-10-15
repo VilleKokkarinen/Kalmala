@@ -34,6 +34,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-15 — Repair storage GUID compile errors:** reuse the existing item-GUID set while validating saved chest contents, and update the initial storage fixture deposits to pass exact carried-item GUIDs. Focused source/API checks and `git diff --check` passed; Unreal build and storage automation deferred.
+
 - [ ] **2026-10-15 — Add armor items and a worn-equipment inventory:** introduce shield, chest armor, leg armor, helmet, cape, and boots, with a separate gear section in the Inventory popup.
   - [x] Author the six armor item families in catalogue JSON with defensive stats and level-up rewards; add original icon artwork, imported textures, and complete catalogue icon-manifest coverage.
   - [x] Add station-validated acquisition recipes and item level-up cost records for the new armor items, using the existing catalogue and progression contracts.
