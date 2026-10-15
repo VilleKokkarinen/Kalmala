@@ -144,6 +144,7 @@ bool AKalmalaCharacter::ApplyWildlifeDamageFromServer(const AActor* SourceActor,
         {
             FKalmalaGearLevelStats GearStats;
             if (!ItemCatalogue->GetGearLevelStats(Gear.ItemId, 1, GearStats)) return false;
+            if (Gear.ConditionSpent < 0 || Gear.ConditionSpent >= GearStats.MaxDurability) continue;
             GearDefenses = GearDefenses.Added(GearStats.DefenseBonuses);
         }
     }
@@ -152,6 +153,7 @@ bool AKalmalaCharacter::ApplyWildlifeDamageFromServer(const AActor* SourceActor,
     if (!EffectiveDefenses.Resolve(Damage, ResolvedDamage)) return false;
     const float Absorbed = SupportMagic ? SupportMagic->AbsorbHearthShieldDamageFromServer(ResolvedDamage) : 0.0f;
     Health = FMath::Clamp(Health - FMath::Max(0.0f, ResolvedDamage - Absorbed), 1.0f, 100.0f);
+    if (Inventory) Inventory->WearEquippedGearFromServer();
     ForceNetUpdate();
     return true;
 }

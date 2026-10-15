@@ -259,6 +259,9 @@ bool UKalmalaInventoryComponent::EquipGearFromServer(const FGuid ItemGuid, FStri
     if (!BuildEquipGearTransaction(Stacks, EquippedGear, ItemGuid, OtherOwnedGuids,
         CandidateStacks, CandidateGear, Reason)) return false;
 
+    for (FKalmalaEquippedGear& Gear : CandidateGear)
+        Gear.ConditionSpent = SessionGearWear.FindRef(Gear.ItemGuid);
+
     Stacks = MoveTemp(CandidateStacks);
     EquippedGear = MoveTemp(CandidateGear);
     SynchronizeGridFromServer();
@@ -290,6 +293,25 @@ bool UKalmalaInventoryComponent::UnequipGearFromServer(const EKalmalaGearSlot Sl
     SynchronizeGridFromServer();
     Owner->ForceNetUpdate();
     return true;
+}
+
+void UKalmalaInventoryComponent::WearEquippedGearFromServer()
+{
+    AActor* Owner = GetOwner();
+    if (!Owner || !Owner->HasAuthority()) return;
+    const UKalmalaItemCatalogue* Catalogue = UKalmalaItemCatalogue::Get();
+    if (!Catalogue) return;
+    bool bChanged = false;
+    for (FKalmalaEquippedGear& Gear : EquippedGear)
+    {
+        FKalmalaGearLevelStats Stats;
+        if (!Catalogue->GetGearLevelStats(Gear.ItemId, 1, Stats)
+            || Gear.ConditionSpent < 0 || Gear.ConditionSpent >= Stats.MaxDurability) continue;
+        ++Gear.ConditionSpent;
+        SessionGearWear.Add(Gear.ItemGuid, Gear.ConditionSpent);
+        bChanged = true;
+    }
+    if (bChanged) Owner->ForceNetUpdate();
 }
 
 void UKalmalaInventoryComponent::ServerEquipGear_Implementation(const FGuid ItemGuid)

@@ -1383,13 +1383,17 @@ enum and rejects when the forty-cell inventory has no room. Equipped wearables
 remain outside the grid. This state is session-only: no save field or schema
 version changes. The Inventory popup displays owner-only wearable names and
 server request results, with equip, replacement, and return actions. Equipped
-wearable defenses apply to server-resolved wildlife damage. Condition wear and
-Main Hand/tool-hotbar behavior are pending.
+wearable defenses apply to server-resolved wildlife damage. Each accepted hit
+spends one condition per equipped wearable, even when fully absorbed. Depleted
+gear stops contributing defense on subsequent hits. Owner-only slot labels show
+remaining/maximum condition. A server-only GUID ledger preserves wear through
+same-pawn pack/equip swaps; cross-pawn transfer, reconnect persistence, repairs,
+and gear upgrades remain pending. Main Hand/tool-hotbar behavior is pending.
 
 After an affected Gameplay module build, run
 `Kalmala.Gameplay.Inventory.WornGearTransactions`. It covers exact-GUID equip
 and return, slot replacement at full capacity, exclusion from the grid,
-full-pack unequip rejection, incompatible-item rejection, and reflected server
+full-pack unequip rejection, incompatible-item rejection, condition bounds and depleted-item return, and reflected server
 RPC flags. Full two-peer owner-privacy and rendered interaction coverage remains
 part of the later Inventory integration acceptance.
 

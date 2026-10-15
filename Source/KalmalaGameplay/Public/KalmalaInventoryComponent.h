@@ -35,6 +35,8 @@ struct FKalmalaEquippedGear
     UPROPERTY() EKalmalaGearSlot Slot = EKalmalaGearSlot::Head;
     UPROPERTY() FName ItemId;
     UPROPERTY() FGuid ItemGuid;
+    /** Session condition spent on accepted hits; zero means unworn. */
+    UPROPERTY() int32 ConditionSpent = 0;
 };
 
 /** Pawn-lifetime inventory. Only trusted server gameplay may mutate its contents. */
@@ -63,6 +65,8 @@ public:
     const FKalmalaEquippedGear* FindEquippedGear(EKalmalaGearSlot Slot) const;
     bool EquipGearFromServer(FGuid ItemGuid, FString& Reason);
     bool UnequipGearFromServer(EKalmalaGearSlot Slot, FString& Reason);
+    /** Trusted accepted-hit hook; clients cannot supply wear amounts. */
+    void WearEquippedGearFromServer();
     uint32 GetGearRequestResultSerial() const { return GearRequestResultSerial; }
     bool WasLastGearRequestAccepted() const { return bLastGearRequestAccepted; }
     const FString& GetLastGearRequestReason() const { return LastGearRequestReason; }
@@ -138,6 +142,8 @@ private:
     FString LastGearRequestReason;
     UPROPERTY(Replicated) TArray<FKalmalaInventoryStack> Stacks;
     UPROPERTY(Replicated) TArray<FKalmalaEquippedGear> EquippedGear;
+    /** Preserve wear when the same physical item is returned to the pack and equipped again. */
+    TMap<FGuid, int32> SessionGearWear;
     UPROPERTY(Replicated) TArray<FName> GridSlots;
     UPROPERTY(Replicated) TArray<FGuid> GridInstanceGuids;
     UPROPERTY(Replicated) FName ActiveItem;

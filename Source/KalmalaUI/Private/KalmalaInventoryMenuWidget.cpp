@@ -700,6 +700,10 @@ void UKalmalaInventoryMenuWidget::RefreshGearPresentation(const int32 TextScale,
         {
             const FKalmalaItemDefinition* Definition = Catalogue ? Catalogue->FindItem(Equipped->ItemId) : nullptr;
             State = Definition ? Definition->DisplayName : Equipped->ItemId.ToString();
+            FKalmalaGearLevelStats Stats;
+            if (Catalogue && Catalogue->GetGearLevelStats(Equipped->ItemId, 1, Stats))
+                State += FString::Printf(TEXT(" (%d/%d)"),
+                    FMath::Max(0, Stats.MaxDurability - Equipped->ConditionSpent), Stats.MaxDurability);
             Button->SetToolTipText(FText::FromString(bCanEquip
                 ? FString::Printf(TEXT("Click to replace %s with the selected wearable."), *State)
                 : FString::Printf(TEXT("Select an empty grid cell, then click to return %s to your inventory."), *State)));

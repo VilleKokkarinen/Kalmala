@@ -89,6 +89,23 @@ bool FKalmalaInventoryEquipmentTest::RunTest(const FString& Parameters)
             FullGearPack, {OldHelmet}, EKalmalaGearSlot::Head, {}, UnequippedStacks, UnequippedGear, Reason));
 
     const FGuid WoodGuid = FGuid::NewGuid();
+    FKalmalaGearLevelStats HelmetStats;
+    if (!TestTrue(TEXT("Helmet has authored condition"),
+        Catalogue->GetGearLevelStats(OldHelmet.ItemId, 1, HelmetStats))) return false;
+    FKalmalaEquippedGear WornHelmet = OldHelmet;
+    WornHelmet.ConditionSpent = HelmetStats.MaxDurability;
+    TestTrue(TEXT("A depleted wearable can still be returned to the pack"),
+        UKalmalaInventoryComponent::BuildUnequipGearTransaction(
+            {}, {WornHelmet}, EKalmalaGearSlot::Head, {}, UnequippedStacks, UnequippedGear, Reason));
+    WornHelmet.ConditionSpent = -1;
+    TestFalse(TEXT("Negative condition spent rejects the transaction"),
+        UKalmalaInventoryComponent::BuildUnequipGearTransaction(
+            {}, {WornHelmet}, EKalmalaGearSlot::Head, {}, UnequippedStacks, UnequippedGear, Reason));
+    WornHelmet.ConditionSpent = HelmetStats.MaxDurability + 1;
+    TestFalse(TEXT("Wear above the authored maximum rejects the transaction"),
+        UKalmalaInventoryComponent::BuildUnequipGearTransaction(
+            {}, {WornHelmet}, EKalmalaGearSlot::Head, {}, UnequippedStacks, UnequippedGear, Reason));
+
     TestFalse(TEXT("Ordinary items cannot be equipped into a gear slot"),
         UKalmalaInventoryComponent::BuildEquipGearTransaction(
             {MakeTestStack(TEXT("Wood"), WoodGuid)}, {}, WoodGuid, {}, UnequippedStacks, UnequippedGear, Reason));

@@ -1,5 +1,16 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-15 — Wear equipped gear on wildlife hits
+
+- **Completed:** accepted server-resolved wildlife hits spend one condition point on every equipped wearable, including fully absorbed hits. The final condition point protects against the current hit; depleted gear supplies no defense on later hits. Owner-private gear state includes condition spent, and Inventory labels display remaining/maximum condition. A server-only physical-GUID ledger preserves wear through same-pawn unequip, replacement, and re-equip. Gear transactions reject negative or over-maximum condition.
+- **Files changed:** `Source/KalmalaGameplay/Public/KalmalaInventoryComponent.h`, `Source/KalmalaGameplay/Private/KalmalaInventoryComponent.cpp`, `Source/KalmalaGameplay/Private/KalmalaInventoryTransactions.cpp`, `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp`, `Source/KalmalaGameplay/Private/Tests/KalmalaInventoryEquipmentTest.cpp`, `Source/KalmalaUI/Private/KalmalaInventoryMenuWidget.cpp`, `BACKLOG.md`, `PROGRESS.md`, `docs/01-game-design.md`, `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, and `docs/game-features.md`.
+- **Lightweight checks:** focused PowerShell source assertions passed for authority, accepted-hit ordering, depletion, GUID restore, owner-only replication, transaction bounds, and the UI condition readout; parsed wearable JSON condition values; reviewed implementation/documentation diffs; `git diff --check` and changed-path MAX_PATH checks passed. Added focused automation assertions for depleted-item return and invalid wear bounds; these Unreal assertions were not executed.
+- **Impact/authority:** wear amounts and affected gear come only from server-owned state; no new client RPC, save property, or save schema. Rejected damage does not consume condition.
+- **Verification status:** normal increment, not milestone-final. Unreal build, gameplay automation, rendered layout, and peer privacy checks remain unexecuted; full verification is deferred.
+- **Known limitations:** level-one, pawn-session condition only; wear does not travel to another pawn through chest transfer or survive reconnect. Repairs, wearable upgrades, and Main Hand/tool routing remain pending. The selected child and parent remain unchecked.
+- **Next eligible backlog task:** continue the first unchecked Worn Gear transaction child with Main Hand weapon/tool routing. The separate hotbar-interaction child follows afterward.
+- **Handoff:** implemented directly in `E:\dev\Kalmala`; no worktree synchronization required.
+
 ## Autonomous increment 2026-10-15 — Apply equipped gear defenses
 
 - **Completed:** server-resolved wildlife damage now combines the character defense profile with the level-one defense profile of each equipped wearable before applying the shared per-channel and general armor rules.
