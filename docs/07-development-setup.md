@@ -14,9 +14,17 @@ The lightweight `Scripts/Validate-UIIcons.ps1 -Category Catalogue` audit passed
 all 62 ledger entries. Focused data/source checks matched all 22 equipment IDs
 to their ledger and asset files. This file audit does not load Unreal packages
 or validate station recipes. The global `CatalogueIcons.CompleteCoverage` test
-still has stale counts and texture-alias expectations; the focused test does not
-replace its broader acceptance requirements. Live hotbar, equipment, owner
-privacy and current-format reconnect/save acceptance remain outstanding.
+now traverses validated item/profile/recipe catalogues instead of fixed historical
+counts, checks retained Stone/Campfire texture names, and verifies Bone fragment's
+intentional vector fallback. Missing mappings fail with the item identity before
+shape/texture assertions. A source/data audit found 66 distinct mapped identities
+with imported packages, plus six pre-existing unmapped materials: Copper, Tin,
+Bronze, CopperOre, TinOre and IronOre. Those six remain failures of the global
+coverage requirement; they are not added to the fallback exception. This audit
+does not establish a passing Unreal test. The current uncommitted station edits
+also duplicate `WoodShieldRecipe`, preventing an integrated catalogue load until
+resolved. Live hotbar, equipment, owner privacy and current-format reconnect/save
+acceptance remain outstanding.
 
 ## Integer wearable armor — 2026-10-15
 

@@ -4,7 +4,7 @@
 #include "KalmalaSurvivalStatusWidget.h"
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaRecipeCatalogue.h"
-#include "KalmalaToolLifecycleContract.h"
+#include "KalmalaToolCatalogue.h"
 #include "KalmalaCatalogueIconLibrary.h"
 #include "KalmalaStatusIconLibrary.h"
 #include "KalmalaIconWidget.h"
@@ -328,7 +328,10 @@ bool FKalmalaCatalogueIconTest::RunTest(const FString&)
         else if (Id == TEXT("DeerCallScroll")) StatusIconId = TEXT("DeerCall");
 
         const bool bUsesStatusTexture = !StatusIconId.IsNone();
-        const FString AssetName = (bUsesStatusTexture ? StatusIconId : Id).ToString();
+        const FName AssetId = Id == TEXT("StoneAxe") ? FName(TEXT("FieldHatchet"))
+            : Id == TEXT("StoneKnife") ? FName(TEXT("ReedKnife"))
+            : Id == TEXT("CampFire") ? FName(TEXT("CampfireKit")) : Id;
+        const FString AssetName = (bUsesStatusTexture ? StatusIconId : AssetId).ToString();
         const TCHAR* Directory = bUsesStatusTexture ? TEXT("Status") : TEXT("Items");
         return FString::Printf(TEXT("/Game/Kalmala/UI/Icons/%s/%s.%s"), Directory, *AssetName, *AssetName);
     };
@@ -336,8 +339,27 @@ bool FKalmalaCatalogueIconTest::RunTest(const FString&)
     {
         if (CheckedIds.Contains(Id)) return;
         CheckedIds.Add(Id);
-        EKalmalaIcon Icon; int32 Variant;
-        TestTrue(*Id.ToString(), UKalmalaIconWidget::FindCatalogueIcon(Id, Icon, Variant));
+        // Bone fragment deliberately has no artwork yet. Keep this exception exact:
+        // every other catalogue identity must still resolve to imported artwork.
+        if (Id == TEXT("BoneFragment"))
+        {
+            EKalmalaIcon Fallback = EKalmalaIcon::Unknown;
+            int32 FallbackVariant = 0;
+            TestFalse(TEXT("Bone fragment retains its deliberate vector fallback"),
+                UKalmalaIconWidget::FindCatalogueIcon(Id, Fallback, FallbackVariant));
+            TestEqual(TEXT("Bone fragment uses the unknown shape"), Fallback, EKalmalaIcon::Unknown);
+            FSoftObjectPath FallbackPath;
+            TestFalse(TEXT("Bone fragment has no imported texture path"),
+                FKalmalaCatalogueIconLibrary::GetTextureObjectPath(Id, FallbackPath));
+            auto* FallbackWidget = NewObject<UKalmalaIconWidget>();
+            FallbackWidget->SetCatalogueIcon(Id);
+            TestFalse(TEXT("Bone fragment widget uses the vector fallback"), FallbackWidget->HasCatalogueTexture());
+            return;
+        }
+        EKalmalaIcon Icon = EKalmalaIcon::Unknown;
+        int32 Variant = 0;
+        if (!TestTrue(*FString::Printf(TEXT("%s has an icon mapping"), *Id.ToString()),
+            UKalmalaIconWidget::FindCatalogueIcon(Id, Icon, Variant))) return;
         TestTrue(TEXT("Known original shape"), Icon != EKalmalaIcon::Unknown);
         FSoftObjectPath TexturePath;
         TestTrue(TEXT("Known identity resolves to an imported texture path"),
@@ -350,13 +372,19 @@ bool FKalmalaCatalogueIconTest::RunTest(const FString&)
         TestFalse(TEXT("Distinct canonical icon assignment"), Shapes.Contains(Key)); Shapes.Add(Key);
     };
     const auto* Items = UKalmalaItemCatalogue::Get();
-    TestEqual(TEXT("Audited inventory item count"), Items->Items.Num(), 55);
-    for (const auto& Item : Items->Items) Check(Item.ItemId);
-    for (const auto& Tool : FKalmalaToolLifecycleContract::GetDefinitions()) Check(Tool.ItemId);
-    for (const auto& Tool : FKalmalaToolLifecycleContract::GetTieredToolDefinitions()) Check(Tool.ItemId);
-    Check(FKalmalaToolLifecycleContract::GetConstructionHammerDefinition().ItemId);
+    const auto* Tools = UKalmalaToolCatalogue::Get();
     const auto* Recipes = UKalmalaRecipeCatalogue::Get();
-    TestEqual(TEXT("Audited recipe/build count"), Recipes->Recipes.Num(), 20);
+    if (!TestNotNull(TEXT("Item catalogue loads"), Items)
+        || !TestNotNull(TEXT("Tool catalogue loads"), Tools)
+        || !TestNotNull(TEXT("Recipe catalogue loads"), Recipes)) return false;
+    TestTrue(TEXT("Item catalogue validates"), Items->IsValidCatalogue());
+    TestTrue(TEXT("Tool catalogue validates"), Tools->IsValidCatalogue(Items));
+    TestTrue(TEXT("Recipe catalogue validates"), Recipes->IsValidCatalogue(Items));
+    TestTrue(TEXT("Inventory catalogue is nonempty"), !Items->Items.IsEmpty());
+    TestTrue(TEXT("Tool catalogue is nonempty"), !Tools->Profiles.IsEmpty());
+    TestTrue(TEXT("Recipe catalogue is nonempty"), !Recipes->Recipes.IsEmpty());
+    for (const auto& Item : Items->Items) Check(Item.ItemId);
+    for (const auto& Tool : Tools->Profiles) Check(Tool.ItemId);
     for (const auto& Recipe : Recipes->Recipes)
     {
         const FName OutputIdentity = Recipe.GetOutputIdentity();
@@ -366,8 +394,7 @@ bool FKalmalaCatalogueIconTest::RunTest(const FString&)
         if (Recipe.BuildableOutput.IsNone())
         {
             const bool bCanonicalItem = Items->FindItem(Recipe.Output) != nullptr;
-            const bool bCanonicalTool = Recipe.RecipeId == TEXT("BuildingHammer")
-                && Recipe.Output == FKalmalaToolLifecycleContract::GetConstructionHammerDefinition().ItemId;
+            const bool bCanonicalTool = Tools->FindProfile(Recipe.Output) != nullptr;
             TestTrue(*FString::Printf(TEXT("%s recipe uses a canonical inventory or tool identity (%s)"),
                 *Recipe.RecipeId.ToString(), *Recipe.Output.ToString()), bCanonicalItem || bCanonicalTool);
         }
@@ -375,7 +402,6 @@ bool FKalmalaCatalogueIconTest::RunTest(const FString&)
             TestTrue(TEXT("Direct construction output is a supported buildable"),
                 UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(Recipe.BuildableOutput));
     }
-    TestEqual(TEXT("Canonical item, tool, and construction identity count"), CheckedIds.Num(), 72);
     static const TPair<FName, FName> Aliases[] = {
         {TEXT("Workbench"), TEXT("WorkbenchKit")},
         {TEXT("Forge"), TEXT("ForgeKit")}, {TEXT("WorkbenchToolRack"), TEXT("WorkbenchToolRackKit")},
