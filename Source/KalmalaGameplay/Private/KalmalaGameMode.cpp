@@ -475,8 +475,7 @@ void AKalmalaGameMode::BeginPlay()
     if (UGameplayStatics::DoesSaveGameExist(StorageSlot, 0))
     {
         StorageSaveGame = Cast<UKalmalaStorageSaveGame>(UGameplayStatics::LoadGameFromSlot(StorageSlot, 0));
-        if (!StorageSaveGame || !StorageSaveGame->MigrateLegacyItemIds()
-            || !StorageSaveGame->MatchesWorld(WorldGenerationConfig))
+        if (!StorageSaveGame || !StorageSaveGame->MatchesWorld(WorldGenerationConfig))
         {
             StorageSaveGame = nullptr;
             UE_LOG(LogTemp, Warning, TEXT("Storage unavailable: existing save is invalid or incompatible; preserved without overwrite."));
@@ -2322,25 +2321,7 @@ UKalmalaPlayerDiscoverySaveGameV2* AKalmalaGameMode::GetPlayerDiscoverySave(
         USaveGame* Loaded = UGameplayStatics::LoadGameFromSlot(Slot, 0);
         if (UKalmalaPlayerDiscoverySaveGameV2* Current = Cast<UKalmalaPlayerDiscoverySaveGameV2>(Loaded))
         {
-            bool bMigratedSchema = false;
-            if (!Current->MatchesPlayer(WorldGenerationConfig, OutIdentity))
-            {
-                UKalmalaPlayerDiscoverySaveGameV2* Migrated = nullptr;
-                if (UKalmalaPlayerDiscoverySaveGameV2::TryMigrateSchema2(
-                    Current, WorldGenerationConfig, OutIdentity, this, Migrated))
-                {
-                    Current = Migrated;
-                    bMigratedSchema = true;
-                }
-                else
-                {
-                    Current = nullptr;
-                }
-            }
-
-            bool bMigratedToolGuids = false;
-            bool bValidClaims = Current != nullptr && Current->EnsureToolInstanceGuids(bMigratedToolGuids)
-                && Current->MatchesPlayer(WorldGenerationConfig, OutIdentity);
+            bool bValidClaims = Current->MatchesPlayer(WorldGenerationConfig, OutIdentity);
             if (bValidClaims)
             {
                 for (const FString& ClaimId : Current->GetM9ClaimIds())
@@ -2349,20 +2330,7 @@ UKalmalaPlayerDiscoverySaveGameV2* AKalmalaGameMode::GetPlayerDiscoverySave(
                     if (!bValidClaims) break;
                 }
             }
-            if (bValidClaims && (bMigratedSchema || bMigratedToolGuids))
-            {
-                bValidClaims = UGameplayStatics::SaveGameToSlot(Current, Slot, 0);
-            }
             if (bValidClaims) Save = Current;
-        }
-        else if (UKalmalaPlayerDiscoverySaveGame* Legacy = Cast<UKalmalaPlayerDiscoverySaveGame>(Loaded))
-        {
-            UKalmalaPlayerDiscoverySaveGameV2* Migrated = nullptr;
-            if (UKalmalaPlayerDiscoverySaveGameV2::TryMigrateSchema1(
-                Legacy, WorldGenerationConfig, OutIdentity, this, Migrated))
-            {
-                Save = Migrated;
-            }
         }
 
         if (Save == nullptr)
@@ -2389,7 +2357,7 @@ UKalmalaPlayerDiscoverySaveGameV2* AKalmalaGameMode::GetPlayerDiscoverySave(
         for (const FKalmalaPlayerToolSaveRecord& Record : Save->GetToolRecords())
         {
             FKalmalaToolState ToolState;
-            ToolState.ItemId = FKalmalaToolLifecycleContract::CanonicalizeItemId(Record.ItemId);
+            ToolState.ItemId = Record.ItemId;
             ToolState.ToolLevel = Record.ToolLevel;
             ToolState.Durability = Record.Condition;
             ToolState.InstanceGuid = Record.InstanceGuid;
@@ -2878,7 +2846,7 @@ bool AKalmalaGameMode::ClaimOceanDiscovery(AKalmalaCharacter* Interactor, const 
         Save = Cast<UKalmalaM7PersistenceSaveGame>(UGameplayStatics::LoadGameFromSlot(SaveSlot, 0));
         if (Save == nullptr || !Save->Matches(SaveIdentity))
         {
-            Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::Unavailable, TEXT("Sea discovery save needs migration review"));
+            Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::Unavailable, TEXT("Sea discovery save uses an unsupported version"));
             return false;
         }
     }
@@ -3186,27 +3154,6 @@ void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)
         AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(NewPlayer->GetPawn());
         if (Character != nullptr && Character->GetPlayerState() != nullptr)
         {
-#if !UE_BUILD_SHIPPING
-            if (bM9Schema2CandidatePeerTestEnabled
-                && M9Schema2CandidatePeerTestPhase.Equals(TEXT("Seed"), ESearchCase::IgnoreCase)
-                && KalmalaGameMode::GetAuthenticatedPlayerIdentity(Character->GetPlayerState()).EndsWith(
-                    TEXT("m9-schema2-owner"), ESearchCase::IgnoreCase))
-            {
-                const FString PlayerIdentity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(Character->GetPlayerState());
-                const FString PlayerSlot = KalmalaGameMode::PlayerDiscoverySaveSlot(WorldGenerationConfig, PlayerIdentity);
-                if (!UGameplayStatics::DoesSaveGameExist(PlayerSlot, 0))
-                {
-                    UKalmalaPlayerDiscoverySaveGame* Legacy = NewObject<UKalmalaPlayerDiscoverySaveGame>(this);
-                    Legacy->InitializeForPlayer(WorldGenerationConfig, PlayerIdentity);
-                    const bool bLegacySeeded = Legacy->AddDiscovery(TEXT("Poi:1:lakes-island-cache:-2,4:1"))
-                        && Legacy->AddLearnedEffect(TEXT("Effect:mending"))
-                        && UGameplayStatics::SaveGameToSlot(Legacy, PlayerSlot, 0);
-                    UE_LOG(LogTemp, Display,
-                        TEXT("M9 schema-2 normal player migration fixture: Phase=Seed Seeded=%d"),
-                        bLegacySeeded ? 1 : 0);
-                }
-            }
-#endif
             FString IgnoredIdentity;
             GetPlayerDiscoverySave(Character, IgnoredIdentity);
             LoadOceanDiscoveryLedger(Character);
@@ -3574,8 +3521,6 @@ void AKalmalaGameMode::RunM9Schema2CandidatePlayerPeerTest(APlayerController* Pl
     }
 
     const bool bNormalFactsMatch = NormalPlayerSave != nullptr
-        && NormalPlayerSave->HasDiscovery(DiscoveryId)
-        && NormalPlayerSave->HasLearnedEffect(TEXT("Effect:mending"))
         && !NormalPlayerSave->GetM9ClaimIds().IsEmpty()
         && NormalPlayerSave->GetToolRecords().Num() == Character->CarriedTools.Num();
 

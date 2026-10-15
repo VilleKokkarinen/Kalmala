@@ -48,7 +48,7 @@ bool FKalmalaConstructionSaveGameTest::RunTest(const FString& Parameters)
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaConstructionSaveGameV2Test,
-    "Kalmala.Gameplay.Construction.Schema2Migration",
+    "Kalmala.Gameplay.Construction.Schema2CurrentFormat",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FKalmalaConstructionSaveGameV2Test::RunTest(const FString& Parameters)
@@ -103,86 +103,6 @@ bool FKalmalaConstructionSaveGameV2Test::RunTest(const FString& Parameters)
                 return Record.KitId == TEXT("WorkbenchToolRackKit");
             }));
     }
-
-    UKalmalaConstructionSaveGame* Legacy = NewObject<UKalmalaConstructionSaveGame>(GetTransientPackage());
-    Legacy->InitializeForWorld(World);
-    TestTrue(TEXT("Schema 1 fixture stores its first legacy construction"), Legacy->AddRecord(Floor));
-    TestTrue(TEXT("Schema 1 fixture stores its second legacy construction"),
-        Legacy->AddRecord(MakeRecord(TEXT("camp-workbench-01"), TEXT("WorkbenchKit"))));
-    TArray<uint8> LegacyBeforeMigration;
-    TestTrue(TEXT("Legacy source serializes before migration"), Serialize(Legacy, LegacyBeforeMigration));
-    UKalmalaConstructionSaveGameV2* Migrated = nullptr;
-    TestTrue(TEXT("Matching schema 1 data migrates to schema 2"),
-        UKalmalaConstructionSaveGameV2::TryMigrateSchema1(Legacy, World, GetTransientPackage(), Migrated));
-    if (TestNotNull(TEXT("Migration returns a new candidate without replacing its source"), Migrated))
-    {
-        TestTrue(TEXT("Migrated facts bind to the current exact world identity"), Migrated->MatchesWorld(World));
-        TestEqual(TEXT("Migration preserves every accepted schema 1 construction"), Migrated->GetRecords().Num(), 2);
-        TestTrue(TEXT("Migration retains legacy construction identity and kit"),
-            Migrated->GetRecords().ContainsByPredicate([](const FKalmalaConstructionSaveRecord& Record)
-            {
-                return Record.ConstructionId == TEXT("camp-workbench-01") && Record.KitId == TEXT("WorkbenchKit");
-            }));
-        TestFalse(TEXT("Absent attachments start empty after migration"),
-            Migrated->GetRecords().ContainsByPredicate([](const FKalmalaConstructionSaveRecord& Record)
-            {
-                return Record.KitId == TEXT("WorkbenchToolRackKit") || Record.KitId == TEXT("ForgeAnvilKit");
-            }));
-    }
-    TArray<uint8> LegacyAfterMigration;
-    TestTrue(TEXT("Legacy source still serializes after migration"), Serialize(Legacy, LegacyAfterMigration));
-    TestTrue(TEXT("Successful migration builds a candidate without mutating source bytes"),
-        LegacyBeforeMigration == LegacyAfterMigration);
-
-    const auto RejectWithoutChangingSource = [&](UKalmalaConstructionSaveGame* Invalid, const TCHAR* Label)
-    {
-        TArray<uint8> Before;
-        TArray<uint8> After;
-        TestTrue(FString::Printf(TEXT("%s source serializes before rejection"), Label), Serialize(Invalid, Before));
-        UKalmalaConstructionSaveGameV2* Rejected = nullptr;
-        TestFalse(FString::Printf(TEXT("%s migration is rejected"), Label),
-            UKalmalaConstructionSaveGameV2::TryMigrateSchema1(Invalid, World, GetTransientPackage(), Rejected));
-        TestNull(FString::Printf(TEXT("%s produces no replacement candidate"), Label), Rejected);
-        TestTrue(FString::Printf(TEXT("%s source serializes after rejection"), Label), Serialize(Invalid, After));
-        TestTrue(FString::Printf(TEXT("%s leaves source bytes unchanged"), Label), Before == After);
-    };
-
-    FKalmalaWorldGenerationConfig OtherWorld = World;
-    ++OtherWorld.WorldSeed;
-    UKalmalaConstructionSaveGame* WrongSeedSource = DuplicateObject<UKalmalaConstructionSaveGame>(Legacy, GetTransientPackage());
-    WrongSeedSource->WorldConfig = OtherWorld;
-    RejectWithoutChangingSource(WrongSeedSource, TEXT("Wrong-seed"));
-    UKalmalaConstructionSaveGame* WrongSchemaSource = DuplicateObject<UKalmalaConstructionSaveGame>(Legacy, GetTransientPackage());
-    WrongSchemaSource->SchemaVersion = 0;
-    RejectWithoutChangingSource(WrongSchemaSource, TEXT("Schema-zero"));
-    WrongSchemaSource->SchemaVersion = UKalmalaConstructionSaveGameV2::SchemaVersionValue + 1;
-    RejectWithoutChangingSource(WrongSchemaSource, TEXT("Future-schema"));
-
-    UKalmalaConstructionSaveGame* MalformedSource = DuplicateObject<UKalmalaConstructionSaveGame>(Legacy, GetTransientPackage());
-    MalformedSource->Records[0].Transform.SetScale3D(FVector(NAN, 1.0f, 1.0f));
-    RejectWithoutChangingSource(MalformedSource, TEXT("Malformed-transform"));
-    UKalmalaConstructionSaveGame* MalformedIdSource = DuplicateObject<UKalmalaConstructionSaveGame>(Legacy, GetTransientPackage());
-    MalformedIdSource->Records[0].ConstructionId.Reset();
-    RejectWithoutChangingSource(MalformedIdSource, TEXT("Malformed-construction-ID"));
-    UKalmalaConstructionSaveGame* DuplicateSource = DuplicateObject<UKalmalaConstructionSaveGame>(Legacy, GetTransientPackage());
-    const FKalmalaConstructionSaveRecord DuplicateLegacyRecord = DuplicateSource->Records[0];
-    DuplicateSource->Records.Add(DuplicateLegacyRecord);
-    RejectWithoutChangingSource(DuplicateSource, TEXT("Duplicate-ID"));
-    UKalmalaConstructionSaveGame* UnsupportedInLegacySource = DuplicateObject<UKalmalaConstructionSaveGame>(Legacy, GetTransientPackage());
-    UnsupportedInLegacySource->Records.Add(MakeRecord(TEXT("camp-unknown-01"), TEXT("UnknownConstructionKit")));
-    RejectWithoutChangingSource(UnsupportedInLegacySource, TEXT("Unapproved-schema-one-record"));
-    UKalmalaConstructionSaveGame* OverCapSource = DuplicateObject<UKalmalaConstructionSaveGame>(Legacy, GetTransientPackage());
-    OverCapSource->Records.Reset();
-    for (int32 Index = 0; Index <= UKalmalaConstructionSaveGame::MaxRecords; ++Index)
-    {
-        OverCapSource->Records.Add(MakeRecord(*FString::Printf(TEXT("legacy-%03d"), Index), TEXT("FloorKit")));
-    }
-    RejectWithoutChangingSource(OverCapSource, TEXT("Over-cap"));
-
-    UKalmalaConstructionSaveGameV2* WrongSeedCandidate = nullptr;
-    TestFalse(TEXT("A valid legacy construction cannot migrate to a different seed"),
-        UKalmalaConstructionSaveGameV2::TryMigrateSchema1(Legacy, OtherWorld, GetTransientPackage(), WrongSeedCandidate));
-    TestNull(TEXT("Seed mismatch does not create a migration candidate"), WrongSeedCandidate);
 
     UKalmalaConstructionSaveGameV2* IdentityChecks = DuplicateObject<UKalmalaConstructionSaveGameV2>(Save, GetTransientPackage());
     const FKalmalaM7SaveIdentity ExpectedIdentity = IdentityChecks->Identity;

@@ -94,7 +94,7 @@ function Invoke-Phase([string]$Phase) {
 try {
     Invoke-Phase 'Seed' | Out-Null
     Invoke-Phase 'Resume' | Out-Null
-    Write-Output 'PASS: schema-2 world and player state survived a listen-server restart; a schema-1 player slot migrated its discovery/effect facts, current M9 claims and owner tools persisted, replay was rejected, other owners saw no tool details, and both normal slots used schema 2.'
+    Write-Output 'PASS: current schema-2 world and player state survived a listen-server restart; M9 claims and owner tools persisted, replay was rejected, other owners saw no tool details, and both normal slots used schema 2.'
 }
 finally {
     Write-Output "Scenario logs: $output"

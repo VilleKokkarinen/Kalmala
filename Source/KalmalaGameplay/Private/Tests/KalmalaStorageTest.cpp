@@ -14,15 +14,6 @@ bool FKalmalaStorageSaveTest::RunTest(const FString& Parameters)
 {
     FKalmalaWorldGenerationConfig Config; Config.WorldSeed = 418; auto* Save = NewObject<UKalmalaStorageSaveGame>(); Save->InitializeForWorld(Config);
     TestTrue(TEXT("Empty identity container is valid"), Save->MatchesWorld(Config));
-    TArray<FKalmalaInventoryStack> LegacyStacks = {{TEXT("Wood"),4},{TEXT("Fuel"),2},{TEXT("ConstructionSupply"),3},{TEXT("MirelingAsh"),2}};
-    TestTrue(TEXT("Retired saved item IDs normalize without a schema change"), UKalmalaStorageSaveGame::NormalizeLegacyStacks(LegacyStacks));
-    TestEqual(TEXT("Legacy raw materials merge into one bounded Wood stack"), LegacyStacks.Num(), 1);
-    TestFalse(TEXT("Retired loot is discarded without removing other saved contents"), LegacyStacks.ContainsByPredicate(
-        [](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == TEXT("MirelingAsh"); }));
-    const FKalmalaInventoryStack* MigratedWood = LegacyStacks.FindByPredicate(
-        [](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == TEXT("Wood"); });
-    TestNotNull(TEXT("Legacy conversion retains its wood value"), MigratedWood);
-    if (MigratedWood) TestEqual(TEXT("Four wood, two fuel, and three supplies become twenty-one wood"), MigratedWood->Quantity, 21);
     TestTrue(TEXT("Store two materials"), Save->UpsertRecord(TEXT("chest-1"), {{TEXT("Wood"),3},{TEXT("Stone"),2}}));
     for (const int32 Quantity : {0, -1, MIN_int32, MAX_int32})
         TestFalse(TEXT("Invalid stack rejected"), Save->UpsertRecord(TEXT("chest-1"), {{TEXT("Wood"),Quantity}}));

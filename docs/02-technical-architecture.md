@@ -4,7 +4,7 @@ Use the baseline sections below for module/network boundaries. The [consolidated
 
 - [World generation](#world-generation), [harvest sources](#harvest-source-catalogue), and [ocean travel](#ocean-travel).
 - [Tools/progression](#tools-and-station-progression), [camp services](#camp-crafting-and-station-services), and [combat/support](#combat-and-support-magic).
-- [Discoveries](#optional-land-discoveries), [save migration](#save-identity-and-migration), and [shared inventory](#shared-inventory-and-hotbar).
+- [Discoveries](#optional-land-discoveries), [save formats](#save-identity-and-format-policy), and [shared inventory](#shared-inventory-and-hotbar).
 - [Theme](#shared-ui-theme), [icons](#status-and-catalogue-icons), [details](#item-and-recipe-details), and [browsing](#menu-browsing).
 - [Notifications](#owner-notifications), [recipe activity](#recipe-and-build-activity), and [onboarding reference](#onboarding-reference).
 - [Settings/accessibility](#settings-and-accessibility), [presentation ownership](#presentation-ownership), and [audio](#audio-cues).
@@ -95,7 +95,7 @@ Manifest category file lists have no separate path-count cap; the manifest and l
 
 `UKalmalaItemCatalogue`, `UKalmalaRecipeCatalogue`, and `UKalmalaToolCatalogue` load schema-version-14 data from the manifest at `Content/Data/GameCatalogues.json`. Ordinary material items are grouped by role in `items/materials/wood.json`, `items/materials/ore.json`, `items/materials/metal.json`, `items/materials/cooking-ingredients.json`, `items/materials/crafting-ingredients.json`, `items/materials/hides.json`, and `items/materials/others.json`. Other ordinary item and recipe definitions live in their category files under `Content/Data/GameCatalogues/items/` and `Content/Data/GameCatalogues/recipes/`; buildable stations and construction items are grouped under `items/buildItems/`. Recipes that require Workbench, Forge, Cauldron, Cooking Rack, or Frying Pan are grouped by station under `recipes/stations/`; the Building Hammer recipe is grouped under `inventory.json`, and build-menu construction recipes remain in `recipes/building.json`. Carried item profiles are grouped by family in `items/equipment/axes.json`, `items/equipment/knives.json`, `items/equipment/pickaxes.json`, `items/equipment/spears.json`, and `items/equipment/maces.json`, with the reusable Building Hammer profile in `items/equipment/building-hammer.json`; `itemProfileFiles` routes all of them into the runtime tool catalogue. Equipment acquisition records share each station file under `recipes/stations/` in its `recipes` array; the loader routes records with `ItemId` into the runtime tool catalogue. Wearable gear uses ordinary output recipes in the same station files, validated against item definitions and visible server station context. Level-one costs for Stone, Bronze, and Iron equipment are grouped in the five family files under `item-level-up/costs/`; Stone and Iron costs generally use their acquisition ingredients. Bronze costs generally retain each weapon wood quantity and replace its Stone component with Bronze bars at the same quantity. Bronze Axe, Knife, Spear, and Mace acquisitions and upgrades use Lightwood in place of Wood; Iron Axe, Knife, Spear, and Mace acquisitions and upgrades use Densewood. Pickaxe costs remain unchanged. Stone upgrades use Workbench materials, while Bronze and Iron upgrades use Forge materials. The Construction Hammer cost lives in `item-level-up/costs/construction-hammer.json`; the six wearable costs live in `item-level-up/costs/gear.json`. All files are listed by `itemUpgradeFiles`, use an `upgrades` array, and key records only by `ItemId`, which may identify either a carried tool profile or a wearable gear item. Gear costs pass item, station, material, and scaling validation but are not yet converted into carried-tool progression entries; gear upgrade transactions remain pending equipment integration. The loader sorts ordinary items and carried profiles by `ItemId`, ordinary recipes and equipment acquisitions by `RecipeId`, and upgrade costs by `ItemId`, so file organization does not define catalogue order. These arrays are no longer configured in `DefaultGame.ini`. Each ordinary item has a clean external catalogue ID, player-facing name, bounded description, and stack limit. No property or value in the ordinary item/recipe arrays contains the old "Kit" suffix. The loader maps clean buildable IDs and station arrays back to stable runtime item and construction IDs so placement and save compatibility remain unchanged. Runtime equipment profiles hold stable ItemIds, action/skill requirements, base durability, and typed damage bonuses. Shared attack styles live in `attacks/attacks.json`, with a named attack list and explicit ItemIds for each family across Stone/Bronze/Iron tiers; profiles contain no Attacks field. Shared item stat gains live in `item-level-up/rewards/item-stats.json`: each entry has `ItemIds` and a `LevelUpReward`, with no reward property on individual item profiles. Entries may list multiple known IDs but cannot overlap or repeat an ID; unlisted items receive zero gains. Stats at level L equal base + (L−1) × reward for durability and each damage channel; zero rewards leave those stats unchanged. Durability consumption is a shared server rule of one condition point per accepted consuming use; profiles do not author DurabilityCost or per-item exceptions. Acquisition recipes use stable IDs such as `RecipeId: BronzeAxe` and `Level: 1`. Upgrade cost records define the level-one-to-two cost once; for carried-tool upgrades, current level L consumes base quantities × 2^(L−1) and requires station level L+1. Acquisition and upgrade-cost JSON omit zero skill requirements; the loader supplies None/0 internally. Upgrade-cost JSON also omits `RequiredStationLevel: 0`, which the loader supplies before strict conversion; acquisition recipes keep their explicit station level. Predecessor IDs/levels are derived internally and are not JSON fields. The server generates carried-tool station steps through level 10 for profiles with authored upgrade costs, validates material references and overflow, and rejects malformed data. Scaled requirements may exceed a current stack capacity without invalidating authored levels; the actual inventory exchange still enforces capacity and payment. Station upgrades have an explicit level-10 item cap, while every item source shares a hard level-20 cap. Authored stats, carried-item validation and save validation are independent of station recipes, so authored levels 11–20 can be granted by future non-station sources but cannot be station upgrade targets. Item stats are computed through the hard level-20 cap from the reward rule. Stone Axe, Bronze Axe and Iron Axe share +50 maximum durability and +5 slash per level; Knives gain +5 Slash/+5 Stab, pickaxes and maces +5 Crush/+5 Pierce, and spears +5 Stab; each family also gains +50 durability. Building Hammer has zero rewards. Bronze Axe level-one/two values are preserved. Station content still tops out at level 2; higher stations and non-station grants are separate work. C++ retains enum mapping and server validation/action logic; it no longer authors equipment stat numbers or item progression costs. The loader reads each file through Unreal's file layer, including packaged UFS builds; all three catalogues fail closed if parsing, schema, bounds, cross-references, or duplicate-ID validation fails. `DirectoriesToAlwaysStageAsUFS=(Path="Data")` keeps the manifest and category files available in packaged builds.
 
-The server's JSON-backed catalogues are the authority for inventory and tool-progression transactions; a client's copy may only inform presentation. `IsValidStack` rejects unknown/empty IDs and any quantity outside 1 through the configured stack limit. `CanAddToStack` permits zero existing quantity but requires a positive addition and sufficient capacity, using subtraction after bounds checks to avoid integer overflow. A missing/duplicate/invalid catalogue fails closed, with defensive ceilings of 64 ordinary item definitions, 32 ordinary recipes, 32 tool profiles, 32 tool progression recipes, two authored levels per tool, four materials per tool recipe, and 999 units per stack. Tool recipes must target the same item at the immediately preceding level when upgrading; acquisitions have no predecessor. Definition lookup uses Unreal's case-insensitive `FName` identity. These pure validation functions grant no items and do not themselves establish caller authority: the inventory and crafting components still check server ownership, capacity, station context, and transaction intent before mutation. The item catalogue advances to schema 14 because equipment acquisition and upgrade records now use `ItemId`. This does not alter RPCs, inventory replication, or harvest behavior. Renaming carried equipment save fields advances player-discovery saves from schema 2 to schema 3; schema-2 records migrate the old property into `ItemId` and rewrite the same player slot after validation.
+The server's JSON-backed catalogues are the authority for inventory and tool-progression transactions; a client's copy may only inform presentation. `IsValidStack` rejects unknown/empty IDs and any quantity outside 1 through the configured stack limit. `CanAddToStack` permits zero existing quantity but requires a positive addition and sufficient capacity, using subtraction after bounds checks to avoid integer overflow. A missing/duplicate/invalid catalogue fails closed, with defensive ceilings of 64 ordinary item definitions, 32 ordinary recipes, 32 tool profiles, 32 tool progression recipes, two authored levels per tool, four materials per tool recipe, and 999 units per stack. Tool recipes must target the same item at the immediately preceding level when upgrading; acquisitions have no predecessor. Definition lookup uses Unreal's case-insensitive `FName` identity. These pure validation functions grant no items and do not themselves establish caller authority: the inventory and crafting components still check server ownership, capacity, station context, and transaction intent before mutation. The item catalogue uses schema 14 because equipment acquisition and upgrade records use `ItemId`. This change does not alter RPCs, inventory replication, or harvest behavior. The current player-discovery save schema is 2 and stores `ItemId` directly; there is no compatibility migration during development.
 
 Initial wearable content is defined as ordinary, non-stackable items in `items/gear.json`. `GearSlot` is one of Head, Cape, Chest, Shield, Legs, or Boots; `MaxDurability` and `DefenseBonuses` define the level-one condition and flat resistance profile. Shared entries in `item-level-up/rewards/item-stats.json` may target either a carried tool profile or a wearable gear item. `UKalmalaItemCatalogue::GetGearLevelStats` computes condition and defenses as base values plus `(level - 1) * reward`, bounded by the shared level-20 cap. Each gear item now has a station-validated ordinary acquisition recipe and a level-one upgrade-cost record. Crafting uses normal server-side station, material, and capacity checks; gear upgrade costs are data only until equipment upgrade transactions are implemented. Equipping, wear, defense aggregation, Main Hand routing, and gear persistence remain pending. This does not add a save field or client-authored defense value.
 
@@ -109,7 +109,7 @@ Generated harvest nodes now grant one material through that inventory. The serve
 
 ## M2 workbench and storage
 
-Accepted workbench/storage kits use the existing replicated construction actor and unchanged stable placement save. Visible workbenches within 250 cm satisfy camp kit assembly. Chest contents live only in a separate server-owned schema-2 save, bounded to 128 stable construction IDs with 16 unique catalogue-limited stacks each, under exact seed identity. Every unit in a chest stack has a saved item GUID; schema-1 stacks receive GUIDs during load migration and the upgraded save is rewritten so identities remain stable across restarts. Legacy normalization drops the retired Mireling drop while retaining valid stacks. The game mode retains both construction and storage save containers through reflected transient references. Invalid existing storage saves fail closed without overwrite.
+Accepted workbench/storage kits use the existing replicated construction actor and current schema-2 construction save. Visible workbenches within 250 cm satisfy camp kit assembly. Chest contents live only in a separate server-owned schema-2 save, bounded to 128 stable construction IDs with 16 unique catalogue-limited stacks each, under exact seed identity. Every unit in a chest stack has a saved item GUID. Current-format records must already contain valid item identities and GUIDs; invalid or incompatible saves fail closed without overwrite. The game mode retains both construction and storage save containers through reflected transient references.
 
 An accepted construction-station interaction may publish an owner-only station-context event containing the exact replicated actor reference, its station kit, stable construction ID, and a bounded serial. This is presentation context only: the client cannot choose the target, and every recipe, repair, upgrade, and storage action continues to resolve and validate its own current server-side station, range, sight line, inventory, and requirements. Context events add no RPC payload, save field, or gameplay authority.
 
@@ -226,11 +226,11 @@ Every feature needs an automated test where practical, plus a reproducible multi
 
 `UKalmalaCraftingComponent` accepts owner intent only; configured recipes and atomic inventory exchanges determine all costs and outputs on the server. A new character carries a level-one Construction Hammer record in the owner-only carried-tool array, and the local hammer menu requires that record. The server independently checks the same authoritative tool before any construction request. Hearth placement uses the `CampFire` catalogue output and consumes its JSON-backed raw recipe cost of 5 Stone and 3 Wood plus one Wood, Lightwood, Densewood, or Coal to start the hearth with 60 seconds; normal crafting cannot create the internal CampfireKit item. The canonical `CampFire` catalogue output maps to CampfireKit. Floors, walls, roofs, Workbench, Forge, Workbench Tool Rack, and Forge Anvil are direct hammer builds: their raw-material costs come from `recipes/building.json`, and no catalogue item is granted or consumed. Stable internal construction identities remain for placement and save compatibility. Other buildable items retain their existing validated recipe and placement behavior. Construction RPCs accept only a buildable identity or the existing payload-free hearth placement intent; position, yaw, materials, terrain, collision, persistence, and outcome remain server-selected or server-validated. Each peer derives original collision/presentation from the replicated construction identity. The server adds the shelter sampler's roof or windbreak tag only to accepted matching constructions, never from a client request. See `02-technical-architecture.md` for recipe costs, access rules, controls, replication and current persistence limits.
 
-M9 supersedes the M7 tool-output replacement recipes and material-paid repair. The owner-local Inventory action submits only a carried tool ID; the server selects the owner's current record, validates a visible same-world Workbench or Forge within 250 cm, and restores that damaged or broken known tool to its authored maximum at no cost. Rejected requests preserve condition, and accepted repair awards no Crafting experience. The Workbench and Forge station menus expose a payload-free Repair All action instead of a tool-selection page. The server validates a visible same-world Workbench or Forge within 250 cm, builds a complete candidate from the bounded owner-only carried-tool array, then persists and publishes the accepted repairs together; clients send no list, tool ID, or condition. The paid buildable Grinding Stone keeps its in-world Repair All action and existing construction/save record, with the same atomic carried-list validation. The owner Inventory panel shows private tool condition and its selected-tool repair action; station Repair All does not open a menu. M9 tool and station progression remains transient until the save migration contract passes. The parameterless sharpening multicast remains presentation-only and carries no repair state.
+M9 supersedes the M7 tool-output replacement recipes and material-paid repair. The owner-local Inventory action submits only a carried tool ID; the server selects the owner's current record, validates a visible same-world Workbench or Forge within 250 cm, and restores that damaged or broken known tool to its authored maximum at no cost. Rejected requests preserve condition, and accepted repair awards no Crafting experience. The Workbench and Forge station menus expose a payload-free Repair All action instead of a tool-selection page. The server validates a visible same-world Workbench or Forge within 250 cm, builds a complete candidate from the bounded owner-only carried-tool array, then persists and publishes the accepted repairs together; clients send no list, tool ID, or condition. The paid buildable Grinding Stone keeps its in-world Repair All action and existing construction/save record, with the same atomic carried-list validation. The owner Inventory panel shows private tool condition and its selected-tool repair action; station Repair All does not open a menu. Current-format tool and station progression is persisted directly in the schema-2 save; no compatibility migration runs during development. The parameterless sharpening multicast remains presentation-only and carries no repair state.
 
-The normal Chest is the sole storage construction. Current schema-4 food processing uses the Cooking Rack, Cauldron, and Frying Pan; it has no Smoke Frame or smoke recipe. Recipes consume direct Wood and Stone, and other listed material costs; intermediate Fuel and ConstructionSupply items no longer exist. Cooking recipes consume their listed ingredients only. Wood, Lightwood, Densewood, and Coal each add 60 seconds of hearth fuel, and a lit hearth burns one fuel second per elapsed server second. The server derives cooking heat requirements from the resolved station and a usable lit hearth near both the player and station. Storage schema 2 migrates saved Fuel to Wood, ConstructionSupply into 5 Wood, and assigns persistent per-item GUIDs to legacy stack units. Construction save data remains unchanged.
+The normal Chest is the sole storage construction. Current schema-4 food processing uses the Cooking Rack, Cauldron, and Frying Pan; it has no Smoke Frame or smoke recipe. Recipes consume direct Wood and Stone, and other listed material costs; intermediate Fuel and ConstructionSupply items no longer exist. Cooking recipes consume their listed ingredients only. Wood, Lightwood, Densewood, and Coal each add 60 seconds of hearth fuel, and a lit hearth burns one fuel second per elapsed server second. The server derives cooking heat requirements from the resolved station and a usable lit hearth near both the player and station. Current storage schema 2 requires current item IDs and per-item GUIDs in saved stacks; it does not convert retired IDs or backfill legacy GUIDs. Construction save data remains schema 2.
 
-M9 persistence retains its existing construction and player-discovery save owners and slots: construction remains schema 2, while player discovery now uses schema 3. World construction uses exact seed/revision-7 identity and bounded records for paid station attachments; station level remains derived from accepted nearby attachments. Player discovery uses exact seed/revision/player identity and bounded carried-item and discovery records. Existing schema-1 facts migrate explicitly; the separate M7 sparse ledger stays schema 1. Normal construction writes use schema 2; player-discovery writes validate schema-3 candidates and migrate schema-2 `ToolId` values to `ItemId` on load. Player writes merge only server-revalidated current M9 claims and the owner's current carried-item state; a rejected candidate leaves the existing save and live gameplay unchanged. See `docs/02-technical-architecture.md`.
+M9 persistence uses the existing construction and player-discovery save owners and slots. Both current saves use schema 2. World construction uses exact seed/revision-7 identity and bounded records for paid station attachments; station level remains derived from accepted nearby attachments. Player discovery uses exact seed/revision/player identity and bounded carried-item and discovery records, with carried identities stored directly as `ItemId`. The separate M7 sparse ledger remains schema 1. Normal writes validate complete candidates before replacing a slot. Player writes merge only server-revalidated current M9 claims and the owner's current carried-item state; a rejected candidate leaves the existing save and live gameplay unchanged. There are no user save files during development, so save formats may change directly; do not implement save compatibility migrations until the game is released.
 
 ## M3 wetness and rain override (2026-09-14)
 
@@ -551,7 +551,7 @@ First-wave sources remain birch bark and resinwood for Wood, reed clusters for W
 
 All five Stone-tier equipment acquisitions have repeatable level-one recipes at the Workbench: Axe and Spear cost 3 Wood and 2 Stone each, Knife and Mace cost 1 Wood and 1 Stone each, and Pick costs 3 Wood and 3 Stone. They create a new GUID-bearing item even when the player already carries another copy. The server validates station context, materials, and shared inventory capacity before committing each craft.
 
-Every carried entry occupies one of the same forty inventory cells; there is no separate carried-tool record cap. Each stack row has a cell GUID, and every physical item unit in its quantity has a separate GUID, including units in stackable items. Carried tools retain their own per-item GUIDs and metadata. Matching item IDs may occupy multiple cells; stackable quantities fill stacks up to their catalogue limit and split across cells as needed, while non-stackable copies each occupy a cell. The Stone-tier starting loadout is Stone Knife (`StoneKnife`, 16 durability, 30 slash), Stone Axe (`StoneAxe`, 24 durability, 34 slash), Stone Pick (20 durability, 26 crush), Stone Spear (36 durability, 42 stab), and Stone Mace (16 durability, 30 crush), plus a level-one Construction Hammer. New characters begin with the hammer in hotbar slot 1 and active; right-click opens the Build menu while it is active. Existing player saves receive GUIDs for legacy carried-tool records and persist the additive identity field without a schema-version change. Saves containing `ReedKnife` or `FieldHatchet` are accepted and normalized to the canonical IDs. The hammer has 100 condition. Construction does not currently invoke durability consumption; consuming uses always spend one point. Spear combat damage is server-authored and uses the same active-carried-tool validation as other weapons; its condition does not wear from attacks.
+Every carried entry occupies one of the same forty inventory cells; there is no separate carried-tool record cap. Each stack row has a cell GUID, and every physical item unit in its quantity has a separate GUID, including units in stackable items. Carried tools retain their own per-item GUIDs and metadata. Matching item IDs may occupy multiple cells; stackable quantities fill stacks up to their catalogue limit and split across cells as needed, while non-stackable copies each occupy a cell. The Stone-tier starting loadout is Stone Knife (`StoneKnife`, 16 durability, 30 slash), Stone Axe (`StoneAxe`, 24 durability, 34 slash), Stone Pick (20 durability, 26 crush), Stone Spear (36 durability, 42 stab), and Stone Mace (16 durability, 30 crush), plus a level-one Construction Hammer. New characters begin with the hammer in hotbar slot 1 and active; right-click opens the Build menu while it is active. Current player-discovery schema 2 stores each canonical `ItemId` and valid instance GUID directly. Old carried IDs or missing GUIDs are rejected rather than normalized during development. The hammer has 100 condition. Construction does not currently invoke durability consumption; consuming uses always spend one point. Spear combat damage is server-authored and uses the same active-carried-tool validation as other weapons; its condition does not wear from attacks.
 
 Bronze Axe level 1 costs 4 Lightwood and 3 Stone at a level-one Forge. Its authored stats are 100 maximum durability and 50 slash bonus. Bronze Axe level 2 upgrades that same carried item at a level-two Forge, has no skill requirement, and costs 4 Lightwood and 3 Bronze; its stats become 150 maximum durability and 55 slash bonus. An upgrade changes only those item-authored stats; tool level never changes the item's harvesting tier or unlocks resources. It preserves item ID, inventory cell, and current condition. The server-selected station family and effective level must match the authored progression step exactly; rejection leaves both candidates unchanged.
 
@@ -561,7 +561,7 @@ Stone, Bronze and Iron Maces use the matching knife tier durability (16/48/80) a
 
 A paid Tool Rack or Forge Anvil within 125 cm adds one level to its matching station. One attachment per station, a level-two ceiling, 32 attachments, and 128 total construction records bound progression. Placement and station use recheck visibility and the normal 250 cm range. Station levels are derived from placed actors, not saved as numbers.
 
-Inventory's selected-tool repair is free at a visible same-world Workbench or Forge within 250 cm. The Workbench and Forge Repair All actions restore every damaged carried tool in one operation without changing levels or granting Crafting XP; the server validates the nearby station and the complete carried-tool candidate before saving or publishing anything. Grinding Stone Interact performs the same atomic Repair All against its validated carried list; malformed records reject the whole action. Its accepted 1.2-second sharpening pose is cosmetic and carries no tool state. M9 free repair supersedes historical M7 material-paid repair and broken-tool replacement recipes. Accepted tool changes save the validated schema-3 player candidate before publication.
+Inventory's selected-tool repair is free at a visible same-world Workbench or Forge within 250 cm. The Workbench and Forge Repair All actions restore every damaged carried tool in one operation without changing levels or granting Crafting XP; the server validates the nearby station and the complete carried-tool candidate before saving or publishing anything. Grinding Stone Interact performs the same atomic Repair All against its validated carried list; malformed records reject the whole action. Its accepted 1.2-second sharpening pose is cosmetic and carries no tool state. M9 free repair supersedes historical M7 material-paid repair and broken-tool replacement recipes. Accepted tool changes save the validated schema-2 player candidate before publication.
 
 ## Camp crafting and station services
 
@@ -599,16 +599,17 @@ Smoke Frame IDs are absent from schema 4. The steady-meal item use remains
 transient and does not add save data.
 
 All construction recipes consume the raw materials listed in the catalogue.
-Former `ConstructionSupply` values now convert to 5 Wood each;
-duplicate ingredients were merged. The Construction Hammer places the hearth,
+Current construction recipes use raw materials directly; retired
+`ConstructionSupply` saves are not converted during development. Duplicate
+ingredients in current recipes are merged. The Construction Hammer places the hearth,
 floor, wall, roof, Workbench, Forge, Workbench Tool Rack, and Forge Anvil
 directly from their recipe costs without creating a carried kit. Other buildable
 construction recipes retain their existing validated placement path.
 
 | Retired item or recipe | Current behavior |
 | --- | --- |
-| `Fuel` | Removed. Hearth placement and refuelling consume raw Wood, Lightwood, Densewood, or Coal directly. Cooking recipes consume only their listed ingredients. |
-| `ConstructionSupply` | Removed. Legacy chest saves convert each value into 5 Wood. |
+| `Fuel` | Removed. Hearth placement and refuelling consume raw Wood, Lightwood, Densewood, or Coal directly. Cooking recipes consume only their listed ingredients; old saved IDs are not converted during development. |
+| `ConstructionSupply` | Removed. Current saves do not convert the retired ID into Wood. |
 | `RaisedStorage` | Removed. `Storage` produces the normal Chest only. |
 | `Timber` | Removed as an intermediate recipe; construction consumes Wood directly. |
 | Smoke Frame and legacy smoke/roast recipe IDs | Absent from schema 4. Current cooking uses the six recipe IDs in the table above. |
@@ -621,11 +622,11 @@ fuel item, but the current world loot catalogue has no natural Coal source.
 
 ## Compatibility and authority
 
-The JSON source remains schema 4 and the storage SaveGame is schema 2. Schema-1
-chest data migrates on load: legacy Fuel converts one-for-one to Wood, each
-ConstructionSupply converts to 5 Wood, and every unit receives a
-stable item GUID. The migration validates and splits resulting stacks within
-existing item and chest limits, then saves the upgraded chest data before use.
+The JSON source remains schema 4 and the storage SaveGame is schema 2. Current
+chest records must already use active catalogue IDs and include a stable item
+GUID per unit. Incompatible schema versions, retired item IDs, or missing GUIDs
+fail validation and are left untouched; no saved chest data is converted or
+rewritten during development.
 
 The server validates recipe identity, batch bounds, item IDs, required
 stations, station-local hearth access and heat for food processing, and output
@@ -773,8 +774,9 @@ already attached pawn. Invalid or incompatible records are preserved without
 overwrite. Ocean discovery `DiscoveryClaimed` ledgers are loaded for the
 authenticated player at login, so reconnects keep duplicate rewards rejected.
 
-Schema zero returns `MigrateBeforeLoad` and requires an explicit migration
-before load; unknown future schemas fail closed. The focused
+Schema zero and unknown future versions fail closed. Do not add compatibility
+migrations before release; development save formats may change directly.
+The focused
 `Kalmala.World.OceanTravel.PersistenceContract` automation round-trips both
 scopes in memory and through a local save slot, and rejects mismatched
 identities, malformed bounds, orphaned vessel references, and invalid seats.
@@ -845,7 +847,7 @@ The slate adds no boss encounter or combat gate. Boss rewards remain optional
 under the existing game-design contract and can be considered separately if a
 later accepted candidate needs them.
 
-## Save identity and migration
+## Save identity and format policy
 
 ## Identity and ownership
 
@@ -876,10 +878,10 @@ are not reinterpreted or moved.
 
 | State | Scope and saved value | Bound and validation |
 | --- | --- | --- |
-| Carried tools | Authenticated player: canonical tool ID, authored tool level, and condition for each carried tool | At most the existing six records. IDs must be unique and in the tool catalogue; levels must match that tool's authored tier; condition must be finite and within its authored range. No skill ledger or pack inventory is included. |
+| Carried tools | Authenticated player: canonical item ID, authored tool level, and condition for each carried tool | At most the existing inventory-slot bound. IDs must be unique and in the tool catalogue; levels must match that item's authored tier; condition must be finite and within its authored range. No skill ledger or pack inventory is included. |
 | Workbench/Forge progression | World: accepted Workbench tool-rack and Forge anvil construction records (stable construction ID, existing kit identity, transform) | Existing 128 construction-record total and 32 attachment cap. At most one compatible attachment may upgrade each station. Effective level is re-derived from same-world placed actors and capped at level 2; no numeric station-level save field is added. |
 | Land discoveries | Authenticated player: existing stable discovery IDs, including the two M9 land-discovery IDs | Preserve the old 64-entry first-wave allowance and add at most 64 M9 claims; schema 2 caps the combined set at 128 unique valid IDs, each no longer than the existing 128-character stable-ID limit. |
-| Other camp structures | World: existing schema-1 construction records for the approved Forge, Grinding Stone, normal Chest, legacy Smoke Frame records, and other accepted structures | Preserve existing identities and records during migration; count all structures against the same 128-record cap. Smoke Frame remains a legacy save identity but has no item or recipe in the current schema-4 catalogue. |
+| Other camp structures | World: supported construction records in the current schema-2 format | Count all structures against the same 128-record cap. Unsupported or malformed records fail validation. |
 
 No saved record contains a client-selected result, cost, tool level, station
 level, reward, actor pointer, or hidden discovery descriptor. Clients continue
@@ -896,54 +898,34 @@ pawn-lifetime inventory and is lost on reconnect. The claim is not re-awarded;
 the materials remain available from their ordinary sources. This contract does
 not claim general inventory persistence.
 
-## Schema and migration policy
+## Development save-format policy
 
-1. Bump `UKalmalaConstructionSaveGame` and `UKalmalaPlayerDiscoverySaveGame`
-   from schema 1 to schema 2 in their existing slots. Do not change the M7
-   sparse-ledger schema or the storage schema.
-2. Migrate a construction schema-1 payload only when its seed matches the
-   requested world and every legacy record is valid, unique, and within the
-   existing limit. The schema-1 format used the current generator without
-   storing its revision, so the explicit migration binds it to revision 7,
-   preserves every construction ID/kit/transform without moving or
-   re-generating it, and begins with no attachment records.
-3. Migrate a player-discovery schema-1 payload only when its seed and
-   authenticated player identity match and its existing discovery/effect sets
-   validate. Bind it to revision 7, preserve those sets, and initialize tool
-   records and M9 land claims empty because schema 1 stored neither. Session
-   claims are not imported from a schema-1 save; any still-live claims must be
-   revalidated and merged on the first schema-2 write under step 4.
-4. On the first schema-2 write, merge the validated migrated facts with the
-   current server-owned M9 facts for that same scope. Re-derive construction
-   descriptors and discovery IDs from current authoritative state; never
-   accept client save contents. New worlds/players start with an empty schema-2
-   record plus the normal authored starting tools.
-5. Validate the complete candidate, including duplicate IDs, catalogue IDs,
-   transforms, condition/level ranges, scope, and all caps, before replacing
-   the saved slot or publishing the live transaction. Failure leaves the old
-   slot and live state unchanged; never truncate, partially migrate, or reset
-   a valid save to make it fit. A save failure rejects the associated
-   progression, placement, or claim transaction.
-6. Current schema 2 loads only on an exact identity match. A known schema 1
-   uses only the explicit migrations above. Schema 0 requires a separately
-   reviewed migration and is rejected until one exists; versions greater than
-   2 fail closed. A malformed, duplicate, mismatched, or over-cap record is
-   rejected without overwriting the original bytes.
+The game is still in development and has no user save files to preserve. Do not
+add SaveGame compatibility migrations before the game is released. During
+development, change the active save format and schema directly as needed;
+incompatible or unsupported saved data fails closed and is left untouched.
+This applies to player discoveries and equipment, world construction,
+storage, travel, sparse world/player records, and local map saves. After the
+game is released, introduce a migration only when released user data needs to
+be preserved, with an explicit migration design and focused verification.
 
-Normal construction writers use schema 2; player-discovery writers use schema 3. Valid schema-1 discovery facts migrate on first write, and schema-2 carried-item records migrate their `ToolId` property to `ItemId` on load. Writers merge only re-derived server-owned current state. Failed writes preserve previous bytes and reject/roll back associated item, construction, or reward publication. Earlier candidate-only and session-only progression handoffs are superseded.
+All current writes still validate the complete candidate, including identity,
+duplicate IDs, catalogue IDs, transforms, condition/level ranges, and bounds,
+before replacing a slot or publishing the live transaction. Failed writes
+preserve previous bytes and reject or roll back associated gameplay changes.
+Current construction, player-discovery, and chest storage saves use schema 2;
+other save owners retain their current versions.
 
-## Frozen save and catalogue versions
+## Current save and catalogue versions
 
-These are the current formats in the source tree. The construction owner remains
-at schema 2; the player-discovery owner is schema 3 and migrates valid schema-2
-carried-item IDs as well as schema-1 facts under
-`docs/02-technical-architecture.md`. Other formats stay at their current
-versions.
+These are the current formats in the source tree. Save versions may change
+directly during development; compatibility migrations are deferred until after
+release.
 
-| Save owner or data contract | Frozen current version | Scope |
+| Save owner or data contract | Current version | Scope |
 | --- | ---: | --- |
 | Construction records and station attachments (`UKalmalaConstructionSaveGameV2`) | Save schema 2 | Server world |
-| Player discoveries, learned effects, M9 claims, and carried items (`UKalmalaPlayerDiscoverySaveGameV2`) | Save schema 3 | Authenticated player and exact world |
+| Player discoveries, learned effects, M9 claims, and carried items (`UKalmalaPlayerDiscoverySaveGameV2`) | Save schema 2 | Authenticated player and exact world |
 | M7 sparse persistence ledger (`UKalmalaM7PersistenceSaveGame`) | Save schema 1 | Identity-scoped sparse world/player facts |
 | Generated population deltas (`UKalmalaWorldPopulationSaveGame`) | Save schema 1 | Server world |
 | Chest storage (`UKalmalaStorageSaveGame`) | Save schema 2 | Server world |
@@ -952,13 +934,12 @@ versions.
 | Local map pins (`UKalmalaWorldMapPinsSaveGame`) | Save schema 1 | Local player |
 | `Content/Data/GameCatalogues.json` and `Content/Data/GameCatalogues/{items,recipes,tools}/*.json` | Catalogue schema 14 | Manifest and authoritative item-family, recipe-family, Building Hammer, and tool progression definitions; not a save schema |
 
-Do not change a frozen save schema, slot identity, world identity, or migration
-policy as routine release hardening. A required compatibility change needs
-explicit user direction, a versioned migration and recovery plan, focused
-round-trip/rejection coverage, and an updated release rationale before the
-roadmap is reopened.
+Before release, do not add compatibility migrations; change development save
+formats directly and reject incompatible local data. After release, any change
+that affects user saves needs an explicit migration and recovery plan, focused
+round-trip/rejection coverage, and an updated release rationale.
 
-The accepted M10 gameplay baseline stays frozen except for explicit subsequent user-directed scope such as M13/M14. No routine documentation or release cleanup changes save schemas, identities, migrations, platform, business model, or online-service commitments.
+The accepted M10 gameplay baseline stays frozen except for explicit subsequent user-directed scope such as M13/M14. No routine documentation or release cleanup changes save identities, platform, business model, or online-service commitments.
 
 ## Shared inventory and hotbar
 
@@ -2673,7 +2654,7 @@ Axes and pickaxes require integer `MaterialTier` in their item profiles: 1 = Sto
 
 Carried equipment classification is derived from the validated item family; profiles contain no `ItemCategory` field. Knives/axes/maces/spears are weapons across all tiers; pickaxes and Construction Hammer are tools. Inventory browsing separates Tools and Weapons and details show the classification. Classification does not replace harvesting Action or MaterialTier and does not change shared equipment lifecycle, server repair/crafting/combat or saved IDs.
 
-The schema-12 profile format introduced `ItemId`, `DisplayName` and `Description` instead of `ToolId`, `ToolSet`, `ToolKind`, `Action` and `RequiredSkill`. Stats and MaterialTier remain authored; omitted MinimumSkillLevel defaults internally to 1. The loader derives Starter for Stone identities, Crafted for Bronze/Iron, Utility for ConstructionHammer; Axe maps to Woodcutting, Pick to Mining, Knife to Gathering, Mace/Spear/Hammer to None, with the same required skill as action. Unknown identities and retired authored fields fail closed. At schema 12 this was a catalogue-only change; the later save-property rename is handled by the schema-3 player-save migration above.
+The schema-12 profile format introduced `ItemId`, `DisplayName` and `Description` instead of `ToolId`, `ToolSet`, `ToolKind`, `Action` and `RequiredSkill`. Stats and MaterialTier remain authored; omitted MinimumSkillLevel defaults internally to 1. The loader derives Starter for Stone identities, Crafted for Bronze/Iron, Utility for ConstructionHammer; Axe maps to Woodcutting, Pick to Mining, Knife to Gathering, Mace/Spear/Hammer to None, with the same required skill as action. Unknown identities and retired authored fields fail closed. At schema 12 this was a catalogue-only change; current player-discovery schema 2 stores `ItemId` directly, with no development-time save migration.
 
 ## Attack-driven resource trees (2026-10-13)
 
@@ -2689,7 +2670,7 @@ Equipment acquisition and upgrade-cost records omit `RequiredSkill: None` and `R
 
 Crafting/acquisition and item upgrades have no player-level, skill-level or skill-unlock eligibility gate. Their server transactions and owner requirement/blocker text use the station context/level, materials, capacity and current item/predecessor level only. Skill XP awards from accepted ordinary crafting/cooking remain rewards, not prerequisites. Equipment progression no longer reads the character skill component; its legacy pure-function skill-ledger argument is ignored for caller compatibility. Station-family and existing level matching, sight/range, payment and authority checks remain. The station progression regression now includes an uninitialized skill ledger alongside low-level and missing ledgers; Forge presentation verification requires station-only wording. Build/automation/UI runtime verification remains deferred.
 
-Ordinary material definitions, including natural materials, are grouped in `items/materials/wood.json`, `items/materials/ore.json`, `items/materials/metal.json`, `items/materials/cooking-ingredients.json`, `items/materials/crafting-ingredients.json`, `items/materials/hides.json`, and `items/materials/others.json`. Wood contains Wood, Lightwood, and Densewood; Ore contains Stone; Metal contains Iron; Crafting Ingredients contain Amber; Cooking Ingredients contain Frost Salt; Hides contain Boar Hide and Deer Hide; Others contains Coal. The old `PeatAmber` storage ID is migrated to `Amber` when storage records load. Buildable items under `items/buildItems/` use the root `items` array and ordinary `itemFiles`. Equipment family and Building Hammer JSON files under `items/equipment/` use the same root array. The loader permits `buildItems` and `materials` only for ordinary items, `equipment` only for item profiles, and `stations` only for ordinary and item acquisition recipe files. The manifest separates ordinary `itemFiles` from equipment `itemProfileFiles`; all equipment profiles, including Building Hammer, load into the runtime tool catalogue. Profiles are sorted by ItemId; bounds, validation and behavior remain unchanged; the retired toolProfiles root is no longer read.
+Ordinary material definitions, including natural materials, are grouped in `items/materials/wood.json`, `items/materials/ore.json`, `items/materials/metal.json`, `items/materials/cooking-ingredients.json`, `items/materials/crafting-ingredients.json`, `items/materials/hides.json`, and `items/materials/others.json`. Wood contains Wood, Lightwood, and Densewood; Ore contains Stone; Metal contains Iron; Crafting Ingredients contain Amber; Cooking Ingredients contain Frost Salt; Hides contain Boar Hide and Deer Hide; Others contains Coal. Current save data must use `Amber` directly; old `PeatAmber` save IDs are not converted during development. Buildable items under `items/buildItems/` use the root `items` array and ordinary `itemFiles`. Equipment family and Building Hammer JSON files under `items/equipment/` use the same root array. The loader permits `buildItems` and `materials` only for ordinary items, `equipment` only for item profiles, and `stations` only for ordinary and item acquisition recipe files. The manifest separates ordinary `itemFiles` from equipment `itemProfileFiles`; all equipment profiles, including Building Hammer, load into the runtime tool catalogue. Profiles are sorted by ItemId; bounds, validation and behavior remain unchanged; the retired toolProfiles root is no longer read.
 
 Recipe category JSON uses the root `recipes` array, including equipment acquisitions. Ordinary recipes under `recipes/stations/` are grouped by their crafting station; the Inventory group contains the Building Hammer recipe, while build-menu construction remains in `recipes/building.json`. Equipment acquisition records share the corresponding station file and `recipes` array; the loader routes records with `ItemId` into the runtime tool catalogue. Individual station recipe arrays may be empty. Equipment upgrade-cost files are grouped by family in `item-level-up/costs/axes.json`, `knives.json`, `pickaxes.json`, `spears.json`, and `maces.json`; each file defines costs for Stone, Bronze, and Iron items. Stone and Iron generally use acquisition ingredients; Bronze generally replaces Stone with Bronze bars at the same quantity while retaining the wood cost. Bronze Axe, Knife, Spear, and Mace acquisitions and upgrades use Lightwood in place of Wood; Iron Axe, Knife, Spear, and Mace acquisitions and upgrades use Densewood. Pickaxe costs remain unchanged. Stone upgrades use Workbench, and Bronze/Iron upgrades use Forge. The Construction Hammer upgrade cost lives in `item-level-up/costs/construction-hammer.json`. Upgrade costs accept Starter, Crafted, and Utility profiles. The loader sorts ordinary recipes and acquisitions by RecipeId, and upgrade costs by ItemId. Cost scaling, station requirements and validation are preserved; retired `toolRecipes`/`toolUpgradeCosts` roots are not read.
 

@@ -72,33 +72,6 @@ bool UKalmalaConstructionSaveGameV2::IsValidRecord(const FKalmalaConstructionSav
     return FKalmalaToolProgressionContract::IsStationAttachmentKit(Record.KitId);
 }
 
-bool UKalmalaConstructionSaveGameV2::TryMigrateSchema1(
-    const UKalmalaConstructionSaveGame* Legacy,
-    const FKalmalaWorldGenerationConfig& RequestedWorld,
-    UObject* Outer,
-    UKalmalaConstructionSaveGameV2*& OutMigrated)
-{
-    OutMigrated = nullptr;
-    if (Legacy == nullptr || Legacy->GetSchemaVersion() != UKalmalaConstructionSaveGame::CurrentSchemaVersion
-        || !RequestedWorld.IsValid() || !Legacy->MatchesWorld(RequestedWorld)
-        || Legacy->GetRecords().Num() > MaxRecords || !HasUniqueConstructionIds(Legacy->GetRecords())) return false;
-
-    for (const FKalmalaConstructionSaveRecord& Record : Legacy->GetRecords())
-    {
-        // Schema one had no approved M9 records. A session-only or malformed
-        // record must never be silently carried into the migrated container.
-        if (!UKalmalaConstructionSaveGame::IsValidRecord(Record) || !IsValidRecord(Record)) return false;
-    }
-
-    UKalmalaConstructionSaveGameV2* Candidate = NewObject<UKalmalaConstructionSaveGameV2>(Outer);
-    if (Candidate == nullptr) return false;
-    Candidate->InitializeForWorld(RequestedWorld);
-    Candidate->Records = Legacy->GetRecords();
-    if (!Candidate->MatchesWorld(RequestedWorld)) return false;
-    OutMigrated = Candidate;
-    return true;
-}
-
 bool UKalmalaConstructionSaveGame::AddRecord(const FKalmalaConstructionSaveRecord& Record)
 {
     if (!IsValidRecord(Record) || Records.Num() >= MaxRecords
@@ -154,10 +127,6 @@ bool UKalmalaConstructionSaveGameV2::TryBuildWriteCandidate(
     {
         if (!Current->MatchesWorld(RequestedWorld)) return false;
         Candidate = DuplicateObject<UKalmalaConstructionSaveGameV2>(Current, Outer);
-    }
-    else if (const auto* Legacy = Cast<UKalmalaConstructionSaveGame>(Existing))
-    {
-        if (!TryMigrateSchema1(Legacy, RequestedWorld, Outer, Candidate)) return false;
     }
     else
     {

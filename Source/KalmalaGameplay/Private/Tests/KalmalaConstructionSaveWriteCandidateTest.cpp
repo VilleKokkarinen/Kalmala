@@ -26,39 +26,39 @@ bool FKalmalaConstructionSaveWriteCandidateTest::RunTest(const FString& Paramete
         return UGameplayStatics::SaveGameToMemory(Save, Bytes);
     };
 
-    UKalmalaConstructionSaveGame* Legacy = NewObject<UKalmalaConstructionSaveGame>(GetTransientPackage());
-    Legacy->InitializeForWorld(World);
-    TestTrue(TEXT("Schema 1 contains an existing floor"), Legacy->AddRecord(MakeRecord(TEXT("floor-01"), TEXT("FloorKit"))));
-    TestTrue(TEXT("Schema 1 contains an existing workbench"), Legacy->AddRecord(MakeRecord(TEXT("workbench-01"), TEXT("WorkbenchKit"))));
-    TArray<uint8> LegacyBefore;
-    TestTrue(TEXT("Legacy slot data serializes before candidate creation"), Serialize(Legacy, LegacyBefore));
+    UKalmalaConstructionSaveGameV2* Existing = NewObject<UKalmalaConstructionSaveGameV2>(GetTransientPackage());
+    Existing->InitializeForWorld(World);
+    TestTrue(TEXT("Current schema contains an existing floor"), Existing->AddRecord(MakeRecord(TEXT("floor-01"), TEXT("FloorKit"))));
+    TArray<uint8> ExistingBefore;
+    TestTrue(TEXT("Current slot serializes before candidate creation"), Serialize(Existing, ExistingBefore));
 
-    UKalmalaConstructionSaveGameV2* MigratedCandidate = nullptr;
-    TestTrue(TEXT("A valid schema-1 slot builds a schema-2 write candidate"),
-        UKalmalaConstructionSaveGameV2::TryBuildWriteCandidate(Legacy, World, GetTransientPackage(), MigratedCandidate));
-    if (TestNotNull(TEXT("Migration returns a candidate separate from the old save"), MigratedCandidate))
+    UKalmalaConstructionSaveGameV2* Candidate = nullptr;
+    TestTrue(TEXT("A current schema slot builds a new write candidate"),
+        UKalmalaConstructionSaveGameV2::TryBuildWriteCandidate(Existing, World, GetTransientPackage(), Candidate));
+    if (TestNotNull(TEXT("Candidate is separate from the existing save"), Candidate))
     {
-        TestTrue(TEXT("Migrated candidate carries exact world identity"), MigratedCandidate->MatchesWorld(World));
-        TestEqual(TEXT("Migrated candidate preserves every legacy construction"), MigratedCandidate->GetRecords().Num(), 2);
+        TestTrue(TEXT("Candidate carries exact world identity"), Candidate->MatchesWorld(World));
+        TestEqual(TEXT("Candidate preserves existing constructions"), Candidate->GetRecords().Num(), 1);
         TestTrue(TEXT("First write accepts a validated server attachment"),
-            MigratedCandidate->AddStationAttachmentRecord(MakeRecord(TEXT("workbench-rack-01"), TEXT("WorkbenchToolRackKit"))));
-        TestTrue(TEXT("Complete first-write candidate revalidates"), MigratedCandidate->MatchesWorld(World));
-        TestEqual(TEXT("Candidate retains legacy facts plus the new attachment"), MigratedCandidate->GetRecords().Num(), 3);
+            Candidate->AddStationAttachmentRecord(MakeRecord(TEXT("workbench-rack-01"), TEXT("WorkbenchToolRackKit"))));
+        TestTrue(TEXT("Complete candidate revalidates"), Candidate->MatchesWorld(World));
+        TestEqual(TEXT("Candidate retains existing facts plus the new attachment"), Candidate->GetRecords().Num(), 2);
 
         TArray<uint8> CandidateBytes;
-        TestTrue(TEXT("Schema-2 first-write candidate serializes"), Serialize(MigratedCandidate, CandidateBytes));
+        TestTrue(TEXT("Schema-2 write candidate serializes"), Serialize(Candidate, CandidateBytes));
         UKalmalaConstructionSaveGameV2* Reloaded = Cast<UKalmalaConstructionSaveGameV2>(
             UGameplayStatics::LoadGameFromMemory(CandidateBytes));
-        if (TestNotNull(TEXT("First-write candidate reloads as schema 2"), Reloaded))
+        if (TestNotNull(TEXT("Write candidate reloads as schema 2"), Reloaded))
         {
             TestTrue(TEXT("Reloaded candidate remains valid for the same world"), Reloaded->MatchesWorld(World));
-            TestEqual(TEXT("Reloaded candidate preserves migrated and new records"), Reloaded->GetRecords().Num(), 3);
+            TestEqual(TEXT("Reloaded candidate preserves existing and new records"), Reloaded->GetRecords().Num(), 2);
         }
     }
+    TestEqual(TEXT("The source save was not changed by candidate edits"), Existing->GetRecords().Num(), 1);
 
-    TArray<uint8> LegacyAfter;
-    TestTrue(TEXT("Legacy source still serializes after candidate creation"), Serialize(Legacy, LegacyAfter));
-    TestTrue(TEXT("First-write construction candidate leaves the old save bytes unchanged"), LegacyBefore == LegacyAfter);
+    TArray<uint8> ExistingAfter;
+    TestTrue(TEXT("Existing source still serializes after candidate creation"), Serialize(Existing, ExistingAfter));
+    TestTrue(TEXT("Candidate creation leaves the existing save bytes unchanged"), ExistingBefore == ExistingAfter);
 
     UKalmalaConstructionSaveGameV2* NewWorldCandidate = nullptr;
     TestTrue(TEXT("A new world builds an empty schema-2 candidate"),
@@ -72,9 +72,9 @@ bool FKalmalaConstructionSaveWriteCandidateTest::RunTest(const FString& Paramete
     FKalmalaWorldGenerationConfig OtherWorld = World;
     ++OtherWorld.WorldSeed;
     UKalmalaConstructionSaveGameV2* RejectedCandidate = nullptr;
-    TestFalse(TEXT("Mismatched legacy save cannot build a replacement candidate"),
-        UKalmalaConstructionSaveGameV2::TryBuildWriteCandidate(Legacy, OtherWorld, GetTransientPackage(), RejectedCandidate));
-    TestNull(TEXT("Rejected migration exposes no candidate"), RejectedCandidate);
+    TestFalse(TEXT("Mismatched current save cannot build a replacement candidate"),
+        UKalmalaConstructionSaveGameV2::TryBuildWriteCandidate(Existing, OtherWorld, GetTransientPackage(), RejectedCandidate));
+    TestNull(TEXT("Rejected mismatched candidate exposes no replacement"), RejectedCandidate);
 
     return true;
 }

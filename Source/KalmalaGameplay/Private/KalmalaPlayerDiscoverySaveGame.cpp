@@ -7,11 +7,10 @@ namespace
     bool IsValidToolRecordData(const FKalmalaPlayerToolSaveRecord& Record)
     {
         const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(Record.ItemId);
-        const FName CanonicalId = FKalmalaToolLifecycleContract::CanonicalizeItemId(Record.ItemId);
         const int32 MaxDurability = FKalmalaToolLifecycleContract::GetMaxDurability(Record.ItemId, Record.ToolLevel);
-        return Definition != nullptr && CanonicalId == Definition->ItemId
+        return Definition != nullptr && Record.ItemId == Definition->ItemId
             && FKalmalaToolProgressionContract::IsValidToolLevel(Record.ItemId, Record.ToolLevel)
-            && Record.ToolId.IsNone() && MaxDurability > 0
+            && MaxDurability > 0
             && Record.Condition >= 0 && Record.Condition <= MaxDurability;
     }
 
@@ -128,7 +127,7 @@ bool UKalmalaPlayerDiscoverySaveGameV2::MatchesPlayer(
         || InPlayerIdentity.IsEmpty() || InPlayerIdentity.Len() > FKalmalaM7SaveIdentity::MaxOwnerIdentityLength
         || PlayerIdentity != InPlayerIdentity
         || !Identity.Matches(FKalmalaM7SaveIdentity::ForPlayer(InWorld.WorldSeed, InPlayerIdentity))
-        || DiscoveryIds.Num() > MaxLegacyDiscoveries || M9ClaimIds.Num() > MaxM9Claims
+        || DiscoveryIds.Num() > MaxDiscoveries || M9ClaimIds.Num() > MaxM9Claims
         || DiscoveryIds.Num() + M9ClaimIds.Num() > MaxCombinedDiscoveries
         || LearnedEffectIds.Num() > MaxLearnedEffects || ToolRecords.Num() > MaxInventorySlots)
     {
@@ -174,7 +173,7 @@ bool UKalmalaPlayerDiscoverySaveGameV2::HasLearnedEffect(const FString& Id) cons
 bool UKalmalaPlayerDiscoverySaveGameV2::AddDiscovery(const FString& Id)
 {
     if (!MatchesPlayer(WorldConfig, PlayerIdentity) || !IsValidLegacyDiscoveryId(Id)
-        || DiscoveryIds.Contains(Id) || DiscoveryIds.Num() >= MaxLegacyDiscoveries
+        || DiscoveryIds.Contains(Id) || DiscoveryIds.Num() >= MaxDiscoveries
         || DiscoveryIds.Num() + M9ClaimIds.Num() >= MaxCombinedDiscoveries) return false;
     DiscoveryIds.Add(Id);
     return true;
@@ -200,7 +199,6 @@ bool UKalmalaPlayerDiscoverySaveGameV2::AddLearnedEffect(const FString& Id)
 bool UKalmalaPlayerDiscoverySaveGameV2::AddToolRecord(const FKalmalaPlayerToolSaveRecord& Record)
 {
     FKalmalaPlayerToolSaveRecord CanonicalRecord = Record;
-    CanonicalRecord.ItemId = FKalmalaToolLifecycleContract::CanonicalizeItemId(Record.ItemId);
     if (!CanonicalRecord.InstanceGuid.IsValid()) CanonicalRecord.InstanceGuid = FGuid::NewGuid();
     if (!MatchesPlayer(WorldConfig, PlayerIdentity) || !IsValidToolRecord(CanonicalRecord)
         || ToolRecords.Num() >= MaxInventorySlots
@@ -219,102 +217,11 @@ bool UKalmalaPlayerDiscoverySaveGameV2::TryReplaceToolRecords(
     TSet<FGuid> SeenGuids;
     for (FKalmalaPlayerToolSaveRecord& Record : Candidate)
     {
-        Record.ItemId = FKalmalaToolLifecycleContract::CanonicalizeItemId(Record.ItemId);
         if (!Record.InstanceGuid.IsValid()) Record.InstanceGuid = FGuid::NewGuid();
         if (!IsValidToolRecord(Record) || SeenGuids.Contains(Record.InstanceGuid)) return false;
         SeenGuids.Add(Record.InstanceGuid);
     }
 
     ToolRecords = MoveTemp(Candidate);
-    return true;
-}
-
-bool UKalmalaPlayerDiscoverySaveGameV2::EnsureToolInstanceGuids(bool& bOutChanged)
-{
-    bOutChanged = false;
-    if (ToolRecords.Num() > MaxInventorySlots) return false;
-    TSet<FGuid> SeenGuids;
-    for (FKalmalaPlayerToolSaveRecord& Record : ToolRecords)
-    {
-        if (!IsValidToolRecordData(Record)) return false;
-        if (!Record.InstanceGuid.IsValid())
-        {
-            do { Record.InstanceGuid = FGuid::NewGuid(); } while (!Record.InstanceGuid.IsValid() || SeenGuids.Contains(Record.InstanceGuid));
-            bOutChanged = true;
-        }
-        if (SeenGuids.Contains(Record.InstanceGuid)) return false;
-        SeenGuids.Add(Record.InstanceGuid);
-    }
-    return true;
-}
-
-bool UKalmalaPlayerDiscoverySaveGameV2::TryMigrateSchema2(
-    const UKalmalaPlayerDiscoverySaveGameV2* Legacy,
-    const FKalmalaWorldGenerationConfig& RequestedWorld,
-    const FString& AuthenticatedPlayerIdentity,
-    UObject* Outer,
-    UKalmalaPlayerDiscoverySaveGameV2*& OutMigrated)
-{
-    OutMigrated = nullptr;
-    const FKalmalaM7SaveIdentity ExpectedIdentity = FKalmalaM7SaveIdentity::ForPlayer(
-        RequestedWorld.WorldSeed, AuthenticatedPlayerIdentity);
-    if (Legacy == nullptr || Legacy->SchemaVersion != PreviousSchemaVersionValue
-        || !RequestedWorld.IsValid() || !ExpectedIdentity.IsValid()
-        || Legacy->WorldConfig != RequestedWorld || Legacy->PlayerIdentity != AuthenticatedPlayerIdentity
-        || !Legacy->Identity.Matches(ExpectedIdentity)) return false;
-
-    UKalmalaPlayerDiscoverySaveGameV2* Candidate = NewObject<UKalmalaPlayerDiscoverySaveGameV2>(Outer);
-    if (Candidate == nullptr) return false;
-    Candidate->InitializeForPlayer(RequestedWorld, AuthenticatedPlayerIdentity);
-    Candidate->DiscoveryIds = Legacy->DiscoveryIds;
-    Candidate->M9ClaimIds = Legacy->M9ClaimIds;
-    Candidate->LearnedEffectIds = Legacy->LearnedEffectIds;
-    Candidate->ToolRecords = Legacy->ToolRecords;
-    for (FKalmalaPlayerToolSaveRecord& Record : Candidate->ToolRecords)
-    {
-        if (!Record.ItemId.IsNone() || Record.ToolId.IsNone()) return false;
-        Record.ItemId = FKalmalaToolLifecycleContract::CanonicalizeItemId(Record.ToolId);
-        Record.ToolId = NAME_None;
-    }
-
-    bool bMigratedInstanceGuids = false;
-    if (!Candidate->EnsureToolInstanceGuids(bMigratedInstanceGuids)) return false;
-    if (!Candidate->MatchesPlayer(RequestedWorld, AuthenticatedPlayerIdentity)) return false;
-    OutMigrated = Candidate;
-    return true;
-}
-
-bool UKalmalaPlayerDiscoverySaveGameV2::TryMigrateSchema1(
-    const UKalmalaPlayerDiscoverySaveGame* Legacy,
-    const FKalmalaWorldGenerationConfig& RequestedWorld,
-    const FString& AuthenticatedPlayerIdentity,
-    UObject* Outer,
-    UKalmalaPlayerDiscoverySaveGameV2*& OutMigrated)
-{
-    OutMigrated = nullptr;
-    const FKalmalaM7SaveIdentity ExpectedIdentity = FKalmalaM7SaveIdentity::ForPlayer(
-        RequestedWorld.WorldSeed, AuthenticatedPlayerIdentity);
-    if (Legacy == nullptr || Legacy->SchemaVersion != UKalmalaPlayerDiscoverySaveGame::Schema
-        || !RequestedWorld.IsValid() || !ExpectedIdentity.IsValid()
-        || !Legacy->Matches(RequestedWorld, AuthenticatedPlayerIdentity)
-        || Legacy->DiscoveryIds.Num() > MaxLegacyDiscoveries
-        || Legacy->LearnedEffectIds.Num() > MaxLearnedEffects) return false;
-
-    for (const FString& DiscoveryId : Legacy->DiscoveryIds)
-    {
-        if (!IsValidLegacyDiscoveryId(DiscoveryId)) return false;
-    }
-    for (const FString& EffectId : Legacy->LearnedEffectIds)
-    {
-        if (!IsKnownLearnedEffectId(EffectId)) return false;
-    }
-
-    UKalmalaPlayerDiscoverySaveGameV2* Candidate = NewObject<UKalmalaPlayerDiscoverySaveGameV2>(Outer);
-    if (Candidate == nullptr) return false;
-    Candidate->InitializeForPlayer(RequestedWorld, AuthenticatedPlayerIdentity);
-    Candidate->DiscoveryIds = Legacy->DiscoveryIds;
-    Candidate->LearnedEffectIds = Legacy->LearnedEffectIds;
-    if (!Candidate->MatchesPlayer(RequestedWorld, AuthenticatedPlayerIdentity)) return false;
-    OutMigrated = Candidate;
     return true;
 }

@@ -21,12 +21,11 @@ enum class EKalmalaM7SparseDeltaKind : uint8
     DiscoveryClaimed
 };
 
-/** Explicit load policy: migration is never implicit and future data fails closed. */
+/** Only current-schema data loads during development; all other versions fail closed. */
 UENUM()
 enum class EKalmalaM7SchemaDecision : uint8
 {
     AcceptCurrent,
-    MigrateBeforeLoad,
     Reject
 };
 

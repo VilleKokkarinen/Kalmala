@@ -22,9 +22,9 @@ bool FKalmalaM7PersistenceContractTest::RunTest(const FString& Parameters)
         static_cast<uint8>(UKalmalaM7PersistenceSaveGame::EvaluateSchemaVersion(UKalmalaM7PersistenceSaveGame::CurrentSchemaVersion)),
         static_cast<uint8>(EKalmalaM7SchemaDecision::AcceptCurrent));
     TestEqual(
-        TEXT("An unversioned legacy record requires an explicit migration"),
+        TEXT("Unversioned save data is rejected during development"),
         static_cast<uint8>(UKalmalaM7PersistenceSaveGame::EvaluateSchemaVersion(0)),
-        static_cast<uint8>(EKalmalaM7SchemaDecision::MigrateBeforeLoad));
+        static_cast<uint8>(EKalmalaM7SchemaDecision::Reject));
     TestEqual(
         TEXT("A future schema is rejected rather than guessed"),
         static_cast<uint8>(UKalmalaM7PersistenceSaveGame::EvaluateSchemaVersion(UKalmalaM7PersistenceSaveGame::CurrentSchemaVersion + 1)),

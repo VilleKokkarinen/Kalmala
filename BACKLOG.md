@@ -34,14 +34,14 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
-- [x] **2026-10-15 — Standardize carried equipment identity as `ItemId`:** use `ItemId` across equipment code and catalogue data; advance the catalogue schema to 14 and migrate schema-2 player saves from the legacy `ToolId` property into schema-3 `ItemId` records while preserving GUID-addressed items. Focused source/data/migration checks and `git diff --check` passed; Unreal build and migration automation deferred.
-
 - [x] **2026-10-15 — Remove catalogue manifest file-count cap:** allow any non-empty category file list; retain manifest/category JSON-size, path-safety, and definition-count validation. JSON/path checks and `git diff --check` passed; Unreal build and menu render rerun deferred.
 - [x] **2026-10-15 — Derive upgrade-cost identity for strict conversion:** keep upgrade JSON authored only by `ToolId`, validating it and deriving the shared struct's internal `RecipeId` before strict conversion. Data/source checks and `git diff --check` passed; Unreal build and menu render rerun deferred.
 - [x] **2026-10-15 — Fix gameplay source first-header compile errors:** put each affected implementation's own header first in seven Gameplay `.cpp` files while retaining the resistance-component include. Focused include-order checks and `git diff --check` passed; Unreal build deferred.
 - [x] **2026-10-15 — Fix Inventory Worn Gear sizing compile errors:** construct `FSlateChildSize` with its supported size rule and assign `Value` separately for gear slots and the balancing spacer. Focused source checks and `git diff --check` passed; Unreal build and UI automation deferred.
 - [x] **2026-10-15 — Fix Stone Workbench crafting compile errors:** resolve tool labels through the equipment profile catalogue and bind each Stone-tool button to a reflected callback compatible with UMG's dynamic click event. Focused source/profile checks and `git diff --check` passed; Unreal build and UI automation deferred.
 - [x] **2026-10-15 — Repair storage GUID compile errors:** reuse the existing item-GUID set while validating saved chest contents, and update the initial storage fixture deposits to pass exact carried-item GUIDs. Focused source/API checks and `git diff --check` passed; Unreal build and storage automation deferred.
+- [x] **2026-10-15 — Standardize carried equipment identity as `ItemId`:** use `ItemId` across equipment code and catalogue data; advance the catalogue schema to 14; store canonical `ItemId` directly in the current schema-2 player save.
+- [x] **2026-10-15 — Remove development SaveGame migrations:** current player, construction, storage, M7 sparse, and travel save paths accept only their current formats; removed compatibility conversions, and deferred migrations until release. Source searches and `git diff --check` passed; Unreal verification deferred.
 
 - [ ] **2026-10-15 — Add armor items and a worn-equipment inventory:** introduce shield, chest armor, leg armor, helmet, cape, and boots, with a separate gear section in the Inventory popup.
   - [x] Author the six armor item families in catalogue JSON with defensive stats and level-up rewards; add original icon artwork, imported textures, and complete catalogue icon-manifest coverage.

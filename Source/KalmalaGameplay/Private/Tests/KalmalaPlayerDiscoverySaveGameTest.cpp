@@ -38,7 +38,7 @@ namespace
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaPlayerDiscoverySaveGameV2Test,
-    "Kalmala.Gameplay.Discovery.Schema2Migration",
+    "Kalmala.Gameplay.Discovery.Schema2CurrentFormat",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FKalmalaPlayerDiscoverySaveGameV2Test::RunTest(const FString& Parameters)
@@ -53,13 +53,13 @@ bool FKalmalaPlayerDiscoverySaveGameV2Test::RunTest(const FString& Parameters)
 
     UKalmalaPlayerDiscoverySaveGameV2* Current = NewObject<UKalmalaPlayerDiscoverySaveGameV2>(GetTransientPackage());
     Current->InitializeForPlayer(World, PlayerIdentity);
-    TestTrue(TEXT("Schema 3 accepts a canonical first-wave discovery"), Current->AddDiscovery(PoiId));
-    TestTrue(TEXT("Schema 3 accepts a canonical M9 land claim"), Current->AddM9Claim(M9RillstoneId));
-    TestTrue(TEXT("Schema 3 accepts a second independent M9 candidate"), Current->AddM9Claim(M9GrainId));
-    TestTrue(TEXT("Schema 3 accepts an allowlisted learned effect"), Current->AddLearnedEffect(TEXT("Effect:mending")));
-    TestTrue(TEXT("Schema 3 accepts an old carried starter ID"), Current->AddToolRecord(MakeToolRecord(TEXT("ReedKnife"), 1, 9)));
-    TestTrue(TEXT("Schema 3 accepts the authored Bronze Axe level and condition"), Current->AddToolRecord(MakeToolRecord(TEXT("BronzeAxe"), 1, 0)));
-    TestTrue(TEXT("Schema 3 accepts the authored Iron Axe level and condition"), Current->AddToolRecord(MakeToolRecord(TEXT("IronAxe"), 2, 20)));
+    TestTrue(TEXT("Schema 2 accepts a canonical first-wave discovery"), Current->AddDiscovery(PoiId));
+    TestTrue(TEXT("Schema 2 accepts a canonical M9 land claim"), Current->AddM9Claim(M9RillstoneId));
+    TestTrue(TEXT("Schema 2 accepts a second independent M9 candidate"), Current->AddM9Claim(M9GrainId));
+    TestTrue(TEXT("Schema 2 accepts an allowlisted learned effect"), Current->AddLearnedEffect(TEXT("Effect:mending")));
+    TestTrue(TEXT("Schema 2 accepts the canonical Stone Knife ID"), Current->AddToolRecord(MakeToolRecord(TEXT("StoneKnife"), 1, 9)));
+    TestTrue(TEXT("Schema 2 accepts the authored Bronze Axe level and condition"), Current->AddToolRecord(MakeToolRecord(TEXT("BronzeAxe"), 1, 0)));
+    TestTrue(TEXT("Schema 2 accepts the authored Iron Axe level and condition"), Current->AddToolRecord(MakeToolRecord(TEXT("IronAxe"), 2, 20)));
     TestFalse(TEXT("A duplicate first-wave discovery is rejected without mutation"), Current->AddDiscovery(PoiId));
     TestFalse(TEXT("A duplicate M9 claim is rejected without mutation"), Current->AddM9Claim(M9RillstoneId));
     TestFalse(TEXT("A malformed M9 identity is rejected"), Current->AddM9Claim(TEXT("land-discovery:m9:1:unknown:0,0")));
@@ -78,10 +78,10 @@ bool FKalmalaPlayerDiscoverySaveGameV2Test::RunTest(const FString& Parameters)
         ToolReplacement->GetToolRecords()[2].ToolLevel, 2);
 
     TArray<uint8> CurrentBytes;
-    TestTrue(TEXT("Schema 3 player facts serialize in memory"), Serialize(Current, CurrentBytes));
+    TestTrue(TEXT("Schema 2 player facts serialize in memory"), Serialize(Current, CurrentBytes));
     UKalmalaPlayerDiscoverySaveGameV2* Reloaded =
         Cast<UKalmalaPlayerDiscoverySaveGameV2>(UGameplayStatics::LoadGameFromMemory(CurrentBytes));
-    if (TestNotNull(TEXT("Schema 3 player facts reload with their type"), Reloaded))
+    if (TestNotNull(TEXT("Schema 2 player facts reload with their type"), Reloaded))
     {
         TestTrue(TEXT("Reloaded facts carry exact seed, revision, scope, and owner"), Reloaded->MatchesPlayer(World, PlayerIdentity));
         TestTrue(TEXT("First-wave and M9 discoveries both survive round-trip"),
@@ -89,119 +89,8 @@ bool FKalmalaPlayerDiscoverySaveGameV2Test::RunTest(const FString& Parameters)
         TestTrue(TEXT("Learned effects and carried tool progression survive round-trip"),
             Reloaded->HasLearnedEffect(TEXT("Effect:mending")) && Reloaded->GetToolRecords().Num() == 4
             && Reloaded->GetToolRecords()[1].ItemId == TEXT("BronzeAxe")
-            && Reloaded->GetToolRecords()[2].ToolLevel == 2
-            && Reloaded->GetToolRecords()[1].ToolId.IsNone());
+            && Reloaded->GetToolRecords()[2].ToolLevel == 2);
     }
-
-    UKalmalaPlayerDiscoverySaveGameV2* Schema2Source =
-        DuplicateObject<UKalmalaPlayerDiscoverySaveGameV2>(Current, GetTransientPackage());
-    Schema2Source->SchemaVersion = UKalmalaPlayerDiscoverySaveGameV2::PreviousSchemaVersionValue;
-    for (FKalmalaPlayerToolSaveRecord& Record : Schema2Source->ToolRecords)
-    {
-        Record.ToolId = Record.ItemId;
-        Record.ItemId = NAME_None;
-    }
-    Schema2Source->ToolRecords[0].InstanceGuid = FGuid();
-    TArray<uint8> Schema2BeforeMigration;
-    TestTrue(TEXT("Schema 2 source serializes before item-ID migration"), Serialize(Schema2Source, Schema2BeforeMigration));
-    UKalmalaPlayerDiscoverySaveGameV2* MigratedSchema2 = nullptr;
-    TestTrue(TEXT("Schema 2 carried-tool IDs migrate to schema 3 item IDs"),
-        UKalmalaPlayerDiscoverySaveGameV2::TryMigrateSchema2(
-            Schema2Source, World, PlayerIdentity, GetTransientPackage(), MigratedSchema2));
-    if (TestNotNull(TEXT("Schema 2 migration returns a distinct candidate"), MigratedSchema2))
-    {
-        TestTrue(TEXT("Migrated schema 2 candidate validates under current schema"),
-            MigratedSchema2->MatchesPlayer(World, PlayerIdentity));
-        TestEqual(TEXT("Migration preserves all carried item records"), MigratedSchema2->GetToolRecords().Num(), 4);
-        TestEqual(TEXT("Migration preserves item identity"), MigratedSchema2->GetToolRecords()[1].ItemId, FName(TEXT("BronzeAxe")));
-        TestTrue(TEXT("Migration clears the legacy ToolId field"), MigratedSchema2->GetToolRecords()[1].ToolId.IsNone());
-        TestTrue(TEXT("Migration fills a missing legacy instance GUID"), MigratedSchema2->GetToolRecords()[0].InstanceGuid.IsValid());
-    }
-    TArray<uint8> Schema2AfterMigration;
-    TestTrue(TEXT("Schema 2 source still serializes after migration"), Serialize(Schema2Source, Schema2AfterMigration));
-    TestTrue(TEXT("Schema 2 migration leaves source save bytes unchanged"), Schema2BeforeMigration == Schema2AfterMigration);
-
-    UKalmalaPlayerDiscoverySaveGame* Legacy = NewObject<UKalmalaPlayerDiscoverySaveGame>(GetTransientPackage());
-    Legacy->InitializeForPlayer(World, PlayerIdentity);
-    TestTrue(TEXT("Schema 1 fixture stores an existing point-of-interest claim"), Legacy->AddDiscovery(PoiId));
-    TestTrue(TEXT("Schema 1 fixture stores an existing scroll claim"), Legacy->AddDiscovery(ScrollId));
-    for (const TCHAR* EffectId : { TEXT("Effect:mending"), TEXT("Effect:hearth-shield"), TEXT("Effect:bears-vigor"), TEXT("Effect:deer-call") })
-    {
-        TestTrue(TEXT("Schema 1 fixture stores each allowlisted learned effect"), Legacy->AddLearnedEffect(EffectId));
-    }
-    TArray<uint8> LegacyBeforeMigration;
-    TestTrue(TEXT("Schema 1 source serializes before migration"), Serialize(Legacy, LegacyBeforeMigration));
-    UKalmalaPlayerDiscoverySaveGameV2* Migrated = nullptr;
-    TestTrue(TEXT("Matching schema 1 player facts migrate to a schema 3 candidate"),
-        UKalmalaPlayerDiscoverySaveGameV2::TryMigrateSchema1(
-            Legacy, World, PlayerIdentity, GetTransientPackage(), Migrated));
-    if (TestNotNull(TEXT("Migration returns a distinct candidate"), Migrated))
-    {
-        TestTrue(TEXT("Migrated facts bind to exact current player identity"), Migrated->MatchesPlayer(World, PlayerIdentity));
-        TestTrue(TEXT("Migration preserves the legacy discovery and effect sets"),
-            Migrated->HasDiscovery(PoiId) && Migrated->HasDiscovery(ScrollId)
-            && Migrated->GetLearnedEffectIds().Num() == UKalmalaPlayerDiscoverySaveGameV2::MaxLearnedEffects);
-        TestTrue(TEXT("Schema 1 fields absent from legacy saves begin empty"),
-            Migrated->GetM9ClaimIds().IsEmpty() && Migrated->GetToolRecords().IsEmpty());
-    }
-    TArray<uint8> LegacyAfterMigration;
-    TestTrue(TEXT("Schema 1 source still serializes after migration"), Serialize(Legacy, LegacyAfterMigration));
-    TestTrue(TEXT("Successful migration leaves the source save bytes unchanged"), LegacyBeforeMigration == LegacyAfterMigration);
-
-    const auto RejectMigrationWithoutChangingSource = [&](UKalmalaPlayerDiscoverySaveGame* Invalid, const TCHAR* Label)
-    {
-        TArray<uint8> Before;
-        TArray<uint8> After;
-        TestTrue(FString::Printf(TEXT("%s source serializes before rejection"), Label), Serialize(Invalid, Before));
-        UKalmalaPlayerDiscoverySaveGameV2* Rejected = nullptr;
-        TestFalse(FString::Printf(TEXT("%s migration is rejected"), Label),
-            UKalmalaPlayerDiscoverySaveGameV2::TryMigrateSchema1(
-                Invalid, World, PlayerIdentity, GetTransientPackage(), Rejected));
-        TestNull(FString::Printf(TEXT("%s produces no candidate"), Label), Rejected);
-        TestTrue(FString::Printf(TEXT("%s source serializes after rejection"), Label), Serialize(Invalid, After));
-        TestTrue(FString::Printf(TEXT("%s rejection preserves source bytes"), Label), Before == After);
-    };
-
-    FKalmalaWorldGenerationConfig OtherWorld = World;
-    ++OtherWorld.WorldSeed;
-    UKalmalaPlayerDiscoverySaveGameV2* WrongSeedMigration = nullptr;
-    TestFalse(TEXT("Schema 1 cannot migrate to a different world seed"),
-        UKalmalaPlayerDiscoverySaveGameV2::TryMigrateSchema1(Legacy, OtherWorld, PlayerIdentity, GetTransientPackage(), WrongSeedMigration));
-    TestNull(TEXT("World mismatch creates no migration candidate"), WrongSeedMigration);
-    UKalmalaPlayerDiscoverySaveGame* WrongSeedSource = DuplicateObject<UKalmalaPlayerDiscoverySaveGame>(Legacy, GetTransientPackage());
-    WrongSeedSource->WorldConfig = OtherWorld;
-    RejectMigrationWithoutChangingSource(WrongSeedSource, TEXT("Wrong-seed"));
-    UKalmalaPlayerDiscoverySaveGame* WrongPlayerSource = DuplicateObject<UKalmalaPlayerDiscoverySaveGame>(Legacy, GetTransientPackage());
-    WrongPlayerSource->PlayerIdentity = TEXT("provider:player-beta");
-    RejectMigrationWithoutChangingSource(WrongPlayerSource, TEXT("Wrong-player"));
-    UKalmalaPlayerDiscoverySaveGame* InvalidOwnerSource = DuplicateObject<UKalmalaPlayerDiscoverySaveGame>(Legacy, GetTransientPackage());
-    InvalidOwnerSource->PlayerIdentity = FString::ChrN(FKalmalaM7SaveIdentity::MaxOwnerIdentityLength + 1, TEXT('p'));
-    RejectMigrationWithoutChangingSource(InvalidOwnerSource, TEXT("Overlong-player"));
-    UKalmalaPlayerDiscoverySaveGame* WrongSchemaSource = DuplicateObject<UKalmalaPlayerDiscoverySaveGame>(Legacy, GetTransientPackage());
-    WrongSchemaSource->SchemaVersion = 0;
-    RejectMigrationWithoutChangingSource(WrongSchemaSource, TEXT("Schema-zero"));
-    WrongSchemaSource->SchemaVersion = UKalmalaPlayerDiscoverySaveGameV2::SchemaVersionValue + 1;
-    RejectMigrationWithoutChangingSource(WrongSchemaSource, TEXT("Future-schema"));
-    UKalmalaPlayerDiscoverySaveGame* MalformedDiscoverySource = DuplicateObject<UKalmalaPlayerDiscoverySaveGame>(Legacy, GetTransientPackage());
-    MalformedDiscoverySource->DiscoveryIds.Add(TEXT("Poi:1:not a stable id"));
-    RejectMigrationWithoutChangingSource(MalformedDiscoverySource, TEXT("Malformed-discovery"));
-    UKalmalaPlayerDiscoverySaveGame* MalformedEffectSource = DuplicateObject<UKalmalaPlayerDiscoverySaveGame>(Legacy, GetTransientPackage());
-    MalformedEffectSource->LearnedEffectIds.Add(TEXT("Effect:unknown"));
-    RejectMigrationWithoutChangingSource(MalformedEffectSource, TEXT("Malformed-effect"));
-    UKalmalaPlayerDiscoverySaveGame* DuplicateDiscoverySource = DuplicateObject<UKalmalaPlayerDiscoverySaveGame>(Legacy, GetTransientPackage());
-    DuplicateDiscoverySource->DiscoveryIds.Add(PoiId);
-    TestEqual(TEXT("Legacy discovery set represents duplicates as one stable fact"), DuplicateDiscoverySource->DiscoveryIds.Num(), Legacy->DiscoveryIds.Num());
-
-    UKalmalaPlayerDiscoverySaveGame* OverCapLegacy = DuplicateObject<UKalmalaPlayerDiscoverySaveGame>(Legacy, GetTransientPackage());
-    OverCapLegacy->DiscoveryIds.Reset();
-    for (int32 Index = 0; Index <= UKalmalaPlayerDiscoverySaveGameV2::MaxLegacyDiscoveries; ++Index)
-    {
-        OverCapLegacy->DiscoveryIds.Add(MakeDiscoveryId(Index));
-    }
-    RejectMigrationWithoutChangingSource(OverCapLegacy, TEXT("Over-cap-discoveries"));
-    UKalmalaPlayerDiscoverySaveGame* OverCapEffects = DuplicateObject<UKalmalaPlayerDiscoverySaveGame>(Legacy, GetTransientPackage());
-    OverCapEffects->LearnedEffectIds.Add(TEXT("Effect:invalid-extra"));
-    RejectMigrationWithoutChangingSource(OverCapEffects, TEXT("Over-cap-learned-effects"));
 
     const auto RejectCurrentCandidate = [&](UKalmalaPlayerDiscoverySaveGameV2* Invalid, const TCHAR* Label)
     {
@@ -248,13 +137,13 @@ bool FKalmalaPlayerDiscoverySaveGameV2Test::RunTest(const FString& Parameters)
 
     UKalmalaPlayerDiscoverySaveGameV2* FullDiscoveries = NewObject<UKalmalaPlayerDiscoverySaveGameV2>(GetTransientPackage());
     FullDiscoveries->InitializeForPlayer(World, PlayerIdentity);
-    for (int32 Index = 0; Index < UKalmalaPlayerDiscoverySaveGameV2::MaxLegacyDiscoveries; ++Index)
+    for (int32 Index = 0; Index < UKalmalaPlayerDiscoverySaveGameV2::MaxDiscoveries; ++Index)
     {
         TestTrue(TEXT("Legacy discovery records fit within their cap"), FullDiscoveries->AddDiscovery(MakeDiscoveryId(Index)));
     }
     TestFalse(TEXT("Legacy discovery cap plus one is rejected"), FullDiscoveries->AddDiscovery(MakeDiscoveryId(200)));
     TestEqual(TEXT("Rejected discovery leaves the capped candidate unchanged"),
-        FullDiscoveries->GetDiscoveryIds().Num(), UKalmalaPlayerDiscoverySaveGameV2::MaxLegacyDiscoveries);
+        FullDiscoveries->GetDiscoveryIds().Num(), UKalmalaPlayerDiscoverySaveGameV2::MaxDiscoveries);
 
     UKalmalaPlayerDiscoverySaveGameV2* FullClaims = NewObject<UKalmalaPlayerDiscoverySaveGameV2>(GetTransientPackage());
     FullClaims->InitializeForPlayer(World, PlayerIdentity);

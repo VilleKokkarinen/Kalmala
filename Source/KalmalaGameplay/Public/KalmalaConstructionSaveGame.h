@@ -15,7 +15,7 @@ struct KALMALAGAMEPLAY_API FKalmalaConstructionSaveRecord
     UPROPERTY(SaveGame) FTransform Transform;
 };
 
-/** Bounded, versioned server camp state. It rejects identity mismatches rather than merging worlds. */
+/** Schema-1 construction data model retained by in-memory gameplay tests; current slots use schema 2. */
 UCLASS()
 class KALMALAGAMEPLAY_API UKalmalaConstructionSaveGame : public USaveGame
 {
@@ -32,17 +32,12 @@ public:
     const FKalmalaWorldGenerationConfig& GetWorldConfig() const { return WorldConfig; }
     const TArray<FKalmalaConstructionSaveRecord>& GetRecords() const { return Records; }
 private:
-    friend class FKalmalaConstructionSaveGameV2Test;
-
     UPROPERTY(SaveGame) int32 SchemaVersion = CurrentSchemaVersion;
     UPROPERTY(SaveGame) FKalmalaWorldGenerationConfig WorldConfig;
     UPROPERTY(SaveGame) TArray<FKalmalaConstructionSaveRecord> Records;
 };
 
-/**
- * Schema-2 construction candidate used for migration and memory verification.
- * Normal slots continue using schema 1 until the complete M9 gate passes.
- */
+/** Current bounded schema-2 server camp state. Rejects identity mismatches. */
 UCLASS()
 class KALMALAGAMEPLAY_API UKalmalaConstructionSaveGameV2 : public USaveGame
 {
@@ -64,12 +59,6 @@ public:
         const FKalmalaWorldGenerationConfig& RequestedWorld,
         UObject* Outer,
         UKalmalaConstructionSaveGameV2*& OutCandidate);
-    static bool TryMigrateSchema1(
-        const UKalmalaConstructionSaveGame* Legacy,
-        const FKalmalaWorldGenerationConfig& RequestedWorld,
-        UObject* Outer,
-        UKalmalaConstructionSaveGameV2*& OutMigrated);
-
 private:
     friend class FKalmalaConstructionSaveGameV2Test;
 

@@ -26,9 +26,6 @@ public:
     bool MatchesWorld(const FKalmalaWorldGenerationConfig& Config) const;
     static bool IsValidConstructionId(const FString& Id);
     static bool IsValidStacks(const TArray<FKalmalaInventoryStack>& Stacks);
-    /** Migrate retired aliases and assign/persist per-item GUIDs for legacy saved stacks. */
-    static bool NormalizeLegacyStacks(TArray<FKalmalaInventoryStack>& Stacks);
-    bool MigrateLegacyItemIds();
     const FKalmalaStorageSaveRecord* FindRecord(const FString& Id) const;
     bool UpsertRecord(const FString& Id, const TArray<FKalmalaInventoryStack>& Stacks);
     static FString MakeSlotName(const FKalmalaWorldGenerationConfig& Config);

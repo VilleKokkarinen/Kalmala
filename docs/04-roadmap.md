@@ -1,5 +1,14 @@
 # Roadmap
 
+## Current save-format policy
+
+The game is unreleased and has no user save files to preserve. Do not add
+SaveGame compatibility migrations before release. Change active development
+save formats directly as needed and reject incompatible data without rewriting
+it. Earlier M7/M9 migration plans below describe historical implementation
+decisions and are superseded by this policy. After release, add migration
+support only when released user saves need to be preserved.
+
 Each milestone must leave the project playable. Do not begin a later milestone while the earlier one fails its acceptance criteria.
 
 ## M0 — Bootstrap
@@ -257,8 +266,9 @@ tests before implementation. The approved first gate is the independent
 `UKalmalaM7PersistenceSaveGame` schema 1 contract: it records the immutable
 world seed, current generator revision 7, explicit world/player scope, and at
 most 256 server-selected sparse resource, creature, or discovery identities.
-Current schema 1 loads only with an exact valid identity match; unversioned
-schema 0 requires an explicit migration, and future schemas are rejected.
+Current schema 1 loads only with an exact valid identity match; schema 0 and
+future schemas are rejected. No compatibility migration is added before
+release.
 Malformed, duplicate, over-cap, or path-like sparse IDs fail without mutation.
 The gate is currently exercised through memory serialization only and does not
 extend the existing population, construction, storage, discovery, or local UI
@@ -356,11 +366,11 @@ M9 has five ordered goals:
      - This free-repair rule supersedes M7's material-paid repair path and zero-condition replacement recipes. Broken tools use the same free repair action; material costs remain for tool-level upgrades and workstation attachments.
    - **Other optional camp and equipment examples:** a storm-rated shelter piece or an insulated travel wrap. Extend existing server-owned construction, status, and inventory paths.
    - Show tool level, skill requirement, matching station level, material cost for upgrades, repair availability, and rejection reasons in readable text as well as colour or icons. Keep upgrades optional and recoverable, and award progression only after an accepted server transaction.
-   - Keep detailed tool and skill state owner-scoped. Do not persist new tool levels or workstation attachment progression until the M9 persistence goal defines and verifies the versioned migration contract; extend existing tool-condition and construction authority rather than adding parallel subsystems.
+   - Keep detailed tool and skill state owner-scoped. Extend existing tool-condition and construction authority rather than adding parallel subsystems. During development, write the active schema directly without compatibility migrations; consider user-save migration only after release.
 
 3. **Exploration rewards without quest routing.** Add optional clue, landmark, treasure, boss, or environmental-discovery structures that reward observation and travel without turning the world into a prescribed quest chain. The first two land-discovery candidates and their reward boundaries are defined in `02-technical-architecture.md`; server placement and claim behavior are implemented, with durable claims still gated by the M9 persistence contract.
 
-4. **Persistence schema expansion.** Version and migrate any newly persistent progression, creature, discovery, storage, equipment, or encounter state before enabling it in normal saves. Preserve exact identity/world matching and bounded sparse records. The accepted M9 tool, station, land-discovery migration boundary is defined in `docs/02-technical-architecture.md`; schema-2 writes remain gated on its round-trip and rejection coverage.
+4. **Persistence schema expansion.** Preserve exact identity/world matching and bounded sparse records for current saves. Before release, change development save formats directly and reject incompatible data without rewriting it; do not add compatibility migrations. After release, add explicit migration coverage only when released user saves need to be preserved.
 
 5. **Cross-system regression.** Verify the second content wave against land/ocean travel, weather, survival HUD, crafting, combat, support effects, construction, reconnect, persistence, and the retained supported-session loop.
 
@@ -368,7 +378,7 @@ M9 has five ordered goals:
 
 **M9 multiplayer boundary:** all encounter selection, creature state, crafting/progression outcomes, construction material payment and placement, loot, hazards, rewards, and persistent facts remain server-owned. Clients submit a canonical buildable identity only; the server derives costs, terrain transform, validation and result. Private inventory and progression remain owner-scoped; peers receive only relevant world and presentation state.
 
-**M9 accept:** the second content wave is playable across the supported biomes and ocean travel path without developer commands; new encounters and progression remain optional and readable; rejected client mutations leave state unchanged; versioned saves round-trip and migrate as documented; and the M8 travel loop plus M6 supported-session loop remain green.
+**M9 accept:** the second content wave is playable across the supported biomes and ocean travel path without developer commands; new encounters and progression remain optional and readable; rejected client mutations leave state unchanged; current-version saves round-trip while unsupported data fails closed without migration during development; and the M8 travel loop plus M6 supported-session loop remain green.
 
 **## M10 — Release completion and launch validation**
 
@@ -380,7 +390,7 @@ M10 has six ordered goals:
 
 2. **Full clean-profile validation.** Run the complete automated, rendered, authority, persistence, reconnect, world-generation, land-travel, ocean-travel, combat, support, construction, crafting, progression, weather, HUD, accessibility, and performance suite from clean temporary user directories.
 
-3. **Save compatibility and recovery.** Validate current-version saves, all approved migrations, corrupt/malformed rejection, world/player identity mismatch handling, backup/recovery behaviour where supported, and no partial mutation on failed loads.
+3. **Save compatibility and recovery.** Validate current-version saves, corrupt/malformed rejection, world/player identity mismatch handling, backup/recovery behaviour where supported, and no partial mutation on failed loads. Add compatibility migrations only after release when released user saves need to be preserved.
 
 4. **Performance and scalability closeout.** Reconfirm startup, frame-time, actor, memory, streaming, worker, raster, replication, package-size, and save budgets across the documented representative hardware/profile matrix. Record any remaining limitations explicitly.
 
@@ -392,7 +402,7 @@ M10 has six ordered goals:
 
 **M10 multiplayer boundary:** the established server-authority model remains unchanged through release. Launch hardening must not add client-selected targets, outcomes, rewards, hidden-content queries, save values, timing authority, or private-state leakage.
 
-**M10 accept:** the release candidate passes the complete documented suite from clean profiles, approved saves load or migrate correctly, the full co-op progression from first spawn through biome exploration and long-distance ocean travel is playable without developer tools, performance and accessibility budgets remain within recorded limits, rejected requests leave authoritative state unchanged, and all remaining limitations are explicitly documented.
+**M10 accept:** the release candidate passes the complete documented suite from clean profiles, current saves load and unsupported formats reject safely, the full co-op progression from first spawn through biome exploration and long-distance ocean travel is playable without developer tools, performance and accessibility budgets remain within recorded limits, rejected requests leave authoritative state unchanged, and all remaining limitations are explicitly documented.
 
 ## M11 — User experience and visual UI upgrades
 

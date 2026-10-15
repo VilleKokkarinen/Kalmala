@@ -137,13 +137,6 @@ EKalmalaM7SchemaDecision UKalmalaM7PersistenceSaveGame::EvaluateSchemaVersion(co
         return EKalmalaM7SchemaDecision::AcceptCurrent;
     }
 
-    // Schema zero represents an unversioned legacy record and must be handled
-    // by an explicitly reviewed migration before it can enter this container.
-    if (CandidateSchemaVersion == 0)
-    {
-        return EKalmalaM7SchemaDecision::MigrateBeforeLoad;
-    }
-
     return EKalmalaM7SchemaDecision::Reject;
 }
 

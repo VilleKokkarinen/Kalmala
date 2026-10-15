@@ -114,6 +114,7 @@ If the final implementation task in a milestone has been completed but milestone
 - Never discard, overwrite, revert, stage, or commit changes that were not made during the current run.
 - Keep implementation narrowly scoped to the selected backlog increment, except for fixes required by milestone-final verification.
 - Do not force-push, rebase, reset, delete assets, alter saved-data schemas, install plugins/dependencies, access paid services, publish builds, or modify CI/release configuration without explicit user direction.
+- The game is unreleased and has no user save files. Do not add SaveGame compatibility migrations before release; change development save formats directly and reject incompatible data without rewriting it. Add save migrations only after release when released user data must be preserved.
 - Do not modify `Binaries/`, `Intermediate/`, `Saved/`, or `DerivedDataCache/`.
 - Keep gameplay/network authority server-side.
 - Validate all client-controlled item IDs, targets, quantities, damage values, and interaction requests on the server.

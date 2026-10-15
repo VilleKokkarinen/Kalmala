@@ -452,7 +452,7 @@ The first M7 save contract is isolated in
 `UKalmalaM7PersistenceSaveGame`. It is schema 1, matches an exact world seed
 and generator revision 7 plus explicit world/player scope, and accepts at most
 256 server-selected sparse resource, creature, or discovery identities. Schema
-0 requires an explicit migration review; future schemas, invalid identities,
+0 and future schemas are rejected. No compatibility migration runs before release. Invalid identities,
 duplicate IDs, over-cap entries, and path-like IDs fail closed. This contract
 does not extend existing save schemas or add progression, tool, food, or loot
 state. The focused round-trip/rejection test is
@@ -464,21 +464,9 @@ After the editor build, run it with the documented temporary-user pattern:
 & 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM7PersistenceUser' -abslog='C:\temp\KalmalaM7Persistence.log' -ExecCmds="Automation RunTests Kalmala.World.M7.PersistenceContract; Quit" -TestExit="Automation Test Queue Empty"
 ```
 
-### M9 progression and discovery migration gate
+### M9 current-schema persistence
 
-The accepted schema-2 design extended the existing construction and
-player-discovery save owners; it leaves the M7 sparse ledger and storage schema
-unchanged. Construction remains schema 2. Player-discovery saves now use schema
-3 to store carried equipment identifiers as `ItemId`; valid schema-2 player
-saves migrate the legacy `ToolId` property on load. Read
-`docs/02-technical-architecture.md` for exact seed/revision/scope matching,
-caps, and migration rules. Focused round-trip, migration, rejection, and
-host/client reconnect checks must pass before either current writer changes a
-slot. Writers preserve valid prior facts, validate complete server-owned
-candidates before saving, and leave invalid existing slots untouched. The
-player writer also re-derives live M9 claim identities and saves the owner's
-bounded carried-item records without adding replicated state.
-
+Construction and player-discovery saves use their current schema-2 formats, with carried equipment stored directly as `ItemId`. Save data must match the exact seed, revision, scope, and authenticated player identity. The game is unreleased and has no user save files; change active development formats directly and do not add save migrations until release. Current-format writers validate complete server-owned candidates before saving, and incompatible or invalid slots fail closed without rewriting. The player writer also re-derives live M9 claim identities and saves the owner's bounded carried-item records without adding replicated state. See `docs/02-technical-architecture.md` for bounds and authority rules.
 ### M8 travel-save contract
 
 `UKalmalaOceanTravelPersistenceSaveGame` is a separate schema-1 gate over the
@@ -486,8 +474,7 @@ existing M7 world/player identity. World scope accepts one stable skiff ID and
 one bounded last-safe transform; player scope accepts one authenticated
 player's vessel ID and assigned seat. The current skiff carries no cargo, and
 the contract contains no velocity, steering, or live actor references. Schema
-zero requires an explicit migration decision; future schemas, identity
-mismatches, malformed vessel IDs, out-of-bounds transforms, invalid seats,
+zero and future schemas are rejected. No compatibility migration runs before release. Identity mismatches, malformed vessel IDs, out-of-bounds transforms, invalid seats,
 and cross-world or orphaned player-to-vessel associations fail closed. The
 server game mode saves a generated-ocean-validated skiff snapshot while
 moored, reloads it at startup, restores authenticated seats on login, and
@@ -1967,8 +1954,8 @@ placement. The server derives effective level from initialized matching
 construction actors and caps it at level 2; duplicate, distant, wrong-family,
 and unusable-station attachments are rejected. Tool upgrade requests contain
 only a tool ID, and placement requests contain only a kit ID. Attachments and
-their level bonus remain session-only until the M9 save migration contract is
-approved; they do not extend the current construction schema.
+their level bonus are persisted directly in current schema 2; no compatibility
+migration runs during development.
 
 After the forced editor build, run these focused automations with isolated
 user and log directories: Kalmala.Gameplay.M9.ToolStationProgression,
@@ -2126,81 +2113,24 @@ alongside the categorized runners in the mirror. The host/client fixture require
 exact reward for each player while rejecting distant, forged, duplicate, and
 replayed claims, and checks that owner-only feedback and inventory state do not
 leak to the other peer. Claims now persist in the authenticated player's
-schema-3 save; reward materials remain session-only because ordinary inventory
+schema-2 save; reward materials remain session-only because ordinary inventory
 is not saved. The fixture uses the null renderer, so it does not review the
 discovery's visual presentation in-world.
 
-### M9 schema-2 world construction migration coverage
+### M9 current-schema save verification
 
-After the forced editor build, run
-`Kalmala.Gameplay.Construction.Schema2Migration` with isolated `-UserDir`,
-`-abslog`, `-DDC-ForceMemoryCache`, and
-`-TestExit="Automation Test Queue Empty"` arguments. The in-memory schema-2
-candidate round-trips established construction records and station
-attachments; migrates matching schema-1 construction records while
-binding seed/revision/world scope; and rejects mismatched, unsupported,
-malformed, duplicate, and over-cap legacy data without changing its source
-bytes. It also checks exact schema-2 identity, malformed/duplicate current
-records, and the 32-attachment limit. Normal construction writes use the
-schema-2 container. On first write, a matching schema-1 save is migrated and
-merged with the new server-accepted record; every record is revalidated before
-the slot is replaced. Invalid or mismatched existing slots remain untouched.
-Normal player-discovery writes use schema 3. On load, matching schema-2 records
-migrate carried `ToolId` values to `ItemId`; first writes also migrate matching
-schema-1 discovery/effect facts, revalidate and merge current server M9 claims,
-and include the owner's complete carried-item list. Invalid or mismatched
-existing player slots stay untouched and block restore and writes.
+After the forced editor build, run `Kalmala.Gameplay.Construction.Schema2CurrentFormat`, `Kalmala.Gameplay.Construction.Schema2WriteCandidate`, and `Kalmala.Gameplay.Discovery.Schema2CurrentFormat` with isolated `-UserDir`, `-abslog`, `-DDC-ForceMemoryCache`, and `-TestExit="Automation Test Queue Empty"` arguments. These checks cover current-format round-trips, exact identity and owner validation, malformed and over-cap rejection, duplicate IDs, and candidate isolation. No schema-conversion tests run because compatibility migrations are intentionally absent until the game is released.
+### M9 schema-2 current-format host-client reconnect
 
-### M9 player discovery and carried-item migration coverage
-
-After the forced `KalmalaEditor Win64 Development` build, run
-`Kalmala.Gameplay.Discovery.Schema2Migration` with isolated `-UserDir`,
-`-abslog`, `-DDC-ForceMemoryCache`, and
-`-TestExit="Automation Test Queue Empty"` arguments. The memory round-trip checks current schema-3 first-wave discoveries, learned
-effects, separate M9 land claims, and canonical carried-item IDs, levels, and
-condition. A schema-2 fixture verifies that legacy `ToolId` values migrate to
-schema-3 `ItemId` values without changing the source save, preserving each
-carried record and filling missing instance GUIDs. The schema-1 migration
-preserves valid discovery/effect facts, binds the requested seed,
-revision 7, player scope, and authenticated identity, and starts the absent M9
-claims and tool records empty. Rejection checks cover wrong seed/player,
-invalid identity, schema zero/future versions, malformed facts, duplicate M9
-claims and tools, invalid tool levels/condition, and each discovery, claim, and
-tool bound plus one; failed migrations preserve the original source bytes.
-Use `UnrealEditor-Cmd.exe` first; if it stops at the existing LinuxArm64 or
-VisionOS SDK preflight, use the `UnrealEditor.exe` fallback with the same
-project and automation arguments. Normal player-discovery slots use schema 3;
-first-write migration and live claim/tool merging are covered by the M9
-cross-system acceptance fixture.
-
-### M9 schema-2 construction and schema-3 player candidate host-client reconnect
-
-After the forced editor build and both focused migration automations, run the
-two-client restart fixture against the isolated project mirror:
+After the forced editor build and current-format save verifications, run the two-client restart fixture against the isolated project mirror:
 
 ```powershell
 & '.\Scripts\Tests\Progression\Verify-M9Schema2CandidateReconnect.ps1' -Port 19725 -ProjectPath "$projectMirror/Kalmala.uproject"
 ```
 
-The fixture writes a dedicated world candidate and a schema-1 player fixture
-to isolated user directories. It also uses a dedicated player-candidate slot
-for owner-privacy checks. After the host restarts, it requires the normal player
-slot's migrated discovery/effect facts, re-derived M9 claim, and complete tool
-records to reload with exact identity. Adding the saved claim again must fail
-without changing the claim set. Each client must receive only its own carried-
-item details. Construction slots report schema 2; player-discovery slots report
-schema 3.
-This fixture adds no replicated fields;
-normal construction restart coverage is provided separately by
-`Scripts/Tests/Construction/Verify-ConstructionPersistence.ps1` and the focused write-candidate
-automation.
+The fixture writes current schema-2 world and player candidates to isolated slots, then checks exact identity after a host restart. It verifies a saved M9 claim and carried tools reload, replay is rejected without changing the claim set, and each client sees only its own carried-item details. Both normal construction and player-discovery slots use schema 2. The fixture creates no old-schema save and performs no migration. Separate construction restart coverage is provided by `Scripts/Tests/Construction/Verify-ConstructionPersistence.ps1`.
 
-This null-renderer authority and replication check uses deterministic
-test-provider identities; it does not verify a production online identity
-provider or rendered UI. It seeds a normal schema-1 player slot, verifies
-discovery/effect migration, writes a current re-derived M9 claim and tool state,
-then checks those facts after host restart and owner reconnect.
-
+This null-renderer authority and replication check uses deterministic test-provider identities; it does not verify a production online identity provider or rendered UI.
 ## M11 item-gain notification child
 
 After the affected isolated editor build, run Kalmala.UI.Notifications plus
@@ -2661,7 +2591,7 @@ construction identity and icon key, never an inventory output. Keep the
 existing 5 Stone + 3 Wood direct cost and one priority-selected raw fuel item.
 
 `Kalmala.Gameplay.Inventory.Catalogue` asserts the item is absent while the
-recipe descriptor validates. `Kalmala.Gameplay.Construction.Schema2Migration`
+recipe descriptor validates. `Kalmala.Gameplay.Construction.Schema2CurrentFormat`
 retains a CampfireKit save-record round trip. `Kalmala.Gameplay.Crafting`
 continues to cover successful payment and overlap rejection without payment;
 the placement path still allocates before the atomic inventory exchange and
@@ -2933,7 +2863,7 @@ Axes and pickaxes require integer `MaterialTier` in their item profiles: 1 = Sto
 
 Carried equipment classification is derived from the validated item family; profiles contain no `ItemCategory` field. Knives/axes/maces/spears are weapons across all tiers; pickaxes and Construction Hammer are tools. Inventory browsing separates Tools and Weapons and details show the classification. Classification does not replace harvesting Action or MaterialTier and does not change shared equipment lifecycle, server repair/crafting/combat or saved IDs.
 
-The schema-12 profile format introduced `ItemId`, `DisplayName` and `Description` instead of `ToolId`, `ToolSet`, `ToolKind`, `Action` and `RequiredSkill`. Stats and MaterialTier remain authored; omitted MinimumSkillLevel defaults internally to 1. The loader derives Starter for Stone identities, Crafted for Bronze/Iron, Utility for ConstructionHammer; Axe maps to Woodcutting, Pick to Mining, Knife to Gathering, Mace/Spear/Hammer to None, with the same required skill as action. Unknown identities and retired authored fields fail closed. At schema 12 this was a catalogue-only change; the later save-property rename is handled by the schema-3 player-save migration in the architecture reference.
+The schema-12 profile format introduced `ItemId`, `DisplayName` and `Description` instead of `ToolId`, `ToolSet`, `ToolKind`, `Action` and `RequiredSkill`. Stats and MaterialTier remain authored; omitted MinimumSkillLevel defaults internally to 1. The loader derives Starter for Stone identities, Crafted for Bronze/Iron, Utility for ConstructionHammer; Axe maps to Woodcutting, Pick to Mining, Knife to Gathering, Mace/Spear/Hammer to None, with the same required skill as action. Unknown identities and retired authored fields fail closed. At schema 12 this was a catalogue-only change; the current player-discovery schema stores `ItemId` directly; no save migration runs during development.
 
 ## Attack-driven resource trees (2026-10-13)
 

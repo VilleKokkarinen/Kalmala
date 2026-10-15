@@ -81,11 +81,6 @@ EKalmalaM7SchemaDecision UKalmalaOceanTravelPersistenceSaveGame::EvaluateSchemaV
         return EKalmalaM7SchemaDecision::AcceptCurrent;
     }
 
-    if (CandidateSchemaVersion == 0)
-    {
-        return EKalmalaM7SchemaDecision::MigrateBeforeLoad;
-    }
-
     return EKalmalaM7SchemaDecision::Reject;
 }
 

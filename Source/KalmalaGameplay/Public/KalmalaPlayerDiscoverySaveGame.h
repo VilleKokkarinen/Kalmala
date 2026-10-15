@@ -8,7 +8,7 @@
 #include "KalmalaWorldGenerationConfig.h"
 #include "KalmalaPlayerDiscoverySaveGame.generated.h"
 
-/** Bounded identity-scoped discovery facts; never replicated as a catalogue. */
+/** Schema-1 discovery facts retained for in-memory gameplay tests; current slots do not load this type. */
 UCLASS()
 class KALMALAGAMEPLAY_API UKalmalaPlayerDiscoverySaveGame : public USaveGame
 {
@@ -25,7 +25,6 @@ public:
     bool AddLearnedEffect(const FString& Id);
     void RemoveLearnedEffect(const FString& Id);
 private:
-    friend class UKalmalaPlayerDiscoverySaveGameV2;
     friend class FKalmalaPlayerDiscoverySaveGameV2Test;
 
     UPROPERTY(SaveGame) int32 SchemaVersion = Schema;
@@ -40,29 +39,23 @@ struct KALMALAGAMEPLAY_API FKalmalaPlayerToolSaveRecord
 {
     GENERATED_BODY()
 
-    /** Schema-2 serialized property; consumed by the schema-3 migration and cleared on rewrite. */
-    UPROPERTY(SaveGame) FName ToolId = NAME_None;
+    UPROPERTY(SaveGame) FName ItemId = NAME_None;
     UPROPERTY(SaveGame) int32 ToolLevel = 1;
     UPROPERTY(SaveGame) int32 Condition = 0;
     UPROPERTY(SaveGame) FGuid InstanceGuid;
-    /** Appended after the schema-2 properties so legacy serialized fields keep their layout. */
-    UPROPERTY(SaveGame) FName ItemId = NAME_None;
 };
 
-/**
- * Schema-3 player discoveries and carried items for the existing player slot.
- */
+/** Current schema-2 player discoveries and carried items for the existing player slot. */
 UCLASS()
 class KALMALAGAMEPLAY_API UKalmalaPlayerDiscoverySaveGameV2 : public USaveGame
 {
     GENERATED_BODY()
 
 public:
-    static constexpr int32 SchemaVersionValue = 3;
-    static constexpr int32 PreviousSchemaVersionValue = 2;
-    static constexpr int32 MaxLegacyDiscoveries = UKalmalaPlayerDiscoverySaveGame::MaxDiscoveries;
+    static constexpr int32 SchemaVersionValue = 2;
+    static constexpr int32 MaxDiscoveries = 64;
     static constexpr int32 MaxM9Claims = 64;
-    static constexpr int32 MaxCombinedDiscoveries = MaxLegacyDiscoveries + MaxM9Claims;
+    static constexpr int32 MaxCombinedDiscoveries = MaxDiscoveries + MaxM9Claims;
     static constexpr int32 MaxLearnedEffects = 4;
     static constexpr int32 MaxInventorySlots = UKalmalaInventoryComponent::MaxSlots;
 
@@ -73,8 +66,6 @@ public:
     bool AddLearnedEffect(const FString& Id);
     bool AddToolRecord(const FKalmalaPlayerToolSaveRecord& Record);
     bool TryReplaceToolRecords(const TArray<FKalmalaPlayerToolSaveRecord>& Records);
-    /** Fills missing GUIDs in older additive save records before strict validation and rewrites. */
-    bool EnsureToolInstanceGuids(bool& bOutChanged);
     bool HasDiscovery(const FString& Id) const;
     bool HasLearnedEffect(const FString& Id) const;
 
@@ -86,19 +77,6 @@ public:
     static bool IsValidLegacyDiscoveryId(const FString& Id);
     static bool IsValidM9ClaimId(const FString& Id);
     static bool IsValidToolRecord(const FKalmalaPlayerToolSaveRecord& Record);
-    static bool TryMigrateSchema2(
-        const UKalmalaPlayerDiscoverySaveGameV2* Legacy,
-        const FKalmalaWorldGenerationConfig& RequestedWorld,
-        const FString& AuthenticatedPlayerIdentity,
-        UObject* Outer,
-        UKalmalaPlayerDiscoverySaveGameV2*& OutMigrated);
-    static bool TryMigrateSchema1(
-        const UKalmalaPlayerDiscoverySaveGame* Legacy,
-        const FKalmalaWorldGenerationConfig& RequestedWorld,
-        const FString& AuthenticatedPlayerIdentity,
-        UObject* Outer,
-        UKalmalaPlayerDiscoverySaveGameV2*& OutMigrated);
-
 private:
     friend class FKalmalaPlayerDiscoverySaveGameV2Test;
 

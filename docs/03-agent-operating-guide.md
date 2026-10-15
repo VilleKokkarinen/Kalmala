@@ -13,7 +13,7 @@
 - Prefer C++ for authority, networking, data contracts, and reusable systems; expose intentional Blueprint extension points.
 - Never trust client-provided item IDs, target actors, quantities, or damage values without server validation.
 - Do not add marketplace assets, plugins, telemetry, external services, paid APIs, or copyrighted content without approval.
-- Do not rename public assets or alter saved-data schemas without a migration plan.
+- Before release, change development SaveGame formats directly and reject incompatible data without rewriting it; add compatibility migrations only after release when released user saves need preservation.
 - Keep a task-specific test map or automated test when it lowers regression risk.
 
 ## Definition of done

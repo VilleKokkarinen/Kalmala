@@ -93,9 +93,9 @@ bool FKalmalaOceanTravelPersistenceContractTest::RunTest(const FString& Paramete
         static_cast<uint8>(UKalmalaOceanTravelPersistenceSaveGame::EvaluateSchemaVersion(
             UKalmalaOceanTravelPersistenceSaveGame::CurrentSchemaVersion)),
         static_cast<uint8>(EKalmalaM7SchemaDecision::AcceptCurrent));
-    TestEqual(TEXT("Legacy unversioned data requires explicit migration"),
+    TestEqual(TEXT("Unversioned travel data is rejected during development"),
         static_cast<uint8>(UKalmalaOceanTravelPersistenceSaveGame::EvaluateSchemaVersion(0)),
-        static_cast<uint8>(EKalmalaM7SchemaDecision::MigrateBeforeLoad));
+        static_cast<uint8>(EKalmalaM7SchemaDecision::Reject));
     TestEqual(TEXT("Future schema data fails closed"),
         static_cast<uint8>(UKalmalaOceanTravelPersistenceSaveGame::EvaluateSchemaVersion(
             UKalmalaOceanTravelPersistenceSaveGame::CurrentSchemaVersion + 1)),
