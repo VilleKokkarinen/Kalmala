@@ -34,6 +34,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-15 — Name the Construction Hammer upgrade file:** rename `upgrades/upgrades.json` to `upgrades/construction-hammer.json` and update its manifest and documentation references without changing the upgrade record. Lightweight JSON/path checks and `git diff --check` passed; Unreal verification deferred.
+
 - [x] **2026-10-15 — Add weapon upgrade-cost files by family:** add empty upgrade files for axes, knives, pickaxes, spears, and maces, and preserve all existing records in the general upgrade file. Lightweight JSON/source checks and `git diff --check` passed; Unreal verification deferred.
 
 - [x] **2026-10-15 — Add Stone-tier equipment recipes to Workbench:** add level-one recipes for Stone Axe, Knife, Pick, Spear, and Mace, and expose repeatable Workbench craft actions for these GUID-bearing items. Lightweight JSON/source checks and `git diff --check` passed; Unreal verification deferred.

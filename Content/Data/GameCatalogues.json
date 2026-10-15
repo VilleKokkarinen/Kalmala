@@ -42,7 +42,7 @@
     "upgrades/pickaxes.json",
     "upgrades/spears.json",
     "upgrades/maces.json",
-    "upgrades/upgrades.json"
+    "upgrades/construction-hammer.json"
   ],
   "levelUpRewardFiles": [
     "progression/level-up-rewards.json"

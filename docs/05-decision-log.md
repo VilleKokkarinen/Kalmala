@@ -4,6 +4,7 @@ Add new decisions at the top. A decision records what agents should treat as set
 
 | Date | Decision | Status | Rationale |
 | --- | --- | --- | --- |
+| 2026-10-15 | Name the Construction Hammer upgrade file `upgrades/construction-hammer.json`. | User-directed | Keep the file name aligned with its only item record and list it from `itemUpgradeFiles`; weapon costs remain grouped in their family files. |
 | 2026-10-15 | Add weapon upgrade-cost files by equipment family under `upgrades/`. | User-directed | Provide separate files for axes, knives, pickaxes, spears, and maces; empty files are valid until costs are authored. Preserve existing entries in the general upgrade file. |
 | 2026-10-15 | Add Stone-tier equipment acquisition recipes to the Workbench. | User-directed | Make each Stone item craftable through a repeatable level-one Workbench action; allow duplicate copies and validate the transaction through existing server-side station, material, GUID, and capacity rules. |
 | 2026-10-14 | Place Workbench, Forge, Workbench Tool Rack, and Forge Anvil directly from the Construction Hammer Build menu; never grant them as inventory items. | User-directed | Keep definitions grouped by station in `items/buildItems/`, put all four paid recipes in `recipes/building.json`, and have the server consume their raw-material costs during validated placement. Attachments still require their matching station. |

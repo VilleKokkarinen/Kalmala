@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-15 — Name the Construction Hammer upgrade file
+
+- **Completed:** renamed `upgrades/upgrades.json` to `upgrades/construction-hammer.json` and updated the catalogue manifest and current architecture/setup documentation. The Construction Hammer upgrade record values were preserved.
+- **Files changed:** `Content/Data/GameCatalogues/upgrades/upgrades.json` (renamed to `construction-hammer.json`), `Content/Data/GameCatalogues.json`, `docs/02-technical-architecture.md`, `docs/05-decision-log.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** parsed the manifest and renamed JSON file, confirmed the manifest lists the new path and no longer lists the old one, confirmed the record still identifies `ConstructionHammer`, and ran `git diff --check`. No Unreal build or automation tests were run.
+- **Impact/authority:** catalogue file organization and documentation only; upgrade validation, scaling, server authority, and save data are unchanged.
+- **Verification/limitations:** full Unreal compilation and packaged-data loading remain deferred.
+- **Next eligible backlog task:** convert decorative generated forest trees into individually attackable sources and integrate their depletion/streaming policy.
+
 ## User-directed increment 2026-10-15 — Group upgrade costs by weapon family
 
 - **Completed:** added separate upgrade-cost files for axes, knives, pickaxes, spears, and maces, and listed them in the catalogue manifest. Their arrays are empty until family costs are authored; existing records remain in `upgrades/upgrades.json`. The loader accepts empty upgrade category files so these family files are ready for costs.
