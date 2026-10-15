@@ -2,8 +2,26 @@
   "items": [
     {
       "ItemId": "Iron",
-      "DisplayName": "Iron",
-      "Description": "A forged iron bar used for durable tools and camp equipment.",
+      "DisplayName": "Iron bar",
+      "Description": "A forged bar of pure iron, ready to be forged into the finest blade.",
+      "MaxStack": 50
+    },
+    {
+      "ItemId": "Copper",
+      "DisplayName": "Copper bar",
+      "Description": "A forged bar of pure copper, ready to be crafted into useful items.",
+      "MaxStack": 50
+    },
+    {
+      "ItemId": "Tin",
+      "DisplayName": "Tin bar",
+      "Description": "A forged bar of pure tin, ready to be crafted into useful items.",
+      "MaxStack": 50
+    },
+    {
+      "ItemId": "Bronze",
+      "DisplayName": "Bronze bar",
+      "Description": "An alloy of copper and tin with a golden sheen.",
       "MaxStack": 50
     }
   ]

@@ -22,8 +22,8 @@
       "LevelUpReward": {
         "MaxDurability": 50,
         "DamageBonuses": {
-          "Slash": 5.0,
-          "Stab": 5.0
+          "Slash": 4.0,
+          "Stab": 4.0
         }
       }
     },
@@ -34,10 +34,10 @@
         "IronPick"
       ],
       "LevelUpReward": {
-        "MaxDurability": 50,
+        "MaxDurability": 10,
         "DamageBonuses": {
-          "Crush": 5.0,
-          "Pierce": 5.0
+          "Crush": 3.0,
+          "Pierce": 3.0
         }
       }
     },
@@ -50,8 +50,7 @@
       "LevelUpReward": {
         "MaxDurability": 50,
         "DamageBonuses": {
-          "Crush": 5.0,
-          "Pierce": 5.0
+          "Crush": 5.0
         }
       }
     },

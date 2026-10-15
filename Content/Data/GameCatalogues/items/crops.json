@@ -27,25 +27,25 @@
     {
       "ItemId": "CarrotSeed",
       "DisplayName": "Carrot Seeds",
-      "Description": "Seeds from the carrot plant.",
+      "Description": "Seeds to grow carrots.",
       "MaxStack": 50
     },
     {
       "ItemId": "PotatoSeed",
       "DisplayName": "Potato Seeds",
-      "Description": "Seeds from the potato plant.",
+      "Description": "Seeds to grow potatoes.",
       "MaxStack": 50
     },
     {
       "ItemId": "RutabagaSeed",
       "DisplayName": "Rutabaga Seeds",
-      "Description": "Seeds from the rutabaga plant.",
+      "Description": "Seeds to grow rutabagas.",
       "MaxStack": 50
     },
     {
       "ItemId": "OnionSeed",
       "DisplayName": "Onion Seeds",
-      "Description": "Seeds from the onion plant.",
+      "Description": "Seeds to grow onions.",
       "MaxStack": 50
     }
   ]

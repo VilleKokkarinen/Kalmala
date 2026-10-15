@@ -3,19 +3,19 @@
     {
       "ItemId": "Densewood",
       "DisplayName": "Densewood",
-      "Description": "Dark, dense timber from Ironheart trunks that burns as hearth fuel.",
+      "Description": "Old and hardened wood.",
       "MaxStack": 50
     },
     {
       "ItemId": "Lightwood",
       "DisplayName": "Lightwood",
-      "Description": "Pale birch timber for stronger tools.",
+      "Description": "Lightweight yet durable.",
       "MaxStack": 50
     },
     {
       "ItemId": "Wood",
       "DisplayName": "Wood",
-      "Description": "Common timber for tools, structures, and camp equipment.",
+      "Description": "Have you noticed that a 2 by 4 is actually 1.5 by 3.5 these days?",
       "MaxStack": 50
     }
   ]

@@ -3,17 +3,17 @@
     {
       "ItemId": "StoneAxe",
       "DisplayName": "Stone Axe",
-      "Description": "A simple stone axe for woodcutting and close combat.",
-      "MaxDurability": 24,
+      "Description": "A simple axe for small scale deforestation.",
+      "MaxDurability": 50,
       "DamageBonuses": {
-        "Slash": 34.0
+        "Slash": 15.0
       },
       "MaterialTier": 1
     },
     {
       "ItemId": "BronzeAxe",
       "DisplayName": "Bronze Axe",
-      "Description": "A bronze axe for woodcutting and slash attacks.",
+      "Description": "Will cleave through logs and heads with ease.",
       "MaxDurability": 100,
       "DamageBonuses": {
         "Slash": 50.0
@@ -23,10 +23,10 @@
     {
       "ItemId": "IronAxe",
       "DisplayName": "Iron Axe",
-      "Description": "A strong iron axe for woodcutting and slash attacks.",
-      "MaxDurability": 180,
+      "Description": "Sharp enough to shave the timberman's beard.",
+      "MaxDurability": 200,
       "DamageBonuses": {
-        "Slash": 72.0
+        "Slash": 70.0
       },
       "MaterialTier": 3
     }

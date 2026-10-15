@@ -28,7 +28,7 @@ struct KALMALAGAMEPLAY_API FKalmalaInteractionGrid
 {
     static constexpr float CellSize = 200.0f;
     static constexpr int32 PawnRadiusCells = 4;
-    static constexpr int32 HearthRadiusCells = 3;
+    static constexpr int32 CampFireRadiusCells = 3;
     static constexpr int32 MaxActiveCells = 1024;
 
     static FIntPoint ToCellKey(const FVector& WorldLocation);

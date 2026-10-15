@@ -4,7 +4,25 @@
       "ItemId": "Stone",
       "DisplayName": "Stone",
       "Description": "Add some googly eyes, and it becomes a friendly pet rock.",
-      "MaxStack": 40
+      "MaxStack": 50
+    },
+    {
+      "ItemId": "CopperOre",
+      "DisplayName": "Copper Ore",
+      "Description": "A chunk of copper-rich rock. Needs refining in a smelter.",
+      "MaxStack": 20
+    },
+    {
+      "ItemId": "TinOre",
+      "DisplayName": "Tin Ore",
+      "Description": "A chunk of tin-rich rock. Needs refining in a smelter.",
+      "MaxStack": 20
+    },
+    {
+      "ItemId": "IronOre",
+      "DisplayName": "Iron Ore",
+      "Description": "A chunk of iron-rich rock. Needs refining in a smelter.",
+      "MaxStack": 20
     }
   ]
 }

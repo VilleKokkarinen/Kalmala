@@ -248,7 +248,7 @@ void AKalmalaGameMode::UpdateInteractionGrid()
     LitHearths.Sort([](const AKalmalaCampfire& A, const AKalmalaCampfire& B) { return A.GetFName().LexicalLess(B.GetFName()); });
     for (const AKalmalaCampfire* Hearth : LitHearths)
     {
-        AddNeighborhood(Hearth->GetActorLocation(), FKalmalaInteractionGrid::HearthRadiusCells);
+        AddNeighborhood(Hearth->GetActorLocation(), FKalmalaInteractionGrid::CampFireRadiusCells);
         if (OrderedKeys.Num() >= FKalmalaInteractionGrid::MaxActiveCells) break;
     }
 

@@ -3,8 +3,8 @@
     {
       "ItemId": "Coal",
       "DisplayName": "Coal",
-      "Description": "A dense, black mineral that burns directly as hearth fuel.",
-      "MaxStack": 40
+      "Description": "You probably don't want these for christmas..",
+      "MaxStack": 50
     }
   ]
 }

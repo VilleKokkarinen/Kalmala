@@ -190,6 +190,29 @@
       "ExperienceAward": 0,
       "bEnabled": true
     },
+     {
+      "RecipeId": "GrindingStone",
+      "DisplayName": "Grinding Stone",
+      "Ingredients": [
+        {
+          "ItemId": "Wood",
+          "Quantity": 6
+        },
+        {
+          "ItemId": "Stone",
+          "Quantity": 4
+        }
+      ],
+      "Output": "GrindingStone",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "RequiredStation": [
+        "Workbench"
+      ],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
+    },
     {
       "RecipeId": "WorkbenchToolRack",
       "DisplayName": "Workbench Tool Rack",
@@ -203,6 +226,25 @@
       "OutputCount": 1,
       "MaxBatch": 1,
       "RequiredStation": [],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
+    },
+    {
+      "RecipeId": "FryingPanRecipe",
+      "DisplayName": "Frying Pan",
+      "Ingredients": [
+        {
+          "ItemId": "Iron",
+          "Quantity": 5
+        }
+      ],
+      "Output": "FryingPan",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "RequiredStation": [
+        "Forge"
+      ],
       "ExperienceSkill": "None",
       "ExperienceAward": 0,
       "bEnabled": true

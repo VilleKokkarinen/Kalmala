@@ -3,28 +3,30 @@
     {
       "ItemId": "StoneMace",
       "DisplayName": "Stone Mace",
-      "Description": "A stone mace for crushing attacks.",
-      "MaxDurability": 16,
+      "Description": "Migraine inducer 3000",
+      "MaxDurability": 50,
       "DamageBonuses": {
-        "Crush": 30.0
+        "Crush": 15.0
       }
     },
     {
       "ItemId": "BronzeMace",
       "DisplayName": "Bronze Mace",
-      "Description": "A bronze mace for crushing attacks.",
-      "MaxDurability": 48,
+      "Description": "Now with extra spikes!",
+      "MaxDurability": 100,
       "DamageBonuses": {
-        "Crush": 42.0
+        "Crush": 25.0,
+        "Stab": 10.0
       }
     },
     {
       "ItemId": "IronMace",
       "DisplayName": "Iron Mace",
-      "Description": "A iron mace for crushing attacks.",
-      "MaxDurability": 80,
+      "Description": "Getting hit by this is not advised.",
+      "MaxDurability": 200,
       "DamageBonuses": {
-        "Crush": 58.0
+        "Crush": 45.0,
+        "Stab": 15.0
       }
     }
   ]

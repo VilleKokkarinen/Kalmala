@@ -3,30 +3,33 @@
     {
       "ItemId": "StonePick",
       "DisplayName": "Stone Pick",
-      "Description": "A stone pick for breaking slate and gathering ore.",
+      "Description": "Hard enough to crack tin and copper.",
       "MaxDurability": 20,
       "DamageBonuses": {
-        "Crush": 26.0
+        "Crush": 10.0,
+        "Pierce": 10.0
       },
       "MaterialTier": 1
     },
     {
       "ItemId": "BronzePick",
       "DisplayName": "Bronze Pick",
-      "Description": "A bronze pick for mining and blunt attacks.",
-      "MaxDurability": 90,
+      "Description": "Can break even the hardest rocks.",
+      "MaxDurability": 30,
       "DamageBonuses": {
-        "Crush": 38.0
+        "Crush": 18.0,
+        "Pierce": 18.0
       },
       "MaterialTier": 2
     },
     {
       "ItemId": "IronPick",
       "DisplayName": "Iron Pick",
-      "Description": "A durable iron pick for mining and blunt attacks.",
-      "MaxDurability": 160,
+      "Description": "The pinnacle of craftsmanship!",
+      "MaxDurability": 100,
       "DamageBonuses": {
-        "Crush": 52.0
+        "Crush": 25.0,
+        "Pierce": 25.0
       },
       "MaterialTier": 3
     }

@@ -3,28 +3,28 @@
     {
       "ItemId": "StoneSpear",
       "DisplayName": "Stone Spear",
-      "Description": "A stone-tipped spear for piercing attacks.",
-      "MaxDurability": 36,
+      "Description": "Sharp enough to pierce through even the toughest hide.",
+      "MaxDurability": 50,
       "DamageBonuses": {
-        "Stab": 42.0
+        "Stab": 15.0
       }
     },
     {
       "ItemId": "BronzeSpear",
       "DisplayName": "Bronze Spear",
-      "Description": "A bronze-tipped spear for piercing attacks.",
-      "MaxDurability": 90,
+      "Description": "Long range weapon for keeping your enemies at a distance.",
+      "MaxDurability": 100,
       "DamageBonuses": {
-        "Stab": 58.0
+        "Stab": 30.0
       }
     },
     {
       "ItemId": "IronSpear",
       "DisplayName": "Iron Spear",
-      "Description": "An iron-tipped spear for piercing attacks.",
-      "MaxDurability": 150,
+      "Description": "I would not want to be on the receiving end.",
+      "MaxDurability": 200,
       "DamageBonuses": {
-        "Stab": 76.0
+        "Stab": 47.0
       }
     }
   ]

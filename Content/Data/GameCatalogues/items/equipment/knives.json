@@ -3,28 +3,31 @@
     {
       "ItemId": "StoneKnife",
       "DisplayName": "Stone Knife",
-      "Description": "A chipped stone knife for gathering and close combat.",
-      "MaxDurability": 16,
+      "Description": "A sharpened stone. A reliable tool for a few strikes.",
+      "MaxDurability": 25,
       "DamageBonuses": {
-        "Slash": 30.0
+        "Slash": 5.0,
+        "Stab": 5.0
       }
     },
     {
       "ItemId": "BronzeKnife",
       "DisplayName": "Bronze Knife",
       "Description": "A bronze knife for gathering and slash attacks.",
-      "MaxDurability": 48,
+      "MaxDurability": 50,
       "DamageBonuses": {
-        "Slash": 42.0
+        "Slash": 16.0,
+        "Stab": 16.0
       }
     },
     {
       "ItemId": "IronKnife",
       "DisplayName": "Iron Knife",
       "Description": "A keen iron knife for gathering and slash attacks.",
-      "MaxDurability": 80,
+      "MaxDurability": 100,
       "DamageBonuses": {
-        "Slash": 58.0
+        "Slash": 28.0,
+        "Stab": 28.0
       }
     }
   ]
