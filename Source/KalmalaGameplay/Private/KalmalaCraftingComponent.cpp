@@ -13,6 +13,7 @@
 #include "KalmalaOceanSampler.h"
 #include "KalmalaShimmeringLakeSampler.h"
 #include "KalmalaToolLifecycleContract.h"
+#include "KalmalaToolCatalogue.h"
 #include "KalmalaToolProgressionContract.h"
 #include "KalmalaPlayerStatusComponent.h"
 #include "KalmalaSkillProgressionComponent.h"
@@ -359,8 +360,11 @@ bool UKalmalaCraftingComponent::ProgressToolFromServer(const FName ToolId, FStri
     Reason = TEXT("Server authority required");
     if (!Character || !Character->HasAuthority() || !Character->GetController()) return false;
 
-    const FKalmalaToolProgressionEntry* Entry = FKalmalaToolProgressionContract::FindNextEntry(
-        ToolId, Character->GetCarriedToolLevel(ToolId));
+    const FKalmalaToolProfileData* Profile = UKalmalaToolCatalogue::Get()->FindProfile(ToolId);
+    const bool bRepeatableStarterAcquisition = Profile && Profile->ToolSet == TEXT("Starter");
+    const FKalmalaToolProgressionEntry* Entry = bRepeatableStarterAcquisition
+        ? FKalmalaToolProgressionContract::FindEntry(ToolId, 1)
+        : FKalmalaToolProgressionContract::FindNextEntry(ToolId, Character->GetCarriedToolLevel(ToolId));
     Reason = TEXT("No same-item upgrade is available for that tool level");
     if (!Entry || !FKalmalaToolProgressionContract::IsCatalogueValid()) return false;
     Reason = TEXT("Tool upgrades must keep the same item identity");

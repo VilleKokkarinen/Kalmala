@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-15 — Add Stone-tier equipment recipes to Workbench
+
+- **Completed:** added level-one Workbench acquisitions for Stone Axe, Stone Knife, Stone Pick, Stone Spear, and Stone Mace, plus matching craft actions in the Workbench Craft view. Starter-profile acquisitions are repeatable, so players can craft additional copies even when one is already carried. Each crafted item receives a new GUID through the existing server transaction.
+- **Files changed:** `Content/Data/GameCatalogues/recipes/stations/workbench.json`, `Source/KalmalaGameplay/Private/KalmalaToolCatalogue.cpp`, `KalmalaToolProgressionContract.cpp`, `KalmalaCraftingComponent.cpp`, `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`, `Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`, `docs/02-technical-architecture.md`, `docs/05-decision-log.md`, `BACKLOG.md`, and this entry. The pre-existing Workbench recipe deletion in the working tree was preserved for later handling.
+- **Lightweight checks:** parsed Workbench JSON and confirmed five unique equipment IDs, Workbench level-one requirements, profile references, and valid material references; inspected recipe routing, duplicate acquisition, GUID creation, and server station/material/capacity checks; `git diff --check` passed. No Unreal build or automation tests were run.
+- **Impact/authority:** the client invokes the existing `ServerProgressTool` request with a Stone item ID. The server resolves the authored cost, requires the accepted Workbench and matching level, validates materials and shared inventory capacity, creates the GUID-bearing item, and persists the complete candidate. No RPC or save-schema change.
+- **Verification/limitations:** full Unreal compilation, gameplay automation, and runtime Workbench UI review remain deferred. Stone acquisitions require a level-one Workbench and use Wood/Stone costs from the station recipe file.
+- **Next eligible backlog task:** convert decorative generated forest trees into individually attackable sources and integrate their depletion/streaming policy.
+
 ## User-directed increment 2026-10-15 — Keep Forge acquisitions in forge.json
 
 - **Completed:** moved all ten Forge equipment acquisition records into `recipes/stations/forge.json`. The loader now reads station service and equipment acquisition records from the same `recipes` arrays, routes entries containing `ToolId` into the existing runtime tool catalogue, and retains separate array bounds and duplicate-ID checks. Removed the obsolete `itemRecipeFiles` manifest group and the `forge-item-recipes.json` and empty `workbench-item-recipes.json` files. Empty individual station recipe arrays are accepted while the assembled catalogue remains required to contain ordinary recipes and equipment acquisitions.

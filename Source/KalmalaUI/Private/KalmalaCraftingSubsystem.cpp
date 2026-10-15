@@ -796,6 +796,24 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     CraftBronzeMaceButton->OnClicked.AddDynamic(this, &ThisClass::CraftBronzeMace);
     CraftIronMaceButton = AddButton(TEXT("Craft Iron Mace"), MaceCraftActions);
     CraftIronMaceButton->OnClicked.AddDynamic(this, &ThisClass::CraftIronMace);
+    StoneCraftToolIds = {TEXT("StoneAxe"), TEXT("StoneKnife"), TEXT("StonePick"), TEXT("StoneSpear"), TEXT("StoneMace")};
+    StoneCraftTitleText = AddText(TEXT("Stone-tier equipment"), 18);
+    BuildExcludedWidgets.Add(StoneCraftTitleText);
+    StoneCraftActions = WidgetTree->ConstructWidget<UVerticalBox>();
+    Column->AddChild(StoneCraftActions);
+    for (const FName ToolId : StoneCraftToolIds)
+    {
+        const FString Label = FString::Printf(TEXT("Craft %s"), *GetToolDisplayName(ToolId));
+        const FString Help = FString::Printf(
+            TEXT("Craft a %s at a visible same-world Workbench. The server checks costs and pack capacity."),
+            *GetToolDisplayName(ToolId));
+        UButton* Button = AddButton(*Label, nullptr, *Help);
+        Button->RemoveFromParent();
+        StoneCraftActions->AddChildToVerticalBox(Button)->SetPadding(FMargin(2.0f, 2.0f));
+        Button->OnClicked.AddLambda([this, ToolId]() { CraftStoneTool(ToolId); });
+        StoneCraftButtons.Add(Button);
+    }
+    BuildExcludedWidgets.Add(StoneCraftActions);
     UpgradeBronzeAxeButton = AddButton(TEXT("Upgrade"), ToolProgressionActions, TEXT("Upgrade"));
     UpgradeBronzeAxeButton->OnClicked.AddDynamic(this, &ThisClass::UpgradeBronzeAxe);
     auto* UpgradePanelContent = WidgetTree->ConstructWidget<UHorizontalBox>();
@@ -1527,7 +1545,7 @@ void UKalmalaCraftingWidget::ConfigureStationContextPresentation(const FString& 
     {
         if (HeaderText) HeaderText->SetText(FText::FromString(TEXT("Workbench — Craft")));
         if (InstructionsText) InstructionsText->SetText(FText::FromString(
-            TEXT("Only recipes for this Workbench and its matching Tool Rack are shown. The server checks station, materials, and tool state when you craft.")));
+            TEXT("Workbench recipes and Stone-tier equipment are available here. The server checks station, materials, and inventory capacity when you craft.")));
     }
     else if (bForgeCraftContext)
     {
@@ -1656,6 +1674,9 @@ void UKalmalaCraftingWidget::ApplyStationCraftLayout()
     if (ToolProgressionActions)
         ToolProgressionActions->SetVisibility(bInventoryCompanion || bCookingContext || bForgeCraftContext || bRepairContext || bStorageContext
             ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
+    if (StoneCraftActions)
+        StoneCraftActions->SetVisibility(bWorkbenchCraftContext
+            ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
     if (StationUpgradePanel)
         StationUpgradePanel->SetVisibility(bForgeUpgradeContext
             ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
@@ -1706,6 +1727,7 @@ void UKalmalaCraftingWidget::ApplyStationCraftLayout()
     if (RecipeCategoryButton && bInventoryCompanion) RecipeCategoryButton->SetVisibility(ESlateVisibility::Collapsed);
     if (BuildPlacementButton) BuildPlacementButton->SetVisibility(bStandaloneBuildMenu || bInventoryCompanion
         ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
+    RefreshStoneCraftState();
 }
 
 void UKalmalaCraftingWidget::RefreshStationContextState()
@@ -1820,6 +1842,53 @@ void UKalmalaCraftingWidget::RefreshMaceCraftState()
     };
     RefreshButton(CraftBronzeMaceButton, TEXT("BronzeMace"));
     RefreshButton(CraftIronMaceButton, TEXT("IronMace"));
+}
+
+void UKalmalaCraftingWidget::RefreshStoneCraftState()
+{
+    if (!StoneCraftActions) return;
+    const bool bVisible = !bInventoryCompanion && bWorkbenchCraftContext;
+    StoneCraftActions->SetVisibility(bVisible ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+    if (StoneCraftTitleText)
+        StoneCraftTitleText->SetVisibility(bVisible ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+
+    const APlayerController* PC = GetOwningPlayer();
+    const AKalmalaCharacter* Owner = PC ? Cast<AKalmalaCharacter>(PC->GetPawn()) : nullptr;
+    const UKalmalaInventoryComponent* Inventory = Owner ? Owner->GetInventoryComponent() : nullptr;
+    const AKalmalaConstructionActor* Station = ContextStationActor.Get();
+    for (int32 Index = 0; Index < StoneCraftToolIds.Num() && StoneCraftButtons.IsValidIndex(Index); ++Index)
+    {
+        UButton* Button = StoneCraftButtons[Index];
+        const FName ToolId = StoneCraftToolIds[Index];
+        const FKalmalaToolProgressionEntry* Entry = FKalmalaToolProgressionContract::FindEntry(ToolId, 1);
+        bool bReady = bVisible && Entry && Entry->PreviousToolId.IsNone() && PC && PC->IsLocalController()
+            && Owner && Inventory && IsStationContextValid() && IsValid(Station)
+            && Station->GetConstructionKit() == TEXT("WorkbenchKit")
+            && Entry->RequiredStation == EKalmalaToolStationKind::Workbench
+            && FKalmalaToolProgressionContract::GetEffectiveStationLevel(Station) == Entry->RequiredStationLevel;
+        FString Requirements = TEXT("Requires a visible level-one Workbench and enough room in your pack.");
+        if (Entry)
+        {
+            for (const FKalmalaToolMaterialCost& Cost : Entry->MaterialCosts)
+            {
+                const int32 Available = Inventory ? Inventory->GetQuantity(Cost.ItemId) : 0;
+                bReady &= Available >= Cost.Quantity;
+                Requirements += FString::Printf(TEXT("\n%s: %d/%d"), *Cost.ItemId.ToString(), Available, Cost.Quantity);
+            }
+        }
+        if (Button)
+        {
+            Button->SetVisibility(bVisible ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+            Button->SetIsEnabled(bReady);
+            Button->SetToolTipText(FText::FromString(Requirements));
+        }
+    }
+}
+
+void UKalmalaCraftingWidget::CraftStoneTool(const FName ToolId)
+{
+    if (!bWorkbenchCraftContext || StationFilterKit != TEXT("WorkbenchKit") || !IsStationContextValid()) return;
+    if (auto* Crafting = Model()) Crafting->ServerProgressTool(ToolId);
 }
 
 void UKalmalaCraftingWidget::RefreshForgeUpgradeState(UKalmalaCraftingComponent* Crafting)
@@ -3780,6 +3849,7 @@ void UKalmalaCraftingWidget::Refresh()
     }
     RefreshStationContextState();
     RefreshMaceCraftState();
+    RefreshStoneCraftState();
     RefreshStationRepairActionState(M);
     const auto& Recipes=UKalmalaRecipeCatalogue::Get()->Recipes;
     const TArray<int32> VisibleIndices = GetVisibleRecipeIndices();

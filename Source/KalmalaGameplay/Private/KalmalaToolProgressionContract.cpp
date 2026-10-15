@@ -372,7 +372,10 @@ bool FKalmalaToolProgressionContract::BuildServerUpgrade(
         return State.ToolId == ToolId;
     });
     const int32 CurrentToolLevel = ExistingTarget ? ExistingTarget->ToolLevel : 0;
-    const FKalmalaToolProgressionEntry* Entry = FindNextEntry(ToolId, CurrentToolLevel);
+    const FKalmalaToolProfileData* Profile = UKalmalaToolCatalogue::Get()->FindProfile(ToolId);
+    const bool bRepeatableStarterAcquisition = Profile && Profile->ToolSet == TEXT("Starter");
+    const FKalmalaToolProgressionEntry* Entry = bRepeatableStarterAcquisition
+        ? FindEntry(ToolId, 1) : FindNextEntry(ToolId, CurrentToolLevel);
     Reason = TEXT("No same-item upgrade is available for that tool level");
     if (!Entry) return false;
 

@@ -130,9 +130,13 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
     {
         const FKalmalaToolProfileData* Profile = FindProfile(Recipe.ToolId);
         const FString TargetKey = FString::Printf(TEXT("%s:%d"), *Recipe.ToolId.ToString(), Recipe.Level);
+        const bool bCraftableToolSet = Profile
+            && (Profile->ToolSet == TEXT("Starter") || Profile->ToolSet == TEXT("Crafted"));
+        const bool bStarterRequiresWorkbench = Profile && Profile->ToolSet == TEXT("Starter")
+            && Recipe.RequiredStation != TEXT("Workbench");
         if (Recipe.RecipeId.IsNone() || SeenRecipeIds.Contains(Recipe.RecipeId)
             || Recipe.DisplayName.TrimStartAndEnd().IsEmpty() || Recipe.DisplayName.Len() > 64
-            || Profile == nullptr || Profile->ToolSet != TEXT("Crafted")
+            || !bCraftableToolSet || bStarterRequiresWorkbench
             || SeenRecipeTargets.Contains(TargetKey)
             || Recipe.Level != 1
             || Recipe.RequiredStationLevel != Recipe.Level

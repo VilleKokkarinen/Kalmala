@@ -173,6 +173,8 @@ private:
     void RefreshStationContextState();
     void RefreshForgeUpgradeState(UKalmalaCraftingComponent* Crafting);
     void RefreshMaceCraftState();
+    void RefreshStoneCraftState();
+    void CraftStoneTool(FName ToolId);
     void RefreshWorkbenchRepairState(UKalmalaCraftingComponent* Crafting);
     void RefreshStationRepairActionState(UKalmalaCraftingComponent* Crafting);
     void RequestStationRepairAll(FName RequiredStationKit);
@@ -285,6 +287,10 @@ private:
     UPROPERTY(Transient) TObjectPtr<UButton> CraftBronzeMaceButton;
     UPROPERTY(Transient) TObjectPtr<UButton> CraftIronMaceButton;
     UPROPERTY(Transient) TObjectPtr<class UHorizontalBox> MaceCraftActions;
+    UPROPERTY(Transient) TObjectPtr<UTextBlock> StoneCraftTitleText;
+    UPROPERTY(Transient) TObjectPtr<class UVerticalBox> StoneCraftActions;
+    UPROPERTY(Transient) TArray<TObjectPtr<UButton>> StoneCraftButtons;
+    TArray<FName> StoneCraftToolIds;
     UPROPERTY(Transient) TObjectPtr<UButton> UpgradeBronzeAxeButton;
     UPROPERTY(Transient) TObjectPtr<class UHorizontalBox> ToolProgressionActions;
     UPROPERTY(Transient) TObjectPtr<UButton> WorkbenchCraftSectionButton;
