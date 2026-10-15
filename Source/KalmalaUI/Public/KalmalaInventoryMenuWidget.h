@@ -58,7 +58,7 @@ private:
     void RefreshGearPresentation(int32 TextScale, int32 Contrast);
     void SelectGridItem(FName ItemId);
     void HoverGridItem(FName ItemId);
-    void UseGearSlot(EKalmalaGearSlot Slot);
+    void UseGearSlot(EKalmalaGearSlot GearSlot);
     UFUNCTION() void UseMainHandSlot();
     UFUNCTION() void UseHeadGearSlot();
     UFUNCTION() void UseCapeGearSlot();
@@ -110,6 +110,7 @@ private:
     FName AwaitingFoodItemId = NAME_None;
     FName LastFoodResultItemId = NAME_None;
     FString LastFoodResultText;
+    FString LastGearActionStatus;
     bool bAwaitingRepairResult = false;
     bool bAwaitingFoodResult = false;
     bool bAwaitingAcceptedFoodStatus = false;

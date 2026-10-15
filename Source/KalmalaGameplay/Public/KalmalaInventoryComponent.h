@@ -106,7 +106,7 @@ public:
     UFUNCTION(Server, Reliable) void ServerSetMainHand(FGuid ItemGuid);
     UFUNCTION(Server, Reliable) void ServerEquipGear(FGuid ItemGuid);
     UFUNCTION(Server, Reliable) void ServerUnequipGear(EKalmalaGearSlot Slot);
-    UFUNCTION(Client, Reliable) void ClientGearRequestResult(bool bAccepted, FString Reason);
+    UFUNCTION(Client, Reliable) void ClientGearRequestResult(bool bAccepted, const FString& Reason);
     const TArray<FKalmalaInventoryStack>& GetStacks() const { return Stacks; }
     /** Local owner receipt buffer, never used as inventory authority or persistence. */
     const TArray<FKalmalaItemGainReceipt>& GetGainReceipts() const { return GainReceipts; }

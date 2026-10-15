@@ -328,7 +328,7 @@ void UKalmalaInventoryComponent::ServerSetMainHand_Implementation(const FGuid It
     LastGearRequestTime = Now;
     FString Reason;
     const bool bAccepted = SetMainHandFromServer(ItemGuid, Reason);
-    ClientGearRequestResult(bAccepted, MoveTemp(Reason));
+    ClientGearRequestResult(bAccepted, Reason);
 }
 
 void UKalmalaInventoryComponent::ServerUseHotbarSlot_Implementation(const int32 Slot)

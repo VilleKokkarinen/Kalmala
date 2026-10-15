@@ -34,6 +34,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+Current first-incomplete item: the Main Hand/hotbar coverage child under “Add armor items and a worn-equipment inventory” remains unchecked. UBT compiles the corrected equipment Gameplay/UI translation units, but focused automation/live acceptance is awaiting resolution of the pre-existing duplicate `FSourceCase::ItemId` compile error in `KalmalaM9SourceAcceptanceTest.cpp` (commit `9b96cafb`).
+
 - [x] **2026-10-15 — Move Wood Shield to Workbench:** moved its sole crafting recipe and matching upgrade-cost station to Workbench, preserving current ingredient costs. Updated catalogue coverage; JSON/unique-ID checks passed, Unreal verification deferred.
 
 - [x] **2026-10-15 — Remove duplicate Wood Shield recipe:** removed the uncommitted Workbench duplicate, retaining the Forge recipe and all existing balance edits. Manifest recipe JSON/unique-ID checks passed; Unreal verification deferred.

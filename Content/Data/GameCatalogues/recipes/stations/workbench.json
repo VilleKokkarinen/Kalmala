@@ -94,7 +94,7 @@
       "RecipeId": "BoarHideBootsRecipe",
       "DisplayName": "Boar Hide Boots",
       "Ingredients": [
-        { "ItemId": "BoarHide", "Quantity": 2 }
+        { "ItemId": "BoarHide", "Quantity": 5 }
       ],
       "Output": "BoarHideBoots",
       "OutputCount": 1,
@@ -108,7 +108,7 @@
       "RecipeId": "BoarHideCapeRecipe",
       "DisplayName": "Boar Hide Cape",
       "Ingredients": [
-        { "ItemId": "BoarHide", "Quantity": 2 },
+        { "ItemId": "BoarHide", "Quantity": 5 },
         { "ItemId": "BoneFragment", "Quantity": 1 }
       ],
       "Output": "BoarHideCape",
@@ -123,7 +123,7 @@
       "RecipeId": "BoarHideHelmetRecipe",
       "DisplayName": "Boar Hide Helmet",
       "Ingredients": [
-        { "ItemId": "BoarHide", "Quantity": 2 }
+        { "ItemId": "BoarHide", "Quantity": 10 }
       ],
       "Output": "BoarHideHelmet",
       "OutputCount": 1,
@@ -137,7 +137,7 @@
       "RecipeId": "BoarHideLeggingsRecipe",
       "DisplayName": "Boar Hide Leggings",
       "Ingredients": [
-        { "ItemId": "BoarHide", "Quantity": 3 }
+        { "ItemId": "BoarHide", "Quantity": 10 }
       ],
       "Output": "BoarHideLeggings",
       "OutputCount": 1,
@@ -151,7 +151,7 @@
       "RecipeId": "BoarHideTunicRecipe",
       "DisplayName": "Boar Hide Tunic",
       "Ingredients": [
-        { "ItemId": "BoarHide", "Quantity": 4 }
+        { "ItemId": "BoarHide", "Quantity": 10 }
       ],
       "Output": "BoarHideTunic",
       "OutputCount": 1,

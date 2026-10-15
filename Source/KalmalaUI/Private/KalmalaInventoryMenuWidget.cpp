@@ -360,18 +360,21 @@ void UKalmalaInventoryMenuWidget::RefreshOwnerInventory()
         const UKalmalaItemCatalogue* Catalogue = UKalmalaItemCatalogue::Get();
         TArray<FName> StackIds;
         TMap<FName, int32> StackQuantities;
+        TMap<FName, FGuid> StackGuids;
         for (const FKalmalaInventoryStack& Stack : Inventory->GetStacks())
         {
             if (Stack.ItemId.IsNone() || Stack.Quantity <= 0) continue;
             if (!StackQuantities.Contains(Stack.ItemId)) StackIds.Add(Stack.ItemId);
             StackQuantities.FindOrAdd(Stack.ItemId) += Stack.Quantity;
+            if (!StackGuids.Contains(Stack.ItemId) && !Stack.ItemGuids.IsEmpty())
+                StackGuids.Add(Stack.ItemId, Stack.ItemGuids[0]);
         }
         for (const FName ItemId : StackIds)
         {
             const FKalmalaItemDefinition* Definition = Catalogue ? Catalogue->FindItem(ItemId) : nullptr;
             InventoryRows.Add({ ItemId, Definition ? Definition->DisplayName : ItemId.ToString(),
                 FString::Printf(TEXT("× %d"), StackQuantities.FindRef(ItemId)), false,
-                Stack.ItemGuids.IsEmpty() ? FGuid() : Stack.ItemGuids[0] });
+                StackGuids.FindRef(ItemId) });
         }
     }
 
@@ -694,6 +697,8 @@ void UKalmalaInventoryMenuWidget::RefreshGearPresentation(const int32 TextScale,
         ? &OwnerInventoryRows[SelectedInventoryIndex] : nullptr;
     const FKalmalaItemDefinition* SelectedDefinition = SelectedRow && Catalogue
         ? Catalogue->FindItem(SelectedRow->Id) : nullptr;
+    const FGuid SelectedGuid = SelectedGridInstanceGuid.IsValid() ? SelectedGridInstanceGuid
+        : SelectedRow ? SelectedRow->ItemGuid : FGuid();
 
     const bool bTwoHanded = Inventory && FKalmalaToolLifecycleContract::IsTwoHanded(Inventory->GetActiveItem());
     for (int32 Index = 0; Index < 6; ++Index)
@@ -702,12 +707,12 @@ void UKalmalaInventoryMenuWidget::RefreshGearPresentation(const int32 TextScale,
         UTextBlock* StateText = GearSlotStateTexts[Index];
         if (!Button || !StateText) continue;
 
-        const EKalmalaGearSlot Slot = Slots[Index];
-        const FKalmalaEquippedGear* Equipped = Inventory ? Inventory->FindEquippedGear(Slot) : nullptr;
+        const EKalmalaGearSlot GearSlot = Slots[Index];
+        const FKalmalaEquippedGear* Equipped = Inventory ? Inventory->FindEquippedGear(GearSlot) : nullptr;
         FString State = TEXT("Empty");
-        const bool bCanEquip = SelectedDefinition && SelectedRow && SelectedRow->ItemGuid.IsValid()
-            && SelectedDefinition->GearSlot == GetGearCatalogueSlot(Slot)
-            && (!Equipped || Equipped->ItemGuid != SelectedRow->ItemGuid);
+        const bool bCanEquip = SelectedDefinition && SelectedRow && SelectedGuid.IsValid()
+            && SelectedDefinition->GearSlot == GetGearCatalogueSlot(GearSlot)
+            && (!Equipped || Equipped->ItemGuid != SelectedGuid);
         if (Equipped)
         {
             const FKalmalaItemDefinition* Definition = Catalogue ? Catalogue->FindItem(Equipped->ItemId) : nullptr;
@@ -734,7 +739,7 @@ void UKalmalaInventoryMenuWidget::RefreshGearPresentation(const int32 TextScale,
             }
         }
 
-        if (Slot == EKalmalaGearSlot::Shield && bTwoHanded)
+        if (GearSlot == EKalmalaGearSlot::Shield && bTwoHanded)
         {
             State = bCanEquip ? TEXT("Equip shield / return weapon") : TEXT("Both hands occupied");
             Button->SetToolTipText(FText::FromString(
@@ -748,8 +753,6 @@ void UKalmalaInventoryMenuWidget::RefreshGearPresentation(const int32 TextScale,
 
     if (MainHandButton && MainHandStateText)
     {
-        const FGuid SelectedGuid = SelectedGridInstanceGuid.IsValid() ? SelectedGridInstanceGuid
-            : SelectedRow ? SelectedRow->ItemGuid : FGuid();
         const bool bHasTool = Inventory && FKalmalaToolLifecycleContract::FindDefinition(Inventory->GetActiveItem());
         const bool bCanSelect = Inventory && SelectedRow && SelectedRow->bCarriedTool
             && SelectedGuid.IsValid() && SelectedGuid != Inventory->GetActiveInstanceGuid();
@@ -772,7 +775,7 @@ void UKalmalaInventoryMenuWidget::RefreshGearPresentation(const int32 TextScale,
     (void)Contrast;
 }
 
-void UKalmalaInventoryMenuWidget::UseGearSlot(const EKalmalaGearSlot Slot)
+void UKalmalaInventoryMenuWidget::UseGearSlot(const EKalmalaGearSlot GearSlot)
 {
     APlayerController* Controller = GetOwningPlayer();
     AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(Controller ? Controller->GetPawn() : nullptr);
@@ -780,24 +783,26 @@ void UKalmalaInventoryMenuWidget::UseGearSlot(const EKalmalaGearSlot Slot)
     if (!Controller || !Controller->IsLocalController() || !Inventory || bAwaitingGearRequestResult) return;
 
     LastSeenGearRequestResultSerial = Inventory->GetGearRequestResultSerial();
-    const FKalmalaEquippedGear* ExistingGear = Inventory->FindEquippedGear(Slot);
+    const FKalmalaEquippedGear* ExistingGear = Inventory->FindEquippedGear(GearSlot);
     const FKalmalaCatalogueRow* SelectedRow = OwnerInventoryRows.IsValidIndex(SelectedInventoryIndex)
         ? &OwnerInventoryRows[SelectedInventoryIndex] : nullptr;
+    const FGuid SelectedGuid = SelectedGridInstanceGuid.IsValid() ? SelectedGridInstanceGuid
+        : SelectedRow ? SelectedRow->ItemGuid : FGuid();
     const UKalmalaItemCatalogue* Catalogue = UKalmalaItemCatalogue::Get();
     const FKalmalaItemDefinition* Definition = SelectedRow && Catalogue
         ? Catalogue->FindItem(SelectedRow->Id) : nullptr;
-    const bool bCanEquip = SelectedRow && SelectedRow->ItemGuid.IsValid() && Definition
-        && Definition->GearSlot == GetGearCatalogueSlot(Slot)
-        && (!ExistingGear || ExistingGear->ItemGuid != SelectedRow->ItemGuid);
+    const bool bCanEquip = SelectedRow && SelectedGuid.IsValid() && Definition
+        && Definition->GearSlot == GetGearCatalogueSlot(GearSlot)
+        && (!ExistingGear || ExistingGear->ItemGuid != SelectedGuid);
     if (ExistingGear && !bCanEquip)
     {
         bPendingGearEquip = false;
-        Inventory->ServerUnequipGear(Slot);
+        Inventory->ServerUnequipGear(GearSlot);
     }
     else if (bCanEquip)
     {
         bPendingGearEquip = true;
-        Inventory->ServerEquipGear(SelectedRow->ItemGuid);
+        Inventory->ServerEquipGear(SelectedGuid);
     }
     else return;
 

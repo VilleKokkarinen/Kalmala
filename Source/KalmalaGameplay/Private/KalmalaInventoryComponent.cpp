@@ -341,7 +341,7 @@ void UKalmalaInventoryComponent::ServerEquipGear_Implementation(const FGuid Item
     LastGearRequestTime = Now;
     FString Reason;
     const bool bAccepted = EquipGearFromServer(ItemGuid, Reason);
-    ClientGearRequestResult(bAccepted, MoveTemp(Reason));
+    ClientGearRequestResult(bAccepted, Reason);
 }
 
 void UKalmalaInventoryComponent::ServerUnequipGear_Implementation(const EKalmalaGearSlot Slot)
@@ -352,13 +352,13 @@ void UKalmalaInventoryComponent::ServerUnequipGear_Implementation(const EKalmala
     LastGearRequestTime = Now;
     FString Reason;
     const bool bAccepted = UnequipGearFromServer(Slot, Reason);
-    ClientGearRequestResult(bAccepted, MoveTemp(Reason));
+    ClientGearRequestResult(bAccepted, Reason);
 }
 
-void UKalmalaInventoryComponent::ClientGearRequestResult_Implementation(const bool bAccepted, FString Reason)
+void UKalmalaInventoryComponent::ClientGearRequestResult_Implementation(const bool bAccepted, const FString& Reason)
 {
     bLastGearRequestAccepted = bAccepted;
-    LastGearRequestReason = MoveTemp(Reason);
+    LastGearRequestReason = Reason;
     ++GearRequestResultSerial;
 }
 
