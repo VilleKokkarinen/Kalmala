@@ -77,6 +77,33 @@ bool FKalmalaInventoryGridTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("A stack cannot share the hand identity"), UKalmalaInventoryComponent::BuildMainHandGrid(
         {AxeGuid}, {AxeGuid}, AxeGuid, After, After));
     TestTrue(TEXT("Invalid transactions leave the prior layout intact"), After == ReplacementGrid);
+
+    // Numbered hotbar cells are pack locations, not persistent aliases for the hand.
+    TArray<FGuid> HotbarBefore;
+    HotbarBefore.Init(FGuid(), 40);
+    HotbarBefore[0] = HammerGuidA;
+    HotbarBefore[3] = HammerGuidB;
+    HotbarBefore[9] = WoodGuid;
+    HotbarBefore[14] = AxeGuid;
+    const TArray<FGuid> HotbarTools = {HammerGuidA, HammerGuidB, AxeGuid};
+    TestTrue(TEXT("Numbered tool selection moves its physical copy into Main Hand"),
+        UKalmalaInventoryComponent::BuildMainHandGrid(HotbarTools, {WoodGuid}, HammerGuidA, HotbarBefore, After));
+    TestFalse(TEXT("Equipping cell one leaves that number empty"), After[0].IsValid());
+    TestTrue(TEXT("A duplicate tool keeps its own numbered cell"), After[3] == HammerGuidB);
+    TestTrue(TEXT("Other numbered cells and lower rows do not shift"), After[9] == WoodGuid && After[14] == AxeGuid);
+    const auto EquippedHotbar = After;
+    TestTrue(TEXT("An unchanged hand preserves empty numbered cells across synchronization"),
+        UKalmalaInventoryComponent::BuildMainHandGrid(HotbarTools, {WoodGuid}, HammerGuidA, After, After));
+    TestTrue(TEXT("Synchronization creates no hotbar alias for equipped gear"), After == EquippedHotbar);
+    TestTrue(TEXT("Selecting the duplicate replaces the hand without losing either identity"),
+        UKalmalaInventoryComponent::BuildMainHandGrid(HotbarTools, {WoodGuid}, HammerGuidB, After, After));
+    TestTrue(TEXT("Displaced tool uses the first free cell"), After[0] == HammerGuidA);
+    TestFalse(TEXT("Replacement vacates its own numbered cell"), After[3].IsValid());
+    TestTrue(TEXT("Return uses first free space without restoring an old shortcut"),
+        UKalmalaInventoryComponent::BuildMainHandGrid(HotbarTools, {WoodGuid}, FGuid(), After, After));
+    TestTrue(TEXT("Returned duplicate enters cell two rather than its former cell four"), After[1] == HammerGuidB);
+    TestFalse(TEXT("Old shortcut remains empty after return"), After[3].IsValid());
+    TestTrue(TEXT("Return retains unrelated item positions"), After[9] == WoodGuid && After[14] == AxeGuid);
     auto* Inventory = NewObject<UKalmalaInventoryComponent>();
     TArray<FKalmalaInventoryStack> Stacks;
     Stacks.SetNum(36);

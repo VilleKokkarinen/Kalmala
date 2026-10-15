@@ -1,5 +1,25 @@
 # Development setup
 
+## Main Hand hotbar and privacy contract coverage — 2026-10-15
+
+`Kalmala.Gameplay.Inventory.SharedGrid` now covers numbered-cell vacancy,
+stable unrelated cells, same-item copies, synchronization, replacement and
+first-free-cell return without restoring a former shortcut.
+`Kalmala.UI.Inventory.NumberedHotbar` covers HUD removal and the returned
+tool's current number. `Kalmala.Gameplay.Inventory.NetworkContract` allows
+the validated Main Hand RPC and checks its GUID-only payload, the hotbar's
+index-only payload, owner-client result routing, and owner-only replication
+for stacks, gear, grid and active identity. Those location fields remain
+transient; the physical carried-tool save contract is unchanged.
+
+These are added automation source cases, not executed Unreal results.
+Lightweight source/whitespace/path inspection passed; full verification is
+deferred. Remaining scope for the current backlog child includes the focused
+catalogue/icon audit and live equipment/hotbar/privacy/save acceptance.
+At runtime, also check empty/invalid numbers, food/support success and rejection
+retaining Main Hand, ordinary-item selection with a full pack, remote-owner
+privacy, and a save/reconnect under the current format without migrations.
+
 ## Main Hand location increment — 2026-10-15
 
 Main Hand now excludes its exact physical tool GUID from grid cells and pack

@@ -19,6 +19,13 @@ bool FKalmalaInventoryGridWidgetTest::RunTest(const FString& Parameters)
     Slots[3] = NAME_None;
     TestTrue(TEXT("Consumed hotbar item removes only its HUD cell"),
         UKalmalaInventoryGridWidget::VisibleSlots(Slots, true) == TArray<int32>({0, 9}));
+    Slots[0] = NAME_None;
+    TestTrue(TEXT("A tool moved into Main Hand leaves no numbered HUD alias"),
+        UKalmalaInventoryGridWidget::VisibleSlots(Slots, true) == TArray<int32>({9}));
+    Slots[1] = TEXT("StoneKnife");
+    TestTrue(TEXT("A returned tool uses its current pack cell number"),
+        UKalmalaInventoryGridWidget::VisibleSlots(Slots, true) == TArray<int32>({1, 9}));
+    TestEqual(TEXT("Returned tool in cell two is labelled two"), UKalmalaInventoryGridWidget::SlotLabel(1), FString(TEXT("2")));
     return true;
 }
 #endif

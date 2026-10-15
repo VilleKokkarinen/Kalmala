@@ -1141,8 +1141,16 @@ full. Grants, crafting, storage, progression and wearable transactions count
 only packed tools, while collision validation still includes the hand.
 Hotbar weapon/tool use enters the same transaction. Food and support use retain
 the hand; selecting another ordinary item first requires a successful return.
-The tool's former numbered cell becomes empty. Final hotbar interaction and
-focused runtime/privacy coverage remain the next backlog child. Active state
+The tool's former numbered cell becomes empty. Numbered cells are pack
+locations, not aliases for Main Hand: synchronization leaves the vacated cell
+empty and the HUD hides it without renumbering other cells. Replacing or
+returning the hand puts the displaced physical copy in the first free pack
+cell, without reserving or restoring its former shortcut. Duplicate copies
+retain distinct GUIDs and independent cell assignments. Pressing an empty
+number has no effect; food/support activation retains the hand even when its
+own gameplay validation rejects the use. Ordinary-item selection must first
+return the hand successfully, so a full-pack rejection retains both the hand
+and the prior layout. Focused runtime/privacy acceptance remains pending. Active state
 retains owner-only replication; no save fields or versions change. The existing
 save limit of forty tool records remains; a forty-first tool cannot be persisted.
 Equipped location and pack arrangement remain session state.
