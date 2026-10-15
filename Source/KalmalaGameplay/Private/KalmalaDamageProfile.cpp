@@ -81,15 +81,17 @@ FKalmalaResistanceProfile FKalmalaResistanceProfile::Scaled(const float Multipli
     return Result;
 }
 
-bool FKalmalaResistanceProfile::Resolve(const FKalmalaDamageChannels& Incoming, float& OutDamage) const
+bool FKalmalaResistanceProfile::Resolve(const FKalmalaDamageChannels& Incoming, float& OutDamage, const int32 PhysicalArmor) const
 {
     OutDamage = 0.0f;
-    if (!IsValid() || !Incoming.IsValid()) return false;
+    if (!IsValid() || !Incoming.IsValid() || PhysicalArmor < 0 || PhysicalArmor > 6000) return false;
     float Remaining = 0.0f;
     if (Incoming.Slash > 0.0f) Remaining += FMath::Max(0.0f, Incoming.Slash - Reductions.Slash);
     if (Incoming.Stab > 0.0f) Remaining += FMath::Max(0.0f, Incoming.Stab - Reductions.Stab);
     if (Incoming.Crush > 0.0f) Remaining += FMath::Max(0.0f, Incoming.Crush - Reductions.Crush);
     if (Incoming.Pierce > 0.0f) Remaining += FMath::Max(0.0f, Incoming.Pierce - Reductions.Pierce);
+    // Wearable armor applies once to the physical subtotal; excess cannot absorb elements.
+    Remaining = FMath::Max(0.0f, Remaining - PhysicalArmor);
     if (Incoming.Fire > 0.0f) Remaining += FMath::Max(0.0f, Incoming.Fire - Reductions.Fire);
     if (Incoming.Water > 0.0f) Remaining += FMath::Max(0.0f, Incoming.Water - Reductions.Water);
     if (Incoming.Holy > 0.0f) Remaining += FMath::Max(0.0f, Incoming.Holy - Reductions.Holy);

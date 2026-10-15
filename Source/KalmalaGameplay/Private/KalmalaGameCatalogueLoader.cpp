@@ -94,43 +94,14 @@ namespace
         return true;
     }
 
-    bool NormalizeDefenseObject(const TSharedPtr<FJsonObject>& Owner, const TCHAR* FieldName)
+    bool NormalizeArmor(const TSharedPtr<FJsonObject>& Owner)
     {
-        if (!Owner.IsValid()) return false;
-        TSharedPtr<FJsonObject> DefenseObject;
-        if (Owner->HasField(FieldName))
-        {
-            const TSharedPtr<FJsonObject>* ExistingObject = nullptr;
-            if (!Owner->TryGetObjectField(FieldName, ExistingObject) || ExistingObject == nullptr
-                || !ExistingObject->IsValid()) return false;
-            DefenseObject = *ExistingObject;
-        }
-        else
-        {
-            DefenseObject = MakeShared<FJsonObject>();
-            Owner->SetObjectField(FieldName, DefenseObject);
-        }
-
-        if (!DefenseObject->HasField(TEXT("Armor"))) DefenseObject->SetNumberField(TEXT("Armor"), 0.0);
-        TSharedPtr<FJsonObject> ReductionsObject;
-        if (DefenseObject->HasField(TEXT("Reductions")))
-        {
-            const TSharedPtr<FJsonObject>* ExistingReductions = nullptr;
-            if (!DefenseObject->TryGetObjectField(TEXT("Reductions"), ExistingReductions)
-                || ExistingReductions == nullptr || !ExistingReductions->IsValid()) return false;
-            ReductionsObject = *ExistingReductions;
-        }
-        else
-        {
-            ReductionsObject = MakeShared<FJsonObject>();
-            DefenseObject->SetObjectField(TEXT("Reductions"), ReductionsObject);
-        }
-        for (const TCHAR* Channel : { TEXT("Slash"), TEXT("Stab"), TEXT("Crush"), TEXT("Pierce"),
-            TEXT("Fire"), TEXT("Water"), TEXT("Holy"), TEXT("Poison") })
-        {
-            if (!ReductionsObject->HasField(Channel)) ReductionsObject->SetNumberField(Channel, 0.0);
-        }
-        return true;
+        if (!Owner.IsValid() || Owner->HasField(TEXT("DefenseBonuses"))) return false;
+        if (!Owner->HasField(TEXT("Armor"))) Owner->SetNumberField(TEXT("Armor"), 0.0);
+        double Armor = 0.0;
+        return Owner->TryGetNumberField(TEXT("Armor"), Armor)
+            && FMath::IsFinite(Armor) && Armor >= 0.0 && Armor <= 1000.0
+            && Armor == static_cast<int32>(Armor);
     }
 
     bool NormalizeStationArray(const TSharedPtr<FJsonObject>& RecipeObject)
@@ -207,7 +178,7 @@ namespace
             if (!Item->HasField(TEXT("WeightKg"))) Item->SetNumberField(TEXT("WeightKg"), 1.0);
             if (!Item->HasField(TEXT("GearSlot"))) Item->SetStringField(TEXT("GearSlot"), TEXT(""));
             if (!Item->HasField(TEXT("MaxDurability"))) Item->SetNumberField(TEXT("MaxDurability"), 0.0);
-            if (!NormalizeDefenseObject(Item, TEXT("DefenseBonuses"))) return false;
+            if (!NormalizeArmor(Item)) return false;
             double Weight = 0.0;
             if (!Item->TryGetNumberField(TEXT("WeightKg"), Weight)
                 || !FMath::IsFinite(Weight) || Weight < 0.0 || Weight > 300.0) return false;
@@ -391,7 +362,7 @@ namespace
         }
 
         double SchemaVersion = 0.0;
-        if (!Root->TryGetNumberField(TEXT("schemaVersion"), SchemaVersion) || SchemaVersion != 14.0)
+        if (!Root->TryGetNumberField(TEXT("schemaVersion"), SchemaVersion) || SchemaVersion != 15.0)
         {
             UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue manifest has an unsupported schema: %s"), *JsonPath);
             return false;
@@ -498,7 +469,7 @@ namespace
             if (!GroupObject.IsValid()
                 || !GroupObject->TryGetObjectField(TEXT("LevelUpReward"), RewardObject)
                 || !(*RewardObject)->TryGetObjectField(TEXT("DamageBonuses"), Bonuses)
-                || !NormalizeDefenseObject(*RewardObject, TEXT("DefenseBonuses")))
+                || !NormalizeArmor(*RewardObject))
             {
                 return false;
             }

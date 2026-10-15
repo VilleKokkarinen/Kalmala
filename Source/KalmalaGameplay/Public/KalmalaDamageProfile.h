@@ -55,8 +55,8 @@ struct KALMALAGAMEPLAY_API FKalmalaResistanceProfile
     bool IsValid() const;
     FKalmalaResistanceProfile Added(const FKalmalaResistanceProfile& Other) const;
     FKalmalaResistanceProfile Scaled(float Multiplier) const;
-    /** Per-channel flat reductions, then general armor once per hit. Invalid profiles fail closed. */
-    bool Resolve(const FKalmalaDamageChannels& Incoming, float& OutDamage) const;
+    /** Optional player armor reduces only the physical subtotal once, before existing entity armor. */
+    bool Resolve(const FKalmalaDamageChannels& Incoming, float& OutDamage, int32 PhysicalArmor = 0) const;
 };
 
 USTRUCT()

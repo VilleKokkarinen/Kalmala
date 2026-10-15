@@ -18,7 +18,7 @@ struct KALMALAGAMEPLAY_API FKalmalaToolRewardData
     FKalmalaDamageChannels DamageBonuses;
 
     UPROPERTY(EditAnywhere)
-    FKalmalaResistanceProfile DefenseBonuses;
+    int32 Armor = 0;
 };
 
 /** One shared per-level reward for an explicit non-overlapping group of item IDs. */

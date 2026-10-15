@@ -56,15 +56,15 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         FName ItemId;
         const TCHAR* Slot;
         int32 MaxDurability;
-        float Armor;
+        int32 Armor;
     };
     const FExpectedGear Gear[] = {
-        { TEXT("WoodShield"), TEXT("Shield"), 80, 2.0f },
-        { TEXT("BoarHideHelmet"), TEXT("Head"), 50, 0.5f },
-        { TEXT("BoarHideCape"), TEXT("Cape"), 40, 0.5f },
-        { TEXT("BoarHideTunic"), TEXT("Chest"), 80, 1.5f },
-        { TEXT("BoarHideLeggings"), TEXT("Legs"), 70, 1.0f },
-        { TEXT("BoarHideBoots"), TEXT("Boots"), 50, 0.5f }
+        { TEXT("WoodShield"), TEXT("Shield"), 50, 5 },
+        { TEXT("BoarHideHelmet"), TEXT("Head"), 50, 1 },
+        { TEXT("BoarHideCape"), TEXT("Cape"), 50, 1 },
+        { TEXT("BoarHideTunic"), TEXT("Chest"), 50, 1 },
+        { TEXT("BoarHideLeggings"), TEXT("Legs"), 50, 1 },
+        { TEXT("BoarHideBoots"), TEXT("Boots"), 50, 1 }
     };
     for (const FExpectedGear& Expected : Gear)
     {
@@ -76,7 +76,7 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
             TestEqual(*FString::Printf(TEXT("%s has the authored condition capacity"), *Expected.ItemId.ToString()),
                 Item->MaxDurability, Expected.MaxDurability);
             TestTrue(*FString::Printf(TEXT("%s has authored defense"), *Expected.ItemId.ToString()),
-                FMath::IsNearlyEqual(Item->DefenseBonuses.Armor, Expected.Armor));
+                Item->Armor == Expected.Armor);
             FKalmalaGearLevelStats LevelTwo;
             TestTrue(*FString::Printf(TEXT("%s resolves level-two stats"), *Expected.ItemId.ToString()),
                 Catalogue->GetGearLevelStats(Expected.ItemId, 2, LevelTwo));
@@ -85,7 +85,7 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
                 TestEqual(*FString::Printf(TEXT("%s gains level-up durability"), *Expected.ItemId.ToString()),
                     LevelTwo.MaxDurability, Expected.MaxDurability + 10);
                 TestTrue(*FString::Printf(TEXT("%s gains level-up armor"), *Expected.ItemId.ToString()),
-                    FMath::IsNearlyEqual(LevelTwo.DefenseBonuses.Armor, Expected.Armor + 0.1f));
+                    LevelTwo.Armor == Expected.Armor + 1);
             }
         }
     }

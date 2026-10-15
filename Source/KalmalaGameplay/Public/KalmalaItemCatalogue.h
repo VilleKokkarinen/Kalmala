@@ -33,9 +33,9 @@ struct KALMALAGAMEPLAY_API FKalmalaItemDefinition
     UPROPERTY(EditAnywhere)
     int32 MaxDurability = 0;
 
-    /** Gear-only base defense. The server applies this only after the gear slot transaction is implemented. */
+    /** Gear-only flat reduction of combined Slash, Crush, Pierce and Stab damage. */
     UPROPERTY(EditAnywhere)
-    FKalmalaResistanceProfile DefenseBonuses;
+    int32 Armor = 0;
 };
 
 struct KALMALAGAMEPLAY_API FKalmalaGearLevelStats
@@ -43,7 +43,7 @@ struct KALMALAGAMEPLAY_API FKalmalaGearLevelStats
     FName ItemId = NAME_None;
     int32 GearLevel = 0;
     int32 MaxDurability = 0;
-    FKalmalaResistanceProfile DefenseBonuses;
+    int32 Armor = 0;
 };
 
 /** JSON-backed game data. Client copies are presentation only, never authority. */

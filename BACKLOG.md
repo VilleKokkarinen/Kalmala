@@ -34,6 +34,7 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-15 — Simplify wearable armor:** replace typed wearable defenses with one integer `Armor`, reducing combined Slash/Crush/Pierce/Stab damage once per hit without reducing elements. Use integer level-up rewards and schema-15 catalogue validation. Lightweight checks passed; Unreal build/automation deferred.
 - [x] **2026-10-15 — Remove catalogue manifest file-count cap:** allow any non-empty category file list; retain manifest/category JSON-size, path-safety, and definition-count validation. JSON/path checks and `git diff --check` passed; Unreal build and menu render rerun deferred.
 - [x] **2026-10-15 — Derive upgrade-cost identity for strict conversion:** keep upgrade JSON authored only by `ToolId`, validating it and deriving the shared struct's internal `RecipeId` before strict conversion. Data/source checks and `git diff --check` passed; Unreal build and menu render rerun deferred.
 - [x] **2026-10-15 — Fix gameplay source first-header compile errors:** put each affected implementation's own header first in seven Gameplay `.cpp` files while retaining the resistance-component include. Focused include-order checks and `git diff --check` passed; Unreal build deferred.

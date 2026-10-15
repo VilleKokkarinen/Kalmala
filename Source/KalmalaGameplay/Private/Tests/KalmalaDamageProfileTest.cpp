@@ -42,6 +42,26 @@ bool FKalmalaDamageProfileTest::RunTest(const FString& Parameters)
     Defenses.Armor = -1.0f;
     TestFalse(TEXT("Negative armor fails closed"), Defenses.Resolve(Combined, Resolved));
     TestEqual(TEXT("Invalid resolution returns no damage"), Resolved, 0.0f);
+    const FKalmalaResistanceProfile PlayerDefenses;
+    FKalmalaDamageChannels PhysicalHit;
+    PhysicalHit.Slash = 3.0f;
+    PhysicalHit.Crush = 4.0f;
+    PhysicalHit.Pierce = 5.0f;
+    PhysicalHit.Stab = 6.0f;
+    TestTrue(TEXT("Integer player armor resolves combined melee and ranged channels"),
+        PlayerDefenses.Resolve(PhysicalHit, Resolved, 10));
+    TestEqual(TEXT("Armor is subtracted once per hit, not once per channel"), Resolved, 8.0f);
+    PhysicalHit.Fire = 7.0f;
+    PhysicalHit.Water = 2.0f;
+    PhysicalHit.Holy = 3.0f;
+    PhysicalHit.Poison = 4.0f;
+    TestTrue(TEXT("Excess physical armor resolves mixed damage"), PlayerDefenses.Resolve(PhysicalHit, Resolved, 100));
+    TestEqual(TEXT("Armor cannot absorb fire, water, holy or poison"), Resolved, 16.0f);
+    PhysicalHit.Slash = PhysicalHit.Crush = PhysicalHit.Pierce = PhysicalHit.Stab = 0.0f;
+    TestTrue(TEXT("Element-only hits resolve with player armor"), PlayerDefenses.Resolve(PhysicalHit, Resolved, 100));
+    TestEqual(TEXT("Element-only damage is unchanged"), Resolved, 16.0f);
+    TestFalse(TEXT("Negative player armor fails closed"), PlayerDefenses.Resolve(PhysicalHit, Resolved, -1));
+    TestFalse(TEXT("Unbounded player armor fails closed"), PlayerDefenses.Resolve(PhysicalHit, Resolved, 6001));
     FKalmalaDamageChannels Invalid = Combined;
     Invalid.Poison = -1.0f;
     TestFalse(TEXT("Negative damage is invalid"), Invalid.IsValid());

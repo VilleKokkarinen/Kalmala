@@ -79,10 +79,7 @@
       "LevelUpReward": {
         "MaxDurability": 10,
         "DamageBonuses": {},
-        "DefenseBonuses": {
-          "Armor": 0.1,
-          "Reductions": {}
-        }
+        "Armor": 1
       }
     }
   ]

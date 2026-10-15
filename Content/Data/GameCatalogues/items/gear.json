@@ -8,9 +8,7 @@
       "WeightKg": 5,
       "GearSlot": "Shield",
       "MaxDurability": 50,
-      "DefenseBonuses": {
-        "Armor": 5
-      }
+      "Armor": 5
     },
     {
       "ItemId": "BoarHideHelmet",
@@ -20,9 +18,7 @@
       "WeightKg": 1,
       "GearSlot": "Head",
       "MaxDurability": 50,
-      "DefenseBonuses": {
-        "Armor": 1
-      }
+      "Armor": 1
     },
     {
       "ItemId": "BoarHideCape",
@@ -32,9 +28,7 @@
       "WeightKg": 2,
       "GearSlot": "Cape",
       "MaxDurability": 50,
-      "DefenseBonuses": {
-        "Armor": 1
-      }
+      "Armor": 1
     },
     {
       "ItemId": "BoarHideTunic",
@@ -44,9 +38,7 @@
       "WeightKg": 3,
       "GearSlot": "Chest",
       "MaxDurability": 50,
-      "DefenseBonuses": {
-        "Armor": 1
-      }
+      "Armor": 1
     },
     {
       "ItemId": "BoarHideLeggings",
@@ -56,9 +48,7 @@
       "WeightKg": 3,
       "GearSlot": "Legs",
       "MaxDurability": 50,
-      "DefenseBonuses": {
-        "Armor": 1
-      }
+      "Armor": 1
     },
     {
       "ItemId": "BoarHideBoots",
@@ -68,9 +58,7 @@
       "WeightKg": 1,
       "GearSlot": "Boots",
       "MaxDurability": 50,
-      "DefenseBonuses": {
-        "Armor": 1
-      }
+      "Armor": 1
     }
   ]
 }
