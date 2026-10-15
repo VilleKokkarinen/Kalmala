@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-15 — Share generated forest placement
+
+- **Completed:** the smallest integrated part of the first unchecked generated-tree conversion child: extracted deterministic placement into `FKalmalaForestLayout` and switched terrain tree rendering to its descriptors. Each candidate exposes its original ordinal, world and exact local position, biome flag, dimensions and yaw for later server materialization. The selected child remains unchecked.
+- **Files changed:** added `Source/KalmalaWorld/Public/KalmalaForestLayout.h` and `Source/KalmalaWorld/Private/KalmalaForestLayout.cpp`; updated `Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp`, `docs/02-technical-architecture.md`, `BACKLOG.md`, and this file.
+- **Lightweight checks:** Python comparison against HEAD confirmed exact preservation of placement/filter/random-sampling statements, four forest constants, seed initialization and surface-size inputs, plus renderer descriptor integration. Inspected aggregate field order and mesh arguments. Diff whitespace and changed-path MAX_PATH checks passed. No Unreal build, automation or peer run; full verification remains deferred for this normal partial increment.
+- **Observable impact/authority:** placement is available independently of mesh creation, avoiding divergent placement rules for future harvest actors. Render inputs are preserved. No networking, rewards, persistence or authority changes.
+- **Known limitations:** trees remain decorative. Ordinal is unique only within a seed/patch center; global depletion identity and streaming policy remain to implement. Compile/runtime confirmation is deferred.
+- **Next eligible task:** continue the same child with authoritative harvest actors, matching cosmetic suppression, stable depletion IDs and streaming ownership. Moving fall/log presentation is a later child. Main checkout used directly; no handoff synchronization required.
+
 ## User-directed increment 2026-10-15 — Standardize JSON readability
 
 - **Completed:** audited all 59 tracked JSON files. Reformatted the seven outliers with consistent two-space indentation, one field per line, and a final newline where missing: the Workbench and building recipes, Bow attacks, Bow upgrade costs, String/arrow definitions, the Bow equipment profile, and the VisualStudioTools `TSAOptions.json` config. The other 52 files already followed the format. Long evidence command/path strings remain intact as single JSON values.

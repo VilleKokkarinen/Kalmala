@@ -3,6 +3,7 @@
 #include "Components/SceneComponent.h"
 #include "Materials/MaterialInterface.h"
 #include "KalmalaBiomeClassifier.h"
+#include "KalmalaForestLayout.h"
 #include "KalmalaShimmeringLakeSampler.h"
 #include "KalmalaTerrainHeightSampler.h"
 #include "KalmalaTerrainPatchLayout.h"
@@ -19,10 +20,6 @@ namespace KalmalaGeneratedTerrainPatch
     constexpr int32 SurfaceCellsPerSide = FKalmalaWaterSurfaceMesh::CellsPerSide;
     constexpr int32 RockCandidateCount = 48;
     constexpr float RockEdgeMargin = 150.0f;
-    constexpr int32 MeadowTreeCandidateCount = 18;
-    constexpr int32 ElderwoodTreeCandidateCount = 72;
-    constexpr float TreeEdgeMargin = 260.0f;
-    constexpr uint64 TreeSeedSalt = 0xD1B54A32D192ED03ull;
     constexpr float LakeShoreWidth = 24.0f;
 
     FLinearColor GetBiomeDebugColor(const EKalmalaBiome Biome)
@@ -470,11 +467,6 @@ bool AKalmalaGeneratedTerrainPatch::BuildMeadowTrees()
         return false;
     }
 
-    constexpr float SurfaceSize = FKalmalaTerrainPatchLayout::TilesPerSide * FKalmalaTerrainPatchLayout::TileSize;
-    constexpr float HalfSurfaceSize = SurfaceSize * 0.5f;
-    const uint64 FloraSeed = FKalmalaWorldGenerationSeeds::DeriveFieldSeed(WorldGenerationConfig, EKalmalaWorldField::Flora);
-    FRandomStream RandomStream(static_cast<int32>((FloraSeed ^ KalmalaGeneratedTerrainPatch::TreeSeedSalt) >> 32));
-
     TArray<FVector> TrunkVertices;
     TArray<int32> TrunkTriangles;
     TArray<FVector> TrunkNormals;
@@ -488,44 +480,16 @@ bool AKalmalaGeneratedTerrainPatch::BuildMeadowTrees()
     TArray<FLinearColor> CanopyColors;
     TArray<FProcMeshTangent> CanopyTangents;
     MeadowTreeCount = 0;
-    for (int32 CandidateIndex = 0; CandidateIndex < KalmalaGeneratedTerrainPatch::ElderwoodTreeCandidateCount; ++CandidateIndex)
+    for (const FKalmalaForestTreeDescriptor& Tree : FKalmalaForestLayout::Generate(WorldGenerationConfig, PatchCenter))
     {
-        const FVector2D LocalPosition(
-            RandomStream.FRandRange(-HalfSurfaceSize + KalmalaGeneratedTerrainPatch::TreeEdgeMargin, HalfSurfaceSize - KalmalaGeneratedTerrainPatch::TreeEdgeMargin),
-            RandomStream.FRandRange(-HalfSurfaceSize + KalmalaGeneratedTerrainPatch::TreeEdgeMargin, HalfSurfaceSize - KalmalaGeneratedTerrainPatch::TreeEdgeMargin));
-        const FVector2D SamplePosition = PatchCenter + LocalPosition;
-        if (!FKalmalaWorldBounds::Contains(WorldGenerationConfig, SamplePosition, 1000)) continue;
-        const FKalmalaWorldFieldSample Fields = FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, SamplePosition);
-        const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(Fields);
-        if (Biome != EKalmalaBiome::Meadows && Biome != EKalmalaBiome::Elderwood)
-        {
-            continue;
-        }
-
-        if (Biome == EKalmalaBiome::Meadows && CandidateIndex >= KalmalaGeneratedTerrainPatch::MeadowTreeCandidateCount)
-        {
-            continue;
-        }
-        // Flora continuously controls Elderwood density: lower-flora pockets stay clear without becoming authored spaces.
-        if (Biome == EKalmalaBiome::Elderwood && RandomStream.FRand() > FMath::Clamp((Fields.Flora - 0.60f) / 0.24f, 0.20f, 0.92f))
-        {
-            continue;
-        }
-
-        const bool bElderwood = Biome == EKalmalaBiome::Elderwood;
-        const float TrunkHeight = RandomStream.FRandRange(bElderwood ? 520.0f : 340.0f, bElderwood ? 850.0f : 620.0f);
-        const float TrunkRadius = RandomStream.FRandRange(bElderwood ? 28.0f : 14.0f, bElderwood ? 48.0f : 25.0f);
-        const float CanopyRadius = RandomStream.FRandRange(bElderwood ? 185.0f : 105.0f, bElderwood ? 285.0f : 170.0f);
-        const float CanopyHeight = RandomStream.FRandRange(bElderwood ? 220.0f : 140.0f, bElderwood ? 360.0f : 240.0f);
-        const float SurfaceHeight = FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, SamplePosition);
-        const float TreeYaw = RandomStream.FRandRange(0.0f, 360.0f);
+        const FVector& LocalPosition = Tree.LocalPosition;
         KalmalaGeneratedTerrainPatch::AppendTaperedTree(
             TrunkVertices, TrunkTriangles, TrunkNormals, TrunkUVs, TrunkColors, TrunkTangents,
-            FVector(LocalPosition.X, LocalPosition.Y, SurfaceHeight), TrunkRadius, TrunkHeight, CanopyRadius, CanopyHeight, TreeYaw,
+            LocalPosition, Tree.TrunkRadius, Tree.TrunkHeight, Tree.CanopyRadius, Tree.CanopyHeight, Tree.Yaw,
             CanopyVertices, CanopyTriangles, CanopyNormals, CanopyUVs, CanopyColors, CanopyTangents);
-        if (bElderwood)
+        if (Tree.bElderwood)
         {
-            KalmalaGeneratedTerrainPatch::AppendRootButtresses(TrunkVertices, TrunkTriangles, TrunkNormals, TrunkUVs, TrunkColors, TrunkTangents, FVector(LocalPosition.X, LocalPosition.Y, SurfaceHeight), TrunkRadius, TreeYaw);
+            KalmalaGeneratedTerrainPatch::AppendRootButtresses(TrunkVertices, TrunkTriangles, TrunkNormals, TrunkUVs, TrunkColors, TrunkTangents, LocalPosition, Tree.TrunkRadius, Tree.Yaw);
         }
         ++MeadowTreeCount;
     }

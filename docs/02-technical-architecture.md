@@ -2775,3 +2775,17 @@ Inventory Craft may create multiple Construction Hammers. Each copy has its own 
 ## Worn Gear interaction follow-up — 2026-10-15
 
 The Inventory popup now reads the owner's six replicated wearable slots and displays their current item names. Selecting a compatible wearable enables its slot action; selecting a different wearable for an occupied slot replaces the equipped GUID, and selecting an empty grid cell before clicking occupied gear requests its return to the pack. The client sends only the item GUID or slot enum; the server revalidates identity, compatibility, capacity, and the full candidate transaction before publishing the owner-only gear and inventory state. An owner-only client result reports accepted or rejected requests. Server-resolved wildlife damage uses the summed integer Armor of non-depleted equipped wearables against physical damage only. The Main Hand tile now equips and returns an exact tool GUID through validated pack-capacity transactions. The owner sees remaining/maximum condition; accepted wildlife hits spend one condition per wearable and depleted items cease contributing defense. Same-pawn unequip/re-equip preserves wear.
+
+### Shared forest placement (2026-10-15)
+
+`FKalmalaForestLayout::Generate` supplies the terrain patch renderer with
+individual Meadow/Elderwood tree descriptors: original candidate ordinal, world
+and exact local position, biome flag, dimensions and yaw. The ordinal is local
+to the world seed and patch center, not a globally unique depletion ID. Rejected
+candidates do not renumber accepted trees. The extraction preserves existing
+random draw order, density gates, dimensions, bounds and height sampling.
+
+This is the first integrated part of generated-tree harvesting. Trees remain
+decorative until server resource materialization, matching mesh suppression,
+and streaming/depletion ownership are connected. No reward, save, replication
+or client authority contract changes in this increment.
