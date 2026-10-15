@@ -2798,6 +2798,16 @@ or client authority contract changes in this increment.
 
 ### Forest harvest actor bridge (2026-10-15)
 
+Forest actor initialization also stores server-reconstructed trunk radius/height
+and canopy radius/height in replicated `ForestDimensions`. Its notification
+rebuilds presentation independently of source/stage notification order. Standing
+harvest geometry uses these sizes, the generated 0.62 trunk taper and canopy
+base at 68% of trunk height, reaching trunk height plus canopy height. Zero
+dimensions preserve legacy resource-node geometry. This retains the harvest
+actor's box primitives/materials rather than reproducing the decorative mesh's
+topology; fallen trunk/drop geometry remains unchanged. Live patch materialization
+and cosmetic suppression are still pending.
+
 `AKalmalaHarvestNode::InitializeForestServer` regenerates the shared layout from
 server world config and patch center and finds the original candidate ordinal.
 Non-authority calls, absent candidates and reinitialization fail before mutation.

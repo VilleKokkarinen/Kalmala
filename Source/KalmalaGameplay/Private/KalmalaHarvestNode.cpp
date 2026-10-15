@@ -119,6 +119,7 @@ bool AKalmalaHarvestNode::InitializeForestServer(const FKalmalaWorldGenerationCo
     SetActorRotation(FRotator(0.0f, Tree->Yaw, 0.0f));
     PersistentSpawnId = Tree->PersistentSpawnId;
     GatheringSourceId = SourceId;
+    ForestDimensions = FVector4(Tree->TrunkRadius, Tree->TrunkHeight, Tree->CanopyRadius, Tree->CanopyHeight);
     BuildSourcePresentation();
     ForceNetUpdate();
     return true;
@@ -326,6 +327,7 @@ void AKalmalaHarvestNode::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
     DOREPLIFETIME(AKalmalaHarvestNode, bHarvested);
     DOREPLIFETIME(AKalmalaHarvestNode, TreeStage);
     DOREPLIFETIME(AKalmalaHarvestNode, TreeHealth);
+    DOREPLIFETIME(AKalmalaHarvestNode, ForestDimensions);
     DOREPLIFETIME(AKalmalaHarvestNode, PersistentSpawnId);
     DOREPLIFETIME(AKalmalaHarvestNode, GatheringSourceId);
 }
@@ -360,8 +362,15 @@ void AKalmalaHarvestNode::BuildSourcePresentation()
     {
         if (TreeStage == 0)
         {
-            AddTaperedBox(Vertices, Triangles, Colors, FVector::ZeroVector, FVector(20, 20, 0), 280, 0.7f, 0, FLinearColor(0.34f, 0.22f, 0.12f));
-            AddTaperedBox(Vertices, Triangles, Colors, FVector(0, 0, 175), FVector(85, 85, 0), 145, 0.15f, 25, FLinearColor(0.18f, 0.35f, 0.12f));
+            const bool bForest = ForestDimensions.X > 0 && ForestDimensions.Y > 0
+                && ForestDimensions.Z > 0 && ForestDimensions.W > 0;
+            const float Radius = bForest ? ForestDimensions.X : 20.0f;
+            const float Height = bForest ? ForestDimensions.Y : 280.0f;
+            const float CanopyRadius = bForest ? ForestDimensions.Z : 85.0f;
+            const float CanopyBase = bForest ? Height * 0.68f : 175.0f;
+            const float CanopyHeight = bForest ? Height + ForestDimensions.W - CanopyBase : 145.0f;
+            AddTaperedBox(Vertices, Triangles, Colors, FVector::ZeroVector, FVector(Radius, Radius, 0), Height, bForest ? 0.62f : 0.7f, 0, FLinearColor(0.34f, 0.22f, 0.12f));
+            AddTaperedBox(Vertices, Triangles, Colors, FVector(0, 0, CanopyBase), FVector(CanopyRadius, CanopyRadius, 0), CanopyHeight, 0.15f, 25, FLinearColor(0.18f, 0.35f, 0.12f));
         }
         else if (TreeStage == 1)
         {

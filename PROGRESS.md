@@ -1,5 +1,15 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-15 — Retain generated forest dimensions
+
+- **Completed:** partial increment of the first unchecked generated-tree harvesting child. Server reconstruction retains trunk/canopy radius and height, replicates them to relevant peers, and rebuilds standing harvest geometry with generated dimensions, trunk taper and canopy vertical extent. Zero dimensions preserve legacy node sizes. Child remains unchecked.
+- **Files changed:** `Source/KalmalaGameplay/Public/KalmalaHarvestNode.h`, `Source/KalmalaGameplay/Private/KalmalaHarvestNode.cpp`, `docs/02-technical-architecture.md`, `BACKLOG.md`, and this file.
+- **Lightweight checks:** Python source assertions checked descriptor assignment, replication registration/notification, authority ordering and canopy-height calculations across meadow/elderwood bounds. Inspected legacy defaults and unchanged fallen/drop branches. Working/staged diff checks and five-path MAX_PATH audit passed. No Unreal build, automation, render or peer run; full verification remains deferred for this normal increment.
+- **Impact/authority:** initialized forest harvest actors retain generated standing sizes instead of fixed small resource-node sizes. Dimensions originate from server reconstruction; no client request or save schema changes. One replicated presentation field was added.
+- **Limitations:** live trees remain decorative without a streaming caller. Harvest box topology/materials, sphere collision radius and fallen/drop dimensions remain unchanged. Transform replication, cosmetic suppression, sparse reload filtering and patch lifecycle integration still require completion and runtime verification.
+- **Next eligible task:** same generated-tree child: patch-owned spawning/eviction, replicated transforms, matching cosmetic suppression and sparse depletion binding/filtering. Main checkout used directly; no handoff synchronization required. Checkout began clean; only this Kalmala chat was active in app state (CIM process access unavailable).
+
+
 
 ## Autonomous increment 2026-10-15 — Bridge forest candidates to harvest actors
 

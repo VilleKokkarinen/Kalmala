@@ -71,6 +71,10 @@ private:
     UPROPERTY(Replicated)
     float TreeHealth = 100.0f;
 
+    /** Server-reconstructed forest radius/height/canopy radius/height; zero selects legacy node geometry. */
+    UPROPERTY(ReplicatedUsing = OnRep_TreeStage)
+    FVector4 ForestDimensions = FVector4(0, 0, 0, 0);
+
     UFUNCTION()
     void OnRep_TreeStage();
 
