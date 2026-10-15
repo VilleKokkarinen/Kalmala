@@ -168,7 +168,9 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
     for (const FKalmalaToolRecipeData& Upgrade : UpgradeCosts)
     {
         const FKalmalaToolProfileData* Profile = FindProfile(Upgrade.ToolId);
-        if (!Profile || Profile->ToolSet != TEXT("Crafted")
+        const bool bUpgradeableProfile = Profile
+            && IsOneOf(Profile->ToolSet, {TEXT("Starter"), TEXT("Crafted"), TEXT("Utility")});
+        if (!bUpgradeableProfile
             || SeenUpgradeIds.Contains(Upgrade.ToolId)
             || Upgrade.Level != 1 || Upgrade.RequiredStationLevel != 0
             || !IsOneOf(Upgrade.RequiredStation, {TEXT("Workbench"), TEXT("Forge")})

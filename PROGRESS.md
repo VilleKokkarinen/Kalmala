@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-15 — Add an upgrade cost for every equipment family item
+
+- **Completed:** added level-one upgrade-cost records for all 15 Stone, Bronze, and Iron Axe, Knife, Pick, Spear, and Mace items. Each cost matches the item's existing acquisition ingredients; Stone upgrades use Workbench, and Bronze/Iron upgrades use Forge. Upgrade validation now accepts Starter, Crafted, and Utility profiles, covering these records and the existing Construction Hammer entry.
+- **Files changed:** `Content/Data/GameCatalogues/upgrades/axes.json`, `knives.json`, `pickaxes.json`, `spears.json`, `maces.json`; `Source/KalmalaGameplay/Private/KalmalaToolCatalogue.cpp`; `docs/02-technical-architecture.md`, `docs/05-decision-log.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** parsed all upgrade and acquisition JSON, confirmed 15 unique family IDs map to existing profiles, verified each cost matches its acquisition ingredients and uses the intended station, checked referenced materials, inspected the eligibility validation change, and ran `git diff --check`. No Unreal build or automation tests were run.
+- **Impact/authority:** equipment in Starter, Crafted, or Utility profiles can now have station-upgrade costs. Existing server-side station, item-level, capacity, and payment validation remains authoritative; no RPC or save-schema change.
+- **Verification/limitations:** full Unreal compilation, automation, and packaged-data loading remain deferred. Maces currently have zero level-up stat rewards, so their newly authored costs can advance their level without changing stats.
+- **Next eligible backlog task:** convert decorative generated forest trees into individually attackable sources and integrate their depletion/streaming policy.
+
 ## User-directed increment 2026-10-15 — Name the Construction Hammer upgrade file
 
 - **Completed:** renamed `upgrades/upgrades.json` to `upgrades/construction-hammer.json` and updated the catalogue manifest and current architecture/setup documentation. The Construction Hammer upgrade record values were preserved.

@@ -1,3 +1,52 @@
 {
-  "upgrades": []
+  "upgrades": [
+    {
+      "DisplayName": "Bronze Mace",
+      "ToolId": "BronzeMace",
+      "RequiredStation": "Forge",
+      "Ingredients": [
+        {
+          "ItemId": "Wood",
+          "Quantity": 2
+        },
+        {
+          "ItemId": "Stone",
+          "Quantity": 2
+        }
+      ],
+      "Level": 1
+    },
+    {
+      "DisplayName": "Iron Mace",
+      "ToolId": "IronMace",
+      "RequiredStation": "Forge",
+      "Ingredients": [
+        {
+          "ItemId": "Iron",
+          "Quantity": 2
+        },
+        {
+          "ItemId": "Wood",
+          "Quantity": 2
+        }
+      ],
+      "Level": 1
+    },
+    {
+      "DisplayName": "Stone Mace",
+      "ToolId": "StoneMace",
+      "RequiredStation": "Workbench",
+      "Ingredients": [
+        {
+          "ItemId": "Wood",
+          "Quantity": 2
+        },
+        {
+          "ItemId": "Stone",
+          "Quantity": 2
+        }
+      ],
+      "Level": 1
+    }
+  ]
 }
