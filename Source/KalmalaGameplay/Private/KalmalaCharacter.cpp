@@ -1114,7 +1114,7 @@ int32* AKalmalaCharacter::FindToolDurabilityFromServer(const FName ItemId)
     const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(CanonicalId);
     if (LegacyCondition != nullptr && Definition != nullptr && *LegacyCondition >= 0
         && *LegacyCondition <= FKalmalaToolLifecycleContract::GetMaxDurability(CanonicalId, 1)
-        && Inventory && Inventory->CanFitContents(Inventory->GetStacks(), CarriedTools.Num() + 1))
+        && Inventory && Inventory->CanFitContents(Inventory->GetStacks(), Inventory->CountPackedTools(CarriedTools) + 1))
     {
         FKalmalaToolState SeededState;
         SeededState.ItemId = CanonicalId;

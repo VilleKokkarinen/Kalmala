@@ -1,17 +1,28 @@
 # Development setup
 
-## Main Hand selection increment — 2026-10-15
+## Main Hand location increment — 2026-10-15
 
-The Inventory Main Hand tile now selects an exact carried weapon/tool GUID or
-clears the active tool through a server-validated request and owner-only result.
-Lightweight source/authority, duplicate-identity, RPC wiring, whitespace and
-path checks cover this normal increment; full Unreal verification is deferred.
-At integrated verification, exercise two copies of one axe with different levels
-and condition, the Construction Hammer Build action, clearing/replacing the
-selection, stale/non-owned/ordinary/wearable GUID rejection without mutation,
-and remote-owner privacy. Confirm current hotbar selection updates the tile.
-Tools still occupy pack cells; distinct Main Hand storage, grid exclusion and
-capacity-safe return/replacement remain in the first unchecked gear child.
+Main Hand now excludes its exact physical tool GUID from grid cells and pack
+browse rows. Server transactions validate the complete candidate layout before
+publishing selection. Grants, storage, crafting, progression and wearable
+transactions count only packed tools. Existing tool records and owner-private
+active replication are retained; save fields and versions are unchanged.
+The existing forty-tool save limit remains; forty-first-tool persistence is
+outside this increment and the final hotbar/save contract is still pending.
+
+Fifteen focused PowerShell source checks passed for identity, authority, owner
+privacy, mutation ordering and all affected capacity paths, alongside whitespace
+and path checks. Added automation source cases to
+`Kalmala.Gameplay.Inventory.SharedGrid` and
+`Kalmala.Gameplay.Inventory.WornGearTransactions`; these were not executed.
+Full Unreal compilation, runtime tests, rendered review and peer verification
+remain deferred under the normal increment policy.
+At integrated verification, exercise forty pack cells plus Main Hand, failed
+return without mutation, replacement at full capacity, duplicate copies with
+different condition/levels, wearable return with a hand occupied, grants/storage
+and acquisitions at capacity, Construction Hammer Build, numbered hotbar tool
+selection, food/support retaining the hand, and remote-owner privacy. Verify
+session/save/reconnect behavior under the following backlog child's contract.
 
 Start with [Baseline](#baseline), [First build](#first-build), and the [consolidated verification index](#consolidated-verification-index). Earlier milestone-specific entries below are historical diagnostic procedures; current acceptance requirements remain in the roadmap and live backlog.
 

@@ -198,9 +198,10 @@ bool IsValidGearState(const TArray<FKalmalaInventoryStack>& Stacks,
 }
 
 bool AddEquippedGearToStacks(TArray<FKalmalaInventoryStack>& Stacks, const FKalmalaEquippedGear& Gear,
-    const TArray<FKalmalaEquippedGear>& AllGear, const TArray<FGuid>& OtherOwnedGuids)
+    const TArray<FKalmalaEquippedGear>& AllGear, const TArray<FGuid>& OtherOwnedGuids, const FGuid MainHandGuid)
 {
-    if (Stacks.Num() >= UKalmalaInventoryComponent::MaxSlots - OtherOwnedGuids.Num()) return false;
+    const int32 PackedTools = OtherOwnedGuids.Num() - (MainHandGuid.IsValid() && OtherOwnedGuids.Contains(MainHandGuid) ? 1 : 0);
+    if (Stacks.Num() >= UKalmalaInventoryComponent::MaxSlots - PackedTools) return false;
     const UKalmalaItemCatalogue* Catalogue = UKalmalaItemCatalogue::Get();
     const FKalmalaItemDefinition* Item = Catalogue ? Catalogue->FindItem(Gear.ItemId) : nullptr;
     if (!Item || Item->MaxStack != 1 || !Gear.ItemGuid.IsValid()) return false;
@@ -294,12 +295,14 @@ bool UKalmalaInventoryComponent::BuildGrant(const TArray<FKalmalaInventoryStack>
 bool UKalmalaInventoryComponent::BuildEquipGearTransaction(
     const TArray<FKalmalaInventoryStack>& BeforeStacks, const TArray<FKalmalaEquippedGear>& BeforeGear,
     const FGuid ItemGuid, const TArray<FGuid>& OtherOwnedGuids,
-    TArray<FKalmalaInventoryStack>& AfterStacks, TArray<FKalmalaEquippedGear>& AfterGear, FString& Reason)
+    TArray<FKalmalaInventoryStack>& AfterStacks, TArray<FKalmalaEquippedGear>& AfterGear, FString& Reason,
+    const FGuid MainHandGuid)
 {
+    const int32 PackedTools = OtherOwnedGuids.Num() - (MainHandGuid.IsValid() && OtherOwnedGuids.Contains(MainHandGuid) ? 1 : 0);
     Reason = TEXT("Invalid equipment transaction");
     if (!ItemGuid.IsValid() || !IsValidInventoryState(BeforeStacks, true)
         || !IsValidGearState(BeforeStacks, BeforeGear, OtherOwnedGuids)
-        || BeforeStacks.Num() > MaxSlots - OtherOwnedGuids.Num()) return false;
+        || BeforeStacks.Num() > MaxSlots - PackedTools) return false;
 
     int32 SourceIndex = INDEX_NONE;
     int32 SourceItemIndex = INDEX_NONE;
@@ -337,7 +340,7 @@ bool UKalmalaInventoryComponent::BuildEquipGearTransaction(
     const int32 ExistingSlotIndex = CandidateGear.IndexOfByPredicate(
         [Slot](const FKalmalaEquippedGear& Entry) { return Entry.Slot == Slot; });
     if (ExistingSlotIndex != INDEX_NONE
-        && !AddEquippedGearToStacks(CandidateStacks, CandidateGear[ExistingSlotIndex], CandidateGear, OtherOwnedGuids))
+        && !AddEquippedGearToStacks(CandidateStacks, CandidateGear[ExistingSlotIndex], CandidateGear, OtherOwnedGuids, MainHandGuid))
     {
         Reason = TEXT("No inventory slot for replaced gear");
         return false;
@@ -350,7 +353,7 @@ bool UKalmalaInventoryComponent::BuildEquipGearTransaction(
     if (ExistingSlotIndex == INDEX_NONE) CandidateGear.Add(Equipped);
     else CandidateGear[ExistingSlotIndex] = Equipped;
 
-    if (CandidateStacks.Num() > MaxSlots - OtherOwnedGuids.Num()
+    if (CandidateStacks.Num() > MaxSlots - PackedTools
         || !IsValidInventoryState(CandidateStacks, true)
         || !IsValidGearState(CandidateStacks, CandidateGear, OtherOwnedGuids))
     {
@@ -366,7 +369,8 @@ bool UKalmalaInventoryComponent::BuildEquipGearTransaction(
 bool UKalmalaInventoryComponent::BuildUnequipGearTransaction(
     const TArray<FKalmalaInventoryStack>& BeforeStacks, const TArray<FKalmalaEquippedGear>& BeforeGear,
     const EKalmalaGearSlot Slot, const TArray<FGuid>& OtherOwnedGuids,
-    TArray<FKalmalaInventoryStack>& AfterStacks, TArray<FKalmalaEquippedGear>& AfterGear, FString& Reason)
+    TArray<FKalmalaInventoryStack>& AfterStacks, TArray<FKalmalaEquippedGear>& AfterGear, FString& Reason,
+    const FGuid MainHandGuid)
 {
     Reason = TEXT("Invalid equipment transaction");
     if (!IsValidGearSlot(Slot) || !IsValidInventoryState(BeforeStacks, true)
@@ -383,7 +387,7 @@ bool UKalmalaInventoryComponent::BuildUnequipGearTransaction(
     TArray<FKalmalaInventoryStack> CandidateStacks = BeforeStacks;
     TArray<FKalmalaEquippedGear> CandidateGear = BeforeGear;
     const FKalmalaEquippedGear RemovedGear = CandidateGear[GearIndex];
-    if (!AddEquippedGearToStacks(CandidateStacks, RemovedGear, CandidateGear, OtherOwnedGuids))
+    if (!AddEquippedGearToStacks(CandidateStacks, RemovedGear, CandidateGear, OtherOwnedGuids, MainHandGuid))
     {
         Reason = TEXT("No inventory space for gear");
         return false;
@@ -411,7 +415,7 @@ bool UKalmalaInventoryComponent::TryCommitStacksFromServer(
     if (!EnsureInventoryGuids(Candidate) || !Owner || !Owner->HasAuthority()
         || !AreInventoryStatesEqual(Stacks, ExpectedBefore) || !IsValidInventoryState(Candidate, true)) return false;
     const auto* Character = Cast<AKalmalaCharacter>(Owner);
-    if (!CanFitContents(Candidate, Character ? Character->GetCarriedToolInventory().Num() : 0)) return false;
+    if (!CanFitContents(Candidate, Character ? CountPackedTools(Character->GetCarriedToolInventory()) : 0)) return false;
 
     const auto Before = Stacks;
     Stacks = MoveTemp(Candidate);
@@ -509,7 +513,7 @@ bool UKalmalaInventoryComponent::TransferStorageFromServer(const TArray<FKalmala
     if (!UKalmalaStorageSaveGame::IsValidStacks(NextStorage))
     { Reason = TEXT("Storage capacity reached"); return false; }
     const auto* Character = Cast<AKalmalaCharacter>(GetOwner());
-    if (!CanFitContents(NextPack, Character ? Character->GetCarriedToolInventory().Num() : 0))
+    if (!CanFitContents(NextPack, Character ? CountPackedTools(Character->GetCarriedToolInventory()) : 0))
     { Reason = TEXT("Inventory capacity reached"); return false; }
     if (!Persist(NextStorage)) { Reason = TEXT("Storage save failed; nothing transferred"); return false; }
     const auto Before = Stacks;
@@ -533,7 +537,7 @@ bool UKalmalaInventoryComponent::TransferStorageFromServer(const TArray<FKalmala
     if (!UKalmalaStorageSaveGame::IsValidStacks(NextStorage))
     { Reason = TEXT("Storage capacity reached"); return false; }
     const auto* Character = Cast<AKalmalaCharacter>(GetOwner());
-    if (!CanFitContents(NextPack, Character ? Character->GetCarriedToolInventory().Num() : 0))
+    if (!CanFitContents(NextPack, Character ? CountPackedTools(Character->GetCarriedToolInventory()) : 0))
     { Reason = TEXT("Inventory capacity reached"); return false; }
     if (!Persist(NextStorage)) { Reason = TEXT("Storage save failed; nothing transferred"); return false; }
     const auto Before = Stacks;

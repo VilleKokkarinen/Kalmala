@@ -383,6 +383,7 @@ void UKalmalaInventoryMenuWidget::RefreshOwnerInventory()
         for (int32 Index = 0; Index < BoundedToolCount; ++Index)
         {
             const FKalmalaToolState& Tool = CarriedTools[Index];
+            if (Inventory && Tool.InstanceGuid == Inventory->GetMainHandGuid()) continue;
             const FName CanonicalItemId = FKalmalaToolLifecycleContract::CanonicalizeItemId(Tool.ItemId);
             if (CanonicalItemId.IsNone() || SeenItemIds.Contains(CanonicalItemId)) continue;
             const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(CanonicalItemId);
@@ -390,7 +391,8 @@ void UKalmalaInventoryMenuWidget::RefreshOwnerInventory()
             SeenItemIds.Add(CanonicalItemId);
             int32 Copies = 0;
             for (int32 CopyIndex = 0; CopyIndex < BoundedToolCount; ++CopyIndex)
-                if (FKalmalaToolLifecycleContract::CanonicalizeItemId(CarriedTools[CopyIndex].ItemId) == CanonicalItemId)
+                if ((!Inventory || CarriedTools[CopyIndex].InstanceGuid != Inventory->GetMainHandGuid())
+                    && FKalmalaToolLifecycleContract::CanonicalizeItemId(CarriedTools[CopyIndex].ItemId) == CanonicalItemId)
                     ++Copies;
             FString DisplayName = GetCarriedToolDisplayName(CanonicalItemId);
             if (Copies > 1) DisplayName += FString::Printf(TEXT(" × %d"), Copies);
@@ -750,7 +752,7 @@ void UKalmalaInventoryMenuWidget::RefreshGearPresentation(const int32 TextScale,
         MainHandButton->SetIsEnabled(!bAwaitingGearRequestResult && (bCanSelect || bHasTool));
         MainHandButton->SetToolTipText(FText::FromString(bCanSelect
             ? TEXT("Click to use the selected weapon or tool in Main Hand.")
-            : TEXT("Click to clear Main Hand, or select another weapon or tool first.")));
+            : TEXT("Click to return Main Hand to a free inventory cell, or select another weapon or tool first.")));
     }
 
     FString Status = LastGearActionStatus.IsEmpty()

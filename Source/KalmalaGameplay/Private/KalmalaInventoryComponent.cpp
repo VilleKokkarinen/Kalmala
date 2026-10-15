@@ -257,7 +257,7 @@ bool UKalmalaInventoryComponent::EquipGearFromServer(const FGuid ItemGuid, FStri
     TArray<FKalmalaInventoryStack> CandidateStacks;
     TArray<FKalmalaEquippedGear> CandidateGear;
     if (!BuildEquipGearTransaction(Stacks, EquippedGear, ItemGuid, OtherOwnedGuids,
-        CandidateStacks, CandidateGear, Reason)) return false;
+        CandidateStacks, CandidateGear, Reason, GetMainHandGuid())) return false;
 
     for (FKalmalaEquippedGear& Gear : CandidateGear)
         Gear.ConditionSpent = SessionGearWear.FindRef(Gear.ItemGuid);
@@ -286,7 +286,7 @@ bool UKalmalaInventoryComponent::UnequipGearFromServer(const EKalmalaGearSlot Sl
     TArray<FKalmalaInventoryStack> CandidateStacks;
     TArray<FKalmalaEquippedGear> CandidateGear;
     if (!BuildUnequipGearTransaction(Stacks, EquippedGear, Slot, OtherOwnedGuids,
-        CandidateStacks, CandidateGear, Reason)) return false;
+        CandidateStacks, CandidateGear, Reason, GetMainHandGuid())) return false;
 
     Stacks = MoveTemp(CandidateStacks);
     EquippedGear = MoveTemp(CandidateGear);

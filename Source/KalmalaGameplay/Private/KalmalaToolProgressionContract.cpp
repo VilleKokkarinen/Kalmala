@@ -350,7 +350,8 @@ bool FKalmalaToolProgressionContract::BuildServerUpgrade(
     const TArray<FKalmalaInventoryStack>& ExistingInventory,
     TArray<FKalmalaToolState>& OutTools,
     TArray<FKalmalaInventoryStack>& OutInventory,
-    FString& Reason)
+    FString& Reason,
+    const FGuid MainHandGuid)
 {
     Reason = TEXT("Server authority required");
     if (!bServerAuthority) return false;
@@ -358,8 +359,11 @@ bool FKalmalaToolProgressionContract::BuildServerUpgrade(
     if (!IsCatalogueValid()) return false;
 
     Reason = TEXT("Carried item state is invalid");
+    const int32 HandCount = MainHandGuid.IsValid() && ExistingTools.ContainsByPredicate(
+        [MainHandGuid](const FKalmalaToolState& Tool) { return Tool.InstanceGuid == MainHandGuid; }) ? 1 : 0;
     if (ExistingTools.IsEmpty() || ExistingTools.Num() > UKalmalaInventoryComponent::MaxSlots
-        || ExistingInventory.Num() + ExistingTools.Num() > UKalmalaInventoryComponent::MaxSlots)
+        || (MainHandGuid.IsValid() && HandCount == 0)
+        || ExistingInventory.Num() + ExistingTools.Num() - HandCount > UKalmalaInventoryComponent::MaxSlots)
         return false;
     for (const FKalmalaToolState& State : ExistingTools)
     {
@@ -444,7 +448,8 @@ bool FKalmalaToolProgressionContract::BuildServerUpgrade(
     {
         return false;
     }
-    if (CandidateTools.Num() + CandidateInventory.Num() > UKalmalaInventoryComponent::MaxSlots)
+    if (CandidateTools.Num() > UKalmalaInventoryComponent::MaxSlots
+        || CandidateTools.Num() + CandidateInventory.Num() - HandCount > UKalmalaInventoryComponent::MaxSlots)
     {
         Reason = TEXT("Inventory is full");
         return false;
@@ -475,7 +480,8 @@ bool FKalmalaToolProgressionContract::BuildServerUpgradeFromCharacter(
     FString& Reason)
 {
     const bool bServerAuthority = IsValid(ServerCharacter) && ServerCharacter->HasAuthority();
+    const auto* Inventory = bServerAuthority ? ServerCharacter->GetInventoryComponent() : nullptr;
     return BuildServerUpgrade(bServerAuthority, nullptr, SelectedStationKit,
         EffectiveStationLevel, ItemId, ExistingTools, ExistingInventory,
-        OutTools, OutInventory, Reason);
+        OutTools, OutInventory, Reason, Inventory ? Inventory->GetMainHandGuid() : FGuid());
 }

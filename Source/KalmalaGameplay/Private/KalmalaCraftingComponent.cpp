@@ -228,7 +228,7 @@ bool UKalmalaCraftingComponent::CraftFromServer(FName RecipeId, int32 Batch, FSt
         const TArray<FKalmalaInventoryStack> Before = Inventory->GetStacks();
         TArray<FKalmalaInventoryStack> After;
         if (!UKalmalaInventoryComponent::BuildExchange(Before, Costs, NAME_None, 0, After, Reason)
-            || !Inventory->CanFitContents(After, Character->CarriedTools.Num() + 1)) return false;
+            || !Inventory->CanFitContents(After, Inventory->CountPackedTools(Character->CarriedTools) + 1)) return false;
         const TArray<FKalmalaToolState> PreviousTools = Character->CarriedTools;
         FKalmalaToolState Hammer;
         Hammer.ItemId = TEXT("ConstructionHammer");
@@ -393,7 +393,7 @@ bool UKalmalaCraftingComponent::ProgressToolFromServer(const FName ItemId, FStri
     {
         return false;
     }
-    if (!Inventory->CanFitContents(CandidateInventory, CandidateTools.Num())
+    if (!Inventory->CanFitContents(CandidateInventory, Inventory->CountPackedTools(CandidateTools))
         || !Inventory->TryCommitStacksFromServer(Before, CandidateInventory))
     {
         Reason = TEXT("Pack changed; tool progression was not applied");
@@ -936,7 +936,7 @@ FString UKalmalaCraftingComponent::GetToolProgressionText(const FName StationFil
             {
                 Blocker = CapacityReason;
             }
-            else if (!Inventory->CanFitContents(CandidateInventory, CarriedTools.Num() + 1))
+            else if (!Inventory->CanFitContents(CandidateInventory, Inventory->CountPackedTools(CarriedTools) + 1))
             {
                 Blocker = TEXT("Inventory is full");
             }

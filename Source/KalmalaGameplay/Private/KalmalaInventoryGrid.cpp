@@ -22,7 +22,7 @@ FName UKalmalaInventoryComponent::GetSlotItem(const int32 Slot) const
 FGuid UKalmalaInventoryComponent::GetSlotInstanceGuid(const int32 Slot) const
 {
     const FGuid Guid = GridInstanceGuids.IsValidIndex(Slot) ? GridInstanceGuids[Slot] : FGuid();
-    if (!Guid.IsValid()) return FGuid();
+    if (!Guid.IsValid() || Guid == GetMainHandGuid()) return FGuid();
     if (Stacks.ContainsByPredicate([Guid](const FKalmalaInventoryStack& Stack) { return Stack.InstanceGuid == Guid; })) return Guid;
     const auto* Character = Cast<AKalmalaCharacter>(GetOwner());
     return Character && Character->GetCarriedToolInventory().ContainsByPredicate(
@@ -43,13 +43,47 @@ bool UKalmalaInventoryComponent::OwnsGridItem(const FName Id) const
     if (Id.IsNone()) return false;
     if (GetQuantity(Id) > 0) return true;
     const auto* Character = Cast<AKalmalaCharacter>(GetOwner());
+    const FGuid Hand = GetMainHandGuid();
     return Character && Character->GetCarriedToolInventory().ContainsByPredicate(
-        [Id](const FKalmalaToolState& Tool) { return Tool.ItemId == Id; });
+        [Id, Hand](const FKalmalaToolState& Tool) { return Tool.ItemId == Id && Tool.InstanceGuid != Hand; });
 }
 
 bool UKalmalaInventoryComponent::CanFitContents(const TArray<FKalmalaInventoryStack>& Items, const int32 OtherItemCount) const
 {
     return OtherItemCount >= 0 && OtherItemCount <= MaxSlots && Items.Num() <= MaxSlots - OtherItemCount;
+}
+
+FGuid UKalmalaInventoryComponent::GetMainHandGuid() const
+{
+    return FKalmalaToolLifecycleContract::FindDefinition(ActiveItem) ? ActiveInstanceGuid : FGuid();
+}
+
+int32 UKalmalaInventoryComponent::CountPackedTools(const TArray<FKalmalaToolState>& Tools) const
+{
+    const FGuid Hand = GetMainHandGuid();
+    return Tools.Num() - (Hand.IsValid() && Tools.ContainsByPredicate(
+        [Hand](const FKalmalaToolState& Tool) { return Tool.InstanceGuid == Hand; }) ? 1 : 0);
+}
+
+bool UKalmalaInventoryComponent::BuildMainHandGrid(const TArray<FGuid>& ToolGuids,
+    const TArray<FGuid>& StackGuids, const FGuid HandGuid, const TArray<FGuid>& Before, TArray<FGuid>& After)
+{
+    if (HandGuid.IsValid() && !ToolGuids.Contains(HandGuid)) return false;
+    TSet<FGuid> Seen;
+    TArray<FGuid> Packed;
+    for (const FGuid& Guid : ToolGuids)
+    {
+        if (!Guid.IsValid() || Seen.Contains(Guid)) return false;
+        Seen.Add(Guid);
+        if (Guid != HandGuid) Packed.Add(Guid);
+    }
+    for (const FGuid& Guid : StackGuids)
+    {
+        if (!Guid.IsValid() || Seen.Contains(Guid)) return false;
+        Seen.Add(Guid);
+        Packed.Add(Guid);
+    }
+    return BuildGridLayout(Packed, Before, After);
 }
 
 float UKalmalaInventoryComponent::GetCarriedWeight() const
@@ -95,10 +129,9 @@ void UKalmalaInventoryComponent::SynchronizeGridFromServer()
     auto* Character = Cast<AKalmalaCharacter>(GetOwner());
     if (Character) Character->EnsureToolInstanceGuidsFromServer();
 
-    TArray<FGuid> Owned;
     TMap<FGuid, FName> ItemByGuid;
     TSet<FGuid> Seen;
-    auto AddInstance = [&Owned, &ItemByGuid, &Seen](FGuid& Guid, const FName ItemId)
+    auto AddInstance = [&ItemByGuid, &Seen](FGuid& Guid, const FName ItemId)
     {
         if (ItemId.IsNone()) return;
         if (!Guid.IsValid() || Seen.Contains(Guid))
@@ -106,15 +139,20 @@ void UKalmalaInventoryComponent::SynchronizeGridFromServer()
             do { Guid = FGuid::NewGuid(); } while (!Guid.IsValid() || Seen.Contains(Guid));
         }
         Seen.Add(Guid);
-        Owned.Add(Guid);
         ItemByGuid.Add(Guid, ItemId);
     };
     if (Character)
         for (FKalmalaToolState& Tool : Character->CarriedTools) AddInstance(Tool.InstanceGuid, Tool.ItemId);
     for (FKalmalaInventoryStack& Stack : Stacks) AddInstance(Stack.InstanceGuid, Stack.ItemId);
 
+    TArray<FGuid> ToolGuids, StackGuids;
+    if (Character)
+        for (const FKalmalaToolState& Tool : Character->CarriedTools) ToolGuids.Add(Tool.InstanceGuid);
+    for (const FKalmalaInventoryStack& Stack : Stacks) StackGuids.Add(Stack.InstanceGuid);
+    const FGuid Hand = GetMainHandGuid();
     TArray<FGuid> CandidateGuids;
-    if (!BuildGridLayout(Owned, GridInstanceGuids, CandidateGuids)) return;
+    if (!BuildMainHandGrid(ToolGuids, StackGuids,
+        ToolGuids.Contains(Hand) ? Hand : FGuid(), GridInstanceGuids, CandidateGuids)) return;
     TArray<FName> CandidateItems;
     CandidateItems.Init(NAME_None, MaxSlots);
     for (int32 Slot = 0; Slot < CandidateGuids.Num(); ++Slot)
@@ -231,9 +269,37 @@ bool UKalmalaInventoryComponent::SetMainHandFromServer(const FGuid ItemGuid, FSt
         return false;
     }
 
-    // Reuse the owner-private identity already consumed by combat, harvesting and building.
+    TArray<FGuid> ToolGuids, StackGuids;
+    TSet<FGuid> PhysicalGuids;
+    for (const FKalmalaToolState& Tool : Character->GetCarriedToolInventory())
+    {
+        if (!Tool.InstanceGuid.IsValid() || PhysicalGuids.Contains(Tool.InstanceGuid))
+        { Reason = TEXT("Invalid carried tool identity"); return false; }
+        PhysicalGuids.Add(Tool.InstanceGuid);
+        ToolGuids.Add(Tool.InstanceGuid);
+    }
+    for (const FKalmalaInventoryStack& Stack : Stacks)
+    {
+        StackGuids.Add(Stack.InstanceGuid);
+        for (const FGuid& Guid : Stack.ItemGuids)
+            if (PhysicalGuids.Contains(Guid))
+            { Reason = TEXT("Tool and inventory identities overlap"); return false; }
+    }
+    for (const FKalmalaEquippedGear& Gear : EquippedGear)
+        if (PhysicalGuids.Contains(Gear.ItemGuid))
+        { Reason = TEXT("Tool and wearable identities overlap"); return false; }
+
+    TArray<FGuid> CandidateGrid;
+    if (!BuildMainHandGrid(ToolGuids, StackGuids, ItemGuid, GridInstanceGuids, CandidateGrid))
+    { Reason = TEXT("No inventory space to return Main Hand"); return false; }
+
+    // Keep the physical tool record for condition, combat and current development saves.
+    // Only its location changes; validate the complete layout before publishing selection.
     ActiveItem = SelectedId;
     ActiveInstanceGuid = ItemGuid;
+    GridInstanceGuids = MoveTemp(CandidateGrid);
+    GridSlots.Init(NAME_None, MaxSlots);
+    for (int32 Slot = 0; Slot < MaxSlots; ++Slot) GridSlots[Slot] = GetSlotItem(Slot);
     Character->ForceNetUpdate();
     Reason = ItemGuid.IsValid() ? TEXT("Main Hand selected") : TEXT("Main Hand cleared");
     return true;
@@ -269,9 +335,24 @@ void UKalmalaInventoryComponent::ServerUseHotbarSlot_Implementation(const int32 
             Support->ActivateSupportEffectFromHotbarServer(SupportEffect);
         return;
     }
+    if (FKalmalaToolLifecycleContract::FindDefinition(Id))
+    {
+        FString Reason;
+        SetMainHandFromServer(Guid, Reason);
+        return;
+    }
+    // Consuming food does not displace a tool into a potentially full pack.
+    if (UKalmalaPlayerStatusComponent::IsKnownFoodItem(Id))
+    {
+        if (auto* Crafting = GetOwner()->FindComponentByClass<UKalmalaCraftingComponent>()) Crafting->ServerConsumeFood(Id);
+        return;
+    }
+    if (GetMainHandGuid().IsValid())
+    {
+        FString Reason;
+        if (!SetMainHandFromServer(FGuid(), Reason)) return;
+    }
     ActiveItem = Id;
     ActiveInstanceGuid = Guid;
-    if (UKalmalaPlayerStatusComponent::IsKnownFoodItem(Id))
-        if (auto* Crafting = GetOwner()->FindComponentByClass<UKalmalaCraftingComponent>()) Crafting->ServerConsumeFood(Id);
     GetOwner()->ForceNetUpdate();
 }

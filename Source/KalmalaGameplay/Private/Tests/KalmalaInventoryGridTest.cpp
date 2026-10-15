@@ -50,6 +50,33 @@ bool FKalmalaInventoryGridTest::RunTest(const FString& Parameters)
     Full.Add(FGuid::NewGuid());
     TestFalse(TEXT("Forty-first identity cannot enter the grid"), UKalmalaInventoryComponent::BuildGridLayout(Full, {}, After));
     TestFalse(TEXT("Invalid GUID cannot occupy a cell"), UKalmalaInventoryComponent::BuildGridLayout({FGuid()}, {}, After));
+
+    // A physical tool stays in the tool ledger but only packed tools occupy cells.
+    TArray<FGuid> FortyStacks;
+    for (int32 I = 0; I < 40; ++I) FortyStacks.Add(FGuid::NewGuid());
+    TestTrue(TEXT("Main Hand permits forty packed stacks"), UKalmalaInventoryComponent::BuildMainHandGrid(
+        {AxeGuid}, FortyStacks, AxeGuid, {}, After));
+    TestFalse(TEXT("Main Hand is excluded from the grid"), After.Contains(AxeGuid));
+    const auto FullWithHand = After;
+    TestFalse(TEXT("Returning Main Hand rejects a full pack"), UKalmalaInventoryComponent::BuildMainHandGrid(
+        {AxeGuid}, FortyStacks, FGuid(), FullWithHand, After));
+    TestTrue(TEXT("Rejected return preserves the candidate output"), After == FullWithHand);
+    FortyStacks.Pop();
+    TestTrue(TEXT("Returning Main Hand succeeds with one free cell"), UKalmalaInventoryComponent::BuildMainHandGrid(
+        {AxeGuid}, FortyStacks, FGuid(), FullWithHand, After));
+    TestTrue(TEXT("Returned tool retains its exact GUID"), After.Contains(AxeGuid));
+    TestTrue(TEXT("Replacement uses the cell freed by the incoming tool"), UKalmalaInventoryComponent::BuildMainHandGrid(
+        {AxeGuid, HammerGuidA}, FortyStacks, HammerGuidA, After, After));
+    TestTrue(TEXT("Displaced tool remains packed"), After.Contains(AxeGuid));
+    TestFalse(TEXT("Replacement leaves the incoming tool outside the grid"), After.Contains(HammerGuidA));
+    const auto ReplacementGrid = After;
+    TestFalse(TEXT("Unknown hand identity rejects"), UKalmalaInventoryComponent::BuildMainHandGrid(
+        {AxeGuid}, FortyStacks, HammerGuidB, After, After));
+    TestFalse(TEXT("Duplicate tool identity rejects even when excluded from cells"), UKalmalaInventoryComponent::BuildMainHandGrid(
+        {AxeGuid, AxeGuid}, {}, AxeGuid, After, After));
+    TestFalse(TEXT("A stack cannot share the hand identity"), UKalmalaInventoryComponent::BuildMainHandGrid(
+        {AxeGuid}, {AxeGuid}, AxeGuid, After, After));
+    TestTrue(TEXT("Invalid transactions leave the prior layout intact"), After == ReplacementGrid);
     auto* Inventory = NewObject<UKalmalaInventoryComponent>();
     TArray<FKalmalaInventoryStack> Stacks;
     Stacks.SetNum(36);

@@ -4,6 +4,8 @@
 #include "Components/ActorComponent.h"
 #include "KalmalaInventoryComponent.generated.h"
 
+struct FKalmalaToolState;
+
 USTRUCT()
 struct FKalmalaInventoryStack
 {
@@ -72,13 +74,20 @@ public:
     const FString& GetLastGearRequestReason() const { return LastGearRequestReason; }
     static bool BuildEquipGearTransaction(const TArray<FKalmalaInventoryStack>& BeforeStacks,
         const TArray<FKalmalaEquippedGear>& BeforeGear, FGuid ItemGuid, const TArray<FGuid>& OtherOwnedGuids,
-        TArray<FKalmalaInventoryStack>& AfterStacks, TArray<FKalmalaEquippedGear>& AfterGear, FString& Reason);
+        TArray<FKalmalaInventoryStack>& AfterStacks, TArray<FKalmalaEquippedGear>& AfterGear, FString& Reason,
+        FGuid MainHandGuid = FGuid());
     static bool BuildUnequipGearTransaction(const TArray<FKalmalaInventoryStack>& BeforeStacks,
         const TArray<FKalmalaEquippedGear>& BeforeGear, EKalmalaGearSlot Slot, const TArray<FGuid>& OtherOwnedGuids,
-        TArray<FKalmalaInventoryStack>& AfterStacks, TArray<FKalmalaEquippedGear>& AfterGear, FString& Reason);
+        TArray<FKalmalaInventoryStack>& AfterStacks, TArray<FKalmalaEquippedGear>& AfterGear, FString& Reason,
+        FGuid MainHandGuid = FGuid());
     FName GetActiveItem() const { return ActiveItem; }
     FGuid GetActiveInstanceGuid() const { return ActiveInstanceGuid; }
-    /** Select an exact carried weapon/tool; an invalid GUID clears the current hand. */
+    FGuid GetMainHandGuid() const;
+    int32 CountPackedTools(const TArray<FKalmalaToolState>& Tools) const;
+    /** Validate all owned identities, then place only items outside Main Hand in the pack. */
+    static bool BuildMainHandGrid(const TArray<FGuid>& ToolGuids, const TArray<FGuid>& StackGuids,
+        FGuid HandGuid, const TArray<FGuid>& Before, TArray<FGuid>& After);
+    /** Move an exact packed weapon/tool into Main Hand; an invalid GUID returns it to the pack. */
     bool SetMainHandFromServer(FGuid ItemGuid, FString& Reason);
     bool OwnsGridItem(FName ItemId) const;
     float GetCarriedWeight() const;

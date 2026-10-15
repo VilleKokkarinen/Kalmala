@@ -99,7 +99,8 @@ public:
         const TArray<FKalmalaInventoryStack>& ExistingInventory,
         TArray<FKalmalaToolState>& OutTools,
         TArray<FKalmalaInventoryStack>& OutInventory,
-        FString& Reason);
+        FString& Reason,
+        FGuid MainHandGuid = FGuid());
     static bool BuildServerUpgradeFromCharacter(
         const AKalmalaCharacter* ServerCharacter,
         FName SelectedStationKit,

@@ -88,6 +88,18 @@ bool FKalmalaInventoryEquipmentTest::RunTest(const FString& Parameters)
         UKalmalaInventoryComponent::BuildUnequipGearTransaction(
             FullGearPack, {OldHelmet}, EKalmalaGearSlot::Head, {}, UnequippedStacks, UnequippedGear, Reason));
 
+    FullGearPack.Pop();
+    const FGuid HandGuid = FGuid::NewGuid();
+    TestTrue(TEXT("Main Hand does not consume the last cell needed to return a wearable"),
+        UKalmalaInventoryComponent::BuildUnequipGearTransaction(
+            FullGearPack, {OldHelmet}, EKalmalaGearSlot::Head, {HandGuid},
+            UnequippedStacks, UnequippedGear, Reason, HandGuid));
+    TestEqual(TEXT("Returned wearable fills cell forty alongside Main Hand"), UnequippedStacks.Num(), 40);
+    TestFalse(TEXT("Main Hand still participates in wearable identity collision checks"),
+        UKalmalaInventoryComponent::BuildUnequipGearTransaction(
+            {}, {OldHelmet}, EKalmalaGearSlot::Head, {OldHelmetGuid},
+            UnequippedStacks, UnequippedGear, Reason, OldHelmetGuid));
+
     const FGuid WoodGuid = FGuid::NewGuid();
     FKalmalaGearLevelStats HelmetStats;
     if (!TestTrue(TEXT("Helmet has authored condition"),
