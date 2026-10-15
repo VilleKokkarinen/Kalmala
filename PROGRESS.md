@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed repair 2026-10-15 — Fix Inventory Worn Gear sizing compile errors
+
+- **Completed:** replaced both unsupported two-argument `FSlateChildSize` constructions with the supported Fill-rule constructor followed by an explicit `Value = 1.0f` assignment. The gear slots retain equal fill sizing, and the lower-row spacer remains balanced with them.
+- **Files changed:** `Source/KalmalaUI/Private/KalmalaInventoryMenuWidget.cpp`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** `git diff --check` passed. A focused source check confirmed both size-rule/value assignments, absence of the unsupported constructor form, and changed paths below 260 characters.
+- **Impact and authority:** presentation sizing only; slot layout remains four fill-sized columns on the first row and three slots plus a matching spacer on the second. No gameplay, networking, authority, or save-schema behavior changed.
+- **Verification/limitations:** normal development repair, not milestone-final. Unreal compilation and Inventory UI automation were not run; compiler and rendered-layout confirmation remain deferred.
+- **Next eligible backlog task:** make gear slots a distinct GUID-addressable part of carried inventory, implement validated equip/unequip and replacement capacity behavior, and route tools/weapons through Main Hand.
+
 ## User-directed repair 2026-10-15 — Fix Stone Workbench crafting compile errors
 
 - **Completed:** replaced the inaccessible gameplay-module tool-name helper with a local lookup of authored names in `UKalmalaToolCatalogue`. Replaced the unsupported `UButton::OnClicked.AddLambda` call with reflected callbacks for Stone Axe, Knife, Pick, Spear, and Mace; each callback forwards its matching tool ID through the existing Workbench-context guard and server request.

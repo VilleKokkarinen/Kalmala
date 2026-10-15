@@ -131,7 +131,9 @@ void UKalmalaInventoryMenuWidget::NativeOnInitialized()
         SlotPanel->SetContent(SlotContent);
         SlotSize->SetContent(SlotPanel);
         auto* RowSlot = Row.AddChildToHorizontalBox(SlotSize);
-        RowSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill, 1.0f));
+        FSlateChildSize RowSize(ESlateSizeRule::Fill);
+        RowSize.Value = 1.0f;
+        RowSlot->SetSize(RowSize);
         RowSlot->SetPadding(FMargin(0, 0, Theme.RowSpacing, 0));
     };
 
@@ -145,7 +147,9 @@ void UKalmalaInventoryMenuWidget::NativeOnInitialized()
     auto* GearSpacer = WidgetTree->ConstructWidget<USizeBox>();
     GearSpacer->SetHeightOverride(72.0f);
     GearSpacer->SetVisibility(ESlateVisibility::Hidden);
-    GearRowTwo->AddChildToHorizontalBox(GearSpacer)->SetSize(FSlateChildSize(ESlateSizeRule::Fill, 1.0f));
+    FSlateChildSize GearSpacerSize(ESlateSizeRule::Fill);
+    GearSpacerSize.Value = 1.0f;
+    GearRowTwo->AddChildToHorizontalBox(GearSpacer)->SetSize(GearSpacerSize);
     WornGearContent->AddChildToVerticalBox(GearRowTwo)->SetPadding(FMargin(0, Theme.RowSpacing, 0, 0));
     Content->AddChildToVerticalBox(WornGearPanel)->SetPadding(FMargin(0, Theme.RowSpacing, 0, Theme.RowSpacing));
 
