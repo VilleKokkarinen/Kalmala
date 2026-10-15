@@ -36,6 +36,7 @@ struct FKalmalaEquippedGear
     UPROPERTY() FName ItemId;
     UPROPERTY() FGuid ItemGuid;
 };
+
 /** Pawn-lifetime inventory. Only trusted server gameplay may mutate its contents. */
 struct FKalmalaItemGainReceipt
 {
@@ -62,6 +63,9 @@ public:
     const FKalmalaEquippedGear* FindEquippedGear(EKalmalaGearSlot Slot) const;
     bool EquipGearFromServer(FGuid ItemGuid, FString& Reason);
     bool UnequipGearFromServer(EKalmalaGearSlot Slot, FString& Reason);
+    uint32 GetGearRequestResultSerial() const { return GearRequestResultSerial; }
+    bool WasLastGearRequestAccepted() const { return bLastGearRequestAccepted; }
+    const FString& GetLastGearRequestReason() const { return LastGearRequestReason; }
     static bool BuildEquipGearTransaction(const TArray<FKalmalaInventoryStack>& BeforeStacks,
         const TArray<FKalmalaEquippedGear>& BeforeGear, FGuid ItemGuid, const TArray<FGuid>& OtherOwnedGuids,
         TArray<FKalmalaInventoryStack>& AfterStacks, TArray<FKalmalaEquippedGear>& AfterGear, FString& Reason);
@@ -86,6 +90,7 @@ public:
     UFUNCTION(Server, Reliable) void ServerUseHotbarSlot(int32 Slot);
     UFUNCTION(Server, Reliable) void ServerEquipGear(FGuid ItemGuid);
     UFUNCTION(Server, Reliable) void ServerUnequipGear(EKalmalaGearSlot Slot);
+    UFUNCTION(Client, Reliable) void ClientGearRequestResult(bool bAccepted, FString Reason);
     const TArray<FKalmalaInventoryStack>& GetStacks() const { return Stacks; }
     /** Local owner receipt buffer, never used as inventory authority or persistence. */
     const TArray<FKalmalaItemGainReceipt>& GetGainReceipts() const { return GainReceipts; }
@@ -128,6 +133,9 @@ private:
     UFUNCTION(Client, Reliable) void ClientAcceptedGain(FName ItemId, int32 Quantity);
     TArray<FKalmalaItemGainReceipt> GainReceipts;
     int64 GainSequence = 0;
+    uint32 GearRequestResultSerial = 0;
+    bool bLastGearRequestAccepted = false;
+    FString LastGearRequestReason;
     UPROPERTY(Replicated) TArray<FKalmalaInventoryStack> Stacks;
     UPROPERTY(Replicated) TArray<FKalmalaEquippedGear> EquippedGear;
     UPROPERTY(Replicated) TArray<FName> GridSlots;

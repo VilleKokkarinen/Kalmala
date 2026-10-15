@@ -66,6 +66,20 @@ FString BuildToolInspectionText(const FKalmalaToolState& Tool)
         ? TEXT("\nFree repair at a visible Workbench or Forge.")
         : TEXT("\nNo repair needed."));
 }
+
+FString GetGearCatalogueSlot(const EKalmalaGearSlot Slot)
+{
+    switch (Slot)
+    {
+    case EKalmalaGearSlot::Head: return TEXT("Head");
+    case EKalmalaGearSlot::Cape: return TEXT("Cape");
+    case EKalmalaGearSlot::Chest: return TEXT("Chest");
+    case EKalmalaGearSlot::Shield: return TEXT("Shield");
+    case EKalmalaGearSlot::Legs: return TEXT("Legs");
+    case EKalmalaGearSlot::Boots: return TEXT("Boots");
+    default: return FString();
+    }
+}
 }
 
 void UKalmalaInventoryMenuWidget::NativeOnInitialized()
@@ -109,13 +123,11 @@ void UKalmalaInventoryMenuWidget::NativeOnInitialized()
     Theme.ApplyText(*WornGearHeading, Theme.EmphasisSize, true, TextScale, Contrast);
     WornGearContent->AddChildToVerticalBox(WornGearHeading)->SetPadding(FMargin(0, 0, 0, Theme.RowSpacing));
 
-    auto AddGearSlot = [&](UHorizontalBox& Row, const FString& SlotName)
+    auto AddGearSlot = [&](UHorizontalBox& Row, const FString& SlotName,
+        const bool bInteractive, const EKalmalaGearSlot GearSlot)
     {
         auto* SlotSize = WidgetTree->ConstructWidget<USizeBox>();
         SlotSize->SetHeightOverride(72.0f);
-        auto* SlotPanel = WidgetTree->ConstructWidget<UBorder>();
-        Theme.ApplyItemIconTile(*SlotPanel, Contrast);
-        SlotPanel->SetPadding(FMargin(Theme.SlotPadding));
         auto* SlotContent = WidgetTree->ConstructWidget<UVerticalBox>();
         auto* Name = WidgetTree->ConstructWidget<UTextBlock>();
         Name->SetText(FText::FromString(SlotName));
@@ -128,8 +140,34 @@ void UKalmalaInventoryMenuWidget::NativeOnInitialized()
         Empty->SetJustification(ETextJustify::Center);
         Theme.ApplyText(*Empty, Theme.BodySize, false, TextScale, Contrast);
         SlotContent->AddChildToVerticalBox(Empty);
-        SlotPanel->SetContent(SlotContent);
-        SlotSize->SetContent(SlotPanel);
+        if (bInteractive)
+        {
+            auto* Button = WidgetTree->ConstructWidget<UKalmalaThemedButton>();
+            Button->SetContent(SlotContent);
+            Theme.ApplyButton(*Button, Contrast);
+            switch (GearSlot)
+            {
+            case EKalmalaGearSlot::Head: Button->OnClicked.AddDynamic(this, &ThisClass::UseHeadGearSlot); break;
+            case EKalmalaGearSlot::Cape: Button->OnClicked.AddDynamic(this, &ThisClass::UseCapeGearSlot); break;
+            case EKalmalaGearSlot::Chest: Button->OnClicked.AddDynamic(this, &ThisClass::UseChestGearSlot); break;
+            case EKalmalaGearSlot::Shield: Button->OnClicked.AddDynamic(this, &ThisClass::UseShieldGearSlot); break;
+            case EKalmalaGearSlot::Legs: Button->OnClicked.AddDynamic(this, &ThisClass::UseLegsGearSlot); break;
+            case EKalmalaGearSlot::Boots: Button->OnClicked.AddDynamic(this, &ThisClass::UseBootsGearSlot); break;
+            default: break;
+            }
+            GearSlotButtons.Add(Button);
+            GearSlotNameTexts.Add(Name);
+            GearSlotStateTexts.Add(Empty);
+            SlotSize->SetContent(Button);
+        }
+        else
+        {
+            auto* SlotPanel = WidgetTree->ConstructWidget<UBorder>();
+            Theme.ApplyItemIconTile(*SlotPanel, Contrast);
+            SlotPanel->SetPadding(FMargin(Theme.SlotPadding));
+            SlotPanel->SetContent(SlotContent);
+            SlotSize->SetContent(SlotPanel);
+        }
         auto* RowSlot = Row.AddChildToHorizontalBox(SlotSize);
         FSlateChildSize RowSize(ESlateSizeRule::Fill);
         RowSize.Value = 1.0f;
@@ -138,12 +176,15 @@ void UKalmalaInventoryMenuWidget::NativeOnInitialized()
     };
 
     auto* GearRowOne = WidgetTree->ConstructWidget<UHorizontalBox>();
-    for (const TCHAR* SlotName : {TEXT("Main Hand"), TEXT("Head"), TEXT("Cape"), TEXT("Chest")})
-        AddGearSlot(*GearRowOne, SlotName);
+    AddGearSlot(*GearRowOne, TEXT("Main Hand"), false, EKalmalaGearSlot::Head);
+    AddGearSlot(*GearRowOne, TEXT("Head"), true, EKalmalaGearSlot::Head);
+    AddGearSlot(*GearRowOne, TEXT("Cape"), true, EKalmalaGearSlot::Cape);
+    AddGearSlot(*GearRowOne, TEXT("Chest"), true, EKalmalaGearSlot::Chest);
     WornGearContent->AddChildToVerticalBox(GearRowOne);
     auto* GearRowTwo = WidgetTree->ConstructWidget<UHorizontalBox>();
-    for (const TCHAR* SlotName : {TEXT("Shield"), TEXT("Legs"), TEXT("Boots")})
-        AddGearSlot(*GearRowTwo, SlotName);
+    AddGearSlot(*GearRowTwo, TEXT("Shield"), true, EKalmalaGearSlot::Shield);
+    AddGearSlot(*GearRowTwo, TEXT("Legs"), true, EKalmalaGearSlot::Legs);
+    AddGearSlot(*GearRowTwo, TEXT("Boots"), true, EKalmalaGearSlot::Boots);
     auto* GearSpacer = WidgetTree->ConstructWidget<USizeBox>();
     GearSpacer->SetHeightOverride(72.0f);
     GearSpacer->SetVisibility(ESlateVisibility::Hidden);
@@ -151,6 +192,12 @@ void UKalmalaInventoryMenuWidget::NativeOnInitialized()
     GearSpacerSize.Value = 1.0f;
     GearRowTwo->AddChildToHorizontalBox(GearSpacer)->SetSize(GearSpacerSize);
     WornGearContent->AddChildToVerticalBox(GearRowTwo)->SetPadding(FMargin(0, Theme.RowSpacing, 0, 0));
+    GearActionStatusText = WidgetTree->ConstructWidget<UTextBlock>();
+    GearActionStatusText->SetAutoWrapText(true);
+    GearActionStatusText->SetText(FText::FromString(
+        TEXT("Select a wearable in the grid to equip it. Click worn gear to return it to your inventory.")));
+    Theme.ApplyText(*GearActionStatusText, Theme.BodySize, false, TextScale, Contrast);
+    WornGearContent->AddChildToVerticalBox(GearActionStatusText)->SetPadding(FMargin(0, Theme.RowSpacing, 0, 0));
     Content->AddChildToVerticalBox(WornGearPanel)->SetPadding(FMargin(0, Theme.RowSpacing, 0, Theme.RowSpacing));
 
     ItemDetailView = WidgetTree->ConstructWidget<UKalmalaItemDetailWidget>();
@@ -231,7 +278,7 @@ void UKalmalaInventoryMenuWidget::UpdateResponsivePanelSize(const FVector2D View
     if (!PanelSizeBox) return;
     const float NewWidth = FMath::Min(520.0f, FMath::Max(80.0f, ViewportSize.X * 0.38f));
     const float GridHeight = FMath::Max(32.0f, (NewWidth - FKalmalaUITheme::Get().PaddingX * 2.0f) * 0.4f);
-    constexpr float WornGearHeight = 194.0f;
+    constexpr float WornGearHeight = 218.0f;
     const bool bDetails = bSelectionDetailsRequested || !HoveredItemId.IsNone();
     const float NewHeight = FMath::Min(FMath::Max(80.0f, ViewportSize.Y - 32.0f),
         GridHeight + WornGearHeight + (bDetails ? 280.0f : FKalmalaUITheme::Get().PaddingY * 2.0f));
@@ -321,7 +368,8 @@ void UKalmalaInventoryMenuWidget::RefreshOwnerInventory()
         {
             const FKalmalaItemDefinition* Definition = Catalogue ? Catalogue->FindItem(ItemId) : nullptr;
             InventoryRows.Add({ ItemId, Definition ? Definition->DisplayName : ItemId.ToString(),
-                FString::Printf(TEXT("× %d"), StackQuantities.FindRef(ItemId)), false });
+                FString::Printf(TEXT("× %d"), StackQuantities.FindRef(ItemId)), false,
+                Stack.ItemGuids.IsEmpty() ? FGuid() : Stack.ItemGuids[0] });
         }
     }
 
@@ -403,6 +451,34 @@ void UKalmalaInventoryMenuWidget::RefreshOwnerInventory()
                 bAwaitingAcceptedFoodStatus = false;
             }
         }
+    }
+
+    if (Inventory)
+    {
+        const uint32 ResultSerial = Inventory->GetGearRequestResultSerial();
+        if (bAwaitingGearRequestResult && ResultSerial != LastSeenGearRequestResultSerial)
+        {
+            bAwaitingGearRequestResult = false;
+            GearRequestSentAtSeconds = -1.0;
+            LastSeenGearRequestResultSerial = ResultSerial;
+            if (Inventory->WasLastGearRequestAccepted())
+                LastGearActionStatus = bPendingGearEquip
+                    ? TEXT("Gear equipped.") : TEXT("Gear returned to your inventory.");
+            else
+                LastGearActionStatus = Inventory->GetLastGearRequestReason().IsEmpty()
+                    ? TEXT("The server rejected the gear request.") : Inventory->GetLastGearRequestReason();
+        }
+        else if (!bAwaitingGearRequestResult)
+        {
+            LastSeenGearRequestResultSerial = ResultSerial;
+        }
+    }
+    if (bAwaitingGearRequestResult && GetWorld()
+        && GetWorld()->GetTimeSeconds() - GearRequestSentAtSeconds > 3.0)
+    {
+        bAwaitingGearRequestResult = false;
+        GearRequestSentAtSeconds = -1.0;
+        LastGearActionStatus = TEXT("No server response received yet. Displayed gear remains server-confirmed.");
     }
 
     RefreshSelectionPresentation(TextScale, Contrast);
@@ -487,6 +563,13 @@ void UKalmalaInventoryMenuWidget::RefreshSelectionPresentation(const int32 TextS
         Theme.ApplyButton(*EatFoodButton, Contrast);
         Theme.ApplyText(*CastChecked<UTextBlock>(EatFoodButton->GetContent()), Theme.BodySize, false, TextScale, Contrast);
         Theme.ApplyText(*FoodActionStatusText, Theme.BodySize, false, TextScale, Contrast);
+        for (UKalmalaThemedButton* Button : GearSlotButtons)
+            if (Button) Theme.ApplyButton(*Button, Contrast);
+        for (UTextBlock* Name : GearSlotNameTexts)
+            if (Name) Theme.ApplyText(*Name, Theme.BodySize, true, TextScale, Contrast);
+        for (UTextBlock* State : GearSlotStateTexts)
+            if (State) Theme.ApplyText(*State, Theme.BodySize, false, TextScale, Contrast);
+        if (GearActionStatusText) Theme.ApplyText(*GearActionStatusText, Theme.BodySize, false, TextScale, Contrast);
 
         if (MenuContentScrollBox) Theme.ApplyScroll(*MenuContentScrollBox);
         LastTextScalePercent = TextScale;
@@ -582,7 +665,117 @@ void UKalmalaInventoryMenuWidget::RefreshSelectionPresentation(const int32 TextS
             ToolActionStatusText->SetText(FText::FromString(StatusText));
     }
     RefreshFoodActionPresentation(bShowSelectedActions ? SelectedRow : nullptr, TextScale, Contrast);
+    RefreshGearPresentation(TextScale, Contrast);
 }
+
+void UKalmalaInventoryMenuWidget::RefreshGearPresentation(const int32 TextScale, const int32 Contrast)
+{
+    if (GearSlotButtons.Num() != 6 || GearSlotStateTexts.Num() != 6 || GearActionStatusText == nullptr) return;
+
+    static const EKalmalaGearSlot Slots[] = {
+        EKalmalaGearSlot::Head, EKalmalaGearSlot::Cape, EKalmalaGearSlot::Chest,
+        EKalmalaGearSlot::Shield, EKalmalaGearSlot::Legs, EKalmalaGearSlot::Boots};
+    APlayerController* Controller = GetOwningPlayer();
+    UKalmalaInventoryComponent* Inventory = Controller && Controller->GetPawn()
+        ? Controller->GetPawn()->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
+    const UKalmalaItemCatalogue* Catalogue = UKalmalaItemCatalogue::Get();
+    const FKalmalaCatalogueRow* SelectedRow = OwnerInventoryRows.IsValidIndex(SelectedInventoryIndex)
+        ? &OwnerInventoryRows[SelectedInventoryIndex] : nullptr;
+    const FKalmalaItemDefinition* SelectedDefinition = SelectedRow && Catalogue
+        ? Catalogue->FindItem(SelectedRow->Id) : nullptr;
+
+    for (int32 Index = 0; Index < 6; ++Index)
+    {
+        UKalmalaThemedButton* Button = GearSlotButtons[Index];
+        UTextBlock* StateText = GearSlotStateTexts[Index];
+        if (!Button || !StateText) continue;
+
+        const EKalmalaGearSlot Slot = Slots[Index];
+        const FKalmalaEquippedGear* Equipped = Inventory ? Inventory->FindEquippedGear(Slot) : nullptr;
+        FString State = TEXT("Empty");
+        const bool bCanEquip = SelectedDefinition && SelectedRow && SelectedRow->ItemGuid.IsValid()
+            && SelectedDefinition->GearSlot == GetGearCatalogueSlot(Slot)
+            && (!Equipped || Equipped->ItemGuid != SelectedRow->ItemGuid);
+        if (Equipped)
+        {
+            const FKalmalaItemDefinition* Definition = Catalogue ? Catalogue->FindItem(Equipped->ItemId) : nullptr;
+            State = Definition ? Definition->DisplayName : Equipped->ItemId.ToString();
+            Button->SetToolTipText(FText::FromString(bCanEquip
+                ? FString::Printf(TEXT("Click to replace %s with the selected wearable."), *State)
+                : FString::Printf(TEXT("Select an empty grid cell, then click to return %s to your inventory."), *State)));
+        }
+        else
+        {
+            if (bCanEquip)
+            {
+                State = FString::Printf(TEXT("Equip %s"), *SelectedDefinition->DisplayName);
+                Button->SetToolTipText(FText::FromString(FString::Printf(
+                    TEXT("Click to equip %s."), *SelectedDefinition->DisplayName)));
+            }
+            else
+            {
+                Button->SetToolTipText(FText::FromString(TEXT("Select a compatible wearable in the inventory grid.")));
+            }
+        }
+
+        Button->SetIsEnabled(!bAwaitingGearRequestResult && Inventory
+            && (Equipped != nullptr || bCanEquip));
+        if (StateText->GetText().ToString() != State)
+            StateText->SetText(FText::FromString(State));
+    }
+
+    FString Status = LastGearActionStatus.IsEmpty()
+        ? TEXT("Select a wearable in the grid to equip it. Click worn gear to return it to your inventory.")
+        : LastGearActionStatus;
+    if (bAwaitingGearRequestResult) Status = TEXT("Gear request sent. Waiting for the server result.");
+    if (GearActionStatusText->GetText().ToString() != Status)
+        GearActionStatusText->SetText(FText::FromString(Status));
+    (void)TextScale;
+    (void)Contrast;
+}
+
+void UKalmalaInventoryMenuWidget::UseGearSlot(const EKalmalaGearSlot Slot)
+{
+    APlayerController* Controller = GetOwningPlayer();
+    AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(Controller ? Controller->GetPawn() : nullptr);
+    UKalmalaInventoryComponent* Inventory = Character ? Character->GetInventoryComponent() : nullptr;
+    if (!Controller || !Controller->IsLocalController() || !Inventory || bAwaitingGearRequestResult) return;
+
+    LastSeenGearRequestResultSerial = Inventory->GetGearRequestResultSerial();
+    const FKalmalaEquippedGear* ExistingGear = Inventory->FindEquippedGear(Slot);
+    const FKalmalaCatalogueRow* SelectedRow = OwnerInventoryRows.IsValidIndex(SelectedInventoryIndex)
+        ? &OwnerInventoryRows[SelectedInventoryIndex] : nullptr;
+    const UKalmalaItemCatalogue* Catalogue = UKalmalaItemCatalogue::Get();
+    const FKalmalaItemDefinition* Definition = SelectedRow && Catalogue
+        ? Catalogue->FindItem(SelectedRow->Id) : nullptr;
+    const bool bCanEquip = SelectedRow && SelectedRow->ItemGuid.IsValid() && Definition
+        && Definition->GearSlot == GetGearCatalogueSlot(Slot)
+        && (!ExistingGear || ExistingGear->ItemGuid != SelectedRow->ItemGuid);
+    if (ExistingGear && !bCanEquip)
+    {
+        bPendingGearEquip = false;
+        Inventory->ServerUnequipGear(Slot);
+    }
+    else if (bCanEquip)
+    {
+        bPendingGearEquip = true;
+        Inventory->ServerEquipGear(SelectedRow->ItemGuid);
+    }
+    else return;
+
+    bAwaitingGearRequestResult = true;
+    GearRequestSentAtSeconds = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0;
+    LastGearActionStatus = TEXT("Gear request sent.");
+    RefreshGearPresentation(UKalmalaSettingsWidget::GetTextScalePercent(),
+        UKalmalaSettingsWidget::GetContrastMode());
+}
+
+void UKalmalaInventoryMenuWidget::UseHeadGearSlot() { UseGearSlot(EKalmalaGearSlot::Head); }
+void UKalmalaInventoryMenuWidget::UseCapeGearSlot() { UseGearSlot(EKalmalaGearSlot::Cape); }
+void UKalmalaInventoryMenuWidget::UseChestGearSlot() { UseGearSlot(EKalmalaGearSlot::Chest); }
+void UKalmalaInventoryMenuWidget::UseShieldGearSlot() { UseGearSlot(EKalmalaGearSlot::Shield); }
+void UKalmalaInventoryMenuWidget::UseLegsGearSlot() { UseGearSlot(EKalmalaGearSlot::Legs); }
+void UKalmalaInventoryMenuWidget::UseBootsGearSlot() { UseGearSlot(EKalmalaGearSlot::Boots); }
 
 void UKalmalaInventoryMenuWidget::RefreshFoodActionPresentation(const FKalmalaCatalogueRow* SelectedRow,
     const int32 TextScale, const int32 Contrast)

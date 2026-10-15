@@ -1,5 +1,16 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-15 — Add owner-facing Worn Gear actions
+
+- **Completed:** connected the six wearable Inventory tiles to the server equip/unequip requests. Selecting a compatible wearable enables equip or replacement; selecting an empty grid cell and clicking worn gear requests return to the pack. The popup displays current owner-only wearable item names and accepted/rejected server results. Main Hand remains a placeholder.
+- **Files changed:** `Source/KalmalaGameplay/Public/KalmalaInventoryComponent.h`, `Source/KalmalaGameplay/Private/KalmalaInventoryComponent.cpp`, `Source/KalmalaUI/Public/KalmalaInventoryMenuWidget.h`, `Source/KalmalaUI/Private/KalmalaInventoryMenuWidget.cpp`, `BACKLOG.md`, `PROGRESS.md`, `docs/01-game-design.md`, `docs/02-technical-architecture.md`, and `docs/game-features.md`.
+- **Lightweight checks:** `git diff --check` passed. Focused PowerShell source assertions passed for all six UI bindings, exact selected item GUID use, slot-only unequip, server transaction reuse, client result RPC, owner-only replication, placeholder Main Hand, and changed paths below 260 characters.
+- **Impact/authority:** client actions submit only the selected physical item GUID or wearable slot. The server revalidates catalogue compatibility and the complete capacity/transaction state before publishing. Gear state and request results remain owner-only; no save fields or save schemas changed.
+- **Verification status/limitations:** normal increment, not milestone-final. Unreal compilation, focused Unreal inventory automations, rendered layout, and peer privacy checks were not run; full verification remains deferred.
+- **Commit status:** this UI increment is committed separately after the wearable transaction foundation (`a632b43`).
+- **Known limitations:** defense aggregation and condition wear are absent; weapons/tools are not routed through Main Hand; the Main Hand tile is a placeholder; gear remains session-only.
+- **Next eligible backlog task:** continue the first unchecked Worn Gear transaction child with Main Hand routing and remaining defense/condition behavior, then complete the separate hotbar interaction task.
+
 ## User-directed increment 2026-10-15 — Remove pre-release SaveGame migrations
 
 - **Completed:** removed player schema conversion and carried-item GUID backfill, construction schema conversion, and chest alias normalization/GUID backfill. Current player, construction, storage, M7 sparse, and ocean travel slots accept their current formats only; incompatible existing slots fail closed and remain untouched. Updated the reconnect fixture and focused save tests to cover current-format behavior, and documented that compatibility migrations must wait until the game is released and released user saves need preservation.

@@ -299,7 +299,8 @@ void UKalmalaInventoryComponent::ServerEquipGear_Implementation(const FGuid Item
     if (LastGearRequestTime >= 0.0 && Now - LastGearRequestTime < 0.1) return;
     LastGearRequestTime = Now;
     FString Reason;
-    EquipGearFromServer(ItemGuid, Reason);
+    const bool bAccepted = EquipGearFromServer(ItemGuid, Reason);
+    ClientGearRequestResult(bAccepted, MoveTemp(Reason));
 }
 
 void UKalmalaInventoryComponent::ServerUnequipGear_Implementation(const EKalmalaGearSlot Slot)
@@ -309,8 +310,17 @@ void UKalmalaInventoryComponent::ServerUnequipGear_Implementation(const EKalmala
     if (LastGearRequestTime >= 0.0 && Now - LastGearRequestTime < 0.1) return;
     LastGearRequestTime = Now;
     FString Reason;
-    UnequipGearFromServer(Slot, Reason);
+    const bool bAccepted = UnequipGearFromServer(Slot, Reason);
+    ClientGearRequestResult(bAccepted, MoveTemp(Reason));
 }
+
+void UKalmalaInventoryComponent::ClientGearRequestResult_Implementation(const bool bAccepted, FString Reason)
+{
+    bLastGearRequestAccepted = bAccepted;
+    LastGearRequestReason = MoveTemp(Reason);
+    ++GearRequestResultSerial;
+}
+
 void UKalmalaInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);

@@ -14,6 +14,7 @@ class UKalmalaInventoryGridWidget;
 class UKalmalaCraftingWidget;
 class UBorder;
 class UHorizontalBox;
+enum class EKalmalaGearSlot : uint8;
 
 /** One owner-local inventory grid with existing selected-tool and food actions. */
 UCLASS()
@@ -54,8 +55,16 @@ private:
     UFUNCTION() void EatSelectedFood();
     UFUNCTION() void MenuScrolled(float Offset);
     void RefreshFoodActionPresentation(const FKalmalaCatalogueRow* SelectedRow, int32 TextScale, int32 Contrast);
+    void RefreshGearPresentation(int32 TextScale, int32 Contrast);
     void SelectGridItem(FName ItemId);
     void HoverGridItem(FName ItemId);
+    void UseGearSlot(EKalmalaGearSlot Slot);
+    UFUNCTION() void UseHeadGearSlot();
+    UFUNCTION() void UseCapeGearSlot();
+    UFUNCTION() void UseChestGearSlot();
+    UFUNCTION() void UseShieldGearSlot();
+    UFUNCTION() void UseLegsGearSlot();
+    UFUNCTION() void UseBootsGearSlot();
     UPROPERTY(Transient) TObjectPtr<UKalmalaInventoryGridWidget> GridView;
     UPROPERTY(Transient) TObjectPtr<USizeBox> GridSizeBox;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> ToolActionStatusText;
@@ -68,6 +77,10 @@ private:
     UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> RepairToolButton;
     UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> EatFoodButton;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> FoodActionStatusText;
+    UPROPERTY(Transient) TArray<TObjectPtr<UKalmalaThemedButton>> GearSlotButtons;
+    UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> GearSlotNameTexts;
+    UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> GearSlotStateTexts;
+    UPROPERTY(Transient) TObjectPtr<UTextBlock> GearActionStatusText;
     TArray<FKalmalaCatalogueRow> SourceInventoryRows;
     TArray<FKalmalaCatalogueRow> OwnerInventoryRows;
     int32 SelectedInventoryIndex = INDEX_NONE;
@@ -87,12 +100,16 @@ private:
     FName LastPresentedSelectionId = NAME_None;
     uint32 RepairRequestResultSerial = 0;
     uint32 FoodRequestResultSerial = 0;
+    uint32 LastSeenGearRequestResultSerial = 0;
+    double GearRequestSentAtSeconds = -1.0;
     FName AwaitingFoodItemId = NAME_None;
     FName LastFoodResultItemId = NAME_None;
     FString LastFoodResultText;
     bool bAwaitingRepairResult = false;
     bool bAwaitingFoodResult = false;
     bool bAwaitingAcceptedFoodStatus = false;
+    bool bAwaitingGearRequestResult = false;
+    bool bPendingGearEquip = false;
     bool bMenuOpen = false;
     bool bAcquiredMoveIgnore = false;
     bool bAcquiredLookIgnore = false;

@@ -97,7 +97,7 @@ Manifest category file lists have no separate path-count cap; the manifest and l
 
 The server's JSON-backed catalogues are the authority for inventory and tool-progression transactions; a client's copy may only inform presentation. `IsValidStack` rejects unknown/empty IDs and any quantity outside 1 through the configured stack limit. `CanAddToStack` permits zero existing quantity but requires a positive addition and sufficient capacity, using subtraction after bounds checks to avoid integer overflow. A missing/duplicate/invalid catalogue fails closed, with defensive ceilings of 64 ordinary item definitions, 32 ordinary recipes, 32 tool profiles, 32 tool progression recipes, two authored levels per tool, four materials per tool recipe, and 999 units per stack. Tool recipes must target the same item at the immediately preceding level when upgrading; acquisitions have no predecessor. Definition lookup uses Unreal's case-insensitive `FName` identity. These pure validation functions grant no items and do not themselves establish caller authority: the inventory and crafting components still check server ownership, capacity, station context, and transaction intent before mutation. The item catalogue uses schema 14 because equipment acquisition and upgrade records use `ItemId`. This change does not alter RPCs, inventory replication, or harvest behavior. The current player-discovery save schema is 2 and stores `ItemId` directly; there is no compatibility migration during development.
 
-Initial wearable content is defined as ordinary, non-stackable items in `items/gear.json`. `GearSlot` is one of Head, Cape, Chest, Shield, Legs, or Boots; `MaxDurability` and `DefenseBonuses` define the level-one condition and flat resistance profile. Shared entries in `item-level-up/rewards/item-stats.json` may target either a carried tool profile or a wearable gear item. `UKalmalaItemCatalogue::GetGearLevelStats` computes condition and defenses as base values plus `(level - 1) * reward`, bounded by the shared level-20 cap. Each gear item now has a station-validated ordinary acquisition recipe and a level-one upgrade-cost record. Crafting uses normal server-side station, material, and capacity checks; gear upgrade costs are data only until equipment upgrade transactions are implemented. Equipping, wear, defense aggregation, Main Hand routing, and gear persistence remain pending. This does not add a save field or client-authored defense value.
+Initial wearable content is defined as ordinary, non-stackable items in `items/gear.json`. `GearSlot` is one of Head, Cape, Chest, Shield, Legs, or Boots; `MaxDurability` and `DefenseBonuses` define the level-one condition and flat resistance profile. Shared entries in `item-level-up/rewards/item-stats.json` may target either a carried tool profile or a wearable gear item. `UKalmalaItemCatalogue::GetGearLevelStats` computes condition and defenses as base values plus `(level - 1) * reward`, bounded by the shared level-20 cap. Each gear item now has a station-validated ordinary acquisition recipe and a level-one upgrade-cost record. Crafting uses normal server-side station, material, and capacity checks; gear upgrade costs are data only until equipment upgrade transactions are implemented. The inventory component now supports owner-only, session-only equip/unequip for these six wearable slots: equip requests identify an exact carried item GUID, the server derives its compatible slot from the catalogue, and replacing gear returns its original GUID to the newly freed pack cell. Unequip requires a free cell. Equipped gear is excluded from the forty-cell grid. The Inventory popup displays equipped names and offers owner-facing actions; condition wear, defense aggregation, Main Hand routing, and gear persistence remain pending. Gear slots remain session-only; no equipped-slot or client-authored defense value is added to saves.
 
 ## M2 player inventory
 
@@ -948,8 +948,10 @@ The owner's 2026-10-09 request supersedes the earlier sixteen-slot pack and
 separate carried-tool presentation. The player has one ten-column, four-row
 inventory. Materials, meals, kits and tools all occupy this same forty-cell
 space; tool condition/level records are metadata for those cells, with no
-additional toolbelt capacity. Existing station and chest inspection panels
-read the same holdings and do not create another player inventory.
+additional toolbelt capacity. Six wearable slots are a separate owner-private
+session inventory, and equipped items do not occupy grid cells. Existing
+station and chest inspection panels read the same holdings and do not create
+another player inventory.
 
 The upper row is labelled `1 2 3 4 5 6 7 8 9 0`. Its cells are the hotbar.
 Moving or swapping an item into a numbered cell assigns that number directly;
@@ -990,8 +992,8 @@ controller D-pad/Q support-magic bindings are retired when this integration is
 complete.
 
 Below the grid, show one compact line such as `Armor 0 · Weight 8/300`.
-Current armor remains 0 because the game has no armor-equipment records. Carry
-weight includes stack quantities and tools. Current prototype defaults are
+Current armor remains 0 because equipped defenses are not yet applied to
+combat. Carry weight includes stack quantities and tools. Current prototype defaults are
 1 kg per item unit, 2 kg per tool, and a 300 kg displayed capacity.
 `FKalmalaItemDefinition::WeightKg` is an optional validated catalogue value
 and capacity is a component class default. These are presentation metrics; this
@@ -1114,8 +1116,24 @@ before swapping. It cannot grant, delete, split, duplicate, repair, or author
 quantities. Hotbar intent carries only an index in 0–9; the server derives its
 identity and validates food through the existing transaction path.
 
+Wearable gear lives in a separate owner-only replicated array and remains
+session state. `ServerEquipGear` accepts only an item GUID; the server resolves
+the carried stack, requires a known non-stackable wearable, and derives its
+slot from the catalogue. `ServerUnequipGear` accepts a bounded gear-slot enum.
+Both transactions validate the full inventory/gear snapshot and carried-tool
+identity set before publishing either array. Equipping moves the exact physical
+item GUID out of its pack stack and into its slot; replacing a slot returns the
+displaced item with its original GUID, using the cell freed by the incoming
+gear. Unequipping fails without changing state if no pack cell is available.
+Equipped identities never enter the forty-cell layout. The Inventory popup
+displays current owner-only wearable names and submits exact item GUID or slot
+requests. An owner-only client result reports accepted or rejected actions.
+Main Hand and numbered-hotbar interaction remains to be defined for weapons
+and tools.
+
 Live grant, exchange, storage withdrawal and tool progression account for
-both tools and stacks within forty cells. World chest capacity remains sixteen
+both tools and stacks within forty cells; equipped wearables stay outside that
+grid. World chest capacity remains sixteen
 stacks; its persistence validation and schema stay unchanged. No saved-data
 field or version changes. Grid arrangement and active selection are session
 state; reconnects rebuild arrangement from available holdings. Existing item
@@ -2675,3 +2693,7 @@ Ordinary material definitions, including natural materials, are grouped in `item
 Recipe category JSON uses the root `recipes` array, including equipment acquisitions. Ordinary recipes under `recipes/stations/` are grouped by their crafting station; the Inventory group contains the Building Hammer recipe, while build-menu construction remains in `recipes/building.json`. Equipment acquisition records share the corresponding station file and `recipes` array; the loader routes records with `ItemId` into the runtime tool catalogue. Individual station recipe arrays may be empty. Equipment upgrade-cost files are grouped by family in `item-level-up/costs/axes.json`, `knives.json`, `pickaxes.json`, `spears.json`, and `maces.json`; each file defines costs for Stone, Bronze, and Iron items. Stone and Iron generally use acquisition ingredients; Bronze generally replaces Stone with Bronze bars at the same quantity while retaining the wood cost. Bronze Axe, Knife, Spear, and Mace acquisitions and upgrades use Lightwood in place of Wood; Iron Axe, Knife, Spear, and Mace acquisitions and upgrades use Densewood. Pickaxe costs remain unchanged. Stone upgrades use Workbench, and Bronze/Iron upgrades use Forge. The Construction Hammer upgrade cost lives in `item-level-up/costs/construction-hammer.json`. Upgrade costs accept Starter, Crafted, and Utility profiles. The loader sorts ordinary recipes and acquisitions by RecipeId, and upgrade costs by ItemId. Cost scaling, station requirements and validation are preserved; retired `toolRecipes`/`toolUpgradeCosts` roots are not read.
 
 Inventory Craft may create multiple Construction Hammers. Each copy has its own GUID, occupies one of the forty shared inventory cells, and is saved as a separate carried-tool record. The starter hammer is placed first in the hotbar. Inventory groups matching hammer copies in one row with their count. Other non-stackable item types may also have multiple GUID-addressed copies; every unit in stackable items also has a GUID, generated when granted or crafted and preserved through stack changes and storage transfers. The server-authoritative material transaction remains in place.
+
+## Worn Gear interaction follow-up — 2026-10-15
+
+The Inventory popup now reads the owner's six replicated wearable slots and displays their current item names. Selecting a compatible wearable enables its slot action; selecting a different wearable for an occupied slot replaces the equipped GUID, and selecting an empty grid cell before clicking occupied gear requests its return to the pack. The client sends only the item GUID or slot enum; the server revalidates identity, compatibility, capacity, and the full candidate transaction before publishing the owner-only gear and inventory state. An owner-only client result reports accepted or rejected requests. The Main Hand tile remains a placeholder, and defense aggregation and condition wear remain pending.
