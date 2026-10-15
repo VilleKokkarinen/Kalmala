@@ -55,3 +55,9 @@ image_batch,import_batch,canonical_id,art_subject,identity_kind,catalogue_aliase
 20,F,StoneMace,Stone mace,tool,none,none,CarriedTool;ToolDetail;Repair;RecipeResult,carried_tool,
 21,F,BronzeMace,Bronze mace,tool,none,BronzeMace,CarriedTool;ToolDetail;Repair;RecipeResult,carried_tool,
 22,F,IronMace,Iron mace,tool,none,IronMace,CarriedTool;ToolDetail;Repair;RecipeResult,carried_tool,
+23,G,WoodShield,Wood shield,item,none,none,PackInventory;ItemDetail,pack,WoodShield
+23,G,BoarHideHelmet,Boar-hide helmet,item,none,none,PackInventory;ItemDetail,pack,BoarHideHelmet
+23,G,BoarHideCape,Boar-hide cape,item,none,none,PackInventory;ItemDetail,pack,BoarHideCape
+23,G,BoarHideTunic,Boar-hide tunic,item,none,none,PackInventory;ItemDetail,pack,BoarHideTunic
+23,G,BoarHideLeggings,Boar-hide leggings,item,none,none,PackInventory;ItemDetail,pack,BoarHideLeggings
+23,G,BoarHideBoots,Boar-hide boots,item,none,none,PackInventory;ItemDetail,pack,BoarHideBoots

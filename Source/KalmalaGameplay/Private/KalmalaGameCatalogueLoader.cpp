@@ -96,6 +96,45 @@ namespace
         return true;
     }
 
+    bool NormalizeDefenseObject(const TSharedPtr<FJsonObject>& Owner, const TCHAR* FieldName)
+    {
+        if (!Owner.IsValid()) return false;
+        TSharedPtr<FJsonObject> DefenseObject;
+        if (Owner->HasField(FieldName))
+        {
+            const TSharedPtr<FJsonObject>* ExistingObject = nullptr;
+            if (!Owner->TryGetObjectField(FieldName, ExistingObject) || ExistingObject == nullptr
+                || !ExistingObject->IsValid()) return false;
+            DefenseObject = *ExistingObject;
+        }
+        else
+        {
+            DefenseObject = MakeShared<FJsonObject>();
+            Owner->SetObjectField(FieldName, DefenseObject);
+        }
+
+        if (!DefenseObject->HasField(TEXT("Armor"))) DefenseObject->SetNumberField(TEXT("Armor"), 0.0);
+        TSharedPtr<FJsonObject> ReductionsObject;
+        if (DefenseObject->HasField(TEXT("Reductions")))
+        {
+            const TSharedPtr<FJsonObject>* ExistingReductions = nullptr;
+            if (!DefenseObject->TryGetObjectField(TEXT("Reductions"), ExistingReductions)
+                || ExistingReductions == nullptr || !ExistingReductions->IsValid()) return false;
+            ReductionsObject = *ExistingReductions;
+        }
+        else
+        {
+            ReductionsObject = MakeShared<FJsonObject>();
+            DefenseObject->SetObjectField(TEXT("Reductions"), ReductionsObject);
+        }
+        for (const TCHAR* Channel : { TEXT("Slash"), TEXT("Stab"), TEXT("Crush"), TEXT("Pierce"),
+            TEXT("Fire"), TEXT("Water"), TEXT("Holy"), TEXT("Poison") })
+        {
+            if (!ReductionsObject->HasField(Channel)) ReductionsObject->SetNumberField(Channel, 0.0);
+        }
+        return true;
+    }
+
     bool NormalizeStationArray(const TSharedPtr<FJsonObject>& RecipeObject)
     {
         const TArray<TSharedPtr<FJsonValue>>* StationValues = nullptr;
@@ -168,6 +207,9 @@ namespace
             // Keep weight optional in schema-4 content while retaining strict
             // conversion and validation for every authored field.
             if (!Item->HasField(TEXT("WeightKg"))) Item->SetNumberField(TEXT("WeightKg"), 1.0);
+            if (!Item->HasField(TEXT("GearSlot"))) Item->SetStringField(TEXT("GearSlot"), TEXT(""));
+            if (!Item->HasField(TEXT("MaxDurability"))) Item->SetNumberField(TEXT("MaxDurability"), 0.0);
+            if (!NormalizeDefenseObject(Item, TEXT("DefenseBonuses"))) return false;
             double Weight = 0.0;
             if (!Item->TryGetNumberField(TEXT("WeightKg"), Weight)
                 || !FMath::IsFinite(Weight) || Weight < 0.0 || Weight > 300.0) return false;
@@ -457,7 +499,8 @@ namespace
             const TSharedPtr<FJsonObject>* Bonuses = nullptr;
             if (!GroupObject.IsValid()
                 || !GroupObject->TryGetObjectField(TEXT("LevelUpReward"), RewardObject)
-                || !(*RewardObject)->TryGetObjectField(TEXT("DamageBonuses"), Bonuses))
+                || !(*RewardObject)->TryGetObjectField(TEXT("DamageBonuses"), Bonuses)
+                || !NormalizeDefenseObject(*RewardObject, TEXT("DefenseBonuses")))
             {
                 return false;
             }

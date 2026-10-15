@@ -350,7 +350,7 @@ bool FKalmalaCatalogueIconTest::RunTest(const FString&)
         TestFalse(TEXT("Distinct canonical icon assignment"), Shapes.Contains(Key)); Shapes.Add(Key);
     };
     const auto* Items = UKalmalaItemCatalogue::Get();
-    TestEqual(TEXT("Audited inventory item count"), Items->Items.Num(), 45);
+    TestEqual(TEXT("Audited inventory item count"), Items->Items.Num(), 55);
     for (const auto& Item : Items->Items) Check(Item.ItemId);
     for (const auto& Tool : FKalmalaToolLifecycleContract::GetDefinitions()) Check(Tool.ToolId);
     for (const auto& Tool : FKalmalaToolLifecycleContract::GetTieredToolDefinitions()) Check(Tool.ToolId);
@@ -375,7 +375,7 @@ bool FKalmalaCatalogueIconTest::RunTest(const FString&)
             TestTrue(TEXT("Direct construction output is a supported buildable"),
                 UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(Recipe.BuildableOutput));
     }
-    TestEqual(TEXT("Canonical item, tool, and construction identity count"), CheckedIds.Num(), 62);
+    TestEqual(TEXT("Canonical item, tool, and construction identity count"), CheckedIds.Num(), 72);
     static const TPair<FName, FName> Aliases[] = {
         {TEXT("Workbench"), TEXT("WorkbenchKit")},
         {TEXT("Forge"), TEXT("ForgeKit")}, {TEXT("WorkbenchToolRack"), TEXT("WorkbenchToolRackKit")},

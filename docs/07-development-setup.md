@@ -2601,16 +2601,21 @@ editor build to verify imported texture paths and loads for all current item,
 tool and recipe-output identities. `Scripts/Tests/Construction/Verify-Crafting.ps1` also requires
 `Catalogue icons: Grid=1 Selected=1` and `Forge upgrade level icon: Configured=1` from both peers;
 the grid flag checks each visible recipe output against its canonical loaded texture, while the
-Forge marker checks the level icon now shown in the upgrade comparison. Before an editor build, run `Scripts/Validate-UIIcons.ps1 -Category Catalogue` to check all 58 identity-ledger rows, original/prepared PNGs, runtime lookup mappings, and imported packages. The ledger lives in `Scripts/Data/catalogue-icon-manifest.csv`, outside the consolidated historical documentation set. The Stone Spear uses import batch D; the Bronze and Iron Knife/Pick/Spear icons use import batch E. The Amber texture rename uses batch F, which also contains the Stone, Bronze, and Iron Mace icons.
+Forge marker checks the level icon now shown in the upgrade comparison. Before an editor build, run `Scripts/Validate-UIIcons.ps1 -Category Catalogue` to check all 62 identity-ledger rows, original/prepared PNGs, runtime lookup mappings, and imported packages. The ledger lives in `Scripts/Data/catalogue-icon-manifest.csv`, outside the consolidated historical documentation set. The Stone Spear uses import batch D; the Bronze and Iron Knife/Pick/Spear icons use import batch E. The Amber texture rename uses batch F, which also contains the Stone, Bronze, and Iron Mace icons. The initial six wearable gear icons use import batch G; prepare them with `python Scripts/Prepare-CatalogueIconBatch.py --batch G`, then import with `Scripts/Import-CatalogueIconBatch.ps1 -Batch G`.
 
-The catalogue image ledger contains 58 imported textures: 41 regular item
-definitions, sixteen carried tools, and the Campfire construction identity.
+The catalogue image ledger contains 62 imported textures: 45 item identities,
+sixteen carried tools, and the Campfire construction identity.
 Four support-scroll item identities reuse their matching imported status
-textures, so the runtime lookup covers 59 item/tool/construction identities.
+textures without adding duplicate texture packages. The retired `Fibre.uasset`
+package is preserved in the content folder, excluded from the current ledger,
+and allowed by the full icon validator.
 CampfireKit remains in the shared icon map and
 recipe/build/preview views but is not a pack or storage item. The nine-entry
 status gallery includes the four shared support textures and other status
 identities; it does not add duplicate catalogue image packages.
+
+The six initial armor/gear originals, prompt subjects, prepared icon paths,
+and imported Texture2D identities are recorded in [armor icon provenance](armor-icons.md).
 
 During M12 milestone-final verification, use
 `Scripts/Tests/Construction/Verify-Crafting.ps1 -Rendered` for Build categories and station

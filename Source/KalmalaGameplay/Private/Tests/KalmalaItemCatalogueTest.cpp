@@ -51,6 +51,44 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
     const UKalmalaRecipeCatalogue* Recipes = UKalmalaRecipeCatalogue::Get();
     TestTrue(TEXT("Versioned JSON loads a valid item catalogue"), Catalogue->IsValidCatalogue());
     TestTrue(TEXT("Versioned JSON loads a valid recipe catalogue"), Recipes->IsValidCatalogue());
+    struct FExpectedGear
+    {
+        FName ItemId;
+        const TCHAR* Slot;
+        int32 MaxDurability;
+        float Armor;
+    };
+    const FExpectedGear Gear[] = {
+        { TEXT("WoodShield"), TEXT("Shield"), 80, 2.0f },
+        { TEXT("BoarHideHelmet"), TEXT("Head"), 50, 0.5f },
+        { TEXT("BoarHideCape"), TEXT("Cape"), 40, 0.5f },
+        { TEXT("BoarHideTunic"), TEXT("Chest"), 80, 1.5f },
+        { TEXT("BoarHideLeggings"), TEXT("Legs"), 70, 1.0f },
+        { TEXT("BoarHideBoots"), TEXT("Boots"), 50, 0.5f }
+    };
+    for (const FExpectedGear& Expected : Gear)
+    {
+        const FKalmalaItemDefinition* Item = Catalogue->FindItem(Expected.ItemId);
+        if (TestNotNull(*FString::Printf(TEXT("Gear item %s exists"), *Expected.ItemId.ToString()), Item))
+        {
+            TestEqual(*FString::Printf(TEXT("%s targets its worn slot"), *Expected.ItemId.ToString()),
+                Item->GearSlot, FString(Expected.Slot));
+            TestEqual(*FString::Printf(TEXT("%s has the authored condition capacity"), *Expected.ItemId.ToString()),
+                Item->MaxDurability, Expected.MaxDurability);
+            TestTrue(*FString::Printf(TEXT("%s has authored defense"), *Expected.ItemId.ToString()),
+                FMath::IsNearlyEqual(Item->DefenseBonuses.Armor, Expected.Armor));
+            FKalmalaGearLevelStats LevelTwo;
+            TestTrue(*FString::Printf(TEXT("%s resolves level-two stats"), *Expected.ItemId.ToString()),
+                Catalogue->GetGearLevelStats(Expected.ItemId, 2, LevelTwo));
+            if (LevelTwo.ItemId == Expected.ItemId)
+            {
+                TestEqual(*FString::Printf(TEXT("%s gains level-up durability"), *Expected.ItemId.ToString()),
+                    LevelTwo.MaxDurability, Expected.MaxDurability + 10);
+                TestTrue(*FString::Printf(TEXT("%s gains level-up armor"), *Expected.ItemId.ToString()),
+                    FMath::IsNearlyEqual(LevelTwo.DefenseBonuses.Armor, Expected.Armor + 0.1f));
+            }
+        }
+    }
     FString JsonText;
     TestTrue(TEXT("The catalogue JSON is available to verify its external identifiers"),
         FFileHelper::LoadFileToString(JsonText, *(FPaths::ProjectContentDir() / TEXT("Data/GameCatalogues.json"))));

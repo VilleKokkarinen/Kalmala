@@ -124,6 +124,21 @@ int32 UKalmalaIconWidget::NativePaint(const FPaintArgs& Args, const FGeometry& G
     case EKalmalaIcon::Fire: Path({{18,4},{25,14},{26,21},{23,27},{13,27},{9,21},{10,13},{15,18}},true); Path({{6,31},{30,31}}); break;
     case EKalmalaIcon::Discovery: Circle({14,14},8); Path({{20,20},{31,31}}); Path({{14,9},{14,19}}); Path({{9,14},{19,14}}); break;
     case EKalmalaIcon::Level: Circle({18,18},13); Path({{10,22},{18,14},{26,22}}); Path({{18,14},{18,26}}); break;
+    case EKalmalaIcon::Helmet:
+        Path({{7,20},{8,13},{12,7},{18,4},{24,7},{28,13},{29,20},{26,24},{10,24}},true);
+        Path({{6,20},{30,20}}); Path({{11,24},{11,29},{25,29},{25,24}}); break;
+    case EKalmalaIcon::Cape:
+        Path({{12,5},{24,5},{25,11},{31,15},{27,32},{18,28},{9,32},{5,15},{11,11}},true);
+        Path({{11,11},{18,17},{25,11}}); break;
+    case EKalmalaIcon::Tunic:
+        Path({{12,5},{7,8},{3,17},{9,20},{11,15},{11,32},{25,32},{25,15},{27,20},{33,17},{29,8},{24,5},{21,9},{15,9}},true);
+        break;
+    case EKalmalaIcon::Leggings:
+        Path({{8,5},{28,5},{26,15},{25,32},{19,32},{18,19},{16,32},{10,32},{11,15}},true);
+        Path({{8,12},{28,12}}); break;
+    case EKalmalaIcon::Boots:
+        Path({{8,5},{15,5},{16,20},{30,24},{31,31},{6,31},{7,24},{11,19}},true);
+        Path({{8,27},{30,27}}); break;
     default: Path({{18,5},{31,18},{18,31},{5,18}},true); Path({{15,13},{18,11},{21,13},{18,18},{18,22}}); Circle({18,27},1); break;
     }
     // Authored monochrome accents distinguish related materials/foods/tools at small size.
@@ -161,6 +176,10 @@ bool UKalmalaIconWidget::FindCatalogueIcon(FName Id, EKalmalaIcon& OutIcon, int3
         {TEXT("IronPick"),EKalmalaIcon::Pick,2}, {TEXT("IronSpear"),EKalmalaIcon::Spear,2},
         {TEXT("StoneMace"),EKalmalaIcon::Mace,0}, {TEXT("BronzeMace"),EKalmalaIcon::Mace,1}, {TEXT("IronMace"),EKalmalaIcon::Mace,2},
         {TEXT("ConstructionHammer"),EKalmalaIcon::Hammer,0},
+        {TEXT("WoodShield"),EKalmalaIcon::Shield,1},
+        {TEXT("BoarHideHelmet"),EKalmalaIcon::Helmet,0}, {TEXT("BoarHideCape"),EKalmalaIcon::Cape,0},
+        {TEXT("BoarHideTunic"),EKalmalaIcon::Tunic,0}, {TEXT("BoarHideLeggings"),EKalmalaIcon::Leggings,0},
+        {TEXT("BoarHideBoots"),EKalmalaIcon::Boots,0},
         {TEXT("MendingScroll"),EKalmalaIcon::Cross,0}, {TEXT("HearthShieldScroll"),EKalmalaIcon::Shield,0},
         {TEXT("BearsVigorScroll"),EKalmalaIcon::Paw,0}, {TEXT("DeerCallScroll"),EKalmalaIcon::Antlers,0}
     };

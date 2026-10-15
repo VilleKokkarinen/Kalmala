@@ -65,6 +65,22 @@ bool FKalmalaResistanceProfile::IsValid() const
     return FMath::IsFinite(Armor) && Armor >= 0.0f && Armor <= 100000.0f && Reductions.IsValid(100000.0f, -100000.0f);
 }
 
+FKalmalaResistanceProfile FKalmalaResistanceProfile::Added(const FKalmalaResistanceProfile& Other) const
+{
+    FKalmalaResistanceProfile Result;
+    Result.Armor = Armor + Other.Armor;
+    Result.Reductions = Reductions.Added(Other.Reductions);
+    return Result;
+}
+
+FKalmalaResistanceProfile FKalmalaResistanceProfile::Scaled(const float Multiplier) const
+{
+    FKalmalaResistanceProfile Result;
+    Result.Armor = Armor * Multiplier;
+    Result.Reductions = Reductions.Scaled(Multiplier);
+    return Result;
+}
+
 bool FKalmalaResistanceProfile::Resolve(const FKalmalaDamageChannels& Incoming, float& OutDamage) const
 {
     OutDamage = 0.0f;

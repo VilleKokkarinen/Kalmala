@@ -1,6 +1,6 @@
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateSet('A', 'B', 'C', 'D', 'E', 'F')]
+    [ValidateSet('A', 'B', 'C', 'D', 'E', 'F', 'G')]
     [string]$Batch,
 
     [string]$EditorCmd = 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe'

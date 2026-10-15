@@ -38,10 +38,35 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
     {
         if (Group.ItemIds.IsEmpty() || Group.ItemIds.Num() > MaxProfiles
             || Group.LevelUpReward.MaxDurability < 0 || Group.LevelUpReward.MaxDurability > 1000
-            || !Group.LevelUpReward.DamageBonuses.IsValid(1000.0f)) return false;
+            || !Group.LevelUpReward.DamageBonuses.IsValid(1000.0f)
+            || !Group.LevelUpReward.DefenseBonuses.IsValid()
+            || Group.LevelUpReward.DefenseBonuses.Armor > 1000.0f
+            || !Group.LevelUpReward.DefenseBonuses.Reductions.IsValid(1000.0f, -1000.0f)) return false;
         for (const FName ItemId : Group.ItemIds)
         {
-            if (ItemId.IsNone() || RewardedIds.Contains(ItemId) || !FindProfile(ItemId)) return false;
+            const FKalmalaToolProfileData* ToolProfile = FindProfile(ItemId);
+            const FKalmalaItemDefinition* GearItem = Items->FindItem(ItemId);
+            const bool bIsWearableGear = GearItem && !GearItem->GearSlot.IsEmpty();
+            if (ItemId.IsNone() || RewardedIds.Contains(ItemId) || (!ToolProfile && !bIsWearableGear)
+                || (ToolProfile && (Group.LevelUpReward.DefenseBonuses.Armor != 0.0f
+                    || Group.LevelUpReward.DefenseBonuses.Reductions.Slash != 0.0f
+                    || Group.LevelUpReward.DefenseBonuses.Reductions.Stab != 0.0f
+                    || Group.LevelUpReward.DefenseBonuses.Reductions.Crush != 0.0f
+                    || Group.LevelUpReward.DefenseBonuses.Reductions.Pierce != 0.0f
+                    || Group.LevelUpReward.DefenseBonuses.Reductions.Fire != 0.0f
+                    || Group.LevelUpReward.DefenseBonuses.Reductions.Water != 0.0f
+                    || Group.LevelUpReward.DefenseBonuses.Reductions.Holy != 0.0f
+                    || Group.LevelUpReward.DefenseBonuses.Reductions.Poison != 0.0f))
+                || (bIsWearableGear && Group.LevelUpReward.DamageBonuses.Total() != 0.0f)) return false;
+            if (bIsWearableGear)
+            {
+                const int64 MaxDurability = int64(GearItem->MaxDurability)
+                    + int64(UKalmalaToolCatalogue::MaxLevels - 1) * Group.LevelUpReward.MaxDurability;
+                const FKalmalaResistanceProfile MaxDefense = GearItem->DefenseBonuses.Added(
+                    Group.LevelUpReward.DefenseBonuses.Scaled(static_cast<float>(UKalmalaToolCatalogue::MaxLevels - 1)));
+                if (MaxDurability > 1000 || !MaxDefense.IsValid() || MaxDefense.Armor > 1000.0f
+                    || !MaxDefense.Reductions.IsValid(1000.0f, -1000.0f)) return false;
+            }
             RewardedIds.Add(ItemId);
         }
     }

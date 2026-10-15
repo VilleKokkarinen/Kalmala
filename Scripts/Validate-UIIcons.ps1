@@ -17,7 +17,7 @@ if ($Category -eq 'Catalogue') {
     $sourceDir = Join-Path $repoRoot 'Content\Kalmala\UI\Source\IconOriginals'
     $preparedDir = Join-Path $repoRoot 'Content\Kalmala\UI\Source\Icons'
     $idColumn = 'canonical_id'
-    $expectedCount = 58
+    $expectedCount = 62
 }
 else {
     $manifestPath = Join-Path $PSScriptRoot 'Data\status-icon-manifest.csv'
@@ -161,7 +161,24 @@ else {
 }
 
 $packages = @(Get-ChildItem -LiteralPath $assetDir -Filter '*.uasset' -File)
-if ($packages.Count -ne $expectedCount) {
+if ($Category -eq 'Catalogue') {
+    $expectedAssetIds = @($rows | ForEach-Object {
+        if ($_.texture_asset_id -and $_.texture_asset_id.Trim()) { $_.texture_asset_id.Trim() }
+        else { $_.$idColumn.Trim() }
+    })
+    $packageIds = @($packages | ForEach-Object { $_.BaseName })
+    $missingPackages = @($expectedAssetIds | Where-Object { $_ -notin $packageIds })
+    $unlistedPackages = @($packageIds | Where-Object { $_ -notin $expectedAssetIds })
+    # Preserve the package for the retired Fibre item; it is intentionally absent from the current ledger.
+    $unexpectedPackages = @($unlistedPackages | Where-Object { $_ -ne 'Fibre' })
+    if ($missingPackages.Count -gt 0) {
+        throw "Missing imported catalogue textures: $($missingPackages -join ', ')."
+    }
+    if ($unexpectedPackages.Count -gt 0) {
+        throw "Unlisted catalogue texture packages: $($unexpectedPackages -join ', ')."
+    }
+}
+elseif ($packages.Count -ne $expectedCount) {
     throw "Expected $expectedCount imported $Category textures; found $($packages.Count)."
 }
 
@@ -183,7 +200,7 @@ foreach ($package in $packages) {
 }
 
 if ($Category -eq 'Catalogue') {
-    Write-Output 'PASS: all 58 catalogue identities map to validated originals, prepared PNGs, and imported Texture2D packages.'
+    Write-Output 'PASS: all 62 catalogue identities map to validated originals, prepared PNGs, and imported Texture2D packages; the retired Fibre package remains unlisted.'
 }
 else {
     Write-Output 'PASS: all nine manifest entries map to unique imported Texture2D packages and validated transparent PNGs.'

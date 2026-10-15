@@ -66,6 +66,24 @@
           "Stab": 5.0
         }
       }
+    },
+    {
+      "ItemIds": [
+        "WoodShield",
+        "BoarHideHelmet",
+        "BoarHideCape",
+        "BoarHideTunic",
+        "BoarHideLeggings",
+        "BoarHideBoots"
+      ],
+      "LevelUpReward": {
+        "MaxDurability": 10,
+        "DamageBonuses": {},
+        "DefenseBonuses": {
+          "Armor": 0.1,
+          "Reductions": {}
+        }
+      }
     }
   ]
 }

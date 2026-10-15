@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "KalmalaDamageProfile.h"
 #include "UObject/Object.h"
 #include "KalmalaItemCatalogue.generated.h"
 
@@ -23,6 +24,26 @@ struct KALMALAGAMEPLAY_API FKalmalaItemDefinition
 
     UPROPERTY(EditAnywhere)
     float WeightKg = 1.0f;
+
+    /** Empty for ordinary items; one of Head, Cape, Chest, Shield, Legs, or Boots for wearable gear. */
+    UPROPERTY(EditAnywhere)
+    FString GearSlot;
+
+    /** Gear-only condition capacity at level one. Ordinary items keep this at zero. */
+    UPROPERTY(EditAnywhere)
+    int32 MaxDurability = 0;
+
+    /** Gear-only base defense. The server applies this only after the gear slot transaction is implemented. */
+    UPROPERTY(EditAnywhere)
+    FKalmalaResistanceProfile DefenseBonuses;
+};
+
+struct KALMALAGAMEPLAY_API FKalmalaGearLevelStats
+{
+    FName ItemId = NAME_None;
+    int32 GearLevel = 0;
+    int32 MaxDurability = 0;
+    FKalmalaResistanceProfile DefenseBonuses;
 };
 
 /** JSON-backed game data. Client copies are presentation only, never authority. */
@@ -47,6 +68,9 @@ public:
 
     /** Pure validation seam for future server inventory operations; grants nothing. */
     bool IsValidStack(FName ItemId, int32 Quantity) const;
+
+    /** Computes authored condition and defense for a known wearable gear item. */
+    bool GetGearLevelStats(FName ItemId, int32 GearLevel, FKalmalaGearLevelStats& OutStats) const;
 
     /** Rejects malformed existing stacks and overflow without adding untrusted integers. */
     bool CanAddToStack(FName ItemId, int32 ExistingQuantity, int32 AddedQuantity) const;
