@@ -1,5 +1,12 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-15 — Remove duplicate Wood Shield recipe
+
+- **Completed/files:** removed only the extra `WoodShieldRecipe` from `Content/Data/GameCatalogues/recipes/stations/workbench.json`, retaining the Forge record and its current costs (10 Wood, 3 Boar Hide, 3 Deer Hide). Updated backlog and development setup. All other pre-existing catalogue edits were preserved.
+- **Checks/impact:** parsed all manifest-listed recipe files, verified case-insensitive recipe IDs are unique and exactly one Forge-only Wood Shield recipe remains; compared every remaining Workbench recipe with its pre-edit JSON and passed `git diff --check`. This removes the known duplicate-ID load blocker; Unreal catalogue loading/build/tests were not run and full verification remains deferred. No authority, networking or save changes.
+- **Commit/handoff:** the duplicate was an uncommitted addition, so its removal restores that portion to HEAD and creates no stageable recipe hunk. Only this run's documentation changes are committed; all remaining recipe/cost edits stay unstaged. Main checkout used directly; no synchronization required.
+- **Next eligible task:** continue the Main Hand/hotbar acceptance child, including executed equipment/privacy/current-format save checks and remaining material icon coverage. Prior duplicate-recipe blocker notes are historical; other catalogue/runtime failures have not been ruled out.
+
 ## Autonomous increment 2026-10-15 — Cover two-handed hotbar swaps
 
 - **Completed/files:** extended `Source/KalmalaGameplay/Private/Tests/KalmalaTwoHandedTest.cpp` with a possessed isolated authority pawn and real `ServerUseHotbarSlot` requests. Covers both-hands/full-pack rejection, retry after freeing one cell, shield-only full-pack Bow selection, ordinary-item rejection while Bow is wielded and invalid numbers. Checks layout preservation, original shield GUID/wear and tool GUID/ItemId/level/condition. Updated `docs/07-development-setup.md`, `BACKLOG.md` and this entry.

@@ -17,14 +17,14 @@ selection, ordinary-item rejection while Bow is wielded, invalid numbers,
 unchanged rejection layouts and exact retained tool GUID/level/condition.
 Direct equipment calls still cover reverse shield equip and unwielding. These
 cases do not establish network delivery or peer privacy; execute the fixture
-after an editor build when the catalogue-load blocker below is resolved.
+after an editor build.
 
 Lightweight JSON/cost/stack/source/path inspection, Python/PowerShell parser
 checks, image preparation, content-only batch I import and the 66-row catalogue
 icon audit passed. Full verification is deferred for this user-directed increment.
-The pre-existing duplicated WoodShieldRecipe in Forge/Workbench worktree edits
-must be resolved before integrated catalogue loading/Unreal acceptance. No recipe
-balance edits belonging to the user were changed. String acquisition and Bow
+The duplicated WoodShieldRecipe was removed from Workbench on 2026-10-15;
+the single Forge recipe and existing balance edits are preserved. Manifest recipe
+IDs passed uniqueness checks; integrated Unreal loading remains unverified. String acquisition and Bow
 shooting are explicitly outside this increment.
 
 ## Current equipment save-format coverage — 2026-10-15

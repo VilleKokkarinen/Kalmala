@@ -34,6 +34,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-15 — Remove duplicate Wood Shield recipe:** removed the uncommitted Workbench duplicate, retaining the Forge recipe and all existing balance edits. Manifest recipe JSON/unique-ID checks passed; Unreal verification deferred.
+
 - [x] **2026-10-15 — Make arrow artwork plain sharpened wood:** replace the bronze-looking attached heads with continuous whittled shaft tips, retaining feathers/style/transparency. Updated original, prepared icon and imported texture; visual review and 66-row icon validation passed. Gameplay verification deferred.
 
 - [x] **2026-10-15 — Add Bow, String, Wooden Arrows and two-handed wielding:** String stacks to 20, arrows to 100; Workbench Bow costs 5 Wood/2 String, arrow batch costs 5 Wood for 20. Added three original imported icons and atomic capacity-safe weapon/shield swaps, including full-pack rejection with both hands occupied. Lightweight checks/import/icon audit passed; full Unreal verification deferred. String sources and shooting are excluded by user direction.
