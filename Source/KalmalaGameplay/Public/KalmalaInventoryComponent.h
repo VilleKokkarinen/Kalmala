@@ -78,6 +78,8 @@ public:
         TArray<FKalmalaInventoryStack>& AfterStacks, TArray<FKalmalaEquippedGear>& AfterGear, FString& Reason);
     FName GetActiveItem() const { return ActiveItem; }
     FGuid GetActiveInstanceGuid() const { return ActiveInstanceGuid; }
+    /** Select an exact carried weapon/tool; an invalid GUID clears the current hand. */
+    bool SetMainHandFromServer(FGuid ItemGuid, FString& Reason);
     bool OwnsGridItem(FName ItemId) const;
     float GetCarriedWeight() const;
     float GetCarryCapacity() const { return CarryCapacity; }
@@ -92,6 +94,7 @@ public:
     UFUNCTION(Server, Reliable) void ServerMoveSlot(int32 Source, int32 Target, FName ExpectedSource, FName ExpectedTarget);
     UFUNCTION(Server, Reliable) void ServerMoveSlotByInstance(int32 Source, int32 Target, FGuid ExpectedSource, FGuid ExpectedTarget);
     UFUNCTION(Server, Reliable) void ServerUseHotbarSlot(int32 Slot);
+    UFUNCTION(Server, Reliable) void ServerSetMainHand(FGuid ItemGuid);
     UFUNCTION(Server, Reliable) void ServerEquipGear(FGuid ItemGuid);
     UFUNCTION(Server, Reliable) void ServerUnequipGear(EKalmalaGearSlot Slot);
     UFUNCTION(Client, Reliable) void ClientGearRequestResult(bool bAccepted, FString Reason);

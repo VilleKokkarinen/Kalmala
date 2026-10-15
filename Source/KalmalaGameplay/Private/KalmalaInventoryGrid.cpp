@@ -4,6 +4,7 @@
 #include "KalmalaSupportMagicComponent.h"
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaPlayerStatusComponent.h"
+#include "KalmalaToolLifecycleContract.h"
 #include "Engine/World.h"
 
 FName UKalmalaInventoryComponent::GetSlotItem(const int32 Slot) const
@@ -191,6 +192,62 @@ void UKalmalaInventoryComponent::ServerMoveSlotByInstance_Implementation(const i
     if (LastLayoutRequestTime >= 0.0 && Now - LastLayoutRequestTime < 0.05) return;
     LastLayoutRequestTime = Now;
     MoveSlotByInstanceFromServer(Source, Target, ExpectedSource, ExpectedTarget);
+}
+
+bool UKalmalaInventoryComponent::SetMainHandFromServer(const FGuid ItemGuid, FString& Reason)
+{
+    auto* Character = Cast<AKalmalaCharacter>(GetOwner());
+    Reason = TEXT("Server authority and a living owner required");
+    if (!Character || !Character->HasAuthority() || !FMath::IsFinite(Character->GetHealth())
+        || Character->GetHealth() <= 1.0f) return false;
+
+    FName SelectedId = NAME_None;
+    if (ItemGuid.IsValid())
+    {
+        const FKalmalaToolState* Tool = nullptr;
+        for (const FKalmalaToolState& Candidate : Character->GetCarriedToolInventory())
+        {
+            if (Candidate.InstanceGuid != ItemGuid) continue;
+            if (Tool) { Reason = TEXT("Ambiguous carried item identity"); return false; }
+            Tool = &Candidate;
+        }
+        const int32 Maximum = Tool
+            ? FKalmalaToolLifecycleContract::GetMaxDurability(Tool->ItemId, Tool->ToolLevel) : 0;
+        if (!Tool || Maximum <= 0 || Tool->Durability < 0 || Tool->Durability > Maximum
+            || !GridInstanceGuids.Contains(ItemGuid)
+            || Stacks.ContainsByPredicate([ItemGuid](const FKalmalaInventoryStack& Stack)
+                { return Stack.InstanceGuid == ItemGuid || Stack.ItemGuids.Contains(ItemGuid); })
+            || EquippedGear.ContainsByPredicate([ItemGuid](const FKalmalaEquippedGear& Gear)
+                { return Gear.ItemGuid == ItemGuid; }))
+        {
+            Reason = TEXT("Select a valid carried weapon or tool");
+            return false;
+        }
+        SelectedId = Tool->ItemId;
+    }
+    else if (!FKalmalaToolLifecycleContract::FindDefinition(ActiveItem))
+    {
+        Reason = TEXT("Main Hand is empty");
+        return false;
+    }
+
+    // Reuse the owner-private identity already consumed by combat, harvesting and building.
+    ActiveItem = SelectedId;
+    ActiveInstanceGuid = ItemGuid;
+    Character->ForceNetUpdate();
+    Reason = ItemGuid.IsValid() ? TEXT("Main Hand selected") : TEXT("Main Hand cleared");
+    return true;
+}
+
+void UKalmalaInventoryComponent::ServerSetMainHand_Implementation(const FGuid ItemGuid)
+{
+    if (!GetWorld()) return;
+    const double Now = GetWorld()->GetTimeSeconds();
+    if (LastGearRequestTime >= 0.0 && Now - LastGearRequestTime < 0.1) return;
+    LastGearRequestTime = Now;
+    FString Reason;
+    const bool bAccepted = SetMainHandFromServer(ItemGuid, Reason);
+    ClientGearRequestResult(bAccepted, MoveTemp(Reason));
 }
 
 void UKalmalaInventoryComponent::ServerUseHotbarSlot_Implementation(const int32 Slot)

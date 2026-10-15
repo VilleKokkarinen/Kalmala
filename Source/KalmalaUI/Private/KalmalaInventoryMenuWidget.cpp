@@ -162,11 +162,13 @@ void UKalmalaInventoryMenuWidget::NativeOnInitialized()
         }
         else
         {
-            auto* SlotPanel = WidgetTree->ConstructWidget<UBorder>();
-            Theme.ApplyItemIconTile(*SlotPanel, Contrast);
-            SlotPanel->SetPadding(FMargin(Theme.SlotPadding));
-            SlotPanel->SetContent(SlotContent);
-            SlotSize->SetContent(SlotPanel);
+            MainHandButton = WidgetTree->ConstructWidget<UKalmalaThemedButton>();
+            Theme.ApplyButton(*MainHandButton, Contrast);
+            MainHandButton->SetContent(SlotContent);
+            MainHandButton->OnClicked.AddDynamic(this, &ThisClass::UseMainHandSlot);
+            MainHandNameText = Name;
+            MainHandStateText = Empty;
+            SlotSize->SetContent(MainHandButton);
         }
         auto* RowSlot = Row.AddChildToHorizontalBox(SlotSize);
         FSlateChildSize RowSize(ESlateSizeRule::Fill);
@@ -393,7 +395,7 @@ void UKalmalaInventoryMenuWidget::RefreshOwnerInventory()
             FString DisplayName = GetCarriedToolDisplayName(CanonicalItemId);
             if (Copies > 1) DisplayName += FString::Printf(TEXT(" × %d"), Copies);
             InventoryRows.Add({ CanonicalItemId, DisplayName,
-                BuildToolInspectionText(Tool), true });
+                BuildToolInspectionText(Tool), true, Tool.InstanceGuid });
         }
     }
 
@@ -462,8 +464,10 @@ void UKalmalaInventoryMenuWidget::RefreshOwnerInventory()
             GearRequestSentAtSeconds = -1.0;
             LastSeenGearRequestResultSerial = ResultSerial;
             if (Inventory->WasLastGearRequestAccepted())
-                LastGearActionStatus = bPendingGearEquip
-                    ? TEXT("Gear equipped.") : TEXT("Gear returned to your inventory.");
+                LastGearActionStatus = Inventory->GetLastGearRequestReason().IsEmpty()
+                    || Inventory->GetLastGearRequestReason() == TEXT("Ready")
+                    ? (bPendingGearEquip ? TEXT("Gear equipped.") : TEXT("Gear returned to your inventory."))
+                    : Inventory->GetLastGearRequestReason();
             else
                 LastGearActionStatus = Inventory->GetLastGearRequestReason().IsEmpty()
                     ? TEXT("The server rejected the gear request.") : Inventory->GetLastGearRequestReason();
@@ -493,6 +497,7 @@ void UKalmalaInventoryMenuWidget::ApplyInventoryRows(TArray<FKalmalaCatalogueRow
         { return Row.Id == RememberedSelectedItemId; }))
     {
         RememberedSelectedItemId = NAME_None;
+        SelectedGridInstanceGuid.Invalidate();
     }
 
     auto* Inventory = GetOwningPlayerPawn() ? GetOwningPlayerPawn()->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
@@ -512,6 +517,7 @@ void UKalmalaInventoryMenuWidget::RebuildVisibleInventoryRows(const int32 TextSc
 }
 void UKalmalaInventoryMenuWidget::SelectGridItem(const FName ItemId)
 {
+    SelectedGridInstanceGuid = GridView ? GridView->GetFocusedInstanceGuid() : FGuid();
     bEmptyCellSelected = ItemId.IsNone();
     bSelectionDetailsRequested = !ItemId.IsNone();
     RememberedSelectedItemId = ItemId;
@@ -565,6 +571,9 @@ void UKalmalaInventoryMenuWidget::RefreshSelectionPresentation(const int32 TextS
         Theme.ApplyText(*FoodActionStatusText, Theme.BodySize, false, TextScale, Contrast);
         for (UKalmalaThemedButton* Button : GearSlotButtons)
             if (Button) Theme.ApplyButton(*Button, Contrast);
+        if (MainHandButton) Theme.ApplyButton(*MainHandButton, Contrast);
+        if (MainHandNameText) Theme.ApplyText(*MainHandNameText, Theme.BodySize, true, TextScale, Contrast);
+        if (MainHandStateText) Theme.ApplyText(*MainHandStateText, Theme.BodySize, false, TextScale, Contrast);
         for (UTextBlock* Name : GearSlotNameTexts)
             if (Name) Theme.ApplyText(*Name, Theme.BodySize, true, TextScale, Contrast);
         for (UTextBlock* State : GearSlotStateTexts)
@@ -728,8 +737,24 @@ void UKalmalaInventoryMenuWidget::RefreshGearPresentation(const int32 TextScale,
             StateText->SetText(FText::FromString(State));
     }
 
+    if (MainHandButton && MainHandStateText)
+    {
+        const FGuid SelectedGuid = SelectedGridInstanceGuid.IsValid() ? SelectedGridInstanceGuid
+            : SelectedRow ? SelectedRow->ItemGuid : FGuid();
+        const bool bHasTool = Inventory && FKalmalaToolLifecycleContract::FindDefinition(Inventory->GetActiveItem());
+        const bool bCanSelect = Inventory && SelectedRow && SelectedRow->bCarriedTool
+            && SelectedGuid.IsValid() && SelectedGuid != Inventory->GetActiveInstanceGuid();
+        const FString State = bHasTool ? GetCarriedToolDisplayName(Inventory->GetActiveItem())
+            : bCanSelect ? FString::Printf(TEXT("Select %s"), *SelectedRow->Name) : TEXT("Empty");
+        MainHandStateText->SetText(FText::FromString(State));
+        MainHandButton->SetIsEnabled(!bAwaitingGearRequestResult && (bCanSelect || bHasTool));
+        MainHandButton->SetToolTipText(FText::FromString(bCanSelect
+            ? TEXT("Click to use the selected weapon or tool in Main Hand.")
+            : TEXT("Click to clear Main Hand, or select another weapon or tool first.")));
+    }
+
     FString Status = LastGearActionStatus.IsEmpty()
-        ? TEXT("Select a wearable in the grid to equip it. Click worn gear to return it to your inventory.")
+        ? TEXT("Select gear in the grid, then click its slot. Select a weapon or tool for Main Hand.")
         : LastGearActionStatus;
     if (bAwaitingGearRequestResult) Status = TEXT("Gear request sent. Waiting for the server result.");
     if (GearActionStatusText->GetText().ToString() != Status)
@@ -770,6 +795,28 @@ void UKalmalaInventoryMenuWidget::UseGearSlot(const EKalmalaGearSlot Slot)
     bAwaitingGearRequestResult = true;
     GearRequestSentAtSeconds = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0;
     LastGearActionStatus = TEXT("Gear request sent.");
+    RefreshGearPresentation(UKalmalaSettingsWidget::GetTextScalePercent(),
+        UKalmalaSettingsWidget::GetContrastMode());
+}
+
+void UKalmalaInventoryMenuWidget::UseMainHandSlot()
+{
+    APlayerController* Controller = GetOwningPlayer();
+    auto* Character = Cast<AKalmalaCharacter>(Controller ? Controller->GetPawn() : nullptr);
+    auto* Inventory = Character ? Character->GetInventoryComponent() : nullptr;
+    if (!Controller || !Controller->IsLocalController() || !Inventory || bAwaitingGearRequestResult) return;
+    const FKalmalaCatalogueRow* Row = OwnerInventoryRows.IsValidIndex(SelectedInventoryIndex)
+        ? &OwnerInventoryRows[SelectedInventoryIndex] : nullptr;
+    const FGuid SelectedGuid = SelectedGridInstanceGuid.IsValid() ? SelectedGridInstanceGuid
+        : Row ? Row->ItemGuid : FGuid();
+    const bool bSelect = Row && Row->bCarriedTool && SelectedGuid.IsValid()
+        && SelectedGuid != Inventory->GetActiveInstanceGuid();
+    if (!bSelect && !FKalmalaToolLifecycleContract::FindDefinition(Inventory->GetActiveItem())) return;
+    LastSeenGearRequestResultSerial = Inventory->GetGearRequestResultSerial();
+    bPendingGearEquip = bSelect;
+    bAwaitingGearRequestResult = true;
+    GearRequestSentAtSeconds = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0;
+    Inventory->ServerSetMainHand(bSelect ? SelectedGuid : FGuid());
     RefreshGearPresentation(UKalmalaSettingsWidget::GetTextScalePercent(),
         UKalmalaSettingsWidget::GetContrastMode());
 }
@@ -900,6 +947,7 @@ void UKalmalaInventoryMenuWidget::EatSelectedFood()
 void UKalmalaInventoryMenuWidget::StepSelection(const int32 Direction)
 {
     if (OwnerInventoryRows.IsEmpty()) return;
+    SelectedGridInstanceGuid.Invalidate();
     const int32 NumRows = OwnerInventoryRows.Num();
     const int32 Current = SelectedInventoryIndex == INDEX_NONE ? 0 : SelectedInventoryIndex;
     SelectedInventoryIndex = (Current + NumRows + (Direction < 0 ? -1 : 1)) % NumRows;

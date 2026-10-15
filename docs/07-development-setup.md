@@ -1,5 +1,18 @@
 # Development setup
 
+## Main Hand selection increment — 2026-10-15
+
+The Inventory Main Hand tile now selects an exact carried weapon/tool GUID or
+clears the active tool through a server-validated request and owner-only result.
+Lightweight source/authority, duplicate-identity, RPC wiring, whitespace and
+path checks cover this normal increment; full Unreal verification is deferred.
+At integrated verification, exercise two copies of one axe with different levels
+and condition, the Construction Hammer Build action, clearing/replacing the
+selection, stale/non-owned/ordinary/wearable GUID rejection without mutation,
+and remote-owner privacy. Confirm current hotbar selection updates the tile.
+Tools still occupy pack cells; distinct Main Hand storage, grid exclusion and
+capacity-safe return/replacement remain in the first unchecked gear child.
+
 Start with [Baseline](#baseline), [First build](#first-build), and the [consolidated verification index](#consolidated-verification-index). Earlier milestone-specific entries below are historical diagnostic procedures; current acceptance requirements remain in the roadmap and live backlog.
 
 ## User-directed inventory simplification — 2026-10-09

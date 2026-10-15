@@ -1128,8 +1128,18 @@ gear. Unequipping fails without changing state if no pack cell is available.
 Equipped identities never enter the forty-cell layout. The Inventory popup
 displays current owner-only wearable names and submits exact item GUID or slot
 requests. An owner-only client result reports accepted or rejected actions.
-Main Hand and numbered-hotbar interaction remains to be defined for weapons
-and tools.
+Main Hand now offers GUID-based selection of an existing carried weapon/tool
+through `ServerSetMainHand`, reusing the owner-private active identity already
+read by combat, harvesting and Construction Hammer building. The server requires
+a living authoritative owner, a unique matching carried GUID, valid catalogue
+level/condition bounds, grid ownership and no wearable/stack identity collision.
+An invalid GUID clears an existing tool selection. The tile reflects server
+state; the shared owner-only gear result channel reports success or rejection.
+Clicked duplicate copies retain the exact grid identity. This is a selection
+increment: tools still occupy grid cells, and existing hotbar selection can
+replace the active identity. Distinct Main Hand storage, grid exclusion,
+replacement/return capacity transactions and the final hotbar contract remain
+pending. No save or replication fields are added.
 
 Live grant, exchange, storage withdrawal and tool progression account for
 both tools and stacks within forty cells; equipped wearables stay outside that

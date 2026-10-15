@@ -59,6 +59,7 @@ private:
     void SelectGridItem(FName ItemId);
     void HoverGridItem(FName ItemId);
     void UseGearSlot(EKalmalaGearSlot Slot);
+    UFUNCTION() void UseMainHandSlot();
     UFUNCTION() void UseHeadGearSlot();
     UFUNCTION() void UseCapeGearSlot();
     UFUNCTION() void UseChestGearSlot();
@@ -78,6 +79,9 @@ private:
     UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> EatFoodButton;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> FoodActionStatusText;
     UPROPERTY(Transient) TArray<TObjectPtr<UKalmalaThemedButton>> GearSlotButtons;
+    UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> MainHandButton;
+    UPROPERTY(Transient) TObjectPtr<UTextBlock> MainHandNameText;
+    UPROPERTY(Transient) TObjectPtr<UTextBlock> MainHandStateText;
     UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> GearSlotNameTexts;
     UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> GearSlotStateTexts;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> GearActionStatusText;
@@ -85,6 +89,7 @@ private:
     TArray<FKalmalaCatalogueRow> OwnerInventoryRows;
     int32 SelectedInventoryIndex = INDEX_NONE;
     FName RememberedSelectedItemId = NAME_None;
+    FGuid SelectedGridInstanceGuid;
     FName HoveredItemId = NAME_None;
     bool bEmptyCellSelected = false;
     bool bSelectionDetailsRequested = false;

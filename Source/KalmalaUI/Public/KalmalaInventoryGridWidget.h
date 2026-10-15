@@ -22,6 +22,10 @@ public:
     FKalmalaGridHover OnItemHovered;
     void ClearHover();
     void CancelMove();
+    FGuid GetFocusedInstanceGuid() const
+    {
+        return SlotInstanceGuids.IsValidIndex(FocusedSlot) ? SlotInstanceGuids[FocusedSlot] : FGuid();
+    }
     static FString SlotLabel(int32 SlotIndex);
     static TArray<int32> VisibleSlots(const TArray<FName>& Slots, bool bHotbar);
 protected:

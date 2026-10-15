@@ -1,5 +1,16 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-15 — Connect Main Hand tool selection
+
+- **Completed:** made the Inventory Main Hand tile interactive: select a carried weapon/tool, replace the active selection, or clear it. Exact clicked grid GUIDs distinguish duplicate copies; keyboard row selection defaults to its represented copy. The tile reflects the current server-confirmed active tool, including hotbar selections, and uses the existing owner-only result channel.
+- **Files changed:** `Source/KalmalaGameplay/Public/KalmalaInventoryComponent.h`, `Source/KalmalaGameplay/Private/KalmalaInventoryGrid.cpp`, `Source/KalmalaUI/Public/KalmalaInventoryGridWidget.h`, `Source/KalmalaUI/Public/KalmalaInventoryMenuWidget.h`, `Source/KalmalaUI/Private/KalmalaInventoryMenuWidget.cpp`, `BACKLOG.md`, `PROGRESS.md`, `docs/02-technical-architecture.md`, and `docs/07-development-setup.md`.
+- **Lightweight checks:** focused PowerShell source assertions for server authority/living-owner gating, exact unique carried identity, catalogue level/condition bounds, grid ownership, wearable/stack collision rejection, RPC/result wiring, clicked duplicate identity capture, and owner-only active-state replication passed. Inspected existing combat, harvesting, condition lookup and Construction Hammer consumers. `git diff --check` and changed-path MAX_PATH checks passed.
+- **Impact/authority:** a GUID-only server request selects existing holdings without changing items, quantities, condition, levels, capacity, replication fields, or saves. The existing active identity routes the selected physical copy through current gameplay consumers. Rejection does not publish selection changes.
+- **Verification status:** normal partial child increment, not milestone-final. Unreal compilation, runtime automation, rendered layout, and multiplayer checks were not run; full verification remains deferred.
+- **Known limitations:** this implements Main Hand selection only. The selected tool still occupies its pack/hotbar cell and can be replaced by existing numbered-hotbar behavior. Separate Main Hand storage and exclusion from forty-cell capacity, displaced-tool return transactions, and the final hotbar interaction contract remain incomplete. Wearable persistence, repair and upgrades remain pending. The child and parent stay unchecked.
+- **Next eligible backlog task:** continue the same first unchecked Worn Gear transaction child with distinct Main Hand storage, grid exclusion and capacity-safe replacement/return, then the separate hotbar interaction/coverage child.
+- **Handoff:** implemented directly in `E:\dev\Kalmala`; no worktree synchronization required.
+
 ## Autonomous increment 2026-10-15 — Wear equipped gear on wildlife hits
 
 - **Completed:** accepted server-resolved wildlife hits spend one condition point on every equipped wearable, including fully absorbed hits. The final condition point protects against the current hit; depleted gear supplies no defense on later hits. Owner-private gear state includes condition spent, and Inventory labels display remaining/maximum condition. A server-only physical-GUID ledger preserves wear through same-pawn unequip, replacement, and re-equip. Gear transactions reject negative or over-maximum condition.
