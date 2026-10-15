@@ -1,5 +1,23 @@
 # Development setup
 
+## Current equipment save-format coverage — 2026-10-15
+
+`Kalmala.Gameplay.Inventory.EquipmentCurrentSaveFormat` serializes and reloads
+two physical copies of every current Main Hand profile entirely in memory.
+It checks exact ItemId/GUID, level-one full condition and level-twenty depleted
+condition, owner/world isolation, and atomic duplicate-GUID/over-cap replacement
+rejection. Serialized schema-zero, schema-one and future-version candidates
+must fail validation and replacement writes without rewriting their schema or
+equipment. A current-format record missing its GUID must fail without backfill.
+No disk save, compatibility conversion, save field or schema change is involved.
+
+This is added Unreal automation source, not an executed result. Run it after
+an editor build alongside `Kalmala.Gameplay.Discovery.Schema2CurrentFormat`.
+It covers the save object boundary, not the GameMode disk-write/authentication
+path or live reconnect. Main Hand location, grid arrangement and wearables
+remain session state; the existing forty-tool save cap remains. Live equipment,
+hotbar/privacy and reconnect acceptance are still outstanding.
+
 ## Focused equipment catalogue/icon coverage — 2026-10-15
 
 `Kalmala.UI.CatalogueIcons.EquipmentCoverage` checks all six wearable item

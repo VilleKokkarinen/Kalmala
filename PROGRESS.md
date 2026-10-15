@@ -1,5 +1,15 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-15 — Cover current equipment save format
+
+- **Completed:** added `Kalmala.Gameplay.Inventory.EquipmentCurrentSaveFormat`. Serializes two copies of each of the sixteen Main Hand profiles in memory, checking exact canonical ItemId, physical GUID, independent level and full/depleted condition after reload. Covers owner/world isolation, atomic duplicate-GUID and forty-first-tool replacement rejection, serialized incompatible versions rejected without conversion/schema rewriting, and a missing loaded GUID rejected without backfill.
+- **Files changed:** `Source/KalmalaGameplay/Private/Tests/KalmalaEquipmentSaveTest.cpp`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** parsed manifest-listed profile JSON and confirmed sixteen unique identities with positive base durability; fourteen focused source coverage/isolation assertions passed. Inspected save serialization/reflection APIs, current schema gate, replacement mutation order, lifecycle level/durability rules and production GameMode record mapping. Working/staged whitespace, diff/scope and MAX_PATH checks passed. No Unreal compile or automation execution performed.
+- **Observable impact/authority:** adds focused regression source for equipment identity preservation and current-format rejection. Memory-only fixture cannot write player slots. No production gameplay, network authority, RPCs, assets, save fields/schema/cap or migration path changed.
+- **Verification status/limitations:** normal partial child increment, not milestone-final; full verification remains deferred. The new Unreal test requires execution after an editor build. It does not exercise GameMode disk writes, authentication, live peer privacy or reconnect. Six material icon mappings and the pre-existing duplicate `WoodShieldRecipe` remain unresolved. All three pre-existing catalogue JSON edits were preserved and excluded.
+- **Next eligible task:** continue the same unchecked Main Hand/hotbar coverage child with remaining icon coverage and executed equipment/hotbar/privacy/current-format save/reconnect acceptance after the duplicate recipe is resolved. Child and armor parent remain unchecked; gear/session location and the forty-tool save limit remain unchanged.
+- **Handoff:** main checkout `E:\dev\Kalmala` used directly; no worktree synchronization required.
+
 ## Autonomous increment 2026-10-15 — Add server hotbar interaction coverage
 
 - **Completed:** added `Kalmala.Gameplay.Inventory.MainHandHotbar`, an isolated authority-world automation fixture exercising the real server hotbar request path. Covers invalid/empty numbers, two same-item physical tools, selected-cell vacancy and displaced-tool return, accepted/rejected food and support use retaining Main Hand, full-pack ordinary-selection rejection without layout mutation, and successful retry after freeing a cell. Asserts food quantity/status, support feedback/shield, reusable scroll quantity, and exact tool GUID/item/level/condition preservation.
