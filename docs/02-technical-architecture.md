@@ -12,8 +12,9 @@ for Wood Shield. Wearable upgrade execution remains pending.
 
 Equipment profiles support `bTwoHanded`, defaulted to false before strict JSON
 conversion for existing profiles. `Bow` is a crafted two-handed profile, with
-100 base condition, no level rewards/upgrades and zero attack damage in this
-items/crafting/wielding-only increment. It is not granted in the starting kit.
+100 base condition and +50 maximum durability per level; it is not granted in
+the starting kit. Its acquisition recipe is on the Workbench. Attack damage
+remains zero while ranged shooting is deferred.
 The melee request/execution path rejects a Bow, including a switch during
 windup, so it cannot fall through to unarmed damage. Shooting is deferred by
 explicit user scope.
@@ -30,11 +31,12 @@ No new RPC, replication field, save field, version or migration is introduced.
 
 New material records `String` (stack 20) and `WoodenArrow` (stack 100) live in
 `items/materials/string.json`. Bow profiles and disabled attack data have their
-own manifest files; `recipes/stations/archery.json` contains the level-one
-Workbench Bow acquisition (5 Wood, 2 String) and ordinary arrow recipe (5 Wood
-for 20 arrows). String has no source yet. Shared imported icons are in batch I;
-see `archery-icons.md`. The owner Inventory shows both-hand occupancy and the
-reverse shield swap. Full gameplay compilation/runtime verification is deferred.
+own manifest files. The Workbench station file,
+`recipes/stations/workbench.json`, contains the level-one Bow acquisition
+(5 Wood, 2 String) and ordinary arrow recipe (5 Wood for 20 arrows). String has
+no source yet. Shared imported icons are in batch I; see `archery-icons.md`.
+The owner Inventory shows both-hand occupancy and the reverse shield swap. Full
+gameplay compilation/runtime verification is deferred.
 
 ## Bone fragment material — 2026-10-15
 

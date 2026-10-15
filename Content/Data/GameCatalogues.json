@@ -22,7 +22,6 @@
     "items/scrolls.json"
   ],
   "recipeFiles": [
-    "recipes/stations/archery.json",
     "recipes/building.json",
     "recipes/stations/cauldron.json",
     "recipes/stations/cooking-rack.json",

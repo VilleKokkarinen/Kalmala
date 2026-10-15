@@ -1,6 +1,11 @@
 {
   "recipes": [
     {
+      "RecipeId": "Bow", "DisplayName": "Bow", "ItemId": "Bow",
+      "RequiredStation": "Workbench", "RequiredStationLevel": 1, "Level": 1,
+      "Ingredients": [ { "ItemId": "Wood", "Quantity": 5 }, { "ItemId": "String", "Quantity": 2 } ]
+    },
+    {
       "RecipeId": "StoneAxe",
       "DisplayName": "Stone Axe",
       "ItemId": "StoneAxe",
@@ -176,6 +181,12 @@
       "ExperienceSkill": "None",
       "ExperienceAward": 0,
       "bEnabled": true
+    },
+    {
+      "RecipeId": "WoodenArrows", "DisplayName": "Wooden Arrows",
+      "Ingredients": [ { "ItemId": "Wood", "Quantity": 5 } ],
+      "Output": "WoodenArrow", "OutputCount": 20, "MaxBatch": 1,
+      "RequiredStation": [ "Workbench" ], "ExperienceSkill": "None", "ExperienceAward": 0, "bEnabled": true
     }
   ]
 }

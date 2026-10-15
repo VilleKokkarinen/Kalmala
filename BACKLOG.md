@@ -48,6 +48,8 @@ Current first-incomplete item: under “Attack-driven tree harvesting,” conver
 
 - [x] **2026-10-15 — Require complete item additions:** require an original generated icon, runtime mapping/icon validation, and every applicable item catalogue JSON entry with manifest registration. Explicitly record deferred or inapplicable categories. Instruction added to `AGENTS.md`.
 
+- [x] **2026-10-15 — Move Bow and Wooden Arrows recipes to Workbench:** place both existing recipes in `recipes/stations/workbench.json`, remove the obsolete `archery.json` manifest entry and file, and retain their Workbench station requirements and costs. JSON/reference checks passed; Unreal verification deferred.
+
 - [x] **2026-10-15 — Generate Bone fragment artwork:** generate an original transparent icon matching the existing materials, retain original/prepared PNGs, import the Texture2D in batch H, wire its shared runtime mapping and replace its test fallback exception. Import validation and the 63-entry icon audit passed; gameplay build/runtime verification deferred.
 
 - [x] **2026-10-15 — Add Bone fragment to cape costs:** require one `BoneFragment` in Boar Hide Cape crafting and its level-one upgrade-cost record, preserving other costs and leaving drop sources deferred. Lightweight data/diff checks passed; Unreal verification deferred.

@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-15 — Move Archery recipes to Workbench
+
+- **Completed:** moved the Bow acquisition and Wooden Arrows recipes unchanged into `recipes/stations/workbench.json`, removed `recipes/stations/archery.json` from the manifest and deleted the file. Updated the architecture note to describe Workbench ownership and Bow's current durability progression.
+- **Files changed:** `Content/Data/GameCatalogues.json`, `Content/Data/GameCatalogues/recipes/stations/workbench.json`, deleted `Content/Data/GameCatalogues/recipes/stations/archery.json`, `docs/02-technical-architecture.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** parsed all seven manifest recipe files and confirmed 43 unique recipe IDs. Compared both moved recipe records against their original definitions, verified their Workbench requirements and expected costs/output, confirmed the deleted file and manifest reference are absent, and passed increment-owned `git diff --check`. No Unreal build or automation run; full verification remains deferred under normal development policy.
+- **Observable impact and authority:** Bow and Wooden Arrows remain craftable at Workbench with unchanged costs and output; no new station, gameplay authority, network payload, or save data was added.
+- **Known limitations:** live Unreal catalogue loading and crafting were not exercised.
+- **Next eligible backlog task:** under Attack-driven tree harvesting, convert decorative generated forest trees into individually attackable sources and integrate their depletion/streaming policy.
+
 ## User-directed increment 2026-10-15 — Require complete item additions
 
 - **Completed:** added an `AGENTS.md` requirement that every new gameplay item gets an original generated inventory icon integrated through the established workflow, plus all applicable item catalogue JSON records and `GameCatalogues.json` manifest registrations. The instruction covers item definitions, equipment profiles, acquisition/crafting recipes, level-up costs and rewards, attack data, runtime icon mapping, and relevant validation; unsupported or deferred categories must be documented rather than guessed.
