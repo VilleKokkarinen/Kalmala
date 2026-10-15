@@ -33,7 +33,8 @@ enum class EKalmalaToolKind : uint8
     ConstructionHammer,
     StoneMace,
     BronzeMace,
-    IronMace
+    IronMace,
+    Bow
 };
 
 /** M9 harvesting tiers; station level is validated only by later craft/upgrade transactions. */
@@ -130,6 +131,7 @@ public:
     /** Maps retired saved IDs to the current canonical tool IDs. */
     static FName CanonicalizeItemId(FName ItemId);
     static const FKalmalaToolDefinition* FindDefinition(FName ItemId);
+    static bool IsTwoHanded(FName ItemId);
     /** Level-aware condition capacity; zero means the tool/level combination is invalid. */
     static int32 GetMaxDurability(FName ItemId, int32 ToolLevel);
     /** Authored combat slash damage for an equipped item level; zero means no weapon override. */

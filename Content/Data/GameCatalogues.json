@@ -1,6 +1,7 @@
 {
   "schemaVersion": 15,
   "itemFiles": [
+    "items/materials/string.json",
     "items/materials/cooking-ingredients.json",
     "items/materials/crafting-ingredients.json",
     "items/materials/hides.json",
@@ -21,6 +22,7 @@
     "items/scrolls.json"
   ],
   "recipeFiles": [
+    "recipes/stations/archery.json",
     "recipes/building.json",
     "recipes/stations/cauldron.json",
     "recipes/stations/cooking-rack.json",
@@ -30,6 +32,7 @@
     "recipes/stations/workbench.json"
   ],
   "itemProfileFiles": [
+    "items/equipment/bows.json",
     "items/equipment/axes.json",
     "items/equipment/knives.json",
     "items/equipment/pickaxes.json",
@@ -50,6 +53,7 @@
     "item-level-up/rewards/item-stats.json"
   ],
   "attackFiles": [
+    "attacks/bows.json",
     "attacks/attacks.json"
   ]
 }

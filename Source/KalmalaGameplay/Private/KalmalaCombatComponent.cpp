@@ -16,6 +16,10 @@ bool UKalmalaCombatComponent::IsAttackRequestAllowed(const bool bAuthority, cons
 { return FKalmalaCombatIntentContract::IsAttackMutationAllowed(bAuthority, true, true, bNewSequence, Sequence, true, bActionIdle, bTargetValid, bTargetValid); }
 void UKalmalaCombatComponent::ServerRequestAttack_Implementation(const uint32 RequestSequence)
 {
+    // Bow shooting is deliberately outside this item/crafting/wielding increment.
+    const auto* Character = Cast<AKalmalaCharacter>(GetOwner());
+    const auto* Inventory = Character ? Character->GetInventoryComponent() : nullptr;
+    if (Inventory && Inventory->GetActiveItem() == TEXT("Bow")) return;
     APawn* Pawn = Cast<APawn>(GetOwner()); AActor* Target = FindServerTarget();
     const bool bAllowed = Pawn != nullptr && IsAttackRequestAllowed(Pawn->HasAuthority(), RequestSequence != 0 && RequestSequence > LastRequestSequence, RequestSequence, ActionPhase == EKalmalaCombatActionPhase::Idle, IsServerTargetValid(Target));
     if (!bAllowed)
@@ -61,6 +65,8 @@ void UKalmalaCombatComponent::TickComponent(const float DeltaTime, const ELevelT
             const float Now = GetWorld()->GetTimeSeconds();
             const UKalmalaInventoryComponent* Inventory = OwnerCharacter ? OwnerCharacter->GetInventoryComponent() : nullptr;
             const FName EquippedItem = Inventory ? Inventory->GetActiveItem() : NAME_None;
+            // Switching from melee to a bow during windup must not deliver a melee hit.
+            if (EquippedItem == TEXT("Bow")) { BeginRecovery(); return; }
             const int32 EquippedLevel = OwnerCharacter ? OwnerCharacter->GetCarriedToolLevel(EquippedItem) : 0;
             FKalmalaDamageChannels Damage = FKalmalaToolLifecycleContract::GetAttackDamageBonuses(
                 EquippedItem, EquippedLevel, TEXT("Basic"));

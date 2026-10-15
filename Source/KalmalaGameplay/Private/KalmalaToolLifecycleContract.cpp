@@ -9,6 +9,7 @@ namespace
 {
     EKalmalaToolKind ParseToolKind(const FString& Value)
     {
+        if (Value == TEXT("Bow")) return EKalmalaToolKind::Bow;
         if (Value == TEXT("ReedKnife")) return EKalmalaToolKind::StoneKnife;
         if (Value == TEXT("FieldHatchet")) return EKalmalaToolKind::StoneAxe;
         if (Value == TEXT("StoneKnife")) return EKalmalaToolKind::StoneKnife;
@@ -185,6 +186,13 @@ const FKalmalaToolDefinition* FKalmalaToolLifecycleContract::FindDefinition(cons
     return CanonicalId == ConstructionHammerDefinition().ItemId ? &ConstructionHammerDefinition() : nullptr;
 }
 
+bool FKalmalaToolLifecycleContract::IsTwoHanded(const FName ItemId)
+{
+    const auto* Catalogue = UKalmalaToolCatalogue::Get();
+    const auto* Profile = Catalogue ? Catalogue->FindProfile(ItemId) : nullptr;
+    return Profile && Profile->bTwoHanded;
+}
+
 int32 FKalmalaToolLifecycleContract::GetMaxDurability(const FName ItemId, const int32 ToolLevel)
 {
     const FKalmalaToolDefinition* Definition = FindDefinition(ItemId);
@@ -234,7 +242,7 @@ bool FKalmalaToolLifecycleContract::IsKnownAction(const EKalmalaToolAction Actio
 
 bool FKalmalaToolLifecycleContract::IsKnownTool(const EKalmalaToolKind Tool)
 {
-    return Tool >= EKalmalaToolKind::StoneKnife && Tool <= EKalmalaToolKind::IronMace;
+    return Tool >= EKalmalaToolKind::StoneKnife && Tool <= EKalmalaToolKind::Bow;
 }
 
 bool FKalmalaToolLifecycleContract::IsKnownToolTier(const EKalmalaToolTier Tier)

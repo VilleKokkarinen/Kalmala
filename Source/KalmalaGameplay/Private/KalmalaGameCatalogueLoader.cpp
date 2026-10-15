@@ -29,6 +29,7 @@ namespace
             FString Set;
             FString Action = TEXT("None");
             if (ItemId == TEXT("ConstructionHammer")) Set = TEXT("Utility");
+            else if (ItemId == TEXT("Bow")) Set = TEXT("Crafted");
             else
             {
                 FString Family;
@@ -45,6 +46,7 @@ namespace
             Object->SetStringField(TEXT("ToolSet"), Set);
             Object->SetStringField(TEXT("Action"), Action);
             Object->SetStringField(TEXT("RequiredSkill"), Action);
+            if (!Object->HasField(TEXT("bTwoHanded"))) Object->SetBoolField(TEXT("bTwoHanded"), false);
             if (!Object->HasField(TEXT("MinimumSkillLevel"))) Object->SetNumberField(TEXT("MinimumSkillLevel"), 1.0);
         }
         return true;

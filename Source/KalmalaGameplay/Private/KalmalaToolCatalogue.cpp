@@ -99,7 +99,8 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
             || !IsOneOf(Profile.ToolKind, {TEXT("StoneKnife"), TEXT("StoneAxe"), TEXT("StonePick"),
                 TEXT("StoneSpear"), TEXT("BronzeAxe"), TEXT("BronzeKnife"), TEXT("BronzePick"),
                 TEXT("BronzeSpear"), TEXT("IronAxe"), TEXT("IronKnife"), TEXT("IronPick"),
-                TEXT("IronSpear"), TEXT("StoneMace"), TEXT("BronzeMace"), TEXT("IronMace"), TEXT("ConstructionHammer")})
+                TEXT("IronSpear"), TEXT("StoneMace"), TEXT("BronzeMace"), TEXT("IronMace"), TEXT("ConstructionHammer"), TEXT("Bow")})
+            || (Profile.ToolKind == TEXT("Bow") && !Profile.bTwoHanded)
             || !IsOneOf(Profile.ToolSet, {TEXT("Starter"), TEXT("Crafted"), TEXT("Utility")})
             || !IsOneOf(Profile.Action, {TEXT("None"), TEXT("Gathering"), TEXT("Woodcutting"), TEXT("Mining")})
             || !IsOneOf(Profile.RequiredSkill, {TEXT("None"), TEXT("Gathering"), TEXT("Woodcutting"),
@@ -123,7 +124,7 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
         {
             FKalmalaToolLevelStats Stats;
             if (!Profile.GetLevelStats(ToolLevel, GetLevelUpReward(Profile.ItemId), Stats)
-                || (Profile.ToolKind == TEXT("ConstructionHammer") ? Stats.DamageBonuses.Total() != 0.0f
+                || (Profile.ToolKind == TEXT("ConstructionHammer") || Profile.ToolKind == TEXT("Bow") ? Stats.DamageBonuses.Total() != 0.0f
                     : Stats.DamageBonuses.Total() <= 0.0f)) return false;
         }
 

@@ -695,6 +695,7 @@ void UKalmalaInventoryMenuWidget::RefreshGearPresentation(const int32 TextScale,
     const FKalmalaItemDefinition* SelectedDefinition = SelectedRow && Catalogue
         ? Catalogue->FindItem(SelectedRow->Id) : nullptr;
 
+    const bool bTwoHanded = Inventory && FKalmalaToolLifecycleContract::IsTwoHanded(Inventory->GetActiveItem());
     for (int32 Index = 0; Index < 6; ++Index)
     {
         UKalmalaThemedButton* Button = GearSlotButtons[Index];
@@ -733,6 +734,12 @@ void UKalmalaInventoryMenuWidget::RefreshGearPresentation(const int32 TextScale,
             }
         }
 
+        if (Slot == EKalmalaGearSlot::Shield && bTwoHanded)
+        {
+            State = bCanEquip ? TEXT("Equip shield / return weapon") : TEXT("Both hands occupied");
+            Button->SetToolTipText(FText::FromString(
+                TEXT("A two-handed weapon uses this hand. Equipping a shield first returns that weapon to the pack.")));
+        }
         Button->SetIsEnabled(!bAwaitingGearRequestResult && Inventory
             && (Equipped != nullptr || bCanEquip));
         if (StateText->GetText().ToString() != State)
@@ -746,7 +753,7 @@ void UKalmalaInventoryMenuWidget::RefreshGearPresentation(const int32 TextScale,
         const bool bHasTool = Inventory && FKalmalaToolLifecycleContract::FindDefinition(Inventory->GetActiveItem());
         const bool bCanSelect = Inventory && SelectedRow && SelectedRow->bCarriedTool
             && SelectedGuid.IsValid() && SelectedGuid != Inventory->GetActiveInstanceGuid();
-        const FString State = bHasTool ? GetCarriedToolDisplayName(Inventory->GetActiveItem())
+        const FString State = bHasTool ? GetCarriedToolDisplayName(Inventory->GetActiveItem()) + (bTwoHanded ? TEXT(" (Two hands)") : TEXT(""))
             : bCanSelect ? FString::Printf(TEXT("Select %s"), *SelectedRow->Name) : TEXT("Empty");
         MainHandStateText->SetText(FText::FromString(State));
         MainHandButton->SetIsEnabled(!bAwaitingGearRequestResult && (bCanSelect || bHasTool));

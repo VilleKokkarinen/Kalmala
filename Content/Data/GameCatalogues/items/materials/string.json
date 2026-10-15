@@ -1,0 +1,6 @@
+{
+  "items": [
+    { "ItemId": "String", "DisplayName": "String", "Description": "Twisted plant-fibre string for crafting.", "MaxStack": 20, "WeightKg": 0.05 },
+    { "ItemId": "WoodenArrow", "DisplayName": "Wooden Arrows", "Description": "Simple wooden arrows for a bow.", "MaxStack": 100, "WeightKg": 0.05 }
+  ]
+}

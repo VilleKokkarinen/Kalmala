@@ -804,8 +804,8 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     CraftBronzeMaceButton->OnClicked.AddDynamic(this, &ThisClass::CraftBronzeMace);
     CraftIronMaceButton = AddButton(TEXT("Craft Iron Mace"), MaceCraftActions);
     CraftIronMaceButton->OnClicked.AddDynamic(this, &ThisClass::CraftIronMace);
-    StoneCraftItemIds = {TEXT("StoneAxe"), TEXT("StoneKnife"), TEXT("StonePick"), TEXT("StoneSpear"), TEXT("StoneMace")};
-    StoneCraftTitleText = AddText(TEXT("Stone-tier equipment"), 18);
+    StoneCraftItemIds = {TEXT("StoneAxe"), TEXT("StoneKnife"), TEXT("StonePick"), TEXT("StoneSpear"), TEXT("StoneMace"), TEXT("Bow")};
+    StoneCraftTitleText = AddText(TEXT("Workbench equipment"), 18);
     BuildExcludedWidgets.Add(StoneCraftTitleText);
     StoneCraftActions = WidgetTree->ConstructWidget<UVerticalBox>();
     Column->AddChild(StoneCraftActions);
@@ -824,6 +824,7 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
         else if (ItemId == TEXT("StonePick")) Button->OnClicked.AddDynamic(this, &ThisClass::CraftStonePick);
         else if (ItemId == TEXT("StoneSpear")) Button->OnClicked.AddDynamic(this, &ThisClass::CraftStoneSpear);
         else if (ItemId == TEXT("StoneMace")) Button->OnClicked.AddDynamic(this, &ThisClass::CraftStoneMace);
+        else if (ItemId == TEXT("Bow")) Button->OnClicked.AddDynamic(this, &ThisClass::CraftBow);
         StoneCraftButtons.Add(Button);
     }
     BuildExcludedWidgets.Add(StoneCraftActions);
@@ -1909,6 +1910,7 @@ void UKalmalaCraftingWidget::CraftStoneKnife() { CraftStoneTool(TEXT("StoneKnife
 void UKalmalaCraftingWidget::CraftStonePick() { CraftStoneTool(TEXT("StonePick")); }
 void UKalmalaCraftingWidget::CraftStoneSpear() { CraftStoneTool(TEXT("StoneSpear")); }
 void UKalmalaCraftingWidget::CraftStoneMace() { CraftStoneTool(TEXT("StoneMace")); }
+void UKalmalaCraftingWidget::CraftBow() { CraftStoneTool(TEXT("Bow")); }
 
 void UKalmalaCraftingWidget::RefreshForgeUpgradeState(UKalmalaCraftingComponent* Crafting)
 {

@@ -14,7 +14,7 @@ bool FKalmalaEquipmentSaveTest::RunTest(const FString& Parameters)
 {
     const UKalmalaToolCatalogue* Tools = UKalmalaToolCatalogue::Get();
     if (!TestNotNull(TEXT("Equipment profiles load"), Tools)) return false;
-    if (!TestEqual(TEXT("Fixture covers all current Main Hand profiles"), Tools->Profiles.Num(), 16)) return false;
+    if (!TestEqual(TEXT("Fixture covers all current Main Hand profiles"), Tools->Profiles.Num(), 17)) return false;
 
     FKalmalaWorldGenerationConfig World;
     World.WorldSeed = 418;

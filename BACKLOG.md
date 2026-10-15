@@ -34,6 +34,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-15 — Add Bow, String, Wooden Arrows and two-handed wielding:** String stacks to 20, arrows to 100; Workbench Bow costs 5 Wood/2 String, arrow batch costs 5 Wood for 20. Added three original imported icons and atomic capacity-safe weapon/shield swaps, including full-pack rejection with both hands occupied. Lightweight checks/import/icon audit passed; full Unreal verification deferred. String sources and shooting are excluded by user direction.
+
 - [x] **2026-10-15 — Generate Bone fragment artwork:** generate an original transparent icon matching the existing materials, retain original/prepared PNGs, import the Texture2D in batch H, wire its shared runtime mapping and replace its test fallback exception. Import validation and the 63-entry icon audit passed; gameplay build/runtime verification deferred.
 
 - [x] **2026-10-15 — Add Bone fragment to cape costs:** require one `BoneFragment` in Boar Hide Cape crafting and its level-one upgrade-cost record, preserving other costs and leaving drop sources deferred. Lightweight data/diff checks passed; Unreal verification deferred.

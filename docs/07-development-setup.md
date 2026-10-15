@@ -1,5 +1,23 @@
 # Development setup
 
+## Bow and two-handed equipment coverage — 2026-10-15
+
+`Kalmala.Gameplay.Inventory.TwoHanded` covers String/arrow stack boundaries and
+per-unit GUIDs, exact Bow/arrow recipe costs, the both-hands/full-pack rejection,
+one-free-cell success, shield GUID/wear retention, reverse shield equip,
+shield-only/full-pack success, capacity-safe unwielding and client-role rejection.
+Run it with Inventory equipment, hotbar, current-save-format and icon automation
+after building the editor. These are added source cases, not executed results.
+The existing equipment icon/save fixtures now include seventeen profiles.
+
+Lightweight JSON/cost/stack/source/path inspection, Python/PowerShell parser
+checks, image preparation, content-only batch I import and the 66-row catalogue
+icon audit passed. Full verification is deferred for this user-directed increment.
+The pre-existing duplicated WoodShieldRecipe in Forge/Workbench worktree edits
+must be resolved before integrated catalogue loading/Unreal acceptance. No recipe
+balance edits belonging to the user were changed. String acquisition and Bow
+shooting are explicitly outside this increment.
+
 ## Current equipment save-format coverage — 2026-10-15
 
 `Kalmala.Gameplay.Inventory.EquipmentCurrentSaveFormat` serializes and reloads

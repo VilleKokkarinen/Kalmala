@@ -56,7 +56,7 @@ bool FKalmalaEquipmentIconTest::RunTest(const FString& Parameters)
         CheckIcon(Item.ItemId);
     }
     TestEqual(TEXT("All six initial wearable families have icon coverage"), WearableCount, 6);
-    TestEqual(TEXT("All sixteen current Main Hand profiles have icon coverage"), Tools->Profiles.Num(), 16);
+    TestEqual(TEXT("All seventeen current Main Hand profiles have icon coverage"), Tools->Profiles.Num(), 17);
     for (const FKalmalaToolProfileData& Profile : Tools->Profiles) CheckIcon(Profile.ItemId);
     return true;
 }

@@ -1,5 +1,17 @@
 # Game design
 
+## Bow crafting and two-handed equipment — 2026-10-15
+
+String stacks to 20 and Wooden Arrows stack to 100. At a level-one Workbench,
+craft a Bow for 5 normal Wood and 2 String, or 20 Wooden Arrows for 5 normal
+Wood. String is material-only for now, with no acquisition recipe or drops.
+The Bow uses both hands. Equipping it returns the held weapon/tool and shield
+to the pack as one capacity-validated transaction. With both hands occupied,
+one extra free pack cell is required; a full pack rejects the request unchanged.
+Equipping a shield returns the Bow to pack space freed by the shield. Returning
+the Bow alone requires a free cell. This user-requested increment covers items,
+crafting and wielding only: shooting and arrow consumption are not implemented.
+
 ## Core loop
 
 1. Prepare at camp: eat, repair and craft equipment, rest, and choose a direction or goal.

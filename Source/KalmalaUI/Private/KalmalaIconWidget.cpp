@@ -142,6 +142,15 @@ int32 UKalmalaIconWidget::NativePaint(const FPaintArgs& Args, const FGeometry& G
     case EKalmalaIcon::Bone:
         Path({{7,29},{5,25},{8,21},{12,22},{23,11},{22,7},{26,4},{31,7},{32,12},{28,15},{25,14},{14,25},{13,30},{9,32}},true);
         Path({{23,11},{28,15}}); break;
+    case EKalmalaIcon::String:
+        Circle({18,17},11); Circle({18,17},7); Circle({18,17},3);
+        Path({{26,24},{30,28},{25,33}}); break;
+    case EKalmalaIcon::Bow:
+        Path({{5,31},{8,17},{19,7},{31,5},{5,31}});
+        Path({{16,14},{21,19}}); break;
+    case EKalmalaIcon::Arrow:
+        Path({{6,30},{30,6},{23,8},{28,13},{30,6}});
+        Path({{6,30},{6,22},{14,22},{14,30},{6,30}},true); break;
     default: Path({{18,5},{31,18},{18,31},{5,18}},true); Path({{15,13},{18,11},{21,13},{18,18},{18,22}}); Circle({18,27},1); break;
     }
     // Authored monochrome accents distinguish related materials/foods/tools at small size.
@@ -155,6 +164,8 @@ bool UKalmalaIconWidget::FindCatalogueIcon(FName Id, EKalmalaIcon& OutIcon, int3
     // Runtime/save identities; JSON's external construction names resolve to these IDs.
     static const FMapping Mappings[] = {
         {TEXT("BoneFragment"),EKalmalaIcon::Bone,0},
+        {TEXT("String"),EKalmalaIcon::String,0}, {TEXT("Bow"),EKalmalaIcon::Bow,0},
+        {TEXT("WoodenArrow"),EKalmalaIcon::Arrow,0},
         {TEXT("Wood"),EKalmalaIcon::Log,0}, {TEXT("Lightwood"),EKalmalaIcon::Log,1}, {TEXT("Densewood"),EKalmalaIcon::Log,2},
         {TEXT("Coal"),EKalmalaIcon::Rock,1}, {TEXT("Stone"),EKalmalaIcon::Rock,0}, {TEXT("Iron"),EKalmalaIcon::Ingot,0},
         {TEXT("Amber"),EKalmalaIcon::Rock,2}, {TEXT("FrostSalt"),EKalmalaIcon::Snow,0},

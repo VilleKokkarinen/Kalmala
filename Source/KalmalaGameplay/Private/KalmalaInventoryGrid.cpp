@@ -289,6 +289,19 @@ bool UKalmalaInventoryComponent::SetMainHandFromServer(const FGuid ItemGuid, FSt
         if (PhysicalGuids.Contains(Gear.ItemGuid))
         { Reason = TEXT("Tool and wearable identities overlap"); return false; }
 
+    TArray<FKalmalaInventoryStack> CandidateStacks = Stacks;
+    TArray<FKalmalaEquippedGear> CandidateGear = EquippedGear;
+    if (FKalmalaToolLifecycleContract::IsTwoHanded(SelectedId)
+        && FindEquippedGear(EKalmalaGearSlot::Shield))
+    {
+        // The incoming weapon vacates a pack cell, the old hand returns, and
+        // the shield needs one additional cell. Validate everything in scratch.
+        if (!BuildUnequipGearTransaction(Stacks, EquippedGear, EKalmalaGearSlot::Shield,
+            ToolGuids, CandidateStacks, CandidateGear, Reason, ItemGuid))
+        { Reason = TEXT("Cannot return the held items; free an inventory cell before wielding a two-handed weapon"); return false; }
+        StackGuids.Reset();
+        for (const FKalmalaInventoryStack& Stack : CandidateStacks) StackGuids.Add(Stack.InstanceGuid);
+    }
     TArray<FGuid> CandidateGrid;
     if (!BuildMainHandGrid(ToolGuids, StackGuids, ItemGuid, GridInstanceGuids, CandidateGrid))
     { Reason = TEXT("No inventory space to return Main Hand"); return false; }
@@ -297,6 +310,8 @@ bool UKalmalaInventoryComponent::SetMainHandFromServer(const FGuid ItemGuid, FSt
     // Only its location changes; validate the complete layout before publishing selection.
     ActiveItem = SelectedId;
     ActiveInstanceGuid = ItemGuid;
+    Stacks = MoveTemp(CandidateStacks);
+    EquippedGear = MoveTemp(CandidateGear);
     GridInstanceGuids = MoveTemp(CandidateGrid);
     GridSlots.Init(NAME_None, MaxSlots);
     for (int32 Slot = 0; Slot < MaxSlots; ++Slot) GridSlots[Slot] = GetSlotItem(Slot);

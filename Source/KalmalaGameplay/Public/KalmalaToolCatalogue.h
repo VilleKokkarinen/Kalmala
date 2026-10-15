@@ -64,6 +64,10 @@ struct KALMALAGAMEPLAY_API FKalmalaToolProfileData
     UPROPERTY(EditAnywhere)
     FString Description;
 
+    /** Two-handed items exclude the Shield slot while wielded. */
+    UPROPERTY(EditAnywhere)
+    bool bTwoHanded = false;
+
     UPROPERTY(EditAnywhere)
     FString ToolSet;
 
@@ -93,7 +97,7 @@ struct KALMALAGAMEPLAY_API FKalmalaToolProfileData
     bool IsWeapon() const
     {
         return ToolKind.EndsWith(TEXT("Knife")) || ToolKind.EndsWith(TEXT("Axe"))
-            || ToolKind.EndsWith(TEXT("Mace")) || ToolKind.EndsWith(TEXT("Spear"));
+            || ToolKind.EndsWith(TEXT("Mace")) || ToolKind.EndsWith(TEXT("Spear")) || ToolKind == TEXT("Bow");
     }
 
     bool GetLevelStats(int32 ToolLevel, const FKalmalaToolRewardData& Reward, FKalmalaToolLevelStats& OutStats) const;

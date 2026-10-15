@@ -259,11 +259,30 @@ bool UKalmalaInventoryComponent::EquipGearFromServer(const FGuid ItemGuid, FStri
     if (!BuildEquipGearTransaction(Stacks, EquippedGear, ItemGuid, OtherOwnedGuids,
         CandidateStacks, CandidateGear, Reason, GetMainHandGuid())) return false;
 
+    const auto* Incoming = CandidateGear.FindByPredicate([ItemGuid](const FKalmalaEquippedGear& Gear)
+        { return Gear.ItemGuid == ItemGuid; });
+    const bool bReturnTwoHanded = Incoming && Incoming->Slot == EKalmalaGearSlot::Shield
+        && FKalmalaToolLifecycleContract::IsTwoHanded(ActiveItem);
+    TArray<FGuid> CandidateGrid;
+    if (bReturnTwoHanded)
+    {
+        TArray<FGuid> StackGuids;
+        for (const auto& Stack : CandidateStacks) StackGuids.Add(Stack.InstanceGuid);
+        if (!BuildMainHandGrid(OtherOwnedGuids, StackGuids, FGuid(), GridInstanceGuids, CandidateGrid))
+        { Reason = TEXT("No inventory space to return the two-handed weapon"); return false; }
+    }
+
     for (FKalmalaEquippedGear& Gear : CandidateGear)
         Gear.ConditionSpent = SessionGearWear.FindRef(Gear.ItemGuid);
 
     Stacks = MoveTemp(CandidateStacks);
     EquippedGear = MoveTemp(CandidateGear);
+    if (bReturnTwoHanded)
+    {
+        ActiveItem = NAME_None;
+        ActiveInstanceGuid.Invalidate();
+        GridInstanceGuids = MoveTemp(CandidateGrid);
+    }
     SynchronizeGridFromServer();
     Owner->ForceNetUpdate();
     return true;

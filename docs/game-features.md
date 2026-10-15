@@ -1,5 +1,15 @@
 # Game features
 
+## Bow and two-handed items — 2026-10-15
+
+String stacks to 20; Wooden Arrows stack to 100. A level-one Workbench crafts
+Bow for 5 Wood and 2 String, and 20 Wooden Arrows for 5 Wood. All three have
+original imported inventory artwork. String has no acquisition source yet.
+Bow occupies both hands; validated atomic swaps return the previous tool and
+shield, requiring one free cell if both were held. Shield equip returns Bow;
+unwielding requires pack capacity. Wielding state remains owner-private and
+session-only. Shooting is outside the user's requested scope for this increment.
+
 Added gameplay and UI, in brief. [BACKLOG.md](../BACKLOG.md) tracks unfinished integration and verification.
 
 - Solo and cooperative play with server-validated actions.

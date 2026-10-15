@@ -1,5 +1,33 @@
 # Technical architecture
 
+## Two-handed equipment — 2026-10-15
+
+Equipment profiles support `bTwoHanded`, defaulted to false before strict JSON
+conversion for existing profiles. `Bow` is a crafted two-handed profile, with
+100 base condition, no level rewards/upgrades and zero attack damage in this
+items/crafting/wielding-only increment. It is not granted in the starting kit.
+The melee request/execution path rejects a Bow, including a switch during
+windup, so it cannot fall through to unarmed damage. Shooting is deferred by
+explicit user scope.
+
+`SetMainHandFromServer` builds candidate stacks/gear/layout before publishing.
+For a two-handed selection it returns the Shield through the existing validated
+GUID transaction, counting the incoming weapon outside the pack and the old
+weapon inside it. A full pack plus both occupied hands rejects without changing
+either item; exactly one free cell permits the swap. With only a shield held,
+the incoming weapon's freed cell is sufficient. Shield equip similarly validates
+the complete candidate grid with the two-handed weapon returned before clearing
+active state. Other wearable slots and same-pawn shield wear are preserved.
+No new RPC, replication field, save field, version or migration is introduced.
+
+New material records `String` (stack 20) and `WoodenArrow` (stack 100) live in
+`items/materials/string.json`. Bow profiles and disabled attack data have their
+own manifest files; `recipes/stations/archery.json` contains the level-one
+Workbench Bow acquisition (5 Wood, 2 String) and ordinary arrow recipe (5 Wood
+for 20 arrows). String has no source yet. Shared imported icons are in batch I;
+see `archery-icons.md`. The owner Inventory shows both-hand occupancy and the
+reverse shield swap. Full gameplay compilation/runtime verification is deferred.
+
 ## Bone fragment material — 2026-10-15
 
 `BoneFragment` (Bone fragment) is a stackable crafting ingredient in
