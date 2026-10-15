@@ -3082,3 +3082,14 @@ The six wearable IDs are grouped by type in `items/boots.json`, `items/capes.jso
 ## Inventory Worn Gear presentation — 2026-10-15
 
 The Inventory popup shows a separate Worn Gear section beneath the unchanged 40-cell grid. It lists Main Hand, Head, Cape, Chest, Shield, Legs, and Boots in framed Kalmala-styled tiles, each marked Empty. These are visual placeholders: they have no equipment identity, interaction, RPC, replication, defense effect, or save state. The `Kalmala.UI.InventoryMenu.Selection` automation asserts the section heading, exact slot list, and empty labels. Render the Inventory menu at 1280×720 and 1920×1080, including high-contrast mode, when UI rendering verification is due.
+
+## Generated forest reconstruction lifecycle (2026-10-15)
+
+`Kalmala.Gameplay.Harvest.ForestReconstructionLifecycle` is a focused isolated-world
+regression for public forest actor reconstruction. It finds an accepted candidate
+from seed 418, checks authority and invalid-ordinal rejection, reconstructs stable
+identity/source/transform and movement replication settings, rejects reinitialization,
+and destroys/reconstructs the node without firing either depletion delegate.
+This covers actor lifetime primitives only, not GameMode neighborhood eviction,
+partial-damage reset, saved pickup depletion, collision traces or peer relevance.
+The test source has been inspected but has not yet been compiled or executed.

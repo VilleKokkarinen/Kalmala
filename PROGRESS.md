@@ -1,5 +1,15 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-15 — Cover forest reconstruction lifecycle
+
+- **Completed:** partial first unchecked generated-tree harvesting child. Added `Kalmala.Gameplay.Harvest.ForestReconstructionLifecycle` automation source using a real accepted generated candidate, an isolated world and public actor APIs. Covers client and invalid-ordinal rejection, authoritative identity/source/position/yaw reconstruction, movement replication flag, reinitialization rejection, destruction without sparse/session depletion callbacks and standing-state reconstruction with the same identity.
+- **Files changed:** added `Source/KalmalaGameplay/Private/Tests/KalmalaForestLifecycleTest.cpp`; updated `docs/07-development-setup.md`, `BACKLOG.md`, and this file.
+- **Lightweight checks:** PowerShell assertions verified referenced public harvest APIs and coverage anchors; brace balance and changed-path MAX_PATH checks passed. Inspected fixture cleanup, delegate lifetimes and use of AlwaysSpawn against existing isolated-world tests. Working/staged diff whitespace and scope review passed. The new Unreal test was not compiled or executed; no Unreal build, rendering or peer run. Full verification remains deferred for this normal partial increment.
+- **Impact/authority:** regression coverage source only; no gameplay, networking, reward, persistence or save schema changes. The fixture verifies client reconstruction rejection and distinguishes destruction from depletion when executed.
+- **Limitations:** actor reconstruction/destruction coverage does not exercise GameMode neighborhood eviction, partial-damage reset, pickup/saved depletion, collision traces or actual replication/relevance. Test execution and these integration checks remain pending; child and parent stay unchecked.
+- **Next eligible task:** continue the same generated-tree child with integrated lifecycle/depletion and collision/relevance coverage and validation. Moving fall/log presentation remains the later child. No other active Kalmala chat found; checkout began clean. Main checkout used directly; no handoff synchronization required.
+
+
 ## Autonomous increment 2026-10-15 — Reuse generated forest descriptors
 
 - **Completed:** partial first unchecked generated-tree child. Patch activation reuses its generated descriptors through a private GameMode-accessible initializer. Public config/ordinal reconstruction delegates to the same authority, unused-state, identity and finite-geometry guards before mutation.
