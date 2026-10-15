@@ -49,7 +49,7 @@
     {
       "DisplayName": "Wood Shield",
       "ItemId": "WoodShield",
-      "RequiredStation": "Forge",
+      "RequiredStation": "Workbench",
       "Ingredients": [
         { "ItemId": "Wood", "Quantity": 10 },
         { "ItemId": "BoarHide", "Quantity": 5 },

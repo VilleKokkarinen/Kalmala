@@ -1,5 +1,13 @@
 # Technical architecture
 
+## Wood Shield station — 2026-10-15
+
+The sole `WoodShieldRecipe` lives in `recipes/stations/workbench.json` and
+requires Workbench. Its current costs are 10 Wood, 3 Boar Hide and 3 Deer Hide.
+The matching level-one upgrade-cost record also requires Workbench; existing
+costs remain unchanged. This supersedes earlier Forge station/cost descriptions
+for Wood Shield. Wearable upgrade execution remains pending.
+
 ## Two-handed equipment — 2026-10-15
 
 Equipment profiles support `bTwoHanded`, defaulted to false before strict JSON

@@ -22,8 +22,8 @@ after an editor build.
 Lightweight JSON/cost/stack/source/path inspection, Python/PowerShell parser
 checks, image preparation, content-only batch I import and the 66-row catalogue
 icon audit passed. Full verification is deferred for this user-directed increment.
-The duplicated WoodShieldRecipe was removed from Workbench on 2026-10-15;
-the single Forge recipe and existing balance edits are preserved. Manifest recipe
+WoodShieldRecipe lives only in Workbench, with a Workbench station requirement;
+its matching upgrade-cost station is also Workbench. Existing balance edits are preserved. Manifest recipe
 IDs passed uniqueness checks; integrated Unreal loading remains unverified. String acquisition and Bow
 shooting are explicitly outside this increment.
 

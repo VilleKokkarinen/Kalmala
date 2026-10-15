@@ -34,6 +34,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-15 — Move Wood Shield to Workbench:** moved its sole crafting recipe and matching upgrade-cost station to Workbench, preserving current ingredient costs. Updated catalogue coverage; JSON/unique-ID checks passed, Unreal verification deferred.
+
 - [x] **2026-10-15 — Remove duplicate Wood Shield recipe:** removed the uncommitted Workbench duplicate, retaining the Forge recipe and all existing balance edits. Manifest recipe JSON/unique-ID checks passed; Unreal verification deferred.
 
 - [x] **2026-10-15 — Make arrow artwork plain sharpened wood:** replace the bronze-looking attached heads with continuous whittled shaft tips, retaining feathers/style/transparency. Updated original, prepared icon and imported texture; visual review and 66-row icon validation passed. Gameplay verification deferred.

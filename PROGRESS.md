@@ -1,5 +1,11 @@
 # Autonomous development progress
 
+## User-directed correction 2026-10-15 — Wood Shield belongs at Workbench
+
+- **Completed/files:** moved the sole Wood Shield crafting recipe from Forge to Workbench and changed its required station to Workbench. Aligned the matching gear upgrade-cost station and existing progression catalogue test. Preserved crafting costs (10 Wood, 3 Boar Hide, 3 Deer Hide), upgrade costs and all unrelated balance edits. Updated backlog, architecture and setup documentation.
+- **Verification/impact:** parsed manifest recipe files, checked unique case-insensitive IDs, exactly one Workbench shield recipe and preserved costs, matching upgrade station/test expectation, diff/scope/MAX_PATH inspection. No Unreal build or automation execution; full verification deferred. Server catalogue validation now resolves shield crafting at Workbench; no network/save changes.
+- **Commit/handoff/limits:** staged only shield relocation/station changes and this run's test/docs; unrelated pre-existing armor and upgrade-cost edits remain unstaged. Main checkout used directly, no synchronization needed. This supersedes the previous Forge retention decision. Continue the existing Main Hand/hotbar acceptance child; live equipment/privacy/save checks and material icon gaps remain.
+
 ## User-directed increment 2026-10-15 — Remove duplicate Wood Shield recipe
 
 - **Completed/files:** removed only the extra `WoodShieldRecipe` from `Content/Data/GameCatalogues/recipes/stations/workbench.json`, retaining the Forge record and its current costs (10 Wood, 3 Boar Hide, 3 Deer Hide). Updated backlog and development setup. All other pre-existing catalogue edits were preserved.

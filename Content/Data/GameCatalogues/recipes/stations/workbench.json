@@ -160,6 +160,22 @@
       "ExperienceSkill": "None",
       "ExperienceAward": 0,
       "bEnabled": true
+    },
+    {
+      "RecipeId": "WoodShieldRecipe",
+      "DisplayName": "Wood Shield",
+      "Ingredients": [
+        { "ItemId": "Wood", "Quantity": 10 },
+        { "ItemId": "BoarHide", "Quantity": 3 },
+        { "ItemId": "DeerHide", "Quantity": 3 }
+      ],
+      "Output": "WoodShield",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "RequiredStation": [ "Workbench" ],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
     }
   ]
 }

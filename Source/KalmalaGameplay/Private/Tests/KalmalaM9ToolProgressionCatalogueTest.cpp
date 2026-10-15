@@ -46,7 +46,7 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
         TPair<FName, FName>(TEXT("BoarHideHelmet"), TEXT("Workbench")),
         TPair<FName, FName>(TEXT("BoarHideLeggings"), TEXT("Workbench")),
         TPair<FName, FName>(TEXT("BoarHideTunic"), TEXT("Workbench")),
-        TPair<FName, FName>(TEXT("WoodShield"), TEXT("Forge"))
+        TPair<FName, FName>(TEXT("WoodShield"), TEXT("Workbench"))
     };
     TestTrue(TEXT("Armor item, recipe and upgrade catalogues validate"),
         ItemCatalogue && ItemCatalogue->IsValidCatalogue()
