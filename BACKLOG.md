@@ -34,6 +34,7 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-15 — Fix Stone Workbench crafting compile errors:** resolve tool labels through the equipment profile catalogue and bind each Stone-tool button to a reflected callback compatible with UMG's dynamic click event. Focused source/profile checks and `git diff --check` passed; Unreal build and UI automation deferred.
 - [x] **2026-10-15 — Repair storage GUID compile errors:** reuse the existing item-GUID set while validating saved chest contents, and update the initial storage fixture deposits to pass exact carried-item GUIDs. Focused source/API checks and `git diff --check` passed; Unreal build and storage automation deferred.
 
 - [ ] **2026-10-15 — Add armor items and a worn-equipment inventory:** introduce shield, chest armor, leg armor, helmet, cape, and boots, with a separate gear section in the Inventory popup.

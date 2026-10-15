@@ -207,6 +207,11 @@ private:
     UFUNCTION() void CraftBronzeAxe();
     UFUNCTION() void CraftBronzeMace();
     UFUNCTION() void CraftIronMace();
+    UFUNCTION() void CraftStoneAxe();
+    UFUNCTION() void CraftStoneKnife();
+    UFUNCTION() void CraftStonePick();
+    UFUNCTION() void CraftStoneSpear();
+    UFUNCTION() void CraftStoneMace();
     UFUNCTION() void UpgradeBronzeAxe();
     UFUNCTION() void InspectStorage();
     UFUNCTION() void PreviousStorageItem();

@@ -30,6 +30,7 @@
 #include "KalmalaWorldGenerationGameState.h"
 #include "KalmalaSettingsWidget.h"
 #include "KalmalaToolLifecycleContract.h"
+#include "KalmalaToolCatalogue.h"
 #include "KalmalaToolProgressionContract.h"
 #include "Blueprint/WidgetTree.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
@@ -65,6 +66,13 @@ constexpr int32 RecipeGridColumns = 4;
 constexpr int32 BuildTileGridColumns = 10;
 constexpr int32 MaxFavoriteRecipeCount = 256;
 const FString CraftingNoPanelImage;
+
+FString GetCraftableToolDisplayName(const FName ToolId)
+{
+    const UKalmalaToolCatalogue* Catalogue = UKalmalaToolCatalogue::Get();
+    const FKalmalaToolProfileData* Profile = Catalogue ? Catalogue->FindProfile(ToolId) : nullptr;
+    return Profile ? Profile->DisplayName : ToolId.ToString();
+}
 
 void SetRuntimeAccessibleText(UWidget* Widget, const FText& Text)
 {
@@ -803,14 +811,19 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     Column->AddChild(StoneCraftActions);
     for (const FName ToolId : StoneCraftToolIds)
     {
-        const FString Label = FString::Printf(TEXT("Craft %s"), *GetToolDisplayName(ToolId));
+        const FString ToolName = GetCraftableToolDisplayName(ToolId);
+        const FString Label = FString::Printf(TEXT("Craft %s"), *ToolName);
         const FString Help = FString::Printf(
             TEXT("Craft a %s at a visible same-world Workbench. The server checks costs and pack capacity."),
-            *GetToolDisplayName(ToolId));
+            *ToolName);
         UButton* Button = AddButton(*Label, nullptr, *Help);
         Button->RemoveFromParent();
         StoneCraftActions->AddChildToVerticalBox(Button)->SetPadding(FMargin(2.0f, 2.0f));
-        Button->OnClicked.AddLambda([this, ToolId]() { CraftStoneTool(ToolId); });
+        if (ToolId == TEXT("StoneAxe")) Button->OnClicked.AddDynamic(this, &ThisClass::CraftStoneAxe);
+        else if (ToolId == TEXT("StoneKnife")) Button->OnClicked.AddDynamic(this, &ThisClass::CraftStoneKnife);
+        else if (ToolId == TEXT("StonePick")) Button->OnClicked.AddDynamic(this, &ThisClass::CraftStonePick);
+        else if (ToolId == TEXT("StoneSpear")) Button->OnClicked.AddDynamic(this, &ThisClass::CraftStoneSpear);
+        else if (ToolId == TEXT("StoneMace")) Button->OnClicked.AddDynamic(this, &ThisClass::CraftStoneMace);
         StoneCraftButtons.Add(Button);
     }
     BuildExcludedWidgets.Add(StoneCraftActions);
@@ -1890,6 +1903,12 @@ void UKalmalaCraftingWidget::CraftStoneTool(const FName ToolId)
     if (!bWorkbenchCraftContext || StationFilterKit != TEXT("WorkbenchKit") || !IsStationContextValid()) return;
     if (auto* Crafting = Model()) Crafting->ServerProgressTool(ToolId);
 }
+
+void UKalmalaCraftingWidget::CraftStoneAxe() { CraftStoneTool(TEXT("StoneAxe")); }
+void UKalmalaCraftingWidget::CraftStoneKnife() { CraftStoneTool(TEXT("StoneKnife")); }
+void UKalmalaCraftingWidget::CraftStonePick() { CraftStoneTool(TEXT("StonePick")); }
+void UKalmalaCraftingWidget::CraftStoneSpear() { CraftStoneTool(TEXT("StoneSpear")); }
+void UKalmalaCraftingWidget::CraftStoneMace() { CraftStoneTool(TEXT("StoneMace")); }
 
 void UKalmalaCraftingWidget::RefreshForgeUpgradeState(UKalmalaCraftingComponent* Crafting)
 {

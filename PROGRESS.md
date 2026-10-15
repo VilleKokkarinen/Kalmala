@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed repair 2026-10-15 — Fix Stone Workbench crafting compile errors
+
+- **Completed:** replaced the inaccessible gameplay-module tool-name helper with a local lookup of authored names in `UKalmalaToolCatalogue`. Replaced the unsupported `UButton::OnClicked.AddLambda` call with reflected callbacks for Stone Axe, Knife, Pick, Spear, and Mace; each callback forwards its matching tool ID through the existing Workbench-context guard and server request.
+- **Files changed:** `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`, `Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** `git diff --check` passed. Focused PowerShell source/profile checks confirmed the local tool-catalogue lookup, all five reflected declarations and dynamic bindings, matching forwarded IDs, authored Stone profile names, and changed paths below 260 characters.
+- **Impact and authority:** Stone Workbench button labels now use profile display names and their clicks retain the existing server-authoritative crafting flow. No gameplay authority, networking, or save-schema behavior changed.
+- **Verification/limitations:** normal development repair, not milestone-final. Unreal compilation and UI automation were not run; compiler/runtime confirmation remains deferred.
+- **Next eligible backlog task:** make gear slots a distinct GUID-addressable part of carried inventory, implement validated equip/unequip and replacement capacity behavior, and route tools/weapons through Main Hand.
+
 ## User-directed repair 2026-10-15 — Fix storage compile errors
 
 - **Completed:** removed the duplicate `SeenItemGuids` declaration in storage upsert so the existing set continues to track identities from other chest records and candidate contents. The initial storage fixture now transfers the current Wood item GUID through the GUID-based server API.
