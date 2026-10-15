@@ -41,6 +41,17 @@ build; this increment uses lightweight data/source checks only.
 
 ## Main Hand hotbar and privacy contract coverage — 2026-10-15
 
+`Kalmala.Gameplay.Inventory.MainHandHotbar` adds an isolated server-world
+fixture that calls the real hotbar RPC path for invalid/empty numbers,
+same-item tool replacement, accepted/rejected food and support use retaining
+the hand, and ordinary-item selection rejected by a full pack then accepted
+after freeing a cell. It checks physical tool identities, levels and condition,
+food consumption/status and support feedback so an inert request cannot pass
+as a successful use. It does not begin play, load profiles or write saves;
+reflection seeds only the test pawn's carried-tool records. Time advances
+beyond both request cadences between hotbar calls. This new automation source
+requires an editor build and execution; it is not live network/privacy evidence.
+
 `Kalmala.Gameplay.Inventory.SharedGrid` now covers numbered-cell vacancy,
 stable unrelated cells, same-item copies, synchronization, replacement and
 first-free-cell return without restoring a former shortcut.
