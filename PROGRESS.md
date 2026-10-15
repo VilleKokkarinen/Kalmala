@@ -1,5 +1,12 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-15 — Verify equipment privacy across peers
+
+- **Completed/files:** extended the development-only inventory peer fixture to place the listen host's Stone Axe in Main Hand and Boar Hide Helmet in Head while leaving other items in the pack grid. The live runner now waits two seconds after that populated fixture and requires the remote client to see no equipped gear, grid identities, or Main Hand identity. Updated `Scripts/Tests/Inventory/Verify-Inventory.ps1`, `Source/KalmalaGameplay/Private/KalmalaInventoryComponent.cpp`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** `Scripts/Tests/Inventory/Verify-Inventory.ps1 -ContractOnly` passed with nine equipment/hotbar/privacy/save/icon source cases and the new live-fixture anchors. PowerShell parser validation and `git diff --check` passed; all five run-owned paths are below MAX_PATH. No Unreal build or live host/client run has been performed; full verification remains deferred under the normal-increment policy.
+- **Impact/authority:** adds runtime acceptance for owner-only gear, grid, and Main Hand state over a real host/client session. Fixture mutations use existing server-authority inventory methods behind a development-only command-line flag; no client request or save schema changes.
+- **Limitations/next eligible work:** the selected Main Hand/hotbar coverage child and armor parent remain unchecked. Run focused hotbar, privacy, icon/catalogue, current-format save, and reconnect acceptance after an affected editor build. The two pre-existing gear cost and Workbench recipe edits were preserved and excluded; main checkout used directly, so no handoff synchronization was needed.
+
 ## Autonomous increment 2026-10-15 — Audit equipment acceptance sources
 
 - **Completed/files:** extended `Scripts/Tests/Inventory/Verify-Inventory.ps1 -ContractOnly` to require nine focused Main Hand, two-handed hotbar, grid, owner-privacy, current-save, worn-gear, and icon automation cases with key assertion anchors. Updated this verification handoff, `docs/07-development-setup.md`, and `BACKLOG.md`.

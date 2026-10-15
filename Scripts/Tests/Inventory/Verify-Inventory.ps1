@@ -136,6 +136,26 @@ function Invoke-InventoryContractChecks {
         }
     }
 
+    $inventoryComponent = Get-Content -LiteralPath (Join-Path $projectRoot 'Source\KalmalaGameplay\Private\KalmalaInventoryComponent.cpp') -Raw
+    foreach ($fixtureAnchor in @(
+        'KalmalaInventoryEquipmentPrivacyTest',
+        'Inventory owner-only fixture: Ready=',
+        'Inventory owner-only remote: Hidden='
+    )) {
+        if (-not $inventoryComponent.Contains($fixtureAnchor)) {
+            throw "Live equipment-privacy fixture is missing: $fixtureAnchor"
+        }
+    }
+    foreach ($runnerAnchor in @(
+        '-KalmalaInventoryEquipmentPrivacyTest',
+        'Inventory owner-only fixture: Ready=1 MainHand=1 Gear=1 Grid=1',
+        'Inventory owner-only remote: Hidden=1 MainHand=1 Gear=1 Grid=1'
+    )) {
+        if (-not $inventoryScript.Contains($runnerAnchor)) {
+            throw "Inventory peer runner does not require the equipment-privacy fixture: $runnerAnchor"
+        }
+    }
+
     $architecture = Get-Content -LiteralPath (Join-Path $projectRoot 'docs\02-technical-architecture.md') -Raw
     if ($architecture.Contains('UKalmalaInventorySubsystem') -or $architecture.Contains('hit-test-invisible pack panel')) {
         throw 'Technical architecture still describes the retired persistent inventory panel.'
@@ -143,7 +163,7 @@ function Invoke-InventoryContractChecks {
 
     & (Join-Path $repoPaths.TestsRoot 'Presentation\Verify-TutorialRouteFree.ps1')
     Write-Output 'PASS: legacy inventory HUD and bottom tutorial card are absent; on-demand Inventory and empty-state coverage remain.'
-    Write-Output "PASS: $($equipmentCoverageCases.Count) equipment/hotbar/privacy/save/icon automation cases retain their key source assertions."
+    Write-Output "PASS: $($equipmentCoverageCases.Count) equipment/hotbar/privacy/save/icon automation cases retain their key source assertions; live host/client privacy checks cover nonempty Main Hand, gear and grid fields."
 }
 
 Invoke-InventoryContractChecks
@@ -159,7 +179,7 @@ $clientLog = Join-Path $output 'client.log'
 $hostShaderDir = Join-Path $output 'Host\ShaderWorkingDir'
 $clientShaderDir = Join-Path $output 'Client\ShaderWorkingDir'
 if ($Rendered) { New-Item -ItemType Directory -Path $hostShaderDir, $clientShaderDir -Force | Out-Null }
-$common = "-game -nosound -unattended -nosplash -DDC-ForceMemoryCache -forcelogflush -KalmalaInventoryTest -KalmalaNotificationBaselineAudit -KalmalaUIDeveloperTextScale=$TextScale -KalmalaUIDeveloperContrast=$Contrast"
+$common = "-game -nosound -unattended -nosplash -DDC-ForceMemoryCache -forcelogflush -KalmalaInventoryTest -KalmalaInventoryEquipmentPrivacyTest -KalmalaNotificationBaselineAudit -KalmalaUIDeveloperTextScale=$TextScale -KalmalaUIDeveloperContrast=$Contrast"
 if ($Rendered) { $common += " -windowed -RenderOffscreen -ForceRes -ResX=$Width -ResY=$Height" } else { $common += ' -nullrhi' }
 $hostNotificationCapture = if ($NotificationReview) { "-KalmalaNotificationCapture=`"$output\Host\notice`"" } else { '' }
 $clientNotificationCapture = if ($NotificationReview) { "-KalmalaNotificationCapture=`"$output\Client\notice`"" } else { '' }
@@ -178,14 +198,23 @@ try {
     if ((Get-Date) -ge $deadline) { throw 'Listen server readiness timed out.' }
     $client = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" 127.0.0.1:$Port -WorldSeed=999 $common $clientShader $clientNotificationCapture -abslog=`"$clientLog`" -UserDir=`"$output\Client`""
     $deadline = (Get-Date).AddSeconds(90)
+    $equipmentFixtureSeenAt = $null
     do {
         if ($server.HasExited -or $client.HasExited) { throw 'A peer exited before verification.' }
         $serverText = if (Test-Path $serverLog) { [string](Get-Content -LiteralPath $serverLog -Raw) } else { '' }
         $clientText = if (Test-Path $clientLog) { [string](Get-Content -LiteralPath $clientLog -Raw) } else { '' }
-        if (($serverText + $clientText) -match 'Fatal error:|Assertion failed:|Ensure condition failed:|Inventory server: Passed=0|Harvest inventory: Passed=0|Inventory remote: Empty=0|Inventory owner: Rejected=0') { throw 'Inventory verification failed.' }
+        if (($serverText + $clientText) -match 'Fatal error:|Assertion failed:|Ensure condition failed:|Inventory server: Passed=0|Harvest inventory: Passed=0|Inventory remote: Empty=0|Inventory owner: Rejected=0|Inventory owner-only fixture: Ready=0|Inventory owner-only remote: Hidden=0') { throw 'Inventory verification failed.' }
+        if ($null -eq $equipmentFixtureSeenAt -and $serverText -match 'Inventory owner-only fixture: Ready=1 MainHand=1 Gear=1 Grid=1') {
+            $equipmentFixtureSeenAt = Get-Date
+        }
+        $equipmentFixtureSettled = ($null -ne $equipmentFixtureSeenAt) -and
+            (((Get-Date) - $equipmentFixtureSeenAt).TotalSeconds -ge 2)
         $ownerIndex = $clientText.IndexOf('Inventory owner: Rejected=1 Wood=7 Slots=1')
         if ([regex]::Matches($serverText, 'Inventory server: Passed=1 Wood=7 Slots=1').Count -eq 2 `
             -and [regex]::Matches($serverText, 'Harvest inventory: Passed=1 Materials=3 Range=1 Full=1 Malformed=1 Duplicate=1 SparseDelta=1').Count -eq 2 `
+            -and $equipmentFixtureSettled `
+            -and $serverText -match 'Inventory owner-only fixture: Ready=1 MainHand=1 Gear=1 Grid=1' `
+            -and $clientText -match 'Inventory owner-only remote: Hidden=1 MainHand=1 Gear=1 Grid=1' `
             -and $ownerIndex -ge 0 -and $clientText.IndexOf('Inventory remote: Empty=1', $ownerIndex) -gt $ownerIndex `
             -and (!$NotificationReview -or (
                 $serverText -match 'Notification combined layout: Complete=1 OwnerLocal=1 PeerPrivateHidden=1 Passive=1 Rows=3' `

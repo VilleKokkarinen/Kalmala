@@ -455,6 +455,34 @@ void UKalmalaInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickT
         UE_LOG(LogTemp, Display, TEXT("Inventory server: Passed=%d Wood=%d Slots=%d"), bPassed, GetQuantity(TEXT("Wood")), Stacks.Num());
         const bool bHarvestPassed = VerifyHarvestGrants(Cast<AKalmalaCharacter>(Pawn));
         UE_LOG(LogTemp, Display, TEXT("Harvest inventory: Passed=%d Materials=3 Range=1 Full=1 Malformed=1 Duplicate=1 SparseDelta=1 ToolMismatch=1 ToolPackAtomic=1 ToolWear=1 ToolDepletion=1"), bHarvestPassed);
+        if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaInventoryEquipmentPrivacyTest"))
+            && Pawn->IsLocallyControlled())
+        {
+            const auto* Character = Cast<AKalmalaCharacter>(Pawn);
+            const FKalmalaToolState* HostTool = Character
+                ? Character->GetCarriedToolInventory().FindByPredicate(
+                    [](const FKalmalaToolState& Tool) { return Tool.ItemId == TEXT("StoneAxe"); })
+                : nullptr;
+            FString Reason;
+            const bool bMainHandReady = HostTool && (GetMainHandGuid() == HostTool->InstanceGuid
+                || SetMainHandFromServer(HostTool->InstanceGuid, Reason));
+            const bool bHelmetGranted = bMainHandReady && TryGrantFromServer(TEXT("BoarHideHelmet"), 1);
+            const FKalmalaInventoryStack* HelmetStack = bHelmetGranted
+                ? Stacks.FindByPredicate([](const FKalmalaInventoryStack& Stack)
+                    { return Stack.ItemId == TEXT("BoarHideHelmet"); })
+                : nullptr;
+            const bool bHelmetEquipped = HelmetStack && HelmetStack->ItemGuids.Num() == 1
+                && EquipGearFromServer(HelmetStack->ItemGuids[0], Reason);
+            const FKalmalaEquippedGear* HeadGear = FindEquippedGear(EKalmalaGearSlot::Head);
+            const bool bGearReady = bHelmetEquipped && HeadGear && HeadGear->ItemId == TEXT("BoarHideHelmet");
+            const bool bHandReady = HostTool && GetMainHandGuid() == HostTool->InstanceGuid
+                && ActiveItem == TEXT("StoneAxe") && ActiveInstanceGuid == HostTool->InstanceGuid;
+            const bool bGridReady = GridSlots.Num() == MaxSlots && GridInstanceGuids.Num() == MaxSlots
+                && GridInstanceGuids.ContainsByPredicate([](const FGuid& Guid) { return Guid.IsValid(); });
+            const bool bFixtureReady = bHandReady && bGearReady && bGridReady;
+            UE_LOG(LogTemp, Display, TEXT("Inventory owner-only fixture: Ready=%d MainHand=%d Gear=%d Grid=%d"),
+                bFixtureReady, bHandReady, bGearReady, bGridReady);
+        }
     }
     else if (Pawn->IsLocallyControlled())
     {
@@ -482,6 +510,15 @@ void UKalmalaInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickT
         // Repeat remote checks so the runner observes privacy after owner replication arrives.
         UE_LOG(LogTemp, Display, TEXT("Inventory remote: Empty=%d"), Stacks.IsEmpty());
         UE_LOG(LogTemp, Display, TEXT("Item gain receipts remote: Empty=%d"), GainReceipts.IsEmpty());
+        if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaInventoryEquipmentPrivacyTest")))
+        {
+            const bool bMainHandHidden = ActiveItem.IsNone() && !ActiveInstanceGuid.IsValid();
+            const bool bGearHidden = EquippedGear.IsEmpty();
+            const bool bGridHidden = GridSlots.IsEmpty() && GridInstanceGuids.IsEmpty();
+            const bool bOwnerOnlyStateHidden = bMainHandHidden && bGearHidden && bGridHidden;
+            UE_LOG(LogTemp, Display, TEXT("Inventory owner-only remote: Hidden=%d MainHand=%d Gear=%d Grid=%d"),
+                bOwnerOnlyStateHidden, bMainHandHidden, bGearHidden, bGridHidden);
+        }
         const auto* Character = Cast<AKalmalaCharacter>(Pawn);
         UE_LOG(LogTemp, Display, TEXT("Tool condition remote: Hidden=%d"), Character == nullptr
             || (Character->GetToolDurability(TEXT("StoneAxe")) == 0 && Character->GetToolDurability(TEXT("StonePick")) == 0
