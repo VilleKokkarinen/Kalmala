@@ -10,6 +10,15 @@ Run it with Inventory equipment, hotbar, current-save-format and icon automation
 after building the editor. These are added source cases, not executed results.
 The existing equipment icon/save fixtures now include seventeen profiles.
 
+The two-handed fixture also possesses its isolated pawn and calls the real
+`ServerUseHotbarSlot` path, advancing time beyond the request cadence. It checks
+both-hands/full-pack rejection, one-cell retry, shield-only/full-pack Bow
+selection, ordinary-item rejection while Bow is wielded, invalid numbers,
+unchanged rejection layouts and exact retained tool GUID/level/condition.
+Direct equipment calls still cover reverse shield equip and unwielding. These
+cases do not establish network delivery or peer privacy; execute the fixture
+after an editor build when the catalogue-load blocker below is resolved.
+
 Lightweight JSON/cost/stack/source/path inspection, Python/PowerShell parser
 checks, image preparation, content-only batch I import and the 66-row catalogue
 icon audit passed. Full verification is deferred for this user-directed increment.

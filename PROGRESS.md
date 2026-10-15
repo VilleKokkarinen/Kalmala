@@ -1,5 +1,13 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-15 — Cover two-handed hotbar swaps
+
+- **Completed/files:** extended `Source/KalmalaGameplay/Private/Tests/KalmalaTwoHandedTest.cpp` with a possessed isolated authority pawn and real `ServerUseHotbarSlot` requests. Covers both-hands/full-pack rejection, retry after freeing one cell, shield-only full-pack Bow selection, ordinary-item rejection while Bow is wielded and invalid numbers. Checks layout preservation, original shield GUID/wear and tool GUID/ItemId/level/condition. Updated `docs/07-development-setup.md`, `BACKLOG.md` and this entry.
+- **Lightweight verification:** inspected fixture APIs, possession, cadence, grid placement/capacity and mutation order against live source; focused source assertions and catalogue-fixture JSON checks passed, as did working/staged whitespace, scope and MAX_PATH checks. No Unreal build or automation execution ran; full verification remains deferred for this normal partial child increment, not milestone-final.
+- **Impact/authority:** regression source now covers numbered hotbar entry into the two-handed transaction. Production gameplay, RPCs, replication and saves are unchanged. Server-local calls do not prove live transport or remote privacy.
+- **Limits/next eligible task:** the same Main Hand/hotbar coverage child and armor parent remain unchecked. Execute equipment/hotbar/privacy/current-format save/reconnect acceptance; resolve the pre-existing duplicated WoodShieldRecipe before integrated catalogue loading. Six material icon gaps, session-only gear/location and the forty-tool save cap remain. Three pre-existing catalogue edits were preserved and excluded.
+- **Handoff:** operated directly in `E:\dev\Kalmala`; no worktree synchronization needed.
+
 ## User-directed increment 2026-10-15 — Sharpened wooden arrow artwork
 
 - **Completed/files:** edited `Content/Kalmala/UI/Source/IconOriginals/WoodenArrow.png` with built-in imagegen so every tip is carved directly from its shaft, with no separate bronze/metal/stone head or tip bindings. Refreshed `Content/Kalmala/UI/Source/Icons/WoodenArrow.png` and `Content/Kalmala/UI/Icons/Items/WoodenArrow.uasset`; recorded the exact edit prompt in `docs/archery-icons.md`, plus backlog and this entry.

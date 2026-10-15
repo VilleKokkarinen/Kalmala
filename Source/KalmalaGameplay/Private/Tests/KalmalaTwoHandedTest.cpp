@@ -6,6 +6,7 @@
 #include "KalmalaToolCatalogue.h"
 #include "KalmalaToolLifecycleContract.h"
 #include "Engine/World.h"
+#include "GameFramework/PlayerController.h"
 #include "Misc/AutomationTest.h"
 #include "Misc/ScopeExit.h"
 #include "UObject/UnrealType.h"
@@ -62,8 +63,17 @@ bool FKalmalaTwoHandedTest::RunTest(const FString& Parameters)
     if (!TestNotNull(TEXT("Isolated authority world exists"), World)) return false;
     ON_SCOPE_EXIT { World->DestroyWorld(false); };
     auto* Pawn = World->SpawnActor<AKalmalaCharacter>();
-    if (!TestNotNull(TEXT("Pawn spawned without profile loading"), Pawn)) return false;
+    auto* Controller = World->SpawnActor<APlayerController>();
+    if (!TestNotNull(TEXT("Pawn spawned without profile loading"), Pawn)
+        || !TestNotNull(TEXT("Hotbar owner controller exists"), Controller)) return false;
+    Controller->Possess(Pawn);
     auto* Inventory = Pawn->GetInventoryComponent();
+    if (!TestNotNull(TEXT("Equipment inventory exists"), Inventory)) return false;
+    auto UseNumber = [&](const int32 Slot)
+    {
+        World->Tick(LEVELTICK_TimeOnly, 0.25f);
+        Inventory->ServerUseHotbarSlot(Slot);
+    };
     const FArrayProperty* Property = FindFProperty<FArrayProperty>(Pawn->GetClass(), TEXT("CarriedTools"));
     if (!TestNotNull(TEXT("Carried fixture field exists"), Property)) return false;
     const FStructProperty* Record = CastField<FStructProperty>(Property->Inner);
@@ -95,15 +105,20 @@ bool FKalmalaTwoHandedTest::RunTest(const FString& Parameters)
     if (!TestTrue(TEXT("Fill forty pack cells including packed bow"), Inventory->TryCommitStacksFromServer(Empty, FullPack))) return false;
     const auto Before = Inventory->GetGridInstanceGuids();
     TestFalse(TEXT("Full pack rejects returning two held items for bow"), Inventory->SetMainHandFromServer(Bow.InstanceGuid, Reason));
+    const int32 BowSlot = Inventory->GetGridInstanceGuids().IndexOfByKey(Bow.InstanceGuid);
+    if (!TestTrue(TEXT("Packed bow has a numbered cell"), BowSlot >= 0 && BowSlot < Inventory->Columns)) return false;
+    UseNumber(BowSlot);
     TestTrue(TEXT("Rejected equip preserves hammer"), Inventory->GetMainHandGuid() == Hammer.InstanceGuid);
     TestTrue(TEXT("Rejected equip preserves complete layout"), Inventory->GetGridInstanceGuids() == Before);
+    TestEqual(TEXT("Rejected hotbar swap preserves all stack records"), Inventory->GetStacks().Num(), 39);
     const auto* Shield = Inventory->FindEquippedGear(EKalmalaGearSlot::Shield);
     if (!TestNotNull(TEXT("Rejected equip preserves worn shield"), Shield)) return false;
     TestTrue(TEXT("Rejected equip preserves shield GUID and wear"), Shield->ItemGuid == ShieldGuid && Shield->ConditionSpent == 1);
 
-    if (!TestTrue(TEXT("Free exactly one cell"), Inventory->TryConsumeFromServer(TEXT("BoarHideBoots"), 1))
-        || !TestTrue(TEXT("One free cell accepts two-hand swap"), Inventory->SetMainHandFromServer(Bow.InstanceGuid, Reason))) return false;
-    TestTrue(TEXT("Bow is now wielded"), Inventory->GetMainHandGuid() == Bow.InstanceGuid);
+    if (!TestTrue(TEXT("Free exactly one cell"), Inventory->TryConsumeFromServer(TEXT("BoarHideBoots"), 1))) return false;
+    TestTrue(TEXT("Freeing capacity preserves bow's numbered cell"), Inventory->GetSlotInstanceGuid(BowSlot) == Bow.InstanceGuid);
+    UseNumber(BowSlot);
+    if (!TestTrue(TEXT("One free cell accepts hotbar two-hand swap"), Inventory->GetMainHandGuid() == Bow.InstanceGuid)) return false;
     TestNull(TEXT("Bow cannot coexist with worn shield"), Inventory->FindEquippedGear(EKalmalaGearSlot::Shield));
     TestTrue(TEXT("Old weapon returned without identity change"), Inventory->GetGridInstanceGuids().Contains(Hammer.InstanceGuid));
     TestTrue(TEXT("Shield returned with original physical identity"), Inventory->GetStacks().ContainsByPredicate(
@@ -111,6 +126,15 @@ bool FKalmalaTwoHandedTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Bow has no pack alias"), Inventory->GetGridInstanceGuids().Contains(Bow.InstanceGuid));
     TestFalse(TEXT("Full pack rejects unwielding bow"), Inventory->SetMainHandFromServer(FGuid(), Reason));
     TestTrue(TEXT("Rejected unwield preserves bow"), Inventory->GetMainHandGuid() == Bow.InstanceGuid);
+    const auto BeforeOrdinary = Inventory->GetGridInstanceGuids();
+    const int32 BootsSlot = Inventory->GetGridSlots().IndexOfByKey(TEXT("BoarHideBoots"));
+    if (!TestTrue(TEXT("Ordinary fixture has a numbered cell"), BootsSlot >= 0 && BootsSlot < Inventory->Columns)) return false;
+    UseNumber(BootsSlot);
+    TestTrue(TEXT("Full-pack ordinary hotbar selection preserves bow"), Inventory->GetMainHandGuid() == Bow.InstanceGuid);
+    TestTrue(TEXT("Rejected ordinary selection preserves all cells"), Inventory->GetGridInstanceGuids() == BeforeOrdinary);
+    for (const int32 Slot : {-1, Inventory->Columns, MAX_int32}) UseNumber(Slot);
+    TestTrue(TEXT("Invalid hotbar numbers preserve two-handed wielding"), Inventory->GetMainHandGuid() == Bow.InstanceGuid);
+    TestTrue(TEXT("Invalid hotbar numbers preserve full layout"), Inventory->GetGridInstanceGuids() == BeforeOrdinary);
 
     if (!TestTrue(TEXT("Equipping packed shield returns bow using shield's vacated cell"),
         Inventory->EquipGearFromServer(ShieldGuid, Reason))) return false;
@@ -119,13 +143,26 @@ bool FKalmalaTwoHandedTest::RunTest(const FString& Parameters)
     Shield = Inventory->FindEquippedGear(EKalmalaGearSlot::Shield);
     if (!TestNotNull(TEXT("Shield is equipped"), Shield)) return false;
     TestEqual(TEXT("Swap preserved shield condition"), Shield->ConditionSpent, 1);
-    TestTrue(TEXT("With only shield held, packed bow frees enough space even in full pack"),
-        Inventory->SetMainHandFromServer(Bow.InstanceGuid, Reason));
+    const int32 ReturnedBowSlot = Inventory->GetGridInstanceGuids().IndexOfByKey(Bow.InstanceGuid);
+    if (!TestTrue(TEXT("Returned bow has a numbered cell"), ReturnedBowSlot >= 0 && ReturnedBowSlot < Inventory->Columns)) return false;
+    UseNumber(ReturnedBowSlot);
+    if (!TestTrue(TEXT("Shield-only full pack accepts bow through hotbar"), Inventory->GetMainHandGuid() == Bow.InstanceGuid)) return false;
     TestNull(TEXT("Shield again returned"), Inventory->FindEquippedGear(EKalmalaGearSlot::Shield));
     if (!TestTrue(TEXT("Free room for unwield"), Inventory->TryConsumeFromServer(TEXT("BoarHideBoots"), 1))) return false;
     TestTrue(TEXT("Unwield bow with one free cell"), Inventory->SetMainHandFromServer(FGuid(), Reason));
     TestFalse(TEXT("Both hands clear after unwield"), Inventory->GetMainHandGuid().IsValid());
     TestTrue(TEXT("Unwield preserves physical bow"), Inventory->GetGridInstanceGuids().Contains(Bow.InstanceGuid));
+    for (const FKalmalaToolState& Original : {Hammer, Bow})
+    {
+        const auto* Current = Pawn->GetCarriedToolInventory().FindByPredicate(
+            [&](const auto& Tool) { return Tool.InstanceGuid == Original.InstanceGuid; });
+        if (TestNotNull(TEXT("Hotbar swaps retain original tool record"), Current))
+        {
+            TestEqual(TEXT("Hotbar swaps preserve item identity"), Current->ItemId, Original.ItemId);
+            TestEqual(TEXT("Hotbar swaps preserve level"), Current->ToolLevel, Original.ToolLevel);
+            TestEqual(TEXT("Hotbar swaps preserve condition"), Current->Durability, Original.Durability);
+        }
+    }
     Pawn->SetRole(ROLE_SimulatedProxy);
     TestFalse(TEXT("Client role cannot wield bow"), Inventory->SetMainHandFromServer(Bow.InstanceGuid, Reason));
     Pawn->SetRole(ROLE_Authority);
