@@ -1,5 +1,6 @@
 #include "KalmalaHarvestNode.h"
 #include "KalmalaResistanceComponent.h"
+#include "KalmalaForestLayout.h"
 #include "KalmalaToolLifecycleContract.h"
 #include "KalmalaGameMode.h"
 #include "KalmalaWorldGenerationGameState.h"
@@ -104,6 +105,25 @@ AKalmalaHarvestNode::AKalmalaHarvestNode()
     if (Rock.Succeeded()) RockMaterial = Rock.Object;
 }
 
+bool AKalmalaHarvestNode::InitializeForestServer(const FKalmalaWorldGenerationConfig& Config,
+    const FVector2D& PatchCenter, const int32 CandidateIndex)
+{
+    if (!HasAuthority() || !PersistentSpawnId.IsEmpty() || bHarvested) return false;
+    const TArray<FKalmalaForestTreeDescriptor> Trees = FKalmalaForestLayout::Generate(Config, PatchCenter);
+    const FKalmalaForestTreeDescriptor* Tree = Trees.FindByPredicate(
+        [CandidateIndex](const FKalmalaForestTreeDescriptor& Candidate) { return Candidate.CandidateIndex == CandidateIndex; });
+    if (!Tree || Tree->PersistentSpawnId.IsEmpty()) return false;
+    const FName SourceId = Tree->bElderwood ? FName(TEXT("elderwood-ironheart-trunk")) : FName(TEXT("meadows-birch-trunk"));
+    if (!FKalmalaBiomeContentContract::IsValidGatheringSourceId(SourceId)) return false;
+    SetActorLocation(Tree->Location);
+    SetActorRotation(FRotator(0.0f, Tree->Yaw, 0.0f));
+    PersistentSpawnId = Tree->PersistentSpawnId;
+    GatheringSourceId = SourceId;
+    BuildSourcePresentation();
+    ForceNetUpdate();
+    return true;
+}
+
 void AKalmalaHarvestNode::InitializeServer(const FKalmalaWorldPopulationSpawn& Spawn)
 {
     if (HasAuthority() && PersistentSpawnId.IsEmpty() && !bHarvested
@@ -150,6 +170,9 @@ FName AKalmalaHarvestNode::GetGatheringPresentationId() const
 
 FString AKalmalaHarvestNode::GetM9ResourceDepletionId() const
 {
+    // Individually generated forest trees use the world sparse harvested-ID ledger,
+    // rather than the session-only M9 resource overlay.
+    if (PersistentSpawnId.StartsWith(TEXT("forest:v1:"))) return FString();
     return FKalmalaM9SourceLootContract::BuildResourceDepletionId(GatheringSourceId, PersistentSpawnId);
 }
 

@@ -1,5 +1,15 @@
 # Autonomous development progress
 
+
+## Autonomous increment 2026-10-15 — Bridge forest candidates to harvest actors
+
+- **Completed:** partial increment of the first unchecked generated-tree child. Added server reconstruction of a shared forest candidate into the existing birch/ironheart trunk attack flow, assigning stable identity, position and yaw. Forest depletion routes through `OnHarvested` instead of the session M9 overlay. Child remains unchecked.
+- **Files changed:** `Source/KalmalaGameplay/Public/KalmalaHarvestNode.h`, `Source/KalmalaGameplay/Private/KalmalaHarvestNode.cpp`, `docs/02-technical-architecture.md`, `BACKLOG.md`, and this file.
+- **Lightweight checks:** focused source assertions for authority/reinitialization guards before mutation, shared generation/original ordinal lookup, existing source contracts and forest callback routing; source-ID reference inspection; working/staged diff checks and MAX_PATH audit passed. No Unreal build, automation or peer run; full verification remains deferred for this normal partial increment.
+- **Impact/authority:** server materialization has an actor entrypoint without client descriptors or rewards. No RPC or save schema changed. Other source actors retain their existing depletion routing.
+- **Limitations:** no streaming caller yet, so live trees remain decorative. Actor meshes retain fixed trunk dimensions. Persistence needs callback binding at spawn. Compile/runtime confirmation is deferred.
+- **Next eligible task:** same child: patch-owned spawning/eviction, matching cosmetic suppression/dimensions and sparse reload filtering. Main checkout used directly; no handoff sync required. Checkout began clean; app thread state showed only this run active. CIM process access was unavailable.
+
 ## Autonomous increment 2026-10-15 — Identify generated forest trees
 
 - **Completed/files:** added GetPersistentSpawnId and populated shared forest descriptors with forest:v1 identities from full unsigned seed, exact patch center (17 significant digits; signed zero normalized), and original candidate ordinal. Invalid center/ordinal inputs return empty. Changed KalmalaForestLayout.h/.cpp, architecture, BACKLOG and PROGRESS. First unchecked generated-tree child remains incomplete.

@@ -2795,3 +2795,18 @@ This is the first integrated part of generated-tree harvesting. Trees remain
 decorative until server resource materialization, matching mesh suppression,
 and streaming/depletion ownership are connected. No reward, save, replication
 or client authority contract changes in this increment.
+
+### Forest harvest actor bridge (2026-10-15)
+
+`AKalmalaHarvestNode::InitializeForestServer` regenerates the shared layout from
+server world config and patch center and finds the original candidate ordinal.
+Non-authority calls, absent candidates and reinitialization fail before mutation.
+The actor receives the generated identity, position and yaw and the existing
+Meadows birch-trunk or Elderwood ironheart-trunk contract (including tiers/yields).
+Forest IDs bypass the session M9 depletion overlay and emit `OnHarvested` after
+accepted pickup, for binding to the existing world sparse harvested-ID callback.
+
+No streaming caller is enabled yet: live trees remain decorative. Matching mesh
+suppression, descriptor-sized presentation, patch-owned spawning/eviction and
+sparse reload filtering remain required. No depletion is persisted without a
+bound callback. No save schema or client RPC changes. Runtime checks are deferred.

@@ -7,6 +7,8 @@
 #include "KalmalaWorldPopulationLayout.h"
 #include "KalmalaHarvestNode.generated.h"
 
+struct FKalmalaWorldGenerationConfig;
+
 class USphereComponent;
 class UMaterialInterface;
 class UProceduralMeshComponent;
@@ -22,6 +24,10 @@ class KALMALAGAMEPLAY_API AKalmalaHarvestNode : public AActor, public IKalmalaIn
 
 public:
     AKalmalaHarvestNode();
+
+    /** Reconstructs a forest candidate on the server; no client descriptor or reward input. */
+    bool InitializeForestServer(const FKalmalaWorldGenerationConfig& Config,
+        const FVector2D& PatchCenter, int32 CandidateIndex);
 
     void InitializeServer(const FKalmalaWorldPopulationSpawn& Spawn);
     void InitializeDiscoveryServer(const FString& InPersistentSpawnId, const FVector& InLocation);
