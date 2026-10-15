@@ -34,7 +34,7 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
-Current first-incomplete item: the Main Hand/hotbar coverage child under “Add armor items and a worn-equipment inventory” remains unchecked. UBT compiles the corrected equipment Gameplay/UI translation units, but focused automation/live acceptance is awaiting resolution of the pre-existing duplicate `FSourceCase::ItemId` compile error in `KalmalaM9SourceAcceptanceTest.cpp` (commit `9b96cafb`).
+Current first-incomplete item: under “Attack-driven tree harvesting,” convert decorative generated forest trees into individually attackable sources and integrate their depletion/streaming policy.
 
 - [x] **2026-10-15 — Move Wood Shield to Workbench:** moved its sole crafting recipe and matching upgrade-cost station to Workbench, preserving current ingredient costs. Updated catalogue coverage; JSON/unique-ID checks passed, Unreal verification deferred.
 
@@ -43,6 +43,8 @@ Current first-incomplete item: the Main Hand/hotbar coverage child under “Add 
 - [x] **2026-10-15 — Make arrow artwork plain sharpened wood:** replace the bronze-looking attached heads with continuous whittled shaft tips, retaining feathers/style/transparency. Updated original, prepared icon and imported texture; visual review and 66-row icon validation passed. Gameplay verification deferred.
 
 - [x] **2026-10-15 — Add Bow, String, Wooden Arrows and two-handed wielding:** String stacks to 20, arrows to 100; Workbench Bow costs 5 Wood/2 String, arrow batch costs 5 Wood for 20. Added three original imported icons and atomic capacity-safe weapon/shield swaps, including full-pack rejection with both hands occupied. Lightweight checks/import/icon audit passed; full Unreal verification deferred. String sources and shooting are excluded by user direction.
+
+- [x] **2026-10-15 — Add Bow item-level-up data:** reuse its Workbench acquisition cost (5 Wood, 2 String) for the level-one upgrade and add +50 durability per level. Keep damage rewards at zero while shooting is unimplemented. Data/source checks passed; Unreal verification deferred.
 
 - [x] **2026-10-15 — Generate Bone fragment artwork:** generate an original transparent icon matching the existing materials, retain original/prepared PNGs, import the Texture2D in batch H, wire its shared runtime mapping and replace its test fallback exception. Import validation and the 63-entry icon audit passed; gameplay build/runtime verification deferred.
 

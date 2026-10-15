@@ -84,6 +84,35 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
             TestEqual(TEXT("Wearable upgrade cost begins at level one"), Upgrade->Level, 1);
         }
     }
+    const FKalmalaToolRecipeData* BowUpgrade = AuthoredCatalogue
+        ? AuthoredCatalogue->UpgradeCosts.FindByPredicate(
+            [](const FKalmalaToolRecipeData& Cost) { return Cost.ItemId == TEXT("Bow"); }) : nullptr;
+    TestNotNull(TEXT("Bow has a level-one upgrade cost record"), BowUpgrade);
+    if (BowUpgrade)
+    {
+        TestEqual(TEXT("Bow upgrades at the Workbench"), BowUpgrade->RequiredStation, FString(TEXT("Workbench")));
+        TestEqual(TEXT("Bow upgrade starts at level one"), BowUpgrade->Level, 1);
+        TestTrue(TEXT("Bow upgrade reuses its acquisition materials"),
+            BowUpgrade->Ingredients.ContainsByPredicate([](const FKalmalaToolRecipeIngredientData& Cost)
+                { return Cost.ItemId == TEXT("Wood") && Cost.Quantity == 5; })
+            && BowUpgrade->Ingredients.ContainsByPredicate([](const FKalmalaToolRecipeIngredientData& Cost)
+                { return Cost.ItemId == TEXT("String") && Cost.Quantity == 2; }));
+    }
+    FKalmalaToolLevelStats BowLevelTwo;
+    TestTrue(TEXT("Bow level-two stats resolve"),
+        AuthoredCatalogue && AuthoredCatalogue->GetLevelStats(TEXT("Bow"), 2, BowLevelTwo));
+    if (AuthoredCatalogue && AuthoredCatalogue->GetLevelStats(TEXT("Bow"), 2, BowLevelTwo))
+    {
+        const FKalmalaToolProfileData* BowProfile = AuthoredCatalogue->FindProfile(TEXT("Bow"));
+        TestNotNull(TEXT("Bow profile exists for progression"), BowProfile);
+        if (BowProfile)
+        {
+            TestEqual(TEXT("Bow gains fifty durability per level"), BowLevelTwo.MaxDurability,
+                BowProfile->MaxDurability + 50);
+            TestEqual(TEXT("Bow receives no damage reward before shooting is implemented"),
+                BowLevelTwo.DamageBonuses.Total(), BowProfile->DamageBonuses.Total());
+        }
+    }
     UKalmalaToolCatalogue* BoundaryCatalogue = NewObject<UKalmalaToolCatalogue>();
     BoundaryCatalogue->Profiles = AuthoredCatalogue->Profiles;
     BoundaryCatalogue->Recipes = AuthoredCatalogue->Recipes;
@@ -155,7 +184,32 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
     const TArray<FKalmalaToolProgressionEntry>& Entries = FKalmalaToolProgressionContract::GetEntries();
     TestTrue(TEXT("Crafted tool progression catalogue is bounded and internally valid"),
         FKalmalaToolProgressionContract::IsCatalogueValid());
-    TestEqual(TEXT("Current authored stats generate nineteen progression entries"), Entries.Num(), 19);
+    int32 ExpectedProgressionEntryCount = AuthoredCatalogue ? AuthoredCatalogue->Recipes.Num() : 0;
+    if (AuthoredCatalogue)
+    {
+        for (const FKalmalaToolRecipeData& Upgrade : AuthoredCatalogue->UpgradeCosts)
+        {
+            if (AuthoredCatalogue->FindProfile(Upgrade.ItemId))
+                ExpectedProgressionEntryCount += FKalmalaToolProgressionContract::MaxStationToolLevel - 1;
+        }
+    }
+    TestEqual(TEXT("Authored station progression covers acquisitions and each item upgrade"),
+        Entries.Num(), ExpectedProgressionEntryCount);
+    const FKalmalaToolProgressionEntry* BowLevelTwoEntry =
+        FKalmalaToolProgressionContract::FindEntry(TEXT("Bow"), 2);
+    TestNotNull(TEXT("Bow has a generated level-two progression entry"), BowLevelTwoEntry);
+    if (BowLevelTwoEntry)
+    {
+        TestEqual(TEXT("Bow level two uses the Workbench"),
+            BowLevelTwoEntry->RequiredStation, EKalmalaToolStationKind::Workbench);
+        TestEqual(TEXT("Bow level two requires a level-two Workbench"),
+            BowLevelTwoEntry->RequiredStationLevel, 2);
+        TestTrue(TEXT("Bow level two scales from the acquisition materials"),
+            BowLevelTwoEntry->MaterialCosts.ContainsByPredicate([](const FKalmalaToolMaterialCost& Cost)
+                { return Cost.ItemId == TEXT("Wood") && Cost.Quantity == 5; })
+            && BowLevelTwoEntry->MaterialCosts.ContainsByPredicate([](const FKalmalaToolMaterialCost& Cost)
+                { return Cost.ItemId == TEXT("String") && Cost.Quantity == 2; }));
+    }
     TestTrue(TEXT("Generated entries remain bounded"), Entries.Num() <= FKalmalaToolProgressionContract::MaxToolProgressionEntries);
     for (const TPair<FName, FName>& GearAndStation : GearStations)
         TestNull(TEXT("Wearable costs do not enter carried-tool progression"),

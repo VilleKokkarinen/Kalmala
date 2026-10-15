@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-15 — Add Bow item-level-up entries
+
+- **Completed:** added `item-level-up/costs/bows.json` and registered it in `Content/Data/GameCatalogues.json`. Bow's level-one Workbench upgrade reuses its acquisition materials (5 Wood, 2 String). Added a shared Bow reward of +50 maximum durability per level, with damage gains left at zero while ranged shooting remains unimplemented. Extended `Kalmala.Gameplay.M9.ToolProgressionCatalogue` coverage for Bow cost, durability reward, and generated progression; replaced the stale fixed entry count with one derived from authored recipes and upgrade data. Updated the decision log, architecture/setup/game-features docs, backlog, and this progress record.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `Content/Data/GameCatalogues.json`, `Content/Data/GameCatalogues/item-level-up/costs/bows.json`, `Content/Data/GameCatalogues/item-level-up/rewards/item-stats.json`, `Source/KalmalaGameplay/Private/Tests/KalmalaM9ToolProgressionCatalogueTest.cpp`, `docs/02-technical-architecture.md`, `docs/05-decision-log.md`, `docs/07-development-setup.md`, and `docs/game-features.md`.
+- **Verification:** PowerShell JSON/reference validation parsed the manifest, item/profile data, all eight upgrade-cost files, rewards, and Bow's acquisition recipe. All 17 equipment profiles have unique upgrade costs; all reward/material references resolve; Bow's cost matches its acquisition; focused progression assertions are present. Increment-owned `git diff --check` and MAX_PATH audits passed. Unreal build and automation remain deferred under the normal increment policy.
+- **Observable impact and authority:** Bow now has authored Workbench progression through the existing server progression contract; each level adds condition. No RPC, save field, or save migration changes.
+- **Known limitations:** ranged shooting remains out of scope, so Bow receives no damage bonus yet. The pre-existing formatting-only edit in `items/equipment/bows.json` is preserved and excluded.
+- **Next eligible backlog task:** under Attack-driven tree harvesting, convert decorative generated forest trees into individually attackable sources and integrate their depletion/streaming policy.
+
 ## Autonomous development increment 2026-10-15 — Main Hand acceptance completed
 
 - **Selected work:** completed the first unchecked Main Hand/hotbar task under Add armor items and a worn-equipment inventory.

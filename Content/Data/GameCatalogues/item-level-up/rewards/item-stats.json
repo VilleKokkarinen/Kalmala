@@ -69,6 +69,15 @@
     },
     {
       "ItemIds": [
+        "Bow"
+      ],
+      "LevelUpReward": {
+        "MaxDurability": 50,
+        "DamageBonuses": {}
+      }
+    },
+    {
+      "ItemIds": [
         "WoodShield",
         "BoarHideHelmet",
         "BoarHideCape",

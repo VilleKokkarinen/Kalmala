@@ -1,0 +1,14 @@
+{
+  "upgrades": [
+    {
+      "DisplayName": "Bow",
+      "ItemId": "Bow",
+      "RequiredStation": "Workbench",
+      "Ingredients": [
+        { "ItemId": "Wood", "Quantity": 5 },
+        { "ItemId": "String", "Quantity": 2 }
+      ],
+      "Level": 1
+    }
+  ]
+}

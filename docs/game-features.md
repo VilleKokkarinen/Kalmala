@@ -8,7 +8,9 @@ original imported inventory artwork. String has no acquisition source yet.
 Bow occupies both hands; validated atomic swaps return the previous tool and
 shield, requiring one free cell if both were held. Shield equip returns Bow;
 unwielding requires pack capacity. Wielding state remains owner-private and
-session-only. Shooting is outside the user's requested scope for this increment.
+session-only. Bow level-ups reuse its 5 Wood/2 String Workbench acquisition cost
+and grant +50 maximum durability per level. Damage rewards remain zero while
+shooting is unimplemented.
 
 Added gameplay and UI, in brief. [BACKLOG.md](../BACKLOG.md) tracks unfinished integration and verification.
 
