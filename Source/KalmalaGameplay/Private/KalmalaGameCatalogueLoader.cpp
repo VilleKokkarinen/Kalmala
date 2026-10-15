@@ -22,7 +22,7 @@ namespace
             FString ItemId;
             if (!Object.IsValid() || !Object->TryGetStringField(TEXT("ItemId"), ItemId)) return false;
             for (const TCHAR* Retired : { TEXT("ToolId"), TEXT("ToolSet"), TEXT("ToolKind"),
-                TEXT("Action"), TEXT("RequiredSkill"), TEXT("ItemCategory") })
+                TEXT("Action"), TEXT("RequiredSkill"), TEXT("ItemCategory"), TEXT("bTwoHanded") })
             {
                 if (Object->HasField(Retired)) return false;
             }
@@ -46,7 +46,13 @@ namespace
             Object->SetStringField(TEXT("ToolSet"), Set);
             Object->SetStringField(TEXT("Action"), Action);
             Object->SetStringField(TEXT("RequiredSkill"), Action);
-            if (!Object->HasField(TEXT("bTwoHanded"))) Object->SetBoolField(TEXT("bTwoHanded"), false);
+            bool bTwoHanded = false;
+            if (Object->HasField(TEXT("twoHanded")))
+            {
+                if (!Object->TryGetBoolField(TEXT("twoHanded"), bTwoHanded)) return false;
+                Object->RemoveField(TEXT("twoHanded"));
+            }
+            Object->SetBoolField(TEXT("bTwoHanded"), bTwoHanded);
             if (!Object->HasField(TEXT("MinimumSkillLevel"))) Object->SetNumberField(TEXT("MinimumSkillLevel"), 1.0);
         }
         return true;

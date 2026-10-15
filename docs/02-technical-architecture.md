@@ -10,11 +10,12 @@ for Wood Shield. Wearable upgrade execution remains pending.
 
 ## Two-handed equipment — 2026-10-15
 
-Equipment profiles support `bTwoHanded`, defaulted to false before strict JSON
-conversion for existing profiles. `Bow` is a crafted two-handed profile, with
-100 base condition and +50 maximum durability per level; it is not granted in
-the starting kit. Its acquisition recipe is on the Workbench. Attack damage
-remains zero while ranged shooting is deferred.
+Equipment profiles may set the JSON boolean `twoHanded` to true; omitting it
+means false. The loader maps the authored field to its internal boolean and
+rejects the retired `bTwoHanded` JSON key. `Bow` is a crafted two-handed
+profile, with 100 base condition and +50 maximum durability per level; it is
+not granted in the starting kit. Its acquisition recipe is on the Workbench.
+Attack damage remains zero while ranged shooting is deferred.
 The melee request/execution path rejects a Bow, including a switch during
 windup, so it cannot fall through to unarmed damage. Shooting is deferred by
 explicit user scope.

@@ -23,8 +23,10 @@ bool FKalmalaTwoHandedTest::RunTest(const FString& Parameters)
     const auto* Recipes = UKalmalaRecipeCatalogue::Get();
     if (!TestNotNull(TEXT("Items load"), Items) || !TestNotNull(TEXT("Tools load"), Tools)
         || !TestNotNull(TEXT("Recipes load"), Recipes)) return false;
-    TestTrue(TEXT("Bow requires both hands"), FKalmalaToolLifecycleContract::IsTwoHanded(TEXT("Bow")));
-    TestFalse(TEXT("Hammer remains one handed"), FKalmalaToolLifecycleContract::IsTwoHanded(TEXT("ConstructionHammer")));
+    TestTrue(TEXT("Bow's authored twoHanded flag requires both hands"),
+        FKalmalaToolLifecycleContract::IsTwoHanded(TEXT("Bow")));
+    TestFalse(TEXT("Omitted twoHanded flag defaults the hammer to one hand"),
+        FKalmalaToolLifecycleContract::IsTwoHanded(TEXT("ConstructionHammer")));
     TestTrue(TEXT("Construction Hammer has no combat attacks"), Tools->GetAttacks(TEXT("ConstructionHammer")).IsEmpty());
     TestFalse(TEXT("Unknown item cannot claim both hands"), FKalmalaToolLifecycleContract::IsTwoHanded(TEXT("ForgedBow")));
     for (const auto& Expected : {TPair<FName, int32>(TEXT("String"), 20), TPair<FName, int32>(TEXT("WoodenArrow"), 100)})

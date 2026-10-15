@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-15 — Rename the two-handed item flag
+
+- **Completed:** renamed Bow's authored equipment JSON property to `twoHanded`. The catalogue loader reads the optional boolean, defaults omitted values to false, maps it to the internal Unreal boolean, and rejects the retired `bTwoHanded` JSON key. Updated focused automation assertion labels and architecture documentation.
+- **Files changed:** `Content/Data/GameCatalogues/items/equipment/bows.json`, `Source/KalmalaGameplay/Private/KalmalaGameCatalogueLoader.cpp`, `Source/KalmalaGameplay/Private/Tests/KalmalaTwoHandedTest.cpp`, `docs/02-technical-architecture.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** parsed all 17 manifest profiles, verified unique IDs, confirmed Bow authors `twoHanded: true` while other profiles omit it and default to false, and found no retired JSON key. Inspected the loader mapping/rejection and updated the focused TwoHanded test labels. `git diff --check` passed for source, tests, docs, and logs; the pre-existing Bow profile formatting change is preserved and excluded. No Unreal build or automation run; full verification remains deferred under normal development policy.
+- **Observable impact and authority:** Bow still occupies both hands; profiles without the optional field remain one-handed. Equipment semantics remain loaded from server-authoritative catalogue data. No network or save schema changed.
+- **Known limitations:** the focused Unreal automation source was updated but not executed.
+- **Next eligible backlog task:** under Attack-driven tree harvesting, convert decorative generated forest trees into individually attackable sources and integrate their depletion/streaming policy.
+
 ## User-directed increment 2026-10-15 — Move Archery recipes to Workbench
 
 - **Completed:** moved the Bow acquisition and Wooden Arrows recipes unchanged into `recipes/stations/workbench.json`, removed `recipes/stations/archery.json` from the manifest and deleted the file. Updated the architecture note to describe Workbench ownership and Bow's current durability progression.

@@ -1,5 +1,5 @@
 {
   "items": [
-    { "ItemId": "Bow", "DisplayName": "Bow", "Description": "A simple wooden bow requiring both hands.", "bTwoHanded": true, "MaxDurability": 100, "DamageBonuses": {} }
+    { "ItemId": "Bow", "DisplayName": "Bow", "Description": "A simple wooden bow requiring both hands.", "twoHanded": true, "MaxDurability": 100, "DamageBonuses": {} }
   ]
 }
