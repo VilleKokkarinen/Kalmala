@@ -1372,6 +1372,25 @@ pack/tool selection, tool-level/condition display, owner-instance privacy,
 fallback, and empty clearing. The final rendered host/client check also reviews
 the equipment rows, repair action and response at supported scales/contrast.
 
+## Worn gear inventory transaction increment
+
+The inventory component keeps Head, Cape, Chest, Shield, Legs, and Boots in a
+separate owner-only replicated array. `ServerEquipGear` accepts an exact item
+GUID; the server derives the compatible wearable slot from the catalogue,
+moves the item GUID out of its carried stack, and returns displaced gear to the
+pack using the freed grid cell. `ServerUnequipGear` accepts only a gear-slot
+enum and rejects when the forty-cell inventory has no room. Equipped wearables
+remain outside the grid. This state is session-only: no save field or schema
+version changes. The Inventory popup still displays placeholders; UI actions,
+combat defense, condition wear, and Main Hand/tool-hotbar behavior are pending.
+
+After an affected Gameplay module build, run
+`Kalmala.Gameplay.Inventory.WornGearTransactions`. It covers exact-GUID equip
+and return, slot replacement at full capacity, exclusion from the grid,
+full-pack unequip rejection, incompatible-item rejection, and reflected server
+RPC flags. Full two-peer owner-privacy and rendered interaction coverage remains
+part of the later Inventory integration acceptance.
+
 ## M12 carried-food Inventory increment
 
 When Hearth Broth is selected in the owner's pack,
@@ -2879,7 +2898,7 @@ Equipment acquisition and upgrade-cost records omit `RequiredSkill: None` and `R
 
 Crafting/acquisition and item upgrades have no player-level, skill-level or skill-unlock eligibility gate. Their server transactions and owner requirement/blocker text use the station context/level, materials, capacity and current item/predecessor level only. Skill XP awards from accepted ordinary crafting/cooking remain rewards, not prerequisites. Equipment progression no longer reads the character skill component; its legacy pure-function skill-ledger argument is ignored for caller compatibility. Station-family and existing level matching, sight/range, payment and authority checks remain. The station progression regression now includes an uninitialized skill ledger alongside low-level and missing ledgers; Forge presentation verification requires station-only wording. Build/automation/UI runtime verification remains deferred.
 
-Ordinary material definitions, including natural materials, are grouped in `items/materials/wood.json`, `items/materials/ore.json`, `items/materials/metal.json`, `items/materials/cooking-ingredients.json`, `items/materials/crafting-ingredients.json`, `items/materials/hides.json`, and `items/materials/others.json`. Wood contains Wood, Lightwood, and Densewood; Ore contains Stone; Metal contains Iron; Crafting Ingredients contain Amber; Cooking Ingredients contain Frost Salt; Hides contain Boar Hide and Deer Hide; Others contains Coal. The old `PeatAmber` storage ID is migrated to `Amber` when storage records load. Buildable station and construction files under `items/buildItems/` use the root `items` array and ordinary `itemFiles`. Equipment family and Building Hammer JSON files under `items/equipment/` use the same root array. The loader permits `buildItems` and `materials` only for ordinary items, `equipment` only for item profiles, and `stations` only for ordinary and item acquisition recipe files. The manifest separates ordinary `itemFiles` from equipment `itemProfileFiles`; all equipment profiles, including Building Hammer, load into the runtime tool catalogue. Profiles are sorted by ItemId; bounds, validation and behavior remain unchanged; the retired toolProfiles root is no longer read.
+Ordinary material definitions, including natural materials, are grouped in `items/materials/wood.json`, `items/materials/ore.json`, `items/materials/metal.json`, `items/materials/cooking-ingredients.json`, `items/materials/crafting-ingredients.json`, `items/materials/hides.json`, and `items/materials/others.json`. Wood contains Wood, Lightwood, and Densewood; Ore contains Stone; Metal contains Iron; Crafting Ingredients contain Amber; Cooking Ingredients contain Frost Salt; Hides contain Boar Hide and Deer Hide; Others contains Coal. Current save data must use `Amber` directly; old `PeatAmber` IDs are not converted during development. Buildable station and construction files under `items/buildItems/` use the root `items` array and ordinary `itemFiles`. Equipment family and Building Hammer JSON files under `items/equipment/` use the same root array. The loader permits `buildItems` and `materials` only for ordinary items, `equipment` only for item profiles, and `stations` only for ordinary and item acquisition recipe files. The manifest separates ordinary `itemFiles` from equipment `itemProfileFiles`; all equipment profiles, including Building Hammer, load into the runtime tool catalogue. Profiles are sorted by ItemId; bounds, validation and behavior remain unchanged; the retired toolProfiles root is no longer read.
 
 Recipe category JSON uses the root `recipes` array, including equipment acquisitions; upgrade files use a separate root `upgrades` array and each upgrade is keyed only by `ItemId`. Ordinary recipes under `recipes/stations/` are grouped by their crafting station; the Inventory group contains the Building Hammer recipe, while build-menu construction remains in `recipes/building.json`. Equipment acquisition records share the corresponding station file and `recipes` array; the loader routes records with `ItemId` into the runtime tool catalogue. Individual station recipe arrays may be empty. Weapon upgrade costs use family files under `item-level-up/costs/`; the Construction Hammer cost is in `item-level-up/costs/construction-hammer.json`. The loader sorts ordinary recipes and acquisitions by RecipeId and upgrade costs by ItemId. Cost scaling, station requirements and validation are preserved; retired `toolRecipes`/`toolUpgradeCosts` roots are not read.
 

@@ -31,7 +31,6 @@
 - **Known limitations:** legacy `ToolId` remains intentionally present only as the serialized schema-2 compatibility property and in historical records. Worn Gear UI/state, defense/condition behavior, and Main Hand/hotbar routing remain unfinished.
 - **Next eligible backlog task:** continue the first unchecked armor child, finishing player-facing gear actions/state and remaining defense, condition, and Main Hand/hotbar behavior after focused build and Inventory checks can run.
 
-
 ## User-directed repair 2026-10-15 — Derive internal upgrade-cost identity
 
 - **Completed:** validated each upgrade-cost record's authored `ToolId` and derived the internal `RecipeId` from that same value before strict conversion into the shared equipment-recipe struct. Upgrade JSON remains keyed only by `ToolId`.
@@ -59,6 +58,16 @@
 - **Impact and authority:** include ordering only; gameplay behavior, networking, authority, persistence, and save schemas are unchanged.
 - **Verification/limitations:** normal compile repair, not milestone-final. Unreal compilation was not rerun; compiler confirmation remains pending.
 - **Next eligible backlog task:** continue the first unchecked wearable-equipment task already in progress; retry the Gameplay build and focused Inventory equipment automations when the UBT environment is usable, then finish remaining UI and Main Hand/hotbar scope.
+
+## Autonomous increment 2026-10-15 — Add GUID-addressable wearable transactions
+
+- **Completed:** added a separate owner-only, session-only array for Head, Cape, Chest, Shield, Legs, and Boots. Server equip requests identify a carried physical item GUID; the server validates its catalogue slot and moves it out of the pack. Replacing a slot preserves the displaced item's GUID in the incoming item's freed cell. Unequip preserves the GUID and rejects when the forty-cell pack has no free cell. Equipped wearables remain outside the grid. The selected backlog child remains unchecked because UI actions/display, defense and condition behavior, and Main Hand/tool routing are unfinished.
+- **Files changed:** `Source/KalmalaGameplay/Public/KalmalaInventoryComponent.h`, `Source/KalmalaGameplay/Private/KalmalaInventoryComponent.cpp`, `Source/KalmalaGameplay/Private/KalmalaInventoryTransactions.cpp`, `Source/KalmalaGameplay/Private/Tests/KalmalaInventoryEquipmentTest.cpp`, `Source/KalmalaGameplay/Private/Tests/KalmalaInventoryNetworkContractTest.cpp`, `docs/01-game-design.md`, `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, `docs/game-features.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** `git diff --check` passed. Focused source checks passed for owner-only replication, GUID lookup, catalogue slot validation, capacity rejection, absence of a gear save field, RPC declarations, and both automation registrations. All changed paths are below 260 characters.
+- **Verification status:** normal increment, not milestone-final. A targeted editor module build in a disposable mirror first hit repeated `Access is denied` errors under `C:\ProgramData\Epic\UnrealBuildAccelerator`; a `-NoUBA` retry still selected UBA. A third attempt redirected UBA with `-UBARootDir` into the short temp mirror and initialized the target, but the UBT log and compile artifacts stopped advancing at `Building UnrealEditor - KalmalaEditor - Win64 - Development` for several minutes. I interrupted it. `Kalmala.Gameplay.Inventory.WornGearTransactions` and `Kalmala.Gameplay.Inventory.NetworkContract` were not run; no Unreal compile success is claimed. Full project verification remains deferred.
+- **Impact/authority:** the new intents carry only the exact wearable item GUID or a bounded slot enum. The server derives item and slot compatibility and validates capacity before publishing the pack and gear arrays; gear replicates with `COND_OwnerOnly`. No save field or schema changed. The Inventory popup still shows placeholders.
+- **Known limitations:** no player-facing equip controls or equipped-state display, defense aggregation, gear condition wear/upgrades, Main Hand routing, hotbar interaction, or multiplayer/rendered acceptance. Because the requested focused build/test verification did not complete, all run changes remain uncommitted.
+- **Next eligible backlog task:** continue the same first unchecked armor child after a usable UBT environment is available; first rerun the Gameplay build and the two focused Inventory automations, then finish UI integration and Main Hand/hotbar behavior.
 
 ## User-directed repair 2026-10-15 — Fix Inventory Worn Gear sizing compile errors
 
