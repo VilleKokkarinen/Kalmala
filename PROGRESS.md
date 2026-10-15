@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed repair 2026-10-15 — Fix gameplay source first-header compile errors
+
+- **Completed:** moved `KalmalaCampfire.h`, `KalmalaCharacter.h`, `KalmalaConstructionActor.h`, `KalmalaDiscoveryActor.h`, `KalmalaHazardSpawn.h`, `KalmalaOceanSkiff.h`, and `KalmalaWildlifeSpawn.h` to the first include position in their corresponding implementation files. Kept the `KalmalaResistanceComponent.h` dependency included after each self-header.
+- **Files changed:** the seven corresponding files under `Source/KalmalaGameplay/Private/`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** `git diff --check` passed. A focused source check confirmed all seven self-headers are the first non-empty line and paths are below 260 characters.
+- **Impact and authority:** include ordering only; gameplay behavior, networking, authority, persistence, and save schemas are unchanged.
+- **Verification/limitations:** normal compile repair, not milestone-final. Unreal compilation was not rerun; compiler confirmation remains pending.
+- **Next eligible backlog task:** continue the first unchecked wearable-equipment task already in progress; retry the Gameplay build and focused Inventory equipment automations when the UBT environment is usable, then finish remaining UI and Main Hand/hotbar scope.
+
 ## User-directed repair 2026-10-15 — Fix Inventory Worn Gear sizing compile errors
 
 - **Completed:** replaced both unsupported two-argument `FSlateChildSize` constructions with the supported Fill-rule constructor followed by an explicit `Value = 1.0f` assignment. The gear slots retain equal fill sizing, and the lower-row spacer remains balanced with them.

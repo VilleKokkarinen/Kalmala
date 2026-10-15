@@ -1,5 +1,5 @@
-#include "KalmalaResistanceComponent.h"
 #include "KalmalaConstructionActor.h"
+#include "KalmalaResistanceComponent.h"
 #include "KalmalaCharacter.h"
 #include "KalmalaCraftingComponent.h"
 #include "KalmalaWorldGenerationGameState.h"

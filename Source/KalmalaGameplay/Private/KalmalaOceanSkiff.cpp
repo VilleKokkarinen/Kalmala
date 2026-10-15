@@ -1,5 +1,5 @@
-#include "KalmalaResistanceComponent.h"
 #include "KalmalaOceanSkiff.h"
+#include "KalmalaResistanceComponent.h"
 
 #include "KalmalaCharacter.h"
 #include "KalmalaGameMode.h"

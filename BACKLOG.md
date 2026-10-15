@@ -34,6 +34,7 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-15 — Fix gameplay source first-header compile errors:** put each affected implementation's own header first in seven Gameplay `.cpp` files while retaining the resistance-component include. Focused include-order checks and `git diff --check` passed; Unreal build deferred.
 - [x] **2026-10-15 — Fix Inventory Worn Gear sizing compile errors:** construct `FSlateChildSize` with its supported size rule and assign `Value` separately for gear slots and the balancing spacer. Focused source checks and `git diff --check` passed; Unreal build and UI automation deferred.
 - [x] **2026-10-15 — Fix Stone Workbench crafting compile errors:** resolve tool labels through the equipment profile catalogue and bind each Stone-tool button to a reflected callback compatible with UMG's dynamic click event. Focused source/profile checks and `git diff --check` passed; Unreal build and UI automation deferred.
 - [x] **2026-10-15 — Repair storage GUID compile errors:** reuse the existing item-GUID set while validating saved chest contents, and update the initial storage fixture deposits to pass exact carried-item GUIDs. Focused source/API checks and `git diff --check` passed; Unreal build and storage automation deferred.

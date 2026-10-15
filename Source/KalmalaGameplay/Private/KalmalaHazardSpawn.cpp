@@ -1,5 +1,5 @@
-#include "KalmalaResistanceComponent.h"
 #include "KalmalaHazardSpawn.h"
+#include "KalmalaResistanceComponent.h"
 
 #include "Components/SceneComponent.h"
 #include "Net/UnrealNetwork.h"

@@ -1,5 +1,5 @@
-#include "KalmalaResistanceComponent.h"
 #include "KalmalaWildlifeSpawn.h"
+#include "KalmalaResistanceComponent.h"
 
 #include "Components/SphereComponent.h"
 #include "KalmalaCharacter.h"

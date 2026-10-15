@@ -1,5 +1,5 @@
-#include "KalmalaResistanceComponent.h"
 #include "KalmalaCharacter.h"
+#include "KalmalaResistanceComponent.h"
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaHarvestNode.h"
 #include "KalmalaToolLifecycleContract.h"
