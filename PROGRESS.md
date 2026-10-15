@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-15 — Cover standing forest collision
+
+- **Completed:** partial first unchecked generated-tree child. Extended ForestReconstructionLifecycle with procedural-mesh trunk hit and adjacent miss traces, exact hit actor, query collision and Visibility response assertions, repeated after destruction/reconstruction.
+- **Files changed:** `Source/KalmalaGameplay/Private/Tests/KalmalaForestLifecycleTest.cpp`, `docs/07-development-setup.md`, `BACKLOG.md`, and this file.
+- **Lightweight checks:** focused PowerShell source assertions and brace balance passed; geometry checks across Meadow/Elderwood height bounds confirm the trace is above the 80-unit root sphere and below the canopy. Inspected procedural mesh collision creation, character Visibility traces, fixture cleanup and transforms. Working/staged whitespace, scope review and MAX_PATH checks passed. No Unreal compile, automation execution, rendering or peers; full verification remains deferred for this normal partial increment.
+- **Impact/authority:** adds regression source for real cooked-mesh collision queries, without gameplay, authority, RPC, reward or save changes. Checks distinguish trunk collision from the root sphere and verify reconstructed geometry remains queryable when executed.
+- **Limitations:** collision tests have not been compiled or executed. World attack selection, integrated GameMode eviction, pickup/saved depletion and live peers remain unverified. Child/parent stay unchecked.
+- **Next eligible task:** same generated-tree child: integrated lifecycle/depletion and world/peer collision validation. Moving fall/log presentation remains later. Clean main checkout at start; app state found no other active Kalmala run (CIM access unavailable). Main checkout used directly; no handoff synchronization required.
+
 ## Autonomous increment 2026-10-15 — Match forest patch relevance
 
 - **Completed:** partial first unchecked generated-tree child. Successful forest initialization enables owner relevance, matching the terrain patch audience receiving cosmetic suppression. Added lifecycle fixture checks for legacy defaults, client rejection, owner retention and reconstructed/reloaded forest settings.

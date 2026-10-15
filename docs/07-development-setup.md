@@ -3091,7 +3091,7 @@ from seed 418, checks authority and invalid-ordinal rejection, reconstructs stab
 identity/source/transform and movement replication settings, rejects reinitialization,
 and destroys/reconstructs the node without firing either depletion delegate.
 This covers actor lifetime primitives only, not GameMode neighborhood eviction,
-partial-damage reset, saved pickup depletion, collision traces or peer relevance.
+partial-damage reset, saved pickup depletion or peer relevance.
 The test source has been inspected but has not yet been compiled or executed.
 
 The forest reconstruction fixture also assigns a patch-like always-relevant owner,
@@ -3099,3 +3099,10 @@ checks legacy/client-rejected nodes retain independent relevance, and verifies
 successful reconstruction and reload enable owner relevance without replacing the
 owner. These assertions inspect settings only; live distant-peer delivery and
 patch eviction remain unverified.
+
+The fixture also traces the procedural standing trunk at half its generated height,
+above the root sphere and below the canopy. It requires a complex mesh hit belonging
+to the reconstructed actor, a miss beside the trunk, query collision and blocking
+on the Visibility attack channel. These checks run for initial reconstruction and
+stream-out replacement. This is authored collision coverage; execution remains
+deferred, and world-level attack selection and peer collision still need validation.

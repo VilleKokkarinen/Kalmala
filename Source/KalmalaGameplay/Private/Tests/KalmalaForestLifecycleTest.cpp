@@ -2,8 +2,10 @@
 
 #include "KalmalaForestLayout.h"
 #include "KalmalaHarvestNode.h"
+#include "CollisionQueryParams.h"
 #include "Engine/World.h"
 #include "Misc/AutomationTest.h"
+#include "ProceduralMeshComponent.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaForestLifecycleTest,
     "Kalmala.Gameplay.Harvest.ForestReconstructionLifecycle",
@@ -52,6 +54,31 @@ bool FKalmalaForestLifecycleTest::RunTest(const FString& Parameters)
         }
         return Node;
     };
+    const auto CheckStandingCollision = [&](AKalmalaHarvestNode* StandingNode)
+    {
+        auto* Mesh = StandingNode->FindComponentByClass<UProceduralMeshComponent>();
+        if (!TestNotNull(TEXT("Reconstructed tree has procedural collision mesh"), Mesh)) return;
+        TestEqual(TEXT("Standing mesh supports query traces"), Mesh->GetCollisionEnabled(), ECollisionEnabled::QueryOnly);
+        TestEqual(TEXT("Standing mesh blocks attack visibility channel"),
+            Mesh->GetCollisionResponseToChannel(ECC_Visibility), ECR_Block);
+        FCollisionQueryParams QueryParams;
+        QueryParams.bTraceComplex = true;
+        const FTransform Transform = StandingNode->GetActorTransform();
+        const double Reach = Tree.CanopyRadius + 100.0;
+        const double Height = Tree.TrunkHeight * 0.5;
+        FHitResult Hit;
+        // Above the root sphere and below the canopy: only the generated trunk can hit.
+        TestTrue(TEXT("Attack trace hits reconstructed trunk above root sphere"),
+            Mesh->LineTraceComponent(Hit,
+                Transform.TransformPosition(FVector(-Reach, 0, Height)),
+                Transform.TransformPosition(FVector(Reach, 0, Height)), QueryParams));
+        TestTrue(TEXT("Trunk trace resolves to the authoritative harvest actor"), Hit.GetActor() == StandingNode);
+        FHitResult Miss;
+        TestFalse(TEXT("Trace beside trunk below canopy misses tree mesh"),
+            Mesh->LineTraceComponent(Miss,
+                Transform.TransformPosition(FVector(-Reach, Tree.TrunkRadius * 2.0, Height)),
+                Transform.TransformPosition(FVector(Reach, Tree.TrunkRadius * 2.0, Height)), QueryParams));
+    };
     auto* Node = SpawnNode();
     if (!TestNotNull(TEXT("Forest node spawned"), Node))
     {
@@ -76,6 +103,7 @@ bool FKalmalaForestLifecycleTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Biome selects canonical trunk source"), Node->GetGatheringSourceId(),
         FName(Tree.bElderwood ? TEXT("elderwood-ironheart-trunk") : TEXT("meadows-birch-trunk")));
     TestTrue(TEXT("Standing forest tree accepts axe attacks"), Node->CanReceiveAxeAttack());
+    CheckStandingCollision(Node);
     TestTrue(TEXT("Forest bypasses session-only depletion identity"), Node->GetM9ResourceDepletionId().IsEmpty());
     TestFalse(TEXT("Initialized forest identity cannot be replaced"),
         Node->InitializeForestServer(Config, PatchCenter, Tree.CandidateIndex));
@@ -93,6 +121,7 @@ bool FKalmalaForestLifecycleTest::RunTest(const FString& Parameters)
             && Reloaded->GetOwner() == PatchOwner);
         TestTrue(TEXT("Reload restores standing state"), Reloaded->CanReceiveAxeAttack()
             && !Reloaded->IsFelledTrunk() && !Reloaded->IsWoodDrop() && !Reloaded->IsHarvested());
+        CheckStandingCollision(Reloaded);
         Reloaded->Destroy();
     }
     World->DestroyWorld(false);
