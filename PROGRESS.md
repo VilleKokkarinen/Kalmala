@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed backlog planning 2026-10-15 — Add armor and worn-equipment inventory scope
+
+- **Completed:** added an unchecked backlog parent and five implementation tasks covering six armor families, catalogue stats and original icons, acquisition and level-up data, a Worn Gear section, separate GUID-addressable equipment slots, Main Hand routing for weapons/tools, hotbar behavior, server authority, and focused coverage. The supplied image is recorded as a layout reference; exact balance values and gear tiers remain for implementation.
+- **Files changed:** `BACKLOG.md` and this entry.
+- **Lightweight checks:** read the project brief, game-design inventory contract, technical architecture inventory/save/catalogue contracts, and development setup icon/catalogue verification notes; confirmed only `BACKLOG.md` and `PROGRESS.md` were clean before editing; `git diff --check` passed. No code, catalogue data, assets, builds, or tests changed or ran.
+- **Impact/authority:** planning only; no runtime behavior or gameplay/network authority changed. Backlog scope requires server-authoritative slot and transaction validation. Existing save schemas remain frozen; any schema change requires a separate explicit decision and migration plan.
+- **Verification/limitations:** no feature implementation or full verification was performed; full verification remains deferred until implementation and milestone/final acceptance. Exact armor balance/tier content and Main Hand/hotbar interaction remain to be authored within existing contracts.
+- **Next eligible backlog task:** continue the earlier Attack-driven tree harvesting parent by converting decorative generated forest trees into individually attackable sources and integrating their depletion/streaming policy.
+
 ## User-directed increment 2026-10-15 — Use tiered wood across weapon families
 
 - **Completed:** applied the axe wood tiers to knives, spears, and maces: Bronze acquisitions/upgrades use Lightwood, and Iron acquisitions/upgrades use Densewood. Preserved all other ingredients and quantities. Pickaxe costs remain unchanged because pickaxes are classified as tools.
