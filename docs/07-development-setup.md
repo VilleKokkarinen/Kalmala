@@ -1,5 +1,29 @@
 # Development setup
 
+## Main Hand and equipment acceptance — 2026-10-15
+
+The Main Hand/hotbar backlog child has completed integrated acceptance. An
+incremental `KalmalaEditor` build succeeded, and ten focused Unreal automations
+passed: MainHandHotbar, TwoHanded, EquipmentCurrentSaveFormat, NetworkContract,
+SharedGrid, WornGearTransactions, NumberedHotbar, both CatalogueIcons coverage
+cases, and Combat.BasicAttack.AuthorityAndCooldown. The live
+`Scripts/Tests/Inventory/Verify-Inventory.ps1 -Port 28764` host/client scenario
+passed; `Verify-InventoryReconnect.ps1 -Port 28765` passed two client visits to
+the same server. Owner-only Main Hand, gear, and grid state remained hidden from
+the remote peer. The inventory contract preflight and 72-identity catalogue
+icon validator also passed.
+
+Construction Hammer has no attack-list entry. Server attack requests are
+rejected while it is in Main Hand, and switching to it during windup cancels
+the strike without the unarmed fallback. No save schema, migration, or network
+payload changed. Full-project and rendered verification remain deferred under
+the normal increment policy. The broader `Kalmala.Gameplay.Inventory.Catalogue`
+automation still has pre-existing stale item and recipe expectations; see the
+current progress entry for details.
+
+The source-only notes below record when these tests were added; the integrated
+results above supersede their earlier “not executed” status.
+
 ## Bow and two-handed equipment coverage — 2026-10-15
 
 `Kalmala.Gameplay.Inventory.TwoHanded` covers String/arrow stack boundaries and
@@ -941,7 +965,7 @@ currently has no configured gathering source.
 
 Run `Scripts/Tests/Inventory/Verify-Inventory.ps1` after an editor build for the inventory component increment. A development-only `-KalmalaInventoryTest` fixture grants ten wood and consumes three on each server pawn, rejects unknown/overflow grants and invalid/insufficient consumption, and verifies removal of an exhausted stone stack. The runner requires two successful server results, seven wood on the remote owner, rejected client-local mutation calls, empty remote contents after owner replication, and matching immutable world identity. Its `-KalmalaInventoryEquipmentPrivacyTest` extension equips Stone Axe in the listen host's Main Hand and a Boar Hide Helmet in Head, leaving other packed tools in the grid; it then requires the remote client to observe empty gear, grid, and Main Hand fields after a two-second replication window. The fixture uses existing server-only inventory methods and adds no client request or save field. Its `-ContractOnly` mode checks retired HUD source, the on-demand Inventory menu, empty-state coverage, and the live privacy-fixture anchors without starting Unreal; the live inventory, reconnect, and presentation-ownership runners use this mode as a preflight. Separate temporary user directories keep the scenario out of project-generated data. This headless check verifies authority/privacy, not rendered layout; rendered harvest feedback and reconnect persistence remain subsequent tasks.
 
-The inventory runner also requires `Harvest inventory: Passed=1` for both server pawns. Its development-only fixture exercises twelve isolated initialized nodes covering Wood and Stone, uninitialized-node and distant rejection, full-stack rejection without depletion, successful retry after capacity is freed, duplicate rejection, and exactly one sparse-save callback per accepted grant. It restores the original seven-wood inventory before owner replication checks and destroys its temporary actors; it writes no world-save slot. Run `Kalmala.Gameplay.HarvestNode.AuthorityAndDepletion` and `Kalmala.Gameplay.Inventory.Catalogue` with the headless flags above for the pure authority and malformed quantity gates. This does not yet exercise a client's actual harvest RPC, inventory reconnect restoration, or simultaneous competing player input.
+The inventory runner also requires `Harvest inventory: Passed=1` for both server pawns. Its development-only fixture exercises twelve isolated initialized nodes covering Wood and Stone, uninitialized-node and distant rejection, full-stack spillover into an available cell, duplicate rejection, and exactly one sparse-save callback per accepted grant. A separate full-pack tree-drop case verifies rejection without harvesting or extra wear, then acceptance after space is freed. The fixture restores the original seven-wood inventory and destroys temporary actors. Run `Kalmala.Gameplay.HarvestNode.AuthorityAndDepletion` and `Kalmala.Gameplay.Inventory.Catalogue` with the headless flags above for the pure authority and malformed quantity gates. This does not exercise simultaneous competing player input.
 
 ## Workbench and storage verification
 

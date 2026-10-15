@@ -28,6 +28,7 @@ public:
     EKalmalaCombatFeedback GetFeedback() const { return Feedback; }
     uint32 GetFeedbackSerial() const { return FeedbackSerial; }
     static constexpr float GetRecoverySeconds() { return RecoverySeconds; }
+    static bool IsAttackItemAllowed(FName ItemId);
     static bool IsAttackRequestAllowed(bool bAuthority, bool bNewSequence, uint32 Sequence, bool bActionIdle, bool bTargetValid);
 private:
     AActor* FindServerTarget() const;

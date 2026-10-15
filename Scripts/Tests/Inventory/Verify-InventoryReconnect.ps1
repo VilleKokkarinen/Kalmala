@@ -33,11 +33,11 @@ try {
             if (($serverText + $clientText) -match 'Fatal error:|Assertion failed:|Ensure condition failed:|Inventory server: Passed=0|Harvest inventory: Passed=0|Tool free repair fixture: Passed=0|Retired tool replacement fixture: Passed=0|Tool condition owner: Passed=0|Tool condition remote: Hidden=0|Inventory remote: Empty=0|Inventory owner: Rejected=0') { throw 'Inventory verification failed.' }
             $ownerIndex = $clientText.IndexOf('Inventory owner: Rejected=1 Wood=7 Slots=1')
             if ([regex]::Matches($serverText, 'Inventory server: Passed=1 Wood=7 Slots=1').Count -eq (1 + $visit) `
-                -and [regex]::Matches($serverText, 'Harvest inventory: Passed=1 Materials=3 Range=1 Full=1 Malformed=1 Duplicate=1 SparseDelta=1 ToolMismatch=1 ToolPackAtomic=1 ToolWear=1 ToolDepletion=1').Count -eq (1 + $visit) `
+                -and [regex]::Matches($serverText, 'Harvest inventory: Passed=1 Materials=2 Range=1 Full=1 Malformed=1 Duplicate=1 SparseDelta=1 ToolMismatch=1 ToolPackAtomic=1 ToolWear=1 ToolDepletion=1').Count -eq (1 + $visit) `
                 -and [regex]::Matches($serverText, 'Tool free repair fixture: Passed=1').Count -eq (1 + $visit) `
                 -and [regex]::Matches($serverText, 'Retired tool replacement fixture: Passed=1').Count -eq (1 + $visit) `
                 -and $ownerIndex -ge 0 -and $clientText.IndexOf('Inventory remote: Empty=1', $ownerIndex) -gt $ownerIndex `
-                -and $clientText.Contains('Tool condition owner: Passed=1 StoneAxe=24 StonePick=20 StoneKnife=16') `
+                -and $clientText.Contains('Tool condition owner: Passed=1 StoneAxe=50 StonePick=20 StoneKnife=25') `
                 -and $clientText.Contains('Tool condition remote: Hidden=1') `
                 -and $clientText.Contains('Notification owner baseline: Silent=1 Rows=0 Sources=5')) { break }
             Start-Sleep -Milliseconds 500

@@ -28,7 +28,7 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
     {
         FName SourceId;
         FName ItemId;
-        FName ItemId;
+        FName ToolItemId;
         int32 ToolLevel;
         EKalmalaToolAction Action;
     };
@@ -74,20 +74,20 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
         return false;
     }
 
-    const auto SetServerToolState = [this](AKalmalaCharacter* Pawn, const FName ItemId,
+    const auto SetServerToolState = [this](AKalmalaCharacter* Pawn, const FName ToolItemId,
         const int32 Condition, const int32 ToolLevel)
     {
         TArray<FKalmalaToolState>& CarriedTools =
             const_cast<TArray<FKalmalaToolState>&>(Pawn->GetCarriedToolInventory());
-        FKalmalaToolState* ToolState = CarriedTools.FindByPredicate([ItemId](const FKalmalaToolState& Candidate)
+        FKalmalaToolState* ToolState = CarriedTools.FindByPredicate([ToolItemId](const FKalmalaToolState& Candidate)
         {
-            return Candidate.ItemId == ItemId;
+            return Candidate.ItemId == ToolItemId;
         });
         if (ToolState == nullptr)
         {
             if (CarriedTools.Num() >= UKalmalaInventoryComponent::MaxSlots) return false;
             ToolState = &CarriedTools.AddDefaulted_GetRef();
-            ToolState->ItemId = ItemId;
+            ToolState->ItemId = ToolItemId;
             ToolState->InstanceGuid = FGuid::NewGuid();
         }
         ToolState->ToolLevel = ToolLevel;
@@ -120,14 +120,14 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
         PlayerState->SetUniqueId(FUniqueNetIdRepl(*TestNetId));
         Pawn->SetPlayerState(PlayerState);
 
-        if (!SetServerToolState(Pawn, Source.ItemId,
-            FKalmalaToolLifecycleContract::FindDefinition(Source.ItemId)->MaxDurability, Source.ToolLevel))
+        if (!SetServerToolState(Pawn, Source.ToolItemId,
+            FKalmalaToolLifecycleContract::FindDefinition(Source.ToolItemId)->MaxDurability, Source.ToolLevel))
         {
             bAllFixturesValid = false;
             continue;
         }
         TestEqual(TEXT("Fixture carries the source-required server tool tier"),
-            Pawn->GetCarriedToolLevel(Source.ItemId), Source.ToolLevel);
+            Pawn->GetCarriedToolLevel(Source.ToolItemId), Source.ToolLevel);
 
         FKalmalaWorldPopulationSpawn Spawn;
         Spawn.Kind = EKalmalaWorldPopulationKind::HarvestNode;
@@ -142,7 +142,7 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
             continue;
         }
 
-        const int32 InitialCondition = Pawn->GetToolDurability(Source.ItemId);
+        const int32 InitialCondition = Pawn->GetToolDurability(Source.ToolItemId);
         const FString SourceLabel = Source.SourceId.ToString();
         const auto AssertRejectedWithoutChanges = [this, Pawn, Node, Source, InitialCondition, SourceLabel]()
         {
@@ -152,7 +152,7 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
             TestEqual(FString::Printf(TEXT("%s rejected request leaves owner pack empty"), *SourceLabel),
                 Pawn->GetInventoryComponent()->GetStacks().Num(), 0);
             TestEqual(FString::Printf(TEXT("%s rejected request leaves tool condition unchanged"), *SourceLabel),
-                Pawn->GetToolDurability(Source.ItemId), InitialCondition);
+                Pawn->GetToolDurability(Source.ToolItemId), InitialCondition);
         };
 
         const uint8 ExpectedAction = static_cast<uint8>(Source.Action);
@@ -163,27 +163,27 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
         AssertRejectedWithoutChanges();
 
         TestFalse(FString::Printf(TEXT("%s rejects a mismatched client action"), *SourceLabel),
-            Node->InteractWithToolIntentFromServer(Pawn, 100.0f, 250.0f, Source.ItemId,
+            Node->InteractWithToolIntentFromServer(Pawn, 100.0f, 250.0f, Source.ToolItemId,
                 static_cast<uint8>(ForgedAction)));
         AssertRejectedWithoutChanges();
 
         TestFalse(FString::Printf(TEXT("%s rejects an excessive server trace distance"), *SourceLabel),
-            Node->InteractWithToolIntentFromServer(Pawn, 300.0f, 250.0f, Source.ItemId, ExpectedAction));
+            Node->InteractWithToolIntentFromServer(Pawn, 300.0f, 250.0f, Source.ToolItemId, ExpectedAction));
         AssertRejectedWithoutChanges();
 
         Pawn->SetActorLocation(Location + FVector(900.0f, 0.0f, 0.0f));
         TestFalse(FString::Printf(TEXT("%s rejects an out-of-range harvester"), *SourceLabel),
-            Node->InteractWithToolIntentFromServer(Pawn, 100.0f, 250.0f, Source.ItemId, ExpectedAction));
+            Node->InteractWithToolIntentFromServer(Pawn, 100.0f, 250.0f, Source.ToolItemId, ExpectedAction));
         AssertRejectedWithoutChanges();
         Pawn->SetActorLocation(Location);
 
         TestFalse(FString::Printf(TEXT("%s rejects a pawn from another world"), *SourceLabel),
-            Node->InteractWithToolIntentFromServer(ForeignPawn, 100.0f, 250.0f, Source.ItemId, ExpectedAction));
+            Node->InteractWithToolIntentFromServer(ForeignPawn, 100.0f, 250.0f, Source.ToolItemId, ExpectedAction));
         AssertRejectedWithoutChanges();
 
         Pawn->SetRole(ROLE_SimulatedProxy);
         TestFalse(FString::Printf(TEXT("%s rejects non-authoritative client execution"), *SourceLabel),
-            Node->InteractWithToolIntentFromServer(Pawn, 100.0f, 250.0f, Source.ItemId, ExpectedAction));
+            Node->InteractWithToolIntentFromServer(Pawn, 100.0f, 250.0f, Source.ToolItemId, ExpectedAction));
         Pawn->SetRole(ROLE_Authority);
         AssertRejectedWithoutChanges();
 
@@ -198,14 +198,14 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
         if (Node->IsTreeResource())
         {
             TestFalse(TEXT("A standing tree cannot be interaction-harvested"),
-                Node->InteractWithToolIntentFromServer(Pawn, 100.0f, 250.0f, Source.ItemId, ExpectedAction));
+                Node->InteractWithToolIntentFromServer(Pawn, 100.0f, 250.0f, Source.ToolItemId, ExpectedAction));
             auto* Inventory = Pawn->GetInventoryComponent();
             Inventory->SynchronizeGridFromServer();
-            const int32 Slot = Inventory->GetGridSlots().IndexOfByKey(Source.ItemId);
+            const int32 Slot = Inventory->GetGridSlots().IndexOfByKey(Source.ToolItemId);
             if (!TestTrue(TEXT("Axe is in the usable hotbar"), Slot >= 0 && Slot < UKalmalaInventoryComponent::Columns)) continue;
             Inventory->ServerUseHotbarSlot(Slot);
             const FKalmalaDamageChannels AxeDamage = FKalmalaToolLifecycleContract::GetAttackDamageBonuses(
-                Source.ItemId, Source.ToolLevel, TEXT("Basic"));
+                Source.ToolItemId, Source.ToolLevel, TEXT("Basic"));
             AcceptedUses = 0;
             while (!Node->IsWoodDrop() && AcceptedUses < 30)
             {
@@ -216,14 +216,14 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
             TestEqual(TEXT("Breaking a trunk does not automatically grant wood"), Inventory->GetQuantity(Source.ItemId), 0);
         }
         TestTrue(FString::Printf(TEXT("%s accepts harvest or wood pickup"), *SourceLabel),
-            Node->InteractWithToolIntentFromServer(Pawn, 100.0f, 250.0f, Source.ItemId, ExpectedAction));
+            Node->InteractWithToolIntentFromServer(Pawn, 100.0f, 250.0f, Source.ToolItemId, ExpectedAction));
         TestFalse(TEXT("Depleted resource cannot be collected twice"),
-            Node->InteractWithToolIntentFromServer(Pawn, 100.0f, 250.0f, Source.ItemId, ExpectedAction));
+            Node->InteractWithToolIntentFromServer(Pawn, 100.0f, 250.0f, Source.ToolItemId, ExpectedAction));
         TestTrue(FString::Printf(TEXT("%s accepted harvest depletes exactly once"), *SourceLabel), Node->IsHarvested());
         TestEqual(FString::Printf(TEXT("%s grants only its deterministic catalogue reward"), *SourceLabel),
             Pawn->GetInventoryComponent()->GetQuantity(Source.ItemId), ExpectedYield);
         TestEqual(FString::Printf(TEXT("%s accepted use spends one server-owned condition"), *SourceLabel),
-            Pawn->GetToolDurability(Source.ItemId), InitialCondition - AcceptedUses);
+            Pawn->GetToolDurability(Source.ToolItemId), InitialCondition - AcceptedUses);
         TestEqual(FString::Printf(TEXT("%s depletion callback carries its stable sparse ID"), *SourceLabel),
             DepletedId, FKalmalaM9SourceLootContract::BuildResourceDepletionId(Source.SourceId, Node->GetPersistentSpawnId()));
     }

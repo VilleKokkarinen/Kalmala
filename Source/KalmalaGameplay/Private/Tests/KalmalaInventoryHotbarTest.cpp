@@ -4,6 +4,7 @@
 #include "KalmalaPlayerStatusComponent.h"
 #include "KalmalaSupportMagicComponent.h"
 #include "KalmalaToolLifecycleContract.h"
+#include "Engine/Engine.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
 #include "Misc/AutomationTest.h"
@@ -18,7 +19,12 @@ bool FKalmalaInventoryHotbarTest::RunTest(const FString& Parameters)
 {
     UWorld* World = UWorld::CreateWorld(EWorldType::Game, false);
     if (!TestNotNull(TEXT("Hotbar authority world exists"), World)) return false;
-    ON_SCOPE_EXIT { World->DestroyWorld(false); };
+    GEngine->CreateNewWorldContext(EWorldType::Game).SetCurrentWorld(World);
+    ON_SCOPE_EXIT
+    {
+        World->DestroyWorld(false);
+        GEngine->DestroyWorldContext(World);
+    };
     // No BeginPlay/game mode: avoid profile loading, save writes and world generation.
     auto* Pawn = World->SpawnActor<AKalmalaCharacter>();
     auto* Controller = World->SpawnActor<APlayerController>();

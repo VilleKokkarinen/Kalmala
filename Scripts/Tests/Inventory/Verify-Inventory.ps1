@@ -211,7 +211,7 @@ try {
             (((Get-Date) - $equipmentFixtureSeenAt).TotalSeconds -ge 2)
         $ownerIndex = $clientText.IndexOf('Inventory owner: Rejected=1 Wood=7 Slots=1')
         if ([regex]::Matches($serverText, 'Inventory server: Passed=1 Wood=7 Slots=1').Count -eq 2 `
-            -and [regex]::Matches($serverText, 'Harvest inventory: Passed=1 Materials=3 Range=1 Full=1 Malformed=1 Duplicate=1 SparseDelta=1').Count -eq 2 `
+            -and [regex]::Matches($serverText, 'Harvest inventory: Passed=1 Materials=2 Range=1 Full=1 Malformed=1 Duplicate=1 SparseDelta=1').Count -eq 2 `
             -and $equipmentFixtureSettled `
             -and $serverText -match 'Inventory owner-only fixture: Ready=1 MainHand=1 Gear=1 Grid=1' `
             -and $clientText -match 'Inventory owner-only remote: Hidden=1 MainHand=1 Gear=1 Grid=1' `

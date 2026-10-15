@@ -91,7 +91,9 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
     int32 UtilityCount = 0;
     for (const FKalmalaToolProfileData& Profile : Profiles)
     {
-        if (Profile.ItemId.IsNone() || SeenItemIds.Contains(Profile.ItemId) || !AttackItemIds.Contains(Profile.ItemId)
+        const bool bRequiresAttackList = Profile.ItemId != TEXT("ConstructionHammer");
+        if (Profile.ItemId.IsNone() || SeenItemIds.Contains(Profile.ItemId)
+            || (bRequiresAttackList && !AttackItemIds.Contains(Profile.ItemId))
             || Profile.DisplayName.TrimStartAndEnd().IsEmpty() || Profile.DisplayName.Len() > 64
             || Profile.Description.TrimStartAndEnd().IsEmpty() || Profile.Description.Len() > 180
             || SeenToolKinds.Contains(Profile.ToolKind)

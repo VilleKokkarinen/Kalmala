@@ -5,6 +5,7 @@
 #include "KalmalaRecipeCatalogue.h"
 #include "KalmalaToolCatalogue.h"
 #include "KalmalaToolLifecycleContract.h"
+#include "Engine/Engine.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
 #include "Misc/AutomationTest.h"
@@ -24,6 +25,7 @@ bool FKalmalaTwoHandedTest::RunTest(const FString& Parameters)
         || !TestNotNull(TEXT("Recipes load"), Recipes)) return false;
     TestTrue(TEXT("Bow requires both hands"), FKalmalaToolLifecycleContract::IsTwoHanded(TEXT("Bow")));
     TestFalse(TEXT("Hammer remains one handed"), FKalmalaToolLifecycleContract::IsTwoHanded(TEXT("ConstructionHammer")));
+    TestTrue(TEXT("Construction Hammer has no combat attacks"), Tools->GetAttacks(TEXT("ConstructionHammer")).IsEmpty());
     TestFalse(TEXT("Unknown item cannot claim both hands"), FKalmalaToolLifecycleContract::IsTwoHanded(TEXT("ForgedBow")));
     for (const auto& Expected : {TPair<FName, int32>(TEXT("String"), 20), TPair<FName, int32>(TEXT("WoodenArrow"), 100)})
     {
@@ -61,7 +63,12 @@ bool FKalmalaTwoHandedTest::RunTest(const FString& Parameters)
 
     UWorld* World = UWorld::CreateWorld(EWorldType::Game, false);
     if (!TestNotNull(TEXT("Isolated authority world exists"), World)) return false;
-    ON_SCOPE_EXIT { World->DestroyWorld(false); };
+    GEngine->CreateNewWorldContext(EWorldType::Game).SetCurrentWorld(World);
+    ON_SCOPE_EXIT
+    {
+        World->DestroyWorld(false);
+        GEngine->DestroyWorldContext(World);
+    };
     auto* Pawn = World->SpawnActor<AKalmalaCharacter>();
     auto* Controller = World->SpawnActor<APlayerController>();
     if (!TestNotNull(TEXT("Pawn spawned without profile loading"), Pawn)

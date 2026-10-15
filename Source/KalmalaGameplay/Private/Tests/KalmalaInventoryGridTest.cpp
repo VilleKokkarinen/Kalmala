@@ -33,9 +33,10 @@ bool FKalmalaInventoryGridTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Exhausted hotbar remains empty"), After[9].IsValid());
     TestTrue(TEXT("Unrelated material stays in its assigned cell"), After[31] == StoneGuid);
     Before = After;
-    TestTrue(TEXT("New item uses free space"), UKalmalaInventoryComponent::BuildGridLayout(
+    TestTrue(TEXT("New items use free space in owned-item order"), UKalmalaInventoryComponent::BuildGridLayout(
         {AxeGuid, StoneGuid, WoodGuid, HammerGuidA}, Before, After));
-    TestTrue(TEXT("New item fills first empty cell"), After[0] == HammerGuidA);
+    TestTrue(TEXT("Restored wood fills the first empty cell"), After[0] == WoodGuid);
+    TestTrue(TEXT("New hammer fills the next empty cell"), After[1] == HammerGuidA);
     TestTrue(TEXT("Same-type items occupy distinct cells through unique GUIDs"),
         UKalmalaInventoryComponent::BuildGridLayout({HammerGuidA, HammerGuidB}, {}, After));
     TestTrue(TEXT("First identical hammer has its own slot"), After[0] == HammerGuidA);
