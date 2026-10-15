@@ -1,5 +1,13 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-15 — Audit equipment acceptance sources
+
+- **Completed/files:** extended `Scripts/Tests/Inventory/Verify-Inventory.ps1 -ContractOnly` to require nine focused Main Hand, two-handed hotbar, grid, owner-privacy, current-save, worn-gear, and icon automation cases with key assertion anchors. Updated this verification handoff, `docs/07-development-setup.md`, and `BACKLOG.md`.
+- **Lightweight checks:** `pwsh -NoProfile -File Scripts/Tests/Inventory/Verify-Inventory.ps1 -ContractOnly` passed, including all nine source cases and the route-free tutorial preflight. PowerShell parser validation passed. `git diff --check` passed; Git emitted an existing CRLF normalization warning for the untouched Workbench recipe file.
+- **Impact/authority:** adds a no-build preflight that catches missing equipment acceptance sources before an editor build. It does not execute Unreal automation, establish live replication/privacy/reconnect behavior, or change gameplay, network authority, RPCs, or save data.
+- **Verification/limitations:** normal partial child increment. No Unreal build, Unreal automation, rendered review, live peer run, or current-format save/reconnect acceptance was performed; full verification remains deferred. The selected coverage child and armor parent remain unchecked.
+- **Next eligible task:** after an affected editor build, execute the focused catalogue/icon, worn-gear, Main Hand/hotbar, owner-privacy, and current-format save acceptance, including live peer/reconnect coverage. No known catalogue icon gaps remain. The pre-existing changes to `Content/Data/GameCatalogues/item-level-up/costs/gear.json` and `Content/Data/GameCatalogues/recipes/stations/workbench.json` were preserved and excluded. Main checkout used directly; no handoff synchronization required.
+
 ## Autonomous increment 2026-10-15 — Add six material catalogue icons
 
 - **Completed/files:** generated original Bronze, Copper, Tin, CopperOre, TinOre and IronOre icons; prepared six transparent 64×64 PNGs; added unique runtime icon mappings and catalogue batch J. Extended the pinned ledger/import/preparation/validation tools from 66 to 72 assets. Added `docs/material-icons.md` with asset paths and exact prompts, and updated current icon coverage documentation, backlog and this entry. Imported six Texture2D packages.

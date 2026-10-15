@@ -107,8 +107,14 @@ transient; the physical carried-tool save contract is unchanged.
 
 These are added automation source cases, not executed Unreal results.
 Lightweight source/whitespace/path inspection passed; full verification is
-deferred. Remaining scope for the current backlog child includes the focused
-catalogue/icon audit and live equipment/hotbar/privacy/save acceptance.
+deferred. `Scripts/Tests/Inventory/Verify-Inventory.ps1 -ContractOnly` now
+also checks that nine focused equipment, hotbar, grid, network/privacy,
+current-save, and catalogue-icon automation cases retain key source assertions.
+This preflight verifies source coverage is present; it does not compile or run
+the Unreal tests or establish live peer delivery/privacy/reconnect behavior.
+Remaining scope for the current backlog child is the focused editor/runtime
+acceptance for catalogue/icons, equipment/hotbar, privacy, and current-format
+save/reconnect behavior.
 At runtime, also check empty/invalid numbers, food/support success and rejection
 retaining Main Hand, ordinary-item selection with a full pack, remote-owner
 privacy, and a save/reconnect under the current format without migrations.

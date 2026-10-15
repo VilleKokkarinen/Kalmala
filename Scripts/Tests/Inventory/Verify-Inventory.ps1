@@ -73,6 +73,69 @@ function Invoke-InventoryContractChecks {
         }
     }
 
+    $equipmentCoverageCases = @(
+        @{
+            Path = 'Source\KalmalaGameplay\Private\Tests\KalmalaInventoryHotbarTest.cpp'
+            Automation = 'Kalmala.Gameplay.Inventory.MainHandHotbar'
+            Assertions = @('Invalid and empty numbers preserve layout', 'Full-pack selection rejection preserves the entire layout')
+        },
+        @{
+            Path = 'Source\KalmalaGameplay\Private\Tests\KalmalaTwoHandedTest.cpp'
+            Automation = 'Kalmala.Gameplay.Inventory.TwoHanded'
+            Assertions = @('Full pack rejects returning two held items for bow', 'One free cell accepts hotbar two-hand swap')
+        },
+        @{
+            Path = 'Source\KalmalaGameplay\Private\Tests\KalmalaEquipmentSaveTest.cpp'
+            Automation = 'Kalmala.Gameplay.Inventory.EquipmentCurrentSaveFormat'
+            Assertions = @('Current-format saves require pre-existing physical GUIDs', 'Validation does not rewrite an incompatible schema')
+        },
+        @{
+            Path = 'Source\KalmalaGameplay\Private\Tests\KalmalaInventoryNetworkContractTest.cpp'
+            Automation = 'Kalmala.Gameplay.Inventory.NetworkContract'
+            Assertions = @('Main Hand intent carries only one physical identity', 'Inventory field is owner-only:', 'Inventory location is not a save field:')
+        },
+        @{
+            Path = 'Source\KalmalaGameplay\Private\Tests\KalmalaInventoryGridTest.cpp'
+            Automation = 'Kalmala.Gameplay.Inventory.SharedGrid'
+            Assertions = @('Numbered tool selection moves its physical copy into Main Hand', 'Return uses first free space without restoring an old shortcut')
+        },
+        @{
+            Path = 'Source\KalmalaUI\Private\Tests\KalmalaInventoryGridWidgetTest.cpp'
+            Automation = 'Kalmala.UI.Inventory.NumberedHotbar'
+            Assertions = @('A tool moved into Main Hand leaves no numbered HUD alias', 'A returned tool uses its current pack cell number')
+        },
+        @{
+            Path = 'Source\KalmalaGameplay\Private\Tests\KalmalaInventoryEquipmentTest.cpp'
+            Automation = 'Kalmala.Gameplay.Inventory.WornGearTransactions'
+            Assertions = @('Wearing all six items vacates every original pack row', 'Returned grid row receives its own identity')
+        },
+        @{
+            Path = 'Source\KalmalaUI\Private\Tests\KalmalaEquipmentIconTest.cpp'
+            Automation = 'Kalmala.UI.CatalogueIcons.EquipmentCoverage'
+            Assertions = @('All six initial wearable families have icon coverage', 'All seventeen current Main Hand profiles have icon coverage')
+        },
+        @{
+            Path = 'Source\KalmalaUI\Private\Tests\KalmalaStatusHotbarTest.cpp'
+            Automation = 'Kalmala.UI.CatalogueIcons.CompleteCoverage'
+            Assertions = @('for (const auto& Item : Items->Items) Check(Item.ItemId);', 'imported texture loads')
+        }
+    )
+    foreach ($coverageCase in $equipmentCoverageCases) {
+        $casePath = Join-Path $projectRoot $coverageCase.Path
+        if (-not (Test-Path -LiteralPath $casePath -PathType Leaf)) {
+            throw "Equipment acceptance automation source is missing: $($coverageCase.Path)"
+        }
+        $caseSource = Get-Content -LiteralPath $casePath -Raw
+        if (-not $caseSource.Contains($coverageCase.Automation)) {
+            throw "Equipment acceptance automation is not registered: $($coverageCase.Automation)"
+        }
+        foreach ($assertion in $coverageCase.Assertions) {
+            if (-not $caseSource.Contains($assertion)) {
+                throw "Equipment acceptance assertion is missing from $($coverageCase.Automation): $assertion"
+            }
+        }
+    }
+
     $architecture = Get-Content -LiteralPath (Join-Path $projectRoot 'docs\02-technical-architecture.md') -Raw
     if ($architecture.Contains('UKalmalaInventorySubsystem') -or $architecture.Contains('hit-test-invisible pack panel')) {
         throw 'Technical architecture still describes the retired persistent inventory panel.'
@@ -80,6 +143,7 @@ function Invoke-InventoryContractChecks {
 
     & (Join-Path $repoPaths.TestsRoot 'Presentation\Verify-TutorialRouteFree.ps1')
     Write-Output 'PASS: legacy inventory HUD and bottom tutorial card are absent; on-demand Inventory and empty-state coverage remain.'
+    Write-Output "PASS: $($equipmentCoverageCases.Count) equipment/hotbar/privacy/save/icon automation cases retain their key source assertions."
 }
 
 Invoke-InventoryContractChecks
