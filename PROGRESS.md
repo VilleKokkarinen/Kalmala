@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-15 — Use tiered wood for axe costs
+
+- **Completed:** changed Bronze Axe acquisition and upgrade costs to use Lightwood, and Iron Axe acquisition and upgrade costs to use Densewood. All other ingredients and quantities are unchanged.
+- **Files changed:** `Content/Data/GameCatalogues/recipes/stations/forge.json` (two recipe ingredient substitutions only; the pre-existing Frying Pan removal is preserved), `Content/Data/GameCatalogues/item-level-up/costs/axes.json`, `docs/02-technical-architecture.md`, `docs/05-decision-log.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** parsed the affected recipe and upgrade JSON, verified the Bronze/Iron Axe entries use Lightwood/Densewood with their original quantities and companion ingredients, confirmed both IDs exist in the committed wood catalogue, and ran `git diff --check`. No Unreal build or automation tests were run.
+- **Impact/authority:** changes authored catalogue costs only; crafting and upgrade payment remain server-validated, with no RPC or save-schema change.
+- **Verification/limitations:** full Unreal compilation, packaged-data loading, and gameplay progression remain unverified. The Forge file has an unrelated pre-existing Frying Pan recipe removal, which is excluded from this increment's commit.
+- **Next eligible backlog task:** convert decorative generated forest trees into individually attackable sources and integrate their depletion/streaming policy.
+
 ## User-directed increment 2026-10-15 — Fix Bronze item upgrade costs
 
 - **Completed:** changed all five Bronze upgrade records to consume Bronze bars instead of Stone. Wood quantities and the former Stone quantities are retained unchanged.

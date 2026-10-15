@@ -31,7 +31,7 @@
           "Quantity": 4
         },
         {
-          "ItemId": "Wood",
+          "ItemId": "Densewood",
           "Quantity": 3
         }
       ],
@@ -121,7 +121,7 @@
       "RequiredStationLevel": 1,
       "Ingredients": [
         {
-          "ItemId": "Wood",
+          "ItemId": "Lightwood",
           "Quantity": 4
         },
         {

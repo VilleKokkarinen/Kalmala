@@ -6,7 +6,7 @@
       "RequiredStation": "Forge",
       "Ingredients": [
         {
-          "ItemId": "Wood",
+          "ItemId": "Lightwood",
           "Quantity": 4
         },
         {
@@ -26,7 +26,7 @@
           "Quantity": 4
         },
         {
-          "ItemId": "Wood",
+          "ItemId": "Densewood",
           "Quantity": 3
         }
       ],
