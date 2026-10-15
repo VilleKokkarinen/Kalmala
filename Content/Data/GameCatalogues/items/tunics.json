@@ -1,0 +1,14 @@
+{
+  "items": [
+    {
+      "ItemId": "BoarHideTunic",
+      "DisplayName": "Boar Hide Tunic",
+      "Description": "A sturdy hide tunic tied at the chest and shoulders.",
+      "MaxStack": 1,
+      "WeightKg": 3,
+      "GearSlot": "Chest",
+      "MaxDurability": 50,
+      "Armor": 1
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "items": [
+    {
+      "ItemId": "BoarHideLeggings",
+      "DisplayName": "Boar Hide Leggings",
+      "Description": "Keeps your private parts moderately protected.",
+      "MaxStack": 1,
+      "WeightKg": 3,
+      "GearSlot": "Legs",
+      "MaxDurability": 50,
+      "Armor": 1
+    }
+  ]
+}

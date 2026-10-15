@@ -1,0 +1,14 @@
+{
+  "items": [
+    {
+      "ItemId": "WoodShield",
+      "DisplayName": "Wood Shield",
+      "Description": "A rounded wooden shield.",
+      "MaxStack": 1,
+      "WeightKg": 5,
+      "GearSlot": "Shield",
+      "MaxDurability": 50,
+      "Armor": 5
+    }
+  ]
+}

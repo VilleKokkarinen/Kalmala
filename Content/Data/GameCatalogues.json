@@ -18,7 +18,12 @@
     "items/buildItems/workbench.json",
     "items/food.json",
     "items/crops.json",
-    "items/gear.json",
+    "items/boots.json",
+    "items/capes.json",
+    "items/helmets.json",
+    "items/leggings.json",
+    "items/shields.json",
+    "items/tunics.json",
     "items/scrolls.json"
   ],
   "recipeFiles": [
@@ -47,7 +52,12 @@
     "item-level-up/costs/spears.json",
     "item-level-up/costs/maces.json",
     "item-level-up/costs/construction-hammer.json",
-    "item-level-up/costs/gear.json"
+    "item-level-up/costs/boots.json",
+    "item-level-up/costs/capes.json",
+    "item-level-up/costs/helmets.json",
+    "item-level-up/costs/leggings.json",
+    "item-level-up/costs/shields.json",
+    "item-level-up/costs/tunics.json"
   ],
   "levelUpRewardFiles": [
     "item-level-up/rewards/item-stats.json"

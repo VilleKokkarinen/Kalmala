@@ -1,0 +1,16 @@
+{
+  "upgrades": [
+    {
+      "DisplayName": "Boar Hide Helmet",
+      "ItemId": "BoarHideHelmet",
+      "RequiredStation": "Workbench",
+      "Ingredients": [
+        {
+          "ItemId": "BoarHide",
+          "Quantity": 5
+        }
+      ],
+      "Level": 1
+    }
+  ]
+}

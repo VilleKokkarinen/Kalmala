@@ -1,0 +1,14 @@
+{
+  "items": [
+    {
+      "ItemId": "BoarHideCape",
+      "DisplayName": "Boar Hide Cape",
+      "Description": "A short, warm cape of boar hide with a bone clasp.",
+      "MaxStack": 1,
+      "WeightKg": 2,
+      "GearSlot": "Cape",
+      "MaxDurability": 50,
+      "Armor": 1
+    }
+  ]
+}

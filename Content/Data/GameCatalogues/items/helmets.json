@@ -1,0 +1,14 @@
+{
+  "items": [
+    {
+      "ItemId": "BoarHideHelmet",
+      "DisplayName": "Boar Hide Helmet",
+      "Description": "A stitched hide cap.",
+      "MaxStack": 1,
+      "WeightKg": 1,
+      "GearSlot": "Head",
+      "MaxDurability": 50,
+      "Armor": 1
+    }
+  ]
+}

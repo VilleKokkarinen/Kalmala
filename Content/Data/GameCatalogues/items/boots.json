@@ -1,0 +1,14 @@
+{
+  "items": [
+    {
+      "ItemId": "BoarHideBoots",
+      "DisplayName": "Boar Hide Boots",
+      "Description": "Sturdy boar hide boots.",
+      "MaxStack": 1,
+      "WeightKg": 1,
+      "GearSlot": "Boots",
+      "MaxDurability": 50,
+      "Armor": 1
+    }
+  ]
+}

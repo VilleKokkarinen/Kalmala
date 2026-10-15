@@ -1,0 +1,24 @@
+{
+  "upgrades": [
+    {
+      "DisplayName": "Wood Shield",
+      "ItemId": "WoodShield",
+      "RequiredStation": "Workbench",
+      "Ingredients": [
+        {
+          "ItemId": "Wood",
+          "Quantity": 5
+        },
+        {
+          "ItemId": "BoarHide",
+          "Quantity": 2
+        },
+        {
+          "ItemId": "DeerHide",
+          "Quantity": 2
+        }
+      ],
+      "Level": 1
+    }
+  ]
+}

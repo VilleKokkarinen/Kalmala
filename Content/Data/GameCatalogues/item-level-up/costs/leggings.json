@@ -1,0 +1,16 @@
+{
+  "upgrades": [
+    {
+      "DisplayName": "Boar Hide Leggings",
+      "ItemId": "BoarHideLeggings",
+      "RequiredStation": "Workbench",
+      "Ingredients": [
+        {
+          "ItemId": "BoarHide",
+          "Quantity": 5
+        }
+      ],
+      "Level": 1
+    }
+  ]
+}

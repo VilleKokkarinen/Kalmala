@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-15 — Split wearable gear catalogue files
+
+- **Completed:** split the six wearable item definitions into per-type `boots.json`, `capes.json`, `helmets.json`, `leggings.json`, `shields.json`, and `tunics.json` files under `items/`. Split their matching level-one upgrade costs into the corresponding files under `item-level-up/costs/`, and registered all twelve files in the manifest. The existing item and cost records are preserved unchanged.
+- **Files changed:** `Content/Data/GameCatalogues.json`; added `Content/Data/GameCatalogues/items/boots.json`, `capes.json`, `helmets.json`, `leggings.json`, `shields.json`, and `tunics.json`; added the corresponding six files under `Content/Data/GameCatalogues/item-level-up/costs/`; deleted the old `items/gear.json` and `item-level-up/costs/gear.json`; updated `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** parsed all 24 manifest item files (58 unique item IDs) and 13 upgrade-cost files (23 unique upgrade IDs); compared all six split item and cost records against the pre-split files from `HEAD`; verified every listed file exists, all six new per-type paths are registered in both categories, old paths are absent, and changed paths remain below MAX_PATH. `git diff --cached --check` passed. No Unreal build or automation run; full verification remains deferred under normal development policy.
+- **Observable impact and authority:** catalogue data is organized per wearable type; the manifest still loads the same six items and six costs. No gameplay behavior, network contract, or save data changed.
+- **Known limitations:** Unreal catalogue loading and gameplay behavior were not exercised; full verification remains deferred.
+- **Next eligible backlog task:** under Attack-driven tree harvesting, convert decorative generated forest trees into individually attackable sources and integrate their depletion/streaming policy.
+
 ## User-directed increment 2026-10-15 — Rename the two-handed item flag
 
 - **Completed:** renamed Bow's authored equipment JSON property to `twoHanded`. The catalogue loader reads the optional boolean, defaults omitted values to false, maps it to the internal Unreal boolean, and rejects the retired `bTwoHanded` JSON key. Updated focused automation assertion labels and architecture documentation.

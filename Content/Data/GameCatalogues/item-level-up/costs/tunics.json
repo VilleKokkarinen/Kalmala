@@ -1,0 +1,16 @@
+{
+  "upgrades": [
+    {
+      "DisplayName": "Boar Hide Tunic",
+      "ItemId": "BoarHideTunic",
+      "RequiredStation": "Workbench",
+      "Ingredients": [
+        {
+          "ItemId": "BoarHide",
+          "Quantity": 5
+        }
+      ],
+      "Level": 1
+    }
+  ]
+}

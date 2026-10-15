@@ -1,0 +1,20 @@
+{
+  "upgrades": [
+    {
+      "DisplayName": "Boar Hide Cape",
+      "ItemId": "BoarHideCape",
+      "RequiredStation": "Workbench",
+      "Ingredients": [
+        {
+          "ItemId": "BoarHide",
+          "Quantity": 2
+        },
+        {
+          "ItemId": "BoneFragment",
+          "Quantity": 1
+        }
+      ],
+      "Level": 1
+    }
+  ]
+}
