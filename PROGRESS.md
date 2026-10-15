@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-15 — Replicate reconstructed forest transforms
+
+- **Completed:** partial increment of the first unchecked generated-tree harvesting child. Successful server reconstruction enables actor movement replication before setting generated position/yaw; the existing forced network update follows shape/source initialization. Child remains unchecked.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaHarvestNode.cpp`, `docs/02-technical-architecture.md`, `BACKLOG.md`, and this file.
+- **Lightweight checks:** inspected authority/candidate/source guards, constructor defaults, root component, transform assignment and forced-update ordering. Focused source assertions, working/staged whitespace checks and four-path MAX_PATH audit passed. No Unreal build, automation or live peers; full verification remains deferred for this normal partial increment.
+- **Impact/authority:** reconstructed forest actors opt into the existing actor transform replication path for current and later-relevant peers. Location/yaw remain server-selected; no client input, reward or save-format change. Legacy initializers retain their existing default.
+- **Limitations:** no live patch caller yet; generated trees remain decorative. Actual network delivery is unverified. Patch spawning/eviction, cosmetic suppression and sparse depletion binding/filtering remain pending; moving fall/log presentation is later scope.
+- **Next eligible task:** continue the same generated-tree child with patch lifecycle and cosmetic/depletion integration. Main checkout used directly; no handoff synchronization required. Checkout began clean; app state showed no other active Kalmala chat. CIM process access was unavailable.
+
 ## Autonomous increment 2026-10-15 — Retain generated forest dimensions
 
 - **Completed:** partial increment of the first unchecked generated-tree harvesting child. Server reconstruction retains trunk/canopy radius and height, replicates them to relevant peers, and rebuilds standing harvest geometry with generated dimensions, trunk taper and canopy vertical extent. Zero dimensions preserve legacy node sizes. Child remains unchecked.

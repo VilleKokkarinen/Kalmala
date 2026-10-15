@@ -115,6 +115,9 @@ bool AKalmalaHarvestNode::InitializeForestServer(const FKalmalaWorldGenerationCo
     if (!Tree || Tree->PersistentSpawnId.IsEmpty()) return false;
     const FName SourceId = Tree->bElderwood ? FName(TEXT("elderwood-ironheart-trunk")) : FName(TEXT("meadows-birch-trunk"));
     if (!FKalmalaBiomeContentContract::IsValidGatheringSourceId(SourceId)) return false;
+    // Forest candidates may be reconstructed after actor spawning. Replicate the
+    // authoritative transform as well as their shape, including late relevance.
+    SetReplicateMovement(true);
     SetActorLocation(Tree->Location);
     SetActorRotation(FRotator(0.0f, Tree->Yaw, 0.0f));
     PersistentSpawnId = Tree->PersistentSpawnId;

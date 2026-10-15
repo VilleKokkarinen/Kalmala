@@ -2813,6 +2813,11 @@ server world config and patch center and finds the original candidate ordinal.
 Non-authority calls, absent candidates and reinitialization fail before mutation.
 The actor receives the generated identity, position and yaw and the existing
 Meadows birch-trunk or Elderwood ironheart-trunk contract (including tiers/yields).
+Successful forest initialization enables actor movement replication before setting
+the generated position and yaw, then forces a network update after initialization.
+This supplies the authoritative transform to relevant and later-relevant peers
+even when reconstruction follows actor spawning. Legacy harvest initialization
+keeps its existing movement-replication default. Peer execution remains deferred.
 Forest IDs bypass the session M9 depletion overlay and emit `OnHarvested` after
 accepted pickup, for binding to the existing world sparse harvested-ID callback.
 
