@@ -11,16 +11,15 @@ GUID without disturbing other slots. These Unreal source cases require execution
 after an editor build; they do not establish live peer privacy or save behavior.
 
 The lightweight `Scripts/Validate-UIIcons.ps1 -Category Catalogue` audit passed
-all 62 ledger entries. Focused data/source checks matched all 22 equipment IDs
+all 63 ledger entries. Focused data/source checks matched all 22 equipment IDs
 to their ledger and asset files. This file audit does not load Unreal packages
 or validate station recipes. The global `CatalogueIcons.CompleteCoverage` test
 now traverses validated item/profile/recipe catalogues instead of fixed historical
-counts, checks retained Stone/Campfire texture names, and verifies Bone fragment's
-intentional vector fallback. Missing mappings fail with the item identity before
-shape/texture assertions. A source/data audit found 66 distinct mapped identities
+counts, checks retained Stone/Campfire texture names, and requires Bone fragment's imported texture. Missing mappings fail with the item identity before
+shape/texture assertions. A source/data audit found 67 distinct mapped identities
 with imported packages, plus six pre-existing unmapped materials: Copper, Tin,
 Bronze, CopperOre, TinOre and IronOre. Those six remain failures of the global
-coverage requirement; they are not added to the fallback exception. This audit
+coverage requirement; Bone fragment now has its own artwork. This audit
 does not establish a passing Unreal test. The current uncommitted station edits
 also duplicate `WoodShieldRecipe`, preventing an integrated catalogue load until
 resolved. Live hotbar, equipment, owner privacy and current-format reconnect/save
@@ -2648,9 +2647,9 @@ editor build to verify imported texture paths and loads for all current item,
 tool and recipe-output identities. `Scripts/Tests/Construction/Verify-Crafting.ps1` also requires
 `Catalogue icons: Grid=1 Selected=1` and `Forge upgrade level icon: Configured=1` from both peers;
 the grid flag checks each visible recipe output against its canonical loaded texture, while the
-Forge marker checks the level icon now shown in the upgrade comparison. Before an editor build, run `Scripts/Validate-UIIcons.ps1 -Category Catalogue` to check all 62 identity-ledger rows, original/prepared PNGs, runtime lookup mappings, and imported packages. The ledger lives in `Scripts/Data/catalogue-icon-manifest.csv`, outside the consolidated historical documentation set. The Stone Spear uses import batch D; the Bronze and Iron Knife/Pick/Spear icons use import batch E. The Amber texture rename uses batch F, which also contains the Stone, Bronze, and Iron Mace icons. The initial six wearable gear icons use import batch G; prepare them with `python Scripts/Prepare-CatalogueIconBatch.py --batch G`, then import with `Scripts/Import-CatalogueIconBatch.ps1 -Batch G`.
+Forge marker checks the level icon now shown in the upgrade comparison. Before an editor build, run `Scripts/Validate-UIIcons.ps1 -Category Catalogue` to check all 63 identity-ledger rows, original/prepared PNGs, runtime lookup mappings, and imported packages. The ledger lives in `Scripts/Data/catalogue-icon-manifest.csv`, outside the consolidated historical documentation set. The Stone Spear uses import batch D; the Bronze and Iron Knife/Pick/Spear icons use import batch E. The Amber texture rename uses batch F, which also contains the Stone, Bronze, and Iron Mace icons. Bone fragment uses import batch H (see `docs/bone-icon.md`). The initial six wearable gear icons use import batch G; prepare them with `python Scripts/Prepare-CatalogueIconBatch.py --batch G`, then import with `Scripts/Import-CatalogueIconBatch.ps1 -Batch G`.
 
-The catalogue image ledger contains 62 imported textures: 45 item identities,
+The catalogue image ledger contains 63 imported textures: 46 item identities,
 sixteen carried tools, and the Campfire construction identity.
 Four support-scroll item identities reuse their matching imported status
 textures without adding duplicate texture packages. The retired `Fibre.uasset`

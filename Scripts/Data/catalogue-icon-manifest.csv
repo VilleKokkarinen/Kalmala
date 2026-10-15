@@ -61,3 +61,4 @@ image_batch,import_batch,canonical_id,art_subject,identity_kind,catalogue_aliase
 23,G,BoarHideTunic,Boar-hide tunic,item,none,none,PackInventory;ItemDetail,pack,BoarHideTunic
 23,G,BoarHideLeggings,Boar-hide leggings,item,none,none,PackInventory;ItemDetail,pack,BoarHideLeggings
 23,G,BoarHideBoots,Boar-hide boots,item,none,none,PackInventory;ItemDetail,pack,BoarHideBoots
+24,H,BoneFragment,Bone fragment,item,none,none,PackInventory;ItemDetail;Storage;Ingredient,pack,BoneFragment

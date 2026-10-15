@@ -339,23 +339,6 @@ bool FKalmalaCatalogueIconTest::RunTest(const FString&)
     {
         if (CheckedIds.Contains(Id)) return;
         CheckedIds.Add(Id);
-        // Bone fragment deliberately has no artwork yet. Keep this exception exact:
-        // every other catalogue identity must still resolve to imported artwork.
-        if (Id == TEXT("BoneFragment"))
-        {
-            EKalmalaIcon Fallback = EKalmalaIcon::Unknown;
-            int32 FallbackVariant = 0;
-            TestFalse(TEXT("Bone fragment retains its deliberate vector fallback"),
-                UKalmalaIconWidget::FindCatalogueIcon(Id, Fallback, FallbackVariant));
-            TestEqual(TEXT("Bone fragment uses the unknown shape"), Fallback, EKalmalaIcon::Unknown);
-            FSoftObjectPath FallbackPath;
-            TestFalse(TEXT("Bone fragment has no imported texture path"),
-                FKalmalaCatalogueIconLibrary::GetTextureObjectPath(Id, FallbackPath));
-            auto* FallbackWidget = NewObject<UKalmalaIconWidget>();
-            FallbackWidget->SetCatalogueIcon(Id);
-            TestFalse(TEXT("Bone fragment widget uses the vector fallback"), FallbackWidget->HasCatalogueTexture());
-            return;
-        }
         EKalmalaIcon Icon = EKalmalaIcon::Unknown;
         int32 Variant = 0;
         if (!TestTrue(*FString::Printf(TEXT("%s has an icon mapping"), *Id.ToString()),

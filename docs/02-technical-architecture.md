@@ -9,6 +9,9 @@
 10 Wood, 5 Boar Hide and 1 Bone fragment at Forge; wearable upgrade execution
 remains pending. No drop, harvest, reward, starting grant or acquisition
 recipe supplies Bone fragment yet. Future drop-table work will provide it.
+The shared icon widget resolves `BoneFragment` to its original imported
+`/Game/Kalmala/UI/Icons/Items/BoneFragment.BoneFragment` texture; batch H
+retains the transparent original and prepared 64x64 PNG. See `bone-icon.md`.
 Boar Hide Cape crafting and its level-one upgrade-cost record also require
 one Bone fragment at Workbench in addition to their existing hide costs.
 
