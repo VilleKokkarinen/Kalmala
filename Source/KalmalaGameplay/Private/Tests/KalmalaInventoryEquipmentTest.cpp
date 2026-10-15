@@ -26,6 +26,63 @@ bool FKalmalaInventoryEquipmentTest::RunTest(const FString& Parameters)
     const UKalmalaItemCatalogue* Catalogue = UKalmalaItemCatalogue::Get();
     if (!TestNotNull(TEXT("Wearable item catalogue is available"), Catalogue)) return false;
 
+    // Round-trip the complete worn set, rather than only the boots/helmet fixtures below.
+    const TPair<FName, EKalmalaGearSlot> WearableSlots[] = {
+        {TEXT("BoarHideHelmet"), EKalmalaGearSlot::Head},
+        {TEXT("BoarHideCape"), EKalmalaGearSlot::Cape},
+        {TEXT("BoarHideTunic"), EKalmalaGearSlot::Chest},
+        {TEXT("WoodShield"), EKalmalaGearSlot::Shield},
+        {TEXT("BoarHideLeggings"), EKalmalaGearSlot::Legs},
+        {TEXT("BoarHideBoots"), EKalmalaGearSlot::Boots}
+    };
+    TArray<FKalmalaInventoryStack> CompletePack;
+    TArray<FGuid> WearableGuids;
+    for (const auto& Entry : WearableSlots)
+    {
+        const FGuid Guid = FGuid::NewGuid();
+        WearableGuids.Add(Guid);
+        CompletePack.Add(MakeTestStack(Entry.Key, Guid));
+    }
+    TArray<FKalmalaEquippedGear> CompleteGear;
+    FString CompleteReason;
+    for (int32 Index = 0; Index < UE_ARRAY_COUNT(WearableSlots); ++Index)
+    {
+        TArray<FKalmalaInventoryStack> CandidatePack;
+        TArray<FKalmalaEquippedGear> CandidateGear;
+        if (!TestTrue(WearableSlots[Index].Key.ToString() + TEXT(" equips alongside other worn slots"),
+            UKalmalaInventoryComponent::BuildEquipGearTransaction(CompletePack, CompleteGear,
+                WearableGuids[Index], {}, CandidatePack, CandidateGear, CompleteReason))) return false;
+        TestTrue(TEXT("Catalogue item enters its exact slot with its physical GUID"),
+            CandidateGear.ContainsByPredicate([&](const FKalmalaEquippedGear& Entry)
+            {
+                return Entry.ItemId == WearableSlots[Index].Key && Entry.Slot == WearableSlots[Index].Value
+                    && Entry.ItemGuid == WearableGuids[Index];
+            }));
+        CompletePack = MoveTemp(CandidatePack);
+        CompleteGear = MoveTemp(CandidateGear);
+        TestEqual(TEXT("Equipping retains previously worn slots"), CompleteGear.Num(), Index + 1);
+    }
+    TestTrue(TEXT("Wearing all six items vacates every original pack row"), CompletePack.IsEmpty());
+    for (int32 Index = 0; Index < UE_ARRAY_COUNT(WearableSlots); ++Index)
+    {
+        TArray<FKalmalaInventoryStack> CandidatePack;
+        TArray<FKalmalaEquippedGear> CandidateGear;
+        if (!TestTrue(WearableSlots[Index].Key.ToString() + TEXT(" returns without disturbing other slots"),
+            UKalmalaInventoryComponent::BuildUnequipGearTransaction(CompletePack, CompleteGear,
+                WearableSlots[Index].Value, {}, CandidatePack, CandidateGear, CompleteReason))) return false;
+        TestTrue(TEXT("Returned item preserves its catalogue and physical identity"),
+            CandidatePack.ContainsByPredicate([&](const FKalmalaInventoryStack& Stack)
+            {
+                return Stack.ItemId == WearableSlots[Index].Key && Stack.Quantity == 1
+                    && Stack.ItemGuids.Contains(WearableGuids[Index]);
+            }));
+        CompletePack = MoveTemp(CandidatePack);
+        CompleteGear = MoveTemp(CandidateGear);
+        TestEqual(TEXT("Returning one item preserves every other worn item"), CompleteGear.Num(), 5 - Index);
+    }
+    TestEqual(TEXT("Complete round-trip restores six carried rows"), CompletePack.Num(), 6);
+    TestTrue(TEXT("Complete round-trip clears the worn set"), CompleteGear.IsEmpty());
+
     const FGuid BootsGuid = FGuid::NewGuid();
     TArray<FKalmalaInventoryStack> AfterStacks;
     TArray<FKalmalaEquippedGear> AfterGear;

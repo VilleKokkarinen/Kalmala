@@ -1,5 +1,23 @@
 # Development setup
 
+## Focused equipment catalogue/icon coverage — 2026-10-15
+
+`Kalmala.UI.CatalogueIcons.EquipmentCoverage` checks all six wearable item
+families and sixteen authored Main Hand profiles, distinct imported texture
+identities, Stone Axe/Knife texture aliases, asset loading and the shared
+Inventory icon widget. `Kalmala.Gameplay.Inventory.WornGearTransactions` now
+also equips the complete six-slot set together and returns every original item
+GUID without disturbing other slots. These Unreal source cases require execution
+after an editor build; they do not establish live peer privacy or save behavior.
+
+The lightweight `Scripts/Validate-UIIcons.ps1 -Category Catalogue` audit passed
+all 62 ledger entries. Focused data/source checks matched all 22 equipment IDs
+to their ledger and asset files. This file audit does not load Unreal packages
+or validate station recipes. The global `CatalogueIcons.CompleteCoverage` test
+still has stale counts and texture-alias expectations; the focused test does not
+replace its broader acceptance requirements. Live hotbar, equipment, owner
+privacy and current-format reconnect/save acceptance remain outstanding.
+
 ## Integer wearable armor — 2026-10-15
 
 Catalogue schema 15 replaces wearable/reward `DefenseBonuses` with an optional
