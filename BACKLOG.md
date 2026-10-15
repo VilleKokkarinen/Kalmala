@@ -36,6 +36,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 Current first-incomplete item: under “Attack-driven tree harvesting,” convert decorative generated forest trees into individually attackable sources and integrate their depletion/streaming policy.
 
+- [x] **2026-10-15 — Standardize JSON readability:** audit all 59 tracked JSON files and reformat seven compact or inconsistent files with readable two-space indentation and line breaks. Strict parsing and data/key-order preservation checks passed.
+
 - [x] **2026-10-15 — Split wearable gear catalogue files:** separate ordinary gear definitions and level-one costs into boots, capes, helmets, leggings, shields, and tunics files; preserve records and register all files in the manifest. JSON/reference checks passed; Unreal verification deferred.
 
 - [x] **2026-10-15 — Move Wood Shield to Workbench:** moved its sole crafting recipe and matching upgrade-cost station to Workbench, preserving current ingredient costs. Updated catalogue coverage; JSON/unique-ID checks passed, Unreal verification deferred.

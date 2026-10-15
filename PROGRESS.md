@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-15 — Standardize JSON readability
+
+- **Completed:** audited all 59 tracked JSON files. Reformatted the seven outliers with consistent two-space indentation, one field per line, and a final newline where missing: the Workbench and building recipes, Bow attacks, Bow upgrade costs, String/arrow definitions, the Bow equipment profile, and the VisualStudioTools `TSAOptions.json` config. The other 52 files already followed the format. Long evidence command/path strings remain intact as single JSON values.
+- **Files changed:** `Content/Data/GameCatalogues/recipes/stations/workbench.json`, `Content/Data/GameCatalogues/recipes/building.json`, `Content/Data/GameCatalogues/attacks/bows.json`, `Content/Data/GameCatalogues/item-level-up/costs/bows.json`, `Content/Data/GameCatalogues/items/materials/string.json`, `Content/Data/GameCatalogues/items/equipment/bows.json`, `Plugins/VisualStudioTools/azure-pipelines/TSAOptions.json`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** strict-parsed all 59 files, rejecting duplicate keys and non-standard numeric tokens; compared formatter round-trips to the originals including value types and object key order; confirmed all 59 match the readable format after changes. No gameplay build or automation run; full project verification remains deferred.
+- **Observable impact and authority:** JSON structure is easier to scan and edit; no catalogue values, identifiers, ordering, runtime behavior, networking, or save data changed.
+- **Known limitations:** evidence commands and paths remain long individual string values because wrapping them would change their contents.
+- **Next eligible backlog task:** under Attack-driven tree harvesting, convert decorative generated forest trees into individually attackable sources and integrate their depletion/streaming policy.
+
 ## User-directed increment 2026-10-15 — Split wearable gear catalogue files
 
 - **Completed:** split the six wearable item definitions into per-type `boots.json`, `capes.json`, `helmets.json`, `leggings.json`, `shields.json`, and `tunics.json` files under `items/`. Split their matching level-one upgrade costs into the corresponding files under `item-level-up/costs/`, and registered all twelve files in the manifest. The existing item and cost records are preserved unchanged.

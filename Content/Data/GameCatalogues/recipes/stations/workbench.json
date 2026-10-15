@@ -1,9 +1,22 @@
 {
   "recipes": [
     {
-      "RecipeId": "Bow", "DisplayName": "Bow", "ItemId": "Bow",
-      "RequiredStation": "Workbench", "RequiredStationLevel": 1, "Level": 1,
-      "Ingredients": [ { "ItemId": "Wood", "Quantity": 5 }, { "ItemId": "String", "Quantity": 2 } ]
+      "RecipeId": "Bow",
+      "DisplayName": "Bow",
+      "ItemId": "Bow",
+      "RequiredStation": "Workbench",
+      "RequiredStationLevel": 1,
+      "Level": 1,
+      "Ingredients": [
+        {
+          "ItemId": "Wood",
+          "Quantity": 5
+        },
+        {
+          "ItemId": "String",
+          "Quantity": 2
+        }
+      ]
     },
     {
       "RecipeId": "StoneAxe",
@@ -99,12 +112,17 @@
       "RecipeId": "BoarHideBootsRecipe",
       "DisplayName": "Boar Hide Boots",
       "Ingredients": [
-        { "ItemId": "BoarHide", "Quantity": 5 }
+        {
+          "ItemId": "BoarHide",
+          "Quantity": 5
+        }
       ],
       "Output": "BoarHideBoots",
       "OutputCount": 1,
       "MaxBatch": 1,
-      "RequiredStation": [ "Workbench" ],
+      "RequiredStation": [
+        "Workbench"
+      ],
       "ExperienceSkill": "None",
       "ExperienceAward": 0,
       "bEnabled": true
@@ -113,13 +131,21 @@
       "RecipeId": "BoarHideCapeRecipe",
       "DisplayName": "Boar Hide Cape",
       "Ingredients": [
-        { "ItemId": "BoarHide", "Quantity": 5 },
-        { "ItemId": "BoneFragment", "Quantity": 1 }
+        {
+          "ItemId": "BoarHide",
+          "Quantity": 5
+        },
+        {
+          "ItemId": "BoneFragment",
+          "Quantity": 1
+        }
       ],
       "Output": "BoarHideCape",
       "OutputCount": 1,
       "MaxBatch": 1,
-      "RequiredStation": [ "Workbench" ],
+      "RequiredStation": [
+        "Workbench"
+      ],
       "ExperienceSkill": "None",
       "ExperienceAward": 0,
       "bEnabled": true
@@ -128,12 +154,17 @@
       "RecipeId": "BoarHideHelmetRecipe",
       "DisplayName": "Boar Hide Helmet",
       "Ingredients": [
-        { "ItemId": "BoarHide", "Quantity": 10 }
+        {
+          "ItemId": "BoarHide",
+          "Quantity": 10
+        }
       ],
       "Output": "BoarHideHelmet",
       "OutputCount": 1,
       "MaxBatch": 1,
-      "RequiredStation": [ "Workbench" ],
+      "RequiredStation": [
+        "Workbench"
+      ],
       "ExperienceSkill": "None",
       "ExperienceAward": 0,
       "bEnabled": true
@@ -142,12 +173,17 @@
       "RecipeId": "BoarHideLeggingsRecipe",
       "DisplayName": "Boar Hide Leggings",
       "Ingredients": [
-        { "ItemId": "BoarHide", "Quantity": 10 }
+        {
+          "ItemId": "BoarHide",
+          "Quantity": 10
+        }
       ],
       "Output": "BoarHideLeggings",
       "OutputCount": 1,
       "MaxBatch": 1,
-      "RequiredStation": [ "Workbench" ],
+      "RequiredStation": [
+        "Workbench"
+      ],
       "ExperienceSkill": "None",
       "ExperienceAward": 0,
       "bEnabled": true
@@ -156,12 +192,17 @@
       "RecipeId": "BoarHideTunicRecipe",
       "DisplayName": "Boar Hide Tunic",
       "Ingredients": [
-        { "ItemId": "BoarHide", "Quantity": 10 }
+        {
+          "ItemId": "BoarHide",
+          "Quantity": 10
+        }
       ],
       "Output": "BoarHideTunic",
       "OutputCount": 1,
       "MaxBatch": 1,
-      "RequiredStation": [ "Workbench" ],
+      "RequiredStation": [
+        "Workbench"
+      ],
       "ExperienceSkill": "None",
       "ExperienceAward": 0,
       "bEnabled": true
@@ -170,23 +211,47 @@
       "RecipeId": "WoodShieldRecipe",
       "DisplayName": "Wood Shield",
       "Ingredients": [
-        { "ItemId": "Wood", "Quantity": 10 },
-        { "ItemId": "BoarHide", "Quantity": 3 },
-        { "ItemId": "DeerHide", "Quantity": 3 }
+        {
+          "ItemId": "Wood",
+          "Quantity": 10
+        },
+        {
+          "ItemId": "BoarHide",
+          "Quantity": 3
+        },
+        {
+          "ItemId": "DeerHide",
+          "Quantity": 3
+        }
       ],
       "Output": "WoodShield",
       "OutputCount": 1,
       "MaxBatch": 1,
-      "RequiredStation": [ "Workbench" ],
+      "RequiredStation": [
+        "Workbench"
+      ],
       "ExperienceSkill": "None",
       "ExperienceAward": 0,
       "bEnabled": true
     },
     {
-      "RecipeId": "WoodenArrows", "DisplayName": "Wooden Arrows",
-      "Ingredients": [ { "ItemId": "Wood", "Quantity": 5 } ],
-      "Output": "WoodenArrow", "OutputCount": 20, "MaxBatch": 1,
-      "RequiredStation": [ "Workbench" ], "ExperienceSkill": "None", "ExperienceAward": 0, "bEnabled": true
+      "RecipeId": "WoodenArrows",
+      "DisplayName": "Wooden Arrows",
+      "Ingredients": [
+        {
+          "ItemId": "Wood",
+          "Quantity": 5
+        }
+      ],
+      "Output": "WoodenArrow",
+      "OutputCount": 20,
+      "MaxBatch": 1,
+      "RequiredStation": [
+        "Workbench"
+      ],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
     }
   ]
 }
