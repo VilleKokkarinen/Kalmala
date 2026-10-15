@@ -144,7 +144,7 @@ struct KALMALAGAMEPLAY_API FKalmalaToolRecipeData
     TArray<FKalmalaToolRecipeIngredientData> Ingredients;
 };
 
-/** JSON-backed authored tool stats and station acquisition/upgrade recipes. */
+/** JSON-backed carried-item stats, wearable rewards, and station acquisition/upgrade costs. */
 UCLASS()
 class KALMALAGAMEPLAY_API UKalmalaToolCatalogue : public UObject
 {

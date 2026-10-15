@@ -3,7 +3,7 @@
     {
       "ItemId": "WoodShield",
       "DisplayName": "Wood Shield",
-      "Description": "A round ash-plank shield reinforced with bronze and leather.",
+      "Description": "A round ash-plank shield reinforced with bronze and boar hide.",
       "MaxStack": 1,
       "WeightKg": 3.5,
       "GearSlot": "Shield",

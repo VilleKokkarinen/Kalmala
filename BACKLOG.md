@@ -36,7 +36,7 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 - [ ] **2026-10-15 — Add armor items and a worn-equipment inventory:** introduce shield, chest armor, leg armor, helmet, cape, and boots, with a separate gear section in the Inventory popup.
   - [x] Author the six armor item families in catalogue JSON with defensive stats and level-up rewards; add original icon artwork, imported textures, and complete catalogue icon-manifest coverage.
-  - [ ] Add station-validated acquisition recipes and item level-up cost records for the new armor items, using the existing catalogue and progression contracts.
+  - [x] Add station-validated acquisition recipes and item level-up cost records for the new armor items, using the existing catalogue and progression contracts.
   - [ ] Add a Worn Gear section to the Inventory popup with Main Hand, Head, Cape, Chest, Shield, Legs, and Boots slots; use the supplied image as a layout reference and retain Kalmala's original visual theme and artwork.
   - [ ] Make gear slots a distinct, GUID-addressable part of carried inventory: equip and unequip compatible items, move replaced items into available inventory space, and keep equipped items out of the forty-cell grid. Route equipped weapons and tools such as axes and the Construction Hammer through Main Hand, with server-side slot, capacity, and transaction validation.
   - [ ] Define how Main Hand selection interacts with the numbered hotbar and existing carried-tool state; preserve owner privacy and current save-schema policy, and add focused catalogue, icon, inventory, and multiplayer coverage. Any save-schema change requires a separate explicit decision and migration plan.

@@ -183,6 +183,22 @@
         }
       ],
       "Level": 1
+    },
+    {
+      "RecipeId": "WoodShieldRecipe",
+      "DisplayName": "Wood Shield",
+      "Ingredients": [
+        { "ItemId": "Wood", "Quantity": 3 },
+        { "ItemId": "Bronze", "Quantity": 2 },
+        { "ItemId": "BoarHide", "Quantity": 1 }
+      ],
+      "Output": "WoodShield",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "RequiredStation": [ "Forge" ],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
     }
   ]
 }

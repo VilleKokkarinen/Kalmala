@@ -44,7 +44,8 @@ namespace
         {
             TArray<FKalmalaToolProgressionEntry> LoadedEntries;
             const UKalmalaToolCatalogue* Catalogue = UKalmalaToolCatalogue::Get();
-            if (!Catalogue) return LoadedEntries;
+            const UKalmalaItemCatalogue* Items = UKalmalaItemCatalogue::Get();
+            if (!Catalogue || !Items) return LoadedEntries;
             LoadedEntries.Reserve(Catalogue->Recipes.Num());
             for (const FKalmalaToolRecipeData& Recipe : Catalogue->Recipes)
             {
@@ -64,7 +65,12 @@ namespace
             for (const FKalmalaToolRecipeData& Upgrade : Catalogue->UpgradeCosts)
             {
                 const FKalmalaToolProfileData* Profile = Catalogue->FindProfile(Upgrade.ToolId);
-                if (!Profile) return TArray<FKalmalaToolProgressionEntry>();
+                if (!Profile)
+                {
+                    const FKalmalaItemDefinition* GearItem = Items->FindItem(Upgrade.ToolId);
+                    if (GearItem && !GearItem->GearSlot.IsEmpty()) continue;
+                    return TArray<FKalmalaToolProgressionEntry>();
+                }
                 const int32 StationTargetCap = FKalmalaToolProgressionContract::MaxStationToolLevel;
                 for (int32 CurrentLevel = 1; CurrentLevel < StationTargetCap; ++CurrentLevel)
                 {

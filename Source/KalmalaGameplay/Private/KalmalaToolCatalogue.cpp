@@ -193,9 +193,11 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
     for (const FKalmalaToolRecipeData& Upgrade : UpgradeCosts)
     {
         const FKalmalaToolProfileData* Profile = FindProfile(Upgrade.ToolId);
+        const FKalmalaItemDefinition* GearItem = Items->FindItem(Upgrade.ToolId);
         const bool bUpgradeableProfile = Profile
             && IsOneOf(Profile->ToolSet, {TEXT("Starter"), TEXT("Crafted"), TEXT("Utility")});
-        if (!bUpgradeableProfile
+        const bool bUpgradeableGear = GearItem && !GearItem->GearSlot.IsEmpty();
+        if ((!bUpgradeableProfile && !bUpgradeableGear)
             || SeenUpgradeIds.Contains(Upgrade.ToolId)
             || Upgrade.Level != 1 || Upgrade.RequiredStationLevel != 0
             || !IsOneOf(Upgrade.RequiredStation, {TEXT("Workbench"), TEXT("Forge")})

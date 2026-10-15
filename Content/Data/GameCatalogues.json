@@ -43,7 +43,8 @@
     "item-level-up/costs/pickaxes.json",
     "item-level-up/costs/spears.json",
     "item-level-up/costs/maces.json",
-    "item-level-up/costs/construction-hammer.json"
+    "item-level-up/costs/construction-hammer.json",
+    "item-level-up/costs/gear.json"
   ],
   "levelUpRewardFiles": [
     "item-level-up/rewards/item-stats.json"

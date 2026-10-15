@@ -4,6 +4,7 @@ Add new decisions at the top. A decision records what agents should treat as set
 
 | Date | Decision | Status | Rationale |
 | --- | --- | --- | --- |
+| 2026-10-15 | Add initial station recipes and level-up costs for six wearable items. | Authored | Craft Boar Hide Helmet/Cape/Leggings/Boots with 2/2/3/2 Boar Hide and Tunic with 4 Boar Hide at Workbench; upgrade them for 1/1/2/1/2 Boar Hide respectively. Craft Wood Shield at Forge for 3 Wood, 2 Bronze, and 1 Boar Hide; its level-one upgrade costs 2 Wood, 1 Bronze, and 1 Boar Hide. Upgrade costs use the existing doubling rule. |
 | 2026-10-15 | Group item level-up costs and stat rewards under `item-level-up/`. | User-directed | Put upgrade records in `costs/` and shared item-stat reward groups in `rewards/item-stats.json`; preserve their data and behavior. |
 | 2026-10-15 | Add level-one upgrade costs for Stone, Bronze, and Iron equipment in every family file. | User-directed | Stone/Iron costs generally use acquisition materials; Bronze costs generally use Bronze bars instead of Stone at the same quantity and retain the wood cost. Bronze Axe, Knife, Spear, and Mace use Lightwood for acquisition and upgrades; Iron Axe, Knife, Spear, and Mace use Densewood. Pickaxe costs remain unchanged. Stone items upgrade at Workbench and Bronze/Iron items at Forge. |
 | 2026-10-15 | Name the Construction Hammer upgrade file `upgrades/construction-hammer.json`. | Superseded 2026-10-15 | That record now lives at `item-level-up/costs/construction-hammer.json`. |

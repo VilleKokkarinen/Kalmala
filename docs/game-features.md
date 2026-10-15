@@ -31,4 +31,4 @@ Implemented in ongoing milestone work; integrated acceptance is pending:
 - Reusable hotbar support scrolls, five-minute cooldown, and three-minute timed effects (M13).
 - Textured map, restored fog, selectable labelled pins, temporary global pings, and cached pan/zoom tiles (M14).
 
-Limits: ordinary inventory and skill XP are not generally saved; farming and wearable gear behavior are not implemented. Six initial gear records, defenses, level-up rewards, and icons are authored, but they cannot yet be crafted or equipped. Settings/Build/HUD refinements still in the backlog are requested work.
+Limits: ordinary inventory and skill XP are not generally saved; farming and wearable gear behavior are not implemented. Six gear items, defenses, level-up rewards, icons, Workbench/Forge acquisition recipes, and level-up costs are authored. The items can be crafted but cannot yet be equipped, worn down, or applied to combat defense. Settings/Build/HUD refinements still in the backlog are requested work.

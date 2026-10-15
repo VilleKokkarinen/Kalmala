@@ -38,6 +38,52 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
 
     // Use a transient catalogue so boundary authoring does not mutate live defaults.
     const UKalmalaToolCatalogue* AuthoredCatalogue = UKalmalaToolCatalogue::Get();
+    const UKalmalaItemCatalogue* ItemCatalogue = UKalmalaItemCatalogue::Get();
+    const UKalmalaRecipeCatalogue* RecipeCatalogue = UKalmalaRecipeCatalogue::Get();
+    const TArray<TPair<FName, FName>> GearStations = {
+        TPair<FName, FName>(TEXT("BoarHideBoots"), TEXT("Workbench")),
+        TPair<FName, FName>(TEXT("BoarHideCape"), TEXT("Workbench")),
+        TPair<FName, FName>(TEXT("BoarHideHelmet"), TEXT("Workbench")),
+        TPair<FName, FName>(TEXT("BoarHideLeggings"), TEXT("Workbench")),
+        TPair<FName, FName>(TEXT("BoarHideTunic"), TEXT("Workbench")),
+        TPair<FName, FName>(TEXT("WoodShield"), TEXT("Forge"))
+    };
+    TestTrue(TEXT("Armor item, recipe and upgrade catalogues validate"),
+        ItemCatalogue && ItemCatalogue->IsValidCatalogue()
+        && RecipeCatalogue && RecipeCatalogue->IsValidCatalogue()
+        && AuthoredCatalogue && AuthoredCatalogue->IsValidCatalogue(ItemCatalogue));
+    for (const TPair<FName, FName>& GearAndStation : GearStations)
+    {
+        const FKalmalaItemDefinition* GearItem = ItemCatalogue
+            ? ItemCatalogue->FindItem(GearAndStation.Key) : nullptr;
+        TestNotNull(TEXT("Wearable item exists in the ordinary item catalogue"), GearItem);
+        if (GearItem) TestFalse(TEXT("Wearable item has a slot"), GearItem->GearSlot.IsEmpty());
+
+        const FKalmalaRecipe* Acquisition = RecipeCatalogue
+            ? RecipeCatalogue->Find(FName(*(GearAndStation.Key.ToString() + TEXT("Recipe")))) : nullptr;
+        TestNotNull(TEXT("Wearable has a station acquisition recipe"), Acquisition);
+        if (Acquisition)
+        {
+            TestEqual(TEXT("Recipe outputs its matching wearable"), Acquisition->Output, GearAndStation.Key);
+            TestEqual(TEXT("Gear acquisition is a single-item craft"), Acquisition->OutputCount, 1);
+            TestEqual(TEXT("Gear acquisition cannot be batch crafted"), Acquisition->MaxBatch, 1);
+            const FName RuntimeStation = GearAndStation.Value == TEXT("Workbench")
+                ? FName(TEXT("WorkbenchKit")) : FName(TEXT("ForgeKit"));
+            TestTrue(TEXT("Gear acquisition names its required station"),
+                Acquisition->RequiredStation.Contains(RuntimeStation));
+        }
+
+        const FKalmalaToolRecipeData* Upgrade = AuthoredCatalogue
+            ? AuthoredCatalogue->UpgradeCosts.FindByPredicate([&GearAndStation](const FKalmalaToolRecipeData& Cost)
+                { return Cost.ToolId == GearAndStation.Key; }) : nullptr;
+        TestNotNull(TEXT("Wearable has a level-one upgrade cost record"), Upgrade);
+        if (Upgrade)
+        {
+            TestEqual(TEXT("Wearable upgrade cost uses the acquisition station"),
+                Upgrade->RequiredStation, GearAndStation.Value.ToString());
+            TestEqual(TEXT("Wearable upgrade cost begins at level one"), Upgrade->Level, 1);
+        }
+    }
     UKalmalaToolCatalogue* BoundaryCatalogue = NewObject<UKalmalaToolCatalogue>();
     BoundaryCatalogue->Profiles = AuthoredCatalogue->Profiles;
     BoundaryCatalogue->Recipes = AuthoredCatalogue->Recipes;
@@ -111,6 +157,9 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
         FKalmalaToolProgressionContract::IsCatalogueValid());
     TestEqual(TEXT("Current authored stats generate nineteen progression entries"), Entries.Num(), 19);
     TestTrue(TEXT("Generated entries remain bounded"), Entries.Num() <= FKalmalaToolProgressionContract::MaxToolProgressionEntries);
+    for (const TPair<FName, FName>& GearAndStation : GearStations)
+        TestNull(TEXT("Wearable costs do not enter carried-tool progression"),
+            FKalmalaToolProgressionContract::FindEntry(GearAndStation.Key));
 
     const FKalmalaToolProgressionEntry* Bronze = FKalmalaToolProgressionContract::FindEntry(TEXT("BronzeAxe"));
     TestNotNull(TEXT("Bronze Axe has a progression entry"), Bronze);

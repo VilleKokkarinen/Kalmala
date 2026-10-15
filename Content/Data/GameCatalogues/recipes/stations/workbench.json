@@ -89,6 +89,76 @@
         }
       ],
       "Level": 1
+    },
+    {
+      "RecipeId": "BoarHideBootsRecipe",
+      "DisplayName": "Boar Hide Boots",
+      "Ingredients": [
+        { "ItemId": "BoarHide", "Quantity": 2 }
+      ],
+      "Output": "BoarHideBoots",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "RequiredStation": [ "Workbench" ],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
+    },
+    {
+      "RecipeId": "BoarHideCapeRecipe",
+      "DisplayName": "Boar Hide Cape",
+      "Ingredients": [
+        { "ItemId": "BoarHide", "Quantity": 2 }
+      ],
+      "Output": "BoarHideCape",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "RequiredStation": [ "Workbench" ],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
+    },
+    {
+      "RecipeId": "BoarHideHelmetRecipe",
+      "DisplayName": "Boar Hide Helmet",
+      "Ingredients": [
+        { "ItemId": "BoarHide", "Quantity": 2 }
+      ],
+      "Output": "BoarHideHelmet",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "RequiredStation": [ "Workbench" ],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
+    },
+    {
+      "RecipeId": "BoarHideLeggingsRecipe",
+      "DisplayName": "Boar Hide Leggings",
+      "Ingredients": [
+        { "ItemId": "BoarHide", "Quantity": 3 }
+      ],
+      "Output": "BoarHideLeggings",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "RequiredStation": [ "Workbench" ],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
+    },
+    {
+      "RecipeId": "BoarHideTunicRecipe",
+      "DisplayName": "Boar Hide Tunic",
+      "Ingredients": [
+        { "ItemId": "BoarHide", "Quantity": 4 }
+      ],
+      "Output": "BoarHideTunic",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "RequiredStation": [ "Workbench" ],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
     }
   ]
 }
