@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-15 — Add Bone fragment shield ingredient
+
+- **Completed:** added `BoneFragment` / Bone fragment to `items/materials/crafting-ingredients.json` with stack limit 40 and weight 0.1 kg. Wood Shield crafting and the level-one upgrade cost each require one, preserving every other ingredient, quantity and station. No drop table, harvest reward, starting loadout or other acquisition source was added.
+- **Files changed:** crafting-material JSON, Forge recipe JSON, gear upgrade-cost JSON, `BACKLOG.md`, this entry, and `docs/02-technical-architecture.md`.
+- **Lightweight checks:** parsed manifest-listed JSON files; checked unique material identity, bounded stack/weight, known ingredient references and four-material recipe ceiling; confirmed exactly one Bone fragment in both shield records, preserved other costs, and absence from other content/source acquisition paths. `git diff --check` and changed-path MAX_PATH checks passed.
+- **Impact/authority:** existing server catalogue/material payment checks now require Bone fragment for the shield records. The item is intentionally unobtainable in normal gameplay until future drop-table work. Wearable upgrade transactions remain pending; this changes their authored cost only. No dedicated artwork was requested or added; the existing unknown-item icon fallback applies.
+- **Verification/limitations:** normal user-directed data increment; full Unreal build, runtime crafting and rendered UI verification remain deferred. No save schema or networking changes. Pre-existing Workbench recipe edits were preserved and excluded from this commit.
+- **Next eligible backlog work:** continue the unchecked Main Hand/hotbar coverage child. Bone fragment drop sources are deferred at the user's direction. Main checkout used directly; no handoff synchronization needed.
+
 ## User-directed increment 2026-10-15 — Simplify wearable armor
 
 - **Completed:** replaced wearable item, level-stat and reward resistance profiles with direct integer `Armor`. Preserved current shield 5/hide 1 values and current condition values. Wearable rewards grant +1 Armor. The loader defaults omitted Armor to zero, rejects fractional/out-of-range/old nested defenses, and requires catalogue schema 15. Item/reward validation uses bounded integer scaling. Server wildlife damage sums non-depleted worn Armor and applies it once to the Slash/Crush/Pierce/Stab subtotal; excess armor cannot absorb elemental damage. Existing non-player resistance resolution is preserved when no player armor is supplied.

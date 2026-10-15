@@ -1,5 +1,15 @@
 # Technical architecture
 
+## Bone fragment material — 2026-10-15
+
+`BoneFragment` (Bone fragment) is a stackable crafting ingredient in
+`items/materials/crafting-ingredients.json`, with stack limit 40 and weight
+0.1 kg. Wood Shield crafting requires 3 Wood, 2 Bronze, 1 Boar Hide and
+1 Bone fragment at Forge. Its level-one upgrade-cost record requires
+10 Wood, 5 Boar Hide and 1 Bone fragment at Forge; wearable upgrade execution
+remains pending. No drop, harvest, reward, starting grant or acquisition
+recipe supplies Bone fragment yet. Future drop-table work will provide it.
+
 Use the baseline sections below for module/network boundaries. The [consolidated contracts](#consolidated-system-contracts) preserve current system details from former docs 08–47:
 
 - [World generation](#world-generation), [harvest sources](#harvest-source-catalogue), and [ocean travel](#ocean-travel).

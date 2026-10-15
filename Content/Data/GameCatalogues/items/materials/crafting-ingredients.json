@@ -5,6 +5,13 @@
       "DisplayName": "Amber",
       "Description": "Dark yellow amber from the Mire.",
       "MaxStack": 40
+    },
+    {
+      "ItemId": "BoneFragment",
+      "DisplayName": "Bone fragment",
+      "Description": "A small fragment of bone used in crafting.",
+      "MaxStack": 40,
+      "WeightKg": 0.1
     }
   ]
 }
