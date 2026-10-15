@@ -5,7 +5,7 @@
       "ItemId": "BoarHideBoots",
       "RequiredStation": "Workbench",
       "Ingredients": [
-        { "ItemId": "BoarHide", "Quantity": 1 }
+        { "ItemId": "BoarHide", "Quantity": 4 }
       ],
       "Level": 1
     },
@@ -14,7 +14,7 @@
       "ItemId": "BoarHideCape",
       "RequiredStation": "Workbench",
       "Ingredients": [
-        { "ItemId": "BoarHide", "Quantity": 1 }
+        { "ItemId": "BoarHide", "Quantity": 4 }
       ],
       "Level": 1
     },
@@ -23,7 +23,7 @@
       "ItemId": "BoarHideHelmet",
       "RequiredStation": "Workbench",
       "Ingredients": [
-        { "ItemId": "BoarHide", "Quantity": 1 }
+        { "ItemId": "BoarHide", "Quantity": 5 }
       ],
       "Level": 1
     },
@@ -32,7 +32,7 @@
       "ItemId": "BoarHideLeggings",
       "RequiredStation": "Workbench",
       "Ingredients": [
-        { "ItemId": "BoarHide", "Quantity": 2 }
+        { "ItemId": "BoarHide", "Quantity": 10 }
       ],
       "Level": 1
     },
@@ -41,7 +41,7 @@
       "ItemId": "BoarHideTunic",
       "RequiredStation": "Workbench",
       "Ingredients": [
-        { "ItemId": "BoarHide", "Quantity": 2 }
+        { "ItemId": "BoarHide", "Quantity": 10 }
       ],
       "Level": 1
     },
@@ -50,9 +50,8 @@
       "ItemId": "WoodShield",
       "RequiredStation": "Forge",
       "Ingredients": [
-        { "ItemId": "Wood", "Quantity": 2 },
-        { "ItemId": "Bronze", "Quantity": 1 },
-        { "ItemId": "BoarHide", "Quantity": 1 }
+        { "ItemId": "Wood", "Quantity": 10 },
+        { "ItemId": "BoarHide", "Quantity": 5 }
       ],
       "Level": 1
     }

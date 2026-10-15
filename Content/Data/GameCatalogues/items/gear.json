@@ -3,27 +3,25 @@
     {
       "ItemId": "WoodShield",
       "DisplayName": "Wood Shield",
-      "Description": "A round ash-plank shield reinforced with bronze and boar hide.",
+      "Description": "A rounded wooden shield.",
       "MaxStack": 1,
-      "WeightKg": 3.5,
+      "WeightKg": 5,
       "GearSlot": "Shield",
-      "MaxDurability": 80,
+      "MaxDurability": 50,
       "DefenseBonuses": {
-        "Armor": 2.0,
-        "Reductions": { "Slash": 0.5, "Stab": 0.5, "Crush": 1.0, "Pierce": 0.5 }
+        "Armor": 5
       }
     },
     {
       "ItemId": "BoarHideHelmet",
       "DisplayName": "Boar Hide Helmet",
-      "Description": "A stitched hide cap with a reinforced brow and ear flaps.",
+      "Description": "A stitched hide cap.",
       "MaxStack": 1,
-      "WeightKg": 0.8,
+      "WeightKg": 1,
       "GearSlot": "Head",
       "MaxDurability": 50,
       "DefenseBonuses": {
-        "Armor": 0.5,
-        "Reductions": { "Slash": 0.25, "Stab": 0.25, "Pierce": 0.5 }
+        "Armor": 1
       }
     },
     {
@@ -31,12 +29,11 @@
       "DisplayName": "Boar Hide Cape",
       "Description": "A short, warm cape of boar hide with a bone clasp.",
       "MaxStack": 1,
-      "WeightKg": 1.2,
+      "WeightKg": 2,
       "GearSlot": "Cape",
-      "MaxDurability": 40,
+      "MaxDurability": 50,
       "DefenseBonuses": {
-        "Armor": 0.5,
-        "Reductions": { "Slash": 0.25, "Pierce": 0.25 }
+        "Armor": 1
       }
     },
     {
@@ -44,38 +41,35 @@
       "DisplayName": "Boar Hide Tunic",
       "Description": "A sturdy hide tunic tied at the chest and shoulders.",
       "MaxStack": 1,
-      "WeightKg": 2.5,
+      "WeightKg": 3,
       "GearSlot": "Chest",
-      "MaxDurability": 80,
+      "MaxDurability": 50,
       "DefenseBonuses": {
-        "Armor": 1.5,
-        "Reductions": { "Slash": 0.5, "Stab": 0.5, "Crush": 0.25, "Pierce": 0.5 }
+        "Armor": 1
       }
     },
     {
       "ItemId": "BoarHideLeggings",
       "DisplayName": "Boar Hide Leggings",
-      "Description": "Layered hide leg guards secured with leather ties.",
+      "Description": "Keeps your private parts moderately protected.",
       "MaxStack": 1,
-      "WeightKg": 1.8,
+      "WeightKg": 3,
       "GearSlot": "Legs",
-      "MaxDurability": 70,
+      "MaxDurability": 50,
       "DefenseBonuses": {
-        "Armor": 1.0,
-        "Reductions": { "Slash": 0.25, "Crush": 0.25, "Pierce": 0.25 }
+        "Armor": 1
       }
     },
     {
       "ItemId": "BoarHideBoots",
       "DisplayName": "Boar Hide Boots",
-      "Description": "Sturdy ankle boots stitched from boar hide.",
+      "Description": "Sturdy boar hide boots.",
       "MaxStack": 1,
-      "WeightKg": 1.0,
+      "WeightKg": 1,
       "GearSlot": "Boots",
       "MaxDurability": 50,
       "DefenseBonuses": {
-        "Armor": 0.5,
-        "Reductions": { "Crush": 0.5, "Pierce": 0.25 }
+        "Armor": 1
       }
     }
   ]
