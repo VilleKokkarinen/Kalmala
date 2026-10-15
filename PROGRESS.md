@@ -1,5 +1,12 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-15 — Add Bone fragment cape costs
+
+- **Completed/files:** added one `BoneFragment` to Boar Hide Cape crafting in `recipes/stations/workbench.json` and its level-one upgrade cost in `item-level-up/costs/gear.json`; updated backlog/progress and architecture. Other quantities and station requirements are preserved. Existing Workbench hide-quantity edits remain in the worktree and are excluded from this increment's staged changes.
+- **Checks:** parsed affected JSON, checked exact one-fragment costs and existing item references, compared the cape records against their prior versions, and inspected working/staged diffs and MAX_PATH. `git diff --check` passed. No full Unreal build, automation or runtime crafting verification was run; full verification remains deferred.
+- **Impact/authority/limits:** existing server ingredient validation requires the fragment for cape crafting. Wearable upgrades remain authored cost data pending their execution path. Bone fragment still has no drop or acquisition source at the user's direction. No save or networking changes.
+- **Next eligible work:** continue the unchecked Main Hand/hotbar coverage child; future drop-table work remains deferred. Main checkout used directly, so no handoff synchronization required.
+
 ## User-directed increment 2026-10-15 — Add Bone fragment shield ingredient
 
 - **Completed:** added `BoneFragment` / Bone fragment to `items/materials/crafting-ingredients.json` with stack limit 40 and weight 0.1 kg. Wood Shield crafting and the level-one upgrade cost each require one, preserving every other ingredient, quantity and station. No drop table, harvest reward, starting loadout or other acquisition source was added.

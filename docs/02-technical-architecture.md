@@ -9,6 +9,8 @@
 10 Wood, 5 Boar Hide and 1 Bone fragment at Forge; wearable upgrade execution
 remains pending. No drop, harvest, reward, starting grant or acquisition
 recipe supplies Bone fragment yet. Future drop-table work will provide it.
+Boar Hide Cape crafting and its level-one upgrade-cost record also require
+one Bone fragment at Workbench in addition to their existing hide costs.
 
 Use the baseline sections below for module/network boundaries. The [consolidated contracts](#consolidated-system-contracts) preserve current system details from former docs 08–47:
 

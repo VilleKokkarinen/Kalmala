@@ -34,6 +34,7 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-15 — Add Bone fragment to cape costs:** require one `BoneFragment` in Boar Hide Cape crafting and its level-one upgrade-cost record, preserving other costs and leaving drop sources deferred. Lightweight data/diff checks passed; Unreal verification deferred.
 - [x] **2026-10-15 — Add Bone fragment for shields:** add `BoneFragment` as a crafting material and require one in Wood Shield crafting and its level-one upgrade-cost record. No drops or acquisition sources added. JSON/reference checks passed; Unreal verification deferred.
 - [x] **2026-10-15 — Simplify wearable armor:** replace typed wearable defenses with one integer `Armor`, reducing combined Slash/Crush/Pierce/Stab damage once per hit without reducing elements. Use integer level-up rewards and schema-15 catalogue validation. Lightweight checks passed; Unreal build/automation deferred.
 - [x] **2026-10-15 — Remove catalogue manifest file-count cap:** allow any non-empty category file list; retain manifest/category JSON-size, path-safety, and definition-count validation. JSON/path checks and `git diff --check` passed; Unreal build and menu render rerun deferred.
