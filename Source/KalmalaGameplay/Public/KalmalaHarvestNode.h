@@ -8,6 +8,7 @@
 #include "KalmalaHarvestNode.generated.h"
 
 struct FKalmalaWorldGenerationConfig;
+struct FKalmalaForestTreeDescriptor;
 
 class USphereComponent;
 class UMaterialInterface;
@@ -56,6 +57,10 @@ public:
 
 private:
     friend class AKalmalaCharacter;
+    friend class AKalmalaGameMode;
+
+    /** Only the server patch owner may supply an already generated descriptor. */
+    bool InitializeGeneratedForestServer(const FKalmalaForestTreeDescriptor& Tree);
 
     void BuildSourcePresentation();
     void ApplyHarvestedState();

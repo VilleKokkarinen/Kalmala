@@ -1,5 +1,13 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-15 — Reuse generated forest descriptors
+
+- **Completed:** partial first unchecked generated-tree child. Patch activation reuses its generated descriptors through a private GameMode-accessible initializer. Public config/ordinal reconstruction delegates to the same authority, unused-state, identity and finite-geometry guards before mutation.
+- **Files changed:** Source/KalmalaGameplay/Public/KalmalaHarvestNode.h, Source/KalmalaGameplay/Private/KalmalaHarvestNode.cpp, Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, docs/02-technical-architecture.md, BACKLOG.md and this file.
+- **Lightweight checks:** focused source assertions verified one activation-loop generation, no generation inside the shared initializer, private access, public reconstruction delegation, geometry guards and preserved callback/suppression wiring. Working/staged whitespace, scope review and MAX_PATH checks passed. No Unreal build, automation, rendering or peers ran; full verification remains deferred for this normal partial increment.
+- **Impact/authority:** removes repeated full-layout reconstruction per spawned forest actor. Descriptors remain server-generated; no client API, RPC, reward or save changes. Actual activation performance is unmeasured.
+- **Limitations/next eligible task:** same generated-tree child remains unchecked for lifecycle/depletion coverage, collision/relevance and stream-out/reload validation. Moving fall/log presentation remains later scope. Main checkout used directly; handoff synchronization unnecessary. Checkout began clean; only this Kalmala chat active in app state; CIM process inventory unavailable.
+
 ## Autonomous increment 2026-10-15 — Materialize patch-owned forest harvest actors
 
 - **Completed:** partial first unchecked generated-tree child. Terrain activation spawns undepleted shared candidates with server-selected transforms, initializes existing forest harvest nodes, binds OnHarvested to sparse save recording and suppresses both depleted and successfully represented candidates. Failed allocation/initialization retains cosmetics; failed suppression destroys new actors and patch before registration. Patch eviction destroys tracked actors without rewards or depletion.

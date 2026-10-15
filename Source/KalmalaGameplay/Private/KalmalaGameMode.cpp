@@ -3916,7 +3916,7 @@ void AKalmalaGameMode::ActivateTerrainPatch(const FIntPoint& PatchCoordinate)
         AKalmalaHarvestNode* Node = GetWorld()->SpawnActor<AKalmalaHarvestNode>(
             AKalmalaHarvestNode::StaticClass(), Tree.Location, FRotator(0.0f, Tree.Yaw, 0.0f), SpawnParameters);
         if (Node == nullptr) continue; // Retain the decorative tree on allocation failure.
-        if (!Node->InitializeForestServer(WorldGenerationConfig, PatchCenter, Tree.CandidateIndex))
+        if (!Node->InitializeGeneratedForestServer(Tree))
         {
             Node->Destroy();
             continue;

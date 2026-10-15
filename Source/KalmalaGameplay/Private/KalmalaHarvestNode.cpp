@@ -112,17 +112,28 @@ bool AKalmalaHarvestNode::InitializeForestServer(const FKalmalaWorldGenerationCo
     const TArray<FKalmalaForestTreeDescriptor> Trees = FKalmalaForestLayout::Generate(Config, PatchCenter);
     const FKalmalaForestTreeDescriptor* Tree = Trees.FindByPredicate(
         [CandidateIndex](const FKalmalaForestTreeDescriptor& Candidate) { return Candidate.CandidateIndex == CandidateIndex; });
-    if (!Tree || Tree->PersistentSpawnId.IsEmpty()) return false;
-    const FName SourceId = Tree->bElderwood ? FName(TEXT("elderwood-ironheart-trunk")) : FName(TEXT("meadows-birch-trunk"));
+    return Tree != nullptr && InitializeGeneratedForestServer(*Tree);
+}
+
+bool AKalmalaHarvestNode::InitializeGeneratedForestServer(const FKalmalaForestTreeDescriptor& Tree)
+{
+    if (!HasAuthority() || !PersistentSpawnId.IsEmpty() || bHarvested
+        || Tree.PersistentSpawnId.IsEmpty() || Tree.CandidateIndex < 0
+        || Tree.Location.ContainsNaN() || !FMath::IsFinite(Tree.Yaw)
+        || !FMath::IsFinite(Tree.TrunkRadius) || Tree.TrunkRadius <= 0
+        || !FMath::IsFinite(Tree.TrunkHeight) || Tree.TrunkHeight <= 0
+        || !FMath::IsFinite(Tree.CanopyRadius) || Tree.CanopyRadius <= 0
+        || !FMath::IsFinite(Tree.CanopyHeight) || Tree.CanopyHeight <= 0) return false;
+    const FName SourceId = Tree.bElderwood ? FName(TEXT("elderwood-ironheart-trunk")) : FName(TEXT("meadows-birch-trunk"));
     if (!FKalmalaBiomeContentContract::IsValidGatheringSourceId(SourceId)) return false;
     // Forest candidates may be reconstructed after actor spawning. Replicate the
     // authoritative transform as well as their shape, including late relevance.
     SetReplicateMovement(true);
-    SetActorLocation(Tree->Location);
-    SetActorRotation(FRotator(0.0f, Tree->Yaw, 0.0f));
-    PersistentSpawnId = Tree->PersistentSpawnId;
+    SetActorLocation(Tree.Location);
+    SetActorRotation(FRotator(0.0f, Tree.Yaw, 0.0f));
+    PersistentSpawnId = Tree.PersistentSpawnId;
     GatheringSourceId = SourceId;
-    ForestDimensions = FVector4(Tree->TrunkRadius, Tree->TrunkHeight, Tree->CanopyRadius, Tree->CanopyHeight);
+    ForestDimensions = FVector4(Tree.TrunkRadius, Tree.TrunkHeight, Tree.CanopyRadius, Tree.CanopyHeight);
     BuildSourcePresentation();
     ForceNetUpdate();
     return true;

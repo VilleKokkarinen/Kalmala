@@ -2861,3 +2861,12 @@ tracked nodes without invoking harvesting. Partial damage and uncollected
 trunks/drops are session state and reset on eviction; only pickup persists
 forest depletion. No new save fields or RPCs are introduced. Runtime collision,
 replication, reload behavior and activation cost remain unverified.
+
+### Forest activation descriptor reuse (2026-10-15)
+
+Patch activation passes descriptors from its shared-layout generation to a private
+harvest-node initializer accessible to GameMode, avoiding full layout regeneration
+per tree. Public config/patch/ordinal reconstruction delegates to the same initializer.
+Authority, unused-node state, identity presence, candidate ordinal and finite positive
+dimensions are checked before mutation. No descriptor RPC is exposed. Runtime
+activation cost and lifecycle/peer acceptance remain unmeasured.
