@@ -129,6 +129,9 @@ bool AKalmalaHarvestNode::InitializeGeneratedForestServer(const FKalmalaForestTr
     // Forest candidates may be reconstructed after actor spawning. Replicate the
     // authoritative transform as well as their shape, including late relevance.
     SetReplicateMovement(true);
+    // Cosmetics are suppressed for every peer receiving the owning terrain patch.
+    // Keep its replacement visible to that same audience, including distant peers.
+    bNetUseOwnerRelevancy = true;
     SetActorLocation(Tree.Location);
     SetActorRotation(FRotator(0.0f, Tree.Yaw, 0.0f));
     PersistentSpawnId = Tree.PersistentSpawnId;

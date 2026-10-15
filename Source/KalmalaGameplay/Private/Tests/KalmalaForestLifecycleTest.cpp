@@ -28,11 +28,20 @@ bool FKalmalaForestLifecycleTest::RunTest(const FString& Parameters)
     UWorld* World = UWorld::CreateWorld(EWorldType::Game, false);
     if (!TestNotNull(TEXT("Forest lifecycle world created"), World)) return false;
 
+    auto* PatchOwner = World->SpawnActor<AActor>();
+    if (!TestNotNull(TEXT("Patch relevance owner spawned"), PatchOwner))
+    {
+        World->DestroyWorld(false);
+        return false;
+    }
+    PatchOwner->bAlwaysRelevant = true;
+
     int32 SparseCallbacks = 0;
     int32 SessionCallbacks = 0;
     const auto SpawnNode = [&]()
     {
         FActorSpawnParameters SpawnParameters;
+        SpawnParameters.Owner = PatchOwner;
         SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
         auto* Node = World->SpawnActor<AKalmalaHarvestNode>(AKalmalaHarvestNode::StaticClass(),
             FVector::ZeroVector, FRotator::ZeroRotator, SpawnParameters);
@@ -49,10 +58,12 @@ bool FKalmalaForestLifecycleTest::RunTest(const FString& Parameters)
         World->DestroyWorld(false);
         return false;
     }
+    TestFalse(TEXT("Legacy nodes retain independent relevance"), Node->bNetUseOwnerRelevancy);
     Node->SetRole(ROLE_SimulatedProxy);
     TestFalse(TEXT("Client cannot reconstruct a forest node"),
         Node->InitializeForestServer(Config, PatchCenter, Tree.CandidateIndex));
     TestTrue(TEXT("Client rejection preserves empty identity"), Node->GetPersistentSpawnId().IsEmpty());
+    TestFalse(TEXT("Client rejection preserves independent relevance"), Node->bNetUseOwnerRelevancy);
     Node->SetRole(ROLE_Authority);
     TestFalse(TEXT("Missing candidate cannot initialize"), Node->InitializeForestServer(Config, PatchCenter, INDEX_NONE));
     TestTrue(TEXT("Server reconstructs accepted candidate"), Node->InitializeForestServer(Config, PatchCenter, Tree.CandidateIndex));
@@ -60,6 +71,8 @@ bool FKalmalaForestLifecycleTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Reconstruction restores generated position"), Node->GetActorLocation().Equals(Tree.Location));
     TestTrue(TEXT("Reconstruction restores generated yaw"), Node->GetActorRotation().Equals(FRotator(0, Tree.Yaw, 0)));
     TestTrue(TEXT("Generated transforms replicate"), Node->IsReplicatingMovement());
+    TestTrue(TEXT("Generated trees use patch owner relevance"), Node->bNetUseOwnerRelevancy);
+    TestTrue(TEXT("Reconstruction retains patch relevance owner"), Node->GetOwner() == PatchOwner);
     TestEqual(TEXT("Biome selects canonical trunk source"), Node->GetGatheringSourceId(),
         FName(Tree.bElderwood ? TEXT("elderwood-ironheart-trunk") : TEXT("meadows-birch-trunk")));
     TestTrue(TEXT("Standing forest tree accepts axe attacks"), Node->CanReceiveAxeAttack());
@@ -76,6 +89,8 @@ bool FKalmalaForestLifecycleTest::RunTest(const FString& Parameters)
         TestTrue(TEXT("Uncollected tree reconstructs after stream-out"),
             Reloaded->InitializeForestServer(Config, PatchCenter, Tree.CandidateIndex));
         TestEqual(TEXT("Reload retains original sparse identity"), Reloaded->GetPersistentSpawnId(), Tree.PersistentSpawnId);
+        TestTrue(TEXT("Reload restores patch owner relevance"), Reloaded->bNetUseOwnerRelevancy
+            && Reloaded->GetOwner() == PatchOwner);
         TestTrue(TEXT("Reload restores standing state"), Reloaded->CanReceiveAxeAttack()
             && !Reloaded->IsFelledTrunk() && !Reloaded->IsWoodDrop() && !Reloaded->IsHarvested());
         Reloaded->Destroy();

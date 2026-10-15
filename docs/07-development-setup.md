@@ -3093,3 +3093,9 @@ and destroys/reconstructs the node without firing either depletion delegate.
 This covers actor lifetime primitives only, not GameMode neighborhood eviction,
 partial-damage reset, saved pickup depletion, collision traces or peer relevance.
 The test source has been inspected but has not yet been compiled or executed.
+
+The forest reconstruction fixture also assigns a patch-like always-relevant owner,
+checks legacy/client-rejected nodes retain independent relevance, and verifies
+successful reconstruction and reload enable owner relevance without replacing the
+owner. These assertions inspect settings only; live distant-peer delivery and
+patch eviction remain unverified.

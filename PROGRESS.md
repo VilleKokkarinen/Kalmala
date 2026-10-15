@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-15 — Match forest patch relevance
+
+- **Completed:** partial first unchecked generated-tree child. Successful forest initialization enables owner relevance, matching the terrain patch audience receiving cosmetic suppression. Added lifecycle fixture checks for legacy defaults, client rejection, owner retention and reconstructed/reloaded forest settings.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaHarvestNode.cpp`, `Source/KalmalaGameplay/Private/Tests/KalmalaForestLifecycleTest.cpp`, `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this file.
+- **Lightweight checks:** inspected patch ownership before initialization, always-relevant terrain configuration, authority guards and legacy initialization isolation. Focused source assertions, working/staged whitespace checks, diff/scope review and MAX_PATH audit passed. Unreal compilation, automation execution and live peers were not run; full verification remains deferred for this normal partial increment.
+- **Impact/authority:** avoids independently distance-culling live replacements while their cosmetics remain suppressed on the same peer. Relevance follows server-assigned patch ownership; no RPC, reward or save format changes. Patch eviction remains the lifetime bound.
+- **Limitations:** actual network delivery and shared-audience cost remain unmeasured. The fixture checks configuration, not network behavior. Integrated eviction, pickup/saved depletion, collision and peer acceptance remain pending; selected child/parent stay unchecked.
+- **Next eligible task:** same generated-tree child, integrated lifecycle/depletion and collision/peer validation. Moving fall/log presentation remains later. Main checkout used directly; no handoff synchronization needed. Checkout began clean; app state found no other active Kalmala run; CIM inventory unavailable.
+
 ## Autonomous increment 2026-10-15 — Cover forest reconstruction lifecycle
 
 - **Completed:** partial first unchecked generated-tree harvesting child. Added `Kalmala.Gameplay.Harvest.ForestReconstructionLifecycle` automation source using a real accepted generated candidate, an isolated world and public actor APIs. Covers client and invalid-ordinal rejection, authoritative identity/source/position/yaw reconstruction, movement replication flag, reinitialization rejection, destruction without sparse/session depletion callbacks and standing-state reconstruction with the same identity.

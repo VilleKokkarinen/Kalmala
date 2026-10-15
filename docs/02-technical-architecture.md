@@ -2870,3 +2870,14 @@ per tree. Public config/patch/ordinal reconstruction delegates to the same initi
 Authority, unused-node state, identity presence, candidate ordinal and finite positive
 dimensions are checked before mutation. No descriptor RPC is exposed. Runtime
 activation cost and lifecycle/peer acceptance remain unmeasured.
+
+### Forest patch relevance (2026-10-15)
+
+Successful generated-forest initialization enables `bNetUseOwnerRelevancy`.
+GameMode assigns the terrain patch as actor owner before initialization, so live
+forest replacements use the same relevance audience as their always-relevant patch
+and its replicated cosmetic suppression. This prevents independent tree distance
+culling from leaving suppressed candidates invisible to distant peers. Patch
+eviction still bounds actor lifetime; legacy harvest nodes retain independent
+relevance. Unowned reconstruction falls back to ordinary actor relevance. Actual
+network delivery and the cost of the shared audience remain unverified.
