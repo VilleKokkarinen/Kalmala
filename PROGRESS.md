@@ -1,5 +1,15 @@
 # Autonomous development progress
 
+## User-directed repair 2026-10-15 — Derive internal upgrade-cost identity
+
+- **Completed:** validated each upgrade-cost record's authored `ToolId` and derived the internal `RecipeId` from that same value before strict conversion into the shared equipment-recipe struct. Upgrade JSON remains keyed only by `ToolId`.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaGameCatalogueLoader.cpp`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** parsed all seven manifest-listed upgrade files and verified all 22 records have `ToolId` and omit authored `RecipeId`; a focused source check confirmed validation and derivation occur before strict conversion; `git diff --check` passed.
+- **Impact and authority:** removes the reported `Missing JSON value named RecipeId` catalogue load failure without changing the authored data contract. No gameplay authority, networking, persistence, or save-schema behavior changed.
+- **Verification/limitations:** normal repair, not milestone-final. Unreal build, catalogue automation, and menu rendering were not rerun; full compilation/render confirmation remains deferred.
+- **Known limitations:** the prior menu-render failure is only addressed at the identified strict-conversion site; a fresh `Render-Menu.ps1 -BuildModules` run must confirm the complete render set. Worn Gear UI actions/state, defense and condition behavior, and Main Hand/hotbar routing remain unfinished.
+- **Next eligible backlog task:** continue the first unchecked armor child by completing player-facing equip state/actions and the remaining gear behavior after the targeted Gameplay build and focused inventory checks can run.
+
 ## User-directed repair 2026-10-15 — Remove catalogue manifest file-count cap
 
 - **Completed:** removed the per-category file-count cap. Category lists must still be present and non-empty, each path is still validated, and the manifest/aggregate JSON size and definition-count bounds remain active. This makes category organization independent of an arbitrary list length.

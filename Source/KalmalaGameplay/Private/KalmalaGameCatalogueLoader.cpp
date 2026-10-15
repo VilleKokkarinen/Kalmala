@@ -522,7 +522,14 @@ namespace
         for (const TSharedPtr<FJsonValue>& Value : ToolUpgradeValues)
         {
             const TSharedPtr<FJsonObject> Object = Value->AsObject();
-            if (!Object.IsValid()) return false;
+            FString ToolId;
+            if (!Object.IsValid() || !Object->TryGetStringField(TEXT("ToolId"), ToolId) || ToolId.IsEmpty())
+            {
+                return false;
+            }
+
+            // Upgrade-cost JSON is keyed only by ToolId; derive the shared struct's internal identity.
+            Object->SetStringField(TEXT("RecipeId"), ToolId);
             if (!Object->HasField(TEXT("RequiredStationLevel")))
             {
                 Object->SetNumberField(TEXT("RequiredStationLevel"), 0.0);
