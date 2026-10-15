@@ -1,5 +1,12 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-15 — Add six material catalogue icons
+
+- **Completed/files:** generated original Bronze, Copper, Tin, CopperOre, TinOre and IronOre icons; prepared six transparent 64×64 PNGs; added unique runtime icon mappings and catalogue batch J. Extended the pinned ledger/import/preparation/validation tools from 66 to 72 assets. Added `docs/material-icons.md` with asset paths and exact prompts, and updated current icon coverage documentation, backlog and this entry. Imported six Texture2D packages.
+- **Lightweight checks:** visually inspected all six originals and prepared icons; `Prepare-CatalogueIconBatch.py --batch J` passed; content-only Unreal import succeeded with normal process access and validated every package; `Validate-UIIcons.ps1 -Category Catalogue` passed all 72 source/prepared/package rows. PowerShell parser, six-ID ledger/mapping/texture/shape checks, batch-J checks, changed-path limits and `git diff --check` passed. No gameplay build, Unreal catalogue/icon automation or live peer scenario ran; full verification remains deferred for this normal partial increment.
+- **Impact/authority:** the six alloy/ore materials now resolve to their own imported inventory textures and distinct fallback shapes. No gameplay behavior, server authority, networking, RPCs or save data changed.
+- **Limits/next eligible task:** `Kalmala.UI.CatalogueIcons.CompleteCoverage` and Main Hand/hotbar/privacy/current-format save/reconnect acceptance remain unexecuted. The selected coverage child and armor parent remain unchecked. Continue that same child with the focused editor/runtime acceptance after a usable editor build. Existing user edits in gear upgrade costs and the Workbench recipe file were preserved and excluded. Main checkout was used directly; no handoff sync was required.
+
 ## User-directed correction 2026-10-15 — Wood Shield belongs at Workbench
 
 - **Completed/files:** moved the sole Wood Shield crafting recipe from Forge to Workbench and changed its required station to Workbench. Aligned the matching gear upgrade-cost station and existing progression catalogue test. Preserved crafting costs (10 Wood, 3 Boar Hide, 3 Deer Hide), upgrade costs and all unrelated balance edits. Updated backlog, architecture and setup documentation.

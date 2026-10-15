@@ -65,3 +65,9 @@ image_batch,import_batch,canonical_id,art_subject,identity_kind,catalogue_aliase
 25,I,String,String,item,none,none,PackInventory;ItemDetail;Storage;Ingredient,pack,String
 25,I,Bow,Bow,item,none,none,PackInventory;ItemDetail,pack,Bow
 25,I,WoodenArrow,Wooden Arrows,item,none,none,PackInventory;ItemDetail;Storage;Ingredient,pack,WoodenArrow
+26,J,Bronze,Bronze ingot,item,none,none,PackInventory;ItemDetail;Storage;Ingredient,pack,Bronze
+26,J,Copper,Copper ingot,item,none,none,PackInventory;ItemDetail;Storage;Ingredient,pack,Copper
+26,J,Tin,Tin ingot,item,none,none,PackInventory;ItemDetail;Storage;Ingredient,pack,Tin
+26,J,CopperOre,Copper ore,item,none,none,PackInventory;ItemDetail;Storage;Ingredient,pack,CopperOre
+26,J,TinOre,Tin ore,item,none,none,PackInventory;ItemDetail;Storage;Ingredient,pack,TinOre
+26,J,IronOre,Iron ore,item,none,none,PackInventory;ItemDetail;Storage;Ingredient,pack,IronOre

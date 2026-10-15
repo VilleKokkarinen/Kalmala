@@ -55,20 +55,18 @@ also equips the complete six-slot set together and returns every original item
 GUID without disturbing other slots. These Unreal source cases require execution
 after an editor build; they do not establish live peer privacy or save behavior.
 
-The lightweight `Scripts/Validate-UIIcons.ps1 -Category Catalogue` audit passed
-all 63 ledger entries. Focused data/source checks matched all 22 equipment IDs
-to their ledger and asset files. This file audit does not load Unreal packages
-or validate station recipes. The global `CatalogueIcons.CompleteCoverage` test
-now traverses validated item/profile/recipe catalogues instead of fixed historical
-counts, checks retained Stone/Campfire texture names, and requires Bone fragment's imported texture. Missing mappings fail with the item identity before
-shape/texture assertions. A source/data audit found 67 distinct mapped identities
-with imported packages, plus six pre-existing unmapped materials: Copper, Tin,
-Bronze, CopperOre, TinOre and IronOre. Those six remain failures of the global
-coverage requirement; Bone fragment now has its own artwork. This audit
-does not establish a passing Unreal test. The current uncommitted station edits
-also duplicate `WoodShieldRecipe`, preventing an integrated catalogue load until
-resolved. Live hotbar, equipment, owner privacy and current-format reconnect/save
-acceptance remain outstanding.
+The focused equipment icon source cases cover all six wearable families and
+the sixteen Main Hand profiles. This run added original imported textures and
+runtime mappings for the six formerly missing catalogue materials: Bronze,
+Copper, Tin, CopperOre, TinOre and IronOre. The pinned batch-J ledger and
+`Scripts/Validate-UIIcons.ps1 -Category Catalogue` now cover all 72 canonical
+catalogue textures. Generation provenance and prompts are in
+`docs/material-icons.md`. The global `CatalogueIcons.CompleteCoverage` test
+traverses validated item/profile/recipe catalogues and checks runtime mappings,
+canonical texture paths, and loaded packages. The file audit passed; it does not
+load Unreal packages or establish a passing automation test. Integrated
+catalogue loading remains unverified. Live hotbar, equipment, owner privacy and
+current-format reconnect/save acceptance remain outstanding.
 
 ## Integer wearable armor — 2026-10-15
 
