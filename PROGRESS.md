@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-15 — Group upgrade costs by weapon family
+
+- **Completed:** added separate upgrade-cost files for axes, knives, pickaxes, spears, and maces, and listed them in the catalogue manifest. Their arrays are empty until family costs are authored; existing records remain in `upgrades/upgrades.json`. The loader accepts empty upgrade category files so these family files are ready for costs.
+- **Files changed:** `Content/Data/GameCatalogues.json`, five new files under `Content/Data/GameCatalogues/upgrades/`, `Source/KalmalaGameplay/Private/KalmalaGameCatalogueLoader.cpp`, `docs/02-technical-architecture.md`, `docs/05-decision-log.md`, `BACKLOG.md`, and this entry. The pre-existing edit to `upgrades/upgrades.json` was preserved.
+- **Lightweight checks:** parsed the manifest and all upgrade files, confirmed the five family paths resolve and all existing working-tree upgrade entries remain unchanged; inspected loader empty-array handling and `ToolId` sorting; `git diff --check` passed. No Unreal build or automation tests were run.
+- **Impact/authority:** this changes catalogue file organization and loading only. Upgrade validation, cost scaling, and server-authoritative transactions remain unchanged; no RPC or save-schema change.
+- **Verification/limitations:** full Unreal compilation and runtime packaged-data loading remain deferred. Weapon family files have no costs until those are authored.
+- **Next eligible backlog task:** convert decorative generated forest trees into individually attackable sources and integrate their depletion/streaming policy.
+
 ## User-directed increment 2026-10-15 — Add Stone-tier equipment recipes to Workbench
 
 - **Completed:** added level-one Workbench acquisitions for Stone Axe, Stone Knife, Stone Pick, Stone Spear, and Stone Mace, plus matching craft actions in the Workbench Craft view. Starter-profile acquisitions are repeatable, so players can craft additional copies even when one is already carried. Each crafted item receives a new GUID through the existing server transaction.

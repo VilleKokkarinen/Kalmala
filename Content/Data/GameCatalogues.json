@@ -37,6 +37,11 @@
     "items/equipment/building-hammer.json"
   ],
   "itemUpgradeFiles": [
+    "upgrades/axes.json",
+    "upgrades/knives.json",
+    "upgrades/pickaxes.json",
+    "upgrades/spears.json",
+    "upgrades/maces.json",
     "upgrades/upgrades.json"
   ],
   "levelUpRewardFiles": [
