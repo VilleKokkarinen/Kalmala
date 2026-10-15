@@ -3105,4 +3105,10 @@ above the root sphere and below the canopy. It requires a complex mesh hit belon
 to the reconstructed actor, a miss beside the trunk, query collision and blocking
 on the Visibility attack channel. These checks run for initial reconstruction and
 stream-out replacement. This is authored collision coverage; execution remains
-deferred, and world-level attack selection and peer collision still need validation.
+deferred, and peer collision still needs validation.
+
+World-level Visibility traces now cover both simple gameplay queries and explicit
+complex queries at the same trunk height. They require the exact live actor before
+eviction and after reconstruction, and no blocking hit after each destruction.
+This checks collision registration/removal when executed; it does not invoke the
+character attack RPC, GameMode patch eviction, tool damage or saved depletion.

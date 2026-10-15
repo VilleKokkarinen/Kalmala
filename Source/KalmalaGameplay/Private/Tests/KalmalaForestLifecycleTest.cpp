@@ -79,6 +79,30 @@ bool FKalmalaForestLifecycleTest::RunTest(const FString& Parameters)
                 Transform.TransformPosition(FVector(-Reach, Tree.TrunkRadius * 2.0, Height)),
                 Transform.TransformPosition(FVector(Reach, Tree.TrunkRadius * 2.0, Height)), QueryParams));
     };
+    const FTransform TreeTransform(FRotator(0, Tree.Yaw, 0), Tree.Location);
+    const double TraceReach = Tree.CanopyRadius + 100.0;
+    const FVector TraceStart = TreeTransform.TransformPosition(FVector(-TraceReach, 0, Tree.TrunkHeight * 0.5));
+    const FVector TraceEnd = TreeTransform.TransformPosition(FVector(TraceReach, 0, Tree.TrunkHeight * 0.5));
+    const auto CheckWorldSelection = [&](AKalmalaHarvestNode* ExpectedNode)
+    {
+        // Exercise both the gameplay query default and the explicit complex-mesh path.
+        for (const bool bTraceComplex : { false, true })
+        {
+            FCollisionQueryParams QueryParams;
+            QueryParams.bTraceComplex = bTraceComplex;
+            FHitResult Hit;
+            const bool bHit = World->LineTraceSingleByChannel(Hit, TraceStart, TraceEnd, ECC_Visibility, QueryParams);
+            if (ExpectedNode)
+            {
+                TestTrue(TEXT("World visibility query selects generated trunk"), bHit);
+                TestTrue(TEXT("World query selects exact live forest actor"), Hit.GetActor() == ExpectedNode);
+            }
+            else
+            {
+                TestFalse(TEXT("Evicted tree leaves no blocking world collision"), bHit);
+            }
+        }
+    };
     auto* Node = SpawnNode();
     if (!TestNotNull(TEXT("Forest node spawned"), Node))
     {
@@ -104,10 +128,12 @@ bool FKalmalaForestLifecycleTest::RunTest(const FString& Parameters)
         FName(Tree.bElderwood ? TEXT("elderwood-ironheart-trunk") : TEXT("meadows-birch-trunk")));
     TestTrue(TEXT("Standing forest tree accepts axe attacks"), Node->CanReceiveAxeAttack());
     CheckStandingCollision(Node);
+    CheckWorldSelection(Node);
     TestTrue(TEXT("Forest bypasses session-only depletion identity"), Node->GetM9ResourceDepletionId().IsEmpty());
     TestFalse(TEXT("Initialized forest identity cannot be replaced"),
         Node->InitializeForestServer(Config, PatchCenter, Tree.CandidateIndex));
     TestTrue(TEXT("Stream-out destroys node"), Node->Destroy());
+    CheckWorldSelection(nullptr);
     TestEqual(TEXT("Stream-out never records sparse depletion"), SparseCallbacks, 0);
     TestEqual(TEXT("Stream-out never records session depletion"), SessionCallbacks, 0);
 
@@ -122,7 +148,9 @@ bool FKalmalaForestLifecycleTest::RunTest(const FString& Parameters)
         TestTrue(TEXT("Reload restores standing state"), Reloaded->CanReceiveAxeAttack()
             && !Reloaded->IsFelledTrunk() && !Reloaded->IsWoodDrop() && !Reloaded->IsHarvested());
         CheckStandingCollision(Reloaded);
+        CheckWorldSelection(Reloaded);
         Reloaded->Destroy();
+        CheckWorldSelection(nullptr);
     }
     World->DestroyWorld(false);
     TestEqual(TEXT("World teardown never records sparse depletion"), SparseCallbacks, 0);

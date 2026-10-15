@@ -1,5 +1,15 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-15 — Cover forest world collision lifecycle
+
+- **Completed:** partial first unchecked generated-tree child. Extended ForestReconstructionLifecycle with simple and complex world Visibility traces selecting the exact actor before/after reconstruction and requiring no hit after each destruction.
+- **Files changed:** `Source/KalmalaGameplay/Private/Tests/KalmalaForestLifecycleTest.cpp`, `docs/07-development-setup.md`, `BACKLOG.md`, and this file.
+- **Lightweight checks:** focused source assertions, brace balance, source/API inspection, whitespace and MAX_PATH checks passed. No Unreal compile, automation execution, render or peers; full verification remains deferred for this normal partial increment.
+- **Impact/authority:** regression source now exercises world collision registration/removal rather than component traces alone when executed. No runtime, RPC, reward, authority or save changes.
+- **Limitations:** new checks remain uncompiled/unexecuted. Character attack routing, partial-damage reset, GameMode eviction, pickup/saved depletion and peer delivery remain unverified. Child/parent stay unchecked.
+- **Next eligible task:** same generated-tree child: integrated lifecycle/depletion and peer validation. Moving fall/log presentation remains later. Checkout began clean; app state showed only this run active (CIM access unavailable). Main checkout used directly; no handoff synchronization required.
+
+
 ## Autonomous increment 2026-10-15 — Cover standing forest collision
 
 - **Completed:** partial first unchecked generated-tree child. Extended ForestReconstructionLifecycle with procedural-mesh trunk hit and adjacent miss traces, exact hit actor, query collision and Visibility response assertions, repeated after destruction/reconstruction.
