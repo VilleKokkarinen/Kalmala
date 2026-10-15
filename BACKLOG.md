@@ -34,6 +34,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-15 — Use tiered wood across weapon families:** Bronze Axe, Knife, Spear, and Mace acquisition and upgrade costs use Lightwood; Iron equivalents use Densewood. Preserve other ingredients and quantities; leave Pickaxe costs unchanged. Lightweight JSON/reference checks and `git diff --check` passed; Unreal verification deferred.
+
 - [x] **2026-10-15 — Use tiered wood for axe costs:** require Lightwood for Bronze Axe acquisition and upgrades, and Densewood for Iron Axe acquisition and upgrades. Preserve all other ingredients and quantities. Lightweight JSON/reference checks and `git diff --check` passed; Unreal verification deferred.
 
 - [x] **2026-10-15 — Fix Bronze item upgrade costs:** charge Bronze bars instead of Stone for all five Bronze equipment upgrades, retaining each item Wood and Bronze quantities. Lightweight JSON/reference checks and `git diff --check` passed; Unreal verification deferred.

@@ -49,7 +49,7 @@
           "Quantity": 2
         },
         {
-          "ItemId": "Wood",
+          "ItemId": "Densewood",
           "Quantity": 2
         }
       ],
@@ -89,7 +89,7 @@
           "Quantity": 3
         },
         {
-          "ItemId": "Wood",
+          "ItemId": "Densewood",
           "Quantity": 3
         }
       ],
@@ -107,7 +107,7 @@
           "Quantity": 2
         },
         {
-          "ItemId": "Wood",
+          "ItemId": "Densewood",
           "Quantity": 2
         }
       ],
@@ -139,7 +139,7 @@
       "RequiredStationLevel": 1,
       "Ingredients": [
         {
-          "ItemId": "Wood",
+          "ItemId": "Lightwood",
           "Quantity": 2
         },
         {
@@ -175,7 +175,7 @@
       "RequiredStationLevel": 1,
       "Ingredients": [
         {
-          "ItemId": "Wood",
+          "ItemId": "Lightwood",
           "Quantity": 4
         },
         {
@@ -193,7 +193,7 @@
       "RequiredStationLevel": 1,
       "Ingredients": [
         {
-          "ItemId": "Wood",
+          "ItemId": "Lightwood",
           "Quantity": 2
         },
         {

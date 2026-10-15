@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-15 — Use tiered wood across weapon families
+
+- **Completed:** applied the axe wood tiers to knives, spears, and maces: Bronze acquisitions/upgrades use Lightwood, and Iron acquisitions/upgrades use Densewood. Preserved all other ingredients and quantities. Pickaxe costs remain unchanged because pickaxes are classified as tools.
+- **Files changed:** `Content/Data/GameCatalogues/recipes/stations/forge.json` (six recipe ingredient substitutions only; the pre-existing Frying Pan removal is preserved), `Content/Data/GameCatalogues/item-level-up/costs/knives.json`, `spears.json`, and `maces.json`; `docs/02-technical-architecture.md`, `docs/05-decision-log.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** parsed the affected Forge recipes and upgrade files; verified all six weapon IDs use the expected wood tier, retain their existing quantities and companion ingredients, and reference catalogue materials; ran `git diff --check`. No Unreal build or automation tests were run.
+- **Impact/authority:** changes authored catalogue costs only; crafting and upgrade payment remain server-validated, with no RPC or save-schema change.
+- **Verification/limitations:** full Unreal compilation, packaged-data loading, and gameplay progression remain unverified. The unrelated Forge recipe removal remains outside this increment.
+- **Next eligible backlog task:** convert decorative generated forest trees into individually attackable sources and integrate their depletion/streaming policy.
+
 ## User-directed increment 2026-10-15 — Use tiered wood for axe costs
 
 - **Completed:** changed Bronze Axe acquisition and upgrade costs to use Lightwood, and Iron Axe acquisition and upgrade costs to use Densewood. All other ingredients and quantities are unchanged.
