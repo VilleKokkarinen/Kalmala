@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-15 — Keep Forge acquisitions in forge.json
+
+- **Completed:** moved all ten Forge equipment acquisition records into `recipes/stations/forge.json`. The loader now reads station service and equipment acquisition records from the same `recipes` arrays, routes entries containing `ToolId` into the existing runtime tool catalogue, and retains separate array bounds and duplicate-ID checks. Removed the obsolete `itemRecipeFiles` manifest group and the `forge-item-recipes.json` and empty `workbench-item-recipes.json` files. Empty individual station recipe arrays are accepted while the assembled catalogue remains required to contain ordinary recipes and equipment acquisitions.
+- **Files changed:** `Content/Data/GameCatalogues.json`, `Content/Data/GameCatalogues/recipes/stations/forge.json`, removed `forge-item-recipes.json` and `workbench-item-recipes.json`, `Source/KalmalaGameplay/Private/KalmalaGameCatalogueLoader.cpp`, `docs/02-technical-architecture.md`, `docs/05-decision-log.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry. Existing user edits in the Forge and Workbench station files were preserved.
+- **Lightweight checks:** parsed the updated manifest and all recipe files; confirmed 30 combined station/building recipe entries split into 20 ordinary recipes and 10 equipment acquisitions, unique IDs in each runtime catalogue, and no remaining manifest path to either removed file; inspected the loader routing and bounds; passed `git diff --check`. No Unreal build or automation tests were run.
+- **Impact/authority:** data organization and catalogue loading only. The same runtime equipment catalogue and server-authoritative acquisition transactions remain in use; no RPC, gameplay authority, or saved-data schema changed.
+- **Verification/limitations:** full Unreal compilation, catalogue automation, and packaged-data loading remain deferred.
+- **Next eligible backlog task:** convert decorative generated forest trees into individually attackable sources and integrate their depletion/streaming policy.
+
 ## User-directed increment 2026-10-14 — Build station upgrades directly from the hammer menu
 
 - **Completed:** moved the Workbench Tool Rack recipe from Workbench crafting to the shared Build recipe catalogue. Workbench, Forge, Workbench Tool Rack, and Forge Anvil now use direct construction recipes: the Build menu shows their raw-material costs, placement consumes those materials, and no portable inventory item is created. Station attachments are grouped under Stations, excluded from station crafting, and still require their matching station during server placement.

@@ -34,6 +34,8 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
+- [x] **2026-10-15 — Keep Forge acquisitions in forge.json:** move the ten equipment acquisition records into the Forge station `recipes` array, route them by `ToolId` in the loader, and remove the obsolete Forge and empty Workbench item-recipe files and manifest group. Lightweight JSON/path/source checks and `git diff --check` passed; Unreal verification deferred.
+
 - [x] **2026-10-14 — Build stations and upgrades directly from the hammer menu:** route Workbench, Forge, Workbench Tool Rack, and Forge Anvil from `recipes/building.json` through direct world placement with raw-material costs, never through inventory item output. Catalogue/UI source checks and `git diff --check` passed; Unreal verification deferred.
 
 - [x] **2026-10-14 — Retire Reed Fibre:** remove its catalogue item and active ID references, remove recipe costs, and redirect harvest/discovery rewards to existing items. Normalize storage by dropping retired or unknown item rows; no save-schema change. Lightweight JSON/reference and diff checks passed; Unreal verification deferred.

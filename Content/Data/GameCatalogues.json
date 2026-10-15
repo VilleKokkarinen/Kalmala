@@ -36,9 +36,6 @@
     "items/equipment/maces.json",
     "items/equipment/building-hammer.json"
   ],
-  "itemRecipeFiles": [
-    "recipes/stations/forge-item-recipes.json"
-  ],
   "itemUpgradeFiles": [
     "upgrades/upgrades.json"
   ],

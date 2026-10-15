@@ -245,7 +245,8 @@ namespace
     bool LoadCategoryFiles(const TSharedPtr<FJsonObject>& Manifest, const TCHAR* ManifestField,
         const TCHAR* ArrayField, const TCHAR* ExpectedDirectory, int32 MaxEntries,
         int32& InOutJsonCharacters, TArray<TSharedPtr<FJsonValue>>& OutValues,
-        const TCHAR* AllowedSubdirectory = nullptr, const TCHAR* AdditionalAllowedSubdirectory = nullptr)
+        const TCHAR* AllowedSubdirectory = nullptr, const TCHAR* AdditionalAllowedSubdirectory = nullptr,
+        const bool bAllowEmptyFiles = false)
     {
         const TArray<TSharedPtr<FJsonValue>>* FileValues = nullptr;
         if (!Manifest.IsValid() || !Manifest->TryGetArrayField(ManifestField, FileValues)
@@ -289,7 +290,8 @@ namespace
             const TArray<TSharedPtr<FJsonValue>>* CategoryValues = nullptr;
             if (!FJsonSerializer::Deserialize(CategoryReader, CategoryRoot) || !CategoryRoot.IsValid()
                 || !CategoryRoot->TryGetArrayField(ArrayField, CategoryValues) || CategoryValues == nullptr
-                || CategoryValues->IsEmpty() || OutValues.Num() + CategoryValues->Num() > MaxEntries)
+                || (!bAllowEmptyFiles && CategoryValues->IsEmpty())
+                || OutValues.Num() + CategoryValues->Num() > MaxEntries)
             {
                 UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue category is malformed or exceeds its bounds: %s"),
                     *CategoryPath);
@@ -358,6 +360,7 @@ namespace
         int32 TotalJsonCharacters = JsonText.Len();
         TArray<TSharedPtr<FJsonValue>> ItemValues;
         TArray<TSharedPtr<FJsonValue>> RecipeValues;
+        TArray<TSharedPtr<FJsonValue>> StationRecipeValues;
         TArray<TSharedPtr<FJsonValue>> ToolProfileValues;
         TArray<TSharedPtr<FJsonValue>> ToolRecipeValues;
         TArray<TSharedPtr<FJsonValue>> ToolUpgradeValues;
@@ -367,11 +370,10 @@ namespace
                 UKalmalaItemCatalogue::MaxDefinitions, TotalJsonCharacters, ItemValues,
                 TEXT("buildItems"), TEXT("materials"))
             || !LoadCategoryFiles(Root, TEXT("recipeFiles"), TEXT("recipes"), TEXT("recipes"),
-                32, TotalJsonCharacters, RecipeValues, TEXT("stations"))
+                32 + UKalmalaToolCatalogue::MaxRecipes, TotalJsonCharacters, StationRecipeValues,
+                TEXT("stations"), nullptr, true)
             || !LoadCategoryFiles(Root, TEXT("itemProfileFiles"), TEXT("items"), TEXT("items"),
                 UKalmalaToolCatalogue::MaxProfiles, TotalJsonCharacters, ToolProfileValues, TEXT("equipment"))
-            || !LoadCategoryFiles(Root, TEXT("itemRecipeFiles"), TEXT("recipes"), TEXT("recipes"),
-                UKalmalaToolCatalogue::MaxRecipes, TotalJsonCharacters, ToolRecipeValues, TEXT("stations"))
             || !LoadCategoryFiles(Root, TEXT("itemUpgradeFiles"), TEXT("upgrades"), TEXT("upgrades"),
                 UKalmalaToolCatalogue::MaxRecipes, TotalJsonCharacters, ToolUpgradeValues)
             || !LoadCategoryFiles(Root, TEXT("levelUpRewardFiles"), TEXT("levelUpRewards"), TEXT("progression"),
@@ -379,12 +381,35 @@ namespace
             || !LoadCategoryFiles(Root, TEXT("attackFiles"), TEXT("attackLists"), TEXT("attacks"),
                 UKalmalaToolCatalogue::MaxProfiles, TotalJsonCharacters, AttackListValues)
             || !SortCategoryValues(ItemValues, TEXT("ItemId"))
-            || !SortCategoryValues(RecipeValues, TEXT("RecipeId"))
             || !SortCategoryValues(ToolProfileValues, TEXT("ItemId"))
-            || !SortCategoryValues(ToolRecipeValues, TEXT("RecipeId"))
             || !SortCategoryValues(ToolUpgradeValues, TEXT("ToolId")))
         {
             UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue manifest could not load its category files: %s"), *JsonPath);
+            return false;
+        }
+
+        for (const TSharedPtr<FJsonValue>& Value : StationRecipeValues)
+        {
+            if (!Value.IsValid() || Value->Type != EJson::Object)
+            {
+                return false;
+            }
+
+            if (Value->AsObject()->HasField(TEXT("ToolId")))
+            {
+                ToolRecipeValues.Add(Value);
+            }
+            else
+            {
+                RecipeValues.Add(Value);
+            }
+        }
+
+        if (RecipeValues.Num() > 32 || ToolRecipeValues.Num() > UKalmalaToolCatalogue::MaxRecipes
+            || !SortCategoryValues(RecipeValues, TEXT("RecipeId"))
+            || !SortCategoryValues(ToolRecipeValues, TEXT("RecipeId")))
+        {
+            UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue station recipes exceed their bounds or contain duplicate IDs: %s"), *JsonPath);
             return false;
         }
 
