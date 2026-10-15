@@ -13,8 +13,6 @@
 
 namespace
 {
-    constexpr int32 MaxManifestFilesPerCategory = 32;
-
     // Item authoring has one identity; legacy runtime fields are derived for shared equipment contracts.
     bool NormalizeEquipmentProfiles(const TArray<TSharedPtr<FJsonValue>>& Values)
     {
@@ -294,7 +292,7 @@ namespace
     {
         const TArray<TSharedPtr<FJsonValue>>* FileValues = nullptr;
         if (!Manifest.IsValid() || !Manifest->TryGetArrayField(ManifestField, FileValues)
-            || FileValues == nullptr || FileValues->IsEmpty() || FileValues->Num() > MaxManifestFilesPerCategory)
+            || FileValues == nullptr || FileValues->IsEmpty())
         {
             UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue manifest has an invalid file list: %s"), ManifestField);
             return false;

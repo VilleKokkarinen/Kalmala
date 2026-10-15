@@ -1,11 +1,11 @@
 # Autonomous development progress
 
-## User-directed repair 2026-10-15 — Fix catalogue manifest file-list limit
+## User-directed repair 2026-10-15 — Remove catalogue manifest file-count cap
 
-- **Completed:** raised the loader's per-category manifest file bound from 16 to 32. The render log showed `itemFiles` contains 18 files, so the previous guard rejected the otherwise valid manifest before loading any category data. Aggregate JSON-size and definition-count bounds are unchanged.
+- **Completed:** removed the per-category file-count cap. Category lists must still be present and non-empty, each path is still validated, and the manifest/aggregate JSON size and definition-count bounds remain active. This makes category organization independent of an arbitrary list length.
 - **Files changed:** `Source/KalmalaGameplay/Private/KalmalaGameCatalogueLoader.cpp`, `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
-- **Lightweight checks:** parsed `Content/Data/GameCatalogues.json`; confirmed each of its six category lists has 1–32 entries and every referenced JSON file exists; confirmed the loader uses the 32-file constant; `git diff --check` passed.
-- **Impact and authority:** the current 18-file item list no longer hits the loader's file-count rejection. This changes catalogue loading only; server authority, networking, persistence, and save schemas are unchanged.
+- **Lightweight checks:** parsed `Content/Data/GameCatalogues.json`; confirmed all category lists are non-empty and every referenced JSON file exists; confirmed the loader has no separate file-count check; `git diff --check` passed.
+- **Impact and authority:** the current 18-file item list and future larger category lists no longer hit an arbitrary count rejection. This changes catalogue loading only; server authority, networking, persistence, and save schemas are unchanged.
 - **Verification/limitations:** normal repair, not milestone-final. Unreal compilation, `Kalmala.Gameplay.Inventory.Catalogue`, and menu rendering were not rerun. The temporary render cache must be rebuilt with `Scripts/Render-Menu.ps1 -BuildModules` before retrying, because the native source digest changed.
 - **Next eligible backlog task:** continue the first unchecked wearable-equipment task: finish equipped-state UI/actions, defense and condition behavior, and Main Hand/tool plus hotbar routing; rerun the Gameplay build, focused inventory automations, and menu render when the UBT environment is usable.
 
