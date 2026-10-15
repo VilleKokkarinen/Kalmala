@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-15 — Restore sparse forest cosmetic depletion
+
+- **Completed:** partial first unchecked generated-tree child. Terrain activation reads shared descriptors against the matching population save, suppressing harvested candidates by original ordinal after patch initialization and before active registration. Reactivation uses the same path. Child remains unchecked.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`, `docs/02-technical-architecture.md`, `BACKLOG.md`, and this file.
+- **Lightweight checks:** focused PowerShell source assertions passed for authority guard, matching-world gate, shared generation, stable-ID lookup, original-ordinal selection, initialization/suppression/registration ordering and population-save load before initial activation. Inspected suppression validation and existing save API. Working/staged whitespace and changed-path MAX_PATH checks passed. No Unreal build, automation, rendering or peers; full verification remains deferred for this normal partial increment.
+- **Impact/authority:** server patch activation reapplies recorded forest depletion to replicated decorative geometry without changing sparse saves. Missing or mismatched saves leave initialized cosmetics unsuppressed. No client RPC, reward, save schema or authority changes.
+- **Limitations:** no live forest harvest actors or callback binding yet, so ordinary gameplay cannot create forest depletion through this path. Runtime replication/rendering remains unverified. Spawning/eviction and the union of live-actor/depleted suppression remain pending; moving fall/log presentation is later scope.
+- **Next eligible task:** same generated-tree child: patch-owned actor spawning/eviction and sparse depletion callback binding. Main checkout used directly; no handoff synchronization required. Checkout began clean; app state showed only this Kalmala chat active. CIM process inventory was unavailable.
+
 ## Autonomous increment 2026-10-15 — Suppress individual decorative forest trees
 
 - **Completed:** partial first unchecked generated-tree child. Added authority/config-guarded suppression by original candidate ordinal, rejecting duplicate/absent candidates before mutation. Canonical lists replicate and rebuild only tree meshes, skipping trunks, canopies and roots. Empty lists restore trees; initialization resets suppression. Child remains unchecked.

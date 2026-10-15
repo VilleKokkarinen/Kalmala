@@ -29,6 +29,7 @@
 #include "KalmalaM7PersistenceContract.h"
 #include "KalmalaWildlifeSpawn.h"
 #include "KalmalaGeneratedTerrainPatch.h"
+#include "KalmalaForestLayout.h"
 #include "KalmalaTerrainPatchLayout.h"
 #include "KalmalaWorldGenerationGameState.h"
 #include "KalmalaWorldPlayerStartResolver.h"
@@ -3899,6 +3900,20 @@ void AKalmalaGameMode::ActivateTerrainPatch(const FIntPoint& PatchCoordinate)
     }
 
     TerrainPatch->Initialize(WorldGenerationConfig, PatchCenter);
+    // Restore sparse forest depletion before publishing this active patch.
+    // Use original ordinals, never positions in the filtered descriptor array.
+    if (PopulationSaveGame != nullptr && PopulationSaveGame->MatchesWorld(WorldGenerationConfig))
+    {
+        TArray<int32> DepletedForestCandidates;
+        for (const FKalmalaForestTreeDescriptor& Tree : FKalmalaForestLayout::Generate(WorldGenerationConfig, PatchCenter))
+        {
+            if (PopulationSaveGame->IsHarvested(Tree.PersistentSpawnId))
+            {
+                DepletedForestCandidates.Add(Tree.CandidateIndex);
+            }
+        }
+        TerrainPatch->SetSuppressedForestCandidatesServer(DepletedForestCandidates);
+    }
     ActiveTerrainPatchCoordinates.Add(PatchCoordinate);
     ActiveTerrainPatches.Add(PatchCoordinate, TerrainPatch);
     UE_LOG(LogTemp, Display, TEXT("Server activated terrain patch (%d, %d) at %s; %d/%d active."), PatchCoordinate.X, PatchCoordinate.Y, *TerrainPatch->GetActorLocation().ToCompactString(), ActiveTerrainPatchCoordinates.Num(), KalmalaGameMode::MaxActiveTerrainPatches);

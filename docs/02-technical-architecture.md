@@ -2837,7 +2837,13 @@ invalidates and rebuilds only trees. If generation data has not arrived, the
 existing generation notification builds with the retained list. Empty lists
 restore all candidates; patch initialization resets suppression.
 
-No live lifecycle caller exists yet. Patch materialization must supply the union
-of represented harvest actors and depleted candidates. Spawning/eviction and
-sparse filtering remain pending; live trees remain decorative. No client RPC or
-save schema changes. Runtime replication/rendering verification is deferred.
+Terrain activation now supplies depleted candidates from the matching world's
+population save: shared descriptors are checked by persistent ID and their
+original ordinals are suppressed after initialization, before active-patch
+registration. The population save is loaded before initial patch activation.
+Reactivation therefore reapplies sparse cosmetic depletion without rewriting
+the save. A missing or mismatched save leaves the initialized patch unsuppressed.
+Future actor materialization must extend this list with represented live actors.
+Actor spawning/eviction and depletion callback binding remain pending; live
+undepleted trees remain decorative. No client RPC or save schema changes.
+Runtime replication/rendering verification is deferred.
