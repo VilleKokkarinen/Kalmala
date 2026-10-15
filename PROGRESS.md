@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-15 — Require complete item additions
+
+- **Completed:** added an `AGENTS.md` requirement that every new gameplay item gets an original generated inventory icon integrated through the established workflow, plus all applicable item catalogue JSON records and `GameCatalogues.json` manifest registrations. The instruction covers item definitions, equipment profiles, acquisition/crafting recipes, level-up costs and rewards, attack data, runtime icon mapping, and relevant validation; unsupported or deferred categories must be documented rather than guessed.
+- **Files changed:** `AGENTS.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** reviewed the existing icon workflow in `docs/material-icons.md` and catalogue conventions in `docs/02-technical-architecture.md` and `docs/07-development-setup.md`; `git diff --check` passed. No code, JSON data, or assets changed, so runtime/build verification does not apply.
+- **Impact and authority:** establishes a development checklist for future item additions; no gameplay, networking, persistence, or packaged content changed.
+- **Known limitations:** this instruction-only increment does not audit or retrofit existing items.
+- **Next eligible backlog task:** under Attack-driven tree harvesting, convert decorative generated forest trees into individually attackable sources and integrate their depletion/streaming policy.
+
 ## User-directed increment 2026-10-15 — Add Bow item-level-up entries
 
 - **Completed:** added `item-level-up/costs/bows.json` and registered it in `Content/Data/GameCatalogues.json`. Bow's level-one Workbench upgrade reuses its acquisition materials (5 Wood, 2 String). Added a shared Bow reward of +50 maximum durability per level, with damage gains left at zero while ranged shooting remains unimplemented. Extended `Kalmala.Gameplay.M9.ToolProgressionCatalogue` coverage for Bow cost, durability reward, and generated progression; replaced the stale fixed entry count with one derived from authored recipes and upgrade data. Updated the decision log, architecture/setup/game-features docs, backlog, and this progress record.

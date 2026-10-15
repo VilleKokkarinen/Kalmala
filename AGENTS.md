@@ -121,6 +121,12 @@ If the final implementation task in a milestone has been completed but milestone
 - Use original code, assets, names, lore, and level content only. Do not copy copyrighted or marketplace content.
 - Stop and report rather than guess when a choice changes the product's platform, business model, visual identity, online-service commitment, or vertical-slice scope.
 
+## Item addition completeness
+
+When adding a gameplay item, treat the item as incomplete until it has an original generated inventory icon prepared and integrated through the established icon workflow (see `docs/material-icons.md` and the relevant icon provenance guide). Add the icon to the runtime mapping and catalogue icon validation as required by the existing pipeline.
+
+Author every applicable item catalogue JSON entry and register its file in `Content/Data/GameCatalogues.json`. Depending on the item, this includes its ordinary item definition, equipment profile, acquisition or crafting recipe, level-up costs and stat rewards, and attack data. Keep IDs and cross-references consistent, and run the relevant JSON/reference and icon checks. Do not invent unsupported behavior or costs; explicitly document any category intentionally deferred or not applicable, such as an acquisition source or combat behavior.
+
 ## Windows path-length safety
 
 All paths created, copied, moved, renamed, generated, temporarily produced, or referenced by autonomous work must remain below the traditional Windows `MAX_PATH` limit of 260 characters.
