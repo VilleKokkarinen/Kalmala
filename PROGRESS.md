@@ -1,5 +1,12 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-15 — Sharpened wooden arrow artwork
+
+- **Completed/files:** edited `Content/Kalmala/UI/Source/IconOriginals/WoodenArrow.png` with built-in imagegen so every tip is carved directly from its shaft, with no separate bronze/metal/stone head or tip bindings. Refreshed `Content/Kalmala/UI/Source/Icons/WoodenArrow.png` and `Content/Kalmala/UI/Icons/Items/WoodenArrow.uasset`; recorded the exact edit prompt in `docs/archery-icons.md`, plus backlog and this entry.
+- **Verification:** visually inspected the revised transparent 1254x1254 RGBA original and 64x64 RGBA icon; preparation and the existing content-only batch-I importer passed. Preserved the original String/Bow imported bytes during the batch refresh. The full 66-row catalogue icon file audit, whitespace, changed-path MAX_PATH and staged scope/diff checks passed. No gameplay build/test or in-game render ran; full verification remains deferred for this normal visual increment.
+- **Impact/authority/limits:** shared Wooden Arrows artwork now depicts plain wooden sharpened shafts. No gameplay, recipe, authority, network or save changes. Three pre-existing catalogue JSON edits remain untouched and excluded. Main checkout used directly; no handoff synchronization required.
+- **Next eligible work:** resume the existing Main Hand/hotbar acceptance child; the pre-existing duplicate shield recipe and remaining material icon gaps stay open.
+
 ## User-directed increment 2026-10-15 — Add Bow and two-handed wielding
 
 - **Completed:** added String (stack 20), Wooden Arrows (stack 100) and a crafted Bow profile. A level-one Workbench crafts Bow for 5 normal Wood plus 2 String; arrows cost 5 Wood for 20. User confirmed String has no source for now and shooting is out of scope. Added a generic two-handed profile flag, atomic server weapon/shield swaps and capacity-safe unwielding. Both occupied hands plus a full pack reject Bow equip without mutation; one free cell succeeds. Shield equip returns Bow using the vacated shield cell. Owner Inventory displays both-hand occupancy. Bow cannot fall through to melee/unarmed damage, including switching during windup.
