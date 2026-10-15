@@ -1,6 +1,7 @@
 #include "KalmalaCharacter.h"
 #include "KalmalaResistanceComponent.h"
 #include "KalmalaInventoryComponent.h"
+#include "KalmalaItemCatalogue.h"
 #include "KalmalaHarvestNode.h"
 #include "KalmalaToolLifecycleContract.h"
 #include "KalmalaM9SourceLootContract.h"
@@ -132,7 +133,23 @@ bool AKalmalaCharacter::ApplyWildlifeDamageFromServer(const AActor* SourceActor,
     // The first Mireling creates recoverable pressure; player defeat/respawn remains a later policy decision.
     const UKalmalaResistanceComponent* Defenses = FindComponentByClass<UKalmalaResistanceComponent>();
     float ResolvedDamage = 0.0f;
-    if (!Defenses || !Defenses->ResolveFromServer(Damage, ResolvedDamage)) return false;
+    if (!Defenses) return false;
+
+    FKalmalaResistanceProfile GearDefenses;
+    if (Inventory && !Inventory->GetEquippedGear().IsEmpty())
+    {
+        const UKalmalaItemCatalogue* ItemCatalogue = UKalmalaItemCatalogue::Get();
+        if (!ItemCatalogue) return false;
+        for (const FKalmalaEquippedGear& Gear : Inventory->GetEquippedGear())
+        {
+            FKalmalaGearLevelStats GearStats;
+            if (!ItemCatalogue->GetGearLevelStats(Gear.ItemId, 1, GearStats)) return false;
+            GearDefenses = GearDefenses.Added(GearStats.DefenseBonuses);
+        }
+    }
+
+    const FKalmalaResistanceProfile EffectiveDefenses = Defenses->Profile.Added(GearDefenses);
+    if (!EffectiveDefenses.Resolve(Damage, ResolvedDamage)) return false;
     const float Absorbed = SupportMagic ? SupportMagic->AbsorbHearthShieldDamageFromServer(ResolvedDamage) : 0.0f;
     Health = FMath::Clamp(Health - FMath::Max(0.0f, ResolvedDamage - Absorbed), 1.0f, 100.0f);
     ForceNetUpdate();

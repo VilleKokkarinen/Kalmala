@@ -1381,8 +1381,10 @@ moves the item GUID out of its carried stack, and returns displaced gear to the
 pack using the freed grid cell. `ServerUnequipGear` accepts only a gear-slot
 enum and rejects when the forty-cell inventory has no room. Equipped wearables
 remain outside the grid. This state is session-only: no save field or schema
-version changes. The Inventory popup still displays placeholders; UI actions,
-combat defense, condition wear, and Main Hand/tool-hotbar behavior are pending.
+version changes. The Inventory popup displays owner-only wearable names and
+server request results, with equip, replacement, and return actions. Equipped
+wearable defenses apply to server-resolved wildlife damage. Condition wear and
+Main Hand/tool-hotbar behavior are pending.
 
 After an affected Gameplay module build, run
 `Kalmala.Gameplay.Inventory.WornGearTransactions`. It covers exact-GUID equip

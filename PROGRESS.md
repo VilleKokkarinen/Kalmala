@@ -1,5 +1,16 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-15 — Apply equipped gear defenses
+
+- **Completed:** server-resolved wildlife damage now combines the character defense profile with the level-one defense profile of each equipped wearable before applying the shared per-channel and general armor rules.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp`, `BACKLOG.md`, `PROGRESS.md`, `docs/01-game-design.md`, `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, and `docs/game-features.md`.
+- **Lightweight checks:** focused PowerShell source assertions passed for authority gating, catalogue-derived level-one stats, and shared defense resolution; all six wearable JSON definitions parsed with condition and defense data; `git diff --check` and changed-path MAX_PATH checks passed.
+- **Impact/authority:** only the server reads its authoritative equipped gear array and catalogue stats. Wearable stats are not client-authored or newly persisted; gear remains owner-private session state.
+- **Verification status/limitations:** normal increment, not milestone-final. Full Unreal compilation, combat/inventory automations, rendered UI, and multiplayer privacy verification remain deferred.
+- **Known limitations:** equipped gear currently applies level-one defenses and does not lose condition; Main Hand weapon/tool routing remains unimplemented.
+- **Next eligible backlog task:** continue the same first unchecked Worn Gear transaction child with server-owned condition wear and Main Hand/tool routing. The separate numbered-hotbar interaction child follows after this parent task is complete.
+
+
 ## Autonomous increment 2026-10-15 — Add owner-facing Worn Gear actions
 
 - **Completed:** connected the six wearable Inventory tiles to the server equip/unequip requests. Selecting a compatible wearable enables equip or replacement; selecting an empty grid cell and clicking worn gear requests return to the pack. The popup displays current owner-only wearable item names and accepted/rejected server results. Main Hand remains a placeholder.
