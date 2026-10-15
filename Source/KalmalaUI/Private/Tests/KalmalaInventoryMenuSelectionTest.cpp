@@ -44,18 +44,33 @@ bool FKalmalaInventoryMenuSelectionTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Owner refresh preserves selected identity"), OwnerA->GetSelectedItemForVerification(), FName(TEXT("StoneKnife")));
     int32 Grids = 0, Searches = 0;
     bool bArmor = false, bWeight = false;
+    bool bWornGearHeading = false;
+    int32 EmptyGearSlots = 0;
+    TSet<FString> WornGearSlotNames;
+    const TArray<FString> ExpectedGearSlots = {
+        TEXT("Main Hand"), TEXT("Head"), TEXT("Cape"), TEXT("Chest"),
+        TEXT("Shield"), TEXT("Legs"), TEXT("Boots")};
     OwnerA->WidgetTree->ForEachWidget([&](UWidget* Widget) {
         if (Cast<UKalmalaInventoryGridWidget>(Widget)) ++Grids;
         if (Cast<UEditableTextBox>(Widget)) ++Searches;
         if (const auto* Text = Cast<UTextBlock>(Widget)) {
-            bArmor |= Text->GetText().ToString().Contains(TEXT("Armor 0"));
-            bWeight |= Text->GetText().ToString().Contains(TEXT("Weight "));
+            const FString Value = Text->GetText().ToString();
+            bArmor |= Value.Contains(TEXT("Armor 0"));
+            bWeight |= Value.Contains(TEXT("Weight "));
+            bWornGearHeading |= Value == TEXT("Worn Gear");
+            if (Value == TEXT("Empty")) ++EmptyGearSlots;
+            if (ExpectedGearSlots.Contains(Value)) WornGearSlotNames.Add(Value);
         }
     });
     TestEqual(TEXT("Player inventory mounts exactly one grid"), Grids, 1);
     TestEqual(TEXT("Simple inventory has no search/filter/sort input"), Searches, 0);
     TestFalse(TEXT("Armor summary is absent from Inventory"), bArmor);
     TestFalse(TEXT("Weight summary is absent from Inventory"), bWeight);
+    TestTrue(TEXT("Inventory has a separate Worn Gear section"), bWornGearHeading);
+    TestEqual(TEXT("Worn Gear lists all seven requested slots"), WornGearSlotNames.Num(), ExpectedGearSlots.Num());
+    TestEqual(TEXT("Every unequipped slot is clearly marked empty"), EmptyGearSlots, ExpectedGearSlots.Num());
+    for (const FString& SlotName : ExpectedGearSlots)
+        TestTrue(FString::Printf(TEXT("Worn Gear includes %s"), *SlotName), WornGearSlotNames.Contains(SlotName));
     OwnerA->WidgetTree->ForEachWidget([&](UWidget* Widget) {
         TestFalse(TEXT("Crafting is not parented inside the Inventory tree"), Widget->IsA<UKalmalaCraftingWidget>());
         if (const auto* Text = Cast<UTextBlock>(Widget))

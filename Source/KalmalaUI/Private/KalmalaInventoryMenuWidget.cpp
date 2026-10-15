@@ -98,6 +98,57 @@ void UKalmalaInventoryMenuWidget::NativeOnInitialized()
     GridSizeBox->SetHeightOverride((ResponsivePanelWidth - Theme.PaddingX * 2.0f) * 0.4f);
     GridSizeBox->SetContent(GridView);
     Content->AddChildToVerticalBox(GridSizeBox);
+
+    auto* WornGearPanel = WidgetTree->ConstructWidget<UBorder>();
+    Theme.ApplySolidPanel(*WornGearPanel, Contrast);
+    WornGearPanel->SetPadding(FMargin(Theme.PaddingX * 0.5f, Theme.PaddingY * 0.5f));
+    auto* WornGearContent = WidgetTree->ConstructWidget<UVerticalBox>();
+    WornGearPanel->SetContent(WornGearContent);
+    auto* WornGearHeading = WidgetTree->ConstructWidget<UTextBlock>();
+    WornGearHeading->SetText(FText::FromString(TEXT("Worn Gear")));
+    Theme.ApplyText(*WornGearHeading, Theme.EmphasisSize, true, TextScale, Contrast);
+    WornGearContent->AddChildToVerticalBox(WornGearHeading)->SetPadding(FMargin(0, 0, 0, Theme.RowSpacing));
+
+    auto AddGearSlot = [&](UHorizontalBox& Row, const FString& SlotName)
+    {
+        auto* SlotSize = WidgetTree->ConstructWidget<USizeBox>();
+        SlotSize->SetHeightOverride(72.0f);
+        auto* SlotPanel = WidgetTree->ConstructWidget<UBorder>();
+        Theme.ApplyItemIconTile(*SlotPanel, Contrast);
+        SlotPanel->SetPadding(FMargin(Theme.SlotPadding));
+        auto* SlotContent = WidgetTree->ConstructWidget<UVerticalBox>();
+        auto* Name = WidgetTree->ConstructWidget<UTextBlock>();
+        Name->SetText(FText::FromString(SlotName));
+        Name->SetAutoWrapText(true);
+        Name->SetJustification(ETextJustify::Center);
+        Theme.ApplyText(*Name, Theme.BodySize, true, TextScale, Contrast);
+        SlotContent->AddChildToVerticalBox(Name);
+        auto* Empty = WidgetTree->ConstructWidget<UTextBlock>();
+        Empty->SetText(FText::FromString(TEXT("Empty")));
+        Empty->SetJustification(ETextJustify::Center);
+        Theme.ApplyText(*Empty, Theme.BodySize, false, TextScale, Contrast);
+        SlotContent->AddChildToVerticalBox(Empty);
+        SlotPanel->SetContent(SlotContent);
+        SlotSize->SetContent(SlotPanel);
+        auto* RowSlot = Row.AddChildToHorizontalBox(SlotSize);
+        RowSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill, 1.0f));
+        RowSlot->SetPadding(FMargin(0, 0, Theme.RowSpacing, 0));
+    };
+
+    auto* GearRowOne = WidgetTree->ConstructWidget<UHorizontalBox>();
+    for (const TCHAR* SlotName : {TEXT("Main Hand"), TEXT("Head"), TEXT("Cape"), TEXT("Chest")})
+        AddGearSlot(*GearRowOne, SlotName);
+    WornGearContent->AddChildToVerticalBox(GearRowOne);
+    auto* GearRowTwo = WidgetTree->ConstructWidget<UHorizontalBox>();
+    for (const TCHAR* SlotName : {TEXT("Shield"), TEXT("Legs"), TEXT("Boots")})
+        AddGearSlot(*GearRowTwo, SlotName);
+    auto* GearSpacer = WidgetTree->ConstructWidget<USizeBox>();
+    GearSpacer->SetHeightOverride(72.0f);
+    GearSpacer->SetVisibility(ESlateVisibility::Hidden);
+    GearRowTwo->AddChildToHorizontalBox(GearSpacer)->SetSize(FSlateChildSize(ESlateSizeRule::Fill, 1.0f));
+    WornGearContent->AddChildToVerticalBox(GearRowTwo)->SetPadding(FMargin(0, Theme.RowSpacing, 0, 0));
+    Content->AddChildToVerticalBox(WornGearPanel)->SetPadding(FMargin(0, Theme.RowSpacing, 0, Theme.RowSpacing));
+
     ItemDetailView = WidgetTree->ConstructWidget<UKalmalaItemDetailWidget>();
     Content->AddChildToVerticalBox(ItemDetailView);
     ItemDetailView->SetVisibility(ESlateVisibility::Collapsed);
@@ -176,9 +227,10 @@ void UKalmalaInventoryMenuWidget::UpdateResponsivePanelSize(const FVector2D View
     if (!PanelSizeBox) return;
     const float NewWidth = FMath::Min(520.0f, FMath::Max(80.0f, ViewportSize.X * 0.38f));
     const float GridHeight = FMath::Max(32.0f, (NewWidth - FKalmalaUITheme::Get().PaddingX * 2.0f) * 0.4f);
+    constexpr float WornGearHeight = 194.0f;
     const bool bDetails = bSelectionDetailsRequested || !HoveredItemId.IsNone();
     const float NewHeight = FMath::Min(FMath::Max(80.0f, ViewportSize.Y - 32.0f),
-        bDetails ? GridHeight + 280.0f : GridHeight + FKalmalaUITheme::Get().PaddingY * 2.0f);
+        GridHeight + WornGearHeight + (bDetails ? 280.0f : FKalmalaUITheme::Get().PaddingY * 2.0f));
     if (!FMath::IsNearlyEqual(NewWidth, ResponsivePanelWidth))
     {
         ResponsivePanelWidth = NewWidth;

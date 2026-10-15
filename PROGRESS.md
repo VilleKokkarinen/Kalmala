@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-15 — Add Inventory Worn Gear presentation
+
+- **Completed:** added a separate Worn Gear section beneath the unchanged 40-cell inventory grid. It shows framed, theme-styled tiles for Main Hand, Head, Cape, Chest, Shield, Legs, and Boots, each labeled Empty. Added assertions for the complete list and empty state to the existing Inventory menu automation. Checked the selected UI child task; GUID-addressable equipment slots are next.
+- **Files changed:** `Source/KalmalaUI/Private/KalmalaInventoryMenuWidget.cpp`, `Source/KalmalaUI/Private/Tests/KalmalaInventoryMenuSelectionTest.cpp`, `docs/01-game-design.md`, `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry.
+- **Lightweight checks:** `git diff --check` passed. A focused Python source check confirmed all seven labels are present in the widget and automation, Empty placeholders are authored, the 40-cell grid sizing path remains, and all five implementation/documentation paths are below 260 characters. Reviewed the complete source and documentation diff. No Unreal build, automation run, or rendered UI review was performed.
+- **Impact and authority:** presentation only. The slots do not read equipped state, submit actions, affect defense, replicate, or save; existing inventory and carried-tool behavior remains unchanged.
+- **Verification/limitations:** normal development increment, not milestone-final. Full Unreal compilation, automation, and rendered layout review remain deferred. The Worn Gear labels are placeholders until compatible items can be equipped by a later inventory transaction task.
+- **Next eligible backlog task:** make gear slots a distinct GUID-addressable part of carried inventory, implement validated equip/unequip and replacement capacity behavior, and route tools/weapons through Main Hand.
+
 ## User-directed increment 2026-10-15 — Add wearable acquisition and level-up data
 
 - **Completed:** added five Boar Hide Workbench recipes and a bronze-reinforced Wood Shield Forge recipe. Added one level-one upgrade-cost record for each gear item and extended catalogue validation to accept costs keyed by known wearable IDs. The tool progression builder skips those records until gear upgrade transactions exist. Checked the selected second child task; the Worn Gear UI is next.
