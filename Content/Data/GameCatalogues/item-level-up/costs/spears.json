@@ -2,7 +2,7 @@
   "upgrades": [
     {
       "DisplayName": "Bronze Spear",
-      "ToolId": "BronzeSpear",
+      "ItemId": "BronzeSpear",
       "RequiredStation": "Forge",
       "Ingredients": [
         {
@@ -18,7 +18,7 @@
     },
     {
       "DisplayName": "Iron Spear",
-      "ToolId": "IronSpear",
+      "ItemId": "IronSpear",
       "RequiredStation": "Forge",
       "Ingredients": [
         {
@@ -34,7 +34,7 @@
     },
     {
       "DisplayName": "Stone Spear",
-      "ToolId": "StoneSpear",
+      "ItemId": "StoneSpear",
       "RequiredStation": "Workbench",
       "Ingredients": [
         {

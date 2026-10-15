@@ -42,9 +42,9 @@ public:
     UFUNCTION(Server, Reliable) void ServerPlaceConstruction(FName BuildableId);
     UFUNCTION(Server, Reliable) void ServerRefuel();
     UFUNCTION(Server, Reliable) void ServerLight();
-    UFUNCTION(Server, Reliable) void ServerRepairTool(FName ToolId);
+    UFUNCTION(Server, Reliable) void ServerRepairTool(FName ItemId);
     UFUNCTION(Server, Reliable) void ServerRepairAllTools();
-    UFUNCTION(Server, Reliable) void ServerProgressTool(FName ToolId);
+    UFUNCTION(Server, Reliable) void ServerProgressTool(FName ItemId);
     UFUNCTION(Server, Reliable) void ServerConsumeFood(FName FoodItemId);
     UFUNCTION(Server, Reliable) void ServerOpenStorage();
     UFUNCTION(Server, Reliable) void ServerCloseStorage();
@@ -83,10 +83,10 @@ public:
     FString GetNearbyWorkbenchText() const;
     FString GetNearbyConstructionText() const;
     bool CraftFromServer(FName RecipeId, int32 Batch, FString& Reason);
-    bool RepairToolFromServer(FName ToolId, FString& Reason);
+    bool RepairToolFromServer(FName ItemId, FString& Reason);
     bool RepairAllToolsAtStationFromServer(FString& Reason);
     bool RepairAllToolsFromServer(AKalmalaConstructionActor* GrindingStone, FString& Reason);
-    bool ProgressToolFromServer(FName ToolId, FString& Reason);
+    bool ProgressToolFromServer(FName ItemId, FString& Reason);
     bool ConsumeFoodFromServer(FName FoodItemId, FString& Reason);
     bool PlaceFromServer(FString& Reason);
     bool PlaceConstructionFromServer(FName BuildableId, FString& Reason);

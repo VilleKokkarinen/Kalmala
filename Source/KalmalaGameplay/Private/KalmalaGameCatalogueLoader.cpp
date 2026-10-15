@@ -41,8 +41,6 @@ namespace
                 else if (Family == TEXT("Knife")) Action = TEXT("Gathering");
                 else if (Family != TEXT("Mace") && Family != TEXT("Spear")) return false;
             }
-            Object->RemoveField(TEXT("ItemId"));
-            Object->SetStringField(TEXT("ToolId"), ItemId);
             Object->SetStringField(TEXT("ToolKind"), ItemId);
             Object->SetStringField(TEXT("ToolSet"), Set);
             Object->SetStringField(TEXT("Action"), Action);
@@ -393,7 +391,7 @@ namespace
         }
 
         double SchemaVersion = 0.0;
-        if (!Root->TryGetNumberField(TEXT("schemaVersion"), SchemaVersion) || SchemaVersion != 13.0)
+        if (!Root->TryGetNumberField(TEXT("schemaVersion"), SchemaVersion) || SchemaVersion != 14.0)
         {
             UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue manifest has an unsupported schema: %s"), *JsonPath);
             return false;
@@ -425,7 +423,7 @@ namespace
                 UKalmalaToolCatalogue::MaxProfiles, TotalJsonCharacters, AttackListValues)
             || !SortCategoryValues(ItemValues, TEXT("ItemId"))
             || !SortCategoryValues(ToolProfileValues, TEXT("ItemId"))
-            || !SortCategoryValues(ToolUpgradeValues, TEXT("ToolId")))
+            || !SortCategoryValues(ToolUpgradeValues, TEXT("ItemId")))
         {
             UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue manifest could not load its category files: %s"), *JsonPath);
             return false;
@@ -438,7 +436,7 @@ namespace
                 return false;
             }
 
-            if (Value->AsObject()->HasField(TEXT("ToolId")))
+            if (Value->AsObject()->HasField(TEXT("ItemId")))
             {
                 ToolRecipeValues.Add(Value);
             }
@@ -522,14 +520,14 @@ namespace
         for (const TSharedPtr<FJsonValue>& Value : ToolUpgradeValues)
         {
             const TSharedPtr<FJsonObject> Object = Value->AsObject();
-            FString ToolId;
-            if (!Object.IsValid() || !Object->TryGetStringField(TEXT("ToolId"), ToolId) || ToolId.IsEmpty())
+            FString ItemId;
+            if (!Object.IsValid() || !Object->TryGetStringField(TEXT("ItemId"), ItemId) || ItemId.IsEmpty())
             {
                 return false;
             }
 
-            // Upgrade-cost JSON is keyed only by ToolId; derive the shared struct's internal identity.
-            Object->SetStringField(TEXT("RecipeId"), ToolId);
+            // Upgrade-cost JSON is keyed only by ItemId; derive the shared struct's internal identity.
+            Object->SetStringField(TEXT("RecipeId"), ItemId);
             if (!Object->HasField(TEXT("RequiredStationLevel")))
             {
                 Object->SetNumberField(TEXT("RequiredStationLevel"), 0.0);

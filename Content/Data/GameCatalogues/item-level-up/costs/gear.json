@@ -2,7 +2,7 @@
   "upgrades": [
     {
       "DisplayName": "Boar Hide Boots",
-      "ToolId": "BoarHideBoots",
+      "ItemId": "BoarHideBoots",
       "RequiredStation": "Workbench",
       "Ingredients": [
         { "ItemId": "BoarHide", "Quantity": 1 }
@@ -11,7 +11,7 @@
     },
     {
       "DisplayName": "Boar Hide Cape",
-      "ToolId": "BoarHideCape",
+      "ItemId": "BoarHideCape",
       "RequiredStation": "Workbench",
       "Ingredients": [
         { "ItemId": "BoarHide", "Quantity": 1 }
@@ -20,7 +20,7 @@
     },
     {
       "DisplayName": "Boar Hide Helmet",
-      "ToolId": "BoarHideHelmet",
+      "ItemId": "BoarHideHelmet",
       "RequiredStation": "Workbench",
       "Ingredients": [
         { "ItemId": "BoarHide", "Quantity": 1 }
@@ -29,7 +29,7 @@
     },
     {
       "DisplayName": "Boar Hide Leggings",
-      "ToolId": "BoarHideLeggings",
+      "ItemId": "BoarHideLeggings",
       "RequiredStation": "Workbench",
       "Ingredients": [
         { "ItemId": "BoarHide", "Quantity": 2 }
@@ -38,7 +38,7 @@
     },
     {
       "DisplayName": "Boar Hide Tunic",
-      "ToolId": "BoarHideTunic",
+      "ItemId": "BoarHideTunic",
       "RequiredStation": "Workbench",
       "Ingredients": [
         { "ItemId": "BoarHide", "Quantity": 2 }
@@ -47,7 +47,7 @@
     },
     {
       "DisplayName": "Wood Shield",
-      "ToolId": "WoodShield",
+      "ItemId": "WoodShield",
       "RequiredStation": "Forge",
       "Ingredients": [
         { "ItemId": "Wood", "Quantity": 2 },

@@ -61,16 +61,16 @@ public:
     UKalmalaSupportMagicComponent* GetSupportMagicComponent() const { return SupportMagic; }
     UKalmalaSkillProgressionComponent* GetSkillProgressionComponent() const { return SkillProgression; }
     UKalmalaOceanTravelFeedbackComponent* GetOceanTravelFeedbackComponent() const { return OceanTravelFeedback; }
-    int32 GetToolDurability(FName ToolId) const;
+    int32 GetToolDurability(FName ItemId) const;
     int32 GetToolDurability(const FGuid& InstanceGuid) const;
-    int32 GetCarriedToolLevel(FName ToolId) const;
+    int32 GetCarriedToolLevel(FName ItemId) const;
     int32 GetCarriedToolLevel(const FGuid& InstanceGuid) const;
     void EnsureToolInstanceGuidsFromServer();
     float GetInteractionRange() const { return InteractionRange; }
     /** Owner-local candidate from the same short view trace used to choose interaction intent. */
     bool GetLocalInteractionCandidate(FHitResult& OutHit) const;
     /** Resolve the current local tool/action intent for this visible node; server validation remains authoritative. */
-    bool GetLocalHarvestInteractionIntent(const AKalmalaHarvestNode* Node, FName& OutToolId,
+    bool GetLocalHarvestInteractionIntent(const AKalmalaHarvestNode* Node, FName& OutItemId,
         uint8& OutAction, bool& bOutHasUsableTool) const;
     const TArray<FKalmalaToolState>& GetCarriedToolInventory() const { return CarriedTools; }
     float GetHealth() const { return Health; }
@@ -96,8 +96,8 @@ private:
     friend class AKalmalaGameMode;
 
     bool CommitToolHarvestFromServer(AKalmalaHarvestNode* Node, float TraceDistance, float MaximumRange,
-        FName ClientToolId, uint8 ClientAction);
-    int32* FindToolDurabilityFromServer(FName ToolId);
+        FName ClientItemId, uint8 ClientAction);
+    int32* FindToolDurabilityFromServer(FName ItemId);
     int32* FindToolDurabilityFromServer(const FGuid& InstanceGuid);
 
     UPROPERTY(VisibleAnywhere, Category="Crafting") TObjectPtr<UKalmalaCraftingComponent> Crafting;
@@ -179,7 +179,7 @@ private:
     void OnRep_Health();
 
     UFUNCTION(Server, Reliable)
-    void ServerRequestInteract(FName ClientToolId, uint8 ClientAction);
+    void ServerRequestInteract(FName ClientItemId, uint8 ClientAction);
 
     UFUNCTION(Server, Unreliable)
     void ServerSubmitOceanSkiffSteeringInput(float Throttle, float Rudder, uint32 Sequence);

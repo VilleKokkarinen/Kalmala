@@ -14,7 +14,7 @@ FName UKalmalaInventoryComponent::GetSlotItem(const int32 Slot) const
         [Guid](const FKalmalaInventoryStack& Candidate) { return Candidate.InstanceGuid == Guid; })) return Stack->ItemId;
     if (const auto* Character = Cast<AKalmalaCharacter>(GetOwner()))
         if (const FKalmalaToolState* Tool = Character->GetCarriedToolInventory().FindByPredicate(
-            [Guid](const FKalmalaToolState& Candidate) { return Candidate.InstanceGuid == Guid; })) return Tool->ToolId;
+            [Guid](const FKalmalaToolState& Candidate) { return Candidate.InstanceGuid == Guid; })) return Tool->ItemId;
     return NAME_None;
 }
 
@@ -43,7 +43,7 @@ bool UKalmalaInventoryComponent::OwnsGridItem(const FName Id) const
     if (GetQuantity(Id) > 0) return true;
     const auto* Character = Cast<AKalmalaCharacter>(GetOwner());
     return Character && Character->GetCarriedToolInventory().ContainsByPredicate(
-        [Id](const FKalmalaToolState& Tool) { return Tool.ToolId == Id; });
+        [Id](const FKalmalaToolState& Tool) { return Tool.ItemId == Id; });
 }
 
 bool UKalmalaInventoryComponent::CanFitContents(const TArray<FKalmalaInventoryStack>& Items, const int32 OtherItemCount) const
@@ -109,7 +109,7 @@ void UKalmalaInventoryComponent::SynchronizeGridFromServer()
         ItemByGuid.Add(Guid, ItemId);
     };
     if (Character)
-        for (FKalmalaToolState& Tool : Character->CarriedTools) AddInstance(Tool.InstanceGuid, Tool.ToolId);
+        for (FKalmalaToolState& Tool : Character->CarriedTools) AddInstance(Tool.InstanceGuid, Tool.ItemId);
     for (FKalmalaInventoryStack& Stack : Stacks) AddInstance(Stack.InstanceGuid, Stack.ItemId);
 
     TArray<FGuid> CandidateGuids;

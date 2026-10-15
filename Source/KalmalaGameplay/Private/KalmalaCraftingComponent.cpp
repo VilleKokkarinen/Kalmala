@@ -40,29 +40,29 @@ FName FindUniqueRecipeIdForOutput(const FName Output)
     return Match ? Match->RecipeId : NAME_None;
 }
 
-FString GetToolDisplayName(const FName ToolId)
+FString GetToolDisplayName(const FName ItemId)
 {
-    if (ToolId == TEXT("StoneMace")) return TEXT("Stone Mace");
-    if (ToolId == TEXT("BronzeMace")) return TEXT("Bronze Mace");
-    if (ToolId == TEXT("IronMace")) return TEXT("Iron Mace");
-    if (ToolId == TEXT("StoneKnife")) return TEXT("Stone Knife");
-    if (ToolId == TEXT("StoneAxe")) return TEXT("Stone Axe");
-    if (ToolId == TEXT("StonePick")) return TEXT("Stone Pick");
-    if (ToolId == TEXT("StoneSpear")) return TEXT("Stone Spear");
-    if (ToolId == TEXT("BronzeAxe")) return TEXT("Bronze Axe");
-    if (ToolId == TEXT("BronzeKnife")) return TEXT("Bronze Knife");
-    if (ToolId == TEXT("BronzePick")) return TEXT("Bronze Pick");
-    if (ToolId == TEXT("BronzeSpear")) return TEXT("Bronze Spear");
-    if (ToolId == TEXT("IronAxe")) return TEXT("Iron Axe");
-    if (ToolId == TEXT("IronKnife")) return TEXT("Iron Knife");
-    if (ToolId == TEXT("IronPick")) return TEXT("Iron Pick");
-    if (ToolId == TEXT("IronSpear")) return TEXT("Iron Spear");
-    return ToolId.ToString();
+    if (ItemId == TEXT("StoneMace")) return TEXT("Stone Mace");
+    if (ItemId == TEXT("BronzeMace")) return TEXT("Bronze Mace");
+    if (ItemId == TEXT("IronMace")) return TEXT("Iron Mace");
+    if (ItemId == TEXT("StoneKnife")) return TEXT("Stone Knife");
+    if (ItemId == TEXT("StoneAxe")) return TEXT("Stone Axe");
+    if (ItemId == TEXT("StonePick")) return TEXT("Stone Pick");
+    if (ItemId == TEXT("StoneSpear")) return TEXT("Stone Spear");
+    if (ItemId == TEXT("BronzeAxe")) return TEXT("Bronze Axe");
+    if (ItemId == TEXT("BronzeKnife")) return TEXT("Bronze Knife");
+    if (ItemId == TEXT("BronzePick")) return TEXT("Bronze Pick");
+    if (ItemId == TEXT("BronzeSpear")) return TEXT("Bronze Spear");
+    if (ItemId == TEXT("IronAxe")) return TEXT("Iron Axe");
+    if (ItemId == TEXT("IronKnife")) return TEXT("Iron Knife");
+    if (ItemId == TEXT("IronPick")) return TEXT("Iron Pick");
+    if (ItemId == TEXT("IronSpear")) return TEXT("Iron Spear");
+    return ItemId.ToString();
 }
 
-FString GetToolCombatSummary(const FName ToolId, const int32 ToolLevel)
+FString GetToolCombatSummary(const FName ItemId, const int32 ToolLevel)
 {
-    return FKalmalaToolLifecycleContract::GetWeaponDamageBonuses(ToolId, ToolLevel).Describe();
+    return FKalmalaToolLifecycleContract::GetWeaponDamageBonuses(ItemId, ToolLevel).Describe();
 }
 
 FString GetStationDisplayName(const FName KitId)
@@ -90,10 +90,10 @@ bool IsFoodProcessingStation(const AKalmalaConstructionActor* Station)
         || Kit == TEXT("SmokeFrameKit");
 }
 
-FString GetRecipeToolDisplayName(const FName ToolId)
+FString GetRecipeToolDisplayName(const FName ItemId)
 {
-    const FKalmalaItemDefinition* Item = UKalmalaItemCatalogue::Get()->FindItem(ToolId);
-    return Item ? Item->DisplayName : ToolId.ToString();
+    const FKalmalaItemDefinition* Item = UKalmalaItemCatalogue::Get()->FindItem(ItemId);
+    return Item ? Item->DisplayName : ItemId.ToString();
 }
 
 FString GetMissingFoodHeatReason(const AKalmalaConstructionActor* Station)
@@ -231,7 +231,7 @@ bool UKalmalaCraftingComponent::CraftFromServer(FName RecipeId, int32 Batch, FSt
             || !Inventory->CanFitContents(After, Character->CarriedTools.Num() + 1)) return false;
         const TArray<FKalmalaToolState> PreviousTools = Character->CarriedTools;
         FKalmalaToolState Hammer;
-        Hammer.ToolId = TEXT("ConstructionHammer");
+        Hammer.ItemId = TEXT("ConstructionHammer");
         Hammer.ToolLevel = 1;
         Hammer.Durability = FKalmalaToolLifecycleContract::GetConstructionHammerDefinition().MaxDurability;
         Hammer.InstanceGuid = FGuid::NewGuid();
@@ -354,21 +354,21 @@ AKalmalaConstructionActor* UKalmalaCraftingComponent::FindNearbyToolProgressionS
     return Closest;
 }
 
-bool UKalmalaCraftingComponent::ProgressToolFromServer(const FName ToolId, FString& Reason)
+bool UKalmalaCraftingComponent::ProgressToolFromServer(const FName ItemId, FString& Reason)
 {
     auto* Character = GetCharacter();
     Reason = TEXT("Server authority required");
     if (!Character || !Character->HasAuthority() || !Character->GetController()) return false;
 
-    const FKalmalaToolProfileData* Profile = UKalmalaToolCatalogue::Get()->FindProfile(ToolId);
+    const FKalmalaToolProfileData* Profile = UKalmalaToolCatalogue::Get()->FindProfile(ItemId);
     const bool bRepeatableStarterAcquisition = Profile && Profile->ToolSet == TEXT("Starter");
     const FKalmalaToolProgressionEntry* Entry = bRepeatableStarterAcquisition
-        ? FKalmalaToolProgressionContract::FindEntry(ToolId, 1)
-        : FKalmalaToolProgressionContract::FindNextEntry(ToolId, Character->GetCarriedToolLevel(ToolId));
+        ? FKalmalaToolProgressionContract::FindEntry(ItemId, 1)
+        : FKalmalaToolProgressionContract::FindNextEntry(ItemId, Character->GetCarriedToolLevel(ItemId));
     Reason = TEXT("No same-item upgrade is available for that tool level");
     if (!Entry || !FKalmalaToolProgressionContract::IsCatalogueValid()) return false;
     Reason = TEXT("Tool upgrades must keep the same item identity");
-    if (!Entry->PreviousToolId.IsNone() && Entry->PreviousToolId != ToolId) return false;
+    if (!Entry->PreviousItemId.IsNone() && Entry->PreviousItemId != ItemId) return false;
     const FName StationKit = FKalmalaToolProgressionContract::GetStationKit(Entry->RequiredStation);
     const TCHAR* StationName = Entry->RequiredStation == EKalmalaToolStationKind::Workbench
         ? TEXT("Workbench") : TEXT("Forge");
@@ -388,7 +388,7 @@ bool UKalmalaCraftingComponent::ProgressToolFromServer(const FName ToolId, FStri
     TArray<FKalmalaInventoryStack> CandidateInventory;
     const TArray<FKalmalaInventoryStack> Before = Inventory->GetStacks();
     if (!FKalmalaToolProgressionContract::BuildServerUpgradeFromCharacter(
-        Character, Station->GetConstructionKit(), EffectiveLevel, ToolId,
+        Character, Station->GetConstructionKit(), EffectiveLevel, ItemId,
         Character->CarriedTools, Before, CandidateTools, CandidateInventory, Reason))
     {
         return false;
@@ -416,22 +416,22 @@ bool UKalmalaCraftingComponent::ProgressToolFromServer(const FName ToolId, FStri
 
     Inventory->SynchronizeGridFromServer();
     Character->ForceNetUpdate();
-    if (Entry->PreviousToolId.IsNone())
+    if (Entry->PreviousItemId.IsNone())
     {
-        Reason = FString::Printf(TEXT("Crafted %s at level %d"), *ToolId.ToString(), Entry->TargetToolLevel);
+        Reason = FString::Printf(TEXT("Crafted %s at level %d"), *ItemId.ToString(), Entry->TargetToolLevel);
     }
     else
     {
-        Reason = FString::Printf(TEXT("Upgraded %s to level %d"), *ToolId.ToString(), Entry->TargetToolLevel);
+        Reason = FString::Printf(TEXT("Upgraded %s to level %d"), *ItemId.ToString(), Entry->TargetToolLevel);
     }
     return true;
 }
 
-void UKalmalaCraftingComponent::ServerProgressTool_Implementation(const FName ToolId)
+void UKalmalaCraftingComponent::ServerProgressTool_Implementation(const FName ItemId)
 {
     if (!AcceptRequest()) return;
     FString Reason;
-    const bool bAccepted = ProgressToolFromServer(ToolId, Reason);
+    const bool bAccepted = ProgressToolFromServer(ItemId, Reason);
     PublishResult(Reason, bAccepted);
 }
 
@@ -612,9 +612,9 @@ void UKalmalaCraftingComponent::ServerLight_Implementation()
     PublishResult(bAccepted ? TEXT("Hearth lit") : TEXT("Need a usable nearby unlit hearth with dry fuel"), bAccepted);
 }
 
-bool UKalmalaCraftingComponent::RepairToolFromServer(const FName ToolId, FString& Reason)
+bool UKalmalaCraftingComponent::RepairToolFromServer(const FName ItemId, FString& Reason)
 {
-    const FName CanonicalId = FKalmalaToolLifecycleContract::CanonicalizeToolId(ToolId);
+    const FName CanonicalId = FKalmalaToolLifecycleContract::CanonicalizeItemId(ItemId);
     auto* Character = GetCharacter();
     Reason = TEXT("Server authority required");
     if (!Character || !Character->HasAuthority() || !Character->GetController()) return false;
@@ -629,7 +629,7 @@ bool UKalmalaCraftingComponent::RepairToolFromServer(const FName ToolId, FString
     int32* CurrentDurability = Character->FindToolDurabilityFromServer(CanonicalId);
     if (CurrentDurability == nullptr) { Reason = TEXT("Unknown tool"); return false; }
     FKalmalaToolState CurrentState;
-    CurrentState.ToolId = CanonicalId;
+    CurrentState.ItemId = CanonicalId;
     CurrentState.Durability = *CurrentDurability;
     CurrentState.ToolLevel = Character->GetCarriedToolLevel(CanonicalId);
     FKalmalaToolState RepairedState;
@@ -725,11 +725,11 @@ bool UKalmalaCraftingComponent::CommitRepairAllToolsFromServer(const TCHAR* Stat
     return true;
 }
 
-void UKalmalaCraftingComponent::ServerRepairTool_Implementation(const FName ToolId)
+void UKalmalaCraftingComponent::ServerRepairTool_Implementation(const FName ItemId)
 {
     if (!AcceptRequest()) return;
     FString Reason;
-    const bool bAccepted = RepairToolFromServer(ToolId, Reason);
+    const bool bAccepted = RepairToolFromServer(ItemId, Reason);
     PublishResult(Reason, bAccepted);
 }
 
@@ -815,76 +815,76 @@ FString UKalmalaCraftingComponent::GetToolProgressionText(const FName StationFil
         const FName StationKit = FKalmalaToolProgressionContract::GetStationKit(Entry.RequiredStation);
         if (!StationFilterKit.IsNone() && StationKit != StationFilterKit) continue;
         const FKalmalaToolState* ExistingTarget = CarriedTools.FindByPredicate(
-            [&Entry](const FKalmalaToolState& State) { return State.ToolId == Entry.ToolId; });
-        const FKalmalaToolDefinition* TargetDefinition = FKalmalaToolLifecycleContract::FindDefinition(Entry.ToolId);
+            [&Entry](const FKalmalaToolState& State) { return State.ItemId == Entry.ItemId; });
+        const FKalmalaToolDefinition* TargetDefinition = FKalmalaToolLifecycleContract::FindDefinition(Entry.ItemId);
         if (!TargetDefinition)
         {
             TargetDefinition = FKalmalaToolLifecycleContract::GetTieredToolDefinitions().FindByPredicate(
-                [&Entry](const FKalmalaToolDefinition& Definition) { return Definition.ToolId == Entry.ToolId; });
+                [&Entry](const FKalmalaToolDefinition& Definition) { return Definition.ItemId == Entry.ItemId; });
         }
         if (!TargetDefinition) continue;
 
         if (ExistingTarget && ExistingTarget->ToolLevel >= Entry.TargetToolLevel)
         {
             const int32 MaxDurability = FKalmalaToolLifecycleContract::GetMaxDurability(
-                Entry.ToolId, ExistingTarget->ToolLevel);
+                Entry.ItemId, ExistingTarget->ToolLevel);
             Text += FString::Printf(TEXT("%s is already level %d.\nStatus: Already at this level.\n"),
-                *GetToolDisplayName(Entry.ToolId), ExistingTarget->ToolLevel);
+                *GetToolDisplayName(Entry.ItemId), ExistingTarget->ToolLevel);
             Text += FString::Printf(TEXT("Condition: %d/%d durability · %s.\n"),
                 ExistingTarget->Durability, MaxDurability,
-                *GetToolCombatSummary(Entry.ToolId, ExistingTarget->ToolLevel));
+                *GetToolCombatSummary(Entry.ItemId, ExistingTarget->ToolLevel));
             continue;
         }
-        if (ExistingTarget && Entry.PreviousToolId.IsNone())
+        if (ExistingTarget && Entry.PreviousItemId.IsNone())
         {
             Text += FString::Printf(TEXT("%s %d · carried, condition %d/%d.\nStatus: Already carried.\n"),
-                *GetToolDisplayName(Entry.ToolId), ExistingTarget->ToolLevel, ExistingTarget->Durability,
-                FKalmalaToolLifecycleContract::GetMaxDurability(Entry.ToolId, ExistingTarget->ToolLevel));
+                *GetToolDisplayName(Entry.ItemId), ExistingTarget->ToolLevel, ExistingTarget->Durability,
+                FKalmalaToolLifecycleContract::GetMaxDurability(Entry.ItemId, ExistingTarget->ToolLevel));
             continue;
         }
 
-        const FKalmalaToolState* PreviousTool = Entry.PreviousToolId.IsNone() ? nullptr
+        const FKalmalaToolState* PreviousTool = Entry.PreviousItemId.IsNone() ? nullptr
             : CarriedTools.FindByPredicate([&Entry](const FKalmalaToolState& State)
-                { return State.ToolId == Entry.PreviousToolId; });
-        const FKalmalaToolDefinition* PreviousDefinition = Entry.PreviousToolId.IsNone() ? nullptr
-            : FKalmalaToolLifecycleContract::FindDefinition(Entry.PreviousToolId);
-        if (!PreviousDefinition && !Entry.PreviousToolId.IsNone())
+                { return State.ItemId == Entry.PreviousItemId; });
+        const FKalmalaToolDefinition* PreviousDefinition = Entry.PreviousItemId.IsNone() ? nullptr
+            : FKalmalaToolLifecycleContract::FindDefinition(Entry.PreviousItemId);
+        if (!PreviousDefinition && !Entry.PreviousItemId.IsNone())
         {
             PreviousDefinition = FKalmalaToolLifecycleContract::GetTieredToolDefinitions().FindByPredicate(
-                [&Entry](const FKalmalaToolDefinition& Definition) { return Definition.ToolId == Entry.PreviousToolId; });
+                [&Entry](const FKalmalaToolDefinition& Definition) { return Definition.ItemId == Entry.PreviousItemId; });
         }
-        if (Entry.PreviousToolId == Entry.ToolId)
+        if (Entry.PreviousItemId == Entry.ItemId)
         {
             const int32 PreviousMaxDurability = FKalmalaToolLifecycleContract::GetMaxDurability(
-                Entry.PreviousToolId, Entry.PreviousToolLevel);
+                Entry.PreviousItemId, Entry.PreviousToolLevel);
             const int32 TargetMaxDurability = FKalmalaToolLifecycleContract::GetMaxDurability(
-                Entry.ToolId, Entry.TargetToolLevel);
-            const FString PreviousBonuses = GetToolCombatSummary(Entry.ToolId, Entry.PreviousToolLevel);
-            const FString TargetBonuses = GetToolCombatSummary(Entry.ToolId, Entry.TargetToolLevel);
+                Entry.ItemId, Entry.TargetToolLevel);
+            const FString PreviousBonuses = GetToolCombatSummary(Entry.ItemId, Entry.PreviousToolLevel);
+            const FString TargetBonuses = GetToolCombatSummary(Entry.ItemId, Entry.TargetToolLevel);
             Text += FString::Printf(TEXT("Comparison: %s level %d → level %d.\nDurability: %d → %d (+%d).\n%s → %s.\n"),
-                *GetToolDisplayName(Entry.ToolId), Entry.PreviousToolLevel, Entry.TargetToolLevel,
+                *GetToolDisplayName(Entry.ItemId), Entry.PreviousToolLevel, Entry.TargetToolLevel,
                 PreviousMaxDurability, TargetMaxDurability, TargetMaxDurability - PreviousMaxDurability,
                 *PreviousBonuses, *TargetBonuses);
         }
-        else if (!Entry.PreviousToolId.IsNone())
+        else if (!Entry.PreviousItemId.IsNone())
         {
             const FString PreviousState = PreviousTool && PreviousDefinition
-                ? FString::Printf(TEXT("%s %d (%d/%d condition)"), *GetToolDisplayName(Entry.PreviousToolId),
+                ? FString::Printf(TEXT("%s %d (%d/%d condition)"), *GetToolDisplayName(Entry.PreviousItemId),
                     PreviousTool->ToolLevel, PreviousTool->Durability,
-                    FKalmalaToolLifecycleContract::GetMaxDurability(Entry.PreviousToolId, PreviousTool->ToolLevel))
-                : FString::Printf(TEXT("%s (not carried)"), *GetToolDisplayName(Entry.PreviousToolId));
+                    FKalmalaToolLifecycleContract::GetMaxDurability(Entry.PreviousItemId, PreviousTool->ToolLevel))
+                : FString::Printf(TEXT("%s (not carried)"), *GetToolDisplayName(Entry.PreviousItemId));
             Text += FString::Printf(TEXT("Comparison: %s → %s %d (starts at %d/%d condition).\n"),
-                *PreviousState, *GetToolDisplayName(Entry.ToolId), Entry.TargetToolLevel,
-                FKalmalaToolLifecycleContract::GetMaxDurability(Entry.ToolId, Entry.TargetToolLevel),
-                FKalmalaToolLifecycleContract::GetMaxDurability(Entry.ToolId, Entry.TargetToolLevel));
+                *PreviousState, *GetToolDisplayName(Entry.ItemId), Entry.TargetToolLevel,
+                FKalmalaToolLifecycleContract::GetMaxDurability(Entry.ItemId, Entry.TargetToolLevel),
+                FKalmalaToolLifecycleContract::GetMaxDurability(Entry.ItemId, Entry.TargetToolLevel));
         }
         else
         {
             Text += FString::Printf(TEXT("New tool: %s %d (starts at %d/%d condition · %s).\n"),
-                *GetToolDisplayName(Entry.ToolId), Entry.TargetToolLevel,
-                FKalmalaToolLifecycleContract::GetMaxDurability(Entry.ToolId, Entry.TargetToolLevel),
-                FKalmalaToolLifecycleContract::GetMaxDurability(Entry.ToolId, Entry.TargetToolLevel),
-                *GetToolCombatSummary(Entry.ToolId, Entry.TargetToolLevel));
+                *GetToolDisplayName(Entry.ItemId), Entry.TargetToolLevel,
+                FKalmalaToolLifecycleContract::GetMaxDurability(Entry.ItemId, Entry.TargetToolLevel),
+                FKalmalaToolLifecycleContract::GetMaxDurability(Entry.ItemId, Entry.TargetToolLevel),
+                *GetToolCombatSummary(Entry.ItemId, Entry.TargetToolLevel));
         }
 
         Text += FString::Printf(TEXT("Requires: %s level %d"), StationName, Entry.RequiredStationLevel);
@@ -914,13 +914,13 @@ FString UKalmalaCraftingComponent::GetToolProgressionText(const FName StationFil
                 StationName, Level, Entry.RequiredStationLevel);
         }
 
-        if (Blocker.IsEmpty() && !Entry.PreviousToolId.IsNone()
+        if (Blocker.IsEmpty() && !Entry.PreviousItemId.IsNone()
             && (!PreviousTool || PreviousTool->ToolLevel != Entry.PreviousToolLevel))
         {
             Blocker = FString::Printf(TEXT("Need a carried %s level %d"),
-                *GetToolDisplayName(Entry.PreviousToolId), Entry.PreviousToolLevel);
+                *GetToolDisplayName(Entry.PreviousItemId), Entry.PreviousToolLevel);
         }
-        if (Blocker.IsEmpty() && Entry.PreviousToolId.IsNone())
+        if (Blocker.IsEmpty() && Entry.PreviousItemId.IsNone())
         {
             TArray<FKalmalaInventoryStack> Costs;
             for (const FKalmalaToolMaterialCost& Cost : Entry.MaterialCosts)

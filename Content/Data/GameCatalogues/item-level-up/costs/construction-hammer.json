@@ -2,7 +2,7 @@
   "upgrades": [
     {
       "DisplayName": "Construction Hammer",
-      "ToolId": "ConstructionHammer",
+      "ItemId": "ConstructionHammer",
       "RequiredStation": "Workbench",
       "Ingredients": [
         {

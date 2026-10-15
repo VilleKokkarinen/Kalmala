@@ -90,7 +90,7 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
             {
                 const FKalmalaToolState& Before = ToolsBefore[Index];
                 const FKalmalaToolState& After = C->GetCarriedToolInventory()[Index];
-                bToolsUnchanged = Before.ToolId == After.ToolId && Before.ToolLevel == After.ToolLevel
+                bToolsUnchanged = Before.ItemId == After.ItemId && Before.ToolLevel == After.ToolLevel
                     && Before.Durability == After.Durability;
             }
             bool bPackUnchanged = I->GetStacks().Num() == PackBefore.Num();

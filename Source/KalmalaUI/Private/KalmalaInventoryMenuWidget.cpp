@@ -32,35 +32,35 @@
 
 namespace
 {
-FString GetCarriedToolDisplayName(const FName ToolId)
+FString GetCarriedToolDisplayName(const FName ItemId)
 {
-    if (ToolId == TEXT("StoneMace")) return TEXT("Stone Mace");
-    if (ToolId == TEXT("BronzeMace")) return TEXT("Bronze Mace");
-    if (ToolId == TEXT("IronMace")) return TEXT("Iron Mace");
-    if (ToolId == TEXT("StoneKnife")) return TEXT("Stone Knife");
-    if (ToolId == TEXT("StoneAxe")) return TEXT("Stone Axe");
-    if (ToolId == TEXT("StonePick")) return TEXT("Stone Pick");
-    if (ToolId == TEXT("StoneSpear")) return TEXT("Stone Spear");
-    if (ToolId == TEXT("BronzeAxe")) return TEXT("Bronze Axe");
-    if (ToolId == TEXT("BronzeKnife")) return TEXT("Bronze Knife");
-    if (ToolId == TEXT("BronzePick")) return TEXT("Bronze Pick");
-    if (ToolId == TEXT("BronzeSpear")) return TEXT("Bronze Spear");
-    if (ToolId == TEXT("IronAxe")) return TEXT("Iron Axe");
-    if (ToolId == TEXT("IronKnife")) return TEXT("Iron Knife");
-    if (ToolId == TEXT("IronPick")) return TEXT("Iron Pick");
-    if (ToolId == TEXT("IronSpear")) return TEXT("Iron Spear");
-    if (ToolId == TEXT("ConstructionHammer")) return TEXT("Construction Hammer");
-    return ToolId.ToString();
+    if (ItemId == TEXT("StoneMace")) return TEXT("Stone Mace");
+    if (ItemId == TEXT("BronzeMace")) return TEXT("Bronze Mace");
+    if (ItemId == TEXT("IronMace")) return TEXT("Iron Mace");
+    if (ItemId == TEXT("StoneKnife")) return TEXT("Stone Knife");
+    if (ItemId == TEXT("StoneAxe")) return TEXT("Stone Axe");
+    if (ItemId == TEXT("StonePick")) return TEXT("Stone Pick");
+    if (ItemId == TEXT("StoneSpear")) return TEXT("Stone Spear");
+    if (ItemId == TEXT("BronzeAxe")) return TEXT("Bronze Axe");
+    if (ItemId == TEXT("BronzeKnife")) return TEXT("Bronze Knife");
+    if (ItemId == TEXT("BronzePick")) return TEXT("Bronze Pick");
+    if (ItemId == TEXT("BronzeSpear")) return TEXT("Bronze Spear");
+    if (ItemId == TEXT("IronAxe")) return TEXT("Iron Axe");
+    if (ItemId == TEXT("IronKnife")) return TEXT("Iron Knife");
+    if (ItemId == TEXT("IronPick")) return TEXT("Iron Pick");
+    if (ItemId == TEXT("IronSpear")) return TEXT("Iron Spear");
+    if (ItemId == TEXT("ConstructionHammer")) return TEXT("Construction Hammer");
+    return ItemId.ToString();
 }
 
 FString BuildToolInspectionText(const FKalmalaToolState& Tool)
 {
-    const int32 MaxDurability = FKalmalaToolLifecycleContract::GetMaxDurability(Tool.ToolId, Tool.ToolLevel);
+    const int32 MaxDurability = FKalmalaToolLifecycleContract::GetMaxDurability(Tool.ItemId, Tool.ToolLevel);
     FString Text = UKalmalaCatalogueRowsWidget::BuildToolDetail(
         Tool.ToolLevel, Tool.Durability, MaxDurability);
     if (MaxDurability <= 0 || Tool.Durability < 0 || Tool.Durability > MaxDurability)
         return Text + TEXT("\nRepair unavailable.");
-    const FKalmalaDamageChannels Bonuses = FKalmalaToolLifecycleContract::GetWeaponDamageBonuses(Tool.ToolId, Tool.ToolLevel);
+    const FKalmalaDamageChannels Bonuses = FKalmalaToolLifecycleContract::GetWeaponDamageBonuses(Tool.ItemId, Tool.ToolLevel);
     if (Bonuses.Total() > 0.0f) Text += TEXT("\n") + Bonuses.Describe() + TEXT(".");
     return Text + (Tool.Durability < MaxDurability
         ? TEXT("\nFree repair at a visible Workbench or Forge.")
@@ -328,23 +328,23 @@ void UKalmalaInventoryMenuWidget::RefreshOwnerInventory()
     if (const AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(OwnerPawn))
     {
         const TArray<FKalmalaToolState>& CarriedTools = Character->GetCarriedToolInventory();
-        TSet<FName> SeenToolIds;
+        TSet<FName> SeenItemIds;
         const int32 BoundedToolCount = CarriedTools.Num();
         for (int32 Index = 0; Index < BoundedToolCount; ++Index)
         {
             const FKalmalaToolState& Tool = CarriedTools[Index];
-            const FName CanonicalToolId = FKalmalaToolLifecycleContract::CanonicalizeToolId(Tool.ToolId);
-            if (CanonicalToolId.IsNone() || SeenToolIds.Contains(CanonicalToolId)) continue;
-            const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(CanonicalToolId);
+            const FName CanonicalItemId = FKalmalaToolLifecycleContract::CanonicalizeItemId(Tool.ItemId);
+            if (CanonicalItemId.IsNone() || SeenItemIds.Contains(CanonicalItemId)) continue;
+            const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(CanonicalItemId);
             if (Definition == nullptr) continue;
-            SeenToolIds.Add(CanonicalToolId);
+            SeenItemIds.Add(CanonicalItemId);
             int32 Copies = 0;
             for (int32 CopyIndex = 0; CopyIndex < BoundedToolCount; ++CopyIndex)
-                if (FKalmalaToolLifecycleContract::CanonicalizeToolId(CarriedTools[CopyIndex].ToolId) == CanonicalToolId)
+                if (FKalmalaToolLifecycleContract::CanonicalizeItemId(CarriedTools[CopyIndex].ItemId) == CanonicalItemId)
                     ++Copies;
-            FString DisplayName = GetCarriedToolDisplayName(CanonicalToolId);
+            FString DisplayName = GetCarriedToolDisplayName(CanonicalItemId);
             if (Copies > 1) DisplayName += FString::Printf(TEXT(" × %d"), Copies);
-            InventoryRows.Add({ CanonicalToolId, DisplayName,
+            InventoryRows.Add({ CanonicalItemId, DisplayName,
                 BuildToolInspectionText(Tool), true });
         }
     }
@@ -370,9 +370,9 @@ void UKalmalaInventoryMenuWidget::RefreshOwnerInventory()
                 Crafting && Crafting->GetResultSerial() != RepairRequestResultSerial)
             {
                 LastRepairResultText = Crafting->GetLastResult();
-                LastRepairResultToolId = AwaitingRepairToolId;
+                LastRepairResultItemId = AwaitingRepairItemId;
                 bAwaitingRepairResult = false;
-                AwaitingRepairToolId = NAME_None;
+                AwaitingRepairItemId = NAME_None;
             }
         }
     }
@@ -504,7 +504,7 @@ void UKalmalaInventoryMenuWidget::RefreshSelectionPresentation(const int32 TextS
         if (!bAwaitingRepairResult)
         {
             LastRepairResultText.Reset();
-            LastRepairResultToolId = NAME_None;
+            LastRepairResultItemId = NAME_None;
         }
     }
 
@@ -559,10 +559,10 @@ void UKalmalaInventoryMenuWidget::RefreshSelectionPresentation(const int32 TextS
         const AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(GetOwningPlayerPawn());
         const FKalmalaToolState* Tool = Character
             ? Character->GetCarriedToolInventory().FindByPredicate([SelectedRow](const FKalmalaToolState& Entry)
-                { return Entry.ToolId == SelectedRow->Id; }) : nullptr;
+                { return Entry.ItemId == SelectedRow->Id; }) : nullptr;
         const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(SelectedRow->Id);
         const int32 MaxDurability = Tool
-            ? FKalmalaToolLifecycleContract::GetMaxDurability(Tool->ToolId, Tool->ToolLevel) : 0;
+            ? FKalmalaToolLifecycleContract::GetMaxDurability(Tool->ItemId, Tool->ToolLevel) : 0;
         const bool bToolStateValid = Tool != nullptr && Definition != nullptr && Tool->ToolLevel >= 1
             && MaxDurability > 0 && Tool->Durability >= 0 && Tool->Durability <= MaxDurability;
         const bool bNeedsRepair = bToolStateValid && Tool->Durability < MaxDurability;
@@ -571,9 +571,9 @@ void UKalmalaInventoryMenuWidget::RefreshSelectionPresentation(const int32 TextS
         RepairToolButton->SetIsEnabled(bNeedsRepair && bHasRepairAction);
         FString StatusText;
         if (!bToolStateValid) StatusText = TEXT("Tool state unavailable.");
-        else if (bAwaitingRepairResult && AwaitingRepairToolId == SelectedRow->Id)
+        else if (bAwaitingRepairResult && AwaitingRepairItemId == SelectedRow->Id)
             StatusText = TEXT("Repair requested. Waiting for the server result.");
-        else if (LastRepairResultToolId == SelectedRow->Id && !LastRepairResultText.IsEmpty())
+        else if (LastRepairResultItemId == SelectedRow->Id && !LastRepairResultText.IsEmpty())
             StatusText = LastRepairResultText;
         else if (bNeedsRepair)
             StatusText = TEXT("Repair is free at a visible, same-world Workbench or Forge within 2.5 m.");
@@ -723,14 +723,14 @@ void UKalmalaInventoryMenuWidget::RepairSelectedTool()
     AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(Controller ? Controller->GetPawn() : nullptr);
     const FKalmalaToolState* Tool = Character
         ? Character->GetCarriedToolInventory().FindByPredicate([&Row](const FKalmalaToolState& Entry)
-            { return Entry.ToolId == Row.Id; })
+            { return Entry.ItemId == Row.Id; })
         : nullptr;
     const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(Row.Id);
     UKalmalaCraftingComponent* Crafting = Character
         ? Character->FindComponentByClass<UKalmalaCraftingComponent>()
         : nullptr;
     const int32 MaxDurability = Tool
-        ? FKalmalaToolLifecycleContract::GetMaxDurability(Tool->ToolId, Tool->ToolLevel) : 0;
+        ? FKalmalaToolLifecycleContract::GetMaxDurability(Tool->ItemId, Tool->ToolLevel) : 0;
     if (Controller == nullptr || !Controller->IsLocalController() || Tool == nullptr || Definition == nullptr
         || Tool->ToolLevel < 1 || MaxDurability <= 0 || Tool->Durability < 0
         || Tool->Durability >= MaxDurability || Crafting == nullptr)
@@ -741,10 +741,10 @@ void UKalmalaInventoryMenuWidget::RepairSelectedTool()
     }
 
     RepairRequestResultSerial = Crafting->GetResultSerial();
-    AwaitingRepairToolId = Row.Id;
+    AwaitingRepairItemId = Row.Id;
     bAwaitingRepairResult = true;
     LastRepairResultText.Reset();
-    LastRepairResultToolId = NAME_None;
+    LastRepairResultItemId = NAME_None;
     ToolActionStatusText->SetText(FText::FromString(TEXT("Repair requested. Waiting for the server result.")));
     Crafting->ServerRepairTool(Row.Id);
     RefreshOwnerInventory();

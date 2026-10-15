@@ -3,7 +3,7 @@
     {
       "RecipeId": "StoneAxe",
       "DisplayName": "Stone Axe",
-      "ToolId": "StoneAxe",
+      "ItemId": "StoneAxe",
       "RequiredStation": "Workbench",
       "RequiredStationLevel": 1,
       "Ingredients": [
@@ -21,7 +21,7 @@
     {
       "RecipeId": "StoneKnife",
       "DisplayName": "Stone Knife",
-      "ToolId": "StoneKnife",
+      "ItemId": "StoneKnife",
       "RequiredStation": "Workbench",
       "RequiredStationLevel": 1,
       "Ingredients": [
@@ -39,7 +39,7 @@
     {
       "RecipeId": "StoneMace",
       "DisplayName": "Stone Mace",
-      "ToolId": "StoneMace",
+      "ItemId": "StoneMace",
       "RequiredStation": "Workbench",
       "RequiredStationLevel": 1,
       "Ingredients": [
@@ -57,7 +57,7 @@
     {
       "RecipeId": "StonePick",
       "DisplayName": "Stone Pick",
-      "ToolId": "StonePick",
+      "ItemId": "StonePick",
       "RequiredStation": "Workbench",
       "RequiredStationLevel": 1,
       "Ingredients": [
@@ -75,7 +75,7 @@
     {
       "RecipeId": "StoneSpear",
       "DisplayName": "Stone Spear",
-      "ToolId": "StoneSpear",
+      "ItemId": "StoneSpear",
       "RequiredStation": "Workbench",
       "RequiredStationLevel": 1,
       "Ingredients": [

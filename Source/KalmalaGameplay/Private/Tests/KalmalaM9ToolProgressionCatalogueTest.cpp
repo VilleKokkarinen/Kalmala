@@ -75,7 +75,7 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
 
         const FKalmalaToolRecipeData* Upgrade = AuthoredCatalogue
             ? AuthoredCatalogue->UpgradeCosts.FindByPredicate([&GearAndStation](const FKalmalaToolRecipeData& Cost)
-                { return Cost.ToolId == GearAndStation.Key; }) : nullptr;
+                { return Cost.ItemId == GearAndStation.Key; }) : nullptr;
         TestNotNull(TEXT("Wearable has a level-one upgrade cost record"), Upgrade);
         if (Upgrade)
         {
@@ -91,7 +91,7 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
     BoundaryCatalogue->LevelUpRewards = AuthoredCatalogue->LevelUpRewards;
     BoundaryCatalogue->AttackLists = AuthoredCatalogue->AttackLists;
     FKalmalaToolProfileData* BoundaryAxe = BoundaryCatalogue->Profiles.FindByPredicate(
-        [](const FKalmalaToolProfileData& Profile) { return Profile.ToolId == TEXT("BronzeAxe"); });
+        [](const FKalmalaToolProfileData& Profile) { return Profile.ItemId == TEXT("BronzeAxe"); });
     if (TestNotNull(TEXT("Boundary catalogue contains Bronze Axe"), BoundaryAxe))
     {
         FKalmalaToolLevelStats Stats;
@@ -170,7 +170,7 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
             Bronze->RequiredStation, EKalmalaToolStationKind::Forge);
         TestEqual(TEXT("Bronze Axe station level matches its target"), Bronze->RequiredStationLevel, 1);
         TestTrue(TEXT("Bronze Axe is the first step in this axe path"),
-            Bronze->PreviousToolId.IsNone() && Bronze->PreviousToolLevel == 0);
+            Bronze->PreviousItemId.IsNone() && Bronze->PreviousToolLevel == 0);
         TestEqual(TEXT("Bronze Axe acquisition has two bounded materials"), Bronze->MaterialCosts.Num(), 2);
         TestTrue(TEXT("Bronze Axe uses the early-game material set"),
             Bronze->MaterialCosts.ContainsByPredicate([](const FKalmalaToolMaterialCost& Cost)
@@ -187,7 +187,7 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
         TestEqual(TEXT("Bronze Axe upgrades to tool level two"), BronzeLevelTwo->TargetToolLevel, 2);
         TestEqual(TEXT("Bronze Axe level two uses the Forge"), BronzeLevelTwo->RequiredStation, EKalmalaToolStationKind::Forge);
         TestEqual(TEXT("Forge level matches the Bronze Axe target"), BronzeLevelTwo->RequiredStationLevel, 2);
-        TestEqual(TEXT("Upgrade keeps the same item identity"), BronzeLevelTwo->PreviousToolId, FName(TEXT("BronzeAxe")));
+        TestEqual(TEXT("Upgrade keeps the same item identity"), BronzeLevelTwo->PreviousItemId, FName(TEXT("BronzeAxe")));
         TestEqual(TEXT("Upgrade requires Bronze Axe level one"), BronzeLevelTwo->PreviousToolLevel, 1);
         TestEqual(TEXT("Bronze Axe upgrade has three bounded materials"), BronzeLevelTwo->MaterialCosts.Num(), 3);
         TestTrue(TEXT("Bronze Axe upgrade uses Lightwood, Amber, and Stone"),
@@ -204,9 +204,9 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
 
     const TArray<FKalmalaToolState> StartingTools = FKalmalaToolLifecycleContract::BuildInitialCarriedTools();
     TestFalse(TEXT("Uncrafted Bronze Axe is not granted at character start"),
-        StartingTools.ContainsByPredicate([](const FKalmalaToolState& State) { return State.ToolId == TEXT("BronzeAxe"); }));
+        StartingTools.ContainsByPredicate([](const FKalmalaToolState& State) { return State.ItemId == TEXT("BronzeAxe"); }));
     TestFalse(TEXT("Uncrafted Iron Axe is not granted at character start"),
-        StartingTools.ContainsByPredicate([](const FKalmalaToolState& State) { return State.ToolId == TEXT("IronAxe"); }));
+        StartingTools.ContainsByPredicate([](const FKalmalaToolState& State) { return State.ItemId == TEXT("IronAxe"); }));
 
     TestEqual(TEXT("Workbench is a buildable level-one station"),
         FKalmalaToolProgressionContract::GetBaseStationLevel(TEXT("WorkbenchKit")), 1);

@@ -22,7 +22,7 @@ bool FKalmalaM9ToolStationProgressionTest::RunTest(const FString& Parameters)
             ProgressIntent->HasAllFunctionFlags(FUNC_Net | FUNC_NetServer));
         TestEqual(TEXT("Tool progression accepts only one tool identity"), int32(ProgressIntent->NumParms), 1);
         TestNotNull(TEXT("Tool progression cannot provide a station, level, costs, or result"),
-            ProgressIntent->FindPropertyByName(TEXT("ToolId")));
+            ProgressIntent->FindPropertyByName(TEXT("ItemId")));
     }
 
     UKalmalaConstructionSaveGame* ConstructionSave = NewObject<UKalmalaConstructionSaveGame>();
@@ -79,7 +79,7 @@ bool FKalmalaM9ToolStationProgressionTest::RunTest(const FString& Parameters)
             BronzeTools, BronzeInventory, Reason));
 
     const FKalmalaToolState* Bronze = BronzeTools.FindByPredicate(
-        [](const FKalmalaToolState& State) { return State.ToolId == TEXT("BronzeAxe"); });
+        [](const FKalmalaToolState& State) { return State.ItemId == TEXT("BronzeAxe"); });
     TestNotNull(TEXT("Accepted Forge transaction adds Bronze Axe"), Bronze);
     if (Bronze)
     {
@@ -95,13 +95,13 @@ bool FKalmalaM9ToolStationProgressionTest::RunTest(const FString& Parameters)
     TArray<FKalmalaInventoryStack> RejectedInventory = BronzeMaterials;
     const auto RejectWithoutMutation = [&](const bool bServerAuthority,
         const FKalmalaSkillProgressionLedger* SkillLedger, const FName StationKit,
-        const int32 StationLevel, const FName ToolId, const TArray<FKalmalaToolState>& Tools,
+        const int32 StationLevel, const FName ItemId, const TArray<FKalmalaToolState>& Tools,
         const TArray<FKalmalaInventoryStack>& Inventory, const TCHAR* Message)
     {
         const TArray<FKalmalaToolState> BeforeTools = RejectedTools;
         const TArray<FKalmalaInventoryStack> BeforeInventory = RejectedInventory;
         TestFalse(Message, FKalmalaToolProgressionContract::BuildServerUpgrade(
-            bServerAuthority, SkillLedger, StationKit, StationLevel, ToolId, Tools, Inventory,
+            bServerAuthority, SkillLedger, StationKit, StationLevel, ItemId, Tools, Inventory,
             RejectedTools, RejectedInventory, Reason));
         TestEqual(TEXT("Rejected station/tool request keeps candidate tool output untouched"), RejectedTools.Num(), BeforeTools.Num());
         TestEqual(TEXT("Rejected station/tool request keeps candidate pack output untouched"), RejectedInventory.Num(), BeforeInventory.Num());
@@ -149,7 +149,7 @@ bool FKalmalaM9ToolStationProgressionTest::RunTest(const FString& Parameters)
             UpgradedTools, UpgradedInventory, Reason));
     TArray<FKalmalaToolState> InvalidConditionTools = BronzeTools;
     if (FKalmalaToolState* CarriedBronze = InvalidConditionTools.FindByPredicate(
-        [](const FKalmalaToolState& State) { return State.ToolId == TEXT("BronzeAxe"); }))
+        [](const FKalmalaToolState& State) { return State.ItemId == TEXT("BronzeAxe"); }))
     {
         if (const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(TEXT("BronzeAxe")))
             CarriedBronze->Durability = Definition->MaxDurability + 1;
@@ -160,7 +160,7 @@ bool FKalmalaM9ToolStationProgressionTest::RunTest(const FString& Parameters)
     TArray<FKalmalaToolState> WornBronzeTools = BronzeTools;
     const int32 WornCondition = 11;
     if (FKalmalaToolState* CarriedBronze = WornBronzeTools.FindByPredicate(
-        [](const FKalmalaToolState& State) { return State.ToolId == TEXT("BronzeAxe"); }))
+        [](const FKalmalaToolState& State) { return State.ItemId == TEXT("BronzeAxe"); }))
         CarriedBronze->Durability = WornCondition;
     TestTrue(TEXT("Level-two Forge upgrades Bronze Axe level one to level two"),
         FKalmalaToolProgressionContract::BuildServerUpgrade(
@@ -168,7 +168,7 @@ bool FKalmalaM9ToolStationProgressionTest::RunTest(const FString& Parameters)
             UpgradedTools, UpgradedInventory, Reason));
     TestEqual(TEXT("Upgrade preserves the single carried item"), UpgradedTools.Num(), WornBronzeTools.Num());
     const FKalmalaToolState* UpgradedBronze = UpgradedTools.FindByPredicate(
-        [](const FKalmalaToolState& State) { return State.ToolId == TEXT("BronzeAxe"); });
+        [](const FKalmalaToolState& State) { return State.ItemId == TEXT("BronzeAxe"); });
     TestNotNull(TEXT("Accepted Forge transaction keeps the Bronze Axe identity"), UpgradedBronze);
     if (UpgradedBronze)
     {
@@ -179,7 +179,7 @@ bool FKalmalaM9ToolStationProgressionTest::RunTest(const FString& Parameters)
             && FKalmalaToolLifecycleContract::GetToolTier(Definition->Kind, UpgradedBronze->ToolLevel) == EKalmalaToolTier::Bronze);
     }
     TestFalse(TEXT("Upgrade does not create or exchange to an Iron Axe"),
-        UpgradedTools.ContainsByPredicate([](const FKalmalaToolState& State) { return State.ToolId == TEXT("IronAxe"); }));
+        UpgradedTools.ContainsByPredicate([](const FKalmalaToolState& State) { return State.ItemId == TEXT("IronAxe"); }));
     TestEqual(TEXT("Bronze Axe upgrade consumes all approved material inputs"), UpgradedInventory.Num(), 0);
 
     TArray<FKalmalaToolState> DuplicateTools;

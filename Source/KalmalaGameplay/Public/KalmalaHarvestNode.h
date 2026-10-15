@@ -40,7 +40,7 @@ public:
     static bool AdvanceTreeHit(uint8 Stage, float Health, float Damage, uint8& OutStage, float& OutHealth);
 
     bool InteractWithToolIntentFromServer(AKalmalaCharacter* Interactor, float TraceDistance, float MaximumRange,
-        FName ClientToolId, uint8 ClientAction);
+        FName ClientItemId, uint8 ClientAction);
     FKalmalaHarvestNodeHarvested OnHarvested;
     /** Session-only M9 depletion handoff; it deliberately does not use the M7 save callback. */
     FKalmalaM9ResourceDepleted OnM9ResourceDepleted;

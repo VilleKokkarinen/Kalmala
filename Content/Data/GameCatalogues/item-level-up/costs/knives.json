@@ -2,7 +2,7 @@
   "upgrades": [
     {
       "DisplayName": "Bronze Knife",
-      "ToolId": "BronzeKnife",
+      "ItemId": "BronzeKnife",
       "RequiredStation": "Forge",
       "Ingredients": [
         {
@@ -18,7 +18,7 @@
     },
     {
       "DisplayName": "Iron Knife",
-      "ToolId": "IronKnife",
+      "ItemId": "IronKnife",
       "RequiredStation": "Forge",
       "Ingredients": [
         {
@@ -34,7 +34,7 @@
     },
     {
       "DisplayName": "Stone Knife",
-      "ToolId": "StoneKnife",
+      "ItemId": "StoneKnife",
       "RequiredStation": "Workbench",
       "Ingredients": [
         {

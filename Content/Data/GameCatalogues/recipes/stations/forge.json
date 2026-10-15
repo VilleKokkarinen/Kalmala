@@ -3,7 +3,7 @@
     {
       "RecipeId": "IronAxe",
       "DisplayName": "Iron Axe",
-      "ToolId": "IronAxe",
+      "ItemId": "IronAxe",
       "RequiredStation": "Forge",
       "RequiredStationLevel": 1,
       "Ingredients": [
@@ -21,7 +21,7 @@
     {
       "RecipeId": "IronKnife",
       "DisplayName": "Iron Knife",
-      "ToolId": "IronKnife",
+      "ItemId": "IronKnife",
       "RequiredStation": "Forge",
       "RequiredStationLevel": 1,
       "Ingredients": [
@@ -39,7 +39,7 @@
     {
       "RecipeId": "IronPick",
       "DisplayName": "Iron Pick",
-      "ToolId": "IronPick",
+      "ItemId": "IronPick",
       "RequiredStation": "Forge",
       "RequiredStationLevel": 1,
       "Ingredients": [
@@ -61,7 +61,7 @@
     {
       "RecipeId": "IronSpear",
       "DisplayName": "Iron Spear",
-      "ToolId": "IronSpear",
+      "ItemId": "IronSpear",
       "RequiredStation": "Forge",
       "RequiredStationLevel": 1,
       "Ingredients": [
@@ -79,7 +79,7 @@
     {
       "RecipeId": "IronMace",
       "DisplayName": "Iron Mace",
-      "ToolId": "IronMace",
+      "ItemId": "IronMace",
       "RequiredStation": "Forge",
       "RequiredStationLevel": 1,
       "Ingredients": [
@@ -97,7 +97,7 @@
     {
       "RecipeId": "BronzeAxe",
       "DisplayName": "Bronze Axe",
-      "ToolId": "BronzeAxe",
+      "ItemId": "BronzeAxe",
       "RequiredStation": "Forge",
       "RequiredStationLevel": 1,
       "Ingredients": [
@@ -115,7 +115,7 @@
     {
       "RecipeId": "BronzeKnife",
       "DisplayName": "Bronze Knife",
-      "ToolId": "BronzeKnife",
+      "ItemId": "BronzeKnife",
       "RequiredStation": "Forge",
       "RequiredStationLevel": 1,
       "Ingredients": [
@@ -133,7 +133,7 @@
     {
       "RecipeId": "BronzePick",
       "DisplayName": "Bronze Pick",
-      "ToolId": "BronzePick",
+      "ItemId": "BronzePick",
       "RequiredStation": "Forge",
       "RequiredStationLevel": 1,
       "Ingredients": [
@@ -151,7 +151,7 @@
     {
       "RecipeId": "BronzeSpear",
       "DisplayName": "Bronze Spear",
-      "ToolId": "BronzeSpear",
+      "ItemId": "BronzeSpear",
       "RequiredStation": "Forge",
       "RequiredStationLevel": 1,
       "Ingredients": [
@@ -169,7 +169,7 @@
     {
       "RecipeId": "BronzeMace",
       "DisplayName": "Bronze Mace",
-      "ToolId": "BronzeMace",
+      "ItemId": "BronzeMace",
       "RequiredStation": "Forge",
       "RequiredStationLevel": 1,
       "Ingredients": [

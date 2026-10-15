@@ -19,7 +19,7 @@ bool FKalmalaM9AxeHarvestGateTest::RunTest(const FString& Parameters)
         FName PresentationId;
         FName RewardId;
         EKalmalaToolTier MinimumTier;
-        FName MinimumToolId;
+        FName MinimumItemId;
     };
     const FExpectedGate Gates[] =
     {
@@ -44,7 +44,7 @@ bool FKalmalaM9AxeHarvestGateTest::RunTest(const FString& Parameters)
         TestNotNull(TEXT("Minimum required axe resolves"), MinimumTool);
         if (MinimumTool != nullptr)
         {
-            TestEqual(TEXT("Minimum axe identity matches the gate"), MinimumTool->ToolId, Gate.MinimumToolId);
+            TestEqual(TEXT("Minimum axe identity matches the gate"), MinimumTool->ItemId, Gate.MinimumItemId);
         }
     }
 

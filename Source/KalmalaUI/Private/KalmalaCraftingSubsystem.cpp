@@ -67,11 +67,11 @@ constexpr int32 BuildTileGridColumns = 10;
 constexpr int32 MaxFavoriteRecipeCount = 256;
 const FString CraftingNoPanelImage;
 
-FString GetCraftableToolDisplayName(const FName ToolId)
+FString GetCraftableToolDisplayName(const FName ItemId)
 {
     const UKalmalaToolCatalogue* Catalogue = UKalmalaToolCatalogue::Get();
-    const FKalmalaToolProfileData* Profile = Catalogue ? Catalogue->FindProfile(ToolId) : nullptr;
-    return Profile ? Profile->DisplayName : ToolId.ToString();
+    const FKalmalaToolProfileData* Profile = Catalogue ? Catalogue->FindProfile(ItemId) : nullptr;
+    return Profile ? Profile->DisplayName : ItemId.ToString();
 }
 
 void SetRuntimeAccessibleText(UWidget* Widget, const FText& Text)
@@ -112,25 +112,25 @@ bool IsCookingMenuRecipe(const FName StationKit, const FKalmalaRecipe& Recipe)
     return false;
 }
 
-FString GetReadableToolName(const FName ToolId)
+FString GetReadableToolName(const FName ItemId)
 {
-    if (ToolId == TEXT("StoneMace")) return TEXT("Stone Mace");
-    if (ToolId == TEXT("BronzeMace")) return TEXT("Bronze Mace");
-    if (ToolId == TEXT("IronMace")) return TEXT("Iron Mace");
-    if (ToolId == TEXT("StoneKnife")) return TEXT("Stone Knife");
-    if (ToolId == TEXT("StoneAxe")) return TEXT("Stone Axe");
-    if (ToolId == TEXT("StonePick")) return TEXT("Stone Pick");
-    if (ToolId == TEXT("StoneSpear")) return TEXT("Stone Spear");
-    if (ToolId == TEXT("BronzeAxe")) return TEXT("Bronze Axe");
-    if (ToolId == TEXT("BronzeKnife")) return TEXT("Bronze Knife");
-    if (ToolId == TEXT("BronzePick")) return TEXT("Bronze Pick");
-    if (ToolId == TEXT("BronzeSpear")) return TEXT("Bronze Spear");
-    if (ToolId == TEXT("IronAxe")) return TEXT("Iron Axe");
-    if (ToolId == TEXT("IronKnife")) return TEXT("Iron Knife");
-    if (ToolId == TEXT("IronPick")) return TEXT("Iron Pick");
-    if (ToolId == TEXT("IronSpear")) return TEXT("Iron Spear");
-    if (ToolId == TEXT("ConstructionHammer")) return TEXT("Construction Hammer");
-    return ToolId.ToString();
+    if (ItemId == TEXT("StoneMace")) return TEXT("Stone Mace");
+    if (ItemId == TEXT("BronzeMace")) return TEXT("Bronze Mace");
+    if (ItemId == TEXT("IronMace")) return TEXT("Iron Mace");
+    if (ItemId == TEXT("StoneKnife")) return TEXT("Stone Knife");
+    if (ItemId == TEXT("StoneAxe")) return TEXT("Stone Axe");
+    if (ItemId == TEXT("StonePick")) return TEXT("Stone Pick");
+    if (ItemId == TEXT("StoneSpear")) return TEXT("Stone Spear");
+    if (ItemId == TEXT("BronzeAxe")) return TEXT("Bronze Axe");
+    if (ItemId == TEXT("BronzeKnife")) return TEXT("Bronze Knife");
+    if (ItemId == TEXT("BronzePick")) return TEXT("Bronze Pick");
+    if (ItemId == TEXT("BronzeSpear")) return TEXT("Bronze Spear");
+    if (ItemId == TEXT("IronAxe")) return TEXT("Iron Axe");
+    if (ItemId == TEXT("IronKnife")) return TEXT("Iron Knife");
+    if (ItemId == TEXT("IronPick")) return TEXT("Iron Pick");
+    if (ItemId == TEXT("IronSpear")) return TEXT("Iron Spear");
+    if (ItemId == TEXT("ConstructionHammer")) return TEXT("Construction Hammer");
+    return ItemId.ToString();
 }
 
 FString FormatUpgradeStatValue(const float Value)
@@ -311,10 +311,10 @@ bool ResolveInteractionPrompt(const AKalmalaCharacter* Character, AActor* Target
 
         if (!Node->GetGatheringSourceId().IsNone())
         {
-            FName ToolId = NAME_None;
+            FName ItemId = NAME_None;
             uint8 ActionValue = 0;
             bool bHasUsableTool = false;
-            if (!Character->GetLocalHarvestInteractionIntent(Node, ToolId, ActionValue, bHasUsableTool))
+            if (!Character->GetLocalHarvestInteractionIntent(Node, ItemId, ActionValue, bHasUsableTool))
             {
                 OutDescription.UnavailableReason = TEXT("Unsupported source");
                 return true;
@@ -804,14 +804,14 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     CraftBronzeMaceButton->OnClicked.AddDynamic(this, &ThisClass::CraftBronzeMace);
     CraftIronMaceButton = AddButton(TEXT("Craft Iron Mace"), MaceCraftActions);
     CraftIronMaceButton->OnClicked.AddDynamic(this, &ThisClass::CraftIronMace);
-    StoneCraftToolIds = {TEXT("StoneAxe"), TEXT("StoneKnife"), TEXT("StonePick"), TEXT("StoneSpear"), TEXT("StoneMace")};
+    StoneCraftItemIds = {TEXT("StoneAxe"), TEXT("StoneKnife"), TEXT("StonePick"), TEXT("StoneSpear"), TEXT("StoneMace")};
     StoneCraftTitleText = AddText(TEXT("Stone-tier equipment"), 18);
     BuildExcludedWidgets.Add(StoneCraftTitleText);
     StoneCraftActions = WidgetTree->ConstructWidget<UVerticalBox>();
     Column->AddChild(StoneCraftActions);
-    for (const FName ToolId : StoneCraftToolIds)
+    for (const FName ItemId : StoneCraftItemIds)
     {
-        const FString ToolName = GetCraftableToolDisplayName(ToolId);
+        const FString ToolName = GetCraftableToolDisplayName(ItemId);
         const FString Label = FString::Printf(TEXT("Craft %s"), *ToolName);
         const FString Help = FString::Printf(
             TEXT("Craft a %s at a visible same-world Workbench. The server checks costs and pack capacity."),
@@ -819,11 +819,11 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
         UButton* Button = AddButton(*Label, nullptr, *Help);
         Button->RemoveFromParent();
         StoneCraftActions->AddChildToVerticalBox(Button)->SetPadding(FMargin(2.0f, 2.0f));
-        if (ToolId == TEXT("StoneAxe")) Button->OnClicked.AddDynamic(this, &ThisClass::CraftStoneAxe);
-        else if (ToolId == TEXT("StoneKnife")) Button->OnClicked.AddDynamic(this, &ThisClass::CraftStoneKnife);
-        else if (ToolId == TEXT("StonePick")) Button->OnClicked.AddDynamic(this, &ThisClass::CraftStonePick);
-        else if (ToolId == TEXT("StoneSpear")) Button->OnClicked.AddDynamic(this, &ThisClass::CraftStoneSpear);
-        else if (ToolId == TEXT("StoneMace")) Button->OnClicked.AddDynamic(this, &ThisClass::CraftStoneMace);
+        if (ItemId == TEXT("StoneAxe")) Button->OnClicked.AddDynamic(this, &ThisClass::CraftStoneAxe);
+        else if (ItemId == TEXT("StoneKnife")) Button->OnClicked.AddDynamic(this, &ThisClass::CraftStoneKnife);
+        else if (ItemId == TEXT("StonePick")) Button->OnClicked.AddDynamic(this, &ThisClass::CraftStonePick);
+        else if (ItemId == TEXT("StoneSpear")) Button->OnClicked.AddDynamic(this, &ThisClass::CraftStoneSpear);
+        else if (ItemId == TEXT("StoneMace")) Button->OnClicked.AddDynamic(this, &ThisClass::CraftStoneMace);
         StoneCraftButtons.Add(Button);
     }
     BuildExcludedWidgets.Add(StoneCraftActions);
@@ -1831,14 +1831,14 @@ void UKalmalaCraftingWidget::RefreshMaceCraftState()
     const AKalmalaCharacter* Owner = PC ? Cast<AKalmalaCharacter>(PC->GetPawn()) : nullptr;
     const UKalmalaInventoryComponent* Inventory = Owner ? Owner->GetInventoryComponent() : nullptr;
     const AKalmalaConstructionActor* Station = ContextStationActor.Get();
-    const auto RefreshButton = [&](UButton* Button, const FName ToolId)
+    const auto RefreshButton = [&](UButton* Button, const FName ItemId)
     {
-        const FKalmalaToolProgressionEntry* Entry = FKalmalaToolProgressionContract::FindEntry(ToolId, 1);
+        const FKalmalaToolProgressionEntry* Entry = FKalmalaToolProgressionContract::FindEntry(ItemId, 1);
         bool bReady = bVisible && Entry && PC && PC->IsLocalController() && Owner && Inventory
             && IsStationContextValid() && IsValid(Station)
             && Station->GetConstructionKit() == FKalmalaToolProgressionContract::GetStationKit(Entry->RequiredStation)
             && FKalmalaToolProgressionContract::GetEffectiveStationLevel(Station) == Entry->RequiredStationLevel
-            && Owner->GetCarriedToolLevel(ToolId) == 0;
+            && Owner->GetCarriedToolLevel(ItemId) == 0;
         FString Requirements = TEXT("Requires an accepted matching station and an uncarried item.");
         if (Entry)
         {
@@ -1869,12 +1869,12 @@ void UKalmalaCraftingWidget::RefreshStoneCraftState()
     const AKalmalaCharacter* Owner = PC ? Cast<AKalmalaCharacter>(PC->GetPawn()) : nullptr;
     const UKalmalaInventoryComponent* Inventory = Owner ? Owner->GetInventoryComponent() : nullptr;
     const AKalmalaConstructionActor* Station = ContextStationActor.Get();
-    for (int32 Index = 0; Index < StoneCraftToolIds.Num() && StoneCraftButtons.IsValidIndex(Index); ++Index)
+    for (int32 Index = 0; Index < StoneCraftItemIds.Num() && StoneCraftButtons.IsValidIndex(Index); ++Index)
     {
         UButton* Button = StoneCraftButtons[Index];
-        const FName ToolId = StoneCraftToolIds[Index];
-        const FKalmalaToolProgressionEntry* Entry = FKalmalaToolProgressionContract::FindEntry(ToolId, 1);
-        bool bReady = bVisible && Entry && Entry->PreviousToolId.IsNone() && PC && PC->IsLocalController()
+        const FName ItemId = StoneCraftItemIds[Index];
+        const FKalmalaToolProgressionEntry* Entry = FKalmalaToolProgressionContract::FindEntry(ItemId, 1);
+        bool bReady = bVisible && Entry && Entry->PreviousItemId.IsNone() && PC && PC->IsLocalController()
             && Owner && Inventory && IsStationContextValid() && IsValid(Station)
             && Station->GetConstructionKit() == TEXT("WorkbenchKit")
             && Entry->RequiredStation == EKalmalaToolStationKind::Workbench
@@ -1898,10 +1898,10 @@ void UKalmalaCraftingWidget::RefreshStoneCraftState()
     }
 }
 
-void UKalmalaCraftingWidget::CraftStoneTool(const FName ToolId)
+void UKalmalaCraftingWidget::CraftStoneTool(const FName ItemId)
 {
     if (!bWorkbenchCraftContext || StationFilterKit != TEXT("WorkbenchKit") || !IsStationContextValid()) return;
-    if (auto* Crafting = Model()) Crafting->ServerProgressTool(ToolId);
+    if (auto* Crafting = Model()) Crafting->ServerProgressTool(ItemId);
 }
 
 void UKalmalaCraftingWidget::CraftStoneAxe() { CraftStoneTool(TEXT("StoneAxe")); }
@@ -2087,23 +2087,23 @@ void UKalmalaCraftingWidget::RefreshWorkbenchRepairState(UKalmalaCraftingCompone
     if (bWorkbenchRepairPending && Crafting->GetResultSerial() != WorkbenchRepairResultSerial)
     {
         bWorkbenchRepairPending = false;
-        WorkbenchRepairResultToolId = WorkbenchRepairPendingToolId;
-        WorkbenchRepairPendingToolId = NAME_None;
+        WorkbenchRepairResultItemId = WorkbenchRepairPendingItemId;
+        WorkbenchRepairPendingItemId = NAME_None;
         WorkbenchRepairResultText = Crafting->GetLastResult();
     }
 
     const APlayerController* PC = GetOwningPlayer();
     const AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(GetOwningPlayerPawn());
-    const FName SelectedToolId = WorkbenchRepairInspector
+    const FName SelectedItemId = WorkbenchRepairInspector
         ? WorkbenchRepairInspector->GetSelectedItem() : NAME_None;
     const FKalmalaToolState* Tool = Character
-        ? Character->GetCarriedToolInventory().FindByPredicate([SelectedToolId](const FKalmalaToolState& Candidate)
-            { return Candidate.ToolId == SelectedToolId; })
+        ? Character->GetCarriedToolInventory().FindByPredicate([SelectedItemId](const FKalmalaToolState& Candidate)
+            { return Candidate.ItemId == SelectedItemId; })
         : nullptr;
-    const FKalmalaToolDefinition* Definition = SelectedToolId == TEXT("ConstructionHammer")
-        ? nullptr : FKalmalaToolLifecycleContract::FindDefinition(SelectedToolId);
+    const FKalmalaToolDefinition* Definition = SelectedItemId == TEXT("ConstructionHammer")
+        ? nullptr : FKalmalaToolLifecycleContract::FindDefinition(SelectedItemId);
     const int32 MaxDurability = Tool
-        ? FKalmalaToolLifecycleContract::GetMaxDurability(Tool->ToolId, Tool->ToolLevel) : 0;
+        ? FKalmalaToolLifecycleContract::GetMaxDurability(Tool->ItemId, Tool->ToolLevel) : 0;
     const AKalmalaConstructionActor* ContextStation = ContextStationActor.Get();
     const bool bRepairContext = bWorkbenchRepairContext || bForgeRepairContext;
     const bool bContextKitMatches = (bWorkbenchRepairContext && StationFilterKit == TEXT("WorkbenchKit"))
@@ -2124,9 +2124,9 @@ void UKalmalaCraftingWidget::RefreshWorkbenchRepairState(UKalmalaCraftingCompone
         Status = StationFilterKit == TEXT("ForgeKit")
             ? TEXT("Forge context unavailable. Reopen a nearby Forge.")
             : TEXT("Workbench context unavailable. Reopen a nearby Workbench.");
-    else if (SelectedToolId.IsNone())
+    else if (SelectedItemId.IsNone())
         Status = TEXT("No repairable carried tools are available.");
-    else if (WorkbenchRepairResultToolId == SelectedToolId && !WorkbenchRepairResultText.IsEmpty())
+    else if (WorkbenchRepairResultItemId == SelectedItemId && !WorkbenchRepairResultText.IsEmpty())
         Status = WorkbenchRepairResultText;
     else if (!bToolStateValid)
         Status = TEXT("Selected tool condition is unavailable.");
@@ -2176,8 +2176,8 @@ void UKalmalaCraftingWidget::Close()
     bWorkbenchRepairContext = false;
     bStorageContext = false;
     bWorkbenchRepairPending = false;
-    WorkbenchRepairPendingToolId = NAME_None;
-    WorkbenchRepairResultToolId = NAME_None;
+    WorkbenchRepairPendingItemId = NAME_None;
+    WorkbenchRepairResultItemId = NAME_None;
     WorkbenchRepairResultText.Reset();
     StationContextSection.Reset();
     ApplyStationCraftLayout();
@@ -3908,16 +3908,16 @@ void UKalmalaCraftingWidget::Refresh()
     if (const auto* Character = Cast<AKalmalaCharacter>(OwnerPawn))
         for (const auto& Tool : Character->GetCarriedToolInventory())
         {
-            const auto* Definition = FKalmalaToolLifecycleContract::FindDefinition(Tool.ToolId);
-            const int32 MaxDurability = FKalmalaToolLifecycleContract::GetMaxDurability(Tool.ToolId, Tool.ToolLevel);
+            const auto* Definition = FKalmalaToolLifecycleContract::FindDefinition(Tool.ItemId);
+            const int32 MaxDurability = FKalmalaToolLifecycleContract::GetMaxDurability(Tool.ItemId, Tool.ToolLevel);
             const bool bValidCondition = Definition && Tool.ToolLevel >= 1 && Tool.Durability >= 0
                 && MaxDurability > 0 && Tool.Durability <= MaxDurability;
             const FString VisibleState = bValidCondition
                 ? FString::Printf(TEXT("Level %d\nCondition %d/%d — %s"), Tool.ToolLevel,
                     Tool.Durability, MaxDurability, Tool.Durability == 0 ? TEXT("Broken") : TEXT("Usable"))
                 : TEXT("Condition unavailable");
-            const FKalmalaCatalogueRow ToolRow{Tool.ToolId, GetReadableToolName(Tool.ToolId), VisibleState, true};
-            if (Tool.ToolId != TEXT("ConstructionHammer") && Definition)
+            const FKalmalaCatalogueRow ToolRow{Tool.ItemId, GetReadableToolName(Tool.ItemId), VisibleState, true};
+            if (Tool.ItemId != TEXT("ConstructionHammer") && Definition)
                 WorkbenchRepairRows.Add(ToolRow);
         }
     const int32 MenuPanelContext = bEmbeddedContext ? 1 : (bStandaloneBuildMenu ? 2 : 0);
@@ -4182,17 +4182,17 @@ void UKalmalaCraftingWidget::Refresh()
     int32 CarriedToolConditionCount = 0;
     const auto AppendToolCondition = [&ToolConditionText, &CarriedToolConditionCount, Character](const FKalmalaToolDefinition& Definition)
     {
-        const int32 ToolLevel = Character ? Character->GetCarriedToolLevel(Definition.ToolId) : 0;
+        const int32 ToolLevel = Character ? Character->GetCarriedToolLevel(Definition.ItemId) : 0;
         if (ToolLevel <= 0) return;
         ++CarriedToolConditionCount;
-        const int32 Condition = Character->GetToolDurability(Definition.ToolId);
-        const int32 MaxDurability = FKalmalaToolLifecycleContract::GetMaxDurability(Definition.ToolId, ToolLevel);
+        const int32 Condition = Character->GetToolDurability(Definition.ItemId);
+        const int32 MaxDurability = FKalmalaToolLifecycleContract::GetMaxDurability(Definition.ItemId, ToolLevel);
         if (MaxDurability <= 0 || Condition < 0 || Condition > MaxDurability)
         {
-            ToolConditionText += FString::Printf(TEXT("\n%s: condition unavailable"), *GetReadableToolName(Definition.ToolId));
+            ToolConditionText += FString::Printf(TEXT("\n%s: condition unavailable"), *GetReadableToolName(Definition.ItemId));
             return;
         }
-        ToolConditionText += FString::Printf(TEXT("\n%s level %d: %d/%d · %s"), *GetReadableToolName(Definition.ToolId),
+        ToolConditionText += FString::Printf(TEXT("\n%s level %d: %d/%d · %s"), *GetReadableToolName(Definition.ItemId),
             ToolLevel, Condition, MaxDurability, Condition < MaxDurability ? TEXT("damaged") : TEXT("full"));
     };
     for (const FKalmalaToolDefinition& Definition : FKalmalaToolLifecycleContract::GetDefinitions()) AppendToolCondition(Definition);
@@ -4264,17 +4264,17 @@ void UKalmalaCraftingWidget::RefreshInlineToolUpgradeComparison(const int32 Cont
     const FKalmalaToolProgressionEntry* Upgrade = FKalmalaToolProgressionContract::FindEntry(
         TEXT("BronzeAxe"), 2);
     const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(TEXT("BronzeAxe"));
-    const bool bValidUpgrade = Upgrade && Definition && Upgrade->PreviousToolId == Upgrade->ToolId
+    const bool bValidUpgrade = Upgrade && Definition && Upgrade->PreviousItemId == Upgrade->ItemId
         && Upgrade->PreviousToolLevel == 1 && Upgrade->TargetToolLevel == 2;
     const int32 PreviousDurability = bValidUpgrade
-        ? FKalmalaToolLifecycleContract::GetMaxDurability(Upgrade->ToolId, Upgrade->PreviousToolLevel) : 0;
+        ? FKalmalaToolLifecycleContract::GetMaxDurability(Upgrade->ItemId, Upgrade->PreviousToolLevel) : 0;
     const int32 TargetDurability = bValidUpgrade
-        ? FKalmalaToolLifecycleContract::GetMaxDurability(Upgrade->ToolId, Upgrade->TargetToolLevel) : 0;
+        ? FKalmalaToolLifecycleContract::GetMaxDurability(Upgrade->ItemId, Upgrade->TargetToolLevel) : 0;
     const FKalmalaDamageChannels PreviousDamage = bValidUpgrade
-        ? FKalmalaToolLifecycleContract::GetWeaponDamageBonuses(Upgrade->ToolId, Upgrade->PreviousToolLevel)
+        ? FKalmalaToolLifecycleContract::GetWeaponDamageBonuses(Upgrade->ItemId, Upgrade->PreviousToolLevel)
         : FKalmalaDamageChannels();
     const FKalmalaDamageChannels TargetDamage = bValidUpgrade
-        ? FKalmalaToolLifecycleContract::GetWeaponDamageBonuses(Upgrade->ToolId, Upgrade->TargetToolLevel)
+        ? FKalmalaToolLifecycleContract::GetWeaponDamageBonuses(Upgrade->ItemId, Upgrade->TargetToolLevel)
         : FKalmalaDamageChannels();
     const bool bHasSlash = bValidUpgrade && (PreviousDamage.Slash != 0.0f || TargetDamage.Slash != 0.0f);
     const float SlashDelta = TargetDamage.Slash - PreviousDamage.Slash;
@@ -4289,7 +4289,7 @@ void UKalmalaCraftingWidget::RefreshInlineToolUpgradeComparison(const int32 Cont
     const FString BenefitDelta = bHasSlash ? SlashDeltaText + TEXT(")") : FString();
 
     ToolUpgradeComparisonTitle->SetText(FText::FromString(bValidUpgrade
-        ? GetReadableToolName(Upgrade->ToolId) + TEXT(" -")
+        ? GetReadableToolName(Upgrade->ItemId) + TEXT(" -")
         : TEXT("Upgrade comparison unavailable")));
     ToolUpgradeLevelComparison->SetText(bValidUpgrade
         ? FText::AsNumber(Upgrade->TargetToolLevel) : FText::GetEmpty());
@@ -4475,16 +4475,16 @@ void UKalmalaCraftingWidget::RepairWorkbenchSelectedTool()
     APlayerController* PC = GetOwningPlayer();
     AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(PC ? PC->GetPawn() : nullptr);
     UKalmalaCraftingComponent* Crafting = Model();
-    const FName SelectedToolId = WorkbenchRepairInspector
+    const FName SelectedItemId = WorkbenchRepairInspector
         ? WorkbenchRepairInspector->GetSelectedItem() : NAME_None;
     const FKalmalaToolState* Tool = Character
-        ? Character->GetCarriedToolInventory().FindByPredicate([SelectedToolId](const FKalmalaToolState& Candidate)
-            { return Candidate.ToolId == SelectedToolId; })
+        ? Character->GetCarriedToolInventory().FindByPredicate([SelectedItemId](const FKalmalaToolState& Candidate)
+            { return Candidate.ItemId == SelectedItemId; })
         : nullptr;
-    const FKalmalaToolDefinition* Definition = SelectedToolId == TEXT("ConstructionHammer")
-        ? nullptr : FKalmalaToolLifecycleContract::FindDefinition(SelectedToolId);
+    const FKalmalaToolDefinition* Definition = SelectedItemId == TEXT("ConstructionHammer")
+        ? nullptr : FKalmalaToolLifecycleContract::FindDefinition(SelectedItemId);
     const int32 MaxDurability = Tool
-        ? FKalmalaToolLifecycleContract::GetMaxDurability(Tool->ToolId, Tool->ToolLevel) : 0;
+        ? FKalmalaToolLifecycleContract::GetMaxDurability(Tool->ItemId, Tool->ToolLevel) : 0;
     const bool bRepairContext = bWorkbenchRepairContext || bForgeRepairContext;
     const bool bContextKitMatches = (bWorkbenchRepairContext && StationFilterKit == TEXT("WorkbenchKit"))
         || (bForgeRepairContext && StationFilterKit == TEXT("ForgeKit"));
@@ -4494,14 +4494,14 @@ void UKalmalaCraftingWidget::RepairWorkbenchSelectedTool()
         || bWorkbenchRepairPending) return;
 
     WorkbenchRepairResultSerial = Crafting->GetResultSerial();
-    WorkbenchRepairPendingToolId = SelectedToolId;
+    WorkbenchRepairPendingItemId = SelectedItemId;
     bWorkbenchRepairPending = true;
-    WorkbenchRepairResultToolId = NAME_None;
+    WorkbenchRepairResultItemId = NAME_None;
     WorkbenchRepairResultText.Reset();
 #if !UE_BUILD_SHIPPING
     ++WorkbenchRepairRequestCountForTest;
 #endif
-    Crafting->ServerRepairTool(SelectedToolId);
+    Crafting->ServerRepairTool(SelectedItemId);
     RefreshWorkbenchRepairState(Crafting);
 }
 void UKalmalaCraftingWidget::CraftBronzeMace()

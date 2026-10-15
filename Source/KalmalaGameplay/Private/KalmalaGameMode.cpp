@@ -2322,15 +2322,34 @@ UKalmalaPlayerDiscoverySaveGameV2* AKalmalaGameMode::GetPlayerDiscoverySave(
         USaveGame* Loaded = UGameplayStatics::LoadGameFromSlot(Slot, 0);
         if (UKalmalaPlayerDiscoverySaveGameV2* Current = Cast<UKalmalaPlayerDiscoverySaveGameV2>(Loaded))
         {
-            bool bMigratedToolGuids = false;
-            bool bValidClaims = Current->EnsureToolInstanceGuids(bMigratedToolGuids)
-                && Current->MatchesPlayer(WorldGenerationConfig, OutIdentity);
-            for (const FString& ClaimId : Current->GetM9ClaimIds())
+            bool bMigratedSchema = false;
+            if (!Current->MatchesPlayer(WorldGenerationConfig, OutIdentity))
             {
-                bValidClaims = bValidClaims && IsCurrentM9ClaimId(ClaimId);
-                if (!bValidClaims) break;
+                UKalmalaPlayerDiscoverySaveGameV2* Migrated = nullptr;
+                if (UKalmalaPlayerDiscoverySaveGameV2::TryMigrateSchema2(
+                    Current, WorldGenerationConfig, OutIdentity, this, Migrated))
+                {
+                    Current = Migrated;
+                    bMigratedSchema = true;
+                }
+                else
+                {
+                    Current = nullptr;
+                }
             }
-            if (bValidClaims && bMigratedToolGuids)
+
+            bool bMigratedToolGuids = false;
+            bool bValidClaims = Current != nullptr && Current->EnsureToolInstanceGuids(bMigratedToolGuids)
+                && Current->MatchesPlayer(WorldGenerationConfig, OutIdentity);
+            if (bValidClaims)
+            {
+                for (const FString& ClaimId : Current->GetM9ClaimIds())
+                {
+                    bValidClaims = IsCurrentM9ClaimId(ClaimId);
+                    if (!bValidClaims) break;
+                }
+            }
+            if (bValidClaims && (bMigratedSchema || bMigratedToolGuids))
             {
                 bValidClaims = UGameplayStatics::SaveGameToSlot(Current, Slot, 0);
             }
@@ -2370,7 +2389,7 @@ UKalmalaPlayerDiscoverySaveGameV2* AKalmalaGameMode::GetPlayerDiscoverySave(
         for (const FKalmalaPlayerToolSaveRecord& Record : Save->GetToolRecords())
         {
             FKalmalaToolState ToolState;
-            ToolState.ToolId = FKalmalaToolLifecycleContract::CanonicalizeToolId(Record.ToolId);
+            ToolState.ItemId = FKalmalaToolLifecycleContract::CanonicalizeItemId(Record.ItemId);
             ToolState.ToolLevel = Record.ToolLevel;
             ToolState.Durability = Record.Condition;
             ToolState.InstanceGuid = Record.InstanceGuid;
@@ -2418,7 +2437,7 @@ bool AKalmalaGameMode::PersistPlayerStateFromServer(
     for (const FKalmalaToolState& ToolState : ToolStates)
     {
         FKalmalaPlayerToolSaveRecord& Record = ToolRecords.AddDefaulted_GetRef();
-        Record.ToolId = ToolState.ToolId;
+        Record.ItemId = ToolState.ItemId;
         Record.ToolLevel = ToolState.ToolLevel;
         Record.Condition = ToolState.Durability;
         Record.InstanceGuid = ToolState.InstanceGuid;
@@ -3564,10 +3583,10 @@ void AKalmalaGameMode::RunM9Schema2CandidatePlayerPeerTest(APlayerController* Pl
     {
         Candidate = NewObject<UKalmalaPlayerDiscoverySaveGameV2>(this);
         Candidate->InitializeForPlayer(WorldGenerationConfig, PlayerIdentity);
-        const auto AddTool = [Candidate](const FName ToolId, const int32 ToolLevel, const int32 Condition)
+        const auto AddTool = [Candidate](const FName ItemId, const int32 ToolLevel, const int32 Condition)
         {
             FKalmalaPlayerToolSaveRecord Record;
-            Record.ToolId = ToolId;
+            Record.ItemId = ItemId;
             Record.ToolLevel = ToolLevel;
             Record.Condition = Condition;
             return Candidate->AddToolRecord(Record);
@@ -3609,7 +3628,7 @@ void AKalmalaGameMode::RunM9Schema2CandidatePlayerPeerTest(APlayerController* Pl
     for (const FKalmalaPlayerToolSaveRecord& Record : Candidate->GetToolRecords())
     {
         FKalmalaToolState ToolState;
-        ToolState.ToolId = Record.ToolId;
+        ToolState.ItemId = Record.ItemId;
         ToolState.ToolLevel = Record.ToolLevel;
         ToolState.Durability = Record.Condition;
         ToolState.InstanceGuid = Record.InstanceGuid;
@@ -3797,7 +3816,7 @@ void AKalmalaGameMode::RunReconnectVerification(APawn* ServerPawn)
                         if (Tool != nullptr)
                         {
                             bHarvestAccepted = Node->InteractWithToolIntentFromServer(Interactor, 0.0f,
-                                FKalmalaToolLifecycleContract::DefaultMaximumRange, Tool->ToolId,
+                                FKalmalaToolLifecycleContract::DefaultMaximumRange, Tool->ItemId,
                                 static_cast<uint8>(Selection.Action));
                         }
                     }

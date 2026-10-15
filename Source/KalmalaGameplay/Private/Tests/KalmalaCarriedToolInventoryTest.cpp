@@ -21,14 +21,14 @@ bool FKalmalaCarriedToolInventoryTest::RunTest(const FString& Parameters)
 
     for (const FKalmalaToolState& State : InitialTools)
     {
-        const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(State.ToolId);
+        const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(State.ItemId);
         TestNotNull(TEXT("Starting carried tool has an authored definition"), Definition);
         TestEqual(TEXT("Tool level starts at its server-authored baseline"), State.ToolLevel, 1);
         if (Definition != nullptr)
             TestEqual(TEXT("Starting carried tool has full condition"), State.Durability, Definition->MaxDurability);
     }
     TestTrue(TEXT("The starter construction hammer is carried at level one"), InitialTools.ContainsByPredicate(
-        [](const FKalmalaToolState& State) { return State.ToolId == TEXT("ConstructionHammer") && State.ToolLevel == 1; }));
+        [](const FKalmalaToolState& State) { return State.ItemId == TEXT("ConstructionHammer") && State.ToolLevel == 1; }));
 
     UClass* CharacterClass = AKalmalaCharacter::StaticClass();
     CharacterClass->SetUpRuntimeReplicationData();

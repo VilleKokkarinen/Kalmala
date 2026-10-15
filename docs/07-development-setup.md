@@ -466,16 +466,18 @@ After the editor build, run it with the documented temporary-user pattern:
 
 ### M9 progression and discovery migration gate
 
-The accepted schema-2 design extends the existing construction and
+The accepted schema-2 design extended the existing construction and
 player-discovery save owners; it leaves the M7 sparse ledger and storage schema
-unchanged. Read `docs/02-technical-architecture.md` for exact seed/revision/
-scope matching, caps, and the schema-1 migration rules. Normal schema-2 writes
-are enabled after the focused round-trip, migration, rejection, and host/client
-reconnect checks passed. Construction and player writers preserve validated
-schema-1 facts, validate complete server-owned candidates before saving, and
-leave invalid existing slots untouched. The player writer also re-derives live
-M9 claim identities and saves the owner's bounded tool records without adding
-replicated state.
+unchanged. Construction remains schema 2. Player-discovery saves now use schema
+3 to store carried equipment identifiers as `ItemId`; valid schema-2 player
+saves migrate the legacy `ToolId` property on load. Read
+`docs/02-technical-architecture.md` for exact seed/revision/scope matching,
+caps, and migration rules. Focused round-trip, migration, rejection, and
+host/client reconnect checks must pass before either current writer changes a
+slot. Writers preserve valid prior facts, validate complete server-owned
+candidates before saving, and leave invalid existing slots untouched. The
+player writer also re-derives live M9 claim identities and saves the owner's
+bounded carried-item records without adding replicated state.
 
 ### M8 travel-save contract
 
@@ -794,9 +796,9 @@ Buildable item definitions are listed in the ordinary `itemFiles` group under `i
 
 Manifest category file lists have no separate path-count cap; the manifest and loaded category data remain bounded by aggregate JSON size and definition-count limits.
 
-`Content/Data/GameCatalogues.json` is the schema-version-13 manifest for item, recipe, and carried-item progression definitions. Ordinary items and recipes live in categorized files. Station recipes are grouped under `recipes/stations/` by required crafting station, including the Building Hammer under `inventory.json`; build-menu construction recipes remain in `recipes/building.json`. Carried item profiles live in `items/equipment/axes.json`, `items/equipment/knives.json`, `items/equipment/pickaxes.json`, `items/equipment/spears.json`, `items/equipment/maces.json`, and `items/equipment/building-hammer.json`; `itemProfileFiles` lists all of them for the runtime tool catalogue. Equipment acquisition records share the corresponding station file and root `recipes` array; the loader routes records with `ToolId` into the runtime tool catalogue. Level-one costs for Stone, Bronze, and Iron equipment use the family files under `item-level-up/costs/`, with Stone and Iron generally using acquisition ingredients and Bronze generally replacing Stone with Bronze bars at the same quantity while retaining the wood cost. Bronze Axe, Knife, Spear, and Mace acquisitions and upgrades use Lightwood in place of Wood; Iron Axe, Knife, Spear, and Mace acquisitions and upgrades use Densewood. Pickaxe costs remain unchanged; the Construction Hammer cost lives in `item-level-up/costs/construction-hammer.json` through `itemUpgradeFiles`. The loader sorts ordinary items and carried profiles by `ItemId`, ordinary recipes and equipment acquisitions by `RecipeId`, and upgrade costs by `ToolId`, so file organization does not define catalogue order. These files contain the authoritative definitions. No property or value in the ordinary item/recipe arrays contains `Kit`; clean buildable IDs and each recipe's `RequiredStation` array map to stable runtime construction identities, preserving construction and save compatibility. Item profiles author per-level durability and typed damage bonuses plus attack-style bonuses, while item recipes author acquisition costs and the upgrade file authors upgrade costs and requirements. Keep the `Data` directory in `DirectoriesToAlwaysStageAsUFS` under `[/Script/UnrealEd.ProjectPackagingSettings]`; the loader reads the manifest and each category file through Unreal's file layer so it works from both the project and a packaged UFS container. The loader validates schema version, category paths, aggregate file size and array bounds, descriptions and display names, profile levels, recipe references, duplicate IDs, quantities, stack limits, same-item upgrade chains, and station/material references before exposing any catalogue. Hearth refuelling separately validates raw fuel materials. Missing or invalid data leaves the catalogues empty, and server transactions fail closed.
+`Content/Data/GameCatalogues.json` is the schema-version-14 manifest for item, recipe, and carried-item progression definitions. Ordinary items and recipes live in categorized files. Station recipes are grouped under `recipes/stations/` by required crafting station, including the Building Hammer under `inventory.json`; build-menu construction recipes remain in `recipes/building.json`. Carried item profiles live in `items/equipment/axes.json`, `items/equipment/knives.json`, `items/equipment/pickaxes.json`, `items/equipment/spears.json`, `items/equipment/maces.json`, and `items/equipment/building-hammer.json`; `itemProfileFiles` lists all of them for the runtime tool catalogue. Equipment acquisition records share the corresponding station file and root `recipes` array; the loader routes records with `ItemId` into the runtime tool catalogue. Level-one costs for Stone, Bronze, and Iron equipment use the family files under `item-level-up/costs/`, with Stone and Iron generally using acquisition ingredients and Bronze generally replacing Stone with Bronze bars at the same quantity while retaining the wood cost. Bronze Axe, Knife, Spear, and Mace acquisitions and upgrades use Lightwood in place of Wood; Iron Axe, Knife, Spear, and Mace acquisitions and upgrades use Densewood. Pickaxe costs remain unchanged; the Construction Hammer cost lives in `item-level-up/costs/construction-hammer.json` through `itemUpgradeFiles`. The loader sorts ordinary items and carried profiles by `ItemId`, ordinary recipes and equipment acquisitions by `RecipeId`, and upgrade costs by `ItemId`, so file organization does not define catalogue order. These files contain the authoritative definitions. No property or value in the ordinary item/recipe arrays contains `Kit`; clean buildable IDs and each recipe's `RequiredStation` array map to stable runtime construction identities, preserving construction and save compatibility. Item profiles author per-level durability and typed damage bonuses plus attack-style bonuses, while item recipes author acquisition costs and the upgrade file authors upgrade costs and requirements. Keep the `Data` directory in `DirectoriesToAlwaysStageAsUFS` under `[/Script/UnrealEd.ProjectPackagingSettings]`; the loader reads the manifest and each category file through Unreal's file layer so it works from both the project and a packaged UFS container. The loader validates schema version, category paths, aggregate file size and array bounds, descriptions and display names, profile levels, recipe references, duplicate IDs, quantities, stack limits, same-item upgrade chains, and station/material references before exposing any catalogue. Hearth refuelling separately validates raw fuel materials. Missing or invalid data leaves the catalogues empty, and server transactions fail closed.
 
-After building the editor, run `Kalmala.Gameplay.Inventory.Catalogue` with the headless automation flags above. It checks that the manifest's category files assemble all schema-version-13 item and recipe definitions, no ordinary item/recipe property or value contains "Kit", no retired item or recipe is present, clean buildable aliases map to stable runtime IDs, every item has a bounded description and a player-facing name without "Kit", exact and exceeded stack limits, empty/unknown IDs, zero/negative/extreme quantities, overflow-safe additions, full stacks, and malformed/duplicate definitions. It also checks station-array structure and the removed ordinary-recipe fields; crop and seed definitions; all six current food recipe IDs, outputs, stations, batch limits, output stack limits, retired food/smoke aliases, and the recipe-free HearthBroth item. `Kalmala.Gameplay.Tools.LifecycleContract` exercises loaded tool profiles through lifecycle operations, while `Kalmala.Gameplay.M9.ToolProgressionCatalogue` checks authored progression entries and costs, including the same-item upgrade relationship. They do not assert every balance value individually. These are catalogue definitions only; planting, growth, harvesting, and food-use behavior remain separate concerns. The crafting-menu presentation check verifies descriptions for the selected output and browsed item. This is a pure contract check; live inventory replication and harvest-grant verification remain covered by their separate checks.
+After building the editor, run `Kalmala.Gameplay.Inventory.Catalogue` with the headless automation flags above. It checks that the manifest's category files assemble all schema-version-14 item and recipe definitions, no ordinary item/recipe property or value contains "Kit", no retired item or recipe is present, clean buildable aliases map to stable runtime IDs, every item has a bounded description and a player-facing name without "Kit", exact and exceeded stack limits, empty/unknown IDs, zero/negative/extreme quantities, overflow-safe additions, full stacks, and malformed/duplicate definitions. It also checks station-array structure and the removed ordinary-recipe fields; crop and seed definitions; all six current food recipe IDs, outputs, stations, batch limits, output stack limits, retired food/smoke aliases, and the recipe-free HearthBroth item. `Kalmala.Gameplay.Tools.LifecycleContract` exercises loaded tool profiles through lifecycle operations, while `Kalmala.Gameplay.M9.ToolProgressionCatalogue` checks authored progression entries and costs, including the same-item upgrade relationship. They do not assert every balance value individually. These are catalogue definitions only; planting, growth, harvesting, and food-use behavior remain separate concerns. The crafting-menu presentation check verifies descriptions for the selected output and browsed item. This is a pure contract check; live inventory replication and harvest-grant verification remain covered by their separate checks.
 
 The catalogue and cooking contracts also cover Iron, the five-Iron Forge recipe
 for a placeable Frying pan, the three root-vegetable outputs, station-filtered
@@ -2124,7 +2126,7 @@ alongside the categorized runners in the mirror. The host/client fixture require
 exact reward for each player while rejecting distant, forged, duplicate, and
 replayed claims, and checks that owner-only feedback and inventory state do not
 leak to the other peer. Claims now persist in the authenticated player's
-schema-2 save; reward materials remain session-only because ordinary inventory
+schema-3 save; reward materials remain session-only because ordinary inventory
 is not saved. The fixture uses the null renderer, so it does not review the
 discovery's visual presentation in-world.
 
@@ -2143,20 +2145,23 @@ records, and the 32-attachment limit. Normal construction writes use the
 schema-2 container. On first write, a matching schema-1 save is migrated and
 merged with the new server-accepted record; every record is revalidated before
 the slot is replaced. Invalid or mismatched existing slots remain untouched.
-Normal player-discovery writes use the schema-2 container. First writes migrate
-matching schema-1 discovery/effect facts, revalidate and merge current server
-M9 claims, and include the owner's complete carried-tool list. Invalid or
-mismatched existing player slots stay untouched and block restore and writes.
+Normal player-discovery writes use schema 3. On load, matching schema-2 records
+migrate carried `ToolId` values to `ItemId`; first writes also migrate matching
+schema-1 discovery/effect facts, revalidate and merge current server M9 claims,
+and include the owner's complete carried-item list. Invalid or mismatched
+existing player slots stay untouched and block restore and writes.
 
-### M9 schema-2 player discovery and tool migration coverage
+### M9 player discovery and carried-item migration coverage
 
 After the forced `KalmalaEditor Win64 Development` build, run
 `Kalmala.Gameplay.Discovery.Schema2Migration` with isolated `-UserDir`,
 `-abslog`, `-DDC-ForceMemoryCache`, and
-`-TestExit="Automation Test Queue Empty"` arguments. The memory round-trip
-checks existing first-wave discoveries, learned effects, separate M9 land
-claims, and canonical carried-tool IDs, levels, and condition. The schema-1
-migration preserves valid discovery/effect facts, binds the requested seed,
+`-TestExit="Automation Test Queue Empty"` arguments. The memory round-trip checks current schema-3 first-wave discoveries, learned
+effects, separate M9 land claims, and canonical carried-item IDs, levels, and
+condition. A schema-2 fixture verifies that legacy `ToolId` values migrate to
+schema-3 `ItemId` values without changing the source save, preserving each
+carried record and filling missing instance GUIDs. The schema-1 migration
+preserves valid discovery/effect facts, binds the requested seed,
 revision 7, player scope, and authenticated identity, and starts the absent M9
 claims and tool records empty. Rejection checks cover wrong seed/player,
 invalid identity, schema zero/future versions, malformed facts, duplicate M9
@@ -2164,11 +2169,11 @@ claims and tools, invalid tool levels/condition, and each discovery, claim, and
 tool bound plus one; failed migrations preserve the original source bytes.
 Use `UnrealEditor-Cmd.exe` first; if it stops at the existing LinuxArm64 or
 VisionOS SDK preflight, use the `UnrealEditor.exe` fallback with the same
-project and automation arguments. Normal player-discovery slots use schema 2;
+project and automation arguments. Normal player-discovery slots use schema 3;
 first-write migration and live claim/tool merging are covered by the M9
 cross-system acceptance fixture.
 
-### M9 schema-2 world/player candidate host-client reconnect
+### M9 schema-2 construction and schema-3 player candidate host-client reconnect
 
 After the forced editor build and both focused migration automations, run the
 two-client restart fixture against the isolated project mirror:
@@ -2183,7 +2188,8 @@ for owner-privacy checks. After the host restarts, it requires the normal player
 slot's migrated discovery/effect facts, re-derived M9 claim, and complete tool
 records to reload with exact identity. Adding the saved claim again must fail
 without changing the claim set. Each client must receive only its own carried-
-tool details. Normal construction and player slots must both report schema 2.
+item details. Construction slots report schema 2; player-discovery slots report
+schema 3.
 This fixture adds no replicated fields;
 normal construction restart coverage is provided separately by
 `Scripts/Tests/Construction/Verify-ConstructionPersistence.ps1` and the focused write-candidate
@@ -2927,7 +2933,7 @@ Axes and pickaxes require integer `MaterialTier` in their item profiles: 1 = Sto
 
 Carried equipment classification is derived from the validated item family; profiles contain no `ItemCategory` field. Knives/axes/maces/spears are weapons across all tiers; pickaxes and Construction Hammer are tools. Inventory browsing separates Tools and Weapons and details show the classification. Classification does not replace harvesting Action or MaterialTier and does not change shared equipment lifecycle, server repair/crafting/combat or saved IDs.
 
-The schema-12 profile format introduced `ItemId`, `DisplayName` and `Description` instead of `ToolId`, `ToolSet`, `ToolKind`, `Action` and `RequiredSkill`. Stats and MaterialTier remain authored; omitted MinimumSkillLevel defaults internally to 1. The loader derives Starter for Stone identities, Crafted for Bronze/Iron, Utility for ConstructionHammer; Axe maps to Woodcutting, Pick to Mining, Knife to Gathering, Mace/Spear/Hammer to None, with the same required skill as action. Unknown identities and retired authored fields fail closed. Runtime equipment contracts and saved records retain their established fields; this is a catalogue change, not a save migration.
+The schema-12 profile format introduced `ItemId`, `DisplayName` and `Description` instead of `ToolId`, `ToolSet`, `ToolKind`, `Action` and `RequiredSkill`. Stats and MaterialTier remain authored; omitted MinimumSkillLevel defaults internally to 1. The loader derives Starter for Stone identities, Crafted for Bronze/Iron, Utility for ConstructionHammer; Axe maps to Woodcutting, Pick to Mining, Knife to Gathering, Mace/Spear/Hammer to None, with the same required skill as action. Unknown identities and retired authored fields fail closed. At schema 12 this was a catalogue-only change; the later save-property rename is handled by the schema-3 player-save migration in the architecture reference.
 
 ## Attack-driven resource trees (2026-10-13)
 
@@ -2945,7 +2951,7 @@ Crafting/acquisition and item upgrades have no player-level, skill-level or skil
 
 Ordinary material definitions, including natural materials, are grouped in `items/materials/wood.json`, `items/materials/ore.json`, `items/materials/metal.json`, `items/materials/cooking-ingredients.json`, `items/materials/crafting-ingredients.json`, `items/materials/hides.json`, and `items/materials/others.json`. Wood contains Wood, Lightwood, and Densewood; Ore contains Stone; Metal contains Iron; Crafting Ingredients contain Amber; Cooking Ingredients contain Frost Salt; Hides contain Boar Hide and Deer Hide; Others contains Coal. The old `PeatAmber` storage ID is migrated to `Amber` when storage records load. Buildable station and construction files under `items/buildItems/` use the root `items` array and ordinary `itemFiles`. Equipment family and Building Hammer JSON files under `items/equipment/` use the same root array. The loader permits `buildItems` and `materials` only for ordinary items, `equipment` only for item profiles, and `stations` only for ordinary and item acquisition recipe files. The manifest separates ordinary `itemFiles` from equipment `itemProfileFiles`; all equipment profiles, including Building Hammer, load into the runtime tool catalogue. Profiles are sorted by ItemId; bounds, validation and behavior remain unchanged; the retired toolProfiles root is no longer read.
 
-Recipe category JSON uses the root `recipes` array, including equipment acquisitions; upgrade files use a separate root `upgrades` array and each upgrade is keyed only by `ToolId`. Ordinary recipes under `recipes/stations/` are grouped by their crafting station; the Inventory group contains the Building Hammer recipe, while build-menu construction remains in `recipes/building.json`. Equipment acquisition records share the corresponding station file and `recipes` array; the loader routes records with `ToolId` into the runtime tool catalogue. Individual station recipe arrays may be empty. Weapon upgrade costs use family files under `item-level-up/costs/`; the Construction Hammer cost is in `item-level-up/costs/construction-hammer.json`. The loader sorts ordinary recipes and acquisitions by RecipeId and upgrade costs by ToolId. Cost scaling, station requirements and validation are preserved; retired `toolRecipes`/`toolUpgradeCosts` roots are not read.
+Recipe category JSON uses the root `recipes` array, including equipment acquisitions; upgrade files use a separate root `upgrades` array and each upgrade is keyed only by `ItemId`. Ordinary recipes under `recipes/stations/` are grouped by their crafting station; the Inventory group contains the Building Hammer recipe, while build-menu construction remains in `recipes/building.json`. Equipment acquisition records share the corresponding station file and `recipes` array; the loader routes records with `ItemId` into the runtime tool catalogue. Individual station recipe arrays may be empty. Weapon upgrade costs use family files under `item-level-up/costs/`; the Construction Hammer cost is in `item-level-up/costs/construction-hammer.json`. The loader sorts ordinary recipes and acquisitions by RecipeId and upgrade costs by ItemId. Cost scaling, station requirements and validation are preserved; retired `toolRecipes`/`toolUpgradeCosts` roots are not read.
 
 ## Wearable gear acquisition and upgrade data
 

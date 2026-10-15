@@ -31,10 +31,10 @@ bool FKalmalaM9GrindingStoneRepairTest::RunTest(const FString& Parameters)
         UKalmalaConstructionSaveGame::IsValidRecord(SaveRecord));
 
     TArray<FKalmalaToolState> Before;
-    const auto AddTool = [&Before](const FName ToolId, const int32 Durability, const int32 Level)
+    const auto AddTool = [&Before](const FName ItemId, const int32 Durability, const int32 Level)
     {
         FKalmalaToolState State;
-        State.ToolId = ToolId;
+        State.ItemId = ItemId;
         State.Durability = Durability;
         State.ToolLevel = Level;
         Before.Add(State);
@@ -53,8 +53,8 @@ bool FKalmalaM9GrindingStoneRepairTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Repair keeps the list bounded and in its existing slots"), Repaired.Num(), Before.Num());
     for (int32 Index = 0; Index < Before.Num() && Index < Repaired.Num(); ++Index)
     {
-        const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(Before[Index].ToolId);
-        TestTrue(TEXT("Tool identity is unchanged"), Repaired[Index].ToolId == Before[Index].ToolId);
+        const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(Before[Index].ItemId);
+        TestTrue(TEXT("Tool identity is unchanged"), Repaired[Index].ItemId == Before[Index].ItemId);
         TestEqual(TEXT("Tool level is unchanged"), Repaired[Index].ToolLevel, Before[Index].ToolLevel);
         TestEqual(TEXT("Damaged tools become full while full tools stay full"), Repaired[Index].Durability,
             Definition ? Definition->MaxDurability : -1);
@@ -69,7 +69,7 @@ bool FKalmalaM9GrindingStoneRepairTest::RunTest(const FString& Parameters)
     for (int32 Index = 0; Index < Repaired.Num() && Index < RepeatedRepair.Num(); ++Index)
     {
         TestTrue(TEXT("Repeat does not mutate any repaired tool"),
-            RepeatedRepair[Index].ToolId == Repaired[Index].ToolId
+            RepeatedRepair[Index].ItemId == Repaired[Index].ItemId
             && RepeatedRepair[Index].ToolLevel == Repaired[Index].ToolLevel
             && RepeatedRepair[Index].Durability == Repaired[Index].Durability);
     }
@@ -86,7 +86,7 @@ bool FKalmalaM9GrindingStoneRepairTest::RunTest(const FString& Parameters)
         for (int32 Index = 0; Index < Input.Num() && Index < Candidate.Num(); ++Index)
         {
             TestTrue(TEXT("Rejected candidate preserves every original tool state"),
-                Candidate[Index].ToolId == Input[Index].ToolId
+                Candidate[Index].ItemId == Input[Index].ItemId
                 && Candidate[Index].ToolLevel == Input[Index].ToolLevel
                 && Candidate[Index].Durability == Input[Index].Durability);
         }
@@ -98,10 +98,10 @@ bool FKalmalaM9GrindingStoneRepairTest::RunTest(const FString& Parameters)
     Malformed.Add(Before[0]);
     TestRejectedWithoutMutation(TEXT("Oversized carried list is rejected atomically"), true, true, Malformed);
     Malformed = Before;
-    Malformed[4].ToolId = TEXT("StoneAxe");
+    Malformed[4].ItemId = TEXT("StoneAxe");
     TestRejectedWithoutMutation(TEXT("Duplicate carried tool is rejected atomically"), true, true, Malformed);
     Malformed = Before;
-    Malformed[3].ToolId = TEXT("ForgedTool");
+    Malformed[3].ItemId = TEXT("ForgedTool");
     TestRejectedWithoutMutation(TEXT("Unknown carried tool is rejected atomically"), true, true, Malformed);
     Malformed = Before;
     Malformed[3].Durability = 25;

@@ -52,16 +52,16 @@ namespace
     FKalmalaToolDefinition ConvertProfile(const FKalmalaToolProfileData& Profile, const UKalmalaToolCatalogue& Catalogue)
     {
         FKalmalaToolDefinition Definition;
-        Definition.ToolId = Profile.ToolId;
+        Definition.ItemId = Profile.ItemId;
         Definition.Kind = ParseToolKind(Profile.ToolKind);
         Definition.Action = ParseToolAction(Profile.Action);
         Definition.RequiredSkill = ParseToolSkill(Profile.RequiredSkill);
         Definition.MinimumSkillLevel = Profile.MinimumSkillLevel;
-        Definition.Attacks = Catalogue.GetAttacks(Profile.ToolId);
+        Definition.Attacks = Catalogue.GetAttacks(Profile.ItemId);
         for (int32 ToolLevel = 1; ToolLevel <= FKalmalaToolLifecycleContract::MaxToolLevel; ++ToolLevel)
         {
             FKalmalaToolLevelStats Level;
-            if (!Catalogue.GetLevelStats(Profile.ToolId, ToolLevel, Level)) return FKalmalaToolDefinition();
+            if (!Catalogue.GetLevelStats(Profile.ItemId, ToolLevel, Level)) return FKalmalaToolDefinition();
             Definition.LevelStats.Add(Level);
             if (ToolLevel == 1)
             {
@@ -143,17 +143,17 @@ TArray<FKalmalaToolState> FKalmalaToolLifecycleContract::BuildInitialCarriedTool
     TArray<FKalmalaToolState> CarriedTools;
     CarriedTools.Reserve(GetDefinitions().Num() + 1);
     FKalmalaToolState HammerState;
-    HammerState.ToolId = ConstructionHammerDefinition().ToolId;
+    HammerState.ItemId = ConstructionHammerDefinition().ItemId;
     HammerState.ToolLevel = 1;
     HammerState.Durability = ConstructionHammerDefinition().MaxDurability;
     HammerState.InstanceGuid = FGuid::NewGuid();
     CarriedTools.Add(HammerState);
     for (const FKalmalaToolDefinition& Definition : GetDefinitions())
     {
-        if (Definition.ToolId.IsNone() || Definition.MaxDurability <= 0) continue;
+        if (Definition.ItemId.IsNone() || Definition.MaxDurability <= 0) continue;
 
         FKalmalaToolState State;
-        State.ToolId = Definition.ToolId;
+        State.ItemId = Definition.ItemId;
         State.ToolLevel = 1;
         State.Durability = Definition.MaxDurability;
         State.InstanceGuid = FGuid::NewGuid();
@@ -162,32 +162,32 @@ TArray<FKalmalaToolState> FKalmalaToolLifecycleContract::BuildInitialCarriedTool
     return CarriedTools;
 }
 
-FName FKalmalaToolLifecycleContract::CanonicalizeToolId(FName ToolId)
+FName FKalmalaToolLifecycleContract::CanonicalizeItemId(FName ItemId)
 {
-    if (ToolId == TEXT("ReedKnife")) return TEXT("StoneKnife");
-    if (ToolId == TEXT("FieldHatchet")) return TEXT("StoneAxe");
-    return ToolId;
+    if (ItemId == TEXT("ReedKnife")) return TEXT("StoneKnife");
+    if (ItemId == TEXT("FieldHatchet")) return TEXT("StoneAxe");
+    return ItemId;
 }
 
-const FKalmalaToolDefinition* FKalmalaToolLifecycleContract::FindDefinition(const FName ToolId)
+const FKalmalaToolDefinition* FKalmalaToolLifecycleContract::FindDefinition(const FName ItemId)
 {
-    const FName CanonicalId = CanonicalizeToolId(ToolId);
+    const FName CanonicalId = CanonicalizeItemId(ItemId);
     const FKalmalaToolDefinition* Definition = ToolDefinitions().FindByPredicate([CanonicalId](const FKalmalaToolDefinition& Candidate)
     {
-        return Candidate.ToolId == CanonicalId;
+        return Candidate.ItemId == CanonicalId;
     });
     if (Definition != nullptr) return Definition;
     Definition = TieredToolDefinitions().FindByPredicate([CanonicalId](const FKalmalaToolDefinition& Candidate)
     {
-        return Candidate.ToolId == CanonicalId;
+        return Candidate.ItemId == CanonicalId;
     });
     if (Definition != nullptr) return Definition;
-    return CanonicalId == ConstructionHammerDefinition().ToolId ? &ConstructionHammerDefinition() : nullptr;
+    return CanonicalId == ConstructionHammerDefinition().ItemId ? &ConstructionHammerDefinition() : nullptr;
 }
 
-int32 FKalmalaToolLifecycleContract::GetMaxDurability(const FName ToolId, const int32 ToolLevel)
+int32 FKalmalaToolLifecycleContract::GetMaxDurability(const FName ItemId, const int32 ToolLevel)
 {
-    const FKalmalaToolDefinition* Definition = FindDefinition(ToolId);
+    const FKalmalaToolDefinition* Definition = FindDefinition(ItemId);
     if (Definition == nullptr || ToolLevel < 1 || ToolLevel > MaxToolLevel) return 0;
     const FKalmalaToolLevelStats* LevelStats = Definition->LevelStats.FindByPredicate([ToolLevel](const auto& Stats)
     {
@@ -195,36 +195,36 @@ int32 FKalmalaToolLifecycleContract::GetMaxDurability(const FName ToolId, const 
     });
     if (LevelStats) return LevelStats->MaxDurability;
     // Older saves can contain Iron Axe level two even though it has no authored upgrade recipe.
-    return CanonicalizeToolId(ToolId) == TEXT("IronAxe") && ToolLevel == 2 ? Definition->MaxDurability : 0;
+    return CanonicalizeItemId(ItemId) == TEXT("IronAxe") && ToolLevel == 2 ? Definition->MaxDurability : 0;
 }
 
-FKalmalaDamageChannels FKalmalaToolLifecycleContract::GetWeaponDamageBonuses(const FName ToolId, const int32 ToolLevel)
+FKalmalaDamageChannels FKalmalaToolLifecycleContract::GetWeaponDamageBonuses(const FName ItemId, const int32 ToolLevel)
 {
-    const FKalmalaToolDefinition* Definition = FindDefinition(ToolId);
-    if (!Definition || GetMaxDurability(ToolId, ToolLevel) <= 0) return {};
+    const FKalmalaToolDefinition* Definition = FindDefinition(ItemId);
+    if (!Definition || GetMaxDurability(ItemId, ToolLevel) <= 0) return {};
     const FKalmalaToolLevelStats* Stats = Definition->LevelStats.FindByPredicate(
         [ToolLevel](const FKalmalaToolLevelStats& Level) { return Level.ToolLevel == ToolLevel; });
     return Stats ? Stats->DamageBonuses : Definition->DamageBonuses;
 }
 
 FKalmalaDamageChannels FKalmalaToolLifecycleContract::GetAttackDamageBonuses(
-    const FName ToolId, const int32 ToolLevel, const FName AttackId)
+    const FName ItemId, const int32 ToolLevel, const FName AttackId)
 {
-    const FKalmalaToolDefinition* Definition = FindDefinition(ToolId);
-    if (!Definition || GetMaxDurability(ToolId, ToolLevel) <= 0) return {};
+    const FKalmalaToolDefinition* Definition = FindDefinition(ItemId);
+    if (!Definition || GetMaxDurability(ItemId, ToolLevel) <= 0) return {};
     const FKalmalaWeaponAttackData* Attack = Definition->Attacks.FindByPredicate(
         [AttackId](const FKalmalaWeaponAttackData& Entry) { return Entry.AttackId == AttackId; });
-    return Attack ? GetWeaponDamageBonuses(ToolId, ToolLevel).Added(Attack->DamageBonuses) : FKalmalaDamageChannels();
+    return Attack ? GetWeaponDamageBonuses(ItemId, ToolLevel).Added(Attack->DamageBonuses) : FKalmalaDamageChannels();
 }
 
-float FKalmalaToolLifecycleContract::GetSlashDamage(const FName ToolId, const int32 ToolLevel)
+float FKalmalaToolLifecycleContract::GetSlashDamage(const FName ItemId, const int32 ToolLevel)
 {
-    return GetWeaponDamageBonuses(ToolId, ToolLevel).Slash;
+    return GetWeaponDamageBonuses(ItemId, ToolLevel).Slash;
 }
 
-float FKalmalaToolLifecycleContract::GetWeaponDamage(const FName ToolId, const int32 ToolLevel)
+float FKalmalaToolLifecycleContract::GetWeaponDamage(const FName ItemId, const int32 ToolLevel)
 {
-    return GetWeaponDamageBonuses(ToolId, ToolLevel).Total();
+    return GetWeaponDamageBonuses(ItemId, ToolLevel).Total();
 }
 
 bool FKalmalaToolLifecycleContract::IsKnownAction(const EKalmalaToolAction Action)
@@ -368,7 +368,7 @@ bool FKalmalaToolLifecycleContract::IsToolSuitableForSelection(
     const int32 ToolLevel,
     const FKalmalaToolServerSelection& Selection)
 {
-    if (GetMaxDurability(Definition.ToolId, ToolLevel) <= 0) return false;
+    if (GetMaxDurability(Definition.ItemId, ToolLevel) <= 0) return false;
     if (Definition.Action != Selection.Action
         || !IsResourceFamilyCompatible(Definition.Kind, Selection.Action)) return false;
     if (Selection.MinimumToolTier == EKalmalaToolTier::None)
@@ -398,7 +398,7 @@ const FKalmalaToolDefinition* FKalmalaToolLifecycleContract::FindMinimumQualifie
 
 bool FKalmalaToolLifecycleContract::IsUseAllowed(
     const FKalmalaToolServerContext& Context,
-    const FName ClientToolId,
+    const FName ClientItemId,
     const EKalmalaToolAction ClientAction,
     const FKalmalaToolState& ToolState,
     const FKalmalaSkillState& SkillState,
@@ -410,13 +410,13 @@ bool FKalmalaToolLifecycleContract::IsUseAllowed(
         || Context.TraceDistance > Context.MaximumRange
         || !IsSelectionShapeValid(ServerSelection)) return false;
 
-    const FKalmalaToolDefinition* Definition = FindDefinition(ClientToolId);
+    const FKalmalaToolDefinition* Definition = FindDefinition(ClientItemId);
     if (Definition == nullptr || !IsKnownAction(ClientAction)
         || Definition->Action != ClientAction
         || !IsToolSuitableForSelection(*Definition, ToolState.ToolLevel, ServerSelection)
         || Definition->RequiredSkill != ServerSelection.RequiredSkill
-        || CanonicalizeToolId(ToolState.ToolId) != CanonicalizeToolId(ClientToolId)
-        || ToolState.Durability <= 0 || ToolState.Durability > GetMaxDurability(ToolState.ToolId, ToolState.ToolLevel)
+        || CanonicalizeItemId(ToolState.ItemId) != CanonicalizeItemId(ClientItemId)
+        || ToolState.Durability <= 0 || ToolState.Durability > GetMaxDurability(ToolState.ItemId, ToolState.ToolLevel)
         || !SkillState.IsValid() || SkillState.Skill != ServerSelection.RequiredSkill
         || SkillState.Level < Definition->MinimumSkillLevel) return false;
 
@@ -427,7 +427,7 @@ bool FKalmalaToolLifecycleContract::IsUseAllowed(
 bool FKalmalaToolLifecycleContract::ApplyServerUse(
     FKalmalaToolState& ToolState,
     const FKalmalaToolServerContext& Context,
-    const FName ClientToolId,
+    const FName ClientItemId,
     const EKalmalaToolAction ClientAction,
     const FKalmalaSkillState& SkillState,
     const FKalmalaToolServerSelection& ServerSelection,
@@ -436,12 +436,12 @@ bool FKalmalaToolLifecycleContract::ApplyServerUse(
 {
     OutRewardItemId = NAME_None;
     OutRewardQuantity = 0;
-    const FKalmalaToolDefinition* Definition = FindDefinition(ClientToolId);
-    if (!IsUseAllowed(Context, ClientToolId, ClientAction, ToolState, SkillState, ServerSelection)
+    const FKalmalaToolDefinition* Definition = FindDefinition(ClientItemId);
+    if (!IsUseAllowed(Context, ClientItemId, ClientAction, ToolState, SkillState, ServerSelection)
         || Definition == nullptr || ToolState.Durability < DurabilityPerUse) return false;
 
     ToolState.Durability -= DurabilityPerUse;
-    ToolState.ToolId = Definition->ToolId;
+    ToolState.ItemId = Definition->ItemId;
     OutRewardItemId = ServerSelection.RewardItemId;
     OutRewardQuantity = ServerSelection.RewardQuantity;
     return true;
@@ -454,7 +454,7 @@ bool FKalmalaToolLifecycleContract::BuildServerFreeRepair(
     FKalmalaToolState& OutRepairedState)
 {
     OutRepairedState = ToolState;
-    const int32 MaxDurability = GetMaxDurability(ToolState.ToolId, ToolState.ToolLevel);
+    const int32 MaxDurability = GetMaxDurability(ToolState.ItemId, ToolState.ToolLevel);
     if (!bServerAuthority || !bAtValidatedRepairStation || MaxDurability <= 0
         || ToolState.Durability < 0 || ToolState.Durability >= MaxDurability) return false;
 
@@ -476,9 +476,9 @@ bool FKalmalaToolLifecycleContract::BuildServerRepairAll(
     for (int32 Index = 0; Index < ToolStates.Num(); ++Index)
     {
         const FKalmalaToolState& ToolState = ToolStates[Index];
-        const FKalmalaToolDefinition* Definition = FindDefinition(ToolState.ToolId);
-        const int32 MaxDurability = GetMaxDurability(ToolState.ToolId, ToolState.ToolLevel);
-        if (!Definition || ToolState.ToolId.IsNone()
+        const FKalmalaToolDefinition* Definition = FindDefinition(ToolState.ItemId);
+        const int32 MaxDurability = GetMaxDurability(ToolState.ItemId, ToolState.ToolLevel);
+        if (!Definition || ToolState.ItemId.IsNone()
             || MaxDurability <= 0 || ToolState.Durability < 0 || ToolState.Durability > MaxDurability)
         {
             OutRepairedStates = ToolStates;

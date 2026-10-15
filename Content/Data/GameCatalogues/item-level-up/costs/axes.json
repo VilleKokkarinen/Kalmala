@@ -2,7 +2,7 @@
   "upgrades": [
     {
       "DisplayName": "Bronze Axe",
-      "ToolId": "BronzeAxe",
+      "ItemId": "BronzeAxe",
       "RequiredStation": "Forge",
       "Ingredients": [
         {
@@ -18,7 +18,7 @@
     },
     {
       "DisplayName": "Iron Axe",
-      "ToolId": "IronAxe",
+      "ItemId": "IronAxe",
       "RequiredStation": "Forge",
       "Ingredients": [
         {
@@ -34,7 +34,7 @@
     },
     {
       "DisplayName": "Stone Axe",
-      "ToolId": "StoneAxe",
+      "ItemId": "StoneAxe",
       "RequiredStation": "Workbench",
       "Ingredients": [
         {

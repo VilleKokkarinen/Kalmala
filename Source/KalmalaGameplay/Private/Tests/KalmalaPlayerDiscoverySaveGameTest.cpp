@@ -9,10 +9,10 @@
 
 namespace
 {
-    FKalmalaPlayerToolSaveRecord MakeToolRecord(const FName ToolId, const int32 ToolLevel, const int32 Condition)
+    FKalmalaPlayerToolSaveRecord MakeToolRecord(const FName ItemId, const int32 ToolLevel, const int32 Condition)
     {
         FKalmalaPlayerToolSaveRecord Record;
-        Record.ToolId = ToolId;
+        Record.ItemId = ItemId;
         Record.ToolLevel = ToolLevel;
         Record.Condition = Condition;
         Record.InstanceGuid = FGuid::NewGuid();
@@ -53,13 +53,13 @@ bool FKalmalaPlayerDiscoverySaveGameV2Test::RunTest(const FString& Parameters)
 
     UKalmalaPlayerDiscoverySaveGameV2* Current = NewObject<UKalmalaPlayerDiscoverySaveGameV2>(GetTransientPackage());
     Current->InitializeForPlayer(World, PlayerIdentity);
-    TestTrue(TEXT("Schema 2 accepts a canonical first-wave discovery"), Current->AddDiscovery(PoiId));
-    TestTrue(TEXT("Schema 2 accepts a canonical M9 land claim"), Current->AddM9Claim(M9RillstoneId));
-    TestTrue(TEXT("Schema 2 accepts a second independent M9 candidate"), Current->AddM9Claim(M9GrainId));
-    TestTrue(TEXT("Schema 2 accepts an allowlisted learned effect"), Current->AddLearnedEffect(TEXT("Effect:mending")));
-    TestTrue(TEXT("Schema 2 accepts an old carried starter ID"), Current->AddToolRecord(MakeToolRecord(TEXT("ReedKnife"), 1, 9)));
-    TestTrue(TEXT("Schema 2 accepts the authored Bronze Axe level and condition"), Current->AddToolRecord(MakeToolRecord(TEXT("BronzeAxe"), 1, 0)));
-    TestTrue(TEXT("Schema 2 accepts the authored Iron Axe level and condition"), Current->AddToolRecord(MakeToolRecord(TEXT("IronAxe"), 2, 20)));
+    TestTrue(TEXT("Schema 3 accepts a canonical first-wave discovery"), Current->AddDiscovery(PoiId));
+    TestTrue(TEXT("Schema 3 accepts a canonical M9 land claim"), Current->AddM9Claim(M9RillstoneId));
+    TestTrue(TEXT("Schema 3 accepts a second independent M9 candidate"), Current->AddM9Claim(M9GrainId));
+    TestTrue(TEXT("Schema 3 accepts an allowlisted learned effect"), Current->AddLearnedEffect(TEXT("Effect:mending")));
+    TestTrue(TEXT("Schema 3 accepts an old carried starter ID"), Current->AddToolRecord(MakeToolRecord(TEXT("ReedKnife"), 1, 9)));
+    TestTrue(TEXT("Schema 3 accepts the authored Bronze Axe level and condition"), Current->AddToolRecord(MakeToolRecord(TEXT("BronzeAxe"), 1, 0)));
+    TestTrue(TEXT("Schema 3 accepts the authored Iron Axe level and condition"), Current->AddToolRecord(MakeToolRecord(TEXT("IronAxe"), 2, 20)));
     TestFalse(TEXT("A duplicate first-wave discovery is rejected without mutation"), Current->AddDiscovery(PoiId));
     TestFalse(TEXT("A duplicate M9 claim is rejected without mutation"), Current->AddM9Claim(M9RillstoneId));
     TestFalse(TEXT("A malformed M9 identity is rejected"), Current->AddM9Claim(TEXT("land-discovery:m9:1:unknown:0,0")));
@@ -78,19 +78,48 @@ bool FKalmalaPlayerDiscoverySaveGameV2Test::RunTest(const FString& Parameters)
         ToolReplacement->GetToolRecords()[2].ToolLevel, 2);
 
     TArray<uint8> CurrentBytes;
-    TestTrue(TEXT("Schema 2 player facts serialize in memory"), Serialize(Current, CurrentBytes));
+    TestTrue(TEXT("Schema 3 player facts serialize in memory"), Serialize(Current, CurrentBytes));
     UKalmalaPlayerDiscoverySaveGameV2* Reloaded =
         Cast<UKalmalaPlayerDiscoverySaveGameV2>(UGameplayStatics::LoadGameFromMemory(CurrentBytes));
-    if (TestNotNull(TEXT("Schema 2 player facts reload with their type"), Reloaded))
+    if (TestNotNull(TEXT("Schema 3 player facts reload with their type"), Reloaded))
     {
         TestTrue(TEXT("Reloaded facts carry exact seed, revision, scope, and owner"), Reloaded->MatchesPlayer(World, PlayerIdentity));
         TestTrue(TEXT("First-wave and M9 discoveries both survive round-trip"),
             Reloaded->HasDiscovery(PoiId) && Reloaded->HasDiscovery(M9RillstoneId) && Reloaded->HasDiscovery(M9GrainId));
         TestTrue(TEXT("Learned effects and carried tool progression survive round-trip"),
-            Reloaded->HasLearnedEffect(TEXT("Effect:mending")) && Reloaded->GetToolRecords().Num() == 3
-            && Reloaded->GetToolRecords()[1].ToolId == TEXT("BronzeAxe")
-            && Reloaded->GetToolRecords()[2].ToolLevel == 2);
+            Reloaded->HasLearnedEffect(TEXT("Effect:mending")) && Reloaded->GetToolRecords().Num() == 4
+            && Reloaded->GetToolRecords()[1].ItemId == TEXT("BronzeAxe")
+            && Reloaded->GetToolRecords()[2].ToolLevel == 2
+            && Reloaded->GetToolRecords()[1].ToolId.IsNone());
     }
+
+    UKalmalaPlayerDiscoverySaveGameV2* Schema2Source =
+        DuplicateObject<UKalmalaPlayerDiscoverySaveGameV2>(Current, GetTransientPackage());
+    Schema2Source->SchemaVersion = UKalmalaPlayerDiscoverySaveGameV2::PreviousSchemaVersionValue;
+    for (FKalmalaPlayerToolSaveRecord& Record : Schema2Source->ToolRecords)
+    {
+        Record.ToolId = Record.ItemId;
+        Record.ItemId = NAME_None;
+    }
+    Schema2Source->ToolRecords[0].InstanceGuid = FGuid();
+    TArray<uint8> Schema2BeforeMigration;
+    TestTrue(TEXT("Schema 2 source serializes before item-ID migration"), Serialize(Schema2Source, Schema2BeforeMigration));
+    UKalmalaPlayerDiscoverySaveGameV2* MigratedSchema2 = nullptr;
+    TestTrue(TEXT("Schema 2 carried-tool IDs migrate to schema 3 item IDs"),
+        UKalmalaPlayerDiscoverySaveGameV2::TryMigrateSchema2(
+            Schema2Source, World, PlayerIdentity, GetTransientPackage(), MigratedSchema2));
+    if (TestNotNull(TEXT("Schema 2 migration returns a distinct candidate"), MigratedSchema2))
+    {
+        TestTrue(TEXT("Migrated schema 2 candidate validates under current schema"),
+            MigratedSchema2->MatchesPlayer(World, PlayerIdentity));
+        TestEqual(TEXT("Migration preserves all carried item records"), MigratedSchema2->GetToolRecords().Num(), 4);
+        TestEqual(TEXT("Migration preserves item identity"), MigratedSchema2->GetToolRecords()[1].ItemId, FName(TEXT("BronzeAxe")));
+        TestTrue(TEXT("Migration clears the legacy ToolId field"), MigratedSchema2->GetToolRecords()[1].ToolId.IsNone());
+        TestTrue(TEXT("Migration fills a missing legacy instance GUID"), MigratedSchema2->GetToolRecords()[0].InstanceGuid.IsValid());
+    }
+    TArray<uint8> Schema2AfterMigration;
+    TestTrue(TEXT("Schema 2 source still serializes after migration"), Serialize(Schema2Source, Schema2AfterMigration));
+    TestTrue(TEXT("Schema 2 migration leaves source save bytes unchanged"), Schema2BeforeMigration == Schema2AfterMigration);
 
     UKalmalaPlayerDiscoverySaveGame* Legacy = NewObject<UKalmalaPlayerDiscoverySaveGame>(GetTransientPackage());
     Legacy->InitializeForPlayer(World, PlayerIdentity);
@@ -103,7 +132,7 @@ bool FKalmalaPlayerDiscoverySaveGameV2Test::RunTest(const FString& Parameters)
     TArray<uint8> LegacyBeforeMigration;
     TestTrue(TEXT("Schema 1 source serializes before migration"), Serialize(Legacy, LegacyBeforeMigration));
     UKalmalaPlayerDiscoverySaveGameV2* Migrated = nullptr;
-    TestTrue(TEXT("Matching schema 1 player facts migrate to a schema 2 candidate"),
+    TestTrue(TEXT("Matching schema 1 player facts migrate to a schema 3 candidate"),
         UKalmalaPlayerDiscoverySaveGameV2::TryMigrateSchema1(
             Legacy, World, PlayerIdentity, GetTransientPackage(), Migrated));
     if (TestNotNull(TEXT("Migration returns a distinct candidate"), Migrated))
@@ -250,7 +279,7 @@ bool FKalmalaPlayerDiscoverySaveGameV2Test::RunTest(const FString& Parameters)
         TestTrue(TEXT("Carried tool instances are accepted independently by their GUIDs"), FullTools->AddToolRecord(Tool));
     }
     TestTrue(TEXT("A repeated non-hammer item type is accepted with a new GUID"),
-        FullTools->AddToolRecord(MakeToolRecord(AllTools[0].ToolId, AllTools[0].ToolLevel, AllTools[0].Condition)));
+        FullTools->AddToolRecord(MakeToolRecord(AllTools[0].ItemId, AllTools[0].ToolLevel, AllTools[0].Condition)));
     TestEqual(TEXT("All seven unique tool instances are retained"), FullTools->GetToolRecords().Num(), 7);
     TestFalse(TEXT("Reusing an existing item GUID is rejected"), FullTools->AddToolRecord(AllTools[0]));
 

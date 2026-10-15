@@ -106,15 +106,15 @@ bool UKalmalaRecipeCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* Item
     return true;
 }
 
-bool UKalmalaRecipeCatalogue::HasRequiredTool(const FName ToolId,
+bool UKalmalaRecipeCatalogue::HasRequiredTool(const FName ItemId,
     const TArray<FKalmalaInventoryStack>& Stacks)
 {
-    if (ToolId.IsNone()) return true;
+    if (ItemId.IsNone()) return true;
     const UKalmalaItemCatalogue* Items = UKalmalaItemCatalogue::Get();
-    if (!Items || !Items->IsValidStack(ToolId, 1)) return false;
-    return Stacks.ContainsByPredicate([Items, ToolId](const FKalmalaInventoryStack& Stack)
+    if (!Items || !Items->IsValidStack(ItemId, 1)) return false;
+    return Stacks.ContainsByPredicate([Items, ItemId](const FKalmalaInventoryStack& Stack)
     {
-        return Stack.ItemId == ToolId && Items->IsValidStack(Stack.ItemId, Stack.Quantity);
+        return Stack.ItemId == ItemId && Items->IsValidStack(Stack.ItemId, Stack.Quantity);
     });
 }
 

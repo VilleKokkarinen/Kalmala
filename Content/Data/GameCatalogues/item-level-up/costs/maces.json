@@ -2,7 +2,7 @@
   "upgrades": [
     {
       "DisplayName": "Bronze Mace",
-      "ToolId": "BronzeMace",
+      "ItemId": "BronzeMace",
       "RequiredStation": "Forge",
       "Ingredients": [
         {
@@ -18,7 +18,7 @@
     },
     {
       "DisplayName": "Iron Mace",
-      "ToolId": "IronMace",
+      "ItemId": "IronMace",
       "RequiredStation": "Forge",
       "Ingredients": [
         {
@@ -34,7 +34,7 @@
     },
     {
       "DisplayName": "Stone Mace",
-      "ToolId": "StoneMace",
+      "ItemId": "StoneMace",
       "RequiredStation": "Workbench",
       "Ingredients": [
         {

@@ -54,7 +54,7 @@ struct KALMALAGAMEPLAY_API FKalmalaToolLevelStats
 
 struct KALMALAGAMEPLAY_API FKalmalaToolDefinition
 {
-    FName ToolId = NAME_None;
+    FName ItemId = NAME_None;
     EKalmalaToolKind Kind = EKalmalaToolKind::None;
     EKalmalaToolAction Action = EKalmalaToolAction::None;
     EKalmalaSkill RequiredSkill = EKalmalaSkill::None;
@@ -71,7 +71,7 @@ struct KALMALAGAMEPLAY_API FKalmalaToolState
     GENERATED_BODY()
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tools")
-    FName ToolId = NAME_None;
+    FName ItemId = NAME_None;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tools")
     int32 Durability = 0;
@@ -128,16 +128,16 @@ public:
     static const FKalmalaToolDefinition& GetConstructionHammerDefinition();
     static TArray<FKalmalaToolState> BuildInitialCarriedTools();
     /** Maps retired saved IDs to the current canonical tool IDs. */
-    static FName CanonicalizeToolId(FName ToolId);
-    static const FKalmalaToolDefinition* FindDefinition(FName ToolId);
+    static FName CanonicalizeItemId(FName ItemId);
+    static const FKalmalaToolDefinition* FindDefinition(FName ItemId);
     /** Level-aware condition capacity; zero means the tool/level combination is invalid. */
-    static int32 GetMaxDurability(FName ToolId, int32 ToolLevel);
+    static int32 GetMaxDurability(FName ItemId, int32 ToolLevel);
     /** Authored combat slash damage for an equipped item level; zero means no weapon override. */
-    static float GetSlashDamage(FName ToolId, int32 ToolLevel);
+    static float GetSlashDamage(FName ItemId, int32 ToolLevel);
     /** Authored combat damage for an equipped weapon at this level. */
-    static float GetWeaponDamage(FName ToolId, int32 ToolLevel);
-    static FKalmalaDamageChannels GetWeaponDamageBonuses(FName ToolId, int32 ToolLevel);
-    static FKalmalaDamageChannels GetAttackDamageBonuses(FName ToolId, int32 ToolLevel, FName AttackId);
+    static float GetWeaponDamage(FName ItemId, int32 ToolLevel);
+    static FKalmalaDamageChannels GetWeaponDamageBonuses(FName ItemId, int32 ToolLevel);
+    static FKalmalaDamageChannels GetAttackDamageBonuses(FName ItemId, int32 ToolLevel, FName AttackId);
 
     static bool IsKnownAction(EKalmalaToolAction Action);
     static bool IsKnownTool(EKalmalaToolKind Tool);
@@ -153,7 +153,7 @@ public:
     static const FKalmalaToolDefinition* FindMinimumQualifiedTool(const FKalmalaToolServerSelection& Selection);
     static bool IsUseAllowed(
         const FKalmalaToolServerContext& Context,
-        FName ClientToolId,
+        FName ClientItemId,
         EKalmalaToolAction ClientAction,
         const FKalmalaToolState& ToolState,
         const FKalmalaSkillState& SkillState,
@@ -161,7 +161,7 @@ public:
     static bool ApplyServerUse(
         FKalmalaToolState& ToolState,
         const FKalmalaToolServerContext& Context,
-        FName ClientToolId,
+        FName ClientItemId,
         EKalmalaToolAction ClientAction,
         const FKalmalaSkillState& SkillState,
         const FKalmalaToolServerSelection& ServerSelection,

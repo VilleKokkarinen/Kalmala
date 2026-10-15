@@ -95,18 +95,18 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
         }
     }
 
-    TSet<FName> SeenToolIds;
+    TSet<FName> SeenItemIds;
     TSet<FString> SeenToolKinds;
     int32 StarterCount = 0;
     int32 CraftedCount = 0;
     int32 UtilityCount = 0;
     for (const FKalmalaToolProfileData& Profile : Profiles)
     {
-        if (Profile.ToolId.IsNone() || SeenToolIds.Contains(Profile.ToolId) || !AttackItemIds.Contains(Profile.ToolId)
+        if (Profile.ItemId.IsNone() || SeenItemIds.Contains(Profile.ItemId) || !AttackItemIds.Contains(Profile.ItemId)
             || Profile.DisplayName.TrimStartAndEnd().IsEmpty() || Profile.DisplayName.Len() > 64
             || Profile.Description.TrimStartAndEnd().IsEmpty() || Profile.Description.Len() > 180
             || SeenToolKinds.Contains(Profile.ToolKind)
-            || Profile.ToolId != FName(*Profile.ToolKind)
+            || Profile.ItemId != FName(*Profile.ToolKind)
             || !IsOneOf(Profile.ToolKind, {TEXT("StoneKnife"), TEXT("StoneAxe"), TEXT("StonePick"),
                 TEXT("StoneSpear"), TEXT("BronzeAxe"), TEXT("BronzeKnife"), TEXT("BronzePick"),
                 TEXT("BronzeSpear"), TEXT("IronAxe"), TEXT("IronKnife"), TEXT("IronPick"),
@@ -124,7 +124,7 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
             return false;
         }
 
-        SeenToolIds.Add(Profile.ToolId);
+        SeenItemIds.Add(Profile.ItemId);
         SeenToolKinds.Add(Profile.ToolKind);
         if (Profile.ToolSet == TEXT("Starter")) ++StarterCount;
         else if (Profile.ToolSet == TEXT("Crafted")) ++CraftedCount;
@@ -133,7 +133,7 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
         for (int32 ToolLevel = 1; ToolLevel <= MaxLevels; ++ToolLevel)
         {
             FKalmalaToolLevelStats Stats;
-            if (!Profile.GetLevelStats(ToolLevel, GetLevelUpReward(Profile.ToolId), Stats)
+            if (!Profile.GetLevelStats(ToolLevel, GetLevelUpReward(Profile.ItemId), Stats)
                 || (Profile.ToolKind == TEXT("ConstructionHammer") ? Stats.DamageBonuses.Total() != 0.0f
                     : Stats.DamageBonuses.Total() <= 0.0f)) return false;
         }
@@ -142,7 +142,7 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
         {
             const bool bHasAcquisition = Recipes.ContainsByPredicate([&Profile](const FKalmalaToolRecipeData& Recipe)
             {
-                return Recipe.ToolId == Profile.ToolId && Recipe.Level == 1;
+                return Recipe.ItemId == Profile.ItemId && Recipe.Level == 1;
             });
             if (!bHasAcquisition) return false;
         }
@@ -153,8 +153,8 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
     TSet<FString> SeenRecipeTargets;
     for (const FKalmalaToolRecipeData& Recipe : Recipes)
     {
-        const FKalmalaToolProfileData* Profile = FindProfile(Recipe.ToolId);
-        const FString TargetKey = FString::Printf(TEXT("%s:%d"), *Recipe.ToolId.ToString(), Recipe.Level);
+        const FKalmalaToolProfileData* Profile = FindProfile(Recipe.ItemId);
+        const FString TargetKey = FString::Printf(TEXT("%s:%d"), *Recipe.ItemId.ToString(), Recipe.Level);
         const bool bCraftableToolSet = Profile
             && (Profile->ToolSet == TEXT("Starter") || Profile->ToolSet == TEXT("Crafted"));
         const bool bStarterRequiresWorkbench = Profile && Profile->ToolSet == TEXT("Starter")
@@ -174,7 +174,7 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
             return false;
         }
 
-        if (Recipe.Level != 1 || Recipe.RecipeId != Recipe.ToolId
+        if (Recipe.Level != 1 || Recipe.RecipeId != Recipe.ItemId
             || Recipe.RequiredSkill != TEXT("None") || Recipe.RequiredSkillLevel != 0) return false;
 
         TSet<FName> SeenCostIds;
@@ -192,20 +192,20 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
     TSet<FName> SeenUpgradeIds;
     for (const FKalmalaToolRecipeData& Upgrade : UpgradeCosts)
     {
-        const FKalmalaToolProfileData* Profile = FindProfile(Upgrade.ToolId);
-        const FKalmalaItemDefinition* GearItem = Items->FindItem(Upgrade.ToolId);
+        const FKalmalaToolProfileData* Profile = FindProfile(Upgrade.ItemId);
+        const FKalmalaItemDefinition* GearItem = Items->FindItem(Upgrade.ItemId);
         const bool bUpgradeableProfile = Profile
             && IsOneOf(Profile->ToolSet, {TEXT("Starter"), TEXT("Crafted"), TEXT("Utility")});
         const bool bUpgradeableGear = GearItem && !GearItem->GearSlot.IsEmpty();
         if ((!bUpgradeableProfile && !bUpgradeableGear)
-            || SeenUpgradeIds.Contains(Upgrade.ToolId)
+            || SeenUpgradeIds.Contains(Upgrade.ItemId)
             || Upgrade.Level != 1 || Upgrade.RequiredStationLevel != 0
             || !IsOneOf(Upgrade.RequiredStation, {TEXT("Workbench"), TEXT("Forge")})
             || Upgrade.RequiredSkill != TEXT("None") || Upgrade.RequiredSkillLevel != 0
             || Upgrade.DisplayName.TrimStartAndEnd().IsEmpty() || Upgrade.DisplayName.Len() > 64
             || Upgrade.Ingredients.IsEmpty() || Upgrade.Ingredients.Num() > MaxIngredientsPerRecipe)
             return false;
-        SeenUpgradeIds.Add(Upgrade.ToolId);
+        SeenUpgradeIds.Add(Upgrade.ItemId);
         TSet<FName> SeenCostIds;
         for (const FKalmalaToolRecipeIngredientData& Cost : Upgrade.Ingredients)
         {
@@ -247,12 +247,12 @@ bool UKalmalaToolCatalogue::ScaleUpgradeCosts(
     return true;
 }
 
-const FKalmalaToolProfileData* UKalmalaToolCatalogue::FindProfile(const FName ToolId) const
+const FKalmalaToolProfileData* UKalmalaToolCatalogue::FindProfile(const FName ItemId) const
 {
-    if (ToolId.IsNone()) return nullptr;
-    return Profiles.FindByPredicate([ToolId](const FKalmalaToolProfileData& Profile)
+    if (ItemId.IsNone()) return nullptr;
+    return Profiles.FindByPredicate([ItemId](const FKalmalaToolProfileData& Profile)
     {
-        return Profile.ToolId == ToolId;
+        return Profile.ItemId == ItemId;
     });
 }
 
@@ -272,25 +272,25 @@ bool FKalmalaToolProfileData::GetLevelStats(const int32 ToolLevel, const FKalmal
     return true;
 }
 
-const FKalmalaToolRewardData& UKalmalaToolCatalogue::GetLevelUpReward(const FName ToolId) const
+const FKalmalaToolRewardData& UKalmalaToolCatalogue::GetLevelUpReward(const FName ItemId) const
 {
     const FKalmalaLevelUpRewardGroupData* Group = LevelUpRewards.FindByPredicate(
-        [ToolId](const FKalmalaLevelUpRewardGroupData& Entry) { return Entry.ItemIds.Contains(ToolId); });
+        [ItemId](const FKalmalaLevelUpRewardGroupData& Entry) { return Entry.ItemIds.Contains(ItemId); });
     static const FKalmalaToolRewardData NoReward;
     return Group ? Group->LevelUpReward : NoReward;
 }
 
-bool UKalmalaToolCatalogue::GetLevelStats(const FName ToolId, const int32 ToolLevel, FKalmalaToolLevelStats& OutStats) const
+bool UKalmalaToolCatalogue::GetLevelStats(const FName ItemId, const int32 ToolLevel, FKalmalaToolLevelStats& OutStats) const
 {
     OutStats = {};
-    const FKalmalaToolProfileData* Profile = FindProfile(ToolId);
-    return Profile && Profile->GetLevelStats(ToolLevel, GetLevelUpReward(ToolId), OutStats);
+    const FKalmalaToolProfileData* Profile = FindProfile(ItemId);
+    return Profile && Profile->GetLevelStats(ToolLevel, GetLevelUpReward(ItemId), OutStats);
 }
 
-const TArray<FKalmalaWeaponAttackData>& UKalmalaToolCatalogue::GetAttacks(const FName ToolId) const
+const TArray<FKalmalaWeaponAttackData>& UKalmalaToolCatalogue::GetAttacks(const FName ItemId) const
 {
     const FKalmalaWeaponAttackListData* List = AttackLists.FindByPredicate(
-        [ToolId](const FKalmalaWeaponAttackListData& Entry) { return Entry.ItemIds.Contains(ToolId); });
+        [ItemId](const FKalmalaWeaponAttackListData& Entry) { return Entry.ItemIds.Contains(ItemId); });
     static const TArray<FKalmalaWeaponAttackData> NoAttacks;
     return List ? List->Attacks : NoAttacks;
 }

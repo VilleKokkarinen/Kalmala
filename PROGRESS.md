@@ -1,5 +1,16 @@
 # Autonomous development progress
 
+## User-directed increment 2026-10-15 — Standardize carried equipment identity
+
+- **Completed:** renamed equipment identifiers from `ToolId` to `ItemId` across active gameplay/UI code, tests, equipment acquisition and upgrade JSON, and current catalogue documentation; advanced the catalogue schema from 13 to 14. Retained the serialized `ToolId` member only as a legacy schema-2 read field, with the new `ItemId` property appended after the old save fields. Player-discovery save schema 3 migrates matching schema-2 records to `ItemId`, preserves item records and GUIDs, fills missing legacy instance GUIDs, validates before rewriting the same slot, and clears the old field on rewrite.
+- **Files changed:** equipment-related files under `Source/KalmalaGameplay/` and `Source/KalmalaUI/`, equipment acquisition/upgrade JSON and manifest under `Content/Data/GameCatalogues/`, `Scripts/Tests/Presentation/Verify-PresentationOwnership.ps1`, `docs/02-technical-architecture.md`, `docs/05-decision-log.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and this entry. Existing uncommitted Worn Gear changes remain preserved separately.
+- **Lightweight checks:** parsed manifest-listed equipment acquisition and upgrade JSON, checked active source/catalogue references use `ItemId` except the deliberate schema-2 compatibility field and migration, reviewed migration identity/validation and same-slot rewrite flow, and ran `git diff --check`. Paths remain below 260 characters.
+- **Impact and authority:** current runtime and authored equipment records share one item identifier. The server validates the schema-2 save identity and candidate contents before rewriting; no replicated fields or client authority were added.
+- **Verification status/limitations:** normal increment, not milestone-final. Unreal compilation, the schema migration automation, menu rendering, and full project verification were not run; compiler and runtime confirmation remain deferred. The native SaveGame class retains its established `V2` class name for reflected compatibility while its explicit schema version is 3.
+- **Known limitations:** legacy `ToolId` remains intentionally present only as the serialized schema-2 compatibility property and in historical records. Worn Gear UI/state, defense/condition behavior, and Main Hand/hotbar routing remain unfinished.
+- **Next eligible backlog task:** continue the first unchecked armor child, finishing player-facing gear actions/state and remaining defense, condition, and Main Hand/hotbar behavior after focused build and Inventory checks can run.
+
+
 ## User-directed repair 2026-10-15 — Derive internal upgrade-cost identity
 
 - **Completed:** validated each upgrade-cost record's authored `ToolId` and derived the internal `RecipeId` from that same value before strict conversion into the shared equipment-recipe struct. Upgrade JSON remains keyed only by `ToolId`.

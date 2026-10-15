@@ -197,7 +197,7 @@ void AKalmalaHarvestNode::Interact_Implementation(AKalmalaCharacter* Interactor)
 }
 
 bool AKalmalaHarvestNode::InteractWithToolIntentFromServer(AKalmalaCharacter* Interactor,
-    const float TraceDistance, const float MaximumRange, const FName ClientToolId, const uint8 ClientAction)
+    const float TraceDistance, const float MaximumRange, const FName ClientItemId, const uint8 ClientAction)
 {
     if (IsTreeResource())
     {
@@ -212,7 +212,7 @@ bool AKalmalaHarvestNode::InteractWithToolIntentFromServer(AKalmalaCharacter* In
         || !FKalmalaBiomeContentContract::IsValidGatheringSourceId(GatheringSourceId)
         || !IsHarvestAllowed(true, bHarvested, Interactor->GetActorLocation(), GetActorLocation())) return false;
 
-    return Interactor->CommitToolHarvestFromServer(this, TraceDistance, MaximumRange, ClientToolId, ClientAction);
+    return Interactor->CommitToolHarvestFromServer(this, TraceDistance, MaximumRange, ClientItemId, ClientAction);
 }
 
 bool AKalmalaHarvestNode::IsTreeResource() const

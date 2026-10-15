@@ -56,7 +56,7 @@ struct KALMALAGAMEPLAY_API FKalmalaToolProfileData
     GENERATED_BODY()
 
     UPROPERTY(EditAnywhere)
-    FName ToolId;
+    FName ItemId;
 
     UPROPERTY(EditAnywhere)
     FString DisplayName;
@@ -123,7 +123,7 @@ struct KALMALAGAMEPLAY_API FKalmalaToolRecipeData
     FString DisplayName;
 
     UPROPERTY(EditAnywhere)
-    FName ToolId;
+    FName ItemId;
 
     UPROPERTY(EditAnywhere)
     int32 Level = 1;
@@ -173,12 +173,12 @@ public:
     UPROPERTY(EditDefaultsOnly)
     TArray<FKalmalaWeaponAttackListData> AttackLists;
 
-    const TArray<FKalmalaWeaponAttackData>& GetAttacks(FName ToolId) const;
+    const TArray<FKalmalaWeaponAttackData>& GetAttacks(FName ItemId) const;
     static bool ScaleUpgradeCosts(const TArray<FKalmalaToolRecipeIngredientData>& BaseCosts,
         int32 CurrentLevel, TArray<FKalmalaToolRecipeIngredientData>& OutCosts);
-    const FKalmalaToolRewardData& GetLevelUpReward(FName ToolId) const;
-    bool GetLevelStats(FName ToolId, int32 ToolLevel, FKalmalaToolLevelStats& OutStats) const;
+    const FKalmalaToolRewardData& GetLevelUpReward(FName ItemId) const;
+    bool GetLevelStats(FName ItemId, int32 ToolLevel, FKalmalaToolLevelStats& OutStats) const;
     static const UKalmalaToolCatalogue* Get();
     bool IsValidCatalogue(const UKalmalaItemCatalogue* ItemDefinitions = nullptr) const;
-    const FKalmalaToolProfileData* FindProfile(FName ToolId) const;
+    const FKalmalaToolProfileData* FindProfile(FName ItemId) const;
 };

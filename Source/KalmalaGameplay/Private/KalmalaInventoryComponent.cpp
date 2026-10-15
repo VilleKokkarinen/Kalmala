@@ -194,10 +194,10 @@ bool VerifyHarvestGrants(AKalmalaCharacter* Character)
         bRepairPassed, bRepairRequestAccepted, *AcceptedRepairReason, bPackCleared);
     bPassed &= bRepairPassed;
 
-    const TArray<FName> RetiredToolIds = {TEXT("StoneAxe"), TEXT("StonePick"), TEXT("StoneKnife")};
+    const TArray<FName> RetiredItemIds = {TEXT("StoneAxe"), TEXT("StonePick"), TEXT("StoneKnife")};
     TArray<int32> RetiredToolConditions;
-    RetiredToolConditions.Reserve(RetiredToolIds.Num());
-    for (const FName ToolId : RetiredToolIds) RetiredToolConditions.Add(Character->GetToolDurability(ToolId));
+    RetiredToolConditions.Reserve(RetiredItemIds.Num());
+    for (const FName ItemId : RetiredItemIds) RetiredToolConditions.Add(Character->GetToolDurability(ItemId));
     const TArray<FKalmalaInventoryStack> RetiredRecipePack = Inventory->GetStacks();
     const int32 ExperienceBeforeRetiredRecipes = CraftingAfter ? CraftingAfter->Experience : -1;
     bool bRetiredRecipesRejected = Crafting != nullptr;
@@ -207,8 +207,8 @@ bool VerifyHarvestGrants(AKalmalaCharacter* Character)
         bRetiredRecipesRejected &= !Crafting->CraftFromServer(RecipeId, 1, RetiredReason);
     }
     bool bToolConditionsUnchanged = true;
-    for (int32 Index = 0; Index < RetiredToolIds.Num(); ++Index)
-        bToolConditionsUnchanged &= Character->GetToolDurability(RetiredToolIds[Index]) == RetiredToolConditions[Index];
+    for (int32 Index = 0; Index < RetiredItemIds.Num(); ++Index)
+        bToolConditionsUnchanged &= Character->GetToolDurability(RetiredItemIds[Index]) == RetiredToolConditions[Index];
     bool bPackUnchanged = Inventory->GetStacks().Num() == RetiredRecipePack.Num();
     for (int32 Index = 0; bPackUnchanged && Index < RetiredRecipePack.Num(); ++Index)
         bPackUnchanged &= Inventory->GetStacks()[Index].ItemId == RetiredRecipePack[Index].ItemId

@@ -41,7 +41,7 @@ public:
     static const UKalmalaRecipeCatalogue* Get();
     bool IsValidCatalogue(const class UKalmalaItemCatalogue* ItemDefinitions = nullptr) const;
     const FKalmalaRecipe* Find(FName Id) const;
-    static bool HasRequiredTool(FName ToolId, const TArray<FKalmalaInventoryStack>& Stacks);
+    static bool HasRequiredTool(FName ItemId, const TArray<FKalmalaInventoryStack>& Stacks);
     static bool IsDirectMaterialBuildable(FName BuildableId);
     static bool BuildDirectMaterialCost(FName BuildableId,
         TArray<FKalmalaInventoryStack>& OutCosts, FString& Reason);

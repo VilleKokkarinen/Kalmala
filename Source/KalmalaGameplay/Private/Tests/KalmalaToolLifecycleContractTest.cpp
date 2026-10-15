@@ -59,14 +59,14 @@ bool FKalmalaToolLifecycleContractTest::RunTest(const FString& Parameters)
         for (const int32 Condition : {Definition->MaxDurability - 5, 0})
         {
             FKalmalaToolState Damaged;
-            Damaged.ToolId = Entry.Key;
+            Damaged.ItemId = Entry.Key;
             Damaged.Durability = Condition;
             Damaged.ToolLevel = Entry.Value;
             FKalmalaToolState Repaired;
             TestTrue(TEXT("Validated free repair accepts damaged or broken carried tools"),
                 FKalmalaToolLifecycleContract::BuildServerFreeRepair(true, true, Damaged, Repaired));
             TestEqual(TEXT("Free repair restores full server-owned condition"), Repaired.Durability, Definition->MaxDurability);
-            TestEqual(TEXT("Free repair preserves tool identity"), Repaired.ToolId, Damaged.ToolId);
+            TestEqual(TEXT("Free repair preserves tool identity"), Repaired.ItemId, Damaged.ItemId);
             TestEqual(TEXT("Free repair preserves the authored tool level"), Repaired.ToolLevel, Damaged.ToolLevel);
         }
     }
@@ -75,24 +75,24 @@ bool FKalmalaToolLifecycleContractTest::RunTest(const FString& Parameters)
         const FKalmalaToolState& State)
     {
         FKalmalaToolState Repaired;
-        Repaired.ToolId = TEXT("Stale");
+        Repaired.ItemId = TEXT("Stale");
         Repaired.Durability = 99;
         Repaired.ToolLevel = 99;
         TestFalse(Label, FKalmalaToolLifecycleContract::BuildServerFreeRepair(
             bServer, bRepairStation, State, Repaired));
         TestTrue(*FString::Printf(TEXT("%s leaves tool condition unchanged"), Label),
-            Repaired.ToolId == State.ToolId && Repaired.Durability == State.Durability
+            Repaired.ItemId == State.ItemId && Repaired.Durability == State.Durability
             && Repaired.ToolLevel == State.ToolLevel);
     };
     FKalmalaToolState RepairState;
-    RepairState.ToolId = TEXT("StoneKnife");
+    RepairState.ItemId = TEXT("StoneKnife");
     RepairState.Durability = 2;
     RepairState.ToolLevel = 1;
     ExpectRepairRejected(TEXT("Client free repair rejects"), false, true, RepairState);
     ExpectRepairRejected(TEXT("Missing Workbench or Forge rejects"), true, false, RepairState);
-    RepairState.ToolId = TEXT("ForgedTool");
+    RepairState.ItemId = TEXT("ForgedTool");
     ExpectRepairRejected(TEXT("Unknown repair tool rejects"), true, true, RepairState);
-    RepairState.ToolId = TEXT("StoneKnife");
+    RepairState.ItemId = TEXT("StoneKnife");
     RepairState.Durability = 16;
     ExpectRepairRejected(TEXT("Full condition rejects"), true, true, RepairState);
     RepairState.Durability = -1;
@@ -141,7 +141,7 @@ bool FKalmalaToolLifecycleContractTest::RunTest(const FString& Parameters)
             ToolState, AttemptContext, RequestedTool, RequestedAction, AttemptSkill, AttemptSelection,
             RewardItemId, RewardQuantity));
         TestTrue(*FString::Printf(TEXT("%s leaves tool state unchanged"), Label),
-            ToolState.ToolId == BeforeAttempt.ToolId && ToolState.Durability == BeforeAttempt.Durability);
+            ToolState.ItemId == BeforeAttempt.ItemId && ToolState.Durability == BeforeAttempt.Durability);
         TestTrue(*FString::Printf(TEXT("%s clears reward output"), Label),
             RewardItemId.IsNone() && RewardQuantity == 0);
     };

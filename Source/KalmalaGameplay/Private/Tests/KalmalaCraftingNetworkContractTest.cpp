@@ -57,7 +57,7 @@ bool FKalmalaCraftingNetworkContractTest::RunTest(const FString& Parameters)
     {
         TestTrue(TEXT("Repair is an owning-client server RPC"), Repair->HasAllFunctionFlags(FUNC_Net | FUNC_NetServer));
         TestEqual(TEXT("Repair intent accepts only the allowlisted tool identity"), int32(Repair->NumParms), 1);
-        TestNotNull(TEXT("Repair intent cannot provide condition, materials, or result"), Repair->FindPropertyByName(TEXT("ToolId")));
+        TestNotNull(TEXT("Repair intent cannot provide condition, materials, or result"), Repair->FindPropertyByName(TEXT("ItemId")));
     }
 
     const UFunction* Construction = CraftingClass->FindFunctionByName(TEXT("ServerPlaceConstruction"));

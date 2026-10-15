@@ -2,7 +2,7 @@
   "upgrades": [
     {
       "DisplayName": "Bronze Pick",
-      "ToolId": "BronzePick",
+      "ItemId": "BronzePick",
       "RequiredStation": "Forge",
       "Ingredients": [
         {
@@ -18,7 +18,7 @@
     },
     {
       "DisplayName": "Iron Pick",
-      "ToolId": "IronPick",
+      "ItemId": "IronPick",
       "RequiredStation": "Forge",
       "Ingredients": [
         {
@@ -38,7 +38,7 @@
     },
     {
       "DisplayName": "Stone Pick",
-      "ToolId": "StonePick",
+      "ItemId": "StonePick",
       "RequiredStation": "Workbench",
       "Ingredients": [
         {

@@ -174,7 +174,7 @@ private:
     void RefreshForgeUpgradeState(UKalmalaCraftingComponent* Crafting);
     void RefreshMaceCraftState();
     void RefreshStoneCraftState();
-    void CraftStoneTool(FName ToolId);
+    void CraftStoneTool(FName ItemId);
     void RefreshWorkbenchRepairState(UKalmalaCraftingComponent* Crafting);
     void RefreshStationRepairActionState(UKalmalaCraftingComponent* Crafting);
     void RequestStationRepairAll(FName RequiredStationKit);
@@ -295,7 +295,7 @@ private:
     UPROPERTY(Transient) TObjectPtr<UTextBlock> StoneCraftTitleText;
     UPROPERTY(Transient) TObjectPtr<class UVerticalBox> StoneCraftActions;
     UPROPERTY(Transient) TArray<TObjectPtr<UButton>> StoneCraftButtons;
-    TArray<FName> StoneCraftToolIds;
+    TArray<FName> StoneCraftItemIds;
     UPROPERTY(Transient) TObjectPtr<UButton> UpgradeBronzeAxeButton;
     UPROPERTY(Transient) TObjectPtr<class UHorizontalBox> ToolProgressionActions;
     UPROPERTY(Transient) TObjectPtr<UButton> WorkbenchCraftSectionButton;
@@ -372,8 +372,8 @@ private:
     FString ContextConstructionId;
     FString StationContextSection;
     FString WorkbenchRepairResultText;
-    FName WorkbenchRepairPendingToolId = NAME_None;
-    FName WorkbenchRepairResultToolId = NAME_None;
+    FName WorkbenchRepairPendingItemId = NAME_None;
+    FName WorkbenchRepairResultItemId = NAME_None;
     uint32 WorkbenchRepairResultSerial = 0;
     uint32 StationRepairResultSerial = 0;
     FString StationRepairFeedback;

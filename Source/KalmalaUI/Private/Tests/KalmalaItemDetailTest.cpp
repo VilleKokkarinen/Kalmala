@@ -22,7 +22,7 @@ bool FKalmalaItemDetailTest::RunTest(const FString& Parameters)
         UKalmalaItemDetailWidget::DescribeItem(TEXT("UnknownItem"), TEXT("")), FString(TEXT("Description unavailable.")));
     struct FExpectedToolCopy
     {
-        FName ToolId;
+        FName ItemId;
         const TCHAR* Description;
     };
     const FExpectedToolCopy ToolCopies[] = {
@@ -35,11 +35,11 @@ bool FKalmalaItemDetailTest::RunTest(const FString& Parameters)
     };
     for (const FExpectedToolCopy& Expected : ToolCopies)
     {
-        TestEqual(FString::Printf(TEXT("%s uses its reviewed tool description and owner state"), *Expected.ToolId.ToString()),
-            UKalmalaItemDetailWidget::DescribeCarriedTool(Expected.ToolId, TEXT("Condition 17/40")),
+        TestEqual(FString::Printf(TEXT("%s uses its reviewed tool description and owner state"), *Expected.ItemId.ToString()),
+            UKalmalaItemDetailWidget::DescribeCarriedTool(Expected.ItemId, TEXT("Condition 17/40")),
             FString(TEXT("Carried equipment\n\n")) + Expected.Description + TEXT("\n\nCondition 17/40"));
-        TestEqual(FString::Printf(TEXT("%s description stands alone without tool state"), *Expected.ToolId.ToString()),
-            UKalmalaItemDetailWidget::DescribeCarriedTool(Expected.ToolId, TEXT("")),
+        TestEqual(FString::Printf(TEXT("%s description stands alone without tool state"), *Expected.ItemId.ToString()),
+            UKalmalaItemDetailWidget::DescribeCarriedTool(Expected.ItemId, TEXT("")),
             FString(TEXT("Carried equipment\n\n")) + Expected.Description);
     }
     TestEqual(TEXT("Unknown carried tool has an explicit description fallback"),

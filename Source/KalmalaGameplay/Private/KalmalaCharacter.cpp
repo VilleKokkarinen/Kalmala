@@ -250,15 +250,15 @@ void AKalmalaCharacter::Tick(const float DeltaSeconds)
             {
                 const FKalmalaToolState* StoneKnife = CarriedTools.FindByPredicate([](const FKalmalaToolState& State)
                 {
-                    return State.ToolId == TEXT("StoneKnife");
+                    return State.ItemId == TEXT("StoneKnife");
                 });
                 const FKalmalaToolState* BronzeAxe = CarriedTools.FindByPredicate([](const FKalmalaToolState& State)
                 {
-                    return State.ToolId == TEXT("BronzeAxe");
+                    return State.ItemId == TEXT("BronzeAxe");
                 });
                 const FKalmalaToolState* IronAxe = CarriedTools.FindByPredicate([](const FKalmalaToolState& State)
                 {
-                    return State.ToolId == TEXT("IronAxe");
+                    return State.ItemId == TEXT("IronAxe");
                 });
                 bOwnToolsMatch = CarriedTools.Num() == 3 && StoneKnife != nullptr && StoneKnife->Durability == 9
                     && BronzeAxe != nullptr && BronzeAxe->ToolLevel == 1 && BronzeAxe->Durability == 0
@@ -833,9 +833,9 @@ bool AKalmalaCharacter::GetLocalInteractionCandidate(FHitResult& OutHit) const
 }
 
 bool AKalmalaCharacter::GetLocalHarvestInteractionIntent(const AKalmalaHarvestNode* Node,
-    FName& OutToolId, uint8& OutAction, bool& bOutHasUsableTool) const
+    FName& OutItemId, uint8& OutAction, bool& bOutHasUsableTool) const
 {
-    OutToolId = NAME_None;
+    OutItemId = NAME_None;
     OutAction = 0;
     bOutHasUsableTool = false;
     if (!IsLocallyControlled() || !IsValid(Node)) return false;
@@ -859,10 +859,10 @@ bool AKalmalaCharacter::GetLocalHarvestInteractionIntent(const AKalmalaHarvestNo
     int32 DefinitionLevel = 0;
     for (const FKalmalaToolDefinition& Candidate : FKalmalaToolLifecycleContract::GetTieredToolDefinitions())
     {
-        const int32 CandidateLevel = GetCarriedToolLevel(Candidate.ToolId);
+        const int32 CandidateLevel = GetCarriedToolLevel(Candidate.ItemId);
         if (CandidateLevel < 1 || !FKalmalaToolLifecycleContract::IsToolSuitableForSelection(
                 Candidate, CandidateLevel, Selection)
-            || GetToolDurability(Candidate.ToolId) <= 0) continue;
+            || GetToolDurability(Candidate.ItemId) <= 0) continue;
         if (Definition == nullptr || FKalmalaToolLifecycleContract::GetToolTier(Candidate.Kind, CandidateLevel)
             > FKalmalaToolLifecycleContract::GetToolTier(Definition->Kind, DefinitionLevel))
         {
@@ -873,18 +873,18 @@ bool AKalmalaCharacter::GetLocalHarvestInteractionIntent(const AKalmalaHarvestNo
     if (Definition == nullptr)
     {
         Definition = FKalmalaToolLifecycleContract::FindMinimumQualifiedTool(Selection);
-        DefinitionLevel = Definition ? GetCarriedToolLevel(Definition->ToolId) : 0;
+        DefinitionLevel = Definition ? GetCarriedToolLevel(Definition->ItemId) : 0;
     }
     if (Inventory && FKalmalaToolLifecycleContract::FindDefinition(Inventory->GetActiveItem()))
     {
         Definition = FKalmalaToolLifecycleContract::FindDefinition(Inventory->GetActiveItem());
-        DefinitionLevel = GetCarriedToolLevel(Definition->ToolId);
+        DefinitionLevel = GetCarriedToolLevel(Definition->ItemId);
     }
     if (Definition == nullptr) return false;
 
-    OutToolId = Definition->ToolId;
+    OutItemId = Definition->ItemId;
     OutAction = static_cast<uint8>(Selection.Action);
-    bOutHasUsableTool = GetToolDurability(Definition->ToolId) > 0
+    bOutHasUsableTool = GetToolDurability(Definition->ItemId) > 0
         && FKalmalaToolLifecycleContract::IsToolSuitableForSelection(*Definition, DefinitionLevel, Selection);
     return true;
 }
@@ -893,7 +893,7 @@ void AKalmalaCharacter::RequestInteract()
 {
     if (IsLocallyControlled() && Controller && !Controller->IsMoveInputIgnored())
     {
-        FName ClientToolId = NAME_None;
+        FName ClientItemId = NAME_None;
         uint8 ClientAction = 0;
         FHitResult Hit;
         if (GetLocalInteractionCandidate(Hit))
@@ -901,11 +901,11 @@ void AKalmalaCharacter::RequestInteract()
             if (const AKalmalaHarvestNode* Node = Cast<AKalmalaHarvestNode>(Hit.GetActor()))
             {
                 bool bHasUsableTool = false;
-                GetLocalHarvestInteractionIntent(Node, ClientToolId, ClientAction, bHasUsableTool);
+                GetLocalHarvestInteractionIntent(Node, ClientItemId, ClientAction, bHasUsableTool);
                 (void)bHasUsableTool;
             }
         }
-        ServerRequestInteract(ClientToolId, ClientAction);
+        ServerRequestInteract(ClientItemId, ClientAction);
     }
 }
 
@@ -938,7 +938,7 @@ void AKalmalaCharacter::RequestAttack()
 
 
 
-void AKalmalaCharacter::ServerRequestInteract_Implementation(const FName ClientToolId, const uint8 ClientAction)
+void AKalmalaCharacter::ServerRequestInteract_Implementation(const FName ClientItemId, const uint8 ClientAction)
 {
     if (AKalmalaOceanSkiff* CurrentSkiff = Cast<AKalmalaOceanSkiff>(GetAttachParentActor()))
     {
@@ -979,7 +979,7 @@ void AKalmalaCharacter::ServerRequestInteract_Implementation(const FName ClientT
     if (AKalmalaHarvestNode* HarvestNode = Cast<AKalmalaHarvestNode>(Target);
         HarvestNode != nullptr && !HarvestNode->GetGatheringSourceId().IsNone())
     {
-        HarvestNode->InteractWithToolIntentFromServer(this, Hit.Distance, InteractionRange, ClientToolId, ClientAction);
+        HarvestNode->InteractWithToolIntentFromServer(this, Hit.Distance, InteractionRange, ClientItemId, ClientAction);
         return;
     }
 
@@ -1011,14 +1011,14 @@ void AKalmalaCharacter::ServerSubmitOceanSkiffSteeringInput_Implementation(const
 #endif
 }
 
-int32 AKalmalaCharacter::GetToolDurability(const FName ToolId) const
+int32 AKalmalaCharacter::GetToolDurability(const FName ItemId) const
 {
-    const FName CanonicalId = FKalmalaToolLifecycleContract::CanonicalizeToolId(ToolId);
+    const FName CanonicalId = FKalmalaToolLifecycleContract::CanonicalizeItemId(ItemId);
     if (Inventory && Inventory->GetActiveItem() == CanonicalId)
         if (const int32 ActiveDurability = GetToolDurability(Inventory->GetActiveInstanceGuid()); ActiveDurability >= 0)
             return ActiveDurability;
     if (const FKalmalaToolState* State = CarriedTools.FindByPredicate([CanonicalId](const FKalmalaToolState& Candidate)
-        { return Candidate.ToolId == CanonicalId; })) return State->Durability;
+        { return Candidate.ItemId == CanonicalId; })) return State->Durability;
 #if WITH_EDITORONLY_DATA
     if (CanonicalId == TEXT("StoneKnife")) return StoneKnifeDurability;
     if (CanonicalId == TEXT("StoneAxe")) return StoneAxeDurability;
@@ -1038,15 +1038,15 @@ int32 AKalmalaCharacter::GetToolDurability(const FGuid& InstanceGuid) const
     return State ? State->Durability : -1;
 }
 
-int32 AKalmalaCharacter::GetCarriedToolLevel(const FName ToolId) const
+int32 AKalmalaCharacter::GetCarriedToolLevel(const FName ItemId) const
 {
-    const FName CanonicalId = FKalmalaToolLifecycleContract::CanonicalizeToolId(ToolId);
+    const FName CanonicalId = FKalmalaToolLifecycleContract::CanonicalizeItemId(ItemId);
     if (Inventory && Inventory->GetActiveItem() == CanonicalId)
         if (const int32 ActiveLevel = GetCarriedToolLevel(Inventory->GetActiveInstanceGuid()); ActiveLevel >= 1)
             return ActiveLevel;
     const FKalmalaToolState* State = CarriedTools.FindByPredicate([CanonicalId](const FKalmalaToolState& Candidate)
     {
-        return Candidate.ToolId == CanonicalId;
+        return Candidate.ItemId == CanonicalId;
     });
     return State ? State->ToolLevel : 0;
 }
@@ -1075,15 +1075,15 @@ void AKalmalaCharacter::EnsureToolInstanceGuidsFromServer()
     }
 }
 
-int32* AKalmalaCharacter::FindToolDurabilityFromServer(const FName ToolId)
+int32* AKalmalaCharacter::FindToolDurabilityFromServer(const FName ItemId)
 {
     if (!HasAuthority()) return nullptr;
-    const FName CanonicalId = FKalmalaToolLifecycleContract::CanonicalizeToolId(ToolId);
+    const FName CanonicalId = FKalmalaToolLifecycleContract::CanonicalizeItemId(ItemId);
     if (Inventory && Inventory->GetActiveItem() == CanonicalId)
         if (int32* ActiveDurability = FindToolDurabilityFromServer(Inventory->GetActiveInstanceGuid()))
             return ActiveDurability;
     if (FKalmalaToolState* State = CarriedTools.FindByPredicate([CanonicalId](FKalmalaToolState& Candidate)
-        { return Candidate.ToolId == CanonicalId; })) return &State->Durability;
+        { return Candidate.ItemId == CanonicalId; })) return &State->Durability;
 #if WITH_EDITORONLY_DATA
     int32* LegacyCondition = nullptr;
     if (CanonicalId == TEXT("StoneKnife")) LegacyCondition = &StoneKnifeDurability;
@@ -1098,7 +1098,7 @@ int32* AKalmalaCharacter::FindToolDurabilityFromServer(const FName ToolId)
         && Inventory && Inventory->CanFitContents(Inventory->GetStacks(), CarriedTools.Num() + 1))
     {
         FKalmalaToolState SeededState;
-        SeededState.ToolId = CanonicalId;
+        SeededState.ItemId = CanonicalId;
         SeededState.ToolLevel = 1;
         SeededState.Durability = *LegacyCondition;
         SeededState.InstanceGuid = FGuid::NewGuid();
@@ -1118,7 +1118,7 @@ int32* AKalmalaCharacter::FindToolDurabilityFromServer(const FGuid& InstanceGuid
 }
 
 bool AKalmalaCharacter::CommitToolHarvestFromServer(AKalmalaHarvestNode* Node, const float TraceDistance,
-    const float MaximumRange, const FName ClientToolId, const uint8 ClientAction)
+    const float MaximumRange, const FName ClientItemId, const uint8 ClientAction)
 {
     if (!HasAuthority() || !IsValid(Node) || !Node->HasAuthority() || Node->GetWorld() != GetWorld()
         || !Node->CanInteract_Implementation(this) || !SkillProgression || !Inventory) return false;
@@ -1138,7 +1138,7 @@ bool AKalmalaCharacter::CommitToolHarvestFromServer(AKalmalaHarvestNode* Node, c
     }
     const TArray<FKalmalaToolState> ExistingTools = CarriedTools;
     const FKalmalaSkillState* Skill = SkillProgression->GetServerLedger().Find(Selection.RequiredSkill);
-    int32* CurrentDurability = FindToolDurabilityFromServer(ClientToolId);
+    int32* CurrentDurability = FindToolDurabilityFromServer(ClientItemId);
     if (Skill == nullptr || CurrentDurability == nullptr) return false;
 
     FKalmalaToolServerContext Context;
@@ -1149,10 +1149,10 @@ bool AKalmalaCharacter::CommitToolHarvestFromServer(AKalmalaHarvestNode* Node, c
     Context.TraceDistance = TraceDistance;
     Context.MaximumRange = MaximumRange;
 
-    FKalmalaToolState CandidateToolState{ClientToolId, *CurrentDurability, GetCarriedToolLevel(ClientToolId)};
+    FKalmalaToolState CandidateToolState{ClientItemId, *CurrentDurability, GetCarriedToolLevel(ClientItemId)};
     FName RewardItemId = NAME_None;
     int32 RewardQuantity = 0;
-    if (!FKalmalaToolLifecycleContract::ApplyServerUse(CandidateToolState, Context, ClientToolId,
+    if (!FKalmalaToolLifecycleContract::ApplyServerUse(CandidateToolState, Context, ClientItemId,
         static_cast<EKalmalaToolAction>(ClientAction), *Skill, Selection, RewardItemId, RewardQuantity)) return false;
 
     TArray<FKalmalaInventoryStack> CandidateInventory;

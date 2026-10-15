@@ -82,8 +82,8 @@ private:
     bool bOpeningAnimationActive = false;
     FString LastSelectedDetailKey;
     FString LastRepairResultText;
-    FName LastRepairResultToolId = NAME_None;
-    FName AwaitingRepairToolId = NAME_None;
+    FName LastRepairResultItemId = NAME_None;
+    FName AwaitingRepairItemId = NAME_None;
     FName LastPresentedSelectionId = NAME_None;
     uint32 RepairRequestResultSerial = 0;
     uint32 FoodRequestResultSerial = 0;

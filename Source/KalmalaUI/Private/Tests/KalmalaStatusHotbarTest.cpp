@@ -352,9 +352,9 @@ bool FKalmalaCatalogueIconTest::RunTest(const FString&)
     const auto* Items = UKalmalaItemCatalogue::Get();
     TestEqual(TEXT("Audited inventory item count"), Items->Items.Num(), 55);
     for (const auto& Item : Items->Items) Check(Item.ItemId);
-    for (const auto& Tool : FKalmalaToolLifecycleContract::GetDefinitions()) Check(Tool.ToolId);
-    for (const auto& Tool : FKalmalaToolLifecycleContract::GetTieredToolDefinitions()) Check(Tool.ToolId);
-    Check(FKalmalaToolLifecycleContract::GetConstructionHammerDefinition().ToolId);
+    for (const auto& Tool : FKalmalaToolLifecycleContract::GetDefinitions()) Check(Tool.ItemId);
+    for (const auto& Tool : FKalmalaToolLifecycleContract::GetTieredToolDefinitions()) Check(Tool.ItemId);
+    Check(FKalmalaToolLifecycleContract::GetConstructionHammerDefinition().ItemId);
     const auto* Recipes = UKalmalaRecipeCatalogue::Get();
     TestEqual(TEXT("Audited recipe/build count"), Recipes->Recipes.Num(), 20);
     for (const auto& Recipe : Recipes->Recipes)
@@ -367,7 +367,7 @@ bool FKalmalaCatalogueIconTest::RunTest(const FString&)
         {
             const bool bCanonicalItem = Items->FindItem(Recipe.Output) != nullptr;
             const bool bCanonicalTool = Recipe.RecipeId == TEXT("BuildingHammer")
-                && Recipe.Output == FKalmalaToolLifecycleContract::GetConstructionHammerDefinition().ToolId;
+                && Recipe.Output == FKalmalaToolLifecycleContract::GetConstructionHammerDefinition().ItemId;
             TestTrue(*FString::Printf(TEXT("%s recipe uses a canonical inventory or tool identity (%s)"),
                 *Recipe.RecipeId.ToString(), *Recipe.Output.ToString()), bCanonicalItem || bCanonicalTool);
         }
