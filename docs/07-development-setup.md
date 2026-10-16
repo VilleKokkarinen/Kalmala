@@ -1,5 +1,39 @@
 # Development setup
 
+## Executed client axe forest stages — 2026-10-16
+
+Source: `ba49343` plus this run's one-line fixture repair. The initial temporary
+editor build passed, but live setup correctly rejected Main Hand selection:
+`DriverEquip=Select a valid carried weapon or tool`. The fixture added a carried
+axe without assigning its grid cell. It now calls SynchronizeGridFromServer before
+the normal SetMainHandFromServer transaction, matching existing harvest fixtures.
+No production validation was weakened.
+
+Commands actually run:
+
+```powershell
+& 'C:/Program Files/Epic Games/UE_5.8/Engine/Build/BatchFiles/Build.bat' KalmalaEditor Win64 Development '-Project=C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject' -WaitMutex -NoHotReload -NoUBTMakefiles -MaxParallelActions=4
+# Rebuild after the repair, without -NoUBTMakefiles:
+& 'C:/Program Files/Epic Games/UE_5.8/Engine/Build/BatchFiles/Build.bat' KalmalaEditor Win64 Development '-Project=C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject' -WaitMutex -NoHotReload -MaxParallelActions=4
+& ./Scripts/Tests/World/Verify-BiomeExpansion.ps1 -ForestDeliveryOnly -ForestStages -Project C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject
+```
+
+Both builds succeeded; logs are `C:/Users/Ville/AppData/Local/Temp/kmforest/stage1/build.log`
+and `build2.log`. Initial failed peer logs: `C:/Users/Ville/AppData/Local/Temp/kfpeer-d7704b09/`.
+Final successful host/client logs: `C:/Users/Ville/AppData/Local/Temp/kfpeer-b665e7d8/host.log`
+and `client.log`. Final runner exited 0, requiring nine matching eighteen-tree
+standing patches and shared Trunk/Drop for exact ID
+`forest:v1:10323456789:31079.1015625:5132.20068359375:13`.
+Both peers recorded each stage; no fatal/assertion/forest failure appeared in the
+successful logs. Processes stopped by runner finally. Normal LOCALAPPDATA UBT
+access used; only existing temporary mirror sources/outputs and fresh temporary
+peer save roots were written outside repository sources.
+
+This is a partial delivery increment, not final feature verification. No new
+pickup, late join, forged/out-of-range rejection, rendered review or streaming
+acceptance ran. The delivery child remains unchecked; late join during trunk/drop
+is the next eligible part, followed by exact-once pickup/depletion and rejection.
+
 ## Optional forest stage runner gate — 2026-10-16
 
 `Verify-BiomeExpansion.ps1 -ForestDeliveryOnly -ForestStages -Project <temporary-project>`
@@ -14,7 +48,7 @@ waits for its own nine standing reports, then sends ordinary sequence-only attac
 requests once per observation tick, retaining each stage for three extra ticks.
 The server still selects targets and validates range, equipment, cadence and damage.
 The driver stops at a drop or fails after sixty requests. No pickup is issued.
-Driver compilation/live execution, late join, pickup and rejection remain pending.
+Driver compilation/live stage execution passed after the grid synchronization repair above; late join, pickup and rejection remain pending.
 
 
 ## Executed standing forest peer delivery — 2026-10-16

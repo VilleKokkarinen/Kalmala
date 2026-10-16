@@ -110,6 +110,7 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
         Axe.ToolLevel = 1;
         Axe.Durability = FKalmalaToolLifecycleContract::GetMaxDurability(Axe.ItemId, Axe.ToolLevel);
         Remote->CarriedTools.Add(Axe);
+        Remote->GetInventoryComponent()->SynchronizeGridFromServer();
         FString Reason;
         if (!Remote->GetInventoryComponent()->SetMainHandFromServer(Axe.InstanceGuid, Reason))
         {
