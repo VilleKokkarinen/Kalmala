@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-16 — Join real pickup and production persistence
+
+- **Completed:** partial first unchecked generated-tree child. SecondWaveHarvestAcceptance binds generated Meadow/Elderwood pickup to GameMode RecordHarvestedSpawn. Replaces only its final disk boundary with memory serialization and uses write-time bytes for existing patch reconstruction. Observer no longer mutates the ledger. Checks slot/user/save identity, mark-before-write, zero damage/rejected-pickup writes and one successful write despite rival/repeated pickup. Clears captures on normal and early exits.
+- **Files changed:** `Source/KalmalaGameplay/Private/Tests/KalmalaM9SourceAcceptanceTest.cpp`, `docs/07-development-setup.md`, `BACKLOG.md`, and this file.
+- **Lightweight checks:** callback authority/world guard, fixture API, ordering, reload and cleanup inspection; focused source/brace assertions, whitespace, scope and MAX_PATH checks passed. No Unreal compilation, automation execution or peers ran; full verification remains deferred for this normal partial increment.
+- **Impact/authority:** regression source only joins real server axe/pickup to the production sparse callback and patch reader. No runtime behavior, RPC, reward or save-schema changes.
+- **Limitations:** uncompiled/unexecuted; final disk I/O is substituted with memory serialization. Child and parent stay unchecked.
+- **Next eligible task:** same generated-tree child: disk persistence and live integration/peer validation. Only current Kalmala run active in app state; CIM unavailable. Clean main checkout used directly; no handoff synchronization required.
+
 ## Autonomous increment 2026-10-16 — Cover production forest depletion callback
 
 - **Completed:** partial first unchecked generated-tree child. ForestPatchLifecycle invokes the materialized node's real GameMode depletion binding with a matching save. A private development-test-only writer override captures serialized bytes at the final disk boundary; the fixture checks seed-scoped slot/user, current save, mark-before-write, exact prior/new depletion and reconstruction of uncollected candidates, with no activation/eviction writes.

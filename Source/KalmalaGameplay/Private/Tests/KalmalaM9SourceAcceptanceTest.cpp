@@ -236,7 +236,7 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
         TestTrue(FString::Printf(TEXT("%s has a valid bounded server reward"), *SourceLabel),
             FKalmalaM9SourceLootContract::BuildHarvestRewardQuantity(
                 WorldState->GetWorldGenerationConfig(), Source.SourceId, Node->GetPersistentSpawnId(), ExpectedYield));
-        // Observe the real pickup callback without invoking GameMode's disk writer.
+        // Observe real pickup through the production callback, replacing only disk I/O.
         auto* PickupSave = NewObject<UKalmalaWorldPopulationSaveGame>(World);
         PickupSave->InitializeForWorld(WorldState->GetWorldGenerationConfig());
         FString DepletedId;
@@ -244,11 +244,33 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
         int32 SessionCallbacks = 0;
         int32 SparseCallbacks = 0;
         Node->OnM9ResourceDepleted.AddLambda([&](const FString& ResourceId) { DepletedId = ResourceId; ++SessionCallbacks; });
+        auto* PickupMode = World->GetAuthGameMode<AKalmalaGameMode>();
+        TArray<uint8> ProductionPickupBytes;
+        int32 ProductionWrites = 0;
+        if (Source.bGeneratedForest)
+        {
+            PickupMode->WorldGenerationConfig = WorldState->GetWorldGenerationConfig();
+            PickupMode->PopulationSaveGame = PickupSave;
+            PickupMode->PopulationSaveWriterForTests = [&](UKalmalaWorldPopulationSaveGame* WrittenSave,
+                const FString& Slot, const int32 UserIndex)
+            {
+                ++ProductionWrites;
+                TestTrue(TEXT("Real pickup writes the production population save"), WrittenSave == PickupSave);
+                TestTrue(TEXT("Real pickup marks exact depletion before production write"),
+                    WrittenSave->IsHarvested(Node->GetPersistentSpawnId()));
+                TestEqual(TEXT("Real pickup uses seed-scoped population slot"), Slot,
+                    FString::Printf(TEXT("KalmalaPopulationDeltas_%llu"), WorldState->GetWorldGenerationConfig().WorldSeed));
+                TestEqual(TEXT("Real pickup uses population user zero"), UserIndex, 0);
+                TestTrue(TEXT("Real pickup production snapshot serializes"),
+                    UGameplayStatics::SaveGameToMemory(WrittenSave, ProductionPickupBytes));
+            };
+            Node->OnHarvested.AddUObject(PickupMode, &AKalmalaGameMode::RecordHarvestedSpawn);
+        }
         Node->OnHarvested.AddLambda([&](const FString& ResourceId)
         {
             SparseId = ResourceId;
             ++SparseCallbacks;
-            PickupSave->MarkHarvested(ResourceId);
+            // Observer only: production RecordHarvestedSpawn owns sparse mutation.
         });
 
         int32 AcceptedUses = 1;
@@ -261,6 +283,8 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
             const int32 Slot = Inventory->GetGridSlots().IndexOfByKey(Source.ToolItemId);
             if (!TestTrue(TEXT("Axe is in the usable hotbar"), Slot >= 0 && Slot < UKalmalaInventoryComponent::Columns))
             {
+                PickupMode->PopulationSaveWriterForTests = {};
+                PickupMode->PopulationSaveGame = nullptr;
                 Node->OnHarvested.Clear();
                 Node->OnM9ResourceDepleted.Clear();
                 Node->Destroy();
@@ -279,6 +303,7 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
             TestTrue(TEXT("Broken trunk leaves a world wood drop"), Node->IsWoodDrop());
             TestEqual(TEXT("Breaking a trunk does not automatically grant wood"), Inventory->GetQuantity(Source.ItemId), 0);
         }
+        TestEqual(TEXT("Damage before pickup never invokes production writer"), ProductionWrites, 0);
         TestEqual(TEXT("Damage before pickup emits no sparse depletion"), SparseCallbacks, 0);
         TestEqual(TEXT("Damage before pickup emits no session depletion"), SessionCallbacks, 0);
         TestFalse(TEXT("Damage does not persist depletion before pickup"),
@@ -363,6 +388,8 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
             {
                 if (Rival) Rival->Destroy();
                 if (RivalState) RivalState->Destroy();
+                PickupMode->PopulationSaveWriterForTests = {};
+                PickupMode->PopulationSaveGame = nullptr;
                 Node->OnHarvested.Clear();
                 Node->OnM9ResourceDepleted.Clear();
                 Node->Destroy();
@@ -380,6 +407,7 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
             TestEqual(TEXT("Rival starts without the generated wood reward"),
                 Rival->GetInventoryComponent()->GetQuantity(Source.ItemId), 0);
         }
+        TestEqual(TEXT("Rejected pickups never invoke production writer"), ProductionWrites, 0);
         TestTrue(FString::Printf(TEXT("%s accepts harvest or wood pickup"), *SourceLabel),
             Node->InteractWithToolIntentFromServer(Pawn, 100.0f, 250.0f, Source.ToolItemId, ExpectedAction));
         if (Rival)
@@ -409,8 +437,10 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
         TestEqual(TEXT("Generated pickup bypasses session depletion"), SessionCallbacks, Source.bGeneratedForest ? 0 : 1);
         TestEqual(TEXT("Sparse callback retains exact generated identity"), SparseId,
             Source.bGeneratedForest ? Node->GetPersistentSpawnId() : FString());
-        TArray<uint8> PickupBytes;
-        TestTrue(TEXT("Pickup sparse ledger serializes in memory"),
+        TestEqual(TEXT("Only successful generated pickup reaches production writer"),
+            ProductionWrites, Source.bGeneratedForest ? 1 : 0);
+        TArray<uint8> PickupBytes = ProductionPickupBytes;
+        if (!Source.bGeneratedForest) TestTrue(TEXT("Pickup sparse ledger serializes in memory"),
             UGameplayStatics::SaveGameToMemory(PickupSave, PickupBytes));
         auto* ReloadedSave = Cast<UKalmalaWorldPopulationSaveGame>(
             UGameplayStatics::LoadGameFromMemory(PickupBytes));
@@ -475,7 +505,9 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
                 }
             }
         }
-        // Release delegate captures before the next case and world teardown.
+        // Release both writer and delegate captures before the next case.
+        PickupMode->PopulationSaveWriterForTests = {};
+        PickupMode->PopulationSaveGame = nullptr;
         Node->OnHarvested.Clear();
         Node->OnM9ResourceDepleted.Clear();
         Node->Destroy();

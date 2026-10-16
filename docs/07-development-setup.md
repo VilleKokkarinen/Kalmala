@@ -3234,5 +3234,17 @@ then serializes that object to memory. Reloading those captured bytes and
 reactivating the patch must omit the prior and newly depleted IDs, retain every
 other candidate and add no depletion writes during activation or eviction.
 The override is cleared before teardown. This bypasses actual pickup and disk
-I/O; the separate real-pickup fixture still supplies its own memory ledger.
+I/O; the real-pickup extension below now reaches this same production callback.
 Compilation, automation execution and live peer verification remain deferred.
+
+### Real pickup production persistence regression (2026-10-16)
+
+SecondWaveHarvestAcceptance now binds generated Meadow/Elderwood OnHarvested to
+GameMode RecordHarvestedSpawn. Its observer records identity/count only; production
+owns sparse mutation. The development-only writer override verifies save/slot/user
+and mark-before-write, serializes at that boundary and supplies those bytes to
+existing patch reload/eviction checks. Damage and rejected pickups produce zero
+writes; winner, rival and repeated requests combined produce exactly one. Writer
+captures and save pointers are cleared before each case exits. This joins real
+pickup to production persistence without project save-slot I/O. Compilation,
+automation, actual disk I/O and peers remain pending.
