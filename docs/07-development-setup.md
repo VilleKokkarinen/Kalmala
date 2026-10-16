@@ -3189,3 +3189,14 @@ The production patch reader/materializer is exercised; the depletion writer is
 still a fixture callback, with no added disk I/O or session startup. A private
 friend declaration grants fixture access only. Compilation, automation execution,
 production disk persistence and peer delivery remain pending.
+
+### Forest pickup capacity rejection regression (2026-10-16)
+
+SecondWaveHarvestAcceptance fills every pack cell with nonstackable Boar Hide
+Boots before attempting pickup of each generated biome's wood drop. It requires
+rejection without harvesting, sparse/session callbacks, saved depletion, wood
+reward, grid GUID changes, Main Hand changes or additional axe wear. The filler
+quantity is preserved. Removing filler retries the same drop through the existing
+successful pickup and memory-ledger/patch-reload checks. This is authored server
+regression coverage; Unreal compilation/execution, production disk persistence
+and live peer delivery remain pending.

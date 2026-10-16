@@ -283,6 +283,40 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
         TestEqual(TEXT("Damage before pickup emits no session depletion"), SessionCallbacks, 0);
         TestFalse(TEXT("Damage does not persist depletion before pickup"),
             PickupSave->IsHarvested(Node->GetPersistentSpawnId()));
+        if (Source.bGeneratedForest)
+        {
+            auto* Inventory = Pawn->GetInventoryComponent();
+            // Nonstackable filler occupies every pack cell without replacing Main Hand.
+            const int32 FillerCount = UKalmalaInventoryComponent::MaxSlots
+                - Inventory->CountPackedTools(Pawn->GetCarriedToolInventory());
+            if (TestTrue(TEXT("Generated pickup fixture fills every pack cell"),
+                FillerCount > 0 && Inventory->TryGrantFromServer(TEXT("BoarHideBoots"), FillerCount)))
+            {
+                TestEqual(TEXT("Generated pickup rejection starts with forty occupied pack cells"),
+                    Inventory->GetStacks().Num() + Inventory->CountPackedTools(Pawn->GetCarriedToolInventory()),
+                    UKalmalaInventoryComponent::MaxSlots);
+                const auto BeforeGrid = Inventory->GetGridInstanceGuids();
+                const FGuid BeforeHand = Inventory->GetMainHandGuid();
+                const int32 BeforeCondition = Pawn->GetToolDurability(Source.ToolItemId);
+                TestFalse(TEXT("Full pack rejects generated wood pickup"),
+                    Node->InteractWithToolIntentFromServer(Pawn, 100.0f, 250.0f, Source.ToolItemId, ExpectedAction));
+                TestTrue(TEXT("Rejected pickup retains the uncollected wood drop"), Node->IsWoodDrop());
+                TestFalse(TEXT("Rejected pickup does not harvest the generated identity"), Node->IsHarvested());
+                TestEqual(TEXT("Rejected pickup grants no wood"), Inventory->GetQuantity(Source.ItemId), 0);
+                TestEqual(TEXT("Rejected pickup preserves filler quantity"), Inventory->GetQuantity(TEXT("BoarHideBoots")), FillerCount);
+                TestTrue(TEXT("Rejected pickup preserves exact pack identities and cells"),
+                    Inventory->GetGridInstanceGuids() == BeforeGrid);
+                TestEqual(TEXT("Rejected pickup preserves exact Main Hand"), Inventory->GetMainHandGuid(), BeforeHand);
+                TestEqual(TEXT("Rejected pickup spends no additional axe condition"),
+                    Pawn->GetToolDurability(Source.ToolItemId), BeforeCondition);
+                TestEqual(TEXT("Rejected pickup emits no sparse callback"), SparseCallbacks, 0);
+                TestEqual(TEXT("Rejected pickup emits no session callback"), SessionCallbacks, 0);
+                TestFalse(TEXT("Rejected pickup never enters the sparse save"),
+                    PickupSave->IsHarvested(Node->GetPersistentSpawnId()));
+                TestTrue(TEXT("Removing filler permits the same drop pickup to retry"),
+                    Inventory->TryConsumeFromServer(TEXT("BoarHideBoots"), FillerCount));
+            }
+        }
         TestTrue(FString::Printf(TEXT("%s accepts harvest or wood pickup"), *SourceLabel),
             Node->InteractWithToolIntentFromServer(Pawn, 100.0f, 250.0f, Source.ToolItemId, ExpectedAction));
         TestFalse(TEXT("Depleted resource cannot be collected twice"),

@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-16 — Cover rejected forest pickup depletion
+
+- **Completed:** partial first unchecked generated-tree child. Extended SecondWaveHarvestAcceptance for both generated biomes with forty occupied pack cells using nonstackable Boar Hide Boots. The real pickup request must fail while preserving the wood drop, unharvested ID, zero sparse/session callbacks, empty reward, filler quantity, exact grid GUIDs, Main Hand and axe condition. Removing filler retries the same drop through existing successful pickup and sparse patch-reload assertions.
+- **Files changed:** `Source/KalmalaGameplay/Private/Tests/KalmalaM9SourceAcceptanceTest.cpp`, `docs/07-development-setup.md`, `BACKLOG.md`, and this file.
+- **Lightweight checks:** focused assertion-presence, rejection/release/retry ordering, brace balance and nonstackable catalogue checks passed. Inspected server grant/commit capacity guards and harvest commit ordering. Working/staged whitespace, scope and MAX_PATH checks passed. No Unreal compilation, automation execution or peers ran; full verification remains deferred for this normal partial increment.
+- **Impact/authority:** authored regression covers capacity rejection before generated depletion and retry without loss. No runtime behavior, RPC, reward or save-schema changes; requests still use the server transaction.
+- **Limitations:** fixture remains uncompiled/unexecuted and substitutes a memory ledger callback for the production disk writer. Child and parent remain unchecked.
+- **Next eligible task:** same generated-tree child: production persistence and live integration/peer validation. Only this Kalmala run active in app state; CIM process inventory unavailable. Clean main checkout used directly; no handoff synchronization required.
+
 ## Autonomous increment 2026-10-16 — Connect forest pickup to patch reload
 
 - **Completed:** partial first unchecked generated-tree child. SecondWaveHarvestAcceptance now feeds the real axe/pickup callback ledger's memory round trip into isolated GameMode activation, eviction and reactivation. Checks exactly one collected tree stays absent, every uncollected neighbor returns, eviction destroys replacements, and saved depletion survives. Candidate search requires at least two trees to make neighbor assertions meaningful.
