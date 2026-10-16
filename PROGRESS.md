@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-16 — Round-trip forest pickup snapshots through disk
+
+- **Completed:** partial first unchecked generated-tree child. Meadow/Elderwood acceptance round-trips production callback bytes through a unique OS temporary file before existing save/patch reconstruction; checks MAX_PATH, unused path, write/read success and exact bytes. Scope-exit cleanup covers partial writes.
+- **Files changed:** `Source/KalmalaGameplay/Private/Tests/KalmalaM9SourceAcceptanceTest.cpp`, `docs/07-development-setup.md`, `BACKLOG.md`, and this file.
+- **Lightweight checks:** focused source/order/cleanup/brace assertions, diff inspection, whitespace and changed-path MAX_PATH checks passed. No Unreal compilation, automation execution, disk fixture execution or peers ran; full verification remains deferred.
+- **Impact/authority:** regression source only; runtime authority, RPCs and save schemas unchanged. Uses OS temporary files outside project Saved and production slots.
+- **Limitations:** uncompiled/unexecuted; serialized file transport does not exercise Unreal platform save-slot I/O. Child/parent remain unchecked.
+- **Next eligible task:** same generated-tree child: production save-slot and live integration/peer validation. Only current Kalmala chat active in app state; CIM unavailable. Clean main checkout used directly; no handoff synchronization required.
+
 ## Autonomous increment 2026-10-16 — Join real pickup and production persistence
 
 - **Completed:** partial first unchecked generated-tree child. SecondWaveHarvestAcceptance binds generated Meadow/Elderwood pickup to GameMode RecordHarvestedSpawn. Replaces only its final disk boundary with memory serialization and uses write-time bytes for existing patch reconstruction. Observer no longer mutates the ledger. Checks slot/user/save identity, mark-before-write, zero damage/rejected-pickup writes and one successful write despite rival/repeated pickup. Clears captures on normal and early exits.

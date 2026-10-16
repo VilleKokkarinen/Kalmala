@@ -3248,3 +3248,12 @@ writes; winner, rival and repeated requests combined produce exactly one. Writer
 captures and save pointers are cleared before each case exits. This joins real
 pickup to production persistence without project save-slot I/O. Compilation,
 automation, actual disk I/O and peers remain pending.
+
+### Isolated forest pickup disk snapshot (2026-10-16)
+
+SecondWaveHarvestAcceptance round-trips generated Meadow/Elderwood production
+callback bytes through a GUID-named OS user temporary file before existing save
+and patch reconstruction assertions. It checks MAX_PATH, refuses existing paths,
+checks write/read success and exact bytes, and removes the file on scope exit,
+including after partial writes. This does not exercise Unreal platform save-slot
+I/O or touch production slots. Compilation, fixture execution and peers are deferred.

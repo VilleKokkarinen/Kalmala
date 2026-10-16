@@ -18,6 +18,11 @@
 #include "GameFramework/PlayerState.h"
 #include "GameFramework/WorldSettings.h"
 #include "Misc/AutomationTest.h"
+#include "HAL/FileManager.h"
+#include "HAL/PlatformProcess.h"
+#include "Misc/FileHelper.h"
+#include "Misc/Paths.h"
+#include "Misc/ScopeExit.h"
 #include "OnlineSubsystemTypes.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
@@ -442,6 +447,39 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
         TArray<uint8> PickupBytes = ProductionPickupBytes;
         if (!Source.bGeneratedForest) TestTrue(TEXT("Pickup sparse ledger serializes in memory"),
             UGameplayStatics::SaveGameToMemory(PickupSave, PickupBytes));
+        // Keep fixture I/O outside project Saved and production population slots.
+        const FString PickupFile = Source.bGeneratedForest
+            ? FPaths::Combine(FPlatformProcess::UserTempDir(),
+                TEXT("kf-") + FGuid::NewGuid().ToString(EGuidFormats::Digits) + TEXT(".bin"))
+            : FString();
+        bool bPickupFileCreated = false;
+        ON_SCOPE_EXIT
+        {
+            if (bPickupFileCreated)
+                TestTrue(TEXT("Temporary forest snapshot is removed"),
+                    IFileManager::Get().Delete(*PickupFile, false, true));
+        };
+        if (Source.bGeneratedForest)
+        {
+            // Never overwrite another file, even in the unlikely event of a GUID collision.
+            if (!TestTrue(TEXT("Forest snapshot path stays below MAX_PATH"), PickupFile.Len() < 260)
+                || !TestFalse(TEXT("Forest snapshot path is unused"), IFileManager::Get().FileExists(*PickupFile)))
+            {
+                PickupBytes.Reset();
+            }
+            else
+            {
+                // Cleanup also covers a partially written file after a failed write.
+                bPickupFileCreated = true;
+                TestTrue(TEXT("Production pickup snapshot writes to isolated disk file"),
+                    FFileHelper::SaveArrayToFile(PickupBytes, *PickupFile));
+                const TArray<uint8> ExpectedBytes = PickupBytes;
+                PickupBytes.Reset();
+                TestTrue(TEXT("Production pickup snapshot reads back from disk"),
+                    FFileHelper::LoadFileToArray(PickupBytes, *PickupFile));
+                TestTrue(TEXT("Disk snapshot preserves exact production bytes"), PickupBytes == ExpectedBytes);
+            }
+        }
         auto* ReloadedSave = Cast<UKalmalaWorldPopulationSaveGame>(
             UGameplayStatics::LoadGameFromMemory(PickupBytes));
         if (TestNotNull(TEXT("Pickup sparse ledger reloads in memory"), ReloadedSave))
