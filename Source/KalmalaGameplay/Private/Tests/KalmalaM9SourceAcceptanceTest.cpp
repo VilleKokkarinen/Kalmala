@@ -10,6 +10,8 @@
 #include "KalmalaToolLifecycleContract.h"
 #include "KalmalaWorldGenerationGameState.h"
 #include "KalmalaWorldPopulationLayout.h"
+#include "KalmalaWorldPopulationSaveGame.h"
+#include "Kismet/GameplayStatics.h"
 #include "Engine/Engine.h"
 #include "Engine/GameInstance.h"
 #include "Engine/World.h"
@@ -225,12 +227,20 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
         TestTrue(FString::Printf(TEXT("%s has a valid bounded server reward"), *SourceLabel),
             FKalmalaM9SourceLootContract::BuildHarvestRewardQuantity(
                 WorldState->GetWorldGenerationConfig(), Source.SourceId, Node->GetPersistentSpawnId(), ExpectedYield));
+        // Observe the real pickup callback without invoking GameMode's disk writer.
+        auto* PickupSave = NewObject<UKalmalaWorldPopulationSaveGame>(World);
+        PickupSave->InitializeForWorld(WorldState->GetWorldGenerationConfig());
         FString DepletedId;
         FString SparseId;
         int32 SessionCallbacks = 0;
         int32 SparseCallbacks = 0;
         Node->OnM9ResourceDepleted.AddLambda([&](const FString& ResourceId) { DepletedId = ResourceId; ++SessionCallbacks; });
-        Node->OnHarvested.AddLambda([&](const FString& ResourceId) { SparseId = ResourceId; ++SparseCallbacks; });
+        Node->OnHarvested.AddLambda([&](const FString& ResourceId)
+        {
+            SparseId = ResourceId;
+            ++SparseCallbacks;
+            PickupSave->MarkHarvested(ResourceId);
+        });
 
         int32 AcceptedUses = 1;
         if (Node->IsTreeResource())
@@ -262,6 +272,8 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
         }
         TestEqual(TEXT("Damage before pickup emits no sparse depletion"), SparseCallbacks, 0);
         TestEqual(TEXT("Damage before pickup emits no session depletion"), SessionCallbacks, 0);
+        TestFalse(TEXT("Damage does not persist depletion before pickup"),
+            PickupSave->IsHarvested(Node->GetPersistentSpawnId()));
         TestTrue(FString::Printf(TEXT("%s accepts harvest or wood pickup"), *SourceLabel),
             Node->InteractWithToolIntentFromServer(Pawn, 100.0f, 250.0f, Source.ToolItemId, ExpectedAction));
         TestFalse(TEXT("Depleted resource cannot be collected twice"),
@@ -277,6 +289,22 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
         TestEqual(TEXT("Generated pickup bypasses session depletion"), SessionCallbacks, Source.bGeneratedForest ? 0 : 1);
         TestEqual(TEXT("Sparse callback retains exact generated identity"), SparseId,
             Source.bGeneratedForest ? Node->GetPersistentSpawnId() : FString());
+        TArray<uint8> PickupBytes;
+        TestTrue(TEXT("Pickup sparse ledger serializes in memory"),
+            UGameplayStatics::SaveGameToMemory(PickupSave, PickupBytes));
+        auto* ReloadedSave = Cast<UKalmalaWorldPopulationSaveGame>(
+            UGameplayStatics::LoadGameFromMemory(PickupBytes));
+        if (TestNotNull(TEXT("Pickup sparse ledger reloads in memory"), ReloadedSave))
+        {
+            TestTrue(TEXT("Pickup ledger retains exact world identity"),
+                ReloadedSave->MatchesWorld(WorldState->GetWorldGenerationConfig()));
+            TestEqual(TEXT("Only generated pickup persists its exact sparse identity"),
+                ReloadedSave->IsHarvested(Node->GetPersistentSpawnId()), Source.bGeneratedForest);
+            TestFalse(TEXT("Pickup never records the tree as a defeated creature"),
+                ReloadedSave->IsDefeated(Node->GetPersistentSpawnId()));
+            TestFalse(TEXT("Pickup cannot deplete an unrelated generated identity"),
+                ReloadedSave->IsHarvested(Node->GetPersistentSpawnId() + TEXT(":other")));
+        }
         // Release delegate captures before the next case and world teardown.
         Node->OnHarvested.Clear();
         Node->OnM9ResourceDepleted.Clear();

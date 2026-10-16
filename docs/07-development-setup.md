@@ -3166,3 +3166,14 @@ exactly one `OnHarvested` callback with the forest ID, no session M9 callback,
 and no duplicate grant. This exercises the node transaction, not the GameMode
 sparse-save callback binding, disk reload, patch eviction or peers. The new source
 has only lightweight inspection; Unreal compilation/execution remain deferred.
+
+### Forest pickup sparse-save regression (2026-10-16)
+
+SecondWaveHarvestAcceptance records the real accepted pickup's OnHarvested
+callback in an isolated population save and round-trips it through memory. It
+requires no saved depletion before pickup, the exact generated identity afterward,
+matching world identity, and no defeated-creature or unrelated-ID entry. Legacy M9
+sources must remain outside this sparse ledger. Duplicate pickup still emits only
+one callback. This uses a fixture callback, not GameMode's disk writer; production
+slot persistence/reload and peer delivery remain pending. No new disk I/O is added
+to the existing acceptance fixture. Compilation and execution remain deferred.

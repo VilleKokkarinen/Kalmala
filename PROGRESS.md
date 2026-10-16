@@ -1,5 +1,15 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-16 — Cover pickup sparse-save round trip
+
+- **Completed:** partial first unchecked generated-tree child. Extended real axe/pickup acceptance to populate a sparse save from OnHarvested and serialize/reload it in memory, checking pre-pickup absence, exact generated ID/world identity, legacy-source exclusion and no creature/unrelated-ID contamination.
+- **Files changed:** `Source/KalmalaGameplay/Private/Tests/KalmalaM9SourceAcceptanceTest.cpp`, `docs/07-development-setup.md`, `BACKLOG.md`, and this file.
+- **Lightweight checks:** inspected save and pickup APIs, delegate capture cleanup and ordering; focused source/brace, whitespace, scope and MAX_PATH checks passed. No Unreal compilation, automation execution or peers ran; full verification remains deferred for this normal partial increment.
+- **Impact/authority:** regression source only, observing server pickup callbacks. No runtime, RPC, reward or save-schema changes.
+- **Limitations:** uncompiled/unexecuted; fixture callback substitutes for GameMode disk persistence. Production disk callback/reload and live integration/peer validation remain pending; child/parent stay unchecked.
+- **Next eligible task:** same generated-tree child: production persistence and live integration/peer validation. Only this Kalmala run active in app state; CIM unavailable. Clean main checkout used directly; no handoff synchronization required.
+
+
 ## Autonomous increment 2026-10-16 — Cover overlapping forest neighborhoods
 
 - **Completed:** partial first unchecked generated-tree child. Extended ForestPatchLifecycle with an adjacent-patch round trip, twelve-patch union, three introduced patches, exact original terrain/forest retention and introduced actor destruction on return.
