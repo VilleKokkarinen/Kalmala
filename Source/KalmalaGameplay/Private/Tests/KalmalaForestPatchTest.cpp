@@ -8,6 +8,7 @@
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/AutomationTest.h"
+#include "UObject/UnrealType.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaForestPatchLifecycleTest,
     "Kalmala.Gameplay.Harvest.ForestPatchLifecycle",
@@ -48,6 +49,18 @@ bool FKalmalaForestPatchLifecycleTest::RunTest(const FString& Parameters)
         World->DestroyWorld(false);
         return false;
     }
+    const FArrayProperty* SuppressionProperty = FindFProperty<FArrayProperty>(
+        AKalmalaGeneratedTerrainPatch::StaticClass(), TEXT("SuppressedForestCandidates"));
+    if (!TestNotNull(TEXT("Patch exposes reflected suppression array"), SuppressionProperty)
+        || !TestTrue(TEXT("Suppression ordinals use integer elements"),
+            SuppressionProperty && CastField<FIntProperty>(SuppressionProperty->Inner) != nullptr))
+    {
+        World->DestroyWorld(false);
+        return false;
+    }
+    TArray<int32> ExpectedOrdinals;
+    for (const auto& Tree : Trees) ExpectedOrdinals.Add(Tree.CandidateIndex);
+    ExpectedOrdinals.Sort();
     const FIntPoint Coordinate = FIntPoint::ZeroValue;
     for (int32 Pass = 0; Pass < 2; ++Pass)
     {
@@ -57,6 +70,17 @@ bool FKalmalaForestPatchLifecycleTest::RunTest(const FString& Parameters)
         auto* PatchEntry = Mode->ActiveTerrainPatches.Find(Coordinate);
         if (!TestNotNull(TEXT("Activation tracks forest actors"), Nodes)
             || !TestNotNull(TEXT("Activation tracks terrain actor"), PatchEntry)) break;
+        auto* Patch = PatchEntry->Get();
+        if (!TestNotNull(TEXT("Tracked terrain actor is live"), Patch)) break;
+        // Read the replicated contract without exposing a production-only test accessor.
+        const auto* Suppressed = SuppressionProperty->ContainerPtrToValuePtr<TArray<int32>>(Patch);
+        TestTrue(TEXT("Saved and live candidates suppress exactly the canonical cosmetic ordinals"),
+            *Suppressed == ExpectedOrdinals);
+        TestTrue(TEXT("Saved depletion suppresses its original candidate ordinal"),
+            Suppressed->Contains(Trees[0].CandidateIndex));
+        for (int32 Index = 1; Index < Trees.Num(); ++Index)
+            TestTrue(TEXT("Live replacement suppresses its original candidate ordinal"),
+                Suppressed->Contains(Trees[Index].CandidateIndex));
         TestEqual(TEXT("Saved candidate has no live replacement"), Nodes->Num(), Trees.Num() - 1);
         TSet<FString> LiveIds;
         for (const auto& WeakNode : *Nodes)
@@ -76,6 +100,8 @@ bool FKalmalaForestPatchLifecycleTest::RunTest(const FString& Parameters)
         TestEqual(TEXT("Duplicate activation does not add patches"), Mode->ActiveTerrainPatches.Num(), 1);
         TestTrue(TEXT("Duplicate activation retains terrain actor"), Mode->ActiveTerrainPatches.FindChecked(Coordinate) == EvictedPatch.Get());
         TestEqual(TEXT("Duplicate activation retains actor count"), Mode->ActiveForestNodes.FindChecked(Coordinate).Num(), EvictedNodes.Num());
+        TestTrue(TEXT("Duplicate activation retains canonical cosmetic suppression"),
+            *SuppressionProperty->ContainerPtrToValuePtr<TArray<int32>>(Patch) == ExpectedOrdinals);
         // No player controllers: the actual neighborhood refresh must evict everything.
         Mode->RefreshTerrainPatchNeighborhoods();
         TestTrue(TEXT("Eviction clears all patch bookkeeping"), Mode->ActiveTerrainPatchCoordinates.IsEmpty()

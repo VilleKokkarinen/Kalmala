@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-16 — Cover patch cosmetic suppression
+
+- **Completed:** partial first unchecked generated-tree child. ForestPatchLifecycle now requires exactly the canonical original candidate ordinals for saved depletion and live replacements on activation, duplicate activation and post-eviction reactivation. Reflection checks the array and integer element type before reading server state.
+- **Files changed:** `Source/KalmalaGameplay/Private/Tests/KalmalaForestPatchTest.cpp`, `docs/07-development-setup.md`, `BACKLOG.md`, and this file.
+- **Lightweight checks:** focused source/API, reflection guards, coverage and brace checks passed; whitespace, diff/scope review and MAX_PATH checks passed. No Unreal compilation, automation execution, rendering or peers ran; full verification remains deferred for this normal partial increment.
+- **Impact/authority:** regression source verifies suppression state covers saved and represented trees without extra decorative ordinals. No runtime behavior, authority, RPC, reward or save changes.
+- **Limitations:** fixture remains uncompiled/unexecuted. Rendered suppression, actual pickup callback persistence, player-neighborhood union and peer delivery remain unverified. Child/parent stay unchecked.
+- **Next eligible task:** same generated-tree child: pickup callback persistence and live integration/peer validation. Moving fall/log presentation stays later. Main checkout began clean; only this run active in app state (CIM unavailable). Main checkout used directly; no handoff synchronization required.
+
 ## Autonomous increment 2026-10-16 — Cover GameMode forest patch lifecycle
 
 - **Completed:** partial first unchecked generated-tree child. Added ForestPatchLifecycle automation source calling real GameMode activation and empty-neighborhood eviction. Seeds a depleted candidate through an in-memory sparse-save round trip and checks undepleted IDs, patch ownership, duplicate activation, actor destruction, cleared tracking and no eviction depletion over two activations.

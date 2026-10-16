@@ -3094,8 +3094,10 @@ and forest actors, clear tracking, and avoid depleting uncollected IDs. A second
 activation checks reconstruction with saved depletion still excluded. A friend
 fixture accesses private orchestration without adding a public gameplay API.
 No session BeginPlay or disk saves are invoked. Source inspection only: compilation
-and execution remain deferred. Cosmetic suppression, actual pickup-to-save callback
-binding and network delivery are outside this fixture.
+and execution remain deferred. The fixture reads the reflected replicated suppression
+array and requires exactly the sorted original ordinals for saved depletion and live
+replacements on both activations and after duplicate activation. Rendered cosmetics,
+actual pickup-to-save callback binding and network delivery remain outside this fixture.
 
 `Kalmala.Gameplay.Harvest.ForestReconstructionLifecycle` is a focused isolated-world
 regression for public forest actor reconstruction. It finds an accepted candidate
