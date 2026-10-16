@@ -2,6 +2,7 @@ param(
     [string]$Editor = 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor.exe',
     [switch]$ForestDeliveryOnly,
     [switch]$ForestStages,
+    [switch]$ForestDropLateJoin,
     [string]$Project,
     [int]$Port = 17849
 )
@@ -10,6 +11,7 @@ $repoPaths = Get-KalmalaPaths -StartPath $PSScriptRoot
 
 $ErrorActionPreference = 'Stop'
 if ($ForestStages -and !$ForestDeliveryOnly) { throw '-ForestStages requires -ForestDeliveryOnly.' }
+if ($ForestDropLateJoin -and !$ForestStages) { throw '-ForestDropLateJoin requires -ForestStages.' }
 if (!$Project) { $Project = Join-Path ($repoPaths.ProjectRoot) 'Kalmala.uproject' }
 $project = (Resolve-Path -LiteralPath $Project).Path
 if ($ForestDeliveryOnly) {
@@ -23,6 +25,7 @@ if ($ForestDeliveryOnly) {
     if ($ForestStages) { $common += ' -KalmalaForestStageDriver' }
     $server = $null
     $client = $null
+    $lateClient = $null
     try {
         $server = Start-Process $Editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" /Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=$Port -WorldSeed=10323456789 $common -abslog=`"$serverLog`" -UserDir=`"$output\Host`""
         $deadline = (Get-Date).AddSeconds(120)
@@ -64,10 +67,31 @@ if ($ForestDeliveryOnly) {
         } while ((Get-Date) -lt $deadline)
         if ((Get-Date) -ge $deadline) { throw "Exact forest replacement/suppression delivery timed out: $($shared.Count)/9 matching eighteen-tree patches; $($sharedStages.Count) shared Trunk/Drop IDs (required=$ForestStages). Inspect $output." }
         if ($ForestStages) { Write-Output "PASS: host/client Trunk and Drop delivery for exact tree IDs: $($sharedStages -join ', ')." }
+        if ($ForestDropLateJoin) {
+            # Join only after both original peers observed this exact drop.
+            # The observer does not need standing history; no driver on this peer.
+            $lateId = $sharedStages[0]
+            $lateLog = Join-Path $output 'late.log'
+            $lateCommon = $common.Replace(' -KalmalaForestStageDriver', '')
+            $lateClient = Start-Process $Editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" 127.0.0.1:$Port -WorldSeed=999 $lateCommon -abslog=`"$lateLog`" -UserDir=`"$output\Late`""
+            $deadline = (Get-Date).AddSeconds(120)
+            do {
+                if ($server.HasExited -or $client.HasExited -or $lateClient.HasExited) { throw 'A forest peer exited during drop late join.' }
+                $hostText = [string](Get-Content $serverLog -Raw)
+                $clientText = [string](Get-Content $clientLog -Raw)
+                $lateText = if (Test-Path $lateLog) { [string](Get-Content $lateLog -Raw) } else { '' }
+                if (($hostText + $clientText + $lateText) -match 'Fatal error:|Assertion failed:|Forest delivery: Passed=0') { throw "Forest late-join failure; inspect $output." }
+                $lateDropDelivered = $lateText.Contains("Forest stage delivery: Passed=1 Authority=0 Seed=10323456789 Id=$lateId Stage=Drop Cosmetics=0")
+                if ($lateDropDelivered) { break }
+                Start-Sleep -Milliseconds 500
+            } while ((Get-Date) -lt $deadline)
+            if (!$lateDropDelivered) { throw "Forest drop late join timed out for $lateId; inspect $output." }
+            Write-Output "PASS: new peer joined after drop and received exact tree $lateId with zero cosmetics."
+        }
         Write-Output "PASS: $($shared.Count) populated forest patches match host/client exact IDs, transforms, shape, source, standing state and zero cosmetics."
     }
     finally {
-        foreach ($peer in @($client, $server)) { if ($null -ne $peer -and !$peer.HasExited) { Stop-Process -Id $peer.Id } }
+        foreach ($peer in @($lateClient, $client, $server)) { if ($null -ne $peer -and !$peer.HasExited) { Stop-Process -Id $peer.Id } }
         Write-Output "Forest peer logs: $output"
     }
     return

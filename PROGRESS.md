@@ -1,5 +1,13 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-16 — Gate drop delivery to a late peer
+
+- **Completed:** partial first unchecked generated-forest host/client delivery child. Added optional ForestDropLateJoin requiring ForestStages; starts a third observer only after original host/client share exact-ID Trunk/Drop delivery. Requires the new peer to report that exact drop/seed with zero cosmetics without standing history. Third peer has no attack driver, uses a fresh isolated user root, and is stopped in finally.
+- **Files changed:** Scripts/Tests/World/Verify-BiomeExpansion.ps1, BACKLOG.md, PROGRESS.md and docs/07-development-setup.md.
+- **Lightweight checks:** PowerShell parser and eight synthetic cases executing the actual acceptance assignment passed: valid, empty, trunk-only, authority, seed, ID-prefix mismatch, cosmetics and duplicate logs. Initial harness used a child scope for its assignment; corrected harness to dot-source before all eight passed. Whitespace, staged scope/diff and MAX_PATH checks performed before commit. No Unreal build, automation or live peers; full verification deferred for this normal partial increment.
+- **Impact/authority:** test orchestration only; production runtime, authority, RPCs and saves unchanged. New phase rejects wrong-tree/stage observations and times out with exact ID/log root. No live late-join acceptance claimed.
+- **Limitations/next eligible task:** execute/repair drop late join with the existing temporary editor mirror, then trunk late join, exactly-once pickup/depletion and forged/out-of-range rejection. Delivery child remains unchecked. Only this Kalmala run active in app inventory; earlier automation idle, CIM access unavailable. Clean main checkout used directly; no handoff synchronization required.
+
 ## Autonomous increment 2026-10-16 — Execute client axe forest stages
 
 - **Completed:** partial first unchecked generated-forest host/client delivery child. Compiled and executed the new client axe driver. Initial live run failed because its carried axe lacked a grid cell; added SynchronizeGridFromServer before normal Main Hand selection. Rebuild and rerun passed: nine matching eighteen-tree standing patches and host/client Trunk and Drop for exact ID forest:v1:10323456789:31079.1015625:5132.20068359375:13, runner exit 0.

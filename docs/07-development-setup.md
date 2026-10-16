@@ -1,5 +1,11 @@
 # Development setup
 
+## Optional drop late-join gate — 2026-10-16
+
+Use `Verify-BiomeExpansion.ps1 -ForestDeliveryOnly -ForestStages -ForestDropLateJoin -Project <temporary-project>` to add a third observer after both original peers have reported the same exact tree as Trunk and Drop. The new peer must independently validate that Drop with the same ID/seed and zero cosmetics, without requiring historical standing reports. Its fresh `Late` user root and `late.log` share the isolated peer output root; all three processes are stopped in finally. The third peer has no stage driver. A peer exit, fatal/assertion/fixture failure or 120-second timeout fails acceptance.
+
+Parser and eight actual acceptance-selector cases passed. This phase has not been executed live; next run must execute and repair it before claiming drop late-join evidence. Trunk late join, pickup/depletion and rejection remain separate missing acceptance within the same unchecked child. Full verification remains deferred.
+
 ## Executed client axe forest stages — 2026-10-16
 
 Source: `ba49343` plus this run's one-line fixture repair. The initial temporary
