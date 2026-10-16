@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-16 — Cover forest session reset
+
+- **Completed:** partial first unchecked generated-tree child. Extended ForestReconstructionLifecycle with reflected session-state setup for damaged standing trees, damaged trunks and uncollected drops. Destruction must not emit depletion; replacement retains the stable ID and restores standing stage, full health and collision.
+- **Files changed:** `Source/KalmalaGameplay/Private/Tests/KalmalaForestLifecycleTest.cpp`, `docs/07-development-setup.md`, `BACKLOG.md`, and this file.
+- **Lightweight checks:** focused source/API/property/cleanup and brace assertions, working/staged whitespace, scope review and MAX_PATH checks passed. No Unreal build, automation execution, rendering or peers; full verification remains deferred for this normal partial increment.
+- **Impact/authority:** regression source only; no runtime, authority, RPC, reward or save-format change. Reflection seeds state explicitly rather than claiming to test axe damage or pickup.
+- **Limitations:** fixture remains uncompiled/unexecuted. Actual damage/pickup, GameMode neighborhood eviction, saved depletion and peer acceptance remain pending. Selected child and parent remain unchecked.
+- **Next eligible task:** same generated-tree child: integrated patch lifecycle/depletion and peer validation. Moving fall/log presentation remains later. Main checkout began clean; app state showed only this Kalmala run active, CIM process inventory unavailable. Main checkout used directly; no handoff synchronization required.
+
 ## Autonomous increment 2026-10-15 — Cover forest world collision lifecycle
 
 - **Completed:** partial first unchecked generated-tree child. Extended ForestReconstructionLifecycle with simple and complex world Visibility traces selecting the exact actor before/after reconstruction and requiring no hit after each destruction.

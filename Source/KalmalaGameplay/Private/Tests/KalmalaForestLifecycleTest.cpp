@@ -6,6 +6,7 @@
 #include "Engine/World.h"
 #include "Misc/AutomationTest.h"
 #include "ProceduralMeshComponent.h"
+#include "UObject/UnrealType.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaForestLifecycleTest,
     "Kalmala.Gameplay.Harvest.ForestReconstructionLifecycle",
@@ -151,6 +152,56 @@ bool FKalmalaForestLifecycleTest::RunTest(const FString& Parameters)
         CheckWorldSelection(Reloaded);
         Reloaded->Destroy();
         CheckWorldSelection(nullptr);
+    }
+    // Seed replicated session state directly: this isolates eviction/reconstruction
+    // from the separate axe/persistence/pickup integration fixtures.
+    const auto* StageProperty = FindFProperty<FByteProperty>(AKalmalaHarvestNode::StaticClass(), TEXT("TreeStage"));
+    const auto* HealthProperty = FindFProperty<FFloatProperty>(AKalmalaHarvestNode::StaticClass(), TEXT("TreeHealth"));
+    if (TestNotNull(TEXT("Tree stage property available"), StageProperty)
+        && TestNotNull(TEXT("Tree health property available"), HealthProperty))
+    {
+        for (uint8 Stage = 0; Stage <= 2; ++Stage)
+        {
+            auto* Uncollected = SpawnNode();
+            if (!TestNotNull(TEXT("Uncollected session node spawned"), Uncollected)) break;
+            if (!TestTrue(TEXT("Session node reconstructs"),
+                Uncollected->InitializeForestServer(Config, PatchCenter, Tree.CandidateIndex)))
+            {
+                Uncollected->Destroy();
+                break;
+            }
+            // Partially damaged standing tree, partially damaged trunk, uncollected drop.
+            const float SessionHealth = Stage == 2 ? 0.0f : 17.0f;
+            StageProperty->SetPropertyValue_InContainer(Uncollected, Stage);
+            HealthProperty->SetPropertyValue_InContainer(Uncollected, SessionHealth);
+            TestEqual(TEXT("Fixture seeds requested session stage"),
+                StageProperty->GetPropertyValue_InContainer(Uncollected), Stage);
+            TestEqual(TEXT("Fixture seeds requested session health"),
+                HealthProperty->GetPropertyValue_InContainer(Uncollected), SessionHealth);
+            TestFalse(TEXT("Uncollected state is not harvested"), Uncollected->IsHarvested());
+            TestTrue(TEXT("Eviction destroys uncollected session state"), Uncollected->Destroy());
+            CheckWorldSelection(nullptr);
+            TestEqual(TEXT("Uncollected eviction never records sparse depletion"), SparseCallbacks, 0);
+            TestEqual(TEXT("Uncollected eviction never records session depletion"), SessionCallbacks, 0);
+
+            auto* Restored = SpawnNode();
+            if (!TestNotNull(TEXT("Session replacement spawned"), Restored)) break;
+            if (TestTrue(TEXT("Uncollected candidate reconstructs again"),
+                Restored->InitializeForestServer(Config, PatchCenter, Tree.CandidateIndex)))
+            {
+                TestEqual(TEXT("Reconstruction resets stage to standing"),
+                    StageProperty->GetPropertyValue_InContainer(Restored), uint8(0));
+                TestEqual(TEXT("Reconstruction resets tree health to full"),
+                    HealthProperty->GetPropertyValue_InContainer(Restored), 100.0f);
+                TestEqual(TEXT("Session reset retains sparse identity"), Restored->GetPersistentSpawnId(), Tree.PersistentSpawnId);
+                TestTrue(TEXT("Session reset restores attackable unharvested tree"),
+                    Restored->CanReceiveAxeAttack() && !Restored->IsHarvested());
+                CheckStandingCollision(Restored);
+                CheckWorldSelection(Restored);
+            }
+            Restored->Destroy();
+            CheckWorldSelection(nullptr);
+        }
     }
     World->DestroyWorld(false);
     TestEqual(TEXT("World teardown never records sparse depletion"), SparseCallbacks, 0);

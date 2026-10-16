@@ -3091,7 +3091,7 @@ from seed 418, checks authority and invalid-ordinal rejection, reconstructs stab
 identity/source/transform and movement replication settings, rejects reinitialization,
 and destroys/reconstructs the node without firing either depletion delegate.
 This covers actor lifetime primitives only, not GameMode neighborhood eviction,
-partial-damage reset, saved pickup depletion or peer relevance.
+damage application, saved pickup depletion or peer relevance.
 The test source has been inspected but has not yet been compiled or executed.
 
 The forest reconstruction fixture also assigns a patch-like always-relevant owner,
@@ -3112,3 +3112,10 @@ complex queries at the same trunk height. They require the exact live actor befo
 eviction and after reconstruction, and no blocking hit after each destruction.
 This checks collision registration/removal when executed; it does not invoke the
 character attack RPC, GameMode patch eviction, tool damage or saved depletion.
+
+The fixture now seeds the replicated stage/health properties via reflection for a
+partially damaged standing tree, partially damaged trunk and uncollected wood drop.
+Each is destroyed without depletion callbacks, then reconstructed with the same ID,
+standing stage, full 100 health and restored component/world collision. This isolates
+session-state reset; it bypasses actual damage/pickup actions and does not exercise
+GameMode eviction. Source checks only; Unreal compilation/execution remain deferred.
