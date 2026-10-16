@@ -37,13 +37,20 @@ if ($ForestDeliveryOnly) {
             $clientText = if (Test-Path $clientLog) { [string](Get-Content $clientLog -Raw) } else { '' }
             if (($hostText + $clientText) -match 'Fatal error:|Assertion failed:|Forest delivery: Passed=0') { throw 'Forest peer failure; inspect logs.' }
             $matches = [regex]::Matches($hostText, 'Forest delivery: Passed=1 Authority=1 (Seed=10323456789 Trees=[1-9][0-9]* Cosmetics=0 Ids=[^\r\n]+)')
-            $shared = @($matches | Where-Object { $clientText.Contains('Forest delivery: Passed=1 Authority=0 ' + $_.Groups[1].Value) })
+            # This fixed-seed/start-location fixture has nine populated patches,
+            # each with eighteen trees. Do not accept a single delivered patch
+            # or count duplicate log lines as additional patch coverage.
+            $shared = @($matches | Where-Object {
+                $_.Groups[1].Value -match '^Seed=10323456789 Trees=18 Cosmetics=0 '
+            } | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique | Where-Object {
+                $clientText.Contains('Forest delivery: Passed=1 Authority=0 ' + $_)
+            })
             # The fixture reads GameState's seed itself. An identity OnRep log
             # is not guaranteed when the server seed equals its class default.
-            if ($shared.Count -gt 0) { break }
+            if ($shared.Count -eq 9) { break }
             Start-Sleep -Milliseconds 500
         } while ((Get-Date) -lt $deadline)
-        if ((Get-Date) -ge $deadline) { throw 'Exact forest replacement/suppression delivery timed out.' }
+        if ((Get-Date) -ge $deadline) { throw "Exact forest replacement/suppression delivery timed out: $($shared.Count)/9 matching eighteen-tree patches. Inspect $output." }
         Write-Output "PASS: $($shared.Count) populated forest patches match host/client exact IDs, transforms, shape, source, standing state and zero cosmetics."
     }
     finally {

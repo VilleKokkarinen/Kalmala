@@ -1,5 +1,13 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-16 — Require complete standing forest delivery
+
+- **Completed:** hardened the selected generated-forest host/client delivery child's existing runner. The fixed-seed scenario now requires nine distinct matching eighteen-tree patches; one patch, eight patches, repeated reports or incorrect tree counts cannot satisfy acceptance. Timeout reports matched/required coverage and the log root.
+- **Files changed:** Scripts/Tests/World/Verify-BiomeExpansion.ps1, BACKLOG.md, PROGRESS.md and docs/07-development-setup.md.
+- **Lightweight verification:** PowerShell AST parser passed. Executed the actual coverage-selection AST against six synthetic cases (empty, single, partial, complete, duplicate and incorrect tree count), all passed. Replayed retained kfpeer-245f0974 host/client logs through the same selection: 9/9 passed. Whitespace, staged scope/diff and MAX_PATH checks passed. No new Unreal build, automation, peer launch or full suite; full verification remains deferred for this normal increment.
+- **Impact/authority:** closes a false-pass path in standing delivery acceptance; runtime gameplay, network authority and persistence unchanged. Prior live evidence remains sufficient under the tighter condition, but replay is not a fresh runtime execution.
+- **Limitations/next eligible task:** same unchecked delivery child: client axe transitions, trunk/drop late join, exactly-once pickup/depletion and forged/out-of-range rejection. Parent remains open. No other Kalmala run active in app status; prior chats idle, CIM process inventory unavailable. Main checkout initially clean and used directly; handoff files visible without synchronization.
+
 ## Autonomous increment 2026-10-16 — Execute standing forest peer delivery
 
 - **Completed:** bounded first part of the selected host/client delivery child. Added opt-in local-pawn observation of production terrain/harvest actors and `Verify-BiomeExpansion.ps1 -ForestDeliveryOnly -Project <mirror>`. Both peers must independently match a populated patch's complete generated candidate set to exactly one owned standing replacement per ID, source, dimensions, transform and suppression list, with zero decorative trees. Final execution matched all nine populated patches, 18 trees each (162 replacements), and runner exited 0.

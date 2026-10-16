@@ -23,8 +23,11 @@ suppression membership, no extra owned actors, zero decorative trees, expected
 biome source/dimensions, and matching location/yaw within normal movement
 quantization (1 cm and half a byte-rotation step plus 0.01 degrees). Owner
 relevance is checked on the authority; clients verify actual delivery and owner.
-The runner requires at least one fully matching populated patch; this run matched
-all nine. It compares complete ID lists across peers and reads the seed directly
+The runner now requires all nine distinct populated patches with eighteen trees
+each; duplicate reports cannot inflate coverage. Timeout diagnostics include the
+matched patch count. Six synthetic selection cases and replay of the retained
+successful logs passed after this acceptance hardening; no new peers were launched
+for that change. It compares complete ID lists across peers and reads the seed directly
 from GameState; a seed OnRep log is optional when identity equals the class default.
 
 Earlier build attempts: cached makefile omitted the added cpp; refreshed with
