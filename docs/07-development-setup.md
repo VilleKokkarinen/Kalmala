@@ -40,6 +40,15 @@ passed. Normal LOCALAPPDATA UBT access used; all runtime/build/user outputs are
 outside protected repository directories. Peer processes are stopped in finally;
 isolated temporary saves and logs are retained.
 
+The opt-in observer now emits `Forest stage delivery: Passed=1 Authority=... Seed=... Id=... Stage=Trunk|Drop Cosmetics=0`
+once per validated ID/state, continuing after standing reports and allowing a
+late join to first observe either state. Descriptor, transform, source, suppression,
+complete owned-actor count and unharvested checks apply. Standing acceptance stays
+standing-only. This addition passed source inspection only; compile/live execution
+is deferred. The runner still exits at standing acceptance and does not consume
+stage logs; client attack orchestration and executed stage/late-join assertions
+remain required before checking the delivery child.
+
 This is standing delivery evidence only. Client axe attacks, replicated trunk/drop
 transitions, late joining into those states, pickup reward/depletion and forged or
 out-of-range peer rejection remain required by the unchecked delivery child.

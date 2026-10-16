@@ -23,7 +23,6 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
         const auto Trees = FKalmalaForestLayout::Generate(Config, Patch->GetGeneratedPatchCenter());
         if (Trees.IsEmpty()) continue;
         const FString Key = Trees[0].PersistentSpawnId;
-        if (ForestDeliveryReported.Contains(Key)) continue;
         const auto& Suppressed = Patch->GetSuppressedForestCandidatesForVerification();
         // Fresh isolated saves: every candidate must have exactly one standing
         // replacement and no decorative duplicate, including on remote peers.
@@ -44,27 +43,41 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
             const auto* Found = Owned.FindByPredicate([&Tree](const auto* Node) { return Node->GetPersistentSpawnId() == Tree.PersistentSpawnId; });
             const auto* Node = Found ? *Found : nullptr;
             const FVector4 Dimensions(Tree.TrunkRadius, Tree.TrunkHeight, Tree.CanopyRadius, Tree.CanopyHeight);
-            bMatches &= Suppressed.Contains(Tree.CandidateIndex) && Node
+            const bool bNodeMatches = Suppressed.Contains(Tree.CandidateIndex) && Node
                 && Node->GetActorLocation().Equals(Tree.Location, 1.0)
                 // Replicated movement rounds location to whole centimetres and
                 // compresses yaw to a byte (half-step error at most 360/512).
                 && FMath::Abs(FMath::FindDeltaAngleDegrees(Node->GetActorRotation().Yaw, Tree.Yaw)) <= 360.0f / 512.0f + 0.01f
                 && Node->GetForestDimensionsForVerification().Equals(Dimensions, 0.01f)
                 && Node->GetGatheringSourceId() == (Tree.bElderwood ? FName(TEXT("elderwood-ironheart-trunk")) : FName(TEXT("meadows-birch-trunk")))
-                && Node->CanReceiveAxeAttack() && !Node->IsFelledTrunk() && !Node->IsWoodDrop()
+                && !Node->IsHarvested()
                 && (!HasAuthority() || Node->bNetUseOwnerRelevancy) && Node->IsReplicatingMovement();
+            const bool bStanding = Node && Node->CanReceiveAxeAttack() && !Node->IsFelledTrunk() && !Node->IsWoodDrop();
+            bMatches &= bNodeMatches && bStanding;
+            // Inspect current replicated state even after standing delivery was
+            // reported. A late join may first observe a trunk or wood bundle.
+            if (bNodeMatches && (Node->IsFelledTrunk() || Node->IsWoodDrop()))
+            {
+                const FString Stage = Node->IsFelledTrunk() ? TEXT("Trunk") : TEXT("Drop");
+                const FString StageKey = Tree.PersistentSpawnId + TEXT(":") + Stage;
+                if (!ForestDeliveryReported.Contains(StageKey))
+                {
+                    ForestDeliveryReported.Add(StageKey);
+                    UE_LOG(LogTemp, Display, TEXT("Forest stage delivery: Passed=1 Authority=%d Seed=%llu Id=%s Stage=%s Cosmetics=0"),
+                        HasAuthority(), Config.WorldSeed, *Tree.PersistentSpawnId, *Stage);
+                }
+            }
             Ids += Tree.PersistentSpawnId + TEXT(";");
-            if (!bMatches && Node && ForestDeliveryDiagnostics++ < 20)
+            if (!bNodeMatches && Node && ForestDeliveryDiagnostics++ < 20)
             {
                 UE_LOG(LogTemp, Display, TEXT("Forest delivery pending actor: Id=%s Distance=%.3f Yaw=%.3f Shape=%d Source=%s Standing=%d Movement=%d"),
                     *Tree.PersistentSpawnId, FVector::Distance(Node->GetActorLocation(), Tree.Location),
                     FMath::FindDeltaAngleDegrees(Node->GetActorRotation().Yaw, Tree.Yaw),
                     Node->GetForestDimensionsForVerification().Equals(Dimensions, 0.01f), *Node->GetGatheringSourceId().ToString(),
                     Node->CanReceiveAxeAttack() && !Node->IsFelledTrunk() && !Node->IsWoodDrop(), Node->IsReplicatingMovement());
-                break;
             }
         }
-        if (!bMatches) continue; // Replication properties/actor channels may arrive in different frames.
+        if (!bMatches || ForestDeliveryReported.Contains(Key)) continue; // Replication properties/actor channels may arrive in different frames.
         ForestDeliveryReported.Add(Key);
         UE_LOG(LogTemp, Display, TEXT("Forest delivery: Passed=1 Authority=%d Seed=%llu Trees=%d Cosmetics=0 Ids=%s"),
             HasAuthority(), Config.WorldSeed, Trees.Num(), *Ids);

@@ -1,5 +1,13 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-16 — Observe forest trunk/drop delivery
+
+- **Completed:** partial first unchecked generated-forest delivery child. Opt-in peer observer continues after standing acceptance and emits deduplicated exact-ID Trunk/Drop observations, including first observation after late join. Retains complete suppression/owned-actor count, candidate transform/dimensions/source, movement replication, authority owner relevance and unharvested checks. Standing acceptance still requires every tree standing; valid nonstanding states do not consume mismatch diagnostics.
+- **Files changed:** Source/KalmalaGameplay/Private/KalmalaForestDeliveryVerification.cpp, BACKLOG.md, PROGRESS.md and docs/07-development-setup.md.
+- **Lightweight verification:** inspected node APIs and replicated state semantics; focused observation-order, state-guard, standing-only acceptance and brace assertions passed. Whitespace, staged scope/diff and MAX_PATH checked before commit. No Unreal compile, automation or peer launch; full verification deferred for this normal partial increment.
+- **Impact/authority:** read-only development observation hooks only; no attacks, RPCs, rewards, persistence or authority changes. Existing runner still exits on standing acceptance and does not consume stage logs.
+- **Limitations/next eligible task:** same unchecked child: wire client axe actions and runner stage assertions, execute transitions/late join, then exactly-once pickup/depletion and forged/out-of-range rejection. Source authoring alone does not complete delivery. Only current run active in app state; CIM unavailable. Clean main checkout used directly; no handoff synchronization required.
+
 ## Autonomous increment 2026-10-16 — Require complete standing forest delivery
 
 - **Completed:** hardened the selected generated-forest host/client delivery child's existing runner. The fixed-seed scenario now requires nine distinct matching eighteen-tree patches; one patch, eight patches, repeated reports or incorrect tree counts cannot satisfy acceptance. Timeout reports matched/required coverage and the log root.
