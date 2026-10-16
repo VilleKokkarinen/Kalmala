@@ -322,6 +322,21 @@ bool FKalmalaForestPatchLifecycleTest::RunTest(const FString& Parameters)
         TestTrue(TEXT("Production callback write serializes in memory"),
             UGameplayStatics::SaveGameToMemory(WrittenSave, WrittenBytes));
     };
+    // Rejected production callbacks must never reach the final disk boundary.
+    Mode->RecordHarvestedSpawn(FString());
+    TestEqual(TEXT("Empty harvest identity never writes population save"), WriteCalls, 0);
+    Mode->SetRole(ROLE_SimulatedProxy);
+    Mode->RecordHarvestedSpawn(Trees[1].PersistentSpawnId);
+    Mode->SetRole(ROLE_Authority);
+    TestEqual(TEXT("Non-authoritative harvest callback never writes population save"), WriteCalls, 0);
+    TestFalse(TEXT("Rejected callbacks never mark the matching save"), Save->IsHarvested(Trees[1].PersistentSpawnId));
+    auto* RejectedWorldSave = NewObject<UKalmalaWorldPopulationSaveGame>(Mode);
+    RejectedWorldSave->InitializeForWorld(FKalmalaWorldGenerationConfig{Config.WorldSeed + 1ull});
+    Mode->PopulationSaveGame = RejectedWorldSave;
+    Mode->RecordHarvestedSpawn(Trees[1].PersistentSpawnId);
+    TestEqual(TEXT("Foreign-world harvest callback never writes population save"), WriteCalls, 0);
+    TestFalse(TEXT("Foreign-world callback never contaminates its save"), RejectedWorldSave->IsHarvested(Trees[1].PersistentSpawnId));
+    Mode->PopulationSaveGame = Save;
     Mode->ActivateTerrainPatch(Coordinate);
     TestEqual(TEXT("Activation does not write sparse depletion"), WriteCalls, 0);
     const auto* CallbackNodes = Mode->ActiveForestNodes.Find(Coordinate);

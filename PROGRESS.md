@@ -1,5 +1,16 @@
 # Autonomous development progress
 
+
+## Autonomous increment 2026-10-16 — Guard forest depletion persistence callbacks
+
+- **Completed:** partial first unchecked generated-tree child. RecordHarvestedSpawn now rejects empty IDs before mutating or writing the population save. ForestPatchLifecycle asserts zero writer calls and no depletion for empty, non-authoritative and foreign-world callbacks, then retains existing valid callback/write/reconstruction coverage.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`, `Source/KalmalaGameplay/Private/Tests/KalmalaForestPatchTest.cpp`, `docs/07-development-setup.md`, `BACKLOG.md`, and this file.
+- **Lightweight checks:** inspected save mutation and authority APIs; focused guard/order/fixture assertions, brace balance, whitespace, staged scope and MAX_PATH checks passed. No Unreal compilation, automation execution, disk I/O or peers ran; full verification remains deferred for this normal partial increment.
+- **Impact/authority:** avoids unnecessary synchronous save writes for empty server notifications; existing server/world guards and valid callback behavior remain. No RPC or save-schema changes.
+- **Limitations:** new regression remains uncompiled/unexecuted. Production save-slot and live integration/peer validation remain pending; child and parent stay unchecked.
+- **Next eligible task:** same generated-tree child: production save-slot and live integration/peer validation. Only this Kalmala run active in app state; CIM inventory unavailable. Clean main checkout used directly; no handoff synchronization required.
+
+
 ## Autonomous increment 2026-10-16 — Round-trip forest pickup snapshots through disk
 
 - **Completed:** partial first unchecked generated-tree child. Meadow/Elderwood acceptance round-trips production callback bytes through a unique OS temporary file before existing save/patch reconstruction; checks MAX_PATH, unused path, write/read success and exact bytes. Scope-exit cleanup covers partial writes.

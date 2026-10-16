@@ -2151,7 +2151,8 @@ void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey)
 
 void AKalmalaGameMode::RecordHarvestedSpawn(const FString& PersistentSpawnId)
 {
-    if (HasAuthority() && PopulationSaveGame != nullptr && PopulationSaveGame->MatchesWorld(WorldGenerationConfig))
+    if (HasAuthority() && !PersistentSpawnId.IsEmpty() && PopulationSaveGame != nullptr
+        && PopulationSaveGame->MatchesWorld(WorldGenerationConfig))
     {
         PopulationSaveGame->MarkHarvested(PersistentSpawnId);
 #if WITH_DEV_AUTOMATION_TESTS

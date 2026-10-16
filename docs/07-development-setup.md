@@ -3257,3 +3257,12 @@ and patch reconstruction assertions. It checks MAX_PATH, refuses existing paths,
 checks write/read success and exact bytes, and removes the file on scope exit,
 including after partial writes. This does not exercise Unreal platform save-slot
 I/O or touch production slots. Compilation, fixture execution and peers are deferred.
+
+### Forest depletion callback rejection guards (2026-10-16)
+
+ForestPatchLifecycle checks that empty identities, non-authoritative callbacks
+and foreign-world saves never reach the population writer or mark depletion.
+RecordHarvestedSpawn rejects empty IDs before mutation and disk writes; the
+existing valid callback snapshot and patch reconstruction follow these cases.
+These additions use the private development writer override and do not touch
+production slots. Compilation, automation execution and peers remain deferred.
