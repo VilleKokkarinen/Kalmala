@@ -3222,3 +3222,17 @@ winner's exact reward/condition and reload the depleted ID through patch activat
 Rival actors and delegates are cleaned up on fixture failure or normal completion.
 This covers sequential server requests, not simultaneous network delivery.
 Unreal compilation/execution, production disk persistence and peers remain pending.
+
+### Production forest depletion callback regression (2026-10-16)
+
+ForestPatchLifecycle also broadcasts an exact materialized tree's production-bound
+OnHarvested delegate with a matching save. A private WITH_DEV_AUTOMATION_TESTS
+writer override replaces only RecordHarvestedSpawn's final SaveGameToSlot call;
+normal execution keeps the existing disk writer. The override checks the exact
+seed-scoped slot, user index zero, current save object and mark-before-write,
+then serializes that object to memory. Reloading those captured bytes and
+reactivating the patch must omit the prior and newly depleted IDs, retain every
+other candidate and add no depletion writes during activation or eviction.
+The override is cleared before teardown. This bypasses actual pickup and disk
+I/O; the separate real-pickup fixture still supplies its own memory ledger.
+Compilation, automation execution and live peer verification remain deferred.

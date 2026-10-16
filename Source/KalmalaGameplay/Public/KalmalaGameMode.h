@@ -50,6 +50,11 @@ private:
     friend class FKalmalaForestPatchLifecycleTest;
     friend class FKalmalaM9SourceAcceptanceTest;
 
+#if WITH_DEV_AUTOMATION_TESTS
+    // Isolate the final disk boundary while exercising the real depletion callback.
+    TFunction<void(class UKalmalaWorldPopulationSaveGame*, const FString&, int32)> PopulationSaveWriterForTests;
+#endif
+
     void ActivateTerrainPatch(const FIntPoint& PatchCoordinate);
     void ActivateTerrainPatchNeighborhood(const FVector2D& WorldPosition);
     void RefreshTerrainPatchNeighborhoods();

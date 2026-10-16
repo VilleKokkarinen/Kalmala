@@ -2154,6 +2154,13 @@ void AKalmalaGameMode::RecordHarvestedSpawn(const FString& PersistentSpawnId)
     if (HasAuthority() && PopulationSaveGame != nullptr && PopulationSaveGame->MatchesWorld(WorldGenerationConfig))
     {
         PopulationSaveGame->MarkHarvested(PersistentSpawnId);
+#if WITH_DEV_AUTOMATION_TESTS
+        if (PopulationSaveWriterForTests)
+        {
+            PopulationSaveWriterForTests(PopulationSaveGame, KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+            return;
+        }
+#endif
         UGameplayStatics::SaveGameToSlot(PopulationSaveGame, KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
     }
 }

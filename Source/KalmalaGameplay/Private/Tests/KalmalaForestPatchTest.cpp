@@ -303,6 +303,69 @@ bool FKalmalaForestPatchLifecycleTest::RunTest(const FString& Parameters)
         for (const auto& Node : EvictedNodes)
             TestFalse(TEXT("Save guard eviction destroys replacements"), Node.IsValid());
     }
+    // Run the production-bound callback with only its final disk boundary replaced.
+    // Keep the previously seeded ID and persist a second tree, then reconstruct
+    // from the bytes captured at write time rather than the live save object.
+    Mode->PopulationSaveGame = Save;
+    int32 WriteCalls = 0;
+    TArray<uint8> WrittenBytes;
+    Mode->PopulationSaveWriterForTests = [&](UKalmalaWorldPopulationSaveGame* WrittenSave,
+        const FString& Slot, const int32 UserIndex)
+    {
+        ++WriteCalls;
+        TestTrue(TEXT("Production callback writes its current world save"), WrittenSave == Save);
+        TestEqual(TEXT("Production callback selects the seed-scoped population slot"), Slot,
+            FString::Printf(TEXT("KalmalaPopulationDeltas_%llu"), Config.WorldSeed));
+        TestEqual(TEXT("Production callback retains population user index"), UserIndex, 0);
+        TestTrue(TEXT("Production callback marks depletion before writing"),
+            WrittenSave->IsHarvested(Trees[1].PersistentSpawnId));
+        TestTrue(TEXT("Production callback write serializes in memory"),
+            UGameplayStatics::SaveGameToMemory(WrittenSave, WrittenBytes));
+    };
+    Mode->ActivateTerrainPatch(Coordinate);
+    TestEqual(TEXT("Activation does not write sparse depletion"), WriteCalls, 0);
+    const auto* CallbackNodes = Mode->ActiveForestNodes.Find(Coordinate);
+    if (TestNotNull(TEXT("Callback fixture activates forest actors"), CallbackNodes))
+    {
+        AKalmalaHarvestNode* CallbackNode = nullptr;
+        for (const auto& Node : *CallbackNodes)
+            if (Node.IsValid() && Node->GetPersistentSpawnId() == Trees[1].PersistentSpawnId) CallbackNode = Node.Get();
+        if (TestNotNull(TEXT("Callback fixture finds the exact uncollected tree"), CallbackNode))
+        {
+            TestTrue(TEXT("Successful callback uses production GameMode binding"), CallbackNode->OnHarvested.IsBoundToObject(Mode));
+            CallbackNode->OnHarvested.Broadcast(CallbackNode->GetPersistentSpawnId());
+            TestEqual(TEXT("One bound depletion callback performs one write"), WriteCalls, 1);
+        }
+    }
+    Mode->RefreshTerrainPatchNeighborhoods();
+    TestEqual(TEXT("Callback fixture eviction never writes depletion"), WriteCalls, 1);
+    auto* WrittenSave = Cast<UKalmalaWorldPopulationSaveGame>(UGameplayStatics::LoadGameFromMemory(WrittenBytes));
+    if (TestNotNull(TEXT("Production callback bytes reload as population save"), WrittenSave))
+    {
+        TestTrue(TEXT("Production write retains world identity"), WrittenSave->MatchesWorld(Config));
+        Mode->PopulationSaveGame = WrittenSave;
+        Mode->ActivateTerrainPatch(Coordinate);
+        const auto* ReloadNodes = Mode->ActiveForestNodes.Find(Coordinate);
+        if (TestNotNull(TEXT("Production callback snapshot reconstructs patch"), ReloadNodes))
+        {
+            TestEqual(TEXT("Production snapshot excludes both depleted trees"), ReloadNodes->Num(), Trees.Num() - 2);
+            for (const auto& Tree : Trees)
+            {
+                const bool bDepleted = Tree.PersistentSpawnId == Trees[0].PersistentSpawnId
+                    || Tree.PersistentSpawnId == Trees[1].PersistentSpawnId;
+                TestEqual(TEXT("Production snapshot preserves exactly the expected depletion"),
+                    WrittenSave->IsHarvested(Tree.PersistentSpawnId), bDepleted);
+                bool bLive = false;
+                for (const auto& Node : *ReloadNodes)
+                    bLive |= Node.IsValid() && Node->GetPersistentSpawnId() == Tree.PersistentSpawnId;
+                TestEqual(TEXT("Production snapshot reconstructs only uncollected candidates"), bLive, !bDepleted);
+                TestFalse(TEXT("Production harvesting does not record creature defeat"), WrittenSave->IsDefeated(Tree.PersistentSpawnId));
+            }
+        }
+        Mode->RefreshTerrainPatchNeighborhoods();
+        TestEqual(TEXT("Production snapshot reload and eviction add no writes"), WriteCalls, 1);
+    }
+    Mode->PopulationSaveWriterForTests = {};
     World->DestroyWorld(false);
     return true;
 }

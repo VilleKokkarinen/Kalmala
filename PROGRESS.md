@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-16 — Cover production forest depletion callback
+
+- **Completed:** partial first unchecked generated-tree child. ForestPatchLifecycle invokes the materialized node's real GameMode depletion binding with a matching save. A private development-test-only writer override captures serialized bytes at the final disk boundary; the fixture checks seed-scoped slot/user, current save, mark-before-write, exact prior/new depletion and reconstruction of uncollected candidates, with no activation/eviction writes.
+- **Files changed:** `Source/KalmalaGameplay/Public/KalmalaGameMode.h`, `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`, `Source/KalmalaGameplay/Private/Tests/KalmalaForestPatchTest.cpp`, `docs/07-development-setup.md`, `BACKLOG.md`, and this file.
+- **Lightweight checks:** inspected production authority/world guard and callback binding, serialization/reconstruction and cleanup ordering; focused source/preprocessor/brace assertions, whitespace, diff/scope and MAX_PATH checks passed. No Unreal compilation, automation execution or peers ran; full verification remains deferred for this normal partial increment.
+- **Impact/authority:** regression source plus a private writer override compiled only with development automation. Normal disk writing, server authority, RPCs, rewards and save schemas remain unchanged; no project save slots were written by this run.
+- **Limitations:** uncompiled/unexecuted. Delegate broadcast bypasses actual pickup and substitutes memory serialization for disk I/O. Separate pickup and production callback fixtures are not yet joined; child/parent stay unchecked.
+- **Next eligible task:** same generated-tree child: real pickup through the production callback, disk persistence and live integration/peer validation. Only this run active in app state; CIM inventory unavailable. Clean main checkout used directly; no handoff synchronization required.
+
 ## Autonomous increment 2026-10-16 — Cover competing generated wood pickups
 
 - **Completed:** partial first unchecked generated-tree child. SecondWaveHarvestAcceptance creates a distinct authenticated same-world rival for both generated biomes, verifies eligibility before pickup, then rejects the rival after the original pawn collects. Checks zero rival wood, exact rival grid/Main Hand preservation and one sparse/no session callback; existing winner reward/condition and patch-reload assertions follow.
