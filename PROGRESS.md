@@ -2,6 +2,18 @@
 
 
 
+
+## Autonomous increment 2026-10-16 — Execute and repair forest regressions
+
+- **Completed:** first unchecked generated-forest execution step. Built the temporary editor target and executed TreeFelling, ForestReconstructionLifecycle, ForestPatchLifecycle and M9.SecondWaveHarvestAcceptance; final queue passed 4/4 and exited 0. Checked only this nested step; generated-forest and tree-feature parents remain open.
+- **Files changed:** the ForestPatch and M9SourceAcceptance test sources, BACKLOG.md, this file and docs/07-development-setup.md (exact commands and retained log locations). Source base was `30cd141` plus this run's repairs.
+- **Failures/repairs:** initial mirror lacked the existing project plugin, then the filtered build lacked runtime Core DLL; copied existing plugin and completed target links. Initial queue passed 2/4 but exited 0 despite failures. Explicit controller registration repaired the uninitialized patch fixture. M9 now advances 0.25 seconds beyond starter-hammer hotbar cadence and asserts selected axe/positive damage. The first time-only tick asserted without a world context; added scoped engine context registration. Subsequent build and entire four-test queue passed; no gameplay source changed.
+- **Verification:** final `Build.bat KalmalaEditor Win64 Development -Project=C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject -WaitMutex -NoHotReload -MaxParallelActions=4` succeeded. Exact headless command is in setup; `run6/tests.log` explicitly records four successes, queue empty and exit 0. Logs/builds/user saves stayed in the temporary mirror; normal LOCALAPPDATA UnrealBuildTool access used. Whitespace, changed-path MAX_PATH and staged scope/diff inspection performed before commit. Not milestone-final; full feature/project verification remains deferred.
+- **Impact/authority:** authored forest collision, reconstruction/reset, multi-player neighborhood, callback guards and real axe/pickup/rejection/retry snapshot cases now have executed regression evidence. Fixes affect isolated test setup only; server authority, RPCs, schemas and runtime behavior unchanged.
+- **Limitations:** auxiliary-world teardown warnings remain; no automation errors in final queue. Non-Windows SDK diagnostics did not block Win64. Production population writer remains overridden; snapshot temporary-file I/O executed but actual population slot/startup reload and live peer/rendered acceptance remain pending.
+- **Next eligible task:** exercise actual population save-slot persistence with the writer override disabled in an isolated temporary root. Only this run active; earlier planning turn confirmed completed, CIM unavailable. Main checkout initially clean and used directly; no handoff synchronization required. Stop after this increment's commit.
+
+
 ## User-directed planning 2026-10-16 — Make remaining tree work executable
 
 - **Completed:** decomposed the existing generated-forest and moving-fall backlog children into an ordered future-run plan with explicit completion criteria. First execute existing compiled regressions, then actual isolated save-slot reload, host/client delivery, streaming/restart acceptance and integration handoff; follow with moving fall, targeting/presentation and final feature acceptance.

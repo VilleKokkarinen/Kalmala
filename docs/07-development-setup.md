@@ -1,5 +1,50 @@
 # Development setup
 
+
+## Executed generated-forest regressions — 2026-10-16
+
+This result supersedes earlier source-only/deferred notes for the four tests below.
+Source: base `30cd141` plus the two fixture repairs committed with this entry.
+Used disposable `C:/Users/Ville/AppData/Local/Temp/kmforest`, copying current
+Source, Config, Content, Kalmala.uproject and the existing VisualStudioTools
+plugin; checked copied paths against MAX_PATH before copying. No repository
+Binaries, Intermediate, Saved or DerivedDataCache outputs were used or modified.
+UnrealBuildTool had normal access to its LOCALAPPDATA directory.
+
+Commands actually run (PowerShell; final successful build and queue):
+
+```powershell
+& 'C:/Program Files/Epic Games/UE_5.8/Engine/Build/BatchFiles/Build.bat' KalmalaEditor Win64 Development '-Project=C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject' -WaitMutex -NoHotReload -MaxParallelActions=4
+& 'C:/Program Files/Epic Games/UE_5.8/Engine/Binaries/Win64/UnrealEditor-Cmd.exe' 'C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -NoZenAutoLaunch -DDC=NoZenLocalFallback '-UserDir=C:/Users/Ville/AppData/Local/Temp/kmforest/run6/user' '-abslog=C:/Users/Ville/AppData/Local/Temp/kmforest/run6/tests.log' '-ExecCmds=Automation RunTests Kalmala.Gameplay.Harvest.TreeFelling+Kalmala.Gameplay.Harvest.ForestReconstructionLifecycle+Kalmala.Gameplay.Harvest.ForestPatchLifecycle+Kalmala.Gameplay.M9.SecondWaveHarvestAcceptance' '-TestExit=Automation Test Queue Empty'
+```
+
+Build succeeded; all four named tests logged Result={Success}, the queue
+reported four tests performed, and process exit was 0. Build log is
+`C:/Users/Ville/AppData/Local/Temp/kmforest/run6/build.log`; automation log is
+`C:/Users/Ville/AppData/Local/Temp/kmforest/run6/tests.log`. Require explicit
+successful results: the initial failing queue also returned exit 0.
+
+Initial mirror build needed the existing project plugin copied; the filtered
+module build succeeded but startup lacked the Core DLL, resolved by completing
+the editor target. Initial test execution (`run2`) passed two tests and failed
+two. ForestPatchLifecycle's uninitialized world did not register its spawned
+controllers; explicit registration fixes the observed neighborhood. M9's startup
+hammer selection exhausted the hotbar request cadence at time zero; a 0.25-second
+time-only tick permits real axe selection. A tick without an engine world context
+asserted in `run5`; the fixture now registers that context and removes it on scope
+exit. Final `run6` rebuilt and passed the complete four-test queue. Assertions
+also confirm the selected axe identity and positive catalogue attack damage.
+
+Warnings remain for context-free auxiliary fixture-world actor destruction and
+begun-play teardown without EndPlay; no automation errors remain. Non-Windows
+SDK diagnostics are unrelated to the successful Win64 build/queue. This is the
+explicitly queued focused execution step, not milestone-final verification.
+Production population writing is still overridden at its final boundary; the
+existing temporary-file snapshot round trip did execute. Actual population
+save-slot/startup reload, live peers, rendering and broad feature acceptance
+remain pending. No runtime, authority, RPC or save-schema contract changed.
+
+
 ## Main Hand and equipment acceptance — 2026-10-15
 
 The Main Hand/hotbar backlog child has completed integrated acceptance. An

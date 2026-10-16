@@ -135,6 +135,10 @@ bool FKalmalaForestPatchLifecycleTest::RunTest(const FString& Parameters)
     }
     FirstController->Possess(FirstPawn);
     SecondController->Possess(SecondPawn);
+    // This world never initializes actors for play, so controller registration
+    // normally performed by PostInitializeComponents must be explicit.
+    World->AddController(FirstController);
+    World->AddController(SecondController);
     TestTrue(TEXT("Both controllers possess neighborhood pawns"),
         FirstController->GetPawn() == FirstPawn && SecondController->GetPawn() == SecondPawn);
     Mode->RefreshTerrainPatchNeighborhoods();

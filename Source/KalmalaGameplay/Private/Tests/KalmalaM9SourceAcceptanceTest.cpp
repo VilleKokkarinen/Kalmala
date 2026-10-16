@@ -54,6 +54,8 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
 
     UWorld* World = UWorld::CreateWorld(EWorldType::Game, false);
     if (!TestNotNull(TEXT("M9 harvest acceptance world created"), World)) return false;
+    GEngine->CreateNewWorldContext(EWorldType::Game).SetCurrentWorld(World);
+    ON_SCOPE_EXIT { GEngine->DestroyWorldContext(World); };
     World->SetGameState(World->SpawnActor<AKalmalaWorldGenerationGameState>());
     World->SetGameInstance(NewObject<UGameInstance>(GEngine));
     World->GetWorldSettings()->DefaultGameMode = AKalmalaGameMode::StaticClass();
@@ -296,9 +298,14 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
                 bAllFixturesValid = false;
                 continue;
             }
+            // BeginPlay selected the starter hammer at this world's current time.
+            // Let the ordinary hotbar request cadence expire before selecting the axe.
+            World->Tick(LEVELTICK_TimeOnly, 0.25f);
             Inventory->ServerUseHotbarSlot(Slot);
+            TestEqual(TEXT("Hotbar selects the fixture axe"), Inventory->GetActiveItem(), Source.ToolItemId);
             const FKalmalaDamageChannels AxeDamage = FKalmalaToolLifecycleContract::GetAttackDamageBonuses(
                 Source.ToolItemId, Source.ToolLevel, TEXT("Basic"));
+            TestTrue(TEXT("Fixture axe supplies positive attack damage"), AxeDamage.Total() > 0.0f);
             AcceptedUses = 0;
             while (!Node->IsWoodDrop() && AcceptedUses < 30)
             {
