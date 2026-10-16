@@ -125,6 +125,11 @@ private:
     float ForestDeliveryElapsed = 0;
     int32 ForestDeliveryDiagnostics = 0;
     TSet<FString> ForestDeliveryReported;
+    float ForestDriverReadySeconds = 0;
+    bool bForestDriverPrepared = false;
+    FString ForestDriverStage;
+    int32 ForestDriverStageWait = 0;
+    int32 ForestDriverRequests = 0;
     bool bConstructionMovementSpawned = false;
     bool bConstructionMovementFinished = false;
     float ConstructionMovementElapsed = 0.0f;

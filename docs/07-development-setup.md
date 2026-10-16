@@ -6,9 +6,15 @@
 keeps peers running until nine standing patches match and both report Trunk and
 Drop for one identical tree ID in seed 10323456789. Timeout includes stage
 coverage. ForestStages requires ForestDeliveryOnly; default standing acceptance
-is retained. This gate does not drive attacks or prove late join, pickup or
-rejection, and will time out without a transition driver. Parser and six synthetic
-cases executing the real selector passed; live transitions remain unexecuted.
+is retained. ForestStages also enables the non-shipping KalmalaForestStageDriver:
+after host standing coverage and a fifteen-second delivery grace period, the server
+equips a remote pawn with a fresh level-one Iron Axe and positions it beside the
+nearest generated tree. Movement is disabled in this isolated fixture. The owner
+waits for its own nine standing reports, then sends ordinary sequence-only attack
+requests once per observation tick, retaining each stage for three extra ticks.
+The server still selects targets and validates range, equipment, cadence and damage.
+The driver stops at a drop or fails after sixty requests. No pickup is issued.
+Driver compilation/live execution, late join, pickup and rejection remain pending.
 
 
 ## Executed standing forest peer delivery — 2026-10-16

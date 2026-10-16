@@ -20,6 +20,7 @@ if ($ForestDeliveryOnly) {
     $serverLog = Join-Path $output 'host.log'
     $clientLog = Join-Path $output 'client.log'
     $common = '-game -nullrhi -nosound -unattended -nosplash -NoZenAutoLaunch -DDC=NoZenLocalFallback -forcelogflush -KalmalaForestDeliveryTest -ExecCmds="t.MaxFPS 30"'
+    if ($ForestStages) { $common += ' -KalmalaForestStageDriver' }
     $server = $null
     $client = $null
     try {

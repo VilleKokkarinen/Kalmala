@@ -1,5 +1,13 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-16 — Drive forest stages through owned attacks
+
+- **Completed:** partial first unchecked generated-forest host/client delivery child. ForestStages enables a non-shipping fixture that waits for nine host standing reports plus fifteen observation ticks, equips a remote pawn with a fresh level-one Iron Axe through the server Main Hand transaction, disables fixture movement and places it beside the nearest generated tree. After its own nine standing reports, the owner issues normal sequence-only attack requests, holds each stage for three additional observation ticks, stops at a drop and reports failure after sixty requests.
+- **Files changed:** Scripts/Tests/World/Verify-BiomeExpansion.ps1, Source/KalmalaGameplay/Private/KalmalaForestDeliveryVerification.cpp, Source/KalmalaGameplay/Public/KalmalaCharacter.h, docs/07-development-setup.md, BACKLOG.md and PROGRESS.md.
+- **Lightweight verification:** PowerShell AST parser, focused source/guard/brace assertions, durability API declaration check and careful attack/target/Main Hand API inspection passed. Whitespace, staged scope/diff and changed-path MAX_PATH checks performed before commit. No Unreal compile, automation, or live peers; full verification remains deferred for this normal partial increment.
+- **Impact/authority:** optional development fixture now drives the existing stage gate without direct tree damage mutation. Setup remains server-owned; client requests contain no target, damage or item parameters. Existing server combat targeting/range/cadence/equipment validation remains in force. No production RPC or save-schema changes.
+- **Limitations/next eligible task:** same unchecked delivery child: compile/execute and repair the driver, then late join, exactly-once pickup/depletion and forged/out-of-range rejection acceptance. The grace period is not a peer acknowledgement; insufficient initial coverage or blocked targeting must fail the gate rather than pass. No live impact claimed. App inventory showed only this autonomous Kalmala run active; the other active smiley task is unrelated, earlier automation idle; CIM inventory unavailable. Main checkout initially clean and used directly; no handoff synchronization required.
+
 ## Autonomous increment 2026-10-16 — Gate peer forest stage delivery
 
 - **Completed:** partial first unchecked generated-forest host/client child: opt-in ForestStages requires nine standing patches and both peers reporting Trunk and Drop for one exact ID/seed. Deduplicates reports and adds stage timeout diagnostics; rejects use outside ForestDeliveryOnly.

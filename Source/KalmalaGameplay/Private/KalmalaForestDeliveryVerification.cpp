@@ -1,4 +1,6 @@
 #include "KalmalaCharacter.h"
+#include "KalmalaInventoryComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "KalmalaForestLayout.h"
 #include "KalmalaGeneratedTerrainPatch.h"
 #include "KalmalaHarvestNode.h"
@@ -81,6 +83,63 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
         ForestDeliveryReported.Add(Key);
         UE_LOG(LogTemp, Display, TEXT("Forest delivery: Passed=1 Authority=%d Seed=%llu Trees=%d Cosmetics=0 Ids=%s"),
             HasAuthority(), Config.WorldSeed, Trees.Num(), *Ids);
+    }
+    if (!FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestStageDriver"))) return;
+    // Standing coverage must be captured before the fixture mutates any tree.
+    int32 StandingPatches = 0;
+    for (const FString& Report : ForestDeliveryReported)
+        if (!Report.EndsWith(TEXT(":Trunk")) && !Report.EndsWith(TEXT(":Drop"))) ++StandingPatches;
+    if (StandingPatches < 9) return;
+    if (HasAuthority())
+    {
+        ForestDriverReadySeconds += 1;
+        if (bForestDriverPrepared || ForestDriverReadySeconds < 15) return;
+        AKalmalaCharacter* Remote = nullptr;
+        for (TActorIterator<AKalmalaCharacter> Pawn(GetWorld()); Pawn; ++Pawn)
+            if (Pawn->GetController() && !Pawn->IsLocallyControlled()) { Remote = *Pawn; break; }
+        if (!Remote) return;
+        AKalmalaHarvestNode* Target = nullptr;
+        for (TActorIterator<AKalmalaHarvestNode> Node(GetWorld()); Node; ++Node)
+            if (Node->GetPersistentSpawnId().StartsWith(TEXT("forest:v1:")) && Node->CanReceiveAxeAttack()
+                && (!Target || FVector::DistSquared(Node->GetActorLocation(), Remote->GetActorLocation())
+                    < FVector::DistSquared(Target->GetActorLocation(), Remote->GetActorLocation()))) Target = *Node;
+        if (!Target) return;
+        FKalmalaToolState Axe;
+        Axe.ItemId = TEXT("IronAxe");
+        Axe.InstanceGuid = FGuid::NewGuid();
+        Axe.ToolLevel = 1;
+        Axe.Durability = FKalmalaToolLifecycleContract::GetMaxDurability(Axe.ItemId, Axe.ToolLevel);
+        Remote->CarriedTools.Add(Axe);
+        FString Reason;
+        if (!Remote->GetInventoryComponent()->SetMainHandFromServer(Axe.InstanceGuid, Reason))
+        {
+            UE_LOG(LogTemp, Error, TEXT("Forest delivery: Passed=0 DriverEquip=%s"), *Reason);
+            bForestDriverPrepared = true;
+            return;
+        }
+        Remote->GetCharacterMovement()->DisableMovement();
+        Remote->SetActorLocationAndRotation(Target->GetActorLocation() + FVector(-150, 0, 88), FRotator::ZeroRotator);
+        Remote->ForceNetUpdate();
+        bForestDriverPrepared = true;
+        UE_LOG(LogTemp, Display, TEXT("Forest driver prepared: Id=%s"), *Target->GetPersistentSpawnId());
+    }
+    else if (GetInventoryComponent()->GetActiveItem() == TEXT("IronAxe"))
+    {
+        AKalmalaHarvestNode* Target = nullptr;
+        for (TActorIterator<AKalmalaHarvestNode> Node(GetWorld()); Node; ++Node)
+            if (Node->GetPersistentSpawnId().StartsWith(TEXT("forest:v1:"))
+                && FVector::DistSquared(Node->GetActorLocation(), GetActorLocation()) < FMath::Square(210.0f)
+                && (!Target || FVector::DistSquared(Node->GetActorLocation(), GetActorLocation())
+                    < FVector::DistSquared(Target->GetActorLocation(), GetActorLocation()))) Target = *Node;
+        if (!Target || Target->IsWoodDrop()) return;
+        const FString Stage = Target->IsFelledTrunk() ? TEXT("Trunk") : TEXT("Standing");
+        if (ForestDriverStage != Stage) { ForestDriverStage = Stage; ForestDriverStageWait = 0; }
+        // Leave each state observable across the one-second peer sampling cadence.
+        if (++ForestDriverStageWait < 4 || ForestDriverRequests >= 60) return;
+        ++ForestDriverRequests;
+        RequestAttack(); // Normal owned RPC carries sequence only; server selects and validates the target.
+        if (ForestDriverRequests == 60)
+            UE_LOG(LogTemp, Error, TEXT("Forest delivery: Passed=0 DriverAttackBudgetExhausted Id=%s"), *Target->GetPersistentSpawnId());
     }
 #endif
 }
