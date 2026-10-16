@@ -1,10 +1,33 @@
 # Development setup
 
+## Executed drop late join — 2026-10-16
+
+On source `43b7074`, ran:
+
+```powershell
+& ./Scripts/Tests/World/Verify-BiomeExpansion.ps1 -ForestDeliveryOnly -ForestStages -ForestDropLateJoin -Project C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject
+```
+
+Passed, exit 0: nine matching eighteen-tree standing patches, shared host/client
+Trunk and Drop for `forest:v1:10323456789:31079.1015625:5132.20068359375:13`,
+then a newly launched third observer received that exact Drop/seed with zero
+cosmetics. Source, Config and Content hashes matched the existing temporary
+mirror. No new build or runtime repair was needed. Logs are
+`C:/Users/Ville/AppData/Local/Temp/kfpeer-b782bd41/host.log`, `client.log` and
+`late.log`; all three have zero fatal/assertion/ensure/fixture-failure markers.
+Runner finally stopped all peers; no UnrealEditor process remained afterward.
+Initial sandbox host exited during startup; normal-local-access retry succeeded.
+Temporary peer roots/logs retained; existing saves and repository outputs untouched.
+
+This is partial delivery acceptance. Trunk late join is next, followed by
+exactly-once pickup/depletion and forged/out-of-range rejection. The delivery
+child remains unchecked and full feature/project verification remains deferred.
+
 ## Optional drop late-join gate — 2026-10-16
 
 Use `Verify-BiomeExpansion.ps1 -ForestDeliveryOnly -ForestStages -ForestDropLateJoin -Project <temporary-project>` to add a third observer after both original peers have reported the same exact tree as Trunk and Drop. The new peer must independently validate that Drop with the same ID/seed and zero cosmetics, without requiring historical standing reports. Its fresh `Late` user root and `late.log` share the isolated peer output root; all three processes are stopped in finally. The third peer has no stage driver. A peer exit, fatal/assertion/fixture failure or 120-second timeout fails acceptance.
 
-Parser and eight actual acceptance-selector cases passed. This phase has not been executed live; next run must execute and repair it before claiming drop late-join evidence. Trunk late join, pickup/depletion and rejection remain separate missing acceptance within the same unchecked child. Full verification remains deferred.
+Parser and eight actual acceptance-selector cases passed during authoring. Live drop late-join execution subsequently passed as recorded above. Trunk late join, pickup/depletion and rejection remain separate missing acceptance within the same unchecked child. Full verification remains deferred.
 
 ## Executed client axe forest stages — 2026-10-16
 

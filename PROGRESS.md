@@ -1,5 +1,13 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-16 — Execute forest drop late join
+
+- **Completed:** executed the next bounded part of the first unchecked generated-forest delivery child on source 43b7074. Host/client matched nine eighteen-tree standing patches and shared Trunk/Drop for forest:v1:10323456789:31079.1015625:5132.20068359375:13. A third observer launched after shared Drop received that exact seed/ID/Drop with zero cosmetics. Runner passed, exit 0; no runtime repair needed.
+- **Files changed:** BACKLOG.md, PROGRESS.md and docs/07-development-setup.md, recording executed evidence. No implementation files changed.
+- **Verification:** ran Scripts/Tests/World/Verify-BiomeExpansion.ps1 -ForestDeliveryOnly -ForestStages -ForestDropLateJoin -Project C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject with normal local access. Source/Config/Content mirror hash comparison found zero mismatches. Logs retained at C:/Users/Ville/AppData/Local/Temp/kfpeer-b782bd41/host.log, client.log and late.log; zero fatal/assertion/ensure/fixture-failure markers on all three. Runner finally stopped all peers; subsequent process inventory found no UnrealEditor process. Initial sandbox attempt exited during host startup before delivery; normal-access retry passed. No new build or automation suite ran. Whitespace, staged scope/diff and MAX_PATH checked before commit.
+- **Impact/authority:** executed late-join replication evidence for the existing drop actor, including original identity and cosmetic suppression. Production gameplay, server authority, RPCs and save formats unchanged. Fresh temporary peer user roots/logs retained; repository protected outputs and existing saves untouched.
+- **Limitations/next eligible task:** trunk late join, then exactly-once pickup/depletion and forged/out-of-range rejection within the same unchecked delivery child. No rendered review, streaming/restart or full feature/project verification; full verification remains deferred. Only current Kalmala run active at guard; earlier chats idle, CIM inventory unavailable. Clean main checkout used directly; handoff is visible without synchronization.
+
 ## Autonomous increment 2026-10-16 — Gate drop delivery to a late peer
 
 - **Completed:** partial first unchecked generated-forest host/client delivery child. Added optional ForestDropLateJoin requiring ForestStages; starts a third observer only after original host/client share exact-ID Trunk/Drop delivery. Requires the new peer to report that exact drop/seed with zero cosmetics without standing history. Third peer has no attack driver, uses a fresh isolated user root, and is stopped in finally.
