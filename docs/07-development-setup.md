@@ -3104,6 +3104,11 @@ with missing/mismatched saves and check no foreign-save contamination, followed 
 eviction cleanup. This bypasses pickup and avoids disk writes; successful callback
 persistence still needs isolated save I/O. Compilation/execution remain deferred.
 
+An adjacent-patch round trip additionally requires a twelve-patch union (six shared),
+exact retention of every original terrain actor and forest list, and destruction
+of the three introduced patches and their forest nodes on return. These assertions
+remain uncompiled and unexecuted.
+
 The patch fixture also possesses two player pawns at the same generated center.
 After one controller unpossesses, the remaining player must retain the exact terrain
 and forest actor identities. After the last unpossesses, all neighborhood tracking

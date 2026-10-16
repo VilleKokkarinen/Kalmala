@@ -152,6 +152,44 @@ bool FKalmalaForestPatchLifecycleTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Shared neighborhood excludes saved depletion"), RetainedNodes.Num(), Trees.Num() - 1);
     const int32 SharedPatchCount = Mode->ActiveTerrainPatches.Num();
     TestEqual(TEXT("Shared radius-one neighborhood has nine patches"), SharedPatchCount, 9);
+    // Adjacent radius-one neighborhoods overlap in six patches: retain all nine
+    // stationary patches and evict only the three newly introduced patches on return.
+    const auto OriginalPatches = Mode->ActiveTerrainPatches;
+    const auto OriginalForest = Mode->ActiveForestNodes;
+    const FVector2D AdjacentCenter = FKalmalaTerrainPatchLayout::GetPatchCenter(Center, 1, 0);
+    TestTrue(TEXT("First player moves to adjacent neighborhood"), FirstPawn->SetActorLocation(
+        FVector(AdjacentCenter.X, AdjacentCenter.Y, 0.0), false, nullptr, ETeleportType::TeleportPhysics));
+    Mode->RefreshTerrainPatchNeighborhoods();
+    TestEqual(TEXT("Adjacent neighborhood union has twelve patches"), Mode->ActiveTerrainPatches.Num(), 12);
+    TArray<TWeakObjectPtr<AKalmalaGeneratedTerrainPatch>> IntroducedPatches;
+    TArray<TWeakObjectPtr<AKalmalaHarvestNode>> IntroducedNodes;
+    for (const auto& Entry : Mode->ActiveTerrainPatches)
+    {
+        if (!OriginalPatches.Contains(Entry.Key))
+        {
+            TestEqual(TEXT("Only the leading column is introduced"), Entry.Key.X, 2);
+            IntroducedPatches.Add(Entry.Value.Get());
+            if (const auto* Forest = Mode->ActiveForestNodes.Find(Entry.Key))
+                IntroducedNodes.Append(*Forest);
+        }
+    }
+    TestEqual(TEXT("Adjacent movement introduces exactly three patches"), IntroducedPatches.Num(), 3);
+    TestTrue(TEXT("First player returns from adjacent neighborhood"), FirstPawn->SetActorLocation(
+        FVector(Center.X, Center.Y, 0.0), false, nullptr, ETeleportType::TeleportPhysics));
+    Mode->RefreshTerrainPatchNeighborhoods();
+    TestEqual(TEXT("Adjacent return restores nine-patch union"), Mode->ActiveTerrainPatches.Num(), SharedPatchCount);
+    for (const auto& Entry : OriginalPatches)
+    {
+        TestTrue(TEXT("Adjacent round trip retains every stationary terrain actor"),
+            IsValid(Entry.Value.Get()) && Mode->ActiveTerrainPatches.FindRef(Entry.Key) == Entry.Value);
+        const auto* Forest = Mode->ActiveForestNodes.Find(Entry.Key);
+        TestTrue(TEXT("Adjacent round trip retains every stationary forest actor list"),
+            Forest && *Forest == OriginalForest.FindChecked(Entry.Key));
+    }
+    for (const auto& Patch : IntroducedPatches)
+        TestFalse(TEXT("Adjacent return destroys introduced terrain actors"), Patch.IsValid());
+    for (const auto& Node : IntroducedNodes)
+        TestFalse(TEXT("Adjacent return destroys introduced forest actors"), Node.IsValid());
     // Separate radius-one neighborhoods fit within the existing 25-patch budget.
     const FIntPoint RemoteCoordinate(4, 0);
     const FVector2D RemoteCenter = FKalmalaTerrainPatchLayout::GetPatchCenter(Center, 4, 0);

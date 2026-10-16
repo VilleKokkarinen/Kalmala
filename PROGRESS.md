@@ -1,5 +1,15 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-16 — Cover overlapping forest neighborhoods
+
+- **Completed:** partial first unchecked generated-tree child. Extended ForestPatchLifecycle with an adjacent-patch round trip, twelve-patch union, three introduced patches, exact original terrain/forest retention and introduced actor destruction on return.
+- **Files changed:** `Source/KalmalaGameplay/Private/Tests/KalmalaForestPatchTest.cpp`, `docs/07-development-setup.md`, `BACKLOG.md`, and this file.
+- **Lightweight checks:** focused coverage/brace assertions and independent neighborhood arithmetic passed; inspected map pointer types, production refresh/eviction and actor lifetime. Working/staged whitespace, scope and MAX_PATH checks passed. No Unreal compilation, automation execution or peers ran; full verification remains deferred for this normal partial increment.
+- **Impact/authority:** regression source only for server-observed player neighborhood overlap. No runtime, RPC, reward or save-schema changes.
+- **Limitations:** uncompiled/unexecuted. Introduced forest lists may be empty; terrain destruction is mandatory and node destruction covers materialized nodes. Successful pickup persistence and live delivery remain pending; child/parent stay unchecked.
+- **Next eligible task:** same generated-tree child: isolated successful pickup persistence and live integration/peer validation. Only this run active in app state; CIM unavailable. Clean main checkout used directly; no handoff synchronization required.
+
+
 ## Autonomous increment 2026-10-16 — Cover disjoint forest neighborhoods
 
 - **Completed:** partial first unchecked generated-tree child. Extended ForestPatchLifecycle with server pawn movement between disjoint radius-one neighborhoods and return, exact stationary terrain/forest retention, doubled/collapsed patch counts and remote actor/tracking eviction.
