@@ -1,5 +1,13 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-16 — Gate forest trunk late join
+
+- **Completed:** bounded increment of the first unchecked generated-forest delivery child. Added ForestTrunkLateJoin requiring ForestStages and excluding ForestDropLateJoin. The non-shipping client driver holds at Trunk; after nine standing patches and a shared exact trunk report, the runner launches a driver-free third observer and requires the same ID/seed/Trunk with zero cosmetics. Existing drop mode retains both stage requirements and cleanup.
+- **Files changed:** Scripts/Tests/World/Verify-BiomeExpansion.ps1, Source/KalmalaGameplay/Private/KalmalaForestDeliveryVerification.cpp, BACKLOG.md, PROGRESS.md and docs/07-development-setup.md.
+- **Checks:** PowerShell parser passed; actual shared-stage selector passed trunk-only acceptance, ordinary rejection without Drop and ordinary acceptance with Drop (3 cases). Actual late-stage selector passed matching/mismatched Trunk/Drop (4 cases). Inspected driver hold ordering and observer flag removal. Whitespace, staged diff/scope and MAX_PATH checked before commit. No Unreal compile or live peers; full verification deferred for this normal partial increment.
+- **Impact/authority:** opt-in fixture/runner only; production harvesting, RPC validation, server authority and save formats unchanged. Holds client attack requests while the observer joins; timeout still fails acceptance.
+- **Limitations/next:** compile the changed fixture in the documented short temporary mirror and execute ForestTrunkLateJoin, then exactly-once pickup/depletion and forged/out-of-range rejection. Delivery child remains unchecked. Only current chat active, previous run completed, initial checkout clean; CIM unavailable. Main checkout used directly; no handoff sync needed.
+
 ## Autonomous increment 2026-10-16 — Execute forest drop late join
 
 - **Completed:** executed the next bounded part of the first unchecked generated-forest delivery child on source 43b7074. Host/client matched nine eighteen-tree standing patches and shared Trunk/Drop for forest:v1:10323456789:31079.1015625:5132.20068359375:13. A third observer launched after shared Drop received that exact seed/ID/Drop with zero cosmetics. Runner passed, exit 0; no runtime repair needed.

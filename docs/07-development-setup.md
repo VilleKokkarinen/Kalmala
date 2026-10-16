@@ -1,5 +1,10 @@
 # Development setup
 
+## Forest trunk late-join gate (2026-10-16; execution pending)
+
+After compiling the changed fixture in the short temporary mirror, run `Scripts/Tests/World/Verify-BiomeExpansion.ps1 -ForestDeliveryOnly -ForestStages -ForestTrunkLateJoin -Project <temporary-project>`. This excludes ForestDropLateJoin. The opt-in non-shipping KalmalaForestHoldTrunk flag stops the client attack driver at Trunk. After nine shared standing patches and a matching exact trunk report, a third observer joins without driver/hold flags and must report that exact ID/seed/Trunk with zero cosmetics. All peers stop in finally. Existing drop mode remains available. Parser and seven selector cases passed; compilation/live acceptance pending. Execute this gate next, before pickup/depletion and rejection coverage.
+
+
 ## Executed drop late join — 2026-10-16
 
 On source `43b7074`, ran:

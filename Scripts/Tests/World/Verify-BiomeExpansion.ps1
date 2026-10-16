@@ -3,6 +3,7 @@ param(
     [switch]$ForestDeliveryOnly,
     [switch]$ForestStages,
     [switch]$ForestDropLateJoin,
+    [switch]$ForestTrunkLateJoin,
     [string]$Project,
     [int]$Port = 17849
 )
@@ -12,6 +13,7 @@ $repoPaths = Get-KalmalaPaths -StartPath $PSScriptRoot
 $ErrorActionPreference = 'Stop'
 if ($ForestStages -and !$ForestDeliveryOnly) { throw '-ForestStages requires -ForestDeliveryOnly.' }
 if ($ForestDropLateJoin -and !$ForestStages) { throw '-ForestDropLateJoin requires -ForestStages.' }
+if ($ForestTrunkLateJoin -and (!$ForestStages -or $ForestDropLateJoin)) { throw '-ForestTrunkLateJoin requires -ForestStages and excludes -ForestDropLateJoin.' }
 if (!$Project) { $Project = Join-Path ($repoPaths.ProjectRoot) 'Kalmala.uproject' }
 $project = (Resolve-Path -LiteralPath $Project).Path
 if ($ForestDeliveryOnly) {
@@ -23,6 +25,7 @@ if ($ForestDeliveryOnly) {
     $clientLog = Join-Path $output 'client.log'
     $common = '-game -nullrhi -nosound -unattended -nosplash -NoZenAutoLaunch -DDC=NoZenLocalFallback -forcelogflush -KalmalaForestDeliveryTest -ExecCmds="t.MaxFPS 30"'
     if ($ForestStages) { $common += ' -KalmalaForestStageDriver' }
+    if ($ForestTrunkLateJoin) { $common += ' -KalmalaForestHoldTrunk' }
     $server = $null
     $client = $null
     $lateClient = $null
@@ -59,34 +62,36 @@ if ($ForestDeliveryOnly) {
                 ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique | Where-Object {
                     $id = $_
                     $clientText.Contains("Forest stage delivery: Passed=1 Authority=0 Seed=10323456789 Id=$id Stage=Trunk Cosmetics=0") -and
-                    $hostText.Contains("Forest stage delivery: Passed=1 Authority=1 Seed=10323456789 Id=$id Stage=Drop Cosmetics=0") -and
-                    $clientText.Contains("Forest stage delivery: Passed=1 Authority=0 Seed=10323456789 Id=$id Stage=Drop Cosmetics=0")
+                    ($ForestTrunkLateJoin -or (
+                        $hostText.Contains("Forest stage delivery: Passed=1 Authority=1 Seed=10323456789 Id=$id Stage=Drop Cosmetics=0") -and
+                        $clientText.Contains("Forest stage delivery: Passed=1 Authority=0 Seed=10323456789 Id=$id Stage=Drop Cosmetics=0")))
                 })
             if ($shared.Count -eq 9 -and (!$ForestStages -or $sharedStages.Count -gt 0)) { break }
             Start-Sleep -Milliseconds 500
         } while ((Get-Date) -lt $deadline)
         if ((Get-Date) -ge $deadline) { throw "Exact forest replacement/suppression delivery timed out: $($shared.Count)/9 matching eighteen-tree patches; $($sharedStages.Count) shared Trunk/Drop IDs (required=$ForestStages). Inspect $output." }
-        if ($ForestStages) { Write-Output "PASS: host/client Trunk and Drop delivery for exact tree IDs: $($sharedStages -join ', ')." }
-        if ($ForestDropLateJoin) {
-            # Join only after both original peers observed this exact drop.
+        if ($ForestStages) { Write-Output "PASS: host/client required stage delivery for exact tree IDs: $($sharedStages -join ', ')." }
+        if ($ForestDropLateJoin -or $ForestTrunkLateJoin) {
+            $lateStage = if ($ForestTrunkLateJoin) { 'Trunk' } else { 'Drop' }
+            # Join only after both original peers observed this exact stage.
             # The observer does not need standing history; no driver on this peer.
             $lateId = $sharedStages[0]
             $lateLog = Join-Path $output 'late.log'
-            $lateCommon = $common.Replace(' -KalmalaForestStageDriver', '')
+            $lateCommon = $common.Replace(' -KalmalaForestStageDriver', '').Replace(' -KalmalaForestHoldTrunk', '')
             $lateClient = Start-Process $Editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" 127.0.0.1:$Port -WorldSeed=999 $lateCommon -abslog=`"$lateLog`" -UserDir=`"$output\Late`""
             $deadline = (Get-Date).AddSeconds(120)
             do {
-                if ($server.HasExited -or $client.HasExited -or $lateClient.HasExited) { throw 'A forest peer exited during drop late join.' }
+                if ($server.HasExited -or $client.HasExited -or $lateClient.HasExited) { throw 'A forest peer exited during late join.' }
                 $hostText = [string](Get-Content $serverLog -Raw)
                 $clientText = [string](Get-Content $clientLog -Raw)
                 $lateText = if (Test-Path $lateLog) { [string](Get-Content $lateLog -Raw) } else { '' }
                 if (($hostText + $clientText + $lateText) -match 'Fatal error:|Assertion failed:|Forest delivery: Passed=0') { throw "Forest late-join failure; inspect $output." }
-                $lateDropDelivered = $lateText.Contains("Forest stage delivery: Passed=1 Authority=0 Seed=10323456789 Id=$lateId Stage=Drop Cosmetics=0")
-                if ($lateDropDelivered) { break }
+                $lateStageDelivered = $lateText.Contains("Forest stage delivery: Passed=1 Authority=0 Seed=10323456789 Id=$lateId Stage=$lateStage Cosmetics=0")
+                if ($lateStageDelivered) { break }
                 Start-Sleep -Milliseconds 500
             } while ((Get-Date) -lt $deadline)
-            if (!$lateDropDelivered) { throw "Forest drop late join timed out for $lateId; inspect $output." }
-            Write-Output "PASS: new peer joined after drop and received exact tree $lateId with zero cosmetics."
+            if (!$lateStageDelivered) { throw "Forest $lateStage late join timed out for $lateId; inspect $output." }
+            Write-Output "PASS: new peer joined after $lateStage and received exact tree $lateId with zero cosmetics."
         }
         Write-Output "PASS: $($shared.Count) populated forest patches match host/client exact IDs, transforms, shape, source, standing state and zero cosmetics."
     }

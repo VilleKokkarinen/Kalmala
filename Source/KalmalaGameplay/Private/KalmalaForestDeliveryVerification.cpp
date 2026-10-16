@@ -133,6 +133,9 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
                 && (!Target || FVector::DistSquared(Node->GetActorLocation(), GetActorLocation())
                     < FVector::DistSquared(Target->GetActorLocation(), GetActorLocation()))) Target = *Node;
         if (!Target || Target->IsWoodDrop()) return;
+        // Optional trunk-only peer gate keeps this state stable while a third
+        // observer joins. Ordinary stage/drop runs retain their existing cadence.
+        if (Target->IsFelledTrunk() && FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestHoldTrunk"))) return;
         const FString Stage = Target->IsFelledTrunk() ? TEXT("Trunk") : TEXT("Standing");
         if (ForestDriverStage != Stage) { ForestDriverStage = Stage; ForestDriverStageWait = 0; }
         // Leave each state observable across the one-second peer sampling cadence.
