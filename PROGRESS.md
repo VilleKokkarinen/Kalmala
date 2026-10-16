@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-16 — Cover competing generated wood pickups
+
+- **Completed:** partial first unchecked generated-tree child. SecondWaveHarvestAcceptance creates a distinct authenticated same-world rival for both generated biomes, verifies eligibility before pickup, then rejects the rival after the original pawn collects. Checks zero rival wood, exact rival grid/Main Hand preservation and one sparse/no session callback; existing winner reward/condition and patch-reload assertions follow.
+- **Files changed:** `Source/KalmalaGameplay/Private/Tests/KalmalaM9SourceAcceptanceTest.cpp`, `docs/07-development-setup.md`, `BACKLOG.md`, and this file.
+- **Lightweight checks:** source/API and ordering inspection, focused fixture/cleanup/brace assertions, working/staged whitespace, scope and MAX_PATH checks passed. No Unreal compilation, automation execution or peers ran; full verification remains deferred for this normal partial increment.
+- **Impact/authority:** regression source only, exercising sequential competing server pickup requests. No runtime behavior, RPC, reward or save-schema changes.
+- **Limitations:** uncompiled/unexecuted; this is server serialization coverage, not simultaneous network input. Production disk callback is still replaced by the memory ledger; child/parent stay unchecked.
+- **Next eligible task:** same generated-tree child: production persistence and live integration/peer validation. Only this run active in app state; CIM process inventory unavailable. Clean main checkout used directly; no handoff synchronization required.
+
 ## Autonomous increment 2026-10-16 — Cover generated drop request guards
 
 - **Completed:** partial first unchecked generated-tree child. Extended SecondWaveHarvestAcceptance after felling for both biomes with null/foreign actors, negative trace, trace beyond range, nonpositive range and a distant pawn claiming a short trace. Each rejection preserves drop/identity, exact pack/Main Hand, axe condition, owner/foreign rewards and sparse/session state. Restores position before existing capacity and successful pickup/reload flow.

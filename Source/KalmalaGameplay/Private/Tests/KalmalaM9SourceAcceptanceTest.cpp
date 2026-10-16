@@ -348,8 +348,54 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
                     Inventory->TryConsumeFromServer(TEXT("BoarHideBoots"), FillerCount));
             }
         }
+        AKalmalaCharacter* Rival = nullptr;
+        APlayerState* RivalState = nullptr;
+        TArray<FGuid> RivalGrid;
+        FGuid RivalHand;
+        if (Source.bGeneratedForest)
+        {
+            FActorSpawnParameters RivalParameters;
+            RivalParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+            Rival = World->SpawnActor<AKalmalaCharacter>(Location, FRotator::ZeroRotator, RivalParameters);
+            RivalState = World->SpawnActor<APlayerState>();
+            if (!TestNotNull(TEXT("Competing pickup pawn spawned"), Rival)
+                || !TestNotNull(TEXT("Competing pickup player state spawned"), RivalState))
+            {
+                if (Rival) Rival->Destroy();
+                if (RivalState) RivalState->Destroy();
+                Node->OnHarvested.Clear();
+                Node->OnM9ResourceDepleted.Clear();
+                Node->Destroy();
+                bAllFixturesValid = false;
+                continue;
+            }
+            const FUniqueNetIdStringRef RivalId = FUniqueNetIdString::Create(
+                FString::Printf(TEXT("m9-forest-rival-%d"), Index), FName(TEXT("KalmalaM9SourceAcceptanceTest")));
+            RivalState->SetUniqueId(FUniqueNetIdRepl(*RivalId));
+            Rival->SetPlayerState(RivalState);
+            Rival->GetInventoryComponent()->SynchronizeGridFromServer();
+            RivalGrid = Rival->GetInventoryComponent()->GetGridInstanceGuids();
+            RivalHand = Rival->GetInventoryComponent()->GetMainHandGuid();
+            TestTrue(TEXT("Nearby rival is eligible before the first pickup"), Node->CanInteract_Implementation(Rival));
+            TestEqual(TEXT("Rival starts without the generated wood reward"),
+                Rival->GetInventoryComponent()->GetQuantity(Source.ItemId), 0);
+        }
         TestTrue(FString::Printf(TEXT("%s accepts harvest or wood pickup"), *SourceLabel),
             Node->InteractWithToolIntentFromServer(Pawn, 100.0f, 250.0f, Source.ToolItemId, ExpectedAction));
+        if (Rival)
+        {
+            TestFalse(TEXT("Nearby rival cannot collect the same generated drop"),
+                Node->InteractWithToolIntentFromServer(Rival, 100.0f, 250.0f, Source.ToolItemId, ExpectedAction));
+            TestEqual(TEXT("Losing pickup grants no rival wood"), Rival->GetInventoryComponent()->GetQuantity(Source.ItemId), 0);
+            TestTrue(TEXT("Losing pickup preserves exact rival pack cells"),
+                Rival->GetInventoryComponent()->GetGridInstanceGuids() == RivalGrid);
+            TestEqual(TEXT("Losing pickup preserves rival Main Hand"),
+                Rival->GetInventoryComponent()->GetMainHandGuid(), RivalHand);
+            TestEqual(TEXT("Competing pickup emits only the winner's sparse callback"), SparseCallbacks, 1);
+            TestEqual(TEXT("Competing pickup emits no session callback"), SessionCallbacks, 0);
+            Rival->Destroy();
+            RivalState->Destroy();
+        }
         TestFalse(TEXT("Depleted resource cannot be collected twice"),
             Node->InteractWithToolIntentFromServer(Pawn, 100.0f, 250.0f, Source.ToolItemId, ExpectedAction));
         TestTrue(FString::Printf(TEXT("%s accepted harvest depletes exactly once"), *SourceLabel), Node->IsHarvested());

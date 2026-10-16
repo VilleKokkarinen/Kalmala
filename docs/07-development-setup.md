@@ -3210,3 +3210,15 @@ range and a distant pawn claiming a short trace. Each preserves the drop, identi
 exact owner grid/Main Hand, axe condition, zero owner/foreign rewards, callbacks
 and sparse depletion. Position is restored before existing capacity rejection and
 successful pickup/reload. Unreal execution, production disk and peers are pending.
+
+### Competing generated wood pickups (2026-10-16)
+
+SecondWaveHarvestAcceptance creates a distinct authenticated same-world rival
+beside each generated Meadow/Elderwood drop, with collision-independent spawning.
+The rival must be eligible before the original pawn collects. Its subsequent
+request must fail without wood, pack GUID or Main Hand changes; exactly one
+sparse callback and no session callback may occur. Existing checks retain the
+winner's exact reward/condition and reload the depleted ID through patch activation.
+Rival actors and delegates are cleaned up on fixture failure or normal completion.
+This covers sequential server requests, not simultaneous network delivery.
+Unreal compilation/execution, production disk persistence and peers remain pending.
