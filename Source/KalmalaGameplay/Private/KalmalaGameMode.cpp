@@ -442,12 +442,7 @@ void AKalmalaGameMode::BeginPlay()
         }
     }
 #endif
-    PopulationSaveGame = Cast<UKalmalaWorldPopulationSaveGame>(UGameplayStatics::LoadGameFromSlot(KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0));
-    if (PopulationSaveGame == nullptr || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig))
-    {
-        PopulationSaveGame = NewObject<UKalmalaWorldPopulationSaveGame>(this);
-        PopulationSaveGame->InitializeForWorld(WorldGenerationConfig);
-    }
+    LoadPopulationSave();
     const FString ConstructionSlot = KalmalaGameMode::ConstructionSaveSlot(WorldGenerationConfig);
     const bool bConstructionSaveExists = UGameplayStatics::DoesSaveGameExist(ConstructionSlot, 0);
     USaveGame* ExistingConstructionSave = bConstructionSaveExists
@@ -524,6 +519,16 @@ void AKalmalaGameMode::BeginPlay()
     }
 
     InitialGenerationMilliseconds = (FPlatformTime::Seconds() - GenerationStartTime) * 1000.0;
+}
+
+void AKalmalaGameMode::LoadPopulationSave()
+{
+    PopulationSaveGame = Cast<UKalmalaWorldPopulationSaveGame>(UGameplayStatics::LoadGameFromSlot(KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0));
+    if (PopulationSaveGame == nullptr || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig))
+    {
+        PopulationSaveGame = NewObject<UKalmalaWorldPopulationSaveGame>(this);
+        PopulationSaveGame->InitializeForWorld(WorldGenerationConfig);
+    }
 }
 
 void AKalmalaGameMode::SpawnOceanTravelTestFixture()

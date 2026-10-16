@@ -1,5 +1,16 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-16 — Execute real forest population slots
+
+- **Completed:** selected real population save-slot step. Added opt-in `-KalmalaForestSlotRoot` to existing M9 pickup acceptance; verified resolved Saved is inside a fresh OS temporary user root and below MAX_PATH before fixture startup. Normal RecordHarvestedSpawn writes the slot with its override disabled. Fresh GameMode reload uses the same extracted LoadPopulationSave helper as BeginPlay. Generated Meadow/Elderwood exact collected IDs remain absent while every uncollected neighbor reconstructs over two activation/eviction passes. Invalid/full-pack requests create no slot; population slots are deleted on scope exit.
+- **Files changed:** GameMode header/implementation, M9SourceAcceptance test, BACKLOG.md, PROGRESS.md and docs/07-development-setup.md. Startup loader extraction preserves its existing schema/world-match behavior; no migration or schema changes.
+- **Verification:** temporary mirror editor target build succeeded with normal LOCALAPPDATA UnrealBuildTool access; `slot2/tests.log` records M9 success (1/1, exit 0), both real slot reload IDs and no controller errors. Default four-test forest queue also passed 4/4, exit 0 (`slot3/tests.log`). Exact commands and log paths are in setup. Whitespace, full diff/staged scope and MAX_PATH inspection performed before commit. Not milestone-final; broad feature verification remains deferred.
+- **Failures/repairs:** interrupted sandbox build after UBA ProgramData denial and redirected LOCALAPPDATA was observed; retried with normal access successfully. First fixture execution rejected a trailing slash in Saved comparison before any fixture save I/O; normalized the directory, rebuilt and passed. Engine startup `Condition failed` diagnostics also exist in prior run6 before test sessions; auxiliary-world teardown warnings remain and selected tests passed.
+- **Impact/authority:** actual platform save-slot transport and production startup-load/reconstruction now have executed evidence for real server axe/pickup, retaining rejection/capacity coverage. Server authority and gameplay/network behavior unchanged. Repository protected output directories and existing saves were untouched. Only run-owned temporary save files cleaned; logs retained.
+- **Limitations:** reload creates a fresh GameMode/save object in-process, not a new executable/session. No live peers, late join, rendering or performance acceptance ran. Generated-forest and overall tree parents remain incomplete.
+- **Next eligible task:** execute generated-forest host/client delivery. Only this Kalmala run active; prior chats idle, CIM process inventory unavailable. Main checkout initially clean and used directly; no handoff synchronization required.
+
+
 
 
 

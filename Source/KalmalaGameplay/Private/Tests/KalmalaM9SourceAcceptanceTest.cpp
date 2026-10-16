@@ -18,6 +18,8 @@
 #include "GameFramework/PlayerState.h"
 #include "GameFramework/WorldSettings.h"
 #include "Misc/AutomationTest.h"
+#include "Misc/CommandLine.h"
+#include "Misc/Parse.h"
 #include "HAL/FileManager.h"
 #include "HAL/PlatformProcess.h"
 #include "Misc/FileHelper.h"
@@ -32,6 +34,24 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
 {
+    // Slot I/O is opt-in and must resolve inside a fresh OS-temporary user root.
+    FString SlotRoot;
+    const bool bRealSlots = FParse::Value(FCommandLine::Get(), TEXT("KalmalaForestSlotRoot="), SlotRoot);
+    if (bRealSlots)
+    {
+        SlotRoot = FPaths::ConvertRelativePathToFull(SlotRoot);
+        FPaths::NormalizeDirectoryName(SlotRoot);
+        FString Saved = FPaths::ConvertRelativePathToFull(FPaths::ProjectSavedDir());
+        FPaths::NormalizeDirectoryName(Saved);
+        const FString ExpectedSaved = SlotRoot / TEXT("Saved");
+        const FString Temporary = FPaths::ConvertRelativePathToFull(FPlatformProcess::UserTempDir());
+        if (!TestTrue(TEXT("Slot user root is inside OS temporary storage"), FPaths::IsUnderDirectory(SlotRoot, Temporary))
+            || !TestTrue(TEXT("Resolved Saved is the explicit isolated root"), FPaths::IsSamePath(Saved, ExpectedSaved))
+            || !TestTrue(TEXT("Slot output paths stay below MAX_PATH"), (Saved / TEXT("SaveGames/KalmalaPopulationDeltas_18446744073709551615.sav")).Len() < 260)
+            || !TestFalse(TEXT("Isolated root has no existing save directory"), IFileManager::Get().DirectoryExists(*(Saved / TEXT("SaveGames")))))
+            return false;
+        AddInfo(FString::Printf(TEXT("Real forest population slots: Saved=%s"), *Saved));
+    }
     struct FSourceCase
     {
         FName SourceId;
@@ -243,7 +263,7 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
         TestTrue(FString::Printf(TEXT("%s has a valid bounded server reward"), *SourceLabel),
             FKalmalaM9SourceLootContract::BuildHarvestRewardQuantity(
                 WorldState->GetWorldGenerationConfig(), Source.SourceId, Node->GetPersistentSpawnId(), ExpectedYield));
-        // Observe real pickup through the production callback, replacing only disk I/O.
+        // Default coverage snapshots the final boundary; isolated slot mode leaves it disabled.
         auto* PickupSave = NewObject<UKalmalaWorldPopulationSaveGame>(World);
         PickupSave->InitializeForWorld(WorldState->GetWorldGenerationConfig());
         FString DepletedId;
@@ -254,23 +274,41 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
         auto* PickupMode = World->GetAuthGameMode<AKalmalaGameMode>();
         TArray<uint8> ProductionPickupBytes;
         int32 ProductionWrites = 0;
+        const FString PopulationSlot = FString::Printf(TEXT("KalmalaPopulationDeltas_%llu"),
+            WorldState->GetWorldGenerationConfig().WorldSeed);
+        const bool bCaseUsesSlot = bRealSlots && Source.bGeneratedForest;
+        ON_SCOPE_EXIT
+        {
+            if (bCaseUsesSlot && UGameplayStatics::DoesSaveGameExist(PopulationSlot, 0))
+                TestTrue(TEXT("Run-owned population slot removed"), UGameplayStatics::DeleteGameInSlot(PopulationSlot, 0));
+        };
         if (Source.bGeneratedForest)
         {
             PickupMode->WorldGenerationConfig = WorldState->GetWorldGenerationConfig();
             PickupMode->PopulationSaveGame = PickupSave;
-            PickupMode->PopulationSaveWriterForTests = [&](UKalmalaWorldPopulationSaveGame* WrittenSave,
-                const FString& Slot, const int32 UserIndex)
+            if (bCaseUsesSlot)
             {
-                ++ProductionWrites;
-                TestTrue(TEXT("Real pickup writes the production population save"), WrittenSave == PickupSave);
-                TestTrue(TEXT("Real pickup marks exact depletion before production write"),
-                    WrittenSave->IsHarvested(Node->GetPersistentSpawnId()));
-                TestEqual(TEXT("Real pickup uses seed-scoped population slot"), Slot,
-                    FString::Printf(TEXT("KalmalaPopulationDeltas_%llu"), WorldState->GetWorldGenerationConfig().WorldSeed));
-                TestEqual(TEXT("Real pickup uses population user zero"), UserIndex, 0);
-                TestTrue(TEXT("Real pickup production snapshot serializes"),
-                    UGameplayStatics::SaveGameToMemory(WrittenSave, ProductionPickupBytes));
-            };
+                TestFalse(TEXT("Generated biome starts without an existing slot"), UGameplayStatics::DoesSaveGameExist(PopulationSlot, 0));
+                PickupMode->LoadPopulationSave();
+                PickupSave = PickupMode->PopulationSaveGame;
+                TestFalse(TEXT("Real slot mode disables writer override"), static_cast<bool>(PickupMode->PopulationSaveWriterForTests));
+            }
+            else
+            {
+                PickupMode->PopulationSaveWriterForTests = [&](UKalmalaWorldPopulationSaveGame* WrittenSave,
+                    const FString& Slot, const int32 UserIndex)
+                {
+                    ++ProductionWrites;
+                    TestTrue(TEXT("Real pickup writes the production population save"), WrittenSave == PickupSave);
+                    TestTrue(TEXT("Real pickup marks exact depletion before production write"),
+                        WrittenSave->IsHarvested(Node->GetPersistentSpawnId()));
+                    TestEqual(TEXT("Real pickup uses seed-scoped population slot"), Slot,
+                        FString::Printf(TEXT("KalmalaPopulationDeltas_%llu"), WorldState->GetWorldGenerationConfig().WorldSeed));
+                    TestEqual(TEXT("Real pickup uses population user zero"), UserIndex, 0);
+                    TestTrue(TEXT("Real pickup production snapshot serializes"),
+                        UGameplayStatics::SaveGameToMemory(WrittenSave, ProductionPickupBytes));
+                };
+            }
             Node->OnHarvested.AddUObject(PickupMode, &AKalmalaGameMode::RecordHarvestedSpawn);
         }
         Node->OnHarvested.AddLambda([&](const FString& ResourceId)
@@ -420,6 +458,9 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
                 Rival->GetInventoryComponent()->GetQuantity(Source.ItemId), 0);
         }
         TestEqual(TEXT("Rejected pickups never invoke production writer"), ProductionWrites, 0);
+        if (bCaseUsesSlot)
+            TestFalse(TEXT("Damage, invalid requests and full pack create no population slot"),
+                UGameplayStatics::DoesSaveGameExist(PopulationSlot, 0));
         TestTrue(FString::Printf(TEXT("%s accepts harvest or wood pickup"), *SourceLabel),
             Node->InteractWithToolIntentFromServer(Pawn, 100.0f, 250.0f, Source.ToolItemId, ExpectedAction));
         if (Rival)
@@ -450,7 +491,10 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
         TestEqual(TEXT("Sparse callback retains exact generated identity"), SparseId,
             Source.bGeneratedForest ? Node->GetPersistentSpawnId() : FString());
         TestEqual(TEXT("Only successful generated pickup reaches production writer"),
-            ProductionWrites, Source.bGeneratedForest ? 1 : 0);
+            ProductionWrites, Source.bGeneratedForest && !bCaseUsesSlot ? 1 : 0);
+        if (bCaseUsesSlot)
+            TestTrue(TEXT("Successful generated pickup creates the real population slot"),
+                UGameplayStatics::DoesSaveGameExist(PopulationSlot, 0));
         TArray<uint8> PickupBytes = ProductionPickupBytes;
         if (!Source.bGeneratedForest) TestTrue(TEXT("Pickup sparse ledger serializes in memory"),
             UGameplayStatics::SaveGameToMemory(PickupSave, PickupBytes));
@@ -466,7 +510,7 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
                 TestTrue(TEXT("Temporary forest snapshot is removed"),
                     IFileManager::Get().Delete(*PickupFile, false, true));
         };
-        if (Source.bGeneratedForest)
+        if (Source.bGeneratedForest && !bCaseUsesSlot)
         {
             // Never overwrite another file, even in the unlikely event of a GUID collision.
             if (!TestTrue(TEXT("Forest snapshot path stays below MAX_PATH"), PickupFile.Len() < 260)
@@ -487,9 +531,10 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
                 TestTrue(TEXT("Disk snapshot preserves exact production bytes"), PickupBytes == ExpectedBytes);
             }
         }
-        auto* ReloadedSave = Cast<UKalmalaWorldPopulationSaveGame>(
-            UGameplayStatics::LoadGameFromMemory(PickupBytes));
-        if (TestNotNull(TEXT("Pickup sparse ledger reloads in memory"), ReloadedSave))
+        auto* ReloadedSave = Cast<UKalmalaWorldPopulationSaveGame>(bCaseUsesSlot
+            ? UGameplayStatics::LoadGameFromSlot(PopulationSlot, 0)
+            : UGameplayStatics::LoadGameFromMemory(PickupBytes));
+        if (TestNotNull(TEXT("Pickup sparse ledger reloads through selected persistence path"), ReloadedSave))
         {
             TestTrue(TEXT("Pickup ledger retains exact world identity"),
                 ReloadedSave->MatchesWorld(WorldState->GetWorldGenerationConfig()));
@@ -502,7 +547,7 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
             if (Source.bGeneratedForest)
             {
                 // Exercise the production save reader and materializer in a separate,
-                // unstarted world: no session startup or production disk slot writes.
+                // unstarted world, using the startup slot loader in real-slot mode.
                 UWorld* ReloadWorld = UWorld::CreateWorld(EWorldType::Game, false);
                 if (TestNotNull(TEXT("Pickup reload patch world created"), ReloadWorld))
                 {
@@ -512,6 +557,18 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
                         ReloadMode->WorldGenerationConfig = WorldState->GetWorldGenerationConfig();
                         ReloadMode->TerrainPatchOrigin = ForestCenter;
                         ReloadMode->PopulationSaveGame = ReloadedSave;
+                        if (bCaseUsesSlot)
+                        {
+                            // Same startup loader as BeginPlay, fresh GameMode and UObject.
+                            ReloadMode->PopulationSaveGame = nullptr;
+                            ReloadMode->LoadPopulationSave();
+                            ReloadedSave = ReloadMode->PopulationSaveGame;
+                            TestTrue(TEXT("Startup loader restores collected identity from real slot"),
+                                ReloadedSave && ReloadedSave->IsHarvested(Node->GetPersistentSpawnId()));
+                            TestTrue(TEXT("Startup loader returns a distinct save object"), ReloadedSave != PickupSave);
+                            AddInfo(FString::Printf(TEXT("Real population slot reload: Source=%s Slot=%s ID=%s"),
+                                *SourceLabel, *PopulationSlot, *Node->GetPersistentSpawnId()));
+                        }
                         const FIntPoint Coordinate = FIntPoint::ZeroValue;
                         for (int32 Pass = 0; Pass < 2; ++Pass)
                         {

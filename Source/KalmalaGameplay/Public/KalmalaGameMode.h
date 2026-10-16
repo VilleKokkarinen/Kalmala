@@ -61,6 +61,7 @@ private:
     void ActivatePopulationKey(const FIntPoint& SpatialKey);
     void RefreshOceanDiscoveries();
     void RecordHarvestedSpawn(const FString& PersistentSpawnId);
+    void LoadPopulationSave();
     void RecordM9ResourceDepleted(const FString& StableResourceId);
     void RecordDefeatedSpawn(const FString& PersistentSpawnId);
     class UKalmalaPlayerDiscoverySaveGameV2* GetPlayerDiscoverySave(class AKalmalaCharacter* Interactor, FString& OutIdentity);

@@ -1,5 +1,59 @@
 # Development setup
 
+## Executed real forest population slots — 2026-10-16
+
+Source: `f86b731` plus this increment. Uses the existing temporary `kmforest`
+mirror; only the three changed source files were recopied, each below MAX_PATH.
+Repository Binaries/Intermediate/Saved/DerivedDataCache and existing saves were
+untouched. UnrealBuildTool ran with normal LOCALAPPDATA access.
+
+Commands actually run (successful rebuild and queues):
+
+```powershell
+& 'C:/Program Files/Epic Games/UE_5.8/Engine/Build/BatchFiles/Build.bat' KalmalaEditor Win64 Development '-Project=C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject' -WaitMutex -NoHotReload -MaxParallelActions=4
+& 'C:/Program Files/Epic Games/UE_5.8/Engine/Binaries/Win64/UnrealEditor-Cmd.exe' 'C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -NoZenAutoLaunch -DDC=NoZenLocalFallback '-UserDir=C:/Users/Ville/AppData/Local/Temp/kmforest/slot2/user' '-KalmalaForestSlotRoot=C:/Users/Ville/AppData/Local/Temp/kmforest/slot2/user' '-abslog=C:/Users/Ville/AppData/Local/Temp/kmforest/slot2/tests.log' '-ExecCmds=Automation RunTests Kalmala.Gameplay.M9.SecondWaveHarvestAcceptance' '-TestExit=Automation Test Queue Empty'
+& 'C:/Program Files/Epic Games/UE_5.8/Engine/Binaries/Win64/UnrealEditor-Cmd.exe' 'C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -NoZenAutoLaunch -DDC=NoZenLocalFallback '-UserDir=C:/Users/Ville/AppData/Local/Temp/kmforest/slot3/user' '-abslog=C:/Users/Ville/AppData/Local/Temp/kmforest/slot3/tests.log' '-ExecCmds=Automation RunTests Kalmala.Gameplay.Harvest.TreeFelling+Kalmala.Gameplay.Harvest.ForestReconstructionLifecycle+Kalmala.Gameplay.Harvest.ForestPatchLifecycle+Kalmala.Gameplay.M9.SecondWaveHarvestAcceptance' '-TestExit=Automation Test Queue Empty'
+```
+
+Require a new unused user root on each real-slot execution. Before fixture startup,
+`KalmalaForestSlotRoot` must be inside OS temporary storage, its normalized Saved
+path must equal ProjectSavedDir, the longest population slot path must be below
+260 characters, and SaveGames must not already exist. This mode keeps the final
+writer override disabled and uses normal SaveGameToSlot. Fresh GameMode reload
+calls LoadPopulationSave, the unchanged loader logic now shared with BeginPlay.
+Default automation keeps the prior snapshot boundary and generic temporary-file
+coverage.
+
+`slot2/build.log` succeeded. `slot2/tests.log` explicitly records Success (1/1),
+queue empty and process exit 0. It reports actual slot reload for both sources:
+
+- Meadow: `forest:v1:10323456789:-30000:-160000:0`.
+- Elderwood: `forest:v1:10323456789:-160000:-160000:2`.
+
+Both used `KalmalaPopulationDeltas_10323456789` separately, deleting it between
+cases. Assertions verify no slot after rejected/full-pack pickups, a real slot
+after successful pickup, exact depletion after platform load, distinct startup
+save object, collected tree exclusion and every uncollected neighbor restored
+across two activation/eviction passes. Scope cleanup deletes each population slot;
+run-owned incidental player saves were removed after execution, retaining logs.
+`slot3/tests.log` records all four default regressions Success, queue empty and
+process exit 0.
+
+Initial sandbox build (`slot1/build.log`) could not use ProgramData UBA storage;
+it was interrupted and retried with normal access (`slot1/build-normal.log`,
+succeeded). Initial real-slot execution (`slot1/tests.log`) stopped at the Saved
+path assertion due to a trailing slash; normalized the directory and rebuilt.
+The successful queue has no controller errors. Pre-session engine startup
+`Condition failed` diagnostics also occur in the previous `run6/tests.log`;
+existing auxiliary-world context/EndPlay teardown warnings remain.
+
+This completes isolated actual-slot reload coverage, superseding the slot-I/O
+limitation in the earlier regression entry below. Reload uses a fresh GameMode
+and save object in-process; it does not restart the executable. Live host/client,
+late join, streaming/restart peer acceptance and broader feature verification
+remain queued. No authority, RPC, schema or migration contract changed.
+
+
 
 ## Executed generated-forest regressions — 2026-10-16
 
