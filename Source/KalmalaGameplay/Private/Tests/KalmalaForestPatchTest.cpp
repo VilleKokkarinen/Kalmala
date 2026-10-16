@@ -2,6 +2,7 @@
 
 #include "KalmalaGameMode.h"
 #include "KalmalaForestLayout.h"
+#include "KalmalaTerrainPatchLayout.h"
 #include "KalmalaGeneratedTerrainPatch.h"
 #include "KalmalaHarvestNode.h"
 #include "KalmalaWorldPopulationSaveGame.h"
@@ -150,6 +151,43 @@ bool FKalmalaForestPatchLifecycleTest::RunTest(const FString& Parameters)
     const auto RetainedNodes = *SharedNodes;
     TestEqual(TEXT("Shared neighborhood excludes saved depletion"), RetainedNodes.Num(), Trees.Num() - 1);
     const int32 SharedPatchCount = Mode->ActiveTerrainPatches.Num();
+    TestEqual(TEXT("Shared radius-one neighborhood has nine patches"), SharedPatchCount, 9);
+    // Separate radius-one neighborhoods fit within the existing 25-patch budget.
+    const FIntPoint RemoteCoordinate(4, 0);
+    const FVector2D RemoteCenter = FKalmalaTerrainPatchLayout::GetPatchCenter(Center, 4, 0);
+    TestTrue(TEXT("First player moves to disjoint neighborhood"), FirstPawn->SetActorLocation(
+        FVector(RemoteCenter.X, RemoteCenter.Y, 0.0), false, nullptr, ETeleportType::TeleportPhysics));
+    Mode->RefreshTerrainPatchNeighborhoods();
+    TestEqual(TEXT("Disjoint players retain both complete neighborhoods"), Mode->ActiveTerrainPatches.Num(), SharedPatchCount * 2);
+    TestTrue(TEXT("Stationary player retains exact original patch during movement"),
+        Mode->ActiveTerrainPatches.FindRef(Coordinate) == SharedPatch.Get());
+    const auto* StationaryNodes = Mode->ActiveForestNodes.Find(Coordinate);
+    TestTrue(TEXT("Stationary player retains exact forest actors during movement"),
+        StationaryNodes && *StationaryNodes == RetainedNodes);
+    auto* RemotePatchEntry = Mode->ActiveTerrainPatches.Find(RemoteCoordinate);
+    const auto* RemoteNodes = Mode->ActiveForestNodes.Find(RemoteCoordinate);
+    if (!TestNotNull(TEXT("Movement activates remote terrain patch"), RemotePatchEntry)
+        || !TestNotNull(TEXT("Movement tracks remote forest list"), RemoteNodes))
+    {
+        World->DestroyWorld(false);
+        return false;
+    }
+    TWeakObjectPtr<AKalmalaGeneratedTerrainPatch> RemotePatch = RemotePatchEntry->Get();
+    TestTrue(TEXT("Remote terrain actor is live"), RemotePatch.IsValid());
+    const auto DepartedNodes = *RemoteNodes;
+    TestTrue(TEXT("First player returns to shared neighborhood"), FirstPawn->SetActorLocation(
+        FVector(Center.X, Center.Y, 0.0), false, nullptr, ETeleportType::TeleportPhysics));
+    Mode->RefreshTerrainPatchNeighborhoods();
+    TestEqual(TEXT("Returning player collapses union to shared neighborhood"), Mode->ActiveTerrainPatches.Num(), SharedPatchCount);
+    TestFalse(TEXT("Departure destroys remote terrain actor"), RemotePatch.IsValid());
+    TestFalse(TEXT("Departure removes remote forest tracking"), Mode->ActiveForestNodes.Contains(RemoteCoordinate));
+    TestFalse(TEXT("Departure removes remote coordinate tracking"), Mode->ActiveTerrainPatchCoordinates.Contains(RemoteCoordinate));
+    for (const auto& Node : DepartedNodes)
+        TestFalse(TEXT("Departure destroys remote forest actors"), Node.IsValid());
+    TestTrue(TEXT("Return retains original shared terrain actor"),
+        Mode->ActiveTerrainPatches.FindRef(Coordinate) == SharedPatch.Get() && SharedPatch.IsValid());
+    const auto* ReturnedNodes = Mode->ActiveForestNodes.Find(Coordinate);
+    TestTrue(TEXT("Return retains original shared forest actors"), ReturnedNodes && *ReturnedNodes == RetainedNodes);
     FirstController->UnPossess();
     Mode->RefreshTerrainPatchNeighborhoods();
     TestEqual(TEXT("Remaining player retains neighborhood count"), Mode->ActiveTerrainPatches.Num(), SharedPatchCount);

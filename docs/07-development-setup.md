@@ -3108,8 +3108,11 @@ The patch fixture also possesses two player pawns at the same generated center.
 After one controller unpossesses, the remaining player must retain the exact terrain
 and forest actor identities. After the last unpossesses, all neighborhood tracking
 and actors must disappear without changing sparse depletion. This exercises shared
-neighborhood retention in one server world; it does not establish live peer delivery
-or movement between distinct neighborhoods. Compilation/execution remain deferred.
+neighborhood retention in one server world; it does not establish live peer delivery. It also moves one pawn four patch columns away and back, checking the
+disjoint union count, exact stationary terrain/forest retention, remote activation
+and remote destruction/tracking cleanup on return. Remote forest lists may be empty
+for the selected biome; actor destruction assertions cover any materialized nodes.
+Compilation/execution remain deferred.
 
 `Kalmala.Gameplay.Harvest.ForestReconstructionLifecycle` is a focused isolated-world
 regression for public forest actor reconstruction. It finds an accepted candidate

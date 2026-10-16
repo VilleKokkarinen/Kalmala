@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-16 — Cover disjoint forest neighborhoods
+
+- **Completed:** partial first unchecked generated-tree child. Extended ForestPatchLifecycle with server pawn movement between disjoint radius-one neighborhoods and return, exact stationary terrain/forest retention, doubled/collapsed patch counts and remote actor/tracking eviction.
+- **Files changed:** `Source/KalmalaGameplay/Private/Tests/KalmalaForestPatchTest.cpp`, `docs/07-development-setup.md`, `BACKLOG.md`, and this file.
+- **Lightweight checks:** inspected layout/refresh APIs and 25-patch budget; focused source, brace, whitespace, scope and MAX_PATH checks passed. No Unreal compilation, automation execution or peers ran; full verification remains deferred for this normal partial increment.
+- **Impact/authority:** regression source only, using server-observed possessed pawn positions. No runtime, RPC, reward or save-schema changes.
+- **Limitations:** uncompiled/unexecuted; remote forest may be empty, so remote node destruction checks are conditional on generated content. Successful pickup persistence and live delivery remain pending; child/parent stay unchecked.
+- **Next eligible task:** same generated-tree child: isolated successful pickup persistence and live integration/peer validation. Only this Kalmala run active in app state; CIM unavailable. Clean main checkout used directly; no handoff synchronization required.
+
 ## Autonomous increment 2026-10-16 — Cover shared forest neighborhood retention
 
 - **Completed:** partial first unchecked generated-tree child. Extended ForestPatchLifecycle with two possessed player controllers sharing a patch. First departure must preserve exact terrain/forest actors and neighborhood count; final departure must destroy actors and clear tracking without changing saved depletion.
