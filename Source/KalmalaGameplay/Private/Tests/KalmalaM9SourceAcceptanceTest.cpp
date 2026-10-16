@@ -286,6 +286,37 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
         if (Source.bGeneratedForest)
         {
             auto* Inventory = Pawn->GetInventoryComponent();
+            // Standing-tree rejection is not pickup coverage: exercise the drop branch
+            // before capacity rejection and before the successful sparse-ledger write.
+            const auto PickupGrid = Inventory->GetGridInstanceGuids();
+            const FGuid PickupHand = Inventory->GetMainHandGuid();
+            const int32 PickupCondition = Pawn->GetToolDurability(Source.ToolItemId);
+            const auto AssertInvalidPickup = [&, this](const TCHAR* Label, AKalmalaCharacter* RequestPawn,
+                const float TraceDistance, const float MaximumRange)
+            {
+                TestFalse(Label, Node->InteractWithToolIntentFromServer(
+                    RequestPawn, TraceDistance, MaximumRange, Source.ToolItemId, ExpectedAction));
+                TestTrue(TEXT("Invalid pickup retains generated wood drop"), Node->IsWoodDrop());
+                TestFalse(TEXT("Invalid pickup leaves generated identity unharvested"), Node->IsHarvested());
+                TestEqual(TEXT("Invalid pickup grants no owner wood"), Inventory->GetQuantity(Source.ItemId), 0);
+                TestEqual(TEXT("Invalid pickup grants no foreign-world wood"),
+                    ForeignPawn->GetInventoryComponent()->GetQuantity(Source.ItemId), 0);
+                TestTrue(TEXT("Invalid pickup preserves exact pack cells"), Inventory->GetGridInstanceGuids() == PickupGrid);
+                TestEqual(TEXT("Invalid pickup preserves Main Hand"), Inventory->GetMainHandGuid(), PickupHand);
+                TestEqual(TEXT("Invalid pickup preserves axe condition"), Pawn->GetToolDurability(Source.ToolItemId), PickupCondition);
+                TestEqual(TEXT("Invalid pickup emits no sparse callback"), SparseCallbacks, 0);
+                TestEqual(TEXT("Invalid pickup emits no session callback"), SessionCallbacks, 0);
+                TestFalse(TEXT("Invalid pickup leaves sparse ledger untouched"), PickupSave->IsHarvested(Node->GetPersistentSpawnId()));
+            };
+            AssertInvalidPickup(TEXT("Generated drop rejects null interactor"), nullptr, 100.0f, 250.0f);
+            AssertInvalidPickup(TEXT("Generated drop rejects foreign-world interactor"), ForeignPawn, 100.0f, 250.0f);
+            AssertInvalidPickup(TEXT("Generated drop rejects negative trace distance"), Pawn, -1.0f, 250.0f);
+            AssertInvalidPickup(TEXT("Generated drop rejects trace beyond range"), Pawn, 251.0f, 250.0f);
+            AssertInvalidPickup(TEXT("Generated drop rejects zero maximum range"), Pawn, 0.0f, 0.0f);
+            AssertInvalidPickup(TEXT("Generated drop rejects negative maximum range"), Pawn, 0.0f, -1.0f);
+            Pawn->SetActorLocation(Location + FVector(900.0f, 0.0f, 0.0f));
+            AssertInvalidPickup(TEXT("Generated drop rejects distant pawn despite short trace"), Pawn, 100.0f, 250.0f);
+            Pawn->SetActorLocation(Location);
             // Nonstackable filler occupies every pack cell without replacing Main Hand.
             const int32 FillerCount = UKalmalaInventoryComponent::MaxSlots
                 - Inventory->CountPackedTools(Pawn->GetCarriedToolInventory());

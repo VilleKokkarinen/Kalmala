@@ -3200,3 +3200,13 @@ quantity is preserved. Removing filler retries the same drop through the existin
 successful pickup and memory-ledger/patch-reload checks. This is authored server
 regression coverage; Unreal compilation/execution, production disk persistence
 and live peer delivery remain pending.
+
+### Generated wood-drop request guards (2026-10-16)
+
+SecondWaveHarvestAcceptance exercises invalid requests after generated trees reach
+the wood-drop stage, separately from standing-tree rejection. Both biomes reject
+null/foreign-world pawns, negative trace, trace beyond range, nonpositive maximum
+range and a distant pawn claiming a short trace. Each preserves the drop, identity,
+exact owner grid/Main Hand, axe condition, zero owner/foreign rewards, callbacks
+and sparse depletion. Position is restored before existing capacity rejection and
+successful pickup/reload. Unreal execution, production disk and peers are pending.

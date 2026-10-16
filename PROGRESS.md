@@ -1,5 +1,15 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-16 — Cover generated drop request guards
+
+- **Completed:** partial first unchecked generated-tree child. Extended SecondWaveHarvestAcceptance after felling for both biomes with null/foreign actors, negative trace, trace beyond range, nonpositive range and a distant pawn claiming a short trace. Each rejection preserves drop/identity, exact pack/Main Hand, axe condition, owner/foreign rewards and sparse/session state. Restores position before existing capacity and successful pickup/reload flow.
+- **Files changed:** `Source/KalmalaGameplay/Private/Tests/KalmalaM9SourceAcceptanceTest.cpp`, `docs/07-development-setup.md`, `BACKLOG.md`, and this file.
+- **Lightweight checks:** focused source, guard/API, ordering, brace, whitespace, scope and MAX_PATH checks passed. No Unreal compilation, automation execution or peers ran; full verification remains deferred for this normal partial increment.
+- **Impact/authority:** regression source targets the distinct server drop branch before reward/depletion mutation. No runtime, RPC or save-format changes.
+- **Limitations:** fixture remains uncompiled/unexecuted; memory callback substitutes for production disk writer. Child and parent remain unchecked.
+- **Next eligible task:** same generated-tree child: production persistence and live integration/peer validation. Only this run active in app state; CIM unavailable. Clean main checkout used directly; no handoff synchronization required.
+
+
 ## Autonomous increment 2026-10-16 — Cover rejected forest pickup depletion
 
 - **Completed:** partial first unchecked generated-tree child. Extended SecondWaveHarvestAcceptance for both generated biomes with forty occupied pack cells using nonstackable Boar Hide Boots. The real pickup request must fail while preserving the wood drop, unharvested ID, zero sparse/session callbacks, empty reward, filler quantity, exact grid GUIDs, Main Hand and axe condition. Removing filler retries the same drop through existing successful pickup and sparse patch-reload assertions.
