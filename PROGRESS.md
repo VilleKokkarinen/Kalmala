@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-16 — Cover forest save-world guards
+
+- **Completed:** partial first unchecked generated-tree child. Extended ForestPatchLifecycle with missing/foreign saves, exact live identity/cosmetic coverage, production-bound depletion delegate rejection and eviction cleanup. Foreign save retains seeded depletion and gains no IDs.
+- **Files changed:** `Source/KalmalaGameplay/Private/Tests/KalmalaForestPatchTest.cpp`, `docs/07-development-setup.md`, `BACKLOG.md`, and this file.
+- **Lightweight checks:** focused source/API, guard ordering, coverage, brace and MAX_PATH assertions passed; working/staged whitespace and diff/scope inspection passed. No Unreal compile, automation execution, rendering or peers ran; full verification remains deferred for this normal partial increment.
+- **Impact/authority:** server save-isolation regression source only; no runtime, RPC, reward or save-schema changes.
+- **Limitations:** uncompiled/unexecuted fixture broadcasts the delegate directly, bypassing pickup. Matching-save callbacks write disk slots and are not invoked by this memory-only fixture. Successful persistence, neighborhood union and peers remain pending; child/parent stay unchecked.
+- **Next eligible task:** same generated-tree child: isolated successful pickup persistence and live integration/peer validation. Only current run active in app state; CIM unavailable. Clean main checkout used directly; no handoff synchronization required.
+
 ## Autonomous increment 2026-10-16 — Cover patch cosmetic suppression
 
 - **Completed:** partial first unchecked generated-tree child. ForestPatchLifecycle now requires exactly the canonical original candidate ordinals for saved depletion and live replacements on activation, duplicate activation and post-eviction reactivation. Reflection checks the array and integer element type before reading server state.

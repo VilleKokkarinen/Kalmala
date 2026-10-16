@@ -113,6 +113,60 @@ bool FKalmalaForestPatchLifecycleTest::RunTest(const FString& Parameters)
         for (int32 Index = 1; Index < Trees.Num(); ++Index)
             TestFalse(TEXT("Eviction never depletes uncollected tree"), Mode->PopulationSaveGame->IsHarvested(Trees[Index].PersistentSpawnId));
     }
+    // Missing or foreign-world saves must not hide this world's candidates.
+    for (int32 SaveCase = 0; SaveCase < 2; ++SaveCase)
+    {
+        UKalmalaWorldPopulationSaveGame* ForeignSave = nullptr;
+        if (SaveCase == 0)
+        {
+            Mode->PopulationSaveGame = nullptr;
+        }
+        else
+        {
+            ForeignSave = NewObject<UKalmalaWorldPopulationSaveGame>(Mode);
+            ForeignSave->InitializeForWorld(FKalmalaWorldGenerationConfig{Config.WorldSeed + 1ull});
+            ForeignSave->MarkHarvested(Trees[0].PersistentSpawnId);
+            TestFalse(TEXT("Foreign save explicitly fails world matching"), ForeignSave->MatchesWorld(Config));
+            Mode->PopulationSaveGame = ForeignSave;
+        }
+        Mode->ActivateTerrainPatch(Coordinate);
+        const auto* Nodes = Mode->ActiveForestNodes.Find(Coordinate);
+        auto* PatchEntry = Mode->ActiveTerrainPatches.Find(Coordinate);
+        if (!TestNotNull(TEXT("Save guard activation tracks forest actors"), Nodes)
+            || !TestNotNull(TEXT("Save guard activation tracks patch"), PatchEntry)
+            || !TestNotNull(TEXT("Save guard terrain actor is live"), PatchEntry->Get())) break;
+        TestEqual(TEXT("Missing or mismatched save retains every candidate"), Nodes->Num(), Trees.Num());
+        TSet<FString> LiveIds;
+        for (const auto& WeakNode : *Nodes)
+        {
+            if (auto* Node = WeakNode.Get())
+            {
+                LiveIds.Add(Node->GetPersistentSpawnId());
+                // Exercise the production delegate binding and rejection guard only.
+                // A matching-save broadcast would write a disk slot; real pickup is separate coverage.
+                TestTrue(TEXT("Materialized node retains GameMode depletion binding"), Node->OnHarvested.IsBoundToObject(Mode));
+                Node->OnHarvested.Broadcast(Node->GetPersistentSpawnId());
+            }
+        }
+        for (const auto& Tree : Trees)
+            TestTrue(TEXT("Save guard preserves each generated identity"), LiveIds.Contains(Tree.PersistentSpawnId));
+        TestTrue(TEXT("Save guard activation suppresses exactly all represented cosmetics"),
+            *SuppressionProperty->ContainerPtrToValuePtr<TArray<int32>>(PatchEntry->Get()) == ExpectedOrdinals);
+        if (ForeignSave)
+        {
+            TestTrue(TEXT("Rejected callback preserves foreign save's existing depletion"),
+                ForeignSave->IsHarvested(Trees[0].PersistentSpawnId));
+            for (int32 Index = 1; Index < Trees.Num(); ++Index)
+                TestFalse(TEXT("Bound callback cannot contaminate a foreign world's save"),
+                    ForeignSave->IsHarvested(Trees[Index].PersistentSpawnId));
+        }
+        const auto EvictedNodes = *Nodes;
+        Mode->RefreshTerrainPatchNeighborhoods();
+        TestTrue(TEXT("Save guard eviction clears tracking"), Mode->ActiveTerrainPatchCoordinates.IsEmpty()
+            && Mode->ActiveTerrainPatches.IsEmpty() && Mode->ActiveForestNodes.IsEmpty());
+        for (const auto& Node : EvictedNodes)
+            TestFalse(TEXT("Save guard eviction destroys replacements"), Node.IsValid());
+    }
     World->DestroyWorld(false);
     return true;
 }

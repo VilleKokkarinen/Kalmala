@@ -3097,7 +3097,12 @@ No session BeginPlay or disk saves are invoked. Source inspection only: compilat
 and execution remain deferred. The fixture reads the reflected replicated suppression
 array and requires exactly the sorted original ordinals for saved depletion and live
 replacements on both activations and after duplicate activation. Rendered cosmetics,
-actual pickup-to-save callback binding and network delivery remain outside this fixture.
+successful pickup-to-save persistence and network delivery remain outside this fixture.
+Missing/foreign-save cases require all candidate identities and canonical suppression.
+They broadcast the materialized nodes' production-bound OnHarvested delegate only
+with missing/mismatched saves and check no foreign-save contamination, followed by
+eviction cleanup. This bypasses pickup and avoids disk writes; successful callback
+persistence still needs isolated save I/O. Compilation/execution remain deferred.
 
 `Kalmala.Gameplay.Harvest.ForestReconstructionLifecycle` is a focused isolated-world
 regression for public forest actor reconstruction. It finds an accepted candidate
