@@ -1,6 +1,16 @@
 # Autonomous development progress
 
 
+
+## User-directed planning 2026-10-16 — Make remaining tree work executable
+
+- **Completed:** decomposed the existing generated-forest and moving-fall backlog children into an ordered future-run plan with explicit completion criteria. First execute existing compiled regressions, then actual isolated save-slot reload, host/client delivery, streaming/restart acceptance and integration handoff; follow with moving fall, targeting/presentation and final feature acceptance.
+- **Files changed:** `BACKLOG.md` and this file. No gameplay implementation or task completion checkboxes changed.
+- **Checks:** reviewed current architecture/setup contracts and existing handoff, inspected documentation diff, checked checkbox order and path lengths, and ran `git diff --check`. No build, automation, disk persistence or peer scenario ran; implementation verification remains deferred to the queued steps.
+- **Impact/authority:** future runs have bounded deliverables and must execute existing coverage before adding more speculative fixtures. Server authority, schemas and runtime behavior are unchanged. Temporary execution must preserve protected repository output directories and existing saves.
+- **Next eligible task:** compile and execute existing focused generated-forest regressions and repair feature-related failures. Main checkout used directly; no handoff synchronization needed. Planning only; tree feature remains incomplete.
+
+
 ## Autonomous increment 2026-10-16 — Guard forest depletion persistence callbacks
 
 - **Completed:** partial first unchecked generated-tree child. RecordHarvestedSpawn now rejects empty IDs before mutating or writing the population save. ForestPatchLifecycle asserts zero writer calls and no depletion for empty, non-authoritative and foreign-world callbacks, then retains existing valid callback/write/reconstruction coverage.
