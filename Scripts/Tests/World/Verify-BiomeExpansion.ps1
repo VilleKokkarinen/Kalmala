@@ -1,11 +1,57 @@
 param(
-    [string]$Editor = 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor.exe'
+    [string]$Editor = 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor.exe',
+    [switch]$ForestDeliveryOnly,
+    [string]$Project,
+    [int]$Port = 17849
 )
 . (Join-Path (Split-Path $PSScriptRoot -Parent) 'TestPaths.ps1')
 $repoPaths = Get-KalmalaPaths -StartPath $PSScriptRoot
 
 $ErrorActionPreference = 'Stop'
-$project = Join-Path ($repoPaths.ProjectRoot) 'Kalmala.uproject'
+if (!$Project) { $Project = Join-Path ($repoPaths.ProjectRoot) 'Kalmala.uproject' }
+$project = (Resolve-Path -LiteralPath $Project).Path
+if ($ForestDeliveryOnly) {
+    $output = Join-Path $env:TEMP ('kfpeer-' + [guid]::NewGuid().ToString('N').Substring(0, 8))
+    if ((Join-Path $output 'Client/Saved/SaveGames/KalmalaPlayerDiscoveries_10323456789_ffffffff.sav').Length -ge 260) { throw 'Forest peer output exceeds MAX_PATH.' }
+    if (Test-Path -LiteralPath $output) { throw 'Forest peers require a fresh output root.' }
+    New-Item -ItemType Directory -Path $output | Out-Null
+    $serverLog = Join-Path $output 'host.log'
+    $clientLog = Join-Path $output 'client.log'
+    $common = '-game -nullrhi -nosound -unattended -nosplash -NoZenAutoLaunch -DDC=NoZenLocalFallback -forcelogflush -KalmalaForestDeliveryTest -ExecCmds="t.MaxFPS 30"'
+    $server = $null
+    $client = $null
+    try {
+        $server = Start-Process $Editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" /Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=$Port -WorldSeed=10323456789 $common -abslog=`"$serverLog`" -UserDir=`"$output\Host`""
+        $deadline = (Get-Date).AddSeconds(120)
+        do {
+            if ($server.HasExited) { throw 'Forest host exited during startup.' }
+            if ((Test-Path $serverLog) -and (Select-String -LiteralPath $serverLog -Pattern 'GameNetDriver.*listening on port' -Quiet)) { break }
+            Start-Sleep -Milliseconds 500
+        } while ((Get-Date) -lt $deadline)
+        if ((Get-Date) -ge $deadline) { throw 'Forest host readiness timed out.' }
+        $client = Start-Process $Editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" 127.0.0.1:$Port -WorldSeed=999 $common -abslog=`"$clientLog`" -UserDir=`"$output\Client`""
+        $deadline = (Get-Date).AddSeconds(120)
+        do {
+            if ($server.HasExited -or $client.HasExited) { throw 'A forest peer exited before delivery.' }
+            $hostText = if (Test-Path $serverLog) { [string](Get-Content $serverLog -Raw) } else { '' }
+            $clientText = if (Test-Path $clientLog) { [string](Get-Content $clientLog -Raw) } else { '' }
+            if (($hostText + $clientText) -match 'Fatal error:|Assertion failed:|Forest delivery: Passed=0') { throw 'Forest peer failure; inspect logs.' }
+            $matches = [regex]::Matches($hostText, 'Forest delivery: Passed=1 Authority=1 (Seed=10323456789 Trees=[1-9][0-9]* Cosmetics=0 Ids=[^\r\n]+)')
+            $shared = @($matches | Where-Object { $clientText.Contains('Forest delivery: Passed=1 Authority=0 ' + $_.Groups[1].Value) })
+            # The fixture reads GameState's seed itself. An identity OnRep log
+            # is not guaranteed when the server seed equals its class default.
+            if ($shared.Count -gt 0) { break }
+            Start-Sleep -Milliseconds 500
+        } while ((Get-Date) -lt $deadline)
+        if ((Get-Date) -ge $deadline) { throw 'Exact forest replacement/suppression delivery timed out.' }
+        Write-Output "PASS: $($shared.Count) populated forest patches match host/client exact IDs, transforms, shape, source, standing state and zero cosmetics."
+    }
+    finally {
+        foreach ($peer in @($client, $server)) { if ($null -ne $peer -and !$peer.HasExited) { Stop-Process -Id $peer.Id } }
+        Write-Output "Forest peer logs: $output"
+    }
+    return
+}
 $editorCmd = Join-Path (Split-Path $Editor) 'UnrealEditor-Cmd.exe'
 $output = Join-Path $env:TEMP ('KalmalaBiomeExpansion-' + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $output | Out-Null

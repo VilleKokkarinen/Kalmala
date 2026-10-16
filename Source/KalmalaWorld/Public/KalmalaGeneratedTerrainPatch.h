@@ -26,6 +26,10 @@ public:
     bool SetSuppressedForestCandidatesServer(const TArray<int32>& CandidateIndices);
     bool HasGenerationData() const { return bIsConfigured && WorldGenerationConfig.IsValid(); }
     FVector2D GetGeneratedPatchCenter() const { return PatchCenter; }
+#if !UE_BUILD_SHIPPING
+    const TArray<int32>& GetSuppressedForestCandidatesForVerification() const { return SuppressedForestCandidates; }
+    int32 GetCosmeticForestCountForVerification() const { return MeadowTreeCount; }
+#endif
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 private:

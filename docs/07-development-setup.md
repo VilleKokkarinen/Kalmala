@@ -1,5 +1,48 @@
 # Development setup
 
+## Executed standing forest peer delivery — 2026-10-16
+
+Source: `5fdd476` plus this increment. Existing biome runner now supports an
+isolated `-ForestDeliveryOnly` mode and explicit temporary `-Project` path.
+Opt-in `KalmalaForestDeliveryTest` observes real production patch activation and
+replication; it does not spawn substitute trees or mutate their state.
+
+Commands actually run for the final successful build and scenario:
+
+```powershell
+& 'C:/Program Files/Epic Games/UE_5.8/Engine/Build/BatchFiles/Build.bat' KalmalaEditor Win64 Development '-Project=C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject' -WaitMutex -NoHotReload -MaxParallelActions=4
+& ./Scripts/Tests/World/Verify-BiomeExpansion.ps1 -ForestDeliveryOnly -Project C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject
+```
+
+Build log: `C:/Users/Ville/AppData/Local/Temp/kmforest/peer1/build5.log`.
+Final per-peer logs: `C:/Users/Ville/AppData/Local/Temp/kfpeer-245f0974/host.log`
+and `C:/Users/Ville/AppData/Local/Temp/kfpeer-245f0974/client.log`.
+Runner reported nine matching populated patches and exited 0: each peer verified
+18 standing replacements per patch (162 trees), exact persistent IDs, complete
+suppression membership, no extra owned actors, zero decorative trees, expected
+biome source/dimensions, and matching location/yaw within normal movement
+quantization (1 cm and half a byte-rotation step plus 0.01 degrees). Owner
+relevance is checked on the authority; clients verify actual delivery and owner.
+The runner requires at least one fully matching populated patch; this run matched
+all nine. It compares complete ID lists across peers and reads the seed directly
+from GameState; a seed OnRep log is optional when identity equals the class default.
+
+Earlier build attempts: cached makefile omitted the added cpp; refreshed with
+`-NoUBTMakefiles` (build2.log), then corrected the movement accessor (build3.log).
+First peer run `kfpeer-a5df0ff9` was interrupted while investigating the too-tight
+yaw assertion. Second `kfpeer-ef23b0f2` had all nine matches but was interrupted
+because the runner awaited the optional seed log. Final run above passes after
+these fixture/runner corrections. PowerShell parser and whitespace/path checks
+passed. Normal LOCALAPPDATA UBT access used; all runtime/build/user outputs are
+outside protected repository directories. Peer processes are stopped in finally;
+isolated temporary saves and logs are retained.
+
+This is standing delivery evidence only. Client axe attacks, replicated trunk/drop
+transitions, late joining into those states, pickup reward/depletion and forged or
+out-of-range peer rejection remain required by the unchecked delivery child.
+Rendering, streaming/restart and full feature verification remain deferred.
+
+
 ## Executed real forest population slots — 2026-10-16
 
 Source: `f86b731` plus this increment. Uses the existing temporary `kmforest`

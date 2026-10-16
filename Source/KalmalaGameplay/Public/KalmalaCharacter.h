@@ -121,6 +121,10 @@ private:
     void StopSprint();
     void VerifyPlayerControls(float DeltaSeconds);
     void VerifyConstructionMovement(float DeltaSeconds);
+    void VerifyForestDelivery(float DeltaSeconds);
+    float ForestDeliveryElapsed = 0;
+    int32 ForestDeliveryDiagnostics = 0;
+    TSet<FString> ForestDeliveryReported;
     bool bConstructionMovementSpawned = false;
     bool bConstructionMovementFinished = false;
     float ConstructionMovementElapsed = 0.0f;

@@ -42,6 +42,9 @@ public:
     bool IsTreeResource() const;
     bool IsFelledTrunk() const { return TreeStage == 1; }
     bool IsWoodDrop() const { return TreeStage == 2; }
+#if !UE_BUILD_SHIPPING
+    const FVector4& GetForestDimensionsForVerification() const { return ForestDimensions; }
+#endif
     bool CanReceiveAxeAttack() const { return IsTreeResource() && !bHarvested && TreeStage < 2; }
     bool ApplyAxeDamageFromServer(AKalmalaCharacter* Interactor, const FKalmalaDamageChannels& Damage);
     static bool AdvanceTreeHit(uint8 Stage, float Health, float Damage, uint8& OutStage, float& OutHealth);

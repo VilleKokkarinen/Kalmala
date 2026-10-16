@@ -296,6 +296,7 @@ void AKalmalaCharacter::Tick(const float DeltaSeconds)
 #endif
     VerifyPlayerControls(DeltaSeconds);
     VerifyConstructionMovement(DeltaSeconds);
+    VerifyForestDelivery(DeltaSeconds);
     VerifySwimming(DeltaSeconds);
     VerifyOceanTravel(DeltaSeconds);
 
