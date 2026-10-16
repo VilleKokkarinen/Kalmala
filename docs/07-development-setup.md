@@ -1,5 +1,16 @@
 # Development setup
 
+## Optional forest stage runner gate — 2026-10-16
+
+`Verify-BiomeExpansion.ps1 -ForestDeliveryOnly -ForestStages -Project <temporary-project>`
+keeps peers running until nine standing patches match and both report Trunk and
+Drop for one identical tree ID in seed 10323456789. Timeout includes stage
+coverage. ForestStages requires ForestDeliveryOnly; default standing acceptance
+is retained. This gate does not drive attacks or prove late join, pickup or
+rejection, and will time out without a transition driver. Parser and six synthetic
+cases executing the real selector passed; live transitions remain unexecuted.
+
+
 ## Executed standing forest peer delivery — 2026-10-16
 
 Source: `5fdd476` plus this increment. Existing biome runner now supports an

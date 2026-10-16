@@ -1,6 +1,7 @@
 param(
     [string]$Editor = 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor.exe',
     [switch]$ForestDeliveryOnly,
+    [switch]$ForestStages,
     [string]$Project,
     [int]$Port = 17849
 )
@@ -8,6 +9,7 @@ param(
 $repoPaths = Get-KalmalaPaths -StartPath $PSScriptRoot
 
 $ErrorActionPreference = 'Stop'
+if ($ForestStages -and !$ForestDeliveryOnly) { throw '-ForestStages requires -ForestDeliveryOnly.' }
 if (!$Project) { $Project = Join-Path ($repoPaths.ProjectRoot) 'Kalmala.uproject' }
 $project = (Resolve-Path -LiteralPath $Project).Path
 if ($ForestDeliveryOnly) {
@@ -47,10 +49,20 @@ if ($ForestDeliveryOnly) {
             })
             # The fixture reads GameState's seed itself. An identity OnRep log
             # is not guaranteed when the server seed equals its class default.
-            if ($shared.Count -eq 9) { break }
+            # Require both stages for the same exact tree on both peers; a
+            # trunk from one tree and a drop from another cannot satisfy this.
+            $sharedStages = @([regex]::Matches($hostText, 'Forest stage delivery: Passed=1 Authority=1 Seed=10323456789 Id=([^\s]+) Stage=Trunk Cosmetics=0') |
+                ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique | Where-Object {
+                    $id = $_
+                    $clientText.Contains("Forest stage delivery: Passed=1 Authority=0 Seed=10323456789 Id=$id Stage=Trunk Cosmetics=0") -and
+                    $hostText.Contains("Forest stage delivery: Passed=1 Authority=1 Seed=10323456789 Id=$id Stage=Drop Cosmetics=0") -and
+                    $clientText.Contains("Forest stage delivery: Passed=1 Authority=0 Seed=10323456789 Id=$id Stage=Drop Cosmetics=0")
+                })
+            if ($shared.Count -eq 9 -and (!$ForestStages -or $sharedStages.Count -gt 0)) { break }
             Start-Sleep -Milliseconds 500
         } while ((Get-Date) -lt $deadline)
-        if ((Get-Date) -ge $deadline) { throw "Exact forest replacement/suppression delivery timed out: $($shared.Count)/9 matching eighteen-tree patches. Inspect $output." }
+        if ((Get-Date) -ge $deadline) { throw "Exact forest replacement/suppression delivery timed out: $($shared.Count)/9 matching eighteen-tree patches; $($sharedStages.Count) shared Trunk/Drop IDs (required=$ForestStages). Inspect $output." }
+        if ($ForestStages) { Write-Output "PASS: host/client Trunk and Drop delivery for exact tree IDs: $($sharedStages -join ', ')." }
         Write-Output "PASS: $($shared.Count) populated forest patches match host/client exact IDs, transforms, shape, source, standing state and zero cosmetics."
     }
     finally {

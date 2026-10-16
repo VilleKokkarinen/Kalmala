@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-16 — Gate peer forest stage delivery
+
+- **Completed:** partial first unchecked generated-forest host/client child: opt-in ForestStages requires nine standing patches and both peers reporting Trunk and Drop for one exact ID/seed. Deduplicates reports and adds stage timeout diagnostics; rejects use outside ForestDeliveryOnly.
+- **Files changed:** Scripts/Tests/World/Verify-BiomeExpansion.ps1, docs/07-development-setup.md, BACKLOG.md and PROGRESS.md.
+- **Checks:** PowerShell parser and six synthetic cases executing the actual selection AST passed: complete pair, duplicates, mixed IDs, missing trunk, foreign seed and empty logs. Whitespace, diff/scope and MAX_PATH checks passed. No Unreal build or peers launched; full verification deferred for this normal partial increment.
+- **Impact/authority:** runner only; no runtime, RPC, authority or save changes. Default standing acceptance retained.
+- **Limitations/next eligible task:** same unchecked delivery child: wire client axe driving and execute transitions/late join, then pickup/depletion and forged/out-of-range rejection. Gate alone does not establish live acceptance and times out without a driver. Only current Kalmala chat active; CIM unavailable. Clean main checkout used directly; no handoff synchronization needed.
+
+
 ## Autonomous increment 2026-10-16 — Observe forest trunk/drop delivery
 
 - **Completed:** partial first unchecked generated-forest delivery child. Opt-in peer observer continues after standing acceptance and emits deduplicated exact-ID Trunk/Drop observations, including first observation after late join. Retains complete suppression/owned-actor count, candidate transform/dimensions/source, movement replication, authority owner relevance and unharvested checks. Standing acceptance still requires every tree standing; valid nonstanding states do not consume mismatch diagnostics.
