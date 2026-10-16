@@ -3119,3 +3119,16 @@ Each is destroyed without depletion callbacks, then reconstructed with the same 
 standing stage, full 100 health and restored component/world collision. This isolates
 session-state reset; it bypasses actual damage/pickup actions and does not exercise
 GameMode eviction. Source checks only; Unreal compilation/execution remain deferred.
+
+
+Generated-candidate axe/pickup coverage (2026-10-16):
+`Kalmala.Gameplay.M9.SecondWaveHarvestAcceptance` now includes real accepted
+Meadow and Elderwood forest descriptors from the fixture world configuration.
+A bounded patch search fails explicitly if either biome candidate is absent.
+The cases reconstruct by original ordinal, equip the required axe, apply actual
+server damage through standing/trunk/drop stages, and collect the deterministic
+reward. They require exact durability consumption, no depletion before pickup,
+exactly one `OnHarvested` callback with the forest ID, no session M9 callback,
+and no duplicate grant. This exercises the node transaction, not the GameMode
+sparse-save callback binding, disk reload, patch eviction or peers. The new source
+has only lightweight inspection; Unreal compilation/execution remain deferred.

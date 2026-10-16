@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-16 — Cover generated forest axe pickup
+
+- **Completed:** partial first unchecked generated-tree child. Extended SecondWaveHarvestAcceptance with accepted Meadow/Elderwood forest candidates using public reconstruction, existing equipped-axe damage, trunk/drop and pickup transactions. Added exact sparse/session callback counts, identity, no early depletion, deterministic rewards, durability and duplicate-pickup assertions. Clears callback captures before case teardown, including hotbar setup failure.
+- **Files changed:** `Source/KalmalaGameplay/Private/Tests/KalmalaM9SourceAcceptanceTest.cpp`, `docs/07-development-setup.md`, `BACKLOG.md`, and this file.
+- **Lightweight checks:** focused source/API, case-count, bounded-search, callback cleanup and brace assertions; working/staged whitespace, diff/scope and MAX_PATH checks passed. No Unreal build, automation execution, rendering or peers; full verification remains deferred for this normal partial increment.
+- **Impact/authority:** authored integration regression now reaches real generated-node server damage and pickup rather than reflecting stages. No runtime, RPC, reward, authority or save-schema changes.
+- **Limitations:** fixture remains uncompiled/unexecuted; candidate availability is checked at runtime. GameMode eviction, actual sparse-save binding/disk reload and live peers remain pending. Child and parent stay unchecked.
+- **Next eligible task:** same generated-tree child: integrated patch lifecycle and saved depletion/peer validation. Moving fall/log presentation remains later. Main checkout began clean; only this run active in app state, CIM inventory unavailable. Main checkout used directly; no handoff synchronization required.
+
 ## Autonomous increment 2026-10-16 — Cover forest session reset
 
 - **Completed:** partial first unchecked generated-tree child. Extended ForestReconstructionLifecycle with reflected session-state setup for damaged standing trees, damaged trunks and uncollected drops. Destruction must not emit depletion; replacement retains the stable ID and restores standing stage, full health and collision.

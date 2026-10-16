@@ -2,6 +2,7 @@
 
 #include "KalmalaCharacter.h"
 #include "KalmalaGameMode.h"
+#include "KalmalaForestLayout.h"
 #include "KalmalaHarvestNode.h"
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaM9SourceLootContract.h"
@@ -31,6 +32,7 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
         FName ToolItemId;
         int32 ToolLevel;
         EKalmalaToolAction Action;
+        bool bGeneratedForest = false;
     };
 
     const FSourceCase Sources[] =
@@ -39,6 +41,8 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
         { TEXT("elderwood-ironheart-trunk"), TEXT("Densewood"), TEXT("IronAxe"), 2, EKalmalaToolAction::Woodcutting },
         { TEXT("mire-peat-amber-seam"), TEXT("Amber"), TEXT("StonePick"), 1, EKalmalaToolAction::Mining },
         { TEXT("tundra-frost-salt-deposit"), TEXT("FrostSalt"), TEXT("StonePick"), 1, EKalmalaToolAction::Mining },
+        { TEXT("meadows-birch-trunk"), TEXT("Lightwood"), TEXT("BronzeAxe"), 1, EKalmalaToolAction::Woodcutting, true },
+        { TEXT("elderwood-ironheart-trunk"), TEXT("Densewood"), TEXT("IronAxe"), 2, EKalmalaToolAction::Woodcutting, true },
     };
 
     UWorld* World = UWorld::CreateWorld(EWorldType::Game, false);
@@ -99,7 +103,7 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
     for (int32 Index = 0; Index < UE_ARRAY_COUNT(Sources); ++Index)
     {
         const FSourceCase& Source = Sources[Index];
-        const FVector Location(static_cast<float>(Index) * 2000.0f, 0.0f, 0.0f);
+        FVector Location(static_cast<float>(Index) * 2000.0f, 0.0f, 0.0f);
         AKalmalaCharacter* Pawn = World->SpawnActor<AKalmalaCharacter>(Location, FRotator::ZeroRotator);
         AKalmalaHarvestNode* Node = World->SpawnActor<AKalmalaHarvestNode>(Location, FRotator::ZeroRotator);
         if (!Pawn || !Node)
@@ -135,7 +139,37 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
         Spawn.SpawnSeed = 918273ull + static_cast<uint64>(Index);
         Spawn.Location = Location;
         Spawn.ContentId = Source.SourceId;
-        Node->InitializeServer(Spawn);
+        if (Source.bGeneratedForest)
+        {
+            bool bInitialized = false;
+            const bool bElderwood = Source.SourceId == TEXT("elderwood-ironheart-trunk");
+            for (int32 Y = -16; Y <= 16 && !bInitialized; ++Y)
+            {
+                for (int32 X = -16; X <= 16 && !bInitialized; ++X)
+                {
+                    const FVector2D Center(X * 10000.0, Y * 10000.0);
+                    for (const auto& Tree : FKalmalaForestLayout::Generate(WorldState->GetWorldGenerationConfig(), Center))
+                    {
+                        if (Tree.bElderwood != bElderwood) continue;
+                        bInitialized = Node->InitializeForestServer(WorldState->GetWorldGenerationConfig(), Center, Tree.CandidateIndex);
+                        break;
+                    }
+                }
+            }
+            if (!TestTrue(TEXT("Generated biome candidate initializes for axe/pickup acceptance"), bInitialized))
+            {
+                Node->Destroy();
+                bAllFixturesValid = false;
+                continue;
+            }
+            Location = Node->GetActorLocation();
+            Pawn->SetActorLocation(Location);
+            TestEqual(TEXT("Generated candidate selects expected biome source"), Node->GetGatheringSourceId(), Source.SourceId);
+        }
+        else
+        {
+            Node->InitializeServer(Spawn);
+        }
         if (!TestFalse(TEXT("Server fixture node has a stable population identity"), Node->GetPersistentSpawnId().IsEmpty()))
         {
             bAllFixturesValid = false;
@@ -192,7 +226,11 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
             FKalmalaM9SourceLootContract::BuildHarvestRewardQuantity(
                 WorldState->GetWorldGenerationConfig(), Source.SourceId, Node->GetPersistentSpawnId(), ExpectedYield));
         FString DepletedId;
-        Node->OnM9ResourceDepleted.AddLambda([&DepletedId](const FString& ResourceId) { DepletedId = ResourceId; });
+        FString SparseId;
+        int32 SessionCallbacks = 0;
+        int32 SparseCallbacks = 0;
+        Node->OnM9ResourceDepleted.AddLambda([&](const FString& ResourceId) { DepletedId = ResourceId; ++SessionCallbacks; });
+        Node->OnHarvested.AddLambda([&](const FString& ResourceId) { SparseId = ResourceId; ++SparseCallbacks; });
 
         int32 AcceptedUses = 1;
         if (Node->IsTreeResource())
@@ -202,7 +240,14 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
             auto* Inventory = Pawn->GetInventoryComponent();
             Inventory->SynchronizeGridFromServer();
             const int32 Slot = Inventory->GetGridSlots().IndexOfByKey(Source.ToolItemId);
-            if (!TestTrue(TEXT("Axe is in the usable hotbar"), Slot >= 0 && Slot < UKalmalaInventoryComponent::Columns)) continue;
+            if (!TestTrue(TEXT("Axe is in the usable hotbar"), Slot >= 0 && Slot < UKalmalaInventoryComponent::Columns))
+            {
+                Node->OnHarvested.Clear();
+                Node->OnM9ResourceDepleted.Clear();
+                Node->Destroy();
+                bAllFixturesValid = false;
+                continue;
+            }
             Inventory->ServerUseHotbarSlot(Slot);
             const FKalmalaDamageChannels AxeDamage = FKalmalaToolLifecycleContract::GetAttackDamageBonuses(
                 Source.ToolItemId, Source.ToolLevel, TEXT("Basic"));
@@ -215,6 +260,8 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
             TestTrue(TEXT("Broken trunk leaves a world wood drop"), Node->IsWoodDrop());
             TestEqual(TEXT("Breaking a trunk does not automatically grant wood"), Inventory->GetQuantity(Source.ItemId), 0);
         }
+        TestEqual(TEXT("Damage before pickup emits no sparse depletion"), SparseCallbacks, 0);
+        TestEqual(TEXT("Damage before pickup emits no session depletion"), SessionCallbacks, 0);
         TestTrue(FString::Printf(TEXT("%s accepts harvest or wood pickup"), *SourceLabel),
             Node->InteractWithToolIntentFromServer(Pawn, 100.0f, 250.0f, Source.ToolItemId, ExpectedAction));
         TestFalse(TEXT("Depleted resource cannot be collected twice"),
@@ -225,7 +272,15 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
         TestEqual(FString::Printf(TEXT("%s accepted use spends one server-owned condition"), *SourceLabel),
             Pawn->GetToolDurability(Source.ToolItemId), InitialCondition - AcceptedUses);
         TestEqual(FString::Printf(TEXT("%s depletion callback carries its stable sparse ID"), *SourceLabel),
-            DepletedId, FKalmalaM9SourceLootContract::BuildResourceDepletionId(Source.SourceId, Node->GetPersistentSpawnId()));
+            DepletedId, Source.bGeneratedForest ? FString() : FKalmalaM9SourceLootContract::BuildResourceDepletionId(Source.SourceId, Node->GetPersistentSpawnId()));
+        TestEqual(TEXT("Only generated forest pickup emits exactly one sparse callback"), SparseCallbacks, Source.bGeneratedForest ? 1 : 0);
+        TestEqual(TEXT("Generated pickup bypasses session depletion"), SessionCallbacks, Source.bGeneratedForest ? 0 : 1);
+        TestEqual(TEXT("Sparse callback retains exact generated identity"), SparseId,
+            Source.bGeneratedForest ? Node->GetPersistentSpawnId() : FString());
+        // Release delegate captures before the next case and world teardown.
+        Node->OnHarvested.Clear();
+        Node->OnM9ResourceDepleted.Clear();
+        Node->Destroy();
     }
 
     OtherWorld->DestroyWorld(false);
