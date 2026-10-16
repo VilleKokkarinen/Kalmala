@@ -1,5 +1,11 @@
 # Development setup
 
+## Forest client pickup gate (2026-10-16; authored, not executed)
+
+After compiling the changed fixture in a short temporary mirror, run `Scripts/Tests/World/Verify-BiomeExpansion.ps1 -ForestDeliveryOnly -ForestStages -ForestPickup -Project <temporary-project>`. Pickup excludes both late-join modes, which retain separate evidence. The opt-in non-shipping driver holds the drop for five observation ticks, captures its exact ID and local inventory baseline, derives expected yield from the existing catalogue/M9 contract, aims through normal controller rotation, then sends three ordinary owned interaction requests. It requires replicated collected state and the exact expected inventory delta stable for five further ticks; failure to converge within thirty ticks logs fixture failure. The runner requires that same ID in shared Trunk/Drop delivery and collected observations on both host and client. Collected observations do not count toward standing coverage.
+
+PowerShell parsing and ten synthetic cases executing the actual pickup selector passed. No compile or live pickup scenario was run during authoring. This observes replicated inventory and collected state, not the sparse-save write count; competing pickup, forged/out-of-range requests, and executed pickup acceptance remain pending. Production interaction validation, authority, rewards, RPC signatures and save formats are unchanged. All live execution must use isolated temporary project/user roots as in preceding forest runs; full feature verification remains deferred.
+
 ## Forest trunk late-join gate (2026-10-16; executed)
 
 After compiling the changed fixture in the short temporary mirror, run `Scripts/Tests/World/Verify-BiomeExpansion.ps1 -ForestDeliveryOnly -ForestStages -ForestTrunkLateJoin -Project <temporary-project>`. This excludes ForestDropLateJoin. The opt-in non-shipping KalmalaForestHoldTrunk flag stops the client attack driver at Trunk. After nine shared standing patches and a matching exact trunk report, a third observer joins without driver/hold flags and must report that exact ID/seed/Trunk with zero cosmetics. All peers stop in finally. Existing drop mode remains available. Parser and seven selector cases passed during authoring. Compilation/live acceptance passed as recorded below; pickup/depletion and rejection coverage remain next.

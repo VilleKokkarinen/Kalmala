@@ -1,9 +1,11 @@
 #include "KalmalaCharacter.h"
 #include "KalmalaInventoryComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/Controller.h"
 #include "KalmalaForestLayout.h"
 #include "KalmalaGeneratedTerrainPatch.h"
 #include "KalmalaHarvestNode.h"
+#include "KalmalaM9SourceLootContract.h"
 #include "KalmalaWorldGenerationGameState.h"
 #include "EngineUtils.h"
 #include "Misc/CommandLine.h"
@@ -19,6 +21,16 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
     if (ForestDeliveryElapsed < 1) return;
     ForestDeliveryElapsed = 0;
     const auto& Config = State->GetWorldGenerationConfig();
+    for (TActorIterator<AKalmalaHarvestNode> Node(GetWorld()); Node; ++Node)
+    {
+        const FString Id = Node->GetPersistentSpawnId();
+        if (!Id.StartsWith(TEXT("forest:v1:")) || !Node->IsHarvested()) continue;
+        const FString Key = Id + TEXT(":Collected");
+        if (ForestDeliveryReported.Contains(Key)) continue;
+        ForestDeliveryReported.Add(Key);
+        UE_LOG(LogTemp, Display, TEXT("Forest depletion delivery: Passed=1 Authority=%d Seed=%llu Id=%s Collected=1"),
+            HasAuthority(), Config.WorldSeed, *Id);
+    }
     for (TActorIterator<AKalmalaGeneratedTerrainPatch> Patch(GetWorld()); Patch; ++Patch)
     {
         if (!Patch->HasGenerationData()) continue;
@@ -88,7 +100,7 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
     // Standing coverage must be captured before the fixture mutates any tree.
     int32 StandingPatches = 0;
     for (const FString& Report : ForestDeliveryReported)
-        if (!Report.EndsWith(TEXT(":Trunk")) && !Report.EndsWith(TEXT(":Drop"))) ++StandingPatches;
+        if (!Report.EndsWith(TEXT(":Trunk")) && !Report.EndsWith(TEXT(":Drop")) && !Report.EndsWith(TEXT(":Collected"))) ++StandingPatches;
     if (StandingPatches < 9) return;
     if (HasAuthority())
     {
@@ -132,7 +144,54 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
                 && FVector::DistSquared(Node->GetActorLocation(), GetActorLocation()) < FMath::Square(210.0f)
                 && (!Target || FVector::DistSquared(Node->GetActorLocation(), GetActorLocation())
                     < FVector::DistSquared(Target->GetActorLocation(), GetActorLocation()))) Target = *Node;
-        if (!Target || Target->IsWoodDrop()) return;
+        if (!Target) return;
+        if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestPickup")) && (Target->IsWoodDrop() || !ForestPickupId.IsEmpty()))
+        {
+            if (bForestPickupReported) return;
+            if (ForestPickupId.IsEmpty())
+            {
+                // Preserve the drop long enough for both observers to sample it.
+                if (ForestDriverStage != TEXT("Drop")) { ForestDriverStage = TEXT("Drop"); ForestDriverStageWait = 0; }
+                if (++ForestDriverStageWait < 5) return;
+                FKalmalaToolServerSelection Selection;
+                if (!FKalmalaToolLifecycleContract::BuildServerSelection(Target->GetGatheringSourceId(), Selection)) return;
+                ForestPickupExpected = Selection.RewardQuantity;
+                if (FKalmalaM9SourceLootContract::IsM9Source(Target->GetGatheringSourceId())
+                    && !FKalmalaM9SourceLootContract::BuildHarvestRewardQuantity(Config, Target->GetGatheringSourceId(),
+                        Target->GetPersistentSpawnId(), ForestPickupExpected)) return;
+                ForestPickupId = Target->GetPersistentSpawnId();
+                ForestPickupItem = Selection.RewardItemId;
+                ForestPickupBefore = GetInventoryComponent()->GetQuantity(ForestPickupItem);
+                FVector ViewLocation;
+                FRotator ViewRotation;
+                Controller->GetPlayerViewPoint(ViewLocation, ViewRotation);
+                Controller->SetControlRotation((Target->GetActorLocation() + FVector(0, 0, 10) - ViewLocation).Rotation());
+                return; // Allow normal control-rotation replication before interacting.
+            }
+            if (Target->GetPersistentSpawnId() != ForestPickupId) return;
+            ++ForestPickupTicks;
+            // Exercise repeated ordinary owned requests, including after depletion.
+            // No target, quantity or reward is supplied to the server.
+            if (ForestPickupTicks <= 3) RequestInteract();
+            const int32 Delta = GetInventoryComponent()->GetQuantity(ForestPickupItem) - ForestPickupBefore;
+            if (ForestPickupTicks > 3 && Target->IsHarvested() && Delta == ForestPickupExpected)
+                ++ForestPickupStableTicks;
+            else ForestPickupStableTicks = 0;
+            if (ForestPickupStableTicks >= 5)
+            {
+                bForestPickupReported = true;
+                UE_LOG(LogTemp, Display, TEXT("Forest pickup delivery: Passed=1 Authority=0 Seed=%llu Id=%s Item=%s Delta=%d Expected=%d Requests=3 Stable=5"),
+                    Config.WorldSeed, *ForestPickupId, *ForestPickupItem.ToString(), Delta, ForestPickupExpected);
+            }
+            else if (ForestPickupTicks >= 30)
+            {
+                bForestPickupReported = true;
+                UE_LOG(LogTemp, Error, TEXT("Forest delivery: Passed=0 PickupTimeout Id=%s Delta=%d Expected=%d Collected=%d"),
+                    *ForestPickupId, Delta, ForestPickupExpected, Target->IsHarvested());
+            }
+            return;
+        }
+        if (Target->IsWoodDrop()) return;
         // Optional trunk-only peer gate keeps this state stable while a third
         // observer joins. Ordinary stage/drop runs retain their existing cadence.
         if (Target->IsFelledTrunk() && FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestHoldTrunk"))) return;

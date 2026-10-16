@@ -130,6 +130,13 @@ private:
     FString ForestDriverStage;
     int32 ForestDriverStageWait = 0;
     int32 ForestDriverRequests = 0;
+    FString ForestPickupId;
+    FName ForestPickupItem;
+    int32 ForestPickupBefore = 0;
+    int32 ForestPickupExpected = 0;
+    int32 ForestPickupTicks = 0;
+    int32 ForestPickupStableTicks = 0;
+    bool bForestPickupReported = false;
     bool bConstructionMovementSpawned = false;
     bool bConstructionMovementFinished = false;
     float ConstructionMovementElapsed = 0.0f;
