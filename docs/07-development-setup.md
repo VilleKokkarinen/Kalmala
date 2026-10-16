@@ -1,9 +1,22 @@
 # Development setup
 
-## Forest trunk late-join gate (2026-10-16; execution pending)
+## Forest trunk late-join gate (2026-10-16; executed)
 
-After compiling the changed fixture in the short temporary mirror, run `Scripts/Tests/World/Verify-BiomeExpansion.ps1 -ForestDeliveryOnly -ForestStages -ForestTrunkLateJoin -Project <temporary-project>`. This excludes ForestDropLateJoin. The opt-in non-shipping KalmalaForestHoldTrunk flag stops the client attack driver at Trunk. After nine shared standing patches and a matching exact trunk report, a third observer joins without driver/hold flags and must report that exact ID/seed/Trunk with zero cosmetics. All peers stop in finally. Existing drop mode remains available. Parser and seven selector cases passed; compilation/live acceptance pending. Execute this gate next, before pickup/depletion and rejection coverage.
+After compiling the changed fixture in the short temporary mirror, run `Scripts/Tests/World/Verify-BiomeExpansion.ps1 -ForestDeliveryOnly -ForestStages -ForestTrunkLateJoin -Project <temporary-project>`. This excludes ForestDropLateJoin. The opt-in non-shipping KalmalaForestHoldTrunk flag stops the client attack driver at Trunk. After nine shared standing patches and a matching exact trunk report, a third observer joins without driver/hold flags and must report that exact ID/seed/Trunk with zero cosmetics. All peers stop in finally. Existing drop mode remains available. Parser and seven selector cases passed during authoring. Compilation/live acceptance passed as recorded below; pickup/depletion and rejection coverage remain next.
 
+
+## Executed trunk late join — 2026-10-16
+
+Source `12f2d94`. Copied the changed KalmalaForestDeliveryVerification.cpp into the existing short temporary mirror; Source, Config and Content hashes then matched the checkout. Commands actually run:
+
+```powershell
+& 'C:/Program Files/Epic Games/UE_5.8/Engine/Build/BatchFiles/Build.bat' KalmalaEditor Win64 Development '-Project=C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject' -WaitMutex -NoHotReload -MaxParallelActions=4
+& ./Scripts/Tests/World/Verify-BiomeExpansion.ps1 -ForestDeliveryOnly -ForestStages -ForestTrunkLateJoin -Project C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject
+```
+
+Build succeeded (four incremental actions: fixture compile, Gameplay library/DLL links, target metadata); log `C:/Users/Ville/AppData/Local/Temp/kmforest/trunk-build.log`. Normal LOCALAPPDATA UnrealBuildTool access used. Live runner passed, exit 0: nine matching eighteen-tree standing patches, then host/client Trunk and third-observer Trunk for exact ID `forest:v1:10323456789:31079.1015625:5132.20068359375:13`, seed 10323456789, zero cosmetics. The observer joins after shared Trunk and has no stage driver. No repair or failed attempt occurred.
+
+Logs: `C:/Users/Ville/AppData/Local/Temp/kfpeer-18e7d044/host.log`, `client.log` and `late.log`. All three have zero fatal/assertion/ensure/fixture-failure markers. Runner finally stopped all peers; no UnrealEditor remained. Temporary logs/user roots retained, existing saves and repository protected outputs untouched. This normal partial increment is not milestone-final. The delivery child remains unchecked: next exactly-once pickup/reward/depletion and forged/out-of-range rejection. Full feature/project verification remains deferred.
 
 ## Executed drop late join — 2026-10-16
 
