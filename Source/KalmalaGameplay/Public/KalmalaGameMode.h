@@ -48,6 +48,7 @@ public:
 
 private:
     friend class FKalmalaForestPatchLifecycleTest;
+    friend class FKalmalaM9SourceAcceptanceTest;
 
     void ActivateTerrainPatch(const FIntPoint& PatchCoordinate);
     void ActivateTerrainPatchNeighborhood(const FVector2D& WorldPosition);

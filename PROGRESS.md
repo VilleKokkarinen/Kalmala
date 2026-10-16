@@ -1,5 +1,15 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-16 — Connect forest pickup to patch reload
+
+- **Completed:** partial first unchecked generated-tree child. SecondWaveHarvestAcceptance now feeds the real axe/pickup callback ledger's memory round trip into isolated GameMode activation, eviction and reactivation. Checks exactly one collected tree stays absent, every uncollected neighbor returns, eviction destroys replacements, and saved depletion survives. Candidate search requires at least two trees to make neighbor assertions meaningful.
+- **Files changed:** `Source/KalmalaGameplay/Private/Tests/KalmalaM9SourceAcceptanceTest.cpp`, `Source/KalmalaGameplay/Public/KalmalaGameMode.h` (friend fixture only), `docs/07-development-setup.md`, `BACKLOG.md`, and this file.
+- **Lightweight checks:** focused source, bounded candidate search, neighbor coverage, brace balance, cleanup and no-disk/session-startup assertions passed; inspected GameMode activation/eviction APIs. Working/staged whitespace, scope and MAX_PATH checks passed. No Unreal compilation, automation execution or peers ran; full verification remains deferred for this normal partial increment.
+- **Impact/authority:** regression source connects real server pickup output to the production patch save reader/materializer. No runtime behavior, RPC, reward or save-schema change.
+- **Limitations:** fixture remains uncompiled/unexecuted; the callback ledger is fixture-owned and memory serialized. Production disk callback/reload and live integration/peer validation remain pending. Child and parent stay unchecked.
+- **Next eligible task:** same generated-tree child: production persistence and live integration/peer validation. Only this Kalmala run active in app state; CIM process inventory unavailable. Clean main checkout used directly; no handoff synchronization required.
+
+
 ## Autonomous increment 2026-10-16 — Cover pickup sparse-save round trip
 
 - **Completed:** partial first unchecked generated-tree child. Extended real axe/pickup acceptance to populate a sparse save from OnHarvested and serialize/reload it in memory, checking pre-pickup absence, exact generated ID/world identity, legacy-source exclusion and no creature/unrelated-ID contamination.

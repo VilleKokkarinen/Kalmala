@@ -3177,3 +3177,15 @@ sources must remain outside this sparse ledger. Duplicate pickup still emits onl
 one callback. This uses a fixture callback, not GameMode's disk writer; production
 slot persistence/reload and peer delivery remain pending. No new disk I/O is added
 to the existing acceptance fixture. Compilation and execution remain deferred.
+
+### Forest pickup to patch reload regression (2026-10-16)
+
+SecondWaveHarvestAcceptance now supplies its real forest pickup ledger's memory
+round trip to an isolated, unstarted GameMode in another world. Two activation and
+eviction passes must omit exactly the collected identity, reconstruct every
+uncollected neighbor, destroy evicted actors and preserve the pickup record.
+Candidate search requires at least two trees so neighbor coverage is nonempty.
+The production patch reader/materializer is exercised; the depletion writer is
+still a fixture callback, with no added disk I/O or session startup. A private
+friend declaration grants fixture access only. Compilation, automation execution,
+production disk persistence and peer delivery remain pending.

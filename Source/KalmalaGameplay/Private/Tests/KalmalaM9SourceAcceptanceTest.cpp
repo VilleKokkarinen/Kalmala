@@ -141,6 +141,8 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
         Spawn.SpawnSeed = 918273ull + static_cast<uint64>(Index);
         Spawn.Location = Location;
         Spawn.ContentId = Source.SourceId;
+        FVector2D ForestCenter = FVector2D::ZeroVector;
+        TArray<FKalmalaForestTreeDescriptor> ForestTrees;
         if (Source.bGeneratedForest)
         {
             bool bInitialized = false;
@@ -150,10 +152,17 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
                 for (int32 X = -16; X <= 16 && !bInitialized; ++X)
                 {
                     const FVector2D Center(X * 10000.0, Y * 10000.0);
-                    for (const auto& Tree : FKalmalaForestLayout::Generate(WorldState->GetWorldGenerationConfig(), Center))
+                    const auto Candidates = FKalmalaForestLayout::Generate(WorldState->GetWorldGenerationConfig(), Center);
+                    if (Candidates.Num() < 2) continue;
+                    for (const auto& Tree : Candidates)
                     {
                         if (Tree.bElderwood != bElderwood) continue;
                         bInitialized = Node->InitializeForestServer(WorldState->GetWorldGenerationConfig(), Center, Tree.CandidateIndex);
+                        if (bInitialized)
+                        {
+                            ForestCenter = Center;
+                            ForestTrees = Candidates;
+                        }
                         break;
                     }
                 }
@@ -304,6 +313,56 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
                 ReloadedSave->IsDefeated(Node->GetPersistentSpawnId()));
             TestFalse(TEXT("Pickup cannot deplete an unrelated generated identity"),
                 ReloadedSave->IsHarvested(Node->GetPersistentSpawnId() + TEXT(":other")));
+            if (Source.bGeneratedForest)
+            {
+                // Exercise the production save reader and materializer in a separate,
+                // unstarted world: no session startup or production disk slot writes.
+                UWorld* ReloadWorld = UWorld::CreateWorld(EWorldType::Game, false);
+                if (TestNotNull(TEXT("Pickup reload patch world created"), ReloadWorld))
+                {
+                    auto* ReloadMode = ReloadWorld->SpawnActor<AKalmalaGameMode>();
+                    if (TestNotNull(TEXT("Pickup reload GameMode created"), ReloadMode))
+                    {
+                        ReloadMode->WorldGenerationConfig = WorldState->GetWorldGenerationConfig();
+                        ReloadMode->TerrainPatchOrigin = ForestCenter;
+                        ReloadMode->PopulationSaveGame = ReloadedSave;
+                        const FIntPoint Coordinate = FIntPoint::ZeroValue;
+                        for (int32 Pass = 0; Pass < 2; ++Pass)
+                        {
+                            ReloadMode->ActivateTerrainPatch(Coordinate);
+                            const auto* Replacements = ReloadMode->ActiveForestNodes.Find(Coordinate);
+                            if (!TestNotNull(TEXT("Real pickup save activates its forest patch"), Replacements)) break;
+                            TestEqual(TEXT("Pickup reload omits exactly one generated tree"),
+                                Replacements->Num(), ForestTrees.Num() - 1);
+                            TSet<FString> LiveIds;
+                            for (const auto& Replacement : *Replacements)
+                            {
+                                if (TestTrue(TEXT("Pickup reload replacement is live"), Replacement.IsValid()))
+                                    LiveIds.Add(Replacement->GetPersistentSpawnId());
+                            }
+                            TestFalse(TEXT("Collected forest identity never reconstructs"),
+                                LiveIds.Contains(Node->GetPersistentSpawnId()));
+                            for (const auto& Tree : ForestTrees)
+                            {
+                                if (Tree.PersistentSpawnId == Node->GetPersistentSpawnId()) continue;
+                                TestTrue(TEXT("Every uncollected neighbor reconstructs after pickup reload"),
+                                    LiveIds.Contains(Tree.PersistentSpawnId));
+                                TestFalse(TEXT("Patch reconstruction never persists neighbor depletion"),
+                                    ReloadedSave->IsHarvested(Tree.PersistentSpawnId));
+                            }
+                            const auto Evicted = *Replacements;
+                            ReloadMode->RefreshTerrainPatchNeighborhoods();
+                            TestTrue(TEXT("Pickup reload eviction clears forest tracking"),
+                                ReloadMode->ActiveForestNodes.IsEmpty());
+                            for (const auto& Replacement : Evicted)
+                                TestFalse(TEXT("Pickup reload eviction destroys neighbors"), Replacement.IsValid());
+                            TestTrue(TEXT("Pickup depletion survives patch eviction"),
+                                ReloadedSave->IsHarvested(Node->GetPersistentSpawnId()));
+                        }
+                    }
+                    ReloadWorld->DestroyWorld(false);
+                }
+            }
         }
         // Release delegate captures before the next case and world teardown.
         Node->OnHarvested.Clear();
