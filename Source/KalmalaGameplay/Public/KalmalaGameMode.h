@@ -47,6 +47,8 @@ public:
     bool ClearOceanTravelPassenger(class AKalmalaCharacter* Interactor, const FString& VesselId);
 
 private:
+    friend class FKalmalaForestPatchLifecycleTest;
+
     void ActivateTerrainPatch(const FIntPoint& PatchCoordinate);
     void ActivateTerrainPatchNeighborhood(const FVector2D& WorldPosition);
     void RefreshTerrainPatchNeighborhoods();

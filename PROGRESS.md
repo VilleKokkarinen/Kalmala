@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-16 — Cover GameMode forest patch lifecycle
+
+- **Completed:** partial first unchecked generated-tree child. Added ForestPatchLifecycle automation source calling real GameMode activation and empty-neighborhood eviction. Seeds a depleted candidate through an in-memory sparse-save round trip and checks undepleted IDs, patch ownership, duplicate activation, actor destruction, cleared tracking and no eviction depletion over two activations.
+- **Files changed:** `Source/KalmalaGameplay/Private/Tests/KalmalaForestPatchTest.cpp`, `Source/KalmalaGameplay/Public/KalmalaGameMode.h` (friend fixture only), `docs/07-development-setup.md`, `BACKLOG.md`, and this file.
+- **Lightweight checks:** focused source/API, bounded search, no-session/no-disk-save and brace assertions passed. Inspected activation/eviction and save APIs; working/staged whitespace, scope and MAX_PATH checks passed. No Unreal build, automation execution, rendering or peers ran; full verification remains deferred for this normal partial increment.
+- **Impact/authority:** meaningful integration regression source; runtime behavior, authority, RPCs, rewards and save formats unchanged. Fixture uses server-owned orchestration and memory-only serialization.
+- **Limitations:** fixture remains uncompiled/unexecuted. Cosmetic suppression assertions, actual pickup callback persistence, live delivery and player-neighborhood union coverage remain pending. Selected child/parent stay unchecked.
+- **Next eligible task:** same generated-tree child: remaining integrated depletion/suppression and peer validation. Moving fall/log presentation stays later. Clean main checkout at start; only this Kalmala chat active in app state (CIM process access unavailable). Main checkout used directly; no handoff synchronization needed.
+
 ## Autonomous increment 2026-10-16 — Cover generated forest axe pickup
 
 - **Completed:** partial first unchecked generated-tree child. Extended SecondWaveHarvestAcceptance with accepted Meadow/Elderwood forest candidates using public reconstruction, existing equipped-axe damage, trunk/drop and pickup transactions. Added exact sparse/session callback counts, identity, no early depletion, deterministic rewards, durability and duplicate-pickup assertions. Clears callback captures before case teardown, including hotbar setup failure.

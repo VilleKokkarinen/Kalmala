@@ -3085,6 +3085,18 @@ The Inventory popup shows a separate Worn Gear section beneath the unchanged 40-
 
 ## Generated forest reconstruction lifecycle (2026-10-15)
 
+`Kalmala.Gameplay.Harvest.ForestPatchLifecycle` covers the real GameMode patch
+activation and empty-player-neighborhood eviction paths in an isolated world.
+It seeds one harvested candidate, round-trips the sparse save through memory,
+then checks that only undepleted IDs materialize with patch ownership. Duplicate
+activation must retain the patch and actor count; eviction must destroy terrain
+and forest actors, clear tracking, and avoid depleting uncollected IDs. A second
+activation checks reconstruction with saved depletion still excluded. A friend
+fixture accesses private orchestration without adding a public gameplay API.
+No session BeginPlay or disk saves are invoked. Source inspection only: compilation
+and execution remain deferred. Cosmetic suppression, actual pickup-to-save callback
+binding and network delivery are outside this fixture.
+
 `Kalmala.Gameplay.Harvest.ForestReconstructionLifecycle` is a focused isolated-world
 regression for public forest actor reconstruction. It finds an accepted candidate
 from seed 418, checks authority and invalid-ordinal rejection, reconstructs stable
