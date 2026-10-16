@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-16 — Cover shared forest neighborhood retention
+
+- **Completed:** partial first unchecked generated-tree child. Extended ForestPatchLifecycle with two possessed player controllers sharing a patch. First departure must preserve exact terrain/forest actors and neighborhood count; final departure must destroy actors and clear tracking without changing saved depletion.
+- **Files changed:** `Source/KalmalaGameplay/Private/Tests/KalmalaForestPatchTest.cpp`, `docs/07-development-setup.md`, `BACKLOG.md`, and this file.
+- **Lightweight checks:** inspected controller possession and production neighborhood iteration/eviction; focused source/API, ordering, cleanup, brace and MAX_PATH assertions plus working/staged whitespace and scope checks passed. No Unreal compile, automation execution, rendering or peers ran; full verification remains deferred for this normal partial increment.
+- **Impact/authority:** server-world lifecycle regression source only; no gameplay behavior, RPCs, rewards or save schema changes.
+- **Limitations:** uncompiled/unexecuted fixture covers overlapping neighborhoods at one center, not movement across distinct neighborhoods or actual network delivery. Successful pickup-to-disk persistence remains pending; child and parent stay unchecked.
+- **Next eligible task:** same generated-tree child: isolated successful pickup persistence and live integration/peer validation. Only this run active in app state; CIM process inventory unavailable. Clean main checkout used directly; no handoff synchronization required.
+
 ## Autonomous increment 2026-10-16 — Cover forest save-world guards
 
 - **Completed:** partial first unchecked generated-tree child. Extended ForestPatchLifecycle with missing/foreign saves, exact live identity/cosmetic coverage, production-bound depletion delegate rejection and eviction cleanup. Foreign save retains seeded depletion and gains no IDs.

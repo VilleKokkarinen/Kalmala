@@ -3104,6 +3104,13 @@ with missing/mismatched saves and check no foreign-save contamination, followed 
 eviction cleanup. This bypasses pickup and avoids disk writes; successful callback
 persistence still needs isolated save I/O. Compilation/execution remain deferred.
 
+The patch fixture also possesses two player pawns at the same generated center.
+After one controller unpossesses, the remaining player must retain the exact terrain
+and forest actor identities. After the last unpossesses, all neighborhood tracking
+and actors must disappear without changing sparse depletion. This exercises shared
+neighborhood retention in one server world; it does not establish live peer delivery
+or movement between distinct neighborhoods. Compilation/execution remain deferred.
+
 `Kalmala.Gameplay.Harvest.ForestReconstructionLifecycle` is a focused isolated-world
 regression for public forest actor reconstruction. It finds an accepted candidate
 from seed 418, checks authority and invalid-ordinal rejection, reconstructs stable

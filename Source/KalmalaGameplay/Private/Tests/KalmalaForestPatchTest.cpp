@@ -6,6 +6,8 @@
 #include "KalmalaHarvestNode.h"
 #include "KalmalaWorldPopulationSaveGame.h"
 #include "Engine/World.h"
+#include "KalmalaCharacter.h"
+#include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/AutomationTest.h"
 #include "UObject/UnrealType.h"
@@ -113,6 +115,64 @@ bool FKalmalaForestPatchLifecycleTest::RunTest(const FString& Parameters)
         for (int32 Index = 1; Index < Trees.Num(); ++Index)
             TestFalse(TEXT("Eviction never depletes uncollected tree"), Mode->PopulationSaveGame->IsHarvested(Trees[Index].PersistentSpawnId));
     }
+    // A shared patch belongs to the union of player neighborhoods, not the first owner.
+    auto* FirstController = World->SpawnActor<APlayerController>();
+    auto* SecondController = World->SpawnActor<APlayerController>();
+    FActorSpawnParameters PawnParameters;
+    PawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+    auto* FirstPawn = World->SpawnActor<AKalmalaCharacter>(AKalmalaCharacter::StaticClass(),
+        FVector(Center.X, Center.Y, 0.0), FRotator::ZeroRotator, PawnParameters);
+    auto* SecondPawn = World->SpawnActor<AKalmalaCharacter>(AKalmalaCharacter::StaticClass(),
+        FVector(Center.X, Center.Y, 0.0), FRotator::ZeroRotator, PawnParameters);
+    if (!TestNotNull(TEXT("First neighborhood controller created"), FirstController)
+        || !TestNotNull(TEXT("Second neighborhood controller created"), SecondController)
+        || !TestNotNull(TEXT("First neighborhood pawn created"), FirstPawn)
+        || !TestNotNull(TEXT("Second neighborhood pawn created"), SecondPawn))
+    {
+        World->DestroyWorld(false);
+        return false;
+    }
+    FirstController->Possess(FirstPawn);
+    SecondController->Possess(SecondPawn);
+    TestTrue(TEXT("Both controllers possess neighborhood pawns"),
+        FirstController->GetPawn() == FirstPawn && SecondController->GetPawn() == SecondPawn);
+    Mode->RefreshTerrainPatchNeighborhoods();
+    auto* SharedPatchEntry = Mode->ActiveTerrainPatches.Find(Coordinate);
+    const auto* SharedNodes = Mode->ActiveForestNodes.Find(Coordinate);
+    if (!TestNotNull(TEXT("Shared neighborhood activates forest patch"), SharedPatchEntry)
+        || !TestNotNull(TEXT("Shared neighborhood tracks forest nodes"), SharedNodes)
+        || !TestNotNull(TEXT("Shared neighborhood terrain actor is live"), SharedPatchEntry->Get()))
+    {
+        World->DestroyWorld(false);
+        return false;
+    }
+    TWeakObjectPtr<AKalmalaGeneratedTerrainPatch> SharedPatch = SharedPatchEntry->Get();
+    const auto RetainedNodes = *SharedNodes;
+    TestEqual(TEXT("Shared neighborhood excludes saved depletion"), RetainedNodes.Num(), Trees.Num() - 1);
+    const int32 SharedPatchCount = Mode->ActiveTerrainPatches.Num();
+    FirstController->UnPossess();
+    Mode->RefreshTerrainPatchNeighborhoods();
+    TestEqual(TEXT("Remaining player retains neighborhood count"), Mode->ActiveTerrainPatches.Num(), SharedPatchCount);
+    TestTrue(TEXT("Remaining player retains exact shared terrain actor"),
+        Mode->ActiveTerrainPatches.FindRef(Coordinate) == SharedPatch.Get() && SharedPatch.IsValid());
+    const auto* RemainingNodes = Mode->ActiveForestNodes.Find(Coordinate);
+    TestTrue(TEXT("Remaining player retains exact forest actor list"), RemainingNodes && *RemainingNodes == RetainedNodes);
+    for (const auto& Node : RetainedNodes)
+        TestTrue(TEXT("First player leaving never destroys shared forest actors"), Node.IsValid());
+    SecondController->UnPossess();
+    Mode->RefreshTerrainPatchNeighborhoods();
+    TestTrue(TEXT("Last player leaving clears neighborhood tracking"), Mode->ActiveTerrainPatchCoordinates.IsEmpty()
+        && Mode->ActiveTerrainPatches.IsEmpty() && Mode->ActiveForestNodes.IsEmpty());
+    TestFalse(TEXT("Last player leaving destroys shared terrain actor"), SharedPatch.IsValid());
+    for (const auto& Node : RetainedNodes)
+        TestFalse(TEXT("Last player leaving destroys shared forest actors"), Node.IsValid());
+    TestTrue(TEXT("Player departure preserves prior saved depletion"), Mode->PopulationSaveGame->IsHarvested(Trees[0].PersistentSpawnId));
+    for (int32 Index = 1; Index < Trees.Num(); ++Index)
+        TestFalse(TEXT("Player departure never harvests uncollected trees"), Mode->PopulationSaveGame->IsHarvested(Trees[Index].PersistentSpawnId));
+    FirstController->Destroy();
+    SecondController->Destroy();
+    FirstPawn->Destroy();
+    SecondPawn->Destroy();
     // Missing or foreign-world saves must not hide this world's candidates.
     for (int32 SaveCase = 0; SaveCase < 2; ++SaveCase)
     {
