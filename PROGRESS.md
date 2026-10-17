@@ -1,3 +1,12 @@
+## User-directed backlog refinement 2026-10-17 — Size open work for one-job completion
+
+- **Completed:** audited every unchecked work leaf. Split generated-forest delivery into independently verifiable replication, late-join, pickup, rejection, remote full-pack, and ordinary-camera gates; the recorded completed gates are checked, while simultaneous owner contention and client-visible full-pack behavior remain open. Split patch departure, reactivation, and process restart into separate checks. Broke moving-fall implementation, settled-log integration, and final acceptance into implementation and verification slices. Split tool-view work into Stone, Bronze, and Iron increments. Updated the first-incomplete pointer to the next unpassed delivery gate.
+- **Files changed:** BACKLOG.md and PROGRESS.md.
+- **Checks:** compared completed acceptance leaves with execution records in docs/07-development-setup.md and this progress log; inspected the unchecked leaves for one focused implementation or acceptance result each; ran git diff --check. No Unreal build, automation, or runtime test ran. Full tree-feature verification remains deferred.
+- **Impact and authority:** planning updates only. Gameplay behavior, server authority, networking, persistence, and save formats are unchanged.
+- **Known limitations:** simultaneous owned pickup contention, client-visible full-pack rejection, peer departure/reactivation/restart, moving-fall and settled-log implementation, tiered tool views, and final integrated tree acceptance remain open.
+- **Next eligible task:** execute current-source simultaneous owned-pickup contention acceptance; then test full-pack rejection through the ordinary client interaction path.
+
 ## Autonomous increment 2026-10-17 — Enable ordinary-camera wood pickup
 
 - **Completed/files:** added a shared local/server visibility fallback in Source/KalmalaGameplay/Private/KalmalaCharacter.cpp for live wood drops missed by the short camera trace. It extends the query by a bounded camera offset, accepts only the first visible live drop inside physical pawn reach, and passes that physical distance to the existing authoritative transaction. Restored the normal 320 cm boom/45 cm pivot for pickup in Source/KalmalaGameplay/Private/KalmalaForestDeliveryVerification.cpp; Scripts/Tests/World/Verify-BiomeExpansion.ps1 requires exact-ID OrdinaryCamera=1 proof. Updated architecture/setup docs and this record. BACKLOG.md unchanged under the explicit no-rewording rule; selected delivery child remains incomplete.

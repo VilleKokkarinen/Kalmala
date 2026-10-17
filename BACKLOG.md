@@ -34,7 +34,9 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
-Current first-incomplete item: execute generated-forest host/client delivery acceptance against current sources; start by building and running the new physical-distance rejection gate.
+Current first-incomplete item: run the generated-forest simultaneous owned-pickup contention gate on current sources, then test client-visible full-pack rejection.
+
+Open leaf checkboxes are sized as one focused automated-job increment. Mark a leaf complete only after its stated implementation or acceptance passes; leave it open if it needs a separate repair or another run.
 
 - [x] **2026-10-15 — Standardize JSON readability:** audit all 59 tracked JSON files and reformat seven compact or inconsistent files with readable two-space indentation and line breaks. Strict parsing and data/key-order preservation checks passed.
 
@@ -190,12 +192,31 @@ Current first-incomplete item: execute generated-forest host/client delivery acc
     - [x] Give generated trees stable seed/patch/candidate IDs; materialize undepleted candidates as patch-owned harvest actors and suppress their decorative counterparts.
     - [x] Persist successful pickup IDs and rebuild or evict patch actors from sparse state; eviction must not record depletion.
     - [x] Compile and run focused forest stage/lifecycle regressions and actual Meadow/Elderwood save-slot reload coverage. Four focused automations and the slot reload checks passed; command/log details remain in docs/07-development-setup.md.
-    - [ ] **Execute host/client delivery acceptance on current sources.** Build the current source mirror and run the peer suite. Verify server-owned axe attacks replicate standing/trunk/drop for exact matching tree IDs; decorative trees stay suppressed; late joiners receive trunk and drop state; a normal pickup grants once and writes depletion on the host only. Verify repeated, simultaneous competing, forged, out-of-range, full-pack and independent physical-distance requests preserve the drop, and that ordinary-camera pickup succeeds. Repair feature or fixture failures and rerun the affected acceptance.
-    - [ ] **Verify peer streaming and process-restart behavior.** With two players sharing patches, confirm one departure retains the shared patch; the last departure evicts actors without recording harvest. Return and confirm collected IDs stay absent while uncollected trees return. Restart the game and reload the real population slot to confirm the same depletion state.
-    - [ ] **Reconcile generated-forest documentation and close this integration.** Update feature, architecture and setup docs to match accepted behavior and remaining limits; remove superseded claims that generated forest trees are still decorative.
-  - [ ] **Implement a server-authored moving tree fall.** Animate the original tree into a settled 3D trunk with replicated transition timing and late-join reconstruction. Preserve the tree identity, accepted-hit validation, durability, yield and depletion rules.
-  - [ ] **Integrate settled-log targeting and pickup.** Put collision and axe targeting at the presented log position; keep the wood bundle readable and collectible; prevent transition overlap from accepting extra hits or duplicate rewards.
-  - [ ] **Run final tree-feature acceptance.** Build the integrated source, run the applicable focused automation and host/client, late-join, streaming and restart checks from docs/07-development-setup.md; repair feature failures and rerun. Check the parent only after the moving-fall implementation and all acceptance pass.
+    - [ ] **Complete current-source host/client delivery acceptance.**
+      - [x] Verify host/client Trunk and Drop delivery for an exact generated-tree ID, with matching source suppression and replacement coverage.
+      - [x] Verify trunk late join: a third peer receives the exact settled Trunk ID without cosmetic duplication.
+      - [x] Verify drop late join: a third peer receives the exact Drop ID without cosmetic duplication.
+      - [x] Verify normal exact-ID pickup grants once, writes depletion on the host, and leaves repeat, depleted, and second-player retries without extra rewards.
+      - [x] Verify forged, trace-range, and physical-distance rejections preserve the live drop and grant nothing.
+      - [x] Verify a remote-owned full-pack pickup request rejects without reward, preserves the drop, and restores the exact inventory snapshot.
+      - [x] Verify ordinary-camera client targeting selects the exact live drop and completes one accepted pickup.
+      - [ ] Verify simultaneous pickup RPCs from competing owners grant at most once and leave the losing request with no reward.
+      - [ ] Verify a full pack through the ordinary client interaction path: the request is rejected, the drop remains live, and the owner receives the established rejection feedback.
+    - [ ] **Verify shared-patch departure and eviction.** With two players sharing a patch, confirm one departure retains the shared patch; the final departure evicts its actors without recording harvest.
+    - [ ] **Verify patch reactivation after eviction.** Collected IDs stay absent while uncollected generated trees materialize again.
+    - [ ] **Verify process-restart persistence.** Restart and load the real population slot; confirm the same collected IDs remain absent and uncollected trees return.
+    - [ ] **Reconcile generated-forest documentation.** Update feature, architecture and setup docs to match accepted behavior and remaining limits; remove superseded claims that generated forest trees are still decorative.
+  - [ ] **Implement the server-authored fall transition.** Add replicated transition state/timing and late-join reconstruction; preserve the exact tree identity and server-owned hit, condition, yield and depletion decisions.
+    - [ ] Add and validate the authoritative fall/settled phase transition, including a focused regression for transition overlap and accepted-hit accounting.
+    - [ ] Add the original moving presentation and settled 3D trunk at the generated tree's position; retain the same persistent tree identity.
+  - [ ] **Integrate settled-log targeting and pickup.**
+    - [ ] Align collision, axe targeting and server range checks with the presented settled log; reject extra hits during transition.
+    - [ ] Keep the wood bundle readable and collectible at the settled log; verify accepted pickup and full-pack/duplicate rejection without extra rewards.
+  - [ ] **Run final tree-feature acceptance.**
+    - [ ] Build the integrated editor source and run the focused tree-harvest automation group.
+    - [ ] Run final exact-ID host/client stage, late-join, and pickup delivery acceptance on the integrated source.
+    - [ ] Run final peer streaming, patch reactivation, and real population-slot restart acceptance.
+    - [ ] Check the parent only after each final gate passes; leave any failed gate open until its repair and rerun succeed.
 
 - [x] **2026-10-13 — Remove redundant item categories:** derive weapon/tool classification from item family; remove ItemCategory authoring/runtime property while retaining Inventory grouping. Lightweight checks passed; Unreal verification deferred.
 
@@ -344,7 +365,9 @@ Current first-incomplete item: execute generated-forest host/client delivery acc
   - [x] Split the schema-version-5 `GameCatalogues` definitions into category JSON files with an ordered manifest; preserve catalogue contents, order, validation, and runtime behavior.
   - [x] Group weapon profiles under item-family categories and their recipes under matching recipe categories; keep only the Building Hammer profile in `tools/` and preserve the prior assembly order.
   - [x] Canonicalize the starter IDs to `StoneKnife` and `StoneAxe`, and use `CampFire` for the campfire recipe/output; preserve existing starter-tool saves and icon packages without changing save schema.
-  - [ ] Surface all Stone, Bronze, and Iron tool acquisitions, authored stats, and material costs in station and Inventory Craft views, with crafting routed through the server-authoritative tool progression action.
+  - [ ] Surface Stone-tier acquisitions, authored stats, and material costs in station and Inventory Craft views; route each request through the server-authoritative tool progression action and cover one successful and one rejected transaction.
+  - [ ] Surface Bronze-tier acquisitions, authored stats, and material costs in station and Inventory Craft views; route each request through the server-authoritative tool progression action and cover one successful and one rejected transaction.
+  - [ ] Surface Iron-tier acquisitions, authored stats, and material costs in station and Inventory Craft views; route each request through the server-authoritative tool progression action and cover one successful and one rejected transaction.
 
 - [x] **2026-10-11 — Fix Build card fill and visible icon scale:** prevent the shared selectable-fill animation from overwriting the standalone Build menu's brown card overlay, and compensate for transparent margins in the 64×64 catalogue canvases while preserving icon proportions. Source inspection and `git diff --check` only; build/render verification deferred.
 
