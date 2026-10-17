@@ -453,8 +453,52 @@ void AKalmalaHarvestNode::CommitHarvestedStateFromServer()
 FName AKalmalaHarvestNode::GetHarvestItemId() const
 {
     if (PersistentSpawnId.IsEmpty()) return NAME_None;
+    FKalmalaToolServerSelection Selection;
+    if (FKalmalaToolLifecycleContract::BuildServerSelection(GatheringSourceId, Selection))
+        return Selection.RewardItemId;
     static const FName Materials[] = { TEXT("Wood"), TEXT("Stone") };
     return Materials[FCrc::StrCrc32(*PersistentSpawnId) % UE_ARRAY_COUNT(Materials)];
+}
+
+bool AKalmalaHarvestNode::GetPickupInfo(FName& OutItemId, int32& OutQuantity) const
+{
+    OutItemId = NAME_None;
+    OutQuantity = 0;
+    if (bHarvested || PersistentSpawnId.IsEmpty()
+        || (IsTreeResource() ? !IsWoodDrop() : !GatheringSourceId.IsNone())) return false;
+    int32 Quantity = 1;
+    if (FKalmalaM9SourceLootContract::IsM9Source(GatheringSourceId))
+    {
+        const auto* WorldState = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
+        if (!WorldState || !FKalmalaM9SourceLootContract::BuildHarvestRewardQuantity(
+            WorldState->GetWorldGenerationConfig(), GatheringSourceId, PersistentSpawnId, Quantity)) return false;
+    }
+    OutItemId = GetHarvestItemId();
+    OutQuantity = Quantity;
+    return !OutItemId.IsNone();
+}
+
+bool AKalmalaHarvestNode::TryAutomaticPickupFromServer(AKalmalaCharacter* Interactor)
+{
+    FName ItemId;
+    int32 Quantity;
+    if (!HasAuthority() || !IsValid(Interactor) || !Interactor->HasAuthority()
+        || !Interactor->IsAutomaticPickupEnabled() || Interactor->GetHealth() <= 0.0f
+        || Interactor->GetWorld() != GetWorld()
+        || !IsHarvestAllowed(true, bHarvested, Interactor->GetActorLocation(),
+            GetHarvestInteractionLocation(), AutomaticPickupRadius) || !GetPickupInfo(ItemId, Quantity)) return false;
+    // Quietly leave a drop intact when it cannot fit; do not repeat full-pack notifications.
+    auto* Inventory = Interactor->GetInventoryComponent();
+    TArray<FKalmalaInventoryStack> After;
+    FString Reason;
+    if (!Inventory || !UKalmalaInventoryComponent::BuildGrant(Inventory->GetStacks(), ItemId, Quantity, After, Reason)
+        || !Inventory->CanFitContents(After, Inventory->CountPackedTools(Interactor->GetCarriedToolInventory()))) return false;
+    FCollisionQueryParams Query(SCENE_QUERY_STAT(AutomaticPickup), true, Interactor);
+    FHitResult Hit;
+    if (GetWorld()->LineTraceSingleByChannel(Hit, Interactor->GetActorLocation(),
+        GetHarvestInteractionLocation(), ECC_Visibility, Query) && Hit.GetActor() != this) return false;
+    Interact_Implementation(Interactor);
+    return bHarvested;
 }
 
 void AKalmalaHarvestNode::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

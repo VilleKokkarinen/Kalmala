@@ -8,6 +8,7 @@ Further autonomous implementation requires a new user-defined task.
 
 ## User-requested fixes
 
+- [x] Add nearby automatic pickup with an Options toggle and Action-key crosshair pickup showing item amount/name.
 - [x] Rotate and anchor every held tool to fit the player hand through arm animation.
 - [x] Meadow trees accept Stone Axe or better and their logs yield Wood.
 

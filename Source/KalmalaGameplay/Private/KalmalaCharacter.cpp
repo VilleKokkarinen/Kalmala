@@ -236,6 +236,7 @@ void AKalmalaCharacter::BeginPlay()
 void AKalmalaCharacter::Tick(const float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
+    UpdateAutomaticPickupFromServer(DeltaSeconds);
 #if !UE_BUILD_SHIPPING
     if (!bM9Schema2PeerTestLogged && !HasAuthority() && IsLocallyControlled()
         && M9Schema2PeerTestStartTime >= 0.0f && GetWorld() != nullptr)
@@ -932,6 +933,27 @@ bool AKalmalaCharacter::GetLocalHarvestInteractionIntent(const AKalmalaHarvestNo
     bOutHasUsableTool = GetToolDurability(Definition->ItemId) > 0
         && FKalmalaToolLifecycleContract::IsToolSuitableForSelection(*Definition, DefinitionLevel, Selection);
     return true;
+}
+
+void AKalmalaCharacter::ServerSetAutomaticPickupEnabled_Implementation(const bool bEnabled)
+{
+    if (!HasAuthority()) return;
+    bAutomaticPickupEnabled = bEnabled;
+    AutomaticPickupElapsed = 0.0f;
+}
+
+void AKalmalaCharacter::UpdateAutomaticPickupFromServer(const float DeltaSeconds)
+{
+    if (!HasAuthority() || !bAutomaticPickupEnabled || Health <= 0.0f || !Controller || !GetWorld()
+        || Controller->IsMoveInputIgnored() || !FMath::IsFinite(DeltaSeconds) || DeltaSeconds <= 0.0f) return;
+    AutomaticPickupElapsed += FMath::Min(DeltaSeconds, 0.25f);
+    if (AutomaticPickupElapsed < 0.25f) return;
+    AutomaticPickupElapsed = 0.0f;
+    int32 Collected = 0;
+    for (TActorIterator<AKalmalaHarvestNode> Node(GetWorld()); Node; ++Node)
+    {
+        if (Node->TryAutomaticPickupFromServer(this) && ++Collected >= 4) break;
+    }
 }
 
 void AKalmalaCharacter::RequestInteract()

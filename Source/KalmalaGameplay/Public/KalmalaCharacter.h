@@ -68,6 +68,11 @@ public:
     int32 GetCarriedToolLevel(const FGuid& InstanceGuid) const;
     void EnsureToolInstanceGuidsFromServer();
     float GetInteractionRange() const { return InteractionRange; }
+    /** Owner preference only; server chooses radius, eligible actors and all rewards. */
+    UFUNCTION(Server, Reliable)
+    void ServerSetAutomaticPickupEnabled(bool bEnabled);
+    bool IsAutomaticPickupEnabled() const { return bAutomaticPickupEnabled; }
+    void UpdateAutomaticPickupFromServer(float DeltaSeconds);
     /** Owner-local candidate from the same short view trace used to choose interaction intent. */
     bool GetLocalInteractionCandidate(FHitResult& OutHit) const;
     /** Resolve the current local tool/action intent for this visible node; server validation remains authoritative. */
@@ -247,6 +252,8 @@ private:
 
     UPROPERTY(EditDefaultsOnly, Category = "Interaction", meta = (ClampMin = "1.0"))
     float InteractionRange = 250.0f;
+    bool bAutomaticPickupEnabled = false;
+    float AutomaticPickupElapsed = 0.0f;
 
     UPROPERTY(ReplicatedUsing = OnRep_ExposureState, VisibleAnywhere, BlueprintReadOnly, Category = "Exposure", meta = (AllowPrivateAccess = "true"))
     FKalmalaExposureState ExposureState;

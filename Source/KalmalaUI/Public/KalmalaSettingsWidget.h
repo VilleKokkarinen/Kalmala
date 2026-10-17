@@ -107,6 +107,8 @@ public:
     static void ApplySavedInterfaceScale();
     static float GetThemeDefaultApplicationScale();
     static float GetAppliedApplicationScale();
+    static bool IsAutomaticPickupEnabled();
+    static void SetAutomaticPickupEnabled(bool bEnabled);
     static bool IsReducedMotionEnabled();
     static void SetReducedMotionEnabled(bool bEnabled);
     static int32 ClampContrastMode(int32 Mode);
@@ -144,6 +146,8 @@ private:
     void ShowInputTab(bool bGamepad);
     void ShowAudioTab();
     void ShowAccessibilityTab();
+    UFUNCTION() void HandleAutomaticPickupChanged(bool bEnabled);
+    UPROPERTY(Transient) TObjectPtr<UTextBlock> AutomaticPickupCheckMark;
     void ShowPlaceholderTab(const FText& Title, const FText& Description);
     void ApplyVideoSettings();
     void UpdateVideoLabels();

@@ -38,6 +38,10 @@ public:
     FName GetGatheringSourceId() const { return GatheringSourceId; }
     FName GetGatheringPresentationId() const;
     FName GetHarvestItemId() const;
+    /** Loose material or broken-tree bundle only; never standing sources/trunks. */
+    bool GetPickupInfo(FName& OutItemId, int32& OutQuantity) const;
+    static constexpr float AutomaticPickupRadius = 150.0f;
+    bool TryAutomaticPickupFromServer(AKalmalaCharacter* Interactor);
     /** Bundle anchor reconstructed from the same replicated dimensions as its mesh. */
     FVector GetHarvestInteractionLocation() const;
     bool IsHarvested() const { return bHarvested; }

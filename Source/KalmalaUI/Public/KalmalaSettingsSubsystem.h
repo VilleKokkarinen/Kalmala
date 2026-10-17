@@ -55,6 +55,8 @@ private:
     TWeakObjectPtr<UInputComponent> BoundInputComponent;
     TWeakObjectPtr<UWorld> RenderDistanceWorld;
     TWeakObjectPtr<APawn> RenderDistanceExcludedPawn;
+    TWeakObjectPtr<APawn> PickupPreferencePawn;
+    bool bLastAutomaticPickupEnabled = false;
     FDelegateHandle RenderDistanceActorSpawnedHandle;
     TMap<TWeakObjectPtr<UPrimitiveComponent>, float> OriginalCullDistances;
     int32 RenderDistanceMeters = 576;

@@ -1,5 +1,34 @@
 # Development setup
 
+## Nearby pickup regression — 2026-10-17
+
+Options > Accessibility > Automatic pickup defaults on and persists locally.
+It collects loose materials and broken-tree bundles within 150 cm, with server
+visibility and full-capacity checks. With it off, aim and use the existing
+Action/Interact binding; the crosshair shows `Pickup Wood` or `Pickup 2 Wood`.
+Manual pickup also remains available when automatic pickup is enabled.
+
+Short-mirror normal-access Development Editor incremental builds passed;
+last build `kmforest/auto-pickup-final-build.log`, four actions, exit 0. Final
+unattended/null-RHI queue passed all four named tests in
+`C:/Users/Ville/AppData/Local/Temp/kpick-113398c7/tests.log`:
+
+- `Kalmala.Gameplay.Pickup.AutomaticRadius`: disabled, distance, wall, full pack,
+  client rejection, throttling and duplicate prevention on actual loose items.
+- `Kalmala.Gameplay.M9.SecondWaveHarvestAcceptance`: generated Meadow automatic
+  pickup, exact item/amount metadata, manual tree pickup and sparse persistence.
+- `Kalmala.UI.InteractionPrompt.Presentation`: exact single/multiple pickup text
+  and modal hiding, retaining the existing interaction/remapping cases.
+- `Kalmala.UI.Settings.AutomaticPickup`: persisted local enable/disable choice.
+
+The first loose-item fixture failed because its world had not initialized actors,
+so Unreal absorbed the preference RPC; InitializeActorsForPlay fixes that fixture.
+The broader pre-existing Settings.LocalPresentation test still fails its old
+ClampTextScale(80)=100 expectation: the unchanged implementation resolves 75.
+That test/implementation mismatch remains separate and unchanged. No manual
+rendered, live peer, packaging or full-suite acceptance is claimed. Rebuild
+Development Editor and check the option and both pickup modes in PIE.
+
 ## Held-tool hand-grip regression — 2026-10-17
 
 The held-tool pool now rotates entire silhouettes about their grip into the

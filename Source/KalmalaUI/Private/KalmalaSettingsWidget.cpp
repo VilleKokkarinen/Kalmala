@@ -1525,6 +1525,26 @@ float UKalmalaSettingsWidget::GetAppliedApplicationScale()
     return Settings != nullptr ? Settings->ApplicationScale : 1.0f;
 }
 
+bool UKalmalaSettingsWidget::IsAutomaticPickupEnabled()
+{
+    bool bEnabled = true;
+    if (GConfig) GConfig->GetBool(AudioSettingsSection, TEXT("LocalAutomaticPickup"), bEnabled, GGameUserSettingsIni);
+    return bEnabled;
+}
+
+void UKalmalaSettingsWidget::SetAutomaticPickupEnabled(const bool bEnabled)
+{
+    if (!GConfig) return;
+    GConfig->SetBool(AudioSettingsSection, TEXT("LocalAutomaticPickup"), bEnabled, GGameUserSettingsIni);
+    GConfig->Flush(false, GGameUserSettingsIni);
+}
+
+void UKalmalaSettingsWidget::HandleAutomaticPickupChanged(const bool bEnabled)
+{
+    SetAutomaticPickupEnabled(bEnabled);
+    if (AutomaticPickupCheckMark) AutomaticPickupCheckMark->SetText(FText::FromString(bEnabled ? TEXT("✓") : TEXT("")));
+}
+
 bool UKalmalaSettingsWidget::IsReducedMotionEnabled()
 {
     bool bEnabled = false;
@@ -2089,6 +2109,12 @@ void UKalmalaSettingsWidget::ShowAccessibilityTab()
     const int32 TextScalePercent = GetTextScalePercent();
     const int32 InterfaceScalePercent = GetInterfaceScalePercent();
     const int32 ContrastMode = GetContrastMode();
+    const FSettingsCheckBoxWidgets Pickup = AddSettingsCheckBoxRow(*WidgetTree, *SliderGroup,
+        TEXT("Automatic pickup"), TEXT("AutomaticPickupCheckBox"), IsAutomaticPickupEnabled(),
+        FText::FromString(TEXT("Collect loose items within 1.5 metres. Disable to pick them up with the Action key.")),
+        TextScalePercent, ContrastMode);
+    AutomaticPickupCheckMark = Pickup.CheckMark;
+    Pickup.CheckBox->OnCheckStateChanged.AddDynamic(this, &ThisClass::HandleAutomaticPickupChanged);
     const FSettingsSliderWidgets InterfaceScale = AddSettingsSliderRow(*WidgetTree, *SliderGroup,
         TEXT("Interface scale"), TEXT("InterfaceScaleSlider"), 80.0f, 120.0f, 10.0f,
         static_cast<float>(InterfaceScalePercent),

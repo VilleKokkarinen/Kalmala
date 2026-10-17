@@ -12,6 +12,76 @@
 #include "KalmalaWorldGenerationGameState.h"
 #include "Engine/World.h"
 #include "Misc/AutomationTest.h"
+#include "Engine/Engine.h"
+#include "GameFramework/PlayerController.h"
+#include "Components/BoxComponent.h"
+#include "Misc/ScopeExit.h"
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaAutomaticPickupTest, "Kalmala.Gameplay.Pickup.AutomaticRadius",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FKalmalaAutomaticPickupTest::RunTest(const FString& Parameters)
+{
+    UWorld* World = UWorld::CreateWorld(EWorldType::Game, false);
+    if (!TestNotNull(TEXT("Pickup fixture world exists"), World)) return false;
+    GEngine->CreateNewWorldContext(EWorldType::Game).SetCurrentWorld(World);
+    ON_SCOPE_EXIT { World->DestroyWorld(false); GEngine->DestroyWorldContext(World); };
+    World->InitializeActorsForPlay(FURL());
+    auto* Pawn = World->SpawnActor<AKalmalaCharacter>(FVector(0, 0, 88), FRotator::ZeroRotator);
+    auto* Controller = World->SpawnActor<APlayerController>();
+    auto* Node = World->SpawnActor<AKalmalaHarvestNode>();
+    if (!Pawn || !Controller || !Node) return false;
+    Controller->Possess(Pawn);
+    Pawn->DispatchBeginPlay();
+    Controller->DispatchBeginPlay();
+    Node->InitializeDiscoveryServer(TEXT("pickup-radius-fixture"), FVector(100, 0, 0));
+    FName Item;
+    int32 Amount;
+    TestTrue(TEXT("Loose material exposes pickup metadata"), Node->GetPickupInfo(Item, Amount));
+    TestEqual(TEXT("Loose material pickup has one unit"), Amount, 1);
+    Pawn->UpdateAutomaticPickupFromServer(0.25f);
+    TestFalse(TEXT("Preference disabled leaves loose material intact"), Node->IsHarvested());
+    Pawn->ServerSetAutomaticPickupEnabled(true);
+    TestTrue(TEXT("Owner preference reaches the server on the initialized world"), Pawn->IsAutomaticPickupEnabled());
+    Pawn->SetActorLocation(FVector(-100, 0, 88));
+    TestFalse(TEXT("Automatic pickup uses the smaller fixed radius"), Node->TryAutomaticPickupFromServer(Pawn));
+    Pawn->SetActorLocation(FVector(0, 0, 88));
+    auto* Wall = World->SpawnActor<AActor>();
+    auto* Box = NewObject<UBoxComponent>(Wall);
+    Wall->SetRootComponent(Box);
+    Box->SetBoxExtent(FVector(8, 25, 60));
+    Box->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+    Box->SetCollisionResponseToAllChannels(ECR_Block);
+    Box->RegisterComponent();
+    Wall->SetActorLocation(FVector(50, 0, 44));
+    TestFalse(TEXT("Walls prevent automatic pickup through geometry"), Node->TryAutomaticPickupFromServer(Pawn));
+    Wall->Destroy();
+    auto* Inventory = Pawn->GetInventoryComponent();
+    const auto Before = Inventory->GetStacks();
+    TArray<FKalmalaInventoryStack> Full;
+    const int32 PackedTools = Inventory->CountPackedTools(Pawn->GetCarriedToolInventory());
+    for (int32 Slot = PackedTools; Slot < UKalmalaInventoryComponent::MaxSlots; ++Slot)
+        Full.Add({TEXT("String"), 1});
+    TestTrue(TEXT("Full-pack fixture installs"), Inventory->TryCommitStacksFromServer(Before, Full));
+    const auto Filled = Inventory->GetStacks();
+    TestFalse(TEXT("A full pack leaves nearby items on the ground"), Node->TryAutomaticPickupFromServer(Pawn));
+    TestFalse(TEXT("Failed automatic grant does not deplete"), Node->IsHarvested());
+    TestTrue(TEXT("Capacity fixture restores"), Inventory->TryCommitStacksFromServer(Filled, Before));
+    Pawn->SetRole(ROLE_SimulatedProxy);
+    TestFalse(TEXT("Client cannot grant proximity rewards"), Node->TryAutomaticPickupFromServer(Pawn));
+    Pawn->SetRole(ROLE_Authority);
+    TestTrue(TEXT("Pickup preference is enabled on the authoritative pawn"), Pawn->IsAutomaticPickupEnabled());
+    const int32 BeforeCount = Inventory->GetQuantity(Item);
+    Pawn->UpdateAutomaticPickupFromServer(0.1f);
+    TestFalse(TEXT("Pickup scan is throttled"), Node->IsHarvested());
+    Pawn->UpdateAutomaticPickupFromServer(0.15f);
+    TestTrue(TEXT("Nearby material is collected without aiming or an action request"), Node->IsHarvested());
+    TestEqual(TEXT("Only the server-authored quantity is granted"), Inventory->GetQuantity(Item), BeforeCount + 1);
+    Pawn->UpdateAutomaticPickupFromServer(0.25f);
+    TestEqual(TEXT("Repeated proximity scan cannot duplicate the grant"), Inventory->GetQuantity(Item), BeforeCount + 1);
+    TestFalse(TEXT("Depleted drop no longer supplies a pickup prompt"), Node->GetPickupInfo(Item, Amount));
+    return true;
+}
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FKalmalaInteractionAuthorityTest,

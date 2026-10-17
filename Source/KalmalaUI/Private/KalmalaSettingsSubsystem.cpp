@@ -90,6 +90,17 @@ void UKalmalaSettingsSubsystem::Tick(float DeltaTime)
     if (FoundController == nullptr || !FoundController->IsLocalController()) return;
     LocalController = FoundController;
     BindLocalInput(LocalController);
+    if (auto* Character = Cast<AKalmalaCharacter>(LocalController->GetPawn()))
+    {
+        const bool bEnabled = UKalmalaSettingsWidget::IsAutomaticPickupEnabled();
+        if (PickupPreferencePawn.Get() != Character || bLastAutomaticPickupEnabled != bEnabled)
+        {
+            Character->ServerSetAutomaticPickupEnabled(bEnabled);
+            PickupPreferencePawn = Character;
+            bLastAutomaticPickupEnabled = bEnabled;
+        }
+    }
+    else PickupPreferencePawn.Reset();
     BindRenderDistanceWorld(GetWorld());
     if (bRenderDistanceConfigDirty)
     {
@@ -288,6 +299,7 @@ void UKalmalaSettingsSubsystem::RestoreRenderDistanceForWorld()
 
 void UKalmalaSettingsSubsystem::ReleaseController()
 {
+    PickupPreferencePawn.Reset();
     if (UInputComponent* Input = BoundInputComponent.Get())
     {
         for (int32 Index = Input->GetNumActionBindings() - 1; Index >= 0; --Index)

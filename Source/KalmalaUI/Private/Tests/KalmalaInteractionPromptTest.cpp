@@ -12,6 +12,12 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaInteractionPromptTest, "Kalmala.UI.Inte
 
 bool FKalmalaInteractionPromptTest::RunTest(const FString& Parameters)
 {
+    TestEqual(TEXT("Single pickup omits quantity and uses the requested crosshair wording"),
+        UKalmalaInteractionPromptWidget::BuildPromptText(TEXT("Wood"), TEXT("Pickup")), FString(TEXT("Pickup Wood")));
+    TestEqual(TEXT("Multiple pickup includes amount before the item name"),
+        UKalmalaInteractionPromptWidget::BuildPromptText(TEXT("2 Densewood"), TEXT("Pickup")), FString(TEXT("Pickup 2 Densewood")));
+    TestTrue(TEXT("Modal menus hide pickup prompts too"),
+        UKalmalaInteractionPromptWidget::BuildPromptText(TEXT("Wood"), TEXT("Pickup"), FString(), true).IsEmpty());
     const FString Available = UKalmalaInteractionPromptWidget::BuildPromptText(
         TEXT("Workbench"), TEXT("Use"));
     TestTrue(TEXT("Prompt names the visible target"), Available.Contains(TEXT("Workbench")));

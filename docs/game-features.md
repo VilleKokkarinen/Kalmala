@@ -1,5 +1,18 @@
 # Game features
 
+## Nearby item pickup — 2026-10-17
+
+Automatic pickup is enabled by default. Walk within 1.5 metres of loose materials
+or a broken-tree wood bundle to collect it when your pack has room and no wall
+blocks it. Standing trees, falling trees, settled logs and other resource
+sources still require their normal actions. Full packs leave drops intact.
+
+Options > Accessibility > Automatic pickup switches this behaviour on or off
+and remembers the choice locally. With it off, look at a nearby item and use
+the Action key (the remappable Interact binding). The crosshair reads `Pickup
+Wood` for one, or `Pickup 2 Wood` for multiple items, using the actual item name
+and quantity. Manual pickup remains available with the option enabled too.
+
 ## Held equipment appearance — 2026-10-17
 
 The character now shows the equipped Main Hand tool family: hammer, axe, knife,

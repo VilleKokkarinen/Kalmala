@@ -1,5 +1,32 @@
 # Technical architecture
 
+## Automatic and manual loose-item pickup — 2026-10-17
+
+The local settings widget stores `LocalAutomaticPickup` in GameUserSettings
+under its existing settings section, default true. Its local-player subsystem
+sends a reliable owning-pawn boolean preference on possession/controller changes
+and option changes. A new pawn defaults false until that preference arrives;
+the flag is transient and carries no save schema or public replication field.
+Clients supply no radius, target or reward. The server scans materialized harvest
+nodes every 0.25 seconds, stopping after four successful collections. The active
+streamed actor set is scanned; this does not generate unloaded drops.
+
+`GetPickupInfo` admits only uncollected source-less material nodes or tree Drop
+stage, exposing canonical item identity and deterministic server-world quantity
+for the existing crosshair UI. `TryAutomaticPickupFromServer` revalidates server
+roles, same world, living/enabled interactor, 150 cm physical radius to the bundle
+anchor, visibility occlusion and complete inventory capacity before invoking the
+existing interaction transaction. Full-pack attempts remain quiet and leave drops
+intact. Standing/Falling/Trunk and tool-gated harvesting are excluded. Existing
+wood-bundle persistence-before-depletion and rollback remain authoritative.
+
+Manual Action/Interact still uses the server-retraced crosshair target and its
+existing reach/capacity checks regardless of preference. Pickup prompt text is
+one line, `Pickup [quantity only when >1] [catalogue display name]`; all other
+interaction prompt formats and modal hiding remain unchanged. Source item name
+lookup now resolves the authoritative selection rather than the legacy random
+Wood/Stone label. The 150 cm radius is fixed tuning, not an options slider.
+
 ## Held-tool cosmetic replication — 2026-10-17
 
 `UKalmalaPlayerModelComponent` replaces the unconditional construction hammer

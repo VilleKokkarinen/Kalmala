@@ -18,6 +18,7 @@
 #include "Engine/GameInstance.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerState.h"
+#include "GameFramework/PlayerController.h"
 #include "GameFramework/WorldSettings.h"
 #include "Misc/AutomationTest.h"
 #include "Misc/CommandLine.h"
@@ -160,6 +161,10 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
             continue;
         }
 
+        const bool bAutomaticPickupCase = Source.bGeneratedForest && Source.ItemId == TEXT("Wood");
+        APlayerController* PickupController = bAutomaticPickupCase ? World->SpawnActor<APlayerController>() : nullptr;
+        ON_SCOPE_EXIT { if (PickupController) PickupController->Destroy(); };
+        if (PickupController) PickupController->Possess(Pawn);
         APlayerState* PlayerState = World->SpawnActor<APlayerState>();
         if (!TestNotNull(TEXT("M9 harvest fixture has an authenticated player state"), PlayerState))
         {
@@ -580,8 +585,34 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
         if (bCaseUsesSlot)
             TestFalse(TEXT("Damage, invalid requests and full pack create no population slot"),
                 UGameplayStatics::DoesSaveGameExist(PopulationSlot, 0));
-        TestTrue(FString::Printf(TEXT("%s accepts harvest or wood pickup"), *SourceLabel),
-            Node->InteractWithToolIntentFromServer(Pawn, 100.0f, 250.0f, Source.ToolItemId, ExpectedAction));
+        FName PickupItem;
+        int32 PickupQuantity = 0;
+        if (Node->IsWoodDrop())
+        {
+            TestTrue(TEXT("Drop advertises exact pickup metadata"), Node->GetPickupInfo(PickupItem, PickupQuantity));
+            TestEqual(TEXT("Crosshair item matches the server reward"), PickupItem, Source.ItemId);
+            TestEqual(TEXT("Crosshair quantity matches the deterministic server grant"), PickupQuantity, ExpectedYield);
+        }
+        if (bAutomaticPickupCase)
+        {
+            Pawn->SetActorLocation(Node->GetHarvestInteractionLocation() + FVector(0, 80, 88));
+            Pawn->ServerSetAutomaticPickupEnabled(false);
+            Pawn->UpdateAutomaticPickupFromServer(0.25f);
+            TestFalse(TEXT("Disabled pickup leaves nearby wood intact"), Node->IsHarvested());
+            Pawn->ServerSetAutomaticPickupEnabled(true);
+            Pawn->SetActorLocation(Node->GetHarvestInteractionLocation() + FVector(0, 200, 88));
+            Pawn->UpdateAutomaticPickupFromServer(0.25f);
+            TestFalse(TEXT("Server radius rejects farther wood without requiring a view target"), Node->IsHarvested());
+            Pawn->SetActorLocation(Node->GetHarvestInteractionLocation() + FVector(0, 80, 88));
+            Pawn->UpdateAutomaticPickupFromServer(0.25f);
+            TestTrue(TEXT("Walking into radius collects wood through the production server tick"), Node->IsHarvested());
+            Pawn->ServerSetAutomaticPickupEnabled(false);
+        }
+        else
+        {
+            TestTrue(FString::Printf(TEXT("%s accepts manual harvest or wood pickup with auto disabled"), *SourceLabel),
+                Node->InteractWithToolIntentFromServer(Pawn, 100.0f, 250.0f, Source.ToolItemId, ExpectedAction));
+        }
         if (Rival)
         {
             TestFalse(TEXT("Nearby rival cannot collect the same generated drop"),

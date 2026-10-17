@@ -286,6 +286,19 @@ bool ResolveInteractionPrompt(const AKalmalaCharacter* Character, AActor* Target
     if (const AKalmalaHarvestNode* Node = Cast<AKalmalaHarvestNode>(Target))
     {
         const FString ItemName = GetPromptItemName(Node->GetHarvestItemId(), TEXT("Resource"));
+        FName PickupItem;
+        int32 PickupQuantity;
+        if (Node->GetPickupInfo(PickupItem, PickupQuantity))
+        {
+            const FString PickupName = GetPromptItemName(PickupItem, TEXT("Item"));
+            OutDescription.TargetName = PickupQuantity > 1
+                ? FString::Printf(TEXT("%d %s"), PickupQuantity, *PickupName) : PickupName;
+            OutDescription.ActionName = TEXT("Pickup");
+            if (FVector::DistSquared(Character->GetActorLocation(), Node->GetHarvestInteractionLocation())
+                > FMath::Square(Character->GetInteractionRange()))
+                OutDescription.UnavailableReason = TEXT("Out of reach");
+            return true;
+        }
         OutDescription.TargetName = FString::Printf(TEXT("%s source"), *ItemName);
         OutDescription.ActionName = TEXT("Harvest");
         if (Node->IsTreeResource())
@@ -408,7 +421,9 @@ FString UKalmalaInteractionPromptWidget::BuildPromptText(const FString& TargetNa
 {
     if (bModalOpen || TargetName.TrimStartAndEnd().IsEmpty() || ActionName.TrimStartAndEnd().IsEmpty()) return FString();
 
-    FString Text = FString::Printf(TEXT("%s\n%s"), *TargetName, *ActionName);
+    FString Text = ActionName == TEXT("Pickup")
+        ? FString::Printf(TEXT("Pickup %s"), *TargetName)
+        : FString::Printf(TEXT("%s\n%s"), *TargetName, *ActionName);
     if (!UnavailableReason.TrimStartAndEnd().IsEmpty())
     {
         Text += FString::Printf(TEXT(" — Unavailable: %s"), *UnavailableReason.TrimStartAndEnd());

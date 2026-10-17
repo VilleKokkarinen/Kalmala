@@ -8,6 +8,19 @@
 #include "Misc/AutomationTest.h"
 #include <limits>
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaAutomaticPickupSettingTest, "Kalmala.UI.Settings.AutomaticPickup",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+bool FKalmalaAutomaticPickupSettingTest::RunTest(const FString& Parameters)
+{
+    const bool bOriginalAutomaticPickup = UKalmalaSettingsWidget::IsAutomaticPickupEnabled();
+    UKalmalaSettingsWidget::SetAutomaticPickupEnabled(false);
+    TestFalse(TEXT("Automatic pickup can be disabled in local options"), UKalmalaSettingsWidget::IsAutomaticPickupEnabled());
+    UKalmalaSettingsWidget::SetAutomaticPickupEnabled(true);
+    TestTrue(TEXT("Automatic pickup can be enabled in local options"), UKalmalaSettingsWidget::IsAutomaticPickupEnabled());
+    UKalmalaSettingsWidget::SetAutomaticPickupEnabled(bOriginalAutomaticPickup);
+    return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaSettingsWidgetTest, "Kalmala.UI.Settings.LocalPresentation",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
