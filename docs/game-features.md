@@ -27,16 +27,20 @@ Other peers receive only the server-selected visible family, not the item's GUID
 level, condition, pack contents or acquisition state. Bow appearance does not
 implement shooting or a two-handed animation.
 
-## Axe swing feedback and animation — 2026-10-17
+## Free melee swings with held items — 2026-10-17
 
-A usable equipped axe can start a server-approved swing without a target. The
-player's right arm raises, strikes and returns to gait over the existing
-0.54-second attack window. A miss completes cooldown without an unavailable
-notification, tool wear, damage or rewards. Actual hits still require the same
-server-selected target, visibility/range recheck, material tier and durability.
-Meadow trees and their settled logs accept Stone Axe or better and drop Wood.
-Elderwood trunks require Iron Axe and drop Densewood. Hammer remains
-build-only and Bow shooting remains unimplemented.
+Every usable equipped weapon or tool, including the Building Hammer and Bow,
+can swing without a target nearby. Empty hands can punch the air too. The right
+arm raises, strikes and returns over the existing 0.54-second attack window.
+A miss completes cooldown quietly without tool wear, damage or rewards.
+Broken/depleted tools still need repair before attacking.
+
+Actual hits still require a server-selected target and visibility/range recheck.
+Weapons use their authored Basic damage; items without an authored attack,
+including hammer and bow, use the existing basic 25 Crush melee fallback.
+The bow swing does not shoot or consume arrows. Hammer construction still works.
+Only suitable axes can damage trees: Meadow trees require Stone Axe or better
+and drop Wood; Elderwood requires Iron Axe and drops Densewood.
 
 ## Generated-forest harvesting — 2026-10-17
 

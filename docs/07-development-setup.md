@@ -1,5 +1,29 @@
 # Development setup
 
+## All-item free-swing regression — 2026-10-17
+
+Target-free melee swings now cover all 17 carried profiles and empty hands,
+including Hammer and Bow. `Kalmala.Gameplay.Combat.AllItemSwings` actually equips
+every profile, starts an air swing through the normal request, checks animated
+right-arm geometry, zero/duplicate/busy sequence rejection, quiet recovery and
+unchanged miss condition, then validates an actual wildlife hit against authored
+damage or the existing 25 Crush fallback. Hammer/Bow also fail the tree axe gate.
+The original AxeSwing regression retains invalid/broken condition coverage.
+
+Normal-access short-mirror Development Editor incremental build passed twelve
+actions, exit 0 (`kmforest/all-item-swing-build.log`). Standard unattended/null-RHI
+queue passed five named tests/five Success records, exit 0, without controller,
+fatal, assertion or ensure errors (`C:/Users/Ville/AppData/Local/Temp/kswing-ae2edab6/tests.log`):
+`Kalmala.Gameplay.Combat.AllItemSwings`, `Kalmala.Gameplay.Combat.AxeSwing`,
+`Kalmala.Gameplay.Combat.BasicAttack.AuthorityAndCooldown`,
+`Kalmala.Gameplay.M9.SecondWaveHarvestAcceptance`, and `Kalmala.Gameplay.Tools.HeldModel`.
+
+Rebuild Development Editor and try swings with each held family and empty hands
+in PIE. Manual/rendered, live peer, full-suite and packaging verification remain
+deferred. Ordinary materials/wearables are not newly equippable; bow shooting,
+projectiles and arrows remain outside this melee change. Earlier hammer/Bow
+attack-exclusion and axe-only targetless descriptions below are historical.
+
 ## Nearby pickup regression — 2026-10-17
 
 Options > Accessibility > Automatic pickup defaults on and persists locally.

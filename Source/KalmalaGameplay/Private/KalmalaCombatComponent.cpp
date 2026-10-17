@@ -2,7 +2,6 @@
 #include "KalmalaCharacter.h"
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaSupportMagicComponent.h"
-#include "KalmalaCombatIntentContract.h"
 #include "KalmalaToolLifecycleContract.h"
 #include "KalmalaWildlifeSpawn.h"
 #include "KalmalaHarvestNode.h"
@@ -12,29 +11,34 @@
 #include "Net/UnrealNetwork.h"
 
 UKalmalaCombatComponent::UKalmalaCombatComponent() { PrimaryComponentTick.bCanEverTick = true; SetIsReplicatedByDefault(true); }
-bool UKalmalaCombatComponent::IsAttackRequestAllowed(const bool bAuthority, const bool bNewSequence, const uint32 Sequence, const bool bActionIdle, const bool bTargetValid)
-{ return FKalmalaCombatIntentContract::IsAttackMutationAllowed(bAuthority, true, true, bNewSequence, Sequence, true, bActionIdle, bTargetValid, bTargetValid); }
-bool UKalmalaCombatComponent::IsAttackItemAllowed(const FName ItemId)
-{ return ItemId != TEXT("Bow") && ItemId != TEXT("ConstructionHammer"); }
-bool UKalmalaCombatComponent::CanSwingAxeWithoutTarget(const FName ItemId, const int32 Level, const int32 Condition)
+bool UKalmalaCombatComponent::IsAttackRequestAllowed(const bool bAuthority, const bool bNewSequence,
+    const uint32 Sequence, const bool bActionIdle, const bool bSwingAvailable)
 {
-    const auto* Definition = FKalmalaToolLifecycleContract::FindDefinition(ItemId);
+    // Beginning an action does not require a damage target; impact validates that separately.
+    return bAuthority && bNewSequence && Sequence != 0 && bActionIdle && bSwingAvailable;
+}
+bool UKalmalaCombatComponent::IsAttackItemAllowed(const FName ItemId)
+{
+    return ItemId.IsNone() || FKalmalaToolLifecycleContract::FindDefinition(ItemId) != nullptr;
+}
+bool UKalmalaCombatComponent::CanSwingWithoutTarget(const FName ItemId, const int32 Level, const int32 Condition)
+{
+    if (ItemId.IsNone()) return true;
     const int32 Maximum = FKalmalaToolLifecycleContract::GetMaxDurability(ItemId, Level);
-    return Definition && Definition->Action == EKalmalaToolAction::Woodcutting
-        && Maximum > 0 && Condition > 0 && Condition <= Maximum;
+    return IsAttackItemAllowed(ItemId) && Maximum > 0 && Condition > 0 && Condition <= Maximum;
 }
 void UKalmalaCombatComponent::ServerRequestAttack_Implementation(const uint32 RequestSequence)
 {
-    // Bow shooting is outside this combat loop; the Construction Hammer is build-only.
+    // Every usable held item can make a melee swing; bow shooting remains separate.
     const auto* Character = Cast<AKalmalaCharacter>(GetOwner());
     const auto* Inventory = Character ? Character->GetInventoryComponent() : nullptr;
     const FName EquippedItem = Inventory ? Inventory->GetActiveItem() : NAME_None;
     if (!IsAttackItemAllowed(EquippedItem)) return;
     APawn* Pawn = Cast<APawn>(GetOwner()); AActor* Target = FindServerTarget();
-    const bool bAxeSwing = Character && Character->GetHealth() > 1.0f
-        && CanSwingAxeWithoutTarget(EquippedItem, Character->GetCarriedToolLevel(EquippedItem),
+    const bool bSwingAvailable = Character && FMath::IsFinite(Character->GetHealth()) && Character->GetHealth() > 1.0f
+        && CanSwingWithoutTarget(EquippedItem, Character->GetCarriedToolLevel(EquippedItem),
             Character->GetToolDurability(EquippedItem));
-    const bool bAllowed = Pawn != nullptr && IsAttackRequestAllowed(Pawn->HasAuthority(), RequestSequence != 0 && RequestSequence > LastRequestSequence, RequestSequence, ActionPhase == EKalmalaCombatActionPhase::Idle, IsServerTargetValid(Target) || bAxeSwing);
+    const bool bAllowed = Pawn != nullptr && IsAttackRequestAllowed(Pawn->HasAuthority(), RequestSequence != 0 && RequestSequence > LastRequestSequence, RequestSequence, ActionPhase == EKalmalaCombatActionPhase::Idle, bSwingAvailable);
     if (!bAllowed)
     {
         if (Pawn != nullptr && Pawn->HasAuthority() && GetWorld() != nullptr && GetWorld()->GetTimeSeconds() >= LastUnavailableFeedbackTime + 0.25f)
@@ -44,7 +48,6 @@ void UKalmalaCombatComponent::ServerRequestAttack_Implementation(const uint32 Re
         }
         return;
     }
-    bPendingAxeSwing = bAxeSwing;
     LastRequestSequence = RequestSequence; ++ActionSerial; PendingTarget = Target; ActionPhase = EKalmalaCombatActionPhase::Windup; PhaseEndTime = GetWorld()->GetTimeSeconds() + WindupSeconds; GetOwner()->ForceNetUpdate();
 }
 void UKalmalaCombatComponent::TickComponent(const float DeltaTime, const ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -79,9 +82,11 @@ void UKalmalaCombatComponent::TickComponent(const float DeltaTime, const ELevelT
             const float Now = GetWorld()->GetTimeSeconds();
             const UKalmalaInventoryComponent* Inventory = OwnerCharacter ? OwnerCharacter->GetInventoryComponent() : nullptr;
             const FName EquippedItem = Inventory ? Inventory->GetActiveItem() : NAME_None;
-            // Switching to a non-combat item during windup must not deliver a melee hit.
-            if (!IsAttackItemAllowed(EquippedItem)) { BeginRecovery(); return; }
             const int32 EquippedLevel = OwnerCharacter ? OwnerCharacter->GetCarriedToolLevel(EquippedItem) : 0;
+            // Revalidate the held item and living owner after windup, including swaps/breakage.
+            if (!OwnerCharacter || OwnerCharacter->GetHealth() <= 1.0f
+                || !CanSwingWithoutTarget(EquippedItem, EquippedLevel, OwnerCharacter->GetToolDurability(EquippedItem)))
+            { BeginRecovery(); return; }
             FKalmalaDamageChannels Damage = FKalmalaToolLifecycleContract::GetAttackDamageBonuses(
                 EquippedItem, EquippedLevel, TEXT("Basic"));
             if (!OwnerCharacter || OwnerCharacter->GetToolDurability(EquippedItem) <= 0 || Damage.Total() <= 0.0f)
@@ -116,8 +121,8 @@ void UKalmalaCombatComponent::TickComponent(const float DeltaTime, const ELevelT
                 UE_LOG(LogTemp, Display, TEXT("Boar verification attack execution: target valid=%d distance=%.1f."), Pending != nullptr, Pending != nullptr && OwnerPawn != nullptr ? FVector::Dist(OwnerPawn->GetActorLocation(), Pending->GetActorLocation()) : -1.0f);
             }
 #endif
-            // A validated axe swing can miss; it spends no condition and grants nothing.
-            PublishFeedbackFromServer(bPendingAxeSwing ? EKalmalaCombatFeedback::None : EKalmalaCombatFeedback::Unavailable);
+            // Any accepted melee swing can miss; it spends no condition and grants nothing.
+            PublishFeedbackFromServer(EKalmalaCombatFeedback::None);
         }
         BeginRecovery();
         return;

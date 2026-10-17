@@ -1,5 +1,17 @@
 # Game design
 
+## Free melee swings — 2026-10-17
+
+Any usable equipped weapon or tool can swing without a nearby target, including
+the Building Hammer and Bow. Empty hands can punch freely. All use the shared
+0.18-second windup and 0.36-second recovery with the arm swing animation. Misses
+cost no condition and grant nothing. Validated hits use authored weapon damage,
+or the existing basic 25 Crush fallback for items without an authored attack.
+Depleted tools still require repair. Bow shooting/arrow consumption remain
+unimplemented, hammer construction remains available, and tree harvesting still
+requires the appropriate axe tier. Inventory materials and wearables do not
+become new Main Hand equipment through this change.
+
 ## Bow crafting and two-handed equipment — 2026-10-15
 
 String stacks to 20 and Wooden Arrows stack to 100. At a level-one Workbench,

@@ -29,8 +29,8 @@ public:
     uint32 GetFeedbackSerial() const { return FeedbackSerial; }
     static constexpr float GetRecoverySeconds() { return RecoverySeconds; }
     static bool IsAttackItemAllowed(FName ItemId);
-    static bool CanSwingAxeWithoutTarget(FName ItemId, int32 Level, int32 Condition);
-    static bool IsAttackRequestAllowed(bool bAuthority, bool bNewSequence, uint32 Sequence, bool bActionIdle, bool bTargetValid);
+    static bool CanSwingWithoutTarget(FName ItemId, int32 Level, int32 Condition);
+    static bool IsAttackRequestAllowed(bool bAuthority, bool bNewSequence, uint32 Sequence, bool bActionIdle, bool bSwingAvailable);
 private:
     AActor* FindServerTarget() const;
     bool IsServerTargetValid(const AActor* Target) const;
@@ -48,7 +48,6 @@ private:
     float PhaseEndTime = 0.0f;
     float LastUnavailableFeedbackTime = -1.0f;
     TWeakObjectPtr<AActor> PendingTarget;
-    bool bPendingAxeSwing = false;
     bool bClientCombatVerificationActionLogged = false;
     bool bClientCombatVerificationRejectionLogged = false;
 };

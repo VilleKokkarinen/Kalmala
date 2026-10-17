@@ -3,6 +3,8 @@
 #include "KalmalaWildlifeSpawn.h"
 #include "KalmalaCharacter.h"
 #include "KalmalaInventoryComponent.h"
+#include "KalmalaToolCatalogue.h"
+#include "KalmalaHarvestNode.h"
 #include "KalmalaPlayerModelComponent.h"
 #include "ProceduralMeshComponent.h"
 #include "Engine/World.h"
@@ -20,10 +22,10 @@ bool FKalmalaCombatLoopTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Zero sequence is rejected"), UKalmalaCombatComponent::IsAttackRequestAllowed(true, true, 0, true, true));
     TestFalse(TEXT("Repeated sequence is rejected"), UKalmalaCombatComponent::IsAttackRequestAllowed(true, false, 2, true, true));
     TestFalse(TEXT("Busy attack cannot begin another action"), UKalmalaCombatComponent::IsAttackRequestAllowed(true, true, 3, false, true));
-    TestFalse(TEXT("Server cannot accept a missing target"), UKalmalaCombatComponent::IsAttackRequestAllowed(true, true, 4, true, false));
+    TestFalse(TEXT("Server cannot accept an unavailable swing"), UKalmalaCombatComponent::IsAttackRequestAllowed(true, true, 4, true, false));
     TestTrue(TEXT("Validated server intent begins one committed action"), UKalmalaCombatComponent::IsAttackRequestAllowed(true, true, 5, true, true));
-    TestFalse(TEXT("Construction Hammer is build-only"), UKalmalaCombatComponent::IsAttackItemAllowed(TEXT("ConstructionHammer")));
-    TestFalse(TEXT("Bow remains outside the melee attack loop"), UKalmalaCombatComponent::IsAttackItemAllowed(TEXT("Bow")));
+    TestTrue(TEXT("Construction Hammer supports a melee swing"), UKalmalaCombatComponent::IsAttackItemAllowed(TEXT("ConstructionHammer")));
+    TestTrue(TEXT("Bow supports a melee swing"), UKalmalaCombatComponent::IsAttackItemAllowed(TEXT("Bow")));
     TestTrue(TEXT("Axe remains attack-capable"), UKalmalaCombatComponent::IsAttackItemAllowed(TEXT("StoneAxe")));
     TestTrue(TEXT("Unarmed combat fallback remains available"), UKalmalaCombatComponent::IsAttackItemAllowed(NAME_None));
     TestTrue(TEXT("Combat recovery remains a positive committed window"), UKalmalaCombatComponent::GetRecoverySeconds() > 0.0f);
@@ -34,23 +36,119 @@ bool FKalmalaCombatLoopTest::RunTest(const FString& Parameters)
     return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaAllItemSwingTest, "Kalmala.Gameplay.Combat.AllItemSwings",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FKalmalaAllItemSwingTest::RunTest(const FString& Parameters)
+{
+    UWorld* World = UWorld::CreateWorld(EWorldType::Game, false);
+    if (!TestNotNull(TEXT("All-item swing fixture world exists"), World)) return false;
+    GEngine->CreateNewWorldContext(EWorldType::Game).SetCurrentWorld(World);
+    ON_SCOPE_EXIT { World->DestroyWorld(false); GEngine->DestroyWorldContext(World); };
+    World->InitializeActorsForPlay(FURL());
+    const auto* Catalogue = UKalmalaToolCatalogue::Get();
+    if (!TestNotNull(TEXT("All carried item profiles load"), Catalogue)) return false;
+    TArray<FName> Items;
+    for (const auto& Profile : Catalogue->Profiles) Items.Add(Profile.ItemId);
+    Items.Add(NAME_None);
+    for (int32 Index = 0; Index < Items.Num(); ++Index)
+    {
+        const FName Item = Items[Index];
+        const FVector Origin(Index * 2000.0f, 0, 0);
+        auto* Pawn = World->SpawnActor<AKalmalaCharacter>(Origin, FRotator::ZeroRotator);
+        if (!TestNotNull(TEXT("Swinging pawn spawns"), Pawn)) return false;
+        Pawn->DispatchBeginPlay();
+        auto* Inventory = Pawn->GetInventoryComponent();
+        FString Reason;
+        if (!Item.IsNone())
+        {
+            auto& Tools = const_cast<TArray<FKalmalaToolState>&>(Pawn->GetCarriedToolInventory());
+            auto* Tool = Tools.FindByPredicate([Item](const auto& Entry) { return Entry.ItemId == Item; });
+            if (!Tool)
+            {
+                Tool = &Tools.AddDefaulted_GetRef();
+                Tool->ItemId = Item;
+                Tool->InstanceGuid = FGuid::NewGuid();
+            }
+            Tool->ToolLevel = 1;
+            Tool->Durability = FKalmalaToolLifecycleContract::GetMaxDurability(Item, 1);
+            Inventory->SynchronizeGridFromServer();
+            if (Inventory->GetActiveItem() != Item)
+                TestTrue(TEXT("Authored item can actually be equipped"), Inventory->SetMainHandFromServer(Tool->InstanceGuid, Reason));
+        }
+        else TestTrue(TEXT("Empty hands can be selected"), Inventory->SetMainHandFromServer(FGuid(), Reason));
+        TestEqual(TEXT("Fixture swings the intended item"), Inventory->GetActiveItem(), Item);
+        const int32 Condition = Pawn->GetToolDurability(Item);
+        auto* Combat = Pawn->GetCombatComponent();
+        const auto Advance = [World, Combat](float Seconds)
+        {
+            World->Tick(LEVELTICK_TimeOnly, Seconds);
+            Combat->TickComponent(Seconds, LEVELTICK_All, nullptr);
+        };
+        Combat->ServerRequestAttack(0);
+        TestEqual(TEXT("Zero request sequence cannot swing"), Combat->GetActionSerial(), uint32(0));
+        Combat->ServerRequestAttack(1);
+        TestEqual(*FString::Printf(TEXT("%s starts a swing without any nearby target"), *Item.ToString()),
+            Combat->GetActionPhase(), EKalmalaCombatActionPhase::Windup);
+        TestEqual(TEXT("Free swing publishes its animation serial"), Combat->GetActionSerial(), uint32(1));
+        auto* Model = Pawn->FindComponentByClass<UKalmalaPlayerModelComponent>();
+        Model->TickComponent(0.18f, LEVELTICK_All, nullptr);
+        Model->TickComponent(0.01f, LEVELTICK_All, nullptr);
+        TArray<UProceduralMeshComponent*> Meshes;
+        Pawn->GetComponents(Meshes);
+        const auto* Arm = Meshes.FindByPredicate([](const auto* Part) { return Part->GetFName() == TEXT("PlayerRightArm"); });
+        TestTrue(TEXT("Every item's accepted swing animates the actual arm"), Arm
+            && (*Arm)->GetRelativeRotation().Quaternion().Equals(FRotator(-115, 0, 0).Quaternion(), 0.001f));
+        Combat->ServerRequestAttack(2);
+        TestEqual(TEXT("Busy requests cannot restart any item's swing"), Combat->GetActionSerial(), uint32(1));
+        Advance(0.20f);
+        TestEqual(TEXT("Every air swing completes quietly"), Combat->GetFeedback(), EKalmalaCombatFeedback::None);
+        TestEqual(TEXT("Every miss preserves held condition"), Pawn->GetToolDurability(Item), Condition);
+        Advance(0.20f); Advance(0.20f);
+        Combat->ServerRequestAttack(1);
+        TestEqual(TEXT("Duplicate sequences cannot swing again"), Combat->GetActionSerial(), uint32(1));
+        auto* Wildlife = World->SpawnActor<AKalmalaWildlifeSpawn>(Origin + FVector(140, 0, 55), FRotator::ZeroRotator);
+        Combat->ServerRequestAttack(3);
+        Advance(0.20f);
+        const float AuthoredDamage = FKalmalaToolLifecycleContract::GetAttackDamageBonuses(Item, 1, TEXT("Basic")).Total();
+        TestEqual(TEXT("Actual hit keeps authored damage or the existing basic melee fallback"),
+            Wildlife->GetHealth(), FMath::Max(0.0f, 100.0f - (AuthoredDamage > 0 ? AuthoredDamage : 25.0f)));
+        TestTrue(TEXT("Hammer, bow, weapons and fists all report validated wildlife hits"),
+            Combat->GetFeedback() == EKalmalaCombatFeedback::Hit || Combat->GetFeedback() == EKalmalaCombatFeedback::Defeat);
+        if (Item == TEXT("ConstructionHammer") || Item == TEXT("Bow"))
+        {
+            FKalmalaWorldPopulationSpawn Spawn;
+            Spawn.Kind = EKalmalaWorldPopulationKind::HarvestNode;
+            Spawn.ContentId = TEXT("meadows-birch-trunk");
+            Spawn.Location = Origin + FVector(100, 0, 0);
+            auto* Tree = World->SpawnActor<AKalmalaHarvestNode>();
+            Tree->InitializeServer(Spawn);
+            FKalmalaDamageChannels Damage; Damage.Crush = 25;
+            TestFalse(TEXT("Improvised melee never bypasses the axe harvesting gate"), Tree->ApplyAxeDamageFromServer(Pawn, Damage));
+        }
+        Pawn->Destroy();
+    }
+    AddInfo(FString::Printf(TEXT("Verified free swing, arm animation and actual hit for %d carried profiles plus empty hands."), Catalogue->Profiles.Num()));
+    return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaAxeSwingTest, "Kalmala.Gameplay.Combat.AxeSwing",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FKalmalaAxeSwingTest::RunTest(const FString& Parameters)
 {
     TestTrue(TEXT("Usable Stone Axe can swing without a target"),
-        UKalmalaCombatComponent::CanSwingAxeWithoutTarget(TEXT("StoneAxe"), 1, 50));
+        UKalmalaCombatComponent::CanSwingWithoutTarget(TEXT("StoneAxe"), 1, 50));
     TestFalse(TEXT("Broken axe cannot begin a targetless swing"),
-        UKalmalaCombatComponent::CanSwingAxeWithoutTarget(TEXT("StoneAxe"), 1, 0));
+        UKalmalaCombatComponent::CanSwingWithoutTarget(TEXT("StoneAxe"), 1, 0));
     TestFalse(TEXT("Forged condition cannot authorize a swing"),
-        UKalmalaCombatComponent::CanSwingAxeWithoutTarget(TEXT("StoneAxe"), 1, MAX_int32));
+        UKalmalaCombatComponent::CanSwingWithoutTarget(TEXT("StoneAxe"), 1, MAX_int32));
     TestFalse(TEXT("Unknown item cannot authorize a swing"),
-        UKalmalaCombatComponent::CanSwingAxeWithoutTarget(TEXT("ForgedAxe"), 1, 50));
-    TestFalse(TEXT("Hammer remains build-only"),
-        UKalmalaCombatComponent::CanSwingAxeWithoutTarget(TEXT("ConstructionHammer"), 1, 100));
-    TestFalse(TEXT("Pick does not enter targetless axe path"),
-        UKalmalaCombatComponent::CanSwingAxeWithoutTarget(TEXT("StonePick"), 1, 20));
+        UKalmalaCombatComponent::CanSwingWithoutTarget(TEXT("ForgedAxe"), 1, 50));
+    TestTrue(TEXT("Hammer can swing without a target"),
+        UKalmalaCombatComponent::CanSwingWithoutTarget(TEXT("ConstructionHammer"), 1, 100));
+    TestTrue(TEXT("Pick can swing without a target"),
+        UKalmalaCombatComponent::CanSwingWithoutTarget(TEXT("StonePick"), 1, 20));
 
     float Pitch = 8.0f;
     TestTrue(TEXT("Swing starts at gait"), UKalmalaPlayerModelComponent::EvaluateAttackArmPose(0, 8, Pitch));
