@@ -8,6 +8,16 @@ The nine body parts plus this fixed pool total twelve components, regardless of
 selection or visibility. Only transforms/visibility change on selection; parts
 are never accumulated across swaps. Unknown or empty selections hide the pool.
 
+Silhouette centres and part rotations are composed through a grip transform
+before being applied to the pool. The authored shaft grip `(8,0,-50)` maps to
+arm-local palm `(0,0,-52)` with pitch -90 degrees, turning +Z shafts into +X
+forward shafts and the axe edge down. Bow instead keeps its upright rotation
+and maps its central limb join `(18,0,-44)` to the same palm. The bow string
+joins the limb tips at authored X=6, behind the grip. Rotation is about the
+shared grip, so multipart heads stay assembled and the palm remains on the
+handle throughout parent-arm animation. No extra component or replicated
+transform is introduced.
+
 The authority derives `EKalmalaHeldToolVisual` from the validated inventory's
 active item and its known tool definition, then replicates only that family enum.
 No client setter/RPC, inventory ID, instance GUID, level or condition is added.

@@ -1,5 +1,24 @@
 # Development setup
 
+## Held-tool hand-grip regression — 2026-10-17
+
+The held-tool pool now rotates entire silhouettes about their grip into the
+palm at arm-local `(0,0,-52)`. Shafts project forward across the palm; bow
+remains upright at its centre join, with its string behind the grip joining
+both limb tips. `Kalmala.Gameplay.Tools.HeldModel` now checks every family's
+actual handle geometry against that palm, shaft/edge orientation and grip
+retention at idle, gait and attack parent-arm pitches, including the remote
+repnotify path and repeated swaps.
+
+Short-mirror Development Editor build passed five actions, exit 0
+(`kmforest/hand-grip-build.log`). Focused `Kalmala.Gameplay.Tools.HeldModel`,
+`Kalmala.Gameplay.Combat.AxeSwing`, `Kalmala.Gameplay.Tools.SharpeningPresentation`
+and `Kalmala.Gameplay.Presentation.SurfaceWinding` all passed with four named
+Success records, exit 0 (`C:/Users/Ville/AppData/Local/Temp/kgrip-3758e214/tests.log`).
+No rendered/manual, peer-process, packaging or full-suite verification; rebuild
+Development Editor and inspect held equipment in PIE. Bow shooting/two-handed
+poses and tier-specific meshes remain outside this change.
+
 ## Meadow Stone Axe and Wood regression — 2026-10-17
 
 The current Meadow trunk contract is Stone Axe or better, yielding Wood after

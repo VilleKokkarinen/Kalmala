@@ -230,12 +230,19 @@ void UKalmalaPlayerModelComponent::OnRep_HeldToolVisual()
 {
     if (HeldToolParts.Num() != 3) return;
     for (UProceduralMeshComponent* Part : HeldToolParts) Part->SetVisibility(false);
-    const auto Show = [this](int32 Index, FVector Centre, FVector HalfSize, FRotator Rotation = FRotator::ZeroRotator)
+    // Author silhouettes in their existing tool space, then rotate the whole tool
+    // about its grip into the palm at the end of the arm (not about each part).
+    const bool bBow = HeldToolVisual == EKalmalaHeldToolVisual::Bow;
+    const FVector AuthoredGrip = bBow ? FVector(18, 0, -44) : FVector(8, 0, -50);
+    const FVector HandGrip(0, 0, -52);
+    const FQuat GripRotation = bBow ? FQuat::Identity : FRotator(-90, 0, 0).Quaternion();
+    const auto Show = [this, AuthoredGrip, HandGrip, GripRotation](int32 Index, FVector Centre,
+        FVector HalfSize, FRotator Rotation = FRotator::ZeroRotator)
     {
         UProceduralMeshComponent* Part = HeldToolParts[Index];
-        Part->SetRelativeLocation(Centre);
+        Part->SetRelativeLocation(HandGrip + GripRotation.RotateVector(Centre - AuthoredGrip));
         Part->SetRelativeScale3D(HalfSize);
-        Part->SetRelativeRotation(Rotation);
+        Part->SetRelativeRotation(GripRotation * Rotation.Quaternion());
         Part->SetVisibility(true);
     };
     switch (HeldToolVisual)
@@ -263,7 +270,7 @@ void UKalmalaPlayerModelComponent::OnRep_HeldToolVisual()
     case EKalmalaHeldToolVisual::Bow:
         Show(0, FVector(12, 0, -25), FVector(2, 2, 20), FRotator(18, 0, 0));
         Show(1, FVector(12, 0, -63), FVector(2, 2, 20), FRotator(-18, 0, 0));
-        Show(2, FVector(18, 0, -44), FVector(0.5f, 0.5f, 38)); break;
+        Show(2, FVector(6, 0, -44), FVector(0.5f, 0.5f, 38)); break;
     default: break;
     }
 }

@@ -4,6 +4,10 @@
 
 The character now shows the equipped Main Hand tool family: hammer, axe, knife,
 pick, spear, mace or bow. Empty/unknown selections hide every held-tool part.
+Each tool is anchored at the palm at the end of the right arm. Hammer, axe,
+knife, pick, spear and mace shafts project forward through the hand, with the
+axe cutting edge facing down; the bow stays upright at its central grip.
+The grip follows the arm through gait, attack and sharpening poses.
 These are original procedural silhouettes attached to the animated right arm;
 Stone/Bronze/Iron variants currently share their family shape and materials.
 Other peers receive only the server-selected visible family, not the item's GUID,

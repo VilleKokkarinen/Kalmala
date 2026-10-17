@@ -139,6 +139,43 @@ bool FKalmalaHeldToolModelTest::RunTest(const FString& Parameters)
             TestEqual(TEXT("Repnotify alone reconstructs remote tool geometry"), Visible,
                 Visual == EKalmalaHeldToolVisual::Axe || Visual == EKalmalaHeldToolVisual::Pick || Visual == EKalmalaHeldToolVisual::Bow ? 3 : 2);
             TestTrue(TEXT("Remote appearance does not populate private inventory selection"), Inventory->GetActiveItem().IsNone());
+            auto* Handle = *Meshes.FindByPredicate([](const auto* Mesh)
+                { return Mesh->GetName() == TEXT("HeldToolPart0"); });
+            auto* Arm = Handle->GetAttachParent();
+            const FVector HandGrip(0, 0, -52);
+            const FVector GripInHandle = Handle->GetRelativeTransform().InverseTransformPosition(HandGrip);
+            TestTrue(TEXT("The palm intersects the actual handle, not empty space beside it"),
+                FMath::Abs(GripInHandle.X) < 0.15f && FMath::Abs(GripInHandle.Y) < 0.15f
+                && FMath::Abs(GripInHandle.Z) <= 1.01f);
+            const FVector ShaftAxis = Handle->GetRelativeRotation().RotateVector(FVector::UpVector);
+            if (Visual == EKalmalaHeldToolVisual::Bow)
+            {
+                TestTrue(TEXT("Bow stays upright with the hand at its central limb join"),
+                    ShaftAxis.Z > 0.9f && GripInHandle.Z < -0.9f);
+                auto* String = *Meshes.FindByPredicate([](const auto* Mesh)
+                    { return Mesh->GetName() == TEXT("HeldToolPart2"); });
+                TestTrue(TEXT("Bow string joins limb tips behind the grip"),
+                    String->GetRelativeLocation().X < HandGrip.X - 10.0f);
+            }
+            else
+            {
+                TestTrue(TEXT("Tool shaft projects forward across the palm, perpendicular to the forearm"), ShaftAxis.X > 0.99f);
+                if (Visual == EKalmalaHeldToolVisual::Axe)
+                {
+                    auto* Edge = *Meshes.FindByPredicate([](const auto* Mesh)
+                        { return Mesh->GetName() == TEXT("HeldToolPart2"); });
+                    TestTrue(TEXT("Axe cutting edge points down from the handle for the chopping stroke"),
+                        Edge->GetRelativeLocation().Z < Handle->GetRelativeLocation().Z - 10.0f);
+                }
+            }
+            for (const float Pitch : {0.0f, -25.0f, -115.0f, 35.0f})
+            {
+                Arm->SetRelativeRotation(FRotator(Pitch, 0, 0));
+                TestTrue(TEXT("Grip stays in the hand through idle, gait and attack arm poses"),
+                    Handle->GetComponentTransform().TransformPosition(GripInHandle).Equals(
+                        Arm->GetComponentTransform().TransformPosition(HandGrip), 0.01f));
+            }
+            Arm->SetRelativeRotation(FRotator::ZeroRotator);
         }
     }
     return true;
