@@ -97,6 +97,7 @@ if ($ForestDeliveryOnly) {
                     $hostText.Contains("Forest remote drop range stability: Passed=1 Authority=1 Seed=10323456789 Id=$id Item=$item Delta=0 LiveDrop=1 Requests=3 Stable=5") -and
                     $hostText.Contains("Forest range rejection: Passed=1 Authority=1 Seed=10323456789 Id=$id Item=$item Delta=0 LiveDrop=1") -and
                     $hostText.Contains("Forest physical rejection: Passed=1 Authority=1 Seed=10323456789 Id=$id Item=$item Delta=0 LiveDrop=1 ForgedTrace=0") -and
+                    [regex]::IsMatch($hostText, ('Forest full pack rejection: Passed=1 Authority=1 Seed=10323456789 Id=' + [regex]::Escape($id) + ' Item=' + [regex]::Escape($item) + ' Delta=0 LiveDrop=1 InRange=1 Slots=40 Restored=1(?:\r?\n|$)')) -and
                     # Only one tree is collected in this isolated scenario. Count
                     # every write marker so a foreign-ID/seed or malformed extra
                     # record cannot hide behind the exact-target success proof.

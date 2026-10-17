@@ -226,6 +226,39 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
                 }
                 UE_LOG(LogTemp, Display, TEXT("Forest physical rejection: Passed=1 Authority=1 Seed=%llu Id=%s Item=%s Delta=0 LiveDrop=1 ForgedTrace=0"),
                     Config.WorldSeed, *ForestPickupId, *ForestPickupItem.ToString());
+                // Fill every pack cell with a different material so the wood
+                // reward cannot merge. Restore the exact original stack GUIDs
+                // before yielding to another fixture tick or normal pickup.
+                auto* HostInventory = GetInventoryComponent();
+                const auto HostStacks = HostInventory->GetStacks();
+                const int32 PackedTools = HostInventory->CountPackedTools(GetCarriedToolInventory());
+                TArray<FKalmalaInventoryStack> FullPack;
+                for (int32 Cell = PackedTools; Cell < UKalmalaInventoryComponent::MaxSlots; ++Cell)
+                    FullPack.Add({TEXT("String"), 1});
+                const bool bFullPackInstalled = ForestPickupItem != TEXT("String")
+                    && HostInventory->TryCommitStacksFromServer(HostStacks, FullPack);
+                const auto InstalledStacks = HostInventory->GetStacks();
+                SetActorLocation(Pickup->GetActorLocation() + FVector(150, 0, 88));
+                const bool bFullPackInRange = AKalmalaHarvestNode::IsHarvestAllowed(true, false,
+                    GetActorLocation(), Pickup->GetActorLocation());
+                const int32 FullPackBefore = HostInventory->GetQuantity(ForestPickupItem);
+                const bool bFullPackAccepted = bFullPackInstalled && Pickup->InteractWithToolIntentFromServer(this,
+                    150.0f, InteractionRange, NAME_None, 0);
+                const int32 FullPackDelta = HostInventory->GetQuantity(ForestPickupItem) - FullPackBefore;
+                SetActorLocation(HostLocation);
+                // Expected snapshot comparison also rejects any mutation of
+                // filler quantities or identities by the rejected transaction.
+                const bool bPackRestored = bFullPackInstalled
+                    && HostInventory->TryCommitStacksFromServer(InstalledStacks, HostStacks);
+                if (!bFullPackInstalled || !bFullPackInRange || bFullPackAccepted || FullPackDelta != 0
+                    || !bPackRestored || Pickup->IsHarvested() || !Pickup->IsWoodDrop())
+                {
+                    UE_LOG(LogTemp, Error, TEXT("Forest delivery: Passed=0 FullPackPickup Id=%s Installed=%d InRange=%d Accepted=%d Delta=%d Restored=%d"),
+                        *ForestPickupId, bFullPackInstalled, bFullPackInRange, bFullPackAccepted, FullPackDelta, bPackRestored);
+                    return;
+                }
+                UE_LOG(LogTemp, Display, TEXT("Forest full pack rejection: Passed=1 Authority=1 Seed=%llu Id=%s Item=%s Delta=0 LiveDrop=1 InRange=1 Slots=40 Restored=1"),
+                    Config.WorldSeed, *ForestPickupId, *ForestPickupItem.ToString());
                 bForestPickupRangeChecked = true;
                 UE_LOG(LogTemp, Display, TEXT("Forest range rejection: Passed=1 Authority=1 Seed=%llu Id=%s Item=%s Delta=0 LiveDrop=1"),
                     Config.WorldSeed, *ForestPickupId, *ForestPickupItem.ToString());

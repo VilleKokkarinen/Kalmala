@@ -3683,3 +3683,18 @@ No repairs were needed. This executes the controlled same-dispatch gate only;
 simultaneous owned RPCs and ordinary-camera acceptance remain open. Continue
 the same delivery child next; streaming/restart follows. Full feature/project
 verification remains deferred.
+
+
+Live-drop full-pack gate (2026-10-17): the non-shipping ForestPickup fixture
+temporarily fills the host pack's available cells with one String per cell,
+accounting for packed tools. String cannot merge with the selected wood reward.
+The host is placed in physical range and calls the real authoritative interaction
+with a valid trace distance. Require rejection, zero reward, unchanged live Drop,
+and exact stack/GUID snapshot restoration before the normal remote pickup.
+The runner requires exact seed/tree/item proof with Slots=40 and Restored=1.
+PowerShell parser and ten actual-selector cases passed using retained peer logs
+plus synthetic proof; no Unreal compilation or live execution occurred. This is
+a server-local capacity probe, not a full-pack remote RPC scenario. Rebuild the
+short mirror and execute the documented ForestPickup command next. Simultaneous
+owned requests and ordinary-camera acceptance remain open; full verification
+is deferred.

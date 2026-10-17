@@ -1,3 +1,12 @@
+## Autonomous increment 2026-10-17 — Probe live-drop full-pack rejection
+
+- **Completed:** bounded increment within the first unchecked generated-forest delivery acceptance child. Added an opt-in server-local full-pack probe before normal collection: fill every available cell with String, account for packed tools, move host into valid physical range, invoke the real transaction, require rejection/zero wood reward/live Drop and restore the original stack/GUID snapshot. Runner requires exact seed/tree/item evidence. Child remains unchecked; BACKLOG.md unchanged under the explicit no-rewording rule.
+- **Files changed:** Source/KalmalaGameplay/Private/KalmalaForestDeliveryVerification.cpp, Scripts/Tests/World/Verify-BiomeExpansion.ps1, docs/07-development-setup.md and PROGRESS.md.
+- **Verification:** PowerShell parser and ten cases executing the actual pickup selector on retained kfpeer-16ee475b logs plus synthetic capacity proof passed: valid accepted; absent proof, reward, depleted drop, out-of-range, insufficient slots, failed restoration, wrong item, prefix-sharing ID and trailing fields rejected. Inspected inventory commit capacity/snapshot validation and fixture scope; git diff --check passed. Staged diff/scope and MAX_PATH checked before commit. No Unreal compilation/live peers/full suite; full verification deferred. Normal partial increment, not milestone-final.
+- **Impact/authority:** acceptance now requires a live in-range capacity rejection rather than allowing depletion or distance to mask it. Production authority, RPCs, rewards and save schemas unchanged. Fixture-only temporary inventory grants can emit local gain receipts; they are not harvest rewards and are restored before normal pickup.
+- **Concurrency/handoff:** only current Kalmala chat active; process CIM inspection unavailable. Initially clean main checkout used directly; no handoff synchronization required.
+- **Limitations/next:** compile and execute the stricter ForestPickup runner in the short mirror. This server-local probe does not establish full-pack remote RPC rejection. Simultaneous owned requests, ordinary-camera acceptance and later streaming/restart remain open.
+
 # Autonomous development progress
 
 ## Autonomous increment 2026-10-17 — Execute same-dispatch collector gate
