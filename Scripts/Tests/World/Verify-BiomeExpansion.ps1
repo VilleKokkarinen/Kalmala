@@ -76,6 +76,7 @@ if ($ForestDeliveryOnly) {
                     $delta = $_.Groups[3].Value
                     $expected = $_.Groups[4].Value
                     $_.Groups[3].Value -eq $_.Groups[4].Value -and $sharedStages -contains $id -and
+                    $hostText.Contains("Forest second collector: Passed=1 Authority=1 Seed=10323456789 Id=$id Item=$item Delta=0 Requests=3 Stable=5") -and
                     $hostText.Contains("Forest pickup authority: Passed=1 Authority=1 Seed=10323456789 Id=$id Item=$item Delta=$delta Expected=$expected Stable=5") -and
                     $hostText.Contains("Forest depletion delivery: Passed=1 Authority=1 Seed=10323456789 Id=$id Collected=1") -and
                     $clientText.Contains("Forest depletion delivery: Passed=1 Authority=0 Seed=10323456789 Id=$id Collected=1")
@@ -84,7 +85,7 @@ if ($ForestDeliveryOnly) {
             Start-Sleep -Milliseconds 500
         } while ((Get-Date) -lt $deadline)
         if ((Get-Date) -ge $deadline) { throw "Exact forest replacement/suppression delivery timed out: $($shared.Count)/9 matching eighteen-tree patches; $($sharedStages.Count) shared Trunk/Drop IDs (required=$ForestStages); $($sharedPickups.Count) pickups (required=$ForestPickup). Inspect $output." }
-        if ($ForestPickup) { Write-Output "PASS: exact-ID pickup quantity stable after three initial and three post-depletion owned requests, with collected state on both peers: $($sharedPickups -join ', ')." }
+        if ($ForestPickup) { Write-Output "PASS: exact-ID pickup quantity stable after three initial and three post-depletion owned requests, with collected state on both peers and zero reward for three second-player depleted attempts: $($sharedPickups -join ', ')." }
         if ($ForestStages) { Write-Output "PASS: host/client required stage delivery for exact tree IDs: $($sharedStages -join ', ')." }
         if ($ForestDropLateJoin -or $ForestTrunkLateJoin) {
             $lateStage = if ($ForestTrunkLateJoin) { 'Trunk' } else { 'Drop' }

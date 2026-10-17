@@ -1,5 +1,12 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-17 — Gate second-player depleted pickup
+
+- **Completed/verification/impact:** Second collector gate (2026-10-17): ForestPickup captures the host inventory baseline, places the host within range opposite the client after exact-ID collection, and calls the existing authoritative harvest transaction three times. Each must reject; host reward must remain zero for five subsequent observations. Runner requires matching seed/tree/item and Delta=0 Requests=3 Stable=5 evidence. PowerShell parser and seven actual selector cases passed (valid accepted; missing proof, reward, request count, stability, ID and item mismatches rejected). Compilation/live execution and full verification deferred. Sequential server-local calls do not establish simultaneous contention or host RPC delivery. Production validation, authority, rewards and save formats unchanged.
+- **Files changed:** Source/KalmalaGameplay/Private/KalmalaForestDeliveryVerification.cpp, Source/KalmalaGameplay/Public/KalmalaCharacter.h, Scripts/Tests/World/Verify-BiomeExpansion.ps1, BACKLOG.md, PROGRESS.md and docs/07-development-setup.md.
+- **Inspection:** checked existing transaction signature/depleted guard, baseline capture, counters, whitespace, staged scope/diff and absolute paths below MAX_PATH. No Unreal build, automation or live peers. Normal partial increment, not milestone-final.
+- **Limitations/next:** compile/execute stricter ForestPickup in the isolated short mirror, then forged/out-of-range rejection and simultaneous competition if required. Sparse-write counts, ordinary camera usability, rendering, streaming and restart remain unverified. Only current Kalmala run active; prior chats idle, CIM unavailable. Initially clean main checkout used directly; handoff visible without synchronization. Child remains unchecked.
+
 ## Autonomous increment 2026-10-17 — Execute authoritative forest pickup evidence
 
 - **Completed:** executed the queued bounded increment on source 1e5ab98 within the first unchecked generated-forest delivery child. Incremental editor build and live ForestPickup passed: nine matching eighteen-tree patches, shared exact-ID Trunk/Drop/Collected, server and client Lightwood Delta=1 Expected=1 Stable=5, and client Requests=3 DepletedRequests=3. No repair required; child remains unchecked.

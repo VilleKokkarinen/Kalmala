@@ -132,11 +132,34 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
                     *ForestPickupId, Delta, ForestPickupExpected);
                 return;
             }
-            if (Pickup && Pickup->IsHarvested() && Delta == ForestPickupExpected) ++ForestPickupStableTicks;
+            // A second authoritative player cannot collect the client's depleted
+            // exact-ID drop. Keep the real transaction/range checks in the path.
+            if (Pickup && Pickup->IsHarvested() && Delta == ForestPickupExpected && ForestPickupHostRequests < 3)
+            {
+                SetActorLocation(Pickup->GetActorLocation() + FVector(150, 0, 88));
+                const bool bAccepted = Pickup->InteractWithToolIntentFromServer(this, 150.0f, InteractionRange, NAME_None, 0);
+                ++ForestPickupHostRequests;
+                if (bAccepted)
+                {
+                    UE_LOG(LogTemp, Error, TEXT("Forest delivery: Passed=0 HostDepletedPickupAccepted Id=%s"), *ForestPickupId);
+                    return;
+                }
+                ForestPickupStableTicks = 0;
+                return;
+            }
+            const int32 HostDelta = GetInventoryComponent()->GetQuantity(ForestPickupItem) - ForestPickupHostBefore;
+            if (HostDelta != 0)
+            {
+                UE_LOG(LogTemp, Error, TEXT("Forest delivery: Passed=0 HostDepletedPickupReward Id=%s Delta=%d"), *ForestPickupId, HostDelta);
+                return;
+            }
+            if (Pickup && Pickup->IsHarvested() && Delta == ForestPickupExpected && ForestPickupHostRequests == 3) ++ForestPickupStableTicks;
             else ForestPickupStableTicks = 0;
             if (ForestPickupStableTicks >= 5 && !bForestPickupReported)
             {
                 bForestPickupReported = true;
+                UE_LOG(LogTemp, Display, TEXT("Forest second collector: Passed=1 Authority=1 Seed=%llu Id=%s Item=%s Delta=0 Requests=3 Stable=5"),
+                    Config.WorldSeed, *ForestPickupId, *ForestPickupItem.ToString());
                 UE_LOG(LogTemp, Display, TEXT("Forest pickup authority: Passed=1 Authority=1 Seed=%llu Id=%s Item=%s Delta=%d Expected=%d Stable=5"),
                     Config.WorldSeed, *ForestPickupId, *ForestPickupItem.ToString(), Delta, ForestPickupExpected);
             }
@@ -159,6 +182,7 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
             ForestPickupId = Target->GetPersistentSpawnId();
             ForestPickupItem = Selection.RewardItemId;
             ForestPickupBefore = Remote->GetInventoryComponent()->GetQuantity(ForestPickupItem);
+            ForestPickupHostBefore = GetInventoryComponent()->GetQuantity(ForestPickupItem);
         }
         FKalmalaToolState Axe;
         Axe.ItemId = TEXT("IronAxe");

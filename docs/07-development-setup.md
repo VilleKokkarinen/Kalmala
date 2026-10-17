@@ -1,5 +1,7 @@
 # Development setup
 
+Second collector gate (2026-10-17): ForestPickup captures the host inventory baseline, places the host within range opposite the client after exact-ID collection, and calls the existing authoritative harvest transaction three times. Each must reject; host reward must remain zero for five subsequent observations. Runner requires matching seed/tree/item and Delta=0 Requests=3 Stable=5 evidence. PowerShell parser and seven actual selector cases passed (valid accepted; missing proof, reward, request count, stability, ID and item mismatches rejected). Compilation/live execution and full verification deferred. Sequential server-local calls do not establish simultaneous contention or host RPC delivery. Production validation, authority, rewards and save formats unchanged. Prior live pickup evidence below predates this gate. Use the same documented ForestPickup command after rebuilding the isolated mirror.
+
 ## Forest client pickup gate (authored 2026-10-16; executed 2026-10-17)
 
 ### Authoritative reward evidence hardening — 2026-10-17 (executed)

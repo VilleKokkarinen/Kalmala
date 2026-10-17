@@ -134,6 +134,8 @@ private:
     FName ForestPickupItem;
     int32 ForestPickupBefore = 0;
     int32 ForestPickupExpected = 0;
+    int32 ForestPickupHostBefore = 0;
+    int32 ForestPickupHostRequests = 0;
     int32 ForestPickupTicks = 0;
     int32 ForestPickupDepletedRequests = 0;
     int32 ForestPickupStableTicks = 0;
