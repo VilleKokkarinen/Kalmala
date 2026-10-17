@@ -1,5 +1,19 @@
 # Development setup
 
+## Reproducing Visual Studio unity build errors
+
+A writable temporary mirror can cause adaptive unity to compile each source
+separately, masking collisions present in the clean Git checkout. When diagnosing
+such a build failure, reproduce the requested target with `-DisableAdaptiveUnity`
+in the source-matched short mirror. This keeps unity enabled and disables only
+the adaptive exclusions. Continue using normal per-user UnrealBuildTool access
+and keep generated outputs outside the source checkout.
+
+The 2026-10-17 repair verified `Kalmala Win64 Development` and
+`KalmalaEditor Win64 Development`, using `-WaitMutex -NoHotReload
+-MaxParallelActions=4 -DisableAdaptiveUnity` and the `kmforest` project. Ordinary
+development increments still follow the lightweight verification policy.
+
 ## Generated-forest current acceptance (2026-10-17)
 
 This summary is the current forest verification handoff. The dated implementation

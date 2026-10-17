@@ -29,6 +29,11 @@ Further autonomous implementation requires a new user-defined task.
 
 ## Completed post-roadmap work
 
+**Development build repair — verified 2026-10-17.** Removed local identifier
+collisions exposed by unity compilation. Win64 Development game and Editor
+unity builds passed; no gameplay behavior changed. See the [build repair
+record](PROGRESS.md#user-directed-increment-2026-10-17--repair-development-game-unity-build).
+
 **Attack-driven tree harvesting — accepted 2026-10-17.** Server-owned axe hits
 advance generated Meadow/Elderwood trees through Standing, Falling, settled
 Trunk and collectible Drop. Stable identities, cosmetic suppression, log/bundle

@@ -258,7 +258,7 @@ void UKalmalaSurvivalStatusSubsystem::Tick(float DeltaTime)
         // the six-entry fixture. No effect is activated or sent to the server.
         if (VerificationElapsed >= 40.0f && VerificationElapsed < 52.0f)
         {
-            static const EKalmalaSupportEffect Effects[] = {
+            static const EKalmalaSupportEffect VerificationEffects[] = {
                 EKalmalaSupportEffect::Mending, EKalmalaSupportEffect::BearsVigor,
                 EKalmalaSupportEffect::DeerCall};
             static const TCHAR* Names[] = {TEXT("Mending"), TEXT("BearsVigor"), TEXT("DeerCall")};
@@ -266,7 +266,7 @@ void UKalmalaSurvivalStatusSubsystem::Tick(float DeltaTime)
             Snapshot = FKalmalaSurvivalStatusSnapshot();
             Snapshot.bHasCharacter = true;
             Snapshot.bHasWeatherState = true;
-            Snapshot.ActiveSupportEffect = Effects[Index];
+            Snapshot.ActiveSupportEffect = VerificationEffects[Index];
             Snapshot.ActiveSupportEffectExpiry = 80.0f;
             Snapshot.ServerTimeSeconds = 45.0f;
             bSuppressHotbarTransitions = true;

@@ -10,7 +10,7 @@
 
 namespace
 {
-    EKalmalaSkill ParseToolSkill(const FString& Value)
+    EKalmalaSkill ParseProgressionSkill(const FString& Value)
     {
         if (Value == TEXT("Gathering")) return EKalmalaSkill::Gathering;
         if (Value == TEXT("Woodcutting")) return EKalmalaSkill::Woodcutting;
@@ -54,7 +54,7 @@ namespace
                 Entry.TargetToolLevel = Recipe.Level;
                 Entry.RequiredStation = ParseToolStation(Recipe.RequiredStation);
                 Entry.RequiredStationLevel = Recipe.RequiredStationLevel;
-                Entry.RequiredSkill = ParseToolSkill(Recipe.RequiredSkill);
+                Entry.RequiredSkill = ParseProgressionSkill(Recipe.RequiredSkill);
                 Entry.RequiredSkillLevel = Recipe.RequiredSkillLevel;
                 Entry.MaterialCosts.Reserve(Recipe.Ingredients.Num());
                 for (const FKalmalaToolRecipeIngredientData& Ingredient : Recipe.Ingredients)
