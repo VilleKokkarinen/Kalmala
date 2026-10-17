@@ -3642,3 +3642,15 @@ bounded log check does not establish reload durability or exclude later writes.
 ### Forest replacement identity binding (2026-10-17)
 
 Stage and pickup acceptance require an exact ID from the replacement reports matched on both peers. Retained-log selector checks accepted original evidence and rejected target removal on either/both peers and a longer prefix-sharing identity. PowerShell parsing passed; no new live peer run or build. Full feature verification remains deferred.
+
+### Forest replacement cardinality gate (2026-10-17)
+
+The delivery runner now validates eighteen distinct seed-scoped forest identities
+inside each matched patch report and 162 distinct identities across the nine
+reports. Missing, duplicate, malformed, foreign-seed and extra identities, or
+identity overlap across patches, cannot satisfy replacement acceptance merely
+by retaining Trees=18. Seven actual-selector cases on retained kfpeer-e43a76e1
+logs passed, including valid original evidence and matching host/client mutations.
+PowerShell parsing passed. No new Unreal build or live peer run; full verification
+remains deferred. Next execute the stricter ForestPickup runner in the existing
+short isolated mirror, then continue the open delivery acceptance requirements.

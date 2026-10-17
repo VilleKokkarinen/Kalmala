@@ -53,7 +53,11 @@ if ($ForestDeliveryOnly) {
             # each with eighteen trees. Do not accept a single delivered patch
             # or count duplicate log lines as additional patch coverage.
             $shared = @($matches | Where-Object {
-                $_.Groups[1].Value -match '^Seed=10323456789 Trees=18 Cosmetics=0 '
+                $report = $_.Groups[1].Value
+                $ids = @(($report -split ' Ids=', 2)[1] -split ';' | Where-Object { $_ })
+                $report -match '^Seed=10323456789 Trees=18 Cosmetics=0 ' -and
+                $ids.Count -eq 18 -and @($ids | Sort-Object -Unique).Count -eq 18 -and
+                @($ids | Where-Object { $_ -notmatch '^forest:v1:10323456789:[^:;\s]+:[^:;\s]+:[0-9]+$' }).Count -eq 0
             } | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique | Where-Object {
                 $clientText.Contains('Forest delivery: Passed=1 Authority=0 ' + $_)
             })
@@ -62,6 +66,9 @@ if ($ForestDeliveryOnly) {
             $sharedTreeIds = @($shared | ForEach-Object {
                 ($_ -split ' Ids=', 2)[1] -split ';' | Where-Object { $_ }
             } | Sort-Object -Unique)
+            # Nine patch reports must represent disjoint physical sources; a
+            # repeated ID in different reports cannot count as another tree.
+            if ($sharedTreeIds.Count -ne 162) { $shared = @(); $sharedTreeIds = @() }
             # The fixture reads GameState's seed itself. An identity OnRep log
             # is not guaranteed when the server seed equals its class default.
             # Require both stages for the same exact tree on both peers; a

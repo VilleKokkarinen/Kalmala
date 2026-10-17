@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-17 — Validate forest replacement cardinality
+
+- **Completed:** bounded increment within the first unchecked generated-forest host/client delivery child. Matched replacement reports must contain eighteen distinct forest IDs in the authoritative seed namespace, with 162 distinct IDs across nine patches. A claimed Trees=18 cannot hide missing/duplicate sources or overlap across reports. Child remains unchecked.
+- **Files changed:** Scripts/Tests/World/Verify-BiomeExpansion.ps1, BACKLOG.md, PROGRESS.md and docs/07-development-setup.md.
+- **Lightweight verification:** PowerShell parser and seven cases executing the actual stage/pickup selector against retained kfpeer-e43a76e1 host/client logs passed: original accepted; missing, duplicate, foreign-seed, malformed, extra and cross-patch repeated IDs rejected, even with matching mutated reports on both peers. git diff --check passed; staged scope/diff and MAX_PATH inspected before commit. No Unreal build, live peers or full suite ran; full verification deferred. Normal partial increment, not milestone-final.
+- **Impact/authority:** test acceptance now checks actual identity cardinality rather than trusting a logged count. No production gameplay, server authority, RPC, reward, persistence or schema changes.
+- **Concurrency/handoff:** only current Kalmala chat active; CIM process inspection unavailable. Initially clean main checkout used directly; no handoff synchronization needed.
+- **Limitations/next:** retained-log mutation tests verify selector behavior only. Execute the stricter peer runner next; independent physical-distance RPC rejection, simultaneous contention and ordinary-camera acceptance remain open, followed by streaming/restart and reload durability.
+
 ## Autonomous increment 2026-10-17 — Execute replacement-bound forest pickup
 
 - **Completed:** executed the stricter exact-replacement acceptance on source 1501ba2 within the first unchecked generated-forest delivery child. All 727 Source/Config/Content mirror hashes matched; reused compiled modules without a build. No repairs; child remains unchecked.
