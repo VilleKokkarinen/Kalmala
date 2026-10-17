@@ -1,5 +1,25 @@
 # Game features
 
+## Generated-forest harvesting — 2026-10-17
+
+Generated Meadow/Elderwood trees are server-owned harvest actors with stable
+seed/patch/candidate identities. Equipped axe attacks advance Standing to Trunk
+to a collectible wood Drop; one actor retains the identity through each stage.
+The existing resource tiers, yields and accepted-hit condition cost apply.
+Matching cosmetic trees are suppressed to avoid duplicate presentation.
+
+Accepted pickup grants once and records sparse depletion. Full packs retain the
+live drop and receive the existing private rejection feedback. Collected IDs stay
+absent after eviction and disk reload; uncollected trees return as standing trees,
+so partial damage and uncollected trunks/drops are session-only. Focused peer
+checks cover exact-ID stages, late joins, ordinary-camera pickup and competing
+owners; isolated checks cover shared patch departure/reactivation and real-slot
+process restart. [Setup evidence and limits](07-development-setup.md#generated-forest-current-acceptance-2026-10-17)
+distinguish those boundaries from final integrated acceptance.
+
+Moving falls, the settled 3D log and aligned targeting, rendered manual usability,
+final live peer streaming/restart and full tree-feature verification remain pending.
+
 ## Bow and two-handed items — 2026-10-15
 
 String stacks to 20; Wooden Arrows stack to 100. A level-one Workbench crafts

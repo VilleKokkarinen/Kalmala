@@ -2758,7 +2758,7 @@ Wood-resource nodes (meadows-birch-bark, elderwood-resinwood, meadows-birch-trun
 
 The server selects and rechecks the blocking target after windup, applies validated equipped-axe damage through tree resistances, enforces MaterialTier and carried condition, and persists one durability point per accepted hit before tree mutation. Trees do not use harvesting skill gates or client tool/action values. A low melee sweep reaches fallen trunks. Pickup validates the complete grant and player persistence before committing existing sparse depletion callbacks; rejected/full-pack/duplicate pickups retain the drop without reward. When a live wood-drop pickup fails because inventory capacity is exhausted, the server also publishes an owner-only `Inventory is full` interaction result. The existing local interaction-result handler plays its rejection cue from that owner-only result. Tree health/stage replicate to relevant peers, including late joins. Health, trunks and uncollected drops are session state and reset on actor regeneration/restart; no save schema was changed. Existing second-wave source depletion retains its session policy.
 
-This increment covers existing resource nodes. Background forest geometry in GeneratedTerrainPatch remains decorative; individual harvesting for those trees and moving/falling logs remain subsequent scope. New Kalmala.Gameplay.Harvest.TreeFelling regression covers staged damage and invalid inputs; M9.SecondWaveHarvestAcceptance now exercises equipped-axe hits and subsequent wood pickup for tree cases, retaining mining cases. These automation checks, full builds and rendered/live peer scenarios remain deferred; only lightweight source/model inspection ran.
+Generated Meadow/Elderwood trees now participate in this same axe-driven lifecycle as patch-owned harvest actors, with stable seed/patch/candidate identities and matching cosmetic suppression. Successful pickup records sparse depletion; eviction and restart restore uncollected candidates as standing trees. Focused stage, exact-ID peer delivery/pickup, isolated patch lifecycle and real-slot process-restart checks have passed; see the [current forest acceptance summary](07-development-setup.md#generated-forest-current-acceptance-2026-10-17) for commands and coverage limits. Moving falls, a settled 3D log with aligned targeting, final integrated live streaming/restart acceptance and full tree-feature verification remain pending.
 
 Resource suitability enforces the item family before MaterialTier: axes only damage Woodcutting resources (trees/trunks), pickaxes only Mining resources (stone/ore), and knives only Gathering sources. Tier and item level cannot grant cross-family access, even if a runtime definition has a mismatched Action. Both axe tree damage and mining interaction consume this shared server check before condition, health, reward or depletion mutation. New `Kalmala.Gameplay.Harvest.ResourceFamilyGates` covers all six axe/pick identities against eight wood/mining sources at levels 1/10/20, altered action rejection and unrelated families. Automation execution remains deferred.
 
@@ -2776,111 +2776,75 @@ Inventory Craft may create multiple Construction Hammers. Each copy has its own 
 
 The Inventory popup now reads the owner's six replicated wearable slots and displays their current item names. Selecting a compatible wearable enables its slot action; selecting a different wearable for an occupied slot replaces the equipped GUID, and selecting an empty grid cell before clicking occupied gear requests its return to the pack. The client sends only the item GUID or slot enum; the server revalidates identity, compatibility, capacity, and the full candidate transaction before publishing the owner-only gear and inventory state. An owner-only client result reports accepted or rejected requests. Server-resolved wildlife damage uses the summed integer Armor of non-depleted equipped wearables against physical damage only. The Main Hand tile now equips and returns an exact tool GUID through validated pack-capacity transactions. The owner sees remaining/maximum condition; accepted wildlife hits spend one condition per wearable and depleted items cease contributing defense. Same-pawn unequip/re-equip preserves wear.
 
-### Shared forest placement (2026-10-15)
+### Generated-forest harvesting contract (reconciled 2026-10-17)
 
-`FKalmalaForestLayout::Generate` supplies the terrain patch renderer with
-individual Meadow/Elderwood tree descriptors: original candidate ordinal, world
-and exact local position, biome flag, dimensions and yaw. The ordinal is local
-to the world seed and patch center. Each descriptor now also carries a
-`forest:v1:<world-seed>:<patch-x>:<patch-y>:<candidate>` persistent spawn identity.
-Patch coordinates here are exact world-space patch centers, formatted with 17
-significant digits and signed zero normalized; they are not rounded tree positions.
-The full unsigned seed and original candidate ordinal avoid filtered-order and
-cross-patch aliasing. Invalid centers or ordinals return an empty identity.
-This reserved identity is not yet written into the sparse depletion ledger. Rejected
-candidates do not renumber accepted trees. The extraction preserves existing
-random draw order, density gates, dimensions, bounds and height sampling.
+`FKalmalaForestLayout::Generate` supplies individual Meadow/Elderwood descriptors
+shared by terrain rendering and server materialization: original candidate ordinal,
+world/local position, biome, dimensions and yaw. Each accepted descriptor has a
+`forest:v1:<world-seed>:<patch-x>:<patch-y>:<candidate>` identity. Patch coordinates
+are exact world-space centers formatted with 17 significant digits and normalized
+signed zero; full unsigned seeds and original ordinals prevent filtered-order and
+cross-patch aliasing. Invalid centers/ordinals yield an empty identity; rejected
+candidates do not renumber later trees or alter the existing random draw order.
 
-This is the first integrated part of generated-tree harvesting. Trees remain
-decorative until server resource materialization, matching mesh suppression,
-and streaming/depletion ownership are connected. No reward, save, replication
-or client authority contract changes in this increment.
+GameMode loads the matching population save before terrain activation. It generates
+the shared descriptors once, skips IDs already harvested, and initializes each
+remaining node through the private descriptor initializer. Public
+`AKalmalaHarvestNode::InitializeForestServer` reconstructs from server config,
+patch center and ordinal through that same path. Authority, unused actor state,
+candidate identity and finite positive dimensions are validated before mutation.
+There is no client descriptor or reward RPC. Nodes use the Meadows birch-trunk or
+Elderwood ironheart-trunk tier/yield contracts and bind `OnHarvested` to GameMode's
+existing sparse population callback. Forest IDs bypass the session M9 overlay.
 
-### Forest harvest actor bridge (2026-10-15)
+### Patch ownership, suppression and replication
 
-Forest actor initialization also stores server-reconstructed trunk radius/height
-and canopy radius/height in replicated `ForestDimensions`. Its notification
-rebuilds presentation independently of source/stage notification order. Standing
-harvest geometry uses these sizes, the generated 0.62 trunk taper and canopy
-base at 68% of trunk height, reaching trunk height plus canopy height. Zero
-dimensions preserve legacy resource-node geometry. This retains the harvest
-actor's box primitives/materials rather than reproducing the decorative mesh's
-topology; fallen trunk/drop geometry remains unchanged. Live patch materialization
-and cosmetic suppression are still pending.
+The terrain patch owns materialized nodes; GameMode tracks weak references by
+patch coordinate. `SetSuppressedForestCandidatesServer` validates original
+ordinals against the shared layout, rejecting duplicate/absent candidates
+atomically and sorting accepted lists. Saved depleted candidates and successfully
+materialized actors suppress their matching cosmetic trunks, canopies and root
+buttresses. Allocation/initialization failure retains the candidate's cosmetic
+geometry; suppression failure rolls back the new patch before registration.
+Thus ordinary materialized trees are gameplay actors, while the unsuppressed
+fallback remains cosmetic and cannot grant resources.
 
-`AKalmalaHarvestNode::InitializeForestServer` regenerates the shared layout from
-server world config and patch center and finds the original candidate ordinal.
-Non-authority calls, absent candidates and reinitialization fail before mutation.
-The actor receives the generated identity, position and yaw and the existing
-Meadows birch-trunk or Elderwood ironheart-trunk contract (including tiers/yields).
-Successful forest initialization enables actor movement replication before setting
-the generated position and yaw, then forces a network update after initialization.
-This supplies the authoritative transform to relevant and later-relevant peers
-even when reconstruction follows actor spawning. Legacy harvest initialization
-keeps its existing movement-replication default. Peer execution remains deferred.
-Forest IDs bypass the session M9 depletion overlay and emit `OnHarvested` after
-accepted pickup, for binding to the existing world sparse harvested-ID callback.
+The replicated suppression list rebuilds only tree geometry and tolerates arrival
+before generation data. Replicated `ForestDimensions` rebuilds actor presentation
+independently of source/stage notification order. Standing box primitives use the
+shared sizes, 0.62 trunk taper and canopy base at 68% trunk height; zero dimensions
+retain legacy geometry. They do not reproduce the cosmetic mesh topology. Current
+Trunk/Drop presentation remains the existing staged geometry; moving falls and a
+settled 3D log at the tree position remain open work.
 
-No streaming caller is enabled yet: live trees remain decorative. Matching mesh
-suppression, descriptor-sized presentation, patch-owned spawning/eviction and
-sparse reload filtering remain required. No depletion is persisted without a
-bound callback. No save schema or client RPC changes. Runtime checks are deferred.
+Forest initialization enables movement replication, sets generated position/yaw
+and forces a network update. `bNetUseOwnerRelevancy` follows the always-relevant
+terrain patch so suppression and replacements share an audience; unowned
+reconstruction falls back to ordinary relevance. Legacy nodes retain independent
+relevance. Exact-ID host/client replacement coverage and separate Trunk/Drop
+third-peer late joins have passed; shared-audience performance remains unmeasured.
 
-### Individual forest cosmetic suppression (2026-10-15)
+### Sparse persistence and lifecycle limits
 
-`AKalmalaGeneratedTerrainPatch::SetSuppressedForestCandidatesServer` accepts
-original candidate ordinals only on an authoritative configured patch. It
-regenerates the shared layout, rejects duplicate or absent candidates atomically,
-and sorts accepted lists before publishing. The replicated list filters matching
-trunks, canopies and root buttresses from the decorative mesh. Its notification
-invalidates and rebuilds only trees. If generation data has not arrived, the
-existing generation notification builds with the retained list. Empty lists
-restore all candidates; patch initialization resets suppression.
+Only successful pickup records the forest ID through the bound population callback.
+A rejected/full-pack/duplicate request cannot grant extra rewards or deplete a live
+drop. The final player leaving a patch destroys tracked actors without invoking
+harvesting; one departure retains a patch shared with another player. Reactivation
+and process restart filter collected IDs and recreate uncollected trees. Partial
+health, trunks and uncollected drops are session state and reset to Standing when
+actors regenerate. This uses the existing save schema without migrations.
 
-Terrain activation now supplies depleted candidates from the matching world's
-population save: shared descriptors are checked by persistent ID and their
-original ordinals are suppressed after initialization, before active-patch
-registration. The population save is loaded before initial patch activation.
-Reactivation therefore reapplies sparse cosmetic depletion without rewriting
-the save. A missing or mismatched save leaves the initialized patch unsuppressed.
-Future actor materialization must extend this list with represented live actors.
-Actor spawning/eviction and depletion callback binding remain pending; live
-undepleted trees remain decorative. No client RPC or save schema changes.
-Runtime replication/rendering verification is deferred.
-
-### Patch-owned forest materialization (2026-10-15)
-
-Superseding the no-caller notes above, terrain activation now materializes each
-undepleted shared candidate as a server-initialized harvest node, owned by its
-terrain patch and tracked through weak references by patch coordinate. Its
-OnHarvested callback records the existing sparse population ID. Cosmetics are
-suppressed for saved depletion and successful actors only; allocation or
-initialization failures retain decorative trees. Suppression failure rolls back
-the entire new patch before registration. Terrain eviction explicitly destroys
-tracked nodes without invoking harvesting. Partial damage and uncollected
-trunks/drops are session state and reset on eviction; only pickup persists
-forest depletion. No new save fields or RPCs are introduced. Runtime collision,
-replication, reload behavior and activation cost remain unverified.
-
-### Forest activation descriptor reuse (2026-10-15)
-
-Patch activation passes descriptors from its shared-layout generation to a private
-harvest-node initializer accessible to GameMode, avoiding full layout regeneration
-per tree. Public config/patch/ordinal reconstruction delegates to the same initializer.
-Authority, unused-node state, identity presence, candidate ordinal and finite positive
-dimensions are checked before mutation. No descriptor RPC is exposed. Runtime
-activation cost and lifecycle/peer acceptance remain unmeasured.
-
-### Forest patch relevance (2026-10-15)
-
-Successful generated-forest initialization enables `bNetUseOwnerRelevancy`.
-GameMode assigns the terrain patch as actor owner before initialization, so live
-forest replacements use the same relevance audience as their always-relevant patch
-and its replicated cosmetic suppression. This prevents independent tree distance
-culling from leaving suppressed candidates invisible to distant peers. Patch
-eviction still bounds actor lifetime; legacy harvest nodes retain independent
-relevance. Unowned reconstruction falls back to ordinary actor relevance. Actual
-network delivery and the cost of the shared audience remain unverified.
+Focused acceptance covers exact-ID stage delivery, late joins, ordinary-camera
+pickup, forged/range/physical-distance and capacity rejection, competing owned
+pickup requests and owner-only full-pack feedback. Isolated server-world tests
+cover shared departure, eviction and reactivation; a two-process real-slot test
+covers disk persistence using production callbacks/loading. These are distinct
+boundaries: the restart fixture does not repeat pickup or establish live peer
+streaming/restart. Headless feedback proves cue submission, not audible playback.
+Two remote contenders, adverse networks, rendered manual usability, activation
+cost and final integrated tree-feature acceptance remain unverified. See the
+[setup acceptance summary](07-development-setup.md#generated-forest-current-acceptance-2026-10-17)
+for the retained commands, evidence and next implementation boundary.
 
 ### Ordinary-camera wood pickup (2026-10-17)
 

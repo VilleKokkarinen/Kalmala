@@ -1,5 +1,42 @@
 # Development setup
 
+## Generated-forest current acceptance (2026-10-17)
+
+This summary is the current forest verification handoff. The dated implementation
+and execution entries below retain historical commands/results; their statements
+that camera, contention, lifecycle or restart work is unproven describe those
+older increments, not current status. Generated Meadow/Elderwood trees are now
+patch-owned harvest actors with matching cosmetic suppression. See the
+[architecture contract](02-technical-architecture.md#generated-forest-harvesting-contract-reconciled-2026-10-17)
+and [feature description](game-features.md#generated-forest-harvesting--2026-10-17).
+
+| Accepted boundary | Reproduction / retained evidence | Remaining limit |
+| --- | --- | --- |
+| Exact-ID host/client Trunk, Drop and pickup; forged/range/physical rejection, one host sparse write and no client write | `Scripts/Tests/World/Verify-BiomeExpansion.ps1 -ForestDeliveryOnly -ForestStages -ForestPickup -Project <isolated-project>`; ordinary-camera pass `kfpeer-dcea84e3` | Headless fixed-position pickup; attack/far phases retain the eye-camera fixture |
+| Separate third-peer Trunk and Drop late joins, matching replacement/suppression | Same runner with `-ForestDeliveryOnly -ForestStages` and either `-ForestTrunkLateJoin` or `-ForestDropLateJoin` | Separate stage fixtures, not final integrated fall-transition acceptance |
+| Competing owned requests grant one reward total | Add `-ForestContention` to the pickup command; `kfpeer-c3f2a6db` | Listen-host versus one remote; no two-remote or adverse-network coverage |
+| Ordinary client full-pack rejection keeps live drop and delivers private feedback | Add `-ForestFullPack` to the pickup command; `kfpeer-e7d1f2c5` | Excludes contention mode; cue submission, not audible playback |
+| Shared departure, final eviction without depletion, reactivation preserving collected IDs | `Automation RunTests Kalmala.Gameplay.Harvest.ForestPatchLifecycle`; `kp18e/tests.log`, `kp19r/tests.log` | Isolated server world, not live streaming peers |
+| Real population-slot process restart | `Scripts/Tests/World/Verify-BiomeExpansion.ps1 -ForestRestartOnly -Editor <UnrealEditor-Cmd.exe> -Project <isolated-project>`; `kfr-e6e02cac/{write,read}.log` | Production callback/loading boundary, not another pickup or live peer session restart |
+
+Evidence roots above are under `C:/Users/Ville/AppData/Local/Temp/`; detailed
+commands and results are retained in the corresponding sections below. The
+restart run reconstructed 14 exact IDs (two depleted absent, 12 uncollected live)
+and preserved the real slot SHA256 through reader activation/eviction. Known
+pre-test engine diagnostics/context-free teardown warnings in isolated lifecycle
+runs are documented with those results; no failed automation assertions passed
+the acceptance gates.
+
+Next implementation: server-authored fall/settled transition with overlap and
+accepted-hit accounting regression, then moving presentation/settled-log targeting.
+Partial health and uncollected Trunk/Drop state reset on regeneration; only accepted
+pickup depletion persists. Final integrated editor build, focused harvest group,
+exact-ID peer/late-join/pickup gates and live streaming/reactivation/restart remain
+required by BACKLOG.md. Full tree-feature/project verification remains deferred;
+this documentation reconciliation runs no Unreal build or runtime test.
+
+## Historical forest increment notes
+
 Client-local pickup targeting gate (2026-10-17): ForestPickup now calls the ordinary local visibility trace before its first pickup request and requires the exact live, unharvested drop actor. A missing or different target fails immediately. The peer runner requires exact seed/tree/item client evidence ending LiveDrop=1 ExactTrace=1. Parser and eight actual-selector retained-log/synthetic-proof cases passed. C++ compilation and live peers remain deferred. The fixture still uses its eye-position camera override, so ordinary-camera pickup and simultaneous owned requests remain unproven. Production authority/RPCs/rewards/save schemas unchanged; delivery child stays incomplete.
 
 Executed remote physical-distance gate (2026-10-17), source 1cb1c2a: all 727 runtime mirror files matched; isolated editor build succeeded (four actions; C:/Users/Ville/AppData/Local/Temp/kmforest/remote-build.log). The Build.bat and ForestPickup commands documented below passed. Fresh logs C:/Users/Ville/AppData/Local/Temp/kfpeer-c92f0049/{host,client}.log confirm exact-tree remote physical rejection with Lightwood Delta=0 LiveDrop=1 FixtureTrace=0 Requests=3 and subsequent Stable=5. Nine matching eighteen-tree patches/162 distinct IDs, shared Trunk/Drop/Collected, exactly one reward and successful host sparse write, no client write, repeated/depleted requests and second collector zero reward passed. Zero fatal/assertion/ensure/fixture failure markers; runner stopped peers and no UnrealEditor remained. Parser passed; no repairs. Production authority/RPCs/schemas unchanged. This server observer supplies a trusted short trace after a remote RPC; ordinary-camera usability and simultaneous contention remain unproven. Full feature/project verification deferred; delivery child remains unchecked. Next contention and ordinary-camera acceptance, then streaming/restart and reload durability.
@@ -3416,7 +3453,7 @@ Wood-resource nodes (meadows-birch-bark, elderwood-resinwood, meadows-birch-trun
 
 The server selects and rechecks the blocking target after windup, applies validated equipped-axe damage through tree resistances, enforces MaterialTier and carried condition, and persists one durability point per accepted hit before tree mutation. Trees do not use harvesting skill gates or client tool/action values. A low melee sweep reaches fallen trunks. Pickup validates the complete grant and player persistence before committing existing sparse depletion callbacks; rejected/full-pack/duplicate pickups retain the drop without reward. Tree health/stage replicate to relevant peers, including late joins. Health, trunks and uncollected drops are session state and reset on actor regeneration/restart; no save schema was changed. Existing second-wave source depletion retains its session policy.
 
-This increment covers existing resource nodes. Background forest geometry in GeneratedTerrainPatch remains decorative; individual harvesting for those trees and moving/falling logs remain subsequent scope. New Kalmala.Gameplay.Harvest.TreeFelling regression covers staged damage and invalid inputs; M9.SecondWaveHarvestAcceptance now exercises equipped-axe hits and subsequent wood pickup for tree cases, retaining mining cases. These automation checks, full builds and rendered/live peer scenarios remain deferred; only lightweight source/model inspection ran.
+Generated Meadow/Elderwood trees now use patch-owned harvest actors and matching cosmetic suppression. See the [current forest acceptance summary](#generated-forest-current-acceptance-2026-10-17) for accepted stage, pickup, lifecycle and restart boundaries. `Kalmala.Gameplay.Harvest.TreeFelling` covers staged damage/invalid inputs, and `M9.SecondWaveHarvestAcceptance` exercises equipped-axe hits and wood pickup while retaining mining cases. Moving falls, settled-log integration and final tree-feature verification remain pending.
 
 Resource suitability enforces the item family before MaterialTier: axes only damage Woodcutting resources (trees/trunks), pickaxes only Mining resources (stone/ore), and knives only Gathering sources. Tier and item level cannot grant cross-family access, even if a runtime definition has a mismatched Action. Both axe tree damage and mining interaction consume this shared server check before condition, health, reward or depletion mutation. New `Kalmala.Gameplay.Harvest.ResourceFamilyGates` covers all six axe/pick identities against eight wood/mining sources at levels 1/10/20, altered action rejection and unrelated families. Automation execution remains deferred.
 
