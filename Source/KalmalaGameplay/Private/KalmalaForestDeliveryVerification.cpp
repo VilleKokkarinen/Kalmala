@@ -309,6 +309,16 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
             return;
         }
         if (Target->IsWoodDrop()) return;
+        if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestPickup"))
+            && Target->CanReceiveAxeAttack() && !Target->IsFelledTrunk() && ForestForgedRequests < 4)
+        {
+            Controller->SetControlRotation((Target->GetActorLocation() + FVector(0, 0, 10) - GetPawnViewLocation()).Rotation());
+            // First tick only aims; subsequent ticks send malformed intent over
+            // the ordinary owned RPC before any legitimate attack can fell it.
+            if (++ForestForgedRequests > 1)
+                ServerRequestInteract(TEXT("ForestForgedItem"), 255);
+            return;
+        }
         // Optional trunk-only peer gate keeps this state stable while a third
         // observer joins. Ordinary stage/drop runs retain their existing cadence.
         if (Target->IsFelledTrunk() && FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestHoldTrunk"))) return;

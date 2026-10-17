@@ -998,7 +998,33 @@ void AKalmalaCharacter::ServerRequestInteract_Implementation(const FName ClientI
     if (AKalmalaHarvestNode* HarvestNode = Cast<AKalmalaHarvestNode>(Target);
         HarvestNode != nullptr && !HarvestNode->GetGatheringSourceId().IsNone())
     {
-        HarvestNode->InteractWithToolIntentFromServer(this, Hit.Distance, InteractionRange, ClientItemId, ClientAction);
+#if !UE_BUILD_SHIPPING
+        const bool bForestForgedProbe = FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestPickup"))
+            && !IsLocallyControlled() && ClientItemId == TEXT("ForestForgedItem") && ClientAction == 255
+            && HarvestNode->GetPersistentSpawnId().StartsWith(TEXT("forest:v1:"));
+        const bool bStandingBefore = HarvestNode->CanReceiveAxeAttack() && !HarvestNode->IsFelledTrunk();
+        FKalmalaToolServerSelection ForestSelection;
+        const bool bForestSelection = bForestForgedProbe
+            && FKalmalaToolLifecycleContract::BuildServerSelection(HarvestNode->GetGatheringSourceId(), ForestSelection);
+        const int32 WoodBefore = bForestSelection ? Inventory->GetQuantity(ForestSelection.RewardItemId) : 0;
+#endif
+        [[maybe_unused]] const bool bHarvestAccepted = HarvestNode->InteractWithToolIntentFromServer(this, Hit.Distance, InteractionRange, ClientItemId, ClientAction);
+#if !UE_BUILD_SHIPPING
+        if (bForestForgedProbe)
+        {
+            if (ForestForgedId.IsEmpty()) ForestForgedId = HarvestNode->GetPersistentSpawnId();
+            ++ForestForgedRequests;
+            const int32 Delta = bForestSelection ? Inventory->GetQuantity(ForestSelection.RewardItemId) - WoodBefore : 0;
+            if (ForestForgedId != HarvestNode->GetPersistentSpawnId()
+                || !bForestSelection || bHarvestAccepted || !bStandingBefore || !HarvestNode->CanReceiveAxeAttack() || HarvestNode->IsFelledTrunk()
+                || HarvestNode->IsWoodDrop() || HarvestNode->IsHarvested() || Delta != 0)
+                UE_LOG(LogTemp, Error, TEXT("Forest delivery: Passed=0 ForgedIntent Id=%s Delta=%d"),
+                    *HarvestNode->GetPersistentSpawnId(), Delta);
+            else
+                UE_LOG(LogTemp, Display, TEXT("Forest forged rejection: Passed=1 Authority=1 Id=%s Item=ForestForgedItem Action=255 Delta=0 Standing=1 Requests=%d"),
+                    *HarvestNode->GetPersistentSpawnId(), ForestForgedRequests);
+        }
+#endif
         return;
     }
 

@@ -130,6 +130,8 @@ private:
     FString ForestDriverStage;
     int32 ForestDriverStageWait = 0;
     int32 ForestDriverRequests = 0;
+    int32 ForestForgedRequests = 0;
+    FString ForestForgedId;
     FString ForestPickupId;
     FName ForestPickupItem;
     int32 ForestPickupBefore = 0;
