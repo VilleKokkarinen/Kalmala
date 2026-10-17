@@ -5,6 +5,7 @@ param(
     [switch]$ForestDropLateJoin,
     [switch]$ForestTrunkLateJoin,
     [switch]$ForestPickup,
+    [switch]$ForestContention,
     [string]$Project,
     [int]$Port = 17849
 )
@@ -16,6 +17,7 @@ if ($ForestStages -and !$ForestDeliveryOnly) { throw '-ForestStages requires -Fo
 if ($ForestDropLateJoin -and !$ForestStages) { throw '-ForestDropLateJoin requires -ForestStages.' }
 if ($ForestTrunkLateJoin -and (!$ForestStages -or $ForestDropLateJoin)) { throw '-ForestTrunkLateJoin requires -ForestStages and excludes -ForestDropLateJoin.' }
 if ($ForestPickup -and (!$ForestStages -or $ForestDropLateJoin -or $ForestTrunkLateJoin)) { throw '-ForestPickup requires -ForestStages and excludes late-join modes.' }
+if ($ForestContention -and !$ForestPickup) { throw '-ForestContention requires -ForestPickup.' }
 if (!$Project) { $Project = Join-Path ($repoPaths.ProjectRoot) 'Kalmala.uproject' }
 $project = (Resolve-Path -LiteralPath $Project).Path
 if ($ForestDeliveryOnly) {
@@ -29,6 +31,7 @@ if ($ForestDeliveryOnly) {
     if ($ForestStages) { $common += ' -KalmalaForestStageDriver' }
     if ($ForestTrunkLateJoin) { $common += ' -KalmalaForestHoldTrunk' }
     if ($ForestPickup) { $common += ' -KalmalaForestPickup' }
+    if ($ForestContention) { $common += ' -KalmalaForestContention' }
     $server = $null
     $client = $null
     $lateClient = $null
@@ -42,12 +45,12 @@ if ($ForestDeliveryOnly) {
         } while ((Get-Date) -lt $deadline)
         if ((Get-Date) -ge $deadline) { throw 'Forest host readiness timed out.' }
         $client = Start-Process $Editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" 127.0.0.1:$Port -WorldSeed=999 $common -abslog=`"$clientLog`" -UserDir=`"$output\Client`""
-        $deadline = (Get-Date).AddSeconds(120)
+        $deadline = (Get-Date).AddSeconds($(if ($ForestContention) { 240 } else { 120 }))
         do {
             if ($server.HasExited -or $client.HasExited) { throw 'A forest peer exited before delivery.' }
             $hostText = if (Test-Path $serverLog) { [string](Get-Content $serverLog -Raw) } else { '' }
             $clientText = if (Test-Path $clientLog) { [string](Get-Content $clientLog -Raw) } else { '' }
-            if (($hostText + $clientText) -match 'Fatal error:|Assertion failed:|Forest delivery: Passed=0') { throw 'Forest peer failure; inspect logs.' }
+            if (($hostText + $clientText) -match 'Fatal error:|Assertion failed:|Forest delivery: Passed=0|Forest contention result: Passed=0') { throw 'Forest peer failure; inspect logs.' }
             $matches = [regex]::Matches($hostText, 'Forest delivery: Passed=1 Authority=1 (Seed=10323456789 Trees=[1-9][0-9]* Cosmetics=0 Ids=[^\r\n]+)')
             # This fixed-seed/start-location fixture has nine populated patches,
             # each with eighteen trees. Do not accept a single delivered patch
@@ -112,11 +115,42 @@ if ($ForestDeliveryOnly) {
                     $hostText.Contains("Forest depletion delivery: Passed=1 Authority=1 Seed=10323456789 Id=$id Collected=1") -and
                     $clientText.Contains("Forest depletion delivery: Passed=1 Authority=0 Seed=10323456789 Id=$id Collected=1")
                 } | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique)
+            if ($ForestContention) {
+                $sharedPickups = @([regex]::Matches($hostText, 'Forest contention result: Passed=1 Id=([^\s]+) Item=([^\s]+) HostDelta=([0-9]+) RemoteDelta=([0-9]+) Expected=([1-9][0-9]*) Collected=1(?:\r?\n|$)') | Where-Object {
+                    $id = $_.Groups[1].Value
+                    $hostDelta = [int]$_.Groups[3].Value
+                    $remoteDelta = [int]$_.Groups[4].Value
+                    $expected = [int]$_.Groups[5].Value
+                    $escaped = [regex]::Escape($id)
+                    $hostSent = [regex]::Match($hostText, "Forest contention sent: Authority=1 Id=$escaped Due=([0-9]+) At=([0-9.]+)(?:\r?\n|$)")
+                    $clientSent = [regex]::Match($clientText, "Forest contention sent: Authority=0 Id=$escaped Due=([0-9]+) At=([0-9.]+)(?:\r?\n|$)")
+                    $hostReceived = @([regex]::Matches($hostText, "Forest contention received: LocalOwner=1 Id=$escaped At=([0-9.]+)(?:\r?\n|$)") | Where-Object {
+                        [math]::Abs([double]$_.Groups[1].Value - [double]$hostSent.Groups[1].Value) -le 0.5
+                    })
+                    $remoteReceived = @([regex]::Matches($hostText, "Forest contention received: LocalOwner=0 Id=$escaped At=([0-9.]+)(?:\r?\n|$)") | Where-Object {
+                        [math]::Abs([double]$_.Groups[1].Value - [double]$clientSent.Groups[1].Value) -le 0.5
+                    })
+                    $hostReceived.Count -eq 1 -and $remoteReceived.Count -eq 1 -and
+                    $hostText.Contains("Forest contention ready: Authority=1 Id=$id Due=$($hostSent.Groups[1].Value) ExactTrace=1 Live=1") -and
+                    $clientText.Contains("Forest contention ready: Authority=0 Id=$id Due=$($clientSent.Groups[1].Value) ExactTrace=1 Live=1") -and
+                    $sharedStages -contains $id -and
+                    (($hostDelta -eq $expected -and $remoteDelta -eq 0) -or ($remoteDelta -eq $expected -and $hostDelta -eq 0)) -and
+                    $hostSent.Success -and $clientSent.Success -and
+                    $hostSent.Groups[1].Value -eq $clientSent.Groups[1].Value -and
+                    [math]::Abs([double]$hostSent.Groups[2].Value - [double]$clientSent.Groups[2].Value) -le 0.1 -and
+                    $hostText.Contains("Forest contention armed: Authority=1 Id=$id Due=$($hostSent.Groups[1].Value) Live=1") -and
+                    $clientText.Contains("Forest contention armed: Authority=0 Id=$id Due=$($clientSent.Groups[1].Value) Live=1") -and
+                    @([regex]::Matches($hostText, 'Forest sparse write:')).Count -eq 1 -and
+                    [regex]::IsMatch($hostText, "Forest sparse write: Authority=1 Seed=10323456789 Id=$escaped Success=1(?:\r?\n|$)") -and
+                    !$clientText.Contains('Forest sparse write:')
+                } | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique)
+            }
             if ($shared.Count -eq 9 -and (!$ForestStages -or $sharedStages.Count -gt 0) -and (!$ForestPickup -or $sharedPickups.Count -gt 0)) { break }
             Start-Sleep -Milliseconds 500
         } while ((Get-Date) -lt $deadline)
         if ((Get-Date) -ge $deadline) { throw "Exact forest replacement/suppression delivery timed out: $($shared.Count)/9 matching eighteen-tree patches; $($sharedStages.Count) shared Trunk/Drop IDs (required=$ForestStages); $($sharedPickups.Count) pickups (required=$ForestPickup). Inspect $output." }
-        if ($ForestPickup) { Write-Output "PASS: exact-ID pickup quantity stable after three initial and three post-depletion owned requests, with collected state on both peers and zero reward for three second-player depleted attempts: $($sharedPickups -join ', ')." }
+        if ($ForestContention) { Write-Output "PASS: competing owners dispatched ordinary pickup requests within 100 ms; exactly one reward and sparse write: $($sharedPickups -join ', ')." }
+        elseif ($ForestPickup) { Write-Output "PASS: exact-ID pickup quantity stable after three initial and three post-depletion owned requests, with collected state on both peers and zero reward for three second-player depleted attempts: $($sharedPickups -join ', ')." }
         if ($ForestStages) { Write-Output "PASS: host/client required stage delivery for exact tree IDs: $($sharedStages -join ', ')." }
         if ($ForestDropLateJoin -or $ForestTrunkLateJoin) {
             $lateStage = if ($ForestTrunkLateJoin) { 'Trunk' } else { 'Drop' }
@@ -132,7 +166,7 @@ if ($ForestDeliveryOnly) {
                 $hostText = [string](Get-Content $serverLog -Raw)
                 $clientText = [string](Get-Content $clientLog -Raw)
                 $lateText = if (Test-Path $lateLog) { [string](Get-Content $lateLog -Raw) } else { '' }
-                if (($hostText + $clientText + $lateText) -match 'Fatal error:|Assertion failed:|Forest delivery: Passed=0') { throw "Forest late-join failure; inspect $output." }
+                if (($hostText + $clientText + $lateText) -match 'Fatal error:|Assertion failed:|Forest delivery: Passed=0|Forest contention result: Passed=0') { throw "Forest late-join failure; inspect $output." }
                 $lateStageDelivered = $lateText.Contains("Forest stage delivery: Passed=1 Authority=0 Seed=10323456789 Id=$lateId Stage=$lateStage Cosmetics=0")
                 if ($lateStageDelivered) { break }
                 Start-Sleep -Milliseconds 500

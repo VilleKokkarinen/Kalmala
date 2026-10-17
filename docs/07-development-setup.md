@@ -3781,3 +3781,43 @@ remaining UnrealEditor. This is headless fixed-position camera acceptance;
 rendered manual usability and simultaneous owned RPC contention remain outside
 this run. Delivery child remains unchecked; streaming/restart follows. Full
 feature/project verification remains deferred.
+
+
+### Generated-forest owned pickup contention accepted (2026-10-17)
+
+Run `Scripts/Tests/World/Verify-BiomeExpansion.ps1 -ForestDeliveryOnly -ForestStages -ForestPickup -ForestContention -Project C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject`.
+The opt-in non-Shipping fixture places the listen-host and remote owner on
+opposite sides of one live generated drop. Each independently chooses the next
+server-clock minute boundary plus thirty seconds; different deadlines fail the
+gate. Both must trace the exact live drop two seconds before dispatch, then call
+ordinary RequestInteract once without waiting for depletion. No second request
+is injected inside the winning handler. The older synthetic same-dispatch and
+remote full-pack probes are excluded in this mode; ordinary ForestPickup retains
+them. The host uses the fixture eye camera; the remote uses the normal 320/45 boom.
+
+Acceptance requires matching patch/stage identity, the same deadline, dispatch
+within 100 ms, exactly one server receipt per owner within 500 ms of the deadline,
+one complete reward and zero reward for the loser after five seconds, and one
+successful host sparse write for that ID with no client write. Either owner can
+win. No gameplay RPC payload, production authority, reward or save schema changes.
+This is listen-host versus one remote owner, not two remote clients or adverse
+network coverage. Client-visible full-pack feedback and patch lifecycle remain
+separate gates.
+
+Verified on base 211fe08 plus this fixture: compared 728 tracked runtime mirror
+files and copied three changed sources per iteration. Two editor builds passed
+66 actions each with normal UBT access, using
+`Build.bat KalmalaEditor Win64 Development -Project=C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject -WaitMutex -NoHotReload -MaxParallelActions=4`.
+Final build log: C:/Users/Ville/AppData/Local/Temp/kmforest/contention-build.log.
+The peer command above passed twice. Initial logs:
+C:/Users/Ville/AppData/Local/Temp/kfpeer-0c83dc4d/host.log and client.log.
+Stricter final logs: C:/Users/Ville/AppData/Local/Temp/kfpeer-c3f2a6db/host.log
+and client.log. Exact ID: forest:v1:10323456789:31079.1015625:5132.20068359375:13.
+Both readiness proofs passed, dispatch times were 150.018/150.027 seconds, and
+the server received both requests. HostDelta=1 RemoteDelta=0 Expected=1 Lightwood,
+Collected=1 and one successful host sparse write passed. Nine patches/162 IDs
+and matching Trunk/Drop stages passed. Parser and ten actual-selector cases
+passed: valid plus missing readiness/receipts, double reward, extra host/client
+writes, late dispatch, wrong ID and failed result. No fatal/assertion/ensure or
+forest-failure markers. Focused acceptance only; full tree-feature/project
+verification remains deferred.

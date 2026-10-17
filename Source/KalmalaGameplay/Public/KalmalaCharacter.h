@@ -122,6 +122,10 @@ private:
     void VerifyPlayerControls(float DeltaSeconds);
     void VerifyConstructionMovement(float DeltaSeconds);
     void VerifyForestDelivery(float DeltaSeconds);
+    double ForestContentionDue = 0;
+    bool bForestContentionReady = false;
+    bool bForestContentionSent = false;
+    bool bForestContentionFinished = false;
     float ForestDeliveryElapsed = 0;
     int32 ForestDeliveryDiagnostics = 0;
     TSet<FString> ForestDeliveryReported;

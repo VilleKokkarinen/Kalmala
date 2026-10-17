@@ -26,6 +26,51 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
     }
     const auto* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
     if (!State || State->PlayerArray.Num() < 2) return;
+    // The two owners independently dispatch ordinary interaction requests on
+    // the same server-clock boundary. No request is injected by the winner's
+    // handler, and neither owner waits for replicated depletion before sending.
+    if (ForestContentionDue > 0)
+    {
+        const double Now = State->GetServerWorldTimeSeconds();
+        if (!bForestContentionReady && Now >= ForestContentionDue - 2 && Now < ForestContentionDue)
+        {
+            FHitResult Hit;
+            const auto* Drop = GetLocalInteractionCandidate(Hit) ? Cast<AKalmalaHarvestNode>(Hit.GetActor()) : nullptr;
+            if (!Drop || Drop->GetPersistentSpawnId() != ForestPickupId || !Drop->IsWoodDrop() || Drop->IsHarvested())
+            {
+                UE_LOG(LogTemp, Error, TEXT("Forest delivery: Passed=0 ContentionTarget Authority=%d Id=%s"), HasAuthority(), *ForestPickupId);
+                return;
+            }
+            bForestContentionReady = true;
+            UE_LOG(LogTemp, Display, TEXT("Forest contention ready: Authority=%d Id=%s Due=%.0f ExactTrace=1 Live=1"),
+                HasAuthority(), *ForestPickupId, ForestContentionDue);
+        }
+        if (!bForestContentionSent && Now >= ForestContentionDue)
+        {
+            bForestContentionSent = true;
+            UE_LOG(LogTemp, Display, TEXT("Forest contention sent: Authority=%d Id=%s Due=%.0f At=%.3f"),
+                HasAuthority(), *ForestPickupId, ForestContentionDue, Now);
+            RequestInteract();
+        }
+        if (HasAuthority() && !bForestContentionFinished && Now >= ForestContentionDue + 5)
+        {
+            bForestContentionFinished = true;
+            AKalmalaCharacter* Remote = nullptr;
+            for (TActorIterator<AKalmalaCharacter> Pawn(GetWorld()); Pawn; ++Pawn)
+                if (Pawn->GetController() && !Pawn->IsLocallyControlled()) { Remote = *Pawn; break; }
+            AKalmalaHarvestNode* Drop = nullptr;
+            for (TActorIterator<AKalmalaHarvestNode> Node(GetWorld()); Node; ++Node)
+                if (Node->GetPersistentSpawnId() == ForestPickupId) { Drop = *Node; break; }
+            const int32 HostDelta = Inventory->GetQuantity(ForestPickupItem) - ForestPickupHostBefore;
+            const int32 RemoteDelta = Remote ? Remote->Inventory->GetQuantity(ForestPickupItem) - ForestPickupBefore : -1;
+            const bool bPassed = Drop && Drop->IsHarvested() && ForestPickupExpected > 0
+                && ((HostDelta == ForestPickupExpected && RemoteDelta == 0)
+                    || (RemoteDelta == ForestPickupExpected && HostDelta == 0));
+            UE_LOG(LogTemp, Display, TEXT("Forest contention result: Passed=%d Id=%s Item=%s HostDelta=%d RemoteDelta=%d Expected=%d Collected=%d"),
+                bPassed, *ForestPickupId, *ForestPickupItem.ToString(), HostDelta, RemoteDelta, ForestPickupExpected, Drop && Drop->IsHarvested());
+        }
+        return;
+    }
     ForestDeliveryElapsed += DeltaSeconds;
     if (ForestDeliveryElapsed < 1) return;
     ForestDeliveryElapsed = 0;
@@ -191,6 +236,17 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
                 bForestDropRangeReturned = true;
                 Remote->CameraBoom->TargetArmLength = 320.0f;
                 Remote->CameraBoom->TargetOffset = FVector(0, 0, 45);
+            }
+            if (bForestDropRangeReturned && Pickup && Pickup->IsWoodDrop() && !Pickup->IsHarvested()
+                && FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestContention")))
+            {
+                GetCharacterMovement()->SetMovementMode(MOVE_Flying);
+                GetCharacterMovement()->StopMovementImmediately();
+                SetActorLocation(Pickup->GetActorLocation() + FVector(150, 0, 88));
+                Controller->SetControlRotation((Pickup->GetActorLocation() + FVector(0, 0, 10) - GetPawnViewLocation()).Rotation());
+                ForestContentionDue = (FMath::FloorToDouble(State->GetServerWorldTimeSeconds() / 60.0) + 1) * 60 + 30;
+                UE_LOG(LogTemp, Display, TEXT("Forest contention armed: Authority=1 Id=%s Due=%.0f Live=1"), *ForestPickupId, ForestContentionDue);
+                return;
             }
             const int32 Delta = Remote->GetInventoryComponent()->GetQuantity(ForestPickupItem) - ForestPickupBefore;
             if (Delta > ForestPickupExpected)
@@ -415,6 +471,12 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
                 }
                 UE_LOG(LogTemp, Display, TEXT("Forest local pickup target: Passed=1 Authority=0 Seed=%llu Id=%s Item=%s LiveDrop=1 ExactTrace=1 OrdinaryCamera=1"),
                     Config.WorldSeed, *ForestPickupId, *ForestPickupItem.ToString());
+            }
+            if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestContention")))
+            {
+                ForestContentionDue = (FMath::FloorToDouble(State->GetServerWorldTimeSeconds() / 60.0) + 1) * 60 + 30;
+                UE_LOG(LogTemp, Display, TEXT("Forest contention armed: Authority=0 Id=%s Due=%.0f Live=1"), *ForestPickupId, ForestContentionDue);
+                return;
             }
             ++ForestPickupTicks;
             // Exercise repeated ordinary owned requests, including after depletion.

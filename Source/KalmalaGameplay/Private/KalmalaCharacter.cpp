@@ -985,6 +985,14 @@ void AKalmalaCharacter::RequestAttack()
 
 void AKalmalaCharacter::ServerRequestInteract_Implementation(const FName ClientItemId, const uint8 ClientAction)
 {
+#if !UE_BUILD_SHIPPING
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestContention")) && GetWorld()
+        && ClientItemId.IsNone() && ClientAction == 0)
+    {
+        UE_LOG(LogTemp, Display, TEXT("Forest contention received: LocalOwner=%d Id=%s At=%.3f"),
+            IsLocallyControlled(), *(IsLocallyControlled() ? ForestPickupId : ForestRemoteRangeId), GetWorld()->GetTimeSeconds());
+    }
+#endif
     if (AKalmalaOceanSkiff* CurrentSkiff = Cast<AKalmalaOceanSkiff>(GetAttachParentActor()))
     {
         CurrentSkiff->TryDisembarkFromServer(this);
@@ -1100,6 +1108,7 @@ void AKalmalaCharacter::ServerRequestInteract_Implementation(const FName ClientI
         FVector ForestContenderLocation = FVector::ZeroVector;
         int32 ForestContenderBefore = 0;
         if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestPickup"))
+            && !FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestContention"))
             && !IsLocallyControlled() && ClientItemId.IsNone() && ClientAction == 0
             && HarvestNode->GetPersistentSpawnId() == ForestRemoteRangeId
             && HarvestNode->IsWoodDrop() && !HarvestNode->IsHarvested())
