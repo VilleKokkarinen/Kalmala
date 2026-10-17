@@ -18,10 +18,11 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
     if (!FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestDeliveryTest")) || !IsLocallyControlled()) return;
     if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestPickup")))
     {
-        // Use an eye-position fixture camera so the normal 250 cm interaction
-        // trace can reach the drop; the default boom alone is 320 cm long.
-        CameraBoom->TargetArmLength = 0;
-        CameraBoom->TargetOffset = GetPawnViewLocation() - GetActorLocation();
+        // Keep the attack/range phases unchanged, then restore the ordinary
+        // third-person camera before exercising collection.
+        const bool bOrdinaryPickup = ForestDropRangeRequests >= 4;
+        CameraBoom->TargetArmLength = bOrdinaryPickup ? 320.0f : 0.0f;
+        CameraBoom->TargetOffset = bOrdinaryPickup ? FVector(0, 0, 45) : GetPawnViewLocation() - GetActorLocation();
     }
     const auto* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
     if (!State || State->PlayerArray.Num() < 2) return;
@@ -188,6 +189,8 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
                 Remote->SetActorLocation(Pickup->GetActorLocation() + FVector(-150, 0, 88));
                 Remote->ForceNetUpdate();
                 bForestDropRangeReturned = true;
+                Remote->CameraBoom->TargetArmLength = 320.0f;
+                Remote->CameraBoom->TargetOffset = FVector(0, 0, 45);
             }
             const int32 Delta = Remote->GetInventoryComponent()->GetQuantity(ForestPickupItem) - ForestPickupBefore;
             if (Delta > ForestPickupExpected)
@@ -392,9 +395,10 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
                 ForestPickupId = Target->GetPersistentSpawnId();
                 ForestPickupItem = Selection.RewardItemId;
                 ForestPickupBefore = GetInventoryComponent()->GetQuantity(ForestPickupItem);
-                // Both fixture camera origins now match the pawn eye. Normal
-                // camera/movement updates carry this aim to the server cache.
-                Controller->SetControlRotation((Target->GetActorLocation() + FVector(0, 0, 10) - GetPawnViewLocation()).Rotation());
+                // Aim from the normal boom pivot; the camera lies behind it
+                // along the same ray. Allow its cached viewpoint to update.
+                Controller->SetControlRotation((Target->GetActorLocation() + FVector(0, 0, 10)
+                    - (GetActorLocation() + FVector(0, 0, 45))).Rotation());
                 return; // Allow normal control-rotation replication before interacting.
             }
             if (Target->GetPersistentSpawnId() != ForestPickupId) return;
@@ -402,13 +406,14 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
             {
                 FHitResult LocalHit;
                 if (!GetLocalInteractionCandidate(LocalHit) || LocalHit.GetActor() != Target
-                    || !Target->IsWoodDrop() || Target->IsHarvested())
+                    || !Target->IsWoodDrop() || Target->IsHarvested()
+                    || CameraBoom->TargetArmLength != 320.0f || CameraBoom->TargetOffset != FVector(0, 0, 45))
                 {
                     bForestPickupReported = true;
                     UE_LOG(LogTemp, Error, TEXT("Forest delivery: Passed=0 LocalPickupTarget Id=%s"), *ForestPickupId);
                     return;
                 }
-                UE_LOG(LogTemp, Display, TEXT("Forest local pickup target: Passed=1 Authority=0 Seed=%llu Id=%s Item=%s LiveDrop=1 ExactTrace=1"),
+                UE_LOG(LogTemp, Display, TEXT("Forest local pickup target: Passed=1 Authority=0 Seed=%llu Id=%s Item=%s LiveDrop=1 ExactTrace=1 OrdinaryCamera=1"),
                     Config.WorldSeed, *ForestPickupId, *ForestPickupItem.ToString());
             }
             ++ForestPickupTicks;

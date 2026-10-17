@@ -2881,3 +2881,16 @@ culling from leaving suppressed candidates invisible to distant peers. Patch
 eviction still bounds actor lifetime; legacy harvest nodes retain independent
 relevance. Unowned reconstruction falls back to ordinary actor relevance. Actual
 network delivery and the cost of the shared audience remain unverified.
+
+### Ordinary-camera wood pickup (2026-10-17)
+
+Local candidate selection and the server interaction handler share the same
+visibility query. The original short camera trace keeps priority. If it misses,
+a second trace extends by the camera-to-pawn distance (bounded to 500 cm camera
+offset), and accepts only its first blocking hit when that actor is a live wood
+drop inside the pawn's physical interaction range. For this fallback the
+transaction receives pawn-to-drop distance, so the third-person boom does not
+consume pickup reach. Existing server drop eligibility, independent physical
+reach, inventory capacity, exactly-once reward and sparse-write checks still
+apply. Standing trees, trunks and all non-drop interactions retain their short
+trace behavior. No client-supplied hit, distance, reward or new RPC is introduced.

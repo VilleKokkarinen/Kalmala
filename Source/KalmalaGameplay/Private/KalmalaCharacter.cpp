@@ -835,6 +835,34 @@ void AKalmalaCharacter::MoveRight(const float Value)
     }
 }
 
+namespace
+{
+bool TraceInteractionCandidate(const AKalmalaCharacter* Pawn, const FVector& ViewLocation,
+    const FRotator& ViewRotation, const float Range, FHitResult& OutHit)
+{
+    if (ViewLocation.ContainsNaN() || ViewRotation.ContainsNaN() || !FMath::IsFinite(Range) || Range <= 0) return false;
+    FCollisionQueryParams Params(SCENE_QUERY_STAT(KalmalaInteraction), false, Pawn);
+    const FVector Direction = ViewRotation.Vector();
+    if (Pawn->GetWorld()->LineTraceSingleByChannel(OutHit, ViewLocation,
+        ViewLocation + Direction * Range, ECC_Visibility, Params)) return true;
+
+    // The third-person boom must not consume physical wood-pickup reach.
+    // Extend only the visibility query; every other interaction keeps its trace.
+    const float CameraOffset = FVector::Distance(ViewLocation, Pawn->GetActorLocation());
+    if (!FMath::IsFinite(CameraOffset) || CameraOffset > 500.0f) return false;
+    FHitResult ExtendedHit;
+    if (!Pawn->GetWorld()->LineTraceSingleByChannel(ExtendedHit, ViewLocation,
+        ViewLocation + Direction * (CameraOffset + Range), ECC_Visibility, Params)) return false;
+    const auto* Drop = Cast<AKalmalaHarvestNode>(ExtendedHit.GetActor());
+    if (!Drop || !Drop->IsWoodDrop() || Drop->IsHarvested()) return false;
+    const float PhysicalDistance = FVector::Distance(Pawn->GetActorLocation(), Drop->GetActorLocation());
+    if (!FMath::IsFinite(PhysicalDistance) || PhysicalDistance > Range) return false;
+    OutHit = ExtendedHit;
+    OutHit.Distance = PhysicalDistance;
+    return true;
+}
+}
+
 bool AKalmalaCharacter::GetLocalInteractionCandidate(FHitResult& OutHit) const
 {
     OutHit = FHitResult();
@@ -846,9 +874,7 @@ bool AKalmalaCharacter::GetLocalInteractionCandidate(FHitResult& OutHit) const
     if (ViewLocation.ContainsNaN() || ViewRotation.ContainsNaN()
         || !FMath::IsFinite(InteractionRange) || InteractionRange <= 0.0f) return false;
 
-    FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(KalmalaLocalInteractionCandidate), false, this);
-    return GetWorld()->LineTraceSingleByChannel(OutHit, ViewLocation,
-        ViewLocation + ViewRotation.Vector() * InteractionRange, ECC_Visibility, QueryParams);
+    return TraceInteractionCandidate(this, ViewLocation, ViewRotation, InteractionRange, OutHit);
 }
 
 bool AKalmalaCharacter::GetLocalHarvestInteractionIntent(const AKalmalaHarvestNode* Node,
@@ -974,10 +1000,8 @@ void AKalmalaCharacter::ServerRequestInteract_Implementation(const FName ClientI
     FRotator ViewRotation;
     Controller->GetPlayerViewPoint(ViewLocation, ViewRotation);
 
-    FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(KalmalaInteraction), false, this);
     FHitResult Hit;
-    const FVector TraceEnd = ViewLocation + ViewRotation.Vector() * InteractionRange;
-    const bool bInteractionHit = GetWorld()->LineTraceSingleByChannel(Hit, ViewLocation, TraceEnd, ECC_Visibility, QueryParams);
+    const bool bInteractionHit = TraceInteractionCandidate(this, ViewLocation, ViewRotation, InteractionRange, Hit);
 #if !UE_BUILD_SHIPPING
     if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestPickup"))
         && !IsLocallyControlled() && bForestDropRangeStarted && ForestDropRangeRequests < 3

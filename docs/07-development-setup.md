@@ -3761,3 +3761,23 @@ The existing eye-position camera override does not prove ordinary-camera
 pickup. Simultaneous owned RPC contention remains open; streaming/restart
 follows. Delivery child stays unchecked; full feature/project verification
 remains deferred.
+
+Ordinary-camera pickup accepted (2026-10-17): the pickup phase now restores the
+normal 320 cm boom and 45 cm target offset on client and server. The client aims
+from that pivot and must trace the exact live drop with OrdinaryCamera=1 before
+sending ordinary owned requests. Attack/far-range phases retain the eye camera.
+The shared production visibility fallback is limited to live wood drops inside
+physical pawn reach; other interaction traces retain their original behavior.
+The isolated editor build passed five actions with normal UBT access; log:
+C:/Users/Ville/AppData/Local/Temp/kmforest/camera-build.log. The documented
+ForestPickup command passed exit 0. Logs:
+C:/Users/Ville/AppData/Local/Temp/kfpeer-dcea84e3/host.log and client.log.
+The exact target forest:v1:10323456789:31079.1015625:5132.20068359375:13 logged
+Lightwood LiveDrop=1 ExactTrace=1 OrdinaryCamera=1 and one stable reward.
+Existing nine-patch/162-ID, stage, host-only sparse-write, full-pack, physical/
+range rejection, same-dispatch loser and repeated/depleted gates passed.
+Parser and eight focused selector cases passed; zero failure markers and no
+remaining UnrealEditor. This is headless fixed-position camera acceptance;
+rendered manual usability and simultaneous owned RPC contention remain outside
+this run. Delivery child remains unchecked; streaming/restart follows. Full
+feature/project verification remains deferred.
