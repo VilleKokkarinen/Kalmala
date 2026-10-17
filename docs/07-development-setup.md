@@ -3698,3 +3698,18 @@ a server-local capacity probe, not a full-pack remote RPC scenario. Rebuild the
 short mirror and execute the documented ForestPickup command next. Simultaneous
 owned requests and ordinary-camera acceptance remain open; full verification
 is deferred.
+
+Executed live-drop full-pack gate (2026-10-17), source 909d7de: compared all
+727 runtime mirror files and copied the changed fixture source. The isolated
+editor build passed four actions (kmforest/capacity-build.log; normal UBT
+access). The documented ForestPickup command passed exit 0. Peer logs:
+C:/Users/Ville/AppData/Local/Temp/kfpeer-a9aaaca6/host.log and client.log.
+Exact tree forest:v1:10323456789:31079.1015625:5132.20068359375:13 reports
+Lightwood Delta=0 LiveDrop=1 InRange=1 Slots=40 Restored=1. Existing nine-patch,
+162-ID, shared-stage, single reward/host sparse-write, no-client-write, physical
+rejection, same-dispatch loser and repeated/depleted stability gates passed.
+No fatal/assertion/ensure/forest-fixture failure markers; no repairs. This
+executes the server-local capacity probe only; full-pack remote RPC rejection,
+simultaneous owned requests and ordinary-camera acceptance remain unproven.
+Continue the same unchecked delivery child; streaming/restart follows. Full
+feature/project verification remains deferred.
