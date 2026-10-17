@@ -1,5 +1,13 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-17 — Gate live-drop remote trace reach
+
+- **Completed:** bounded slice of the first unchecked generated-forest delivery child: authoritative far/return phase around the live drop, separate client/server request counters, real owned RPC observation and exact-ID/item runner proof. Child remains unchecked.
+- **Files changed:** Source/KalmalaGameplay/Private/KalmalaForestDeliveryVerification.cpp, Source/KalmalaGameplay/Private/KalmalaCharacter.cpp, Source/KalmalaGameplay/Public/KalmalaCharacter.h, Scripts/Tests/World/Verify-BiomeExpansion.ps1, BACKLOG.md, PROGRESS.md, docs/07-development-setup.md.
+- **Verification:** PowerShell parser and eight cases executing the actual pickup selector passed: matching proof accepted; absent proof, reward, drop state, trace result, request count, tree identity and item mismatch rejected. Baseline retained kfpeer-283d06d0 logs plus synthetic new proof test the selector only. Inspected authority branch, exact identity lookup, aim-only tick, far/return ordering and independent counters. Whitespace, staged scope/diff and MAX_PATH checked before commit. No Unreal compilation/live execution or full suite; full verification deferred. Normal partial increment, not milestone-final.
+- **Impact/authority:** opt-in non-shipping fixture and acceptance changes only; production validation, RPC payloads, rewards, saves and server authority unchanged.
+- **Limitations/next:** compile/execute stricter ForestPickup in short isolated mirror. This proves nothing live yet and targets trace reach rather than independent physical-distance transaction rejection. Delayed mutation, contention, sparse writes, ordinary camera and streaming/restart remain pending. Only current Kalmala chat active at guard; CIM unavailable. Initially clean main checkout used directly; no handoff synchronization needed.
+
 ## Autonomous increment 2026-10-17 — Execute remote forest reach and retain player saves
 
 - **Completed:** compiled and executed the queued remote standing-tree range RPC gate on source f4cbebf; repaired the pickup failure exposed by the longer scenario. Added UPROPERTY(Transient) to the GameMode player-discovery save map so Unreal garbage collection retains cached save objects. The first unchecked generated-forest delivery child remains unchecked.

@@ -141,6 +141,20 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
                 Remote->ForceNetUpdate();
                 bForestRemoteRangeReturned = true;
             }
+            if (Pickup && Pickup->IsWoodDrop() && !Pickup->IsHarvested() && !bForestDropRangeReturned)
+            {
+                if (!bForestDropRangeStarted)
+                {
+                    Remote->bForestDropRangeStarted = true;
+                    Remote->SetActorLocation(Pickup->GetActorLocation() + FVector(-1000, 0, 88));
+                    Remote->ForceNetUpdate();
+                    bForestDropRangeStarted = true;
+                }
+                if (Remote->ForestDropRangeRequests < 3) return;
+                Remote->SetActorLocation(Pickup->GetActorLocation() + FVector(-150, 0, 88));
+                Remote->ForceNetUpdate();
+                bForestDropRangeReturned = true;
+            }
             const int32 Delta = Remote->GetInventoryComponent()->GetQuantity(ForestPickupItem) - ForestPickupBefore;
             if (Delta > ForestPickupExpected)
             {
@@ -274,7 +288,7 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
                     < FVector::DistSquared(Target->GetActorLocation(), GetActorLocation()))) Target = *Node;
         if (!Target) return;
         if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestPickup"))
-            && ForestForgedRequests >= 4 && !ForestForgedId.IsEmpty())
+            && ForestForgedRequests >= 4 && !ForestForgedId.IsEmpty() && !Target->IsWoodDrop() && ForestPickupId.IsEmpty())
         {
             if (FVector::DistSquared(Target->GetActorLocation(), GetActorLocation()) > FMath::Square(500.0f))
             {
@@ -289,6 +303,14 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
         if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestPickup")) && (Target->IsWoodDrop() || !ForestPickupId.IsEmpty()))
         {
             if (bForestPickupReported) return;
+            if (FVector::DistSquared(Target->GetActorLocation(), GetActorLocation()) > FMath::Square(500.0f))
+            {
+                Controller->SetControlRotation((Target->GetActorLocation() + FVector(0, 0, 10) - GetPawnViewLocation()).Rotation());
+                if (++ForestDropRangeRequests > 1 && ForestDropRangeRequests <= 4) RequestInteract();
+                return;
+            }
+            // Wait for the authoritative far phase and return before collection.
+            if (ForestDropRangeRequests < 4) return;
             if (ForestPickupId.IsEmpty())
             {
                 // Preserve the drop long enough for both observers to sample it.

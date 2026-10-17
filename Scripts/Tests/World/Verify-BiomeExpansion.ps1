@@ -78,6 +78,7 @@ if ($ForestDeliveryOnly) {
                     $_.Groups[3].Value -eq $_.Groups[4].Value -and $sharedStages -contains $id -and
                     $hostText.Contains("Forest forged rejection: Passed=1 Authority=1 Id=$id Item=ForestForgedItem Action=255 Delta=0 Standing=1 Requests=3 HealthUnchanged=1") -and
                     $hostText.Contains("Forest remote range rejection: Passed=1 Authority=1 Id=$id Item=$item Delta=0 Standing=1 HealthUnchanged=1 TraceMiss=1 Requests=3") -and
+                    $hostText.Contains("Forest remote drop range rejection: Passed=1 Authority=1 Id=$id Item=$item Delta=0 LiveDrop=1 TraceMiss=1 Requests=3") -and
                     $hostText.Contains("Forest range rejection: Passed=1 Authority=1 Seed=10323456789 Id=$id Item=$item Delta=0 LiveDrop=1") -and
                     $hostText.Contains("Forest physical rejection: Passed=1 Authority=1 Seed=10323456789 Id=$id Item=$item Delta=0 LiveDrop=1 ForgedTrace=0") -and
                     $hostText.Contains("Forest second collector: Passed=1 Authority=1 Seed=10323456789 Id=$id Item=$item Delta=0 Requests=3 Stable=5") -and

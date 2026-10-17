@@ -137,6 +137,9 @@ private:
     float ForestRemoteRangeHealth = 0;
     bool bForestRemoteRangeStarted = false;
     bool bForestRemoteRangeReturned = false;
+    int32 ForestDropRangeRequests = 0;
+    bool bForestDropRangeStarted = false;
+    bool bForestDropRangeReturned = false;
     FString ForestPickupId;
     FName ForestPickupItem;
     int32 ForestPickupBefore = 0;

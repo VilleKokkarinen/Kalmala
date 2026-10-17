@@ -980,6 +980,27 @@ void AKalmalaCharacter::ServerRequestInteract_Implementation(const FName ClientI
     const bool bInteractionHit = GetWorld()->LineTraceSingleByChannel(Hit, ViewLocation, TraceEnd, ECC_Visibility, QueryParams);
 #if !UE_BUILD_SHIPPING
     if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestPickup"))
+        && !IsLocallyControlled() && bForestDropRangeStarted && ForestDropRangeRequests < 3
+        && ClientItemId.IsNone() && ClientAction == 0)
+    {
+        AKalmalaHarvestNode* Probe = nullptr;
+        for (TActorIterator<AKalmalaHarvestNode> Node(GetWorld()); Node; ++Node)
+            if (Node->GetPersistentSpawnId() == ForestRemoteRangeId) { Probe = *Node; break; }
+        const int32 Delta = Inventory->GetQuantity(ForestPickupItem) - ForestPickupBefore;
+        if (!Probe || bInteractionHit || Delta != 0 || Probe->IsHarvested() || !Probe->IsWoodDrop()
+            || FVector::DistSquared(GetActorLocation(), Probe->GetActorLocation()) <= FMath::Square(500.0f))
+        {
+            UE_LOG(LogTemp, Error, TEXT("Forest delivery: Passed=0 RemoteDropRange Id=%s Delta=%d Hit=%d"),
+                *ForestRemoteRangeId, Delta, bInteractionHit);
+        }
+        else
+        {
+            ++ForestDropRangeRequests;
+            UE_LOG(LogTemp, Display, TEXT("Forest remote drop range rejection: Passed=1 Authority=1 Id=%s Item=%s Delta=0 LiveDrop=1 TraceMiss=1 Requests=%d"),
+                *ForestRemoteRangeId, *ForestPickupItem.ToString(), ForestDropRangeRequests);
+        }
+    }
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestPickup"))
         && !IsLocallyControlled() && !ForestRemoteRangeId.IsEmpty()
         && ForestRemoteRangeRequests < 3 && ClientItemId.IsNone() && ClientAction == 0)
     {
