@@ -69,7 +69,7 @@ if ($ForestDeliveryOnly) {
                         $hostText.Contains("Forest stage delivery: Passed=1 Authority=1 Seed=10323456789 Id=$id Stage=Drop Cosmetics=0") -and
                         $clientText.Contains("Forest stage delivery: Passed=1 Authority=0 Seed=10323456789 Id=$id Stage=Drop Cosmetics=0")))
                 })
-            $sharedPickups = @([regex]::Matches($clientText, 'Forest pickup delivery: Passed=1 Authority=0 Seed=10323456789 Id=([^\s]+) Item=([^\s]+) Delta=([1-9][0-9]*) Expected=([1-9][0-9]*) Requests=3 Stable=5(?:\r?\n|$)') |
+            $sharedPickups = @([regex]::Matches($clientText, 'Forest pickup delivery: Passed=1 Authority=0 Seed=10323456789 Id=([^\s]+) Item=([^\s]+) Delta=([1-9][0-9]*) Expected=([1-9][0-9]*) Requests=3 DepletedRequests=3 Stable=5(?:\r?\n|$)') |
                 Where-Object {
                     $id = $_.Groups[1].Value
                     $_.Groups[3].Value -eq $_.Groups[4].Value -and $sharedStages -contains $id -and
@@ -80,7 +80,7 @@ if ($ForestDeliveryOnly) {
             Start-Sleep -Milliseconds 500
         } while ((Get-Date) -lt $deadline)
         if ((Get-Date) -ge $deadline) { throw "Exact forest replacement/suppression delivery timed out: $($shared.Count)/9 matching eighteen-tree patches; $($sharedStages.Count) shared Trunk/Drop IDs (required=$ForestStages); $($sharedPickups.Count) pickups (required=$ForestPickup). Inspect $output." }
-        if ($ForestPickup) { Write-Output "PASS: exact-ID pickup quantity stable after three owned requests and collected state on both peers: $($sharedPickups -join ', ')." }
+        if ($ForestPickup) { Write-Output "PASS: exact-ID pickup quantity stable after three initial and three post-depletion owned requests, with collected state on both peers: $($sharedPickups -join ', ')." }
         if ($ForestStages) { Write-Output "PASS: host/client required stage delivery for exact tree IDs: $($sharedStages -join ', ')." }
         if ($ForestDropLateJoin -or $ForestTrunkLateJoin) {
             $lateStage = if ($ForestTrunkLateJoin) { 'Trunk' } else { 'Drop' }

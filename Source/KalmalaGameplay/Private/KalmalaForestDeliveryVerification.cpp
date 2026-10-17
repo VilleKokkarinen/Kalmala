@@ -188,14 +188,23 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
             // Exercise repeated ordinary owned requests, including after depletion.
             // No target, quantity or reward is supplied to the server.
             if (ForestPickupTicks <= 3) RequestInteract();
+            // Explicitly retry after replicated depletion, rather than assuming
+            // the initial three requests arrived after the successful pickup.
+            if (ForestPickupTicks > 3 && Target->IsHarvested() && ForestPickupDepletedRequests < 3)
+            {
+                RequestInteract();
+                ++ForestPickupDepletedRequests;
+                ForestPickupStableTicks = 0;
+                return; // Observe reward stability only on subsequent ticks.
+            }
             const int32 Delta = GetInventoryComponent()->GetQuantity(ForestPickupItem) - ForestPickupBefore;
-            if (ForestPickupTicks > 3 && Target->IsHarvested() && Delta == ForestPickupExpected)
+            if (ForestPickupTicks > 3 && ForestPickupDepletedRequests == 3 && Target->IsHarvested() && Delta == ForestPickupExpected)
                 ++ForestPickupStableTicks;
             else ForestPickupStableTicks = 0;
             if (ForestPickupStableTicks >= 5)
             {
                 bForestPickupReported = true;
-                UE_LOG(LogTemp, Display, TEXT("Forest pickup delivery: Passed=1 Authority=0 Seed=%llu Id=%s Item=%s Delta=%d Expected=%d Requests=3 Stable=5"),
+                UE_LOG(LogTemp, Display, TEXT("Forest pickup delivery: Passed=1 Authority=0 Seed=%llu Id=%s Item=%s Delta=%d Expected=%d Requests=3 DepletedRequests=3 Stable=5"),
                     Config.WorldSeed, *ForestPickupId, *ForestPickupItem.ToString(), Delta, ForestPickupExpected);
             }
             else if (ForestPickupTicks >= 30)

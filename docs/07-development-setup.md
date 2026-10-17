@@ -6,6 +6,10 @@ After compiling the changed fixture in a short temporary mirror, run `Scripts/Te
 
 PowerShell parsing and ten synthetic cases executing the actual pickup selector passed. No compile or live pickup scenario was run during authoring. This observes replicated inventory and collected state, not the sparse-save write count; competing pickup, forged/out-of-range requests, and executed pickup acceptance remain pending. Production interaction validation, authority, rewards, RPC signatures and save formats are unchanged. All live execution must use isolated temporary project/user roots as in preceding forest runs; full feature verification remains deferred.
 
+### Post-depletion retry hardening — 2026-10-17 (not yet executed)
+
+The current ForestPickup driver additionally sends three ordinary requests after observing replicated collection, then waits five subsequent observation ticks with the expected inventory delta unchanged. Success now includes `Requests=3 DepletedRequests=3 Stable=5`; the runner rejects prior success markers. This closes the assumption that initial requests necessarily arrived after depletion. Parser and six actual selector cases passed; compilation and a fresh isolated live run of the stricter gate remain pending. The executed evidence below predates this hardening. Competing pickup, forged/out-of-range peer rejection and sparse-save write counts remain outside this increment.
+
 ### Executed pickup evidence — 2026-10-17
 
 The following execution supersedes the authoring-only status above. Source 119212d plus the fixture repair in this increment; existing short kmforest mirror had matching Source/Config/Content hashes before build, with the repaired fixture recopied before each rebuild. Pickup mode uses an eye-position camera on both server and owner and stationary flying movement to retain normal movement/aim updates. This is a bounded interaction fixture, not acceptance of default third-person camera usability. Production interaction range remains 250 cm; the default boom is 320 cm. No RPC, reward, trace validation or save schema changed.

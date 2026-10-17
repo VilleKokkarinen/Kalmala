@@ -1,5 +1,13 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-17 — Require post-depletion pickup retries
+
+- **Completed:** bounded hardening within the first unchecked generated-forest delivery child. The non-shipping pickup driver sends three extra ordinary owned interaction requests only after replicated collection, resets stability while sending, and requires five subsequent ticks at the exact expected reward. Runner requires the explicit DepletedRequests=3 marker; earlier successful logs cannot satisfy this stricter gate.
+- **Files changed:** Source/KalmalaGameplay/Private/KalmalaForestDeliveryVerification.cpp, Source/KalmalaGameplay/Public/KalmalaCharacter.h, Scripts/Tests/World/Verify-BiomeExpansion.ps1, BACKLOG.md, PROGRESS.md and docs/07-development-setup.md.
+- **Lightweight checks:** PowerShell parser and six cases executing the actual pickup selector passed: valid, old marker, insufficient depleted requests, excess reward, insufficient stability and duplicate success. Carefully inspected counter ordering, bounded timeout, exact target-ID guard and development-only path. Whitespace, staged scope/diff and MAX_PATH checked before commit. No Unreal compilation, live peers or automation suite; full verification deferred, not milestone-final.
+- **Impact/authority:** strengthens fixture evidence against repeated pickup rewards after depletion. Requests still use normal production interaction and server validation; no production RPC, reward, persistence or authority changes. This does not prove sparse-save write count or competing pickup.
+- **Limitations/next:** compile and execute the stricter ForestPickup gate in the short isolated mirror, then competing pickup and forged/out-of-range rejection within the same unchecked child. Prior live evidence remains historical only. Only current Kalmala run active in app inventory; CIM unavailable. Initially clean main checkout used directly, so handoff needs no synchronization.
+
 ## Autonomous increment 2026-10-17 — Execute client forest pickup
 
 - **Completed:** compiled, executed and repaired the queued bounded ForestPickup gate in the first unchecked generated-forest host/client delivery child. Final runner passed, exit 0: nine matching eighteen-tree standing patches, exact shared Trunk/Drop identity, collected state on both peers, and Lightwood Delta=1 Expected=1 after three ordinary requests, stable for five ticks. Exact tree: forest:v1:10323456789:31079.1015625:5132.20068359375:13, seed 10323456789.

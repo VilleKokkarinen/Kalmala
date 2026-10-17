@@ -135,6 +135,7 @@ private:
     int32 ForestPickupBefore = 0;
     int32 ForestPickupExpected = 0;
     int32 ForestPickupTicks = 0;
+    int32 ForestPickupDepletedRequests = 0;
     int32 ForestPickupStableTicks = 0;
     bool bForestPickupReported = false;
     bool bConstructionMovementSpawned = false;
