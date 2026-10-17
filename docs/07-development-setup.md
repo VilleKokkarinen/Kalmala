@@ -17,8 +17,9 @@ and [feature description](game-features.md#generated-forest-harvesting--2026-10-
 | Competing owned requests grant one reward total | Add `-ForestContention` to the pickup command; integrated-source pass `kfpeer-9678e392` | Listen-host versus one remote; no two-remote or adverse-network coverage |
 | Ordinary client full-pack rejection keeps live drop and delivers private feedback | Add `-ForestFullPack` to the pickup command; integrated-source pass `kfpeer-160abf98` | Excludes contention mode; cue submission, not audible playback |
 | Shared departure, final eviction without depletion, reactivation preserving collected IDs | `Automation RunTests Kalmala.Gameplay.Harvest.ForestPatchLifecycle`; `kp18e/tests.log`, `kp19r/tests.log` | Isolated server world, not live streaming peers |
-| Live shared departure, final eviction and uncollected-tree reactivation | `Scripts/Tests/World/Verify-BiomeExpansion.ps1 -ForestDeliveryOnly -ForestStreaming -Project <isolated-project>`; `kfpeer-4b2da6d9/{host,client}.log` | Fresh unharvested world; collected-ID reactivation still needs live peer coverage |
-| Real population-slot process restart on integrated source | `Scripts/Tests/World/Verify-BiomeExpansion.ps1 -ForestRestartOnly -Editor <UnrealEditor-Cmd.exe> -Project <isolated-project>`; final rerun `kfr-a14b7f2f/{write,read}.log` | Production callback/loading boundary, not another pickup or live peer session restart |
+| Live shared departure, final eviction and uncollected-tree reactivation | `Scripts/Tests/World/Verify-BiomeExpansion.ps1 -ForestDeliveryOnly -ForestStreaming -Project <isolated-project>`; `kfpeer-4b2da6d9/{host,client}.log` | Fresh unharvested world; collected-ID coverage is recorded separately below |
+| Live collected-ID reactivation after ordinary pickup | Add `-ForestStages -ForestPickup -ForestCollectedStreaming` to the streaming command; `kfpeer-263619fc/{host,client}.log` | Headless teleport-driven departure/return; one collected tree, no continuous-travel or adverse-network coverage |
+| Real population-slot process restart on integrated source | `Scripts/Tests/World/Verify-BiomeExpansion.ps1 -ForestRestartOnly -Editor <UnrealEditor-Cmd.exe> -Project <isolated-project>`; final rerun `kfr-52116f36/{write,read}.log` | Production callback/loading boundary, not another pickup or live peer session restart |
 
 Evidence roots above are under `C:/Users/Ville/AppData/Local/Temp/`; detailed
 commands and results are retained in the corresponding sections below. The
@@ -35,10 +36,56 @@ the settled 3D trunk, aligned targeting and midpoint bundle pickup are now imple
 Partial health and uncollected Trunk/Drop state reset on regeneration; only accepted
 pickup depletion persists. The final integrated editor build and focused harvest
 group and final exact-ID peer/late-join/pickup gates passed; see the evidence below.
-Live uncollected-tree streaming/reactivation and the final real-slot restart rerun
-now pass; collected-ID peer reactivation remains required by BACKLOG.md.
+Live uncollected and collected-ID streaming/reactivation and the final real-slot
+restart rerun now pass. The next backlog leaf reviews the final gates before
+parent completion; parent checkboxes remain unchanged.
 Full tree-feature/project verification remains deferred;
 the earlier documentation reconciliation itself ran no Unreal build or runtime test.
+
+## Live collected forest reactivation acceptance (2026-10-17)
+
+On source `4b8837e` plus this increment, the opt-in non-shipping streaming fixture
+can follow the ordinary pickup/rejection/retry gate:
+
+```powershell
+& ./Scripts/Tests/World/Verify-BiomeExpansion.ps1 -ForestDeliveryOnly -ForestStages -ForestPickup -ForestStreaming -ForestCollectedStreaming -Project C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject
+& ./Scripts/Tests/World/Verify-BiomeExpansion.ps1 -ForestRestartOnly -Editor 'C:/Program Files/Epic Games/UE_5.8/Engine/Binaries/Win64/UnrealEditor-Cmd.exe' -Project C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject
+```
+
+Both commands passed exit 0. Peer logs: `C:/Users/Ville/AppData/Local/Temp/kfpeer-263619fc/{host,client}.log`.
+Both peers first matched nine patches/162 exact IDs. Ordinary remote pickup of
+`forest:v1:10323456789:31079.1015625:5132.20068359375:13` granted one Lightwood;
+forged/range/full-pack/repeat/rival rejection checks passed. After pickup stability,
+the fixture snapshots the collected ID, inventory quantity and original weak actor
+references. Using shared server times 185/200/220/230/250 seconds, it moves the
+remote owner away, verifies host retention, checks final eviction on both peers,
+returns both owners, then requires the collected ID absent and exactly 161 unique
+standing uncollected IDs. Nine patches suppress all candidates with zero cosmetics;
+owner inventories remain unchanged. The runner requires exactly one successful
+host sparse-write log for that same ID, no client writes and only the host slot.
+Movement is disabled only in the fixture; ordinary GameMode ticks own streaming.
+No new RPC, production gameplay authority/reward logic or save schema was added.
+The new mode requires streaming/stage/pickup and excludes contention/full-pack/
+late-join/restart modes. Plain streaming keeps its original behavior and timing;
+collected mode allows 300 seconds for completion.
+
+Compared all 728 tracked Source/Config/Content mirror files, then copied only the
+two changed fixture sources. The normal-access isolated editor build passed 66
+actions without compiler warnings/errors; `kmforest/collected-stream-build.log`.
+Restart logs: `C:/Users/Ville/AppData/Local/Temp/kfr-52116f36/{write,read}.log`;
+one successful `ForestProcessRestart` test and exit 0 per process. All 14 seed-418
+IDs matched, two depleted IDs stayed absent, 12 uncollected trees returned, and
+the real slot SHA256 stayed unchanged through reader activation/eviction.
+Known pre-test engine `Condition failed` diagnostics/context-free teardown warnings
+remain in restart logs; no failed tests, controller errors, fatal/assertion/ensure
+failures or runtime repairs. Parser, invalid-mode guards, mirror parity, whitespace
+and staged scope/MAX_PATH checks passed before commit.
+
+This completes the selected streaming/reactivation/restart leaf, including the
+prior uncollected peer gate. It does not complete the next parent-review leaf or
+mark the whole tree feature complete. Fixed-seed headless teleport coverage only;
+no rendered/manual usability, continuous travel, live session process restart,
+full suite or packaging. Full tree-feature/project verification remains deferred.
 
 ## Final integrated real-slot restart acceptance (2026-10-17)
 

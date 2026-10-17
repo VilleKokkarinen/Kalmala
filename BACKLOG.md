@@ -62,7 +62,7 @@ Open leaf checkboxes are sized as one focused automated-job increment. Mark a le
   - [ ] **Run final tree-feature acceptance.**
     - [x] Build the integrated editor source and run the focused tree-harvest automation group.
     - [x] Run final exact-ID host/client stage, late-join, and pickup delivery acceptance on the integrated source.
-    - [ ] Run final peer streaming, patch reactivation, and real population-slot restart acceptance.
+    - [x] Run final peer streaming, patch reactivation, and real population-slot restart acceptance.
     - [ ] Check the parent only after each final gate passes; leave any failed gate open until its repair and rerun succeed.
 
 ## M13 — Rebuild and revalidate M11/M12 UI on main

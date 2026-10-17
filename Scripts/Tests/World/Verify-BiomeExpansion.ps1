@@ -9,6 +9,7 @@ param(
     [switch]$ForestFullPack,
     [switch]$ForestRestartOnly,
     [switch]$ForestStreaming,
+    [switch]$ForestCollectedStreaming,
     [string]$Project,
     [int]$Port = 17849
 )
@@ -16,7 +17,8 @@ param(
 $repoPaths = Get-KalmalaPaths -StartPath $PSScriptRoot
 
 $ErrorActionPreference = 'Stop'
-if ($ForestStreaming -and (!$ForestDeliveryOnly -or $ForestStages -or $ForestRestartOnly)) { throw '-ForestStreaming requires -ForestDeliveryOnly and excludes stage/restart modes.' }
+if ($ForestCollectedStreaming -and (!$ForestStreaming -or !$ForestPickup -or $ForestContention -or $ForestFullPack)) { throw '-ForestCollectedStreaming requires -ForestStreaming -ForestStages -ForestPickup and excludes contention/full-pack modes.' }
+if ($ForestStreaming -and (!$ForestDeliveryOnly -or ($ForestStages -and !$ForestCollectedStreaming) -or $ForestRestartOnly)) { throw '-ForestStreaming requires -ForestDeliveryOnly and excludes stage/restart modes.' }
 if ($ForestStages -and !$ForestDeliveryOnly) { throw '-ForestStages requires -ForestDeliveryOnly.' }
 if ($ForestDropLateJoin -and !$ForestStages) { throw '-ForestDropLateJoin requires -ForestStages.' }
 if ($ForestTrunkLateJoin -and (!$ForestStages -or $ForestDropLateJoin)) { throw '-ForestTrunkLateJoin requires -ForestStages and excludes -ForestDropLateJoin.' }
@@ -74,6 +76,7 @@ if ($ForestDeliveryOnly) {
     $common = '-game -nullrhi -nosound -unattended -nosplash -NoZenAutoLaunch -DDC=NoZenLocalFallback -forcelogflush -KalmalaForestDeliveryTest -ExecCmds="t.MaxFPS 30"'
     if ($ForestStages) { $common += ' -KalmalaForestStageDriver' }
     if ($ForestStreaming) { $common += ' -KalmalaForestStreaming' }
+    if ($ForestCollectedStreaming) { $common += ' -KalmalaForestCollectedStreaming' }
     if ($ForestTrunkLateJoin) { $common += ' -KalmalaForestHoldTrunk' }
     if ($ForestPickup) { $common += ' -KalmalaForestPickup' }
     if ($ForestContention) { $common += ' -KalmalaForestContention' }
@@ -239,7 +242,7 @@ if ($ForestDeliveryOnly) {
             Write-Output "PASS: new peer joined after $lateStage and received exact tree $lateId with zero cosmetics."
         }
         if ($ForestStreaming) {
-            $deadline = (Get-Date).AddSeconds(150)
+            $deadline = (Get-Date).AddSeconds($(if ($ForestCollectedStreaming) { 300 } else { 150 }))
             do {
                 if ($server.HasExited -or $client.HasExited) { throw 'A forest streaming peer exited early.' }
                 $hostText = [string](Get-Content $serverLog -Raw)
@@ -256,8 +259,22 @@ if ($ForestDeliveryOnly) {
                 Start-Sleep -Milliseconds 500
             } while ((Get-Date) -lt $deadline)
             if (!$streamed) { throw "Forest streaming proof timed out; inspect $output." }
-            if (Get-ChildItem $output -Filter 'KalmalaPopulationDeltas_*.sav' -Recurse) { throw 'Unharvested streaming wrote population depletion.' }
-            Write-Output 'PASS: shared departure retains original actors; final departure evicts; both peers reconstruct 162 exact standing IDs with no cosmetics or depletion slot.'
+            if ($ForestCollectedStreaming) {
+                $id = $sharedPickups[0]
+                foreach ($authority in 0, 1) {
+                    $peerText = if ($authority) { $hostText } else { $clientText }
+                    if (!$peerText.Contains("Forest collected reactivation: Passed=1 Authority=$authority Id=$id Restored=161 Absent=1 RewardUnchanged=1 Cosmetics=0")) { throw 'Collected reactivation exact-ID/reward proof missing.' }
+                }
+                $escapedId = [regex]::Escape($id)
+                if (@([regex]::Matches($hostText, 'Forest sparse write:')).Count -ne 1 -or
+                    ![regex]::IsMatch($hostText, "Forest sparse write: Authority=1 Seed=10323456789 Id=$escapedId Success=1(?:\r?\n|$)") -or
+                    $clientText.Contains('Forest sparse write:')) { throw 'Streaming changed sparse-write accounting.' }
+                $slots = @(Get-ChildItem $output -Filter 'KalmalaPopulationDeltas_*.sav' -Recurse)
+                if ($slots.Count -ne 1 -or $slots[0].FullName -notlike (Join-Path $output 'Host/*')) { throw 'Expected only the host population slot.' }
+                Write-Output 'PASS: collected exact ID stays absent on both peers; 161 uncollected trees return, rewards unchanged, one host sparse write.'
+            }
+            elseif (Get-ChildItem $output -Filter 'KalmalaPopulationDeltas_*.sav' -Recurse) { throw 'Unharvested streaming wrote population depletion.' }
+            if (!$ForestCollectedStreaming) { Write-Output 'PASS: shared departure retains original actors; final departure evicts; both peers reconstruct 162 exact standing IDs with no cosmetics or depletion slot.' }
         }
         Write-Output "PASS: $($shared.Count) populated forest patches match host/client exact IDs, transforms, shape, source, standing state and zero cosmetics."
     }

@@ -153,8 +153,11 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
     }
     if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestStreaming")))
     {
-        VerifyForestStreaming();
-        return;
+        if (!FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestCollectedStreaming")) || bForestPickupReported)
+        {
+            VerifyForestStreaming();
+            return;
+        }
     }
     if (!FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestStageDriver"))) return;
     // Standing coverage must be captured before the fixture mutates any tree.
@@ -645,7 +648,9 @@ void AKalmalaCharacter::VerifyForestStreaming()
     if (ForestStreamingPhase >= 7) return;
     const auto* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
     if (!State) return;
-    const double Now = State->GetServerWorldTimeSeconds();
+    const bool Collected = FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestCollectedStreaming"));
+    // Fixed shared server-clock window leaves the ordinary pickup/retry gate time to finish.
+    const double Now = State->GetServerWorldTimeSeconds() - (Collected ? 140.0 : 0.0);
     AKalmalaCharacter* Remote = nullptr;
     if (HasAuthority())
     {
@@ -667,8 +672,19 @@ void AKalmalaCharacter::VerifyForestStreaming()
     };
     if (ForestStreamingPhase == 0)
     {
-        if (ForestDeliveryReported.Num() != 9) return;
+        if (!Collected && ForestDeliveryReported.Num() != 9) return;
         if (Now >= 40) { Report(TEXT("BaselineTimeout"), false); return; }
+        if (Collected)
+        {
+            for (TActorIterator<AKalmalaHarvestNode> Node(GetWorld()); Node; ++Node)
+                if (Node->GetPersistentSpawnId().StartsWith(TEXT("forest:v1:")) && Node->IsHarvested())
+                {
+                    if (!ForestStreamingCollectedId.IsEmpty()) { Report(TEXT("CollectedBaseline"), false); return; }
+                    ForestStreamingCollectedId = Node->GetPersistentSpawnId();
+                }
+            if (ForestStreamingCollectedId.IsEmpty()) { Report(TEXT("CollectedBaseline"), false); return; }
+            ForestStreamingRewardBefore = Inventory->GetQuantity(ForestPickupItem);
+        }
         ForestStreamingHome = GetActorLocation();
         GetCharacterMovement()->DisableMovement();
         if (Remote) Remote->GetCharacterMovement()->DisableMovement();
@@ -692,7 +708,8 @@ void AKalmalaCharacter::VerifyForestStreaming()
         if (HasAuthority())
         {
             bool Retained = true;
-            for (const auto& Entry : ForestStreamingNodes) Retained &= Entry.Value.IsValid() && !Entry.Value->IsHarvested();
+            for (const auto& Entry : ForestStreamingNodes) Retained &= Entry.Value.IsValid()
+                && Entry.Value->IsHarvested() == (Entry.Key == ForestStreamingCollectedId);
             for (const auto& Patch : ForestStreamingPatches) Retained &= Patch.IsValid();
             Report(TEXT("SharedRetained"), Retained);
             if (!Retained) return;
@@ -726,6 +743,7 @@ void AKalmalaCharacter::VerifyForestStreaming()
         {
             const FString Id = Node->GetPersistentSpawnId();
             if (!ForestStreamingNodes.Contains(Id)) continue;
+            Matches &= Id != ForestStreamingCollectedId;
             Matches &= !Restored.Contains(Id) && !Node->IsHarvested() && Node->CanReceiveAxeAttack()
                 && !Node->IsFelledTrunk() && !Node->IsWoodDrop();
             Restored.Add(Id);
@@ -740,7 +758,15 @@ void AKalmalaCharacter::VerifyForestStreaming()
             Matches &= Patch->GetCosmeticForestCountForVerification() == 0
                 && Patch->GetSuppressedForestCandidatesForVerification().Num() == Trees.Num();
         }
-        Matches &= Restored.Num() == 162 && Patches == 9;
+        Matches &= Restored.Num() == 162 - (Collected ? 1 : 0) && Patches == 9;
+        if (Collected)
+        {
+            Matches &= !Restored.Contains(ForestStreamingCollectedId)
+                && Inventory->GetQuantity(ForestPickupItem) == ForestStreamingRewardBefore;
+            UE_LOG(LogTemp, Display, TEXT("Forest collected reactivation: Passed=%d Authority=%d Id=%s Restored=%d Absent=1 RewardUnchanged=%d Cosmetics=0"),
+                Matches, HasAuthority(), *ForestStreamingCollectedId, Restored.Num(),
+                Inventory->GetQuantity(ForestPickupItem) == ForestStreamingRewardBefore);
+        }
         Report(TEXT("Reactivated"), Matches);
         ForestStreamingPhase = 7;
     }

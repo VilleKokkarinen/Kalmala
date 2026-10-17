@@ -124,6 +124,8 @@ private:
     void VerifyConstructionMovement(float DeltaSeconds);
     void VerifyForestDelivery(float DeltaSeconds);
     void VerifyForestStreaming();
+    FString ForestStreamingCollectedId;
+    int32 ForestStreamingRewardBefore = 0;
     int32 ForestStreamingPhase = 0;
     FVector ForestStreamingHome = FVector::ZeroVector;
     TMap<FString, TWeakObjectPtr<class AKalmalaHarvestNode>> ForestStreamingNodes;
