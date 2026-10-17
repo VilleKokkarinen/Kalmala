@@ -141,7 +141,8 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
                 Remote->ForceNetUpdate();
                 bForestRemoteRangeReturned = true;
             }
-            if (Pickup && Pickup->IsWoodDrop() && !Pickup->IsHarvested() && !bForestDropRangeReturned)
+            if (!bForestDropRangeReturned
+                && (bForestDropRangeStarted || (Pickup && Pickup->IsWoodDrop() && !Pickup->IsHarvested())))
             {
                 if (!bForestDropRangeStarted)
                 {
@@ -151,6 +152,21 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
                     bForestDropRangeStarted = true;
                 }
                 if (Remote->ForestDropRangeRequests < 3) return;
+                // Hold the remote pawn out of reach after the final rejected
+                // request; detect delayed collection/reward before allowing pickup.
+                const int32 RangeDelta = Remote->GetInventoryComponent()->GetQuantity(ForestPickupItem) - ForestPickupBefore;
+                if (!Pickup || Pickup->IsHarvested() || !Pickup->IsWoodDrop() || RangeDelta != 0
+                    || FVector::DistSquared(Remote->GetActorLocation(), Pickup->GetActorLocation()) <= FMath::Square(500.0f))
+                {
+                    UE_LOG(LogTemp, Error, TEXT("Forest delivery: Passed=0 RemoteDropRangeStability Id=%s Delta=%d"),
+                        *ForestPickupId, RangeDelta);
+                    return;
+                }
+                // The first observation establishes the start of the hold;
+                // require five subsequent one-second fixture observations.
+                if (++ForestDropRangeStableTicks <= 5) return;
+                UE_LOG(LogTemp, Display, TEXT("Forest remote drop range stability: Passed=1 Authority=1 Seed=%llu Id=%s Item=%s Delta=0 LiveDrop=1 Requests=3 Stable=5"),
+                    Config.WorldSeed, *ForestPickupId, *ForestPickupItem.ToString());
                 Remote->SetActorLocation(Pickup->GetActorLocation() + FVector(-150, 0, 88));
                 Remote->ForceNetUpdate();
                 bForestDropRangeReturned = true;

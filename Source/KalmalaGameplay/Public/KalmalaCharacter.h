@@ -138,6 +138,7 @@ private:
     bool bForestRemoteRangeStarted = false;
     bool bForestRemoteRangeReturned = false;
     int32 ForestDropRangeRequests = 0;
+    int32 ForestDropRangeStableTicks = 0;
     bool bForestDropRangeStarted = false;
     bool bForestDropRangeReturned = false;
     FString ForestPickupId;

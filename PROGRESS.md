@@ -1,5 +1,13 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-17 — Hold rejected remote drop requests stable
+
+- **Completed:** a bounded increment within the first unchecked generated-forest delivery child. After the third rejected remote live-drop request, the server holds the remote pawn out of reach, establishes a baseline observation, then requires five subsequent one-second observations with the exact drop present/live/uncollected and zero reward. Missing or depleted actors cannot bypass the hold. Returns the pawn only after logging the new stability proof; runner requires exact seed/tree/item evidence. Child remains unchecked.
+- **Files changed:** Source/KalmalaGameplay/Private/KalmalaForestDeliveryVerification.cpp, Source/KalmalaGameplay/Public/KalmalaCharacter.h, Scripts/Tests/World/Verify-BiomeExpansion.ps1, BACKLOG.md, PROGRESS.md and docs/07-development-setup.md.
+- **Lightweight verification:** PowerShell parser passed. Nine cases executing the actual pickup selector against retained kfpeer-f065ee14 logs with synthetic stability proof passed: valid accepted; absent proof, short hold, reward, depleted state, insufficient requests, wrong tree, wrong item and wrong seed rejected. Inspected one-second fixture cadence, authority-only hold/return ordering, null/harvested actor rejection and separate host/remote counters. git diff --check passed; staged scope/diff and MAX_PATH inspected before commit. No Unreal compilation/live peers/full suite; full verification deferred. Normal partial increment, not milestone-final.
+- **Impact/authority:** opt-in non-shipping acceptance fixture and runner only; production validation, RPC payloads, rewards, persistence and save formats unchanged. Older logs cannot pass the stronger runner.
+- **Limitations/next:** compile/execute the stricter ForestPickup gate in the short isolated mirror. This hold is bounded and is not live evidence yet; independent physical-distance RPC rejection, contention, sparse writes, ordinary camera and streaming/restart remain unproven. Only current Kalmala chat active at guard; CIM unavailable, process fallback showed no Unreal process. Initially clean main checkout used directly; no handoff synchronization needed.
+
 ## Autonomous increment 2026-10-17 — Execute live-drop remote trace reach
 
 - **Completed:** compiled and executed the queued live-drop remote range gate on source a15516f within the first unchecked generated-forest delivery child. No repairs; child remains unchecked.
