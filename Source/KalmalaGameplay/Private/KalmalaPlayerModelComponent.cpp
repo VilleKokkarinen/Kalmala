@@ -1,6 +1,9 @@
 #include "KalmalaPlayerModelComponent.h"
 #include "ProceduralMeshComponent.h"
 #include "KalmalaCombatComponent.h"
+#include "KalmalaInventoryComponent.h"
+#include "KalmalaToolLifecycleContract.h"
+#include "Net/UnrealNetwork.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Materials/MaterialInterface.h"
@@ -125,7 +128,7 @@ UProceduralMeshComponent* UKalmalaPlayerModelComponent::AddPart(const FName Name
 void UKalmalaPlayerModelComponent::BeginPlay()
 {
     Super::BeginPlay();
-    if (GetNetMode() == NM_DedicatedServer) { SetComponentTickEnabled(false); return; }
+    if (GetNetMode() == NM_DedicatedServer) return;
     AddPart(TEXT("PlayerTorso"), FVector::ZeroVector, FVector(0, 0, 106), FVector(16, 21, 31), ClothMaterial, true);
     AddPart(TEXT("PlayerBelt"), FVector::ZeroVector, FVector(0, 0, 79), FVector(17, 22, 5), DarkMaterial);
     AddPart(TEXT("PlayerNeck"), FVector::ZeroVector, FVector(0, 0, 140), FVector(7, 7, 5), HeadMaterial);
@@ -133,12 +136,14 @@ void UKalmalaPlayerModelComponent::BeginPlay()
     AddPart(TEXT("PlayerFace"), FVector::ZeroVector, FVector(14.5f, 0, 160), FVector(1.5f, 8, 3), DarkMaterial);
     LeftArm = AddPart(TEXT("PlayerLeftArm"), FVector(0, -27, 129), FVector(0, 0, -27), FVector(7, 7, 29), ClothMaterial);
     RightArm = AddPart(TEXT("PlayerRightArm"), FVector(0, 27, 129), FVector(0, 0, -27), FVector(7, 7, 29), ClothMaterial);
-    // The starter construction hammer is a real carried tool and is visibly held
-    // by the arm that opens the build menu. Its meshes have no collision.
-    AddPart(TEXT("ConstructionHammerHandle"), FVector(8, 0, -47), FVector::ZeroVector,
-        FVector(2.5f, 2.5f, 13.0f), DarkMaterial, false, RightArm);
-    AddPart(TEXT("ConstructionHammerHead"), FVector(13, 0, -35), FVector::ZeroVector,
-        FVector(8.0f, 3.5f, 3.5f), HeadMaterial, false, RightArm);
+    // Reuse a bounded cosmetic pool; equipment changes never accumulate components.
+    for (int32 Index = 0; Index < 3; ++Index)
+    {
+        HeldToolParts.Add(AddPart(FName(*FString::Printf(TEXT("HeldToolPart%d"), Index)),
+            FVector::ZeroVector, FVector::ZeroVector, FVector(1), Index == 0 ? DarkMaterial : HeadMaterial,
+            Index == 1, RightArm));
+    }
+    OnRep_HeldToolVisual();
     LeftLeg = AddPart(TEXT("PlayerLeftLeg"), FVector(0, -10, 76), FVector(2, 0, -38), FVector(9, 8, 38), DarkMaterial);
     RightLeg = AddPart(TEXT("PlayerRightLeg"), FVector(0, 10, 76), FVector(2, 0, -38), FVector(9, 8, 38), DarkMaterial);
 }
@@ -146,6 +151,17 @@ void UKalmalaPlayerModelComponent::BeginPlay()
 void UKalmalaPlayerModelComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* TickFunction)
 {
     Super::TickComponent(DeltaTime, TickType, TickFunction);
+    if (GetOwner() && GetOwner()->HasAuthority())
+    {
+        const auto* Inventory = GetOwner()->FindComponentByClass<UKalmalaInventoryComponent>();
+        const auto Visual = GetHeldToolVisualForItem(Inventory ? Inventory->GetActiveItem() : NAME_None);
+        if (Visual != HeldToolVisual)
+        {
+            HeldToolVisual = Visual;
+            OnRep_HeldToolVisual();
+            GetOwner()->ForceNetUpdate();
+        }
+    }
     const auto* Character = Cast<ACharacter>(GetOwner());
     if (!Character || !LeftArm) return;
     const float Speed = Character->GetVelocity().Size2D();
@@ -185,6 +201,76 @@ void UKalmalaPlayerModelComponent::TickComponent(float DeltaTime, ELevelTick Tic
     RightArm->SetRelativeRotation(FRotator(RightArmPitch, 0, 0));
     LeftLeg->SetRelativeRotation(FRotator(bFalling ? 15.0f : -Swing, 0, 0));
     RightLeg->SetRelativeRotation(FRotator(bFalling ? 15.0f : Swing, 0, 0));
+}
+
+EKalmalaHeldToolVisual UKalmalaPlayerModelComponent::GetHeldToolVisualForItem(const FName ItemId)
+{
+    const auto* Definition = FKalmalaToolLifecycleContract::FindDefinition(ItemId);
+    if (!Definition) return EKalmalaHeldToolVisual::None;
+    switch (Definition->Kind)
+    {
+    case EKalmalaToolKind::ConstructionHammer: return EKalmalaHeldToolVisual::Hammer;
+    case EKalmalaToolKind::StoneAxe: case EKalmalaToolKind::BronzeAxe: case EKalmalaToolKind::IronAxe:
+        return EKalmalaHeldToolVisual::Axe;
+    case EKalmalaToolKind::StoneKnife: case EKalmalaToolKind::BronzeKnife: case EKalmalaToolKind::IronKnife:
+        return EKalmalaHeldToolVisual::Knife;
+    case EKalmalaToolKind::StonePick: case EKalmalaToolKind::BronzePick: case EKalmalaToolKind::IronPick:
+        return EKalmalaHeldToolVisual::Pick;
+    case EKalmalaToolKind::StoneSpear: case EKalmalaToolKind::BronzeSpear: case EKalmalaToolKind::IronSpear:
+        return EKalmalaHeldToolVisual::Spear;
+    case EKalmalaToolKind::StoneMace: case EKalmalaToolKind::BronzeMace: case EKalmalaToolKind::IronMace:
+        return EKalmalaHeldToolVisual::Mace;
+    case EKalmalaToolKind::Bow: return EKalmalaHeldToolVisual::Bow;
+    default: return EKalmalaHeldToolVisual::None;
+    }
+}
+
+void UKalmalaPlayerModelComponent::OnRep_HeldToolVisual()
+{
+    if (HeldToolParts.Num() != 3) return;
+    for (UProceduralMeshComponent* Part : HeldToolParts) Part->SetVisibility(false);
+    const auto Show = [this](int32 Index, FVector Centre, FVector HalfSize, FRotator Rotation = FRotator::ZeroRotator)
+    {
+        UProceduralMeshComponent* Part = HeldToolParts[Index];
+        Part->SetRelativeLocation(Centre);
+        Part->SetRelativeScale3D(HalfSize);
+        Part->SetRelativeRotation(Rotation);
+        Part->SetVisibility(true);
+    };
+    switch (HeldToolVisual)
+    {
+    case EKalmalaHeldToolVisual::Hammer:
+        Show(0, FVector(8, 0, -47), FVector(2.5f, 2.5f, 13));
+        Show(1, FVector(13, 0, -35), FVector(8, 3.5f, 3.5f)); break;
+    case EKalmalaHeldToolVisual::Axe:
+        Show(0, FVector(8, 0, -45), FVector(2, 2, 18));
+        Show(1, FVector(17, 0, -29), FVector(10, 2, 8));
+        Show(2, FVector(24, 0, -32), FVector(3, 1, 10)); break;
+    case EKalmalaHeldToolVisual::Knife:
+        Show(0, FVector(8, 0, -48), FVector(2, 2, 5));
+        Show(1, FVector(8, 0, -34), FVector(3, 0.8f, 9)); break;
+    case EKalmalaHeldToolVisual::Pick:
+        Show(0, FVector(8, 0, -45), FVector(2, 2, 19));
+        Show(1, FVector(17, 0, -29), FVector(10, 2, 2), FRotator(-18, 0, 0));
+        Show(2, FVector(-1, 0, -29), FVector(10, 2, 2), FRotator(18, 0, 0)); break;
+    case EKalmalaHeldToolVisual::Spear:
+        Show(0, FVector(8, 0, -32), FVector(1.7f, 1.7f, 45));
+        Show(1, FVector(8, 0, 19), FVector(4, 1, 8)); break;
+    case EKalmalaHeldToolVisual::Mace:
+        Show(0, FVector(8, 0, -45), FVector(2, 2, 16));
+        Show(1, FVector(8, 0, -26), FVector(7, 7, 7)); break;
+    case EKalmalaHeldToolVisual::Bow:
+        Show(0, FVector(12, 0, -25), FVector(2, 2, 20), FRotator(18, 0, 0));
+        Show(1, FVector(12, 0, -63), FVector(2, 2, 20), FRotator(-18, 0, 0));
+        Show(2, FVector(18, 0, -44), FVector(0.5f, 0.5f, 38)); break;
+    default: break;
+    }
+}
+
+void UKalmalaPlayerModelComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+    DOREPLIFETIME(UKalmalaPlayerModelComponent, HeldToolVisual);
 }
 
 bool UKalmalaPlayerModelComponent::EvaluateAttackArmPose(const float ElapsedSeconds,

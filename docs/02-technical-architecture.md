@@ -1,5 +1,23 @@
 # Technical architecture
 
+## Held-tool cosmetic replication — 2026-10-17
+
+`UKalmalaPlayerModelComponent` replaces the unconditional construction hammer
+with three reusable, non-colliding procedural parts attached to PlayerRightArm.
+The nine body parts plus this fixed pool total twelve components, regardless of
+selection or visibility. Only transforms/visibility change on selection; parts
+are never accumulated across swaps. Unknown or empty selections hide the pool.
+
+The authority derives `EKalmalaHeldToolVisual` from the validated inventory's
+active item and its known tool definition, then replicates only that family enum.
+No client setter/RPC, inventory ID, instance GUID, level or condition is added.
+Repnotify reconstructs the same primitive silhouette independently of remote
+inventory; BeginPlay also applies the current enum in case replication preceded
+mesh creation. Dedicated servers keep the lightweight selection tick but create
+no body/tool geometry. Inventory's detailed selection and carried state remain
+owner-only. Tier-specific models/materials and two-handed bow poses remain out
+of scope; existing attack and sharpening arm motion carries the attached parts.
+
 ## Server-approved axe swings — 2026-10-17
 
 The combat start gate accepts either its existing valid server target or a living

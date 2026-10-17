@@ -1,5 +1,27 @@
 # Development setup
 
+## Equipped held-tool model regression — 2026-10-17
+
+`Kalmala.Gameplay.Tools.HeldModel` verifies known family mapping, repeated actual
+starter equip/unequip, no residual visible hammer on empty hands, fixed twelve-part
+allocation, non-colliding geometry and replicated enum configuration. It invokes
+the cosmetic repnotify for all seven families, including Bow, while private
+selection remains empty; this is an isolated callback test, not live network
+replication. The controls fixture and `Verify-PlayerControls.ps1` now expect
+`Parts=12` (nine body parts plus three reusable held parts).
+
+Normal-access isolated unity Editor builds passed six actions then four test-only
+actions (`kmforest/held-model-build.log`, `held-model-final-build.log`) with the
+established `KalmalaEditor Win64 Development -WaitMutex -NoHotReload
+-NoHotReloadFromIDE -MaxParallelActions=4 -DisableAdaptiveUnity` command.
+The final unattended/null-RHI queue ran `Kalmala.Gameplay.Tools.HeldModel`,
+`Kalmala.Gameplay.Combat.AxeSwing`, `Kalmala.Gameplay.Tools.SharpeningPresentation`
+and `Kalmala.Gameplay.Inventory.NetworkContract`: four successful results, exit 0,
+`C:/Users/Ville/AppData/Local/Temp/khm-045f1b1a/tests.log`.
+The controls runner passed PowerShell parsing; its live movement/input scenario,
+rendered silhouettes, peer late join and dedicated-server runtime remain untested.
+No full-suite or package verification was performed.
+
 ## Live map player heading — 2026-10-17
 
 The shared map view-model heading getter reads the local owning pawn's current

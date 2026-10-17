@@ -7,7 +7,10 @@ class UProceduralMeshComponent;
 class UMaterialInterface;
 class USceneComponent;
 
-/** Original faceted wanderer silhouette; local cosmetics only. */
+UENUM()
+enum class EKalmalaHeldToolVisual : uint8 { None, Hammer, Axe, Knife, Pick, Spear, Mace, Bow };
+
+/** Original faceted wanderer silhouette and server-selected held-tool cosmetics. */
 UCLASS()
 class KALMALAGAMEPLAY_API UKalmalaPlayerModelComponent : public USceneComponent
 {
@@ -17,6 +20,9 @@ public:
     virtual void BeginPlay() override;
     virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* TickFunction) override;
     int32 GetPartCount() const { return Parts.Num(); }
+    virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+    static EKalmalaHeldToolVisual GetHeldToolVisualForItem(FName ItemId);
+    EKalmalaHeldToolVisual GetHeldToolVisual() const { return HeldToolVisual; }
     static constexpr float AttackSwingDurationSeconds = 0.54f;
     static bool EvaluateAttackArmPose(float ElapsedSeconds, float RestRightArmPitch, float& OutRightArmPitch);
     static constexpr float ToolSharpeningDurationSeconds = 1.2f;
@@ -28,6 +34,10 @@ public:
 
     void MulticastPlayGrindingStoneSharpening_Implementation();
 private:
+    UFUNCTION() void OnRep_HeldToolVisual();
+    UPROPERTY(ReplicatedUsing=OnRep_HeldToolVisual)
+    EKalmalaHeldToolVisual HeldToolVisual = EKalmalaHeldToolVisual::None;
+    UPROPERTY(Transient) TArray<TObjectPtr<UProceduralMeshComponent>> HeldToolParts;
     UProceduralMeshComponent* AddPart(FName Name, FVector Pivot, FVector Centre, FVector HalfSize,
         UMaterialInterface* Material, bool bTapered = false, USceneComponent* Parent = nullptr);
     UPROPERTY(Transient)

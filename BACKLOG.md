@@ -29,6 +29,10 @@ Further autonomous implementation requires a new user-defined task.
 
 ## Completed post-roadmap work
 
+**Held-tool appearance — verified 2026-10-17.** Replaced the fixed hammer with
+Main Hand family silhouettes and empty-hand cleanup. Cosmetic family replication
+keeps inventory details private. Editor build and four focused regressions passed.
+
 **Live map heading — verified 2026-10-17.** Player arrows read the local pawn's
 current facing without a terrain refresh. Editor build and three focused
 map/minimap tests passed, including turns through all four map directions.

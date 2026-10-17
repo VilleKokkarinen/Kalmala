@@ -1,5 +1,15 @@
 # Game features
 
+## Held equipment appearance — 2026-10-17
+
+The character now shows the equipped Main Hand tool family: hammer, axe, knife,
+pick, spear, mace or bow. Empty/unknown selections hide every held-tool part.
+These are original procedural silhouettes attached to the animated right arm;
+Stone/Bronze/Iron variants currently share their family shape and materials.
+Other peers receive only the server-selected visible family, not the item's GUID,
+level, condition, pack contents or acquisition state. Bow appearance does not
+implement shooting or a two-handed animation.
+
 ## Axe swing feedback and animation — 2026-10-17
 
 A usable equipped axe can start a server-approved swing without a target. The

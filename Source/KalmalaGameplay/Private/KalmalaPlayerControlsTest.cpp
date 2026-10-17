@@ -80,8 +80,8 @@ void AKalmalaCharacter::VerifyPlayerControls(const float DeltaSeconds)
     {
         TArray<UProceduralMeshComponent*> Meshes;
         GetComponents(Meshes);
-        // The original nine-part body now includes a two-part, non-colliding starter hammer.
-        constexpr int32 ExpectedModelPartCount = 11;
+        // Nine body parts plus a fixed three-part, non-colliding held-tool pool.
+        constexpr int32 ExpectedModelPartCount = 12;
         const bool bCosmeticOnly = Meshes.Num() == ExpectedModelPartCount && Meshes.ContainsByPredicate([](const auto* Mesh) { return Mesh->GetNumSections() > 0; })
             && !Meshes.ContainsByPredicate([](const auto* Mesh) { return Mesh->GetCollisionEnabled() != ECollisionEnabled::NoCollision; });
         const bool bPassed = bControlsTestLocalJumpObserved && !Movement->IsSprintRequested()
