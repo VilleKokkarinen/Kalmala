@@ -57,6 +57,11 @@ if ($ForestDeliveryOnly) {
             } | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique | Where-Object {
                 $clientText.Contains('Forest delivery: Passed=1 Authority=0 ' + $_)
             })
+            # Stage/pickup proof must belong to the exact replacements observed
+            # on both peers, rather than an unrelated forest actor.
+            $sharedTreeIds = @($shared | ForEach-Object {
+                ($_ -split ' Ids=', 2)[1] -split ';' | Where-Object { $_ }
+            } | Sort-Object -Unique)
             # The fixture reads GameState's seed itself. An identity OnRep log
             # is not guaranteed when the server seed equals its class default.
             # Require both stages for the same exact tree on both peers; a
@@ -64,6 +69,7 @@ if ($ForestDeliveryOnly) {
             $sharedStages = @([regex]::Matches($hostText, 'Forest stage delivery: Passed=1 Authority=1 Seed=10323456789 Id=([^\s]+) Stage=Trunk Cosmetics=0') |
                 ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique | Where-Object {
                     $id = $_
+                    $sharedTreeIds -contains $id -and
                     $clientText.Contains("Forest stage delivery: Passed=1 Authority=0 Seed=10323456789 Id=$id Stage=Trunk Cosmetics=0") -and
                     ($ForestTrunkLateJoin -or (
                         $hostText.Contains("Forest stage delivery: Passed=1 Authority=1 Seed=10323456789 Id=$id Stage=Drop Cosmetics=0") -and

@@ -3636,3 +3636,7 @@ passed against retained peer logs plus synthetic write records. PowerShell parsi
 passed; compilation/live execution and full feature verification remain deferred.
 Rebuild the short mirror and execute the ForestPickup command above next. This
 bounded log check does not establish reload durability or exclude later writes.
+
+### Forest replacement identity binding (2026-10-17)
+
+Stage and pickup acceptance require an exact ID from the replacement reports matched on both peers. Retained-log selector checks accepted original evidence and rejected target removal on either/both peers and a longer prefix-sharing identity. PowerShell parsing passed; no new live peer run or build. Full feature verification remains deferred.

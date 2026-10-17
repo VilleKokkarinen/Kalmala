@@ -1,5 +1,15 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-17 — Bind forest pickup to delivered replacements
+
+- **Completed:** bounded increment of the first unchecked generated-forest delivery child. The peer runner extracts exact IDs from patch replacement reports matched on host/client and requires stage evidence to use one of those IDs. Pickup already requires the same stage ID, binding the entire evidence chain to an observed replacement. Child remains unchecked.
+- **Files changed:** Scripts/Tests/World/Verify-BiomeExpansion.ps1, BACKLOG.md, PROGRESS.md, docs/07-development-setup.md.
+- **Verification:** PowerShell parser and five cases executing the actual selector against retained kfpeer-2d08ebf1 logs passed: original accepted; target absent from both replacement lists, host only, client only, and replaced with a longer prefix-sharing ID rejected. git diff --check passed; staged scope/diff and absolute path lengths inspected before commit. No Unreal build/live peers/full suite; full verification deferred. Normal partial increment, not milestone-final.
+- **Impact/authority:** acceptance cannot use an unrelated forest actor to satisfy replacement delivery. Runtime, server authority, RPCs, rewards, save formats unchanged.
+- **Concurrency/handoff:** only current Kalmala chat active; CIM unavailable. Initially clean main checkout used directly; no handoff synchronization needed.
+- **Limitations/next:** retained-log mutation checks establish selector behavior only. Delivery child stays open; continue independent physical-distance RPC rejection, simultaneous contention and ordinary-camera acceptance, followed by streaming/restart and reload durability.
+
+
 ## Autonomous increment 2026-10-17 — Execute forest sparse-save authority gate
 
 - **Completed:** compiled and executed the queued sparse-save gate within the first unchecked generated-forest delivery child. Executed sparse-save authority gate (2026-10-17), source 486c1c9: all 727 Source/Config/Content files matched the short kmforest mirror. Normal-access editor build passed (four actions; C:/Users/Ville/AppData/Local/Temp/kmforest/sparse-build.log). ForestPickup passed exit 0; logs C:/Users/Ville/AppData/Local/Temp/kfpeer-2d08ebf1/{host,client}.log. Exactly one host sparse-write marker reported Success=1 for forest:v1:10323456789:31079.1015625:5132.20068359375:13, with no client marker. Nine eighteen-tree patches matched; shared Trunk/Drop/Collected, server/client Lightwood Delta=1 Expected=1 Stable=5, client Requests=3 DepletedRequests=3 and second collector Delta=0 Requests=3 Stable=5 passed, alongside existing forged/range/stability rejection checks. Zero fatal/assertion/ensure/fixture failure markers; peers stopped, no UnrealEditor remained. No repairs. Full feature/project verification deferred; delivery child remains unchecked. Next continue missing same-child acceptance: independent physical-distance RPC rejection, simultaneous contention and ordinary camera; reload durability and streaming/restart remain open. Bounded write count does not establish reload durability. Production authority, RPCs, rewards and save formats unchanged.
