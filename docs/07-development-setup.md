@@ -3671,3 +3671,15 @@ Build the current short mirror and execute the documented ForestPickup command
 next. This controlled sequential dispatch supplements later depleted retries;
 simultaneous owned RPCs, ordinary camera, streaming and process restart remain
 unproven. Full verification is deferred.
+
+Same-dispatch collector execution (2026-10-17): source c5ca47a compiled successfully
+in the existing kmforest mirror (four actions; collector-build.log; normal UBT
+access). The documented ForestPickup command passed exit 0. Retained peer logs:
+C:/Users/Ville/AppData/Local/Temp/kfpeer-16ee475b/{host,client}.log. Exact tree
+forest:v1:10323456789:31079.1015625:5132.20068359375:13 reports Lightwood
+LiveBefore=1 Winner=1 Loser=0 Delta=0 InRange=1. Existing nine-patch/162-ID,
+stage, reward, sparse-write authority, rejection and stability gates passed.
+No repairs were needed. This executes the controlled same-dispatch gate only;
+simultaneous owned RPCs and ordinary-camera acceptance remain open. Continue
+the same delivery child next; streaming/restart follows. Full feature/project
+verification remains deferred.

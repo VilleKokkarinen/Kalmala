@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-17 — Execute same-dispatch collector gate
+
+- **Completed:** executed the pending same-dispatch collector acceptance slice on source c5ca47a. Compared all 727 tracked Source/Config/Content mirror files and copied the one changed character source. No repairs were needed.
+- **Files changed:** PROGRESS.md and docs/07-development-setup.md only. BACKLOG.md unchanged under the explicit no-rewording rule; selected delivery child remains incomplete.
+- **Verification:** isolated `Build.bat KalmalaEditor Win64 Development -Project=C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject -WaitMutex -NoHotReload -MaxParallelActions=4` succeeded (four actions; kmforest/collector-build.log), with normal UnrealBuildTool access. `Scripts/Tests/World/Verify-BiomeExpansion.ps1 -ForestDeliveryOnly -ForestStages -ForestPickup -Project C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject` passed exit 0. Logs: C:/Users/Ville/AppData/Local/Temp/kfpeer-16ee475b/host.log and client.log. Parser, failure-marker scan, whitespace, scope/diff and MAX_PATH checked before commit. Initial documentation insertion stopped on a newline guard before writing; corrected to preserve existing newlines. Normal partial acceptance increment; full feature/project verification deferred.
+- **Observable impact:** exact tree forest:v1:10323456789:31079.1015625:5132.20068359375:13 reports Lightwood LiveBefore=1 Winner=1 Loser=0 Delta=0 InRange=1. Nine matching eighteen-tree patches/162 IDs, shared stages, one Lightwood reward, exactly one successful host sparse write, no client write, range/physical rejection and stable repeated/depleted/second-collector requests passed.
+- **Authority/limitations:** no production gameplay, RPC, reward or schema changes. Controlled sequential transactions in one dispatch do not establish simultaneous owned RPCs or ordinary-camera usability; streaming/process restart remains subsequent scope.
+- **Concurrency/handoff/next:** only current Kalmala chat active; CIM inventory unavailable, no UnrealEditor before launch. Initially clean main checkout used directly; no handoff sync needed. Next continue same delivery child with simultaneous owned requests and ordinary-camera acceptance.
+
 ## Autonomous increment 2026-10-17 — Gate same-dispatch forest collectors
 
 - **Completed:** bounded slice of the first unchecked generated-forest delivery child. Queue a distinct authoritative collector while the exact drop is live, then invoke its real transaction immediately after the winning remote RPC transaction, before another tick. Require winner acceptance, loser rejection, zero loser reward, physical reach and harvested state; restore contender position. Runner requires exact ID/item proof.
