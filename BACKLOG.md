@@ -29,6 +29,11 @@ Further autonomous implementation requires a new user-defined task.
 
 ## Completed post-roadmap work
 
+**Axe swing and animation — verified 2026-10-17.** Usable axes can swing without
+an in-range target; misses complete cooldown quietly. Replicated accepted actions
+drive the procedural arm animation. Editor build and four focused tests passed;
+actual hit authority and material-tier gates remain unchanged.
+
 **Hammer right-click crash repair — verified 2026-10-17.** Progression sorting
 now handles spawn-granted equipment without an acquisition recipe. Editor build,
 upgrade-only hammer regression and Build browsing passed; broader progression

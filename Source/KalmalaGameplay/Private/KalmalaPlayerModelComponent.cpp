@@ -1,5 +1,6 @@
 #include "KalmalaPlayerModelComponent.h"
 #include "ProceduralMeshComponent.h"
+#include "KalmalaCombatComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Materials/MaterialInterface.h"
@@ -153,6 +154,21 @@ void UKalmalaPlayerModelComponent::TickComponent(float DeltaTime, ELevelTick Tic
     const float Swing = bFalling ? 0.0f : FMath::Sin(GaitPhase) * FMath::Clamp(Speed / 600.0f, 0.0f, 1.4f) * 25.0f;
     float LeftArmPitch = bFalling ? -35.0f : Swing;
     float RightArmPitch = bFalling ? -35.0f : -Swing;
+    if (const auto* Combat = Character->FindComponentByClass<UKalmalaCombatComponent>())
+    {
+        if (Combat->GetActionSerial() != LastAttackSerial)
+        {
+            LastAttackSerial = Combat->GetActionSerial();
+            AttackSwingElapsedSeconds = Combat->GetActionPhase() == EKalmalaCombatActionPhase::Idle ? -1.0f : 0.0f;
+        }
+        if (AttackSwingElapsedSeconds >= 0.0f)
+        {
+            if (EvaluateAttackArmPose(AttackSwingElapsedSeconds, RightArmPitch, RightArmPitch))
+                AttackSwingElapsedSeconds += DeltaTime;
+            else
+                AttackSwingElapsedSeconds = -1.0f;
+        }
+    }
     if (ToolSharpeningElapsedSeconds >= 0.0f)
     {
         if (EvaluateToolSharpeningArmPose(ToolSharpeningElapsedSeconds, LeftArmPitch, RightArmPitch,
@@ -169,6 +185,21 @@ void UKalmalaPlayerModelComponent::TickComponent(float DeltaTime, ELevelTick Tic
     RightArm->SetRelativeRotation(FRotator(RightArmPitch, 0, 0));
     LeftLeg->SetRelativeRotation(FRotator(bFalling ? 15.0f : -Swing, 0, 0));
     RightLeg->SetRelativeRotation(FRotator(bFalling ? 15.0f : Swing, 0, 0));
+}
+
+bool UKalmalaPlayerModelComponent::EvaluateAttackArmPose(const float ElapsedSeconds,
+    const float RestRightArmPitch, float& OutRightArmPitch)
+{
+    if (!FMath::IsFinite(ElapsedSeconds) || ElapsedSeconds < 0.0f || ElapsedSeconds >= AttackSwingDurationSeconds)
+        return false;
+    // Raise during windup, strike down, then blend back to the current gait.
+    if (ElapsedSeconds < 0.18f)
+        OutRightArmPitch = FMath::Lerp(RestRightArmPitch, -115.0f, ElapsedSeconds / 0.18f);
+    else if (ElapsedSeconds < 0.30f)
+        OutRightArmPitch = FMath::Lerp(-115.0f, 35.0f, (ElapsedSeconds - 0.18f) / 0.12f);
+    else
+        OutRightArmPitch = FMath::Lerp(35.0f, RestRightArmPitch, (ElapsedSeconds - 0.30f) / 0.24f);
+    return true;
 }
 
 bool UKalmalaPlayerModelComponent::EvaluateToolSharpeningArmPose(const float ElapsedSeconds,

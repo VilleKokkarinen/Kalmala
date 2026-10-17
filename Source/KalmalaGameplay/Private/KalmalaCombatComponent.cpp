@@ -16,6 +16,13 @@ bool UKalmalaCombatComponent::IsAttackRequestAllowed(const bool bAuthority, cons
 { return FKalmalaCombatIntentContract::IsAttackMutationAllowed(bAuthority, true, true, bNewSequence, Sequence, true, bActionIdle, bTargetValid, bTargetValid); }
 bool UKalmalaCombatComponent::IsAttackItemAllowed(const FName ItemId)
 { return ItemId != TEXT("Bow") && ItemId != TEXT("ConstructionHammer"); }
+bool UKalmalaCombatComponent::CanSwingAxeWithoutTarget(const FName ItemId, const int32 Level, const int32 Condition)
+{
+    const auto* Definition = FKalmalaToolLifecycleContract::FindDefinition(ItemId);
+    const int32 Maximum = FKalmalaToolLifecycleContract::GetMaxDurability(ItemId, Level);
+    return Definition && Definition->Action == EKalmalaToolAction::Woodcutting
+        && Maximum > 0 && Condition > 0 && Condition <= Maximum;
+}
 void UKalmalaCombatComponent::ServerRequestAttack_Implementation(const uint32 RequestSequence)
 {
     // Bow shooting is outside this combat loop; the Construction Hammer is build-only.
@@ -24,7 +31,10 @@ void UKalmalaCombatComponent::ServerRequestAttack_Implementation(const uint32 Re
     const FName EquippedItem = Inventory ? Inventory->GetActiveItem() : NAME_None;
     if (!IsAttackItemAllowed(EquippedItem)) return;
     APawn* Pawn = Cast<APawn>(GetOwner()); AActor* Target = FindServerTarget();
-    const bool bAllowed = Pawn != nullptr && IsAttackRequestAllowed(Pawn->HasAuthority(), RequestSequence != 0 && RequestSequence > LastRequestSequence, RequestSequence, ActionPhase == EKalmalaCombatActionPhase::Idle, IsServerTargetValid(Target));
+    const bool bAxeSwing = Character && Character->GetHealth() > 1.0f
+        && CanSwingAxeWithoutTarget(EquippedItem, Character->GetCarriedToolLevel(EquippedItem),
+            Character->GetToolDurability(EquippedItem));
+    const bool bAllowed = Pawn != nullptr && IsAttackRequestAllowed(Pawn->HasAuthority(), RequestSequence != 0 && RequestSequence > LastRequestSequence, RequestSequence, ActionPhase == EKalmalaCombatActionPhase::Idle, IsServerTargetValid(Target) || bAxeSwing);
     if (!bAllowed)
     {
         if (Pawn != nullptr && Pawn->HasAuthority() && GetWorld() != nullptr && GetWorld()->GetTimeSeconds() >= LastUnavailableFeedbackTime + 0.25f)
@@ -34,6 +44,7 @@ void UKalmalaCombatComponent::ServerRequestAttack_Implementation(const uint32 Re
         }
         return;
     }
+    bPendingAxeSwing = bAxeSwing;
     LastRequestSequence = RequestSequence; ++ActionSerial; PendingTarget = Target; ActionPhase = EKalmalaCombatActionPhase::Windup; PhaseEndTime = GetWorld()->GetTimeSeconds() + WindupSeconds; GetOwner()->ForceNetUpdate();
 }
 void UKalmalaCombatComponent::TickComponent(const float DeltaTime, const ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -105,7 +116,8 @@ void UKalmalaCombatComponent::TickComponent(const float DeltaTime, const ELevelT
                 UE_LOG(LogTemp, Display, TEXT("Boar verification attack execution: target valid=%d distance=%.1f."), Pending != nullptr, Pending != nullptr && OwnerPawn != nullptr ? FVector::Dist(OwnerPawn->GetActorLocation(), Pending->GetActorLocation()) : -1.0f);
             }
 #endif
-            PublishFeedbackFromServer(EKalmalaCombatFeedback::Unavailable);
+            // A validated axe swing can miss; it spends no condition and grants nothing.
+            PublishFeedbackFromServer(bPendingAxeSwing ? EKalmalaCombatFeedback::None : EKalmalaCombatFeedback::Unavailable);
         }
         BeginRecovery();
         return;

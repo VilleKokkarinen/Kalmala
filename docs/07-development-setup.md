@@ -1,5 +1,30 @@
 # Development setup
 
+## Axe swing and arm geometry regression — 2026-10-17
+
+`Kalmala.Gameplay.Combat.AxeSwing` checks starter axe equip, ordinary no-target
+attack intent, single action serial, busy rejection, recovery, unchanged condition,
+quiet miss feedback and actual procedural-arm rotation. It also checks the
+bounded pose, non-finite time and broken/forged/non-axe rejection. Run it with
+`Kalmala.Gameplay.Combat.BasicAttack.AuthorityAndCooldown`,
+`Kalmala.Gameplay.Tools.SharpeningPresentation` and
+`Kalmala.Gameplay.M9.SecondWaveHarvestAcceptance` in the standard unattended
+null-RHI editor queue. Final run: four successful results, exit 0;
+`C:/Users/Ville/AppData/Local/Temp/kaxe-4e3e11c4/tests.log`.
+
+The source-matched short mirror's unity Editor build passed 13 actions and three
+four-action test-fixture rebuilds; logs `kmforest/axe-swing-build2.log`,
+`axe-fixture-build.log`, `axe-final-build.log`, `axe-pose-build.log`.
+Used `Build.bat KalmalaEditor Win64 Development -Project=<mirror>/Kalmala.uproject
+-WaitMutex -NoHotReload -NoHotReloadFromIDE -MaxParallelActions=4 -DisableAdaptiveUnity`
+with normal UBT access. The main Editor's global Live Coding lock initially blocked
+the separate mirror; `-NoHotReloadFromIDE` was used only for that isolated build,
+without changing the running main checkout's output. Initial actor-fixture failure
+lacked a world context; the first actual-mesh assertion compared normalized Euler
+pitch instead of equivalent quaternions. Both fixture issues were repaired and
+the final four-test group passed. No rendered/manual-input, live-peer, package or
+full-suite verification; full project verification remains deferred.
+
 ## Hammer Build-menu crash regression — 2026-10-17
 
 Right-click with the starting Construction Hammer opens Build and reads tool

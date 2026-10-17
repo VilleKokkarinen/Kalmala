@@ -17,6 +17,8 @@ public:
     virtual void BeginPlay() override;
     virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* TickFunction) override;
     int32 GetPartCount() const { return Parts.Num(); }
+    static constexpr float AttackSwingDurationSeconds = 0.54f;
+    static bool EvaluateAttackArmPose(float ElapsedSeconds, float RestRightArmPitch, float& OutRightArmPitch);
     static constexpr float ToolSharpeningDurationSeconds = 1.2f;
     static bool EvaluateToolSharpeningArmPose(float ElapsedSeconds, float RestLeftArmPitch, float RestRightArmPitch,
         float& OutLeftArmPitch, float& OutRightArmPitch);
@@ -45,5 +47,7 @@ private:
     UPROPERTY()
     TObjectPtr<UMaterialInterface> DarkMaterial;
     float GaitPhase = 0.0f;
+    uint32 LastAttackSerial = 0;
+    float AttackSwingElapsedSeconds = -1.0f;
     float ToolSharpeningElapsedSeconds = -1.0f;
 };

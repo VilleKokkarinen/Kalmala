@@ -1,5 +1,16 @@
 # Game features
 
+## Axe swing feedback and animation — 2026-10-17
+
+A usable equipped axe can start a server-approved swing without a target. The
+player's right arm raises, strikes and returns to gait over the existing
+0.54-second attack window. A miss completes cooldown without an unavailable
+notification, tool wear, damage or rewards. Actual hits still require the same
+server-selected target, visibility/range recheck, material tier and durability.
+Generated Meadow trunks require Bronze Axe; Elderwood trunks require Iron Axe.
+The starting Stone Axe does not bypass those requirements. Hammer remains
+build-only and Bow shooting remains unimplemented.
+
 ## Generated-forest harvesting — 2026-10-17
 
 Generated Meadow/Elderwood trees are server-owned harvest actors with stable

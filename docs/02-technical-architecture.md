@@ -1,5 +1,23 @@
 # Technical architecture
 
+## Server-approved axe swings — 2026-10-17
+
+The combat start gate accepts either its existing valid server target or a living
+character's equipped Woodcutting profile with a valid authored level and condition
+in 1..maximum. The latter permits a targetless axe swing, not a damage transaction.
+The ordinary sequence/authority/idle gates still apply. Pending targets remain
+server-selected and are rechecked at execution; misses enter recovery, publish
+owner feedback None, spend no condition and grant nothing. Targeted tier or
+persistence rejection still produces Unavailable. Non-axe targetless behavior,
+hammer/Bow exclusions and actual hit validation are unchanged.
+
+The procedural player model observes the existing replicated combat action serial
+and phase. A new active action starts a bounded local right-arm raise/strike/return
+pose; an idle historical serial does not replay. No tool identity, target,
+condition or new animation RPC is replicated. Remote playback begins when its
+action state arrives; network delay and phase coalescing remain untested. Existing
+sharpening presentation takes precedence while active.
+
 ## Wood Shield station — 2026-10-15
 
 The sole `WoodShieldRecipe` lives in `recipes/stations/workbench.json` and
