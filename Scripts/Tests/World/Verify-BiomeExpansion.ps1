@@ -7,6 +7,7 @@ param(
     [switch]$ForestPickup,
     [switch]$ForestContention,
     [switch]$ForestFullPack,
+    [switch]$ForestRestartOnly,
     [string]$Project,
     [int]$Port = 17849
 )
@@ -22,6 +23,45 @@ if ($ForestContention -and !$ForestPickup) { throw '-ForestContention requires -
 if ($ForestFullPack -and (!$ForestDeliveryOnly -or !$ForestPickup -or $ForestContention)) { throw '-ForestFullPack requires -ForestDeliveryOnly and -ForestPickup and excludes -ForestContention.' }
 if (!$Project) { $Project = Join-Path ($repoPaths.ProjectRoot) 'Kalmala.uproject' }
 $project = (Resolve-Path -LiteralPath $Project).Path
+if ($ForestRestartOnly) {
+    if ($ForestDeliveryOnly -or $ForestStages -or $ForestPickup -or $ForestContention -or $ForestFullPack -or $ForestDropLateJoin -or $ForestTrunkLateJoin) {
+        throw '-ForestRestartOnly excludes peer delivery modes.'
+    }
+    $output = Join-Path $env:TEMP ('kfr-' + [guid]::NewGuid().ToString('N').Substring(0, 8))
+    $userRoot = Join-Path $output 'user'
+    $slot = Join-Path $userRoot 'Saved/SaveGames/KalmalaPopulationDeltas_418.sav'
+    if ($slot.Length -ge 260) { throw 'Forest restart output exceeds MAX_PATH.' }
+    if (Test-Path -LiteralPath $output) { throw 'Forest restart requires a fresh output root.' }
+    New-Item -ItemType Directory -Path $output | Out-Null
+    $slotHash = $null
+    foreach ($phase in @('Write', 'Read')) {
+        $log = Join-Path $output ($phase.ToLowerInvariant() + '.log')
+        $arguments = "`"$project`" -unattended -nop4 -nosplash -nullrhi -NoZenAutoLaunch -DDC=NoZenLocalFallback -stdout -FullStdOutLogOutput -UserDir=`"$userRoot`" -abslog=`"$log`" -KalmalaForestRestart=$phase -KalmalaForestRestartRoot=`"$userRoot`" -ExecCmds=`"Automation RunTests Kalmala.Gameplay.Harvest.ForestProcessRestart`" -TestExit=`"Automation Test Queue Empty`""
+        $process = Start-Process $Editor -WindowStyle Hidden -PassThru -ArgumentList $arguments
+        try {
+            if (!$process.WaitForExit(180000)) { throw "Forest restart $phase timed out: $log" }
+            if ($process.ExitCode -ne 0) { throw "Forest restart $phase exited $($process.ExitCode): $log" }
+        } finally {
+            if (!$process.HasExited) { Stop-Process -Id $process.Id -Force }
+        }
+        $text = Get-Content -LiteralPath $log -Raw
+        if ($text -notmatch 'Result=\{Success\}.*Name=\{ForestProcessRestart\}' -or
+            $text -notmatch ('Forest restart phase: Phase=' + $phase + ' Slot=KalmalaPopulationDeltas_418 Collected=2 Uncollected=[1-9][0-9]*') -or
+            $text -match 'Result=\{Fail|Fatal error:|Assertion failed:') { throw "Forest restart $phase proof missing or failed: $log" }
+        if (!(Test-Path -LiteralPath $slot)) { throw "Forest restart $phase did not retain the real slot." }
+        $currentHash = (Get-FileHash -LiteralPath $slot -Algorithm SHA256).Hash
+        if ($phase -eq 'Write') { $slotHash = $currentHash }
+        elseif ($currentHash -ne $slotHash) { throw 'Restart load/activation/eviction rewrote the population slot.' }
+    }
+    $writeIds = [regex]::Matches((Get-Content (Join-Path $output 'write.log') -Raw), 'Forest restart candidate: Phase=Write Id=(\S+) Collected=([01]) Live=1') | ForEach-Object { $_.Groups[1].Value + ':' + $_.Groups[2].Value }
+    $readIds = [regex]::Matches((Get-Content (Join-Path $output 'read.log') -Raw), 'Forest restart candidate: Phase=Read Id=(\S+) Collected=([01]) Live=([01])') | ForEach-Object {
+        if ($_.Groups[2].Value -eq $_.Groups[3].Value) { throw 'Restart candidate presence contradicts collected state.' }
+        $_.Groups[1].Value + ':' + $_.Groups[2].Value
+    }
+    if ($writeIds.Count -lt 3 -or ($writeIds -join '|') -cne ($readIds -join '|')) { throw 'Restart candidate identities differ across processes.' }
+    Write-Host "PASS: real forest population slot survives process restart; exact collected IDs absent, uncollected trees restored, slot unchanged. Logs: $output"
+    return
+}
 if ($ForestDeliveryOnly) {
     $output = Join-Path $env:TEMP ('kfpeer-' + [guid]::NewGuid().ToString('N').Substring(0, 8))
     if ((Join-Path $output 'Client/Saved/SaveGames/KalmalaPlayerDiscoveries_10323456789_ffffffff.sav').Length -ge 260) { throw 'Forest peer output exceeds MAX_PATH.' }

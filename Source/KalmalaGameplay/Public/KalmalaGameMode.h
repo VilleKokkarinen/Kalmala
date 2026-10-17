@@ -48,6 +48,7 @@ public:
 
 private:
     friend class FKalmalaForestPatchLifecycleTest;
+    friend class FKalmalaForestRestartTest;
     friend class FKalmalaM9SourceAcceptanceTest;
 
 #if WITH_DEV_AUTOMATION_TESTS
