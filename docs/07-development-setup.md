@@ -17,6 +17,7 @@ and [feature description](game-features.md#generated-forest-harvesting--2026-10-
 | Competing owned requests grant one reward total | Add `-ForestContention` to the pickup command; integrated-source pass `kfpeer-9678e392` | Listen-host versus one remote; no two-remote or adverse-network coverage |
 | Ordinary client full-pack rejection keeps live drop and delivers private feedback | Add `-ForestFullPack` to the pickup command; integrated-source pass `kfpeer-160abf98` | Excludes contention mode; cue submission, not audible playback |
 | Shared departure, final eviction without depletion, reactivation preserving collected IDs | `Automation RunTests Kalmala.Gameplay.Harvest.ForestPatchLifecycle`; `kp18e/tests.log`, `kp19r/tests.log` | Isolated server world, not live streaming peers |
+| Live shared departure, final eviction and uncollected-tree reactivation | `Scripts/Tests/World/Verify-BiomeExpansion.ps1 -ForestDeliveryOnly -ForestStreaming -Project <isolated-project>`; `kfpeer-4b2da6d9/{host,client}.log` | Fresh unharvested world; collected-ID reactivation still needs live peer coverage |
 | Real population-slot process restart | `Scripts/Tests/World/Verify-BiomeExpansion.ps1 -ForestRestartOnly -Editor <UnrealEditor-Cmd.exe> -Project <isolated-project>`; `kfr-e6e02cac/{write,read}.log` | Production callback/loading boundary, not another pickup or live peer session restart |
 
 Evidence roots above are under `C:/Users/Ville/AppData/Local/Temp/`; detailed
@@ -34,9 +35,46 @@ the settled 3D trunk, aligned targeting and midpoint bundle pickup are now imple
 Partial health and uncollected Trunk/Drop state reset on regeneration; only accepted
 pickup depletion persists. The final integrated editor build and focused harvest
 group and final exact-ID peer/late-join/pickup gates passed; see the evidence below.
-Final peer streaming/reactivation/restart remains required by BACKLOG.md.
+Live uncollected-tree streaming/reactivation now passes; collected-ID peer
+reactivation and the final real-slot restart rerun remain required by BACKLOG.md.
 Full tree-feature/project verification remains deferred;
 the earlier documentation reconciliation itself ran no Unreal build or runtime test.
+
+## Live uncollected forest streaming acceptance (2026-10-17)
+
+```powershell
+Scripts/Tests/World/Verify-BiomeExpansion.ps1 -ForestDeliveryOnly -ForestStreaming -Project C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject
+```
+
+The opt-in non-shipping fixture first captures nine patches and 162 exact standing
+tree IDs on both peers. At server time 45 it teleports the remote owner 400 metres
+away. At time 60 it checks that the stationary host retained the original terrain
+and tree actors, then moves the host away too. Both peers require the original
+weak actor references to be invalid at time 80. The server returns both owners at
+time 90; at time 110 each peer requires all 162 original IDs exactly once, standing
+and unharvested, with nine matching suppressed patches and zero decorative trees.
+Normal GameMode ticks perform streaming; the probe never directly activates or
+evicts a patch, invokes a harvest callback, or sends a new RPC. Movement is disabled
+only for this fixture. Modes with stage driving or restart are rejected.
+
+Compared 728 tracked Source/Config/Content mirror files, copied the two changed
+fixture sources, then built with normal UnrealBuildTool access:
+`Build.bat KalmalaEditor Win64 Development -Project=C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject -WaitMutex -NoHotReload -MaxParallelActions=4`.
+The build passed 66 actions without compiler warnings/errors; log
+`C:/Users/Ville/AppData/Local/Temp/kmforest/stream-build.log`.
+The peer command above passed exit 0; logs
+`C:/Users/Ville/AppData/Local/Temp/kfpeer-4b2da6d9/{host,client}.log`.
+Both peers passed Baseline, Evicted and Reactivated; the host also passed
+SharedRetained. No population depletion slot was created in either fresh user
+directory. No fatal/assertion/ensure/fixture failure markers or repairs.
+PowerShell parsing, invalid-mode guards and whitespace checks passed.
+
+This is a partial increment of the existing final streaming/reactivation/restart
+leaf, which remains unchecked. It covers live headless teleport-driven streaming
+of uncollected trees, not collected-ID peer reactivation, continuous travel,
+rendered usability, adverse networks or the final real-slot restart rerun. Full
+tree-feature/project verification remains deferred. Production authority, reward
+behavior and save schemas are unchanged.
 
 ## Final integrated tree peer delivery acceptance (2026-10-17)
 

@@ -151,6 +151,11 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
         UE_LOG(LogTemp, Display, TEXT("Forest delivery: Passed=1 Authority=%d Seed=%llu Trees=%d Cosmetics=0 Ids=%s"),
             HasAuthority(), Config.WorldSeed, Trees.Num(), *Ids);
     }
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestStreaming")))
+    {
+        VerifyForestStreaming();
+        return;
+    }
     if (!FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestStageDriver"))) return;
     // Standing coverage must be captured before the fixture mutates any tree.
     int32 StandingPatches = 0;
@@ -628,6 +633,116 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
         RequestAttack(); // Normal owned RPC carries sequence only; server selects and validates the target.
         if (ForestDriverRequests == 60)
             UE_LOG(LogTemp, Error, TEXT("Forest delivery: Passed=0 DriverAttackBudgetExhausted Id=%s"), *Target->GetPersistentSpawnId());
+    }
+#endif
+}
+
+void AKalmalaCharacter::VerifyForestStreaming()
+{
+#if !UE_BUILD_SHIPPING
+    // Opt-in fixture only: ordinary GameMode ticks own activation and eviction.
+    // No direct patch refresh, client RPC, harvest callback or save mutation.
+    if (ForestStreamingPhase >= 7) return;
+    const auto* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
+    if (!State) return;
+    const double Now = State->GetServerWorldTimeSeconds();
+    AKalmalaCharacter* Remote = nullptr;
+    if (HasAuthority())
+    {
+        for (TActorIterator<AKalmalaCharacter> Pawn(GetWorld()); Pawn; ++Pawn)
+            if (Pawn->GetController() && !Pawn->IsLocallyControlled()) { Remote = *Pawn; break; }
+        if (!Remote) return;
+    }
+    const auto Report = [this](const TCHAR* Phase, const bool Passed)
+    {
+        UE_LOG(LogTemp, Display, TEXT("Forest streaming: Passed=%d Authority=%d Phase=%s Trees=%d"),
+            Passed, HasAuthority(), Phase, ForestStreamingNodes.Num());
+        if (!Passed) ForestStreamingPhase = 7;
+    };
+    const auto Move = [](AKalmalaCharacter* Pawn, const FVector& Location)
+    {
+        Pawn->GetCharacterMovement()->DisableMovement();
+        Pawn->SetActorLocation(Location, false, nullptr, ETeleportType::TeleportPhysics);
+        Pawn->ForceNetUpdate();
+    };
+    if (ForestStreamingPhase == 0)
+    {
+        if (ForestDeliveryReported.Num() != 9) return;
+        if (Now >= 40) { Report(TEXT("BaselineTimeout"), false); return; }
+        ForestStreamingHome = GetActorLocation();
+        GetCharacterMovement()->DisableMovement();
+        if (Remote) Remote->GetCharacterMovement()->DisableMovement();
+        for (TActorIterator<AKalmalaHarvestNode> Node(GetWorld()); Node; ++Node)
+            if (Node->GetPersistentSpawnId().StartsWith(TEXT("forest:v1:")))
+                ForestStreamingNodes.Add(Node->GetPersistentSpawnId(), *Node);
+        for (TActorIterator<AKalmalaGeneratedTerrainPatch> Patch(GetWorld()); Patch; ++Patch)
+            if (Patch->HasGenerationData()) ForestStreamingPatches.Add(*Patch);
+        if (ForestStreamingNodes.Num() != 162 || ForestStreamingPatches.Num() != 9)
+        { Report(TEXT("Baseline"), false); return; }
+        Report(TEXT("Baseline"), true);
+        ForestStreamingPhase = 1;
+    }
+    if (ForestStreamingPhase == 1 && Now >= 45)
+    {
+        if (Remote) Move(Remote, ForestStreamingHome + FVector(40000, 0, 0));
+        ForestStreamingPhase = 2;
+    }
+    if (ForestStreamingPhase == 2 && Now >= 60)
+    {
+        if (HasAuthority())
+        {
+            bool Retained = true;
+            for (const auto& Entry : ForestStreamingNodes) Retained &= Entry.Value.IsValid() && !Entry.Value->IsHarvested();
+            for (const auto& Patch : ForestStreamingPatches) Retained &= Patch.IsValid();
+            Report(TEXT("SharedRetained"), Retained);
+            if (!Retained) return;
+            Move(this, ForestStreamingHome + FVector(40000, 300, 0));
+        }
+        ForestStreamingPhase = 3;
+    }
+    if (ForestStreamingPhase == 3 && Now >= 80)
+    {
+        bool Absent = true;
+        for (const auto& Entry : ForestStreamingNodes) Absent &= !Entry.Value.IsValid();
+        for (const auto& Patch : ForestStreamingPatches) Absent &= !Patch.IsValid();
+        Report(TEXT("Evicted"), Absent);
+        if (!Absent) return;
+        ForestStreamingPhase = 4;
+    }
+    if (ForestStreamingPhase == 4 && Now >= 90)
+    {
+        if (Remote)
+        {
+            Move(Remote, ForestStreamingHome + FVector(0, 300, 0));
+            Move(this, ForestStreamingHome);
+        }
+        ForestStreamingPhase = 5;
+    }
+    if (ForestStreamingPhase == 5 && Now >= 110)
+    {
+        TSet<FString> Restored;
+        bool Matches = true;
+        for (TActorIterator<AKalmalaHarvestNode> Node(GetWorld()); Node; ++Node)
+        {
+            const FString Id = Node->GetPersistentSpawnId();
+            if (!ForestStreamingNodes.Contains(Id)) continue;
+            Matches &= !Restored.Contains(Id) && !Node->IsHarvested() && Node->CanReceiveAxeAttack()
+                && !Node->IsFelledTrunk() && !Node->IsWoodDrop();
+            Restored.Add(Id);
+        }
+        int32 Patches = 0;
+        for (TActorIterator<AKalmalaGeneratedTerrainPatch> Patch(GetWorld()); Patch; ++Patch)
+        {
+            if (!Patch->HasGenerationData()) continue;
+            const auto Trees = FKalmalaForestLayout::Generate(State->GetWorldGenerationConfig(), Patch->GetGeneratedPatchCenter());
+            if (Trees.IsEmpty() || !ForestStreamingNodes.Contains(Trees[0].PersistentSpawnId)) continue;
+            ++Patches;
+            Matches &= Patch->GetCosmeticForestCountForVerification() == 0
+                && Patch->GetSuppressedForestCandidatesForVerification().Num() == Trees.Num();
+        }
+        Matches &= Restored.Num() == 162 && Patches == 9;
+        Report(TEXT("Reactivated"), Matches);
+        ForestStreamingPhase = 7;
     }
 #endif
 }

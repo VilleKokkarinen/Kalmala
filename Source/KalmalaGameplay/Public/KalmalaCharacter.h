@@ -123,6 +123,11 @@ private:
     void VerifyPlayerControls(float DeltaSeconds);
     void VerifyConstructionMovement(float DeltaSeconds);
     void VerifyForestDelivery(float DeltaSeconds);
+    void VerifyForestStreaming();
+    int32 ForestStreamingPhase = 0;
+    FVector ForestStreamingHome = FVector::ZeroVector;
+    TMap<FString, TWeakObjectPtr<class AKalmalaHarvestNode>> ForestStreamingNodes;
+    TArray<TWeakObjectPtr<class AKalmalaGeneratedTerrainPatch>> ForestStreamingPatches;
     double ForestContentionDue = 0;
     bool bForestContentionReady = false;
     bool bForestContentionSent = false;

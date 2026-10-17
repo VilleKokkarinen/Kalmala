@@ -8,6 +8,7 @@ param(
     [switch]$ForestContention,
     [switch]$ForestFullPack,
     [switch]$ForestRestartOnly,
+    [switch]$ForestStreaming,
     [string]$Project,
     [int]$Port = 17849
 )
@@ -15,6 +16,7 @@ param(
 $repoPaths = Get-KalmalaPaths -StartPath $PSScriptRoot
 
 $ErrorActionPreference = 'Stop'
+if ($ForestStreaming -and (!$ForestDeliveryOnly -or $ForestStages -or $ForestRestartOnly)) { throw '-ForestStreaming requires -ForestDeliveryOnly and excludes stage/restart modes.' }
 if ($ForestStages -and !$ForestDeliveryOnly) { throw '-ForestStages requires -ForestDeliveryOnly.' }
 if ($ForestDropLateJoin -and !$ForestStages) { throw '-ForestDropLateJoin requires -ForestStages.' }
 if ($ForestTrunkLateJoin -and (!$ForestStages -or $ForestDropLateJoin)) { throw '-ForestTrunkLateJoin requires -ForestStages and excludes -ForestDropLateJoin.' }
@@ -71,6 +73,7 @@ if ($ForestDeliveryOnly) {
     $clientLog = Join-Path $output 'client.log'
     $common = '-game -nullrhi -nosound -unattended -nosplash -NoZenAutoLaunch -DDC=NoZenLocalFallback -forcelogflush -KalmalaForestDeliveryTest -ExecCmds="t.MaxFPS 30"'
     if ($ForestStages) { $common += ' -KalmalaForestStageDriver' }
+    if ($ForestStreaming) { $common += ' -KalmalaForestStreaming' }
     if ($ForestTrunkLateJoin) { $common += ' -KalmalaForestHoldTrunk' }
     if ($ForestPickup) { $common += ' -KalmalaForestPickup' }
     if ($ForestContention) { $common += ' -KalmalaForestContention' }
@@ -234,6 +237,27 @@ if ($ForestDeliveryOnly) {
             } while ((Get-Date) -lt $deadline)
             if (!$lateStageDelivered) { throw "Forest $lateStage late join timed out for $lateId; inspect $output." }
             Write-Output "PASS: new peer joined after $lateStage and received exact tree $lateId with zero cosmetics."
+        }
+        if ($ForestStreaming) {
+            $deadline = (Get-Date).AddSeconds(150)
+            do {
+                if ($server.HasExited -or $client.HasExited) { throw 'A forest streaming peer exited early.' }
+                $hostText = [string](Get-Content $serverLog -Raw)
+                $clientText = [string](Get-Content $clientLog -Raw)
+                if (($hostText + $clientText) -match 'Forest streaming: Passed=0|Fatal error:|Assertion failed:') { throw "Forest streaming failed; inspect $output." }
+                $streamed = $hostText.Contains('Forest streaming: Passed=1 Authority=1 Phase=SharedRetained Trees=162')
+                foreach ($authority in 0, 1) {
+                    $peerText = if ($authority) { $hostText } else { $clientText }
+                    foreach ($phase in 'Baseline', 'Evicted', 'Reactivated') {
+                        $streamed = $streamed -and $peerText.Contains("Forest streaming: Passed=1 Authority=$authority Phase=$phase Trees=162")
+                    }
+                }
+                if ($streamed) { break }
+                Start-Sleep -Milliseconds 500
+            } while ((Get-Date) -lt $deadline)
+            if (!$streamed) { throw "Forest streaming proof timed out; inspect $output." }
+            if (Get-ChildItem $output -Filter 'KalmalaPopulationDeltas_*.sav' -Recurse) { throw 'Unharvested streaming wrote population depletion.' }
+            Write-Output 'PASS: shared departure retains original actors; final departure evicts; both peers reconstruct 162 exact standing IDs with no cosmetics or depletion slot.'
         }
         Write-Output "PASS: $($shared.Count) populated forest patches match host/client exact IDs, transforms, shape, source, standing state and zero cosmetics."
     }
