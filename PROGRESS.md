@@ -1,5 +1,15 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-17 — Execute replacement-bound forest pickup
+
+- **Completed:** executed the stricter exact-replacement acceptance on source 1501ba2 within the first unchecked generated-forest delivery child. All 727 Source/Config/Content mirror hashes matched; reused compiled modules without a build. No repairs; child remains unchecked.
+- **Files changed:** BACKLOG.md, PROGRESS.md and docs/07-development-setup.md (execution evidence only).
+- **Verification:** Scripts/Tests/World/Verify-BiomeExpansion.ps1 -ForestDeliveryOnly -ForestStages -ForestPickup -Project C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject passed exit 0. Fresh C:/Users/Ville/AppData/Local/Temp/kfpeer-e43a76e1/{host,client}.log: nine matching eighteen-tree patches; replacement-bound Trunk/Drop/Collected for forest:v1:10323456789:31079.1015625:5132.20068359375:13; host/client Lightwood Delta=1 Expected=1 Stable=5; client Requests=3 DepletedRequests=3; second collector Delta=0 Requests=3 Stable=5; exactly one successful host sparse write and no client write; existing forged/range/stability gates passed. Zero fatal/assertion/ensure/fixture failure markers; runner stopped peers. PowerShell parser passed; whitespace, staged scope/diff and MAX_PATH checked before commit. No build/full suite; full feature/project verification deferred. Normal partial increment, not milestone-final.
+- **Impact/authority:** live pickup evidence binds to an exact replacement observed by both peers. Production authority, rewards, RPCs and schemas unchanged; repository output folders untouched.
+- **Concurrency/handoff:** only current Kalmala chat active; CIM unavailable, fallback no Unreal before launch. Initially clean main checkout used directly; no handoff synchronization required.
+- **Limitations/next:** same child remains open for independent physical-distance RPC rejection, simultaneous contention and ordinary-camera acceptance; later streaming/restart and reload durability remain unproven.
+
+
 ## Autonomous increment 2026-10-17 — Bind forest pickup to delivered replacements
 
 - **Completed:** bounded increment of the first unchecked generated-forest delivery child. The peer runner extracts exact IDs from patch replacement reports matched on host/client and requires stage evidence to use one of those IDs. Pickup already requires the same stage ID, binding the entire evidence chain to an observed replacement. Child remains unchecked.
