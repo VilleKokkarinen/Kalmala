@@ -50,7 +50,7 @@ Open leaf checkboxes are sized as one focused automated-job increment. Mark a le
       - [x] Verify simultaneous pickup RPCs from competing owners grant at most once and leave the losing request with no reward.
       - [x] Verify a full pack through the ordinary client interaction path: the request is rejected, the drop remains live, and the owner receives the established rejection feedback.
     - [x] **Verify shared-patch departure and eviction.** With two players sharing a patch, confirm one departure retains the shared patch; the final departure evicts its actors without recording harvest.
-    - [ ] **Verify patch reactivation after eviction.** Collected IDs stay absent while uncollected generated trees materialize again.
+    - [x] **Verify patch reactivation after eviction.** Collected IDs stay absent while uncollected generated trees materialize again.
     - [ ] **Verify process-restart persistence.** Restart and load the real population slot; confirm the same collected IDs remain absent and uncollected trees return.
     - [ ] **Reconcile generated-forest documentation.** Update feature, architecture and setup docs to match accepted behavior and remaining limits; remove superseded claims that generated forest trees are still decorative.
   - [ ] **Implement the server-authored fall transition.** Add replicated transition state/timing and late-join reconstruction; preserve the exact tree identity and server-owned hit, condition, yield and depletion decisions.

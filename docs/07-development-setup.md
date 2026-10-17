@@ -3872,3 +3872,15 @@ acceptance. Unreal emitted its known pre-test `Condition failed` diagnostics
 and context-free fixture teardown warnings; the automation itself had no
 failed assertions. Patch reactivation after eviction, process-restart
 persistence, and full tree-feature/project verification remain deferred.
+
+### Patch reactivation after eviction accepted (2026-10-17)
+
+Run the focused regression in the isolated `kmforest` project:
+
+```powershell
+& 'C:/Program Files/Epic Games/UE_5.8/Engine/Binaries/Win64/UnrealEditor-Cmd.exe' 'C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -NoZenAutoLaunch -DDC=NoZenLocalFallback -stdout -FullStdOutLogOutput '-UserDir=C:/Users/Ville/AppData/Local/Temp/kp19r/user' '-abslog=C:/Users/Ville/AppData/Local/Temp/kp19r/tests.log' '-ExecCmds=Automation RunTests Kalmala.Gameplay.Harvest.ForestPatchLifecycle' '-TestExit=Automation Test Queue Empty'
+```
+
+The isolated editor automation completed one test with `Result={Success}` and exit code 0. All 727 tracked `Source`, `Config`, and `Content` files matched the checkout. The fixture seeds one collected candidate, activates and evicts the real GameMode patch, then activates it again; the collected ID remains absent and every uncollected generated tree is materialized. The successful acceptance log is `C:/Users/Ville/AppData/Local/Temp/kp19r/tests.log`. Known pre-test engine `Condition failed` diagnostics and context-free fixture teardown warnings remain; there were no failed automation assertions. The existing editor target was already built on these matching sources.
+
+This establishes isolated server-world patch reactivation after eviction. Live peer streaming and real population-slot restart acceptance remain open.

@@ -1,3 +1,11 @@
+## Autonomous increment 2026-10-17 — Verify patch reactivation after eviction
+
+- **Completed/files:** reran the existing `Kalmala.Gameplay.Harvest.ForestPatchLifecycle` regression and checked only the selected patch-reactivation leaf in `BACKLOG.md`. Documented the accepted reactivation evidence in `docs/07-development-setup.md`. Changed `BACKLOG.md`, `docs/07-development-setup.md`, and `PROGRESS.md`.
+- **Verification:** all 727 tracked `Source`, `Config`, and `Content` files matched the isolated `kmforest` project. `UnrealEditor-Cmd.exe` ran `Automation RunTests Kalmala.Gameplay.Harvest.ForestPatchLifecycle` with normal per-user access; `Result={Success}`, one test performed, exit code 0, log `C:/Users/Ville/AppData/Local/Temp/kp19r/tests.log`. Sandbox launches exited without a log; the successful run used the isolated temp project and user directory. No build was needed because the mirror target already existed on matching sources. `git diff --check` passed after documentation updates.
+- **Impact/authority:** after actual GameMode patch eviction, reactivation keeps the saved collected tree absent and rematerializes every uncollected generated tree; eviction adds no depletion. This is isolated server-world lifecycle coverage; no runtime, RPC, networking, or save-schema code changed.
+- **Limitations:** no live streaming peers or real process-restart slot test ran. This normal child increment is not milestone-final; full tree-feature/project verification remains deferred.
+- **Next eligible work:** verify process-restart persistence using the real population slot.
+
 ## Autonomous increment 2026-10-17 — Verify shared-patch departure
 
 - **Completed/files:** ran the current-source `Kalmala.Gameplay.Harvest.ForestPatchLifecycle` acceptance and checked only the selected shared-patch departure/eviction leaf in `BACKLOG.md`. Recorded the command and acceptance limits in `docs/07-development-setup.md`. Changed `BACKLOG.md`, `docs/07-development-setup.md`, and `PROGRESS.md`.
