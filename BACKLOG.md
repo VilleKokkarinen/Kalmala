@@ -58,7 +58,7 @@ Open leaf checkboxes are sized as one focused automated-job increment. Mark a le
     - [x] Add the original moving presentation and settled 3D trunk at the generated tree's position; retain the same persistent tree identity.
   - [ ] **Integrate settled-log targeting and pickup.**
     - [x] Align collision, axe targeting and server range checks with the presented settled log; reject extra hits during transition.
-    - [ ] Keep the wood bundle readable and collectible at the settled log; verify accepted pickup and full-pack/duplicate rejection without extra rewards.
+    - [x] Keep the wood bundle readable and collectible at the settled log; verify accepted pickup and full-pack/duplicate rejection without extra rewards.
   - [ ] **Run final tree-feature acceptance.**
     - [ ] Build the integrated editor source and run the focused tree-harvest automation group.
     - [ ] Run final exact-ID host/client stage, late-join, and pickup delivery acceptance on the integrated source.

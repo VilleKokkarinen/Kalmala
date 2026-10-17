@@ -180,7 +180,7 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
                     Remote->ForestRemoteRangeHealth = Pickup->TreeHealth;
                     Remote->ForestPickupItem = ForestPickupItem;
                     Remote->ForestPickupBefore = ForestPickupBefore;
-                    Remote->SetActorLocation(Pickup->GetActorLocation() + FVector(-1000, 0, 88));
+                    Remote->SetActorLocation(Pickup->GetHarvestInteractionLocation() + FVector(-1000, 0, 88));
                     Remote->ForceNetUpdate();
                     bForestRemoteRangeStarted = true;
                 }
@@ -192,7 +192,7 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
                     || Pickup->IsFelledTrunk() || Pickup->IsWoodDrop() || RangeDelta != 0
                     || !FMath::IsFinite(Remote->ForestRemoteRangeHealth) || Remote->ForestRemoteRangeHealth <= 0
                     || Pickup->TreeHealth != Remote->ForestRemoteRangeHealth
-                    || FVector::DistSquared(Remote->GetActorLocation(), Pickup->GetActorLocation()) <= FMath::Square(500.0f))
+                    || FVector::DistSquared(Remote->GetActorLocation(), Pickup->GetHarvestInteractionLocation()) <= FMath::Square(500.0f))
                 {
                     UE_LOG(LogTemp, Error, TEXT("Forest delivery: Passed=0 RemoteRangeStability Id=%s Delta=%d"),
                         *ForestPickupId, RangeDelta);
@@ -202,7 +202,7 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
                 if (++ForestRemoteRangeStableTicks <= 5) return;
                 UE_LOG(LogTemp, Display, TEXT("Forest remote range stability: Passed=1 Authority=1 Seed=%llu Id=%s Item=%s Delta=0 Standing=1 HealthUnchanged=1 Requests=3 Stable=5"),
                     Config.WorldSeed, *ForestPickupId, *ForestPickupItem.ToString());
-                Remote->SetActorLocation(Pickup->GetActorLocation() + FVector(-150, 0, 88));
+                Remote->SetActorLocation(Pickup->GetHarvestInteractionLocation() + FVector(-150, 0, 88));
                 Remote->ForceNetUpdate();
                 bForestRemoteRangeReturned = true;
             }
@@ -212,7 +212,7 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
                 if (!bForestDropRangeStarted)
                 {
                     Remote->bForestDropRangeStarted = true;
-                    Remote->SetActorLocation(Pickup->GetActorLocation() + FVector(-1000, 0, 88));
+                    Remote->SetActorLocation(Pickup->GetHarvestInteractionLocation() + FVector(-1000, 0, 88));
                     Remote->ForceNetUpdate();
                     bForestDropRangeStarted = true;
                 }
@@ -221,7 +221,7 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
                 // request; detect delayed collection/reward before allowing pickup.
                 const int32 RangeDelta = Remote->GetInventoryComponent()->GetQuantity(ForestPickupItem) - ForestPickupBefore;
                 if (!Pickup || Pickup->IsHarvested() || !Pickup->IsWoodDrop() || RangeDelta != 0
-                    || FVector::DistSquared(Remote->GetActorLocation(), Pickup->GetActorLocation()) <= FMath::Square(500.0f))
+                    || FVector::DistSquared(Remote->GetActorLocation(), Pickup->GetHarvestInteractionLocation()) <= FMath::Square(500.0f))
                 {
                     UE_LOG(LogTemp, Error, TEXT("Forest delivery: Passed=0 RemoteDropRangeStability Id=%s Delta=%d"),
                         *ForestPickupId, RangeDelta);
@@ -232,7 +232,7 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
                 if (++ForestDropRangeStableTicks <= 5) return;
                 UE_LOG(LogTemp, Display, TEXT("Forest remote drop range stability: Passed=1 Authority=1 Seed=%llu Id=%s Item=%s Delta=0 LiveDrop=1 Requests=3 Stable=5"),
                     Config.WorldSeed, *ForestPickupId, *ForestPickupItem.ToString());
-                Remote->SetActorLocation(Pickup->GetActorLocation() + FVector(-150, 0, 88));
+                Remote->SetActorLocation(Pickup->GetHarvestInteractionLocation() + FVector(-150, 0, 88));
                 Remote->ForceNetUpdate();
                 bForestDropRangeReturned = true;
                 Remote->CameraBoom->TargetArmLength = 320.0f;
@@ -243,8 +243,8 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
             {
                 GetCharacterMovement()->SetMovementMode(MOVE_Flying);
                 GetCharacterMovement()->StopMovementImmediately();
-                SetActorLocation(Pickup->GetActorLocation() + FVector(150, 0, 88));
-                Controller->SetControlRotation((Pickup->GetActorLocation() + FVector(0, 0, 10) - GetPawnViewLocation()).Rotation());
+                SetActorLocation(Pickup->GetHarvestInteractionLocation() + FVector(150, 0, 88));
+                Controller->SetControlRotation((Pickup->GetHarvestInteractionLocation() + FVector(0, 0, 10) - GetPawnViewLocation()).Rotation());
                 ForestContentionDue = (FMath::FloorToDouble(State->GetServerWorldTimeSeconds() / 60.0) + 1) * 60 + 30;
                 UE_LOG(LogTemp, Display, TEXT("Forest contention armed: Authority=1 Id=%s Due=%.0f Live=1"), *ForestPickupId, ForestContentionDue);
                 return;
@@ -302,9 +302,9 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
                 // A forged short trace must not bypass the independent pawn
                 // distance guard. Restore the host before replication ticks.
                 const FVector HostLocation = GetActorLocation();
-                SetActorLocation(Pickup->GetActorLocation() + FVector(1000, 0, 88));
+                SetActorLocation(Pickup->GetHarvestInteractionLocation() + FVector(1000, 0, 88));
                 const bool bPhysicallyFar = !AKalmalaHarvestNode::IsHarvestAllowed(true, false,
-                    GetActorLocation(), Pickup->GetActorLocation());
+                    GetActorLocation(), Pickup->GetHarvestInteractionLocation());
                 const bool bFarAccepted = Pickup->InteractWithToolIntentFromServer(this,
                     0.0f, InteractionRange, NAME_None, 0);
                 const int32 HostAfter = GetInventoryComponent()->GetQuantity(ForestPickupItem) - ForestPickupHostBefore;
@@ -328,9 +328,9 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
                 const bool bFullPackInstalled = ForestPickupItem != TEXT("String")
                     && HostInventory->TryCommitStacksFromServer(HostStacks, FullPack);
                 const auto InstalledStacks = HostInventory->GetStacks();
-                SetActorLocation(Pickup->GetActorLocation() + FVector(150, 0, 88));
+                SetActorLocation(Pickup->GetHarvestInteractionLocation() + FVector(150, 0, 88));
                 const bool bFullPackInRange = AKalmalaHarvestNode::IsHarvestAllowed(true, false,
-                    GetActorLocation(), Pickup->GetActorLocation());
+                    GetActorLocation(), Pickup->GetHarvestInteractionLocation());
                 const int32 FullPackBefore = HostInventory->GetQuantity(ForestPickupItem);
                 const bool bFullPackAccepted = bFullPackInstalled && Pickup->InteractWithToolIntentFromServer(this,
                     150.0f, InteractionRange, NAME_None, 0);
@@ -357,7 +357,7 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
             // exact-ID drop. Keep the real transaction/range checks in the path.
             if (Pickup && Pickup->IsHarvested() && Delta == ForestPickupExpected && ForestPickupHostRequests < 3)
             {
-                SetActorLocation(Pickup->GetActorLocation() + FVector(150, 0, 88));
+                SetActorLocation(Pickup->GetHarvestInteractionLocation() + FVector(150, 0, 88));
                 const bool bAccepted = Pickup->InteractWithToolIntentFromServer(this, 150.0f, InteractionRange, NAME_None, 0);
                 ++ForestPickupHostRequests;
                 if (bAccepted)
@@ -390,7 +390,7 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
         for (TActorIterator<AKalmalaHarvestNode> Node(GetWorld()); Node; ++Node)
             if (Node->GetPersistentSpawnId().StartsWith(TEXT("forest:v1:")) && Node->CanReceiveAxeAttack()
                 && (!Target || FVector::DistSquared(Node->GetActorLocation(), Remote->GetActorLocation())
-                    < FVector::DistSquared(Target->GetActorLocation(), Remote->GetActorLocation()))) Target = *Node;
+                    < FVector::DistSquared(Target->GetHarvestInteractionLocation(), Remote->GetActorLocation()))) Target = *Node;
         if (!Target) return;
         if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestPickup")))
         {
@@ -428,7 +428,7 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
             Remote->CameraBoom->TargetOffset = Remote->GetPawnViewLocation() - Remote->GetActorLocation();
         }
         else Remote->GetCharacterMovement()->DisableMovement();
-        Remote->SetActorLocationAndRotation(Target->GetActorLocation() + FVector(-150, 0, 88), FRotator::ZeroRotator);
+        Remote->SetActorLocationAndRotation(Target->GetHarvestInteractionLocation() + FVector(-150, 0, 88), FRotator::ZeroRotator);
         Remote->ForceNetUpdate();
         bForestDriverPrepared = true;
         UE_LOG(LogTemp, Display, TEXT("Forest driver prepared: Id=%s"), *Target->GetPersistentSpawnId());
@@ -442,14 +442,14 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
                     ? FVector::DistSquared(Node->GetActorLocation(), GetActorLocation()) < FMath::Square(210.0f)
                     : Node->GetPersistentSpawnId() == ForestForgedId)
                 && (!Target || FVector::DistSquared(Node->GetActorLocation(), GetActorLocation())
-                    < FVector::DistSquared(Target->GetActorLocation(), GetActorLocation()))) Target = *Node;
+                    < FVector::DistSquared(Target->GetHarvestInteractionLocation(), GetActorLocation()))) Target = *Node;
         if (!Target) return;
         if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestPickup"))
             && ForestForgedRequests >= 4 && !ForestForgedId.IsEmpty() && !Target->IsWoodDrop() && ForestPickupId.IsEmpty())
         {
-            if (FVector::DistSquared(Target->GetActorLocation(), GetActorLocation()) > FMath::Square(500.0f))
+            if (FVector::DistSquared(Target->GetHarvestInteractionLocation(), GetActorLocation()) > FMath::Square(500.0f))
             {
-                Controller->SetControlRotation((Target->GetActorLocation() + FVector(0, 0, 10) - GetPawnViewLocation()).Rotation());
+                Controller->SetControlRotation((Target->GetHarvestInteractionLocation() + FVector(0, 0, 10) - GetPawnViewLocation()).Rotation());
                 // One aim-only tick, then three ordinary requests while far away.
                 if (++ForestRemoteRangeRequests > 1 && ForestRemoteRangeRequests <= 4) RequestInteract();
                 return;
@@ -460,9 +460,9 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
         if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestPickup")) && (Target->IsWoodDrop() || !ForestPickupId.IsEmpty()))
         {
             if (bForestPickupReported) return;
-            if (FVector::DistSquared(Target->GetActorLocation(), GetActorLocation()) > FMath::Square(500.0f))
+            if (FVector::DistSquared(Target->GetHarvestInteractionLocation(), GetActorLocation()) > FMath::Square(500.0f))
             {
-                Controller->SetControlRotation((Target->GetActorLocation() + FVector(0, 0, 10) - GetPawnViewLocation()).Rotation());
+                Controller->SetControlRotation((Target->GetHarvestInteractionLocation() + FVector(0, 0, 10) - GetPawnViewLocation()).Rotation());
                 if (++ForestDropRangeRequests > 1 && ForestDropRangeRequests <= 4) RequestInteract();
                 return;
             }
@@ -484,7 +484,7 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
                 ForestPickupBefore = GetInventoryComponent()->GetQuantity(ForestPickupItem);
                 // Aim from the normal boom pivot; the camera lies behind it
                 // along the same ray. Allow its cached viewpoint to update.
-                Controller->SetControlRotation((Target->GetActorLocation() + FVector(0, 0, 10)
+                Controller->SetControlRotation((Target->GetHarvestInteractionLocation() + FVector(0, 0, 10)
                     - (GetActorLocation() + FVector(0, 0, 45))).Rotation());
                 return; // Allow normal control-rotation replication before interacting.
             }
@@ -610,7 +610,7 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
             && Target->CanReceiveAxeAttack() && !Target->IsFelledTrunk() && ForestForgedRequests < 4)
         {
             ForestForgedId = Target->GetPersistentSpawnId();
-            Controller->SetControlRotation((Target->GetActorLocation() + FVector(0, 0, 10) - GetPawnViewLocation()).Rotation());
+            Controller->SetControlRotation((Target->GetHarvestInteractionLocation() + FVector(0, 0, 10) - GetPawnViewLocation()).Rotation());
             // First tick only aims; subsequent ticks send malformed intent over
             // the ordinary owned RPC before any legitimate attack can fell it.
             if (++ForestForgedRequests > 1)

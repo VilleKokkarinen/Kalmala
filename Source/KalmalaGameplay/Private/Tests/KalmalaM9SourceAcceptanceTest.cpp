@@ -447,6 +447,29 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
             Pawn->SetActorLocation(Location);
             TestTrue(TEXT("Broken trunk leaves a world wood drop"), Node->IsWoodDrop());
             TestEqual(TEXT("Breaking a trunk does not automatically grant wood"), Inventory->GetQuantity(Source.ItemId), 0);
+            auto* Bundle = Node->FindComponentByClass<UProceduralMeshComponent>();
+            const float Height = Source.bGeneratedForest ? Node->GetForestDimensionsForVerification().Y : 280.0f;
+            const FVector Anchor = Node->GetActorTransform().TransformPosition(FVector(Height * 0.5f, 0, 0));
+            TestTrue(TEXT("Bundle rests at the settled timber midpoint"),
+                Bundle && Bundle->GetComponentLocation().Equals(Anchor, 0.01f));
+            TestTrue(TEXT("Bundle pickup anchor matches presentation"), Node->GetHarvestInteractionLocation().Equals(Anchor, 0.01f));
+            TestTrue(TEXT("Bundle preserves exact tree root"), Node->GetActorLocation().Equals(Location));
+            TestTrue(TEXT("Bundle removes the old identity-root sphere target"),
+                Node->FindComponentByClass<USphereComponent>()->GetCollisionEnabled() == ECollisionEnabled::NoCollision);
+            Pawn->SetActorLocation(Anchor + Node->GetActorTransform().TransformVector(FVector(180, 0, 88)));
+            TestTrue(TEXT("Bundle pickup works beyond identity-root reach"),
+                FVector::Dist(Pawn->GetActorLocation(), Location) > 250.0f);
+            FCollisionQueryParams BundleQuery(SCENE_QUERY_STAT(KalmalaBundleTarget), true);
+            BundleQuery.AddIgnoredActor(Pawn);
+            FHitResult BundleHit;
+            TestTrue(TEXT("Visibility trace selects the presented collectible bundle"),
+                World->LineTraceSingleByChannel(BundleHit, Anchor + FVector(0, 0, 150),
+                    Anchor - FVector(0, 0, 50), ECC_Visibility, BundleQuery) && BundleHit.GetActor() == Node);
+            TestFalse(TEXT("Visibility trace misses the now-empty tree root"),
+                World->LineTraceSingleByChannel(BundleHit, Location + FVector(0, 0, 150),
+                    Location - FVector(0, 0, 50), ECC_Visibility, BundleQuery) && BundleHit.GetActor() == Node);
+            TestTrue(TEXT("Pawn beside the bundle is physically eligible"), Node->CanInteract_Implementation(Pawn));
+
         }
         TestEqual(TEXT("Damage before pickup never invokes production writer"), ProductionWrites, 0);
         TestEqual(TEXT("Damage before pickup emits no sparse depletion"), SparseCallbacks, 0);
@@ -484,9 +507,9 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
             AssertInvalidPickup(TEXT("Generated drop rejects trace beyond range"), Pawn, 251.0f, 250.0f);
             AssertInvalidPickup(TEXT("Generated drop rejects zero maximum range"), Pawn, 0.0f, 0.0f);
             AssertInvalidPickup(TEXT("Generated drop rejects negative maximum range"), Pawn, 0.0f, -1.0f);
-            Pawn->SetActorLocation(Location + FVector(900.0f, 0.0f, 0.0f));
+            Pawn->SetActorLocation(Node->GetHarvestInteractionLocation() + FVector(900.0f, 0.0f, 0.0f));
             AssertInvalidPickup(TEXT("Generated drop rejects distant pawn despite short trace"), Pawn, 100.0f, 250.0f);
-            Pawn->SetActorLocation(Location);
+            Pawn->SetActorLocation(Node->GetHarvestInteractionLocation() + FVector(0, 130, 88));
             // Nonstackable filler occupies every pack cell without replacing Main Hand.
             const int32 FillerCount = UKalmalaInventoryComponent::MaxSlots
                 - Inventory->CountPackedTools(Pawn->GetCarriedToolInventory());
@@ -545,6 +568,7 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
                 FString::Printf(TEXT("m9-forest-rival-%d"), Index), FName(TEXT("KalmalaM9SourceAcceptanceTest")));
             RivalState->SetUniqueId(FUniqueNetIdRepl(*RivalId));
             Rival->SetPlayerState(RivalState);
+            Rival->SetActorLocation(Node->GetHarvestInteractionLocation() + FVector(0, -130, 88));
             Rival->GetInventoryComponent()->SynchronizeGridFromServer();
             RivalGrid = Rival->GetInventoryComponent()->GetGridInstanceGuids();
             RivalHand = Rival->GetInventoryComponent()->GetMainHandGuid();

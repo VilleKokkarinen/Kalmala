@@ -176,7 +176,7 @@ bool AKalmalaHarvestNode::CanInteract_Implementation(AKalmalaCharacter* Interact
 {
     return (!IsTreeResource() || IsWoodDrop()) && IsValid(Interactor) && Interactor->HasAuthority() && Interactor->GetWorld() == GetWorld()
         && !PersistentSpawnId.IsEmpty()
-        && IsHarvestAllowed(HasAuthority(), bHarvested, Interactor->GetActorLocation(), GetActorLocation());
+        && IsHarvestAllowed(HasAuthority(), bHarvested, Interactor->GetActorLocation(), GetHarvestInteractionLocation());
 }
 
 bool AKalmalaHarvestNode::IsHarvestAllowed(const bool bServerAuthority, const bool bAlreadyHarvested, const FVector& InteractorLocation, const FVector& NodeLocation, const float MaximumDistance)
@@ -405,10 +405,23 @@ FTransform AKalmalaHarvestNode::SampleTreeFallPose(const float Progress, const f
     return FTransform(FQuat(FVector::YAxisVector, Angle), FVector(0, 0, Radius * FMath::Sin(Angle)));
 }
 
+FVector AKalmalaHarvestNode::GetHarvestInteractionLocation() const
+{
+    const float Height = ForestDimensions.Y > 0 ? ForestDimensions.Y : 280.0f;
+    return IsTreeResource() && IsWoodDrop()
+        ? GetActorTransform().TransformPosition(FVector(Height * 0.5f, 0, 0)) : GetActorLocation();
+}
+
 void AKalmalaHarvestNode::UpdateTreePresentationPose()
 {
     if (!SourceMesh) return;
     const float Radius = ForestDimensions.X > 0 ? ForestDimensions.X : 20.0f;
+    if (IsTreeResource() && IsWoodDrop())
+    {
+        const float Height = ForestDimensions.Y > 0 ? ForestDimensions.Y : 280.0f;
+        SourceMesh->SetRelativeTransform(FTransform(FVector(Height * 0.5f, 0, 0)));
+        return;
+    }
     SourceMesh->SetRelativeTransform(IsTreeFalling() || IsFelledTrunk()
         ? SampleTreeFallPose(GetTreeFallProgress(), Radius) : FTransform::Identity);
 }
@@ -472,9 +485,9 @@ void AKalmalaHarvestNode::BuildSourcePresentation()
     SetActorTickEnabled(IsTreeFalling() && !bHarvested);
     UpdateTreePresentationPose();
     SourceMesh->ClearAllMeshSections();
-    // The settled mesh is the target. The identity-root sphere must not leave
-    // an invisible hit target beside or behind the horizontal timber.
-    Collision->SetCollisionEnabled(bHarvested || IsFelledTrunk()
+    // Timber and bundles use their presented mesh as the target. The fixed
+    // identity-root sphere must not leave an invisible target behind them.
+    Collision->SetCollisionEnabled(bHarvested || IsFelledTrunk() || (IsTreeResource() && IsWoodDrop())
         ? ECollisionEnabled::NoCollision : ECollisionEnabled::QueryOnly);
 
     const FName PresentationId = GetGatheringPresentationId();
@@ -550,7 +563,7 @@ void AKalmalaHarvestNode::ApplyHarvestedState()
 {
     SetActorTickEnabled(IsTreeFalling() && !bHarvested);
     SetActorHiddenInGame(bHarvested);
-    Collision->SetCollisionEnabled(bHarvested || IsFelledTrunk()
+    Collision->SetCollisionEnabled(bHarvested || IsFelledTrunk() || (IsTreeResource() && IsWoodDrop())
         ? ECollisionEnabled::NoCollision : ECollisionEnabled::QueryOnly);
     if (SourceMesh)
     {

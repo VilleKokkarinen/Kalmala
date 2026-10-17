@@ -38,6 +38,8 @@ public:
     FName GetGatheringSourceId() const { return GatheringSourceId; }
     FName GetGatheringPresentationId() const;
     FName GetHarvestItemId() const;
+    /** Bundle anchor reconstructed from the same replicated dimensions as its mesh. */
+    FVector GetHarvestInteractionLocation() const;
     bool IsHarvested() const { return bHarvested; }
     bool IsTreeResource() const;
     bool IsFelledTrunk() const { return TreeStage == 1; }

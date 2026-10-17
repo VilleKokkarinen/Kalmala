@@ -13,7 +13,10 @@ full-size horizontal timber with exposed cut faces at the original tree root.
 Presentation preserves the actor transform and persistent identity.
 Settled timber uses its mesh for targeting; server axe reach is measured to that
 timber surface, allowing hits along the log while rejecting distant attackers.
-The old root sphere is disabled during the settled phase.
+The old root sphere is disabled during settled timber and bundle phases. Breaking
+the log leaves the original two-piece bundle at its midpoint on the root plane.
+The visible bundle supplies targeting collision and the server measures physical
+pickup reach from the same reconstructed position.
 
 Accepted pickup grants once and records sparse depletion. Full packs retain the
 live drop and receive the existing private rejection feedback. Collected IDs stay
@@ -24,7 +27,7 @@ owners; isolated checks cover shared patch departure/reactivation and real-slot
 process restart. [Setup evidence and limits](07-development-setup.md#generated-forest-current-acceptance-2026-10-17)
 distinguish those boundaries from final integrated acceptance.
 
-Bundle alignment, rendered manual usability,
+Rendered manual usability,
 final live peer streaming/restart and full tree-feature verification remain pending.
 
 ## Bow and two-handed items — 2026-10-15

@@ -30,12 +30,46 @@ the acceptance gates.
 The server-authored fall/settled transition and focused overlap/condition regression
 are implemented; see the evidence below. Prior peer evidence predates this timing
 change and must be repeated at final feature acceptance. Moving presentation and
-the settled 3D trunk and aligned targeting are now implemented; bundle alignment is next.
+the settled 3D trunk, aligned targeting and midpoint bundle pickup are now implemented.
 Partial health and uncollected Trunk/Drop state reset on regeneration; only accepted
 pickup depletion persists. Final integrated editor build, focused harvest group,
 exact-ID peer/late-join/pickup gates and live streaming/reactivation/restart remain
 required by BACKLOG.md. Full tree-feature/project verification remains deferred;
 the earlier documentation reconciliation itself ran no Unreal build or runtime test.
+
+## Midpoint wood bundle pickup (2026-10-17)
+
+Breaking a settled log places the existing original two-piece bundle at its
+midpoint on the root plane. Only the mesh moves; actor transform and exact ID
+remain fixed. Drop visibility collision uses the mesh, with the identity-root
+sphere disabled. Server physical pickup reach uses the dimension-derived bundle
+anchor; trusted trace distance and all reward, capacity, persistence and duplicate
+guards remain in place. Non-shipping pickup fixtures use the same anchor for
+positioning/aiming; identity observations retain the original root.
+
+Compared all 728 tracked Source/Config/Content files with the existing isolated
+`C:/Users/Ville/AppData/Local/Temp/kmforest` project and copied five run-owned
+sources. With normal per-user UnrealBuildTool access, the Build.bat command in
+the fall-transition section passed 22 actions (`kmforest/bundle-build.log`);
+a strengthened regression then rebuilt in four actions
+(`kmforest/bundle-final-build.log`), both without compiler warnings/errors.
+
+```powershell
+& 'C:/Program Files/Epic Games/UE_5.8/Engine/Binaries/Win64/UnrealEditor-Cmd.exe' C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject -unattended -nop4 -nosplash -nullrhi -NoZenAutoLaunch -DDC=NoZenLocalFallback -stdout -FullStdOutLogOutput '-UserDir=C:/Users/Ville/AppData/Local/Temp/kbundle/user' '-abslog=C:/Users/Ville/AppData/Local/Temp/kbundle/tests.log' '-ExecCmds=Automation RunTests Kalmala.Gameplay.M9.SecondWaveHarvestAcceptance' '-TestExit=Automation Test Queue Empty'
+```
+
+Passed one test, `Result={Success}`, exit 0. Legacy and generated Meadow/Elderwood
+cases verify midpoint placement, fixed root, actual bundle visibility hit,
+empty-root miss and pickup eligibility beyond the old root reach. Generated
+cases additionally exercise invalid/distant requests, exact full-pack rejection,
+accepted pickup and duplicate/rival rejection with one reward/depletion write.
+No automation-controller errors; known pre-test engine diagnostics and
+context-free teardown warnings remain. No runtime repairs were needed.
+This focused normal increment is not final feature acceptance: rendered/manual
+readability, live peer pickup/late join after this placement change, live streaming
+and full tree-feature/project verification remain deferred. No terrain slope
+fitting is added. Next eligible leaf is the integrated editor build and focused
+tree-harvest automation group under final tree-feature acceptance.
 
 ## Settled-log targeting and range (2026-10-17)
 

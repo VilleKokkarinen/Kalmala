@@ -1130,7 +1130,7 @@ void AKalmalaCharacter::ServerRequestInteract_Implementation(const FName ClientI
             const auto InstalledStacks = Inventory->GetStacks();
             const bool bInRange = Hit.Distance <= InteractionRange
                 && AKalmalaHarvestNode::IsHarvestAllowed(true, false,
-                    GetActorLocation(), HarvestNode->GetActorLocation());
+                    GetActorLocation(), HarvestNode->GetHarvestInteractionLocation());
             const int32 Before = Inventory->GetQuantity(ForestPickupItem);
             const bool bAccepted = bInstalled && HarvestNode->InteractWithToolIntentFromServer(
                 this, Hit.Distance, InteractionRange, ClientItemId, ClientAction);
@@ -1153,7 +1153,7 @@ void AKalmalaCharacter::ServerRequestInteract_Implementation(const FName ClientI
                     ForestContender = *Pawn;
                     ForestContenderLocation = Pawn->GetActorLocation();
                     ForestContenderBefore = Pawn->GetInventoryComponent()->GetQuantity(ForestPickupItem);
-                    Pawn->SetActorLocation(HarvestNode->GetActorLocation() + FVector(150, 0, 88));
+                    Pawn->SetActorLocation(HarvestNode->GetHarvestInteractionLocation() + FVector(150, 0, 88));
                     break;
                 }
             }
@@ -1168,7 +1168,7 @@ void AKalmalaCharacter::ServerRequestInteract_Implementation(const FName ClientI
             bForestFullPackRequestClaimed = true;
             const bool bInRange = Hit.Distance <= InteractionRange
                 && AKalmalaHarvestNode::IsHarvestAllowed(true, false,
-                    GetActorLocation(), HarvestNode->GetActorLocation());
+                    GetActorLocation(), HarvestNode->GetHarvestInteractionLocation());
             const int32 CurrentPackSlots = Inventory->GetStacks().Num()
                 + Inventory->CountPackedTools(GetCarriedToolInventory());
             if (CurrentPackSlots != UKalmalaInventoryComponent::MaxSlots || !bInRange)
@@ -1221,7 +1221,7 @@ void AKalmalaCharacter::ServerRequestInteract_Implementation(const FName ClientI
         if (ForestContender)
         {
             const bool bInRange = AKalmalaHarvestNode::IsHarvestAllowed(true, false,
-                ForestContender->GetActorLocation(), HarvestNode->GetActorLocation());
+                ForestContender->GetActorLocation(), HarvestNode->GetHarvestInteractionLocation());
             const bool bContenderAccepted = HarvestNode->InteractWithToolIntentFromServer(
                 ForestContender, 150.0f, InteractionRange, NAME_None, 0);
             const int32 ContenderDelta = ForestContender->GetInventoryComponent()->GetQuantity(ForestPickupItem) - ForestContenderBefore;
