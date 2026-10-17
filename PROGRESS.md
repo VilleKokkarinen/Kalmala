@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-17 — Gate live-drop trace-range rejection
+
+- **Completed:** one bounded slice of the first unchecked generated-forest delivery child. Before collection, ForestPickup calls the real authoritative transaction for the remote pawn with trace distance one centimetre beyond InteractionRange. Requires rejection, unchanged uncollected Drop state and zero remote reward. Authority pickup success requires this probe; runner requires matching seed/tree/item evidence.
+- **Files changed:** Source/KalmalaGameplay/Private/KalmalaForestDeliveryVerification.cpp, Source/KalmalaGameplay/Public/KalmalaCharacter.h, Scripts/Tests/World/Verify-BiomeExpansion.ps1, BACKLOG.md, PROGRESS.md and docs/07-development-setup.md.
+- **Verification:** PowerShell parser and six cases executing the actual pickup selector passed: valid, missing proof, wrong ID, wrong item, nonzero reward and non-live state. Inspected production trace-range rejection and fixture mutation ordering. Working/staged whitespace, scope/diff and MAX_PATH checks performed before commit. No Unreal compilation, live peers or full suite ran; full verification deferred for this normal partial increment.
+- **Impact/authority:** development-only fixture/runner change; production RPCs, range checks, rewards, persistence and schemas unchanged. Prior peer logs cannot satisfy the stricter gate.
+- **Limitations/next:** child remains unchecked. Next compile/execute this gate in the isolated short mirror, then forged/out-of-range peer requests. Server-local trace-range probe does not prove physical-distance rejection or RPC delivery; simultaneous contention and sparse-write counts remain unproven. Only current Kalmala run active in app inventory; prior runs idle, CIM unavailable. Initially clean main checkout used directly; handoff visible without synchronization.
+
+
 ## Autonomous increment 2026-10-17 — Execute second-player depleted pickup
 
 - **Completed:** executed the queued bounded second-collector gate on source 035f714 within the first unchecked generated-forest delivery child. Nine eighteen-tree patches matched, shared exact-ID Trunk/Drop/Collected passed, client/server Lightwood Delta=1 Expected=1 Stable=5, client Requests=3 DepletedRequests=3, and host Delta=0 Requests=3 Stable=5. No repair required; delivery child remains unchecked.

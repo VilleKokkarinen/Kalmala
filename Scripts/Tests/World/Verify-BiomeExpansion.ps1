@@ -76,6 +76,7 @@ if ($ForestDeliveryOnly) {
                     $delta = $_.Groups[3].Value
                     $expected = $_.Groups[4].Value
                     $_.Groups[3].Value -eq $_.Groups[4].Value -and $sharedStages -contains $id -and
+                    $hostText.Contains("Forest range rejection: Passed=1 Authority=1 Seed=10323456789 Id=$id Item=$item Delta=0 LiveDrop=1") -and
                     $hostText.Contains("Forest second collector: Passed=1 Authority=1 Seed=10323456789 Id=$id Item=$item Delta=0 Requests=3 Stable=5") -and
                     $hostText.Contains("Forest pickup authority: Passed=1 Authority=1 Seed=10323456789 Id=$id Item=$item Delta=$delta Expected=$expected Stable=5") -and
                     $hostText.Contains("Forest depletion delivery: Passed=1 Authority=1 Seed=10323456789 Id=$id Collected=1") -and

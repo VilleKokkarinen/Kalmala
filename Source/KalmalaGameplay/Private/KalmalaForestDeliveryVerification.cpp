@@ -132,6 +132,22 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
                     *ForestPickupId, Delta, ForestPickupExpected);
                 return;
             }
+            // Probe a live drop before collection, so depletion cannot mask a
+            // missing trace-range guard. No fixture reward or state is injected.
+            if (Pickup && Pickup->IsWoodDrop() && !Pickup->IsHarvested() && !bForestPickupRangeChecked)
+            {
+                const bool bAccepted = Pickup->InteractWithToolIntentFromServer(Remote,
+                    InteractionRange + 1.0f, InteractionRange, NAME_None, 0);
+                const int32 After = Remote->GetInventoryComponent()->GetQuantity(ForestPickupItem) - ForestPickupBefore;
+                if (bAccepted || Pickup->IsHarvested() || !Pickup->IsWoodDrop() || After != 0)
+                {
+                    UE_LOG(LogTemp, Error, TEXT("Forest delivery: Passed=0 OutOfRangePickup Id=%s Delta=%d"), *ForestPickupId, After);
+                    return;
+                }
+                bForestPickupRangeChecked = true;
+                UE_LOG(LogTemp, Display, TEXT("Forest range rejection: Passed=1 Authority=1 Seed=%llu Id=%s Item=%s Delta=0 LiveDrop=1"),
+                    Config.WorldSeed, *ForestPickupId, *ForestPickupItem.ToString());
+            }
             // A second authoritative player cannot collect the client's depleted
             // exact-ID drop. Keep the real transaction/range checks in the path.
             if (Pickup && Pickup->IsHarvested() && Delta == ForestPickupExpected && ForestPickupHostRequests < 3)
@@ -155,7 +171,7 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
             }
             if (Pickup && Pickup->IsHarvested() && Delta == ForestPickupExpected && ForestPickupHostRequests == 3) ++ForestPickupStableTicks;
             else ForestPickupStableTicks = 0;
-            if (ForestPickupStableTicks >= 5 && !bForestPickupReported)
+            if (ForestPickupStableTicks >= 5 && bForestPickupRangeChecked && !bForestPickupReported)
             {
                 bForestPickupReported = true;
                 UE_LOG(LogTemp, Display, TEXT("Forest second collector: Passed=1 Authority=1 Seed=%llu Id=%s Item=%s Delta=0 Requests=3 Stable=5"),

@@ -140,6 +140,7 @@ private:
     int32 ForestPickupDepletedRequests = 0;
     int32 ForestPickupStableTicks = 0;
     bool bForestPickupReported = false;
+    bool bForestPickupRangeChecked = false;
     bool bConstructionMovementSpawned = false;
     bool bConstructionMovementFinished = false;
     float ConstructionMovementElapsed = 0.0f;
