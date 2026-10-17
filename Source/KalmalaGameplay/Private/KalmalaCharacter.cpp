@@ -1018,11 +1018,15 @@ void AKalmalaCharacter::ServerRequestInteract_Implementation(const FName ClientI
             if (ForestForgedId != HarvestNode->GetPersistentSpawnId()
                 || !bForestSelection || bHarvestAccepted || !bStandingBefore || !HarvestNode->CanReceiveAxeAttack() || HarvestNode->IsFelledTrunk()
                 || HarvestNode->IsWoodDrop() || HarvestNode->IsHarvested() || Delta != 0)
+            {
                 UE_LOG(LogTemp, Error, TEXT("Forest delivery: Passed=0 ForgedIntent Id=%s Delta=%d"),
                     *HarvestNode->GetPersistentSpawnId(), Delta);
+            }
             else
+            {
                 UE_LOG(LogTemp, Display, TEXT("Forest forged rejection: Passed=1 Authority=1 Id=%s Item=ForestForgedItem Action=255 Delta=0 Standing=1 Requests=%d"),
                     *HarvestNode->GetPersistentSpawnId(), ForestForgedRequests);
+            }
         }
 #endif
         return;
