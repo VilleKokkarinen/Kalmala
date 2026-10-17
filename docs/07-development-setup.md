@@ -3616,3 +3616,13 @@ logs plus synthetic write proof passed; compilation/live execution remain pendin
 Next compile the changed GameMode in the short isolated mirror with normal UBT
 access, then run `Scripts/Tests/World/Verify-BiomeExpansion.ps1 -ForestDeliveryOnly -ForestStages -ForestPickup -Project C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject`.
 Full feature verification and the delivery child remain open.
+### Forest sparse-write isolation (2026-10-17)
+
+ForestPickup counts every `Forest sparse write:` host marker in this isolated
+single-tree scenario, requiring exactly one and the existing exact-ID/seed
+successful-write proof. Foreign tree/seed writes, failed extra writes and malformed
+extra markers now fail even when target proof is valid. Nine actual-selector cases
+passed against retained peer logs plus synthetic write records. PowerShell parsing
+passed; compilation/live execution and full feature verification remain deferred.
+Rebuild the short mirror and execute the ForestPickup command above next. This
+bounded log check does not establish reload durability or exclude later writes.

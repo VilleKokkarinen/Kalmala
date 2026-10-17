@@ -1,5 +1,13 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-17 — Isolate forest sparse-write evidence
+
+- **Completed:** one bounded increment of the first unchecked generated-forest delivery child. ForestPickup now counts every host sparse-write marker, requiring exactly one plus the existing exact-ID/seed success proof. Extra writes for other trees/seeds and malformed records fail acceptance. Child remains unchecked.
+- **Files changed:** Scripts/Tests/World/Verify-BiomeExpansion.ps1, BACKLOG.md, PROGRESS.md and docs/07-development-setup.md.
+- **Lightweight verification:** PowerShell parser and nine cases executing the actual pickup selector against retained kfpeer-80a215d5 peer logs plus synthetic write evidence passed: valid accepted; missing, duplicate, foreign ID, foreign seed, failed other write, malformed extra, failed target and wrong target rejected. Initial test harness used sandbox TEMP and then an incorrectly grouped case array; corrected both before the successful checks. No Unreal build/live peers/full suite ran; full verification deferred. Whitespace, staged scope/diff and MAX_PATH checked before commit.
+- **Impact/authority:** acceptance selector only; production authority, RPCs, rewards, persistence and schemas unchanged. Only current Kalmala chat active; CIM unavailable. Initially clean main checkout; no handoff synchronization required.
+- **Limitations/next:** synthetic log cases establish selector behavior only. Compile/execute stricter ForestPickup in the short mirror; reload durability, independent physical-distance RPC rejection, contention, ordinary camera and streaming/restart remain open. Normal partial increment, not milestone-final.
+
 ## Autonomous increment 2026-10-17 — Gate forest sparse-save writes
 
 - **Completed:** bounded slice of the first unchecked generated-forest host/client delivery child: opt-in observation of the real population SaveGameToSlot result; runner requires exactly one successful write for the collected exact ID/seed. Development writer override returns before logging and cannot supply this proof. Child remains unchecked.

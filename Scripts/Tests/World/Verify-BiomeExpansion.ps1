@@ -83,7 +83,10 @@ if ($ForestDeliveryOnly) {
                     $hostText.Contains("Forest remote drop range stability: Passed=1 Authority=1 Seed=10323456789 Id=$id Item=$item Delta=0 LiveDrop=1 Requests=3 Stable=5") -and
                     $hostText.Contains("Forest range rejection: Passed=1 Authority=1 Seed=10323456789 Id=$id Item=$item Delta=0 LiveDrop=1") -and
                     $hostText.Contains("Forest physical rejection: Passed=1 Authority=1 Seed=10323456789 Id=$id Item=$item Delta=0 LiveDrop=1 ForgedTrace=0") -and
-                    @([regex]::Matches($hostText, "Forest sparse write: Authority=1 Seed=10323456789 Id=$([regex]::Escape($id)) Success=[01](?![0-9])")).Count -eq 1 -and
+                    # Only one tree is collected in this isolated scenario. Count
+                    # every write marker so a foreign-ID/seed or malformed extra
+                    # record cannot hide behind the exact-target success proof.
+                    @([regex]::Matches($hostText, 'Forest sparse write:')).Count -eq 1 -and
                     $hostText.Contains("Forest sparse write: Authority=1 Seed=10323456789 Id=$id Success=1") -and
                     $hostText.Contains("Forest second collector: Passed=1 Authority=1 Seed=10323456789 Id=$id Item=$item Delta=0 Requests=3 Stable=5") -and
                     $hostText.Contains("Forest pickup authority: Passed=1 Authority=1 Seed=10323456789 Id=$id Item=$item Delta=$delta Expected=$expected Stable=5") -and
