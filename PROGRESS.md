@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-17 — Gate forged-request tree health stability
+
+- **Completed:** strengthened the first unchecked generated-forest host/client delivery child with authoritative health stability around each malformed remote interaction. The runner requires new third-request health evidence for the exact tree later collected; child remains unchecked.
+- **Files changed:** Source/KalmalaGameplay/Private/KalmalaCharacter.cpp, Scripts/Tests/World/Verify-BiomeExpansion.ps1, BACKLOG.md, PROGRESS.md and docs/07-development-setup.md.
+- **Verification:** PowerShell parser and seven cases executing the actual pickup selector passed: valid, old evidence, health changed, insufficient requests, wrong tree, reward gained and non-standing state. Retained peer logs supplied the baseline; synthetic health evidence tests only the selector. Inspected finite/positive health guard, snapshot-before-transaction order and exact post-transaction comparison. Whitespace, staged scope/diff and MAX_PATH checked before commit. No Unreal build, live peers or full suite; full verification deferred. Normal partial increment, not milestone-final.
+- **Impact/authority:** non-shipping acceptance instrumentation only; production validation, server authority, RPCs, rewards and persistence unchanged. Existing character friendship permits read-only health inspection without exposing a new API.
+- **Limitations/next:** per-request synchronous health stability does not prove delayed mutation absence. Compile/execute this stricter gate in the short isolated mirror, then remote out-of-range requests. Simultaneous contention, sparse-write counts, default camera, rendering/streaming/restart remain pending. Only current Kalmala chat active at guard; prior chats idle, CIM unavailable. Initially clean main checkout used directly; no handoff synchronization required.
+
+
 ## Autonomous increment 2026-10-17 — Execute forged remote forest rejection
 
 - **Completed:** executed the queued forged remote-intent ForestPickup gate on source 51db7be plus a task-scoped compile repair. Explicit braces around UE_LOG branches fix C2181 (illegal else) in the non-shipping RPC fixture. Delivery child remains unchecked.

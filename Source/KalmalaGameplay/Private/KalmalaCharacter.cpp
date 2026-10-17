@@ -1003,6 +1003,7 @@ void AKalmalaCharacter::ServerRequestInteract_Implementation(const FName ClientI
             && !IsLocallyControlled() && ClientItemId == TEXT("ForestForgedItem") && ClientAction == 255
             && HarvestNode->GetPersistentSpawnId().StartsWith(TEXT("forest:v1:"));
         const bool bStandingBefore = HarvestNode->CanReceiveAxeAttack() && !HarvestNode->IsFelledTrunk();
+        const float ForestHealthBefore = HarvestNode->TreeHealth;
         FKalmalaToolServerSelection ForestSelection;
         const bool bForestSelection = bForestForgedProbe
             && FKalmalaToolLifecycleContract::BuildServerSelection(HarvestNode->GetGatheringSourceId(), ForestSelection);
@@ -1017,14 +1018,16 @@ void AKalmalaCharacter::ServerRequestInteract_Implementation(const FName ClientI
             const int32 Delta = bForestSelection ? Inventory->GetQuantity(ForestSelection.RewardItemId) - WoodBefore : 0;
             if (ForestForgedId != HarvestNode->GetPersistentSpawnId()
                 || !bForestSelection || bHarvestAccepted || !bStandingBefore || !HarvestNode->CanReceiveAxeAttack() || HarvestNode->IsFelledTrunk()
-                || HarvestNode->IsWoodDrop() || HarvestNode->IsHarvested() || Delta != 0)
+                || HarvestNode->IsWoodDrop() || HarvestNode->IsHarvested() || Delta != 0
+                || !FMath::IsFinite(ForestHealthBefore) || ForestHealthBefore <= 0.0f
+                || HarvestNode->TreeHealth != ForestHealthBefore)
             {
                 UE_LOG(LogTemp, Error, TEXT("Forest delivery: Passed=0 ForgedIntent Id=%s Delta=%d"),
                     *HarvestNode->GetPersistentSpawnId(), Delta);
             }
             else
             {
-                UE_LOG(LogTemp, Display, TEXT("Forest forged rejection: Passed=1 Authority=1 Id=%s Item=ForestForgedItem Action=255 Delta=0 Standing=1 Requests=%d"),
+                UE_LOG(LogTemp, Display, TEXT("Forest forged rejection: Passed=1 Authority=1 Id=%s Item=ForestForgedItem Action=255 Delta=0 Standing=1 Requests=%d HealthUnchanged=1"),
                     *HarvestNode->GetPersistentSpawnId(), ForestForgedRequests);
             }
         }
