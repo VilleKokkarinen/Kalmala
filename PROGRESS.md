@@ -1,5 +1,16 @@
 # Autonomous development progress
 
+## Backlog refinement 2026-10-17 — Clarify tree-harvesting steps
+
+- **Completed:** removed the dated micro-increment diary from the tree-harvesting backlog block. Kept completed forest materialization, sparse pickup persistence, focused regressions and actual save-slot reload as concise checked work, then grouped the remaining work into peer delivery, peer streaming/restart, documentation closeout, moving fall/log interaction and final acceptance.
+- **Files changed:** BACKLOG.md and PROGRESS.md.
+- **Checks:** compared the revised steps with the attack-tree contract in docs/02-technical-architecture.md, the implementation and limitations in docs/07-development-setup.md, and existing execution records. No runtime tests or builds were run. Full tree-feature verification remains deferred.
+- **Impact and authority:** planning record only; gameplay, network authority, persistence behavior and save formats did not change.
+- **Known limitations:** the latest physical-distance fixture is not compiled or live-run. Host/client acceptance, peer streaming and process-restart acceptance remain open. Moving fall/log presentation is not implemented.
+- **Next eligible task:** build current sources and execute the generated-forest host/client delivery acceptance, starting with the physical-distance rejection gate.
+
+---
+
 ## Autonomous increment 2026-10-17 — Probe remote forest physical distance
 
 - **Completed:** bounded slice of the first unchecked generated-forest delivery child. Each distant live-drop RPC observation calls the real interaction method with a trusted zero-length fixture trace; require rejection, zero reward and unchanged live drop before counting the three requests. Runner requires exact tree/item proof ending at Requests=3. Existing five-tick stability hold follows. Child remains unchecked.
