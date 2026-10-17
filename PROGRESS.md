@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-17 — Execute forest replacement cardinality
+
+- **Completed:** executed the queued distinct-ID acceptance on source 0517525 within the first unchecked generated-forest host/client delivery child. All 727 runtime mirror files matched; reused compiled modules without a build. No repairs; child remains unchecked.
+- **Files changed:** BACKLOG.md, PROGRESS.md and docs/07-development-setup.md (execution evidence only).
+- **Verification:** `Scripts/Tests/World/Verify-BiomeExpansion.ps1 -ForestDeliveryOnly -ForestStages -ForestPickup -Project C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject` passed exit 0. Fresh logs C:/Users/Ville/AppData/Local/Temp/kfpeer-7c2040e6/{host,client}.log prove nine matching eighteen-tree patches with 162 distinct seed-scoped IDs; replacement-bound Trunk/Drop/Collected; host/client Lightwood Delta=1 Expected=1 Stable=5; client Requests=3 DepletedRequests=3; second collector Delta=0 Requests=3 Stable=5; exactly one successful host sparse write and no client write. Existing forged/range/stability gates passed. Zero fatal/assertion/ensure/fixture failure markers; no UnrealEditor remained. PowerShell parser passed; whitespace, staged scope/diff and MAX_PATH inspected before commit. No build/full suite; full feature/project verification deferred. Normal partial increment, not milestone-final.
+- **Impact/authority:** the distinct replacement identity gate now has fresh live peer evidence. No production gameplay, authority, RPC, reward, persistence or schema changes. Protected repository output directories untouched.
+- **Concurrency/handoff:** only current Kalmala chat active; CIM unavailable. Initially clean main checkout used directly; no handoff synchronization required.
+- **Limitations/next:** same delivery child remains open for independent physical-distance RPC rejection, simultaneous contention and ordinary-camera acceptance. Streaming/restart and reload durability remain subsequent work.
+
 ## Autonomous increment 2026-10-17 — Validate forest replacement cardinality
 
 - **Completed:** bounded increment within the first unchecked generated-forest host/client delivery child. Matched replacement reports must contain eighteen distinct forest IDs in the authoritative seed namespace, with 162 distinct IDs across nine patches. A claimed Trees=18 cannot hide missing/duplicate sources or overlap across reports. Child remains unchecked.
