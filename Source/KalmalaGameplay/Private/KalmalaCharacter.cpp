@@ -1011,6 +1011,9 @@ void AKalmalaCharacter::ServerRequestInteract_Implementation(const FName ClientI
     FHitResult Hit;
     const bool bInteractionHit = TraceInteractionCandidate(this, ViewLocation, ViewRotation, InteractionRange, Hit);
 #if !UE_BUILD_SHIPPING
+    bool bForestFullPackOrdinaryProbe = false;
+#endif
+#if !UE_BUILD_SHIPPING
     if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestPickup"))
         && !IsLocallyControlled() && bForestDropRangeStarted && ForestDropRangeRequests < 3
         && ClientItemId.IsNone() && ClientAction == 0)
@@ -1109,6 +1112,7 @@ void AKalmalaCharacter::ServerRequestInteract_Implementation(const FName ClientI
         int32 ForestContenderBefore = 0;
         if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestPickup"))
             && !FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestContention"))
+            && !FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestFullPack"))
             && !IsLocallyControlled() && ClientItemId.IsNone() && ClientAction == 0
             && HarvestNode->GetPersistentSpawnId() == ForestRemoteRangeId
             && HarvestNode->IsWoodDrop() && !HarvestNode->IsHarvested())
@@ -1154,9 +1158,66 @@ void AKalmalaCharacter::ServerRequestInteract_Implementation(const FName ClientI
                 }
             }
         }
+
+        if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestFullPack"))
+            && !IsLocallyControlled() && bForestFullPackPrepared && !bForestFullPackRequestClaimed
+            && ClientItemId.IsNone() && ClientAction == 0
+            && HarvestNode->GetPersistentSpawnId() == ForestRemoteRangeId
+            && HarvestNode->IsWoodDrop() && !HarvestNode->IsHarvested())
+        {
+            bForestFullPackRequestClaimed = true;
+            const bool bInRange = Hit.Distance <= InteractionRange
+                && AKalmalaHarvestNode::IsHarvestAllowed(true, false,
+                    GetActorLocation(), HarvestNode->GetActorLocation());
+            const int32 CurrentPackSlots = Inventory->GetStacks().Num()
+                + Inventory->CountPackedTools(GetCarriedToolInventory());
+            if (CurrentPackSlots != UKalmalaInventoryComponent::MaxSlots || !bInRange)
+            {
+                const bool bRestored = Inventory->TryCommitStacksFromServer(
+                    ForestFullPackInstalledStacks, ForestFullPackOriginalStacks);
+                bForestFullPackPrepared = false;
+                bForestFullPackRequestProcessed = true;
+                UE_LOG(LogTemp, Error,
+                    TEXT("Forest delivery: Passed=0 OrdinaryFullPackPrerequisite Id=%s Slots=%d InRange=%d Restored=%d"),
+                    *HarvestNode->GetPersistentSpawnId(), CurrentPackSlots, bInRange, bRestored);
+                return;
+            }
+            bForestFullPackOrdinaryProbe = true;
+        }
 #endif
         [[maybe_unused]] const bool bHarvestAccepted = HarvestNode->InteractWithToolIntentFromServer(this, Hit.Distance, InteractionRange, ClientItemId, ClientAction);
 #if !UE_BUILD_SHIPPING
+        if (bForestFullPackOrdinaryProbe)
+        {
+            const int32 Delta = Inventory->GetQuantity(ForestPickupItem) - ForestFullPackExpectedBefore;
+            const bool bLiveDrop = HarvestNode->IsWoodDrop() && !HarvestNode->IsHarvested();
+            const bool bFeedback = Crafting && Crafting->GetResultSerial() != ForestFullPackServerResultSerialBefore
+                && !Crafting->WasLastResultAccepted() && Crafting->GetLastResult() == TEXT("Inventory is full");
+            const bool bRestored = Inventory->TryCommitStacksFromServer(
+                ForestFullPackInstalledStacks, ForestFullPackOriginalStacks);
+            bForestFullPackPrepared = false;
+            bForestFullPackRequestProcessed = true;
+            if (!bRestored || bHarvestAccepted || Delta != 0 || !bLiveDrop || !bFeedback)
+            {
+                UE_LOG(LogTemp, Error,
+                    TEXT("Forest delivery: Passed=0 OrdinaryFullPack Id=%s Accepted=%d Delta=%d LiveDrop=%d Restored=%d Feedback=%d"),
+                    *HarvestNode->GetPersistentSpawnId(), bHarvestAccepted, Delta, bLiveDrop, bRestored, bFeedback);
+                return;
+            }
+            const auto* WorldState = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
+            if (!WorldState)
+            {
+                UE_LOG(LogTemp, Error, TEXT("Forest delivery: Passed=0 OrdinaryFullPackWorldState Id=%s"),
+                    *HarvestNode->GetPersistentSpawnId());
+                return;
+            }
+            UE_LOG(LogTemp, Display,
+                TEXT("Forest ordinary full pack rejection: Passed=1 Authority=1 Seed=%llu Id=%s Item=%s Delta=0 LiveDrop=1 InRange=1 Slots=40 Restored=1 Feedback=1"),
+                WorldState->GetWorldGenerationConfig().WorldSeed,
+                *HarvestNode->GetPersistentSpawnId(), *ForestPickupItem.ToString());
+            ForestFullPackOriginalStacks.Reset();
+            ForestFullPackInstalledStacks.Reset();
+        }
         if (ForestContender)
         {
             const bool bInRange = AKalmalaHarvestNode::IsHarvestAllowed(true, false,
@@ -1375,8 +1436,19 @@ bool AKalmalaCharacter::CommitToolHarvestFromServer(AKalmalaHarvestNode* Node, c
     TArray<FKalmalaInventoryStack> CandidateInventory;
     FString Reason;
     const TArray<FKalmalaInventoryStack> ExistingInventory = Inventory->GetStacks();
-    if (!UKalmalaInventoryComponent::BuildGrant(ExistingInventory, RewardItemId, RewardQuantity, CandidateInventory, Reason)
-        || !Inventory->TryCommitStacksFromServer(ExistingInventory, CandidateInventory)) return false;
+    if (!UKalmalaInventoryComponent::BuildGrant(ExistingInventory, RewardItemId, RewardQuantity, CandidateInventory, Reason))
+    {
+        if (Node->IsWoodDrop() && Reason == TEXT("Pack output capacity reached") && Crafting)
+            Crafting->PublishInteractionResultFromServer(TEXT("Inventory is full"), false);
+        return false;
+    }
+    if (!Inventory->CanFitContents(CandidateInventory, Inventory->CountPackedTools(CarriedTools)))
+    {
+        if (Node->IsWoodDrop() && Crafting)
+            Crafting->PublishInteractionResultFromServer(TEXT("Inventory is full"), false);
+        return false;
+    }
+    if (!Inventory->TryCommitStacksFromServer(ExistingInventory, CandidateInventory)) return false;
 
     *CurrentDurability = CandidateToolState.Durability;
     AKalmalaGameMode* GameMode = GetWorld() != nullptr

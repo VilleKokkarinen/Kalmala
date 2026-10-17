@@ -7,6 +7,7 @@
 
 #include "Components/SphereComponent.h"
 #include "KalmalaCharacter.h"
+#include "KalmalaCraftingComponent.h"
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaM9SourceLootContract.h"
 #include "Materials/MaterialInterface.h"
@@ -213,8 +214,25 @@ void AKalmalaHarvestNode::Interact_Implementation(AKalmalaCharacter* Interactor)
         const TArray<FKalmalaInventoryStack> Before = Inventory->GetStacks();
         TArray<FKalmalaInventoryStack> After;
         FString Reason;
-        if (!UKalmalaInventoryComponent::BuildGrant(Before, Selection.RewardItemId, Selection.RewardQuantity, After, Reason)
-            || !Inventory->TryCommitStacksFromServer(Before, After)) return;
+        if (!UKalmalaInventoryComponent::BuildGrant(Before, Selection.RewardItemId, Selection.RewardQuantity, After, Reason))
+        {
+            if (IsWoodDrop() && Reason == TEXT("Pack output capacity reached"))
+            {
+                if (UKalmalaCraftingComponent* Crafting = Interactor->FindComponentByClass<UKalmalaCraftingComponent>())
+                    Crafting->PublishInteractionResultFromServer(TEXT("Inventory is full"), false);
+            }
+            return;
+        }
+        if (!Inventory->CanFitContents(After, Inventory->CountPackedTools(Interactor->GetCarriedToolInventory())))
+        {
+            if (IsWoodDrop())
+            {
+                if (UKalmalaCraftingComponent* Crafting = Interactor->FindComponentByClass<UKalmalaCraftingComponent>())
+                    Crafting->PublishInteractionResultFromServer(TEXT("Inventory is full"), false);
+            }
+            return;
+        }
+        if (!Inventory->TryCommitStacksFromServer(Before, After)) return;
         if (!GameMode->PersistPlayerStateFromServer(Interactor))
         {
             Inventory->TryCommitStacksFromServer(After, Before);

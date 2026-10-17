@@ -1,4 +1,5 @@
 #include "KalmalaCharacter.h"
+#include "KalmalaCraftingComponent.h"
 #include "KalmalaInventoryComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
@@ -248,6 +249,36 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
                 UE_LOG(LogTemp, Display, TEXT("Forest contention armed: Authority=1 Id=%s Due=%.0f Live=1"), *ForestPickupId, ForestContentionDue);
                 return;
             }
+            if (bForestDropRangeReturned && Pickup && Pickup->IsWoodDrop() && !Pickup->IsHarvested()
+                && FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestFullPack"))
+                && !Remote->bForestFullPackPrepared && !Remote->bForestFullPackRequestProcessed)
+            {
+                auto* RemoteInventory = Remote->GetInventoryComponent();
+                if (!RemoteInventory) return;
+                Remote->ForestFullPackOriginalStacks = RemoteInventory->GetStacks();
+                const int32 PackedTools = RemoteInventory->CountPackedTools(Remote->GetCarriedToolInventory());
+                TArray<FKalmalaInventoryStack> FullPack;
+                for (int32 Cell = PackedTools; Cell < UKalmalaInventoryComponent::MaxSlots; ++Cell)
+                    FullPack.Add({TEXT("String"), 1});
+                if (ForestPickupItem == TEXT("String")
+                    || !RemoteInventory->TryCommitStacksFromServer(Remote->ForestFullPackOriginalStacks, FullPack))
+                {
+                    Remote->ForestFullPackOriginalStacks.Reset();
+                    UE_LOG(LogTemp, Error, TEXT("Forest delivery: Passed=0 OrdinaryFullPackInstall Id=%s"), *ForestPickupId);
+                    return;
+                }
+                Remote->ForestFullPackInstalledStacks = RemoteInventory->GetStacks();
+                Remote->ForestFullPackExpectedBefore = RemoteInventory->GetQuantity(ForestPickupItem);
+                Remote->ForestFullPackServerResultSerialBefore = Remote->Crafting
+                    ? Remote->Crafting->GetResultSerial() : 0;
+                Remote->bForestFullPackPrepared = true;
+                Remote->ForceNetUpdate();
+                UE_LOG(LogTemp, Display,
+                    TEXT("Forest ordinary full pack prepared: Authority=1 Seed=%llu Id=%s Item=%s Slots=%d"),
+                    Config.WorldSeed, *ForestPickupId, *ForestPickupItem.ToString(),
+                    RemoteInventory->GetStacks().Num() + RemoteInventory->CountPackedTools(Remote->GetCarriedToolInventory()));
+                return;
+            }
             const int32 Delta = Remote->GetInventoryComponent()->GetQuantity(ForestPickupItem) - ForestPickupBefore;
             if (Delta > ForestPickupExpected)
             {
@@ -471,6 +502,70 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
                 }
                 UE_LOG(LogTemp, Display, TEXT("Forest local pickup target: Passed=1 Authority=0 Seed=%llu Id=%s Item=%s LiveDrop=1 ExactTrace=1 OrdinaryCamera=1"),
                     Config.WorldSeed, *ForestPickupId, *ForestPickupItem.ToString());
+            }
+            if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestFullPack")))
+            {
+                if (!bForestFullPackRequestSent)
+                {
+                    const int32 CurrentPackSlots = Inventory->GetStacks().Num()
+                        + Inventory->CountPackedTools(GetCarriedToolInventory());
+                    if (CurrentPackSlots != UKalmalaInventoryComponent::MaxSlots)
+                    {
+                        if (++ForestFullPackWaitTicks >= 30)
+                        {
+                            bForestPickupReported = true;
+                            UE_LOG(LogTemp, Error,
+                                TEXT("Forest delivery: Passed=0 OrdinaryFullPackReplication Id=%s Slots=%d"),
+                                *ForestPickupId, CurrentPackSlots);
+                        }
+                        return;
+                    }
+                    if (!Crafting)
+                    {
+                        bForestPickupReported = true;
+                        UE_LOG(LogTemp, Error, TEXT("Forest delivery: Passed=0 OrdinaryFullPackCrafting Id=%s"), *ForestPickupId);
+                        return;
+                    }
+                    bForestFullPackRequestSent = true;
+                    ForestFullPackLocalResultSerialBefore = Crafting->GetResultSerial();
+                    UE_LOG(LogTemp, Display,
+                        TEXT("Forest ordinary full pack request: Passed=1 Authority=0 Seed=%llu Id=%s Item=%s Slots=40 LiveDrop=1 ExactTrace=1"),
+                        Config.WorldSeed, *ForestPickupId, *ForestPickupItem.ToString());
+                    RequestInteract();
+                    return;
+                }
+                if (!bForestFullPackFeedbackReported)
+                {
+                    if (!Crafting || Crafting->GetResultSerial() == ForestFullPackLocalResultSerialBefore)
+                    {
+                        if (++ForestFullPackWaitTicks >= 30)
+                        {
+                            bForestPickupReported = true;
+                            UE_LOG(LogTemp, Error,
+                                TEXT("Forest delivery: Passed=0 OrdinaryFullPackFeedbackTimeout Id=%s"), *ForestPickupId);
+                        }
+                        return;
+                    }
+                    const int32 Delta = Inventory->GetQuantity(ForestPickupItem) - ForestPickupBefore;
+                    if (Crafting->WasLastResultAccepted() || Crafting->GetLastResult() != TEXT("Inventory is full")
+                        || Delta != 0 || !Target->IsWoodDrop() || Target->IsHarvested())
+                    {
+                        bForestPickupReported = true;
+                        UE_LOG(LogTemp, Error,
+                            TEXT("Forest delivery: Passed=0 OrdinaryFullPackFeedback Id=%s Accepted=%d Result=%s Delta=%d LiveDrop=%d"),
+                            *ForestPickupId, Crafting->WasLastResultAccepted(), *Crafting->GetLastResult(), Delta,
+                            Target->IsWoodDrop() && !Target->IsHarvested());
+                        return;
+                    }
+                    bForestFullPackFeedbackReported = true;
+                    UE_LOG(LogTemp, Display,
+                        TEXT("Forest owner full pack feedback: Passed=1 Authority=0 Seed=%llu Id=%s Item=%s Accepted=0 Result=InventoryIsFull Serial=%u"),
+                        Config.WorldSeed, *ForestPickupId, *ForestPickupItem.ToString(), Crafting->GetResultSerial());
+                    ForestPickupTicks = 0;
+                    return;
+                }
+                if (Inventory->GetStacks().Num() + Inventory->CountPackedTools(GetCarriedToolInventory())
+                    == UKalmalaInventoryComponent::MaxSlots) return;
             }
             if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestContention")))
             {

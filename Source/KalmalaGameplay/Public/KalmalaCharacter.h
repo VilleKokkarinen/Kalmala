@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "KalmalaInventoryComponent.h"
 #include "KalmalaToolLifecycleContract.h"
 #include "KalmalaCharacter.generated.h"
 
@@ -157,6 +158,17 @@ private:
     int32 ForestPickupStableTicks = 0;
     bool bForestPickupReported = false;
     bool bForestPickupRangeChecked = false;
+    bool bForestFullPackPrepared = false;
+    bool bForestFullPackRequestClaimed = false;
+    bool bForestFullPackRequestProcessed = false;
+    bool bForestFullPackRequestSent = false;
+    bool bForestFullPackFeedbackReported = false;
+    int32 ForestFullPackWaitTicks = 0;
+    int32 ForestFullPackExpectedBefore = 0;
+    uint32 ForestFullPackServerResultSerialBefore = 0;
+    uint32 ForestFullPackLocalResultSerialBefore = 0;
+    TArray<FKalmalaInventoryStack> ForestFullPackOriginalStacks;
+    TArray<FKalmalaInventoryStack> ForestFullPackInstalledStacks;
     bool bConstructionMovementSpawned = false;
     bool bConstructionMovementFinished = false;
     float ConstructionMovementElapsed = 0.0f;

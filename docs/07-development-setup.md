@@ -3821,3 +3821,31 @@ passed: valid plus missing readiness/receipts, double reward, extra host/client
 writes, late dispatch, wrong ID and failed result. No fatal/assertion/ensure or
 forest-failure markers. Focused acceptance only; full tree-feature/project
 verification remains deferred.
+
+### Generated-forest ordinary full-pack rejection accepted (2026-10-17)
+
+Run `Scripts/Tests/World/Verify-BiomeExpansion.ps1 -ForestDeliveryOnly -ForestStages -ForestPickup -ForestFullPack -Project C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject`.
+The remote owner fills all 40 pack slots (34 material rows and six packed tools)
+with nonmatching stacks, traces the exact live generated wood drop through the
+ordinary camera, and issues one normal `RequestInteract`. The server rejects
+the output after accounting for packed-tool slots, keeps the drop live and
+publishes the existing owner-only `Inventory is full` result. The client
+observes that result serial and the existing `InteractionRejectedCue` submission,
+then the fixture restores the exact prior inventory and completes the normal
+one-reward pickup. This mode excludes the older synthetic same-dispatch probe;
+the runner does not require that separate marker here.
+
+Compared all 727 tracked Source/Config/Content mirror files; all matched. The
+isolated editor build passed five actions with normal UBT access using
+`Build.bat KalmalaEditor Win64 Development -Project=C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject -WaitMutex -NoHotReload -MaxParallelActions=4`.
+Build log: C:/Users/Ville/AppData/Local/Temp/kmforest/full-pack-build.log.
+The command above passed exit 0; the PowerShell parser passed. Final peer logs:
+C:/Users/Ville/AppData/Local/Temp/kfpeer-e7d1f2c5/host.log and client.log.
+Exact ID: forest:v1:10323456789:31079.1015625:5132.20068359375:13. The owner
+result matched the cue-submission serial; the host confirmed Delta=0, LiveDrop=1,
+and restored inventory. The later ordinary pickup granted one Lightwood, with
+one successful host sparse write and no client write. Nine patches/162 IDs and
+matching Trunk/Drop delivery passed. No fatal, assertion, ensure or forest
+failure markers; peer processes exited. This headless run verifies cue
+submission, not audible playback. Full tree-feature/project verification and
+patch departure/reactivation/restart acceptance remain deferred.

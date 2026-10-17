@@ -142,6 +142,13 @@ bool UKalmalaCraftingComponent::AcceptRequest()
     return true;
 }
 
+void UKalmalaCraftingComponent::PublishInteractionResultFromServer(const FString& Result, const bool bAccepted)
+{
+    const AKalmalaCharacter* Character = GetCharacter();
+    if (!Character || !Character->HasAuthority()) return;
+    PublishResult(Result, bAccepted);
+}
+
 void UKalmalaCraftingComponent::PublishResult(const FString& Result, const bool bAccepted,
     const FName AcceptedRecipeId, const EKalmalaCraftingActionKind AcceptedActionKind)
 {

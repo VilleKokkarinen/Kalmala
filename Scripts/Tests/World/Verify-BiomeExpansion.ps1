@@ -6,6 +6,7 @@ param(
     [switch]$ForestTrunkLateJoin,
     [switch]$ForestPickup,
     [switch]$ForestContention,
+    [switch]$ForestFullPack,
     [string]$Project,
     [int]$Port = 17849
 )
@@ -18,6 +19,7 @@ if ($ForestDropLateJoin -and !$ForestStages) { throw '-ForestDropLateJoin requir
 if ($ForestTrunkLateJoin -and (!$ForestStages -or $ForestDropLateJoin)) { throw '-ForestTrunkLateJoin requires -ForestStages and excludes -ForestDropLateJoin.' }
 if ($ForestPickup -and (!$ForestStages -or $ForestDropLateJoin -or $ForestTrunkLateJoin)) { throw '-ForestPickup requires -ForestStages and excludes late-join modes.' }
 if ($ForestContention -and !$ForestPickup) { throw '-ForestContention requires -ForestPickup.' }
+if ($ForestFullPack -and (!$ForestDeliveryOnly -or !$ForestPickup -or $ForestContention)) { throw '-ForestFullPack requires -ForestDeliveryOnly and -ForestPickup and excludes -ForestContention.' }
 if (!$Project) { $Project = Join-Path ($repoPaths.ProjectRoot) 'Kalmala.uproject' }
 $project = (Resolve-Path -LiteralPath $Project).Path
 if ($ForestDeliveryOnly) {
@@ -32,6 +34,7 @@ if ($ForestDeliveryOnly) {
     if ($ForestTrunkLateJoin) { $common += ' -KalmalaForestHoldTrunk' }
     if ($ForestPickup) { $common += ' -KalmalaForestPickup' }
     if ($ForestContention) { $common += ' -KalmalaForestContention' }
+    if ($ForestFullPack) { $common += ' -KalmalaForestFullPack -KalmalaAmbientAudioTest' }
     $server = $null
     $client = $null
     $lateClient = $null
@@ -91,6 +94,23 @@ if ($ForestDeliveryOnly) {
                     $item = $_.Groups[2].Value
                     $delta = $_.Groups[3].Value
                     $expected = $_.Groups[4].Value
+                    $escapedId = [regex]::Escape($id)
+                    $escapedItem = [regex]::Escape($item)
+                    if ($ForestFullPack) {
+                        $feedback = [regex]::Match($clientText,
+                            ('Forest owner full pack feedback: Passed=1 Authority=0 Seed=10323456789 Id=' + $escapedId +
+                                ' Item=' + $escapedItem + ' Accepted=0 Result=InventoryIsFull Serial=([1-9][0-9]*)(?:\r?\n|$)'))
+                        $ownerFullPackPassed = $feedback.Success -and
+                            [regex]::IsMatch($hostText, ('Forest ordinary full pack rejection: Passed=1 Authority=1 Seed=10323456789 Id=' + $escapedId +
+                                ' Item=' + $escapedItem + ' Delta=0 LiveDrop=1 InRange=1 Slots=40 Restored=1 Feedback=1(?:\r?\n|$)')) -and
+                            [regex]::IsMatch($clientText, ('Forest ordinary full pack request: Passed=1 Authority=0 Seed=10323456789 Id=' + $escapedId +
+                                ' Item=' + $escapedItem + ' Slots=40 LiveDrop=1 ExactTrace=1(?:\r?\n|$)')) -and
+                            $clientText.Contains("Ambient audio interaction result: Local=1 Feedback=Unavailable Serial=$($feedback.Groups[1].Value) CueSubmitted=1 Asset=InteractionRejectedCue")
+                    }
+                    else {
+                        $ownerFullPackPassed = [regex]::IsMatch($hostText, ('Forest remote full pack rejection: Passed=1 Authority=1 Id=' + $escapedId +
+                            ' Item=' + $escapedItem + ' Delta=0 LiveDrop=1 InRange=1 Slots=40 Restored=1(?:\r?\n|$)'))
+                    }
                     $_.Groups[3].Value -eq $_.Groups[4].Value -and $sharedStages -contains $id -and
                     [regex]::IsMatch($clientText, ('Forest local pickup target: Passed=1 Authority=0 Seed=10323456789 Id=' + [regex]::Escape($id) + ' Item=' + [regex]::Escape($item) + ' LiveDrop=1 ExactTrace=1 OrdinaryCamera=1(?:\r?\n|$)')) -and
                     $hostText.Contains("Forest forged rejection: Passed=1 Authority=1 Id=$id Item=ForestForgedItem Action=255 Delta=0 Standing=1 Requests=3 HealthUnchanged=1") -and
@@ -102,14 +122,14 @@ if ($ForestDeliveryOnly) {
                     $hostText.Contains("Forest range rejection: Passed=1 Authority=1 Seed=10323456789 Id=$id Item=$item Delta=0 LiveDrop=1") -and
                     $hostText.Contains("Forest physical rejection: Passed=1 Authority=1 Seed=10323456789 Id=$id Item=$item Delta=0 LiveDrop=1 ForgedTrace=0") -and
                     [regex]::IsMatch($hostText, ('Forest full pack rejection: Passed=1 Authority=1 Seed=10323456789 Id=' + [regex]::Escape($id) + ' Item=' + [regex]::Escape($item) + ' Delta=0 LiveDrop=1 InRange=1 Slots=40 Restored=1(?:\r?\n|$)')) -and
-                    [regex]::IsMatch($hostText, ('Forest remote full pack rejection: Passed=1 Authority=1 Id=' + [regex]::Escape($id) + ' Item=' + [regex]::Escape($item) + ' Delta=0 LiveDrop=1 InRange=1 Slots=40 Restored=1(?:\r?\n|$)')) -and
+                    $ownerFullPackPassed -and
                     # Only one tree is collected in this isolated scenario. Count
                     # every write marker so a foreign-ID/seed or malformed extra
                     # record cannot hide behind the exact-target success proof.
                     @([regex]::Matches($hostText, 'Forest sparse write:')).Count -eq 1 -and
                     [regex]::IsMatch($hostText, ('Forest sparse write: Authority=1 Seed=10323456789 Id=' + [regex]::Escape($id) + ' Success=1(?:\r?\n|$)')) -and
                     ! $clientText.Contains('Forest sparse write:') -and
-                    [regex]::IsMatch($hostText, ('Forest same dispatch collector: Passed=1 Authority=1 Id=' + [regex]::Escape($id) + ' Item=' + [regex]::Escape($item) + ' LiveBefore=1 Winner=1 Loser=0 Delta=0 InRange=1(?:\r?\n|$)')) -and
+                    ($ForestFullPack -or [regex]::IsMatch($hostText, ('Forest same dispatch collector: Passed=1 Authority=1 Id=' + [regex]::Escape($id) + ' Item=' + [regex]::Escape($item) + ' LiveBefore=1 Winner=1 Loser=0 Delta=0 InRange=1(?:\r?\n|$)'))) -and
                     $hostText.Contains("Forest second collector: Passed=1 Authority=1 Seed=10323456789 Id=$id Item=$item Delta=0 Requests=3 Stable=5") -and
                     $hostText.Contains("Forest pickup authority: Passed=1 Authority=1 Seed=10323456789 Id=$id Item=$item Delta=$delta Expected=$expected Stable=5") -and
                     $hostText.Contains("Forest depletion delivery: Passed=1 Authority=1 Seed=10323456789 Id=$id Collected=1") -and
@@ -151,6 +171,7 @@ if ($ForestDeliveryOnly) {
         if ((Get-Date) -ge $deadline) { throw "Exact forest replacement/suppression delivery timed out: $($shared.Count)/9 matching eighteen-tree patches; $($sharedStages.Count) shared Trunk/Drop IDs (required=$ForestStages); $($sharedPickups.Count) pickups (required=$ForestPickup). Inspect $output." }
         if ($ForestContention) { Write-Output "PASS: competing owners dispatched ordinary pickup requests within 100 ms; exactly one reward and sparse write: $($sharedPickups -join ', ')." }
         elseif ($ForestPickup) { Write-Output "PASS: exact-ID pickup quantity stable after three initial and three post-depletion owned requests, with collected state on both peers and zero reward for three second-player depleted attempts: $($sharedPickups -join ', ')." }
+        if ($ForestFullPack) { Write-Output "PASS: ordinary client full-pack request was rejected; the owner received the Inventory is full result and InteractionRejectedCue." }
         if ($ForestStages) { Write-Output "PASS: host/client required stage delivery for exact tree IDs: $($sharedStages -join ', ')." }
         if ($ForestDropLateJoin -or $ForestTrunkLateJoin) {
             $lateStage = if ($ForestTrunkLateJoin) { 'Trunk' } else { 'Drop' }

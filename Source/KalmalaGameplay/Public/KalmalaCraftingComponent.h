@@ -68,6 +68,7 @@ public:
     bool HasStorageView() const { return bStorageViewOpen; }
     uint32 GetResultSerial() const { return ResultSerial; }
     bool WasLastResultAccepted() const { return bLastResultAccepted; }
+    void PublishInteractionResultFromServer(const FString& Result, bool bAccepted);
     const TArray<FKalmalaAcceptedCraftingActionReceipt>& GetAcceptedCraftingActionReceipts() const
     {
         return AcceptedCraftingActionReceipts;

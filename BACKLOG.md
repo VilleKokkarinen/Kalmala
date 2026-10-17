@@ -48,7 +48,7 @@ Open leaf checkboxes are sized as one focused automated-job increment. Mark a le
       - [x] Verify a remote-owned full-pack pickup request rejects without reward, preserves the drop, and restores the exact inventory snapshot.
       - [x] Verify ordinary-camera client targeting selects the exact live drop and completes one accepted pickup.
       - [x] Verify simultaneous pickup RPCs from competing owners grant at most once and leave the losing request with no reward.
-      - [ ] Verify a full pack through the ordinary client interaction path: the request is rejected, the drop remains live, and the owner receives the established rejection feedback.
+      - [x] Verify a full pack through the ordinary client interaction path: the request is rejected, the drop remains live, and the owner receives the established rejection feedback.
     - [ ] **Verify shared-patch departure and eviction.** With two players sharing a patch, confirm one departure retains the shared patch; the final departure evicts its actors without recording harvest.
     - [ ] **Verify patch reactivation after eviction.** Collected IDs stay absent while uncollected generated trees materialize again.
     - [ ] **Verify process-restart persistence.** Restart and load the real population slot; confirm the same collected IDs remain absent and uncollected trees return.
