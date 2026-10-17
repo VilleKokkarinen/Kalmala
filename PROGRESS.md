@@ -1,5 +1,13 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-17 — Execute live-drop remote trace reach
+
+- **Completed:** compiled and executed the queued live-drop remote range gate on source a15516f within the first unchecked generated-forest delivery child. No repairs; child remains unchecked.
+- **Files changed:** BACKLOG.md, PROGRESS.md and docs/07-development-setup.md (execution evidence).
+- **Verification:** 727 Source/Config/Content mirror files matched. Normal-access `Build.bat KalmalaEditor Win64 Development -Project=C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject -WaitMutex -NoHotReload -MaxParallelActions=4` passed (66 actions), log kmforest/drop-range-build.log. `Scripts/Tests/World/Verify-BiomeExpansion.ps1 -ForestDeliveryOnly -ForestStages -ForestPickup -Project C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject` passed exit 0. Logs C:/Users/Ville/AppData/Local/Temp/kfpeer-f065ee14/{host,client}.log: three ordinary remote live-drop requests rejected for exact later-collected ID forest:v1:10323456789:31079.1015625:5132.20068359375:13 with Delta=0 LiveDrop=1 TraceMiss=1; nine eighteen-tree patches, shared Trunk/Drop/Collected; server/client Lightwood Delta=1 Expected=1 Stable=5; client Requests=3 DepletedRequests=3; second collector Delta=0 Requests=3 Stable=5; existing rejection probes passed. Zero fatal/assertion/ensure/fixture failure markers; peers stopped. PowerShell parser, whitespace, staged scope/diff and MAX_PATH checks performed before commit. Full feature/project verification deferred; normal partial increment, not milestone-final.
+- **Impact/authority:** authored remote live-drop trace reach now has compiled/live evidence. No production validation, RPC, reward, persistence or schema changes. Existing repository output folders untouched.
+- **Limitations/next:** continue missing acceptance coverage in the same delivery child. Independent physical-distance RPC rejection, delayed mutation, contention, sparse writes, ordinary camera and streaming/restart remain unproven. Only current Kalmala chat active at guard; CIM unavailable; checkout initially clean. Main checkout used directly, so no handoff synchronization needed.
+
 ## Autonomous increment 2026-10-17 — Gate live-drop remote trace reach
 
 - **Completed:** bounded slice of the first unchecked generated-forest delivery child: authoritative far/return phase around the live drop, separate client/server request counters, real owned RPC observation and exact-ID/item runner proof. Child remains unchecked.
