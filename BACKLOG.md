@@ -65,11 +65,6 @@ Open leaf checkboxes are sized as one focused automated-job increment. Mark a le
     - [ ] Run final peer streaming, patch reactivation, and real population-slot restart acceptance.
     - [ ] Check the parent only after each final gate passes; leave any failed gate open until its repair and rerun succeed.
 
-- [ ] **2026-10-13 — Add three theme-appropriate tiers of weapons and tools:** add original weapons and tools across the Stone, Bronze, and Iron tiers, with item-specific stats and matching recipes; preserve the rule that upgrades improve the same item and do not grant a different item's gathering tier.
-  - [ ] Surface Stone-tier acquisitions, authored stats, and material costs in station and Inventory Craft views; route each request through the server-authoritative tool progression action and cover one successful and one rejected transaction.
-  - [ ] Surface Bronze-tier acquisitions, authored stats, and material costs in station and Inventory Craft views; route each request through the server-authoritative tool progression action and cover one successful and one rejected transaction.
-  - [ ] Surface Iron-tier acquisitions, authored stats, and material costs in station and Inventory Craft views; route each request through the server-authoritative tool progression action and cover one successful and one rejected transaction.
-
 ## M13 — Rebuild and revalidate M11/M12 UI on main
 
 **Complete on main:** merge `e16b2f7` passed final acceptance on 2026-10-11. [Scope and criteria](docs/04-roadmap.md#m13--rebuild-and-revalidate-the-m11m12-ui-on-main) remain authoritative; unselected Settings candidates are not implemented features.
