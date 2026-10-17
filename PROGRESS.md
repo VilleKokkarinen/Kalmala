@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-17 — Execute forged-request health gate
+
+- **Completed:** executed the queued per-request authoritative tree-health stability gate on source 631a088 within the first unchecked generated-forest host/client delivery child. No repairs needed; the child remains unchecked.
+- **Files changed:** BACKLOG.md, PROGRESS.md and docs/07-development-setup.md (execution evidence and commands).
+- **Verification:** all 727 Source/Config/Content mirror files matched; normal-access temporary KalmalaEditor build passed (four actions), `C:/Users/Ville/AppData/Local/Temp/kmforest/health-build.log`. Ran `Scripts/Tests/World/Verify-BiomeExpansion.ps1 -ForestDeliveryOnly -ForestStages -ForestPickup -Project C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject`; exit 0. Logs: `C:/Users/Ville/AppData/Local/Temp/kfpeer-4185180a/{host,client}.log`. Three malformed remote requests rejected for exact later-collected ID forest:v1:10323456789:31079.1015625:5132.20068359375:13, zero reward, standing and unchanged health. Nine eighteen-tree patches, shared Trunk/Drop/Collected, authority/client Lightwood Delta=1 Expected=1 Stable=5, Requests=3 DepletedRequests=3, second collector zero reward and prior trace/physical probes passed. Zero fatal/assertion/ensure/fixture failures; peers stopped, no UnrealEditor remained. Parser passed; whitespace, staged scope/diff and MAX_PATH checked before commit. Full feature/project verification deferred; normal partial increment, not milestone-final.
+- **Impact/authority:** previously authored health gate now has compiled/live evidence. Production code, validation, authority, RPCs, rewards and persistence unchanged; existing saves and protected repository output directories untouched.
+- **Limitations/next:** remote out-of-range coverage is next in the same delivery child. Delayed mutation absence, physical-range RPC rejection, simultaneous contention, sparse writes, default camera, rendering/streaming/restart remain unproven. Only current Kalmala chat active at guard; previous chats idle, CIM unavailable. Initially clean main checkout used directly; no handoff synchronization required.
+
+
 ## Autonomous increment 2026-10-17 — Gate forged-request tree health stability
 
 - **Completed:** strengthened the first unchecked generated-forest host/client delivery child with authoritative health stability around each malformed remote interaction. The runner requires new third-request health evidence for the exact tree later collected; child remains unchecked.
