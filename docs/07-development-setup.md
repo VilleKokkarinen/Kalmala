@@ -12,10 +12,10 @@ and [feature description](game-features.md#generated-forest-harvesting--2026-10-
 
 | Accepted boundary | Reproduction / retained evidence | Remaining limit |
 | --- | --- | --- |
-| Exact-ID host/client Trunk, Drop and pickup; forged/range/physical rejection, one host sparse write and no client write | `Scripts/Tests/World/Verify-BiomeExpansion.ps1 -ForestDeliveryOnly -ForestStages -ForestPickup -Project <isolated-project>`; ordinary-camera pass `kfpeer-dcea84e3` | Headless fixed-position pickup; attack/far phases retain the eye-camera fixture |
-| Separate third-peer Trunk and Drop late joins, matching replacement/suppression | Same runner with `-ForestDeliveryOnly -ForestStages` and either `-ForestTrunkLateJoin` or `-ForestDropLateJoin` | Separate stage fixtures, not final integrated fall-transition acceptance |
-| Competing owned requests grant one reward total | Add `-ForestContention` to the pickup command; `kfpeer-c3f2a6db` | Listen-host versus one remote; no two-remote or adverse-network coverage |
-| Ordinary client full-pack rejection keeps live drop and delivers private feedback | Add `-ForestFullPack` to the pickup command; `kfpeer-e7d1f2c5` | Excludes contention mode; cue submission, not audible playback |
+| Exact-ID host/client Trunk, Drop and pickup; forged/range/physical rejection, one host sparse write and no client write | `Scripts/Tests/World/Verify-BiomeExpansion.ps1 -ForestDeliveryOnly -ForestStages -ForestPickup -Project <isolated-project>`; integrated-source pass `kfpeer-0f24c8fc` | Headless fixed-position pickup; attack/far phases retain the eye-camera fixture |
+| Separate third-peer Trunk and Drop late joins, matching replacement/suppression | Same runner with `-ForestDeliveryOnly -ForestStages` and either `-ForestTrunkLateJoin` (`kfpeer-1f91126e`) or `-ForestDropLateJoin` (`kfpeer-e690df23`) | Integrated settled stages; no join during the brief Falling phase or rendered pose check |
+| Competing owned requests grant one reward total | Add `-ForestContention` to the pickup command; integrated-source pass `kfpeer-9678e392` | Listen-host versus one remote; no two-remote or adverse-network coverage |
+| Ordinary client full-pack rejection keeps live drop and delivers private feedback | Add `-ForestFullPack` to the pickup command; integrated-source pass `kfpeer-160abf98` | Excludes contention mode; cue submission, not audible playback |
 | Shared departure, final eviction without depletion, reactivation preserving collected IDs | `Automation RunTests Kalmala.Gameplay.Harvest.ForestPatchLifecycle`; `kp18e/tests.log`, `kp19r/tests.log` | Isolated server world, not live streaming peers |
 | Real population-slot process restart | `Scripts/Tests/World/Verify-BiomeExpansion.ps1 -ForestRestartOnly -Editor <UnrealEditor-Cmd.exe> -Project <isolated-project>`; `kfr-e6e02cac/{write,read}.log` | Production callback/loading boundary, not another pickup or live peer session restart |
 
@@ -28,15 +28,57 @@ runs are documented with those results; no failed automation assertions passed
 the acceptance gates.
 
 The server-authored fall/settled transition and focused overlap/condition regression
-are implemented; see the evidence below. Prior peer evidence predates this timing
-change and must be repeated at final feature acceptance. Moving presentation and
+are implemented; see the evidence below. The final peer gates below repeat delivery,
+settled-stage late joins and pickup on the integrated timing/targeting source. Moving presentation and
 the settled 3D trunk, aligned targeting and midpoint bundle pickup are now implemented.
 Partial health and uncollected Trunk/Drop state reset on regeneration; only accepted
 pickup depletion persists. The final integrated editor build and focused harvest
-group passed; see the evidence below. Final exact-ID peer/late-join/pickup gates
-and live streaming/reactivation/restart remain required by BACKLOG.md.
+group and final exact-ID peer/late-join/pickup gates passed; see the evidence below.
+Final peer streaming/reactivation/restart remains required by BACKLOG.md.
 Full tree-feature/project verification remains deferred;
 the earlier documentation reconciliation itself ran no Unreal build or runtime test.
+
+## Final integrated tree peer delivery acceptance (2026-10-17)
+
+Accepted integrated source `7170597` (runtime source unchanged since `6318181`).
+All 728 tracked Source/Config/Content files matched the existing isolated
+`C:/Users/Ville/AppData/Local/Temp/kmforest` project; no copying or rebuild was
+needed after the preceding integrated build. The runner parsed without errors.
+With normal per-user access, each command below exited 0:
+
+```powershell
+& ./Scripts/Tests/World/Verify-BiomeExpansion.ps1 -ForestDeliveryOnly -ForestStages -ForestTrunkLateJoin -Project C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject
+& ./Scripts/Tests/World/Verify-BiomeExpansion.ps1 -ForestDeliveryOnly -ForestStages -ForestDropLateJoin -Project C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject
+& ./Scripts/Tests/World/Verify-BiomeExpansion.ps1 -ForestDeliveryOnly -ForestStages -ForestPickup -Project C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject
+& ./Scripts/Tests/World/Verify-BiomeExpansion.ps1 -ForestDeliveryOnly -ForestStages -ForestPickup -ForestFullPack -Project C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject
+& ./Scripts/Tests/World/Verify-BiomeExpansion.ps1 -ForestDeliveryOnly -ForestStages -ForestPickup -ForestContention -Project C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject
+```
+
+Retained logs, in command order, are under `C:/Users/Ville/AppData/Local/Temp/`:
+`kfpeer-1f91126e`, `kfpeer-e690df23`, `kfpeer-0f24c8fc`,
+`kfpeer-160abf98`, and `kfpeer-9678e392`. Each has `host.log` and `client.log`;
+the first two also have `late.log`. Every run matched nine eighteen-tree patches
+(162 unique IDs), transforms, shape/source and zero cosmetic counterparts.
+All stage, late-join and pickup assertions used the same exact ID,
+`forest:v1:10323456789:31079.1015625:5132.20068359375:13`.
+
+Ordinary-camera pickup granted one Lightwood, with one successful host sparse
+write and no client write. Three initial and three post-depletion requests plus
+three second-player retries produced no extra rewards. Forged, trace-range,
+physical-distance and full-pack checks retained the live drop and exact inventory.
+The dedicated full-pack run delivered owner-only `InventoryIsFull` and submitted
+`InteractionRejectedCue` before later accepted pickup. Contention dispatches met
+the 100 ms gate; both authoritative receipts were at server time 150.026, and the
+five-second result was HostDelta=1, RemoteDelta=0, Expected=1, Collected=1,
+with one sparse write. No acceptance/fatal/assertion/ensure/controller failure
+markers were found and no UnrealEditor process remained. No repairs were needed.
+
+This closes only the selected final stage/late-join/pickup leaf. These are headless
+listen-host/remote fixtures, with separate settled Trunk/Drop third-peer joins;
+they do not verify joins during Falling, rendered pose/readability, audible cues,
+two remote contenders or adverse networks. Final peer streaming, patch reactivation
+and real-slot restart remain the next leaf. No new build, full suite or packaging
+ran; full tree-feature/project verification remains deferred.
 
 ## Final integrated tree-harvest build and focused group (2026-10-17)
 
