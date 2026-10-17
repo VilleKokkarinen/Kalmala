@@ -37,10 +37,44 @@ Partial health and uncollected Trunk/Drop state reset on regeneration; only acce
 pickup depletion persists. The final integrated editor build and focused harvest
 group and final exact-ID peer/late-join/pickup gates passed; see the evidence below.
 Live uncollected and collected-ID streaming/reactivation and the final real-slot
-restart rerun now pass. The next backlog leaf reviews the final gates before
-parent completion; parent checkboxes remain unchanged.
-Full tree-feature/project verification remains deferred;
-the earlier documentation reconciliation itself ran no Unreal build or runtime test.
+restart rerun now pass. The final evidence audit below closes the defined tree-feature
+acceptance and its backlog parents. Broader full-project verification, packaging
+and rendered usability remain deferred; they were not part of these three gates.
+The earlier documentation reconciliation itself ran no Unreal build or runtime test.
+
+## Final tree-feature evidence audit (2026-10-17)
+
+Audited main source `9c9d4ba` against the three completed final gates. All 728
+tracked Source/Config/Content files match the tested `kmforest` mirror. The only
+runtime changes since focused-group source `6318181` are the opt-in, non-shipping
+streaming fixture and its private character state; production tree, combat,
+world streaming and persistence implementations are unchanged. Those fixture
+changes passed their later 66-action editor build and live peer gates.
+
+| Final gate | Evidence reviewed | Audit result |
+| --- | --- | --- |
+| Integrated editor build and focused tree group | `kmforest/tree-final-build.log`, `ktreefinal/tests.log`; later `kmforest/collected-stream-build.log` | Both builds succeeded; all four named tests succeeded |
+| Exact-ID stages, late joins and pickup | `kfpeer-1f91126e`, `kfpeer-e690df23`, `kfpeer-0f24c8fc`, `kfpeer-160abf98`, `kfpeer-9678e392` | Nine matching 18-tree patches on both peers, exact settled-stage third-peer delivery, accepted/rejected pickup, private full-pack feedback, one contention winner |
+| Streaming, reactivation and real-slot restart | `kfpeer-4b2da6d9`, `kfpeer-263619fc`, `kfr-52116f36/{write,read}.log` | Shared retention/final eviction; 162 uncollected or 161 plus one absent collected ID restored; unchanged rewards, host-only depletion; 14 restart IDs match, two absent and 12 live |
+
+All evidence roots are under `C:/Users/Ville/AppData/Local/Temp/`; the preceding
+summary and following dated entries retain exact reproduction commands. This run
+rechecked positive log markers, successful automation results, failure-marker
+absence, source differences and mirror bytes. It did not rerun Unreal processes.
+The restart runner's prior successful run checked the slot hash before/after its
+reader; this audit only inspected the retained slot and logs, not a new restart.
+Known pre-test engine diagnostics and isolated-world teardown warnings remain as
+recorded. No failed gate or repair was found in the audited evidence.
+
+The user explicitly approved closing the six completed parent checkboxes and
+replacing the stale queue pointer, in addition to the selected audit leaf.
+The defined tree-feature acceptance is complete. This is post-roadmap feature
+closure, not a new roadmap milestone or a full-project verification claim.
+Rendered/audible usability, joining during Falling, slope fitting, continuous
+travel, adverse networking, two remote contenders, live peer process restart,
+full suite and packaging remain outside this recorded acceptance. Partial health
+and uncollected stages still reset on regeneration. No eligible implementation
+leaf remains; a new user-defined task is required before further autonomous work.
 
 ## Live collected forest reactivation acceptance (2026-10-17)
 

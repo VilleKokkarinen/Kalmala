@@ -29,17 +29,17 @@ M0–M14 and world-generation Phases 1–9 are complete under their recorded acc
 
 ## Post-roadmap user-directed work
 
-Current first-incomplete item: run the generated-forest simultaneous owned-pickup contention gate on current sources, then test client-visible full-pack rejection.
+Current first-incomplete item: No eligible implementation leaves remain. Attack-driven tree harvesting passed its defined final gates; further work requires a user-defined backlog increment.
 
 Open leaf checkboxes are sized as one focused automated-job increment. Mark a leaf complete only after its stated implementation or acceptance passes; leave it open if it needs a separate repair or another run.
 
-- [ ] **2026-10-13 — Attack-driven tree harvesting:** use axe attacks to move trees from standing, through fallen trunk, to collectible wood.
+- [x] **2026-10-13 — Attack-driven tree harvesting:** use axe attacks to move trees from standing, through fallen trunk, to collectible wood.
   - [x] Integrate server-authoritative tree/trunk/drop harvesting for existing wood-resource actors, preserving tiers, yields and sparse depletion.
-  - [ ] **Complete generated-forest harvesting and lifecycle.**
+  - [x] **Complete generated-forest harvesting and lifecycle.**
     - [x] Give generated trees stable seed/patch/candidate IDs; materialize undepleted candidates as patch-owned harvest actors and suppress their decorative counterparts.
     - [x] Persist successful pickup IDs and rebuild or evict patch actors from sparse state; eviction must not record depletion.
     - [x] Compile and run focused forest stage/lifecycle regressions and actual Meadow/Elderwood save-slot reload coverage. Four focused automations and the slot reload checks passed; command/log details remain in docs/07-development-setup.md.
-    - [ ] **Complete current-source host/client delivery acceptance.**
+    - [x] **Complete current-source host/client delivery acceptance.**
       - [x] Verify host/client Trunk and Drop delivery for an exact generated-tree ID, with matching source suppression and replacement coverage.
       - [x] Verify trunk late join: a third peer receives the exact settled Trunk ID without cosmetic duplication.
       - [x] Verify drop late join: a third peer receives the exact Drop ID without cosmetic duplication.
@@ -53,17 +53,17 @@ Open leaf checkboxes are sized as one focused automated-job increment. Mark a le
     - [x] **Verify patch reactivation after eviction.** Collected IDs stay absent while uncollected generated trees materialize again.
     - [x] **Verify process-restart persistence.** Restart and load the real population slot; confirm the same collected IDs remain absent and uncollected trees return.
     - [x] **Reconcile generated-forest documentation.** Update feature, architecture and setup docs to match accepted behavior and remaining limits; remove superseded claims that generated forest trees are still decorative.
-  - [ ] **Implement the server-authored fall transition.** Add replicated transition state/timing and late-join reconstruction; preserve the exact tree identity and server-owned hit, condition, yield and depletion decisions.
+  - [x] **Implement the server-authored fall transition.** Add replicated transition state/timing and late-join reconstruction; preserve the exact tree identity and server-owned hit, condition, yield and depletion decisions.
     - [x] Add and validate the authoritative fall/settled phase transition, including a focused regression for transition overlap and accepted-hit accounting.
     - [x] Add the original moving presentation and settled 3D trunk at the generated tree's position; retain the same persistent tree identity.
-  - [ ] **Integrate settled-log targeting and pickup.**
+  - [x] **Integrate settled-log targeting and pickup.**
     - [x] Align collision, axe targeting and server range checks with the presented settled log; reject extra hits during transition.
     - [x] Keep the wood bundle readable and collectible at the settled log; verify accepted pickup and full-pack/duplicate rejection without extra rewards.
-  - [ ] **Run final tree-feature acceptance.**
+  - [x] **Run final tree-feature acceptance.**
     - [x] Build the integrated editor source and run the focused tree-harvest automation group.
     - [x] Run final exact-ID host/client stage, late-join, and pickup delivery acceptance on the integrated source.
     - [x] Run final peer streaming, patch reactivation, and real population-slot restart acceptance.
-    - [ ] Check the parent only after each final gate passes; leave any failed gate open until its repair and rerun succeed.
+    - [x] Check the parent only after each final gate passes; leave any failed gate open until its repair and rerun succeed.
 
 ## M13 — Rebuild and revalidate M11/M12 UI on main
 

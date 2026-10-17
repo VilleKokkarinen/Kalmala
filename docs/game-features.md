@@ -23,12 +23,13 @@ live drop and receive the existing private rejection feedback. Collected IDs sta
 absent after eviction and disk reload; uncollected trees return as standing trees,
 so partial damage and uncollected trunks/drops are session-only. Focused peer
 checks cover exact-ID stages, late joins, ordinary-camera pickup and competing
-owners; isolated checks cover shared patch departure/reactivation and real-slot
-process restart. [Setup evidence and limits](07-development-setup.md#generated-forest-current-acceptance-2026-10-17)
-distinguish those boundaries from final integrated acceptance.
-
-Rendered manual usability,
-final live peer streaming/restart and full tree-feature verification remain pending.
+owners. Live peers also cover shared departure, final eviction and collected-ID
+reactivation; separate processes cover real population-slot restart. The defined
+final tree-feature gates and evidence audit passed.
+[Setup evidence and limits](07-development-setup.md#final-tree-feature-evidence-audit-2026-10-17)
+record the accepted boundaries. Rendered manual usability, Falling-phase late join,
+adverse networking, live peer process restart and full-project/package verification
+remain outside this acceptance.
 
 ## Bow and two-handed items — 2026-10-15
 
