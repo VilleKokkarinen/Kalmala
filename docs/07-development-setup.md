@@ -18,7 +18,7 @@ and [feature description](game-features.md#generated-forest-harvesting--2026-10-
 | Ordinary client full-pack rejection keeps live drop and delivers private feedback | Add `-ForestFullPack` to the pickup command; integrated-source pass `kfpeer-160abf98` | Excludes contention mode; cue submission, not audible playback |
 | Shared departure, final eviction without depletion, reactivation preserving collected IDs | `Automation RunTests Kalmala.Gameplay.Harvest.ForestPatchLifecycle`; `kp18e/tests.log`, `kp19r/tests.log` | Isolated server world, not live streaming peers |
 | Live shared departure, final eviction and uncollected-tree reactivation | `Scripts/Tests/World/Verify-BiomeExpansion.ps1 -ForestDeliveryOnly -ForestStreaming -Project <isolated-project>`; `kfpeer-4b2da6d9/{host,client}.log` | Fresh unharvested world; collected-ID reactivation still needs live peer coverage |
-| Real population-slot process restart | `Scripts/Tests/World/Verify-BiomeExpansion.ps1 -ForestRestartOnly -Editor <UnrealEditor-Cmd.exe> -Project <isolated-project>`; `kfr-e6e02cac/{write,read}.log` | Production callback/loading boundary, not another pickup or live peer session restart |
+| Real population-slot process restart on integrated source | `Scripts/Tests/World/Verify-BiomeExpansion.ps1 -ForestRestartOnly -Editor <UnrealEditor-Cmd.exe> -Project <isolated-project>`; final rerun `kfr-a14b7f2f/{write,read}.log` | Production callback/loading boundary, not another pickup or live peer session restart |
 
 Evidence roots above are under `C:/Users/Ville/AppData/Local/Temp/`; detailed
 commands and results are retained in the corresponding sections below. The
@@ -35,10 +35,41 @@ the settled 3D trunk, aligned targeting and midpoint bundle pickup are now imple
 Partial health and uncollected Trunk/Drop state reset on regeneration; only accepted
 pickup depletion persists. The final integrated editor build and focused harvest
 group and final exact-ID peer/late-join/pickup gates passed; see the evidence below.
-Live uncollected-tree streaming/reactivation now passes; collected-ID peer
-reactivation and the final real-slot restart rerun remain required by BACKLOG.md.
+Live uncollected-tree streaming/reactivation and the final real-slot restart rerun
+now pass; collected-ID peer reactivation remains required by BACKLOG.md.
 Full tree-feature/project verification remains deferred;
 the earlier documentation reconciliation itself ran no Unreal build or runtime test.
+
+## Final integrated real-slot restart acceptance (2026-10-17)
+
+Accepted source `d09f029`. All 728 tracked Source/Config/Content files matched
+the existing isolated `C:/Users/Ville/AppData/Local/Temp/kmforest` project; no
+copy or rebuild was needed. The runner passed PowerShell parsing. With normal
+per-user access, the following command passed exit 0:
+
+```powershell
+& ./Scripts/Tests/World/Verify-BiomeExpansion.ps1 -ForestRestartOnly -Editor 'C:/Program Files/Epic Games/UE_5.8/Engine/Binaries/Win64/UnrealEditor-Cmd.exe' -Project C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject
+```
+
+Fresh writer and reader processes each performed one `ForestProcessRestart`
+test with `Result={Success}` and exit 0. Logs remain in
+`C:/Users/Ville/AppData/Local/Temp/kfr-a14b7f2f/{write,read}.log`.
+Both processes matched all 14 deterministic candidate IDs for seed 418. Two
+collected IDs stayed absent and 12 uncollected trees returned. The real
+`user/Saved/SaveGames/KalmalaPopulationDeltas_418.sav` retained SHA256
+`5BEF12A6B5C1066A85CD21A5F1BA3131E76C2E138057DAA552C23638DDFA931C`
+through reader activation/eviction. The writer uses actual GameMode-bound
+depletion callbacks and the reader uses the production loader/materializer.
+Known pre-test engine `Condition failed` diagnostics and context-free fixture
+teardown warnings remain; no automation-controller errors, failed result,
+fatal/assertion/ensure failures or repairs. No UnrealEditor process remained.
+
+This completes the restart portion of the existing final streaming/reactivation/
+restart leaf; that leaf remains unchecked until collected-ID live peer
+reactivation passes. No new pickup transaction, live peer process restart,
+rendered inspection, build, full suite or packaging was performed. Full
+tree-feature/project verification remains deferred. Production networking,
+authority, rewards and save schemas are unchanged.
 
 ## Live uncollected forest streaming acceptance (2026-10-17)
 
