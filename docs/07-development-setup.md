@@ -27,13 +27,66 @@ pre-test engine diagnostics/context-free teardown warnings in isolated lifecycle
 runs are documented with those results; no failed automation assertions passed
 the acceptance gates.
 
-Next implementation: server-authored fall/settled transition with overlap and
-accepted-hit accounting regression, then moving presentation/settled-log targeting.
+The server-authored fall/settled transition and focused overlap/condition regression
+are implemented; see the evidence below. Prior peer evidence predates this timing
+change and must be repeated at final feature acceptance. Next implementation:
+moving presentation and the settled 3D trunk, followed by aligned targeting.
 Partial health and uncollected Trunk/Drop state reset on regeneration; only accepted
 pickup depletion persists. Final integrated editor build, focused harvest group,
 exact-ID peer/late-join/pickup gates and live streaming/reactivation/restart remain
 required by BACKLOG.md. Full tree-feature/project verification remains deferred;
-this documentation reconciliation runs no Unreal build or runtime test.
+the earlier documentation reconciliation itself ran no Unreal build or runtime test.
+
+## Authoritative tree fall transition (2026-10-17)
+
+The felling hit starts replicated Falling (stage 3), with a server start timestamp
+and a 1.2-second server timer. The timer changes only the phase to settled Trunk
+(stage 1); health stays 60 and identity, yields and depletion callbacks remain
+unchanged. Overlapping hits and pickup reject during Falling before condition
+persistence. Clients sample clamped elapsed progress from synchronized server time;
+they never settle the actor. The standing geometry is held until settlement;
+moving art and the new settled log are the next backlog leaf.
+
+Verification used the existing isolated project at
+`C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject`, with normal per-user
+UnrealBuildTool access. All 728 tracked Source/Config/Content files were compared
+before copying the six initially changed source files; subsequent repairs copied
+only current-run source changes. The editor build command was:
+
+```powershell
+& 'C:/Program Files/Epic Games/UE_5.8/Engine/Build/BatchFiles/Build.bat' KalmalaEditor Win64 Development '-Project=C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject' -WaitMutex -NoHotReload -MaxParallelActions=4
+```
+
+The initial build passed 22 actions; fixture repairs passed 104 actions after the
+Inventory header change, then four actions per test-only rebuild. Retained logs:
+`kmforest/fall-build.log`, `fall-repair-build.log`, `fall-final-build.log`, and
+`fall-timer-build.log`. Initial actor runs failed because synchronous TimeOnly
+world ticks omit timers and clamp large time steps; the repaired fixture explicitly
+ticks its isolated world's clock and timers in distinct 50 ms simulated frames,
+then restores the enclosing editor frame counter. The synchronous Inventory
+pickup fixture skips only its own node's wait through a private server seam;
+it does not advance the live world's other timers. That fixture was compiled,
+not executed in this increment.
+
+The two focused editor commands used `-unattended -nop4 -nosplash -nullrhi
+-NoZenAutoLaunch -DDC=NoZenLocalFallback`, an isolated `-UserDir`, `-abslog`,
+`-ExecCmds="Automation RunTests <test>"` and
+`-TestExit="Automation Test Queue Empty"`:
+
+- `Kalmala.Gameplay.Harvest.TreeFelling`: success, one test, exit 0;
+  `C:/Users/Ville/AppData/Local/Temp/kfall2/TreeFelling.log`.
+- `Kalmala.Gameplay.M9.SecondWaveHarvestAcceptance`: success, one test, exit 0;
+  `C:/Users/Ville/AppData/Local/Temp/kfall3/tests.log`. Covers legacy and generated
+  Meadow/Elderwood sources: overlap spends no condition; midpoint reconstruction;
+  timer settlement with exact ID and fresh trunk; accepted-hit condition accounting;
+  no damage/settlement reward or depletion; existing final pickup assertions.
+
+Success required an actual successful test result and no automation-controller
+errors, since the failed initial editor queues also exited 0. Known pre-test engine
+`Condition failed` diagnostics and isolated teardown warnings remain. This is
+focused server-world verification; live fall replication/late join and rendered
+presentation were not exercised. No full suite, packaging or milestone-final
+verification ran; final integrated tree-feature/project verification remains open.
 
 ## Historical forest increment notes
 
@@ -3449,7 +3502,7 @@ The schema-12 profile format introduced `ItemId`, `DisplayName` and `Description
 
 ## Attack-driven resource trees (2026-10-13)
 
-Wood-resource nodes (meadows-birch-bark, elderwood-resinwood, meadows-birch-trunk, elderwood-ironheart-trunk) now use the equipped axe Basic attack instead of interaction harvesting. Standing tree health is 100; reaching zero replaces its procedural 3D presentation with a fallen trunk at 60 health. Breaking that trunk exposes a wood bundle for interaction pickup, retaining the source's existing material/yield. A hit cannot carry excess damage into the next stage. The same replicated source actor represents each stage; there is no physics fall or separate moving log actor yet.
+Wood-resource nodes (meadows-birch-bark, elderwood-resinwood, meadows-birch-trunk, elderwood-ironheart-trunk) now use the equipped axe Basic attack instead of interaction harvesting. Standing tree health is 100; the accepted felling hit starts a server-timed 1.2-second Falling phase with fresh trunk health of 60. Falling rejects further hits and pickup. A server timer then exposes the settled Trunk phase; breaking that trunk exposes a wood bundle for interaction pickup, retaining the source's existing material/yield. A hit cannot carry excess damage into the next stage. The same replicated source actor represents each stage. The replicated fall start uses synchronized server time for clamped elapsed-progress reconstruction, including newly relevant peers; clients cannot settle or damage the tree. Presentation currently holds the standing geometry during Falling, then uses the existing trunk geometry. Moving presentation and the settled 3D log remain pending.
 
 The server selects and rechecks the blocking target after windup, applies validated equipped-axe damage through tree resistances, enforces MaterialTier and carried condition, and persists one durability point per accepted hit before tree mutation. Trees do not use harvesting skill gates or client tool/action values. A low melee sweep reaches fallen trunks. Pickup validates the complete grant and player persistence before committing existing sparse depletion callbacks; rejected/full-pack/duplicate pickups retain the drop without reward. Tree health/stage replicate to relevant peers, including late joins. Health, trunks and uncollected drops are session state and reset on actor regeneration/restart; no save schema was changed. Existing second-wave source depletion retains its session policy.
 

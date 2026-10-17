@@ -41,7 +41,12 @@ public:
     bool IsHarvested() const { return bHarvested; }
     bool IsTreeResource() const;
     bool IsFelledTrunk() const { return TreeStage == 1; }
+    bool IsTreeFalling() const { return TreeStage == 3; }
     bool IsWoodDrop() const { return TreeStage == 2; }
+    static constexpr float TreeFallSeconds = 1.2f;
+    /** Uses synchronized server time, so newly relevant peers resume the same fall. */
+    float GetTreeFallProgress() const;
+    static float SampleTreeFallProgress(double StartedAt, double ServerTime);
 #if !UE_BUILD_SHIPPING
     const FVector4& GetForestDimensionsForVerification() const { return ForestDimensions; }
 #endif
@@ -61,6 +66,7 @@ public:
 private:
     friend class AKalmalaCharacter;
     friend class AKalmalaGameMode;
+    friend class UKalmalaInventoryComponent;
 
     /** Only the server patch owner may supply an already generated descriptor. */
     bool InitializeGeneratedForestServer(const FKalmalaForestTreeDescriptor& Tree);
@@ -68,16 +74,21 @@ private:
     void BuildSourcePresentation();
     void ApplyHarvestedState();
     void CommitHarvestedStateFromServer();
+    void SettleTreeFromServer();
+    FTimerHandle TreeFallTimer;
 
     UPROPERTY(VisibleAnywhere, Category = "Harvest")
     TObjectPtr<USphereComponent> Collision;
 
-    /** 0 standing tree, 1 fallen trunk, 2 dropped wood. Session state; depletion uses existing IDs. */
+    /** 0 standing, 1 settled trunk, 2 wood drop, 3 falling (rejects hits). Session-only. */
     UPROPERTY(ReplicatedUsing = OnRep_TreeStage)
     uint8 TreeStage = 0;
 
     UPROPERTY(Replicated)
     float TreeHealth = 100.0f;
+
+    UPROPERTY(Replicated)
+    double TreeFallStartedAt = 0.0;
 
     /** Server-reconstructed forest radius/height/canopy radius/height; zero selects legacy node geometry. */
     UPROPERTY(ReplicatedUsing = OnRep_TreeStage)

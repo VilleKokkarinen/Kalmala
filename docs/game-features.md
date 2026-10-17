@@ -3,10 +3,11 @@
 ## Generated-forest harvesting — 2026-10-17
 
 Generated Meadow/Elderwood trees are server-owned harvest actors with stable
-seed/patch/candidate identities. Equipped axe attacks advance Standing to Trunk
-to a collectible wood Drop; one actor retains the identity through each stage.
+seed/patch/candidate identities. Equipped axe attacks advance Standing through a server-timed
+1.2-second Falling phase to settled Trunk, then a collectible wood Drop; one actor retains the identity through each stage.
 The existing resource tiers, yields and accepted-hit condition cost apply.
-Matching cosmetic trees are suppressed to avoid duplicate presentation.
+Falling rejects overlapping hits without spending condition; replicated server time
+allows elapsed-progress reconstruction. Matching cosmetic trees are suppressed to avoid duplicate presentation.
 
 Accepted pickup grants once and records sparse depletion. Full packs retain the
 live drop and receive the existing private rejection feedback. Collected IDs stay

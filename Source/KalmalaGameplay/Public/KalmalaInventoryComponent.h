@@ -5,6 +5,7 @@
 #include "KalmalaInventoryComponent.generated.h"
 
 struct FKalmalaToolState;
+class AKalmalaCharacter;
 
 USTRUCT()
 struct FKalmalaInventoryStack
@@ -166,6 +167,7 @@ private:
     double LastGearRequestTime = -1.0;
     bool bVerificationComplete = false;
 #if !UE_BUILD_SHIPPING
+    static bool VerifyHarvestGrants(AKalmalaCharacter* Character);
     void TickMenuReview(float DeltaTime);
     float MenuReviewElapsed = 0.0f;
     int32 MenuReviewStage = 0;

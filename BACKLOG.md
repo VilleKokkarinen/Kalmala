@@ -54,7 +54,7 @@ Open leaf checkboxes are sized as one focused automated-job increment. Mark a le
     - [x] **Verify process-restart persistence.** Restart and load the real population slot; confirm the same collected IDs remain absent and uncollected trees return.
     - [x] **Reconcile generated-forest documentation.** Update feature, architecture and setup docs to match accepted behavior and remaining limits; remove superseded claims that generated forest trees are still decorative.
   - [ ] **Implement the server-authored fall transition.** Add replicated transition state/timing and late-join reconstruction; preserve the exact tree identity and server-owned hit, condition, yield and depletion decisions.
-    - [ ] Add and validate the authoritative fall/settled phase transition, including a focused regression for transition overlap and accepted-hit accounting.
+    - [x] Add and validate the authoritative fall/settled phase transition, including a focused regression for transition overlap and accepted-hit accounting.
     - [ ] Add the original moving presentation and settled 3D trunk at the generated tree's position; retain the same persistent tree identity.
   - [ ] **Integrate settled-log targeting and pickup.**
     - [ ] Align collision, axe targeting and server range checks with the presented settled log; reject extra hits during transition.

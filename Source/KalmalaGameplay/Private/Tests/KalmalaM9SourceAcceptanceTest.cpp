@@ -26,6 +26,7 @@
 #include "Misc/Paths.h"
 #include "Misc/ScopeExit.h"
 #include "OnlineSubsystemTypes.h"
+#include "TimerManager.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FKalmalaM9SourceAcceptanceTest,
@@ -34,6 +35,9 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
 {
+    // Synchronous fixture world ticks need distinct timer frames; restore the
+    // enclosing editor frame when the isolated worlds have been destroyed.
+    TGuardValue<uint64> FrameGuard(GFrameCounter, GFrameCounter);
     // Slot I/O is opt-in and must resolve inside a fresh OS-temporary user root.
     FString SlotRoot;
     const bool bRealSlots = FParse::Value(FCommandLine::Get(), TEXT("KalmalaForestSlotRoot="), SlotRoot);
@@ -86,6 +90,17 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
     }
     World->InitializeActorsForPlay(FURL());
     World->BeginPlay();
+    const auto AdvanceFixtureTime = [World](const int32 Steps)
+    {
+        // TimeOnly advances the world clock but deliberately omits timers.
+        // Small steps also stay below the world's maximum frame-time clamp.
+        for (int32 Step = 0; Step < Steps; ++Step)
+        {
+            ++GFrameCounter;
+            World->Tick(LEVELTICK_TimeOnly, 0.05f);
+            World->GetTimerManager().Tick(0.05f);
+        }
+    };
     const AKalmalaWorldGenerationGameState* WorldState = World->GetGameState<AKalmalaWorldGenerationGameState>();
     if (!TestNotNull(TEXT("M9 fixture has a server world identity"), WorldState))
     {
@@ -338,7 +353,7 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
             }
             // BeginPlay selected the starter hammer at this world's current time.
             // Let the ordinary hotbar request cadence expire before selecting the axe.
-            World->Tick(LEVELTICK_TimeOnly, 0.25f);
+            AdvanceFixtureTime(5);
             Inventory->ServerUseHotbarSlot(Slot);
             TestEqual(TEXT("Hotbar selects the fixture axe"), Inventory->GetActiveItem(), Source.ToolItemId);
             const FKalmalaDamageChannels AxeDamage = FKalmalaToolLifecycleContract::GetAttackDamageBonuses(
@@ -349,6 +364,27 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
             {
                 if (!TestTrue(TEXT("Equipped axe damages the tree or fallen trunk"), Node->ApplyAxeDamageFromServer(Pawn, AxeDamage))) break;
                 ++AcceptedUses;
+                if (Node->IsTreeFalling())
+                {
+                    const FString FallingId = Node->GetPersistentSpawnId();
+                    const int32 FallingCondition = Pawn->GetToolDurability(Source.ToolItemId);
+                    TestFalse(TEXT("Falling tree is neither targetable trunk nor pickup"),
+                        Node->CanReceiveAxeAttack() || Node->IsFelledTrunk() || Node->CanInteract_Implementation(Pawn));
+                    TestFalse(TEXT("Overlapping accepted-intent hit cannot damage a falling tree"),
+                        Node->ApplyAxeDamageFromServer(Pawn, AxeDamage));
+                    TestEqual(TEXT("Rejected overlap spends no condition"),
+                        Pawn->GetToolDurability(Source.ToolItemId), FallingCondition);
+                    AdvanceFixtureTime(12);
+                    TestTrue(TEXT("Tree remains in transition before the settle deadline"), Node->IsTreeFalling());
+                    TestTrue(TEXT("Replicated start time reconstructs the midpoint progress"),
+                        FMath::IsNearlyEqual(Node->GetTreeFallProgress(), 0.5f, 0.01f));
+                    AdvanceFixtureTime(24);
+                    TestTrue(TEXT("Server timer makes the trunk targetable"), Node->IsFelledTrunk() && Node->CanReceiveAxeAttack());
+                    TestEqual(TEXT("Settling retains exact persistent identity"), Node->GetPersistentSpawnId(), FallingId);
+                    TestEqual(TEXT("Settling spends no additional condition"), Pawn->GetToolDurability(Source.ToolItemId), FallingCondition);
+                    TestEqual(TEXT("Every accepted hit spent exactly one condition"), FallingCondition, InitialCondition - AcceptedUses);
+                    TestEqual(TEXT("Settling grants no material"), Inventory->GetQuantity(Source.ItemId), 0);
+                }
             }
             TestTrue(TEXT("Broken trunk leaves a world wood drop"), Node->IsWoodDrop());
             TestEqual(TEXT("Breaking a trunk does not automatically grant wood"), Inventory->GetQuantity(Source.ItemId), 0);

@@ -605,6 +605,7 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
             return;
         }
         if (Target->IsWoodDrop()) return;
+        if (Target->IsTreeFalling()) return;
         if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestPickup"))
             && Target->CanReceiveAxeAttack() && !Target->IsFelledTrunk() && ForestForgedRequests < 4)
         {

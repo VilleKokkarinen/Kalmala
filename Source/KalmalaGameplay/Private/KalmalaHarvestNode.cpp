@@ -13,6 +13,8 @@
 #include "Materials/MaterialInterface.h"
 #include "Misc/Crc.h"
 #include "Net/UnrealNetwork.h"
+#include "GameFramework/GameStateBase.h"
+#include "TimerManager.h"
 #include "ProceduralMeshComponent.h"
 #include "UObject/ConstructorHelpers.h"
 
@@ -290,8 +292,8 @@ bool AKalmalaHarvestNode::AdvanceTreeHit(const uint8 Stage, const float Health, 
     OutHealth = FMath::Max(0.0f, Health - Damage);
     if (OutHealth == 0.0f)
     {
-        OutStage = Stage + 1;
-        OutHealth = OutStage == 1 ? 60.0f : 0.0f; // Excess damage never skips the trunk stage.
+        OutStage = Stage == 0 ? 3 : 2;
+        OutHealth = OutStage == 3 ? 60.0f : 0.0f; // Excess damage never skips the trunk stage.
     }
     return true;
 }
@@ -324,13 +326,48 @@ bool AKalmalaHarvestNode::ApplyAxeDamageFromServer(AKalmalaCharacter* Interactor
     --*Condition;
     if (!GameMode->PersistPlayerStateFromServer(Interactor)) { ++*Condition; return false; }
     TreeHealth = NextHealth;
-    if (TreeStage != NextStage) { TreeStage = NextStage; BuildSourcePresentation(); }
+    if (TreeStage != NextStage)
+    {
+        TreeStage = NextStage;
+        if (IsTreeFalling())
+        {
+            // Begin only after the felling hit's condition write succeeds.
+            const auto* State = GetWorld()->GetGameState();
+            TreeFallStartedAt = State ? State->GetServerWorldTimeSeconds() : GetWorld()->GetTimeSeconds();
+            GetWorldTimerManager().SetTimer(TreeFallTimer, this,
+                &AKalmalaHarvestNode::SettleTreeFromServer, TreeFallSeconds, false);
+        }
+        BuildSourcePresentation();
+    }
     Interactor->ForceNetUpdate();
     ForceNetUpdate();
     return true;
 }
 
 void AKalmalaHarvestNode::OnRep_TreeStage() { BuildSourcePresentation(); }
+
+void AKalmalaHarvestNode::SettleTreeFromServer()
+{
+    if (!HasAuthority() || !IsTreeFalling() || bHarvested) return;
+    TreeStage = 1;
+    BuildSourcePresentation();
+    ForceNetUpdate();
+}
+
+float AKalmalaHarvestNode::SampleTreeFallProgress(const double StartedAt, const double ServerTime)
+{
+    if (!FMath::IsFinite(StartedAt) || !FMath::IsFinite(ServerTime)) return 0.0f;
+    return static_cast<float>(FMath::Clamp((ServerTime - StartedAt) / TreeFallSeconds, 0.0, 1.0));
+}
+
+float AKalmalaHarvestNode::GetTreeFallProgress() const
+{
+    if (IsFelledTrunk() || IsWoodDrop()) return 1.0f;
+    if (!IsTreeFalling() || !GetWorld()) return 0.0f;
+    const auto* State = GetWorld()->GetGameState();
+    return SampleTreeFallProgress(TreeFallStartedAt,
+        State ? State->GetServerWorldTimeSeconds() : GetWorld()->GetTimeSeconds());
+}
 
 void AKalmalaHarvestNode::CommitHarvestedStateFromServer()
 {
@@ -362,6 +399,7 @@ void AKalmalaHarvestNode::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
     DOREPLIFETIME(AKalmalaHarvestNode, bHarvested);
     DOREPLIFETIME(AKalmalaHarvestNode, TreeStage);
     DOREPLIFETIME(AKalmalaHarvestNode, TreeHealth);
+    DOREPLIFETIME(AKalmalaHarvestNode, TreeFallStartedAt);
     DOREPLIFETIME(AKalmalaHarvestNode, ForestDimensions);
     DOREPLIFETIME(AKalmalaHarvestNode, PersistentSpawnId);
     DOREPLIFETIME(AKalmalaHarvestNode, GatheringSourceId);
@@ -395,7 +433,7 @@ void AKalmalaHarvestNode::BuildSourcePresentation()
     TArray<FLinearColor> Colors;
     if (IsTreeResource())
     {
-        if (TreeStage == 0)
+        if (TreeStage == 0 || IsTreeFalling())
         {
             const bool bForest = ForestDimensions.X > 0 && ForestDimensions.Y > 0
                 && ForestDimensions.Z > 0 && ForestDimensions.W > 0;
@@ -416,7 +454,7 @@ void AKalmalaHarvestNode::BuildSourcePresentation()
             AddTaperedBox(Vertices, Triangles, Colors, FVector(-12, 0, 0), FVector(12, 35, 0), 22, 0.85f, 12, FLinearColor(0.6f, 0.4f, 0.2f));
             AddTaperedBox(Vertices, Triangles, Colors, FVector(12, 0, 0), FVector(12, 35, 0), 22, 0.85f, -12, FLinearColor(0.6f, 0.4f, 0.2f));
         }
-        Collision->SetSphereRadius(TreeStage == 0 ? 80.0f : 65.0f);
+        Collision->SetSphereRadius(TreeStage == 0 || IsTreeFalling() ? 80.0f : 65.0f);
     }
     else if (PresentationId == TEXT("reed-cluster") || PresentationId == TEXT("frostmoss-clump"))
     {

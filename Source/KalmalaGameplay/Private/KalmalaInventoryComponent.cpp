@@ -14,11 +14,10 @@
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
 #include "Net/UnrealNetwork.h"
+#include "TimerManager.h"
 
 #if !UE_BUILD_SHIPPING
-namespace
-{
-bool VerifyHarvestGrants(AKalmalaCharacter* Character)
+bool UKalmalaInventoryComponent::VerifyHarvestGrants(AKalmalaCharacter* Character)
 {
     if (!Character) return false;
     auto* Inventory = Character->FindComponentByClass<UKalmalaInventoryComponent>();
@@ -125,6 +124,15 @@ bool VerifyHarvestGrants(AKalmalaCharacter* Character)
         {
             if (!ToolNode->ApplyAxeDamageFromServer(Character, AxeDamage)) break;
             ++AcceptedHits;
+            if (ToolNode->IsTreeFalling())
+            {
+                // This synchronous pickup fixture skips the timed wait only on
+                // its own node. The M9 actor regression exercises actual timing.
+                bPassed &= !ToolNode->ApplyAxeDamageFromServer(Character, AxeDamage);
+                Character->GetWorld()->GetTimerManager().ClearTimer(ToolNode->TreeFallTimer);
+                ToolNode->SettleTreeFromServer();
+                bPassed &= ToolNode->IsFelledTrunk();
+            }
         }
         bPassed &= ToolNode->IsWoodDrop() && Inventory->GetQuantity(TEXT("Wood")) == FullWood;
         int32 OccupiedPackCells = 0;
@@ -252,7 +260,6 @@ bool VerifyHarvestGrants(AKalmalaCharacter* Character)
     UE_LOG(LogTemp, Display, TEXT("Retired tool replacement fixture: Passed=%d Disabled=1 NoMutation=1 NoXP=1"), bRetiredRecipesPassed);
     bPassed &= bRetiredRecipesPassed;    Bench->Destroy();
     return bPassed;
-}
 }
 #endif
 
