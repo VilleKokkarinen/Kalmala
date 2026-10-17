@@ -132,6 +132,11 @@ private:
     int32 ForestDriverRequests = 0;
     int32 ForestForgedRequests = 0;
     FString ForestForgedId;
+    FString ForestRemoteRangeId;
+    int32 ForestRemoteRangeRequests = 0;
+    float ForestRemoteRangeHealth = 0;
+    bool bForestRemoteRangeStarted = false;
+    bool bForestRemoteRangeReturned = false;
     FString ForestPickupId;
     FName ForestPickupItem;
     int32 ForestPickupBefore = 0;

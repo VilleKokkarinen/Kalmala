@@ -124,6 +124,23 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
             AKalmalaHarvestNode* Pickup = nullptr;
             for (TActorIterator<AKalmalaHarvestNode> Node(GetWorld()); Node; ++Node)
                 if (Node->GetPersistentSpawnId() == ForestPickupId) { Pickup = *Node; break; }
+            if (Pickup && Remote->ForestForgedRequests >= 3 && !bForestRemoteRangeReturned)
+            {
+                if (!bForestRemoteRangeStarted)
+                {
+                    Remote->ForestRemoteRangeId = ForestPickupId;
+                    Remote->ForestRemoteRangeHealth = Pickup->TreeHealth;
+                    Remote->ForestPickupItem = ForestPickupItem;
+                    Remote->ForestPickupBefore = ForestPickupBefore;
+                    Remote->SetActorLocation(Pickup->GetActorLocation() + FVector(-1000, 0, 88));
+                    Remote->ForceNetUpdate();
+                    bForestRemoteRangeStarted = true;
+                }
+                if (Remote->ForestRemoteRangeRequests < 3) return;
+                Remote->SetActorLocation(Pickup->GetActorLocation() + FVector(-150, 0, 88));
+                Remote->ForceNetUpdate();
+                bForestRemoteRangeReturned = true;
+            }
             const int32 Delta = Remote->GetInventoryComponent()->GetQuantity(ForestPickupItem) - ForestPickupBefore;
             if (Delta > ForestPickupExpected)
             {
@@ -250,10 +267,25 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
         AKalmalaHarvestNode* Target = nullptr;
         for (TActorIterator<AKalmalaHarvestNode> Node(GetWorld()); Node; ++Node)
             if (Node->GetPersistentSpawnId().StartsWith(TEXT("forest:v1:"))
-                && FVector::DistSquared(Node->GetActorLocation(), GetActorLocation()) < FMath::Square(210.0f)
+                && (ForestForgedId.IsEmpty()
+                    ? FVector::DistSquared(Node->GetActorLocation(), GetActorLocation()) < FMath::Square(210.0f)
+                    : Node->GetPersistentSpawnId() == ForestForgedId)
                 && (!Target || FVector::DistSquared(Node->GetActorLocation(), GetActorLocation())
                     < FVector::DistSquared(Target->GetActorLocation(), GetActorLocation()))) Target = *Node;
         if (!Target) return;
+        if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestPickup"))
+            && ForestForgedRequests >= 4 && !ForestForgedId.IsEmpty())
+        {
+            if (FVector::DistSquared(Target->GetActorLocation(), GetActorLocation()) > FMath::Square(500.0f))
+            {
+                Controller->SetControlRotation((Target->GetActorLocation() + FVector(0, 0, 10) - GetPawnViewLocation()).Rotation());
+                // One aim-only tick, then three ordinary requests while far away.
+                if (++ForestRemoteRangeRequests > 1 && ForestRemoteRangeRequests <= 4) RequestInteract();
+                return;
+            }
+            // Wait for the server's far phase and its return teleport before attacking.
+            if (ForestRemoteRangeRequests < 4) return;
+        }
         if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestPickup")) && (Target->IsWoodDrop() || !ForestPickupId.IsEmpty()))
         {
             if (bForestPickupReported) return;
@@ -312,6 +344,7 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
         if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestPickup"))
             && Target->CanReceiveAxeAttack() && !Target->IsFelledTrunk() && ForestForgedRequests < 4)
         {
+            ForestForgedId = Target->GetPersistentSpawnId();
             Controller->SetControlRotation((Target->GetActorLocation() + FVector(0, 0, 10) - GetPawnViewLocation()).Rotation());
             // First tick only aims; subsequent ticks send malformed intent over
             // the ordinary owned RPC before any legitimate attack can fell it.

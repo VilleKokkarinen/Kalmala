@@ -1,5 +1,13 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-17 — Gate remote forest interaction reach
+
+- **Completed:** bounded slice of the first unchecked generated-forest delivery child. Following the three malformed RPCs, the server moves the remote pawn 1000 cm from the same standing tree; the client retains that exact ID, aims, sends three ordinary interaction requests, and waits for the server return before attacking. Non-shipping instrumentation in the real owned RPC observes the actual trace result and requires a miss, authoritative distance above 500 cm, unchanged finite positive tree health, standing state and zero catalogue-selected reward. Runner requires matching third-request ID/item proof. Child remains unchecked.
+- **Files changed:** Source/KalmalaGameplay/Private/KalmalaCharacter.cpp, Source/KalmalaGameplay/Private/KalmalaForestDeliveryVerification.cpp, Source/KalmalaGameplay/Public/KalmalaCharacter.h, Scripts/Tests/World/Verify-BiomeExpansion.ps1, BACKLOG.md, PROGRESS.md and docs/07-development-setup.md.
+- **Verification:** PowerShell parser passed; eight cases executing the actual pickup selector against retained health-gate logs with synthetic range proof passed (valid accepted; absent proof, reward, health, trace, count, ID and item mismatches rejected). Inspected ordinary request payload construction, trace/return ordering, exact-target retention, server relocation and attack gating. Working/staged whitespace, scope/diff and MAX_PATH checks performed before commit. No Unreal compilation/live peers; full verification deferred. Normal partial increment, not milestone-final.
+- **Impact/authority:** stronger opt-in non-shipping fixture and evidence only; production validation and transaction routing remain unchanged. Existing logs cannot pass the stronger runner. No gameplay rewards, RPC signatures, persistence or save-format changes.
+- **Limitations/next:** compile/execute stricter ForestPickup in the short isolated mirror. Authored standing-tree trace-reach rejection does not establish executed RPC rejection, live-drop physical-range RPC rejection, delayed mutation, contention or sparse-write counts. Ordinary camera, rendering/streaming/restart and final feature acceptance remain open. Only current Kalmala chat active at guard; prior runs idle, CIM unavailable. Initially clean main checkout used directly; handoff is visible without synchronization.
+
 ## Autonomous increment 2026-10-17 — Execute forged-request health gate
 
 - **Completed:** executed the queued per-request authoritative tree-health stability gate on source 631a088 within the first unchecked generated-forest host/client delivery child. No repairs needed; the child remains unchecked.

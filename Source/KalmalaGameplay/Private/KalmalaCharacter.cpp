@@ -977,7 +977,34 @@ void AKalmalaCharacter::ServerRequestInteract_Implementation(const FName ClientI
     FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(KalmalaInteraction), false, this);
     FHitResult Hit;
     const FVector TraceEnd = ViewLocation + ViewRotation.Vector() * InteractionRange;
-    if (!GetWorld()->LineTraceSingleByChannel(Hit, ViewLocation, TraceEnd, ECC_Visibility, QueryParams))
+    const bool bInteractionHit = GetWorld()->LineTraceSingleByChannel(Hit, ViewLocation, TraceEnd, ECC_Visibility, QueryParams);
+#if !UE_BUILD_SHIPPING
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestPickup"))
+        && !IsLocallyControlled() && !ForestRemoteRangeId.IsEmpty()
+        && ForestRemoteRangeRequests < 3 && ClientItemId.IsNone() && ClientAction == 0)
+    {
+        AKalmalaHarvestNode* Probe = nullptr;
+        for (TActorIterator<AKalmalaHarvestNode> Node(GetWorld()); Node; ++Node)
+            if (Node->GetPersistentSpawnId() == ForestRemoteRangeId) { Probe = *Node; break; }
+        const int32 Delta = Inventory->GetQuantity(ForestPickupItem) - ForestPickupBefore;
+        if (!Probe || bInteractionHit || Delta != 0 || Probe->IsHarvested()
+            || !Probe->CanReceiveAxeAttack() || Probe->IsFelledTrunk() || Probe->IsWoodDrop()
+            || !FMath::IsFinite(ForestRemoteRangeHealth) || ForestRemoteRangeHealth <= 0
+            || Probe->TreeHealth != ForestRemoteRangeHealth
+            || FVector::DistSquared(GetActorLocation(), Probe->GetActorLocation()) <= FMath::Square(500.0f))
+        {
+            UE_LOG(LogTemp, Error, TEXT("Forest delivery: Passed=0 RemoteRange Id=%s Delta=%d Hit=%d"),
+                *ForestRemoteRangeId, Delta, bInteractionHit);
+        }
+        else
+        {
+            ++ForestRemoteRangeRequests;
+            UE_LOG(LogTemp, Display, TEXT("Forest remote range rejection: Passed=1 Authority=1 Id=%s Item=%s Delta=0 Standing=1 HealthUnchanged=1 TraceMiss=1 Requests=%d"),
+                *ForestRemoteRangeId, *ForestPickupItem.ToString(), ForestRemoteRangeRequests);
+        }
+    }
+#endif
+    if (!bInteractionHit)
     {
         return;
     }
