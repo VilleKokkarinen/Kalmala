@@ -3713,3 +3713,15 @@ executes the server-local capacity probe only; full-pack remote RPC rejection,
 simultaneous owned requests and ordinary-camera acceptance remain unproven.
 Continue the same unchecked delivery child; streaming/restart follows. Full
 feature/project verification remains deferred.
+
+
+Remote-owned full-pack gate (2026-10-17): ForestPickup now fills the remote
+owner's pack inside its real pickup RPC handler, after server target/trace
+selection. The transaction must reject in range with zero reward and a live
+exact-ID drop, then restore the exact original stack snapshot before ordinary
+collection and the same-dispatch contender check. The runner requires an
+exact-ID/item `Forest remote full pack rejection` record with Slots=40 and
+Restored=1. Parser and ten actual-selector cases passed against retained
+kfpeer-a9aaaca6 logs plus synthetic new proof. Compilation/live execution
+remain pending. This controlled server-installed inventory does not establish
+a client-visible full-pack interaction or simultaneous owned RPC contention.

@@ -1,3 +1,10 @@
+## Autonomous increment 2026-10-17 — Gate remote-owned full-pack pickup
+
+- **Completed/files:** added a remote-owned pickup RPC capacity probe in Source/KalmalaGameplay/Private/KalmalaCharacter.cpp and exact-ID/item evidence requirement in Scripts/Tests/World/Verify-BiomeExpansion.ps1; documented in docs/07-development-setup.md and PROGRESS.md. Uses server-selected target/trace, requires in-range rejection with zero reward/live Drop, restores exact inventory before ordinary collection. BACKLOG.md unchanged under explicit no-rewording rule; selected delivery child remains incomplete.
+- **Verification:** parser and ten actual-selector cases passed on retained kfpeer-a9aaaca6 logs plus synthetic proof: valid accepted; missing, reward, depleted, distant, insufficient slots, failed restoration, prefix-sharing ID, wrong item and trailing fields rejected. Inspected opt-in non-shipping scope and restoration ordering; whitespace, staged diff/scope and MAX_PATH checked. No Unreal compile/live peers/full suite; full verification deferred. Documentation read encoding error corrected before progress write.
+- **Impact/authority/limits:** acceptance requires the remote RPC target/trace path. Production payload, authority, rewards and schemas unchanged. Server-installed temporary full pack does not establish client-visible full-pack input or simultaneous owned requests. Normal partial increment, not milestone-final.
+- **Concurrency/handoff/next:** only current Kalmala chat active; CIM unavailable; clean main checkout used directly, no handoff synchronization needed. Next compile/execute stricter ForestPickup, then simultaneous owned requests and ordinary-camera acceptance; streaming/restart follows.
+
 ## Autonomous increment 2026-10-17 — Execute live-drop full-pack gate
 
 - **Completed:** executed the pending full-pack rejection slice of the first unchecked generated-forest host/client delivery child on source 909d7de. Compared all 727 tracked Source/Config/Content mirror files and copied the one changed fixture source. No repairs were needed. BACKLOG.md remains unchanged under the explicit no-rewording rule; the selected child is still incomplete.

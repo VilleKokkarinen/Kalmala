@@ -1080,6 +1080,35 @@ void AKalmalaCharacter::ServerRequestInteract_Implementation(const FName ClientI
             && HarvestNode->GetPersistentSpawnId() == ForestRemoteRangeId
             && HarvestNode->IsWoodDrop() && !HarvestNode->IsHarvested())
         {
+            // Exercise capacity through the real remote-owned RPC's selected
+            // target and trusted trace before allowing its ordinary collection.
+            // Restore exact stacks before the winner/contender transactions.
+            const auto OriginalStacks = Inventory->GetStacks();
+            const int32 PackedTools = Inventory->CountPackedTools(GetCarriedToolInventory());
+            TArray<FKalmalaInventoryStack> FullPack;
+            for (int32 Cell = PackedTools; Cell < UKalmalaInventoryComponent::MaxSlots; ++Cell)
+                FullPack.Add({TEXT("String"), 1});
+            const bool bInstalled = ForestPickupItem != TEXT("String")
+                && Inventory->TryCommitStacksFromServer(OriginalStacks, FullPack);
+            const auto InstalledStacks = Inventory->GetStacks();
+            const bool bInRange = Hit.Distance <= InteractionRange
+                && AKalmalaHarvestNode::IsHarvestAllowed(true, false,
+                    GetActorLocation(), HarvestNode->GetActorLocation());
+            const int32 Before = Inventory->GetQuantity(ForestPickupItem);
+            const bool bAccepted = bInstalled && HarvestNode->InteractWithToolIntentFromServer(
+                this, Hit.Distance, InteractionRange, ClientItemId, ClientAction);
+            const int32 Delta = Inventory->GetQuantity(ForestPickupItem) - Before;
+            const bool bLiveDrop = HarvestNode->IsWoodDrop() && !HarvestNode->IsHarvested();
+            const bool bRestored = bInstalled
+                && Inventory->TryCommitStacksFromServer(InstalledStacks, OriginalStacks);
+            if (!bInstalled || !bInRange || bAccepted || Delta != 0 || !bLiveDrop || !bRestored)
+            {
+                UE_LOG(LogTemp, Error, TEXT("Forest delivery: Passed=0 RemoteFullPack Id=%s Installed=%d InRange=%d Accepted=%d Delta=%d LiveDrop=%d Restored=%d"),
+                    *HarvestNode->GetPersistentSpawnId(), bInstalled, bInRange, bAccepted, Delta, bLiveDrop, bRestored);
+                return;
+            }
+            UE_LOG(LogTemp, Display, TEXT("Forest remote full pack rejection: Passed=1 Authority=1 Id=%s Item=%s Delta=0 LiveDrop=1 InRange=1 Slots=40 Restored=1"),
+                *HarvestNode->GetPersistentSpawnId(), *ForestPickupItem.ToString());
             for (TActorIterator<AKalmalaCharacter> Pawn(GetWorld()); Pawn; ++Pawn)
             {
                 if (*Pawn != this && Pawn->IsLocallyControlled() && Pawn->GetInventoryComponent())
