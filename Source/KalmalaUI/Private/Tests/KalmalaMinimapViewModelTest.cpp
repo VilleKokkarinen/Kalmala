@@ -7,6 +7,13 @@
 #include "Blueprint/GameViewportSubsystem.h"
 
 #include "KalmalaWorldGenerationConfig.h"
+#include "KalmalaWorldMapWidget.h"
+#include "Engine/World.h"
+#include "Engine/Engine.h"
+#include "Engine/LocalPlayer.h"
+#include "GameFramework/Character.h"
+#include "GameFramework/PlayerController.h"
+#include "Misc/ScopeExit.h"
 #include "Misc/AutomationTest.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaMinimapViewModelTest, "Kalmala.UI.Minimap.LocalPresentation", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
@@ -110,6 +117,42 @@ bool FKalmalaMinimapViewModelTest::RunTest(const FString& Parameters)
         }
     }
     TestTrue(TEXT("Ocean fixture found"), bFoundOcean);
+    return true;
+}
+
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaLiveMapHeadingTest, "Kalmala.UI.WorldMap.LivePlayerHeading",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FKalmalaLiveMapHeadingTest::RunTest(const FString& Parameters)
+{
+    UWorld* World = UWorld::CreateWorld(EWorldType::Game, false);
+    if (!TestNotNull(TEXT("Heading fixture world exists"), World)) return false;
+    ON_SCOPE_EXIT { World->DestroyWorld(false); };
+    auto* Controller = World->SpawnActor<APlayerController>();
+    auto* Pawn = World->SpawnActor<ACharacter>();
+    if (!TestNotNull(TEXT("Local controller exists"), Controller) || !TestNotNull(TEXT("Local pawn exists"), Pawn)) return false;
+    Controller->SetPlayer(NewObject<ULocalPlayer>(GEngine));
+    Controller->Possess(Pawn);
+    TestTrue(TEXT("Fixture uses a local owning controller"), Controller->IsLocalController());
+    TestTrue(TEXT("Fixture possesses its character"), Controller->GetPawn() == Pawn);
+    auto* Model = NewObject<UKalmalaMinimapViewModel>();
+    Model->Initialize(Controller);
+    const TArray<float> Headings = { 0, 90, 180, -90 };
+    const TArray<FVector2D> Directions = { {1, 0}, {0, 1}, {-1, 0}, {0, -1} };
+    for (int32 Index = 0; Index < Headings.Num(); ++Index)
+    {
+        TestTrue(TEXT("Fixture character physically rotates"), Pawn->SetActorRotation(FRotator(0, Headings[Index], 0)));
+        TestTrue(TEXT("Heading follows rotation without terrain refresh"),
+            FMath::IsNearlyEqual(FMath::FindDeltaAngleDegrees(Model->GetPlayerFacingDegrees(), Headings[Index]), 0.0f));
+        TestTrue(TEXT("Expanded-map arrow follows live pawn direction"),
+            UKalmalaWorldMapWidget::GetFacingDirection(Model->GetPlayerFacingDegrees()).Equals(Directions[Index], 0.001f));
+    }
+    TestFalse(TEXT("Reading heading never schedules or waits for terrain"), Model->IsReady());
+    Controller->UnPossess();
+    TestEqual(TEXT("Missing pawn has a safe fallback"), Model->GetPlayerFacingDegrees(), 0.0f);
+    Model->Initialize(nullptr);
+    TestEqual(TEXT("Missing owner has a safe fallback"), Model->GetPlayerFacingDegrees(), 0.0f);
     return true;
 }
 

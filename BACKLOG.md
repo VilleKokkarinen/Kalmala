@@ -29,6 +29,10 @@ Further autonomous implementation requires a new user-defined task.
 
 ## Completed post-roadmap work
 
+**Live map heading — verified 2026-10-17.** Player arrows read the local pawn's
+current facing without a terrain refresh. Editor build and three focused
+map/minimap tests passed, including turns through all four map directions.
+
 **Axe swing and animation — verified 2026-10-17.** Usable axes can swing without
 an in-range target; misses complete cooldown quietly. Replicated accepted actions
 drive the procedural arm animation. Editor build and four focused tests passed;

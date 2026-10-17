@@ -85,6 +85,14 @@ FVector2D UKalmalaMinimapViewModel::GetMapCentre() const
         ? FVector2D(OwningPlayer->GetPawn()->GetActorLocation()) : LastLocation;
 }
 
+float UKalmalaMinimapViewModel::GetPlayerFacingDegrees() const
+{
+    // The expanded map uses terrain tiles rather than Refresh(); heading must stay live.
+    const APawn* Pawn = OwningPlayer && OwningPlayer->IsLocalController() ? OwningPlayer->GetPawn() : nullptr;
+    const float Yaw = Pawn ? Pawn->GetActorRotation().Yaw : 0.0f;
+    return FMath::IsFinite(Yaw) ? Yaw : 0.0f;
+}
+
 bool UKalmalaMinimapViewModel::Refresh()
 {
     if (OwningPlayer == nullptr || !OwningPlayer->IsLocalController() || OwningPlayer->GetPawn() == nullptr || OwningPlayer->GetWorld() == nullptr)
@@ -108,7 +116,6 @@ bool UKalmalaMinimapViewModel::Refresh()
     const FKalmalaWorldGenerationConfig& Config = WorldGenerationState->GetWorldGenerationConfig();
     CurrentBiomeLabel = GetBiomeDisplayName(FKalmalaBiomeClassifier::Classify(
         FKalmalaWorldFieldSampler::Sample(Config, PawnLocation)));
-    PlayerFacingDegrees = OwningPawn->GetActorRotation().Yaw;
     return RefreshTerrain(Config, Location);
 }
 

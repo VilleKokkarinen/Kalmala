@@ -1,5 +1,26 @@
 # Development setup
 
+## Live map player heading — 2026-10-17
+
+The shared map view-model heading getter reads the local owning pawn's current
+yaw directly, with zero fallback for absent owner/pawn or non-finite yaw. It no
+longer depends on `Refresh()` or cached terrain samples. The expanded map uses
+tile presentation rather than `Refresh()`, which left the former heading cache
+at zero/east. Minimap and expanded-map coordinate conventions are unchanged.
+
+Regression `Kalmala.UI.WorldMap.LivePlayerHeading` turns a possessed local
+character through 0/90/180/-90 degrees without any terrain refresh and checks the
+expanded-map arrow vectors, no terrain work and missing-owner/pawn fallbacks.
+Final unattended/null-RHI run also included `Kalmala.UI.WorldMap.LocalPresentation`
+and `Kalmala.UI.Minimap.LocalPresentation`: three successful results, exit 0;
+`C:/Users/Ville/AppData/Local/Temp/kmh-9ff8bd64/tests.log`.
+The normal-access isolated unity Editor build passed seven actions, then two
+four-action fixture rebuilds; logs `kmforest/map-heading-build2.log`,
+`map-heading-final-build.log`, `map-heading-owner-build.log`. Used the established
+short-mirror `Build.bat KalmalaEditor Win64 Development` invocation with
+`-WaitMutex -NoHotReload -NoHotReloadFromIDE -MaxParallelActions=4 -DisableAdaptiveUnity`.
+No rendered/manual-input, peer, full-suite or package verification was performed.
+
 ## Axe swing and arm geometry regression — 2026-10-17
 
 `Kalmala.Gameplay.Combat.AxeSwing` checks starter axe equip, ordinary no-target

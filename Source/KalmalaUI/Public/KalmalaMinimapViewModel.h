@@ -68,7 +68,7 @@ public:
     bool IsReady() const { return bIsReady; }
 
     UFUNCTION(BlueprintPure, Category = "Minimap")
-    float GetPlayerFacingDegrees() const { return PlayerFacingDegrees; }
+    float GetPlayerFacingDegrees() const;
 
     /** Current-position biome derived locally from the replicated world identity and owning pawn location. */
     const FString& GetCurrentBiomeLabel() const { return CurrentBiomeLabel; }
@@ -122,9 +122,6 @@ private:
     uint32 PresentationRevision = 0;
     FVector2D CustomCentre = FVector2D::ZeroVector;
     bool bUseCustomCentre = false;
-
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Minimap", meta = (AllowPrivateAccess = "true"))
-    float PlayerFacingDegrees = 0.0f;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Minimap", meta = (AllowPrivateAccess = "true"))
     TArray<FKalmalaMinimapTerrainSample> TerrainSamples;
