@@ -1,10 +1,25 @@
 # Development setup
 
-## Forest client pickup gate (2026-10-16; authored, not executed)
+## Forest client pickup gate (authored 2026-10-16; executed 2026-10-17)
 
 After compiling the changed fixture in a short temporary mirror, run `Scripts/Tests/World/Verify-BiomeExpansion.ps1 -ForestDeliveryOnly -ForestStages -ForestPickup -Project <temporary-project>`. Pickup excludes both late-join modes, which retain separate evidence. The opt-in non-shipping driver holds the drop for five observation ticks, captures its exact ID and local inventory baseline, derives expected yield from the existing catalogue/M9 contract, aims through normal controller rotation, then sends three ordinary owned interaction requests. It requires replicated collected state and the exact expected inventory delta stable for five further ticks; failure to converge within thirty ticks logs fixture failure. The runner requires that same ID in shared Trunk/Drop delivery and collected observations on both host and client. Collected observations do not count toward standing coverage.
 
 PowerShell parsing and ten synthetic cases executing the actual pickup selector passed. No compile or live pickup scenario was run during authoring. This observes replicated inventory and collected state, not the sparse-save write count; competing pickup, forged/out-of-range requests, and executed pickup acceptance remain pending. Production interaction validation, authority, rewards, RPC signatures and save formats are unchanged. All live execution must use isolated temporary project/user roots as in preceding forest runs; full feature verification remains deferred.
+
+### Executed pickup evidence — 2026-10-17
+
+The following execution supersedes the authoring-only status above. Source 119212d plus the fixture repair in this increment; existing short kmforest mirror had matching Source/Config/Content hashes before build, with the repaired fixture recopied before each rebuild. Pickup mode uses an eye-position camera on both server and owner and stationary flying movement to retain normal movement/aim updates. This is a bounded interaction fixture, not acceptance of default third-person camera usability. Production interaction range remains 250 cm; the default boom is 320 cm. No RPC, reward, trace validation or save schema changed.
+
+Commands actually run (normal build/runtime directory access):
+
+```powershell
+& 'C:/Program Files/Epic Games/UE_5.8/Engine/Build/BatchFiles/Build.bat' KalmalaEditor Win64 Development '-Project=C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject' -WaitMutex -NoHotReload -MaxParallelActions=4
+& ./Scripts/Tests/World/Verify-BiomeExpansion.ps1 -ForestDeliveryOnly -ForestStages -ForestPickup -Project C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject
+```
+
+Initial sandbox build was interrupted on UBA access denial; normal-access retry succeeded (pickup-build2.log, 66 actions). Subsequent repairs compiled and linked successfully (pickup-build3.log through pickup-build6.log, four actions each). Build logs reside in C:/Users/Ville/AppData/Local/Temp/kmforest/. Failed peer roots: kfpeer-66d5069e, kfpeer-6e50be50, kfpeer-19466d8c and diagnostic kfpeer-1f7af3db under OS temporary storage. All failed with zero reward and uncollected drop. Changing aim alone and then enabling movement updates did not resolve pickup. Temporary read-only server trace probes showed aim arriving but the offset camera trace hitting nothing within range; probes were removed before the final successful build/run.
+
+Final runner exited 0. Host/client logs: C:/Users/Ville/AppData/Local/Temp/kfpeer-83dbb606/host.log and client.log. Nine matching eighteen-tree standing patches passed. Both peers observed Trunk, Drop and Collected for forest:v1:10323456789:31079.1015625:5132.20068359375:13, seed 10323456789. Client logged Item=Lightwood Delta=1 Expected=1 Requests=3 Stable=5. Zero fatal/assertion/ensure/fixture-failure markers; runner finally stopped all peers and no UnrealEditor remained. PowerShell parser passed. Existing saves and repository protected outputs untouched. Full feature verification deferred; competing pickup, forged/out-of-range rejection, sparse-write counting, streaming/restart and ordinary camera usability remain outside this executed gate.
 
 ## Forest trunk late-join gate (2026-10-16; executed)
 

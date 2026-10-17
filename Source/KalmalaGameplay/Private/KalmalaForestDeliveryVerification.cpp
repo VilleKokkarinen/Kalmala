@@ -2,6 +2,7 @@
 #include "KalmalaInventoryComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
+#include "GameFramework/SpringArmComponent.h"
 #include "KalmalaForestLayout.h"
 #include "KalmalaGeneratedTerrainPatch.h"
 #include "KalmalaHarvestNode.h"
@@ -15,6 +16,13 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
 {
 #if !UE_BUILD_SHIPPING
     if (!FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestDeliveryTest")) || !IsLocallyControlled()) return;
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestPickup")))
+    {
+        // Use an eye-position fixture camera so the normal 250 cm interaction
+        // trace can reach the drop; the default boom alone is 320 cm long.
+        CameraBoom->TargetArmLength = 0;
+        CameraBoom->TargetOffset = GetPawnViewLocation() - GetActorLocation();
+    }
     const auto* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
     if (!State || State->PlayerArray.Num() < 2) return;
     ForestDeliveryElapsed += DeltaSeconds;
@@ -130,7 +138,15 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
             bForestDriverPrepared = true;
             return;
         }
-        Remote->GetCharacterMovement()->DisableMovement();
+        if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestPickup")))
+        {
+            // Keep normal movement/aim updates active while holding position.
+            Remote->GetCharacterMovement()->SetMovementMode(MOVE_Flying);
+            Remote->GetCharacterMovement()->StopMovementImmediately();
+            Remote->CameraBoom->TargetArmLength = 0;
+            Remote->CameraBoom->TargetOffset = Remote->GetPawnViewLocation() - Remote->GetActorLocation();
+        }
+        else Remote->GetCharacterMovement()->DisableMovement();
         Remote->SetActorLocationAndRotation(Target->GetActorLocation() + FVector(-150, 0, 88), FRotator::ZeroRotator);
         Remote->ForceNetUpdate();
         bForestDriverPrepared = true;
@@ -162,10 +178,9 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
                 ForestPickupId = Target->GetPersistentSpawnId();
                 ForestPickupItem = Selection.RewardItemId;
                 ForestPickupBefore = GetInventoryComponent()->GetQuantity(ForestPickupItem);
-                FVector ViewLocation;
-                FRotator ViewRotation;
-                Controller->GetPlayerViewPoint(ViewLocation, ViewRotation);
-                Controller->SetControlRotation((Target->GetActorLocation() + FVector(0, 0, 10) - ViewLocation).Rotation());
+                // Both fixture camera origins now match the pawn eye. Normal
+                // camera/movement updates carry this aim to the server cache.
+                Controller->SetControlRotation((Target->GetActorLocation() + FVector(0, 0, 10) - GetPawnViewLocation()).Rotation());
                 return; // Allow normal control-rotation replication before interacting.
             }
             if (Target->GetPersistentSpawnId() != ForestPickupId) return;
