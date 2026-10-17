@@ -3848,4 +3848,27 @@ one successful host sparse write and no client write. Nine patches/162 IDs and
 matching Trunk/Drop delivery passed. No fatal, assertion, ensure or forest
 failure markers; peer processes exited. This headless run verifies cue
 submission, not audible playback. Full tree-feature/project verification and
-patch departure/reactivation/restart acceptance remain deferred.
+patch reactivation/restart acceptance remain deferred.
+
+### Shared-patch departure and eviction accepted (2026-10-17)
+
+Run the focused server-world regression:
+
+```powershell
+& 'C:/Program Files/Epic Games/UE_5.8/Engine/Binaries/Win64/UnrealEditor-Cmd.exe' 'C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -NoZenAutoLaunch -DDC=NoZenLocalFallback -stdout -FullStdOutLogOutput '-UserDir=C:/Users/Ville/AppData/Local/Temp/kp18e/user' '-abslog=C:/Users/Ville/AppData/Local/Temp/kp18e/tests.log' '-ExecCmds=Automation RunTests Kalmala.Gameplay.Harvest.ForestPatchLifecycle' '-TestExit=Automation Test Queue Empty'
+```
+
+The test passed (`Result={Success}`), performed one test and exited 0. Its two
+possessed controllers share a patch; after the first leaves, the exact terrain
+and forest actors remain for the other player. After the final player leaves,
+patch tracking and actors are removed. The pre-existing harvested ID remains
+harvested, and no uncollected ID is recorded as harvested. The current
+Source/Config/Content mirror matched the checkout. The isolated editor target
+had been built on these same sources in the preceding increment; this
+acceptance-only increment did not rebuild it.
+
+This is an isolated server-world lifecycle check, not live peer-delivery
+acceptance. Unreal emitted its known pre-test `Condition failed` diagnostics
+and context-free fixture teardown warnings; the automation itself had no
+failed assertions. Patch reactivation after eviction, process-restart
+persistence, and full tree-feature/project verification remain deferred.
