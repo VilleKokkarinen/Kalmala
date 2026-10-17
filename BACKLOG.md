@@ -60,7 +60,7 @@ Open leaf checkboxes are sized as one focused automated-job increment. Mark a le
     - [x] Align collision, axe targeting and server range checks with the presented settled log; reject extra hits during transition.
     - [x] Keep the wood bundle readable and collectible at the settled log; verify accepted pickup and full-pack/duplicate rejection without extra rewards.
   - [ ] **Run final tree-feature acceptance.**
-    - [ ] Build the integrated editor source and run the focused tree-harvest automation group.
+    - [x] Build the integrated editor source and run the focused tree-harvest automation group.
     - [ ] Run final exact-ID host/client stage, late-join, and pickup delivery acceptance on the integrated source.
     - [ ] Run final peer streaming, patch reactivation, and real population-slot restart acceptance.
     - [ ] Check the parent only after each final gate passes; leave any failed gate open until its repair and rerun succeed.

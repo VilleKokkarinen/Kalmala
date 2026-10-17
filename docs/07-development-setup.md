@@ -32,10 +32,39 @@ are implemented; see the evidence below. Prior peer evidence predates this timin
 change and must be repeated at final feature acceptance. Moving presentation and
 the settled 3D trunk, aligned targeting and midpoint bundle pickup are now implemented.
 Partial health and uncollected Trunk/Drop state reset on regeneration; only accepted
-pickup depletion persists. Final integrated editor build, focused harvest group,
-exact-ID peer/late-join/pickup gates and live streaming/reactivation/restart remain
-required by BACKLOG.md. Full tree-feature/project verification remains deferred;
+pickup depletion persists. The final integrated editor build and focused harvest
+group passed; see the evidence below. Final exact-ID peer/late-join/pickup gates
+and live streaming/reactivation/restart remain required by BACKLOG.md.
+Full tree-feature/project verification remains deferred;
 the earlier documentation reconciliation itself ran no Unreal build or runtime test.
+
+## Final integrated tree-harvest build and focused group (2026-10-17)
+
+Accepted integrated source `6318181`. All 728 tracked Source/Config/Content
+files matched the existing isolated `C:/Users/Ville/AppData/Local/Temp/kmforest`
+project; no runtime files needed copying. With normal per-user UnrealBuildTool
+access, the editor build succeeded (target up to date, zero actions):
+
+```powershell
+& 'C:/Program Files/Epic Games/UE_5.8/Engine/Build/BatchFiles/Build.bat' KalmalaEditor Win64 Development '-Project=C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject' -WaitMutex -NoHotReload -MaxParallelActions=4
+& 'C:/Program Files/Epic Games/UE_5.8/Engine/Binaries/Win64/UnrealEditor-Cmd.exe' 'C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -NoZenAutoLaunch -DDC=NoZenLocalFallback -stdout -FullStdOutLogOutput '-UserDir=C:/Users/Ville/AppData/Local/Temp/ktreefinal/user' '-abslog=C:/Users/Ville/AppData/Local/Temp/ktreefinal/tests.log' '-ExecCmds=Automation RunTests Kalmala.Gameplay.Harvest.TreeFelling+Kalmala.Gameplay.Harvest.ForestReconstructionLifecycle+Kalmala.Gameplay.Harvest.ForestPatchLifecycle+Kalmala.Gameplay.M9.SecondWaveHarvestAcceptance' '-TestExit=Automation Test Queue Empty'
+```
+
+Build log: `C:/Users/Ville/AppData/Local/Temp/kmforest/tree-final-build.log`.
+The editor queue performed four tests, each with `Result={Success}`, and exited
+0. Required all four result records and no automation-controller errors or
+fatal/assertion/ensure failure markers. Known pre-test engine `Condition failed`
+diagnostics and context-free fixture teardown warnings remain. No repairs were
+needed and no UnrealEditor process remained after completion.
+
+This closes only the integrated build/focused-group leaf. Server fall timing,
+presentation/identity, settled targeting, accepted-hit accounting, bundle pickup,
+capacity/duplicate rejection, reconstruction and patch lifecycle have integrated
+isolated regression coverage. It does not repeat live peer delivery, late joins,
+streaming or real-slot restart after the fall/log changes. Those final acceptance
+leaves remain open; no rendered inspection, full project suite or packaging ran.
+Full tree-feature/project verification remains deferred. Next run the final
+exact-ID host/client stage, late-join and pickup gates on this integrated source.
 
 ## Midpoint wood bundle pickup (2026-10-17)
 
