@@ -158,6 +158,7 @@ private:
     UPROPERTY(Transient) TObjectPtr<class AKalmalaOceanTravelTestFixture> OceanTravelTestFixture;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaWorldPopulationSaveGame> PopulationSaveGame;
     TSet<FString> SessionM9ResourceDepletionIds;
+    UPROPERTY(Transient)
     TMap<FString, TObjectPtr<class UKalmalaPlayerDiscoverySaveGameV2>> PlayerDiscoverySaves;
     TSet<FString> RejectedPlayerDiscoverySaveIdentities;
     TMap<FString, TObjectPtr<class UKalmalaM7PersistenceSaveGame>> OceanDiscoverySaves;
