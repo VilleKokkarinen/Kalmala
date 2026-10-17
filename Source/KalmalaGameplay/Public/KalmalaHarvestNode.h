@@ -47,6 +47,8 @@ public:
     /** Uses synchronized server time, so newly relevant peers resume the same fall. */
     float GetTreeFallProgress() const;
     static float SampleTreeFallProgress(double StartedAt, double ServerTime);
+    /** Original hinge animation in actor space; the actor/identity never moves. */
+    static FTransform SampleTreeFallPose(float Progress, float TrunkRadius);
 #if !UE_BUILD_SHIPPING
     const FVector4& GetForestDimensionsForVerification() const { return ForestDimensions; }
 #endif
@@ -62,6 +64,7 @@ public:
     virtual bool CanInteract_Implementation(AKalmalaCharacter* Interactor) const override;
     virtual void Interact_Implementation(AKalmalaCharacter* Interactor) override;
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+    virtual void Tick(float DeltaSeconds) override;
 
 private:
     friend class AKalmalaCharacter;
@@ -72,6 +75,7 @@ private:
     bool InitializeGeneratedForestServer(const FKalmalaForestTreeDescriptor& Tree);
 
     void BuildSourcePresentation();
+    void UpdateTreePresentationPose();
     void ApplyHarvestedState();
     void CommitHarvestedStateFromServer();
     void SettleTreeFromServer();
@@ -87,7 +91,7 @@ private:
     UPROPERTY(Replicated)
     float TreeHealth = 100.0f;
 
-    UPROPERTY(Replicated)
+    UPROPERTY(ReplicatedUsing = OnRep_TreeStage)
     double TreeFallStartedAt = 0.0;
 
     /** Server-reconstructed forest radius/height/canopy radius/height; zero selects legacy node geometry. */

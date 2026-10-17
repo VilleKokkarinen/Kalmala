@@ -8,6 +8,9 @@ seed/patch/candidate identities. Equipped axe attacks advance Standing through a
 The existing resource tiers, yields and accepted-hit condition cost apply.
 Falling rejects overlapping hits without spending condition; replicated server time
 allows elapsed-progress reconstruction. Matching cosmetic trees are suppressed to avoid duplicate presentation.
+The original procedural tree hinges forward during Falling, then leaves its
+full-size horizontal timber with exposed cut faces at the original tree root.
+Presentation preserves the actor transform and persistent identity.
 
 Accepted pickup grants once and records sparse depletion. Full packs retain the
 live drop and receive the existing private rejection feedback. Collected IDs stay
@@ -18,7 +21,7 @@ owners; isolated checks cover shared patch departure/reactivation and real-slot
 process restart. [Setup evidence and limits](07-development-setup.md#generated-forest-current-acceptance-2026-10-17)
 distinguish those boundaries from final integrated acceptance.
 
-Moving falls, the settled 3D log and aligned targeting, rendered manual usability,
+Settled-log targeting and bundle alignment, rendered manual usability,
 final live peer streaming/restart and full tree-feature verification remain pending.
 
 ## Bow and two-handed items — 2026-10-15

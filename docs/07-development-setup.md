@@ -29,13 +29,45 @@ the acceptance gates.
 
 The server-authored fall/settled transition and focused overlap/condition regression
 are implemented; see the evidence below. Prior peer evidence predates this timing
-change and must be repeated at final feature acceptance. Next implementation:
-moving presentation and the settled 3D trunk, followed by aligned targeting.
+change and must be repeated at final feature acceptance. Moving presentation and
+the settled 3D trunk are now implemented; aligned targeting is next.
 Partial health and uncollected Trunk/Drop state reset on regeneration; only accepted
 pickup depletion persists. Final integrated editor build, focused harvest group,
 exact-ID peer/late-join/pickup gates and live streaming/reactivation/restart remain
 required by BACKLOG.md. Full tree-feature/project verification remains deferred;
 the earlier documentation reconciliation itself ran no Unreal build or runtime test.
+
+## Moving tree and settled timber (2026-10-17)
+
+`KalmalaHarvestNode` now rotates its original procedural trunk/canopy around the
+generated root towards actor-local +X over the replicated 1.2-second fall. The
+accelerating hinge pose uses synchronized server progress; newly relevant peers
+sample elapsed motion directly. The projected trunk radius raises the hinge so
+horizontal timber rests on the root plane. Settlement preserves full trunk
+dimensions and pose, removes the canopy and adds original cut faces. Only the
+mesh moves; actor transform, persistent ID and server gameplay authority stay
+fixed. Tick runs only during Falling, with no per-frame mesh rebuild. Fall-start
+replication also refreshes presentation, so notification order can correct the pose.
+
+Compared all 728 tracked Source/Config/Content files against the existing isolated
+`kmforest` project; copied only four run-owned changed sources. The editor command
+shown in the following section passed 22 actions with no compiler warnings/errors;
+log `C:/Users/Ville/AppData/Local/Temp/kmforest/pose-build.log`. With normal per-user
+access, the same focused editor invocation below passed `TreeFelling` and
+`M9.SecondWaveHarvestAcceptance`: each one test, `Result={Success}`, exit 0.
+Logs: `C:/Users/Ville/AppData/Local/Temp/kpose/TreeFelling.log` and
+`SecondWaveHarvestAcceptance.log`. Required actual result markers and absence of
+automation-controller errors; known pre-test engine `Condition failed` diagnostics
+and context-free fixture teardown warnings remain.
+
+The regressions cover elapsed/late pose sampling, midpoint rotation, horizontal
+settlement, exact identity/root retention, full trunk dimensions, canopy removal,
+tick shutdown and unchanged accepted-hit/overlap/condition/pickup accounting for
+legacy and generated Meadow/Elderwood sources. No rendered inspection, live peer
+fall/late join, full suite or milestone-final verification ran. Terrain slope fitting
+is not implemented; the root plane is used. Root collision/range checks and drop
+placement still need the following settled-log integration leaves. Full feature
+and project verification remain deferred.
 
 ## Authoritative tree fall transition (2026-10-17)
 
@@ -44,8 +76,8 @@ and a 1.2-second server timer. The timer changes only the phase to settled Trunk
 (stage 1); health stays 60 and identity, yields and depletion callbacks remain
 unchanged. Overlapping hits and pickup reject during Falling before condition
 persistence. Clients sample clamped elapsed progress from synchronized server time;
-they never settle the actor. The standing geometry is held until settlement;
-moving art and the new settled log are the next backlog leaf.
+they never settle the actor. The initial implementation held the standing geometry
+until settlement; the moving-presentation increment above replaces that behavior.
 
 Verification used the existing isolated project at
 `C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject`, with normal per-user

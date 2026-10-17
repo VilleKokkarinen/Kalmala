@@ -28,6 +28,23 @@ bool FKalmalaTreeFellingTest::RunTest(const FString& Parameters)
         AKalmalaHarvestNode::SampleTreeFallProgress(100, 105), 1.0f);
     TestEqual(TEXT("Invalid clock input is rejected"),
         AKalmalaHarvestNode::SampleTreeFallProgress(100, std::numeric_limits<double>::infinity()), 0.0f);
+    const FTransform Upright = AKalmalaHarvestNode::SampleTreeFallPose(0, 20);
+    const FTransform MidFall = AKalmalaHarvestNode::SampleTreeFallPose(0.5f, 20);
+    const FTransform Settled = AKalmalaHarvestNode::SampleTreeFallPose(1, 20);
+    TestTrue(TEXT("The standing hinge starts at the original root"), Upright.Equals(FTransform::Identity));
+    const FVector MidAxis = MidFall.TransformVector(FVector::UpVector);
+    TestTrue(TEXT("The original trunk visibly leans forward midway"), MidAxis.X > 0 && MidAxis.Z > 0);
+    TestTrue(TEXT("Settled timber lies along the original tree's local forward axis"),
+        Settled.TransformVector(FVector::UpVector).Equals(FVector::ForwardVector, 0.0001));
+    TestTrue(TEXT("The settled base rests one radius above the root plane"),
+        Settled.GetLocation().Equals(FVector(0, 0, 20)));
+    TestTrue(TEXT("Delayed stage delivery cannot overshoot the settled pose"),
+        AKalmalaHarvestNode::SampleTreeFallPose(5, 20).Equals(Settled));
+    TestTrue(TEXT("Late relevance samples the same pose without replaying from zero"),
+        AKalmalaHarvestNode::SampleTreeFallPose(AKalmalaHarvestNode::SampleTreeFallProgress(
+            100, 100 + AKalmalaHarvestNode::TreeFallSeconds * 0.5), 20).Equals(MidFall));
+    TestTrue(TEXT("Invalid progress cannot produce an invalid transform"),
+        AKalmalaHarvestNode::SampleTreeFallPose(std::numeric_limits<float>::quiet_NaN(), 20).Equals(Upright));
     Stage = 1; // Only the authoritative timer may settle the actor.
     TestTrue(TEXT("Trunk hit creates dropped wood"), AKalmalaHarvestNode::AdvanceTreeHit(Stage, Health, 60, Stage, Health));
     TestEqual(TEXT("Wood-drop stage"), Stage, uint8(2));

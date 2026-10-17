@@ -92,6 +92,8 @@ AKalmalaHarvestNode::AKalmalaHarvestNode()
 {
     CreateDefaultSubobject<UKalmalaResistanceComponent>(TEXT("Resistances"));
     bReplicates = true;
+    PrimaryActorTick.bCanEverTick = true;
+    PrimaryActorTick.bStartWithTickEnabled = false;
     SetReplicateMovement(false);
     Collision = CreateDefaultSubobject<USphereComponent>(TEXT("Collision"));
     Collision->InitSphereRadius(50.0f);
@@ -369,6 +371,31 @@ float AKalmalaHarvestNode::GetTreeFallProgress() const
         State ? State->GetServerWorldTimeSeconds() : GetWorld()->GetTimeSeconds());
 }
 
+FTransform AKalmalaHarvestNode::SampleTreeFallPose(const float Progress, const float TrunkRadius)
+{
+    const float Fraction = FMath::IsFinite(Progress) ? FMath::Clamp(Progress, 0.0f, 1.0f) : 0.0f;
+    const float Radius = FMath::IsFinite(TrunkRadius) ? FMath::Max(0.0f, TrunkRadius) : 0.0f;
+    // Accelerate around the original root towards actor-local +X. Lift the hinge
+    // by the projected radius so the settled timber rests on the root's plane.
+    const float Angle = Fraction * Fraction * HALF_PI;
+    return FTransform(FQuat(FVector::YAxisVector, Angle), FVector(0, 0, Radius * FMath::Sin(Angle)));
+}
+
+void AKalmalaHarvestNode::UpdateTreePresentationPose()
+{
+    if (!SourceMesh) return;
+    const float Radius = ForestDimensions.X > 0 ? ForestDimensions.X : 20.0f;
+    SourceMesh->SetRelativeTransform(IsTreeFalling() || IsFelledTrunk()
+        ? SampleTreeFallPose(GetTreeFallProgress(), Radius) : FTransform::Identity);
+}
+
+void AKalmalaHarvestNode::Tick(const float DeltaSeconds)
+{
+    Super::Tick(DeltaSeconds);
+    // Cosmetic sampling only: phase changes and settlement stay in the server timer.
+    UpdateTreePresentationPose();
+}
+
 void AKalmalaHarvestNode::CommitHarvestedStateFromServer()
 {
     if (!HasAuthority() || bHarvested || PersistentSpawnId.IsEmpty()) return;
@@ -418,6 +445,8 @@ void AKalmalaHarvestNode::OnRep_GatheringSourceId()
 void AKalmalaHarvestNode::BuildSourcePresentation()
 {
     if (!SourceMesh) return;
+    SetActorTickEnabled(IsTreeFalling() && !bHarvested);
+    UpdateTreePresentationPose();
     SourceMesh->ClearAllMeshSections();
 
     const FName PresentationId = GetGatheringPresentationId();
@@ -433,7 +462,7 @@ void AKalmalaHarvestNode::BuildSourcePresentation()
     TArray<FLinearColor> Colors;
     if (IsTreeResource())
     {
-        if (TreeStage == 0 || IsTreeFalling())
+        if (TreeStage == 0 || IsTreeFalling() || IsFelledTrunk())
         {
             const bool bForest = ForestDimensions.X > 0 && ForestDimensions.Y > 0
                 && ForestDimensions.Z > 0 && ForestDimensions.W > 0;
@@ -443,11 +472,19 @@ void AKalmalaHarvestNode::BuildSourcePresentation()
             const float CanopyBase = bForest ? Height * 0.68f : 175.0f;
             const float CanopyHeight = bForest ? Height + ForestDimensions.W - CanopyBase : 145.0f;
             AddTaperedBox(Vertices, Triangles, Colors, FVector::ZeroVector, FVector(Radius, Radius, 0), Height, bForest ? 0.62f : 0.7f, 0, FLinearColor(0.34f, 0.22f, 0.12f));
-            AddTaperedBox(Vertices, Triangles, Colors, FVector(0, 0, CanopyBase), FVector(CanopyRadius, CanopyRadius, 0), CanopyHeight, 0.15f, 25, FLinearColor(0.18f, 0.35f, 0.12f));
-        }
-        else if (TreeStage == 1)
-        {
-            AddTaperedBox(Vertices, Triangles, Colors, FVector(0, 0, 5), FVector(100, 22, 0), 45, 0.85f, 0, FLinearColor(0.34f, 0.22f, 0.12f));
+            if (IsFelledTrunk())
+            {
+                // Exposed original cut faces; retain the falling trunk's full
+                // dimensions and final pose rather than replacing it with a prop.
+                const float TopRadius = Radius * (bForest ? 0.62f : 0.7f);
+                const FLinearColor CutFace(0.72f, 0.51f, 0.28f);
+                AddTaperedBox(Vertices, Triangles, Colors, FVector(0, 0, -0.5f), FVector(Radius, Radius, 0), 0.5f, 1, 0, CutFace);
+                AddTaperedBox(Vertices, Triangles, Colors, FVector(0, 0, Height), FVector(TopRadius, TopRadius, 0), 0.5f, 1, 0, CutFace);
+            }
+            else
+            {
+                AddTaperedBox(Vertices, Triangles, Colors, FVector(0, 0, CanopyBase), FVector(CanopyRadius, CanopyRadius, 0), CanopyHeight, 0.15f, 25, FLinearColor(0.18f, 0.35f, 0.12f));
+            }
         }
         else
         {
@@ -483,6 +520,7 @@ void AKalmalaHarvestNode::BuildSourcePresentation()
 
 void AKalmalaHarvestNode::ApplyHarvestedState()
 {
+    SetActorTickEnabled(IsTreeFalling() && !bHarvested);
     SetActorHiddenInGame(bHarvested);
     Collision->SetCollisionEnabled(bHarvested ? ECollisionEnabled::NoCollision : ECollisionEnabled::QueryOnly);
     if (SourceMesh)

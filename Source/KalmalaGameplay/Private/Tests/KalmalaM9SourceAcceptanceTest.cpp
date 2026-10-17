@@ -27,6 +27,7 @@
 #include "Misc/ScopeExit.h"
 #include "OnlineSubsystemTypes.h"
 #include "TimerManager.h"
+#include "ProceduralMeshComponent.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FKalmalaM9SourceAcceptanceTest,
@@ -367,6 +368,13 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
                 if (Node->IsTreeFalling())
                 {
                     const FString FallingId = Node->GetPersistentSpawnId();
+                    const FTransform TreeRoot = Node->GetActorTransform();
+                    auto* Timber = Node->FindComponentByClass<UProceduralMeshComponent>();
+                    if (!TestNotNull(TEXT("Tree has its original procedural timber"), Timber)) break;
+                    const auto* FallingSection = Timber->GetProcMeshSection(0);
+                    if (!TestNotNull(TEXT("Falling tree retains its mesh section"), FallingSection)) break;
+                    const FVector TrunkTop = FallingSection->ProcVertexBuffer[4].Position;
+                    TestTrue(TEXT("Only falling trees enable presentation tick"), Node->IsActorTickEnabled());
                     const int32 FallingCondition = Pawn->GetToolDurability(Source.ToolItemId);
                     TestFalse(TEXT("Falling tree is neither targetable trunk nor pickup"),
                         Node->CanReceiveAxeAttack() || Node->IsFelledTrunk() || Node->CanInteract_Implementation(Pawn));
@@ -378,9 +386,22 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
                     TestTrue(TEXT("Tree remains in transition before the settle deadline"), Node->IsTreeFalling());
                     TestTrue(TEXT("Replicated start time reconstructs the midpoint progress"),
                         FMath::IsNearlyEqual(Node->GetTreeFallProgress(), 0.5f, 0.01f));
+                    Node->Tick(0.0f); // Fixture clock steps deliberately do not tick actors.
+                    const FVector MidAxis = Timber->GetRelativeTransform().TransformVector(FVector::UpVector);
+                    TestTrue(TEXT("Midpoint actually rotates the presentation"), MidAxis.X > 0 && MidAxis.Z > 0);
                     AdvanceFixtureTime(24);
                     TestTrue(TEXT("Server timer makes the trunk targetable"), Node->IsFelledTrunk() && Node->CanReceiveAxeAttack());
                     TestEqual(TEXT("Settling retains exact persistent identity"), Node->GetPersistentSpawnId(), FallingId);
+                    TestTrue(TEXT("Falling never relocates the authoritative tree root"), Node->GetActorTransform().Equals(TreeRoot));
+                    TestTrue(TEXT("Settled timber stops presentation tick"), !Node->IsActorTickEnabled());
+                    TestTrue(TEXT("Settled timber is horizontal"), Timber->GetRelativeTransform().TransformVector(
+                        FVector::UpVector).Equals(FVector::ForwardVector, 0.0001));
+                    const auto* SettledSection = Timber->GetProcMeshSection(0);
+                    if (!TestNotNull(TEXT("Settled log retains its mesh section"), SettledSection)) break;
+                    TestTrue(TEXT("Settled log preserves the falling trunk's full dimensions"),
+                        SettledSection->ProcVertexBuffer[4].Position.Equals(TrunkTop));
+                    TestEqual(TEXT("Settled mesh is timber and two cut faces without canopy"),
+                        SettledSection->ProcVertexBuffer.Num(), 24);
                     TestEqual(TEXT("Settling spends no additional condition"), Pawn->GetToolDurability(Source.ToolItemId), FallingCondition);
                     TestEqual(TEXT("Every accepted hit spent exactly one condition"), FallingCondition, InitialCondition - AcceptedUses);
                     TestEqual(TEXT("Settling grants no material"), Inventory->GetQuantity(Source.ItemId), 0);
