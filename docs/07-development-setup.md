@@ -3744,3 +3744,20 @@ The temporary server-installed pack does not prove client-visible full-pack
 input. Delivery child stays unchecked; simultaneous owned RPC contention and
 ordinary-camera acceptance remain next, streaming/restart follows. This is
 partial acceptance; full feature/project verification remains deferred.
+
+Executed client-local targeting gate (2026-10-17), source 9f2b873: compared
+727 tracked runtime mirror files and copied the changed forest fixture. The
+isolated editor build passed four actions with normal UBT access; build log:
+C:/Users/Ville/AppData/Local/Temp/kmforest/local-target-build.log. The documented
+ForestPickup command passed exit 0. Peer logs:
+C:/Users/Ville/AppData/Local/Temp/kfpeer-0ab55ea0/host.log and client.log.
+Exact tree forest:v1:10323456789:31079.1015625:5132.20068359375:13 logged
+client Lightwood LiveDrop=1 ExactTrace=1 before the first pickup. Nine matching
+patches/162 IDs, shared stages, one reward/successful host sparse write, no
+client write, full-pack/physical/range rejection, same-dispatch loser and
+repeated/depleted stability gates passed. Parser passed; zero fatal/assertion/
+ensure/forest-fixture failure markers; no UnrealEditor remained. No repairs.
+The existing eye-position camera override does not prove ordinary-camera
+pickup. Simultaneous owned RPC contention remains open; streaming/restart
+follows. Delivery child stays unchecked; full feature/project verification
+remains deferred.
