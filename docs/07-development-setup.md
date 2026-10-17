@@ -3725,3 +3725,20 @@ Restored=1. Parser and ten actual-selector cases passed against retained
 kfpeer-a9aaaca6 logs plus synthetic new proof. Compilation/live execution
 remain pending. This controlled server-installed inventory does not establish
 a client-visible full-pack interaction or simultaneous owned RPC contention.
+
+Executed remote-owned full-pack gate (2026-10-17), source 96d4ee8: compared
+727 tracked runtime mirror files, copied the changed character source, and ran
+the documented isolated editor build with normal UBT access. Four actions
+passed; build log: C:/Users/Ville/AppData/Local/Temp/kmforest/rpc-pack-build.log.
+The documented ForestPickup command passed exit 0. Peer logs:
+C:/Users/Ville/AppData/Local/Temp/kfpeer-203b27bf/host.log and client.log.
+Exact tree forest:v1:10323456789:31079.1015625:5132.20068359375:13 logged
+remote full-pack Lightwood Delta=0 LiveDrop=1 InRange=1 Slots=40 Restored=1.
+Existing nine patches/162 IDs, shared stages, one reward/successful host sparse
+write, no client write, physical/range rejection, same-dispatch loser and
+repeated/depleted stability gates passed. Parser passed; zero fatal/assertion/
+ensure/forest-fixture failure markers; no UnrealEditor remained. No repairs.
+The temporary server-installed pack does not prove client-visible full-pack
+input. Delivery child stays unchecked; simultaneous owned RPC contention and
+ordinary-camera acceptance remain next, streaming/restart follows. This is
+partial acceptance; full feature/project verification remains deferred.
