@@ -1,5 +1,13 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-17 — Enforce sparse-write authority evidence
+
+- **Completed:** one bounded increment within the first unchecked generated-forest delivery child. ForestPickup requires the sole host sparse-write success record to end exactly after Success=1, preventing prefix acceptance of Success=10 or trailing fields. Any client sparse-write marker rejects acceptance. Child remains unchecked.
+- **Files changed:** Scripts/Tests/World/Verify-BiomeExpansion.ps1, BACKLOG.md, PROGRESS.md and docs/07-development-setup.md.
+- **Lightweight verification:** PowerShell parser and nine actual-selector cases passed against retained kfpeer-80a215d5 peer logs with synthetic write evidence: valid LF, CRLF and EOF accepted; success prefix, trailing fields, client write, malformed client marker, failed write and duplicate rejected. git diff --check passed; all worktree/staged changes reviewed and staged paths checked below MAX_PATH before commit. No Unreal build/live peers/full suite; full verification deferred. Normal partial increment, not milestone-final.
+- **Impact/authority:** acceptance evidence only; rejects client persistence evidence and malformed host success. Production authority, RPCs, rewards, persistence and schemas unchanged. Only current Kalmala chat active at guard; CIM unavailable and fallback process inventory showed no Unreal process. Initially clean main checkout used directly, so no handoff synchronization needed.
+- **Limitations/next:** synthetic cases establish selector behavior only. Compile/execute stricter ForestPickup in short mirror; independent physical-distance RPC rejection, contention, reload durability, ordinary camera and streaming/restart remain open.
+
 ## Autonomous increment 2026-10-17 — Isolate forest sparse-write evidence
 
 - **Completed:** one bounded increment of the first unchecked generated-forest delivery child. ForestPickup now counts every host sparse-write marker, requiring exactly one plus the existing exact-ID/seed success proof. Extra writes for other trees/seeds and malformed records fail acceptance. Child remains unchecked.
