@@ -3660,3 +3660,14 @@ remains deferred. Next execute the stricter ForestPickup runner in the existing
 short isolated mirror, then continue the open delivery acceptance requirements.
 
 Remote physical-distance fixture (2026-10-17): each distant live-drop RPC observation probes the real interaction with trusted TraceDistance=0; require rejection, unchanged live drop and zero reward before counting three requests. Runner requires exact tree/item proof. Parser and nine actual-selector mutation cases passed using retained logs plus synthetic proof. No build/live peers; full verification deferred. Child remains unchecked. Next compile/execute stricter ForestPickup in short mirror; contention, ordinary camera, reload and streaming/restart remain open. The non-shipping observer supplies the short trace on the server after a normal remote RPC trace miss at over 500 cm separation. It does not change production RPC parameters or prove ordinary-camera behavior. The existing five-tick stability hold remains. Rebuild and run the documented short-mirror ForestPickup command next.
+
+Same-dispatch collector gate (2026-10-17): ForestPickup queues a distinct local
+server pawn while the exact remotely targeted drop is live. Immediately after
+the real remote transaction, invoke the second transaction, check physical reach
+and restore its position. Require winner acceptance, loser rejection, zero loser
+reward and harvested state, with exact ID/item evidence in the runner. Parser
+and nine retained-log/synthetic-proof selector cases passed; no build/live peers.
+Build the current short mirror and execute the documented ForestPickup command
+next. This controlled sequential dispatch supplements later depleted retries;
+simultaneous owned RPCs, ordinary camera, streaming and process restart remain
+unproven. Full verification is deferred.

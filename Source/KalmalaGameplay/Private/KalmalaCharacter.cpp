@@ -1070,9 +1070,50 @@ void AKalmalaCharacter::ServerRequestInteract_Implementation(const FName ClientI
         const bool bForestSelection = bForestForgedProbe
             && FKalmalaToolLifecycleContract::BuildServerSelection(HarvestNode->GetGatheringSourceId(), ForestSelection);
         const int32 WoodBefore = bForestSelection ? Inventory->GetQuantity(ForestSelection.RewardItemId) : 0;
+        // Queue the second collector against a live drop, then dispatch both
+        // transactions without a tick or replication update between them.
+        AKalmalaCharacter* ForestContender = nullptr;
+        FVector ForestContenderLocation = FVector::ZeroVector;
+        int32 ForestContenderBefore = 0;
+        if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestPickup"))
+            && !IsLocallyControlled() && ClientItemId.IsNone() && ClientAction == 0
+            && HarvestNode->GetPersistentSpawnId() == ForestRemoteRangeId
+            && HarvestNode->IsWoodDrop() && !HarvestNode->IsHarvested())
+        {
+            for (TActorIterator<AKalmalaCharacter> Pawn(GetWorld()); Pawn; ++Pawn)
+            {
+                if (*Pawn != this && Pawn->IsLocallyControlled() && Pawn->GetInventoryComponent())
+                {
+                    ForestContender = *Pawn;
+                    ForestContenderLocation = Pawn->GetActorLocation();
+                    ForestContenderBefore = Pawn->GetInventoryComponent()->GetQuantity(ForestPickupItem);
+                    Pawn->SetActorLocation(HarvestNode->GetActorLocation() + FVector(150, 0, 88));
+                    break;
+                }
+            }
+        }
 #endif
         [[maybe_unused]] const bool bHarvestAccepted = HarvestNode->InteractWithToolIntentFromServer(this, Hit.Distance, InteractionRange, ClientItemId, ClientAction);
 #if !UE_BUILD_SHIPPING
+        if (ForestContender)
+        {
+            const bool bInRange = AKalmalaHarvestNode::IsHarvestAllowed(true, false,
+                ForestContender->GetActorLocation(), HarvestNode->GetActorLocation());
+            const bool bContenderAccepted = HarvestNode->InteractWithToolIntentFromServer(
+                ForestContender, 150.0f, InteractionRange, NAME_None, 0);
+            const int32 ContenderDelta = ForestContender->GetInventoryComponent()->GetQuantity(ForestPickupItem) - ForestContenderBefore;
+            ForestContender->SetActorLocation(ForestContenderLocation);
+            if (!bInRange || !bHarvestAccepted || bContenderAccepted || ContenderDelta != 0 || !HarvestNode->IsHarvested())
+            {
+                UE_LOG(LogTemp, Error, TEXT("Forest delivery: Passed=0 SameDispatchCollector Id=%s Winner=%d Loser=%d Delta=%d InRange=%d"),
+                    *HarvestNode->GetPersistentSpawnId(), bHarvestAccepted, bContenderAccepted, ContenderDelta, bInRange);
+            }
+            else
+            {
+                UE_LOG(LogTemp, Display, TEXT("Forest same dispatch collector: Passed=1 Authority=1 Id=%s Item=%s LiveBefore=1 Winner=1 Loser=0 Delta=0 InRange=1"),
+                    *HarvestNode->GetPersistentSpawnId(), *ForestPickupItem.ToString());
+            }
+        }
         if (bForestForgedProbe)
         {
             if (ForestForgedId.IsEmpty()) ForestForgedId = HarvestNode->GetPersistentSpawnId();

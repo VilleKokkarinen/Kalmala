@@ -103,6 +103,7 @@ if ($ForestDeliveryOnly) {
                     @([regex]::Matches($hostText, 'Forest sparse write:')).Count -eq 1 -and
                     [regex]::IsMatch($hostText, ('Forest sparse write: Authority=1 Seed=10323456789 Id=' + [regex]::Escape($id) + ' Success=1(?:\r?\n|$)')) -and
                     ! $clientText.Contains('Forest sparse write:') -and
+                    [regex]::IsMatch($hostText, ('Forest same dispatch collector: Passed=1 Authority=1 Id=' + [regex]::Escape($id) + ' Item=' + [regex]::Escape($item) + ' LiveBefore=1 Winner=1 Loser=0 Delta=0 InRange=1(?:\r?\n|$)')) -and
                     $hostText.Contains("Forest second collector: Passed=1 Authority=1 Seed=10323456789 Id=$id Item=$item Delta=0 Requests=3 Stable=5") -and
                     $hostText.Contains("Forest pickup authority: Passed=1 Authority=1 Seed=10323456789 Id=$id Item=$item Delta=$delta Expected=$expected Stable=5") -and
                     $hostText.Contains("Forest depletion delivery: Passed=1 Authority=1 Seed=10323456789 Id=$id Collected=1") -and

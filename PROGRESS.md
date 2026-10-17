@@ -1,5 +1,13 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-17 — Gate same-dispatch forest collectors
+
+- **Completed:** bounded slice of the first unchecked generated-forest delivery child. Queue a distinct authoritative collector while the exact drop is live, then invoke its real transaction immediately after the winning remote RPC transaction, before another tick. Require winner acceptance, loser rejection, zero loser reward, physical reach and harvested state; restore contender position. Runner requires exact ID/item proof.
+- **Files changed:** Source/KalmalaGameplay/Private/KalmalaCharacter.cpp, Scripts/Tests/World/Verify-BiomeExpansion.ps1, docs/07-development-setup.md and PROGRESS.md. BACKLOG.md unchanged under the explicit no-rewording rule; child remains incomplete.
+- **Lightweight checks:** PowerShell parser and nine actual-selector cases using retained c92f0049 logs plus synthetic proof passed: valid accepted; missing, wrong ID/item, non-live baseline, accepted loser, reward, out-of-range and suffix rejected. Corrected initial harness sandbox TEMP path; corrected documentation encoding read before any documentation write. Source inspected for opt-in non-shipping scope, snapshot ordering, immediate dispatch and restoration. Diff/whitespace, staged scope and MAX_PATH checked before commit. No Unreal build/live peers/full suite; full verification deferred. Normal partial increment, not milestone-final.
+- **Impact/authority/limits:** fixture only; production RPCs, authority, rewards and schemas unchanged. Controlled sequential transactions in one dispatch supplement later depleted retries; simultaneous owned RPCs and ordinary-camera acceptance remain unproven.
+- **Concurrency/handoff/next:** only current Kalmala chat active; CIM unavailable, process fallback found no matching tools. Initially clean main checkout used directly; no handoff synchronization needed. Next compile/execute stricter ForestPickup in short mirror, then finish simultaneous owned requests and ordinary-camera acceptance. Streaming/restart remains subsequent scope.
+
 ## Autonomous increment 2026-10-17 — Execute remote forest distance gate
 
 - **Completed:** executed the pending physical-distance acceptance slice on source 1cb1c2a. Matched all 727 Source/Config/Content files in the existing short kmforest mirror, copying the changed character source. No repairs were needed.
