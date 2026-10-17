@@ -72,7 +72,11 @@ if ($ForestDeliveryOnly) {
             $sharedPickups = @([regex]::Matches($clientText, 'Forest pickup delivery: Passed=1 Authority=0 Seed=10323456789 Id=([^\s]+) Item=([^\s]+) Delta=([1-9][0-9]*) Expected=([1-9][0-9]*) Requests=3 DepletedRequests=3 Stable=5(?:\r?\n|$)') |
                 Where-Object {
                     $id = $_.Groups[1].Value
+                    $item = $_.Groups[2].Value
+                    $delta = $_.Groups[3].Value
+                    $expected = $_.Groups[4].Value
                     $_.Groups[3].Value -eq $_.Groups[4].Value -and $sharedStages -contains $id -and
+                    $hostText.Contains("Forest pickup authority: Passed=1 Authority=1 Seed=10323456789 Id=$id Item=$item Delta=$delta Expected=$expected Stable=5") -and
                     $hostText.Contains("Forest depletion delivery: Passed=1 Authority=1 Seed=10323456789 Id=$id Collected=1") -and
                     $clientText.Contains("Forest depletion delivery: Passed=1 Authority=0 Seed=10323456789 Id=$id Collected=1")
                 } | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique)

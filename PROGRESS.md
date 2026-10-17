@@ -1,5 +1,13 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-17 — Require authoritative pickup reward evidence
+
+- **Completed:** bounded increment within the first unchecked generated-forest delivery child. Server captures remote inventory baseline before axe setup and derives expected reward from the catalogue/M9 contract. After exact-ID collection it requires five observation ticks at the expected delta; excess reward fails immediately on any subsequent observation while peers run. Runner requires matching server/client tree ID, item, delta and expected quantity alongside shared stages and depletion. Child remains unchecked.
+- **Files changed:** Source/KalmalaGameplay/Private/KalmalaForestDeliveryVerification.cpp, Scripts/Tests/World/Verify-BiomeExpansion.ps1, BACKLOG.md, PROGRESS.md and docs/07-development-setup.md.
+- **Lightweight checks:** PowerShell parser passed; six cases executed the actual pickup selector: matching proof accepted, absent proof/wrong item/excess delta/wrong ID/insufficient stability rejected. Inspected server-only baseline capture, prepared-driver polling, continued excess checks, existing field types and catalogue APIs. Whitespace, staged diff/scope and absolute path lengths checked before commit. No Unreal build, automation execution or live peers; full verification deferred. Not milestone-final.
+- **Impact/authority:** opt-in non-shipping fixture and runner only; server inventory evidence now supplements replicated client inventory. Production requests, validation, reward logic, authority and save schemas unchanged.
+- **Limitations/next:** compile and execute stricter ForestPickup in the isolated short mirror, then competing pickup and forged/out-of-range rejection in the same child. No competing requests, sparse-write counts, ordinary camera usability, rendering, streaming or restart acceptance. Five server ticks need not follow every client retry; continued server polling checks excess while the run remains active. Only current Kalmala chat active in app inventory; earlier runs idle, CIM access unavailable. Initial checkout clean; main checkout used directly, no handoff synchronization needed.
+
 ## Autonomous increment 2026-10-17 — Execute post-depletion pickup retries
 
 - **Completed:** executed the queued bounded increment of the first unchecked generated-forest host/client delivery child on source 947a412. Temporary editor build succeeded; live ForestPickup passed with nine matching eighteen-tree patches, shared exact-ID Trunk/Drop/Collected, and Lightwood Delta=1 Expected=1 Requests=3 DepletedRequests=3 Stable=5. No repair was required; child remains unchecked.

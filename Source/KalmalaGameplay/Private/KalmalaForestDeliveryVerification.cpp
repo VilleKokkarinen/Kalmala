@@ -113,17 +113,53 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
     if (HasAuthority())
     {
         ForestDriverReadySeconds += 1;
-        if (bForestDriverPrepared || ForestDriverReadySeconds < 15) return;
+        if (ForestDriverReadySeconds < 15) return;
         AKalmalaCharacter* Remote = nullptr;
         for (TActorIterator<AKalmalaCharacter> Pawn(GetWorld()); Pawn; ++Pawn)
             if (Pawn->GetController() && !Pawn->IsLocallyControlled()) { Remote = *Pawn; break; }
         if (!Remote) return;
+        if (bForestDriverPrepared)
+        {
+            if (ForestPickupId.IsEmpty()) return;
+            AKalmalaHarvestNode* Pickup = nullptr;
+            for (TActorIterator<AKalmalaHarvestNode> Node(GetWorld()); Node; ++Node)
+                if (Node->GetPersistentSpawnId() == ForestPickupId) { Pickup = *Node; break; }
+            const int32 Delta = Remote->GetInventoryComponent()->GetQuantity(ForestPickupItem) - ForestPickupBefore;
+            if (Delta > ForestPickupExpected)
+            {
+                bForestPickupReported = true;
+                UE_LOG(LogTemp, Error, TEXT("Forest delivery: Passed=0 ServerPickupExcess Id=%s Delta=%d Expected=%d"),
+                    *ForestPickupId, Delta, ForestPickupExpected);
+                return;
+            }
+            if (Pickup && Pickup->IsHarvested() && Delta == ForestPickupExpected) ++ForestPickupStableTicks;
+            else ForestPickupStableTicks = 0;
+            if (ForestPickupStableTicks >= 5 && !bForestPickupReported)
+            {
+                bForestPickupReported = true;
+                UE_LOG(LogTemp, Display, TEXT("Forest pickup authority: Passed=1 Authority=1 Seed=%llu Id=%s Item=%s Delta=%d Expected=%d Stable=5"),
+                    Config.WorldSeed, *ForestPickupId, *ForestPickupItem.ToString(), Delta, ForestPickupExpected);
+            }
+            return;
+        }
         AKalmalaHarvestNode* Target = nullptr;
         for (TActorIterator<AKalmalaHarvestNode> Node(GetWorld()); Node; ++Node)
             if (Node->GetPersistentSpawnId().StartsWith(TEXT("forest:v1:")) && Node->CanReceiveAxeAttack()
                 && (!Target || FVector::DistSquared(Node->GetActorLocation(), Remote->GetActorLocation())
                     < FVector::DistSquared(Target->GetActorLocation(), Remote->GetActorLocation()))) Target = *Node;
         if (!Target) return;
+        if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestPickup")))
+        {
+            FKalmalaToolServerSelection Selection;
+            if (!FKalmalaToolLifecycleContract::BuildServerSelection(Target->GetGatheringSourceId(), Selection)) return;
+            ForestPickupExpected = Selection.RewardQuantity;
+            if (FKalmalaM9SourceLootContract::IsM9Source(Target->GetGatheringSourceId())
+                && !FKalmalaM9SourceLootContract::BuildHarvestRewardQuantity(Config, Target->GetGatheringSourceId(),
+                    Target->GetPersistentSpawnId(), ForestPickupExpected)) return;
+            ForestPickupId = Target->GetPersistentSpawnId();
+            ForestPickupItem = Selection.RewardItemId;
+            ForestPickupBefore = Remote->GetInventoryComponent()->GetQuantity(ForestPickupItem);
+        }
         FKalmalaToolState Axe;
         Axe.ItemId = TEXT("IronAxe");
         Axe.InstanceGuid = FGuid::NewGuid();
