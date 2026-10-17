@@ -1,5 +1,13 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-17 — Gate forest sparse-save writes
+
+- **Completed:** bounded slice of the first unchecked generated-forest host/client delivery child: opt-in observation of the real population SaveGameToSlot result; runner requires exactly one successful write for the collected exact ID/seed. Development writer override returns before logging and cannot supply this proof. Child remains unchecked.
+- **Files changed:** Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Scripts/Tests/World/Verify-BiomeExpansion.ps1, BACKLOG.md, PROGRESS.md and docs/07-development-setup.md.
+- **Lightweight verification:** PowerShell parser passed. Seven cases executing the actual pickup selector against retained kfpeer-80a215d5 logs plus synthetic proof passed: valid accepted; absent, failed, duplicate, failed retry, wrong ID and wrong seed rejected. Inspected authority/world guards, actual save return, override early return and non-shipping flag. Whitespace, staged scope/diff and MAX_PATH checked before commit. No Unreal compilation/live peers/full suite; full verification deferred. Normal partial increment, not milestone-final.
+- **Impact/authority:** opt-in acceptance observation only. Existing production save call, rewards, validation, RPCs, save formats and server authority remain unchanged. Protected repository outputs untouched.
+- **Limitations/next:** compile/execute stricter ForestPickup in the short isolated mirror. Synthetic evidence validates only the selector; bounded write counts do not establish reload durability. Physical-distance RPC rejection, simultaneous contention, ordinary camera and subsequent streaming/restart remain unproven. Only current Kalmala chat active at guard; CIM unavailable, fallback showed no Unreal process. Initially clean main checkout used directly; no handoff synchronization required.
+
 ## Autonomous increment 2026-10-17 — Execute standing-tree rejection stability
 
 - **Completed:** compiled and executed the queued standing-tree delayed rejection gate on source 9a3181d within the first unchecked generated-forest host/client delivery child. No repairs; child remains unchecked.

@@ -3601,3 +3601,18 @@ RecordHarvestedSpawn rejects empty IDs before mutation and disk writes; the
 existing valid callback snapshot and patch reconstruction follow these cases.
 These additions use the private development writer override and do not touch
 production slots. Compilation, automation execution and peers remain deferred.
+
+### Forest peer sparse-write gate (2026-10-17)
+
+ForestPickup now requires exactly one `Forest sparse write` record for the
+collected exact ID and seed with `Success=1`. Non-shipping instrumentation
+observes the actual population SaveGameToSlot return value after authority/world
+validation. The development writer override cannot emit this evidence. Duplicate
+or failed writes for that ID fail the selector alongside existing reward/retry
+gates. Counts cover the bounded scenario, not reload durability or arbitrary later
+writes. Parser and seven actual-selector cases against retained kfpeer-80a215d5
+logs plus synthetic write proof passed; compilation/live execution remain pending.
+
+Next compile the changed GameMode in the short isolated mirror with normal UBT
+access, then run `Scripts/Tests/World/Verify-BiomeExpansion.ps1 -ForestDeliveryOnly -ForestStages -ForestPickup -Project C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject`.
+Full feature verification and the delivery child remain open.

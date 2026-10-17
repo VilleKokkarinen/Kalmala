@@ -2167,7 +2167,16 @@ void AKalmalaGameMode::RecordHarvestedSpawn(const FString& PersistentSpawnId)
             return;
         }
 #endif
-        UGameplayStatics::SaveGameToSlot(PopulationSaveGame, KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+        const bool bSaved = UGameplayStatics::SaveGameToSlot(PopulationSaveGame, KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+#if !UE_BUILD_SHIPPING
+        if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestPickup"))
+            && PersistentSpawnId.StartsWith(TEXT("forest:v1:")))
+        {
+            UE_LOG(LogTemp, Display, TEXT("Forest sparse write: Authority=1 Seed=%llu Id=%s Success=%d"),
+                WorldGenerationConfig.WorldSeed, *PersistentSpawnId, bSaved);
+        }
+#endif
+        (void)bSaved;
     }
 }
 
