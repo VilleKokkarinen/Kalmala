@@ -1,5 +1,14 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-17 — Probe remote forest physical distance
+
+- **Completed:** bounded slice of the first unchecked generated-forest delivery child. Each distant live-drop RPC observation calls the real interaction method with a trusted zero-length fixture trace; require rejection, zero reward and unchanged live drop before counting the three requests. Runner requires exact tree/item proof ending at Requests=3. Existing five-tick stability hold follows. Child remains unchecked.
+- **Files changed:** Source/KalmalaGameplay/Private/KalmalaCharacter.cpp, Scripts/Tests/World/Verify-BiomeExpansion.ps1, BACKLOG.md, PROGRESS.md and docs/07-development-setup.md.
+- **Lightweight verification:** parser and nine actual pickup-selector cases against retained kfpeer-7c2040e6 logs plus synthetic new proof passed: valid accepted; missing, two requests, thirty-request prefix, nonzero reward, long fixture trace, depleted drop, wrong item and wrong ID rejected. Initial selector harness retained scriptblock braces; corrected before passing. Initial documentation insertion failed before writing; corrected. Inspected non-shipping opt-in scope, remote RPC gating, prior distance/live-state checks, real method call and post-call assertions. Whitespace, worktree/staged scope/diff and MAX_PATH reviewed before commit. No Unreal compilation/live peers/full suite; full verification deferred. Normal partial increment, not milestone-final.
+- **Impact/authority:** acceptance fixture only; production trace, RPC payload, rewards, persistence and schemas unchanged. Ordinary remote RPC triggers the observer, which supplies the short trace on the server. This does not prove ordinary-camera reachability or a client-supplied trace path.
+- **Concurrency/handoff:** only current Kalmala chat active; CIM unavailable, fallback showed no Unreal process. Initially clean main checkout used directly; no handoff synchronization required.
+- **Limitations/next:** compile/execute stricter ForestPickup in short mirror. Live physical rejection remains unproven. Same child remains open for contention and ordinary-camera acceptance; reload durability and streaming/restart remain subsequent scope.
+
 ## Autonomous increment 2026-10-17 — Execute forest replacement cardinality
 
 - **Completed:** executed the queued distinct-ID acceptance on source 0517525 within the first unchecked generated-forest host/client delivery child. All 727 runtime mirror files matched; reused compiled modules without a build. No repairs; child remains unchecked.

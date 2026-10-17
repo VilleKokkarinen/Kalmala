@@ -93,6 +93,7 @@ if ($ForestDeliveryOnly) {
                     $hostText.Contains("Forest remote range rejection: Passed=1 Authority=1 Id=$id Item=$item Delta=0 Standing=1 HealthUnchanged=1 TraceMiss=1 Requests=3") -and
                     $hostText.Contains("Forest remote range stability: Passed=1 Authority=1 Seed=10323456789 Id=$id Item=$item Delta=0 Standing=1 HealthUnchanged=1 Requests=3 Stable=5") -and
                     $hostText.Contains("Forest remote drop range rejection: Passed=1 Authority=1 Id=$id Item=$item Delta=0 LiveDrop=1 TraceMiss=1 Requests=3") -and
+                    [regex]::IsMatch($hostText, ('Forest remote physical rejection: Passed=1 Authority=1 Id=' + [regex]::Escape($id) + ' Item=' + [regex]::Escape($item) + ' Delta=0 LiveDrop=1 FixtureTrace=0 Requests=3(?:\r?\n|$)')) -and
                     $hostText.Contains("Forest remote drop range stability: Passed=1 Authority=1 Seed=10323456789 Id=$id Item=$item Delta=0 LiveDrop=1 Requests=3 Stable=5") -and
                     $hostText.Contains("Forest range rejection: Passed=1 Authority=1 Seed=10323456789 Id=$id Item=$item Delta=0 LiveDrop=1") -and
                     $hostText.Contains("Forest physical rejection: Passed=1 Authority=1 Seed=10323456789 Id=$id Item=$item Delta=0 LiveDrop=1 ForgedTrace=0") -and

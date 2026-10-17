@@ -995,7 +995,21 @@ void AKalmalaCharacter::ServerRequestInteract_Implementation(const FName ClientI
         }
         else
         {
+            // Exercise the independent pawn-distance guard from this remote
+            // RPC, with a trusted fixture short trace rather than the miss above.
+            // This does not change the production trace or client payload.
+            const bool bAccepted = Probe->InteractWithToolIntentFromServer(this,
+                0.0f, InteractionRange, NAME_None, 0);
+            const int32 After = Inventory->GetQuantity(ForestPickupItem) - ForestPickupBefore;
+            if (bAccepted || After != 0 || Probe->IsHarvested() || !Probe->IsWoodDrop())
+            {
+                UE_LOG(LogTemp, Error, TEXT("Forest delivery: Passed=0 RemotePhysicalRange Id=%s Delta=%d Accepted=%d"),
+                    *ForestRemoteRangeId, After, bAccepted);
+                return;
+            }
             ++ForestDropRangeRequests;
+            UE_LOG(LogTemp, Display, TEXT("Forest remote physical rejection: Passed=1 Authority=1 Id=%s Item=%s Delta=0 LiveDrop=1 FixtureTrace=0 Requests=%d"),
+                *ForestRemoteRangeId, *ForestPickupItem.ToString(), ForestDropRangeRequests);
             UE_LOG(LogTemp, Display, TEXT("Forest remote drop range rejection: Passed=1 Authority=1 Id=%s Item=%s Delta=0 LiveDrop=1 TraceMiss=1 Requests=%d"),
                 *ForestRemoteRangeId, *ForestPickupItem.ToString(), ForestDropRangeRequests);
         }
