@@ -1,3 +1,11 @@
+## User-directed backlog cleanup 2026-10-17 — Remove completed non-milestone entries
+
+- **Completed/files:** removed completed task blocks outside the active `2026-10-13 — Attack-driven tree harvesting` block and the `M` milestone sections. This includes completed child entries under the still-open tiered-tools parent. Preserved the tree block and both M13/M14 sections exactly, retained the completed roadmap log, and left all unchecked work intact. Changed `BACKLOG.md` and `PROGRESS.md`.
+- **Checks:** scripted before/after comparisons confirmed the full tree block and M milestone sections were unchanged; all 24 unchecked checkbox lines were preserved; no checked task remains outside the protected blocks. `git diff --check` passed. No build, automation, or runtime test ran. Full tree-feature verification remains deferred.
+- **Impact/authority:** documentation cleanup only; gameplay, networking authority, persistence, and save formats are unchanged.
+- **Known limitations/remaining scope:** the tree feature's simultaneous pickup contention, client-visible full-pack handling, patch lifecycle, moving fall/settled-log integration, and final acceptance remain open. Tiered-tools UI work also remains open.
+- **Next eligible task:** verify simultaneous pickup RPCs from competing owners grant at most once and leave the losing request without a reward.
+
 ## User-directed backlog refinement 2026-10-17 — Size open work for one-job completion
 
 - **Completed:** audited every unchecked work leaf. Split generated-forest delivery into independently verifiable replication, late-join, pickup, rejection, remote full-pack, and ordinary-camera gates; the recorded completed gates are checked, while simultaneous owner contention and client-visible full-pack behavior remain open. Split patch departure, reactivation, and process restart into separate checks. Broke moving-fall implementation, settled-log integration, and final acceptance into implementation and verification slices. Split tool-view work into Stone, Bronze, and Iron increments. Updated the first-incomplete pointer to the next unpassed delivery gate.
