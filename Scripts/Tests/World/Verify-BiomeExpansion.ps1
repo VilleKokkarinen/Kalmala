@@ -89,6 +89,7 @@ if ($ForestDeliveryOnly) {
                     $delta = $_.Groups[3].Value
                     $expected = $_.Groups[4].Value
                     $_.Groups[3].Value -eq $_.Groups[4].Value -and $sharedStages -contains $id -and
+                    [regex]::IsMatch($clientText, ('Forest local pickup target: Passed=1 Authority=0 Seed=10323456789 Id=' + [regex]::Escape($id) + ' Item=' + [regex]::Escape($item) + ' LiveDrop=1 ExactTrace=1(?:\r?\n|$)')) -and
                     $hostText.Contains("Forest forged rejection: Passed=1 Authority=1 Id=$id Item=ForestForgedItem Action=255 Delta=0 Standing=1 Requests=3 HealthUnchanged=1") -and
                     $hostText.Contains("Forest remote range rejection: Passed=1 Authority=1 Id=$id Item=$item Delta=0 Standing=1 HealthUnchanged=1 TraceMiss=1 Requests=3") -and
                     $hostText.Contains("Forest remote range stability: Passed=1 Authority=1 Seed=10323456789 Id=$id Item=$item Delta=0 Standing=1 HealthUnchanged=1 Requests=3 Stable=5") -and

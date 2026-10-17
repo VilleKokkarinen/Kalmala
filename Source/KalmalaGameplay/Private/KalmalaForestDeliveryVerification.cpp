@@ -398,6 +398,19 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
                 return; // Allow normal control-rotation replication before interacting.
             }
             if (Target->GetPersistentSpawnId() != ForestPickupId) return;
+            if (ForestPickupTicks == 0)
+            {
+                FHitResult LocalHit;
+                if (!GetLocalInteractionCandidate(LocalHit) || LocalHit.GetActor() != Target
+                    || !Target->IsWoodDrop() || Target->IsHarvested())
+                {
+                    bForestPickupReported = true;
+                    UE_LOG(LogTemp, Error, TEXT("Forest delivery: Passed=0 LocalPickupTarget Id=%s"), *ForestPickupId);
+                    return;
+                }
+                UE_LOG(LogTemp, Display, TEXT("Forest local pickup target: Passed=1 Authority=0 Seed=%llu Id=%s Item=%s LiveDrop=1 ExactTrace=1"),
+                    Config.WorldSeed, *ForestPickupId, *ForestPickupItem.ToString());
+            }
             ++ForestPickupTicks;
             // Exercise repeated ordinary owned requests, including after depletion.
             // No target, quantity or reward is supplied to the server.
