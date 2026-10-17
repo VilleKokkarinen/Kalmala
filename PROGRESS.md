@@ -1,5 +1,13 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-17 — Require physical-distance pickup rejection
+
+- **Completed:** bounded coverage increment in the first unchecked generated-forest delivery child. Before collection, host is placed 1000 cm horizontally from the live drop and calls the authoritative transaction with a forged zero trace distance. Requires an independently confirmed out-of-range position, rejected transaction, unchanged live Drop and zero host reward. Host location is restored before replication ticks. Runner requires exact seed/tree/item physical rejection evidence; child remains unchecked.
+- **Files changed:** Source/KalmalaGameplay/Private/KalmalaForestDeliveryVerification.cpp, Scripts/Tests/World/Verify-BiomeExpansion.ps1, BACKLOG.md, PROGRESS.md and docs/07-development-setup.md.
+- **Lightweight checks:** PowerShell parser and seven cases executing the actual pickup selector passed: valid accepted; missing proof, reward, changed drop, wrong ID, wrong item and wrong forged trace rejected. Inspected live-drop ordering and the production independent 250 cm pawn-distance guard. Working/staged whitespace, diff/scope and MAX_PATH checked before commit. No Unreal compilation or live peers; full verification deferred. Not milestone-final.
+- **Impact/authority:** stronger opt-in non-shipping acceptance gate only; production validation, RPCs, rewards and save formats unchanged. Prior live logs cannot pass the new selector.
+- **Limitations/next:** compile and execute the stricter ForestPickup gate in the short isolated mirror, then remote forged/out-of-range request coverage. Server-local invocation does not prove RPC delivery/rejection; simultaneous contention, sparse writes, default camera, streaming and restart remain unproven by this gate. Only current Kalmala chat active at guard; prior chats idle, CIM unavailable. Initially clean main checkout used directly; no handoff synchronization required.
+
 ## Autonomous increment 2026-10-17 — Execute live-drop trace-range rejection
 
 - **Completed:** executed the queued gate on source 607a539 within the first unchecked generated-forest delivery child. Range probe rejected before collection with Delta=0 LiveDrop=1. Nine eighteen-tree patches matched, exact-ID Trunk/Drop/Collected passed, client/server Lightwood Delta=1 Expected=1 Stable=5, client Requests=3 DepletedRequests=3 and second collector Delta=0 Requests=3 Stable=5. No repair required; child remains unchecked.

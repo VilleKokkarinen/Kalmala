@@ -144,6 +144,23 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
                     UE_LOG(LogTemp, Error, TEXT("Forest delivery: Passed=0 OutOfRangePickup Id=%s Delta=%d"), *ForestPickupId, After);
                     return;
                 }
+                // A forged short trace must not bypass the independent pawn
+                // distance guard. Restore the host before replication ticks.
+                const FVector HostLocation = GetActorLocation();
+                SetActorLocation(Pickup->GetActorLocation() + FVector(1000, 0, 88));
+                const bool bPhysicallyFar = !AKalmalaHarvestNode::IsHarvestAllowed(true, false,
+                    GetActorLocation(), Pickup->GetActorLocation());
+                const bool bFarAccepted = Pickup->InteractWithToolIntentFromServer(this,
+                    0.0f, InteractionRange, NAME_None, 0);
+                const int32 HostAfter = GetInventoryComponent()->GetQuantity(ForestPickupItem) - ForestPickupHostBefore;
+                SetActorLocation(HostLocation);
+                if (!bPhysicallyFar || bFarAccepted || Pickup->IsHarvested() || !Pickup->IsWoodDrop() || HostAfter != 0)
+                {
+                    UE_LOG(LogTemp, Error, TEXT("Forest delivery: Passed=0 PhysicalRangePickup Id=%s Delta=%d"), *ForestPickupId, HostAfter);
+                    return;
+                }
+                UE_LOG(LogTemp, Display, TEXT("Forest physical rejection: Passed=1 Authority=1 Seed=%llu Id=%s Item=%s Delta=0 LiveDrop=1 ForgedTrace=0"),
+                    Config.WorldSeed, *ForestPickupId, *ForestPickupItem.ToString());
                 bForestPickupRangeChecked = true;
                 UE_LOG(LogTemp, Display, TEXT("Forest range rejection: Passed=1 Authority=1 Seed=%llu Id=%s Item=%s Delta=0 LiveDrop=1"),
                     Config.WorldSeed, *ForestPickupId, *ForestPickupItem.ToString());
