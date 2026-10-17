@@ -1,3 +1,9 @@
+## User-directed increment 2026-10-17 — Clean up the backlog
+
+- **Completed/files:** condensed `BACKLOG.md` into an explicit empty active queue, one completed-roadmap table, the accepted tree-harvesting summary with remaining limitations, and scope/history links. Removed duplicate M13/M14 checklists, the fully checked tree execution tree, stale cleanup wording and obsolete queue instructions. Detailed records remain in this file, setup evidence and Git history; completion scope is unchanged.
+- **Lightweight verification:** inspected the prior backlog, latest handoff and roadmap; checked for inbound backlog heading links, verified all retained local links/anchors and M0–M14/forest completion coverage, and checked whitespace, staged scope and MAX_PATH before commit. Documentation-only; no Unreal build/tests run, full project verification remains deferred.
+- **Impact/authority/next:** the queue now clearly shows no open tasks and preserves accepted boundaries. No gameplay, networking, saved data or milestone status changes. No next eligible increment; a new user-defined task is required. Only this Kalmala chat active; main checkout used directly, no handoff synchronization needed.
+
 ## Autonomous increment 2026-10-17 — Close defined tree-feature acceptance
 
 - **Completed/files:** audited the three final tree-feature gates and current-source compatibility. Checked the selected final audit leaf in `BACKLOG.md`; with explicit user approval in this run, checked its six completed ancestors and replaced the stale queue pointer. Updated the current acceptance summary and added the evidence audit in `docs/07-development-setup.md`; reconciled stale pending claims in `docs/01-game-design.md` and `docs/game-features.md`. No gameplay implementation changed.
