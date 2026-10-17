@@ -6,6 +6,10 @@ No open tasks. M0–M14, world-generation Phases 1–9, and the defined attack-d
 tree-harvesting increment are complete under their recorded acceptance scope.
 Further autonomous implementation requires a new user-defined task.
 
+## User-requested fixes
+
+- [x] Meadow trees accept Stone Axe or better and their logs yield Wood.
+
 ## Completed roadmap
 
 | Milestone | Completed scope / acceptance |

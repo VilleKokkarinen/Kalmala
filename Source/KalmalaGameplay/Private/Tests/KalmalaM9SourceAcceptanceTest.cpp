@@ -71,11 +71,11 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
 
     const FSourceCase Sources[] =
     {
-        { TEXT("meadows-birch-trunk"), TEXT("Lightwood"), TEXT("BronzeAxe"), 1, EKalmalaToolAction::Woodcutting },
+        { TEXT("meadows-birch-trunk"), TEXT("Wood"), TEXT("StoneAxe"), 1, EKalmalaToolAction::Woodcutting },
         { TEXT("elderwood-ironheart-trunk"), TEXT("Densewood"), TEXT("IronAxe"), 2, EKalmalaToolAction::Woodcutting },
         { TEXT("mire-peat-amber-seam"), TEXT("Amber"), TEXT("StonePick"), 1, EKalmalaToolAction::Mining },
         { TEXT("tundra-frost-salt-deposit"), TEXT("FrostSalt"), TEXT("StonePick"), 1, EKalmalaToolAction::Mining },
-        { TEXT("meadows-birch-trunk"), TEXT("Lightwood"), TEXT("BronzeAxe"), 1, EKalmalaToolAction::Woodcutting, true },
+        { TEXT("meadows-birch-trunk"), TEXT("Wood"), TEXT("StoneAxe"), 1, EKalmalaToolAction::Woodcutting, true },
         { TEXT("elderwood-ironheart-trunk"), TEXT("Densewood"), TEXT("IronAxe"), 2, EKalmalaToolAction::Woodcutting, true },
     };
 
@@ -601,6 +601,11 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
         TestTrue(FString::Printf(TEXT("%s accepted harvest depletes exactly once"), *SourceLabel), Node->IsHarvested());
         TestEqual(FString::Printf(TEXT("%s grants only its deterministic catalogue reward"), *SourceLabel),
             Pawn->GetInventoryComponent()->GetQuantity(Source.ItemId), ExpectedYield);
+        if (Source.SourceId == TEXT("meadows-birch-trunk"))
+        {
+            TestEqual(TEXT("Meadow log pickup never grants the retired Lightwood reward"),
+                Pawn->GetInventoryComponent()->GetQuantity(TEXT("Lightwood")), 0);
+        }
         TestEqual(FString::Printf(TEXT("%s accepted use spends one server-owned condition"), *SourceLabel),
             Pawn->GetToolDurability(Source.ToolItemId), InitialCondition - AcceptedUses);
         TestEqual(FString::Printf(TEXT("%s depletion callback carries its stable sparse ID"), *SourceLabel),

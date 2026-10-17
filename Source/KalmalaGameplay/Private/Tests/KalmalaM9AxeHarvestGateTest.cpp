@@ -23,7 +23,7 @@ bool FKalmalaM9AxeHarvestGateTest::RunTest(const FString& Parameters)
     };
     const FExpectedGate Gates[] =
     {
-        { TEXT("meadows-birch-trunk"), TEXT("birch-trunk-harvest"), TEXT("Lightwood"), EKalmalaToolTier::Bronze, TEXT("BronzeAxe") },
+        { TEXT("meadows-birch-trunk"), TEXT("birch-trunk-harvest"), TEXT("Wood"), EKalmalaToolTier::Stone, TEXT("StoneAxe") },
         { TEXT("elderwood-ironheart-trunk"), TEXT("ironheart-trunk-harvest"), TEXT("Densewood"), EKalmalaToolTier::Iron, TEXT("IronAxe") }
     };
 
@@ -48,8 +48,8 @@ bool FKalmalaM9AxeHarvestGateTest::RunTest(const FString& Parameters)
         }
     }
 
-    FKalmalaToolServerSelection LightwoodSelection;
-    FKalmalaToolLifecycleContract::BuildServerSelection(Gates[0].SourceId, LightwoodSelection);
+    FKalmalaToolServerSelection MeadowWoodSelection;
+    FKalmalaToolLifecycleContract::BuildServerSelection(Gates[0].SourceId, MeadowWoodSelection);
     FKalmalaToolServerSelection DensewoodSelection;
     FKalmalaToolLifecycleContract::BuildServerSelection(Gates[1].SourceId, DensewoodSelection);
 
@@ -69,13 +69,13 @@ bool FKalmalaM9AxeHarvestGateTest::RunTest(const FString& Parameters)
 
     FName RewardId = NAME_None;
     int32 RewardQuantity = 0;
-    FKalmalaToolState ToolState{TEXT("BronzeAxe"), 5};
-    TestTrue(TEXT("Bronze Axe accepts Lightwood field harvest without a station check"),
-        FKalmalaToolLifecycleContract::ApplyServerUse(ToolState, Context, TEXT("BronzeAxe"),
-            EKalmalaToolAction::Woodcutting, *Woodcutting, LightwoodSelection, RewardId, RewardQuantity));
-    TestEqual(TEXT("Accepted Lightwood use spends one condition"), ToolState.Durability, 4);
-    TestEqual(TEXT("Accepted Lightwood grant stays bounded to one"), RewardQuantity, 1);
-    TestEqual(TEXT("Accepted Lightwood grant is server-selected"), RewardId, FName(TEXT("Lightwood")));
+    FKalmalaToolState ToolState{TEXT("StoneAxe"), 5};
+    TestTrue(TEXT("Stone Axe accepts Meadow Wood field harvest without a station check"),
+        FKalmalaToolLifecycleContract::ApplyServerUse(ToolState, Context, TEXT("StoneAxe"),
+            EKalmalaToolAction::Woodcutting, *Woodcutting, MeadowWoodSelection, RewardId, RewardQuantity));
+    TestEqual(TEXT("Accepted Meadow Wood use spends one condition"), ToolState.Durability, 4);
+    TestEqual(TEXT("Accepted Meadow Wood grant stays bounded to one"), RewardQuantity, 1);
+    TestEqual(TEXT("Accepted Meadow Wood grant is server-selected"), RewardId, FName(TEXT("Wood")));
 
     ToolState = {TEXT("BronzeAxe"), 5};
     RewardId = TEXT("StaleReward");
@@ -96,9 +96,9 @@ bool FKalmalaM9AxeHarvestGateTest::RunTest(const FString& Parameters)
         ToolState.Durability == 5 && RewardId.IsNone() && RewardQuantity == 0);
 
     ToolState = {TEXT("IronAxe"), 5};
-    TestTrue(TEXT("Iron Axe satisfies Bronze-or-better Lightwood gate"),
+    TestTrue(TEXT("Iron Axe satisfies Stone-or-better Meadow Wood gate"),
         FKalmalaToolLifecycleContract::ApplyServerUse(ToolState, Context, TEXT("IronAxe"),
-            EKalmalaToolAction::Woodcutting, *Woodcutting, LightwoodSelection, RewardId, RewardQuantity));
+            EKalmalaToolAction::Woodcutting, *Woodcutting, MeadowWoodSelection, RewardId, RewardQuantity));
     ToolState = {TEXT("IronAxe"), 5};
     TestTrue(TEXT("Iron Axe satisfies Densewood gate"),
         FKalmalaToolLifecycleContract::ApplyServerUse(ToolState, Context, TEXT("IronAxe"),
@@ -109,7 +109,7 @@ bool FKalmalaM9AxeHarvestGateTest::RunTest(const FString& Parameters)
     RewardQuantity = 99;
     TestFalse(TEXT("Uncrafted Bronze Axe cannot be used in the field"),
         FKalmalaToolLifecycleContract::ApplyServerUse(ToolState, Context, TEXT("BronzeAxe"),
-            EKalmalaToolAction::Woodcutting, *Woodcutting, LightwoodSelection, RewardId, RewardQuantity));
+            EKalmalaToolAction::Woodcutting, *Woodcutting, MeadowWoodSelection, RewardId, RewardQuantity));
     TestTrue(TEXT("Uncrafted axe rejection preserves its sentinel and clears reward"),
         ToolState.Durability == -1 && RewardId.IsNone() && RewardQuantity == 0);
 

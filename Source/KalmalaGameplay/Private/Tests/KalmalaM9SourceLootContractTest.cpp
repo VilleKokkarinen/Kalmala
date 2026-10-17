@@ -27,8 +27,8 @@ bool FKalmalaM9SourceLootContractTest::RunTest(const FString& Parameters)
     };
     const FExpectedSource Sources[] =
     {
-        { TEXT("meadows-birch-trunk"), TEXT("birch-trunk-harvest"), TEXT("Lightwood"), 50,
-            EKalmalaToolAction::Woodcutting, EKalmalaToolKind::None, EKalmalaToolTier::Bronze },
+        { TEXT("meadows-birch-trunk"), TEXT("birch-trunk-harvest"), TEXT("Wood"), 50,
+            EKalmalaToolAction::Woodcutting, EKalmalaToolKind::None, EKalmalaToolTier::Stone },
         { TEXT("elderwood-ironheart-trunk"), TEXT("ironheart-trunk-harvest"), TEXT("Densewood"), 50,
             EKalmalaToolAction::Woodcutting, EKalmalaToolKind::None, EKalmalaToolTier::Iron },
         { TEXT("mire-peat-amber-seam"), TEXT("peat-amber-seam"), TEXT("Amber"), 40,
@@ -67,7 +67,12 @@ bool FKalmalaM9SourceLootContractTest::RunTest(const FString& Parameters)
             TestTrue(TEXT("One- and two-unit yields fit an empty catalogue stack"),
                 Catalogue->IsValidStack(Expected.ItemId, 1) && Catalogue->IsValidStack(Expected.ItemId, 2));
 
-            const TArray<FKalmalaInventoryStack> NearFullPack = { { Expected.ItemId, Expected.MaxStack - 1 } };
+            TArray<FKalmalaInventoryStack> NearFullPack = { { Expected.ItemId, Expected.MaxStack - 1 } };
+            // Multiple stacks are valid; occupy every other cell before testing capacity.
+            for (int32 Slot = 1; Slot < UKalmalaInventoryComponent::MaxSlots; ++Slot)
+            {
+                NearFullPack.Add({ Expected.ItemId, Expected.MaxStack });
+            }
             TArray<FKalmalaInventoryStack> Candidate;
             FString Reason;
             TestTrue(TEXT("Guaranteed one-unit yield fits the last stack slot"),

@@ -322,7 +322,7 @@ bool FKalmalaToolLifecycleContract::BuildServerSelection(
     }
     else if (ServerSourceId == TEXT("meadows-birch-trunk"))
     {
-        OutSelection = { ServerSourceId, EKalmalaToolAction::Woodcutting, EKalmalaToolKind::None, EKalmalaSkill::Woodcutting, TEXT("Lightwood"), 1, EKalmalaToolTier::Bronze };
+        OutSelection = { ServerSourceId, EKalmalaToolAction::Woodcutting, EKalmalaToolKind::None, EKalmalaSkill::Woodcutting, TEXT("Wood"), 1, EKalmalaToolTier::Stone };
     }
     else if (ServerSourceId == TEXT("elderwood-ironheart-trunk"))
     {

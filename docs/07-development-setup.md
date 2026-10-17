@@ -1,5 +1,23 @@
 # Development setup
 
+## Meadow Stone Axe and Wood regression — 2026-10-17
+
+The current Meadow trunk contract is Stone Axe or better, yielding Wood after
+felling, settling, log breaking and pickup. Older Bronze/Lightwood forest
+evidence below predates this user-requested change. Elderwood remains Iron
+Axe/Densewood; deterministic quantities and depletion IDs are unchanged.
+
+Short-mirror Development Editor build passed (`kmforest/meadow-wood-final-build.log`).
+Focused `Kalmala.Gameplay.M9.AxeHarvestGates`, `SecondWaveHarvestContract`,
+`SecondWaveHarvestAcceptance` (the latter two under `Kalmala.Gameplay.M9`) and
+`Kalmala.Gameplay.Combat.AxeSwing` all passed, with four named Success records
+in `C:/Users/Ville/AppData/Local/Temp/kmwood-797828e3/tests.log`. Acceptance
+uses Stone Axe on both generated and legacy Meadow trees, verifies Wood and
+zero Lightwood, condition accounting, rejected/full-pack/duplicate pickup,
+and retains Elderwood coverage. Repaired the contract test fixture to occupy
+all pack cells before asserting bonus-yield rejection. Manual PIE, peer,
+packaging and full-suite verification remain deferred.
+
 ## Player/creature surface winding regression — 2026-10-17
 
 The player's tapered quads/caps and creature tetrahedra previously emitted the
