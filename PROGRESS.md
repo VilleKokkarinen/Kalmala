@@ -1,5 +1,13 @@
 # Autonomous development progress
 
+## Autonomous increment 2026-10-17 — Hold standing-tree rejection stable
+
+- **Completed:** added a bounded delayed standing-tree range rejection gate within the first unchecked generated-forest delivery child. Baseline plus five subsequent one-second observations require exact actor present, standing, unchanged finite positive health, zero reward and continued separation. The client returns only after proof; missing actors cannot bypass the active hold. Runner requires matching seed/tree/item. Child remains unchecked.
+- **Files changed:** Source/KalmalaGameplay/Private/KalmalaForestDeliveryVerification.cpp, Source/KalmalaGameplay/Public/KalmalaCharacter.h, Scripts/Tests/World/Verify-BiomeExpansion.ps1, BACKLOG.md, PROGRESS.md and docs/07-development-setup.md.
+- **Lightweight checks:** PowerShell parser and ten actual-selector cases passed against retained kfpeer-6088b505 logs plus synthetic new proof: accepted valid; rejected missing proof, short hold, reward, changed stage/health, insufficient requests, wrong tree/item/seed. Inspected authority branch, separate counters, null guard, health snapshot and return ordering. git diff --check passed; staged diff/scope and MAX_PATH checked before commit. No Unreal build/live peers/full suite; full verification deferred. Normal partial increment, not milestone-final.
+- **Impact/authority:** stricter opt-in non-shipping fixture and acceptance runner only. Production authority, validation, RPC payloads, rewards, persistence and schemas unchanged. Existing logs cannot pass the strengthened gate.
+- **Limitations/next:** compile/execute stricter ForestPickup in the short mirror. Bounded observation does not establish arbitrary delayed-mutation absence. Independent physical-distance RPC rejection, contention, sparse writes, ordinary camera and streaming/restart remain unproven. Only current Kalmala chat active at guard; CIM unavailable, fallback found no Unreal process. Initially clean main checkout used directly; no handoff synchronization required.
+
 ## Autonomous increment 2026-10-17 — Execute delayed drop rejection stability
 
 - **Completed:** compiled and executed the queued bounded delayed live-drop rejection gate on source a730ba1 within the first unchecked generated-forest delivery child. No repairs; child remains unchecked.

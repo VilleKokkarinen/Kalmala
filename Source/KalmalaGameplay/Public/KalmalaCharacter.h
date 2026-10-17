@@ -134,6 +134,7 @@ private:
     FString ForestForgedId;
     FString ForestRemoteRangeId;
     int32 ForestRemoteRangeRequests = 0;
+    int32 ForestRemoteRangeStableTicks = 0;
     float ForestRemoteRangeHealth = 0;
     bool bForestRemoteRangeStarted = false;
     bool bForestRemoteRangeReturned = false;

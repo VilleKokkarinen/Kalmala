@@ -124,10 +124,11 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
             AKalmalaHarvestNode* Pickup = nullptr;
             for (TActorIterator<AKalmalaHarvestNode> Node(GetWorld()); Node; ++Node)
                 if (Node->GetPersistentSpawnId() == ForestPickupId) { Pickup = *Node; break; }
-            if (Pickup && Remote->ForestForgedRequests >= 3 && !bForestRemoteRangeReturned)
+            if (Remote->ForestForgedRequests >= 3 && !bForestRemoteRangeReturned)
             {
                 if (!bForestRemoteRangeStarted)
                 {
+                    if (!Pickup) return;
                     Remote->ForestRemoteRangeId = ForestPickupId;
                     Remote->ForestRemoteRangeHealth = Pickup->TreeHealth;
                     Remote->ForestPickupItem = ForestPickupItem;
@@ -137,6 +138,23 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
                     bForestRemoteRangeStarted = true;
                 }
                 if (Remote->ForestRemoteRangeRequests < 3) return;
+                // Keep the exact standing tree unchanged after rejected RPCs,
+                // before returning the client to legitimate attack range.
+                const int32 RangeDelta = Remote->GetInventoryComponent()->GetQuantity(ForestPickupItem) - ForestPickupBefore;
+                if (!Pickup || Pickup->IsHarvested() || !Pickup->CanReceiveAxeAttack()
+                    || Pickup->IsFelledTrunk() || Pickup->IsWoodDrop() || RangeDelta != 0
+                    || !FMath::IsFinite(Remote->ForestRemoteRangeHealth) || Remote->ForestRemoteRangeHealth <= 0
+                    || Pickup->TreeHealth != Remote->ForestRemoteRangeHealth
+                    || FVector::DistSquared(Remote->GetActorLocation(), Pickup->GetActorLocation()) <= FMath::Square(500.0f))
+                {
+                    UE_LOG(LogTemp, Error, TEXT("Forest delivery: Passed=0 RemoteRangeStability Id=%s Delta=%d"),
+                        *ForestPickupId, RangeDelta);
+                    return;
+                }
+                // Baseline plus five subsequent one-second observations.
+                if (++ForestRemoteRangeStableTicks <= 5) return;
+                UE_LOG(LogTemp, Display, TEXT("Forest remote range stability: Passed=1 Authority=1 Seed=%llu Id=%s Item=%s Delta=0 Standing=1 HealthUnchanged=1 Requests=3 Stable=5"),
+                    Config.WorldSeed, *ForestPickupId, *ForestPickupItem.ToString());
                 Remote->SetActorLocation(Pickup->GetActorLocation() + FVector(-150, 0, 88));
                 Remote->ForceNetUpdate();
                 bForestRemoteRangeReturned = true;
