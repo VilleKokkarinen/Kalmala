@@ -57,7 +57,7 @@ Open leaf checkboxes are sized as one focused automated-job increment. Mark a le
     - [x] Add and validate the authoritative fall/settled phase transition, including a focused regression for transition overlap and accepted-hit accounting.
     - [x] Add the original moving presentation and settled 3D trunk at the generated tree's position; retain the same persistent tree identity.
   - [ ] **Integrate settled-log targeting and pickup.**
-    - [ ] Align collision, axe targeting and server range checks with the presented settled log; reject extra hits during transition.
+    - [x] Align collision, axe targeting and server range checks with the presented settled log; reject extra hits during transition.
     - [ ] Keep the wood bundle readable and collectible at the settled log; verify accepted pickup and full-pack/duplicate rejection without extra rewards.
   - [ ] **Run final tree-feature acceptance.**
     - [ ] Build the integrated editor source and run the focused tree-harvest automation group.

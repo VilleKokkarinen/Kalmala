@@ -305,7 +305,7 @@ bool AKalmalaHarvestNode::ApplyAxeDamageFromServer(AKalmalaCharacter* Interactor
 {
     if (!HasAuthority() || !CanReceiveAxeAttack() || !IsValid(Interactor) || !Interactor->HasAuthority()
         || Interactor->GetWorld() != GetWorld() || Interactor->GetHealth() <= 1.0f || PersistentSpawnId.IsEmpty()
-        || FVector::DistSquared(Interactor->GetActorLocation(), GetActorLocation()) > FMath::Square(220.0f)) return false;
+        || !IsWithinAxeRange(Interactor->GetActorLocation())) return false;
     const auto* Inventory = Interactor->GetInventoryComponent();
     const FName ItemId = Inventory ? Inventory->GetActiveItem() : NAME_None;
     const auto* Definition = FKalmalaToolLifecycleContract::FindDefinition(ItemId);
@@ -344,6 +344,30 @@ bool AKalmalaHarvestNode::ApplyAxeDamageFromServer(AKalmalaCharacter* Interactor
     Interactor->ForceNetUpdate();
     ForceNetUpdate();
     return true;
+}
+
+bool AKalmalaHarvestNode::IsWithinAxeRange(const FVector& InteractorLocation, const float MaximumRange) const
+{
+    if (!CanReceiveAxeAttack() || InteractorLocation.ContainsNaN()
+        || !FMath::IsFinite(MaximumRange) || MaximumRange <= 0.0f) return false;
+    if (!IsFelledTrunk())
+        return FVector::DistSquared(InteractorLocation, GetActorLocation()) <= FMath::Square(MaximumRange);
+
+    // Use the same tapered timber and cut faces as the visibility collision.
+    // This geometry is reconstructed from server-owned dimensions and phase;
+    // neither a client target point nor a collision query supplies the range.
+    const FProcMeshSection* Section = SourceMesh ? SourceMesh->GetProcMeshSection(0) : nullptr;
+    if (!Section) return false;
+    const FTransform Transform = SourceMesh->GetComponentTransform();
+    for (int32 Index = 0; Index + 2 < Section->ProcIndexBuffer.Num(); Index += 3)
+    {
+        const FVector A = Transform.TransformPosition(Section->ProcVertexBuffer[Section->ProcIndexBuffer[Index]].Position);
+        const FVector B = Transform.TransformPosition(Section->ProcVertexBuffer[Section->ProcIndexBuffer[Index + 1]].Position);
+        const FVector C = Transform.TransformPosition(Section->ProcVertexBuffer[Section->ProcIndexBuffer[Index + 2]].Position);
+        const FVector Closest = FMath::ClosestPointOnTriangleToPoint(InteractorLocation, A, B, C);
+        if (FVector::DistSquared(InteractorLocation, Closest) <= FMath::Square(MaximumRange)) return true;
+    }
+    return false;
 }
 
 void AKalmalaHarvestNode::OnRep_TreeStage() { BuildSourcePresentation(); }
@@ -448,6 +472,10 @@ void AKalmalaHarvestNode::BuildSourcePresentation()
     SetActorTickEnabled(IsTreeFalling() && !bHarvested);
     UpdateTreePresentationPose();
     SourceMesh->ClearAllMeshSections();
+    // The settled mesh is the target. The identity-root sphere must not leave
+    // an invisible hit target beside or behind the horizontal timber.
+    Collision->SetCollisionEnabled(bHarvested || IsFelledTrunk()
+        ? ECollisionEnabled::NoCollision : ECollisionEnabled::QueryOnly);
 
     const FName PresentationId = GetGatheringPresentationId();
     if (PresentationId.IsNone())
@@ -522,7 +550,8 @@ void AKalmalaHarvestNode::ApplyHarvestedState()
 {
     SetActorTickEnabled(IsTreeFalling() && !bHarvested);
     SetActorHiddenInGame(bHarvested);
-    Collision->SetCollisionEnabled(bHarvested ? ECollisionEnabled::NoCollision : ECollisionEnabled::QueryOnly);
+    Collision->SetCollisionEnabled(bHarvested || IsFelledTrunk()
+        ? ECollisionEnabled::NoCollision : ECollisionEnabled::QueryOnly);
     if (SourceMesh)
     {
         SourceMesh->SetVisibility(!bHarvested && !GetGatheringPresentationId().IsNone());

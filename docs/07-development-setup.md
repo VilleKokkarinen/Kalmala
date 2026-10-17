@@ -30,12 +30,41 @@ the acceptance gates.
 The server-authored fall/settled transition and focused overlap/condition regression
 are implemented; see the evidence below. Prior peer evidence predates this timing
 change and must be repeated at final feature acceptance. Moving presentation and
-the settled 3D trunk are now implemented; aligned targeting is next.
+the settled 3D trunk and aligned targeting are now implemented; bundle alignment is next.
 Partial health and uncollected Trunk/Drop state reset on regeneration; only accepted
 pickup depletion persists. Final integrated editor build, focused harvest group,
 exact-ID peer/late-join/pickup gates and live streaming/reactivation/restart remain
 required by BACKLOG.md. Full tree-feature/project verification remains deferred;
 the earlier documentation reconciliation itself ran no Unreal build or runtime test.
+
+## Settled-log targeting and range (2026-10-17)
+
+Settled timber now disables its old root sphere and retains procedural mesh
+visibility collision. Server combat selection still uses the ordinary trace/low
+sweep; windup validation and the final axe transaction measure physical reach
+to the server-built timber triangles, including cut faces. Standing range is
+unchanged; Falling continues to reject attacks before condition persistence.
+Actor transform, persistent identity, reward and depletion contracts are unchanged.
+
+Compared 728 tracked Source/Config/Content files with the isolated `kmforest`
+project, copying only four run-owned changed sources. The editor build command
+recorded below passed 22 actions without compiler warnings/errors; log
+`C:/Users/Ville/AppData/Local/Temp/kmforest/log-range-build.log`.
+The same isolated editor invocation below, with
+`-ExecCmds="Automation RunTests Kalmala.Gameplay.M9.SecondWaveHarvestAcceptance"`
+and `-UserDir=C:/Users/Ville/AppData/Local/Temp/klog/user`, passed one test,
+`Result={Success}`, exit 0; log
+`C:/Users/Ville/AppData/Local/Temp/klog/tests.log`. There were no automation
+controller errors; known pre-test engine `Condition failed` diagnostics and
+context-free fixture teardown warnings remain.
+
+Legacy and generated Meadow/Elderwood cases now verify actual timber visibility
+hits, absence of the invisible root hit, rejected distant hits with no condition
+cost, and an ordinary server attack through windup/execution near the far end
+outside the old root reach. Each accepted attack spends one condition; existing
+fall overlap and pickup/depletion assertions still pass. This is a focused normal
+increment, not final feature acceptance. No live peers or rendered/manual review
+ran; bundle placement and full tree-feature/project verification remain pending.
 
 ## Moving tree and settled timber (2026-10-17)
 

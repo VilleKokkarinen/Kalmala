@@ -1,6 +1,8 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "KalmalaCharacter.h"
+#include "KalmalaCombatComponent.h"
+#include "Components/SphereComponent.h"
 #include "KalmalaGameMode.h"
 #include "KalmalaForestLayout.h"
 #include "KalmalaHarvestNode.h"
@@ -405,8 +407,44 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
                     TestEqual(TEXT("Settling spends no additional condition"), Pawn->GetToolDurability(Source.ToolItemId), FallingCondition);
                     TestEqual(TEXT("Every accepted hit spent exactly one condition"), FallingCondition, InitialCondition - AcceptedUses);
                     TestEqual(TEXT("Settling grants no material"), Inventory->GetQuantity(Source.ItemId), 0);
+
+                    TestEqual(TEXT("Settled log removes the invisible root sphere target"),
+                        Node->FindComponentByClass<USphereComponent>()->GetCollisionEnabled(), ECollisionEnabled::NoCollision);
+                    FCollisionQueryParams LogQuery(SCENE_QUERY_STAT(KalmalaSettledLogTest), false, Pawn);
+                    FHitResult LogHit;
+                    const FTransform Root = Node->GetActorTransform();
+                    TestTrue(TEXT("Visibility hits the presented timber away from the identity root"),
+                        World->LineTraceSingleByChannel(LogHit,
+                            Root.TransformPosition(FVector(TrunkTop.Z * 0.75f, 0, 150)),
+                            Root.TransformPosition(FVector(TrunkTop.Z * 0.75f, 0, -50)), ECC_Visibility, LogQuery)
+                        && LogHit.GetActor() == Node && LogHit.GetComponent() == Timber);
+                    TestFalse(TEXT("Visibility no longer hits the empty space behind the root"),
+                        World->LineTraceSingleByChannel(LogHit,
+                            Root.TransformPosition(FVector(-50, 0, 100)),
+                            Root.TransformPosition(FVector(-50, 0, -100)), ECC_Visibility, LogQuery));
+
+                    Pawn->SetActorLocation(Root.TransformPosition(FVector(TrunkTop.Z - 15, 400, 88)));
+                    TestFalse(TEXT("Distant timber hit is rejected despite a valid settled phase"),
+                        Node->ApplyAxeDamageFromServer(Pawn, AxeDamage));
+                    TestEqual(TEXT("Rejected distant hit spends no condition"), Pawn->GetToolDurability(Source.ToolItemId), FallingCondition);
+                    Pawn->SetActorLocation(Root.TransformPosition(FVector(TrunkTop.Z - 15, 130, 88)));
+                    Pawn->SetActorRotation(Root.TransformRotation(FRotator(0, -90, 0).Quaternion()));
+                    TestTrue(TEXT("Timber-tip fixture is outside old identity-root reach"),
+                        FVector::Dist(Pawn->GetActorLocation(), Node->GetActorLocation()) > 220);
+                    TestTrue(TEXT("Timber-tip fixture is within surface reach"), Node->IsWithinAxeRange(Pawn->GetActorLocation()));
+                    auto* Combat = Pawn->GetCombatComponent();
+                    Combat->ServerRequestAttack(1);
+                    TestEqual(TEXT("Ordinary server axe targeting selects the settled log tip"),
+                        Combat->GetActionPhase(), EKalmalaCombatActionPhase::Windup);
+                    AdvanceFixtureTime(5);
+                    Combat->TickComponent(0.0f, LEVELTICK_All, nullptr);
+                    TestEqual(TEXT("Server revalidates and hits timber outside root reach"), Combat->GetFeedback(), EKalmalaCombatFeedback::Hit);
+                    ++AcceptedUses;
+                    TestEqual(TEXT("Ordinary timber hit spends one condition"),
+                        Pawn->GetToolDurability(Source.ToolItemId), FallingCondition - 1);
                 }
             }
+            Pawn->SetActorLocation(Location);
             TestTrue(TEXT("Broken trunk leaves a world wood drop"), Node->IsWoodDrop());
             TestEqual(TEXT("Breaking a trunk does not automatically grant wood"), Inventory->GetQuantity(Source.ItemId), 0);
         }

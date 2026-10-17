@@ -53,6 +53,8 @@ public:
     const FVector4& GetForestDimensionsForVerification() const { return ForestDimensions; }
 #endif
     bool CanReceiveAxeAttack() const { return IsTreeResource() && !bHarvested && TreeStage < 2; }
+    /** Settled timber uses its server-built surface, not the unmoved identity root. */
+    bool IsWithinAxeRange(const FVector& InteractorLocation, float MaximumRange = 220.0f) const;
     bool ApplyAxeDamageFromServer(AKalmalaCharacter* Interactor, const FKalmalaDamageChannels& Damage);
     static bool AdvanceTreeHit(uint8 Stage, float Health, float Damage, uint8& OutStage, float& OutHealth);
 

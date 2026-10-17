@@ -131,10 +131,12 @@ AActor* UKalmalaCombatComponent::FindServerTarget() const
 bool UKalmalaCombatComponent::IsServerTargetValid(const AActor* Target) const
 {
     const APawn* Pawn = Cast<APawn>(GetOwner());
-    if (!Pawn || !IsValid(Target) || Target->GetWorld() != GetWorld()
-        || FVector::DistSquared(Pawn->GetActorLocation(), Target->GetActorLocation()) > FMath::Square(AttackRange)) return false;
-    if (const auto* Wildlife = Cast<AKalmalaWildlifeSpawn>(Target)) return !Wildlife->IsDefeated();
-    if (const auto* Tree = Cast<AKalmalaHarvestNode>(Target)) return Tree->CanReceiveAxeAttack();
+    if (!Pawn || !IsValid(Target) || Target->GetWorld() != GetWorld()) return false;
+    if (const auto* Tree = Cast<AKalmalaHarvestNode>(Target))
+        return Tree->IsWithinAxeRange(Pawn->GetActorLocation(), AttackRange);
+    if (const auto* Wildlife = Cast<AKalmalaWildlifeSpawn>(Target))
+        return !Wildlife->IsDefeated()
+            && FVector::DistSquared(Pawn->GetActorLocation(), Target->GetActorLocation()) <= FMath::Square(AttackRange);
     return false;
 }
 void UKalmalaCombatComponent::BeginRecovery() { ActionPhase = EKalmalaCombatActionPhase::Recovery; PhaseEndTime = GetWorld()->GetTimeSeconds() + RecoverySeconds; GetOwner()->ForceNetUpdate(); }
