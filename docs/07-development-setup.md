@@ -1,5 +1,44 @@
 # Development setup
 
+## Hammer controls / bow draw-and-release regression — 2026-10-18
+
+Hammer is construction-only again: left click places selected pieces, right click
+opens the Build menu even from pending placement. Bow uses hold/release Attack,
+with authored DrawDuration=1.5 seconds, shrinking draw circle, exact preferred
+or automatic WoodenArrow stack, transactional ammo/condition payment and a real
+gravity projectile. This supersedes earlier hammer/Bow melee and unimplemented
+shooting descriptions below.
+
+Normal-access isolated Development Editor incremental build passed; final
+`kmforest/bow-impact-build.log`, five actions, exit 0. Builds use the documented
+short-mirror flags plus `-gather` after new source files, so UBT includes new
+tests. Final standard unattended/null-RHI queue passed all five named tests,
+exit 0, no controller/fatal/assertion/ensure errors:
+`C:/Users/Ville/AppData/Local/Temp/kbow-c5770751/tests.log`.
+
+- `Kalmala.Gameplay.Combat.BowDrawAndArrows`: per-attribute draw timing, future
+  skill-speed math, circle shrinking, no-ammo rejection, actual bow equip,
+  hammer/Bow melee rejection, exact-stack preference/forged selection, partial,
+  full and immediate release, one arrow/condition payment, duplicate release,
+  cancellation, auto selection, real swept flight hitting wildlife at 600 cm,
+  persistence-failure rollback and weapon swap cancellation.
+- `Kalmala.Gameplay.Combat.AllItemSwings`: remaining 15 melee profiles plus fists.
+- `Kalmala.Gameplay.Combat.AxeSwing`, `Kalmala.Gameplay.Inventory.TwoHanded`,
+  `Kalmala.Gameplay.Tools.HeldModel`: existing focused regressions passed.
+
+Repairs during this run: strict JSON needed DrawDuration=0 normalization for
+non-bows; UBT makefile refresh exposed an ambiguous fixture network-ID constructor
+fixed with an explicit base reference; projectile object-channel movement missed
+visibility-only creatures, fixed with continuous server visibility sphere sweeps.
+An earlier test retained a missed full-draw arrow into its quick-shot assertion;
+that fixture now destroys unhit arrows after its flight check. See PROGRESS for
+failed runs and build logs. No rendered/manual, live-peer, full-suite or packaging
+acceptance is claimed. Rebuild Development Editor; inspect hammer RMB selection /
+LMB placement, bow circle/full/partial shots and inventory arrow priority in PIE.
+Current ammunition is WoodenArrow only; preference is session-only. Additional
+bow tiers, Archery progression, projectile recovery and PvP remain outside this
+increment. Existing String acquisition is still unchanged.
+
 ## All-item free-swing regression — 2026-10-17
 
 Target-free melee swings now cover all 17 carried profiles and empty hands,

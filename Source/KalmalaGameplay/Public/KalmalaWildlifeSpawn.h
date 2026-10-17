@@ -78,6 +78,10 @@ public:
     virtual void Tick(float DeltaSeconds) override;
 
 private:
+    friend class AKalmalaArrowProjectile;
+    bool ApplyArrowDamageFromServer(const FKalmalaDamageChannels& Damage, AKalmalaCharacter* Attacker);
+    bool ApplyValidatedDamageFromServer(const FKalmalaDamageChannels& Damage, AKalmalaCharacter* Attacker, bool bMelee);
+
     void ApplyDefeatedState();
     void BeginServerBehaviour(EKalmalaWildlifeBehaviour NextBehaviour, float DurationSeconds, const FVector& Destination,
         bool bHoldDurationAtDestination = false);

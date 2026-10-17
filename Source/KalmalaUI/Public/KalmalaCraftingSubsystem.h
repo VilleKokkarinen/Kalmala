@@ -49,6 +49,16 @@ class UKalmalaStationContextWidget;
 struct FKalmalaRecipe;
 
 UCLASS()
+class KALMALAUI_API UKalmalaBowCrosshairWidget : public UUserWidget
+{
+    GENERATED_BODY()
+protected:
+    virtual void NativeOnInitialized() override;
+    virtual int32 NativePaint(const FPaintArgs& Args, const FGeometry& Geometry, const FSlateRect& Culling,
+        FSlateWindowElementList& Elements, int32 Layer, const FWidgetStyle& Style, bool bEnabled) const override;
+};
+
+UCLASS()
 class KALMALAUI_API UKalmalaInteractionPromptWidget : public UUserWidget
 {
     GENERATED_BODY()
@@ -423,6 +433,7 @@ private:
     UPROPERTY(Transient) TObjectPtr<UKalmalaCraftingWidget> Widget;
     UPROPERTY(Transient) TObjectPtr<UKalmalaStationContextWidget> StationContextWidget;
     UPROPERTY(Transient) TObjectPtr<UKalmalaInteractionPromptWidget> InteractionPrompt;
+    UPROPERTY(Transient) TObjectPtr<UKalmalaBowCrosshairWidget> BowCrosshair;
     UPROPERTY(Transient) TObjectPtr<APlayerController> Controller;
     FName PendingBuildPlacementKit;
     uint64 PendingBuildPlacementStartedFrame = 0;

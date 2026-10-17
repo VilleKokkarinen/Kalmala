@@ -24,8 +24,8 @@ bool FKalmalaCombatLoopTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Busy attack cannot begin another action"), UKalmalaCombatComponent::IsAttackRequestAllowed(true, true, 3, false, true));
     TestFalse(TEXT("Server cannot accept an unavailable swing"), UKalmalaCombatComponent::IsAttackRequestAllowed(true, true, 4, true, false));
     TestTrue(TEXT("Validated server intent begins one committed action"), UKalmalaCombatComponent::IsAttackRequestAllowed(true, true, 5, true, true));
-    TestTrue(TEXT("Construction Hammer supports a melee swing"), UKalmalaCombatComponent::IsAttackItemAllowed(TEXT("ConstructionHammer")));
-    TestTrue(TEXT("Bow supports a melee swing"), UKalmalaCombatComponent::IsAttackItemAllowed(TEXT("Bow")));
+    TestFalse(TEXT("Construction Hammer is build-only"), UKalmalaCombatComponent::IsAttackItemAllowed(TEXT("ConstructionHammer")));
+    TestFalse(TEXT("Bow uses drawing rather than melee"), UKalmalaCombatComponent::IsAttackItemAllowed(TEXT("Bow")));
     TestTrue(TEXT("Axe remains attack-capable"), UKalmalaCombatComponent::IsAttackItemAllowed(TEXT("StoneAxe")));
     TestTrue(TEXT("Unarmed combat fallback remains available"), UKalmalaCombatComponent::IsAttackItemAllowed(NAME_None));
     TestTrue(TEXT("Combat recovery remains a positive committed window"), UKalmalaCombatComponent::GetRecoverySeconds() > 0.0f);
@@ -49,7 +49,8 @@ bool FKalmalaAllItemSwingTest::RunTest(const FString& Parameters)
     const auto* Catalogue = UKalmalaToolCatalogue::Get();
     if (!TestNotNull(TEXT("All carried item profiles load"), Catalogue)) return false;
     TArray<FName> Items;
-    for (const auto& Profile : Catalogue->Profiles) Items.Add(Profile.ItemId);
+    for (const auto& Profile : Catalogue->Profiles)
+        if (UKalmalaCombatComponent::IsAttackItemAllowed(Profile.ItemId)) Items.Add(Profile.ItemId);
     Items.Add(NAME_None);
     for (int32 Index = 0; Index < Items.Num(); ++Index)
     {
@@ -128,7 +129,7 @@ bool FKalmalaAllItemSwingTest::RunTest(const FString& Parameters)
         }
         Pawn->Destroy();
     }
-    AddInfo(FString::Printf(TEXT("Verified free swing, arm animation and actual hit for %d carried profiles plus empty hands."), Catalogue->Profiles.Num()));
+    AddInfo(FString::Printf(TEXT("Verified free swing, arm animation and actual hit for %d carried profiles plus empty hands."), Items.Num() - 1));
     return true;
 }
 
@@ -145,7 +146,7 @@ bool FKalmalaAxeSwingTest::RunTest(const FString& Parameters)
         UKalmalaCombatComponent::CanSwingWithoutTarget(TEXT("StoneAxe"), 1, MAX_int32));
     TestFalse(TEXT("Unknown item cannot authorize a swing"),
         UKalmalaCombatComponent::CanSwingWithoutTarget(TEXT("ForgedAxe"), 1, 50));
-    TestTrue(TEXT("Hammer can swing without a target"),
+    TestFalse(TEXT("Hammer cannot make melee attacks"),
         UKalmalaCombatComponent::CanSwingWithoutTarget(TEXT("ConstructionHammer"), 1, 100));
     TestTrue(TEXT("Pick can swing without a target"),
         UKalmalaCombatComponent::CanSwingWithoutTarget(TEXT("StonePick"), 1, 20));

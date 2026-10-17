@@ -98,6 +98,7 @@ protected:
 private:
     friend class UKalmalaInventoryComponent;
     friend class AKalmalaHarvestNode;
+    friend class UKalmalaCombatComponent;
     friend class UKalmalaCraftingComponent;
     friend class AKalmalaGameMode;
 
@@ -121,6 +122,8 @@ private:
     void SendOceanSkiffSteeringInput();
     void RequestInteract();
     void RequestAttack();
+    void ReleaseAttack();
+    uint32 LocalCombatSequence = 0;
     void ConfigureTraversalTestTarget();
     void ApplyExposureTravelPenalty();
     void StartSprint();

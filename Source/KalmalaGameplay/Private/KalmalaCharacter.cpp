@@ -237,6 +237,7 @@ void AKalmalaCharacter::Tick(const float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
     UpdateAutomaticPickupFromServer(DeltaSeconds);
+    if (IsLocallyControlled() && Controller && Controller->IsMoveInputIgnored() && Combat) Combat->CancelLocalBowDraw();
 #if !UE_BUILD_SHIPPING
     if (!bM9Schema2PeerTestLogged && !HasAuthority() && IsLocallyControlled()
         && M9Schema2PeerTestStartTime >= 0.0f && GetWorld() != nullptr)
@@ -588,6 +589,7 @@ void AKalmalaCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
     PlayerInputComponent->BindAxis(TEXT("LookUp"), this, &APawn::AddControllerPitchInput);
     PlayerInputComponent->BindAction(TEXT("Interact"), IE_Pressed, this, &AKalmalaCharacter::RequestInteract);
     PlayerInputComponent->BindAction(TEXT("Attack"), IE_Pressed, this, &AKalmalaCharacter::RequestAttack);
+    PlayerInputComponent->BindAction(TEXT("Attack"), IE_Released, this, &AKalmalaCharacter::ReleaseAttack);
     PlayerInputComponent->BindAction(TEXT("Jump"), IE_Pressed, this, &ACharacter::Jump);
     PlayerInputComponent->BindAction(TEXT("Jump"), IE_Released, this, &ACharacter::StopJumping);
     PlayerInputComponent->BindAction(TEXT("Sprint"), IE_Pressed, this, &AKalmalaCharacter::StartSprint);
@@ -994,11 +996,18 @@ void AKalmalaCharacter::SendOceanSkiffSteeringInput()
 
 void AKalmalaCharacter::RequestAttack()
 {
-    static uint32 LocalAttackSequence = 0;
     if (IsLocallyControlled() && Controller && !Controller->IsMoveInputIgnored() && Combat)
     {
-        Combat->ServerRequestAttack(++LocalAttackSequence);
+        if (Inventory && Inventory->GetActiveItem() == TEXT("ConstructionHammer")) return;
+        if (Inventory && Inventory->GetActiveItem() == TEXT("Bow")) Combat->StartBowDraw(++LocalCombatSequence);
+        else Combat->ServerRequestAttack(++LocalCombatSequence);
     }
+}
+
+void AKalmalaCharacter::ReleaseAttack()
+{
+    if (IsLocallyControlled() && Combat)
+        Combat->ReleaseBowDraw(++LocalCombatSequence, !Controller || Controller->IsMoveInputIgnored());
 }
 
 

@@ -1,4 +1,5 @@
 #include "KalmalaInventoryMenuWidget.h"
+#include "KalmalaCombatComponent.h"
 
 #include "Blueprint/WidgetTree.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
@@ -218,6 +219,8 @@ void UKalmalaInventoryMenuWidget::NativeOnInitialized()
         Button->SetVisibility(ESlateVisibility::Collapsed);
         return Button;
     };
+    PreferArrowsButton = AddAction(TEXT("Prioritize selected arrows / automatic"));
+    PreferArrowsButton->OnClicked.AddDynamic(this, &ThisClass::PreferSelectedArrows);
     RepairToolButton = AddAction(TEXT("Repair selected tool"));
     RepairToolButton->OnClicked.AddDynamic(this, &ThisClass::RepairSelectedTool);
     ToolActionStatusText = AddText(TEXT(""), false);
@@ -618,6 +621,23 @@ void UKalmalaInventoryMenuWidget::RefreshSelectionPresentation(const int32 TextS
         : (bSelectionDetailsRequested ? SelectedRow : nullptr);
     const bool bShowSelectedActions = bSelectionDetailsRequested && HoveredItemId.IsNone();
     const bool bSelectedTool = SelectedRow != nullptr && SelectedRow->bCarriedTool;
+    if (PreferArrowsButton)
+    {
+        const bool bArrows = SelectedRow && SelectedRow->Id == TEXT("WoodenArrow") && bShowSelectedActions;
+        PreferArrowsButton->SetVisibility(bArrows ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+        if (bArrows)
+        {
+            auto* Combat = GetOwningPlayerPawn()->FindComponentByClass<UKalmalaCombatComponent>();
+            const auto* Inventory = GetOwningPlayerPawn()->FindComponentByClass<UKalmalaInventoryComponent>();
+            bool bPreferred = false;
+            if (Combat && Inventory)
+                for (const auto& Stack : Inventory->GetStacks())
+                    if (Stack.InstanceGuid == Combat->GetPreferredArrowStack()
+                        && (Stack.InstanceGuid == SelectedGridInstanceGuid || Stack.ItemGuids.Contains(SelectedGridInstanceGuid))) bPreferred = true;
+            CastChecked<UTextBlock>(PreferArrowsButton->GetContent())->SetText(FText::FromString(
+                bPreferred ? TEXT("Preferred arrows — use automatic selection") : TEXT("Prioritize this arrow stack")));
+        }
+    }
     RepairToolButton->SetVisibility(bSelectedTool && bShowSelectedActions
         ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
     ToolActionStatusText->SetVisibility(bSelectedTool && bShowSelectedActions
@@ -1097,4 +1117,15 @@ FReply UKalmalaInventoryMenuWidget::NativeOnKeyDown(const FGeometry& Geometry, c
     if (bMenuOpen && (Event.GetKey() == EKeys::Escape || Event.GetKey() == EKeys::Gamepad_FaceButton_Right))
     { Close(); return FReply::Handled(); }
     return Super::NativeOnKeyDown(Geometry, Event);
+}
+
+void UKalmalaInventoryMenuWidget::PreferSelectedArrows()
+{
+    auto* Pawn = GetOwningPlayerPawn();
+    auto* Combat = Pawn ? Pawn->FindComponentByClass<UKalmalaCombatComponent>() : nullptr;
+    auto* Inventory = Pawn ? Pawn->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
+    if (!Combat || !Inventory || !SelectedGridInstanceGuid.IsValid()) return;
+    for (const auto& Stack : Inventory->GetStacks())
+        if (Stack.ItemId == TEXT("WoodenArrow") && (Stack.InstanceGuid == SelectedGridInstanceGuid || Stack.ItemGuids.Contains(SelectedGridInstanceGuid)))
+        { Combat->ServerPreferArrowStack(Combat->GetPreferredArrowStack() == Stack.InstanceGuid ? FGuid() : SelectedGridInstanceGuid); return; }
 }

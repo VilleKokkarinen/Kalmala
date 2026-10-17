@@ -1,5 +1,55 @@
 # Technical architecture
 
+## Hammer/Bow input and authoritative arrows — 2026-10-18
+
+Character routes Attack pressed/released by authoritative inventory selection:
+hammer performs no combat request (the existing crafting subsystem binds left
+click to selected-piece placement and right click to its build menu); Bow uses
+StartBowDraw/ReleaseBowDraw; other held weapons retain melee. Right-click during
+pending placement now cancels that preview and opens the menu in the same press.
+
+Bow profiles require finite `DrawDuration` in [0.05,10] seconds, currently 1.5;
+non-bows normalize omitted values to zero before strict JSON conversion and must
+retain zero. Item inspection displays the duration. Draw progress is elapsed /
+duration, clamped to [0,1]. A bounded [1,4] speed multiplier parameter is a future
+server Archery integration hook; runtime currently uses 1 and adds no skill.
+
+Reliable owning-pawn component begin/release RPCs carry monotonically increasing
+sequence and cancellation only. Server checks authority, fresh sequence, living
+owner, exact drawn bow GUID, level, condition, ammo and idle/cooldown. It owns
+start time, charge, camera aim, random spread, damage and projectile selection.
+Drawing flag/start time replicate for presentation; local prediction starts the
+circle immediately, while server charge alone determines the shot. Menu-open,
+weapon swap, missing ammo and invalid condition cancel; cancellation spends
+nothing. New draws cannot bypass the existing 0.36-second recovery. The model
+holds a draw pose and does not play a melee chop when the shot serial arrives.
+
+PreferredArrowStack is an owner-only transient stack-row GUID. Inventory's new
+action submits a selected stack/unit GUID; server accepts only an owned nonempty
+WoodenArrow stack, resolving unit to row, or clears preference with an empty
+GUID. Missing/exhausted preference falls back to first available stack. Release
+removes one physical unit from that exact stack, spends one bow condition,
+persists the combined player snapshot, and only then finishes spawning the
+server arrow. Failed save restores stacks/condition and destroys the deferred
+actor. Preference is session-only; the inventory and condition use existing saves.
+
+Original procedural ArrowShaft and ProjectileMovement supply replicated flight,
+gravity and facing. Only the server simulates flight. After movement, the actor
+sweeps a radius-2 sphere from previous to current position using ECC_Visibility,
+which is the existing wildlife/terrain hit contract; its own movement ignores
+object-channel collision to avoid missing wildlife or stopping behind a creature.
+Owner is ignored. Impact destroys the arrow and may invoke a private, friend-only
+wildlife ranged-damage helper, retaining resistances/defeat/attacker rewards while
+bypassing only the melee 220 cm range cap. Existing melee checks are unchanged.
+No client sets projectile transform, damage, charge or hit actor. No PvP or tree
+harvesting from arrows. Lifetime is five seconds. Tuning: charge maps 10..40
+Pierce, 1000..4500 cm/s and 8..0.25 degree spread. No projectile recovery.
+
+A local hit-test-invisible full-viewport crosshair widget draws a 50..4 radius
+circle during drawing and a small idle dot, hiding during modal input. It is
+released on controller change. No external assets, new inventory item, migration,
+attack catalogue list, bow tiers or Archery skill data are introduced.
+
 ## Automatic and manual loose-item pickup — 2026-10-17
 
 The local settings widget stores `LocalAutomaticPickup` in GameUserSettings
@@ -58,8 +108,8 @@ of scope; existing attack and sharpening arm motion carries the attached parts.
 ## Server-approved free melee swings — 2026-10-17
 
 The combat start gate accepts a living character with empty hands or any known,
-usable carried profile (valid authored level and condition 1..maximum), regardless
-of whether a nearby target exists. Hammer and Bow are included. Authority, fresh
+usable melee profile (valid authored level and condition 1..maximum), regardless
+of whether a nearby target exists. Hammer and Bow are excluded from this path. Authority, fresh
 nonzero sequence and idle-action gates remain required. Unknown/invalid/depleted
 held states fail closed. The action-start helper no longer supplies synthetic
 target facts to the strict combat mutation contract: actual damage remains
@@ -68,8 +118,8 @@ separately guarded by the server target path.
 Pending targets remain server-selected and are rechecked at execution. The held
 profile, condition and living owner are revalidated after windup, including swaps
 or breakage. Valid weapons retain authored Basic damage; profiles with no Basic
-attack, including hammer and Bow, use the existing 25 Crush fallback. There is
-no new projectile, arrow consumption or catalogue attack list. Misses enter
+attack use the existing 25 Crush fallback. Bow firing is a separate draw/release
+transaction described above, and hammer is construction-only. Misses enter
 recovery, publish owner feedback None, spend no condition and grant nothing.
 Tree material/axe gates and persistence rejection remain in the existing tree
 transaction, so universal swings do not enable non-axe tree damage.
@@ -785,7 +835,7 @@ Chest Store/Take transfers one selected allowlisted item through the existing se
 
 ## Combat and support magic
 
-The committed basic attack sends only a monotonically increasing request sequence. The server traces living wildlife within 220 cm, uses a 0.18-second windup, rechecks target validity, and enforces 0.36-second recovery. It applies the active usable carried weapon's authored mixed damage bonuses (Stone Spear: 42 stab; Bronze Axe level 1: 50 slash and level 2: 55 slash); with no item in Main Hand, it applies 25 unarmed crush damage. Empty hands and usable held profiles without an authored Basic attack, including Construction Hammer and Bow, use the existing 25 Crush melee fallback. Swing initiation requires no target; impact still requires a validated server target. Weapon level records now define `DamageBonuses` with Slash, Stab, Crush, Pierce, Fire, Water, Holy and Poison instead of `CombatDamage` and a single DamageType. Axes/knives use slash, melee spears stab and picks crush; ranged weapons use the distinct pierce channel. Any number of channels can be active together. Each family authors bounded unique `Attacks` (including Basic) in the shared attack file, with additive bonuses in the same channels. Axes, Knives, Pickaxes, Spears and Maces have separate lists; Construction Hammer has no authored attack list but can use the basic melee fallback while in Main Hand. Each combat profile resolves exactly one list, and unknown IDs, duplicate list/style IDs, repeated item IDs, overlapping lists or missing assignments fail closed. The current server-selected Basic attack adds those bonuses to the item-level bonuses. A validated hit resolves each active channel as max(0, incoming − flat channel resistance), sums those results, then subtracts flat Armor once, clamping at zero. Per-channel resistance may be negative, representing a flat weakness: Slash −5 adds 5 to incoming slash. Zero incoming channels remain zero so an unrelated weakness cannot manufacture damage. Channel resistances must be finite and within −100000 to +100000; damage bonuses and general Armor remain nonnegative. `UKalmalaResistanceComponent` defines these defenses on players, wildlife, construction, campfires, harvest nodes, discovery entities, hazards and skiffs. Defaults are zero for all channels and Armor, editable in entity/component defaults; static defenses are not client-settable or new saved fields. Only the existing player and wildlife health paths consume typed hits; other entities gain definitions without gaining health/destructibility. Hearth Shield absorbs the already-mitigated player damage. No new ranged/elemental attack actions, projectiles, damage-over-time effects or magic abilities are introduced. Unknown attack IDs and malformed/nonfinite/out-of-bound profiles, negative damage, or negative general Armor fail closed. Bear's Vigor continues to apply its server-owned strength multiplier. Wildlife has 100 health; defeat joins the existing unique server-owned sparse callback. There is no arbitrary damage endpoint or client target. Public action phase/serial and owner-only target-free results provide readable feedback.
+The committed basic attack sends only a monotonically increasing request sequence. The server traces living wildlife within 220 cm, uses a 0.18-second windup, rechecks target validity, and enforces 0.36-second recovery. It applies the active usable carried weapon's authored mixed damage bonuses (Stone Spear: 42 stab; Bronze Axe level 1: 50 slash and level 2: 55 slash); with no item in Main Hand, it applies 25 unarmed crush damage. Empty hands and usable melee profiles without an authored Basic attack use the existing 25 Crush melee fallback; Construction Hammer and Bow have separate building and shooting controls. Swing initiation requires no target; impact still requires a validated server target. Weapon level records now define `DamageBonuses` with Slash, Stab, Crush, Pierce, Fire, Water, Holy and Poison instead of `CombatDamage` and a single DamageType. Axes/knives use slash, melee spears stab and picks crush; ranged weapons use the distinct pierce channel. Any number of channels can be active together. Each family authors bounded unique `Attacks` (including Basic) in the shared attack file, with additive bonuses in the same channels. Axes, Knives, Pickaxes, Spears and Maces have separate lists; Construction Hammer has no authored attack list and never enters melee while in Main Hand. Each combat profile resolves exactly one list, and unknown IDs, duplicate list/style IDs, repeated item IDs, overlapping lists or missing assignments fail closed. The current server-selected Basic attack adds those bonuses to the item-level bonuses. A validated hit resolves each active channel as max(0, incoming − flat channel resistance), sums those results, then subtracts flat Armor once, clamping at zero. Per-channel resistance may be negative, representing a flat weakness: Slash −5 adds 5 to incoming slash. Zero incoming channels remain zero so an unrelated weakness cannot manufacture damage. Channel resistances must be finite and within −100000 to +100000; damage bonuses and general Armor remain nonnegative. `UKalmalaResistanceComponent` defines these defenses on players, wildlife, construction, campfires, harvest nodes, discovery entities, hazards and skiffs. Defaults are zero for all channels and Armor, editable in entity/component defaults; static defenses are not client-settable or new saved fields. Only the existing player and wildlife health paths consume typed hits; other entities gain definitions without gaining health/destructibility. Hearth Shield absorbs the already-mitigated player damage. No new ranged/elemental attack actions, projectiles, damage-over-time effects or magic abilities are introduced. Unknown attack IDs and malformed/nonfinite/out-of-bound profiles, negative damage, or negative general Armor fail closed. Bear's Vigor continues to apply its server-owned strength multiplier. Wildlife has 100 health; defeat joins the existing unique server-owned sparse callback. There is no arbitrary damage endpoint or client target. Public action phase/serial and owner-only target-free results provide readable feedback.
 
 Mirelings scavenge and threaten camps, boar defend territory with committed charges, and deer use bounded wary-herd flee behavior. Server-owned ecological behavior and defeat rewards never use client-selected archetypes, targets, or loot. Optional discoveries and boss scrolls commit authenticated-player entitlement before acknowledgement; duplicate claims grant nothing and failed saves leave the encounter/discovery recoverable.
 

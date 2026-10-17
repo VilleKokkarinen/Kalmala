@@ -110,6 +110,8 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
             || ((Profile.Action == TEXT("Woodcutting") || Profile.Action == TEXT("Mining"))
                 ? (Profile.MaterialTier < 1 || Profile.MaterialTier > 3) : Profile.MaterialTier != 0)
             || Profile.MinimumSkillLevel < 1 || Profile.MinimumSkillLevel > 10
+            || !FMath::IsFinite(Profile.DrawDuration)
+            || (Profile.ToolKind == TEXT("Bow") ? (Profile.DrawDuration < 0.05f || Profile.DrawDuration > 10.0f) : Profile.DrawDuration != 0.0f)
             || Profile.MaxDurability < 1 || Profile.MaxDurability > 1000
             || !Profile.DamageBonuses.IsValid(1000.0f))
         {

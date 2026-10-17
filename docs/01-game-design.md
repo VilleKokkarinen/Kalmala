@@ -1,14 +1,27 @@
 # Game design
 
+## Bow shot contract — 2026-10-18
+
+Hammer left-click builds the selected piece; right-click opens the piece menu.
+Bow left-click draws while held and releases an arrow on release at any charge.
+`DrawDuration` is authored per bow, currently 1.5 seconds. The crosshair circle
+shrinks from 50 to 4 logical UI units over full draw. Earlier release reduces
+arrow velocity, Pierce damage and accuracy; full draw clamps. Each successful
+persisted shot consumes one Wooden Arrow and one bow condition. Selection may
+prioritize an exact inventory stack or automatically choose an available stack;
+a lost/exhausted preference falls back. Gravity-driven server projectiles stop at
+visibility blockers and can damage wildlife. No PvP, recovery, alternate arrows,
+new bow tiers or Archery progression is added; a future server skill multiplier
+can shorten effective draw duration through the existing calculation hook.
+
 ## Free melee swings — 2026-10-17
 
-Any usable equipped weapon or tool can swing without a nearby target, including
-the Building Hammer and Bow. Empty hands can punch freely. All use the shared
+Any usable equipped melee weapon or tool can swing without a nearby target, except
+the Building Hammer (construction only) and Bow (draw/release shooting). Empty hands can punch freely. All use the shared
 0.18-second windup and 0.36-second recovery with the arm swing animation. Misses
 cost no condition and grant nothing. Validated hits use authored weapon damage,
 or the existing basic 25 Crush fallback for items without an authored attack.
-Depleted tools still require repair. Bow shooting/arrow consumption remain
-unimplemented, hammer construction remains available, and tree harvesting still
+Depleted tools still require repair. Hammer construction remains available, and tree harvesting still
 requires the appropriate axe tier. Inventory materials and wearables do not
 become new Main Hand equipment through this change.
 
@@ -22,7 +35,7 @@ to the pack as one capacity-validated transaction. With both hands occupied,
 one extra free pack cell is required; a full pack rejects the request unchanged.
 Equipping a shield returns the Bow to pack space freed by the shield. Returning
 the Bow alone requires a free cell. This user-requested increment covers items,
-crafting and wielding only: shooting and arrow consumption are not implemented.
+crafting and wielding; the 2026-10-18 bow increment adds drawing, shooting and arrow consumption.
 
 ## Core loop
 

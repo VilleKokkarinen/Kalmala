@@ -1,5 +1,30 @@
 # Game features
 
+## Hammer building and bow drawing — 2026-10-18
+
+Building Hammer is build-only: left-click places the selected piece and right-click
+opens the build menu to choose a piece, including when a placement is pending.
+It never starts a melee attack. Bow also uses its own controls instead of melee.
+
+Hold left-click with a usable Bow and arrows to draw. The central crosshair expands
+to a circle and shrinks continuously as the bow reaches full draw. Its authored
+`DrawDuration` is currently 1.5 seconds and appears in item inspection. Release at
+any point to shoot; a quick release is weaker, slower and less accurate. Holding
+past full draw clamps at full power. Opening a modal menu or swapping bows cancels
+without spending ammunition. A committed shot spends one arrow and one condition.
+
+Select an arrow stack in the inventory grid and click **Prioritize this arrow
+stack**. Click the preferred stack's action again to restore automatic selection.
+If the preferred stack is missing or exhausted, selection falls back to an
+available arrow stack. Currently Wooden Arrow is the available ammunition type.
+Projectiles have gravity and server collision; walls stop them and wildlife takes
+Pierce damage. Arrows expire after five seconds or on impact and are not recovered.
+
+Lower `DrawDuration` supports faster authored bows. A bounded server draw-speed
+calculation supports a future Archery multiplier; no Archery skill/progression or
+additional bow tiers are added yet. The current wooden-arrow tuning spans 10–40
+Pierce damage, 1000–4500 cm/s and 8–0.25 degrees of spread from release to full draw.
+
 ## Nearby item pickup — 2026-10-17
 
 Automatic pickup is enabled by default. Walk within 1.5 metres of loose materials
@@ -29,7 +54,7 @@ implement shooting or a two-handed animation.
 
 ## Free melee swings with held items — 2026-10-17
 
-Every usable equipped weapon or tool, including the Building Hammer and Bow,
+Every usable equipped melee weapon or tool, excluding the Building Hammer and Bow,
 can swing without a target nearby. Empty hands can punch the air too. The right
 arm raises, strikes and returns over the existing 0.54-second attack window.
 A miss completes cooldown quietly without tool wear, damage or rewards.
@@ -37,8 +62,8 @@ Broken/depleted tools still need repair before attacking.
 
 Actual hits still require a server-selected target and visibility/range recheck.
 Weapons use their authored Basic damage; items without an authored attack,
-including hammer and bow, use the existing basic 25 Crush melee fallback.
-The bow swing does not shoot or consume arrows. Hammer construction still works.
+use the existing basic 25 Crush melee fallback.
+Hammer placement and Bow drawing/shooting use the dedicated controls described above.
 Only suitable axes can damage trees: Meadow trees require Stone Axe or better
 and drop Wood; Elderwood requires Iron Axe and drops Densewood.
 

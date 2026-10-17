@@ -6,7 +6,8 @@
       "Description": "A simple wooden bow requiring both hands.",
       "twoHanded": true,
       "MaxDurability": 100,
-      "DamageBonuses": {}
+      "DamageBonuses": {},
+      "DrawDuration": 1.5
     }
   ]
 }

@@ -173,10 +173,16 @@ void UKalmalaPlayerModelComponent::TickComponent(float DeltaTime, ELevelTick Tic
     float RightArmPitch = bFalling ? -35.0f : -Swing;
     if (const auto* Combat = Character->FindComponentByClass<UKalmalaCombatComponent>())
     {
+        if (Combat->IsBowDrawing())
+        {
+            LeftArmPitch = 80.0f;
+            RightArmPitch = 55.0f;
+        }
         if (Combat->GetActionSerial() != LastAttackSerial)
         {
             LastAttackSerial = Combat->GetActionSerial();
-            AttackSwingElapsedSeconds = Combat->GetActionPhase() == EKalmalaCombatActionPhase::Idle ? -1.0f : 0.0f;
+            AttackSwingElapsedSeconds = HeldToolVisual == EKalmalaHeldToolVisual::Bow
+                || Combat->GetActionPhase() == EKalmalaCombatActionPhase::Idle ? -1.0f : 0.0f;
         }
         if (AttackSwingElapsedSeconds >= 0.0f)
         {

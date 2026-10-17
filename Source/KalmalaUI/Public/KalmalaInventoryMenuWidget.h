@@ -60,6 +60,8 @@ private:
     void HoverGridItem(FName ItemId);
     void UseGearSlot(EKalmalaGearSlot GearSlot);
     UFUNCTION() void UseMainHandSlot();
+    UFUNCTION() void PreferSelectedArrows();
+    UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> PreferArrowsButton;
     UFUNCTION() void UseHeadGearSlot();
     UFUNCTION() void UseCapeGearSlot();
     UFUNCTION() void UseChestGearSlot();

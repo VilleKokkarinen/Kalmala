@@ -19,7 +19,8 @@ bool UKalmalaCombatComponent::IsAttackRequestAllowed(const bool bAuthority, cons
 }
 bool UKalmalaCombatComponent::IsAttackItemAllowed(const FName ItemId)
 {
-    return ItemId.IsNone() || FKalmalaToolLifecycleContract::FindDefinition(ItemId) != nullptr;
+    return ItemId.IsNone() || (ItemId != TEXT("ConstructionHammer") && ItemId != TEXT("Bow")
+        && FKalmalaToolLifecycleContract::FindDefinition(ItemId) != nullptr);
 }
 bool UKalmalaCombatComponent::CanSwingWithoutTarget(const FName ItemId, const int32 Level, const int32 Condition)
 {
@@ -38,7 +39,7 @@ void UKalmalaCombatComponent::ServerRequestAttack_Implementation(const uint32 Re
     const bool bSwingAvailable = Character && FMath::IsFinite(Character->GetHealth()) && Character->GetHealth() > 1.0f
         && CanSwingWithoutTarget(EquippedItem, Character->GetCarriedToolLevel(EquippedItem),
             Character->GetToolDurability(EquippedItem));
-    const bool bAllowed = Pawn != nullptr && IsAttackRequestAllowed(Pawn->HasAuthority(), RequestSequence != 0 && RequestSequence > LastRequestSequence, RequestSequence, ActionPhase == EKalmalaCombatActionPhase::Idle, bSwingAvailable);
+    const bool bAllowed = Pawn != nullptr && IsAttackRequestAllowed(Pawn->HasAuthority(), RequestSequence != 0 && RequestSequence > LastRequestSequence, RequestSequence, ActionPhase == EKalmalaCombatActionPhase::Idle && !bBowDrawing, bSwingAvailable);
     if (!bAllowed)
     {
         if (Pawn != nullptr && Pawn->HasAuthority() && GetWorld() != nullptr && GetWorld()->GetTimeSeconds() >= LastUnavailableFeedbackTime + 0.25f)
@@ -53,6 +54,8 @@ void UKalmalaCombatComponent::ServerRequestAttack_Implementation(const uint32 Re
 void UKalmalaCombatComponent::TickComponent(const float DeltaTime, const ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+    if (bLocalBowDrawing && !CanDrawBow()) bLocalBowDrawing = false;
+    if (GetOwner() && GetOwner()->HasAuthority() && bBowDrawing && !CanDrawBow()) CancelBowDrawFromServer();
     const bool bCombatPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaCombatPeerTest"));
     const bool bMirelingPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaMirelingPeerTest"));
     const bool bBoarPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaBoarPeerTest"));
@@ -167,6 +170,9 @@ void UKalmalaCombatComponent::PublishFeedbackFromServer(const EKalmalaCombatFeed
 void UKalmalaCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+    DOREPLIFETIME(UKalmalaCombatComponent, bBowDrawing);
+    DOREPLIFETIME(UKalmalaCombatComponent, BowDrawStartTime);
+    DOREPLIFETIME_CONDITION(UKalmalaCombatComponent, PreferredArrowStack, COND_OwnerOnly);
     DOREPLIFETIME(UKalmalaCombatComponent, ActionPhase);
     DOREPLIFETIME(UKalmalaCombatComponent, ActionSerial);
     DOREPLIFETIME_CONDITION(UKalmalaCombatComponent, Feedback, COND_OwnerOnly);

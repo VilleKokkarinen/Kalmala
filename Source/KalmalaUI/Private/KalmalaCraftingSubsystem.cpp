@@ -1,4 +1,7 @@
 #include "KalmalaCraftingSubsystem.h"
+#include "KalmalaCombatComponent.h"
+#include "Rendering/DrawElements.h"
+#include "Components/CanvasPanel.h"
 #include "Misc/Paths.h"
 #include "KalmalaInventoryInspectWidget.h"
 #include "KalmalaIngredientWidget.h"
@@ -4683,6 +4686,11 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
     if(!GetWorld() || !GetWorld()->IsGameWorld() || !GetLocalPlayer()) return;
     auto* PC=GetLocalPlayer()->GetPlayerController(GetWorld()); if(Controller!=PC) Release();
     if(!PC || !PC->IsLocalController()) return; Controller=PC;
+    if (!BowCrosshair)
+    {
+        BowCrosshair = CreateWidget<UKalmalaBowCrosshairWidget>(PC);
+        if (BowCrosshair) BowCrosshair->AddToPlayerScreen(90);
+    }
     if (!PendingBuildPlacementKit.IsNone() && PC->IsMoveInputIgnored())
         CancelBuildPlacementInput();
     if(PC->InputComponent && BoundInput.Get()!=PC->InputComponent)
@@ -5496,7 +5504,6 @@ void UKalmalaCraftingSubsystem::OpenBuildFromRightClick()
     if (!PendingBuildPlacementKit.IsNone())
     {
         CancelBuildPlacementInput();
-        return;
     }
     if (!Controller || IsOpen()) return;
     if (const ULocalPlayer* LocalPlayer = Controller->GetLocalPlayer())
@@ -5537,6 +5544,7 @@ bool UKalmalaCraftingSubsystem::CloseIfOpen()
 
 void UKalmalaCraftingSubsystem::Release()
 {
+    if (BowCrosshair) { BowCrosshair->RemoveFromParent(); BowCrosshair = nullptr; }
     PendingBuildPlacementKit = NAME_None;
     PendingBuildPlacementStartedFrame = 0;
     if(auto* Input=BoundInput.Get()) for(int32 I=Input->GetNumActionBindings()-1;I>=0;--I)
@@ -5560,3 +5568,33 @@ void UKalmalaCraftingSubsystem::Release()
     Controller=nullptr; bVerified=false;
 }
 void UKalmalaCraftingSubsystem::Deinitialize() { Release(); Super::Deinitialize(); }
+
+void UKalmalaBowCrosshairWidget::NativeOnInitialized()
+{
+    Super::NativeOnInitialized();
+    if (WidgetTree) WidgetTree->RootWidget = WidgetTree->ConstructWidget<UCanvasPanel>();
+    SetVisibility(ESlateVisibility::HitTestInvisible);
+}
+int32 UKalmalaBowCrosshairWidget::NativePaint(const FPaintArgs& Args, const FGeometry& Geometry,
+    const FSlateRect& Culling, FSlateWindowElementList& Elements, int32 Layer, const FWidgetStyle& Style, bool bEnabled) const
+{
+    Layer = Super::NativePaint(Args, Geometry, Culling, Elements, Layer, Style, bEnabled);
+    const auto* PC = GetOwningPlayer();
+    const auto* Pawn = PC ? Cast<AKalmalaCharacter>(PC->GetPawn()) : nullptr;
+    if (!Pawn || PC->IsMoveInputIgnored()) return Layer;
+    const auto* Combat = Pawn->GetCombatComponent();
+    const bool bDrawing = Combat && Combat->IsBowDrawing();
+    const float Radius = bDrawing ? UKalmalaCombatComponent::GetBowCrosshairRadius(Combat->GetBowDrawProgress()) : 2.0f;
+    const FVector2D Centre = Geometry.GetLocalSize() * 0.5f;
+    TArray<FVector2D> Ring;
+    for (int32 Segment = 0; Segment <= 64; ++Segment)
+    {
+        const float Angle = Segment * 2.0f * PI / 64.0f;
+        Ring.Add(Centre + FVector2D(FMath::Cos(Angle), FMath::Sin(Angle)) * Radius);
+    }
+    FSlateDrawElement::MakeLines(Elements, Layer + 1, Geometry.ToPaintGeometry(), Ring, ESlateDrawEffect::None,
+        FLinearColor::Black, true, 3.5f);
+    FSlateDrawElement::MakeLines(Elements, Layer + 2, Geometry.ToPaintGeometry(), Ring, ESlateDrawEffect::None,
+        FLinearColor::White, true, 1.5f);
+    return Layer + 2;
+}

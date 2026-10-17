@@ -8,6 +8,7 @@ Further autonomous implementation requires a new user-defined task.
 
 ## User-requested fixes
 
+- [x] Restore hammer building-only controls and add bow hold/draw/release shooting, draw-circle feedback, DrawDuration and preferred/automatic arrow stacks.
 - [x] Allow target-free melee swings with every usable equipped item and empty hands.
 - [x] Add nearby automatic pickup with an Options toggle and Action-key crosshair pickup showing item amount/name.
 - [x] Rotate and anchor every held tool to fit the player hand through arm animation.

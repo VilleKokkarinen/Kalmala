@@ -23,6 +23,20 @@ public:
     virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
     UFUNCTION(Server, Reliable) void ServerRequestAttack(uint32 RequestSequence);
+    void StartBowDraw(uint32 Sequence);
+    void CancelLocalBowDraw();
+    UFUNCTION(Server, Reliable) void ServerCancelBowDraw();
+    void ReleaseBowDraw(uint32 Sequence, bool bCancel = false);
+    UFUNCTION(Server, Reliable) void ServerBeginBowDraw(uint32 Sequence);
+    UFUNCTION(Server, Reliable) void ServerReleaseBow(uint32 Sequence, bool bCancel);
+    UFUNCTION(Server, Reliable) void ServerPreferArrowStack(FGuid StackOrUnitGuid);
+    FGuid GetPreferredArrowStack() const { return PreferredArrowStack; }
+    bool IsBowDrawing() const;
+    float GetBowDrawProgress() const;
+    float GetBowDrawDuration() const;
+    static float CalculateBowDrawProgress(float Elapsed, float DrawDuration, float ArcherySpeedMultiplier = 1.0f);
+    static float GetBowCrosshairRadius(float Progress);
+    bool CanDrawBow() const;
     EKalmalaCombatActionPhase GetActionPhase() const { return ActionPhase; }
     uint32 GetActionSerial() const { return ActionSerial; }
     EKalmalaCombatFeedback GetFeedback() const { return Feedback; }
@@ -32,6 +46,15 @@ public:
     static bool CanSwingWithoutTarget(FName ItemId, int32 Level, int32 Condition);
     static bool IsAttackRequestAllowed(bool bAuthority, bool bNewSequence, uint32 Sequence, bool bActionIdle, bool bSwingAvailable);
 private:
+    void CancelBowDrawFromServer();
+    int32 FindArrowStack() const;
+    UPROPERTY(ReplicatedUsing=OnRep_BowDrawing) bool bBowDrawing = false;
+    UPROPERTY(Replicated) double BowDrawStartTime = 0;
+    UPROPERTY(Replicated) FGuid PreferredArrowStack;
+    UFUNCTION() void OnRep_BowDrawing();
+    FGuid DrawingBowGuid;
+    bool bLocalBowDrawing = false;
+    double LocalBowDrawStart = 0;
     AActor* FindServerTarget() const;
     bool IsServerTargetValid(const AActor* Target) const;
     void BeginRecovery();

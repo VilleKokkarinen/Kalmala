@@ -86,6 +86,8 @@ struct KALMALAGAMEPLAY_API FKalmalaToolProfileData
     /** Maximum resource material tier; required for axes/pickaxes, zero for other profiles. */
     UPROPERTY(EditAnywhere)
     int32 MaterialTier = 0;
+    /** Seconds to full draw; zero for non-bows. */
+    UPROPERTY(EditAnywhere) float DrawDuration = 0.0f;
 
     UPROPERTY(EditAnywhere)
     int32 MaxDurability = 0;
