@@ -29,6 +29,11 @@ Further autonomous implementation requires a new user-defined task.
 
 ## Completed post-roadmap work
 
+**Hammer right-click crash repair — verified 2026-10-17.** Progression sorting
+now handles spawn-granted equipment without an acquisition recipe. Editor build,
+upgrade-only hammer regression and Build browsing passed; broader progression
+cost/count failures are recorded in [PROGRESS.md](PROGRESS.md).
+
 **Development build repair — verified 2026-10-17.** Removed local identifier
 collisions exposed by unity compilation. Win64 Development game and Editor
 unity builds passed; no gameplay behavior changed. See the [build repair

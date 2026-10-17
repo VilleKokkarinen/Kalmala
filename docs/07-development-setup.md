@@ -1,5 +1,34 @@
 # Development setup
 
+## Hammer Build-menu crash regression — 2026-10-17
+
+Right-click with the starting Construction Hammer opens Build and reads tool
+progression text. The hammer has upgrades but no acquisition recipe. The former
+acquisition-only ordering map asserted in `TMap::FindChecked` during sorting.
+The order now includes all generated progression item IDs: authored acquisitions
+first, then upgrade-only items in load order; levels remain ascending per item.
+No acquisition recipe, costs, rewards or RPC payloads were changed.
+
+Reproduced before repair with `Kalmala.Gameplay.M9.ToolProgressionCatalogue`:
+exit 3, `Map.h.inl:651`, `ToolProgressionEntries` sorting; evidence under
+`C:/Users/Ville/AppData/Local/Temp/krc-04b63075/repro.log`.
+The unity-enabled `KalmalaEditor Win64 Development` mirror rebuild passed five
+then four actions (`kmforest/right-click-build.log`, `right-click-final-build.log`).
+With the standard unattended/null-RHI automation invocation, run
+`Automation RunTests Kalmala.Gameplay.Tools.UpgradeOnlyProgression+Kalmala.UI.Crafting.LocalBrowsing`.
+Both tests passed, two successful result records and exit 0; retained log
+`C:/Users/Ville/AppData/Local/Temp/krc-0d1644ed/final.log`.
+The new regression requires all nine hammer upgrades in ascending order without
+inventing a level-one acquisition entry. Physical right-click/rendered PIE was
+not replayed; rebuild the source checkout's Editor target before retesting there.
+
+The exploratory broader run `krc-c1735a1c/final.log` returned exit 0 but contained
+failed `M9.ToolProgressionCatalogue` and `M9.ToolStationProgression` results; it
+is not a passing gate. Unchanged authored data generates 169 progression entries
+against an existing 128-entry contract limit; Bronze Axe cost assertions/fixtures
+also differ from current acquisition/upgrade JSON. These separate failures remain
+unresolved. Full project, peer and package verification was not performed.
+
 ## Reproducing Visual Studio unity build errors
 
 A writable temporary mirror can cause adaptive unity to compile each source

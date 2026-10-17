@@ -91,6 +91,13 @@ namespace
             TMap<FName, int32> RecipeOrder;
             for (int32 Index = 0; Index < Catalogue->Recipes.Num(); ++Index)
                 RecipeOrder.Add(Catalogue->Recipes[Index].ItemId, Index);
+            // Spawn-granted equipment can have upgrades without an acquisition recipe.
+            // Keep authored acquisition order, then append upgrade-only items in load order.
+            for (const FKalmalaToolProgressionEntry& Entry : LoadedEntries)
+            {
+                if (!RecipeOrder.Contains(Entry.ItemId))
+                    RecipeOrder.Add(Entry.ItemId, RecipeOrder.Num());
+            }
             LoadedEntries.Sort([&RecipeOrder](const FKalmalaToolProgressionEntry& A, const FKalmalaToolProgressionEntry& B)
             {
                 const int32 AOrder = RecipeOrder.FindChecked(A.ItemId);

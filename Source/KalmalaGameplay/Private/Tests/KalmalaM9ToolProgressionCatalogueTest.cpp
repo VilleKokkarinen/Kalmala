@@ -379,4 +379,33 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
     return true;
 }
 
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FKalmalaUpgradeOnlyProgressionTest,
+    "Kalmala.Gameplay.Tools.UpgradeOnlyProgression",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FKalmalaUpgradeOnlyProgressionTest::RunTest(const FString& Parameters)
+{
+    // Opening the hammer Build menu reads this complete list, even with no station open.
+    const TArray<FKalmalaToolProgressionEntry>& InitialEntries = FKalmalaToolProgressionContract::GetEntries();
+    int32 HammerUpgrades = 0;
+    int32 PreviousHammerLevel = 1;
+    for (const FKalmalaToolProgressionEntry& Entry : InitialEntries)
+    {
+        if (Entry.ItemId != TEXT("ConstructionHammer")) continue;
+        ++HammerUpgrades;
+        TestEqual(TEXT("Upgrade-only hammer entries retain ascending target levels"),
+            Entry.TargetToolLevel, PreviousHammerLevel + 1);
+        TestEqual(TEXT("Hammer upgrade preserves its item identity"), Entry.PreviousItemId, Entry.ItemId);
+        PreviousHammerLevel = Entry.TargetToolLevel;
+    }
+    TestEqual(TEXT("Spawn-granted hammer retains all nine station upgrades without an acquisition entry"),
+        HammerUpgrades, FKalmalaToolProgressionContract::MaxStationToolLevel - 1);
+    TestNull(TEXT("Sorting upgrade-only items does not invent a hammer acquisition recipe"),
+        FKalmalaToolProgressionContract::FindEntry(TEXT("ConstructionHammer"), 1));
+
+    return true;
+}
+
 #endif
