@@ -304,18 +304,16 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
                 Normal *= -1.0f;
             }
             const int32 OutwardFace[] = { A, B, C };
-            for (const int32 Vertex : OutwardFace) { Triangles.Add(Vertices.Num()); Vertices.Add(Points[Vertex]); Normals.Add(Normal); UV.Add(FVector2D::ZeroVector); Colors.Add(Colour); }
+            const int32 FirstVertex = Vertices.Num();
+            // Keep outward normals; reverse only indices for Unreal's clockwise front faces.
+            Triangles.Append({FirstVertex, FirstVertex + 2, FirstVertex + 1});
+            for (const int32 Vertex : OutwardFace) { Vertices.Add(Points[Vertex]); Normals.Add(Normal); UV.Add(FVector2D::ZeroVector); Colors.Add(Colour); }
         }
     };
-    const auto AddTetra = [&Vertices, &Triangles, &Normals, &UV, &Colors](const FVector Centre, const FVector Extent, const FLinearColor Colour)
+    const auto AddTetra = [&AddTetraPoints](const FVector Centre, const FVector Extent, const FLinearColor Colour)
     {
-        const FVector Points[] = { Centre + FVector(-Extent.X,-Extent.Y,0), Centre + FVector(Extent.X,-Extent.Y,0), Centre + FVector(0,Extent.Y,0), Centre + FVector(0,0,Extent.Z) };
-        const int32 Faces[] = { 0,2,1, 0,1,3, 1,2,3, 2,0,3 };
-        for (int32 Face = 0; Face < UE_ARRAY_COUNT(Faces); Face += 3)
-        {
-            const FVector Normal = FVector::CrossProduct(Points[Faces[Face + 1]] - Points[Faces[Face]], Points[Faces[Face + 2]] - Points[Faces[Face]]).GetSafeNormal();
-            for (int32 Vertex = 0; Vertex < 3; ++Vertex) { Triangles.Add(Vertices.Num()); Vertices.Add(Points[Faces[Face + Vertex]]); Normals.Add(Normal); UV.Add(FVector2D::ZeroVector); Colors.Add(Colour); }
-        }
+        AddTetraPoints(Centre + FVector(-Extent.X,-Extent.Y,0), Centre + FVector(Extent.X,-Extent.Y,0),
+            Centre + FVector(0,Extent.Y,0), Centre + FVector(0,0,Extent.Z), Colour);
     };
     if (Archetype == EKalmalaWildlifeArchetype::Boar)
     {

@@ -43,7 +43,8 @@ UProceduralMeshComponent* UKalmalaPlayerModelComponent::AddPart(const FName Name
     {
         const int32 I = Vertices.Num();
         Vertices.Append({A, B, C, D});
-        Triangles.Append({I, I + 1, I + 2, I + 2, I + 1, I + 3});
+        // Unreal front faces use clockwise winding relative to outward shading normals.
+        Triangles.Append({I, I + 2, I + 1, I + 2, I + 3, I + 1});
         const FVector Normal = FVector::CrossProduct(B - A, C - A).GetSafeNormal();
         for (int32 J = 0; J < 4; ++J)
         {
@@ -57,7 +58,7 @@ UProceduralMeshComponent* UKalmalaPlayerModelComponent::AddPart(const FName Name
     {
         const int32 I = Vertices.Num();
         Vertices.Append({A, B, C});
-        Triangles.Append({I, I + 1, I + 2});
+        Triangles.Append({I, I + 2, I + 1});
         const FVector Normal = FVector::CrossProduct(B - A, C - A).GetSafeNormal();
         for (int32 J = 0; J < 3; ++J)
         {

@@ -1,5 +1,26 @@
 # Development setup
 
+## Player/creature surface winding regression — 2026-10-17
+
+The player's tapered quads/caps and creature tetrahedra previously emitted the
+opposite front-face order from Unreal's clockwise convention. One-sided materials
+therefore culled their exterior and exposed the far interior. Reverse those
+triangle indices while retaining outward normals; the player's box-face helper
+already uses the correct order and remains unchanged. Both wildlife tetrahedron
+helpers now share centroid-based outward-normal selection, including Mireling.
+
+`Kalmala.Gameplay.Presentation.SurfaceWinding` compares actual procedural geometry
+with `UKismetProceduralMeshLibrary::GenerateBoxMesh`, then checks winding,
+outward normals and non-degenerate faces for all twelve player/tool parts and
+Boar, Deer and Mireling meshes. Normal-access isolated unity Editor build passed
+five actions (`kmforest/surface-winding-build.log`). The standard unattended
+null-RHI queue also ran `Kalmala.Gameplay.Tools.HeldModel`,
+`Kalmala.Gameplay.Combat.AxeSwing` and `Kalmala.Gameplay.WildlifeBehaviour.ServerOwnedCycle`:
+four successful results, exit 0; retained log
+`C:/Users/Ville/AppData/Local/Temp/ksurf-579466b1/tests.log`.
+Materials, collision, gameplay and networking were not changed. Rendered/manual
+review, full-suite and package verification were not performed.
+
 ## Equipped held-tool model regression — 2026-10-17
 
 `Kalmala.Gameplay.Tools.HeldModel` verifies known family mapping, repeated actual

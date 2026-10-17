@@ -29,6 +29,10 @@ Further autonomous implementation requires a new user-defined task.
 
 ## Completed post-roadmap work
 
+**Player and creature surface winding — verified 2026-10-17.** Corrected
+back-facing tapered player/tool faces and creature tetrahedra. Editor build and
+four focused tests passed; normals remain outward and materials are unchanged.
+
 **Held-tool appearance — verified 2026-10-17.** Replaced the fixed hammer with
 Main Hand family silhouettes and empty-hand cleanup. Cosmetic family replication
 keeps inventory details private. Editor build and four focused regressions passed.
