@@ -4565,3 +4565,18 @@ Scripts/Tests/World/Verify-BiomeExpansion.ps1 -ForestRestartOnly -Editor 'C:/Pro
 Accepted current-source run: `C:/Users/Ville/AppData/Local/Temp/kfr-e6e02cac/{write,read}.log`; both processes ran one test with `Result={Success}` and exit 0. Seed 418 reconstructed the same 14 candidates: two depleted IDs absent and 12 live uncollected trees after restart; the real `KalmalaPopulationDeltas_418.sav` SHA256 stayed unchanged during the reader. Final isolated editor build passed four actions without warnings, log `C:/Users/Ville/AppData/Local/Temp/kmforest/restart-final-build.log`. The initial cached build omitted the new test and was rejected; the first executed test rejected a trailing-slash mismatch in the path guard before slot I/O. Both fixture issues were repaired and the complete two-process gate rerun successfully. Known pre-test engine `Condition failed` diagnostics and context-free world teardown warnings remain; the accepted runs have no failed automation assertions.
 
 This closes the isolated real-slot process-restart leaf. It exercises the persistence callback boundary, not a second pickup transaction or live peer reconnect session. Gameplay authority, save schemas and reward behavior are unchanged. Full tree-feature/project acceptance and final live peer streaming/restart remain deferred.
+
+
+### Hotbar equip retention acceptance - 2026-10-18
+
+Run focused Editor automation:
+`Automation RunTests Kalmala.Gameplay.Inventory.SharedGrid+Kalmala.Gameplay.Inventory.MainHandHotbar+Kalmala.UI.Inventory.NumberedHotbar+Kalmala.UI.Inventory.EquippedHotbarTint+Kalmala.Gameplay.Inventory.TwoHanded+Kalmala.Gameplay.Combat.BowDrawAndArrows`.
+These verify fixed cell identities, key-three equip/toggle/switch, duplicate copies,
+full-pack unequip and forty-cell capacity, actual widget blue fills, shield capacity,
+and bow shot regressions. EquippedHotbarTint initializes its test world for play
+before constructing a local-player widget, matching the valid runtime player context.
+For visual acceptance rebuild Development Editor, put an axe in cell 3, press 3
+with empty hands and confirm it remains visible with a blue background in the HUD
+and inventory. Press again to clear the hand; switch tools and move the equipped
+cell to confirm the tint follows its identity. Null-RHI automation does not verify
+rendered HUD appearance or a live multiplayer peer.

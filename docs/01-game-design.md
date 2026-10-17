@@ -30,11 +30,11 @@ become new Main Hand equipment through this change.
 String stacks to 20 and Wooden Arrows stack to 100. At a level-one Workbench,
 craft a Bow for 5 normal Wood and 2 String, or 20 Wooden Arrows for 5 normal
 Wood. String is material-only for now, with no acquisition recipe or drops.
-The Bow uses both hands. Equipping it returns the held weapon/tool and shield
-to the pack as one capacity-validated transaction. With both hands occupied,
-one extra free pack cell is required; a full pack rejects the request unchanged.
-Equipping a shield returns the Bow to pack space freed by the shield. Returning
-the Bow alone requires a free cell. This user-requested increment covers items,
+The Bow uses both hands. Equipping it clears the previous held state and returns
+a worn shield to a free pack cell as one validated transaction. Tools retain their
+original cells; a full pack rejects shield return unchanged. Equipping a shield
+clears the Bow's held state. Clearing Bow alone never requires a free cell.
+This user-requested increment covers items,
 crafting and wielding; the 2026-10-18 bow increment adds drawing, shooting and arrow consumption.
 
 ## Core loop
@@ -114,9 +114,9 @@ See [Game features](game-features.md) for a short inventory of additions. The pl
 
 The implemented survival loop includes tool-based gathering, paid camp construction, weather/shelter recovery, six cooking recipes, free tool repair, Workbench/Forge axe progression, optional creature encounters and discoveries, a two-seat ocean skiff, local maps, and owner-private inventory/progression feedback. Four support effects remain non-damaging and scroll-learned. Exact transactions, privacy, persistence, and current overrides are consolidated in [Technical architecture](02-technical-architecture.md#consolidated-system-contracts).
 
-The current player inventory is one 10×4 grid with its first row assigned to hotbar numbers 1–0. Six wearable slots have owner-private, session-only server equip/unequip transactions, and the Inventory popup displays equipped names with owner-facing equip, replace, and return actions. Wearable defense is one integer Armor value. Sum equipped, non-depleted armor and subtract it once from the combined Slash, Crush, Pierce and Stab damage, clamped to zero. Fire, Water, Holy and Poison bypass armor. Each accepted wildlife hit spends one condition on every equipped wearable, including hits fully absorbed by defenses or support shields; depleted gear supplies no defense. Main Hand routes the selected physical weapon/tool outside the grid; returning it requires free pack space. Encumbrance is not implemented. Ordinary materials, meals, cell positions, skill XP, weather, active effects, and equipped gear are not generally persisted. Saved tool state, discovered entitlements, construction, storage, and approved sparse world/player facts have separate validated owners.
+The current player inventory is one 10×4 grid with its first row assigned to hotbar numbers 1–0. Six wearable slots have owner-private, session-only server equip/unequip transactions, and the Inventory popup displays equipped names with owner-facing equip, replace, and return actions. Wearable defense is one integer Armor value. Sum equipped, non-depleted armor and subtract it once from the combined Slash, Crush, Pierce and Stab damage, clamped to zero. Fire, Water, Holy and Poison bypass armor. Each accepted wildlife hit spends one condition on every equipped wearable, including hits fully absorbed by defenses or support shields; depleted gear supplies no defense. Main Hand references the selected physical weapon/tool in its original cell; its blue highlight follows the exact equipped copy. Pressing its number again unequips it without moving it. Encumbrance is not implemented. Ordinary materials, meals, cell positions, skill XP, weather, active effects, and equipped gear are not generally persisted. Saved tool state, discovered entitlements, construction, storage, and approved sparse world/player facts have separate validated owners.
 
-As of 2026-10-15, the six wearable tiles display owner-only equipped item names and let the owner equip, replace, or return wearables through server-validated GUID transactions. Equipped wearable defenses now contribute to server-resolved wildlife damage. Main Hand equips, replaces, or returns a physical weapon/tool through server-validated capacity checks. Equipped names include remaining/maximum condition; depleted wearables provide no defense.
+As of 2026-10-15, the six wearable tiles display owner-only equipped item names and let the owner equip, replace, or return wearables through server-validated GUID transactions. Equipped wearable defenses now contribute to server-resolved wildlife damage. Main Hand equips, switches or clears a physical weapon/tool without moving its numbered grid cell. Equipped names include remaining/maximum condition; depleted wearables provide no defense.
 
 Root vegetables and their seeds are catalogue definitions; farming is not implemented. Iron and Coal have no configured natural gathering source. Storm-rated shelter, insulated clothing/equipment rules, and vessel cargo/hull durability remain outside the accepted scope.
 

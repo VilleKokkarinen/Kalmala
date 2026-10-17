@@ -52,64 +52,38 @@ bool FKalmalaInventoryGridTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Forty-first identity cannot enter the grid"), UKalmalaInventoryComponent::BuildGridLayout(Full, {}, After));
     TestFalse(TEXT("Invalid GUID cannot occupy a cell"), UKalmalaInventoryComponent::BuildGridLayout({FGuid()}, {}, After));
 
-    // A physical tool stays in the tool ledger but only packed tools occupy cells.
-    TArray<FGuid> FortyStacks;
-    for (int32 I = 0; I < 40; ++I) FortyStacks.Add(FGuid::NewGuid());
-    TestTrue(TEXT("Main Hand permits forty packed stacks"), UKalmalaInventoryComponent::BuildMainHandGrid(
-        {AxeGuid}, FortyStacks, AxeGuid, {}, After));
-    TestFalse(TEXT("Main Hand is excluded from the grid"), After.Contains(AxeGuid));
+    // Equipment is a state of a grid item; it never removes the owned cell.
+    TArray<FGuid> Stacks;
+    for (int32 I=0;I<39;++I) Stacks.Add(FGuid::NewGuid());
+    TestTrue(TEXT("A held tool and thirty-nine stacks occupy forty cells"),
+        UKalmalaInventoryComponent::BuildMainHandGrid({AxeGuid}, Stacks, AxeGuid, {}, After));
     const auto FullWithHand = After;
-    TestFalse(TEXT("Returning Main Hand rejects a full pack"), UKalmalaInventoryComponent::BuildMainHandGrid(
-        {AxeGuid}, FortyStacks, FGuid(), FullWithHand, After));
-    TestTrue(TEXT("Rejected return preserves the candidate output"), After == FullWithHand);
-    FortyStacks.Pop();
-    TestTrue(TEXT("Returning Main Hand succeeds with one free cell"), UKalmalaInventoryComponent::BuildMainHandGrid(
-        {AxeGuid}, FortyStacks, FGuid(), FullWithHand, After));
-    TestTrue(TEXT("Returned tool retains its exact GUID"), After.Contains(AxeGuid));
-    TestTrue(TEXT("Replacement uses the cell freed by the incoming tool"), UKalmalaInventoryComponent::BuildMainHandGrid(
-        {AxeGuid, HammerGuidA}, FortyStacks, HammerGuidA, After, After));
-    TestTrue(TEXT("Displaced tool remains packed"), After.Contains(AxeGuid));
-    TestFalse(TEXT("Replacement leaves the incoming tool outside the grid"), After.Contains(HammerGuidA));
-    const auto ReplacementGrid = After;
-    TestFalse(TEXT("Unknown hand identity rejects"), UKalmalaInventoryComponent::BuildMainHandGrid(
-        {AxeGuid}, FortyStacks, HammerGuidB, After, After));
-    TestFalse(TEXT("Duplicate tool identity rejects even when excluded from cells"), UKalmalaInventoryComponent::BuildMainHandGrid(
-        {AxeGuid, AxeGuid}, {}, AxeGuid, After, After));
-    TestFalse(TEXT("A stack cannot share the hand identity"), UKalmalaInventoryComponent::BuildMainHandGrid(
-        {AxeGuid}, {AxeGuid}, AxeGuid, After, After));
-    TestTrue(TEXT("Invalid transactions leave the prior layout intact"), After == ReplacementGrid);
-
-    // Numbered hotbar cells are pack locations, not persistent aliases for the hand.
-    TArray<FGuid> HotbarBefore;
-    HotbarBefore.Init(FGuid(), 40);
-    HotbarBefore[0] = HammerGuidA;
-    HotbarBefore[3] = HammerGuidB;
-    HotbarBefore[9] = WoodGuid;
-    HotbarBefore[14] = AxeGuid;
-    const TArray<FGuid> HotbarTools = {HammerGuidA, HammerGuidB, AxeGuid};
-    TestTrue(TEXT("Numbered tool selection moves its physical copy into Main Hand"),
-        UKalmalaInventoryComponent::BuildMainHandGrid(HotbarTools, {WoodGuid}, HammerGuidA, HotbarBefore, After));
-    TestFalse(TEXT("Equipping cell one leaves that number empty"), After[0].IsValid());
-    TestTrue(TEXT("A duplicate tool keeps its own numbered cell"), After[3] == HammerGuidB);
-    TestTrue(TEXT("Other numbered cells and lower rows do not shift"), After[9] == WoodGuid && After[14] == AxeGuid);
-    const auto EquippedHotbar = After;
-    TestTrue(TEXT("An unchanged hand preserves empty numbered cells across synchronization"),
-        UKalmalaInventoryComponent::BuildMainHandGrid(HotbarTools, {WoodGuid}, HammerGuidA, After, After));
-    TestTrue(TEXT("Synchronization creates no hotbar alias for equipped gear"), After == EquippedHotbar);
-    TestTrue(TEXT("Selecting the duplicate replaces the hand without losing either identity"),
-        UKalmalaInventoryComponent::BuildMainHandGrid(HotbarTools, {WoodGuid}, HammerGuidB, After, After));
-    TestTrue(TEXT("Displaced tool uses the first free cell"), After[0] == HammerGuidA);
-    TestFalse(TEXT("Replacement vacates its own numbered cell"), After[3].IsValid());
-    TestTrue(TEXT("Return uses first free space without restoring an old shortcut"),
-        UKalmalaInventoryComponent::BuildMainHandGrid(HotbarTools, {WoodGuid}, FGuid(), After, After));
-    TestTrue(TEXT("Returned duplicate enters cell two rather than its former cell four"), After[1] == HammerGuidB);
-    TestFalse(TEXT("Old shortcut remains empty after return"), After[3].IsValid());
-    TestTrue(TEXT("Return retains unrelated item positions"), After[9] == WoodGuid && After[14] == AxeGuid);
+    TestTrue(TEXT("Held item remains represented exactly once"), After.Contains(AxeGuid));
+    TestTrue(TEXT("Unwielding a full inventory does not need extra space"),
+        UKalmalaInventoryComponent::BuildMainHandGrid({AxeGuid}, Stacks, FGuid(), After, After));
+    TestTrue(TEXT("Unwielding does not move any cell"), After == FullWithHand);
+    TestFalse(TEXT("Holding cannot bypass forty-cell capacity"),
+        UKalmalaInventoryComponent::BuildMainHandGrid({AxeGuid,HammerGuidA}, Stacks, HammerGuidA, After, After));
+    TestTrue(TEXT("Failed capacity check preserves output"), After == FullWithHand);
+    TestFalse(TEXT("Unknown hand identity rejects"),
+        UKalmalaInventoryComponent::BuildMainHandGrid({AxeGuid}, Stacks, HammerGuidB, After, After));
+    TestFalse(TEXT("Duplicate physical tool identity rejects"),
+        UKalmalaInventoryComponent::BuildMainHandGrid({AxeGuid,AxeGuid}, {}, AxeGuid, After, After));
+    TestFalse(TEXT("Stack and tool identities cannot overlap"),
+        UKalmalaInventoryComponent::BuildMainHandGrid({AxeGuid}, {AxeGuid}, AxeGuid, After, After));
+    TArray<FGuid> HotbarBefore; HotbarBefore.Init(FGuid(),40);
+    HotbarBefore[2]=AxeGuid; HotbarBefore[5]=HammerGuidA; HotbarBefore[14]=WoodGuid;
+    TestTrue(TEXT("Equipping slot three keeps all saved positions"),
+        UKalmalaInventoryComponent::BuildMainHandGrid({AxeGuid,HammerGuidA},{WoodGuid},AxeGuid,HotbarBefore,After));
+    TestTrue(TEXT("Axe stays in slot three when equipped"),After==HotbarBefore);
+    TestTrue(TEXT("Switching tools does not swap their cells"),
+        UKalmalaInventoryComponent::BuildMainHandGrid({AxeGuid,HammerGuidA},{WoodGuid},HammerGuidA,After,After));
+    TestTrue(TEXT("Other tools and lower rows remain unchanged"),After==HotbarBefore);
     auto* Inventory = NewObject<UKalmalaInventoryComponent>();
-    TArray<FKalmalaInventoryStack> Stacks;
-    Stacks.SetNum(36);
-    TestTrue(TEXT("Four tools and thirty-six stacks share forty cells"), Inventory->CanFitContents(Stacks, 4));
-    TestFalse(TEXT("A fifth tool needs free inventory space"), Inventory->CanFitContents(Stacks, 5));
+    TArray<FKalmalaInventoryStack> CapacityStacks;
+    CapacityStacks.SetNum(36);
+    TestTrue(TEXT("Four tools and thirty-six stacks share forty cells"), Inventory->CanFitContents(CapacityStacks, 4));
+    TestFalse(TEXT("A fifth tool needs free inventory space"), Inventory->CanFitContents(CapacityStacks, 5));
     TestEqual(TEXT("Prototype carrying capacity is displayed in kg"), Inventory->GetCarryCapacity(), 300.0f);
     TestEqual(TEXT("Empty inventory has no carried weight"), Inventory->GetCarriedWeight(), 0.0f);
     return true;

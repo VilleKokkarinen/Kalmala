@@ -200,7 +200,7 @@ bool IsValidGearState(const TArray<FKalmalaInventoryStack>& Stacks,
 bool AddEquippedGearToStacks(TArray<FKalmalaInventoryStack>& Stacks, const FKalmalaEquippedGear& Gear,
     const TArray<FKalmalaEquippedGear>& AllGear, const TArray<FGuid>& OtherOwnedGuids, const FGuid MainHandGuid)
 {
-    const int32 PackedTools = OtherOwnedGuids.Num() - (MainHandGuid.IsValid() && OtherOwnedGuids.Contains(MainHandGuid) ? 1 : 0);
+    const int32 PackedTools = OtherOwnedGuids.Num();
     if (Stacks.Num() >= UKalmalaInventoryComponent::MaxSlots - PackedTools) return false;
     const UKalmalaItemCatalogue* Catalogue = UKalmalaItemCatalogue::Get();
     const FKalmalaItemDefinition* Item = Catalogue ? Catalogue->FindItem(Gear.ItemId) : nullptr;
@@ -298,7 +298,7 @@ bool UKalmalaInventoryComponent::BuildEquipGearTransaction(
     TArray<FKalmalaInventoryStack>& AfterStacks, TArray<FKalmalaEquippedGear>& AfterGear, FString& Reason,
     const FGuid MainHandGuid)
 {
-    const int32 PackedTools = OtherOwnedGuids.Num() - (MainHandGuid.IsValid() && OtherOwnedGuids.Contains(MainHandGuid) ? 1 : 0);
+    const int32 PackedTools = OtherOwnedGuids.Num();
     Reason = TEXT("Invalid equipment transaction");
     if (!ItemGuid.IsValid() || !IsValidInventoryState(BeforeStacks, true)
         || !IsValidGearState(BeforeStacks, BeforeGear, OtherOwnedGuids)

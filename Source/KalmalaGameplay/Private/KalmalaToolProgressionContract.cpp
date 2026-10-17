@@ -370,7 +370,7 @@ bool FKalmalaToolProgressionContract::BuildServerUpgrade(
         [MainHandGuid](const FKalmalaToolState& Tool) { return Tool.InstanceGuid == MainHandGuid; }) ? 1 : 0;
     if (ExistingTools.IsEmpty() || ExistingTools.Num() > UKalmalaInventoryComponent::MaxSlots
         || (MainHandGuid.IsValid() && HandCount == 0)
-        || ExistingInventory.Num() + ExistingTools.Num() - HandCount > UKalmalaInventoryComponent::MaxSlots)
+        || ExistingInventory.Num() + ExistingTools.Num() > UKalmalaInventoryComponent::MaxSlots)
         return false;
     for (const FKalmalaToolState& State : ExistingTools)
     {
@@ -456,7 +456,7 @@ bool FKalmalaToolProgressionContract::BuildServerUpgrade(
         return false;
     }
     if (CandidateTools.Num() > UKalmalaInventoryComponent::MaxSlots
-        || CandidateTools.Num() + CandidateInventory.Num() - HandCount > UKalmalaInventoryComponent::MaxSlots)
+        || CandidateTools.Num() + CandidateInventory.Num() > UKalmalaInventoryComponent::MaxSlots)
     {
         Reason = TEXT("Inventory is full");
         return false;

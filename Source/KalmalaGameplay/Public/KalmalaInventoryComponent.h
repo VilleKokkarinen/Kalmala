@@ -85,10 +85,10 @@ public:
     FGuid GetActiveInstanceGuid() const { return ActiveInstanceGuid; }
     FGuid GetMainHandGuid() const;
     int32 CountPackedTools(const TArray<FKalmalaToolState>& Tools) const;
-    /** Validate all owned identities, then place only items outside Main Hand in the pack. */
+    /** Validate all owned identities; held tools retain their original grid cells. */
     static bool BuildMainHandGrid(const TArray<FGuid>& ToolGuids, const TArray<FGuid>& StackGuids,
         FGuid HandGuid, const TArray<FGuid>& Before, TArray<FGuid>& After);
-    /** Move an exact packed weapon/tool into Main Hand; an invalid GUID returns it to the pack. */
+    /** Select an exact grid weapon/tool for Main Hand without moving it; invalid GUID clears the hand. */
     bool SetMainHandFromServer(FGuid ItemGuid, FString& Reason);
     bool OwnsGridItem(FName ItemId) const;
     float GetCarriedWeight() const;

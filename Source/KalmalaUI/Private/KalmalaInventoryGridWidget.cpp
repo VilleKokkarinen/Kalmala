@@ -93,6 +93,9 @@ void UKalmalaInventoryGridWidget::Refresh(UKalmalaInventoryComponent* Inventory,
         Fill->SetBrush(FSlateRoundedBoxBrush(FLinearColor::White,
             Contrast > 0 ? 0.0f : FMath::Min(5.0f, Theme.CornerRadius)));
         Theme.ApplyItemIconTileFill(*Fill, Contrast);
+        const FGuid Guid = SlotInstanceGuids.IsValidIndex(SlotIndex) ? SlotInstanceGuids[SlotIndex] : FGuid();
+        if (OwnerInventory && Guid.IsValid() && Guid == OwnerInventory->GetMainHandGuid())
+            Fill->SetBrushColor(FLinearColor(0.12f, 0.28f, 0.43f, 0.85f));
     }
     if (bModeChanged) LastSize = FVector2D::ZeroVector;
     Invalidate(EInvalidateWidget::Paint);
@@ -139,6 +142,16 @@ int32 UKalmalaInventoryGridWidget::NativePaint(const FPaintArgs& Args, const FGe
     const auto* Brush = FCoreStyle::Get().GetBrush(TEXT("WhiteBrush"));
     const float Cell = FMath::Min(G.GetLocalSize().X / (bHotbarOnly ? FMath::Max(1, DisplaySlots.Num()) : 10),
         G.GetLocalSize().Y / (bHotbarOnly ? 1 : 4));
+    if (bHotbarOnly && OwnerInventory)
+        for (int32 Index = 0; Index < DisplaySlots.Num(); ++Index)
+        {
+            const int32 EquippedSlotIndex = DisplaySlots[Index];
+            if (SlotInstanceGuids.IsValidIndex(EquippedSlotIndex) && SlotInstanceGuids[EquippedSlotIndex].IsValid()
+                && SlotInstanceGuids[EquippedSlotIndex] == OwnerInventory->GetMainHandGuid())
+                FSlateDrawElement::MakeBox(Elements, Layer, G.ToPaintGeometry(FVector2D(Cell - 4),
+                    FSlateLayoutTransform(FVector2D(Index * Cell + 2, 2))), Brush,
+                    ESlateDrawEffect::None, FLinearColor(0.12f, 0.28f, 0.43f, 0.55f));
+        }
     Layer = Super::NativePaint(Args, G, Culling, Elements, Layer, Style, bEnabled) + 1;
     FSlateFontInfo Font = Theme.MakeFont(FMath::Clamp(FMath::RoundToInt(Cell * .22f), 8, 16),
         true, UKalmalaSettingsWidget::GetTextScalePercent());

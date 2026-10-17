@@ -46,11 +46,15 @@ bool FKalmalaInventoryHotbarTest::RunTest(const FString& Parameters)
         ToolType && ToolType->Struct == FKalmalaToolState::StaticStruct())) return false;
     const auto InitialTools = FKalmalaToolLifecycleContract::BuildInitialCarriedTools();
     if (!TestTrue(TEXT("Initial tools include a hammer"), !InitialTools.IsEmpty())) return false;
-    FKalmalaToolState First = InitialTools[0];
+    const auto* StarterAxe = InitialTools.FindByPredicate([](const auto& Tool) { return Tool.ItemId == TEXT("StoneAxe"); });
+    if (!StarterAxe) return false;
+    FKalmalaToolState First = *StarterAxe;
     FKalmalaToolState Second = First;
     Second.InstanceGuid = FGuid::NewGuid();
     *ToolsProperty->ContainerPtrToValuePtr<TArray<FKalmalaToolState>>(Pawn) = {First, Second};
     Inventory->SynchronizeGridFromServer();
+    TestTrue(TEXT("Place the second axe in slot three"), Inventory->MoveSlotByInstanceFromServer(
+        Inventory->GetGridInstanceGuids().IndexOfByKey(Second.InstanceGuid), 2, Second.InstanceGuid, FGuid()));
     FString Reason;
     if (!TestTrue(TEXT("First copy enters Main Hand"),
         Inventory->SetMainHandFromServer(First.InstanceGuid, Reason))) return false;
@@ -64,7 +68,7 @@ bool FKalmalaInventoryHotbarTest::RunTest(const FString& Parameters)
     auto CheckHand = [&](const FGuid Expected)
     {
         TestTrue(TEXT("Main Hand retains the exact physical copy"), Inventory->GetMainHandGuid() == Expected);
-        TestFalse(TEXT("Main Hand has no grid alias"), Inventory->GetGridInstanceGuids().Contains(Expected));
+        TestTrue(TEXT("Equipped item retains its owned grid cell"), Inventory->GetGridInstanceGuids().Contains(Expected));
         TestEqual(TEXT("Selection preserves both physical tool records"), Pawn->GetCarriedToolInventory().Num(), 2);
         for (const FKalmalaToolState& Original : {First, Second})
         {
@@ -87,7 +91,14 @@ bool FKalmalaInventoryHotbarTest::RunTest(const FString& Parameters)
     if (!TestTrue(TEXT("Second copy has a numbered cell"), SecondSlot >= 0 && SecondSlot < Inventory->Columns)) return false;
     UseNumber(SecondSlot);
     CheckHand(Second.InstanceGuid);
-    TestFalse(TEXT("Selected numbered cell becomes empty"), Inventory->GetSlotInstanceGuid(SecondSlot).IsValid());
+    TestEqual(TEXT("Equipping slot three leaves the axe in slot three"), Inventory->GetSlotInstanceGuid(SecondSlot), Second.InstanceGuid);
+    TestEqual(TEXT("Fixture uses the requested third slot"), SecondSlot, 2);
+    const auto EquippedLayout = Inventory->GetGridInstanceGuids();
+    UseNumber(SecondSlot);
+    TestFalse(TEXT("Pressing the same number toggles the axe off"), Inventory->GetMainHandGuid().IsValid());
+    TestTrue(TEXT("Toggling off preserves every cell"), Inventory->GetGridInstanceGuids() == EquippedLayout);
+    UseNumber(SecondSlot);
+    CheckHand(Second.InstanceGuid);
     TestTrue(TEXT("Displaced copy returns to pack"), Inventory->GetGridInstanceGuids().Contains(First.InstanceGuid));
 
     const FName FoodId = UKalmalaPlayerStatusComponent::HearthBrothItemId;
@@ -115,40 +126,23 @@ bool FKalmalaInventoryHotbarTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Support use preserves the reusable scroll"), Inventory->GetQuantity(ScrollId), 1);
     CheckHand(Second.InstanceGuid);
 
-    // Replace test stacks with 39 distinct non-stackable items, filling the pack
-    // alongside the first tool while the second remains outside it in Main Hand.
+    // Held tools still consume their original cells in a full inventory.
     TArray<FKalmalaInventoryStack> FullPack;
-    for (int32 Index = 0; Index < Inventory->MaxSlots - 1; ++Index)
+    for (int32 Index=0;Index<Inventory->MaxSlots-2;++Index)
     {
-        FKalmalaInventoryStack Stack;
-        Stack.ItemId = TEXT("BoarHideBoots");
-        Stack.Quantity = 1;
-        Stack.InstanceGuid = FGuid::NewGuid();
-        Stack.ItemGuids.Add(FGuid::NewGuid());
-        FullPack.Add(Stack);
+        FKalmalaInventoryStack Stack; Stack.ItemId=TEXT("BoarHideBoots"); Stack.Quantity=1;
+        Stack.InstanceGuid=FGuid::NewGuid(); Stack.ItemGuids.Add(FGuid::NewGuid()); FullPack.Add(Stack);
     }
-    const auto BeforeFill = Inventory->GetStacks();
-    if (!TestTrue(TEXT("Full-pack fixture commits through inventory validation"),
-        Inventory->TryCommitStacksFromServer(BeforeFill, FullPack))) return false;
-    const int32 OrdinarySlot = Inventory->GetGridSlots().IndexOfByKey(TEXT("BoarHideBoots"));
-    if (!TestTrue(TEXT("Ordinary item has a numbered cell"), OrdinarySlot >= 0 && OrdinarySlot < Inventory->Columns)) return false;
-    const auto BeforeFullSelection = Inventory->GetGridInstanceGuids();
-    const FGuid OrdinaryGuid = Inventory->GetSlotInstanceGuid(OrdinarySlot);
+    TestTrue(TEXT("Fill the remaining thirty-eight cells"),Inventory->TryCommitStacksFromServer(Inventory->GetStacks(),FullPack));
+    const auto FullLayout=Inventory->GetGridInstanceGuids();
+    const int32 OrdinarySlot=Inventory->GetGridSlots().IndexOfByKey(TEXT("BoarHideBoots"));
     UseNumber(OrdinarySlot);
+    TestFalse(TEXT("Ordinary selection can clear Main Hand in a full inventory"),Inventory->GetMainHandGuid().IsValid());
+    TestTrue(TEXT("Ordinary selection never rearranges cells"),Inventory->GetGridInstanceGuids()==FullLayout);
+    UseNumber(SecondSlot);
     CheckHand(Second.InstanceGuid);
-    TestTrue(TEXT("Full-pack selection rejection preserves the entire layout"), Inventory->GetGridInstanceGuids() == BeforeFullSelection);
-    TestEqual(TEXT("Full-pack selection rejection preserves every stack"), Inventory->GetStacks().Num(), 39);
-
-    if (!TestTrue(TEXT("Free one pack cell"), Inventory->TryConsumeFromServer(TEXT("BoarHideBoots"), 1))) return false;
-    const int32 RemainingSlot = Inventory->GetGridInstanceGuids().IndexOfByKey(OrdinaryGuid);
-    // The consumed unit may have been the originally selected boots; select a surviving copy.
-    const int32 RetrySlot = RemainingSlot != INDEX_NONE ? RemainingSlot
-        : Inventory->GetGridSlots().IndexOfByKey(TEXT("BoarHideBoots"));
-    const FGuid RetryGuid = Inventory->GetSlotInstanceGuid(RetrySlot);
-    UseNumber(RetrySlot);
-    TestFalse(TEXT("Ordinary selection returns the hand when space exists"), Inventory->GetMainHandGuid().IsValid());
-    TestTrue(TEXT("Ordinary selection publishes the exact selected stack"), Inventory->GetActiveInstanceGuid() == RetryGuid);
-    TestTrue(TEXT("Returned hand is back in the pack"), Inventory->GetGridInstanceGuids().Contains(Second.InstanceGuid));
+    TestTrue(TEXT("Equipping again never rearranges a full inventory"),Inventory->GetGridInstanceGuids()==FullLayout);
+    TestEqual(TEXT("Held tools count toward the shared forty-cell capacity"),Inventory->CountPackedTools(Pawn->GetCarriedToolInventory()),2);
     return true;
 }
 #endif
