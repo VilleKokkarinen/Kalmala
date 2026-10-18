@@ -203,6 +203,85 @@ bool FKalmalaRiverSeedRepeatabilityTest::RunTest(const FString& Parameters)
     return true;
 }
 
+// Locate real course/grid intersections; arbitrary seam probes can miss rivers.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaRiverHydrologyGridSeamTest,
+    "Kalmala.World.Regional.RiverHydrologyGridSeam",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+bool FKalmalaRiverHydrologyGridSeamTest::RunTest(const FString& Parameters)
+{
+    using G = FKalmalaRegionalGeneration;
+    using T = FKalmalaRegionalTuning;
+    for (const uint64 Seed : {418ull, 419ull})
+    {
+        const FKalmalaWorldGenerationConfig Config{Seed};
+        bool Found[2] = {};
+        for (int32 Y = -24; Y <= 24 && !(Found[0] && Found[1]); ++Y)
+        for (int32 X = -24; X <= 24 && !(Found[0] && Found[1]); ++X)
+        for (const auto& Segment : G::GetHydrology(Config, FIntPoint(X, Y)))
+        {
+            if (Segment.bStream) continue;
+            const FVector2D A(Segment.A), Delta = FVector2D(Segment.B) - A;
+            for (int32 Axis = 0; Axis < 2; ++Axis)
+            {
+                if (Found[Axis]) continue;
+                const double Start = Axis == 0 ? A.X : A.Y;
+                const double Span = Axis == 0 ? Delta.X : Delta.Y;
+                if (FMath::Abs(Span) < 0.001) continue;
+                const double Boundary = (FMath::FloorToInt(FMath::Min(Start, Start + Span) / T::GridCell) + 1) * T::GridCell;
+                const double U = (Boundary - Start) / Span;
+                if (U <= 0 || U >= 1) continue;
+                FVector2D Center = A + Delta * U;
+                if (Axis == 0) Center.X = Boundary; else Center.Y = Boundary;
+                const FVector2D Normal = Axis == 0 ? FVector2D(1, 0) : FVector2D(0, 1);
+                // Pre-hydrology biome eligibility excludes lake support without
+                // filtering on the expected channel height or water results.
+                bool bEligible = true;
+                for (const double Offset : {-0.1, 0.0, 0.1})
+                {
+                    const auto R = G::Sample(Config, Center + Normal * Offset);
+                    if (R.Weights[1] + R.Weights[3] > 0) bEligible = false;
+                }
+                if (!bEligible) continue;
+                const auto CellAt = [](FVector2D P)
+                { return FIntPoint(FMath::FloorToInt(P.X / T::GridCell), FMath::FloorToInt(P.Y / T::GridCell)); };
+                TestTrue(TEXT("River fixture straddles distinct hydrology cells"),
+                    CellAt(Center - Normal * 0.01) != CellAt(Center + Normal * 0.01));
+                const auto Middle = G::Sample(Config, Center);
+                TestTrue(TEXT("Grid seam intersects the river center"), Middle.RiverWeight > 0.999f);
+                TestEqual(TEXT("Seam center water is sea level"), Middle.WaterLevel, 0.0f);
+                TestTrue(TEXT("Seam center is submerged"), Middle.bHasWater && Middle.Height < Middle.WaterLevel);
+                for (const double Epsilon : {0.01, 0.1})
+                {
+                    G::ClearHydrologyCache();
+                    const auto Before = G::Sample(Config, Center - Normal * Epsilon);
+                    const auto After = G::Sample(Config, Center + Normal * Epsilon);
+                    TestTrue(TEXT("Channel height is continuous across hydrology grid"), FMath::Abs(Before.Height - After.Height) < 0.5f);
+                    TestEqual(TEXT("Channel water level agrees across hydrology grid"), Before.WaterLevel, After.WaterLevel);
+                    TestEqual(TEXT("Both sides retain sea-level water"), Before.WaterLevel, 0.0f);
+                    TestTrue(TEXT("Both sides retain submerged channel water"), Before.bHasWater && After.bHasWater
+                        && Before.Height < Before.WaterLevel && After.Height < After.WaterLevel);
+                    TestTrue(TEXT("River signal is continuous across hydrology grid"), FMath::Abs(Before.RiverWeight - After.RiverWeight) < 0.001f);
+                    G::ClearHydrologyCache();
+                    const auto ReverseAfter = G::Sample(Config, Center + Normal * Epsilon);
+                    const auto ReverseBefore = G::Sample(Config, Center - Normal * Epsilon);
+                    TestEqual(TEXT("Reverse query order reproduces before height"), ReverseBefore.Height, Before.Height);
+                    TestEqual(TEXT("Reverse query order reproduces after height"), ReverseAfter.Height, After.Height);
+                    TestEqual(TEXT("Reverse query order reproduces before water"), ReverseBefore.WaterLevel, Before.WaterLevel);
+                    TestEqual(TEXT("Reverse query order reproduces after water"), ReverseAfter.WaterLevel, After.WaterLevel);
+                    TestEqual(TEXT("Reverse query order reproduces before wet flag"), ReverseBefore.bHasWater, Before.bHasWater);
+                    TestEqual(TEXT("Reverse query order reproduces after wet flag"), ReverseAfter.bHasWater, After.bHasWater);
+                }
+                Found[Axis] = true;
+                AddInfo(FString::Printf(TEXT("River grid seam seed=%llu axis=%d position=(%.3f,%.3f)"), Seed, Axis, Center.X, Center.Y));
+            }
+        }
+        TestTrue(TEXT("Bounded search finds an X-grid river crossing"), Found[0]);
+        TestTrue(TEXT("Bounded search finds a Y-grid river crossing"), Found[1]);
+    }
+    G::ClearHydrologyCache();
+    return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaRegionalGenerationTest, "Kalmala.World.Regional.Integrated",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 bool FKalmalaRegionalGenerationTest::RunTest(const FString& Parameters)

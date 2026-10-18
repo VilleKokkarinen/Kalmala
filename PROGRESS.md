@@ -3573,3 +3573,12 @@
 - **Impact/authority:** regression coverage only; production sampling, server authority, networking and save formats are unchanged. Existing regional automation-prefix selection includes this case.
 - **Limitations:** no Unreal build or automation execution performed in this normal increment. Fixture availability and runtime assertions await the explicitly queued build/automation gates; full verification remains deferred. The two pre-existing `.uasset` edits were preserved and excluded. Work occurred directly in the main checkout, so no handoff synchronization is needed.
 - **Next eligible task:** add the hydrology-grid seam regression for channel height and water output.
+
+## Autonomous increment 2026-10-18 — River hydrology-grid seam regression
+
+- **Completed:** added `Kalmala.World.Regional.RiverHydrologyGridSeam`. Bounded generated-segment searches require actual river crossings of both X and Y hydrology-grid boundaries for seeds 418 and 419. Basin eligibility is excluded without filtering expected channel outputs. Samples 0.01 and 0.1 cm either side must occupy different cells, retain continuous height/river influence, sea-level water and submerged wet state. Cleared-cache reverse query order must reproduce exact height, water level and wet flags. Missing axis fixtures fail explicitly.
+- **Files changed:** `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`, only the selected checkbox in `BACKLOG.md`, and this entry.
+- **Lightweight verification:** 17 focused source assertions and three absolute path-length checks passed; `git diff --check` passed. Carefully inspected segment/grid intersection arithmetic, public sampler usage, temporary segment-array lifetime across cache clears, and explicit fixture failure. The existing regional automation prefix includes the new test.
+- **Impact/authority:** regression coverage only; no production sampling, network authority, RPC or save-format changes.
+- **Limitations:** normal increment, not milestone-final verification. No Unreal build or automation execution occurred; fixture availability and runtime assertions await the queued build/automation gates. Full verification remains deferred. Both pre-existing `.uasset` edits remain untouched and excluded. Work occurred directly in the main checkout; no handoff synchronization is needed.
+- **Next eligible task:** add a terrain-patch seam regression for channel height and sea-water clipping on both sides of a patch boundary.
