@@ -66,7 +66,7 @@ maps.
   clipping on both sides of a patch boundary.
 - [x] Add control samples proving terrain away from rivers, the source coast,
   and enclosed-lake levels retain their established outputs.
-- [ ] Update the architecture contract for sea-level channels, bank shaping,
+- [x] Update the architecture contract for sea-level channels, bank shaping,
   lake precedence, and shared deterministic sampling.
 - [ ] Update the setup guide with the focused generation checks and expected
   preview/peer results.

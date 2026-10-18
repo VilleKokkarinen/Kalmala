@@ -256,20 +256,64 @@ The generator uses `FKalmalaMasterMap`: an independent fixed-seed 128 km land/wa
 
 The master seed is a compiled constant. Crop transforms derive from the game seed. Rivers remain enabled and small streams are disabled. Authority, population IDs, collision and maps derive from the same server-owned seed and current build.
 
-River channels now use sea-level water (Z=0) outside basin supports. After the
-source land/coast clamp, the maximum bank-profile influence smoothly lowers
-terrain toward an 80 cm below-sea bed without raising already deeper terrain.
-The profile uses cubic smoothstep from 20% of the channel width to the channel
-width plus an 1800 cm shoulder, symmetrically by segment distance. Its slope
-vanishes at both ends; beyond that radius terrain is unchanged. The spatial
-index includes this full envelope. The existing narrow RiverWeight signal is
-retained separately. Basin support attenuates carving and lifts the channel
-target from the sea bed toward the basin water level minus the bed depth.
-Full basin support preserves the original basin terrain; any basin support
-retains its existing lake water level. The continuous rim support blends the
-terrain target without changing the source coast outside river corridors.
-Enabled debug streams keep their prior profile. Rendered lake joins remain
-subject to the queued preview and water-mesh checks.
+### Sea-level river terrain and hydrology contract
+
+`FKalmalaRegionalGeneration` preserves seeded candidate selection, stable-ID
+coalescing and spline XY placement. Segment endpoint Z still records source
+relief for path construction; it is not the river surface. Production rivers
+use `SeaLevelWorldHeight` (Z=0 cm) outside eligible lake-basin supports. Rivers
+retain their land-biome identity; carved water does not reclassify land as Ocean.
+Small streams remain disabled; explicitly enabled debug streams retain their
+existing interpolated-height profile.
+
+For shortest XY distance `d` to a clamped segment projection and segment width
+`w` (currently 600 cm for rivers), the bank weight is
+`B = 1 - smoothstep(0.2*w, w + RiverBankExtent, d)`, with clamped cubic
+`smoothstep(t) = t*t*(3-2*t)`. `RiverBankExtent` is currently 1800 cm and
+`RiverBedDepth` is 80 cm in `FKalmalaRegionalTuning`. This symmetric profile has
+full central influence and zero derivative at both ends. The maximum B across
+segments is applied once, avoiding cumulative carving at joins. The spatial
+index includes the complete bank envelope, including across hydrology cells.
+The separate narrow `RiverWeight` still ends at `w`; it does not bound the
+carved banks or determine whether final terrain is wet.
+
+Shaping order is base relief and analytic bowls, optional stream shaping,
+source land/coast clamp, then river carving. With pre-carve height H, basin
+support S, and retained basin water L, the river target is
+`bed = lerp(0, L, S) - RiverBedDepth`; the final height is
+`lerp(H, min(H, bed), B*(1-S))`. Thus high source land cannot refill a channel,
+and already deeper ground is never raised. Outside basin support, the central
+bed reaches at least 80 cm below sea and river water is exactly Z=0. Shoulders
+blend back to H; points outside every bank envelope retain their prior terrain
+and source-coast sign. The shoulder can remain dry where its final height is
+above water. Regional wet state is strictly `WaterLevel > Height`.
+
+Eligible analytic lake bowls take precedence: any positive basin support
+retains the existing basin water level, full support preserves its existing
+bed, and partial rim support attenuates carving while lifting the target toward
+that level minus the bed depth. This defines a continuous terrain transition;
+it does not flatten inland lakes to sea level. Visible lake water still requires
+the enclosed-component decision described below. Rendered lake joins await the
+queued preview and water-mesh verification; sampler continuity alone does not
+establish visible mesh continuity.
+
+The same immutable server-owned seed and current tuning must produce identical
+height, water level, wet state and river influence regardless of query order,
+cache warmth or interleaved sampling of another seed. Crop and spline caches
+are disposable derived acceleration, not world state. Terrain rendering and
+collision consume final carved samples; sea water clips their shared 125 cm
+triangles at Z=0. Detailed maps interpolate signed water depth on that lattice
+before deciding wetness, including negative dry-bank vertex depths. Expanded
+overview uses final regional height; coarse pixels can miss narrow channels.
+No alternate river height raster, RPC, replicated property or save field is
+introduced. Clients derive presentation/prediction from the replicated identity;
+server terrain and gameplay decisions remain authoritative.
+
+Focused regression source covers high-ground centers, both banks and unchanged
+exterior, same-seed/cache/order repeatability and different-seed variation,
+hydrology-grid and terrain-patch seams, and unchanged terrain/coast/lake controls.
+These cases are not recorded as executed acceptance: compilation, automation,
+preview inspection and host/client agreement remain separate queued gates.
 
 The developer `ExportWorldMaps` commandlet can temporarily install thread-local preview tuning, with installation rejected outside headless commandlets. Each render restores defaults and invalidates derived crop/hydrology caches. Its fast biome query shares the normal regional/basin classifier while skipping hydrology and height-only work; default output is checked against full sampling. A warm parameter-file watcher writes PNGs without starting gameplay. This adds no runtime console setting, client authority, replicated property, production-layout setting or save change; see `07-development-setup.md` for the workflow.
 

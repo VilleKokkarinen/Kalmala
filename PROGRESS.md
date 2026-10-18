@@ -3600,3 +3600,12 @@
 - **Impact/authority:** regression coverage only; production sampler behavior, network authority, RPCs and save formats are unchanged. The regional automation prefix includes this test.
 - **Limitations:** normal increment, not milestone-final verification. No Unreal build or automation execution occurred; generated fixture availability and runtime assertions await the queued build/automation gates. Full verification remains deferred. Both pre-existing `.uasset` edits are preserved and excluded. Main checkout used directly; no handoff synchronization required.
 - **Next eligible task:** update the architecture contract for sea-level channels, bank shaping, lake precedence and shared deterministic sampling.
+
+## Autonomous increment 2026-10-18 — River architecture contract
+
+- **Completed:** expanded the water-presentation architecture contract with seeded path/height separation, exact bank-weight and basin-aware carving formulas, post-coast shaping order, unchanged exterior, lake precedence, shared collision/water/map sampling, cache determinism and server authority. Distinguished regional wetness from enclosed visible-lake decisions and documented pending runtime acceptance.
+- **Files changed:** `docs/02-technical-architecture.md`, only the selected checkbox in `BACKLOG.md`, and this entry.
+- **Lightweight verification:** inspected the contract against segment generation/projection, tuning, basin support, final carving/wetness and existing consumer audits; focused source/document assertions and `git diff --check` passed. Staged scope and MAX_PATH checked before commit.
+- **Impact/authority:** documentation only; no runtime, network, RPC, replicated state or save-format changes.
+- **Limitations:** normal increment, not milestone-final verification. No Unreal build, automation execution, preview or peer checks ran; full verification remains deferred to queued gates. Both pre-existing `.uasset` edits preserved and excluded. Main checkout used directly; no handoff synchronization required.
+- **Next eligible task:** update the setup guide with focused generation checks and expected preview/peer results.
