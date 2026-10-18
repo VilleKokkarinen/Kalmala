@@ -226,7 +226,7 @@ struct FInteractionPromptDescription
 FString GetPromptItemName(const FName ItemId, const TCHAR* Fallback)
 {
     const UKalmalaItemCatalogue* Catalogue = UKalmalaItemCatalogue::Get();
-    const FKalmalaItemDefinition* Definition = Catalogue ? Catalogue->FindItem(ItemId) : nullptr;
+    const FKalmalaItemDefinition* Definition = Catalogue ? Catalogue->FindDefinition(ItemId) : nullptr;
     return Definition && !Definition->DisplayName.IsEmpty() ? Definition->DisplayName : FString(Fallback);
 }
 
@@ -1534,7 +1534,7 @@ void UKalmalaCraftingWidget::ConfigureStationContextPresentation(const FString& 
     if (StationHeaderNameText)
     {
         const FKalmalaItemDefinition* HeaderStation = StationFilterKit.IsNone()
-            ? nullptr : UKalmalaItemCatalogue::Get()->FindItem(StationFilterKit);
+            ? nullptr : UKalmalaItemCatalogue::Get()->FindDefinition(StationFilterKit);
         StationHeaderNameText->SetText(FText::FromString(HeaderStation
             ? HeaderStation->DisplayName : StationFilterKit.IsNone() ? FString() : StationFilterKit.ToString()));
     }
@@ -1547,7 +1547,7 @@ void UKalmalaCraftingWidget::ConfigureStationContextPresentation(const FString& 
         return;
     }
 
-    const FKalmalaItemDefinition* StationItem = UKalmalaItemCatalogue::Get()->FindItem(StationFilterKit);
+    const FKalmalaItemDefinition* StationItem = UKalmalaItemCatalogue::Get()->FindDefinition(StationFilterKit);
     const FString StationName = StationItem ? StationItem->DisplayName : StationFilterKit.ToString();
     if (bStorageContext)
     {
@@ -1998,7 +1998,7 @@ void UKalmalaCraftingWidget::RefreshForgeUpgradeState(UKalmalaCraftingComponent*
                     Amount->SetColorAndOpacity(FSlateColor(FLinearColor(1.0f, 0.35f, 0.25f)));
                 CostColumn->AddChild(Amount);
 
-                const FKalmalaItemDefinition* Item = Items ? Items->FindItem(Cost.ItemId) : nullptr;
+                const FKalmalaItemDefinition* Item = Items ? Items->FindDefinition(Cost.ItemId) : nullptr;
                 CostColumn->SetToolTipText(FText::FromString(FString::Printf(
                     TEXT("%s: %d owned, %d required"),
                     Item ? *Item->DisplayName : *Cost.ItemId.ToString(), Owned, Cost.Quantity)));
@@ -2815,10 +2815,7 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
     RecipeCategory = 0;
     bRecipeNameSort = false;
     const TArray<int32> ForgeIndices = GetVisibleRecipeIndices();
-    bool bHasFryingPan = false;
-    bool bFryingPanMaterials = false;
-    bool bFryingPanStation = false;
-    bool bFryingPanRequirements = false;
+    bool bFryingPanExcluded = true;
     bool bForgeAnvilExcluded = true;
     bool bForgeOnlyRecipes = true;
     for (const int32 RecipeIndex : ForgeIndices)
@@ -2827,16 +2824,17 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
         const FKalmalaRecipe& Recipe = Recipes[RecipeIndex];
         bForgeOnlyRecipes &= Recipe.RequiredStation.Contains(TEXT("ForgeKit"));
         bForgeAnvilExcluded &= Recipe.GetOutputIdentity() != TEXT("ForgeAnvilKit");
-        if (Recipe.Output == TEXT("FryingPanKit"))
-        {
-            bHasFryingPan = true;
-            const FKalmalaInventoryStack* IronCost = Recipe.Ingredients.FindByPredicate(
-                [](const FKalmalaInventoryStack& Ingredient) { return Ingredient.ItemId == TEXT("Iron"); });
-            bFryingPanMaterials = IronCost && IronCost->Quantity == 5;
-            bFryingPanStation = Recipe.RequiredStation.Contains(TEXT("ForgeKit"));
-            bFryingPanRequirements = bFryingPanMaterials && bFryingPanStation;
-        }
+        bFryingPanExcluded &= Recipe.GetOutputIdentity() != TEXT("FryingPanKit");
     }
+    const FKalmalaRecipe* PanBuild = Recipes.FindByPredicate([](const FKalmalaRecipe& Recipe)
+        { return Recipe.RecipeId == TEXT("FryingPanRecipe"); });
+    const FKalmalaInventoryStack* IronCost = PanBuild ? PanBuild->Ingredients.FindByPredicate(
+        [](const FKalmalaInventoryStack& Ingredient) { return Ingredient.ItemId == TEXT("Iron"); }) : nullptr;
+    const bool bFryingPanMaterials = IronCost && IronCost->Quantity == 5;
+    const bool bFryingPanStation = PanBuild && PanBuild->RequiredStation.IsEmpty();
+    const bool bFryingPanBuildRoute = PanBuild && PanBuild->BuildableOutput == TEXT("FryingPanKit")
+        && PanBuild->Output.IsNone() && CanBuildMenuCraftRecipe(*PanBuild);
+    const bool bFryingPanRequirements = bFryingPanMaterials && bFryingPanStation && bFryingPanBuildRoute;
     const FName ForgeKit(TEXT("ForgeKit"));
     const FString CraftSection(TEXT("Craft"));
     const bool bForgeInteractionRoute = IsStationContextShellKit(ForgeKit)
@@ -2901,8 +2899,8 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
     const bool bChestScope = VerifyStorageContextScopeForTest();
     UE_LOG(LogTemp, Display, TEXT("Workbench Craft scope: NoBronzeAxe=%d GrindingStoneExcluded=%d GrindingStoneInBuild=%d ToolRackExcluded=%d NoUnrelated=%d NoToolOptions=%d StationLevel=%d UiScope=%d"),
         !bBronzeAxeScoped, bGrindingStoneExcluded, bGrindingStoneBuildRoute, bToolRackExcluded, bNoUnrelatedRecipes, bNoWorkbenchToolOptions, bWorkbenchLevelShown, bWorkbenchUiScope);
-    UE_LOG(LogTemp, Display, TEXT("Forge Craft scope: FryingPan=%d AnvilInBuild=%d AnvilExcluded=%d BronzeAxe=%d Materials=%d Station=%d NoUnrelated=%d Route=%d StationLevel=%d UiScope=%d"),
-        bHasFryingPan, bForgeAnvilBuildRoute, bForgeAnvilExcluded, bBronzeAxeScoped, bFryingPanMaterials, bFryingPanStation,
+    UE_LOG(LogTemp, Display, TEXT("Forge Craft scope: FryingPanExcluded=%d FryingPanInBuild=%d AnvilInBuild=%d AnvilExcluded=%d BronzeAxe=%d Materials=%d Station=%d NoUnrelated=%d Route=%d StationLevel=%d UiScope=%d"),
+        bFryingPanExcluded, bFryingPanBuildRoute, bForgeAnvilBuildRoute, bForgeAnvilExcluded, bBronzeAxeScoped, bFryingPanMaterials, bFryingPanStation,
         bForgeOnlyRecipes, bForgeInteractionRoute, bForgeLevelShown, bForgeUiScope);
     return bGridIconsLoaded && bSelectedIconLoaded && bUpgradeLevelIconConfigured
         && bKeyboardAdvanced && bKeyboardRestored && bControllerAdvanced && bControllerRestored && bScrollable
@@ -2912,7 +2910,7 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
         && bToolRackExcluded && bNoUnrelatedRecipes
         && bNoWorkbenchToolOptions && bWorkbenchLevelShown && bWorkbenchUiScope && bWorkbenchRepairScope && bForgeUpgradeScope
         && bForgeRepairScope
-        && bHasFryingPan && bForgeAnvilExcluded && bFryingPanRequirements && bForgeOnlyRecipes
+        && bFryingPanExcluded && bForgeAnvilExcluded && bFryingPanRequirements && bForgeOnlyRecipes
         && bForgeInteractionRoute && bForgeLevelShown && bForgeUiScope && bCookingRackScope && bCauldronScope && bFryingPanScope
         && bChestScope;
 }
@@ -3040,7 +3038,7 @@ bool UKalmalaCraftingWidget::VerifyCookingRackScopeForTest()
     const FString Status = StationContextStatusText->GetText().ToString();
     const bool bIngredientCounts = bIngredientDefinitions && bBoarCounts && bDeerCounts;
     const bool bQuantity = bQuantityDefinitions && bBoarQuantity && bDeerQuantity;
-    const FKalmalaItemDefinition* BoarOutput = UKalmalaItemCatalogue::Get()->FindItem(CookedBoarId);
+    const FKalmalaItemDefinition* BoarOutput = UKalmalaItemCatalogue::Get()->FindDefinition(CookedBoarId);
     const bool bSelectedDescription = BoarOutput && DetailText
         && DetailText->GetText().ToString() == BoarOutput->Description;
     const bool bLiveHeatFeedback = bBoarHeat && bDeerHeat
@@ -3209,7 +3207,7 @@ bool UKalmalaCraftingWidget::VerifyCauldronScopeForTest()
     const bool bSoupQuantity = SoupRequirements.Contains(TEXT("one batch per press"))
         && SoupRequirements.Contains(TEXT("up to 5 batches per request"));
     const bool bSoupHeat = SoupRequirements.Contains(TEXT("Cooking heat: usable lit hearth"));
-    const FKalmalaItemDefinition* SoupOutput = UKalmalaItemCatalogue::Get()->FindItem(SoupOutputId);
+    const FKalmalaItemDefinition* SoupOutput = UKalmalaItemCatalogue::Get()->FindDefinition(SoupOutputId);
     const bool bSoupDescription = SoupOutput && DetailText
         && DetailText->GetText().ToString() == SoupOutput->Description;
     Selected = StewIndex == INDEX_NONE ? 0 : StewIndex;
@@ -3217,7 +3215,7 @@ bool UKalmalaCraftingWidget::VerifyCauldronScopeForTest()
     const FString Status = StationContextStatusText->GetText().ToString();
     const bool bIngredientCounts = bIngredientDefinitions && bStewCounts && bSoupCounts;
     const bool bQuantity = bQuantityDefinitions && bStewQuantity && bSoupQuantity;
-    const FKalmalaItemDefinition* StewOutput = UKalmalaItemCatalogue::Get()->FindItem(StewOutputId);
+    const FKalmalaItemDefinition* StewOutput = UKalmalaItemCatalogue::Get()->FindDefinition(StewOutputId);
     const bool bSelectedDescription = bSoupDescription && StewOutput && DetailText
         && DetailText->GetText().ToString() == StewOutput->Description;
     const bool bLiveHeatFeedback = bStewHeat && bSoupHeat
@@ -3318,8 +3316,8 @@ bool UKalmalaCraftingWidget::VerifyFryingPanScopeForTest()
         ? ForgePanRecipe->Ingredients.FindByPredicate([](const FKalmalaInventoryStack& Ingredient)
             { return Ingredient.ItemId == TEXT("Iron"); })
         : nullptr;
-    const bool bForgeProductionSeparate = ForgePanRecipe && ForgePanRecipe->Output == PanKit
-        && ForgePanRecipe->RequiredStation.Contains(TEXT("ForgeKit")) && ForgeIronCost && ForgeIronCost->Quantity == 5;
+    const bool bForgeProductionSeparate = ForgePanRecipe && ForgePanRecipe->BuildableOutput == PanKit && ForgePanRecipe->Output.IsNone()
+        && ForgePanRecipe->RequiredStation.IsEmpty() && ForgeIronCost && ForgeIronCost->Quantity == 5;
     const bool bBuildPlacementSupported = FKalmalaPlacementPreview::IsSupportedKit(PanKit)
         && GetBuildBrowseGroup(PanKit) == 5;
     const FString CookSection(TEXT("Cook"));
@@ -3402,8 +3400,8 @@ bool UKalmalaCraftingWidget::VerifyFryingPanScopeForTest()
     const bool bRoastQuantity = RoastRequirements.Contains(TEXT("one batch per press"))
         && RoastRequirements.Contains(TEXT("up to 5 batches per request"));
     const bool bRoastHeat = RoastRequirements.Contains(TEXT("Cooking heat: usable lit hearth"));
-    const FKalmalaItemDefinition* RootsOutput = UKalmalaItemCatalogue::Get()->FindItem(RootsOutputId);
-    const FKalmalaItemDefinition* RoastOutput = UKalmalaItemCatalogue::Get()->FindItem(RoastOutputId);
+    const FKalmalaItemDefinition* RootsOutput = UKalmalaItemCatalogue::Get()->FindDefinition(RootsOutputId);
+    const FKalmalaItemDefinition* RoastOutput = UKalmalaItemCatalogue::Get()->FindDefinition(RoastOutputId);
     const bool bRoastDescription = RootsOutput && RoastOutput && DetailText
         && DetailText->GetText().ToString() == RoastOutput->Description;
     Selected = RootsIndex == INDEX_NONE ? 0 : RootsIndex;
@@ -3493,7 +3491,7 @@ bool UKalmalaCraftingWidget::VerifyForgeUpgradeScopeForTest()
     {
         for (const FKalmalaToolMaterialCost& Cost : Entry->MaterialCosts)
         {
-            const FKalmalaItemDefinition* Item = Items->FindItem(Cost.ItemId);
+            const FKalmalaItemDefinition* Item = Items->FindDefinition(Cost.ItemId);
             const FString RequiredMaterial = Item
                 ? FString::Printf(TEXT("%d %s"), Cost.Quantity, *Item->DisplayName)
                 : FString::Printf(TEXT("%d %s"), Cost.Quantity, *Cost.ItemId.ToString());
@@ -3923,7 +3921,7 @@ void UKalmalaCraftingWidget::Refresh()
         }
         for (const FName ItemId : ItemOrder)
         {
-            const auto* Item = UKalmalaItemCatalogue::Get()->FindItem(ItemId);
+            const auto* Item = UKalmalaItemCatalogue::Get()->FindDefinition(ItemId);
             OutRows.Add({ItemId, Item ? Item->DisplayName : ItemId.ToString(),
                 FString::Printf(TEXT("Count %d"), Quantities.FindRef(ItemId)), false, FirstItemGuids.FindRef(ItemId)});
         }
@@ -4047,7 +4045,7 @@ void UKalmalaCraftingWidget::Refresh()
         const auto HasStackSpace = [ItemsCatalogue](const TArray<FKalmalaInventoryStack>& Stacks, const FName ItemId,
             const int32 SlotCount, const int32 SlotLimit)
         {
-            if (!ItemsCatalogue || !ItemsCatalogue->FindItem(ItemId)) return false;
+            if (!ItemsCatalogue || !ItemsCatalogue->FindDefinition(ItemId)) return false;
             for (const FKalmalaInventoryStack& Stack : Stacks)
                 if (Stack.ItemId == ItemId && ItemsCatalogue->CanAddToStack(ItemId, Stack.Quantity, 1)) return true;
             return SlotCount < SlotLimit;
@@ -4137,8 +4135,8 @@ void UKalmalaCraftingWidget::Refresh()
     SelectedIcon->SetCatalogueIcon(SelectedRecipe.GetOutputIdentity());
     SelectedIcon->SetVisibility(ESlateVisibility::HitTestInvisible);
     const FString StationPrefix = StationFilterKit.IsNone() ? TEXT("")
-        : (UKalmalaItemCatalogue::Get()->FindItem(StationFilterKit)
-            ? UKalmalaItemCatalogue::Get()->FindItem(StationFilterKit)->DisplayName : StationFilterKit.ToString()) + TEXT(" recipes: ");
+        : (UKalmalaItemCatalogue::Get()->FindDefinition(StationFilterKit)
+            ? UKalmalaItemCatalogue::Get()->FindDefinition(StationFilterKit)->DisplayName : StationFilterKit.ToString()) + TEXT(" recipes: ");
     FString SelectedRecipeLabel = FString::Printf(TEXT("> %s%d of %d: %s"),
         *StationPrefix, Selected + 1, VisibleIndices.Num(), *SelectedRecipe.DisplayName);
     if (bStandaloneBuildMenu)
@@ -4255,7 +4253,7 @@ void UKalmalaCraftingWidget::Refresh()
         }
         for (const FName ItemId : ItemOrder)
         {
-            const auto* Item = Catalogue->FindItem(ItemId);
+            const auto* Item = Catalogue->FindDefinition(ItemId);
             ChestText += FString::Printf(TEXT("%s: %d\n"), Item ? *Item->DisplayName : TEXT("Unknown item"), Quantities.FindRef(ItemId));
         }
     }
@@ -4869,8 +4867,8 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
             const FString DirectBuildDescription = Crafting ? Crafting->GetRecipeDescription(TEXT("Floor")) : FString();
             const FKalmalaRecipe* StorageRecipe = UKalmalaRecipeCatalogue::Get()->Find(TEXT("Storage"));
             const FKalmalaItemDefinition* StorageItem = StorageRecipe
-                ? UKalmalaItemCatalogue::Get()->FindItem(StorageRecipe->Output) : nullptr;
-            const FKalmalaItemDefinition* FloorItem = UKalmalaItemCatalogue::Get()->FindItem(TEXT("FloorKit"));
+                ? UKalmalaItemCatalogue::Get()->FindBuildable(StorageRecipe->BuildableOutput) : nullptr;
+            const FKalmalaItemDefinition* FloorItem = UKalmalaItemCatalogue::Get()->FindDefinition(TEXT("FloorKit"));
             const bool CampFeedbackPassed = StorageItem && ChestDescription == StorageItem->Description
                 && RetiredSmokeFrameDescription == TEXT("Unknown recipe")
                 && RetiredSmokingRecipeDescription == TEXT("Unknown recipe")

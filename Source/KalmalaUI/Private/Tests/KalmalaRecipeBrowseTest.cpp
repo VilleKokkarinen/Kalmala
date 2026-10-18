@@ -76,8 +76,8 @@ bool FKalmalaRecipeBrowseTest::RunTest(const FString& Parameters)
         TestTrue(TEXT("Forge construction remains available from Build"), Widget->CanBuildMenuCraftRecipe(*Forge));
     if (TestNotNull(TEXT("Direct floor recipe"), Floor))
         TestTrue(TEXT("Direct construction retains its material action"), Widget->CanBuildMenuCraftRecipe(*Floor));
-    if (TestNotNull(TEXT("Forge-required Frying Pan recipe"), Pan))
-        TestFalse(TEXT("Forge-required production stays in its service menu"), Widget->CanBuildMenuCraftRecipe(*Pan));
+    if (TestNotNull(TEXT("Direct Frying Pan recipe"), Pan))
+        TestTrue(TEXT("Frying Pan construction is available from the hammer"), Widget->CanBuildMenuCraftRecipe(*Pan));
     if (TestNotNull(TEXT("Direct Grinding Stone recipe"), Stone))
     {
         TestTrue(TEXT("Grinding Stone is built from the hammer menu"), Widget->CanBuildMenuCraftRecipe(*Stone));

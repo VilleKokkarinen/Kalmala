@@ -553,7 +553,15 @@ namespace
         UKalmalaItemCatalogue* ItemCatalogue = GetMutableDefault<UKalmalaItemCatalogue>();
         UKalmalaRecipeCatalogue* RecipeCatalogue = GetMutableDefault<UKalmalaRecipeCatalogue>();
         UKalmalaToolCatalogue* ToolCatalogue = GetMutableDefault<UKalmalaToolCatalogue>();
-        ItemCatalogue->Items = MoveTemp(ParsedItems);
+        ItemCatalogue->Items.Reset();
+        ItemCatalogue->Buildables.Reset();
+        for (FKalmalaItemDefinition& Definition : ParsedItems)
+        {
+            if (UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(Definition.ItemId))
+                ItemCatalogue->Buildables.Add(MoveTemp(Definition));
+            else
+                ItemCatalogue->Items.Add(MoveTemp(Definition));
+        }
         RecipeCatalogue->Recipes = MoveTemp(ParsedRecipes);
         ToolCatalogue->Profiles = MoveTemp(ParsedToolProfiles);
         ToolCatalogue->Recipes = MoveTemp(ParsedToolRecipes);
@@ -564,6 +572,7 @@ namespace
             || !ToolCatalogue->IsValidCatalogue(ItemCatalogue))
         {
             ItemCatalogue->Items.Reset();
+            ItemCatalogue->Buildables.Reset();
             RecipeCatalogue->Recipes.Reset();
             ToolCatalogue->Profiles.Reset();
             ToolCatalogue->Recipes.Reset();

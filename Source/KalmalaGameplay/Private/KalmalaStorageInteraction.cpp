@@ -74,7 +74,7 @@ FString UKalmalaCraftingComponent::GetNearbyConstructionText() const
         Best = Distance; Closest = *It;
     }
     if (!Closest) return TEXT("Construction: none visible within 2.5 m");
-    const auto* Item = UKalmalaItemCatalogue::Get()->FindItem(Closest->GetConstructionKit());
+    const auto* Item = UKalmalaItemCatalogue::Get()->FindBuildable(Closest->GetConstructionKit());
     const bool bRoof = Closest->GetConstructionKit() == TEXT("RoofKit");
     return FString::Printf(TEXT("Construction: %s\nHealth: %.1f / %.0f\n%s"),
         Item ? *Item->DisplayName : TEXT("Structure"), Closest->GetHealth(), AKalmalaConstructionActor::MaximumHealth,

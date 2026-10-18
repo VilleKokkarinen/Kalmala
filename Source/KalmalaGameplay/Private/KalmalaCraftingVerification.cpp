@@ -130,7 +130,7 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
         auto* Recipes=GetMutableDefault<UKalmalaRecipeCatalogue>();
         auto& FuelRecipe=Recipes->Recipes[0]; const bool Enabled=FuelRecipe.bEnabled; FuelRecipe.bEnabled=false;
         Check(!CraftFromServer(FuelRecipe.RecipeId,1,Reason),TEXT("Disabled recipe rejects craft")); FuelRecipe.bEnabled=Enabled;
-        Check(I->TryGrantFromServer(TEXT("WorkbenchKit"),5),TEXT("Fill output stack"));
+        Check(!I->TryGrantFromServer(TEXT("WorkbenchKit"),5),TEXT("Construction definitions cannot be granted as portable kits"));
         const int32 WoodBefore=I->GetQuantity(TEXT("Wood"));
         Check(!CraftFromServer(TEXT("Workbench"),1,Reason) && I->GetQuantity(TEXT("Wood"))==WoodBefore,TEXT("Full output cannot consume inputs"));
         Check(!CraftFromServer(TEXT("CampFire"),1,Reason),TEXT("Normal crafting cannot create a Campfire inventory item"));
@@ -614,10 +614,8 @@ void UKalmalaCraftingComponent::RunPersistedCampVerification(float DeltaTime)
         const bool bGathered = GatherPersistedCampMaterials(Character, Inventory, Required);
         const bool bHearthMaterialsReady = bGathered;
         const bool bHearthPlaced = bHearthMaterialsReady && PlacePersistedCampfireNearTerrain(this, Character, Reason);
-        const bool bKitsCrafted = bHearthPlaced && CraftFromServer(TEXT("Workbench"), 1, Reason)
-            && CraftFromServer(TEXT("Storage"), 1, Reason);
         AKalmalaConstructionActor *Floor = nullptr, *Wall = nullptr, *Roof = nullptr, *Workbench = nullptr, *Storage = nullptr;
-        const bool bBuilt = bKitsCrafted
+        const bool bBuilt = bHearthPlaced
             && PlacePersistedCampConstruction(this, Character, TEXT("FloorKit"), Reason, Floor)
             && PlacePersistedCampConstruction(this, Character, TEXT("WallKit"), Reason, Wall)
             && PlacePersistedCampConstruction(this, Character, TEXT("RoofKit"), Reason, Roof)
@@ -630,9 +628,9 @@ void UKalmalaCraftingComponent::RunPersistedCampVerification(float DeltaTime)
             && StorageWood && TransferStorageFromServer(StorageWood->ItemGuids[0], true, Reason) && HasStorageView()
             && StorageView.Num() == 1 && StorageView[0].ItemId == TEXT("Wood") && StorageView[0].Quantity == 1;
         const bool bPaid = bStorage && Inventory->GetStacks().IsEmpty();
-        const bool bPassed = bGathered && bHearthMaterialsReady && bHearthPlaced && bKitsCrafted && bBuilt && bStorage && bPaid;
+        const bool bPassed = bGathered && bHearthMaterialsReady && bHearthPlaced && bBuilt && bStorage && bPaid;
         const AKalmalaCampfire* OwnedFire = FindOwnedPersistedCampfire(GetWorld(), Character);
-        UE_LOG(LogTemp, Display, TEXT("Persisted camp build server: Passed=%d Player=%d Gathered=%d Hearth=%d Kits=%d Built=%d Storage=%d Paid=%d Fuel=%.0f"), bPassed, Character->GetPlayerState()->GetPlayerId(), bGathered, bHearthPlaced, bKitsCrafted, bBuilt, bStorage, bPaid, OwnedFire ? OwnedFire->GetFuelSeconds() : -1.0f);
+        UE_LOG(LogTemp, Display, TEXT("Persisted camp build server: Passed=%d Player=%d Gathered=%d Hearth=%d Built=%d Storage=%d Paid=%d Fuel=%.0f"), bPassed, Character->GetPlayerState()->GetPlayerId(), bGathered, bHearthPlaced, bBuilt, bStorage, bPaid, OwnedFire ? OwnedFire->GetFuelSeconds() : -1.0f);
         if (bBuilt)
         {
             // The construction actor alone owns this opaque ID.  This development

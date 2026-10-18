@@ -8,7 +8,7 @@ FString FKalmalaRecipeRequirements::Describe(const FKalmalaRecipe& Recipe,
 {
     const auto Name = [](FName Id)
     {
-        const auto* Item = UKalmalaItemCatalogue::Get()->FindItem(Id);
+        const auto* Item = UKalmalaItemCatalogue::Get()->FindDefinition(Id);
         return Item ? Item->DisplayName : Id.ToString();
     };
     const bool bDirectBuild = UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(Recipe.BuildableOutput);

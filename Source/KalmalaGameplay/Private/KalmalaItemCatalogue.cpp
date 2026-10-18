@@ -1,6 +1,7 @@
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaGameCatalogueLoader.h"
 #include "KalmalaToolCatalogue.h"
+#include "KalmalaPlacementPreview.h"
 
 namespace
 {
@@ -19,15 +20,17 @@ const UKalmalaItemCatalogue* UKalmalaItemCatalogue::Get()
 
 bool UKalmalaItemCatalogue::IsValidCatalogue() const
 {
-    if (Items.IsEmpty() || Items.Num() > MaxDefinitions)
+    if (Items.IsEmpty() || Items.Num() + Buildables.Num() > MaxDefinitions)
     {
         return false;
     }
     TSet<FName> Seen;
-    for (const FKalmalaItemDefinition& Item : Items)
+    const auto Validate = [&Seen](const FKalmalaItemDefinition& Item, const bool bBuildable)
     {
         const bool bIsGear = !Item.GearSlot.IsEmpty();
         if (Item.ItemId.IsNone() || Seen.Contains(Item.ItemId)
+            || (bBuildable ? (!FKalmalaPlacementPreview::IsSupportedKit(Item.ItemId) || bIsGear)
+                : (FKalmalaPlacementPreview::IsSupportedKit(Item.ItemId) || Item.ItemId.ToString().EndsWith(TEXT("Kit"))))
             || Item.DisplayName.TrimStartAndEnd().IsEmpty() || Item.DisplayName.Len() > 64
             || Item.Description.TrimStartAndEnd().IsEmpty() || Item.Description.Len() > 180
             || Item.MaxStack < 1 || Item.MaxStack > AbsoluteMaxStack
@@ -41,7 +44,10 @@ bool UKalmalaItemCatalogue::IsValidCatalogue() const
             return false;
         }
         Seen.Add(Item.ItemId);
-    }
+        return true;
+    };
+    for (const FKalmalaItemDefinition& Item : Items) if (!Validate(Item, false)) return false;
+    for (const FKalmalaItemDefinition& Item : Buildables) if (!Validate(Item, true)) return false;
     return true;
 }
 
@@ -82,6 +88,19 @@ bool UKalmalaItemCatalogue::IsValidStack(FName ItemId, int32 Quantity) const
 {
     const FKalmalaItemDefinition* Item = FindItem(ItemId);
     return Item && Quantity > 0 && Quantity <= Item->MaxStack;
+}
+
+const FKalmalaItemDefinition* UKalmalaItemCatalogue::FindBuildable(const FName BuildableId) const
+{
+    if (BuildableId.IsNone() || !IsValidCatalogue()) return nullptr;
+    return Buildables.FindByPredicate([BuildableId](const FKalmalaItemDefinition& Definition)
+        { return Definition.ItemId == BuildableId; });
+}
+
+const FKalmalaItemDefinition* UKalmalaItemCatalogue::FindDefinition(const FName Id) const
+{
+    if (const auto* Item = FindItem(Id)) return Item;
+    return FindBuildable(Id);
 }
 
 bool UKalmalaItemCatalogue::CanAddToStack(FName ItemId, int32 ExistingQuantity, int32 AddedQuantity) const

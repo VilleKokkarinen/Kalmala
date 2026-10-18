@@ -1,5 +1,26 @@
 # Development setup
 
+## No portable construction items — 2026-10-18
+
+All 13 placed objects use direct materials through the Building Hammer. The
+remaining Chest, Cooking Rack, Cauldron and Frying Pan kit paths are removed.
+Frying Pan now needs 5 Iron at placement, with no Forge crafting step; all
+other authored costs and station-attachment proximity checks remain intact.
+`Items` contains only inventory items; `Buildables` holds placed-object metadata.
+Existing internal actor/icon IDs with a Kit suffix are not inventory items.
+Unknown future Kit inventory definitions fail catalogue validation. Existing
+development stacks containing removed construction items are rejected without
+conversion. AGENTS.md forbids reintroducing portable construction kits.
+
+The focused `Kalmala.Gameplay.Construction.NoPortableKits` regression covers all
+13 routes, ordinary grant/stack/production rejection, storage/save rejection,
+raw costs and future kit-definition rejection. Transactions, CookingStationHeat,
+RaisedStorage, CompleteCoverage, LocalBrowsing and Requirements also pass.
+Incremental Editor build and hammer/Forge previews pass. Updated development
+camp/storage fixtures pay raw materials and the live runners' scope messages
+match the new routes; those peer/restart runners have not been executed in this
+increment. Full verification remains deferred.
+
 ## Grinding Stone hammer-only construction — 2026-10-18
 
 Grinding Stone uses the hammer Build menu and consumes 6 Wood plus 4 Stone

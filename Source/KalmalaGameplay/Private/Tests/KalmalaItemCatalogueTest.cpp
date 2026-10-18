@@ -68,7 +68,7 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
     };
     for (const FExpectedGear& Expected : Gear)
     {
-        const FKalmalaItemDefinition* Item = Catalogue->FindItem(Expected.ItemId);
+        const FKalmalaItemDefinition* Item = Catalogue->FindDefinition(Expected.ItemId);
         if (TestNotNull(*FString::Printf(TEXT("Gear item %s exists"), *Expected.ItemId.ToString()), Item))
         {
             TestEqual(*FString::Printf(TEXT("%s targets its worn slot"), *Expected.ItemId.ToString()),
@@ -104,7 +104,7 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("The manifest category files load item and recipe arrays"), bHasCatalogueArrays);
     if (bHasCatalogueArrays)
     {
-        TestEqual(TEXT("Every JSON item definition is loaded"), Catalogue->Items.Num(), JsonItems.Num());
+        TestEqual(TEXT("Every JSON item definition is loaded"), Catalogue->Items.Num() + Catalogue->Buildables.Num(), JsonItems.Num());
         TestEqual(TEXT("Every JSON recipe definition is loaded"), Recipes->Recipes.Num(), JsonRecipes.Num());
     }
     struct FExpectedBatchOneCopy
@@ -126,7 +126,7 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
     };
     for (const FExpectedBatchOneCopy& Expected : BatchOneCopy)
     {
-        const FKalmalaItemDefinition* Item = Catalogue->FindItem(Expected.ItemId);
+        const FKalmalaItemDefinition* Item = Catalogue->FindDefinition(Expected.ItemId);
         if (TestNotNull(FString::Printf(TEXT("Batch 01 item %s remains in the catalogue"), *Expected.ItemId.ToString()), Item))
         {
             TestEqual(FString::Printf(TEXT("%s has the reviewed display name"), *Expected.ItemId.ToString()),
@@ -157,7 +157,7 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
     };
     for (const FExpectedBatchTwoCopy& Expected : BatchTwoCopy)
     {
-        const FKalmalaItemDefinition* Item = Catalogue->FindItem(Expected.ItemId);
+        const FKalmalaItemDefinition* Item = Catalogue->FindDefinition(Expected.ItemId);
         if (TestNotNull(FString::Printf(TEXT("Batch 02 item %s remains in the catalogue"), *Expected.ItemId.ToString()), Item))
         {
             TestEqual(FString::Printf(TEXT("%s has the reviewed display name"), *Expected.ItemId.ToString()),
@@ -180,7 +180,7 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         const FKalmalaRecipe* Recipe = Recipes->Find(Expected.Key);
         if (TestNotNull(FString::Printf(TEXT("Batch 02 recipe %s remains available"), *Expected.Key.ToString()), Recipe))
         {
-            const FKalmalaItemDefinition* Output = Catalogue->FindItem(Expected.Value);
+            const FKalmalaItemDefinition* Output = Catalogue->FindDefinition(Expected.Value);
             TestNotNull(FString::Printf(TEXT("Batch 02 recipe %s output item remains available"), *Expected.Key.ToString()), Output);
             TestEqual(FString::Printf(TEXT("Batch 02 recipe %s matches its output name"), *Expected.Key.ToString()),
                 Recipe->DisplayName, Output ? Output->DisplayName : FString());
@@ -215,7 +215,7 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
     };
     for (const FExpectedBatchThreeCopy& Expected : BatchThreeCopy)
     {
-        const FKalmalaItemDefinition* Item = Catalogue->FindItem(Expected.ItemId);
+        const FKalmalaItemDefinition* Item = Catalogue->FindDefinition(Expected.ItemId);
         if (TestNotNull(FString::Printf(TEXT("Batch 03 item %s remains in the catalogue"), *Expected.ItemId.ToString()), Item))
         {
             TestEqual(FString::Printf(TEXT("%s has the reviewed display name"), *Expected.ItemId.ToString()),
@@ -240,7 +240,7 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         const FKalmalaRecipe* Recipe = Recipes->Find(Expected.Key);
         if (TestNotNull(FString::Printf(TEXT("Batch 03 recipe %s remains available"), *Expected.Key.ToString()), Recipe))
         {
-            const FKalmalaItemDefinition* Output = Catalogue->FindItem(Expected.Value);
+            const FKalmalaItemDefinition* Output = Catalogue->FindDefinition(Expected.Value);
             TestNotNull(FString::Printf(TEXT("Batch 03 recipe %s output item remains available"), *Expected.Key.ToString()), Output);
             TestEqual(FString::Printf(TEXT("Batch 03 recipe %s matches its output name"), *Expected.Key.ToString()),
                 Recipe->DisplayName, Output ? Output->DisplayName : FString());
@@ -268,7 +268,7 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
     };
     for (const FExpectedBatchFourCopy& Expected : BatchFourCopy)
     {
-        const FKalmalaItemDefinition* Item = Catalogue->FindItem(Expected.ItemId);
+        const FKalmalaItemDefinition* Item = Catalogue->FindDefinition(Expected.ItemId);
         if (TestNotNull(FString::Printf(TEXT("Batch 04 item %s remains in the catalogue"), *Expected.ItemId.ToString()), Item))
         {
             TestEqual(FString::Printf(TEXT("%s has the reviewed display name"), *Expected.ItemId.ToString()),
@@ -290,7 +290,7 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         const FKalmalaRecipe* Recipe = Recipes->Find(Expected.Key);
         if (TestNotNull(FString::Printf(TEXT("Batch 04 recipe %s remains available"), *Expected.Key.ToString()), Recipe))
         {
-            const FKalmalaItemDefinition* Output = Catalogue->FindItem(Expected.Value);
+            const FKalmalaItemDefinition* Output = Catalogue->FindDefinition(Expected.Value);
             TestNotNull(FString::Printf(TEXT("Batch 04 recipe %s output item remains available"), *Expected.Key.ToString()), Output);
             TestEqual(FString::Printf(TEXT("Batch 04 recipe %s matches its output name"), *Expected.Key.ToString()),
                 Recipe->DisplayName, Output ? Output->DisplayName : FString());
@@ -319,7 +319,7 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
     };
     for (const FExpectedBatchFiveCopy& Expected : BatchFiveCopy)
     {
-        const FKalmalaItemDefinition* Item = Catalogue->FindItem(Expected.ItemId);
+        const FKalmalaItemDefinition* Item = Catalogue->FindDefinition(Expected.ItemId);
         if (TestNotNull(FString::Printf(TEXT("Batch 05 item %s remains in the catalogue"), *Expected.ItemId.ToString()), Item))
         {
             TestEqual(FString::Printf(TEXT("%s has the reviewed display name"), *Expected.ItemId.ToString()),
@@ -339,7 +339,7 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         const FKalmalaRecipe* Recipe = Recipes->Find(Expected.Key);
         if (TestNotNull(FString::Printf(TEXT("Batch 05 recipe %s remains available"), *Expected.Key.ToString()), Recipe))
         {
-            const FKalmalaItemDefinition* Output = Catalogue->FindItem(Expected.Value);
+            const FKalmalaItemDefinition* Output = Catalogue->FindDefinition(Expected.Value);
             TestNotNull(FString::Printf(TEXT("Batch 05 recipe %s output item remains available"), *Expected.Key.ToString()), Output);
             TestEqual(FString::Printf(TEXT("Batch 05 recipe %s matches its output name"), *Expected.Key.ToString()),
                 Recipe->DisplayName, Output ? Output->DisplayName : FString());
@@ -360,7 +360,7 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
     };
     for (const FExpectedBatchSixCopy& Expected : BatchSixCopy)
     {
-        const FKalmalaItemDefinition* Item = Catalogue->FindItem(Expected.ItemId);
+        const FKalmalaItemDefinition* Item = Catalogue->FindDefinition(Expected.ItemId);
         if (TestNotNull(FString::Printf(TEXT("Batch 06 item %s remains in the catalogue"), *Expected.ItemId.ToString()), Item))
         {
             TestEqual(FString::Printf(TEXT("%s has the reviewed display name"), *Expected.ItemId.ToString()),
@@ -400,7 +400,7 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Station requirements use JSON arrays"), JsonText.Contains(TEXT("\"RequiredStation\": [")));
     for (const FName Id : { FName(TEXT("Fuel")), FName(TEXT("ConstructionSupply")), FName(TEXT("RaisedStorage")) })
     {
-        TestNull(TEXT("Removed item is not loaded"), Catalogue->FindItem(Id));
+        TestNull(TEXT("Removed item is not loaded"), Catalogue->FindDefinition(Id));
         TestNull(TEXT("Removed item recipe is not loaded"), Recipes->Find(Id));
     }
     for (const FKalmalaItemDefinition& Item : Catalogue->Items)
@@ -470,13 +470,13 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         Recipes->Recipes.FindByPredicate([](const FKalmalaRecipe& Recipe) { return Recipe.Output == TEXT("HearthBroth"); }));
 
     for (const FName Id : { FName(TEXT("Iron")), FName(TEXT("FryingPanKit")) })
-        TestNotNull(FString::Printf(TEXT("New crafting item %s is defined"), *Id.ToString()), Catalogue->FindItem(Id));
+        TestNotNull(FString::Printf(TEXT("New crafting item %s is defined"), *Id.ToString()), Catalogue->FindDefinition(Id));
     const FKalmalaRecipe* FryingPanRecipe = Recipes->Find(TEXT("FryingPanRecipe"));
-    TestNotNull(TEXT("Frying pan forge recipe is defined"), FryingPanRecipe);
+    TestNotNull(TEXT("Frying pan direct build recipe is defined"), FryingPanRecipe);
     if (FryingPanRecipe)
     {
-        TestEqual(TEXT("Frying pan forge recipe outputs the placeable station"), FryingPanRecipe->Output, FName(TEXT("FryingPanKit")));
-        TestTrue(TEXT("Frying pan is made at a Forge"), FryingPanRecipe->RequiredStation.Contains(TEXT("ForgeKit")));
+        TestEqual(TEXT("Frying pan build recipe identifies the placeable station"), FryingPanRecipe->BuildableOutput, FName(TEXT("FryingPanKit")));
+        TestTrue(TEXT("Frying pan construction requires no crafting station"), FryingPanRecipe->RequiredStation.IsEmpty());
         TestTrue(TEXT("Frying pan output is no longer a carried tool"), FryingPanRecipe->RequiredTool.IsNone());
     }
     for (const FKalmalaRecipe& Recipe : Recipes->Recipes)
@@ -495,15 +495,15 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
     };
     for (const TPair<FName, FName>& Alias : LegacyAliases)
     {
-        if (Catalogue->FindItem(Alias.Value))
+        if (Catalogue->FindDefinition(Alias.Value))
         {
             TestNotNull(FString::Printf(TEXT("Clean catalogue ID %s resolves to its stable runtime item"), *Alias.Key.ToString()),
-                Catalogue->FindItem(Alias.Value));
+                Catalogue->FindDefinition(Alias.Value));
             TestNull(FString::Printf(TEXT("Clean catalogue ID %s is translated before runtime lookup"), *Alias.Key.ToString()),
                 Catalogue->FindItem(Alias.Key));
         }
     }
-    const FKalmalaItemDefinition* WorkbenchItem = Catalogue->FindItem(TEXT("WorkbenchKit"));
+    const FKalmalaItemDefinition* WorkbenchItem = Catalogue->FindBuildable(TEXT("WorkbenchKit"));
     if (TestNotNull(TEXT("Workbench keeps its stable runtime item identity"), WorkbenchItem))
         TestEqual(TEXT("Workbench item uses its current display name"), WorkbenchItem->DisplayName, FString(TEXT("Workbench")));
     const FKalmalaRecipe* WorkbenchRecipe = Recipes->Find(TEXT("Workbench"));

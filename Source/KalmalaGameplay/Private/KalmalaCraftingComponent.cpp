@@ -67,7 +67,7 @@ FString GetToolCombatSummary(const FName ItemId, const int32 ToolLevel)
 
 FString GetStationDisplayName(const FName KitId)
 {
-    const auto* Item = UKalmalaItemCatalogue::Get()->FindItem(KitId);
+    const auto* Item = UKalmalaItemCatalogue::Get()->FindBuildable(KitId);
     return Item ? Item->DisplayName : KitId.ToString();
 }
 
@@ -99,7 +99,7 @@ FString GetRecipeToolDisplayName(const FName ItemId)
 FString GetMissingFoodHeatReason(const AKalmalaConstructionActor* Station)
 {
     if (!Station) return TEXT("Need a usable lit hearth with positive heat within 2.5 m");
-    const auto* StationItem = UKalmalaItemCatalogue::Get()->FindItem(Station->GetConstructionKit());
+    const auto* StationItem = UKalmalaItemCatalogue::Get()->FindBuildable(Station->GetConstructionKit());
     const FString StationName = StationItem ? StationItem->DisplayName : Station->GetConstructionKit().ToString();
     return FString::Printf(TEXT("Need a usable lit hearth with positive heat within 2.5 m of both the player and %s"), *StationName);
 }
@@ -537,14 +537,7 @@ bool UKalmalaCraftingComponent::PlaceConstructionFromServer(const FName Buildabl
     if (Rotation.ContainsNaN()) { Reason = TEXT("Invalid placement rotation"); return false; }
     auto* Inventory = Character->FindComponentByClass<UKalmalaInventoryComponent>();
     TArray<FKalmalaInventoryStack> Cost;
-    if (UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(BuildableId))
-    {
-        if (!UKalmalaRecipeCatalogue::BuildDirectMaterialCost(BuildableId, Cost, Reason)) return false;
-    }
-    else
-    {
-        Cost = {{BuildableId, 1}};
-    }
+    if (!UKalmalaRecipeCatalogue::BuildDirectMaterialCost(BuildableId, Cost, Reason)) return false;
     TArray<FKalmalaInventoryStack> Scratch;
     TArray<FKalmalaInventoryStack> InventoryBefore;
     if (Inventory) InventoryBefore = Inventory->GetStacks();
@@ -572,11 +565,7 @@ bool UKalmalaCraftingComponent::PlaceConstructionFromServer(const FName Buildabl
         Reason = TEXT("Could not save construction; materials restored");
         return false;
     }
-    Reason = UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(BuildableId)
-        ? TEXT("Built directly from Wood with the construction hammer")
-        : bStationAttachment
-        ? TEXT("Placed the paid station attachment; its level bonus is saved for this world")
-        : TEXT("Placed construction; server accepted the buildable and ground");
+    Reason = TEXT("Built directly from materials with the construction hammer");
     return true;
 }
 
@@ -975,7 +964,7 @@ FString UKalmalaCraftingComponent::GetRecipeDescription(FName Id) const
     {
         if (R->BuildableOutput == TEXT("CampfireKit"))
             return TEXT("A low stone ring for a campfire.");
-        const auto* BuildItem = UKalmalaItemCatalogue::Get()->FindItem(R->BuildableOutput);
+        const auto* BuildItem = UKalmalaItemCatalogue::Get()->FindBuildable(R->BuildableOutput);
         if (BuildItem && !BuildItem->Description.IsEmpty()) return BuildItem->Description;
         return TEXT("Description unavailable.");
     }

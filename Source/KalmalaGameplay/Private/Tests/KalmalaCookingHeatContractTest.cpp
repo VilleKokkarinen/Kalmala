@@ -90,9 +90,9 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
         && Inventory->TryGrantFromServer(TEXT("Potato"), 2)
         && Inventory->TryGrantFromServer(TEXT("Onion"), 3)
         && Inventory->TryGrantFromServer(TEXT("Rutabaga"), 2));
-    TestFalse(TEXT("Frying pan crafting rejects a missing Forge"),
+    TestFalse(TEXT("Frying pan cannot be crafted into a portable item"),
         Crafting->CraftFromServer(FryingPanRecipe->RecipeId, 1, Reason));
-    TestEqual(TEXT("Missing Forge preserves iron"), Inventory->GetQuantity(TEXT("Iron")), 5);
+    TestEqual(TEXT("Rejected portable pan production preserves iron"), Inventory->GetQuantity(TEXT("Iron")), 5);
     TestFalse(TEXT("Pan cooking rejects when the placeable pan station is missing"),
         Crafting->CraftFromServer(RoastedRootsRecipe->RecipeId, 1, Reason));
     TestTrue(TEXT("Missing pan feedback names the required station"), Crafting->GetRecipeAvailability(RoastedRootsRecipe->RecipeId).Contains(TEXT("Frying Pan")));
@@ -106,10 +106,17 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
     }
     Forge->SetActorLocation(Pawn->GetActorLocation() + FVector(0.0f, -200.0f, 0.0f));
     Forge->InitializeFromServer(TEXT("ForgeKit"), TEXT("CookingHeatForge"));
-    TestTrue(TEXT("Five iron make a placeable frying pan at the Forge"),
+    TestFalse(TEXT("Even a nearby Forge cannot produce a portable pan"),
         Crafting->CraftFromServer(FryingPanRecipe->RecipeId, 1, Reason));
-    TestEqual(TEXT("Pan crafting consumes five iron"), Inventory->GetQuantity(TEXT("Iron")), 0);
-    TestEqual(TEXT("Forge recipe produces one placeable pan"), Inventory->GetQuantity(TEXT("FryingPanKit")), 1);
+    TestEqual(TEXT("Forge production rejection preserves five iron"), Inventory->GetQuantity(TEXT("Iron")), 5);
+    TestEqual(TEXT("No portable pan is generated"), Inventory->GetQuantity(TEXT("FryingPanKit")), 0);
+    TArray<FKalmalaInventoryStack> PanCosts, AfterPanPayment;
+    const TArray<FKalmalaInventoryStack> BeforePanPayment = Inventory->GetStacks();
+    TestTrue(TEXT("Pay raw materials for the cooking station fixture"),
+        UKalmalaRecipeCatalogue::BuildDirectMaterialCost(TEXT("FryingPanKit"), PanCosts, Reason)
+        && UKalmalaInventoryComponent::BuildExchange(BeforePanPayment, PanCosts, NAME_None, 0, AfterPanPayment, Reason)
+        && Inventory->TryCommitStacksFromServer(BeforePanPayment, AfterPanPayment));
+    TestEqual(TEXT("Pan fixture costs five iron"), Inventory->GetQuantity(TEXT("Iron")), 0);
 
     AKalmalaConstructionActor* Pan = World->SpawnActor<AKalmalaConstructionActor>();
     if (!TestNotNull(TEXT("Frying pan fixture spawned"), Pan))
@@ -120,7 +127,6 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
     }
     Pan->SetActorLocation(Pawn->GetActorLocation() + FVector(100.0f, 0.0f, 0.0f));
     Pan->InitializeFromServer(TEXT("FryingPanKit"), TEXT("CookingHeatPan"));
-    TestTrue(TEXT("Placing the pan consumes its carried kit"), Inventory->TryConsumeFromServer(TEXT("FryingPanKit"), 1));
     TestFalse(TEXT("Pan cooking rejects a missing lit hearth"),
         Crafting->CraftFromServer(RoastedRootsRecipe->RecipeId, 1, Reason));
     TestTrue(TEXT("Pan recipe detail explains nearby heat"),

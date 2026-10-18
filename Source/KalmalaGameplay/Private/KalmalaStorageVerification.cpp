@@ -53,7 +53,7 @@ void UKalmalaCraftingComponent::RunStorageVerification(float DeltaTime)
         }
         else
         {
-            Check(Pack->TryGrantFromServer(TEXT("StorageKit"), 1), TEXT("Seed paid chest kit"));
+            Check(Pack->TryGrantFromServer(TEXT("Wood"), 6), TEXT("Seed raw chest materials"));
             TSet<AKalmalaConstructionActor*> Before;
             for (TActorIterator<AKalmalaConstructionActor> It(GetWorld()); It; ++It) Before.Add(*It);
             bool Placed = false;
@@ -66,7 +66,7 @@ void UKalmalaCraftingComponent::RunStorageVerification(float DeltaTime)
             Check(OpenStorageFromServer(Chest), TEXT("Open paid chest"));
             Check(Pack->TryGrantFromServer(TEXT("Wood"), 3), TEXT("Seed storage materials"));
             for (int32 N = 0; N < 3; ++N) Check(TransferStorageFromServer(FirstItemGuid(Pack->GetStacks(), TEXT("Wood")), true, Reason), TEXT("Save initial chest materials"));
-            Check(Pack->TryGrantFromServer(TEXT("WorkbenchKit"), 1), TEXT("Seed bench and assembly cost"));
+            Check(Pack->TryGrantFromServer(TEXT("Wood"), 9) && Pack->TryGrantFromServer(TEXT("Stone"), 2), TEXT("Seed raw Workbench materials"));
             bool BenchPlaced = false;
             for (int32 Turn = 0; Turn < 8 && !BenchPlaced; ++Turn)
             { C->SetActorRotation(FRotator(0, Turn*45, 0)); BenchPlaced = PlaceConstructionFromServer(TEXT("WorkbenchKit"), Reason); }

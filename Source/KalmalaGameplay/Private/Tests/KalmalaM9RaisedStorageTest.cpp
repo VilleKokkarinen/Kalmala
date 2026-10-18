@@ -18,13 +18,13 @@ bool FKalmalaM9RaisedStorageTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Raised chest construction is no longer supported"), FKalmalaPlacementPreview::IsSupportedKit(TEXT("RaisedStorageKit")));
     TestFalse(TEXT("Only the normal chest is a storage construction"), AKalmalaConstructionActor::IsStorageKit(TEXT("RaisedStorageKit")));
     TestTrue(TEXT("Normal chest remains the supported storage construction"), AKalmalaConstructionActor::IsStorageKit(TEXT("StorageKit")));
-    const FKalmalaItemDefinition* Chest = Items->FindItem(TEXT("StorageKit"));
+    const FKalmalaItemDefinition* Chest = Items->FindBuildable(TEXT("StorageKit"));
     const FKalmalaRecipe* ChestRecipe = Recipes->Find(TEXT("Storage"));
-    if (TestNotNull(TEXT("Normal chest is the only storage item"), Chest))
+    if (TestNotNull(TEXT("Normal chest retains construction metadata"), Chest))
         TestEqual(TEXT("Normal chest holds the existing shared storage"), Chest->DisplayName, FString(TEXT("Chest")));
     if (TestNotNull(TEXT("Normal chest is built from raw materials"), ChestRecipe))
     {
-        TestEqual(TEXT("Chest output is the normal storage construction"), ChestRecipe->Output, FName(TEXT("StorageKit")));
+        TestEqual(TEXT("Chest output is the normal storage construction"), ChestRecipe->BuildableOutput, FName(TEXT("StorageKit")));
         TestFalse(TEXT("Chest recipe uses no Densewood tier gate"), ChestRecipe->Ingredients.ContainsByPredicate(
             [](const FKalmalaInventoryStack& Cost) { return Cost.ItemId == TEXT("Densewood"); }));
     }

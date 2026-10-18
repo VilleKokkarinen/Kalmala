@@ -12,7 +12,7 @@
 
 FString UKalmalaItemDetailWidget::DescribeItem(FName Id, const FString& VisibleState)
 {
-    const auto* Item = UKalmalaItemCatalogue::Get()->FindItem(Id);
+    const auto* Item = UKalmalaItemCatalogue::Get()->FindDefinition(Id);
     FString Text = Item && !Item->Description.IsEmpty() ? Item->Description : TEXT("Description unavailable.");
     if (!VisibleState.IsEmpty()) Text += TEXT("\n\n") + VisibleState;
     return Text;

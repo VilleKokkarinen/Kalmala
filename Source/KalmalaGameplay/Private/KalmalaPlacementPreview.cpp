@@ -11,7 +11,7 @@ bool FKalmalaPlacementPreview::IsSupportedKit(const FName ItemId)
 {
     if (ItemId == TEXT("ForgeKit")) return true;
     return ItemId == TEXT("CampfireKit") || ItemId == TEXT("WorkbenchKit") || ItemId == TEXT("StorageKit")
-        || ItemId == TEXT("CookingRackKit") || ItemId == TEXT("CauldronKit") || ItemId == TEXT("FryingPanKit") || ItemId == TEXT("SmokeFrameKit")
+        || ItemId == TEXT("CookingRackKit") || ItemId == TEXT("CauldronKit") || ItemId == TEXT("FryingPanKit")
         || ItemId == TEXT("WorkbenchToolRackKit") || ItemId == TEXT("ForgeAnvilKit") || ItemId == TEXT("GrindingStoneKit")
         || ItemId == TEXT("FloorKit") || ItemId == TEXT("WallKit") || ItemId == TEXT("RoofKit");
 }
@@ -24,7 +24,7 @@ bool FKalmalaPlacementPreview::IsSessionOnlyKit(const FName ItemId)
 FKalmalaPlacementPreview FKalmalaPlacementPreview::Evaluate(const UWorld* World, const APawn* Pawn, const FName ItemId)
 {
     FKalmalaPlacementPreview Result;
-    Result.Message = TEXT("Preview: select a camp or construction kit");
+    Result.Message = TEXT("Preview: select a camp or construction object");
     if (!IsSupportedKit(ItemId)) return Result;
     Result.Message = TEXT("Preview unavailable: waiting for local terrain");
     if (!World || !Pawn || Pawn->GetActorLocation().ContainsNaN()) return Result;

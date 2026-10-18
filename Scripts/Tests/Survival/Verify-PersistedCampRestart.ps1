@@ -48,7 +48,7 @@ function Invoke-PersistedCampBuild {
             if (($serverText + $clientText) -match 'Fatal error:|Assertion failed:|Ensure condition failed:|Persisted camp build (server|owner): Passed=0') {
                 throw 'Persisted-camp build verification failed; inspect retained logs.'
             }
-            $ready = [regex]::Matches($serverText, 'Persisted camp build server: Passed=1 Player=\d+ Gathered=1 Hearth=1 Kits=1 Built=1 Storage=1 Paid=1 Fuel=60').Count -eq 2 `
+            $ready = [regex]::Matches($serverText, 'Persisted camp build server: Passed=1 Player=\d+ Gathered=1 Hearth=1 Built=1 Storage=1 Paid=1 Fuel=60').Count -eq 2 `
                 -and $serverText -match 'Persisted camp build owner: Passed=1 Authority=1 Player=\d+ EmptyPack=1 Fuel=60 Constructions=10 StorageWood=1 Weather=77/0\.75/0/1\.00 Shelter=\d+\.\d+ Wetness=\d+\.\d+ Warmth=\d+\.\d+' `
                 -and $clientText -match 'Persisted camp build owner: Passed=1 Authority=0 Player=\d+ EmptyPack=1 Fuel=60 Constructions=10 StorageWood=1 Weather=77/0\.75/0/1\.00 Shelter=-1\.00 Wetness=\d+\.\d+ Warmth=\d+\.\d+' `
                 -and $clientText -match 'Persisted camp client authority probe: Passed=1 Wet=0 FloorHealth=[\d.]+ RoofHealth=100\.0 FireState=0 Fuel=60 Weather=77/0\.75 SaveOwner=0'

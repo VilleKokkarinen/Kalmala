@@ -60,11 +60,18 @@ public:
     UPROPERTY(EditDefaultsOnly)
     TArray<FKalmalaItemDefinition> Items;
 
+    /** Presentation metadata for placed objects. These are never inventory items. */
+    UPROPERTY(EditDefaultsOnly)
+    TArray<FKalmalaItemDefinition> Buildables;
+
     /** Loads and validates the packaged item catalogue before returning the immutable runtime view. */
     static const UKalmalaItemCatalogue* Get();
 
     bool IsValidCatalogue() const;
     const FKalmalaItemDefinition* FindItem(FName ItemId) const;
+    const FKalmalaItemDefinition* FindBuildable(FName BuildableId) const;
+    /** Presentation only; inventory operations must use FindItem/IsValidStack. */
+    const FKalmalaItemDefinition* FindDefinition(FName Id) const;
 
     /** Pure validation seam for future server inventory operations; grants nothing. */
     bool IsValidStack(FName ItemId, int32 Quantity) const;

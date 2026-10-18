@@ -367,6 +367,7 @@ bool FKalmalaCatalogueIconTest::RunTest(const FString&)
     TestTrue(TEXT("Tool catalogue is nonempty"), !Tools->Profiles.IsEmpty());
     TestTrue(TEXT("Recipe catalogue is nonempty"), !Recipes->Recipes.IsEmpty());
     for (const auto& Item : Items->Items) Check(Item.ItemId);
+    for (const auto& Buildable : Items->Buildables) Check(Buildable.ItemId);
     for (const auto& Tool : Tools->Profiles) Check(Tool.ItemId);
     for (const auto& Recipe : Recipes->Recipes)
     {

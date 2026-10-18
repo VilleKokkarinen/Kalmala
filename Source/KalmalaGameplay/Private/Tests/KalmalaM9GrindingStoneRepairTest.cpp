@@ -17,7 +17,7 @@ bool FKalmalaM9GrindingStoneRepairTest::RunTest(const FString& Parameters)
     const auto* Items = UKalmalaItemCatalogue::Get();
     const auto* Recipes = UKalmalaRecipeCatalogue::Get();
     const FKalmalaRecipe* Recipe = Recipes ? Recipes->Find(TEXT("GrindingStone")) : nullptr;
-    TestTrue(TEXT("Grinding stone kit is a catalogue item"), Items && Items->FindItem(TEXT("GrindingStoneKit")));
+    TestTrue(TEXT("Grinding Stone has separate buildable metadata"), Items && Items->FindBuildable(TEXT("GrindingStoneKit")));
     TestTrue(TEXT("Grinding stone has a direct hammer build recipe without Workbench production"), Recipe
         && Recipe->BuildableOutput == TEXT("GrindingStoneKit") && Recipe->Output.IsNone() && Recipe->RequiredStation.IsEmpty()
         && Recipe->MaxBatch == 1);

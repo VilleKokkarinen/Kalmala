@@ -2,6 +2,7 @@
 #include "KalmalaConstructionActor.h"
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaGameCatalogueLoader.h"
+#include "KalmalaPlacementPreview.h"
 
 namespace
 {
@@ -103,6 +104,8 @@ bool UKalmalaRecipeCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* Item
         Seen.Add(Recipe.RecipeId);
         if (bDirectBuildable) BuildableOutputs.Add(Recipe.BuildableOutput);
     }
+    for (const FKalmalaItemDefinition& Buildable : Items->Buildables)
+        if (!BuildableOutputs.Contains(Buildable.ItemId)) return false;
     return true;
 }
 
@@ -125,10 +128,8 @@ const FKalmalaRecipe* UKalmalaRecipeCatalogue::Find(FName Id) const
 
 bool UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(const FName BuildableId)
 {
-    return BuildableId == TEXT("CampfireKit") || BuildableId == TEXT("FloorKit") || BuildableId == TEXT("WallKit")
-        || BuildableId == TEXT("RoofKit") || BuildableId == TEXT("WorkbenchKit") || BuildableId == TEXT("ForgeKit")
-        || BuildableId == TEXT("WorkbenchToolRackKit") || BuildableId == TEXT("ForgeAnvilKit")
-        || BuildableId == TEXT("GrindingStoneKit");
+    // One closed placement set: no supported object may fall back to a portable kit.
+    return FKalmalaPlacementPreview::IsSupportedKit(BuildableId);
 }
 
 bool UKalmalaRecipeCatalogue::BuildDirectMaterialCost(const FName BuildableId,

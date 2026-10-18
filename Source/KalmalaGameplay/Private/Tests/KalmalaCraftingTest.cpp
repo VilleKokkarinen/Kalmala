@@ -80,8 +80,8 @@ bool FKalmalaCraftingTransactionsTest::RunTest(const FString& Parameters)
     const FKalmalaRecipe* RootSoup = Recipes->Find(TEXT("RootVegetableSoupRecipe"));
     if (FryingPan)
     {
-        TestEqual(TEXT("Frying pan recipe outputs its placeable station"), FryingPan->Output, FName(TEXT("FryingPanKit")));
-        TestTrue(TEXT("Frying pan is forged at a Forge"), FryingPan->RequiredStation.Contains(TEXT("ForgeKit")));
+        TestEqual(TEXT("Frying pan recipe outputs its placeable station"), FryingPan->BuildableOutput, FName(TEXT("FryingPanKit")));
+        TestTrue(TEXT("Frying pan requires no station for hammer construction"), FryingPan->RequiredStation.IsEmpty());
         TestEqual(TEXT("Frying pan costs one material stack"), FryingPan->Ingredients.Num(), 1);
         if (FryingPan->Ingredients.Num() == 1)
         {
@@ -120,6 +120,10 @@ bool FKalmalaCraftingTransactionsTest::RunTest(const FString& Parameters)
         {TEXT("WorkbenchToolRackKit"), {{TEXT("Wood"),6}}},
         {TEXT("ForgeAnvilKit"), {{TEXT("Wood"),9},{TEXT("Stone"),4}}},
         {TEXT("GrindingStoneKit"), {{TEXT("Wood"),6},{TEXT("Stone"),4}}},
+        {TEXT("StorageKit"), {{TEXT("Wood"),6}}},
+        {TEXT("CookingRackKit"), {{TEXT("Wood"),9}}},
+        {TEXT("CauldronKit"), {{TEXT("Wood"),9},{TEXT("Stone"),3}}},
+        {TEXT("FryingPanKit"), {{TEXT("Iron"),5}}},
     };
     for (const FExpectedBuildCost& Expected : DirectBuildCosts)
     {

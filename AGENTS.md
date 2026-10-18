@@ -123,6 +123,14 @@ If the final implementation task in a milestone has been completed but milestone
 
 ## Item addition completeness
 
+Portable construction kits are forbidden. Every player-placed object must use a
+direct-material Building Hammer recipe and server-validated material payment.
+Keep placed-object metadata in the buildable catalogue, never in inventory Items.
+Do not add recipes, loot, grants, pickups, storage entries or save restoration
+that create a construction object as a portable item. New buildables require
+placement support and a complete direct-material recipe; there is no kit fallback.
+Legacy internal construction IDs ending in Kit identify placed objects only.
+
 When adding a gameplay item, treat the item as incomplete until it has an original generated inventory icon prepared and integrated through the established icon workflow (see `docs/material-icons.md` and the relevant icon provenance guide). Add the icon to the runtime mapping and catalogue icon validation as required by the existing pipeline.
 
 Author every applicable item catalogue JSON entry and register its file in `Content/Data/GameCatalogues.json`. Depending on the item, this includes its ordinary item definition, equipment profile, acquisition or crafting recipe, level-up costs and stat rewards, and attack data. Keep IDs and cross-references consistent, and run the relevant JSON/reference and icon checks. Do not invent unsupported behavior or costs; explicitly document any category intentionally deferred or not applicable, such as an acquisition source or combat behavior.

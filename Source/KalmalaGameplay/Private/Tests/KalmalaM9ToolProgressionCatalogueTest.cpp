@@ -322,7 +322,7 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
             TEXT("ForgeAnvilKit"), TEXT("ForgeKit"), 100.0f, true, true, AttachmentReason));
 
     const UKalmalaItemCatalogue* Items = UKalmalaItemCatalogue::Get();
-    const FKalmalaItemDefinition* ForgeKit = Items->FindItem(TEXT("ForgeKit"));
+    const FKalmalaItemDefinition* ForgeKit = Items->FindBuildable(TEXT("ForgeKit"));
     TestNotNull(TEXT("Forge kit is in the item catalogue"), ForgeKit);
     const FKalmalaRecipe* ForgeRecipe = UKalmalaRecipeCatalogue::Get()->Find(TEXT("Forge"));
     TestNotNull(TEXT("Forge has a paid build recipe"), ForgeRecipe);

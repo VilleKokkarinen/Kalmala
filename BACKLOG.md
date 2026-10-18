@@ -87,6 +87,8 @@ that increment and keep the remaining work in this order.
 
 ## User-requested fixes
 
+- [x] Remove all portable construction kits, separate buildable metadata from inventory, require direct-material hammer placement for every object, and guard against future kit generation.
+
 - [x] Reuse the Options ornament as the centered divider between inventory and equipment within the existing one-tile gap.
 
 - [x] Move Grinding Stone from Workbench crafting to direct-material hammer construction only, retaining its 6 Wood / 4 Stone cost.

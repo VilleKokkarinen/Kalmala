@@ -96,7 +96,7 @@ bool UKalmalaStationContextWidget::OpenForStation(AKalmalaConstructionActor* Sta
     ServiceContent->RemoveFromParent();
     ContentBox->SetContent(ServiceContent);
 
-    const FKalmalaItemDefinition* StationItem = UKalmalaItemCatalogue::Get()->FindItem(ContextKit);
+    const FKalmalaItemDefinition* StationItem = UKalmalaItemCatalogue::Get()->FindDefinition(ContextKit);
     StationTitle->SetText(FText::FromString(StationItem ? StationItem->DisplayName : ContextKit.ToString()));
     SectionTitle->SetText(FText::FromString(Section.TrimStartAndEnd()));
 

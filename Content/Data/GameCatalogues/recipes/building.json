@@ -240,9 +240,7 @@
       "Output": "FryingPan",
       "OutputCount": 1,
       "MaxBatch": 1,
-      "RequiredStation": [
-        "Forge"
-      ],
+      "RequiredStation": [],
       "ExperienceSkill": "None",
       "ExperienceAward": 0,
       "bEnabled": true
