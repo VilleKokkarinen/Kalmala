@@ -87,6 +87,8 @@ that increment and keep the remaining work in this order.
 
 ## User-requested fixes
 
+- [x] Repair menu preview cache dependency mismatch by building the complete Editor target and invalidating the cache for all native project sources.
+
 - [x] Present Worn Gear in the reference body layout with empty slot silhouettes, equipped catalogue icons, and inventory plank/tile backgrounds.
 
 - [x] Keep equipped tools in their assigned hotbar cells, mark the exact equipped copy blue, and toggle with the same number key.

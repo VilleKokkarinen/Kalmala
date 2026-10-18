@@ -124,17 +124,18 @@ foreach ($directory in @('Source','Config','Content')) {
 }
 Copy-Item -LiteralPath (Join-Path $sourceRoot 'Kalmala.uproject') -Destination (Join-Path $Cache 'Kalmala.uproject')
 $project = Join-Path $Cache 'Kalmala.uproject'
-$nativeSources = foreach ($module in @('KalmalaUI','KalmalaEditor','KalmalaGameplay')) {
-    Get-ChildItem -LiteralPath (Join-Path $sourceRoot "Source/$module") -Recurse -File |
-        Sort-Object FullName | ForEach-Object { (Get-RelativePath $sourceRoot $_.FullName) + ':' + (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash }
-}
+$nativeSources = Get-ChildItem -LiteralPath (Join-Path $sourceRoot 'Source') -Recurse -File |
+    Sort-Object FullName | ForEach-Object { (Get-RelativePath $sourceRoot $_.FullName) + ':' + (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash }
+$nativeSources += 'Kalmala.uproject:' + (Get-FileHash -LiteralPath $project -Algorithm SHA256).Hash
 $sourceDigest = Get-Sha256Hex ([Text.Encoding]::UTF8.GetBytes(($nativeSources -join "`n")))
 $stamp = Join-Path $Cache 'menu-source.sha256'
 if ($BuildModules) {
     $engine = Split-Path (Split-Path (Split-Path $EditorCmd))
+    # A module-only link may use stale dependency import libraries from a seeded cache.
+    # Build the target so World/Core and their consumers remain binary-compatible.
     & (Join-Path $engine 'Build/BatchFiles/Build.bat') KalmalaEditor Win64 Development "-Project=$project" `
-        -Module=KalmalaUI -Module=KalmalaEditor -Module=KalmalaGameplay -WaitMutex -NoHotReload -MaxParallelActions=4
-    if ($LASTEXITCODE -ne 0) { throw 'Menu module compilation failed.' }
+        -WaitMutex -NoHotReload -MaxParallelActions=4 -gather
+    if ($LASTEXITCODE -ne 0) { throw 'Menu editor target compilation failed.' }
     [IO.File]::WriteAllText($stamp, $sourceDigest)
 }
 if (!(Test-Path -LiteralPath $stamp) -or [IO.File]::ReadAllText($stamp) -ne $sourceDigest) {

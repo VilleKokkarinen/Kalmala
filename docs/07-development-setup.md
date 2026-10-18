@@ -4001,7 +4001,13 @@ there. `-Menu inventory` selects one menu. For a single menu,
 alone; when rendering a menu set, `-Output <directory>` selects the destination
 folder. `-Cache` changes the default cache and therefore the default PNG and log
 locations. The renderer supports Windows PowerShell 5.1 and requires a compiled
-editor cache; use `-BuildModules` when the cache needs its first build.
+editor cache; use `-BuildModules` when the cache needs its first build or any
+native project source changes. Despite the flag's name, it builds the complete
+Editor target incrementally, keeping Core/World dependencies and menu modules
+binary-compatible. The cache stamp includes all files under Source (including
+target/build rules) and Kalmala.uproject. Unchanged renders reuse the cache.
+If an older seeded cache reports a game module load failure with Windows error
+127, rebuild it with `Scripts/Render-Menu.ps1 -Menu inventory -BuildModules`.
 Accessibility previews use `-TextScale 50` through `150` (the widget snaps to
 its five supported values) and `-Contrast -1`, `0`, or `1` for Low, Standard,
 or High contrast.
