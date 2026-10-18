@@ -47,7 +47,7 @@ maps.
 - [x] Add and integrate a bounded channel profile: set river water to Z=0,
   place the channel floor below it, and apply the result after the land/coast
   clamp using the existing river influence width.
-- [ ] Extend the profile into a smooth two-sided bank shoulder and confirm it
+- [x] Extend the profile into a smooth two-sided bank shoulder and confirm it
   returns to the original terrain outside its influence radius.
 - [ ] Preserve lake-basin level precedence where rivers overlap and confirm
   river shaping does not move the ocean coast outside the channel corridor.

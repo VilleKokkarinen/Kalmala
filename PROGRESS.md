@@ -1,3 +1,30 @@
+## Autonomous increment 2026-10-18 — Smooth river bank shoulders
+
+- **Completed/files:** extended the post-clamp river profile through the configured
+  1800 cm shoulder in `Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp`.
+  A single cubic distance blend spans both banks and returns exactly to the
+  incoming terrain at channel width plus shoulder. Expanded segment indexing
+  and candidate search padding to cover that envelope; maximum influence avoids
+  repeated carving at joins. Kept the narrow RiverWeight signal and stream
+  profile. Activated the tuning-header comment, updated the architecture
+  contract, and checked only the selected existing `BACKLOG.md` checkbox.
+- **Checks:** focused source assertions for profile, spatial-index extent,
+  post-clamp ordering and stream filtering passed. Numeric formula evaluation
+  passed 3005 symmetric, bounded, monotonic cross-section cases over five terrain
+  heights, plus endpoint-slope, unchanged-exterior and index-boundary checks.
+  These are formula/source checks, not compiled Unreal sampler execution.
+  Diff inspection, whitespace, staged scope and MAX_PATH checks passed.
+- **Impact/authority:** shared deterministic terrain now has a broad smooth bank
+  transition rather than returning to high ground within the narrow channel.
+  No RPC, replication, client authority or saved-data changes.
+- **Limits/next:** normal increment, not milestone-final; Unreal build, runtime
+  regressions, preview tuning and peer checks remain deferred to queued gates.
+  Lake overlap behavior remains unchanged and needs the next eligible task:
+  preserve lake-basin precedence and confirm coast isolation outside corridors.
+- **Handoff:** only this Kalmala chat active in app inventory; CIM unavailable.
+  Main checkout used directly, so no handoff synchronization needed. Both
+  pre-existing catalogue/UI asset edits remain untouched and excluded.
+
 ## Autonomous increment 2026-10-18 — Carve bounded sea-level river channels
 
 - **Completed/files:** integrated river-only sea-level carving in

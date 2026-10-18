@@ -257,12 +257,15 @@ The generator uses `FKalmalaMasterMap`: an independent fixed-seed 128 km land/wa
 The master seed is a compiled constant. Crop transforms derive from the game seed. Rivers remain enabled and small streams are disabled. Authority, population IDs, collision and maps derive from the same server-owned seed and current build.
 
 River channels now use sea-level water (Z=0) outside basin supports. After the
-source land/coast clamp, the maximum existing spline influence smoothly lowers
+source land/coast clamp, the maximum bank-profile influence smoothly lowers
 terrain toward an 80 cm below-sea bed without raising already deeper terrain.
-The profile is bounded by the existing channel width; outside it the source
-shore constraint remains unchanged. Basin support attenuates this carving and
-retains its water level. Wider bank shoulders and lake/channel joins remain
-queued implementation work; enabled debug streams retain their prior profile.
+The profile uses cubic smoothstep from 20% of the channel width to the channel
+width plus an 1800 cm shoulder, symmetrically by segment distance. Its slope
+vanishes at both ends; beyond that radius terrain is unchanged. The spatial
+index includes this full envelope. The existing narrow RiverWeight signal is
+retained separately. Basin support attenuates carving and retains its water
+level; lake/channel joins remain queued. Enabled debug streams keep their prior
+profile.
 
 The developer `ExportWorldMaps` commandlet can temporarily install thread-local preview tuning, with installation rejected outside headless commandlets. Each render restores defaults and invalidates derived crop/hydrology caches. Its fast biome query shares the normal regional/basin classifier while skipping hydrology and height-only work; default output is checked against full sampling. A warm parameter-file watcher writes PNGs without starting gameplay. This adds no runtime console setting, client authority, replicated property, production-layout setting or save change; see `07-development-setup.md` for the workflow.
 

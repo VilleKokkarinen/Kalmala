@@ -49,8 +49,8 @@ namespace
         TArray<FKalmalaHydrologySegment> Result;
         const FVector2D Lower = FVector2D(Index) * T::GridCell;
         const FVector2D Upper = Lower + FVector2D(T::GridCell);
-        const auto Min = CellAt(Lower - FVector2D(T::RiverRange + T::SplineAmplitude + 1000), T::RiverSpacing);
-        const auto Max = CellAt(Upper + FVector2D(T::RiverRange + T::SplineAmplitude + 1000), T::RiverSpacing);
+        const auto Min = CellAt(Lower - FVector2D(T::RiverRange + T::SplineAmplitude + T::RiverBankExtent + 1000), T::RiverSpacing);
+        const auto Max = CellAt(Upper + FVector2D(T::RiverRange + T::SplineAmplitude + T::RiverBankExtent + 1000), T::RiverSpacing);
         for (int32 Kind = 0; Kind < (G::AreStreamsEnabled(C) ? 2 : 1); ++Kind)
         for (int32 Y = Min.Y; Y <= Max.Y; ++Y) for (int32 X = Min.X; X <= Max.X; ++X)
         {
@@ -88,9 +88,10 @@ namespace
             {
                 const FVector P = Point(double(I) / Count), Q = Point(double(I + 1) / Count);
                 const float Width = Stream ? 220.0f : 600.0f;
-                // Spatial index includes the full influence envelope, not just endpoints.
-                if (FMath::Max(P.X, Q.X) + Width < Lower.X || FMath::Min(P.X, Q.X) - Width > Upper.X
-                    || FMath::Max(P.Y, Q.Y) + Width < Lower.Y || FMath::Min(P.Y, Q.Y) - Width > Upper.Y) continue;
+                // Spatial index includes the bank shoulder, not just the wet channel.
+                const double Extent = Width + (Stream ? 0.0 : T::RiverBankExtent);
+                if (FMath::Max(P.X, Q.X) + Extent < Lower.X || FMath::Min(P.X, Q.X) - Extent > Upper.X
+                    || FMath::Max(P.Y, Q.Y) + Extent < Lower.Y || FMath::Min(P.Y, Q.Y) - Extent > Upper.Y) continue;
                 Result.Add({ P, Q, Width, Stream, A.Id });
             }
         }
@@ -266,7 +267,7 @@ FKalmalaRegionalSample FKalmalaRegionalGeneration::SampleInternal(const FKalmala
         R.BasinWeight = (1 - Smooth(0.65, 1.0, D)) * LakeEligibility;
     }
 
-    double Sum = 0, Water = 0, Influence = 0;
+    double Sum = 0, Water = 0, Influence = 0, RiverBankInfluence = 0;
     const auto Segments = bBiomeOnly ? TArray<FKalmalaHydrologySegment>() : GetHydrology(C, CellAt(P, T::GridCell));
     for (const auto& S : Segments)
     {
@@ -274,12 +275,15 @@ FKalmalaRegionalSample FKalmalaRegionalGeneration::SampleInternal(const FKalmala
         const double U = Projection.U;
         const double Distance = Projection.Distance;
         const double W = 1 - Smooth(S.Width * 0.2, S.Width, Distance);
-        if (W <= 0) continue;
         if (!S.bStream)
         {
             R.RiverWeight = FMath::Max(R.RiverWeight, float(W));
+            // One smooth distance profile spans the bed and both bank shoulders.
+            const double Bank = 1 - Smooth(S.Width * 0.2, S.Width + T::RiverBankExtent, Distance);
+            RiverBankInfluence = FMath::Max(RiverBankInfluence, Bank);
             continue;
         }
+        if (W <= 0) continue;
         const double Level = FMath::Lerp(S.A.Z, S.B.Z, U);
         Sum += W;
         Water += W * Level;
@@ -301,11 +305,11 @@ FKalmalaRegionalSample FKalmalaRegionalGeneration::SampleInternal(const FKalmala
             : FMath::Max(R.Height, FMath::Min(Source, 1.0f));
         if (F.Elevation <= T::SeaElevation) R.WaterLevel = 0;
     }
-    if (R.RiverWeight > 0 && BasinSupport < 1)
+    if (RiverBankInfluence > 0 && BasinSupport < 1)
     {
         // Carve after the land clamp so high ground cannot refill the channel.
         // Maximum influence across segments avoids repeated carving at joins.
-        const float W = R.RiverWeight * (1 - BasinSupport);
+        const float W = RiverBankInfluence * (1 - BasinSupport);
         const float Bed = -float(T::RiverBedDepth);
         R.Height = FMath::Lerp(R.Height, FMath::Min(R.Height, Bed), W);
         if (BasinSupport == 0) R.WaterLevel = 0;

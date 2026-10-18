@@ -22,7 +22,7 @@ struct FKalmalaRegionalTuning
     static constexpr double MergeDistance = 5000.0;
     static constexpr double RiverRange = 28000.0;
     static constexpr double RiverBedDepth = 80.0; // Positive depth below water, cm.
-    static constexpr double RiverBankExtent = 1800.0; // Reserved shoulder beyond channel width, cm.
+    static constexpr double RiverBankExtent = 1800.0; // Bank shoulder beyond channel width, cm.
     static constexpr double SplineAmplitude = 1200.0;
     static constexpr double SplineWavelength = 10000.0;
     static constexpr double SplineStep = 250.0;
