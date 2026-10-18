@@ -78,8 +78,12 @@ bool FKalmalaRecipeBrowseTest::RunTest(const FString& Parameters)
         TestTrue(TEXT("Direct construction retains its material action"), Widget->CanBuildMenuCraftRecipe(*Floor));
     if (TestNotNull(TEXT("Forge-required Frying Pan recipe"), Pan))
         TestFalse(TEXT("Forge-required production stays in its service menu"), Widget->CanBuildMenuCraftRecipe(*Pan));
-    if (TestNotNull(TEXT("Workbench-required Grinding Stone recipe"), Stone))
-        TestFalse(TEXT("Workbench-required production stays in its service menu"), Widget->CanBuildMenuCraftRecipe(*Stone));
+    if (TestNotNull(TEXT("Direct Grinding Stone recipe"), Stone))
+    {
+        TestTrue(TEXT("Grinding Stone is built from the hammer menu"), Widget->CanBuildMenuCraftRecipe(*Stone));
+        TestTrue(TEXT("Grinding Stone cannot match Workbench crafting"), Stone->RequiredStation.IsEmpty());
+        TestTrue(TEXT("Grinding Stone cannot produce a portable kit"), Stone->Output.IsNone());
+    }
     if (TestNotNull(TEXT("Workbench Tool Rack attachment recipe"), ToolRack))
     {
         TestTrue(TEXT("Tool Rack placement is available from the Build menu"), Widget->CanBuildMenuCraftRecipe(*ToolRack));

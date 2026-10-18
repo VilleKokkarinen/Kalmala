@@ -127,7 +127,8 @@ bool UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(const FName BuildableId)
 {
     return BuildableId == TEXT("CampfireKit") || BuildableId == TEXT("FloorKit") || BuildableId == TEXT("WallKit")
         || BuildableId == TEXT("RoofKit") || BuildableId == TEXT("WorkbenchKit") || BuildableId == TEXT("ForgeKit")
-        || BuildableId == TEXT("WorkbenchToolRackKit") || BuildableId == TEXT("ForgeAnvilKit");
+        || BuildableId == TEXT("WorkbenchToolRackKit") || BuildableId == TEXT("ForgeAnvilKit")
+        || BuildableId == TEXT("GrindingStoneKit");
 }
 
 bool UKalmalaRecipeCatalogue::BuildDirectMaterialCost(const FName BuildableId,

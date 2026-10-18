@@ -206,9 +206,7 @@
       "Output": "GrindingStone",
       "OutputCount": 1,
       "MaxBatch": 1,
-      "RequiredStation": [
-        "Workbench"
-      ],
+      "RequiredStation": [],
       "ExperienceSkill": "None",
       "ExperienceAward": 0,
       "bEnabled": true

@@ -2757,7 +2757,7 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
     RecipeCategory = 0;
     bRecipeNameSort = false;
     const TArray<int32> WorkbenchIndices = GetVisibleRecipeIndices();
-    bool bHasGrindingStone = false;
+    bool bGrindingStoneExcluded = true;
     bool bToolRackExcluded = true;
     bool bNoUnrelatedRecipes = true;
     const auto& Recipes = UKalmalaRecipeCatalogue::Get()->Recipes;
@@ -2765,10 +2765,15 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
     {
         if (!Recipes.IsValidIndex(RecipeIndex)) { bNoUnrelatedRecipes = false; continue; }
         const FKalmalaRecipe& Recipe = Recipes[RecipeIndex];
-        bHasGrindingStone |= Recipe.Output == TEXT("GrindingStoneKit");
+        bGrindingStoneExcluded &= Recipe.GetOutputIdentity() != TEXT("GrindingStoneKit");
         bToolRackExcluded &= Recipe.GetOutputIdentity() != TEXT("WorkbenchToolRackKit");
         bNoUnrelatedRecipes &= Recipe.RequiredStation.Contains(TEXT("WorkbenchKit"));
     }
+    const FKalmalaRecipe* GrindingStoneRecipe = Recipes.FindByPredicate([](const FKalmalaRecipe& Recipe)
+        { return Recipe.RecipeId == TEXT("GrindingStone"); });
+    const bool bGrindingStoneBuildRoute = GrindingStoneRecipe
+        && GrindingStoneRecipe->BuildableOutput == TEXT("GrindingStoneKit")
+        && GrindingStoneRecipe->Output.IsNone() && CanBuildMenuCraftRecipe(*GrindingStoneRecipe);
     const FString WorkbenchToolOptions = Model()
         ? Model()->GetToolProgressionText(TEXT("WorkbenchKit")) : FString();
     const FString ForgeToolOptions = Model()
@@ -2894,8 +2899,8 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
     const bool bCauldronScope = VerifyCauldronScopeForTest();
     const bool bFryingPanScope = VerifyFryingPanScopeForTest();
     const bool bChestScope = VerifyStorageContextScopeForTest();
-    UE_LOG(LogTemp, Display, TEXT("Workbench Craft scope: NoBronzeAxe=%d GrindingStone=%d ToolRackExcluded=%d NoUnrelated=%d NoToolOptions=%d StationLevel=%d UiScope=%d"),
-        !bBronzeAxeScoped, bHasGrindingStone, bToolRackExcluded, bNoUnrelatedRecipes, bNoWorkbenchToolOptions, bWorkbenchLevelShown, bWorkbenchUiScope);
+    UE_LOG(LogTemp, Display, TEXT("Workbench Craft scope: NoBronzeAxe=%d GrindingStoneExcluded=%d GrindingStoneInBuild=%d ToolRackExcluded=%d NoUnrelated=%d NoToolOptions=%d StationLevel=%d UiScope=%d"),
+        !bBronzeAxeScoped, bGrindingStoneExcluded, bGrindingStoneBuildRoute, bToolRackExcluded, bNoUnrelatedRecipes, bNoWorkbenchToolOptions, bWorkbenchLevelShown, bWorkbenchUiScope);
     UE_LOG(LogTemp, Display, TEXT("Forge Craft scope: FryingPan=%d AnvilInBuild=%d AnvilExcluded=%d BronzeAxe=%d Materials=%d Station=%d NoUnrelated=%d Route=%d StationLevel=%d UiScope=%d"),
         bHasFryingPan, bForgeAnvilBuildRoute, bForgeAnvilExcluded, bBronzeAxeScoped, bFryingPanMaterials, bFryingPanStation,
         bForgeOnlyRecipes, bForgeInteractionRoute, bForgeLevelShown, bForgeUiScope);
@@ -2903,7 +2908,7 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
         && bKeyboardAdvanced && bKeyboardRestored && bControllerAdvanced && bControllerRestored && bScrollable
         && bSelectionKept && bCategoryWorked && bNoResults && bRestored && bSearchFocusSafe
         && bBuildMenuCleanup && bBuildGroups && bBuildSelection && bBuildKeys && bBuildEmpty
-        && bForgeAnvilBuildRoute && bWorkbenchToolRackBuildRoute && bBronzeAxeScoped && bHasGrindingStone
+        && bForgeAnvilBuildRoute && bWorkbenchToolRackBuildRoute && bBronzeAxeScoped && bGrindingStoneExcluded && bGrindingStoneBuildRoute
         && bToolRackExcluded && bNoUnrelatedRecipes
         && bNoWorkbenchToolOptions && bWorkbenchLevelShown && bWorkbenchUiScope && bWorkbenchRepairScope && bForgeUpgradeScope
         && bForgeRepairScope

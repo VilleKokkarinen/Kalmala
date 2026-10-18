@@ -518,8 +518,9 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
     TestNotNull(TEXT("Grinding Stone recipe loads"), GrindingStone);
     if (GrindingStone)
     {
-        TestEqual(TEXT("Clean output identity maps to the existing construction identity"), GrindingStone->Output, FName(TEXT("GrindingStoneKit")));
-        TestTrue(TEXT("Clean station identity maps to the existing station identity"), GrindingStone->RequiredStation.Contains(TEXT("WorkbenchKit")));
+        TestEqual(TEXT("Grinding Stone maps to direct construction"), GrindingStone->BuildableOutput, FName(TEXT("GrindingStoneKit")));
+        TestTrue(TEXT("Grinding Stone does not produce an inventory kit or require Workbench"),
+            GrindingStone->Output.IsNone() && GrindingStone->RequiredStation.IsEmpty());
     }
     for (const FName Id : {FName(TEXT("Wood")), FName(TEXT("Stone")),
         FName(TEXT("Lightwood")), FName(TEXT("Densewood")), FName(TEXT("Coal"))})

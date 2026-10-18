@@ -1,5 +1,21 @@
 # Development setup
 
+## Grinding Stone hammer-only construction — 2026-10-18
+
+Grinding Stone uses the hammer Build menu and consumes 6 Wood plus 4 Stone
+during server-validated placement. It requires no Workbench and cannot be
+crafted into a portable kit. Its existing icon, construction identity, save
+record and in-world Repair All interaction are unchanged.
+
+`Kalmala.Gameplay.Crafting.Transactions` covers the direct material cost and
+`Kalmala.UI.Crafting.LocalBrowsing` covers Build eligibility; both passed after
+an incremental Editor build. The Workbench render no longer lists Grinding
+Stone. Updated catalogue/GrindingStoneRepairAll routing assertions compiled,
+but those two larger cases fail on unchanged catalogue-copy/count and repair
+fixture expectations; see PROGRESS.md for evidence and limits. The live crafting
+runner now expects GrindingStoneExcluded and GrindingStoneInBuild scope signals.
+Live placement, peers and full verification remain deferred.
+
 ## Hammer controls / bow draw-and-release regression — 2026-10-18
 
 Hammer is construction-only again: left click places selected pieces, right click
