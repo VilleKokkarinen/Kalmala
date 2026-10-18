@@ -184,7 +184,7 @@ uint8 FKalmalaRegionalGeneration::SampleBiome(const FKalmalaWorldFieldSample& F)
     return SampleInternal(F, true).Biome;
 }
 
-FKalmalaRegionalSample FKalmalaRegionalGeneration::SampleInternal(const FKalmalaWorldFieldSample& F, bool bBiomeOnly)
+FKalmalaRegionalSample FKalmalaRegionalGeneration::SampleInternal(const FKalmalaWorldFieldSample& F, bool bBiomeOnly, bool bSkipHydrology)
 {
     const auto& Preview = FKalmalaGenerationPreview::Get();
     const FKalmalaWorldGenerationConfig C{ F.WorldSeed };
@@ -268,7 +268,7 @@ FKalmalaRegionalSample FKalmalaRegionalGeneration::SampleInternal(const FKalmala
     }
 
     double Sum = 0, Water = 0, Influence = 0, RiverBankInfluence = 0;
-    const auto Segments = bBiomeOnly ? TArray<FKalmalaHydrologySegment>() : GetHydrology(C, CellAt(P, T::GridCell));
+    const auto Segments = (bBiomeOnly || bSkipHydrology) ? TArray<FKalmalaHydrologySegment>() : GetHydrology(C, CellAt(P, T::GridCell));
     for (const auto& S : Segments)
     {
         const auto Projection = ProjectHydrologySegment(P, S);

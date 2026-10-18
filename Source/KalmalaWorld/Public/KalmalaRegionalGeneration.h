@@ -38,5 +38,7 @@ struct KALMALAWORLD_API FKalmalaRegionalGeneration
     static uint64 Seed(const FKalmalaWorldGenerationConfig& Config, uint64 Domain, FIntPoint Cell = FIntPoint::ZeroValue);
     static double Noise(const FKalmalaWorldGenerationConfig& Config, uint64 Domain, FVector2D Position, double Frequency);
 private:
-    static FKalmalaRegionalSample SampleInternal(const FKalmalaWorldFieldSample& Fields, bool bBiomeOnly);
+    friend class FKalmalaRiverBankCrossSectionTest;
+    // Private regression control: retain all land/basin shaping, omit only courses.
+    static FKalmalaRegionalSample SampleInternal(const FKalmalaWorldFieldSample& Fields, bool bBiomeOnly, bool bSkipHydrology = false);
 };

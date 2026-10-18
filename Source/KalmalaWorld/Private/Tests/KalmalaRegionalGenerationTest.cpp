@@ -47,6 +47,100 @@ bool FKalmalaHighGroundRiverCenterTest::RunTest(const FString& Parameters)
     return false;
 }
 
+// Compare the real sampler against the same land shaping with courses omitted.
+// Eligibility is decided before assertions, never by the observed carved height.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaRiverBankCrossSectionTest,
+    "Kalmala.World.Regional.RiverBankCrossSection",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+bool FKalmalaRiverBankCrossSectionTest::RunTest(const FString& Parameters)
+{
+    using G = FKalmalaRegionalGeneration;
+    using T = FKalmalaRegionalTuning;
+    const FKalmalaWorldGenerationConfig Config{418ull};
+    struct FPoint { FVector2D Position; FKalmalaRegionalSample Base; double Influence; };
+    constexpr int32 Steps = 64;
+    for (int32 Y = -24; Y <= 24; ++Y)
+    for (int32 X = -24; X <= 24; ++X)
+    for (const auto& Segment : G::GetHydrology(Config, FIntPoint(X, Y)))
+    {
+        if (Segment.bStream) continue;
+        const FVector2D Center((Segment.A + Segment.B) * 0.5);
+        const auto CenterBase = G::SampleInternal(FKalmalaWorldFieldSampler::Sample(Config, Center), false, true);
+        if (CenterBase.Height < 400 || CenterBase.Weights[1] + CenterBase.Weights[3] > 0) continue;
+        const FVector2D Direction = FVector2D(Segment.B - Segment.A).GetSafeNormal();
+        if (Direction.IsNearlyZero()) continue;
+        const FVector2D Normal(-Direction.Y, Direction.X);
+        const double Radius = Segment.Width + T::RiverBankExtent;
+        TArray<FPoint> Points;
+        bool bEligible = true;
+        // Include the entire shoulder plus a substantial unchanged exterior.
+        for (int32 I = -Steps; I <= Steps; ++I)
+        {
+            const FVector2D P = Center + Normal * (1.5 * Radius * I / Steps);
+            const auto Fields = FKalmalaWorldFieldSampler::Sample(Config, P);
+            const auto Base = G::SampleInternal(Fields, false, true);
+            if (Base.Weights[1] + Base.Weights[3] > 0 || Base.Height < 400)
+            { bEligible = false; break; }
+            double Influence = 0;
+            const FIntPoint Cell(FMath::FloorToInt(P.X / T::GridCell), FMath::FloorToInt(P.Y / T::GridCell));
+            for (const auto& S : G::GetHydrology(Config, Cell))
+            {
+                if (S.bStream) continue;
+                const FVector2D A(S.A), Delta = FVector2D(S.B) - A;
+                const double U = FMath::Clamp(FVector2D::DotProduct(P - A, Delta) / Delta.SizeSquared(), 0.0, 1.0);
+                const double Distance = (P - A - Delta * U).Size();
+                const double Taper = FMath::Clamp((Distance - S.Width * 0.2)
+                    / (S.Width + T::RiverBankExtent - S.Width * 0.2), 0.0, 1.0);
+                Influence = FMath::Max(Influence, 1 - Taper * Taper * (3 - 2 * Taper));
+            }
+            Points.Add({P, Base, Influence});
+        }
+        if (!bEligible || Points.Num() != 2 * Steps + 1) continue;
+        // Avoid neighboring bends/courses that hide the outer edge of either bank.
+        if (Points[0].Influence != 0 || Points.Last().Influence != 0) continue;
+        bool bMonotone = true;
+        for (int32 I = 1; I <= Steps; ++I)
+            bMonotone &= Points[Steps - I].Influence <= Points[Steps - I + 1].Influence
+                && Points[Steps + I].Influence <= Points[Steps + I - 1].Influence;
+        if (!bMonotone) continue;
+
+        int32 Shoulder[2] = {}, Exterior[2] = {};
+        for (int32 I = 0; I < Points.Num(); ++I)
+        {
+            const auto& P = Points[I];
+            const auto Actual = G::Sample(Config, P.Position);
+            const float Expected = FMath::Lerp(P.Base.Height, -float(T::RiverBedDepth), float(P.Influence));
+            TestTrue(TEXT("Both banks follow the continuous cubic shoulder"),
+                FMath::IsNearlyEqual(Actual.Height, Expected, 0.02f));
+            const int32 Side = I < Steps ? 0 : 1;
+            if (P.Influence > 0 && P.Influence < 1) ++Shoulder[Side];
+            if (P.Influence == 0)
+            {
+                ++Exterior[Side];
+                TestEqual(TEXT("Beyond either bank terrain is exactly unchanged"), Actual.Height, P.Base.Height);
+                TestEqual(TEXT("Beyond either bank water output is unchanged"), Actual.WaterLevel, P.Base.WaterLevel);
+                TestEqual(TEXT("Beyond either bank water presence is unchanged"), Actual.bHasWater, P.Base.bHasWater);
+            }
+            // Tiny physical steps test continuity throughout each bank and its return.
+            for (const double Sign : {-1.0, 1.0})
+            {
+                const auto Nearby = G::Sample(Config, P.Position + Normal * (Sign * 0.01));
+                TestTrue(TEXT("Bank and exterior have no height step"), FMath::Abs(Nearby.Height - Actual.Height) < 0.1f);
+            }
+        }
+        for (int32 Side = 0; Side < 2; ++Side)
+        {
+            TestTrue(TEXT("Each bank includes multiple shoulder samples"), Shoulder[Side] > 8);
+            TestTrue(TEXT("Each bank includes multiple unchanged exterior samples"), Exterior[Side] > 4);
+        }
+        AddInfo(FString::Printf(TEXT("River cross-section seed=418 center=(%.3f,%.3f) radius=%.3f samples=%d"),
+            Center.X, Center.Y, Radius, Points.Num()));
+        return true;
+    }
+    AddError(TEXT("No high-ground basin-free two-bank cross-section found in bounded seed-418 search"));
+    return false;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaRegionalGenerationTest, "Kalmala.World.Regional.Integrated",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 bool FKalmalaRegionalGenerationTest::RunTest(const FString& Parameters)

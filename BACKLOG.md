@@ -57,7 +57,7 @@ maps.
   confirm the expanded map classifies the carved channel as water.
 - [x] Add a focused regression for a high-ground river center: water level is
   Z=0 and the sampled bed lies below it.
-- [ ] Add a cross-section regression for both banks, including the smooth
+- [x] Add a cross-section regression for both banks, including the smooth
   return to unchanged terrain beyond the bank influence.
 - [ ] Add a same-seed repeatability regression for river height and water
   samples, plus a different-seed variation check.

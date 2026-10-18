@@ -1,3 +1,30 @@
+## Autonomous increment 2026-10-18 — Cover both river banks
+
+- **Completed/files:** added `Kalmala.World.Regional.RiverBankCrossSection` in
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`. Bounded
+  seed-418 search selects a high-land, basin-free cross-section with unobstructed
+  exterior on both sides. Checks 129 positions against the cubic bank profile,
+  multiple shoulder/exterior samples per side, exact unchanged exterior height,
+  water level/presence, and sub-centimetre height continuity. Missing fixture
+  fails explicitly. Added a private friend-only hydrology omission control in
+  `KalmalaRegionalGeneration.h/.cpp` to obtain identical underlying land shaping;
+  production callers retain the default hydrology path. Checked only the
+  selected existing BACKLOG checkbox.
+- **Checks:** careful source/control-flow and diff inspection; focused assertions
+  for two-sided coverage, baseline isolation, exterior equality, continuity,
+  missing-fixture failure and runner discovery; numeric cubic-profile sanity
+  checks; whitespace, staged scope and MAX_PATH checks passed. These are source
+  and formula checks, not compiled sampler execution.
+- **Impact/authority:** regression coverage only; default generation behavior,
+  RPCs, replication, server authority and save formats are unchanged.
+- **Limits/next:** normal increment; full verification deferred. No Unreal build,
+  automation execution, rendering or peer checks ran. Queued build/automation
+  must confirm compilation, fixture availability and runtime assertions. Next
+  eligible task: same-seed height/water repeatability and different-seed variation.
+- **Handoff:** app inventory showed only this Kalmala chat active; CIM unavailable.
+  Main checkout directly, no synchronization needed. Both pre-existing uasset
+  edits preserved and excluded from this increment.
+
 ## Autonomous increment 2026-10-18 — Add high-ground river-center regression
 
 - **Completed/files:** added `Kalmala.World.Regional.HighGroundRiverCenter` in
