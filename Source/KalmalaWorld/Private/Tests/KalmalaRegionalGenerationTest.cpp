@@ -141,6 +141,68 @@ bool FKalmalaRiverBankCrossSectionTest::RunTest(const FString& Parameters)
     return false;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaRiverSeedRepeatabilityTest,
+    "Kalmala.World.Regional.RiverSeedRepeatability",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+bool FKalmalaRiverSeedRepeatabilityTest::RunTest(const FString& Parameters)
+{
+    using G = FKalmalaRegionalGeneration;
+    using T = FKalmalaRegionalTuning;
+    const FKalmalaWorldGenerationConfig Config{418ull}, OtherConfig{419ull};
+    TArray<FVector2D> Positions;
+    TSet<uint64> Courses;
+    G::ClearHydrologyCache();
+    // Use actual distinct courses so narrow rivers cannot fall between grid probes.
+    for (int32 Y = -24; Y <= 24 && Courses.Num() < 8; ++Y)
+    for (int32 X = -24; X <= 24 && Courses.Num() < 8; ++X)
+    for (const auto& Segment : G::GetHydrology(Config, FIntPoint(X, Y)))
+    {
+        if (Segment.bStream || Courses.Contains(Segment.Id)) continue;
+        const FVector2D Direction = FVector2D(Segment.B - Segment.A).GetSafeNormal();
+        if (Direction.IsNearlyZero()) continue;
+        const FVector2D Center((Segment.A + Segment.B) * 0.5);
+        if (G::Sample(Config, Center).RiverWeight < 0.999f) continue;
+        Courses.Add(Segment.Id);
+        const FVector2D Normal(-Direction.Y, Direction.X);
+        for (const double Offset : {-1.5, -0.5, 0.0, 0.5, 1.5})
+            Positions.Add(Center + Normal * ((Segment.Width + T::RiverBankExtent) * Offset));
+        if (Courses.Num() == 8) break;
+    }
+    if (!TestEqual(TEXT("Bounded search supplies eight distinct river courses"), Courses.Num(), 8)) return false;
+
+    TArray<FKalmalaRegionalSample> Baseline;
+    for (const FVector2D& P : Positions) Baseline.Add(G::Sample(Config, P));
+    const auto CheckRepeat = [this](const FKalmalaRegionalSample& A, const FKalmalaRegionalSample& B)
+    {
+        TestEqual(TEXT("Same seed reproduces exact river height"), B.Height, A.Height);
+        TestEqual(TEXT("Same seed reproduces exact water level"), B.WaterLevel, A.WaterLevel);
+        TestEqual(TEXT("Same seed reproduces water presence"), B.bHasWater, A.bHasWater);
+        TestEqual(TEXT("Same seed reproduces river influence"), B.RiverWeight, A.RiverWeight);
+    };
+    for (int32 I = 0; I < Positions.Num(); ++I)
+        CheckRepeat(Baseline[I], G::Sample(Config, Positions[I]));
+
+    G::ClearHydrologyCache();
+    int32 HeightChanges = 0, RiverChanges = 0;
+    // Reverse traversal after cache disposal and interleave a different seed.
+    // Compare identical world positions, not independently relocated fixtures.
+    for (int32 I = Positions.Num() - 1; I >= 0; --I)
+    {
+        const auto Other = G::Sample(OtherConfig, Positions[I]);
+        HeightChanges += FMath::Abs(Other.Height - Baseline[I].Height) > 0.01f;
+        RiverChanges += FMath::Abs(Other.RiverWeight - Baseline[I].RiverWeight) > 0.001f;
+        CheckRepeat(Baseline[I], G::Sample(Config, Positions[I]));
+    }
+    TestTrue(TEXT("Different seed changes river-area terrain at fixed positions"), HeightChanges > 0);
+    TestTrue(TEXT("Different seed moves river influence at fixed positions"), RiverChanges > 0);
+    // Sea-level water is deliberately invariant; seed variation must not require
+    // its plane to move. Height, wet/dry presence and water level all repeat above.
+    AddInfo(FString::Printf(TEXT("River repeatability seeds=418/419 courses=%d samples=%d heightChanges=%d riverChanges=%d"),
+        Courses.Num(), Positions.Num(), HeightChanges, RiverChanges));
+    G::ClearHydrologyCache();
+    return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaRegionalGenerationTest, "Kalmala.World.Regional.Integrated",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 bool FKalmalaRegionalGenerationTest::RunTest(const FString& Parameters)

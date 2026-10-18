@@ -59,7 +59,7 @@ maps.
   Z=0 and the sampled bed lies below it.
 - [x] Add a cross-section regression for both banks, including the smooth
   return to unchanged terrain beyond the bank influence.
-- [ ] Add a same-seed repeatability regression for river height and water
+- [x] Add a same-seed repeatability regression for river height and water
   samples, plus a different-seed variation check.
 - [ ] Add a hydrology-grid seam regression for channel height and water output.
 - [ ] Add a terrain-patch seam regression for channel height and sea-water

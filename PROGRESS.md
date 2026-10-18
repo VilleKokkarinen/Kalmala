@@ -3564,3 +3564,12 @@
 - **Impact/authority:** authoring-tool consolidation only. Checked-in audio source and packaged content, playback behavior, gameplay/server authority, networking, and saves are unchanged.
 - **Verification/limitations:** normal user-directed increment, not milestone-final. Waveform reproducibility was not exercised; game builds continue to use the committed source and Unreal assets.
 - **Next eligible work:** continue auditing remaining `Verify-*` coverage toward approximately 20 runners, then document the remaining non-`.ps1` support tools. M14 main integration remains pending.
+
+## Autonomous increment 2026-10-18 — River seed repeatability regression
+
+- **Completed:** added `Kalmala.World.Regional.RiverSeedRepeatability`. A bounded seed-418 search requires eight distinct generated river courses and samples five cross-section positions per course. Exact height, water level, water presence and river influence repeat with warm caches and after cache disposal, reverse query order and interleaved seed-419 sampling. Different-seed checks require terrain-height and river-influence variation at identical positions; the fixed sea plane is intentionally not required to vary. Missing fixtures fail explicitly.
+- **Files changed:** `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`, the selected checkbox in `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight verification:** 13 focused source assertions passed for fixture coverage, exact output comparisons, cache resets, reversed traversal and fixed-position seed variation; `git diff --check` passed. Inspected the added test against the public sampler API and existing fixture conventions. Staged scope and absolute path-length checks passed before commit.
+- **Impact/authority:** regression coverage only; production sampling, server authority, networking and save formats are unchanged. Existing regional automation-prefix selection includes this case.
+- **Limitations:** no Unreal build or automation execution performed in this normal increment. Fixture availability and runtime assertions await the explicitly queued build/automation gates; full verification remains deferred. The two pre-existing `.uasset` edits were preserved and excluded. Work occurred directly in the main checkout, so no handoff synchronization is needed.
+- **Next eligible task:** add the hydrology-grid seam regression for channel height and water output.
