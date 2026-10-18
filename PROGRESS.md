@@ -3618,3 +3618,12 @@
 - **Impact/authority:** documentation only; no runtime, RPC, replicated state, server authority or save-format change.
 - **Limitations:** normal increment, not milestone-final. No build, automation execution, preview export or peers ran; full verification remains deferred to the queued gates. Both pre-existing `.uasset` edits remain untouched and excluded. Main checkout used directly, so no handoff synchronization required.
 - **Next eligible task:** build the affected Editor target once the sampler and consumer changes are complete.
+
+## Autonomous increment 2026-10-18 — River Editor build gate
+
+- **Completed:** built the affected `KalmalaEditor Win64 Development` target in the short disposable mirror `C:/Users/Ville/AppData/Local/Temp/kmforest`. Checked only the selected existing build checkbox in `BACKLOG.md`.
+- **Verification:** refreshed tracked Source/Config/Content/Plugins and the project descriptor from the checkout; all mirrored tracked files matched by SHA-256 after the build. Ran `Build.bat KalmalaEditor Win64 Development -Project=C:/Users/Ville/AppData/Local/Temp/kmforest/Kalmala.uproject -WaitMutex -NoHotReload -MaxParallelActions=4 -gather` with normal `%LOCALAPPDATA%/UnrealBuildTool` access. All 178 actions succeeded, exit 0, 155.98 seconds. Log: `C:/Users/Ville/AppData/Local/Temp/kmforest/river-build.log`. This compiled the river sampler/regressions and map consumers, and linked the World, Gameplay, UI and Editor modules. No compiler repairs were needed. `git diff --check`, staged scope/diff and committed-path MAX_PATH checks passed.
+- **Files/impact/authority:** only `BACKLOG.md` and `PROGRESS.md` changed. Build acceptance confirms compilation/linking; no production code, RPC, replicated state, authority or save-format changes in this run.
+- **Limitations:** selected build gate only, not milestone-final verification. No automation execution, preview export/inspection or peer acceptance ran; those gates and full verification remain pending. Compilation does not establish fixture availability or runtime assertions.
+- **Handoff:** only this Kalmala chat was active in app inventory; CIM process inventory was unavailable. Main checkout used directly, so no synchronization needed. Both pre-existing `.uasset` edits were preserved and excluded from the commit; their current bytes were copied to the disposable mirror without importing or editing them.
+- **Next eligible task:** run the focused regional-generation automation cases and inspect their pass/fail output.

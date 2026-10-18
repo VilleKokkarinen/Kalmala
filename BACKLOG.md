@@ -70,7 +70,7 @@ maps.
   lake precedence, and shared deterministic sampling.
 - [x] Update the setup guide with the focused generation checks and expected
   preview/peer results.
-- [ ] Build the affected Editor target once the sampler and consumer changes
+- [x] Build the affected Editor target once the sampler and consumer changes
   are complete.
 - [ ] Run the focused regional-generation automation cases and inspect their
   pass/fail output.
