@@ -79,7 +79,7 @@ maps.
 - [x] Run the regional-generation checks for deterministic preview and
   host/client sampler agreement with
   `Scripts/Tests/World/Verify-RegionalGeneration.ps1`.
-- [ ] Run the minimap host/client terrain, water, and river-signal agreement
+- [x] Run the minimap host/client terrain, water, and river-signal agreement
   check with `Scripts/Tests/World/Verify-Minimap.ps1`.
 
 If any checkbox expands beyond the target, split it further before starting
