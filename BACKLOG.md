@@ -40,7 +40,7 @@ maps.
 
 **Implementation sequence (each checkbox targets roughly 15 minutes):**
 
-- [ ] Add named river-bed depth and bank-extent tuning values in
+- [x] Add named river-bed depth and bank-extent tuning values in
   `KalmalaRegionalTuning.h`; leave generated samples unchanged.
 - [ ] Extract the existing deterministic river-segment projection and distance
   calculation into a small helper, preserving current sample outputs.

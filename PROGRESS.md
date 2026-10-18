@@ -1,3 +1,25 @@
+## Autonomous increment 2026-10-18 — Reserve river channel tuning
+
+- **Completed/files:** added `RiverBedDepth` (80 cm below water) and
+  `RiverBankExtent` (1800 cm beyond channel width) to
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`. These are initial
+  authoring values for the upcoming channel profile; neither is consumed yet.
+  Checked only the selected tuning task in `BACKLOG.md`; updated this record.
+- **Checks:** inspected the shared sampler and tuning header; focused source
+  assertions confirmed positive constants, no consumers, and an otherwise
+  unchanged header. `git diff --check` and staged scope/MAX_PATH checks passed.
+  No Unreal build, runtime automation or preview was run. Full verification
+  remains deferred for this normal increment.
+- **Impact/authority:** generated samples remain unchanged. No gameplay,
+  networking, authority, RPC, or saved-data behavior changed.
+- **Limits/next:** values still need integration and visual tuning in later
+  queued tasks. Next eligible task is extracting the deterministic river
+  segment projection/distance helper while preserving sample outputs.
+- **Handoff:** only this Kalmala chat was active in the app inventory; process
+  command-line enumeration was unavailable. Worked directly in the main
+  checkout, so no synchronization is needed. Preserved and excluded the two
+  pre-existing catalogue/UI asset modifications.
+
 ## User-directed backlog refinement 2026-10-18 — Split river work into short increments
 
 - **Completed/files:** replaced the four broad river implementation steps in
