@@ -85,14 +85,12 @@ private:
     UPROPERTY(Transient) TArray<TObjectPtr<UKalmalaIconWidget>> GearSlotIcons;
     UPROPERTY(Transient) TArray<TObjectPtr<UBorder>> GearSlotFills;
     UPROPERTY(Transient) TObjectPtr<UKalmalaIconWidget> MainHandIcon;
-    UPROPERTY(Transient) TObjectPtr<UBorder> WornGearPanel;
-    UPROPERTY(Transient) TObjectPtr<UTextBlock> WornGearHeading;
+    UPROPERTY(Transient) TArray<TObjectPtr<UKalmalaIconWidget>> AccessoryPlaceholderIcons;
     UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> MainHandButton;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> MainHandNameText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> MainHandStateText;
     UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> GearSlotNameTexts;
     UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> GearSlotStateTexts;
-    UPROPERTY(Transient) TObjectPtr<UTextBlock> GearActionStatusText;
     TArray<FKalmalaCatalogueRow> SourceInventoryRows;
     TArray<FKalmalaCatalogueRow> OwnerInventoryRows;
     int32 SelectedInventoryIndex = INDEX_NONE;

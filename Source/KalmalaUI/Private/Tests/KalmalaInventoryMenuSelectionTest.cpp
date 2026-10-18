@@ -49,7 +49,7 @@ bool FKalmalaInventoryMenuSelectionTest::RunTest(const FString& Parameters)
     TSet<FString> WornGearSlotNames;
     const TArray<FString> ExpectedGearSlots = {
         TEXT("Main Hand"), TEXT("Head"), TEXT("Cape"), TEXT("Chest"),
-        TEXT("Shield"), TEXT("Legs"), TEXT("Boots")};
+        TEXT("Shield"), TEXT("Legs"), TEXT("Boots"), TEXT("Necklace"), TEXT("Ring")};
     OwnerA->WidgetTree->ForEachWidget([&](UWidget* Widget) {
         if (Cast<UKalmalaInventoryGridWidget>(Widget)) ++Grids;
         if (Cast<UEditableTextBox>(Widget)) ++Searches;
@@ -66,8 +66,8 @@ bool FKalmalaInventoryMenuSelectionTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Simple inventory has no search/filter/sort input"), Searches, 0);
     TestFalse(TEXT("Armor summary is absent from Inventory"), bArmor);
     TestFalse(TEXT("Weight summary is absent from Inventory"), bWeight);
-    TestTrue(TEXT("Inventory has a separate Worn Gear section"), bWornGearHeading);
-    TestEqual(TEXT("Worn Gear lists all seven requested slots"), WornGearSlotNames.Num(), ExpectedGearSlots.Num());
+    TestFalse(TEXT("Combined inventory omits the Worn Gear heading"), bWornGearHeading);
+    TestEqual(TEXT("Equipment layout includes seven usable slots and two accessory placeholders"), WornGearSlotNames.Num(), ExpectedGearSlots.Num());
     TestEqual(TEXT("Every unequipped slot is clearly marked empty"), EmptyGearSlots, ExpectedGearSlots.Num());
     for (const FString& SlotName : ExpectedGearSlots)
         TestTrue(FString::Printf(TEXT("Worn Gear includes %s"), *SlotName), WornGearSlotNames.Contains(SlotName));
