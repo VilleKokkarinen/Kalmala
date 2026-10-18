@@ -1,3 +1,23 @@
+## Autonomous increment 2026-10-18 — Extract hydrology segment projection
+
+- **Completed/files:** extracted the existing clamped segment projection and
+  planar distance arithmetic into the private `ProjectHydrologySegment` helper
+  in `Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp`. The sampler
+  consumes its double-precision U and Distance for both rivers and streams.
+  Checked only the selected existing task in `BACKLOG.md`; updated this record.
+- **Checks:** a focused PowerShell assertion confirmed the helper contains the
+  exact original arithmetic, and reversing the extraction reproduces the entire
+  HEAD sampler source exactly. `git diff --check`, staged scope review and
+  MAX_PATH checks passed. No Unreal build, runtime automation or preview ran;
+  full verification remains deferred for this normal increment.
+- **Impact/authority:** behavior-preserving refactor; no intended sample output,
+  path generation, cache, gameplay, networking, authority or saved-data change.
+- **Limits/next:** runtime equivalence still awaits later queued verification.
+  Next eligible task: integrate the bounded sea-level channel profile after
+  the land/coast clamp using the existing river influence width.
+- **Handoff:** app inventory showed only this Kalmala chat active; process
+  enumeration was unavailable. Main checkout used directly; no synchronization
+  needed. Both pre-existing catalogue/UI asset edits preserved and excluded.
 ## Autonomous increment 2026-10-18 — Reserve river channel tuning
 
 - **Completed/files:** added `RiverBedDepth` (80 cm below water) and

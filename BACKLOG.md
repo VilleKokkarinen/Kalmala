@@ -42,7 +42,7 @@ maps.
 
 - [x] Add named river-bed depth and bank-extent tuning values in
   `KalmalaRegionalTuning.h`; leave generated samples unchanged.
-- [ ] Extract the existing deterministic river-segment projection and distance
+- [x] Extract the existing deterministic river-segment projection and distance
   calculation into a small helper, preserving current sample outputs.
 - [ ] Add and integrate a bounded channel profile: set river water to Z=0,
   place the channel floor below it, and apply the result after the land/coast

@@ -13,6 +13,14 @@ namespace
         return V * V * (3.0 - 2.0 * V);
     }
     double RegionalUnit(uint64 Bits) { return double(Bits & 0xffffff) / 16777216.0; }
+    struct FSegmentProjection { double U; double Distance; };
+    FSegmentProjection ProjectHydrologySegment(FVector2D P, const FKalmalaHydrologySegment& S)
+    {
+        const FVector2D A(S.A), B(S.B), D = B - A;
+        const double U = FMath::Clamp(FVector2D::DotProduct(P - A, D) / D.SizeSquared(), 0.0, 1.0);
+        const double Distance = FVector2D::Distance(P, A + D * U);
+        return { U, Distance };
+    }
     FIntPoint CellAt(FVector2D P, double Size) { return { int32(FMath::FloorToInt(P.X / Size)), int32(FMath::FloorToInt(P.Y / Size)) }; }
     float SourceHeight(const FKalmalaWorldGenerationConfig& C, FVector2D P)
     {
@@ -262,9 +270,9 @@ FKalmalaRegionalSample FKalmalaRegionalGeneration::SampleInternal(const FKalmala
     const auto Segments = bBiomeOnly ? TArray<FKalmalaHydrologySegment>() : GetHydrology(C, CellAt(P, T::GridCell));
     for (const auto& S : Segments)
     {
-        const FVector2D A(S.A), B(S.B), D = B - A;
-        const double U = FMath::Clamp(FVector2D::DotProduct(P - A, D) / D.SizeSquared(), 0.0, 1.0);
-        const double Distance = FVector2D::Distance(P, A + D * U);
+        const auto Projection = ProjectHydrologySegment(P, S);
+        const double U = Projection.U;
+        const double Distance = Projection.Distance;
         const double W = 1 - Smooth(S.Width * 0.2, S.Width, Distance);
         if (W <= 0) continue;
         const double Level = FMath::Lerp(S.A.Z, S.B.Z, U);
