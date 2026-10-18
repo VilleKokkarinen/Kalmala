@@ -49,7 +49,7 @@ maps.
   clamp using the existing river influence width.
 - [x] Extend the profile into a smooth two-sided bank shoulder and confirm it
   returns to the original terrain outside its influence radius.
-- [ ] Preserve lake-basin level precedence where rivers overlap and confirm
+- [x] Preserve lake-basin level precedence where rivers overlap and confirm
   river shaping does not move the ocean coast outside the channel corridor.
 - [ ] Check the existing sea-water mesh and terrain collision against the new
   shared channel sample; fix a mismatch only if inspection finds one.

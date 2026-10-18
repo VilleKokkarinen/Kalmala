@@ -263,9 +263,13 @@ The profile uses cubic smoothstep from 20% of the channel width to the channel
 width plus an 1800 cm shoulder, symmetrically by segment distance. Its slope
 vanishes at both ends; beyond that radius terrain is unchanged. The spatial
 index includes this full envelope. The existing narrow RiverWeight signal is
-retained separately. Basin support attenuates carving and retains its water
-level; lake/channel joins remain queued. Enabled debug streams keep their prior
-profile.
+retained separately. Basin support attenuates carving and lifts the channel
+target from the sea bed toward the basin water level minus the bed depth.
+Full basin support preserves the original basin terrain; any basin support
+retains its existing lake water level. The continuous rim support blends the
+terrain target without changing the source coast outside river corridors.
+Enabled debug streams keep their prior profile. Rendered lake joins remain
+subject to the queued preview and water-mesh checks.
 
 The developer `ExportWorldMaps` commandlet can temporarily install thread-local preview tuning, with installation rejected outside headless commandlets. Each render restores defaults and invalidates derived crop/hydrology caches. Its fast biome query shares the normal regional/basin classifier while skipping hydrology and height-only work; default output is checked against full sampling. A warm parameter-file watcher writes PNGs without starting gameplay. This adds no runtime console setting, client authority, replicated property, production-layout setting or save change; see `07-development-setup.md` for the workflow.
 

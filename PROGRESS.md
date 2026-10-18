@@ -1,3 +1,29 @@
+## Autonomous increment 2026-10-18 — Preserve lake overlap precedence
+
+- **Completed/files:** adjusted the river bed target in
+  `Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp` to rise from
+  sea depth toward lake level minus bed depth using continuous basin support.
+  Existing support attenuation preserves full-support basin terrain; the
+  existing water guard retains every supported basin's authored water level.
+  Updated the architecture contract and checked only the selected existing
+  `BACKLOG.md` task.
+- **Checks:** 360 numeric formula cases passed carving bounds, unchanged
+  full-support basin terrain, unchanged zero-influence terrain/coast, and
+  identical river-only output. Inspected the basin water guard, continuous
+  support/target, and post-clamp bounded corridor. These are formula/source
+  checks, not compiled sampler execution. Whitespace, staged scope and path
+  checks passed.
+- **Impact/authority:** river overlaps no longer target a fixed sea-depth bed
+  throughout the basin rim; lake water levels retain precedence. Outside the
+  river envelope this change executes no shaping. No RPC, replicated state,
+  client authority or saved-data changes.
+- **Limits/next:** normal increment; full verification remains deferred to
+  queued build, regression, preview and peer gates. Rendered water continuity
+  and lake enclosure are not runtime-verified. Next eligible task: inspect
+  sea-water mesh and terrain collision against the shared channel sample.
+- **Handoff:** app inventory showed only this Kalmala chat active; CIM process
+  enumeration was unavailable. Main checkout used directly; synchronization
+  unnecessary. Both pre-existing catalogue/UI asset changes remain excluded.
 ## Autonomous increment 2026-10-18 — Smooth river bank shoulders
 
 - **Completed/files:** extended the post-clamp river profile through the configured

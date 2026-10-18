@@ -310,7 +310,11 @@ FKalmalaRegionalSample FKalmalaRegionalGeneration::SampleInternal(const FKalmala
         // Carve after the land clamp so high ground cannot refill the channel.
         // Maximum influence across segments avoids repeated carving at joins.
         const float W = RiverBankInfluence * (1 - BasinSupport);
-        const float Bed = -float(T::RiverBedDepth);
+        // Lift the channel target toward the retained basin surface through its
+        // continuous rim support instead of targeting sea depth throughout a lake.
+        // Full basin support keeps both its original bed and water level.
+        const float ChannelLevel = FMath::Lerp(0.0f, R.WaterLevel, float(BasinSupport));
+        const float Bed = ChannelLevel - float(T::RiverBedDepth);
         R.Height = FMath::Lerp(R.Height, FMath::Min(R.Height, Bed), W);
         if (BasinSupport == 0) R.WaterLevel = 0;
     }
