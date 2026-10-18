@@ -2,9 +2,52 @@
 
 ## Active queue
 
-No open tasks. M0–M14, world-generation Phases 1–9, and the defined attack-driven
-tree-harvesting increment are complete under their recorded acceptance scope.
-Further autonomous implementation requires a new user-defined task.
+M0–M14, world-generation Phases 1–9, and the defined attack-driven
+tree-harvesting increment remain complete under their recorded acceptance
+scope. The following user-requested post-roadmap goal is now queued.
+
+### Sea-level rivers and priority terrain carving — user request, 2026-10-18
+
+**Goal:** Put generated river water at the existing zero-centimetre sea plane
+and give river corridors priority over land height shaping. A river crossing
+high ground must carve below the water plane and form smooth banks on both
+sides, rather than leaving a raised ridge or abrupt trench. Retain seeded path
+determinism and the shared terrain sampler used by rendering, collision and
+maps.
+
+**Plan and acceptance direction:**
+
+- Keep current deterministic spline placement and biome identity. Flatten river
+  water to Z=0, carve a bed below that plane, and apply the channel profile
+  after the surrounding land/coast height constraints so the land clamp cannot
+  refill it.
+- Shape the channel with a bounded, continuous two-sided bank blend that
+  returns to the unmodified terrain outside the river influence. Tune the bank
+  extent against generated high ground; preserve the source land/water coast
+  away from river corridors.
+- Make the final sampled channel drive terrain rendering/collision and
+  sea-level water clipping consistently. Ensure minimap/world-map water
+  classification follows the resulting channel. Preserve enclosed-lake levels
+  and define lake/rivers overlap so the join has no height or water-level step.
+- Add focused generation coverage for a river crossing high land, both bank
+  profiles, deterministic repeat/seed behavior, spline-cell and terrain-patch
+  seams, and unchanged terrain/coast/lake samples outside or beneath river
+  influence. Inspect generated height/water previews and run the applicable
+  regional-generation and host/client sampler checks.
+- Update the terrain/hydrology contract and verification instructions to match
+  the accepted behavior. No new RPC, replicated property, or save data is
+  planned.
+
+**Implementation sequence:**
+
+- [ ] Carve deterministic fixed-sea-level river channels after land shaping,
+  with a below-water bed and a smooth bank blend on both sides.
+- [ ] Align water-level/validity sampling, mesh clipping, and map water output;
+  preserve lake behavior and handle river/lake intersections without steps.
+- [ ] Add focused deterministic terrain, bank, seam, coast, and lake coverage;
+  inspect the generated high-ground river preview.
+- [ ] Update architecture and verification docs, then run the applicable
+  regional-generation and host/client acceptance checks.
 
 ## User-requested fixes
 

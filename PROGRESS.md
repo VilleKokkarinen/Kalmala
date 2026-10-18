@@ -1,3 +1,30 @@
+## User-directed planning 2026-10-18 — Sea-level river rework
+
+- **Plan/backlog:** traced river generation through `FKalmalaRegionalGeneration`,
+  the shared terrain sampler, sea-level water mesh, lakes, minimap, and world
+  map. Current river depression is followed by a land-height clamp and river
+  water level follows spline height, explaining why high land can refill the
+  channel. Added the user-requested post-roadmap goal, design constraints,
+  acceptance direction, and four implementation increments to `BACKLOG.md`.
+- **Checks:** read the repository rules, current backlog/progress, and relevant
+  architecture, roadmap, decision-log, and generation-verification docs;
+  inspected generator and water/map call sites. App task inventory showed no
+  other active Kalmala run. Windows process enumeration was unavailable. The
+  worktree already contained modified catalogue/UI `.uasset` files; they were
+  preserved and excluded.
+- **Impact/authority:** planning/backlog only. No gameplay, networking,
+  authority, or saved-data behavior changed. The plan retains the server-owned
+  immutable seed and existing deterministic river paths; no RPC, replicated
+  property, or save data is planned.
+- **Verification/limits:** no code was changed and no build, automation, or
+  generation preview was run. Full verification remains deferred. The river
+  behavior and visual result remain unimplemented; the high-ground carving,
+  bank extent, and lake-overlap behavior still need implementation and focused
+  verification under the recorded plan.
+- **Next eligible task:** carve deterministic fixed-sea-level channels after
+  land shaping, with a below-water bed and a smooth two-sided bank blend.
+  Planning stopped before gameplay implementation as requested.
+
 ## User-directed increment 2026-10-18 — Hammer build controls and bow draw/release shooting
 
 ## User-directed increment 2026-10-18 - Stable equipped hotbar cells
