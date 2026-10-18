@@ -76,7 +76,7 @@ maps.
   pass/fail output.
 - [x] Export and inspect a high-ground river preview; repeat the same seed and
   compare it with a different seed.
-- [ ] Run the regional-generation checks for deterministic preview and
+- [x] Run the regional-generation checks for deterministic preview and
   host/client sampler agreement with
   `Scripts/Tests/World/Verify-RegionalGeneration.ps1`.
 - [ ] Run the minimap host/client terrain, water, and river-signal agreement
