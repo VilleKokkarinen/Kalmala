@@ -68,7 +68,7 @@ maps.
   and enclosed-lake levels retain their established outputs.
 - [x] Update the architecture contract for sea-level channels, bank shaping,
   lake precedence, and shared deterministic sampling.
-- [ ] Update the setup guide with the focused generation checks and expected
+- [x] Update the setup guide with the focused generation checks and expected
   preview/peer results.
 - [ ] Build the affected Editor target once the sampler and consumer changes
   are complete.

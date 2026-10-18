@@ -2795,6 +2795,65 @@ Build `KalmalaEditor Win64 Development -WaitMutex -NoHotReload -MaxParallelActio
 
 `Scripts/Tests/World/Verify-Minimap.ps1` compares 81 host/client positions across a 20 km square, including biome weights, terrain, water and river signals. It creates no RPC or saved inspection data.
 
+### Sea-level river carving verification — 2026-10-18
+
+After rebuilding `KalmalaEditor`, run `Automation RunTests Kalmala.World.Regional`
+with the headless temporary-user/log flags above and
+`-TestExit="Automation Test Queue Empty"`. Inspect each requested result for
+`Result={Success}`; neither exit code zero nor the older `Integrated` result
+alone proves that the new river cases ran. The regional prefix includes:
+
+| Case under `Kalmala.World.Regional.` | Required result |
+| --- | --- |
+| `HighGroundRiverCenter` | An actual seed-418 river midpoint with source height at least 400 cm and no basin support has water at Z=0, a bed at or below -80 cm, and wet state. Retain the logged coordinates. |
+| `RiverBankCrossSection` | Both bank shoulders follow the bounded cubic profile, remain continuous, and return to exact course-free terrain/water outside the full bank envelope. |
+| `RiverSeedRepeatability` | Height, water level, wet state and river influence repeat exactly after cache resets, reversed queries and interleaved seeds; fixed-position height/influence vary between seeds 418/419. |
+| `RiverHydrologyGridSeam` | Actual X/Y hydrology-cell crossings for both seeds retain continuous submerged channel height/influence, Z=0 water and exact cache/order reproduction. |
+| `RiverTerrainPatchSeam` | Actual X/Y 3000 cm patch crossings retain matching adjacent collision-triangle heights/depths and nonempty matching clipped sea-water mesh edges. |
+| `RiverUnchangedControls` | Distant terrain, both source-coast sides and sea retain exact baseline outputs; enclosed-lake levels retain precedence under river influence. |
+
+Missing generated fixtures are failures, not skipped coverage. These tests
+check sampler/mesh outputs; they do not establish rendered or playable results.
+
+For the combined automation, deterministic previews and peers, run
+`Scripts/Tests/World/Verify-RegionalGeneration.ps1`. It exports origin-centred
+256x256 previews over 400000 cm for seed 418 twice and seed 419 once. Every
+repeated PPM must hash identically; `BiomeClassification.ppm`, `Hydrology.ppm`,
+`Weight2.ppm` and `ShapedHeight.ppm` must each differ for seed 419. Retain the
+printed proof directory and logs. `-SkipPeers` leaves peer acceptance pending.
+
+Inspect `ShapedHeight.ppm` alongside `Hydrology.ppm`: river corridors crossing
+high ground should cut down with smooth shoulders on both sides, with unchanged
+terrain outside their bank envelope. Hydrology RGB encodes river/stream/basin
+influence; the default spline overlay marks paths, not water elevation. For an
+unoverlaid diagnostic, use `-run=RenderWorldGenerationVisualization -Seed=418
+-Size=2048 -Extent=400000 -SkipSplineOverlay -Output=<short-temporary-directory>`
+with the commandlet cache/user flags above. Repeat into a separate directory,
+then use seed 419 with identical size/extent. Choose an origin-centred extent
+that includes the logged high-ground fixture, and record it. The commandlet
+has no centre-coordinate option. Coarse pixels can miss narrow channels;
+height images are clamped grayscale diagnostics, not numeric water-level proof.
+If the fixture remains unresolved, record that limitation instead of claiming
+visual acceptance.
+
+In an editor terrain view at the fixture, expect a sea-level surface over the
+submerged bed, continuous banks across patch edges, and map water classification
+over the channel independent of its land biome. Preserve elevated enclosed-lake
+water and inspect lake/river joins for gaps or steps; sampler tests alone do not
+prove visible lake-mesh continuity. Rendered minimap captures inspect HUD layout
+and may have black world backgrounds, so they cannot replace terrain inspection.
+
+Run `Scripts/Tests/World/Verify-Minimap.ps1` for peer agreement (also called by
+the combined runner). The seed-999 client must receive seed 418, then match the
+host's `Regional verification Seed=418 Fingerprint=... Samples=81` record for
+terrain, biome weights, water and river signals. Preserve both logs. This sparse
+20 km grid verifies shared sampling/identity, not every channel or physical
+traversal. No RPC, replicated field or saved data is added by these checks.
+
+This section defines the pending river acceptance procedure. Documentation and
+source checks do not imply that the queued build, automation, preview or peer
+gates have passed.
+
 ## Source-control rules
 
 - Commit `Config/`, `Source/`, `.uproject`, and `.uasset`/`.umap` content assets.

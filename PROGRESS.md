@@ -3609,3 +3609,12 @@
 - **Impact/authority:** documentation only; no runtime, network, RPC, replicated state or save-format changes.
 - **Limitations:** normal increment, not milestone-final verification. No Unreal build, automation execution, preview or peer checks ran; full verification remains deferred to queued gates. Both pre-existing `.uasset` edits preserved and excluded. Main checkout used directly; no handoff synchronization required.
 - **Next eligible task:** update the setup guide with focused generation checks and expected preview/peer results.
+
+## Autonomous increment 2026-10-18 — River setup verification guide
+
+- **Completed:** documented the six focused river automation cases and required results, explicit missing-fixture/result inspection, deterministic seed-418/419 preview procedure, high-ground/shore/lake visual expectations, and conflicting-seed peer fingerprint agreement. Recorded exporter resolution/origin limits and the distinction between sampler, image, HUD and traversal evidence.
+- **Files changed:** `docs/07-development-setup.md`, only the selected checkbox in `BACKLOG.md`, and this entry.
+- **Lightweight verification:** matched six documented automation names against test registration, four preview output names against the combined runner, peer sample/seed and exporter option limits against source, and both runner paths against disk. Carefully inspected the procedure against the architecture contract, commandlet and scripts; `git diff --check` passed. Staged scope/diff and MAX_PATH checks performed before commit.
+- **Impact/authority:** documentation only; no runtime, RPC, replicated state, server authority or save-format change.
+- **Limitations:** normal increment, not milestone-final. No build, automation execution, preview export or peers ran; full verification remains deferred to the queued gates. Both pre-existing `.uasset` edits remain untouched and excluded. Main checkout used directly, so no handoff synchronization required.
+- **Next eligible task:** build the affected Editor target once the sampler and consumer changes are complete.
