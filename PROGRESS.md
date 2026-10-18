@@ -1,3 +1,27 @@
+## Autonomous increment 2026-10-18 — Align river map depth sampling
+
+- **Completed/files:** made detailed minimap/expanded tile sea depth explicit
+  using `SeaLevelWorldHeight` minus interpolated final terrain in
+  `KalmalaMinimapViewModel.cpp`; replaced the expanded overview's literal sea
+  threshold with the same constant in `KalmalaWorldMapWidget.cpp`. Existing
+  zero-level behavior is retained. Traced both expanded paths to water texture
+  selection without a river-weight or land-biome gate. Checked only the selected
+  existing BACKLOG task; updated architecture and this progress record.
+- **Checks:** focused source assertions and 24 signed-depth interpolation cases
+  passed, covering submerged beds, mixed dry/wet bank triangles, dry ground and
+  exact shore for both diagonals. Diff/whitespace, staged scope and MAX_PATH
+  checks passed. These are source/formula checks, not compiled sampler execution.
+- **Impact/authority:** explicitly aligns both map scales with the fixed sea
+  plane and final carved terrain; no expected visual behavior change at Z=0.
+  No RPC, replication, gameplay authority or saved-data changes.
+- **Limits/next:** normal increment; full verification remains deferred to the
+  queued build, automation, preview and peer gates. Coarse overview pixels may
+  miss narrow channels; rendered classification was not inspected. Next eligible
+  task: high-ground river-center regression for Z=0 water and submerged bed.
+- **Handoff:** only this Kalmala chat active in app inventory; CIM unavailable.
+  Main checkout directly, so synchronization unnecessary. Pre-existing
+  GameCatalogues.uasset and InventoryPanel.uasset edits preserved and excluded.
+
 ## Autonomous increment 2026-10-18 — Audit river mesh and collision consumers
 
 - **Completed/files:** inspected the existing sea-water mesh and terrain collision

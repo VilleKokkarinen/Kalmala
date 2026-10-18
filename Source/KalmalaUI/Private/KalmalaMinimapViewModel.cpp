@@ -236,9 +236,12 @@ TArray<FKalmalaMinimapTerrainSample> UKalmalaMinimapViewModel::BuildTerrainSampl
                 const double A = bUpper ? 1.0 - V : U, B = bUpper ? 1.0 - U : V;
                 const double D = bUpper ? U + V - 1.0 : 1.0 - U - V;
                 Sample.TerrainHeight = double(East.Height) * A + double(North.Height) * B + double(Opposite.Height) * D;
+                // Rivers share the fixed sea plane with ocean water, including inland biomes.
+                // Keep signed depth until after triangle interpolation, just like mesh clipping.
+                const double SeaDepth = FKalmalaTerrainHeightSampler::SeaLevelWorldHeight - Sample.TerrainHeight;
                 const double InlandDepth = (East.WaterLevel - East.Height) * A
                     + (North.WaterLevel - North.Height) * B + (Opposite.WaterLevel - Opposite.Height) * D;
-                Sample.bIsWater = Sample.TerrainHeight < 0.0f || InlandDepth > 0.0;
+                Sample.bIsWater = SeaDepth > 0.0 || InlandDepth > 0.0;
                 Biome = static_cast<EKalmalaBiome>(FKalmalaRegionalGeneration::Sample(WorldConfig, WorldPosition).Biome);
             }
             Sample.TerrainColour = bUseExpandedMapTexture

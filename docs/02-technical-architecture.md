@@ -3025,3 +3025,20 @@ consume pickup reach. Existing server drop eligibility, independent physical
 reach, inventory capacity, exactly-once reward and sparse-write checks still
 apply. Standing trees, trunks and all non-drop interactions retain their short
 trace behavior. No client-supplied hit, distance, reward or new RPC is introduced.
+
+### Sea-level river map classification audit — 2026-10-18
+
+Detailed minimap and expanded-map tiles interpolate final carved terrain on the
+shared 125 cm triangles. Their signed sea depth is the shared
+`SeaLevelWorldHeight` (zero) minus interpolated terrain height; positive depth
+selects water independently of source biome or narrow RiverWeight. Regional
+water depth remains a separate signed interpolation for lake/stream surfaces.
+Do not clamp individual vertex depths before interpolation: dry bank vertices
+must retain their negative contribution at the shore. Expanded overview tiles
+use final regional height against the same sea constant, plus regional water.
+Both expanded paths select Ocean water texture when classified wet.
+
+Source tracing and signed-depth formula checks confirmed this classification;
+no rendered preview, compiled sampler or peer execution was performed here.
+Coarse overview pixels can miss channels between sample positions; this audit
+does not add river widening or guarantee visibility at every zoom.

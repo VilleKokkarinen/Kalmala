@@ -53,7 +53,7 @@ maps.
   river shaping does not move the ocean coast outside the channel corridor.
 - [x] Check the existing sea-water mesh and terrain collision against the new
   shared channel sample; fix a mismatch only if inspection finds one.
-- [ ] Align minimap river-depth sampling with the fixed sea-level channel and
+- [x] Align minimap river-depth sampling with the fixed sea-level channel and
   confirm the expanded map classifies the carved channel as water.
 - [ ] Add a focused regression for a high-ground river center: water level is
   Z=0 and the sampled bed lies below it.

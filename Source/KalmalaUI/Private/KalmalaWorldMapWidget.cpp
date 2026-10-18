@@ -9,6 +9,7 @@
 #include "GameFramework/PlayerController.h"
 #include "Input/Reply.h"
 #include "KalmalaMinimapRaster.h"
+#include "KalmalaTerrainHeightSampler.h"
 #include "KalmalaWorldBounds.h"
 #include "KalmalaBiomeClassifier.h"
 #include "KalmalaRegionalGeneration.h"
@@ -697,7 +698,8 @@ TArray<FColor> UKalmalaWorldMapWidget::BuildTilePixels(const FKalmalaWorldGenera
             if (!FKalmalaWorldBounds::Contains(Config, P)) { S.TerrainColour = FLinearColor(0.003f, 0.006f, 0.009f); continue; }
             const auto R = FKalmalaRegionalGeneration::Sample(Config, P);
             S.TerrainHeight = R.Height;
-            S.bIsWater = R.Height < 0 || R.bHasWater;
+            // Sea-level channels are water regardless of their source land biome.
+            S.bIsWater = R.Height < FKalmalaTerrainHeightSampler::SeaLevelWorldHeight || R.bHasWater;
             const auto Biome = static_cast<EKalmalaBiome>(R.Biome);
             S.TerrainColour = FKalmalaMinimapRaster::SampleExpandedMapBiomeTexture(
                 S.bIsWater ? EKalmalaBiome::Ocean : Biome, P, WorldSize / static_cast<float>(SamplesPerAxis - 1));
