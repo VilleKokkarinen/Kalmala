@@ -44,7 +44,22 @@ bool FKalmalaMasterMapTest::RunTest(const FString& Parameters)
             ++Counts[R.Biome];
             TestEqual(TEXT("Production has no stream carving"), R.StreamWeight, 0.f);
             TestEqual(TEXT("Atlas alone determines Ocean label"), R.Biome == 6, Mask <= 0);
-            TestTrue(TEXT("Terrain respects atlas sea-level sign"), Mask > 0 ? R.Height > 0 : R.Height <= 0);
+            // The atlas constrains source land; river corridors may carve it below sea level.
+            const auto Source = G::SampleInternal(FKalmalaWorldFieldSampler::Sample(C, P), false, true);
+            TestTrue(TEXT("Course-free terrain respects atlas sea-level sign"), Mask > 0 ? Source.Height > 0 : Source.Height <= 0);
+            bool bInsideRiverEnvelope = false;
+            const FIntPoint Cell(FMath::FloorToInt(P.X / T::GridCell), FMath::FloorToInt(P.Y / T::GridCell));
+            for (const auto& Segment : G::GetHydrology(C, Cell))
+            {
+                const FVector2D Start(Segment.A), Delta = FVector2D(Segment.B) - Start;
+                const double U = Delta.SizeSquared() > 0
+                    ? FMath::Clamp(FVector2D::DotProduct(P - Start, Delta) / Delta.SizeSquared(), 0.0, 1.0) : 0.0;
+                bInsideRiverEnvelope |= !Segment.bStream
+                    && FVector2D::Distance(P, Start + Delta * U) < Segment.Width + T::RiverBankExtent;
+            }
+            if (!bInsideRiverEnvelope)
+                TestEqual(TEXT("Terrain outside river bank envelope retains source height"), R.Height, Source.Height);
+            TestTrue(TEXT("River carving never raises source terrain"), R.Height <= Source.Height);
             TestTrue(TEXT("Meadows stop at 4 km"), R.Biome != 0 || P.Size() <= T::MeadowsMaximum);
             TestTrue(TEXT("Lakes respect starter exclusion"), R.Biome != 1 || (P.Size() >= T::LakesMinimum && P.Size() <= T::LakesMaximum));
             TestTrue(TEXT("Forest respects 0.75 km minimum"), R.Biome != 2 || P.Size() >= T::ElderwoodMinimum);

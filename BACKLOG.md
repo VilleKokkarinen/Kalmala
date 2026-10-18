@@ -72,7 +72,7 @@ maps.
   preview/peer results.
 - [x] Build the affected Editor target once the sampler and consumer changes
   are complete.
-- [ ] Run the focused regional-generation automation cases and inspect their
+- [x] Run the focused regional-generation automation cases and inspect their
   pass/fail output.
 - [ ] Export and inspect a high-ground river preview; repeat the same seed and
   compare it with a different seed.
