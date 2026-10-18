@@ -87,6 +87,8 @@ that increment and keep the remaining work in this order.
 
 ## User-requested fixes
 
+- [x] Reuse the Options ornament as the centered divider between inventory and equipment within the existing one-tile gap.
+
 - [x] Move Grinding Stone from Workbench crafting to direct-material hammer construction only, retaining its 6 Wood / 4 Stone cost.
 
 - [x] Remove the inventory ScrollBox, remembered scroll state and bottom scroll-hint line; mount content directly on the panel.

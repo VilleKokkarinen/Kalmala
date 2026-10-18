@@ -10,6 +10,7 @@
 #include "Components/HorizontalBoxSlot.h"
 #include "Components/GridPanel.h"
 #include "Components/GridSlot.h"
+#include "Components/Image.h"
 #include "Components/SizeBox.h"
 #include "Components/TextBlock.h"
 #include "Components/VerticalBox.h"
@@ -32,6 +33,7 @@
 #include "KalmalaToolLifecycleContract.h"
 #include "KalmalaUITheme.h"
 #include "Styling/SlateTypes.h"
+#include "Engine/Texture2D.h"
 
 namespace
 {
@@ -127,6 +129,35 @@ void UKalmalaInventoryMenuWidget::NativeOnInitialized()
     GridSizeBox->SetContent(GridView);
     Content->AddChildToVerticalBox(GridSizeBox);
 
+    // Reuse the Options ornament inside the existing one-tile equipment gap.
+    auto* DividerRow = WidgetTree->ConstructWidget<UOverlay>();
+    DividerRow->SetVisibility(ESlateVisibility::HitTestInvisible);
+    GearDividerImage = WidgetTree->ConstructWidget<UImage>();
+    if (!Theme.OptionsDividerImage.IsEmpty())
+        if (auto* Texture = LoadObject<UTexture2D>(nullptr, *Theme.OptionsDividerImage))
+            GearDividerImage->SetBrushFromTexture(Texture, false);
+    auto* OrnamentSize = WidgetTree->ConstructWidget<USizeBox>();
+    OrnamentSize->SetWidthOverride(168.0f);
+    OrnamentSize->SetHeightOverride(56.0f);
+    OrnamentSize->SetContent(GearDividerImage);
+    auto* OrnamentSlot = DividerRow->AddChildToOverlay(OrnamentSize);
+    OrnamentSlot->SetHorizontalAlignment(HAlign_Center);
+    OrnamentSlot->SetVerticalAlignment(VAlign_Center);
+    GearDividerRule = WidgetTree->ConstructWidget<UBorder>();
+    GearDividerRule->SetBrush(FSlateRoundedBoxBrush(FLinearColor::White, 0.0f));
+    GearDividerRule->SetPadding(FMargin(0));
+    auto* RuleSize = WidgetTree->ConstructWidget<USizeBox>();
+    RuleSize->SetHeightOverride(2.0f);
+    RuleSize->SetContent(GearDividerRule);
+    auto* RuleSlot = DividerRow->AddChildToOverlay(RuleSize);
+    RuleSlot->SetHorizontalAlignment(HAlign_Fill);
+    RuleSlot->SetVerticalAlignment(VAlign_Center);
+    auto* DividerSize = WidgetTree->ConstructWidget<USizeBox>();
+    DividerSize->SetHeightOverride(56.0f);
+    DividerSize->SetContent(DividerRow);
+    Content->AddChildToVerticalBox(DividerSize);
+    RefreshGearDivider(Contrast);
+
     auto* GearLayout = WidgetTree->ConstructWidget<UGridPanel>();
     auto AddGearSlot = [&](const FString& SlotName, const bool bInteractive,
         const EKalmalaGearSlot GearSlot, const EKalmalaIcon EmptyIcon, const int32 Row, const int32 Column,
@@ -213,7 +244,6 @@ void UKalmalaInventoryMenuWidget::NativeOnInitialized()
     AddGearSlot(TEXT("Ring"), false, EKalmalaGearSlot::Head, EKalmalaIcon::Ring, 4, 2, true);
     auto* GearPlacement = Content->AddChildToVerticalBox(GearLayout);
     GearPlacement->SetHorizontalAlignment(HAlign_Center);
-    GearPlacement->SetPadding(FMargin(0, 56.0f, 0, 0));
     ItemDetailView = WidgetTree->ConstructWidget<UKalmalaItemDetailWidget>();
     Content->AddChildToVerticalBox(ItemDetailView);
     ItemDetailView->SetVisibility(ESlateVisibility::Collapsed);
@@ -598,6 +628,7 @@ void UKalmalaInventoryMenuWidget::RefreshSelectionPresentation(const int32 TextS
 
         LastTextScalePercent = TextScale;
         LastContrastMode = Contrast;
+        RefreshGearDivider(Contrast);
     }
 
     const bool bHasSelection = OwnerInventoryRows.IsValidIndex(SelectedInventoryIndex);
@@ -707,6 +738,15 @@ void UKalmalaInventoryMenuWidget::RefreshSelectionPresentation(const int32 TextS
     }
     RefreshFoodActionPresentation(bShowSelectedActions ? SelectedRow : nullptr, TextScale, Contrast);
     RefreshGearPresentation(TextScale, Contrast);
+}
+
+void UKalmalaInventoryMenuWidget::RefreshGearDivider(const int32 Contrast)
+{
+    if (!GearDividerImage || !GearDividerRule) return;
+    const bool bShowOrnament = Contrast <= 0 && GearDividerImage->GetBrush().GetResourceObject();
+    GearDividerImage->SetVisibility(bShowOrnament ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+    GearDividerRule->SetVisibility(bShowOrnament ? ESlateVisibility::Collapsed : ESlateVisibility::HitTestInvisible);
+    GearDividerRule->SetBrushColor(Contrast > 0 ? FLinearColor::White : FKalmalaUITheme::Get().TextColor(true, Contrast));
 }
 
 void UKalmalaInventoryMenuWidget::RefreshGearPresentation(const int32 TextScale, const int32 Contrast)

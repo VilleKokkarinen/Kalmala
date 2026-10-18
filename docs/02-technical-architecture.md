@@ -2973,7 +2973,9 @@ Inventory Craft may create multiple Construction Hammers. Each copy has its own 
 
 Presentation update (2026-10-18): the inventory grid and equipment share one
 InventoryPanelImage backplate, with a 56-unit gap and no equipment heading or
-footer instructions. Content mounts directly in the backplate's vertical box;
+footer instructions. The gap centers the existing OptionsDividerImage ornament
+at its 3:1 aspect ratio (168×56); high contrast or a missing texture uses a
+simple rule, following the Options divider convention. Content mounts directly in the backplate's vertical box;
 there is no inventory ScrollBox, scroll offset or scroll-shadow hint.
 The seven supported slots use a centered body
 layout: Head at (row 0, column 1), Cape (1,0), Main Hand (2,0), Chest (2,1),

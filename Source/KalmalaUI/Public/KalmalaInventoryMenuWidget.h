@@ -7,6 +7,7 @@
 
 class UTextBlock;
 class USizeBox;
+class UImage;
 class UKalmalaItemDetailWidget;
 class UKalmalaThemedButton;
 class UKalmalaInventoryGridWidget;
@@ -55,6 +56,7 @@ private:
     UFUNCTION() void EatSelectedFood();
     void RefreshFoodActionPresentation(const FKalmalaCatalogueRow* SelectedRow, int32 TextScale, int32 Contrast);
     void RefreshGearPresentation(int32 TextScale, int32 Contrast);
+    void RefreshGearDivider(int32 Contrast);
     void SelectGridItem(FName ItemId);
     void HoverGridItem(FName ItemId);
     void UseGearSlot(EKalmalaGearSlot GearSlot);
@@ -74,6 +76,8 @@ private:
     UPROPERTY(Transient) TObjectPtr<USizeBox> PanelSizeBox;
     UPROPERTY(Transient) TObjectPtr<UBorder> PanelBackplate;
     UPROPERTY(Transient) TObjectPtr<UBorder> InventoryPanel;
+    UPROPERTY(Transient) TObjectPtr<UImage> GearDividerImage;
+    UPROPERTY(Transient) TObjectPtr<UBorder> GearDividerRule;
     UPROPERTY(Transient) TObjectPtr<UKalmalaCraftingWidget> CraftingCompanion;
     UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> RepairToolButton;
     UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> EatFoodButton;

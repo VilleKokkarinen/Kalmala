@@ -4184,6 +4184,8 @@ The six wearable IDs are grouped by type in `items/boots.json`, `items/capes.jso
 
 The Inventory popup combines equipment with the 40-cell grid on one plank
 backplate, separated by a 56-unit gap, without a Worn Gear heading or footer.
+The gap reuses the OptionsDividerImage ornament, centered at 168×56. High
+contrast uses a white rule; a missing ornament also falls back to a rule.
 The content mounts directly in the panel, with no inventory ScrollBox or
 scroll-shadow overlay. There is no scrolling fallback for smaller viewports.
 As of 2026-10-18,
