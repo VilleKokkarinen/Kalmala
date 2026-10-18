@@ -6,6 +6,47 @@
 #include "KalmalaWorldPlayerStartResolver.h"
 #include "Misc/AutomationTest.h"
 
+// Search actual spline centers rather than a coarse lattice that can miss a channel.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaHighGroundRiverCenterTest,
+    "Kalmala.World.Regional.HighGroundRiverCenter",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+bool FKalmalaHighGroundRiverCenterTest::RunTest(const FString& Parameters)
+{
+    using G = FKalmalaRegionalGeneration;
+    using T = FKalmalaRegionalTuning;
+    const FKalmalaWorldGenerationConfig Config{418ull};
+    constexpr int32 SearchRadius = 24;
+    for (int32 Y = -SearchRadius; Y <= SearchRadius; ++Y)
+    for (int32 X = -SearchRadius; X <= SearchRadius; ++X)
+    for (const auto& Segment : G::GetHydrology(Config, FIntPoint(X, Y)))
+    {
+        if (Segment.bStream) continue;
+        const FVector2D Position((Segment.A + Segment.B) * 0.5);
+        const auto Fields = FKalmalaWorldFieldSampler::Sample(Config, Position);
+        const float SourceHeight = (Fields.Elevation - T::SeaElevation) * 2000.0f;
+        if (SourceHeight < 400.0f) continue;
+        const auto Sample = G::Sample(Fields);
+        // These biome weights are computed before hydrology. Zero lake/mire
+        // eligibility excludes all basin support, including its outer rim,
+        // without selecting the fixture by its resulting water level or bed.
+        if (Sample.Weights[1] + Sample.Weights[3] > 0.0f) continue;
+
+        TestTrue(TEXT("Fixture source terrain is at least four metres above sea"), SourceHeight >= 400.0f);
+        TestTrue(TEXT("Generated segment midpoint has full river influence"), Sample.RiverWeight > 0.999f);
+        TestEqual(TEXT("Fixture has no lake basin influence"), Sample.BasinWeight, 0.0f);
+        TestEqual(TEXT("High-ground river water stays at Z=0"), Sample.WaterLevel, 0.0f);
+        TestTrue(TEXT("High-ground river bed is below its water plane"), Sample.Height < Sample.WaterLevel);
+        TestTrue(TEXT("Land clamp cannot refill the configured river bed"),
+            Sample.Height <= -float(T::RiverBedDepth) + 0.01f);
+        TestTrue(TEXT("High-ground river center reports water"), Sample.bHasWater);
+        AddInfo(FString::Printf(TEXT("High-ground river seed=418 position=(%.3f,%.3f) source=%.3f bed=%.3f water=%.3f"),
+            Position.X, Position.Y, SourceHeight, Sample.Height, Sample.WaterLevel));
+        return true;
+    }
+    AddError(TEXT("No basin-free high-ground river center found in the bounded seed-418 search"));
+    return false;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaRegionalGenerationTest, "Kalmala.World.Regional.Integrated",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 bool FKalmalaRegionalGenerationTest::RunTest(const FString& Parameters)

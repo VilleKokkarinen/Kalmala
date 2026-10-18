@@ -1,3 +1,30 @@
+## Autonomous increment 2026-10-18 — Add high-ground river-center regression
+
+- **Completed/files:** added `Kalmala.World.Regional.HighGroundRiverCenter` in
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`. A bounded
+  seed-418 search inspects generated spline midpoints, requires source terrain
+  at least 400 cm above sea, and excludes basin eligibility independently of
+  expected height/water results. Asserts full river influence, Z=0 water,
+  submerged bed reaching configured depth, and water presence. Missing fixture
+  fails explicitly. The existing regional runner prefix includes this test.
+  Checked only the selected BACKLOG checkbox and updated this record.
+- **Checks:** focused source assertions passed for fixture selection, water/bed
+  assertions, missing-fixture failure, runtime basin eligibility correspondence
+  and runner discovery. Carefully inspected the C++ diff; whitespace, staged
+  scope and MAX_PATH checks passed. These are source checks, not compiled sampler
+  execution; they do not establish that the bounded fixture search succeeds.
+- **Impact/authority:** regression coverage for channel priority over high source
+  land and the land clamp. No runtime behavior, RPC, replication, authority or
+  saved-data changes.
+- **Limits/next:** normal increment; full verification remains deferred. No Unreal
+  compilation, automation execution, rendering or peer scenario ran. Queued build
+  and automation must confirm compilation, fixture availability and assertions.
+  Next eligible task: both-bank cross-section regression including smooth return
+  to unchanged terrain outside bank influence.
+- **Handoff:** only this Kalmala chat active in app inventory; CIM unavailable.
+  Main checkout directly, so synchronization unnecessary. Pre-existing
+  GameCatalogues.uasset and InventoryPanel.uasset edits preserved and excluded.
+
 ## Autonomous increment 2026-10-18 — Align river map depth sampling
 
 - **Completed/files:** made detailed minimap/expanded tile sea depth explicit

@@ -55,7 +55,7 @@ maps.
   shared channel sample; fix a mismatch only if inspection finds one.
 - [x] Align minimap river-depth sampling with the fixed sea-level channel and
   confirm the expanded map classifies the carved channel as water.
-- [ ] Add a focused regression for a high-ground river center: water level is
+- [x] Add a focused regression for a high-ground river center: water level is
   Z=0 and the sampled bed lies below it.
 - [ ] Add a cross-section regression for both banks, including the smooth
   return to unchanged terrain beyond the bank influence.
