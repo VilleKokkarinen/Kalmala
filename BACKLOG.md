@@ -38,16 +38,52 @@ maps.
   the accepted behavior. No new RPC, replicated property, or save data is
   planned.
 
-**Implementation sequence:**
+**Implementation sequence (each checkbox targets roughly 15 minutes):**
 
-- [ ] Carve deterministic fixed-sea-level river channels after land shaping,
-  with a below-water bed and a smooth bank blend on both sides.
-- [ ] Align water-level/validity sampling, mesh clipping, and map water output;
-  preserve lake behavior and handle river/lake intersections without steps.
-- [ ] Add focused deterministic terrain, bank, seam, coast, and lake coverage;
-  inspect the generated high-ground river preview.
-- [ ] Update architecture and verification docs, then run the applicable
-  regional-generation and host/client acceptance checks.
+- [ ] Add named river-bed depth and bank-extent tuning values in
+  `KalmalaRegionalTuning.h`; leave generated samples unchanged.
+- [ ] Extract the existing deterministic river-segment projection and distance
+  calculation into a small helper, preserving current sample outputs.
+- [ ] Add and integrate a bounded channel profile: set river water to Z=0,
+  place the channel floor below it, and apply the result after the land/coast
+  clamp using the existing river influence width.
+- [ ] Extend the profile into a smooth two-sided bank shoulder and confirm it
+  returns to the original terrain outside its influence radius.
+- [ ] Preserve lake-basin level precedence where rivers overlap and confirm
+  river shaping does not move the ocean coast outside the channel corridor.
+- [ ] Check the existing sea-water mesh and terrain collision against the new
+  shared channel sample; fix a mismatch only if inspection finds one.
+- [ ] Align minimap river-depth sampling with the fixed sea-level channel and
+  confirm the expanded map classifies the carved channel as water.
+- [ ] Add a focused regression for a high-ground river center: water level is
+  Z=0 and the sampled bed lies below it.
+- [ ] Add a cross-section regression for both banks, including the smooth
+  return to unchanged terrain beyond the bank influence.
+- [ ] Add a same-seed repeatability regression for river height and water
+  samples, plus a different-seed variation check.
+- [ ] Add a hydrology-grid seam regression for channel height and water output.
+- [ ] Add a terrain-patch seam regression for channel height and sea-water
+  clipping on both sides of a patch boundary.
+- [ ] Add control samples proving terrain away from rivers, the source coast,
+  and enclosed-lake levels retain their established outputs.
+- [ ] Update the architecture contract for sea-level channels, bank shaping,
+  lake precedence, and shared deterministic sampling.
+- [ ] Update the setup guide with the focused generation checks and expected
+  preview/peer results.
+- [ ] Build the affected Editor target once the sampler and consumer changes
+  are complete.
+- [ ] Run the focused regional-generation automation cases and inspect their
+  pass/fail output.
+- [ ] Export and inspect a high-ground river preview; repeat the same seed and
+  compare it with a different seed.
+- [ ] Run the regional-generation checks for deterministic preview and
+  host/client sampler agreement with
+  `Scripts/Tests/World/Verify-RegionalGeneration.ps1`.
+- [ ] Run the minimap host/client terrain, water, and river-signal agreement
+  check with `Scripts/Tests/World/Verify-Minimap.ps1`.
+
+If any checkbox expands beyond the target, split it further before starting
+that increment and keep the remaining work in this order.
 
 ## User-requested fixes
 

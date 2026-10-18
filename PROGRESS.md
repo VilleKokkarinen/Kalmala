@@ -1,3 +1,22 @@
+## User-directed backlog refinement 2026-10-18 — Split river work into short increments
+
+- **Completed/files:** replaced the four broad river implementation steps in
+  `BACKLOG.md` with 20 ordered increments, each scoped to a tuning change,
+  helper, sampler behavior, consumer, regression, document, or verification
+  action. Each checkbox targets roughly 15 minutes; the note asks agents to
+  split any task that grows beyond that size.
+- **Checks:** reread the current repository rules, backlog, progress, generation
+  architecture and verification guidance, plus the generator, water mesh,
+  minimap, and world-map sampling call sites. App task inventory showed no
+  other active Kalmala run. Existing modified catalogue/UI `.uasset` files were
+  preserved. `git diff --check` passes for this backlog-only change.
+- **Impact/authority:** planning only. No gameplay, network authority, runtime
+  sampling, or saved data changed. No tests or builds were run.
+- **Verification/limits:** full verification remains deferred; river behavior
+  is still unimplemented.
+- **Next eligible task:** add named river-bed depth and bank-extent tuning
+  values in `KalmalaRegionalTuning.h` without changing generated samples.
+
 ## User-directed planning 2026-10-18 — Sea-level river rework
 
 - **Plan/backlog:** traced river generation through `FKalmalaRegionalGeneration`,
