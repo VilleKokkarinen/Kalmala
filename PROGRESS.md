@@ -1,3 +1,29 @@
+## Autonomous increment 2026-10-18 — Carve bounded sea-level river channels
+
+- **Completed/files:** integrated river-only sea-level carving in
+  `Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp`, consuming
+  `RiverBedDepth` from the tuning header. Maximum spline influence blends the
+  clamped terrain toward -80 cm after land/coast constraints, retaining deeper
+  beds; river water is Z=0 outside basin support. Existing width/path generation
+  is unchanged. Streams keep their prior profile. Updated the architecture
+  contract and checked only the selected existing backlog checkbox.
+- **Checks:** focused PowerShell source assertions passed for post-clamp carving
+  and subsequent water classification. Forty numeric formula cases across five
+  terrain heights and eight distances passed bounds, center-bed and unchanged
+  exterior checks. These evaluate the formula, not compiled Unreal sampling.
+  Code/diff inspection, whitespace, staged scope and MAX_PATH checks passed.
+  No Unreal build, runtime test, preview or peer run; full verification remains
+  deferred under the normal-increment policy and explicit later queue gates.
+- **Impact/authority:** high-ground river centers now sample below sea level;
+  land clamping no longer refills their channel. Shared deterministic sampler
+  only; no RPC, client authority, replication or saved-data changes.
+- **Limits/next:** current-width profile only; wider shoulders, lake joins,
+  consumer alignment and generation regression/runtime checks remain queued.
+  Next eligible task: extend the smooth two-sided bank shoulder and confirm its
+  return to unchanged terrain outside the influence radius.
+- **Handoff:** only this Kalmala chat active in app inventory; CIM unavailable.
+  Main checkout used directly, so no handoff synchronization needed. The two
+  pre-existing catalogue/UI asset modifications remain untouched and excluded.
 ## Autonomous increment 2026-10-18 — Extract hydrology segment projection
 
 - **Completed/files:** extracted the existing clamped segment projection and

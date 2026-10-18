@@ -256,6 +256,14 @@ The generator uses `FKalmalaMasterMap`: an independent fixed-seed 128 km land/wa
 
 The master seed is a compiled constant. Crop transforms derive from the game seed. Rivers remain enabled and small streams are disabled. Authority, population IDs, collision and maps derive from the same server-owned seed and current build.
 
+River channels now use sea-level water (Z=0) outside basin supports. After the
+source land/coast clamp, the maximum existing spline influence smoothly lowers
+terrain toward an 80 cm below-sea bed without raising already deeper terrain.
+The profile is bounded by the existing channel width; outside it the source
+shore constraint remains unchanged. Basin support attenuates this carving and
+retains its water level. Wider bank shoulders and lake/channel joins remain
+queued implementation work; enabled debug streams retain their prior profile.
+
 The developer `ExportWorldMaps` commandlet can temporarily install thread-local preview tuning, with installation rejected outside headless commandlets. Each render restores defaults and invalidates derived crop/hydrology caches. Its fast biome query shares the normal regional/basin classifier while skipping hydrology and height-only work; default output is checked against full sampling. A warm parameter-file watcher writes PNGs without starting gameplay. This adds no runtime console setting, client authority, replicated property, production-layout setting or save change; see `07-development-setup.md` for the workflow.
 
 Water presentation uses `FKalmalaWaterSurfaceMesh` to clip the shared terrain triangles at sea/lake level. `FKalmalaLakeBasin` first floods the six-connected 125 cm terrain lattice below lake level, accepting only enclosed components containing a lake-biome seed. Biome boundaries never cut an accepted lake: water extends to the physical banks. Connections to sea level and components exceeding 8,192 wet vertices are conservatively omitted rather than truncated. A bounded identity/lattice-origin cache reuses component decisions across streamed patches. The minimap uses this same visible-basin decision and interpolated terrain surface; existing server wetland/exposure/discovery sampling remains unchanged. It retains partially wet cells and interpolates intersections on shared patch edges. Shore treatment covers only terrain within 12 cm below the lake surface, not every cell or biome edge. There are no additional water collision surfaces, gameplay fields, replicated values, or saved data. The configured startup map supplies lighting without Unreal's template landscape, which otherwise intersects the generated terrain.

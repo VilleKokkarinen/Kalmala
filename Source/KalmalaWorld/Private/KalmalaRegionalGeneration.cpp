@@ -275,12 +275,16 @@ FKalmalaRegionalSample FKalmalaRegionalGeneration::SampleInternal(const FKalmala
         const double Distance = Projection.Distance;
         const double W = 1 - Smooth(S.Width * 0.2, S.Width, Distance);
         if (W <= 0) continue;
+        if (!S.bStream)
+        {
+            R.RiverWeight = FMath::Max(R.RiverWeight, float(W));
+            continue;
+        }
         const double Level = FMath::Lerp(S.A.Z, S.B.Z, U);
         Sum += W;
         Water += W * Level;
         Influence = FMath::Max(Influence, W);
-        if (S.bStream) R.StreamWeight = FMath::Max(R.StreamWeight, float(W));
-        else R.RiverWeight = FMath::Max(R.RiverWeight, float(W));
+        R.StreamWeight = FMath::Max(R.StreamWeight, float(W));
     }
     if (Sum > 0 && BasinSupport < 1)
     {
@@ -292,11 +296,19 @@ FKalmalaRegionalSample FKalmalaRegionalGeneration::SampleInternal(const FKalmala
     // Shores retain the source sea-level sign outside inland basins/courses.
     if (BasinSupport == 0 && Sum == 0) R.WaterLevel = FMath::Min(0.0f, R.Height - 1.0f);
     {
-        // Hydrology may create inland water but never manufacture ocean land or
-        // change the atlas coastline. Clamp continuously toward the source shore.
+        // Preserve the source shore before applying the bounded river override.
         R.Height = F.Elevation <= T::SeaElevation ? FMath::Min(R.Height, Source)
             : FMath::Max(R.Height, FMath::Min(Source, 1.0f));
         if (F.Elevation <= T::SeaElevation) R.WaterLevel = 0;
+    }
+    if (R.RiverWeight > 0 && BasinSupport < 1)
+    {
+        // Carve after the land clamp so high ground cannot refill the channel.
+        // Maximum influence across segments avoids repeated carving at joins.
+        const float W = R.RiverWeight * (1 - BasinSupport);
+        const float Bed = -float(T::RiverBedDepth);
+        R.Height = FMath::Lerp(R.Height, FMath::Min(R.Height, Bed), W);
+        if (BasinSupport == 0) R.WaterLevel = 0;
     }
     R.bHasWater = R.WaterLevel > R.Height;
     for (uint8 I = 1; I < 6; ++I) if (R.Weights[I] > R.Weights[R.Biome]) R.Biome = I;

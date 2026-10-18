@@ -44,7 +44,7 @@ maps.
   `KalmalaRegionalTuning.h`; leave generated samples unchanged.
 - [x] Extract the existing deterministic river-segment projection and distance
   calculation into a small helper, preserving current sample outputs.
-- [ ] Add and integrate a bounded channel profile: set river water to Z=0,
+- [x] Add and integrate a bounded channel profile: set river water to Z=0,
   place the channel floor below it, and apply the result after the land/coast
   clamp using the existing river influence width.
 - [ ] Extend the profile into a smooth two-sided bank shoulder and confirm it
