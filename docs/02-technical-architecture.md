@@ -275,6 +275,24 @@ The developer `ExportWorldMaps` commandlet can temporarily install thread-local 
 
 Water presentation uses `FKalmalaWaterSurfaceMesh` to clip the shared terrain triangles at sea/lake level. `FKalmalaLakeBasin` first floods the six-connected 125 cm terrain lattice below lake level, accepting only enclosed components containing a lake-biome seed. Biome boundaries never cut an accepted lake: water extends to the physical banks. Connections to sea level and components exceeding 8,192 wet vertices are conservatively omitted rather than truncated. A bounded identity/lattice-origin cache reuses component decisions across streamed patches. The minimap uses this same visible-basin decision and interpolated terrain surface; existing server wetland/exposure/discovery sampling remains unchanged. It retains partially wet cells and interpolates intersections on shared patch edges. Shore treatment covers only terrain within 12 cm below the lake surface, not every cell or biome edge. There are no additional water collision surfaces, gameplay fields, replicated values, or saved data. The configured startup map supplies lighting without Unreal's template landscape, which otherwise intersects the generated terrain.
 
+### River terrain/water consumer audit — 2026-10-18
+
+Source inspection confirms no consumer correction is needed for the sea-level
+channel. `FKalmalaTerrainHeightSampler::SampleHeight` returns the final regional
+height after river carving. `AKalmalaGeneratedTerrainPatch::BuildVisualSurface`
+uses that height for both rendering and collision in the same mesh section
+(collision enabled). `FKalmalaWaterSurfaceMesh::BuildPatch` samples that same
+height on the same 24-cell, 3000 cm patch lattice (125 cm spacing), with the same
+two triangle diagonals and world-bound clipping. Its sea-water path clips each
+triangle against Z=0 without a source-elevation or biome filter, so carved inland
+river triangles are eligible as well as ocean triangles. Water is collision-free;
+the carved terrain section supplies the physical bed and banks.
+
+Eleven focused source assertions and twelve numeric bed/bank sea-plane
+intersection cases passed. This is a source/formula audit, not compiled mesh,
+physics or rendered verification. Sub-cell curvature remains represented by the
+existing linear triangles; river preview, patch-seam and peer gates remain queued.
+
 ## Companion minimap presentation
 
 Phase 7 begins with `FKalmalaOceanSampler`: a derived sea-depth query using the same 125 cm lattice and triangle diagonal as terrain collision and clipped ocean water. The normal overload derives the lattice origin from the immutable world's generated start and caches only that origin by identity. The explicit-origin overload supports patch callers. It returns validity, interpolated terrain height, and nonnegative depth below the existing zero-height sea surface; dry ground and the exact shore have zero depth. Invalid identity and nonfinite coordinates are rejected. The minimap now consumes this triangle height and sea-depth result instead of sampling curved Perlin height between mesh vertices, so its ocean coastline follows the visible mesh. Inland lake presentation continues through the enclosed-basin query.

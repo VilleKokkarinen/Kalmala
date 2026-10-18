@@ -1,3 +1,26 @@
+## Autonomous increment 2026-10-18 — Audit river mesh and collision consumers
+
+- **Completed/files:** inspected the existing sea-water mesh and terrain collision
+  against the final shared channel sample. No mismatch found and no runtime fix
+  needed. Checked only the selected `BACKLOG.md` checkbox; recorded the traced
+  sampler, 125 cm lattice, shared diagonals, clipping and collision path in
+  `docs/02-technical-architecture.md` and this entry.
+- **Checks:** eleven focused PowerShell source assertions passed for final-height
+  delegation, shared grid/diagonals, enabled terrain-section collision and sea-plane
+  clipping. Twelve numeric bed/bank intersection cases passed (formula only).
+  Carefully inspected patch generation/replication and absence of a sea-water
+  biome filter. Whitespace, staged scope and MAX_PATH checks passed.
+- **Impact/authority:** confirms existing consumers already include carved river
+  beds and banks; no runtime, RPC, authority, replication or saved-data change.
+- **Limits/next:** normal increment; full verification remains deferred. No Unreal
+  build, physics execution, rendered preview or live peer check ran. Existing
+  linear terrain triangles approximate sub-cell curvature. Next eligible task:
+  align minimap river-depth sampling with the fixed sea-level channel and confirm
+  expanded-map water classification.
+- **Handoff:** only this Kalmala chat active in app inventory; CIM enumeration
+  unavailable. Main checkout used directly, so synchronization unnecessary.
+  Pre-existing catalogue/UI asset edits remain untouched and excluded.
+
 ## Autonomous increment 2026-10-18 — Preserve lake overlap precedence
 
 - **Completed/files:** adjusted the river bed target in

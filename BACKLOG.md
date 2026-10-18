@@ -51,7 +51,7 @@ maps.
   returns to the original terrain outside its influence radius.
 - [x] Preserve lake-basin level precedence where rivers overlap and confirm
   river shaping does not move the ocean coast outside the channel corridor.
-- [ ] Check the existing sea-water mesh and terrain collision against the new
+- [x] Check the existing sea-water mesh and terrain collision against the new
   shared channel sample; fix a mismatch only if inspection finds one.
 - [ ] Align minimap river-depth sampling with the fixed sea-level channel and
   confirm the expanded map classifies the carved channel as water.
