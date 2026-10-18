@@ -3582,3 +3582,12 @@
 - **Impact/authority:** regression coverage only; no production sampling, network authority, RPC or save-format changes.
 - **Limitations:** normal increment, not milestone-final verification. No Unreal build or automation execution occurred; fixture availability and runtime assertions await the queued build/automation gates. Full verification remains deferred. Both pre-existing `.uasset` edits remain untouched and excluded. Work occurred directly in the main checkout; no handoff synchronization is needed.
 - **Next eligible task:** add a terrain-patch seam regression for channel height and sea-water clipping on both sides of a patch boundary.
+
+## Autonomous increment 2026-10-18 — River terrain-patch seam regression
+
+- **Completed:** added `Kalmala.World.Regional.RiverTerrainPatchSeam`. Bounded actual generated-course searches require X and Y crossings of 3000 cm patch edges for seeds 418 and 419. Basin eligibility is excluded at the neighboring 125 cm lattice vertices without selecting by carved results. The case checks submerged sea-level channel continuity, matching collision-triangle height/depth from adjacent explicit lattice origins on both sides and at the seam, and nonempty matching world-space sea-water mesh edge vertices around the crossing. Missing axis fixtures fail explicitly.
+- **Files changed:** `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`, only the selected checkbox in `BACKLOG.md`, and this entry.
+- **Lightweight verification:** 16 focused source assertions and positive/negative patch-boundary arithmetic checks passed; `git diff --check` passed. Inspected the test against patch layout, triangle interpolation and water-mesh clipping implementations. Staged scope and MAX_PATH checked before commit.
+- **Impact/authority:** regression coverage only; production terrain, water, server authority, RPCs and save formats are unchanged. Existing regional automation-prefix selection includes this case.
+- **Limitations:** normal increment, not milestone-final verification. No Unreal compilation or automation execution occurred; fixture availability and runtime assertions await the queued build/automation gates. Full verification remains deferred. Both pre-existing `.uasset` edits are preserved and excluded. Main checkout used directly; no handoff synchronization required.
+- **Next eligible task:** add control samples proving terrain away from rivers, the source coast, and enclosed-lake levels retain their established outputs.

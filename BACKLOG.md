@@ -62,7 +62,7 @@ maps.
 - [x] Add a same-seed repeatability regression for river height and water
   samples, plus a different-seed variation check.
 - [x] Add a hydrology-grid seam regression for channel height and water output.
-- [ ] Add a terrain-patch seam regression for channel height and sea-water
+- [x] Add a terrain-patch seam regression for channel height and sea-water
   clipping on both sides of a patch boundary.
 - [ ] Add control samples proving terrain away from rivers, the source coast,
   and enclosed-lake levels retain their established outputs.

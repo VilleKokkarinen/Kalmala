@@ -3,6 +3,7 @@
 #include "KalmalaBiomeClassifier.h"
 #include "KalmalaOceanSampler.h"
 #include "KalmalaWaterSurfaceMesh.h"
+#include "KalmalaTerrainPatchLayout.h"
 #include "KalmalaWorldPlayerStartResolver.h"
 #include "Misc/AutomationTest.h"
 
@@ -277,6 +278,109 @@ bool FKalmalaRiverHydrologyGridSeamTest::RunTest(const FString& Parameters)
         }
         TestTrue(TEXT("Bounded search finds an X-grid river crossing"), Found[0]);
         TestTrue(TEXT("Bounded search finds a Y-grid river crossing"), Found[1]);
+    }
+    G::ClearHydrologyCache();
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaRiverTerrainPatchSeamTest,
+    "Kalmala.World.Regional.RiverTerrainPatchSeam",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+bool FKalmalaRiverTerrainPatchSeamTest::RunTest(const FString& Parameters)
+{
+    using G = FKalmalaRegionalGeneration;
+    using T = FKalmalaRegionalTuning;
+    using L = FKalmalaTerrainPatchLayout;
+    constexpr double Size = L::PatchSize;
+    constexpr double Half = Size * 0.5;
+    constexpr double Step = Size / FKalmalaWaterSurfaceMesh::CellsPerSide;
+    for (const uint64 Seed : {418ull, 419ull})
+    {
+        const FKalmalaWorldGenerationConfig Config{Seed};
+        bool Found[2] = {};
+        for (int32 Y = -24; Y <= 24 && !(Found[0] && Found[1]); ++Y)
+        for (int32 X = -24; X <= 24 && !(Found[0] && Found[1]); ++X)
+        for (const auto& Segment : G::GetHydrology(Config, FIntPoint(X, Y)))
+        {
+            if (Segment.bStream) continue;
+            const FVector2D A(Segment.A), Delta = FVector2D(Segment.B) - A;
+            for (int32 Axis = 0; Axis < 2; ++Axis)
+            {
+                if (Found[Axis]) continue;
+                const double Start = Axis == 0 ? A.X : A.Y;
+                const double Span = Axis == 0 ? Delta.X : Delta.Y;
+                if (FMath::Abs(Span) < 0.001) continue;
+                // Zero-origin patches have edges at n*Size + Half.
+                const double Boundary = (FMath::FloorToInt((FMath::Min(Start, Start + Span) - Half) / Size) + 1) * Size + Half;
+                const double U = (Boundary - Start) / Span;
+                if (U <= 0 || U >= 1) continue;
+                FVector2D Center = A + Delta * U;
+                if (Axis == 0) Center.X = Boundary; else Center.Y = Boundary;
+                const FVector2D Normal = Axis == 0 ? FVector2D(1, 0) : FVector2D(0, 1);
+                const FIntPoint Key = L::GetPatchCoordinate(FVector2D::ZeroVector, Center - Normal * 0.1);
+                const FVector2D LeftCenter = L::GetPatchCenter(FVector2D::ZeroVector, Key.X, Key.Y);
+                const FVector2D RightCenter = LeftCenter + Normal * Size;
+                // Exclude basin support at the two seam lattice endpoints and
+                // their neighboring columns, without filtering carved outputs.
+                const double Along = Axis == 0 ? Center.Y : Center.X;
+                const double AlongStart = FMath::FloorToDouble((Along + Half) / Step) * Step - Half;
+                bool bEligible = true;
+                for (const double Across : {-Step, 0.0, Step})
+                for (const double Tangent : {AlongStart, AlongStart + Step})
+                {
+                    const FVector2D P = Axis == 0 ? FVector2D(Boundary + Across, Tangent) : FVector2D(Tangent, Boundary + Across);
+                    const auto R = G::Sample(Config, P);
+                    if (R.Weights[1] + R.Weights[3] > 0) bEligible = false;
+                }
+                if (!bEligible) continue;
+                TestTrue(TEXT("Fixture crosses distinct terrain patches"), Key != L::GetPatchCoordinate(FVector2D::ZeroVector, Center + Normal * 0.1));
+                const auto Before = G::Sample(Config, Center - Normal * 0.01);
+                const auto After = G::Sample(Config, Center + Normal * 0.01);
+                TestTrue(TEXT("Channel height is continuous across patch seam"), FMath::Abs(Before.Height - After.Height) < 0.5f);
+                TestTrue(TEXT("Both patch sides retain submerged sea-level channel"), Before.Height < 0 && After.Height < 0
+                    && Before.bHasWater && After.bHasWater && Before.WaterLevel == 0 && After.WaterLevel == 0);
+                // Explicit origins exercise the actual collision triangle lattice
+                // from both adjacent patches, including queries on either side.
+                for (const double Offset : {-0.01, 0.0, 0.01})
+                {
+                    const FVector2D P = Center + Normal * Offset;
+                    const auto Left = FKalmalaOceanSampler::Sample(Config, P, LeftCenter - FVector2D(Half, Half));
+                    const auto Right = FKalmalaOceanSampler::Sample(Config, P, RightCenter - FVector2D(Half, Half));
+                    TestTrue(TEXT("Both patch triangle samples are valid and wet"), Left.IsWater() && Right.IsWater());
+                    TestEqual(TEXT("Adjacent patch origins reproduce channel triangle height"), Left.TerrainHeight, Right.TerrainHeight);
+                    TestEqual(TEXT("Adjacent patch origins reproduce sea depth"), Left.WaterDepth, Right.WaterDepth);
+                }
+                const auto Left = FKalmalaWaterSurfaceMesh::BuildPatch(Config, LeftCenter, false);
+                const auto Right = FKalmalaWaterSurfaceMesh::BuildPatch(Config, RightCenter, false);
+                const auto Edge = [&](const FKalmalaWaterMesh& Mesh, FVector2D Origin)
+                {
+                    TArray<FVector> Result;
+                    for (const FVector& V : Mesh.Vertices)
+                    {
+                        const FVector World = V + FVector(Origin, 0);
+                        const double Across = Axis == 0 ? World.X : World.Y;
+                        const double Tangent = Axis == 0 ? World.Y : World.X;
+                        if (FMath::Abs(Across - Boundary) < 0.001 && Tangent >= AlongStart - 0.001 && Tangent <= AlongStart + Step + 0.001)
+                            Result.AddUnique(World);
+                    }
+                    return Result;
+                };
+                const auto LeftEdge = Edge(Left, LeftCenter), RightEdge = Edge(Right, RightCenter);
+                TestTrue(TEXT("River crossing supplies nonempty clipped water edges on both patches"), LeftEdge.Num() >= 2 && RightEdge.Num() >= 2);
+                TestEqual(TEXT("Shared river edge vertex counts match"), LeftEdge.Num(), RightEdge.Num());
+                for (const FVector& V : LeftEdge)
+                {
+                    TestEqual(TEXT("Clipped river patch edge stays at sea level"), V.Z, 0.0);
+                    TestTrue(TEXT("Adjacent river water edges have identical world intersections"), RightEdge.ContainsByPredicate(
+                        [&V](const FVector& R) { return V.Equals(R, 0.001); }));
+                }
+                Found[Axis] = true;
+                AddInfo(FString::Printf(TEXT("River patch seam seed=%llu axis=%d position=(%.3f,%.3f) edgeVertices=%d"),
+                    Seed, Axis, Center.X, Center.Y, LeftEdge.Num()));
+            }
+        }
+        TestTrue(TEXT("Bounded search finds an X-patch river crossing"), Found[0]);
+        TestTrue(TEXT("Bounded search finds a Y-patch river crossing"), Found[1]);
     }
     G::ClearHydrologyCache();
     return true;
