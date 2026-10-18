@@ -87,6 +87,8 @@ that increment and keep the remaining work in this order.
 
 ## User-requested fixes
 
+- [x] Remove the inventory ScrollBox, remembered scroll state and bottom scroll-hint line; mount content directly on the panel.
+
 - [x] Combine inventory/equipment on one backplate, remove equipment heading/footer, add one-tile separation, Necklace/Ring placeholders and detailed empty-slot silhouettes.
 
 - [x] Repair menu preview cache dependency mismatch by building the complete Editor target and invalidating the cache for all native project sources.

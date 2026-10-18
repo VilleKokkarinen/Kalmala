@@ -8,7 +8,6 @@
 class UTextBlock;
 class USizeBox;
 class UKalmalaItemDetailWidget;
-class UScrollBox;
 class UKalmalaThemedButton;
 class UKalmalaInventoryGridWidget;
 class UKalmalaCraftingWidget;
@@ -54,7 +53,6 @@ private:
     bool NavigateInventoryMenu(FKey Key);
     UFUNCTION() void RepairSelectedTool();
     UFUNCTION() void EatSelectedFood();
-    UFUNCTION() void MenuScrolled(float Offset);
     void RefreshFoodActionPresentation(const FKalmalaCatalogueRow* SelectedRow, int32 TextScale, int32 Contrast);
     void RefreshGearPresentation(int32 TextScale, int32 Contrast);
     void SelectGridItem(FName ItemId);
@@ -73,7 +71,6 @@ private:
     UPROPERTY(Transient) TObjectPtr<USizeBox> GridSizeBox;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> ToolActionStatusText;
     UPROPERTY(Transient) TObjectPtr<UKalmalaItemDetailWidget> ItemDetailView;
-    UPROPERTY(Transient) TObjectPtr<UScrollBox> MenuContentScrollBox;
     UPROPERTY(Transient) TObjectPtr<USizeBox> PanelSizeBox;
     UPROPERTY(Transient) TObjectPtr<UBorder> PanelBackplate;
     UPROPERTY(Transient) TObjectPtr<UBorder> InventoryPanel;
@@ -99,7 +96,6 @@ private:
     FName HoveredItemId = NAME_None;
     bool bEmptyCellSelected = false;
     bool bSelectionDetailsRequested = false;
-    float RememberedMenuScrollOffset = 0.0f;
     float ResponsivePanelWidth = 1120.0f;
     float ResponsivePanelHeight = 800.0f;
     float OpeningElapsed = 0.0f;

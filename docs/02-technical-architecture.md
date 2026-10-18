@@ -2973,7 +2973,9 @@ Inventory Craft may create multiple Construction Hammers. Each copy has its own 
 
 Presentation update (2026-10-18): the inventory grid and equipment share one
 InventoryPanelImage backplate, with a 56-unit gap and no equipment heading or
-footer instructions. The seven supported slots use a centered body
+footer instructions. Content mounts directly in the backplate's vertical box;
+there is no inventory ScrollBox, scroll offset or scroll-shadow hint.
+The seven supported slots use a centered body
 layout: Head at (row 0, column 1), Cape (1,0), Main Hand (2,0), Chest (2,1),
 Shield (2,2), Legs (3,1), Boots (4,1). Necklace (1,1) and Ring (4,2) are disabled
 visual placeholders; no jewellery items or equip transactions are authored.

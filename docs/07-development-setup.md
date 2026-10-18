@@ -4168,6 +4168,8 @@ The six wearable IDs are grouped by type in `items/boots.json`, `items/capes.jso
 
 The Inventory popup combines equipment with the 40-cell grid on one plank
 backplate, separated by a 56-unit gap, without a Worn Gear heading or footer.
+The content mounts directly in the panel, with no inventory ScrollBox or
+scroll-shadow overlay. There is no scrolling fallback for smaller viewports.
 As of 2026-10-18,
 the seven supported slots use a body layout: Head above center, Cape upper-left,
 Main Hand / Chest / Shield across the middle, then Legs and Boots down center.
@@ -4181,7 +4183,7 @@ server-validated equip, replace and return actions remain active.
 `Kalmala.UI.InventoryMenu.Selection` checks nine slot/state labels and the absent heading.
 When rendered verification is due, inspect 1280×720 and 1920×1080, high contrast
 and 150% text, empty/populated slots, replacement and unequip, two-handed
-Shield state, and scrolling with selected-item details. The combined layout's
+Shield state, and selected-item details fitting the panel. The combined layout's
 incremental Editor build, Selection regression and standard 1920×1080 Inventory
 render passed on 2026-10-18. Broader automation, live input/peers, populated gear
 and the accessibility/resolution matrix remain deferred.

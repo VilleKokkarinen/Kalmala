@@ -10,7 +10,6 @@
 #include "Components/HorizontalBoxSlot.h"
 #include "Components/GridPanel.h"
 #include "Components/GridSlot.h"
-#include "Components/ScrollBox.h"
 #include "Components/SizeBox.h"
 #include "Components/TextBlock.h"
 #include "Components/VerticalBox.h"
@@ -111,11 +110,6 @@ void UKalmalaInventoryMenuWidget::NativeOnInitialized()
     const int32 TextScale = UKalmalaSettingsWidget::GetTextScalePercent();
     const int32 Contrast = UKalmalaSettingsWidget::GetContrastMode();
     auto* Content = WidgetTree->ConstructWidget<UVerticalBox>();
-    MenuContentScrollBox = WidgetTree->ConstructWidget<UScrollBox>();
-    Theme.ApplyScroll(*MenuContentScrollBox);
-    MenuContentScrollBox->SetScrollBarVisibility(ESlateVisibility::Collapsed);
-    MenuContentScrollBox->OnUserScrolled.AddDynamic(this, &ThisClass::MenuScrolled);
-    MenuContentScrollBox->AddChild(Content);
     auto AddText = [&](const FString& Value, const bool bEmphasis)
     {
         auto* Text = WidgetTree->ConstructWidget<UTextBlock>();
@@ -249,7 +243,7 @@ void UKalmalaInventoryMenuWidget::NativeOnInitialized()
     InventoryPanel = WidgetTree->ConstructWidget<UBorder>();
     Theme.ApplyPanel(*InventoryPanel, Contrast, &Theme.InventoryPanelImage);
     InventoryPanel->SetPadding(FMargin(Theme.PaddingX, Theme.PaddingY));
-    InventoryPanel->SetContent(MenuContentScrollBox);
+    InventoryPanel->SetContent(Content);
     PanelBackplate = InventoryPanel;
     CraftingCompanion = GetOwningPlayer()
         ? CreateWidget<UKalmalaCraftingWidget>(GetOwningPlayer(), UKalmalaCraftingWidget::StaticClass())
@@ -351,7 +345,6 @@ void UKalmalaInventoryMenuWidget::Open()
     InputMode.SetWidgetToFocus(FocusTarget->TakeWidget());
     InputMode.SetHideCursorDuringCapture(false);
     Controller->SetInputMode(InputMode);
-    if (MenuContentScrollBox) MenuContentScrollBox->SetScrollOffset(RememberedMenuScrollOffset);
 
 
     bMenuOpen = true;
@@ -568,10 +561,6 @@ bool UKalmalaInventoryMenuWidget::NavigateInventoryMenu(const FKey Key)
     { StepSelection(1); return true; }
     return false;
 }
-void UKalmalaInventoryMenuWidget::MenuScrolled(const float Offset)
-{
-    RememberedMenuScrollOffset = Offset;
-}
 
 void UKalmalaInventoryMenuWidget::RefreshSelectionPresentation(const int32 TextScale, const int32 Contrast)
 {
@@ -607,7 +596,6 @@ void UKalmalaInventoryMenuWidget::RefreshSelectionPresentation(const int32 TextS
         for (UTextBlock* State : GearSlotStateTexts)
             if (State) Theme.ApplyText(*State, Theme.BodySize, false, TextScale, Contrast);
 
-        if (MenuContentScrollBox) Theme.ApplyScroll(*MenuContentScrollBox);
         LastTextScalePercent = TextScale;
         LastContrastMode = Contrast;
     }
@@ -1114,7 +1102,6 @@ void UKalmalaInventoryMenuWidget::PrepareMenuRender(const FVector2D ViewportSize
 void UKalmalaInventoryMenuWidget::Close()
 {
     if (!bMenuOpen) return;
-    if (MenuContentScrollBox) RememberedMenuScrollOffset = MenuContentScrollBox->GetScrollOffset();
     if (GridView) GridView->CancelMove();
     if (CraftingCompanion) { CraftingCompanion->CloseInventoryCompanion(); CraftingCompanion->RemoveFromParent(); }
 
