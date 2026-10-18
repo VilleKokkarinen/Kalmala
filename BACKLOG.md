@@ -74,7 +74,7 @@ maps.
   are complete.
 - [x] Run the focused regional-generation automation cases and inspect their
   pass/fail output.
-- [ ] Export and inspect a high-ground river preview; repeat the same seed and
+- [x] Export and inspect a high-ground river preview; repeat the same seed and
   compare it with a different seed.
 - [ ] Run the regional-generation checks for deterministic preview and
   host/client sampler agreement with
