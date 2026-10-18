@@ -4160,7 +4160,19 @@ The six wearable IDs are grouped by type in `items/boots.json`, `items/capes.jso
 
 ## Inventory Worn Gear presentation — 2026-10-15
 
-The Inventory popup shows a separate Worn Gear section beneath the unchanged 40-cell grid. It lists Main Hand, Head, Cape, Chest, Shield, Legs, and Boots in framed Kalmala-styled tiles, each marked Empty. These are visual placeholders: they have no equipment identity, interaction, RPC, replication, defense effect, or save state. The `Kalmala.UI.InventoryMenu.Selection` automation asserts the section heading, exact slot list, and empty labels. Render the Inventory menu at 1280×720 and 1920×1080, including high-contrast mode, when UI rendering verification is due.
+The Inventory popup shows Worn Gear beneath the 40-cell grid. As of 2026-10-18,
+the seven supported slots use a body layout: Head above center, Cape upper-left,
+Main Hand / Chest / Shield across the middle, then Legs and Boots down center.
+The section shares the inventory plank background and item tile fill. Original
+muted vector silhouettes identify empty slots; owner-replicated equipped gear
+and the active Main Hand tool replace these with existing catalogue icons.
+Names, wearable condition and action guidance appear on hover. Existing
+server-validated equip, replace and return actions remain active.
+`Kalmala.UI.InventoryMenu.Selection` retains slot/state metadata assertions.
+When rendered verification is due, inspect 1280×720 and 1920×1080, high contrast
+and 150% text, empty/populated slots, replacement and unequip, two-handed
+Shield state, and scrolling with selected-item details. Full build, automation
+execution and rendered acceptance are deferred for this presentation increment.
 
 ## Generated forest reconstruction lifecycle (2026-10-15)
 

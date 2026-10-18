@@ -8,6 +8,8 @@
 #include "Components/OverlaySlot.h"
 #include "Components/HorizontalBox.h"
 #include "Components/HorizontalBoxSlot.h"
+#include "Components/GridPanel.h"
+#include "Components/GridSlot.h"
 #include "Components/ScrollBox.h"
 #include "Components/SizeBox.h"
 #include "Components/TextBlock.h"
@@ -22,6 +24,7 @@
 #include "InputCoreTypes.h"
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaInventoryGridWidget.h"
+#include "KalmalaIconWidget.h"
 #include "KalmalaItemDetailWidget.h"
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaPlayerStatusComponent.h"
@@ -33,6 +36,22 @@
 
 namespace
 {
+// Keep equipment cells on the inventory tile surface; only their outline responds to input.
+void StyleGearButton(UKalmalaThemedButton& Button, const int32 Contrast)
+{
+    const auto& Theme = FKalmalaUITheme::Get();
+    Theme.ApplyButton(Button, Contrast);
+    FButtonStyle Style = Button.GetStyle();
+    const FLinearColor Outline = Contrast > 0 ? FLinearColor::White : FLinearColor(0.32f, 0.20f, 0.12f, 1.0f);
+    Style.SetNormal(FSlateRoundedBoxBrush(FLinearColor::Transparent, 5.0f, Outline, 1.0f));
+    Style.SetHovered(FSlateRoundedBoxBrush(FLinearColor::Transparent, 5.0f, Theme.TextColor(true, Contrast), 2.0f));
+    Style.SetPressed(Style.Hovered);
+    Style.SetDisabled(Style.Normal);
+    Style.SetNormalPadding(FMargin(0));
+    Style.SetPressedPadding(FMargin(0));
+    Button.SetStyle(Style);
+}
+
 FString GetCarriedToolDisplayName(const FName ItemId)
 {
     if (ItemId == TEXT("StoneMace")) return TEXT("Stone Mace");
@@ -114,38 +133,58 @@ void UKalmalaInventoryMenuWidget::NativeOnInitialized()
     GridSizeBox->SetContent(GridView);
     Content->AddChildToVerticalBox(GridSizeBox);
 
-    auto* WornGearPanel = WidgetTree->ConstructWidget<UBorder>();
-    Theme.ApplySolidPanel(*WornGearPanel, Contrast);
+    WornGearPanel = WidgetTree->ConstructWidget<UBorder>();
+    Theme.ApplyPanel(*WornGearPanel, Contrast, &Theme.InventoryPanelImage);
     WornGearPanel->SetPadding(FMargin(Theme.PaddingX * 0.5f, Theme.PaddingY * 0.5f));
     auto* WornGearContent = WidgetTree->ConstructWidget<UVerticalBox>();
     WornGearPanel->SetContent(WornGearContent);
-    auto* WornGearHeading = WidgetTree->ConstructWidget<UTextBlock>();
+    WornGearHeading = WidgetTree->ConstructWidget<UTextBlock>();
     WornGearHeading->SetText(FText::FromString(TEXT("Worn Gear")));
     Theme.ApplyText(*WornGearHeading, Theme.EmphasisSize, true, TextScale, Contrast);
     WornGearContent->AddChildToVerticalBox(WornGearHeading)->SetPadding(FMargin(0, 0, 0, Theme.RowSpacing));
 
-    auto AddGearSlot = [&](UHorizontalBox& Row, const FString& SlotName,
-        const bool bInteractive, const EKalmalaGearSlot GearSlot)
+    auto* GearLayout = WidgetTree->ConstructWidget<UGridPanel>();
+    auto AddGearSlot = [&](const FString& SlotName, const bool bInteractive,
+        const EKalmalaGearSlot GearSlot, const EKalmalaIcon EmptyIcon, const int32 Row, const int32 Column)
     {
         auto* SlotSize = WidgetTree->ConstructWidget<USizeBox>();
-        SlotSize->SetHeightOverride(72.0f);
+        SlotSize->SetWidthOverride(56.0f);
+        SlotSize->SetHeightOverride(56.0f);
+        auto* Fill = WidgetTree->ConstructWidget<UBorder>();
+        Fill->SetBrush(FSlateRoundedBoxBrush(FLinearColor::White, 5.0f));
+        Theme.ApplyItemIconTileFill(*Fill, Contrast);
+        Fill->SetPadding(FMargin(0));
+        GearSlotFills.Add(Fill);
+        auto* Button = WidgetTree->ConstructWidget<UKalmalaThemedButton>();
+        StyleGearButton(*Button, Contrast);
+        Button->SetToolTipText(FText::FromString(SlotName + TEXT(": Empty")));
+        Fill->SetContent(Button);
+        SlotSize->SetContent(Fill);
         auto* SlotContent = WidgetTree->ConstructWidget<UVerticalBox>();
+        auto* IconSize = WidgetTree->ConstructWidget<USizeBox>();
+        IconSize->SetWidthOverride(36.0f);
+        IconSize->SetHeightOverride(36.0f);
+        auto* Icon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
+        Icon->SetIcon(EmptyIcon);
+        Icon->SetRenderOpacity(0.4f);
+        Icon->SetVisibility(ESlateVisibility::HitTestInvisible);
+        IconSize->SetContent(Icon);
+        auto* IconPlacement = SlotContent->AddChildToVerticalBox(IconSize);
+        IconPlacement->SetHorizontalAlignment(HAlign_Center);
+        IconPlacement->SetVerticalAlignment(VAlign_Center);
+        IconPlacement->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+        // Keep slot/state metadata available without crowding the icon layout.
         auto* Name = WidgetTree->ConstructWidget<UTextBlock>();
         Name->SetText(FText::FromString(SlotName));
-        Name->SetAutoWrapText(true);
-        Name->SetJustification(ETextJustify::Center);
-        Theme.ApplyText(*Name, Theme.BodySize, true, TextScale, Contrast);
+        Name->SetVisibility(ESlateVisibility::Collapsed);
         SlotContent->AddChildToVerticalBox(Name);
-        auto* Empty = WidgetTree->ConstructWidget<UTextBlock>();
-        Empty->SetText(FText::FromString(TEXT("Empty")));
-        Empty->SetJustification(ETextJustify::Center);
-        Theme.ApplyText(*Empty, Theme.BodySize, false, TextScale, Contrast);
-        SlotContent->AddChildToVerticalBox(Empty);
+        auto* State = WidgetTree->ConstructWidget<UTextBlock>();
+        State->SetText(FText::FromString(TEXT("Empty")));
+        State->SetVisibility(ESlateVisibility::Collapsed);
+        SlotContent->AddChildToVerticalBox(State);
+        Button->SetContent(SlotContent);
         if (bInteractive)
         {
-            auto* Button = WidgetTree->ConstructWidget<UKalmalaThemedButton>();
-            Button->SetContent(SlotContent);
-            Theme.ApplyButton(*Button, Contrast);
             switch (GearSlot)
             {
             case EKalmalaGearSlot::Head: Button->OnClicked.AddDynamic(this, &ThisClass::UseHeadGearSlot); break;
@@ -157,44 +196,30 @@ void UKalmalaInventoryMenuWidget::NativeOnInitialized()
             default: break;
             }
             GearSlotButtons.Add(Button);
+            GearSlotIcons.Add(Icon);
             GearSlotNameTexts.Add(Name);
-            GearSlotStateTexts.Add(Empty);
-            SlotSize->SetContent(Button);
+            GearSlotStateTexts.Add(State);
         }
         else
         {
-            MainHandButton = WidgetTree->ConstructWidget<UKalmalaThemedButton>();
-            Theme.ApplyButton(*MainHandButton, Contrast);
-            MainHandButton->SetContent(SlotContent);
+            MainHandButton = Button;
+            MainHandIcon = Icon;
             MainHandButton->OnClicked.AddDynamic(this, &ThisClass::UseMainHandSlot);
             MainHandNameText = Name;
-            MainHandStateText = Empty;
-            SlotSize->SetContent(MainHandButton);
+            MainHandStateText = State;
         }
-        auto* RowSlot = Row.AddChildToHorizontalBox(SlotSize);
-        FSlateChildSize RowSize(ESlateSizeRule::Fill);
-        RowSize.Value = 1.0f;
-        RowSlot->SetSize(RowSize);
-        RowSlot->SetPadding(FMargin(0, 0, Theme.RowSpacing, 0));
+        GearLayout->AddChildToGrid(SlotSize, Row, Column)->SetPadding(FMargin(4.0f));
     };
-
-    auto* GearRowOne = WidgetTree->ConstructWidget<UHorizontalBox>();
-    AddGearSlot(*GearRowOne, TEXT("Main Hand"), false, EKalmalaGearSlot::Head);
-    AddGearSlot(*GearRowOne, TEXT("Head"), true, EKalmalaGearSlot::Head);
-    AddGearSlot(*GearRowOne, TEXT("Cape"), true, EKalmalaGearSlot::Cape);
-    AddGearSlot(*GearRowOne, TEXT("Chest"), true, EKalmalaGearSlot::Chest);
-    WornGearContent->AddChildToVerticalBox(GearRowOne);
-    auto* GearRowTwo = WidgetTree->ConstructWidget<UHorizontalBox>();
-    AddGearSlot(*GearRowTwo, TEXT("Shield"), true, EKalmalaGearSlot::Shield);
-    AddGearSlot(*GearRowTwo, TEXT("Legs"), true, EKalmalaGearSlot::Legs);
-    AddGearSlot(*GearRowTwo, TEXT("Boots"), true, EKalmalaGearSlot::Boots);
-    auto* GearSpacer = WidgetTree->ConstructWidget<USizeBox>();
-    GearSpacer->SetHeightOverride(72.0f);
-    GearSpacer->SetVisibility(ESlateVisibility::Hidden);
-    FSlateChildSize GearSpacerSize(ESlateSizeRule::Fill);
-    GearSpacerSize.Value = 1.0f;
-    GearRowTwo->AddChildToHorizontalBox(GearSpacer)->SetSize(GearSpacerSize);
-    WornGearContent->AddChildToVerticalBox(GearRowTwo)->SetPadding(FMargin(0, Theme.RowSpacing, 0, 0));
+    // Reference body placement, restricted to Kalmala's seven supported equipment slots.
+    // Keep wearable construction order aligned with RefreshGearPresentation's slot table.
+    AddGearSlot(TEXT("Head"), true, EKalmalaGearSlot::Head, EKalmalaIcon::Helmet, 0, 1);
+    AddGearSlot(TEXT("Cape"), true, EKalmalaGearSlot::Cape, EKalmalaIcon::Cape, 1, 0);
+    AddGearSlot(TEXT("Chest"), true, EKalmalaGearSlot::Chest, EKalmalaIcon::Tunic, 2, 1);
+    AddGearSlot(TEXT("Shield"), true, EKalmalaGearSlot::Shield, EKalmalaIcon::Shield, 2, 2);
+    AddGearSlot(TEXT("Legs"), true, EKalmalaGearSlot::Legs, EKalmalaIcon::Leggings, 3, 1);
+    AddGearSlot(TEXT("Boots"), true, EKalmalaGearSlot::Boots, EKalmalaIcon::Boots, 4, 1);
+    AddGearSlot(TEXT("Main Hand"), false, EKalmalaGearSlot::Head, EKalmalaIcon::Sword, 2, 0);
+    WornGearContent->AddChildToVerticalBox(GearLayout)->SetHorizontalAlignment(HAlign_Center);
     GearActionStatusText = WidgetTree->ConstructWidget<UTextBlock>();
     GearActionStatusText->SetAutoWrapText(true);
     GearActionStatusText->SetText(FText::FromString(
@@ -283,7 +308,7 @@ void UKalmalaInventoryMenuWidget::UpdateResponsivePanelSize(const FVector2D View
     if (!PanelSizeBox) return;
     const float NewWidth = FMath::Min(520.0f, FMath::Max(80.0f, ViewportSize.X * 0.38f));
     const float GridHeight = FMath::Max(32.0f, (NewWidth - FKalmalaUITheme::Get().PaddingX * 2.0f) * 0.4f);
-    constexpr float WornGearHeight = 218.0f;
+    constexpr float WornGearHeight = 430.0f;
     const bool bDetails = bSelectionDetailsRequested || !HoveredItemId.IsNone();
     const float NewHeight = FMath::Min(FMath::Max(80.0f, ViewportSize.Y - 32.0f),
         GridHeight + WornGearHeight + (bDetails ? 280.0f : FKalmalaUITheme::Get().PaddingY * 2.0f));
@@ -578,8 +603,16 @@ void UKalmalaInventoryMenuWidget::RefreshSelectionPresentation(const int32 TextS
         Theme.ApplyText(*CastChecked<UTextBlock>(EatFoodButton->GetContent()), Theme.BodySize, false, TextScale, Contrast);
         Theme.ApplyText(*FoodActionStatusText, Theme.BodySize, false, TextScale, Contrast);
         for (UKalmalaThemedButton* Button : GearSlotButtons)
-            if (Button) Theme.ApplyButton(*Button, Contrast);
-        if (MainHandButton) Theme.ApplyButton(*MainHandButton, Contrast);
+            if (Button) StyleGearButton(*Button, Contrast);
+        if (MainHandButton) StyleGearButton(*MainHandButton, Contrast);
+        if (WornGearPanel)
+        {
+            Theme.ApplyPanel(*WornGearPanel, Contrast, &Theme.InventoryPanelImage);
+            WornGearPanel->SetPadding(FMargin(Theme.PaddingX * 0.5f, Theme.PaddingY * 0.5f));
+        }
+        for (UBorder* Fill : GearSlotFills)
+            if (Fill) Theme.ApplyItemIconTileFill(*Fill, Contrast);
+        if (WornGearHeading) Theme.ApplyText(*WornGearHeading, Theme.EmphasisSize, true, TextScale, Contrast);
         if (MainHandNameText) Theme.ApplyText(*MainHandNameText, Theme.BodySize, true, TextScale, Contrast);
         if (MainHandStateText) Theme.ApplyText(*MainHandStateText, Theme.BodySize, false, TextScale, Contrast);
         for (UTextBlock* Name : GearSlotNameTexts)
@@ -704,11 +737,15 @@ void UKalmalaInventoryMenuWidget::RefreshSelectionPresentation(const int32 TextS
 
 void UKalmalaInventoryMenuWidget::RefreshGearPresentation(const int32 TextScale, const int32 Contrast)
 {
-    if (GearSlotButtons.Num() != 6 || GearSlotStateTexts.Num() != 6 || GearActionStatusText == nullptr) return;
+    if (GearSlotButtons.Num() != 6 || GearSlotStateTexts.Num() != 6
+        || GearSlotIcons.Num() != 6 || GearActionStatusText == nullptr) return;
 
     static const EKalmalaGearSlot Slots[] = {
         EKalmalaGearSlot::Head, EKalmalaGearSlot::Cape, EKalmalaGearSlot::Chest,
         EKalmalaGearSlot::Shield, EKalmalaGearSlot::Legs, EKalmalaGearSlot::Boots};
+    static const EKalmalaIcon EmptyIcons[] = {
+        EKalmalaIcon::Helmet, EKalmalaIcon::Cape, EKalmalaIcon::Tunic,
+        EKalmalaIcon::Shield, EKalmalaIcon::Leggings, EKalmalaIcon::Boots};
     APlayerController* Controller = GetOwningPlayer();
     UKalmalaInventoryComponent* Inventory = Controller && Controller->GetPawn()
         ? Controller->GetPawn()->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
@@ -729,6 +766,10 @@ void UKalmalaInventoryMenuWidget::RefreshGearPresentation(const int32 TextScale,
 
         const EKalmalaGearSlot GearSlot = Slots[Index];
         const FKalmalaEquippedGear* Equipped = Inventory ? Inventory->FindEquippedGear(GearSlot) : nullptr;
+        UKalmalaIconWidget* Icon = GearSlotIcons[Index];
+        if (Equipped) Icon->SetCatalogueIcon(Equipped->ItemId);
+        else Icon->SetIcon(EmptyIcons[Index]);
+        Icon->SetRenderOpacity(Equipped ? 1.0f : (Contrast > 0 ? 0.7f : 0.4f));
         FString State = TEXT("Empty");
         const bool bCanEquip = SelectedDefinition && SelectedRow && SelectedGuid.IsValid()
             && SelectedDefinition->GearSlot == GetGearCatalogueSlot(GearSlot)
@@ -765,6 +806,8 @@ void UKalmalaInventoryMenuWidget::RefreshGearPresentation(const int32 TextScale,
             Button->SetToolTipText(FText::FromString(
                 TEXT("A two-handed weapon uses this hand. Equipping a shield first returns that weapon to the pack.")));
         }
+        Button->SetToolTipText(FText::FromString(GetGearCatalogueSlot(GearSlot) + TEXT(": ") + State
+            + TEXT("\n") + Button->GetToolTipText().ToString()));
         Button->SetIsEnabled(!bAwaitingGearRequestResult && Inventory
             && (Equipped != nullptr || bCanEquip));
         if (StateText->GetText().ToString() != State)
@@ -774,6 +817,12 @@ void UKalmalaInventoryMenuWidget::RefreshGearPresentation(const int32 TextScale,
     if (MainHandButton && MainHandStateText)
     {
         const bool bHasTool = Inventory && FKalmalaToolLifecycleContract::FindDefinition(Inventory->GetActiveItem());
+        if (MainHandIcon)
+        {
+            if (bHasTool) MainHandIcon->SetCatalogueIcon(Inventory->GetActiveItem());
+            else MainHandIcon->SetIcon(EKalmalaIcon::Sword);
+            MainHandIcon->SetRenderOpacity(bHasTool ? 1.0f : (Contrast > 0 ? 0.7f : 0.4f));
+        }
         const bool bCanSelect = Inventory && SelectedRow && SelectedRow->bCarriedTool
             && SelectedGuid.IsValid() && SelectedGuid != Inventory->GetActiveInstanceGuid();
         const FString State = bHasTool ? GetCarriedToolDisplayName(Inventory->GetActiveItem()) + (bTwoHanded ? TEXT(" (Two hands)") : TEXT(""))
@@ -783,6 +832,8 @@ void UKalmalaInventoryMenuWidget::RefreshGearPresentation(const int32 TextScale,
         MainHandButton->SetToolTipText(FText::FromString(bCanSelect
             ? TEXT("Click to use the selected weapon or tool in Main Hand.")
             : TEXT("Click to return Main Hand to a free inventory cell, or select another weapon or tool first.")));
+        MainHandButton->SetToolTipText(FText::FromString(TEXT("Main Hand: ") + State
+            + TEXT("\n") + MainHandButton->GetToolTipText().ToString()));
     }
 
     FString Status = LastGearActionStatus.IsEmpty()

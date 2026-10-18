@@ -14,6 +14,7 @@ class UKalmalaInventoryGridWidget;
 class UKalmalaCraftingWidget;
 class UBorder;
 class UHorizontalBox;
+class UKalmalaIconWidget;
 enum class EKalmalaGearSlot : uint8;
 
 /** One owner-local inventory grid with existing selected-tool and food actions. */
@@ -81,6 +82,11 @@ private:
     UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> EatFoodButton;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> FoodActionStatusText;
     UPROPERTY(Transient) TArray<TObjectPtr<UKalmalaThemedButton>> GearSlotButtons;
+    UPROPERTY(Transient) TArray<TObjectPtr<UKalmalaIconWidget>> GearSlotIcons;
+    UPROPERTY(Transient) TArray<TObjectPtr<UBorder>> GearSlotFills;
+    UPROPERTY(Transient) TObjectPtr<UKalmalaIconWidget> MainHandIcon;
+    UPROPERTY(Transient) TObjectPtr<UBorder> WornGearPanel;
+    UPROPERTY(Transient) TObjectPtr<UTextBlock> WornGearHeading;
     UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> MainHandButton;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> MainHandNameText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> MainHandStateText;

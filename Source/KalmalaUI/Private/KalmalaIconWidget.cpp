@@ -68,8 +68,10 @@ int32 UKalmalaIconWidget::NativePaint(const FPaintArgs& Args, const FGeometry& G
     {
         if (bClose && Points.Num()) { const FVector2D First = Points[0]; Points.Add(First); }
         for (auto& P : Points) P = Offset + P * Scale;
-        FSlateDrawElement::MakeLines(E, Layer, G.ToPaintGeometry(), Points, ESlateDrawEffect::None, FLinearColor::Black, true, 3.8f);
-        FSlateDrawElement::MakeLines(E, Layer + 1, G.ToPaintGeometry(), Points, ESlateDrawEffect::None, Ink, true, 1.8f);
+        FSlateDrawElement::MakeLines(E, Layer, G.ToPaintGeometry(), Points, ESlateDrawEffect::None,
+            FLinearColor::Black * Style.GetColorAndOpacityTint(), true, 3.8f);
+        FSlateDrawElement::MakeLines(E, Layer + 1, G.ToPaintGeometry(), Points, ESlateDrawEffect::None,
+            Ink * Style.GetColorAndOpacityTint(), true, 1.8f);
     };
     const auto Circle = [&](FVector2D Centre, float Radius)
     {
@@ -108,6 +110,9 @@ int32 UKalmalaIconWidget::NativePaint(const FPaintArgs& Args, const FGeometry& G
     case EKalmalaIcon::Seed: Path({{8,12},{28,12},{27,31},{9,31}},true); Path({{8,8},{28,8}}); Circle({18,22},4); break;
     case EKalmalaIcon::Axe: Path({{11,32},{21,7}}); Path({{19,7},{29,8},{31,19},{23,20},{17,13}},true); break;
     case EKalmalaIcon::Spear: Path({{5,31},{29,7}}); Path({{23,7},{31,5},{29,13}},true); Path({{13,23},{18,28}}); break;
+    case EKalmalaIcon::Sword:
+        Path({{12,22},{7,10},{5,4},{11,6},{25,20}},true);
+        Path({{10,25},{25,10}}); Path({{18,24},{28,32},{32,28},{24,18}},true); break;
     case EKalmalaIcon::Knife: Path({{10,31},{15,22},{29,5},{29,15},{19,25},{16,23}},true); Path({{12,21},{20,27}}); break;
     case EKalmalaIcon::Pick: Path({{12,32},{21,9}}); Path({{5,13},{17,6},{27,8},{32,17},{23,12},{15,12},{5,13}}); break;
     case EKalmalaIcon::Mace: Path({{15,17},{29,31},{32,28},{18,14}},true); Path({{5,7},{13,3},{22,12},{17,21},{8,19},{3,12}},true); break;

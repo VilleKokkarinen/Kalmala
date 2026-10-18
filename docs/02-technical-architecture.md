@@ -2971,6 +2971,15 @@ Inventory Craft may create multiple Construction Hammers. Each copy has its own 
 
 ## Worn Gear interaction follow-up — 2026-10-15
 
+Presentation update (2026-10-18): the seven supported slots use a centered body
+layout: Head at (row 0, column 1), Cape (1,0), Main Hand (2,0), Chest (2,1),
+Shield (2,2), Legs (3,1), Boots (4,1). Empty cells use original muted vector
+silhouettes; occupied cells resolve the existing catalogue icon from the owner's
+equipped gear or active tool identity. Item names, condition and action guidance
+remain in tooltips. The section uses InventoryPanelImage and the inventory
+ItemIconTileFill, including live contrast updates. No new equipment categories,
+transactions, replication or persistence are introduced.
+
 The Inventory popup now reads the owner's six replicated wearable slots and displays their current item names. Selecting a compatible wearable enables its slot action; selecting a different wearable for an occupied slot replaces the equipped GUID, and selecting an empty grid cell before clicking occupied gear requests its return to the pack. The client sends only the item GUID or slot enum; the server revalidates identity, compatibility, capacity, and the full candidate transaction before publishing the owner-only gear and inventory state. An owner-only client result reports accepted or rejected requests. Server-resolved wildlife damage uses the summed integer Armor of non-depleted equipped wearables against physical damage only. The Main Hand tile selects or clears an exact tool GUID without moving its grid cell. The owner sees remaining/maximum condition; accepted wildlife hits spend one condition per wearable and depleted items cease contributing defense. Same-pawn unequip/re-equip preserves wear.
 
 ### Generated-forest harvesting contract (reconciled 2026-10-17)
