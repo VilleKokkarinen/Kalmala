@@ -39,6 +39,7 @@ struct KALMALAWORLD_API FKalmalaRegionalGeneration
     static double Noise(const FKalmalaWorldGenerationConfig& Config, uint64 Domain, FVector2D Position, double Frequency);
 private:
     friend class FKalmalaRiverBankCrossSectionTest;
+    friend class FKalmalaRiverUnchangedControlsTest;
     // Private regression control: retain all land/basin shaping, omit only courses.
     static FKalmalaRegionalSample SampleInternal(const FKalmalaWorldFieldSample& Fields, bool bBiomeOnly, bool bSkipHydrology = false);
 };

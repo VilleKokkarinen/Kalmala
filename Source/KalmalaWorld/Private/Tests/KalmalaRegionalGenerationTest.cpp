@@ -204,6 +204,73 @@ bool FKalmalaRiverSeedRepeatabilityTest::RunTest(const FString& Parameters)
     return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaRiverUnchangedControlsTest,
+    "Kalmala.World.Regional.RiverUnchangedControls",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+bool FKalmalaRiverUnchangedControlsTest::RunTest(const FString& Parameters)
+{
+    using G = FKalmalaRegionalGeneration;
+    using T = FKalmalaRegionalTuning;
+    for (const uint64 Seed : {418ull, 419ull})
+    {
+        const FKalmalaWorldGenerationConfig Config{Seed};
+        int32 Land = 0, Sea = 0, CoastLand = 0, CoastSea = 0, Lakes = 0;
+        // A bounded 50 m lattice covers both sides of the source coast and the
+        // lake-eligible ring. Fixture selection never examines carved outputs.
+        for (int32 Y = -120; Y <= 120; ++Y)
+        for (int32 X = -120; X <= 120; ++X)
+        {
+            if (Land >= 8 && Sea >= 8 && CoastLand >= 8 && CoastSea >= 8 && Lakes >= 8) break;
+            const FVector2D P(X * 5000.0, Y * 5000.0);
+            const auto Fields = FKalmalaWorldFieldSampler::Sample(Config, P);
+            const auto Base = G::SampleInternal(Fields, false, true);
+            const float Source = (Fields.Elevation - T::SeaElevation) * 2000.0f;
+            bool bOutside = true;
+            const FIntPoint Cell(FMath::FloorToInt(P.X / T::GridCell), FMath::FloorToInt(P.Y / T::GridCell));
+            for (const auto& S : G::GetHydrology(Config, Cell))
+            {
+                const FVector2D A(S.A), Delta = FVector2D(S.B) - A;
+                const double U = FMath::Clamp(FVector2D::DotProduct(P - A, Delta) / Delta.SizeSquared(), 0.0, 1.0);
+                if ((P - A - Delta * U).Size() <= S.Width + (S.bStream ? 0.0 : T::RiverBankExtent))
+                    bOutside = false;
+            }
+            // BasinWeight is measured before courses; a positive value and a
+            // wet baseline identify an inland bowl independently of carving.
+            if (Lakes < 8 && Base.BasinWeight > 0 && Base.WaterLevel > 0 && Base.bHasWater)
+            {
+                const auto Actual = G::Sample(Config, P);
+                TestEqual(TEXT("Enclosed lake retains its established water level"), Actual.WaterLevel, Base.WaterLevel);
+                TestTrue(TEXT("Enclosed lake remains wet"), Actual.bHasWater);
+                if (bOutside || Base.BasinWeight == 1.0f)
+                    TestEqual(TEXT("Uninfluenced or fully supported lake retains its bed"), Actual.Height, Base.Height);
+                ++Lakes;
+            }
+            if (!bOutside || Base.BasinWeight > 0) continue;
+            int32& Count = FMath::Abs(Source) <= 20.0f
+                ? (Source > 0 ? CoastLand : CoastSea) : (Source > 0 ? Land : Sea);
+            if (Count >= 8) continue;
+            const auto Actual = G::Sample(Config, P);
+            TestEqual(TEXT("Outside course envelopes terrain is exactly unchanged"), Actual.Height, Base.Height);
+            TestEqual(TEXT("Outside course envelopes water level is exactly unchanged"), Actual.WaterLevel, Base.WaterLevel);
+            TestEqual(TEXT("Outside course envelopes wet state is unchanged"), Actual.bHasWater, Base.bHasWater);
+            TestEqual(TEXT("Source coast retains its land/sea terrain sign"), Actual.Height > 0, Source > 0);
+            TestEqual(TEXT("Source coast retains its biome identity"), Actual.Biome, Base.Biome);
+            for (int32 I = 0; I < 7; ++I)
+                TestEqual(TEXT("Control biome weights remain unchanged"), Actual.Weights[I], Base.Weights[I]);
+            ++Count;
+        }
+        TestEqual(TEXT("Away-from-river land controls exist"), Land, 8);
+        TestEqual(TEXT("Away-from-river sea controls exist"), Sea, 8);
+        TestEqual(TEXT("Source coast has eight land-side controls within 20 cm"), CoastLand, 8);
+        TestEqual(TEXT("Source coast has eight sea-side controls within 20 cm"), CoastSea, 8);
+        TestEqual(TEXT("Eight wet enclosed-lake controls exist"), Lakes, 8);
+        AddInfo(FString::Printf(TEXT("River controls seed=%llu land=%d sea=%d coastLand=%d coastSea=%d lakes=%d"),
+            Seed, Land, Sea, CoastLand, CoastSea, Lakes));
+    }
+    G::ClearHydrologyCache();
+    return true;
+}
+
 // Locate real course/grid intersections; arbitrary seam probes can miss rivers.
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaRiverHydrologyGridSeamTest,
     "Kalmala.World.Regional.RiverHydrologyGridSeam",
