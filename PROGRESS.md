@@ -1,3 +1,17 @@
+## User-directed planning 2026-10-19 — Wolf relocation and Elderwood replacement
+
+- Updated `BACKLOG.md`, `docs/biome-enemies.md`, `docs/alpha-items.md` and
+  `docs/05-decision-log.md`: move/rename Forest Wolf to Tundra Wolf, proposed
+  160 health/3 Armor/28 Slash. Add easier Woodland Badger to Elderwood:
+  60 health/0 Armor/10 Stab; territorial bite/retreat, 1 Bone Fragment.
+- Roster now has fourteen additions. Split Tundra common slots equally
+  between wolf/lynx; retain actor budgets, Bear Moonstone exclusivity and
+  server-owned combat/loot. Updated difficulty comparisons and acceptance.
+- Checked references, roster count, spawn shares, whitespace, staged ownership
+  and path lengths. Planning only; no runtime tests; full verification deferred.
+  Pre-existing edits preserved; main checkout, no sync. Next: review replacement
+  and wolf tuning; A8a implementation remains queued.
+
 ## User-directed planning 2026-10-19 — Bog Adder major poison
 
 - Updated `BACKLOG.md`, `docs/biome-enemies.md` and `docs/05-decision-log.md`:

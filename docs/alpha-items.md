@@ -117,8 +117,10 @@ have explicit uses, costs and effects in the linked details.
 Gemstone rocks replace selected resource slots: each pickaxe hit risks a 10%
 smash; successful extraction yields exactly one gem. Spawn rates and a proposed
 three-hit extraction remain for review. Ordinary ore no longer has gem bonus drops.
-New [A8a enemy roster](biome-enemies.md) precedes A9: thirteen proposed enemies
+New [A8a enemy roster](biome-enemies.md) precedes A9: fourteen proposed enemies
 across the seven biomes, with common/hard roles and a separate acceptance gate.
+Elderwood has an easier Woodland Badger; the strengthened Tundra Wolf moves
+exclusively to Freezing Tundra alongside Snow Lynx and Tundra Bear.
 Mossy Mire includes Mire Mosquito swarms alongside Bog Adder/Peat Husk:
 repeated small bites, roll escape and avoidance of lit torches/other fires.
 Moonstone moves to the hard Elderwood Bear; aquatic enemies remain scope-gated.

@@ -183,13 +183,14 @@ Agents must follow reviewed values and report gaps instead of inventing designs.
 - [ ] **A8a — Biome enemies (before A9).** [Roster and stats](docs/biome-enemies.md)
   - [ ] Review the expanded roster, spawn weights and attack/loot rules.
   - [ ] Meadows: Brush Rat — small defensive scavenger.
-  - [ ] Elderwood: Forest Wolf — fast lunging hunter.
+  - [ ] Elderwood: Woodland Badger — easier territorial enemy; short bite and retreat.
   - [ ] Elderwood: Elderwood Bear — rare hard enemy; future Moonstone source.
   - [ ] Shimmering Lakes: Viper — shoreline ambusher; lunging bite applies weak poison for 5 s.
   - [ ] Shimmering Lakes: Reed Lurker — rare hard shoreline beast.
   - [ ] Mossy Mire: Bog Adder — highly venomous snake; bite applies major poison for 10 s.
   - [ ] Mossy Mire: Mire Mosquito swarm — small bites + weak poison for 10 s; roll to shake off, lit fire repels.
   - [ ] Mossy Mire: Peat Husk — rare hard sweeping attacker.
+  - [ ] Freezing Tundra: Tundra Wolf — tougher pursuing predator; powerful lunging bite.
   - [ ] Freezing Tundra: Snow Lynx — leaping predator.
   - [ ] Freezing Tundra: Tundra Bear — rare hard charging predator.
   - [ ] Thunder Mountains: Ridge Goat — territorial horn charges.

@@ -8,20 +8,21 @@ Names, stats, spawn weights and loot below are concrete proposals for editing.
 
 ## Proposed roster
 
-Keep existing boars, deer and Mirelings. Add thirteen enemies, one complete
+Keep existing boars, deer and Mirelings. Add fourteen enemies, one complete
 enemy per increment. All damage below is one authored server-resolved hit,
 before existing defenses; no client-authored damage or offensive player magic.
 
 | Biome | Enemy / ID | Role and attack | Health / Armor | Hit damage | Guaranteed loot |
 | --- | --- | --- | --- | --- | --- |
 | Meadows | Brush Rat (`BrushRat`) | Small scavenger; bites only when approached within 3 m or attacked | 35 / 0 | 6 Stab | 1 Bone Fragment |
-| Elderwood | Forest Wolf (`ForestWolf`) | Fast hunter; short, visible forward lunge | 80 / 0 | 15 Slash | 2 Bone Fragment |
+| Elderwood | Woodland Badger (`WoodlandBadger`) | Easier territorial animal; warns within 3 m, short bite and retreat if approached or attacked | 60 / 0 | 10 Stab | 1 Bone Fragment |
 | Elderwood | Elderwood Bear (`ElderwoodBear`) | Rare hard enemy; slow overhead paw strike, punishable recovery | 250 / 5 | 35 Crush | 3 Bone Fragment |
 | Shimmering Lakes | Viper (`Viper`) | Snake hiding in dry shoreline reeds; visible coil, narrow lunging bite, then retreats; applies weak poison for 5 s | 50 / 0 | 10 Stab + poison below | 1 Bone Fragment |
 | Shimmering Lakes | Reed Lurker (`ReedLurker`) | Rare hard, original shoreline beast; two-legged rush and broad forelimb swipe on land | 160 / 3 | 25 Crush | 2 Bone Fragment |
 | Mossy Mire | Bog Adder (`BogAdder`) | Highly venomous camouflaged snake; visible coil, short bite then retreat; major poison for 10 s | 70 / 0 | 14 Stab + major poison below | 1 Bone Fragment |
 | Mossy Mire | Mire Mosquito swarm (`MireMosquito`) | Flying swarm surrounds a player and keeps biting; 10 s weak poison; rolls break contact, lit flames repel it | 25 / 0 per swarm | Proposed 2 Stab every 0.5 s while in contact + poison below | None |
 | Mossy Mire | Peat Husk (`PeatHusk`) | Rare hard, original peat-and-wood creature; slow sweeping arm | 220 / 6 | 30 Crush | 1 Amber |
+| Freezing Tundra | Tundra Wolf (`TundraWolf`) | Tough pursuing predator; visible forward lunge and powerful bite, then recovery | 160 / 3 | 28 Slash | 2 Bone Fragment |
 | Freezing Tundra | Snow Lynx (`SnowLynx`) | Mobile predator; telegraphed leap, long recovery if it misses | 120 / 0 | 22 Slash | 2 Bone Fragment |
 | Freezing Tundra | Tundra Bear (`TundraBear`) | Rare hard bear variant; committed charge, then retreat to reset | 300 / 6 | 40 Crush | 3 Bone Fragment |
 | Thunder Mountains | Ridge Goat (`RidgeGoat`) | Territorial wildlife; clear horn-charge windup | 120 / 2 | 20 Crush | 2 Bone Fragment |
@@ -45,6 +46,10 @@ Any later carcass materials require a separate reviewed item/recipe/icon plan.
 - Mossy Mire splits its common share: 50% existing roster / 20% Bog Adder /
   20% Mire Mosquito swarm / 10% Peat Husk. Keep the existing actor budget;
   the visual insects do not create extra gameplay actors or damage sources.
+- Freezing Tundra splits its common share: 50% existing roster / 20% Tundra
+  Wolf / 20% Snow Lynx / 10% Tundra Bear. Elderwood uses Woodland Badger for
+  its 40% common share. Wolves spawn only in Freezing Tundra, never Elderwood;
+  keep the existing actor budget and one wolf per spawn (no pack mechanic).
 - Ocean: use 10% of eligible aquatic candidate slots for Reef Maw; others
   stay empty. This task is blocked until aquatic navigation, combat and reward
   support are approved. It targets swimmers, never skiff hulls or occupants.
@@ -170,11 +175,11 @@ existing heat-only API can recognize every new flame source.
 Move Moonstone exclusively to **Elderwood Bear**, with a **2% chance of exactly
 1 per credited defeat**, otherwise 0, alongside its 3 Bone Fragment.
 Use the authoritative enemy kind and Elderwood spawn identity, not the biome
-where a player lures it. Boars, deer, Forest Wolves and Mirelings cannot drop
+where a player lures it. Boars, deer, Woodland Badgers, Tundra Wolves and Mirelings cannot drop
 Moonstone. One server roll per defeat, with no retry/reload reroll.
 
-The bear is deliberately harder than the common Forest Wolf: 250 versus 80
-health, 5 versus 0 Armor, 35 versus 15 damage, balanced by longer telegraph and
+The bear is deliberately harder than the common Woodland Badger: 250 versus 60
+health, 5 versus 0 Armor, 35 versus 10 damage, balanced by longer telegraph and
 recovery. This is a proposed combat target, not a claim of playtested balance.
 Keep Dusk Diamond on Mossy Mire Mirelings; no other gem source changes.
 A9 Moonstone implementation is blocked until this bear's acceptance passes.
@@ -193,7 +198,8 @@ applicable full build, automation, biome/population, combat, peer/privacy and
 restart checks from [development setup](07-development-setup.md). Record exact
 commands/results and repair milestone defects. Demonstrate seeded population
 within budgets, valid/invalid attacks, visible windups, credited loot once,
-full-pack handling and relevant peers. Prove Forest Wolf/Bear difficulty in
+full-pack handling and relevant peers. Prove Woodland Badger/Elderwood Bear
+difficulty and Tundra Wolf/Snow Lynx/Tundra Bear roles in
 play and check Moonstone's eligible/ineligible source cases with controlled
 loot fixtures; do not require random grinding to test the probability boundary.
 Aquatic acceptance must cover swimmers and unchanged skiff behavior separately.
