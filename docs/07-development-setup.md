@@ -4020,6 +4020,9 @@ world, while engine and Slate startup are shared across the set. The
 `inventory-crafting` view combines Inventory and player crafting, so the
 redundant standalone Inventory capture is omitted from the default set. The
 `crafting` view previews the Workbench Craft section.
+At 1920x1080, inventory crafting has a 256 px list frame and search field,
+a 384 px description frame, a 12 px gutter and 12 px outer padding. Station
+previews retain their previous sizing.
 Repair All is a direct station action, so there are no separate
 `workbench.repair` or `forge.repair` render targets; inspect those buttons in
 the Workbench Craft and Forge views.

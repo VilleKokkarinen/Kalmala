@@ -26,7 +26,8 @@
 
 FVector2D UKalmalaCraftingWidget::GetInventoryCraftPanelSize(const FVector2D Viewport)
 {
-    return FVector2D(FMath::Min(860.f, FMath::Max(80.f, Viewport.X * .52f)),
+    // 256 list + 384 details + 12 gutter + 24 outer padding.
+    return FVector2D(FMath::Min(676.f, FMath::Max(80.f, Viewport.X * .52f)),
         FMath::Min(760.f, FMath::Max(80.f, Viewport.Y - 32.f)));
 }
 
@@ -272,6 +273,20 @@ void UKalmalaCraftingWidget::RefreshInventoryCraftLayout()
     const int32 Scale = UKalmalaSettingsWidget::GetTextScalePercent();
     const int32 Contrast = UKalmalaSettingsWidget::GetContrastMode();
     const bool bStationCraftPresentation = bWorkbenchCraftContext || bForgeCraftContext;
+    if (auto* SearchSize = Cast<USizeBox>(InventoryCraftSearch->GetParent()))
+        SearchSize->SetWidthOverride(bInventoryCompanion ? 256.f : 200.f);
+    if (auto* ListSlot = Cast<UHorizontalBoxSlot>(InventoryCraftListFrame->Slot))
+    {
+        FSlateChildSize Size(ESlateSizeRule::Fill);
+        Size.Value = bInventoryCompanion ? .4f : .36f;
+        ListSlot->SetSize(Size);
+    }
+    if (auto* DetailSlot = Cast<UHorizontalBoxSlot>(InventoryCraftDetailFrame->Slot))
+    {
+        FSlateChildSize Size(ESlateSizeRule::Fill);
+        Size.Value = bInventoryCompanion ? .6f : .64f;
+        DetailSlot->SetSize(Size);
+    }
     Theme.ApplyPanel(*InventoryCraftBackground, Contrast, &Theme.InventoryPanelImage);
     InventoryCraftBackground->SetPadding(FMargin(12.0f,
         bStationCraftPresentation ? 112.0f : 12.0f, 12.0f, 12.0f));

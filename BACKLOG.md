@@ -99,19 +99,19 @@ Agents must follow reviewed values and report gaps instead of inventing designs.
 - [ ] **A0 — Existing items (P0).** [Details](docs/alpha-item-details.md#a0)
   - [ ] Review scope and the A10 milestone plan.
   - [ ] Audit current sources and starter progression; check the Iron-source mismatch.
-  - [ ] Sinew: deer have a 50% chance to drop 1; boar drop of 1 remains a proposal.
+  - [ ] Sinew: deer have a 50% chance to drop 1.
   - [ ] Bow String: Workbench, 4 Sinew → 1 Bow String; bows use 1 each.
   - [ ] Lightwood: Meadow aspens, Stone Axe+, 4 per collected tree bundle.
   - [ ] Bone Fragment: add 1 to each credited boar/deer defeat.
   - [ ] Fix food use for the six current cooking outputs.
   - [ ] Hearth Broth: Cauldron, 1 Deer Meat + 1 Onion → 1 broth.
-  - [ ] Wild carrots: Meadows, hand-pick 2 Carrot + 1 Carrot Seed per patch.
-  - [ ] Wild potatoes: Meadows, hand-pick 2 Potato per patch; no Potato Seed.
-  - [ ] Wild rutabaga: dry lake banks, hand-pick 2 Rutabaga + 1 Rutabaga Seed.
-  - [ ] Wild onions: Elderwood, hand-pick 2 Onion + 1 Onion Seed per patch.
+  - [ ] Wild carrots: Shimmering Lakes, hand-pick for 2 Carrot Seed per patch.
+  - [ ] Wild potatoes: Elderwood, hand-pick 1 Potato per patch; no Potato Seed.
+  - [ ] Wild rutabaga: Mossy Mire, hand-pick 1 Rutabaga.
+  - [ ] Wild onions: Freezing Tundra, found in treasure chests at a stack size randomly of 1-10.
 
   Preserve existing Wood, Densewood, Stone, hides/meat, Amber and Frost Salt sources.
-  New vegetable seeds become plantable in A7. Generic String's source needs review.
+  New vegetable seeds become plantable in A7.
 
 - [ ] **A1 — Metals and fuel (P0).** [Details](docs/alpha-item-details.md#a1)
   - [ ] Review processing rules and Stone → Bronze → Iron progression.
@@ -125,26 +125,25 @@ Agents must follow reviewed values and report gaps instead of inventing designs.
 
 - [ ] **A2 — Melee weapons (P1).** [Stats and upgrades](docs/alpha-item-details.md#a2)
   - [ ] Review the sword/club proposal.
-  - [ ] Bronze Sword: Forge, 4 Bronze + 2 Lightwood + 1 String.
-  - [ ] Iron Sword: Forge, 4 Iron + 2 Densewood + 1 String.
-  - [ ] Wooden Club: Workbench, 4 Wood.
+  - [ ] Bronze Sword: Forge, 10 Bronze + 2 Lightwood + 2 Deer hide
+  - [ ] Iron Sword: Forge, 20 Iron + 2 Densewood + 2 Deer hide
 
 - [ ] **A3 — Bows and arrows (P1).** [Stats and upgrades](docs/alpha-item-details.md#a3)
-  - [ ] Layered Bow: Workbench, 6 Lightwood + 1 Bow String + 2 Deer Hide; 1.2 s draw.
-  - [ ] Bronze Arrow: Workbench, 4 Wood + 1 Bronze → 20; 14–56 Pierce.
-  - [ ] Support both arrow types; prefer selected stack, otherwise Wood before Bronze.
+  - [ ] Light Bow: Workbench, 25 Lightwood + 1 Bow String + 5 Deer Hide; 2 s draw.
+  - [ ] Stone Arrow: Workbench, 20 Wood + 5 stone → 20; 25 Pierce.
+  - [ ] Bronze Arrow: Workbench, 20 Wood + 1 Bronze bar → 20; 50 Pierce.
+  - [ ] Support both arrow types; prefer selected stack, first stack in inventory. (top row of inventory left to right, going down 1 row at a time until arrows found)
 
 - [ ] **A4 — Armour and shields (P1).** [Stats and upgrades](docs/alpha-item-details.md#a4)
   - [ ] Review armour; retain hide Boots/Cape and defer insulation.
-  - [ ] Bronze Helmet: Forge, 3 Bronze + 1 Boar Hide; 3 Armor.
-  - [ ] Bronze Tunic: Forge, 5 Bronze + 2 Boar Hide; 5 Armor.
-  - [ ] Bronze Leggings: Forge, 4 Bronze + 2 Boar Hide; 4 Armor.
-  - [ ] Bronze Shield: Forge, 3 Bronze + 3 Lightwood + 1 Boar Hide; 9 passive Armor.
+  - [ ] Bronze Helmet: Forge, 10 Bronze + 5 Boar Hide; 3 Armor.
+  - [ ] Bronze Tunic: Forge, 15 Bronze + 5 Boar Hide; 5 Armor.
+  - [ ] Bronze Leggings: Forge, 15 Bronze + 5 Boar Hide; 5 Armor.
+  - [ ] Bronze Shield: Forge, 10 Bronze + 5 Lightwood + 5 Boar Hide; 10 Armor.
 
 - [ ] **A5 — Utility tools (P1/P2).** [Rules](docs/alpha-item-details.md#a5)
-  - [ ] Bark Torch: inventory, 2 Wood + 1 String; 300 s burn, 6 m light.
-  - [ ] Cultivation Rake: Workbench, 2 Wood + 2 Stone + 2 String; requires A7.
-  - [ ] Keep terrain-editing Hoe deferred; Rake only works on garden plots.
+  - [ ] Basic Torch: inventory, 2 Wood + 1 amber; 300 s burn, 6 m light.
+  - [ ] Cultivation Rake: Forge, 10 Wood + 5 Bronze bar; requires A7.
 
 - [ ] **A6 — Food and recovery (P1).** [Effects and limits](docs/alpha-item-details.md#a6)
   - [ ] Lingonberry: hand-pick Meadow shrubs, 3 per shrub.
@@ -158,17 +157,13 @@ Agents must follow reviewed values and report gaps instead of inventing designs.
   Draughts: one dose per craft; shared 60 s cooldown. All cooking needs a lit hearth.
 
 - [ ] **A7 — Farming and fishing (P2).** [Growth and catch rules](docs/alpha-item-details.md#a7)
-  - [ ] Review farming. Garden Plot: Hammer, 4 Wood + 1 Stone; 2 × 2 m, one crop.
+  - [ ] Review farming. Garden Plot: Cultivation Rake, cultivation menu addition.
   - [ ] Carrot: 1 seed → 3 carrots; 1 carrot → 3 seeds.
   - [ ] Potato: 1 potato → 3 potatoes; Potato Seed stays unused.
   - [ ] Rutabaga: 1 seed → 3 roots; 1 root → 3 seeds.
   - [ ] Onion: 1 seed → 3 onions; 1 onion → 3 seeds.
-  - [ ] Review fishing: Shimmering Lakes schools, 3 catches per school.
-  - [ ] Fishing Rod: Workbench, 4 Lightwood + 3 String. Bait: 1 Chanterelle → 5.
-  - [ ] Catch: 1 Bait + 5 s valid cast → 1 Lake Fish; 15 m range.
-  - [ ] Cooking Rack: 1 Lake Fish → 1 Cooked Lake Fish; Steady Meal effect.
 
-  Crops take 600 active seconds; Rake required. No offline/inactive-region growth.
+  Crops take 600 active seconds; Cultivation Rake required. No offline/inactive-region growth.
 
 - [ ] **A8 — Shelter and storage (P2).** [Placement and behavior](docs/alpha-item-details.md#a8)
   - [ ] Review shelter rules. All pieces use direct-material Hammer placement.
@@ -176,26 +171,24 @@ Agents must follow reviewed values and report gaps instead of inventing designs.
   - [ ] Timber Beam: 2 Wood; 2 m, horizontal/vertical support.
   - [ ] Timber Stairs: 6 Wood; 2 m run, 1 m rise, 1 m wide.
   - [ ] Camp Bed: 6 Wood + 2 Boar Hide + 2 String; resting pose only.
-  - [ ] Standing Light: 3 Wood + 1 String; 1 Wood fuel = 600 s, 6 m light.
-  - [ ] Reinforced Chest: 8 Wood + 2 Bronze; 24 shared cells.
+  - [ ] Standing Light: 3 Wood + 1 amber; 1 fuel = 600 s, 6 m light.
   - [ ] Keep extra brewing stations deferred; Kiln/Smelter/Plot belong to A1/A7.
 
 - [ ] **A8a — Biome enemies (before A9).** [Roster and stats](docs/biome-enemies.md)
   - [ ] Review the expanded roster, spawn weights and attack/loot rules.
-  - [ ] Meadows: Brush Rat — small defensive scavenger.
-  - [ ] Elderwood: Woodland Badger — easier territorial enemy; short bite and retreat.
+  - [ ] Meadows: Rat — small defensive scavenger.
+  - [ ] Elderwood: Badger — easier territorial enemy; short bite and retreat.
   - [ ] Elderwood: Moon Bear — rare hard enemy; future Moonstone source.
   - [ ] Shimmering Lakes: Viper — shoreline ambusher; lunging bite applies weak poison for 5 s.
   - [ ] Shimmering Lakes: Giant Snake — rare hard shoreline ambusher; powerful lunging bite.
-  - [ ] Mossy Mire: Bog Adder — highly venomous snake; bite applies major poison for 10 s.
-  - [ ] Mossy Mire: Mire Mosquito swarm — small bites + weak poison for 10 s; roll to shake off, lit fire repels.
+  - [ ] Mossy Mire: Death Adder — highly venomous snake; bite applies major poison for 10 s.
+  - [ ] Mossy Mire: Mosquito swarm — small bites + weak poison for 10 s; roll to shake off, lit fire repels.
   - [ ] Mossy Mire: Peat Husk — rare hard sweeping attacker.
-  - [ ] Freezing Tundra: Tundra Wolf — tougher pursuing predator; powerful lunging bite.
-  - [ ] Freezing Tundra: Snow Lynx — leaping predator.
-  - [ ] Freezing Tundra: Tundra Bear — rare hard charging predator.
+  - [ ] Freezing Tundra: Wolf — tougher pursuing predator; powerful lunging bite.
+  - [ ] Freezing Tundra: Lynx — leaping predator.
+  - [ ] Freezing Tundra: Polar Bear — rare hard charging predator.
   - [ ] Thunder Mountains: Ridge Goat — territorial horn charges.
-  - [ ] Thunder Mountains: Crag Sentinel — rare hard stone attacker.
-  - [ ] Ocean: Reef Maw — swimmer threat; blocked on aquatic AI/combat approval.
+  - [ ] Thunder Mountains: Thunder Sentinel — rare hard stone attacker.
   - [ ] Run enemy milestone verification before A9; record results and blockers.
 
 - [ ] **A9 — Cargo, gems and special gear (P2).** [Rules](docs/alpha-item-details.md#a9)
@@ -213,16 +206,16 @@ Agents must follow reviewed values and report gaps instead of inventing designs.
   - [ ] Storm Sapphire (special): proposed 2% chance of 1 in Thunder Mountains treasure.
   - [ ] Dusk Diamond (special): proposed 0.5% chance of 1 from Mossy Mire Mirelings.
   - [ ] Review Necklace/Ring slots; one item per slot, bonuses only while equipped.
-  - [ ] Quartz Necklace: Forge, 3 Bronze + 1 Smoky Quartz; +10 Armor.
-  - [ ] Moonstone Ring: Forge, 2 Bronze + 1 Moonstone; +20 maximum stamina.
-  - [ ] Garnet Necklace: Forge, 3 Bronze + 1 Garnet; +20 maximum health.
-  - [ ] Jade Ring: Forge, 2 Bronze + 1 Green Jade; sprinting costs 10% less stamina.
-  - [ ] Amethyst Necklace: Forge, 3 Bronze + 1 Amethyst; support spells cost 15% less stamina.
-  - [ ] Aquamarine Ring: Forge, 2 Bronze + 1 Aquamarine; +15% stamina regeneration rate.
-  - [ ] Tourmaline Necklace: Forge, 3 Bronze + 1 Tourmaline; +10% healing received.
-  - [ ] Opal Helm: Forge, 20 Iron + 5 Deer Hide + 1 Star Opal; 12 Armor.
-  - [ ] Stormcut Sword: Forge, 20 Iron + 2 Densewood + 2 Deer Hide + 1 Storm Sapphire; 70 Slash.
-  - [ ] Dusk Ring: Forge, 5 Bronze + 1 Dusk Diamond; +10 max health, +10 max stamina, +5 Armor.
+  - [ ] Quartz Necklace: Forge, 5 Iron + 1 Smoky Quartz; +10 Armor.
+  - [ ] Moonstone Ring: Forge, 5 Bronze + 1 Moonstone; +20 maximum stamina.
+  - [ ] Garnet Necklace: Forge, 5 Bronze + 1 Garnet; +20 maximum health.
+  - [ ] Jade Ring: Forge, 5 Bronze + 1 Green Jade; sprinting costs 10% less stamina.
+  - [ ] Amethyst Necklace: Forge, 5 Bronze + 1 Amethyst; casting spells cost 20% less stamina.
+  - [ ] Aquamarine Ring: Forge, 5 Bronze + 1 Aquamarine; +20% stamina regeneration rate.
+  - [ ] Tourmaline Necklace: Forge, 5 Iron + 1 Tourmaline; +10% damage dealt.
+  - [ ] Star Opal Helmet: Forge, 20 Iron + 5 Deer Hide + 1 Star Opal; 20 Armor + 10% Damage reduction.
+  - [ ] Stormcut Sword: Forge, 20 Iron + 2 Densewood + 2 Deer Hide + 1 Storm Sapphire; 100 Slash + 20 lightning damage.
+  - [ ] Dusk Ring: Forge, 5 Iron + 1 Dusk Diamond; +10 max health, +10 max stamina, +5 Armor.
   - [ ] Audit the four existing scroll routes; defer new scrolls, trophies and boss keys.
 
 - [ ] **A10 — Acceptance.** [Full criteria](docs/alpha-item-details.md#a10)
@@ -234,6 +227,8 @@ Agents must follow reviewed values and report gaps instead of inventing designs.
   - [ ] Record results/blockers; mark complete only after required gates pass.
 
 ## User-requested fixes
+
+- [x] Resize inventory crafting to a 256 px item list/search field and 384 px selected-item pane, preserving the existing gutter and outer padding.
 
 - [x] Remove all portable construction kits, separate buildable metadata from inventory, require direct-material hammer placement for every object, and guard against future kit generation.
 

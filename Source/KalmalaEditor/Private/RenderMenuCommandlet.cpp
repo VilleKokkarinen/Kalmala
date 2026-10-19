@@ -148,7 +148,9 @@ int32 URenderMenuCommandlet::Main(const FString& Params)
             StationSection);
         const bool bBuild = Menu == TEXT("build");
         const FVector2D Size = bBuild ? FVector2D(FMath::Min(840.f,Width - 32.f),FMath::Min(980.f,Height - 32.f))
-            : UKalmalaCraftingWidget::GetInventoryCraftPanelSize(Viewport);
+            : Menu == TEXT("inventory-crafting") ? UKalmalaCraftingWidget::GetInventoryCraftPanelSize(Viewport)
+            : FVector2D(FMath::Min(860.f, FMath::Max(80.f, Viewport.X * .52f)),
+                FMath::Min(760.f, FMath::Max(80.f, Viewport.Y - 32.f)));
         Mount(Widget, bBuild ? (Viewport - Size) * .5f : FVector2D(Width - Size.X - 16,16), Size);
     }
     if (const int32* Tab = WidgetClass.IsEmpty() ? Tabs.Find(Menu) : nullptr)

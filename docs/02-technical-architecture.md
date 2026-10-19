@@ -1325,6 +1325,12 @@ checks did not prove that the image was supplied or packaged.
 
 ## M13 inventory crafting companion
 
+At the standard viewport, the companion's item-list frame and search field
+are 256 units wide; the selected-item frame is 384 units wide. The panel totals
+676 units with its 12-unit gutter and 12-unit outer padding. The columns retain
+their 2:3 ratio when the available viewport constrains the panel. Station views
+retain their existing column proportions and search-field width.
+
 The 2026-10-10 UI request extends Inventory's existing Tab / I modal. Opening
 it shows the same 10x4 inventory on the left and the standard player crafting
 list and selected-recipe details on the right. The right panel reads the
