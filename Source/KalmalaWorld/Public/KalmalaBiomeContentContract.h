@@ -82,6 +82,7 @@ struct KALMALAWORLD_API FKalmalaBiomeContentContract
     static FName GetGatheringPresentationId(const FName GatheringSourceId)
     {
         if (GatheringSourceId.IsNone()) return NAME_None;
+        if (GatheringSourceId == TEXT("meadows-wild-carrot-patch")) return TEXT("carrot-patch-harvest");
         if (GatheringSourceId == TEXT("meadows-aspen-trunk")) return TEXT("aspen-trunk-harvest");
         if (GatheringSourceId == TEXT("meadows-birch-trunk")) return TEXT("birch-trunk-harvest");
         if (GatheringSourceId == TEXT("elderwood-ironheart-trunk")) return TEXT("ironheart-trunk-harvest");
@@ -107,6 +108,11 @@ struct KALMALAWORLD_API FKalmalaBiomeContentContract
     static bool IsValidGatheringSourceId(const FName GatheringSourceId)
     {
         return !GetGatheringPresentationId(GatheringSourceId).IsNone();
+    }
+
+    static bool IsHandGatherableSourceId(const FName GatheringSourceId)
+    {
+        return GatheringSourceId == TEXT("meadows-wild-carrot-patch");
     }
 
     static FName GetRareDiscoveryPresentationId(const FName RareDiscoverySourceId)

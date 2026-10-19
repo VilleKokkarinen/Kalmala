@@ -741,6 +741,25 @@ authority for reach and placement. The trunk sources reuse their generated tree 
 Wood source stacks cap at 50 like current `Wood`; mineral source stacks cap at
 40 like current `Stone`.
 
+### A0 hand-gathered Meadow carrot patch
+
+The existing deterministic `HarvestNode` descriptors also carry the first dry,
+safe Meadow carrot patch candidate in each 6,000 cm spatial key. Its position
+uses the existing candidate sample; the persistent seed is
+`Mix(candidate-seed XOR 0xA0CA22071019)`, which keeps the new
+`meadows-wild-carrot-patch` identity distinct from the former birch-bark
+candidate at that position. Remaining descriptors keep their existing biome
+source. The collision-free procedural patch uses green foliage and visible
+orange root crowns, with the node's existing interaction sphere as its target.
+
+The server retraces the interaction and accepts hand gathering without a tool.
+It preflights one complete inventory result of 2 `Carrot` and 1 `CarrotSeed`,
+checks capacity for both, commits the inventory and player persistence, then
+marks the stable spawn identity harvested through the existing population save
+callback. A full pack, failed player-state persistence, invalid range, or
+repeated request leaves the patch available and grants neither item. The
+source is manual-only; carrot seed planting remains part of A7.
+
 ## Deterministic placement and population budget
 
 - Use the existing invisible 6,000 cm `SpatialKey` and the current world seed,

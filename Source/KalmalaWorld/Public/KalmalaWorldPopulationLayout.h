@@ -99,6 +99,7 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
         const int32 Budget = GetSpawnBudget(Config, SpatialKey, Kind);
         Spawns.Reserve(Budget);
         const FVector2D SpatialKeyOrigin = FVector2D(SpatialKey) * SpatialKeySize;
+        bool bAddedMeadowCarrotPatch = false;
         // Wildlife candidates deliberately have a small, fixed retry budget.  The
         // server derives all candidates, rejects water and unsafe slopes, and
         // keeps the candidate seed in the sparse-delta ID.  Clients never choose
@@ -106,9 +107,9 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
         const int32 CandidateBudget = Kind == EKalmalaWorldPopulationKind::Wildlife ? Budget * 4 : Budget;
         for (int32 SpawnIndex = 0; SpawnIndex < CandidateBudget && Spawns.Num() < Budget; ++SpawnIndex)
         {
-            const uint64 SpawnSeed = Mix(DeriveSpatialSeed(Config, SpatialKey, Kind) ^ static_cast<uint64>(SpawnIndex + 1));
-            const float XFraction = static_cast<float>(SpawnSeed & 0xFFFFu) / 65535.0f;
-            const float YFraction = static_cast<float>((SpawnSeed >> 16) & 0xFFFFu) / 65535.0f;
+            const uint64 CandidateSeed = Mix(DeriveSpatialSeed(Config, SpatialKey, Kind) ^ static_cast<uint64>(SpawnIndex + 1));
+            const float XFraction = static_cast<float>(CandidateSeed & 0xFFFFu) / 65535.0f;
+            const float YFraction = static_cast<float>((CandidateSeed >> 16) & 0xFFFFu) / 65535.0f;
             const FVector2D Position = SpatialKeyOrigin + FVector2D(XFraction, YFraction) * SpatialKeySize;
             if (!FKalmalaWorldBounds::Contains(Config, Position)) continue;
             if (Kind == EKalmalaWorldPopulationKind::Wildlife && !IsTerrainSafeWildlifeLocation(Config, Position)) continue;
@@ -116,10 +117,20 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
             const EKalmalaBiomeContentKind ContentKind = Kind == EKalmalaWorldPopulationKind::Wildlife
                 ? EKalmalaBiomeContentKind::CreatureNiche
                 : EKalmalaBiomeContentKind::GatheringSource;
-            const FName ContentId = Kind == EKalmalaWorldPopulationKind::Hazard
+            FName ContentId = Kind == EKalmalaWorldPopulationKind::Hazard
                 ? NAME_None
                 : FKalmalaBiomeContentContract::GetServerContentId(Biome, ContentKind);
-            Spawns.Add({ Kind, SpatialKey, SpawnSeed, FVector(Position.X, Position.Y, FKalmalaTerrainHeightSampler::SampleHeight(Config, Position)), ContentId });
+            uint64 PersistentSeed = CandidateSeed;
+            if (Kind == EKalmalaWorldPopulationKind::HarvestNode && Biome == EKalmalaBiome::Meadows
+                && !bAddedMeadowCarrotPatch && IsTerrainSafeDiscoveryLocation(Config, Position))
+            {
+                // Keep the original candidate position but domain-separate the
+                // new source identity from the former birch-bark occupant.
+                ContentId = TEXT("meadows-wild-carrot-patch");
+                PersistentSeed = Mix(CandidateSeed ^ 0xA0CA22071019ull);
+                bAddedMeadowCarrotPatch = true;
+            }
+            Spawns.Add({ Kind, SpatialKey, PersistentSeed, FVector(Position.X, Position.Y, FKalmalaTerrainHeightSampler::SampleHeight(Config, Position)), ContentId });
         }
         return Spawns;
     }

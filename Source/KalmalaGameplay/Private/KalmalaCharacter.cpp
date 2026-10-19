@@ -894,6 +894,13 @@ bool AKalmalaCharacter::GetLocalHarvestInteractionIntent(const AKalmalaHarvestNo
         return true;
     }
 
+    if (Node->IsHandGatherablePatch())
+    {
+        OutAction = static_cast<uint8>(EKalmalaToolAction::Gathering);
+        bOutHasUsableTool = !Node->IsHarvested();
+        return true;
+    }
+
     if (Node->GetGatheringSourceId().IsNone())
     {
         bOutHasUsableTool = !Node->IsHarvested();

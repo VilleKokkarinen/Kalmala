@@ -1742,13 +1742,18 @@ replication seam:
 
 ### M7 first-wave biome content identity
 
-`FKalmalaBiomeContentContract` defines one original gathering-source ID,
-creature-niche ID, and optional rare-discovery-source ID for each of the six
-first-wave land biomes. The server derives the matching gathering or niche ID
-when it builds a population descriptor and replicates the selected identity
+`FKalmalaBiomeContentContract` defines one original default gathering-source
+ID, creature-niche ID, and optional rare-discovery-source ID for each of the
+six first-wave land biomes. The server derives the matching gathering or niche
+ID when it builds a population descriptor and replicates the selected identity
 on the relevant harvest or wildlife actor. A valid gathering source builds an
 original collision-free procedural presentation from that replicated ID on
-both peers; it does not change the existing reward, depletion, or save path.
+both peers. The Meadow population also assigns one deterministic candidate per
+eligible spatial key to the A0 `meadows-wild-carrot-patch` source, using a
+separate stable identity seed so prior birch-bark depletion cannot suppress it.
+The server hand-gathers exactly two Carrots and one Carrot Seed as one
+capacity-checked transaction without a tool; full-pack and failed requests do
+not deplete the patch. This source uses the existing population harvest ledger.
 Each valid point-of-interest rare source also maps to a distinct original
 collision-free procedural presentation. The source identity is replicated only
 with the already materialized relevant discovery actor; clients do not receive
@@ -1769,6 +1774,10 @@ After the editor build, run the focused deterministic catalogue check:
 
 The wildlife authority regression covers the six niche profiles and their
 bounded flee responses through `Kalmala.Gameplay.WildlifeBehaviour.ServerOwnedCycle`.
+`Kalmala.World.M7.BiomeContentContract` covers deterministic Meadow carrot
+placement and its source presentation; `Kalmala.Gameplay.M9.SecondWaveHarvestAcceptance`
+also covers the no-tool reward, full-pack rejection, duplicate rejection and
+saved depletion transaction. Run both at the A0 milestone gate.
 
 ### M7 first-wave tool gathering
 

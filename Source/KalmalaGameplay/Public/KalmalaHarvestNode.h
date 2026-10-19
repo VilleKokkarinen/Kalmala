@@ -46,6 +46,7 @@ public:
     FVector GetHarvestInteractionLocation() const;
     bool IsHarvested() const { return bHarvested; }
     bool IsTreeResource() const;
+    bool IsHandGatherablePatch() const { return FKalmalaBiomeContentContract::IsHandGatherableSourceId(GatheringSourceId); }
     bool IsFelledTrunk() const { return TreeStage == 1; }
     bool IsTreeFalling() const { return TreeStage == 3; }
     bool IsWoodDrop() const { return TreeStage == 2; }

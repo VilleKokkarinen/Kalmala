@@ -784,6 +784,117 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
         Node->Destroy();
     }
 
+    AKalmalaGameMode* PlantGameMode = World->GetAuthGameMode<AKalmalaGameMode>();
+    const FVector CarrotLocation(16000.0f, 0.0f, 0.0f);
+    AKalmalaCharacter* CarrotPawn = World->SpawnActor<AKalmalaCharacter>(CarrotLocation, FRotator::ZeroRotator);
+    AKalmalaHarvestNode* CarrotNode = World->SpawnActor<AKalmalaHarvestNode>(CarrotLocation, FRotator::ZeroRotator);
+    APlayerState* CarrotPlayerState = World->SpawnActor<APlayerState>();
+    if (TestNotNull(TEXT("Wild carrot fixture has the server GameMode"), PlantGameMode)
+        && TestNotNull(TEXT("Wild carrot fixture pawn spawned"), CarrotPawn)
+        && TestNotNull(TEXT("Wild carrot patch spawned"), CarrotNode)
+        && TestNotNull(TEXT("Wild carrot fixture has an authenticated player state"), CarrotPlayerState))
+    {
+        const FUniqueNetIdStringRef CarrotNetId = FUniqueNetIdString::Create(
+            TEXT("a0-wild-carrot-acceptance"), FName(TEXT("KalmalaA0WildCarrotAcceptanceTest")));
+        CarrotPlayerState->SetUniqueId(FUniqueNetIdRepl(*CarrotNetId));
+        CarrotPawn->SetPlayerState(CarrotPlayerState);
+
+        FKalmalaWorldPopulationSpawn CarrotSpawn;
+        CarrotSpawn.Kind = EKalmalaWorldPopulationKind::HarvestNode;
+        CarrotSpawn.SpatialKey = FKalmalaWorldPopulationLayout::GetSpatialKey(
+            FVector2D(CarrotLocation.X, CarrotLocation.Y));
+        CarrotSpawn.SpawnSeed = 715003;
+        CarrotSpawn.Location = CarrotLocation;
+        CarrotSpawn.ContentId = TEXT("meadows-wild-carrot-patch");
+        CarrotNode->InitializeServer(CarrotSpawn);
+        FKalmalaToolServerSelection CarrotToolSelection;
+        TestEqual(TEXT("Wild carrot fixture retains its canonical source identity"),
+            CarrotNode->GetGatheringSourceId(), CarrotSpawn.ContentId);
+        TestFalse(TEXT("Wild carrot patch has a stable population identity"), CarrotNode->GetPersistentSpawnId().IsEmpty());
+        TestEqual(TEXT("Wild carrot interaction prompt names its primary reward"),
+            CarrotNode->GetHarvestItemId(), FName(TEXT("Carrot")));
+        TestFalse(TEXT("Wild carrot patch does not require a tool selection"),
+            FKalmalaToolLifecycleContract::BuildServerSelection(CarrotSpawn.ContentId, CarrotToolSelection));
+
+        auto* CarrotInventory = CarrotPawn->GetInventoryComponent();
+        const TArray<FKalmalaInventoryStack> CarrotInventoryBefore = CarrotInventory->GetStacks();
+        const int32 CarrotBefore = CarrotInventory->GetQuantity(TEXT("Carrot"));
+        const int32 SeedBefore = CarrotInventory->GetQuantity(TEXT("CarrotSeed"));
+        const int32 PackedTools = CarrotInventory->CountPackedTools(CarrotPawn->GetCarriedToolInventory());
+        TArray<FKalmalaInventoryStack> FullPack;
+        for (int32 Cell = PackedTools; Cell < UKalmalaInventoryComponent::MaxSlots; ++Cell)
+            FullPack.Add({TEXT("BoneFragment"), 1});
+        TestTrue(TEXT("Wild carrot full-pack fixture installs"),
+            CarrotInventory->TryCommitStacksFromServer(CarrotInventoryBefore, FullPack));
+        const TArray<FKalmalaInventoryStack> InstalledFullPack = CarrotInventory->GetStacks();
+        TestFalse(TEXT("A full pack rejects the entire carrot harvest"), CarrotNode->InteractWithToolIntentFromServer(
+            CarrotPawn, 100.0f, 250.0f, NAME_None, static_cast<uint8>(EKalmalaToolAction::Gathering)));
+        TestFalse(TEXT("A full pack leaves the wild carrot patch available"), CarrotNode->IsHarvested());
+        TestEqual(TEXT("A full pack grants no Carrot"), CarrotInventory->GetQuantity(TEXT("Carrot")), CarrotBefore);
+        TestEqual(TEXT("A full pack grants no Carrot Seed"), CarrotInventory->GetQuantity(TEXT("CarrotSeed")), SeedBefore);
+        TestTrue(TEXT("Wild carrot full-pack fixture restores"),
+            CarrotInventory->TryCommitStacksFromServer(InstalledFullPack, CarrotInventoryBefore));
+
+        int32 DepletionEvents = 0;
+        FString DepletedSpawnId;
+        CarrotNode->OnHarvested.AddLambda([&](const FString& SpawnId) { ++DepletionEvents; DepletedSpawnId = SpawnId; });
+        auto* CarrotPopulationSave = NewObject<UKalmalaWorldPopulationSaveGame>(World);
+        CarrotPopulationSave->InitializeForWorld(WorldState->GetWorldGenerationConfig());
+        PlantGameMode->PopulationSaveGame = CarrotPopulationSave;
+        int32 PopulationWrites = 0;
+        PlantGameMode->PopulationSaveWriterForTests = [&](UKalmalaWorldPopulationSaveGame* Saved,
+            const FString&, int32)
+        {
+            ++PopulationWrites;
+            TestTrue(TEXT("Wild carrot depletion uses the matching world save"),
+                Saved == CarrotPopulationSave && Saved->MatchesWorld(WorldState->GetWorldGenerationConfig()));
+        };
+        CarrotNode->OnHarvested.AddUObject(PlantGameMode, &AKalmalaGameMode::RecordHarvestedSpawn);
+
+        TestFalse(TEXT("Wild carrot rejects a trace beyond interaction range"), CarrotNode->InteractWithToolIntentFromServer(
+            CarrotPawn, 251.0f, 250.0f, NAME_None, static_cast<uint8>(EKalmalaToolAction::Gathering)));
+        TestFalse(TEXT("A rejected trace leaves the wild carrot patch available"), CarrotNode->IsHarvested());
+        APlayerState* AuthenticatedPlayerState = CarrotPawn->GetPlayerState();
+        CarrotPawn->SetPlayerState(nullptr);
+        TestFalse(TEXT("Wild carrot rejects failed player-state persistence"), CarrotNode->InteractWithToolIntentFromServer(
+            CarrotPawn, 100.0f, 250.0f, NAME_None, static_cast<uint8>(EKalmalaToolAction::Gathering)));
+        TestFalse(TEXT("Failed player-state persistence leaves the patch available"), CarrotNode->IsHarvested());
+        TestEqual(TEXT("Failed player-state persistence rolls back Carrot"),
+            CarrotInventory->GetQuantity(TEXT("Carrot")), CarrotBefore);
+        TestEqual(TEXT("Failed player-state persistence rolls back Carrot Seed"),
+            CarrotInventory->GetQuantity(TEXT("CarrotSeed")), SeedBefore);
+        TestEqual(TEXT("Failed player-state persistence does not record depletion"), PopulationWrites, 0);
+        CarrotPawn->SetPlayerState(AuthenticatedPlayerState);
+        TestTrue(TEXT("A player can hand-gather wild carrots without a tool"), CarrotNode->InteractWithToolIntentFromServer(
+            CarrotPawn, 100.0f, 250.0f, NAME_None, static_cast<uint8>(EKalmalaToolAction::Gathering)));
+        TestTrue(TEXT("Accepted wild carrot harvest depletes exactly once"), CarrotNode->IsHarvested());
+        TestEqual(TEXT("Wild carrot harvest grants exactly two Carrots"),
+            CarrotInventory->GetQuantity(TEXT("Carrot")), CarrotBefore + 2);
+        TestEqual(TEXT("Wild carrot harvest grants exactly one Carrot Seed"),
+            CarrotInventory->GetQuantity(TEXT("CarrotSeed")), SeedBefore + 1);
+        TestEqual(TEXT("Accepted wild carrot harvest broadcasts one depletion event"), DepletionEvents, 1);
+        TestEqual(TEXT("Wild carrot depletion retains the generated spawn identity"), DepletedSpawnId,
+            CarrotNode->GetPersistentSpawnId());
+        TestTrue(TEXT("Wild carrot depletion is saved under the existing harvest ledger"),
+            CarrotPopulationSave->IsHarvested(CarrotNode->GetPersistentSpawnId()));
+        TestEqual(TEXT("Wild carrot harvest writes depletion once"), PopulationWrites, 1);
+        TestFalse(TEXT("Wild carrot harvest cannot grant twice"), CarrotNode->InteractWithToolIntentFromServer(
+            CarrotPawn, 100.0f, 250.0f, NAME_None, static_cast<uint8>(EKalmalaToolAction::Gathering)));
+        TestEqual(TEXT("Duplicate harvest leaves Carrot unchanged"),
+            CarrotInventory->GetQuantity(TEXT("Carrot")), CarrotBefore + 2);
+        TestEqual(TEXT("Duplicate harvest leaves Carrot Seed unchanged"),
+            CarrotInventory->GetQuantity(TEXT("CarrotSeed")), SeedBefore + 1);
+        TestEqual(TEXT("Duplicate harvest does not rewrite depletion"), PopulationWrites, 1);
+        PlantGameMode->PopulationSaveWriterForTests = {};
+        PlantGameMode->PopulationSaveGame = nullptr;
+        CarrotNode->OnHarvested.Clear();
+        CarrotNode->Destroy();
+    }
+    else
+    {
+        bAllFixturesValid = false;
+    }
+
     OtherWorld->DestroyWorld(false);
     World->DestroyWorld(false);
     return bAllFixturesValid;
