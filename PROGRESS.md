@@ -1,3 +1,18 @@
+## User-directed planning 2026-10-19 — Bronze and gem accessories
+
+- Updated A9 in `BACKLOG.md`, `docs/alpha-item-details.md`, the comparison in
+  `docs/alpha-items.md` and `docs/05-decision-log.md`: Quartz Ring grants +20
+  maximum stamina; Quartz Necklace +10 Armor, replacing spell-cost discounts.
+  Proposed Forge costs: 2/3 Bronze respectively plus 1 Smoky Quartz each.
+  Proposed gem source: 5% chance of 1 extra per exhausted Copper/Tin node.
+- Specified one server roll, persisted claim/no reroll, original icons and
+  equipment-derived stats; Ring equip cannot refill stamina. Cargo unchanged.
+  Costs/source/rate remain reviewable proposals; effects follow user direction.
+- Checked consistency, stale active names/effects, whitespace, staged scope
+  and paths. Planning only; no runtime/catalogue/save/icon changes or gameplay
+  tests. Full verification deferred. Preserved pre-existing A0 and other edits;
+  main checkout, no sync. Next: review gem proposal and accessory scope.
+
 ## User-directed planning 2026-10-19 — A1 sources and station costs
 
 - Updated A1 in `BACKLOG.md`, matching entries in `docs/alpha-item-details.md`

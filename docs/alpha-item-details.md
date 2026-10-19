@@ -251,21 +251,29 @@ that contract conflict before substituting a new wall/frame design.
 Travel, accessories and discovery rewards (P2; scope gated).
 - Review travel scope: propose only Skiff Cargo Chest (`SkiffCargoChest`), defer cart/carry-pack progression, encumbrance and hull durability. Hammer placement costs 6 Lightwood + 2 String + 1 Bronze, on one fixed cargo socket per existing skiff; no skiff inventory item or new boat tier.
 - Implement the approved cargo chest: 12 shared stack cells, interact within 2 m while skiff speed is at most 100 cm/s, same GUID/quantity/capacity rules as land storage. Save cargo against stable vessel ID; reject detachment/removal with contents, retain contents across validated vessel reload, no spill/duplication on reconnect. In-flight transfer rejects unchanged (blocked on explicit approval and existing vessel-persistence support; report any persistence gap).
-- Review the accessory table below before enabling Necklace/Ring slots. One item per named slot, existing validated equip/replace/return and full-pack rules; no damage/Armor/weight-capacity bonus or stacking copies. New effects require scope approval.
-- Add Amber Necklace (`AmberNecklace`) with reviewed craft/equip/effect/icon path (blocked on accessory approval).
-- Add Bone Ring (`BoneRing`) with reviewed craft/equip/effect/icon path (blocked on accessory approval).
+- Add Smoky Quartz (`SmokyQuartz`) as the rare gem for both accessories. Proposed source: each exhausted Elderwood Copper Ore or Shimmering Lakes Tin Ore node has a 1/20 (5%) chance of 1 additional gem, otherwise 0; ordinary ore yield remains unchanged. Resolve once on the server per node exhaustion, not per hit or pickup retry. Retain the rolled reward until collected and persist it with node depletion so reload cannot reroll or duplicate it. Full inventory leaves reward claimable. Stack 20, proposed weight 0.1 kg; no combat/equip/upgrade behavior. Source/rate remain for manual review.
+- Review Necklace/Ring slot support. Equip one item in each named slot using validated GUID/replace/return and full-pack rules; copies cannot stack bonuses. User-selected effects are +10 Armor for Necklace and +20 maximum stamina for Ring, replacing the earlier spell-cost discounts.
+- Add Quartz Necklace (`QuartzNecklace`) with the reviewed craft/equip/stat/icon path (blocked on gem acquisition and accessory support).
+- Add Quartz Ring (`QuartzRing`) with the reviewed craft/equip/stat/icon path (blocked on gem acquisition and accessory support).
 - Audit the four existing Mending/Hearth Shield/Bear's Vigor/Deer Call scrolls against their current authored discovery-to-unlock/use paths. Preserve existing locations/entitlements; propose no new scroll, trophy, creature or boss key for this alpha set. Record missing current routes as defects against the existing contract, not permission to invent a reward source.
 
-| Accessory | Workbench 1 cost for 1 | Server-owned effect while equipped |
+| Accessory | Proposed Forge 1 cost for 1 | Server-owned effect while equipped |
 | --- | --- | --- |
-| Amber Necklace | 2 Amber + 2 String | Multiply the wearer's Mending stamina cost by 0.90; no change to heal amount, cooldown or unlock requirement |
-| Bone Ring | 2 Bone Fragment + 1 String | Multiply the wearer's Hearth Shield stamina cost by 0.90; no change to shield amount, cooldown or unlock requirement |
+| Quartz Necklace | 3 Bronze + 1 Smoky Quartz | +10 integer Armor, added once to the existing physical-defense total |
+| Quartz Ring | 2 Bronze + 1 Smoky Quartz | +20 maximum stamina; no direct stamina refill |
 
-Both stack 1, weigh 0.1 kg, no durability/upgrades/repair/attacks. Effects
-are evaluated at activation, never retroactively; removing an accessory
-removes its future discount. Gear remains owner-private and session-only
-under the existing equipped-gear persistence limit; no new general gear-save
-system. Add explicit slot handling rather than disguising jewellery as armour.
+Both stack 1; proposed weight 0.1 kg each. No durability, upgrades, repair or
+attacks. The necklace's Armor remains active while equipped without wear;
+use the existing physical-only Armor calculation, not elemental resistance.
+Ring equip raises maximum stamina without increasing current stamina;
+unequip/replacement clamps current stamina to the new maximum. Repeated
+equip/unequip must never refill stamina or accumulate bonuses. Recompute
+derived stats on equipment changes; normal regeneration uses the new maximum.
+Gear remains owner-private and session-only under the existing equipped-gear
+persistence limit; no general gear-save system. Add explicit accessory/derived-
+stat handling rather than assuming the current durable-armour schema supports
+it. Gem and both accessories need original generated icons and all applicable
+catalogue/recipe/stat records. Existing scroll/spell costs remain unchanged.
 
 ## A10
 
@@ -274,5 +282,5 @@ Approved alpha item-set acceptance.
 - Reconcile delivery against the frozen checklist: each included ID must have source, payment, use/equip, upgrade or explicit non-applicability, original icon/provenance/mapping, relevant save behavior and linked verification evidence. Record every omitted candidate as deferred, not implicitly complete.
 - At each resulting milestone's final increment, run required Editor/project builds, applicable automation, catalogue/icon validation and relevant peer/persistence runners from `docs/07-development-setup.md`; repair milestone defects and rerun failing checks plus required full verification. Record actual commands/results; do not equate source inspection with execution.
 - Final progression scenario: fresh world, existing starter loadout only, gather normal resources → Workbench/String/Lightwood → Bow/arrows → Copper/Tin/Coal/Bronze → Bronze Pick → Iron/Densewood. Craft/equip/upgrade one of every included durable item; cook/eat each included meal and use each draught, retaining the specified cooldowns. No debug grants. Record biome/node availability rather than fabricating missing resources.
-- Final approved-system scenarios: plant/renew every included crop, restart planted plots/processing jobs, catch/cook fish, exercise door/stairs/light/chest, reload cargo with vessel and verify accessory discounts. For each applicable flow use host/client plus two competing requests: no duplicate or partial reward, invalid/range/full-pack requests unchanged, no private inventory leakage. Skip only explicitly deferred systems; verify session-only effects clear as specified.
+- Final approved-system scenarios: plant/renew every included crop, restart planted plots/processing jobs, catch/cook fish, exercise door/stairs/light/chest, reload cargo with vessel and verify accessory Armor/maximum-stamina bonuses without stacking/refill exploits. Verify gem exhaustion/reload/retry cannot reroll or duplicate drops. For each applicable flow use host/client plus two competing requests: no duplicate or partial reward, invalid/range/full-pack requests unchanged, no private inventory leakage. Skip only explicitly deferred systems; verify session-only effects clear as specified.
 - Mark the approved item milestone complete only after required gates pass; document blockers and pre-existing failures with evidence. No whole-alpha release declaration, packaging/publication or broader scope change follows automatically from this checklist.

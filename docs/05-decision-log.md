@@ -4,6 +4,7 @@ Add new decisions at the top. A decision records what agents should treat as set
 
 | Date | Decision | Status | Rationale |
 | --- | --- | --- | --- |
+| 2026-10-19 | A9 accessories use Bronze + rare gem; Ring grants +20 maximum stamina, Necklace +10 Armor while equipped. | User-directed plan | Replaces the spell-cost-discount Amber Necklace/Bone Ring proposal. Smoky Quartz at 5% per exhausted Copper/Tin node and Forge costs (ring 2 Bronze + 1 gem; necklace 3 Bronze + 1 gem) are concrete proposals for review. No runtime change yet. |
 | 2026-10-19 | A1: Copper in Elderwood; Tin in Shimmering Lakes. Hammer placement: Kiln costs 20 Stone; Smelter costs 20 Stone + 20 Wood. | User-directed plan | Updates biome/source confirmation and construction costs only; processing ratios/times and remaining proposals are unchanged. Implementation pending. |
 | 2026-10-19 | Replace the planned String recipe with Bow String: Workbench, 4 Sinew → 1 Bow String. | User-directed plan | Supersedes the 1 Sinew → 2 String proposal. Bow recipes use the dedicated BowString material; generic String sources for other proposals remain to be reviewed. No runtime change or save migration in this planning edit. |
 | 2026-10-19 | Deer Sinew drop: 1/2 chance to grant exactly 1, otherwise 0, per credited defeat. | User-directed plan | Replaces the earlier suggested 2 per deer. One server-owned roll per defeat, no reroll on retries. Boar source remains a suggestion of 1 per defeat. Implementation is still pending. |

@@ -183,9 +183,10 @@ Agents must follow reviewed values and report gaps instead of inventing designs.
 - [ ] **A9 — Cargo and accessories (P2).** [Rules](docs/alpha-item-details.md#a9)
   - [ ] Review skiff cargo; defer carts, carry packs, encumbrance and hull durability.
   - [ ] Skiff Cargo Chest: Hammer, 6 Lightwood + 2 String + 1 Bronze; 12 cells/skiff.
-  - [ ] Review Necklace/Ring slots; one item per slot, support-only effects.
-  - [ ] Amber Necklace: Workbench, 2 Amber + 2 String; Mending stamina cost −10%.
-  - [ ] Bone Ring: Workbench, 2 Bone Fragment + 1 String; Hearth Shield cost −10%.
+  - [ ] Smoky Quartz: proposed 5% chance of 1 extra gem per exhausted Copper/Tin node.
+  - [ ] Review Necklace/Ring slots; one item per slot, bonuses only while equipped.
+  - [ ] Quartz Necklace: Forge, 3 Bronze + 1 Smoky Quartz; +10 Armor.
+  - [ ] Quartz Ring: Forge, 2 Bronze + 1 Smoky Quartz; +20 maximum stamina.
   - [ ] Audit the four existing scroll routes; defer new scrolls, trophies and boss keys.
 
 - [ ] **A10 — Acceptance.** [Full criteria](docs/alpha-item-details.md#a10)
