@@ -1,3 +1,22 @@
+## User-directed planning 2026-10-19 — Ten gems and special gear
+
+- Expanded A9 in `BACKLOG.md` to ten named gem tasks and concrete item uses;
+  updated `docs/alpha-item-details.md`, comparison and decision log. Added
+  Green Jade, Amethyst, Aquamarine, Tourmaline and special Rime Opal, Storm
+  Sapphire, Dusk Diamond to the previous three. Sources cover biome-specific
+  mining, Mireling defeats and world treasure; rates range from 0.5% to 10%.
+- Every gem has a recipe use. Added four ordinary accessory alternatives and
+  proposed Rimeguard Tunic, Stormcut Sword and Dusk Ring, with exact costs,
+  effects, applicable upgrades, authority/reward rules and original-icon needs.
+  Some sources intentionally have independent rolls for multiple gems; no
+  universal drop pool. No new enemies, insulation or offensive magic proposed.
+- Checked ten unique gem IDs, one use per gem, source/recipe consistency,
+  stale counts, whitespace, linked categories, staged ownership and MAX_PATH.
+  Documentation only; no runtime/catalogue/assets/save changes, builds or tests.
+  Full verification deferred. Scope/rates/costs/stats remain for review.
+- Preserved/excluded all pre-existing edits, including other backlog categories.
+  Main checkout, no sync. Next: user review of ten-gem table and special gear.
+
 ## User-directed planning 2026-10-19 — Distinct gem sources
 
 - Updated A9 in `BACKLOG.md`, `docs/alpha-item-details.md`, comparison and

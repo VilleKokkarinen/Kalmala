@@ -180,16 +180,30 @@ Agents must follow reviewed values and report gaps instead of inventing designs.
   - [ ] Reinforced Chest: 8 Wood + 2 Bronze; 24 shared cells.
   - [ ] Keep extra brewing stations deferred; Kiln/Smelter/Plot belong to A1/A7.
 
-- [ ] **A9 — Cargo and accessories (P2).** [Rules](docs/alpha-item-details.md#a9)
+- [ ] **A9 — Cargo, gems and special gear (P2).** [Rules](docs/alpha-item-details.md#a9)
   - [ ] Review skiff cargo; defer carts, carry packs, encumbrance and hull durability.
   - [ ] Skiff Cargo Chest: Hammer, 6 Lightwood + 2 String + 1 Bronze; 12 cells/skiff.
   - [ ] Smoky Quartz: proposed 5% chance of 1 extra gem per exhausted Copper/Tin node.
   - [ ] Moonstone: proposed 2% chance of 1 per credited Mireling defeat; enemy-only.
   - [ ] Garnet: proposed 10% chance of 1 in Elderwood/Lakes world treasure chests; chest-only.
+  - [ ] Green Jade: proposed 2% chance of 1 from exhausted Shimmering Lakes Tin nodes.
+  - [ ] Amethyst: proposed 3% chance of 1 from exhausted Mossy Mire Iron Ore nodes.
+  - [ ] Aquamarine: proposed 5% chance of 1 in Shimmering Lakes treasure chests.
+  - [ ] Tourmaline: proposed 2% chance of 1 from exhausted Thunder Mountains slate nodes.
+  - [ ] Rime Opal (special): proposed 1% chance of 1 from Tundra Frost Salt deposits.
+  - [ ] Storm Sapphire (special): proposed 2% chance of 1 in Thunder Mountains treasure.
+  - [ ] Dusk Diamond (special): proposed 0.5% chance of 1 from Mossy Mire Mirelings.
   - [ ] Review Necklace/Ring slots; one item per slot, bonuses only while equipped.
   - [ ] Quartz Necklace: Forge, 3 Bronze + 1 Smoky Quartz; +10 Armor.
   - [ ] Moonstone Ring: Forge, 2 Bronze + 1 Moonstone; +20 maximum stamina.
   - [ ] Garnet Necklace: Forge, 3 Bronze + 1 Garnet; +10 Armor (alternative to Quartz).
+  - [ ] Jade Ring: Forge, 2 Bronze + 1 Green Jade; +20 maximum stamina.
+  - [ ] Amethyst Necklace: Forge, 3 Bronze + 1 Amethyst; +10 Armor.
+  - [ ] Aquamarine Ring: Forge, 2 Bronze + 1 Aquamarine; +20 maximum stamina.
+  - [ ] Tourmaline Necklace: Forge, 3 Bronze + 1 Tourmaline; +10 Armor.
+  - [ ] Rimeguard Tunic: Forge, 20 Iron + 5 Deer Hide + 1 Rime Opal; 12 Armor.
+  - [ ] Stormcut Sword: Forge, 20 Iron + 2 Densewood + 2 Deer Hide + 1 Storm Sapphire; 70 Slash.
+  - [ ] Dusk Ring: Forge, 5 Bronze + 1 Dusk Diamond; +20 max stamina and +5 Armor.
   - [ ] Audit the four existing scroll routes; defer new scrolls, trophies and boss keys.
 
 - [ ] **A10 — Acceptance.** [Full criteria](docs/alpha-item-details.md#a10)

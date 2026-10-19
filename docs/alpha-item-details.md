@@ -248,31 +248,43 @@ that contract conflict before substituting a new wall/frame design.
 
 ## A9
 
-Travel, accessories and discovery rewards (P2; scope gated).
+Cargo, ten gems, special gear and discovery rewards (P2; scope gated).
 - Review travel scope: propose only Skiff Cargo Chest (`SkiffCargoChest`), defer cart/carry-pack progression, encumbrance and hull durability. Hammer placement costs 6 Lightwood + 2 String + 1 Bronze, on one fixed cargo socket per existing skiff; no skiff inventory item or new boat tier.
 - Implement the approved cargo chest: 12 shared stack cells, interact within 2 m while skiff speed is at most 100 cm/s, same GUID/quantity/capacity rules as land storage. Save cargo against stable vessel ID; reject detachment/removal with contents, retain contents across validated vessel reload, no spill/duplication on reconnect. In-flight transfer rejects unchanged (blocked on explicit approval and existing vessel-persistence support; report any persistence gap).
-- Add three gems with separate source tables below. These are concrete drop-rate/location proposals for review; no shared universal gem-drop pool. All stack 20, proposed weight 0.1 kg; no combat/equip/upgrade behavior. Gem and source implementations remain pending.
-- Add Smoky Quartz (`SmokyQuartz`) as a mining-only extra reward; preserve ordinary ore yields.
-- Add Moonstone (`Moonstone`) to credited Mireling defeats only; preserve existing rewards. Boar/deer and other enemies do not inherit this gem drop.
-- Add Garnet (`Garnet`) to generated world treasure chests only, not player storage. Requires a server-owned, stable treasure-container loot path; if missing, implement it as an explicitly approved prerequisite rather than treating player chests as treasure sources.
+- Add exactly ten gems from the table below, each as a separate integrated increment. These are concrete source/rate/recipe/stat proposals for review, not a new alpha release commitment. Seven are ordinary rare gems; three special gems are required by named special gear. No empty-purpose collectibles or universal gem pool.
+- All raw gems stack 20, proposed weight 0.1 kg, with no combat/equip/upgrade behavior. Each needs a registered material definition and its own original generated icon. Preserve normal ore, wildlife and treasure rewards.
+- Treasure means server-owned generated world loot containers, never player storage. Stable treasure loot and sparse resource/enemy reward claims are explicit prerequisites; do not invent new creatures or silently treat an unsupported source as implemented.
 
-| Gem | Exclusive proposed source | Chance / quantity | Accessory use |
+| Gem / item ID | Exclusive eligible source | Chance of exactly 1 | Required use |
 | --- | --- | --- | --- |
-| Smoky Quartz | Exhausted Copper Ore nodes in Elderwood or Tin Ore nodes in Shimmering Lakes | 1/20 (5%) for exactly 1, otherwise 0 | Quartz Necklace |
-| Moonstone | Credited Mireling defeats | 1/50 (2%) for exactly 1, otherwise 0 | Moonstone Ring |
-| Garnet | Generated treasure chests in Elderwood or Shimmering Lakes | 1/10 (10%) per chest for exactly 1, otherwise 0 | Garnet Necklace |
+| Smoky Quartz (`SmokyQuartz`) | Exhausted Copper Ore in Elderwood or Tin Ore in Shimmering Lakes | 5% (1/20) | Quartz Necklace |
+| Moonstone (`Moonstone`) | Credited Mireling defeats in any biome | 2% (1/50) | Moonstone Ring |
+| Garnet (`Garnet`) | World treasure chests in Elderwood or Shimmering Lakes | 10% (1/10) | Garnet Necklace |
+| Green Jade (`GreenJade`) | Exhausted Tin Ore in Shimmering Lakes only | 2% (1/50) | Jade Ring |
+| Amethyst (`Amethyst`) | Exhausted Iron Ore in Mossy Mire only | 3% (3/100) | Amethyst Necklace |
+| Aquamarine (`Aquamarine`) | World treasure chests in Shimmering Lakes only | 5% (1/20) | Aquamarine Ring |
+| Tourmaline (`Tourmaline`) | Exhausted slate veins in Thunder Mountains only | 2% (1/50) | Tourmaline Necklace |
+| **Special: Rime Opal** (`RimeOpal`) | Exhausted Frost Salt mineral deposits in Freezing Tundra; not frostmoss | 1% (1/100) | Rimeguard Tunic |
+| **Special: Storm Sapphire** (`StormSapphire`) | World treasure chests in Thunder Mountains only | 2% (1/50) | Stormcut Sword |
+| **Special: Dusk Diamond** (`DuskDiamond`) | Credited Mireling defeats in Mossy Mire only | 0.5% (1/200) | Dusk Ring |
 
 Resolve rolls once on the server per node exhaustion, enemy defeat or treasure
 chest generation. Opening, pickup retries, reconnect or reload cannot reroll.
 Persist rolled world rewards/claims with stable source identities; full
-inventory leaves an unclaimed reward available. Gem tables are mutually
-exclusive by source: no mining Moonstone/Garnet, no enemy Quartz/Garnet and no
-treasure Quartz/Moonstone. Existing Amber is not replaced or added to this pool.
+inventory leaves an unclaimed reward available. Every failed roll grants zero.
+Check source type and biome before rolling; boar/deer do not drop gems. Some
+sources deliberately have multiple eligible gems: Tin can yield Quartz/Jade,
+lake treasure Garnet/Aquamarine, Mire Mirelings Moonstone/Dusk Diamond. Roll
+each eligible gem independently once; multiple successes are allowed. Never
+extend a gem to other sources by fallback. Existing Amber is not replaced or
+counted among these ten gems. No gem conversion or random crafting outcomes.
 
 - Review Necklace/Ring slot support. Equip one item in each named slot using validated GUID/replace/return and full-pack rules; copies cannot stack bonuses. User-selected effects are +10 Armor for Necklace and +20 maximum stamina for Ring, replacing the earlier spell-cost discounts.
 - Add Quartz Necklace (`QuartzNecklace`) with the reviewed craft/equip/stat/icon path (blocked on gem acquisition and accessory support).
 - Add Moonstone Ring (`MoonstoneRing`) with the reviewed craft/equip/stat/icon path, replacing the Quartz Ring proposal (blocked on gem acquisition and accessory support).
 - Add Garnet Necklace (`GarnetNecklace`) as an alternative route to the same +10 Armor; no stronger or additional bonus (blocked on treasure loot and accessory support).
+- Add Jade Ring (`JadeRing`), Amethyst Necklace (`AmethystNecklace`), Aquamarine Ring (`AquamarineRing`) and Tourmaline Necklace (`TourmalineNecklace`), one complete item per increment, using the table below. These give alternate acquisition routes to the existing ring/necklace roles.
+- Add Rimeguard Tunic (`RimeguardTunic`), Stormcut Sword (`StormcutSword`) and Dusk Ring (`DuskRing`) as separate special-gear proposals below. They require their specific special gem; no ordinary-gem substitute. Approve their scope before implementation.
 - Audit the four existing Mending/Hearth Shield/Bear's Vigor/Deer Call scrolls against their current authored discovery-to-unlock/use paths. Preserve existing locations/entitlements; propose no new scroll, trophy, creature or boss key for this alpha set. Record missing current routes as defects against the existing contract, not permission to invent a reward source.
 
 | Accessory | Proposed Forge 1 cost for 1 | Server-owned effect while equipped |
@@ -280,9 +292,14 @@ treasure Quartz/Moonstone. Existing Amber is not replaced or added to this pool.
 | Quartz Necklace | 3 Bronze + 1 Smoky Quartz | +10 integer Armor, added once to the existing physical-defense total |
 | Moonstone Ring | 2 Bronze + 1 Moonstone | +20 maximum stamina; no direct stamina refill |
 | Garnet Necklace | 3 Bronze + 1 Garnet | +10 integer Armor; alternative to Quartz Necklace, same slot |
+| Jade Ring | 2 Bronze + 1 Green Jade | +20 maximum stamina |
+| Amethyst Necklace | 3 Bronze + 1 Amethyst | +10 integer Armor |
+| Aquamarine Ring | 2 Bronze + 1 Aquamarine | +20 maximum stamina |
+| Tourmaline Necklace | 3 Bronze + 1 Tourmaline | +10 integer Armor |
+| Special Dusk Ring | 5 Bronze + 1 Dusk Diamond | +20 maximum stamina and +5 integer Armor |
 
 All accessories stack 1; proposed weight 0.1 kg each. No durability, upgrades, repair or
-attacks. The necklace's Armor remains active while equipped without wear;
+attacks. Accessory Armor remains active while equipped without wear;
 use the existing physical-only Armor calculation, not elemental resistance.
 Ring equip raises maximum stamina without increasing current stamina;
 unequip/replacement clamps current stamina to the new maximum. Repeated
@@ -291,8 +308,27 @@ derived stats on equipment changes; normal regeneration uses the new maximum.
 Gear remains owner-private and session-only under the existing equipped-gear
 persistence limit; no general gear-save system. Add explicit accessory/derived-
 stat handling rather than assuming the current durable-armour schema supports
-it. All three gems and three accessories need original generated icons and all applicable
+it. Alternative rings/necklaces compete for the same one-per-slot positions;
+their bonuses cannot stack within a slot. All ten gems and every resulting
+equipment item need original generated icons and applicable manifest-registered
 catalogue/recipe/stat records. Existing scroll/spell costs remain unchanged.
+
+**Special weapon/armour proposals:** both crafted at Forge level 1, output 1,
+stack 1; each gem is consumed during crafting, not socketed or recoverable.
+
+| Item | Crafting materials | Level-one profile | Upgrade base / per-level reward |
+| --- | --- | --- | --- |
+| Rimeguard Tunic | 20 Iron + 5 Deer Hide + 1 Rime Opal | Chest; 12 Armor, 150 condition, 5 kg | 5 Iron + 2 Deer Hide; +1 Armor, +10 condition |
+| Stormcut Sword | 20 Iron + 2 Densewood + 2 Deer Hide + 1 Storm Sapphire | One hand; 70 Slash, 220 condition, 2.5 kg | 5 Iron + 1 Densewood; +4 Slash, +30 condition |
+
+Use existing level cap/cost scaling, Forge upgrades and free station repair.
+Tunic follows normal durable wearable hit-wear and physical Armor rules; its
+name does not grant cold immunity or introduce insulation. Sword uses existing
+Basic melee timing/reach, zero extra attack-style damage, one condition per
+accepted hit, no gathering or elemental/offensive-magic effect. Author all
+required profiles, attack membership, costs/rewards, held/worn presentation and
+icons. Missing catalogue-family/derived-stat support is implementation work,
+not permission to replace these items with unsupported generic definitions.
 
 ## A10
 

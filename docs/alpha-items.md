@@ -109,8 +109,10 @@ details for manual review. They are not implementation-agent choices.
 **P2: scope-dependent parity candidates.** The backlog specifically proposes
 plot-based cultivation, lake-school fishing, six shelter/furniture pieces,
 skiff cargo and bronze/gem accessories (+20 maximum stamina ring and +10
-Armor necklaces). Proposed gems have separate sources: Smoky Quartz from
-mining, Moonstone from Mirelings and Garnet from world treasure chests.
+Armor necklaces). A9 now proposes ten gems with source-specific mining,
+Mireling and treasure drops. Rime Opal, Storm Sapphire and Dusk Diamond are
+special ingredients for named armour, weapon and jewellery recipes; all ten
+have explicit uses, costs and effects in the linked details.
 It defers terrain-editing
 Hoe, cold-protection clothing, new trophies/scrolls, cart/carry packs and extra
 brewing stations. These remain reviewable scope choices, not silent changes to
