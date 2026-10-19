@@ -1,4 +1,6 @@
-# String, Bow and Wooden Arrows icon provenance
+# Bow, Bow String, Sinew and Wooden Arrows icon provenance
+
+## Batch I — Bow, Wooden Arrow and retired String icon
 
 Generated on 2026-10-15 with the built-in image-generation tool. The existing
 Stone original was a style reference only. Each original is 1254x1254 RGBA;
@@ -6,7 +8,10 @@ the prepared icons are 64x64 RGBA with preserved alpha. Original and prepared
 artwork was visually inspected. Batch I imported and validated all three UI
 Texture2D packages; the full 66-row catalogue icon file audit passed.
 
-For each of `String`, `Bow`, and `WoodenArrow`, retained files are:
+The old `String` item was replaced by bow-only `BowString` on 2026-10-19. Its
+old original/prepared files and package remain in the workspace but are no
+longer registered in the catalogue icon manifest or runtime mapping. For `Bow`
+and `WoodenArrow`, retained files are:
 
 - `Content/Kalmala/UI/Source/IconOriginals/<ID>.png`
 - `Content/Kalmala/UI/Source/Icons/<ID>.png`
@@ -18,9 +23,20 @@ Audit: `Scripts/Validate-UIIcons.ps1 -Category Catalogue`.
 The sandboxed importer created no log; the existing content-only importer
 succeeded outside the sandbox. Gameplay build/render verification is deferred.
 
-## Exact generation prompts
+## Batch K — Bow String and Sinew (2026-10-19)
 
-### String
+Generated with the built-in image-generation tool as standalone transparent
+1254×1254 RGBA originals. The prepared icons are centered 64×64 RGBA images
+with alpha. `Prepare-CatalogueIconBatch.py --batch K` prepared them; the
+content-only Unreal importer created `/Game/Kalmala/UI/Icons/Items/BowString`
+and `/Game/Kalmala/UI/Icons/Items/Sinew`, and per-ID catalogue icon validation
+passed for both. The originals, prepared images, packages, runtime IDs and
+validation rows are retained. The full 73-row catalogue icon audit passed on
+2026-10-19; rerun it during final A0 verification.
+
+## Historical batch I exact generation prompts
+
+### Retired String artwork
 
 Use case: stylized-concept. Asset type: Kalmala survival fantasy inventory icon. Generate NEW original artwork, supplied Stone icon is ONLY a hand-painted material/rendering style reference. Warm natural materials, strong dark brown contour, tactile painterly highlights, bold silhouette legible at 64x64. Centered object with clean transparent padding filling 78% of square. True transparent background. No text, UI, border, ground, cast shadow, glow, logos or unrelated props. Subject: a compact coil of rough flax string with a short loose end, warm pale beige twisted plant fibres, clearly thin cord rather than thick rope.
 
@@ -31,6 +47,16 @@ Use case: stylized-concept. Asset type: Kalmala survival fantasy inventory icon.
 ### WoodenArrow
 
 Use case: stylized-concept. Asset type: Kalmala survival fantasy inventory icon. Generate NEW original artwork, supplied Stone icon is ONLY a hand-painted material/rendering style reference. Warm natural materials, strong dark brown contour, tactile painterly highlights, bold silhouette legible at 64x64. Centered object with clean transparent padding filling 78% of square. True transparent background. No text, UI, border, ground, cast shadow, glow, logos or unrelated props. Subject: three simple primitive wooden arrows grouped diagonally lower-left to upper-right, sharpened wooden points and muted feather fletching, no metal heads, no bow.
+
+## Batch K exact generation prompts
+
+### BowString
+
+Use case: stylized-concept. Asset type: original Kalmala survival-fantasy inventory icon for a 64-pixel game item. Primary request: create one original BowString icon made from animal sinew. Subject: a compact hand-twisted coil of thin, tightly braided warm ivory and pale tan sinew cord, with one short loose end, clearly flexible thin cord rather than rope or plant fibre. Style: small hand-painted game inventory artwork with tactile broad facets, bold dark brown contour, restrained painted highlights, earthy material colors, strong clear silhouette readable at 64 pixels. Composition: one centered coil filling about 78 percent of a square canvas, clean transparent padding. Background: genuinely transparent. Constraints: original artwork, no text, letters, labels, UI, border, ground, cast shadow, glow, watermark, logo, bow, arrow, leaves, flax or extra objects.
+
+### Sinew
+
+Use case: stylized-concept. Asset type: original Kalmala survival-fantasy inventory icon for a 64-pixel game item. Primary request: create one original Sinew material icon. Subject: three short, narrow, softly curved animal tendon strands laid together as a compact bundle, warm ivory and muted pale tan with subtle fibrous ends, clearly raw crafting sinew and distinct from a coiled cord. Style: small hand-painted game inventory artwork with tactile broad facets, bold dark brown contour, restrained painted highlights, earthy natural materials, strong clear silhouette readable at 64 pixels. Composition: one centered bundle filling about 78 percent of a square canvas with clean transparent padding. Background: genuinely transparent. Constraints: original artwork, no text, letters, labels, UI, border, ground, cast shadow, glow, watermark, logo, bowstring coil, bow, arrow, hide, bone or extra objects.
 
 ## Wooden Arrow revision — sharpened wood only
 

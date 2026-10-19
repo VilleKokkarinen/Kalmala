@@ -27,9 +27,10 @@ deferred; A7 specifically proposes Potato tuber propagation. A1 supplies the
 processing station costs/timing/capacity previously left open. Any further
 missing gameplay value must likewise be proposed for review before coding.
 
-Reviewed string recipes: Workbench **1 Sinew → 2 String** for generic crafting,
-and **4 Sinew → 1 Bow String** (`BowString`) for bows. Keep the two material
-IDs separate. The existing A0 source table is canonical for vegetable biomes
+Reviewed bow-string recipe: Workbench **4 Sinew → 1 Bow String** (`BowString`),
+reserved for bows. Sinew is credited from deer at a server-rolled 50% chance
+for exactly one. The `WoodenArrow` item now lives in the sibling `items/arrows.json`
+category. The existing A0 source table is canonical for vegetable biomes
 and yields; A3 uses Light Bow; Dusk Diamond uses a 1% Mireling drop and the
 Dusk Ring uses its detailed A9 Bronze cost.
 
@@ -68,17 +69,17 @@ food status dispatch. Definitions do not establish obtainability or usability.
 | Category | Authored current coverage | Gap / recommended direction |
 | --- | --- | --- |
 | Melee weapons and gathering tools | Stone/Bronze/Iron axes, knives, picks, spears and maces: 15 profiles | Existing slash/stab/crush roles are covered; prioritize reachable materials. Swords are a design target without a profile; a wooden club is also a target, but Stone Mace already fills early blunt combat. |
-| Ranged and ammunition | One Bow profile and Wooden Arrow; crafting, draw/release and server projectiles | String lacks a normal source. Later add one improved bow and one metal arrow, with explicit ammunition dispatch and payment. |
+| Ranged and ammunition | One Bow profile and Wooden Arrow; crafting, draw/release and server projectiles | Bow String is now reachable through deer Sinew and Workbench crafting. Later add one improved bow and one metal arrow, with explicit ammunition dispatch and payment. |
 | Utility tools | Building Hammer plus gathering tools above | No authored carried torch, cultivation tool, hoe or fishing rod. Torch is an existing design target; the other roles need new systems. |
 | Armour and shields | Boar Hide Helmet, Tunic, Leggings, Boots, Cape; Wood Shield | No second armour tier or metal shield. Six functioning slots; Necklace/Ring are disabled placeholders. Shield currently supplies passive Armor, not Valheim-style blocking/parrying. |
-| Crafting materials | Wood, Densewood, Lightwood, Stone, String, Bone Fragment, two hides, Amber, Frost Salt, Coal; Copper/Tin/Iron ores and Copper/Tin/Bronze/Iron bars | Wood/Densewood, hides, Amber and Frost Salt have source paths. No production recipes for ores/bars/Coal/String; no ordinary Lightwood or Bone Fragment reward found. Check actual generated availability before calling any loop complete. |
+| Crafting materials | Wood, Densewood, Lightwood, Stone, Sinew, Bow String, Bone Fragment, two hides, Amber, Frost Salt, Coal; Copper/Tin/Iron ores and Copper/Tin/Bronze/Iron bars | Deer Sinew now feeds the bow-only Bow String recipe. Wood/Densewood, hides, Amber and Frost Salt have source paths. No production recipes for ores/bars/Coal; no ordinary Lightwood or Bone Fragment reward found. Check actual generated availability before calling any loop complete. |
 | Food | Two raw meats and seven prepared-food definitions; six cooking outputs | Hearth Broth has no recipe. Four root vegetables are ingredients. Food use is inconsistent with current catalogue IDs; repair before adding dish counts. |
 | Crops and seeds | Carrot, Potato, Rutabaga, Onion plus four seed definitions | Farming is explicitly unimplemented. Definitions alone cannot supply a renewable garden. |
 | Recovery and expedition consumables | No authored potion category | Healing/stamina preparations are candidate additions; hazard resistance needs supported effects and an approved hazard role. Do not require consumables for direct-damage magic. |
 | Building/stations | 13 direct-material build recipes; 12 JSON metadata entries plus Campfire's runtime definition | Floor, wall, roof, chest, campfire, Workbench/Tool Rack, Forge/Anvil, Cooking Rack, Cauldron, Grinding Stone, Frying Pan. Missing processing stations and common shelter pieces are proposals, never inventory kits. |
 | Travel, accessories and discoveries | Existing two-seat skiff; four support-scroll definitions/discovery effects | Cargo/hauling, jewellery and trophies are separate proposals. Keep support scrolls and discovery intact; no offensive staves, copied boss trophies or mandatory reference-game boss keys. |
 
-JSON accounting: 46 ordinary non-buildable definitions (including materials,
+JSON accounting: 47 ordinary non-buildable definitions (including materials,
 food, crops, wearables, arrows and scrolls), 17 equipment profiles (15 tiered
 profiles, Bow, Hammer), and 12 buildable metadata records. This is authored
 coverage, not a count of obtainable items or the assembled runtime catalogue.
@@ -98,7 +99,7 @@ coverage, not a count of obtainable items or the assembled runtime catalogue.
 ## Recommended priority and dependency order
 
 **P0: make the existing set playable.** Audit each material and food from normal
-world acquisition to use; close String, Lightwood, Bone Fragment and cooking
+world acquisition to use; close Lightwood, Bone Fragment and cooking
 gaps. Resolve the ore/bar/Coal chain and Iron discrepancy. The user approved
 the A1 smelter and charcoal-station scope; A1 review still confirms their
 processing contract.

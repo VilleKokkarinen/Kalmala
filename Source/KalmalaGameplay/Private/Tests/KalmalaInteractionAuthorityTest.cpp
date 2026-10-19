@@ -61,7 +61,7 @@ bool FKalmalaAutomaticPickupTest::RunTest(const FString& Parameters)
     TArray<FKalmalaInventoryStack> Full;
     const int32 PackedTools = Inventory->CountPackedTools(Pawn->GetCarriedToolInventory());
     for (int32 Slot = PackedTools; Slot < UKalmalaInventoryComponent::MaxSlots; ++Slot)
-        Full.Add({TEXT("String"), 1});
+        Full.Add({TEXT("BoneFragment"), 1});
     TestTrue(TEXT("Full-pack fixture installs"), Inventory->TryCommitStacksFromServer(Before, Full));
     const auto Filled = Inventory->GetStacks();
     TestFalse(TEXT("A full pack leaves nearby items on the ground"), Node->TryAutomaticPickupFromServer(Pawn));

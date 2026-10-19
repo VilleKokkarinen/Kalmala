@@ -51,6 +51,25 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
     const UKalmalaRecipeCatalogue* Recipes = UKalmalaRecipeCatalogue::Get();
     TestTrue(TEXT("Versioned JSON loads a valid item catalogue"), Catalogue->IsValidCatalogue());
     TestTrue(TEXT("Versioned JSON loads a valid recipe catalogue"), Recipes->IsValidCatalogue());
+    const FKalmalaItemDefinition* BowString = Catalogue->FindDefinition(TEXT("BowString"));
+    TestNotNull(TEXT("Bow String item replaces generic String"), BowString);
+    TestNull(TEXT("Generic String is no longer a catalogue identity"), Catalogue->FindDefinition(TEXT("String")));
+    if (BowString)
+    {
+        TestEqual(TEXT("Bow String uses its player-facing name"), BowString->DisplayName, FString(TEXT("Bow String")));
+        TestEqual(TEXT("Bow String describes its sinew source"), BowString->Description, FString(TEXT("A bowstring twisted from animal sinew.")));
+    }
+    TestNotNull(TEXT("Sinew material is registered"), Catalogue->FindDefinition(TEXT("Sinew")));
+    TestNotNull(TEXT("Wooden Arrow remains a registered ammunition item"), Catalogue->FindDefinition(TEXT("WoodenArrow")));
+    const FKalmalaRecipe* BowStringRecipe = Recipes->Find(TEXT("BowStringRecipe"));
+    TestNotNull(TEXT("Bow String has its Sinew recipe"), BowStringRecipe);
+    if (BowStringRecipe)
+    {
+        TestEqual(TEXT("Bow String recipe outputs one item"), BowStringRecipe->OutputCount, 1);
+        TestTrue(TEXT("Bow String recipe consumes four Sinew"), BowStringRecipe->Ingredients.Num() == 1
+            && BowStringRecipe->Ingredients[0].ItemId == TEXT("Sinew")
+            && BowStringRecipe->Ingredients[0].Quantity == 4);
+    }
     struct FExpectedGear
     {
         FName ItemId;
@@ -96,6 +115,22 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
     TSharedPtr<FJsonObject> JsonRoot;
     const bool bParsedJson = FJsonSerializer::Deserialize(JsonReader, JsonRoot) && JsonRoot.IsValid();
     TestTrue(TEXT("The catalogue JSON parses for completeness verification"), bParsedJson);
+    const TArray<TSharedPtr<FJsonValue>>* ItemFilePaths = nullptr;
+    const bool bHasItemFilePaths = bParsedJson && JsonRoot->TryGetArrayField(TEXT("itemFiles"), ItemFilePaths)
+        && ItemFilePaths != nullptr;
+    bool bHasArrowCategory = false;
+    bool bHasRetiredStringCategory = false;
+    if (bHasItemFilePaths)
+    {
+        for (const TSharedPtr<FJsonValue>& Value : *ItemFilePaths)
+        {
+            if (!Value.IsValid() || Value->Type != EJson::String) continue;
+            bHasArrowCategory |= Value->AsString() == TEXT("items/arrows.json");
+            bHasRetiredStringCategory |= Value->AsString() == TEXT("items/materials/string.json");
+        }
+    }
+    TestTrue(TEXT("Ammunition uses the sibling arrows category"), bHasArrowCategory);
+    TestFalse(TEXT("The retired string.json category is no longer registered"), bHasRetiredStringCategory);
     TArray<TSharedPtr<FJsonValue>> JsonItems;
     TArray<TSharedPtr<FJsonValue>> JsonRecipes;
     const bool bHasCatalogueArrays = bParsedJson

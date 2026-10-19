@@ -13,10 +13,29 @@
           "Quantity": 5
         },
         {
-          "ItemId": "String",
-          "Quantity": 2
+          "ItemId": "BowString",
+          "Quantity": 1
         }
       ]
+    },
+    {
+      "RecipeId": "BowStringRecipe",
+      "DisplayName": "Bow String",
+      "Ingredients": [
+        {
+          "ItemId": "Sinew",
+          "Quantity": 4
+        }
+      ],
+      "Output": "BowString",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "RequiredStation": [
+        "Workbench"
+      ],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
     },
     {
       "RecipeId": "StoneAxe",

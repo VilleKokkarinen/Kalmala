@@ -15,6 +15,9 @@ bool FKalmalaWildlifeBehaviourTest::RunTest(const FString& Parameters)
 {
     TestFalse(TEXT("A client cannot select wildlife behaviour"), AKalmalaWildlifeSpawn::IsBehaviourTransitionAllowed(false, false, EKalmalaWildlifeBehaviour::Idle, EKalmalaWildlifeBehaviour::Flee));
     TestFalse(TEXT("Defeated wildlife cannot resume behaviour"), AKalmalaWildlifeSpawn::IsBehaviourTransitionAllowed(true, true, EKalmalaWildlifeBehaviour::Return, EKalmalaWildlifeBehaviour::Idle));
+    TestTrue(TEXT("A server deer sinew roll below 50 percent succeeds"), AKalmalaWildlifeSpawn::IsDeerSinewDropSuccessful(0.499999f));
+    TestFalse(TEXT("A server deer sinew roll at 50 percent fails"), AKalmalaWildlifeSpawn::IsDeerSinewDropSuccessful(0.5f));
+    TestFalse(TEXT("An invalid deer sinew roll fails closed"), AKalmalaWildlifeSpawn::IsDeerSinewDropSuccessful(-0.01f));
     TestTrue(TEXT("Server damage can enter bounded flee"), AKalmalaWildlifeSpawn::IsBehaviourTransitionAllowed(true, false, EKalmalaWildlifeBehaviour::Idle, EKalmalaWildlifeBehaviour::Flee));
     TestTrue(TEXT("Server flee progresses to investigate"), AKalmalaWildlifeSpawn::IsBehaviourTransitionAllowed(true, false, EKalmalaWildlifeBehaviour::Flee, EKalmalaWildlifeBehaviour::Investigate));
     TestTrue(TEXT("Server investigate progresses to return"), AKalmalaWildlifeSpawn::IsBehaviourTransitionAllowed(true, false, EKalmalaWildlifeBehaviour::Investigate, EKalmalaWildlifeBehaviour::Return));

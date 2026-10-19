@@ -77,6 +77,11 @@ bool AKalmalaWildlifeSpawn::IsDefeatAllowed(const bool bServerAuthority, const b
     return bServerAuthority && !bAlreadyDefeated;
 }
 
+bool AKalmalaWildlifeSpawn::IsDeerSinewDropSuccessful(const float ServerRoll)
+{
+    return FMath::IsFinite(ServerRoll) && ServerRoll >= 0.0f && ServerRoll < 0.5f;
+}
+
 bool AKalmalaWildlifeSpawn::DefeatServer()
 {
     if (!IsDefeatAllowed(HasAuthority(), bDefeated))
@@ -578,6 +583,8 @@ void AKalmalaWildlifeSpawn::ApplyDefeatedState()
 
 void AKalmalaWildlifeSpawn::GrantDefeatReward()
 {
+    if (!HasAuthority() || bDefeatRewardProcessed) return;
+    bDefeatRewardProcessed = true;
     AKalmalaCharacter* Attacker = LastValidatedAttacker.Get();
     UKalmalaInventoryComponent* Inventory = Attacker ? Attacker->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
     if (Inventory == nullptr || !Inventory->GetOwner() || !Inventory->GetOwner()->HasAuthority()) return;
@@ -590,6 +597,11 @@ void AKalmalaWildlifeSpawn::GrantDefeatReward()
     {
         Inventory->TryGrantFromServer(TEXT("DeerMeat"), 1);
         Inventory->TryGrantFromServer(TEXT("DeerHide"), 1);
+        const float SinewRoll = FMath::FRand();
+        if (IsDeerSinewDropSuccessful(SinewRoll))
+        {
+            Inventory->TryGrantFromServer(TEXT("Sinew"), 1);
+        }
     }
 
     if (Archetype == EKalmalaWildlifeArchetype::Mireling && IsMirelingBossRewardCandidate())

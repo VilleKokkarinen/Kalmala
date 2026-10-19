@@ -267,8 +267,8 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
                 const int32 PackedTools = RemoteInventory->CountPackedTools(Remote->GetCarriedToolInventory());
                 TArray<FKalmalaInventoryStack> FullPack;
                 for (int32 Cell = PackedTools; Cell < UKalmalaInventoryComponent::MaxSlots; ++Cell)
-                    FullPack.Add({TEXT("String"), 1});
-                if (ForestPickupItem == TEXT("String")
+                    FullPack.Add({TEXT("BoneFragment"), 1});
+                if (ForestPickupItem == TEXT("BoneFragment")
                     || !RemoteInventory->TryCommitStacksFromServer(Remote->ForestFullPackOriginalStacks, FullPack))
                 {
                     Remote->ForestFullPackOriginalStacks.Reset();
@@ -332,8 +332,8 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
                 const int32 PackedTools = HostInventory->CountPackedTools(GetCarriedToolInventory());
                 TArray<FKalmalaInventoryStack> FullPack;
                 for (int32 Cell = PackedTools; Cell < UKalmalaInventoryComponent::MaxSlots; ++Cell)
-                    FullPack.Add({TEXT("String"), 1});
-                const bool bFullPackInstalled = ForestPickupItem != TEXT("String")
+                    FullPack.Add({TEXT("BoneFragment"), 1});
+                const bool bFullPackInstalled = ForestPickupItem != TEXT("BoneFragment")
                     && HostInventory->TryCommitStacksFromServer(HostStacks, FullPack);
                 const auto InstalledStacks = HostInventory->GetStacks();
                 SetActorLocation(Pickup->GetHarvestInteractionLocation() + FVector(150, 0, 88));

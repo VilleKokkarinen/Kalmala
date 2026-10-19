@@ -1,6 +1,20 @@
 {
   "items": [
     {
+      "ItemId": "Sinew",
+      "DisplayName": "Sinew",
+      "Description": "Animal tendon strands used to make Bow String.",
+      "MaxStack": 20,
+      "WeightKg": 0.1
+    },
+    {
+      "ItemId": "BowString",
+      "DisplayName": "Bow String",
+      "Description": "A bowstring twisted from animal sinew.",
+      "MaxStack": 20,
+      "WeightKg": 0.05
+    },
+    {
       "ItemId": "Amber",
       "DisplayName": "Amber",
       "Description": "Dark yellow amber from the Mire.",

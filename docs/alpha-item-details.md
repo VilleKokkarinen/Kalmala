@@ -30,8 +30,8 @@ materials, never inventory kits. No retired Reed Fibre or offensive magic.
 Existing item acquisition and use (P0).
 - The 2026-10-19 user review includes all queued P0/P1/P2 scope across A0–A9. Review the material/source table below and record the A10 gates; keep category-specific implementation reviews in order.
 - Audit normal world-to-use reachability against the material/source proposal below; report deviations and bootstrap cycles rather than selecting replacement sources. Verify generated nodes for the current direct-bar Iron path; its proposed replacement is explicitly listed under A1.
-- Add Sinew (`Sinew`) as a crafting material. User-selected deer rule: each credited defeat has a 1/2 (50%) chance to grant exactly 1 Sinew, otherwise 0. Roll once on the server per defeat; retries/duplicate reward requests must not reroll. Boar source remains a proposal of 1 per credited defeat. Add Sinew alongside existing rewards. Stack 20, proposed weight 0.1 kg; no equipment, attacks or upgrades. Register the definition and integrate an original generated icon before completion. Use the existing validated attacker/reward path; no new creature, butcher tool or corpse-processing system.
-- Keep generic `String` (`String`) separate from Bow String (`BowString`). Workbench level 1 converts 1 Sinew into 2 generic String; retain the existing item identity, stack 20 and 0.05 kg weight, and update its description to identify sinew fibre. Bow String uses Workbench level 1 to convert 4 Sinew into 1 Bow String; proposed stack 20 and 0.05 kg, description "A bowstring twisted from animal sinew." Add its material definition and original generated icon. Use 1 Bow String in bows; do not rename existing String data or substitute one item for the other. Neither material has equipment, attacks or upgrades.
+- Add Sinew (`Sinew`) as a crafting material. User-selected deer rule: each credited defeat has a 1/2 (50%) chance to grant exactly 1 Sinew, otherwise 0. Roll once on the server per defeat; retries/duplicate reward requests must not reroll. Boar source remains a proposal of 1 per credited defeat. Sinew is implemented alongside existing deer rewards, with stack 20 and weight 0.1 kg; it has no equipment, attacks or upgrades. Its registered item and original generated icon are in place. The existing validated attacker/reward path is used; no new creature, butcher tool or corpse-processing system.
+- Bow String (`BowString`) is the only string item and is reserved for bows. Workbench level 1 converts 4 Sinew into 1 Bow String; stack 20, weight 0.05 kg, description "A bowstring twisted from animal sinew." Its definition, recipe and original generated icon are in place. Bow acquisition and upgrade each use 1 Bow String. It has no equipment, attacks or upgrades. Review pending non-bow binding costs in their category contracts; do not use Bow String for them.
 - Add harvestable aspen trees in Meadows yielding 4 Lightwood per completed tree/log/bundle lifecycle; require Stone Axe or better. Preserve existing birch Wood rewards. Verify Bronze-family recipes/upgrades are reachable without requiring a Bronze tool to obtain Lightwood.
 - Add 1 Bone Fragment to each server-confirmed boar or deer defeat, alongside existing meat/hide rewards, paid once to the validated attacker. Retain no-reward behavior for uncredited defeats; validate reward capacity and prevent duplicate grants. Verify Boar Hide Cape crafting/upgrades.
 - Reconcile the six current cooking outputs with server food-use dispatch; remove stale food-ID assumptions and verify paid cooking-to-eating behavior.
@@ -54,8 +54,8 @@ are included in the approved queue.
 | Densewood | Existing Elderwood ironheart trees | Existing Iron Axe tree/log/bundle flow and authored yield | Retain; Iron Pick/ore route below must not require Densewood |
 | Lightwood | New aspen trees in Meadows | Stone Axe or better; 4 Lightwood on final bundle pickup | Add under A0; no Bronze prerequisite |
 | Sinew | Existing deer; boar source proposed | Deer: 50% chance of 1, otherwise 0, once per credited defeat. Boar: proposed 1 per credited defeat | Deer rate user-selected; boar awaits review |
-| Bow String | Animal sinew, at Workbench | Craft 4 Sinew into 1 Bow String | Dedicated bow material; implementation pending |
-| String | Animal sinew, at Workbench | Craft 1 Sinew into 2 generic String | Retain generic recipes separately from Bow String; implementation pending |
+| Sinew | Credited deer defeats | One server roll; 50% grants exactly 1 | Implemented under A0; boar source remains deferred |
+| Bow String | Animal sinew, at Workbench | Craft 4 Sinew into 1 Bow String | Bow-only material; implemented under A0 |
 | Stone | Existing mountain slate veins and existing Stone sources | Existing Stone Pick or better and authored yields; retain existing starter acquisition | Retain; audit fresh-start bootstrap |
 | Boar Hide / Boar Meat | Existing boars | Retain existing server-confirmed defeat rewards and quantities | Retain |
 | Deer Hide / Deer Meat | Existing deer | Retain existing server-confirmed defeat rewards and quantities | Retain |
@@ -119,8 +119,8 @@ Melee weapons (P1).
 
 | Item | Craft station / cost for 1 | Level-one profile | Upgrade base cost / per-level reward |
 | --- | --- | --- | --- |
-| Bronze Sword | Forge 1; 4 Bronze + 2 Lightwood + 1 String | One hand, 100 condition, 35 Slash, 2 kg | 2 Bronze + 1 Lightwood; +30 condition, +4 Slash |
-| Iron Sword | Forge 1; 4 Iron + 2 Densewood + 1 String | One hand, 180 condition, 55 Slash, 2.5 kg | 2 Iron + 1 Densewood; +30 condition, +4 Slash |
+| Bronze Sword | Forge 1; 4 Bronze + 2 Lightwood + 1 non-bow binding input (ID/cost to review) | One hand, 100 condition, 35 Slash, 2 kg | 2 Bronze + 1 Lightwood; +30 condition, +4 Slash |
+| Iron Sword | Forge 1; 4 Iron + 2 Densewood + 1 non-bow binding input (ID/cost to review) | One hand, 180 condition, 55 Slash, 2.5 kg | 2 Iron + 1 Densewood; +30 condition, +4 Slash |
 | Wooden Club | Workbench 1; 4 Wood | One hand, 40 condition, 10 Crush, 1 kg | 2 Wood; +20 condition, +2 Crush |
 
 All use the existing Basic melee timing/reach, zero attack-style bonus on
@@ -160,7 +160,7 @@ No movement penalties, elemental resistances, active block/parry or set bonus.
 ## A5
 
 Carried utility tools (P1/P2).
-- Review and add Bark Torch (`BarkTorch`): inventory craft 2 Wood + 1 String → 1, stack 1, 0.5 kg. Main Hand only; 300 seconds of burning while held, local light radius 6 m from replicated lit state. No damage, warmth, Wet removal or world ignition. Uncovered rain extinguishes it; dry re-equip relights it. Stored/unequipped torches do not burn; spent torch remains unusable until inventory refuel with 1 Wood restores 300 seconds. Persist remaining burn time with item state; no repair/upgrade recipe or generic melee fallback.
+- Review and add Bark Torch (`BarkTorch`): inventory craft 2 Wood + 1 non-bow binding input (ID/cost to review) → 1, stack 1, 0.5 kg. Main Hand only; 300 seconds of burning while held, local light radius 6 m from replicated lit state. No damage, warmth, Wet removal or world ignition. Uncovered rain extinguishes it; dry re-equip relights it. Stored/unequipped torches do not burn; spent torch remains unusable until inventory refuel with 1 Wood restores 300 seconds. Persist remaining burn time with item state; no repair/upgrade recipe or generic melee fallback.
 
 Torch/fire behavior also supports the user-requested
 [mosquito swarm counter](biome-enemies.md#mosquito-swarm): a server-confirmed
@@ -169,7 +169,7 @@ Unlit/stored/empty torches do not count. This behavior does not change recipes
 or imply warmth, world ignition or direct torch damage. See the enemy rules
 for placed lights/campfires and proposed repellent radii.
 
-- Review and add Cultivation Rake (`CultivationRake`) only with A7: Workbench 1, 2 Wood + 2 Stone + 2 String → 1; stack 1, 1 kg, 100 condition. Hold to plant/harvest approved garden plots; one condition per accepted planting, none on harvest/rejection. Free Workbench repair, no upgrades, damage or terrain editing.
+- Review and add Cultivation Rake (`CultivationRake`) only with A7: Workbench 1, 2 Wood + 2 Stone + 2 non-bow binding input (ID/cost to review) → 1; stack 1, 1 kg, 100 condition. Hold to plant/harvest approved garden plots; one condition per accepted planting, none on harvest/rejection. Free Workbench repair, no upgrades, damage or terrain editing.
 - Record terrain-editing Hoe as deferred from this alpha proposal: no height edits, smoothing, roads or grass-painting system. The Rake works only on A7 plots and does not modify the shared terrain sampler.
 
 ## A6
@@ -222,7 +222,7 @@ plot for reuse; reject removal while planted. Plants are plot state, never
 portable buildable items. Seeds/produce use their existing icons/stack sizes.
 
 - Review fishing rules: use visible stationary Lake Fish schools on Shimmering Lakes water, not a new combat creature. Each stable school permits 3 catches then depletes under the existing resource-node policy; no timed respawn.
-- Add Fishing Rod (`FishingRod`): Workbench 1, 4 Lightwood + 3 String → 1; stack 1, 1 kg, 80 condition, two hands, free Workbench repair, no upgrades/combat. Add Bait (`FishingBait`): inventory craft 1 Forest Chanterelle → 5, stack 50, 0.02 kg each (blocked on A0/A6 dependencies).
+- Add Fishing Rod (`FishingRod`): Workbench 1, 4 Lightwood + 3 non-bow binding input (ID/cost to review) → 1; stack 1, 1 kg, 80 condition, two hands, free Workbench repair, no upgrades/combat. Add Bait (`FishingBait`): inventory craft 1 Forest Chanterelle → 5, stack 50, 0.02 kg each (blocked on A0/A6 dependencies).
 - Add school interaction: usable held Rod, selected school within 15 m and clear line of sight; reserve 1 Bait and a free result cell. After 5 seconds, if player stayed within 1 m of start and target remains valid, grant 1 Lake Fish and spend bait/1 rod condition/1 school catch atomically. Cancellation/rejection releases reservation unchanged; one angler per school, no arbitrary client fish IDs or timing rewards.
 - Add Lake Fish (`LakeFish`), stack 20, 0.5 kg, raw ingredient only; Cooking Rack at lit hearth converts 1 to 1 Cooked Lake Fish (`CookedLakeFish`), stack 20, 0.4 kg, MaxBatch 5, Cooking XP 10, existing Steady Meal effect. Complete fish/bait/rod icons and cooking-to-use path (blocked on fishing and A0 food dispatch).
 
@@ -240,11 +240,11 @@ Buildables, processing and sanctuary supplies (P2; scope approved 2026-10-19; no
 
 | Buildable | Hammer material cost | Dimensions / behavior |
 | --- | --- | --- |
-| Timber Door | 4 Wood + 1 String | 1 m wide × 2 m high; snaps to existing wall edge grid, takes place of a wall segment rather than overlapping it; opens/closes by server interaction within 2 m, reject closing through a pawn |
+| Timber Door | 4 Wood + 1 non-bow binding input (ID/cost to review) | 1 m wide × 2 m high; snaps to existing wall edge grid, takes place of a wall segment rather than overlapping it; opens/closes by server interaction within 2 m, reject closing through a pawn |
 | Timber Beam | 2 Wood | 2 m beam, 0.15 m square; horizontal or vertical snap to existing structural endpoints; requires ground or supported endpoint, uses existing structural support model without new material tiers |
 | Timber Stairs | 6 Wood | 2 m run × 1 m width × 1 m rise; grounded lower edge or supported floor attachment; solid walkable steps, no ladder/climb mechanic |
-| Camp Bed | 6 Wood + 2 Boar Hide + 2 String | 2 m × 1 m; supported dry floor, 1 m clear approach; interaction within 2 m starts a local resting pose until movement/damage; no extra stat effect, time skip or spawn change |
-| Standing Light | 3 Wood + 1 String | Grounded/floor-supported, 1.5 m tall; starts unlit, consume 1 Wood for 600 active lit seconds, fuel cap 1200 seconds; 6 m cosmetic light, uncovered rain pauses flame/fuel, no warmth/Wet removal/world ignition |
+| Camp Bed | 6 Wood + 2 Boar Hide + 2 non-bow binding input (ID/cost to review) | 2 m × 1 m; supported dry floor, 1 m clear approach; interaction within 2 m starts a local resting pose until movement/damage; no extra stat effect, time skip or spawn change |
+| Standing Light | 3 Wood + 1 non-bow binding input (ID/cost to review) | Grounded/floor-supported, 1.5 m tall; starts unlit, consume 1 Wood for 600 active lit seconds, fuel cap 1200 seconds; 6 m cosmetic light, uncovered rain pauses flame/fuel, no warmth/Wet removal/world ignition |
 | Reinforced Chest | 8 Wood + 2 Bronze | Grounded/floor-supported 1.5 m × 1 m; 24 shared stack cells, existing per-item stack limits and validated GUID transfers, no weight/owner-lock mechanic |
 
 Use the existing construction health/rain-wear/repair rules of the matching
@@ -276,7 +276,7 @@ Cargo, ten gems, special gear and discovery rewards (P2; scope approved 2026-10-
 Enemy expansion A8a precedes this category. See the
 [biome roster](biome-enemies.md); Moonstone requires its accepted Moon Bear.
 
-- Review travel scope: propose only Skiff Cargo Chest (`SkiffCargoChest`), defer cart/carry-pack progression, encumbrance and hull durability. Hammer placement costs 6 Lightwood + 2 String + 1 Bronze, on one fixed cargo socket per existing skiff; no skiff inventory item or new boat tier.
+- Review travel scope: propose only Skiff Cargo Chest (`SkiffCargoChest`), defer cart/carry-pack progression, encumbrance and hull durability. Hammer placement costs 6 Lightwood + 2 non-bow binding input (ID/cost to review) + 1 Bronze, on one fixed cargo socket per existing skiff; no skiff inventory item or new boat tier.
 - Implement the approved cargo chest: 12 shared stack cells, interact within 2 m while skiff speed is at most 100 cm/s, same GUID/quantity/capacity rules as land storage. Save cargo against stable vessel ID; reject detachment/removal with contents, retain contents across validated vessel reload, no spill/duplication on reconnect. In-flight transfer rejects unchanged (blocked on existing vessel-persistence support; report any persistence gap).
 - Add exactly ten gems from the table below, each as a separate integrated increment. These are concrete source/rate/recipe/stat proposals for review, not a new alpha release commitment. Seven are ordinary rare gems; three special gems are required by named special gear. No empty-purpose collectibles or universal gem pool.
 - All raw gems stack 20, proposed weight 0.1 kg, with no combat/equip/upgrade behavior. Each needs a registered material definition and its own original generated icon. Normal resource nodes keep their existing yields; dedicated gemstone rocks replace a small share of spawn slots rather than adding gems to ore rewards. Wildlife/treasure rules remain separate.
@@ -431,6 +431,6 @@ Approved alpha item-set acceptance.
 - The user approved every queued P0/P1/P2 item and system in A0–A9 on 2026-10-19; detailed conflicts are resolved in this document. Milestone groups: I0 A0 current-loop repairs; I1 A1 production; I2 A2–A6 equipment/forage/consumables except Rake; I3 A7 farming/fishing plus A5 Rake; I4 A8–A8b, ending with enemy milestone verification after A8b and before A9; I5 A9 cargo/accessories. Each group requires its own final verification. This plan does not rewrite historical roadmap acceptance.
 - Reconcile delivery against the frozen checklist: each included ID must have source, payment, use/equip, upgrade or explicit non-applicability, original icon/provenance/mapping, relevant save behavior and linked verification evidence. Record every omitted candidate as deferred, not implicitly complete.
 - At each resulting milestone's final increment, run required Editor/project builds, applicable automation, catalogue/icon validation and relevant peer/persistence runners from `docs/07-development-setup.md`; repair milestone defects and rerun failing checks plus required full verification. Record actual commands/results; do not equate source inspection with execution.
-- Final progression scenario: fresh world, existing starter loadout only, gather normal resources → Workbench/String/Lightwood → Bow/arrows → Copper/Tin/Coal/Bronze → Bronze Pick → Iron/Densewood. Craft/equip/upgrade one of every included durable item; cook/eat each included meal and use each draught, retaining the specified cooldowns. No debug grants. Record biome/node availability rather than fabricating missing resources.
+- Final progression scenario: fresh world, existing starter loadout only, gather normal resources → Workbench/Sinew/Bow String/Lightwood → Bow/arrows → Copper/Tin/Coal/Bronze → Bronze Pick → Iron/Densewood. Craft/equip/upgrade one of every included durable item; cook/eat each included meal and use each draught, retaining the specified cooldowns. No debug grants. Record biome/node availability rather than fabricating missing resources.
 - Final approved-system scenarios: plant/renew every included crop, restart planted plots/processing jobs, catch/cook fish, exercise door/stairs/light/chest, reload cargo with vessel and verify accessory Armor/maximum-stamina bonuses without stacking/refill exploits. Verify gem exhaustion/reload/retry cannot reroll or duplicate drops. For each applicable flow use host/client plus two competing requests: no duplicate or partial reward, invalid/range/full-pack requests unchanged, no private inventory leakage. Skip only explicitly deferred systems; verify session-only effects clear as specified.
 - Mark the approved item milestone complete only after required gates pass; document blockers and pre-existing failures with evidence. No whole-alpha release declaration, packaging/publication or broader scope change follows automatically from this checklist.

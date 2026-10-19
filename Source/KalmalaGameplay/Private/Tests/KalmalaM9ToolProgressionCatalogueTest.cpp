@@ -96,7 +96,7 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
             BowUpgrade->Ingredients.ContainsByPredicate([](const FKalmalaToolRecipeIngredientData& Cost)
                 { return Cost.ItemId == TEXT("Wood") && Cost.Quantity == 5; })
             && BowUpgrade->Ingredients.ContainsByPredicate([](const FKalmalaToolRecipeIngredientData& Cost)
-                { return Cost.ItemId == TEXT("String") && Cost.Quantity == 2; }));
+                { return Cost.ItemId == TEXT("BowString") && Cost.Quantity == 1; }));
     }
     FKalmalaToolLevelStats BowLevelTwo;
     TestTrue(TEXT("Bow level-two stats resolve"),
@@ -208,7 +208,7 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
             BowLevelTwoEntry->MaterialCosts.ContainsByPredicate([](const FKalmalaToolMaterialCost& Cost)
                 { return Cost.ItemId == TEXT("Wood") && Cost.Quantity == 5; })
             && BowLevelTwoEntry->MaterialCosts.ContainsByPredicate([](const FKalmalaToolMaterialCost& Cost)
-                { return Cost.ItemId == TEXT("String") && Cost.Quantity == 2; }));
+                { return Cost.ItemId == TEXT("BowString") && Cost.Quantity == 1; }));
     }
     TestTrue(TEXT("Generated entries remain bounded"), Entries.Num() <= FKalmalaToolProgressionContract::MaxToolProgressionEntries);
     for (const TPair<FName, FName>& GearAndStation : GearStations)

@@ -1,3 +1,62 @@
+## User-directed implementation 2026-10-19 — Bow String, Sinew and arrows
+
+- Replaced the generic `String` inventory identity with bow-only `BowString`.
+  Registered Bow String and Sinew in `items/materials/crafting-ingredients.json`;
+  removed `items/materials/string.json`. Workbench crafts 1 Bow String from 4
+  Sinew; Bow acquisition and level-up costs use 1 Bow String. Updated pending
+  non-bow binding proposals to require category review rather than use Bow
+  String. `WoodenArrow` now lives in registered `items/arrows.json`.
+- Credited deer defeats make one server-owned 50% Sinew roll for exactly 1
+  Sinew; remote clients receive no reward. Added original generated Bow String
+  and Sinew icons and runtime/catalogue validation entries. Retained the retired
+  String icon package as unlisted content; no assets were deleted.
+- Files changed (37): `BACKLOG.md`, `PROGRESS.md`, `Content/Data/GameCatalogues.json`,
+  `Content/Data/GameCatalogues/item-level-up/costs/bows.json`,
+  `Content/Data/GameCatalogues/items/materials/crafting-ingredients.json`,
+  `Content/Data/GameCatalogues/items/materials/string.json` (removed),
+  `Content/Data/GameCatalogues/items/arrows.json`,
+  `Content/Data/GameCatalogues/recipes/stations/workbench.json`,
+  `Content/Kalmala/UI/Icons/Items/BowString.uasset`,
+  `Content/Kalmala/UI/Icons/Items/Sinew.uasset`,
+  `Content/Kalmala/UI/Source/IconOriginals/BowString.png`,
+  `Content/Kalmala/UI/Source/IconOriginals/Sinew.png`,
+  `Content/Kalmala/UI/Source/Icons/BowString.png`,
+  `Content/Kalmala/UI/Source/Icons/Sinew.png`,
+  `Scripts/Data/catalogue-icon-manifest.csv`,
+  `Scripts/Import-CatalogueIconBatch.ps1`,
+  `Scripts/Import-CatalogueIconBatch.py`,
+  `Scripts/Prepare-CatalogueIconBatch.py`, `Scripts/Validate-UIIcons.ps1`,
+  `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp`,
+  `Source/KalmalaGameplay/Private/KalmalaForestDeliveryVerification.cpp`,
+  `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`,
+  `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaInteractionAuthorityTest.cpp`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaItemCatalogueTest.cpp`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaM9ToolProgressionCatalogueTest.cpp`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaTwoHandedTest.cpp`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaWildlifeBehaviourTest.cpp`,
+  `Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h`,
+  `Source/KalmalaUI/Private/KalmalaIconWidget.cpp`, `docs/01-game-design.md`,
+  `docs/02-technical-architecture.md`, `docs/05-decision-log.md`,
+  `docs/07-development-setup.md`, `docs/alpha-item-details.md`,
+  `docs/alpha-items.md`, `docs/archery-icons.md`.
+- Lightweight checks passed: Python AST and PowerShell parser checks; all 55
+  catalogue JSON files parsed; 59 unique item identities and the item
+  references passed; Bow String recipe/source and arrows registration checked;
+  catalogue icon audit passed for all 73 identities; `git diff --check` passed.
+  Icon batch K imported both textures successfully. Full Unreal build and runtime
+  tests remain deferred because A0 is not at milestone-final verification.
+- Observable impact: bow recipes use the explicit Bow String identity, deer can
+  supply its crafting source, and WoodenArrow is catalogued separately from
+  materials. No RPC, save schema, or replicated field changed; reward granting
+  remains server-authoritative. Light Bow remains in A3; this increment does
+  not implement it. Boar Sinew remains out of scope.
+- Known limit: the retired String icon package remains in the project and is
+  explicitly treated as unlisted legacy content by the icon validator.
+  Main-checkout changes were made directly; no worktree handoff sync was needed.
+  Next eligible task: A0 audit current sources and starter progression; check
+  the Iron-source mismatch.
+
 ## User-directed planning 2026-10-19 — Queue items and enforce data/icon completion
 
 - Added A8b to `BACKLOG.md`: 15 material/source tasks and 15 crafted-output

@@ -108,9 +108,8 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
 - [ ] **A0 — Existing items (P0).** [Details](docs/alpha-item-details.md#a0)
   - [x] Review scope and the A10 milestone plan; all queued P0/P1/P2 work is included, with I4 ending before A9 and I5 covering A9.
   - [ ] Audit current sources and starter progression; check the Iron-source mismatch.
-  - [ ] Sinew: deer have a 50% chance to drop 1.
-  - [ ] Bow String: Workbench, 4 Sinew → 1 Bow String; bows use 1 each.
-  - [ ] String: Workbench, 1 Sinew → 2 String; keep generic String separate from Bow String.
+  - [x] Sinew: credited deer defeats have a server-rolled 50% chance to grant 1.
+  - [x] Bow String: Workbench, 4 Sinew → 1 Bow String; bows use 1 each.
   - [ ] Lightwood: Meadow aspens, Stone Axe+, 4 per collected tree bundle.
   - [ ] Bone Fragment: add 1 to each credited boar/deer defeat.
   - [ ] Fix food use for the six current cooking outputs.
@@ -177,10 +176,10 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
 
 - [ ] **A8 — Shelter and storage (P2).** [Placement and behavior](docs/alpha-item-details.md#a8)
   - [ ] Review shelter rules. All pieces use direct-material Hammer placement.
-  - [ ] Timber Door: 4 Wood + 1 String; 1 × 2 m, saved open/closed state.
+  - [ ] Timber Door: 4 Wood + 1 non-bow binding input (ID/cost to review); 1 × 2 m, saved open/closed state.
   - [ ] Timber Beam: 2 Wood; 2 m, horizontal/vertical support.
   - [ ] Timber Stairs: 6 Wood; 2 m run, 1 m rise, 1 m wide.
-  - [ ] Camp Bed: 6 Wood + 2 Boar Hide + 2 String; resting pose only.
+  - [ ] Camp Bed: 6 Wood + 2 Boar Hide + 2 non-bow binding input (ID/cost to review); resting pose only.
   - [ ] Standing Light: 3 Wood + 1 amber; 1 fuel = 600 s, 6 m light.
   - [ ] Keep extra brewing stations deferred; Kiln/Smelter/Plot belong to A1/A7.
 
@@ -224,7 +223,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [ ] Thunder Core: Thunder Sentinel, 25% chance of 1; material + source + JSON + generated icon.
   - [ ] Reef Tooth: Reef Maw, 50% chance of 1; material + source + JSON + generated icon.
   - [ ] Rat-tail Tonic: Cauldron, 2 Rat Tail + 2 Lingonberry → 1; heal 30 over 10 s.
-  - [ ] Badger Fur Vest: Workbench, 6 Badger Fur + 2 String → 1; Chest, 6 Armor.
+  - [ ] Badger Fur Vest: Workbench, 6 Badger Fur + 2 non-bow binding input (ID/cost to review) → 1; Chest, 6 Armor.
   - [ ] Roasted Badger: Cooking Rack, 1 Badger Meat → 1; Steady Meal.
   - [ ] Fang Arrows: Workbench, 2 Viper Fang + 10 Wood → 20; 50 Pierce, weak poison 5 s.
   - [ ] Scale Cuirass: Forge, 10 Giant Scale + 10 Bronze → 1; Chest, 20 Armor.
@@ -233,7 +232,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [ ] Wolf Pelt Boots: Workbench, 5 Wolf Pelt + 5 Iron → 1; Boots, 10 Armor.
   - [ ] Fang Spear: Forge, 4 Wolf Fang + 10 Iron + 10 Densewood → 1; 100 Stab.
   - [ ] Wolf Stew: Cauldron, 1 Wolf Meat + 3 Carrot + 3 Onion → 1; Steady Meal.
-  - [ ] Lynx Mantle: Workbench, 4 Lynx Pelt + 2 String → 1; Cape, 8 Armor.
+  - [ ] Lynx Mantle: Workbench, 4 Lynx Pelt + 2 non-bow binding input (ID/cost to review) → 1; Cape, 8 Armor.
   - [ ] Polar Bear Coat: Forge, 5 Polar Bear Pelt + 20 Iron → 1; Chest, 50 Armor.
   - [ ] Horn Bow: Workbench, 2 Goat Horn + 10 Densewood + 1 Bow String → 1; +100 Pierce, slow draw.
   - [ ] Thunder Maul: Forge, 1 Thunder Core + 20 Iron + 10 Densewood → 1; 100 Crush + 30 Lightning.
@@ -241,14 +240,14 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [ ] Verify every approved drop/output has complete registered JSON, a reachable source and a generated runtime icon.
   - [ ] Run the combined A8a/A8b enemy and enemy-item milestone verification; record results and blockers. This gate must pass before A9 begins.
 
-  Bow String and generic String stay separate in A0; Moonstone Ring and Dusk Ring stay in A9. Do not duplicate them.
+  Bow String is reserved for bows. Review every pending non-bow binding input in its category contract; do not use Bow String there. Moonstone Ring and Dusk Ring stay in A9. Do not duplicate them.
   Enable new drops only when their material task is complete. Antidote resistance,
   slow-draw timing and Lightning effects need reviewed rules before coding; the aquatic route is approved.
   All 30 new material/output tasks include the item-completion gate above.
 
 - [ ] **A9 — Cargo, gems and special gear (P2).** [Rules](docs/alpha-item-details.md#a9)
   - [ ] Review skiff cargo; defer carts, carry packs, encumbrance and hull durability.
-  - [ ] Skiff Cargo Chest: Hammer, 6 Lightwood + 2 String + 1 Bronze; 12 cells/skiff.
+  - [ ] Skiff Cargo Chest: Hammer, 6 Lightwood + 2 non-bow binding input (ID/cost to review) + 1 Bronze; 12 cells/skiff.
   - [ ] Gemstone rocks: rare resource-slot replacements; 10% gem-smash risk per hit, success yields 1 gem.
   - [ ] Quartz rock: Elderwood/Lakes, proposed 5% replacement of Copper/Tin spawn slots.
   - [ ] Moonstone: proposed 2% chance of 1 per credited Moon Bear defeat; requires A8a.

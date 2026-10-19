@@ -17,7 +17,7 @@ if ($Category -eq 'Catalogue') {
     $sourceDir = Join-Path $repoRoot 'Content\Kalmala\UI\Source\IconOriginals'
     $preparedDir = Join-Path $repoRoot 'Content\Kalmala\UI\Source\Icons'
     $idColumn = 'canonical_id'
-    $expectedCount = 72
+    $expectedCount = 73
 }
 else {
     $manifestPath = Join-Path $PSScriptRoot 'Data\status-icon-manifest.csv'
@@ -169,8 +169,8 @@ if ($Category -eq 'Catalogue') {
     $packageIds = @($packages | ForEach-Object { $_.BaseName })
     $missingPackages = @($expectedAssetIds | Where-Object { $_ -notin $packageIds })
     $unlistedPackages = @($packageIds | Where-Object { $_ -notin $expectedAssetIds })
-    # Preserve the package for the retired Fibre item; it is intentionally absent from the current ledger.
-    $unexpectedPackages = @($unlistedPackages | Where-Object { $_ -ne 'Fibre' })
+    # Preserve retired Fibre and String packages; neither is a current item or icon-ledger identity.
+    $unexpectedPackages = @($unlistedPackages | Where-Object { $_ -notin @('Fibre', 'String') })
     if ($missingPackages.Count -gt 0) {
         throw "Missing imported catalogue textures: $($missingPackages -join ', ')."
     }
@@ -200,7 +200,7 @@ foreach ($package in $packages) {
 }
 
 if ($Category -eq 'Catalogue') {
-    Write-Output 'PASS: all 72 catalogue identities map to validated originals, prepared PNGs, and imported Texture2D packages; the retired Fibre package remains unlisted.'
+    Write-Output 'PASS: all 73 catalogue identities map to validated originals, prepared PNGs, and imported Texture2D packages; retired Fibre and String packages remain unlisted.'
 }
 else {
     Write-Output 'PASS: all nine manifest entries map to unique imported Texture2D packages and validated transparent PNGs.'

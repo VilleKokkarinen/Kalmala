@@ -10,8 +10,8 @@
           "Quantity": 5
         },
         {
-          "ItemId": "String",
-          "Quantity": 2
+          "ItemId": "BowString",
+          "Quantity": 1
         }
       ],
       "Level": 1

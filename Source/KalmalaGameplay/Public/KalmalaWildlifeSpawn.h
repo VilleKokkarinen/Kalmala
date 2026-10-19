@@ -54,6 +54,7 @@ public:
 
     void InitializeServer(const FKalmalaWorldPopulationSpawn& Spawn);
     static bool IsDefeatAllowed(bool bServerAuthority, bool bAlreadyDefeated);
+    static bool IsDeerSinewDropSuccessful(float ServerRoll);
     bool DefeatServer();
     bool ApplyCombatDamageFromServer(const FKalmalaDamageChannels& Damage, class AKalmalaCharacter* Attacker = nullptr);
     bool ApplyCombatDamageFromServer(float Damage, class AKalmalaCharacter* Attacker = nullptr);
@@ -122,6 +123,7 @@ private:
     FVector BehaviourDestination = FVector::ZeroVector;
     float BehaviourSecondsRemaining = 0.0f;
     bool bHoldBehaviourDurationAtDestination = false;
+    bool bDefeatRewardProcessed = false;
     EKalmalaWildlifeBehaviour Behaviour = EKalmalaWildlifeBehaviour::Idle;
     TWeakObjectPtr<class AKalmalaCharacter> LastValidatedAttacker;
     TWeakObjectPtr<class AKalmalaCharacter> BoarChargeTarget;

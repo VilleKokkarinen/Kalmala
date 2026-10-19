@@ -29,7 +29,7 @@ bool FKalmalaTwoHandedTest::RunTest(const FString& Parameters)
         FKalmalaToolLifecycleContract::IsTwoHanded(TEXT("ConstructionHammer")));
     TestTrue(TEXT("Construction Hammer has no combat attacks"), Tools->GetAttacks(TEXT("ConstructionHammer")).IsEmpty());
     TestFalse(TEXT("Unknown item cannot claim both hands"), FKalmalaToolLifecycleContract::IsTwoHanded(TEXT("ForgedBow")));
-    for (const auto& Expected : {TPair<FName, int32>(TEXT("String"), 20), TPair<FName, int32>(TEXT("WoodenArrow"), 100)})
+    for (const auto& Expected : {TPair<FName, int32>(TEXT("BowString"), 20), TPair<FName, int32>(TEXT("WoodenArrow"), 100)})
     {
         const auto* Item = Items->FindItem(Expected.Key);
         if (!TestNotNull(TEXT("New stackable item exists"), Item)) return false;
@@ -53,9 +53,9 @@ bool FKalmalaTwoHandedTest::RunTest(const FString& Parameters)
     if (!TestNotNull(TEXT("Bow acquisition exists"), BowRecipe)) return false;
     TestEqual(TEXT("Bow crafted at Workbench"), BowRecipe->RequiredStation, FString(TEXT("Workbench")));
     TestEqual(TEXT("Bow has exactly two ingredients"), BowRecipe->Ingredients.Num(), 2);
-    TestTrue(TEXT("Bow costs five normal Wood and two String"),
+    TestTrue(TEXT("Bow costs five normal Wood and one Bow String"),
         BowRecipe->Ingredients.ContainsByPredicate([](const auto& Cost) { return Cost.ItemId == TEXT("Wood") && Cost.Quantity == 5; })
-        && BowRecipe->Ingredients.ContainsByPredicate([](const auto& Cost) { return Cost.ItemId == TEXT("String") && Cost.Quantity == 2; }));
+        && BowRecipe->Ingredients.ContainsByPredicate([](const auto& Cost) { return Cost.ItemId == TEXT("BowString") && Cost.Quantity == 1; }));
     const auto* ArrowRecipe = Recipes->Recipes.FindByPredicate([](const FKalmalaRecipe& Entry)
         { return Entry.Output == TEXT("WoodenArrow"); });
     if (!TestNotNull(TEXT("Arrow recipe exists"), ArrowRecipe)) return false;

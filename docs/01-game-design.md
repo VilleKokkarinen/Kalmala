@@ -27,9 +27,12 @@ become new Main Hand equipment through this change.
 
 ## Bow crafting and two-handed equipment — 2026-10-15
 
-String stacks to 20 and Wooden Arrows stack to 100. At a level-one Workbench,
-craft a Bow for 5 normal Wood and 2 String, or 20 Wooden Arrows for 5 normal
-Wood. String is material-only for now, with no acquisition recipe or drops.
+Bow String (`BowString`) stacks to 20; Wooden Arrows (`WoodenArrow`) stack to
+100. A credited deer defeat has one server-owned 50% roll: success grants 1 Sinew,
+and failure grants 0.
+At a level-one Workbench, craft 1 Bow String from 4 Sinew, craft a Bow from
+5 normal Wood and 1 Bow String, or craft 20 Wooden Arrows from 5 normal Wood.
+Bow String is reserved for bows; ammunition is catalogued in `items/arrows.json`.
 The Bow uses both hands. Equipping it clears the previous held state and returns
 a worn shield to a free pack cell as one validated transaction. Tools retain their
 original cells; a full pack rejects shield return unchanged. Equipping a shield

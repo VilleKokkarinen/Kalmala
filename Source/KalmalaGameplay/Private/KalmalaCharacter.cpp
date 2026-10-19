@@ -1155,8 +1155,8 @@ void AKalmalaCharacter::ServerRequestInteract_Implementation(const FName ClientI
             const int32 PackedTools = Inventory->CountPackedTools(GetCarriedToolInventory());
             TArray<FKalmalaInventoryStack> FullPack;
             for (int32 Cell = PackedTools; Cell < UKalmalaInventoryComponent::MaxSlots; ++Cell)
-                FullPack.Add({TEXT("String"), 1});
-            const bool bInstalled = ForestPickupItem != TEXT("String")
+                FullPack.Add({TEXT("BoneFragment"), 1});
+            const bool bInstalled = ForestPickupItem != TEXT("BoneFragment")
                 && Inventory->TryCommitStacksFromServer(OriginalStacks, FullPack);
             const auto InstalledStacks = Inventory->GetStacks();
             const bool bInRange = Hit.Distance <= InteractionRange

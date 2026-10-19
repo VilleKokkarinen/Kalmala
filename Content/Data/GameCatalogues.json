@@ -1,7 +1,6 @@
 {
   "schemaVersion": 15,
   "itemFiles": [
-    "items/materials/string.json",
     "items/materials/cooking-ingredients.json",
     "items/materials/crafting-ingredients.json",
     "items/materials/hides.json",
@@ -17,6 +16,7 @@
     "items/buildItems/other.json",
     "items/buildItems/workbench.json",
     "items/food.json",
+    "items/arrows.json",
     "items/crops.json",
     "items/boots.json",
     "items/capes.json",
