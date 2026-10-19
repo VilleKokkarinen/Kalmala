@@ -8,7 +8,7 @@ Names, stats, spawn weights and loot below are concrete proposals for editing.
 
 ## Proposed roster
 
-Keep existing boars, deer and Mirelings. Add twelve enemies, one complete
+Keep existing boars, deer and Mirelings. Add thirteen enemies, one complete
 enemy per increment. All damage below is one authored server-resolved hit,
 before existing defenses; no client-authored damage or offensive player magic.
 
@@ -20,6 +20,7 @@ before existing defenses; no client-authored damage or offensive player magic.
 | Shimmering Lakes | Reed Adder (`ReedAdder`) | Dry-bank ambusher; narrow forward bite, no poison system | 50 / 0 | 10 Stab | 1 Bone Fragment |
 | Shimmering Lakes | Reed Lurker (`ReedLurker`) | Rare hard, original shoreline beast; two-legged rush and broad forelimb swipe on land | 160 / 3 | 25 Crush | 2 Bone Fragment |
 | Mossy Mire | Bog Adder (`BogAdder`) | Camouflaged land hunter; short bite followed by retreat | 70 / 0 | 14 Stab | 1 Bone Fragment |
+| Mossy Mire | Mire Mosquito (`MireMosquito`) | Fragile flying pest; audible hover, short proboscis stab, then retreats | 25 / 0 | 8 Stab | None |
 | Mossy Mire | Peat Husk (`PeatHusk`) | Rare hard, original peat-and-wood creature; slow sweeping arm | 220 / 6 | 30 Crush | 1 Amber |
 | Freezing Tundra | Snow Lynx (`SnowLynx`) | Mobile predator; telegraphed leap, long recovery if it misses | 120 / 0 | 22 Slash | 2 Bone Fragment |
 | Freezing Tundra | Tundra Bear (`TundraBear`) | Rare hard bear variant; committed charge, then retreat to reset | 300 / 6 | 40 Crush | 3 Bone Fragment |
@@ -40,6 +41,8 @@ Any later carcass materials require a separate reviewed item/recipe/icon plan.
   land biome: 50% existing eligible roster / 40% new common enemy / 10% new
   hard enemy. If there is no eligible existing entry, leave that share empty;
   do not import creatures from another biome. Each new spawn is one enemy.
+- Mossy Mire splits its common share: 50% existing roster / 20% Bog Adder /
+  20% Mire Mosquito / 10% Peat Husk. No additional actor budget or swarm spawns.
 - Ocean: use 10% of eligible aquatic candidate slots for Reef Maw; others
   stay empty. This task is blocked until aquatic navigation, combat and reward
   support are approved. It targets swimmers, never skiff hulls or occupants.
@@ -51,6 +54,16 @@ Any later carcass materials require a separate reviewed item/recipe/icon plan.
   accepted attack; server rechecks life, range and line of sight at impact.
   Use existing melee reach for the matching body size; if no suitable authored
   reach exists, propose it for review rather than guessing during coding.
+- Mire Mosquito uses an original mosquito-like silhouette and audible wing
+  cue. Hover 0.5–2.5 m above local terrain, telegraph for 0.5 s, dash at most
+  3 m with 0.75 m impact reach, then recover/retreat for 1.2 s. One server-owned
+  Stab hit per attack; normal visibility and collision block walls/closed doors.
+  No poison, lifesteal, instant kill, gem roll or new loot item. Flying pursuit
+  must remain bounded by the shared 25 m anchor leash and existing relevance
+  budgets; this task includes required flight/collision/peer support, rather
+  than assuming ground navigation can fly. It remains within Mossy Mire and
+  cannot chase across deep open water. Validate aerial hit readability and
+  shelter blocking in its acceptance checks.
 - Pursuit ends beyond 25 m from the spawn anchor. Return home instead of
   teleporting into an attack. No enemy crosses deep water without its own
   accepted aquatic support. Variants may share locomotion foundations, but

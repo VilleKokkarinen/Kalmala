@@ -1,3 +1,15 @@
+## User-directed planning 2026-10-19 — Mire Mosquito
+
+- Added Mire Mosquito to A8a in `BACKLOG.md`, `docs/biome-enemies.md`, comparison
+  and decision log. Proposed 25 health/0 Armor/8 Stab, audible flying approach,
+  short stab and retreat. No loot, poison or lifesteal; flight/collision and
+  peer support required. Roster is now thirteen proposed additions.
+- Mire weights become 50% existing/20% Bog Adder/20% Mosquito/10% Peat Husk;
+  no spawn-budget increase. Checked counts, rules, references, whitespace,
+  staged ownership and paths. Planning only; no runtime/assets/data changes,
+  builds or tests; full verification deferred. Pre-existing user edits preserved;
+  main checkout, no sync. Next: review Mire enemy tuning.
+
 ## User-directed planning 2026-10-19 — Biome enemies before gems
 
 - Added A8a before A9 in `BACKLOG.md` and `docs/biome-enemies.md`: twelve

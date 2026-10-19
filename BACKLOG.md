@@ -188,6 +188,7 @@ Agents must follow reviewed values and report gaps instead of inventing designs.
   - [ ] Shimmering Lakes: Reed Adder — dry-bank ambusher.
   - [ ] Shimmering Lakes: Reed Lurker — rare hard shoreline beast.
   - [ ] Mossy Mire: Bog Adder — bite-and-retreat hunter.
+  - [ ] Mossy Mire: Mire Mosquito — fragile flying pest; quick stab, then retreats.
   - [ ] Mossy Mire: Peat Husk — rare hard sweeping attacker.
   - [ ] Freezing Tundra: Snow Lynx — leaping predator.
   - [ ] Freezing Tundra: Tundra Bear — rare hard charging predator.
