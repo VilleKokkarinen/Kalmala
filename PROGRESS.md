@@ -1,3 +1,15 @@
+## User-directed planning 2026-10-19 — Bog Adder major poison
+
+- Updated `BACKLOG.md`, `docs/biome-enemies.md` and `docs/05-decision-log.md`:
+  Bog Adder is a highly venomous snake with ten-second major poison; proposed
+  5 Poison/second. Repeat bites refresh; weak/major doses do not add damage,
+  and weak bites cannot extend major duration. Retained stats and loot.
+- Reviewed poison interactions, references, whitespace, staged ownership and
+  path lengths. Server-owned status/display and acceptance checks are planned.
+  Planning only; no runtime tests; full verification deferred. Pre-existing
+  edits preserved; main checkout, no handoff sync. Next: review major poison
+  tuning; A8a implementation remains queued.
+
 ## User-directed planning 2026-10-19 — Mosquito poison
 
 - Updated `BACKLOG.md`, `docs/biome-enemies.md` and `docs/05-decision-log.md`:

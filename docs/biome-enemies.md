@@ -19,7 +19,7 @@ before existing defenses; no client-authored damage or offensive player magic.
 | Elderwood | Elderwood Bear (`ElderwoodBear`) | Rare hard enemy; slow overhead paw strike, punishable recovery | 250 / 5 | 35 Crush | 3 Bone Fragment |
 | Shimmering Lakes | Viper (`Viper`) | Snake hiding in dry shoreline reeds; visible coil, narrow lunging bite, then retreats; applies weak poison for 5 s | 50 / 0 | 10 Stab + poison below | 1 Bone Fragment |
 | Shimmering Lakes | Reed Lurker (`ReedLurker`) | Rare hard, original shoreline beast; two-legged rush and broad forelimb swipe on land | 160 / 3 | 25 Crush | 2 Bone Fragment |
-| Mossy Mire | Bog Adder (`BogAdder`) | Camouflaged land hunter; short bite followed by retreat | 70 / 0 | 14 Stab | 1 Bone Fragment |
+| Mossy Mire | Bog Adder (`BogAdder`) | Highly venomous camouflaged snake; visible coil, short bite then retreat; major poison for 10 s | 70 / 0 | 14 Stab + major poison below | 1 Bone Fragment |
 | Mossy Mire | Mire Mosquito swarm (`MireMosquito`) | Flying swarm surrounds a player and keeps biting; 10 s weak poison; rolls break contact, lit flames repel it | 25 / 0 per swarm | Proposed 2 Stab every 0.5 s while in contact + poison below | None |
 | Mossy Mire | Peat Husk (`PeatHusk`) | Rare hard, original peat-and-wood creature; slow sweeping arm | 220 / 6 | 30 Crush | 1 Amber |
 | Freezing Tundra | Snow Lynx (`SnowLynx`) | Mobile predator; telegraphed leap, long recovery if it misses | 120 / 0 | 22 Slash | 2 Bone Fragment |
@@ -88,6 +88,25 @@ Any later carcass materials require a separate reviewed item/recipe/icon plan.
   catch-up ticks. Status support is part of this enemy's implementation.
 - Verify five-tick expiry, refreshed duration, multiple Vipers, defenses,
   rejected bites and owner/client display. Damage tuning remains reviewable.
+
+## Bog Adder major poison
+
+- A server-confirmed bite applies **major poison for 10 seconds**. Proposed
+  tuning: **5 Poison/second**, first tick after 1 s, ten ticks (50 total before
+  Poison defenses). Keep 14 Stab on the bite, 70 health, 0 Armor and loot.
+- Further Bog Adder bites refresh the duration without stacking or extra
+  immediate ticks; multiple adders share one major effect. Weak and major
+  poison have separate expiry timers but one shared one-second damage clock:
+  apply only the strongest active dose, never add their damage together.
+  Weak bites cannot extend major poison; any still-active weak effect resumes
+  at its normal strength after major expires. Applications never reset the clock.
+- Use the Viper rules for server validation, Poison defenses, owner display
+  and death/session cleanup. Physical Armor does not prevent application on
+  an accepted bite. Rolls avoid bites but do not cleanse existing poison;
+  fire does not repel Bog Adders or remove poison.
+- Verify ten-second expiry, refresh, multiple adders, weak/major overlap,
+  defenses, rejected bites and owner/client display. Keep its coiled windup
+  readable against Mire ground; this is proposed tuning, not playtested balance.
 
 ## Mire Mosquito swarm
 

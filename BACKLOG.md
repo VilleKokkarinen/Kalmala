@@ -187,7 +187,7 @@ Agents must follow reviewed values and report gaps instead of inventing designs.
   - [ ] Elderwood: Elderwood Bear — rare hard enemy; future Moonstone source.
   - [ ] Shimmering Lakes: Viper — shoreline ambusher; lunging bite applies weak poison for 5 s.
   - [ ] Shimmering Lakes: Reed Lurker — rare hard shoreline beast.
-  - [ ] Mossy Mire: Bog Adder — bite-and-retreat hunter.
+  - [ ] Mossy Mire: Bog Adder — highly venomous snake; bite applies major poison for 10 s.
   - [ ] Mossy Mire: Mire Mosquito swarm — small bites + weak poison for 10 s; roll to shake off, lit fire repels.
   - [ ] Mossy Mire: Peat Husk — rare hard sweeping attacker.
   - [ ] Freezing Tundra: Snow Lynx — leaping predator.
