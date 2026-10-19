@@ -99,7 +99,8 @@ Agents must follow reviewed values and report gaps instead of inventing designs.
 - [ ] **A0 — Existing items (P0).** [Details](docs/alpha-item-details.md#a0)
   - [ ] Review scope and the A10 milestone plan.
   - [ ] Audit current sources and starter progression; check the Iron-source mismatch.
-  - [ ] String: Workbench, 2 Wood → 1 String (twisted inner bark).
+  - [ ] Sinew: proposed drops of 2 per deer or 1 per boar; credited defeats only.
+  - [ ] String: Workbench, 1 Sinew → 2 String (sinew cord); update plant-fibre description.
   - [ ] Lightwood: Meadow aspens, Stone Axe+, 4 per collected tree bundle.
   - [ ] Bone Fragment: add 1 to each credited boar/deer defeat.
   - [ ] Fix food use for the six current cooking outputs.

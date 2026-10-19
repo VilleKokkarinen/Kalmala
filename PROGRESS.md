@@ -1,3 +1,17 @@
+## User-directed planning 2026-10-19 — Sinew cord
+
+- **Changed:** replaced bark-string in `BACKLOG.md` and
+  `docs/alpha-item-details.md` with Workbench 1 Sinew → 2 String; recorded the
+  selected direction in `docs/05-decision-log.md`. Added proposed sources:
+  2 Sinew per credited deer defeat, 1 per boar. Source yields remain for review.
+- **Details:** keep String ID/name and existing recipe references; plan an
+  animal-sinew description, Sinew material definition and original icon. Boar
+  melee hunting avoids a Bow/Sinew bootstrap cycle. No new creature/system.
+- **Checks/impact:** reviewed recipe/source consistency, diff, paths and staged
+  ownership. Planning only; no runtime/catalogue/icon changes or gameplay tests.
+  Full verification deferred. Pre-existing edits preserved/excluded; main
+  checkout, no sync needed. Next: review suggested drops before implementation.
+
 ## User-directed cleanup 2026-10-19 — Readable item backlog
 
 - **Changed:** shortened A0–A10 in `BACKLOG.md` to one-line tasks with key
