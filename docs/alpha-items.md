@@ -13,15 +13,17 @@ The proposed alpha baseline is Kalmala's existing Stone/Bronze/Iron span and
 current creature roster. It is a recommendation, not a newly approved release
 scope. Broader systems below require a scope decision before implementation.
 
-The A0 **material/source proposal for manual review** in `BACKLOG.md` now
-specifies biomes, resource types, tool gates, gathering yields and conversion
-inputs/outputs for existing materials and root vegetables, including A1 metals.
-Those new/changed rows are proposals, not accepted game-design decisions.
-Implementation agents must follow the reviewed backlog entries and report
-conflicts instead of selecting alternative sources. Existing-route rows retain
-their authored yields. Potato Seed acquisition is explicitly deferred pending
-a seed-versus-tuber decision. Station costs/timing/capacity and further farming
-rules must also be proposed in the backlog for manual review before coding.
+The A0–A10 proposals in `BACKLOG.md` now specify named items/buildables,
+biomes, gathering tools/yields, ingredient quantities, crafting stations,
+equipment/upgrade stats, consumable effects, station operation, crop propagation,
+fishing, furniture, cargo, accessories, persistence limits and acceptance groups.
+These new/changed entries are drafts for user review/editing, not accepted
+game-design decisions or implementation authorization. Agents must follow the
+reviewed entries and report conflicts instead of choosing alternative designs.
+Existing-route rows retain their authored yields. Potato Seed acquisition stays
+deferred; A7 specifically proposes Potato tuber propagation. A1 supplies the
+processing station costs/timing/capacity previously left open. Any further
+missing gameplay value must likewise be proposed for review before coding.
 
 Sources checked online on 2026-10-19:
 
@@ -96,15 +98,15 @@ station would require an explicit system/scope decision, not just new JSON.
 arrow, a second armour tier and shield, two forage foods and two recovery
 preparations. Use existing materials where practical. Each addition needs its
 own complete slice; quantity is not a release gate. Numerical balance, costs,
-names must be authored deliberately. Material sources and gathering rules must
-be written into the backlog for manual review before their implementation,
-following the A0 source table; they are not implementation-agent choices.
+names and material sources are now concrete drafts in the backlog for manual
+review. They are not implementation-agent choices.
 
-**P2: scope-dependent parity candidates.** Cultivation and fishing loops,
-expanded shelter/furniture, processing stations, hauling/cargo, cold protection,
-accessories and optional discovery rewards. These can make an alpha broader,
-but must not silently enlarge the accepted vertical slice. Backlog decision
-tasks precede their blocked implementation tasks.
+**P2: scope-dependent parity candidates.** The backlog specifically proposes
+plot-based cultivation, lake-school fishing, six shelter/furniture pieces,
+skiff cargo and two support accessories. It proposes deferring terrain-editing
+Hoe, cold-protection clothing, new trophies/scrolls, cart/carry packs and extra
+brewing stations. These remain reviewable scope choices, not silent changes to
+the accepted vertical slice. Backlog review tasks precede implementation.
 
 **Deferred beyond this proposal:** more metals beyond Iron, every-biome gear
 sets, crossbows/bolts, polearms/heavy two-handed/fist families, bombs, numerous

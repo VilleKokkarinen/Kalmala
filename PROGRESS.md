@@ -1,3 +1,31 @@
+## User-directed planning 2026-10-19 — Concrete proposals for every category
+
+- **Completed/files:** replaced open design choices throughout A1–A10 in
+  `BACKLOG.md` with reviewable names/IDs, recipes, material quantities, stations,
+  source locations, yields, equipment stats, upgrade costs/rewards and rules.
+  Added Kiln/Smelter operation; sword/club, bow/arrow, armour/shield, Torch/Rake,
+  forage/recovery, crop/fish, shelter/cargo/accessory proposals. Specified new
+  persistence limits and finite proposed verification groups/scenarios.
+  Updated A0 references and `docs/alpha-items.md` for consistency.
+- **Review status/limits:** all new values and systems remain proposals for user
+  manual review/editing. Explicit deferrals replace agent-selected alternatives:
+  no terrain-editing Hoe, extra Boots/Cape tiers or insulation, resistance
+  preparations, brewing stations, cart/carry packs, new scrolls or trophies.
+  Potato uses proposed tuber propagation; Potato Seed stays unacquired.
+  No implementation checkbox or milestone was marked complete.
+- **Checks:** inspected existing Bow attack/draw and upgrade data, armour/upgrade
+  contracts, Steady Meal constants and current scope/decisions. Reviewed task
+  dependency, IDs, recipe inputs, duplicated references, local documentation
+  links, whitespace, staged ownership and Windows path lengths. Full verification
+  remains deferred; no build, automation, runtime or balance validation ran.
+- **Impact/authority:** documentation only; no gameplay/catalogue/assets, RPCs,
+  replication, save schemas or authority changed. Proposed behavior may require
+  new systems/schema work after approval; it is not represented as supported now.
+- **Workspace/next:** app inventory identified only this Kalmala chat active;
+  pre-existing edits preserved/excluded. Main checkout, no handoff sync needed.
+  Next is user review/editing of all category proposals and A0 scope reconciliation;
+  agents must report missing/conflicting design instead of substituting it.
+
 ## User-directed planning 2026-10-19 — Explicit material source proposals
 
 - **Completed/files:** expanded A0 in `BACKLOG.md` with concrete reviewable
