@@ -1,5 +1,37 @@
 # Biome enemy expansion proposal
 
+## Quick overview
+
+**Current** = existing code defaults; **Planned** = editable A8a proposals.
+Damage is before defenses. Poison rates are per second and do not stack;
+only the strongest active poison deals damage. Current wildlife uses seeded
+population slots rather than the proposed biome restrictions below.
+
+| Enemy | Biome | Status | HP | Armor | Attack | Abilities / counters |
+| --- | --- | --- | ---: | ---: | --- | --- |
+| Boar | Seeded slots | Current | 100 | 0 | 15 Crush | Territorial charge |
+| Deer | Seeded slots | Current | 100 | 0 | — | Flees; alerts nearby deer |
+| Mireling | Seeded slots | Current | 100 | 0 | 10 Crush | Approaches; close melee |
+| Brush Rat | Meadows | Planned | 35 | 0 | 6 Stab | Defensive bite |
+| Woodland Badger | Elderwood | Planned | 60 | 0 | 10 Stab | Warns; bites; retreats |
+| Moon Bear | Elderwood | Planned | 250 | 5 | 35 Crush | Slow overhead strike; 2% Moonstone |
+| Viper | Shimmering Lakes | Planned | 50 | 0 | 10 Stab | Weak poison: 1/s, 5 s |
+| Giant Snake | Shimmering Lakes | Planned | 160 | 3 | 25 Stab | Coiled lunge; slow recovery |
+| Bog Adder | Mossy Mire | Planned | 70 | 0 | 14 Stab | Major poison: 5/s, 10 s |
+| Mire Mosquito swarm | Mossy Mire | Planned | 25 | 0 | 2 Stab/0.5 s | Poison: 1/s, 10 s; roll/fire repels |
+| Peat Husk | Mossy Mire | Planned | 220 | 6 | 30 Crush | Slow sweeping arm |
+| Tundra Wolf | Freezing Tundra | Planned | 160 | 3 | 28 Slash | Pursuit; lunging bite |
+| Snow Lynx | Freezing Tundra | Planned | 120 | 0 | 22 Slash | Leap; punish missed landing |
+| Tundra Bear | Freezing Tundra | Planned | 300 | 6 | 40 Crush | Committed charge |
+| Ridge Goat | Thunder Mountains | Planned | 120 | 2 | 20 Crush | Territorial horn charge |
+| Crag Sentinel | Thunder Mountains | Planned | 280 | 10 | 38 Crush | Slow downward slam |
+| Reef Maw | Ocean | Planned, blocked | 180 | 2 | 28 Stab | Swimmer hunter; aquatic approval |
+
+Current defaults: [wildlife](../Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp),
+[health](../Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h) and
+[defenses](../Source/KalmalaGameplay/Public/KalmalaDamageProfile.h).
+Detailed proposals and exceptions follow.
+
 Draft for manual review, 2026-10-19. Implement through A8a in
 [BACKLOG.md](../BACKLOG.md), before A9 gems and special gear.
 These additions extend the current three-archetype roster; they do not change

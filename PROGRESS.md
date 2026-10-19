@@ -1,3 +1,15 @@
+## User-directed planning 2026-10-19 — Compact enemy overview
+
+- Added a top-of-file grid to `docs/biome-enemies.md`: all 14 planned enemies
+  plus current boar, deer and Mireling; short biome/status/HP/Armor/attack/
+  ability entries. Current defaults checked against wildlife and defense code;
+  proposed tuning remains labeled and detailed rules remain below.
+- Checked table coverage/column counts, references, whitespace, staged ownership
+  and path lengths. Documentation only; no gameplay or authority changes, no
+  runtime tests. Full verification deferred. Backlog implementation state is
+  unchanged. Pre-existing edits preserved; main checkout, no handoff sync.
+  Next: continue roster review; A8a implementation remains queued.
+
 ## User-directed planning 2026-10-19 — Giant Snake replacement
 
 - Replaced Reed Lurker with Giant Snake/`GiantSnake` in `BACKLOG.md` and
