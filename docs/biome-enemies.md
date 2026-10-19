@@ -40,6 +40,43 @@ These additions extend the current three-archetype roster; they do not change
 historical vertical-slice acceptance or claim that these enemies exist today.
 Names, stats, spawn weights and loot below are concrete proposals for editing.
 
+## Unique drops
+
+**Draft for review.** One roll per credited defeat; amount is awarded only on
+success. These are additional to baseline loot. Sinew and the two gem routes
+retain their existing plans; other drops and uses below are new proposals.
+Unique means a characteristic drop, not an exclusive source for shared Sinew.
+
+| Enemy            | Unique drop        | Amount / chance | Intended use              |
+| ---------------- | ------------------ | --------------- | ------------------------- |
+| Boar             | Boar Tusk          | 1 / 50%         | Weapon fittings           |
+| Deer             | Sinew              | 1 / 50%         | Bow String; 4 Sinew each  |
+| Rat              | Rat Tail           | 1 / 100%        | Fishing bait ingredient   |
+| Badger           | Badger Claw        | 1 / 100%        | Claw weapon component     |
+| Moon Bear        | Moonstone          | 1 / 2%          | Moonstone Ring            |
+| Viper            | Viper Fang         | 1 / 50%         | Poison arrow ingredient   |
+| Giant Snake      | Giant Snake Skin   | 2 / 100%        | Scaled armor component    |
+| Mireling         | Dusk Diamond       | 1 / 0.5%        | Special Dusk Ring         |
+| Death Adder      | Death Adder Venom  | 1 / 50%         | Strong poison ammunition  |
+| Mosquito swarm   | Mosquito Proboscis | 1 / 25%         | Fine needle crafting      |
+| Peat Husk        | Peat Heart         | 1 / 25%         | Swamp jewelry component   |
+| Wolf             | Wolf Pelt          | 1 / 100%        | Fur clothing component    |
+| Lynx             | Lynx Claw          | 1 / 50%         | Light weapon component    |
+| Polar Bear       | Polar Bear Pelt    | 2 / 100%        | Heavy fur armor component |
+| Horned Goat      | Goat Horn          | 1 / 100%        | Weapon/grip component     |
+| Thunder Sentinel | Thunder Core       | 1 / 25%         | Lightning gear component  |
+| Reef Maw         | Reef Tooth         | 1 / 50%         | Harpoon component; gated  |
+
+New materials are exclusive to their named enemy in this proposal. No shared
+venom/pelt substitution, gem conversion or automatic new equipment recipe.
+Keep existing gem odds independent of baseline loot. Server owns rolls and
+stable claims; full packs preserve unclaimed rewards, and retries/reloads
+cannot reroll or duplicate them. Every new material requires its registered
+catalogue definition and original generated icon. Proposed uses need separate
+reviewed recipes/effects; fishing, cold-protection clothing, lightning gear
+and harpoons remain blocked on their own scope decisions. Reef Maw's entire
+route remains blocked on aquatic acceptance.
+
 ## Proposed roster
 
 Keep existing boars, deer and Mirelings. Add fourteen enemies, one complete
@@ -63,10 +100,11 @@ before existing defenses; no client-authored damage or offensive player magic.
 | Thunder Mountains | Thunder Sentinel (`ThunderSentinel`) | Rare hard, original stone creature; short step and downward slam | 1250 / 75 | 300 Crush | 3 Stone |
 | Ocean | Reef Maw (`ReefMaw`) | Rare swimming predator; visible approach and single bite against swimming players | 180 / 2 | 50 Stab | 3 Bone Fragment |
 
-New animal enemies deliberately have no meat/hide drops in this proposal:
-do not grant Deer Meat/Boar Hide from unrelated species or invent extra item
-identities during implementation. The listed loot uses existing items only.
-Any later carcass materials require a separate reviewed item/recipe/icon plan.
+The roster's guaranteed loot remains the baseline. The unique-drop table adds
+reviewable material proposals; it supersedes the earlier blanket deferral of
+new carcass materials. Never substitute Deer Meat/Boar Hide for other species.
+New materials and their proposed uses require approved item/recipe definitions
+and original inventory icons before implementation; the uses are not recipes.
 
 ## Spawn and combat rules
 
@@ -270,8 +308,9 @@ Each enemy needs original procedural/authored appearance and animation,
 server attack/defeat handling, its named biome spawn entry, visible attack
 telegraph, reward rules and applicable saved/relevant-peer state. No copied
 reference-game creatures/assets. New attacks need explicit typed profiles and
-membership; no silent fallback damage. No new loot item icons are needed for
-the existing material IDs, but future Moonstone still requires its own icon.
+membership; no silent fallback damage. Existing baseline material IDs reuse
+their icons; every approved new unique drop and future gem requires its own
+original generated icon and catalogue registration before its loot is enabled.
 
 Use lightweight checks for normal increments. Before A8a is accepted, run the
 applicable full build, automation, biome/population, combat, peer/privacy and

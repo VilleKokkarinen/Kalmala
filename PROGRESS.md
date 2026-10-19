@@ -1,3 +1,15 @@
+## User-directed planning 2026-10-19 — Unique enemy drops
+
+- Added a compact 17-enemy unique-drop table to `docs/biome-enemies.md`, with
+  quantity/chance and intended use. Preserved Deer Sinew 50%, Moonstone 2%
+  and Dusk Diamond 0.5%; other materials/uses remain explicit review proposals.
+  Existing baseline loot remains; new item/recipe/icon work is scope-gated.
+- Updated `BACKLOG.md` and `docs/05-decision-log.md`; reconciled the previous
+  carcass-material deferral. Checked coverage, table columns, source chances,
+  whitespace, staged ownership and paths. User's overview edits preserved
+  unstaged. Documentation only; no runtime tests or authority changes; full
+  verification deferred. Next: drop/use review; main checkout, no handoff sync.
+
 ## User-directed planning 2026-10-19 — Synchronize revised enemy stats
 
 - Synchronized the 14 detailed roster entries and ability sections in
