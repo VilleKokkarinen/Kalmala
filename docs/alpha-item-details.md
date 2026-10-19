@@ -251,18 +251,37 @@ that contract conflict before substituting a new wall/frame design.
 Travel, accessories and discovery rewards (P2; scope gated).
 - Review travel scope: propose only Skiff Cargo Chest (`SkiffCargoChest`), defer cart/carry-pack progression, encumbrance and hull durability. Hammer placement costs 6 Lightwood + 2 String + 1 Bronze, on one fixed cargo socket per existing skiff; no skiff inventory item or new boat tier.
 - Implement the approved cargo chest: 12 shared stack cells, interact within 2 m while skiff speed is at most 100 cm/s, same GUID/quantity/capacity rules as land storage. Save cargo against stable vessel ID; reject detachment/removal with contents, retain contents across validated vessel reload, no spill/duplication on reconnect. In-flight transfer rejects unchanged (blocked on explicit approval and existing vessel-persistence support; report any persistence gap).
-- Add Smoky Quartz (`SmokyQuartz`) as the rare gem for both accessories. Proposed source: each exhausted Elderwood Copper Ore or Shimmering Lakes Tin Ore node has a 1/20 (5%) chance of 1 additional gem, otherwise 0; ordinary ore yield remains unchanged. Resolve once on the server per node exhaustion, not per hit or pickup retry. Retain the rolled reward until collected and persist it with node depletion so reload cannot reroll or duplicate it. Full inventory leaves reward claimable. Stack 20, proposed weight 0.1 kg; no combat/equip/upgrade behavior. Source/rate remain for manual review.
+- Add three gems with separate source tables below. These are concrete drop-rate/location proposals for review; no shared universal gem-drop pool. All stack 20, proposed weight 0.1 kg; no combat/equip/upgrade behavior. Gem and source implementations remain pending.
+- Add Smoky Quartz (`SmokyQuartz`) as a mining-only extra reward; preserve ordinary ore yields.
+- Add Moonstone (`Moonstone`) to credited Mireling defeats only; preserve existing rewards. Boar/deer and other enemies do not inherit this gem drop.
+- Add Garnet (`Garnet`) to generated world treasure chests only, not player storage. Requires a server-owned, stable treasure-container loot path; if missing, implement it as an explicitly approved prerequisite rather than treating player chests as treasure sources.
+
+| Gem | Exclusive proposed source | Chance / quantity | Accessory use |
+| --- | --- | --- | --- |
+| Smoky Quartz | Exhausted Copper Ore nodes in Elderwood or Tin Ore nodes in Shimmering Lakes | 1/20 (5%) for exactly 1, otherwise 0 | Quartz Necklace |
+| Moonstone | Credited Mireling defeats | 1/50 (2%) for exactly 1, otherwise 0 | Moonstone Ring |
+| Garnet | Generated treasure chests in Elderwood or Shimmering Lakes | 1/10 (10%) per chest for exactly 1, otherwise 0 | Garnet Necklace |
+
+Resolve rolls once on the server per node exhaustion, enemy defeat or treasure
+chest generation. Opening, pickup retries, reconnect or reload cannot reroll.
+Persist rolled world rewards/claims with stable source identities; full
+inventory leaves an unclaimed reward available. Gem tables are mutually
+exclusive by source: no mining Moonstone/Garnet, no enemy Quartz/Garnet and no
+treasure Quartz/Moonstone. Existing Amber is not replaced or added to this pool.
+
 - Review Necklace/Ring slot support. Equip one item in each named slot using validated GUID/replace/return and full-pack rules; copies cannot stack bonuses. User-selected effects are +10 Armor for Necklace and +20 maximum stamina for Ring, replacing the earlier spell-cost discounts.
 - Add Quartz Necklace (`QuartzNecklace`) with the reviewed craft/equip/stat/icon path (blocked on gem acquisition and accessory support).
-- Add Quartz Ring (`QuartzRing`) with the reviewed craft/equip/stat/icon path (blocked on gem acquisition and accessory support).
+- Add Moonstone Ring (`MoonstoneRing`) with the reviewed craft/equip/stat/icon path, replacing the Quartz Ring proposal (blocked on gem acquisition and accessory support).
+- Add Garnet Necklace (`GarnetNecklace`) as an alternative route to the same +10 Armor; no stronger or additional bonus (blocked on treasure loot and accessory support).
 - Audit the four existing Mending/Hearth Shield/Bear's Vigor/Deer Call scrolls against their current authored discovery-to-unlock/use paths. Preserve existing locations/entitlements; propose no new scroll, trophy, creature or boss key for this alpha set. Record missing current routes as defects against the existing contract, not permission to invent a reward source.
 
 | Accessory | Proposed Forge 1 cost for 1 | Server-owned effect while equipped |
 | --- | --- | --- |
 | Quartz Necklace | 3 Bronze + 1 Smoky Quartz | +10 integer Armor, added once to the existing physical-defense total |
-| Quartz Ring | 2 Bronze + 1 Smoky Quartz | +20 maximum stamina; no direct stamina refill |
+| Moonstone Ring | 2 Bronze + 1 Moonstone | +20 maximum stamina; no direct stamina refill |
+| Garnet Necklace | 3 Bronze + 1 Garnet | +10 integer Armor; alternative to Quartz Necklace, same slot |
 
-Both stack 1; proposed weight 0.1 kg each. No durability, upgrades, repair or
+All accessories stack 1; proposed weight 0.1 kg each. No durability, upgrades, repair or
 attacks. The necklace's Armor remains active while equipped without wear;
 use the existing physical-only Armor calculation, not elemental resistance.
 Ring equip raises maximum stamina without increasing current stamina;
@@ -272,7 +291,7 @@ derived stats on equipment changes; normal regeneration uses the new maximum.
 Gear remains owner-private and session-only under the existing equipped-gear
 persistence limit; no general gear-save system. Add explicit accessory/derived-
 stat handling rather than assuming the current durable-armour schema supports
-it. Gem and both accessories need original generated icons and all applicable
+it. All three gems and three accessories need original generated icons and all applicable
 catalogue/recipe/stat records. Existing scroll/spell costs remain unchanged.
 
 ## A10

@@ -1,3 +1,19 @@
+## User-directed planning 2026-10-19 — Distinct gem sources
+
+- Updated A9 in `BACKLOG.md`, `docs/alpha-item-details.md`, comparison and
+  decision log: mining-only Smoky Quartz (5% Copper/Tin nodes), enemy-only
+  Moonstone (2% Mirelings), chest-only Garnet (10% Elderwood/Lakes world
+  treasure chests). Exactly 1 on success; no shared source pool or rerolls.
+- Ring now uses Moonstone; added Garnet Necklace as an alternative to Quartz
+  Necklace, same +10 Armor/slot. Ring remains +20 maximum stamina. Proposed
+  Forge costs remain 2 Bronze + 1 ring gem or 3 Bronze + 1 necklace gem.
+  Rates/locations remain reviewable. Treasure loot support is an explicit
+  prerequisite; all new materials/accessories require original integrated icons.
+- Checked source/recipe consistency, stale references, diff, whitespace, paths
+  and staged ownership. No gameplay/catalogue/assets/save changes or tests;
+  full verification deferred. Preserved/excluded pre-existing edits across
+  A0/A2–A5/A7/A8 and other files; main checkout, no sync. Next: gem-source review.
+
 ## User-directed planning 2026-10-19 — Bronze and gem accessories
 
 - Updated A9 in `BACKLOG.md`, `docs/alpha-item-details.md`, the comparison in

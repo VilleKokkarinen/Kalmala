@@ -184,9 +184,12 @@ Agents must follow reviewed values and report gaps instead of inventing designs.
   - [ ] Review skiff cargo; defer carts, carry packs, encumbrance and hull durability.
   - [ ] Skiff Cargo Chest: Hammer, 6 Lightwood + 2 String + 1 Bronze; 12 cells/skiff.
   - [ ] Smoky Quartz: proposed 5% chance of 1 extra gem per exhausted Copper/Tin node.
+  - [ ] Moonstone: proposed 2% chance of 1 per credited Mireling defeat; enemy-only.
+  - [ ] Garnet: proposed 10% chance of 1 in Elderwood/Lakes world treasure chests; chest-only.
   - [ ] Review Necklace/Ring slots; one item per slot, bonuses only while equipped.
   - [ ] Quartz Necklace: Forge, 3 Bronze + 1 Smoky Quartz; +10 Armor.
-  - [ ] Quartz Ring: Forge, 2 Bronze + 1 Smoky Quartz; +20 maximum stamina.
+  - [ ] Moonstone Ring: Forge, 2 Bronze + 1 Moonstone; +20 maximum stamina.
+  - [ ] Garnet Necklace: Forge, 3 Bronze + 1 Garnet; +10 Armor (alternative to Quartz).
   - [ ] Audit the four existing scroll routes; defer new scrolls, trophies and boss keys.
 
 - [ ] **A10 — Acceptance.** [Full criteria](docs/alpha-item-details.md#a10)
