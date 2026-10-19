@@ -18,7 +18,7 @@ before existing defenses; no client-authored damage or offensive player magic.
 | Elderwood | Woodland Badger (`WoodlandBadger`) | Easier territorial animal; warns within 3 m, short bite and retreat if approached or attacked | 60 / 0 | 10 Stab | 1 Bone Fragment |
 | Elderwood | Moon Bear (`MoonBear`) | Rare hard enemy; slow overhead paw strike, punishable recovery | 250 / 5 | 35 Crush | 3 Bone Fragment |
 | Shimmering Lakes | Viper (`Viper`) | Snake hiding in dry shoreline reeds; visible coil, narrow lunging bite, then retreats; applies weak poison for 5 s | 50 / 0 | 10 Stab + poison below | 1 Bone Fragment |
-| Shimmering Lakes | Reed Lurker (`ReedLurker`) | Rare hard, original shoreline beast; two-legged rush and broad forelimb swipe on land | 160 / 3 | 25 Crush | 2 Bone Fragment |
+| Shimmering Lakes | Giant Snake (`GiantSnake`) | Rare hard snake hidden among shoreline reeds; raised-head coil, powerful lunging bite, then slow recovery | 160 / 3 | 25 Stab | 2 Bone Fragment |
 | Mossy Mire | Bog Adder (`BogAdder`) | Highly venomous camouflaged snake; visible coil, short bite then retreat; major poison for 10 s | 70 / 0 | 14 Stab + major poison below | 1 Bone Fragment |
 | Mossy Mire | Mire Mosquito swarm (`MireMosquito`) | Flying swarm surrounds a player and keeps biting; 10 s weak poison; rolls break contact, lit flames repel it | 25 / 0 per swarm | Proposed 2 Stab every 0.5 s while in contact + poison below | None |
 | Mossy Mire | Peat Husk (`PeatHusk`) | Rare hard, original peat-and-wood creature; slow sweeping arm | 220 / 6 | 30 Crush | 1 Amber |
@@ -73,6 +73,19 @@ Any later carcass materials require a separate reviewed item/recipe/icon plan.
   relevant-peer replication and depletion policy. Persist stable credited-death
   and loot claim identities so reload/duplicate requests cannot grant twice.
   Reject invalid attacks unchanged; preserve unclaimed rewards on full packs.
+
+## Giant Snake
+
+- Replace Reed Lurker with a large, thick-bodied snake, proposed 4 m long.
+  Original scale pattern and readable raised-head silhouette distinguish it
+  from Viper. Slithers on dry shore; no limbs or forelimb-swipe attack.
+- Telegraph the bite with a visible coil and hiss for 1 s; strike forward
+  once, then recover for 1.2 s. A sideways roll avoids the narrow lunge.
+  Retain 160 health, 3 Armor and 2 Bone Fragment; change the 25-damage attack
+  from Crush to Stab. No poison or constriction/grab mechanic in this proposal.
+- Occupy the existing Lakes 10% hard-enemy share, within normal spawn budgets,
+  25 m leash and dry-ground rules. No deep-water pursuit. Verify body collision,
+  readable bite timing, server hit validation and peer appearance.
 
 ## Viper poison
 

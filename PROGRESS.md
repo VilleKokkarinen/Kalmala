@@ -1,3 +1,14 @@
+## User-directed planning 2026-10-19 — Giant Snake replacement
+
+- Replaced Reed Lurker with Giant Snake/`GiantSnake` in `BACKLOG.md` and
+  `docs/biome-enemies.md`; recorded in `docs/05-decision-log.md`. Proposed
+  4 m snake, coiled lunging bite, 25 Stab replacing Crush; retained health,
+  Armor, loot and Lakes hard-enemy spawn share. No poison or grab proposed.
+- Checked references, whitespace, staged ownership and path lengths. Planned
+  server-owned bite/collision/peer verification; no runtime changes or tests.
+  Full verification deferred. Pre-existing edits preserved; main checkout,
+  no sync. Next: review Giant Snake tuning; A8a implementation remains queued.
+
 ## User-directed planning 2026-10-19 — Moon Bear rename
 
 - Renamed the planned Elderwood Bear/ID to Moon Bear/`MoonBear` in

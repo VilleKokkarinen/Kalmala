@@ -186,7 +186,7 @@ Agents must follow reviewed values and report gaps instead of inventing designs.
   - [ ] Elderwood: Woodland Badger — easier territorial enemy; short bite and retreat.
   - [ ] Elderwood: Moon Bear — rare hard enemy; future Moonstone source.
   - [ ] Shimmering Lakes: Viper — shoreline ambusher; lunging bite applies weak poison for 5 s.
-  - [ ] Shimmering Lakes: Reed Lurker — rare hard shoreline beast.
+  - [ ] Shimmering Lakes: Giant Snake — rare hard shoreline ambusher; powerful lunging bite.
   - [ ] Mossy Mire: Bog Adder — highly venomous snake; bite applies major poison for 10 s.
   - [ ] Mossy Mire: Mire Mosquito swarm — small bites + weak poison for 10 s; roll to shake off, lit fire repels.
   - [ ] Mossy Mire: Peat Husk — rare hard sweeping attacker.
