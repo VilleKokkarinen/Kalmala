@@ -1,3 +1,15 @@
+## User-directed planning 2026-10-19 — Propagate enemy renames
+
+- Applied user overview names throughout `docs/biome-enemies.md`, its planned
+  IDs, `docs/alpha-items.md`, `docs/alpha-item-details.md` and `BACKLOG.md`:
+  Rat, Badger, Death Adder, Mosquito swarm, Wolf, Lynx, Polar Bear, Horned Goat
+  and Thunder Sentinel. Updated the mosquito anchor and stale wolf exclusion.
+  Added `docs/05-decision-log.md` entry; historical records retain old wording.
+- Checked current-name/ID references, link targets, whitespace, staged ownership
+  and path lengths. Preserved the user's existing overview edits unstaged.
+  Planning only; no runtime/authority changes or tests; full verification
+  deferred. Next: roster review/A8a implementation; main checkout, no sync.
+
 ## User-directed planning 2026-10-19 — Mireling base enemy
 
 - Updated `BACKLOG.md`, `docs/biome-enemies.md` and `docs/05-decision-log.md`:

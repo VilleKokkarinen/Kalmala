@@ -189,7 +189,7 @@ Agents must follow reviewed values and report gaps instead of inventing designs.
   - [ ] Freezing Tundra: Wolf — tougher pursuing predator; powerful lunging bite.
   - [ ] Freezing Tundra: Lynx — leaping predator.
   - [ ] Freezing Tundra: Polar Bear — rare hard charging predator.
-  - [ ] Thunder Mountains: Ridge Goat — territorial horn charges.
+  - [ ] Thunder Mountains: Horned Goat — territorial horn charges.
   - [ ] Thunder Mountains: Thunder Sentinel — rare hard stone attacker.
   - [ ] Run enemy milestone verification before A9; record results and blockers.
 

@@ -119,9 +119,9 @@ smash; successful extraction yields exactly one gem. Spawn rates and a proposed
 three-hit extraction remain for review. Ordinary ore no longer has gem bonus drops.
 New [A8a enemy roster](biome-enemies.md) precedes A9: fourteen proposed enemies
 across the seven biomes, with common/hard roles and a separate acceptance gate.
-Elderwood has an easier Woodland Badger; the strengthened Tundra Wolf moves
-exclusively to Freezing Tundra alongside Snow Lynx and Tundra Bear.
-Mossy Mire includes Mire Mosquito swarms alongside Bog Adder/Peat Husk:
+Elderwood has an easier Badger; the strengthened Wolf moves
+exclusively to Freezing Tundra alongside Lynx and Polar Bear.
+Mossy Mire includes Mosquito swarms alongside Death Adder/Peat Husk:
 repeated small bites, roll escape and avoidance of lit torches/other fires.
 Moonstone moves to the hard Moon Bear; aquatic enemies remain scope-gated.
 It defers terrain-editing

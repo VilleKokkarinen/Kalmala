@@ -161,7 +161,7 @@ Carried utility tools (P1/P2).
 - Review and add Bark Torch (`BarkTorch`): inventory craft 2 Wood + 1 String → 1, stack 1, 0.5 kg. Main Hand only; 300 seconds of burning while held, local light radius 6 m from replicated lit state. No damage, warmth, Wet removal or world ignition. Uncovered rain extinguishes it; dry re-equip relights it. Stored/unequipped torches do not burn; spent torch remains unusable until inventory refuel with 1 Wood restores 300 seconds. Persist remaining burn time with item state; no repair/upgrade recipe or generic melee fallback.
 
 Torch/fire behavior also supports the user-requested
-[mosquito swarm counter](biome-enemies.md#mire-mosquito-swarm): a server-confirmed
+[mosquito swarm counter](biome-enemies.md#mosquito-swarm): a server-confirmed
 lit held torch prevents swarm targeting/damage and repels nearby swarms.
 Unlit/stored/empty torches do not count. This behavior does not change recipes
 or imply warmth, world ignition or direct torch damage. See the enemy rules
@@ -317,7 +317,7 @@ Persist claims; opening, retries or reload cannot reroll. Lake treasure may
 roll Garnet/Aquamarine independently. Moonstone now belongs only to A8a's
 hard Moon Bear, replacing the boar proposal. Check enemy kind and
 authoritative Elderwood spawn identity. Resolve once per credited defeat
-alongside its listed ordinary loot; no retry/reload reroll. Forest Wolves,
+alongside its listed ordinary loot; no retry/reload reroll. Wolves,
 boars, deer and Mirelings cannot drop Moonstone. Dusk Diamond remains exclusive
 to Mossy Mire Mirelings. No universal source fallback.
 Existing Amber is not counted among the ten gems; no gem conversion or random

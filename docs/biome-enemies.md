@@ -48,19 +48,19 @@ before existing defenses; no client-authored damage or offensive player magic.
 
 | Biome | Enemy / ID | Role and attack | Health / Armor | Hit damage | Guaranteed loot |
 | --- | --- | --- | --- | --- | --- |
-| Meadows | Brush Rat (`BrushRat`) | Small scavenger; bites only when approached within 3 m or attacked | 35 / 0 | 6 Stab | 1 Bone Fragment |
-| Elderwood | Woodland Badger (`WoodlandBadger`) | Easier territorial animal; warns within 3 m, short bite and retreat if approached or attacked | 60 / 0 | 10 Stab | 1 Bone Fragment |
+| Meadows | Rat (`Rat`) | Small scavenger; bites only when approached within 3 m or attacked | 35 / 0 | 6 Stab | 1 Bone Fragment |
+| Elderwood | Badger (`Badger`) | Easier territorial animal; warns within 3 m, short bite and retreat if approached or attacked | 60 / 0 | 10 Stab | 1 Bone Fragment |
 | Elderwood | Moon Bear (`MoonBear`) | Rare hard enemy; slow overhead paw strike, punishable recovery | 250 / 5 | 35 Crush | 3 Bone Fragment |
 | Shimmering Lakes | Viper (`Viper`) | Snake hiding in dry shoreline reeds; visible coil, narrow lunging bite, then retreats; applies weak poison for 5 s | 50 / 0 | 10 Stab + poison below | 1 Bone Fragment |
 | Shimmering Lakes | Giant Snake (`GiantSnake`) | Rare hard snake hidden among shoreline reeds; raised-head coil, powerful lunging bite, then slow recovery | 160 / 3 | 25 Stab | 2 Bone Fragment |
-| Mossy Mire | Bog Adder (`BogAdder`) | Highly venomous camouflaged snake; visible coil, short bite then retreat; major poison for 10 s | 70 / 0 | 14 Stab + major poison below | 1 Bone Fragment |
-| Mossy Mire | Mire Mosquito swarm (`MireMosquito`) | Flying swarm surrounds a player and keeps biting; 10 s weak poison; rolls break contact, lit flames repel it | 25 / 0 per swarm | Proposed 2 Stab every 0.5 s while in contact + poison below | None |
+| Mossy Mire | Death Adder (`DeathAdder`) | Highly venomous camouflaged snake; visible coil, short bite then retreat; major poison for 10 s | 70 / 0 | 14 Stab + major poison below | 1 Bone Fragment |
+| Mossy Mire | Mosquito swarm (`MosquitoSwarm`) | Flying swarm surrounds a player and keeps biting; 10 s weak poison; rolls break contact, lit flames repel it | 25 / 0 per swarm | Proposed 2 Stab every 0.5 s while in contact + poison below | None |
 | Mossy Mire | Peat Husk (`PeatHusk`) | Rare hard, original peat-and-wood creature; slow sweeping arm | 220 / 6 | 30 Crush | 1 Amber |
-| Freezing Tundra | Tundra Wolf (`TundraWolf`) | Tough pursuing predator; visible forward lunge and powerful bite, then recovery | 160 / 3 | 28 Slash | 2 Bone Fragment |
-| Freezing Tundra | Snow Lynx (`SnowLynx`) | Mobile predator; telegraphed leap, long recovery if it misses | 120 / 0 | 22 Slash | 2 Bone Fragment |
-| Freezing Tundra | Tundra Bear (`TundraBear`) | Rare hard bear variant; committed charge, then retreat to reset | 300 / 6 | 40 Crush | 3 Bone Fragment |
-| Thunder Mountains | Ridge Goat (`RidgeGoat`) | Territorial wildlife; clear horn-charge windup | 120 / 2 | 20 Crush | 2 Bone Fragment |
-| Thunder Mountains | Crag Sentinel (`CragSentinel`) | Rare hard, original stone creature; short step and downward slam | 280 / 10 | 38 Crush | 3 Stone |
+| Freezing Tundra | Wolf (`Wolf`) | Tough pursuing predator; visible forward lunge and powerful bite, then recovery | 160 / 3 | 28 Slash | 2 Bone Fragment |
+| Freezing Tundra | Lynx (`Lynx`) | Mobile predator; telegraphed leap, long recovery if it misses | 120 / 0 | 22 Slash | 2 Bone Fragment |
+| Freezing Tundra | Polar Bear (`PolarBear`) | Rare hard bear variant; committed charge, then retreat to reset | 300 / 6 | 40 Crush | 3 Bone Fragment |
+| Thunder Mountains | Horned Goat (`HornedGoat`) | Territorial wildlife; clear horn-charge windup | 120 / 2 | 20 Crush | 2 Bone Fragment |
+| Thunder Mountains | Thunder Sentinel (`ThunderSentinel`) | Rare hard, original stone creature; short step and downward slam | 280 / 10 | 38 Crush | 3 Stone |
 | Ocean | Reef Maw (`ReefMaw`) | Rare swimming predator; visible approach and single bite against swimming players | 180 / 2 | 28 Stab | 3 Bone Fragment |
 
 New animal enemies deliberately have no meat/hide drops in this proposal:
@@ -78,18 +78,18 @@ Any later carcass materials require a separate reviewed item/recipe/icon plan.
   regenerated/reloaded population candidates; seed selection cannot bypass it.
   This controls spawn origin, not a new movement barrier. Retain existing
   behavior, stats and loot. Verify allowed/forbidden biomes across fixed seeds.
-- Proposed selection: Meadows 90% existing roster / 10% Brush Rat. Each other
+- Proposed selection: Meadows 90% existing roster / 10% Rat. Each other
   land biome: 50% existing eligible roster / 40% new common enemy / 10% new
   hard enemy. If there is no eligible existing entry, leave that share empty;
   do not import creatures from another biome. Each new spawn is one enemy
   actor; a mosquito spawn is one swarm actor with multiple cosmetic insects.
 - Mirelings spawn **only in Mossy Mire**, including seeded/reloaded candidates.
   Use the same server-side spawn-origin allowlist policy as boar/deer.
-- Mossy Mire splits its common share: 50% Mireling / 20% Bog Adder /
-  20% Mire Mosquito swarm / 10% Peat Husk. Keep the existing actor budget;
+- Mossy Mire splits its common share: 50% Mireling / 20% Death Adder /
+  20% Mosquito swarm / 10% Peat Husk. Keep the existing actor budget;
   the visual insects do not create extra gameplay actors or damage sources.
-- Freezing Tundra splits its common share: 50% existing roster / 20% Tundra
-  Wolf / 20% Snow Lynx / 10% Tundra Bear. Elderwood uses Woodland Badger for
+- Freezing Tundra splits its common share: 50% existing roster / 20%
+  Wolf / 20% Lynx / 10% Polar Bear. Elderwood uses Badger for
   its 40% common share. Wolves spawn only in Freezing Tundra, never Elderwood;
   keep the existing actor budget and one wolf per spawn (no pack mechanic).
 - Ocean: use 10% of eligible aquatic candidate slots for Reef Maw; others
@@ -103,7 +103,7 @@ Any later carcass materials require a separate reviewed item/recipe/icon plan.
   accepted attack; server rechecks life, range and line of sight at impact.
   Use existing melee reach for the matching body size; if no suitable authored
   reach exists, propose it for review rather than guessing during coding.
-- Mire Mosquito uses the dedicated swarm rules below instead of isolated
+- Mosquito uses the dedicated swarm rules below instead of isolated
   stab/retreat attacks. This includes bounded flying pursuit, fire avoidance,
   roll escape, collision and relevant-peer support; ground navigation alone
   is not sufficient. Includes weak poison below; no lifesteal, gem roll or new loot item.
@@ -159,12 +159,12 @@ Any later carcass materials require a separate reviewed item/recipe/icon plan.
 - Verify five-tick expiry, refreshed duration, multiple Vipers, defenses,
   rejected bites and owner/client display. Damage tuning remains reviewable.
 
-## Bog Adder major poison
+## Death Adder major poison
 
 - A server-confirmed bite applies **major poison for 10 seconds**. Proposed
   tuning: **5 Poison/second**, first tick after 1 s, ten ticks (50 total before
   Poison defenses). Keep 14 Stab on the bite, 70 health, 0 Armor and loot.
-- Further Bog Adder bites refresh the duration without stacking or extra
+- Further Death Adder bites refresh the duration without stacking or extra
   immediate ticks; multiple adders share one major effect. Weak and major
   poison have separate expiry timers but one shared one-second damage clock:
   apply only the strongest active dose, never add their damage together.
@@ -173,12 +173,12 @@ Any later carcass materials require a separate reviewed item/recipe/icon plan.
 - Use the Viper rules for server validation, Poison defenses, owner display
   and death/session cleanup. Physical Armor does not prevent application on
   an accepted bite. Rolls avoid bites but do not cleanse existing poison;
-  fire does not repel Bog Adders or remove poison.
+  fire does not repel Death Adders or remove poison.
 - Verify ten-second expiry, refresh, multiple adders, weak/major overlap,
   defenses, rejected bites and owner/client display. Keep its coiled windup
   readable against Mire ground; this is proposed tuning, not playtested balance.
 
-## Mire Mosquito swarm
+## Mosquito swarm
 
 The user-selected behavior is persistent small bites until the player rolls
 away or holds a lit fiery item. Mosquitoes avoid active fires and must not
@@ -240,10 +240,10 @@ existing heat-only API can recognize every new flame source.
 Move Moonstone exclusively to **Moon Bear**, with a **2% chance of exactly
 1 per credited defeat**, otherwise 0, alongside its 3 Bone Fragment.
 Use the authoritative enemy kind and Elderwood spawn identity, not the biome
-where a player lures it. Boars, deer, Woodland Badgers, Tundra Wolves and Mirelings cannot drop
+where a player lures it. Boars, deer, Badgers, Wolves and Mirelings cannot drop
 Moonstone. One server roll per defeat, with no retry/reload reroll.
 
-The bear is deliberately harder than the common Woodland Badger: 250 versus 60
+The bear is deliberately harder than the common Badger: 250 versus 60
 health, 5 versus 0 Armor, 35 versus 10 damage, balanced by longer telegraph and
 recovery. This is a proposed combat target, not a claim of playtested balance.
 Keep Dusk Diamond on Mossy Mire Mirelings; no other gem source changes.
@@ -263,8 +263,8 @@ applicable full build, automation, biome/population, combat, peer/privacy and
 restart checks from [development setup](07-development-setup.md). Record exact
 commands/results and repair milestone defects. Demonstrate seeded population
 within budgets, valid/invalid attacks, visible windups, credited loot once,
-full-pack handling and relevant peers. Prove Woodland Badger/Moon Bear
-difficulty and Tundra Wolf/Snow Lynx/Tundra Bear roles in
+full-pack handling and relevant peers. Prove Badger/Moon Bear
+difficulty and Wolf/Lynx/Polar Bear roles in
 play and check Moonstone's eligible/ineligible source cases with controlled
 loot fixtures; do not require random grinding to test the probability boundary.
 Aquatic acceptance must cover swimmers and unchanged skiff behavior separately.
