@@ -26,6 +26,10 @@ deferred; A7 specifically proposes Potato tuber propagation. A1 supplies the
 processing station costs/timing/capacity previously left open. Any further
 missing gameplay value must likewise be proposed for review before coding.
 
+Latest recipe direction: Workbench **4 Sinew → 1 Bow String** (`BowString`).
+Bow requirements use the dedicated material. Generic String in other proposals
+still needs a separately reviewed source; the old sinew-to-String recipe is retired.
+
 Sources checked online on 2026-10-19:
 
 - [Weapons](https://valheim.fandom.com/wiki/Weapons): melee families, shields,

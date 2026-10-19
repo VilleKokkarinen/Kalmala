@@ -1,3 +1,17 @@
+## User-directed planning 2026-10-19 — Dedicated Bow String recipe
+
+- Updated `BACKLOG.md`, `docs/alpha-item-details.md`, `docs/alpha-items.md` and
+  `docs/05-decision-log.md`: Workbench level 1, 4 Sinew → 1 Bow String replaces
+  the planned 1 Sinew → 2 String recipe. Planned base Bow/Layered Bow crafting
+  and upgrades use 1 Bow String; other costs stay as authored/proposed.
+- Generic String remains in non-bow proposals with its source explicitly
+  unresolved; agents must not substitute Bow String or invent a source.
+  Deer rate unchanged: 50% chance of 1 Sinew per credited defeat.
+- Checked active recipe references, consistency, whitespace, staged ownership
+  and path lengths. Planning only: no runtime/catalogue/save/icon changes or
+  gameplay tests. Full verification deferred. Pre-existing edits preserved;
+  main checkout, no synchronization. Next: review generic String source and A0.
+
 ## User-directed planning 2026-10-19 — Deer Sinew drop rate
 
 - Updated `BACKLOG.md`, `docs/alpha-item-details.md` and

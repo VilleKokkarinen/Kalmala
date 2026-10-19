@@ -100,7 +100,7 @@ Agents must follow reviewed values and report gaps instead of inventing designs.
   - [ ] Review scope and the A10 milestone plan.
   - [ ] Audit current sources and starter progression; check the Iron-source mismatch.
   - [ ] Sinew: deer have a 50% chance to drop 1; boar drop of 1 remains a proposal.
-  - [ ] String: Workbench, 1 Sinew → 2 String (sinew cord); update plant-fibre description.
+  - [ ] Bow String: Workbench, 4 Sinew → 1 Bow String; bows use 1 each.
   - [ ] Lightwood: Meadow aspens, Stone Axe+, 4 per collected tree bundle.
   - [ ] Bone Fragment: add 1 to each credited boar/deer defeat.
   - [ ] Fix food use for the six current cooking outputs.
@@ -111,7 +111,7 @@ Agents must follow reviewed values and report gaps instead of inventing designs.
   - [ ] Wild onions: Elderwood, hand-pick 2 Onion + 1 Onion Seed per patch.
 
   Preserve existing Wood, Densewood, Stone, hides/meat, Amber and Frost Salt sources.
-  New vegetable seeds become plantable in A7.
+  New vegetable seeds become plantable in A7. Generic String's source needs review.
 
 - [ ] **A1 — Metals and fuel (P0).** [Details](docs/alpha-item-details.md#a1)
   - [ ] Review processing rules and Stone → Bronze → Iron progression.
@@ -130,7 +130,7 @@ Agents must follow reviewed values and report gaps instead of inventing designs.
   - [ ] Wooden Club: Workbench, 4 Wood.
 
 - [ ] **A3 — Bows and arrows (P1).** [Stats and upgrades](docs/alpha-item-details.md#a3)
-  - [ ] Layered Bow: Workbench, 6 Lightwood + 4 String + 2 Deer Hide; 1.2 s draw.
+  - [ ] Layered Bow: Workbench, 6 Lightwood + 1 Bow String + 2 Deer Hide; 1.2 s draw.
   - [ ] Bronze Arrow: Workbench, 4 Wood + 1 Bronze → 20; 14–56 Pierce.
   - [ ] Support both arrow types; prefer selected stack, otherwise Wood before Bronze.
 
