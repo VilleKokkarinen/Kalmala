@@ -1,3 +1,14 @@
+## User-directed planning 2026-10-19 — Deer Sinew drop rate
+
+- Updated `BACKLOG.md`, `docs/alpha-item-details.md` and
+  `docs/05-decision-log.md`: each credited deer defeat has a 50% chance of
+  exactly 1 Sinew, otherwise 0. One server roll, no retry rerolls. Boar's
+  suggested 1 Sinew remains unapproved; String recipe unchanged.
+- Checked consistency, whitespace, staged ownership and path lengths. Planning
+  only; no runtime change or tests. Full verification deferred. Pre-existing
+  edits preserved/excluded; main checkout, no sync. Next: source review, then
+  implementation through the existing A0 queue.
+
 ## User-directed planning 2026-10-19 — Sinew cord
 
 - **Changed:** replaced bark-string in `BACKLOG.md` and
