@@ -23,7 +23,7 @@ try {
         if ($server.HasExited -or $client.HasExited -or $remoteClient.HasExited) { throw 'A Boar peer exited before verification.' }
         $serverText = if (Test-Path $serverLog) { Get-Content $serverLog -Raw } else { '' }; $clientText = if (Test-Path $clientLog) { Get-Content $clientLog -Raw } else { '' }; $remoteClientText = if (Test-Path $remoteClientLog) { Get-Content $remoteClientLog -Raw } else { '' }
         if (($serverText + $clientText) -match 'Fatal error:|Assertion failed:|Ensure condition failed:|Boar verification FAILED:|Boar verification server: Passed=0') { throw 'Boar peer verification failed; inspect retained logs.' }
-        $ready = $serverText -match 'Boar verification server: Passed=1 SeedReproduced=1 BoundedActivation=1 (?:HerdAlert=0 )?InvalidRejected=1 ActionSerial=4 Health=0\.0 PlayerHealth=[0-9]+\.0 Defeated=1 Saved=1 Meat=1 Hide=1 RemoteMeat=0 RemoteHide=0'
+        $ready = $serverText -match 'Boar verification server: Passed=1 SeedReproduced=1 BoundedActivation=1 (?:HerdAlert=0 )?InvalidRejected=1 ActionSerial=4 Health=0\.0 PlayerHealth=[0-9]+\.0 Defeated=1 Saved=1 Meat=1 Hide=1 BoneFragment=1 RemoteMeat=0 RemoteHide=0 RemoteBoneFragment=0'
         $ready = $ready -and (($clientText + $remoteClientText) -match 'Boar verification client rejected invalid owned attack without target data\.')
         $ready = $ready -and $clientText -match 'Boar verification client observed shared action serial=4\.'
         $ready = $ready -and $clientText -match 'Boar verification client observed relevant wildlife defeat\.'
@@ -38,6 +38,6 @@ try {
     if (!$restart.WaitForExit(120000)) { Stop-Process -Id $restart.Id; throw 'Boar world-state restart timed out.' }
     $restartText = Get-Content $restartLog -Raw
     if ($restartText -notmatch 'Reconnect verification passed: defeated generated wildlife spawn .* remained absent after listen-server restart\.') { throw 'Boar defeat did not survive restart.' }
-    Write-Output 'PASS: seed-reproduced bounded boar activation charged and damaged a player server-side; the client saw only replicated combat/health/defeat state, its target-free attack was rejected, meat/hide stayed owner-only, and the defeat survived restart.'
+    Write-Output 'PASS: seed-reproduced bounded boar activation charged and damaged a player server-side; the client saw only replicated combat/health/defeat state, its target-free attack was rejected, meat/hide/bone stayed owner-only, and the defeat survived restart.'
 }
 finally { foreach ($peer in @($client, $remoteClient, $server)) { if ($null -ne $peer -and !$peer.HasExited) { Stop-Process -Id $peer.Id } }; Write-Output "Peer logs: $output" }

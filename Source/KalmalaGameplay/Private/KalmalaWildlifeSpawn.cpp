@@ -604,6 +604,11 @@ void AKalmalaWildlifeSpawn::GrantDefeatReward()
         }
     }
 
+    if (Archetype == EKalmalaWildlifeArchetype::Boar || Archetype == EKalmalaWildlifeArchetype::Deer)
+    {
+        Inventory->TryGrantFromServer(TEXT("BoneFragment"), 1);
+    }
+
     if (Archetype == EKalmalaWildlifeArchetype::Mireling && IsMirelingBossRewardCandidate())
     {
         if (AKalmalaGameMode* Mode = GetWorld()->GetAuthGameMode<AKalmalaGameMode>())

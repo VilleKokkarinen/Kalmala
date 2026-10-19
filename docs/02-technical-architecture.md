@@ -177,16 +177,18 @@ gameplay compilation/runtime verification is deferred.
 
 `BoneFragment` (Bone fragment) is a stackable crafting ingredient in
 `items/materials/crafting-ingredients.json`, with stack limit 40 and weight
-0.1 kg. Wood Shield crafting requires 3 Wood, 2 Bronze, 1 Boar Hide and
-1 Bone fragment at Forge. Its level-one upgrade-cost record requires
-10 Wood, 5 Boar Hide and 1 Bone fragment at Forge; wearable upgrade execution
-remains pending. No drop, harvest, reward, starting grant or acquisition
-recipe supplies Bone fragment yet. Future drop-table work will provide it.
+0.1 kg. Each server-confirmed Boar or Deer defeat grants one alongside the
+existing meat/hide rewards to the validated attacker. Uncredited defeats grant
+nothing; the one-shot defeat reward gate prevents duplicate payment, and the
+server inventory grant enforces authority and capacity. Wood Shield crafting
+requires 3 Wood, 2 Bronze, 1 Boar Hide and 1 Bone fragment at Forge. Its
+level-one upgrade cost requires 10 Wood, 5 Boar Hide and 1 Bone fragment at
+Forge. Boar Hide Cape crafting and its level-one upgrade cost each require one
+Bone fragment at Workbench in addition to their hide costs. No new RPC,
+replicated field, or save schema is needed.
 The shared icon widget resolves `BoneFragment` to its original imported
 `/Game/Kalmala/UI/Icons/Items/BoneFragment.BoneFragment` texture; batch H
 retains the transparent original and prepared 64x64 PNG. See `bone-icon.md`.
-Boar Hide Cape crafting and its level-one upgrade-cost record also require
-one Bone fragment at Workbench in addition to their existing hide costs.
 
 Use the baseline sections below for module/network boundaries. The [consolidated contracts](#consolidated-system-contracts) preserve current system details from former docs 08–47:
 

@@ -72,7 +72,7 @@ food status dispatch. Definitions do not establish obtainability or usability.
 | Ranged and ammunition | One Bow profile and Wooden Arrow; crafting, draw/release and server projectiles | Bow String is now reachable through deer Sinew and Workbench crafting. Later add one improved bow and one metal arrow, with explicit ammunition dispatch and payment. |
 | Utility tools | Building Hammer plus gathering tools above | No authored carried torch, cultivation tool, hoe or fishing rod. Torch is an existing design target; the other roles need new systems. |
 | Armour and shields | Boar Hide Helmet, Tunic, Leggings, Boots, Cape; Wood Shield | No second armour tier or metal shield. Six functioning slots; Necklace/Ring are disabled placeholders. Shield currently supplies passive Armor, not Valheim-style blocking/parrying. |
-| Crafting materials | Wood, Densewood, Lightwood, Stone, Sinew, Bow String, Bone Fragment, two hides, Amber, Frost Salt, Coal; Copper/Tin/Iron ores and Copper/Tin/Bronze/Iron bars | Deer Sinew now feeds the bow-only Bow String recipe. Wood, Densewood, Lightwood, hides, Amber and Frost Salt have source paths. No production recipes for ores/bars/Coal or Bone Fragment reward. Check actual generated availability before calling any loop complete. |
+| Crafting materials | Wood, Densewood, Lightwood, Stone, Sinew, Bow String, Bone Fragment, two hides, Amber, Frost Salt, Coal; Copper/Tin/Iron ores and Copper/Tin/Bronze/Iron bars | Deer Sinew feeds the bow-only Bow String recipe; credited boar/deer defeats now grant Bone Fragment for the cape recipe and upgrade. Wood, Densewood, Lightwood, hides, Amber and Frost Salt have source paths. No production recipes for ores/bars/Coal. Check actual generated availability before calling any loop complete. |
 | Food | Two raw meats and seven prepared-food definitions; six cooking outputs | Hearth Broth has no recipe. Four root vegetables are ingredients. Food use is inconsistent with current catalogue IDs; repair before adding dish counts. |
 | Crops and seeds | Carrot, Potato, Rutabaga, Onion plus four seed definitions | Farming is explicitly unimplemented. Definitions alone cannot supply a renewable garden. |
 | Recovery and expedition consumables | No authored potion category | Healing/stamina preparations are candidate additions; hazard resistance needs supported effects and an approved hazard role. Do not require consumables for direct-damage magic. |
@@ -115,8 +115,9 @@ coverage, not a count of obtainable items or the assembled runtime catalogue.
 - Other current normal routes include Wood from generated Meadow birch/bark,
   Lakes reeds, and Elderwood resinwood; meat/hides from server-confirmed
   boar/deer rewards; Amber from Mossy Mire; Frost Salt from Tundra; and the
-  implemented credited-deer Sinew roll feeding the Workbench Bow String recipe.
-  Current acquisition gaps remain for Bone Fragment, Coal, Copper,
+  implemented credited-deer Sinew roll feeding the Workbench Bow String recipe,
+  and one Bone Fragment from each credited boar/deer defeat.
+  Current acquisition gaps remain for Coal, Copper,
   Tin, IronOre, and the four wild vegetables; production for Copper/Tin/Bronze/
   Iron and Coal is also pending the A1 contract and implementation.
 - The current spawn layout derives harvest identities from the classified biome
@@ -136,8 +137,8 @@ coverage, not a count of obtainable items or the assembled runtime catalogue.
 ## Recommended priority and dependency order
 
 **P0: make the existing set playable.** Audit each material and food from normal
-world acquisition to use; close Lightwood, Bone Fragment and cooking
-gaps. Resolve the ore/bar/Coal chain and Iron discrepancy. The user approved
+world acquisition to use; close Lightwood and cooking gaps. Resolve the
+ore/bar/Coal chain and Iron discrepancy. The user approved
 the A1 smelter and charcoal-station scope; A1 review still confirms their
 processing contract.
 

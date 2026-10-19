@@ -2059,9 +2059,10 @@ Deer descriptor from its 3x3 population neighborhood, positions that normal
 generated companion within the production herd-noise radius, and uses only the
 ordinary target-free attack sequence. The runner requires deterministic
 descriptor reproduction, combat-triggered herd alert, four validated attacks,
-sparse defeat persistence, and owner-only DeerMeat/DeerHide. The remote peer
-must see the server world identity, rejected target-free intent, shared action
-state, and relevant defeat. A same-host-user-directory `WildlifeDeerVerify`
+sparse defeat persistence, owner-only DeerMeat/DeerHide, and exactly one
+BoneFragment for the validated attacker (none for the remote peer). The remote
+peer must see the server world identity, rejected target-free intent, shared
+action state, and relevant defeat. A same-host-user-directory `WildlifeDeerVerify`
 restart proves the identical server-derived Deer remains suppressed. The fixture
 adds no client-selected herd, noise, target, damage, reward, ID, RPC,
 replication property, or save schema.
@@ -2820,7 +2821,7 @@ After an editor build, run `Scripts/Tests/Presentation/Verify-PlayerControls.ps1
 
 ## Boar encounter verification
 
-After an editor build, run `Scripts/Tests/Combat/Verify-BoarPeer.ps1 -Port <unused-port>`. It starts a seed-418 listen server and a conflicting-seed client with separate temporary user directories. The fixture derives a bounded stable boar descriptor entirely on the server, verifies its normal territorial charge damages the host, rejects the remote player's normal target-free attack sequence, then exercises four server-selected player-combat windups in the ordinary trace range. It requires relevant host/client action, health, and defeat replication, owner-only `BoarMeat`/`BoarHide`, and an identity-matched restart where the same server-derived boar remains absent. It adds no gameplay RPC, client target/damage/reward payload, descriptor replication, or save-schema change.
+After an editor build, run `Scripts/Tests/Combat/Verify-BoarPeer.ps1 -Port <unused-port>`. It starts a seed-418 listen server and a conflicting-seed client with separate temporary user directories. The fixture derives a bounded stable boar descriptor entirely on the server, verifies its normal territorial charge damages the host, rejects the remote player's normal target-free attack sequence, then exercises four server-selected player-combat windups in the ordinary trace range. It requires relevant host/client action, health, and defeat replication, exactly one owner-only each of `BoarMeat`, `BoarHide`, and `BoneFragment`, and an identity-matched restart where the same server-derived boar remains absent. It adds no gameplay RPC, client target/damage/reward payload, descriptor replication, or save-schema change.
 
 ## Regional generation verification (Phase 7)
 

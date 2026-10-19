@@ -99,6 +99,12 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
                 ? FName(TEXT("WorkbenchKit")) : FName(TEXT("ForgeKit"));
             TestTrue(TEXT("Gear acquisition names its required station"),
                 Acquisition->RequiredStation.Contains(RuntimeStation));
+            if (GearAndStation.Key == TEXT("BoarHideCape"))
+            {
+                TestTrue(TEXT("Boar Hide Cape acquisition requires one Bone Fragment"),
+                    Acquisition->Ingredients.ContainsByPredicate([](const FKalmalaInventoryStack& Ingredient)
+                        { return Ingredient.ItemId == TEXT("BoneFragment") && Ingredient.Quantity == 1; }));
+            }
         }
 
         const FKalmalaToolRecipeData* Upgrade = AuthoredCatalogue
@@ -110,6 +116,12 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
             TestEqual(TEXT("Wearable upgrade cost uses the acquisition station"),
                 Upgrade->RequiredStation, GearAndStation.Value.ToString());
             TestEqual(TEXT("Wearable upgrade cost begins at level one"), Upgrade->Level, 1);
+            if (GearAndStation.Key == TEXT("BoarHideCape"))
+            {
+                TestTrue(TEXT("Boar Hide Cape upgrade requires one Bone Fragment"),
+                    Upgrade->Ingredients.ContainsByPredicate([](const FKalmalaToolRecipeIngredientData& Ingredient)
+                        { return Ingredient.ItemId == TEXT("BoneFragment") && Ingredient.Quantity == 1; }));
+            }
         }
     }
     const FKalmalaToolRecipeData* BowUpgrade = AuthoredCatalogue

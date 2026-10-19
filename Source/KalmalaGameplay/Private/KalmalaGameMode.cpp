@@ -1139,18 +1139,20 @@ void AKalmalaGameMode::DriveCombatPeerTest()
             && AttackerInventory->GetStacks().IsEmpty() && RemoteInventory->GetStacks().IsEmpty();
         const int32 Meat = AttackerInventory ? AttackerInventory->GetQuantity(TEXT("BoarMeat")) : 0;
         const int32 Hide = AttackerInventory ? AttackerInventory->GetQuantity(TEXT("BoarHide")) : 0;
+        const int32 BoneFragment = AttackerInventory ? AttackerInventory->GetQuantity(TEXT("BoneFragment")) : 0;
         const int32 RemoteMeat = RemoteInventory ? RemoteInventory->GetQuantity(TEXT("BoarMeat")) : 0;
         const int32 RemoteHide = RemoteInventory ? RemoteInventory->GetQuantity(TEXT("BoarHide")) : 0;
+        const int32 RemoteBoneFragment = RemoteInventory ? RemoteInventory->GetQuantity(TEXT("BoneFragment")) : 0;
         const int32 DeerMeat = AttackerInventory ? AttackerInventory->GetQuantity(TEXT("DeerMeat")) : 0;
         const int32 DeerHide = AttackerInventory ? AttackerInventory->GetQuantity(TEXT("DeerHide")) : 0;
         const int32 RemoteDeerMeat = RemoteInventory ? RemoteInventory->GetQuantity(TEXT("DeerMeat")) : 0;
         const int32 RemoteDeerHide = RemoteInventory ? RemoteInventory->GetQuantity(TEXT("DeerHide")) : 0;
         const int32 DeerSinew = AttackerInventory ? AttackerInventory->GetQuantity(TEXT("Sinew")) : 0;
         const int32 RemoteDeerSinew = RemoteInventory ? RemoteInventory->GetQuantity(TEXT("Sinew")) : 0;
-        const bool bRewardValid = bMirelingPeerTest ? bMirelingDropAbsent : (bBoarPeerTest ? (Meat == 1 && Hide == 1 && RemoteMeat == 0 && RemoteHide == 0) : (!bDeerPeerTest || (DeerMeat == 1 && DeerHide == 1 && DeerSinew >= 0 && DeerSinew <= 1 && RemoteDeerMeat == 0 && RemoteDeerHide == 0 && RemoteDeerSinew == 0)));
+        const bool bRewardValid = bMirelingPeerTest ? bMirelingDropAbsent : (bBoarPeerTest ? (Meat == 1 && Hide == 1 && BoneFragment == 1 && RemoteMeat == 0 && RemoteHide == 0 && RemoteBoneFragment == 0) : (!bDeerPeerTest || (DeerMeat == 1 && DeerHide == 1 && BoneFragment == 1 && DeerSinew >= 0 && DeerSinew <= 1 && RemoteDeerMeat == 0 && RemoteDeerHide == 0 && RemoteBoneFragment == 0 && RemoteDeerSinew == 0)));
         if (AttackerCombat->GetActionSerial() == 4 && bSavedDefeat && bRewardValid && (!bDeerPeerTest || bCombatPeerTestHerdAlertObserved))
         {
-            UE_LOG(LogTemp, Display, TEXT("%s verification server: Passed=1 SeedReproduced=1 BoundedActivation=1 HerdAlert=%d InvalidRejected=1 ActionSerial=%u Health=%.1f PlayerHealth=%.1f Defeated=1 Saved=1 Meat=%d Hide=%d RemoteMeat=%d RemoteHide=%d DeerMeat=%d DeerHide=%d DeerSinew=%d RemoteDeerMeat=%d RemoteDeerHide=%d RemoteDeerSinew=%d"), VerificationName, bCombatPeerTestHerdAlertObserved, AttackerCombat->GetActionSerial(), Target->GetHealth(), Attacker->GetHealth(), Meat, Hide, RemoteMeat, RemoteHide, DeerMeat, DeerHide, DeerSinew, RemoteDeerMeat, RemoteDeerHide, RemoteDeerSinew);
+            UE_LOG(LogTemp, Display, TEXT("%s verification server: Passed=1 SeedReproduced=1 BoundedActivation=1 HerdAlert=%d InvalidRejected=1 ActionSerial=%u Health=%.1f PlayerHealth=%.1f Defeated=1 Saved=1 Meat=%d Hide=%d BoneFragment=%d RemoteMeat=%d RemoteHide=%d RemoteBoneFragment=%d DeerMeat=%d DeerHide=%d DeerSinew=%d RemoteDeerMeat=%d RemoteDeerHide=%d RemoteDeerSinew=%d"), VerificationName, bCombatPeerTestHerdAlertObserved, AttackerCombat->GetActionSerial(), Target->GetHealth(), Attacker->GetHealth(), Meat, Hide, BoneFragment, RemoteMeat, RemoteHide, RemoteBoneFragment, DeerMeat, DeerHide, DeerSinew, RemoteDeerMeat, RemoteDeerHide, RemoteDeerSinew);
         }
         else
         {
