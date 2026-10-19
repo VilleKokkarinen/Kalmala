@@ -17,7 +17,7 @@ before existing defenses; no client-authored damage or offensive player magic.
 | Meadows | Brush Rat (`BrushRat`) | Small scavenger; bites only when approached within 3 m or attacked | 35 / 0 | 6 Stab | 1 Bone Fragment |
 | Elderwood | Forest Wolf (`ForestWolf`) | Fast hunter; short, visible forward lunge | 80 / 0 | 15 Slash | 2 Bone Fragment |
 | Elderwood | Elderwood Bear (`ElderwoodBear`) | Rare hard enemy; slow overhead paw strike, punishable recovery | 250 / 5 | 35 Crush | 3 Bone Fragment |
-| Shimmering Lakes | Reed Adder (`ReedAdder`) | Dry-bank ambusher; narrow forward bite, no poison system | 50 / 0 | 10 Stab | 1 Bone Fragment |
+| Shimmering Lakes | Reed Snake (`ReedSnake`) | Snake hiding in dry shoreline reeds; visible coil, narrow lunging bite, then retreats; no poison system | 50 / 0 | 10 Stab | 1 Bone Fragment |
 | Shimmering Lakes | Reed Lurker (`ReedLurker`) | Rare hard, original shoreline beast; two-legged rush and broad forelimb swipe on land | 160 / 3 | 25 Crush | 2 Bone Fragment |
 | Mossy Mire | Bog Adder (`BogAdder`) | Camouflaged land hunter; short bite followed by retreat | 70 / 0 | 14 Stab | 1 Bone Fragment |
 | Mossy Mire | Mire Mosquito (`MireMosquito`) | Fragile flying pest; audible hover, short proboscis stab, then retreats | 25 / 0 | 8 Stab | None |

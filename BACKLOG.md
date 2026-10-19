@@ -185,7 +185,7 @@ Agents must follow reviewed values and report gaps instead of inventing designs.
   - [ ] Meadows: Brush Rat — small defensive scavenger.
   - [ ] Elderwood: Forest Wolf — fast lunging hunter.
   - [ ] Elderwood: Elderwood Bear — rare hard enemy; future Moonstone source.
-  - [ ] Shimmering Lakes: Reed Adder — dry-bank ambusher.
+  - [ ] Shimmering Lakes: Reed Snake — hides in shoreline reeds; quick lunging bite.
   - [ ] Shimmering Lakes: Reed Lurker — rare hard shoreline beast.
   - [ ] Mossy Mire: Bog Adder — bite-and-retreat hunter.
   - [ ] Mossy Mire: Mire Mosquito — fragile flying pest; quick stab, then retreats.

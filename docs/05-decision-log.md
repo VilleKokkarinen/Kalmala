@@ -4,6 +4,7 @@ Add new decisions at the top. A decision records what agents should treat as set
 
 | Date | Decision | Status | Rationale |
 | --- | --- | --- | --- |
+| 2026-10-19 | Shimmering Lakes has shoreline snakes. | User-directed plan | Clarify the existing Reed Adder proposal as Reed Snake (ReedSnake): hides in dry reeds, coils and lunges, then retreats. Retain 50 health/0 Armor/10 Stab and 1 Bone Fragment; no new roster slot or poison system. Implementation pending. |
 | 2026-10-19 | Add a mosquito-like Mossy Mire enemy. | User-directed plan | Mire Mosquito proposal: 25 health, 0 Armor, 8 Stab; audible flying approach, short stab and retreat. Adds a third Mire option without replacing Bog Adder/Peat Husk or increasing spawn budgets. No new loot item; flight/collision support and balancing remain implementation work. |
 | 2026-10-19 | Queue biome enemy expansion before A9 and move Moonstone to a harder Elderwood enemy. | User-directed plan | A8a proposes twelve enemies across seven biomes; hard Elderwood Bear replaces boars as the 2% Moonstone source. Roster/stats/weights remain editable, aquatic support is gated and original vertical-slice acceptance is unchanged. No runtime implementation yet. |
 | 2026-10-19 | Move Moonstone's 2% chance of 1 from Mirelings to another enemy in Elderwood. | User-directed plan | Proposed enemy: Elderwood-spawned boar, using the existing archetype. Validate server spawn biome, one roll per credited defeat; other boars/deer/Mirelings cannot drop Moonstone. Dusk Diamond's Mireling source stays unchanged. |

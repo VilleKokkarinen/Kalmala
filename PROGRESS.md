@@ -1,3 +1,12 @@
+## User-directed planning 2026-10-19 — Shimmering Lakes snakes
+
+- Clarified Reed Adder as Reed Snake in `BACKLOG.md`, `docs/biome-enemies.md`
+  and decision log: dry shoreline reeds, coil/lunge/retreat; existing proposed
+  50 health/0 Armor/10 Stab and loot retained. Roster count remains thirteen.
+- Checked naming, diff, whitespace, staged scope and paths. Planning only;
+  no runtime/data/assets changes or tests; full verification deferred.
+  Pre-existing edits preserved; main checkout, no sync. Next: roster review.
+
 ## User-directed planning 2026-10-19 — Mire Mosquito
 
 - Added Mire Mosquito to A8a in `BACKLOG.md`, `docs/biome-enemies.md`, comparison
