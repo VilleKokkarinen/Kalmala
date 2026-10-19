@@ -184,7 +184,7 @@ Agents must follow reviewed values and report gaps instead of inventing designs.
   - [ ] Review the expanded roster, spawn weights and attack/loot rules.
   - [ ] Meadows: Brush Rat — small defensive scavenger.
   - [ ] Elderwood: Woodland Badger — easier territorial enemy; short bite and retreat.
-  - [ ] Elderwood: Elderwood Bear — rare hard enemy; future Moonstone source.
+  - [ ] Elderwood: Moon Bear — rare hard enemy; future Moonstone source.
   - [ ] Shimmering Lakes: Viper — shoreline ambusher; lunging bite applies weak poison for 5 s.
   - [ ] Shimmering Lakes: Reed Lurker — rare hard shoreline beast.
   - [ ] Mossy Mire: Bog Adder — highly venomous snake; bite applies major poison for 10 s.
@@ -203,7 +203,7 @@ Agents must follow reviewed values and report gaps instead of inventing designs.
   - [ ] Skiff Cargo Chest: Hammer, 6 Lightwood + 2 String + 1 Bronze; 12 cells/skiff.
   - [ ] Gemstone rocks: rare resource-slot replacements; 10% gem-smash risk per hit, success yields 1 gem.
   - [ ] Quartz rock: Elderwood/Lakes, proposed 5% replacement of Copper/Tin spawn slots.
-  - [ ] Moonstone: proposed 2% chance of 1 per credited Elderwood Bear defeat; requires A8a.
+  - [ ] Moonstone: proposed 2% chance of 1 per credited Moon Bear defeat; requires A8a.
   - [ ] Garnet: proposed 10% chance of 1 in Elderwood/Lakes world treasure chests; chest-only.
   - [ ] Jade rock: Shimmering Lakes, proposed 2% replacement of Tin spawn slots.
   - [ ] Amethyst rock: Mossy Mire, proposed 3% replacement of Iron Ore spawn slots.

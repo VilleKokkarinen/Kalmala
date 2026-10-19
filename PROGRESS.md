@@ -1,3 +1,14 @@
+## User-directed planning 2026-10-19 — Moon Bear rename
+
+- Renamed the planned Elderwood Bear/ID to Moon Bear/`MoonBear` in
+  `BACKLOG.md`, `docs/biome-enemies.md`, `docs/alpha-item-details.md` and
+  `docs/alpha-items.md`; recorded the decision in `docs/05-decision-log.md`.
+  Retained Elderwood habitat, stats, attacks, loot and 2% Moonstone chance.
+- Checked current references, whitespace, staged ownership and path lengths.
+  Planning only; no runtime or authority changes, no tests; full verification
+  deferred. Pre-existing edits preserved; main checkout, no handoff sync.
+  Next: continue roster review; A8a implementation remains queued.
+
 ## User-directed planning 2026-10-19 — Wolf relocation and Elderwood replacement
 
 - Updated `BACKLOG.md`, `docs/biome-enemies.md`, `docs/alpha-items.md` and

@@ -4,6 +4,7 @@ Add new decisions at the top. A decision records what agents should treat as set
 
 | Date | Decision | Status | Rationale |
 | --- | --- | --- | --- |
+| 2026-10-19 | Rename the planned Elderwood Bear to Moon Bear (`MoonBear`). | User-directed plan | Remains the rare hard Elderwood enemy and exclusive 2% Moonstone source. Stats, attacks and other loot unchanged; supersedes the earlier name. Implementation pending. |
 | 2026-10-19 | Move the wolf from Elderwood to Freezing Tundra, strengthen it, and add an easier Elderwood enemy. | User-directed plan | Proposed Tundra Wolf: 160 health/3 Armor/28 Slash, up from 80/0/15. Woodland Badger replaces its Elderwood role: 60 health/0 Armor/10 Stab. Fourteen additions total; split Tundra common slots between wolf and lynx without increasing budgets. Implementation pending. |
 | 2026-10-19 | Bog Adder is a highly venomous Mossy Mire snake whose bite applies major poison for 10 seconds. | User-directed plan | Proposed 5 Poison/second (50 total before defenses); repeat bites refresh without stacking. Only the strongest active poison deals damage; weak poison cannot extend major duration. Retain physical bite, stats and loot. Implementation pending. |
 | 2026-10-19 | Mire Mosquito swarm bites also apply weak poison for 10 seconds. | User-directed plan | Proposed 1 Poison/second, shared with Viper poison without stacking or shortening duration. Rolls/fire prevent new bites; applied poison expires normally. Supersedes the earlier no-poison mosquito proposal; implementation pending. |

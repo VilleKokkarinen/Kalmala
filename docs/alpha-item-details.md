@@ -258,7 +258,7 @@ that contract conflict before substituting a new wall/frame design.
 
 Cargo, ten gems, special gear and discovery rewards (P2; scope gated).
 Enemy expansion A8a precedes this category. See the
-[biome roster](biome-enemies.md); Moonstone requires its accepted Elderwood Bear.
+[biome roster](biome-enemies.md); Moonstone requires its accepted Moon Bear.
 
 - Review travel scope: propose only Skiff Cargo Chest (`SkiffCargoChest`), defer cart/carry-pack progression, encumbrance and hull durability. Hammer placement costs 6 Lightwood + 2 String + 1 Bronze, on one fixed cargo socket per existing skiff; no skiff inventory item or new boat tier.
 - Implement the approved cargo chest: 12 shared stack cells, interact within 2 m while skiff speed is at most 100 cm/s, same GUID/quantity/capacity rules as land storage. Save cargo against stable vessel ID; reject detachment/removal with contents, retain contents across validated vessel reload, no spill/duplication on reconnect. In-flight transfer rejects unchanged (blocked on explicit approval and existing vessel-persistence support; report any persistence gap).
@@ -269,7 +269,7 @@ Enemy expansion A8a precedes this category. See the
 | Gem / item ID | Exclusive eligible source | Proposed rarity / successful yield | Required use |
 | --- | --- | --- | --- |
 | Smoky Quartz (`SmokyQuartz`) | Dedicated Quartz rock replacing Copper slots in Elderwood or Tin slots in Shimmering Lakes | 5% of eligible spawn slots; 1 gem if extracted | Quartz Necklace |
-| Moonstone (`Moonstone`) | Credited Elderwood Bear defeats only; A8a prerequisite | 2% (1/50) | Moonstone Ring |
+| Moonstone (`Moonstone`) | Credited Moon Bear defeats only; A8a prerequisite | 2% (1/50) | Moonstone Ring |
 | Garnet (`Garnet`) | World treasure chests in Elderwood or Shimmering Lakes | 10% (1/10) | Garnet Necklace |
 | Green Jade (`GreenJade`) | Dedicated Jade rock replacing Tin slots in Shimmering Lakes only | 2% of eligible spawn slots; 1 gem if extracted | Jade Ring |
 | Amethyst (`Amethyst`) | Dedicated Amethyst rock replacing Iron Ore slots in Mossy Mire only | 3% of eligible spawn slots; 1 gem if extracted | Amethyst Necklace |
@@ -315,7 +315,7 @@ support; it is not assumed to exist in current interaction-based mining.
 Enemy/treasure gems still roll once per credited defeat/chest generation.
 Persist claims; opening, retries or reload cannot reroll. Lake treasure may
 roll Garnet/Aquamarine independently. Moonstone now belongs only to A8a's
-hard Elderwood Bear, replacing the boar proposal. Check enemy kind and
+hard Moon Bear, replacing the boar proposal. Check enemy kind and
 authoritative Elderwood spawn identity. Resolve once per credited defeat
 alongside its listed ordinary loot; no retry/reload reroll. Forest Wolves,
 boars, deer and Mirelings cannot drop Moonstone. Dusk Diamond remains exclusive

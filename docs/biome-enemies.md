@@ -16,7 +16,7 @@ before existing defenses; no client-authored damage or offensive player magic.
 | --- | --- | --- | --- | --- | --- |
 | Meadows | Brush Rat (`BrushRat`) | Small scavenger; bites only when approached within 3 m or attacked | 35 / 0 | 6 Stab | 1 Bone Fragment |
 | Elderwood | Woodland Badger (`WoodlandBadger`) | Easier territorial animal; warns within 3 m, short bite and retreat if approached or attacked | 60 / 0 | 10 Stab | 1 Bone Fragment |
-| Elderwood | Elderwood Bear (`ElderwoodBear`) | Rare hard enemy; slow overhead paw strike, punishable recovery | 250 / 5 | 35 Crush | 3 Bone Fragment |
+| Elderwood | Moon Bear (`MoonBear`) | Rare hard enemy; slow overhead paw strike, punishable recovery | 250 / 5 | 35 Crush | 3 Bone Fragment |
 | Shimmering Lakes | Viper (`Viper`) | Snake hiding in dry shoreline reeds; visible coil, narrow lunging bite, then retreats; applies weak poison for 5 s | 50 / 0 | 10 Stab + poison below | 1 Bone Fragment |
 | Shimmering Lakes | Reed Lurker (`ReedLurker`) | Rare hard, original shoreline beast; two-legged rush and broad forelimb swipe on land | 160 / 3 | 25 Crush | 2 Bone Fragment |
 | Mossy Mire | Bog Adder (`BogAdder`) | Highly venomous camouflaged snake; visible coil, short bite then retreat; major poison for 10 s | 70 / 0 | 14 Stab + major poison below | 1 Bone Fragment |
@@ -172,7 +172,7 @@ existing heat-only API can recognize every new flame source.
 
 ## Moonstone transfer
 
-Move Moonstone exclusively to **Elderwood Bear**, with a **2% chance of exactly
+Move Moonstone exclusively to **Moon Bear**, with a **2% chance of exactly
 1 per credited defeat**, otherwise 0, alongside its 3 Bone Fragment.
 Use the authoritative enemy kind and Elderwood spawn identity, not the biome
 where a player lures it. Boars, deer, Woodland Badgers, Tundra Wolves and Mirelings cannot drop
@@ -198,7 +198,7 @@ applicable full build, automation, biome/population, combat, peer/privacy and
 restart checks from [development setup](07-development-setup.md). Record exact
 commands/results and repair milestone defects. Demonstrate seeded population
 within budgets, valid/invalid attacks, visible windups, credited loot once,
-full-pack handling and relevant peers. Prove Woodland Badger/Elderwood Bear
+full-pack handling and relevant peers. Prove Woodland Badger/Moon Bear
 difficulty and Tundra Wolf/Snow Lynx/Tundra Bear roles in
 play and check Moonstone's eligible/ineligible source cases with controlled
 loot fixtures; do not require random grinding to test the probability boundary.

@@ -111,7 +111,7 @@ plot-based cultivation, lake-school fishing, six shelter/furniture pieces,
 skiff cargo and bronze/gem accessories with distinct Armor, health, stamina,
 sprint efficiency, regeneration, healing and support-spell-cost roles. A9
 proposes ten gems with dedicated rare gemstone rocks,
-Elderwood Bear, Mossy Mire Mireling and treasure drops. Star Opal, Storm Sapphire and Dusk Diamond are
+Moon Bear, Mossy Mire Mireling and treasure drops. Star Opal, Storm Sapphire and Dusk Diamond are
 special ingredients for named armour, weapon and jewellery recipes; all ten
 have explicit uses, costs and effects in the linked details.
 Gemstone rocks replace selected resource slots: each pickaxe hit risks a 10%
@@ -123,7 +123,7 @@ Elderwood has an easier Woodland Badger; the strengthened Tundra Wolf moves
 exclusively to Freezing Tundra alongside Snow Lynx and Tundra Bear.
 Mossy Mire includes Mire Mosquito swarms alongside Bog Adder/Peat Husk:
 repeated small bites, roll escape and avoidance of lit torches/other fires.
-Moonstone moves to the hard Elderwood Bear; aquatic enemies remain scope-gated.
+Moonstone moves to the hard Moon Bear; aquatic enemies remain scope-gated.
 It defers terrain-editing
 Hoe, cold-protection clothing, new trophies/scrolls, cart/carry packs and extra
 brewing stations. These remain reviewable scope choices, not silent changes to
