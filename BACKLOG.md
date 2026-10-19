@@ -115,9 +115,9 @@ Agents must follow reviewed values and report gaps instead of inventing designs.
 
 - [ ] **A1 — Metals and fuel (P0).** [Details](docs/alpha-item-details.md#a1)
   - [ ] Review processing rules and Stone → Bronze → Iron progression.
-  - [ ] Copper: Elderwood rocks; Tin: dry lake-shore gravel. Stone Pick+, 3 ore/node.
-  - [ ] Charcoal Kiln: Hammer, 12 Stone + 6 Wood; 1 Wood → 1 Coal in 30 seconds.
-  - [ ] Smelter: Hammer, 18 Stone + 8 Wood; 1 ore + 1 Coal → 1 bar in 30 seconds.
+  - [ ] Copper: Elderwood rocks; Tin: Shimmering Lakes shore gravel. Stone Pick+, 3 ore/node.
+  - [ ] Charcoal Kiln: Hammer, 20 Stone; 1 Wood → 1 Coal in 30 seconds.
+  - [ ] Smelter: Hammer, 20 Stone + 20 Wood; 1 ore + 1 Coal → 1 bar in 30 seconds.
     Forge alloy: 2 Copper + 1 Tin → 1 Bronze.
   - [ ] Mire bog iron: Bronze Pick+, 3 Iron Ore/node; replace direct-bar drops.
 

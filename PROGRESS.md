@@ -1,3 +1,13 @@
+## User-directed planning 2026-10-19 — A1 sources and station costs
+
+- Updated A1 in `BACKLOG.md`, matching entries in `docs/alpha-item-details.md`
+  and `docs/05-decision-log.md`: Copper in Elderwood, Tin in Shimmering Lakes;
+  Kiln placement costs 20 Stone; Smelter costs 20 Stone + 20 Wood.
+- Checked matching costs/sources, whitespace, staged ownership and path lengths.
+  Planning only; no runtime change or tests. Full verification deferred.
+  Preserved/excluded pre-existing A0 edits, crafting-layout checkbox and other
+  workspace edits. Main checkout, no sync. Next: continue review of A1 rules.
+
 ## User-directed planning 2026-10-19 — Dedicated Bow String recipe
 
 - Updated `BACKLOG.md`, `docs/alpha-item-details.md`, `docs/alpha-items.md` and

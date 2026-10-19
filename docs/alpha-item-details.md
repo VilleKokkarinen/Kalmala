@@ -60,8 +60,8 @@ existing routes to preserve and verify; **add/change** rows await review.
 | Bone Fragment | Existing boars and deer | Additional 1 Bone Fragment per credited defeat | Add under A0; no new creature |
 | Amber | Existing Mossy Mire peat-amber seams | Stone Pick or better; retain existing deterministic source yield | Retain |
 | Frost Salt | Existing Freezing Tundra deposits and frostmoss | Retain existing source-specific pick/knife actions and authored yields | Retain |
-| Copper Ore | New exposed copper-bearing rock nodes in Elderwood | Stone Pick or better; 3 Copper Ore per exhausted node | Add under A1 |
-| Tin Ore | New tin-bearing gravel nodes on dry Shimmering Lakes shores | Stone Pick or better; 3 Tin Ore per exhausted node | Add under A1 |
+| Copper Ore | New exposed copper-bearing rock nodes in Elderwood | Stone Pick or better; 3 Copper Ore per exhausted node | A1; biome user-confirmed |
+| Tin Ore | New tin-bearing gravel nodes on dry Shimmering Lakes shores | Stone Pick or better; 3 Tin Ore per exhausted node | A1; biome user-confirmed |
 | Iron Ore | Existing Mossy Mire bog-iron nodes | Bronze Pick or better; 3 Iron Ore per exhausted node, replacing direct Iron-bar reward | Change under A1; preserve existing behavior until approved |
 | Coal | Wood burned in a placed charcoal station | 1 Wood produces 1 Coal; no mined Coal source, no new fuel item | Add under A1; processing scope gated |
 | Copper | Copper Ore refined at placed smelter | 1 Copper Ore + 1 Coal produces 1 Copper | Add under A1; processing scope gated |
@@ -95,8 +95,8 @@ Ores, bars and fuel (P0; new processing scope gated).
 
 | Buildable / process | Direct-material placement or recipe | Operation |
 | --- | --- | --- |
-| Charcoal Kiln (`CharcoalKiln`) | Hammer: 12 Stone + 6 Wood | 1 Wood → 1 Coal in 30 seconds; 10-input/10-output capacity, one job at a time |
-| Smelter (`Smelter`) | Hammer: 18 Stone + 8 Wood | 1 ore + 1 Coal → 1 matching bar in 30 seconds; 10 ore/10 Coal/10 output capacity; Copper, Tin, Iron only |
+| Charcoal Kiln (`CharcoalKiln`) | Hammer: 20 Stone | 1 Wood → 1 Coal in 30 seconds; 10-input/10-output capacity, one job at a time |
+| Smelter (`Smelter`) | Hammer: 20 Stone + 20 Wood | 1 ore + 1 Coal → 1 matching bar in 30 seconds; 10 ore/10 Coal/10 output capacity; Copper, Tin, Iron only |
 | Bronze alloying | Forge level 1: 2 Copper + 1 Tin → 1 Bronze | Immediate paid craft, MaxBatch 5; no additional Coal or skill requirement |
 
 Kiln/smelter need grounded placement, a clear 1 m interaction approach and
