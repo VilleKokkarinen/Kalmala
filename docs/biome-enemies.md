@@ -11,23 +11,23 @@ Mireling's biome and stats are also planned changes to an existing enemy.
 
 | Enemy               | Biome                                  | Status           | HP   | Armor | Attack       | Abilities / counters                |
 | ------------------- | -------------------------------------- | ---------------- | ---: | ----: | ------------ | ----------------------------------- |
-| Boar                | Meadows / Elderwood / Shimmering Lakes | Current          |  100 |     0 | 15 Crush     | Territorial charge                  |
-| Deer                | Meadows / Elderwood / Shimmering Lakes | Current          |  100 |     0 | —            | Flees; alerts nearby deer           |
-| Mireling            | Mossy Mire                             | Planned retune   |   60 |     0 | 8 Crush      | Weak base enemy; simple melee       |
-| Brush Rat           | Meadows                                | Planned          |   35 |     0 | 6 Stab       | Defensive bite                      |
-| Woodland Badger     | Elderwood                              | Planned          |   60 |     0 | 10 Stab      | Warns; bites; retreats              |
-| Moon Bear           | Elderwood                              | Planned          |  250 |     5 | 35 Crush     | Slow overhead strike; 2% Moonstone  |
-| Viper               | Shimmering Lakes                       | Planned          |   50 |     0 | 10 Stab      | Weak poison: 1/s, 5 s               |
-| Giant Snake         | Shimmering Lakes                       | Planned          |  160 |     3 | 25 Stab      | Coiled lunge; slow recovery         |
-| Bog Adder           | Mossy Mire                             | Planned          |   70 |     0 | 14 Stab      | Major poison: 5/s, 10 s             |
-| Mire Mosquito swarm | Mossy Mire                             | Planned          |   25 |     0 | 2 Stab/0.5 s | Poison: 1/s, 10 s; roll/fire repels |
-| Peat Husk           | Mossy Mire                             | Planned          |  220 |     6 | 30 Crush     | Slow sweeping arm                   |
-| Tundra Wolf         | Freezing Tundra                        | Planned          |  160 |     3 | 28 Slash     | Pursuit; lunging bite               |
-| Snow Lynx           | Freezing Tundra                        | Planned          |  120 |     0 | 22 Slash     | Leap; punish missed landing         |
-| Tundra Bear         | Freezing Tundra                        | Planned          |  300 |     6 | 40 Crush     | Committed charge                    |
-| Ridge Goat          | Thunder Mountains                      | Planned          |  120 |     2 | 20 Crush     | Territorial horn charge             |
-| Crag Sentinel       | Thunder Mountains                      | Planned          |  280 |    10 | 38 Crush     | Slow downward slam                  |
-| Reef Maw            | Ocean                                  | Planned, blocked |  180 |     2 | 28 Stab      | Swimmer hunter; aquatic approval    |
+| Boar                | Meadows / Elderwood / Shimmering Lakes | Current          |  20  |   5   | 10 Crush     | Territorial charge                  |
+| Deer                | Meadows / Elderwood / Shimmering Lakes | Current          |  30  |   5   | —            | Flees; fleeing alerts nearby deer   |
+| Rat                 | Meadows                                | Planned          |  10  |   0   | 5 Pierce     | Defensive bite                      |
+| Badger              | Elderwood                              | Planned          |  100 |   10  | 20 Slash     | Slashes with it's claws             |
+| Moon Bear           | Elderwood                              | Planned          |  250 |   20  | 75 Crush     | Slow overhead strike; 2% Moonstone  |
+| Viper               | Shimmering Lakes                       | Planned          |  100 |   10  | 50 Stab      | Weak poison: 1/s, 5 s               |
+| Giant Snake         | Shimmering Lakes                       | Planned          |  250 |   30  | 100 Stab     | Coiled lunge; slow recovery         |
+| Mireling            | Mossy Mire                             | Planned          |  75  |   15  | 20 Crush     | Weak base enemy; simple melee       |
+| Death Adder         | Mossy Mire                             | Planned          |  125 |   20  | 75 Stab      | Major poison: 5/s, 10 s             |
+| Mosquito swarm      | Mossy Mire                             | Planned          |  25  |   0   | 5 Stab/0.2 s | Poison: 1/s, 10 s; roll/fire repels |
+| Peat Husk           | Mossy Mire                             | Planned          |  300 |   50  | 150 Crush    | Slow sweeping arm                   |
+| Wolf                | Freezing Tundra                        | Planned          |  250 |   40  | 100 Slash    | Pursuit; lunging bite               |
+| Lynx                | Freezing Tundra                        | Planned          |  150 |   30  | 75 Slash     | Leap at player                      |
+| Polar Bear          | Freezing Tundra                        | Planned          |  750 |   60  | 200 Crush    | Committed charge                    |
+| Horned Goat         | Thunder Mountains                      | Planned          |  200 |   50  | 50 Crush     | Territorial horn charge, push + stagger |
+| Thunder Sentinel    | Thunder Mountains                      | Planned          |  1250|   75  | 300 Crush    | Slow downward slam                  |
+| Reef Maw            | Ocean                                  | Planned, blocked |  180 |   2   | 50 Stab      | Swimmer hunter; aquatic approval    |
 
 Current defaults: [wildlife](../Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp),
 [health](../Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h) and
@@ -49,21 +49,22 @@ Unique means a characteristic drop, not an exclusive source for shared Sinew.
 
 | Enemy            | Unique drop        | Amount / chance | Intended use              |
 | ---------------- | ------------------ | --------------- | ------------------------- |
-| Boar             | Boar Tusk          | 1 / 50%         | Weapon fittings           |
-| Deer             | Sinew              | 1 / 50%         | Bow String; 4 Sinew each  |
-| Rat              | Rat Tail           | 1 / 100%        | Fishing bait ingredient   |
-| Badger           | Badger Claw        | 1 / 100%        | Claw weapon component     |
+| Deer             | Sinew              | 1 / 100%        | Bow String; 4 Sinew each  |
+| Rat              | Rat Tail           | 1 / 100%        | Future potion ingredient  |
+| Badger           | Badger Fur         | 1 / 100%        | Armor component           |
+| Badger           | Badger Meat        | 1 / 100%        | Cooking component         |
 | Moon Bear        | Moonstone          | 1 / 2%          | Moonstone Ring            |
-| Viper            | Viper Fang         | 1 / 50%         | Poison arrow ingredient   |
-| Giant Snake      | Giant Snake Skin   | 2 / 100%        | Scaled armor component    |
-| Mireling         | Dusk Diamond       | 1 / 0.5%        | Special Dusk Ring         |
-| Death Adder      | Death Adder Venom  | 1 / 50%         | Strong poison ammunition  |
-| Mosquito swarm   | Mosquito Proboscis | 1 / 25%         | Fine needle crafting      |
-| Peat Husk        | Peat Heart         | 1 / 25%         | Swamp jewelry component   |
-| Wolf             | Wolf Pelt          | 1 / 100%        | Fur clothing component    |
-| Lynx             | Lynx Claw          | 1 / 50%         | Light weapon component    |
-| Polar Bear       | Polar Bear Pelt    | 2 / 100%        | Heavy fur armor component |
-| Horned Goat      | Goat Horn          | 1 / 100%        | Weapon/grip component     |
+| Viper            | Viper Fang         | 1 / 100%        | Poison arrow ingredient   |
+| Giant Snake      | Giant Scale        | 2 / 100%        | Heavy armor component     |
+| Mireling         | Dusk Diamond       | 1 / 1%          | Special Dusk Ring         |
+| Death Adder      | Venom Sac          | 1 / 100%        | Anti Poison potion ingr.  |
+| Peat Husk        | Peat Heart         | 1 / 25%         | Cooking component         |
+| Wolf             | Wolf Pelt          | 1 / 100%        | Armor component           |
+| Wolf             | Wolf fang          | 1 / 25%         | Weapon component          |
+| Wolf             | Wolf meat          | 1 / 100%        | Cooking component         |
+| Lynx             | Lynx Pelt          | 1 / 50%         | Armor/Weapon component    |
+| Polar Bear       | Polar Bear Pelt    | 2 / 100%        | Heavy armor component     |
+| Horned Goat      | Goat Horn          | 1 / 100%        | multi-use component       |
 | Thunder Sentinel | Thunder Core       | 1 / 25%         | Lightning gear component  |
 | Reef Maw         | Reef Tooth         | 1 / 50%         | Harpoon component; gated  |
 
@@ -97,18 +98,18 @@ swarm currently have no unique drop, so neither receives a new recipe here.
 | Badger Fur Vest  | Workbench    | 6 Badger Fur + 2 String → 1                  | Chest; 6 Armor                 |
 | Roasted Badger   | Cooking Rack | 1 Badger Meat → 1                            | Steady Meal                    |
 | Moonstone Ring   | Forge        | 5 Bronze + 1 Moonstone → 1                   | +20 max stamina; existing plan |
-| Fang Arrows      | Workbench    | 2 Viper Fang + 10 Wood → 20                  | 25 Pierce; weak poison 5 s     |
-| Scale Cuirass    | Forge        | 10 Giant Scale + 8 Bronze → 1                | Chest; 16 Armor                |
+| Fang Arrows      | Workbench    | 2 Viper Fang + 10 Wood → 20                  | 50 Pierce; weak poison 5 s     |
+| Scale Cuirass    | Forge        | 10 Giant Scale + 10 Bronze → 1               | Chest; 20 Armor                |
 | Dusk Ring        | Forge        | 5 Iron + 1 Dusk Diamond → 1                  | +10 HP, +10 stamina, +5 Armor  |
-| Antidote         | Cauldron     | 1 Venom Sac + 2 Lingonberry → 1              | Clear weak/major poison        |
+| Antidote         | Cauldron     | 1 Venom Sac + 2 Lingonberry → 1              | Clear weak poison + poison resistance for 10 minutes. major poison effect reduced to half.        |
 | Peat Heart Stew  | Cauldron     | 1 Peat Heart + 2 Potato + 1 Onion → 2        | Steady Meal                    |
-| Wolf Pelt Boots  | Workbench    | 6 Wolf Pelt + 2 String → 1                   | Boots; 6 Armor                  |
-| Fang Spear       | Forge        | 3 Wolf fang + 6 Iron + 4 Densewood → 1       | 70 Stab                        |
-| Wolf Stew        | Cauldron     | 1 Wolf meat + 1 Carrot + 1 Onion → 2         | Steady Meal                    |
+| Wolf Pelt Boots  | Workbench    | 5 Wolf Pelt + 5 Iron   → 1                   | Boots; 10 Armor                |
+| Fang Spear       | Forge        | 4 Wolf fang + 10 Iron + 10 Densewood → 1     | 100 Stab                       |
+| Wolf Stew        | Cauldron     | 1 Wolf meat + 3 Carrot + 3 Onion → 1         | Steady Meal                    |
 | Lynx Mantle      | Workbench    | 4 Lynx Pelt + 2 String → 1                   | Cape; 8 Armor                  |
-| Polar Bear Coat  | Forge        | 8 Polar Bear Pelt + 12 Iron → 1              | Chest; 26 Armor                |
-| Horn Bow         | Workbench    | 2 Goat Horn + 6 Densewood + 2 Bow String → 1 | 35 Pierce bow bonus            |
-| Thunder Maul     | Forge        | 1 Thunder Core + 20 Iron + 4 Densewood → 1   | 100 Crush + 30 Lightning       |
+| Polar Bear Coat  | Forge        | 5 Polar Bear Pelt + 20 Iron → 1              | Chest; 50 Armor                |
+| Horn Bow         | Workbench    | 2 Goat Horn + 10 Densewood + 1 Bow String → 1| 100 Pierce bow bonus, slow draw|
+| Thunder Maul     | Forge        | 1 Thunder Core + 20 Iron + 10 Densewood → 1  | 100 Crush + 30 Lightning       |
 | Reef Harpoon     | Forge        | 3 Reef Tooth + 8 Iron + 4 Lightwood → 1      | 60 Pierce; spear weapon        |
 
 - Meals use the existing proposed Steady Meal: 120 s, stamina costs ×0.90;
