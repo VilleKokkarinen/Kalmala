@@ -1,3 +1,19 @@
+## User-directed planning 2026-10-19 — Varied jewellery bonuses
+
+- Updated A9 in `BACKLOG.md`, `docs/alpha-item-details.md`, comparison and
+  decision log: eight distinct jewellery roles. Quartz keeps +10 Armor and
+  Moonstone +20 maximum stamina; Garnet +20 maximum health, Jade −10% sprint
+  stamina cost, Amethyst −15% support-spell stamina cost, Aquamarine +15%
+  stamina regeneration, Tourmaline +10% healing received. Dusk Ring proposes
+  +10 maximum health/+10 maximum stamina/+5 Armor. Values remain for review.
+- Defined affected actions, modifier composition, tick evaluation and no
+  equip-heal/refill/stacking behavior. Gear recipes, gems, mining risk and
+  special sword/tunic are unchanged. Derived-stat work is explicitly pending.
+- Checked summary/detail consistency, stale uniform bonuses, whitespace,
+  links, paths and staged scope. Documentation only; no runtime/data/assets,
+  save changes, builds or tests. Full verification deferred. Preserved all
+  pre-existing edits; main checkout, no sync. Next: review jewellery values.
+
 ## User-directed planning 2026-10-19 — Dedicated gemstone rocks
 
 - Updated A9 in `BACKLOG.md`, `docs/alpha-item-details.md`, comparison and

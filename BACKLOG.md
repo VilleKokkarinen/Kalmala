@@ -197,14 +197,14 @@ Agents must follow reviewed values and report gaps instead of inventing designs.
   - [ ] Review Necklace/Ring slots; one item per slot, bonuses only while equipped.
   - [ ] Quartz Necklace: Forge, 3 Bronze + 1 Smoky Quartz; +10 Armor.
   - [ ] Moonstone Ring: Forge, 2 Bronze + 1 Moonstone; +20 maximum stamina.
-  - [ ] Garnet Necklace: Forge, 3 Bronze + 1 Garnet; +10 Armor (alternative to Quartz).
-  - [ ] Jade Ring: Forge, 2 Bronze + 1 Green Jade; +20 maximum stamina.
-  - [ ] Amethyst Necklace: Forge, 3 Bronze + 1 Amethyst; +10 Armor.
-  - [ ] Aquamarine Ring: Forge, 2 Bronze + 1 Aquamarine; +20 maximum stamina.
-  - [ ] Tourmaline Necklace: Forge, 3 Bronze + 1 Tourmaline; +10 Armor.
+  - [ ] Garnet Necklace: Forge, 3 Bronze + 1 Garnet; +20 maximum health.
+  - [ ] Jade Ring: Forge, 2 Bronze + 1 Green Jade; sprinting costs 10% less stamina.
+  - [ ] Amethyst Necklace: Forge, 3 Bronze + 1 Amethyst; support spells cost 15% less stamina.
+  - [ ] Aquamarine Ring: Forge, 2 Bronze + 1 Aquamarine; +15% stamina regeneration rate.
+  - [ ] Tourmaline Necklace: Forge, 3 Bronze + 1 Tourmaline; +10% healing received.
   - [ ] Rimeguard Tunic: Forge, 20 Iron + 5 Deer Hide + 1 Rime Opal; 12 Armor.
   - [ ] Stormcut Sword: Forge, 20 Iron + 2 Densewood + 2 Deer Hide + 1 Storm Sapphire; 70 Slash.
-  - [ ] Dusk Ring: Forge, 5 Bronze + 1 Dusk Diamond; +20 max stamina and +5 Armor.
+  - [ ] Dusk Ring: Forge, 5 Bronze + 1 Dusk Diamond; +10 max health, +10 max stamina, +5 Armor.
   - [ ] Audit the four existing scroll routes; defer new scrolls, trophies and boss keys.
 
 - [ ] **A10 — Acceptance.** [Full criteria](docs/alpha-item-details.md#a10)

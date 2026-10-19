@@ -108,8 +108,9 @@ details for manual review. They are not implementation-agent choices.
 
 **P2: scope-dependent parity candidates.** The backlog specifically proposes
 plot-based cultivation, lake-school fishing, six shelter/furniture pieces,
-skiff cargo and bronze/gem accessories (+20 maximum stamina ring and +10
-Armor necklaces). A9 now proposes ten gems with dedicated rare gemstone rocks,
+skiff cargo and bronze/gem accessories with distinct Armor, health, stamina,
+sprint efficiency, regeneration, healing and support-spell-cost roles. A9
+proposes ten gems with dedicated rare gemstone rocks,
 Mireling and treasure drops. Rime Opal, Storm Sapphire and Dusk Diamond are
 special ingredients for named armour, weapon and jewellery recipes; all ten
 have explicit uses, costs and effects in the linked details.

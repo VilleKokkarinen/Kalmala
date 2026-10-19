@@ -309,11 +309,11 @@ Existing Amber is not counted among the ten gems; no gem conversion or random
 crafting outcomes. Existing non-gem resource generation is unchanged except
 for the explicitly selected replacement slots.
 
-- Review Necklace/Ring slot support. Equip one item in each named slot using validated GUID/replace/return and full-pack rules; copies cannot stack bonuses. User-selected effects are +10 Armor for Necklace and +20 maximum stamina for Ring, replacing the earlier spell-cost discounts.
+- Review Necklace/Ring slot support. Equip one item in each named slot using validated GUID/replace/return and full-pack rules; copies cannot stack bonuses. The varied effect table below supersedes the uniform necklace-Armor/ring-stamina proposal. Quartz Necklace and Moonstone Ring retain the earlier +10 Armor/+20 maximum stamina roles; other bonuses are concrete reviewable proposals.
 - Add Quartz Necklace (`QuartzNecklace`) with the reviewed craft/equip/stat/icon path (blocked on gem acquisition and accessory support).
 - Add Moonstone Ring (`MoonstoneRing`) with the reviewed craft/equip/stat/icon path, replacing the Quartz Ring proposal (blocked on gem acquisition and accessory support).
-- Add Garnet Necklace (`GarnetNecklace`) as an alternative route to the same +10 Armor; no stronger or additional bonus (blocked on treasure loot and accessory support).
-- Add Jade Ring (`JadeRing`), Amethyst Necklace (`AmethystNecklace`), Aquamarine Ring (`AquamarineRing`) and Tourmaline Necklace (`TourmalineNecklace`), one complete item per increment, using the table below. These give alternate acquisition routes to the existing ring/necklace roles.
+- Add Garnet Necklace (`GarnetNecklace`) for maximum health (blocked on treasure loot and accessory support).
+- Add Jade Ring (`JadeRing`), Amethyst Necklace (`AmethystNecklace`), Aquamarine Ring (`AquamarineRing`) and Tourmaline Necklace (`TourmalineNecklace`), one complete item per increment, using the distinct endurance/support/recovery roles below.
 - Add Rimeguard Tunic (`RimeguardTunic`), Stormcut Sword (`StormcutSword`) and Dusk Ring (`DuskRing`) as separate special-gear proposals below. They require their specific special gem; no ordinary-gem substitute. Approve their scope before implementation.
 - Audit the four existing Mending/Hearth Shield/Bear's Vigor/Deer Call scrolls against their current authored discovery-to-unlock/use paths. Preserve existing locations/entitlements; propose no new scroll, trophy, creature or boss key for this alpha set. Record missing current routes as defects against the existing contract, not permission to invent a reward source.
 
@@ -321,27 +321,56 @@ for the explicitly selected replacement slots.
 | --- | --- | --- |
 | Quartz Necklace | 3 Bronze + 1 Smoky Quartz | +10 integer Armor, added once to the existing physical-defense total |
 | Moonstone Ring | 2 Bronze + 1 Moonstone | +20 maximum stamina; no direct stamina refill |
-| Garnet Necklace | 3 Bronze + 1 Garnet | +10 integer Armor; alternative to Quartz Necklace, same slot |
-| Jade Ring | 2 Bronze + 1 Green Jade | +20 maximum stamina |
-| Amethyst Necklace | 3 Bronze + 1 Amethyst | +10 integer Armor |
-| Aquamarine Ring | 2 Bronze + 1 Aquamarine | +20 maximum stamina |
-| Tourmaline Necklace | 3 Bronze + 1 Tourmaline | +10 integer Armor |
-| Special Dusk Ring | 5 Bronze + 1 Dusk Diamond | +20 maximum stamina and +5 integer Armor |
+| Garnet Necklace | 3 Bronze + 1 Garnet | +20 maximum health |
+| Jade Ring | 2 Bronze + 1 Green Jade | Sprint stamina cost ×0.90; other actions unchanged |
+| Amethyst Necklace | 3 Bronze + 1 Amethyst | Authored support-spell stamina cost ×0.85 |
+| Aquamarine Ring | 2 Bronze + 1 Aquamarine | Existing stamina regeneration rate ×1.15 |
+| Tourmaline Necklace | 3 Bronze + 1 Tourmaline | Accepted Mending/draught healing received ×1.10 |
+| Special Dusk Ring | 5 Bronze + 1 Dusk Diamond | +10 maximum health, +10 maximum stamina and +5 integer Armor |
 
 All accessories stack 1; proposed weight 0.1 kg each. No durability, upgrades, repair or
 attacks. Accessory Armor remains active while equipped without wear;
 use the existing physical-only Armor calculation, not elemental resistance.
-Ring equip raises maximum stamina without increasing current stamina;
-unequip/replacement clamps current stamina to the new maximum. Repeated
-equip/unequip must never refill stamina or accumulate bonuses. Recompute
-derived stats on equipment changes; normal regeneration uses the new maximum.
+Maximum-stat bonuses never increase current health/stamina on equip;
+unequip/replacement clamps current values to the new maxima. Repeated equip
+cannot heal, refill stamina or accumulate bonuses. Recompute derived stats on
+equipment changes; normal regeneration uses the applicable maximum.
+
+Jade affects sprint expenditure only, multiplying the existing authoritative
+sprint cost after its normal modifiers; no discount to jumps, dodges, swimming,
+attacks, spells or crafting. Amethyst multiplies existing stamina costs for
+Mending, Hearth Shield, Bear's Vigor and Deer Call; no new cost if an authored
+cost is zero, no cooldown/duration/potency/unlock change. Aquamarine changes
+only the active stamina regeneration rate, not the delay or conditions that
+permit regeneration; no passive stamina gain while normal regeneration is
+blocked. Tourmaline boosts actual incoming health recovery from Mending and
+healing-draught ticks once, clamped to maximum health; no passive regeneration,
+food bonus, shield bonus, outgoing-heal multiplier or resurrection. Wearing
+it never grants healing by itself. Evaluate cost/regen/heal modifiers when
+the action/tick resolves; unequip removes them from subsequent actions/ticks.
+
+Combine flat maximum-stat/Armor contributions additively. Percentage effects
+multiply their respective server-owned base calculations once alongside
+existing Wet/Steady Meal rules; never multiply one effect twice through both
+equipment and status paths. Keep calculations finite/bounded and use the
+existing stat precision without early integer rounding. This needs explicit
+derived-stat/modifier support; these effects are not current runtime features.
+
+Acceptance must cover each effect's allowed and excluded actions, injured/full
+health, exhausted/full stamina, blocked regeneration, partial healing ticks,
+Wet/Steady Meal combinations and repeated equip/replace/unequip. Verify that
+removing an item immediately removes its future modifiers, equipment modifiers
+do not leak into another owner's derived stats, and rejected equipment requests
+change nothing.
+
 Gear remains owner-private and session-only under the existing equipped-gear
 persistence limit; no general gear-save system. Add explicit accessory/derived-
 stat handling rather than assuming the current durable-armour schema supports
 it. Alternative rings/necklaces compete for the same one-per-slot positions;
 their bonuses cannot stack within a slot. All ten gems and every resulting
 equipment item need original generated icons and applicable manifest-registered
-catalogue/recipe/stat records. Existing scroll/spell costs remain unchanged.
+catalogue/recipe/stat records. Authored base spell costs stay unchanged; only
+the equipped Amethyst modifier changes the resolved stamina cost.
 
 **Special weapon/armour proposals:** both crafted at Forge level 1, output 1,
 stack 1; each gem is consumed during crafting, not socketed or recoverable.
