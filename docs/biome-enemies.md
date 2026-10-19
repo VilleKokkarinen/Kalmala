@@ -27,18 +27,19 @@ Mireling's biome and stats are also planned changes to an existing enemy.
 | Polar Bear          | Freezing Tundra                        | Planned          |  750 |   60  | 200 Crush    | Committed charge                    |
 | Horned Goat         | Thunder Mountains                      | Planned          |  200 |   50  | 50 Crush     | Territorial horn charge, push + stagger |
 | Thunder Sentinel    | Thunder Mountains                      | Planned          |  1250|   75  | 300 Crush    | Slow downward slam                  |
-| Reef Maw            | Ocean                                  | Planned, blocked |  180 |   2   | 50 Stab      | Swimmer hunter; aquatic approval    |
+| Reef Maw            | Ocean                                  | Planned          |  180 |   2   | 50 Stab      | Swimmer hunter                      |
 
 Current defaults: [wildlife](../Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp),
 [health](../Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h) and
 [defenses](../Source/KalmalaGameplay/Public/KalmalaDamageProfile.h).
 Detailed proposals and exceptions follow.
 
-Draft for manual review, 2026-10-19. Implement through A8a in
-[BACKLOG.md](../BACKLOG.md), before A9 gems and special gear.
-These additions extend the current three-archetype roster; they do not change
-historical vertical-slice acceptance or claim that these enemies exist today.
-Names, stats, spawn weights and loot below are concrete proposals for editing.
+User-approved scope, 2026-10-19. Implement through A8a in
+[BACKLOG.md](../BACKLOG.md), including Reef Maw, then complete the combined
+A8a/A8b enemy and item verification after A8b and before A9 gems and special gear.
+These additions extend the current three-archetype roster without rewriting
+historical roadmap acceptance or claiming these enemies exist today. Names,
+stats, spawn weights and loot below remain task-level implementation details.
 
 ## Unique drops
 
@@ -49,7 +50,7 @@ Unique means a characteristic drop, not an exclusive source for shared Sinew.
 
 | Enemy            | Unique drop        | Amount / chance | Intended use              |
 | ---------------- | ------------------ | --------------- | ------------------------- |
-| Deer             | Sinew              | 1 / 100%        | Bow String; 4 Sinew each  |
+| Deer             | Sinew              | 1 / 50%         | Bow String; 4 Sinew each  |
 | Rat              | Rat Tail           | 1 / 100%        | Future potion ingredient  |
 | Badger           | Badger Fur         | 1 / 100%        | Armor component           |
 | Badger           | Badger Meat        | 1 / 100%        | Cooking component         |
@@ -66,7 +67,7 @@ Unique means a characteristic drop, not an exclusive source for shared Sinew.
 | Polar Bear       | Polar Bear Pelt    | 2 / 100%        | Heavy armor component     |
 | Horned Goat      | Goat Horn          | 1 / 100%        | multi-use component       |
 | Thunder Sentinel | Thunder Core       | 1 / 25%         | Lightning gear component  |
-| Reef Maw         | Reef Tooth         | 1 / 50%         | Harpoon component; gated  |
+| Reef Maw         | Reef Tooth         | 1 / 50%         | Harpoon component         |
 
 New materials are exclusive to their named enemy in this proposal. No shared
 venom/pelt substitution, gem conversion or automatic new equipment recipe.
@@ -74,9 +75,10 @@ Keep existing gem odds independent of baseline loot. Server owns rolls and
 stable claims; full packs preserve unclaimed rewards, and retries/reloads
 cannot reroll or duplicate them. Every new material requires its registered
 catalogue definition and original generated icon. Proposed uses need separate
-reviewed recipes/effects; fishing, cold-protection clothing, lightning gear
-and harpoons remain blocked on their own scope decisions. Reef Maw's entire
-route remains blocked on aquatic acceptance.
+reviewed recipes/effects. The approved scope includes fishing, Lightning gear,
+the Harpoon and the full Reef Maw route. Cold-protection clothing remains
+explicitly deferred; the approved aquatic route adds no fishing tether or skiff
+damage.
 
 ## Recommended items and recipes
 
@@ -100,7 +102,7 @@ swarm currently have no unique drop, so neither receives a new recipe here.
 | Moonstone Ring   | Forge        | 5 Bronze + 1 Moonstone → 1                   | +20 max stamina; existing plan |
 | Fang Arrows      | Workbench    | 2 Viper Fang + 10 Wood → 20                  | 50 Pierce; weak poison 5 s     |
 | Scale Cuirass    | Forge        | 10 Giant Scale + 10 Bronze → 1               | Chest; 20 Armor                |
-| Dusk Ring        | Forge        | 5 Iron + 1 Dusk Diamond → 1                  | +10 HP, +10 stamina, +5 Armor  |
+| Dusk Ring        | Forge        | 5 Bronze + 1 Dusk Diamond → 1                | +10 HP, +10 stamina, +5 Armor  |
 | Antidote         | Cauldron     | 1 Venom Sac + 2 Lingonberry → 1              | Clear weak poison + poison resistance for 10 minutes. major poison effect reduced to half.        |
 | Peat Heart Stew  | Cauldron     | 1 Peat Heart + 2 Potato + 1 Onion → 2        | Steady Meal                    |
 | Wolf Pelt Boots  | Workbench    | 5 Wolf Pelt + 5 Iron   → 1                   | Boots; 10 Armor                |
@@ -125,7 +127,7 @@ swarm currently have no unique drop, so neither receives a new recipe here.
 - Bow damage is a weapon bonus, combined once with arrow damage. Armor is
   physical-only. Fur items grant no cold protection in this recommendation.
 - Thunder Maul requires approved Lightning damage/channel behavior. Reef
-  Harpoon remains aquatic-scope gated; no fishing tether or skiff damage added.
+  Harpoon is included in the approved aquatic route; no fishing tether or skiff damage is added.
 - New items still need reviewed full profiles, attacks, durability, upgrades/
   repair where applicable, server-validated crafting and original inventory
   icons. These recommendations do not silently replace existing gear recipes.
@@ -228,7 +230,7 @@ and original inventory icons before implementation; the uses are not recipes.
   tuning: **75 health, 15 Armor, 20 Crush** (currently 100 health/10 Crush).
   Retain its approach and simple melee; no poison or new special ability.
 - Use the Mire's 50% base-enemy share; no Mireling spawns in other biomes.
-  Keep existing loot and the planned 0.5% Mossy Mire Dusk Diamond route.
+  Keep existing loot and the planned 1% Mossy Mire Dusk Diamond route.
 - Preserve server-owned damage, rewards and relevant-peer state. Verify
   seeded/reloaded biome filtering, updated combat stats and unchanged loot.
 

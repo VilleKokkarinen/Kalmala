@@ -91,7 +91,9 @@ Review and edit the recipes/sources below before implementation.
 [Detailed stats and rules](docs/alpha-item-details.md) retain all proposed values.
 [Comparison and sources](docs/alpha-items.md).
 
-P0 = existing gaps; P1 = item variety; P2 = new systems requiring approval.
+P0 = existing gaps; P1 = item variety; P2 = new systems. The user approved
+all queued P0/P1/P2 scope across A0–A9 on 2026-10-19, including the aquatic
+enemy and item route. Explicit exclusions described in the details remain out.
 One child task per run. Every item needs complete data, a real source and an
 original integrated icon. Buildables use Hammer + raw materials, never kits.
 Agents must follow reviewed values and report gaps instead of inventing designs.
@@ -104,18 +106,19 @@ This applies to raw drops and crafted outputs across every category. Record expl
 N/A reasons for unused data types. A missing icon or catalogue entry blocks completion.
 
 - [ ] **A0 — Existing items (P0).** [Details](docs/alpha-item-details.md#a0)
-  - [ ] Review scope and the A10 milestone plan.
+  - [x] Review scope and the A10 milestone plan; all queued P0/P1/P2 work is included, with I4 ending before A9 and I5 covering A9.
   - [ ] Audit current sources and starter progression; check the Iron-source mismatch.
   - [ ] Sinew: deer have a 50% chance to drop 1.
   - [ ] Bow String: Workbench, 4 Sinew → 1 Bow String; bows use 1 each.
+  - [ ] String: Workbench, 1 Sinew → 2 String; keep generic String separate from Bow String.
   - [ ] Lightwood: Meadow aspens, Stone Axe+, 4 per collected tree bundle.
   - [ ] Bone Fragment: add 1 to each credited boar/deer defeat.
   - [ ] Fix food use for the six current cooking outputs.
   - [ ] Hearth Broth: Cauldron, 1 Deer Meat + 1 Onion → 1 broth.
-  - [ ] Wild carrots: Shimmering Lakes, hand-pick for 2 Carrot Seed per patch.
-  - [ ] Wild potatoes: Elderwood, hand-pick 1 Potato per patch; no Potato Seed.
-  - [ ] Wild rutabaga: Mossy Mire, hand-pick 1 Rutabaga.
-  - [ ] Wild onions: Freezing Tundra, found in treasure chests at a stack size randomly of 1-10.
+  - [ ] Wild carrots: Meadows, hand-pick 2 Carrot + 1 Carrot Seed per patch.
+  - [ ] Wild potatoes: Meadows, hand-pick 2 Potato per patch; no Potato Seed.
+  - [ ] Wild rutabaga: Shimmering Lakes dry banks, hand-pick 2 Rutabaga + 1 Rutabaga Seed per patch.
+  - [ ] Wild onions: Elderwood, hand-pick 2 Onion + 1 Onion Seed per patch.
 
   Preserve existing Wood, Densewood, Stone, hides/meat, Amber and Frost Salt sources.
   New vegetable seeds become plantable in A7.
@@ -201,7 +204,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [ ] Freezing Tundra: Polar Bear — rare hard charging predator.
   - [ ] Thunder Mountains: Horned Goat — territorial horn charges; push and stagger.
   - [ ] Thunder Mountains: Thunder Sentinel — rare hard stone attacker.
-  - [ ] Run enemy milestone verification before A9; record results and blockers.
+  - [ ] Ocean: Reef Maw — swimmer hunter; included in the approved aquatic route.
 
 - [ ] **A8b — Enemy materials and crafted items (P1/P2).** [Recipes](docs/biome-enemies.md#recommended-items-and-recipes)
   - [ ] Approve drop rates, effects and missing gear profiles; reconcile older recipe/source values.
@@ -219,7 +222,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [ ] Polar Bear Pelt: Polar Bear, 2 guaranteed; material + source + JSON + generated icon.
   - [ ] Goat Horn: Horned Goat, 1 guaranteed; material + source + JSON + generated icon.
   - [ ] Thunder Core: Thunder Sentinel, 25% chance of 1; material + source + JSON + generated icon.
-  - [ ] Reef Tooth: Reef Maw, 50% chance of 1; blocked on aquatic approval.
+  - [ ] Reef Tooth: Reef Maw, 50% chance of 1; material + source + JSON + generated icon.
   - [ ] Rat-tail Tonic: Cauldron, 2 Rat Tail + 2 Lingonberry → 1; heal 30 over 10 s.
   - [ ] Badger Fur Vest: Workbench, 6 Badger Fur + 2 String → 1; Chest, 6 Armor.
   - [ ] Roasted Badger: Cooking Rack, 1 Badger Meat → 1; Steady Meal.
@@ -234,12 +237,13 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [ ] Polar Bear Coat: Forge, 5 Polar Bear Pelt + 20 Iron → 1; Chest, 50 Armor.
   - [ ] Horn Bow: Workbench, 2 Goat Horn + 10 Densewood + 1 Bow String → 1; +100 Pierce, slow draw.
   - [ ] Thunder Maul: Forge, 1 Thunder Core + 20 Iron + 10 Densewood → 1; 100 Crush + 30 Lightning.
-  - [ ] Reef Harpoon: Forge, 3 Reef Tooth + 8 Iron + 4 Lightwood → 1; 60 Pierce; aquatic approval required.
+  - [ ] Reef Harpoon: Forge, 3 Reef Tooth + 8 Iron + 4 Lightwood → 1; 60 Pierce.
   - [ ] Verify every approved drop/output has complete registered JSON, a reachable source and a generated runtime icon.
+  - [ ] Run the combined A8a/A8b enemy and enemy-item milestone verification; record results and blockers. This gate must pass before A9 begins.
 
-  Bow String stays in A0; Moonstone Ring and Dusk Ring stay in A9. Do not duplicate them.
+  Bow String and generic String stay separate in A0; Moonstone Ring and Dusk Ring stay in A9. Do not duplicate them.
   Enable new drops only when their material task is complete. Antidote resistance,
-  slow-draw timing, Lightning and aquatic effects need reviewed rules before coding.
+  slow-draw timing and Lightning effects need reviewed rules before coding; the aquatic route is approved.
   All 30 new material/output tasks include the item-completion gate above.
 
 - [ ] **A9 — Cargo, gems and special gear (P2).** [Rules](docs/alpha-item-details.md#a9)
@@ -255,7 +259,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [ ] Tourmaline rock: Thunder Mountains, proposed 2% replacement of slate spawn slots.
   - [ ] Star Opal rock (special): Tundra, proposed 1% replacement of Frost Salt deposit slots.
   - [ ] Storm Sapphire (special): proposed 2% chance of 1 in Thunder Mountains treasure.
-  - [ ] Dusk Diamond (special): proposed 0.5% chance of 1 from Mossy Mire Mirelings.
+  - [ ] Dusk Diamond (special): proposed 1% chance of 1 from Mossy Mire Mirelings.
   - [ ] Review Necklace/Ring slots; one item per slot, bonuses only while equipped.
   - [ ] Quartz Necklace: Forge, 5 Iron + 1 Smoky Quartz; +10 Armor.
   - [ ] Moonstone Ring: Forge, 5 Bronze + 1 Moonstone; +20 maximum stamina.
@@ -266,12 +270,12 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [ ] Tourmaline Necklace: Forge, 5 Iron + 1 Tourmaline; +10% damage dealt.
   - [ ] Star Opal Helmet: Forge, 20 Iron + 5 Deer Hide + 1 Star Opal; 20 Armor + 10% Damage reduction.
   - [ ] Stormcut Sword: Forge, 20 Iron + 2 Densewood + 2 Deer Hide + 1 Storm Sapphire; 100 Slash + 20 lightning damage.
-  - [ ] Dusk Ring: Forge, 5 Iron + 1 Dusk Diamond; +10 max health, +10 max stamina, +5 Armor.
+  - [ ] Dusk Ring: Forge, 5 Bronze + 1 Dusk Diamond; +10 max health, +10 max stamina, +5 Armor.
   - [ ] Audit the four existing scroll routes; defer new scrolls, trophies and boss keys.
 
 - [ ] **A10 — Acceptance.** [Full criteria](docs/alpha-item-details.md#a10)
   - [ ] Audit all approved item IDs against registered JSON and generated/imported runtime icons; zero missing entries, references or fallback icons.
-  - [ ] Review milestones: I0 A0; I1 A1; I2 A2–A6 except Rake; I3 A7 + Rake; I4 A8–A9.
+  - [ ] Review milestones: I0 A0; I1 A1; I2 A2–A6 except Rake; I3 A7 + Rake; I4 A8–A8b with its final enemy gate before A9; I5 A9.
   - [ ] Check each included item's source, recipe, use, upgrades, icon and save behavior.
   - [ ] Run required full verification at each milestone's final increment.
   - [ ] Verify fresh-start progression through Bronze and Iron without debug grants.

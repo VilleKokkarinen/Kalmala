@@ -1,19 +1,22 @@
 # Alpha item details
 
-Draft values for manual review. Task status lives in [BACKLOG.md](../BACKLOG.md).
-These details preserve the existing proposals; implementation still needs review.
+Task status lives in [BACKLOG.md](../BACKLOG.md). The user approved all queued
+P0/P1/P2 scope across A0–A9 on 2026-10-19, including Ocean Reef Maw, Reef Tooth
+and Reef Harpoon. Explicit exclusions in this proposal remain deferred. The
+reviewed A10 plan uses I0–I5, with the combined A8a/A8b enemy gate after A8b
+and before A9. Reviewed conflicts are resolved below; category-specific tasks
+still finalize their detailed contracts before implementation.
 
 **Planning basis:** [current inventory, Valheim sources and gap analysis](alpha-items.md).
-This queues item work; it does not declare a release, change completed roadmap
-acceptance, or approve new systems beyond the existing vertical slice. Follow
+This queues item work; it does not declare a release or rewrite historical
+roadmap acceptance. Follow
 the categories in order after the river queue. P0 closes existing loops; P1 is
-recommended alpha breadth; P2 is scope-dependent. Each child is a separate
-increment; split larger children into integrated increments before starting.
-Blocked children require the named decision/dependency; do not treat proposals
-as settled design. All names, costs, sources, stats and rules below are concrete
-draft proposals for user review/editing, not permission to implement new scope.
-Agents must follow the reviewed values; missing design values must be proposed
-here for review before implementation, not invented while coding.
+recommended alpha breadth; P2 adds new systems, whose scope is approved. Each
+child is a separate increment; split larger children into integrated increments
+before starting.
+Blocked children require their named dependencies. Agents must follow the
+reviewed values; missing design values must be proposed here before
+implementation, not invented while coding.
 
 **Completion for every item:** normal acquisition and usable behavior; applicable
 manifest-registered item/profile/recipe/upgrade/reward/attack data; original
@@ -25,11 +28,10 @@ materials, never inventory kits. No retired Reed Fibre or offensive magic.
 ## A0
 
 Existing item acquisition and use (P0).
-- Before implementation, review the concrete A0–A9 proposals and A10 milestone groups with the user, recording included/deferred scope and final verification gates. New-system proposals stay blocked until their scope decisions are accepted; do not delegate their design back to implementation agents.
+- The 2026-10-19 user review includes all queued P0/P1/P2 scope across A0–A9. Review the material/source table below and record the A10 gates; keep category-specific implementation reviews in order.
 - Audit normal world-to-use reachability against the material/source proposal below; report deviations and bootstrap cycles rather than selecting replacement sources. Verify generated nodes for the current direct-bar Iron path; its proposed replacement is explicitly listed under A1.
 - Add Sinew (`Sinew`) as a crafting material. User-selected deer rule: each credited defeat has a 1/2 (50%) chance to grant exactly 1 Sinew, otherwise 0. Roll once on the server per defeat; retries/duplicate reward requests must not reroll. Boar source remains a proposal of 1 per credited defeat. Add Sinew alongside existing rewards. Stack 20, proposed weight 0.1 kg; no equipment, attacks or upgrades. Register the definition and integrate an original generated icon before completion. Use the existing validated attacker/reward path; no new creature, butcher tool or corpse-processing system.
-- Replace the planned sinew-to-String recipe with Bow String (`BowString`): Workbench level 1, consume 4 Sinew to produce exactly 1 Bow String. User-selected on 2026-10-19. Proposed stack 20, weight 0.05 kg; description "A bowstring twisted from animal sinew." Add its material definition and original generated icon; no equipment, attacks or upgrades. In the planned base Bow acquisition and upgrade recipes, replace 2 String with 1 Bow String and retain 5 Wood. Verify Sinew can be acquired with existing melee gear before crafting Bow.
-- Keep generic `String` for the unrelated sword/tool/building/accessory proposals. Its source is unresolved after replacing the sinew-cord recipe: record a separate source proposal for review before implementing those dependent tasks. Do not silently substitute Bow String into them or rename existing String data/saves; no runtime catalogue change or migration is made by this plan edit.
+- Keep generic `String` (`String`) separate from Bow String (`BowString`). Workbench level 1 converts 1 Sinew into 2 generic String; retain the existing item identity, stack 20 and 0.05 kg weight, and update its description to identify sinew fibre. Bow String uses Workbench level 1 to convert 4 Sinew into 1 Bow String; proposed stack 20 and 0.05 kg, description "A bowstring twisted from animal sinew." Add its material definition and original generated icon. Use 1 Bow String in bows; do not rename existing String data or substitute one item for the other. Neither material has equipment, attacks or upgrades.
 - Add harvestable aspen trees in Meadows yielding 4 Lightwood per completed tree/log/bundle lifecycle; require Stone Axe or better. Preserve existing birch Wood rewards. Verify Bronze-family recipes/upgrades are reachable without requiring a Bronze tool to obtain Lightwood.
 - Add 1 Bone Fragment to each server-confirmed boar or deer defeat, alongside existing meat/hide rewards, paid once to the validated attacker. Retain no-reward behavior for uncredited defeats; validate reward capacity and prevent duplicate grants. Verify Boar Hide Cape crafting/upgrades.
 - Reconcile the six current cooking outputs with server food-use dispatch; remove stale food-ID assumptions and verify paid cooking-to-eating behavior.
@@ -39,12 +41,12 @@ Existing item acquisition and use (P0).
 - Add hand-gathered wild rutabaga patches in Shimmering Lakes on dry banks: each harvest grants 2 Rutabaga and 1 Rutabaga Seed; no tool required. Seed use remains blocked on A7 farming.
 - Add hand-gathered wild onion patches in Elderwood: each harvest grants 2 Onion and 1 Onion Seed; no tool required. Seed use remains blocked on A7 farming. Verify all four vegetables reach the existing cooking recipes without farming/debug grants.
 
-**Material/source proposal for manual review — not implemented or approved.**
-The following fixes the proposed sources, actions and yields now. Agents must
-implement the reviewed entries, not invent alternative biomes, drops, recipes
-or quantities. User edits take precedence. If an entry is not implementable,
-report the conflict before changing its design. Rows marked **retain** describe
-existing routes to preserve and verify; **add/change** rows await review.
+**Material/source proposal — scope approved 2026-10-19; implementation pending.**
+Agents must implement the reviewed entries, not invent alternative biomes,
+drops, recipes or quantities. User edits take precedence. If an entry is not
+implementable, report the conflict before changing its design. Rows marked
+**retain** describe existing routes to preserve and verify; **add/change** rows
+are included in the approved queue.
 
 | Material / ingredient | Proposed source and biome | Gathering / production and yield | State / dependency |
 | --- | --- | --- | --- |
@@ -52,8 +54,8 @@ existing routes to preserve and verify; **add/change** rows await review.
 | Densewood | Existing Elderwood ironheart trees | Existing Iron Axe tree/log/bundle flow and authored yield | Retain; Iron Pick/ore route below must not require Densewood |
 | Lightwood | New aspen trees in Meadows | Stone Axe or better; 4 Lightwood on final bundle pickup | Add under A0; no Bronze prerequisite |
 | Sinew | Existing deer; boar source proposed | Deer: 50% chance of 1, otherwise 0, once per credited defeat. Boar: proposed 1 per credited defeat | Deer rate user-selected; boar awaits review |
-| Bow String | Animal sinew, at Workbench | Craft 4 Sinew into 1 Bow String | User-selected recipe; implementation pending |
-| String | Source unresolved for non-bow proposals | No sinew-to-String recipe; needs a separate reviewed source | Dependent tasks blocked until source review |
+| Bow String | Animal sinew, at Workbench | Craft 4 Sinew into 1 Bow String | Dedicated bow material; implementation pending |
+| String | Animal sinew, at Workbench | Craft 1 Sinew into 2 generic String | Retain generic recipes separately from Bow String; implementation pending |
 | Stone | Existing mountain slate veins and existing Stone sources | Existing Stone Pick or better and authored yields; retain existing starter acquisition | Retain; audit fresh-start bootstrap |
 | Boar Hide / Boar Meat | Existing boars | Retain existing server-confirmed defeat rewards and quantities | Retain |
 | Deer Hide / Deer Meat | Existing deer | Retain existing server-confirmed defeat rewards and quantities | Retain |
@@ -63,9 +65,9 @@ existing routes to preserve and verify; **add/change** rows await review.
 | Copper Ore | New exposed copper-bearing rock nodes in Elderwood | Stone Pick or better; 3 Copper Ore per exhausted node | A1; biome user-confirmed |
 | Tin Ore | New tin-bearing gravel nodes on dry Shimmering Lakes shores | Stone Pick or better; 3 Tin Ore per exhausted node | A1; biome user-confirmed |
 | Iron Ore | Existing Mossy Mire bog-iron nodes | Bronze Pick or better; 3 Iron Ore per exhausted node, replacing direct Iron-bar reward | Change under A1; preserve existing behavior until approved |
-| Coal | Wood burned in a placed charcoal station | 1 Wood produces 1 Coal; no mined Coal source, no new fuel item | Add under A1; processing scope gated |
-| Copper | Copper Ore refined at placed smelter | 1 Copper Ore + 1 Coal produces 1 Copper | Add under A1; processing scope gated |
-| Tin | Tin Ore refined at placed smelter | 1 Tin Ore + 1 Coal produces 1 Tin | Add under A1; processing scope gated |
+| Coal | Wood burned in a placed charcoal station | 1 Wood produces 1 Coal; no mined Coal source, no new fuel item | Add under A1; scope approved |
+| Copper | Copper Ore refined at placed smelter | 1 Copper Ore + 1 Coal produces 1 Copper | Add under A1; scope approved |
+| Tin | Tin Ore refined at placed smelter | 1 Tin Ore + 1 Coal produces 1 Tin | Add under A1; scope approved |
 | Bronze | Copper/Tin alloying at Forge | 2 Copper + 1 Tin produces 1 Bronze | Add under A1; no direct Bronze drops |
 | Iron | Iron Ore refined at placed smelter | 1 Iron Ore + 1 Coal produces 1 Iron | Add under A1; replaces direct-bar acquisition only after review |
 | Carrot / Carrot Seed | New wild carrot patches in Meadows | Hand gather 2 Carrot + 1 Carrot Seed per patch | Add under A0; seed use waits for A7 |
@@ -80,12 +82,12 @@ node depletion/restart policy; this proposal adds no timed respawn system.
 A full inventory must leave a harvest unclaimed, with no partial plant reward
 or depletion. New-tree quantities apply at bundle pickup, not per axe hit.
 Station placement costs, processing timing/capacity and farming rules are
-proposed in A1/A7 below and likewise await manual review.
+specified in the approved A1/A7 scope; their category review tasks still apply.
 
 ## A1
 
-Ores, bars and fuel (P0; new processing scope gated).
-- Review A0's source table and the station proposal below; confirm Stone Pick → Copper/Tin → Bronze Pick → Iron Ore bootstrap and approve processing scope before implementation. Preserve current behavior until approved.
+Ores, bars and fuel (P0; processing scope approved 2026-10-19).
+- Review A0's source table and the station proposal below; confirm Stone Pick → Copper/Tin → Bronze Pick → Iron Ore bootstrap before implementation. Preserve current behavior until the A1 processing review.
 - Add the table's Elderwood Copper Ore and Shimmering Lakes Tin Ore nodes: Stone Pick minimum, 3 matching ore per exhausted node (blocked on A1 contract).
 - Implement the table's charcoal-station conversion of 1 Wood to 1 Coal with direct-material hammer placement; no alternative Coal source (blocked on A1 contract).
 - Implement the table's smelter conversions and Forge alloying: 1 Copper/Tin Ore + 1 Coal → 1 matching bar; 2 Copper + 1 Tin → 1 Bronze (blocked on ore/Coal acquisition and A1 contract).
@@ -131,7 +133,7 @@ and icons follow the established art treatment.
 ## A3
 
 Bows and ammunition (P1).
-- Review and add Layered Bow (`LayeredBow`): Workbench 1, 6 Lightwood + 1 Bow String + 2 Deer Hide → 1; stack 1, 1.5 kg, 140 condition, two hands, 1.2-second full draw. Keep existing arrow-dependent damage, velocity and spread curves; no bow damage bonus. Upgrade base 3 Lightwood + 1 Bow String, +30 condition/level, existing cost scaling/cap; repair at Workbench (blocked on A0 Bow String/Lightwood).
+- Review and add Light Bow (`LightBow`): Workbench 1, 25 Lightwood + 1 Bow String + 5 Deer Hide → 1; stack 1, 1.5 kg, 140 condition, two hands, 2-second full draw. Keep existing arrow-dependent damage, velocity and spread curves; no bow damage bonus. Upgrade base 3 Lightwood + 1 Bow String, +30 condition/level, existing cost scaling/cap; repair at Workbench (blocked on A0 Bow String/Lightwood). The user selected Light Bow and its backlog recipe/draw values on 2026-10-19; remaining profile values carry forward from the detailed bow proposal.
 - Review and add Bronze Arrow (`BronzeArrow`): Workbench 1, 4 Wood + 1 Bronze → 20; stack 100, 0.05 kg each. Pierce 14–56 across the existing charge curve versus Wooden Arrow's 10–40; retain current velocity/spread, gravity, collision and lifetime. No recovery or elemental damage (blocked on A1 Bronze).
 - Extend preferred-stack selection to both arrow IDs: exact selected stack first, otherwise Wooden Arrow before Bronze Arrow, lowest occupied cell first within a type. Consume one arrow and one bow condition only on committed server shot. Show selected arrow damage/type; no silent spending of a different type while the preferred stack remains usable.
 
@@ -172,13 +174,13 @@ for placed lights/campfires and proposed repellent radii.
 
 ## A6
 
-Forage, meals and recovery consumables (P1; effects gated).
+Forage, meals and recovery consumables (P1; scope approved 2026-10-19).
 - Review and add Lingonberry (`Lingonberry`): hand-gather Meadow berry shrubs, 3 berries per depleted shrub; no tool, stack 20, 0.05 kg each. Eating one applies the existing Steady Meal effect (blocked on A0 food dispatch).
 - Review and add Forest Chanterelle (`ForestChanterelle`): hand-gather Elderwood mushroom patches, 2 per depleted patch; no tool, stack 20, 0.1 kg each. Eating one applies the same Steady Meal effect (blocked on A0 food dispatch).
 - Retain one Steady Meal effect for all seven existing prepared foods, the two forage foods and A7 Cooked Lake Fish: 120 seconds, stamina-use multiplier 0.90, no stacking or eating while active. Raw meats/vegetables/seeds remain ingredients, not consumable meals. Defer differentiated nutrition, additional meal slots and new prepared-dish volume.
-- Review the recovery table below and approve its new server-owned consumable effects before implementation; use Cauldron at a lit hearth, no new brewing station, alcohol/base items or fermentation step.
-- Add Berry Recovery Draught (`BerryRecoveryDraught`) with the complete reviewed recipe/effect/icon path (blocked on recovery approval and Lingonberry).
-- Add Root Stamina Draught (`RootStaminaDraught`) with the complete reviewed recipe/effect/icon path (blocked on recovery approval and vegetable access).
+- Review the recovery table below's server-owned effect rules before implementation; use Cauldron at a lit hearth, no new brewing station, alcohol/base items or fermentation step.
+- Add Berry Recovery Draught (`BerryRecoveryDraught`) with the complete reviewed recipe/effect/icon path (blocked on Lingonberry).
+- Add Root Stamina Draught (`RootStaminaDraught`) with the complete reviewed recipe/effect/icon path (blocked on vegetable access).
 - Explicitly defer cold/poison/fire-resistance preparations: no consumable hazard bypass or new resistance channel in this alpha set.
 
 | Consumable | Cauldron cost / output | Effect / limit |
@@ -196,9 +198,9 @@ limits. No released-save migration or new general inventory persistence.
 
 ## A7
 
-Crops, seeds and fishing (P2; scope gated).
-- Review and approve Garden Plot (`GardenPlot`) plus the farming table below: Hammer placement 4 Wood + 1 Stone, grounded 2 m × 2 m plot on dry Meadows/Elderwood/Shimmering Lakes terrain, maximum 15-degree slope. One crop per plot, open sky, no watering/fertilizer/season or terrain deformation. Require held usable A5 Rake for planting/harvest; reject conflicting/occupied plots before payment.
-- Implement Carrot planting, maturation, harvest and seed renewal as the first full loop, with A5 Rake and direct-material plot placement (blocked on farming approval).
+Crops, seeds and fishing (P2; scope approved 2026-10-19).
+- Review Garden Plot (`GardenPlot`) plus the farming table below: Hammer placement 4 Wood + 1 Stone, grounded 2 m × 2 m plot on dry Meadows/Elderwood/Shimmering Lakes terrain, maximum 15-degree slope. One crop per plot, open sky, no watering/fertilizer/season or terrain deformation. Require held usable A5 Rake for planting/harvest; reject conflicting/occupied plots before payment.
+- Implement Carrot planting, maturation, harvest and seed renewal as the first full loop, with A5 Rake and direct-material plot placement (after the A7 farming review).
 - Implement Potato tuber propagation; retain `PotatoSeed` as an unused development definition with no drops/recipes, not an alternative planting input (blocked on first crop loop).
 - Implement Rutabaga food/seed propagation from the table (blocked on first crop loop).
 - Implement Onion food/seed propagation from the table (blocked on first crop loop).
@@ -219,21 +221,21 @@ offline growth. Harvest once, retain mature crop on full inventory, then empty
 plot for reuse; reject removal while planted. Plants are plot state, never
 portable buildable items. Seeds/produce use their existing icons/stack sizes.
 
-- Review fishing scope: use visible stationary Lake Fish schools on Shimmering Lakes water, not a new combat creature. Each stable school permits 3 catches then depletes under the existing resource-node policy; no timed respawn. Approve the rod/bait/catch proposal before implementation.
-- Add Fishing Rod (`FishingRod`): Workbench 1, 4 Lightwood + 3 String → 1; stack 1, 1 kg, 80 condition, two hands, free Workbench repair, no upgrades/combat. Add Bait (`FishingBait`): inventory craft 1 Forest Chanterelle → 5, stack 50, 0.02 kg each (blocked on fishing approval/A0/A6).
+- Review fishing rules: use visible stationary Lake Fish schools on Shimmering Lakes water, not a new combat creature. Each stable school permits 3 catches then depletes under the existing resource-node policy; no timed respawn.
+- Add Fishing Rod (`FishingRod`): Workbench 1, 4 Lightwood + 3 String → 1; stack 1, 1 kg, 80 condition, two hands, free Workbench repair, no upgrades/combat. Add Bait (`FishingBait`): inventory craft 1 Forest Chanterelle → 5, stack 50, 0.02 kg each (blocked on A0/A6 dependencies).
 - Add school interaction: usable held Rod, selected school within 15 m and clear line of sight; reserve 1 Bait and a free result cell. After 5 seconds, if player stayed within 1 m of start and target remains valid, grant 1 Lake Fish and spend bait/1 rod condition/1 school catch atomically. Cancellation/rejection releases reservation unchanged; one angler per school, no arbitrary client fish IDs or timing rewards.
 - Add Lake Fish (`LakeFish`), stack 20, 0.5 kg, raw ingredient only; Cooking Rack at lit hearth converts 1 to 1 Cooked Lake Fish (`CookedLakeFish`), stack 20, 0.4 kg, MaxBatch 5, Cooking XP 10, existing Steady Meal effect. Complete fish/bait/rod icons and cooking-to-use path (blocked on fishing and A0 food dispatch).
 
 ## A8
 
-Buildables, processing and sanctuary supplies (P2; no kits).
-- Review the shelter table below and approve the new snapping/support/interaction scope. Every row is a Buildable with a direct-material Hammer recipe and original build-menu icon; no inventory definition/kit or item upgrade tree.
-- Add Timber Door (`TimberDoor`) with its reviewed paid placement, collision and saved open/closed state (blocked on shelter approval).
-- Add Timber Beam (`TimberBeam`) with reviewed support rules (blocked on shelter approval).
-- Add Timber Stairs (`TimberStairs`) with reviewed walkable collision (blocked on shelter approval).
-- Add Camp Bed (`CampBed`), furniture-only resting behavior below; do not add sleep/respawn binding (blocked on shelter approval).
-- Add Standing Light (`StandingLight`) with reviewed fuel/rain behavior (blocked on shelter approval).
-- Add Reinforced Chest (`ReinforcedChest`) as a separate placed chest, not an in-place inventory-capacity upgrade (blocked on shelter approval/A1).
+Buildables, processing and sanctuary supplies (P2; scope approved 2026-10-19; no kits).
+- Review the shelter table below for its placement/support/interaction contracts. Every row is a Buildable with a direct-material Hammer recipe and original build-menu icon; no inventory definition/kit or item upgrade tree.
+- Add Timber Door (`TimberDoor`) with its reviewed paid placement, collision and saved open/closed state.
+- Add Timber Beam (`TimberBeam`) with reviewed support rules.
+- Add Timber Stairs (`TimberStairs`) with reviewed walkable collision.
+- Add Camp Bed (`CampBed`), furniture-only resting behavior below; do not add sleep/respawn binding.
+- Add Standing Light (`StandingLight`) with reviewed fuel/rain behavior.
+- Add Reinforced Chest (`ReinforcedChest`) as a separate placed chest, not an in-place inventory-capacity upgrade (blocked on A1).
 - Record recovery-station expansion as deferred: A6 uses the existing Cauldron; no fermenter, brewing tree or extra cooking station. A1 Kiln/Smelter and A7 Garden Plot are owned by their sections, not duplicate tasks here.
 
 | Buildable | Hammer material cost | Dimensions / behavior |
@@ -270,12 +272,12 @@ checking the item task; final acceptance audits every approved ID across A0–A9
 
 ## A9
 
-Cargo, ten gems, special gear and discovery rewards (P2; scope gated).
+Cargo, ten gems, special gear and discovery rewards (P2; scope approved 2026-10-19).
 Enemy expansion A8a precedes this category. See the
 [biome roster](biome-enemies.md); Moonstone requires its accepted Moon Bear.
 
 - Review travel scope: propose only Skiff Cargo Chest (`SkiffCargoChest`), defer cart/carry-pack progression, encumbrance and hull durability. Hammer placement costs 6 Lightwood + 2 String + 1 Bronze, on one fixed cargo socket per existing skiff; no skiff inventory item or new boat tier.
-- Implement the approved cargo chest: 12 shared stack cells, interact within 2 m while skiff speed is at most 100 cm/s, same GUID/quantity/capacity rules as land storage. Save cargo against stable vessel ID; reject detachment/removal with contents, retain contents across validated vessel reload, no spill/duplication on reconnect. In-flight transfer rejects unchanged (blocked on explicit approval and existing vessel-persistence support; report any persistence gap).
+- Implement the approved cargo chest: 12 shared stack cells, interact within 2 m while skiff speed is at most 100 cm/s, same GUID/quantity/capacity rules as land storage. Save cargo against stable vessel ID; reject detachment/removal with contents, retain contents across validated vessel reload, no spill/duplication on reconnect. In-flight transfer rejects unchanged (blocked on existing vessel-persistence support; report any persistence gap).
 - Add exactly ten gems from the table below, each as a separate integrated increment. These are concrete source/rate/recipe/stat proposals for review, not a new alpha release commitment. Seven are ordinary rare gems; three special gems are required by named special gear. No empty-purpose collectibles or universal gem pool.
 - All raw gems stack 20, proposed weight 0.1 kg, with no combat/equip/upgrade behavior. Each needs a registered material definition and its own original generated icon. Normal resource nodes keep their existing yields; dedicated gemstone rocks replace a small share of spawn slots rather than adding gems to ore rewards. Wildlife/treasure rules remain separate.
 - Treasure means server-owned generated world loot containers, never player storage. Stable treasure loot and sparse resource/enemy reward claims are explicit prerequisites; do not invent new creatures or silently treat an unsupported source as implemented.
@@ -291,7 +293,7 @@ Enemy expansion A8a precedes this category. See the
 | Tourmaline (`Tourmaline`) | Dedicated Tourmaline rock replacing slate slots in Thunder Mountains only | 2% of eligible spawn slots; 1 gem if extracted | Tourmaline Necklace |
 | **Special: Star Opal** (`StarOpal`) | Dedicated Star Opal rock replacing Frost Salt mineral-deposit slots in Freezing Tundra; not frostmoss | 1% of eligible spawn slots; 1 gem if extracted | Opal Helm |
 | **Special: Storm Sapphire** (`StormSapphire`) | World treasure chests in Thunder Mountains only | 2% (1/50) | Stormcut Sword |
-| **Special: Dusk Diamond** (`DuskDiamond`) | Credited Mireling defeats in Mossy Mire only | 0.5% (1/200) | Dusk Ring |
+| **Special: Dusk Diamond** (`DuskDiamond`) | Credited Mireling defeats in Mossy Mire only | 1% (1/100) | Dusk Ring |
 
 **Gemstone-rock generation:** choose the rock type during seeded resource
 generation, not after exhausting an ore vein. Retain the existing candidate
@@ -343,7 +345,7 @@ for the explicitly selected replacement slots.
 - Add Moonstone Ring (`MoonstoneRing`) with the reviewed craft/equip/stat/icon path, replacing the Quartz Ring proposal (blocked on gem acquisition and accessory support).
 - Add Garnet Necklace (`GarnetNecklace`) for maximum health (blocked on treasure loot and accessory support).
 - Add Jade Ring (`JadeRing`), Amethyst Necklace (`AmethystNecklace`), Aquamarine Ring (`AquamarineRing`) and Tourmaline Necklace (`TourmalineNecklace`), one complete item per increment, using the distinct endurance/support/recovery roles below.
-- Add Opal Helm (`OpalHelm`), Stormcut Sword (`StormcutSword`) and Dusk Ring (`DuskRing`) as separate special-gear proposals below. They require their specific special gem; no ordinary-gem substitute. Approve their scope before implementation.
+- Add Opal Helm (`OpalHelm`), Stormcut Sword (`StormcutSword`) and Dusk Ring (`DuskRing`) as separate special-gear entries below. They require their specific special gem; no ordinary-gem substitute.
 - Audit the four existing Mending/Hearth Shield/Bear's Vigor/Deer Call scrolls against their current authored discovery-to-unlock/use paths. Preserve existing locations/entitlements; propose no new scroll, trophy, creature or boss key for this alpha set. Record missing current routes as defects against the existing contract, not permission to invent a reward source.
 
 | Accessory | Proposed Forge 1 cost for 1 | Server-owned effect while equipped |
@@ -426,7 +428,7 @@ not permission to replace these items with unsupported generic definitions.
   entry or fallback icon may pass final acceptance. Validate explicit N/A cases.
 
 Approved alpha item-set acceptance.
-- Before coding, record user-reviewed include/defer status for every named item/buildable above and freeze their reviewed recipes/sources/stats. Proposed milestone groups: I0 A0 current-loop repairs; I1 A1 production; I2 A2–A6 equipment/forage/consumables except Rake; I3 A7 farming/fishing plus A5 Rake; I4 A8–A9 sanctuary/cargo/accessories. Each group requires its own final verification; scope-gated groups remain blocked until approved. This is a proposed schedule, not new completed roadmap history.
+- The user approved every queued P0/P1/P2 item and system in A0–A9 on 2026-10-19; detailed conflicts are resolved in this document. Milestone groups: I0 A0 current-loop repairs; I1 A1 production; I2 A2–A6 equipment/forage/consumables except Rake; I3 A7 farming/fishing plus A5 Rake; I4 A8–A8b, ending with enemy milestone verification after A8b and before A9; I5 A9 cargo/accessories. Each group requires its own final verification. This plan does not rewrite historical roadmap acceptance.
 - Reconcile delivery against the frozen checklist: each included ID must have source, payment, use/equip, upgrade or explicit non-applicability, original icon/provenance/mapping, relevant save behavior and linked verification evidence. Record every omitted candidate as deferred, not implicitly complete.
 - At each resulting milestone's final increment, run required Editor/project builds, applicable automation, catalogue/icon validation and relevant peer/persistence runners from `docs/07-development-setup.md`; repair milestone defects and rerun failing checks plus required full verification. Record actual commands/results; do not equate source inspection with execution.
 - Final progression scenario: fresh world, existing starter loadout only, gather normal resources → Workbench/String/Lightwood → Bow/arrows → Copper/Tin/Coal/Bronze → Bronze Pick → Iron/Densewood. Craft/equip/upgrade one of every included durable item; cook/eat each included meal and use each draught, retaining the specified cooldowns. No debug grants. Record biome/node availability rather than fabricating missing resources.

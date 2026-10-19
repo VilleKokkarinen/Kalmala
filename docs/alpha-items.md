@@ -1,34 +1,37 @@
 # Alpha item coverage proposal
 
-Research and repository audit: 2026-10-19. This is a planning comparison, not
-an alpha release declaration or a change to the accepted vertical-slice scope.
-The actionable category queue is in [BACKLOG.md](../BACKLOG.md). Existing
-roadmap acceptance remains historical; new unchecked tasks do not reopen it.
+Research and repository audit: 2026-10-19. This is a planning comparison for
+the user-approved P0/P1/P2 alpha scope, not a release declaration. The
+actionable category queue is in [BACKLOG.md](../BACKLOG.md). Existing roadmap
+acceptance remains historical; new tasks do not reopen it.
 
 ## Comparison boundary and sources
 
 Use Valheim to identify useful **roles and complete acquisition loops**, not
 to copy names, artwork, lore, recipes, stats, biome order, or its whole catalogue.
-The proposed alpha baseline is Kalmala's existing Stone/Bronze/Iron span and
-current creature roster. It is a recommendation, not a newly approved release
-scope. Broader systems below require a scope decision before implementation.
+The approved alpha plan builds on Kalmala's existing Stone/Bronze/Iron span and
+extends the creature roster. The user included all queued P0/P1/P2 systems on
+2026-10-19; explicit exclusions below remain deferred.
 
 The A0–A10 checklist in [BACKLOG.md](../BACKLOG.md) gives short tasks with
 sources and recipes. [Item details](alpha-item-details.md) retain the full
 stats, upgrades, behavior, persistence and acceptance criteria by category.
 Task status belongs only in the backlog. Keep its summary and the detailed
 values consistent when reviewing/editing the proposals.
-These new/changed entries are drafts for user review/editing, not accepted
-game-design decisions or implementation authorization. Agents must follow the
-reviewed entries and report conflicts instead of choosing alternative designs.
+The user approved the queued scope on 2026-10-19 and resolved the documented
+cross-file conflicts. Category-specific tasks still review their detailed
+contracts before implementation; agents must follow those entries and report
+conflicts instead of choosing alternative designs.
 Existing-route rows retain their authored yields. Potato Seed acquisition stays
 deferred; A7 specifically proposes Potato tuber propagation. A1 supplies the
 processing station costs/timing/capacity previously left open. Any further
 missing gameplay value must likewise be proposed for review before coding.
 
-Latest recipe direction: Workbench **4 Sinew → 1 Bow String** (`BowString`).
-Bow requirements use the dedicated material. Generic String in other proposals
-still needs a separately reviewed source; the old sinew-to-String recipe is retired.
+Reviewed string recipes: Workbench **1 Sinew → 2 String** for generic crafting,
+and **4 Sinew → 1 Bow String** (`BowString`) for bows. Keep the two material
+IDs separate. The existing A0 source table is canonical for vegetable biomes
+and yields; A3 uses Light Bow; Dusk Diamond uses a 1% Mireling drop and the
+Dusk Ring uses its detailed A9 Bronze cost.
 
 Sources checked online on 2026-10-19:
 
@@ -96,17 +99,18 @@ coverage, not a count of obtainable items or the assembled runtime catalogue.
 
 **P0: make the existing set playable.** Audit each material and food from normal
 world acquisition to use; close String, Lightwood, Bone Fragment and cooking
-gaps. Resolve the ore/bar/Coal chain and Iron discrepancy. A smelter and charcoal
-station would require an explicit system/scope decision, not just new JSON.
+gaps. Resolve the ore/bar/Coal chain and Iron discrepancy. The user approved
+the A1 smelter and charcoal-station scope; A1 review still confirms their
+processing contract.
 
-**P1: candidate alpha breadth after P0.** Torch, sword, one better bow, one metal
+**P1: alpha breadth after P0.** Torch, sword, one better bow, one metal
 arrow, a second armour tier and shield, two forage foods and two recovery
 preparations. Use existing materials where practical. Each addition needs its
 own complete slice; quantity is not a release gate. Numerical balance, costs,
-names and material sources are concrete drafts in the backlog and linked
-details for manual review. They are not implementation-agent choices.
+names and material sources remain concrete task-level proposals in the backlog
+and linked details; category reviews still apply before implementation.
 
-**P2: scope-dependent parity candidates.** The backlog specifically proposes
+**P2: approved new systems.** The backlog specifically proposes
 plot-based cultivation, lake-school fishing, six shelter/furniture pieces,
 skiff cargo and bronze/gem accessories with distinct Armor, health, stamina,
 sprint efficiency, regeneration, healing and support-spell-cost roles. A9
@@ -116,18 +120,21 @@ special ingredients for named armour, weapon and jewellery recipes; all ten
 have explicit uses, costs and effects in the linked details.
 Gemstone rocks replace selected resource slots: each pickaxe hit risks a 10%
 smash; successful extraction yields exactly one gem. Spawn rates and a proposed
-three-hit extraction remain for review. Ordinary ore no longer has gem bonus drops.
-New [A8a enemy roster](biome-enemies.md) precedes A9: fourteen proposed enemies
-across the seven biomes, with common/hard roles and a separate acceptance gate.
+three-hit extraction remain task-level rules for review. Ordinary ore no longer
+has gem bonus drops.
+New [A8a enemy roster](biome-enemies.md) precedes A9: fifteen proposed enemies
+across seven land biomes and the Ocean, with common/hard roles and a separate
+acceptance gate.
 Elderwood has an easier Badger; the strengthened Wolf moves
 exclusively to Freezing Tundra alongside Lynx and Polar Bear.
 Mossy Mire includes Mosquito swarms alongside Death Adder/Peat Husk:
 repeated small bites, roll escape and avoidance of lit torches/other fires.
-Moonstone moves to the hard Moon Bear; aquatic enemies remain scope-gated.
-It defers terrain-editing
-Hoe, cold-protection clothing, new trophies/scrolls, cart/carry packs and extra
-brewing stations. These remain reviewable scope choices, not silent changes to
-the accepted vertical slice. Backlog review tasks precede implementation.
+Moonstone moves to the hard Moon Bear. The approved A8a/A8b scope includes
+Ocean Reef Maw, Reef Tooth and Reef Harpoon; verify the combined enemy/item
+milestone after A8b and before A9. It explicitly defers terrain-editing Hoe,
+cold-protection clothing, new trophies/scrolls, cart/carry packs and extra
+brewing stations. These remain outside the approved A0–A9 queue; category
+review tasks still precede implementation.
 
 **Deferred beyond this proposal:** more metals beyond Iron, every-biome gear
 sets, crossbows/bolts, polearms/heavy two-handed/fist families, bombs, numerous
