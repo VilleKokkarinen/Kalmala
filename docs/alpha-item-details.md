@@ -264,7 +264,7 @@ Cargo, ten gems, special gear and discovery rewards (P2; scope gated).
 | Amethyst (`Amethyst`) | Dedicated Amethyst rock replacing Iron Ore slots in Mossy Mire only | 3% of eligible spawn slots; 1 gem if extracted | Amethyst Necklace |
 | Aquamarine (`Aquamarine`) | World treasure chests in Shimmering Lakes only | 5% (1/20) | Aquamarine Ring |
 | Tourmaline (`Tourmaline`) | Dedicated Tourmaline rock replacing slate slots in Thunder Mountains only | 2% of eligible spawn slots; 1 gem if extracted | Tourmaline Necklace |
-| **Special: Rime Opal** (`RimeOpal`) | Dedicated Rime Opal rock replacing Frost Salt mineral-deposit slots in Freezing Tundra; not frostmoss | 1% of eligible spawn slots; 1 gem if extracted | Rimeguard Tunic |
+| **Special: Star Opal** (`StarOpal`) | Dedicated Star Opal rock replacing Frost Salt mineral-deposit slots in Freezing Tundra; not frostmoss | 1% of eligible spawn slots; 1 gem if extracted | Opal Helm |
 | **Special: Storm Sapphire** (`StormSapphire`) | World treasure chests in Thunder Mountains only | 2% (1/50) | Stormcut Sword |
 | **Special: Dusk Diamond** (`DuskDiamond`) | Credited Mireling defeats in Mossy Mire only | 0.5% (1/200) | Dusk Ring |
 
@@ -273,7 +273,7 @@ generation, not after exhausting an ore vein. Retain the existing candidate
 budget, suitability and stable identity. Use one mutually exclusive selection
 per candidate: Copper 5% Quartz/95% Copper; Tin 5% Quartz/2% Jade/93% Tin;
 Iron Ore 3% Amethyst/97% Iron Ore; slate 2% Tourmaline/98% slate; Frost Salt
-deposits 1% Rime Opal/99% Frost Salt. These replacement rates are proposed
+deposits 1% Star Opal/99% Frost Salt. These replacement rates are proposed
 tuning, not user-approved values. No extra gemstone spawn on top of the ore
 candidate, no ore co-drop and no hidden gem roll from ordinary ore nodes.
 Give each rock an original visible mineral inclusion and its own target name.
@@ -286,7 +286,7 @@ drop-chance roll. No gem shards, secondary ore reward or retry after a smash.
 
 **Proposed hit tuning for review:** extraction takes 3 accepted hits per rock;
 pick level/damage cannot skip hits or change the 10% risk. This gives 72.9%
-overall success (0.9 cubed), not 90%. Quartz/Jade/Tourmaline/Rime Opal require
+overall success (0.9 cubed), not 90%. Quartz/Jade/Tourmaline/Star Opal require
 Stone Pick or better; Amethyst requires Bronze Pick or better, matching its
 replaced Iron Ore source. Spend one pick condition per accepted hit, including
 a smash. Misses, duplicate requests and invalid/broken/wrong-family/out-of-range
@@ -314,7 +314,7 @@ for the explicitly selected replacement slots.
 - Add Moonstone Ring (`MoonstoneRing`) with the reviewed craft/equip/stat/icon path, replacing the Quartz Ring proposal (blocked on gem acquisition and accessory support).
 - Add Garnet Necklace (`GarnetNecklace`) for maximum health (blocked on treasure loot and accessory support).
 - Add Jade Ring (`JadeRing`), Amethyst Necklace (`AmethystNecklace`), Aquamarine Ring (`AquamarineRing`) and Tourmaline Necklace (`TourmalineNecklace`), one complete item per increment, using the distinct endurance/support/recovery roles below.
-- Add Rimeguard Tunic (`RimeguardTunic`), Stormcut Sword (`StormcutSword`) and Dusk Ring (`DuskRing`) as separate special-gear proposals below. They require their specific special gem; no ordinary-gem substitute. Approve their scope before implementation.
+- Add Opal Helm (`OpalHelm`), Stormcut Sword (`StormcutSword`) and Dusk Ring (`DuskRing`) as separate special-gear proposals below. They require their specific special gem; no ordinary-gem substitute. Approve their scope before implementation.
 - Audit the four existing Mending/Hearth Shield/Bear's Vigor/Deer Call scrolls against their current authored discovery-to-unlock/use paths. Preserve existing locations/entitlements; propose no new scroll, trophy, creature or boss key for this alpha set. Record missing current routes as defects against the existing contract, not permission to invent a reward source.
 
 | Accessory | Proposed Forge 1 cost for 1 | Server-owned effect while equipped |
@@ -377,11 +377,11 @@ stack 1; each gem is consumed during crafting, not socketed or recoverable.
 
 | Item | Crafting materials | Level-one profile | Upgrade base / per-level reward |
 | --- | --- | --- | --- |
-| Rimeguard Tunic | 20 Iron + 5 Deer Hide + 1 Rime Opal | Chest; 12 Armor, 150 condition, 5 kg | 5 Iron + 2 Deer Hide; +1 Armor, +10 condition |
+| Opal Helm | 20 Iron + 5 Deer Hide + 1 Star Opal | Head; 12 Armor, 150 condition, 5 kg | 5 Iron + 2 Deer Hide; +1 Armor, +10 condition |
 | Stormcut Sword | 20 Iron + 2 Densewood + 2 Deer Hide + 1 Storm Sapphire | One hand; 70 Slash, 220 condition, 2.5 kg | 5 Iron + 1 Densewood; +4 Slash, +30 condition |
 
 Use existing level cap/cost scaling, Forge upgrades and free station repair.
-Tunic follows normal durable wearable hit-wear and physical Armor rules; its
+Helm follows normal durable wearable hit-wear and physical Armor rules; its
 name does not grant cold immunity or introduce insulation. Sword uses existing
 Basic melee timing/reach, zero extra attack-style damage, one condition per
 accepted hit, no gathering or elemental/offensive-magic effect. Author all

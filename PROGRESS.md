@@ -1,3 +1,13 @@
+## User-directed planning 2026-10-19 — Opal headwear
+
+- Updated `BACKLOG.md`, linked item details, comparison and decision log:
+  proposed Star Opal/Opal Helm replace Rime Opal/Rimeguard Tunic; Head slot
+  replaces Chest. Recipe remains 20 Iron + 5 Deer Hide + 1 Star Opal, 12 Armor.
+  Source, mining risk and other authored proposal values remain unchanged.
+- Checked active references, slot, whitespace, staged scope and paths.
+  Planning only; no runtime/data/assets/save changes or tests, full verification
+  deferred. Pre-existing edits preserved; main checkout, no sync. Next: name review.
+
 ## User-directed planning 2026-10-19 — Varied jewellery bonuses
 
 - Updated A9 in `BACKLOG.md`, `docs/alpha-item-details.md`, comparison and
