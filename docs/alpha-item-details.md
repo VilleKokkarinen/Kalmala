@@ -34,8 +34,8 @@ Existing item acquisition and use (P0).
 - Bow String (`BowString`) is the only string item and is reserved for bows. Workbench level 1 converts 4 Sinew into 1 Bow String; stack 20, weight 0.05 kg, description "A bowstring twisted from animal sinew." Its definition, recipe and original generated icon are in place. Bow acquisition and upgrade each use 1 Bow String. It has no equipment, attacks or upgrades. Review pending non-bow binding costs in their category contracts; do not use Bow String for them.
 - Add harvestable aspen trees in Meadows yielding 4 Lightwood per completed tree/log/bundle lifecycle; require Stone Axe or better. Preserve existing birch Wood rewards. Verify Bronze-family recipes/upgrades are reachable without requiring a Bronze tool to obtain Lightwood.
 - Bone Fragment (`BoneFragment`) is awarded once per server-confirmed boar or deer defeat alongside existing meat/hide rewards, to the validated attacker only. The existing inventory grant enforces authority and capacity; the one-shot defeat reward gate prevents duplicates, and uncredited defeats receive no rewards. The Boar Hide Cape acquisition and level-one upgrade each use one Bone Fragment. Its registered material definition and original generated icon already exist.
-- Reconcile the six current cooking outputs with server food-use dispatch; remove stale food-ID assumptions and verify paid cooking-to-eating behavior.
-- Add Hearth Broth at a Cauldron with the existing lit-hearth requirement: 1 Deer Meat + 1 Onion produces 1 Hearth Broth; MaxBatch 5, Cooking XP 10 per accepted craft. This proposed recipe changes the earlier intentional no-recipe state only after review.
+- Reconcile the six previously authored cooking outputs with server food-use dispatch; remove stale food-ID assumptions and verify paid cooking-to-eating behavior.
+- Hearth Broth (`HearthBroth`) is produced at a Cauldron with the existing lit-hearth requirement: 1 Deer Meat + 1 Onion produces 1 serving; MaxBatch 5, Cooking XP 10 per accepted craft. Its registered item definition and original generated icon were already in place; it has no equipment, attacks or upgrades.
 - Add hand-gathered wild carrot patches in Meadows: each harvest grants 2 Carrot and 1 Carrot Seed; no tool required. Seed use remains blocked on A7 farming.
 - Add hand-gathered wild potato patches in Meadows: each harvest grants 2 Potato; no tool required. Do not grant Potato Seed until A7 explicitly resolves seed versus tuber propagation.
 - Add hand-gathered wild rutabaga patches in Shimmering Lakes on dry banks: each harvest grants 2 Rutabaga and 1 Rutabaga Seed; no tool required. Seed use remains blocked on A7 farming.
@@ -75,7 +75,7 @@ are included in the approved queue.
 | Potato Seed | No A0 acquisition | Existing definition retained without drops; A7 proposes Potato tuber propagation instead | Explicitly deferred, not agent-selected |
 | Rutabaga / Rutabaga Seed | New wild rutabaga patches on dry Shimmering Lakes banks | Hand gather 2 Rutabaga + 1 Rutabaga Seed per patch | Add under A0; seed use waits for A7 |
 | Onion / Onion Seed | New wild onion patches in Elderwood | Hand gather 2 Onion + 1 Onion Seed per patch | Add under A0; seed use waits for A7 |
-| Hearth Broth | Cauldron near usable lit hearth | 1 Deer Meat + 1 Onion produces 1 Hearth Broth; MaxBatch 5, Cooking XP 10 | Add under A0 after review |
+| Hearth Broth | Cauldron near usable lit hearth | 1 Deer Meat + 1 Onion produces 1 Hearth Broth; MaxBatch 5, Cooking XP 10 | Implemented under A0 |
 
 New harvest nodes use stable generated identities and the existing matching
 node depletion/restart policy; this proposal adds no timed respawn system.

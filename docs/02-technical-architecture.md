@@ -584,9 +584,9 @@ SetWeatherStateFromServer now rejects non-authority and invalid input at runtime
 
 The first prepared food reuses the server-local item and recipe catalogues, UKalmalaInventoryComponent::BuildExchange, the existing hearth actor, and the replicated player-status component. Roasting requires a same-world fire that the server observes as usable, within 250 cm, Lit, and producing finite positive heat; a workbench, extinguished fire, or Smouldering fire cannot satisfy it. The server checks recipe identity, batch, inputs, and output capacity before changing the private pack. No additional fuel charge is applied beyond the hearth's normal fuel burn.
 
-Food use is an owning-client request containing only an item identity. The server allowlists the six current cooking outputs (`CookedBoarMeat`, `CookedDeerMeat`, `MeatStew`, `RootVegetableSoup`, `RoastedRootVegetables`, and `DeerRootRoast`) plus the existing `HearthBroth` item, checks the owner's pack and meal slot, commits one-item consumption through a candidate inventory exchange, then publishes a fixed-duration State.Food.SteadyMeal entry. The entry reduces server-derived stamina cost to 0.90 for 120 server seconds. Only one meal entry is permitted: an active effect neither stacks, refreshes, nor gets replaced; rejected consumption leaves pack and status unchanged. The existing status replication carries effect identity and remaining time, while the private inventory and crafting result remain owner-only. Food, cooking progress, and meal effects add no save field or schema.
+Food use is an owning-client request containing only an item identity. The server allowlists the seven current cooking outputs (`CookedBoarMeat`, `CookedDeerMeat`, `HearthBroth`, `MeatStew`, `RootVegetableSoup`, `RoastedRootVegetables`, and `DeerRootRoast`), checks the owner's pack and meal slot, commits one-item consumption through a candidate inventory exchange, then publishes a fixed-duration State.Food.SteadyMeal entry. The entry reduces server-derived stamina cost to 0.90 for 120 server seconds. Only one meal entry is permitted: an active effect neither stacks, refreshes, nor gets replaced; rejected consumption leaves pack and status unchanged. The existing status replication carries effect identity and remaining time, while the private inventory and crafting result remain owner-only. Food, cooking progress, and meal effects add no save field or schema.
 
-The active schema-4 food recipes cook boar or deer meat on the Cooking Rack, prepare meat stew or root vegetable soup in the Cauldron, and prepare roasted roots or deer-root roast in the Frying Pan. The server resolves the declared station, live hearth heat, inventory costs, and accepted outputs from the catalogue. HearthBroth remains an item without a production recipe. Food and meal effects remain transient; no saved-data schema changes.
+The active schema-4 food recipes cook boar or deer meat on the Cooking Rack, prepare Hearth Broth, meat stew, or root vegetable soup in the Cauldron, and prepare roasted roots or deer-root roast in the Frying Pan. The server resolves the declared station, live hearth heat, inventory costs, and accepted outputs from the catalogue. Food and meal effects remain transient; no saved-data schema changes.
 
 ### Accepted cooking experience
 
@@ -850,7 +850,7 @@ exchange.
 
 ## Current food recipes
 
-These six food recipes and their outputs are the active cooking catalogue.
+These seven food recipes and their outputs are the active cooking catalogue.
 Every batch is capped at five, and every output stack is capped at twenty.
 The server requires the declared visible same-world station and a usable lit
 hearth with positive heat within 250 cm of both the player and station.
@@ -859,13 +859,14 @@ hearth with positive heat within 250 cm of both the player and station.
 | --- | --- | --- | --- |
 | `CookedBoarMeatRecipe` | `BoarMeat` x1 | Cooking Rack | `CookedBoarMeat` |
 | `CookedDeerMeatRecipe` | `DeerMeat` x1 | Cooking Rack | `CookedDeerMeat` |
+| `HearthBrothRecipe` | `DeerMeat` x1, `Onion` x1 | Cauldron | `HearthBroth` |
 | `MeatStewRecipe` | `BoarMeat` x1, `DeerMeat` x1, `Carrot` x2, `Potato` x2 | Cauldron | `MeatStew` |
 | `RootVegetableSoupRecipe` | `Carrot`, `Potato`, `Rutabaga`, `Onion` x1 each | Cauldron | `RootVegetableSoup` |
 | `RoastedRootVegetablesRecipe` | `Carrot`, `Potato`, `Onion` x1 each | Frying Pan | `RoastedRootVegetables` |
 | `DeerRootRoastRecipe` | `DeerMeat`, `Rutabaga`, `Onion` x1 each | Frying Pan | `DeerRootRoast` |
 
-`HearthBroth` remains a catalogue item with a stack limit of twenty but has no
-production recipe. The former `RoastedFieldMeat`, `SmokedFieldMeat`, and
+`HearthBroth` is produced by the reviewed Cauldron recipe above and remains
+stacked to twenty. The former `RoastedFieldMeat`, `SmokedFieldMeat`, and
 Smoke Frame IDs are absent from schema 4. The steady-meal item use remains
 transient and does not add save data.
 
@@ -2621,8 +2622,8 @@ or persistence field is added.
 
 ## Owner-local prepared-food inventory detail
 
-When the owning player's private pack contains one of the six current cooking
-outputs or Hearth Broth, the on-demand Inventory menu explains that one serving
+When the owning player's private pack contains one of the seven current cooking
+outputs, the on-demand Inventory menu explains that one serving
 grants Steady Meal, reducing stamina cost by 10% for 120 seconds. If
 the same pawn's existing replicated status contains an active meal, the menu
 shows its remaining server-published time and the wait-for-expiry rule. The

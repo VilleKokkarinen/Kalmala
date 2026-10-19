@@ -73,7 +73,7 @@ food status dispatch. Definitions do not establish obtainability or usability.
 | Utility tools | Building Hammer plus gathering tools above | No authored carried torch, cultivation tool, hoe or fishing rod. Torch is an existing design target; the other roles need new systems. |
 | Armour and shields | Boar Hide Helmet, Tunic, Leggings, Boots, Cape; Wood Shield | No second armour tier or metal shield. Six functioning slots; Necklace/Ring are disabled placeholders. Shield currently supplies passive Armor, not Valheim-style blocking/parrying. |
 | Crafting materials | Wood, Densewood, Lightwood, Stone, Sinew, Bow String, Bone Fragment, two hides, Amber, Frost Salt, Coal; Copper/Tin/Iron ores and Copper/Tin/Bronze/Iron bars | Deer Sinew feeds the bow-only Bow String recipe; credited boar/deer defeats now grant Bone Fragment for the cape recipe and upgrade. Wood, Densewood, Lightwood, hides, Amber and Frost Salt have source paths. No production recipes for ores/bars/Coal. Check actual generated availability before calling any loop complete. |
-| Food | Two raw meats and seven prepared-food definitions; six cooking outputs | Hearth Broth has no recipe. Four root vegetables are ingredients. Food use is inconsistent with current catalogue IDs; repair before adding dish counts. |
+| Food | Two raw meats and seven prepared-food definitions; seven cooking outputs | Hearth Broth now has its reviewed Cauldron recipe. All seven prepared foods use the existing Steady Meal effect. Four root vegetables are ingredients; planting remains deferred to A7. |
 | Crops and seeds | Carrot, Potato, Rutabaga, Onion plus four seed definitions | Farming is explicitly unimplemented. Definitions alone cannot supply a renewable garden. |
 | Recovery and expedition consumables | No authored potion category | Healing/stamina preparations are candidate additions; hazard resistance needs supported effects and an approved hazard role. Do not require consumables for direct-damage magic. |
 | Building/stations | 13 direct-material build recipes; 12 JSON metadata entries plus Campfire's runtime definition | Floor, wall, roof, chest, campfire, Workbench/Tool Rack, Forge/Anvil, Cooking Rack, Cauldron, Grinding Stone, Frying Pan. Missing processing stations and common shelter pieces are proposals, never inventory kits. |
@@ -128,8 +128,8 @@ coverage, not a count of obtainable items or the assembled runtime catalogue.
 
 ### Other integration gap that affects the recommendation
 
-- `KalmalaPlayerStatusComponent.cpp::IsKnownFoodItem` now accepts the six
-  current cooking-output IDs plus Hearth Broth; retired food IDs are rejected.
+- `KalmalaPlayerStatusComponent.cpp::IsKnownFoodItem` accepts all seven
+  current cooking-output IDs; retired food IDs are rejected.
   Cooking output payment and one-serving consumption use the existing
   server-owned transaction, and all seven prepared foods share the single
   Steady Meal effect. This does not add differentiated health/stamina meals.

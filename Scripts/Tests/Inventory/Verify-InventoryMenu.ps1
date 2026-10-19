@@ -17,7 +17,7 @@ New-Item -ItemType Directory -Path $output | Out-Null
 New-Item -ItemType Directory -Path (Join-Path $output 'HShader'), (Join-Path $output 'CShader') | Out-Null
 $hostLog = Join-Path $output 'host.log'
 $clientLog = Join-Path $output 'client.log'
-$Food = 'HearthBroth' # The only current catalogue item supported by the existing meal-use contract.
+$Food = 'HearthBroth' # Exercise one of the currently supported prepared foods.
 $common = "-game -nosound -unattended -nosplash -DDC-ForceMemoryCache -forcelogflush -windowed -RenderOffscreen -ForceRes -ResX=$Width -ResY=$Height -KalmalaInventoryTest -KalmalaInventoryMenuReview -KalmalaUIDeveloperTextScale=$TextScale -KalmalaUIDeveloperContrast=$Contrast -KalmalaUIDeveloperInterfaceScale=$InterfaceScale"
 if ($ReducedMotion) { $common += ' -KalmalaInventoryMenuReducedMotion' }
 $hostPeer = $null

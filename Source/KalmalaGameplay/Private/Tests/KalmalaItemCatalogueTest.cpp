@@ -465,6 +465,7 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
     const TPair<FName, FName> CurrentFoodRecipes[] = {
         {TEXT("CookedBoarMeatRecipe"), TEXT("CookedBoarMeat")},
         {TEXT("CookedDeerMeatRecipe"), TEXT("CookedDeerMeat")},
+        {TEXT("HearthBrothRecipe"), TEXT("HearthBroth")},
         {TEXT("MeatStewRecipe"), TEXT("MeatStew")},
         {TEXT("RootVegetableSoupRecipe"), TEXT("RootVegetableSoup")},
         {TEXT("RoastedRootVegetablesRecipe"), TEXT("RoastedRootVegetables")},
@@ -480,7 +481,8 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
 
         const FName StationId = Entry.Key == FName(TEXT("CookedBoarMeatRecipe")) || Entry.Key == FName(TEXT("CookedDeerMeatRecipe"))
             ? FName(TEXT("CookingRackKit"))
-            : Entry.Key == FName(TEXT("MeatStewRecipe")) || Entry.Key == FName(TEXT("RootVegetableSoupRecipe"))
+            : Entry.Key == FName(TEXT("HearthBrothRecipe")) || Entry.Key == FName(TEXT("MeatStewRecipe"))
+                || Entry.Key == FName(TEXT("RootVegetableSoupRecipe"))
                 ? FName(TEXT("CauldronKit")) : FName(TEXT("FryingPanKit"));
         TestTrue(TEXT("Current food recipe resolves to its required cooking station"), Recipe->RequiredStation.Contains(StationId));
 
@@ -501,8 +503,26 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
     const FKalmalaItemDefinition* HearthBroth = Catalogue->FindItem(TEXT("HearthBroth"));
     if (TestNotNull(TEXT("Hearth broth remains a current catalogue item"), HearthBroth))
         TestEqual(TEXT("Hearth broth stack remains bounded at twenty"), HearthBroth->MaxStack, 20);
-    TestNull(TEXT("Hearth broth has no production recipe"),
-        Recipes->Recipes.FindByPredicate([](const FKalmalaRecipe& Recipe) { return Recipe.Output == TEXT("HearthBroth"); }));
+    const FKalmalaRecipe* HearthBrothRecipe = Recipes->Find(TEXT("HearthBrothRecipe"));
+    if (TestNotNull(TEXT("Hearth broth Cauldron recipe exists"), HearthBrothRecipe))
+    {
+        TestEqual(TEXT("Hearth broth recipe has two ingredients"), HearthBrothRecipe->Ingredients.Num(), 2);
+        const auto HasIngredient = [HearthBrothRecipe](const FName ItemId)
+        {
+            const FKalmalaInventoryStack* Ingredient = HearthBrothRecipe->Ingredients.FindByPredicate(
+                [ItemId](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == ItemId; });
+            return Ingredient && Ingredient->Quantity == 1;
+        };
+        TestTrue(TEXT("Hearth broth recipe costs one deer meat and one onion"),
+            HasIngredient(TEXT("DeerMeat")) && HasIngredient(TEXT("Onion")));
+        TestEqual(TEXT("Hearth broth recipe creates one serving"), HearthBrothRecipe->OutputCount, 1);
+        TestEqual(TEXT("Hearth broth recipe keeps a five-batch limit"), HearthBrothRecipe->MaxBatch, 5);
+        TestTrue(TEXT("Hearth broth recipe requires the Cauldron"),
+            HearthBrothRecipe->RequiredStation.Contains(TEXT("CauldronKit")));
+        TestEqual(TEXT("Hearth broth recipe awards Cooking experience"),
+            HearthBrothRecipe->ExperienceSkill, FName(TEXT("Cooking")));
+        TestEqual(TEXT("Hearth broth recipe awards ten Cooking experience"), HearthBrothRecipe->ExperienceAward, 10);
+    }
 
     for (const FName Id : { FName(TEXT("Iron")), FName(TEXT("FryingPanKit")) })
         TestNotNull(FString::Printf(TEXT("New crafting item %s is defined"), *Id.ToString()), Catalogue->FindDefinition(Id));

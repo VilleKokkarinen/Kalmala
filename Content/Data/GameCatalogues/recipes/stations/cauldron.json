@@ -1,6 +1,29 @@
 {
   "recipes": [
     {
+      "RecipeId": "HearthBrothRecipe",
+      "DisplayName": "Hearth Broth",
+      "Ingredients": [
+        {
+          "ItemId": "DeerMeat",
+          "Quantity": 1
+        },
+        {
+          "ItemId": "Onion",
+          "Quantity": 1
+        }
+      ],
+      "Output": "HearthBroth",
+      "OutputCount": 1,
+      "MaxBatch": 5,
+      "RequiredStation": [
+        "Cauldron"
+      ],
+      "ExperienceSkill": "Cooking",
+      "ExperienceAward": 10,
+      "bEnabled": true
+    },
+    {
       "RecipeId": "MeatStewRecipe",
       "DisplayName": "Meat Stew",
       "Ingredients": [

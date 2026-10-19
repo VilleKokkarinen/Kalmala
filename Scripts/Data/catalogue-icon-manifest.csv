@@ -26,7 +26,7 @@ image_batch,import_batch,canonical_id,art_subject,identity_kind,catalogue_aliase
 07,B,DeerHide,Deer soft hide,item,none,none,PackInventory;ItemDetail;Storage,pack,
 07,B,CookedBoarMeat,Cooked boar meat,item,none,CookedBoarMeatRecipe,PackInventory;ItemDetail;Storage;RecipeResult,pack,
 08,B,CookedDeerMeat,Cooked deer meat,item,none,CookedDeerMeatRecipe,PackInventory;ItemDetail;Storage;RecipeResult,pack,
-08,B,HearthBroth,Hearth broth,item,none,none,PackInventory;ItemDetail;Storage,pack,
+08,B,HearthBroth,Hearth broth,item,none,HearthBrothRecipe,PackInventory;ItemDetail;Storage;RecipeResult,pack,
 08,B,MeatStew,Meat stew,item,none,MeatStewRecipe,PackInventory;ItemDetail;Storage;RecipeResult,pack,
 08,B,RootVegetableSoup,Root vegetable soup,item,none,RootVegetableSoupRecipe,PackInventory;ItemDetail;Storage;RecipeResult,pack,
 09,C,RoastedRootVegetables,Roasted root vegetables,item,none,RoastedRootVegetablesRecipe,PackInventory;ItemDetail;Storage;RecipeResult,pack,

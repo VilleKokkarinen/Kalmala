@@ -26,12 +26,14 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Recipe and item catalogues validate"), Recipes->IsValidCatalogue() && Items->IsValidCatalogue());
 
     const FKalmalaRecipe* CookRecipe = Recipes->Find(TEXT("CookedBoarMeatRecipe"));
+    const FKalmalaRecipe* BrothRecipe = Recipes->Find(TEXT("HearthBrothRecipe"));
     const FKalmalaRecipe* MeatStewRecipe = Recipes->Find(TEXT("MeatStewRecipe"));
     const FKalmalaRecipe* RootSoupRecipe = Recipes->Find(TEXT("RootVegetableSoupRecipe"));
     const FKalmalaRecipe* FryingPanRecipe = Recipes->Find(TEXT("FryingPanRecipe"));
     const FKalmalaRecipe* RoastedRootsRecipe = Recipes->Find(TEXT("RoastedRootVegetablesRecipe"));
     const FKalmalaRecipe* DeerRootRoastRecipe = Recipes->Find(TEXT("DeerRootRoastRecipe"));
     if (!TestNotNull(TEXT("Cooked boar recipe exists"), CookRecipe)
+        || !TestNotNull(TEXT("Hearth broth recipe exists"), BrothRecipe)
         || !TestNotNull(TEXT("Meat stew recipe exists"), MeatStewRecipe)
         || !TestNotNull(TEXT("Root soup recipe exists"), RootSoupRecipe)
         || !TestNotNull(TEXT("Frying pan recipe exists"), FryingPanRecipe)
@@ -246,6 +248,21 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Stew creates one catalogue serving"), Inventory->GetQuantity(TEXT("MeatStew")), 1);
     TestEqual(TEXT("Stew does not add a serving fuel debit"), Fire->GetFuelSeconds(), FuelBeforeStew);
     TestEqual(TEXT("Stew awards Cooking experience after acceptance"), GetCookingExperience(), ExperienceBeforeStew + 10);
+
+    const int32 OnionCountBeforeBroth = Inventory->GetQuantity(TEXT("Onion"));
+    const int32 HearthBrothCountBefore = Inventory->GetQuantity(TEXT("HearthBroth"));
+    TestTrue(TEXT("Fixture grants Hearth broth ingredients"),
+        Inventory->TryGrantFromServer(TEXT("DeerMeat"), 1) && Inventory->TryGrantFromServer(TEXT("Onion"), 1));
+    const float FuelBeforeBroth = Fire->GetFuelSeconds();
+    const int32 ExperienceBeforeBroth = GetCookingExperience();
+    TestTrue(TEXT("A lit fire at the cauldron allows Hearth broth"),
+        Crafting->CraftFromServer(BrothRecipe->RecipeId, 1, Reason));
+    TestEqual(TEXT("Hearth broth consumes its deer meat"), Inventory->GetQuantity(TEXT("DeerMeat")), 0);
+    TestEqual(TEXT("Hearth broth consumes one onion"), Inventory->GetQuantity(TEXT("Onion")), OnionCountBeforeBroth);
+    TestEqual(TEXT("Hearth broth creates one catalogue serving"),
+        Inventory->GetQuantity(TEXT("HearthBroth")), HearthBrothCountBefore + 1);
+    TestEqual(TEXT("Hearth broth does not add a serving fuel debit"), Fire->GetFuelSeconds(), FuelBeforeBroth);
+    TestEqual(TEXT("Hearth broth awards Cooking experience after acceptance"), GetCookingExperience(), ExperienceBeforeBroth + 10);
 
     TestTrue(TEXT("Fixture grants deer roast ingredients"), Inventory->TryGrantFromServer(TEXT("DeerMeat"), 1));
     Fire->SetActorLocation(Pan->GetActorLocation() - FVector(0.0f, 0.0f, 40.0f));
