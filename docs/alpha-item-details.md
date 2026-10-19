@@ -254,6 +254,20 @@ empty-piece removal follows existing material-return policy. No new offline
 fuel drain. If existing wall geometry cannot host the proposed door, report
 that contract conflict before substituting a new wall/frame design.
 
+## A8b
+
+Enemy materials and crafted outputs are individually queued in
+[BACKLOG.md](../BACKLOG.md), using the current
+[drop and recipe tables](biome-enemies.md#recommended-items-and-recipes).
+Complete each approved item with its item JSON and applicable acquisition,
+station recipe, equipment, attack and upgrade records; register every new file
+in `Content/Data/GameCatalogues.json`. Record N/A data categories explicitly.
+Generate an original inventory icon, retain its source/provenance, prepare and
+import it, register its runtime mapping and extend icon-validation coverage
+using [the established workflow](material-icons.md). No placeholder/fallback
+icon counts as completion. Run relevant JSON/reference and icon checks before
+checking the item task; final acceptance audits every approved ID across A0–A9.
+
 ## A9
 
 Cargo, ten gems, special gear and discovery rewards (P2; scope gated).
@@ -405,6 +419,11 @@ icons. Missing catalogue-family/derived-stat support is implementation work,
 not permission to replace these items with unsupported generic definitions.
 
 ## A10
+
+- Audit all approved materials, consumables and equipment, including A8b:
+  registered item/applicable JSON, valid cross-references, actual acquisition,
+  original generated/imported icon and runtime mapping. No missing catalogue
+  entry or fallback icon may pass final acceptance. Validate explicit N/A cases.
 
 Approved alpha item-set acceptance.
 - Before coding, record user-reviewed include/defer status for every named item/buildable above and freeze their reviewed recipes/sources/stats. Proposed milestone groups: I0 A0 current-loop repairs; I1 A1 production; I2 A2–A6 equipment/forage/consumables except Rake; I3 A7 farming/fishing plus A5 Rake; I4 A8–A9 sanctuary/cargo/accessories. Each group requires its own final verification; scope-gated groups remain blocked until approved. This is a proposed schedule, not new completed roadmap history.

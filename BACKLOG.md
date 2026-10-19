@@ -96,6 +96,13 @@ One child task per run. Every item needs complete data, a real source and an
 original integrated icon. Buildables use Hammer + raw materials, never kits.
 Agents must follow reviewed values and report gaps instead of inventing designs.
 
+**Every approved item is complete only with:** its item JSON, applicable recipe,
+equipment/attack/upgrade JSON, and registration in `Content/Data/GameCatalogues.json`;
+an original generated icon, prepared/imported through [the icon workflow](docs/material-icons.md),
+runtime mapping and icon-validator coverage; and passing JSON/reference/icon checks.
+This applies to raw drops and crafted outputs across every category. Record explicit
+N/A reasons for unused data types. A missing icon or catalogue entry blocks completion.
+
 - [ ] **A0 — Existing items (P0).** [Details](docs/alpha-item-details.md#a0)
   - [ ] Review scope and the A10 milestone plan.
   - [ ] Audit current sources and starter progression; check the Iron-source mismatch.
@@ -196,6 +203,45 @@ Agents must follow reviewed values and report gaps instead of inventing designs.
   - [ ] Thunder Mountains: Thunder Sentinel — rare hard stone attacker.
   - [ ] Run enemy milestone verification before A9; record results and blockers.
 
+- [ ] **A8b — Enemy materials and crafted items (P1/P2).** [Recipes](docs/biome-enemies.md#recommended-items-and-recipes)
+  - [ ] Approve drop rates, effects and missing gear profiles; reconcile older recipe/source values.
+  - [ ] Rat Tail: Rat, 1 guaranteed; material + source + JSON + generated icon.
+  - [ ] Badger Fur: Badger, 1 guaranteed; material + source + JSON + generated icon.
+  - [ ] Badger Meat: Badger, 1 guaranteed; material + source + JSON + generated icon.
+  - [ ] Viper Fang: Viper, 1 guaranteed; material + source + JSON + generated icon.
+  - [ ] Giant Scale: Giant Snake, 2 guaranteed; material + source + JSON + generated icon.
+  - [ ] Venom Sac: Death Adder, 1 guaranteed; material + source + JSON + generated icon.
+  - [ ] Peat Heart: Peat Husk, 25% chance of 1; material + source + JSON + generated icon.
+  - [ ] Wolf Pelt: Wolf, 1 guaranteed; material + source + JSON + generated icon.
+  - [ ] Wolf Fang: Wolf, 25% chance of 1; material + source + JSON + generated icon.
+  - [ ] Wolf Meat: Wolf, 1 guaranteed; material + source + JSON + generated icon.
+  - [ ] Lynx Pelt: Lynx, 50% chance of 1; material + source + JSON + generated icon.
+  - [ ] Polar Bear Pelt: Polar Bear, 2 guaranteed; material + source + JSON + generated icon.
+  - [ ] Goat Horn: Horned Goat, 1 guaranteed; material + source + JSON + generated icon.
+  - [ ] Thunder Core: Thunder Sentinel, 25% chance of 1; material + source + JSON + generated icon.
+  - [ ] Reef Tooth: Reef Maw, 50% chance of 1; blocked on aquatic approval.
+  - [ ] Rat-tail Tonic: Cauldron, 2 Rat Tail + 2 Lingonberry → 1; heal 30 over 10 s.
+  - [ ] Badger Fur Vest: Workbench, 6 Badger Fur + 2 String → 1; Chest, 6 Armor.
+  - [ ] Roasted Badger: Cooking Rack, 1 Badger Meat → 1; Steady Meal.
+  - [ ] Fang Arrows: Workbench, 2 Viper Fang + 10 Wood → 20; 50 Pierce, weak poison 5 s.
+  - [ ] Scale Cuirass: Forge, 10 Giant Scale + 10 Bronze → 1; Chest, 20 Armor.
+  - [ ] Antidote: Cauldron, 1 Venom Sac + 2 Lingonberry → 1; clear weak poison, 10 min resistance, halve major poison.
+  - [ ] Peat Heart Stew: Cauldron, 1 Peat Heart + 2 Potato + 1 Onion → 2; Steady Meal.
+  - [ ] Wolf Pelt Boots: Workbench, 5 Wolf Pelt + 5 Iron → 1; Boots, 10 Armor.
+  - [ ] Fang Spear: Forge, 4 Wolf Fang + 10 Iron + 10 Densewood → 1; 100 Stab.
+  - [ ] Wolf Stew: Cauldron, 1 Wolf Meat + 3 Carrot + 3 Onion → 1; Steady Meal.
+  - [ ] Lynx Mantle: Workbench, 4 Lynx Pelt + 2 String → 1; Cape, 8 Armor.
+  - [ ] Polar Bear Coat: Forge, 5 Polar Bear Pelt + 20 Iron → 1; Chest, 50 Armor.
+  - [ ] Horn Bow: Workbench, 2 Goat Horn + 10 Densewood + 1 Bow String → 1; +100 Pierce, slow draw.
+  - [ ] Thunder Maul: Forge, 1 Thunder Core + 20 Iron + 10 Densewood → 1; 100 Crush + 30 Lightning.
+  - [ ] Reef Harpoon: Forge, 3 Reef Tooth + 8 Iron + 4 Lightwood → 1; 60 Pierce; aquatic approval required.
+  - [ ] Verify every approved drop/output has complete registered JSON, a reachable source and a generated runtime icon.
+
+  Bow String stays in A0; Moonstone Ring and Dusk Ring stay in A9. Do not duplicate them.
+  Enable new drops only when their material task is complete. Antidote resistance,
+  slow-draw timing, Lightning and aquatic effects need reviewed rules before coding.
+  All 30 new material/output tasks include the item-completion gate above.
+
 - [ ] **A9 — Cargo, gems and special gear (P2).** [Rules](docs/alpha-item-details.md#a9)
   - [ ] Review skiff cargo; defer carts, carry packs, encumbrance and hull durability.
   - [ ] Skiff Cargo Chest: Hammer, 6 Lightwood + 2 String + 1 Bronze; 12 cells/skiff.
@@ -224,6 +270,7 @@ Agents must follow reviewed values and report gaps instead of inventing designs.
   - [ ] Audit the four existing scroll routes; defer new scrolls, trophies and boss keys.
 
 - [ ] **A10 — Acceptance.** [Full criteria](docs/alpha-item-details.md#a10)
+  - [ ] Audit all approved item IDs against registered JSON and generated/imported runtime icons; zero missing entries, references or fallback icons.
   - [ ] Review milestones: I0 A0; I1 A1; I2 A2–A6 except Rake; I3 A7 + Rake; I4 A8–A9.
   - [ ] Check each included item's source, recipe, use, upgrades, icon and save behavior.
   - [ ] Run required full verification at each milestone's final increment.

@@ -4,6 +4,7 @@ Add new decisions at the top. A decision records what agents should treat as set
 
 | Date | Decision | Status | Rationale |
 | --- | --- | --- | --- |
+| 2026-10-19 | Queue enemy-drop materials and recommended outputs as individual A8b tasks; require complete catalogue JSON and generated icons for every approved item. | User-directed plan | Fifteen new materials and fifteen outputs use the latest user-edited recipes; Bow String/rings remain in A0/A9. All categories require applicable JSON/manifest entries, original generated/imported runtime icons and reference/icon checks before completion. Final acceptance audits every approved ID. |
 | 2026-10-19 | Replace the recommended Wolf Pelt Cloak with Wolf Pelt Boots. | User-directed plan | Uses the Boots slot; retain the user's current recipe and Armor tuning. Planning only. |
 | 2026-10-19 | Recommend items and recipes from the user's revised unique-drop table. | Review proposal | Eighteen concrete recipes cover all retained drop materials, including meals, armor, weapons and consumables. Reuse backlog Bow String/ring recipes; new poison-removal, Lightning and aquatic behavior remain scope-gated. No runtime changes. |
 | 2026-10-19 | Add a unique-drop proposal for every enemy in the overview. | User-directed plan | Concrete quantities/chances and short intended uses live in biome-enemies.md. Retain Deer Sinew 50%, Moonstone 2% and Dusk Diamond 0.5% routes. Other unique materials/uses are reviewable proposals requiring complete item/recipe/icon approval; no runtime loot changes. |

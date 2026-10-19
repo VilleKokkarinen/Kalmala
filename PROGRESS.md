@@ -1,3 +1,19 @@
+## User-directed planning 2026-10-19 — Queue items and enforce data/icon completion
+
+- Added A8b to `BACKLOG.md`: 15 material/source tasks and 15 crafted-output
+  tasks using current user-edited recipes. Existing Bow String/rings remain
+  in A0/A9. Added a universal item JSON/manifest/generated-icon gate and A10
+  coverage audit, including raw drops and applicable profiles/attacks/upgrades.
+- Updated `docs/biome-enemies.md` with the implementation handoff and revised
+  Antidote rules; unresolved resistance/slow-draw/Lightning/aquatic details stay
+  review-gated. Added A8b data/icon rules and A10 audit in
+  `docs/alpha-item-details.md`; recorded `docs/05-decision-log.md`.
+  User table edits preserved.
+- Checked task/recipe/material coverage, JSON/icon requirements, references,
+  whitespace, staged ownership and paths. Planning only: no item JSON or icons
+  generated yet, no runtime tests; full verification deferred. Next: approve
+  remaining item rules/profiles, then follow the backlog. Main checkout, no sync.
+
 ## User-directed planning 2026-10-19 — Wolf Pelt Boots
 
 - Changed the recommendation in `docs/biome-enemies.md` from Wolf Pelt Cloak

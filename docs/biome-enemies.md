@@ -79,6 +79,12 @@ route remains blocked on aquatic acceptance.
 
 ## Recommended items and recipes
 
+Implementation is queued in [BACKLOG A8b](../BACKLOG.md), one material or output
+per increment. Bow String remains in A0; the rings remain in A9. Every item
+includes applicable catalogue JSON/manifest entries and an original generated,
+prepared/imported runtime icon with validation; none may be checked complete
+with placeholder data or a fallback icon.
+
 **Recommendations for review**, using the latest user-edited drop table above.
 Costs and base effects below are proposals; Bow String and both rings reuse
 existing backlog recipes. Every retained drop has a use; Boar and Mosquito
@@ -110,8 +116,11 @@ swarm currently have no unique drop, so neither receives a new recipe here.
 - Fang Arrows apply weak poison at 1/sec for 5 s on an accepted hit; use the
   enemy poison refresh/strongest-dose rules. No repeated poison per projectile.
 - Tonic and Antidote share the proposed 60 s recovery cooldown. Tonic cannot
-  be used at full health; Antidote requires active poison and grants no immunity.
-  Poison removal is a new scope proposal, superseding its A6 deferral only if approved.
+  be used at full health. The user's revised Antidote clears weak poison,
+  provides poison resistance for 600 s, and halves major-poison damage.
+  Define the exact weak-poison resistance/reapplication behavior and effect
+  refresh rules during planning; do not guess them during implementation.
+  This new resistance proposal supersedes A6's deferral only if approved.
 - Bow damage is a weapon bonus, combined once with arrow damage. Armor is
   physical-only. Fur items grant no cold protection in this recommendation.
 - Thunder Maul requires approved Lightning damage/channel behavior. Reef
