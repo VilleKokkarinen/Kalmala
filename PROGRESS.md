@@ -1,3 +1,14 @@
+## User-directed planning 2026-10-19 — Mireling base enemy
+
+- Updated `BACKLOG.md`, `docs/biome-enemies.md` and `docs/05-decision-log.md`:
+  Mireling spawns only in Mossy Mire as its weak base enemy. Proposed 60 health,
+  0 Armor and 8 Crush; assign the existing 50% base share. Retain behavior,
+  loot and planned Dusk Diamond route. Overview marks its changes as planned.
+- Checked references, spawn shares, table alignment, whitespace, staged ownership
+  and path lengths. Server filtering/combat verification is queued; no runtime
+  changes or tests. Full verification deferred. Next: roster review/A8a
+  implementation; main checkout, no handoff sync required.
+
 ## User-directed planning 2026-10-19 — Boar/deer biome restriction
 
 - Added a spawn restriction task in `BACKLOG.md`; updated the overview and

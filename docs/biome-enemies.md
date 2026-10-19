@@ -7,12 +7,13 @@ Damage is before defenses. Poison rates are per second and do not stack;
 only the strongest active poison deals damage. Current wildlife uses seeded
 population slots rather than the proposed biome restrictions below. Boar/deer
 biomes in this table are planned restrictions; their stats are current defaults.
+Mireling's biome and reduced stats are planned changes to an existing enemy.
 
 | Enemy               | Biome                                  | Status           | HP   | Armor | Attack       | Abilities / counters                |
 | ------------------- | -------------------------------------- | ---------------- | ---: | ----: | ------------ | ----------------------------------- |
 | Boar                | Meadows / Elderwood / Shimmering Lakes | Current          |  100 |     0 | 15 Crush     | Territorial charge                  |
 | Deer                | Meadows / Elderwood / Shimmering Lakes | Current          |  100 |     0 | —            | Flees; alerts nearby deer           |
-| Mireling            | Seeded slots                           | Current          |  100 |     0 | 10 Crush     | Approaches; close melee             |
+| Mireling            | Mossy Mire                             | Planned retune   |   60 |     0 | 8 Crush      | Weak base enemy; simple melee       |
 | Brush Rat           | Meadows                                | Planned          |   35 |     0 | 6 Stab       | Defensive bite                      |
 | Woodland Badger     | Elderwood                              | Planned          |   60 |     0 | 10 Stab      | Warns; bites; retreats              |
 | Moon Bear           | Elderwood                              | Planned          |  250 |     5 | 35 Crush     | Slow overhead strike; 2% Moonstone  |
@@ -82,7 +83,9 @@ Any later carcass materials require a separate reviewed item/recipe/icon plan.
   hard enemy. If there is no eligible existing entry, leave that share empty;
   do not import creatures from another biome. Each new spawn is one enemy
   actor; a mosquito spawn is one swarm actor with multiple cosmetic insects.
-- Mossy Mire splits its common share: 50% existing roster / 20% Bog Adder /
+- Mirelings spawn **only in Mossy Mire**, including seeded/reloaded candidates.
+  Use the same server-side spawn-origin allowlist policy as boar/deer.
+- Mossy Mire splits its common share: 50% Mireling / 20% Bog Adder /
   20% Mire Mosquito swarm / 10% Peat Husk. Keep the existing actor budget;
   the visual insects do not create extra gameplay actors or damage sources.
 - Freezing Tundra splits its common share: 50% existing roster / 20% Tundra
@@ -112,6 +115,16 @@ Any later carcass materials require a separate reviewed item/recipe/icon plan.
   relevant-peer replication and depletion policy. Persist stable credited-death
   and loot claim identities so reload/duplicate requests cannot grant twice.
   Reject invalid attacks unchanged; preserve unclaimed rewards on full packs.
+
+## Mireling base enemy
+
+- Make the existing Mireling the frequent, weak Mossy Mire enemy. Proposed
+  tuning: **60 health, 0 Armor, 8 Crush** (currently 100 health/10 Crush).
+  Retain its approach and simple melee; no poison or new special ability.
+- Use the Mire's 50% base-enemy share; no Mireling spawns in other biomes.
+  Keep existing loot and the planned 0.5% Mossy Mire Dusk Diamond route.
+- Preserve server-owned damage, rewards and relevant-peer state. Verify
+  seeded/reloaded biome filtering, weaker combat stats and unchanged loot.
 
 ## Giant Snake
 

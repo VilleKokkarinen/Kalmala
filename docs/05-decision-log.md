@@ -4,6 +4,7 @@ Add new decisions at the top. A decision records what agents should treat as set
 
 | Date | Decision | Status | Rationale |
 | --- | --- | --- | --- |
+| 2026-10-19 | Mireling becomes the weak base enemy exclusive to Mossy Mire. | User-directed plan | Proposed 60 health/0 Armor/8 Crush, reduced from 100 health/10 Crush; takes the Mire's existing 50% base share. Retain simple melee, loot and Dusk Diamond route. Seeded/reloaded spawns must respect biome filtering; implementation pending. |
 | 2026-10-19 | Boars and deer spawn only in Meadows, Elderwood and Shimmering Lakes. | User-directed plan | Server-side spawn-origin allowlist excludes every other biome, including seeded/reloaded candidates. Movement, stats and loot unchanged; implementation pending. |
 | 2026-10-19 | Replace Shimmering Lakes Reed Lurker with Giant Snake (`GiantSnake`). | User-directed plan | Rare hard shoreline snake with a coiled lunging bite; proposed 4 m body, 160 health/3 Armor/25 Stab and 2 Bone Fragment. Replaces forelimb swipe/Crush attack; retains spawn share. No poison or grab proposed. Implementation pending. |
 | 2026-10-19 | Rename the planned Elderwood Bear to Moon Bear (`MoonBear`). | User-directed plan | Remains the rare hard Elderwood enemy and exclusive 2% Moonstone source. Stats, attacks and other loot unchanged; supersedes the earlier name. Implementation pending. |
