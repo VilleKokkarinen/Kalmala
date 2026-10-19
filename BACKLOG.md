@@ -177,8 +177,9 @@ Agents must follow reviewed values and report gaps instead of inventing designs.
 - [ ] **A8a — Biome enemies (before A9).** [Roster and stats](docs/biome-enemies.md)
   - [ ] Review the expanded roster, spawn weights and attack/loot rules.
   - [ ] Restrict boar/deer spawns to Meadows, Elderwood and Shimmering Lakes only.
+  - [ ] Apply the overview's revised stats to existing boar/deer and all A8a enemies.
   - [ ] Meadows: Rat — small defensive scavenger.
-  - [ ] Elderwood: Badger — easier territorial enemy; short bite and retreat.
+  - [ ] Elderwood: Badger — territorial enemy; slashes with its claws.
   - [ ] Elderwood: Moon Bear — rare hard enemy; future Moonstone source.
   - [ ] Shimmering Lakes: Viper — shoreline ambusher; lunging bite applies weak poison for 5 s.
   - [ ] Shimmering Lakes: Giant Snake — rare hard shoreline ambusher; powerful lunging bite.
@@ -189,7 +190,7 @@ Agents must follow reviewed values and report gaps instead of inventing designs.
   - [ ] Freezing Tundra: Wolf — tougher pursuing predator; powerful lunging bite.
   - [ ] Freezing Tundra: Lynx — leaping predator.
   - [ ] Freezing Tundra: Polar Bear — rare hard charging predator.
-  - [ ] Thunder Mountains: Horned Goat — territorial horn charges.
+  - [ ] Thunder Mountains: Horned Goat — territorial horn charges; push and stagger.
   - [ ] Thunder Mountains: Thunder Sentinel — rare hard stone attacker.
   - [ ] Run enemy milestone verification before A9; record results and blockers.
 

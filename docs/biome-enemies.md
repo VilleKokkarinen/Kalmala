@@ -2,12 +2,12 @@
 
 ## Quick overview
 
-**Current** = existing code defaults; **Planned** = editable A8a proposals.
+**Current** = existing species; **Planned** = queued additions or retunes.
 Damage is before defenses. Poison rates are per second and do not stack;
 only the strongest active poison deals damage. Current wildlife uses seeded
 population slots rather than the proposed biome restrictions below. Boar/deer
-biomes in this table are planned restrictions; their stats are current defaults.
-Mireling's biome and reduced stats are planned changes to an existing enemy.
+biomes and all stats in this table are planned targets, including boar/deer retunes.
+Mireling's biome and stats are also planned changes to an existing enemy.
 
 | Enemy               | Biome                                  | Status           | HP   | Armor | Attack       | Abilities / counters                |
 | ------------------- | -------------------------------------- | ---------------- | ---: | ----: | ------------ | ----------------------------------- |
@@ -48,20 +48,20 @@ before existing defenses; no client-authored damage or offensive player magic.
 
 | Biome | Enemy / ID | Role and attack | Health / Armor | Hit damage | Guaranteed loot |
 | --- | --- | --- | --- | --- | --- |
-| Meadows | Rat (`Rat`) | Small scavenger; bites only when approached within 3 m or attacked | 35 / 0 | 6 Stab | 1 Bone Fragment |
-| Elderwood | Badger (`Badger`) | Easier territorial animal; warns within 3 m, short bite and retreat if approached or attacked | 60 / 0 | 10 Stab | 1 Bone Fragment |
-| Elderwood | Moon Bear (`MoonBear`) | Rare hard enemy; slow overhead paw strike, punishable recovery | 250 / 5 | 35 Crush | 3 Bone Fragment |
-| Shimmering Lakes | Viper (`Viper`) | Snake hiding in dry shoreline reeds; visible coil, narrow lunging bite, then retreats; applies weak poison for 5 s | 50 / 0 | 10 Stab + poison below | 1 Bone Fragment |
-| Shimmering Lakes | Giant Snake (`GiantSnake`) | Rare hard snake hidden among shoreline reeds; raised-head coil, powerful lunging bite, then slow recovery | 160 / 3 | 25 Stab | 2 Bone Fragment |
-| Mossy Mire | Death Adder (`DeathAdder`) | Highly venomous camouflaged snake; visible coil, short bite then retreat; major poison for 10 s | 70 / 0 | 14 Stab + major poison below | 1 Bone Fragment |
-| Mossy Mire | Mosquito swarm (`MosquitoSwarm`) | Flying swarm surrounds a player and keeps biting; 10 s weak poison; rolls break contact, lit flames repel it | 25 / 0 per swarm | Proposed 2 Stab every 0.5 s while in contact + poison below | None |
-| Mossy Mire | Peat Husk (`PeatHusk`) | Rare hard, original peat-and-wood creature; slow sweeping arm | 220 / 6 | 30 Crush | 1 Amber |
-| Freezing Tundra | Wolf (`Wolf`) | Tough pursuing predator; visible forward lunge and powerful bite, then recovery | 160 / 3 | 28 Slash | 2 Bone Fragment |
-| Freezing Tundra | Lynx (`Lynx`) | Mobile predator; telegraphed leap, long recovery if it misses | 120 / 0 | 22 Slash | 2 Bone Fragment |
-| Freezing Tundra | Polar Bear (`PolarBear`) | Rare hard bear variant; committed charge, then retreat to reset | 300 / 6 | 40 Crush | 3 Bone Fragment |
-| Thunder Mountains | Horned Goat (`HornedGoat`) | Territorial wildlife; clear horn-charge windup | 120 / 2 | 20 Crush | 2 Bone Fragment |
-| Thunder Mountains | Thunder Sentinel (`ThunderSentinel`) | Rare hard, original stone creature; short step and downward slam | 280 / 10 | 38 Crush | 3 Stone |
-| Ocean | Reef Maw (`ReefMaw`) | Rare swimming predator; visible approach and single bite against swimming players | 180 / 2 | 28 Stab | 3 Bone Fragment |
+| Meadows | Rat (`Rat`) | Small scavenger; bites only when approached within 3 m or attacked | 10 / 0 | 5 Pierce | 1 Bone Fragment |
+| Elderwood | Badger (`Badger`) | Territorial animal; warns within 3 m, then slashes with its claws if approached or attacked | 100 / 10 | 20 Slash | 1 Bone Fragment |
+| Elderwood | Moon Bear (`MoonBear`) | Rare hard enemy; slow overhead paw strike, punishable recovery | 250 / 20 | 75 Crush | 3 Bone Fragment |
+| Shimmering Lakes | Viper (`Viper`) | Snake hiding in dry shoreline reeds; visible coil, narrow lunging bite, then retreats; applies weak poison for 5 s | 100 / 10 | 50 Stab + poison below | 1 Bone Fragment |
+| Shimmering Lakes | Giant Snake (`GiantSnake`) | Rare hard snake hidden among shoreline reeds; raised-head coil, powerful lunging bite, then slow recovery | 250 / 30 | 100 Stab | 2 Bone Fragment |
+| Mossy Mire | Death Adder (`DeathAdder`) | Highly venomous camouflaged snake; visible coil, short bite then retreat; major poison for 10 s | 125 / 20 | 75 Stab + poison below | 1 Bone Fragment |
+| Mossy Mire | Mosquito swarm (`MosquitoSwarm`) | Flying swarm surrounds a player and keeps biting; 10 s weak poison; rolls break contact, lit flames repel it | 25 / 0 per swarm | 5 Stab/0.2 s + poison below | None |
+| Mossy Mire | Peat Husk (`PeatHusk`) | Rare hard, original peat-and-wood creature; slow sweeping arm | 300 / 50 | 150 Crush | 1 Amber |
+| Freezing Tundra | Wolf (`Wolf`) | Tough pursuing predator; visible forward lunge and powerful bite, then recovery | 250 / 40 | 100 Slash | 2 Bone Fragment |
+| Freezing Tundra | Lynx (`Lynx`) | Mobile predator; telegraphed leap, long recovery if it misses | 150 / 30 | 75 Slash | 2 Bone Fragment |
+| Freezing Tundra | Polar Bear (`PolarBear`) | Rare hard bear variant; committed charge, then retreat to reset | 750 / 60 | 200 Crush | 3 Bone Fragment |
+| Thunder Mountains | Horned Goat (`HornedGoat`) | Territorial wildlife; telegraphed horn charge pushes and staggers | 200 / 50 | 50 Crush | 2 Bone Fragment |
+| Thunder Mountains | Thunder Sentinel (`ThunderSentinel`) | Rare hard, original stone creature; short step and downward slam | 1250 / 75 | 300 Crush | 3 Stone |
+| Ocean | Reef Maw (`ReefMaw`) | Rare swimming predator; visible approach and single bite against swimming players | 180 / 2 | 50 Stab | 3 Bone Fragment |
 
 New animal enemies deliberately have no meat/hide drops in this proposal:
 do not grant Deer Meat/Boar Hide from unrelated species or invent extra item
@@ -76,8 +76,8 @@ Any later carcass materials require a separate reviewed item/recipe/icon plan.
   Exclude both from Mossy Mire, Freezing Tundra, Thunder Mountains and Ocean.
   Apply the server-side biome allowlist before archetype selection, including
   regenerated/reloaded population candidates; seed selection cannot bypass it.
-  This controls spawn origin, not a new movement barrier. Retain existing
-  behavior, stats and loot. Verify allowed/forbidden biomes across fixed seeds.
+  This controls spawn origin, not a new movement barrier. Use the revised
+  stats below; retain other behavior and loot. Verify biome filtering across fixed seeds.
 - Proposed selection: Meadows 90% existing roster / 10% Rat. Each other
   land biome: 50% existing eligible roster / 40% new common enemy / 10% new
   hard enemy. If there is no eligible existing entry, leave that share empty;
@@ -116,15 +116,30 @@ Any later carcass materials require a separate reviewed item/recipe/icon plan.
   and loot claim identities so reload/duplicate requests cannot grant twice.
   Reject invalid attacks unchanged; preserve unclaimed rewards on full packs.
 
+## Existing wildlife retunes and changed abilities
+
+- Boar: **20 health, 5 Armor, 10 Crush**; keep its territorial charge.
+  Deer: **30 health, 5 Armor**, no attack; fleeing alerts nearby deer.
+  These replace current runtime defaults, not claims of implemented stats.
+- Badger uses **20 Slash** claw attacks instead of bites. Retain its warning
+  and the common enemy windup/recovery rules.
+- Horned Goat's **50 Crush** horn charge also pushes and staggers on a
+  server-confirmed hit. Push distance and stagger duration require review
+  before implementation; do not invent them during coding.
+- All detailed roster stats follow the overview. Update runtime health/damage
+  validation limits to support the approved targets (up to 1,250 health and
+  300 damage), while retaining server-owned authored values and rejecting
+  client-authored damage. Verify each enemy against its own profile.
+
 ## Mireling base enemy
 
 - Make the existing Mireling the frequent, weak Mossy Mire enemy. Proposed
-  tuning: **60 health, 0 Armor, 8 Crush** (currently 100 health/10 Crush).
+  tuning: **75 health, 15 Armor, 20 Crush** (currently 100 health/10 Crush).
   Retain its approach and simple melee; no poison or new special ability.
 - Use the Mire's 50% base-enemy share; no Mireling spawns in other biomes.
   Keep existing loot and the planned 0.5% Mossy Mire Dusk Diamond route.
 - Preserve server-owned damage, rewards and relevant-peer state. Verify
-  seeded/reloaded biome filtering, weaker combat stats and unchanged loot.
+  seeded/reloaded biome filtering, updated combat stats and unchanged loot.
 
 ## Giant Snake
 
@@ -133,8 +148,8 @@ Any later carcass materials require a separate reviewed item/recipe/icon plan.
   from Viper. Slithers on dry shore; no limbs or forelimb-swipe attack.
 - Telegraph the bite with a visible coil and hiss for 1 s; strike forward
   once, then recover for 1.2 s. A sideways roll avoids the narrow lunge.
-  Retain 160 health, 3 Armor and 2 Bone Fragment; change the 25-damage attack
-  from Crush to Stab. No poison or constriction/grab mechanic in this proposal.
+  Use 250 health, 30 Armor and 2 Bone Fragment; the 100-damage bite uses Stab.
+  No poison or constriction/grab mechanic in this proposal.
 - Occupy the existing Lakes 10% hard-enemy share, within normal spawn budgets,
   25 m leash and dry-ground rules. No deep-water pursuit. Verify body collision,
   readable bite timing, server hit validation and peer appearance.
@@ -143,7 +158,7 @@ Any later carcass materials require a separate reviewed item/recipe/icon plan.
 
 - A server-confirmed bite applies **weak poison for 5 seconds**. Proposed
   tuning: 1 Poison damage each second, first tick after 1 s, five ticks total.
-  Keep the existing 10 Stab bite, 50 health, 0 Armor and loot.
+  Use 50 Stab on the bite, 100 health and 10 Armor; retain loot.
 - Further bites refresh the five-second duration without stacking damage or
   causing an immediate extra tick. Vipers and mosquito swarms share one weak
   poison effect at 1 Poison/second: expiry becomes the later of its current
@@ -163,7 +178,7 @@ Any later carcass materials require a separate reviewed item/recipe/icon plan.
 
 - A server-confirmed bite applies **major poison for 10 seconds**. Proposed
   tuning: **5 Poison/second**, first tick after 1 s, ten ticks (50 total before
-  Poison defenses). Keep 14 Stab on the bite, 70 health, 0 Armor and loot.
+  Poison defenses). Use 75 Stab on the bite, 125 health and 20 Armor; retain loot.
 - Further Death Adder bites refresh the duration without stacking or extra
   immediate ticks; multiple adders share one major effect. Weak and major
   poison have separate expiry timers but one shared one-second damage clock:
@@ -187,13 +202,13 @@ attack players holding a lit torch. The following numbers are proposed tuning.
 - One swarm actor represents six original cosmetic mosquito silhouettes,
   with audible buzzing and 25 shared health. Fly 0.5–2.5 m above local ground;
   approach visibly for 0.5 s before harassment. No instant spawn on a player.
-- Harass one target within 1 m, applying **2 Stab every 0.5 s** with no retreat
+- Harass one target within 1 m, applying **5 Stab every 0.2 s** with no retreat
   between bites. One attacking swarm per player; other swarms wait outside
   contact range rather than stacking bite rates. Missed/late server ticks do
   not burst catch-up damage. Visible insects never inflict separate hits.
 - Apply existing typed defense, physical Armor and accepted-hit wearable-wear
   rules once per tick. Armor may reduce damage to zero; this proposal adds no
-  armor bypass. Contact Stab damage is capped at 4 per second before defenses for each
+  armor bypass. Contact Stab damage is capped at 25 per second before defenses for each
   player, regardless of cosmetic insect count.
 - Each accepted contact bite applies **weak poison for 10 seconds**. Proposed
   tuning: 1 Poison/second, first tick after 1 s, ten ticks without refresh.
@@ -243,8 +258,8 @@ Use the authoritative enemy kind and Elderwood spawn identity, not the biome
 where a player lures it. Boars, deer, Badgers, Wolves and Mirelings cannot drop
 Moonstone. One server roll per defeat, with no retry/reload reroll.
 
-The bear is deliberately harder than the common Badger: 250 versus 60
-health, 5 versus 0 Armor, 35 versus 10 damage, balanced by longer telegraph and
+The bear is deliberately harder than the common Badger: 250 versus 100
+health, 20 versus 10 Armor, 75 versus 20 damage, balanced by longer telegraph and
 recovery. This is a proposed combat target, not a claim of playtested balance.
 Keep Dusk Diamond on Mossy Mire Mirelings; no other gem source changes.
 A9 Moonstone implementation is blocked until this bear's acceptance passes.

@@ -1,3 +1,17 @@
+## User-directed planning 2026-10-19 — Synchronize revised enemy stats
+
+- Synchronized the 14 detailed roster entries and ability sections in
+  `docs/biome-enemies.md` with the user's overview: health, Armor, damage,
+  Badger claws and Goat push/stagger. Added boar/deer retunes and updated
+  Mireling, snake and Moon Bear comparisons; swarm contact cap is now 25/sec.
+- Updated `BACKLOG.md` and `docs/05-decision-log.md`. Clarified that overview
+  stats are planned targets; runtime limit changes are queued. Goat push/
+  stagger numbers still need review. Preserved the user's table edits unstaged.
+- Checked roster/table consistency, repeated combat numbers, references,
+  whitespace, staged ownership and paths. Documentation only; no runtime tests
+  or authority changes; full verification deferred. Next: control-effect tuning
+  review and A8a implementation; main checkout, no handoff sync.
+
 ## User-directed planning 2026-10-19 — Propagate enemy renames
 
 - Applied user overview names throughout `docs/biome-enemies.md`, its planned
