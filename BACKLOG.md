@@ -185,7 +185,7 @@ Agents must follow reviewed values and report gaps instead of inventing designs.
   - [ ] Skiff Cargo Chest: Hammer, 6 Lightwood + 2 String + 1 Bronze; 12 cells/skiff.
   - [ ] Gemstone rocks: rare resource-slot replacements; 10% gem-smash risk per hit, success yields 1 gem.
   - [ ] Quartz rock: Elderwood/Lakes, proposed 5% replacement of Copper/Tin spawn slots.
-  - [ ] Moonstone: proposed 2% chance of 1 per credited Mireling defeat; enemy-only.
+  - [ ] Moonstone: proposed 2% chance of 1 per credited Elderwood boar defeat; enemy-only.
   - [ ] Garnet: proposed 10% chance of 1 in Elderwood/Lakes world treasure chests; chest-only.
   - [ ] Jade rock: Shimmering Lakes, proposed 2% replacement of Tin spawn slots.
   - [ ] Amethyst rock: Mossy Mire, proposed 3% replacement of Iron Ore spawn slots.

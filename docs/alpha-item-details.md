@@ -258,7 +258,7 @@ Cargo, ten gems, special gear and discovery rewards (P2; scope gated).
 | Gem / item ID | Exclusive eligible source | Proposed rarity / successful yield | Required use |
 | --- | --- | --- | --- |
 | Smoky Quartz (`SmokyQuartz`) | Dedicated Quartz rock replacing Copper slots in Elderwood or Tin slots in Shimmering Lakes | 5% of eligible spawn slots; 1 gem if extracted | Quartz Necklace |
-| Moonstone (`Moonstone`) | Credited Mireling defeats in any biome | 2% (1/50) | Moonstone Ring |
+| Moonstone (`Moonstone`) | Credited Elderwood-spawned boar defeats only | 2% (1/50) | Moonstone Ring |
 | Garnet (`Garnet`) | World treasure chests in Elderwood or Shimmering Lakes | 10% (1/10) | Garnet Necklace |
 | Green Jade (`GreenJade`) | Dedicated Jade rock replacing Tin slots in Shimmering Lakes only | 2% of eligible spawn slots; 1 gem if extracted | Jade Ring |
 | Amethyst (`Amethyst`) | Dedicated Amethyst rock replacing Iron Ore slots in Mossy Mire only | 3% of eligible spawn slots; 1 gem if extracted | Amethyst Necklace |
@@ -303,8 +303,13 @@ support; it is not assumed to exist in current interaction-based mining.
 
 Enemy/treasure gems still roll once per credited defeat/chest generation.
 Persist claims; opening, retries or reload cannot reroll. Lake treasure may
-roll Garnet/Aquamarine independently; Mire Mirelings may roll Moonstone/Dusk
-Diamond independently. Boar/deer do not drop gems. No universal source fallback.
+roll Garnet/Aquamarine independently. Moonstone moves off Mirelings to boars
+whose authoritative spawn record is in Elderwood; moving a Meadow boar there
+does not qualify it. Resolve once per credited defeat alongside normal boar
+loot. Elderwood boars are a concrete proposed choice of the user's requested
+different enemy; verify their generated population route before claiming
+reachability. Dusk Diamond remains exclusive to Mossy Mire Mirelings.
+Other boars and all deer do not drop gems. No universal source fallback.
 Existing Amber is not counted among the ten gems; no gem conversion or random
 crafting outcomes. Existing non-gem resource generation is unchanged except
 for the explicitly selected replacement slots.

@@ -1,3 +1,14 @@
+## User-directed planning 2026-10-19 — Elderwood Moonstone enemy
+
+- Updated Moonstone in `BACKLOG.md`, details, comparison and decision log:
+  proposed Elderwood-spawned boars replace Mirelings, still 2% chance of 1
+  per credited defeat. Server spawn biome qualifies the source; luring a
+  Meadow boar into Elderwood does not. Population reachability needs checking.
+  Dusk Diamond remains a Mossy Mire Mireling drop; other recipes unchanged.
+- Checked source consistency, whitespace, staged ownership and paths. Planning
+  only; no runtime/data/assets/save changes or tests. Full verification deferred.
+  Pre-existing user edits preserved; main checkout, no sync. Next: enemy review.
+
 ## User-directed planning 2026-10-19 — Opal headwear
 
 - Updated `BACKLOG.md`, linked item details, comparison and decision log:
