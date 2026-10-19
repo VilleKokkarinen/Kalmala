@@ -1,3 +1,11 @@
+## User-directed planning 2026-10-19 — Align enemy overview columns
+
+- Padded the quick-overview table in `docs/biome-enemies.md` to fixed column
+  widths in Markdown source; right-aligned numeric values. Cell values unchanged.
+- Checked equal row widths, unchanged cell text and whitespace. Documentation
+  only; no runtime tests or authority changes; full verification deferred.
+  Backlog state unchanged. Next: continue roster review; A8a remains queued.
+
 ## User-directed planning 2026-10-19 — Compact enemy overview
 
 - Added a top-of-file grid to `docs/biome-enemies.md`: all 14 planned enemies
