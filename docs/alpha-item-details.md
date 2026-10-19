@@ -252,32 +252,62 @@ Cargo, ten gems, special gear and discovery rewards (P2; scope gated).
 - Review travel scope: propose only Skiff Cargo Chest (`SkiffCargoChest`), defer cart/carry-pack progression, encumbrance and hull durability. Hammer placement costs 6 Lightwood + 2 String + 1 Bronze, on one fixed cargo socket per existing skiff; no skiff inventory item or new boat tier.
 - Implement the approved cargo chest: 12 shared stack cells, interact within 2 m while skiff speed is at most 100 cm/s, same GUID/quantity/capacity rules as land storage. Save cargo against stable vessel ID; reject detachment/removal with contents, retain contents across validated vessel reload, no spill/duplication on reconnect. In-flight transfer rejects unchanged (blocked on explicit approval and existing vessel-persistence support; report any persistence gap).
 - Add exactly ten gems from the table below, each as a separate integrated increment. These are concrete source/rate/recipe/stat proposals for review, not a new alpha release commitment. Seven are ordinary rare gems; three special gems are required by named special gear. No empty-purpose collectibles or universal gem pool.
-- All raw gems stack 20, proposed weight 0.1 kg, with no combat/equip/upgrade behavior. Each needs a registered material definition and its own original generated icon. Preserve normal ore, wildlife and treasure rewards.
+- All raw gems stack 20, proposed weight 0.1 kg, with no combat/equip/upgrade behavior. Each needs a registered material definition and its own original generated icon. Normal resource nodes keep their existing yields; dedicated gemstone rocks replace a small share of spawn slots rather than adding gems to ore rewards. Wildlife/treasure rules remain separate.
 - Treasure means server-owned generated world loot containers, never player storage. Stable treasure loot and sparse resource/enemy reward claims are explicit prerequisites; do not invent new creatures or silently treat an unsupported source as implemented.
 
-| Gem / item ID | Exclusive eligible source | Chance of exactly 1 | Required use |
+| Gem / item ID | Exclusive eligible source | Proposed rarity / successful yield | Required use |
 | --- | --- | --- | --- |
-| Smoky Quartz (`SmokyQuartz`) | Exhausted Copper Ore in Elderwood or Tin Ore in Shimmering Lakes | 5% (1/20) | Quartz Necklace |
+| Smoky Quartz (`SmokyQuartz`) | Dedicated Quartz rock replacing Copper slots in Elderwood or Tin slots in Shimmering Lakes | 5% of eligible spawn slots; 1 gem if extracted | Quartz Necklace |
 | Moonstone (`Moonstone`) | Credited Mireling defeats in any biome | 2% (1/50) | Moonstone Ring |
 | Garnet (`Garnet`) | World treasure chests in Elderwood or Shimmering Lakes | 10% (1/10) | Garnet Necklace |
-| Green Jade (`GreenJade`) | Exhausted Tin Ore in Shimmering Lakes only | 2% (1/50) | Jade Ring |
-| Amethyst (`Amethyst`) | Exhausted Iron Ore in Mossy Mire only | 3% (3/100) | Amethyst Necklace |
+| Green Jade (`GreenJade`) | Dedicated Jade rock replacing Tin slots in Shimmering Lakes only | 2% of eligible spawn slots; 1 gem if extracted | Jade Ring |
+| Amethyst (`Amethyst`) | Dedicated Amethyst rock replacing Iron Ore slots in Mossy Mire only | 3% of eligible spawn slots; 1 gem if extracted | Amethyst Necklace |
 | Aquamarine (`Aquamarine`) | World treasure chests in Shimmering Lakes only | 5% (1/20) | Aquamarine Ring |
-| Tourmaline (`Tourmaline`) | Exhausted slate veins in Thunder Mountains only | 2% (1/50) | Tourmaline Necklace |
-| **Special: Rime Opal** (`RimeOpal`) | Exhausted Frost Salt mineral deposits in Freezing Tundra; not frostmoss | 1% (1/100) | Rimeguard Tunic |
+| Tourmaline (`Tourmaline`) | Dedicated Tourmaline rock replacing slate slots in Thunder Mountains only | 2% of eligible spawn slots; 1 gem if extracted | Tourmaline Necklace |
+| **Special: Rime Opal** (`RimeOpal`) | Dedicated Rime Opal rock replacing Frost Salt mineral-deposit slots in Freezing Tundra; not frostmoss | 1% of eligible spawn slots; 1 gem if extracted | Rimeguard Tunic |
 | **Special: Storm Sapphire** (`StormSapphire`) | World treasure chests in Thunder Mountains only | 2% (1/50) | Stormcut Sword |
 | **Special: Dusk Diamond** (`DuskDiamond`) | Credited Mireling defeats in Mossy Mire only | 0.5% (1/200) | Dusk Ring |
 
-Resolve rolls once on the server per node exhaustion, enemy defeat or treasure
-chest generation. Opening, pickup retries, reconnect or reload cannot reroll.
-Persist rolled world rewards/claims with stable source identities; full
-inventory leaves an unclaimed reward available. Every failed roll grants zero.
-Check source type and biome before rolling; boar/deer do not drop gems. Some
-sources deliberately have multiple eligible gems: Tin can yield Quartz/Jade,
-lake treasure Garnet/Aquamarine, Mire Mirelings Moonstone/Dusk Diamond. Roll
-each eligible gem independently once; multiple successes are allowed. Never
-extend a gem to other sources by fallback. Existing Amber is not replaced or
-counted among these ten gems. No gem conversion or random crafting outcomes.
+**Gemstone-rock generation:** choose the rock type during seeded resource
+generation, not after exhausting an ore vein. Retain the existing candidate
+budget, suitability and stable identity. Use one mutually exclusive selection
+per candidate: Copper 5% Quartz/95% Copper; Tin 5% Quartz/2% Jade/93% Tin;
+Iron Ore 3% Amethyst/97% Iron Ore; slate 2% Tourmaline/98% slate; Frost Salt
+deposits 1% Rime Opal/99% Frost Salt. These replacement rates are proposed
+tuning, not user-approved values. No extra gemstone spawn on top of the ore
+candidate, no ore co-drop and no hidden gem roll from ordinary ore nodes.
+Give each rock an original visible mineral inclusion and its own target name.
+
+**Mining rule selected by the user:** every accepted pickaxe hit has a 1/10
+(10%) chance to smash the gem. Resolve that roll before extraction, including
+the final hit. A smash ends the rock with zero gem reward. If extraction
+finishes without a smash, expose exactly one matching gem, with no additional
+drop-chance roll. No gem shards, secondary ore reward or retry after a smash.
+
+**Proposed hit tuning for review:** extraction takes 3 accepted hits per rock;
+pick level/damage cannot skip hits or change the 10% risk. This gives 72.9%
+overall success (0.9 cubed), not 90%. Quartz/Jade/Tourmaline/Rime Opal require
+Stone Pick or better; Amethyst requires Bronze Pick or better, matching its
+replaced Iron Ore source. Spend one pick condition per accepted hit, including
+a smash. Misses, duplicate requests and invalid/broken/wrong-family/out-of-range
+tools cannot roll, progress or spend condition. No bare-hand/axe extraction.
+
+The server owns type, hit count, smash results and reward. Persist partial
+hit progress, terminal outcome and loose gem/claim state under the stable node
+identity; streaming, reconnect or restart cannot reset progress, reroll hits,
+revive smashed gems or duplicate extraction. Commit the hit result before
+publishing it. A full inventory leaves a successfully extracted gem available
+for normal pickup. Show cracking progress and an explicit "Gem shattered"
+result on failure. This requires dedicated attack-driven mining and persistence
+support; it is not assumed to exist in current interaction-based mining.
+
+Enemy/treasure gems still roll once per credited defeat/chest generation.
+Persist claims; opening, retries or reload cannot reroll. Lake treasure may
+roll Garnet/Aquamarine independently; Mire Mirelings may roll Moonstone/Dusk
+Diamond independently. Boar/deer do not drop gems. No universal source fallback.
+Existing Amber is not counted among the ten gems; no gem conversion or random
+crafting outcomes. Existing non-gem resource generation is unchanged except
+for the explicitly selected replacement slots.
 
 - Review Necklace/Ring slot support. Equip one item in each named slot using validated GUID/replace/return and full-pack rules; copies cannot stack bonuses. User-selected effects are +10 Armor for Necklace and +20 maximum stamina for Ring, replacing the earlier spell-cost discounts.
 - Add Quartz Necklace (`QuartzNecklace`) with the reviewed craft/equip/stat/icon path (blocked on gem acquisition and accessory support).

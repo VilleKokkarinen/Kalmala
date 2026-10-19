@@ -109,10 +109,13 @@ details for manual review. They are not implementation-agent choices.
 **P2: scope-dependent parity candidates.** The backlog specifically proposes
 plot-based cultivation, lake-school fishing, six shelter/furniture pieces,
 skiff cargo and bronze/gem accessories (+20 maximum stamina ring and +10
-Armor necklaces). A9 now proposes ten gems with source-specific mining,
+Armor necklaces). A9 now proposes ten gems with dedicated rare gemstone rocks,
 Mireling and treasure drops. Rime Opal, Storm Sapphire and Dusk Diamond are
 special ingredients for named armour, weapon and jewellery recipes; all ten
 have explicit uses, costs and effects in the linked details.
+Gemstone rocks replace selected resource slots: each pickaxe hit risks a 10%
+smash; successful extraction yields exactly one gem. Spawn rates and a proposed
+three-hit extraction remain for review. Ordinary ore no longer has gem bonus drops.
 It defers terrain-editing
 Hoe, cold-protection clothing, new trophies/scrolls, cart/carry packs and extra
 brewing stations. These remain reviewable scope choices, not silent changes to

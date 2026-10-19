@@ -183,14 +183,15 @@ Agents must follow reviewed values and report gaps instead of inventing designs.
 - [ ] **A9 — Cargo, gems and special gear (P2).** [Rules](docs/alpha-item-details.md#a9)
   - [ ] Review skiff cargo; defer carts, carry packs, encumbrance and hull durability.
   - [ ] Skiff Cargo Chest: Hammer, 6 Lightwood + 2 String + 1 Bronze; 12 cells/skiff.
-  - [ ] Smoky Quartz: proposed 5% chance of 1 extra gem per exhausted Copper/Tin node.
+  - [ ] Gemstone rocks: rare resource-slot replacements; 10% gem-smash risk per hit, success yields 1 gem.
+  - [ ] Quartz rock: Elderwood/Lakes, proposed 5% replacement of Copper/Tin spawn slots.
   - [ ] Moonstone: proposed 2% chance of 1 per credited Mireling defeat; enemy-only.
   - [ ] Garnet: proposed 10% chance of 1 in Elderwood/Lakes world treasure chests; chest-only.
-  - [ ] Green Jade: proposed 2% chance of 1 from exhausted Shimmering Lakes Tin nodes.
-  - [ ] Amethyst: proposed 3% chance of 1 from exhausted Mossy Mire Iron Ore nodes.
+  - [ ] Jade rock: Shimmering Lakes, proposed 2% replacement of Tin spawn slots.
+  - [ ] Amethyst rock: Mossy Mire, proposed 3% replacement of Iron Ore spawn slots.
   - [ ] Aquamarine: proposed 5% chance of 1 in Shimmering Lakes treasure chests.
-  - [ ] Tourmaline: proposed 2% chance of 1 from exhausted Thunder Mountains slate nodes.
-  - [ ] Rime Opal (special): proposed 1% chance of 1 from Tundra Frost Salt deposits.
+  - [ ] Tourmaline rock: Thunder Mountains, proposed 2% replacement of slate spawn slots.
+  - [ ] Rime Opal rock (special): Tundra, proposed 1% replacement of Frost Salt deposit slots.
   - [ ] Storm Sapphire (special): proposed 2% chance of 1 in Thunder Mountains treasure.
   - [ ] Dusk Diamond (special): proposed 0.5% chance of 1 from Mossy Mire Mirelings.
   - [ ] Review Necklace/Ring slots; one item per slot, bonuses only while equipped.

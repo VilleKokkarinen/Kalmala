@@ -1,3 +1,20 @@
+## User-directed planning 2026-10-19 — Dedicated gemstone rocks
+
+- Updated A9 in `BACKLOG.md`, `docs/alpha-item-details.md`, comparison and
+  decision log: five mined gems now come from rare, visible gemstone rocks
+  replacing eligible ore/slate/salt slots, not exhaustion bonus drops.
+  Each accepted pick hit has 10% smash risk; final-hit survival yields 1 gem.
+- Proposed spawn rates retained as replacement percentages; Tin selection is
+  exclusive (5% Quartz, 2% Jade, 93% Tin). Proposed three-hit extraction gives
+  72.9% survival. Spawn/hit tuning remains for review. Defined pick gates,
+  authoritative hits/wear, progress/terminal-state persistence and claim rules.
+  Enemy/treasure gem sources and equipment recipes are unchanged.
+- Checked gem count/source consistency, probability arithmetic, obsolete active
+  drop references, whitespace, local links, staged scope and path lengths.
+  Planning only; no runtime/generation/catalogue/save/icon changes or tests.
+  Full verification deferred. Preserved all pre-existing user edits; main
+  checkout, no sync. Next: review rock spawn/hit tuning before A9 implementation.
+
 ## User-directed planning 2026-10-19 — Ten gems and special gear
 
 - Expanded A9 in `BACKLOG.md` to ten named gem tasks and concrete item uses;
