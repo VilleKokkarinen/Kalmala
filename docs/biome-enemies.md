@@ -20,7 +20,7 @@ before existing defenses; no client-authored damage or offensive player magic.
 | Shimmering Lakes | Viper (`Viper`) | Snake hiding in dry shoreline reeds; visible coil, narrow lunging bite, then retreats; applies weak poison for 5 s | 50 / 0 | 10 Stab + poison below | 1 Bone Fragment |
 | Shimmering Lakes | Reed Lurker (`ReedLurker`) | Rare hard, original shoreline beast; two-legged rush and broad forelimb swipe on land | 160 / 3 | 25 Crush | 2 Bone Fragment |
 | Mossy Mire | Bog Adder (`BogAdder`) | Camouflaged land hunter; short bite followed by retreat | 70 / 0 | 14 Stab | 1 Bone Fragment |
-| Mossy Mire | Mire Mosquito swarm (`MireMosquito`) | Flying swarm surrounds a player and keeps biting; rolls break contact, lit flames repel it | 25 / 0 per swarm | Proposed 2 Stab every 0.5 s while in contact | None |
+| Mossy Mire | Mire Mosquito swarm (`MireMosquito`) | Flying swarm surrounds a player and keeps biting; 10 s weak poison; rolls break contact, lit flames repel it | 25 / 0 per swarm | Proposed 2 Stab every 0.5 s while in contact + poison below | None |
 | Mossy Mire | Peat Husk (`PeatHusk`) | Rare hard, original peat-and-wood creature; slow sweeping arm | 220 / 6 | 30 Crush | 1 Amber |
 | Freezing Tundra | Snow Lynx (`SnowLynx`) | Mobile predator; telegraphed leap, long recovery if it misses | 120 / 0 | 22 Slash | 2 Bone Fragment |
 | Freezing Tundra | Tundra Bear (`TundraBear`) | Rare hard bear variant; committed charge, then retreat to reset | 300 / 6 | 40 Crush | 3 Bone Fragment |
@@ -59,7 +59,7 @@ Any later carcass materials require a separate reviewed item/recipe/icon plan.
 - Mire Mosquito uses the dedicated swarm rules below instead of isolated
   stab/retreat attacks. This includes bounded flying pursuit, fire avoidance,
   roll escape, collision and relevant-peer support; ground navigation alone
-  is not sufficient. No poison, lifesteal, gem roll or new loot item.
+  is not sufficient. Includes weak poison below; no lifesteal, gem roll or new loot item.
 - Pursuit ends beyond 25 m from the spawn anchor. Return home instead of
   teleporting into an attack. No enemy crosses deep water without its own
   accepted aquatic support. Variants may share locomotion foundations, but
@@ -75,7 +75,10 @@ Any later carcass materials require a separate reviewed item/recipe/icon plan.
   tuning: 1 Poison damage each second, first tick after 1 s, five ticks total.
   Keep the existing 10 Stab bite, 50 health, 0 Armor and loot.
 - Further bites refresh the five-second duration without stacking damage or
-  causing an immediate extra tick. Multiple Vipers share one poison effect.
+  causing an immediate extra tick. Vipers and mosquito swarms share one weak
+  poison effect at 1 Poison/second: expiry becomes the later of its current
+  expiry or application time plus the source duration (5 s Viper, 10 s swarm).
+  Refresh never restarts the tick timer or shortens an existing effect.
 - Resolve ticks through existing Poison defenses; physical Armor does not
   reduce Poison. Poison can apply even when Armor absorbs the physical bite.
   Dodged, missed or rejected bites never apply it; rolling after application
@@ -101,14 +104,19 @@ attack players holding a lit torch. The following numbers are proposed tuning.
   not burst catch-up damage. Visible insects never inflict separate hits.
 - Apply existing typed defense, physical Armor and accepted-hit wearable-wear
   rules once per tick. Armor may reduce damage to zero; this proposal adds no
-  armor bypass. Damage is capped at 4 per second before defenses for each
+  armor bypass. Contact Stab damage is capped at 4 per second before defenses for each
   player, regardless of cosmetic insect count.
+- Each accepted contact bite applies **weak poison for 10 seconds**. Proposed
+  tuning: 1 Poison/second, first tick after 1 s, ten ticks without refresh.
+  Use the shared non-stacking Viper poison rules, defenses and owner display.
+  Armor absorbing the Stab damage does not prevent poison application.
+  Rolls and fire stop new bites/applications; existing poison runs to expiry.
 - An accepted server-owned dodge roll immediately breaks swarm contact and
   prevents reacquisition for 2 s. Normal roll stamina/cooldown still apply;
   rejected roll requests cannot cancel bites. Escaping beyond 1 m avoids
   contact damage while the swarm catches up. This adds no invulnerability
   against other enemies and cannot carry insects through walls.
-- A usable **lit, held torch** cancels targeting and pending swarm damage
+- A usable **lit, held torch** cancels targeting and pending contact bites
   immediately. A torch in the pack, unlit, rain-extinguished or out of fuel
   provides no protection. Unequipping/extinguishing removes protection; the
   swarm must complete its normal 0.5 s approach before bites resume.
@@ -127,11 +135,14 @@ attack players holding a lit torch. The following numbers are proposed tuning.
   keep the 25 m leash, Mossy Mire boundary, relevance caps and no deep-water
   crossing. Death, despawn or target loss clears harassment timers.
 
-The swarm owns only session combat state, not a saved player debuff. No bite
-continues after disengagement/reconnect or grants persistent protection.
+Contact damage ends on disengagement; applied poison lasts until its expiry.
+Both use session-only state cleared on death/session end, with no saved debuff,
+offline catch-up damage or persistent protection.
 Verify host/client targeting, concurrent swarms, roll success/rejection,
 lit/unlit/empty/rainy torches, allies near fires, walls, fuel expiry and the
-race where a torch lights on the same tick as a bite. Define a server flame
+race where a torch lights on the same tick as a bite. Check ten-second poison
+expiry, refresh without stacking, mixed Viper/swarm bites, and poison continuing
+after rolling or lighting a torch. Define a server flame
 query shared with the approved torch/fire implementations; do not infer an
 existing heat-only API can recognize every new flame source.
 
