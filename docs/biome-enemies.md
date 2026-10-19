@@ -77,6 +77,49 @@ reviewed recipes/effects; fishing, cold-protection clothing, lightning gear
 and harpoons remain blocked on their own scope decisions. Reef Maw's entire
 route remains blocked on aquatic acceptance.
 
+## Recommended items and recipes
+
+**Recommendations for review**, using the latest user-edited drop table above.
+Costs and base effects below are proposals; Bow String and both rings reuse
+existing backlog recipes. Every retained drop has a use; Boar and Mosquito
+swarm currently have no unique drop, so neither receives a new recipe here.
+
+| Recommended item | Station      | Recipe / output                              | Proposed use / base effect     |
+| ---------------- | ------------ | -------------------------------------------- | ------------------------------ |
+| Bow String       | Workbench    | 4 Sinew → 1                                  | Existing bow material          |
+| Rat-tail Tonic   | Cauldron     | 2 Rat Tail + 2 Lingonberry → 1               | Heal 30 HP over 10 s           |
+| Badger Fur Vest  | Workbench    | 6 Badger Fur + 2 String → 1                  | Chest; 6 Armor                 |
+| Roasted Badger   | Cooking Rack | 1 Badger Meat → 1                            | Steady Meal                    |
+| Moonstone Ring   | Forge        | 5 Bronze + 1 Moonstone → 1                   | +20 max stamina; existing plan |
+| Fang Arrows      | Workbench    | 2 Viper Fang + 10 Wood → 20                  | 25 Pierce; weak poison 5 s     |
+| Scale Cuirass    | Forge        | 10 Giant Scale + 8 Bronze → 1                | Chest; 16 Armor                |
+| Dusk Ring        | Forge        | 5 Iron + 1 Dusk Diamond → 1                  | +10 HP, +10 stamina, +5 Armor  |
+| Antidote         | Cauldron     | 1 Venom Sac + 2 Lingonberry → 1              | Clear weak/major poison        |
+| Peat Heart Stew  | Cauldron     | 1 Peat Heart + 2 Potato + 1 Onion → 2        | Steady Meal                    |
+| Wolf Pelt Cloak  | Workbench    | 6 Wolf Pelt + 2 String → 1                   | Cape; 6 Armor                  |
+| Fang Spear       | Forge        | 3 Wolf fang + 6 Iron + 4 Densewood → 1       | 70 Stab                        |
+| Wolf Stew        | Cauldron     | 1 Wolf meat + 1 Carrot + 1 Onion → 2         | Steady Meal                    |
+| Lynx Mantle      | Workbench    | 4 Lynx Pelt + 2 String → 1                   | Cape; 8 Armor                  |
+| Polar Bear Coat  | Forge        | 8 Polar Bear Pelt + 12 Iron → 1              | Chest; 26 Armor                |
+| Horn Bow         | Workbench    | 2 Goat Horn + 6 Densewood + 2 Bow String → 1 | 35 Pierce bow bonus            |
+| Thunder Maul     | Forge        | 1 Thunder Core + 20 Iron + 4 Densewood → 1   | 100 Crush + 30 Lightning       |
+| Reef Harpoon     | Forge        | 3 Reef Tooth + 8 Iron + 4 Lightwood → 1      | 60 Pierce; spear weapon        |
+
+- Meals use the existing proposed Steady Meal: 120 s, stamina costs ×0.90;
+  no stacking or eating while active. Raw meat and Peat Heart are ingredients.
+- Fang Arrows apply weak poison at 1/sec for 5 s on an accepted hit; use the
+  enemy poison refresh/strongest-dose rules. No repeated poison per projectile.
+- Tonic and Antidote share the proposed 60 s recovery cooldown. Tonic cannot
+  be used at full health; Antidote requires active poison and grants no immunity.
+  Poison removal is a new scope proposal, superseding its A6 deferral only if approved.
+- Bow damage is a weapon bonus, combined once with arrow damage. Armor is
+  physical-only. Fur items grant no cold protection in this recommendation.
+- Thunder Maul requires approved Lightning damage/channel behavior. Reef
+  Harpoon remains aquatic-scope gated; no fishing tether or skiff damage added.
+- New items still need reviewed full profiles, attacks, durability, upgrades/
+  repair where applicable, server-validated crafting and original inventory
+  icons. These recommendations do not silently replace existing gear recipes.
+
 ## Proposed roster
 
 Keep existing boars, deer and Mirelings. Add fourteen enemies, one complete

@@ -1,3 +1,17 @@
+## User-directed planning 2026-10-19 — Drop-based recipe recommendations
+
+- Added an aligned 18-recipe table in `docs/biome-enemies.md` using the user's
+  revised drop names/uses. Covered every retained material; omitted new Boar/
+  Mosquito recipes because their unique drops were removed. Reused backlog
+  Bow String/Moonstone Ring/Dusk Ring costs; other recipes/effects are proposals.
+- Updated `BACKLOG.md` and `docs/05-decision-log.md`. Documented common meal,
+  poison, recovery and equipment rules; Antidote, Lightning and aquatic scope
+  remain review-gated, and full item profiles/icons remain implementation work.
+- Checked material coverage, table columns/alignment, existing recipe costs,
+  whitespace, staged ownership and paths. Preserved user overview/drop edits
+  unstaged. Documentation only; no runtime tests; full verification deferred.
+  Next: recipe/effect review; main checkout, no handoff sync required.
+
 ## User-directed planning 2026-10-19 — Unique enemy drops
 
 - Added a compact 17-enemy unique-drop table to `docs/biome-enemies.md`, with
