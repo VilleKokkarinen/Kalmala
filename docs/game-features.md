@@ -64,15 +64,16 @@ Actual hits still require a server-selected target and visibility/range recheck.
 Weapons use their authored Basic damage; items without an authored attack,
 use the existing basic 25 Crush melee fallback.
 Hammer placement and Bow drawing/shooting use the dedicated controls described above.
-Only suitable axes can damage trees: Meadow trees require Stone Axe or better
-and drop Wood; Elderwood requires Iron Axe and drops Densewood.
+Only suitable axes can damage trees: Meadow birch drops Wood and Meadow Aspen
+drops four Lightwood on bundle pickup, both with Stone Axe or better. Elderwood
+requires Iron Axe and drops Densewood.
 
 ## Generated-forest harvesting — 2026-10-17
 
 Generated Meadow/Elderwood trees are server-owned harvest actors with stable
 seed/patch/candidate identities. Equipped axe attacks advance Standing through a server-timed
 1.2-second Falling phase to settled Trunk, then a collectible wood Drop; one actor retains the identity through each stage.
-The existing resource tiers, yields and accepted-hit condition cost apply.
+Meadow forest candidates whose stable indices are divisible by three are Aspens; the remaining Meadow trees retain Birch. Aspen pays four Lightwood on final bundle pickup; Birch and Elderwood retain their established rewards. The existing resource tiers and accepted-hit condition cost apply.
 Falling rejects overlapping hits without spending condition; replicated server time
 allows elapsed-progress reconstruction. Matching cosmetic trees are suppressed to avoid duplicate presentation.
 The original procedural tree hinges forward during Falling, then leaves its

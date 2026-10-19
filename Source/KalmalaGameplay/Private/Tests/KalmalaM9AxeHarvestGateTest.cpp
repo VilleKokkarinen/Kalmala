@@ -2,6 +2,7 @@
 
 #include "KalmalaBiomeContentContract.h"
 #include "KalmalaItemCatalogue.h"
+#include "KalmalaM9SourceLootContract.h"
 #include "KalmalaSkillProgressionContract.h"
 #include "KalmalaToolLifecycleContract.h"
 #include "Misc/AutomationTest.h"
@@ -24,14 +25,15 @@ bool FKalmalaM9AxeHarvestGateTest::RunTest(const FString& Parameters)
     const FExpectedGate Gates[] =
     {
         { TEXT("meadows-birch-trunk"), TEXT("birch-trunk-harvest"), TEXT("Wood"), EKalmalaToolTier::Stone, TEXT("StoneAxe") },
-        { TEXT("elderwood-ironheart-trunk"), TEXT("ironheart-trunk-harvest"), TEXT("Densewood"), EKalmalaToolTier::Iron, TEXT("IronAxe") }
+        { TEXT("elderwood-ironheart-trunk"), TEXT("ironheart-trunk-harvest"), TEXT("Densewood"), EKalmalaToolTier::Iron, TEXT("IronAxe") },
+        { TEXT("meadows-aspen-trunk"), TEXT("aspen-trunk-harvest"), TEXT("Lightwood"), EKalmalaToolTier::Stone, TEXT("StoneAxe") }
     };
 
     const UKalmalaItemCatalogue* Catalogue = UKalmalaItemCatalogue::Get();
     for (const FExpectedGate& Gate : Gates)
     {
         FKalmalaToolServerSelection Selection;
-        TestTrue(TEXT("Canonical M9 trunk source has a server selection"),
+        TestTrue(TEXT("Canonical trunk source has a server selection"),
             FKalmalaToolLifecycleContract::BuildServerSelection(Gate.SourceId, Selection));
         TestTrue(TEXT("Canonical M9 source remains allowlisted"),
             FKalmalaBiomeContentContract::IsValidGatheringSourceId(Gate.SourceId));
@@ -47,6 +49,21 @@ bool FKalmalaM9AxeHarvestGateTest::RunTest(const FString& Parameters)
             TestEqual(TEXT("Minimum axe identity matches the gate"), MinimumTool->ItemId, Gate.MinimumItemId);
         }
     }
+
+    FKalmalaToolServerSelection AspenSelection;
+    TestTrue(TEXT("Aspen source is outside the M9 variable-yield table"),
+        !FKalmalaM9SourceLootContract::IsM9Source(TEXT("meadows-aspen-trunk")));
+    TestTrue(TEXT("Aspen source has a server selection"),
+        FKalmalaToolLifecycleContract::BuildServerSelection(TEXT("meadows-aspen-trunk"), AspenSelection));
+    TestEqual(TEXT("Aspen bundle pays the reviewed four Lightwood"), AspenSelection.RewardQuantity, 4);
+    FKalmalaToolServerSelection InvalidAspenSelection = AspenSelection;
+    InvalidAspenSelection.RewardQuantity = 5;
+    TestNull(TEXT("Aspen selection rejects quantities outside its fixed bundle"),
+        FKalmalaToolLifecycleContract::FindMinimumQualifiedTool(InvalidAspenSelection));
+    InvalidAspenSelection = AspenSelection;
+    InvalidAspenSelection.RewardItemId = TEXT("Wood");
+    TestNull(TEXT("Aspen selection rejects a mismatched bundle item"),
+        FKalmalaToolLifecycleContract::FindMinimumQualifiedTool(InvalidAspenSelection));
 
     FKalmalaToolServerSelection MeadowWoodSelection;
     FKalmalaToolLifecycleContract::BuildServerSelection(Gates[0].SourceId, MeadowWoodSelection);

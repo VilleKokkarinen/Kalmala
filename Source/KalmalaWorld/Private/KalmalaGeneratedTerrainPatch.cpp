@@ -86,12 +86,16 @@ namespace KalmalaGeneratedTerrainPatch
 
     static void AppendTaperedTree(
         TArray<FVector>& Vertices, TArray<int32>& Triangles, TArray<FVector>& Normals, TArray<FVector2D>& UVs, TArray<FLinearColor>& VertexColors, TArray<FProcMeshTangent>& Tangents,
-        const FVector BaseCenter, const float TrunkRadius, const float TrunkHeight, const float CanopyRadius, const float CanopyHeight, const float YawDegrees,
+        const FVector BaseCenter, const float TrunkRadius, const float TrunkHeight, const float CanopyRadius, const float CanopyHeight, const float YawDegrees, const bool bAspen,
         TArray<FVector>& CanopyVertices, TArray<int32>& CanopyTriangles, TArray<FVector>& CanopyNormals, TArray<FVector2D>& CanopyUVs, TArray<FLinearColor>& CanopyColors, TArray<FProcMeshTangent>& CanopyTangents)
     {
         constexpr int32 SideCount = 6;
         const int32 TrunkFirstVertex = Vertices.Num();
         const int32 CanopyFirstVertex = CanopyVertices.Num();
+        const FLinearColor BarkBase = bAspen ? FLinearColor(0.58f, 0.55f, 0.48f) : FLinearColor(0.18f, 0.12f, 0.08f);
+        const FLinearColor BarkTop = bAspen ? FLinearColor(0.68f, 0.64f, 0.56f) : FLinearColor(0.22f, 0.15f, 0.10f);
+        const FLinearColor LeafSide = bAspen ? FLinearColor(0.35f, 0.48f, 0.19f) : FLinearColor(0.16f, 0.31f, 0.17f);
+        const FLinearColor LeafTop = bAspen ? FLinearColor(0.44f, 0.56f, 0.24f) : FLinearColor(0.20f, 0.38f, 0.20f);
         for (int32 SideIndex = 0; SideIndex < SideCount; ++SideIndex)
         {
             const float Angle = FMath::DegreesToRadians(YawDegrees + 360.0f * SideIndex / SideCount);
@@ -100,19 +104,19 @@ namespace KalmalaGeneratedTerrainPatch
             Vertices.Add(BaseCenter + Direction * (TrunkRadius * 0.62f) + FVector(0.0f, 0.0f, TrunkHeight));
             Normals.Append({Direction, Direction});
             UVs.Append({FVector2D(static_cast<float>(SideIndex) / SideCount, 0.0f), FVector2D(static_cast<float>(SideIndex) / SideCount, 1.0f)});
-            VertexColors.Append({FLinearColor(0.18f, 0.12f, 0.08f), FLinearColor(0.22f, 0.15f, 0.10f)});
+            VertexColors.Append({BarkBase, BarkTop});
             Tangents.Append({FProcMeshTangent(1.0f, 0.0f, 0.0f), FProcMeshTangent(1.0f, 0.0f, 0.0f)});
 
             CanopyVertices.Add(BaseCenter + FVector(0.0f, 0.0f, TrunkHeight * 0.68f) + Direction * CanopyRadius);
             CanopyNormals.Add((Direction + FVector(0.0f, 0.0f, 0.4f)).GetSafeNormal());
             CanopyUVs.Add(FVector2D(static_cast<float>(SideIndex) / SideCount, 0.0f));
-            CanopyColors.Add(FLinearColor(0.16f, 0.31f, 0.17f));
+            CanopyColors.Add(LeafSide);
             CanopyTangents.Add(FProcMeshTangent(1.0f, 0.0f, 0.0f));
         }
         const int32 CanopyApex = CanopyVertices.Add(BaseCenter + FVector(0.0f, 0.0f, TrunkHeight + CanopyHeight));
         CanopyNormals.Add(FVector::UpVector);
         CanopyUVs.Add(FVector2D(0.5f, 1.0f));
-        CanopyColors.Add(FLinearColor(0.20f, 0.38f, 0.20f));
+        CanopyColors.Add(LeafTop);
         CanopyTangents.Add(FProcMeshTangent(1.0f, 0.0f, 0.0f));
         for (int32 SideIndex = 0; SideIndex < SideCount; ++SideIndex)
         {
@@ -517,6 +521,7 @@ bool AKalmalaGeneratedTerrainPatch::BuildMeadowTrees()
         KalmalaGeneratedTerrainPatch::AppendTaperedTree(
             TrunkVertices, TrunkTriangles, TrunkNormals, TrunkUVs, TrunkColors, TrunkTangents,
             LocalPosition, Tree.TrunkRadius, Tree.TrunkHeight, Tree.CanopyRadius, Tree.CanopyHeight, Tree.Yaw,
+            Tree.bAspen,
             CanopyVertices, CanopyTriangles, CanopyNormals, CanopyUVs, CanopyColors, CanopyTangents);
         if (Tree.bElderwood)
         {

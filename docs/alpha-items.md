@@ -72,7 +72,7 @@ food status dispatch. Definitions do not establish obtainability or usability.
 | Ranged and ammunition | One Bow profile and Wooden Arrow; crafting, draw/release and server projectiles | Bow String is now reachable through deer Sinew and Workbench crafting. Later add one improved bow and one metal arrow, with explicit ammunition dispatch and payment. |
 | Utility tools | Building Hammer plus gathering tools above | No authored carried torch, cultivation tool, hoe or fishing rod. Torch is an existing design target; the other roles need new systems. |
 | Armour and shields | Boar Hide Helmet, Tunic, Leggings, Boots, Cape; Wood Shield | No second armour tier or metal shield. Six functioning slots; Necklace/Ring are disabled placeholders. Shield currently supplies passive Armor, not Valheim-style blocking/parrying. |
-| Crafting materials | Wood, Densewood, Lightwood, Stone, Sinew, Bow String, Bone Fragment, two hides, Amber, Frost Salt, Coal; Copper/Tin/Iron ores and Copper/Tin/Bronze/Iron bars | Deer Sinew now feeds the bow-only Bow String recipe. Wood/Densewood, hides, Amber and Frost Salt have source paths. No production recipes for ores/bars/Coal; no ordinary Lightwood or Bone Fragment reward found. Check actual generated availability before calling any loop complete. |
+| Crafting materials | Wood, Densewood, Lightwood, Stone, Sinew, Bow String, Bone Fragment, two hides, Amber, Frost Salt, Coal; Copper/Tin/Iron ores and Copper/Tin/Bronze/Iron bars | Deer Sinew now feeds the bow-only Bow String recipe. Wood, Densewood, Lightwood, hides, Amber and Frost Salt have source paths. No production recipes for ores/bars/Coal or Bone Fragment reward. Check actual generated availability before calling any loop complete. |
 | Food | Two raw meats and seven prepared-food definitions; six cooking outputs | Hearth Broth has no recipe. Four root vegetables are ingredients. Food use is inconsistent with current catalogue IDs; repair before adding dish counts. |
 | Crops and seeds | Carrot, Potato, Rutabaga, Onion plus four seed definitions | Farming is explicitly unimplemented. Definitions alone cannot supply a renewable garden. |
 | Recovery and expedition consumables | No authored potion category | Healing/stamina preparations are candidate additions; hazard resistance needs supported effects and an approved hazard role. Do not require consumables for direct-damage magic. |
@@ -111,14 +111,12 @@ coverage, not a count of obtainable items or the assembled runtime catalogue.
   ironheart trees gated by the Iron Axe tier. Its level-one upgrade also costs
   4 Iron + 3 Lightwood. Iron Knife, Spear, and Mace acquisitions still require
   Densewood, which becomes harvestable after crafting the axe; Iron Pick costs
-  4 Iron, 2 Wood, and 2 Stone. Lightwood's Meadow aspen source is still pending
-  under A0, so the revised recipe is not yet backed by a current gathering
-  route.
+  4 Iron, 2 Wood, and 2 Stone. Meadow Aspen trees now provide four Lightwood on final bundle pickup with a Stone Axe or better.
 - Other current normal routes include Wood from generated Meadow birch/bark,
   Lakes reeds, and Elderwood resinwood; meat/hides from server-confirmed
   boar/deer rewards; Amber from Mossy Mire; Frost Salt from Tundra; and the
   implemented credited-deer Sinew roll feeding the Workbench Bow String recipe.
-  Current acquisition gaps remain for ordinary Lightwood, Bone Fragment, Coal, Copper,
+  Current acquisition gaps remain for Bone Fragment, Coal, Copper,
   Tin, IronOre, and the four wild vegetables; production for Copper/Tin/Bronze/
   Iron and Coal is also pending the A1 contract and implementation.
 - The current spawn layout derives harvest identities from the classified biome

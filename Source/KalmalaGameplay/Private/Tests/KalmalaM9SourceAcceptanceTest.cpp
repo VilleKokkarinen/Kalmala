@@ -68,6 +68,7 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
         int32 ToolLevel;
         EKalmalaToolAction Action;
         bool bGeneratedForest = false;
+        int32 FixedRewardQuantity = 0;
     };
 
     const FSourceCase Sources[] =
@@ -78,6 +79,7 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
         { TEXT("tundra-frost-salt-deposit"), TEXT("FrostSalt"), TEXT("StonePick"), 1, EKalmalaToolAction::Mining },
         { TEXT("meadows-birch-trunk"), TEXT("Wood"), TEXT("StoneAxe"), 1, EKalmalaToolAction::Woodcutting, true },
         { TEXT("elderwood-ironheart-trunk"), TEXT("Densewood"), TEXT("IronAxe"), 2, EKalmalaToolAction::Woodcutting, true },
+        { TEXT("meadows-aspen-trunk"), TEXT("Lightwood"), TEXT("StoneAxe"), 1, EKalmalaToolAction::Woodcutting, true, 4 },
     };
 
     UWorld* World = UWorld::CreateWorld(EWorldType::Game, false);
@@ -197,6 +199,7 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
         {
             bool bInitialized = false;
             const bool bElderwood = Source.SourceId == TEXT("elderwood-ironheart-trunk");
+            const bool bAspen = Source.SourceId == TEXT("meadows-aspen-trunk");
             for (int32 Y = -16; Y <= 16 && !bInitialized; ++Y)
             {
                 for (int32 X = -16; X <= 16 && !bInitialized; ++X)
@@ -206,7 +209,7 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
                     if (Candidates.Num() < 2) continue;
                     for (const auto& Tree : Candidates)
                     {
-                        if (Tree.bElderwood != bElderwood) continue;
+                        if (Tree.bElderwood != bElderwood || Tree.bAspen != bAspen) continue;
                         bInitialized = Node->InitializeForestServer(WorldState->GetWorldGenerationConfig(), Center, Tree.CandidateIndex);
                         if (bInitialized)
                         {
@@ -282,10 +285,21 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
         Pawn->SetRole(ROLE_Authority);
         AssertRejectedWithoutChanges();
 
-        int32 ExpectedYield = 0;
-        TestTrue(FString::Printf(TEXT("%s has a valid bounded server reward"), *SourceLabel),
-            FKalmalaM9SourceLootContract::BuildHarvestRewardQuantity(
-                WorldState->GetWorldGenerationConfig(), Source.SourceId, Node->GetPersistentSpawnId(), ExpectedYield));
+        int32 ExpectedYield = Source.FixedRewardQuantity;
+        if (ExpectedYield == 0)
+        {
+            TestTrue(FString::Printf(TEXT("%s has a valid bounded server reward"), *SourceLabel),
+                FKalmalaM9SourceLootContract::BuildHarvestRewardQuantity(
+                    WorldState->GetWorldGenerationConfig(), Source.SourceId, Node->GetPersistentSpawnId(), ExpectedYield));
+        }
+        else
+        {
+            FKalmalaToolServerSelection Selection;
+            TestTrue(FString::Printf(TEXT("%s has a fixed server bundle reward"), *SourceLabel),
+                FKalmalaToolLifecycleContract::BuildServerSelection(Source.SourceId, Selection));
+            TestEqual(FString::Printf(TEXT("%s selection uses its fixed yield"), *SourceLabel),
+                Selection.RewardQuantity, ExpectedYield);
+        }
         // Default coverage snapshots the final boundary; isolated slot mode leaves it disabled.
         auto* PickupSave = NewObject<UKalmalaWorldPopulationSaveGame>(World);
         PickupSave->InitializeForWorld(WorldState->GetWorldGenerationConfig());

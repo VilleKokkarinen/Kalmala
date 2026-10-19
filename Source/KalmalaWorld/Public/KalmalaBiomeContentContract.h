@@ -82,6 +82,7 @@ struct KALMALAWORLD_API FKalmalaBiomeContentContract
     static FName GetGatheringPresentationId(const FName GatheringSourceId)
     {
         if (GatheringSourceId.IsNone()) return NAME_None;
+        if (GatheringSourceId == TEXT("meadows-aspen-trunk")) return TEXT("aspen-trunk-harvest");
         if (GatheringSourceId == TEXT("meadows-birch-trunk")) return TEXT("birch-trunk-harvest");
         if (GatheringSourceId == TEXT("elderwood-ironheart-trunk")) return TEXT("ironheart-trunk-harvest");
         if (GatheringSourceId == TEXT("mire-peat-amber-seam")) return TEXT("peat-amber-seam");

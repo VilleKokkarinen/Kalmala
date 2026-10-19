@@ -126,7 +126,8 @@ bool FKalmalaForestLifecycleTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Generated trees use patch owner relevance"), Node->bNetUseOwnerRelevancy);
     TestTrue(TEXT("Reconstruction retains patch relevance owner"), Node->GetOwner() == PatchOwner);
     TestEqual(TEXT("Biome selects canonical trunk source"), Node->GetGatheringSourceId(),
-        FName(Tree.bElderwood ? TEXT("elderwood-ironheart-trunk") : TEXT("meadows-birch-trunk")));
+        FName(Tree.bElderwood ? TEXT("elderwood-ironheart-trunk")
+            : (Tree.bAspen ? TEXT("meadows-aspen-trunk") : TEXT("meadows-birch-trunk"))));
     TestTrue(TEXT("Standing forest tree accepts axe attacks"), Node->CanReceiveAxeAttack());
     CheckStandingCollision(Node);
     CheckWorldSelection(Node);

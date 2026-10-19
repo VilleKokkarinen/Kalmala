@@ -58,6 +58,10 @@ bool FKalmalaBiomeContentContractTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Ocean does not receive land-biome content identities"), FKalmalaBiomeContentContract::IsValidFirstWaveDefinition(Ocean));
     TestFalse(TEXT("Ocean cannot receive a gathering presentation identity"), !Ocean.GatheringPresentationId.IsNone());
     TestFalse(TEXT("Unknown gathering source fails closed"), FKalmalaBiomeContentContract::IsValidGatheringSourceId(TEXT("forged-source")));
+    TestTrue(TEXT("Meadow Aspen trunk is a valid gathering source"),
+        FKalmalaBiomeContentContract::IsValidGatheringSourceId(TEXT("meadows-aspen-trunk")));
+    TestEqual(TEXT("Meadow Aspen resolves its own presentation"),
+        FKalmalaBiomeContentContract::GetGatheringPresentationId(TEXT("meadows-aspen-trunk")), FName(TEXT("aspen-trunk-harvest")));
     TestFalse(TEXT("Ocean cannot become an optional land rare source"), FKalmalaBiomeContentContract::IsOptionalRareDiscoverySource(EKalmalaBiome::Ocean));
     TestFalse(TEXT("Unknown rare source fails closed"), FKalmalaBiomeContentContract::IsValidRareDiscoverySourceId(TEXT("forged-discovery")));
     TestTrue(TEXT("Rare discoveries are explicitly optional"), Ocean.RareDiscoverySourceId.IsNone() && !Ocean.bRareDiscoveryOptional);

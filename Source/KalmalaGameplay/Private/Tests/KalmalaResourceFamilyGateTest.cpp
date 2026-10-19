@@ -7,7 +7,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaResourceFamilyGateTest, "Kalmala.Gamepl
 
 bool FKalmalaResourceFamilyGateTest::RunTest(const FString& Parameters)
 {
-    const FName Sources[] = { TEXT("meadows-birch-bark"), TEXT("elderwood-resinwood"),
+    const FName Sources[] = { TEXT("meadows-birch-bark"), TEXT("elderwood-resinwood"), TEXT("meadows-aspen-trunk"),
         TEXT("meadows-birch-trunk"), TEXT("elderwood-ironheart-trunk"), TEXT("mountains-slate-vein"),
         TEXT("mire-bog-iron"), TEXT("mire-peat-amber-seam"), TEXT("tundra-frost-salt-deposit") };
     const FName Items[] = { TEXT("StoneAxe"), TEXT("BronzeAxe"), TEXT("IronAxe"),

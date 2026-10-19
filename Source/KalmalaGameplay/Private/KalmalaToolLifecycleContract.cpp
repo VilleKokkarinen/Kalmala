@@ -120,7 +120,10 @@ namespace
             && (bExactTool || bTieredTool)
             && FKalmalaSkillProgressionContract::IsKnownSkill(Selection.RequiredSkill)
             && !Selection.RewardItemId.IsNone()
-            && Selection.RewardQuantity == 1;
+            && (Selection.RewardQuantity == 1
+                || (Selection.SourceId == TEXT("meadows-aspen-trunk")
+                    && Selection.RewardItemId == TEXT("Lightwood")
+                    && Selection.RewardQuantity == 4));
     }
 }
 
@@ -319,6 +322,11 @@ bool FKalmalaToolLifecycleContract::BuildServerSelection(
     {
         OutSelection = { ServerSourceId, EKalmalaToolAction::Mining, EKalmalaToolKind::None,
             EKalmalaSkill::Mining, TEXT("Stone"), 1, EKalmalaToolTier::Stone };
+    }
+    else if (ServerSourceId == TEXT("meadows-aspen-trunk"))
+    {
+        OutSelection = { ServerSourceId, EKalmalaToolAction::Woodcutting, EKalmalaToolKind::None,
+            EKalmalaSkill::Woodcutting, TEXT("Lightwood"), 4, EKalmalaToolTier::Stone };
     }
     else if (ServerSourceId == TEXT("meadows-birch-trunk"))
     {

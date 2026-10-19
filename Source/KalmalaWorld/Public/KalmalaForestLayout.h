@@ -15,6 +15,7 @@ struct KALMALAWORLD_API FKalmalaForestTreeDescriptor
     float CanopyHeight = 0.0f;
     float Yaw = 0.0f;
     bool bElderwood = false;
+    bool bAspen = false;
     FString PersistentSpawnId;
 };
 

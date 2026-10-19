@@ -73,6 +73,7 @@ namespace
         if (PresentationId == TEXT("peat-amber-seam")) return FLinearColor(0.78f, 0.43f, 0.12f);
         if (PresentationId == TEXT("tundra-salt-crystals")) return FLinearColor(0.72f, 0.84f, 0.88f);
         if (PresentationId == TEXT("birch-bark-bundle")) return FLinearColor(0.52f, 0.34f, 0.18f);
+        if (PresentationId == TEXT("aspen-trunk-harvest")) return FLinearColor(0.70f, 0.65f, 0.52f);
         if (PresentationId == TEXT("reed-cluster")) return FLinearColor(0.35f, 0.64f, 0.24f);
         if (PresentationId == TEXT("resinwood-bundle")) return FLinearColor(0.30f, 0.20f, 0.10f);
         if (PresentationId == TEXT("bog-iron-vein")) return FLinearColor(0.30f, 0.24f, 0.20f);
@@ -129,7 +130,9 @@ bool AKalmalaHarvestNode::InitializeGeneratedForestServer(const FKalmalaForestTr
         || !FMath::IsFinite(Tree.TrunkHeight) || Tree.TrunkHeight <= 0
         || !FMath::IsFinite(Tree.CanopyRadius) || Tree.CanopyRadius <= 0
         || !FMath::IsFinite(Tree.CanopyHeight) || Tree.CanopyHeight <= 0) return false;
-    const FName SourceId = Tree.bElderwood ? FName(TEXT("elderwood-ironheart-trunk")) : FName(TEXT("meadows-birch-trunk"));
+    if (Tree.bElderwood && Tree.bAspen) return false;
+    const FName SourceId = Tree.bElderwood ? FName(TEXT("elderwood-ironheart-trunk"))
+        : (Tree.bAspen ? FName(TEXT("meadows-aspen-trunk")) : FName(TEXT("meadows-birch-trunk")));
     if (!FKalmalaBiomeContentContract::IsValidGatheringSourceId(SourceId)) return false;
     // Forest candidates may be reconstructed after actor spawning. Replicate the
     // authoritative transform as well as their shape, including late relevance.
@@ -204,21 +207,16 @@ void AKalmalaHarvestNode::Interact_Implementation(AKalmalaCharacter* Interactor)
     if (IsTreeResource())
     {
         if (!IsWoodDrop() || !CanInteract_Implementation(Interactor)) return;
-        FKalmalaToolServerSelection Selection;
-        if (!FKalmalaToolLifecycleContract::BuildServerSelection(GatheringSourceId, Selection)) return;
-        if (FKalmalaM9SourceLootContract::IsM9Source(GatheringSourceId))
-        {
-            const auto* WorldState = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
-            if (!WorldState || !FKalmalaM9SourceLootContract::BuildHarvestRewardQuantity(
-                WorldState->GetWorldGenerationConfig(), GatheringSourceId, PersistentSpawnId, Selection.RewardQuantity)) return;
-        }
+        FName RewardItemId;
+        int32 RewardQuantity = 0;
+        if (!GetPickupInfo(RewardItemId, RewardQuantity)) return;
         auto* Inventory = Interactor->GetInventoryComponent();
         auto* GameMode = GetWorld()->GetAuthGameMode<AKalmalaGameMode>();
         if (!Inventory || !GameMode) return;
         const TArray<FKalmalaInventoryStack> Before = Inventory->GetStacks();
         TArray<FKalmalaInventoryStack> After;
         FString Reason;
-        if (!UKalmalaInventoryComponent::BuildGrant(Before, Selection.RewardItemId, Selection.RewardQuantity, After, Reason))
+        if (!UKalmalaInventoryComponent::BuildGrant(Before, RewardItemId, RewardQuantity, After, Reason))
         {
             if (IsWoodDrop() && Reason == TEXT("Pack output capacity reached"))
             {
@@ -281,6 +279,7 @@ bool AKalmalaHarvestNode::InteractWithToolIntentFromServer(AKalmalaCharacter* In
 bool AKalmalaHarvestNode::IsTreeResource() const
 {
     return GatheringSourceId == TEXT("meadows-birch-bark") || GatheringSourceId == TEXT("elderwood-resinwood")
+        || GatheringSourceId == TEXT("meadows-aspen-trunk")
         || GatheringSourceId == TEXT("meadows-birch-trunk") || GatheringSourceId == TEXT("elderwood-ironheart-trunk");
 }
 
@@ -467,13 +466,22 @@ bool AKalmalaHarvestNode::GetPickupInfo(FName& OutItemId, int32& OutQuantity) co
     if (bHarvested || PersistentSpawnId.IsEmpty()
         || (IsTreeResource() ? !IsWoodDrop() : !GatheringSourceId.IsNone())) return false;
     int32 Quantity = 1;
-    if (FKalmalaM9SourceLootContract::IsM9Source(GatheringSourceId))
+    FName ItemId = NAME_None;
+    if (IsTreeResource())
     {
-        const auto* WorldState = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
-        if (!WorldState || !FKalmalaM9SourceLootContract::BuildHarvestRewardQuantity(
-            WorldState->GetWorldGenerationConfig(), GatheringSourceId, PersistentSpawnId, Quantity)) return false;
+        FKalmalaToolServerSelection Selection;
+        if (!FKalmalaToolLifecycleContract::BuildServerSelection(GatheringSourceId, Selection)) return false;
+        ItemId = Selection.RewardItemId;
+        Quantity = Selection.RewardQuantity;
+        if (FKalmalaM9SourceLootContract::IsM9Source(GatheringSourceId))
+        {
+            const auto* WorldState = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
+            if (!WorldState || !FKalmalaM9SourceLootContract::BuildHarvestRewardQuantity(
+                WorldState->GetWorldGenerationConfig(), GatheringSourceId, PersistentSpawnId, Quantity)) return false;
+        }
     }
-    OutItemId = GetHarvestItemId();
+    else ItemId = GetHarvestItemId();
+    OutItemId = ItemId;
     OutQuantity = Quantity;
     return !OutItemId.IsNone();
 }
@@ -547,6 +555,10 @@ void AKalmalaHarvestNode::BuildSourcePresentation()
     TArray<FLinearColor> Colors;
     if (IsTreeResource())
     {
+        const bool bAspen = PresentationId == TEXT("aspen-trunk-harvest");
+        const FLinearColor BarkColor = bAspen ? FLinearColor(0.66f, 0.62f, 0.54f) : FLinearColor(0.34f, 0.22f, 0.12f);
+        const FLinearColor LeafColor = bAspen ? FLinearColor(0.37f, 0.50f, 0.20f) : FLinearColor(0.18f, 0.35f, 0.12f);
+        const FLinearColor CutFaceColor = bAspen ? FLinearColor(0.82f, 0.75f, 0.59f) : FLinearColor(0.72f, 0.51f, 0.28f);
         if (TreeStage == 0 || IsTreeFalling() || IsFelledTrunk())
         {
             const bool bForest = ForestDimensions.X > 0 && ForestDimensions.Y > 0
@@ -556,19 +568,18 @@ void AKalmalaHarvestNode::BuildSourcePresentation()
             const float CanopyRadius = bForest ? ForestDimensions.Z : 85.0f;
             const float CanopyBase = bForest ? Height * 0.68f : 175.0f;
             const float CanopyHeight = bForest ? Height + ForestDimensions.W - CanopyBase : 145.0f;
-            AddTaperedBox(Vertices, Triangles, Colors, FVector::ZeroVector, FVector(Radius, Radius, 0), Height, bForest ? 0.62f : 0.7f, 0, FLinearColor(0.34f, 0.22f, 0.12f));
+            AddTaperedBox(Vertices, Triangles, Colors, FVector::ZeroVector, FVector(Radius, Radius, 0), Height, bForest ? 0.62f : 0.7f, 0, BarkColor);
             if (IsFelledTrunk())
             {
                 // Exposed original cut faces; retain the falling trunk's full
                 // dimensions and final pose rather than replacing it with a prop.
                 const float TopRadius = Radius * (bForest ? 0.62f : 0.7f);
-                const FLinearColor CutFace(0.72f, 0.51f, 0.28f);
-                AddTaperedBox(Vertices, Triangles, Colors, FVector(0, 0, -0.5f), FVector(Radius, Radius, 0), 0.5f, 1, 0, CutFace);
-                AddTaperedBox(Vertices, Triangles, Colors, FVector(0, 0, Height), FVector(TopRadius, TopRadius, 0), 0.5f, 1, 0, CutFace);
+                AddTaperedBox(Vertices, Triangles, Colors, FVector(0, 0, -0.5f), FVector(Radius, Radius, 0), 0.5f, 1, 0, CutFaceColor);
+                AddTaperedBox(Vertices, Triangles, Colors, FVector(0, 0, Height), FVector(TopRadius, TopRadius, 0), 0.5f, 1, 0, CutFaceColor);
             }
             else
             {
-                AddTaperedBox(Vertices, Triangles, Colors, FVector(0, 0, CanopyBase), FVector(CanopyRadius, CanopyRadius, 0), CanopyHeight, 0.15f, 25, FLinearColor(0.18f, 0.35f, 0.12f));
+                AddTaperedBox(Vertices, Triangles, Colors, FVector(0, 0, CanopyBase), FVector(CanopyRadius, CanopyRadius, 0), CanopyHeight, 0.15f, 25, LeafColor);
             }
         }
         else

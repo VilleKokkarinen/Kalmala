@@ -61,6 +61,9 @@ TArray<FKalmalaForestTreeDescriptor> FKalmalaForestLayout::Generate(
         }
 
         const bool bElderwood = Biome == EKalmalaBiome::Elderwood;
+        // Keep the existing candidate positions, dimensions, yaw and IDs. A
+        // stable ordinal pattern gives Meadow groves both birch and aspen.
+        const bool bAspen = Biome == EKalmalaBiome::Meadows && CandidateIndex % 3 == 0;
         const float TrunkHeight = RandomStream.FRandRange(bElderwood ? 520.0f : 340.0f, bElderwood ? 850.0f : 620.0f);
         const float TrunkRadius = RandomStream.FRandRange(bElderwood ? 28.0f : 14.0f, bElderwood ? 48.0f : 25.0f);
         const float CanopyRadius = RandomStream.FRandRange(bElderwood ? 185.0f : 105.0f, bElderwood ? 285.0f : 170.0f);
@@ -69,7 +72,7 @@ TArray<FKalmalaForestTreeDescriptor> FKalmalaForestLayout::Generate(
         const float TreeYaw = RandomStream.FRandRange(0.0f, 360.0f);
         Result.Add({CandidateIndex, FVector(SamplePosition.X, SamplePosition.Y, SurfaceHeight),
             FVector(LocalPosition.X, LocalPosition.Y, SurfaceHeight),
-            TrunkRadius, TrunkHeight, CanopyRadius, CanopyHeight, TreeYaw, bElderwood});
+            TrunkRadius, TrunkHeight, CanopyRadius, CanopyHeight, TreeYaw, bElderwood, bAspen});
         Result.Last().PersistentSpawnId = GetPersistentSpawnId(WorldGenerationConfig, PatchCenter, CandidateIndex);
     }
     return Result;
