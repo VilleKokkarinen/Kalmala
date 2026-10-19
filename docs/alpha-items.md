@@ -13,6 +13,16 @@ The proposed alpha baseline is Kalmala's existing Stone/Bronze/Iron span and
 current creature roster. It is a recommendation, not a newly approved release
 scope. Broader systems below require a scope decision before implementation.
 
+The A0 **material/source proposal for manual review** in `BACKLOG.md` now
+specifies biomes, resource types, tool gates, gathering yields and conversion
+inputs/outputs for existing materials and root vegetables, including A1 metals.
+Those new/changed rows are proposals, not accepted game-design decisions.
+Implementation agents must follow the reviewed backlog entries and report
+conflicts instead of selecting alternative sources. Existing-route rows retain
+their authored yields. Potato Seed acquisition is explicitly deferred pending
+a seed-versus-tuber decision. Station costs/timing/capacity and further farming
+rules must also be proposed in the backlog for manual review before coding.
+
 Sources checked online on 2026-10-19:
 
 - [Weapons](https://valheim.fandom.com/wiki/Weapons): melee families, shields,
@@ -86,7 +96,9 @@ station would require an explicit system/scope decision, not just new JSON.
 arrow, a second armour tier and shield, two forage foods and two recovery
 preparations. Use existing materials where practical. Each addition needs its
 own complete slice; quantity is not a release gate. Numerical balance, costs,
-names and exact material sources must be authored deliberately during that slice.
+names must be authored deliberately. Material sources and gathering rules must
+be written into the backlog for manual review before their implementation,
+following the A0 source table; they are not implementation-agent choices.
 
 **P2: scope-dependent parity candidates.** Cultivation and fishing loops,
 expanded shelter/furniture, processing stations, hauling/cargo, cold protection,

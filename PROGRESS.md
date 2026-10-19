@@ -1,3 +1,30 @@
+## User-directed planning 2026-10-19 — Explicit material source proposals
+
+- **Completed/files:** expanded A0 in `BACKLOG.md` with concrete reviewable
+  sources, biomes, tools, yields and conversions; aligned A1 with that table.
+  String uses a 2 Wood → 1 String Workbench recipe, Meadow aspens yield 4
+  Lightwood with Stone Axe or better, boar/deer defeats add 1 Bone Fragment,
+  and named wild vegetable patches supply current cooking ingredients.
+  Specified Hearth Broth ingredients/station/batch/XP and proposed ore, Coal,
+  refining and alloy routes. Updated `docs/alpha-items.md` to prohibit agents
+  from choosing alternative sources during implementation.
+- **Review status:** additions/changes are explicitly unapproved proposals for
+  manual editing. Existing sources retain authored behavior/yields. Potato
+  Seed acquisition waits for a propagation decision; new processing-station
+  costs/timing/capacity must be proposed for review before implementation.
+  No design decision, gameplay task or release milestone was marked complete.
+- **Checks:** inspected current source reward/tool mappings, wildlife rewards,
+  cooking data and decision history; checked proposal/task consistency,
+  whitespace, staged ownership and path lengths. Full verification remains
+  deferred; no build, automation or gameplay verification ran for this plan edit.
+- **Impact/authority:** planning only; no runtime, RPC, replication, item data,
+  authority or save changes. Recorded stable-node/depletion and no-partial-plant-
+  reward requirements without claiming them implemented.
+- **Workspace/next:** only this Kalmala chat was active. Pre-existing code,
+  assets, documentation and the crafting-layout backlog checkbox were preserved
+  and excluded. Main checkout, no handoff synchronization needed. Next: user
+  review/edit of source proposals, then A0 scope/milestone reconciliation.
+
 ## User-directed planning 2026-10-19 — Alpha item category backlog
 
 - **Completed/files:** added `docs/alpha-items.md` with a registered-catalogue

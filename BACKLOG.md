@@ -105,19 +105,65 @@ materials, never inventory kits. No retired Reed Fibre or offensive magic.
 
 - [ ] **A0 — Existing item acquisition and use (P0).**
   - [ ] Before implementation, reconcile retained/deferred candidates with user-approved alpha scope and divide approved work into finite milestones with explicit final verification gates. New-system proposals stay blocked until their scope decisions are accepted.
-  - [ ] Audit normal world-to-use reachability for every current recipe and upgrade input; record sources, blockers and bootstrap cycles. Resolve the documented Iron-source discrepancy against actual generated nodes without changing acquisition behavior in this audit.
-  - [ ] Give String a repeatable normal acquisition path using an original approved source; verify a fresh player can craft and maintain Bow without debug grants.
-  - [ ] Make Lightwood obtainable through a suitable existing-world source and verify Bronze-family recipes/upgrades are reachable.
-  - [ ] Add a validated Bone Fragment source within the existing creature/discovery roster and verify Boar Hide Cape crafting/upgrades.
+  - [ ] Audit normal world-to-use reachability against the material/source proposal below; report deviations and bootstrap cycles rather than selecting replacement sources. Verify generated nodes for the current direct-bar Iron path; its proposed replacement is explicitly listed under A1.
+  - [ ] Add Workbench bark-string crafting: consume 2 Wood to produce 1 String, representing stripped and twisted inner bark; no new fibre item or tool requirement. Verify a fresh player can gather Wood with Stone Axe, craft and maintain Bow without debug grants.
+  - [ ] Add harvestable aspen trees in Meadows yielding 4 Lightwood per completed tree/log/bundle lifecycle; require Stone Axe or better. Preserve existing birch Wood rewards. Verify Bronze-family recipes/upgrades are reachable without requiring a Bronze tool to obtain Lightwood.
+  - [ ] Add 1 Bone Fragment to each server-confirmed boar or deer defeat, alongside existing meat/hide rewards, paid once to the validated attacker. Retain no-reward behavior for uncredited defeats; validate reward capacity and prevent duplicate grants. Verify Boar Hide Cape crafting/upgrades.
   - [ ] Reconcile the six current cooking outputs with server food-use dispatch; remove stale food-ID assumptions and verify paid cooking-to-eating behavior.
-  - [ ] Complete Hearth Broth acquisition and ordinary access to the four vegetable ingredients using approved sources; document which seed/farming paths remain blocked on A7.
+  - [ ] Add Hearth Broth at a Cauldron with the existing lit-hearth requirement: 1 Deer Meat + 1 Onion produces 1 Hearth Broth; MaxBatch 5, Cooking XP 10 per accepted craft. This proposed recipe changes the earlier intentional no-recipe state only after review.
+  - [ ] Add hand-gathered wild carrot patches in Meadows: each harvest grants 2 Carrot and 1 Carrot Seed; no tool required. Seed use remains blocked on A7 farming.
+  - [ ] Add hand-gathered wild potato patches in Meadows: each harvest grants 2 Potato; no tool required. Do not grant Potato Seed until A7 explicitly resolves seed versus tuber propagation.
+  - [ ] Add hand-gathered wild rutabaga patches in Shimmering Lakes on dry banks: each harvest grants 2 Rutabaga and 1 Rutabaga Seed; no tool required. Seed use remains blocked on A7 farming.
+  - [ ] Add hand-gathered wild onion patches in Elderwood: each harvest grants 2 Onion and 1 Onion Seed; no tool required. Seed use remains blocked on A7 farming. Verify all four vegetables reach the existing cooking recipes without farming/debug grants.
+
+  **Material/source proposal for manual review — not implemented or approved.**
+  The following fixes the proposed sources, actions and yields now. Agents must
+  implement the reviewed entries, not invent alternative biomes, drops, recipes
+  or quantities. User edits take precedence. If an entry is not implementable,
+  report the conflict before changing its design. Rows marked **retain** describe
+  existing routes to preserve and verify; **add/change** rows await review.
+
+  | Material / ingredient | Proposed source and biome | Gathering / production and yield | State / dependency |
+  | --- | --- | --- | --- |
+  | Wood | Existing Meadow birch and existing wood-resource trees | Existing axe/tree/log/bundle flow, Stone Axe or better where already required; retain each source's authored yield | Retain; no reed-source reward changes |
+  | Densewood | Existing Elderwood ironheart trees | Existing Iron Axe tree/log/bundle flow and authored yield | Retain; Iron Pick/ore route below must not require Densewood |
+  | Lightwood | New aspen trees in Meadows | Stone Axe or better; 4 Lightwood on final bundle pickup | Add under A0; no Bronze prerequisite |
+  | String | Inner bark from existing Wood, at Workbench | Craft 2 Wood into 1 String; no fibre intermediate | Add under A0 |
+  | Stone | Existing mountain slate veins and existing Stone sources | Existing Stone Pick or better and authored yields; retain existing starter acquisition | Retain; audit fresh-start bootstrap |
+  | Boar Hide / Boar Meat | Existing boars | Retain existing server-confirmed defeat rewards and quantities | Retain |
+  | Deer Hide / Deer Meat | Existing deer | Retain existing server-confirmed defeat rewards and quantities | Retain |
+  | Bone Fragment | Existing boars and deer | Additional 1 Bone Fragment per credited defeat | Add under A0; no new creature |
+  | Amber | Existing Mossy Mire peat-amber seams | Stone Pick or better; retain existing deterministic source yield | Retain |
+  | Frost Salt | Existing Freezing Tundra deposits and frostmoss | Retain existing source-specific pick/knife actions and authored yields | Retain |
+  | Copper Ore | New exposed copper-bearing rock nodes in Elderwood | Stone Pick or better; 3 Copper Ore per exhausted node | Add under A1 |
+  | Tin Ore | New tin-bearing gravel nodes on dry Shimmering Lakes shores | Stone Pick or better; 3 Tin Ore per exhausted node | Add under A1 |
+  | Iron Ore | Existing Mossy Mire bog-iron nodes | Bronze Pick or better; 3 Iron Ore per exhausted node, replacing direct Iron-bar reward | Change under A1; preserve existing behavior until approved |
+  | Coal | Wood burned in a placed charcoal station | 1 Wood produces 1 Coal; no mined Coal source, no new fuel item | Add under A1; processing scope gated |
+  | Copper | Copper Ore refined at placed smelter | 1 Copper Ore + 1 Coal produces 1 Copper | Add under A1; processing scope gated |
+  | Tin | Tin Ore refined at placed smelter | 1 Tin Ore + 1 Coal produces 1 Tin | Add under A1; processing scope gated |
+  | Bronze | Copper/Tin alloying at Forge | 2 Copper + 1 Tin produces 1 Bronze | Add under A1; no direct Bronze drops |
+  | Iron | Iron Ore refined at placed smelter | 1 Iron Ore + 1 Coal produces 1 Iron | Add under A1; replaces direct-bar acquisition only after review |
+  | Carrot / Carrot Seed | New wild carrot patches in Meadows | Hand gather 2 Carrot + 1 Carrot Seed per patch | Add under A0; seed use waits for A7 |
+  | Potato | New wild potato patches in Meadows | Hand gather 2 Potato per patch | Add under A0 |
+  | Potato Seed | No A0 acquisition | Existing definition retained without drops; A7 must resolve propagation | Explicitly deferred, not agent-selected |
+  | Rutabaga / Rutabaga Seed | New wild rutabaga patches on dry Shimmering Lakes banks | Hand gather 2 Rutabaga + 1 Rutabaga Seed per patch | Add under A0; seed use waits for A7 |
+  | Onion / Onion Seed | New wild onion patches in Elderwood | Hand gather 2 Onion + 1 Onion Seed per patch | Add under A0; seed use waits for A7 |
+  | Hearth Broth | Cauldron near usable lit hearth | 1 Deer Meat + 1 Onion produces 1 Hearth Broth; MaxBatch 5, Cooking XP 10 | Add under A0 after review |
+
+  New harvest nodes use stable generated identities and the existing matching
+  node depletion/restart policy; this proposal adds no timed respawn system.
+  A full inventory must leave a harvest unclaimed, with no partial plant reward
+  or depletion. New-tree quantities apply at bundle pickup, not per axe hit.
+  Station placement costs, processing timing/capacity and farming rules are
+  outside this source proposal and must be written into the backlog for manual
+  review before those systems are implemented; agents must not choose them.
 
 - [ ] **A1 — Ores, bars and fuel (P0; new processing scope gated).**
-  - [ ] Decide the alpha metal-production contract: source locations, Stone-to-Bronze-to-Iron bootstrap, ore versus direct-bar rewards, Coal production, alloy station and input/output roles. Obtain user scope approval before adding processing systems; preserve existing behavior until decided.
-  - [ ] Add normal Copper Ore and Tin Ore sources with server tool/tier checks (blocked on A1 contract).
-  - [ ] Give Coal a repeatable production/source loop, including a direct-material charcoal station only if approved (blocked on A1 contract).
-  - [ ] Implement paid Copper/Tin refining and Bronze alloying, with complete placed-station support where approved (blocked on ore/Coal acquisition and A1 contract).
-  - [ ] Implement the agreed Iron Ore/Iron route and reconcile the direct-bar Mire source and documentation (blocked on A1 contract and required refining).
+  - [ ] Review the explicit A0 source table's metal/Coal proposal and confirm Stone Pick → Copper/Tin → Bronze Pick → Iron Ore bootstrap. Write proposed station placement costs, timing and capacity into this backlog for manual review before implementation; obtain scope approval for processing systems. Preserve current behavior until approved.
+  - [ ] Add the table's Elderwood Copper Ore and Shimmering Lakes Tin Ore nodes: Stone Pick minimum, 3 matching ore per exhausted node (blocked on A1 contract).
+  - [ ] Implement the table's charcoal-station conversion of 1 Wood to 1 Coal with direct-material hammer placement; no alternative Coal source (blocked on A1 contract).
+  - [ ] Implement the table's smelter conversions and Forge alloying: 1 Copper/Tin Ore + 1 Coal → 1 matching bar; 2 Copper + 1 Tin → 1 Bronze (blocked on ore/Coal acquisition and A1 contract).
+  - [ ] Change Mossy Mire bog-iron nodes from direct Iron bars to 3 Iron Ore per node with Bronze Pick minimum; smelt 1 Iron Ore + 1 Coal → 1 Iron and reconcile documentation (blocked on A1 contract and refining).
 
 - [ ] **A2 — Melee weapons (P1).**
   - [ ] Add one original Bronze-tier sword with a distinct slash role, craft/upgrade data, server attack dispatch, held appearance and icon (blocked on reachable Bronze inputs).
