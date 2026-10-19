@@ -1,3 +1,15 @@
+## User-directed planning 2026-10-19 — Viper and weak poison
+
+- Renamed the planned Reed Snake/ID to Viper in `BACKLOG.md` and
+  `docs/biome-enemies.md`; recorded the decision in `docs/05-decision-log.md`.
+  Bite applies five-second weak poison; proposed 1 Poison/second, refreshed
+  without stacking. Existing bite damage, stats, loot and biome remain.
+- Specified server-owned status, defenses, owner display and expiry checks.
+  Reviewed references, whitespace, staged ownership and path lengths.
+  Planning only; no runtime changes or tests. Full verification deferred.
+  Pre-existing edits preserved; main checkout, no handoff sync required.
+  Next: review Viper poison tuning; A8a implementation remains queued.
+
 ## User-directed planning 2026-10-19 — Mosquito swarms and fire counters
 
 - Updated mosquito task in `BACKLOG.md`, `docs/biome-enemies.md`, torch cross-

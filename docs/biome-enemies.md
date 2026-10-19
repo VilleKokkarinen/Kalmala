@@ -17,7 +17,7 @@ before existing defenses; no client-authored damage or offensive player magic.
 | Meadows | Brush Rat (`BrushRat`) | Small scavenger; bites only when approached within 3 m or attacked | 35 / 0 | 6 Stab | 1 Bone Fragment |
 | Elderwood | Forest Wolf (`ForestWolf`) | Fast hunter; short, visible forward lunge | 80 / 0 | 15 Slash | 2 Bone Fragment |
 | Elderwood | Elderwood Bear (`ElderwoodBear`) | Rare hard enemy; slow overhead paw strike, punishable recovery | 250 / 5 | 35 Crush | 3 Bone Fragment |
-| Shimmering Lakes | Reed Snake (`ReedSnake`) | Snake hiding in dry shoreline reeds; visible coil, narrow lunging bite, then retreats; no poison system | 50 / 0 | 10 Stab | 1 Bone Fragment |
+| Shimmering Lakes | Viper (`Viper`) | Snake hiding in dry shoreline reeds; visible coil, narrow lunging bite, then retreats; applies weak poison for 5 s | 50 / 0 | 10 Stab + poison below | 1 Bone Fragment |
 | Shimmering Lakes | Reed Lurker (`ReedLurker`) | Rare hard, original shoreline beast; two-legged rush and broad forelimb swipe on land | 160 / 3 | 25 Crush | 2 Bone Fragment |
 | Mossy Mire | Bog Adder (`BogAdder`) | Camouflaged land hunter; short bite followed by retreat | 70 / 0 | 14 Stab | 1 Bone Fragment |
 | Mossy Mire | Mire Mosquito swarm (`MireMosquito`) | Flying swarm surrounds a player and keeps biting; rolls break contact, lit flames repel it | 25 / 0 per swarm | Proposed 2 Stab every 0.5 s while in contact | None |
@@ -68,6 +68,23 @@ Any later carcass materials require a separate reviewed item/recipe/icon plan.
   relevant-peer replication and depletion policy. Persist stable credited-death
   and loot claim identities so reload/duplicate requests cannot grant twice.
   Reject invalid attacks unchanged; preserve unclaimed rewards on full packs.
+
+## Viper poison
+
+- A server-confirmed bite applies **weak poison for 5 seconds**. Proposed
+  tuning: 1 Poison damage each second, first tick after 1 s, five ticks total.
+  Keep the existing 10 Stab bite, 50 health, 0 Armor and loot.
+- Further bites refresh the five-second duration without stacking damage or
+  causing an immediate extra tick. Multiple Vipers share one poison effect.
+- Resolve ticks through existing Poison defenses; physical Armor does not
+  reduce Poison. Poison can apply even when Armor absorbs the physical bite.
+  Dodged, missed or rejected bites never apply it; rolling after application
+  does not cleanse it. Torches repel mosquitoes, not Viper poison.
+- Server owns application, ticks and expiry; show the owner a poison indicator
+  and remaining time. Clear on death/session end; no saved poison or offline
+  catch-up ticks. Status support is part of this enemy's implementation.
+- Verify five-tick expiry, refreshed duration, multiple Vipers, defenses,
+  rejected bites and owner/client display. Damage tuning remains reviewable.
 
 ## Mire Mosquito swarm
 

@@ -185,7 +185,7 @@ Agents must follow reviewed values and report gaps instead of inventing designs.
   - [ ] Meadows: Brush Rat — small defensive scavenger.
   - [ ] Elderwood: Forest Wolf — fast lunging hunter.
   - [ ] Elderwood: Elderwood Bear — rare hard enemy; future Moonstone source.
-  - [ ] Shimmering Lakes: Reed Snake — hides in shoreline reeds; quick lunging bite.
+  - [ ] Shimmering Lakes: Viper — shoreline ambusher; lunging bite applies weak poison for 5 s.
   - [ ] Shimmering Lakes: Reed Lurker — rare hard shoreline beast.
   - [ ] Mossy Mire: Bog Adder — bite-and-retreat hunter.
   - [ ] Mossy Mire: Mire Mosquito swarm — repeated small bites; roll to shake off, lit fire repels.
