@@ -5,9 +5,13 @@
 
 const FName UKalmalaPlayerStatusComponent::WetStatusId(TEXT("State.Wet"));
 const FName UKalmalaPlayerStatusComponent::SteadyMealStatusId(TEXT("State.Food.SteadyMeal"));
-const FName UKalmalaPlayerStatusComponent::RoastedFieldMeatItemId(TEXT("RoastedFieldMeat"));
+const FName UKalmalaPlayerStatusComponent::CookedBoarMeatItemId(TEXT("CookedBoarMeat"));
+const FName UKalmalaPlayerStatusComponent::CookedDeerMeatItemId(TEXT("CookedDeerMeat"));
 const FName UKalmalaPlayerStatusComponent::HearthBrothItemId(TEXT("HearthBroth"));
-const FName UKalmalaPlayerStatusComponent::SmokedFieldMeatItemId(TEXT("SmokedFieldMeat"));
+const FName UKalmalaPlayerStatusComponent::MeatStewItemId(TEXT("MeatStew"));
+const FName UKalmalaPlayerStatusComponent::RootVegetableSoupItemId(TEXT("RootVegetableSoup"));
+const FName UKalmalaPlayerStatusComponent::RoastedRootVegetablesItemId(TEXT("RoastedRootVegetables"));
+const FName UKalmalaPlayerStatusComponent::DeerRootRoastItemId(TEXT("DeerRootRoast"));
 
 FKalmalaStatusModifiers UKalmalaPlayerStatusComponent::EvaluateModifiers(const TArray<FKalmalaPlayerStatusEntry>& Entries)
 {
@@ -65,8 +69,10 @@ float UKalmalaPlayerStatusComponent::GetRemainingSeconds(const FName StatusId) c
 
 bool UKalmalaPlayerStatusComponent::IsKnownFoodItem(const FName ItemId)
 {
-    return ItemId == RoastedFieldMeatItemId || ItemId == HearthBrothItemId
-        || ItemId == SmokedFieldMeatItemId;
+    return ItemId == CookedBoarMeatItemId || ItemId == CookedDeerMeatItemId
+        || ItemId == MeatStewItemId || ItemId == RootVegetableSoupItemId
+        || ItemId == RoastedRootVegetablesItemId || ItemId == DeerRootRoastItemId
+        || ItemId == HearthBrothItemId;
 }
 
 bool UKalmalaPlayerStatusComponent::ApplyFood(TArray<FKalmalaPlayerStatusEntry>& Entries, const FName ItemId)

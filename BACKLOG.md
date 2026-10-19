@@ -112,7 +112,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [x] Bow String: Workbench, 4 Sinew → 1 Bow String; bows use 1 each.
   - [x] Lightwood: Meadow aspens, Stone Axe+, 4 per collected tree bundle.
   - [x] Bone Fragment: add 1 to each credited boar/deer defeat.
-  - [ ] Fix food use for the six current cooking outputs.
+  - [x] Fix food use for the six current cooking outputs.
   - [ ] Hearth Broth: Cauldron, 1 Deer Meat + 1 Onion → 1 broth.
   - [ ] Wild carrots: Meadows, hand-pick 2 Carrot + 1 Carrot Seed per patch.
   - [ ] Wild potatoes: Meadows, hand-pick 2 Potato per patch; no Potato Seed.

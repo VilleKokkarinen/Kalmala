@@ -979,17 +979,26 @@ FString UKalmalaCraftingComponent::GetFoodText() const
     const auto* Character = GetCharacter();
     const auto* Inventory = Character ? Character->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
     const auto* Status = Character ? Character->FindComponentByClass<UKalmalaPlayerStatusComponent>() : nullptr;
-    const int32 RoastCount = Inventory ? Inventory->GetQuantity(UKalmalaPlayerStatusComponent::RoastedFieldMeatItemId) : 0;
-    const int32 BrothCount = Inventory ? Inventory->GetQuantity(UKalmalaPlayerStatusComponent::HearthBrothItemId) : 0;
-    const int32 SmokedCount = Inventory ? Inventory->GetQuantity(UKalmalaPlayerStatusComponent::SmokedFieldMeatItemId) : 0;
+    const auto GetFoodCount = [Inventory](const FName ItemId) { return Inventory ? Inventory->GetQuantity(ItemId) : 0; };
+    const int32 CookedBoarCount = GetFoodCount(UKalmalaPlayerStatusComponent::CookedBoarMeatItemId);
+    const int32 CookedDeerCount = GetFoodCount(UKalmalaPlayerStatusComponent::CookedDeerMeatItemId);
+    const int32 BrothCount = GetFoodCount(UKalmalaPlayerStatusComponent::HearthBrothItemId);
+    const int32 StewCount = GetFoodCount(UKalmalaPlayerStatusComponent::MeatStewItemId);
+    const int32 SoupCount = GetFoodCount(UKalmalaPlayerStatusComponent::RootVegetableSoupItemId);
+    const int32 RoastedRootsCount = GetFoodCount(UKalmalaPlayerStatusComponent::RoastedRootVegetablesItemId);
+    const int32 DeerRoastCount = GetFoodCount(UKalmalaPlayerStatusComponent::DeerRootRoastItemId);
+    const FString AvailableFood = FString::Printf(
+        TEXT("Cooked boar %d; cooked deer %d; meat stew %d; root soup %d; roasted roots %d; deer roast %d; Hearth Broth %d."),
+        CookedBoarCount, CookedDeerCount, StewCount, SoupCount, RoastedRootsCount, DeerRoastCount, BrothCount);
     const float Remaining = Status ? Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId) : 0.0f;
     if (Remaining > 0.0f)
     {
-        return FString::Printf(TEXT("Steady meal: %.0f seconds remaining; stamina use is 10%% lower. Wait for expiry; food effects cannot stack or replace this meal.\nAvailable: Roasted field meat %d; Hearth Broth %d; Smoked field meat %d."),
-            Remaining, RoastCount, BrothCount, SmokedCount);
+        return FString::Printf(
+            TEXT("Steady meal: %.0f seconds remaining; stamina use is 10%% lower. Wait for expiry; food effects cannot stack or replace this meal.\nAvailable: %s"),
+            Remaining, *AvailableFood);
     }
-    return FString::Printf(TEXT("Roasted field meat: %d available. Hearth Broth: %d available. Smoked field meat: %d available. Food is optional. Eat one for 120 seconds of 10%% lower stamina use; only one meal can be active."),
-        RoastCount, BrothCount, SmokedCount);
+    return FString::Printf(TEXT("Available: %s Food is optional. Eat one serving for 120 seconds of 10%% lower stamina use; only one meal can be active."),
+        *AvailableFood);
 }
 
 FString UKalmalaCraftingComponent::GetNearbyFireText() const

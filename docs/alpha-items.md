@@ -128,11 +128,11 @@ coverage, not a count of obtainable items or the assembled runtime catalogue.
 
 ### Other integration gap that affects the recommendation
 
-- `KalmalaPlayerStatusComponent.cpp::IsKnownFoodItem` accepts Hearth Broth and
-  the legacy `RoastedFieldMeat`/`SmokedFieldMeat` IDs. The six current cooking
-  outputs use different IDs. The existing single Steady Meal effect is not
-  evidence of differentiated health/stamina meals. Reconcile catalogue-to-use
-  dispatch and acquisition before planning extra food effects.
+- `KalmalaPlayerStatusComponent.cpp::IsKnownFoodItem` now accepts the six
+  current cooking-output IDs plus Hearth Broth; retired food IDs are rejected.
+  Cooking output payment and one-serving consumption use the existing
+  server-owned transaction, and all seven prepared foods share the single
+  Steady Meal effect. This does not add differentiated health/stamina meals.
 
 ## Recommended priority and dependency order
 

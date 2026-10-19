@@ -6,6 +6,7 @@
 #include "KalmalaConstructionActor.h"
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaItemCatalogue.h"
+#include "KalmalaPlayerStatusComponent.h"
 #include "KalmalaRecipeCatalogue.h"
 #include "KalmalaSkillProgressionComponent.h"
 #include "KalmalaWorldGenerationGameState.h"
@@ -183,6 +184,12 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Accepted cooking does not consume an extra fuel item"), Inventory->GetQuantity(TEXT("Wood")), 1);
     TestEqual(TEXT("Accepted cooking does not debit fire fuel per serving"), Fire->GetFuelSeconds(), FuelBeforeCooking);
     TestEqual(TEXT("Accepted batch awards Cooking experience once"), GetCookingExperience(), ExperienceBeforeCooking + 10);
+    TestTrue(TEXT("A paid cooking output can be consumed for its meal effect"), Crafting->ConsumeFoodFromServer(CookRecipe->Output, Reason));
+    TestEqual(TEXT("Eating one cooked output preserves the other serving"), Inventory->GetQuantity(CookRecipe->Output), 1);
+    const UKalmalaPlayerStatusComponent* Status = Pawn->FindComponentByClass<UKalmalaPlayerStatusComponent>();
+    TestTrue(TEXT("Eating the cooked output activates Steady Meal"), Status && Status->HasStatus(UKalmalaPlayerStatusComponent::SteadyMealStatusId));
+    TestFalse(TEXT("Active meal blocks a second serving"), Crafting->ConsumeFoodFromServer(CookRecipe->Output, Reason));
+    TestEqual(TEXT("Rejected second meal preserves cooked food"), Inventory->GetQuantity(CookRecipe->Output), 1);
     const FKalmalaItemDefinition* CookedMeat = Items->FindItem(CookRecipe->Output);
     TestTrue(TEXT("Recipe detail uses the result description once"),
         CookedMeat && Crafting->GetRecipeDescription(CookRecipe->RecipeId) == CookedMeat->Description);
