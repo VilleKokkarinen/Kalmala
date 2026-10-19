@@ -4,6 +4,7 @@ Add new decisions at the top. A decision records what agents should treat as set
 
 | Date | Decision | Status | Rationale |
 | --- | --- | --- | --- |
+| 2026-10-19 | Replace the recommended Wolf Pelt Cloak with Wolf Pelt Boots. | User-directed plan | Uses the Boots slot; retain the user's current recipe and Armor tuning. Planning only. |
 | 2026-10-19 | Recommend items and recipes from the user's revised unique-drop table. | Review proposal | Eighteen concrete recipes cover all retained drop materials, including meals, armor, weapons and consumables. Reuse backlog Bow String/ring recipes; new poison-removal, Lightning and aquatic behavior remain scope-gated. No runtime changes. |
 | 2026-10-19 | Add a unique-drop proposal for every enemy in the overview. | User-directed plan | Concrete quantities/chances and short intended uses live in biome-enemies.md. Retain Deer Sinew 50%, Moonstone 2% and Dusk Diamond 0.5% routes. Other unique materials/uses are reviewable proposals requiring complete item/recipe/icon approval; no runtime loot changes. |
 | 2026-10-19 | The user's revised enemy overview supplies the current planned combat stats and abilities. | User-directed plan | Synchronize detailed roster and combat rules, including boar/deer retunes, Badger claws, Horned Goat push/stagger and swarm 5 Stab per 0.2 s (25/sec). Earlier stat proposals are superseded. Goat control-effect tuning still needs review; runtime implementation remains queued. |

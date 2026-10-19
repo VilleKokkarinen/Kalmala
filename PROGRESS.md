@@ -1,3 +1,13 @@
+## User-directed planning 2026-10-19 — Wolf Pelt Boots
+
+- Changed the recommendation in `docs/biome-enemies.md` from Wolf Pelt Cloak
+  to Wolf Pelt Boots and Cape to Boots slot; retained the user's current
+  recipe/Armor edits. Recorded `docs/05-decision-log.md`; backlog state unchanged.
+- Checked the exact recipe row, references, whitespace, staged ownership and
+  paths. Preserved pre-existing edits unstaged. Documentation only; no runtime
+  tests or authority changes; full verification deferred. Next: recipe review;
+  main checkout, no handoff sync required.
+
 ## User-directed planning 2026-10-19 — Drop-based recipe recommendations
 
 - Added an aligned 18-recipe table in `docs/biome-enemies.md` using the user's

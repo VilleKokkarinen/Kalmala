@@ -96,7 +96,7 @@ swarm currently have no unique drop, so neither receives a new recipe here.
 | Dusk Ring        | Forge        | 5 Iron + 1 Dusk Diamond → 1                  | +10 HP, +10 stamina, +5 Armor  |
 | Antidote         | Cauldron     | 1 Venom Sac + 2 Lingonberry → 1              | Clear weak/major poison        |
 | Peat Heart Stew  | Cauldron     | 1 Peat Heart + 2 Potato + 1 Onion → 2        | Steady Meal                    |
-| Wolf Pelt Cloak  | Workbench    | 6 Wolf Pelt + 2 String → 1                   | Cape; 6 Armor                  |
+| Wolf Pelt Boots  | Workbench    | 6 Wolf Pelt + 2 String → 1                   | Boots; 6 Armor                  |
 | Fang Spear       | Forge        | 3 Wolf fang + 6 Iron + 4 Densewood → 1       | 70 Stab                        |
 | Wolf Stew        | Cauldron     | 1 Wolf meat + 1 Carrot + 1 Onion → 2         | Steady Meal                    |
 | Lynx Mantle      | Workbench    | 4 Lynx Pelt + 2 String → 1                   | Cape; 8 Armor                  |
