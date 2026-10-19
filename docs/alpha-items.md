@@ -108,8 +108,8 @@ coverage, not a count of obtainable items or the assembled runtime catalogue.
   no current source or refining recipe; A1 proposes the reviewed replacement.
 - The user-directed Forge `IronAxe` acquisition now costs 4 Iron + 3 Lightwood,
   resolving the cycle with the only current Densewood source: Elderwood
-  ironheart trees gated by the Iron Axe tier. Its level-one upgrade still costs
-  4 Iron + 3 Densewood. Iron Knife, Spear, and Mace acquisitions also require
+  ironheart trees gated by the Iron Axe tier. Its level-one upgrade also costs
+  4 Iron + 3 Lightwood. Iron Knife, Spear, and Mace acquisitions still require
   Densewood, which becomes harvestable after crafting the axe; Iron Pick costs
   4 Iron, 2 Wood, and 2 Stone. Lightwood's Meadow aspen source is still pending
   under A0, so the revised recipe is not yet backed by a current gathering

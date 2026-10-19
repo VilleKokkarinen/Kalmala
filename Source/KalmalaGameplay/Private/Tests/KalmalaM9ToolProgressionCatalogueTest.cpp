@@ -73,12 +73,12 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
     TestNotNull(TEXT("Iron Axe retains its authored level-one upgrade cost"), IronAxeUpgrade);
     if (IronAxeUpgrade)
     {
-        TestTrue(TEXT("Iron Axe upgrade retains its four Iron and three Densewood cost"),
+        TestTrue(TEXT("Iron Axe upgrade uses four Iron and three Lightwood"),
             IronAxeUpgrade->Ingredients.Num() == 2
             && IronAxeUpgrade->Ingredients.ContainsByPredicate([](const FKalmalaToolRecipeIngredientData& Cost)
                 { return Cost.ItemId == TEXT("Iron") && Cost.Quantity == 4; })
             && IronAxeUpgrade->Ingredients.ContainsByPredicate([](const FKalmalaToolRecipeIngredientData& Cost)
-                { return Cost.ItemId == TEXT("Densewood") && Cost.Quantity == 3; }));
+                { return Cost.ItemId == TEXT("Lightwood") && Cost.Quantity == 3; }));
     }
     for (const TPair<FName, FName>& GearAndStation : GearStations)
     {

@@ -1,5 +1,6 @@
 # Decision log
 
+| 2026-10-19 | Use Lightwood instead of Densewood in the level-one Iron Axe upgrade cost too. | User-directed | Iron Axe acquisition and its Forge level-up both cost 4 Iron + 3 Lightwood; this supersedes the previous Densewood upgrade cost. Lightwood's Meadow aspen source remains in A0. |
 | 2026-10-19 | Use Lightwood instead of Densewood in the level-one Iron Axe Forge acquisition recipe. | User-directed | Keep its 4 Iron cost and its level-one upgrade cost of 4 Iron plus 3 Densewood. The acquired Iron Axe unlocks Densewood harvesting; Lightwood's Meadow aspen source remains in A0. |
 | 2026-10-19 | Replace the current String item with bow-only Bow String; use Sinew as its source and move WoodenArrow to the top-level arrows category. | User-directed | The runtime item ID is `BowString`; Workbench converts 4 Sinew into 1, and bow acquisition/upgrades use 1 each. Credited deer defeats grant 1 Sinew on a server-owned 50% roll. `WoodenArrow` is registered from `items/arrows.json`; pending non-bow binding costs require category review and cannot use Bow String. |
 
