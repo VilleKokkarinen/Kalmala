@@ -176,6 +176,7 @@ Agents must follow reviewed values and report gaps instead of inventing designs.
 
 - [ ] **A8a — Biome enemies (before A9).** [Roster and stats](docs/biome-enemies.md)
   - [ ] Review the expanded roster, spawn weights and attack/loot rules.
+  - [ ] Restrict boar/deer spawns to Meadows, Elderwood and Shimmering Lakes only.
   - [ ] Meadows: Rat — small defensive scavenger.
   - [ ] Elderwood: Badger — easier territorial enemy; short bite and retreat.
   - [ ] Elderwood: Moon Bear — rare hard enemy; future Moonstone source.

@@ -4,6 +4,7 @@ Add new decisions at the top. A decision records what agents should treat as set
 
 | Date | Decision | Status | Rationale |
 | --- | --- | --- | --- |
+| 2026-10-19 | Boars and deer spawn only in Meadows, Elderwood and Shimmering Lakes. | User-directed plan | Server-side spawn-origin allowlist excludes every other biome, including seeded/reloaded candidates. Movement, stats and loot unchanged; implementation pending. |
 | 2026-10-19 | Replace Shimmering Lakes Reed Lurker with Giant Snake (`GiantSnake`). | User-directed plan | Rare hard shoreline snake with a coiled lunging bite; proposed 4 m body, 160 health/3 Armor/25 Stab and 2 Bone Fragment. Replaces forelimb swipe/Crush attack; retains spawn share. No poison or grab proposed. Implementation pending. |
 | 2026-10-19 | Rename the planned Elderwood Bear to Moon Bear (`MoonBear`). | User-directed plan | Remains the rare hard Elderwood enemy and exclusive 2% Moonstone source. Stats, attacks and other loot unchanged; supersedes the earlier name. Implementation pending. |
 | 2026-10-19 | Move the wolf from Elderwood to Freezing Tundra, strengthen it, and add an easier Elderwood enemy. | User-directed plan | Proposed Tundra Wolf: 160 health/3 Armor/28 Slash, up from 80/0/15. Woodland Badger replaces its Elderwood role: 60 health/0 Armor/10 Stab. Fourteen additions total; split Tundra common slots between wolf and lynx without increasing budgets. Implementation pending. |

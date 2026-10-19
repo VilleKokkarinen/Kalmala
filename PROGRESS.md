@@ -1,3 +1,15 @@
+## User-directed planning 2026-10-19 — Boar/deer biome restriction
+
+- Added a spawn restriction task in `BACKLOG.md`; updated the overview and
+  spawn rules in `docs/biome-enemies.md` and recorded `docs/05-decision-log.md`.
+  Boar/deer origins are limited to Meadows, Elderwood and Shimmering Lakes.
+  Planned server allowlist covers seeded/reloaded candidates; stats, loot and
+  movement remain unchanged. Current runtime restrictions are not claimed.
+- Checked aligned overview columns, references, whitespace, staged ownership
+  and path lengths. Documentation only; no runtime tests; full verification
+  deferred. Next: roster review and queued A8a implementation. Main checkout,
+  no handoff synchronization required.
+
 ## User-directed planning 2026-10-19 — Align enemy overview columns
 
 - Padded the quick-overview table in `docs/biome-enemies.md` to fixed column
