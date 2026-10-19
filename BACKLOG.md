@@ -180,12 +180,28 @@ Agents must follow reviewed values and report gaps instead of inventing designs.
   - [ ] Reinforced Chest: 8 Wood + 2 Bronze; 24 shared cells.
   - [ ] Keep extra brewing stations deferred; Kiln/Smelter/Plot belong to A1/A7.
 
+- [ ] **A8a — Biome enemies (before A9).** [Roster and stats](docs/biome-enemies.md)
+  - [ ] Review the expanded roster, spawn weights and attack/loot rules.
+  - [ ] Meadows: Brush Rat — small defensive scavenger.
+  - [ ] Elderwood: Forest Wolf — fast lunging hunter.
+  - [ ] Elderwood: Elderwood Bear — rare hard enemy; future Moonstone source.
+  - [ ] Shimmering Lakes: Reed Adder — dry-bank ambusher.
+  - [ ] Shimmering Lakes: Reed Lurker — rare hard shoreline beast.
+  - [ ] Mossy Mire: Bog Adder — bite-and-retreat hunter.
+  - [ ] Mossy Mire: Peat Husk — rare hard sweeping attacker.
+  - [ ] Freezing Tundra: Snow Lynx — leaping predator.
+  - [ ] Freezing Tundra: Tundra Bear — rare hard charging predator.
+  - [ ] Thunder Mountains: Ridge Goat — territorial horn charges.
+  - [ ] Thunder Mountains: Crag Sentinel — rare hard stone attacker.
+  - [ ] Ocean: Reef Maw — swimmer threat; blocked on aquatic AI/combat approval.
+  - [ ] Run enemy milestone verification before A9; record results and blockers.
+
 - [ ] **A9 — Cargo, gems and special gear (P2).** [Rules](docs/alpha-item-details.md#a9)
   - [ ] Review skiff cargo; defer carts, carry packs, encumbrance and hull durability.
   - [ ] Skiff Cargo Chest: Hammer, 6 Lightwood + 2 String + 1 Bronze; 12 cells/skiff.
   - [ ] Gemstone rocks: rare resource-slot replacements; 10% gem-smash risk per hit, success yields 1 gem.
   - [ ] Quartz rock: Elderwood/Lakes, proposed 5% replacement of Copper/Tin spawn slots.
-  - [ ] Moonstone: proposed 2% chance of 1 per credited Elderwood boar defeat; enemy-only.
+  - [ ] Moonstone: proposed 2% chance of 1 per credited Elderwood Bear defeat; requires A8a.
   - [ ] Garnet: proposed 10% chance of 1 in Elderwood/Lakes world treasure chests; chest-only.
   - [ ] Jade rock: Shimmering Lakes, proposed 2% replacement of Tin spawn slots.
   - [ ] Amethyst rock: Mossy Mire, proposed 3% replacement of Iron Ore spawn slots.

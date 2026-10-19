@@ -1,3 +1,19 @@
+## User-directed planning 2026-10-19 — Biome enemies before gems
+
+- Added A8a before A9 in `BACKLOG.md` and `docs/biome-enemies.md`: twelve
+  proposed enemies across seven biomes, with named common/hard roles, stats,
+  attacks, existing-item loot, spawn weights, authority and verification rules.
+  Ocean enemy waits for aquatic support approval; current roster is retained.
+- Moved Moonstone to hard Elderwood Bear, still 2% for 1, blocked on A8a
+  acceptance. Updated gem details, comparison and decision log. Bear proposal
+  is tougher than Forest Wolf with longer visible windup/recovery; no balance
+  or runtime acceptance is claimed. No new regular animal meat/hide IDs.
+- Checked roster count, queue/dependency order, Moonstone references, local
+  links, whitespace, paths and staged ownership. Planning only; no runtime,
+  catalogue/assets/save edits, builds or gameplay tests; full verification
+  deferred. Preserved pre-existing user edits; main checkout, no sync.
+  Next: review the enemy roster before implementation through A8a.
+
 ## User-directed planning 2026-10-19 — Elderwood Moonstone enemy
 
 - Updated Moonstone in `BACKLOG.md`, details, comparison and decision log:
