@@ -52,6 +52,34 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
         ItemCatalogue && ItemCatalogue->IsValidCatalogue()
         && RecipeCatalogue && RecipeCatalogue->IsValidCatalogue()
         && AuthoredCatalogue && AuthoredCatalogue->IsValidCatalogue(ItemCatalogue));
+    const FKalmalaToolRecipeData* IronAxeAcquisition = AuthoredCatalogue
+        ? AuthoredCatalogue->Recipes.FindByPredicate(
+            [](const FKalmalaToolRecipeData& Recipe) { return Recipe.ItemId == TEXT("IronAxe"); }) : nullptr;
+    TestNotNull(TEXT("Iron Axe has a level-one acquisition recipe"), IronAxeAcquisition);
+    if (IronAxeAcquisition)
+    {
+        TestEqual(TEXT("Iron Axe is a level-one acquisition"), IronAxeAcquisition->Level, 1);
+        TestEqual(TEXT("Iron Axe acquisition uses the Forge"), IronAxeAcquisition->RequiredStation, FString(TEXT("Forge")));
+        TestTrue(TEXT("Iron Axe acquisition uses four Iron and three Lightwood"),
+            IronAxeAcquisition->Ingredients.Num() == 2
+            && IronAxeAcquisition->Ingredients.ContainsByPredicate([](const FKalmalaToolRecipeIngredientData& Cost)
+                { return Cost.ItemId == TEXT("Iron") && Cost.Quantity == 4; })
+            && IronAxeAcquisition->Ingredients.ContainsByPredicate([](const FKalmalaToolRecipeIngredientData& Cost)
+                { return Cost.ItemId == TEXT("Lightwood") && Cost.Quantity == 3; }));
+    }
+    const FKalmalaToolRecipeData* IronAxeUpgrade = AuthoredCatalogue
+        ? AuthoredCatalogue->UpgradeCosts.FindByPredicate(
+            [](const FKalmalaToolRecipeData& Cost) { return Cost.ItemId == TEXT("IronAxe"); }) : nullptr;
+    TestNotNull(TEXT("Iron Axe retains its authored level-one upgrade cost"), IronAxeUpgrade);
+    if (IronAxeUpgrade)
+    {
+        TestTrue(TEXT("Iron Axe upgrade retains its four Iron and three Densewood cost"),
+            IronAxeUpgrade->Ingredients.Num() == 2
+            && IronAxeUpgrade->Ingredients.ContainsByPredicate([](const FKalmalaToolRecipeIngredientData& Cost)
+                { return Cost.ItemId == TEXT("Iron") && Cost.Quantity == 4; })
+            && IronAxeUpgrade->Ingredients.ContainsByPredicate([](const FKalmalaToolRecipeIngredientData& Cost)
+                { return Cost.ItemId == TEXT("Densewood") && Cost.Quantity == 3; }));
+    }
     for (const TPair<FName, FName>& GearAndStation : GearStations)
     {
         const FKalmalaItemDefinition* GearItem = ItemCatalogue

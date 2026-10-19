@@ -107,7 +107,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
 
 - [ ] **A0 — Existing items (P0).** [Details](docs/alpha-item-details.md#a0)
   - [x] Review scope and the A10 milestone plan; all queued P0/P1/P2 work is included, with I4 ending before A9 and I5 covering A9.
-  - [ ] Audit current sources and starter progression; check the Iron-source mismatch.
+  - [x] Audit current sources and starter progression; check the Iron-source mismatch.
   - [x] Sinew: credited deer defeats have a server-rolled 50% chance to grant 1.
   - [x] Bow String: Workbench, 4 Sinew → 1 Bow String; bows use 1 each.
   - [ ] Lightwood: Meadow aspens, Stone Axe+, 4 per collected tree bundle.

@@ -84,12 +84,51 @@ food, crops, wearables, arrows and scrolls), 17 equipment profiles (15 tiered
 profiles, Bow, Hammer), and 12 buildable metadata records. This is authored
 coverage, not a count of obtainable items or the assembled runtime catalogue.
 
-### Two integration gaps that affect the recommendation
+### A0 source and starter-progression audit (2026-10-19)
 
-- `KalmalaToolLifecycleContract.cpp::BuildServerSelection` still maps
-  `mire-bog-iron` directly to `Iron`. The design document says Iron has no natural
-  source. Record that discrepancy and verify generated reachability; do not
-  describe Iron as definitely unobtainable or assume Iron Ore is already mined.
+- Fresh characters receive six level-one carried tools: Construction Hammer,
+  Stone Axe, Stone Pick, Stone Knife, Stone Spear, and Stone Mace. The hammer is
+  active; character startup does not grant material stacks. The protected center
+  through 350 m is Meadows/Ocean. Meadow birch sources provide Wood, but the
+  mapped ordinary Stone source is the Thunder Mountains slate vein, mined with
+  Stone-tier tools. The optional Three-Run Rillstone in Shimmering Lakes grants
+  2 Stone after discovery; Meadow's `meadows-hidden-stone` landmark records
+  discovery but grants no material. There is no guaranteed Stone source in the
+  protected start area. The first Workbench costs 9 Wood + 2 Stone and the Forge
+  costs 15 Wood + 6 Stone, so fresh progression requires travel to a Stone source
+  or finding the optional Lakes reward. The approved A0 detail row's "existing
+  starter acquisition" is not evidenced by current startup/source code; keep the
+  discrepancy visible rather than inventing a starting grant or replacement.
+- The generated biome contract maps Mossy Mire harvest candidates to
+  `mire-bog-iron`. `BuildServerSelection` maps that source to 1 `Iron` per node
+  with a Bronze-tier mining minimum. The current Forge `BronzePick` acquisition
+  costs 4 Wood + 4 Stone, so the current direct-bar Iron source can be reached
+  without an existing Bronze bar once a Forge is built. The design sentence
+  claiming Iron has no natural source was stale. `IronOre` is catalogued but has
+  no current source or refining recipe; A1 proposes the reviewed replacement.
+- The user-directed Forge `IronAxe` acquisition now costs 4 Iron + 3 Lightwood,
+  resolving the cycle with the only current Densewood source: Elderwood
+  ironheart trees gated by the Iron Axe tier. Its level-one upgrade still costs
+  4 Iron + 3 Densewood. Iron Knife, Spear, and Mace acquisitions also require
+  Densewood, which becomes harvestable after crafting the axe; Iron Pick costs
+  4 Iron, 2 Wood, and 2 Stone. Lightwood's Meadow aspen source is still pending
+  under A0, so the revised recipe is not yet backed by a current gathering
+  route.
+- Other current normal routes include Wood from generated Meadow birch/bark,
+  Lakes reeds, and Elderwood resinwood; meat/hides from server-confirmed
+  boar/deer rewards; Amber from Mossy Mire; Frost Salt from Tundra; and the
+  implemented credited-deer Sinew roll feeding the Workbench Bow String recipe.
+  Current acquisition gaps remain for ordinary Lightwood, Bone Fragment, Coal, Copper,
+  Tin, IronOre, and the four wild vegetables; production for Copper/Tin/Bronze/
+  Iron and Coal is also pending the A1 contract and implementation.
+- The current spawn layout derives harvest identities from the classified biome
+  and material rewards/tool gates from server contracts. This was a source and
+  catalogue audit only: no build, automation, generated-seed sweep, or fresh
+  player walkthrough was run. Generated availability and full progression remain
+  milestone verification items.
+
+### Other integration gap that affects the recommendation
+
 - `KalmalaPlayerStatusComponent.cpp::IsKnownFoodItem` accepts Hearth Broth and
   the legacy `RoastedFieldMeat`/`SmokedFieldMeat` IDs. The six current cooking
   outputs use different IDs. The existing single Steady Meal effect is not
