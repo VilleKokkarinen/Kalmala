@@ -1,3 +1,18 @@
+## User-directed cleanup 2026-10-19 — Readable item backlog
+
+- **Changed:** shortened A0–A10 in `BACKLOG.md` to one-line tasks with key
+  sources/recipes. Moved full existing proposals to `docs/alpha-item-details.md`,
+  linked by category; updated `docs/alpha-items.md`. The alpha section shrank
+  from 29,974 to 6,803 characters. All 78 unchecked tasks and their order remain.
+- **Preserved:** detailed values/rules, proposal review status, prior completed
+  history and pre-existing workspace edits. The details file has no task-status
+  checkboxes; backlog remains the task-status owner. No scope or gameplay change.
+- **Checks:** compared preserved detail text, task counts/order, category links,
+  whitespace, staged ownership and MAX_PATH. Full verification deferred;
+  no build, automation or gameplay tests for this documentation cleanup.
+- **Handoff/next:** only this Kalmala chat active; main checkout, no sync needed.
+  Continue user review of recipes/sources and linked stats/rules before coding.
+
 ## User-directed planning 2026-10-19 — Concrete proposals for every category
 
 - **Completed/files:** replaced open design choices throughout A1–A10 in

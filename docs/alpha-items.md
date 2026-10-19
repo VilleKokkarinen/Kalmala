@@ -13,10 +13,11 @@ The proposed alpha baseline is Kalmala's existing Stone/Bronze/Iron span and
 current creature roster. It is a recommendation, not a newly approved release
 scope. Broader systems below require a scope decision before implementation.
 
-The A0–A10 proposals in `BACKLOG.md` now specify named items/buildables,
-biomes, gathering tools/yields, ingredient quantities, crafting stations,
-equipment/upgrade stats, consumable effects, station operation, crop propagation,
-fishing, furniture, cargo, accessories, persistence limits and acceptance groups.
+The A0–A10 checklist in [BACKLOG.md](../BACKLOG.md) gives short tasks with
+sources and recipes. [Item details](alpha-item-details.md) retain the full
+stats, upgrades, behavior, persistence and acceptance criteria by category.
+Task status belongs only in the backlog. Keep its summary and the detailed
+values consistent when reviewing/editing the proposals.
 These new/changed entries are drafts for user review/editing, not accepted
 game-design decisions or implementation authorization. Agents must follow the
 reviewed entries and report conflicts instead of choosing alternative designs.
@@ -98,8 +99,8 @@ station would require an explicit system/scope decision, not just new JSON.
 arrow, a second armour tier and shield, two forage foods and two recovery
 preparations. Use existing materials where practical. Each addition needs its
 own complete slice; quantity is not a release gate. Numerical balance, costs,
-names and material sources are now concrete drafts in the backlog for manual
-review. They are not implementation-agent choices.
+names and material sources are concrete drafts in the backlog and linked
+details for manual review. They are not implementation-agent choices.
 
 **P2: scope-dependent parity candidates.** The backlog specifically proposes
 plot-based cultivation, lake-school fishing, six shelter/furniture pieces,
