@@ -188,7 +188,7 @@ Agents must follow reviewed values and report gaps instead of inventing designs.
   - [ ] Shimmering Lakes: Reed Snake — hides in shoreline reeds; quick lunging bite.
   - [ ] Shimmering Lakes: Reed Lurker — rare hard shoreline beast.
   - [ ] Mossy Mire: Bog Adder — bite-and-retreat hunter.
-  - [ ] Mossy Mire: Mire Mosquito — fragile flying pest; quick stab, then retreats.
+  - [ ] Mossy Mire: Mire Mosquito swarm — repeated small bites; roll to shake off, lit fire repels.
   - [ ] Mossy Mire: Peat Husk — rare hard sweeping attacker.
   - [ ] Freezing Tundra: Snow Lynx — leaping predator.
   - [ ] Freezing Tundra: Tundra Bear — rare hard charging predator.

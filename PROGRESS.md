@@ -1,3 +1,19 @@
+## User-directed planning 2026-10-19 — Mosquito swarms and fire counters
+
+- Updated mosquito task in `BACKLOG.md`, `docs/biome-enemies.md`, torch cross-
+  reference in item details, comparison and decision log. Persistent bites
+  replace stab/retreat; accepted rolls break contact, lit held torches forbid
+  attacks, other exposed fires repel. Unlit/empty/stored torches do not protect.
+- Proposed tuning: one actor/six cosmetic insects, 25 swarm health, 2 Stab per
+  0.5 s before normal defenses, one attacking swarm/player, 2 s roll escape,
+  3 m torch/placed light and 5 m campfire avoidance. No actor-budget increase,
+  armor bypass, new debuff, recipe change, torch damage or warmth change.
+  Added authority, fire-state, bite-race, peer and blocked-roll verification rules.
+- Checked old behavior conflicts, shared counters, references, whitespace,
+  staged ownership and paths. Planning only; no runtime/data/assets/save
+  changes or tests. Full verification deferred. Pre-existing edits preserved;
+  main checkout, no sync. Next: swarm tuning and counter review.
+
 ## User-directed planning 2026-10-19 — Shimmering Lakes snakes
 
 - Clarified Reed Adder as Reed Snake in `BACKLOG.md`, `docs/biome-enemies.md`

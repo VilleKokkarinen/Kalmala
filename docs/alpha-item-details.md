@@ -159,6 +159,14 @@ No movement penalties, elemental resistances, active block/parry or set bonus.
 
 Carried utility tools (P1/P2).
 - Review and add Bark Torch (`BarkTorch`): inventory craft 2 Wood + 1 String → 1, stack 1, 0.5 kg. Main Hand only; 300 seconds of burning while held, local light radius 6 m from replicated lit state. No damage, warmth, Wet removal or world ignition. Uncovered rain extinguishes it; dry re-equip relights it. Stored/unequipped torches do not burn; spent torch remains unusable until inventory refuel with 1 Wood restores 300 seconds. Persist remaining burn time with item state; no repair/upgrade recipe or generic melee fallback.
+
+Torch/fire behavior also supports the user-requested
+[mosquito swarm counter](biome-enemies.md#mire-mosquito-swarm): a server-confirmed
+lit held torch prevents swarm targeting/damage and repels nearby swarms.
+Unlit/stored/empty torches do not count. This behavior does not change recipes
+or imply warmth, world ignition or direct torch damage. See the enemy rules
+for placed lights/campfires and proposed repellent radii.
+
 - Review and add Cultivation Rake (`CultivationRake`) only with A7: Workbench 1, 2 Wood + 2 Stone + 2 String → 1; stack 1, 1 kg, 100 condition. Hold to plant/harvest approved garden plots; one condition per accepted planting, none on harvest/rejection. Free Workbench repair, no upgrades, damage or terrain editing.
 - Record terrain-editing Hoe as deferred from this alpha proposal: no height edits, smoothing, roads or grass-painting system. The Rake works only on A7 plots and does not modify the shared terrain sampler.
 

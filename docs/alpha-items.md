@@ -119,7 +119,8 @@ smash; successful extraction yields exactly one gem. Spawn rates and a proposed
 three-hit extraction remain for review. Ordinary ore no longer has gem bonus drops.
 New [A8a enemy roster](biome-enemies.md) precedes A9: thirteen proposed enemies
 across the seven biomes, with common/hard roles and a separate acceptance gate.
-Mossy Mire includes a fragile flying Mire Mosquito alongside Bog Adder/Peat Husk.
+Mossy Mire includes Mire Mosquito swarms alongside Bog Adder/Peat Husk:
+repeated small bites, roll escape and avoidance of lit torches/other fires.
 Moonstone moves to the hard Elderwood Bear; aquatic enemies remain scope-gated.
 It defers terrain-editing
 Hoe, cold-protection clothing, new trophies/scrolls, cart/carry packs and extra

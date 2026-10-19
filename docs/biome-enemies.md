@@ -20,7 +20,7 @@ before existing defenses; no client-authored damage or offensive player magic.
 | Shimmering Lakes | Reed Snake (`ReedSnake`) | Snake hiding in dry shoreline reeds; visible coil, narrow lunging bite, then retreats; no poison system | 50 / 0 | 10 Stab | 1 Bone Fragment |
 | Shimmering Lakes | Reed Lurker (`ReedLurker`) | Rare hard, original shoreline beast; two-legged rush and broad forelimb swipe on land | 160 / 3 | 25 Crush | 2 Bone Fragment |
 | Mossy Mire | Bog Adder (`BogAdder`) | Camouflaged land hunter; short bite followed by retreat | 70 / 0 | 14 Stab | 1 Bone Fragment |
-| Mossy Mire | Mire Mosquito (`MireMosquito`) | Fragile flying pest; audible hover, short proboscis stab, then retreats | 25 / 0 | 8 Stab | None |
+| Mossy Mire | Mire Mosquito swarm (`MireMosquito`) | Flying swarm surrounds a player and keeps biting; rolls break contact, lit flames repel it | 25 / 0 per swarm | Proposed 2 Stab every 0.5 s while in contact | None |
 | Mossy Mire | Peat Husk (`PeatHusk`) | Rare hard, original peat-and-wood creature; slow sweeping arm | 220 / 6 | 30 Crush | 1 Amber |
 | Freezing Tundra | Snow Lynx (`SnowLynx`) | Mobile predator; telegraphed leap, long recovery if it misses | 120 / 0 | 22 Slash | 2 Bone Fragment |
 | Freezing Tundra | Tundra Bear (`TundraBear`) | Rare hard bear variant; committed charge, then retreat to reset | 300 / 6 | 40 Crush | 3 Bone Fragment |
@@ -40,30 +40,26 @@ Any later carcass materials require a separate reviewed item/recipe/icon plan.
 - Proposed selection: Meadows 90% existing roster / 10% Brush Rat. Each other
   land biome: 50% existing eligible roster / 40% new common enemy / 10% new
   hard enemy. If there is no eligible existing entry, leave that share empty;
-  do not import creatures from another biome. Each new spawn is one enemy.
+  do not import creatures from another biome. Each new spawn is one enemy
+  actor; a mosquito spawn is one swarm actor with multiple cosmetic insects.
 - Mossy Mire splits its common share: 50% existing roster / 20% Bog Adder /
-  20% Mire Mosquito / 10% Peat Husk. No additional actor budget or swarm spawns.
+  20% Mire Mosquito swarm / 10% Peat Husk. Keep the existing actor budget;
+  the visual insects do not create extra gameplay actors or damage sources.
 - Ocean: use 10% of eligible aquatic candidate slots for Reef Maw; others
   stay empty. This task is blocked until aquatic navigation, combat and reward
   support are approved. It targets swimmers, never skiff hulls or occupants.
 - Require dry traversable ground for land enemies. Lakes means dry shores,
   not deep water. Hard enemies cannot spawn within 150 m of generated start.
   No new compulsory encounters, boss keys, raids or progression locks.
-- Common enemies telegraph attacks for 0.5 s and recover for 0.8 s; hard
+- Other common enemies telegraph attacks for 0.5 s and recover for 0.8 s; hard
   enemies telegraph for 1.0 s and recover for 1.2 s. One damage application per
   accepted attack; server rechecks life, range and line of sight at impact.
   Use existing melee reach for the matching body size; if no suitable authored
   reach exists, propose it for review rather than guessing during coding.
-- Mire Mosquito uses an original mosquito-like silhouette and audible wing
-  cue. Hover 0.5–2.5 m above local terrain, telegraph for 0.5 s, dash at most
-  3 m with 0.75 m impact reach, then recover/retreat for 1.2 s. One server-owned
-  Stab hit per attack; normal visibility and collision block walls/closed doors.
-  No poison, lifesteal, instant kill, gem roll or new loot item. Flying pursuit
-  must remain bounded by the shared 25 m anchor leash and existing relevance
-  budgets; this task includes required flight/collision/peer support, rather
-  than assuming ground navigation can fly. It remains within Mossy Mire and
-  cannot chase across deep open water. Validate aerial hit readability and
-  shelter blocking in its acceptance checks.
+- Mire Mosquito uses the dedicated swarm rules below instead of isolated
+  stab/retreat attacks. This includes bounded flying pursuit, fire avoidance,
+  roll escape, collision and relevant-peer support; ground navigation alone
+  is not sufficient. No poison, lifesteal, gem roll or new loot item.
 - Pursuit ends beyond 25 m from the spawn anchor. Return home instead of
   teleporting into an attack. No enemy crosses deep water without its own
   accepted aquatic support. Variants may share locomotion foundations, but
@@ -72,6 +68,55 @@ Any later carcass materials require a separate reviewed item/recipe/icon plan.
   relevant-peer replication and depletion policy. Persist stable credited-death
   and loot claim identities so reload/duplicate requests cannot grant twice.
   Reject invalid attacks unchanged; preserve unclaimed rewards on full packs.
+
+## Mire Mosquito swarm
+
+The user-selected behavior is persistent small bites until the player rolls
+away or holds a lit fiery item. Mosquitoes avoid active fires and must not
+attack players holding a lit torch. The following numbers are proposed tuning.
+
+- One swarm actor represents six original cosmetic mosquito silhouettes,
+  with audible buzzing and 25 shared health. Fly 0.5–2.5 m above local ground;
+  approach visibly for 0.5 s before harassment. No instant spawn on a player.
+- Harass one target within 1 m, applying **2 Stab every 0.5 s** with no retreat
+  between bites. One attacking swarm per player; other swarms wait outside
+  contact range rather than stacking bite rates. Missed/late server ticks do
+  not burst catch-up damage. Visible insects never inflict separate hits.
+- Apply existing typed defense, physical Armor and accepted-hit wearable-wear
+  rules once per tick. Armor may reduce damage to zero; this proposal adds no
+  armor bypass. Damage is capped at 4 per second before defenses for each
+  player, regardless of cosmetic insect count.
+- An accepted server-owned dodge roll immediately breaks swarm contact and
+  prevents reacquisition for 2 s. Normal roll stamina/cooldown still apply;
+  rejected roll requests cannot cancel bites. Escaping beyond 1 m avoids
+  contact damage while the swarm catches up. This adds no invulnerability
+  against other enemies and cannot carry insects through walls.
+- A usable **lit, held torch** cancels targeting and pending swarm damage
+  immediately. A torch in the pack, unlit, rain-extinguished or out of fuel
+  provides no protection. Unequipping/extinguishing removes protection; the
+  swarm must complete its normal 0.5 s approach before bites resume.
+- Proposed avoidance radii: 3 m around held torches/placed flame lights and
+  5 m around a lit campfire or exposed burning-world fire. Swarms steer away
+  and cannot attack players inside these zones with line of sight to the
+  flame. Fire protection can therefore cover nearby allies. Roofs, walls and
+  closed doors still block flight/attacks normally.
+- Fire eligibility comes from authoritative flame/fuel state, never a client
+  light/particle flag or item name. Lit campfires require nonzero heat;
+  smouldering/rain-suppressed fires do not repel. Lit placed lights can repel
+  without supplying warmth. Sealed Kiln/Smelter heat does not count as exposed
+  flame. Preserve existing wetness, warmth, ignition and damage rules.
+- Validate roll/fire/contact state before every bite, not only on acquisition.
+  Repelled swarms orbit outside the fire radius or return to their anchor;
+  keep the 25 m leash, Mossy Mire boundary, relevance caps and no deep-water
+  crossing. Death, despawn or target loss clears harassment timers.
+
+The swarm owns only session combat state, not a saved player debuff. No bite
+continues after disengagement/reconnect or grants persistent protection.
+Verify host/client targeting, concurrent swarms, roll success/rejection,
+lit/unlit/empty/rainy torches, allies near fires, walls, fuel expiry and the
+race where a torch lights on the same tick as a bite. Define a server flame
+query shared with the approved torch/fire implementations; do not infer an
+existing heat-only API can recognize every new flame source.
 
 ## Moonstone transfer
 
