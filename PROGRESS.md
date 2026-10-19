@@ -1,3 +1,45 @@
+## User-directed planning 2026-10-19 — Alpha item category backlog
+
+- **Completed/files:** added `docs/alpha-items.md` with a registered-catalogue
+  inventory, source-linked online Valheim category comparison, recommended
+  priorities, dependencies and exclusions. Added unchecked A0–A10 category
+  parents/children to `BACKLOG.md`, after the existing river queue. This was the
+  requested planning increment; no gameplay backlog increment was implemented.
+- **Findings:** authored JSON has 46 non-buildable ordinary definitions, 17
+  equipment profiles and 12 buildable metadata entries; 13 direct-material
+  building recipes include Campfire. Existing weapon breadth exceeds normal
+  ingredient availability. String/Lightwood/Bone Fragment, metal production,
+  food dispatch and vegetable acquisition need attention before item volume.
+  Iron's direct-bar source mapping contradicts the design-document limitation;
+  normal generated reachability needs verification. Current cooking output IDs
+  differ from the status component's accepted legacy foods. Recorded both gaps
+  without claiming runtime reproduction or changing them.
+- **Research:** consulted indexed community-wiki excerpts for Valheim weapons,
+  armour, tools, food, materials, mead and processing. Direct wiki retrieval
+  failed; documented that limitation and avoided exhaustive/version-specific
+  counts. Proposed priorities are design recommendations, not source claims.
+- **Checks:** parsed registered catalogue JSON and inspected category counts,
+  recipes, source/loot mappings, loader buildable separation and food dispatch.
+  Reviewed documentation links, task dependencies, whitespace and staged scope;
+  checked committed paths against MAX_PATH. No build, gameplay session,
+  automation, icon generation or runtime progression verification was run.
+  Full verification remains deferred to approved implementation milestones;
+  this documentation-only planning task is not milestone-final verification.
+- **Impact/authority:** adds an actionable category plan, no runtime, RPC,
+  replication, inventory, save-format or authority changes. Item completion
+  requires original integrated icons and all applicable data; structures retain
+  direct-material server-paid hammer placement. New systems require explicit
+  scope decisions; offensive magic and portable construction items stay excluded.
+- **Limits/next:** no alpha release scope has been settled. River checkboxes in
+  the current working backlog are all checked; first new eligible planning task
+  is A0 scope/milestone reconciliation, then acquisition audit. Research does
+  not prove fresh-start progression or an alpha-ready item set.
+- **Workspace:** app inventory showed only this Kalmala chat active; no other
+  autonomous run was identified. CIM process inspection was unavailable.
+  Preserved all pre-existing edits, including the earlier crafting-layout
+  BACKLOG checkbox; excluded them from this commit. Main checkout directly,
+  so worktree handoff synchronization is unnecessary.
+
 ## Autonomous increment 2026-10-18 — Cover both river banks
 
 - **Completed/files:** added `Kalmala.World.Regional.RiverBankCrossSection` in

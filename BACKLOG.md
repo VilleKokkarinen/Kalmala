@@ -85,6 +85,94 @@ maps.
 If any checkbox expands beyond the target, split it further before starting
 that increment and keep the remaining work in this order.
 
+### Alpha item coverage by category — user request, 2026-10-19
+
+**Planning basis:** [current inventory, Valheim sources and gap analysis](docs/alpha-items.md).
+This queues item work; it does not declare a release, change completed roadmap
+acceptance, or approve new systems beyond the existing vertical slice. Follow
+the categories in order after the river queue. P0 closes existing loops; P1 is
+recommended alpha breadth; P2 is scope-dependent. Each child is a separate
+increment; split larger children into integrated increments before starting.
+Blocked children require the named decision/dependency; do not treat proposals
+as settled design. Costs, stats and final names remain to be authored.
+
+**Completion for every item:** normal acquisition and usable behavior; applicable
+manifest-registered item/profile/recipe/upgrade/reward/attack data; original
+generated/imported icon, provenance, runtime mapping and icon validation;
+server-owned payment/use/targets/quantities; documented persistence and explicit
+non-applicable records. Buildables require supported hammer placement and raw
+materials, never inventory kits. No retired Reed Fibre or offensive magic.
+
+- [ ] **A0 — Existing item acquisition and use (P0).**
+  - [ ] Before implementation, reconcile retained/deferred candidates with user-approved alpha scope and divide approved work into finite milestones with explicit final verification gates. New-system proposals stay blocked until their scope decisions are accepted.
+  - [ ] Audit normal world-to-use reachability for every current recipe and upgrade input; record sources, blockers and bootstrap cycles. Resolve the documented Iron-source discrepancy against actual generated nodes without changing acquisition behavior in this audit.
+  - [ ] Give String a repeatable normal acquisition path using an original approved source; verify a fresh player can craft and maintain Bow without debug grants.
+  - [ ] Make Lightwood obtainable through a suitable existing-world source and verify Bronze-family recipes/upgrades are reachable.
+  - [ ] Add a validated Bone Fragment source within the existing creature/discovery roster and verify Boar Hide Cape crafting/upgrades.
+  - [ ] Reconcile the six current cooking outputs with server food-use dispatch; remove stale food-ID assumptions and verify paid cooking-to-eating behavior.
+  - [ ] Complete Hearth Broth acquisition and ordinary access to the four vegetable ingredients using approved sources; document which seed/farming paths remain blocked on A7.
+
+- [ ] **A1 — Ores, bars and fuel (P0; new processing scope gated).**
+  - [ ] Decide the alpha metal-production contract: source locations, Stone-to-Bronze-to-Iron bootstrap, ore versus direct-bar rewards, Coal production, alloy station and input/output roles. Obtain user scope approval before adding processing systems; preserve existing behavior until decided.
+  - [ ] Add normal Copper Ore and Tin Ore sources with server tool/tier checks (blocked on A1 contract).
+  - [ ] Give Coal a repeatable production/source loop, including a direct-material charcoal station only if approved (blocked on A1 contract).
+  - [ ] Implement paid Copper/Tin refining and Bronze alloying, with complete placed-station support where approved (blocked on ore/Coal acquisition and A1 contract).
+  - [ ] Implement the agreed Iron Ore/Iron route and reconcile the direct-bar Mire source and documentation (blocked on A1 contract and required refining).
+
+- [ ] **A2 — Melee weapons (P1).**
+  - [ ] Add one original Bronze-tier sword with a distinct slash role, craft/upgrade data, server attack dispatch, held appearance and icon (blocked on reachable Bronze inputs).
+  - [ ] Add its Iron-tier continuation using the existing material progression (blocked on sword support and reachable Iron inputs).
+  - [ ] Decide whether the design-target Wooden Club adds a useful zero-metal starting choice alongside Stone Mace; implement it only if retained, otherwise document that Stone Mace covers the role.
+
+- [ ] **A3 — Bows and ammunition (P1).**
+  - [ ] Add one improved bow using reachable materials, authored draw/durability tuning, crafting/upgrades, held appearance and icon (blocked on A0 String and its chosen material sources).
+  - [ ] Add one metal-tipped arrow with a complete recipe/icon and server ammunition selection, damage, consumption and full-pack checks; preserve Wooden Arrow fallback (blocked on A1 metal production).
+
+- [ ] **A4 — Armour, capes and shields (P1).**
+  - [ ] Add a Bronze Helmet with a complete craft/equip/wear/upgrade/icon path using the existing integer Armor contract (blocked on A1).
+  - [ ] Add a matching Bronze Tunic through the same complete path (blocked on A1).
+  - [ ] Add matching Bronze Leggings through the same complete path (blocked on A1).
+  - [ ] Add one metal shield with a distinct authored passive Armor/durability role; active block/parry is not implied (blocked on A1).
+  - [ ] Decide whether second-tier Boots/Cape or cold-protection clothing belongs in alpha; new insulation rules require scope approval before item implementation. Keep existing hide pieces useful.
+
+- [ ] **A5 — Carried utility tools (P1/P2).**
+  - [ ] Add the design-target carried Torch with reachable fuel/materials, validated equip/use/expiry behavior, original appearance/icon and appropriate fire/wetness integration.
+  - [ ] Decide whether terrain-editing Hoe and cultivation tool roles belong in alpha; define bounded terrain/crop authority and persistence first. Implementation is blocked on approved scope and A7's farming contract.
+
+- [ ] **A6 — Forage, meals and recovery consumables (P1; effects gated).**
+  - [ ] Add one original locally appropriate berry food and its server-owned forage source, icon and food-use behavior (blocked on A0 food dispatch).
+  - [ ] Add one edible mushroom and its forage source, icon and food-use behavior (blocked on A0 food dispatch).
+  - [ ] Decide whether alpha retains the single Steady Meal effect or adds differentiated meal roles; verify all seven existing prepared foods before expanding recipes. New nutrition rules require scope approval.
+  - [ ] Define recovery preparation effects, ingredients, crafting station, cooldowns and interaction with support magic; obtain scope approval for a new consumable system.
+  - [ ] Add one healing preparation with acquisition, consumption, feedback and icon (blocked on approved recovery contract and reachable ingredients).
+  - [ ] Add one stamina preparation through the same complete path (blocked on approved recovery contract and reachable ingredients).
+  - [ ] Evaluate a cold/poison preparation only for an approved alpha hazard; otherwise document its deferral. Do not add unused resistance items.
+
+- [ ] **A7 — Crops, seeds and fishing (P2; scope gated).**
+  - [ ] Decide alpha farming scope for the existing Carrot/Potato/Rutabaga/Onion and seed definitions; specify seed renewal, planting, growth, harvest and restart behavior without assuming every vegetable uses identical propagation.
+  - [ ] Implement one complete approved crop loop plus its cultivation tool and icons where needed (blocked on farming approval); retain the remaining crops as explicitly incomplete.
+  - [ ] Complete each remaining approved root crop's acquisition/renewal loop as separate increments (blocked on first working crop); connect it to existing cooking recipes.
+  - [ ] Decide whether fishing belongs in alpha; define a bounded fish source, rod/bait acquisition, catch validation and food role before adding items or creatures.
+  - [ ] Add one complete rod/bait/fish-to-cooked-fish loop with original icons/appearance (blocked on approved fishing scope; split into integrated increments).
+
+- [ ] **A8 — Buildables, processing and sanctuary supplies (P2; no kits).**
+  - [ ] Decide the alpha shelter/furniture subset: door, support beam, stairs, bed, placed light and storage upgrade. Define each missing interaction, snapping/support, ownership and persistence rule before implementation.
+  - [ ] Implement the approved door with direct-material placement and server interaction/save behavior (blocked on shelter decision).
+  - [ ] Implement approved support beam and stair pieces as separate increments with valid placement/structure behavior (blocked on shelter decision).
+  - [ ] Implement the approved bed and placed light as separate complete increments; do not infer a sleep/respawn system from a furniture definition (blocked on shelter decision).
+  - [ ] Implement one approved storage upgrade with server capacity/transfer/save validation (blocked on shelter decision).
+  - [ ] Add any approved recovery-production station through complete direct-material placement; no fermenter or brewing tree is required unless selected in A6 (blocked on A6 contract).
+
+- [ ] **A9 — Travel, accessories and discovery rewards (P2; scope gated).**
+  - [ ] Decide whether carry-pack progression, hauling/cart or skiff cargo is required for alpha; inventory weight, encumbrance and hull durability are separate unapproved systems.
+  - [ ] Implement only the selected hauling/cargo increment with original presentation and validated transfer/persistence behavior (blocked on travel scope decision).
+  - [ ] Decide whether Necklace/Ring placeholders remain deferred or gain support-only accessories; define slots/effects/authority before adding jewellery.
+  - [ ] Audit the four existing scroll discovery-to-unlock/use paths; add a new support scroll or optional trophy only if an approved unmet reward role exists. Preserve non-damaging magic and the existing creature roster.
+
+- [ ] **A10 — Approved alpha item-set acceptance.**
+  - [ ] Reconcile the delivered set against the approved alpha scope and record the final item/source/recipe/use/icon checklist, including explicit deferrals and unresolved blockers.
+  - [ ] At each resulting milestone's final implementation increment, run the prescribed full verification and repair its failures. At the final item-set gate, demonstrate fresh-start acquisition/crafting/upgrading/use without debug grants, catalogue/icon coverage, authoritative host/client rejection/privacy, and applicable restart behavior. Do not mark alpha complete from item counts alone.
+
 ## User-requested fixes
 
 - [x] Remove all portable construction kits, separate buildable metadata from inventory, require direct-material hammer placement for every object, and guard against future kit generation.
