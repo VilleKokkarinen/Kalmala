@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "ItemId": "CharcoalKiln",
+      "DisplayName": "Charcoal Kiln",
+      "Description": "A squat stone kiln built for charcoal making.",
+      "MaxStack": 1
+    },
+    {
       "ItemId": "Floor",
       "DisplayName": "Timber Floor",
       "Description": "Timber boards for the floor of a camp shelter.",

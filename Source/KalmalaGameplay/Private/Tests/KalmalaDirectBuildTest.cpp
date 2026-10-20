@@ -67,7 +67,22 @@ bool FKalmalaDirectBuildTest::RunTest(const FString& Parameters)
         TestFalse(TEXT("Forging a portable-kit recipe does not bypass production validation"),
             UKalmalaRecipeCatalogue::Scale(ForgedProduction, 1, Candidate, OutputCount));
     }
-    TestEqual(TEXT("All thirteen current placed objects use material recipes"), BuildCount, 13);
+    TestEqual(TEXT("All fourteen current placed objects use material recipes"), BuildCount, 14);
+    const FKalmalaRecipe* Kiln = Recipes->Find(TEXT("CharcoalKiln"));
+    TestNotNull(TEXT("Charcoal Kiln direct-build recipe is registered"), Kiln);
+    if (Kiln)
+    {
+        TestEqual(TEXT("Charcoal Kiln recipe resolves to the stable construction identity"),
+            Kiln->BuildableOutput, FName(TEXT("CharcoalKilnKit")));
+        TestEqual(TEXT("Charcoal Kiln placement consumes only Stone"), Kiln->Ingredients.Num(), 1);
+        if (Kiln->Ingredients.Num() == 1)
+        {
+            TestEqual(TEXT("Charcoal Kiln costs 20 Stone"), Kiln->Ingredients[0].ItemId, FName(TEXT("Stone")));
+            TestEqual(TEXT("Charcoal Kiln Stone quantity"), Kiln->Ingredients[0].Quantity, 20);
+        }
+        TestNotNull(TEXT("Charcoal Kiln metadata is presentation-only"), Items->FindBuildable(TEXT("CharcoalKilnKit")));
+        TestNull(TEXT("Charcoal Kiln is not an inventory item"), Items->FindItem(TEXT("CharcoalKilnKit")));
+    }
     for (const FKalmalaItemDefinition& Buildable : Items->Buildables)
         TestNotNull(TEXT("Buildable metadata is available only through its explicit lookup"), Items->FindBuildable(Buildable.ItemId));
 

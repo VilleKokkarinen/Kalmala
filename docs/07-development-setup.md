@@ -2,7 +2,7 @@
 
 ## No portable construction items — 2026-10-18
 
-All 13 placed objects use direct materials through the Building Hammer. The
+All 14 placed objects use direct materials through the Building Hammer. The
 remaining Chest, Cooking Rack, Cauldron and Frying Pan kit paths are removed.
 Frying Pan now needs 5 Iron at placement, with no Forge crafting step; all
 other authored costs and station-attachment proximity checks remain intact.
@@ -11,9 +11,11 @@ Existing internal actor/icon IDs with a Kit suffix are not inventory items.
 Unknown future Kit inventory definitions fail catalogue validation. Existing
 development stacks containing removed construction items are rejected without
 conversion. AGENTS.md forbids reintroducing portable construction kits.
+The A1 Charcoal Kiln now has a direct 20 Stone placement recipe and a registered
+construction icon; its 30-second Wood-to-Coal processing remains pending.
 
 The focused `Kalmala.Gameplay.Construction.NoPortableKits` regression covers all
-13 routes, ordinary grant/stack/production rejection, storage/save rejection,
+14 routes, ordinary grant/stack/production rejection, storage/save rejection,
 raw costs and future kit-definition rejection. Transactions, CookingStationHeat,
 RaisedStorage, CompleteCoverage, LocalBrowsing and Requirements also pass.
 Incremental Editor build and hammer/Forge previews pass. Updated development
@@ -3902,10 +3904,11 @@ editor build to verify imported texture paths and loads for all current item,
 tool and recipe-output identities. `Scripts/Tests/Construction/Verify-Crafting.ps1` also requires
 `Catalogue icons: Grid=1 Selected=1` and `Forge upgrade level icon: Configured=1` from both peers;
 the grid flag checks each visible recipe output against its canonical loaded texture, while the
-Forge marker checks the level icon now shown in the upgrade comparison. Before an editor build, run `Scripts/Validate-UIIcons.ps1 -Category Catalogue` to check all 63 identity-ledger rows, original/prepared PNGs, runtime lookup mappings, and imported packages. The ledger lives in `Scripts/Data/catalogue-icon-manifest.csv`, outside the consolidated historical documentation set. The Stone Spear uses import batch D; the Bronze and Iron Knife/Pick/Spear icons use import batch E. The Amber texture rename uses batch F, which also contains the Stone, Bronze, and Iron Mace icons. Bone fragment uses import batch H (see `docs/bone-icon.md`). The initial six wearable gear icons use import batch G; prepare them with `python Scripts/Prepare-CatalogueIconBatch.py --batch G`, then import with `Scripts/Import-CatalogueIconBatch.ps1 -Batch G`.
+Forge marker checks the level icon now shown in the upgrade comparison. Before an editor build, run `Scripts/Validate-UIIcons.ps1 -Category Catalogue` to check all 74 identity-ledger rows, original/prepared PNGs, runtime lookup mappings, and imported packages. The ledger lives in `Scripts/Data/catalogue-icon-manifest.csv`, outside the consolidated historical documentation set. The Stone Spear uses import batch D; the Bronze and Iron Knife/Pick/Spear icons use import batch E. The Amber texture rename uses batch F, which also contains the Stone, Bronze, and Iron Mace icons. Bone fragment uses import batch H (see `docs/bone-icon.md`). The initial six wearable gear icons use import batch G; prepare them with `python Scripts/Prepare-CatalogueIconBatch.py --batch G`, then import with `Scripts/Import-CatalogueIconBatch.ps1 -Batch G`. The Charcoal Kiln construction icon is in batch K; see `docs/charcoal-kiln-icon.md`.
 
-The catalogue image ledger contains 63 imported textures: 46 item identities,
-sixteen carried tools, and the Campfire construction identity.
+The catalogue image ledger contains 74 imported textures, including the
+construction-only Charcoal Kiln build-menu identity. Construction icons do not
+create inventory items.
 Four support-scroll item identities reuse their matching imported status
 textures without adding duplicate texture packages. The retired `Fibre.uasset`
 package is preserved in the content folder, excluded from the current ledger,

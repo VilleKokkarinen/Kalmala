@@ -73,6 +73,23 @@
       "bEnabled": true
     },
     {
+      "RecipeId": "CharcoalKiln",
+      "DisplayName": "Charcoal Kiln",
+      "Ingredients": [
+        {
+          "ItemId": "Stone",
+          "Quantity": 20
+        }
+      ],
+      "Output": "CharcoalKiln",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "RequiredStation": [],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
+    },
+    {
       "RecipeId": "Workbench",
       "DisplayName": "Workbench",
       "Ingredients": [

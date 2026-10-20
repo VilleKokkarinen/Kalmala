@@ -111,6 +111,7 @@ FVector AKalmalaConstructionActor::GetCollisionExtent(const FName KitId)
     if (KitId == TEXT("FloorKit")) return FVector(120, 120, 12);
     if (KitId == TEXT("WallKit")) return FVector(120, 12, 110);
     if (KitId == TEXT("RoofKit")) return FVector(132, 132, 16);
+    if (KitId == TEXT("CharcoalKilnKit")) return FVector(60, 60, 62);
     if (KitId == TEXT("SmokeFrameKit")) return FVector(56, 56, 64);
     if (KitId == TEXT("FryingPanKit")) return FVector(64, 40, 12);
     if (KitId == TEXT("ForgeKit")) return FVector(60, 60, 62);
@@ -240,6 +241,16 @@ void AKalmalaConstructionActor::BuildPiecePresentation()
         AddBox(Vertices, Triangles, FVector(0, 0, -10), FVector(50, 50, 44));
         AddBox(Vertices, Triangles, FVector(0, 0, 42), FVector(54, 54, 8));
         AddBox(Vertices, Triangles, FVector(52, 0, 25), FVector(2, 10, 12));
+    }
+    else if (ConstructionKit == TEXT("CharcoalKilnKit"))
+    {
+        AddBox(Vertices, Triangles, FVector(0, 0, -52), FVector(60, 60, 10));
+        AddBox(Vertices, Triangles, FVector(-12, 0, -6), FVector(48, 54, 36));
+        AddBox(Vertices, Triangles, FVector(34, -40, -12), FVector(22, 14, 42));
+        AddBox(Vertices, Triangles, FVector(34, 40, -12), FVector(22, 14, 42));
+        AddBox(Vertices, Triangles, FVector(34, 0, 34), FVector(22, 26, 10));
+        AddBox(Vertices, Triangles, FVector(40, 0, 48), FVector(16, 18, 8));
+        AddBox(Vertices, Triangles, FVector(-20, 0, 34), FVector(30, 34, 8));
     }
     else
         AddBox(Vertices, Triangles, FVector::ZeroVector, GetCollisionExtent(ConstructionKit));

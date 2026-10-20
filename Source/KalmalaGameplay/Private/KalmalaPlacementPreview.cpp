@@ -11,6 +11,7 @@ bool FKalmalaPlacementPreview::IsSupportedKit(const FName ItemId)
 {
     if (ItemId == TEXT("ForgeKit")) return true;
     return ItemId == TEXT("CampfireKit") || ItemId == TEXT("WorkbenchKit") || ItemId == TEXT("StorageKit")
+        || ItemId == TEXT("CharcoalKilnKit")
         || ItemId == TEXT("CookingRackKit") || ItemId == TEXT("CauldronKit") || ItemId == TEXT("FryingPanKit")
         || ItemId == TEXT("WorkbenchToolRackKit") || ItemId == TEXT("ForgeAnvilKit") || ItemId == TEXT("GrindingStoneKit")
         || ItemId == TEXT("FloorKit") || ItemId == TEXT("WallKit") || ItemId == TEXT("RoofKit");
@@ -50,18 +51,42 @@ FKalmalaPlacementPreview FKalmalaPlacementPreview::Evaluate(const UWorld* World,
     }
 
     const bool bIsStationAttachment = ItemId == TEXT("WorkbenchToolRackKit") || ItemId == TEXT("ForgeAnvilKit");
-    const bool bIsCompactConstruction = bIsStationAttachment || ItemId == TEXT("GrindingStoneKit") || ItemId == TEXT("FryingPanKit");
+    const bool bIsKiln = ItemId == TEXT("CharcoalKilnKit");
+    const bool bIsCompactConstruction = bIsStationAttachment || bIsKiln
+        || ItemId == TEXT("GrindingStoneKit") || ItemId == TEXT("FryingPanKit");
     const FVector PlacementExtent = bIsCompactConstruction
         ? AKalmalaConstructionActor::GetCollisionExtent(ItemId) : FVector(54, 54, 56);
     const float PlacementHalfHeight = PlacementExtent.Z + (bIsCompactConstruction ? 2.0f : 0.0f);
     Result.Location = Ground.ImpactPoint + FVector(0, 0, PlacementHalfHeight);
     const float PreviewRadius = bIsCompactConstruction
         ? FMath::Max3(PlacementExtent.X, PlacementExtent.Y, PlacementExtent.Z) : 54.0f;
-    if (World->OverlapBlockingTestByChannel(Result.Location, FQuat::Identity, ECC_Pawn,
-        FCollisionShape::MakeSphere(PreviewRadius), Query))
+    const FCollisionShape PlacementShape = bIsKiln
+        ? FCollisionShape::MakeBox(PlacementExtent) : FCollisionShape::MakeSphere(PreviewRadius);
+    if (World->OverlapBlockingTestByChannel(Result.Location, FQuat::Identity, ECC_Pawn, PlacementShape, Query))
     {
         Result.Message = TEXT("Preview invalid: clear more space");
         return Result;
+    }
+    if (bIsKiln)
+    {
+        const FVector OverheadCentre = Result.Location + FVector(0, 0, PlacementExtent.Z + 100.0f);
+        const FCollisionShape OverheadClearance = FCollisionShape::MakeBox(
+            FVector(PlacementExtent.X, PlacementExtent.Y, 100.0f));
+        if (World->OverlapBlockingTestByChannel(OverheadCentre, FQuat::Identity, ECC_Pawn, OverheadClearance, Query))
+        {
+            Result.Message = TEXT("Preview invalid: Charcoal Kiln needs 2 m of overhead clearance");
+            return Result;
+        }
+        const FVector ApproachCentre = Result.Location - Forward * (PlacementExtent.X + 50.0f)
+            + FVector(0, 0, 50.0f - PlacementExtent.Z);
+        const FCollisionShape ApproachClearance = FCollisionShape::MakeBox(FVector(50.0f, 40.0f, 50.0f));
+        const FQuat ApproachRotation = FRotator(0.0f, Pawn->GetActorRotation().Yaw, 0.0f).Quaternion();
+        if (World->OverlapBlockingTestByChannel(ApproachCentre, ApproachRotation, ECC_Pawn,
+            ApproachClearance, Query))
+        {
+            Result.Message = TEXT("Preview invalid: keep a clear 1 m approach to the Charcoal Kiln");
+            return Result;
+        }
     }
     Result.bIsValid = true;
     Result.Message = TEXT("Preview valid locally: server will recheck before placement");

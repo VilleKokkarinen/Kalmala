@@ -18,6 +18,8 @@ bool FKalmalaConstructionSaveGameTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Cauldron uses the existing bounded construction record"), Save->AddRecord(Record));
     Record.ConstructionId = TEXT("camp-frying-pan"); Record.KitId = TEXT("FryingPanKit");
     TestTrue(TEXT("Placeable frying pan uses the existing bounded construction record"), Save->AddRecord(Record));
+    Record.ConstructionId = TEXT("camp-charcoal-kiln"); Record.KitId = TEXT("CharcoalKilnKit");
+    TestTrue(TEXT("Charcoal Kiln uses the existing bounded construction record"), Save->AddRecord(Record));
     Record.ConstructionId = TEXT("session-attachment"); Record.KitId = TEXT("WorkbenchToolRackKit");
     TestFalse(TEXT("M9 station attachments remain outside the existing save schema"), UKalmalaConstructionSaveGame::IsValidRecord(Record));
     TestTrue(TEXT("Station attachment session policy is explicit"), FKalmalaPlacementPreview::IsSessionOnlyKit(TEXT("WorkbenchToolRackKit")));
