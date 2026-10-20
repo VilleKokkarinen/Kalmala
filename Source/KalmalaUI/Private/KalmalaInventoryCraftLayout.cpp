@@ -211,9 +211,6 @@ void UKalmalaCraftingWidget::RefreshBuildRequirements(const FString& Title,
     }
     if (BuildRequirementsTitle->GetText().ToString() != Title)
         BuildRequirementsTitle->SetText(FText::FromString(Title));
-    if (BuildRequirementsPanel->GetToolTipText().ToString() != Details)
-        BuildRequirementsPanel->SetToolTipText(FText::FromString(Details));
-
     FString Signature = FString::Printf(TEXT("%s/%s/%d/%d"), *Title, *Details,
         TextScalePercent, ContrastMode);
     TArray<int32> OwnedCounts;
@@ -230,6 +227,29 @@ void UKalmalaCraftingWidget::RefreshBuildRequirements(const FString& Title,
 
     if (Signature == BuildRequirementCostSignature) return;
     BuildRequirementCostSignature = MoveTemp(Signature);
+    FString PresentationText;
+    if (!Costs.IsEmpty())
+    {
+        PresentationText = TEXT("Ingredients — one craft/build");
+        for (int32 Index = 0; Index < Costs.Num(); ++Index)
+        {
+            const FKalmalaInventoryStack& Cost = Costs[Index];
+            const FKalmalaItemDefinition* Item = UKalmalaItemCatalogue::Get()->FindItem(Cost.ItemId);
+            const FString ItemName = Item ? Item->DisplayName : Cost.ItemId.ToString();
+            const FString OwnedText = Inventory ? FString::FromInt(OwnedCounts[Index]) : TEXT("pending");
+            const FString Availability = !Inventory ? TEXT("Pending")
+                : OwnedCounts[Index] >= Cost.Quantity ? TEXT("Enough") : TEXT("Missing");
+            PresentationText += FString::Printf(TEXT("\n%s | owned %s / required %d — %s"),
+                *ItemName, *OwnedText, Cost.Quantity, *Availability);
+        }
+    }
+    if (!Details.IsEmpty())
+    {
+        if (!PresentationText.IsEmpty()) PresentationText += TEXT("\n\n");
+        PresentationText += Details;
+    }
+    if (BuildRequirementsPanel->GetToolTipText().ToString() != PresentationText)
+        BuildRequirementsPanel->SetToolTipText(FText::FromString(PresentationText));
     BuildRequirementsCosts->ClearChildren();
     for (int32 Index = 0; Index < Costs.Num(); ++Index)
     {

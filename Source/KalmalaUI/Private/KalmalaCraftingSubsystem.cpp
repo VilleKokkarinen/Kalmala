@@ -4366,12 +4366,32 @@ void UKalmalaCraftingWidget::Refresh()
         OwnerPawn ? OwnerPawn->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr,
         RequirementOwner ? RequirementOwner->GetCarriedToolLevel(TEXT("ConstructionHammer")) : -1,
         Availability);
-    RequirementText->SetText(FText::FromString(Requirements));
-    RefreshBuildRequirements(
-        FString::Printf(TEXT("Requirements · %s"), *SelectedRecipe.DisplayName),
-        IngredientCosts, OwnerInventory, Requirements, TextScalePercent, ContrastMode);
-    const bool bDirectBuild = UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(SelectedRecipe.BuildableOutput);
     const FString RecipeDescription = M->GetRecipeDescription(SelectedRecipe.RecipeId);
+    RequirementText->SetText(FText::FromString(Requirements));
+    FString PreviewText;
+    if (bPlacementPreviewEnabled)
+    {
+        const FKalmalaPlacementPreview Preview = FKalmalaPlacementPreview::Evaluate(
+            GetWorld(), GetOwningPlayerPawn(), SelectedRecipe.GetOutputIdentity());
+        PreviewText = TEXT("\nPreview: ") + Preview.Message
+            + (Preview.bIsValid ? FString::Printf(TEXT(" (%.0f, %.0f)"), Preview.Location.X, Preview.Location.Y) : TEXT(""))
+            + TEXT("\n");
+    }
+    FString BuildRequirementsDetailsText = Requirements;
+    if (!RecipeDescription.IsEmpty())
+    {
+        if (!BuildRequirementsDetailsText.IsEmpty()) BuildRequirementsDetailsText += TEXT("\n");
+        BuildRequirementsDetailsText += RecipeDescription;
+    }
+    if (!PreviewText.IsEmpty())
+    {
+        if (!BuildRequirementsDetailsText.IsEmpty()) BuildRequirementsDetailsText += TEXT("\n");
+        BuildRequirementsDetailsText += PreviewText.TrimStartAndEnd();
+    }
+    RefreshBuildRequirements(
+        FString::Printf(TEXT("Build requirements · %s"), *SelectedRecipe.DisplayName),
+        IngredientCosts, OwnerInventory, BuildRequirementsDetailsText, TextScalePercent, ContrastMode);
+    const bool bDirectBuild = UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(SelectedRecipe.BuildableOutput);
     DetailText->SetText(FText::FromString(RecipeDescription));
     if (CraftButton)
     {
@@ -4395,13 +4415,6 @@ void UKalmalaCraftingWidget::Refresh()
             CraftButton->SetIsEnabled(bCanCraft);
             FKalmalaUITheme::Get().ApplyButton(*CraftButton, ContrastMode);
         }
-    }
-    FString PreviewText;
-    if (bPlacementPreviewEnabled)
-    {
-        const FKalmalaPlacementPreview Preview = FKalmalaPlacementPreview::Evaluate(
-            GetWorld(), GetOwningPlayerPawn(), SelectedRecipe.GetOutputIdentity());
-        PreviewText = TEXT("\n") + Preview.Message + (Preview.bIsValid ? FString::Printf(TEXT(" (%.0f, %.0f)"), Preview.Location.X, Preview.Location.Y) : TEXT("")) + TEXT("\n");
     }
     FString ToolConditionText = TEXT("\nTool condition — owner-only:");
     const auto* Character = Cast<AKalmalaCharacter>(GetOwningPlayerPawn());
@@ -4472,6 +4485,9 @@ FString UKalmalaCraftingWidget::GetPresentationText() const
     };
     return InstructionsText && RecipesText && DetailText && StateText
         ? ReadVisibleText(InstructionsText) + ReadVisibleText(RecipesText) + ReadVisibleText(DetailText)
+            + (BuildRequirementsPanel && BuildRequirementsPanel->GetVisibility() != ESlateVisibility::Collapsed
+                ? ReadVisibleText(BuildRequirementsTitle) + TEXT("\n")
+                    + BuildRequirementsPanel->GetToolTipText().ToString() : FString())
             + (Ingredients && Ingredients->GetVisibility() != ESlateVisibility::Collapsed
                 ? Ingredients->GetPresentationText() : FString())
             + ReadVisibleText(StateText) + ReadVisibleText(FoodText) + ReadVisibleText(RepairText)
@@ -5297,11 +5313,12 @@ bool UKalmalaCraftingWidget::PrepareIngredientReviewForTest(const int32 View)
         if (!Costs.Contains(FString::Printf(TEXT("owned %d / required %d"), Inventory->GetQuantity(Cost.ItemId), Cost.Quantity))) return false;
     }
     const FString Requirements = RequirementText->GetText().ToString();
-    if (View < 2)
+    if (UKalmalaRecipeCatalogue::IsDirectMaterialBuildable(Recipe->BuildableOutput))
     {
         if (!Requirements.Contains(TEXT("Build requirements"))
             || !Requirements.Contains(TEXT("Construction Hammer level 1: Present."))
             || !Requirements.Contains(TEXT("Placement: clear, dry ground"))
+            || Requirements.Contains(TEXT("Station:"))
             || Requirements.Contains(TEXT("Skill level:"))
             || Requirements.Contains(TEXT("server rechecks every request"))) return false;
     }

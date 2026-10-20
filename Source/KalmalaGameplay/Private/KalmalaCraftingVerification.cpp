@@ -213,12 +213,15 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
             for (int32 Turn = 0; Turn < 16; ++Turn)
             {
                 const FRotator Facing(0.0f, PreviousViewRotation.Yaw + Turn * 22.5f, 0.0f);
-                const FVector TestLocation = C->GetActorLocation() + Facing.Vector() * Distance
-                    + FVector(0.0f, 0.0f, bInRange ? 80.0f : 24.0f);
-                Fire->SetActorLocation(TestLocation);
                 UpdateFixtureViewpoint();
                 FVector ViewLocation;
                 FRotator ViewRotation;
+                C->GetController()->GetPlayerViewPoint(ViewLocation, ViewRotation);
+                // Match the elevated fixture target to the server view height so
+                // remote controllers can keep a zero-pitch interaction trace.
+                const FVector TestLocation = ViewLocation + Facing.Vector() * Distance;
+                Fire->SetActorLocation(TestLocation);
+                UpdateFixtureViewpoint();
                 C->GetController()->GetPlayerViewPoint(ViewLocation, ViewRotation);
                 const FRotator AimRotation = (TestLocation - ViewLocation).Rotation();
                 C->SetActorRotation(FRotator(0.0f, AimRotation.Yaw, 0.0f));
@@ -320,6 +323,13 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
             UE_LOG(LogTemp, Display, TEXT("Construction accepted: Id=%s Kit=%s"), *It->GetConstructionId(), *It->GetConstructionKit().ToString());
         }
         C->SetActorRotation(OriginalRotation);
+        const FTransform FireInteractionCharacterOrigin = C->GetActorTransform();
+        const FTransform FireInteractionOriginalTransform = Fire->GetActorTransform();
+        const FVector FireInteractionOffset(0.0f, 0.0f, 800.0f);
+        C->SetActorLocation(FireInteractionCharacterOrigin.GetLocation() + FireInteractionOffset,
+            false, nullptr, ETeleportType::TeleportPhysics);
+        Fire->SetActorLocation(FireInteractionOriginalTransform.GetLocation() + FireInteractionOffset,
+            false, nullptr, ETeleportType::TeleportPhysics);
         for(int32 N=0; N<4; ++N) Check(Fire->TryRefuelFromServer(C),TEXT("Bounded refuel"));
         const TArray<FKalmalaInventoryStack> PackBeforeFullInteract = I->GetStacks();
         const float FuelBeforeFullInteract = Fire->GetFuelSeconds();
@@ -404,6 +414,8 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
         Check(Fire->TryRefuelFromServer(C),TEXT("Prepare replicated fire"));
         Fire->TryLightFromServer(C); Fire->AdvanceFromServer(0,0,0);
         Check(Fire->IsLit() && Fire->GetFuelSeconds()==60 && Fire->GetEffectiveWarmth()==1,TEXT("Dry replicated fixture"));
+        Fire->SetActorTransform(FireInteractionOriginalTransform);
+        C->SetActorTransform(FireInteractionCharacterOrigin);
         const auto Stacks=I->GetStacks(); for(const auto& Stack:Stacks) I->TryConsumeFromServer(Stack.ItemId,Stack.Quantity);
         Check(I->TryGrantFromServer(TEXT("Wood"),18) && I->TryGrantFromServer(TEXT("Stone"),4),
             TEXT("Seed real raw-material RPC transactions"));
