@@ -105,7 +105,7 @@ runtime mapping and icon-validator coverage; and passing JSON/reference/icon che
 This applies to raw drops and crafted outputs across every category. Record explicit
 N/A reasons for unused data types. A missing icon or catalogue entry blocks completion.
 
-- [ ] **A0 — Existing items (P0).** [Details](docs/alpha-item-details.md#a0)
+- [x] **A0 — Existing items (P0).** [Details](docs/alpha-item-details.md#a0)
   - [x] Review scope and the A10 milestone plan; all queued P0/P1/P2 work is included, with I4 ending before A9 and I5 covering A9.
   - [x] Audit current sources and starter progression; check the Iron-source mismatch.
   - [x] Sinew: credited deer defeats have a server-rolled 50% chance to grant 1.

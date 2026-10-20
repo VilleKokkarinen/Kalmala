@@ -4442,3 +4442,13 @@
 - **Observable impact and authority:** the Inventory Craft menu presents Building Hammer for 3 Wood + 1 Stone, and the server crafting transaction grants the carried Construction Hammer through the existing authoritative recipe path. Tool progression validation now accepts that recipe as the hammer's level-one acquisition. Onion/Onion Seed content retains its existing Elderwood hand-pick behavior. No production RPC, replication or save schema changed; the unique test identities only isolate test persistence.
 - **Remaining scope/status:** A0 implementation and milestone-final editor build, automation and Onion icon checks passed. No package build or rendered/manual PIE walkthrough was performed. Onion Seed planting remains deferred to A7. The A0 parent marker was left unchanged; this run checked only the selected Wild onions child. Full-suite log: C:/temp/ka0-20261020/a0-final.log.
 - **Next eligible task:** A1 — Review processing rules and Stone → Bronze → Iron progression.
+
+## 2026-10-20 10:21 UTC — A0 parent completion recorded
+
+- **Work completed:** reviewed A0's acceptance notes and all 12 child tasks. The child implementations are checked and the 2026-10-20 10:15 milestone-final handoff records a passing Editor build, all 151 Kalmala automation tests, Onion/Onion Seed icon validation, and previously passing Boar/Deer peer gates. Checked only the A0 parent in `BACKLOG.md`.
+- **Files changed:** `BACKLOG.md`; `PROGRESS.md`.
+- **Checks:** confirmed all A0 children are checked and the parent was the only backlog checkbox changed; `git diff --check` passed.
+- **Verification status:** no build or tests were rerun for this bookkeeping increment. The recorded A0 milestone-final verification passed in the preceding run; package build and rendered/manual PIE walkthrough were not performed.
+- **Observable impact/authority:** the backlog now records A0 as complete. No runtime, network-authority, replication, or save behavior changed.
+- **Known limitations/remaining scope:** Onion Seed planting remains A7 scope; package and rendered/manual PIE acceptance remain unverified.
+- **Next eligible task:** A1 — review processing rules and Stone → Bronze → Iron progression.
