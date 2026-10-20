@@ -102,10 +102,11 @@ coverage, not a count of obtainable items or the assembled runtime catalogue.
 - The generated biome contract maps Mossy Mire harvest candidates to
   `mire-bog-iron`. `BuildServerSelection` maps that source to 1 `Iron` per node
   with a Bronze-tier mining minimum. The current Forge `BronzePick` acquisition
-  costs 4 Wood + 4 Stone, so the current direct-bar Iron source can be reached
-  without an existing Bronze bar once a Forge is built. The design sentence
-  claiming Iron has no natural source was stale. `IronOre` is catalogued but has
-  no current source or refining recipe; A1 proposes the reviewed replacement.
+  costs 4 Wood + 4 Stone. The A1 review retains that pickaxe recipe, so its
+  planned 3-IronOre-per-node replacement remains Bronze-Pick-gated without a
+  Bronze-bar prerequisite. The design sentence claiming Iron has no natural
+  source was stale. `IronOre` is catalogued but has no current source or
+  refining recipe; A1 implementation remains pending.
 - The user-directed Forge `IronAxe` acquisition now costs 4 Iron + 3 Lightwood,
   resolving the cycle with the only current Densewood source: Elderwood
   ironheart trees gated by the Iron Axe tier. Its level-one upgrade also costs
@@ -120,7 +121,7 @@ coverage, not a count of obtainable items or the assembled runtime catalogue.
   for Carrot, Potato, Rutabaga, and Onion. Their recipes are reachable without
   farming; seed use remains deferred to A7. Current acquisition gaps remain for
   Coal, Copper, Tin, and IronOre; production for Copper/Tin/Bronze/Iron and Coal
-  is also pending the A1 contract and implementation.
+  remains pending A1 implementation.
 - The current spawn layout derives harvest identities from the classified biome
   and material rewards/tool gates from server contracts. The initial source
   audit was static; the A0 final gate now passes deterministic placement and

@@ -109,6 +109,24 @@ Reject removal while contents/jobs remain. Output collection uses validated
 inventory capacity and cannot duplicate rewards after restart. No station
 inventory kit, upgrades, extra ore types or new fuel identity.
 
+**Progression review (2026-10-20).** The reviewed route has no circular item
+dependency. Fresh characters receive a Stone Pick and Construction Hammer but
+no material stacks; Stone still requires travel to Thunder Mountains slate or
+the optional Three-Run Rillstone in Shimmering Lakes, as recorded in the A0
+source audit. Stone Pick opens the proposed Copper and Tin nodes. Existing
+Forge placement and the proposed Kiln/Smelter placements use only Wood and
+Stone; Wood becomes Coal at the Kiln, then matching ore and Coal become bars
+at the Smelter. Forge level 1 alloys 2 Copper + 1 Tin into Bronze.
+
+The existing Bronze Pick acquisition remains Forge level 1 for 4 Wood + 4
+Stone. The architecture contract keeps pickaxe costs unchanged, so this pick
+does not require Bronze bars. It gates the planned Iron Ore nodes, which then
+feed Iron production at the Smelter; Iron can therefore be reached without an
+Iron-material cycle. The sequence is a pick-tier access path, not a strict
+Bronze-bar gate: Copper/Tin processing is a parallel route to Bronze for other
+recipes. Preserve the current direct Iron reward until the A1 Iron Ore source
+and its refining path are implemented together.
+
 ## A2
 
 Melee weapons (P1).

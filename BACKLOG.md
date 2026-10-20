@@ -123,7 +123,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   New vegetable seeds become plantable in A7.
 
 - [ ] **A1 — Metals and fuel (P0).** [Details](docs/alpha-item-details.md#a1)
-  - [ ] Review processing rules and Stone → Bronze → Iron progression.
+  - [x] Review processing rules and Stone → Bronze → Iron progression.
   - [ ] Copper: Elderwood rocks; Tin: Shimmering Lakes shore gravel. Stone Pick+, 3 ore/node.
   - [ ] Charcoal Kiln: Hammer, 20 Stone; 1 Wood → 1 Coal in 30 seconds.
   - [ ] Smelter: Hammer, 20 Stone + 20 Wood; 1 ore + 1 Coal → 1 bar in 30 seconds.

@@ -4452,3 +4452,13 @@
 - **Observable impact/authority:** the backlog now records A0 as complete. No runtime, network-authority, replication, or save behavior changed.
 - **Known limitations/remaining scope:** Onion Seed planting remains A7 scope; package and rendered/manual PIE acceptance remain unverified.
 - **Next eligible task:** A1 — review processing rules and Stone → Bronze → Iron progression.
+
+## 2026-10-20 10:26 UTC — A1 processing and progression review
+
+- **Work completed:** reviewed A0's material-source audit, the A1 station proposal, current pickaxe recipes and tiers, mining source contract, and the catalogue/architecture documentation. Confirmed Stone Pick can reach the planned Copper/Tin nodes; Wood and Stone are enough to place the Kiln and Smelter; Kiln Wood → Coal, Smelter ore + Coal → matching bar, and Forge 2 Copper + 1 Tin → Bronze form an acyclic processing route. The current Forge Bronze Pick recipe remains 4 Wood + 4 Stone and the architecture says pickaxe costs stay unchanged, so Bronze Pick gates the planned Iron Ore source without requiring a Bronze bar. Preserved current direct-Iron behavior pending the later source/refining implementation.
+- **Files changed:** `BACKLOG.md`; `PROGRESS.md`; `docs/alpha-item-details.md`; `docs/alpha-items.md`.
+- **Lightweight checks:** statically inspected the relevant JSON recipes/profiles and server source selection; verified the source-defined current bog-iron reward remains 1 Iron at Bronze tier. `git diff --check` and focused JSON/reference assertions passed. No build or gameplay automation was run for this documentation/review increment.
+- **Full verification:** deferred until the final A1 implementation task under the milestone policy.
+- **Observable impact/authority:** review findings now clarify the A1 progression contract and that Copper/Tin alloying is not a Bronze Pick prerequisite. No runtime, networking authority, replication, or save behavior changed.
+- **Known limitations/remaining scope:** the protected starting area has no guaranteed Stone source; players must travel to Thunder Mountains slate or discover the optional Shimmering Lakes reward, as already recorded by the A0 audit. Current bog-iron nodes still grant Iron directly until the planned A1 replacement and refining path are implemented.
+- **Next eligible task:** A1 Copper and Tin harvest nodes (Stone Pick minimum; 3 matching ore per node).
