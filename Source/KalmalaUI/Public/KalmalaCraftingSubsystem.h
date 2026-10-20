@@ -231,6 +231,13 @@ private:
     UFUNCTION() void WithdrawStorage();
     UFUNCTION() void LoadCharcoalKilnWood();
     UFUNCTION() void CollectCharcoalKilnCoal();
+    UFUNCTION() void LoadSmelterCopperOre();
+    UFUNCTION() void LoadSmelterTinOre();
+    UFUNCTION() void LoadSmelterIronOre();
+    UFUNCTION() void LoadSmelterCoal();
+    UFUNCTION() void CollectSmelterCopper();
+    UFUNCTION() void CollectSmelterTin();
+    UFUNCTION() void CollectSmelterIron();
     UFUNCTION() void CloseClicked();
     void Refresh();
     void RefreshInlineToolUpgradeComparison(int32 ContrastMode);
@@ -300,6 +307,15 @@ private:
     UPROPERTY(Transient) TObjectPtr<UTextBlock> CharcoalKilnContextStatusText;
     UPROPERTY(Transient) TObjectPtr<UButton> CharcoalKilnLoadButton;
     UPROPERTY(Transient) TObjectPtr<UButton> CharcoalKilnCollectButton;
+    UPROPERTY(Transient) TObjectPtr<class UVerticalBox> SmelterContextPanel;
+    UPROPERTY(Transient) TObjectPtr<UTextBlock> SmelterContextStatusText;
+    UPROPERTY(Transient) TObjectPtr<UButton> SmelterLoadCopperOreButton;
+    UPROPERTY(Transient) TObjectPtr<UButton> SmelterLoadTinOreButton;
+    UPROPERTY(Transient) TObjectPtr<UButton> SmelterLoadIronOreButton;
+    UPROPERTY(Transient) TObjectPtr<UButton> SmelterLoadCoalButton;
+    UPROPERTY(Transient) TObjectPtr<UButton> SmelterCollectCopperButton;
+    UPROPERTY(Transient) TObjectPtr<UButton> SmelterCollectTinButton;
+    UPROPERTY(Transient) TObjectPtr<UButton> SmelterCollectIronButton;
     UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> WrappedTextBlocks;
     UPROPERTY(Transient) TObjectPtr<UButton> CraftButton;
     UPROPERTY(Transient) TObjectPtr<UButton> PlacementPreviewButton;
@@ -371,6 +387,7 @@ private:
     bool bWorkbenchRepairContext = false;
     bool bStorageContext = false;
     bool bCharcoalKilnContext = false;
+    bool bSmelterContext = false;
     bool bWorkbenchRepairPending = false;
     bool bStationRepairPending = false;
 #if !UE_BUILD_SHIPPING

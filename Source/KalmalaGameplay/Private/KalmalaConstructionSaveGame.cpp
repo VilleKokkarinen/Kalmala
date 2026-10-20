@@ -66,13 +66,18 @@ bool UKalmalaConstructionSaveGameV2::IsValidRecord(const FKalmalaConstructionSav
 {
     if (Record.ConstructionId.Len() <= 0 || Record.ConstructionId.Len() > 64
         || !FKalmalaPlacementPreview::IsSupportedKit(Record.KitId)
-        || !IsValidConstructionTransform(Record.Transform)) return false;
+        || !IsValidConstructionTransform(Record.Transform)
+        || !Record.CharcoalKiln.IsValid() || !Record.Smelter.IsValid()) return false;
 
     if (Record.KitId == TEXT("CharcoalKilnKit"))
     {
-        if (!Record.CharcoalKiln.IsValid()) return false;
+        if (!Record.Smelter.IsEmpty()) return false;
     }
-    else if (!Record.CharcoalKiln.IsValid() || !Record.CharcoalKiln.IsEmpty())
+    else if (Record.KitId == TEXT("SmelterKit"))
+    {
+        if (!Record.CharcoalKiln.IsEmpty()) return false;
+    }
+    else if (!Record.CharcoalKiln.IsEmpty() || !Record.Smelter.IsEmpty())
     {
         return false;
     }
@@ -185,7 +190,8 @@ bool UKalmalaConstructionSaveGameV2::RemoveRecord(const FString& ConstructionId)
     if (RecordIndex == INDEX_NONE) return false;
 
     const FKalmalaConstructionSaveRecord& Record = Records[RecordIndex];
-    if (Record.KitId == TEXT("CharcoalKilnKit") && !Record.CharcoalKiln.IsEmpty()) return false;
+    if ((Record.KitId == TEXT("CharcoalKilnKit") && !Record.CharcoalKiln.IsEmpty())
+        || (Record.KitId == TEXT("SmelterKit") && !Record.Smelter.IsEmpty())) return false;
 
     Records.RemoveAt(RecordIndex);
     return true;
@@ -206,6 +212,26 @@ bool UKalmalaConstructionSaveGameV2::UpdateCharcoalKilnRecord(const FString& Con
     if (!MatchesWorld(WorldConfig))
     {
         Record->CharcoalKiln = Previous;
+        return false;
+    }
+    return true;
+}
+
+bool UKalmalaConstructionSaveGameV2::UpdateSmelterRecord(const FString& ConstructionId,
+    const FKalmalaSmelterState& State)
+{
+    if (!MatchesWorld(WorldConfig) || ConstructionId.IsEmpty() || !State.IsValid()) return false;
+    FKalmalaConstructionSaveRecord* Record = Records.FindByPredicate(
+        [&ConstructionId](FKalmalaConstructionSaveRecord& Candidate)
+        {
+            return Candidate.ConstructionId == ConstructionId && Candidate.KitId == TEXT("SmelterKit");
+        });
+    if (!Record) return false;
+    const FKalmalaSmelterState Previous = Record->Smelter;
+    Record->Smelter = State;
+    if (!MatchesWorld(WorldConfig))
+    {
+        Record->Smelter = Previous;
         return false;
     }
     return true;

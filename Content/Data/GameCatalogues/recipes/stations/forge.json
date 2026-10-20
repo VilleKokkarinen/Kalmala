@@ -1,6 +1,27 @@
 {
   "recipes": [
     {
+      "RecipeId": "BronzeAlloy",
+      "DisplayName": "Bronze",
+      "Ingredients": [
+        {
+          "ItemId": "Copper",
+          "Quantity": 2
+        },
+        {
+          "ItemId": "Tin",
+          "Quantity": 1
+        }
+      ],
+      "Output": "Bronze",
+      "OutputCount": 1,
+      "MaxBatch": 5,
+      "RequiredStation": ["Forge"],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
+    },
+    {
       "RecipeId": "IronAxe",
       "DisplayName": "Iron Axe",
       "ItemId": "IronAxe",

@@ -2,7 +2,7 @@
 
 ## No portable construction items — 2026-10-18
 
-All 14 placed objects use direct materials through the Building Hammer. The
+All 15 placed objects use direct materials through the Building Hammer. The
 remaining Chest, Cooking Rack, Cauldron and Frying Pan kit paths are removed.
 Frying Pan now needs 5 Iron at placement, with no Forge crafting step; all
 other authored costs and station-attachment proximity checks remain intact.
@@ -13,15 +13,21 @@ development stacks containing removed construction items are rejected without
 conversion. AGENTS.md forbids reintroducing portable construction kits.
 The A1 Charcoal Kiln has a direct 20 Stone placement recipe and registered
 construction icon. Interact with it to load one Wood or collect one Coal; the
-server saves its 10/10 queues and 30-active-second job state in construction
-save schema 3. Multiplayer and rendered acceptance remain part of A1 final
-verification. `Kalmala.Gameplay.Construction.Schema3CurrentFormat` covers
-record-removal rejection for queued Wood, output Coal, and active job time,
-plus removal after the Kiln is empty. There is no player-facing construction
-removal action yet.
+server saves its 10/10 queues and 30-active-second job state. The A1 Smelter
+costs 20 Stone + 20 Wood through Hammer placement and has a registered
+construction icon. Its panel loads Copper/Tin/Iron Ore and Coal one at a time,
+processes the accepted ore FIFO into matching bars after 30 active seconds,
+shares a 10-bar output, and pauses when full. Construction schema 4 saves both
+stations, rejects removal while contents/jobs remain, and rejects incompatible
+older development saves without rewriting them. `Kalmala.Gameplay.Construction.Schema4CurrentFormat`
+covers both station state round-trips and removal guards. Icon preparation and
+import use the batch-L catalogue workflow. A1 multiplayer and rendered
+acceptance remain pending; there is no player-facing construction-removal
+action yet. Forge level 1 also has the immediate 2 Copper + 1 Tin → 1 Bronze
+recipe, with `MaxBatch=5` and no Coal or skill cost.
 
 The focused `Kalmala.Gameplay.Construction.NoPortableKits` regression covers all
-14 routes, ordinary grant/stack/production rejection, storage/save rejection,
+15 routes, ordinary grant/stack/production rejection, storage/save rejection,
 raw costs and future kit-definition rejection. Transactions, CookingStationHeat,
 RaisedStorage, CompleteCoverage, LocalBrowsing and Requirements also pass.
 Incremental Editor build and hammer/Forge previews pass. Updated development
@@ -1706,7 +1712,7 @@ After the editor build, run it with the documented temporary-user pattern:
 
 ### M9 current-schema persistence
 
-Construction uses save schema 3; player-discovery saves use schema 2, with carried equipment stored directly as `ItemId`. Save data must match the exact seed, revision, scope, and authenticated player identity. The game is unreleased and has no user save files; change active development formats directly and do not add save migrations until release. Current-format writers validate complete server-owned candidates before saving, and incompatible or invalid slots fail closed without rewriting. The player writer also re-derives live M9 claim identities and saves the owner's bounded carried-item records without adding replicated state. See `docs/02-technical-architecture.md` for bounds and authority rules.
+Construction uses save schema 4; player-discovery saves use schema 2, with carried equipment stored directly as `ItemId`. Save data must match the exact seed, revision, scope, and authenticated player identity. The game is unreleased and has no user save files; change active development formats directly and do not add save migrations until release. Current-format writers validate complete server-owned candidates before saving, and incompatible or invalid slots fail closed without rewriting. The player writer also re-derives live M9 claim identities and saves the owner's bounded carried-item records without adding replicated state. See `docs/02-technical-architecture.md` for bounds and authority rules.
 ### M8 travel-save contract
 
 `UKalmalaOceanTravelPersistenceSaveGame` is a separate schema-1 gate over the
@@ -3490,7 +3496,7 @@ discovery's visual presentation in-world.
 
 ### M9 current-schema save verification
 
-After the forced editor build, run `Kalmala.Gameplay.Construction.Schema3CurrentFormat`, `Kalmala.Gameplay.Construction.Schema3WriteCandidate`, and `Kalmala.Gameplay.Discovery.Schema2CurrentFormat` with isolated `-UserDir`, `-abslog`, `-DDC-ForceMemoryCache`, and `-TestExit="Automation Test Queue Empty"` arguments. These checks cover current-format round-trips, exact identity and owner validation, malformed and over-cap rejection, kiln queue/timer persistence, duplicate IDs, and candidate isolation. No schema-conversion tests run because compatibility migrations are intentionally absent until the game is released.
+After the forced editor build, run `Kalmala.Gameplay.Construction.Schema4CurrentFormat`, `Kalmala.Gameplay.Construction.Schema4WriteCandidate`, and `Kalmala.Gameplay.Discovery.Schema2CurrentFormat` with isolated `-UserDir`, `-abslog`, `-DDC-ForceMemoryCache`, and `-TestExit="Automation Test Queue Empty"` arguments. These checks cover current-format round-trips, exact identity and owner validation, malformed and over-cap rejection, Kiln and Smelter queue/timer persistence, duplicate IDs, and candidate isolation. No schema-conversion tests run because compatibility migrations are intentionally absent until the game is released.
 ### M9 schema-2 current-format host-client reconnect
 
 After the forced editor build and current-format save verifications, run the two-client restart fixture against the isolated project mirror:
@@ -3499,7 +3505,7 @@ After the forced editor build and current-format save verifications, run the two
 & '.\Scripts\Tests\Progression\Verify-M9Schema2CandidateReconnect.ps1' -Port 19725 -ProjectPath "$projectMirror/Kalmala.uproject"
 ```
 
-The fixture writes current world and player candidates to isolated slots, then checks exact identity after a host restart. It verifies a saved M9 claim and carried tools reload, replay is rejected without changing the claim set, and each client sees only its own carried-item details. Construction uses schema 3; player discovery uses schema 2. The fixture creates no old-schema save and performs no migration. Separate construction restart coverage is provided by `Scripts/Tests/Construction/Verify-ConstructionPersistence.ps1`.
+The fixture writes current world and player candidates to isolated slots, then checks exact identity after a host restart. It verifies a saved M9 claim and carried tools reload, replay is rejected without changing the claim set, and each client sees only its own carried-item details. Construction uses schema 4; player discovery uses schema 2. The fixture creates no old-schema save and performs no migration. Separate construction restart coverage is provided by `Scripts/Tests/Construction/Verify-ConstructionPersistence.ps1`.
 
 This null-renderer authority and replication check uses deterministic test-provider identities; it does not verify a production online identity provider or rendered UI.
 ## M11 item-gain notification child
@@ -3910,11 +3916,11 @@ editor build to verify imported texture paths and loads for all current item,
 tool and recipe-output identities. `Scripts/Tests/Construction/Verify-Crafting.ps1` also requires
 `Catalogue icons: Grid=1 Selected=1` and `Forge upgrade level icon: Configured=1` from both peers;
 the grid flag checks each visible recipe output against its canonical loaded texture, while the
-Forge marker checks the level icon now shown in the upgrade comparison. Before an editor build, run `Scripts/Validate-UIIcons.ps1 -Category Catalogue` to check all 74 identity-ledger rows, original/prepared PNGs, runtime lookup mappings, and imported packages. The ledger lives in `Scripts/Data/catalogue-icon-manifest.csv`, outside the consolidated historical documentation set. The Stone Spear uses import batch D; the Bronze and Iron Knife/Pick/Spear icons use import batch E. The Amber texture rename uses batch F, which also contains the Stone, Bronze, and Iron Mace icons. Bone fragment uses import batch H (see `docs/bone-icon.md`). The initial six wearable gear icons use import batch G; prepare them with `python Scripts/Prepare-CatalogueIconBatch.py --batch G`, then import with `Scripts/Import-CatalogueIconBatch.ps1 -Batch G`. The Charcoal Kiln construction icon is in batch K; see `docs/charcoal-kiln-icon.md`.
+Forge marker checks the level icon now shown in the upgrade comparison. Before an editor build, run `Scripts/Validate-UIIcons.ps1 -Category Catalogue` to check all 75 identity-ledger rows, original/prepared PNGs, runtime lookup mappings, and imported packages. The ledger lives in `Scripts/Data/catalogue-icon-manifest.csv`, outside the consolidated historical documentation set. The Stone Spear uses import batch D; the Bronze and Iron Knife/Pick/Spear icons use import batch E. The Amber texture rename uses batch F, which also contains the Stone, Bronze, and Iron Mace icons. Bone fragment uses import batch H (see `docs/bone-icon.md`). The initial six wearable gear icons use import batch G; prepare them with `python Scripts/Prepare-CatalogueIconBatch.py --batch G`, then import with `Scripts/Import-CatalogueIconBatch.ps1 -Batch G`. The Charcoal Kiln construction icon is in batch K (see `docs/charcoal-kiln-icon.md`); the Smelter uses batch L (see `docs/smelter-icon.md`).
 
-The catalogue image ledger contains 74 imported textures, including the
-construction-only Charcoal Kiln build-menu identity. Construction icons do not
-create inventory items.
+The catalogue image ledger contains 75 imported textures, including the
+construction-only Charcoal Kiln and Smelter build-menu identities. Construction
+icons do not create inventory items.
 Four support-scroll item identities reuse their matching imported status
 textures without adding duplicate texture packages. The retired `Fibre.uasset`
 package is preserved in the content folder, excluded from the current ledger,
@@ -3963,7 +3969,7 @@ construction identity and icon key, never an inventory output. Keep the
 existing 5 Stone + 3 Wood direct cost and one priority-selected raw fuel item.
 
 `Kalmala.Gameplay.Inventory.Catalogue` asserts the item is absent while the
-recipe descriptor validates. `Kalmala.Gameplay.Construction.Schema3CurrentFormat`
+recipe descriptor validates. `Kalmala.Gameplay.Construction.Schema4CurrentFormat`
 retains a CampfireKit save-record round trip. `Kalmala.Gameplay.Crafting`
 continues to cover successful payment and overlap rejection without payment;
 the placement path still allocates before the atomic inventory exchange and

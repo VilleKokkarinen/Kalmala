@@ -73,3 +73,4 @@ image_batch,import_batch,canonical_id,art_subject,identity_kind,catalogue_aliase
 27,K,BowString,Bow String,item,none,none,PackInventory;ItemDetail;Storage;Ingredient,pack,BowString
 27,K,Sinew,Sinew,item,none,none,PackInventory;ItemDetail;Storage;Ingredient,pack,Sinew
 28,K,CharcoalKilnKit,Charcoal Kiln construction,construction,CharcoalKiln,CharcoalKiln,RecipeResult;BuildGrid;BuildResult;PlacementPreview,construction_only,CharcoalKilnKit
+29,L,SmelterKit,Smelter construction,construction,Smelter,Smelter,RecipeResult;BuildGrid;BuildResult;PlacementPreview,construction_only,SmelterKit

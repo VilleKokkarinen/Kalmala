@@ -90,6 +90,27 @@
       "bEnabled": true
     },
     {
+      "RecipeId": "Smelter",
+      "DisplayName": "Smelter",
+      "Ingredients": [
+        {
+          "ItemId": "Stone",
+          "Quantity": 20
+        },
+        {
+          "ItemId": "Wood",
+          "Quantity": 20
+        }
+      ],
+      "Output": "Smelter",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "RequiredStation": [],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
+    },
+    {
       "RecipeId": "Workbench",
       "DisplayName": "Workbench",
       "Ingredients": [

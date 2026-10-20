@@ -50,7 +50,7 @@ bool FKalmalaConstructionSaveGameTest::RunTest(const FString& Parameters)
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaConstructionSaveGameV2Test,
-    "Kalmala.Gameplay.Construction.Schema3CurrentFormat",
+    "Kalmala.Gameplay.Construction.Schema4CurrentFormat",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FKalmalaConstructionSaveGameV2Test::RunTest(const FString& Parameters)
@@ -81,17 +81,22 @@ bool FKalmalaConstructionSaveGameV2Test::RunTest(const FString& Parameters)
     Kiln.CharcoalKiln.InputWood = 2;
     Kiln.CharcoalKiln.OutputCoal = 1;
     Kiln.CharcoalKiln.JobRemainingSeconds = 12.5f;
-    TestTrue(TEXT("Schema 3 accepts an established camp record"), Save->AddRecord(Floor));
-    TestTrue(TEXT("Schema 3 accepts a bounded station attachment"), Save->AddStationAttachmentRecord(Rack));
-    TestTrue(TEXT("Schema 3 retains the stable Campfire construction identity"), Save->AddRecord(Campfire));
-    TestTrue(TEXT("Schema 3 saves kiln input, output, and remaining active seconds"), Save->AddRecord(Kiln));
-    TestFalse(TEXT("Schema 3 rejects a duplicate stable construction ID across record kinds"),
+    FKalmalaConstructionSaveRecord Smelter = MakeRecord(TEXT("camp-smelter-01"), TEXT("SmelterKit"));
+    TestTrue(TEXT("Smelter fixture queues Copper Ore"), Smelter.Smelter.TryAddOre(EKalmalaSmelterOre::Copper));
+    TestTrue(TEXT("Smelter fixture queues Coal"), Smelter.Smelter.TryAddCoal());
+    TestTrue(TEXT("Smelter fixture starts and saves an active job"), Smelter.Smelter.Advance(12.5f));
+    TestTrue(TEXT("Schema 4 accepts an established camp record"), Save->AddRecord(Floor));
+    TestTrue(TEXT("Schema 4 accepts a bounded station attachment"), Save->AddStationAttachmentRecord(Rack));
+    TestTrue(TEXT("Schema 4 retains the stable Campfire construction identity"), Save->AddRecord(Campfire));
+    TestTrue(TEXT("Schema 4 saves kiln input, output, and remaining active seconds"), Save->AddRecord(Kiln));
+    TestTrue(TEXT("Schema 4 saves Smelter input and active job state"), Save->AddRecord(Smelter));
+    TestFalse(TEXT("Schema 4 rejects a duplicate stable construction ID across record kinds"),
         Save->AddStationAttachmentRecord(MakeRecord(TEXT("camp-floor-01"), TEXT("ForgeAnvilKit"))));
-    TestFalse(TEXT("Schema 3 rejects unsupported construction identities"),
+    TestFalse(TEXT("Schema 4 rejects unsupported construction identities"),
         Save->AddRecord(MakeRecord(TEXT("camp-unknown-01"), TEXT("UnknownConstructionKit"))));
-    TestEqual(TEXT("Rejected schema-3 additions leave the live candidate unchanged"), Save->GetRecords().Num(), 4);
+    TestEqual(TEXT("Rejected schema-4 additions leave the live candidate unchanged"), Save->GetRecords().Num(), 5);
 
-    const auto BuildKilnRemovalCandidate = [&World, &MakeRecord](const TCHAR* Id, const FKalmalaCharcoalKilnState& State)
+    const auto BuildKilnRemovalCandidate = [this, &World, &MakeRecord](const TCHAR* Id, const FKalmalaCharcoalKilnState& State)
     {
         UKalmalaConstructionSaveGameV2* Candidate = NewObject<UKalmalaConstructionSaveGameV2>(GetTransientPackage());
         Candidate->InitializeForWorld(World);
@@ -117,14 +122,40 @@ bool FKalmalaConstructionSaveGameV2Test::RunTest(const FString& Parameters)
     TestTrue(TEXT("Empty Kiln can be removed"), RemovalCandidate->RemoveRecord(TEXT("kiln-empty")));
     TestEqual(TEXT("Successful empty Kiln removal deletes one record"), RemovalCandidate->GetRecords().Num(), 0);
 
+    const auto BuildSmelterRemovalCandidate = [this, &World, &MakeRecord](const TCHAR* Id, const FKalmalaSmelterState& State)
+    {
+        UKalmalaConstructionSaveGameV2* Candidate = NewObject<UKalmalaConstructionSaveGameV2>(GetTransientPackage());
+        Candidate->InitializeForWorld(World);
+        FKalmalaConstructionSaveRecord Record = MakeRecord(Id, TEXT("SmelterKit"));
+        Record.Smelter = State;
+        TestTrue(TEXT("Smelter removal fixture contains a valid record"), Candidate->AddRecord(Record));
+        return Candidate;
+    };
+    FKalmalaSmelterState SmelterRemovalState;
+    SmelterRemovalState.TryAddOre(EKalmalaSmelterOre::Copper);
+    RemovalCandidate = BuildSmelterRemovalCandidate(TEXT("smelter-input"), SmelterRemovalState);
+    TestFalse(TEXT("Smelter with queued ore cannot be removed"), RemovalCandidate->RemoveRecord(TEXT("smelter-input")));
+    SmelterRemovalState = FKalmalaSmelterState();
+    SmelterRemovalState.OutputCopper = 1;
+    RemovalCandidate = BuildSmelterRemovalCandidate(TEXT("smelter-output"), SmelterRemovalState);
+    TestFalse(TEXT("Smelter with output cannot be removed"), RemovalCandidate->RemoveRecord(TEXT("smelter-output")));
+    SmelterRemovalState = FKalmalaSmelterState();
+    SmelterRemovalState.TryAddOre(EKalmalaSmelterOre::Iron);
+    SmelterRemovalState.TryAddCoal();
+    SmelterRemovalState.Advance(5.0f);
+    RemovalCandidate = BuildSmelterRemovalCandidate(TEXT("smelter-active"), SmelterRemovalState);
+    TestFalse(TEXT("Smelter with an active job cannot be removed"), RemovalCandidate->RemoveRecord(TEXT("smelter-active")));
+    RemovalCandidate = BuildSmelterRemovalCandidate(TEXT("smelter-empty"), FKalmalaSmelterState());
+    TestTrue(TEXT("Empty Smelter can be removed"), RemovalCandidate->RemoveRecord(TEXT("smelter-empty")));
+
     TArray<uint8> CurrentBytes;
-    TestTrue(TEXT("Schema 3 construction records serialize in memory"), Serialize(Save, CurrentBytes));
+    TestTrue(TEXT("Schema 4 construction records serialize in memory"), Serialize(Save, CurrentBytes));
     UKalmalaConstructionSaveGameV2* Reloaded =
         Cast<UKalmalaConstructionSaveGameV2>(UGameplayStatics::LoadGameFromMemory(CurrentBytes));
-    if (TestNotNull(TEXT("Schema 3 construction records reload with their type"), Reloaded))
+    if (TestNotNull(TEXT("Schema 4 construction records reload with their type"), Reloaded))
     {
         TestTrue(TEXT("Reloaded container carries exact world, revision, and world scope"), Reloaded->MatchesWorld(World));
-        TestEqual(TEXT("Existing construction, Campfire, kiln, and attachment records round-trip together"), Reloaded->GetRecords().Num(), 4);
+        TestEqual(TEXT("Existing construction, Campfire, Kiln, Smelter, and attachment records round-trip together"), Reloaded->GetRecords().Num(), 5);
         TestTrue(TEXT("Kiln inventory and job timer survive reload"), Reloaded->GetRecords().ContainsByPredicate(
             [](const FKalmalaConstructionSaveRecord& Record)
             {
@@ -142,19 +173,27 @@ bool FKalmalaConstructionSaveGameV2Test::RunTest(const FString& Parameters)
             {
                 return Record.KitId == TEXT("WorkbenchToolRackKit");
             }));
+        TestTrue(TEXT("Smelter ore type and active timer survive reload"), Reloaded->GetRecords().ContainsByPredicate(
+            [](const FKalmalaConstructionSaveRecord& Record)
+            {
+                return Record.ConstructionId == TEXT("camp-smelter-01") && Record.KitId == TEXT("SmelterKit")
+                    && Record.Smelter.InputOreQueue.IsEmpty() && Record.Smelter.InputCoal == 0
+                    && Record.Smelter.ActiveJobOre == EKalmalaSmelterOre::Copper
+                    && FMath::IsNearlyEqual(Record.Smelter.JobRemainingSeconds, 17.5f);
+            }));
     }
 
     UKalmalaConstructionSaveGameV2* IdentityChecks = DuplicateObject<UKalmalaConstructionSaveGameV2>(Save, GetTransientPackage());
     const FKalmalaM7SaveIdentity ExpectedIdentity = IdentityChecks->Identity;
     IdentityChecks->Identity.WorldSeed++;
-    TestFalse(TEXT("Schema 3 rejects a mismatched identity seed"), IdentityChecks->MatchesWorld(World));
+    TestFalse(TEXT("Schema 4 rejects a mismatched identity seed"), IdentityChecks->MatchesWorld(World));
     IdentityChecks->Identity = ExpectedIdentity;
     IdentityChecks->Identity.GeneratorRevision--;
-    TestFalse(TEXT("Schema 3 rejects a mismatched generator revision"), IdentityChecks->MatchesWorld(World));
+    TestFalse(TEXT("Schema 4 rejects a mismatched generator revision"), IdentityChecks->MatchesWorld(World));
     IdentityChecks->Identity = ExpectedIdentity;
     IdentityChecks->Identity.Scope = EKalmalaM7SaveScope::Player;
     IdentityChecks->Identity.OwnerIdentity = TEXT("provider:other");
-    TestFalse(TEXT("Schema 3 rejects a mismatched persistence scope"), IdentityChecks->MatchesWorld(World));
+    TestFalse(TEXT("Schema 4 rejects a mismatched persistence scope"), IdentityChecks->MatchesWorld(World));
 
     UKalmalaConstructionSaveGameV2* InvalidCurrent = DuplicateObject<UKalmalaConstructionSaveGameV2>(Save, GetTransientPackage());
     InvalidCurrent->SchemaVersion = 0;
@@ -210,6 +249,38 @@ bool FKalmalaConstructionSaveGameV2Test::RunTest(const FString& Parameters)
     FullOutput.OutputCoal = FKalmalaCharcoalKilnState::OutputCapacity;
     TestFalse(TEXT("A full output pauses the queued input"), FullOutput.Advance(5.0f));
     TestEqual(TEXT("Output-full pause retains queued Wood"), FullOutput.InputWood, 1);
+
+    FKalmalaSmelterState Smelt;
+    for (int32 Index = 0; Index < FKalmalaSmelterState::InputOreCapacity; ++Index)
+        TestTrue(TEXT("Smelter accepts supported ores up to the shared input capacity"),
+            Smelt.TryAddOre(Index % 3 == 0 ? EKalmalaSmelterOre::Copper
+                : Index % 3 == 1 ? EKalmalaSmelterOre::Tin : EKalmalaSmelterOre::Iron));
+    TestFalse(TEXT("Smelter rejects ore above its input capacity"), Smelt.TryAddOre(EKalmalaSmelterOre::Copper));
+    for (int32 Index = 0; Index < FKalmalaSmelterState::InputCoalCapacity; ++Index)
+        TestTrue(TEXT("Smelter accepts Coal up to its input capacity"), Smelt.TryAddCoal());
+    TestFalse(TEXT("Smelter rejects Coal above its input capacity"), Smelt.TryAddCoal());
+    TestTrue(TEXT("Smelter reserves the first ore and one Coal when processing starts"), Smelt.Advance(1.0f));
+    TestEqual(TEXT("Reserved Smelter ore remains counted against input capacity"), Smelt.GetInputOreCount(), 10);
+    TestEqual(TEXT("Reserved Smelter Coal remains counted against input capacity"), Smelt.GetInputCoalCount(), 10);
+    TestFalse(TEXT("Reserved inputs keep both Smelter capacities full"), Smelt.TryAddOre(EKalmalaSmelterOre::Copper)
+        || Smelt.TryAddCoal());
+
+    FKalmalaSmelterState OrderedSmelt;
+    OrderedSmelt.TryAddOre(EKalmalaSmelterOre::Copper);
+    OrderedSmelt.TryAddOre(EKalmalaSmelterOre::Tin);
+    OrderedSmelt.TryAddCoal();
+    OrderedSmelt.TryAddCoal();
+    TestTrue(TEXT("Thirty active seconds finish the first queued ore and start the next"), OrderedSmelt.Advance(31.0f));
+    TestEqual(TEXT("FIFO processing produces the first matching Copper bar"), OrderedSmelt.OutputCopper, 1);
+    TestEqual(TEXT("Next job retains its matching Tin identity"), OrderedSmelt.ActiveJobOre, EKalmalaSmelterOre::Tin);
+    TestTrue(TEXT("The next 29 active seconds finish the Tin job"), OrderedSmelt.Advance(29.0f));
+    TestEqual(TEXT("Tin output remains separate from Copper"), OrderedSmelt.OutputTin, 1);
+    FKalmalaSmelterState FullSmelterOutput;
+    FullSmelterOutput.OutputIron = FKalmalaSmelterState::OutputCapacity;
+    FullSmelterOutput.TryAddOre(EKalmalaSmelterOre::Iron);
+    FullSmelterOutput.TryAddCoal();
+    TestFalse(TEXT("A full Smelter output pauses its queued input"), FullSmelterOutput.Advance(5.0f));
+    TestEqual(TEXT("Output-full pause retains queued ore"), FullSmelterOutput.GetInputOreCount(), 1);
     return true;
 }
 #endif

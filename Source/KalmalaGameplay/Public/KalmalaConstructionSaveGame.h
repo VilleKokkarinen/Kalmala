@@ -78,6 +78,127 @@ struct KALMALAGAMEPLAY_API FKalmalaCharcoalKilnState
     }
 };
 
+UENUM()
+enum class EKalmalaSmelterOre : uint8
+{
+    None,
+    Copper,
+    Tin,
+    Iron
+};
+
+USTRUCT()
+struct KALMALAGAMEPLAY_API FKalmalaSmelterState
+{
+    GENERATED_BODY()
+
+    static constexpr int32 InputOreCapacity = 10;
+    static constexpr int32 InputCoalCapacity = 10;
+    static constexpr int32 OutputCapacity = 10;
+    static constexpr float JobDurationSeconds = 30.0f;
+
+    UPROPERTY(SaveGame) TArray<EKalmalaSmelterOre> InputOreQueue;
+    UPROPERTY(SaveGame) int32 InputCoal = 0;
+    UPROPERTY(SaveGame) int32 OutputCopper = 0;
+    UPROPERTY(SaveGame) int32 OutputTin = 0;
+    UPROPERTY(SaveGame) int32 OutputIron = 0;
+    UPROPERTY(SaveGame) EKalmalaSmelterOre ActiveJobOre = EKalmalaSmelterOre::None;
+    UPROPERTY(SaveGame) float JobRemainingSeconds = 0.0f;
+
+    int32 GetInputOreCount() const { return InputOreQueue.Num() + (ActiveJobOre == EKalmalaSmelterOre::None ? 0 : 1); }
+    int32 GetInputCoalCount() const { return InputCoal + (ActiveJobOre == EKalmalaSmelterOre::None ? 0 : 1); }
+    int32 GetOutputCount() const { return OutputCopper + OutputTin + OutputIron; }
+    int32 GetOutputCount(EKalmalaSmelterOre Ore) const
+    {
+        switch (Ore)
+        {
+        case EKalmalaSmelterOre::Copper: return OutputCopper;
+        case EKalmalaSmelterOre::Tin: return OutputTin;
+        case EKalmalaSmelterOre::Iron: return OutputIron;
+        default: return 0;
+        }
+    }
+    bool IsValid() const
+    {
+        if (InputOreQueue.Num() > InputOreCapacity || GetInputOreCount() > InputOreCapacity
+            || InputCoal < 0 || GetInputCoalCount() > InputCoalCapacity
+            || OutputCopper < 0 || OutputTin < 0 || OutputIron < 0
+            || GetOutputCount() > OutputCapacity
+            || !FMath::IsFinite(JobRemainingSeconds)
+            || JobRemainingSeconds < 0.0f || JobRemainingSeconds > JobDurationSeconds
+            || ((JobRemainingSeconds > 0.0f) != (ActiveJobOre != EKalmalaSmelterOre::None))
+            || (JobRemainingSeconds > 0.0f && GetOutputCount() >= OutputCapacity)) return false;
+        for (const EKalmalaSmelterOre Ore : InputOreQueue)
+            if (Ore != EKalmalaSmelterOre::Copper && Ore != EKalmalaSmelterOre::Tin
+                && Ore != EKalmalaSmelterOre::Iron) return false;
+        return ActiveJobOre == EKalmalaSmelterOre::None || ActiveJobOre == EKalmalaSmelterOre::Copper
+            || ActiveJobOre == EKalmalaSmelterOre::Tin || ActiveJobOre == EKalmalaSmelterOre::Iron;
+    }
+    bool IsEmpty() const
+    {
+        return InputOreQueue.IsEmpty() && InputCoal == 0 && GetOutputCount() == 0
+            && ActiveJobOre == EKalmalaSmelterOre::None && JobRemainingSeconds <= 0.0f;
+    }
+    bool TryAddOre(EKalmalaSmelterOre Ore)
+    {
+        if (!IsValid() || GetInputOreCount() >= InputOreCapacity
+            || (Ore != EKalmalaSmelterOre::Copper && Ore != EKalmalaSmelterOre::Tin
+                && Ore != EKalmalaSmelterOre::Iron)) return false;
+        InputOreQueue.Add(Ore);
+        return true;
+    }
+    bool TryAddCoal()
+    {
+        if (!IsValid() || GetInputCoalCount() >= InputCoalCapacity) return false;
+        ++InputCoal;
+        return true;
+    }
+    bool TryTakeOutput(EKalmalaSmelterOre Ore)
+    {
+        if (!IsValid()) return false;
+        int32* Output = Ore == EKalmalaSmelterOre::Copper ? &OutputCopper
+            : Ore == EKalmalaSmelterOre::Tin ? &OutputTin
+            : Ore == EKalmalaSmelterOre::Iron ? &OutputIron : nullptr;
+        if (!Output || *Output <= 0) return false;
+        --*Output;
+        return true;
+    }
+    bool Advance(float DeltaSeconds)
+    {
+        if (!IsValid() || !FMath::IsFinite(DeltaSeconds) || DeltaSeconds <= 0.0f) return false;
+        const int32 BeforeOre = InputOreQueue.Num();
+        const int32 BeforeCoal = InputCoal;
+        const int32 BeforeOutput = GetOutputCount();
+        const EKalmalaSmelterOre BeforeJobOre = ActiveJobOre;
+        const float BeforeRemaining = JobRemainingSeconds;
+        float Budget = DeltaSeconds;
+        while (Budget > 0.0f)
+        {
+            if (JobRemainingSeconds <= 0.0f)
+            {
+                if (InputOreQueue.IsEmpty() || InputCoal <= 0 || GetOutputCount() >= OutputCapacity) break;
+                ActiveJobOre = InputOreQueue[0];
+                InputOreQueue.RemoveAt(0, 1, EAllowShrinking::No);
+                --InputCoal;
+                JobRemainingSeconds = JobDurationSeconds;
+            }
+            const float Step = FMath::Min(Budget, JobRemainingSeconds);
+            JobRemainingSeconds = FMath::Max(0.0f, JobRemainingSeconds - Step);
+            Budget -= Step;
+            if (JobRemainingSeconds <= 0.0f)
+            {
+                JobRemainingSeconds = 0.0f;
+                if (ActiveJobOre == EKalmalaSmelterOre::Copper) ++OutputCopper;
+                else if (ActiveJobOre == EKalmalaSmelterOre::Tin) ++OutputTin;
+                else if (ActiveJobOre == EKalmalaSmelterOre::Iron) ++OutputIron;
+                ActiveJobOre = EKalmalaSmelterOre::None;
+            }
+        }
+        return BeforeOre != InputOreQueue.Num() || BeforeCoal != InputCoal || BeforeOutput != GetOutputCount()
+            || BeforeJobOre != ActiveJobOre || !FMath::IsNearlyEqual(JobRemainingSeconds, BeforeRemaining);
+    }
+};
+
 USTRUCT()
 struct KALMALAGAMEPLAY_API FKalmalaConstructionSaveRecord
 {
@@ -86,9 +207,10 @@ struct KALMALAGAMEPLAY_API FKalmalaConstructionSaveRecord
     UPROPERTY(SaveGame) FName KitId;
     UPROPERTY(SaveGame) FTransform Transform;
     UPROPERTY(SaveGame) FKalmalaCharcoalKilnState CharcoalKiln;
+    UPROPERTY(SaveGame) FKalmalaSmelterState Smelter;
 };
 
-/** Schema-1 construction data model retained by in-memory gameplay tests; current slots use schema 3. */
+/** Schema-1 construction data model retained by in-memory gameplay tests; current slots use schema 4. */
 UCLASS()
 class KALMALAGAMEPLAY_API UKalmalaConstructionSaveGame : public USaveGame
 {
@@ -110,13 +232,13 @@ private:
     UPROPERTY(SaveGame) TArray<FKalmalaConstructionSaveRecord> Records;
 };
 
-/** Current bounded schema-3 server camp state, including kiln processing. Rejects identity mismatches. */
+/** Current bounded schema-4 server camp state, including Kiln and Smelter processing. Rejects identity mismatches. */
 UCLASS()
 class KALMALAGAMEPLAY_API UKalmalaConstructionSaveGameV2 : public USaveGame
 {
     GENERATED_BODY()
 public:
-    static constexpr int32 SchemaVersionValue = 3;
+    static constexpr int32 SchemaVersionValue = 4;
     static constexpr int32 MaxRecords = 128;
     static constexpr int32 MaxStationAttachments = 32;
 
@@ -129,6 +251,7 @@ public:
     /** Rejects deletion of a Kiln record while it contains Wood, Coal, or active job time. */
     bool RemoveRecord(const FString& ConstructionId);
     bool UpdateCharcoalKilnRecord(const FString& ConstructionId, const FKalmalaCharcoalKilnState& State);
+    bool UpdateSmelterRecord(const FString& ConstructionId, const FKalmalaSmelterState& State);
     const TArray<FKalmalaConstructionSaveRecord>& GetRecords() const { return Records; }
     static bool TryBuildWriteCandidate(
         class USaveGame* Existing,

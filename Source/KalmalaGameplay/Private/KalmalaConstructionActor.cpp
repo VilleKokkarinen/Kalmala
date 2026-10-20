@@ -40,7 +40,7 @@ AKalmalaConstructionActor::AKalmalaConstructionActor()
 }
 
 void AKalmalaConstructionActor::InitializeFromServer(const FName InKit, const FString& InConstructionId,
-    const FKalmalaCharcoalKilnState& InCharcoalKiln)
+    const FKalmalaCharcoalKilnState& InCharcoalKiln, const FKalmalaSmelterState& InSmelter)
 {
     if (HasAuthority())
     {
@@ -48,9 +48,15 @@ void AKalmalaConstructionActor::InitializeFromServer(const FName InKit, const FS
         ConstructionId = InConstructionId.Left(64);
         CharcoalKiln = InKit == TEXT("CharcoalKilnKit") && InCharcoalKiln.IsValid()
             ? InCharcoalKiln : FKalmalaCharcoalKilnState();
-        SetActorTickEnabled(InKit == TEXT("CharcoalKilnKit")
-            && (CharcoalKiln.JobRemainingSeconds > 0.0f
-                || (CharcoalKiln.InputWood > 0 && CharcoalKiln.OutputCoal < FKalmalaCharcoalKilnState::OutputCapacity)));
+        Smelter = InKit == TEXT("SmelterKit") && InSmelter.IsValid()
+            ? InSmelter : FKalmalaSmelterState();
+        SetActorTickEnabled((InKit == TEXT("CharcoalKilnKit")
+                && (CharcoalKiln.JobRemainingSeconds > 0.0f
+                    || (CharcoalKiln.InputWood > 0 && CharcoalKiln.OutputCoal < FKalmalaCharcoalKilnState::OutputCapacity)))
+            || (InKit == TEXT("SmelterKit")
+                && (Smelter.JobRemainingSeconds > 0.0f
+                    || (!Smelter.InputOreQueue.IsEmpty() && Smelter.InputCoal > 0
+                        && Smelter.GetOutputCount() < FKalmalaSmelterState::OutputCapacity))));
         ApplyConstructionKit();
     }
 }
@@ -58,12 +64,21 @@ void AKalmalaConstructionActor::InitializeFromServer(const FName InKit, const FS
 void AKalmalaConstructionActor::Tick(const float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
-    if (!HasAuthority() || ConstructionKit != TEXT("CharcoalKilnKit") || ConstructionId.IsEmpty()) return;
-    FKalmalaCharcoalKilnState Candidate = CharcoalKiln;
-    if (!Candidate.Advance(DeltaSeconds)) return;
+    if (!HasAuthority() || ConstructionId.IsEmpty()) return;
     AKalmalaGameMode* Mode = GetWorld() ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
-    if (!Mode || !Mode->PersistCharcoalKilnState(this, Candidate)) return;
-    ApplyCharcoalKilnStateFromServer(Candidate);
+    if (!Mode) return;
+    if (ConstructionKit == TEXT("CharcoalKilnKit"))
+    {
+        FKalmalaCharcoalKilnState Candidate = CharcoalKiln;
+        if (!Candidate.Advance(DeltaSeconds) || !Mode->PersistCharcoalKilnState(this, Candidate)) return;
+        ApplyCharcoalKilnStateFromServer(Candidate);
+    }
+    else if (ConstructionKit == TEXT("SmelterKit"))
+    {
+        FKalmalaSmelterState Candidate = Smelter;
+        if (!Candidate.Advance(DeltaSeconds) || !Mode->PersistSmelterState(this, Candidate)) return;
+        ApplySmelterStateFromServer(Candidate);
+    }
 }
 
 bool AKalmalaConstructionActor::ApplyCharcoalKilnStateFromServer(const FKalmalaCharcoalKilnState& State)
@@ -72,6 +87,17 @@ bool AKalmalaConstructionActor::ApplyCharcoalKilnStateFromServer(const FKalmalaC
     CharcoalKiln = State;
     SetActorTickEnabled(CharcoalKiln.JobRemainingSeconds > 0.0f
         || (CharcoalKiln.InputWood > 0 && CharcoalKiln.OutputCoal < FKalmalaCharcoalKilnState::OutputCapacity));
+    ForceNetUpdate();
+    return true;
+}
+
+bool AKalmalaConstructionActor::ApplySmelterStateFromServer(const FKalmalaSmelterState& State)
+{
+    if (!HasAuthority() || ConstructionKit != TEXT("SmelterKit") || !State.IsValid()) return false;
+    Smelter = State;
+    SetActorTickEnabled(Smelter.JobRemainingSeconds > 0.0f
+        || (!Smelter.InputOreQueue.IsEmpty() && Smelter.InputCoal > 0
+            && Smelter.GetOutputCount() < FKalmalaSmelterState::OutputCapacity));
     ForceNetUpdate();
     return true;
 }
@@ -134,7 +160,8 @@ bool AKalmalaConstructionActor::IsShelterKit(const FName KitId)
 bool AKalmalaConstructionActor::IsCraftingStationKit(const FName KitId)
 {
     return KitId == TEXT("WorkbenchKit") || KitId == TEXT("ForgeKit") || KitId == TEXT("CookingRackKit") || KitId == TEXT("CauldronKit")
-        || KitId == TEXT("FryingPanKit") || KitId == TEXT("SmokeFrameKit") || KitId == TEXT("CharcoalKilnKit");
+        || KitId == TEXT("FryingPanKit") || KitId == TEXT("SmokeFrameKit")
+        || KitId == TEXT("CharcoalKilnKit") || KitId == TEXT("SmelterKit");
 }
 
 bool AKalmalaConstructionActor::IsStorageKit(const FName KitId)
@@ -148,6 +175,7 @@ FVector AKalmalaConstructionActor::GetCollisionExtent(const FName KitId)
     if (KitId == TEXT("WallKit")) return FVector(120, 12, 110);
     if (KitId == TEXT("RoofKit")) return FVector(132, 132, 16);
     if (KitId == TEXT("CharcoalKilnKit")) return FVector(60, 60, 62);
+    if (KitId == TEXT("SmelterKit")) return FVector(60, 60, 82);
     if (KitId == TEXT("SmokeFrameKit")) return FVector(56, 56, 64);
     if (KitId == TEXT("FryingPanKit")) return FVector(64, 40, 12);
     if (KitId == TEXT("ForgeKit")) return FVector(60, 60, 62);
@@ -164,6 +192,7 @@ void AKalmalaConstructionActor::GetLifetimeReplicatedProps(TArray<FLifetimePrope
     DOREPLIFETIME(AKalmalaConstructionActor, ConstructionId);
     DOREPLIFETIME(AKalmalaConstructionActor, Health);
     DOREPLIFETIME(AKalmalaConstructionActor, CharcoalKiln);
+    DOREPLIFETIME(AKalmalaConstructionActor, Smelter);
 }
 
 void AKalmalaConstructionActor::OnRep_ConstructionState()
@@ -288,6 +317,15 @@ void AKalmalaConstructionActor::BuildPiecePresentation()
         AddBox(Vertices, Triangles, FVector(34, 0, 34), FVector(22, 26, 10));
         AddBox(Vertices, Triangles, FVector(40, 0, 48), FVector(16, 18, 8));
         AddBox(Vertices, Triangles, FVector(-20, 0, 34), FVector(30, 34, 8));
+    }
+    else if (ConstructionKit == TEXT("SmelterKit"))
+    {
+        AddBox(Vertices, Triangles, FVector(0, 0, -70), FVector(60, 60, 10));
+        AddBox(Vertices, Triangles, FVector(0, 0, -30), FVector(48, 48, 30));
+        AddBox(Vertices, Triangles, FVector(0, 0, 8), FVector(38, 40, 8));
+        AddBox(Vertices, Triangles, FVector(-10, 0, 45), FVector(20, 24, 37));
+        AddBox(Vertices, Triangles, FVector(-10, 0, 77), FVector(25, 29, 5));
+        AddBox(Vertices, Triangles, FVector(43, -28, -10), FVector(17, 8, 8));
     }
     else
         AddBox(Vertices, Triangles, FVector::ZeroVector, GetCollisionExtent(ConstructionKit));

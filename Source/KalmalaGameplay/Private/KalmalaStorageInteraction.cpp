@@ -175,6 +175,8 @@ void UKalmalaCraftingComponent::InteractWithConstructionFromServer(AKalmalaConst
         PublishResult(TEXT("Frying Pan opened"), true);
     else if (Kit == TEXT("CharcoalKilnKit"))
         PublishResult(TEXT("Charcoal Kiln ready; load Wood and collect Coal from its processing panel"), true);
+    else if (Kit == TEXT("SmelterKit"))
+        PublishResult(TEXT("Smelter ready; load ore and Coal, then collect refined bars from its processing panel"), true);
     else if (Construction->GetConstructionKit() == TEXT("SmokeFrameKit"))
         PublishResult(TEXT("Smoke frame ready; use Camp crafting with a lit hearth and one extra raw fuel item per serving"), true);
     else PublishResult(TEXT("Workbench ready; use the Construction Hammer menu to build floors, walls, and roofs from Wood"), true);
@@ -316,6 +318,107 @@ bool UKalmalaCraftingComponent::CollectCharcoalKilnCoalFromServer(FString& Reaso
     return true;
 }
 
+AKalmalaConstructionActor* UKalmalaCraftingComponent::GetCurrentSmelterFromServer() const
+{
+    AKalmalaCharacter* Character = GetCharacter();
+    AKalmalaConstructionActor* Smelter = LastStationContextActor.Get();
+    if (!Character || !Character->HasAuthority() || !Character->GetController()
+        || LastStationContextKit != TEXT("SmelterKit") || !Smelter
+        || Smelter->GetConstructionKit() != TEXT("SmelterKit")
+        || Smelter->GetConstructionId() != LastStationContextConstructionId
+        || !IsStationContextUsable(Smelter, TEXT("SmelterKit"), LastStationContextConstructionId)
+        || !Smelter->CanInteract_Implementation(Character)) return nullptr;
+    return Smelter;
+}
+
+bool UKalmalaCraftingComponent::LoadSmelterItemFromServer(const FName ItemId, FString& Reason)
+{
+    Reason = TEXT("Interact with a nearby Smelter first");
+    AKalmalaConstructionActor* Smelter = GetCurrentSmelterFromServer();
+    AKalmalaCharacter* Character = GetCharacter();
+    auto* Inventory = Character ? Character->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
+    auto* Mode = GetWorld() ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
+    if (!Smelter || !Character || !Inventory || !Mode) return false;
+
+    EKalmalaSmelterOre Ore = EKalmalaSmelterOre::None;
+    if (ItemId == TEXT("CopperOre")) Ore = EKalmalaSmelterOre::Copper;
+    else if (ItemId == TEXT("TinOre")) Ore = EKalmalaSmelterOre::Tin;
+    else if (ItemId == TEXT("IronOre")) Ore = EKalmalaSmelterOre::Iron;
+    else if (ItemId != TEXT("Coal"))
+    {
+        Reason = TEXT("Smelter accepts only Copper Ore, Tin Ore, Iron Ore, or Coal");
+        return false;
+    }
+
+    FKalmalaSmelterState Candidate = Smelter->GetSmelterState();
+    if (Ore == EKalmalaSmelterOre::None)
+    {
+        Reason = TEXT("Smelter Coal input is full (10 Coal)");
+        if (!Candidate.TryAddCoal()) return false;
+    }
+    else
+    {
+        Reason = TEXT("Smelter ore input is full (10 ore)");
+        if (!Candidate.TryAddOre(Ore)) return false;
+    }
+    Reason = FString::Printf(TEXT("Need 1 %s in your pack"), *ItemId.ToString());
+    if (!Inventory->TryConsumeFromServer(ItemId, 1)) return false;
+    if (!Mode->PersistSmelterState(Smelter, Candidate))
+    {
+        if (!Inventory->TryGrantFromServer(ItemId, 1))
+            UE_LOG(LogTemp, Error, TEXT("Failed to restore %s after Smelter save rejection."), *ItemId.ToString());
+        Reason = TEXT("Smelter could not be saved; no input was consumed");
+        return false;
+    }
+    Smelter->ApplySmelterStateFromServer(Candidate);
+    Character->ForceNetUpdate();
+    Reason = FString::Printf(TEXT("Added 1 %s to the Smelter"), *ItemId.ToString());
+    return true;
+}
+
+bool UKalmalaCraftingComponent::CollectSmelterItemFromServer(const FName ItemId, FString& Reason)
+{
+    Reason = TEXT("Interact with a nearby Smelter first");
+    AKalmalaConstructionActor* Smelter = GetCurrentSmelterFromServer();
+    AKalmalaCharacter* Character = GetCharacter();
+    auto* Inventory = Character ? Character->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
+    auto* Mode = GetWorld() ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
+    if (!Smelter || !Character || !Inventory || !Mode) return false;
+
+    const EKalmalaSmelterOre Ore = ItemId == TEXT("Copper") ? EKalmalaSmelterOre::Copper
+        : ItemId == TEXT("Tin") ? EKalmalaSmelterOre::Tin
+        : ItemId == TEXT("Iron") ? EKalmalaSmelterOre::Iron : EKalmalaSmelterOre::None;
+    if (Ore == EKalmalaSmelterOre::None)
+    {
+        Reason = TEXT("Smelter output selection is invalid");
+        return false;
+    }
+
+    const FKalmalaSmelterState Previous = Smelter->GetSmelterState();
+    FKalmalaSmelterState Candidate = Previous;
+    Reason = FString::Printf(TEXT("No %s bar is ready to collect"), *ItemId.ToString());
+    if (!Candidate.TryTakeOutput(Ore)) return false;
+    const TArray<FKalmalaInventoryStack> Before = Inventory->GetStacks();
+    TArray<FKalmalaInventoryStack> After;
+    if (!UKalmalaInventoryComponent::BuildGrant(Before, ItemId, 1, After, Reason)) return false;
+    if (!Mode->PersistSmelterState(Smelter, Candidate))
+    {
+        Reason = TEXT("Smelter could not be saved; the bar remains available");
+        return false;
+    }
+    if (!Inventory->TryCommitStacksFromServer(Before, After))
+    {
+        if (!Mode->PersistSmelterState(Smelter, Previous))
+            UE_LOG(LogTemp, Error, TEXT("Smelter output rollback failed after inventory changed."));
+        Reason = TEXT("Pack changed; the bar remains in the Smelter");
+        return false;
+    }
+    Smelter->ApplySmelterStateFromServer(Candidate);
+    Character->ForceNetUpdate();
+    Reason = FString::Printf(TEXT("Collected 1 %s bar"), *ItemId.ToString());
+    return true;
+}
+
 void UKalmalaCraftingComponent::ServerLoadCharcoalKilnWood_Implementation()
 {
     if (!AcceptRequest()) return;
@@ -329,5 +432,21 @@ void UKalmalaCraftingComponent::ServerCollectCharcoalKilnCoal_Implementation()
     if (!AcceptRequest()) return;
     FString Reason;
     const bool bAccepted = CollectCharcoalKilnCoalFromServer(Reason);
+    PublishResult(Reason, bAccepted);
+}
+
+void UKalmalaCraftingComponent::ServerLoadSmelterItem_Implementation(const FName ItemId)
+{
+    if (!AcceptRequest()) return;
+    FString Reason;
+    const bool bAccepted = LoadSmelterItemFromServer(ItemId, Reason);
+    PublishResult(Reason, bAccepted);
+}
+
+void UKalmalaCraftingComponent::ServerCollectSmelterItem_Implementation(const FName ItemId)
+{
+    if (!AcceptRequest()) return;
+    FString Reason;
+    const bool bAccepted = CollectSmelterItemFromServer(ItemId, Reason);
     PublishResult(Reason, bAccepted);
 }

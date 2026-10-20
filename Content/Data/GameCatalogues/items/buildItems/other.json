@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "ItemId": "Smelter",
+      "DisplayName": "Smelter",
+      "Description": "A stone furnace that refines copper, tin, and iron ore into bars.",
+      "MaxStack": 1
+    },
+    {
       "ItemId": "CharcoalKiln",
       "DisplayName": "Charcoal Kiln",
       "Description": "A squat stone kiln built for charcoal making.",

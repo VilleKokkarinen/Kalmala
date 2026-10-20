@@ -67,7 +67,7 @@ bool FKalmalaDirectBuildTest::RunTest(const FString& Parameters)
         TestFalse(TEXT("Forging a portable-kit recipe does not bypass production validation"),
             UKalmalaRecipeCatalogue::Scale(ForgedProduction, 1, Candidate, OutputCount));
     }
-    TestEqual(TEXT("All fourteen current placed objects use material recipes"), BuildCount, 14);
+    TestEqual(TEXT("All fifteen current placed objects use material recipes"), BuildCount, 15);
     const FKalmalaRecipe* Kiln = Recipes->Find(TEXT("CharcoalKiln"));
     TestNotNull(TEXT("Charcoal Kiln direct-build recipe is registered"), Kiln);
     if (Kiln)
@@ -82,6 +82,33 @@ bool FKalmalaDirectBuildTest::RunTest(const FString& Parameters)
         }
         TestNotNull(TEXT("Charcoal Kiln metadata is presentation-only"), Items->FindBuildable(TEXT("CharcoalKilnKit")));
         TestNull(TEXT("Charcoal Kiln is not an inventory item"), Items->FindItem(TEXT("CharcoalKilnKit")));
+    }
+    const FKalmalaRecipe* Smelter = Recipes->Find(TEXT("Smelter"));
+    TestNotNull(TEXT("Smelter direct-build recipe is registered"), Smelter);
+    if (Smelter)
+    {
+        TestEqual(TEXT("Smelter recipe resolves to the stable construction identity"),
+            Smelter->BuildableOutput, FName(TEXT("SmelterKit")));
+        TestEqual(TEXT("Smelter placement has two direct material costs"), Smelter->Ingredients.Num(), 2);
+        if (Smelter->Ingredients.Num() == 2)
+        {
+            TestTrue(TEXT("Smelter costs 20 Stone and 20 Wood"),
+                Smelter->Ingredients[0].ItemId == TEXT("Stone") && Smelter->Ingredients[0].Quantity == 20
+                && Smelter->Ingredients[1].ItemId == TEXT("Wood") && Smelter->Ingredients[1].Quantity == 20);
+        }
+        TestNotNull(TEXT("Smelter metadata is presentation-only"), Items->FindBuildable(TEXT("SmelterKit")));
+        TestNull(TEXT("Smelter is not an inventory item"), Items->FindItem(TEXT("SmelterKit")));
+    }
+    const FKalmalaRecipe* BronzeAlloy = Recipes->Find(TEXT("BronzeAlloy"));
+    TestNotNull(TEXT("Forge Bronze alloy recipe is registered"), BronzeAlloy);
+    if (BronzeAlloy)
+    {
+        TestEqual(TEXT("Bronze alloy outputs Bronze"), BronzeAlloy->Output, FName(TEXT("Bronze")));
+        TestEqual(TEXT("Bronze alloy batch cap is five"), BronzeAlloy->MaxBatch, 5);
+        TestTrue(TEXT("Bronze alloy uses two Copper and one Tin at the Forge"),
+            BronzeAlloy->RequiredStation.Contains(TEXT("Forge")) && BronzeAlloy->Ingredients.Num() == 2
+            && BronzeAlloy->Ingredients[0].ItemId == TEXT("Copper") && BronzeAlloy->Ingredients[0].Quantity == 2
+            && BronzeAlloy->Ingredients[1].ItemId == TEXT("Tin") && BronzeAlloy->Ingredients[1].Quantity == 1);
     }
     for (const FKalmalaItemDefinition& Buildable : Items->Buildables)
         TestNotNull(TEXT("Buildable metadata is available only through its explicit lookup"), Items->FindBuildable(Buildable.ItemId));

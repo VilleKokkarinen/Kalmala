@@ -131,6 +131,7 @@ int32 UKalmalaIconWidget::NativePaint(const FPaintArgs& Args, const FGeometry& G
     case EKalmalaIcon::Pan: Circle({14,21},10); Path({{22,14},{30,4},{33,7},{25,17}}); break;
     case EKalmalaIcon::Forge: Path({{4,31},{4,19},{10,19},{10,8},{25,8},{25,19},{32,19},{32,31}},true); Path({{12,30},{12,23},{18,20},{24,23},{24,30}}); break;
     case EKalmalaIcon::Kiln: Path({{4,31},{5,20},{9,13},{14,9},{22,9},{27,13},{31,20},{32,31}},true); Path({{12,31},{12,25},{15,21},{21,21},{24,25},{24,31}},true); Path({{14,9},{14,4},{23,4},{23,9}}); Path({{11,17},{25,17}}); break;
+    case EKalmalaIcon::Smelter: Path({{4,31},{4,18},{9,18},{9,10},{24,10},{24,18},{32,18},{32,31}},true); Path({{13,31},{13,25},{17,21},{22,25},{22,31}},true); Path({{13,10},{13,4},{24,4},{24,10}}); Path({{25,21},{33,21},{33,24}}); break;
     case EKalmalaIcon::Chest: Path({{5,11},{30,11},{30,31},{5,31}},true); Path({{5,19},{30,19}}); Path({{15,16},{20,16},{20,23},{15,23}},true); break;
     case EKalmalaIcon::Fire: Path({{18,4},{25,14},{26,21},{23,27},{13,27},{9,21},{10,13},{15,18}},true); Path({{6,31},{30,31}}); break;
     case EKalmalaIcon::Discovery: Circle({14,14},8); Path({{20,20},{31,31}}); Path({{14,9},{14,19}}); Path({{9,14},{19,14}}); break;
@@ -204,6 +205,7 @@ bool UKalmalaIconWidget::FindCatalogueIcon(FName Id, EKalmalaIcon& OutIcon, int3
         {TEXT("CampfireKit"),EKalmalaIcon::Fire,0}, {TEXT("CampFire"),EKalmalaIcon::Fire,0},
         {TEXT("WorkbenchKit"),EKalmalaIcon::Bench,0}, {TEXT("ForgeKit"),EKalmalaIcon::Forge,0},
         {TEXT("CharcoalKilnKit"),EKalmalaIcon::Kiln,0},
+        {TEXT("SmelterKit"),EKalmalaIcon::Smelter,0},
         {TEXT("WorkbenchToolRackKit"),EKalmalaIcon::Rack,1}, {TEXT("ForgeAnvilKit"),EKalmalaIcon::Ingot,1},
         {TEXT("GrindingStoneKit"),EKalmalaIcon::Rock,3}, {TEXT("StorageKit"),EKalmalaIcon::Chest,0}, {TEXT("CookingRackKit"),EKalmalaIcon::Rack,0},
         {TEXT("FryingPanKit"),EKalmalaIcon::Pan,0}, {TEXT("CauldronKit"),EKalmalaIcon::Cauldron,0},

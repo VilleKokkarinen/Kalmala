@@ -165,7 +165,7 @@ bool IsStationContextShellKit(const FName KitId)
 {
     return KitId == TEXT("CookingRackKit") || KitId == TEXT("CauldronKit")
         || KitId == TEXT("FryingPanKit") || KitId == TEXT("WorkbenchKit") || KitId == TEXT("ForgeKit")
-        || KitId == TEXT("StorageKit") || KitId == TEXT("CharcoalKilnKit");
+        || KitId == TEXT("StorageKit") || KitId == TEXT("CharcoalKilnKit") || KitId == TEXT("SmelterKit");
 }
 
 bool IsStationContextSectionSupported(const FName KitId, const FString& Section)
@@ -177,7 +177,8 @@ bool IsStationContextSectionSupported(const FName KitId, const FString& Section)
         || (KitId == TEXT("ForgeKit") && (Section.Equals(TEXT("Craft"), ESearchCase::IgnoreCase)
             || Section.Equals(TEXT("Upgrade"), ESearchCase::IgnoreCase)))
         || (KitId == TEXT("StorageKit") && Section.Equals(TEXT("Store"), ESearchCase::IgnoreCase))
-        || (KitId == TEXT("CharcoalKilnKit") && Section.Equals(TEXT("Process"), ESearchCase::IgnoreCase));
+        || ((KitId == TEXT("CharcoalKilnKit") || KitId == TEXT("SmelterKit"))
+            && Section.Equals(TEXT("Process"), ESearchCase::IgnoreCase));
 }
 
 FString BuildForgeUpgradePresentationText(const UKalmalaCraftingComponent* Crafting)
@@ -215,7 +216,7 @@ FString GetInitialStationContextSection(const FName KitId)
     if (KitId == TEXT("WorkbenchKit") || KitId == TEXT("ForgeKit")) return TEXT("Craft");
     if (KitId == TEXT("CookingRackKit") || KitId == TEXT("CauldronKit") || KitId == TEXT("FryingPanKit")) return TEXT("Cook");
     if (KitId == TEXT("StorageKit")) return TEXT("Store");
-    if (KitId == TEXT("CharcoalKilnKit")) return TEXT("Process");
+    if (KitId == TEXT("CharcoalKilnKit") || KitId == TEXT("SmelterKit")) return TEXT("Process");
     return FString();
 }
 
@@ -980,6 +981,41 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     CharcoalKilnCollectButton = AddButton(TEXT("Collect 1 Coal"), KilnActions,
         TEXT("The server checks pack capacity and saves the output change before granting one Coal."));
     CharcoalKilnCollectButton->OnClicked.AddDynamic(this, &ThisClass::CollectCharcoalKilnCoal);
+    SmelterContextPanel = WidgetTree->ConstructWidget<UVerticalBox>();
+    Column->AddChildToVerticalBox(SmelterContextPanel);
+    StationCraftExcludedWidgets.Add(SmelterContextPanel);
+    BuildExcludedWidgets.Add(SmelterContextPanel);
+    SmelterContextStatusText = WidgetTree->ConstructWidget<UTextBlock>();
+    SmelterContextStatusText->SetAutoWrapText(true);
+    SmelterContextPanel->AddChildToVerticalBox(SmelterContextStatusText);
+    WrappedTextBlocks.Add(SmelterContextStatusText);
+    auto* SmelterOreActions = WidgetTree->ConstructWidget<UHorizontalBox>();
+    SmelterContextPanel->AddChildToVerticalBox(SmelterOreActions);
+    SmelterLoadCopperOreButton = AddButton(TEXT("Load 1 Copper Ore"), SmelterOreActions,
+        TEXT("The server removes one Copper Ore and appends it to the saved Smelter input queue."));
+    SmelterLoadCopperOreButton->OnClicked.AddDynamic(this, &ThisClass::LoadSmelterCopperOre);
+    SmelterLoadTinOreButton = AddButton(TEXT("Load 1 Tin Ore"), SmelterOreActions,
+        TEXT("The server removes one Tin Ore and appends it to the saved Smelter input queue."));
+    SmelterLoadTinOreButton->OnClicked.AddDynamic(this, &ThisClass::LoadSmelterTinOre);
+    SmelterLoadIronOreButton = AddButton(TEXT("Load 1 Iron Ore"), SmelterOreActions,
+        TEXT("The server removes one Iron Ore and appends it to the saved Smelter input queue."));
+    SmelterLoadIronOreButton->OnClicked.AddDynamic(this, &ThisClass::LoadSmelterIronOre);
+    auto* SmelterCoalActions = WidgetTree->ConstructWidget<UHorizontalBox>();
+    SmelterContextPanel->AddChildToVerticalBox(SmelterCoalActions);
+    SmelterLoadCoalButton = AddButton(TEXT("Load 1 Coal"), SmelterCoalActions,
+        TEXT("The server removes one Coal from your pack and saves it in this Smelter's 10-unit input."));
+    SmelterLoadCoalButton->OnClicked.AddDynamic(this, &ThisClass::LoadSmelterCoal);
+    auto* SmelterOutputActions = WidgetTree->ConstructWidget<UHorizontalBox>();
+    SmelterContextPanel->AddChildToVerticalBox(SmelterOutputActions);
+    SmelterCollectCopperButton = AddButton(TEXT("Collect Copper"), SmelterOutputActions,
+        TEXT("The server saves the output change before granting one Copper bar."));
+    SmelterCollectCopperButton->OnClicked.AddDynamic(this, &ThisClass::CollectSmelterCopper);
+    SmelterCollectTinButton = AddButton(TEXT("Collect Tin"), SmelterOutputActions,
+        TEXT("The server saves the output change before granting one Tin bar."));
+    SmelterCollectTinButton->OnClicked.AddDynamic(this, &ThisClass::CollectSmelterTin);
+    SmelterCollectIronButton = AddButton(TEXT("Collect Iron"), SmelterOutputActions,
+        TEXT("The server saves the output change before granting one Iron bar."));
+    SmelterCollectIronButton->OnClicked.AddDynamic(this, &ThisClass::CollectSmelterIron);
     CloseButton=AddButton(TEXT("Close")); CloseButton->OnClicked.AddDynamic(this, &ThisClass::CloseClicked);
     CloseButton->RemoveFromParent();
     auto* Outer=WidgetTree->ConstructWidget<UVerticalBox>();
@@ -1004,7 +1040,8 @@ int32 UKalmalaCraftingWidget::GetBuildBrowseGroup(const FName Output)
 {
     if (!FKalmalaPlacementPreview::IsSupportedKit(Output)) return 0;
     if (Output == TEXT("FloorKit") || AKalmalaConstructionActor::IsShelterKit(Output)) return 4;
-    if (Output == TEXT("CharcoalKilnKit") || AKalmalaConstructionActor::IsCraftingStationKit(Output)
+    if (Output == TEXT("CharcoalKilnKit") || Output == TEXT("SmelterKit")
+        || AKalmalaConstructionActor::IsCraftingStationKit(Output)
         || FKalmalaToolProgressionContract::IsStationAttachmentKit(Output)) return 5;
     return 6;
 }
@@ -1529,6 +1566,8 @@ void UKalmalaCraftingWidget::ConfigureStationContextPresentation(const FString& 
         && EffectiveSection.Equals(TEXT("Store"), ESearchCase::IgnoreCase);
     bCharcoalKilnContext = bEmbeddedContext && StationFilterKit == TEXT("CharcoalKilnKit")
         && EffectiveSection.Equals(TEXT("Process"), ESearchCase::IgnoreCase);
+    bSmelterContext = bEmbeddedContext && StationFilterKit == TEXT("SmelterKit")
+        && EffectiveSection.Equals(TEXT("Process"), ESearchCase::IgnoreCase);
     bWorkbenchCraftContext = bEmbeddedContext && StationFilterKit == TEXT("WorkbenchKit")
         && EffectiveSection.Equals(TEXT("Craft"), ESearchCase::IgnoreCase);
     bForgeCraftContext = bEmbeddedContext && StationFilterKit == TEXT("ForgeKit")
@@ -1581,6 +1620,12 @@ void UKalmalaCraftingWidget::ConfigureStationContextPresentation(const FString& 
         if (HeaderText) HeaderText->SetText(FText::FromString(TEXT("Charcoal Kiln — Process")));
         if (InstructionsText) InstructionsText->SetText(FText::FromString(
             TEXT("Load Wood into the kiln or collect finished Coal. One Wood becomes one Coal in 30 active seconds; processing stops when output is full.")));
+    }
+    else if (bSmelterContext)
+    {
+        if (HeaderText) HeaderText->SetText(FText::FromString(TEXT("Smelter — Process")));
+        if (InstructionsText) InstructionsText->SetText(FText::FromString(
+            TEXT("Load Copper, Tin, or Iron Ore and Coal. The first accepted ore is processed first; each ore and one Coal produce a matching bar in 30 active seconds. Processing stops when output is full.")));
     }
     else if (bCookingRackContext)
     {
@@ -1637,8 +1682,9 @@ void UKalmalaCraftingWidget::ApplyStationCraftLayout()
     const bool bRepairContext = bWorkbenchRepairContext || bForgeRepairContext;
     const bool bStationServicePresentation = bRepairContext || bForgeUpgradeContext;
     const bool bStationContext = bStationCraftContext || bForgeUpgradeContext || bRepairContext
-        || bStorageContext || bCharcoalKilnContext;
-    const bool bNonCraftSection = bRepairContext || bForgeUpgradeContext || bStorageContext || bCharcoalKilnContext;
+        || bStorageContext || bCharcoalKilnContext || bSmelterContext;
+    const bool bNonCraftSection = bRepairContext || bForgeUpgradeContext || bStorageContext
+        || bCharcoalKilnContext || bSmelterContext;
     const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
     const int32 TextScalePercent = UKalmalaSettingsWidget::ClampTextScale(
         UKalmalaSettingsWidget::GetTextScalePercent());
@@ -1713,6 +1759,8 @@ void UKalmalaCraftingWidget::ApplyStationCraftLayout()
         StorageContextPanel->SetVisibility(bStorageContext ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
     if (CharcoalKilnContextPanel)
         CharcoalKilnContextPanel->SetVisibility(bCharcoalKilnContext ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+    if (SmelterContextPanel)
+        SmelterContextPanel->SetVisibility(bSmelterContext ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
     SetSectionTab(WorkbenchCraftSectionButton, TEXT("Craft"), bWorkbenchContext, bWorkbenchCraftContext);
     SetSectionTab(WorkbenchRepairSectionButton, TEXT("Repair All"), bWorkbenchContext, false);
     SetSectionTab(ForgeCraftSectionButton, TEXT("Craft"), bForgeContext, bForgeCraftContext);
@@ -4158,6 +4206,71 @@ void UKalmalaCraftingWidget::Refresh()
             CharcoalKilnCollectButton->SetIsEnabled(bKilnContextValid && OwnerInventory
                 && Kiln->GetCharcoalKilnState().OutputCoal > 0);
     }
+    if (SmelterContextStatusText)
+    {
+        const AKalmalaConstructionActor* Smelter = ContextStationActor.Get();
+        const bool bSmelterContextValid = bSmelterContext && IsStationContextValid()
+            && IsValid(Smelter) && Smelter->GetConstructionKit() == TEXT("SmelterKit");
+        if (bSmelterContextValid)
+        {
+            const FKalmalaSmelterState& State = Smelter->GetSmelterState();
+            int32 CopperOre = 0;
+            int32 TinOre = 0;
+            int32 IronOre = 0;
+            for (const EKalmalaSmelterOre Ore : State.InputOreQueue)
+            {
+                CopperOre += Ore == EKalmalaSmelterOre::Copper ? 1 : 0;
+                TinOre += Ore == EKalmalaSmelterOre::Tin ? 1 : 0;
+                IronOre += Ore == EKalmalaSmelterOre::Iron ? 1 : 0;
+            }
+            CopperOre += State.ActiveJobOre == EKalmalaSmelterOre::Copper ? 1 : 0;
+            TinOre += State.ActiveJobOre == EKalmalaSmelterOre::Tin ? 1 : 0;
+            IronOre += State.ActiveJobOre == EKalmalaSmelterOre::Iron ? 1 : 0;
+            FString Processing = TEXT("Idle");
+            if (State.JobRemainingSeconds > 0.0f)
+            {
+                const TCHAR* JobName = State.ActiveJobOre == EKalmalaSmelterOre::Copper ? TEXT("Copper")
+                    : State.ActiveJobOre == EKalmalaSmelterOre::Tin ? TEXT("Tin") : TEXT("Iron");
+                Processing = FString::Printf(TEXT("Processing %s · %d s remaining"), JobName,
+                    FMath::CeilToInt(State.JobRemainingSeconds));
+            }
+            else if (State.GetOutputCount() >= FKalmalaSmelterState::OutputCapacity && !State.InputOreQueue.IsEmpty())
+                Processing = TEXT("Paused · output full");
+            else if (!State.InputOreQueue.IsEmpty() && State.InputCoal <= 0)
+                Processing = TEXT("Waiting for Coal");
+            else if (!State.InputOreQueue.IsEmpty())
+                Processing = TEXT("Ready for next job");
+            SmelterContextStatusText->SetText(FText::FromString(FString::Printf(
+                TEXT("Ore input: %d / %d (Copper %d, Tin %d, Iron %d)\nCoal input: %d / %d\nOutput: Copper %d, Tin %d, Iron %d / %d\n%s"),
+                State.GetInputOreCount(), FKalmalaSmelterState::InputOreCapacity, CopperOre, TinOre, IronOre,
+                State.GetInputCoalCount(), FKalmalaSmelterState::InputCoalCapacity,
+                State.OutputCopper, State.OutputTin, State.OutputIron, FKalmalaSmelterState::OutputCapacity, *Processing)));
+        }
+        else
+        {
+            SmelterContextStatusText->SetText(FText::FromString(
+                TEXT("Smelter context expired. Interact with a nearby Smelter again.")));
+        }
+        FKalmalaUITheme::Get().ApplyText(*SmelterContextStatusText, FKalmalaUITheme::Get().BodySize,
+            false, TextScalePercent, ContrastMode);
+        const FKalmalaSmelterState* State = bSmelterContextValid ? &Smelter->GetSmelterState() : nullptr;
+        const bool bOreSpace = State && State->GetInputOreCount() < FKalmalaSmelterState::InputOreCapacity;
+        if (SmelterLoadCopperOreButton) SmelterLoadCopperOreButton->SetIsEnabled(bOreSpace && OwnerInventory
+            && OwnerInventory->GetQuantity(TEXT("CopperOre")) > 0);
+        if (SmelterLoadTinOreButton) SmelterLoadTinOreButton->SetIsEnabled(bOreSpace && OwnerInventory
+            && OwnerInventory->GetQuantity(TEXT("TinOre")) > 0);
+        if (SmelterLoadIronOreButton) SmelterLoadIronOreButton->SetIsEnabled(bOreSpace && OwnerInventory
+            && OwnerInventory->GetQuantity(TEXT("IronOre")) > 0);
+        if (SmelterLoadCoalButton) SmelterLoadCoalButton->SetIsEnabled(bSmelterContextValid && State && OwnerInventory
+            && OwnerInventory->GetQuantity(TEXT("Coal")) > 0
+            && State->GetInputCoalCount() < FKalmalaSmelterState::InputCoalCapacity);
+        if (SmelterCollectCopperButton) SmelterCollectCopperButton->SetIsEnabled(bSmelterContextValid && State
+            && OwnerInventory && State->OutputCopper > 0);
+        if (SmelterCollectTinButton) SmelterCollectTinButton->SetIsEnabled(bSmelterContextValid && State
+            && OwnerInventory && State->OutputTin > 0);
+        if (SmelterCollectIronButton) SmelterCollectIronButton->SetIsEnabled(bSmelterContextValid && State
+            && OwnerInventory && State->OutputIron > 0);
+    }
     if (bStationCraftPresentation)
     {
         RefreshInventoryCraftLayout();
@@ -4718,6 +4831,48 @@ void UKalmalaCraftingWidget::CollectCharcoalKilnCoal()
     if (!bCharcoalKilnContext || !IsStationContextValid()
         || !CharcoalKilnCollectButton || !CharcoalKilnCollectButton->GetIsEnabled()) return;
     if (auto* M = Model()) M->ServerCollectCharcoalKilnCoal();
+}
+void UKalmalaCraftingWidget::LoadSmelterCopperOre()
+{
+    if (bSmelterContext && IsStationContextValid() && SmelterLoadCopperOreButton
+        && SmelterLoadCopperOreButton->GetIsEnabled())
+        if (auto* M = Model()) M->ServerLoadSmelterItem(TEXT("CopperOre"));
+}
+void UKalmalaCraftingWidget::LoadSmelterTinOre()
+{
+    if (bSmelterContext && IsStationContextValid() && SmelterLoadTinOreButton
+        && SmelterLoadTinOreButton->GetIsEnabled())
+        if (auto* M = Model()) M->ServerLoadSmelterItem(TEXT("TinOre"));
+}
+void UKalmalaCraftingWidget::LoadSmelterIronOre()
+{
+    if (bSmelterContext && IsStationContextValid() && SmelterLoadIronOreButton
+        && SmelterLoadIronOreButton->GetIsEnabled())
+        if (auto* M = Model()) M->ServerLoadSmelterItem(TEXT("IronOre"));
+}
+void UKalmalaCraftingWidget::LoadSmelterCoal()
+{
+    if (bSmelterContext && IsStationContextValid() && SmelterLoadCoalButton
+        && SmelterLoadCoalButton->GetIsEnabled())
+        if (auto* M = Model()) M->ServerLoadSmelterItem(TEXT("Coal"));
+}
+void UKalmalaCraftingWidget::CollectSmelterCopper()
+{
+    if (bSmelterContext && IsStationContextValid() && SmelterCollectCopperButton
+        && SmelterCollectCopperButton->GetIsEnabled())
+        if (auto* M = Model()) M->ServerCollectSmelterItem(TEXT("Copper"));
+}
+void UKalmalaCraftingWidget::CollectSmelterTin()
+{
+    if (bSmelterContext && IsStationContextValid() && SmelterCollectTinButton
+        && SmelterCollectTinButton->GetIsEnabled())
+        if (auto* M = Model()) M->ServerCollectSmelterItem(TEXT("Tin"));
+}
+void UKalmalaCraftingWidget::CollectSmelterIron()
+{
+    if (bSmelterContext && IsStationContextValid() && SmelterCollectIronButton
+        && SmelterCollectIronButton->GetIsEnabled())
+        if (auto* M = Model()) M->ServerCollectSmelterItem(TEXT("Iron"));
 }
 void UKalmalaCraftingWidget::CloseClicked() { Close(); }
 FReply UKalmalaCraftingWidget::NativeOnPreviewMouseButtonDown(

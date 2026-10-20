@@ -11,7 +11,7 @@ bool FKalmalaPlacementPreview::IsSupportedKit(const FName ItemId)
 {
     if (ItemId == TEXT("ForgeKit")) return true;
     return ItemId == TEXT("CampfireKit") || ItemId == TEXT("WorkbenchKit") || ItemId == TEXT("StorageKit")
-        || ItemId == TEXT("CharcoalKilnKit")
+        || ItemId == TEXT("CharcoalKilnKit") || ItemId == TEXT("SmelterKit")
         || ItemId == TEXT("CookingRackKit") || ItemId == TEXT("CauldronKit") || ItemId == TEXT("FryingPanKit")
         || ItemId == TEXT("WorkbenchToolRackKit") || ItemId == TEXT("ForgeAnvilKit") || ItemId == TEXT("GrindingStoneKit")
         || ItemId == TEXT("FloorKit") || ItemId == TEXT("WallKit") || ItemId == TEXT("RoofKit");
@@ -52,7 +52,9 @@ FKalmalaPlacementPreview FKalmalaPlacementPreview::Evaluate(const UWorld* World,
 
     const bool bIsStationAttachment = ItemId == TEXT("WorkbenchToolRackKit") || ItemId == TEXT("ForgeAnvilKit");
     const bool bIsKiln = ItemId == TEXT("CharcoalKilnKit");
-    const bool bIsCompactConstruction = bIsStationAttachment || bIsKiln
+    const bool bIsSmelter = ItemId == TEXT("SmelterKit");
+    const bool bNeedsProcessingClearance = bIsKiln || bIsSmelter;
+    const bool bIsCompactConstruction = bIsStationAttachment || bNeedsProcessingClearance
         || ItemId == TEXT("GrindingStoneKit") || ItemId == TEXT("FryingPanKit");
     const FVector PlacementExtent = bIsCompactConstruction
         ? AKalmalaConstructionActor::GetCollisionExtent(ItemId) : FVector(54, 54, 56);
@@ -60,21 +62,22 @@ FKalmalaPlacementPreview FKalmalaPlacementPreview::Evaluate(const UWorld* World,
     Result.Location = Ground.ImpactPoint + FVector(0, 0, PlacementHalfHeight);
     const float PreviewRadius = bIsCompactConstruction
         ? FMath::Max3(PlacementExtent.X, PlacementExtent.Y, PlacementExtent.Z) : 54.0f;
-    const FCollisionShape PlacementShape = bIsKiln
+    const FCollisionShape PlacementShape = bNeedsProcessingClearance
         ? FCollisionShape::MakeBox(PlacementExtent) : FCollisionShape::MakeSphere(PreviewRadius);
     if (World->OverlapBlockingTestByChannel(Result.Location, FQuat::Identity, ECC_Pawn, PlacementShape, Query))
     {
         Result.Message = TEXT("Preview invalid: clear more space");
         return Result;
     }
-    if (bIsKiln)
+    if (bNeedsProcessingClearance)
     {
         const FVector OverheadCentre = Result.Location + FVector(0, 0, PlacementExtent.Z + 100.0f);
         const FCollisionShape OverheadClearance = FCollisionShape::MakeBox(
             FVector(PlacementExtent.X, PlacementExtent.Y, 100.0f));
         if (World->OverlapBlockingTestByChannel(OverheadCentre, FQuat::Identity, ECC_Pawn, OverheadClearance, Query))
         {
-            Result.Message = TEXT("Preview invalid: Charcoal Kiln needs 2 m of overhead clearance");
+            Result.Message = bIsKiln ? TEXT("Preview invalid: Charcoal Kiln needs 2 m of overhead clearance")
+                : TEXT("Preview invalid: Smelter needs 2 m of overhead clearance");
             return Result;
         }
         const FVector ApproachCentre = Result.Location - Forward * (PlacementExtent.X + 50.0f)
@@ -84,7 +87,8 @@ FKalmalaPlacementPreview FKalmalaPlacementPreview::Evaluate(const UWorld* World,
         if (World->OverlapBlockingTestByChannel(ApproachCentre, ApproachRotation, ECC_Pawn,
             ApproachClearance, Query))
         {
-            Result.Message = TEXT("Preview invalid: keep a clear 1 m approach to the Charcoal Kiln");
+            Result.Message = bIsKiln ? TEXT("Preview invalid: keep a clear 1 m approach to the Charcoal Kiln")
+                : TEXT("Preview invalid: keep a clear 1 m approach to the Smelter");
             return Result;
         }
     }
