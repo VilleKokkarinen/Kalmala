@@ -4462,3 +4462,13 @@
 - **Observable impact/authority:** review findings now clarify the A1 progression contract and that Copper/Tin alloying is not a Bronze Pick prerequisite. No runtime, networking authority, replication, or save behavior changed.
 - **Known limitations/remaining scope:** the protected starting area has no guaranteed Stone source; players must travel to Thunder Mountains slate or discover the optional Shimmering Lakes reward, as already recorded by the A0 audit. Current bog-iron nodes still grant Iron directly until the planned A1 replacement and refining path are implemented.
 - **Next eligible task:** A1 Copper and Tin harvest nodes (Stone Pick minimum; 3 matching ore per node).
+
+## 2026-10-20 10:33 UTC — User-directed A1 pick costs recorded
+
+- **Work completed:** recorded the user-directed pick acquisition targets: Stone Pick at Workbench 1 for 10 Wood + 5 Stone; Bronze Pick at Forge 1 for 10 Wood + 10 Bronze; Iron Pick at Forge 1 for 10 Wood + 10 Iron. Clarified that the fresh-start Stone Pick grant stays. Updated the A1 item details, source audit, decision log, architecture reference, and setup guide to show Bronze and Iron as real material gates.
+- **Files changed:** `PROGRESS.md`; `docs/alpha-item-details.md`; `docs/alpha-items.md`; `docs/05-decision-log.md`; `docs/02-technical-architecture.md`; `docs/07-development-setup.md`.
+- **Checks:** confirmed the exact target values appear in the A1 contract and technical/setup references; `git diff --check` passed. No build or gameplay automation was run for this documentation update.
+- **Full verification:** A1 verification remains deferred until its final implementation task.
+- **Observable impact/authority:** planning and documentation now specify the three pick acquisition recipes. Runtime recipe JSON is unchanged, so no gameplay, network authority, replication, or save behavior changed.
+- **Known limitations/remaining scope:** current recipe JSON still has the previous costs. Apply the Bronze/Iron costs with A1 metal production so Bronze Pick remains obtainable and Iron Ore remains reachable. The A1 child order is unchanged.
+- **Next eligible task:** A1 Copper and Tin harvest nodes (Stone Pick minimum; 3 matching ore per node).

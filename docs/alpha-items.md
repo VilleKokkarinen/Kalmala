@@ -102,11 +102,13 @@ coverage, not a count of obtainable items or the assembled runtime catalogue.
 - The generated biome contract maps Mossy Mire harvest candidates to
   `mire-bog-iron`. `BuildServerSelection` maps that source to 1 `Iron` per node
   with a Bronze-tier mining minimum. The current Forge `BronzePick` acquisition
-  costs 4 Wood + 4 Stone. The A1 review retains that pickaxe recipe, so its
-  planned 3-IronOre-per-node replacement remains Bronze-Pick-gated without a
-  Bronze-bar prerequisite. The design sentence claiming Iron has no natural
-  source was stale. `IronOre` is catalogued but has no current source or
-  refining recipe; A1 implementation remains pending.
+  costs 4 Wood + 4 Stone. The user-directed A1 targets are Stone Pick for 10
+  Wood + 5 Stone, Bronze Pick for 10 Wood + 10 Bronze, and Iron Pick for 10
+  Wood + 10 Iron. Thus the planned 3-IronOre-per-node replacement remains
+  Bronze-Pick-gated and now requires Bronze production. Keep the current direct
+  Iron reward and recipe until that A1 route is usable. The design sentence
+  claiming Iron has no natural source was stale. `IronOre` is catalogued but
+  has no current source or refining recipe; A1 implementation remains pending.
 - The user-directed Forge `IronAxe` acquisition now costs 4 Iron + 3 Lightwood,
   resolving the cycle with the only current Densewood source: Elderwood
   ironheart trees gated by the Iron Axe tier. Its level-one upgrade also costs
