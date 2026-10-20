@@ -7,6 +7,7 @@
 #include "KalmalaTerrainHeightSampler.h"
 #include "KalmalaOceanSampler.h"
 #include "KalmalaShimmeringLakeSampler.h"
+#include "KalmalaEnvironmentalExposureSampler.h"
 #include "KalmalaBiomeClassifier.h"
 #include "KalmalaBiomeContentContract.h"
 
@@ -101,6 +102,7 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
         const FVector2D SpatialKeyOrigin = FVector2D(SpatialKey) * SpatialKeySize;
         bool bAddedMeadowCarrotPatch = false;
         bool bAddedMeadowPotatoPatch = false;
+        bool bAddedLakesRutabagaPatch = false;
         // Wildlife candidates deliberately have a small, fixed retry budget.  The
         // server derives all candidates, rejects water and unsafe slopes, and
         // keeps the candidate seed in the sparse-delta ID.  Clients never choose
@@ -141,6 +143,16 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
                     PersistentSeed = Mix(CandidateSeed ^ 0xA0B070A71019ull);
                     bAddedMeadowPotatoPatch = true;
                 }
+            }
+            else if (Kind == EKalmalaWorldPopulationKind::HarvestNode && Biome == EKalmalaBiome::ShimmeringLakes
+                && !bAddedLakesRutabagaPatch && IsTerrainSafeDiscoveryLocation(Config, Position)
+                && FKalmalaEnvironmentalExposureSampler::Sample(Config, Position).bIsShoreline)
+            {
+                // Keep one hand-gathered crop on dry, gently sloped Lakes land
+                // within the shared shoreline probe of generated lake water.
+                ContentId = TEXT("lakes-wild-rutabaga-patch");
+                PersistentSeed = Mix(CandidateSeed ^ 0xA0B07ABA71019ull);
+                bAddedLakesRutabagaPatch = true;
             }
             Spawns.Add({ Kind, SpatialKey, PersistentSeed, FVector(Position.X, Position.Y, FKalmalaTerrainHeightSampler::SampleHeight(Config, Position)), ContentId });
         }

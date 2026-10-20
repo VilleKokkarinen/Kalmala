@@ -1006,6 +1006,80 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
         }
     }
 
+    {
+        const FVector RutabagaLocation(20000.0f, 0.0f, 0.0f);
+        AKalmalaCharacter* RutabagaPawn = World->SpawnActor<AKalmalaCharacter>(RutabagaLocation, FRotator::ZeroRotator);
+        AKalmalaHarvestNode* RutabagaNode = World->SpawnActor<AKalmalaHarvestNode>(RutabagaLocation, FRotator::ZeroRotator);
+        APlayerState* RutabagaPlayerState = World->SpawnActor<APlayerState>();
+        if (TestNotNull(TEXT("Wild rutabaga fixture has the server GameMode"), PlantGameMode)
+            && TestNotNull(TEXT("Wild rutabaga fixture pawn spawned"), RutabagaPawn)
+            && TestNotNull(TEXT("Wild rutabaga patch spawned"), RutabagaNode)
+            && TestNotNull(TEXT("Wild rutabaga fixture has an authenticated player state"), RutabagaPlayerState))
+        {
+            const FUniqueNetIdStringRef RutabagaNetId = FUniqueNetIdString::Create(
+                TEXT("a0-wild-rutabaga-acceptance"), FName(TEXT("KalmalaA0WildRutabagaAcceptanceTest")));
+            RutabagaPlayerState->SetUniqueId(FUniqueNetIdRepl(*RutabagaNetId));
+            RutabagaPawn->SetPlayerState(RutabagaPlayerState);
+
+            FKalmalaWorldPopulationSpawn RutabagaSpawn;
+            RutabagaSpawn.Kind = EKalmalaWorldPopulationKind::HarvestNode;
+            RutabagaSpawn.SpatialKey = FKalmalaWorldPopulationLayout::GetSpatialKey(
+                FVector2D(RutabagaLocation.X, RutabagaLocation.Y));
+            RutabagaSpawn.SpawnSeed = 715005;
+            RutabagaSpawn.Location = RutabagaLocation;
+            RutabagaSpawn.ContentId = TEXT("lakes-wild-rutabaga-patch");
+            RutabagaNode->InitializeServer(RutabagaSpawn);
+            FKalmalaToolServerSelection RutabagaToolSelection;
+            TestEqual(TEXT("Wild rutabaga fixture retains its canonical source identity"),
+                RutabagaNode->GetGatheringSourceId(), RutabagaSpawn.ContentId);
+            TestFalse(TEXT("Wild rutabaga patch has a stable population identity"), RutabagaNode->GetPersistentSpawnId().IsEmpty());
+            TestEqual(TEXT("Wild rutabaga interaction prompt names its primary reward"),
+                RutabagaNode->GetHarvestItemId(), FName(TEXT("Rutabaga")));
+            TestFalse(TEXT("Wild rutabaga patch does not require a tool selection"),
+                FKalmalaToolLifecycleContract::BuildServerSelection(RutabagaSpawn.ContentId, RutabagaToolSelection));
+
+            auto* RutabagaInventory = RutabagaPawn->GetInventoryComponent();
+            const int32 RutabagaBefore = RutabagaInventory->GetQuantity(TEXT("Rutabaga"));
+            const int32 RutabagaSeedBefore = RutabagaInventory->GetQuantity(TEXT("RutabagaSeed"));
+            auto* RutabagaPopulationSave = NewObject<UKalmalaWorldPopulationSaveGame>(World);
+            RutabagaPopulationSave->InitializeForWorld(WorldState->GetWorldGenerationConfig());
+            PlantGameMode->PopulationSaveGame = RutabagaPopulationSave;
+            int32 RutabagaPopulationWrites = 0;
+            PlantGameMode->PopulationSaveWriterForTests = [&](UKalmalaWorldPopulationSaveGame* Saved,
+                const FString&, int32)
+            {
+                ++RutabagaPopulationWrites;
+                TestTrue(TEXT("Wild rutabaga depletion uses the matching world save"),
+                    Saved == RutabagaPopulationSave && Saved->MatchesWorld(WorldState->GetWorldGenerationConfig()));
+            };
+            RutabagaNode->OnHarvested.AddUObject(PlantGameMode, &AKalmalaGameMode::RecordHarvestedSpawn);
+            TestTrue(TEXT("A player can hand-gather wild rutabagas without a tool"), RutabagaNode->InteractWithToolIntentFromServer(
+                RutabagaPawn, 100.0f, 250.0f, NAME_None, static_cast<uint8>(EKalmalaToolAction::Gathering)));
+            TestEqual(TEXT("Wild rutabaga harvest grants exactly two Rutabagas"),
+                RutabagaInventory->GetQuantity(TEXT("Rutabaga")), RutabagaBefore + 2);
+            TestEqual(TEXT("Wild rutabaga harvest grants exactly one Rutabaga Seed"),
+                RutabagaInventory->GetQuantity(TEXT("RutabagaSeed")), RutabagaSeedBefore + 1);
+            TestTrue(TEXT("Wild rutabaga depletion is saved under the existing harvest ledger"),
+                RutabagaPopulationSave->IsHarvested(RutabagaNode->GetPersistentSpawnId()));
+            TestEqual(TEXT("Wild rutabaga harvest writes depletion once"), RutabagaPopulationWrites, 1);
+            TestFalse(TEXT("Wild rutabaga harvest cannot grant twice"), RutabagaNode->InteractWithToolIntentFromServer(
+                RutabagaPawn, 100.0f, 250.0f, NAME_None, static_cast<uint8>(EKalmalaToolAction::Gathering)));
+            TestEqual(TEXT("Duplicate harvest leaves Rutabaga unchanged"),
+                RutabagaInventory->GetQuantity(TEXT("Rutabaga")), RutabagaBefore + 2);
+            TestEqual(TEXT("Duplicate harvest leaves Rutabaga Seed unchanged"),
+                RutabagaInventory->GetQuantity(TEXT("RutabagaSeed")), RutabagaSeedBefore + 1);
+            TestEqual(TEXT("Duplicate rutabaga harvest does not rewrite depletion"), RutabagaPopulationWrites, 1);
+            PlantGameMode->PopulationSaveWriterForTests = {};
+            PlantGameMode->PopulationSaveGame = nullptr;
+            RutabagaNode->OnHarvested.Clear();
+            RutabagaNode->Destroy();
+        }
+        else
+        {
+            bAllFixturesValid = false;
+        }
+    }
+
     OtherWorld->DestroyWorld(false);
     World->DestroyWorld(false);
     return bAllFixturesValid;

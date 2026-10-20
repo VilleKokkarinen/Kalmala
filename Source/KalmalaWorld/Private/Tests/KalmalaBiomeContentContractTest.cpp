@@ -2,6 +2,7 @@
 
 #include "KalmalaBiomeContentContract.h"
 #include "KalmalaBiomeClassifier.h"
+#include "KalmalaEnvironmentalExposureSampler.h"
 #include "KalmalaWorldFieldSampler.h"
 #include "KalmalaWorldPopulationLayout.h"
 #include "Misc/AutomationTest.h"
@@ -74,6 +75,12 @@ bool FKalmalaBiomeContentContractTest::RunTest(const FString& Parameters)
         FKalmalaBiomeContentContract::GetGatheringPresentationId(TEXT("meadows-wild-potato-patch")), FName(TEXT("potato-patch-harvest")));
     TestTrue(TEXT("Wild potatoes are hand-gathered without a tool"),
         FKalmalaBiomeContentContract::IsHandGatherableSourceId(TEXT("meadows-wild-potato-patch")));
+    TestTrue(TEXT("Wild Lakes rutabagas have a valid gathering presentation"),
+        FKalmalaBiomeContentContract::IsValidGatheringSourceId(TEXT("lakes-wild-rutabaga-patch")));
+    TestEqual(TEXT("Wild rutabagas use their original procedural patch presentation"),
+        FKalmalaBiomeContentContract::GetGatheringPresentationId(TEXT("lakes-wild-rutabaga-patch")), FName(TEXT("rutabaga-patch-harvest")));
+    TestTrue(TEXT("Wild rutabagas are hand-gathered without a tool"),
+        FKalmalaBiomeContentContract::IsHandGatherableSourceId(TEXT("lakes-wild-rutabaga-patch")));
     TestFalse(TEXT("Unknown sources are not hand-gatherable"),
         FKalmalaBiomeContentContract::IsHandGatherableSourceId(TEXT("forged-source")));
     TestFalse(TEXT("Ocean cannot become an optional land rare source"), FKalmalaBiomeContentContract::IsOptionalRareDiscoverySource(EKalmalaBiome::Ocean));
@@ -85,6 +92,7 @@ bool FKalmalaBiomeContentContractTest::RunTest(const FString& Parameters)
     bool bSawGatheringDescriptor = false;
     bool bSawWildCarrotDescriptor = false;
     bool bSawWildPotatoDescriptor = false;
+    bool bSawWildRutabagaDescriptor = false;
     bool bSawCreatureDescriptor = false;
     bool bSawRareDiscoveryDescriptor = false;
     for (int32 Y = -4; Y <= 4; ++Y)
@@ -153,6 +161,40 @@ bool FKalmalaBiomeContentContractTest::RunTest(const FString& Parameters)
                         bSawWildPotatoDescriptor = true;
                         continue;
                     }
+                    if (Spawn.ContentId == TEXT("lakes-wild-rutabaga-patch"))
+                    {
+                        TestEqual(TEXT("Wild rutabaga source is only selected for Shimmering Lakes"), Biome, EKalmalaBiome::ShimmeringLakes);
+                        TestTrue(TEXT("Wild rutabaga source is a harvest node"), Kind == EKalmalaWorldPopulationKind::HarvestNode);
+                        const FVector2D RutabagaPosition(Spawn.Location.X, Spawn.Location.Y);
+                        TestFalse(TEXT("Wild rutabaga patch stays out of ocean water"), FKalmalaOceanSampler::Sample(Config, RutabagaPosition).IsWater());
+                        TestFalse(TEXT("Wild rutabaga patch occupies dry land"), FKalmalaShimmeringLakeSampler::IsWater(Config, RutabagaPosition));
+                        TestTrue(TEXT("Wild rutabaga patch is on a generated lake bank"),
+                            FKalmalaEnvironmentalExposureSampler::Sample(Config, RutabagaPosition).bIsShoreline);
+                        TestTrue(TEXT("Wild rutabaga patch uses safe terrain slope"),
+                            FKalmalaTerrainHeightSampler::SampleSurfaceNormal(Config, RutabagaPosition).Z >= 0.88f);
+                        const auto RepeatedSpawns = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(Config, SpatialKey, Kind);
+                        const FString PersistentId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Spawn);
+                        int32 SameKeyRutabagaCount = 0;
+                        for (const FKalmalaWorldPopulationSpawn& Candidate : RepeatedSpawns)
+                            if (Candidate.ContentId == Spawn.ContentId) ++SameKeyRutabagaCount;
+                        TestEqual(TEXT("At most one wild rutabaga patch occupies each spatial key"), SameKeyRutabagaCount, 1);
+                        TestTrue(TEXT("Wild rutabaga placement and identity repeat for the same seed and key"),
+                            RepeatedSpawns.ContainsByPredicate([&Spawn, &PersistentId](const FKalmalaWorldPopulationSpawn& Candidate)
+                            {
+                                return Candidate.ContentId == Spawn.ContentId
+                                    && Candidate.Location.Equals(Spawn.Location, 0.01f)
+                                    && FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Candidate) == PersistentId;
+                            }));
+                        TestFalse(TEXT("Wild rutabaga patch does not replace a Meadow crop at the same position"),
+                            RepeatedSpawns.ContainsByPredicate([&Spawn](const FKalmalaWorldPopulationSpawn& Candidate)
+                            {
+                                return (Candidate.ContentId == TEXT("meadows-wild-carrot-patch")
+                                    || Candidate.ContentId == TEXT("meadows-wild-potato-patch"))
+                                    && Candidate.Location.Equals(Spawn.Location, 0.01f);
+                            }));
+                        bSawWildRutabagaDescriptor = true;
+                        continue;
+                    }
                     const EKalmalaBiomeContentKind ContentKind = Kind == EKalmalaWorldPopulationKind::HarvestNode
                         ? EKalmalaBiomeContentKind::GatheringSource
                         : EKalmalaBiomeContentKind::CreatureNiche;
@@ -180,6 +222,7 @@ bool FKalmalaBiomeContentContractTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("The deterministic neighborhood exposes a gathering identity"), bSawGatheringDescriptor);
     TestTrue(TEXT("The deterministic neighborhood exposes the A0 wild carrot source"), bSawWildCarrotDescriptor);
     TestTrue(TEXT("The deterministic neighborhood exposes the A0 wild potato source"), bSawWildPotatoDescriptor);
+    TestTrue(TEXT("The deterministic neighborhood exposes the A0 wild rutabaga source"), bSawWildRutabagaDescriptor);
     TestTrue(TEXT("The deterministic neighborhood exposes a creature niche identity"), bSawCreatureDescriptor);
     TestTrue(TEXT("The deterministic neighborhood exposes an optional rare identity"), bSawRareDiscoveryDescriptor);
     return true;

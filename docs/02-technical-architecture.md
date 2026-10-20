@@ -755,10 +755,18 @@ collision-free procedural meshes use green foliage with orange carrot roots or
 tan potato tubers, and the node's existing interaction sphere remains the
 target.
 
+The first dry, safe Shimmering Lakes candidate within the shared 400 cm
+cardinal shoreline probe in each eligible key becomes a rutabaga patch. It is
+classified as Shimmering Lakes land, outside lake and ocean water, and uses the
+stable identity domain `Mix(candidate-seed XOR 0xA0B07ABA71019)`. The original
+procedural presentation shows purple shoulders, pale roots, and foliage. Other
+Lakes candidates keep their normal source identity.
+
 The server retraces each interaction and accepts hand gathering without a
 tool. Carrot patches preflight 2 `Carrot` and 1 `CarrotSeed`; potato patches
-preflight exactly 2 `Potato` and grant no `PotatoSeed`. Each complete result
-must fit before inventory/player persistence and stable-identity depletion are
+preflight exactly 2 `Potato` and grant no `PotatoSeed`; rutabaga patches
+preflight 2 `Rutabaga` and 1 `RutabagaSeed`. Each complete result must fit
+before inventory/player persistence and stable-identity depletion are
 committed through the existing population save callback. A full pack, failed
 player-state persistence, invalid range, or repeated request leaves the patch
 available and grants no item. Potato tuber versus seed propagation remains an

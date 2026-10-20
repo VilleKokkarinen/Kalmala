@@ -264,7 +264,8 @@ void AKalmalaHarvestNode::Interact_Implementation(AKalmalaCharacter* Interactor)
         };
         const FName RewardItemId = GetHarvestItemId();
         const FName SeedItemId = GatheringSourceId == TEXT("meadows-wild-carrot-patch")
-            ? FName(TEXT("CarrotSeed")) : NAME_None;
+            ? FName(TEXT("CarrotSeed"))
+            : GatheringSourceId == TEXT("lakes-wild-rutabaga-patch") ? FName(TEXT("RutabagaSeed")) : NAME_None;
         if (RewardItemId.IsNone()
             || !UKalmalaInventoryComponent::BuildGrant(Before, RewardItemId, 2, AfterReward, Reason))
         {
@@ -514,7 +515,11 @@ FName AKalmalaHarvestNode::GetHarvestItemId() const
 {
     if (PersistentSpawnId.IsEmpty()) return NAME_None;
     if (IsHandGatherablePatch())
-        return GatheringSourceId == TEXT("meadows-wild-potato-patch") ? FName(TEXT("Potato")) : FName(TEXT("Carrot"));
+    {
+        if (GatheringSourceId == TEXT("meadows-wild-potato-patch")) return FName(TEXT("Potato"));
+        if (GatheringSourceId == TEXT("lakes-wild-rutabaga-patch")) return FName(TEXT("Rutabaga"));
+        return FName(TEXT("Carrot"));
+    }
     FKalmalaToolServerSelection Selection;
     if (FKalmalaToolLifecycleContract::BuildServerSelection(GatheringSourceId, Selection))
         return Selection.RewardItemId;
@@ -684,6 +689,21 @@ void AKalmalaHarvestNode::BuildSourcePresentation()
         AddTaperedBox(Vertices, Triangles, Colors, FVector(-13.0f, -2.0f, 8.0f), FVector(3.0f, 5.0f, 0.0f), 24.0f, 0.18f, -18.0f, LeafColor);
         AddTaperedBox(Vertices, Triangles, Colors, FVector(5.0f, 8.0f, 9.0f), FVector(3.0f, 5.0f, 0.0f), 27.0f, 0.18f, 13.0f, LeafColor);
         AddTaperedBox(Vertices, Triangles, Colors, FVector(18.0f, -9.0f, 7.0f), FVector(3.0f, 5.0f, 0.0f), 22.0f, 0.18f, 24.0f, LeafColor);
+    }
+    else if (PresentationId == TEXT("rutabaga-patch-harvest"))
+    {
+        const FLinearColor RutabagaColor(0.62f, 0.28f, 0.48f);
+        const FLinearColor RootColor(0.88f, 0.78f, 0.65f);
+        const FLinearColor LeafColor(0.26f, 0.48f, 0.18f);
+        AddTaperedBox(Vertices, Triangles, Colors, FVector(-15.0f, -3.0f, 0.0f), FVector(8.0f, 6.0f, 0.0f), 13.0f, 0.78f, -8.0f, RutabagaColor);
+        AddTaperedBox(Vertices, Triangles, Colors, FVector(5.0f, 8.0f, 0.0f), FVector(8.0f, 6.0f, 0.0f), 14.0f, 0.76f, 7.0f, RutabagaColor);
+        AddTaperedBox(Vertices, Triangles, Colors, FVector(18.0f, -9.0f, 0.0f), FVector(7.0f, 6.0f, 0.0f), 12.0f, 0.8f, 15.0f, RutabagaColor);
+        AddTaperedBox(Vertices, Triangles, Colors, FVector(-15.0f, -3.0f, 10.0f), FVector(4.0f, 3.0f, 0.0f), 6.0f, 0.85f, -8.0f, RootColor);
+        AddTaperedBox(Vertices, Triangles, Colors, FVector(5.0f, 8.0f, 11.0f), FVector(4.0f, 3.0f, 0.0f), 6.0f, 0.85f, 7.0f, RootColor);
+        AddTaperedBox(Vertices, Triangles, Colors, FVector(18.0f, -9.0f, 9.0f), FVector(3.5f, 3.0f, 0.0f), 6.0f, 0.85f, 15.0f, RootColor);
+        AddTaperedBox(Vertices, Triangles, Colors, FVector(-15.0f, -3.0f, 12.0f), FVector(3.0f, 6.0f, 0.0f), 29.0f, 0.16f, -20.0f, LeafColor);
+        AddTaperedBox(Vertices, Triangles, Colors, FVector(5.0f, 8.0f, 13.0f), FVector(3.0f, 6.0f, 0.0f), 31.0f, 0.16f, 10.0f, LeafColor);
+        AddTaperedBox(Vertices, Triangles, Colors, FVector(18.0f, -9.0f, 11.0f), FVector(3.0f, 6.0f, 0.0f), 27.0f, 0.16f, 24.0f, LeafColor);
     }
     else
     {
