@@ -3,6 +3,7 @@
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaToolLifecycleContract.h"
 #include "KalmalaToolCatalogue.h"
+#include "KalmalaRecipeCatalogue.h"
 #include "KalmalaConstructionActor.h"
 #include "KalmalaCharacter.h"
 #include "KalmalaInventoryComponent.h"
@@ -26,6 +27,15 @@ namespace
         if (Value == TEXT("Workbench")) return EKalmalaToolStationKind::Workbench;
         if (Value == TEXT("Forge")) return EKalmalaToolStationKind::Forge;
         return EKalmalaToolStationKind::None;
+    }
+
+    bool HasInventoryHammerAcquisition()
+    {
+        const UKalmalaRecipeCatalogue* Recipes = UKalmalaRecipeCatalogue::Get();
+        if (!Recipes || !Recipes->IsValidCatalogue()) return false;
+        const FKalmalaRecipe* Recipe = Recipes->Find(TEXT("BuildingHammer"));
+        return Recipe && Recipe->bEnabled && Recipe->Output == TEXT("ConstructionHammer")
+            && Recipe->BuildableOutput.IsNone() && Recipe->RequiredStation.IsEmpty();
     }
 
 
@@ -91,8 +101,9 @@ namespace
             TMap<FName, int32> RecipeOrder;
             for (int32 Index = 0; Index < Catalogue->Recipes.Num(); ++Index)
                 RecipeOrder.Add(Catalogue->Recipes[Index].ItemId, Index);
-            // Spawn-granted equipment can have upgrades without an acquisition recipe.
-            // Keep authored acquisition order, then append upgrade-only items in load order.
+            // The Construction Hammer is granted by the ordinary inventory recipe,
+            // not a station-acquisition record. Keep station acquisition order, then
+            // append upgrade-only items in load order.
             for (const FKalmalaToolProgressionEntry& Entry : LoadedEntries)
             {
                 if (!RecipeOrder.Contains(Entry.ItemId))
@@ -200,9 +211,11 @@ bool FKalmalaToolProgressionContract::IsCatalogueValid()
     TSet<FName> SeenAttachmentIds;
     for (const FKalmalaStationAttachmentDefinition& Attachment : Attachments)
     {
+        const FKalmalaItemDefinition* AttachmentItem = ItemCatalogue->FindBuildable(Attachment.KitId);
+        const FKalmalaItemDefinition* StationItem = ItemCatalogue->FindBuildable(Attachment.StationKitId);
         if (Attachment.KitId.IsNone() || SeenAttachmentIds.Contains(Attachment.KitId)
             || GetBaseStationLevel(Attachment.StationKitId) != 1
-            || !ItemCatalogue->IsValidStack(Attachment.KitId, 1)) return false;
+            || AttachmentItem == nullptr || StationItem == nullptr) return false;
         SeenAttachmentIds.Add(Attachment.KitId);
     }
 
@@ -212,16 +225,13 @@ bool FKalmalaToolProgressionContract::IsCatalogueValid()
         const FKalmalaToolDefinition* Tool = FKalmalaToolLifecycleContract::FindDefinition(Entry.ItemId);
         const FString EntryId = FString::Printf(TEXT("%s:%d"), *Entry.ItemId.ToString(), Entry.TargetToolLevel);
         if (Entry.ItemId.IsNone() || SeenEntryIds.Contains(EntryId) || Tool == nullptr
-            || FKalmalaToolLifecycleContract::GetToolTier(Tool->Kind) == EKalmalaToolTier::None
+            || !FKalmalaToolLifecycleContract::IsKnownTool(Tool->Kind)
             || Entry.TargetToolLevel <= 0 || Entry.TargetToolLevel > MaxStationToolLevel
             || Entry.RequiredStationLevel != Entry.TargetToolLevel
             || (Entry.RequiredStation != EKalmalaToolStationKind::Workbench
                 && Entry.RequiredStation != EKalmalaToolStationKind::Forge)
             || Entry.RequiredSkill != EKalmalaSkill::None || Entry.RequiredSkillLevel != 0
-            || Entry.MaterialCosts.IsEmpty() || Entry.MaterialCosts.Num() > 4)
-        {
-            return false;
-        }
+            || Entry.MaterialCosts.IsEmpty() || Entry.MaterialCosts.Num() > 4) return false;
 
         SeenEntryIds.Add(EntryId);
         TSet<FName> SeenCostIds;
@@ -239,11 +249,11 @@ bool FKalmalaToolProgressionContract::IsCatalogueValid()
         else
         {
             const FKalmalaToolProgressionEntry* Previous = FindEntry(Entry.PreviousItemId, Entry.PreviousToolLevel);
-            if (Entry.PreviousItemId != Entry.ItemId || Previous == nullptr
+            const bool bStartsFromInventoryHammer = Previous == nullptr && Entry.ItemId == TEXT("ConstructionHammer")
+                && Entry.PreviousToolLevel == 1 && HasInventoryHammerAcquisition();
+            if (Entry.PreviousItemId != Entry.ItemId || (Previous == nullptr && !bStartsFromInventoryHammer)
                 || Entry.TargetToolLevel != Entry.PreviousToolLevel + 1)
-            {
                 return false;
-            }
         }
     }
 

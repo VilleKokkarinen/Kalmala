@@ -222,6 +222,9 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Rejected scaling returns no partial costs"), ScaledCosts.IsEmpty());
 
     const TArray<FKalmalaToolProgressionEntry>& Entries = FKalmalaToolProgressionContract::GetEntries();
+    TestEqual(TEXT("Progression bound covers every profile through the station level cap"),
+        FKalmalaToolProgressionContract::MaxToolProgressionEntries,
+        UKalmalaToolCatalogue::MaxProfiles * FKalmalaToolProgressionContract::MaxStationToolLevel);
     TestTrue(TEXT("Crafted tool progression catalogue is bounded and internally valid"),
         FKalmalaToolProgressionContract::IsCatalogueValid());
     int32 ExpectedProgressionEntryCount = AuthoredCatalogue ? AuthoredCatalogue->Recipes.Num() : 0;
@@ -249,6 +252,24 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
                 { return Cost.ItemId == TEXT("Wood") && Cost.Quantity == 5; })
             && BowLevelTwoEntry->MaterialCosts.ContainsByPredicate([](const FKalmalaToolMaterialCost& Cost)
                 { return Cost.ItemId == TEXT("BowString") && Cost.Quantity == 1; }));
+    }
+    const FKalmalaToolProgressionEntry* ConstructionHammerLevelTwoEntry =
+        FKalmalaToolProgressionContract::FindEntry(TEXT("ConstructionHammer"), 2);
+    const FKalmalaRecipe* ConstructionHammerRecipe = UKalmalaRecipeCatalogue::Get()->Find(TEXT("BuildingHammer"));
+    TestNotNull(TEXT("Construction Hammer has an inventory acquisition recipe"), ConstructionHammerRecipe);
+    if (ConstructionHammerRecipe)
+    {
+        TestTrue(TEXT("Construction Hammer recipe is enabled and station-free"),
+            ConstructionHammerRecipe->bEnabled && ConstructionHammerRecipe->Output == TEXT("ConstructionHammer")
+            && ConstructionHammerRecipe->RequiredStation.IsEmpty());
+    }
+    TestNotNull(TEXT("Inventory-crafted Construction Hammer has a level-two progression entry"), ConstructionHammerLevelTwoEntry);
+    if (ConstructionHammerLevelTwoEntry)
+    {
+        TestEqual(TEXT("Level-two entry upgrades the inventory-crafted level-one item"),
+            ConstructionHammerLevelTwoEntry->PreviousItemId, FName(TEXT("ConstructionHammer")));
+        TestEqual(TEXT("Level-two entry requires the crafted hammer at level one"),
+            ConstructionHammerLevelTwoEntry->PreviousToolLevel, 1);
     }
     TestTrue(TEXT("Generated entries remain bounded"), Entries.Num() <= FKalmalaToolProgressionContract::MaxToolProgressionEntries);
     for (const TPair<FName, FName>& GearAndStation : GearStations)

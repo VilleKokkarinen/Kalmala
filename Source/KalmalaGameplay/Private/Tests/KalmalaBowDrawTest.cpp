@@ -42,7 +42,9 @@ bool FKalmalaBowDrawTest::RunTest(const FString& Parameters)
     auto* Pawn = World->SpawnActor<AKalmalaCharacter>();
     Pawn->DispatchBeginPlay();
     auto* PlayerState = World->SpawnActor<APlayerState>();
-    const FUniqueNetIdStringRef NetId = FUniqueNetIdString::Create(TEXT("bow-acceptance"), FName(TEXT("KalmalaBowTest")));
+    const FUniqueNetIdStringRef NetId = FUniqueNetIdString::Create(
+        FString::Printf(TEXT("bow-acceptance-%s"), *FGuid::NewGuid().ToString(EGuidFormats::Digits)),
+        FName(TEXT("KalmalaBowTest")));
     const FUniqueNetIdRef BaseNetId = NetId;
     PlayerState->SetUniqueId(FUniqueNetIdRepl(BaseNetId));
     Pawn->SetPlayerState(PlayerState);

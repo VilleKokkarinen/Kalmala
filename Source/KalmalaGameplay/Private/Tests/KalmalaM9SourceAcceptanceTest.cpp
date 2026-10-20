@@ -39,6 +39,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
 {
+    const FString TestRunId = FGuid::NewGuid().ToString(EGuidFormats::Digits);
     // Synchronous fixture world ticks need distinct timer frames; restore the
     // enclosing editor frame when the isolated worlds have been destroyed.
     TGuardValue<uint64> FrameGuard(GFrameCounter, GFrameCounter);
@@ -174,7 +175,8 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
             continue;
         }
         const FUniqueNetIdStringRef TestNetId = FUniqueNetIdString::Create(
-            FString::Printf(TEXT("m9-source-acceptance-%d"), Index), FName(TEXT("KalmalaM9SourceAcceptanceTest")));
+            FString::Printf(TEXT("m9-source-acceptance-%s-%d"), *TestRunId, Index),
+            FName(TEXT("KalmalaM9SourceAcceptanceTest")));
         PlayerState->SetUniqueId(FUniqueNetIdRepl(*TestNetId));
         Pawn->SetPlayerState(PlayerState);
 
@@ -584,7 +586,8 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
                 continue;
             }
             const FUniqueNetIdStringRef RivalId = FUniqueNetIdString::Create(
-                FString::Printf(TEXT("m9-forest-rival-%d"), Index), FName(TEXT("KalmalaM9SourceAcceptanceTest")));
+                FString::Printf(TEXT("m9-forest-rival-%s-%d"), *TestRunId, Index),
+                FName(TEXT("KalmalaM9SourceAcceptanceTest")));
             RivalState->SetUniqueId(FUniqueNetIdRepl(*RivalId));
             Rival->SetPlayerState(RivalState);
             Rival->SetActorLocation(Node->GetHarvestInteractionLocation() + FVector(0, -130, 88));
@@ -795,7 +798,8 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
         && TestNotNull(TEXT("Wild carrot fixture has an authenticated player state"), CarrotPlayerState))
     {
         const FUniqueNetIdStringRef CarrotNetId = FUniqueNetIdString::Create(
-            TEXT("a0-wild-carrot-acceptance"), FName(TEXT("KalmalaA0WildCarrotAcceptanceTest")));
+            FString::Printf(TEXT("a0-wild-carrot-%s"), *TestRunId),
+            FName(TEXT("KalmalaA0WildCarrotAcceptanceTest")));
         CarrotPlayerState->SetUniqueId(FUniqueNetIdRepl(*CarrotNetId));
         CarrotPawn->SetPlayerState(CarrotPlayerState);
 
@@ -906,7 +910,8 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
             && TestNotNull(TEXT("Wild potato fixture has an authenticated player state"), PotatoPlayerState))
         {
             const FUniqueNetIdStringRef PotatoNetId = FUniqueNetIdString::Create(
-                TEXT("a0-wild-potato-acceptance"), FName(TEXT("KalmalaA0WildPotatoAcceptanceTest")));
+                FString::Printf(TEXT("a0-wild-potato-%s"), *TestRunId),
+                FName(TEXT("KalmalaA0WildPotatoAcceptanceTest")));
             PotatoPlayerState->SetUniqueId(FUniqueNetIdRepl(*PotatoNetId));
             PotatoPawn->SetPlayerState(PotatoPlayerState);
 
@@ -1017,7 +1022,8 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
             && TestNotNull(TEXT("Wild rutabaga fixture has an authenticated player state"), RutabagaPlayerState))
         {
             const FUniqueNetIdStringRef RutabagaNetId = FUniqueNetIdString::Create(
-                TEXT("a0-wild-rutabaga-acceptance"), FName(TEXT("KalmalaA0WildRutabagaAcceptanceTest")));
+                FString::Printf(TEXT("a0-wild-rutabaga-%s"), *TestRunId),
+                FName(TEXT("KalmalaA0WildRutabagaAcceptanceTest")));
             RutabagaPlayerState->SetUniqueId(FUniqueNetIdRepl(*RutabagaNetId));
             RutabagaPawn->SetPlayerState(RutabagaPlayerState);
 
@@ -1091,7 +1097,8 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
             && TestNotNull(TEXT("Wild onion fixture has an authenticated player state"), OnionPlayerState))
         {
             const FUniqueNetIdStringRef OnionNetId = FUniqueNetIdString::Create(
-                TEXT("a0-wild-onion-acceptance"), FName(TEXT("KalmalaA0WildOnionAcceptanceTest")));
+                FString::Printf(TEXT("a0-wild-onion-%s"), *TestRunId),
+                FName(TEXT("KalmalaA0WildOnionAcceptanceTest")));
             OnionPlayerState->SetUniqueId(FUniqueNetIdRepl(*OnionNetId));
             OnionPawn->SetPlayerState(OnionPlayerState);
 

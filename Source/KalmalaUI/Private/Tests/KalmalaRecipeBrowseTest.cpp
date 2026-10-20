@@ -130,6 +130,14 @@ bool FKalmalaRecipeBrowseTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Hearth is a camp utility"), Widget->GetBuildBrowseGroup(TEXT("CampfireKit")), 6);
     TestEqual(TEXT("Unknown output is excluded"), Widget->GetBuildBrowseGroup(TEXT("UnknownKit")), 0);
     int32 PlayerRecipes = 0;
+    const FKalmalaRecipe* InventoryHammer = FindRecipe(TEXT("BuildingHammer"));
+    if (TestNotNull(TEXT("Inventory menu has the Building Hammer recipe"), InventoryHammer))
+    {
+        TestTrue(TEXT("Inventory menu recipe crafts the Construction Hammer without a station"),
+            Widget->CanInventoryMenuCraftRecipe(*InventoryHammer)
+            && InventoryHammer->bEnabled && InventoryHammer->Output == TEXT("ConstructionHammer")
+            && InventoryHammer->RequiredStation.IsEmpty());
+    }
     for (const FKalmalaRecipe& Recipe : Recipes)
     {
         const bool bPlayerRecipe = Widget->CanInventoryMenuCraftRecipe(Recipe);

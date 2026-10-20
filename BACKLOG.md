@@ -117,7 +117,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [x] Wild carrots: Meadows, hand-pick 2 Carrot + 1 Carrot Seed per patch.
   - [x] Wild potatoes: Meadows, hand-pick 2 Potato per patch; no Potato Seed.
   - [x] Wild rutabaga: Shimmering Lakes dry banks, hand-pick 2 Rutabaga + 1 Rutabaga Seed per patch.
-  - [ ] Wild onions: Elderwood, hand-pick 2 Onion + 1 Onion Seed per patch.
+  - [x] Wild onions: Elderwood, hand-pick 2 Onion + 1 Onion Seed per patch.
 
   Preserve existing Wood, Densewood, Stone, hides/meat, Amber and Frost Salt sources.
   New vegetable seeds become plantable in A7.
