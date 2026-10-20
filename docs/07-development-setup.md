@@ -1832,6 +1832,14 @@ only crafting RPC fields.
 
 The A1 Copper/Tin source checks use these same server selections: Bronze-grade
 ore requires at least a Stone Pick and yields three matching pieces per node.
+The deterministic Stone-outcrop pass adds at most one dry, slope-safe node in
+each of the six land biomes per 6,000 cm key where that biome has no slate
+source, preserving existing candidate sources and keeping 250 cm from other
+harvest descriptors. The biome-content
+contract regression covers Meadows through Thunder Mountains, stable identity,
+one-per-biome-per-key, safe terrain, and the existing one-Stone mining reward.
+The bounded extra-candidate search means an individual key can still contain
+no outcrop; Ocean is excluded.
 The maximum mineable resource tiers are Bronze for Stone Pick and Iron for
 Bronze or Iron Pick. `Kalmala.Gameplay.Tools.LifecycleContract` covers the
 three source rewards and ceilings; `Kalmala.Gameplay.Harvest.ResourceFamilyGates`
@@ -4223,7 +4231,7 @@ Validation requires complete, non-overlapping known-item membership, unique boun
 
 Item profile `DamageBonuses` may omit inactive channels: the loader fills omitted Slash/Stab/Crush/Pierce/Fire/Water/Holy/Poison with zero before strict conversion. Keep the object itself (`{}` for zero damage); other required profile fields remain strict. Nonzero authored values retain existing validation. Shared attacks retain explicit channels. Shared reward DamageBonuses also allow omitted zero channels, and omitted MaxDurability defaults to zero; the reward and DamageBonuses objects remain required.
 
-Axes and pickaxes require integer `MaterialTier` in their item profiles: 1 = Stone, 2 = Bronze, 3 = Iron tool identity, independent of item level. Axe resource access continues to use the authored tool tier against the source's minimum requirement. Mining selections also carry the source resource tier and enforce the pick ceiling: Stone Pick mines through Bronze, Bronze Pick through Iron, and Iron Pick through Iron for now. `Kalmala.Gameplay.Harvest.ResourceFamilyGates` now includes Copper/Tin and the mining ceilings for all six axe/pick identities against eleven wood/mining sources at levels 1/10/20. Automation execution remains deferred.
+Axes and pickaxes require integer `MaterialTier` in their item profiles: 1 = Stone, 2 = Bronze, 3 = Iron tool identity, independent of item level. Axe resource access continues to use the authored tool tier against the source's minimum requirement. Mining selections also carry the source resource tier and enforce the pick ceiling: Stone Pick mines through Bronze, Bronze Pick through Iron, and Iron Pick through Iron for now. `Kalmala.Gameplay.Harvest.ResourceFamilyGates` now includes Copper/Tin, all-biome Stone, and the mining ceilings for all six axe/pick identities against twelve wood/mining sources at levels 1/10/20. Automation execution remains deferred.
 
 Carried equipment classification is derived from the validated item family; profiles contain no `ItemCategory` field. Knives/axes/maces/spears are weapons across all tiers; pickaxes and Construction Hammer are tools. Inventory browsing separates Tools and Weapons and details show the classification. Classification does not replace harvesting Action or MaterialTier and does not change shared equipment lifecycle, server repair/crafting/combat or saved IDs.
 
@@ -4237,7 +4245,7 @@ The server selects and rechecks the blocking target after windup, applies valida
 
 Generated Meadow/Elderwood trees now use patch-owned harvest actors and matching cosmetic suppression. See the [current forest acceptance summary](#generated-forest-current-acceptance-2026-10-17) for accepted stage, pickup, lifecycle and restart boundaries. `Kalmala.Gameplay.Harvest.TreeFelling` covers staged damage/invalid inputs, and `M9.SecondWaveHarvestAcceptance` covers equipped-axe hits, exact Aspen bundle yield, and pickup lifecycle while retaining mining cases. Moving falls, settled-log integration and final tree-feature verification remain pending.
 
-Resource suitability enforces the item family before MaterialTier: axes only damage Woodcutting resources (trees/trunks), pickaxes only Mining resources (stone/ore), and knives only Gathering sources. Tier and item level cannot grant cross-family access, even if a runtime definition has a mismatched Action. Both axe tree damage and mining interaction consume this shared server check before condition, health, reward or depletion mutation. New `Kalmala.Gameplay.Harvest.ResourceFamilyGates` covers all six axe/pick identities against nine wood/mining sources at levels 1/10/20, altered action rejection and unrelated families. Automation execution remains deferred.
+Resource suitability enforces the item family before MaterialTier: axes only damage Woodcutting resources (trees/trunks), pickaxes only Mining resources (stone/ore), and knives only Gathering sources. Tier and item level cannot grant cross-family access, even if a runtime definition has a mismatched Action. Both axe tree damage and mining interaction consume this shared server check before condition, health, reward or depletion mutation. New `Kalmala.Gameplay.Harvest.ResourceFamilyGates` covers all six axe/pick identities against twelve wood/mining sources at levels 1/10/20, altered action rejection and unrelated families. Automation execution remains deferred.
 
 Equipment acquisition and upgrade-cost records omit `RequiredSkill: None` and `RequiredSkillLevel: 0`. Upgrade-cost records also omit `RequiredStationLevel: 0`; the loader defaults these values before strict conversion. Acquisition recipes keep their explicit station level. Existing server validation and zero-skill progression behavior are preserved; harvesting skill contracts and nonzero requirements in other systems are unchanged.
 

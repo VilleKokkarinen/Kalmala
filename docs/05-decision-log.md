@@ -1,5 +1,6 @@
 # Decision log
 
+| 2026-10-20 | Add Stone spawns to every land biome, including Meadows. | User-directed | Preserve existing slate sources and ordinary harvest nodes; where a spatial key lacks slate in a land biome, add at most one deterministic, dry, slope-safe outcrop when a separated candidate is available. Reuse the slate presentation and existing one-Stone, Stone Pick+ server reward. Ocean remains excluded. |
 | 2026-10-20 | Set acquisition costs for Stone, Bronze, and Iron Picks. | User-directed | Stone Pick: Workbench 1, 10 Wood + 5 Stone; Bronze Pick: Forge 1, 10 Wood + 10 Bronze; Iron Pick: Forge 1, 10 Wood + 10 Iron. Keep the fresh-start Stone Pick grant. Apply the metal-cost recipes with the A1 production route so each tier remains obtainable. |
 | 2026-10-20 | Set pick mining ceilings. | User-directed | Stone Pick mines resources through Bronze; Bronze Pick through Iron; Iron Pick through Iron for now. The server enforces the source resource tier alongside its minimum pick tier. |
 | 2026-10-19 | Use Lightwood instead of Densewood in the level-one Iron Axe upgrade cost too. | User-directed | Iron Axe acquisition and its Forge level-up both cost 4 Iron + 3 Lightwood; this supersedes the previous Densewood upgrade cost. Lightwood's Meadow aspen source remains in A0. |

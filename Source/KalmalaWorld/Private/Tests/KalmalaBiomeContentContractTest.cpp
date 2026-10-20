@@ -63,6 +63,10 @@ bool FKalmalaBiomeContentContractTest::RunTest(const FString& Parameters)
         FKalmalaBiomeContentContract::IsValidGatheringSourceId(TEXT("meadows-aspen-trunk")));
     TestEqual(TEXT("Meadow Aspen resolves its own presentation"),
         FKalmalaBiomeContentContract::GetGatheringPresentationId(TEXT("meadows-aspen-trunk")), FName(TEXT("aspen-trunk-harvest")));
+    TestTrue(TEXT("All-biome Stone outcrops have a valid gathering presentation"),
+        FKalmalaBiomeContentContract::IsValidGatheringSourceId(TEXT("allbiomes-stone-outcrop")));
+    TestEqual(TEXT("All-biome Stone outcrops reuse the slate-rock presentation"),
+        FKalmalaBiomeContentContract::GetGatheringPresentationId(TEXT("allbiomes-stone-outcrop")), FName(TEXT("slate-vein")));
     TestTrue(TEXT("Wild Meadow carrots have a valid gathering presentation"),
         FKalmalaBiomeContentContract::IsValidGatheringSourceId(TEXT("meadows-wild-carrot-patch")));
     TestEqual(TEXT("Wild carrots use their original procedural patch presentation"),
@@ -102,6 +106,12 @@ bool FKalmalaBiomeContentContractTest::RunTest(const FString& Parameters)
     bool bSawWildOnionDescriptor = false;
     bool bSawCopperOreDescriptor = false;
     bool bSawTinOreDescriptor = false;
+    bool bSawStoneOutcropMeadows = false;
+    bool bSawStoneOutcropLakes = false;
+    bool bSawStoneOutcropElderwood = false;
+    bool bSawStoneOutcropMire = false;
+    bool bSawStoneOutcropTundra = false;
+    bool bSawStoneOutcropMountains = false;
     bool bSawCreatureDescriptor = false;
     bool bSawRareDiscoveryDescriptor = false;
     const auto VerifyOreSpawn = [this, &Config, &bSawCopperOreDescriptor, &bSawTinOreDescriptor](
@@ -139,11 +149,52 @@ bool FKalmalaBiomeContentContractTest::RunTest(const FString& Parameters)
         if (bTin) bSawTinOreDescriptor = true;
         else bSawCopperOreDescriptor = true;
     };
+    const auto VerifyStoneOutcrop = [this, &Config](const FKalmalaWorldPopulationSpawn& Spawn, const EKalmalaBiome ExpectedBiome)
+    {
+        const FVector2D Position(Spawn.Location.X, Spawn.Location.Y);
+        const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, Position));
+        TestTrue(TEXT("Stone outcrop appears only in its requested land biome"), Biome == ExpectedBiome);
+        TestFalse(TEXT("Stone outcrop stays out of ocean water"), FKalmalaOceanSampler::Sample(Config, Position).IsWater());
+        TestFalse(TEXT("Stone outcrop stays out of lake water"), FKalmalaShimmeringLakeSampler::IsWater(Config, Position));
+        TestTrue(TEXT("Stone outcrop uses safe terrain slope"),
+            FKalmalaTerrainHeightSampler::SampleSurfaceNormal(Config, Position).Z >= 0.88f);
+
+        const auto RepeatedSpawns = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(
+            Config, Spawn.SpatialKey, EKalmalaWorldPopulationKind::HarvestNode);
+        int32 SameBiomeStoneCount = 0;
+        for (const FKalmalaWorldPopulationSpawn& Candidate : RepeatedSpawns)
+        {
+            if (Candidate.ContentId == TEXT("allbiomes-stone-outcrop")
+                && FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(
+                    Config, FVector2D(Candidate.Location.X, Candidate.Location.Y))) == ExpectedBiome)
+            {
+                ++SameBiomeStoneCount;
+            }
+        }
+        TestEqual(TEXT("At most one added Stone outcrop occupies a biome within each key"), SameBiomeStoneCount, 1);
+
+        const FString PersistentId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Spawn);
+        for (const FKalmalaWorldPopulationSpawn& Candidate : RepeatedSpawns)
+        {
+            if (FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Candidate) == PersistentId) continue;
+            TestTrue(TEXT("Stone outcrop keeps 250 cm from other harvest descriptors"),
+                FVector2D(Candidate.Location.X, Candidate.Location.Y).DistSquared(Position) >= 62500.0f);
+        }
+        TestTrue(TEXT("Stone outcrop position and identity repeat for the same seed and key"),
+            RepeatedSpawns.ContainsByPredicate([&Spawn, &PersistentId](const FKalmalaWorldPopulationSpawn& Candidate)
+            {
+                return Candidate.ContentId == Spawn.ContentId
+                    && Candidate.Location.Equals(Spawn.Location, 0.01f)
+                    && FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Candidate) == PersistentId;
+            }));
+    };
     const auto HasCompleteSourceCoverage = [&]()
     {
         return bSawGatheringDescriptor && bSawWildCarrotDescriptor && bSawWildPotatoDescriptor
             && bSawWildRutabagaDescriptor && bSawWildOnionDescriptor
             && bSawCopperOreDescriptor && bSawTinOreDescriptor
+            && bSawStoneOutcropMeadows && bSawStoneOutcropLakes && bSawStoneOutcropElderwood
+            && bSawStoneOutcropMire && bSawStoneOutcropTundra && bSawStoneOutcropMountains
             && bSawCreatureDescriptor && bSawRareDiscoveryDescriptor;
     };
     // Search deterministic seeds and a broad area so lake shorelines are
@@ -161,6 +212,30 @@ bool FKalmalaBiomeContentContractTest::RunTest(const FString& Parameters)
                     for (const FKalmalaWorldPopulationSpawn& Spawn : FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(Config, SpatialKey, Kind))
                     {
                         const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, FVector2D(Spawn.Location)));
+                        if (Spawn.ContentId == TEXT("allbiomes-stone-outcrop"))
+                        {
+                            TestTrue(TEXT("Added Stone outcrop is a harvest node"), Kind == EKalmalaWorldPopulationKind::HarvestNode);
+                            bool* bSawBiomeOutcrop = nullptr;
+                            switch (Biome)
+                            {
+                            case EKalmalaBiome::Meadows: bSawBiomeOutcrop = &bSawStoneOutcropMeadows; break;
+                            case EKalmalaBiome::ShimmeringLakes: bSawBiomeOutcrop = &bSawStoneOutcropLakes; break;
+                            case EKalmalaBiome::Elderwood: bSawBiomeOutcrop = &bSawStoneOutcropElderwood; break;
+                            case EKalmalaBiome::MossyMire: bSawBiomeOutcrop = &bSawStoneOutcropMire; break;
+                            case EKalmalaBiome::FreezingTundra: bSawBiomeOutcrop = &bSawStoneOutcropTundra; break;
+                            case EKalmalaBiome::ThunderMountains: bSawBiomeOutcrop = &bSawStoneOutcropMountains; break;
+                            default: break;
+                            }
+                            TestNotNull(TEXT("Stone outcrop biome is a supported land biome"), bSawBiomeOutcrop);
+                            if (bSawBiomeOutcrop != nullptr && !*bSawBiomeOutcrop)
+                            {
+                                VerifyStoneOutcrop(Spawn, Biome);
+                                *bSawBiomeOutcrop = true;
+                            }
+                            continue;
+                        }
+                        if (Kind == EKalmalaWorldPopulationKind::HarvestNode && Spawn.ContentId == TEXT("mountains-slate-vein"))
+                            bSawStoneOutcropMountains = true;
                         if (Spawn.ContentId == TEXT("elderwood-copper-vein"))
                         {
                             TestTrue(TEXT("Copper vein is a harvest node"), Kind == EKalmalaWorldPopulationKind::HarvestNode);

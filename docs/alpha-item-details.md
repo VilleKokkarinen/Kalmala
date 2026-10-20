@@ -56,7 +56,7 @@ are included in the approved queue.
 | Sinew | Existing deer; boar source proposed | Deer: 50% chance of 1, otherwise 0, once per credited defeat. Boar: proposed 1 per credited defeat | Deer rate user-selected; boar awaits review |
 | Sinew | Credited deer defeats | One server roll; 50% grants exactly 1 | Implemented under A0; boar source remains deferred |
 | Bow String | Animal sinew, at Workbench | Craft 4 Sinew into 1 Bow String | Bow-only material; implemented under A0 |
-| Stone | Existing mountain slate veins and existing Stone sources | Existing Stone Pick or better and authored yields; retain existing starter acquisition | Retain; audit fresh-start bootstrap |
+| Stone | Existing mountain slate veins plus new dry slate outcrops across all six land biomes, including Meadows | Stone Pick or better; one Stone per new outcrop, matching the existing slate source | Added under the user-directed A1 source-availability request; existing Stone sources remain |
 | Boar Hide / Boar Meat | Existing boars | Retain existing server-confirmed defeat rewards and quantities | Retain |
 | Deer Hide / Deer Meat | Existing deer | Retain existing server-confirmed defeat rewards and quantities | Retain |
 | Bone Fragment | Existing boars and deer | Additional 1 Bone Fragment per credited defeat | Implemented under A0; no new creature |

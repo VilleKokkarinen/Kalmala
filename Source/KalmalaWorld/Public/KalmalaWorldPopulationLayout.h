@@ -183,6 +183,52 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
             }
             Spawns.Add({ Kind, SpatialKey, PersistentSeed, FVector(Position.X, Position.Y, FKalmalaTerrainHeightSampler::SampleHeight(Config, Position)), ContentId });
         }
+
+        if (Kind == EKalmalaWorldPopulationKind::HarvestNode)
+        {
+            // Keep the existing harvest budget and source descriptors intact,
+            // then add one distinct Stone outcrop for each land biome that
+            // lacks a slate source in this key. Extra candidates let Meadow
+            // crops and ore nodes coexist with Stone without sharing a position.
+            TSet<EKalmalaBiome> BiomesWithStone;
+            for (const FKalmalaWorldPopulationSpawn& Spawn : Spawns)
+            {
+                if (Spawn.ContentId != TEXT("mountains-slate-vein")
+                    && Spawn.ContentId != TEXT("allbiomes-stone-outcrop")) continue;
+                BiomesWithStone.Add(FKalmalaBiomeClassifier::Classify(
+                    FKalmalaWorldFieldSampler::Sample(Config, FVector2D(Spawn.Location))));
+            }
+
+            constexpr int32 LandBiomeCount = 6;
+            constexpr int32 StoneOutcropCandidateBudget = 32;
+            constexpr float MinimumOutcropSeparation = 250.0f;
+            for (int32 CandidateOffset = 0; CandidateOffset < StoneOutcropCandidateBudget
+                && BiomesWithStone.Num() < LandBiomeCount; ++CandidateOffset)
+            {
+                const int32 SpawnIndex = CandidateBudget + CandidateOffset;
+                const uint64 CandidateSeed = Mix(DeriveSpatialSeed(Config, SpatialKey, Kind) ^ static_cast<uint64>(SpawnIndex + 1));
+                const FVector2D Position = SpatialKeyOrigin + FVector2D(
+                    static_cast<float>(CandidateSeed & 0xFFFFu) / 65535.0f,
+                    static_cast<float>((CandidateSeed >> 16) & 0xFFFFu) / 65535.0f) * SpatialKeySize;
+                if (!FKalmalaWorldBounds::Contains(Config, Position) || !IsTerrainSafeDiscoveryLocation(Config, Position)) continue;
+
+                const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, Position));
+                if (!FKalmalaBiomeContentContract::IsFirstWaveBiome(Biome) || BiomesWithStone.Contains(Biome)) continue;
+
+                const bool bTooCloseToExistingSpawn = Spawns.ContainsByPredicate([&Position, MinimumOutcropSeparation](const FKalmalaWorldPopulationSpawn& Spawn)
+                {
+                    return FVector2D(Spawn.Location.X, Spawn.Location.Y).DistSquared(Position)
+                        < MinimumOutcropSeparation * MinimumOutcropSeparation;
+                });
+                if (bTooCloseToExistingSpawn) continue;
+
+                const uint64 PersistentSeed = Mix(CandidateSeed ^ 0x510AE0C0720ull);
+                Spawns.Add({ Kind, SpatialKey, PersistentSeed,
+                    FVector(Position.X, Position.Y, FKalmalaTerrainHeightSampler::SampleHeight(Config, Position)),
+                    TEXT("allbiomes-stone-outcrop") });
+                BiomesWithStone.Add(Biome);
+            }
+        }
         return Spawns;
     }
 

@@ -348,7 +348,7 @@ bool FKalmalaToolLifecycleContract::BuildServerSelection(
         OutSelection = { ServerSourceId, EKalmalaToolAction::Mining, EKalmalaToolKind::None,
             EKalmalaSkill::Mining, TEXT("Iron"), 1, EKalmalaToolTier::Bronze, EKalmalaToolTier::Iron };
     }
-    else if (ServerSourceId == TEXT("mountains-slate-vein"))
+    else if (ServerSourceId == TEXT("mountains-slate-vein") || ServerSourceId == TEXT("allbiomes-stone-outcrop"))
     {
         OutSelection = { ServerSourceId, EKalmalaToolAction::Mining, EKalmalaToolKind::None,
             EKalmalaSkill::Mining, TEXT("Stone"), 1, EKalmalaToolTier::Stone, EKalmalaToolTier::Stone };

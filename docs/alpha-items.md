@@ -89,16 +89,18 @@ coverage, not a count of obtainable items or the assembled runtime catalogue.
 - Fresh characters receive six level-one carried tools: Construction Hammer,
   Stone Axe, Stone Pick, Stone Knife, Stone Spear, and Stone Mace. The hammer is
   active; character startup does not grant material stacks. The protected center
-  through 350 m is Meadows/Ocean. Meadow birch sources provide Wood, but the
-  mapped ordinary Stone source is the Thunder Mountains slate vein, mined with
-  Stone-tier tools. The optional Three-Run Rillstone in Shimmering Lakes grants
-  2 Stone after discovery; Meadow's `meadows-hidden-stone` landmark records
-  discovery but grants no material. There is no guaranteed Stone source in the
-  protected start area. The first Workbench costs 9 Wood + 2 Stone and the Forge
-  costs 15 Wood + 6 Stone, so fresh progression requires travel to a Stone source
-  or finding the optional Lakes reward. The approved A0 detail row's "existing
-  starter acquisition" is not evidenced by current startup/source code; keep the
-  discrepancy visible rather than inventing a starting grant or replacement.
+  through 350 m is Meadows/Ocean. Meadow birch sources provide Wood. In addition
+  to the existing Thunder Mountains slate vein and optional Three-Run Rillstone
+  reward, the user-directed source update adds a deterministic dry Stone outcrop
+  opportunity to every land biome, including Meadows. It adds at most one per
+  biome without an existing slate vein in a 6 km spatial key when a safe,
+  separated candidate is found. A particular key is not guaranteed to contain
+  one. Meadow's
+  `meadows-hidden-stone` landmark still records discovery but grants no
+  material. This broadens Stone availability beyond the mountains without
+  creating a starter material grant or promising an exact source at the spawn
+  point. The approved A0 detail row's "existing starter acquisition" remains
+  unsupported by current startup/source code.
 - The generated biome contract maps Mossy Mire harvest candidates to
   `mire-bog-iron`. `BuildServerSelection` maps that source to 1 `Iron` per node
   with a Bronze-tier mining minimum. The current Forge `BronzePick` acquisition
