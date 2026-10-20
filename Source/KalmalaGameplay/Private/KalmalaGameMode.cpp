@@ -607,6 +607,38 @@ bool AKalmalaGameMode::PersistConstruction(AKalmalaConstructionActor* Constructi
     return true;
 }
 
+bool AKalmalaGameMode::PersistCharcoalKilnState(AKalmalaConstructionActor* Construction,
+    const FKalmalaCharcoalKilnState& State)
+{
+    if (!HasAuthority() || !IsValid(Construction) || !Construction->HasAuthority()
+        || Construction->GetWorld() != GetWorld()
+        || Construction->GetConstructionKit() != TEXT("CharcoalKilnKit")
+        || !State.IsValid() || ConstructionSaveGame == nullptr
+        || !ConstructionSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
+
+    const FString ConstructionId = Construction->GetConstructionId();
+    const auto* ExistingRecord = ConstructionSaveGame->GetRecords().FindByPredicate(
+        [&ConstructionId](const FKalmalaConstructionSaveRecord& Record)
+        {
+            return Record.ConstructionId == ConstructionId && Record.KitId == TEXT("CharcoalKilnKit");
+        });
+    if (!ExistingRecord || !ExistingRecord->Transform.Equals(Construction->GetActorTransform())) return false;
+
+    UKalmalaConstructionSaveGameV2* Candidate = nullptr;
+    if (!UKalmalaConstructionSaveGameV2::TryBuildWriteCandidate(
+        ConstructionSaveGame, WorldGenerationConfig, this, Candidate) || !Candidate) return false;
+    if (!Candidate->UpdateCharcoalKilnRecord(ConstructionId, State)
+        || !Candidate->MatchesWorld(WorldGenerationConfig)
+        || !UGameplayStatics::SaveGameToSlot(Candidate,
+            KalmalaGameMode::ConstructionSaveSlot(WorldGenerationConfig), 0))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Charcoal Kiln state save failed for %s."), *ConstructionId);
+        return false;
+    }
+    ConstructionSaveGame = Candidate;
+    return true;
+}
+
 void AKalmalaGameMode::RestorePersistedConstruction()
 {
     if (!HasAuthority() || ConstructionSaveGame == nullptr || !ConstructionSaveGame->MatchesWorld(WorldGenerationConfig)) return;
@@ -624,7 +656,7 @@ void AKalmalaGameMode::RestorePersistedConstruction()
             UE_LOG(LogTemp, Error, TEXT("Construction restore allocation failed for %s."), *Record.ConstructionId);
             continue;
         }
-        Construction->InitializeFromServer(Record.KitId, Record.ConstructionId);
+        Construction->InitializeFromServer(Record.KitId, Record.ConstructionId, Record.CharcoalKiln);
         Construction->FinishSpawning(Record.Transform);
         UE_LOG(LogTemp, Display, TEXT("Construction restored: Id=%s Kit=%s."), *Record.ConstructionId, *Record.KitId.ToString());
     }

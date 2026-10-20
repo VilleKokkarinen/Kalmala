@@ -229,6 +229,8 @@ private:
     UFUNCTION() void NextStorageItem();
     UFUNCTION() void DepositStorage();
     UFUNCTION() void WithdrawStorage();
+    UFUNCTION() void LoadCharcoalKilnWood();
+    UFUNCTION() void CollectCharcoalKilnCoal();
     UFUNCTION() void CloseClicked();
     void Refresh();
     void RefreshInlineToolUpgradeComparison(int32 ContrastMode);
@@ -294,6 +296,10 @@ private:
     UPROPERTY(Transient) TObjectPtr<class UKalmalaInventoryInspectWidget> StorageContentsInspector;
     UPROPERTY(Transient) TObjectPtr<UButton> StorageStoreButton;
     UPROPERTY(Transient) TObjectPtr<UButton> StorageWithdrawButton;
+    UPROPERTY(Transient) TObjectPtr<class UVerticalBox> CharcoalKilnContextPanel;
+    UPROPERTY(Transient) TObjectPtr<UTextBlock> CharcoalKilnContextStatusText;
+    UPROPERTY(Transient) TObjectPtr<UButton> CharcoalKilnLoadButton;
+    UPROPERTY(Transient) TObjectPtr<UButton> CharcoalKilnCollectButton;
     UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> WrappedTextBlocks;
     UPROPERTY(Transient) TObjectPtr<UButton> CraftButton;
     UPROPERTY(Transient) TObjectPtr<UButton> PlacementPreviewButton;
@@ -364,6 +370,7 @@ private:
     bool bForgeRepairContext = false;
     bool bWorkbenchRepairContext = false;
     bool bStorageContext = false;
+    bool bCharcoalKilnContext = false;
     bool bWorkbenchRepairPending = false;
     bool bStationRepairPending = false;
 #if !UE_BUILD_SHIPPING

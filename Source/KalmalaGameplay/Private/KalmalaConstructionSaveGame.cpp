@@ -68,6 +68,15 @@ bool UKalmalaConstructionSaveGameV2::IsValidRecord(const FKalmalaConstructionSav
         || !FKalmalaPlacementPreview::IsSupportedKit(Record.KitId)
         || !IsValidConstructionTransform(Record.Transform)) return false;
 
+    if (Record.KitId == TEXT("CharcoalKilnKit"))
+    {
+        if (!Record.CharcoalKiln.IsValid()) return false;
+    }
+    else if (!Record.CharcoalKiln.IsValid() || !Record.CharcoalKiln.IsEmpty())
+    {
+        return false;
+    }
+
     if (!FKalmalaPlacementPreview::IsSessionOnlyKit(Record.KitId)) return true;
     return FKalmalaToolProgressionContract::IsStationAttachmentKit(Record.KitId);
 }
@@ -162,5 +171,25 @@ bool UKalmalaConstructionSaveGameV2::AddRecord(const FKalmalaConstructionSaveRec
             return Existing.ConstructionId == Record.ConstructionId;
         })) return false;
     Records.Add(Record);
+    return true;
+}
+
+bool UKalmalaConstructionSaveGameV2::UpdateCharcoalKilnRecord(const FString& ConstructionId,
+    const FKalmalaCharcoalKilnState& State)
+{
+    if (!MatchesWorld(WorldConfig) || ConstructionId.IsEmpty() || !State.IsValid()) return false;
+    FKalmalaConstructionSaveRecord* Record = Records.FindByPredicate(
+        [&ConstructionId](FKalmalaConstructionSaveRecord& Candidate)
+        {
+            return Candidate.ConstructionId == ConstructionId && Candidate.KitId == TEXT("CharcoalKilnKit");
+        });
+    if (!Record) return false;
+    const FKalmalaCharcoalKilnState Previous = Record->CharcoalKiln;
+    Record->CharcoalKiln = State;
+    if (!MatchesWorld(WorldConfig))
+    {
+        Record->CharcoalKiln = Previous;
+        return false;
+    }
     return true;
 }

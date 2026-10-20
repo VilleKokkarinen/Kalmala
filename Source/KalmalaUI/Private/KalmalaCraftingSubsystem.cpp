@@ -165,7 +165,7 @@ bool IsStationContextShellKit(const FName KitId)
 {
     return KitId == TEXT("CookingRackKit") || KitId == TEXT("CauldronKit")
         || KitId == TEXT("FryingPanKit") || KitId == TEXT("WorkbenchKit") || KitId == TEXT("ForgeKit")
-        || KitId == TEXT("StorageKit");
+        || KitId == TEXT("StorageKit") || KitId == TEXT("CharcoalKilnKit");
 }
 
 bool IsStationContextSectionSupported(const FName KitId, const FString& Section)
@@ -176,7 +176,8 @@ bool IsStationContextSectionSupported(const FName KitId, const FString& Section)
         || (KitId == TEXT("WorkbenchKit") && Section.Equals(TEXT("Craft"), ESearchCase::IgnoreCase))
         || (KitId == TEXT("ForgeKit") && (Section.Equals(TEXT("Craft"), ESearchCase::IgnoreCase)
             || Section.Equals(TEXT("Upgrade"), ESearchCase::IgnoreCase)))
-        || (KitId == TEXT("StorageKit") && Section.Equals(TEXT("Store"), ESearchCase::IgnoreCase));
+        || (KitId == TEXT("StorageKit") && Section.Equals(TEXT("Store"), ESearchCase::IgnoreCase))
+        || (KitId == TEXT("CharcoalKilnKit") && Section.Equals(TEXT("Process"), ESearchCase::IgnoreCase));
 }
 
 FString BuildForgeUpgradePresentationText(const UKalmalaCraftingComponent* Crafting)
@@ -214,6 +215,7 @@ FString GetInitialStationContextSection(const FName KitId)
     if (KitId == TEXT("WorkbenchKit") || KitId == TEXT("ForgeKit")) return TEXT("Craft");
     if (KitId == TEXT("CookingRackKit") || KitId == TEXT("CauldronKit") || KitId == TEXT("FryingPanKit")) return TEXT("Cook");
     if (KitId == TEXT("StorageKit")) return TEXT("Store");
+    if (KitId == TEXT("CharcoalKilnKit")) return TEXT("Process");
     return FString();
 }
 
@@ -962,6 +964,22 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     StorageWithdrawButton = AddButton(TEXT("Take one selected"), StorageContextActions,
         TEXT("Move one selected item from this chest into your pack."));
     StorageWithdrawButton->OnClicked.AddDynamic(this, &ThisClass::WithdrawStorage);
+    CharcoalKilnContextPanel = WidgetTree->ConstructWidget<UVerticalBox>();
+    Column->AddChildToVerticalBox(CharcoalKilnContextPanel);
+    StationCraftExcludedWidgets.Add(CharcoalKilnContextPanel);
+    BuildExcludedWidgets.Add(CharcoalKilnContextPanel);
+    CharcoalKilnContextStatusText = WidgetTree->ConstructWidget<UTextBlock>();
+    CharcoalKilnContextStatusText->SetAutoWrapText(true);
+    CharcoalKilnContextPanel->AddChildToVerticalBox(CharcoalKilnContextStatusText);
+    WrappedTextBlocks.Add(CharcoalKilnContextStatusText);
+    auto* KilnActions = WidgetTree->ConstructWidget<UHorizontalBox>();
+    CharcoalKilnContextPanel->AddChildToVerticalBox(KilnActions);
+    CharcoalKilnLoadButton = AddButton(TEXT("Load 1 Wood"), KilnActions,
+        TEXT("The server removes one Wood from your pack and saves it in this Kiln's 10-unit input."));
+    CharcoalKilnLoadButton->OnClicked.AddDynamic(this, &ThisClass::LoadCharcoalKilnWood);
+    CharcoalKilnCollectButton = AddButton(TEXT("Collect 1 Coal"), KilnActions,
+        TEXT("The server checks pack capacity and saves the output change before granting one Coal."));
+    CharcoalKilnCollectButton->OnClicked.AddDynamic(this, &ThisClass::CollectCharcoalKilnCoal);
     CloseButton=AddButton(TEXT("Close")); CloseButton->OnClicked.AddDynamic(this, &ThisClass::CloseClicked);
     CloseButton->RemoveFromParent();
     auto* Outer=WidgetTree->ConstructWidget<UVerticalBox>();
@@ -1509,6 +1527,8 @@ void UKalmalaCraftingWidget::ConfigureStationContextPresentation(const FString& 
         && EffectiveSection.Equals(TEXT("Cook"), ESearchCase::IgnoreCase);
     bStorageContext = bEmbeddedContext && StationFilterKit == TEXT("StorageKit")
         && EffectiveSection.Equals(TEXT("Store"), ESearchCase::IgnoreCase);
+    bCharcoalKilnContext = bEmbeddedContext && StationFilterKit == TEXT("CharcoalKilnKit")
+        && EffectiveSection.Equals(TEXT("Process"), ESearchCase::IgnoreCase);
     bWorkbenchCraftContext = bEmbeddedContext && StationFilterKit == TEXT("WorkbenchKit")
         && EffectiveSection.Equals(TEXT("Craft"), ESearchCase::IgnoreCase);
     bForgeCraftContext = bEmbeddedContext && StationFilterKit == TEXT("ForgeKit")
@@ -1555,6 +1575,12 @@ void UKalmalaCraftingWidget::ConfigureStationContextPresentation(const FString& 
         if (HeaderText) HeaderText->SetText(FText::FromString(TEXT("Chest — Storage")));
         if (InstructionsText) InstructionsText->SetText(FText::FromString(
             TEXT("Choose one item from your pack to store or one item in this chest to take. The server moves one item per action and checks capacity.")));
+    }
+    else if (bCharcoalKilnContext)
+    {
+        if (HeaderText) HeaderText->SetText(FText::FromString(TEXT("Charcoal Kiln — Process")));
+        if (InstructionsText) InstructionsText->SetText(FText::FromString(
+            TEXT("Load Wood into the kiln or collect finished Coal. One Wood becomes one Coal in 30 active seconds; processing stops when output is full.")));
     }
     else if (bCookingRackContext)
     {
@@ -1610,8 +1636,9 @@ void UKalmalaCraftingWidget::ApplyStationCraftLayout()
     const bool bStationCraftContext = bCookingContext || bWorkbenchCraftContext || bForgeCraftContext;
     const bool bRepairContext = bWorkbenchRepairContext || bForgeRepairContext;
     const bool bStationServicePresentation = bRepairContext || bForgeUpgradeContext;
-    const bool bStationContext = bStationCraftContext || bForgeUpgradeContext || bRepairContext || bStorageContext;
-    const bool bNonCraftSection = bRepairContext || bForgeUpgradeContext || bStorageContext;
+    const bool bStationContext = bStationCraftContext || bForgeUpgradeContext || bRepairContext
+        || bStorageContext || bCharcoalKilnContext;
+    const bool bNonCraftSection = bRepairContext || bForgeUpgradeContext || bStorageContext || bCharcoalKilnContext;
     const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
     const int32 TextScalePercent = UKalmalaSettingsWidget::ClampTextScale(
         UKalmalaSettingsWidget::GetTextScalePercent());
@@ -1684,6 +1711,8 @@ void UKalmalaCraftingWidget::ApplyStationCraftLayout()
             ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
     if (StorageContextPanel)
         StorageContextPanel->SetVisibility(bStorageContext ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+    if (CharcoalKilnContextPanel)
+        CharcoalKilnContextPanel->SetVisibility(bCharcoalKilnContext ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
     SetSectionTab(WorkbenchCraftSectionButton, TEXT("Craft"), bWorkbenchContext, bWorkbenchCraftContext);
     SetSectionTab(WorkbenchRepairSectionButton, TEXT("Repair All"), bWorkbenchContext, false);
     SetSectionTab(ForgeCraftSectionButton, TEXT("Craft"), bForgeContext, bForgeCraftContext);
@@ -4095,6 +4124,40 @@ void UKalmalaCraftingWidget::Refresh()
         if (StorageStoreButton) StorageStoreButton->SetIsEnabled(bStorageContextValid && bCanStoreSelected);
         if (StorageWithdrawButton) StorageWithdrawButton->SetIsEnabled(bStorageContextValid && bCanTakeSelected);
     }
+    if (CharcoalKilnContextStatusText)
+    {
+        const AKalmalaConstructionActor* Kiln = ContextStationActor.Get();
+        const bool bKilnContextValid = bCharcoalKilnContext && IsStationContextValid()
+            && IsValid(Kiln) && Kiln->GetConstructionKit() == TEXT("CharcoalKilnKit");
+        FString Processing = TEXT("Idle");
+        if (bKilnContextValid)
+        {
+            const FKalmalaCharcoalKilnState& State = Kiln->GetCharcoalKilnState();
+            if (State.JobRemainingSeconds > 0.0f)
+                Processing = FString::Printf(TEXT("Processing · %d s remaining"), FMath::CeilToInt(State.JobRemainingSeconds));
+            else if (State.OutputCoal >= FKalmalaCharcoalKilnState::OutputCapacity && State.InputWood > 0)
+                Processing = TEXT("Paused · output full");
+            else if (State.InputWood > 0)
+                Processing = TEXT("Ready for next job");
+            CharcoalKilnContextStatusText->SetText(FText::FromString(FString::Printf(
+                TEXT("Input: %d / %d Wood\nOutput: %d / %d Coal\n%s"),
+                State.InputWood, FKalmalaCharcoalKilnState::InputCapacity,
+                State.OutputCoal, FKalmalaCharcoalKilnState::OutputCapacity, *Processing)));
+        }
+        else
+        {
+            CharcoalKilnContextStatusText->SetText(FText::FromString(TEXT("Kiln context expired. Interact with a nearby Charcoal Kiln again.")));
+        }
+        FKalmalaUITheme::Get().ApplyText(*CharcoalKilnContextStatusText, FKalmalaUITheme::Get().BodySize,
+            false, TextScalePercent, ContrastMode);
+        if (CharcoalKilnLoadButton)
+            CharcoalKilnLoadButton->SetIsEnabled(bKilnContextValid && OwnerInventory
+                && OwnerInventory->GetQuantity(TEXT("Wood")) > 0
+                && Kiln->GetCharcoalKilnState().InputWood < FKalmalaCharcoalKilnState::InputCapacity);
+        if (CharcoalKilnCollectButton)
+            CharcoalKilnCollectButton->SetIsEnabled(bKilnContextValid && OwnerInventory
+                && Kiln->GetCharcoalKilnState().OutputCoal > 0);
+    }
     if (bStationCraftPresentation)
     {
         RefreshInventoryCraftLayout();
@@ -4643,6 +4706,18 @@ void UKalmalaCraftingWidget::WithdrawStorage()
             { return Candidate.ItemId == ItemId && !Candidate.ItemGuids.IsEmpty(); });
         if (Stack) M->ServerWithdrawStorage(Stack->ItemGuids[0]);
     }
+}
+void UKalmalaCraftingWidget::LoadCharcoalKilnWood()
+{
+    if (!bCharcoalKilnContext || !IsStationContextValid()
+        || !CharcoalKilnLoadButton || !CharcoalKilnLoadButton->GetIsEnabled()) return;
+    if (auto* M = Model()) M->ServerLoadCharcoalKilnWood();
+}
+void UKalmalaCraftingWidget::CollectCharcoalKilnCoal()
+{
+    if (!bCharcoalKilnContext || !IsStationContextValid()
+        || !CharcoalKilnCollectButton || !CharcoalKilnCollectButton->GetIsEnabled()) return;
+    if (auto* M = Model()) M->ServerCollectCharcoalKilnCoal();
 }
 void UKalmalaCraftingWidget::CloseClicked() { Close(); }
 FReply UKalmalaCraftingWidget::NativeOnPreviewMouseButtonDown(

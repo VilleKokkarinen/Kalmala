@@ -2,6 +2,7 @@
 #include "KalmalaResistanceComponent.h"
 #include "KalmalaCharacter.h"
 #include "KalmalaCraftingComponent.h"
+#include "KalmalaGameMode.h"
 #include "KalmalaWorldGenerationGameState.h"
 #include "Engine/World.h"
 #include "Components/BoxComponent.h"
@@ -21,6 +22,9 @@ namespace
 
 AKalmalaConstructionActor::AKalmalaConstructionActor()
 {
+    PrimaryActorTick.bCanEverTick = true;
+    PrimaryActorTick.bStartWithTickEnabled = false;
+    PrimaryActorTick.TickInterval = 1.0f;
     CreateDefaultSubobject<UKalmalaResistanceComponent>(TEXT("Resistances"));
     bReplicates = true;
     SetReplicateMovement(true);
@@ -35,9 +39,41 @@ AKalmalaConstructionActor::AKalmalaConstructionActor()
     PieceMesh->SetCanEverAffectNavigation(false);
 }
 
-void AKalmalaConstructionActor::InitializeFromServer(const FName InKit, const FString& InConstructionId)
+void AKalmalaConstructionActor::InitializeFromServer(const FName InKit, const FString& InConstructionId,
+    const FKalmalaCharcoalKilnState& InCharcoalKiln)
 {
-    if (HasAuthority()) { ConstructionKit = InKit; ConstructionId = InConstructionId.Left(64); ApplyConstructionKit(); }
+    if (HasAuthority())
+    {
+        ConstructionKit = InKit;
+        ConstructionId = InConstructionId.Left(64);
+        CharcoalKiln = InKit == TEXT("CharcoalKilnKit") && InCharcoalKiln.IsValid()
+            ? InCharcoalKiln : FKalmalaCharcoalKilnState();
+        SetActorTickEnabled(InKit == TEXT("CharcoalKilnKit")
+            && (CharcoalKiln.JobRemainingSeconds > 0.0f
+                || (CharcoalKiln.InputWood > 0 && CharcoalKiln.OutputCoal < FKalmalaCharcoalKilnState::OutputCapacity)));
+        ApplyConstructionKit();
+    }
+}
+
+void AKalmalaConstructionActor::Tick(const float DeltaSeconds)
+{
+    Super::Tick(DeltaSeconds);
+    if (!HasAuthority() || ConstructionKit != TEXT("CharcoalKilnKit") || ConstructionId.IsEmpty()) return;
+    FKalmalaCharcoalKilnState Candidate = CharcoalKiln;
+    if (!Candidate.Advance(DeltaSeconds)) return;
+    AKalmalaGameMode* Mode = GetWorld() ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
+    if (!Mode || !Mode->PersistCharcoalKilnState(this, Candidate)) return;
+    ApplyCharcoalKilnStateFromServer(Candidate);
+}
+
+bool AKalmalaConstructionActor::ApplyCharcoalKilnStateFromServer(const FKalmalaCharcoalKilnState& State)
+{
+    if (!HasAuthority() || ConstructionKit != TEXT("CharcoalKilnKit") || !State.IsValid()) return false;
+    CharcoalKiln = State;
+    SetActorTickEnabled(CharcoalKiln.JobRemainingSeconds > 0.0f
+        || (CharcoalKiln.InputWood > 0 && CharcoalKiln.OutputCoal < FKalmalaCharcoalKilnState::OutputCapacity));
+    ForceNetUpdate();
+    return true;
 }
 
 bool AKalmalaConstructionActor::CanUse(const AKalmalaCharacter* Character) const
@@ -98,7 +134,7 @@ bool AKalmalaConstructionActor::IsShelterKit(const FName KitId)
 bool AKalmalaConstructionActor::IsCraftingStationKit(const FName KitId)
 {
     return KitId == TEXT("WorkbenchKit") || KitId == TEXT("ForgeKit") || KitId == TEXT("CookingRackKit") || KitId == TEXT("CauldronKit")
-        || KitId == TEXT("FryingPanKit") || KitId == TEXT("SmokeFrameKit");
+        || KitId == TEXT("FryingPanKit") || KitId == TEXT("SmokeFrameKit") || KitId == TEXT("CharcoalKilnKit");
 }
 
 bool AKalmalaConstructionActor::IsStorageKit(const FName KitId)
@@ -127,6 +163,7 @@ void AKalmalaConstructionActor::GetLifetimeReplicatedProps(TArray<FLifetimePrope
     DOREPLIFETIME(AKalmalaConstructionActor, ConstructionKit);
     DOREPLIFETIME(AKalmalaConstructionActor, ConstructionId);
     DOREPLIFETIME(AKalmalaConstructionActor, Health);
+    DOREPLIFETIME(AKalmalaConstructionActor, CharcoalKiln);
 }
 
 void AKalmalaConstructionActor::OnRep_ConstructionState()

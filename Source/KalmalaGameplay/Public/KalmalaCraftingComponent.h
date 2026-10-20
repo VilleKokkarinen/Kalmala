@@ -50,6 +50,8 @@ public:
     UFUNCTION(Server, Reliable) void ServerCloseStorage();
     UFUNCTION(Server, Reliable) void ServerDepositStorage(FGuid ItemGuid);
     UFUNCTION(Server, Reliable) void ServerWithdrawStorage(FGuid ItemGuid);
+    UFUNCTION(Server, Reliable) void ServerLoadCharcoalKilnWood();
+    UFUNCTION(Server, Reliable) void ServerCollectCharcoalKilnCoal();
     void InteractWithConstructionFromServer(AKalmalaConstructionActor* Construction);
     FName GetLastInteractedCookingStationKit() const { return LastInteractedCookingStationKit; }
     uint32 GetCookingStationInteractionSerial() const { return CookingStationInteractionSerial; }
@@ -64,6 +66,8 @@ public:
         const FString& ExpectedConstructionId) const;
     bool OpenStorageFromServer(AKalmalaConstructionActor* Construction);
     bool TransferStorageFromServer(FGuid ItemGuid, bool bDeposit, FString& Reason);
+    bool LoadCharcoalKilnWoodFromServer(FString& Reason);
+    bool CollectCharcoalKilnCoalFromServer(FString& Reason);
     const TArray<FKalmalaInventoryStack>& GetStorageView() const { return StorageView; }
     bool HasStorageView() const { return bStorageViewOpen; }
     uint32 GetResultSerial() const { return ResultSerial; }
@@ -111,6 +115,7 @@ private:
     void RunRainVerticalSliceVerification(float DeltaTime);
     void RefreshStorageView();
     void ClearStorageView();
+    AKalmalaConstructionActor* GetCurrentCharcoalKilnFromServer() const;
     AKalmalaConstructionActor* FindNearbyConstruction(FName Kit, FName AlternateKit = NAME_None) const;
     AKalmalaConstructionActor* FindNearbyConstruction(const TArray<FName>& RequiredStations) const;
     AKalmalaConstructionActor* FindNearbyToolProgressionStation(FName Kit) const;

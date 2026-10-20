@@ -42,16 +42,17 @@ bool FKalmalaRainAuthorityTest::RunTest(const FString& Parameters)
     for (const TCHAR* Name : {TEXT("HearthState"), TEXT("FuelSeconds"), TEXT("EffectiveWarmth"), TEXT("bRoofProtected"), TEXT("bWindProtected")})
         CheckReplicated(GetDefault<AKalmalaCampfire>(), Name);
 
-    // Preserve the approved schema: only accepted identity, kit and transform persist.
+    // Construction health remains transient; only the accepted placement identity/transform and kiln process persist.
     int32 RecordFields = 0;
     for (TFieldIterator<FProperty> It(FKalmalaConstructionSaveRecord::StaticStruct()); It; ++It)
     {
         ++RecordFields;
         TestTrue(TEXT("Construction persistence contains no health, rain or fire claim"),
-            It->GetFName() == TEXT("ConstructionId") || It->GetFName() == TEXT("KitId") || It->GetFName() == TEXT("Transform"));
+            It->GetFName() == TEXT("ConstructionId") || It->GetFName() == TEXT("KitId")
+                || It->GetFName() == TEXT("Transform") || It->GetFName() == TEXT("CharcoalKiln"));
     }
-    TestEqual(TEXT("Construction save contract remains three fields"), RecordFields, 3);
-    TestEqual(TEXT("Construction schema remains unchanged"), UKalmalaConstructionSaveGame::CurrentSchemaVersion, 1);
+    TestEqual(TEXT("Construction save contract stores placement plus kiln state"), RecordFields, 4);
+    TestEqual(TEXT("Legacy in-memory construction model remains schema one"), UKalmalaConstructionSaveGame::CurrentSchemaVersion, 1);
     return true;
 }
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaWeatherMutationTest,

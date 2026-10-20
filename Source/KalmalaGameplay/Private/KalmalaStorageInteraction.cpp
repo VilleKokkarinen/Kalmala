@@ -173,6 +173,8 @@ void UKalmalaCraftingComponent::InteractWithConstructionFromServer(AKalmalaConst
         PublishResult(TEXT("Cauldron opened"), true);
     else if (Kit == TEXT("FryingPanKit"))
         PublishResult(TEXT("Frying Pan opened"), true);
+    else if (Kit == TEXT("CharcoalKilnKit"))
+        PublishResult(TEXT("Charcoal Kiln ready; load Wood and collect Coal from its processing panel"), true);
     else if (Construction->GetConstructionKit() == TEXT("SmokeFrameKit"))
         PublishResult(TEXT("Smoke frame ready; use Camp crafting with a lit hearth and one extra raw fuel item per serving"), true);
     else PublishResult(TEXT("Workbench ready; use the Construction Hammer menu to build floors, walls, and roofs from Wood"), true);
@@ -238,4 +240,94 @@ void UKalmalaCraftingComponent::ServerWithdrawStorage_Implementation(FGuid ItemG
 {
     if (!AcceptRequest()) return;
     FString Reason; const bool bAccepted = TransferStorageFromServer(ItemGuid, false, Reason); PublishResult(Reason, bAccepted);
+}
+
+AKalmalaConstructionActor* UKalmalaCraftingComponent::GetCurrentCharcoalKilnFromServer() const
+{
+    AKalmalaCharacter* Character = GetCharacter();
+    AKalmalaConstructionActor* Kiln = LastStationContextActor.Get();
+    if (!Character || !Character->HasAuthority() || !Character->GetController()
+        || LastStationContextKit != TEXT("CharcoalKilnKit") || !Kiln
+        || Kiln->GetConstructionKit() != TEXT("CharcoalKilnKit")
+        || Kiln->GetConstructionId() != LastStationContextConstructionId
+        || !IsStationContextUsable(Kiln, TEXT("CharcoalKilnKit"), LastStationContextConstructionId)
+        || !Kiln->CanInteract_Implementation(Character)) return nullptr;
+    return Kiln;
+}
+
+bool UKalmalaCraftingComponent::LoadCharcoalKilnWoodFromServer(FString& Reason)
+{
+    Reason = TEXT("Interact with a nearby Charcoal Kiln first");
+    AKalmalaConstructionActor* Kiln = GetCurrentCharcoalKilnFromServer();
+    AKalmalaCharacter* Character = GetCharacter();
+    auto* Inventory = Character ? Character->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
+    auto* Mode = GetWorld() ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
+    if (!Kiln || !Character || !Inventory || !Mode) return false;
+
+    FKalmalaCharcoalKilnState Candidate = Kiln->GetCharcoalKilnState();
+    Reason = TEXT("Kiln input is full (10 Wood)");
+    if (!Candidate.TryAddWood()) return false;
+    Reason = TEXT("Need 1 Wood in your pack");
+    if (!Inventory->TryConsumeFromServer(TEXT("Wood"), 1)) return false;
+    if (!Mode->PersistCharcoalKilnState(Kiln, Candidate))
+    {
+        if (!Inventory->TryGrantFromServer(TEXT("Wood"), 1))
+            UE_LOG(LogTemp, Error, TEXT("Failed to restore Wood after Charcoal Kiln save rejection."));
+        Reason = TEXT("Kiln could not be saved; no Wood was consumed");
+        return false;
+    }
+    Kiln->ApplyCharcoalKilnStateFromServer(Candidate);
+    Character->ForceNetUpdate();
+    Reason = TEXT("Added 1 Wood to the Charcoal Kiln");
+    return true;
+}
+
+bool UKalmalaCraftingComponent::CollectCharcoalKilnCoalFromServer(FString& Reason)
+{
+    Reason = TEXT("Interact with a nearby Charcoal Kiln first");
+    AKalmalaConstructionActor* Kiln = GetCurrentCharcoalKilnFromServer();
+    AKalmalaCharacter* Character = GetCharacter();
+    auto* Inventory = Character ? Character->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
+    auto* Mode = GetWorld() ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
+    if (!Kiln || !Character || !Inventory || !Mode) return false;
+
+    const FKalmalaCharcoalKilnState Previous = Kiln->GetCharcoalKilnState();
+    FKalmalaCharcoalKilnState Candidate = Previous;
+    Reason = TEXT("No Coal is ready to collect");
+    if (!Candidate.TryTakeCoal()) return false;
+    const TArray<FKalmalaInventoryStack> Before = Inventory->GetStacks();
+    TArray<FKalmalaInventoryStack> After;
+    if (!UKalmalaInventoryComponent::BuildGrant(Before, TEXT("Coal"), 1, After, Reason)) return false;
+    if (!Mode->PersistCharcoalKilnState(Kiln, Candidate))
+    {
+        Reason = TEXT("Kiln could not be saved; Coal remains available");
+        return false;
+    }
+    if (!Inventory->TryCommitStacksFromServer(Before, After))
+    {
+        if (!Mode->PersistCharcoalKilnState(Kiln, Previous))
+            UE_LOG(LogTemp, Error, TEXT("Charcoal Kiln output rollback failed after inventory changed."));
+        Reason = TEXT("Pack changed; Coal remains in the Kiln");
+        return false;
+    }
+    Kiln->ApplyCharcoalKilnStateFromServer(Candidate);
+    Character->ForceNetUpdate();
+    Reason = TEXT("Collected 1 Coal");
+    return true;
+}
+
+void UKalmalaCraftingComponent::ServerLoadCharcoalKilnWood_Implementation()
+{
+    if (!AcceptRequest()) return;
+    FString Reason;
+    const bool bAccepted = LoadCharcoalKilnWoodFromServer(Reason);
+    PublishResult(Reason, bAccepted);
+}
+
+void UKalmalaCraftingComponent::ServerCollectCharcoalKilnCoal_Implementation()
+{
+    if (!AcceptRequest()) return;
+    FString Reason;
+    const bool bAccepted = CollectCharcoalKilnCoalFromServer(Reason);
+    PublishResult(Reason, bAccepted);
 }

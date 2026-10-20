@@ -11,8 +11,11 @@ Existing internal actor/icon IDs with a Kit suffix are not inventory items.
 Unknown future Kit inventory definitions fail catalogue validation. Existing
 development stacks containing removed construction items are rejected without
 conversion. AGENTS.md forbids reintroducing portable construction kits.
-The A1 Charcoal Kiln now has a direct 20 Stone placement recipe and a registered
-construction icon; its 30-second Wood-to-Coal processing remains pending.
+The A1 Charcoal Kiln has a direct 20 Stone placement recipe and registered
+construction icon. Interact with it to load one Wood or collect one Coal; the
+server saves its 10/10 queues and 30-active-second job state in construction
+save schema 3. Multiplayer and rendered acceptance remain part of A1 final
+verification.
 
 The focused `Kalmala.Gameplay.Construction.NoPortableKits` regression covers all
 14 routes, ordinary grant/stack/production rejection, storage/save rejection,
@@ -1700,7 +1703,7 @@ After the editor build, run it with the documented temporary-user pattern:
 
 ### M9 current-schema persistence
 
-Construction and player-discovery saves use their current schema-2 formats, with carried equipment stored directly as `ItemId`. Save data must match the exact seed, revision, scope, and authenticated player identity. The game is unreleased and has no user save files; change active development formats directly and do not add save migrations until release. Current-format writers validate complete server-owned candidates before saving, and incompatible or invalid slots fail closed without rewriting. The player writer also re-derives live M9 claim identities and saves the owner's bounded carried-item records without adding replicated state. See `docs/02-technical-architecture.md` for bounds and authority rules.
+Construction uses save schema 3; player-discovery saves use schema 2, with carried equipment stored directly as `ItemId`. Save data must match the exact seed, revision, scope, and authenticated player identity. The game is unreleased and has no user save files; change active development formats directly and do not add save migrations until release. Current-format writers validate complete server-owned candidates before saving, and incompatible or invalid slots fail closed without rewriting. The player writer also re-derives live M9 claim identities and saves the owner's bounded carried-item records without adding replicated state. See `docs/02-technical-architecture.md` for bounds and authority rules.
 ### M8 travel-save contract
 
 `UKalmalaOceanTravelPersistenceSaveGame` is a separate schema-1 gate over the
@@ -3484,7 +3487,7 @@ discovery's visual presentation in-world.
 
 ### M9 current-schema save verification
 
-After the forced editor build, run `Kalmala.Gameplay.Construction.Schema2CurrentFormat`, `Kalmala.Gameplay.Construction.Schema2WriteCandidate`, and `Kalmala.Gameplay.Discovery.Schema2CurrentFormat` with isolated `-UserDir`, `-abslog`, `-DDC-ForceMemoryCache`, and `-TestExit="Automation Test Queue Empty"` arguments. These checks cover current-format round-trips, exact identity and owner validation, malformed and over-cap rejection, duplicate IDs, and candidate isolation. No schema-conversion tests run because compatibility migrations are intentionally absent until the game is released.
+After the forced editor build, run `Kalmala.Gameplay.Construction.Schema3CurrentFormat`, `Kalmala.Gameplay.Construction.Schema3WriteCandidate`, and `Kalmala.Gameplay.Discovery.Schema2CurrentFormat` with isolated `-UserDir`, `-abslog`, `-DDC-ForceMemoryCache`, and `-TestExit="Automation Test Queue Empty"` arguments. These checks cover current-format round-trips, exact identity and owner validation, malformed and over-cap rejection, kiln queue/timer persistence, duplicate IDs, and candidate isolation. No schema-conversion tests run because compatibility migrations are intentionally absent until the game is released.
 ### M9 schema-2 current-format host-client reconnect
 
 After the forced editor build and current-format save verifications, run the two-client restart fixture against the isolated project mirror:
@@ -3493,7 +3496,7 @@ After the forced editor build and current-format save verifications, run the two
 & '.\Scripts\Tests\Progression\Verify-M9Schema2CandidateReconnect.ps1' -Port 19725 -ProjectPath "$projectMirror/Kalmala.uproject"
 ```
 
-The fixture writes current schema-2 world and player candidates to isolated slots, then checks exact identity after a host restart. It verifies a saved M9 claim and carried tools reload, replay is rejected without changing the claim set, and each client sees only its own carried-item details. Both normal construction and player-discovery slots use schema 2. The fixture creates no old-schema save and performs no migration. Separate construction restart coverage is provided by `Scripts/Tests/Construction/Verify-ConstructionPersistence.ps1`.
+The fixture writes current world and player candidates to isolated slots, then checks exact identity after a host restart. It verifies a saved M9 claim and carried tools reload, replay is rejected without changing the claim set, and each client sees only its own carried-item details. Construction uses schema 3; player discovery uses schema 2. The fixture creates no old-schema save and performs no migration. Separate construction restart coverage is provided by `Scripts/Tests/Construction/Verify-ConstructionPersistence.ps1`.
 
 This null-renderer authority and replication check uses deterministic test-provider identities; it does not verify a production online identity provider or rendered UI.
 ## M11 item-gain notification child
@@ -3957,7 +3960,7 @@ construction identity and icon key, never an inventory output. Keep the
 existing 5 Stone + 3 Wood direct cost and one priority-selected raw fuel item.
 
 `Kalmala.Gameplay.Inventory.Catalogue` asserts the item is absent while the
-recipe descriptor validates. `Kalmala.Gameplay.Construction.Schema2CurrentFormat`
+recipe descriptor validates. `Kalmala.Gameplay.Construction.Schema3CurrentFormat`
 retains a CampfireKit save-record round trip. `Kalmala.Gameplay.Crafting`
 continues to cover successful payment and overlap rejection without payment;
 the placement path still allocates before the atomic inventory exchange and

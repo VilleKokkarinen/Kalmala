@@ -17,7 +17,7 @@ struct KALMALAGAMEPLAY_API FKalmalaPlacementPreview
     FString Message;
 
     static bool IsSupportedKit(FName ItemId);
-    /** Schema-1 test data excludes M9 kits; current schema-2 slots store approved attachments directly. */
+    /** Schema-1 test data excludes M9 kits; current schema-3 slots store approved attachments directly. */
     static bool IsSessionOnlyKit(FName ItemId);
     static FKalmalaPlacementPreview Evaluate(const UWorld* World, const APawn* Pawn, FName ItemId);
 };

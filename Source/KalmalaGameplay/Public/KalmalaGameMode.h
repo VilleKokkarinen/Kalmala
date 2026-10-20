@@ -11,6 +11,7 @@
 
 struct FKalmalaOceanDiscoveryDescriptor;
 struct FKalmalaM9ExplorationRewardDescriptor;
+struct FKalmalaCharcoalKilnState;
 enum class EKalmalaOceanSkiffSeat : uint8;
 
 /**
@@ -31,6 +32,8 @@ public:
     virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
     bool CanPersistConstruction(FName KitId, const FTransform& Transform) const;
     bool PersistConstruction(class AKalmalaConstructionActor* Construction);
+    bool PersistCharcoalKilnState(class AKalmalaConstructionActor* Construction,
+        const FKalmalaCharcoalKilnState& State);
     bool ReadStorage(const class AKalmalaConstructionActor* Construction, TArray<FKalmalaInventoryStack>& Out) const;
     bool PersistStorage(const class AKalmalaConstructionActor* Construction, const TArray<FKalmalaInventoryStack>& Stacks);
     bool ClaimDiscovery(class AKalmalaCharacter* Interactor, const struct FKalmalaWorldDiscoveryDescriptor& Descriptor);

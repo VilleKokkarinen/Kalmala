@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "KalmalaInteractable.h"
+#include "KalmalaConstructionSaveGame.h"
 #include "KalmalaConstructionActor.generated.h"
 
 class UBoxComponent;
@@ -15,11 +16,15 @@ class KALMALAGAMEPLAY_API AKalmalaConstructionActor : public AActor, public IKal
     GENERATED_BODY()
 public:
     AKalmalaConstructionActor();
+    virtual void Tick(float DeltaSeconds) override;
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-    void InitializeFromServer(FName InKit, const FString& InConstructionId);
+    void InitializeFromServer(FName InKit, const FString& InConstructionId,
+        const FKalmalaCharcoalKilnState& InCharcoalKiln = FKalmalaCharcoalKilnState());
     FName GetConstructionKit() const { return ConstructionKit; }
     const FString& GetConstructionId() const { return ConstructionId; }
     float GetHealth() const { return Health; }
+    const FKalmalaCharcoalKilnState& GetCharcoalKilnState() const { return CharcoalKiln; }
+    bool ApplyCharcoalKilnStateFromServer(const FKalmalaCharcoalKilnState& State);
     /** Trusted server weather input; roof eligibility is sampled internally. No RPC. */
     void AdvanceRainWearFromServer(float DeltaSeconds, float Precipitation);
     static constexpr float MaximumHealth = 100.0f;
@@ -42,5 +47,6 @@ private:
     UPROPERTY(ReplicatedUsing=OnRep_ConstructionState) FName ConstructionKit;
     UPROPERTY(ReplicatedUsing=OnRep_ConstructionState) FString ConstructionId;
     UPROPERTY(Replicated) float Health = MaximumHealth;
+    UPROPERTY(Replicated) FKalmalaCharcoalKilnState CharcoalKiln;
     FString LastLoggedReplicationId;
 };
