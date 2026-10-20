@@ -1764,6 +1764,16 @@ Seed, two Rutabagas plus one Rutabaga Seed, or two Onions plus one Onion Seed
 as complete capacity-checked transactions without a tool; full-pack and failed
 requests do not deplete a patch. All four sources use the existing population
 harvest ledger.
+After those A0 special sources, the next dry, safe Elderwood harvest candidate
+per key becomes an `elderwood-copper-vein`; the next safe Shimmering Lakes
+candidate on a dry shared shoreline becomes `lakes-tin-shore-gravel`. Each uses
+its own stable identity seed (`Mix(candidate-seed XOR 0xC022E271019)` for
+Copper, `Mix(candidate-seed XOR 0x71A6A271019)` for Tin) and has a distinct
+original procedural rock or gravel presentation. Their server selections award exactly three matching
+ore, require a Stone-tier pick at minimum, and mark the source Bronze grade.
+There is at most one node of each kind per spatial key; a key without another
+eligible candidate has no secondary node. The server validates the full
+inventory grant and pick condition before committing depletion.
 `Kalmala.Gameplay.M9.SecondWaveHarvestAcceptance` covers crop source identity,
 tool-free interaction, exact rewards, the Potato no-seed rule, full-pack
 rejection, persistence rollback, and duplicate prevention, including the A0
@@ -1789,8 +1799,10 @@ After the editor build, run the focused deterministic catalogue check:
 The wildlife authority regression covers the six niche profiles and their
 bounded flee responses through `Kalmala.Gameplay.WildlifeBehaviour.ServerOwnedCycle`.
 `Kalmala.World.M7.BiomeContentContract` covers deterministic Meadow crops,
-Shimmering Lakes rutabaga, and Elderwood onion placement, safe terrain
-classification, and source presentation; `Kalmala.Gameplay.M9.SecondWaveHarvestAcceptance`
+Shimmering Lakes rutabaga/Tin gravel, and Elderwood onion/Copper nodes, safe
+terrain classification, source presentation, per-key uniqueness and repeatability;
+`Kalmala.Gameplay.Tools.LifecycleContract` covers exact three-ore rewards and
+the Stone/Bronze/Iron mining ceilings. `Kalmala.Gameplay.M9.SecondWaveHarvestAcceptance`
 also covers the no-tool rewards, full-pack rejection, duplicate rejection and
 saved depletion transaction. Run both at the A0 milestone gate.
 
@@ -1817,6 +1829,13 @@ material payments, no mutation on intact-tool, missing-station, or missing-
 material attempts, owner-only condition restoration, post-payment Crafting
 experience, and duplicate rejection. Recipe identity and batch remain the
 only crafting RPC fields.
+
+The A1 Copper/Tin source checks use these same server selections: Bronze-grade
+ore requires at least a Stone Pick and yields three matching pieces per node.
+The maximum mineable resource tiers are Bronze for Stone Pick and Iron for
+Bronze or Iron Pick. `Kalmala.Gameplay.Tools.LifecycleContract` covers the
+three source rewards and ceilings; `Kalmala.Gameplay.Harvest.ResourceFamilyGates`
+covers all six pick/axe identities across the expanded source set.
 
 ## First build
 
@@ -4204,7 +4223,7 @@ Validation requires complete, non-overlapping known-item membership, unique boun
 
 Item profile `DamageBonuses` may omit inactive channels: the loader fills omitted Slash/Stab/Crush/Pierce/Fire/Water/Holy/Poison with zero before strict conversion. Keep the object itself (`{}` for zero damage); other required profile fields remain strict. Nonzero authored values retain existing validation. Shared attacks retain explicit channels. Shared reward DamageBonuses also allow omitted zero channels, and omitted MaxDurability defaults to zero; the reward and DamageBonuses objects remain required.
 
-Axes and pickaxes require integer `MaterialTier` in their item profiles: 1 = Stone resources, 2 = Bronze resources, 3 = Iron resources. It is the maximum resource tier the matching harvesting action can damage, independent of item level. Server resource gates resolve this authored value rather than the axe/pick identity. Other profiles default to zero and cannot author a nonzero MaterialTier. Missing/invalid harvesting tiers fail catalogue loading; existing action, skill and condition checks still apply.
+Axes and pickaxes require integer `MaterialTier` in their item profiles: 1 = Stone, 2 = Bronze, 3 = Iron tool identity, independent of item level. Axe resource access continues to use the authored tool tier against the source's minimum requirement. Mining selections also carry the source resource tier and enforce the pick ceiling: Stone Pick mines through Bronze, Bronze Pick through Iron, and Iron Pick through Iron for now. `Kalmala.Gameplay.Harvest.ResourceFamilyGates` now includes Copper/Tin and the mining ceilings for all six axe/pick identities against eleven wood/mining sources at levels 1/10/20. Automation execution remains deferred.
 
 Carried equipment classification is derived from the validated item family; profiles contain no `ItemCategory` field. Knives/axes/maces/spears are weapons across all tiers; pickaxes and Construction Hammer are tools. Inventory browsing separates Tools and Weapons and details show the classification. Classification does not replace harvesting Action or MaterialTier and does not change shared equipment lifecycle, server repair/crafting/combat or saved IDs.
 

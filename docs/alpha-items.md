@@ -122,8 +122,10 @@ coverage, not a count of obtainable items or the assembled runtime catalogue.
   one Bone Fragment from each credited boar/deer defeat, and natural A0 sources
   for Carrot, Potato, Rutabaga, and Onion. Their recipes are reachable without
   farming; seed use remains deferred to A7. Current acquisition gaps remain for
-  Coal, Copper, Tin, and IronOre; production for Copper/Tin/Bronze/Iron and Coal
-  remains pending A1 implementation.
+  Coal and IronOre; three Copper Ore per eligible Elderwood node and three Tin
+  Ore per eligible dry Lakes shoreline node are now sourced to Stone Pick or
+  better. Production for Copper/Tin/Bronze/Iron and Coal remains pending A1
+  implementation.
 - The current spawn layout derives harvest identities from the classified biome
   and material rewards/tool gates from server contracts. The initial source
   audit was static; the A0 final gate now passes deterministic placement and

@@ -100,12 +100,50 @@ bool FKalmalaBiomeContentContractTest::RunTest(const FString& Parameters)
     bool bSawWildPotatoDescriptor = false;
     bool bSawWildRutabagaDescriptor = false;
     bool bSawWildOnionDescriptor = false;
+    bool bSawCopperOreDescriptor = false;
+    bool bSawTinOreDescriptor = false;
     bool bSawCreatureDescriptor = false;
     bool bSawRareDiscoveryDescriptor = false;
+    const auto VerifyOreSpawn = [this, &Config, &bSawCopperOreDescriptor, &bSawTinOreDescriptor](
+        const FKalmalaWorldPopulationSpawn& Spawn, const FName ExpectedSource,
+        const EKalmalaBiome ExpectedBiome, const bool bTin)
+    {
+        const FVector2D Position(Spawn.Location.X, Spawn.Location.Y);
+        const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, Position));
+        TestEqual(TEXT("Ore node is placed only in its authored biome"), Biome, ExpectedBiome);
+        TestFalse(TEXT("Ore node stays out of ocean water"), FKalmalaOceanSampler::Sample(Config, Position).IsWater());
+        TestFalse(TEXT("Ore node stays on dry land"), FKalmalaShimmeringLakeSampler::IsWater(Config, Position));
+        TestTrue(TEXT("Ore node uses safe terrain slope"),
+            FKalmalaTerrainHeightSampler::SampleSurfaceNormal(Config, Position).Z >= 0.88f);
+        if (bTin)
+        {
+            TestTrue(TEXT("Tin gravel stays on a dry shoreline"),
+                FKalmalaEnvironmentalExposureSampler::Sample(Config, Position).bIsShoreline);
+        }
+
+        const FIntPoint SpatialKey = Spawn.SpatialKey;
+        const auto RepeatedSpawns = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(
+            Config, SpatialKey, EKalmalaWorldPopulationKind::HarvestNode);
+        int32 SameKeyOreCount = 0;
+        for (const FKalmalaWorldPopulationSpawn& Candidate : RepeatedSpawns)
+            if (Candidate.ContentId == ExpectedSource) ++SameKeyOreCount;
+        TestEqual(TEXT("At most one node of each ore kind occupies a spatial key"), SameKeyOreCount, 1);
+        const FString PersistentId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Spawn);
+        TestTrue(TEXT("Ore node position and sparse identity repeat for the same seed and key"),
+            RepeatedSpawns.ContainsByPredicate([&Spawn, &PersistentId](const FKalmalaWorldPopulationSpawn& Candidate)
+            {
+                return Candidate.ContentId == Spawn.ContentId
+                    && Candidate.Location.Equals(Spawn.Location, 0.01f)
+                    && FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Candidate) == PersistentId;
+            }));
+        if (bTin) bSawTinOreDescriptor = true;
+        else bSawCopperOreDescriptor = true;
+    };
     const auto HasCompleteSourceCoverage = [&]()
     {
         return bSawGatheringDescriptor && bSawWildCarrotDescriptor && bSawWildPotatoDescriptor
             && bSawWildRutabagaDescriptor && bSawWildOnionDescriptor
+            && bSawCopperOreDescriptor && bSawTinOreDescriptor
             && bSawCreatureDescriptor && bSawRareDiscoveryDescriptor;
     };
     // Search deterministic seeds and a broad area so lake shorelines are
@@ -123,6 +161,18 @@ bool FKalmalaBiomeContentContractTest::RunTest(const FString& Parameters)
                     for (const FKalmalaWorldPopulationSpawn& Spawn : FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(Config, SpatialKey, Kind))
                     {
                         const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, FVector2D(Spawn.Location)));
+                        if (Spawn.ContentId == TEXT("elderwood-copper-vein"))
+                        {
+                            TestTrue(TEXT("Copper vein is a harvest node"), Kind == EKalmalaWorldPopulationKind::HarvestNode);
+                            VerifyOreSpawn(Spawn, TEXT("elderwood-copper-vein"), EKalmalaBiome::Elderwood, false);
+                            continue;
+                        }
+                        if (Spawn.ContentId == TEXT("lakes-tin-shore-gravel"))
+                        {
+                            TestTrue(TEXT("Tin gravel is a harvest node"), Kind == EKalmalaWorldPopulationKind::HarvestNode);
+                            VerifyOreSpawn(Spawn, TEXT("lakes-tin-shore-gravel"), EKalmalaBiome::ShimmeringLakes, true);
+                            continue;
+                        }
                         if (Spawn.ContentId == TEXT("meadows-wild-carrot-patch"))
                         {
                             TestEqual(TEXT("Wild carrot source is only selected for Meadows"), Biome, EKalmalaBiome::Meadows);
@@ -268,6 +318,8 @@ bool FKalmalaBiomeContentContractTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("The deterministic neighborhood exposes the A0 wild potato source"), bSawWildPotatoDescriptor);
     TestTrue(TEXT("The deterministic neighborhood exposes the A0 wild rutabaga source"), bSawWildRutabagaDescriptor);
     TestTrue(TEXT("The deterministic neighborhood exposes the A0 wild onion source"), bSawWildOnionDescriptor);
+    TestTrue(TEXT("The deterministic neighborhood exposes an Elderwood copper node"), bSawCopperOreDescriptor);
+    TestTrue(TEXT("The deterministic neighborhood exposes a dry Shimmering Lakes tin node"), bSawTinOreDescriptor);
     TestTrue(TEXT("The deterministic neighborhood exposes a creature niche identity"), bSawCreatureDescriptor);
     TestTrue(TEXT("The deterministic neighborhood exposes an optional rare identity"), bSawRareDiscoveryDescriptor);
     return true;

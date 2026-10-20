@@ -29,7 +29,8 @@ bool FKalmalaToolLifecycleContractTest::RunTest(const FString& Parameters)
     const TArray<FName> Sources =
     {
         TEXT("meadows-birch-bark"), TEXT("lakes-reed-cluster"), TEXT("elderwood-resinwood"),
-        TEXT("mire-bog-iron"), TEXT("tundra-frostmoss"), TEXT("mountains-slate-vein")
+        TEXT("mire-bog-iron"), TEXT("tundra-frostmoss"), TEXT("mountains-slate-vein"),
+        TEXT("elderwood-copper-vein"), TEXT("lakes-tin-shore-gravel")
     };
     TSet<FName> Rewards;
     for (const FName Source : Sources)
@@ -39,9 +40,49 @@ bool FKalmalaToolLifecycleContractTest::RunTest(const FString& Parameters)
         TestTrue(TEXT("Server selection reward is catalogue-valid"), UKalmalaItemCatalogue::Get()->IsValidStack(Selection.RewardItemId, Selection.RewardQuantity));
         Rewards.Add(Selection.RewardItemId);
     }
-    TestEqual(TEXT("First-wave selection covers four material rewards"), Rewards.Num(), 4);
+    TestEqual(TEXT("First-wave selection covers six material rewards"), Rewards.Num(), 6);
 
     FKalmalaToolServerSelection Selection;
+    const TPair<FName, FName> OreSources[] = {
+        { TEXT("elderwood-copper-vein"), TEXT("CopperOre") },
+        { TEXT("lakes-tin-shore-gravel"), TEXT("TinOre") }
+    };
+    for (const TPair<FName, FName>& OreSource : OreSources)
+    {
+        TestTrue(TEXT("Copper and Tin nodes select a validated reward"),
+            FKalmalaToolLifecycleContract::BuildServerSelection(OreSource.Key, Selection));
+        TestEqual(TEXT("Ore nodes pay three matching ore"), Selection.RewardItemId, OreSource.Value);
+        TestEqual(TEXT("Each ore node pays exactly three"), Selection.RewardQuantity, 3);
+        TestEqual(TEXT("Stone Pick is the minimum tool"), Selection.MinimumToolTier, EKalmalaToolTier::Stone);
+        TestEqual(TEXT("Copper and Tin are Bronze-grade resources"), Selection.ResourceTier, EKalmalaToolTier::Bronze);
+    }
+    TestEqual(TEXT("Stone Pick mines through Bronze"),
+        FKalmalaToolLifecycleContract::GetMaximumMineableResourceTier(EKalmalaToolKind::StonePick), EKalmalaToolTier::Bronze);
+    TestEqual(TEXT("Bronze Pick mines through Iron"),
+        FKalmalaToolLifecycleContract::GetMaximumMineableResourceTier(EKalmalaToolKind::BronzePick), EKalmalaToolTier::Iron);
+    TestEqual(TEXT("Iron Pick currently mines through Iron"),
+        FKalmalaToolLifecycleContract::GetMaximumMineableResourceTier(EKalmalaToolKind::IronPick), EKalmalaToolTier::Iron);
+    TestEqual(TEXT("Non-pick tools have no mining resource ceiling"),
+        FKalmalaToolLifecycleContract::GetMaximumMineableResourceTier(EKalmalaToolKind::IronAxe), EKalmalaToolTier::None);
+    TestTrue(TEXT("Copper source builds before mining ceiling tests"),
+        FKalmalaToolLifecycleContract::BuildServerSelection(TEXT("elderwood-copper-vein"), Selection));
+    const FKalmalaToolDefinition* StonePick = FKalmalaToolLifecycleContract::FindDefinition(TEXT("StonePick"));
+    const FKalmalaToolDefinition* BronzePick = FKalmalaToolLifecycleContract::FindDefinition(TEXT("BronzePick"));
+    const FKalmalaToolDefinition* IronPick = FKalmalaToolLifecycleContract::FindDefinition(TEXT("IronPick"));
+    TestNotNull(TEXT("Stone Pick profile is available for mining-cap coverage"), StonePick);
+    TestNotNull(TEXT("Bronze Pick profile is available for mining-cap coverage"), BronzePick);
+    TestNotNull(TEXT("Iron Pick profile is available for mining-cap coverage"), IronPick);
+    if (StonePick == nullptr || BronzePick == nullptr || IronPick == nullptr) return true;
+    TestTrue(TEXT("Stone Pick can mine Bronze-grade Copper Ore"),
+        FKalmalaToolLifecycleContract::IsToolSuitableForSelection(*StonePick, Selection));
+    Selection.ResourceTier = EKalmalaToolTier::Iron;
+    TestFalse(TEXT("Stone Pick cannot mine an Iron-grade source"),
+        FKalmalaToolLifecycleContract::IsToolSuitableForSelection(*StonePick, Selection));
+    TestTrue(TEXT("Bronze Pick can mine an Iron-grade source"),
+        FKalmalaToolLifecycleContract::IsToolSuitableForSelection(*BronzePick, Selection));
+    TestTrue(TEXT("Iron Pick can mine an Iron-grade source"),
+        FKalmalaToolLifecycleContract::IsToolSuitableForSelection(*IronPick, Selection));
+
     TestFalse(TEXT("Forged source fails closed"), FKalmalaToolLifecycleContract::BuildServerSelection(TEXT("forged-source"), Selection));
 
     const TArray<TPair<FName, int32>> RepairTools = {

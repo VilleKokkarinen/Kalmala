@@ -107,6 +107,8 @@ struct KALMALAGAMEPLAY_API FKalmalaToolServerSelection
     FName RewardItemId = NAME_None;
     int32 RewardQuantity = 0;
     EKalmalaToolTier MinimumToolTier = EKalmalaToolTier::None;
+    /** Material grade of a mining source; the selected pick must be able to mine up to it. */
+    EKalmalaToolTier ResourceTier = EKalmalaToolTier::None;
 };
 
 /**
@@ -146,6 +148,8 @@ public:
     static bool IsKnownToolTier(EKalmalaToolTier Tier);
     static EKalmalaToolTier GetToolTier(EKalmalaToolKind Tool);
     static EKalmalaToolTier GetToolTier(EKalmalaToolKind Tool, int32 ToolLevel);
+    /** Stone picks mine through Bronze; Bronze and Iron picks mine through Iron. */
+    static EKalmalaToolTier GetMaximumMineableResourceTier(EKalmalaToolKind Tool);
     static bool BuildServerSelection(FName ServerSourceId, FKalmalaToolServerSelection& OutSelection);
     /** Resource family must match before material tier is considered. */
     static bool IsResourceFamilyCompatible(EKalmalaToolKind Kind, EKalmalaToolAction ResourceAction);

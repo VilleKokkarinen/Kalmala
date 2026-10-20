@@ -82,13 +82,16 @@ namespace
         if (PresentationId == TEXT("potato-patch-harvest")) return FLinearColor(0.42f, 0.50f, 0.25f);
         if (PresentationId == TEXT("onion-patch-harvest")) return FLinearColor(0.29f, 0.43f, 0.20f);
         if (PresentationId == TEXT("slate-vein")) return FLinearColor(0.30f, 0.36f, 0.43f);
+        if (PresentationId == TEXT("copper-ore-vein")) return FLinearColor(0.70f, 0.32f, 0.13f);
+        if (PresentationId == TEXT("tin-shore-gravel")) return FLinearColor(0.68f, 0.74f, 0.75f);
         return FLinearColor::Transparent;
     }
 
     bool IsRockSource(const FName PresentationId)
     {
         return PresentationId == TEXT("bog-iron-vein") || PresentationId == TEXT("slate-vein")
-            || PresentationId == TEXT("peat-amber-seam") || PresentationId == TEXT("tundra-salt-crystals");
+            || PresentationId == TEXT("peat-amber-seam") || PresentationId == TEXT("tundra-salt-crystals")
+            || PresentationId == TEXT("copper-ore-vein") || PresentationId == TEXT("tin-shore-gravel");
     }
 }
 
@@ -668,8 +671,27 @@ void AKalmalaHarvestNode::BuildSourcePresentation()
     }
     else if (IsRockSource(PresentationId))
     {
-        AddTaperedBox(Vertices, Triangles, Colors, FVector(-14.0f, 0.0f, 0.0f), FVector(24.0f, 14.0f, 0.0f), 28.0f, 0.72f, -9.0f, Accent);
-        AddTaperedBox(Vertices, Triangles, Colors, FVector(14.0f, 3.0f, 0.0f), FVector(18.0f, 12.0f, 0.0f), 38.0f, 0.68f, 12.0f, Accent);
+        if (PresentationId == TEXT("copper-ore-vein"))
+        {
+            const FLinearColor RockBase(0.27f, 0.24f, 0.21f);
+            AddTaperedBox(Vertices, Triangles, Colors, FVector(-14.0f, 0.0f, 0.0f), FVector(24.0f, 14.0f, 0.0f), 28.0f, 0.72f, -9.0f, RockBase);
+            AddTaperedBox(Vertices, Triangles, Colors, FVector(14.0f, 3.0f, 0.0f), FVector(18.0f, 12.0f, 0.0f), 38.0f, 0.68f, 12.0f, RockBase);
+            AddTaperedBox(Vertices, Triangles, Colors, FVector(-18.0f, -10.0f, 14.0f), FVector(12.0f, 3.0f, 0.0f), 3.0f, 0.85f, -9.0f, Accent);
+            AddTaperedBox(Vertices, Triangles, Colors, FVector(10.0f, -7.0f, 20.0f), FVector(10.0f, 2.5f, 0.0f), 3.0f, 0.85f, 12.0f, Accent);
+        }
+        else if (PresentationId == TEXT("tin-shore-gravel"))
+        {
+            const FLinearColor Gravel(0.38f, 0.40f, 0.39f);
+            AddTaperedBox(Vertices, Triangles, Colors, FVector(-19.0f, -2.0f, 0.0f), FVector(13.0f, 10.0f, 0.0f), 14.0f, 0.68f, -12.0f, Gravel);
+            AddTaperedBox(Vertices, Triangles, Colors, FVector(3.0f, 4.0f, 0.0f), FVector(14.0f, 11.0f, 0.0f), 18.0f, 0.64f, 8.0f, Gravel);
+            AddTaperedBox(Vertices, Triangles, Colors, FVector(23.0f, -5.0f, 0.0f), FVector(9.0f, 8.0f, 0.0f), 11.0f, 0.72f, 18.0f, Gravel);
+            AddTaperedBox(Vertices, Triangles, Colors, FVector(-1.0f, -4.0f, 9.0f), FVector(7.0f, 2.5f, 0.0f), 2.0f, 0.85f, 8.0f, Accent);
+        }
+        else
+        {
+            AddTaperedBox(Vertices, Triangles, Colors, FVector(-14.0f, 0.0f, 0.0f), FVector(24.0f, 14.0f, 0.0f), 28.0f, 0.72f, -9.0f, Accent);
+            AddTaperedBox(Vertices, Triangles, Colors, FVector(14.0f, 3.0f, 0.0f), FVector(18.0f, 12.0f, 0.0f), 38.0f, 0.68f, 12.0f, Accent);
+        }
     }
     else if (PresentationId == TEXT("carrot-patch-harvest"))
     {

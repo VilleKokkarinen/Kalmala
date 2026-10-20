@@ -91,6 +91,8 @@ struct KALMALAWORLD_API FKalmalaBiomeContentContract
         if (GatheringSourceId == TEXT("elderwood-ironheart-trunk")) return TEXT("ironheart-trunk-harvest");
         if (GatheringSourceId == TEXT("mire-peat-amber-seam")) return TEXT("peat-amber-seam");
         if (GatheringSourceId == TEXT("tundra-frost-salt-deposit")) return TEXT("tundra-salt-crystals");
+        if (GatheringSourceId == TEXT("elderwood-copper-vein")) return TEXT("copper-ore-vein");
+        if (GatheringSourceId == TEXT("lakes-tin-shore-gravel")) return TEXT("tin-shore-gravel");
         for (const EKalmalaBiome Biome : {
             EKalmalaBiome::Meadows,
             EKalmalaBiome::ShimmeringLakes,

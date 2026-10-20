@@ -9,7 +9,8 @@ bool FKalmalaResourceFamilyGateTest::RunTest(const FString& Parameters)
 {
     const FName Sources[] = { TEXT("meadows-birch-bark"), TEXT("elderwood-resinwood"), TEXT("meadows-aspen-trunk"),
         TEXT("meadows-birch-trunk"), TEXT("elderwood-ironheart-trunk"), TEXT("mountains-slate-vein"),
-        TEXT("mire-bog-iron"), TEXT("mire-peat-amber-seam"), TEXT("tundra-frost-salt-deposit") };
+        TEXT("mire-bog-iron"), TEXT("mire-peat-amber-seam"), TEXT("tundra-frost-salt-deposit"),
+        TEXT("elderwood-copper-vein"), TEXT("lakes-tin-shore-gravel") };
     const FName Items[] = { TEXT("StoneAxe"), TEXT("BronzeAxe"), TEXT("IronAxe"),
         TEXT("StonePick"), TEXT("BronzePick"), TEXT("IronPick") };
     for (const FName Item : Items)
@@ -26,7 +27,10 @@ bool FKalmalaResourceFamilyGateTest::RunTest(const FString& Parameters)
             for (const int32 Level : { 1, 10, 20 })
             {
                 const bool bExpected = bFamilyMatches
-                    && FKalmalaToolLifecycleContract::GetToolTier(Definition->Kind, Level) >= Selection.MinimumToolTier;
+                    && FKalmalaToolLifecycleContract::GetToolTier(Definition->Kind, Level) >= Selection.MinimumToolTier
+                    && (Selection.Action != EKalmalaToolAction::Mining
+                        || static_cast<uint8>(FKalmalaToolLifecycleContract::GetMaximumMineableResourceTier(Definition->Kind))
+                            >= static_cast<uint8>(Selection.ResourceTier));
                 TestEqual(FString::Printf(TEXT("%s level %d against %s"), *Item.ToString(), Level, *Source.ToString()),
                     FKalmalaToolLifecycleContract::IsToolSuitableForSelection(*Definition, Level, Selection), bExpected);
                 if (!bFamilyMatches)

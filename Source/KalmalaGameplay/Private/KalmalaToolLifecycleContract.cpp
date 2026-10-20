@@ -115,15 +115,34 @@ namespace
             && Selection.MinimumToolTier == EKalmalaToolTier::None;
         const bool bTieredTool = Selection.RequiredTool == EKalmalaToolKind::None
             && FKalmalaToolLifecycleContract::IsKnownToolTier(Selection.MinimumToolTier);
+        const bool bMiningTier = Selection.Action == EKalmalaToolAction::Mining
+            ? FKalmalaToolLifecycleContract::IsKnownToolTier(Selection.ResourceTier)
+            : Selection.ResourceTier == EKalmalaToolTier::None;
+        const bool bCopperOre = Selection.SourceId == TEXT("elderwood-copper-vein")
+            && Selection.Action == EKalmalaToolAction::Mining
+            && Selection.RequiredTool == EKalmalaToolKind::None
+            && Selection.RequiredSkill == EKalmalaSkill::Mining
+            && Selection.MinimumToolTier == EKalmalaToolTier::Stone
+            && Selection.ResourceTier == EKalmalaToolTier::Bronze
+            && Selection.RewardItemId == TEXT("CopperOre") && Selection.RewardQuantity == 3;
+        const bool bTinOre = Selection.SourceId == TEXT("lakes-tin-shore-gravel")
+            && Selection.Action == EKalmalaToolAction::Mining
+            && Selection.RequiredTool == EKalmalaToolKind::None
+            && Selection.RequiredSkill == EKalmalaSkill::Mining
+            && Selection.MinimumToolTier == EKalmalaToolTier::Stone
+            && Selection.ResourceTier == EKalmalaToolTier::Bronze
+            && Selection.RewardItemId == TEXT("TinOre") && Selection.RewardQuantity == 3;
         return !Selection.SourceId.IsNone()
             && FKalmalaToolLifecycleContract::IsKnownAction(Selection.Action)
             && (bExactTool || bTieredTool)
+            && bMiningTier
             && FKalmalaSkillProgressionContract::IsKnownSkill(Selection.RequiredSkill)
             && !Selection.RewardItemId.IsNone()
             && (Selection.RewardQuantity == 1
                 || (Selection.SourceId == TEXT("meadows-aspen-trunk")
                     && Selection.RewardItemId == TEXT("Lightwood")
-                    && Selection.RewardQuantity == 4));
+                    && Selection.RewardQuantity == 4)
+                || bCopperOre || bTinOre);
     }
 }
 
@@ -290,6 +309,17 @@ EKalmalaToolTier FKalmalaToolLifecycleContract::GetToolTier(
     return GetToolTier(Tool);
 }
 
+EKalmalaToolTier FKalmalaToolLifecycleContract::GetMaximumMineableResourceTier(const EKalmalaToolKind Tool)
+{
+    switch (Tool)
+    {
+    case EKalmalaToolKind::StonePick: return EKalmalaToolTier::Bronze;
+    case EKalmalaToolKind::BronzePick:
+    case EKalmalaToolKind::IronPick: return EKalmalaToolTier::Iron;
+    default: return EKalmalaToolTier::None;
+    }
+}
+
 bool FKalmalaToolLifecycleContract::BuildServerSelection(
     const FName ServerSourceId,
     FKalmalaToolServerSelection& OutSelection)
@@ -316,12 +346,22 @@ bool FKalmalaToolLifecycleContract::BuildServerSelection(
     else if (ServerSourceId == TEXT("mire-bog-iron"))
     {
         OutSelection = { ServerSourceId, EKalmalaToolAction::Mining, EKalmalaToolKind::None,
-            EKalmalaSkill::Mining, TEXT("Iron"), 1, EKalmalaToolTier::Bronze };
+            EKalmalaSkill::Mining, TEXT("Iron"), 1, EKalmalaToolTier::Bronze, EKalmalaToolTier::Iron };
     }
     else if (ServerSourceId == TEXT("mountains-slate-vein"))
     {
         OutSelection = { ServerSourceId, EKalmalaToolAction::Mining, EKalmalaToolKind::None,
-            EKalmalaSkill::Mining, TEXT("Stone"), 1, EKalmalaToolTier::Stone };
+            EKalmalaSkill::Mining, TEXT("Stone"), 1, EKalmalaToolTier::Stone, EKalmalaToolTier::Stone };
+    }
+    else if (ServerSourceId == TEXT("elderwood-copper-vein"))
+    {
+        OutSelection = { ServerSourceId, EKalmalaToolAction::Mining, EKalmalaToolKind::None,
+            EKalmalaSkill::Mining, TEXT("CopperOre"), 3, EKalmalaToolTier::Stone, EKalmalaToolTier::Bronze };
+    }
+    else if (ServerSourceId == TEXT("lakes-tin-shore-gravel"))
+    {
+        OutSelection = { ServerSourceId, EKalmalaToolAction::Mining, EKalmalaToolKind::None,
+            EKalmalaSkill::Mining, TEXT("TinOre"), 3, EKalmalaToolTier::Stone, EKalmalaToolTier::Bronze };
     }
     else if (ServerSourceId == TEXT("meadows-aspen-trunk"))
     {
@@ -341,7 +381,7 @@ bool FKalmalaToolLifecycleContract::BuildServerSelection(
         FName RewardItemId;
         if (!FKalmalaM9SourceLootContract::GetPrimaryItemId(ServerSourceId, RewardItemId)) return false;
         OutSelection = { ServerSourceId, EKalmalaToolAction::Mining, EKalmalaToolKind::None,
-            EKalmalaSkill::Mining, RewardItemId, 1, EKalmalaToolTier::Stone };
+            EKalmalaSkill::Mining, RewardItemId, 1, EKalmalaToolTier::Stone, EKalmalaToolTier::Stone };
     }
 
     const UKalmalaItemCatalogue* Catalogue = UKalmalaItemCatalogue::Get();
@@ -387,6 +427,16 @@ bool FKalmalaToolLifecycleContract::IsToolSuitableForSelection(
     if (GetMaxDurability(Definition.ItemId, ToolLevel) <= 0) return false;
     if (Definition.Action != Selection.Action
         || !IsResourceFamilyCompatible(Definition.Kind, Selection.Action)) return false;
+    if (Selection.Action == EKalmalaToolAction::Mining)
+    {
+        const EKalmalaToolTier MaximumResourceTier = GetMaximumMineableResourceTier(Definition.Kind);
+        if (!IsKnownToolTier(Selection.ResourceTier) || !IsKnownToolTier(MaximumResourceTier)
+            || static_cast<uint8>(MaximumResourceTier) < static_cast<uint8>(Selection.ResourceTier)) return false;
+    }
+    else if (Selection.ResourceTier != EKalmalaToolTier::None)
+    {
+        return false;
+    }
     if (Selection.MinimumToolTier == EKalmalaToolTier::None)
     {
         return Definition.Kind == Selection.RequiredTool;

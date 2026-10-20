@@ -104,6 +104,8 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
         bool bAddedMeadowPotatoPatch = false;
         bool bAddedLakesRutabagaPatch = false;
         bool bAddedElderwoodOnionPatch = false;
+        bool bAddedElderwoodCopperVein = false;
+        bool bAddedLakesTinGravel = false;
         // Wildlife candidates deliberately have a small, fixed retry budget.  The
         // server derives all candidates, rejects water and unsafe slopes, and
         // keeps the candidate seed in the sparse-delta ID.  Clients never choose
@@ -163,6 +165,21 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
                 ContentId = TEXT("elderwood-wild-onion-patch");
                 PersistentSeed = Mix(CandidateSeed ^ 0xA0E10A71019ull);
                 bAddedElderwoodOnionPatch = true;
+            }
+            else if (Kind == EKalmalaWorldPopulationKind::HarvestNode && Biome == EKalmalaBiome::Elderwood
+                && !bAddedElderwoodCopperVein && IsTerrainSafeDiscoveryLocation(Config, Position))
+            {
+                ContentId = TEXT("elderwood-copper-vein");
+                PersistentSeed = Mix(CandidateSeed ^ 0xC022E271019ull);
+                bAddedElderwoodCopperVein = true;
+            }
+            else if (Kind == EKalmalaWorldPopulationKind::HarvestNode && Biome == EKalmalaBiome::ShimmeringLakes
+                && !bAddedLakesTinGravel && IsTerrainSafeDiscoveryLocation(Config, Position)
+                && FKalmalaEnvironmentalExposureSampler::Sample(Config, Position).bIsShoreline)
+            {
+                ContentId = TEXT("lakes-tin-shore-gravel");
+                PersistentSeed = Mix(CandidateSeed ^ 0x71A6A271019ull);
+                bAddedLakesTinGravel = true;
             }
             Spawns.Add({ Kind, SpatialKey, PersistentSeed, FVector(Position.X, Position.Y, FKalmalaTerrainHeightSampler::SampleHeight(Config, Position)), ContentId });
         }

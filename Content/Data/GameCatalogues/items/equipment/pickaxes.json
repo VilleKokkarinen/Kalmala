@@ -3,7 +3,7 @@
     {
       "ItemId": "StonePick",
       "DisplayName": "Stone Pick",
-      "Description": "Hard enough to crack tin and copper.",
+      "Description": "Can mine through Bronze-grade ore, including Copper and Tin.",
       "MaxDurability": 20,
       "DamageBonuses": {
         "Crush": 10.0,
@@ -14,7 +14,7 @@
     {
       "ItemId": "BronzePick",
       "DisplayName": "Bronze Pick",
-      "Description": "Can break even the hardest rocks.",
+      "Description": "Can mine through Iron-grade ore.",
       "MaxDurability": 30,
       "DamageBonuses": {
         "Crush": 18.0,
@@ -25,7 +25,7 @@
     {
       "ItemId": "IronPick",
       "DisplayName": "Iron Pick",
-      "Description": "The pinnacle of craftsmanship!",
+      "Description": "Can mine through Iron-grade ore.",
       "MaxDurability": 100,
       "DamageBonuses": {
         "Crush": 25.0,

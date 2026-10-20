@@ -122,6 +122,13 @@ recipes still use their previous values; apply these targets as the A1 metal
 sources and production become usable, so a Bronze Pick never becomes
 unobtainable between increments.
 
+**User-directed mining ceilings (2026-10-20):** Stone Pick can mine resources
+through Bronze grade; Bronze Pick can mine through Iron; Iron Pick currently
+also mines through Iron. Copper and Tin Ore are Bronze-grade sources and remain
+available to Stone Pick or better. Iron Ore is Iron grade and requires Bronze
+Pick or better. The server checks both the source's minimum tool tier and the
+pick's maximum mineable resource tier.
+
 **Progression review (2026-10-20).** Fresh characters receive a Stone Pick and
 Construction Hammer but no material stacks; Stone still requires travel to
 Thunder Mountains slate or the optional Three-Run Rillstone in Shimmering
