@@ -15,7 +15,10 @@ The A1 Charcoal Kiln has a direct 20 Stone placement recipe and registered
 construction icon. Interact with it to load one Wood or collect one Coal; the
 server saves its 10/10 queues and 30-active-second job state in construction
 save schema 3. Multiplayer and rendered acceptance remain part of A1 final
-verification.
+verification. `Kalmala.Gameplay.Construction.Schema3CurrentFormat` covers
+record-removal rejection for queued Wood, output Coal, and active job time,
+plus removal after the Kiln is empty. There is no player-facing construction
+removal action yet.
 
 The focused `Kalmala.Gameplay.Construction.NoPortableKits` regression covers all
 14 routes, ordinary grant/stack/production rejection, storage/save rejection,

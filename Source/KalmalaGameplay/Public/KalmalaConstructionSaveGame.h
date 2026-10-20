@@ -126,6 +126,8 @@ public:
     static bool IsValidRecord(const FKalmalaConstructionSaveRecord& Record);
     bool AddRecord(const FKalmalaConstructionSaveRecord& Record);
     bool AddStationAttachmentRecord(const FKalmalaConstructionSaveRecord& Record);
+    /** Rejects deletion of a Kiln record while it contains Wood, Coal, or active job time. */
+    bool RemoveRecord(const FString& ConstructionId);
     bool UpdateCharcoalKilnRecord(const FString& ConstructionId, const FKalmalaCharcoalKilnState& State);
     const TArray<FKalmalaConstructionSaveRecord>& GetRecords() const { return Records; }
     static bool TryBuildWriteCandidate(

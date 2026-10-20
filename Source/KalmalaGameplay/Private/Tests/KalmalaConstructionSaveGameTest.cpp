@@ -91,6 +91,32 @@ bool FKalmalaConstructionSaveGameV2Test::RunTest(const FString& Parameters)
         Save->AddRecord(MakeRecord(TEXT("camp-unknown-01"), TEXT("UnknownConstructionKit"))));
     TestEqual(TEXT("Rejected schema-3 additions leave the live candidate unchanged"), Save->GetRecords().Num(), 4);
 
+    const auto BuildKilnRemovalCandidate = [&World, &MakeRecord](const TCHAR* Id, const FKalmalaCharcoalKilnState& State)
+    {
+        UKalmalaConstructionSaveGameV2* Candidate = NewObject<UKalmalaConstructionSaveGameV2>(GetTransientPackage());
+        Candidate->InitializeForWorld(World);
+        FKalmalaConstructionSaveRecord Record = MakeRecord(Id, TEXT("CharcoalKilnKit"));
+        Record.CharcoalKiln = State;
+        TestTrue(TEXT("Kiln removal fixture contains a valid record"), Candidate->AddRecord(Record));
+        return Candidate;
+    };
+    FKalmalaCharcoalKilnState RemovalState;
+    RemovalState.InputWood = 1;
+    UKalmalaConstructionSaveGameV2* RemovalCandidate = BuildKilnRemovalCandidate(TEXT("kiln-input"), RemovalState);
+    TestFalse(TEXT("Kiln with queued Wood cannot be removed"), RemovalCandidate->RemoveRecord(TEXT("kiln-input")));
+    TestEqual(TEXT("Rejected Kiln removal preserves the saved record"), RemovalCandidate->GetRecords().Num(), 1);
+    RemovalState = FKalmalaCharcoalKilnState();
+    RemovalState.OutputCoal = 1;
+    RemovalCandidate = BuildKilnRemovalCandidate(TEXT("kiln-output"), RemovalState);
+    TestFalse(TEXT("Kiln with output Coal cannot be removed"), RemovalCandidate->RemoveRecord(TEXT("kiln-output")));
+    RemovalState = FKalmalaCharcoalKilnState();
+    RemovalState.JobRemainingSeconds = 12.5f;
+    RemovalCandidate = BuildKilnRemovalCandidate(TEXT("kiln-active"), RemovalState);
+    TestFalse(TEXT("Kiln with active job time cannot be removed"), RemovalCandidate->RemoveRecord(TEXT("kiln-active")));
+    RemovalCandidate = BuildKilnRemovalCandidate(TEXT("kiln-empty"), FKalmalaCharcoalKilnState());
+    TestTrue(TEXT("Empty Kiln can be removed"), RemovalCandidate->RemoveRecord(TEXT("kiln-empty")));
+    TestEqual(TEXT("Successful empty Kiln removal deletes one record"), RemovalCandidate->GetRecords().Num(), 0);
+
     TArray<uint8> CurrentBytes;
     TestTrue(TEXT("Schema 3 construction records serialize in memory"), Serialize(Save, CurrentBytes));
     UKalmalaConstructionSaveGameV2* Reloaded =

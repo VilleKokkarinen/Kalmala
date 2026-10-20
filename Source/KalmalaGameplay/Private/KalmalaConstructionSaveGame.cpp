@@ -174,6 +174,23 @@ bool UKalmalaConstructionSaveGameV2::AddRecord(const FKalmalaConstructionSaveRec
     return true;
 }
 
+bool UKalmalaConstructionSaveGameV2::RemoveRecord(const FString& ConstructionId)
+{
+    if (!MatchesWorld(WorldConfig) || ConstructionId.IsEmpty()) return false;
+
+    const int32 RecordIndex = Records.IndexOfByPredicate([&ConstructionId](const FKalmalaConstructionSaveRecord& Record)
+    {
+        return Record.ConstructionId == ConstructionId;
+    });
+    if (RecordIndex == INDEX_NONE) return false;
+
+    const FKalmalaConstructionSaveRecord& Record = Records[RecordIndex];
+    if (Record.KitId == TEXT("CharcoalKilnKit") && !Record.CharcoalKiln.IsEmpty()) return false;
+
+    Records.RemoveAt(RecordIndex);
+    return true;
+}
+
 bool UKalmalaConstructionSaveGameV2::UpdateCharcoalKilnRecord(const FString& ConstructionId,
     const FKalmalaCharcoalKilnState& State)
 {
