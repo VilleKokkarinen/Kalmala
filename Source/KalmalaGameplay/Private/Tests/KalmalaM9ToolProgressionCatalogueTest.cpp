@@ -266,9 +266,9 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
         TestTrue(TEXT("Bronze Axe is the first step in this axe path"),
             Bronze->PreviousItemId.IsNone() && Bronze->PreviousToolLevel == 0);
         TestEqual(TEXT("Bronze Axe acquisition has two bounded materials"), Bronze->MaterialCosts.Num(), 2);
-        TestTrue(TEXT("Bronze Axe uses the early-game material set"),
+        TestTrue(TEXT("Bronze Axe uses its authored Lightwood and Stone costs"),
             Bronze->MaterialCosts.ContainsByPredicate([](const FKalmalaToolMaterialCost& Cost)
-                { return Cost.ItemId == TEXT("Wood") && Cost.Quantity == 4; })
+                { return Cost.ItemId == TEXT("Lightwood") && Cost.Quantity == 4; })
             && Bronze->MaterialCosts.ContainsByPredicate([](const FKalmalaToolMaterialCost& Cost)
                 { return Cost.ItemId == TEXT("Stone") && Cost.Quantity == 3; }));
     }
@@ -283,14 +283,12 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
         TestEqual(TEXT("Forge level matches the Bronze Axe target"), BronzeLevelTwo->RequiredStationLevel, 2);
         TestEqual(TEXT("Upgrade keeps the same item identity"), BronzeLevelTwo->PreviousItemId, FName(TEXT("BronzeAxe")));
         TestEqual(TEXT("Upgrade requires Bronze Axe level one"), BronzeLevelTwo->PreviousToolLevel, 1);
-        TestEqual(TEXT("Bronze Axe upgrade has three bounded materials"), BronzeLevelTwo->MaterialCosts.Num(), 3);
-        TestTrue(TEXT("Bronze Axe upgrade uses Lightwood, Amber, and Stone"),
+        TestEqual(TEXT("Bronze Axe upgrade has two bounded materials"), BronzeLevelTwo->MaterialCosts.Num(), 2);
+        TestTrue(TEXT("Bronze Axe upgrade uses its authored Lightwood and Bronze costs"),
             BronzeLevelTwo->MaterialCosts.ContainsByPredicate([](const FKalmalaToolMaterialCost& Cost)
-                { return Cost.ItemId == TEXT("Lightwood") && Cost.Quantity == 3; })
+                { return Cost.ItemId == TEXT("Lightwood") && Cost.Quantity == 4; })
             && BronzeLevelTwo->MaterialCosts.ContainsByPredicate([](const FKalmalaToolMaterialCost& Cost)
-                { return Cost.ItemId == TEXT("Amber") && Cost.Quantity == 2; })
-            && BronzeLevelTwo->MaterialCosts.ContainsByPredicate([](const FKalmalaToolMaterialCost& Cost)
-                { return Cost.ItemId == TEXT("Stone") && Cost.Quantity == 4; }));
+                { return Cost.ItemId == TEXT("Bronze") && Cost.Quantity == 3; }));
         TestFalse(TEXT("Bronze Axe level two does not require Densewood gated behind itself"),
             BronzeLevelTwo->MaterialCosts.ContainsByPredicate([](const FKalmalaToolMaterialCost& Cost)
                 { return Cost.ItemId == TEXT("Densewood"); }));

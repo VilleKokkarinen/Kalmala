@@ -2,6 +2,7 @@
 #include "KalmalaItemCatalogue.h"
 #include "Dom/JsonObject.h"
 #include "KalmalaRecipeCatalogue.h"
+#include "KalmalaToolCatalogue.h"
 #include "Misc/AutomationTest.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
@@ -49,8 +50,10 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
 {
     const UKalmalaItemCatalogue* Catalogue = UKalmalaItemCatalogue::Get();
     const UKalmalaRecipeCatalogue* Recipes = UKalmalaRecipeCatalogue::Get();
+    const UKalmalaToolCatalogue* ToolCatalogue = UKalmalaToolCatalogue::Get();
     TestTrue(TEXT("Versioned JSON loads a valid item catalogue"), Catalogue->IsValidCatalogue());
     TestTrue(TEXT("Versioned JSON loads a valid recipe catalogue"), Recipes->IsValidCatalogue());
+    TestTrue(TEXT("Versioned JSON loads a valid tool catalogue"), ToolCatalogue->IsValidCatalogue(Catalogue));
     const FKalmalaItemDefinition* BowString = Catalogue->FindDefinition(TEXT("BowString"));
     TestNotNull(TEXT("Bow String item replaces generic String"), BowString);
     TestNull(TEXT("Generic String is no longer a catalogue identity"), Catalogue->FindDefinition(TEXT("String")));
@@ -137,10 +140,22 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         && LoadManifestCategoryArray(JsonRoot, TEXT("itemFiles"), TEXT("items"), JsonItems)
         && LoadManifestCategoryArray(JsonRoot, TEXT("recipeFiles"), TEXT("recipes"), JsonRecipes);
     TestTrue(TEXT("The manifest category files load item and recipe arrays"), bHasCatalogueArrays);
+    int32 JsonToolRecipeCount = 0;
+    JsonRecipes.RemoveAll([&JsonToolRecipeCount](const TSharedPtr<FJsonValue>& Value)
+    {
+        if (Value.IsValid() && Value->Type == EJson::Object && Value->AsObject()->HasField(TEXT("ItemId")))
+        {
+            ++JsonToolRecipeCount;
+            return true;
+        }
+        return false;
+    });
     if (bHasCatalogueArrays)
     {
         TestEqual(TEXT("Every JSON item definition is loaded"), Catalogue->Items.Num() + Catalogue->Buildables.Num(), JsonItems.Num());
-        TestEqual(TEXT("Every JSON recipe definition is loaded"), Recipes->Recipes.Num(), JsonRecipes.Num());
+        TestEqual(TEXT("Every ordinary JSON recipe definition is loaded"), Recipes->Recipes.Num(), JsonRecipes.Num());
+        TestEqual(TEXT("Every equipment acquisition definition is routed to the tool catalogue"),
+            ToolCatalogue->Recipes.Num(), JsonToolRecipeCount);
     }
     struct FExpectedBatchOneCopy
     {
@@ -150,14 +165,13 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         int32 MaxStack;
     };
     const FExpectedBatchOneCopy BatchOneCopy[] = {
-        { TEXT("Wood"), TEXT("Wood"), TEXT("Common timber for tools, structures, and camp equipment."), 50 },
-        { TEXT("Lightwood"), TEXT("Lightwood"), TEXT("Pale birch timber for stronger tools."), 50 },
-        { TEXT("Densewood"), TEXT("Densewood"),
-            TEXT("Dark, dense timber from Ironheart trunks that burns as hearth fuel."), 50 },
-        { TEXT("Coal"), TEXT("Coal"), TEXT("A dense, black mineral that burns directly as hearth fuel."), 40 },
-        { TEXT("Stone"), TEXT("Stone"), TEXT("Add some googly eyes, and it becomes a friendly pet rock."), 40 },
-        { TEXT("Iron"), TEXT("Iron"), TEXT("A forged iron bar used for durable tools and camp equipment."), 50 },
-        { TEXT("Amber"), TEXT("Amber"), TEXT("Dark peat threaded with amber from the Mire."), 40 },
+        { TEXT("Wood"), TEXT("Wood"), TEXT("Have you noticed that a 2 by 4 is actually 1.5 by 3.5 these days?"), 50 },
+        { TEXT("Lightwood"), TEXT("Lightwood"), TEXT("Lightweight yet durable."), 50 },
+        { TEXT("Densewood"), TEXT("Densewood"), TEXT("Old and hardened wood."), 50 },
+        { TEXT("Coal"), TEXT("Coal"), TEXT("You probably don't want these for christmas.."), 50 },
+        { TEXT("Stone"), TEXT("Stone"), TEXT("Add some googly eyes, and it becomes a friendly pet rock."), 50 },
+        { TEXT("Iron"), TEXT("Iron bar"), TEXT("A forged bar of pure iron, ready to be forged into the finest blade."), 50 },
+        { TEXT("Amber"), TEXT("Amber"), TEXT("Dark yellow amber from the Mire."), 40 },
     };
     for (const FExpectedBatchOneCopy& Expected : BatchOneCopy)
     {
@@ -180,7 +194,7 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         int32 MaxStack;
     };
     const FExpectedBatchTwoCopy BatchTwoCopy[] = {
-        { TEXT("FrostSalt"), TEXT("Frost Salt"), TEXT("Pale mineral crystals gathered in the tundra."), 40 },
+        { TEXT("FrostSalt"), TEXT("Frost Salt"), TEXT("Sprinkle some to preserve your food."), 40 },
         { TEXT("WorkbenchKit"), TEXT("Workbench"), TEXT("A camp workbench for making furnishings and repairing tools."), 5 },
         { TEXT("ForgeKit"), TEXT("Forge"), TEXT("A stone-and-timber forge for making and repairing advanced tools."), 5 },
         { TEXT("WorkbenchToolRackKit"), TEXT("Workbench Tool Rack"),
@@ -349,8 +363,8 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         { TEXT("Potato"), TEXT("Potato"), TEXT("A trusty root for stews, soups, and pan roasts."), 20 },
         { TEXT("Rutabaga"), TEXT("Rutabaga"), TEXT("A hardy root with a mild, earthy flavor."), 20 },
         { TEXT("Onion"), TEXT("Onion"), TEXT("Layers upon layers of destruction to the eyes."), 20 },
-        { TEXT("CarrotSeed"), TEXT("Carrot Seeds"), TEXT("Seeds from the carrot plant."), 50 },
-        { TEXT("PotatoSeed"), TEXT("Potato Seeds"), TEXT("Seeds from the potato plant."), 50 },
+        { TEXT("CarrotSeed"), TEXT("Carrot Seeds"), TEXT("Seeds to grow carrots."), 50 },
+        { TEXT("PotatoSeed"), TEXT("Potato Seeds"), TEXT("Seeds to grow potatoes."), 50 },
     };
     for (const FExpectedBatchFiveCopy& Expected : BatchFiveCopy)
     {
@@ -390,8 +404,8 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         int32 MaxStack;
     };
     const FExpectedBatchSixCopy BatchSixCopy[] = {
-        { TEXT("RutabagaSeed"), TEXT("Rutabaga Seeds"), TEXT("Seeds from the rutabaga plant."), 50 },
-        { TEXT("OnionSeed"), TEXT("Onion Seeds"), TEXT("Seeds from the onion plant."), 50 },
+        { TEXT("RutabagaSeed"), TEXT("Rutabaga Seeds"), TEXT("Seeds to grow rutabagas."), 50 },
+        { TEXT("OnionSeed"), TEXT("Onion Seeds"), TEXT("Seeds to grow onions."), 50 },
     };
     for (const FExpectedBatchSixCopy& Expected : BatchSixCopy)
     {
@@ -431,8 +445,24 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
             Recipes->IsValidCatalogue(Catalogue));
     }
     for (const TCHAR* RemovedField : { TEXT("OutputTool"), TEXT("bRequiresCampfire"), TEXT("AlternateStation"), TEXT("RequiredSkillLevel") })
-        TestFalse(FString::Printf(TEXT("Recipe data omits removed field %s"), RemovedField), JsonText.Contains(RemovedField));
-    TestTrue(TEXT("Station requirements use JSON arrays"), JsonText.Contains(TEXT("\"RequiredStation\": [")));
+    {
+        bool bFieldAbsent = true;
+        for (const TSharedPtr<FJsonValue>& Value : JsonRecipes)
+        {
+            if (Value.IsValid() && Value->Type == EJson::Object)
+                bFieldAbsent &= !Value->AsObject()->HasField(RemovedField);
+        }
+        TestTrue(FString::Printf(TEXT("Recipe data omits removed field %s"), RemovedField), bFieldAbsent);
+    }
+    bool bAllStationRequirementsAreArrays = true;
+    for (const TSharedPtr<FJsonValue>& Value : JsonRecipes)
+    {
+        const TArray<TSharedPtr<FJsonValue>>* RequiredStations = nullptr;
+        bAllStationRequirementsAreArrays &= Value.IsValid() && Value->Type == EJson::Object
+            && Value->AsObject()->TryGetArrayField(TEXT("RequiredStation"), RequiredStations)
+            && RequiredStations != nullptr;
+    }
+    TestTrue(TEXT("Ordinary recipe station requirements use JSON arrays"), bAllStationRequirementsAreArrays);
     for (const FName Id : { FName(TEXT("Fuel")), FName(TEXT("ConstructionSupply")), FName(TEXT("RaisedStorage")) })
     {
         TestNull(TEXT("Removed item is not loaded"), Catalogue->FindDefinition(Id));
@@ -519,8 +549,8 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         TestEqual(TEXT("Hearth broth recipe keeps a five-batch limit"), HearthBrothRecipe->MaxBatch, 5);
         TestTrue(TEXT("Hearth broth recipe requires the Cauldron"),
             HearthBrothRecipe->RequiredStation.Contains(TEXT("CauldronKit")));
-        TestEqual(TEXT("Hearth broth recipe awards Cooking experience"),
-            HearthBrothRecipe->ExperienceSkill, FName(TEXT("Cooking")));
+        TestTrue(TEXT("Hearth broth recipe awards Cooking experience"),
+            HearthBrothRecipe->ExperienceSkill == EKalmalaSkill::Cooking);
         TestEqual(TEXT("Hearth broth recipe awards ten Cooking experience"), HearthBrothRecipe->ExperienceAward, 10);
     }
 

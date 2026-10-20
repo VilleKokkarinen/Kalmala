@@ -3144,7 +3144,7 @@ bool UKalmalaCraftingWidget::VerifyCauldronScopeForTest()
         && HasIngredient(SoupRecipe, TEXT("Rutabaga"), 1) && HasIngredient(SoupRecipe, TEXT("Onion"), 1);
     const bool bQuantityDefinitions = BrothRecipe && StewRecipe && SoupRecipe
         && BrothRecipe->MaxBatch == 5 && BrothRecipe->OutputCount == 1
-        && BrothRecipe->ExperienceSkill == TEXT("Cooking") && BrothRecipe->ExperienceAward == 10
+        && BrothRecipe->ExperienceSkill == EKalmalaSkill::Cooking && BrothRecipe->ExperienceAward == 10
         && StewRecipe->MaxBatch == 5 && SoupRecipe->MaxBatch == 5
         && StewRecipe->OutputCount == 1 && SoupRecipe->OutputCount == 1;
     const FString CookSection(TEXT("Cook"));

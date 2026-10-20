@@ -16,12 +16,12 @@ can shorten effective draw duration through the existing calculation hook.
 
 ## Free melee swings — 2026-10-17
 
-Any usable equipped melee weapon or tool can swing without a nearby target, except
+Any usable equipped melee weapon can swing without a nearby target, except
 the Building Hammer (construction only) and Bow (draw/release shooting). Empty hands can punch freely. All use the shared
 0.18-second windup and 0.36-second recovery with the arm swing animation. Misses
 cost no condition and grant nothing. Validated hits use authored weapon damage,
 or the existing basic 25 Crush fallback for items without an authored attack.
-Depleted tools still require repair. Hammer construction remains available, and tree harvesting still
+Depleted items still require repair. Hammer construction remains available, and tree harvesting still
 requires the appropriate axe tier. Inventory materials and wearables do not
 become new Main Hand equipment through this change.
 
@@ -53,7 +53,7 @@ crafting and wielding; the 2026-10-18 bow increment adds drawing, shooting and a
 - Movement: walk, sprint, jump, dodge, swim
 - Vitality: health, stamina, warmth, hunger (simple and legible).
 - Gear: basic clothing and a carry pack. Progression improves warmth, durability, and carry capacity.
-- Weapons: Wooden club, sword, bow.
+- Weapons: knife, sword, bow.
 - Tools: axe, pickaxe, hammer, torch.
 - Crafting: campfire, workbench, basic storage, three build pieces (floor, wall, roof).
 - Magic: scroll-taught support effects. The initial set is:
@@ -115,9 +115,9 @@ Roofs are rain-immune. Unroofed floors, walls, workbenches, and storage take slo
 
 See [Game features](game-features.md) for a short inventory of additions. The player kit above describes design targets; it is not proof that every listed weapon, equipment slot, hunger system, or action is implemented.
 
-The implemented survival loop includes tool-based gathering, paid camp construction, weather/shelter recovery, six cooking recipes, free tool repair, Workbench/Forge axe progression, optional creature encounters and discoveries, a two-seat ocean skiff, local maps, and owner-private inventory/progression feedback. Four support effects remain non-damaging and scroll-learned. Exact transactions, privacy, persistence, and current overrides are consolidated in [Technical architecture](02-technical-architecture.md#consolidated-system-contracts).
+The implemented survival loop includes gathering, paid camp construction, weather/shelter recovery, six cooking recipes, free item repair, Workbench/Forge axe progression, optional creature encounters and discoveries, a two-seat ocean skiff, local maps, and owner-private inventory/progression feedback. Four support effects remain non-damaging and scroll-learned. Exact transactions, privacy, persistence, and current overrides are consolidated in [Technical architecture](02-technical-architecture.md#consolidated-system-contracts).
 
-The current player inventory is one 10×4 grid with its first row assigned to hotbar numbers 1–0. Six wearable slots have owner-private, session-only server equip/unequip transactions, and the Inventory popup displays equipped names with owner-facing equip, replace, and return actions. Wearable defense is one integer Armor value. Sum equipped, non-depleted armor and subtract it once from the combined Slash, Crush, Pierce and Stab damage, clamped to zero. Fire, Water, Holy and Poison bypass armor. Each accepted wildlife hit spends one condition on every equipped wearable, including hits fully absorbed by defenses or support shields; depleted gear supplies no defense. Main Hand references the selected physical weapon/tool in its original cell; its blue highlight follows the exact equipped copy. Pressing its number again unequips it without moving it. Encumbrance is not implemented. Ordinary materials, meals, cell positions, skill XP, weather, active effects, and equipped gear are not generally persisted. Saved tool state, discovered entitlements, construction, storage, and approved sparse world/player facts have separate validated owners.
+The current player inventory is one 10×4 grid with its first row assigned to hotbar numbers 1–0. Six wearable slots have owner-private, session-only server equip/unequip transactions, and the Inventory popup displays equipped names with owner-facing equip, replace, and return actions. Wearable defense is one integer Armor value. Sum equipped, non-depleted armor and subtract it once from the combined Slash, Crush, Pierce and Stab damage, clamped to zero. Fire, Water, Holy and Poison bypass armor. Each accepted wildlife hit spends one condition on every equipped wearable, including hits fully absorbed by defenses or support shields; depleted gear supplies no defense. Main Hand references the selected item in its original cell; its blue highlight follows the exact equipped copy. Pressing its number again unequips it without moving it. Encumbrance is not implemented. Ordinary materials, meals, cell positions, skill XP, weather, active effects, and equipped gear are not generally persisted. Saved tool state, discovered entitlements, construction, storage, and approved sparse world/player facts have separate validated owners.
 
 As of 2026-10-15, the six wearable tiles display owner-only equipped item names and let the owner equip, replace, or return wearables through server-validated GUID transactions. Equipped wearable defenses now contribute to server-resolved wildlife damage. Main Hand equips, switches or clears a physical weapon/tool without moving its numbered grid cell. Equipped names include remaining/maximum condition; depleted wearables provide no defense.
 

@@ -302,13 +302,16 @@ void AKalmalaCharacter::Tick(const float DeltaSeconds)
     VerifySwimming(DeltaSeconds);
     VerifyOceanTravel(DeltaSeconds);
 
+#if !UE_BUILD_SHIPPING
     if (!bCombatPeerTestInvalidAttackSent && !HasAuthority() && IsLocallyControlled()
-        && (FParse::Param(FCommandLine::Get(), TEXT("KalmalaCombatPeerTest")) || FParse::Param(FCommandLine::Get(), TEXT("KalmalaMirelingPeerTest")) || FParse::Param(FCommandLine::Get(), TEXT("KalmalaBoarPeerTest")) || FParse::Param(FCommandLine::Get(), TEXT("KalmalaDeerPeerTest"))) && Combat)
+        && (FParse::Param(FCommandLine::Get(), TEXT("KalmalaCombatPeerTest")) || FParse::Param(FCommandLine::Get(), TEXT("KalmalaMirelingPeerTest")) || FParse::Param(FCommandLine::Get(), TEXT("KalmalaBoarPeerTest")) || FParse::Param(FCommandLine::Get(), TEXT("KalmalaDeerPeerTest")))
+        && Combat && Inventory && Inventory->GetActiveItem() == TEXT("StoneMace"))
     {
         bCombatPeerTestInvalidAttackSent = true;
-        // This fixture deliberately supplies no target, damage, or timing data.
-        Combat->ServerRequestAttack(1);
+        // This fixture sends only an invalid sequence; the request has no target or outcome data.
+        Combat->ServerRequestAttack(0);
     }
+#endif
 
 #if !UE_BUILD_SHIPPING
     if (IsLocallyControlled() && GetWorld() != nullptr

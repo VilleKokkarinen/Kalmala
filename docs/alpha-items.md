@@ -74,7 +74,7 @@ food status dispatch. Definitions do not establish obtainability or usability.
 | Armour and shields | Boar Hide Helmet, Tunic, Leggings, Boots, Cape; Wood Shield | No second armour tier or metal shield. Six functioning slots; Necklace/Ring are disabled placeholders. Shield currently supplies passive Armor, not Valheim-style blocking/parrying. |
 | Crafting materials | Wood, Densewood, Lightwood, Stone, Sinew, Bow String, Bone Fragment, two hides, Amber, Frost Salt, Coal; Copper/Tin/Iron ores and Copper/Tin/Bronze/Iron bars | Deer Sinew feeds the bow-only Bow String recipe; credited boar/deer defeats now grant Bone Fragment for the cape recipe and upgrade. Wood, Densewood, Lightwood, hides, Amber and Frost Salt have source paths. No production recipes for ores/bars/Coal. Check actual generated availability before calling any loop complete. |
 | Food | Two raw meats and seven prepared-food definitions; seven cooking outputs | Hearth Broth now has its reviewed Cauldron recipe. All seven prepared foods use the existing Steady Meal effect. Four root vegetables are ingredients; planting remains deferred to A7. |
-| Crops and seeds | Carrot, Potato, Rutabaga, Onion plus four seed definitions | A0 supplies 2 Carrots + 1 Carrot Seed and 2 Potatoes per Meadow patch, plus 2 Rutabagas + 1 Rutabaga Seed per dry Shimmering Lakes bank patch; Potato Seed acquisition remains deferred to A7's tuber-propagation decision. Onion source remains queued. Farming is otherwise unimplemented. |
+| Crops and seeds | Carrot, Potato, Rutabaga, Onion plus four seed definitions | A0 supplies 2 Carrots + 1 Carrot Seed and 2 Potatoes per Meadow patch, 2 Rutabagas + 1 Rutabaga Seed per dry Shimmering Lakes bank patch, and 2 Onions + 1 Onion Seed per dry Elderwood patch. Potato Seed acquisition and all seed use remain deferred to A7. Farming is otherwise unimplemented. |
 | Recovery and expedition consumables | No authored potion category | Healing/stamina preparations are candidate additions; hazard resistance needs supported effects and an approved hazard role. Do not require consumables for direct-damage magic. |
 | Building/stations | 13 direct-material build recipes; 12 JSON metadata entries plus Campfire's runtime definition | Floor, wall, roof, chest, campfire, Workbench/Tool Rack, Forge/Anvil, Cooking Rack, Cauldron, Grinding Stone, Frying Pan. Missing processing stations and common shelter pieces are proposals, never inventory kits. |
 | Travel, accessories and discoveries | Existing two-seat skiff; four support-scroll definitions/discovery effects | Cargo/hauling, jewellery and trophies are separate proposals. Keep support scrolls and discovery intact; no offensive staves, copied boss trophies or mandatory reference-game boss keys. |
@@ -116,15 +116,17 @@ coverage, not a count of obtainable items or the assembled runtime catalogue.
   Lakes reeds, and Elderwood resinwood; meat/hides from server-confirmed
   boar/deer rewards; Amber from Mossy Mire; Frost Salt from Tundra; and the
   implemented credited-deer Sinew roll feeding the Workbench Bow String recipe,
-  and one Bone Fragment from each credited boar/deer defeat.
-  Current acquisition gaps remain for Coal, Copper,
-  Tin, IronOre, and the four wild vegetables; production for Copper/Tin/Bronze/
-  Iron and Coal is also pending the A1 contract and implementation.
+  one Bone Fragment from each credited boar/deer defeat, and natural A0 sources
+  for Carrot, Potato, Rutabaga, and Onion. Their recipes are reachable without
+  farming; seed use remains deferred to A7. Current acquisition gaps remain for
+  Coal, Copper, Tin, and IronOre; production for Copper/Tin/Bronze/Iron and Coal
+  is also pending the A1 contract and implementation.
 - The current spawn layout derives harvest identities from the classified biome
-  and material rewards/tool gates from server contracts. This was a source and
-  catalogue audit only: no build, automation, generated-seed sweep, or fresh
-  player walkthrough was run. Generated availability and full progression remain
-  milestone verification items.
+  and material rewards/tool gates from server contracts. The initial source
+  audit was static; the A0 final gate now passes deterministic placement and
+  source-transaction automation for representative Meadow, Lakes shoreline,
+  and Elderwood samples. A broad generated-seed sweep and fresh-player
+  walkthrough remain unverified.
 
 ### Other integration gap that affects the recommendation
 

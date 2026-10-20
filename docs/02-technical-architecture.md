@@ -741,7 +741,7 @@ authority for reach and placement. The trunk sources reuse their generated tree 
 Wood source stacks cap at 50 like current `Wood`; mineral source stacks cap at
 40 like current `Stone`.
 
-### A0 hand-gathered Meadow crop patches
+### A0 hand-gathered crop patches
 
 The existing deterministic `HarvestNode` descriptors assign the first dry,
 safe Meadow candidate in each 6,000 cm spatial key to a carrot patch. Its
@@ -762,15 +762,21 @@ stable identity domain `Mix(candidate-seed XOR 0xA0B07ABA71019)`. The original
 procedural presentation shows purple shoulders, pale roots, and foliage. Other
 Lakes candidates keep their normal source identity.
 
+The first dry, safe Elderwood harvest candidate in each eligible key becomes an
+onion patch. Its `elderwood-wild-onion-patch` identity uses the separate stable
+seed domain `Mix(candidate-seed XOR 0xA0E10A71019)`, preserving its position
+while preventing depletion from colliding with the former biome-source
+occupant. Its original procedural presentation uses pale bulbs and green shoots.
+
 The server retraces each interaction and accepts hand gathering without a
 tool. Carrot patches preflight 2 `Carrot` and 1 `CarrotSeed`; potato patches
 preflight exactly 2 `Potato` and grant no `PotatoSeed`; rutabaga patches
-preflight 2 `Rutabaga` and 1 `RutabagaSeed`. Each complete result must fit
-before inventory/player persistence and stable-identity depletion are
-committed through the existing population save callback. A full pack, failed
-player-state persistence, invalid range, or repeated request leaves the patch
-available and grants no item. Potato tuber versus seed propagation remains an
-A7 decision; no Potato Seed source is added in A0.
+preflight 2 `Rutabaga` and 1 `RutabagaSeed`; onion patches preflight 2 `Onion`
+and 1 `OnionSeed`. Each complete result must fit before inventory/player
+persistence and stable-identity depletion are committed through the existing
+population save callback. A full pack, failed player-state persistence, invalid
+range, or repeated request leaves the patch available and grants no item. Crop
+seed use remains deferred to A7; no Potato Seed source is added in A0.
 
 ## Deterministic placement and population budget
 

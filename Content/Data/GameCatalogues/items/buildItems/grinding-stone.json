@@ -3,7 +3,7 @@
     {
       "ItemId": "GrindingStone",
       "DisplayName": "Grinding Stone",
-      "Description": "A stone wheel for repairing all worn tools at once.",
+      "Description": "A stone wheel for repairing all worn items at once.",
       "MaxStack": 5
     }
   ]

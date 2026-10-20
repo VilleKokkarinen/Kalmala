@@ -1080,6 +1080,95 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
         }
     }
 
+    {
+        const FVector OnionLocation(21000.0f, 0.0f, 0.0f);
+        AKalmalaCharacter* OnionPawn = World->SpawnActor<AKalmalaCharacter>(OnionLocation, FRotator::ZeroRotator);
+        AKalmalaHarvestNode* OnionNode = World->SpawnActor<AKalmalaHarvestNode>(OnionLocation, FRotator::ZeroRotator);
+        APlayerState* OnionPlayerState = World->SpawnActor<APlayerState>();
+        if (TestNotNull(TEXT("Wild onion fixture has the server GameMode"), PlantGameMode)
+            && TestNotNull(TEXT("Wild onion fixture pawn spawned"), OnionPawn)
+            && TestNotNull(TEXT("Wild onion patch spawned"), OnionNode)
+            && TestNotNull(TEXT("Wild onion fixture has an authenticated player state"), OnionPlayerState))
+        {
+            const FUniqueNetIdStringRef OnionNetId = FUniqueNetIdString::Create(
+                TEXT("a0-wild-onion-acceptance"), FName(TEXT("KalmalaA0WildOnionAcceptanceTest")));
+            OnionPlayerState->SetUniqueId(FUniqueNetIdRepl(*OnionNetId));
+            OnionPawn->SetPlayerState(OnionPlayerState);
+
+            FKalmalaWorldPopulationSpawn OnionSpawn;
+            OnionSpawn.Kind = EKalmalaWorldPopulationKind::HarvestNode;
+            OnionSpawn.SpatialKey = FKalmalaWorldPopulationLayout::GetSpatialKey(
+                FVector2D(OnionLocation.X, OnionLocation.Y));
+            OnionSpawn.SpawnSeed = 715006;
+            OnionSpawn.Location = OnionLocation;
+            OnionSpawn.ContentId = TEXT("elderwood-wild-onion-patch");
+            OnionNode->InitializeServer(OnionSpawn);
+            FKalmalaToolServerSelection OnionToolSelection;
+            TestEqual(TEXT("Wild onion fixture retains its canonical source identity"),
+                OnionNode->GetGatheringSourceId(), OnionSpawn.ContentId);
+            TestFalse(TEXT("Wild onion patch has a stable population identity"), OnionNode->GetPersistentSpawnId().IsEmpty());
+            TestEqual(TEXT("Wild onion interaction prompt names its primary reward"),
+                OnionNode->GetHarvestItemId(), FName(TEXT("Onion")));
+            TestFalse(TEXT("Wild onion patch does not require a tool selection"),
+                FKalmalaToolLifecycleContract::BuildServerSelection(OnionSpawn.ContentId, OnionToolSelection));
+
+            auto* OnionInventory = OnionPawn->GetInventoryComponent();
+            const int32 OnionBefore = OnionInventory->GetQuantity(TEXT("Onion"));
+            const int32 OnionSeedBefore = OnionInventory->GetQuantity(TEXT("OnionSeed"));
+            auto* OnionPopulationSave = NewObject<UKalmalaWorldPopulationSaveGame>(World);
+            OnionPopulationSave->InitializeForWorld(WorldState->GetWorldGenerationConfig());
+            PlantGameMode->PopulationSaveGame = OnionPopulationSave;
+            int32 OnionPopulationWrites = 0;
+            PlantGameMode->PopulationSaveWriterForTests = [&](UKalmalaWorldPopulationSaveGame* Saved,
+                const FString&, int32)
+            {
+                ++OnionPopulationWrites;
+                TestTrue(TEXT("Wild onion depletion uses the matching world save"),
+                    Saved == OnionPopulationSave && Saved->MatchesWorld(WorldState->GetWorldGenerationConfig()));
+            };
+            OnionNode->OnHarvested.AddUObject(PlantGameMode, &AKalmalaGameMode::RecordHarvestedSpawn);
+
+            TestFalse(TEXT("Wild onion rejects a trace beyond interaction range"), OnionNode->InteractWithToolIntentFromServer(
+                OnionPawn, 251.0f, 250.0f, NAME_None, static_cast<uint8>(EKalmalaToolAction::Gathering)));
+            TestEqual(TEXT("Out-of-range wild onion requests grant no Onion"), OnionInventory->GetQuantity(TEXT("Onion")), OnionBefore);
+            TestEqual(TEXT("Out-of-range wild onion requests grant no Onion Seed"), OnionInventory->GetQuantity(TEXT("OnionSeed")), OnionSeedBefore);
+            TestEqual(TEXT("Out-of-range wild onion requests do not write depletion"), OnionPopulationWrites, 0);
+
+            APlayerState* AuthenticatedOnionPlayerState = OnionPawn->GetPlayerState();
+            OnionPawn->SetPlayerState(nullptr);
+            TestFalse(TEXT("Wild onion rejects failed player-state persistence"), OnionNode->InteractWithToolIntentFromServer(
+                OnionPawn, 100.0f, 250.0f, NAME_None, static_cast<uint8>(EKalmalaToolAction::Gathering)));
+            TestEqual(TEXT("Failed wild onion persistence rolls back Onion"), OnionInventory->GetQuantity(TEXT("Onion")), OnionBefore);
+            TestEqual(TEXT("Failed wild onion persistence rolls back Onion Seed"), OnionInventory->GetQuantity(TEXT("OnionSeed")), OnionSeedBefore);
+            TestEqual(TEXT("Failed wild onion persistence does not record depletion"), OnionPopulationWrites, 0);
+            TestFalse(TEXT("Failed wild onion persistence leaves the patch available"), OnionNode->IsHarvested());
+
+            OnionPawn->SetPlayerState(AuthenticatedOnionPlayerState);
+            TestTrue(TEXT("A player can hand-gather wild onions without a tool"), OnionNode->InteractWithToolIntentFromServer(
+                OnionPawn, 100.0f, 250.0f, NAME_None, static_cast<uint8>(EKalmalaToolAction::Gathering)));
+            TestEqual(TEXT("Wild onion harvest grants exactly two Onions"), OnionInventory->GetQuantity(TEXT("Onion")), OnionBefore + 2);
+            TestEqual(TEXT("Wild onion harvest grants exactly one Onion Seed"), OnionInventory->GetQuantity(TEXT("OnionSeed")), OnionSeedBefore + 1);
+            TestTrue(TEXT("Wild onion depletion is saved under the existing harvest ledger"),
+                OnionPopulationSave->IsHarvested(OnionNode->GetPersistentSpawnId()));
+            TestEqual(TEXT("Wild onion harvest writes depletion once"), OnionPopulationWrites, 1);
+            TestFalse(TEXT("Wild onion harvest cannot grant twice"), OnionNode->InteractWithToolIntentFromServer(
+                OnionPawn, 100.0f, 250.0f, NAME_None, static_cast<uint8>(EKalmalaToolAction::Gathering)));
+            TestEqual(TEXT("Duplicate wild onion harvest leaves Onion unchanged"),
+                OnionInventory->GetQuantity(TEXT("Onion")), OnionBefore + 2);
+            TestEqual(TEXT("Duplicate wild onion harvest leaves Onion Seed unchanged"),
+                OnionInventory->GetQuantity(TEXT("OnionSeed")), OnionSeedBefore + 1);
+            TestEqual(TEXT("Duplicate wild onion harvest does not rewrite depletion"), OnionPopulationWrites, 1);
+            PlantGameMode->PopulationSaveWriterForTests = {};
+            PlantGameMode->PopulationSaveGame = nullptr;
+            OnionNode->OnHarvested.Clear();
+            OnionNode->Destroy();
+        }
+        else
+        {
+            bAllFixturesValid = false;
+        }
+    }
+
     OtherWorld->DestroyWorld(false);
     World->DestroyWorld(false);
     return bAllFixturesValid;

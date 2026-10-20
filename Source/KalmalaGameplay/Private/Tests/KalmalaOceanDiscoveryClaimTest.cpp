@@ -123,12 +123,16 @@ bool FKalmalaOceanDiscoveryClaimContractTest::RunTest(const FString& Parameters)
         const FKalmalaItemDefinition* Item = UKalmalaItemCatalogue::Get()->FindItem(Definition->RewardItemId);
         if (Item != nullptr)
         {
-            FKalmalaInventoryStack FullRewardStack;
-            FullRewardStack.ItemId = Definition->RewardItemId;
-            FullRewardStack.Quantity = Item->MaxStack;
-            const TArray<FKalmalaInventoryStack> FullStacks = { FullRewardStack };
+            TArray<FKalmalaInventoryStack> FullStacks;
+            for (int32 Index = 0; Index < UKalmalaInventoryComponent::MaxSlots; ++Index)
+            {
+                FKalmalaInventoryStack FullRewardStack;
+                FullRewardStack.ItemId = Definition->RewardItemId;
+                FullRewardStack.Quantity = Item->MaxStack;
+                FullStacks.Add(FullRewardStack);
+            }
             TArray<FKalmalaInventoryStack> RejectedCandidate;
-            TestFalse(TEXT("A full reward stack cannot accept the discovery grant"), UKalmalaInventoryComponent::BuildGrant(
+            TestFalse(TEXT("A full inventory cannot accept another discovery reward stack"), UKalmalaInventoryComponent::BuildGrant(
                 FullStacks, Definition->RewardItemId, Definition->RewardQuantity, RejectedCandidate, GrantFailure));
             TestEqual(TEXT("A rejected full-pack grant leaves its source quantity unchanged"), FullStacks[0].Quantity, Item->MaxStack);
         }

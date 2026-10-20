@@ -60,7 +60,7 @@ bool FKalmalaSettingsWidgetTest::RunTest(const FString& Parameters)
         OriginalInteractionCombatVolume);
 
     TestEqual(TEXT("Text scale clamps to the smallest supported choice"),
-        UKalmalaSettingsWidget::ClampTextScale(80), 100);
+        UKalmalaSettingsWidget::ClampTextScale(80), 75);
     TestEqual(TEXT("Text scale keeps the middle supported choice"),
         UKalmalaSettingsWidget::ClampTextScale(125), 125);
     TestEqual(TEXT("Text scale clamps to the largest supported choice"),

@@ -1,6 +1,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 #include "KalmalaItemDetailWidget.h"
 #include "KalmalaItemCatalogue.h"
+#include "KalmalaToolCatalogue.h"
 #include "KalmalaIconWidget.h"
 #include "Misc/AutomationTest.h"
 #include "Blueprint/WidgetTree.h"
@@ -26,8 +27,8 @@ bool FKalmalaItemDetailTest::RunTest(const FString& Parameters)
         const TCHAR* Description;
     };
     const FExpectedToolCopy ToolCopies[] = {
-        { TEXT("StoneKnife"), TEXT("A light blade for gathering plants and reeds.") },
-        { TEXT("StoneAxe"), TEXT("A hand hatchet for gathering wood.") },
+        { TEXT("StoneKnife"), TEXT("A light stone blade for gathering plants and reeds.") },
+        { TEXT("StoneAxe"), TEXT("A stone hand axe for gathering wood.") },
         { TEXT("StonePick"), TEXT("A stone-headed pick for mining.") },
         { TEXT("BronzeAxe"), TEXT("A bronze axe for harvesting Lightwood.") },
         { TEXT("IronAxe"), TEXT("An iron axe for harvesting Densewood.") },
@@ -35,16 +36,18 @@ bool FKalmalaItemDetailTest::RunTest(const FString& Parameters)
     };
     for (const FExpectedToolCopy& Expected : ToolCopies)
     {
+        const FKalmalaToolProfileData* Profile = UKalmalaToolCatalogue::Get()->FindProfile(Expected.ItemId);
+        const FString Prefix = Profile && Profile->IsWeapon() ? TEXT("Weapon\n\n") : TEXT("Tool\n\n");
         TestEqual(FString::Printf(TEXT("%s uses its reviewed tool description and owner state"), *Expected.ItemId.ToString()),
             UKalmalaItemDetailWidget::DescribeCarriedTool(Expected.ItemId, TEXT("Condition 17/40")),
-            FString(TEXT("Carried equipment\n\n")) + Expected.Description + TEXT("\n\nCondition 17/40"));
+            Prefix + Expected.Description + TEXT("\n\nCondition 17/40"));
         TestEqual(FString::Printf(TEXT("%s description stands alone without tool state"), *Expected.ItemId.ToString()),
             UKalmalaItemDetailWidget::DescribeCarriedTool(Expected.ItemId, TEXT("")),
-            FString(TEXT("Carried equipment\n\n")) + Expected.Description);
+            Prefix + Expected.Description);
     }
     TestEqual(TEXT("Unknown carried tool has an explicit description fallback"),
         UKalmalaItemDetailWidget::DescribeCarriedTool(TEXT("UnknownTool"), TEXT("")),
-        FString(TEXT("Carried equipment\n\nDescription unavailable.")));
+        FString(TEXT("Tool\n\nDescription unavailable.")));
     auto* Panel = NewObject<UKalmalaItemDetailWidget>();
     Panel->Initialize();
     Panel->SetItem(TEXT("Wood"), TEXT("Wood"), TEXT("x 7"), 150, 1);

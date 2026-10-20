@@ -85,6 +85,7 @@ struct KALMALAWORLD_API FKalmalaBiomeContentContract
         if (GatheringSourceId == TEXT("meadows-wild-carrot-patch")) return TEXT("carrot-patch-harvest");
         if (GatheringSourceId == TEXT("meadows-wild-potato-patch")) return TEXT("potato-patch-harvest");
         if (GatheringSourceId == TEXT("lakes-wild-rutabaga-patch")) return TEXT("rutabaga-patch-harvest");
+        if (GatheringSourceId == TEXT("elderwood-wild-onion-patch")) return TEXT("onion-patch-harvest");
         if (GatheringSourceId == TEXT("meadows-aspen-trunk")) return TEXT("aspen-trunk-harvest");
         if (GatheringSourceId == TEXT("meadows-birch-trunk")) return TEXT("birch-trunk-harvest");
         if (GatheringSourceId == TEXT("elderwood-ironheart-trunk")) return TEXT("ironheart-trunk-harvest");
@@ -116,7 +117,8 @@ struct KALMALAWORLD_API FKalmalaBiomeContentContract
     {
         return GatheringSourceId == TEXT("meadows-wild-carrot-patch")
             || GatheringSourceId == TEXT("meadows-wild-potato-patch")
-            || GatheringSourceId == TEXT("lakes-wild-rutabaga-patch");
+            || GatheringSourceId == TEXT("lakes-wild-rutabaga-patch")
+            || GatheringSourceId == TEXT("elderwood-wild-onion-patch");
     }
 
     static FName GetRareDiscoveryPresentationId(const FName RareDiscoverySourceId)

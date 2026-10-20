@@ -56,7 +56,8 @@ bool FKalmalaToolLifecycleContractTest::RunTest(const FString& Parameters)
         const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(Entry.Key);
         TestNotNull(TEXT("Repair tool has a bounded definition"), Definition);
         if (Definition == nullptr) continue;
-        for (const int32 Condition : {Definition->MaxDurability - 5, 0})
+        const int32 MaxDurability = FKalmalaToolLifecycleContract::GetMaxDurability(Entry.Key, Entry.Value);
+        for (const int32 Condition : {MaxDurability - 5, 0})
         {
             FKalmalaToolState Damaged;
             Damaged.ItemId = Entry.Key;
@@ -65,7 +66,7 @@ bool FKalmalaToolLifecycleContractTest::RunTest(const FString& Parameters)
             FKalmalaToolState Repaired;
             TestTrue(TEXT("Validated free repair accepts damaged or broken carried tools"),
                 FKalmalaToolLifecycleContract::BuildServerFreeRepair(true, true, Damaged, Repaired));
-            TestEqual(TEXT("Free repair restores full server-owned condition"), Repaired.Durability, Definition->MaxDurability);
+            TestEqual(TEXT("Free repair restores full server-owned condition"), Repaired.Durability, MaxDurability);
             TestEqual(TEXT("Free repair preserves tool identity"), Repaired.ItemId, Damaged.ItemId);
             TestEqual(TEXT("Free repair preserves the authored tool level"), Repaired.ToolLevel, Damaged.ToolLevel);
         }
@@ -93,11 +94,12 @@ bool FKalmalaToolLifecycleContractTest::RunTest(const FString& Parameters)
     RepairState.ItemId = TEXT("ForgedTool");
     ExpectRepairRejected(TEXT("Unknown repair tool rejects"), true, true, RepairState);
     RepairState.ItemId = TEXT("StoneKnife");
-    RepairState.Durability = 16;
+    const int32 StoneKnifeMaximum = FKalmalaToolLifecycleContract::GetMaxDurability(TEXT("StoneKnife"), 1);
+    RepairState.Durability = StoneKnifeMaximum;
     ExpectRepairRejected(TEXT("Full condition rejects"), true, true, RepairState);
     RepairState.Durability = -1;
     ExpectRepairRejected(TEXT("Negative repair condition rejects"), true, true, RepairState);
-    RepairState.Durability = 17;
+    RepairState.Durability = StoneKnifeMaximum + 1;
     ExpectRepairRejected(TEXT("Over-maximum repair condition rejects"), true, true, RepairState);
 
     FKalmalaSkillProgressionLedger Ledger;
@@ -188,7 +190,8 @@ bool FKalmalaToolLifecycleContractTest::RunTest(const FString& Parameters)
     ExpectRejectedWithoutMutation(TEXT("Zero condition rejects"), Context,
         TEXT("StoneAxe"), EKalmalaToolAction::Woodcutting, *Skill, Selection, 0);
     ExpectRejectedWithoutMutation(TEXT("Condition above tool maximum rejects"), Context,
-        TEXT("StoneAxe"), EKalmalaToolAction::Woodcutting, *Skill, Selection, 25);
+        TEXT("StoneAxe"), EKalmalaToolAction::Woodcutting, *Skill, Selection,
+        FKalmalaToolLifecycleContract::GetMaxDurability(TEXT("StoneAxe"), 1) + 1);
     ExpectRejectedWithoutMutation(TEXT("Negative condition rejects"), Context,
         TEXT("StoneAxe"), EKalmalaToolAction::Woodcutting, *Skill, Selection, -1);
 

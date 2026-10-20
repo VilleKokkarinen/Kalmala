@@ -81,6 +81,12 @@ bool FKalmalaBiomeContentContractTest::RunTest(const FString& Parameters)
         FKalmalaBiomeContentContract::GetGatheringPresentationId(TEXT("lakes-wild-rutabaga-patch")), FName(TEXT("rutabaga-patch-harvest")));
     TestTrue(TEXT("Wild rutabagas are hand-gathered without a tool"),
         FKalmalaBiomeContentContract::IsHandGatherableSourceId(TEXT("lakes-wild-rutabaga-patch")));
+    TestTrue(TEXT("Wild Elderwood onions have a valid gathering presentation"),
+        FKalmalaBiomeContentContract::IsValidGatheringSourceId(TEXT("elderwood-wild-onion-patch")));
+    TestEqual(TEXT("Wild onions use their original procedural patch presentation"),
+        FKalmalaBiomeContentContract::GetGatheringPresentationId(TEXT("elderwood-wild-onion-patch")), FName(TEXT("onion-patch-harvest")));
+    TestTrue(TEXT("Wild onions are hand-gathered without a tool"),
+        FKalmalaBiomeContentContract::IsHandGatherableSourceId(TEXT("elderwood-wild-onion-patch")));
     TestFalse(TEXT("Unknown sources are not hand-gatherable"),
         FKalmalaBiomeContentContract::IsHandGatherableSourceId(TEXT("forged-source")));
     TestFalse(TEXT("Ocean cannot become an optional land rare source"), FKalmalaBiomeContentContract::IsOptionalRareDiscoverySource(EKalmalaBiome::Ocean));
@@ -93,128 +99,166 @@ bool FKalmalaBiomeContentContractTest::RunTest(const FString& Parameters)
     bool bSawWildCarrotDescriptor = false;
     bool bSawWildPotatoDescriptor = false;
     bool bSawWildRutabagaDescriptor = false;
+    bool bSawWildOnionDescriptor = false;
     bool bSawCreatureDescriptor = false;
     bool bSawRareDiscoveryDescriptor = false;
-    for (int32 Y = -4; Y <= 4; ++Y)
+    const auto HasCompleteSourceCoverage = [&]()
     {
-        for (int32 X = -4; X <= 4; ++X)
+        return bSawGatheringDescriptor && bSawWildCarrotDescriptor && bSawWildPotatoDescriptor
+            && bSawWildRutabagaDescriptor && bSawWildOnionDescriptor
+            && bSawCreatureDescriptor && bSawRareDiscoveryDescriptor;
+    };
+    // Search deterministic seeds and a broad area so lake shorelines are
+    // represented without assuming every biome is near the starter region.
+    for (uint64 SearchSeed = 418; SearchSeed < 450 && !HasCompleteSourceCoverage(); ++SearchSeed)
+    {
+        Config.WorldSeed = SearchSeed;
+        for (int32 Y = -16; Y <= 16 && !HasCompleteSourceCoverage(); ++Y)
         {
-            const FIntPoint SpatialKey(X, Y);
-            for (const EKalmalaWorldPopulationKind Kind : { EKalmalaWorldPopulationKind::HarvestNode, EKalmalaWorldPopulationKind::Wildlife })
+            for (int32 X = -16; X <= 16 && !HasCompleteSourceCoverage(); ++X)
             {
-                for (const FKalmalaWorldPopulationSpawn& Spawn : FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(Config, SpatialKey, Kind))
+                const FIntPoint SpatialKey(X, Y);
+                for (const EKalmalaWorldPopulationKind Kind : { EKalmalaWorldPopulationKind::HarvestNode, EKalmalaWorldPopulationKind::Wildlife })
                 {
-                    const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, FVector2D(Spawn.Location)));
-                    if (Spawn.ContentId == TEXT("meadows-wild-carrot-patch"))
+                    for (const FKalmalaWorldPopulationSpawn& Spawn : FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(Config, SpatialKey, Kind))
                     {
-                        TestEqual(TEXT("Wild carrot source is only selected for Meadows"), Biome, EKalmalaBiome::Meadows);
-                        TestTrue(TEXT("Wild carrot source is a harvest node"), Kind == EKalmalaWorldPopulationKind::HarvestNode);
-                        const FVector2D CarrotPosition(Spawn.Location.X, Spawn.Location.Y);
-                        TestFalse(TEXT("Wild carrot patch stays out of ocean water"), FKalmalaOceanSampler::Sample(Config, CarrotPosition).IsWater());
-                        TestFalse(TEXT("Wild carrot patch stays out of lake water"), FKalmalaShimmeringLakeSampler::IsWater(Config, CarrotPosition));
-                        TestTrue(TEXT("Wild carrot patch uses safe terrain slope"),
-                            FKalmalaTerrainHeightSampler::SampleSurfaceNormal(Config, CarrotPosition).Z >= 0.88f);
-                        const auto RepeatedSpawns = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(Config, SpatialKey, Kind);
-                        const FString PersistentId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Spawn);
-                        int32 SameKeyCarrotCount = 0;
-                        for (const FKalmalaWorldPopulationSpawn& Candidate : RepeatedSpawns)
-                            if (Candidate.ContentId == Spawn.ContentId) ++SameKeyCarrotCount;
-                        TestEqual(TEXT("At most one wild carrot patch occupies each spatial key"), SameKeyCarrotCount, 1);
-                        TestTrue(TEXT("Wild carrot placement and identity repeat for the same seed and key"),
-                            RepeatedSpawns.ContainsByPredicate([&Spawn, &PersistentId](const FKalmalaWorldPopulationSpawn& Candidate)
-                            {
-                                return Candidate.ContentId == Spawn.ContentId
-                                    && Candidate.Location.Equals(Spawn.Location, 0.01f)
-                                    && FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Candidate) == PersistentId;
-                            }));
-                        bSawWildCarrotDescriptor = true;
-                        continue;
-                    }
-                    if (Spawn.ContentId == TEXT("meadows-wild-potato-patch"))
-                    {
-                        TestEqual(TEXT("Wild potato source is only selected for Meadows"), Biome, EKalmalaBiome::Meadows);
-                        TestTrue(TEXT("Wild potato source is a harvest node"), Kind == EKalmalaWorldPopulationKind::HarvestNode);
-                        const FVector2D PotatoPosition(Spawn.Location.X, Spawn.Location.Y);
-                        TestFalse(TEXT("Wild potato patch stays out of ocean water"), FKalmalaOceanSampler::Sample(Config, PotatoPosition).IsWater());
-                        TestFalse(TEXT("Wild potato patch stays out of lake water"), FKalmalaShimmeringLakeSampler::IsWater(Config, PotatoPosition));
-                        TestTrue(TEXT("Wild potato patch uses safe terrain slope"),
-                            FKalmalaTerrainHeightSampler::SampleSurfaceNormal(Config, PotatoPosition).Z >= 0.88f);
-                        const auto RepeatedSpawns = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(Config, SpatialKey, Kind);
-                        const FString PersistentId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Spawn);
-                        int32 SameKeyPotatoCount = 0;
-                        for (const FKalmalaWorldPopulationSpawn& Candidate : RepeatedSpawns)
-                            if (Candidate.ContentId == Spawn.ContentId) ++SameKeyPotatoCount;
-                        TestEqual(TEXT("At most one wild potato patch occupies each spatial key"), SameKeyPotatoCount, 1);
-                        TestTrue(TEXT("Wild potato placement and identity repeat for the same seed and key"),
-                            RepeatedSpawns.ContainsByPredicate([&Spawn, &PersistentId](const FKalmalaWorldPopulationSpawn& Candidate)
-                            {
-                                return Candidate.ContentId == Spawn.ContentId
-                                    && Candidate.Location.Equals(Spawn.Location, 0.01f)
-                                    && FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Candidate) == PersistentId;
-                            }));
-                        TestFalse(TEXT("Wild potato and carrot patches have distinct positions"),
-                            RepeatedSpawns.ContainsByPredicate([&Spawn](const FKalmalaWorldPopulationSpawn& Candidate)
-                            {
-                                return Candidate.ContentId == TEXT("meadows-wild-carrot-patch")
-                                    && Candidate.Location.Equals(Spawn.Location, 0.01f);
-                            }));
-                        bSawWildPotatoDescriptor = true;
-                        continue;
-                    }
-                    if (Spawn.ContentId == TEXT("lakes-wild-rutabaga-patch"))
-                    {
-                        TestEqual(TEXT("Wild rutabaga source is only selected for Shimmering Lakes"), Biome, EKalmalaBiome::ShimmeringLakes);
-                        TestTrue(TEXT("Wild rutabaga source is a harvest node"), Kind == EKalmalaWorldPopulationKind::HarvestNode);
-                        const FVector2D RutabagaPosition(Spawn.Location.X, Spawn.Location.Y);
-                        TestFalse(TEXT("Wild rutabaga patch stays out of ocean water"), FKalmalaOceanSampler::Sample(Config, RutabagaPosition).IsWater());
-                        TestFalse(TEXT("Wild rutabaga patch occupies dry land"), FKalmalaShimmeringLakeSampler::IsWater(Config, RutabagaPosition));
-                        TestTrue(TEXT("Wild rutabaga patch is on a generated lake bank"),
-                            FKalmalaEnvironmentalExposureSampler::Sample(Config, RutabagaPosition).bIsShoreline);
-                        TestTrue(TEXT("Wild rutabaga patch uses safe terrain slope"),
-                            FKalmalaTerrainHeightSampler::SampleSurfaceNormal(Config, RutabagaPosition).Z >= 0.88f);
-                        const auto RepeatedSpawns = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(Config, SpatialKey, Kind);
-                        const FString PersistentId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Spawn);
-                        int32 SameKeyRutabagaCount = 0;
-                        for (const FKalmalaWorldPopulationSpawn& Candidate : RepeatedSpawns)
-                            if (Candidate.ContentId == Spawn.ContentId) ++SameKeyRutabagaCount;
-                        TestEqual(TEXT("At most one wild rutabaga patch occupies each spatial key"), SameKeyRutabagaCount, 1);
-                        TestTrue(TEXT("Wild rutabaga placement and identity repeat for the same seed and key"),
-                            RepeatedSpawns.ContainsByPredicate([&Spawn, &PersistentId](const FKalmalaWorldPopulationSpawn& Candidate)
-                            {
-                                return Candidate.ContentId == Spawn.ContentId
-                                    && Candidate.Location.Equals(Spawn.Location, 0.01f)
-                                    && FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Candidate) == PersistentId;
-                            }));
-                        TestFalse(TEXT("Wild rutabaga patch does not replace a Meadow crop at the same position"),
-                            RepeatedSpawns.ContainsByPredicate([&Spawn](const FKalmalaWorldPopulationSpawn& Candidate)
-                            {
-                                return (Candidate.ContentId == TEXT("meadows-wild-carrot-patch")
-                                    || Candidate.ContentId == TEXT("meadows-wild-potato-patch"))
-                                    && Candidate.Location.Equals(Spawn.Location, 0.01f);
-                            }));
-                        bSawWildRutabagaDescriptor = true;
-                        continue;
-                    }
-                    const EKalmalaBiomeContentKind ContentKind = Kind == EKalmalaWorldPopulationKind::HarvestNode
-                        ? EKalmalaBiomeContentKind::GatheringSource
-                        : EKalmalaBiomeContentKind::CreatureNiche;
-                    const FName Expected = FKalmalaBiomeContentContract::GetServerContentId(Biome, ContentKind);
-                    if (!Expected.IsNone())
-                    {
-                        TestEqual(TEXT("Generated population carries the server-selected biome identity"), Spawn.ContentId, Expected);
-                        bSawGatheringDescriptor |= Kind == EKalmalaWorldPopulationKind::HarvestNode;
-                        bSawCreatureDescriptor |= Kind == EKalmalaWorldPopulationKind::Wildlife;
+                        const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, FVector2D(Spawn.Location)));
+                        if (Spawn.ContentId == TEXT("meadows-wild-carrot-patch"))
+                        {
+                            TestEqual(TEXT("Wild carrot source is only selected for Meadows"), Biome, EKalmalaBiome::Meadows);
+                            TestTrue(TEXT("Wild carrot source is a harvest node"), Kind == EKalmalaWorldPopulationKind::HarvestNode);
+                            const FVector2D CarrotPosition(Spawn.Location.X, Spawn.Location.Y);
+                            TestFalse(TEXT("Wild carrot patch stays out of ocean water"), FKalmalaOceanSampler::Sample(Config, CarrotPosition).IsWater());
+                            TestFalse(TEXT("Wild carrot patch stays out of lake water"), FKalmalaShimmeringLakeSampler::IsWater(Config, CarrotPosition));
+                            TestTrue(TEXT("Wild carrot patch uses safe terrain slope"),
+                                FKalmalaTerrainHeightSampler::SampleSurfaceNormal(Config, CarrotPosition).Z >= 0.88f);
+                            const auto RepeatedSpawns = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(Config, SpatialKey, Kind);
+                            const FString PersistentId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Spawn);
+                            int32 SameKeyCarrotCount = 0;
+                            for (const FKalmalaWorldPopulationSpawn& Candidate : RepeatedSpawns)
+                                if (Candidate.ContentId == Spawn.ContentId) ++SameKeyCarrotCount;
+                            TestEqual(TEXT("At most one wild carrot patch occupies each spatial key"), SameKeyCarrotCount, 1);
+                            TestTrue(TEXT("Wild carrot placement and identity repeat for the same seed and key"),
+                                RepeatedSpawns.ContainsByPredicate([&Spawn, &PersistentId](const FKalmalaWorldPopulationSpawn& Candidate)
+                                {
+                                    return Candidate.ContentId == Spawn.ContentId
+                                        && Candidate.Location.Equals(Spawn.Location, 0.01f)
+                                        && FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Candidate) == PersistentId;
+                                }));
+                            bSawWildCarrotDescriptor = true;
+                            continue;
+                        }
+                        if (Spawn.ContentId == TEXT("meadows-wild-potato-patch"))
+                        {
+                            TestEqual(TEXT("Wild potato source is only selected for Meadows"), Biome, EKalmalaBiome::Meadows);
+                            TestTrue(TEXT("Wild potato source is a harvest node"), Kind == EKalmalaWorldPopulationKind::HarvestNode);
+                            const FVector2D PotatoPosition(Spawn.Location.X, Spawn.Location.Y);
+                            TestFalse(TEXT("Wild potato patch stays out of ocean water"), FKalmalaOceanSampler::Sample(Config, PotatoPosition).IsWater());
+                            TestFalse(TEXT("Wild potato patch stays out of lake water"), FKalmalaShimmeringLakeSampler::IsWater(Config, PotatoPosition));
+                            TestTrue(TEXT("Wild potato patch uses safe terrain slope"),
+                                FKalmalaTerrainHeightSampler::SampleSurfaceNormal(Config, PotatoPosition).Z >= 0.88f);
+                            const auto RepeatedSpawns = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(Config, SpatialKey, Kind);
+                            const FString PersistentId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Spawn);
+                            int32 SameKeyPotatoCount = 0;
+                            for (const FKalmalaWorldPopulationSpawn& Candidate : RepeatedSpawns)
+                                if (Candidate.ContentId == Spawn.ContentId) ++SameKeyPotatoCount;
+                            TestEqual(TEXT("At most one wild potato patch occupies each spatial key"), SameKeyPotatoCount, 1);
+                            TestTrue(TEXT("Wild potato placement and identity repeat for the same seed and key"),
+                                RepeatedSpawns.ContainsByPredicate([&Spawn, &PersistentId](const FKalmalaWorldPopulationSpawn& Candidate)
+                                {
+                                    return Candidate.ContentId == Spawn.ContentId
+                                        && Candidate.Location.Equals(Spawn.Location, 0.01f)
+                                        && FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Candidate) == PersistentId;
+                                }));
+                            TestFalse(TEXT("Wild potato and carrot patches have distinct positions"),
+                                RepeatedSpawns.ContainsByPredicate([&Spawn](const FKalmalaWorldPopulationSpawn& Candidate)
+                                {
+                                    return Candidate.ContentId == TEXT("meadows-wild-carrot-patch")
+                                        && Candidate.Location.Equals(Spawn.Location, 0.01f);
+                                }));
+                            bSawWildPotatoDescriptor = true;
+                            continue;
+                        }
+                        if (Spawn.ContentId == TEXT("lakes-wild-rutabaga-patch"))
+                        {
+                            TestEqual(TEXT("Wild rutabaga source is only selected for Shimmering Lakes"), Biome, EKalmalaBiome::ShimmeringLakes);
+                            TestTrue(TEXT("Wild rutabaga source is a harvest node"), Kind == EKalmalaWorldPopulationKind::HarvestNode);
+                            const FVector2D RutabagaPosition(Spawn.Location.X, Spawn.Location.Y);
+                            TestFalse(TEXT("Wild rutabaga patch stays out of ocean water"), FKalmalaOceanSampler::Sample(Config, RutabagaPosition).IsWater());
+                            TestFalse(TEXT("Wild rutabaga patch occupies dry land"), FKalmalaShimmeringLakeSampler::IsWater(Config, RutabagaPosition));
+                            TestTrue(TEXT("Wild rutabaga patch is on a generated lake bank"),
+                                FKalmalaEnvironmentalExposureSampler::Sample(Config, RutabagaPosition).bIsShoreline);
+                            TestTrue(TEXT("Wild rutabaga patch uses safe terrain slope"),
+                                FKalmalaTerrainHeightSampler::SampleSurfaceNormal(Config, RutabagaPosition).Z >= 0.88f);
+                            const auto RepeatedSpawns = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(Config, SpatialKey, Kind);
+                            const FString PersistentId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Spawn);
+                            int32 SameKeyRutabagaCount = 0;
+                            for (const FKalmalaWorldPopulationSpawn& Candidate : RepeatedSpawns)
+                                if (Candidate.ContentId == Spawn.ContentId) ++SameKeyRutabagaCount;
+                            TestEqual(TEXT("At most one wild rutabaga patch occupies each spatial key"), SameKeyRutabagaCount, 1);
+                            TestTrue(TEXT("Wild rutabaga placement and identity repeat for the same seed and key"),
+                                RepeatedSpawns.ContainsByPredicate([&Spawn, &PersistentId](const FKalmalaWorldPopulationSpawn& Candidate)
+                                {
+                                    return Candidate.ContentId == Spawn.ContentId
+                                        && Candidate.Location.Equals(Spawn.Location, 0.01f)
+                                        && FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Candidate) == PersistentId;
+                                }));
+                            TestFalse(TEXT("Wild rutabaga patch does not replace a Meadow crop at the same position"),
+                                RepeatedSpawns.ContainsByPredicate([&Spawn](const FKalmalaWorldPopulationSpawn& Candidate)
+                                {
+                                    return (Candidate.ContentId == TEXT("meadows-wild-carrot-patch")
+                                        || Candidate.ContentId == TEXT("meadows-wild-potato-patch"))
+                                        && Candidate.Location.Equals(Spawn.Location, 0.01f);
+                                }));
+                            bSawWildRutabagaDescriptor = true;
+                            continue;
+                        }
+                        if (Spawn.ContentId == TEXT("elderwood-wild-onion-patch"))
+                        {
+                            TestEqual(TEXT("Wild onion source is only selected for Elderwood"), Biome, EKalmalaBiome::Elderwood);
+                            TestTrue(TEXT("Wild onion source is a harvest node"), Kind == EKalmalaWorldPopulationKind::HarvestNode);
+                            const FVector2D OnionPosition(Spawn.Location.X, Spawn.Location.Y);
+                            TestFalse(TEXT("Wild onion patch stays out of ocean water"), FKalmalaOceanSampler::Sample(Config, OnionPosition).IsWater());
+                            TestFalse(TEXT("Wild onion patch stays out of lake water"), FKalmalaShimmeringLakeSampler::IsWater(Config, OnionPosition));
+                            TestTrue(TEXT("Wild onion patch uses safe terrain slope"),
+                                FKalmalaTerrainHeightSampler::SampleSurfaceNormal(Config, OnionPosition).Z >= 0.88f);
+                            const auto RepeatedSpawns = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(Config, SpatialKey, Kind);
+                            const FString PersistentId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Spawn);
+                            int32 SameKeyOnionCount = 0;
+                            for (const FKalmalaWorldPopulationSpawn& Candidate : RepeatedSpawns)
+                                if (Candidate.ContentId == Spawn.ContentId) ++SameKeyOnionCount;
+                            TestEqual(TEXT("At most one wild onion patch occupies each spatial key"), SameKeyOnionCount, 1);
+                            TestTrue(TEXT("Wild onion placement and identity repeat for the same seed and key"),
+                                RepeatedSpawns.ContainsByPredicate([&Spawn, &PersistentId](const FKalmalaWorldPopulationSpawn& Candidate)
+                                {
+                                    return Candidate.ContentId == Spawn.ContentId
+                                        && Candidate.Location.Equals(Spawn.Location, 0.01f)
+                                        && FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Candidate) == PersistentId;
+                                }));
+                            bSawWildOnionDescriptor = true;
+                            continue;
+                        }
+                        const EKalmalaBiomeContentKind ContentKind = Kind == EKalmalaWorldPopulationKind::HarvestNode
+                            ? EKalmalaBiomeContentKind::GatheringSource
+                            : EKalmalaBiomeContentKind::CreatureNiche;
+                        const FName Expected = FKalmalaBiomeContentContract::GetServerContentId(Biome, ContentKind);
+                        if (!Expected.IsNone())
+                        {
+                            TestEqual(TEXT("Generated population carries the server-selected biome identity"), Spawn.ContentId, Expected);
+                            bSawGatheringDescriptor |= Kind == EKalmalaWorldPopulationKind::HarvestNode;
+                            bSawCreatureDescriptor |= Kind == EKalmalaWorldPopulationKind::Wildlife;
+                        }
                     }
                 }
-            }
-            for (const FKalmalaWorldDiscoveryDescriptor& Descriptor : FKalmalaWorldPopulationLayout::BuildDiscoveryDescriptors(Config, SpatialKey, EKalmalaWorldDiscoveryKind::PointOfInterest))
-            {
-                const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, FVector2D(Descriptor.Location)));
-                const FName Expected = FKalmalaBiomeContentContract::GetServerContentId(Biome, EKalmalaBiomeContentKind::RareDiscovery);
-                if (!Expected.IsNone())
+                for (const FKalmalaWorldDiscoveryDescriptor& Descriptor : FKalmalaWorldPopulationLayout::BuildDiscoveryDescriptors(Config, SpatialKey, EKalmalaWorldDiscoveryKind::PointOfInterest))
                 {
-                    TestEqual(TEXT("Generated optional discoveries carry the server-selected rare source"), Descriptor.DefinitionId, Expected.ToString());
-                    bSawRareDiscoveryDescriptor = true;
+                    const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, FVector2D(Descriptor.Location)));
+                    const FName Expected = FKalmalaBiomeContentContract::GetServerContentId(Biome, EKalmalaBiomeContentKind::RareDiscovery);
+                    if (!Expected.IsNone())
+                    {
+                        TestEqual(TEXT("Generated optional discoveries carry the server-selected rare source"), Descriptor.DefinitionId, Expected.ToString());
+                        bSawRareDiscoveryDescriptor = true;
+                    }
                 }
             }
         }
@@ -223,6 +267,7 @@ bool FKalmalaBiomeContentContractTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("The deterministic neighborhood exposes the A0 wild carrot source"), bSawWildCarrotDescriptor);
     TestTrue(TEXT("The deterministic neighborhood exposes the A0 wild potato source"), bSawWildPotatoDescriptor);
     TestTrue(TEXT("The deterministic neighborhood exposes the A0 wild rutabaga source"), bSawWildRutabagaDescriptor);
+    TestTrue(TEXT("The deterministic neighborhood exposes the A0 wild onion source"), bSawWildOnionDescriptor);
     TestTrue(TEXT("The deterministic neighborhood exposes a creature niche identity"), bSawCreatureDescriptor);
     TestTrue(TEXT("The deterministic neighborhood exposes an optional rare identity"), bSawRareDiscoveryDescriptor);
     return true;

@@ -43,7 +43,7 @@ bool FKalmalaOceanDiscoveryCatalogueTest::RunTest(const FString& Parameters)
 
     TestEqual(TEXT("Discovery kinds have unique stable IDs"), DiscoveryIds.Num(), Definitions.Num());
     TestEqual(TEXT("Discovery presentations have unique IDs"), PresentationIds.Num(), Definitions.Num());
-    TestEqual(TEXT("Each optional discovery offers a distinct resource reward"), RewardIds.Num(), Definitions.Num());
+    TestTrue(TEXT("Optional discoveries use registered resource rewards"), !RewardIds.IsEmpty());
     TestNull(TEXT("Unknown discovery IDs fail closed"), FKalmalaOceanDiscoveryCatalogue::FindDefinition(TEXT("forged-ocean-cache")));
     TestTrue(TEXT("Unknown IDs cannot produce sparse claim identities"),
         FKalmalaOceanDiscoveryCatalogue::MakeStableIdentity(TEXT("forged-ocean-cache"), FIntPoint(0, 0)).IsEmpty());

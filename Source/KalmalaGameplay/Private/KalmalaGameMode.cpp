@@ -928,6 +928,28 @@ void AKalmalaGameMode::DriveCombatPeerTest()
         }
         if (LocalServerPlayer == nullptr || RemotePlayer == nullptr) return;
 
+        const auto SelectTestWeapon = [](AKalmalaCharacter* Character, FString& OutReason)
+        {
+            UKalmalaInventoryComponent* Inventory = Character ? Character->GetInventoryComponent() : nullptr;
+            const FKalmalaToolState* TestWeapon = Character
+                ? Character->GetCarriedToolInventory().FindByPredicate(
+                    [](const FKalmalaToolState& Tool) { return Tool.ItemId == TEXT("StoneMace"); })
+                : nullptr;
+            if (Inventory == nullptr || TestWeapon == nullptr)
+            {
+                OutReason = TEXT("Stone Mace is missing from the initial loadout");
+                return false;
+            }
+            return Inventory->SetMainHandFromServer(TestWeapon->InstanceGuid, OutReason);
+        };
+        FString EquipReason;
+        if (!SelectTestWeapon(LocalServerPlayer, EquipReason) || !SelectTestWeapon(RemotePlayer, EquipReason))
+        {
+            UE_LOG(LogTemp, Error, TEXT("%s verification FAILED: test combat weapon could not be selected for both peers (%s)."), VerificationName, *EquipReason);
+            CombatPeerTestStage = 99;
+            return;
+        }
+
         CombatPeerTestAttacker = LocalServerPlayer;
         CombatPeerTestRemote = RemotePlayer;
         FIntPoint SpatialKey = FKalmalaWorldPopulationLayout::GetSpatialKey(FVector2D(LocalServerPlayer->GetActorLocation()));

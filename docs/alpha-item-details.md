@@ -39,7 +39,7 @@ Existing item acquisition and use (P0).
 - Implemented under A0: hand-gathered wild carrot patches in Meadows grant 2 Carrot and 1 Carrot Seed; no tool required. Seed use remains blocked on A7 farming.
 - Implemented under A0: hand-gathered wild potato patches in Meadows grant 2 Potato; no tool required. Do not grant Potato Seed until A7 explicitly resolves seed versus tuber propagation.
 - Implemented under A0: hand-gathered wild rutabaga patches on dry Shimmering Lakes banks grant 2 Rutabaga and 1 Rutabaga Seed; no tool required. Seed use remains blocked on A7 farming.
-- Add hand-gathered wild onion patches in Elderwood: each harvest grants 2 Onion and 1 Onion Seed; no tool required. Seed use remains blocked on A7 farming. Verify all four vegetables reach the existing cooking recipes without farming/debug grants.
+- Implemented under A0: hand-gathered wild onion patches in Elderwood grant 2 Onion and 1 Onion Seed; no tool required. Seed use remains blocked on A7 farming. The four vegetables now have natural routes into existing cooking recipes without farming/debug grants.
 
 **Material/source proposal — scope approved 2026-10-19; implementation pending.**
 Agents must implement the reviewed entries, not invent alternative biomes,
@@ -74,7 +74,7 @@ are included in the approved queue.
 | Potato | New wild potato patches in Meadows | Hand gather 2 Potato per patch | Implemented under A0; no Potato Seed until A7 resolves tuber propagation |
 | Potato Seed | No A0 acquisition | Existing definition retained without drops; A7 proposes Potato tuber propagation instead | Explicitly deferred, not agent-selected |
 | Rutabaga / Rutabaga Seed | New wild rutabaga patches on dry Shimmering Lakes banks | Hand gather 2 Rutabaga + 1 Rutabaga Seed per patch | Implemented under A0; seed use waits for A7 |
-| Onion / Onion Seed | New wild onion patches in Elderwood | Hand gather 2 Onion + 1 Onion Seed per patch | Add under A0; seed use waits for A7 |
+| Onion / Onion Seed | New wild onion patches in Elderwood | Hand gather 2 Onion + 1 Onion Seed per patch | Implemented under A0; seed use waits for A7 |
 | Hearth Broth | Cauldron near usable lit hearth | 1 Deer Meat + 1 Onion produces 1 Hearth Broth; MaxBatch 5, Cooking XP 10 | Implemented under A0 |
 
 New harvest nodes use stable generated identities and the existing matching

@@ -62,7 +62,7 @@ bool FKalmalaM9ToolStationProgressionTest::RunTest(const FString& Parameters)
             (LevelFiveCrafting->UnlockMask & static_cast<uint8>(EKalmalaSkillUnlock::SecondTier)) != 0);
     }
     const TArray<FKalmalaInventoryStack> BronzeMaterials = {
-        {TEXT("Wood"), 4}, {TEXT("Stone"), 3}
+        {TEXT("Lightwood"), 4}, {TEXT("Stone"), 3}
     };
     TArray<FKalmalaToolState> BronzeTools;
     TArray<FKalmalaInventoryStack> BronzeInventory;
@@ -88,7 +88,7 @@ bool FKalmalaM9ToolStationProgressionTest::RunTest(const FString& Parameters)
         TestTrue(TEXT("Crafted Bronze Axe begins in full condition"),
             Definition && Bronze->Durability == Definition->MaxDurability);
     }
-    TestEqual(TEXT("Bronze cost consumes four Wood"), Quantity(BronzeInventory, TEXT("Wood")), 0);
+    TestEqual(TEXT("Bronze cost consumes four Lightwood"), Quantity(BronzeInventory, TEXT("Lightwood")), 0);
     TestEqual(TEXT("Bronze cost consumes three Stone"), Quantity(BronzeInventory, TEXT("Stone")), 0);
 
     TArray<FKalmalaToolState> RejectedTools = StartingTools;
@@ -124,7 +124,7 @@ bool FKalmalaM9ToolStationProgressionTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Missing materials leave candidate inventory unchanged"), MissingMaterialInventory.IsEmpty());
 
     const TArray<FKalmalaInventoryStack> UpgradeMaterials = {
-        {TEXT("Lightwood"), 3}, {TEXT("Amber"), 2}, {TEXT("Stone"), 4}
+        {TEXT("Lightwood"), 4}, {TEXT("Bronze"), 3}
     };
     TArray<FKalmalaToolState> UpgradedTools;
     TArray<FKalmalaInventoryStack> UpgradedInventory;

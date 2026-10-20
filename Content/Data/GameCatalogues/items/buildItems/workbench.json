@@ -3,7 +3,7 @@
     {
       "ItemId": "Workbench",
       "DisplayName": "Workbench",
-      "Description": "A camp workbench for making furnishings and repairing tools.",
+      "Description": "A camp workbench for making furnishings and repairing items.",
       "MaxStack": 5
     },
     {

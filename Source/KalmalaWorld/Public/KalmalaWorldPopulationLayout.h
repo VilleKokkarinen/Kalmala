@@ -103,6 +103,7 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
         bool bAddedMeadowCarrotPatch = false;
         bool bAddedMeadowPotatoPatch = false;
         bool bAddedLakesRutabagaPatch = false;
+        bool bAddedElderwoodOnionPatch = false;
         // Wildlife candidates deliberately have a small, fixed retry budget.  The
         // server derives all candidates, rejects water and unsafe slopes, and
         // keeps the candidate seed in the sparse-delta ID.  Clients never choose
@@ -153,6 +154,15 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
                 ContentId = TEXT("lakes-wild-rutabaga-patch");
                 PersistentSeed = Mix(CandidateSeed ^ 0xA0B07ABA71019ull);
                 bAddedLakesRutabagaPatch = true;
+            }
+            else if (Kind == EKalmalaWorldPopulationKind::HarvestNode && Biome == EKalmalaBiome::Elderwood
+                && !bAddedElderwoodOnionPatch && IsTerrainSafeDiscoveryLocation(Config, Position))
+            {
+                // Preserve a deterministic, safe Elderwood candidate while
+                // separating its sparse identity from the former biome source.
+                ContentId = TEXT("elderwood-wild-onion-patch");
+                PersistentSeed = Mix(CandidateSeed ^ 0xA0E10A71019ull);
+                bAddedElderwoodOnionPatch = true;
             }
             Spawns.Add({ Kind, SpatialKey, PersistentSeed, FVector(Position.X, Position.Y, FKalmalaTerrainHeightSampler::SampleHeight(Config, Position)), ContentId });
         }

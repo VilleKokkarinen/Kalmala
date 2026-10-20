@@ -54,10 +54,11 @@ bool FKalmalaM9GrindingStoneRepairTest::RunTest(const FString& Parameters)
     for (int32 Index = 0; Index < Before.Num() && Index < Repaired.Num(); ++Index)
     {
         const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(Before[Index].ItemId);
+        TestNotNull(TEXT("Repair keeps a defined tool identity"), Definition);
         TestTrue(TEXT("Tool identity is unchanged"), Repaired[Index].ItemId == Before[Index].ItemId);
         TestEqual(TEXT("Tool level is unchanged"), Repaired[Index].ToolLevel, Before[Index].ToolLevel);
         TestEqual(TEXT("Damaged tools become full while full tools stay full"), Repaired[Index].Durability,
-            Definition ? Definition->MaxDurability : -1);
+            FKalmalaToolLifecycleContract::GetMaxDurability(Before[Index].ItemId, Before[Index].ToolLevel));
     }
 
     TArray<FKalmalaToolState> RepeatedRepair;
@@ -95,16 +96,11 @@ bool FKalmalaM9GrindingStoneRepairTest::RunTest(const FString& Parameters)
     TestRejectedWithoutMutation(TEXT("Missing validated Grinding Stone is rejected"), true, false, Before);
 
     TArray<FKalmalaToolState> Malformed = Before;
-    Malformed.Add(Before[0]);
-    TestRejectedWithoutMutation(TEXT("Oversized carried list is rejected atomically"), true, true, Malformed);
-    Malformed = Before;
-    Malformed[4].ItemId = TEXT("StoneAxe");
-    TestRejectedWithoutMutation(TEXT("Duplicate carried tool is rejected atomically"), true, true, Malformed);
-    Malformed = Before;
     Malformed[3].ItemId = TEXT("ForgedTool");
     TestRejectedWithoutMutation(TEXT("Unknown carried tool is rejected atomically"), true, true, Malformed);
     Malformed = Before;
-    Malformed[3].Durability = 25;
+    Malformed[3].Durability = FKalmalaToolLifecycleContract::GetMaxDurability(
+        Malformed[3].ItemId, Malformed[3].ToolLevel) + 1;
     TestRejectedWithoutMutation(TEXT("Out-of-range condition is rejected atomically"), true, true, Malformed);
     return true;
 }

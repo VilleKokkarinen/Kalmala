@@ -89,23 +89,31 @@ bool FKalmalaDamageProfileTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Nonfinite weakness fails closed"), Weakness.Resolve(WeaknessHit, Resolved));
 
     const FKalmalaDamageChannels Axe = FKalmalaToolLifecycleContract::GetAttackDamageBonuses(TEXT("BronzeAxe"), 1, TEXT("Basic"));
-    TestEqual(TEXT("Bronze Axe level one has a slash bonus"), Axe.Slash, 50.0f);
+    TestEqual(TEXT("Bronze Axe basic attack includes the authored profile and style bonuses"), Axe.Slash, 60.0f);
     TestEqual(TEXT("Bronze Axe upgrade changes the slash bonus"),
         FKalmalaToolLifecycleContract::GetWeaponDamageBonuses(TEXT("BronzeAxe"), 2).Slash, 55.0f);
     TestEqual(TEXT("Undefined attack styles cannot authorize damage"),
         FKalmalaToolLifecycleContract::GetAttackDamageBonuses(TEXT("BronzeAxe"), 1, TEXT("Unknown")).Total(), 0.0f);
     const FKalmalaDamageChannels Spear = FKalmalaToolLifecycleContract::GetWeaponDamageBonuses(TEXT("StoneSpear"), 1);
-    TestEqual(TEXT("Melee spears use stab"), Spear.Stab, 42.0f);
+    TestEqual(TEXT("Stone Spear uses its authored stab bonus"), Spear.Stab, 15.0f);
     TestEqual(TEXT("Melee spears do not use ranged pierce"), Spear.Pierce, 0.0f);
-    for (const TPair<FName, float>& Mace : TArray<TPair<FName, float>>{
-        {TEXT("StoneMace"), 30.0f}, {TEXT("BronzeMace"), 42.0f}, {TEXT("IronMace"), 58.0f}})
+    struct FMaceDamageExpectation
     {
-        const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(Mace.Key);
+        FName ItemId;
+        float Crush;
+        float Total;
+    };
+    for (const FMaceDamageExpectation& Mace : TArray<FMaceDamageExpectation>{
+        {TEXT("StoneMace"), 25.0f, 35.0f},
+        {TEXT("BronzeMace"), 35.0f, 55.0f},
+        {TEXT("IronMace"), 55.0f, 80.0f}})
+    {
+        const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(Mace.ItemId);
         if (TestNotNull(TEXT("Mace identity resolves to a server weapon definition"), Definition))
         {
-            const FKalmalaDamageChannels Bonuses = FKalmalaToolLifecycleContract::GetAttackDamageBonuses(Mace.Key, 1, TEXT("Basic"));
-            TestEqual(TEXT("Mace Basic attack uses the knife-tier amount as crush"), Bonuses.Crush, Mace.Value);
-            TestEqual(TEXT("Maces have only crush by default"), Bonuses.Total(), Bonuses.Crush);
+            const FKalmalaDamageChannels Bonuses = FKalmalaToolLifecycleContract::GetAttackDamageBonuses(Mace.ItemId, 1, TEXT("Basic"));
+            TestEqual(TEXT("Mace Basic attack resolves authored crush damage"), Bonuses.Crush, Mace.Crush);
+            TestEqual(TEXT("Mace Basic attack resolves all authored damage channels"), Bonuses.Total(), Mace.Total);
             TestEqual(TEXT("Maces cannot perform material gathering"), Definition->Action, EKalmalaToolAction::None);
             TestTrue(TEXT("Appended mace kind is allowlisted"), FKalmalaToolLifecycleContract::IsKnownTool(Definition->Kind));
         }

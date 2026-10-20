@@ -1752,15 +1752,18 @@ both peers. The Meadow population assigns its first dry, safe candidate per
 eligible key to the A0 `meadows-wild-carrot-patch` source and its next eligible
 candidate to `meadows-wild-potato-patch`. In Shimmering Lakes, the first dry,
 safe candidate within the shared 400 cm cardinal shoreline probe becomes
-`lakes-wild-rutabaga-patch`. Each crop uses a separate stable identity seed so
-prior biome-source depletion cannot suppress it. The server hand-gathers two
-Carrots plus one Carrot Seed, two Potatoes without Potato Seed, or two
-Rutabagas plus one Rutabaga Seed as complete capacity-checked transactions
-without a tool; full-pack and failed requests do not deplete a patch. All three
-sources use the existing population harvest ledger.
+`lakes-wild-rutabaga-patch`. Elderwood assigns its first dry, safe candidate
+per key to `elderwood-wild-onion-patch`. Each crop uses a separate stable
+identity seed so prior biome-source depletion cannot suppress it. The server
+hand-gathers two Carrots plus one Carrot Seed, two Potatoes without Potato
+Seed, two Rutabagas plus one Rutabaga Seed, or two Onions plus one Onion Seed
+as complete capacity-checked transactions without a tool; full-pack and failed
+requests do not deplete a patch. All four sources use the existing population
+harvest ledger.
 `Kalmala.Gameplay.M9.SecondWaveHarvestAcceptance` covers crop source identity,
 tool-free interaction, exact rewards, the Potato no-seed rule, full-pack
-rejection, persistence rollback, and duplicate prevention.
+rejection, persistence rollback, and duplicate prevention, including the A0
+Onion and Onion Seed grant.
 Each valid point-of-interest rare source also maps to a distinct original
 collision-free procedural presentation. The source identity is replicated only
 with the already materialized relevant discovery actor; clients do not receive
@@ -1781,11 +1784,11 @@ After the editor build, run the focused deterministic catalogue check:
 
 The wildlife authority regression covers the six niche profiles and their
 bounded flee responses through `Kalmala.Gameplay.WildlifeBehaviour.ServerOwnedCycle`.
-`Kalmala.World.M7.BiomeContentContract` covers deterministic Meadow crop and
-Shimmering Lakes rutabaga placement, safe dry-bank classification, and source
-presentation; `Kalmala.Gameplay.M9.SecondWaveHarvestAcceptance` also covers the
-no-tool reward, full-pack rejection, duplicate rejection and saved depletion
-transaction. Run both at the A0 milestone gate.
+`Kalmala.World.M7.BiomeContentContract` covers deterministic Meadow crops,
+Shimmering Lakes rutabaga, and Elderwood onion placement, safe terrain
+classification, and source presentation; `Kalmala.Gameplay.M9.SecondWaveHarvestAcceptance`
+also covers the no-tool rewards, full-pack rejection, duplicate rejection and
+saved depletion transaction. Run both at the A0 milestone gate.
 
 ### M7 first-wave tool gathering
 

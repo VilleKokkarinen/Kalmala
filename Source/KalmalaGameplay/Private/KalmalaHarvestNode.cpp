@@ -80,6 +80,7 @@ namespace
         if (PresentationId == TEXT("frostmoss-clump")) return FLinearColor(0.54f, 0.76f, 0.72f);
         if (PresentationId == TEXT("carrot-patch-harvest")) return FLinearColor(0.22f, 0.52f, 0.16f);
         if (PresentationId == TEXT("potato-patch-harvest")) return FLinearColor(0.42f, 0.50f, 0.25f);
+        if (PresentationId == TEXT("onion-patch-harvest")) return FLinearColor(0.29f, 0.43f, 0.20f);
         if (PresentationId == TEXT("slate-vein")) return FLinearColor(0.30f, 0.36f, 0.43f);
         return FLinearColor::Transparent;
     }
@@ -263,9 +264,10 @@ void AKalmalaHarvestNode::Interact_Implementation(AKalmalaCharacter* Interactor)
                 Crafting->PublishInteractionResultFromServer(TEXT("Inventory is full"), false);
         };
         const FName RewardItemId = GetHarvestItemId();
-        const FName SeedItemId = GatheringSourceId == TEXT("meadows-wild-carrot-patch")
-            ? FName(TEXT("CarrotSeed"))
-            : GatheringSourceId == TEXT("lakes-wild-rutabaga-patch") ? FName(TEXT("RutabagaSeed")) : NAME_None;
+        FName SeedItemId = NAME_None;
+        if (GatheringSourceId == TEXT("meadows-wild-carrot-patch")) SeedItemId = FName(TEXT("CarrotSeed"));
+        else if (GatheringSourceId == TEXT("lakes-wild-rutabaga-patch")) SeedItemId = FName(TEXT("RutabagaSeed"));
+        else if (GatheringSourceId == TEXT("elderwood-wild-onion-patch")) SeedItemId = FName(TEXT("OnionSeed"));
         if (RewardItemId.IsNone()
             || !UKalmalaInventoryComponent::BuildGrant(Before, RewardItemId, 2, AfterReward, Reason))
         {
@@ -518,6 +520,7 @@ FName AKalmalaHarvestNode::GetHarvestItemId() const
     {
         if (GatheringSourceId == TEXT("meadows-wild-potato-patch")) return FName(TEXT("Potato"));
         if (GatheringSourceId == TEXT("lakes-wild-rutabaga-patch")) return FName(TEXT("Rutabaga"));
+        if (GatheringSourceId == TEXT("elderwood-wild-onion-patch")) return FName(TEXT("Onion"));
         return FName(TEXT("Carrot"));
     }
     FKalmalaToolServerSelection Selection;
@@ -704,6 +707,17 @@ void AKalmalaHarvestNode::BuildSourcePresentation()
         AddTaperedBox(Vertices, Triangles, Colors, FVector(-15.0f, -3.0f, 12.0f), FVector(3.0f, 6.0f, 0.0f), 29.0f, 0.16f, -20.0f, LeafColor);
         AddTaperedBox(Vertices, Triangles, Colors, FVector(5.0f, 8.0f, 13.0f), FVector(3.0f, 6.0f, 0.0f), 31.0f, 0.16f, 10.0f, LeafColor);
         AddTaperedBox(Vertices, Triangles, Colors, FVector(18.0f, -9.0f, 11.0f), FVector(3.0f, 6.0f, 0.0f), 27.0f, 0.16f, 24.0f, LeafColor);
+    }
+    else if (PresentationId == TEXT("onion-patch-harvest"))
+    {
+        const FLinearColor OnionColor(0.74f, 0.57f, 0.39f);
+        const FLinearColor ShootColor(0.24f, 0.42f, 0.17f);
+        AddTaperedBox(Vertices, Triangles, Colors, FVector(-15.0f, -3.0f, 0.0f), FVector(6.0f, 5.0f, 0.0f), 13.0f, 0.48f, -8.0f, OnionColor);
+        AddTaperedBox(Vertices, Triangles, Colors, FVector(5.0f, 8.0f, 0.0f), FVector(6.0f, 5.0f, 0.0f), 14.0f, 0.46f, 7.0f, OnionColor);
+        AddTaperedBox(Vertices, Triangles, Colors, FVector(18.0f, -9.0f, 0.0f), FVector(5.0f, 5.0f, 0.0f), 12.0f, 0.5f, 15.0f, OnionColor);
+        AddTaperedBox(Vertices, Triangles, Colors, FVector(-15.0f, -3.0f, 9.0f), FVector(2.5f, 3.5f, 0.0f), 39.0f, 0.12f, -20.0f, ShootColor);
+        AddTaperedBox(Vertices, Triangles, Colors, FVector(5.0f, 8.0f, 10.0f), FVector(2.5f, 3.5f, 0.0f), 43.0f, 0.12f, 10.0f, ShootColor);
+        AddTaperedBox(Vertices, Triangles, Colors, FVector(18.0f, -9.0f, 8.0f), FVector(2.5f, 3.5f, 0.0f), 36.0f, 0.12f, 24.0f, ShootColor);
     }
     else
     {

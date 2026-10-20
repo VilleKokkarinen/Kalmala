@@ -43,9 +43,9 @@ bool FKalmalaInventoryBrowseTest::RunTest(const FString& Parameters)
     Panel->SetSort(1);
     TestEqual(TEXT("Name sorting retains selected canonical identity"), Panel->GetSelectedItem(), FName(TEXT("StoneAxe")));
     Panel->Navigate(EKeys::Right);
-    TestEqual(TEXT("Name sorting uses the current Amber display name"), Panel->GetSelectedItem(), FName(TEXT("Amber")));
+    TestEqual(TEXT("Name sorting advances from Stone Axe to Wood"), Panel->GetSelectedItem(), FName(TEXT("Wood")));
     Panel->Navigate(EKeys::Right);
-    TestEqual(TEXT("Name sorting navigates from Amber to Stone"), Panel->GetSelectedItem(), FName(TEXT("Stone")));
+    TestEqual(TEXT("Name sorting wraps from Wood to Amber"), Panel->GetSelectedItem(), FName(TEXT("Amber")));
     Panel->SetSearch(TEXT("  AMBER  "));
     TestEqual(TEXT("Trimmed search finds the reviewed item display name"), Panel->GetVisibleCount(), 1);
     TestEqual(TEXT("Display-name search retains the canonical item identity"), Panel->GetSelectedItem(), FName(TEXT("Amber")));
@@ -53,7 +53,7 @@ bool FKalmalaInventoryBrowseTest::RunTest(const FString& Parameters)
     Panel->SetCategory(3);
     TestEqual(TEXT("Weapons filter contains only supplied weapon"), Panel->GetVisibleCount(), 1);
     TestEqual(TEXT("Filtered selection falls back safely"), Panel->GetSelectedItem(), FName(TEXT("StoneAxe")));
-    Panel->SetSearch(TEXT("  HATCHET  "));
+    Panel->SetSearch(TEXT("  AXE  "));
     TestEqual(TEXT("Trimmed case-insensitive display-name search"), Panel->GetVisibleCount(), 1);
     Panel->SetSearch(TEXT("Count 7"));
     TestEqual(TEXT("Search does not match state or quantities"), Panel->GetVisibleCount(), 0);
@@ -69,7 +69,7 @@ bool FKalmalaInventoryBrowseTest::RunTest(const FString& Parameters)
     }
     TestTrue(TEXT("No results explains recovery"), bNoResults);
     TestNotNull(TEXT("Search has actual editable control"), SearchBox);
-    if (SearchBox) SearchBox->OnTextChanged.Broadcast(FText::FromString(TEXT("field")));
+    if (SearchBox) SearchBox->OnTextChanged.Broadcast(FText::FromString(TEXT("Axe")));
     TestEqual(TEXT("Actual text-change binding filters supplied rows"), Panel->GetVisibleCount(), 1);
     Panel->SetSearch(TEXT("")); Panel->SetCategory(0); Panel->SetSort(2);
     Panel->Navigate(EKeys::Gamepad_DPad_Right);

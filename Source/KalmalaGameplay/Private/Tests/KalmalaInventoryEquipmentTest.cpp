@@ -147,11 +147,14 @@ bool FKalmalaInventoryEquipmentTest::RunTest(const FString& Parameters)
 
     FullGearPack.Pop();
     const FGuid HandGuid = FGuid::NewGuid();
-    TestTrue(TEXT("Main Hand does not consume the last cell needed to return a wearable"),
+    UnequippedStacks.Reset();
+    UnequippedGear.Reset();
+    TestFalse(TEXT("The carried Main Hand tool still occupies one inventory cell"),
         UKalmalaInventoryComponent::BuildUnequipGearTransaction(
             FullGearPack, {OldHelmet}, EKalmalaGearSlot::Head, {HandGuid},
             UnequippedStacks, UnequippedGear, Reason, HandGuid));
-    TestEqual(TEXT("Returned wearable fills cell forty alongside Main Hand"), UnequippedStacks.Num(), 40);
+    TestTrue(TEXT("A rejected full-capacity return leaves both candidates untouched"),
+        UnequippedStacks.IsEmpty() && UnequippedGear.IsEmpty());
     TestFalse(TEXT("Main Hand still participates in wearable identity collision checks"),
         UKalmalaInventoryComponent::BuildUnequipGearTransaction(
             {}, {OldHelmet}, EKalmalaGearSlot::Head, {OldHelmetGuid},
