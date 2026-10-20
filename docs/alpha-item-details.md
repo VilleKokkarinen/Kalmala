@@ -37,7 +37,7 @@ Existing item acquisition and use (P0).
 - Reconcile the six previously authored cooking outputs with server food-use dispatch; remove stale food-ID assumptions and verify paid cooking-to-eating behavior.
 - Hearth Broth (`HearthBroth`) is produced at a Cauldron with the existing lit-hearth requirement: 1 Deer Meat + 1 Onion produces 1 serving; MaxBatch 5, Cooking XP 10 per accepted craft. Its registered item definition and original generated icon were already in place; it has no equipment, attacks or upgrades.
 - Implemented under A0: hand-gathered wild carrot patches in Meadows grant 2 Carrot and 1 Carrot Seed; no tool required. Seed use remains blocked on A7 farming.
-- Add hand-gathered wild potato patches in Meadows: each harvest grants 2 Potato; no tool required. Do not grant Potato Seed until A7 explicitly resolves seed versus tuber propagation.
+- Implemented under A0: hand-gathered wild potato patches in Meadows grant 2 Potato; no tool required. Do not grant Potato Seed until A7 explicitly resolves seed versus tuber propagation.
 - Add hand-gathered wild rutabaga patches in Shimmering Lakes on dry banks: each harvest grants 2 Rutabaga and 1 Rutabaga Seed; no tool required. Seed use remains blocked on A7 farming.
 - Add hand-gathered wild onion patches in Elderwood: each harvest grants 2 Onion and 1 Onion Seed; no tool required. Seed use remains blocked on A7 farming. Verify all four vegetables reach the existing cooking recipes without farming/debug grants.
 
@@ -71,7 +71,7 @@ are included in the approved queue.
 | Bronze | Copper/Tin alloying at Forge | 2 Copper + 1 Tin produces 1 Bronze | Add under A1; no direct Bronze drops |
 | Iron | Iron Ore refined at placed smelter | 1 Iron Ore + 1 Coal produces 1 Iron | Add under A1; replaces direct-bar acquisition only after review |
 | Carrot / Carrot Seed | New wild carrot patches in Meadows | Hand gather 2 Carrot + 1 Carrot Seed per patch | Implemented under A0; seed use waits for A7 |
-| Potato | New wild potato patches in Meadows | Hand gather 2 Potato per patch | Add under A0 |
+| Potato | New wild potato patches in Meadows | Hand gather 2 Potato per patch | Implemented under A0; no Potato Seed until A7 resolves tuber propagation |
 | Potato Seed | No A0 acquisition | Existing definition retained without drops; A7 proposes Potato tuber propagation instead | Explicitly deferred, not agent-selected |
 | Rutabaga / Rutabaga Seed | New wild rutabaga patches on dry Shimmering Lakes banks | Hand gather 2 Rutabaga + 1 Rutabaga Seed per patch | Add under A0; seed use waits for A7 |
 | Onion / Onion Seed | New wild onion patches in Elderwood | Hand gather 2 Onion + 1 Onion Seed per patch | Add under A0; seed use waits for A7 |

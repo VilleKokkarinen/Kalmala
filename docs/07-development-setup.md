@@ -1748,12 +1748,16 @@ six first-wave land biomes. The server derives the matching gathering or niche
 ID when it builds a population descriptor and replicates the selected identity
 on the relevant harvest or wildlife actor. A valid gathering source builds an
 original collision-free procedural presentation from that replicated ID on
-both peers. The Meadow population also assigns one deterministic candidate per
-eligible spatial key to the A0 `meadows-wild-carrot-patch` source, using a
-separate stable identity seed so prior birch-bark depletion cannot suppress it.
-The server hand-gathers exactly two Carrots and one Carrot Seed as one
-capacity-checked transaction without a tool; full-pack and failed requests do
-not deplete the patch. This source uses the existing population harvest ledger.
+both peers. The Meadow population assigns its first dry, safe candidate per
+eligible key to the A0 `meadows-wild-carrot-patch` source and its next eligible
+candidate to `meadows-wild-potato-patch`. Each uses a separate stable identity
+seed so prior biome-source depletion cannot suppress it. The server
+hand-gathers exactly two Carrots plus one Carrot Seed or exactly two Potatoes
+with no Potato Seed, as complete capacity-checked transactions without a tool;
+full-pack and failed requests do not deplete either patch. Both sources use the
+existing population harvest ledger. `Kalmala.Gameplay.M9.SecondWaveHarvestAcceptance`
+covers the potato source identity, tool-free interaction, exact two-item reward,
+no-seed rule, full-pack rejection, persistence rollback, and duplicate prevention.
 Each valid point-of-interest rare source also maps to a distinct original
 collision-free procedural presentation. The source identity is replicated only
 with the already materialized relevant discovery actor; clients do not receive

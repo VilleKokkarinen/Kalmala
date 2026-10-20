@@ -100,6 +100,7 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
         Spawns.Reserve(Budget);
         const FVector2D SpatialKeyOrigin = FVector2D(SpatialKey) * SpatialKeySize;
         bool bAddedMeadowCarrotPatch = false;
+        bool bAddedMeadowPotatoPatch = false;
         // Wildlife candidates deliberately have a small, fixed retry budget.  The
         // server derives all candidates, rejects water and unsafe slopes, and
         // keeps the candidate seed in the sparse-delta ID.  Clients never choose
@@ -122,13 +123,24 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
                 : FKalmalaBiomeContentContract::GetServerContentId(Biome, ContentKind);
             uint64 PersistentSeed = CandidateSeed;
             if (Kind == EKalmalaWorldPopulationKind::HarvestNode && Biome == EKalmalaBiome::Meadows
-                && !bAddedMeadowCarrotPatch && IsTerrainSafeDiscoveryLocation(Config, Position))
+                && IsTerrainSafeDiscoveryLocation(Config, Position))
             {
-                // Keep the original candidate position but domain-separate the
-                // new source identity from the former birch-bark occupant.
-                ContentId = TEXT("meadows-wild-carrot-patch");
-                PersistentSeed = Mix(CandidateSeed ^ 0xA0CA22071019ull);
-                bAddedMeadowCarrotPatch = true;
+                if (!bAddedMeadowCarrotPatch)
+                {
+                    // Keep the original candidate position but domain-separate
+                    // the source identity from its former biome-source occupant.
+                    ContentId = TEXT("meadows-wild-carrot-patch");
+                    PersistentSeed = Mix(CandidateSeed ^ 0xA0CA22071019ull);
+                    bAddedMeadowCarrotPatch = true;
+                }
+                else if (!bAddedMeadowPotatoPatch)
+                {
+                    // Use the next eligible Meadow candidate so the two crop
+                    // patches have distinct positions and sparse-save identities.
+                    ContentId = TEXT("meadows-wild-potato-patch");
+                    PersistentSeed = Mix(CandidateSeed ^ 0xA0B070A71019ull);
+                    bAddedMeadowPotatoPatch = true;
+                }
             }
             Spawns.Add({ Kind, SpatialKey, PersistentSeed, FVector(Position.X, Position.Y, FKalmalaTerrainHeightSampler::SampleHeight(Config, Position)), ContentId });
         }

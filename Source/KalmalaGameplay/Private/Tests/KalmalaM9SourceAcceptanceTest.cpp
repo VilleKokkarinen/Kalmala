@@ -895,6 +895,117 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
         bAllFixturesValid = false;
     }
 
+    {
+        const FVector PotatoLocation(18000.0f, 0.0f, 0.0f);
+        AKalmalaCharacter* PotatoPawn = World->SpawnActor<AKalmalaCharacter>(PotatoLocation, FRotator::ZeroRotator);
+        AKalmalaHarvestNode* PotatoNode = World->SpawnActor<AKalmalaHarvestNode>(PotatoLocation, FRotator::ZeroRotator);
+        APlayerState* PotatoPlayerState = World->SpawnActor<APlayerState>();
+        if (TestNotNull(TEXT("Wild potato fixture has the server GameMode"), PlantGameMode)
+            && TestNotNull(TEXT("Wild potato fixture pawn spawned"), PotatoPawn)
+            && TestNotNull(TEXT("Wild potato patch spawned"), PotatoNode)
+            && TestNotNull(TEXT("Wild potato fixture has an authenticated player state"), PotatoPlayerState))
+        {
+            const FUniqueNetIdStringRef PotatoNetId = FUniqueNetIdString::Create(
+                TEXT("a0-wild-potato-acceptance"), FName(TEXT("KalmalaA0WildPotatoAcceptanceTest")));
+            PotatoPlayerState->SetUniqueId(FUniqueNetIdRepl(*PotatoNetId));
+            PotatoPawn->SetPlayerState(PotatoPlayerState);
+
+            FKalmalaWorldPopulationSpawn PotatoSpawn;
+            PotatoSpawn.Kind = EKalmalaWorldPopulationKind::HarvestNode;
+            PotatoSpawn.SpatialKey = FKalmalaWorldPopulationLayout::GetSpatialKey(
+                FVector2D(PotatoLocation.X, PotatoLocation.Y));
+            PotatoSpawn.SpawnSeed = 715004;
+            PotatoSpawn.Location = PotatoLocation;
+            PotatoSpawn.ContentId = TEXT("meadows-wild-potato-patch");
+            PotatoNode->InitializeServer(PotatoSpawn);
+            FKalmalaToolServerSelection PotatoToolSelection;
+            TestEqual(TEXT("Wild potato fixture retains its canonical source identity"),
+                PotatoNode->GetGatheringSourceId(), PotatoSpawn.ContentId);
+            TestFalse(TEXT("Wild potato patch has a stable population identity"), PotatoNode->GetPersistentSpawnId().IsEmpty());
+            TestEqual(TEXT("Wild potato interaction prompt names its primary reward"),
+                PotatoNode->GetHarvestItemId(), FName(TEXT("Potato")));
+            TestFalse(TEXT("Wild potato patch does not require a tool selection"),
+                FKalmalaToolLifecycleContract::BuildServerSelection(PotatoSpawn.ContentId, PotatoToolSelection));
+
+            auto* PotatoInventory = PotatoPawn->GetInventoryComponent();
+            const TArray<FKalmalaInventoryStack> PotatoInventoryBefore = PotatoInventory->GetStacks();
+            const int32 PotatoBefore = PotatoInventory->GetQuantity(TEXT("Potato"));
+            const int32 PotatoSeedBefore = PotatoInventory->GetQuantity(TEXT("PotatoSeed"));
+            const int32 PackedTools = PotatoInventory->CountPackedTools(PotatoPawn->GetCarriedToolInventory());
+            TArray<FKalmalaInventoryStack> PotatoFullPack;
+            for (int32 Cell = PackedTools; Cell < UKalmalaInventoryComponent::MaxSlots; ++Cell)
+                PotatoFullPack.Add({TEXT("BoneFragment"), 1});
+            TestTrue(TEXT("Wild potato full-pack fixture installs"),
+                PotatoInventory->TryCommitStacksFromServer(PotatoInventoryBefore, PotatoFullPack));
+            const TArray<FKalmalaInventoryStack> PotatoInstalledFullPack = PotatoInventory->GetStacks();
+            TestFalse(TEXT("A full pack rejects the entire potato harvest"), PotatoNode->InteractWithToolIntentFromServer(
+                PotatoPawn, 100.0f, 250.0f, NAME_None, static_cast<uint8>(EKalmalaToolAction::Gathering)));
+            TestFalse(TEXT("A full pack leaves the wild potato patch available"), PotatoNode->IsHarvested());
+            TestEqual(TEXT("A full pack grants no Potato"), PotatoInventory->GetQuantity(TEXT("Potato")), PotatoBefore);
+            TestEqual(TEXT("A full pack grants no Potato Seed"), PotatoInventory->GetQuantity(TEXT("PotatoSeed")), PotatoSeedBefore);
+            TestTrue(TEXT("Wild potato full-pack fixture restores"),
+                PotatoInventory->TryCommitStacksFromServer(PotatoInstalledFullPack, PotatoInventoryBefore));
+
+            int32 PotatoDepletionEvents = 0;
+            FString PotatoDepletedSpawnId;
+            PotatoNode->OnHarvested.AddLambda([&](const FString& SpawnId)
+                { ++PotatoDepletionEvents; PotatoDepletedSpawnId = SpawnId; });
+            auto* PotatoPopulationSave = NewObject<UKalmalaWorldPopulationSaveGame>(World);
+            PotatoPopulationSave->InitializeForWorld(WorldState->GetWorldGenerationConfig());
+            PlantGameMode->PopulationSaveGame = PotatoPopulationSave;
+            int32 PotatoPopulationWrites = 0;
+            PlantGameMode->PopulationSaveWriterForTests = [&](UKalmalaWorldPopulationSaveGame* Saved,
+                const FString&, int32)
+            {
+                ++PotatoPopulationWrites;
+                TestTrue(TEXT("Wild potato depletion uses the matching world save"),
+                    Saved == PotatoPopulationSave && Saved->MatchesWorld(WorldState->GetWorldGenerationConfig()));
+            };
+            PotatoNode->OnHarvested.AddUObject(PlantGameMode, &AKalmalaGameMode::RecordHarvestedSpawn);
+
+            TestFalse(TEXT("Wild potato rejects a trace beyond interaction range"), PotatoNode->InteractWithToolIntentFromServer(
+                PotatoPawn, 251.0f, 250.0f, NAME_None, static_cast<uint8>(EKalmalaToolAction::Gathering)));
+            TestFalse(TEXT("A rejected trace leaves the wild potato patch available"), PotatoNode->IsHarvested());
+            APlayerState* AuthenticatedPotatoPlayerState = PotatoPawn->GetPlayerState();
+            PotatoPawn->SetPlayerState(nullptr);
+            TestFalse(TEXT("Wild potato rejects failed player-state persistence"), PotatoNode->InteractWithToolIntentFromServer(
+                PotatoPawn, 100.0f, 250.0f, NAME_None, static_cast<uint8>(EKalmalaToolAction::Gathering)));
+            TestFalse(TEXT("Failed player-state persistence leaves the potato patch available"), PotatoNode->IsHarvested());
+            TestEqual(TEXT("Failed player-state persistence rolls back Potato"),
+                PotatoInventory->GetQuantity(TEXT("Potato")), PotatoBefore);
+            TestEqual(TEXT("Failed player-state persistence does not record potato depletion"), PotatoPopulationWrites, 0);
+            PotatoPawn->SetPlayerState(AuthenticatedPotatoPlayerState);
+            TestTrue(TEXT("A player can hand-gather wild potatoes without a tool"), PotatoNode->InteractWithToolIntentFromServer(
+                PotatoPawn, 100.0f, 250.0f, NAME_None, static_cast<uint8>(EKalmalaToolAction::Gathering)));
+            TestTrue(TEXT("Accepted wild potato harvest depletes exactly once"), PotatoNode->IsHarvested());
+            TestEqual(TEXT("Wild potato harvest grants exactly two Potatoes"),
+                PotatoInventory->GetQuantity(TEXT("Potato")), PotatoBefore + 2);
+            TestEqual(TEXT("Wild potato harvest never grants Potato Seed"),
+                PotatoInventory->GetQuantity(TEXT("PotatoSeed")), PotatoSeedBefore);
+            TestEqual(TEXT("Accepted wild potato harvest broadcasts one depletion event"), PotatoDepletionEvents, 1);
+            TestEqual(TEXT("Wild potato depletion retains the generated spawn identity"), PotatoDepletedSpawnId,
+                PotatoNode->GetPersistentSpawnId());
+            TestTrue(TEXT("Wild potato depletion is saved under the existing harvest ledger"),
+                PotatoPopulationSave->IsHarvested(PotatoNode->GetPersistentSpawnId()));
+            TestEqual(TEXT("Wild potato harvest writes depletion once"), PotatoPopulationWrites, 1);
+            TestFalse(TEXT("Wild potato harvest cannot grant twice"), PotatoNode->InteractWithToolIntentFromServer(
+                PotatoPawn, 100.0f, 250.0f, NAME_None, static_cast<uint8>(EKalmalaToolAction::Gathering)));
+            TestEqual(TEXT("Duplicate harvest leaves Potato unchanged"),
+                PotatoInventory->GetQuantity(TEXT("Potato")), PotatoBefore + 2);
+            TestEqual(TEXT("Duplicate harvest still grants no Potato Seed"),
+                PotatoInventory->GetQuantity(TEXT("PotatoSeed")), PotatoSeedBefore);
+            TestEqual(TEXT("Duplicate potato harvest does not rewrite depletion"), PotatoPopulationWrites, 1);
+            PlantGameMode->PopulationSaveWriterForTests = {};
+            PlantGameMode->PopulationSaveGame = nullptr;
+            PotatoNode->OnHarvested.Clear();
+            PotatoNode->Destroy();
+        }
+        else
+        {
+            bAllFixturesValid = false;
+        }
+    }
+
     OtherWorld->DestroyWorld(false);
     World->DestroyWorld(false);
     return bAllFixturesValid;

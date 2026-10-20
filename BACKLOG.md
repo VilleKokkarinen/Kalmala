@@ -115,7 +115,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [x] Fix food use for the six current cooking outputs.
   - [x] Hearth Broth: Cauldron, 1 Deer Meat + 1 Onion → 1 broth.
   - [x] Wild carrots: Meadows, hand-pick 2 Carrot + 1 Carrot Seed per patch.
-  - [ ] Wild potatoes: Meadows, hand-pick 2 Potato per patch; no Potato Seed.
+  - [x] Wild potatoes: Meadows, hand-pick 2 Potato per patch; no Potato Seed.
   - [ ] Wild rutabaga: Shimmering Lakes dry banks, hand-pick 2 Rutabaga + 1 Rutabaga Seed per patch.
   - [ ] Wild onions: Elderwood, hand-pick 2 Onion + 1 Onion Seed per patch.
 

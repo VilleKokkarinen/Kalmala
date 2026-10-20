@@ -79,6 +79,7 @@ namespace
         if (PresentationId == TEXT("bog-iron-vein")) return FLinearColor(0.30f, 0.24f, 0.20f);
         if (PresentationId == TEXT("frostmoss-clump")) return FLinearColor(0.54f, 0.76f, 0.72f);
         if (PresentationId == TEXT("carrot-patch-harvest")) return FLinearColor(0.22f, 0.52f, 0.16f);
+        if (PresentationId == TEXT("potato-patch-harvest")) return FLinearColor(0.42f, 0.50f, 0.25f);
         if (PresentationId == TEXT("slate-vein")) return FLinearColor(0.30f, 0.36f, 0.43f);
         return FLinearColor::Transparent;
     }
@@ -253,34 +254,43 @@ void AKalmalaHarvestNode::Interact_Implementation(AKalmalaCharacter* Interactor)
         if (!Inventory || !GameMode) return;
 
         const TArray<FKalmalaInventoryStack> Before = Inventory->GetStacks();
-        TArray<FKalmalaInventoryStack> AfterCarrots;
-        TArray<FKalmalaInventoryStack> AfterSeeds;
+        TArray<FKalmalaInventoryStack> AfterReward;
+        TArray<FKalmalaInventoryStack> AfterSeed;
         FString Reason;
         const auto PublishFullPack = [Interactor]()
         {
             if (UKalmalaCraftingComponent* Crafting = Interactor->FindComponentByClass<UKalmalaCraftingComponent>())
                 Crafting->PublishInteractionResultFromServer(TEXT("Inventory is full"), false);
         };
-        if (!UKalmalaInventoryComponent::BuildGrant(Before, TEXT("Carrot"), 2, AfterCarrots, Reason))
+        const FName RewardItemId = GetHarvestItemId();
+        const FName SeedItemId = GatheringSourceId == TEXT("meadows-wild-carrot-patch")
+            ? FName(TEXT("CarrotSeed")) : NAME_None;
+        if (RewardItemId.IsNone()
+            || !UKalmalaInventoryComponent::BuildGrant(Before, RewardItemId, 2, AfterReward, Reason))
         {
             if (Reason == TEXT("Pack output capacity reached")) PublishFullPack();
             return;
         }
-        if (!UKalmalaInventoryComponent::BuildGrant(AfterCarrots, TEXT("CarrotSeed"), 1, AfterSeeds, Reason))
+        const TArray<FKalmalaInventoryStack>* FinalStacks = &AfterReward;
+        if (!SeedItemId.IsNone())
         {
-            if (Reason == TEXT("Pack output capacity reached")) PublishFullPack();
-            return;
+            if (!UKalmalaInventoryComponent::BuildGrant(AfterReward, SeedItemId, 1, AfterSeed, Reason))
+            {
+                if (Reason == TEXT("Pack output capacity reached")) PublishFullPack();
+                return;
+            }
+            FinalStacks = &AfterSeed;
         }
-        if (!Inventory->CanFitContents(AfterSeeds, Inventory->CountPackedTools(Interactor->GetCarriedToolInventory())))
+        if (!Inventory->CanFitContents(*FinalStacks, Inventory->CountPackedTools(Interactor->GetCarriedToolInventory())))
         {
             PublishFullPack();
             return;
         }
-        if (!Inventory->TryCommitStacksFromServer(Before, AfterSeeds)) return;
+        if (!Inventory->TryCommitStacksFromServer(Before, *FinalStacks)) return;
         if (!GameMode->PersistPlayerStateFromServer(Interactor))
         {
-            if (!Inventory->TryCommitStacksFromServer(AfterSeeds, Before))
-                UE_LOG(LogTemp, Error, TEXT("Failed to roll back inventory after player persistence rejected wild carrot harvest."));
+            if (!Inventory->TryCommitStacksFromServer(*FinalStacks, Before))
+                UE_LOG(LogTemp, Error, TEXT("Failed to roll back inventory after player persistence rejected a wild crop harvest."));
             return;
         }
         CommitHarvestedStateFromServer();
@@ -503,7 +513,8 @@ void AKalmalaHarvestNode::CommitHarvestedStateFromServer()
 FName AKalmalaHarvestNode::GetHarvestItemId() const
 {
     if (PersistentSpawnId.IsEmpty()) return NAME_None;
-    if (IsHandGatherablePatch()) return TEXT("Carrot");
+    if (IsHandGatherablePatch())
+        return GatheringSourceId == TEXT("meadows-wild-potato-patch") ? FName(TEXT("Potato")) : FName(TEXT("Carrot"));
     FKalmalaToolServerSelection Selection;
     if (FKalmalaToolLifecycleContract::BuildServerSelection(GatheringSourceId, Selection))
         return Selection.RewardItemId;
@@ -662,6 +673,17 @@ void AKalmalaHarvestNode::BuildSourcePresentation()
         AddTaperedBox(Vertices, Triangles, Colors, FVector(-15.0f, -3.0f, 6.0f), FVector(2.5f, 7.0f, 0.0f), 35.0f, 0.12f, -20.0f, LeafColor);
         AddTaperedBox(Vertices, Triangles, Colors, FVector(3.0f, 8.0f, 6.0f), FVector(2.5f, 7.0f, 0.0f), 38.0f, 0.12f, 10.0f, LeafColor);
         AddTaperedBox(Vertices, Triangles, Colors, FVector(17.0f, -9.0f, 6.0f), FVector(2.5f, 7.0f, 0.0f), 34.0f, 0.12f, 24.0f, LeafColor);
+    }
+    else if (PresentationId == TEXT("potato-patch-harvest"))
+    {
+        const FLinearColor PotatoColor(0.67f, 0.52f, 0.32f);
+        const FLinearColor LeafColor(0.29f, 0.50f, 0.18f);
+        AddTaperedBox(Vertices, Triangles, Colors, FVector(-15.0f, -3.0f, 0.0f), FVector(7.0f, 5.0f, 0.0f), 10.0f, 0.75f, -8.0f, PotatoColor);
+        AddTaperedBox(Vertices, Triangles, Colors, FVector(5.0f, 8.0f, 0.0f), FVector(7.0f, 5.0f, 0.0f), 11.0f, 0.72f, 7.0f, PotatoColor);
+        AddTaperedBox(Vertices, Triangles, Colors, FVector(18.0f, -9.0f, 0.0f), FVector(6.0f, 5.0f, 0.0f), 9.0f, 0.8f, 15.0f, PotatoColor);
+        AddTaperedBox(Vertices, Triangles, Colors, FVector(-13.0f, -2.0f, 8.0f), FVector(3.0f, 5.0f, 0.0f), 24.0f, 0.18f, -18.0f, LeafColor);
+        AddTaperedBox(Vertices, Triangles, Colors, FVector(5.0f, 8.0f, 9.0f), FVector(3.0f, 5.0f, 0.0f), 27.0f, 0.18f, 13.0f, LeafColor);
+        AddTaperedBox(Vertices, Triangles, Colors, FVector(18.0f, -9.0f, 7.0f), FVector(3.0f, 5.0f, 0.0f), 22.0f, 0.18f, 24.0f, LeafColor);
     }
     else
     {

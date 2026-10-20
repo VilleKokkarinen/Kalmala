@@ -741,24 +741,28 @@ authority for reach and placement. The trunk sources reuse their generated tree 
 Wood source stacks cap at 50 like current `Wood`; mineral source stacks cap at
 40 like current `Stone`.
 
-### A0 hand-gathered Meadow carrot patch
+### A0 hand-gathered Meadow crop patches
 
-The existing deterministic `HarvestNode` descriptors also carry the first dry,
-safe Meadow carrot patch candidate in each 6,000 cm spatial key. Its position
-uses the existing candidate sample; the persistent seed is
-`Mix(candidate-seed XOR 0xA0CA22071019)`, which keeps the new
-`meadows-wild-carrot-patch` identity distinct from the former birch-bark
-candidate at that position. Remaining descriptors keep their existing biome
-source. The collision-free procedural patch uses green foliage and visible
-orange root crowns, with the node's existing interaction sphere as its target.
+The existing deterministic `HarvestNode` descriptors assign the first dry,
+safe Meadow candidate in each 6,000 cm spatial key to a carrot patch. Its
+persistent seed is `Mix(candidate-seed XOR 0xA0CA22071019)`, which keeps the
+`meadows-wild-carrot-patch` identity distinct from its former biome-source
+occupant. The next dry, safe Meadow candidate in that key becomes a potato
+patch with its own persistent seed domain, `Mix(candidate-seed XOR
+0xA0B070A71019)`. The two patches use separate positions and stable sparse-save
+identities; remaining descriptors retain their biome sources. Their original
+collision-free procedural meshes use green foliage with orange carrot roots or
+tan potato tubers, and the node's existing interaction sphere remains the
+target.
 
-The server retraces the interaction and accepts hand gathering without a tool.
-It preflights one complete inventory result of 2 `Carrot` and 1 `CarrotSeed`,
-checks capacity for both, commits the inventory and player persistence, then
-marks the stable spawn identity harvested through the existing population save
-callback. A full pack, failed player-state persistence, invalid range, or
-repeated request leaves the patch available and grants neither item. The
-source is manual-only; carrot seed planting remains part of A7.
+The server retraces each interaction and accepts hand gathering without a
+tool. Carrot patches preflight 2 `Carrot` and 1 `CarrotSeed`; potato patches
+preflight exactly 2 `Potato` and grant no `PotatoSeed`. Each complete result
+must fit before inventory/player persistence and stable-identity depletion are
+committed through the existing population save callback. A full pack, failed
+player-state persistence, invalid range, or repeated request leaves the patch
+available and grants no item. Potato tuber versus seed propagation remains an
+A7 decision; no Potato Seed source is added in A0.
 
 ## Deterministic placement and population budget
 
