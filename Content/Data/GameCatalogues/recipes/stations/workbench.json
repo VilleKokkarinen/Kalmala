@@ -40,9 +40,18 @@
       "RequiredStationLevel": 1,
       "Level": 1,
       "Ingredients": [
-        { "ItemId": "Lightwood", "Quantity": 25 },
-        { "ItemId": "BowString", "Quantity": 1 },
-        { "ItemId": "DeerHide", "Quantity": 5 }
+        {
+          "ItemId": "Lightwood",
+          "Quantity": 25
+        },
+        {
+          "ItemId": "BowString",
+          "Quantity": 1
+        },
+        {
+          "ItemId": "DeerHide",
+          "Quantity": 5
+        }
       ]
     },
     {
@@ -344,6 +353,112 @@
       "ExperienceSkill": "None",
       "ExperienceAward": 0,
       "bEnabled": true
+    },
+    {
+      "RecipeId": "FangArrowsRecipe",
+      "DisplayName": "Fang Arrows",
+      "Ingredients": [
+        {
+          "ItemId": "ViperFang",
+          "Quantity": 2
+        },
+        {
+          "ItemId": "Wood",
+          "Quantity": 10
+        }
+      ],
+      "Output": "FangArrows",
+      "OutputCount": 20,
+      "MaxBatch": 5,
+      "RequiredStation": [
+        "Workbench"
+      ],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
+    },
+    {
+      "RecipeId": "BadgerFurVestRecipe",
+      "DisplayName": "Badger Fur Vest",
+      "RequiredStation": [
+        "Workbench"
+      ],
+      "Ingredients": [
+        {
+          "ItemId": "BadgerFur",
+          "Quantity": 6
+        }
+      ],
+      "Output": "BadgerFurVest",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
+    },
+    {
+      "RecipeId": "WolfPeltBootsRecipe",
+      "DisplayName": "Wolf Pelt Boots",
+      "RequiredStation": [
+        "Workbench"
+      ],
+      "Ingredients": [
+        {
+          "ItemId": "WolfPelt",
+          "Quantity": 5
+        },
+        {
+          "ItemId": "Iron",
+          "Quantity": 5
+        }
+      ],
+      "Output": "WolfPeltBoots",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
+    },
+    {
+      "RecipeId": "LynxMantleRecipe",
+      "DisplayName": "Lynx Mantle",
+      "RequiredStation": [
+        "Workbench"
+      ],
+      "Ingredients": [
+        {
+          "ItemId": "LynxPelt",
+          "Quantity": 4
+        }
+      ],
+      "Output": "LynxMantle",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
+    },
+    {
+      "RecipeId": "HornBow",
+      "DisplayName": "Horn Bow",
+      "ItemId": "HornBow",
+      "RequiredStation": "Workbench",
+      "RequiredStationLevel": 1,
+      "Ingredients": [
+        {
+          "ItemId": "GoatHorn",
+          "Quantity": 2
+        },
+        {
+          "ItemId": "Densewood",
+          "Quantity": 10
+        },
+        {
+          "ItemId": "BowString",
+          "Quantity": 1
+        }
+      ],
+      "Level": 1
     }
   ]
 }

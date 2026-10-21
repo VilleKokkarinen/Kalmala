@@ -18,6 +18,18 @@
       "MaxDurability": 140,
       "DamageBonuses": {},
       "DrawDuration": 2.0
+    },
+    {
+      "ItemId": "HornBow",
+      "DisplayName": "Horn Bow",
+      "Description": "A powerful two-handed bow made with horn.",
+      "WeightKg": 2.5,
+      "twoHanded": true,
+      "MaxDurability": 140,
+      "DamageBonuses": {
+        "Pierce": 100.0
+      },
+      "DrawDuration": 3.0
     }
   ]
 }

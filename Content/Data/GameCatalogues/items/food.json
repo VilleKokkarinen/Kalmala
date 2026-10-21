@@ -81,6 +81,50 @@
       "DisplayName": "Deer and Rutabaga Roast",
       "Description": "Deer meat, rutabaga, and onion roasted in a frying pan.",
       "MaxStack": 20
+    },
+    {
+      "ItemId": "BadgerMeat",
+      "DisplayName": "Badger Meat",
+      "Description": "Raw badger meat for cooking.",
+      "MaxStack": 20
+    },
+    {
+      "ItemId": "WolfMeat",
+      "DisplayName": "Wolf Meat",
+      "Description": "Raw wolf meat for cooking.",
+      "MaxStack": 20
+    },
+    {
+      "ItemId": "RatTailTonic",
+      "DisplayName": "Rat-tail Tonic",
+      "Description": "A restorative tonic made with rat tail and lingonberry.",
+      "MaxStack": 10,
+      "WeightKg": 0.2
+    },
+    {
+      "ItemId": "RoastedBadger",
+      "DisplayName": "Roasted Badger",
+      "Description": "Badger meat roasted over a cooking rack.",
+      "MaxStack": 20
+    },
+    {
+      "ItemId": "Antidote",
+      "DisplayName": "Antidote",
+      "Description": "A draught prepared from venom sac and lingonberry.",
+      "MaxStack": 10,
+      "WeightKg": 0.2
+    },
+    {
+      "ItemId": "PeatHeartStew",
+      "DisplayName": "Peat Heart Stew",
+      "Description": "A hearty stew made with peat heart and root vegetables.",
+      "MaxStack": 20
+    },
+    {
+      "ItemId": "WolfStew",
+      "DisplayName": "Wolf Stew",
+      "Description": "A stew of wolf meat, carrots, and onions.",
+      "MaxStack": 20
     }
   ]
 }

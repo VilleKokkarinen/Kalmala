@@ -28,12 +28,16 @@ namespace
             }
             FString Set;
             FString Action = TEXT("None");
+            FString Family;
             if (ItemId == TEXT("ConstructionHammer") || ItemId == TEXT("BasicTorch")
                 || ItemId == TEXT("PlantingTrowel")) Set = TEXT("Utility");
-            else if (ItemId == TEXT("Bow") || ItemId == TEXT("LightBow")) Set = TEXT("Crafted");
+            else if (ItemId == TEXT("Bow") || ItemId == TEXT("LightBow") || ItemId == TEXT("HornBow"))
+                Set = TEXT("Crafted");
+            else if (ItemId == TEXT("FangSpear")) { Set = TEXT("Crafted"); Family = TEXT("Spear"); }
+            else if (ItemId == TEXT("ThunderMaul")) { Set = TEXT("Crafted"); Family = TEXT("Mace"); }
+            else if (ItemId == TEXT("ReefHarpoon")) { Set = TEXT("Crafted"); Family = TEXT("Spear"); }
             else
             {
-                FString Family;
                 if (ItemId.StartsWith(TEXT("Stone"))) { Set = TEXT("Starter"); Family = ItemId.Mid(5); }
                 else if (ItemId.StartsWith(TEXT("Bronze"))) { Set = TEXT("Crafted"); Family = ItemId.Mid(6); }
                 else if (ItemId.StartsWith(TEXT("Iron"))) { Set = TEXT("Crafted"); Family = ItemId.Mid(4); }
@@ -56,7 +60,8 @@ namespace
                 Object->RemoveField(TEXT("twoHanded"));
             }
             Object->SetBoolField(TEXT("bTwoHanded"), bTwoHanded);
-            if (ItemId != TEXT("Bow") && ItemId != TEXT("LightBow") && !Object->HasField(TEXT("DrawDuration")))
+            if (ItemId != TEXT("Bow") && ItemId != TEXT("LightBow") && ItemId != TEXT("HornBow")
+                && !Object->HasField(TEXT("DrawDuration")))
                 Object->SetNumberField(TEXT("DrawDuration"), 0);
             if (!Object->HasField(TEXT("WeightKg"))) Object->SetNumberField(TEXT("WeightKg"), 2.0);
             if (!Object->HasField(TEXT("MinimumSkillLevel"))) Object->SetNumberField(TEXT("MinimumSkillLevel"), 1.0);

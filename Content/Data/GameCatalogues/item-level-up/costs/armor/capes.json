@@ -15,6 +15,22 @@
         }
       ],
       "Level": 1
+    },
+    {
+      "DisplayName": "Lynx Mantle",
+      "ItemId": "LynxMantle",
+      "RequiredStation": "Workbench",
+      "Ingredients": [
+        {
+          "ItemId": "LynxPelt",
+          "Quantity": 2
+        },
+        {
+          "ItemId": "BoneFragment",
+          "Quantity": 1
+        }
+      ],
+      "Level": 1
     }
   ]
 }

@@ -37,6 +37,25 @@
       "ExperienceSkill": "Cooking",
       "ExperienceAward": 10,
       "bEnabled": true
+    },
+    {
+      "RecipeId": "RoastedBadgerRecipe",
+      "DisplayName": "Roasted Badger",
+      "Ingredients": [
+        {
+          "ItemId": "BadgerMeat",
+          "Quantity": 1
+        }
+      ],
+      "Output": "RoastedBadger",
+      "OutputCount": 1,
+      "MaxBatch": 5,
+      "RequiredStation": [
+        "CookingRack"
+      ],
+      "ExperienceSkill": "Cooking",
+      "ExperienceAward": 10,
+      "bEnabled": true
     }
   ]
 }

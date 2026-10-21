@@ -26,6 +26,28 @@
       "DamageBonuses": {
         "Stab": 47.0
       }
+    },
+    {
+      "ItemId": "FangSpear",
+      "DisplayName": "Fang Spear",
+      "Description": "A balanced spear with a wolf-fang head.",
+      "WeightKg": 4,
+      "twoHanded": false,
+      "MaxDurability": 200,
+      "DamageBonuses": {
+        "Stab": 100.0
+      }
+    },
+    {
+      "ItemId": "ReefHarpoon",
+      "DisplayName": "Reef Harpoon",
+      "Description": "A hand-held harpoon for close melee strikes.",
+      "WeightKg": 4,
+      "twoHanded": false,
+      "MaxDurability": 150,
+      "DamageBonuses": {
+        "Pierce": 60.0
+      }
     }
   ]
 }

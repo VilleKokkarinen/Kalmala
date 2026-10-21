@@ -130,6 +130,106 @@
       "ExperienceSkill": "Cooking",
       "ExperienceAward": 10,
       "bEnabled": true
+    },
+    {
+      "RecipeId": "RatTailTonicRecipe",
+      "DisplayName": "Rat-tail Tonic",
+      "Ingredients": [
+        {
+          "ItemId": "RatTail",
+          "Quantity": 2
+        },
+        {
+          "ItemId": "Lingonberry",
+          "Quantity": 2
+        }
+      ],
+      "Output": "RatTailTonic",
+      "OutputCount": 1,
+      "MaxBatch": 5,
+      "RequiredStation": [
+        "Cauldron"
+      ],
+      "ExperienceSkill": "Cooking",
+      "ExperienceAward": 10,
+      "bEnabled": true
+    },
+    {
+      "RecipeId": "AntidoteRecipe",
+      "DisplayName": "Antidote",
+      "Ingredients": [
+        {
+          "ItemId": "VenomSac",
+          "Quantity": 1
+        },
+        {
+          "ItemId": "Lingonberry",
+          "Quantity": 2
+        }
+      ],
+      "Output": "Antidote",
+      "OutputCount": 1,
+      "MaxBatch": 5,
+      "RequiredStation": [
+        "Cauldron"
+      ],
+      "ExperienceSkill": "Cooking",
+      "ExperienceAward": 10,
+      "bEnabled": true
+    },
+    {
+      "RecipeId": "PeatHeartStewRecipe",
+      "DisplayName": "Peat Heart Stew",
+      "Ingredients": [
+        {
+          "ItemId": "PeatHeart",
+          "Quantity": 1
+        },
+        {
+          "ItemId": "Potato",
+          "Quantity": 2
+        },
+        {
+          "ItemId": "Onion",
+          "Quantity": 1
+        }
+      ],
+      "Output": "PeatHeartStew",
+      "OutputCount": 2,
+      "MaxBatch": 5,
+      "RequiredStation": [
+        "Cauldron"
+      ],
+      "ExperienceSkill": "Cooking",
+      "ExperienceAward": 10,
+      "bEnabled": true
+    },
+    {
+      "RecipeId": "WolfStewRecipe",
+      "DisplayName": "Wolf Stew",
+      "Ingredients": [
+        {
+          "ItemId": "WolfMeat",
+          "Quantity": 1
+        },
+        {
+          "ItemId": "Carrot",
+          "Quantity": 3
+        },
+        {
+          "ItemId": "Onion",
+          "Quantity": 3
+        }
+      ],
+      "Output": "WolfStew",
+      "OutputCount": 1,
+      "MaxBatch": 5,
+      "RequiredStation": [
+        "Cauldron"
+      ],
+      "ExperienceSkill": "Cooking",
+      "ExperienceAward": 10,
+      "bEnabled": true
     }
   ]
 }

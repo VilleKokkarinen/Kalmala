@@ -9,6 +9,16 @@
       "GearSlot": "Cape",
       "MaxDurability": 50,
       "Armor": 1
+    },
+    {
+      "ItemId": "LynxMantle",
+      "DisplayName": "Lynx Mantle",
+      "Description": "A light mantle made from lynx pelt.",
+      "MaxStack": 1,
+      "WeightKg": 2,
+      "GearSlot": "Cape",
+      "MaxDurability": 100,
+      "Armor": 8
     }
   ]
 }

@@ -20,6 +20,13 @@
       "Description": "Bronze-tipped arrows that deal 50 Pierce damage.",
       "MaxStack": 100,
       "WeightKg": 0.05
+    },
+    {
+      "ItemId": "FangArrows",
+      "DisplayName": "Fang Arrows",
+      "Description": "Arrows tipped with sharp viper fangs.",
+      "MaxStack": 100,
+      "WeightKg": 0.05
     }
   ]
 }

@@ -16,7 +16,9 @@
       "Output": "Bronze",
       "OutputCount": 1,
       "MaxBatch": 5,
-      "RequiredStation": ["Forge"],
+      "RequiredStation": [
+        "Forge"
+      ],
       "ExperienceSkill": "None",
       "ExperienceAward": 0,
       "bEnabled": true
@@ -339,6 +341,118 @@
         {
           "ItemId": "Bronze",
           "Quantity": 5
+        }
+      ],
+      "Level": 1
+    },
+    {
+      "RecipeId": "ScaleCuirassRecipe",
+      "DisplayName": "Scale Cuirass",
+      "Ingredients": [
+        {
+          "ItemId": "GiantScale",
+          "Quantity": 10
+        },
+        {
+          "ItemId": "Bronze",
+          "Quantity": 10
+        }
+      ],
+      "Output": "ScaleCuirass",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "RequiredStation": [
+        "Forge"
+      ],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
+    },
+    {
+      "RecipeId": "PolarBearCoatRecipe",
+      "DisplayName": "Polar Bear Coat",
+      "Ingredients": [
+        {
+          "ItemId": "PolarBearPelt",
+          "Quantity": 5
+        },
+        {
+          "ItemId": "Iron",
+          "Quantity": 20
+        }
+      ],
+      "Output": "PolarBearCoat",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "RequiredStation": [
+        "Forge"
+      ],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
+    },
+    {
+      "RecipeId": "FangSpear",
+      "DisplayName": "Fang Spear",
+      "ItemId": "FangSpear",
+      "RequiredStation": "Forge",
+      "RequiredStationLevel": 1,
+      "Ingredients": [
+        {
+          "ItemId": "WolfFang",
+          "Quantity": 4
+        },
+        {
+          "ItemId": "Iron",
+          "Quantity": 10
+        },
+        {
+          "ItemId": "Densewood",
+          "Quantity": 10
+        }
+      ],
+      "Level": 1
+    },
+    {
+      "RecipeId": "ThunderMaul",
+      "DisplayName": "Thunder Maul",
+      "ItemId": "ThunderMaul",
+      "RequiredStation": "Forge",
+      "RequiredStationLevel": 1,
+      "Ingredients": [
+        {
+          "ItemId": "ThunderCore",
+          "Quantity": 1
+        },
+        {
+          "ItemId": "Iron",
+          "Quantity": 20
+        },
+        {
+          "ItemId": "Densewood",
+          "Quantity": 10
+        }
+      ],
+      "Level": 1
+    },
+    {
+      "RecipeId": "ReefHarpoon",
+      "DisplayName": "Reef Harpoon",
+      "ItemId": "ReefHarpoon",
+      "RequiredStation": "Forge",
+      "RequiredStationLevel": 1,
+      "Ingredients": [
+        {
+          "ItemId": "ReefTooth",
+          "Quantity": 3
+        },
+        {
+          "ItemId": "Iron",
+          "Quantity": 8
+        },
+        {
+          "ItemId": "Lightwood",
+          "Quantity": 4
         }
       ],
       "Level": 1

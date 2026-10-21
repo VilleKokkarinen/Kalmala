@@ -38,6 +38,17 @@
         "Crush": 45.0,
         "Stab": 15.0
       }
+    },
+    {
+      "ItemId": "ThunderMaul",
+      "DisplayName": "Thunder Maul",
+      "Description": "A massive two-handed maul with a crushing head.",
+      "WeightKg": 10,
+      "twoHanded": true,
+      "MaxDurability": 220,
+      "DamageBonuses": {
+        "Crush": 100.0
+      }
     }
   ]
 }

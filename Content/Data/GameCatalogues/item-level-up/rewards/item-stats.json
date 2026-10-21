@@ -126,6 +126,62 @@
         "DamageBonuses": {},
         "Armor": 1
       }
+    },
+    {
+      "ItemIds": [
+        "BadgerFurVest",
+        "LynxMantle",
+        "PolarBearCoat",
+        "ScaleCuirass",
+        "WolfPeltBoots"
+      ],
+      "LevelUpReward": {
+        "MaxDurability": 10,
+        "DamageBonuses": {},
+        "Armor": 1
+      }
+    },
+    {
+      "ItemIds": [
+        "FangSpear"
+      ],
+      "LevelUpReward": {
+        "MaxDurability": 50,
+        "DamageBonuses": {
+          "Stab": 5.0
+        }
+      }
+    },
+    {
+      "ItemIds": [
+        "HornBow"
+      ],
+      "LevelUpReward": {
+        "MaxDurability": 30,
+        "DamageBonuses": {}
+      }
+    },
+    {
+      "ItemIds": [
+        "ThunderMaul"
+      ],
+      "LevelUpReward": {
+        "MaxDurability": 50,
+        "DamageBonuses": {
+          "Crush": 5.0
+        }
+      }
+    },
+    {
+      "ItemIds": [
+        "ReefHarpoon"
+      ],
+      "LevelUpReward": {
+        "MaxDurability": 30,
+        "DamageBonuses": {
+          "Pierce": 5.0
+        }
+      }
     }
   ]
 }

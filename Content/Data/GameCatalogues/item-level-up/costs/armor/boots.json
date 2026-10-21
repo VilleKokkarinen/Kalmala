@@ -11,6 +11,22 @@
         }
       ],
       "Level": 1
+    },
+    {
+      "DisplayName": "Wolf Pelt Boots",
+      "ItemId": "WolfPeltBoots",
+      "RequiredStation": "Workbench",
+      "Ingredients": [
+        {
+          "ItemId": "WolfPelt",
+          "Quantity": 2
+        },
+        {
+          "ItemId": "Iron",
+          "Quantity": 2
+        }
+      ],
+      "Level": 1
     }
   ]
 }

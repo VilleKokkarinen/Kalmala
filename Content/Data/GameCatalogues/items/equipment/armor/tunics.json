@@ -19,6 +19,36 @@
       "GearSlot": "Chest",
       "MaxDurability": 120,
       "Armor": 5
+    },
+    {
+      "ItemId": "BadgerFurVest",
+      "DisplayName": "Badger Fur Vest",
+      "Description": "A protective vest made from dense badger fur.",
+      "MaxStack": 1,
+      "WeightKg": 4,
+      "GearSlot": "Chest",
+      "MaxDurability": 100,
+      "Armor": 6
+    },
+    {
+      "ItemId": "ScaleCuirass",
+      "DisplayName": "Scale Cuirass",
+      "Description": "A heavy cuirass made from giant scales and bronze.",
+      "MaxStack": 1,
+      "WeightKg": 8,
+      "GearSlot": "Chest",
+      "MaxDurability": 150,
+      "Armor": 20
+    },
+    {
+      "ItemId": "PolarBearCoat",
+      "DisplayName": "Polar Bear Coat",
+      "Description": "A heavy coat made from a polar bear pelt.",
+      "MaxStack": 1,
+      "WeightKg": 12,
+      "GearSlot": "Chest",
+      "MaxDurability": 200,
+      "Armor": 50
     }
   ]
 }

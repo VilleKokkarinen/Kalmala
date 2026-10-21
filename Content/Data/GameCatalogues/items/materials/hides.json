@@ -11,6 +11,30 @@
       "DisplayName": "Deer Hide",
       "Description": "A soft hide taken from a deer.",
       "MaxStack": 20
+    },
+    {
+      "ItemId": "BadgerFur",
+      "DisplayName": "Badger Fur",
+      "Description": "Dense fur taken from a badger.",
+      "MaxStack": 20
+    },
+    {
+      "ItemId": "WolfPelt",
+      "DisplayName": "Wolf Pelt",
+      "Description": "A pelt taken from a wolf.",
+      "MaxStack": 20
+    },
+    {
+      "ItemId": "LynxPelt",
+      "DisplayName": "Lynx Pelt",
+      "Description": "A spotted pelt taken from a lynx.",
+      "MaxStack": 20
+    },
+    {
+      "ItemId": "PolarBearPelt",
+      "DisplayName": "Polar Bear Pelt",
+      "Description": "A heavy pelt taken from a polar bear.",
+      "MaxStack": 20
     }
   ]
 }

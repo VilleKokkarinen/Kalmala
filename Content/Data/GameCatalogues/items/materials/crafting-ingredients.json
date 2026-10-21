@@ -26,6 +26,60 @@
       "Description": "A small fragment of bone used in crafting.",
       "MaxStack": 40,
       "WeightKg": 0.1
+    },
+    {
+      "ItemId": "RatTail",
+      "DisplayName": "Rat Tail",
+      "Description": "A tail taken from a rat.",
+      "MaxStack": 20
+    },
+    {
+      "ItemId": "ViperFang",
+      "DisplayName": "Viper Fang",
+      "Description": "A sharp fang taken from a viper.",
+      "MaxStack": 20
+    },
+    {
+      "ItemId": "GiantScale",
+      "DisplayName": "Giant Scale",
+      "Description": "A broad scale shed by a giant snake.",
+      "MaxStack": 20
+    },
+    {
+      "ItemId": "VenomSac",
+      "DisplayName": "Venom Sac",
+      "Description": "A venom-filled sac taken from a death adder.",
+      "MaxStack": 20
+    },
+    {
+      "ItemId": "PeatHeart",
+      "DisplayName": "Peat Heart",
+      "Description": "A peat heart taken from a peat husk.",
+      "MaxStack": 20
+    },
+    {
+      "ItemId": "WolfFang",
+      "DisplayName": "Wolf Fang",
+      "Description": "A fang taken from a wolf.",
+      "MaxStack": 20
+    },
+    {
+      "ItemId": "GoatHorn",
+      "DisplayName": "Goat Horn",
+      "Description": "A horn taken from a horned goat.",
+      "MaxStack": 20
+    },
+    {
+      "ItemId": "ThunderCore",
+      "DisplayName": "Thunder Core",
+      "Description": "A core taken from a Thunder Sentinel.",
+      "MaxStack": 20
+    },
+    {
+      "ItemId": "ReefTooth",
+      "DisplayName": "Reef Tooth",
+      "Description": "A tooth taken from a Reef Maw.",
+      "MaxStack": 20
     }
   ]
 }

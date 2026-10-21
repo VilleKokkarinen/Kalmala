@@ -9,6 +9,16 @@
       "GearSlot": "Boots",
       "MaxDurability": 50,
       "Armor": 1
+    },
+    {
+      "ItemId": "WolfPeltBoots",
+      "DisplayName": "Wolf Pelt Boots",
+      "Description": "Sturdy boots made from wolf pelt.",
+      "MaxStack": 1,
+      "WeightKg": 3,
+      "GearSlot": "Boots",
+      "MaxDurability": 120,
+      "Armor": 10
     }
   ]
 }

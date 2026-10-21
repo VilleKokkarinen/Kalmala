@@ -59,6 +59,26 @@
         }
       ],
       "Level": 1
+    },
+    {
+      "DisplayName": "Thunder Maul",
+      "ItemId": "ThunderMaul",
+      "RequiredStation": "Forge",
+      "Ingredients": [
+        {
+          "ItemId": "ThunderCore",
+          "Quantity": 1
+        },
+        {
+          "ItemId": "Iron",
+          "Quantity": 10
+        },
+        {
+          "ItemId": "Densewood",
+          "Quantity": 5
+        }
+      ],
+      "Level": 1
     }
   ]
 }

@@ -209,6 +209,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
 - [ ] **A8b — Enemy materials and crafted items (P1/P2).** [Recipes](docs/biome-enemies.md#recommended-items-and-recipes)
   - [x] Reconcile the user-edited drop amounts/chances and recipe station/cost/output values with existing approved contracts; align source ownership and the proposal table.
   - [x] Resolve the remaining effect and full equipment-profile decisions before implementing affected outputs; see [A8b review](docs/alpha-item-details.md#a8b).
+  - [x] Add the registered catalogue JSON records for all 15 materials and 15 outputs, including output recipes, equipment profiles, upgrade costs/rewards, and supported attack records.
   - [ ] Rat Tail: Rat, 1 guaranteed; material + source + JSON + generated icon.
   - [ ] Badger Fur: Badger, 1 guaranteed; material + source + JSON + generated icon.
   - [ ] Badger Meat: Badger, 1 guaranteed; material + source + JSON + generated icon.
@@ -241,6 +242,11 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [ ] Reef Harpoon: Forge, 3 Reef Tooth + 8 Iron + 4 Lightwood → 1; 60 Pierce.
   - [ ] Verify every approved drop/output has complete registered JSON, a reachable source and a generated runtime icon.
   - [ ] Run the combined A8a/A8b enemy and enemy-item milestone verification; record results and blockers. This gate must pass before A9 begins.
+
+  The JSON-only child is complete; all 30 item rows remain unchecked until
+  their reachable source drops (for materials), server-side item behavior and
+  original generated/imported icons with runtime mapping and validator coverage
+  are complete. No A8b enemy drop has been enabled.
 
   Bow String is reserved for bows. Review every pending non-bow binding input in its category contract; do not use Bow String there. Moonstone Ring and Dusk Ring stay in A9. Do not duplicate them.
   Enable new drops only when their material task is complete. A8b effects and
