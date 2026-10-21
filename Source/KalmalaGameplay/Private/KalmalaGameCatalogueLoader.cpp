@@ -231,8 +231,7 @@ namespace
     }
 
     bool IsValidCategoryPath(const FString& RelativePath, const TCHAR* ExpectedDirectory,
-        FString& OutNormalizedPath, const TCHAR* AllowedSubdirectory,
-        const TCHAR* AdditionalAllowedSubdirectory)
+        FString& OutNormalizedPath, const TArray<FString>& AllowedSubdirectories)
     {
         OutNormalizedPath = RelativePath.Replace(TEXT("\\"), TEXT("/"));
         if (OutNormalizedPath.IsEmpty() || OutNormalizedPath.StartsWith(TEXT("/"))
@@ -243,10 +242,14 @@ namespace
 
         TArray<FString> PathParts;
         OutNormalizedPath.ParseIntoArray(PathParts, TEXT("/"), false);
-        const bool bIsAllowedSubdirectory = PathParts.Num() == 3
-            && ((AllowedSubdirectory != nullptr && PathParts[1] == AllowedSubdirectory)
-                || (AdditionalAllowedSubdirectory != nullptr && PathParts[1] == AdditionalAllowedSubdirectory));
-        const bool bHasExpectedDepth = PathParts.Num() == 2 || bIsAllowedSubdirectory;
+        FString RelativeSubdirectory;
+        for (int32 PartIndex = 1; PartIndex < PathParts.Num() - 1; ++PartIndex)
+        {
+            if (!RelativeSubdirectory.IsEmpty()) RelativeSubdirectory += TEXT("/");
+            RelativeSubdirectory += PathParts[PartIndex];
+        }
+        const bool bHasExpectedDepth = PathParts.Num() == 2
+            || AllowedSubdirectories.Contains(RelativeSubdirectory);
         if (!bHasExpectedDepth || PathParts[0] != ExpectedDirectory || PathParts.Last().IsEmpty()
             || !PathParts.Last().EndsWith(TEXT(".json"), ESearchCase::IgnoreCase))
         {
@@ -271,7 +274,7 @@ namespace
     bool LoadCategoryFiles(const TSharedPtr<FJsonObject>& Manifest, const TCHAR* ManifestField,
         const TCHAR* ArrayField, const TCHAR* ExpectedDirectory, int32 MaxEntries,
         int32& InOutJsonCharacters, TArray<TSharedPtr<FJsonValue>>& OutValues,
-        const TCHAR* AllowedSubdirectory = nullptr, const TCHAR* AdditionalAllowedSubdirectory = nullptr,
+        TArray<FString> AllowedSubdirectories = TArray<FString>(),
         const bool bAllowEmptyFiles = false)
     {
         const TArray<TSharedPtr<FJsonValue>>* FileValues = nullptr;
@@ -293,7 +296,7 @@ namespace
 
             FString RelativePath;
             if (!IsValidCategoryPath(FileValue->AsString(), ExpectedDirectory, RelativePath,
-                    AllowedSubdirectory, AdditionalAllowedSubdirectory))
+                    AllowedSubdirectories))
             {
                 UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue manifest contains an unsafe category path: %s"),
                     *FileValue->AsString());
@@ -394,17 +397,19 @@ namespace
         TArray<TSharedPtr<FJsonValue>> AttackListValues;
         if (!LoadCategoryFiles(Root, TEXT("itemFiles"), TEXT("items"), TEXT("items"),
                 UKalmalaItemCatalogue::MaxDefinitions, TotalJsonCharacters, ItemValues,
-                TEXT("buildItems"), TEXT("materials"))
+                TArray<FString>{ TEXT("buildItems"), TEXT("materials"), TEXT("equipment/armor") })
             || !LoadCategoryFiles(Root, TEXT("recipeFiles"), TEXT("recipes"), TEXT("recipes"),
                 32 + UKalmalaToolCatalogue::MaxRecipes, TotalJsonCharacters, StationRecipeValues,
-                TEXT("stations"), nullptr, true)
+                TArray<FString>{ TEXT("stations") }, true)
             || !LoadCategoryFiles(Root, TEXT("itemProfileFiles"), TEXT("items"), TEXT("items"),
-                UKalmalaToolCatalogue::MaxProfiles, TotalJsonCharacters, ToolProfileValues, TEXT("equipment"))
+                UKalmalaToolCatalogue::MaxProfiles, TotalJsonCharacters, ToolProfileValues,
+                TArray<FString>{ TEXT("equipment"), TEXT("equipment/weapons") })
             || !LoadCategoryFiles(Root, TEXT("itemUpgradeFiles"), TEXT("upgrades"), TEXT("item-level-up"),
                 UKalmalaToolCatalogue::MaxRecipes, TotalJsonCharacters, ToolUpgradeValues,
-                TEXT("costs"), nullptr, true)
+                TArray<FString>{ TEXT("costs"), TEXT("costs/armor"), TEXT("costs/weapons") }, true)
             || !LoadCategoryFiles(Root, TEXT("levelUpRewardFiles"), TEXT("levelUpRewards"), TEXT("item-level-up"),
-                UKalmalaToolCatalogue::MaxProfiles, TotalJsonCharacters, LevelUpRewardValues, TEXT("rewards"))
+                UKalmalaToolCatalogue::MaxProfiles, TotalJsonCharacters, LevelUpRewardValues,
+                TArray<FString>{ TEXT("rewards") })
             || !LoadCategoryFiles(Root, TEXT("attackFiles"), TEXT("attackLists"), TEXT("attacks"),
                 UKalmalaToolCatalogue::MaxProfiles, TotalJsonCharacters, AttackListValues)
             || !SortCategoryValues(ItemValues, TEXT("ItemId"))
