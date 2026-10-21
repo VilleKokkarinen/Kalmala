@@ -3,794 +3,569 @@
     {
       "CreatureId": "Boar",
       "DisplayName": "Boar",
-      "ImplementationStatus": "Current",
-      "RuntimeBaseline": {
-        "Health": 100,
-        "Armor": 0,
-        "SpawnSelection": "Seeded archetype selection across existing land-biome wildlife slots; target allowlists are not yet applied.",
-        "Attacks": [
-          {
-            "AttackId": "Charge",
-            "Damage": {
-              "Crush": 15
-            },
-            "RepeatIntervalSeconds": 1.25
+      "Health": 20,
+      "Armor": 5,
+      "Biomes": [
+        "Meadows",
+        "Elderwood",
+        "ShimmeringLakes"
+      ],
+      "Attacks": [
+        {
+          "AttackId": "Charge",
+          "Damage": {
+            "Crush": 10
           }
-        ],
-        "Drops": [
-          {
-            "ItemId": "BoarMeat",
-            "Quantity": 1,
-            "Chance": 1.0,
-            "ImplementationStatus": "Current"
-          },
-          {
-            "ItemId": "BoarHide",
-            "Quantity": 1,
-            "Chance": 1.0,
-            "ImplementationStatus": "Current"
-          },
-          {
-            "ItemId": "BoneFragment",
-            "Quantity": 1,
-            "Chance": 1.0,
-            "ImplementationStatus": "Current"
-          }
-        ]
-      },
-      "PlannedProfile": {
-        "Health": 20,
-        "Armor": 5,
-        "Biomes": [
-          "Meadows",
-          "Elderwood",
-          "ShimmeringLakes"
-        ],
-        "Behavior": "Territorial charge",
-        "Attacks": [
-          {
-            "AttackId": "Charge",
-            "Damage": {
-              "Crush": 10
-            }
-          }
-        ],
-        "Drops": [
-          {
-            "ItemId": "BoarMeat",
-            "Quantity": 1,
-            "Chance": 1.0,
-            "ImplementationStatus": "Current"
-          },
-          {
-            "ItemId": "BoarHide",
-            "Quantity": 1,
-            "Chance": 1.0,
-            "ImplementationStatus": "Current"
-          },
-          {
-            "ItemId": "BoneFragment",
-            "Quantity": 1,
-            "Chance": 1.0,
-            "ImplementationStatus": "Current"
-          }
-        ]
-      }
+        }
+      ],
+      "Drops": [
+        {
+          "ItemId": "BoarMeat",
+          "Quantity": 1,
+          "Chance": 1.0
+        },
+        {
+          "ItemId": "BoarHide",
+          "Quantity": 1,
+          "Chance": 1.0
+        },
+        {
+          "ItemId": "BoneFragment",
+          "Quantity": 1,
+          "Chance": 1.0
+        }
+      ]
     },
     {
       "CreatureId": "Deer",
       "DisplayName": "Deer",
-      "ImplementationStatus": "Current",
-      "RuntimeBaseline": {
-        "Health": 100,
-        "Armor": 0,
-        "SpawnSelection": "Seeded archetype selection across existing land-biome wildlife slots; target allowlists are not yet applied.",
-        "Attacks": [],
-        "Drops": [
-          {
-            "ItemId": "DeerMeat",
-            "Quantity": 1,
-            "Chance": 1.0,
-            "ImplementationStatus": "Current"
-          },
-          {
-            "ItemId": "DeerHide",
-            "Quantity": 1,
-            "Chance": 1.0,
-            "ImplementationStatus": "Current"
-          },
-          {
-            "ItemId": "BoneFragment",
-            "Quantity": 1,
-            "Chance": 1.0,
-            "ImplementationStatus": "Current"
-          },
-          {
-            "ItemId": "Sinew",
-            "Quantity": 1,
-            "Chance": 0.5,
-            "ImplementationStatus": "Current"
-          }
-        ]
-      },
-      "PlannedProfile": {
-        "Health": 30,
-        "Armor": 5,
-        "Biomes": [
-          "Meadows",
-          "Elderwood",
-          "ShimmeringLakes"
-        ],
-        "Behavior": "Flees; fleeing alerts nearby deer",
-        "Attacks": [],
-        "Drops": [
-          {
-            "ItemId": "DeerMeat",
-            "Quantity": 1,
-            "Chance": 1.0,
-            "ImplementationStatus": "Current"
-          },
-          {
-            "ItemId": "DeerHide",
-            "Quantity": 1,
-            "Chance": 1.0,
-            "ImplementationStatus": "Current"
-          },
-          {
-            "ItemId": "BoneFragment",
-            "Quantity": 1,
-            "Chance": 1.0,
-            "ImplementationStatus": "Current"
-          },
-          {
-            "ItemId": "Sinew",
-            "Quantity": 1,
-            "Chance": 0.5,
-            "ImplementationStatus": "Current"
-          }
-        ]
-      }
+      "Health": 30,
+      "Armor": 5,
+      "Biomes": [
+        "Meadows",
+        "Elderwood",
+        "ShimmeringLakes"
+      ],
+      "Attacks": [],
+      "Drops": [
+        {
+          "ItemId": "DeerMeat",
+          "Quantity": 1,
+          "Chance": 1.0
+        },
+        {
+          "ItemId": "DeerHide",
+          "Quantity": 1,
+          "Chance": 1.0
+        },
+        {
+          "ItemId": "BoneFragment",
+          "Quantity": 1,
+          "Chance": 1.0
+        },
+        {
+          "ItemId": "Sinew",
+          "Quantity": 1,
+          "Chance": 0.5
+        }
+      ]
     },
     {
       "CreatureId": "Mireling",
       "DisplayName": "Mireling",
-      "ImplementationStatus": "Current",
-      "RuntimeBaseline": {
-        "Health": 100,
-        "Armor": 0,
-        "SpawnSelection": "Seeded archetype selection across existing land-biome wildlife slots; target allowlists are not yet applied.",
-        "Attacks": [
-          {
-            "AttackId": "Melee",
-            "Damage": {
-              "Crush": 10
-            },
-            "RepeatIntervalSeconds": 1.25
+      "Health": 75,
+      "Armor": 15,
+      "Biomes": [
+        "MossyMire"
+      ],
+      "Attacks": [
+        {
+          "AttackId": "Melee",
+          "Damage": {
+            "Crush": 20
           }
-        ],
-        "Drops": [],
-        "RewardRule": "Eligible stable Mireling spawn IDs may claim a boss scroll through ClaimMirelingBossScroll; no ordinary material drop."
-      },
-      "PlannedProfile": {
-        "Health": 75,
-        "Armor": 15,
-        "Biomes": [
-          "MossyMire"
-        ],
-        "Behavior": "Approaches and uses simple melee",
-        "Attacks": [
-          {
-            "AttackId": "Melee",
-            "Damage": {
-              "Crush": 20
-            }
-          }
-        ],
-        "Drops": [
-          {
-            "ItemId": "DuskDiamond",
-            "Quantity": 1,
-            "Chance": 0.01,
-            "ImplementationStatus": "Planned"
-          }
-        ],
-        "RewardRule": "Retain current boss-scroll eligibility and claim route."
-      }
+        }
+      ],
+      "Drops": [
+        {
+          "ItemId": "DuskDiamond",
+          "Quantity": 1,
+          "Chance": 0.01
+        }
+      ]
     },
     {
       "CreatureId": "Rat",
       "DisplayName": "Rat",
-      "ImplementationStatus": "Planned",
-      "PlannedProfile": {
-        "Health": 10,
-        "Armor": 0,
-        "Biomes": [
-          "Meadows"
-        ],
-        "Rarity": "Common",
-        "Locomotion": "Ground",
-        "Behavior": "Defensive bite",
-        "Attacks": [
-          {
-            "AttackId": "Primary",
-            "Damage": {
-              "Pierce": 5
-            },
-            "WindupSeconds": 0.5,
-            "RecoverySeconds": 0.8
-          }
-        ],
-        "Drops": [
-          {
-            "ItemId": "BoneFragment",
-            "Quantity": 1,
-            "Chance": 1.0,
-            "ImplementationStatus": "Planned"
+      "Health": 10,
+      "Armor": 0,
+      "Biomes": [
+        "Meadows"
+      ],
+      "Attacks": [
+        {
+          "AttackId": "Primary",
+          "Damage": {
+            "Pierce": 5
           },
-          {
-            "ItemId": "RatTail",
-            "Quantity": 1,
-            "Chance": 1.0,
-            "ImplementationStatus": "Planned"
-          }
-        ],
-        "DefensiveTriggerRangeCm": 300
-      }
+          "WindupSeconds": 0.5,
+          "RecoverySeconds": 0.8
+        }
+      ],
+      "Drops": [
+        {
+          "ItemId": "BoneFragment",
+          "Quantity": 1,
+          "Chance": 1.0
+        },
+        {
+          "ItemId": "RatTail",
+          "Quantity": 1,
+          "Chance": 1.0
+        }
+      ],
+      "DefensiveTriggerRangeCm": 300
     },
     {
       "CreatureId": "Badger",
       "DisplayName": "Badger",
-      "ImplementationStatus": "Planned",
-      "PlannedProfile": {
-        "Health": 100,
-        "Armor": 10,
-        "Biomes": [
-          "Elderwood"
-        ],
-        "Rarity": "Common",
-        "Locomotion": "Ground",
-        "Behavior": "Warns within 3 m, then slashes if approached or attacked",
-        "Attacks": [
-          {
-            "AttackId": "Primary",
-            "Damage": {
-              "Slash": 20
-            },
-            "WindupSeconds": 0.5,
-            "RecoverySeconds": 0.8
-          }
-        ],
-        "Drops": [
-          {
-            "ItemId": "BoneFragment",
-            "Quantity": 1,
-            "Chance": 1.0,
-            "ImplementationStatus": "Planned"
+      "Health": 100,
+      "Armor": 10,
+      "Biomes": [
+        "Elderwood"
+      ],
+      "Attacks": [
+        {
+          "AttackId": "Primary",
+          "Damage": {
+            "Slash": 20
           },
-          {
-            "ItemId": "BadgerFur",
-            "Quantity": 1,
-            "Chance": 1.0,
-            "ImplementationStatus": "Planned"
-          },
-          {
-            "ItemId": "BadgerMeat",
-            "Quantity": 1,
-            "Chance": 1.0,
-            "ImplementationStatus": "Planned"
-          }
-        ],
-        "DefensiveTriggerRangeCm": 300
-      }
+          "WindupSeconds": 0.5,
+          "RecoverySeconds": 0.8
+        }
+      ],
+      "Drops": [
+        {
+          "ItemId": "BoneFragment",
+          "Quantity": 1,
+          "Chance": 1.0
+        },
+        {
+          "ItemId": "BadgerFur",
+          "Quantity": 1,
+          "Chance": 1.0
+        },
+        {
+          "ItemId": "BadgerMeat",
+          "Quantity": 1,
+          "Chance": 1.0
+        }
+      ],
+      "DefensiveTriggerRangeCm": 300
     },
     {
       "CreatureId": "MoonBear",
       "DisplayName": "Moon Bear",
-      "ImplementationStatus": "Planned",
-      "PlannedProfile": {
-        "Health": 250,
-        "Armor": 20,
-        "Biomes": [
-          "Elderwood"
-        ],
-        "Rarity": "Hard",
-        "Locomotion": "Ground",
-        "Behavior": "Slow overhead paw strike",
-        "Attacks": [
-          {
-            "AttackId": "Primary",
-            "Damage": {
-              "Crush": 75
-            },
-            "WindupSeconds": 1.0,
-            "RecoverySeconds": 1.2
-          }
-        ],
-        "Drops": [
-          {
-            "ItemId": "BoneFragment",
-            "Quantity": 3,
-            "Chance": 1.0,
-            "ImplementationStatus": "Planned"
+      "Health": 250,
+      "Armor": 20,
+      "Biomes": [
+        "Elderwood"
+      ],
+      "Attacks": [
+        {
+          "AttackId": "Primary",
+          "Damage": {
+            "Crush": 75
           },
-          {
-            "ItemId": "Moonstone",
-            "Quantity": 1,
-            "Chance": 0.02,
-            "ImplementationStatus": "Planned"
-          }
-        ]
-      }
+          "WindupSeconds": 1.0,
+          "RecoverySeconds": 1.2
+        }
+      ],
+      "Drops": [
+        {
+          "ItemId": "BoneFragment",
+          "Quantity": 3,
+          "Chance": 1.0
+        },
+        {
+          "ItemId": "Moonstone",
+          "Quantity": 1,
+          "Chance": 0.02
+        }
+      ]
     },
     {
       "CreatureId": "Viper",
       "DisplayName": "Viper",
-      "ImplementationStatus": "Planned",
-      "PlannedProfile": {
-        "Health": 100,
-        "Armor": 10,
-        "Biomes": [
-          "ShimmeringLakes"
-        ],
-        "Rarity": "Common",
-        "Locomotion": "Ground",
-        "Behavior": "Coiled lunging bite, then retreat",
-        "Attacks": [
-          {
-            "AttackId": "Primary",
-            "Damage": {
-              "Stab": 50
-            },
-            "WindupSeconds": 0.5,
-            "RecoverySeconds": 0.8,
-            "Poison": {
-              "DamagePerTick": 1,
-              "DurationSeconds": 5,
-              "TickIntervalSeconds": 1,
-              "FirstTickDelaySeconds": 1
-            }
-          }
-        ],
-        "Drops": [
-          {
-            "ItemId": "BoneFragment",
-            "Quantity": 1,
-            "Chance": 1.0,
-            "ImplementationStatus": "Planned"
+      "Health": 100,
+      "Armor": 10,
+      "Biomes": [
+        "ShimmeringLakes"
+      ],
+      "Attacks": [
+        {
+          "AttackId": "Primary",
+          "Damage": {
+            "Stab": 50
           },
-          {
-            "ItemId": "ViperFang",
-            "Quantity": 1,
-            "Chance": 1.0,
-            "ImplementationStatus": "Planned"
+          "WindupSeconds": 0.5,
+          "RecoverySeconds": 0.8,
+          "Poison": {
+            "DamagePerTick": 1,
+            "DurationSeconds": 5,
+            "TickIntervalSeconds": 1,
+            "FirstTickDelaySeconds": 1
           }
-        ]
-      }
+        }
+      ],
+      "Drops": [
+        {
+          "ItemId": "BoneFragment",
+          "Quantity": 1,
+          "Chance": 1.0
+        },
+        {
+          "ItemId": "ViperFang",
+          "Quantity": 1,
+          "Chance": 1.0
+        }
+      ]
     },
     {
       "CreatureId": "GiantSnake",
       "DisplayName": "Giant Snake",
-      "ImplementationStatus": "Planned",
-      "PlannedProfile": {
-        "Health": 250,
-        "Armor": 30,
-        "Biomes": [
-          "ShimmeringLakes"
-        ],
-        "Rarity": "Hard",
-        "Locomotion": "Ground",
-        "Behavior": "Raised-head coil, powerful lunging bite, slow recovery",
-        "Attacks": [
-          {
-            "AttackId": "Primary",
-            "Damage": {
-              "Stab": 100
-            },
-            "WindupSeconds": 1.0,
-            "RecoverySeconds": 1.2
-          }
-        ],
-        "Drops": [
-          {
-            "ItemId": "BoneFragment",
-            "Quantity": 2,
-            "Chance": 1.0,
-            "ImplementationStatus": "Planned"
+      "Health": 250,
+      "Armor": 30,
+      "Biomes": [
+        "ShimmeringLakes"
+      ],
+      "Attacks": [
+        {
+          "AttackId": "Primary",
+          "Damage": {
+            "Stab": 100
           },
-          {
-            "ItemId": "GiantScale",
-            "Quantity": 2,
-            "Chance": 1.0,
-            "ImplementationStatus": "Planned"
-          }
-        ],
-        "BodyLengthCm": 400
-      }
+          "WindupSeconds": 1.0,
+          "RecoverySeconds": 1.2
+        }
+      ],
+      "Drops": [
+        {
+          "ItemId": "BoneFragment",
+          "Quantity": 2,
+          "Chance": 1.0
+        },
+        {
+          "ItemId": "GiantScale",
+          "Quantity": 2,
+          "Chance": 1.0
+        }
+      ],
+      "BodyLengthCm": 400
     },
     {
       "CreatureId": "DeathAdder",
       "DisplayName": "Death Adder",
-      "ImplementationStatus": "Planned",
-      "PlannedProfile": {
-        "Health": 125,
-        "Armor": 20,
-        "Biomes": [
-          "MossyMire"
-        ],
-        "Rarity": "Common",
-        "Locomotion": "Ground",
-        "Behavior": "Coiled short bite, then retreat",
-        "Attacks": [
-          {
-            "AttackId": "Primary",
-            "Damage": {
-              "Stab": 75
-            },
-            "WindupSeconds": 0.5,
-            "RecoverySeconds": 0.8,
-            "Poison": {
-              "DamagePerTick": 5,
-              "DurationSeconds": 10,
-              "TickIntervalSeconds": 1,
-              "FirstTickDelaySeconds": 1
-            }
-          }
-        ],
-        "Drops": [
-          {
-            "ItemId": "BoneFragment",
-            "Quantity": 1,
-            "Chance": 1.0,
-            "ImplementationStatus": "Planned"
+      "Health": 125,
+      "Armor": 20,
+      "Biomes": [
+        "MossyMire"
+      ],
+      "Attacks": [
+        {
+          "AttackId": "Primary",
+          "Damage": {
+            "Stab": 75
           },
-          {
-            "ItemId": "VenomSac",
-            "Quantity": 1,
-            "Chance": 1.0,
-            "ImplementationStatus": "Planned"
+          "WindupSeconds": 0.5,
+          "RecoverySeconds": 0.8,
+          "Poison": {
+            "DamagePerTick": 5,
+            "DurationSeconds": 10,
+            "TickIntervalSeconds": 1,
+            "FirstTickDelaySeconds": 1
           }
-        ]
-      }
+        }
+      ],
+      "Drops": [
+        {
+          "ItemId": "BoneFragment",
+          "Quantity": 1,
+          "Chance": 1.0
+        },
+        {
+          "ItemId": "VenomSac",
+          "Quantity": 1,
+          "Chance": 1.0
+        }
+      ]
     },
     {
       "CreatureId": "MosquitoSwarm",
       "DisplayName": "Mosquito swarm",
-      "ImplementationStatus": "Planned",
-      "PlannedProfile": {
-        "Health": 25,
-        "Armor": 0,
-        "Biomes": [
-          "MossyMire"
-        ],
-        "Rarity": "Common",
-        "Locomotion": "Flying",
-        "Behavior": "Flying swarm harasses one target; roll breaks contact and active fire repels",
-        "Attacks": [
-          {
-            "AttackId": "ContactBite",
-            "Damage": {
-              "Stab": 5
-            },
-            "ApproachSeconds": 0.5,
-            "ContactIntervalSeconds": 0.2,
-            "ContactRangeCm": 100,
-            "MaxContactDamagePerSecond": 25,
-            "Poison": {
-              "DamagePerTick": 1,
-              "DurationSeconds": 10,
-              "TickIntervalSeconds": 1,
-              "FirstTickDelaySeconds": 1
-            }
+      "Health": 25,
+      "Armor": 0,
+      "Biomes": [
+        "MossyMire"
+      ],
+      "Attacks": [
+        {
+          "AttackId": "ContactBite",
+          "Damage": {
+            "Stab": 5
+          },
+          "ApproachSeconds": 0.5,
+          "ContactIntervalSeconds": 0.2,
+          "ContactRangeCm": 100,
+          "MaxContactDamagePerSecond": 25,
+          "Poison": {
+            "DamagePerTick": 1,
+            "DurationSeconds": 10,
+            "TickIntervalSeconds": 1,
+            "FirstTickDelaySeconds": 1
           }
-        ],
-        "Drops": [],
-        "Swarm": {
-          "CosmeticInsectCount": 6,
-          "MinGroundClearanceCm": 50,
-          "MaxGroundClearanceCm": 250,
-          "MaxAttackingSwarmsPerPlayer": 1,
-          "RollReacquireDelaySeconds": 2,
-          "HeldTorchAvoidanceRadiusCm": 300,
-          "PlacedFlameLightAvoidanceRadiusCm": 300,
-          "CampfireAvoidanceRadiusCm": 500,
-          "RequiresAuthoritativeActiveFlame": true,
-          "RequiresLineOfSightToFlame": true,
-          "CatchUpDamage": false
         }
+      ],
+      "Drops": [],
+      "Swarm": {
+        "CosmeticInsectCount": 6,
+        "MinGroundClearanceCm": 50,
+        "MaxGroundClearanceCm": 250,
+        "MaxAttackingSwarmsPerPlayer": 1,
+        "RollReacquireDelaySeconds": 2,
+        "HeldTorchAvoidanceRadiusCm": 300,
+        "PlacedFlameLightAvoidanceRadiusCm": 300,
+        "CampfireAvoidanceRadiusCm": 500,
+        "RequiresAuthoritativeActiveFlame": true,
+        "RequiresLineOfSightToFlame": true,
+        "CatchUpDamage": false
       }
     },
     {
       "CreatureId": "PeatHusk",
       "DisplayName": "Peat Husk",
-      "ImplementationStatus": "Planned",
-      "PlannedProfile": {
-        "Health": 300,
-        "Armor": 50,
-        "Biomes": [
-          "MossyMire"
-        ],
-        "Rarity": "Hard",
-        "Locomotion": "Ground",
-        "Behavior": "Slow sweeping arm",
-        "Attacks": [
-          {
-            "AttackId": "Primary",
-            "Damage": {
-              "Crush": 150
-            },
-            "WindupSeconds": 1.0,
-            "RecoverySeconds": 1.2
-          }
-        ],
-        "Drops": [
-          {
-            "ItemId": "Amber",
-            "Quantity": 1,
-            "Chance": 1.0,
-            "ImplementationStatus": "Planned"
+      "Health": 300,
+      "Armor": 50,
+      "Biomes": [
+        "MossyMire"
+      ],
+      "Attacks": [
+        {
+          "AttackId": "Primary",
+          "Damage": {
+            "Crush": 150
           },
-          {
-            "ItemId": "PeatHeart",
-            "Quantity": 1,
-            "Chance": 0.25,
-            "ImplementationStatus": "Planned"
-          }
-        ]
-      }
+          "WindupSeconds": 1.0,
+          "RecoverySeconds": 1.2
+        }
+      ],
+      "Drops": [
+        {
+          "ItemId": "Amber",
+          "Quantity": 1,
+          "Chance": 1.0
+        },
+        {
+          "ItemId": "PeatHeart",
+          "Quantity": 1,
+          "Chance": 0.25
+        }
+      ]
     },
     {
       "CreatureId": "Wolf",
       "DisplayName": "Wolf",
-      "ImplementationStatus": "Planned",
-      "PlannedProfile": {
-        "Health": 250,
-        "Armor": 40,
-        "Biomes": [
-          "FreezingTundra"
-        ],
-        "Rarity": "Common",
-        "Locomotion": "Ground",
-        "Behavior": "Pursuit and lunging bite",
-        "Attacks": [
-          {
-            "AttackId": "Primary",
-            "Damage": {
-              "Slash": 100
-            },
-            "WindupSeconds": 0.5,
-            "RecoverySeconds": 0.8
-          }
-        ],
-        "Drops": [
-          {
-            "ItemId": "BoneFragment",
-            "Quantity": 2,
-            "Chance": 1.0,
-            "ImplementationStatus": "Planned"
+      "Health": 250,
+      "Armor": 40,
+      "Biomes": [
+        "FreezingTundra"
+      ],
+      "Attacks": [
+        {
+          "AttackId": "Primary",
+          "Damage": {
+            "Slash": 100
           },
-          {
-            "ItemId": "WolfPelt",
-            "Quantity": 1,
-            "Chance": 1.0,
-            "ImplementationStatus": "Planned"
-          },
-          {
-            "ItemId": "WolfFang",
-            "Quantity": 1,
-            "Chance": 0.25,
-            "ImplementationStatus": "Planned"
-          },
-          {
-            "ItemId": "WolfMeat",
-            "Quantity": 1,
-            "Chance": 1.0,
-            "ImplementationStatus": "Planned"
-          }
-        ]
-      },
-      "DeferredEngineWork": [
-        "Pack spawning; this catalogue defines one species only."
+          "WindupSeconds": 0.5,
+          "RecoverySeconds": 0.8
+        }
+      ],
+      "Drops": [
+        {
+          "ItemId": "BoneFragment",
+          "Quantity": 2,
+          "Chance": 1.0
+        },
+        {
+          "ItemId": "WolfPelt",
+          "Quantity": 1,
+          "Chance": 1.0
+        },
+        {
+          "ItemId": "WolfFang",
+          "Quantity": 1,
+          "Chance": 0.25
+        },
+        {
+          "ItemId": "WolfMeat",
+          "Quantity": 1,
+          "Chance": 1.0
+        }
       ]
     },
     {
       "CreatureId": "Lynx",
       "DisplayName": "Lynx",
-      "ImplementationStatus": "Planned",
-      "PlannedProfile": {
-        "Health": 150,
-        "Armor": 30,
-        "Biomes": [
-          "FreezingTundra"
-        ],
-        "Rarity": "Common",
-        "Locomotion": "Ground",
-        "Behavior": "Telegraphed leap; long recovery on a miss",
-        "Attacks": [
-          {
-            "AttackId": "Primary",
-            "Damage": {
-              "Slash": 75
-            },
-            "WindupSeconds": 0.5,
-            "RecoverySeconds": 0.8
-          }
-        ],
-        "Drops": [
-          {
-            "ItemId": "BoneFragment",
-            "Quantity": 2,
-            "Chance": 1.0,
-            "ImplementationStatus": "Planned"
+      "Health": 150,
+      "Armor": 30,
+      "Biomes": [
+        "FreezingTundra"
+      ],
+      "Attacks": [
+        {
+          "AttackId": "Primary",
+          "Damage": {
+            "Slash": 75
           },
-          {
-            "ItemId": "LynxPelt",
-            "Quantity": 1,
-            "Chance": 0.5,
-            "ImplementationStatus": "Planned"
-          }
-        ]
-      }
+          "WindupSeconds": 0.5,
+          "RecoverySeconds": 0.8
+        }
+      ],
+      "Drops": [
+        {
+          "ItemId": "BoneFragment",
+          "Quantity": 2,
+          "Chance": 1.0
+        },
+        {
+          "ItemId": "LynxPelt",
+          "Quantity": 1,
+          "Chance": 0.5
+        }
+      ]
     },
     {
       "CreatureId": "PolarBear",
       "DisplayName": "Polar Bear",
-      "ImplementationStatus": "Planned",
-      "PlannedProfile": {
-        "Health": 750,
-        "Armor": 60,
-        "Biomes": [
-          "FreezingTundra"
-        ],
-        "Rarity": "Hard",
-        "Locomotion": "Ground",
-        "Behavior": "Committed charge, then retreat to reset",
-        "Attacks": [
-          {
-            "AttackId": "Primary",
-            "Damage": {
-              "Crush": 200
-            },
-            "WindupSeconds": 1.0,
-            "RecoverySeconds": 1.2
-          }
-        ],
-        "Drops": [
-          {
-            "ItemId": "BoneFragment",
-            "Quantity": 3,
-            "Chance": 1.0,
-            "ImplementationStatus": "Planned"
+      "Health": 750,
+      "Armor": 60,
+      "Biomes": [
+        "FreezingTundra"
+      ],
+      "Attacks": [
+        {
+          "AttackId": "Primary",
+          "Damage": {
+            "Crush": 200
           },
-          {
-            "ItemId": "PolarBearPelt",
-            "Quantity": 2,
-            "Chance": 1.0,
-            "ImplementationStatus": "Planned"
-          }
-        ]
-      }
+          "WindupSeconds": 1.0,
+          "RecoverySeconds": 1.2
+        }
+      ],
+      "Drops": [
+        {
+          "ItemId": "BoneFragment",
+          "Quantity": 3,
+          "Chance": 1.0
+        },
+        {
+          "ItemId": "PolarBearPelt",
+          "Quantity": 2,
+          "Chance": 1.0
+        }
+      ]
     },
     {
       "CreatureId": "HornedGoat",
       "DisplayName": "Horned Goat",
-      "ImplementationStatus": "Planned",
-      "PlannedProfile": {
-        "Health": 200,
-        "Armor": 50,
-        "Biomes": [
-          "ThunderMountains"
-        ],
-        "Rarity": "Common",
-        "Locomotion": "Ground",
-        "Behavior": "Territorial horn charge with push and stagger",
-        "Attacks": [
-          {
-            "AttackId": "Primary",
-            "Damage": {
-              "Crush": 50
-            },
-            "WindupSeconds": 0.5,
-            "RecoverySeconds": 0.8
-          }
-        ],
-        "Drops": [
-          {
-            "ItemId": "BoneFragment",
-            "Quantity": 2,
-            "Chance": 1.0,
-            "ImplementationStatus": "Planned"
+      "Health": 200,
+      "Armor": 50,
+      "Biomes": [
+        "ThunderMountains"
+      ],
+      "Attacks": [
+        {
+          "AttackId": "Primary",
+          "Damage": {
+            "Crush": 50
           },
-          {
-            "ItemId": "GoatHorn",
-            "Quantity": 1,
-            "Chance": 1.0,
-            "ImplementationStatus": "Planned"
-          }
-        ]
-      },
-      "PendingReview": [
-        "Push distance, stagger duration and authored melee reach."
+          "WindupSeconds": 0.5,
+          "RecoverySeconds": 0.8
+        }
+      ],
+      "Drops": [
+        {
+          "ItemId": "BoneFragment",
+          "Quantity": 2,
+          "Chance": 1.0
+        },
+        {
+          "ItemId": "GoatHorn",
+          "Quantity": 1,
+          "Chance": 1.0
+        }
       ]
     },
     {
       "CreatureId": "ThunderSentinel",
       "DisplayName": "Thunder Sentinel",
-      "ImplementationStatus": "Planned",
-      "PlannedProfile": {
-        "Health": 1250,
-        "Armor": 75,
-        "Biomes": [
-          "ThunderMountains"
-        ],
-        "Rarity": "Hard",
-        "Locomotion": "Ground",
-        "Behavior": "Short step and slow downward slam",
-        "Attacks": [
-          {
-            "AttackId": "Primary",
-            "Damage": {
-              "Crush": 300
-            },
-            "WindupSeconds": 1.0,
-            "RecoverySeconds": 1.2
-          }
-        ],
-        "Drops": [
-          {
-            "ItemId": "Stone",
-            "Quantity": 3,
-            "Chance": 1.0,
-            "ImplementationStatus": "Planned"
+      "Health": 1250,
+      "Armor": 75,
+      "Biomes": [
+        "ThunderMountains"
+      ],
+      "Attacks": [
+        {
+          "AttackId": "Primary",
+          "Damage": {
+            "Crush": 300
           },
-          {
-            "ItemId": "ThunderCore",
-            "Quantity": 1,
-            "Chance": 0.25,
-            "ImplementationStatus": "Planned"
-          }
-        ]
-      }
+          "WindupSeconds": 1.0,
+          "RecoverySeconds": 1.2
+        }
+      ],
+      "Drops": [
+        {
+          "ItemId": "Stone",
+          "Quantity": 3,
+          "Chance": 1.0
+        },
+        {
+          "ItemId": "ThunderCore",
+          "Quantity": 1,
+          "Chance": 0.25
+        }
+      ]
     },
     {
       "CreatureId": "ReefMaw",
       "DisplayName": "Reef Maw",
-      "ImplementationStatus": "Planned",
-      "PlannedProfile": {
-        "Health": 180,
-        "Armor": 2,
-        "Biomes": [
-          "Ocean"
-        ],
-        "Rarity": "Hard",
-        "Locomotion": "Swimming",
-        "Behavior": "Visible swimming approach and one bite against swimmers",
-        "Attacks": [
-          {
-            "AttackId": "Primary",
-            "Damage": {
-              "Stab": 50
-            },
-            "WindupSeconds": 1.0,
-            "RecoverySeconds": 1.2
-          }
-        ],
-        "Drops": [
-          {
-            "ItemId": "BoneFragment",
-            "Quantity": 3,
-            "Chance": 1.0,
-            "ImplementationStatus": "Planned"
+      "Health": 180,
+      "Armor": 2,
+      "Biomes": [
+        "Ocean"
+      ],
+      "Attacks": [
+        {
+          "AttackId": "Primary",
+          "Damage": {
+            "Stab": 50
           },
-          {
-            "ItemId": "ReefTooth",
-            "Quantity": 1,
-            "Chance": 0.5,
-            "ImplementationStatus": "Planned"
-          }
-        ]
-      },
-      "RequiredEngineWork": [
-        "Aquatic navigation, combat, reward and peer support; target swimmers only, never skiff hulls or occupants."
+          "WindupSeconds": 1.0,
+          "RecoverySeconds": 1.2
+        }
+      ],
+      "Drops": [
+        {
+          "ItemId": "BoneFragment",
+          "Quantity": 3,
+          "Chance": 1.0
+        },
+        {
+          "ItemId": "ReefTooth",
+          "Quantity": 1,
+          "Chance": 0.5
+        }
       ]
     }
   ]
