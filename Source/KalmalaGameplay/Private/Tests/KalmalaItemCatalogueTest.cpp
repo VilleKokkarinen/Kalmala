@@ -89,6 +89,7 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         { TEXT("BoarHideHelmet"), TEXT("Head"), 50, 1 },
         { TEXT("BronzeHelmet"), TEXT("Head"), 100, 3 },
         { TEXT("BoarHideCape"), TEXT("Cape"), 50, 1 },
+        { TEXT("BronzeTunic"), TEXT("Chest"), 120, 5 },
         { TEXT("BoarHideTunic"), TEXT("Chest"), 50, 1 },
         { TEXT("BoarHideLeggings"), TEXT("Legs"), 50, 1 },
         { TEXT("BoarHideBoots"), TEXT("Boots"), 50, 1 }

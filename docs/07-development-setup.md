@@ -4898,3 +4898,22 @@ Arrow selection, transactional shot payment, and crosshair type/damage display;
 `Kalmala.Gameplay.Combat.BowDrawAndArrows` covers selected-stack override,
 row-major fallback, and fixed Bronze/Stone Pierce. Full Editor and multiplayer
 acceptance remain deferred to I2 milestone-final verification.
+
+## A4 Bronze Tunic catalogue increment — 2026-10-21
+
+`BronzeTunic` is a stack-one, 5 kg Chest wearable with 5 Armor and 120 maximum
+condition. Its Forge level-one recipe costs 15 Bronze and 5 Boar Hide; its
+level-one upgrade starts at 2 Bronze + 1 Boar Hide and uses the shared wearable
+reward of +1 Armor and +10 maximum condition. The item and upgrade cost extend
+the already registered `items/tunics.json` and
+`item-level-up/costs/tunics.json`; Forge recipe and stat reward use their
+already registered shared files. No separate equipment profile or attack
+record applies to wearable armor.
+
+The original icon and prompt are recorded in `docs/armor-icons.md`. Icon batch
+T contains only `BronzeTunic`; prepare and import with
+`python Scripts/Prepare-CatalogueIconBatch.py --batch T` and
+`Scripts/Import-CatalogueIconBatch.ps1 -Batch T`. The catalogue icon validator
+now expects 83 identities. Editor build, equipment automation, rendered
+acceptance and multiplayer checks remain deferred to I2 milestone-final
+verification.

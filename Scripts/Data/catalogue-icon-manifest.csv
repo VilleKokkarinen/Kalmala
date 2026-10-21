@@ -81,3 +81,4 @@ image_batch,import_batch,canonical_id,art_subject,identity_kind,catalogue_aliase
 34,Q,StoneArrow,Stone Arrows,item,none,none,PackInventory;ItemDetail;Storage;Ingredient,pack,StoneArrow
 35,R,BronzeArrow,Bronze Arrows,item,none,none,PackInventory;ItemDetail;Storage;Ingredient,pack,BronzeArrow
 36,S,BronzeHelmet,Bronze helmet,item,none,none,PackInventory;ItemDetail,pack,BronzeHelmet
+37,T,BronzeTunic,Bronze tunic,item,none,none,PackInventory;ItemDetail,pack,BronzeTunic

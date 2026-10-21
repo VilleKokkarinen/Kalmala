@@ -9,6 +9,16 @@
       "GearSlot": "Chest",
       "MaxDurability": 50,
       "Armor": 1
+    },
+    {
+      "ItemId": "BronzeTunic",
+      "DisplayName": "Bronze Tunic",
+      "Description": "A plated bronze tunic backed with boar hide.",
+      "MaxStack": 1,
+      "WeightKg": 5,
+      "GearSlot": "Chest",
+      "MaxDurability": 120,
+      "Armor": 5
     }
   ]
 }

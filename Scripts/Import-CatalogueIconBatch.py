@@ -23,8 +23,8 @@ def fail(message):
 
 
 batch = os.environ.get("KALMALA_ICON_IMPORT_BATCH", "").strip().upper()
-if batch not in ("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S"):
-    fail("Set KALMALA_ICON_IMPORT_BATCH to one pinned batch: A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, or S.")
+if batch not in ("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T"):
+    fail("Set KALMALA_ICON_IMPORT_BATCH to one pinned batch: A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, or T.")
 
 repo_root = os.path.abspath(
     os.environ.get("KALMALA_ICON_REPO_ROOT", unreal.Paths.project_dir())
