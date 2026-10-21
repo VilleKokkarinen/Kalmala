@@ -30,6 +30,7 @@ public:
     virtual void BeginPlay() override;
     virtual void Tick(float DeltaSeconds) override;
     virtual void PostLogin(APlayerController* NewPlayer) override;
+    virtual void Logout(AController* Exiting) override;
     virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
     bool CanPersistConstruction(FName KitId, const FTransform& Transform) const;
     bool PersistConstruction(class AKalmalaConstructionActor* Construction);

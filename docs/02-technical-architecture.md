@@ -1,5 +1,34 @@
 # Technical architecture
 
+## Basic Torch equipment and flame — 2026-10-21
+
+`BasicTorch` is a registered Utility equipment profile with no attack list,
+upgrade cost or repair path. Its Inventory Craft recipe outputs a carried-tool
+record rather than an inventory stack: the server consumes 2 Wood and 1 Amber,
+checks shared-grid capacity, assigns an instance GUID and persists the new
+300-second fuel state before accepting the transaction. Failed persistence
+restores the prior carried tools and materials.
+
+Only the exact BasicTorch GUID selected in Main Hand burns. Unequipped and
+stored torches retain their fuel. The server exposure step decrements fuel,
+extinguishes it at zero or when precipitation is at least 0.05 and the player
+has no roof, and keeps a rain-extinguished torch out until it is unequipped and
+re-equipped in dry conditions. Fuel is checkpointed to the existing player
+slot every ten held seconds and on extinguish, unequip, logout, craft and
+refuel. Refuelling is a GUID-addressed server transaction that consumes one
+Wood and restores 300 seconds; it rejects full, malformed or unowned torches.
+
+Player-discovery save schema 3 adds bounded remaining burn seconds to each
+carried-tool record. Basic Torch accepts finite fuel in [0,300]; every other
+tool requires zero. The former schema 2 is incompatible and remains untouched
+when rejected; no development migration is performed. `bHeldTorchLit` is the
+only new replicated torch-state field. It drives a local 600 cm point light;
+the existing public held-tool visual enum also gains a Torch silhouette. A
+server flame-eligibility query is ready for A8a mosquito integration, whose
+targeting and repulsion behavior remains a later task. Fuel, instance GUIDs
+and other inventory data remain owner-only. Torch attacks, warmth, wetness
+removal and world ignition are unsupported.
+
 ## Hammer/Bow input and authoritative arrows — 2026-10-18
 
 Character routes Attack pressed/released by authoritative inventory selection:
@@ -526,7 +555,7 @@ M9 supersedes the M7 tool-output replacement recipes and material-paid repair. T
 
 The normal Chest is the sole storage construction. Current schema-4 food processing uses the Cooking Rack, Cauldron, and Frying Pan; it has no Smoke Frame or smoke recipe. Recipes consume direct Wood and Stone, and other listed material costs; intermediate Fuel and ConstructionSupply items no longer exist. Cooking recipes consume their listed ingredients only. Wood, Lightwood, Densewood, and Coal each add 60 seconds of hearth fuel, and a lit hearth burns one fuel second per elapsed server second. The server derives cooking heat requirements from the resolved station and a usable lit hearth near both the player and station. Current storage schema 2 requires current item IDs and per-item GUIDs in saved stacks; it does not convert retired IDs or backfill legacy GUIDs. Construction save schema 4 stores Kiln and Smelter input queues, outputs, and active-job seconds.
 
-M9 persistence uses the existing construction and player-discovery save owners and slots. Construction saves use schema 4; player-discovery saves use schema 2. World construction uses exact seed/revision-7 identity and bounded records for paid station attachments, Charcoal Kiln queues/jobs, and Smelter queues/jobs; station level remains derived from accepted nearby attachments. Player discovery uses exact seed/revision/player identity and bounded carried-item and discovery records, with carried identities stored directly as `ItemId`. The separate M7 sparse ledger remains schema 1. Normal writes validate complete candidates before replacing a slot. Player writes merge only server-revalidated current M9 claims and the owner's current carried-item state; a rejected candidate leaves the existing save and live gameplay unchanged. There are no user save files during development, so save formats may change directly; do not implement save compatibility migrations until the game is released.
+M9 persistence uses the existing construction and player-discovery save owners and slots. Construction saves use schema 4; player-discovery saves use schema 3. World construction uses exact seed/revision-7 identity and bounded records for paid station attachments, Charcoal Kiln queues/jobs, and Smelter queues/jobs; station level remains derived from accepted nearby attachments. Player discovery uses exact seed/revision/player identity and bounded carried-item and discovery records, with carried identities stored directly as `ItemId` and Basic Torch fuel stored as bounded remaining seconds. The separate M7 sparse ledger remains schema 1. Normal writes validate complete candidates before replacing a slot. Player writes merge only server-revalidated current M9 claims and the owner's current carried-item state; a rejected candidate leaves the existing save and live gameplay unchanged. There are no user save files during development, so save formats may change directly; do not implement save compatibility migrations until the game is released.
 
 ## M3 wetness and rain override (2026-09-14)
 
@@ -896,7 +925,7 @@ Stone, Bronze and Iron Maces use the matching knife tier durability (16/48/80) a
 
 A paid Tool Rack or Forge Anvil within 125 cm adds one level to its matching station. One attachment per station, a level-two ceiling, 32 attachments, and 128 total construction records bound progression. Placement and station use recheck visibility and the normal 250 cm range. Station levels are derived from placed actors, not saved as numbers.
 
-Inventory's selected-tool repair is free at a visible same-world Workbench or Forge within 250 cm. The Workbench and Forge Repair All actions restore every damaged carried tool in one operation without changing levels or granting Crafting XP; the server validates the nearby station and the complete carried-tool candidate before saving or publishing anything. Grinding Stone Interact performs the same atomic Repair All against its validated carried list; malformed records reject the whole action. Its accepted 1.2-second sharpening pose is cosmetic and carries no tool state. M9 free repair supersedes historical M7 material-paid repair and broken-tool replacement recipes. Accepted tool changes save the validated schema-2 player candidate before publication.
+Inventory's selected-tool repair is free at a visible same-world Workbench or Forge within 250 cm. The Workbench and Forge Repair All actions restore every damaged carried tool in one operation without changing levels or granting Crafting XP; the server validates the nearby station and the complete carried-tool candidate before saving or publishing anything. Grinding Stone Interact performs the same atomic Repair All against its validated carried list; malformed records reject the whole action. Its accepted 1.2-second sharpening pose is cosmetic and carries no tool state. M9 free repair supersedes historical M7 material-paid repair and broken-tool replacement recipes. Accepted tool changes save the validated schema-3 player candidate before publication.
 
 ## Camp crafting and station services
 

@@ -43,16 +43,17 @@ struct KALMALAGAMEPLAY_API FKalmalaPlayerToolSaveRecord
     UPROPERTY(SaveGame) int32 ToolLevel = 1;
     UPROPERTY(SaveGame) int32 Condition = 0;
     UPROPERTY(SaveGame) FGuid InstanceGuid;
+    UPROPERTY(SaveGame) float RemainingBurnSeconds = 0.0f;
 };
 
-/** Current schema-2 player discoveries and carried items for the existing player slot. */
+/** Current schema-3 player discoveries and carried items for the existing player slot. */
 UCLASS()
 class KALMALAGAMEPLAY_API UKalmalaPlayerDiscoverySaveGameV2 : public USaveGame
 {
     GENERATED_BODY()
 
 public:
-    static constexpr int32 SchemaVersionValue = 2;
+    static constexpr int32 SchemaVersionValue = 3;
     static constexpr int32 MaxDiscoveries = 64;
     static constexpr int32 MaxM9Claims = 64;
     static constexpr int32 MaxCombinedDiscoveries = MaxDiscoveries + MaxM9Claims;

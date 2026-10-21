@@ -72,6 +72,11 @@ crafting and wielding; the 2026-10-18 bow increment adds drawing, shooting and a
 - Gear: basic clothing and a carry pack. Progression improves warmth, durability, and carry capacity.
 - Weapons: knife, sword, bow.
 - Tools: axe, pickaxe, hammer, torch.
+- The Basic Torch is crafted from 2 Wood and 1 Amber, occupies one carried-tool
+  slot, and equips in Main Hand. It burns only while held, casts 6 m of local
+  light for up to 300 seconds, and refuels from inventory with 1 Wood.
+  Uncovered rain extinguishes the flame until it is re-equipped in dry
+  conditions. Fuel is server-owned and saved with the carried tool.
 - Crafting: campfire, workbench, basic storage, three build pieces (floor, wall, roof).
 - Magic: scroll-taught support effects. The initial set is:
 **Mending** (heal an ally)

@@ -36,6 +36,7 @@
     "recipes/stations/workbench.json"
   ],
   "itemProfileFiles": [
+    "items/equipment/utility.json",
     "items/equipment/weapons/bows.json",
     "items/equipment/weapons/axes.json",
     "items/equipment/weapons/knives.json",

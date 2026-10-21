@@ -152,7 +152,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [x] Bronze Shield: Forge, 10 Bronze + 5 Lightwood + 5 Boar Hide; 10 Armor.
 
 - [ ] **A5 — Utility tools (P1/P2).** [Rules](docs/alpha-item-details.md#a5)
-  - [ ] Basic Torch: inventory, 2 Wood + 1 amber; 300 s burn, 6 m light.
+  - [x] Basic Torch: inventory, 2 Wood + 1 amber; 300 s burn, 6 m light.
   - [ ] Cultivation Rake: Forge, 10 Wood + 5 Bronze bar; requires A7.
 
 - [ ] **A6 — Food and recovery (P1).** [Effects and limits](docs/alpha-item-details.md#a6)

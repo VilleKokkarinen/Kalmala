@@ -321,6 +321,7 @@ bool UKalmalaInventoryComponent::SetMainHandFromServer(const FGuid ItemGuid, FSt
     GridInstanceGuids = MoveTemp(CandidateGrid);
     GridSlots.Init(NAME_None, MaxSlots);
     for (int32 Slot = 0; Slot < MaxSlots; ++Slot) GridSlots[Slot] = GetSlotItem(Slot);
+    Character->NotifyMainHandSelectionChangedFromServer();
     Character->ForceNetUpdate();
     Reason = ItemGuid.IsValid() ? TEXT("Main Hand selected") : TEXT("Main Hand cleared");
     return true;

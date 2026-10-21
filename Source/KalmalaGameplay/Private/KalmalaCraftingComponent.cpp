@@ -231,34 +231,38 @@ bool UKalmalaCraftingComponent::CraftFromServer(FName RecipeId, int32 Batch, FSt
     TArray<FKalmalaInventoryStack> Costs; int32 OutputCount;
     Reason = TEXT("Invalid batch quantity");
     if (!UKalmalaRecipeCatalogue::Scale(*Recipe, Batch, Costs, OutputCount)) return false;
-    if (Recipe->Output == TEXT("ConstructionHammer"))
+    if (Recipe->Output == TEXT("ConstructionHammer") || Recipe->Output == TEXT("BasicTorch"))
     {
         auto* Inventory = Character->FindComponentByClass<UKalmalaInventoryComponent>();
-        if (!Inventory) return false;
+        const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(Recipe->Output);
+        if (!Inventory || !Definition || OutputCount != 1) return false;
         const TArray<FKalmalaInventoryStack> Before = Inventory->GetStacks();
         TArray<FKalmalaInventoryStack> After;
         if (!UKalmalaInventoryComponent::BuildExchange(Before, Costs, NAME_None, 0, After, Reason)
             || !Inventory->CanFitContents(After, Inventory->CountPackedTools(Character->CarriedTools) + 1)) return false;
         const TArray<FKalmalaToolState> PreviousTools = Character->CarriedTools;
-        FKalmalaToolState Hammer;
-        Hammer.ItemId = TEXT("ConstructionHammer");
-        Hammer.ToolLevel = 1;
-        Hammer.Durability = FKalmalaToolLifecycleContract::GetConstructionHammerDefinition().MaxDurability;
-        Hammer.InstanceGuid = FGuid::NewGuid();
+        FKalmalaToolState Tool;
+        Tool.ItemId = Recipe->Output;
+        Tool.ToolLevel = 1;
+        Tool.Durability = Definition->MaxDurability;
+        Tool.InstanceGuid = FGuid::NewGuid();
+        if (Tool.ItemId == TEXT("BasicTorch"))
+            Tool.RemainingBurnSeconds = FKalmalaToolLifecycleContract::BasicTorchBurnDurationSeconds;
         if (!Inventory->TryCommitStacksFromServer(Before, After)) return false;
-        Character->CarriedTools.Add(Hammer);
+        Character->CarriedTools.Add(Tool);
         auto* GameMode = GetWorld() ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
         if (!GameMode || !GameMode->PersistPlayerStateFromServer(Character))
         {
             Character->CarriedTools = PreviousTools;
             if (!Inventory->TryCommitStacksFromServer(After, Before))
-                UE_LOG(LogTemp, Error, TEXT("Failed to roll back building hammer material payment."));
-            Reason = TEXT("Could not save the building hammer; no materials were spent");
+                UE_LOG(LogTemp, Error, TEXT("Failed to roll back carried-tool material payment."));
+            Reason = TEXT("Could not save the crafted tool; no materials were spent");
             return false;
         }
         Inventory->SynchronizeGridFromServer();
         Character->ForceNetUpdate();
-        Reason = TEXT("Crafted Building Hammer");
+        Reason = FString::Printf(TEXT("Crafted %s"), Recipe->Output == TEXT("BasicTorch")
+            ? TEXT("Basic Torch") : TEXT("Building Hammer"));
         return true;
     }
     if (FKalmalaToolProgressionContract::IsStationAttachmentKit(Recipe->Output))
@@ -732,6 +736,54 @@ void UKalmalaCraftingComponent::ServerRepairTool_Implementation(const FName Item
     PublishResult(Reason, bAccepted);
 }
 
+void UKalmalaCraftingComponent::ServerRefuelTorch_Implementation(const FGuid ToolInstanceGuid)
+{
+    if (!AcceptRequest()) return;
+    FString Reason;
+    const bool bAccepted = RefuelTorchFromServer(ToolInstanceGuid, Reason);
+    PublishResult(Reason, bAccepted);
+}
+
+bool UKalmalaCraftingComponent::RefuelTorchFromServer(const FGuid ToolInstanceGuid, FString& Reason)
+{
+    AKalmalaCharacter* Character = GetCharacter();
+    Reason = TEXT("Server authority required");
+    if (!Character || !Character->HasAuthority() || !Character->GetController() || !ToolInstanceGuid.IsValid()) return false;
+    UKalmalaInventoryComponent* Inventory = Character->FindComponentByClass<UKalmalaInventoryComponent>();
+    if (!Inventory) return false;
+    FKalmalaToolState* Torch = Character->CarriedTools.FindByPredicate([&ToolInstanceGuid](FKalmalaToolState& State)
+    {
+        return State.InstanceGuid == ToolInstanceGuid && State.ItemId == TEXT("BasicTorch");
+    });
+    Reason = TEXT("That Basic Torch cannot be refuelled");
+    if (!Torch || !FMath::IsFinite(Torch->RemainingBurnSeconds) || Torch->RemainingBurnSeconds < 0.0f
+        || Torch->RemainingBurnSeconds >= FKalmalaToolLifecycleContract::BasicTorchBurnDurationSeconds) return false;
+
+    const TArray<FKalmalaInventoryStack> Before = Inventory->GetStacks();
+    TArray<FKalmalaInventoryStack> After;
+    if (!UKalmalaInventoryComponent::BuildExchange(Before, {{TEXT("Wood"), 1}}, NAME_None, 0, After, Reason)) return false;
+    const float PreviousFuel = Torch->RemainingBurnSeconds;
+    if (!Inventory->TryCommitStacksFromServer(Before, After))
+    {
+        Reason = TEXT("Could not spend 1 Wood to refuel the Basic Torch");
+        return false;
+    }
+    Torch->RemainingBurnSeconds = FKalmalaToolLifecycleContract::BasicTorchBurnDurationSeconds;
+    AKalmalaGameMode* GameMode = GetWorld() ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
+    if (!GameMode || !GameMode->PersistPlayerStateFromServer(Character))
+    {
+        Torch->RemainingBurnSeconds = PreviousFuel;
+        if (!Inventory->TryCommitStacksFromServer(After, Before))
+            UE_LOG(LogTemp, Error, TEXT("Failed to roll back Basic Torch refuel material payment."));
+        Reason = TEXT("Could not save the refuelled Basic Torch; no Wood was spent");
+        return false;
+    }
+    Inventory->SynchronizeGridFromServer();
+    Character->ForceNetUpdate();
+    Reason = TEXT("Refuelled Basic Torch with 1 Wood; 300 seconds available");
+    return true;
+}
+
 void UKalmalaCraftingComponent::ServerRepairAllTools_Implementation()
 {
     if (!AcceptRequest()) return;
@@ -789,9 +841,12 @@ FString UKalmalaCraftingComponent::GetRecipeAvailability(FName Id) const
     FString Reason;
     if (!UKalmalaRecipeCatalogue::Scale(*R, 1, Costs, OutputCount)) return TEXT("Recipe material list is invalid");
     TArray<FKalmalaInventoryStack> Next;
-    UKalmalaInventoryComponent::BuildExchange(Inv->GetStacks(), Costs,
-        R->Output == TEXT("ConstructionHammer") ? NAME_None : R->Output,
-        R->Output == TEXT("ConstructionHammer") ? 0 : OutputCount, Next, Reason);
+    const bool bCarriedToolOutput = R->Output == TEXT("ConstructionHammer") || R->Output == TEXT("BasicTorch");
+    if (!UKalmalaInventoryComponent::BuildExchange(Inv->GetStacks(), Costs,
+        bCarriedToolOutput ? NAME_None : R->Output,
+        bCarriedToolOutput ? 0 : OutputCount, Next, Reason)) return Reason;
+    if (bCarriedToolOutput && !Inv->CanFitContents(Next, Inv->CountPackedTools(Character->CarriedTools) + 1))
+        return TEXT("Not enough inventory space for another carried tool");
     return Reason;
 }
 
@@ -972,6 +1027,8 @@ FString UKalmalaCraftingComponent::GetRecipeDescription(FName Id) const
         return TEXT("Description unavailable.");
     }
     if (R->Output == TEXT("ConstructionHammer")) return TEXT("A building tool for placing camp structures.");
+    if (R->Output == TEXT("BasicTorch"))
+        return TEXT("A hand-held torch that burns for up to 300 seconds and casts light 6 metres. Inventory-refuel with 1 Wood.");
     const auto* OutputItem = UKalmalaItemCatalogue::Get()->FindItem(R->Output);
     return OutputItem && !OutputItem->Description.IsEmpty()
         ? OutputItem->Description : TEXT("Description unavailable.");

@@ -37,7 +37,8 @@ enum class EKalmalaToolKind : uint8
     Bow,
     BronzeSword,
     IronSword,
-    WoodenClub
+    WoodenClub,
+    BasicTorch
 };
 
 /** M9 harvesting tiers; station level is validated only by later craft/upgrade transactions. */
@@ -87,6 +88,10 @@ struct KALMALAGAMEPLAY_API FKalmalaToolState
     /** Unique identity of this non-stackable inventory item instance. */
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tools", SaveGame)
     FGuid InstanceGuid;
+
+    /** Remaining held burn time; only BasicTorch may have a non-zero value. */
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tools", SaveGame)
+    float RemainingBurnSeconds = 0.0f;
 };
 
 /** Server-derived trace and node facts; clients cannot author these values. */
@@ -128,6 +133,9 @@ public:
     static constexpr int32 DurabilityPerUse = 1;
     static constexpr int32 MaxFirstWaveToolDefinitions = 5;
     static constexpr float DefaultMaximumRange = 250.0f;
+    static constexpr float BasicTorchBurnDurationSeconds = 300.0f;
+    static constexpr float BasicTorchLightRadiusCm = 600.0f;
+    static constexpr float BasicTorchPersistenceIntervalSeconds = 10.0f;
 
     static const TArray<FKalmalaToolDefinition>& GetDefinitions();
     static const TArray<FKalmalaToolDefinition>& GetTieredToolDefinitions();

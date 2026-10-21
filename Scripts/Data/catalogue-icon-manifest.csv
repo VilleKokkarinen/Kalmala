@@ -84,3 +84,4 @@ image_batch,import_batch,canonical_id,art_subject,identity_kind,catalogue_aliase
 37,T,BronzeTunic,Bronze tunic,item,none,none,PackInventory;ItemDetail,pack,BronzeTunic
 38,U,BronzeLeggings,Bronze leggings,item,none,none,PackInventory;ItemDetail,pack,BronzeLeggings
 39,V,BronzeShield,Bronze shield,item,none,none,PackInventory;ItemDetail,pack,BronzeShield
+40,W,BasicTorch,Basic Torch,tool,none,BasicTorch,CarriedTool;ToolDetail;Refuel;RecipeResult,carried_tool,

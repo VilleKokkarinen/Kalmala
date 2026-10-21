@@ -308,6 +308,8 @@ void AKalmalaGameMode::UpdatePlayerExposure(const float DeltaSeconds)
             Environment = FKalmalaBiomeExpansionContract::ApplyExposureModifiers(Environment, Biome);
         }
         const FKalmalaShelterSample Shelter = FKalmalaShelterSampler::Sample(GetWorld(), Character, Environment.NaturalCover, Weather.WindDirectionDegrees);
+        Character->AdvanceHeldTorchFromServer(DeltaSeconds,
+            Weather.PrecipitationIntensity >= 0.05f && !Shelter.bHasRoof);
         if (UKalmalaPlayerStatusComponent* Statuses = Character->FindComponentByClass<UKalmalaPlayerStatusComponent>())
         {
             Statuses->AdvanceFromServer(DeltaSeconds);
@@ -2474,6 +2476,7 @@ UKalmalaPlayerDiscoverySaveGameV2* AKalmalaGameMode::GetPlayerDiscoverySave(
             ToolState.ToolLevel = Record.ToolLevel;
             ToolState.Durability = Record.Condition;
             ToolState.InstanceGuid = Record.InstanceGuid;
+            ToolState.RemainingBurnSeconds = Record.RemainingBurnSeconds;
             Interactor->CarriedTools.Add(ToolState);
         }
         Interactor->ForceNetUpdate();
@@ -2522,6 +2525,7 @@ bool AKalmalaGameMode::PersistPlayerStateFromServer(
         Record.ToolLevel = ToolState.ToolLevel;
         Record.Condition = ToolState.Durability;
         Record.InstanceGuid = ToolState.InstanceGuid;
+        Record.RemainingBurnSeconds = ToolState.RemainingBurnSeconds;
     }
     if (!Candidate->TryReplaceToolRecords(ToolRecords)) return false;
 
@@ -3180,6 +3184,16 @@ FString AKalmalaGameMode::GetMirelingBossScrollDefinition(const uint64 WorldSeed
 FString AKalmalaGameMode::GetMirelingBossScrollId(const uint64 WorldSeed)
 {
     return FString::Printf(TEXT("Scroll:1:%s:mireling-boss"), *GetMirelingBossScrollDefinition(WorldSeed));
+}
+
+void AKalmalaGameMode::Logout(AController* Exiting)
+{
+    if (HasAuthority() && Exiting != nullptr)
+    {
+        if (AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(Exiting->GetPawn()))
+            PersistPlayerStateFromServer(Character);
+    }
+    Super::Logout(Exiting);
 }
 
 void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)

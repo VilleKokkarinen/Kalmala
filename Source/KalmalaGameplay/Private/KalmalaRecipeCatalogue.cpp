@@ -45,8 +45,11 @@ bool UKalmalaRecipeCatalogue::Scale(const FKalmalaRecipe& Recipe, int32 Batch,
     const int64 Total = int64(Recipe.OutputCount) * Batch;
     const bool bHammer = Recipe.Output == TEXT("ConstructionHammer") && Recipe.RecipeId == TEXT("BuildingHammer")
         && Recipe.OutputCount == 1 && Recipe.MaxBatch == 1 && Recipe.RequiredStation.IsEmpty() && Recipe.RequiredTool.IsNone();
+    const bool bBasicTorch = Recipe.Output == TEXT("BasicTorch") && Recipe.RecipeId == TEXT("BasicTorch")
+        && Recipe.OutputCount == 1 && Recipe.MaxBatch == 1 && Recipe.RequiredStation.IsEmpty()
+        && Recipe.RequiredTool.IsNone();
     if (Total < 1 || Total > UKalmalaItemCatalogue::AbsoluteMaxStack
-        || (!bHammer && !Items->IsValidStack(Recipe.Output, int32(Total)))) return false;
+        || (!bHammer && !bBasicTorch && !Items->IsValidStack(Recipe.Output, int32(Total)))) return false;
     TArray<FKalmalaInventoryStack> Next;
     if (!BuildScaledIngredientCosts(Recipe, Batch, Items, Next)) return false;
     Costs = MoveTemp(Next);

@@ -79,6 +79,10 @@ public:
     bool GetLocalHarvestInteractionIntent(const AKalmalaHarvestNode* Node, FName& OutItemId,
         uint8& OutAction, bool& bOutHasUsableTool) const;
     const TArray<FKalmalaToolState>& GetCarriedToolInventory() const { return CarriedTools; }
+    bool IsHeldTorchLit() const { return bHeldTorchLit; }
+    bool IsHeldTorchFlameEligibleForServer() const;
+    void AdvanceHeldTorchFromServer(float DeltaSeconds, bool bRainExposed);
+    void NotifyMainHandSelectionChangedFromServer();
     float GetHealth() const { return Health; }
     bool ApplyWildlifeDamageFromServer(const AActor* SourceActor, float Damage);
     bool ApplyWildlifeDamageFromServer(const AActor* SourceActor, const FKalmalaDamageChannels& Damage);
@@ -267,6 +271,15 @@ private:
     /** Server-owned carried tools; condition and level are replicated only to the owning player. */
     UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Tools", meta = (AllowPrivateAccess = "true"))
     TArray<FKalmalaToolState> CarriedTools;
+
+    /** Public, server-derived cosmetic/gameplay state; tool inventory remains owner-only. */
+    UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Tools", meta = (AllowPrivateAccess = "true"))
+    bool bHeldTorchLit = false;
+
+    FGuid LastHeldTorchGuid;
+    bool bHeldTorchSnuffedByRain = false;
+    bool bHeldTorchFuelDirty = false;
+    float HeldTorchPersistElapsedSeconds = 0.0f;
 
 #if WITH_EDITORONLY_DATA
     /** Legacy fixture seed fields; production tool state lives only in CarriedTools. */

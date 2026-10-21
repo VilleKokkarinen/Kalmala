@@ -1,4 +1,5 @@
 #include "KalmalaCharacter.h"
+#include "KalmalaGameMode.h"
 #include "KalmalaResistanceComponent.h"
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaItemCatalogue.h"
@@ -106,6 +107,102 @@ void AKalmalaCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
     DOREPLIFETIME(AKalmalaCharacter, ExposureState);
     DOREPLIFETIME(AKalmalaCharacter, Health);
     DOREPLIFETIME_CONDITION(AKalmalaCharacter, CarriedTools, COND_OwnerOnly);
+    DOREPLIFETIME(AKalmalaCharacter, bHeldTorchLit);
+}
+
+bool AKalmalaCharacter::IsHeldTorchFlameEligibleForServer() const
+{
+    if (!HasAuthority() || !bHeldTorchLit || Inventory == nullptr
+        || Inventory->GetActiveItem() != TEXT("BasicTorch") || !Inventory->GetActiveInstanceGuid().IsValid()) return false;
+    const FKalmalaToolState* Torch = CarriedTools.FindByPredicate([this](const FKalmalaToolState& State)
+    {
+        return State.InstanceGuid == Inventory->GetActiveInstanceGuid() && State.ItemId == TEXT("BasicTorch");
+    });
+    return Torch != nullptr && FMath::IsFinite(Torch->RemainingBurnSeconds)
+        && Torch->RemainingBurnSeconds > 0.0f;
+}
+
+void AKalmalaCharacter::NotifyMainHandSelectionChangedFromServer()
+{
+    if (!HasAuthority()) return;
+    const FGuid NewTorchGuid = Inventory && Inventory->GetActiveItem() == TEXT("BasicTorch")
+        ? Inventory->GetActiveInstanceGuid() : FGuid();
+    if (NewTorchGuid == LastHeldTorchGuid) return;
+    if (bHeldTorchFuelDirty)
+    {
+        AKalmalaGameMode* GameMode = GetWorld() ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
+        if (GameMode && GameMode->PersistPlayerStateFromServer(this))
+        {
+            bHeldTorchFuelDirty = false;
+            HeldTorchPersistElapsedSeconds = 0.0f;
+        }
+    }
+    const bool bWasLit = bHeldTorchLit;
+    LastHeldTorchGuid = NewTorchGuid;
+    bHeldTorchSnuffedByRain = false;
+    bHeldTorchLit = false;
+    if (bWasLit) ForceNetUpdate();
+}
+
+void AKalmalaCharacter::AdvanceHeldTorchFromServer(const float DeltaSeconds, const bool bRainExposed)
+{
+    if (!HasAuthority()) return;
+    const auto PersistFuelIfNeeded = [this]()
+    {
+        if (!bHeldTorchFuelDirty) return;
+        AKalmalaGameMode* GameMode = GetWorld() ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
+        if (GameMode && GameMode->PersistPlayerStateFromServer(this))
+        {
+            bHeldTorchFuelDirty = false;
+            HeldTorchPersistElapsedSeconds = 0.0f;
+        }
+    };
+    const FGuid ActiveGuid = Inventory && Inventory->GetActiveItem() == TEXT("BasicTorch")
+        ? Inventory->GetActiveInstanceGuid() : FGuid();
+    FKalmalaToolState* Torch = ActiveGuid.IsValid() ? CarriedTools.FindByPredicate([&ActiveGuid](FKalmalaToolState& State)
+        { return State.InstanceGuid == ActiveGuid && State.ItemId == TEXT("BasicTorch"); }) : nullptr;
+    if (Torch == nullptr)
+    {
+        PersistFuelIfNeeded();
+        const bool bWasLit = bHeldTorchLit;
+        bHeldTorchLit = false;
+        LastHeldTorchGuid.Invalidate();
+        bHeldTorchSnuffedByRain = false;
+        if (bWasLit) ForceNetUpdate();
+        return;
+    }
+
+    if (LastHeldTorchGuid != ActiveGuid)
+    {
+        LastHeldTorchGuid = ActiveGuid;
+        bHeldTorchSnuffedByRain = false;
+        bHeldTorchLit = Torch->RemainingBurnSeconds > 0.0f && !bRainExposed;
+    }
+    if (bRainExposed)
+    {
+        PersistFuelIfNeeded();
+        const bool bWasLit = bHeldTorchLit;
+        bHeldTorchSnuffedByRain = true;
+        bHeldTorchLit = false;
+        if (bWasLit) ForceNetUpdate();
+        return;
+    }
+    if (bHeldTorchSnuffedByRain || !FMath::IsFinite(Torch->RemainingBurnSeconds)
+        || Torch->RemainingBurnSeconds <= 0.0f || !FMath::IsFinite(DeltaSeconds) || DeltaSeconds <= 0.0f)
+    {
+        bHeldTorchLit = false;
+        return;
+    }
+
+    Torch->RemainingBurnSeconds = FMath::Max(0.0f, Torch->RemainingBurnSeconds - DeltaSeconds);
+    bHeldTorchLit = Torch->RemainingBurnSeconds > 0.0f;
+    bHeldTorchFuelDirty = true;
+    HeldTorchPersistElapsedSeconds += DeltaSeconds;
+    if (!bHeldTorchLit || HeldTorchPersistElapsedSeconds >= FKalmalaToolLifecycleContract::BasicTorchPersistenceIntervalSeconds)
+    {
+        PersistFuelIfNeeded();
+    }
+    ForceNetUpdate();
 }
 
 void AKalmalaCharacter::OnRep_Health()

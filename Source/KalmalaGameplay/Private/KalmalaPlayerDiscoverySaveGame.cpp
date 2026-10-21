@@ -11,7 +11,12 @@ namespace
         return Definition != nullptr && Record.ItemId == Definition->ItemId
             && FKalmalaToolProgressionContract::IsValidToolLevel(Record.ItemId, Record.ToolLevel)
             && MaxDurability > 0
-            && Record.Condition >= 0 && Record.Condition <= MaxDurability;
+            && Record.Condition >= 0 && Record.Condition <= MaxDurability
+            && FMath::IsFinite(Record.RemainingBurnSeconds)
+            && (Record.ItemId == TEXT("BasicTorch")
+                ? Record.RemainingBurnSeconds >= 0.0f
+                    && Record.RemainingBurnSeconds <= FKalmalaToolLifecycleContract::BasicTorchBurnDurationSeconds
+                : Record.RemainingBurnSeconds == 0.0f);
     }
 
     bool IsKnownLearnedEffectId(const FString& Id)

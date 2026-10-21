@@ -1,0 +1,12 @@
+{
+  "items": [
+    {
+      "ItemId": "BasicTorch",
+      "DisplayName": "Basic Torch",
+      "Description": "A hand-held torch that burns for 300 seconds and casts light 6 metres.",
+      "WeightKg": 0.5,
+      "MaxDurability": 1,
+      "DamageBonuses": {}
+    }
+  ]
+}

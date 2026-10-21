@@ -5,10 +5,11 @@
 
 class UProceduralMeshComponent;
 class UMaterialInterface;
+class UPointLightComponent;
 class USceneComponent;
 
 UENUM()
-enum class EKalmalaHeldToolVisual : uint8 { None, Hammer, Axe, Knife, Pick, Spear, Mace, Bow, Sword, Club };
+enum class EKalmalaHeldToolVisual : uint8 { None, Hammer, Axe, Knife, Pick, Spear, Mace, Bow, Sword, Club, Torch };
 
 /** Original faceted wanderer silhouette and server-selected held-tool cosmetics. */
 UCLASS()
@@ -38,6 +39,7 @@ private:
     UPROPERTY(ReplicatedUsing=OnRep_HeldToolVisual)
     EKalmalaHeldToolVisual HeldToolVisual = EKalmalaHeldToolVisual::None;
     UPROPERTY(Transient) TArray<TObjectPtr<UProceduralMeshComponent>> HeldToolParts;
+    UPROPERTY(Transient) TObjectPtr<UPointLightComponent> TorchLight;
     UProceduralMeshComponent* AddPart(FName Name, FVector Pivot, FVector Centre, FVector HalfSize,
         UMaterialInterface* Material, bool bTapered = false, USceneComponent* Parent = nullptr);
     UPROPERTY(Transient)

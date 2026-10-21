@@ -28,7 +28,7 @@ namespace
             }
             FString Set;
             FString Action = TEXT("None");
-            if (ItemId == TEXT("ConstructionHammer")) Set = TEXT("Utility");
+            if (ItemId == TEXT("ConstructionHammer") || ItemId == TEXT("BasicTorch")) Set = TEXT("Utility");
             else if (ItemId == TEXT("Bow") || ItemId == TEXT("LightBow")) Set = TEXT("Crafted");
             else
             {

@@ -1,12 +1,14 @@
 #include "KalmalaPlayerModelComponent.h"
 #include "ProceduralMeshComponent.h"
 #include "KalmalaCombatComponent.h"
+#include "KalmalaCharacter.h"
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaToolLifecycleContract.h"
 #include "Net/UnrealNetwork.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Materials/MaterialInterface.h"
+#include "Components/PointLightComponent.h"
 #include "UObject/ConstructorHelpers.h"
 
 UKalmalaPlayerModelComponent::UKalmalaPlayerModelComponent()
@@ -144,6 +146,16 @@ void UKalmalaPlayerModelComponent::BeginPlay()
             FVector::ZeroVector, FVector::ZeroVector, FVector(1), Index == 0 ? DarkMaterial : HeadMaterial,
             Index == 1, RightArm));
     }
+    TorchLight = NewObject<UPointLightComponent>(GetOwner(), TEXT("HeldTorchLight"), RF_Transient);
+    TorchLight->SetupAttachment(RightArm);
+    TorchLight->SetAttenuationRadius(FKalmalaToolLifecycleContract::BasicTorchLightRadiusCm);
+    TorchLight->SetIntensity(3500.0f);
+    TorchLight->SetLightColor(FLinearColor(1.0f, 0.45f, 0.12f));
+    TorchLight->SetSourceRadius(12.0f);
+    TorchLight->SetCastShadows(false);
+    TorchLight->SetVisibility(false);
+    GetOwner()->AddInstanceComponent(TorchLight);
+    TorchLight->RegisterComponent();
     OnRep_HeldToolVisual();
     LeftLeg = AddPart(TEXT("PlayerLeftLeg"), FVector(0, -10, 76), FVector(2, 0, -38), FVector(9, 8, 38), DarkMaterial);
     RightLeg = AddPart(TEXT("PlayerRightLeg"), FVector(0, 10, 76), FVector(2, 0, -38), FVector(9, 8, 38), DarkMaterial);
@@ -165,6 +177,15 @@ void UKalmalaPlayerModelComponent::TickComponent(float DeltaTime, ELevelTick Tic
     }
     const auto* Character = Cast<ACharacter>(GetOwner());
     if (!Character || !LeftArm) return;
+    if (TorchLight)
+    {
+        const AKalmalaCharacter* KalmalaCharacter = Cast<AKalmalaCharacter>(Character);
+        const bool bTorchLit = HeldToolVisual == EKalmalaHeldToolVisual::Torch
+            && KalmalaCharacter != nullptr && KalmalaCharacter->IsHeldTorchLit();
+        TorchLight->SetVisibility(bTorchLit);
+        if (HeldToolVisual == EKalmalaHeldToolVisual::Torch && HeldToolParts.IsValidIndex(2))
+            HeldToolParts[2]->SetVisibility(bTorchLit);
+    }
     const float Speed = Character->GetVelocity().Size2D();
     const bool bFalling = Character->GetCharacterMovement()->IsFalling();
     GaitPhase = FMath::Fmod(GaitPhase + DeltaTime * Speed / 45.0f, 2.0f * PI);
@@ -230,6 +251,7 @@ EKalmalaHeldToolVisual UKalmalaPlayerModelComponent::GetHeldToolVisualForItem(co
     case EKalmalaToolKind::BronzeSword: case EKalmalaToolKind::IronSword:
         return EKalmalaHeldToolVisual::Sword;
     case EKalmalaToolKind::WoodenClub: return EKalmalaHeldToolVisual::Club;
+    case EKalmalaToolKind::BasicTorch: return EKalmalaHeldToolVisual::Torch;
     case EKalmalaToolKind::Bow: return EKalmalaHeldToolVisual::Bow;
     default: return EKalmalaHeldToolVisual::None;
     }
@@ -291,6 +313,17 @@ void UKalmalaPlayerModelComponent::OnRep_HeldToolVisual()
         Show(0, FVector(12, 0, -25), FVector(2, 2, 20), FRotator(18, 0, 0));
         Show(1, FVector(12, 0, -63), FVector(2, 2, 20), FRotator(-18, 0, 0));
         Show(2, FVector(6, 0, -44), FVector(0.5f, 0.5f, 38)); break;
+    case EKalmalaHeldToolVisual::Torch:
+        Show(0, FVector(8, 0, -43), FVector(2.3f, 2.3f, 18));
+        Show(1, FVector(8, 0, -23), FVector(3.5f, 3.5f, 5));
+        Show(2, FVector(8, 0, -14), FVector(3.5f, 3.0f, 5));
+        HeldToolParts[1]->SetMaterial(0, HeadMaterial);
+        if (TorchLight)
+        {
+            TorchLight->AttachToComponent(RightArm, FAttachmentTransformRules::KeepRelativeTransform);
+            TorchLight->SetRelativeLocation(HeldToolParts[2]->GetRelativeLocation());
+        }
+        break;
     default: break;
     }
 }

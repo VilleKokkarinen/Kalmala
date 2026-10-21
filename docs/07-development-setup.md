@@ -1720,7 +1720,7 @@ After the editor build, run it with the documented temporary-user pattern:
 
 ### M9 current-schema persistence
 
-Construction uses save schema 4; player-discovery saves use schema 2, with carried equipment stored directly as `ItemId`. Save data must match the exact seed, revision, scope, and authenticated player identity. The game is unreleased and has no user save files; change active development formats directly and do not add save migrations until release. Current-format writers validate complete server-owned candidates before saving, and incompatible or invalid slots fail closed without rewriting. The player writer also re-derives live M9 claim identities and saves the owner's bounded carried-item records without adding replicated state. See `docs/02-technical-architecture.md` for bounds and authority rules.
+Construction uses save schema 4; player-discovery saves use schema 3, with carried equipment stored directly as `ItemId` and Basic Torch fuel stored as bounded remaining seconds. Save data must match the exact seed, revision, scope, and authenticated player identity. The game is unreleased and has no user save files; change active development formats directly and do not add save migrations until release. Current-format writers validate complete server-owned candidates before saving, and incompatible or invalid slots fail closed without rewriting. The player writer also re-derives live M9 claim identities and saves the owner's bounded carried-item records without adding replicated inventory state. See `docs/02-technical-architecture.md` for bounds and authority rules.
 ### M8 travel-save contract
 
 `UKalmalaOceanTravelPersistenceSaveGame` is a separate schema-1 gate over the
@@ -4954,3 +4954,26 @@ V contains only `BronzeShield`; prepare and import with
 `Scripts/Import-CatalogueIconBatch.ps1 -Batch V`. Editor build, equipment
 automation, rendered acceptance and multiplayer checks remain deferred to I2
 milestone-final verification.
+
+## A5 Basic Torch catalogue and held-light increment — 2026-10-21
+
+`BasicTorch` is registered in `items/equipment/utility.json` and crafted via
+Inventory Craft for 2 Wood + 1 Amber. It is a carried tool with 0.5 kg weight,
+300 seconds of held fuel and 6 m local light. The server validates crafting,
+GUID-addressed Wood refuelling, held fuel, rain extinguishing and fuel saves;
+the replicated flame boolean reveals no tool inventory. It has no attack,
+repair or upgrade record. A8a mosquito targeting/repulsion remains future work.
+
+The original prompt, retained files and exact workflow are recorded in
+[`docs/basic-torch-icon.md`](basic-torch-icon.md). Icon batch W contains only
+`BasicTorch`; prepare and import with:
+
+```powershell
+python Scripts/Prepare-CatalogueIconBatch.py --batch W
+Scripts/Import-CatalogueIconBatch.ps1 -Batch W
+Scripts/Validate-UIIcons.ps1 -Category Catalogue
+```
+
+The catalogue icon validator expects 86 identities. No Unreal build, gameplay automation, rendered
+acceptance or multiplayer session ran for this normal child increment; full
+verification remains deferred to I2 milestone-final verification.

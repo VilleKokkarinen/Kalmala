@@ -31,6 +31,7 @@ namespace
         if (Value == TEXT("BronzeSword")) return EKalmalaToolKind::BronzeSword;
         if (Value == TEXT("IronSword")) return EKalmalaToolKind::IronSword;
         if (Value == TEXT("WoodenClub")) return EKalmalaToolKind::WoodenClub;
+        if (Value == TEXT("BasicTorch")) return EKalmalaToolKind::BasicTorch;
         return EKalmalaToolKind::None;
     }
 
@@ -97,6 +98,12 @@ namespace
     const TArray<FKalmalaToolDefinition>& TieredToolDefinitions()
     {
         static const TArray<FKalmalaToolDefinition> Definitions = BuildDefinitionsForSet(TEXT("Crafted"));
+        return Definitions;
+    }
+
+    const TArray<FKalmalaToolDefinition>& UtilityToolDefinitions()
+    {
+        static const TArray<FKalmalaToolDefinition> Definitions = BuildDefinitionsForSet(TEXT("Utility"));
         return Definitions;
     }
 
@@ -208,7 +215,11 @@ const FKalmalaToolDefinition* FKalmalaToolLifecycleContract::FindDefinition(cons
         return Candidate.ItemId == CanonicalId;
     });
     if (Definition != nullptr) return Definition;
-    return CanonicalId == ConstructionHammerDefinition().ItemId ? &ConstructionHammerDefinition() : nullptr;
+    if (CanonicalId == ConstructionHammerDefinition().ItemId) return &ConstructionHammerDefinition();
+    return UtilityToolDefinitions().FindByPredicate([CanonicalId](const FKalmalaToolDefinition& Candidate)
+    {
+        return Candidate.ItemId == CanonicalId;
+    });
 }
 
 bool FKalmalaToolLifecycleContract::IsTwoHanded(const FName ItemId)
@@ -267,7 +278,7 @@ bool FKalmalaToolLifecycleContract::IsKnownAction(const EKalmalaToolAction Actio
 
 bool FKalmalaToolLifecycleContract::IsKnownTool(const EKalmalaToolKind Tool)
 {
-    return Tool >= EKalmalaToolKind::StoneKnife && Tool <= EKalmalaToolKind::WoodenClub;
+    return Tool >= EKalmalaToolKind::StoneKnife && Tool <= EKalmalaToolKind::BasicTorch;
 }
 
 bool FKalmalaToolLifecycleContract::IsKnownToolTier(const EKalmalaToolTier Tier)

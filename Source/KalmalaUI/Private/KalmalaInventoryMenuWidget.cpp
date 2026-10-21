@@ -75,11 +75,19 @@ FString GetCarriedToolDisplayName(const FName ItemId)
     if (ItemId == TEXT("IronPick")) return TEXT("Iron Pick");
     if (ItemId == TEXT("IronSpear")) return TEXT("Iron Spear");
     if (ItemId == TEXT("ConstructionHammer")) return TEXT("Construction Hammer");
+    if (ItemId == TEXT("BasicTorch")) return TEXT("Basic Torch");
     return ItemId.ToString();
 }
 
 FString BuildToolInspectionText(const FKalmalaToolState& Tool)
 {
+    if (Tool.ItemId == TEXT("BasicTorch"))
+    {
+        const float Fuel = FMath::IsFinite(Tool.RemainingBurnSeconds)
+            ? FMath::Clamp(Tool.RemainingBurnSeconds, 0.0f,
+                FKalmalaToolLifecycleContract::BasicTorchBurnDurationSeconds) : 0.0f;
+        return FString::Printf(TEXT("Fuel: %.0f / 300 seconds. Light radius: 6 m. Refuel in inventory with 1 Wood."), Fuel);
+    }
     const int32 MaxDurability = FKalmalaToolLifecycleContract::GetMaxDurability(Tool.ItemId, Tool.ToolLevel);
     FString Text = UKalmalaCatalogueRowsWidget::BuildToolDetail(
         Tool.ToolLevel, Tool.Durability, MaxDurability);
@@ -718,25 +726,47 @@ void UKalmalaInventoryMenuWidget::RefreshSelectionPresentation(const int32 TextS
 
     if (bSelectedTool && bShowSelectedActions)
     {
-        const AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(GetOwningPlayerPawn());
+        AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(GetOwningPlayerPawn());
         const FKalmalaToolState* Tool = Character
             ? Character->GetCarriedToolInventory().FindByPredicate([SelectedRow](const FKalmalaToolState& Entry)
-                { return Entry.ItemId == SelectedRow->Id; }) : nullptr;
+                { return Entry.InstanceGuid == SelectedRow->ItemGuid && Entry.ItemId == SelectedRow->Id; }) : nullptr;
         const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(SelectedRow->Id);
         const int32 MaxDurability = Tool
             ? FKalmalaToolLifecycleContract::GetMaxDurability(Tool->ItemId, Tool->ToolLevel) : 0;
+        const bool bTorch = Tool != nullptr && Tool->ItemId == TEXT("BasicTorch");
+        const bool bTorchFuelValid = bTorch && FMath::IsFinite(Tool->RemainingBurnSeconds)
+            && Tool->RemainingBurnSeconds >= 0.0f
+            && Tool->RemainingBurnSeconds <= FKalmalaToolLifecycleContract::BasicTorchBurnDurationSeconds;
         const bool bToolStateValid = Tool != nullptr && Definition != nullptr && Tool->ToolLevel >= 1
-            && MaxDurability > 0 && Tool->Durability >= 0 && Tool->Durability <= MaxDurability;
-        const bool bNeedsRepair = bToolStateValid && Tool->Durability < MaxDurability;
+            && MaxDurability > 0 && (bTorch ? bTorchFuelValid
+                : Tool->Durability >= 0 && Tool->Durability <= MaxDurability);
+        int32 WoodCount = 0;
+        if (bTorch && Character)
+            if (const UKalmalaInventoryComponent* Inventory = Character->GetInventoryComponent())
+                for (const FKalmalaInventoryStack& Stack : Inventory->GetStacks())
+                    if (Stack.ItemId == TEXT("Wood")) WoodCount += Stack.Quantity;
+        const bool bNeedsRepair = bToolStateValid && !bTorch && Tool->Durability < MaxDurability;
+        const bool bNeedsRefuel = bToolStateValid && bTorch
+            && Tool->RemainingBurnSeconds < FKalmalaToolLifecycleContract::BasicTorchBurnDurationSeconds
+            && WoodCount > 0;
         const bool bHasRepairAction = Character != nullptr
             && Character->FindComponentByClass<UKalmalaCraftingComponent>() != nullptr;
-        RepairToolButton->SetIsEnabled(bNeedsRepair && bHasRepairAction);
+        CastChecked<UTextBlock>(RepairToolButton->GetContent())->SetText(FText::FromString(
+            bTorch ? TEXT("Refuel selected torch") : TEXT("Repair selected tool")));
+        RepairToolButton->SetIsEnabled((bNeedsRepair || bNeedsRefuel) && bHasRepairAction);
         FString StatusText;
         if (!bToolStateValid) StatusText = TEXT("Tool state unavailable.");
         else if (bAwaitingRepairResult && AwaitingRepairItemId == SelectedRow->Id)
-            StatusText = TEXT("Repair requested. Waiting for the server result.");
+            StatusText = bTorch ? TEXT("Refuel requested. Waiting for the server result.")
+                : TEXT("Repair requested. Waiting for the server result.");
         else if (LastRepairResultItemId == SelectedRow->Id && !LastRepairResultText.IsEmpty())
             StatusText = LastRepairResultText;
+        else if (bTorch && Tool->RemainingBurnSeconds >= FKalmalaToolLifecycleContract::BasicTorchBurnDurationSeconds)
+            StatusText = TEXT("This torch is fully fuelled.");
+        else if (bTorch && WoodCount == 0)
+            StatusText = TEXT("Refuelling needs 1 Wood. This torch casts light 6 m and burns for 300 seconds.");
+        else if (bTorch)
+            StatusText = TEXT("Refuel with 1 Wood. A full torch burns for 300 seconds and casts light 6 m.");
         else if (bNeedsRepair)
             StatusText = TEXT("Repair is free at a visible, same-world Workbench or Forge within 2.5 m.");
         else StatusText = TEXT("This tool is at full condition.");
@@ -1080,7 +1110,7 @@ void UKalmalaInventoryMenuWidget::RepairSelectedTool()
     AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(Controller ? Controller->GetPawn() : nullptr);
     const FKalmalaToolState* Tool = Character
         ? Character->GetCarriedToolInventory().FindByPredicate([&Row](const FKalmalaToolState& Entry)
-            { return Entry.ItemId == Row.Id; })
+            { return Entry.InstanceGuid == Row.ItemGuid && Entry.ItemId == Row.Id; })
         : nullptr;
     const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(Row.Id);
     UKalmalaCraftingComponent* Crafting = Character
@@ -1088,9 +1118,13 @@ void UKalmalaInventoryMenuWidget::RepairSelectedTool()
         : nullptr;
     const int32 MaxDurability = Tool
         ? FKalmalaToolLifecycleContract::GetMaxDurability(Tool->ItemId, Tool->ToolLevel) : 0;
+    const bool bTorch = Tool != nullptr && Tool->ItemId == TEXT("BasicTorch");
+    const bool bTorchCanRefuel = bTorch && FMath::IsFinite(Tool->RemainingBurnSeconds)
+        && Tool->RemainingBurnSeconds >= 0.0f
+        && Tool->RemainingBurnSeconds < FKalmalaToolLifecycleContract::BasicTorchBurnDurationSeconds;
     if (Controller == nullptr || !Controller->IsLocalController() || Tool == nullptr || Definition == nullptr
-        || Tool->ToolLevel < 1 || MaxDurability <= 0 || Tool->Durability < 0
-        || Tool->Durability >= MaxDurability || Crafting == nullptr)
+        || Tool->ToolLevel < 1 || MaxDurability <= 0 || Crafting == nullptr
+        || (bTorch ? !bTorchCanRefuel : Tool->Durability < 0 || Tool->Durability >= MaxDurability))
     {
         RefreshSelectionPresentation(UKalmalaSettingsWidget::ClampTextScale(
             UKalmalaSettingsWidget::GetTextScalePercent()), UKalmalaSettingsWidget::GetContrastMode());
@@ -1102,8 +1136,11 @@ void UKalmalaInventoryMenuWidget::RepairSelectedTool()
     bAwaitingRepairResult = true;
     LastRepairResultText.Reset();
     LastRepairResultItemId = NAME_None;
-    ToolActionStatusText->SetText(FText::FromString(TEXT("Repair requested. Waiting for the server result.")));
-    Crafting->ServerRepairTool(Row.Id);
+    ToolActionStatusText->SetText(FText::FromString(bTorch
+        ? TEXT("Refuel requested. Waiting for the server result.")
+        : TEXT("Repair requested. Waiting for the server result.")));
+    if (bTorch) Crafting->ServerRefuelTorch(Row.ItemGuid);
+    else Crafting->ServerRepairTool(Row.Id);
     RefreshOwnerInventory();
 }
 
