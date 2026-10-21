@@ -1,6 +1,20 @@
 {
   "recipes": [
     {
+      "RecipeId": "WoodenClub",
+      "DisplayName": "Wooden Club",
+      "ItemId": "WoodenClub",
+      "RequiredStation": "Workbench",
+      "RequiredStationLevel": 1,
+      "Ingredients": [
+        {
+          "ItemId": "Wood",
+          "Quantity": 4
+        }
+      ],
+      "Level": 1
+    },
+    {
       "RecipeId": "Bow",
       "DisplayName": "Bow",
       "ItemId": "Bow",

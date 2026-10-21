@@ -132,10 +132,11 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
 
   Kiln: 10 input/10 output. Smelter: 10 ore/10 Coal/10 output. No offline processing.
 
-- [ ] **A2 — Melee weapons (P1).** [Stats and upgrades](docs/alpha-item-details.md#a2)
+- [x] **A2 — Melee weapons (P1).** [Stats and upgrades](docs/alpha-item-details.md#a2)
   - [x] Review the sword/club proposal.
   - [x] Bronze Sword: Forge, 10 Bronze + 2 Lightwood + 2 Deer hide
   - [x] Iron Sword: Forge, 20 Iron + 2 Densewood + 2 Deer hide
+  - [x] Wooden Club: Workbench, 4 Wood; 10 Crush, 40 condition; upgrade with 2 Wood (+20 condition, +2 Crush)
 
 - [ ] **A3 — Bows and arrows (P1).** [Stats and upgrades](docs/alpha-item-details.md#a3)
   - [ ] Light Bow: Workbench, 25 Lightwood + 1 Bow String + 5 Deer Hide; 2 s draw.

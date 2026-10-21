@@ -1,6 +1,16 @@
 {
   "items": [
     {
+      "ItemId": "WoodenClub",
+      "DisplayName": "Wooden Club",
+      "Description": "A sturdy wooden club for blunt strikes.",
+      "WeightKg": 1.0,
+      "MaxDurability": 40,
+      "DamageBonuses": {
+        "Crush": 10.0
+      }
+    },
+    {
       "ItemId": "StoneMace",
       "DisplayName": "Stone Mace",
       "Description": "Migraine inducer 3000",

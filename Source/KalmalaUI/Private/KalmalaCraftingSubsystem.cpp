@@ -119,6 +119,7 @@ bool IsCookingMenuRecipe(const FName StationKit, const FKalmalaRecipe& Recipe)
 FString GetReadableToolName(const FName ItemId)
 {
     if (ItemId == TEXT("StoneMace")) return TEXT("Stone Mace");
+    if (ItemId == TEXT("WoodenClub")) return TEXT("Wooden Club");
     if (ItemId == TEXT("BronzeMace")) return TEXT("Bronze Mace");
     if (ItemId == TEXT("IronMace")) return TEXT("Iron Mace");
     if (ItemId == TEXT("StoneKnife")) return TEXT("Stone Knife");
@@ -830,7 +831,7 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     CraftIronSwordButton->OnClicked.AddDynamic(this, &ThisClass::CraftIronSword);
     CraftIronMaceButton = AddButton(TEXT("Craft Iron Mace"), MaceCraftActions);
     CraftIronMaceButton->OnClicked.AddDynamic(this, &ThisClass::CraftIronMace);
-    StoneCraftItemIds = {TEXT("StoneAxe"), TEXT("StoneKnife"), TEXT("StonePick"), TEXT("StoneSpear"), TEXT("StoneMace"), TEXT("Bow")};
+    StoneCraftItemIds = {TEXT("StoneAxe"), TEXT("StoneKnife"), TEXT("StonePick"), TEXT("StoneSpear"), TEXT("StoneMace"), TEXT("WoodenClub"), TEXT("Bow")};
     StoneCraftTitleText = AddText(TEXT("Workbench equipment"), 18);
     BuildExcludedWidgets.Add(StoneCraftTitleText);
     StoneCraftActions = WidgetTree->ConstructWidget<UVerticalBox>();
@@ -850,6 +851,7 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
         else if (ItemId == TEXT("StonePick")) Button->OnClicked.AddDynamic(this, &ThisClass::CraftStonePick);
         else if (ItemId == TEXT("StoneSpear")) Button->OnClicked.AddDynamic(this, &ThisClass::CraftStoneSpear);
         else if (ItemId == TEXT("StoneMace")) Button->OnClicked.AddDynamic(this, &ThisClass::CraftStoneMace);
+        else if (ItemId == TEXT("WoodenClub")) Button->OnClicked.AddDynamic(this, &ThisClass::CraftWoodenClub);
         else if (ItemId == TEXT("Bow")) Button->OnClicked.AddDynamic(this, &ThisClass::CraftBow);
         StoneCraftButtons.Add(Button);
     }
@@ -2015,6 +2017,7 @@ void UKalmalaCraftingWidget::CraftStoneKnife() { CraftStoneTool(TEXT("StoneKnife
 void UKalmalaCraftingWidget::CraftStonePick() { CraftStoneTool(TEXT("StonePick")); }
 void UKalmalaCraftingWidget::CraftStoneSpear() { CraftStoneTool(TEXT("StoneSpear")); }
 void UKalmalaCraftingWidget::CraftStoneMace() { CraftStoneTool(TEXT("StoneMace")); }
+void UKalmalaCraftingWidget::CraftWoodenClub() { CraftStoneTool(TEXT("WoodenClub")); }
 void UKalmalaCraftingWidget::CraftBow() { CraftStoneTool(TEXT("Bow")); }
 
 void UKalmalaCraftingWidget::RefreshForgeUpgradeState(UKalmalaCraftingComponent* Crafting)

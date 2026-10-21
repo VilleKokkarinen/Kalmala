@@ -36,11 +36,13 @@ namespace
                 if (ItemId.StartsWith(TEXT("Stone"))) { Set = TEXT("Starter"); Family = ItemId.Mid(5); }
                 else if (ItemId.StartsWith(TEXT("Bronze"))) { Set = TEXT("Crafted"); Family = ItemId.Mid(6); }
                 else if (ItemId.StartsWith(TEXT("Iron"))) { Set = TEXT("Crafted"); Family = ItemId.Mid(4); }
+                else if (ItemId == TEXT("WoodenClub")) { Set = TEXT("Crafted"); Family = TEXT("Club"); }
                 else return false;
                 if (Family == TEXT("Axe")) Action = TEXT("Woodcutting");
                 else if (Family == TEXT("Pick")) Action = TEXT("Mining");
                 else if (Family == TEXT("Knife")) Action = TEXT("Gathering");
-                else if (Family != TEXT("Mace") && Family != TEXT("Spear") && Family != TEXT("Sword")) return false;
+                else if (Family != TEXT("Mace") && Family != TEXT("Spear") && Family != TEXT("Sword")
+                    && Family != TEXT("Club")) return false;
             }
             Object->SetStringField(TEXT("ToolKind"), ItemId);
             Object->SetStringField(TEXT("ToolSet"), Set);

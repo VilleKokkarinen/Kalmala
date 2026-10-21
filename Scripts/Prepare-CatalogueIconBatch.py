@@ -18,7 +18,7 @@ ART_SIZE = 56
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--batch", required=True, choices=("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N"))
+    parser.add_argument("--batch", required=True, choices=("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O"))
     args = parser.parse_args()
 
     if not MANIFEST.is_file():

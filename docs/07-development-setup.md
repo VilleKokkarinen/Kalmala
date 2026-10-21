@@ -4831,3 +4831,26 @@ IronSword. Prepare and import with
 `Scripts/Import-CatalogueIconBatch.ps1 -Batch N`; the catalogue icon validator
 now covers 77 identities. Editor build, gameplay automation, rendered Forge
 acceptance, and peer checks remain deferred to I2 milestone-final verification.
+
+## A2 Wooden Club catalogue increment — 2026-10-21
+
+`WoodenClub` is the non-tiered Workbench melee profile in
+`items/equipment/maces.json`: 1 kg, 40 condition, and 10 Crush. Its level-one
+Workbench acquisition costs 4 Wood; level-two Workbench upgrades start with
+2 Wood and add 20 condition and 2 Crush per level under the existing scaling
+and cap. The dedicated Basic attack adds zero style damage. The profile has no
+gathering action. Workbench equipment exposes a server-progress action; the
+server checks the exact recipe, station, materials, and capacity. The
+carried-tool profile is the item record, so a separate ordinary stack-item
+entry does not apply. There is no loot route, alternate attack, elemental
+bonus, RPC, or new save field.
+
+The server-selected held-tool state maps the item to its wooden club silhouette.
+The original, prepared, imported texture paths and exact generation prompt are
+recorded in `docs/wooden-club-icon.md`. Import batch O contains only WoodenClub;
+prepare and import with `python Scripts/Prepare-CatalogueIconBatch.py --batch O`
+and `Scripts/Import-CatalogueIconBatch.ps1 -Batch O`. The icon validator passed
+all 78 catalogue identities. Registered catalogue JSON parsing and focused
+profile/recipe/upgrade/attack references passed. Editor build, gameplay
+automation, rendered Workbench and Inventory acceptance, and peer checks remain
+deferred to I2 milestone-final verification.
