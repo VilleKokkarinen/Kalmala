@@ -68,5 +68,8 @@
   "attackFiles": [
     "attacks/bows.json",
     "attacks/attacks.json"
+  ],
+  "creatureFiles": [
+    "creatures.json"
   ]
 }
