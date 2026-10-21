@@ -170,7 +170,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [x] Review farming. Garden Plot: Planting Trowel, cultivation menu addition.
   - [x] Carrot: 1 seed → 3 carrots; 1 carrot → 3 seeds.
   - [x] Potato: 1 potato → 3 potatoes; Potato Seed stays unused.
-  - [ ] Rutabaga: 1 seed → 3 roots; 1 root → 3 seeds.
+  - [x] Rutabaga: 1 seed → 3 roots; 1 root → 3 seeds.
   - [ ] Onion: 1 seed → 3 onions; 1 onion → 3 seeds.
 
   Crops take 600 active seconds; Planting Trowel required. No offline/inactive-region growth.

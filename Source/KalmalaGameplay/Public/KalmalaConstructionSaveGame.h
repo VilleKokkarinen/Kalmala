@@ -205,7 +205,9 @@ enum class EKalmalaGardenCropMode : uint8
     None,
     CarrotFood,
     CarrotSeed,
-    PotatoFood
+    PotatoFood,
+    RutabagaFood,
+    RutabagaSeed
 };
 
 USTRUCT()
@@ -225,6 +227,8 @@ struct KALMALAGAMEPLAY_API FKalmalaGardenPlotState
         case EKalmalaGardenCropMode::CarrotFood: return FName(TEXT("CarrotSeed"));
         case EKalmalaGardenCropMode::CarrotSeed: return FName(TEXT("Carrot"));
         case EKalmalaGardenCropMode::PotatoFood: return FName(TEXT("Potato"));
+        case EKalmalaGardenCropMode::RutabagaFood: return FName(TEXT("RutabagaSeed"));
+        case EKalmalaGardenCropMode::RutabagaSeed: return FName(TEXT("Rutabaga"));
         default: return NAME_None;
         }
     }
@@ -235,6 +239,8 @@ struct KALMALAGAMEPLAY_API FKalmalaGardenPlotState
         case EKalmalaGardenCropMode::CarrotFood: return FName(TEXT("Carrot"));
         case EKalmalaGardenCropMode::CarrotSeed: return FName(TEXT("CarrotSeed"));
         case EKalmalaGardenCropMode::PotatoFood: return FName(TEXT("Potato"));
+        case EKalmalaGardenCropMode::RutabagaFood: return FName(TEXT("Rutabaga"));
+        case EKalmalaGardenCropMode::RutabagaSeed: return FName(TEXT("RutabagaSeed"));
         default: return NAME_None;
         }
     }

@@ -246,6 +246,8 @@ private:
     UFUNCTION() void PlantCarrotFood();
     UFUNCTION() void PlantCarrotSeed();
     UFUNCTION() void PlantPotatoTuber();
+    UFUNCTION() void PlantRutabagaFood();
+    UFUNCTION() void PlantRutabagaSeed();
     UFUNCTION() void HarvestGardenCrop();
     UFUNCTION() void CloseClicked();
     void Refresh();
@@ -331,6 +333,8 @@ private:
     UPROPERTY(Transient) TObjectPtr<UButton> PlantCarrotFoodButton;
     UPROPERTY(Transient) TObjectPtr<UButton> PlantCarrotSeedButton;
     UPROPERTY(Transient) TObjectPtr<UButton> PlantPotatoTuberButton;
+    UPROPERTY(Transient) TObjectPtr<UButton> PlantRutabagaFoodButton;
+    UPROPERTY(Transient) TObjectPtr<UButton> PlantRutabagaSeedButton;
     UPROPERTY(Transient) TObjectPtr<UButton> HarvestGardenCropButton;
     UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> WrappedTextBlocks;
     UPROPERTY(Transient) TObjectPtr<UButton> CraftButton;

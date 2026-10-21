@@ -93,17 +93,35 @@ bool FKalmalaConstructionSaveGameV2Test::RunTest(const FString& Parameters)
         FKalmalaGardenPlotState::GetPlantingPaymentItem(EKalmalaGardenCropMode::PotatoFood) == FName(TEXT("Potato"))
         && FKalmalaGardenPlotState::GetHarvestItem(EKalmalaGardenCropMode::PotatoFood) == FName(TEXT("Potato"))
         && FKalmalaGardenPlotState::HarvestYield == 3);
+    TestTrue(TEXT("Rutabaga food mode pays one Rutabaga Seed and yields three Rutabagas"),
+        FKalmalaGardenPlotState::GetPlantingPaymentItem(EKalmalaGardenCropMode::RutabagaFood) == FName(TEXT("RutabagaSeed"))
+        && FKalmalaGardenPlotState::GetHarvestItem(EKalmalaGardenCropMode::RutabagaFood) == FName(TEXT("Rutabaga")));
+    TestTrue(TEXT("Rutabaga seed mode pays one Rutabaga and yields three Rutabaga Seeds"),
+        FKalmalaGardenPlotState::GetPlantingPaymentItem(EKalmalaGardenCropMode::RutabagaSeed) == FName(TEXT("Rutabaga"))
+        && FKalmalaGardenPlotState::GetHarvestItem(EKalmalaGardenCropMode::RutabagaSeed) == FName(TEXT("RutabagaSeed")));
     FKalmalaGardenPlotState PotatoCycle;
     TestTrue(TEXT("Potato tuber planting starts a crop"), PotatoCycle.PlantCrop(EKalmalaGardenCropMode::PotatoFood));
     TestTrue(TEXT("Potato tuber matures after 600 active seconds"), PotatoCycle.Advance(600.0f));
     TestTrue(TEXT("Mature Potato tuber can be harvested once"), PotatoCycle.ClearMatureCrop());
     TestFalse(TEXT("Potato tuber cannot be harvested twice"), PotatoCycle.ClearMatureCrop());
-    TestTrue(TEXT("Potato tuber mode plants into an empty Garden Plot"),
-        Plot.GardenPlot.PlantCrop(EKalmalaGardenCropMode::PotatoFood));
-    TestEqual(TEXT("Potato growth begins at 600 active seconds"), Plot.GardenPlot.RemainingActiveSeconds,
+    FKalmalaGardenPlotState RutabagaCycle;
+    TestTrue(TEXT("Rutabaga food mode plants into an empty Garden Plot"),
+        RutabagaCycle.PlantCrop(EKalmalaGardenCropMode::RutabagaFood));
+    TestTrue(TEXT("Rutabaga food matures after 600 active seconds"), RutabagaCycle.Advance(600.0f));
+    TestTrue(TEXT("Mature Rutabaga food can be harvested once"), RutabagaCycle.ClearMatureCrop());
+    TestFalse(TEXT("Rutabaga food cannot be harvested twice"), RutabagaCycle.ClearMatureCrop());
+    FKalmalaGardenPlotState RutabagaSeedCycle;
+    TestTrue(TEXT("Rutabaga seed mode plants into an empty Garden Plot"),
+        RutabagaSeedCycle.PlantCrop(EKalmalaGardenCropMode::RutabagaSeed));
+    TestTrue(TEXT("Rutabaga seed matures after 600 active seconds"), RutabagaSeedCycle.Advance(600.0f));
+    TestTrue(TEXT("Mature Rutabaga seed can be harvested once"), RutabagaSeedCycle.ClearMatureCrop());
+    TestFalse(TEXT("Rutabaga seed cannot be harvested twice"), RutabagaSeedCycle.ClearMatureCrop());
+    TestTrue(TEXT("Rutabaga food mode saves into an empty Garden Plot"),
+        Plot.GardenPlot.PlantCrop(EKalmalaGardenCropMode::RutabagaFood));
+    TestEqual(TEXT("Rutabaga growth begins at 600 active seconds"), Plot.GardenPlot.RemainingActiveSeconds,
         FKalmalaGardenPlotState::CropDurationSeconds);
-    TestTrue(TEXT("Potato growth advances by active time"), Plot.GardenPlot.Advance(17.25f));
-    TestTrue(TEXT("Potato state retains its exact remaining active seconds"),
+    TestTrue(TEXT("Rutabaga growth advances by active time"), Plot.GardenPlot.Advance(17.25f));
+    TestTrue(TEXT("Rutabaga state retains its exact remaining active seconds"),
         FMath::IsNearlyEqual(Plot.GardenPlot.RemainingActiveSeconds, 582.75f));
     TestFalse(TEXT("Zero active time cannot advance a crop"), Plot.GardenPlot.Advance(0.0f));
     FKalmalaGardenPlotState SeedPlotState;
@@ -206,11 +224,11 @@ bool FKalmalaConstructionSaveGameV2Test::RunTest(const FString& Parameters)
     {
         TestTrue(TEXT("Reloaded container carries exact world, revision, and world scope"), Reloaded->MatchesWorld(World));
         TestEqual(TEXT("Existing construction, Campfire, Kiln, Smelter, plot, and attachment records round-trip together"), Reloaded->GetRecords().Num(), 6);
-        TestTrue(TEXT("Garden Plot crop mode and active time survive reload"), Reloaded->GetRecords().ContainsByPredicate(
+        TestTrue(TEXT("Rutabaga Garden Plot mode and active time survive reload"), Reloaded->GetRecords().ContainsByPredicate(
             [](const FKalmalaConstructionSaveRecord& Record)
             {
                 return Record.ConstructionId == TEXT("camp-garden-01") && Record.KitId == TEXT("GardenPlotKit")
-                    && Record.GardenPlot.CropMode == EKalmalaGardenCropMode::PotatoFood
+                    && Record.GardenPlot.CropMode == EKalmalaGardenCropMode::RutabagaFood
                     && FMath::IsNearlyEqual(Record.GardenPlot.RemainingActiveSeconds, 582.75f);
             }));
         TestTrue(TEXT("Kiln inventory and job timer survive reload"), Reloaded->GetRecords().ContainsByPredicate(
