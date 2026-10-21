@@ -4917,3 +4917,22 @@ T contains only `BronzeTunic`; prepare and import with
 now expects 83 identities. Editor build, equipment automation, rendered
 acceptance and multiplayer checks remain deferred to I2 milestone-final
 verification.
+
+## A4 Bronze Leggings catalogue increment — 2026-10-21
+
+`BronzeLeggings` is a stack-one, 4 kg Legs wearable with 5 Armor and 100
+maximum condition. Its Forge level-one recipe costs 15 Bronze and 5 Boar Hide;
+its level-one upgrade starts at 2 Bronze + 1 Boar Hide and uses the shared
+wearable reward of +1 Armor and +10 maximum condition. The item and upgrade
+cost extend the already registered `items/leggings.json` and
+`item-level-up/costs/leggings.json`; the Forge recipe and stat reward use their
+already registered shared files. No separate equipment profile or attack
+record applies to wearable armor.
+
+The original icon and prompt are recorded in `docs/armor-icons.md`. Icon batch
+U contains only `BronzeLeggings`; prepare and import with
+`python Scripts/Prepare-CatalogueIconBatch.py --batch U` and
+`Scripts/Import-CatalogueIconBatch.ps1 -Batch U`. The catalogue icon validator
+expects 84 identities. Editor build, equipment automation, rendered
+acceptance and multiplayer checks remain deferred to I2 milestone-final
+verification.

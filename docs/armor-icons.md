@@ -40,6 +40,7 @@ batch; the six initial wearable icons in batch G were not replaced.
 | --- | --- | --- | --- | --- |
 | `BronzeHelmet` | Single rounded hammered-bronze cap with a short brow ridge and narrow boar-hide lining; three-quarter front view, no wearer. | `Content/Kalmala/UI/Source/IconOriginals/BronzeHelmet.png` | `Content/Kalmala/UI/Source/Icons/BronzeHelmet.png` | `Content/Kalmala/UI/Icons/Items/BronzeHelmet.uasset` |
 | `BronzeTunic` | Sleeveless plated-bronze chest tunic over a dark boar-hide backing; front three-quarter view, no wearer. | `Content/Kalmala/UI/Source/IconOriginals/BronzeTunic.png` | `Content/Kalmala/UI/Source/Icons/BronzeTunic.png` | `Content/Kalmala/UI/Icons/Items/BronzeTunic.uasset` |
+| `BronzeLeggings` | Pair of fitted hammered-bronze leg guards over dark boar-hide backing; front three-quarter view, no wearer. | `Content/Kalmala/UI/Source/IconOriginals/BronzeLeggings.png` | `Content/Kalmala/UI/Source/Icons/BronzeLeggings.png` | `Content/Kalmala/UI/Icons/Items/BronzeLeggings.uasset` |
 
 The prompt used the existing warm survival-fantasy inventory treatment: dark
 contours, broad painted metal facets, warm highlights, centered silhouette,
@@ -52,3 +53,7 @@ batch; the existing helmet and six batch-G wearable icons were not replaced.
 The prompt requested one sleeveless plated-bronze chest tunic backed with dark
 boar hide, centered in a warm hand-painted survival-fantasy inventory style,
 with transparent padding and no wearer, text, props, or background.
+
+Bronze Leggings was generated with the built-in image-generation tool on
+2026-10-21 as a standalone transparent 1254×1254 RGBA original. Its retained
+original was prepared to 64×64 RGBA and imported through the single-item U+batch; previous armor icons were not replaced. The prompt requested one pair+of fitted hammered-bronze leg guards over dark boar-hide backing, shown as the+garment alone from a front three-quarter view, centered in a hand-painted+survival-fantasy inventory style with clean transparent padding and no text,+logo, border, shadow, glow, extra props, or duplicate objects.

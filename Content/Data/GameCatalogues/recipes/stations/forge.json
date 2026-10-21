@@ -264,6 +264,24 @@
       "Level": 1
     },
     {
+      "RecipeId": "BronzeLeggings",
+      "DisplayName": "Bronze Leggings",
+      "ItemId": "BronzeLeggings",
+      "RequiredStation": "Forge",
+      "RequiredStationLevel": 1,
+      "Ingredients": [
+        {
+          "ItemId": "Bronze",
+          "Quantity": 15
+        },
+        {
+          "ItemId": "BoarHide",
+          "Quantity": 5
+        }
+      ],
+      "Level": 1
+    },
+    {
       "RecipeId": "IronSword",
       "DisplayName": "Iron Sword",
       "ItemId": "IronSword",

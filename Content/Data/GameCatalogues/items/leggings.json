@@ -9,6 +9,16 @@
       "GearSlot": "Legs",
       "MaxDurability": 50,
       "Armor": 1
+    },
+    {
+      "ItemId": "BronzeLeggings",
+      "DisplayName": "Bronze Leggings",
+      "Description": "Hammered bronze plates over a boar-hide backing.",
+      "MaxStack": 1,
+      "WeightKg": 4,
+      "GearSlot": "Legs",
+      "MaxDurability": 100,
+      "Armor": 5
     }
   ]
 }
