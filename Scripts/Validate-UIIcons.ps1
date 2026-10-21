@@ -17,7 +17,6 @@ if ($Category -eq 'Catalogue') {
     $sourceDir = Join-Path $repoRoot 'Content\Kalmala\UI\Source\IconOriginals'
     $preparedDir = Join-Path $repoRoot 'Content\Kalmala\UI\Source\Icons'
     $idColumn = 'canonical_id'
-    $expectedCount = 90
 }
 else {
     $manifestPath = Join-Path $PSScriptRoot 'Data\status-icon-manifest.csv'
@@ -37,6 +36,9 @@ foreach ($path in @($manifestPath, $runtimePath, $assetDir, $sourceDir, $prepare
 
 $rows = @(Import-Csv -LiteralPath $manifestPath)
 $runtimeSource = [IO.File]::ReadAllText($runtimePath)
+if ($rows.Count -eq 0) {
+    throw "No pinned $Category icon identities were found."
+}
 
 function Get-PngInfo([string]$Path, [bool]$Require64) {
     if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
@@ -124,20 +126,20 @@ if ($PSBoundParameters.ContainsKey('Id')) {
     return
 }
 
-if ($rows.Count -ne $expectedCount) {
+if ($Category -eq 'Status' -and $rows.Count -ne $expectedCount) {
     throw "Expected $expectedCount pinned $Category icon identities; found $($rows.Count)."
 }
 
 if ($Category -eq 'Catalogue') {
     $ids = @($rows | ForEach-Object { $_.$idColumn.Trim() })
-    if (@($ids | Select-Object -Unique).Count -ne $expectedCount) {
+    if (@($ids | Select-Object -Unique).Count -ne $rows.Count) {
         throw 'Catalogue canonical IDs must be unique.'
     }
     $packageIds = @($rows | ForEach-Object {
         if ($_.texture_asset_id -and $_.texture_asset_id.Trim()) { $_.texture_asset_id.Trim() }
         else { $_.$idColumn.Trim() }
     })
-    if (@($packageIds | Select-Object -Unique).Count -ne $expectedCount) {
+    if (@($packageIds | Select-Object -Unique).Count -ne $rows.Count) {
         throw 'Catalogue texture asset IDs must be unique.'
     }
 }
@@ -200,8 +202,8 @@ foreach ($package in $packages) {
 }
 
 if ($Category -eq 'Catalogue') {
-    Write-Output "PASS: all $expectedCount catalogue identities map to validated originals, prepared PNGs, and imported Texture2D packages; retired Fibre and String packages remain unlisted."
+    Write-Output "PASS: all $($rows.Count) catalogue identities map to validated originals, prepared PNGs, and imported Texture2D packages; retired Fibre and String packages remain unlisted."
 }
 else {
-    Write-Output 'PASS: all nine manifest entries map to unique imported Texture2D packages and validated transparent PNGs.'
+    Write-Output "PASS: all $($rows.Count) manifest entries map to unique imported Texture2D packages and validated transparent PNGs."
 }

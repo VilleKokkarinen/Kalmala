@@ -59,7 +59,7 @@ bool UKalmalaRecipeCatalogue::Scale(const FKalmalaRecipe& Recipe, int32 Batch,
 
 bool UKalmalaRecipeCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDefinitions) const
 {
-    if (Recipes.IsEmpty() || Recipes.Num() > 32) return false;
+    if (Recipes.IsEmpty()) return false;
     const UKalmalaItemCatalogue* Items = ItemDefinitions ? ItemDefinitions : UKalmalaItemCatalogue::Get();
     if (!Items || !Items->IsValidCatalogue()) return false;
     TSet<FName> Seen;

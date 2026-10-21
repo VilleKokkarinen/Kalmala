@@ -53,8 +53,6 @@ class KALMALAGAMEPLAY_API UKalmalaItemCatalogue : public UObject
     GENERATED_BODY()
 
 public:
-    // Defensive ceilings apply even to misconfigured server content.
-    static constexpr int32 MaxDefinitions = 128;
     static constexpr int32 AbsoluteMaxStack = 999;
 
     UPROPERTY(EditDefaultsOnly)

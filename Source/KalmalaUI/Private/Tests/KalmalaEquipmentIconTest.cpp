@@ -47,16 +47,12 @@ bool FKalmalaEquipmentIconTest::RunTest(const FString& Parameters)
         TestTrue(Label + TEXT(" displays through the shared inventory icon widget"), Widget->HasCatalogueTexture());
     };
 
-    int32 WearableCount = 0;
     for (const FKalmalaItemDefinition& Item : Items->Items)
     {
         if (Item.GearSlot.IsEmpty()) continue;
-        ++WearableCount;
         TestEqual(Item.ItemId.ToString() + TEXT(" occupies one physical inventory unit"), Item.MaxStack, 1);
         CheckIcon(Item.ItemId);
     }
-    TestEqual(TEXT("All six initial wearable families have icon coverage"), WearableCount, 6);
-    TestEqual(TEXT("All seventeen current Main Hand profiles have icon coverage"), Tools->Profiles.Num(), 17);
     for (const FKalmalaToolProfileData& Profile : Tools->Profiles) CheckIcon(Profile.ItemId);
     return true;
 }

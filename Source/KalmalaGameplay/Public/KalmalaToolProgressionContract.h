@@ -53,14 +53,12 @@ struct KALMALAGAMEPLAY_API FKalmalaStationAttachmentCandidate
     bool bInitialized = false;
 };
 
-/** Bounded authored progression catalogue for crafted-tool acquisition and same-item upgrades. */
+/** Authored progression catalogue for crafted-tool acquisition and same-item upgrades. */
 class KALMALAGAMEPLAY_API FKalmalaToolProgressionContract
 {
 public:
     /** Stations cannot advance items beyond this level, irrespective of station content. */
     static constexpr int32 MaxStationToolLevel = 10;
-    /** At most 32 profiles each have an acquisition and station steps through level 10. */
-    static constexpr int32 MaxToolProgressionEntries = 32 * MaxStationToolLevel;
     static constexpr int32 MaxStationAttachments = 32;
     static constexpr int32 MaxStationLevel = 2;
     static constexpr float MaxAttachmentDistanceCm = 125.0f;

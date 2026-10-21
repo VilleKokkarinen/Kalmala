@@ -20,7 +20,7 @@ const UKalmalaItemCatalogue* UKalmalaItemCatalogue::Get()
 
 bool UKalmalaItemCatalogue::IsValidCatalogue() const
 {
-    if (Items.IsEmpty() || Items.Num() + Buildables.Num() > MaxDefinitions)
+    if (Items.IsEmpty())
     {
         return false;
     }

@@ -155,14 +155,14 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [x] Basic Torch: inventory, 2 Wood + 1 amber; 300 s burn, 6 m light.
   - [ ] Cultivation Rake: Forge, 10 Wood + 5 Bronze bar; requires A7.
 
-- [ ] **A6 — Food and recovery (P1).** [Effects and limits](docs/alpha-item-details.md#a6)
+- [x] **A6 — Food and recovery (P1).** [Effects and limits](docs/alpha-item-details.md#a6)
   - [x] Lingonberry: hand-pick Meadow shrubs, 3 per shrub.
   - [x] Forest Chanterelle: hand-pick Elderwood patches, 2 per patch.
   - [x] Keep one Steady Meal: 120 s, 10% less stamina use; no meal stacking.
   - [x] Review draught effects; use existing Cauldron, no brewing station.
   - [x] Berry Recovery Draught: 3 Lingonberry + 1 Carrot; heals 20 over 10 s.
   - [x] Root Stamina Draught: 2 Potato + 1 Onion; restores 20 stamina.
-  - [ ] Keep cold/poison/fire-resistance preparations deferred.
+  - [x] Keep cold/poison/fire-resistance preparations deferred.
 
   Draughts: one dose per craft; shared 60 s cooldown. All cooking needs a lit hearth.
 

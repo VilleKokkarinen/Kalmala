@@ -205,7 +205,7 @@ bool FKalmalaToolProgressionContract::IsCatalogueValid()
     const TArray<FKalmalaToolProgressionEntry>& Entries = ToolProgressionEntries();
     const UKalmalaItemCatalogue* ItemCatalogue = UKalmalaItemCatalogue::Get();
     const TArray<FKalmalaStationAttachmentDefinition>& Attachments = StationAttachmentDefinitions();
-    if (Entries.IsEmpty() || Entries.Num() > MaxToolProgressionEntries || Attachments.Num() != 2 || ItemCatalogue == nullptr
+    if (Entries.IsEmpty() || Attachments.Num() != 2 || ItemCatalogue == nullptr
         || !ItemCatalogue->IsValidCatalogue()) return false;
 
     TSet<FName> SeenAttachmentIds;

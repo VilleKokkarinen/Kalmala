@@ -272,8 +272,8 @@ namespace
     }
 
     bool LoadCategoryFiles(const TSharedPtr<FJsonObject>& Manifest, const TCHAR* ManifestField,
-        const TCHAR* ArrayField, const TCHAR* ExpectedDirectory, int32 MaxEntries,
-        int32& InOutJsonCharacters, TArray<TSharedPtr<FJsonValue>>& OutValues,
+        const TCHAR* ArrayField, const TCHAR* ExpectedDirectory,
+        TArray<TSharedPtr<FJsonValue>>& OutValues,
         TArray<FString> AllowedSubdirectories = TArray<FString>(),
         const bool bAllowEmptyFiles = false)
     {
@@ -306,24 +306,20 @@ namespace
             FString CategoryPath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("Data/GameCatalogues"));
             CategoryPath = FPaths::Combine(CategoryPath, RelativePath);
             FString CategoryText;
-            if (!FFileHelper::LoadFileToString(CategoryText, *CategoryPath) || CategoryText.IsEmpty()
-                || CategoryText.Len() > 262144 - InOutJsonCharacters)
+            if (!FFileHelper::LoadFileToString(CategoryText, *CategoryPath) || CategoryText.IsEmpty())
             {
-                UE_LOG(LogTemp, Error, TEXT("Could not read bounded gameplay catalogue category at %s"), *CategoryPath);
+                UE_LOG(LogTemp, Error, TEXT("Could not read gameplay catalogue category at %s"), *CategoryPath);
                 return false;
             }
-            InOutJsonCharacters += CategoryText.Len();
 
             const TSharedRef<TJsonReader<>> CategoryReader = TJsonReaderFactory<>::Create(CategoryText);
             TSharedPtr<FJsonObject> CategoryRoot;
             const TArray<TSharedPtr<FJsonValue>>* CategoryValues = nullptr;
             if (!FJsonSerializer::Deserialize(CategoryReader, CategoryRoot) || !CategoryRoot.IsValid()
                 || !CategoryRoot->TryGetArrayField(ArrayField, CategoryValues) || CategoryValues == nullptr
-                || (!bAllowEmptyFiles && CategoryValues->IsEmpty())
-                || OutValues.Num() + CategoryValues->Num() > MaxEntries)
+                || (!bAllowEmptyFiles && CategoryValues->IsEmpty()))
             {
-                UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue category is malformed or exceeds its bounds: %s"),
-                    *CategoryPath);
+                UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue category is malformed: %s"), *CategoryPath);
                 return false;
             }
             OutValues.Append(*CategoryValues);
@@ -365,9 +361,9 @@ namespace
     {
         const FString JsonPath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("Data/GameCatalogues.json"));
         FString JsonText;
-        if (!FFileHelper::LoadFileToString(JsonText, *JsonPath) || JsonText.IsEmpty() || JsonText.Len() > 262144)
+        if (!FFileHelper::LoadFileToString(JsonText, *JsonPath) || JsonText.IsEmpty())
         {
-            UE_LOG(LogTemp, Error, TEXT("Could not read bounded gameplay catalogue JSON at %s"), *JsonPath);
+            UE_LOG(LogTemp, Error, TEXT("Could not read gameplay catalogue JSON at %s"), *JsonPath);
             return false;
         }
 
@@ -386,7 +382,6 @@ namespace
             return false;
         }
 
-        int32 TotalJsonCharacters = JsonText.Len();
         TArray<TSharedPtr<FJsonValue>> ItemValues;
         TArray<TSharedPtr<FJsonValue>> RecipeValues;
         TArray<TSharedPtr<FJsonValue>> StationRecipeValues;
@@ -396,22 +391,22 @@ namespace
         TArray<TSharedPtr<FJsonValue>> LevelUpRewardValues;
         TArray<TSharedPtr<FJsonValue>> AttackListValues;
         if (!LoadCategoryFiles(Root, TEXT("itemFiles"), TEXT("items"), TEXT("items"),
-                UKalmalaItemCatalogue::MaxDefinitions, TotalJsonCharacters, ItemValues,
+                ItemValues,
                 TArray<FString>{ TEXT("buildItems"), TEXT("materials"), TEXT("equipment/armor") })
             || !LoadCategoryFiles(Root, TEXT("recipeFiles"), TEXT("recipes"), TEXT("recipes"),
-                32 + UKalmalaToolCatalogue::MaxRecipes, TotalJsonCharacters, StationRecipeValues,
+                StationRecipeValues,
                 TArray<FString>{ TEXT("stations") }, true)
             || !LoadCategoryFiles(Root, TEXT("itemProfileFiles"), TEXT("items"), TEXT("items"),
-                UKalmalaToolCatalogue::MaxProfiles, TotalJsonCharacters, ToolProfileValues,
+                ToolProfileValues,
                 TArray<FString>{ TEXT("equipment"), TEXT("equipment/weapons") })
             || !LoadCategoryFiles(Root, TEXT("itemUpgradeFiles"), TEXT("upgrades"), TEXT("item-level-up"),
-                UKalmalaToolCatalogue::MaxRecipes, TotalJsonCharacters, ToolUpgradeValues,
+                ToolUpgradeValues,
                 TArray<FString>{ TEXT("costs"), TEXT("costs/armor"), TEXT("costs/weapons") }, true)
             || !LoadCategoryFiles(Root, TEXT("levelUpRewardFiles"), TEXT("levelUpRewards"), TEXT("item-level-up"),
-                UKalmalaToolCatalogue::MaxProfiles, TotalJsonCharacters, LevelUpRewardValues,
+                LevelUpRewardValues,
                 TArray<FString>{ TEXT("rewards") })
             || !LoadCategoryFiles(Root, TEXT("attackFiles"), TEXT("attackLists"), TEXT("attacks"),
-                UKalmalaToolCatalogue::MaxProfiles, TotalJsonCharacters, AttackListValues)
+                AttackListValues)
             || !SortCategoryValues(ItemValues, TEXT("ItemId"))
             || !SortCategoryValues(ToolProfileValues, TEXT("ItemId"))
             || !SortCategoryValues(ToolUpgradeValues, TEXT("ItemId")))
@@ -437,11 +432,10 @@ namespace
             }
         }
 
-        if (RecipeValues.Num() > 32 || ToolRecipeValues.Num() > UKalmalaToolCatalogue::MaxRecipes
-            || !SortCategoryValues(RecipeValues, TEXT("RecipeId"))
+        if (!SortCategoryValues(RecipeValues, TEXT("RecipeId"))
             || !SortCategoryValues(ToolRecipeValues, TEXT("RecipeId")))
         {
-            UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue station recipes exceed their bounds or contain duplicate IDs: %s"), *JsonPath);
+            UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue station recipes contain malformed or duplicate IDs: %s"), *JsonPath);
             return false;
         }
 

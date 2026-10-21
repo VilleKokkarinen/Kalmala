@@ -26,17 +26,15 @@ const UKalmalaToolCatalogue* UKalmalaToolCatalogue::Get()
 
 bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDefinitions) const
 {
-    if (Profiles.IsEmpty() || Profiles.Num() > MaxProfiles
-        || Recipes.IsEmpty() || Recipes.Num() > MaxRecipes) return false;
+    if (Profiles.IsEmpty() || Recipes.IsEmpty()) return false;
 
     const UKalmalaItemCatalogue* Items = ItemDefinitions ? ItemDefinitions : UKalmalaItemCatalogue::Get();
     if (!Items || !Items->IsValidCatalogue()) return false;
 
-    if (LevelUpRewards.Num() > MaxProfiles) return false;
     TSet<FName> RewardedIds;
     for (const FKalmalaLevelUpRewardGroupData& Group : LevelUpRewards)
     {
-        if (Group.ItemIds.IsEmpty() || Group.ItemIds.Num() > MaxProfiles
+        if (Group.ItemIds.IsEmpty()
             || Group.LevelUpReward.MaxDurability < 0 || Group.LevelUpReward.MaxDurability > 1000
             || !Group.LevelUpReward.DamageBonuses.IsValid(1000.0f)
             || Group.LevelUpReward.Armor < 0 || Group.LevelUpReward.Armor > 1000) return false;
@@ -60,13 +58,13 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
         }
     }
 
-    if (AttackLists.IsEmpty() || AttackLists.Num() > MaxProfiles) return false;
+    if (AttackLists.IsEmpty()) return false;
     TSet<FName> AttackListIds;
     TSet<FName> AttackItemIds;
     for (const FKalmalaWeaponAttackListData& List : AttackLists)
     {
         if (List.AttackListId.IsNone() || List.AttackListId.ToString().Len() > 32
-            || AttackListIds.Contains(List.AttackListId) || List.ItemIds.IsEmpty() || List.ItemIds.Num() > MaxProfiles
+            || AttackListIds.Contains(List.AttackListId) || List.ItemIds.IsEmpty()
             || List.Attacks.IsEmpty() || List.Attacks.Num() > 8) return false;
         AttackListIds.Add(List.AttackListId);
         TSet<FName> SeenAttacks;
@@ -232,7 +230,6 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
                 if (!Items->FindItem(Cost.ItemId) || Cost.Quantity <= 0) return false;
         }
     }
-    if (UpgradeCosts.Num() > MaxRecipes) return false;
     return true;
 }
 

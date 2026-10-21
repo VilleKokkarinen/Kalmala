@@ -14,29 +14,50 @@ bool FKalmalaEquipmentSaveTest::RunTest(const FString& Parameters)
 {
     const UKalmalaToolCatalogue* Tools = UKalmalaToolCatalogue::Get();
     if (!TestNotNull(TEXT("Equipment profiles load"), Tools)) return false;
-    if (!TestEqual(TEXT("Fixture covers all current Main Hand profiles"), Tools->Profiles.Num(), 17)) return false;
+    if (!TestTrue(TEXT("At least one equipment profile is available"), !Tools->Profiles.IsEmpty())) return false;
 
     FKalmalaWorldGenerationConfig World;
     World.WorldSeed = 418;
     const FString Owner(TEXT("provider:equipment-save-owner"));
     auto* Save = NewObject<UKalmalaPlayerDiscoverySaveGameV2>();
     Save->InitializeForPlayer(World, Owner);
-    TArray<FKalmalaPlayerToolSaveRecord> Expected;
+
     for (const FKalmalaToolProfileData& Profile : Tools->Profiles)
     {
-        // Same-item copies must retain independent GUIDs, progression and wear.
-        for (const int32 Level : {1, 20})
+        for (int32 Level = 1; Level <= 20; Level += 19)
         {
             const int32 Maximum = FKalmalaToolLifecycleContract::GetMaxDurability(Profile.ItemId, Level);
-            if (!TestTrue(Profile.ItemId.ToString() + TEXT(" has authored durability"), Maximum > 0)) return false;
+            if (!TestTrue(Profile.ItemId.ToString() + FString::Printf(TEXT(" has authored level-%d durability"), Level),
+                Maximum > 0)) return false;
             FKalmalaPlayerToolSaveRecord Record;
             Record.ItemId = Profile.ItemId;
             Record.ToolLevel = Level;
-            Record.Condition = Level == 1 ? Maximum : 0;
+            Record.Condition = Maximum;
             Record.InstanceGuid = FGuid::NewGuid();
-            Expected.Add(Record);
+            TArray<FKalmalaPlayerToolSaveRecord> SingleRecord;
+            SingleRecord.Add(Record);
+            if (!TestTrue(Profile.ItemId.ToString() + FString::Printf(TEXT(" saves at level %d"), Level),
+                Save->TryReplaceToolRecords(SingleRecord))) return false;
         }
     }
+
+    TArray<FKalmalaPlayerToolSaveRecord> Expected;
+    const int32 SaveCapacity = UKalmalaPlayerDiscoverySaveGameV2::MaxInventorySlots;
+    for (int32 SlotIndex = 0; SlotIndex < SaveCapacity; ++SlotIndex)
+    {
+        const FKalmalaToolProfileData& Profile = Tools->Profiles[SlotIndex % Tools->Profiles.Num()];
+        const int32 Level = SlotIndex < SaveCapacity / 2 ? 1 : 20;
+        const int32 Maximum = FKalmalaToolLifecycleContract::GetMaxDurability(Profile.ItemId, Level);
+        if (!TestTrue(Profile.ItemId.ToString() + FString::Printf(TEXT(" has authored level-%d durability"), Level),
+            Maximum > 0)) return false;
+        FKalmalaPlayerToolSaveRecord Record;
+        Record.ItemId = Profile.ItemId;
+        Record.ToolLevel = Level;
+        Record.Condition = Level == 1 ? Maximum : 0;
+        Record.InstanceGuid = FGuid::NewGuid();
+        Expected.Add(Record);
+    }
+    TestEqual(TEXT("Fixture fills the equipment save capacity"), Expected.Num(), SaveCapacity);
     if (!TestTrue(TEXT("All physical equipment copies fit the existing format"),
         Save->TryReplaceToolRecords(Expected))) return false;
 

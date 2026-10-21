@@ -111,6 +111,7 @@ bool FKalmalaBiomeContentContractTest::RunTest(const FString& Parameters)
     bool bSawWildRutabagaDescriptor = false;
     bool bSawWildOnionDescriptor = false;
     bool bSawWildChanterelleDescriptor = false;
+    bool bSawWildLingonberryDescriptor = false;
     bool bSawCopperOreDescriptor = false;
     bool bSawTinOreDescriptor = false;
     bool bSawStoneOutcropMeadows = false;
@@ -199,6 +200,7 @@ bool FKalmalaBiomeContentContractTest::RunTest(const FString& Parameters)
     {
         return bSawGatheringDescriptor && bSawWildCarrotDescriptor && bSawWildPotatoDescriptor
             && bSawWildRutabagaDescriptor && bSawWildOnionDescriptor && bSawWildChanterelleDescriptor
+            && bSawWildLingonberryDescriptor
             && bSawCopperOreDescriptor && bSawTinOreDescriptor
             && bSawStoneOutcropMeadows && bSawStoneOutcropLakes && bSawStoneOutcropElderwood
             && bSawStoneOutcropMire && bSawStoneOutcropTundra && bSawStoneOutcropMountains
@@ -395,6 +397,24 @@ bool FKalmalaBiomeContentContractTest::RunTest(const FString& Parameters)
                             bSawWildChanterelleDescriptor = true;
                             continue;
                         }
+                        if (Spawn.ContentId == TEXT("meadows-wild-lingonberry-shrub"))
+                        {
+                            TestEqual(TEXT("Wild lingonberry source is only selected for Meadows"), Biome, EKalmalaBiome::Meadows);
+                            TestTrue(TEXT("Wild lingonberry source is a hand-gatherable harvest node"),
+                                Kind == EKalmalaWorldPopulationKind::HarvestNode
+                                    && FKalmalaBiomeContentContract::IsHandGatherableSourceId(Spawn.ContentId));
+                            const auto RepeatedSpawns = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(Config, SpatialKey, Kind);
+                            const FString PersistentId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Spawn);
+                            TestTrue(TEXT("Wild lingonberry placement and identity repeat for the same seed and key"),
+                                RepeatedSpawns.ContainsByPredicate([&Spawn, &PersistentId](const FKalmalaWorldPopulationSpawn& Candidate)
+                                {
+                                    return Candidate.ContentId == Spawn.ContentId
+                                        && Candidate.Location.Equals(Spawn.Location, 0.01f)
+                                        && FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Candidate) == PersistentId;
+                                }));
+                            bSawWildLingonberryDescriptor = true;
+                            continue;
+                        }
                         const EKalmalaBiomeContentKind ContentKind = Kind == EKalmalaWorldPopulationKind::HarvestNode
                             ? EKalmalaBiomeContentKind::GatheringSource
                             : EKalmalaBiomeContentKind::CreatureNiche;
@@ -426,6 +446,7 @@ bool FKalmalaBiomeContentContractTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("The deterministic neighborhood exposes the A0 wild rutabaga source"), bSawWildRutabagaDescriptor);
     TestTrue(TEXT("The deterministic neighborhood exposes the A0 wild onion source"), bSawWildOnionDescriptor);
     TestTrue(TEXT("The deterministic neighborhood exposes the A6 wild chanterelle source"), bSawWildChanterelleDescriptor);
+    TestTrue(TEXT("The deterministic neighborhood exposes the Meadow lingonberry source"), bSawWildLingonberryDescriptor);
     TestTrue(TEXT("The deterministic neighborhood exposes an Elderwood copper node"), bSawCopperOreDescriptor);
     TestTrue(TEXT("The deterministic neighborhood exposes a dry Shimmering Lakes tin node"), bSawTinOreDescriptor);
     TestTrue(TEXT("The deterministic neighborhood exposes a creature niche identity"), bSawCreatureDescriptor);

@@ -112,7 +112,7 @@ function Invoke-InventoryContractChecks {
         @{
             Path = 'Source\KalmalaUI\Private\Tests\KalmalaEquipmentIconTest.cpp'
             Automation = 'Kalmala.UI.CatalogueIcons.EquipmentCoverage'
-            Assertions = @('All six initial wearable families have icon coverage', 'All seventeen current Main Hand profiles have icon coverage')
+            Assertions = @('CheckIcon(Item.ItemId);', 'for (const FKalmalaToolProfileData& Profile : Tools->Profiles) CheckIcon(Profile.ItemId);')
         },
         @{
             Path = 'Source\KalmalaUI\Private\Tests\KalmalaStatusHotbarTest.cpp'

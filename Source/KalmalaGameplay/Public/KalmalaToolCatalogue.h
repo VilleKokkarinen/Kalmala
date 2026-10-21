@@ -162,9 +162,7 @@ class KALMALAGAMEPLAY_API UKalmalaToolCatalogue : public UObject
     GENERATED_BODY()
 
 public:
-    static constexpr int32 MaxProfiles = 32;
     static constexpr int32 MaxLevels = FKalmalaToolLifecycleContract::MaxToolLevel;
-    static constexpr int32 MaxRecipes = 32;
     static constexpr int32 MaxIngredientsPerRecipe = 4;
 
     UPROPERTY(EditDefaultsOnly)
