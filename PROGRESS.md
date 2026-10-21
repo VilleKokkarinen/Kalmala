@@ -5029,10 +5029,13 @@
   remain absent from the committed A8a runtime; each material and dependent
   output stays incomplete until its named enemy has an accepted server-side
   source.
-- **Integration state:** committed handoff remains on codex/a8b-items in
-  E:\dev\Kalmala\.wt\a8b. Main has unrelated changes and the equipment
-  automation is active, so master integration and BACKLOG/PROGRESS
-  synchronization remain pending.
+- **Integration state:** master commit 51f6519, which updated the A8a roster
+  backlog, was merged into codex/a8b-items as e6d8f72. The BACKLOG conflict
+  kept the committed A8a wording and this branch's completed A8b contract.
+  A8b commit 4a6143c is not yet integrated into master. Main still has unrelated
+  changes and an active equipment run, so master integration and
+  BACKLOG/PROGRESS synchronization remain pending; the user directed the
+  eventual master integration at the end of the A8b work.
 - **Next eligible task:** Rat Tail material/source/JSON/icon after Rat exists
   in the accepted A8a runtime. Recheck all sources before selecting it.
-  Current run time: 2026-10-21 18:39 UTC.
+  Current run time: 2026-10-21 18:43 UTC.
