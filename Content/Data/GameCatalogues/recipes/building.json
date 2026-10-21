@@ -320,6 +320,23 @@
       "ExperienceSkill": "None",
       "ExperienceAward": 0,
       "bEnabled": true
+    },
+    {
+      "RecipeId": "TimberBeam",
+      "DisplayName": "Timber Beam",
+      "Ingredients": [
+        {
+          "ItemId": "Wood",
+          "Quantity": 2
+        }
+      ],
+      "Output": "TimberBeam",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "RequiredStation": [],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
     }
   ]
 }

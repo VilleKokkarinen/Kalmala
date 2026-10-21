@@ -31,6 +31,12 @@
       "MaxStack": 1
     },
     {
+      "ItemId": "TimberBeam",
+      "DisplayName": "Timber Beam",
+      "Description": "A squared timber beam that braces supported shelter endpoints.",
+      "MaxStack": 1
+    },
+    {
       "ItemId": "Roof",
       "DisplayName": "Reed Roof",
       "Description": "A reed roof that shields a small camp from rain.",

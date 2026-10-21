@@ -2,7 +2,7 @@
 
 ## No portable construction items — 2026-10-18
 
-All 17 placed objects use direct materials through the Building Hammer. The
+All 18 placed objects use direct materials through the Building Hammer. The
 remaining Chest, Cooking Rack, Cauldron and Frying Pan kit paths are removed.
 Frying Pan now needs 5 Iron at placement, with no Forge crafting step; all
 other authored costs and station-attachment proximity checks remain intact.
@@ -57,6 +57,22 @@ open doors do not. `Kalmala.Gameplay.Construction.Schema6CurrentFormat` covers
 saved door state and exact wall-record replacement. The icon check is
 `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id TimberDoorKit`.
 Rendered placement, interaction, and peer replication acceptance remain pending.
+
+A8 Timber Beam is a direct 2 Wood Hammer buildable with a 2 m length and 15 cm
+square section. Aim near an existing structural endpoint and look level for a
+horizontal span; both ends must rest on level terrain or meet an existing
+structural endpoint. Look at least 60 degrees up or down for a vertical post;
+its lower end must rest on ground or a supported endpoint. Structural endpoints
+come from placed floors, walls, Timber Doors, roofs, and beams. The beam uses
+the Wall-category health and rain-wear rules without acting as a windbreak.
+Placement is rechecked by the server and the snapped transform uses the existing
+schema-6 construction record. There is no inventory Timber Beam item or portable kit.
+The focused `Kalmala.Gameplay.Construction.LocalPreview` regression covers its
+buildable/recipe identity, 2 Wood cost, dimensions, cardinal orientations, and
+schema-6 record; the full I4 build, construction automations, and peer/rendered
+acceptance remain deferred to milestone-final verification. Its icon uses
+isolated batch AD and `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id
+TimberBeamKit`; provenance is retained in `docs/timber-beam-icon.md`.
 
 The focused live acceptance runner is
 `Scripts/Tests/Construction/Verify-GardenPlot.ps1 -Project <isolated Kalmala.uproject>`.

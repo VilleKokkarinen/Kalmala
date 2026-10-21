@@ -7,6 +7,237 @@
 #include "KalmalaConstructionActor.h"
 #include "KalmalaBiomeClassifier.h"
 #include "GameFramework/Pawn.h"
+#include "EngineUtils.h"
+
+namespace
+{
+    constexpr float TimberBeamHalfLength = 100.0f;
+    constexpr float TimberBeamHalfWidth = 7.5f;
+    constexpr float StructuralEndpointTolerance = 22.0f;
+
+    bool TraceTerrainSupport(const UWorld* World, const APawn* Pawn, const FVector& Point, FHitResult& OutHit)
+    {
+        if (!World || !Pawn || Point.ContainsNaN()) return false;
+        FCollisionQueryParams Query(SCENE_QUERY_STAT(TimberBeamGroundSupport), false, Pawn);
+        for (TActorIterator<AKalmalaConstructionActor> It(World); It; ++It)
+            Query.AddIgnoredActor(*It);
+        return World->LineTraceSingleByChannel(OutHit, Point + FVector(0.0f, 0.0f, 500.0f),
+                Point - FVector(0.0f, 0.0f, 1500.0f), ECC_Visibility, Query)
+            && Cast<AKalmalaGeneratedTerrainPatch>(OutHit.GetActor()) != nullptr;
+    }
+
+    AKalmalaConstructionActor* FindStructuralEndpointSupport(const UWorld* World, const FVector& Endpoint)
+    {
+        if (!World || Endpoint.ContainsNaN()) return nullptr;
+        for (TActorIterator<AKalmalaConstructionActor> It(World); It; ++It)
+        {
+            AKalmalaConstructionActor* Construction = *It;
+            if (!IsValid(Construction) || Construction->GetWorld() != World
+                || !AKalmalaConstructionActor::IsStructuralEndpointKit(Construction->GetConstructionKit())) continue;
+            TArray<FVector> Endpoints;
+            AKalmalaConstructionActor::GetStructuralEndpoints(Construction, Endpoints);
+            if (Endpoints.ContainsByPredicate([&Endpoint](const FVector& Candidate)
+                { return FVector::DistSquared(Candidate, Endpoint) <= FMath::Square(StructuralEndpointTolerance); }))
+                return Construction;
+        }
+        return nullptr;
+    }
+
+    bool IsSupportedBeamEndpoint(const UWorld* World, const APawn* Pawn, const FVector& Endpoint,
+        AKalmalaConstructionActor*& OutConstructionSupport, AActor*& OutGroundSupport)
+    {
+        OutConstructionSupport = nullptr;
+        OutGroundSupport = nullptr;
+        FHitResult GroundHit;
+        if (TraceTerrainSupport(World, Pawn, Endpoint, GroundHit)
+            && FMath::Abs(GroundHit.ImpactPoint.Z - Endpoint.Z) <= StructuralEndpointTolerance)
+        {
+            OutGroundSupport = GroundHit.GetActor();
+            return true;
+        }
+        OutConstructionSupport = FindStructuralEndpointSupport(World, Endpoint);
+        return OutConstructionSupport != nullptr;
+    }
+
+    void AddUniqueSupportActor(TArray<AActor*>& Supports, AActor* Actor)
+    {
+        if (IsValid(Actor)) Supports.AddUnique(Actor);
+    }
+
+    FKalmalaPlacementPreview EvaluateTimberBeam(const UWorld* World, const APawn* Pawn)
+    {
+        FKalmalaPlacementPreview Result;
+        Result.Message = TEXT("Preview invalid: place a Timber Beam on ground or at supported endpoints");
+        if (!World || !Pawn || Pawn->GetActorLocation().ContainsNaN())
+        {
+            Result.Message = TEXT("Preview unavailable: waiting for local terrain");
+            return Result;
+        }
+
+        const FRotator ViewRotation = Pawn->GetViewRotation();
+        if (ViewRotation.ContainsNaN()) return Result;
+        Result.Rotation = FKalmalaPlacementPreview::GetTimberBeamPlacementRotation(ViewRotation);
+        const bool bVertical = Result.Rotation.Pitch != 0.0f;
+        const FVector Axis = Result.Rotation.Vector().GetSafeNormal();
+        const FVector GroundProbe = Pawn->GetActorLocation()
+            + FRotator(0.0f, Pawn->GetActorRotation().Yaw, 0.0f).Vector() * 165.0f;
+        const FVector ViewLocation = Pawn->GetPawnViewLocation();
+        const FVector ViewDirection = ViewRotation.Vector();
+        if (GroundProbe.ContainsNaN() || ViewLocation.ContainsNaN() || ViewDirection.ContainsNaN()) return Result;
+
+        TArray<AActor*> SupportActors;
+        FCollisionQueryParams TargetQuery(SCENE_QUERY_STAT(TimberBeamTarget), false, Pawn);
+        FHitResult TargetHit;
+        const bool bHitTarget = World->LineTraceSingleByChannel(TargetHit, ViewLocation,
+            ViewLocation + ViewDirection * 250.0f, ECC_Visibility, TargetQuery);
+        AKalmalaConstructionActor* Anchor = bHitTarget
+            ? Cast<AKalmalaConstructionActor>(TargetHit.GetActor()) : nullptr;
+        const bool bStructuralTarget = IsValid(Anchor) && Anchor->GetWorld() == World
+            && !Anchor->GetConstructionId().IsEmpty()
+            && AKalmalaConstructionActor::IsStructuralEndpointKit(Anchor->GetConstructionKit());
+
+        if (bStructuralTarget)
+        {
+            TArray<FVector> Endpoints;
+            AKalmalaConstructionActor::GetStructuralEndpoints(Anchor, Endpoints);
+            int32 NearestIndex = INDEX_NONE;
+            float NearestDistanceSquared = TNumericLimits<float>::Max();
+            for (int32 Index = 0; Index < Endpoints.Num(); ++Index)
+            {
+                const float DistanceSquared = FVector::DistSquared(Endpoints[Index], TargetHit.ImpactPoint);
+                if (DistanceSquared < NearestDistanceSquared)
+                {
+                    NearestDistanceSquared = DistanceSquared;
+                    NearestIndex = Index;
+                }
+            }
+            if (NearestIndex == INDEX_NONE || NearestDistanceSquared > FMath::Square(65.0f))
+            {
+                Result.Message = TEXT("Preview invalid: aim near a structural endpoint");
+                return Result;
+            }
+
+            const FVector AnchorPoint = Endpoints[NearestIndex];
+            AddUniqueSupportActor(SupportActors, Anchor);
+            if (bVertical)
+            {
+                AKalmalaConstructionActor* ConstructionSupport = nullptr;
+                AActor* GroundSupport = nullptr;
+                if (!IsSupportedBeamEndpoint(World, Pawn, AnchorPoint, ConstructionSupport, GroundSupport))
+                {
+                    Result.Message = TEXT("Preview invalid: the vertical beam needs a supported lower endpoint");
+                    return Result;
+                }
+                AddUniqueSupportActor(SupportActors, ConstructionSupport);
+                AddUniqueSupportActor(SupportActors, GroundSupport);
+                Result.Location = AnchorPoint + FVector(0.0f, 0.0f, TimberBeamHalfLength);
+            }
+            else
+            {
+                const FVector Start = AnchorPoint + FVector(0.0f, 0.0f, TimberBeamHalfWidth);
+                bool bFoundSupportedSpan = false;
+                for (const float Sign : {1.0f, -1.0f})
+                {
+                    const FVector End = Start + Axis * (TimberBeamHalfLength * 2.0f * Sign);
+                    AKalmalaConstructionActor* StartConstruction = nullptr;
+                    AKalmalaConstructionActor* EndConstruction = nullptr;
+                    AActor* StartGround = nullptr;
+                    AActor* EndGround = nullptr;
+                    if (!IsSupportedBeamEndpoint(World, Pawn, Start, StartConstruction, StartGround)
+                        || !IsSupportedBeamEndpoint(World, Pawn, End, EndConstruction, EndGround)) continue;
+                    if (Sign < 0.0f) Result.Rotation.Yaw = FRotator::NormalizeAxis(Result.Rotation.Yaw + 180.0f);
+                    Result.Location = (Start + End) * 0.5f;
+                    AddUniqueSupportActor(SupportActors, StartConstruction);
+                    AddUniqueSupportActor(SupportActors, EndConstruction);
+                    AddUniqueSupportActor(SupportActors, StartGround);
+                    AddUniqueSupportActor(SupportActors, EndGround);
+                    bFoundSupportedSpan = true;
+                    break;
+                }
+                if (!bFoundSupportedSpan)
+                {
+                    Result.Message = TEXT("Preview invalid: both horizontal beam endpoints need ground or structural support");
+                    return Result;
+                }
+            }
+        }
+        else
+        {
+            FHitResult GroundHit;
+            if (bVertical)
+            {
+                if (!TraceTerrainSupport(World, Pawn, GroundProbe, GroundHit)
+                    || GroundHit.ImpactNormal.Z < 0.85f)
+                {
+                    Result.Message = TEXT("Preview invalid: vertical beams need firm, level ground");
+                    return Result;
+                }
+                Result.Location = GroundHit.ImpactPoint + FVector(0.0f, 0.0f, TimberBeamHalfLength);
+                AddUniqueSupportActor(SupportActors, GroundHit.GetActor());
+            }
+            else
+            {
+                FHitResult StartGround;
+                FHitResult EndGround;
+                const FVector StartProbe = GroundProbe - Axis * TimberBeamHalfLength;
+                const FVector EndProbe = GroundProbe + Axis * TimberBeamHalfLength;
+                if (!TraceTerrainSupport(World, Pawn, StartProbe, StartGround)
+                    || !TraceTerrainSupport(World, Pawn, EndProbe, EndGround)
+                    || StartGround.ImpactNormal.Z < 0.85f || EndGround.ImpactNormal.Z < 0.85f
+                    || FMath::Abs(StartGround.ImpactPoint.Z - EndGround.ImpactPoint.Z) > 30.0f)
+                {
+                    Result.Message = TEXT("Preview invalid: both horizontal beam ends need level ground or structural support");
+                    return Result;
+                }
+                Result.Location = (StartGround.ImpactPoint + EndGround.ImpactPoint) * 0.5f
+                    + FVector(0.0f, 0.0f, TimberBeamHalfWidth);
+                AddUniqueSupportActor(SupportActors, StartGround.GetActor());
+                AddUniqueSupportActor(SupportActors, EndGround.GetActor());
+            }
+        }
+
+        const auto* State = World->GetGameState<AKalmalaWorldGenerationGameState>();
+        if (!State || !State->GetWorldGenerationConfig().IsValid()) return Result;
+        const auto& Config = State->GetWorldGenerationConfig();
+        const FVector2D Surface(Result.Location);
+        if (!FKalmalaWorldBounds::Contains(Config, Surface, 300))
+        {
+            Result.Message = TEXT("Too close to the world edge");
+            return Result;
+        }
+        if (FKalmalaOceanSampler::Sample(Config, Surface).IsWater()
+            || FKalmalaShimmeringLakeSampler::IsWater(Config, Surface)
+            || FKalmalaRegionalGeneration::Sample(Config, Surface).bHasWater)
+        {
+            Result.Message = TEXT("Preview invalid: dry ground or a supported structure is required");
+            return Result;
+        }
+
+        FCollisionQueryParams OverlapQuery(SCENE_QUERY_STAT(TimberBeamPlacement), false, Pawn);
+        for (AActor* Support : SupportActors) OverlapQuery.AddIgnoredActor(Support);
+        const FCollisionShape BeamShape = FCollisionShape::MakeBox(
+            FVector(TimberBeamHalfLength, TimberBeamHalfWidth, TimberBeamHalfWidth));
+        if (World->OverlapBlockingTestByChannel(Result.Location, Result.Rotation.Quaternion(), ECC_Pawn,
+            BeamShape, OverlapQuery))
+        {
+            Result.Message = TEXT("Preview invalid: clear more space around the Timber Beam");
+            return Result;
+        }
+        Result.bIsValid = true;
+        Result.Message = bVertical
+            ? TEXT("Preview valid: vertical beam snaps to a supported lower endpoint")
+            : TEXT("Preview valid: horizontal beam snaps between supported endpoints");
+        return Result;
+    }
+}
+
+FRotator FKalmalaPlacementPreview::GetTimberBeamPlacementRotation(const FRotator ViewRotation)
+{
+    if (ViewRotation.ContainsNaN()) return FRotator::ZeroRotator;
+    const bool bVertical = FMath::Abs(ViewRotation.Pitch) >= 60.0f;
+    const float SnappedYaw = static_cast<float>(FMath::RoundToInt(ViewRotation.Yaw / 90.0f) * 90);
+    return FRotator(bVertical ? 90.0f : 0.0f, SnappedYaw, 0.0f);
+}
 
 bool FKalmalaPlacementPreview::IsSupportedKit(const FName ItemId)
 {
@@ -16,7 +247,7 @@ bool FKalmalaPlacementPreview::IsSupportedKit(const FName ItemId)
         || ItemId == TEXT("CookingRackKit") || ItemId == TEXT("CauldronKit") || ItemId == TEXT("FryingPanKit")
         || ItemId == TEXT("WorkbenchToolRackKit") || ItemId == TEXT("ForgeAnvilKit") || ItemId == TEXT("GrindingStoneKit")
         || ItemId == TEXT("FloorKit") || ItemId == TEXT("WallKit") || ItemId == TEXT("RoofKit")
-        || ItemId == TEXT("GardenPlotKit") || ItemId == TEXT("TimberDoorKit");
+        || ItemId == TEXT("GardenPlotKit") || ItemId == TEXT("TimberDoorKit") || ItemId == TEXT("TimberBeamKit");
 }
 
 bool FKalmalaPlacementPreview::IsGardenPlotGroundAllowed(const EKalmalaBiome Biome, const float SurfaceNormalZ)
@@ -37,7 +268,9 @@ FKalmalaPlacementPreview FKalmalaPlacementPreview::Evaluate(const UWorld* World,
 {
     FKalmalaPlacementPreview Result;
     Result.Message = TEXT("Preview: select a camp or construction object");
+    if (ItemId == TEXT("TimberBeamKit")) return EvaluateTimberBeam(World, Pawn);
     if (!IsSupportedKit(ItemId)) return Result;
+    if (Pawn) Result.Rotation = FRotator(0.0f, Pawn->GetActorRotation().Yaw, 0.0f);
     Result.Message = TEXT("Preview unavailable: waiting for local terrain");
     if (!World || !Pawn || Pawn->GetActorLocation().ContainsNaN()) return Result;
     if (ItemId == TEXT("TimberDoorKit"))

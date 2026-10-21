@@ -92,3 +92,4 @@ image_batch,import_batch,canonical_id,art_subject,identity_kind,catalogue_aliase
 45,AA,PlantingTrowel,wood-handled bronze planting trowel,tool,none,PlantingTrowel,CarriedTool;ToolDetail;RecipeResult,carried_tool,
 46,AB,GardenPlotKit,empty timber-edged tilled garden bed,buildable,GardenPlot,GardenPlot,BuildMenu;PlacementPreview;ResultPreview,none,
 47,AC,TimberDoorKit,framed timber doorway replacing one wall segment,buildable,TimberDoor,TimberDoor,BuildMenu;PlacementPreview;ResultPreview,none,
+48,AD,TimberBeamKit,squared timber beam with supported endpoints,buildable,TimberBeam,TimberBeam,BuildMenu;PlacementPreview;ResultPreview,none,TimberBeamKit

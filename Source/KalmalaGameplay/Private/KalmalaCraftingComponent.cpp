@@ -557,7 +557,7 @@ bool UKalmalaCraftingComponent::PlaceConstructionFromServer(const FName Buildabl
             BuildableId, NearbyStation ? NearbyStation->GetConstructionKit() : NAME_None,
             StationDistance, true, bAlreadyUpgraded, Reason)) return false;
     }
-    const FRotator Rotation(0.0f, Character->GetActorRotation().Yaw, 0.0f);
+    const FRotator Rotation = Preview.Rotation;
     if (Rotation.ContainsNaN()) { Reason = TEXT("Invalid placement rotation"); return false; }
     TArray<FKalmalaInventoryStack> Cost;
     if (!UKalmalaRecipeCatalogue::BuildDirectMaterialCost(BuildableId, Cost, Reason)) return false;

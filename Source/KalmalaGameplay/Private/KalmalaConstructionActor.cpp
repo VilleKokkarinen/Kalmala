@@ -233,6 +233,7 @@ void AKalmalaConstructionActor::AdvanceRainWearFromServer(const float DeltaSecon
         || !FMath::IsFinite(Precipitation) || Precipitation <= 0.0f
         || (ConstructionKit != TEXT("FloorKit") && ConstructionKit != TEXT("WallKit")
             && ConstructionKit != TEXT("TimberDoorKit")
+            && ConstructionKit != TEXT("TimberBeamKit")
             && ConstructionKit != TEXT("WorkbenchKit") && ConstructionKit != TEXT("StorageKit"))) return;
     const FVector Start = Collision->GetComponentLocation() + FVector(0, 0, 60);
     if (Start.ContainsNaN()) return;
@@ -279,11 +280,45 @@ bool AKalmalaConstructionActor::IsStorageKit(const FName KitId)
     return KitId == TEXT("StorageKit");
 }
 
+bool AKalmalaConstructionActor::IsStructuralEndpointKit(const FName KitId)
+{
+    return KitId == TEXT("FloorKit") || KitId == TEXT("WallKit") || KitId == TEXT("TimberDoorKit")
+        || KitId == TEXT("RoofKit") || KitId == TEXT("TimberBeamKit");
+}
+
+void AKalmalaConstructionActor::GetStructuralEndpoints(const AKalmalaConstructionActor* Construction,
+    TArray<FVector>& OutEndpoints)
+{
+    if (!IsValid(Construction) || Construction->GetConstructionId().IsEmpty()) return;
+    const FName KitId = Construction->GetConstructionKit();
+    const FTransform Transform = Construction->GetActorTransform();
+    if (KitId == TEXT("TimberBeamKit"))
+    {
+        OutEndpoints.Add(Transform.TransformPosition(FVector(-100.0f, 0.0f, 0.0f)));
+        OutEndpoints.Add(Transform.TransformPosition(FVector(100.0f, 0.0f, 0.0f)));
+    }
+    else if (KitId == TEXT("FloorKit") || KitId == TEXT("RoofKit"))
+    {
+        const float HalfSize = KitId == TEXT("FloorKit") ? 120.0f : 132.0f;
+        const float Top = GetCollisionExtent(KitId).Z;
+        for (const float X : {-HalfSize, HalfSize})
+            for (const float Y : {-HalfSize, HalfSize})
+                OutEndpoints.Add(Transform.TransformPosition(FVector(X, Y, Top)));
+    }
+    else if (KitId == TEXT("WallKit") || KitId == TEXT("TimberDoorKit"))
+    {
+        for (const float X : {-120.0f, 120.0f})
+            for (const float Z : {-110.0f, 110.0f})
+                OutEndpoints.Add(Transform.TransformPosition(FVector(X, 0.0f, Z)));
+    }
+}
+
 FVector AKalmalaConstructionActor::GetCollisionExtent(const FName KitId)
 {
     if (KitId == TEXT("FloorKit")) return FVector(120, 120, 12);
     if (KitId == TEXT("WallKit")) return FVector(120, 12, 110);
     if (KitId == TEXT("TimberDoorKit")) return FVector(120, 12, 110);
+    if (KitId == TEXT("TimberBeamKit")) return FVector(100, 7.5f, 7.5f);
     if (KitId == TEXT("RoofKit")) return FVector(132, 132, 16);
     if (KitId == TEXT("CharcoalKilnKit")) return FVector(60, 60, 62);
     if (KitId == TEXT("SmelterKit")) return FVector(60, 60, 82);
@@ -396,6 +431,8 @@ void AKalmalaConstructionActor::BuildPiecePresentation()
         AddBox(Vertices, Triangles, FVector(55, 0, 0), FVector(5, 16, 110));
         AddBox(Vertices, Triangles, FVector(0, 0, 105), FVector(50, 16, 5));
     }
+    else if (ConstructionKit == TEXT("TimberBeamKit"))
+        AddBox(Vertices, Triangles, FVector::ZeroVector, GetCollisionExtent(ConstructionKit));
     else if (ConstructionKit == TEXT("FloorKit") || IsShelterKit(ConstructionKit))
         AddBox(Vertices, Triangles, FVector::ZeroVector, GetCollisionExtent(ConstructionKit));
     else if (ConstructionKit == TEXT("CookingRackKit"))

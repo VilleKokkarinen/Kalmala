@@ -45,6 +45,8 @@ public:
     static bool IsShelterKit(FName KitId);
     static bool IsCraftingStationKit(FName KitId);
     static bool IsStorageKit(FName KitId);
+    static bool IsStructuralEndpointKit(FName KitId);
+    static void GetStructuralEndpoints(const AKalmalaConstructionActor* Construction, TArray<FVector>& OutEndpoints);
     static FVector GetCollisionExtent(FName KitId);
     /** Advisory on clients; every mutation separately requires server authority. */
     bool CanUse(const AKalmalaCharacter* Character) const;
