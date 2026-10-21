@@ -8,6 +8,16 @@
       "MaxDurability": 100,
       "DamageBonuses": {},
       "DrawDuration": 1.5
+    },
+    {
+      "ItemId": "LightBow",
+      "DisplayName": "Light Bow",
+      "Description": "A lightwood bow with a quick, balanced draw.",
+      "WeightKg": 1.5,
+      "twoHanded": true,
+      "MaxDurability": 140,
+      "DamageBonuses": {},
+      "DrawDuration": 2.0
     }
   ]
 }

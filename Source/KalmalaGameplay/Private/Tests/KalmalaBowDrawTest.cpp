@@ -54,7 +54,7 @@ bool FKalmalaBowDrawTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Held hammer cannot attack"), Combat->GetActionSerial(), uint32(0));
     auto& Tools = const_cast<TArray<FKalmalaToolState>&>(Pawn->GetCarriedToolInventory());
     FKalmalaToolState Bow;
-    Bow.ItemId = TEXT("Bow"); Bow.InstanceGuid = FGuid::NewGuid(); Bow.Durability = 100; Bow.ToolLevel = 1;
+    Bow.ItemId = TEXT("LightBow"); Bow.InstanceGuid = FGuid::NewGuid(); Bow.Durability = 140; Bow.ToolLevel = 1;
     Tools.Add(Bow); Inventory->SynchronizeGridFromServer();
     FString Reason;
     TestTrue(TEXT("Bow equips"), Inventory->SetMainHandFromServer(Bow.InstanceGuid, Reason));
@@ -67,19 +67,19 @@ bool FKalmalaBowDrawTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Inventory unit selection resolves the exact arrow stack"), Combat->GetPreferredArrowStack(), Preferred);
     Combat->ServerPreferArrowStack(FGuid::NewGuid());
     TestEqual(TEXT("Forged stack request does not change preference"), Combat->GetPreferredArrowStack(), Preferred);
-    TestEqual(TEXT("Draw duration loads from catalogue"), Combat->GetBowDrawDuration(), 1.5f);
+    TestEqual(TEXT("Light Bow draw duration loads from catalogue"), Combat->GetBowDrawDuration(), 2.0f);
     Combat->ServerRequestAttack(1);
     TestEqual(TEXT("Bow has no melee attack"), Combat->GetActionSerial(), uint32(0));
     Combat->ServerBeginBowDraw(2);
     TestTrue(TEXT("Press starts a target-free bow draw"), Combat->IsBowDrawing());
-    for (int32 Step=0; Step<3; ++Step) World->Tick(LEVELTICK_TimeOnly, 0.25f);
+    for (int32 Step=0; Step<4; ++Step) World->Tick(LEVELTICK_TimeOnly, 0.25f);
     TestEqual(TEXT("Server elapsed time controls half draw"), Combat->GetBowDrawProgress(), 0.5f);
     Combat->ServerReleaseBow(3, false);
     TestFalse(TEXT("Release ends drawing"), Combat->IsBowDrawing());
     TestEqual(TEXT("One arrow consumed"), Inventory->GetQuantity(TEXT("WoodenArrow")), 199);
     TestEqual(TEXT("Preferred stack used before the first stack"), Inventory->GetStacks()[0].Quantity, 100);
     TestEqual(TEXT("Preferred stack loses exactly one unit"), Inventory->GetStacks()[1].Quantity, 99);
-    TestEqual(TEXT("One bow condition consumed"), Pawn->GetToolDurability(TEXT("Bow")), 99);
+    TestEqual(TEXT("One Light Bow condition consumed"), Pawn->GetToolDurability(TEXT("LightBow")), 139);
     int32 ArrowCount=0;
     for (TActorIterator<AKalmalaArrowProjectile> Arrow(World); Arrow; ++Arrow)
     { ++ArrowCount; TestEqual(TEXT("Partial release creates a weaker real arrow"), Arrow->GetShotDamage(), 25.0f); Arrow->Destroy(); }
@@ -90,11 +90,11 @@ bool FKalmalaBowDrawTest::RunTest(const FString& Parameters)
     Recover();
     Combat->ServerBeginBowDraw(5); Combat->ServerReleaseBow(6, true);
     TestEqual(TEXT("Cancel does not consume ammo"), Inventory->GetQuantity(TEXT("WoodenArrow")), 199);
-    TestEqual(TEXT("Cancel does not wear the bow"), Pawn->GetToolDurability(TEXT("Bow")), 99);
+    TestEqual(TEXT("Cancel does not wear the Light Bow"), Pawn->GetToolDurability(TEXT("LightBow")), 139);
     Combat->ServerPreferArrowStack(FGuid());
     TestFalse(TEXT("Automatic arrow selection can be restored"), Combat->GetPreferredArrowStack().IsValid());
     Combat->ServerBeginBowDraw(7);
-    for (int32 Step=0; Step<6; ++Step) World->Tick(LEVELTICK_TimeOnly,0.25f);
+    for (int32 Step=0; Step<8; ++Step) World->Tick(LEVELTICK_TimeOnly,0.25f);
     Combat->ServerReleaseBow(8,false);
     TestEqual(TEXT("Automatic selection consumes first available stack"), Inventory->GetStacks()[0].Quantity, 99);
     auto* Wildlife=World->SpawnActor<AKalmalaWildlifeSpawn>(FVector(600,20,25), FRotator::ZeroRotator);
@@ -117,11 +117,11 @@ bool FKalmalaBowDrawTest::RunTest(const FString& Parameters)
     {TestEqual(TEXT("Immediate release still fires a low-power arrow"),Arrow->GetShotDamage(),10.0f);Arrow->Destroy();}
     Recover();
     const int32 AmmoBeforeFailure=Inventory->GetQuantity(TEXT("WoodenArrow"));
-    const int32 ConditionBeforeFailure=Pawn->GetToolDurability(TEXT("Bow"));
+    const int32 ConditionBeforeFailure=Pawn->GetToolDurability(TEXT("LightBow"));
     Pawn->SetPlayerState(nullptr);
     Combat->ServerBeginBowDraw(11); Combat->ServerReleaseBow(12,false);
     TestEqual(TEXT("Persistence failure rolls back ammunition"),Inventory->GetQuantity(TEXT("WoodenArrow")),AmmoBeforeFailure);
-    TestEqual(TEXT("Persistence failure rolls back bow condition"),Pawn->GetToolDurability(TEXT("Bow")),ConditionBeforeFailure);
+    TestEqual(TEXT("Persistence failure rolls back Light Bow condition"),Pawn->GetToolDurability(TEXT("LightBow")),ConditionBeforeFailure);
     Pawn->SetPlayerState(PlayerState);
     Combat->ServerBeginBowDraw(13);
     const auto Hammer=Tools.FindByPredicate([](const auto& Tool){return Tool.ItemId==TEXT("ConstructionHammer");});

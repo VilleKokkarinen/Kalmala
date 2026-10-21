@@ -91,6 +91,7 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
     int32 UtilityCount = 0;
     for (const FKalmalaToolProfileData& Profile : Profiles)
     {
+        const bool bIsBow = Profile.ToolKind == TEXT("Bow") || Profile.ToolKind == TEXT("LightBow");
         const bool bRequiresAttackList = Profile.ItemId != TEXT("ConstructionHammer");
         if (Profile.ItemId.IsNone() || SeenItemIds.Contains(Profile.ItemId)
             || (bRequiresAttackList && !AttackItemIds.Contains(Profile.ItemId))
@@ -102,8 +103,8 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
                 TEXT("StoneSpear"), TEXT("BronzeAxe"), TEXT("BronzeKnife"), TEXT("BronzePick"),
                 TEXT("BronzeSpear"), TEXT("IronAxe"), TEXT("IronKnife"), TEXT("IronPick"),
                 TEXT("IronSpear"), TEXT("StoneMace"), TEXT("BronzeMace"), TEXT("IronMace"),
-                TEXT("BronzeSword"), TEXT("IronSword"), TEXT("WoodenClub"), TEXT("ConstructionHammer"), TEXT("Bow")})
-            || (Profile.ToolKind == TEXT("Bow") && !Profile.bTwoHanded)
+                TEXT("BronzeSword"), TEXT("IronSword"), TEXT("WoodenClub"), TEXT("ConstructionHammer"), TEXT("Bow"), TEXT("LightBow")})
+            || (bIsBow && !Profile.bTwoHanded)
             || !IsOneOf(Profile.ToolSet, {TEXT("Starter"), TEXT("Crafted"), TEXT("Utility")})
             || !IsOneOf(Profile.Action, {TEXT("None"), TEXT("Gathering"), TEXT("Woodcutting"), TEXT("Mining")})
             || !IsOneOf(Profile.RequiredSkill, {TEXT("None"), TEXT("Gathering"), TEXT("Woodcutting"),
@@ -112,7 +113,7 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
                 ? (Profile.MaterialTier < 1 || Profile.MaterialTier > 3) : Profile.MaterialTier != 0)
             || Profile.MinimumSkillLevel < 1 || Profile.MinimumSkillLevel > 10
             || !FMath::IsFinite(Profile.DrawDuration)
-            || (Profile.ToolKind == TEXT("Bow") ? (Profile.DrawDuration < 0.05f || Profile.DrawDuration > 10.0f) : Profile.DrawDuration != 0.0f)
+            || (bIsBow ? (Profile.DrawDuration < 0.05f || Profile.DrawDuration > 10.0f) : Profile.DrawDuration != 0.0f)
             || !FMath::IsFinite(Profile.WeightKg) || Profile.WeightKg < 0.0f || Profile.WeightKg > 300.0f
             || Profile.MaxDurability < 1 || Profile.MaxDurability > 1000
             || !Profile.DamageBonuses.IsValid(1000.0f))
@@ -130,7 +131,7 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
         {
             FKalmalaToolLevelStats Stats;
             if (!Profile.GetLevelStats(ToolLevel, GetLevelUpReward(Profile.ItemId), Stats)
-                || (Profile.ToolKind == TEXT("ConstructionHammer") || Profile.ToolKind == TEXT("Bow") ? Stats.DamageBonuses.Total() != 0.0f
+                || (Profile.ToolKind == TEXT("ConstructionHammer") || bIsBow ? Stats.DamageBonuses.Total() != 0.0f
                     : Stats.DamageBonuses.Total() <= 0.0f)) return false;
         }
 

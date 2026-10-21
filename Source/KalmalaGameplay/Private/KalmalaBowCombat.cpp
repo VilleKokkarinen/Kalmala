@@ -38,10 +38,14 @@ bool UKalmalaCombatComponent::CanDrawBow() const
     const auto* Pawn = Cast<AKalmalaCharacter>(GetOwner());
     if (!Pawn || !GetWorld() || Pawn->GetHealth() <= 1 || !FMath::IsFinite(Pawn->GetHealth())) return false;
     const auto* Inventory = Pawn->GetInventoryComponent();
-    if (!Inventory || Inventory->GetActiveItem() != TEXT("Bow") || FindArrowStack() == INDEX_NONE) return false;
-    const int32 Maximum = FKalmalaToolLifecycleContract::GetMaxDurability(TEXT("Bow"), Pawn->GetCarriedToolLevel(TEXT("Bow")));
-    return Maximum > 0 && Pawn->GetToolDurability(TEXT("Bow")) > 0 && Pawn->GetToolDurability(TEXT("Bow")) <= Maximum
-        && GetBowDrawDuration() >= 0.05f && GetBowDrawDuration() <= 10
+    const FName ItemId = Inventory ? Inventory->GetActiveItem() : NAME_None;
+    const auto* Profile = UKalmalaToolCatalogue::Get()->FindProfile(ItemId);
+    if (!Inventory || !Profile || (Profile->ToolKind != TEXT("Bow") && Profile->ToolKind != TEXT("LightBow"))
+        || FindArrowStack() == INDEX_NONE) return false;
+    const int32 Maximum = FKalmalaToolLifecycleContract::GetMaxDurability(ItemId, Pawn->GetCarriedToolLevel(ItemId));
+    const int32 Condition = Pawn->GetToolDurability(ItemId);
+    return Maximum > 0 && Condition > 0 && Condition <= Maximum
+        && Profile->DrawDuration >= 0.05f && Profile->DrawDuration <= 10
         && (!bBowDrawing || !Pawn->HasAuthority() || Inventory->GetMainHandGuid() == DrawingBowGuid);
 }
 bool UKalmalaCombatComponent::IsBowDrawing() const

@@ -3916,9 +3916,9 @@ editor build to verify imported texture paths and loads for all current item,
 tool and recipe-output identities. `Scripts/Tests/Construction/Verify-Crafting.ps1` also requires
 `Catalogue icons: Grid=1 Selected=1` and `Forge upgrade level icon: Configured=1` from both peers;
 the grid flag checks each visible recipe output against its canonical loaded texture, while the
-Forge marker checks the level icon now shown in the upgrade comparison. Before an editor build, run `Scripts/Validate-UIIcons.ps1 -Category Catalogue` to check all 75 identity-ledger rows, original/prepared PNGs, runtime lookup mappings, and imported packages. The ledger lives in `Scripts/Data/catalogue-icon-manifest.csv`, outside the consolidated historical documentation set. The Stone Spear uses import batch D; the Bronze and Iron Knife/Pick/Spear icons use import batch E. The Amber texture rename uses batch F, which also contains the Stone, Bronze, and Iron Mace icons. Bone fragment uses import batch H (see `docs/bone-icon.md`). The initial six wearable gear icons use import batch G; prepare them with `python Scripts/Prepare-CatalogueIconBatch.py --batch G`, then import with `Scripts/Import-CatalogueIconBatch.ps1 -Batch G`. The Charcoal Kiln construction icon is in batch K (see `docs/charcoal-kiln-icon.md`); the Smelter uses batch L (see `docs/smelter-icon.md`).
+Forge marker checks the level icon now shown in the upgrade comparison. Before an editor build, run `Scripts/Validate-UIIcons.ps1 -Category Catalogue` to check all 79 identity-ledger rows, original/prepared PNGs, runtime lookup mappings, and imported packages. The ledger lives in `Scripts/Data/catalogue-icon-manifest.csv`, outside the consolidated historical documentation set. The Stone Spear uses import batch D; the Bronze and Iron Knife/Pick/Spear icons use import batch E. The Amber texture rename uses batch F, which also contains the Stone, Bronze, and Iron Mace icons. Bone fragment uses import batch H (see `docs/bone-icon.md`). The initial six wearable gear icons use import batch G; prepare them with `python Scripts/Prepare-CatalogueIconBatch.py --batch G`, then import with `Scripts/Import-CatalogueIconBatch.ps1 -Batch G`. The Charcoal Kiln construction icon is in batch K (see `docs/charcoal-kiln-icon.md`); the Smelter uses batch L (see `docs/smelter-icon.md`).
 
-The catalogue image ledger contains 75 imported textures, including the
+The catalogue image ledger contains 79 imported textures, including the
 construction-only Charcoal Kiln and Smelter build-menu identities. Construction
 icons do not create inventory items.
 Four support-scroll item identities reuse their matching imported status
@@ -4854,3 +4854,21 @@ all 78 catalogue identities. Registered catalogue JSON parsing and focused
 profile/recipe/upgrade/attack references passed. Editor build, gameplay
 automation, rendered Workbench and Inventory acceptance, and peer checks remain
 deferred to I2 milestone-final verification.
+
+## A3 Light Bow catalogue increment — 2026-10-21
+
+`LightBow` is a two-handed carried equipment profile with 1.5 kg weight, 140
+starting condition, no bow damage bonus, and a two-second full draw. Its level-one
+Workbench acquisition costs 25 Lightwood, one Bow String, and five Deer Hide;
+level upgrades start at three Lightwood and one Bow String and add 30 condition.
+It shares the existing server-authoritative bow shot, Wooden Arrow, projectile,
+condition-payment, and save paths. The original icon and generation prompt are
+recorded in `docs/light-bow-icon.md`.
+
+Icon batch P contains only `LightBow`. Prepare and import with
+`python Scripts/Prepare-CatalogueIconBatch.py --batch P` and
+`Scripts/Import-CatalogueIconBatch.ps1 -Batch P`. The catalogue icon validator
+passed all 79 identities. Registered catalogue JSON and focused Light Bow
+profile, recipe, upgrade, attack, draw, and runtime-wiring checks passed. Editor
+build, gameplay automation, rendered Workbench/Inventory acceptance, and peer
+checks remain deferred to I2 milestone-final verification.

@@ -33,6 +33,19 @@
       ]
     },
     {
+      "RecipeId": "LightBow",
+      "DisplayName": "Light Bow",
+      "ItemId": "LightBow",
+      "RequiredStation": "Workbench",
+      "RequiredStationLevel": 1,
+      "Level": 1,
+      "Ingredients": [
+        { "ItemId": "Lightwood", "Quantity": 25 },
+        { "ItemId": "BowString", "Quantity": 1 },
+        { "ItemId": "DeerHide", "Quantity": 5 }
+      ]
+    },
+    {
       "RecipeId": "BowStringRecipe",
       "DisplayName": "Bow String",
       "Ingredients": [

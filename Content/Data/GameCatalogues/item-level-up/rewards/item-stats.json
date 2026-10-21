@@ -101,6 +101,15 @@
     },
     {
       "ItemIds": [
+        "LightBow"
+      ],
+      "LevelUpReward": {
+        "MaxDurability": 30,
+        "DamageBonuses": {}
+      }
+    },
+    {
+      "ItemIds": [
         "WoodShield",
         "BoarHideHelmet",
         "BoarHideCape",

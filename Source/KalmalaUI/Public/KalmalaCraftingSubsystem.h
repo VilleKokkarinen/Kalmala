@@ -226,6 +226,7 @@ private:
     UFUNCTION() void CraftStoneMace();
     UFUNCTION() void CraftWoodenClub();
     UFUNCTION() void CraftBow();
+    UFUNCTION() void CraftLightBow();
     UFUNCTION() void UpgradeBronzeAxe();
     UFUNCTION() void InspectStorage();
     UFUNCTION() void PreviousStorageItem();

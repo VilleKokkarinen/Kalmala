@@ -8,15 +8,17 @@ click to selected-piece placement and right click to its build menu); Bow uses
 StartBowDraw/ReleaseBowDraw; other held weapons retain melee. Right-click during
 pending placement now cancels that preview and opens the menu in the same press.
 
-Bow profiles require finite `DrawDuration` in [0.05,10] seconds, currently 1.5;
-non-bows normalize omitted values to zero before strict JSON conversion and must
-retain zero. Item inspection displays the duration. Draw progress is elapsed /
+Bow and LightBow profiles require finite `DrawDuration` in [0.05,10] seconds;
+their current durations are 1.5 and 2.0 respectively. Non-bows normalize
+omitted values to zero before strict JSON conversion and must retain zero. Item
+inspection displays the duration. Draw progress is elapsed /
 duration, clamped to [0,1]. A bounded [1,4] speed multiplier parameter is a future
 server Archery integration hook; runtime currently uses 1 and adds no skill.
 
 Reliable owning-pawn component begin/release RPCs carry monotonically increasing
 sequence and cancellation only. Server checks authority, fresh sequence, living
-owner, exact drawn bow GUID, level, condition, ammo and idle/cooldown. It owns
+owner, exact drawn bow GUID, level, condition, ammo and idle/cooldown for either
+bow profile. It owns
 start time, charge, camera aim, random spread, damage and projectile selection.
 Drawing flag/start time replicate for presentation; local prediction starts the
 circle immediately, while server charge alone determines the shot. Menu-open,
@@ -47,8 +49,10 @@ Pierce, 1000..4500 cm/s and 8..0.25 degree spread. No projectile recovery.
 
 A local hit-test-invisible full-viewport crosshair widget draws a 50..4 radius
 circle during drawing and a small idle dot, hiding during modal input. It is
-released on controller change. No external assets, new inventory item, migration,
-attack catalogue list, bow tiers or Archery skill data are introduced.
+released on controller change. LightBow is a separate carried equipment profile
+with catalogue recipe/upgrade data and an original imported inventory icon; it
+uses the existing bow attack list, authority checks, projectile and save fields.
+No new RPC, save field or Archery skill data is introduced.
 
 ## Automatic and manual loose-item pickup — 2026-10-17
 

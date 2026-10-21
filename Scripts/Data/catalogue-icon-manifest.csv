@@ -77,3 +77,4 @@ image_batch,import_batch,canonical_id,art_subject,identity_kind,catalogue_aliase
 30,M,BronzeSword,Bronze sword,tool,none,BronzeSword,CarriedTool;ToolDetail;Repair;RecipeResult,carried_tool,
 31,N,IronSword,Iron sword,tool,none,IronSword,CarriedTool;ToolDetail;Repair;RecipeResult,carried_tool,
 32,O,WoodenClub,Wooden club,tool,none,WoodenClub,CarriedTool;ToolDetail;Repair;RecipeResult,carried_tool,
+33,P,LightBow,Light Bow,tool,none,LightBow,CarriedTool;ToolDetail;Repair;RecipeResult,carried_tool,

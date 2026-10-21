@@ -3,7 +3,8 @@
     {
       "AttackListId": "Bows",
       "ItemIds": [
-        "Bow"
+        "Bow",
+        "LightBow"
       ],
       "Attacks": [
         {

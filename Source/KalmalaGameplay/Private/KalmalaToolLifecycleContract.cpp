@@ -9,7 +9,7 @@ namespace
 {
     EKalmalaToolKind ParseToolKind(const FString& Value)
     {
-        if (Value == TEXT("Bow")) return EKalmalaToolKind::Bow;
+        if (Value == TEXT("Bow") || Value == TEXT("LightBow")) return EKalmalaToolKind::Bow;
         if (Value == TEXT("ReedKnife")) return EKalmalaToolKind::StoneKnife;
         if (Value == TEXT("FieldHatchet")) return EKalmalaToolKind::StoneAxe;
         if (Value == TEXT("StoneKnife")) return EKalmalaToolKind::StoneKnife;

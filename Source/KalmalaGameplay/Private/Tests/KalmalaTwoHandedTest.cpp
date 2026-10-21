@@ -25,6 +25,14 @@ bool FKalmalaTwoHandedTest::RunTest(const FString& Parameters)
         || !TestNotNull(TEXT("Recipes load"), Recipes)) return false;
     TestTrue(TEXT("Bow's authored twoHanded flag requires both hands"),
         FKalmalaToolLifecycleContract::IsTwoHanded(TEXT("Bow")));
+    TestTrue(TEXT("Light Bow's authored twoHanded flag requires both hands"),
+        FKalmalaToolLifecycleContract::IsTwoHanded(TEXT("LightBow")));
+    const auto* LightBowProfile = Tools->FindProfile(TEXT("LightBow"));
+    if (!TestNotNull(TEXT("Light Bow profile exists"), LightBowProfile)) return false;
+    TestEqual(TEXT("Light Bow has its authored carry weight"), LightBowProfile->WeightKg, 1.5f);
+    TestEqual(TEXT("Light Bow uses its two-second full draw"), LightBowProfile->DrawDuration, 2.0f);
+    TestEqual(TEXT("Light Bow starts with 140 condition"), LightBowProfile->MaxDurability, 140);
+    TestTrue(TEXT("Light Bow has no damage bonus"), LightBowProfile->DamageBonuses.Total() == 0.0f);
     TestFalse(TEXT("Omitted twoHanded flag defaults the hammer to one hand"),
         FKalmalaToolLifecycleContract::IsTwoHanded(TEXT("ConstructionHammer")));
     TestTrue(TEXT("Construction Hammer has no combat attacks"), Tools->GetAttacks(TEXT("ConstructionHammer")).IsEmpty());
@@ -56,6 +64,26 @@ bool FKalmalaTwoHandedTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Bow costs five normal Wood and one Bow String"),
         BowRecipe->Ingredients.ContainsByPredicate([](const auto& Cost) { return Cost.ItemId == TEXT("Wood") && Cost.Quantity == 5; })
         && BowRecipe->Ingredients.ContainsByPredicate([](const auto& Cost) { return Cost.ItemId == TEXT("BowString") && Cost.Quantity == 1; }));
+    const auto* LightBowRecipe = Tools->Recipes.FindByPredicate([](const FKalmalaToolRecipeData& Entry)
+        { return Entry.ItemId == TEXT("LightBow"); });
+    if (!TestNotNull(TEXT("Light Bow acquisition exists"), LightBowRecipe)) return false;
+    TestTrue(TEXT("Light Bow costs reviewed materials at Workbench level one"),
+        LightBowRecipe->RequiredStation == TEXT("Workbench") && LightBowRecipe->RequiredStationLevel == 1
+        && LightBowRecipe->Ingredients.Num() == 3
+        && LightBowRecipe->Ingredients.ContainsByPredicate([](const auto& Cost) { return Cost.ItemId == TEXT("Lightwood") && Cost.Quantity == 25; })
+        && LightBowRecipe->Ingredients.ContainsByPredicate([](const auto& Cost) { return Cost.ItemId == TEXT("BowString") && Cost.Quantity == 1; })
+        && LightBowRecipe->Ingredients.ContainsByPredicate([](const auto& Cost) { return Cost.ItemId == TEXT("DeerHide") && Cost.Quantity == 5; }));
+    const auto* LightBowUpgrade = Tools->UpgradeCosts.FindByPredicate([](const FKalmalaToolRecipeData& Entry)
+        { return Entry.ItemId == TEXT("LightBow"); });
+    if (!TestNotNull(TEXT("Light Bow upgrade cost exists"), LightBowUpgrade)) return false;
+    TestTrue(TEXT("Light Bow upgrade uses three Lightwood and one Bow String"),
+        LightBowUpgrade->RequiredStation == TEXT("Workbench") && LightBowUpgrade->Ingredients.Num() == 2
+        && LightBowUpgrade->Ingredients.ContainsByPredicate([](const auto& Cost) { return Cost.ItemId == TEXT("Lightwood") && Cost.Quantity == 3; })
+        && LightBowUpgrade->Ingredients.ContainsByPredicate([](const auto& Cost) { return Cost.ItemId == TEXT("BowString") && Cost.Quantity == 1; }));
+    FKalmalaToolLevelStats LightBowLevelTwo;
+    TestTrue(TEXT("Light Bow level-two stats resolve"), Tools->GetLevelStats(TEXT("LightBow"), 2, LightBowLevelTwo));
+    TestEqual(TEXT("Light Bow gains thirty condition per level"), LightBowLevelTwo.MaxDurability, 170);
+    TestTrue(TEXT("Light Bow upgrade adds no damage"), LightBowLevelTwo.DamageBonuses.Total() == 0.0f);
     const auto* ArrowRecipe = Recipes->Recipes.FindByPredicate([](const FKalmalaRecipe& Entry)
         { return Entry.Output == TEXT("WoodenArrow"); });
     if (!TestNotNull(TEXT("Arrow recipe exists"), ArrowRecipe)) return false;

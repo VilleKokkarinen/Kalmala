@@ -26,6 +26,7 @@ bool FKalmalaCombatLoopTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Validated server intent begins one committed action"), UKalmalaCombatComponent::IsAttackRequestAllowed(true, true, 5, true, true));
     TestFalse(TEXT("Construction Hammer is build-only"), UKalmalaCombatComponent::IsAttackItemAllowed(TEXT("ConstructionHammer")));
     TestFalse(TEXT("Bow uses drawing rather than melee"), UKalmalaCombatComponent::IsAttackItemAllowed(TEXT("Bow")));
+    TestFalse(TEXT("Light Bow uses drawing rather than melee"), UKalmalaCombatComponent::IsAttackItemAllowed(TEXT("LightBow")));
     TestTrue(TEXT("Axe remains attack-capable"), UKalmalaCombatComponent::IsAttackItemAllowed(TEXT("StoneAxe")));
     TestTrue(TEXT("Unarmed combat fallback remains available"), UKalmalaCombatComponent::IsAttackItemAllowed(NAME_None));
     TestTrue(TEXT("Combat recovery remains a positive committed window"), UKalmalaCombatComponent::GetRecoverySeconds() > 0.0f);

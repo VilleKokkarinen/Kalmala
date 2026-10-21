@@ -29,7 +29,7 @@ namespace
             FString Set;
             FString Action = TEXT("None");
             if (ItemId == TEXT("ConstructionHammer")) Set = TEXT("Utility");
-            else if (ItemId == TEXT("Bow")) Set = TEXT("Crafted");
+            else if (ItemId == TEXT("Bow") || ItemId == TEXT("LightBow")) Set = TEXT("Crafted");
             else
             {
                 FString Family;
@@ -55,7 +55,8 @@ namespace
                 Object->RemoveField(TEXT("twoHanded"));
             }
             Object->SetBoolField(TEXT("bTwoHanded"), bTwoHanded);
-            if (ItemId != TEXT("Bow") && !Object->HasField(TEXT("DrawDuration"))) Object->SetNumberField(TEXT("DrawDuration"), 0);
+            if (ItemId != TEXT("Bow") && ItemId != TEXT("LightBow") && !Object->HasField(TEXT("DrawDuration")))
+                Object->SetNumberField(TEXT("DrawDuration"), 0);
             if (!Object->HasField(TEXT("WeightKg"))) Object->SetNumberField(TEXT("WeightKg"), 2.0);
             if (!Object->HasField(TEXT("MinimumSkillLevel"))) Object->SetNumberField(TEXT("MinimumSkillLevel"), 1.0);
         }

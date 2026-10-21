@@ -1009,7 +1009,8 @@ void AKalmalaCharacter::RequestAttack()
     if (IsLocallyControlled() && Controller && !Controller->IsMoveInputIgnored() && Combat)
     {
         if (Inventory && Inventory->GetActiveItem() == TEXT("ConstructionHammer")) return;
-        if (Inventory && Inventory->GetActiveItem() == TEXT("Bow")) Combat->StartBowDraw(++LocalCombatSequence);
+        if (Inventory && (Inventory->GetActiveItem() == TEXT("Bow") || Inventory->GetActiveItem() == TEXT("LightBow")))
+            Combat->StartBowDraw(++LocalCombatSequence);
         else Combat->ServerRequestAttack(++LocalCombatSequence);
     }
 }
