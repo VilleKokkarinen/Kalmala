@@ -90,3 +90,4 @@ image_batch,import_batch,canonical_id,art_subject,identity_kind,catalogue_aliase
 43,Z,BerryRecoveryDraught,ruby-red berry recovery draught vial,item,none,BerryRecoveryDraughtRecipe,PackInventory;ItemDetail;RecipeResult,pack,
 44,Z,RootStaminaDraught,green-gold root stamina draught vial,item,none,RootStaminaDraughtRecipe,PackInventory;ItemDetail;RecipeResult,pack,
 45,AA,PlantingTrowel,wood-handled bronze planting trowel,tool,none,PlantingTrowel,CarriedTool;ToolDetail;RecipeResult,carried_tool,
+46,AB,FishingBait,chanterelle mushroom bait,item,none,FishingBaitRecipe,PackInventory;ItemDetail;Storage;Ingredient;RecipeResult,pack,

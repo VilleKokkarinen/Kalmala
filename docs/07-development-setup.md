@@ -5036,3 +5036,22 @@ The catalogue icon validator now expects 90 identities. `Kalmala.Gameplay.Status
 The original prompt and retained artwork are recorded in
 [`docs/root-stamina-draught-icon.md`](root-stamina-draught-icon.md). Its
 transparent original and prepared icon use the existing batch-Z import flow.
+
+### A7 Fishing Bait catalogue increment — 2026-10-21
+
+`FishingBait` is registered as a 50-stack, 0.02 kg crafting ingredient. One
+Forest Chanterelle crafts into five Bait through Inventory Craft. Its original
+prompt and retained files are documented in
+[`docs/fishing-bait-icon.md`](fishing-bait-icon.md). To isolate the import from
+existing icon packages, batch AB contains only `FishingBait`; prepare and
+import with:
+
+```powershell
+python Scripts/Prepare-CatalogueIconBatch.py --batch AB
+Scripts/Import-CatalogueIconBatch.ps1 -Batch AB
+Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id FishingBait
+```
+
+The catalogue icon manifest contains 92 identities after this addition. The
+Fishing Rod binding material and cost remain pending review; no Rod recipe or
+equipment profile was added.

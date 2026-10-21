@@ -26,6 +26,13 @@
       "Description": "A small fragment of bone used in crafting.",
       "MaxStack": 40,
       "WeightKg": 0.1
+    },
+    {
+      "ItemId": "FishingBait",
+      "DisplayName": "Fishing Bait",
+      "Description": "Golden mushroom bait prepared from Forest Chanterelles.",
+      "MaxStack": 50,
+      "WeightKg": 0.02
     }
   ]
 }

@@ -173,6 +173,12 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [x] Rutabaga: 1 seed → 3 roots; 1 root → 3 seeds.
   - [x] Onion: 1 seed → 3 onions; 1 onion → 3 seeds.
 
+  - [ ] Fishing Rod: Workbench, 4 Lightwood + 3 non-bow binding material; 1 kg, 80 condition, two hands, free Workbench repair, no upgrades/combat (blocked pending binding material ID/cost review).
+  - [x] Fishing Bait: inventory craft, 1 Forest Chanterelle → 5; stack 50, 0.02 kg.
+  - [ ] Lake Fish schools: visible and stationary on Shimmering Lakes water; 3 catches then deplete; no timed respawn.
+  - [ ] Fishing catch transaction: held usable Rod, school within 15 m and clear line of sight, reserve 1 Bait and one result cell, wait 5 s, remain within 1 m, then atomically grant 1 Lake Fish and spend Bait, Rod condition, and one school catch; cancellation/rejection releases reservation unchanged.
+  - [ ] Lake Fish food path: add Lake Fish and Cooked Lake Fish items/icons, and Cooking Rack recipe (1 raw → 1 cooked, MaxBatch 5, Cooking XP 10, existing Steady Meal effect).
+
   Crops take 600 active seconds; Planting Trowel required. No offline/inactive-region growth.
 
 - [ ] **A8 — Shelter and storage (P2).** [Placement and behavior](docs/alpha-item-details.md#a8)
