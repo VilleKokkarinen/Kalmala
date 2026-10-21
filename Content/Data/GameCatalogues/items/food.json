@@ -34,6 +34,13 @@
       "WeightKg": 0.2
     },
     {
+      "ItemId": "RootStaminaDraught",
+      "DisplayName": "Root Stamina Draught",
+      "Description": "A green-gold root draught that restores up to 20 stamina immediately.",
+      "MaxStack": 10,
+      "WeightKg": 0.2
+    },
+    {
       "ItemId": "CookedBoarMeat",
       "DisplayName": "Cooked Boar Meat",
       "Description": "Roasted boar meat, ready to eat.",

@@ -69,6 +69,33 @@ bool FKalmalaInventoryMenuPreparedFoodDetailsTest::RunTest(const FString& Parame
     for (UWidget* Widget : Widgets)
         if (const auto* Block = Cast<UTextBlock>(Widget)) MenuText += Block->GetText().ToString();
     TestTrue(TEXT("The draught action is named as a dose rather than food"), MenuText.Contains(TEXT("Use one dose")));
+
+    Menu->SetInventoryRowsForVerification({
+        {TEXT("RootStaminaDraught"), TEXT("Root Stamina Draught"), TEXT("× 1"), false}
+    }, 100, 0);
+    Menu->SelectItemForVerification(TEXT("RootStaminaDraught"));
+    DetailText.Reset();
+    Widgets.Reset();
+    Menu->WidgetTree->GetAllWidgets(Widgets);
+    for (UWidget* Widget : Widgets)
+    {
+        if (auto* Detail = Cast<UKalmalaItemDetailWidget>(Widget))
+        {
+            TArray<UWidget*> DetailWidgets;
+            Detail->WidgetTree->GetAllWidgets(DetailWidgets);
+            for (UWidget* DetailWidget : DetailWidgets)
+                if (const auto* Block = Cast<UTextBlock>(DetailWidget)) DetailText += Block->GetText().ToString();
+        }
+    }
+    TestTrue(TEXT("Root draught detail explains immediate stamina recovery and the shared cooldown"),
+        DetailText.Contains(TEXT("up to 20 stamina immediately"))
+        && DetailText.Contains(TEXT("share a 60-second recovery cooldown")));
+    MenuText.Reset();
+    for (UWidget* Widget : Widgets)
+        if (const auto* Block = Cast<UTextBlock>(Widget)) MenuText += Block->GetText().ToString();
+    TestTrue(TEXT("Root draught action remains a dose and fails closed without owner data"),
+        MenuText.Contains(TEXT("Use one dose"))
+        && MenuText.Contains(TEXT("Food use is unavailable while owner data is loading.")));
     return true;
 }
 

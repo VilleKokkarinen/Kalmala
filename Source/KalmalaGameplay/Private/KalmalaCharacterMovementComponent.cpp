@@ -55,6 +55,21 @@ bool UKalmalaCharacterMovementComponent::TryConsumeStaminaFromServer(const float
     Stamina -= Cost; if (Stamina <= 0.0f) bSprintExhausted = true; CharacterOwner->ForceNetUpdate(); return true;
 }
 
+bool UKalmalaCharacterMovementComponent::RestoreStaminaFromDraughtFromServer(const float Amount)
+{
+    if (!CharacterOwner || !CharacterOwner->HasAuthority() || !FMath::IsFinite(Amount)
+        || Amount <= 0.0f || Amount > 20.0f || !FMath::IsFinite(Stamina)
+        || !FMath::IsFinite(CurrentMaximumStamina) || CurrentMaximumStamina <= 0.0f
+        || Stamina >= CurrentMaximumStamina)
+        return false;
+    const float PreviousStamina = Stamina;
+    Stamina = FMath::Min(CurrentMaximumStamina, Stamina + Amount);
+    if (Stamina <= PreviousStamina) return false;
+    if (Stamina >= SprintRecoveryThreshold) bSprintExhausted = false;
+    CharacterOwner->ForceNetUpdate();
+    return true;
+}
+
 bool UKalmalaCharacterMovementComponent::SetBearsVigorFromServer(const bool bEnabled)
 {
     if (!CharacterOwner || !CharacterOwner->HasAuthority()) return false;

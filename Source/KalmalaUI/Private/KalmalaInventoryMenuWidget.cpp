@@ -17,6 +17,7 @@
 #include "Components/VerticalBoxSlot.h"
 #include "Framework/Application/SlateApplication.h"
 #include "KalmalaCharacter.h"
+#include "KalmalaCharacterMovementComponent.h"
 #include "KalmalaCraftingComponent.h"
 #include "KalmalaCraftingSubsystem.h"
 #include "GameFramework/Pawn.h"
@@ -717,7 +718,9 @@ void UKalmalaInventoryMenuWidget::RefreshSelectionPresentation(const int32 TextS
                 }
                 else if (UKalmalaPlayerStatusComponent::IsKnownDraughtItem(Row.Id))
                 {
-                    VisibleState += TEXT("\n\nEffect: restores up to 20 health over 10 seconds. Draughts share a 60-second recovery cooldown.");
+                    VisibleState += Row.Id == UKalmalaPlayerStatusComponent::BerryRecoveryDraughtItemId
+                        ? TEXT("\n\nEffect: restores up to 20 health over 10 seconds. Draughts share a 60-second recovery cooldown.")
+                        : TEXT("\n\nEffect: restores up to 20 stamina immediately, up to the current maximum. Draughts share a 60-second recovery cooldown.");
                 }
                 ItemDetailView->SetItem(Row.Id, Row.Name, VisibleState, TextScale, Contrast);
             }
@@ -991,6 +994,8 @@ void UKalmalaInventoryMenuWidget::RefreshFoodActionPresentation(const FKalmalaCa
             || UKalmalaPlayerStatusComponent::IsKnownDraughtItem(SelectedRow->Id));
     const bool bSelectedDraught = bSelectedFood
         && UKalmalaPlayerStatusComponent::IsKnownDraughtItem(SelectedRow->Id);
+    const bool bSelectedBerryDraught = bSelectedDraught
+        && SelectedRow->Id == UKalmalaPlayerStatusComponent::BerryRecoveryDraughtItemId;
     const bool bShowFoodStatus = bSelectedFood || bAwaitingFoodResult || !LastFoodResultText.IsEmpty();
     EatFoodButton->SetVisibility(bSelectedFood ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
     if (auto* ButtonLabel = Cast<UTextBlock>(EatFoodButton->GetContent()))
@@ -1010,6 +1015,8 @@ void UKalmalaInventoryMenuWidget::RefreshFoodActionPresentation(const FKalmalaCa
     const UKalmalaCraftingComponent* Crafting = OwnerPawn
         ? OwnerPawn->FindComponentByClass<UKalmalaCraftingComponent>() : nullptr;
     const AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(OwnerPawn);
+    const auto* Movement = Character
+        ? Cast<UKalmalaCharacterMovementComponent>(Character->GetCharacterMovement()) : nullptr;
 
     bool bCanUse = false;
     FString StatusText;
@@ -1033,7 +1040,7 @@ void UKalmalaInventoryMenuWidget::RefreshFoodActionPresentation(const FKalmalaCa
             StatusText = FString::Printf(TEXT("Draught recovery cooldown: %.0f seconds remain. No draught dose was used."),
                 Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::DraughtCooldownStatusId));
         }
-        else if (bSelectedDraught && Status->HasStatus(UKalmalaPlayerStatusComponent::BerryRecoveryStatusId))
+        else if (bSelectedBerryDraught && Status->HasStatus(UKalmalaPlayerStatusComponent::BerryRecoveryStatusId))
         {
             StatusText = FString::Printf(TEXT("Berry draught healing is active for %.0f seconds; the shared cooldown continues."),
                 Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::BerryRecoveryStatusId));
@@ -1042,9 +1049,18 @@ void UKalmalaInventoryMenuWidget::RefreshFoodActionPresentation(const FKalmalaCa
         {
             StatusText = TEXT("A draught cannot be used while dead.");
         }
-        else if (bSelectedDraught && Character->GetHealth() >= 100.0f)
+        else if (bSelectedBerryDraught && Character->GetHealth() >= 100.0f)
         {
             StatusText = TEXT("Health is full; the draught will not be consumed.");
+        }
+        else if (bSelectedDraught && !bSelectedBerryDraught && !Movement)
+        {
+            StatusText = TEXT("Stamina is unavailable while owner data is loading.");
+        }
+        else if (bSelectedDraught && !bSelectedBerryDraught
+            && Movement->GetStamina() >= Movement->GetMaximumStamina())
+        {
+            StatusText = TEXT("Stamina is full; the draught will not be consumed.");
         }
         else if (!bSelectedDraught && Status->HasStatus(UKalmalaPlayerStatusComponent::SteadyMealStatusId))
         {
@@ -1060,13 +1076,15 @@ void UKalmalaInventoryMenuWidget::RefreshFoodActionPresentation(const FKalmalaCa
         else if (Quantity <= 0)
         {
             StatusText = bSelectedDraught
-                ? TEXT("No Berry Recovery Draught dose is available in your pack.")
+                ? TEXT("No draught dose is available in your pack.")
                 : TEXT("No serving of this food is available in your pack.");
         }
         else
         {
             StatusText = bSelectedDraught
-                ? TEXT("Ready: use one dose to restore up to 20 health over 10 seconds. Shared draught cooldown: 60 seconds.")
+                ? (bSelectedBerryDraught
+                    ? TEXT("Ready: use one dose to restore up to 20 health over 10 seconds. Shared draught cooldown: 60 seconds.")
+                    : TEXT("Ready: use one dose to restore up to 20 stamina immediately, up to the current maximum. Shared draught cooldown: 60 seconds."))
                 : TEXT("Ready: eat one serving for 120 seconds of 10% lower stamina use.");
             bCanUse = !bAwaitingFoodResult && !bAwaitingAcceptedFoodStatus;
         }

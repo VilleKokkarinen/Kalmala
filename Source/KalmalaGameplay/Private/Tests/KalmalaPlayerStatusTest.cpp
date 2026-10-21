@@ -372,4 +372,111 @@ bool FKalmalaBerryRecoveryDraughtStatusTest::RunTest(const FString& Parameters)
     return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaRootStaminaDraughtStatusTest,
+    "Kalmala.Gameplay.Status.RootStaminaDraught",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FKalmalaRootStaminaDraughtStatusTest::RunTest(const FString& Parameters)
+{
+    TArray<FKalmalaPlayerStatusEntry> Entries;
+    TestTrue(TEXT("Root Stamina Draught is allowlisted"),
+        UKalmalaPlayerStatusComponent::IsKnownDraughtItem(TEXT("RootStaminaDraught")));
+    TestTrue(TEXT("Root draught applies the shared cooldown"),
+        UKalmalaPlayerStatusComponent::ApplyDraught(Entries, TEXT("RootStaminaDraught")));
+    TestEqual(TEXT("Immediate stamina recovery publishes only the shared cooldown"), Entries.Num(), 1);
+    TestTrue(TEXT("Root draught does not start Berry healing"),
+        Entries.ContainsByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
+            { return Entry.StatusId == UKalmalaPlayerStatusComponent::DraughtCooldownStatusId; }));
+    TestFalse(TEXT("Root draught has no healing timer"),
+        Entries.ContainsByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
+            { return Entry.StatusId == UKalmalaPlayerStatusComponent::BerryRecoveryStatusId; }));
+    TestFalse(TEXT("Berry and Root draughts share one cooldown"),
+        UKalmalaPlayerStatusComponent::ApplyDraught(Entries, TEXT("BerryRecoveryDraught")));
+
+    UWorld* World = UWorld::CreateWorld(EWorldType::Game, false);
+    AKalmalaCharacter* Pawn = World ? World->SpawnActor<AKalmalaCharacter>() : nullptr;
+    APlayerController* Controller = World ? World->SpawnActor<APlayerController>() : nullptr;
+    if (!TestNotNull(TEXT("Root draught character fixture spawned"), Pawn)
+        || !TestNotNull(TEXT("Root draught controller fixture spawned"), Controller))
+    {
+        if (World) World->DestroyWorld(false);
+        return false;
+    }
+    Controller->Possess(Pawn);
+    auto* Status = Pawn->FindComponentByClass<UKalmalaPlayerStatusComponent>();
+    auto* Crafting = Pawn->FindComponentByClass<UKalmalaCraftingComponent>();
+    auto* Inventory = Pawn->GetInventoryComponent();
+    auto* Movement = Cast<UKalmalaCharacterMovementComponent>(Pawn->GetCharacterMovement());
+    const FFloatProperty* HealthProperty = FindFProperty<FFloatProperty>(AKalmalaCharacter::StaticClass(), TEXT("Health"));
+    const FFloatProperty* StaminaProperty = FindFProperty<FFloatProperty>(UKalmalaCharacterMovementComponent::StaticClass(), TEXT("Stamina"));
+    if (!TestNotNull(TEXT("Root draught status component exists"), Status)
+        || !TestNotNull(TEXT("Root draught crafting component exists"), Crafting)
+        || !TestNotNull(TEXT("Root draught inventory exists"), Inventory)
+        || !TestNotNull(TEXT("Root draught movement component exists"), Movement)
+        || !TestNotNull(TEXT("Root draught health fixture property exists"), HealthProperty)
+        || !TestNotNull(TEXT("Root draught stamina fixture property exists"), StaminaProperty))
+    {
+        World->DestroyWorld(false);
+        return false;
+    }
+
+    HealthProperty->SetPropertyValue_InContainer(Pawn, 100.0f);
+    TestTrue(TEXT("Server accepts recovery when stamina is missing despite full health"),
+        Movement->TryConsumeStaminaFromServer(60.0f)
+        && Status->CanApplyDraughtFromServer(TEXT("RootStaminaDraught")));
+    TestTrue(TEXT("Inventory can receive two Root Stamina Draught doses"),
+        Inventory->TryGrantFromServer(TEXT("RootStaminaDraught"), 2));
+    FString Reason;
+    TestTrue(TEXT("Server transaction consumes one dose and restores twenty stamina"),
+        Crafting->ConsumeFoodFromServer(TEXT("RootStaminaDraught"), Reason));
+    TestEqual(TEXT("Accepted Root dose consumes exactly one item"),
+        Inventory->GetQuantity(TEXT("RootStaminaDraught")), 1);
+    TestEqual(TEXT("Root dose restores exactly twenty stamina"), Movement->GetStamina(), 60.0f);
+    TestEqual(TEXT("Root dose starts the shared sixty-second cooldown"),
+        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::DraughtCooldownStatusId),
+        UKalmalaPlayerStatusComponent::DraughtCooldownMaximumSeconds);
+    TestFalse(TEXT("Root dose does not create a healing-over-time status"),
+        Status->HasStatus(UKalmalaPlayerStatusComponent::BerryRecoveryStatusId));
+    TestFalse(TEXT("Cooldown rejects the next Root dose"),
+        Crafting->ConsumeFoodFromServer(TEXT("RootStaminaDraught"), Reason));
+    TestEqual(TEXT("Cooldown rejection preserves the remaining dose"),
+        Inventory->GetQuantity(TEXT("RootStaminaDraught")), 1);
+
+    Status->AdvanceFromServer(UKalmalaPlayerStatusComponent::DraughtCooldownMaximumSeconds);
+    TestTrue(TEXT("Vigor maximum can be active before Root recovery"), Movement->SetBearsVigorFromServer(true));
+    StaminaProperty->SetPropertyValue_InContainer(Movement, 125.0f);
+    TestTrue(TEXT("A dose fits a current maximum above the base stamina cap"),
+        Crafting->ConsumeFoodFromServer(TEXT("RootStaminaDraught"), Reason));
+    TestEqual(TEXT("Recovery clamps at the current 140-stamina maximum"), Movement->GetStamina(), 140.0f);
+
+    Status->AdvanceFromServer(UKalmalaPlayerStatusComponent::DraughtCooldownMaximumSeconds);
+    TestTrue(TEXT("Full-stamina rejection fixture has a dose"),
+        Inventory->TryGrantFromServer(TEXT("RootStaminaDraught"), 1));
+    TestFalse(TEXT("Full stamina rejects the Root dose without consuming it"),
+        Crafting->ConsumeFoodFromServer(TEXT("RootStaminaDraught"), Reason));
+    TestEqual(TEXT("Full-stamina rejection preserves the item"),
+        Inventory->GetQuantity(TEXT("RootStaminaDraught")), 1);
+    TestFalse(TEXT("Full-stamina rejection starts no cooldown"),
+        Status->HasStatus(UKalmalaPlayerStatusComponent::DraughtCooldownStatusId));
+
+    StaminaProperty->SetPropertyValue_InContainer(Movement, 120.0f);
+    HealthProperty->SetPropertyValue_InContainer(Pawn, 1.0f);
+    TestFalse(TEXT("A dead player cannot use Root Stamina Draught"),
+        Crafting->ConsumeFoodFromServer(TEXT("RootStaminaDraught"), Reason));
+    TestEqual(TEXT("Death rejection preserves the item"),
+        Inventory->GetQuantity(TEXT("RootStaminaDraught")), 1);
+    Pawn->SetRole(ROLE_AutonomousProxy);
+    HealthProperty->SetPropertyValue_InContainer(Pawn, 100.0f);
+    TestFalse(TEXT("A client cannot author Root draught status"),
+        Status->ApplyDraughtFromServer(TEXT("RootStaminaDraught")));
+    TestFalse(TEXT("A client cannot consume a Root dose"),
+        Crafting->ConsumeFoodFromServer(TEXT("RootStaminaDraught"), Reason));
+    TestEqual(TEXT("Client rejection preserves the Root dose"),
+        Inventory->GetQuantity(TEXT("RootStaminaDraught")), 1);
+    TestEqual(TEXT("Client rejection leaves stamina unchanged"), Movement->GetStamina(), 120.0f);
+
+    World->DestroyWorld(false);
+    return true;
+}
+
 #endif

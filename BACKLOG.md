@@ -161,7 +161,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [x] Keep one Steady Meal: 120 s, 10% less stamina use; no meal stacking.
   - [x] Review draught effects; use existing Cauldron, no brewing station.
   - [x] Berry Recovery Draught: 3 Lingonberry + 1 Carrot; heals 20 over 10 s.
-  - [ ] Root Stamina Draught: 2 Potato + 1 Onion; restores 20 stamina.
+  - [x] Root Stamina Draught: 2 Potato + 1 Onion; restores 20 stamina.
   - [ ] Keep cold/poison/fire-resistance preparations deferred.
 
   Draughts: one dose per craft; shared 60 s cooldown. All cooking needs a lit hearth.

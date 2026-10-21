@@ -24,6 +24,29 @@
       "bEnabled": true
     },
     {
+      "RecipeId": "RootStaminaDraughtRecipe",
+      "DisplayName": "Root Stamina Draught",
+      "Ingredients": [
+        {
+          "ItemId": "Potato",
+          "Quantity": 2
+        },
+        {
+          "ItemId": "Onion",
+          "Quantity": 1
+        }
+      ],
+      "Output": "RootStaminaDraught",
+      "OutputCount": 1,
+      "MaxBatch": 5,
+      "RequiredStation": [
+        "Cauldron"
+      ],
+      "ExperienceSkill": "Cooking",
+      "ExperienceAward": 10,
+      "bEnabled": true
+    },
+    {
       "RecipeId": "HearthBrothRecipe",
       "DisplayName": "Hearth Broth",
       "Ingredients": [

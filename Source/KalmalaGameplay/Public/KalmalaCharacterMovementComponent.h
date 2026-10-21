@@ -16,6 +16,7 @@ public:
     bool IsSprintExhausted() const { return bSprintExhausted; }
     void AdvanceStaminaFromServer(float DeltaSeconds);
     bool TryConsumeStaminaFromServer(float Cost);
+    bool RestoreStaminaFromDraughtFromServer(float Amount);
     bool SetBearsVigorFromServer(bool bEnabled);
     static constexpr float MaximumStamina = 100.0f;
     static constexpr float SprintCostPerSecond = 10.0f;

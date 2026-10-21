@@ -45,6 +45,7 @@ public:
     static const FName LingonberryItemId;
     static const FName ForestChanterelleItemId;
     static const FName BerryRecoveryDraughtItemId;
+    static const FName RootStaminaDraughtItemId;
     static const FName BerryRecoveryStatusId;
     static const FName DraughtCooldownStatusId;
     static const FName MeatStewItemId;
@@ -56,6 +57,7 @@ public:
     static constexpr float BerryRecoveryMaximumSeconds = 10.0f;
     static constexpr float DraughtCooldownMaximumSeconds = 60.0f;
     static constexpr float BerryRecoveryHealth = 20.0f;
+    static constexpr float RootStaminaDraughtStamina = 20.0f;
     static constexpr float SteadyMealStaminaUseMultiplier = 0.90f;
     static constexpr float UnroofedRainTriggerSeconds = 10.0f;
     // Wet remains a meaningful exposure pressure, but its movement and sprint

@@ -506,6 +506,7 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         {TEXT("HearthBrothRecipe"), TEXT("HearthBroth")},
         {TEXT("MeatStewRecipe"), TEXT("MeatStew")},
         {TEXT("BerryRecoveryDraughtRecipe"), TEXT("BerryRecoveryDraught")},
+        {TEXT("RootStaminaDraughtRecipe"), TEXT("RootStaminaDraught")},
         {TEXT("RootVegetableSoupRecipe"), TEXT("RootVegetableSoup")},
         {TEXT("RoastedRootVegetablesRecipe"), TEXT("RoastedRootVegetables")},
         {TEXT("DeerRootRoastRecipe"), TEXT("DeerRootRoast")}
@@ -523,13 +524,15 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
             : Entry.Key == FName(TEXT("HearthBrothRecipe")) || Entry.Key == FName(TEXT("MeatStewRecipe"))
                 || Entry.Key == FName(TEXT("RootVegetableSoupRecipe"))
                 || Entry.Key == FName(TEXT("BerryRecoveryDraughtRecipe"))
+                || Entry.Key == FName(TEXT("RootStaminaDraughtRecipe"))
                 ? FName(TEXT("CauldronKit")) : FName(TEXT("FryingPanKit"));
         TestTrue(TEXT("Current food recipe resolves to its required cooking station"), Recipe->RequiredStation.Contains(StationId));
 
         const FKalmalaItemDefinition* Output = Catalogue->FindItem(Entry.Value);
         if (TestNotNull(TEXT("Current food recipe output item is defined"), Output))
             TestEqual(TEXT("Prepared food and draught stack limits are authored"), Output->MaxStack,
-                Entry.Key == FName(TEXT("BerryRecoveryDraughtRecipe")) ? 10 : 20);
+                Entry.Key == FName(TEXT("BerryRecoveryDraughtRecipe"))
+                    || Entry.Key == FName(TEXT("RootStaminaDraughtRecipe")) ? 10 : 20);
     }
 
     const FKalmalaItemDefinition* BerryRecoveryDraught = Catalogue->FindItem(TEXT("BerryRecoveryDraught"));
@@ -557,6 +560,32 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         TestTrue(TEXT("Draught recipe awards Cooking experience"),
             BerryRecoveryDraughtRecipe->ExperienceSkill == EKalmalaSkill::Cooking);
         TestEqual(TEXT("Draught recipe awards ten Cooking experience"), BerryRecoveryDraughtRecipe->ExperienceAward, 10);
+    }
+    const FKalmalaItemDefinition* RootStaminaDraught = Catalogue->FindItem(TEXT("RootStaminaDraught"));
+    if (TestNotNull(TEXT("Root Stamina Draught is a current catalogue item"), RootStaminaDraught))
+    {
+        TestEqual(TEXT("Root Stamina Draught stack is bounded at ten"), RootStaminaDraught->MaxStack, 10);
+        TestEqual(TEXT("Root Stamina Draught weight is authored at 0.2 kg"), RootStaminaDraught->WeightKg, 0.2f);
+    }
+    const FKalmalaRecipe* RootStaminaDraughtRecipe = Recipes->Find(TEXT("RootStaminaDraughtRecipe"));
+    if (TestNotNull(TEXT("Root Stamina Draught Cauldron recipe exists"), RootStaminaDraughtRecipe))
+    {
+        const auto HasIngredient = [RootStaminaDraughtRecipe](const FName ItemId, const int32 Quantity)
+        {
+            const FKalmalaInventoryStack* Ingredient = RootStaminaDraughtRecipe->Ingredients.FindByPredicate(
+                [ItemId](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == ItemId; });
+            return Ingredient && Ingredient->Quantity == Quantity;
+        };
+        TestEqual(TEXT("Root draught recipe has two ingredients"), RootStaminaDraughtRecipe->Ingredients.Num(), 2);
+        TestTrue(TEXT("Root draught costs exactly two Potato and one Onion"),
+            HasIngredient(TEXT("Potato"), 2) && HasIngredient(TEXT("Onion"), 1));
+        TestEqual(TEXT("Root draught recipe creates one dose"), RootStaminaDraughtRecipe->OutputCount, 1);
+        TestEqual(TEXT("Root draught recipe caps batches at five"), RootStaminaDraughtRecipe->MaxBatch, 5);
+        TestTrue(TEXT("Root draught recipe requires the Cauldron"),
+            RootStaminaDraughtRecipe->RequiredStation.Contains(TEXT("CauldronKit")));
+        TestTrue(TEXT("Root draught recipe awards Cooking experience"),
+            RootStaminaDraughtRecipe->ExperienceSkill == EKalmalaSkill::Cooking);
+        TestEqual(TEXT("Root draught recipe awards ten Cooking experience"), RootStaminaDraughtRecipe->ExperienceAward, 10);
     }
     for (const FName RemovedRecipe : {
         FName(TEXT("RoastBoarMeat")), FName(TEXT("RoastDeerMeat")),

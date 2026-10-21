@@ -3,6 +3,7 @@
 #include "Net/UnrealNetwork.h"
 #include "KalmalaCampfire.h"
 #include "KalmalaCharacter.h"
+#include "KalmalaCharacterMovementComponent.h"
 
 const FName UKalmalaPlayerStatusComponent::WetStatusId(TEXT("State.Wet"));
 const FName UKalmalaPlayerStatusComponent::SteadyMealStatusId(TEXT("State.Food.SteadyMeal"));
@@ -12,6 +13,7 @@ const FName UKalmalaPlayerStatusComponent::HearthBrothItemId(TEXT("HearthBroth")
 const FName UKalmalaPlayerStatusComponent::LingonberryItemId(TEXT("Lingonberry"));
 const FName UKalmalaPlayerStatusComponent::ForestChanterelleItemId(TEXT("ForestChanterelle"));
 const FName UKalmalaPlayerStatusComponent::BerryRecoveryDraughtItemId(TEXT("BerryRecoveryDraught"));
+const FName UKalmalaPlayerStatusComponent::RootStaminaDraughtItemId(TEXT("RootStaminaDraught"));
 const FName UKalmalaPlayerStatusComponent::BerryRecoveryStatusId(TEXT("State.Recovery.BerryDraught"));
 const FName UKalmalaPlayerStatusComponent::DraughtCooldownStatusId(TEXT("State.Recovery.DraughtCooldown"));
 const FName UKalmalaPlayerStatusComponent::MeatStewItemId(TEXT("MeatStew"));
@@ -113,7 +115,7 @@ bool UKalmalaPlayerStatusComponent::ApplyFoodFromServer(const FName ItemId)
 
 bool UKalmalaPlayerStatusComponent::IsKnownDraughtItem(const FName ItemId)
 {
-    return ItemId == BerryRecoveryDraughtItemId;
+    return ItemId == BerryRecoveryDraughtItemId || ItemId == RootStaminaDraughtItemId;
 }
 
 bool UKalmalaPlayerStatusComponent::ApplyDraught(TArray<FKalmalaPlayerStatusEntry>& Entries, const FName ItemId)
@@ -126,9 +128,12 @@ bool UKalmalaPlayerStatusComponent::ApplyDraught(TArray<FKalmalaPlayerStatusEntr
         return false;
 
     Advance(Entries, 0.0f);
-    FKalmalaPlayerStatusEntry& Recovery = Entries.AddDefaulted_GetRef();
-    Recovery.StatusId = BerryRecoveryStatusId;
-    Recovery.RemainingSeconds = BerryRecoveryMaximumSeconds;
+    if (ItemId == BerryRecoveryDraughtItemId)
+    {
+        FKalmalaPlayerStatusEntry& Recovery = Entries.AddDefaulted_GetRef();
+        Recovery.StatusId = BerryRecoveryStatusId;
+        Recovery.RemainingSeconds = BerryRecoveryMaximumSeconds;
+    }
     FKalmalaPlayerStatusEntry& Cooldown = Entries.AddDefaulted_GetRef();
     Cooldown.StatusId = DraughtCooldownStatusId;
     Cooldown.RemainingSeconds = DraughtCooldownMaximumSeconds;
@@ -138,14 +143,34 @@ bool UKalmalaPlayerStatusComponent::ApplyDraught(TArray<FKalmalaPlayerStatusEntr
 bool UKalmalaPlayerStatusComponent::CanApplyDraughtFromServer(const FName ItemId) const
 {
     const AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(GetOwner());
-    return IsValid(Character) && Character->HasAuthority() && IsKnownDraughtItem(ItemId)
-        && Character->GetHealth() > 1.0f && Character->GetHealth() < 100.0f
-        && !HasStatus(DraughtCooldownStatusId) && !HasStatus(BerryRecoveryStatusId);
+    if (!IsValid(Character) || !Character->HasAuthority() || !IsKnownDraughtItem(ItemId)
+        || !FMath::IsFinite(Character->GetHealth()) || Character->GetHealth() <= 1.0f
+        || HasStatus(DraughtCooldownStatusId) || HasStatus(BerryRecoveryStatusId))
+        return false;
+    if (ItemId == BerryRecoveryDraughtItemId)
+        return Character->GetHealth() < 100.0f;
+
+    const UKalmalaCharacterMovementComponent* Movement = Cast<UKalmalaCharacterMovementComponent>(Character->GetCharacterMovement());
+    return Movement && FMath::IsFinite(Movement->GetStamina())
+        && FMath::IsFinite(Movement->GetMaximumStamina())
+        && Movement->GetMaximumStamina() > 0.0f
+        && Movement->GetStamina() < Movement->GetMaximumStamina();
 }
 
 bool UKalmalaPlayerStatusComponent::ApplyDraughtFromServer(const FName ItemId)
 {
-    if (!CanApplyDraughtFromServer(ItemId) || !ApplyDraught(Statuses, ItemId)) return false;
+    const AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(GetOwner());
+    if (!CanApplyDraughtFromServer(ItemId)) return false;
+
+    TArray<FKalmalaPlayerStatusEntry> CandidateStatuses = Statuses;
+    if (!ApplyDraught(CandidateStatuses, ItemId)) return false;
+    if (ItemId == RootStaminaDraughtItemId)
+    {
+        auto* Movement = Character
+            ? Cast<UKalmalaCharacterMovementComponent>(Character->GetCharacterMovement()) : nullptr;
+        if (!Movement || !Movement->RestoreStaminaFromDraughtFromServer(RootStaminaDraughtStamina)) return false;
+    }
+    Statuses = MoveTemp(CandidateStatuses);
     GetOwner()->ForceNetUpdate();
     return true;
 }
