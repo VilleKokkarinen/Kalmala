@@ -99,6 +99,12 @@ bool FKalmalaConstructionSaveGameV2Test::RunTest(const FString& Parameters)
     TestTrue(TEXT("Rutabaga seed mode pays one Rutabaga and yields three Rutabaga Seeds"),
         FKalmalaGardenPlotState::GetPlantingPaymentItem(EKalmalaGardenCropMode::RutabagaSeed) == FName(TEXT("Rutabaga"))
         && FKalmalaGardenPlotState::GetHarvestItem(EKalmalaGardenCropMode::RutabagaSeed) == FName(TEXT("RutabagaSeed")));
+    TestTrue(TEXT("Onion food mode pays one Onion Seed and yields three Onions"),
+        FKalmalaGardenPlotState::GetPlantingPaymentItem(EKalmalaGardenCropMode::OnionFood) == FName(TEXT("OnionSeed"))
+        && FKalmalaGardenPlotState::GetHarvestItem(EKalmalaGardenCropMode::OnionFood) == FName(TEXT("Onion")));
+    TestTrue(TEXT("Onion seed mode pays one Onion and yields three Onion Seeds"),
+        FKalmalaGardenPlotState::GetPlantingPaymentItem(EKalmalaGardenCropMode::OnionSeed) == FName(TEXT("Onion"))
+        && FKalmalaGardenPlotState::GetHarvestItem(EKalmalaGardenCropMode::OnionSeed) == FName(TEXT("OnionSeed")));
     FKalmalaGardenPlotState PotatoCycle;
     TestTrue(TEXT("Potato tuber planting starts a crop"), PotatoCycle.PlantCrop(EKalmalaGardenCropMode::PotatoFood));
     TestTrue(TEXT("Potato tuber matures after 600 active seconds"), PotatoCycle.Advance(600.0f));
@@ -116,6 +122,17 @@ bool FKalmalaConstructionSaveGameV2Test::RunTest(const FString& Parameters)
     TestTrue(TEXT("Rutabaga seed matures after 600 active seconds"), RutabagaSeedCycle.Advance(600.0f));
     TestTrue(TEXT("Mature Rutabaga seed can be harvested once"), RutabagaSeedCycle.ClearMatureCrop());
     TestFalse(TEXT("Rutabaga seed cannot be harvested twice"), RutabagaSeedCycle.ClearMatureCrop());
+    FKalmalaGardenPlotState OnionCycle;
+    TestTrue(TEXT("Onion food mode plants into an empty Garden Plot"),
+        OnionCycle.PlantCrop(EKalmalaGardenCropMode::OnionFood));
+    TestTrue(TEXT("Onion food matures after 600 active seconds"), OnionCycle.Advance(600.0f));
+    TestTrue(TEXT("Mature Onion food can be harvested once"), OnionCycle.ClearMatureCrop());
+    TestFalse(TEXT("Onion food cannot be harvested twice"), OnionCycle.ClearMatureCrop());
+    TestTrue(TEXT("Onion seed mode plants into an empty Garden Plot"),
+        OnionCycle.PlantCrop(EKalmalaGardenCropMode::OnionSeed));
+    TestTrue(TEXT("Onion seed matures after 600 active seconds"), OnionCycle.Advance(600.0f));
+    TestTrue(TEXT("Mature Onion seed can be harvested once"), OnionCycle.ClearMatureCrop());
+    TestFalse(TEXT("Onion seed cannot be harvested twice"), OnionCycle.ClearMatureCrop());
     TestTrue(TEXT("Rutabaga food mode saves into an empty Garden Plot"),
         Plot.GardenPlot.PlantCrop(EKalmalaGardenCropMode::RutabagaFood));
     TestEqual(TEXT("Rutabaga growth begins at 600 active seconds"), Plot.GardenPlot.RemainingActiveSeconds,
@@ -124,6 +141,10 @@ bool FKalmalaConstructionSaveGameV2Test::RunTest(const FString& Parameters)
     TestTrue(TEXT("Rutabaga state retains its exact remaining active seconds"),
         FMath::IsNearlyEqual(Plot.GardenPlot.RemainingActiveSeconds, 582.75f));
     TestFalse(TEXT("Zero active time cannot advance a crop"), Plot.GardenPlot.Advance(0.0f));
+    FKalmalaConstructionSaveRecord OnionPlot = MakeRecord(TEXT("camp-garden-onion-01"), TEXT("GardenPlotKit"));
+    TestTrue(TEXT("Onion seed mode saves into a Garden Plot"),
+        OnionPlot.GardenPlot.PlantCrop(EKalmalaGardenCropMode::OnionSeed));
+    TestTrue(TEXT("Onion seed growth advances by active time"), OnionPlot.GardenPlot.Advance(21.5f));
     FKalmalaGardenPlotState SeedPlotState;
     TestTrue(TEXT("Carrot seed mode plants from one Carrot"),
         SeedPlotState.PlantCrop(EKalmalaGardenCropMode::CarrotSeed));
@@ -140,11 +161,12 @@ bool FKalmalaConstructionSaveGameV2Test::RunTest(const FString& Parameters)
     TestTrue(TEXT("Schema 5 saves kiln input, output, and remaining active seconds"), Save->AddRecord(Kiln));
     TestTrue(TEXT("Schema 5 saves Smelter input and active job state"), Save->AddRecord(Smelter));
     TestTrue(TEXT("Garden Plot saves in the current construction record"), Save->AddRecord(Plot));
+    TestTrue(TEXT("Onion Garden Plot saves in the current construction record"), Save->AddRecord(OnionPlot));
     TestFalse(TEXT("Schema 5 rejects a duplicate stable construction ID across record kinds"),
         Save->AddStationAttachmentRecord(MakeRecord(TEXT("camp-floor-01"), TEXT("ForgeAnvilKit"))));
     TestFalse(TEXT("Schema 5 rejects unsupported construction identities"),
         Save->AddRecord(MakeRecord(TEXT("camp-unknown-01"), TEXT("UnknownConstructionKit"))));
-    TestEqual(TEXT("Rejected schema-5 additions leave the live candidate unchanged"), Save->GetRecords().Num(), 6);
+    TestEqual(TEXT("Rejected schema-5 additions leave the live candidate unchanged"), Save->GetRecords().Num(), 7);
 
     const auto BuildPlotRemovalCandidate = [this, &World, &MakeRecord](const TCHAR* Id, const EKalmalaGardenCropMode Mode)
     {
@@ -223,13 +245,20 @@ bool FKalmalaConstructionSaveGameV2Test::RunTest(const FString& Parameters)
     if (TestNotNull(TEXT("Schema 5 construction records reload with their type"), Reloaded))
     {
         TestTrue(TEXT("Reloaded container carries exact world, revision, and world scope"), Reloaded->MatchesWorld(World));
-        TestEqual(TEXT("Existing construction, Campfire, Kiln, Smelter, plot, and attachment records round-trip together"), Reloaded->GetRecords().Num(), 6);
+        TestEqual(TEXT("Existing construction, Campfire, Kiln, Smelter, plots, and attachment records round-trip together"), Reloaded->GetRecords().Num(), 7);
         TestTrue(TEXT("Rutabaga Garden Plot mode and active time survive reload"), Reloaded->GetRecords().ContainsByPredicate(
             [](const FKalmalaConstructionSaveRecord& Record)
             {
                 return Record.ConstructionId == TEXT("camp-garden-01") && Record.KitId == TEXT("GardenPlotKit")
                     && Record.GardenPlot.CropMode == EKalmalaGardenCropMode::RutabagaFood
                     && FMath::IsNearlyEqual(Record.GardenPlot.RemainingActiveSeconds, 582.75f);
+            }));
+        TestTrue(TEXT("Onion seed Garden Plot mode and active time survive reload"), Reloaded->GetRecords().ContainsByPredicate(
+            [](const FKalmalaConstructionSaveRecord& Record)
+            {
+                return Record.ConstructionId == TEXT("camp-garden-onion-01") && Record.KitId == TEXT("GardenPlotKit")
+                    && Record.GardenPlot.CropMode == EKalmalaGardenCropMode::OnionSeed
+                    && FMath::IsNearlyEqual(Record.GardenPlot.RemainingActiveSeconds, 578.5f);
             }));
         TestTrue(TEXT("Kiln inventory and job timer survive reload"), Reloaded->GetRecords().ContainsByPredicate(
             [](const FKalmalaConstructionSaveRecord& Record)

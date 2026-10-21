@@ -34,7 +34,8 @@ usable Main Hand Planting Trowel to open cultivation. Carrot food mode spends 1
 Carrot Seed for 3 Carrots; Carrot seed mode spends 1 Carrot for 3 Carrot Seeds.
 Potato tuber mode spends 1 Potato for 3 Potatoes. Rutabaga food mode spends
 1 Rutabaga Seed for 3 Rutabagas; Rutabaga seed mode spends 1 Rutabaga for
-3 Rutabaga Seeds. Potato Seed remains unused.
+3 Rutabaga Seeds. Onion food mode spends 1 Onion Seed for 3 Onions; Onion seed
+mode spends 1 Onion for 3 Onion Seeds. Potato Seed remains unused.
 Growth takes 600 active seconds in an active terrain patch, pauses when the patch
 is inactive, and does not advance while the server is stopped. Accepted planting
 spends one Trowel condition; harvest and rejection do not. A mature crop remains

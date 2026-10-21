@@ -131,6 +131,10 @@ bool UKalmalaCraftingComponent::PlantGardenCropFromServer(AKalmalaConstructionAc
         Reason = TEXT("Rutabaga planted · harvest 3 Rutabagas after 600 active seconds");
     else if (Mode == EKalmalaGardenCropMode::RutabagaSeed)
         Reason = TEXT("Rutabaga seed planted · harvest 3 Rutabaga Seeds after 600 active seconds");
+    else if (Mode == EKalmalaGardenCropMode::OnionFood)
+        Reason = TEXT("Onion planted · harvest 3 Onions after 600 active seconds");
+    else if (Mode == EKalmalaGardenCropMode::OnionSeed)
+        Reason = TEXT("Onion seed planted · harvest 3 Onion Seeds after 600 active seconds");
     else
         Reason = TEXT("Carrot seed planted · harvest 3 Carrot Seeds after 600 active seconds");
     return true;

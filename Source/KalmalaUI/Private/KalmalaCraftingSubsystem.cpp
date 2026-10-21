@@ -1043,8 +1043,8 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
              "Potato tuber · 1 Potato → 3 Potato\n"
              "Rutabaga food · 1 Rutabaga Seed → 3 Rutabaga\n"
              "Rutabaga seed · 1 Rutabaga → 3 Rutabaga Seed\n"
-             "Onion food · 1 Onion Seed → 3 Onion (A7 task pending)\n"
-             "Onion seed · 1 Onion → 3 Onion Seed (A7 task pending)")));
+             "Onion food · 1 Onion Seed → 3 Onion\n"
+             "Onion seed · 1 Onion → 3 Onion Seed")));
     CultivationContextPanel->AddChildToVerticalBox(CultivationChoicesText)->SetPadding(FMargin(0.0f, 10.0f));
     WrappedTextBlocks.Add(CultivationChoicesText);
     PlantCarrotFoodButton = AddButton(TEXT("Plant Carrot food"), nullptr,
@@ -1072,6 +1072,16 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     Column->RemoveChild(PlantRutabagaSeedButton);
     CultivationContextPanel->AddChildToVerticalBox(PlantRutabagaSeedButton);
     PlantRutabagaSeedButton->OnClicked.AddDynamic(this, &ThisClass::PlantRutabagaSeed);
+    PlantOnionFoodButton = AddButton(TEXT("Plant Onion food"), nullptr,
+        TEXT("Pay 1 Onion Seed. The server checks the plot and Main Hand Planting Trowel."));
+    Column->RemoveChild(PlantOnionFoodButton);
+    CultivationContextPanel->AddChildToVerticalBox(PlantOnionFoodButton);
+    PlantOnionFoodButton->OnClicked.AddDynamic(this, &ThisClass::PlantOnionFood);
+    PlantOnionSeedButton = AddButton(TEXT("Plant Onion seed"), nullptr,
+        TEXT("Pay 1 Onion. The server checks the plot and Main Hand Planting Trowel."));
+    Column->RemoveChild(PlantOnionSeedButton);
+    CultivationContextPanel->AddChildToVerticalBox(PlantOnionSeedButton);
+    PlantOnionSeedButton->OnClicked.AddDynamic(this, &ThisClass::PlantOnionSeed);
     HarvestGardenCropButton = AddButton(TEXT("Harvest mature crop"), nullptr,
         TEXT("Harvest three crops when the server says the plot is mature. A full pack keeps the crop."));
     Column->RemoveChild(HarvestGardenCropButton);
@@ -2000,7 +2010,8 @@ void UKalmalaCraftingWidget::RefreshCultivationState(UKalmalaCraftingComponent* 
 {
     if (!bCultivationContext || !CultivationContextPanel || !CultivationContextStatusText
         || !PlantCarrotFoodButton || !PlantCarrotSeedButton || !PlantPotatoTuberButton
-        || !PlantRutabagaFoodButton || !PlantRutabagaSeedButton || !HarvestGardenCropButton) return;
+        || !PlantRutabagaFoodButton || !PlantRutabagaSeedButton
+        || !PlantOnionFoodButton || !PlantOnionSeedButton || !HarvestGardenCropButton) return;
     AKalmalaConstructionActor* Plot = ContextStationActor.Get();
     AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(GetOwningPlayerPawn());
     UKalmalaInventoryComponent* Inventory = Character ? Character->GetInventoryComponent() : nullptr;
@@ -2020,6 +2031,10 @@ void UKalmalaCraftingWidget::RefreshCultivationState(UKalmalaCraftingComponent* 
         && Inventory->GetQuantity(TEXT("RutabagaSeed")) > 0);
     PlantRutabagaSeedButton->SetIsEnabled(bTrowelReady && bEmpty && Inventory
         && Inventory->GetQuantity(TEXT("Rutabaga")) > 0);
+    PlantOnionFoodButton->SetIsEnabled(bTrowelReady && bEmpty && Inventory
+        && Inventory->GetQuantity(TEXT("OnionSeed")) > 0);
+    PlantOnionSeedButton->SetIsEnabled(bTrowelReady && bEmpty && Inventory
+        && Inventory->GetQuantity(TEXT("Onion")) > 0);
 
     const FName HarvestItem = FKalmalaGardenPlotState::GetHarvestItem(PlotState.CropMode);
     TArray<FKalmalaInventoryStack> HarvestCandidate;
@@ -2036,13 +2051,16 @@ void UKalmalaCraftingWidget::RefreshCultivationState(UKalmalaCraftingComponent* 
     else if (!bTrowelReady)
         Status = TEXT("Equip a usable Planting Trowel in Main Hand to cultivate this plot.");
     else if (PlotState.IsEmpty())
-        Status = TEXT("Empty plot. Choose a Carrot, Potato, or Rutabaga mode below. Accepted planting spends one Planting Trowel condition.");
+        Status = TEXT("Empty plot. Choose a Carrot, Potato, Rutabaga, or Onion mode below. Accepted planting spends one Planting Trowel condition.");
     else
     {
         const bool bCarrotSeed = PlotState.CropMode == EKalmalaGardenCropMode::CarrotSeed;
         const bool bRutabagaSeed = PlotState.CropMode == EKalmalaGardenCropMode::RutabagaSeed;
+        const bool bOnionSeed = PlotState.CropMode == EKalmalaGardenCropMode::OnionSeed;
         const FString CropLabel = PlotState.CropMode == EKalmalaGardenCropMode::PotatoFood
-            ? TEXT("Potato tuber") : bRutabagaSeed ? TEXT("Rutabaga seed")
+            ? TEXT("Potato tuber") : bOnionSeed ? TEXT("Onion seed")
+            : PlotState.CropMode == EKalmalaGardenCropMode::OnionFood ? TEXT("Onion food")
+            : bRutabagaSeed ? TEXT("Rutabaga seed")
             : PlotState.CropMode == EKalmalaGardenCropMode::RutabagaFood ? TEXT("Rutabaga food")
             : bCarrotSeed ? TEXT("Carrot seed") : TEXT("Carrot food");
         const FName Yield = HarvestItem;
@@ -2091,6 +2109,20 @@ void UKalmalaCraftingWidget::PlantRutabagaSeed()
     if (!bOpen || !bCultivationContext || !IsStationContextValid()) return;
     if (UKalmalaCraftingComponent* Crafting = Model())
         Crafting->ServerPlantGardenCarrot(ContextStationActor.Get(), EKalmalaGardenCropMode::RutabagaSeed);
+}
+
+void UKalmalaCraftingWidget::PlantOnionFood()
+{
+    if (!bOpen || !bCultivationContext || !IsStationContextValid()) return;
+    if (UKalmalaCraftingComponent* Crafting = Model())
+        Crafting->ServerPlantGardenCarrot(ContextStationActor.Get(), EKalmalaGardenCropMode::OnionFood);
+}
+
+void UKalmalaCraftingWidget::PlantOnionSeed()
+{
+    if (!bOpen || !bCultivationContext || !IsStationContextValid()) return;
+    if (UKalmalaCraftingComponent* Crafting = Model())
+        Crafting->ServerPlantGardenCarrot(ContextStationActor.Get(), EKalmalaGardenCropMode::OnionSeed);
 }
 
 void UKalmalaCraftingWidget::HarvestGardenCrop()
