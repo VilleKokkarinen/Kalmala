@@ -9,6 +9,16 @@
       "GearSlot": "Head",
       "MaxDurability": 50,
       "Armor": 1
+    },
+    {
+      "ItemId": "BronzeHelmet",
+      "DisplayName": "Bronze Helmet",
+      "Description": "A hammered bronze helmet with a boar-hide lining.",
+      "MaxStack": 1,
+      "WeightKg": 2,
+      "GearSlot": "Head",
+      "MaxDurability": 100,
+      "Armor": 3
     }
   ]
 }

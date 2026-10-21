@@ -87,6 +87,7 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
     const FExpectedGear Gear[] = {
         { TEXT("WoodShield"), TEXT("Shield"), 50, 5 },
         { TEXT("BoarHideHelmet"), TEXT("Head"), 50, 1 },
+        { TEXT("BronzeHelmet"), TEXT("Head"), 100, 3 },
         { TEXT("BoarHideCape"), TEXT("Cape"), 50, 1 },
         { TEXT("BoarHideTunic"), TEXT("Chest"), 50, 1 },
         { TEXT("BoarHideLeggings"), TEXT("Legs"), 50, 1 },

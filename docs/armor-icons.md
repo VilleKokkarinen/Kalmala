@@ -1,4 +1,4 @@
-# Initial wearable gear icon provenance
+# Wearable gear icon provenance
 
 The six original icons were generated with the built-in image-generation tool.
 The committed Bronze Axe original was supplied as a style reference. Each source
@@ -30,3 +30,16 @@ Scripts/Import-CatalogueIconBatch.ps1 -Batch G
 
 The canonical IDs and texture asset names are listed in
 `Scripts/Data/catalogue-icon-manifest.csv`.
+
+Bronze Helmet was generated with the built-in image-generation tool on
+2026-10-21 as a standalone transparent 1254×1254 RGBA original. Its retained
+original was prepared to 64×64 RGBA and imported through the single-item S
+batch; the six initial wearable icons in batch G were not replaced.
+
+| Identity | Prompt subject | Original PNG | Prepared PNG | Texture2D |
+| --- | --- | --- | --- | --- |
+| `BronzeHelmet` | Single rounded hammered-bronze cap with a short brow ridge and narrow boar-hide lining; three-quarter front view, no wearer. | `Content/Kalmala/UI/Source/IconOriginals/BronzeHelmet.png` | `Content/Kalmala/UI/Source/Icons/BronzeHelmet.png` | `Content/Kalmala/UI/Icons/Items/BronzeHelmet.uasset` |
+
+The prompt used the existing warm survival-fantasy inventory treatment: dark
+contours, broad painted metal facets, warm highlights, centered silhouette,
+transparent padding, and no text, props, glow, or background.

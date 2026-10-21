@@ -146,7 +146,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
 
 - [ ] **A4 — Armour and shields (P1).** [Stats and upgrades](docs/alpha-item-details.md#a4)
   - [x] Review armour; retain hide Boots/Cape and defer insulation.
-  - [ ] Bronze Helmet: Forge, 10 Bronze + 5 Boar Hide; 3 Armor.
+  - [x] Bronze Helmet: Forge, 10 Bronze + 5 Boar Hide; 3 Armor.
   - [ ] Bronze Tunic: Forge, 15 Bronze + 5 Boar Hide; 5 Armor.
   - [ ] Bronze Leggings: Forge, 15 Bronze + 5 Boar Hide; 5 Armor.
   - [ ] Bronze Shield: Forge, 10 Bronze + 5 Lightwood + 5 Boar Hide; 10 Armor.
