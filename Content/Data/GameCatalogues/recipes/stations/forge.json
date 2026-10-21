@@ -226,6 +226,28 @@
         }
       ],
       "Level": 1
+    },
+    {
+      "RecipeId": "IronSword",
+      "DisplayName": "Iron Sword",
+      "ItemId": "IronSword",
+      "RequiredStation": "Forge",
+      "RequiredStationLevel": 1,
+      "Ingredients": [
+        {
+          "ItemId": "Iron",
+          "Quantity": 20
+        },
+        {
+          "ItemId": "Densewood",
+          "Quantity": 2
+        },
+        {
+          "ItemId": "DeerHide",
+          "Quantity": 2
+        }
+      ],
+      "Level": 1
     }
   ]
 }

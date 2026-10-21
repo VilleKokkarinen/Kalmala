@@ -118,7 +118,8 @@
     {
       "AttackListId": "Swords",
       "ItemIds": [
-        "BronzeSword"
+        "BronzeSword",
+        "IronSword"
       ],
       "Attacks": [
         {

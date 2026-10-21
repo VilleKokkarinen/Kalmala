@@ -4811,3 +4811,23 @@ with `python Scripts/Prepare-CatalogueIconBatch.py --batch M` and
 `Scripts/Import-CatalogueIconBatch.ps1 -Batch M`. The catalogue icon validator
 now covers 76 identities. Editor build, gameplay automation, rendered Forge
 acceptance, and peer checks remain deferred to I2 milestone-final verification.
+
+## A2 Iron Sword catalogue increment — 2026-10-21
+
+`IronSword` is the second carried sword profile in `items/equipment/swords.json`.
+Its Forge level-one acquisition costs 20 Iron, 2 Densewood, and 2 Deer Hide.
+The profile weighs 2.5 kg and starts at 180 condition and 55 Slash; the shared
+sword Basic attack adds no damage. Forge upgrades start at 2 Iron + 1 Densewood
+and add 30 condition and 4 Slash per level using the existing scaling, cap, repair, and
+server-validated Main Hand lifecycle. Its ordinary stack-item definition is
+not applicable: carried weapons use the equipment-profile catalogue. Its source
+is the Forge; no loot, gathering role, alternate attack, elemental bonus, or
+new save/network field is added.
+
+The original, prepared, and imported icon paths and exact built-in imagegen
+prompt are recorded in `docs/iron-sword-icon.md`. Icon batch N contains only
+IronSword. Prepare and import with
+`python Scripts/Prepare-CatalogueIconBatch.py --batch N` and
+`Scripts/Import-CatalogueIconBatch.ps1 -Batch N`; the catalogue icon validator
+now covers 77 identities. Editor build, gameplay automation, rendered Forge
+acceptance, and peer checks remain deferred to I2 milestone-final verification.

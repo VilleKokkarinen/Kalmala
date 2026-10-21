@@ -15,6 +15,22 @@
         }
       ],
       "Level": 1
+    },
+    {
+      "DisplayName": "Iron Sword",
+      "ItemId": "IronSword",
+      "RequiredStation": "Forge",
+      "Ingredients": [
+        {
+          "ItemId": "Iron",
+          "Quantity": 2
+        },
+        {
+          "ItemId": "Densewood",
+          "Quantity": 1
+        }
+      ],
+      "Level": 1
     }
   ]
 }

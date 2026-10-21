@@ -225,7 +225,7 @@ bool UKalmalaIconWidget::FindCatalogueIcon(FName Id, EKalmalaIcon& OutIcon, int3
         {TEXT("IronAxe"),EKalmalaIcon::Axe,2}, {TEXT("IronKnife"),EKalmalaIcon::Knife,2},
         {TEXT("IronPick"),EKalmalaIcon::Pick,2}, {TEXT("IronSpear"),EKalmalaIcon::Spear,2},
         {TEXT("StoneMace"),EKalmalaIcon::Mace,0}, {TEXT("BronzeMace"),EKalmalaIcon::Mace,1}, {TEXT("IronMace"),EKalmalaIcon::Mace,2},
-        {TEXT("BronzeSword"),EKalmalaIcon::Sword,1},
+        {TEXT("BronzeSword"),EKalmalaIcon::Sword,1}, {TEXT("IronSword"),EKalmalaIcon::Sword,2},
         {TEXT("ConstructionHammer"),EKalmalaIcon::Hammer,0},
         {TEXT("WoodShield"),EKalmalaIcon::Shield,1},
         {TEXT("BoarHideHelmet"),EKalmalaIcon::Helmet,0}, {TEXT("BoarHideCape"),EKalmalaIcon::Cape,0},

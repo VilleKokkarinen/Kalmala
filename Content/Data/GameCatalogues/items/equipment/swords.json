@@ -8,6 +8,16 @@
       "DamageBonuses": {
         "Slash": 35.0
       }
+    },
+    {
+      "ItemId": "IronSword",
+      "DisplayName": "Iron Sword",
+      "Description": "A forged iron blade for slashing attacks.",
+      "WeightKg": 2.5,
+      "MaxDurability": 180,
+      "DamageBonuses": {
+        "Slash": 55.0
+      }
     }
   ]
 }

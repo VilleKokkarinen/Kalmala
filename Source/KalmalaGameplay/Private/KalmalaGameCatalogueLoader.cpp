@@ -54,6 +54,7 @@ namespace
             }
             Object->SetBoolField(TEXT("bTwoHanded"), bTwoHanded);
             if (ItemId != TEXT("Bow") && !Object->HasField(TEXT("DrawDuration"))) Object->SetNumberField(TEXT("DrawDuration"), 0);
+            if (!Object->HasField(TEXT("WeightKg"))) Object->SetNumberField(TEXT("WeightKg"), 2.0);
             if (!Object->HasField(TEXT("MinimumSkillLevel"))) Object->SetNumberField(TEXT("MinimumSkillLevel"), 1.0);
         }
         return true;

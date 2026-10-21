@@ -56,7 +56,8 @@
     },
     {
       "ItemIds": [
-        "BronzeSword"
+        "BronzeSword",
+        "IronSword"
       ],
       "LevelUpReward": {
         "MaxDurability": 30,

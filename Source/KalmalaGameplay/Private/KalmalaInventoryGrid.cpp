@@ -4,6 +4,7 @@
 #include "KalmalaSupportMagicComponent.h"
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaPlayerStatusComponent.h"
+#include "KalmalaToolCatalogue.h"
 #include "KalmalaToolLifecycleContract.h"
 #include "Engine/World.h"
 
@@ -90,7 +91,15 @@ float UKalmalaInventoryComponent::GetCarriedWeight() const
     for (const auto& Stack : Stacks)
         if (const auto* Item = Catalogue->FindItem(Stack.ItemId)) Weight += Item->WeightKg * Stack.Quantity;
     if (const auto* Character = Cast<AKalmalaCharacter>(GetOwner()))
-        Weight += Character->GetCarriedToolInventory().Num() * 2.0f;
+    {
+        const auto* ToolCatalogue = UKalmalaToolCatalogue::Get();
+        for (const FKalmalaToolState& Tool : Character->GetCarriedToolInventory())
+        {
+            const FKalmalaToolProfileData* Profile = ToolCatalogue
+                ? ToolCatalogue->FindProfile(Tool.ItemId) : nullptr;
+            Weight += Profile ? Profile->WeightKg : 2.0f;
+        }
+    }
     return Weight;
 }
 

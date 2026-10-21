@@ -54,6 +54,10 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Versioned JSON loads a valid item catalogue"), Catalogue->IsValidCatalogue());
     TestTrue(TEXT("Versioned JSON loads a valid recipe catalogue"), Recipes->IsValidCatalogue());
     TestTrue(TEXT("Versioned JSON loads a valid tool catalogue"), ToolCatalogue->IsValidCatalogue(Catalogue));
+    const FKalmalaToolProfileData* IronSwordProfile = ToolCatalogue->FindProfile(TEXT("IronSword"));
+    TestNotNull(TEXT("Iron Sword profile is registered"), IronSwordProfile);
+    if (IronSwordProfile)
+        TestEqual(TEXT("Iron Sword has the reviewed carried weight"), IronSwordProfile->WeightKg, 2.5f);
     const FKalmalaItemDefinition* BowString = Catalogue->FindDefinition(TEXT("BowString"));
     TestNotNull(TEXT("Bow String item replaces generic String"), BowString);
     TestNull(TEXT("Generic String is no longer a catalogue identity"), Catalogue->FindDefinition(TEXT("String")));

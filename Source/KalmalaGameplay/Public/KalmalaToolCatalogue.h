@@ -89,6 +89,9 @@ struct KALMALAGAMEPLAY_API FKalmalaToolProfileData
     /** Seconds to full draw; zero for non-bows. */
     UPROPERTY(EditAnywhere) float DrawDuration = 0.0f;
 
+    /** Presentation weight used by the inventory's carried-weight summary. */
+    UPROPERTY(EditAnywhere) float WeightKg = 2.0f;
+
     UPROPERTY(EditAnywhere)
     int32 MaxDurability = 0;
 

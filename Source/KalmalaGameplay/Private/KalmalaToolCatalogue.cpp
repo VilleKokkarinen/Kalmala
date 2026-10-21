@@ -102,7 +102,7 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
                 TEXT("StoneSpear"), TEXT("BronzeAxe"), TEXT("BronzeKnife"), TEXT("BronzePick"),
                 TEXT("BronzeSpear"), TEXT("IronAxe"), TEXT("IronKnife"), TEXT("IronPick"),
                 TEXT("IronSpear"), TEXT("StoneMace"), TEXT("BronzeMace"), TEXT("IronMace"),
-                TEXT("BronzeSword"), TEXT("ConstructionHammer"), TEXT("Bow")})
+                TEXT("BronzeSword"), TEXT("IronSword"), TEXT("ConstructionHammer"), TEXT("Bow")})
             || (Profile.ToolKind == TEXT("Bow") && !Profile.bTwoHanded)
             || !IsOneOf(Profile.ToolSet, {TEXT("Starter"), TEXT("Crafted"), TEXT("Utility")})
             || !IsOneOf(Profile.Action, {TEXT("None"), TEXT("Gathering"), TEXT("Woodcutting"), TEXT("Mining")})
@@ -113,6 +113,7 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
             || Profile.MinimumSkillLevel < 1 || Profile.MinimumSkillLevel > 10
             || !FMath::IsFinite(Profile.DrawDuration)
             || (Profile.ToolKind == TEXT("Bow") ? (Profile.DrawDuration < 0.05f || Profile.DrawDuration > 10.0f) : Profile.DrawDuration != 0.0f)
+            || !FMath::IsFinite(Profile.WeightKg) || Profile.WeightKg < 0.0f || Profile.WeightKg > 300.0f
             || Profile.MaxDurability < 1 || Profile.MaxDurability > 1000
             || !Profile.DamageBonuses.IsValid(1000.0f))
         {

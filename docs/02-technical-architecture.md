@@ -1307,9 +1307,11 @@ complete.
 Below the grid, show one compact line such as `Armor 0 · Weight 8/300`.
 Current armor remains 0 because equipped defenses are not yet applied to
 combat. Carry weight includes stack quantities and tools. Current prototype defaults are
-1 kg per item unit, 2 kg per tool, and a 300 kg displayed capacity.
-`FKalmalaItemDefinition::WeightKg` is an optional validated catalogue value
-and capacity is a component class default. These are presentation metrics; this
+1 kg per item unit, 2 kg per carried-tool profile, and a 300 kg displayed
+capacity. `FKalmalaItemDefinition::WeightKg` and
+`FKalmalaToolProfileData::WeightKg` are optional validated catalogue values;
+tool profiles default to 2 kg when omitted. Capacity is a component class
+default. These are presentation metrics; this
 increment introduces no encumbrance penalty or weight-based transaction
 rejection. Armor items, equipment rules, and final weight balance require
 separate gameplay work.
