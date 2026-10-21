@@ -50,7 +50,7 @@ bool FKalmalaConstructionSaveGameTest::RunTest(const FString& Parameters)
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaConstructionSaveGameV2Test,
-    "Kalmala.Gameplay.Construction.Schema5CurrentFormat",
+    "Kalmala.Gameplay.Construction.Schema6CurrentFormat",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FKalmalaConstructionSaveGameV2Test::RunTest(const FString& Parameters)
@@ -155,18 +155,47 @@ bool FKalmalaConstructionSaveGameV2Test::RunTest(const FString& Parameters)
     InvalidFloor.GardenPlot.PlantCrop(EKalmalaGardenCropMode::CarrotFood);
     TestFalse(TEXT("Non-plot construction rejects crop state"),
         UKalmalaConstructionSaveGameV2::IsValidRecord(InvalidFloor));
-    TestTrue(TEXT("Schema 5 accepts an established camp record"), Save->AddRecord(Floor));
-    TestTrue(TEXT("Schema 5 accepts a bounded station attachment"), Save->AddStationAttachmentRecord(Rack));
-    TestTrue(TEXT("Schema 5 retains the stable Campfire construction identity"), Save->AddRecord(Campfire));
-    TestTrue(TEXT("Schema 5 saves kiln input, output, and remaining active seconds"), Save->AddRecord(Kiln));
-    TestTrue(TEXT("Schema 5 saves Smelter input and active job state"), Save->AddRecord(Smelter));
+    TestTrue(TEXT("Schema 6 accepts an established camp record"), Save->AddRecord(Floor));
+    TestTrue(TEXT("Schema 6 accepts a bounded station attachment"), Save->AddStationAttachmentRecord(Rack));
+    TestTrue(TEXT("Schema 6 retains the stable Campfire construction identity"), Save->AddRecord(Campfire));
+    TestTrue(TEXT("Schema 6 saves kiln input, output, and remaining active seconds"), Save->AddRecord(Kiln));
+    TestTrue(TEXT("Schema 6 saves Smelter input and active job state"), Save->AddRecord(Smelter));
     TestTrue(TEXT("Garden Plot saves in the current construction record"), Save->AddRecord(Plot));
     TestTrue(TEXT("Onion Garden Plot saves in the current construction record"), Save->AddRecord(OnionPlot));
-    TestFalse(TEXT("Schema 5 rejects a duplicate stable construction ID across record kinds"),
+    TestFalse(TEXT("Schema 6 rejects a duplicate stable construction ID across record kinds"),
         Save->AddStationAttachmentRecord(MakeRecord(TEXT("camp-floor-01"), TEXT("ForgeAnvilKit"))));
-    TestFalse(TEXT("Schema 5 rejects unsupported construction identities"),
+    TestFalse(TEXT("Schema 6 rejects unsupported construction identities"),
         Save->AddRecord(MakeRecord(TEXT("camp-unknown-01"), TEXT("UnknownConstructionKit"))));
-    TestEqual(TEXT("Rejected schema-5 additions leave the live candidate unchanged"), Save->GetRecords().Num(), 7);
+    TestEqual(TEXT("Rejected schema-6 additions leave the live candidate unchanged"), Save->GetRecords().Num(), 7);
+
+    TestTrue(TEXT("Timber Door is a directly placeable construction identity"),
+        FKalmalaPlacementPreview::IsSupportedKit(TEXT("TimberDoorKit")));
+    UKalmalaConstructionSaveGameV2* DoorSave = NewObject<UKalmalaConstructionSaveGameV2>(GetTransientPackage());
+    DoorSave->InitializeForWorld(World);
+    const FKalmalaConstructionSaveRecord Wall = MakeRecord(TEXT("camp-wall-door-01"), TEXT("WallKit"));
+    TestTrue(TEXT("Door replacement fixture accepts a saved Windbreak Wall"), DoorSave->AddRecord(Wall));
+    TestFalse(TEXT("Door replacement rejects a mismatched saved transform"),
+        DoorSave->ReplaceWallRecordWithDoor(Wall.ConstructionId, FTransform(FVector(101.0f, 200.0f, 300.0f))));
+    TestTrue(TEXT("Door replacement retains the wall segment transform"),
+        DoorSave->ReplaceWallRecordWithDoor(Wall.ConstructionId, Wall.Transform));
+    TestEqual(TEXT("Wall record changes to the placed door identity"), DoorSave->GetRecords()[0].KitId,
+        FName(TEXT("TimberDoorKit")));
+    TestFalse(TEXT("A replaced Wall starts closed"), DoorSave->GetRecords()[0].bDoorOpen);
+    TestTrue(TEXT("Door state persists as open"),
+        DoorSave->UpdateDoorOpenRecord(Wall.ConstructionId, Wall.Transform, true));
+    TestTrue(TEXT("Open state is valid only on the Timber Door record"),
+        UKalmalaConstructionSaveGameV2::IsValidRecord(DoorSave->GetRecords()[0]));
+    FKalmalaConstructionSaveRecord OpenWall = Wall;
+    OpenWall.bDoorOpen = true;
+    TestFalse(TEXT("Non-door records reject door state"), UKalmalaConstructionSaveGameV2::IsValidRecord(OpenWall));
+    TArray<uint8> DoorBytes;
+    TestTrue(TEXT("Open door state serializes"), UGameplayStatics::SaveGameToMemory(DoorSave, DoorBytes));
+    auto* ReloadedDoorSave = Cast<UKalmalaConstructionSaveGameV2>(UGameplayStatics::LoadGameFromMemory(DoorBytes));
+    if (TestNotNull(TEXT("Door save reloads with its current type"), ReloadedDoorSave))
+    {
+        TestTrue(TEXT("Door save retains current schema identity"), ReloadedDoorSave->MatchesWorld(World));
+        TestTrue(TEXT("Door open state survives save reload"), ReloadedDoorSave->GetRecords()[0].bDoorOpen);
+    }
 
     const auto BuildPlotRemovalCandidate = [this, &World, &MakeRecord](const TCHAR* Id, const EKalmalaGardenCropMode Mode)
     {
@@ -239,10 +268,10 @@ bool FKalmalaConstructionSaveGameV2Test::RunTest(const FString& Parameters)
     TestTrue(TEXT("Empty Smelter can be removed"), RemovalCandidate->RemoveRecord(TEXT("smelter-empty")));
 
     TArray<uint8> CurrentBytes;
-    TestTrue(TEXT("Schema 5 construction records serialize in memory"), Serialize(Save, CurrentBytes));
+    TestTrue(TEXT("Schema 6 construction records serialize in memory"), Serialize(Save, CurrentBytes));
     UKalmalaConstructionSaveGameV2* Reloaded =
         Cast<UKalmalaConstructionSaveGameV2>(UGameplayStatics::LoadGameFromMemory(CurrentBytes));
-    if (TestNotNull(TEXT("Schema 5 construction records reload with their type"), Reloaded))
+    if (TestNotNull(TEXT("Schema 6 construction records reload with their type"), Reloaded))
     {
         TestTrue(TEXT("Reloaded container carries exact world, revision, and world scope"), Reloaded->MatchesWorld(World));
         TestEqual(TEXT("Existing construction, Campfire, Kiln, Smelter, plots, and attachment records round-trip together"), Reloaded->GetRecords().Num(), 7);
@@ -290,14 +319,14 @@ bool FKalmalaConstructionSaveGameV2Test::RunTest(const FString& Parameters)
     UKalmalaConstructionSaveGameV2* IdentityChecks = DuplicateObject<UKalmalaConstructionSaveGameV2>(Save, GetTransientPackage());
     const FKalmalaM7SaveIdentity ExpectedIdentity = IdentityChecks->Identity;
     IdentityChecks->Identity.WorldSeed++;
-    TestFalse(TEXT("Schema 5 rejects a mismatched identity seed"), IdentityChecks->MatchesWorld(World));
+    TestFalse(TEXT("Schema 6 rejects a mismatched identity seed"), IdentityChecks->MatchesWorld(World));
     IdentityChecks->Identity = ExpectedIdentity;
     IdentityChecks->Identity.GeneratorRevision--;
-    TestFalse(TEXT("Schema 5 rejects a mismatched generator revision"), IdentityChecks->MatchesWorld(World));
+    TestFalse(TEXT("Schema 6 rejects a mismatched generator revision"), IdentityChecks->MatchesWorld(World));
     IdentityChecks->Identity = ExpectedIdentity;
     IdentityChecks->Identity.Scope = EKalmalaM7SaveScope::Player;
     IdentityChecks->Identity.OwnerIdentity = TEXT("provider:other");
-    TestFalse(TEXT("Schema 5 rejects a mismatched persistence scope"), IdentityChecks->MatchesWorld(World));
+    TestFalse(TEXT("Schema 6 rejects a mismatched persistence scope"), IdentityChecks->MatchesWorld(World));
 
     UKalmalaConstructionSaveGameV2* InvalidCurrent = DuplicateObject<UKalmalaConstructionSaveGameV2>(Save, GetTransientPackage());
     InvalidCurrent->SchemaVersion = 0;

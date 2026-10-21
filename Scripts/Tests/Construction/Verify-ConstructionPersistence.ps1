@@ -54,7 +54,7 @@ function Invoke-PeerRun([int]$Run, [bool]$ExpectRestore) {
             Start-Sleep -Milliseconds 500
         } while ((Get-Date) -lt $deadline)
         if (!$ready) { throw "Run $Run construction host/client scenario timed out." }
-        if ($serverText -notmatch 'Construction save ready: Schema=5') { throw "Run $Run did not load the normal construction slot as schema 5." }
+        if ($serverText -notmatch 'Construction save ready: Schema=6') { throw "Run $Run did not load the normal construction slot as schema 6." }
         if ($clientText -notmatch 'Client received world-generation identity: Seed=418') { throw "Run $Run client identity mismatch." }
         if ($ExpectRestore) { Write-Output 'PASS: exact two original construction IDs restored; client received those plus two distinct newly paid placements.' }
         else {

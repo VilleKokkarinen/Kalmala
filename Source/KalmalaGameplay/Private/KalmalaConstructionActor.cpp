@@ -8,6 +8,8 @@
 #include "KalmalaWorldGenerationGameState.h"
 #include "Engine/World.h"
 #include "Components/BoxComponent.h"
+#include "Components/SceneComponent.h"
+#include "GameFramework/Pawn.h"
 #include "Net/UnrealNetwork.h"
 #include "ProceduralMeshComponent.h"
 
@@ -39,11 +41,43 @@ AKalmalaConstructionActor::AKalmalaConstructionActor()
     PieceMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     PieceMesh->SetGenerateOverlapEvents(false);
     PieceMesh->SetCanEverAffectNavigation(false);
+    DoorPivot = CreateDefaultSubobject<USceneComponent>(TEXT("DoorPivot"));
+    DoorPivot->SetupAttachment(Collision);
+    DoorPivot->SetRelativeLocation(FVector(-50.0f, 0.0f, 0.0f));
+    DoorLeafMesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("DoorLeaf"));
+    DoorLeafMesh->SetupAttachment(DoorPivot);
+    DoorLeafMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    DoorLeafMesh->SetGenerateOverlapEvents(false);
+    DoorLeafMesh->SetCanEverAffectNavigation(false);
+    DoorLeftFrameCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("DoorLeftFrameCollision"));
+    DoorLeftFrameCollision->SetupAttachment(Collision);
+    DoorLeftFrameCollision->SetBoxExtent(FVector(30.0f, 12.0f, 110.0f));
+    DoorLeftFrameCollision->SetRelativeLocation(FVector(-90.0f, 0.0f, 0.0f));
+    DoorLeftFrameCollision->SetCollisionProfileName(TEXT("BlockAll"));
+    DoorLeftFrameCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    DoorRightFrameCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("DoorRightFrameCollision"));
+    DoorRightFrameCollision->SetupAttachment(Collision);
+    DoorRightFrameCollision->SetBoxExtent(FVector(30.0f, 12.0f, 110.0f));
+    DoorRightFrameCollision->SetRelativeLocation(FVector(90.0f, 0.0f, 0.0f));
+    DoorRightFrameCollision->SetCollisionProfileName(TEXT("BlockAll"));
+    DoorRightFrameCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    DoorHeaderCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("DoorHeaderCollision"));
+    DoorHeaderCollision->SetupAttachment(Collision);
+    DoorHeaderCollision->SetBoxExtent(FVector(50.0f, 12.0f, 5.0f));
+    DoorHeaderCollision->SetRelativeLocation(FVector(0.0f, 0.0f, 105.0f));
+    DoorHeaderCollision->SetCollisionProfileName(TEXT("BlockAll"));
+    DoorHeaderCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    DoorLeafCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("DoorLeafCollision"));
+    DoorLeafCollision->SetupAttachment(DoorPivot);
+    DoorLeafCollision->SetBoxExtent(FVector(50.0f, 6.0f, 100.0f));
+    DoorLeafCollision->SetRelativeLocation(FVector(50.0f, 0.0f, 0.0f));
+    DoorLeafCollision->SetCollisionProfileName(TEXT("BlockAll"));
+    DoorLeafCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void AKalmalaConstructionActor::InitializeFromServer(const FName InKit, const FString& InConstructionId,
     const FKalmalaCharcoalKilnState& InCharcoalKiln, const FKalmalaSmelterState& InSmelter,
-    const FKalmalaGardenPlotState& InGardenPlot)
+    const FKalmalaGardenPlotState& InGardenPlot, const bool bInDoorOpen)
 {
     if (HasAuthority())
     {
@@ -55,6 +89,7 @@ void AKalmalaConstructionActor::InitializeFromServer(const FName InKit, const FS
             ? InSmelter : FKalmalaSmelterState();
         GardenPlot = InKit == TEXT("GardenPlotKit") && InGardenPlot.IsValid()
             ? InGardenPlot : FKalmalaGardenPlotState();
+        bDoorOpen = InKit == TEXT("TimberDoorKit") && bInDoorOpen;
         SetActorTickEnabled((InKit == TEXT("CharcoalKilnKit")
                 && (CharcoalKiln.JobRemainingSeconds > 0.0f
                     || (CharcoalKiln.InputWood > 0 && CharcoalKiln.OutputCoal < FKalmalaCharcoalKilnState::OutputCapacity)))
@@ -124,6 +159,39 @@ bool AKalmalaConstructionActor::ApplyGardenPlotStateFromServer(const FKalmalaGar
     return true;
 }
 
+bool AKalmalaConstructionActor::ReplaceWallWithDoorFromServer()
+{
+    if (!HasAuthority() || ConstructionKit != TEXT("WallKit") || ConstructionId.IsEmpty()) return false;
+    ConstructionKit = TEXT("TimberDoorKit");
+    bDoorOpen = false;
+    ApplyConstructionKit();
+    ForceNetUpdate();
+    return true;
+}
+
+bool AKalmalaConstructionActor::ToggleDoorFromServer(AKalmalaCharacter* Character, FString& Reason)
+{
+    Reason = TEXT("Server authority required");
+    if (!HasAuthority() || ConstructionKit != TEXT("TimberDoorKit") || ConstructionId.IsEmpty()
+        || !IsValid(Character) || !Character->HasAuthority()) return false;
+    Reason = TEXT("Move within 2 m and face the Timber Door");
+    if (!CanUse(Character)) return false;
+    const bool bNextOpen = !bDoorOpen;
+    if (!bNextOpen && IsPawnInDoorway())
+    {
+        Reason = TEXT("The Timber Door cannot close while a pawn is in the opening");
+        return false;
+    }
+    AKalmalaGameMode* Mode = GetWorld() ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
+    Reason = TEXT("Could not save Timber Door state");
+    if (!Mode || !Mode->PersistDoorOpenState(this, bNextOpen)) return false;
+    bDoorOpen = bNextOpen;
+    ApplyDoorState();
+    ForceNetUpdate();
+    Reason = bDoorOpen ? TEXT("Timber Door opened") : TEXT("Timber Door closed");
+    return true;
+}
+
 bool AKalmalaConstructionActor::HasUsablePlantingTrowel(const AKalmalaCharacter* Character) const
 {
     if (!IsValid(Character) || Character->GetWorld() != GetWorld()) return false;
@@ -142,16 +210,19 @@ bool AKalmalaConstructionActor::CanUse(const AKalmalaCharacter* Character) const
 {
     const bool bIsStorageOrCraftingStation = IsStorageKit(ConstructionKit)
         || IsCraftingStationKit(ConstructionKit);
+    const float MaximumUseRange = ConstructionKit == TEXT("TimberDoorKit") ? 200.0f : 250.0f;
     if (!IsValid(Character) || !Character->GetController() || Character->GetWorld() != GetWorld() || ConstructionId.IsEmpty()
         || (!bIsStorageOrCraftingStation && ConstructionKit != TEXT("GrindingStoneKit")
-            && ConstructionKit != TEXT("GardenPlotKit"))
+            && ConstructionKit != TEXT("GardenPlotKit") && ConstructionKit != TEXT("TimberDoorKit"))
         || Character->GetActorLocation().ContainsNaN() || GetActorLocation().ContainsNaN()
-        || FVector::DistSquared(Character->GetActorLocation(), GetActorLocation()) > FMath::Square(250.0)) return false;
+        || FVector::DistSquared(Character->GetActorLocation(), GetActorLocation()) > FMath::Square(MaximumUseRange)) return false;
     const auto* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
     if (!State || !State->GetWorldGenerationConfig().IsValid()) return false;
     FCollisionQueryParams Query(SCENE_QUERY_STAT(ConstructionUse), false, Character);
     FHitResult Hit;
-    return GetWorld()->LineTraceSingleByChannel(Hit, Character->GetPawnViewLocation(), GetActorLocation(), ECC_Visibility, Query)
+    const FVector InteractionPoint = ConstructionKit == TEXT("TimberDoorKit")
+        ? GetActorTransform().TransformPosition(FVector(-90.0f, 0.0f, 0.0f)) : GetActorLocation();
+    return GetWorld()->LineTraceSingleByChannel(Hit, Character->GetPawnViewLocation(), InteractionPoint, ECC_Visibility, Query)
         && Hit.GetActor() == this;
 }
 
@@ -161,6 +232,7 @@ void AKalmalaConstructionActor::AdvanceRainWearFromServer(const float DeltaSecon
         || !FMath::IsFinite(DeltaSeconds) || DeltaSeconds <= 0.0f
         || !FMath::IsFinite(Precipitation) || Precipitation <= 0.0f
         || (ConstructionKit != TEXT("FloorKit") && ConstructionKit != TEXT("WallKit")
+            && ConstructionKit != TEXT("TimberDoorKit")
             && ConstructionKit != TEXT("WorkbenchKit") && ConstructionKit != TEXT("StorageKit"))) return;
     const FVector Start = Collision->GetComponentLocation() + FVector(0, 0, 60);
     if (Start.ContainsNaN()) return;
@@ -211,6 +283,7 @@ FVector AKalmalaConstructionActor::GetCollisionExtent(const FName KitId)
 {
     if (KitId == TEXT("FloorKit")) return FVector(120, 120, 12);
     if (KitId == TEXT("WallKit")) return FVector(120, 12, 110);
+    if (KitId == TEXT("TimberDoorKit")) return FVector(120, 12, 110);
     if (KitId == TEXT("RoofKit")) return FVector(132, 132, 16);
     if (KitId == TEXT("CharcoalKilnKit")) return FVector(60, 60, 62);
     if (KitId == TEXT("SmelterKit")) return FVector(60, 60, 82);
@@ -233,6 +306,12 @@ void AKalmalaConstructionActor::GetLifetimeReplicatedProps(TArray<FLifetimePrope
     DOREPLIFETIME(AKalmalaConstructionActor, CharcoalKiln);
     DOREPLIFETIME(AKalmalaConstructionActor, Smelter);
     DOREPLIFETIME(AKalmalaConstructionActor, GardenPlot);
+    DOREPLIFETIME(AKalmalaConstructionActor, bDoorOpen);
+}
+
+void AKalmalaConstructionActor::OnRep_DoorState()
+{
+    ApplyDoorState();
 }
 
 void AKalmalaConstructionActor::OnRep_ConstructionState()
@@ -259,6 +338,40 @@ void AKalmalaConstructionActor::ApplyConstructionKit()
         Tags.AddUnique(TEXT("KalmalaShelterRoof"));
     if (ConstructionKit == TEXT("WallKit")) Tags.AddUnique(TEXT("KalmalaShelterWindbreak"));
     BuildPiecePresentation();
+    ApplyDoorState();
+}
+
+void AKalmalaConstructionActor::ApplyDoorState()
+{
+    if (!Collision || !DoorPivot || !DoorLeafMesh) return;
+    if (ConstructionKit == TEXT("TimberDoorKit"))
+    {
+        Collision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+        Collision->SetCollisionResponseToAllChannels(ECR_Ignore);
+        Tags.Remove(TEXT("KalmalaShelterWindbreak"));
+        if (!bDoorOpen) Tags.AddUnique(TEXT("KalmalaShelterWindbreak"));
+        DoorPivot->SetRelativeRotation(FRotator(0.0f, bDoorOpen ? -90.0f : 0.0f, 0.0f));
+        for (UBoxComponent* Frame : {DoorLeftFrameCollision.Get(), DoorRightFrameCollision.Get(), DoorHeaderCollision.Get(), DoorLeafCollision.Get()})
+            if (Frame) Frame->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+        return;
+    }
+    Collision->SetCollisionProfileName(TEXT("BlockAll"));
+    Collision->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+    DoorPivot->SetRelativeRotation(FRotator::ZeroRotator);
+    for (UBoxComponent* Frame : {DoorLeftFrameCollision.Get(), DoorRightFrameCollision.Get(), DoorHeaderCollision.Get(), DoorLeafCollision.Get()})
+        if (Frame) Frame->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+}
+
+bool AKalmalaConstructionActor::IsPawnInDoorway() const
+{
+    if (!HasAuthority() || !GetWorld() || ConstructionKit != TEXT("TimberDoorKit")) return true;
+    FCollisionQueryParams Query(SCENE_QUERY_STAT(TimberDoorClose), false, this);
+    TArray<FOverlapResult> Overlaps;
+    GetWorld()->OverlapMultiByChannel(Overlaps, GetActorLocation(), GetActorQuat(), ECC_Pawn,
+        FCollisionShape::MakeBox(FVector(50.0f, 12.0f, 100.0f)), Query);
+    for (const FOverlapResult& Overlap : Overlaps)
+        if (Cast<APawn>(Overlap.GetActor()) != nullptr) return true;
+    return false;
 }
 
 void AKalmalaConstructionActor::BuildPiecePresentation()
@@ -274,6 +387,14 @@ void AKalmalaConstructionActor::BuildPiecePresentation()
             AddBox(Vertices, Triangles, FVector(X, 0, 1), FVector(3, 50, 4));
         for (const float Y : {-47.0f, 47.0f})
             AddBox(Vertices, Triangles, FVector(0, Y, 1), FVector(44, 3, 4));
+    }
+    else if (ConstructionKit == TEXT("TimberDoorKit"))
+    {
+        AddBox(Vertices, Triangles, FVector(-90, 0, 0), FVector(30, 12, 110));
+        AddBox(Vertices, Triangles, FVector(90, 0, 0), FVector(30, 12, 110));
+        AddBox(Vertices, Triangles, FVector(-55, 0, 0), FVector(5, 16, 110));
+        AddBox(Vertices, Triangles, FVector(55, 0, 0), FVector(5, 16, 110));
+        AddBox(Vertices, Triangles, FVector(0, 0, 105), FVector(50, 16, 5));
     }
     else if (ConstructionKit == TEXT("FloorKit") || IsShelterKit(ConstructionKit))
         AddBox(Vertices, Triangles, FVector::ZeroVector, GetCollisionExtent(ConstructionKit));
@@ -382,4 +503,21 @@ void AKalmalaConstructionActor::BuildPiecePresentation()
     TArray<FLinearColor> Colours; Colours.Init(FLinearColor::White, Vertices.Num());
     TArray<FProcMeshTangent> Tangents; Tangents.Init(FProcMeshTangent(), Vertices.Num());
     PieceMesh->CreateMeshSection_LinearColor(0, Vertices, Triangles, Normals, UVs, Colours, Tangents, false);
+
+    if (DoorLeafMesh)
+    {
+        DoorLeafMesh->ClearAllMeshSections();
+        TArray<FVector> LeafVertices;
+        TArray<int32> LeafTriangles;
+        if (ConstructionKit == TEXT("TimberDoorKit"))
+        {
+            AddBox(LeafVertices, LeafTriangles, FVector(50, 0, 0), FVector(50, 5, 100));
+            TArray<FVector> LeafNormals; LeafNormals.Init(FVector::UpVector, LeafVertices.Num());
+            TArray<FVector2D> LeafUVs; LeafUVs.Init(FVector2D::ZeroVector, LeafVertices.Num());
+            TArray<FLinearColor> LeafColours; LeafColours.Init(FLinearColor::White, LeafVertices.Num());
+            TArray<FProcMeshTangent> LeafTangents; LeafTangents.Init(FProcMeshTangent(), LeafVertices.Num());
+            DoorLeafMesh->CreateMeshSection_LinearColor(0, LeafVertices, LeafTriangles, LeafNormals,
+                LeafUVs, LeafColours, LeafTangents, false);
+        }
+    }
 }

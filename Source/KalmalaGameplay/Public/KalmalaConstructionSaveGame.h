@@ -295,9 +295,10 @@ struct KALMALAGAMEPLAY_API FKalmalaConstructionSaveRecord
     UPROPERTY(SaveGame) FKalmalaCharcoalKilnState CharcoalKiln;
     UPROPERTY(SaveGame) FKalmalaSmelterState Smelter;
     UPROPERTY(SaveGame) FKalmalaGardenPlotState GardenPlot;
+    UPROPERTY(SaveGame) bool bDoorOpen = false;
 };
 
-/** Schema-1 construction data model retained by in-memory gameplay tests; current slots use schema 5. */
+/** Schema-1 construction data model retained by in-memory gameplay tests; current slots use schema 6. */
 UCLASS()
 class KALMALAGAMEPLAY_API UKalmalaConstructionSaveGame : public USaveGame
 {
@@ -319,13 +320,13 @@ private:
     UPROPERTY(SaveGame) TArray<FKalmalaConstructionSaveRecord> Records;
 };
 
-/** Current bounded schema-5 server camp state, including Kiln, Smelter and Garden Plot state. Rejects identity mismatches. */
+/** Current bounded schema-6 server camp state, including Kiln, Smelter, Garden Plot and door state. Rejects identity mismatches. */
 UCLASS()
 class KALMALAGAMEPLAY_API UKalmalaConstructionSaveGameV2 : public USaveGame
 {
     GENERATED_BODY()
 public:
-    static constexpr int32 SchemaVersionValue = 5;
+    static constexpr int32 SchemaVersionValue = 6;
     static constexpr int32 MaxRecords = 128;
     static constexpr int32 MaxStationAttachments = 32;
 
@@ -340,6 +341,8 @@ public:
     bool UpdateCharcoalKilnRecord(const FString& ConstructionId, const FKalmalaCharcoalKilnState& State);
     bool UpdateSmelterRecord(const FString& ConstructionId, const FKalmalaSmelterState& State);
     bool UpdateGardenPlotRecord(const FString& ConstructionId, const FKalmalaGardenPlotState& State);
+    bool ReplaceWallRecordWithDoor(const FString& ConstructionId, const FTransform& WallTransform);
+    bool UpdateDoorOpenRecord(const FString& ConstructionId, const FTransform& DoorTransform, bool bOpen);
     const TArray<FKalmalaConstructionSaveRecord>& GetRecords() const { return Records; }
     static bool TryBuildWriteCandidate(
         class USaveGame* Existing,

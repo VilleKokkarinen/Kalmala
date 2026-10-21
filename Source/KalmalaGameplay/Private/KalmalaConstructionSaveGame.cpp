@@ -83,6 +83,7 @@ bool UKalmalaConstructionSaveGameV2::IsValidRecord(const FKalmalaConstructionSav
     }
 
     if (Record.KitId != TEXT("GardenPlotKit") && !Record.GardenPlot.IsEmpty()) return false;
+    if (Record.KitId != TEXT("TimberDoorKit") && Record.bDoorOpen) return false;
 
     if (!FKalmalaPlacementPreview::IsSessionOnlyKit(Record.KitId)) return true;
     return FKalmalaToolProgressionContract::IsStationAttachmentKit(Record.KitId);
@@ -255,6 +256,49 @@ bool UKalmalaConstructionSaveGameV2::UpdateGardenPlotRecord(const FString& Const
     if (!MatchesWorld(WorldConfig))
     {
         Record->GardenPlot = Previous;
+        return false;
+    }
+    return true;
+}
+
+bool UKalmalaConstructionSaveGameV2::ReplaceWallRecordWithDoor(const FString& ConstructionId,
+    const FTransform& WallTransform)
+{
+    if (!MatchesWorld(WorldConfig) || ConstructionId.IsEmpty() || !IsValidConstructionTransform(WallTransform)) return false;
+    FKalmalaConstructionSaveRecord* Record = Records.FindByPredicate(
+        [&ConstructionId](FKalmalaConstructionSaveRecord& Candidate)
+        {
+            return Candidate.ConstructionId == ConstructionId && Candidate.KitId == TEXT("WallKit");
+        });
+    if (!Record || !Record->Transform.Equals(WallTransform)) return false;
+    const FName PreviousKit = Record->KitId;
+    const bool PreviousDoorOpen = Record->bDoorOpen;
+    Record->KitId = TEXT("TimberDoorKit");
+    Record->bDoorOpen = false;
+    if (!MatchesWorld(WorldConfig))
+    {
+        Record->KitId = PreviousKit;
+        Record->bDoorOpen = PreviousDoorOpen;
+        return false;
+    }
+    return true;
+}
+
+bool UKalmalaConstructionSaveGameV2::UpdateDoorOpenRecord(const FString& ConstructionId,
+    const FTransform& DoorTransform, const bool bOpen)
+{
+    if (!MatchesWorld(WorldConfig) || ConstructionId.IsEmpty() || !IsValidConstructionTransform(DoorTransform)) return false;
+    FKalmalaConstructionSaveRecord* Record = Records.FindByPredicate(
+        [&ConstructionId](FKalmalaConstructionSaveRecord& Candidate)
+        {
+            return Candidate.ConstructionId == ConstructionId && Candidate.KitId == TEXT("TimberDoorKit");
+        });
+    if (!Record || !Record->Transform.Equals(DoorTransform)) return false;
+    const bool PreviousDoorOpen = Record->bDoorOpen;
+    Record->bDoorOpen = bOpen;
+    if (!MatchesWorld(WorldConfig))
+    {
+        Record->bDoorOpen = PreviousDoorOpen;
         return false;
     }
     return true;

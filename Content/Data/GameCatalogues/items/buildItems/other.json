@@ -25,6 +25,12 @@
       "MaxStack": 1
     },
     {
+      "ItemId": "TimberDoor",
+      "DisplayName": "Timber Door",
+      "Description": "A framed timber doorway that replaces one Windbreak Wall segment.",
+      "MaxStack": 1
+    },
+    {
       "ItemId": "Roof",
       "DisplayName": "Reed Roof",
       "Description": "A reed roof that shields a small camp from rain.",

@@ -609,6 +609,60 @@ bool AKalmalaGameMode::PersistConstruction(AKalmalaConstructionActor* Constructi
     return true;
 }
 
+bool AKalmalaGameMode::CanReplaceWallWithDoor(const AKalmalaConstructionActor* Wall) const
+{
+    if (!HasAuthority() || !IsValid(Wall) || !Wall->HasAuthority() || Wall->GetWorld() != GetWorld()
+        || Wall->GetConstructionKit() != TEXT("WallKit") || Wall->GetConstructionId().IsEmpty()
+        || ConstructionSaveGame == nullptr || !ConstructionSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
+    const FString ConstructionId = Wall->GetConstructionId();
+    const FKalmalaConstructionSaveRecord* Record = ConstructionSaveGame->GetRecords().FindByPredicate(
+        [&ConstructionId](const FKalmalaConstructionSaveRecord& Candidate)
+        {
+            return Candidate.ConstructionId == ConstructionId && Candidate.KitId == TEXT("WallKit");
+        });
+    return Record != nullptr && Record->Transform.Equals(Wall->GetActorTransform());
+}
+
+bool AKalmalaGameMode::ReplaceWallWithDoor(AKalmalaConstructionActor* Wall)
+{
+    if (!CanReplaceWallWithDoor(Wall)) return false;
+    UKalmalaConstructionSaveGameV2* Candidate = nullptr;
+    if (!UKalmalaConstructionSaveGameV2::TryBuildWriteCandidate(
+        ConstructionSaveGame, WorldGenerationConfig, this, Candidate) || !Candidate
+        || !Candidate->ReplaceWallRecordWithDoor(Wall->GetConstructionId(), Wall->GetActorTransform())
+        || !Candidate->MatchesWorld(WorldGenerationConfig)
+        || !UGameplayStatics::SaveGameToSlot(Candidate,
+            KalmalaGameMode::ConstructionSaveSlot(WorldGenerationConfig), 0))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Timber Door replacement save failed for %s."),
+            *GetNameSafe(Wall));
+        return false;
+    }
+    ConstructionSaveGame = Candidate;
+    return Wall->ReplaceWallWithDoorFromServer();
+}
+
+bool AKalmalaGameMode::PersistDoorOpenState(AKalmalaConstructionActor* Door, const bool bOpen)
+{
+    if (!HasAuthority() || !IsValid(Door) || !Door->HasAuthority() || Door->GetWorld() != GetWorld()
+        || Door->GetConstructionKit() != TEXT("TimberDoorKit") || Door->GetConstructionId().IsEmpty()
+        || Door->IsDoorOpen() == bOpen || ConstructionSaveGame == nullptr
+        || !ConstructionSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
+    UKalmalaConstructionSaveGameV2* Candidate = nullptr;
+    if (!UKalmalaConstructionSaveGameV2::TryBuildWriteCandidate(
+        ConstructionSaveGame, WorldGenerationConfig, this, Candidate) || !Candidate
+        || !Candidate->UpdateDoorOpenRecord(Door->GetConstructionId(), Door->GetActorTransform(), bOpen)
+        || !Candidate->MatchesWorld(WorldGenerationConfig)
+        || !UGameplayStatics::SaveGameToSlot(Candidate,
+            KalmalaGameMode::ConstructionSaveSlot(WorldGenerationConfig), 0))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Timber Door state save failed for %s."), *GetNameSafe(Door));
+        return false;
+    }
+    ConstructionSaveGame = Candidate;
+    return true;
+}
+
 bool AKalmalaGameMode::PersistCharcoalKilnState(AKalmalaConstructionActor* Construction,
     const FKalmalaCharcoalKilnState& State)
 {
@@ -731,7 +785,7 @@ void AKalmalaGameMode::RestorePersistedConstruction()
             continue;
         }
         Construction->InitializeFromServer(Record.KitId, Record.ConstructionId,
-            Record.CharcoalKiln, Record.Smelter, Record.GardenPlot);
+            Record.CharcoalKiln, Record.Smelter, Record.GardenPlot, Record.bDoorOpen);
         Construction->FinishSpawning(Record.Transform);
         UE_LOG(LogTemp, Display, TEXT("Construction restored: Id=%s Kit=%s."), *Record.ConstructionId, *Record.KitId.ToString());
     }

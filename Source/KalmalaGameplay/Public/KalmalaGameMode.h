@@ -35,6 +35,9 @@ public:
     virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
     bool CanPersistConstruction(FName KitId, const FTransform& Transform) const;
     bool PersistConstruction(class AKalmalaConstructionActor* Construction);
+    bool CanReplaceWallWithDoor(const class AKalmalaConstructionActor* Wall) const;
+    bool ReplaceWallWithDoor(class AKalmalaConstructionActor* Wall);
+    bool PersistDoorOpenState(class AKalmalaConstructionActor* Door, bool bOpen);
     bool PersistCharcoalKilnState(class AKalmalaConstructionActor* Construction,
         const FKalmalaCharcoalKilnState& State);
     bool PersistSmelterState(class AKalmalaConstructionActor* Construction,

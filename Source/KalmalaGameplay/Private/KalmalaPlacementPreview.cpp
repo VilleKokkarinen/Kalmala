@@ -16,7 +16,7 @@ bool FKalmalaPlacementPreview::IsSupportedKit(const FName ItemId)
         || ItemId == TEXT("CookingRackKit") || ItemId == TEXT("CauldronKit") || ItemId == TEXT("FryingPanKit")
         || ItemId == TEXT("WorkbenchToolRackKit") || ItemId == TEXT("ForgeAnvilKit") || ItemId == TEXT("GrindingStoneKit")
         || ItemId == TEXT("FloorKit") || ItemId == TEXT("WallKit") || ItemId == TEXT("RoofKit")
-        || ItemId == TEXT("GardenPlotKit");
+        || ItemId == TEXT("GardenPlotKit") || ItemId == TEXT("TimberDoorKit");
 }
 
 bool FKalmalaPlacementPreview::IsGardenPlotGroundAllowed(const EKalmalaBiome Biome, const float SurfaceNormalZ)
@@ -40,6 +40,26 @@ FKalmalaPlacementPreview FKalmalaPlacementPreview::Evaluate(const UWorld* World,
     if (!IsSupportedKit(ItemId)) return Result;
     Result.Message = TEXT("Preview unavailable: waiting for local terrain");
     if (!World || !Pawn || Pawn->GetActorLocation().ContainsNaN()) return Result;
+    if (ItemId == TEXT("TimberDoorKit"))
+    {
+        Result.Message = TEXT("Preview invalid: target an existing Windbreak Wall segment");
+        const FVector ViewLocation = Pawn->GetPawnViewLocation();
+        const FVector ViewDirection = Pawn->GetViewRotation().Vector();
+        if (ViewLocation.ContainsNaN() || ViewDirection.ContainsNaN()) return Result;
+        FCollisionQueryParams DoorQuery(SCENE_QUERY_STAT(TimberDoorPreview), false, Pawn);
+        FHitResult WallHit;
+        if (!World->LineTraceSingleByChannel(WallHit, ViewLocation,
+                ViewLocation + ViewDirection * 250.0f, ECC_Visibility, DoorQuery)) return Result;
+        AKalmalaConstructionActor* Wall = Cast<AKalmalaConstructionActor>(WallHit.GetActor());
+        if (!IsValid(Wall) || Wall->GetWorld() != World || Wall->GetConstructionKit() != TEXT("WallKit")
+            || Wall->GetConstructionId().IsEmpty()
+            || FVector::DistSquared(Pawn->GetActorLocation(), Wall->GetActorLocation()) > FMath::Square(200.0f)) return Result;
+        Result.Location = Wall->GetActorLocation();
+        Result.ReplacementWall = Wall;
+        Result.bIsValid = true;
+        Result.Message = TEXT("Preview valid: replaces this Windbreak Wall segment; server will recheck before payment");
+        return Result;
+    }
     const bool bGardenPlot = ItemId == TEXT("GardenPlotKit");
 
     const FVector Forward = FRotator(0.0f, Pawn->GetActorRotation().Yaw, 0.0f).Vector();
@@ -80,20 +100,24 @@ FKalmalaPlacementPreview FKalmalaPlacementPreview::Evaluate(const UWorld* World,
         }
         Query.AddIgnoredActor(Ground.GetActor());
     }
+    else if (ItemId == TEXT("WallKit"))
+        Query.AddIgnoredActor(Ground.GetActor());
 
     const bool bIsStationAttachment = ItemId == TEXT("WorkbenchToolRackKit") || ItemId == TEXT("ForgeAnvilKit");
     const bool bIsKiln = ItemId == TEXT("CharcoalKilnKit");
     const bool bIsSmelter = ItemId == TEXT("SmelterKit");
     const bool bNeedsProcessingClearance = bIsKiln || bIsSmelter;
+    const bool bIsWallSegment = ItemId == TEXT("WallKit");
     const bool bIsCompactConstruction = bGardenPlot || bIsStationAttachment || bNeedsProcessingClearance
-        || ItemId == TEXT("GrindingStoneKit") || ItemId == TEXT("FryingPanKit");
+        || ItemId == TEXT("GrindingStoneKit") || ItemId == TEXT("FryingPanKit") || bIsWallSegment;
     const FVector PlacementExtent = bIsCompactConstruction
         ? AKalmalaConstructionActor::GetCollisionExtent(ItemId) : FVector(54, 54, 56);
-    const float PlacementHalfHeight = PlacementExtent.Z + (bIsCompactConstruction && !bGardenPlot ? 2.0f : 0.0f);
+    const float PlacementHalfHeight = PlacementExtent.Z
+        + (bIsCompactConstruction && !bGardenPlot && !bIsWallSegment ? 2.0f : 0.0f);
     Result.Location = Ground.ImpactPoint + FVector(0, 0, PlacementHalfHeight);
     const float PreviewRadius = bIsCompactConstruction
         ? FMath::Max3(PlacementExtent.X, PlacementExtent.Y, PlacementExtent.Z) : 54.0f;
-    const FCollisionShape PlacementShape = (bNeedsProcessingClearance || bGardenPlot)
+    const FCollisionShape PlacementShape = (bNeedsProcessingClearance || bGardenPlot || bIsWallSegment)
         ? FCollisionShape::MakeBox(PlacementExtent) : FCollisionShape::MakeSphere(PreviewRadius);
     if (World->OverlapBlockingTestByChannel(Result.Location, FQuat::Identity, ECC_Pawn, PlacementShape, Query))
     {

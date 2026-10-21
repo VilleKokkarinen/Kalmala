@@ -565,6 +565,23 @@ bool UKalmalaCraftingComponent::PlaceConstructionFromServer(const FName Buildabl
     TArray<FKalmalaInventoryStack> InventoryBefore;
     if (Inventory) InventoryBefore = Inventory->GetStacks();
     if (!Inventory || !UKalmalaInventoryComponent::BuildExchange(Inventory->GetStacks(), Cost, NAME_None, 0, Scratch, Reason)) return false;
+    if (BuildableId == TEXT("TimberDoorKit"))
+    {
+        AKalmalaConstructionActor* Wall = Preview.ReplacementWall.Get();
+        auto* GameMode = GetWorld()->GetAuthGameMode<AKalmalaGameMode>();
+        Reason = TEXT("Target a saved Windbreak Wall segment within 2 m");
+        if (!IsValid(Wall) || Wall->GetWorld() != GetWorld() || !Wall->HasAuthority()
+            || Wall->GetConstructionKit() != TEXT("WallKit") || !GameMode || !GameMode->CanReplaceWallWithDoor(Wall)) return false;
+        if (!Inventory->TryExchangeFromServer(Cost, NAME_None, 0, Reason)) return false;
+        if (!GameMode->ReplaceWallWithDoor(Wall))
+        {
+            Inventory->TryCommitStacksFromServer(Scratch, InventoryBefore);
+            Reason = TEXT("Could not save the Timber Door; materials restored");
+            return false;
+        }
+        Reason = TEXT("Timber Door built from 8 Wood; interact within 2 m to open or close");
+        return true;
+    }
     const FTransform Transform(Rotation, Preview.Location);
     auto* GameMode = GetWorld()->GetAuthGameMode<AKalmalaGameMode>();
     const bool bStationAttachment = FKalmalaToolProgressionContract::IsStationAttachmentKit(BuildableId);

@@ -234,6 +234,7 @@ bool UKalmalaIconWidget::FindCatalogueIcon(FName Id, EKalmalaIcon& OutIcon, int3
         {TEXT("WoodenClub"),EKalmalaIcon::Mace,0},
         {TEXT("ConstructionHammer"),EKalmalaIcon::Hammer,0},
         {TEXT("GardenPlot"),EKalmalaIcon::Root,0}, {TEXT("GardenPlotKit"),EKalmalaIcon::Root,0},
+        {TEXT("TimberDoor"),EKalmalaIcon::Wall,0}, {TEXT("TimberDoorKit"),EKalmalaIcon::Wall,0},
         {TEXT("BasicTorch"),EKalmalaIcon::Fire,0},
         {TEXT("PlantingTrowel"),EKalmalaIcon::Hammer,0},
         {TEXT("WoodShield"),EKalmalaIcon::Shield,1},

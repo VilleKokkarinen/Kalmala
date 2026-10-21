@@ -8,6 +8,7 @@
 
 class UBoxComponent;
 class UProceduralMeshComponent;
+class USceneComponent;
 
 /** Server-owned replicated construction. Clients derive presentation/collision from the replicated kit only. */
 UCLASS(NotBlueprintable)
@@ -21,7 +22,8 @@ public:
     void InitializeFromServer(FName InKit, const FString& InConstructionId,
         const FKalmalaCharcoalKilnState& InCharcoalKiln = FKalmalaCharcoalKilnState(),
         const FKalmalaSmelterState& InSmelter = FKalmalaSmelterState(),
-        const FKalmalaGardenPlotState& InGardenPlot = FKalmalaGardenPlotState());
+        const FKalmalaGardenPlotState& InGardenPlot = FKalmalaGardenPlotState(),
+        bool bInDoorOpen = false);
     FName GetConstructionKit() const { return ConstructionKit; }
     const FString& GetConstructionId() const { return ConstructionId; }
     float GetHealth() const { return Health; }
@@ -31,6 +33,9 @@ public:
     bool ApplySmelterStateFromServer(const FKalmalaSmelterState& State);
     const FKalmalaGardenPlotState& GetGardenPlotState() const { return GardenPlot; }
     bool ApplyGardenPlotStateFromServer(const FKalmalaGardenPlotState& State);
+    bool IsDoorOpen() const { return bDoorOpen; }
+    bool ReplaceWallWithDoorFromServer();
+    bool ToggleDoorFromServer(AKalmalaCharacter* Character, FString& Reason);
     bool HasUsablePlantingTrowel(const AKalmalaCharacter* Character) const;
     /** Trusted server weather input; roof eligibility is sampled internally. No RPC. */
     void AdvanceRainWearFromServer(float DeltaSeconds, float Precipitation);
@@ -47,15 +52,25 @@ public:
     virtual void Interact_Implementation(AKalmalaCharacter* Character) override;
 private:
     UFUNCTION() void OnRep_ConstructionState();
+    UFUNCTION() void OnRep_DoorState();
     void ApplyConstructionKit();
+    void ApplyDoorState();
+    bool IsPawnInDoorway() const;
     void BuildPiecePresentation();
     UPROPERTY(VisibleAnywhere) TObjectPtr<UBoxComponent> Collision;
     UPROPERTY(VisibleAnywhere) TObjectPtr<UProceduralMeshComponent> PieceMesh;
+    UPROPERTY(VisibleAnywhere) TObjectPtr<USceneComponent> DoorPivot;
+    UPROPERTY(VisibleAnywhere) TObjectPtr<UProceduralMeshComponent> DoorLeafMesh;
+    UPROPERTY(VisibleAnywhere) TObjectPtr<UBoxComponent> DoorLeftFrameCollision;
+    UPROPERTY(VisibleAnywhere) TObjectPtr<UBoxComponent> DoorRightFrameCollision;
+    UPROPERTY(VisibleAnywhere) TObjectPtr<UBoxComponent> DoorHeaderCollision;
+    UPROPERTY(VisibleAnywhere) TObjectPtr<UBoxComponent> DoorLeafCollision;
     UPROPERTY(ReplicatedUsing=OnRep_ConstructionState) FName ConstructionKit;
     UPROPERTY(ReplicatedUsing=OnRep_ConstructionState) FString ConstructionId;
     UPROPERTY(Replicated) float Health = MaximumHealth;
     UPROPERTY(Replicated) FKalmalaCharcoalKilnState CharcoalKiln;
     UPROPERTY(Replicated) FKalmalaSmelterState Smelter;
     UPROPERTY(Replicated) FKalmalaGardenPlotState GardenPlot;
+    UPROPERTY(ReplicatedUsing=OnRep_DoorState) bool bDoorOpen = false;
     FString LastLoggedReplicationId;
 };

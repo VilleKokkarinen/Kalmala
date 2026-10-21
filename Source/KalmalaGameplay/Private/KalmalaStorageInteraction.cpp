@@ -118,6 +118,13 @@ void UKalmalaCraftingComponent::InteractWithConstructionFromServer(AKalmalaConst
 {
     if (!AcceptRequest() || !IsValid(Construction) || !Construction->CanInteract_Implementation(GetCharacter())) return;
     const FName Kit = Construction->GetConstructionKit();
+    if (Kit == TEXT("TimberDoorKit"))
+    {
+        FString Reason;
+        const bool bAccepted = Construction->ToggleDoorFromServer(GetCharacter(), Reason);
+        PublishResult(Reason, bAccepted);
+        return;
+    }
     if (AKalmalaConstructionActor::IsCraftingStationKit(Kit))
     {
         LastStationContextActor = Construction;
