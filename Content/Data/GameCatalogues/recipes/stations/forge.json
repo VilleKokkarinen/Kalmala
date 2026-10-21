@@ -326,9 +326,9 @@
       "Level": 1
     },
     {
-      "RecipeId": "CultivationRake",
-      "DisplayName": "Cultivation Rake",
-      "ItemId": "CultivationRake",
+      "RecipeId": "PlantingTrowel",
+      "DisplayName": "Planting Trowel",
+      "ItemId": "PlantingTrowel",
       "RequiredStation": "Forge",
       "RequiredStationLevel": 1,
       "Ingredients": [

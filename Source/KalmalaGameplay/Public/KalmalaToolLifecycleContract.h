@@ -39,7 +39,7 @@ enum class EKalmalaToolKind : uint8
     IronSword,
     WoodenClub,
     BasicTorch,
-    CultivationRake
+    PlantingTrowel
 };
 
 /** M9 harvesting tiers; station level is validated only by later craft/upgrade transactions. */

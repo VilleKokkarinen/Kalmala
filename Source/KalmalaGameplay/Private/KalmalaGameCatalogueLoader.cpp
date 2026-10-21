@@ -29,7 +29,7 @@ namespace
             FString Set;
             FString Action = TEXT("None");
             if (ItemId == TEXT("ConstructionHammer") || ItemId == TEXT("BasicTorch")
-                || ItemId == TEXT("CultivationRake")) Set = TEXT("Utility");
+                || ItemId == TEXT("PlantingTrowel")) Set = TEXT("Utility");
             else if (ItemId == TEXT("Bow") || ItemId == TEXT("LightBow")) Set = TEXT("Crafted");
             else
             {

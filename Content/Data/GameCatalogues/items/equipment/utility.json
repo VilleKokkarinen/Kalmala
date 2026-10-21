@@ -9,9 +9,9 @@
       "DamageBonuses": {}
     },
     {
-      "ItemId": "CultivationRake",
-      "DisplayName": "Cultivation Rake",
-      "Description": "A field rake for planting and harvesting approved garden plots.",
+      "ItemId": "PlantingTrowel",
+      "DisplayName": "Planting Trowel",
+      "Description": "A hand trowel for planting and harvesting approved garden plots.",
       "WeightKg": 1.0,
       "MaxDurability": 100,
       "DamageBonuses": {}

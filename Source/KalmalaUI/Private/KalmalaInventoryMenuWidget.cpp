@@ -77,7 +77,7 @@ FString GetCarriedToolDisplayName(const FName ItemId)
     if (ItemId == TEXT("IronSpear")) return TEXT("Iron Spear");
     if (ItemId == TEXT("ConstructionHammer")) return TEXT("Construction Hammer");
     if (ItemId == TEXT("BasicTorch")) return TEXT("Basic Torch");
-    if (ItemId == TEXT("CultivationRake")) return TEXT("Cultivation Rake");
+    if (ItemId == TEXT("PlantingTrowel")) return TEXT("Planting Trowel");
     return ItemId.ToString();
 }
 

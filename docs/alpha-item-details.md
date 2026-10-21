@@ -212,8 +212,8 @@ targeting, damage prevention and repulsion behavior; unlit, stored and empty
 torches must not count. This does not change torch recipes or imply warmth,
 world ignition or direct torch damage.
 
-- Add Cultivation Rake (`CultivationRake`) with A7: Forge level 1, 10 Wood + 5 Bronze → 1; stack 1, 1 kg, 100 condition. Hold to plant/harvest approved garden plots; one condition per accepted planting, none on harvest/rejection. Free Workbench repair, no upgrades, damage or terrain editing.
-- Record terrain-editing Hoe as deferred from this alpha proposal: no height edits, smoothing, roads or grass-painting system. The Rake works only on A7 plots and does not modify the shared terrain sampler.
+- Add Planting Trowel (`PlantingTrowel`) with A7: Forge level 1, 10 Wood + 5 Bronze → 1; stack 1, 1 kg, 100 condition. Hold to plant/harvest approved garden plots; one condition per accepted planting, none on harvest/rejection. Free Workbench repair, no upgrades, damage or terrain editing.
+- Record terrain-editing Hoe as deferred from this alpha proposal: no height edits, smoothing, roads or grass-painting system. The Planting Trowel works only on A7 plots and does not modify the shared terrain sampler.
 
 ## A6
 
@@ -252,8 +252,8 @@ propagation is not a recipe prerequisite.
 
 Crops, seeds and fishing (P2; scope approved 2026-10-19).
 - Garden Plot (`GardenPlot`) is a direct-material Hammer buildable placed through the Build menu for 4 Wood + 1 Stone on dry Meadows/Elderwood/Shimmering Lakes terrain, grounded within a maximum 15-degree slope. One crop per plot, open sky, no watering/fertilizer/season or terrain deformation.
-- Interacting with a plot while holding a usable A5 Rake opens its Cultivation menu. Show the seven reviewed crop/mode choices below with their exact payment and current growth state/remaining active seconds; offer one harvest when mature. The server validates the held Rake, plot, selection, payment, and harvest before changing state. Reject invalid or occupied plots before payment.
-- Implement Carrot planting, maturation, harvest and seed renewal as the first full loop, with A5 Rake and direct-material plot placement (after the A7 farming review).
+- Interacting with a plot while holding a usable A5 Planting Trowel opens its Cultivation menu. Show the seven reviewed crop/mode choices below with their exact payment and current growth state/remaining active seconds; offer one harvest when mature. The server validates the held Planting Trowel, plot, selection, payment, and harvest before changing state. Reject invalid or occupied plots before payment.
+- Implement Carrot planting, maturation, harvest and seed renewal as the first full loop, with A5 Planting Trowel and direct-material plot placement (after the A7 farming review).
 - Implement Potato tuber propagation; retain `PotatoSeed` as an unused development definition with no drops/recipes, not an alternative planting input (blocked on first crop loop).
 - Implement Rutabaga food/seed propagation from the table (blocked on first crop loop).
 - Implement Onion food/seed propagation from the table (blocked on first crop loop).
@@ -481,7 +481,7 @@ not permission to replace these items with unsupported generic definitions.
   entry or fallback icon may pass final acceptance. Validate explicit N/A cases.
 
 Approved alpha item-set acceptance.
-- The user approved every queued P0/P1/P2 item and system in A0–A9 on 2026-10-19; detailed conflicts are resolved in this document. Milestone groups: I0 A0 current-loop repairs; I1 A1 production; I2 A2–A6 equipment/forage/consumables except Rake; I3 A7 farming/fishing plus A5 Rake; I4 A8–A8b, ending with enemy milestone verification after A8b and before A9; I5 A9 cargo/accessories. Each group requires its own final verification. This plan does not rewrite historical roadmap acceptance.
+- The user approved every queued P0/P1/P2 item and system in A0–A9 on 2026-10-19; detailed conflicts are resolved in this document. Milestone groups: I0 A0 current-loop repairs; I1 A1 production; I2 A2–A6 equipment/forage/consumables except Planting Trowel; I3 A7 farming/fishing plus A5 Planting Trowel; I4 A8–A8b, ending with enemy milestone verification after A8b and before A9; I5 A9 cargo/accessories. Each group requires its own final verification. This plan does not rewrite historical roadmap acceptance.
 - Reconcile delivery against the frozen checklist: each included ID must have source, payment, use/equip, upgrade or explicit non-applicability, original icon/provenance/mapping, relevant save behavior and linked verification evidence. Record every omitted candidate as deferred, not implicitly complete.
 - At each resulting milestone's final increment, run required Editor/project builds, applicable automation, catalogue/icon validation and relevant peer/persistence runners from `docs/07-development-setup.md`; repair milestone defects and rerun failing checks plus required full verification. Record actual commands/results; do not equate source inspection with execution.
 - Final progression scenario: fresh world, existing starter loadout only, gather normal resources → Workbench/Sinew/Bow String/Lightwood → Bow/arrows → Copper/Tin/Coal/Bronze → Bronze Pick → Iron/Densewood. Craft/equip/upgrade one of every included durable item; cook/eat each included meal and use each draught, retaining the specified cooldowns. No debug grants. Record biome/node availability rather than fabricating missing resources.

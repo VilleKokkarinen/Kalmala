@@ -153,7 +153,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
 
 - [ ] **A5 — Utility tools (P1/P2).** [Rules](docs/alpha-item-details.md#a5)
   - [x] Basic Torch: inventory, 2 Wood + 1 amber; 300 s burn, 6 m light.
-  - [x] Cultivation Rake: Forge, 10 Wood + 5 Bronze bar; requires A7.
+  - [x] Planting Trowel: Forge, 10 Wood + 5 Bronze bar; requires A7.
 
 - [x] **A6 — Food and recovery (P1).** [Effects and limits](docs/alpha-item-details.md#a6)
   - [x] Lingonberry: hand-pick Meadow shrubs, 3 per shrub.
@@ -167,13 +167,13 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   Draughts: one dose per craft; shared 60 s cooldown. All cooking needs a lit hearth.
 
 - [ ] **A7 — Farming and fishing (P2).** [Growth and catch rules](docs/alpha-item-details.md#a7)
-  - [x] Review farming. Garden Plot: Cultivation Rake, cultivation menu addition.
+  - [x] Review farming. Garden Plot: Planting Trowel, cultivation menu addition.
   - [ ] Carrot: 1 seed → 3 carrots; 1 carrot → 3 seeds.
   - [ ] Potato: 1 potato → 3 potatoes; Potato Seed stays unused.
   - [ ] Rutabaga: 1 seed → 3 roots; 1 root → 3 seeds.
   - [ ] Onion: 1 seed → 3 onions; 1 onion → 3 seeds.
 
-  Crops take 600 active seconds; Cultivation Rake required. No offline/inactive-region growth.
+  Crops take 600 active seconds; Planting Trowel required. No offline/inactive-region growth.
 
 - [ ] **A8 — Shelter and storage (P2).** [Placement and behavior](docs/alpha-item-details.md#a8)
   - [ ] Review shelter rules. All pieces use direct-material Hammer placement.
@@ -274,7 +274,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
 
 - [ ] **A10 — Acceptance.** [Full criteria](docs/alpha-item-details.md#a10)
   - [ ] Audit all approved item IDs against registered JSON and generated/imported runtime icons; zero missing entries, references or fallback icons.
-  - [ ] Review milestones: I0 A0; I1 A1; I2 A2–A6 except Rake; I3 A7 + Rake; I4 A8–A8b with its final enemy gate before A9; I5 A9.
+  - [ ] Review milestones: I0 A0; I1 A1; I2 A2–A6 except Planting Trowel; I3 A7 + Planting Trowel; I4 A8–A8b with its final enemy gate before A9; I5 A9.
   - [ ] Check each included item's source, recipe, use, upgrades, icon and save behavior.
   - [ ] Run required full verification at each milestone's final increment.
   - [ ] Verify fresh-start progression through Bronze and Iron without debug grants.
