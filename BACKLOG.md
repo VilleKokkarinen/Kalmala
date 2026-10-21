@@ -145,7 +145,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [x] Support both arrow types; prefer selected stack, first stack in inventory. (top row of inventory left to right, going down 1 row at a time until arrows found)
 
 - [ ] **A4 — Armour and shields (P1).** [Stats and upgrades](docs/alpha-item-details.md#a4)
-  - [ ] Review armour; retain hide Boots/Cape and defer insulation.
+  - [x] Review armour; retain hide Boots/Cape and defer insulation.
   - [ ] Bronze Helmet: Forge, 10 Bronze + 5 Boar Hide; 3 Armor.
   - [ ] Bronze Tunic: Forge, 15 Bronze + 5 Boar Hide; 5 Armor.
   - [ ] Bronze Leggings: Forge, 15 Bronze + 5 Boar Hide; 5 Armor.

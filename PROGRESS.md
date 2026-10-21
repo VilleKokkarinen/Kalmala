@@ -4634,3 +4634,13 @@
 - **Observable impact and authority:** the roadmap now records A3 implementation work as complete. No runtime, gameplay, networking, authority, or save behavior changed.
 - **Known limitations/remaining scope:** I2 milestone-final verification remains pending; A3 is not the completion of the I2 milestone.
 - **Next eligible task:** A4 review armour; retain hide Boots/Cape and defer insulation.
+
+## 2026-10-21 06:47 UTC — A4 armour proposal reviewed
+
+- **Work completed:** completed the A4 review child: retain existing Boar Hide Boots and Cape, defer second-tier Boots/Cape and insulation/cold protection, and align the detailed Bronze armor costs/values with the approved backlog. Removed stale A1 blockers from the A4 proposal and recorded the settled review in the decision log. Checked only the A4 review child.
+- **Files changed:** `BACKLOG.md`; `docs/alpha-item-details.md`; `docs/05-decision-log.md`; `PROGRESS.md`.
+- **Lightweight checks:** focused PowerShell assertions confirmed the selected checkbox, reviewed decisions, all four Bronze recipe/Armor rows, existing Boar Hide Boots/Cape catalogue IDs, and no stale A1 blocker within A4. Changed paths are below MAX_PATH. `git diff --check` passed; Git reported existing CRLF normalization notices.
+- **Full verification:** deferred to I2 milestone-final verification. This documentation-only increment made no runtime changes; no Unreal build or gameplay automation was needed.
+- **Observable impact and authority:** the A4 proposal now agrees with the backlog values and records the retained hide gear and deferred insulation scope. No catalogue, gameplay, network authority, RPC, or save behavior changed.
+- **Known limitations/remaining scope:** the Bronze armor and shield items still need their complete catalogue, recipe, upgrade, icon, runtime and validation implementation. I2 milestone-final verification remains pending.
+- **Next eligible task:** A4 Bronze Helmet: Forge, 10 Bronze + 5 Boar Hide; 3 Armor.

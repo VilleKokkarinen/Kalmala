@@ -184,18 +184,18 @@ Bows and ammunition (P1).
 ## A4
 
 Armour, capes and shields (P1).
-- Review the armour/shield proposal below; retain existing hide Boots/Cape and explicitly defer second-tier Boots/Cape and insulation/cold protection for this alpha set.
-- Add Bronze Helmet (`BronzeHelmet`), Head slot, using the complete reviewed path (blocked on A1).
-- Add Bronze Tunic (`BronzeTunic`), Chest slot, using the complete reviewed path (blocked on A1).
-- Add Bronze Leggings (`BronzeLeggings`), Legs slot, using the complete reviewed path (blocked on A1).
-- Add Bronze Shield (`BronzeShield`), Shield slot, using the complete reviewed path; passive Armor only (blocked on A1).
+- Review completed 2026-10-21: retain the existing Boar Hide Boots (`BoarHideBoots`) and Boar Hide Cape (`BoarHideCape`); defer second-tier Boots/Cape and insulation/cold protection for this alpha set.
+- Add Bronze Helmet (`BronzeHelmet`), Head slot, using the complete reviewed path.
+- Add Bronze Tunic (`BronzeTunic`), Chest slot, using the complete reviewed path.
+- Add Bronze Leggings (`BronzeLeggings`), Legs slot, using the complete reviewed path.
+- Add Bronze Shield (`BronzeShield`), Shield slot, using the complete reviewed path; passive Armor only.
 
 | Item | Forge 1 craft cost for 1 | Armor / condition / weight | Upgrade base cost |
 | --- | --- | --- | --- |
-| Bronze Helmet | 3 Bronze + 1 Boar Hide | 3 / 100 / 2 kg | 1 Bronze + 1 Boar Hide |
-| Bronze Tunic | 5 Bronze + 2 Boar Hide | 5 / 120 / 5 kg | 2 Bronze + 1 Boar Hide |
-| Bronze Leggings | 4 Bronze + 2 Boar Hide | 4 / 100 / 4 kg | 2 Bronze + 1 Boar Hide |
-| Bronze Shield | 3 Bronze + 3 Lightwood + 1 Boar Hide | 9 / 100 / 5 kg | 1 Bronze + 1 Lightwood |
+| Bronze Helmet | 10 Bronze + 5 Boar Hide | 3 / 100 / 2 kg | 1 Bronze + 1 Boar Hide |
+| Bronze Tunic | 15 Bronze + 5 Boar Hide | 5 / 120 / 5 kg | 2 Bronze + 1 Boar Hide |
+| Bronze Leggings | 15 Bronze + 5 Boar Hide | 5 / 100 / 4 kg | 2 Bronze + 1 Boar Hide |
+| Bronze Shield | 10 Bronze + 5 Lightwood + 5 Boar Hide | 10 / 100 / 5 kg | 1 Bronze + 1 Lightwood |
 
 Stack 1. Each level adds 1 Armor and 10 maximum condition with existing
 upgrade scaling/cap at Forge; existing free station repair and damage wear.
