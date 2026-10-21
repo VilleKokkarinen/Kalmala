@@ -182,7 +182,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [x] Timber Stairs: 6 Wood; 2 m run, 1 m rise, 1 m wide.
   - [x] Camp Bed: 4 Wood + 2 Boar Hide + 2 Deer Hide; resting pose only.
   - [ ] Standing Light: 3 Wood + 1 amber; 1 fuel = 600 s, 6 m light.
-  - [ ] Keep extra brewing stations deferred; Kiln/Smelter/Plot belong to A1/A7.
+  - [x] Keep extra brewing stations deferred; Kiln/Smelter/Plot belong to A1/A7.
 
 - [ ] **A8a — Biome enemies (before A9).** [Roster and stats](docs/biome-enemies.md)
   - [ ] Review the expanded roster, spawn weights and attack/loot rules.
