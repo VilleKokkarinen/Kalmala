@@ -17,7 +17,7 @@ if ($Category -eq 'Catalogue') {
     $sourceDir = Join-Path $repoRoot 'Content\Kalmala\UI\Source\IconOriginals'
     $preparedDir = Join-Path $repoRoot 'Content\Kalmala\UI\Source\Icons'
     $idColumn = 'canonical_id'
-    $expectedCount = 87
+    $expectedCount = 88
 }
 else {
     $manifestPath = Join-Path $PSScriptRoot 'Data\status-icon-manifest.csv'

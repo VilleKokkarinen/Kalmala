@@ -105,6 +105,7 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
         bool bAddedMeadowLingonberryShrub = false;
         bool bAddedLakesRutabagaPatch = false;
         bool bAddedElderwoodOnionPatch = false;
+        bool bAddedElderwoodChanterellePatch = false;
         bool bAddedElderwoodCopperVein = false;
         bool bAddedLakesTinGravel = false;
         // Wildlife candidates deliberately have a small, fixed retry budget.  The
@@ -174,6 +175,13 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
                 ContentId = TEXT("elderwood-wild-onion-patch");
                 PersistentSeed = Mix(CandidateSeed ^ 0xA0E10A71019ull);
                 bAddedElderwoodOnionPatch = true;
+            }
+            else if (Kind == EKalmalaWorldPopulationKind::HarvestNode && Biome == EKalmalaBiome::Elderwood
+                && !bAddedElderwoodChanterellePatch && IsTerrainSafeDiscoveryLocation(Config, Position))
+            {
+                ContentId = TEXT("elderwood-wild-chanterelle-patch");
+                PersistentSeed = Mix(CandidateSeed ^ 0xF0E57C4A71019ull);
+                bAddedElderwoodChanterellePatch = true;
             }
             else if (Kind == EKalmalaWorldPopulationKind::HarvestNode && Biome == EKalmalaBiome::Elderwood
                 && !bAddedElderwoodCopperVein && IsTerrainSafeDiscoveryLocation(Config, Position))

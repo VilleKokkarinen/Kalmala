@@ -20,6 +20,13 @@
       "WeightKg": 0.05
     },
     {
+      "ItemId": "ForestChanterelle",
+      "DisplayName": "Forest Chanterelle",
+      "Description": "Golden mushrooms hand-gathered from Elderwood patches.",
+      "MaxStack": 20,
+      "WeightKg": 0.1
+    },
+    {
       "ItemId": "CookedBoarMeat",
       "DisplayName": "Cooked Boar Meat",
       "Description": "Roasted boar meat, ready to eat.",

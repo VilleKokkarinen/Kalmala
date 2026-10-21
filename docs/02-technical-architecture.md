@@ -640,7 +640,7 @@ SetWeatherStateFromServer now rejects non-authority and invalid input at runtime
 
 The first prepared food reuses the server-local item and recipe catalogues, UKalmalaInventoryComponent::BuildExchange, the existing hearth actor, and the replicated player-status component. Roasting requires a same-world fire that the server observes as usable, within 250 cm, Lit, and producing finite positive heat; a workbench, extinguished fire, or Smouldering fire cannot satisfy it. The server checks recipe identity, batch, inputs, and output capacity before changing the private pack. No additional fuel charge is applied beyond the hearth's normal fuel burn.
 
-Food use is an owning-client request containing only an item identity. The server allowlists the seven current cooking outputs (`CookedBoarMeat`, `CookedDeerMeat`, `HearthBroth`, `MeatStew`, `RootVegetableSoup`, `RoastedRootVegetables`, and `DeerRootRoast`) plus foraged `Lingonberry`, checks the owner's pack and meal slot, commits one-item consumption through a candidate inventory exchange, then publishes a fixed-duration State.Food.SteadyMeal entry. The entry reduces server-derived stamina cost to 0.90 for 120 server seconds. Only one meal entry is permitted: an active effect neither stacks, refreshes, nor gets replaced; rejected consumption leaves pack and status unchanged. The existing status replication carries effect identity and remaining time, while the private inventory and crafting result remain owner-only. Food, cooking progress, and meal effects add no save field or schema.
+Food use is an owning-client request containing only an item identity. The server allowlists the seven current cooking outputs (`CookedBoarMeat`, `CookedDeerMeat`, `HearthBroth`, `MeatStew`, `RootVegetableSoup`, `RoastedRootVegetables`, and `DeerRootRoast`) plus foraged `Lingonberry` and `ForestChanterelle`, checks the owner's pack and meal slot, commits one-item consumption through a candidate inventory exchange, then publishes a fixed-duration State.Food.SteadyMeal entry. The entry reduces server-derived stamina cost to 0.90 for 120 server seconds. Only one meal entry is permitted: an active effect neither stacks, refreshes, nor gets replaced; rejected consumption leaves pack and status unchanged. The existing status replication carries effect identity and remaining time, while the private inventory and crafting result remain owner-only. Food, cooking progress, and meal effects add no save field or schema.
 
 The active schema-4 food recipes cook boar or deer meat on the Cooking Rack, prepare Hearth Broth, meat stew, or root vegetable soup in the Cauldron, and prepare roasted roots or deer-root roast in the Frying Pan. The server resolves the declared station, live hearth heat, inventory costs, and accepted outputs from the catalogue. Food and meal effects remain transient; no saved-data schema changes.
 
@@ -823,6 +823,12 @@ onion patch. Its `elderwood-wild-onion-patch` identity uses the separate stable
 seed domain `Mix(candidate-seed XOR 0xA0E10A71019)`, preserving its position
 while preventing depletion from colliding with the former biome-source
 occupant. Its original procedural presentation uses pale bulbs and green shoots.
+
+The next dry, safe Elderwood harvest candidate becomes a Forest Chanterelle
+patch with the `elderwood-wild-chanterelle-patch` identity and independent
+seed domain `Mix(candidate-seed XOR 0xF0E57C4A71019)`. It preserves deterministic
+placement, uses the existing server-owned hand-gather transaction, and grants
+two Chanterelles on accepted depletion; it adds no recipe or save field.
 
 The server retraces each interaction and accepts hand gathering without a
 tool. Carrot patches preflight 2 `Carrot` and 1 `CarrotSeed`; potato patches

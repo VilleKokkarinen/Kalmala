@@ -91,6 +91,12 @@ bool FKalmalaBiomeContentContractTest::RunTest(const FString& Parameters)
         FKalmalaBiomeContentContract::GetGatheringPresentationId(TEXT("elderwood-wild-onion-patch")), FName(TEXT("onion-patch-harvest")));
     TestTrue(TEXT("Wild onions are hand-gathered without a tool"),
         FKalmalaBiomeContentContract::IsHandGatherableSourceId(TEXT("elderwood-wild-onion-patch")));
+    TestTrue(TEXT("Wild chanterelles have a valid gathering presentation"),
+        FKalmalaBiomeContentContract::IsValidGatheringSourceId(TEXT("elderwood-wild-chanterelle-patch")));
+    TestEqual(TEXT("Wild chanterelles use their dedicated mushroom presentation"),
+        FKalmalaBiomeContentContract::GetGatheringPresentationId(TEXT("elderwood-wild-chanterelle-patch")), FName(TEXT("chanterelle-patch-harvest")));
+    TestTrue(TEXT("Wild chanterelles are hand-gathered without a tool"),
+        FKalmalaBiomeContentContract::IsHandGatherableSourceId(TEXT("elderwood-wild-chanterelle-patch")));
     TestFalse(TEXT("Unknown sources are not hand-gatherable"),
         FKalmalaBiomeContentContract::IsHandGatherableSourceId(TEXT("forged-source")));
     TestFalse(TEXT("Ocean cannot become an optional land rare source"), FKalmalaBiomeContentContract::IsOptionalRareDiscoverySource(EKalmalaBiome::Ocean));
@@ -104,6 +110,7 @@ bool FKalmalaBiomeContentContractTest::RunTest(const FString& Parameters)
     bool bSawWildPotatoDescriptor = false;
     bool bSawWildRutabagaDescriptor = false;
     bool bSawWildOnionDescriptor = false;
+    bool bSawWildChanterelleDescriptor = false;
     bool bSawCopperOreDescriptor = false;
     bool bSawTinOreDescriptor = false;
     bool bSawStoneOutcropMeadows = false;
@@ -191,7 +198,7 @@ bool FKalmalaBiomeContentContractTest::RunTest(const FString& Parameters)
     const auto HasCompleteSourceCoverage = [&]()
     {
         return bSawGatheringDescriptor && bSawWildCarrotDescriptor && bSawWildPotatoDescriptor
-            && bSawWildRutabagaDescriptor && bSawWildOnionDescriptor
+            && bSawWildRutabagaDescriptor && bSawWildOnionDescriptor && bSawWildChanterelleDescriptor
             && bSawCopperOreDescriptor && bSawTinOreDescriptor
             && bSawStoneOutcropMeadows && bSawStoneOutcropLakes && bSawStoneOutcropElderwood
             && bSawStoneOutcropMire && bSawStoneOutcropTundra && bSawStoneOutcropMountains
@@ -363,6 +370,31 @@ bool FKalmalaBiomeContentContractTest::RunTest(const FString& Parameters)
                             bSawWildOnionDescriptor = true;
                             continue;
                         }
+                        if (Spawn.ContentId == TEXT("elderwood-wild-chanterelle-patch"))
+                        {
+                            TestEqual(TEXT("Wild chanterelle source is only selected for Elderwood"), Biome, EKalmalaBiome::Elderwood);
+                            TestTrue(TEXT("Wild chanterelle source is a harvest node"), Kind == EKalmalaWorldPopulationKind::HarvestNode);
+                            const FVector2D ChanterellePosition(Spawn.Location.X, Spawn.Location.Y);
+                            TestFalse(TEXT("Wild chanterelles stay out of ocean water"), FKalmalaOceanSampler::Sample(Config, ChanterellePosition).IsWater());
+                            TestFalse(TEXT("Wild chanterelles stay out of lake water"), FKalmalaShimmeringLakeSampler::IsWater(Config, ChanterellePosition));
+                            TestTrue(TEXT("Wild chanterelles use safe terrain slope"),
+                                FKalmalaTerrainHeightSampler::SampleSurfaceNormal(Config, ChanterellePosition).Z >= 0.88f);
+                            const auto RepeatedSpawns = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(Config, SpatialKey, Kind);
+                            const FString PersistentId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Spawn);
+                            int32 SameKeyChanterelleCount = 0;
+                            for (const FKalmalaWorldPopulationSpawn& Candidate : RepeatedSpawns)
+                                if (Candidate.ContentId == Spawn.ContentId) ++SameKeyChanterelleCount;
+                            TestEqual(TEXT("At most one wild chanterelle patch occupies each spatial key"), SameKeyChanterelleCount, 1);
+                            TestTrue(TEXT("Wild chanterelle placement and identity repeat for the same seed and key"),
+                                RepeatedSpawns.ContainsByPredicate([&Spawn, &PersistentId](const FKalmalaWorldPopulationSpawn& Candidate)
+                                {
+                                    return Candidate.ContentId == Spawn.ContentId
+                                        && Candidate.Location.Equals(Spawn.Location, 0.01f)
+                                        && FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Candidate) == PersistentId;
+                                }));
+                            bSawWildChanterelleDescriptor = true;
+                            continue;
+                        }
                         const EKalmalaBiomeContentKind ContentKind = Kind == EKalmalaWorldPopulationKind::HarvestNode
                             ? EKalmalaBiomeContentKind::GatheringSource
                             : EKalmalaBiomeContentKind::CreatureNiche;
@@ -393,6 +425,7 @@ bool FKalmalaBiomeContentContractTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("The deterministic neighborhood exposes the A0 wild potato source"), bSawWildPotatoDescriptor);
     TestTrue(TEXT("The deterministic neighborhood exposes the A0 wild rutabaga source"), bSawWildRutabagaDescriptor);
     TestTrue(TEXT("The deterministic neighborhood exposes the A0 wild onion source"), bSawWildOnionDescriptor);
+    TestTrue(TEXT("The deterministic neighborhood exposes the A6 wild chanterelle source"), bSawWildChanterelleDescriptor);
     TestTrue(TEXT("The deterministic neighborhood exposes an Elderwood copper node"), bSawCopperOreDescriptor);
     TestTrue(TEXT("The deterministic neighborhood exposes a dry Shimmering Lakes tin node"), bSawTinOreDescriptor);
     TestTrue(TEXT("The deterministic neighborhood exposes a creature niche identity"), bSawCreatureDescriptor);

@@ -219,7 +219,7 @@ world ignition or direct torch damage.
 
 Forage, meals and recovery consumables (P1; scope approved 2026-10-19).
 - Review and add Lingonberry (`Lingonberry`): hand-gather Meadow berry shrubs, 3 berries per depleted shrub; no tool, stack 20, 0.05 kg each. Eating one applies the existing Steady Meal effect.
-- Review and add Forest Chanterelle (`ForestChanterelle`): hand-gather Elderwood mushroom patches, 2 per depleted patch; no tool, stack 20, 0.1 kg each. Eating one applies the same Steady Meal effect (blocked on A0 food dispatch).
+- Review and add Forest Chanterelle (`ForestChanterelle`): hand-gather Elderwood mushroom patches, 2 per depleted patch; no tool, stack 20, 0.1 kg each. Eating one applies the existing Steady Meal effect. The Elderwood patch is its acquisition route; it has no crafting recipe, equipment profile, upgrade cost, or attack data.
 - Retain one Steady Meal effect for all seven existing prepared foods, the two forage foods and A7 Cooked Lake Fish: 120 seconds, stamina-use multiplier 0.90, no stacking or eating while active. Raw meats/vegetables/seeds remain ingredients, not consumable meals. Defer differentiated nutrition, additional meal slots and new prepared-dish volume.
 - Review the recovery table below's server-owned effect rules before implementation; use Cauldron at a lit hearth, no new brewing station, alcohol/base items or fermentation step.
 - Add Berry Recovery Draught (`BerryRecoveryDraught`) with the complete reviewed recipe/effect/icon path (blocked on Lingonberry).

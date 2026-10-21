@@ -180,6 +180,9 @@ bool FKalmalaSteadyMealStatusTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Foraged Lingonberry is recognized as food"), UKalmalaPlayerStatusComponent::IsKnownFoodItem(TEXT("Lingonberry")));
     TestTrue(TEXT("Lingonberry applies the shared Steady Meal effect"), UKalmalaPlayerStatusComponent::ApplyFood(Entries, TEXT("Lingonberry")));
     UKalmalaPlayerStatusComponent::Advance(Entries, UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);
+    TestTrue(TEXT("Foraged Forest Chanterelle is recognized as food"), UKalmalaPlayerStatusComponent::IsKnownFoodItem(TEXT("ForestChanterelle")));
+    TestTrue(TEXT("Forest Chanterelle applies the shared Steady Meal effect"), UKalmalaPlayerStatusComponent::ApplyFood(Entries, TEXT("ForestChanterelle")));
+    UKalmalaPlayerStatusComponent::Advance(Entries, UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);
     TestTrue(TEXT("Current catalogue hearth broth creates a meal effect"), UKalmalaPlayerStatusComponent::ApplyFood(Entries, TEXT("HearthBroth")));
     TestEqual(TEXT("Meal has one server-defined finite entry"), Entries.Num(), 1);
     TestEqual(TEXT("Meal uses the fixed server duration"), Entries[0].RemainingSeconds, UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);

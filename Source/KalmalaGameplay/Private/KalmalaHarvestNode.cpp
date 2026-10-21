@@ -79,6 +79,7 @@ namespace
         if (PresentationId == TEXT("bog-iron-vein")) return FLinearColor(0.30f, 0.24f, 0.20f);
         if (PresentationId == TEXT("frostmoss-clump")) return FLinearColor(0.54f, 0.76f, 0.72f);
         if (PresentationId == TEXT("lingonberry-shrub-harvest")) return FLinearColor(0.66f, 0.08f, 0.12f);
+        if (PresentationId == TEXT("chanterelle-patch-harvest")) return FLinearColor(0.88f, 0.50f, 0.12f);
         if (PresentationId == TEXT("carrot-patch-harvest")) return FLinearColor(0.22f, 0.52f, 0.16f);
         if (PresentationId == TEXT("potato-patch-harvest")) return FLinearColor(0.42f, 0.50f, 0.25f);
         if (PresentationId == TEXT("onion-patch-harvest")) return FLinearColor(0.29f, 0.43f, 0.20f);
@@ -524,6 +525,7 @@ FName AKalmalaHarvestNode::GetHarvestItemId() const
     if (IsHandGatherablePatch())
     {
         if (GatheringSourceId == TEXT("meadows-wild-lingonberry-shrub")) return FName(TEXT("Lingonberry"));
+        if (GatheringSourceId == TEXT("elderwood-wild-chanterelle-patch")) return FName(TEXT("ForestChanterelle"));
         if (GatheringSourceId == TEXT("meadows-wild-potato-patch")) return FName(TEXT("Potato"));
         if (GatheringSourceId == TEXT("lakes-wild-rutabaga-patch")) return FName(TEXT("Rutabaga"));
         if (GatheringSourceId == TEXT("elderwood-wild-onion-patch")) return FName(TEXT("Onion"));
@@ -743,6 +745,22 @@ void AKalmalaHarvestNode::BuildSourcePresentation()
         AddTaperedBox(Vertices, Triangles, Colors, FVector(-15.0f, -3.0f, 12.0f), FVector(3.0f, 6.0f, 0.0f), 29.0f, 0.16f, -20.0f, LeafColor);
         AddTaperedBox(Vertices, Triangles, Colors, FVector(5.0f, 8.0f, 13.0f), FVector(3.0f, 6.0f, 0.0f), 31.0f, 0.16f, 10.0f, LeafColor);
         AddTaperedBox(Vertices, Triangles, Colors, FVector(18.0f, -9.0f, 11.0f), FVector(3.0f, 6.0f, 0.0f), 27.0f, 0.16f, 24.0f, LeafColor);
+    }
+    else if (PresentationId == TEXT("chanterelle-patch-harvest"))
+    {
+        const FLinearColor StemColor(0.84f, 0.75f, 0.56f);
+        const FLinearColor CapColor(0.83f, 0.43f, 0.10f);
+        const FVector MushroomCenters[] = { FVector(-13.0f, -7.0f, 0.0f), FVector(0.0f, 5.0f, 0.0f), FVector(15.0f, -6.0f, 0.0f) };
+        const float MushroomScales[] = { 0.72f, 1.0f, 0.82f };
+        for (int32 Index = 0; Index < UE_ARRAY_COUNT(MushroomCenters); ++Index)
+        {
+            const float Scale = MushroomScales[Index];
+            const FVector Center = MushroomCenters[Index];
+            AddTaperedBox(Vertices, Triangles, Colors, Center, FVector(3.5f * Scale, 3.5f * Scale, 0.0f),
+                16.0f * Scale, 0.78f, 0.0f, StemColor);
+            AddTaperedBox(Vertices, Triangles, Colors, Center + FVector(0.0f, 0.0f, 13.0f * Scale),
+                FVector(9.0f * Scale, 8.0f * Scale, 0.0f), 6.0f * Scale, 0.5f, 0.0f, CapColor);
+        }
     }
     else if (PresentationId == TEXT("onion-patch-harvest"))
     {

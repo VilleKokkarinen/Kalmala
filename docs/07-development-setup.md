@@ -4974,6 +4974,18 @@ Scripts/Import-CatalogueIconBatch.ps1 -Batch W
 Scripts/Validate-UIIcons.ps1 -Category Catalogue
 ```
 
-The catalogue icon validator expects 86 identities. No Unreal build, gameplay automation, rendered
+The catalogue icon validator now expects 88 identities. No Unreal build, gameplay automation, rendered
 acceptance or multiplayer session ran for this normal child increment; full
 verification remains deferred to I2 milestone-final verification.
+
+### A6 Forest Chanterelle icon
+
+The original prompt and retained artwork are recorded in
+[`docs/forest-chanterelle-icon.md`](forest-chanterelle-icon.md). Icon batch Y
+contains only `ForestChanterelle`; prepare and import with:
+
+```powershell
+python Scripts/Prepare-CatalogueIconBatch.py --batch Y
+Scripts/Import-CatalogueIconBatch.ps1 -Batch Y
+Scripts/Validate-UIIcons.ps1 -Category Catalogue
+```
