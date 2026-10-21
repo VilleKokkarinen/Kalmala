@@ -92,3 +92,20 @@ The retained original is `Content/Kalmala/UI/Source/IconOriginals/StoneArrow.png
 the prepared image and imported Texture2D are in batch Q. The transparent original
 and the 64×64 prepared icon were visually inspected. The icon is validated by
 `Scripts/Validate-UIIcons.ps1 -Category Catalogue`.
+
+## Batch R — Bronze Arrow (2026-10-21)
+
+Generated with the built-in image-generation tool using the Stone Arrow original
+as a style reference only. The original has three wood-shaft arrows with forged
+bronze heads, distinct from the Stone Arrow's pale chipped tips. It was prepared
+at 64×64 and imported as `/Game/Kalmala/UI/Icons/Items/BronzeArrow`; the
+canonical icon manifest and runtime mapping use `BronzeArrow`.
+
+Generation prompt:
+
+> Use case: stylized-concept. Asset type: original Kalmala survival-fantasy inventory icon. Input image: style reference only; do not reproduce its stone arrowheads. Primary request: create a new, isolated BronzeArrow icon. Subject: three primitive wooden arrows grouped diagonally lower-left to upper-right, each with a small forged bronze leaf-shaped arrowhead directly fitted to its shaft, clearly warm copper-gold metal with a few broad hand-painted hammer facets; plain wooden shafts and muted feather fletching. The bronze tips must be visually distinct from pale gray stone tips and sharpened bare wood. Style: small hand-painted game inventory artwork matching the reference's tactile broad facets, bold dark brown contour, restrained painted highlights and earthy material colors; strong clear silhouette readable at 64 pixels. Composition: three centered arrows filling about 78 percent of a square canvas with clean transparent padding. Background: genuinely transparent. Constraints: original artwork, no text, letters, labels, UI, border, ground, cast shadow, glow, watermark, logo, bow, stone, bindings near the arrowheads, or extra objects.
+
+The retained original is `Content/Kalmala/UI/Source/IconOriginals/BronzeArrow.png`;
+the prepared image and imported Texture2D are in batch R. The transparent original
+and the 64×64 prepared icon were visually inspected. The icon is validated by
+`Scripts/Validate-UIIcons.ps1 -Category Catalogue`.

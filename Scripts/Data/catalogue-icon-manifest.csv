@@ -79,3 +79,4 @@ image_batch,import_batch,canonical_id,art_subject,identity_kind,catalogue_aliase
 32,O,WoodenClub,Wooden club,tool,none,WoodenClub,CarriedTool;ToolDetail;Repair;RecipeResult,carried_tool,
 33,P,LightBow,Light Bow,tool,none,LightBow,CarriedTool;ToolDetail;Repair;RecipeResult,carried_tool,
 34,Q,StoneArrow,Stone Arrows,item,none,none,PackInventory;ItemDetail;Storage;Ingredient,pack,StoneArrow
+35,R,BronzeArrow,Bronze Arrows,item,none,none,PackInventory;ItemDetail;Storage;Ingredient,pack,BronzeArrow

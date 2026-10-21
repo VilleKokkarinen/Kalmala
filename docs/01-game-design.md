@@ -42,7 +42,9 @@ and 1 Bow String, a Light Bow from 25 Lightwood + 1 Bow String + 5 Deer Hide,
 or 20 Wooden Arrows from 5 normal Wood. Light Bow weighs 1.5 kg, starts at 140
 condition, draws fully in 2 seconds, and gains 30 condition per Workbench
 upgrade for 3 Lightwood + 1 Bow String. A Workbench also crafts 20 Stone Arrows
-from 20 Wood + 5 Stone.
+from 20 Wood + 5 Stone, and 20 Bronze Arrows from 20 Wood + 1 Bronze bar.
+Bronze Arrows carry a fixed 50 Pierce attack record; bow selection and shot
+payment for them are the next A3 increment.
 Bow String is reserved for bows; ammunition is catalogued in `items/arrows.json`.
 Both bow profiles use both hands. Equipping a bow clears the previous held state and returns
 a worn shield to a free pack cell as one validated transaction. Tools retain their

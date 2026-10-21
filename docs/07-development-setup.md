@@ -4877,3 +4877,20 @@ passed all 79 identities. Registered catalogue JSON and focused Light Bow
 profile, recipe, upgrade, attack, draw, and runtime-wiring checks passed. Editor
 build, gameplay automation, rendered Workbench/Inventory acceptance, and peer
 checks remain deferred to I2 milestone-final verification.
+
+## A3 Bronze Arrow catalogue increment — 2026-10-21
+
+`BronzeArrow` is a 100-stack, 0.05 kg item with a level-one Workbench recipe
+of 20 Wood + 1 Bronze bar → 20 and a fixed 50-Pierce Basic attack record.
+The item, recipe, and attack use the already-registered `items/arrows.json`,
+`recipes/stations/workbench.json`, and `attacks/bows.json` files. Its original
+icon and generation prompt are recorded in `docs/archery-icons.md`.
+
+Icon batch R contains only `BronzeArrow`. Prepare and import with
+`python Scripts/Prepare-CatalogueIconBatch.py --batch R` and
+`Scripts/Import-CatalogueIconBatch.ps1 -Batch R`. The catalogue icon validator
+passed all 81 identities. Focused catalogue/reference checks and modified
+Python/PowerShell syntax checks passed. Bronze Arrow shot selection, payment,
+and display remain the next A3 child. Editor build, gameplay automation,
+rendered acceptance, and peer checks remain deferred to I2 milestone-final
+verification.

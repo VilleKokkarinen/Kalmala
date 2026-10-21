@@ -169,9 +169,12 @@ active state. Other wearable slots and same-pawn shield wear are preserved.
 No new RPC, replication field, save field, version or migration is introduced.
 
 `Sinew` and bow-only `BowString` material records live in
-`items/materials/crafting-ingredients.json`; the `WoodenArrow` and `StoneArrow`
-ammunition items live in sibling `items/arrows.json`, rather than under materials.
-The Stone Arrow Workbench recipe is in `recipes/stations/workbench.json`.
+`items/materials/crafting-ingredients.json`; `WoodenArrow`, `StoneArrow`, and
+`BronzeArrow` ammunition items live in sibling `items/arrows.json`, rather than
+under materials. The Stone and Bronze Arrow Workbench recipes are in
+`recipes/stations/workbench.json`; their fixed Pierce damage records are in
+`attacks/bows.json`. Bronze Arrow carries 50 Pierce in the catalogue; server
+selection and shot payment are the next A3 increment.
 Credited deer defeats grant 1 Sinew on a server-owned 50% roll. At the Workbench,
 `recipes/stations/workbench.json` converts 4 Sinew into 1 Bow String; Bow
 acquisition and upgrades use 5 Wood and 1 Bow String each. The same file keeps

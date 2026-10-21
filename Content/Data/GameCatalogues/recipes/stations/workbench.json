@@ -321,6 +321,29 @@
       "ExperienceSkill": "None",
       "ExperienceAward": 0,
       "bEnabled": true
+    },
+    {
+      "RecipeId": "BronzeArrows",
+      "DisplayName": "Bronze Arrows",
+      "Ingredients": [
+        {
+          "ItemId": "Wood",
+          "Quantity": 20
+        },
+        {
+          "ItemId": "Bronze",
+          "Quantity": 1
+        }
+      ],
+      "Output": "BronzeArrow",
+      "OutputCount": 20,
+      "MaxBatch": 1,
+      "RequiredStation": [
+        "Workbench"
+      ],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
     }
   ]
 }

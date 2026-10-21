@@ -197,6 +197,7 @@ bool UKalmalaIconWidget::FindCatalogueIcon(FName Id, EKalmalaIcon& OutIcon, int3
         {TEXT("BowString"),EKalmalaIcon::String,0}, {TEXT("Sinew"),EKalmalaIcon::Bone,0},
         {TEXT("Bow"),EKalmalaIcon::Bow,0}, {TEXT("LightBow"),EKalmalaIcon::Bow,0},
         {TEXT("WoodenArrow"),EKalmalaIcon::Arrow,0}, {TEXT("StoneArrow"),EKalmalaIcon::Arrow,0},
+        {TEXT("BronzeArrow"),EKalmalaIcon::Arrow,0},
         {TEXT("Wood"),EKalmalaIcon::Log,0}, {TEXT("Lightwood"),EKalmalaIcon::Log,1}, {TEXT("Densewood"),EKalmalaIcon::Log,2},
         {TEXT("Coal"),EKalmalaIcon::Rock,1}, {TEXT("Stone"),EKalmalaIcon::Rock,0}, {TEXT("Iron"),EKalmalaIcon::Ingot,0},
         {TEXT("Bronze"),EKalmalaIcon::Ingot,2}, {TEXT("Copper"),EKalmalaIcon::Ingot,3}, {TEXT("Tin"),EKalmalaIcon::Ingot,4},

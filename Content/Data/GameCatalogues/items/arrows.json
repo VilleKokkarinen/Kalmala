@@ -13,6 +13,13 @@
       "Description": "Stone-tipped arrows that deal 25 Pierce damage.",
       "MaxStack": 100,
       "WeightKg": 0.05
+    },
+    {
+      "ItemId": "BronzeArrow",
+      "DisplayName": "Bronze Arrows",
+      "Description": "Bronze-tipped arrows that deal 50 Pierce damage.",
+      "MaxStack": 100,
+      "WeightKg": 0.05
     }
   ]
 }
