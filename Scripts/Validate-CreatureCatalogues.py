@@ -75,7 +75,7 @@ def main():
     profiles = {}
     allowed_fields = {
         "CreatureId", "DisplayName", "Health", "Armor", "Biomes", "Attacks", "Drops",
-        "DefensiveTriggerRangeCm", "BodyLengthCm", "Swarm",
+        "BodyLengthCm",
     }
     required_fields = {"CreatureId", "DisplayName", "Health", "Armor", "Biomes", "Attacks", "Drops"}
     for creature in creatures:
@@ -96,26 +96,14 @@ def main():
             require(damage and set(damage) <= CHANNELS and all(number(v, .001) for v in damage.values()), f"Invalid damage: {cid}")
             if "Poison" in attack:
                 poison = attack["Poison"]
-                require(set(poison) == {"DamagePerTick", "DurationSeconds", "TickIntervalSeconds", "FirstTickDelaySeconds"},
+                require(set(poison) == {"DamagePerSecond", "DurationSeconds"},
                         f"Invalid poison fields: {cid}")
                 require(all(number(value, .001) for value in poison.values()), f"Invalid inline poison: {cid}")
             for field, value in attack.items():
                 if field.endswith("Seconds") or field.endswith("Cm") or field == "MaxContactDamagePerSecond":
                     require(number(value, .001), f"Invalid attack tuning: {cid}/{field}")
-        for field in ("DefensiveTriggerRangeCm", "BodyLengthCm"):
-            if field in creature:
-                require(number(creature[field], .001), f"Invalid body/trigger tuning: {cid}/{field}")
-        if "Swarm" in creature:
-            swarm = creature["Swarm"]
-            require(set(swarm) == {
-                "CosmeticInsectCount", "MinGroundClearanceCm", "MaxGroundClearanceCm",
-                "MaxAttackingSwarmsPerPlayer", "RollReacquireDelaySeconds", "HeldTorchAvoidanceRadiusCm",
-                "PlacedFlameLightAvoidanceRadiusCm", "CampfireAvoidanceRadiusCm",
-                "RequiresAuthoritativeActiveFlame", "RequiresLineOfSightToFlame", "CatchUpDamage",
-            }, f"Unexpected swarm fields: {cid}")
-            for field, value in swarm.items():
-                require(type(value) is bool if field.startswith("Requires") or field == "CatchUpDamage"
-                        else number(value, .001), f"Invalid swarm tuning: {cid}/{field}")
+        if "BodyLengthCm" in creature:
+            require(number(creature["BodyLengthCm"], .001), f"Invalid body length: {cid}")
         for drop in creature["Drops"]:
             require(set(drop) == {"ItemId", "Quantity", "Chance"}, f"Unexpected drop fields: {cid}")
             require(type(drop["Quantity"]) is int and drop["Quantity"] > 0, f"Invalid quantity: {cid}")
