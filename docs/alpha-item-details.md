@@ -146,14 +146,24 @@ refining path are implemented together.
 
 Melee weapons (P1).
 - Review the sword/club table below; retain the proposed Wooden Club as an early Wood-only option alongside Stone Mace unless manually removed from scope.
-- Add Bronze Sword (`BronzeSword`) through the complete reviewed craft/attack/upgrade/appearance/icon path (blocked on reachable Bronze inputs).
-- Add Iron Sword (`IronSword`) through the complete reviewed path (blocked on sword support and reachable Iron inputs).
+- Add Bronze Sword (`BronzeSword`) through the complete reviewed craft/attack/upgrade/appearance/icon path; its Bronze inputs are reachable through A1.
+- Add Iron Sword (`IronSword`) through the complete reviewed path after Bronze Sword; its Iron inputs are reachable through A1.
 - Add Wooden Club (`WoodenClub`) through the complete reviewed path; no gathering role or metal prerequisite.
+
+Review completed 2026-10-21: retain all three proposals. A1 provides reachable
+Bronze and Iron inputs, so the backlog's Bronze-then-Iron implementation order
+is viable. Use the concrete A2
+checklist recipes for both swords: 10 Bronze + 2 Lightwood + 2 Deer Hide for
+Bronze Sword, and 20 Iron + 2 Densewood + 2 Deer Hide for Iron Sword. Deer
+Hide is the existing non-bow binding input; do not add a generic string item
+or use bow-only Bow String. Wooden Club remains an optional Workbench craft
+with the reviewed Wood-only recipe and Basic melee behavior. It has no
+gathering use or new attack rules.
 
 | Item | Craft station / cost for 1 | Level-one profile | Upgrade base cost / per-level reward |
 | --- | --- | --- | --- |
-| Bronze Sword | Forge 1; 4 Bronze + 2 Lightwood + 1 non-bow binding input (ID/cost to review) | One hand, 100 condition, 35 Slash, 2 kg | 2 Bronze + 1 Lightwood; +30 condition, +4 Slash |
-| Iron Sword | Forge 1; 4 Iron + 2 Densewood + 1 non-bow binding input (ID/cost to review) | One hand, 180 condition, 55 Slash, 2.5 kg | 2 Iron + 1 Densewood; +30 condition, +4 Slash |
+| Bronze Sword | Forge 1; 10 Bronze + 2 Lightwood + 2 Deer Hide | One hand, 100 condition, 35 Slash, 2 kg | 2 Bronze + 1 Lightwood; +30 condition, +4 Slash |
+| Iron Sword | Forge 1; 20 Iron + 2 Densewood + 2 Deer Hide | One hand, 180 condition, 55 Slash, 2.5 kg | 2 Iron + 1 Densewood; +30 condition, +4 Slash |
 | Wooden Club | Workbench 1; 4 Wood | One hand, 40 condition, 10 Crush, 1 kg | 2 Wood; +20 condition, +2 Crush |
 
 All use the existing Basic melee timing/reach, zero attack-style bonus on

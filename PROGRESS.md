@@ -4542,3 +4542,13 @@
 - **Observable impact and authority:** Build requirements and preview state are available in the compact panel's tooltip/presentation output. Fixture-only movement is restored after verification. No gameplay authority, RPC, or save-schema behavior changed.
 - **Known limitations/remaining scope:** broader package smoke and unscripted co-op acceptance remain outside this A1 increment. The previously documented A1 processing limits remain: Kiln/Smelter jobs use active-session time, and there is no player-facing construction-removal action.
 - **Next eligible task:** A2 — review the sword/club proposal.
+
+## 2026-10-21 04:17 UTC — A2 sword/club proposal reviewed
+
+- **Work completed:** retained the approved Bronze Sword, Iron Sword, and Wooden Club proposals. Aligned the detailed sword acquisition costs with the concrete A2 checklist values and resolved the non-bow binding input as existing Deer Hide; Bow String remains bow-only. Checked only the completed A2 review child in `BACKLOG.md`.
+- **Files changed:** `BACKLOG.md`; `docs/05-decision-log.md`; `docs/alpha-item-details.md`; `docs/alpha-items.md`; `PROGRESS.md`.
+- **Lightweight checks:** `git diff --check` passed. Cross-checked the reviewed recipes against the A2 checklist and current catalogue IDs/material definitions. The recipe and binding decisions now match; the Wooden Club implementation checkbox gap is recorded below.
+- **Full verification:** deferred until the final implementation task in I2 (A2–A6 excluding the A7-dependent Rake). No build or runtime test was relevant to this documentation review.
+- **Observable impact and authority:** no runtime, networking, authority, or save behavior changed.
+- **Known limitations/remaining scope:** sword and club implementation, complete catalogue records, generated icons, and relevant item validation remain. The detailed proposal includes Wooden Club, but `BACKLOG.md` has no separate implementation child for it; no backlog task was added.
+- **Next eligible task:** A2 Bronze Sword: Forge, 10 Bronze + 2 Lightwood + 2 Deer Hide.

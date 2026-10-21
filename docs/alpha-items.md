@@ -68,7 +68,7 @@ food status dispatch. Definitions do not establish obtainability or usability.
 
 | Category | Authored current coverage | Gap / recommended direction |
 | --- | --- | --- |
-| Melee weapons and gathering tools | Stone/Bronze/Iron axes, knives, picks, spears and maces: 15 profiles | Existing slash/stab/crush roles are covered; prioritize reachable materials. Swords are a design target without a profile; a wooden club is also a target, but Stone Mace already fills early blunt combat. |
+| Melee weapons and gathering tools | Stone/Bronze/Iron axes, knives, picks, spears and maces: 15 profiles | A2 retains Bronze Sword and Iron Sword as one-hand Basic melee additions, plus an optional Wood-only Wooden Club. The club remains below the starter Stone Mace's authored Crush damage and adds no gathering role. Use Deer Hide for the sword binding cost; Bow String stays bow-only. |
 | Ranged and ammunition | One Bow profile and Wooden Arrow; crafting, draw/release and server projectiles | Bow String is now reachable through deer Sinew and Workbench crafting. Later add one improved bow and one metal arrow, with explicit ammunition dispatch and payment. |
 | Utility tools | Building Hammer plus gathering tools above | No authored carried torch, cultivation tool, hoe or fishing rod. Torch is an existing design target; the other roles need new systems. |
 | Armour and shields | Boar Hide Helmet, Tunic, Leggings, Boots, Cape; Wood Shield | No second armour tier or metal shield. Six functioning slots; Necklace/Ring are disabled placeholders. Shield currently supplies passive Armor, not Valheim-style blocking/parrying. |
