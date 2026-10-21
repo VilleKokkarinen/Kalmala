@@ -222,8 +222,8 @@ Forage, meals and recovery consumables (P1; scope approved 2026-10-19).
 - Review and add Forest Chanterelle (`ForestChanterelle`): hand-gather Elderwood mushroom patches, 2 per depleted patch; no tool, stack 20, 0.1 kg each. Eating one applies the existing Steady Meal effect. The Elderwood patch is its acquisition route; it has no crafting recipe, equipment profile, upgrade cost, or attack data.
 - Retain one Steady Meal effect for all seven existing prepared foods, the two forage foods and A7 Cooked Lake Fish: 120 seconds, stamina-use multiplier 0.90, no stacking or eating while active. Raw meats/vegetables/seeds remain ingredients, not consumable meals. Defer differentiated nutrition, additional meal slots and new prepared-dish volume.
 - Review the recovery table below's server-owned effect rules before implementation; use Cauldron at a lit hearth, no new brewing station, alcohol/base items or fermentation step.
-- Add Berry Recovery Draught (`BerryRecoveryDraught`) with the complete reviewed recipe/effect/icon path (blocked on Lingonberry).
-- Add Root Stamina Draught (`RootStaminaDraught`) with the complete reviewed recipe/effect/icon path (blocked on vegetable access).
+- Add Berry Recovery Draught (`BerryRecoveryDraught`) with the complete reviewed recipe/effect/icon path.
+- Add Root Stamina Draught (`RootStaminaDraught`) with the complete reviewed recipe/effect/icon path.
 - Explicitly defer cold/poison/fire-resistance preparations: no consumable hazard bypass or new resistance channel in this alpha set.
 
 | Consumable | Cauldron cost / output | Effect / limit |
@@ -238,6 +238,15 @@ while dead or during active healing from the same draught. Support magic
 remains separately governed by its existing rules. Effects/cooldown are
 session state and clear on reconnect; inventories retain existing persistence
 limits. No released-save migration or new general inventory persistence.
+
+Review outcome — 2026-10-21: retain the two effects and their authored values,
+the shared cross-draught 60-second cooldown, rejection without consumption,
+and session-only status. Berry healing stops on death; Root Stamina remains
+clamped to the current maximum. Keep support-magic cooldowns separate and use
+the existing Cauldron/lit-hearth route. Do not add hazard resistance, alcohol,
+fermentation, or another station. A0 supplies Carrot, Potato, and Onion, and
+A6 supplies Lingonberry, so neither recipe remains source-blocked; A7 seed
+propagation is not a recipe prerequisite.
 
 ## A7
 

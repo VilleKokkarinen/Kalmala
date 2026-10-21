@@ -4744,3 +4744,13 @@
 - **Observable impact and authority:** the existing server validates supported food and active meal state, consumes exactly one item, applies the fixed effect, and owns expiry; replicated status remains presentation-only. The crafting food summary now reports both forage foods. No RPC, save schema, or client-authoritative gameplay state changed.
 - **Known limitations/remaining scope:** the `Kalmala.Gameplay.Status.SteadyMeal` automation exists but was not executed; compilation, runtime behavior, rendered presentation, and host/client checks remain for I2 milestone-final verification.
 - **Next eligible task:** A6 Review draught effects; use the existing Cauldron, with no brewing station.
+
+## 2026-10-21 09:37 UTC — A6 draught effects reviewed
+
+- **Work completed:** reviewed the Berry Recovery and Root Stamina draught values and retained the approved effects, shared 60-second cooldown, rejection-without-consumption behavior, transient status policy, and existing Cauldron/lit-hearth route. Removed stale source blockers: A0 already supplies Carrot, Potato, and Onion, and A6 Lingonberry is complete. Checked only the A6 draught-effects review child.
+- **Files changed by this increment:** `BACKLOG.md`; `PROGRESS.md`; `docs/alpha-item-details.md`.
+- **Lightweight checks:** inspected the current server-owned status and food-use contracts, existing Cauldron recipes and lit-hearth validation, and A0/A6 ingredient sources. Confirmed draught effects remain unimplemented and no new station or hazard-resistance path is required. `git diff --check` passed for the worktree.
+- **Full verification:** deferred to I2 milestone-final verification. No build, gameplay automation, UI/render check, or multiplayer session was run for this design-review increment.
+- **Observable impact and authority:** the design reference now records the reviewed draught rules and current ingredient availability, so the next draught implementation can proceed without adding a station. No runtime behavior or network authority changed; future effect and cooldown state remains server-owned under the accepted contract.
+- **Known limitations/remaining scope:** both draught items, recipes, icons, use transactions and status presentation remain unimplemented. Compilation and runtime/network behavior remain unverified until I2 milestone-final verification.
+- **Next eligible task:** A6 Berry Recovery Draught — Cauldron recipe, 3 Lingonberry + 1 Carrot, 20 health over 10 seconds; A5 Cultivation Rake remains blocked on A7.
