@@ -4624,3 +4624,13 @@
 - **Observable impact and authority:** clients can prioritize an exact owned arrow stack; the server resolves the chosen stack from inventory, spawns the authored arrow projectile, and commits one arrow plus one bow-condition point through the existing persistence transaction. The crosshair is presentation-only. No new RPC, replicated field, or save data was added.
 - **Known limitations/remaining scope:** runtime/rendered behavior and C++ compilation have not been exercised. The A3 parent checkbox remains unchecked because this run was authorized to check only the selected child; all A3 children are now complete.
 - **Next eligible task:** A3 parent state closeout; A4 armour review follows.
+
+## 2026-10-21 06:36 UTC — A3 parent closed
+
+- **Work completed:** closed A3 after confirming its four defined child tasks were already checked and that the A3 catalogue, attack, icon, selection, and display work is recorded in the preceding increments. No gameplay implementation changed.
+- **Files changed:** `BACKLOG.md`; `PROGRESS.md`.
+- **Lightweight checks:** inspected the A3 backlog block and its authored scope in `docs/alpha-item-details.md`; a focused PowerShell assertion confirmed the checked parent and all four checked children. `git diff --check` passed with existing CRLF notices; both changed paths are below MAX_PATH.
+- **Full verification:** deferred to I2 milestone-final verification. Editor build, gameplay automation, rendered Workbench/Inventory acceptance, and multiplayer checks remain outstanding for that gate.
+- **Observable impact and authority:** the roadmap now records A3 implementation work as complete. No runtime, gameplay, networking, authority, or save behavior changed.
+- **Known limitations/remaining scope:** I2 milestone-final verification remains pending; A3 is not the completion of the I2 milestone.
+- **Next eligible task:** A4 review armour; retain hide Boots/Cape and defer insulation.

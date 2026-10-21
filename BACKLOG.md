@@ -138,7 +138,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [x] Iron Sword: Forge, 20 Iron + 2 Densewood + 2 Deer hide
   - [x] Wooden Club: Workbench, 4 Wood; 10 Crush, 40 condition; upgrade with 2 Wood (+20 condition, +2 Crush)
 
-- [ ] **A3 — Bows and arrows (P1).** [Stats and upgrades](docs/alpha-item-details.md#a3)
+- [x] **A3 — Bows and arrows (P1).** [Stats and upgrades](docs/alpha-item-details.md#a3)
   - [x] Light Bow: Workbench, 25 Lightwood + 1 Bow String + 5 Deer Hide; 2 s draw.
   - [x] Stone Arrow: Workbench, 20 Wood + 5 stone → 20; 25 Pierce.
   - [x] Bronze Arrow: Workbench, 20 Wood + 1 Bronze bar → 20; 50 Pierce.
