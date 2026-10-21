@@ -640,9 +640,9 @@ SetWeatherStateFromServer now rejects non-authority and invalid input at runtime
 
 The first prepared food reuses the server-local item and recipe catalogues, UKalmalaInventoryComponent::BuildExchange, the existing hearth actor, and the replicated player-status component. Roasting requires a same-world fire that the server observes as usable, within 250 cm, Lit, and producing finite positive heat; a workbench, extinguished fire, or Smouldering fire cannot satisfy it. The server checks recipe identity, batch, inputs, and output capacity before changing the private pack. No additional fuel charge is applied beyond the hearth's normal fuel burn.
 
-Food use is an owning-client request containing only an item identity. The server allowlists the seven current cooking outputs (`CookedBoarMeat`, `CookedDeerMeat`, `HearthBroth`, `MeatStew`, `RootVegetableSoup`, `RoastedRootVegetables`, and `DeerRootRoast`) plus foraged `Lingonberry` and `ForestChanterelle`, checks the owner's pack and meal slot, commits one-item consumption through a candidate inventory exchange, then publishes a fixed-duration State.Food.SteadyMeal entry. The entry reduces server-derived stamina cost to 0.90 for 120 server seconds. Only one meal entry is permitted: an active effect neither stacks, refreshes, nor gets replaced; rejected consumption leaves pack and status unchanged. The existing status replication carries effect identity and remaining time, while the private inventory and crafting result remain owner-only. Food, cooking progress, and meal effects add no save field or schema.
+Food use is an owning-client request containing only an item identity. The server allowlists the seven current cooking outputs (`CookedBoarMeat`, `CookedDeerMeat`, `HearthBroth`, `MeatStew`, `RootVegetableSoup`, `RoastedRootVegetables`, and `DeerRootRoast`) plus foraged `Lingonberry` and `ForestChanterelle`, checks the owner's pack and meal slot, commits one-item consumption through a candidate inventory exchange, then publishes a fixed-duration State.Food.SteadyMeal entry. The entry reduces server-derived stamina cost to 0.90 for 120 server seconds. Only one meal entry is permitted: an active effect neither stacks, refreshes, nor gets replaced; rejected consumption leaves pack and status unchanged. Berry Recovery Draught uses the same identity-only request and atomic pack exchange, but checks for missing health and the shared draught cooldown before consuming. The server then publishes a ten-second Berry Recovery entry and a sixty-second shared draught cooldown; it restores two health per server second, clamps to 100, and removes the healing entry if the character is dead. The local status strip reads the replicated recovery and cooldown timers without advancing them. The existing status replication carries effect identity and remaining time, while the private inventory and crafting result remain owner-only. Food, cooking progress, meal effects, draught healing, and cooldowns are transient and add no save field or schema.
 
-The active schema-4 food recipes cook boar or deer meat on the Cooking Rack, prepare Hearth Broth, meat stew, or root vegetable soup in the Cauldron, and prepare roasted roots or deer-root roast in the Frying Pan. The server resolves the declared station, live hearth heat, inventory costs, and accepted outputs from the catalogue. Food and meal effects remain transient; no saved-data schema changes.
+The active schema-4 food recipes cook boar or deer meat on the Cooking Rack, prepare Hearth Broth, meat stew, root vegetable soup, or Berry Recovery Draught in the Cauldron, and prepare roasted roots or deer-root roast in the Frying Pan. Berry Recovery Draught costs three Lingonberries and one Carrot, yields one dose, and awards ten Cooking experience. The server resolves the declared station, live hearth heat, inventory costs, and accepted outputs from the catalogue. Food and recovery effects remain transient; no saved-data schema changes.
 
 ### Accepted cooking experience
 
@@ -651,9 +651,9 @@ The server recipe catalogue may assign an allowlisted skill and a bounded award 
 The current recipe schema has no skill-level requirement field. Recipe access is gated by material quantities and any required station, hearth state, and bounded batch. Accepted food preparation still grants its existing server-owned Cooking experience after the inventory exchange; it does not block a recipe behind a skill level. Rejection leaves the private pack, station state, and progression unchanged, with no learned-recipe save field or client-authored value.
 ### M7 local survival status strip
 
-`UKalmalaSurvivalStatusSubsystem` belongs to each `ULocalPlayer` and builds the persistent lower-left strip from that player's existing replicated status entries, exposure summary, support-effect fields, and `AKalmalaWorldGenerationGameState` weather. The widget reports Wet's movement/stamina modifiers, the shared non-stacking prepared-meal effect, active rain/fog/wind intensities and weather interval, low-warmth cold pressure and recovery rate, heat signals, and active support magnitude/expiry. Shape markers pair with explicit category and status names; text scale and high contrast follow local settings. The separate Calm/Active/Highly Active badge remains below the minimap.
+`UKalmalaSurvivalStatusSubsystem` belongs to each `ULocalPlayer` and builds the persistent lower-left strip from that player's existing replicated status entries, exposure summary, support-effect fields, and `AKalmalaWorldGenerationGameState` weather. The widget reports Wet's movement/stamina modifiers, the shared non-stacking prepared-meal effect, Berry Recovery Draught healing and shared cooldown, active rain/fog/wind intensities and weather interval, low-warmth cold pressure and recovery rate, heat signals, and active support magnitude/expiry. Shape markers pair with explicit category and status names; text scale and high contrast follow local settings. The separate Calm/Active/Highly Active badge remains below the minimap.
 
-The status component already publishes remaining seconds for Wet and food; the strip reads those values without advancing them locally. Support and weather timers use their replicated absolute server expiry/start/duration with `GetServerWorldTimeSeconds`. Wet source is labelled as exposed rain or water because the shared status entry does not retain which trigger applied it; food is labelled as prepared food because the shared meal entry does not retain the consumed recipe identity. Recovery guidance describes existing roof/fire and shelter/fire rules. The subsystem has no input binding, RPC, gameplay setter, persistence path, new replicated field, or save-schema change.
+The status component publishes remaining seconds for Wet, food, Berry Recovery healing, and the shared draught cooldown; the strip reads those values without advancing them locally. Support and weather timers use their replicated absolute server expiry/start/duration with `GetServerWorldTimeSeconds`. Wet source is labelled as exposed rain or water because the shared status entry does not retain which trigger applied it; food is labelled as prepared food because the shared meal entry does not retain the consumed recipe identity. Recovery guidance describes existing roof/fire and shelter/fire rules. The subsystem has no input binding, RPC, gameplay setter, persistence path, new replicated field, or save-schema change.
 
 
 ## Consolidated system contracts
@@ -2723,19 +2723,20 @@ or persistence field is added.
 
 ## Owner-local prepared-food inventory detail
 
-When the owning player's private pack contains one of the seven current cooking
-outputs, the on-demand Inventory menu explains that one serving
-grants Steady Meal, reducing stamina cost by 10% for 120 seconds. If
-the same pawn's existing replicated status contains an active meal, the menu
-shows its remaining server-published time and the wait-for-expiry rule. The
-Eat action sends only the selected supported food ID through the existing
-server transaction; the server revalidates quantity and the active meal slot.
-The menu adds no new RPC, replicated field, or save data. Shape markers and
-explicit text remain visible with the owner's configured text scale and
-contrast. `Kalmala.UI.Inventory.PreparedFoodDetails` checks the selected menu
-detail and disabled action while owner data is unavailable. The host/client
-inventory reconnect fixture continues to verify owner-only pack visibility;
-rendered multi-row layout and scaled-font appearance remain open.
+When the owning player's private pack contains a supported meal food, the
+on-demand Inventory menu explains that one serving grants Steady Meal,
+reducing stamina cost by 10% for 120 seconds. Berry Recovery Draught detail
+explains its up-to-20 health recovery over ten seconds and the shared
+sixty-second draught cooldown; its action is labelled "Use one dose" and is
+disabled at full health, while dead, or during cooldown. The request sends
+only the selected item ID through the existing server transaction; the server
+revalidates quantity and the matching effect gate before payment. The menu adds
+no new RPC, replicated field, or save data. Shape markers and explicit text
+remain visible with the owner's configured text scale and contrast.
+`Kalmala.UI.Inventory.PreparedFoodDetails` checks the selected menu detail and
+disabled action while owner data is unavailable. The host/client inventory
+reconnect fixture continues to verify owner-only pack visibility; rendered
+multi-row layout and scaled-font appearance remain open.
 
 ## Owner-local crafting skill and unlock detail
 

@@ -1,6 +1,29 @@
 {
   "recipes": [
     {
+      "RecipeId": "BerryRecoveryDraughtRecipe",
+      "DisplayName": "Berry Recovery Draught",
+      "Ingredients": [
+        {
+          "ItemId": "Lingonberry",
+          "Quantity": 3
+        },
+        {
+          "ItemId": "Carrot",
+          "Quantity": 1
+        }
+      ],
+      "Output": "BerryRecoveryDraught",
+      "OutputCount": 1,
+      "MaxBatch": 5,
+      "RequiredStation": [
+        "Cauldron"
+      ],
+      "ExperienceSkill": "Cooking",
+      "ExperienceAward": 10,
+      "bEnabled": true
+    },
+    {
       "RecipeId": "HearthBrothRecipe",
       "DisplayName": "Hearth Broth",
       "Ingredients": [

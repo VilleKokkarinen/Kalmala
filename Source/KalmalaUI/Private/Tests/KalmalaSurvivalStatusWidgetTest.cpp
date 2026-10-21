@@ -26,6 +26,14 @@ bool FKalmalaSurvivalStatusWidgetTest::RunTest(const FString& Parameters)
     Meal.StatusId = UKalmalaPlayerStatusComponent::SteadyMealStatusId;
     Meal.RemainingSeconds = 74.0f;
 
+    FKalmalaPlayerStatusEntry& BerryRecovery = Snapshot.Statuses.AddDefaulted_GetRef();
+    BerryRecovery.StatusId = UKalmalaPlayerStatusComponent::BerryRecoveryStatusId;
+    BerryRecovery.RemainingSeconds = 8.5f;
+
+    FKalmalaPlayerStatusEntry& DraughtCooldown = Snapshot.Statuses.AddDefaulted_GetRef();
+    DraughtCooldown.StatusId = UKalmalaPlayerStatusComponent::DraughtCooldownStatusId;
+    DraughtCooldown.RemainingSeconds = 58.5f;
+
     FKalmalaPlayerStatusEntry& Expired = Snapshot.Statuses.AddDefaulted_GetRef();
     Expired.StatusId = UKalmalaPlayerStatusComponent::WetStatusId;
     Expired.RemainingSeconds = 0.0f;
@@ -54,6 +62,8 @@ bool FKalmalaSurvivalStatusWidgetTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Food row shows its timer, finite benefit and non-stacking rule"),
         StatusText.Contains(TEXT("◆ FOOD · STEADY MEAL · 74 s · stamina cost −10%"))
         && StatusText.Contains(TEXT("prepared food · Recovery: wait for expiry; meals do not stack or replace.")));
+    TestTrue(TEXT("Berry Recovery Draught shows healing and the shared cooldown timers"),
+        StatusText.Contains(TEXT("◇ RECOVERY · BERRY DRAUGHT · healing 9 s · up to 20 health over 10 seconds · shared cooldown 59 s")));
     TestTrue(TEXT("Weather row uses replicated intensity values without a countdown"),
         StatusText.Contains(TEXT("▲ HAZARD · WEATHER · rain 80% / fog 40% / wind 70% / storm 56% · Source: server weather")));
     TestFalse(TEXT("Weather detail omits the interval countdown"),

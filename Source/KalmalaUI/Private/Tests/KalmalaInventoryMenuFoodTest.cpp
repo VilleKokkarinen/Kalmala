@@ -44,6 +44,31 @@ bool FKalmalaInventoryMenuPreparedFoodDetailsTest::RunTest(const FString& Parame
     TestTrue(TEXT("The menu exposes the supported Eat action"), MenuText.Contains(TEXT("Eat one serving")));
     TestTrue(TEXT("Food action fails closed while owner data is unavailable"),
         MenuText.Contains(TEXT("Food use is unavailable while owner data is loading.")));
+
+    Menu->SetInventoryRowsForVerification({
+        {TEXT("BerryRecoveryDraught"), TEXT("Berry Recovery Draught"), TEXT("× 1"), false}
+    }, 100, 0);
+    Menu->SelectItemForVerification(TEXT("BerryRecoveryDraught"));
+    DetailText.Reset();
+    Widgets.Reset();
+    Menu->WidgetTree->GetAllWidgets(Widgets);
+    for (UWidget* Widget : Widgets)
+    {
+        if (auto* Detail = Cast<UKalmalaItemDetailWidget>(Widget))
+        {
+            TArray<UWidget*> DetailWidgets;
+            Detail->WidgetTree->GetAllWidgets(DetailWidgets);
+            for (UWidget* DetailWidget : DetailWidgets)
+                if (const auto* Block = Cast<UTextBlock>(DetailWidget)) DetailText += Block->GetText().ToString();
+        }
+    }
+    TestTrue(TEXT("Draught detail explains its server-owned healing and shared cooldown"),
+        DetailText.Contains(TEXT("up to 20 health over 10 seconds"))
+        && DetailText.Contains(TEXT("share a 60-second recovery cooldown")));
+    MenuText.Reset();
+    for (UWidget* Widget : Widgets)
+        if (const auto* Block = Cast<UTextBlock>(Widget)) MenuText += Block->GetText().ToString();
+    TestTrue(TEXT("The draught action is named as a dose rather than food"), MenuText.Contains(TEXT("Use one dose")));
     return true;
 }
 

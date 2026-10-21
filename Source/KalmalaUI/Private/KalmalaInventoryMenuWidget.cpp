@@ -507,8 +507,11 @@ void UKalmalaInventoryMenuWidget::RefreshOwnerInventory()
     {
         if (const AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(OwnerPawn))
         {
+            const FName ExpectedStatus = UKalmalaPlayerStatusComponent::IsKnownDraughtItem(LastFoodResultItemId)
+                ? UKalmalaPlayerStatusComponent::DraughtCooldownStatusId
+                : UKalmalaPlayerStatusComponent::SteadyMealStatusId;
             if (const UKalmalaPlayerStatusComponent* Status = Character->FindComponentByClass<UKalmalaPlayerStatusComponent>();
-                Status && Status->HasStatus(UKalmalaPlayerStatusComponent::SteadyMealStatusId))
+                Status && Status->HasStatus(ExpectedStatus))
             {
                 bAwaitingAcceptedFoodStatus = false;
             }
@@ -711,6 +714,10 @@ void UKalmalaInventoryMenuWidget::RefreshSelectionPresentation(const int32 TextS
                 if (UKalmalaPlayerStatusComponent::IsKnownFoodItem(Row.Id))
                 {
                     VisibleState += TEXT("\n\nEffect: Steady Meal; 10% lower stamina use for 120 seconds.");
+                }
+                else if (UKalmalaPlayerStatusComponent::IsKnownDraughtItem(Row.Id))
+                {
+                    VisibleState += TEXT("\n\nEffect: restores up to 20 health over 10 seconds. Draughts share a 60-second recovery cooldown.");
                 }
                 ItemDetailView->SetItem(Row.Id, Row.Name, VisibleState, TextScale, Contrast);
             }
@@ -980,9 +987,17 @@ void UKalmalaInventoryMenuWidget::RefreshFoodActionPresentation(const FKalmalaCa
         return;
     }
     const bool bSelectedFood = SelectedRow != nullptr && !SelectedRow->bCarriedTool
-        && UKalmalaPlayerStatusComponent::IsKnownFoodItem(SelectedRow->Id);
+        && (UKalmalaPlayerStatusComponent::IsKnownFoodItem(SelectedRow->Id)
+            || UKalmalaPlayerStatusComponent::IsKnownDraughtItem(SelectedRow->Id));
+    const bool bSelectedDraught = bSelectedFood
+        && UKalmalaPlayerStatusComponent::IsKnownDraughtItem(SelectedRow->Id);
     const bool bShowFoodStatus = bSelectedFood || bAwaitingFoodResult || !LastFoodResultText.IsEmpty();
     EatFoodButton->SetVisibility(bSelectedFood ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+    if (auto* ButtonLabel = Cast<UTextBlock>(EatFoodButton->GetContent()))
+    {
+        const FText ActionLabel = FText::FromString(bSelectedDraught ? TEXT("Use one dose") : TEXT("Eat one serving"));
+        if (ButtonLabel->GetText().ToString() != ActionLabel.ToString()) ButtonLabel->SetText(ActionLabel);
+    }
     FoodActionStatusText->SetVisibility(bShowFoodStatus ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
     if (!bShowFoodStatus) return;
 
@@ -994,8 +1009,9 @@ void UKalmalaInventoryMenuWidget::RefreshFoodActionPresentation(const FKalmalaCa
         ? OwnerPawn->FindComponentByClass<UKalmalaPlayerStatusComponent>() : nullptr;
     const UKalmalaCraftingComponent* Crafting = OwnerPawn
         ? OwnerPawn->FindComponentByClass<UKalmalaCraftingComponent>() : nullptr;
+    const AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(OwnerPawn);
 
-    bool bCanEat = false;
+    bool bCanUse = false;
     FString StatusText;
     if (bAwaitingFoodResult)
     {
@@ -1008,28 +1024,51 @@ void UKalmalaInventoryMenuWidget::RefreshFoodActionPresentation(const FKalmalaCa
     else if (bSelectedFood)
     {
         const int32 Quantity = Inventory ? Inventory->GetQuantity(SelectedRow->Id) : 0;
-        const bool bMealActive = Status && Status->HasStatus(UKalmalaPlayerStatusComponent::SteadyMealStatusId);
         if (!Controller || !Controller->IsLocalController() || !Inventory || !Status || !Crafting)
         {
             StatusText = TEXT("Food use is unavailable while owner data is loading.");
         }
-        else if (bMealActive)
+        else if (bSelectedDraught && Status->HasStatus(UKalmalaPlayerStatusComponent::DraughtCooldownStatusId))
+        {
+            StatusText = FString::Printf(TEXT("Draught recovery cooldown: %.0f seconds remain. No draught dose was used."),
+                Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::DraughtCooldownStatusId));
+        }
+        else if (bSelectedDraught && Status->HasStatus(UKalmalaPlayerStatusComponent::BerryRecoveryStatusId))
+        {
+            StatusText = FString::Printf(TEXT("Berry draught healing is active for %.0f seconds; the shared cooldown continues."),
+                Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::BerryRecoveryStatusId));
+        }
+        else if (bSelectedDraught && (!Character || Character->GetHealth() <= 1.0f))
+        {
+            StatusText = TEXT("A draught cannot be used while dead.");
+        }
+        else if (bSelectedDraught && Character->GetHealth() >= 100.0f)
+        {
+            StatusText = TEXT("Health is full; the draught will not be consumed.");
+        }
+        else if (!bSelectedDraught && Status->HasStatus(UKalmalaPlayerStatusComponent::SteadyMealStatusId))
         {
             StatusText = FString::Printf(TEXT("A steady meal is active for %.0f seconds. Wait for it to expire."),
                 Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId));
         }
         else if (bAwaitingAcceptedFoodStatus)
         {
-            StatusText = TEXT("Food was accepted. Waiting for the owner meal status to update.");
+            StatusText = bSelectedDraught
+                ? TEXT("Draught was accepted. Waiting for the owner recovery status to update.")
+                : TEXT("Food was accepted. Waiting for the owner meal status to update.");
         }
         else if (Quantity <= 0)
         {
-            StatusText = TEXT("No serving of this food is available in your pack.");
+            StatusText = bSelectedDraught
+                ? TEXT("No Berry Recovery Draught dose is available in your pack.")
+                : TEXT("No serving of this food is available in your pack.");
         }
         else
         {
-            StatusText = TEXT("Ready: eat one serving for 120 seconds of 10% lower stamina use.");
-            bCanEat = !bAwaitingFoodResult && !bAwaitingAcceptedFoodStatus;
+            StatusText = bSelectedDraught
+                ? TEXT("Ready: use one dose to restore up to 20 health over 10 seconds. Shared draught cooldown: 60 seconds.")
+                : TEXT("Ready: eat one serving for 120 seconds of 10% lower stamina use.");
+            bCanUse = !bAwaitingFoodResult && !bAwaitingAcceptedFoodStatus;
         }
 
         if (LastFoodResultItemId == SelectedRow->Id && !LastFoodResultText.IsEmpty())
@@ -1042,7 +1081,7 @@ void UKalmalaInventoryMenuWidget::RefreshFoodActionPresentation(const FKalmalaCa
         StatusText = TEXT("Last food result: ") + LastFoodResultText;
     }
 
-    EatFoodButton->SetIsEnabled(bCanEat);
+    EatFoodButton->SetIsEnabled(bCanUse);
     if (FoodActionStatusText->GetText().ToString() != StatusText)
         FoodActionStatusText->SetText(FText::FromString(StatusText));
 }
@@ -1053,7 +1092,8 @@ void UKalmalaInventoryMenuWidget::EatSelectedFood()
         || !OwnerInventoryRows.IsValidIndex(SelectedInventoryIndex)) return;
 
     const FKalmalaCatalogueRow& Row = OwnerInventoryRows[SelectedInventoryIndex];
-    if (Row.bCarriedTool || !UKalmalaPlayerStatusComponent::IsKnownFoodItem(Row.Id)) return;
+    const bool bDraught = UKalmalaPlayerStatusComponent::IsKnownDraughtItem(Row.Id);
+    if (Row.bCarriedTool || (!bDraught && !UKalmalaPlayerStatusComponent::IsKnownFoodItem(Row.Id))) return;
 
     APlayerController* Controller = GetOwningPlayer();
     AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(Controller ? Controller->GetPawn() : nullptr);
@@ -1063,9 +1103,12 @@ void UKalmalaInventoryMenuWidget::EatSelectedFood()
         ? Character->FindComponentByClass<UKalmalaPlayerStatusComponent>() : nullptr;
     UKalmalaCraftingComponent* Crafting = Character
         ? Character->FindComponentByClass<UKalmalaCraftingComponent>() : nullptr;
+    const bool bEffectAlreadyActive = Status && Status->HasStatus(bDraught
+        ? UKalmalaPlayerStatusComponent::DraughtCooldownStatusId
+        : UKalmalaPlayerStatusComponent::SteadyMealStatusId);
     if (!Controller || !Controller->IsLocalController() || !Inventory || !Status || !Crafting
         || Inventory->GetQuantity(Row.Id) <= 0
-        || Status->HasStatus(UKalmalaPlayerStatusComponent::SteadyMealStatusId))
+        || bEffectAlreadyActive || (bDraught && (!Character || Character->GetHealth() <= 1.0f || Character->GetHealth() >= 100.0f)))
     {
         RefreshSelectionPresentation(UKalmalaSettingsWidget::ClampTextScale(
             UKalmalaSettingsWidget::GetTextScalePercent()), UKalmalaSettingsWidget::GetContrastMode());
@@ -1082,7 +1125,7 @@ void UKalmalaInventoryMenuWidget::EatSelectedFood()
         UKalmalaSettingsWidget::GetTextScalePercent()), UKalmalaSettingsWidget::GetContrastMode());
 
     // This existing server transaction is station-free. It rechecks the
-    // allowlisted item, owner pack and meal slot, then publishes an owner result.
+    // item, owner pack and effect slot before publishing an owner result.
     Crafting->ServerConsumeFood(Row.Id);
 }
 

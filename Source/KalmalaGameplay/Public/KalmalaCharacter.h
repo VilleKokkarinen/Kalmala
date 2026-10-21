@@ -87,6 +87,7 @@ public:
     bool ApplyWildlifeDamageFromServer(const AActor* SourceActor, float Damage);
     bool ApplyWildlifeDamageFromServer(const AActor* SourceActor, const FKalmalaDamageChannels& Damage);
     bool ReceiveMendingFromServer(const AKalmalaCharacter* SourceCharacter, float HealAmount);
+    bool RestoreHealthFromDraughtFromServer(float HealAmount);
     static bool IsMendingReceiveAllowed(bool bServerAuthority, bool bValidAlly, bool bSameWorld, bool bInRange, bool bLiving, bool bNeedsHealing, float HealAmount);
     static bool IsExposureUpdateAllowed(bool bServerAuthority);
     void SetExposureStateFromServer(const FKalmalaExposureState& NewExposureState);

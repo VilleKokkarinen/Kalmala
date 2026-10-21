@@ -247,4 +247,129 @@ bool FKalmalaSteadyMealStatusTest::RunTest(const FString& Parameters)
     return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaBerryRecoveryDraughtStatusTest,
+    "Kalmala.Gameplay.Status.BerryRecoveryDraught",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FKalmalaBerryRecoveryDraughtStatusTest::RunTest(const FString& Parameters)
+{
+    TArray<FKalmalaPlayerStatusEntry> Entries;
+    TestFalse(TEXT("Unknown item cannot start a recovery effect"),
+        UKalmalaPlayerStatusComponent::ApplyDraught(Entries, TEXT("Wood")));
+    TestTrue(TEXT("Berry Recovery Draught is allowlisted"),
+        UKalmalaPlayerStatusComponent::IsKnownDraughtItem(TEXT("BerryRecoveryDraught")));
+    TestFalse(TEXT("Steady Meal foods are not draught items"),
+        UKalmalaPlayerStatusComponent::IsKnownDraughtItem(TEXT("HearthBroth")));
+    TestTrue(TEXT("Draught applies one healing effect and the shared cooldown"),
+        UKalmalaPlayerStatusComponent::ApplyDraught(Entries, TEXT("BerryRecoveryDraught")));
+    TestEqual(TEXT("Draught publishes both bounded statuses"), Entries.Num(), 2);
+    const FKalmalaPlayerStatusEntry* RecoveryEntry = Entries.FindByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
+        { return Entry.StatusId == UKalmalaPlayerStatusComponent::BerryRecoveryStatusId; });
+    const FKalmalaPlayerStatusEntry* CooldownEntry = Entries.FindByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
+        { return Entry.StatusId == UKalmalaPlayerStatusComponent::DraughtCooldownStatusId; });
+    TestNotNull(TEXT("Healing status is present"), RecoveryEntry);
+    TestNotNull(TEXT("Shared cooldown status is present"), CooldownEntry);
+    if (RecoveryEntry && CooldownEntry)
+    {
+        TestEqual(TEXT("Healing lasts ten seconds"), RecoveryEntry->RemainingSeconds,
+            UKalmalaPlayerStatusComponent::BerryRecoveryMaximumSeconds);
+        TestEqual(TEXT("Shared draught cooldown lasts sixty seconds"), CooldownEntry->RemainingSeconds,
+            UKalmalaPlayerStatusComponent::DraughtCooldownMaximumSeconds);
+    }
+    TestFalse(TEXT("A second draught cannot refresh the shared cooldown"),
+        UKalmalaPlayerStatusComponent::ApplyDraught(Entries, TEXT("BerryRecoveryDraught")));
+    UKalmalaPlayerStatusComponent::Advance(Entries, 5.0f);
+    RecoveryEntry = Entries.FindByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
+        { return Entry.StatusId == UKalmalaPlayerStatusComponent::BerryRecoveryStatusId; });
+    CooldownEntry = Entries.FindByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
+        { return Entry.StatusId == UKalmalaPlayerStatusComponent::DraughtCooldownStatusId; });
+    TestTrue(TEXT("Healing timer advances"), RecoveryEntry && RecoveryEntry->RemainingSeconds == 5.0f);
+    TestTrue(TEXT("Cooldown advances from the same server time"), CooldownEntry && CooldownEntry->RemainingSeconds == 55.0f);
+
+    UWorld* World = UWorld::CreateWorld(EWorldType::Game, false);
+    AKalmalaCharacter* Pawn = World ? World->SpawnActor<AKalmalaCharacter>() : nullptr;
+    APlayerController* Controller = World ? World->SpawnActor<APlayerController>() : nullptr;
+    if (!TestNotNull(TEXT("Draught character fixture spawned"), Pawn)
+        || !TestNotNull(TEXT("Draught controller fixture spawned"), Controller))
+    {
+        if (World) World->DestroyWorld(false);
+        return false;
+    }
+    Controller->Possess(Pawn);
+    auto* Status = Pawn->FindComponentByClass<UKalmalaPlayerStatusComponent>();
+    auto* Crafting = Pawn->FindComponentByClass<UKalmalaCraftingComponent>();
+    auto* Inventory = Pawn->GetInventoryComponent();
+    const FFloatProperty* HealthProperty = FindFProperty<FFloatProperty>(AKalmalaCharacter::StaticClass(), TEXT("Health"));
+    if (!TestNotNull(TEXT("Draught status component exists"), Status)
+        || !TestNotNull(TEXT("Draught crafting component exists"), Crafting)
+        || !TestNotNull(TEXT("Draught inventory exists"), Inventory)
+        || !TestNotNull(TEXT("Health fixture property exists"), HealthProperty))
+    {
+        World->DestroyWorld(false);
+        return false;
+    }
+
+    HealthProperty->SetPropertyValue_InContainer(Pawn, 60.0f);
+    TestTrue(TEXT("Server accepts a draught only when health is missing"),
+        Status->CanApplyDraughtFromServer(TEXT("BerryRecoveryDraught")));
+    TestTrue(TEXT("Inventory can receive the authored draught"),
+        Inventory->TryGrantFromServer(TEXT("BerryRecoveryDraught"), 2));
+    FString Reason;
+    TestTrue(TEXT("Server transaction consumes one dose and applies recovery"),
+        Crafting->ConsumeFoodFromServer(TEXT("BerryRecoveryDraught"), Reason));
+    TestEqual(TEXT("Accepted dose consumes exactly one item"),
+        Inventory->GetQuantity(TEXT("BerryRecoveryDraught")), 1);
+    TestEqual(TEXT("Dose starts without an immediate health jump"), Pawn->GetHealth(), 60.0f);
+    TestEqual(TEXT("Dose publishes shared cooldown"),
+        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::DraughtCooldownStatusId),
+        UKalmalaPlayerStatusComponent::DraughtCooldownMaximumSeconds);
+    TestFalse(TEXT("Cooldown rejects a second dose before inventory payment"),
+        Crafting->ConsumeFoodFromServer(TEXT("BerryRecoveryDraught"), Reason));
+    TestEqual(TEXT("Cooldown rejection preserves the remaining dose"),
+        Inventory->GetQuantity(TEXT("BerryRecoveryDraught")), 1);
+
+    Status->AdvanceFromServer(5.0f);
+    TestEqual(TEXT("Five server seconds restore ten health"), Pawn->GetHealth(), 70.0f);
+    Status->AdvanceFromServer(10.0f);
+    TestEqual(TEXT("Healing completes at twenty health restored"), Pawn->GetHealth(), 80.0f);
+    TestFalse(TEXT("Ten seconds removes the healing entry"), Status->HasStatus(UKalmalaPlayerStatusComponent::BerryRecoveryStatusId));
+    TestEqual(TEXT("Healing completion leaves the shared cooldown running"),
+        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::DraughtCooldownStatusId), 45.0f);
+    Status->AdvanceFromServer(45.0f);
+    TestFalse(TEXT("Sixty server seconds expire the draught cooldown"),
+        Status->HasStatus(UKalmalaPlayerStatusComponent::DraughtCooldownStatusId));
+
+    HealthProperty->SetPropertyValue_InContainer(Pawn, 60.0f);
+    TestTrue(TEXT("A second dose can be used after cooldown expiry"),
+        Crafting->ConsumeFoodFromServer(TEXT("BerryRecoveryDraught"), Reason));
+    HealthProperty->SetPropertyValue_InContainer(Pawn, 1.0f);
+    Status->AdvanceFromServer(1.0f);
+    TestFalse(TEXT("Death stops the remaining healing timer"),
+        Status->HasStatus(UKalmalaPlayerStatusComponent::BerryRecoveryStatusId));
+    TestEqual(TEXT("A dead player receives no further healing"), Pawn->GetHealth(), 1.0f);
+
+    Status->AdvanceFromServer(UKalmalaPlayerStatusComponent::DraughtCooldownMaximumSeconds);
+    HealthProperty->SetPropertyValue_InContainer(Pawn, 100.0f);
+    TestTrue(TEXT("Full-health rejection fixture has a dose"),
+        Inventory->TryGrantFromServer(TEXT("BerryRecoveryDraught"), 1));
+    TestFalse(TEXT("Full health rejects the draught without consuming it"),
+        Crafting->ConsumeFoodFromServer(TEXT("BerryRecoveryDraught"), Reason));
+    TestEqual(TEXT("Full-health rejection preserves the item"),
+        Inventory->GetQuantity(TEXT("BerryRecoveryDraught")), 1);
+    TestFalse(TEXT("Full-health rejection starts no cooldown"),
+        Status->HasStatus(UKalmalaPlayerStatusComponent::DraughtCooldownStatusId));
+
+    Pawn->SetRole(ROLE_AutonomousProxy);
+    HealthProperty->SetPropertyValue_InContainer(Pawn, 60.0f);
+    TestFalse(TEXT("Client cannot author draught status"),
+        Status->ApplyDraughtFromServer(TEXT("BerryRecoveryDraught")));
+    TestFalse(TEXT("Client cannot consume a dose"),
+        Crafting->ConsumeFoodFromServer(TEXT("BerryRecoveryDraught"), Reason));
+    TestEqual(TEXT("Client rejection preserves inventory"),
+        Inventory->GetQuantity(TEXT("BerryRecoveryDraught")), 1);
+
+    World->DestroyWorld(false);
+    return true;
+}
+
 #endif

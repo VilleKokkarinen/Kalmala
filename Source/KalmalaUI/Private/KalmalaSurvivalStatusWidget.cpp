@@ -100,6 +100,27 @@ FString UKalmalaSurvivalStatusWidget::BuildStatusText(const FKalmalaSurvivalStat
             *FormatSeconds(FMath::Clamp(Meal->RemainingSeconds, 0.0f, UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds))));
     }
 
+    const FKalmalaPlayerStatusEntry* BerryRecovery = FindStatus(Snapshot.Statuses,
+        UKalmalaPlayerStatusComponent::BerryRecoveryStatusId);
+    const FKalmalaPlayerStatusEntry* DraughtCooldown = FindStatus(Snapshot.Statuses,
+        UKalmalaPlayerStatusComponent::DraughtCooldownStatusId);
+    if (BerryRecovery != nullptr)
+    {
+        const float CooldownSeconds = DraughtCooldown
+            ? FMath::Clamp(DraughtCooldown->RemainingSeconds, 0.0f, UKalmalaPlayerStatusComponent::DraughtCooldownMaximumSeconds)
+            : 0.0f;
+        Rows.Add(FString::Printf(
+            TEXT("◇ RECOVERY · BERRY DRAUGHT · healing %s · up to 20 health over 10 seconds · shared cooldown %s"),
+            *FormatSeconds(FMath::Clamp(BerryRecovery->RemainingSeconds, 0.0f, UKalmalaPlayerStatusComponent::BerryRecoveryMaximumSeconds)),
+            *FormatSeconds(CooldownSeconds)));
+    }
+    else if (DraughtCooldown != nullptr)
+    {
+        Rows.Add(FString::Printf(
+            TEXT("◇ RECOVERY · DRAUGHT COOLDOWN · %s · health and stamina draughts share this timer"),
+            *FormatSeconds(FMath::Clamp(DraughtCooldown->RemainingSeconds, 0.0f, UKalmalaPlayerStatusComponent::DraughtCooldownMaximumSeconds))));
+    }
+
     const FKalmalaWeatherState& Weather = Snapshot.Weather;
     if (Snapshot.bHasWeatherState && Weather.IsValid())
     {

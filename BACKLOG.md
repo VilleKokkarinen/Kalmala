@@ -160,7 +160,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [x] Forest Chanterelle: hand-pick Elderwood patches, 2 per patch.
   - [x] Keep one Steady Meal: 120 s, 10% less stamina use; no meal stacking.
   - [x] Review draught effects; use existing Cauldron, no brewing station.
-  - [ ] Berry Recovery Draught: 3 Lingonberry + 1 Carrot; heals 20 over 10 s.
+  - [x] Berry Recovery Draught: 3 Lingonberry + 1 Carrot; heals 20 over 10 s.
   - [ ] Root Stamina Draught: 2 Potato + 1 Onion; restores 20 stamina.
   - [ ] Keep cold/poison/fire-resistance preparations deferred.
 

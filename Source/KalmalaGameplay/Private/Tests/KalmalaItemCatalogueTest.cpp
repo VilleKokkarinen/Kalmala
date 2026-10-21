@@ -505,6 +505,7 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         {TEXT("CookedDeerMeatRecipe"), TEXT("CookedDeerMeat")},
         {TEXT("HearthBrothRecipe"), TEXT("HearthBroth")},
         {TEXT("MeatStewRecipe"), TEXT("MeatStew")},
+        {TEXT("BerryRecoveryDraughtRecipe"), TEXT("BerryRecoveryDraught")},
         {TEXT("RootVegetableSoupRecipe"), TEXT("RootVegetableSoup")},
         {TEXT("RoastedRootVegetablesRecipe"), TEXT("RoastedRootVegetables")},
         {TEXT("DeerRootRoastRecipe"), TEXT("DeerRootRoast")}
@@ -521,12 +522,41 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
             ? FName(TEXT("CookingRackKit"))
             : Entry.Key == FName(TEXT("HearthBrothRecipe")) || Entry.Key == FName(TEXT("MeatStewRecipe"))
                 || Entry.Key == FName(TEXT("RootVegetableSoupRecipe"))
+                || Entry.Key == FName(TEXT("BerryRecoveryDraughtRecipe"))
                 ? FName(TEXT("CauldronKit")) : FName(TEXT("FryingPanKit"));
         TestTrue(TEXT("Current food recipe resolves to its required cooking station"), Recipe->RequiredStation.Contains(StationId));
 
         const FKalmalaItemDefinition* Output = Catalogue->FindItem(Entry.Value);
         if (TestNotNull(TEXT("Current food recipe output item is defined"), Output))
-            TestEqual(TEXT("Prepared food stacks are bounded at twenty"), Output->MaxStack, 20);
+            TestEqual(TEXT("Prepared food and draught stack limits are authored"), Output->MaxStack,
+                Entry.Key == FName(TEXT("BerryRecoveryDraughtRecipe")) ? 10 : 20);
+    }
+
+    const FKalmalaItemDefinition* BerryRecoveryDraught = Catalogue->FindItem(TEXT("BerryRecoveryDraught"));
+    if (TestNotNull(TEXT("Berry Recovery Draught is a current catalogue item"), BerryRecoveryDraught))
+    {
+        TestEqual(TEXT("Draught stack is bounded at ten"), BerryRecoveryDraught->MaxStack, 10);
+        TestEqual(TEXT("Draught weight is authored at 0.2 kg"), BerryRecoveryDraught->WeightKg, 0.2f);
+    }
+    const FKalmalaRecipe* BerryRecoveryDraughtRecipe = Recipes->Find(TEXT("BerryRecoveryDraughtRecipe"));
+    if (TestNotNull(TEXT("Berry Recovery Draught Cauldron recipe exists"), BerryRecoveryDraughtRecipe))
+    {
+        const auto HasIngredient = [BerryRecoveryDraughtRecipe](const FName ItemId, const int32 Quantity)
+        {
+            const FKalmalaInventoryStack* Ingredient = BerryRecoveryDraughtRecipe->Ingredients.FindByPredicate(
+                [ItemId](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == ItemId; });
+            return Ingredient && Ingredient->Quantity == Quantity;
+        };
+        TestEqual(TEXT("Draught recipe has two ingredients"), BerryRecoveryDraughtRecipe->Ingredients.Num(), 2);
+        TestTrue(TEXT("Draught costs exactly three Lingonberries and one Carrot"),
+            HasIngredient(TEXT("Lingonberry"), 3) && HasIngredient(TEXT("Carrot"), 1));
+        TestEqual(TEXT("Draught recipe creates one dose"), BerryRecoveryDraughtRecipe->OutputCount, 1);
+        TestEqual(TEXT("Draught recipe caps batches at five"), BerryRecoveryDraughtRecipe->MaxBatch, 5);
+        TestTrue(TEXT("Draught recipe requires the Cauldron"),
+            BerryRecoveryDraughtRecipe->RequiredStation.Contains(TEXT("CauldronKit")));
+        TestTrue(TEXT("Draught recipe awards Cooking experience"),
+            BerryRecoveryDraughtRecipe->ExperienceSkill == EKalmalaSkill::Cooking);
+        TestEqual(TEXT("Draught recipe awards ten Cooking experience"), BerryRecoveryDraughtRecipe->ExperienceAward, 10);
     }
     for (const FName RemovedRecipe : {
         FName(TEXT("RoastBoarMeat")), FName(TEXT("RoastDeerMeat")),

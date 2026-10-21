@@ -27,6 +27,13 @@
       "WeightKg": 0.1
     },
     {
+      "ItemId": "BerryRecoveryDraught",
+      "DisplayName": "Berry Recovery Draught",
+      "Description": "A ruby-red berry draught that restores up to 20 health over 10 seconds.",
+      "MaxStack": 10,
+      "WeightKg": 0.2
+    },
+    {
       "ItemId": "CookedBoarMeat",
       "DisplayName": "Cooked Boar Meat",
       "Description": "Roasted boar meat, ready to eat.",

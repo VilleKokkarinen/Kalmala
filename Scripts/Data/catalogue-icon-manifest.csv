@@ -87,3 +87,4 @@ image_batch,import_batch,canonical_id,art_subject,identity_kind,catalogue_aliase
 40,W,BasicTorch,Basic Torch,tool,none,BasicTorch,CarriedTool;ToolDetail;Refuel;RecipeResult,carried_tool,
 41,X,Lingonberry,ripe red lingonberries,food,none,none,PackInventory;ItemDetail;Storage;Ingredient,pack,
 42,Y,ForestChanterelle,three golden chanterelle mushrooms,food,none,none,PackInventory;ItemDetail;Storage;Ingredient,pack,
+43,Z,BerryRecoveryDraught,ruby-red berry recovery draught vial,item,none,BerryRecoveryDraughtRecipe,PackInventory;ItemDetail;RecipeResult,pack,

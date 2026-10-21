@@ -2701,35 +2701,39 @@ part of the later Inventory integration acceptance.
 
 ## M12 carried-food Inventory increment
 
-When Hearth Broth is selected in the owner's pack,
-Inventory shows its existing Steady Meal effect and the live owner-visible
-availability: the current serving count, active meal time remaining, pending
-request, or last owner-only server result. `Eat one serving` is enabled only
-when owner inventory/status and the existing crafting component are present,
-the selected allowlisted item has a serving, and no meal or food request is
-active. It calls `ServerConsumeFood` with only that item ID. The action has no
-station/range gate. The existing server transaction revalidates the allowlist,
-pack quantity and free meal slot, atomically consumes one serving, applies the
-120-second 10%-lower stamina-use effect, and publishes the owner-only result;
-rejected and repeated requests consume nothing and cannot stack, refresh, or
-replace an active meal. No new RPC, gameplay state, replication field, or save
-data is introduced. `Kalmala.UI.InventoryMenu.Selection` also checks the
-supported-food effect text, visible Eat action, and fail-closed disabled state
-when its owner components are absent; run it after an affected UI build.
+When a supported meal food is selected in the owner's pack, Inventory shows
+its Steady Meal effect and live owner-visible availability: serving count,
+active meal time, pending request, or last owner-only server result. `Eat one
+serving` is enabled only when owner inventory/status and the existing crafting
+component are present, the selected allowlisted item has a serving, and no
+meal or food request is active. Berry Recovery Draught detail shows its
+up-to-20 health-over-10-seconds effect and shared 60-second draught cooldown;
+its action is `Use one dose` and is disabled while dead, at full health, or
+during cooldown. Both actions call `ServerConsumeFood` with only the selected
+item ID and have no station/range gate. The server revalidates the allowlist,
+pack quantity, and matching effect gate before the atomic one-item exchange;
+rejected and repeated requests consume nothing. Meal behavior remains
+non-stacking, and draught healing/cooldown remain server-owned transient
+status. No new RPC, replicated field, or save data is introduced.
+`Kalmala.UI.Inventory.PreparedFoodDetails` checks the selected meal/draught
+detail, the visible Eat/Use action, and the fail-closed state when owner data
+is absent; run it after an affected UI build.
 
 All seven current prepared-food catalogue items are accepted by the existing
-meal-use path. The historical RoastedFieldMeat/SmokedFieldMeat IDs remain in
-its allowlist but are absent from schema 4 and cannot be granted or consumed.
-Each prepared food uses the existing Eat action and Steady Meal effect. See
-`docs/02-technical-architecture.md`.
+meal-use path. Berry Recovery Draught uses a separate health-recovery status
+and the shared 60-second draught cooldown; it is rejected at full health,
+while dead, and during cooldown without consuming the dose. The historical
+RoastedFieldMeat/SmokedFieldMeat IDs remain absent from schema 4 and cannot be
+granted or consumed. See `docs/02-technical-architecture.md`.
 
-For the M12 final host/client acceptance, exercise each supported item through
-Inventory while away from stations, verify the count changes only after server
-acceptance, and inspect the owner timer/effect and result. Confirm zero count,
-missing owner data, an active meal, a stale/replayed request, and a rejected
-request disable or reject use without consumption or effect refresh. Verify
-that the other peer cannot see the owner's pack or action result. Rendered
-scale/contrast and broad regressions remain in the milestone-final matrix.
+For the M12 final host/client acceptance, exercise each supported meal and
+recovery item through Inventory while away from stations, verify the count
+changes only after server acceptance, and inspect the owner timer/effect and
+result. Confirm zero count, missing owner data, an active meal, full health,
+death, draught cooldown, a stale/replayed request, and a rejected request
+disable or reject use without consumption or effect refresh. Verify that the
+other peer cannot see the owner's pack or action result. Rendered scale/contrast
+and broad regressions remain in the milestone-final matrix.
 
 ## M12 HUD feedback decoupling increment
 
@@ -3154,21 +3158,23 @@ Each successful prepared-food recipe transaction awards one fixed 10 Cooking exp
 
 The recipes do not require a Cooking level, and accepted cooking awards remain post-transaction.
 
-The `Kalmala.Gameplay.Inventory.Catalogue` check above owns the seven current
-food recipe IDs, outputs, stations, batch/output bounds, Hearth Broth's reviewed
-ingredients and Cooking award, and retired aliases. After
+The `Kalmala.Gameplay.Inventory.Catalogue` check above owns the seven cooked
+food recipe IDs and Berry Recovery Draught, outputs, stations, batch/output
+bounds, Hearth Broth and Berry Recovery Draught ingredients/Cooking awards,
+and retired aliases. After
 the forced editor build, run the six focused cooking, meal-use, crafting,
-network, and construction contracts:
-`Kalmala.Gameplay.Food.CookingStationHeat+Kalmala.Gameplay.Status.SteadyMeal+Kalmala.Gameplay.Crafting.Transactions+Kalmala.Gameplay.Crafting.NetworkContract+Kalmala.Gameplay.Construction.LocalPreview+Kalmala.Gameplay.Construction.SaveContract`.
+`Kalmala.Gameplay.Food.CookingStationHeat+Kalmala.Gameplay.Status.SteadyMeal+Kalmala.Gameplay.Status.BerryRecoveryDraught+Kalmala.Gameplay.Crafting.Transactions+Kalmala.Gameplay.Crafting.NetworkContract+Kalmala.Gameplay.Construction.LocalPreview+Kalmala.Gameplay.Construction.SaveContract`.
 CookingStationHeat covers Cooking Rack, Cauldron, and Frying Pan transactions,
 including stew and Hearth Broth, station-local hearth heat, and fuel behavior.
-SteadyMeal checks inventory consumption, duplicate/client
-rejection, and the active timer. NetworkContract checks that food use sends
-only the item identity. The crafting transaction test checks raw fuel
+SteadyMeal checks meal inventory consumption, duplicate/client rejection, and
+the active timer. BerryRecoveryDraught checks exact item consumption, shared
+cooldown, gradual server healing, full-health rejection, death cancellation,
+and client rejection. NetworkContract checks that food/draught use sends only
+the item identity. The crafting transaction test checks raw fuel
 selection for hearth refuelling separately from recipe ingredient exchanges:
 
 ```powershell
-& 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM7FoodUser' -abslog='C:\temp\KalmalaM7Food.log' -ExecCmds="Automation RunTests Kalmala.Gameplay.Food.CookingStationHeat+Kalmala.Gameplay.Status.SteadyMeal+Kalmala.Gameplay.Crafting.Transactions+Kalmala.Gameplay.Crafting.NetworkContract+Kalmala.Gameplay.Construction.LocalPreview+Kalmala.Gameplay.Construction.SaveContract; Quit" -TestExit="Automation Test Queue Empty"
+& 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM7FoodUser' -abslog='C:\temp\KalmalaM7Food.log' -ExecCmds="Automation RunTests Kalmala.Gameplay.Food.CookingStationHeat+Kalmala.Gameplay.Status.SteadyMeal+Kalmala.Gameplay.Status.BerryRecoveryDraught+Kalmala.Gameplay.Crafting.Transactions+Kalmala.Gameplay.Crafting.NetworkContract+Kalmala.Gameplay.Construction.LocalPreview+Kalmala.Gameplay.Construction.SaveContract; Quit" -TestExit="Automation Test Queue Empty"
 ```
 
 ## Windows Development and Shipping package smoke
@@ -4989,3 +4995,17 @@ python Scripts/Prepare-CatalogueIconBatch.py --batch Y
 Scripts/Import-CatalogueIconBatch.ps1 -Batch Y
 Scripts/Validate-UIIcons.ps1 -Category Catalogue
 ```
+
+### A6 Berry Recovery Draught icon
+
+The original prompt and retained artwork are recorded in
+[`docs/berry-recovery-draught-icon.md`](berry-recovery-draught-icon.md). Icon
+batch Z contains only `BerryRecoveryDraught`; prepare and import with:
+
+```powershell
+python Scripts/Prepare-CatalogueIconBatch.py --batch Z
+Scripts/Import-CatalogueIconBatch.ps1 -Batch Z
+Scripts/Validate-UIIcons.ps1 -Category Catalogue
+```
+
+The catalogue icon validator now expects 89 identities. `Kalmala.Gameplay.Status.BerryRecoveryDraught` covers the one-item server exchange, fixed heal-over-time, shared cooldown, full-health rejection, death cancellation and client authority gate; no Unreal build or automation was run for this normal increment.

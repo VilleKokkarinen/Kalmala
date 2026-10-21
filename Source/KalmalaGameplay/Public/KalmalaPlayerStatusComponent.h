@@ -43,12 +43,19 @@ public:
     static const FName CookedDeerMeatItemId;
     static const FName HearthBrothItemId;
     static const FName LingonberryItemId;
+    static const FName ForestChanterelleItemId;
+    static const FName BerryRecoveryDraughtItemId;
+    static const FName BerryRecoveryStatusId;
+    static const FName DraughtCooldownStatusId;
     static const FName MeatStewItemId;
     static const FName RootVegetableSoupItemId;
     static const FName RoastedRootVegetablesItemId;
     static const FName DeerRootRoastItemId;
     static constexpr float WetMaximumSeconds = 120.0f;
     static constexpr float SteadyMealMaximumSeconds = 120.0f;
+    static constexpr float BerryRecoveryMaximumSeconds = 10.0f;
+    static constexpr float DraughtCooldownMaximumSeconds = 60.0f;
+    static constexpr float BerryRecoveryHealth = 20.0f;
     static constexpr float SteadyMealStaminaUseMultiplier = 0.90f;
     static constexpr float UnroofedRainTriggerSeconds = 10.0f;
     // Wet remains a meaningful exposure pressure, but its movement and sprint
@@ -71,6 +78,10 @@ public:
     static bool ApplyFood(TArray<FKalmalaPlayerStatusEntry>& Entries, FName ItemId);
     bool CanApplyFoodFromServer(FName ItemId) const;
     bool ApplyFoodFromServer(FName ItemId);
+    static bool IsKnownDraughtItem(FName ItemId);
+    static bool ApplyDraught(TArray<FKalmalaPlayerStatusEntry>& Entries, FName ItemId);
+    bool CanApplyDraughtFromServer(FName ItemId) const;
+    bool ApplyDraughtFromServer(FName ItemId);
 
     /** Server-only source-independent wet application. Reapplication clamps at the definition maximum. */
     void ApplyWetFromServer();

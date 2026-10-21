@@ -364,7 +364,8 @@ void UKalmalaInventoryComponent::ServerUseHotbarSlot_Implementation(const int32 
         return;
     }
     // Consuming food does not displace a tool into a potentially full pack.
-    if (UKalmalaPlayerStatusComponent::IsKnownFoodItem(Id))
+    if (UKalmalaPlayerStatusComponent::IsKnownFoodItem(Id)
+        || UKalmalaPlayerStatusComponent::IsKnownDraughtItem(Id))
     {
         if (auto* Crafting = GetOwner()->FindComponentByClass<UKalmalaCraftingComponent>()) Crafting->ServerConsumeFood(Id);
         return;

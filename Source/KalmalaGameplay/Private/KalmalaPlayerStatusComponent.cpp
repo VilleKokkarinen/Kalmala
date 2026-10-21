@@ -2,6 +2,7 @@
 
 #include "Net/UnrealNetwork.h"
 #include "KalmalaCampfire.h"
+#include "KalmalaCharacter.h"
 
 const FName UKalmalaPlayerStatusComponent::WetStatusId(TEXT("State.Wet"));
 const FName UKalmalaPlayerStatusComponent::SteadyMealStatusId(TEXT("State.Food.SteadyMeal"));
@@ -10,6 +11,9 @@ const FName UKalmalaPlayerStatusComponent::CookedDeerMeatItemId(TEXT("CookedDeer
 const FName UKalmalaPlayerStatusComponent::HearthBrothItemId(TEXT("HearthBroth"));
 const FName UKalmalaPlayerStatusComponent::LingonberryItemId(TEXT("Lingonberry"));
 const FName UKalmalaPlayerStatusComponent::ForestChanterelleItemId(TEXT("ForestChanterelle"));
+const FName UKalmalaPlayerStatusComponent::BerryRecoveryDraughtItemId(TEXT("BerryRecoveryDraught"));
+const FName UKalmalaPlayerStatusComponent::BerryRecoveryStatusId(TEXT("State.Recovery.BerryDraught"));
+const FName UKalmalaPlayerStatusComponent::DraughtCooldownStatusId(TEXT("State.Recovery.DraughtCooldown"));
 const FName UKalmalaPlayerStatusComponent::MeatStewItemId(TEXT("MeatStew"));
 const FName UKalmalaPlayerStatusComponent::RootVegetableSoupItemId(TEXT("RootVegetableSoup"));
 const FName UKalmalaPlayerStatusComponent::RoastedRootVegetablesItemId(TEXT("RoastedRootVegetables"));
@@ -65,7 +69,9 @@ float UKalmalaPlayerStatusComponent::GetRemainingSeconds(const FName StatusId) c
     {
         return Candidate.StatusId == StatusId && FMath::IsFinite(Candidate.RemainingSeconds) && Candidate.RemainingSeconds > 0.0f;
     });
-    const float Maximum = StatusId == SteadyMealStatusId ? SteadyMealMaximumSeconds : WetMaximumSeconds;
+    const float Maximum = StatusId == SteadyMealStatusId ? SteadyMealMaximumSeconds
+        : StatusId == BerryRecoveryStatusId ? BerryRecoveryMaximumSeconds
+        : StatusId == DraughtCooldownStatusId ? DraughtCooldownMaximumSeconds : WetMaximumSeconds;
     return Entry ? FMath::Clamp(Entry->RemainingSeconds, 0.0f, Maximum) : 0.0f;
 }
 
@@ -105,6 +111,45 @@ bool UKalmalaPlayerStatusComponent::ApplyFoodFromServer(const FName ItemId)
     return true;
 }
 
+bool UKalmalaPlayerStatusComponent::IsKnownDraughtItem(const FName ItemId)
+{
+    return ItemId == BerryRecoveryDraughtItemId;
+}
+
+bool UKalmalaPlayerStatusComponent::ApplyDraught(TArray<FKalmalaPlayerStatusEntry>& Entries, const FName ItemId)
+{
+    if (!IsKnownDraughtItem(ItemId)
+        || Entries.ContainsByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
+            { return Entry.StatusId == DraughtCooldownStatusId && FMath::IsFinite(Entry.RemainingSeconds) && Entry.RemainingSeconds > 0.0f; })
+        || Entries.ContainsByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
+            { return Entry.StatusId == BerryRecoveryStatusId && FMath::IsFinite(Entry.RemainingSeconds) && Entry.RemainingSeconds > 0.0f; }))
+        return false;
+
+    Advance(Entries, 0.0f);
+    FKalmalaPlayerStatusEntry& Recovery = Entries.AddDefaulted_GetRef();
+    Recovery.StatusId = BerryRecoveryStatusId;
+    Recovery.RemainingSeconds = BerryRecoveryMaximumSeconds;
+    FKalmalaPlayerStatusEntry& Cooldown = Entries.AddDefaulted_GetRef();
+    Cooldown.StatusId = DraughtCooldownStatusId;
+    Cooldown.RemainingSeconds = DraughtCooldownMaximumSeconds;
+    return true;
+}
+
+bool UKalmalaPlayerStatusComponent::CanApplyDraughtFromServer(const FName ItemId) const
+{
+    const AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(GetOwner());
+    return IsValid(Character) && Character->HasAuthority() && IsKnownDraughtItem(ItemId)
+        && Character->GetHealth() > 1.0f && Character->GetHealth() < 100.0f
+        && !HasStatus(DraughtCooldownStatusId) && !HasStatus(BerryRecoveryStatusId);
+}
+
+bool UKalmalaPlayerStatusComponent::ApplyDraughtFromServer(const FName ItemId)
+{
+    if (!CanApplyDraughtFromServer(ItemId) || !ApplyDraught(Statuses, ItemId)) return false;
+    GetOwner()->ForceNetUpdate();
+    return true;
+}
+
 void UKalmalaPlayerStatusComponent::ApplyWetFromServer()
 {
     if (!GetOwner() || !GetOwner()->HasAuthority()) return;
@@ -115,6 +160,25 @@ void UKalmalaPlayerStatusComponent::ApplyWetFromServer()
 void UKalmalaPlayerStatusComponent::AdvanceFromServer(const float DeltaSeconds)
 {
     if (!GetOwner() || !GetOwner()->HasAuthority()) return;
+    const float SafeDelta = FMath::Max(0.0f, FMath::IsFinite(DeltaSeconds) ? DeltaSeconds : 0.0f);
+    const int32 RecoveryIndex = Statuses.IndexOfByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
+    {
+        return Entry.StatusId == BerryRecoveryStatusId && FMath::IsFinite(Entry.RemainingSeconds) && Entry.RemainingSeconds > 0.0f;
+    });
+    if (RecoveryIndex != INDEX_NONE)
+    {
+        AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(GetOwner());
+        if (!Character || Character->GetHealth() <= 1.0f)
+        {
+            Statuses.RemoveAt(RecoveryIndex);
+        }
+        else
+        {
+            const float Elapsed = FMath::Min(SafeDelta, Statuses[RecoveryIndex].RemainingSeconds);
+            if (Elapsed > 0.0f)
+                Character->RestoreHealthFromDraughtFromServer(BerryRecoveryHealth * Elapsed / BerryRecoveryMaximumSeconds);
+        }
+    }
     Advance(Statuses, DeltaSeconds);
     GetOwner()->ForceNetUpdate();
 }
@@ -164,6 +228,14 @@ void UKalmalaPlayerStatusComponent::Advance(TArray<FKalmalaPlayerStatusEntry>& E
         else if (Entry.StatusId == SteadyMealStatusId)
         {
             Entry.RemainingSeconds = FMath::Clamp(Entry.RemainingSeconds - SafeDelta, 0.0f, SteadyMealMaximumSeconds);
+        }
+        else if (Entry.StatusId == BerryRecoveryStatusId)
+        {
+            Entry.RemainingSeconds = FMath::Clamp(Entry.RemainingSeconds - SafeDelta, 0.0f, BerryRecoveryMaximumSeconds);
+        }
+        else if (Entry.StatusId == DraughtCooldownStatusId)
+        {
+            Entry.RemainingSeconds = FMath::Clamp(Entry.RemainingSeconds - SafeDelta, 0.0f, DraughtCooldownMaximumSeconds);
         }
         else
         {

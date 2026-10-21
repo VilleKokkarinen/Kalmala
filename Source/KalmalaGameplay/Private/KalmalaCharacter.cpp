@@ -272,6 +272,17 @@ bool AKalmalaCharacter::ReceiveMendingFromServer(const AKalmalaCharacter* Source
     return true;
 }
 
+bool AKalmalaCharacter::RestoreHealthFromDraughtFromServer(const float HealAmount)
+{
+    if (!HasAuthority() || !FMath::IsFinite(HealAmount) || HealAmount <= 0.0f || HealAmount > 20.0f
+        || !FMath::IsFinite(Health) || Health <= 1.0f || Health >= 100.0f) return false;
+    const float PreviousHealth = Health;
+    Health = FMath::Min(100.0f, Health + HealAmount);
+    if (Health <= PreviousHealth) return false;
+    ForceNetUpdate();
+    return true;
+}
+
 void AKalmalaCharacter::BeginPlay()
 {
     Super::BeginPlay();
