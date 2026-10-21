@@ -56,8 +56,9 @@ Live placement, peers and full verification remain deferred.
 Hammer is construction-only again: left click places selected pieces, right click
 opens the Build menu even from pending placement. Bow uses hold/release Attack,
 with authored DrawDuration=1.5 seconds, shrinking draw circle, exact preferred
-or automatic WoodenArrow stack, transactional ammo/condition payment and a real
-gravity projectile. This supersedes earlier hammer/Bow melee and unimplemented
+or automatic WoodenArrow/StoneArrow stack, transactional ammo/condition payment and a real
+gravity projectile. Stone Arrow deals 25 Pierce while charge continues to control
+velocity and spread; automatic selection prefers WoodenArrow first. This supersedes earlier hammer/Bow melee and unimplemented
 shooting descriptions below.
 
 Normal-access isolated Development Editor incremental build passed; final
@@ -86,11 +87,15 @@ that fixture now destroys unhit arrows after its flight check. See PROGRESS for
 failed runs and build logs. No rendered/manual, live-peer, full-suite or packaging
 acceptance is claimed. Rebuild Development Editor; inspect hammer RMB selection /
 LMB placement, bow circle/full/partial shots and inventory arrow priority in PIE.
-Current ammunition remains WoodenArrow only; preference is session-only. The
+WoodenArrow remains the automatic first choice; exact preference is session-only.
+StoneArrow is crafted at a Workbench from 20 Wood + 5 Stone for 20, has stack
+100 and weight 0.05 kg, and uses its validated 25-Pierce attack record. The
 bow-only `BowString` material is crafted from 4 Sinew at a Workbench, and
 credited deer defeats grant 1 Sinew on a server-owned 50% roll. `BowString` and
-`Sinew` are in `items/materials/crafting-ingredients.json`; WoodenArrow is a
-sibling item in `items/arrows.json`. Additional bow tiers, Archery progression,
+`Sinew` are in `items/materials/crafting-ingredients.json`; both arrow types are
+siblings in `items/arrows.json`, already registered in `GameCatalogues.json`.
+StoneArrow's attack data lives in the registered `attacks/bows.json`. Its
+original and imported icon use batch Q. Additional bow tiers, Archery progression,
 projectile recovery and PvP remain outside this increment.
 
 ## All-item free-swing regression — 2026-10-17

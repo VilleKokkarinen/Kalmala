@@ -28,9 +28,10 @@ holds a draw pose and does not play a melee chop when the shot serial arrives.
 
 PreferredArrowStack is an owner-only transient stack-row GUID. Inventory's new
 action submits a selected stack/unit GUID; server accepts only an owned nonempty
-WoodenArrow stack, resolving unit to row, or clears preference with an empty
-GUID. Missing/exhausted preference falls back to first available stack. Release
-removes one physical unit from that exact stack, spends one bow condition,
+WoodenArrow or authored arrow stack, resolving unit to row, or clears preference
+with an empty GUID. Missing/exhausted preference falls back to WoodenArrow,
+then StoneArrow. Release removes one physical unit from that exact stack, spends
+one bow condition,
 persists the combined player snapshot, and only then finishes spawning the
 server arrow. Failed save restores stacks/condition and destroys the deferred
 actor. Preference is session-only; the inventory and condition use existing saves.
@@ -44,8 +45,10 @@ Owner is ignored. Impact destroys the arrow and may invoke a private, friend-onl
 wildlife ranged-damage helper, retaining resistances/defeat/attacker rewards while
 bypassing only the melee 220 cm range cap. Existing melee checks are unchanged.
 No client sets projectile transform, damage, charge or hit actor. No PvP or tree
-harvesting from arrows. Lifetime is five seconds. Tuning: charge maps 10..40
-Pierce, 1000..4500 cm/s and 8..0.25 degree spread. No projectile recovery.
+harvesting from arrows. Lifetime is five seconds. WoodenArrow charge maps 10..40
+Pierce; StoneArrow deals 25 Pierce at any charge. Both retain 1000..4500 cm/s
+velocity and 8..0.25 degree spread. StoneArrow's attack list is keyed by its
+ordinary item ID in `attacks/bows.json`. No projectile recovery.
 
 A local hit-test-invisible full-viewport crosshair widget draws a 50..4 radius
 circle during drawing and a small idle dot, hiding during modal input. It is
@@ -166,9 +169,10 @@ active state. Other wearable slots and same-pawn shield wear are preserved.
 No new RPC, replication field, save field, version or migration is introduced.
 
 `Sinew` and bow-only `BowString` material records live in
-`items/materials/crafting-ingredients.json`; the `WoodenArrow` ammunition item
-lives in sibling `items/arrows.json`, rather than under materials. Credited deer
-defeats grant 1 Sinew on a server-owned 50% roll. At the Workbench,
+`items/materials/crafting-ingredients.json`; the `WoodenArrow` and `StoneArrow`
+ammunition items live in sibling `items/arrows.json`, rather than under materials.
+The Stone Arrow Workbench recipe is in `recipes/stations/workbench.json`.
+Credited deer defeats grant 1 Sinew on a server-owned 50% roll. At the Workbench,
 `recipes/stations/workbench.json` converts 4 Sinew into 1 Bow String; Bow
 acquisition and upgrades use 5 Wood and 1 Bow String each. The same file keeps
 the ordinary arrow recipe (5 Wood for 20 arrows). Bow, Bow String, and Sinew originals and

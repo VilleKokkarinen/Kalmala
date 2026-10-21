@@ -29,6 +29,7 @@
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaPlayerStatusComponent.h"
 #include "KalmalaSettingsWidget.h"
+#include "KalmalaToolCatalogue.h"
 #include "KalmalaThemedButton.h"
 #include "KalmalaToolLifecycleContract.h"
 #include "KalmalaUITheme.h"
@@ -664,7 +665,10 @@ void UKalmalaInventoryMenuWidget::RefreshSelectionPresentation(const int32 TextS
     const bool bSelectedTool = SelectedRow != nullptr && SelectedRow->bCarriedTool;
     if (PreferArrowsButton)
     {
-        const bool bArrows = SelectedRow && SelectedRow->Id == TEXT("WoodenArrow") && bShowSelectedActions;
+        const bool bSelectedArrow = SelectedRow && (SelectedRow->Id == TEXT("WoodenArrow")
+            || (SelectedRow->Id.ToString().EndsWith(TEXT("Arrow"))
+                && !UKalmalaToolCatalogue::Get()->GetAttacks(SelectedRow->Id).IsEmpty()));
+        const bool bArrows = bSelectedArrow && bShowSelectedActions;
         PreferArrowsButton->SetVisibility(bArrows ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
         if (bArrows)
         {
@@ -1199,6 +1203,8 @@ void UKalmalaInventoryMenuWidget::PreferSelectedArrows()
     auto* Inventory = Pawn ? Pawn->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
     if (!Combat || !Inventory || !SelectedGridInstanceGuid.IsValid()) return;
     for (const auto& Stack : Inventory->GetStacks())
-        if (Stack.ItemId == TEXT("WoodenArrow") && (Stack.InstanceGuid == SelectedGridInstanceGuid || Stack.ItemGuids.Contains(SelectedGridInstanceGuid)))
+        if ((Stack.ItemId == TEXT("WoodenArrow") || (Stack.ItemId.ToString().EndsWith(TEXT("Arrow"))
+            && !UKalmalaToolCatalogue::Get()->GetAttacks(Stack.ItemId).IsEmpty()))
+            && (Stack.InstanceGuid == SelectedGridInstanceGuid || Stack.ItemGuids.Contains(SelectedGridInstanceGuid)))
         { Combat->ServerPreferArrowStack(Combat->GetPreferredArrowStack() == Stack.InstanceGuid ? FGuid() : SelectedGridInstanceGuid); return; }
 }

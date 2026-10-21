@@ -7,14 +7,16 @@ Bow left-click draws while held and releases an arrow on release at any charge.
 `DrawDuration` is authored per bow: 1.5 seconds for Bow and 2.0 seconds for
 Light Bow. The crosshair circle
 shrinks from 50 to 4 logical UI units over full draw. Earlier release reduces
-arrow velocity, Pierce damage and accuracy; full draw clamps. Each successful
-persisted shot consumes one Wooden Arrow and one bow condition. Selection may
-prioritize an exact inventory stack or automatically choose an available stack;
-a lost/exhausted preference falls back. Gravity-driven server projectiles stop at
+arrow velocity and accuracy; Wooden Arrow Pierce damage also follows draw,
+while Stone Arrow deals its authored fixed 25 Pierce. Full draw clamps. Each
+successful persisted shot consumes one selected arrow and one bow condition.
+Selection may prioritize an exact inventory stack; automatic selection prefers
+Wooden Arrow before Stone Arrow, and a lost/exhausted preference falls back.
+Gravity-driven server projectiles stop at
 visibility blockers and can damage wildlife. Light Bow is a separate carried
 profile with its own Workbench cost, condition, weight and draw duration; it
 shares the server shot path and adds no bow damage bonus. Current shots use
-Wooden Arrows. There is no PvP, arrow recovery or Archery progression; a future
+Wooden and Stone Arrows. There is no PvP, arrow recovery or Archery progression; a future
 server skill multiplier can shorten effective draw duration through the existing
 calculation hook.
 
@@ -31,14 +33,16 @@ become new Main Hand equipment through this change.
 
 ## Bow crafting and two-handed equipment — 2026-10-15
 
-Bow String (`BowString`) stacks to 20; Wooden Arrows (`WoodenArrow`) stack to
-100. A credited deer defeat has one server-owned 50% roll: success grants 1 Sinew,
+Bow String (`BowString`) stacks to 20; Wooden Arrows (`WoodenArrow`) and Stone
+Arrows (`StoneArrow`) stack to 100 at 0.05 kg each. A credited deer defeat has
+one server-owned 50% roll: success grants 1 Sinew,
 and failure grants 0.
 At a level-one Workbench, craft 1 Bow String from 4 Sinew, a Bow from 5 Wood
 and 1 Bow String, a Light Bow from 25 Lightwood + 1 Bow String + 5 Deer Hide,
 or 20 Wooden Arrows from 5 normal Wood. Light Bow weighs 1.5 kg, starts at 140
 condition, draws fully in 2 seconds, and gains 30 condition per Workbench
-upgrade for 3 Lightwood + 1 Bow String.
+upgrade for 3 Lightwood + 1 Bow String. A Workbench also crafts 20 Stone Arrows
+from 20 Wood + 5 Stone.
 Bow String is reserved for bows; ammunition is catalogued in `items/arrows.json`.
 Both bow profiles use both hands. Equipping a bow clears the previous held state and returns
 a worn shield to a free pack cell as one validated transaction. Tools retain their

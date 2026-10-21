@@ -2,6 +2,7 @@
 #include "KalmalaCharacter.h"
 #include "KalmalaWildlifeSpawn.h"
 #include "KalmalaDamageProfile.h"
+#include "KalmalaToolCatalogue.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "ProceduralMeshComponent.h"
@@ -33,14 +34,27 @@ void AKalmalaArrowProjectile::BeginPlay()
     Collision->IgnoreActorWhenMoving(GetOwner(), true);
     if (!HasAuthority()) { Collision->SetCollisionEnabled(ECollisionEnabled::NoCollision); Movement->Deactivate(); SetActorTickEnabled(false); }
 }
-void AKalmalaArrowProjectile::InitializeShot(const FVector& Direction, float DrawProgress)
+bool AKalmalaArrowProjectile::InitializeShot(const FVector& Direction, float DrawProgress, const FName ArrowItemId)
 {
-    if (!HasAuthority() || Direction.ContainsNaN() || !FMath::IsFinite(DrawProgress)) return;
+    if (!HasAuthority() || ArrowItemId.IsNone() || Direction.ContainsNaN() || !FMath::IsFinite(DrawProgress)) return false;
     const float Progress = FMath::Clamp(DrawProgress, 0.0f, 1.0f);
     PreviousPosition = GetActorLocation();
-    ShotDamage = FMath::Lerp(10.0f, 40.0f, Progress);
+    if (ArrowItemId == TEXT("WoodenArrow"))
+    {
+        ShotDamage = FMath::Lerp(10.0f, 40.0f, Progress);
+    }
+    else
+    {
+        const auto& Attacks = UKalmalaToolCatalogue::Get()->GetAttacks(ArrowItemId);
+        const FKalmalaWeaponAttackData* Attack = Attacks.FindByPredicate(
+            [](const FKalmalaWeaponAttackData& Entry) { return Entry.AttackId == TEXT("Basic"); });
+        if (!Attack || !FMath::IsFinite(Attack->DamageBonuses.Pierce) || Attack->DamageBonuses.Pierce <= 0.0f)
+            return false;
+        ShotDamage = Attack->DamageBonuses.Pierce;
+    }
     Movement->Velocity = Direction.GetSafeNormal() * FMath::Lerp(1000.0f, 4500.0f, Progress);
     Collision->IgnoreActorWhenMoving(GetOwner(), true);
+    return true;
 }
 void AKalmalaArrowProjectile::Hit(UPrimitiveComponent*, AActor* Other, UPrimitiveComponent*, FVector, const FHitResult&)
 {

@@ -298,6 +298,29 @@
       "ExperienceSkill": "None",
       "ExperienceAward": 0,
       "bEnabled": true
+    },
+    {
+      "RecipeId": "StoneArrows",
+      "DisplayName": "Stone Arrows",
+      "Ingredients": [
+        {
+          "ItemId": "Wood",
+          "Quantity": 20
+        },
+        {
+          "ItemId": "Stone",
+          "Quantity": 5
+        }
+      ],
+      "Output": "StoneArrow",
+      "OutputCount": 20,
+      "MaxBatch": 1,
+      "RequiredStation": [
+        "Workbench"
+      ],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
     }
   ]
 }

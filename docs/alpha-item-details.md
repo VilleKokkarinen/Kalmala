@@ -177,8 +177,9 @@ and icons follow the established art treatment.
 
 Bows and ammunition (P1).
 - Review and add Light Bow (`LightBow`): Workbench 1, 25 Lightwood + 1 Bow String + 5 Deer Hide → 1; stack 1, 1.5 kg, 140 condition, two hands, 2-second full draw. Keep existing arrow-dependent damage, velocity and spread curves; no bow damage bonus. Upgrade base 3 Lightwood + 1 Bow String, +30 condition/level, existing cost scaling/cap; repair at Workbench (blocked on A0 Bow String/Lightwood). The user selected Light Bow and its backlog recipe/draw values on 2026-10-19; remaining profile values carry forward from the detailed bow proposal.
-- Review and add Bronze Arrow (`BronzeArrow`): Workbench 1, 4 Wood + 1 Bronze → 20; stack 100, 0.05 kg each. Pierce 14–56 across the existing charge curve versus Wooden Arrow's 10–40; retain current velocity/spread, gravity, collision and lifetime. No recovery or elemental damage (blocked on A1 Bronze).
-- Extend preferred-stack selection to both arrow IDs: exact selected stack first, otherwise Wooden Arrow before Bronze Arrow, lowest occupied cell first within a type. Consume one arrow and one bow condition only on committed server shot. Show selected arrow damage/type; no silent spending of a different type while the preferred stack remains usable.
+- Add Stone Arrow (`StoneArrow`): Workbench 1, 20 Wood + 5 Stone → 20; stack 100, 0.05 kg each. Each committed shot deals its authored fixed 25 Pierce; bow charge continues to control velocity and spread. No recovery or elemental damage.
+- Review and add Bronze Arrow (`BronzeArrow`): Workbench 1, 20 Wood + 1 Bronze bar → 20; stack 100, 0.05 kg each; 50 Pierce. Retain current bow velocity/spread, gravity, collision and lifetime. No recovery or elemental damage (blocked on A1 Bronze).
+- Extend preferred-stack selection to the authored arrow IDs: exact selected stack first, otherwise Wooden Arrow before higher-tier arrows, lowest occupied cell first within a type. Consume one arrow and one bow condition only on committed server shot. Show selected arrow damage/type; no silent spending of a different type while the preferred stack remains usable.
 
 ## A4
 

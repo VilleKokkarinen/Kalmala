@@ -79,7 +79,17 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
         if (!SeenAttacks.Contains(TEXT("Basic"))) return false;
         for (const FName ItemId : List.ItemIds)
         {
-            if (ItemId.IsNone() || AttackItemIds.Contains(ItemId) || !FindProfile(ItemId)) return false;
+            const FKalmalaItemDefinition* Item = Items->FindItem(ItemId);
+            const bool bIsOrdinaryArrow = Item && ItemId.ToString().EndsWith(TEXT("Arrow"));
+            if (ItemId.IsNone() || AttackItemIds.Contains(ItemId) || (!FindProfile(ItemId) && !bIsOrdinaryArrow)) return false;
+            if (bIsOrdinaryArrow && !FindProfile(ItemId))
+            {
+                const FKalmalaWeaponAttackData* Basic = List.Attacks.FindByPredicate(
+                    [](const FKalmalaWeaponAttackData& Entry) { return Entry.AttackId == TEXT("Basic"); });
+                if (List.AttackListId != ItemId || List.ItemIds.Num() != 1 || List.Attacks.Num() != 1
+                    || !Basic || Basic->DamageBonuses.Pierce <= 0.0f
+                    || !FMath::IsNearlyEqual(Basic->DamageBonuses.Total(), Basic->DamageBonuses.Pierce)) return false;
+            }
             AttackItemIds.Add(ItemId);
         }
     }

@@ -6,6 +6,13 @@
       "Description": "Simple wooden arrows for a bow.",
       "MaxStack": 100,
       "WeightKg": 0.05
+    },
+    {
+      "ItemId": "StoneArrow",
+      "DisplayName": "Stone Arrows",
+      "Description": "Stone-tipped arrows that deal 25 Pierce damage.",
+      "MaxStack": 100,
+      "WeightKg": 0.05
     }
   ]
 }

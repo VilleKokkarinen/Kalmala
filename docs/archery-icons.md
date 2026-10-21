@@ -1,4 +1,4 @@
-# Bow, Bow String, Sinew and Wooden Arrows icon provenance
+# Bow, Bow String, Sinew and Arrow icon provenance
 
 ## Batch I — Bow, Wooden Arrow and retired String icon
 
@@ -70,3 +70,25 @@ validated; the 66-row icon audit passed. String and Bow asset bytes were preserv
 Exact edit prompt:
 
 Use case: precise-object-edit. Edit the supplied WoodenArrow inventory icon. Replace ALL THREE broad attached arrowheads with plain wooden shaft tips, each whittled to a slender tapered point directly from the SAME single piece of wood as its shaft. Continuous wood grain running all the way into each tip. The shaft stays narrow and simply tapers at its end like a sharpened wooden stick or pencil. Remove all separate triangle/diamond heads, metal, bronze, copper, stone, tip sockets and bindings near the tips. Absolutely NO attached arrowheads, NO metallic sheen, NO bronze tip. Preserve the three diagonal arrows, feather fletching and bindings at the feather ends, hand-painted survival-game style, colors, dark outlines, composition and true transparent background. Only change the pointed front ends and remove their attachment bindings. Keep clean transparent padding.
+
+## Batch Q — Stone Arrow (2026-10-21)
+
+Generated as original standalone transparent artwork with the built-in image
+generation tool. The 1254×1254 RGBA original shows three wooden arrows with
+chipped pale-gray stone tips and muted feather fletching. It was prepared at
+64×64 and imported as `/Game/Kalmala/UI/Icons/Items/StoneArrow`; the canonical
+icon manifest and runtime mapping use `StoneArrow`. The first image pass added
+cord around the stone tips, so a focused edit removed only those wrappings.
+
+Generation prompt:
+
+> Use case: stylized-concept. Asset type: original Kalmala survival-fantasy inventory icon. Primary request: create a new, isolated StoneArrow icon for a game inventory. Subject: three primitive wooden arrows grouped diagonally lower-left to upper-right, each with a small clearly visible chipped pale-gray stone tip secured to the shaft, simple muted feather fletching, and plain wooden shafts. Style: small hand-painted game inventory artwork with tactile broad facets, bold dark brown contour, restrained painted highlights and earthy material colors; strong silhouette that remains readable at 64 pixels. Composition: three centered arrows filling about 78 percent of a square canvas with clean transparent padding. Background: genuinely transparent. Constraints: original artwork; no text, letters, labels, UI, border, ground, cast shadow, glow, watermark, logo, bow, metal or bronze parts, bindings near the stone tips, or extra objects.
+
+Edit prompt:
+
+> Use case: precise-object-edit. Edit the supplied StoneArrow inventory icon. Remove only the tan cord wrappings around the bases of all three stone tips. Each chipped stone tip should meet its wooden shaft directly with no cord, binding, socket, or metal fitting near the tip. Preserve all three arrows, their stone tips, shafts, feather fletching, composition, hand-painted style, dark outlines, earthy colors, clean transparent padding, and genuinely transparent background. Do not add anything.
+
+The retained original is `Content/Kalmala/UI/Source/IconOriginals/StoneArrow.png`;
+the prepared image and imported Texture2D are in batch Q. The transparent original
+and the 64×64 prepared icon were visually inspected. The icon is validated by
+`Scripts/Validate-UIIcons.ps1 -Category Catalogue`.

@@ -140,7 +140,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
 
 - [ ] **A3 — Bows and arrows (P1).** [Stats and upgrades](docs/alpha-item-details.md#a3)
   - [x] Light Bow: Workbench, 25 Lightwood + 1 Bow String + 5 Deer Hide; 2 s draw.
-  - [ ] Stone Arrow: Workbench, 20 Wood + 5 stone → 20; 25 Pierce.
+  - [x] Stone Arrow: Workbench, 20 Wood + 5 stone → 20; 25 Pierce.
   - [ ] Bronze Arrow: Workbench, 20 Wood + 1 Bronze bar → 20; 50 Pierce.
   - [ ] Support both arrow types; prefer selected stack, first stack in inventory. (top row of inventory left to right, going down 1 row at a time until arrows found)
 

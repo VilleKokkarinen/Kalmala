@@ -116,14 +116,35 @@ bool FKalmalaBowDrawTest::RunTest(const FString& Parameters)
     for(TActorIterator<AKalmalaArrowProjectile> Arrow(World);Arrow;++Arrow)
     {TestEqual(TEXT("Immediate release still fires a low-power arrow"),Arrow->GetShotDamage(),10.0f);Arrow->Destroy();}
     Recover();
+    TestTrue(TEXT("Stone arrows can be granted from their catalogue definition"), Inventory->TryGrantFromServer(TEXT("StoneArrow"), 1));
+    const auto* StoneStack = Inventory->GetStacks().FindByPredicate(
+        [](const auto& Stack) { return Stack.ItemId == TEXT("StoneArrow") && Stack.Quantity > 0; });
+    if (!TestNotNull(TEXT("Stone arrow stack exists"), StoneStack) || StoneStack->ItemGuids.IsEmpty()) return false;
+    Combat->ServerPreferArrowStack(StoneStack->ItemGuids[0]);
+    TestEqual(TEXT("Stone arrow unit selection resolves its exact stack"), Combat->GetPreferredArrowStack(), StoneStack->InstanceGuid);
+    Recover();
+    Combat->ServerBeginBowDraw(11);
+    for (int32 Step = 0; Step < 8; ++Step) World->Tick(LEVELTICK_TimeOnly, 0.25f);
+    Combat->ServerReleaseBow(12, false);
+    TestEqual(TEXT("Committed Stone Arrow consumes one unit"), Inventory->GetQuantity(TEXT("StoneArrow")), 0);
+    bool bSawStoneArrowShot = false;
+    for (TActorIterator<AKalmalaArrowProjectile> Arrow(World); Arrow; ++Arrow)
+    {
+        bSawStoneArrowShot = true;
+        TestEqual(TEXT("Stone Arrow uses its authored 25 Pierce attack"), Arrow->GetShotDamage(), 25.0f);
+        Arrow->Destroy();
+    }
+    TestTrue(TEXT("Stone Arrow release creates a projectile"), bSawStoneArrowShot);
+    TestFalse(TEXT("Exhausted preferred Stone Arrow stack clears"), Combat->GetPreferredArrowStack().IsValid());
+    Recover();
     const int32 AmmoBeforeFailure=Inventory->GetQuantity(TEXT("WoodenArrow"));
     const int32 ConditionBeforeFailure=Pawn->GetToolDurability(TEXT("LightBow"));
     Pawn->SetPlayerState(nullptr);
-    Combat->ServerBeginBowDraw(11); Combat->ServerReleaseBow(12,false);
+    Combat->ServerBeginBowDraw(13); Combat->ServerReleaseBow(14,false);
     TestEqual(TEXT("Persistence failure rolls back ammunition"),Inventory->GetQuantity(TEXT("WoodenArrow")),AmmoBeforeFailure);
     TestEqual(TEXT("Persistence failure rolls back Light Bow condition"),Pawn->GetToolDurability(TEXT("LightBow")),ConditionBeforeFailure);
     Pawn->SetPlayerState(PlayerState);
-    Combat->ServerBeginBowDraw(13);
+    Combat->ServerBeginBowDraw(15);
     const auto Hammer=Tools.FindByPredicate([](const auto& Tool){return Tool.ItemId==TEXT("ConstructionHammer");});
     Inventory->SetMainHandFromServer(Hammer->InstanceGuid,Reason);
     Combat->TickComponent(0.01f,LEVELTICK_All,nullptr);

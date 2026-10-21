@@ -28,10 +28,23 @@ int32 UKalmalaCombatComponent::FindArrowStack() const
     const auto* Pawn = Cast<AKalmalaCharacter>(GetOwner());
     if (!Pawn || !Pawn->GetInventoryComponent()) return INDEX_NONE;
     const auto& Stacks = Pawn->GetInventoryComponent()->GetStacks();
-    const auto IsArrow = [](const auto& Stack) { return Stack.ItemId == TEXT("WoodenArrow") && Stack.Quantity > 0; };
+    const auto IsArrow = [](const auto& Stack)
+    {
+        const bool bIsSupportedArrow = Stack.ItemId == TEXT("WoodenArrow")
+            || (Stack.ItemId.ToString().EndsWith(TEXT("Arrow"))
+                && !UKalmalaToolCatalogue::Get()->GetAttacks(Stack.ItemId).IsEmpty());
+        return Stack.Quantity > 0 && bIsSupportedArrow;
+    };
     const int32 Preferred = Stacks.IndexOfByPredicate([&](const auto& Stack)
         { return IsArrow(Stack) && Stack.InstanceGuid == PreferredArrowStack; });
-    return Preferred != INDEX_NONE ? Preferred : Stacks.IndexOfByPredicate(IsArrow);
+    if (Preferred != INDEX_NONE) return Preferred;
+    for (const FName ItemId : {FName(TEXT("WoodenArrow")), FName(TEXT("StoneArrow"))})
+    {
+        const int32 Available = Stacks.IndexOfByPredicate([&](const auto& Stack)
+            { return Stack.ItemId == ItemId && IsArrow(Stack); });
+        if (Available != INDEX_NONE) return Available;
+    }
+    return INDEX_NONE;
 }
 bool UKalmalaCombatComponent::CanDrawBow() const
 {
@@ -79,7 +92,9 @@ void UKalmalaCombatComponent::ServerPreferArrowStack_Implementation(FGuid Guid)
     const auto* Pawn = Cast<AKalmalaCharacter>(GetOwner());
     if (!Pawn) return;
     for (const auto& Stack : Pawn->GetInventoryComponent()->GetStacks())
-        if (Stack.ItemId == TEXT("WoodenArrow") && Stack.Quantity > 0
+        if (Stack.Quantity > 0 && (Stack.ItemId == TEXT("WoodenArrow")
+            || (Stack.ItemId.ToString().EndsWith(TEXT("Arrow"))
+                && !UKalmalaToolCatalogue::Get()->GetAttacks(Stack.ItemId).IsEmpty()))
             && (Stack.InstanceGuid == Guid || Stack.ItemGuids.Contains(Guid)))
         { PreferredArrowStack = Stack.InstanceGuid; GetOwner()->ForceNetUpdate(); return; }
 }
@@ -116,6 +131,7 @@ void UKalmalaCombatComponent::ServerReleaseBow_Implementation(uint32 Sequence, b
     const auto Before = Inventory->GetStacks();
     auto After = Before;
     auto& Stack = After[StackIndex];
+    const FName ArrowItemId = Stack.ItemId;
     --Stack.Quantity;
     if (!Stack.ItemGuids.IsEmpty()) Stack.ItemGuids.RemoveAt(0);
     const bool bStackRemains = Stack.Quantity > 0;
@@ -135,12 +151,12 @@ void UKalmalaCombatComponent::ServerReleaseBow_Implementation(uint32 Sequence, b
     auto* Arrow = GetWorld()->SpawnActorDeferred<AKalmalaArrowProjectile>(AKalmalaArrowProjectile::StaticClass(),
         FTransform(Direction.Rotation(), Start), Pawn, Pawn, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
     if (!Arrow) return;
+    if (!Arrow->InitializeShot(Direction, Progress, ArrowItemId)) { Arrow->Destroy(); return; }
     if (!Inventory->TryCommitStacksFromServer(Before, After)) { Arrow->Destroy(); return; }
     --*Condition;
     if (!Mode->PersistPlayerStateFromServer(Pawn))
     { ++*Condition; Inventory->TryCommitStacksFromServer(After, Before); Arrow->Destroy(); return; }
     if (PreferredArrowStack == Before[StackIndex].InstanceGuid) PreferredArrowStack = NextPreference;
-    Arrow->InitializeShot(Direction, Progress);
     Arrow->FinishSpawning(FTransform(Direction.Rotation(), Start));
     ++ActionSerial; BeginRecovery();
 }
