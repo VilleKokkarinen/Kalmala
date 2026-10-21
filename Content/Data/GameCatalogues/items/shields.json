@@ -9,6 +9,16 @@
       "GearSlot": "Shield",
       "MaxDurability": 50,
       "Armor": 5
+    },
+    {
+      "ItemId": "BronzeShield",
+      "DisplayName": "Bronze Shield",
+      "Description": "A lightwood shield reinforced with hammered bronze and boar hide.",
+      "MaxStack": 1,
+      "WeightKg": 5,
+      "GearSlot": "Shield",
+      "MaxDurability": 100,
+      "Armor": 10
     }
   ]
 }

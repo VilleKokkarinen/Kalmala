@@ -1,7 +1,7 @@
 """Import one pinned catalogue texture batch from the canonical icon manifest.
 
 Run inside Unreal Editor with PythonScriptPlugin enabled and
-KALMALA_ICON_IMPORT_BATCH set to A through S. The manifest remains the only
+KALMALA_ICON_IMPORT_BATCH set to a pinned letter batch. The manifest remains the only
 source of canonical IDs and aliases; aliases resolve to the same canonical
 texture object and never create duplicate assets.
 """
@@ -23,8 +23,8 @@ def fail(message):
 
 
 batch = os.environ.get("KALMALA_ICON_IMPORT_BATCH", "").strip().upper()
-if batch not in ("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U"):
-    fail("Set KALMALA_ICON_IMPORT_BATCH to one pinned batch: A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, or U.")
+if batch not in ("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V"):
+    fail("Set KALMALA_ICON_IMPORT_BATCH to one pinned batch: A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, or V.")
 
 repo_root = os.path.abspath(
     os.environ.get("KALMALA_ICON_REPO_ROOT", unreal.Paths.project_dir())

@@ -149,7 +149,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [x] Bronze Helmet: Forge, 10 Bronze + 5 Boar Hide; 3 Armor.
   - [x] Bronze Tunic: Forge, 15 Bronze + 5 Boar Hide; 5 Armor.
   - [x] Bronze Leggings: Forge, 15 Bronze + 5 Boar Hide; 5 Armor.
-  - [ ] Bronze Shield: Forge, 10 Bronze + 5 Lightwood + 5 Boar Hide; 10 Armor.
+  - [x] Bronze Shield: Forge, 10 Bronze + 5 Lightwood + 5 Boar Hide; 10 Armor.
 
 - [ ] **A5 — Utility tools (P1/P2).** [Rules](docs/alpha-item-details.md#a5)
   - [ ] Basic Torch: inventory, 2 Wood + 1 amber; 300 s burn, 6 m light.

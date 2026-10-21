@@ -4933,6 +4933,24 @@ The original icon and prompt are recorded in `docs/armor-icons.md`. Icon batch
 U contains only `BronzeLeggings`; prepare and import with
 `python Scripts/Prepare-CatalogueIconBatch.py --batch U` and
 `Scripts/Import-CatalogueIconBatch.ps1 -Batch U`. The catalogue icon validator
-expects 84 identities. Editor build, equipment automation, rendered
+expects 85 identities. Editor build, equipment automation, rendered
 acceptance and multiplayer checks remain deferred to I2 milestone-final
 verification.
+
+## A4 Bronze Shield catalogue increment — 2026-10-21
+
+`BronzeShield` is a stack-one, 5 kg Shield-slot item with 10 Armor and 100
+maximum condition. Its Forge level-one recipe costs 10 Bronze, 5 Lightwood and
+5 Boar Hide; its level-one upgrade starts at 1 Bronze + 1 Lightwood and uses
+the shared wearable reward of +1 Armor and +10 maximum condition. The shield
+item and upgrade cost extend the already registered `items/shields.json` and
+`item-level-up/costs/shields.json`; the Forge recipe and stat reward use their
+already registered shared files. It has passive Armor only, with no attack
+record, active block or parry behavior.
+
+The original icon and prompt are recorded in `docs/armor-icons.md`. Icon batch
+V contains only `BronzeShield`; prepare and import with
+`python Scripts/Prepare-CatalogueIconBatch.py --batch V` and
+`Scripts/Import-CatalogueIconBatch.ps1 -Batch V`. Editor build, equipment
+automation, rendered acceptance and multiplayer checks remain deferred to I2
+milestone-final verification.

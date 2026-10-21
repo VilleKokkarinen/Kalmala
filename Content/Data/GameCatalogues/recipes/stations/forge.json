@@ -282,6 +282,28 @@
       "Level": 1
     },
     {
+      "RecipeId": "BronzeShield",
+      "DisplayName": "Bronze Shield",
+      "ItemId": "BronzeShield",
+      "RequiredStation": "Forge",
+      "RequiredStationLevel": 1,
+      "Ingredients": [
+        {
+          "ItemId": "Bronze",
+          "Quantity": 10
+        },
+        {
+          "ItemId": "Lightwood",
+          "Quantity": 5
+        },
+        {
+          "ItemId": "BoarHide",
+          "Quantity": 5
+        }
+      ],
+      "Level": 1
+    },
+    {
       "RecipeId": "IronSword",
       "DisplayName": "Iron Sword",
       "ItemId": "IronSword",

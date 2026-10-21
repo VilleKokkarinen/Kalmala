@@ -41,6 +41,16 @@ batch; the six initial wearable icons in batch G were not replaced.
 | `BronzeHelmet` | Single rounded hammered-bronze cap with a short brow ridge and narrow boar-hide lining; three-quarter front view, no wearer. | `Content/Kalmala/UI/Source/IconOriginals/BronzeHelmet.png` | `Content/Kalmala/UI/Source/Icons/BronzeHelmet.png` | `Content/Kalmala/UI/Icons/Items/BronzeHelmet.uasset` |
 | `BronzeTunic` | Sleeveless plated-bronze chest tunic over a dark boar-hide backing; front three-quarter view, no wearer. | `Content/Kalmala/UI/Source/IconOriginals/BronzeTunic.png` | `Content/Kalmala/UI/Source/Icons/BronzeTunic.png` | `Content/Kalmala/UI/Icons/Items/BronzeTunic.uasset` |
 | `BronzeLeggings` | Pair of fitted hammered-bronze leg guards over dark boar-hide backing; front three-quarter view, no wearer. | `Content/Kalmala/UI/Source/IconOriginals/BronzeLeggings.png` | `Content/Kalmala/UI/Source/Icons/BronzeLeggings.png` | `Content/Kalmala/UI/Icons/Items/BronzeLeggings.uasset` |
+| `BronzeShield` | Compact round lightwood shield reinforced with a hammered-bronze rim and boss, with dark boar-hide backing; front three-quarter view. | `Content/Kalmala/UI/Source/IconOriginals/BronzeShield.png` | `Content/Kalmala/UI/Source/Icons/BronzeShield.png` | `Content/Kalmala/UI/Icons/Items/BronzeShield.uasset` |
+
+Bronze Shield was generated with the built-in image-generation tool on
+2026-10-21 as a standalone transparent RGBA original. Its retained original
+was prepared to 64×64 RGBA and imported through the single-item V batch; prior
+armor icons were not replaced. The prompt requested a compact round shield
+with a lightwood plank core, hammered-bronze rim and boss, and dark boar-hide
+backing, centered in the warm hand-painted survival-fantasy inventory style
+with clean transparent padding and no text, UI, ground, shadow, glow, logo or
+extra objects.
 
 The prompt used the existing warm survival-fantasy inventory treatment: dark
 contours, broad painted metal facets, warm highlights, centered silhouette,
