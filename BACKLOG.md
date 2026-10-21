@@ -169,7 +169,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
 - [ ] **A7 — Farming and fishing (P2).** [Growth and catch rules](docs/alpha-item-details.md#a7)
   - [x] Review farming. Garden Plot: Planting Trowel, cultivation menu addition.
   - [x] Carrot: 1 seed → 3 carrots; 1 carrot → 3 seeds.
-  - [ ] Potato: 1 potato → 3 potatoes; Potato Seed stays unused.
+  - [x] Potato: 1 potato → 3 potatoes; Potato Seed stays unused.
   - [ ] Rutabaga: 1 seed → 3 roots; 1 root → 3 seeds.
   - [ ] Onion: 1 seed → 3 onions; 1 onion → 3 seeds.
 

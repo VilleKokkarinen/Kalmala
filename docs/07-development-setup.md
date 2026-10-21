@@ -32,6 +32,7 @@ recipe, with `MaxBatch=5` and no Coal or skill cost.
 A7 Garden Plot uses current construction schema 5. Interact with it while holding a
 usable Main Hand Planting Trowel to open cultivation. Carrot food mode spends 1
 Carrot Seed for 3 Carrots; Carrot seed mode spends 1 Carrot for 3 Carrot Seeds.
+Potato tuber mode spends 1 Potato for 3 Potatoes; Potato Seed remains unused.
 Growth takes 600 active seconds in an active terrain patch, pauses when the patch
 is inactive, and does not advance while the server is stopped. Accepted planting
 spends one Trowel condition; harvest and rejection do not. A mature crop remains

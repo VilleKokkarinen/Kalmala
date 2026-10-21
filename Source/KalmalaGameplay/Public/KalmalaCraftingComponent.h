@@ -76,7 +76,7 @@ public:
     bool CollectCharcoalKilnCoalFromServer(FString& Reason);
     bool LoadSmelterItemFromServer(FName ItemId, FString& Reason);
     bool CollectSmelterItemFromServer(FName ItemId, FString& Reason);
-    bool PlantGardenCarrotFromServer(AKalmalaConstructionActor* Plot, EKalmalaGardenCropMode Mode, FString& Reason);
+    bool PlantGardenCropFromServer(AKalmalaConstructionActor* Plot, EKalmalaGardenCropMode Mode, FString& Reason);
     bool HarvestGardenCropFromServer(AKalmalaConstructionActor* Plot, FString& Reason);
     const TArray<FKalmalaInventoryStack>& GetStorageView() const { return StorageView; }
     bool HasStorageView() const { return bStorageViewOpen; }

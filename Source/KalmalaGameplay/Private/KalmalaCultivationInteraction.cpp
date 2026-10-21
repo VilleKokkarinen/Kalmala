@@ -11,7 +11,7 @@ void UKalmalaCraftingComponent::ServerPlantGardenCarrot_Implementation(
 {
     if (!AcceptRequest()) return;
     FString Reason;
-    const bool bAccepted = PlantGardenCarrotFromServer(Plot, Mode, Reason);
+    const bool bAccepted = PlantGardenCropFromServer(Plot, Mode, Reason);
     PublishResult(Reason, bAccepted);
 }
 
@@ -23,7 +23,7 @@ void UKalmalaCraftingComponent::ServerHarvestGardenCrop_Implementation(AKalmalaC
     PublishResult(Reason, bAccepted);
 }
 
-bool UKalmalaCraftingComponent::PlantGardenCarrotFromServer(AKalmalaConstructionActor* Plot,
+bool UKalmalaCraftingComponent::PlantGardenCropFromServer(AKalmalaConstructionActor* Plot,
     const EKalmalaGardenCropMode Mode, FString& Reason)
 {
     AKalmalaCharacter* Character = GetCharacter();
@@ -35,7 +35,8 @@ bool UKalmalaCraftingComponent::PlantGardenCarrotFromServer(AKalmalaConstruction
         Reason = TEXT("Interact with a visible Garden Plot while holding a usable Planting Trowel");
         return false;
     }
-    if (Mode != EKalmalaGardenCropMode::CarrotFood && Mode != EKalmalaGardenCropMode::CarrotSeed)
+    const FName PaymentItem = FKalmalaGardenPlotState::GetPlantingPaymentItem(Mode);
+    if (PaymentItem.IsNone())
     {
         Reason = TEXT("That crop mode is not available yet");
         return false;
@@ -47,8 +48,6 @@ bool UKalmalaCraftingComponent::PlantGardenCarrotFromServer(AKalmalaConstruction
     }
 
     UKalmalaInventoryComponent* Inventory = Character->GetInventoryComponent();
-    const FName PaymentItem = Mode == EKalmalaGardenCropMode::CarrotFood
-        ? FName(TEXT("CarrotSeed")) : FName(TEXT("Carrot"));
     if (!Inventory)
     {
         Reason = TEXT("Inventory unavailable");
@@ -61,7 +60,7 @@ bool UKalmalaCraftingComponent::PlantGardenCarrotFromServer(AKalmalaConstruction
         AfterStacks, Reason)) return false;
 
     FKalmalaGardenPlotState CandidateState = Plot->GetGardenPlotState();
-    if (!CandidateState.PlantCarrot(Mode))
+    if (!CandidateState.PlantCrop(Mode))
     {
         Reason = TEXT("Garden Plot is unavailable");
         return false;
@@ -124,9 +123,12 @@ bool UKalmalaCraftingComponent::PlantGardenCarrotFromServer(AKalmalaConstruction
     }
 
     Character->ForceNetUpdate();
-    Reason = Mode == EKalmalaGardenCropMode::CarrotFood
-        ? TEXT("Carrot planted · harvest 3 Carrots after 600 active seconds")
-        : TEXT("Carrot seed planted · harvest 3 Carrot Seeds after 600 active seconds");
+    if (Mode == EKalmalaGardenCropMode::PotatoFood)
+        Reason = TEXT("Potato tuber planted · harvest 3 Potatoes after 600 active seconds");
+    else if (Mode == EKalmalaGardenCropMode::CarrotFood)
+        Reason = TEXT("Carrot planted · harvest 3 Carrots after 600 active seconds");
+    else
+        Reason = TEXT("Carrot seed planted · harvest 3 Carrot Seeds after 600 active seconds");
     return true;
 }
 
@@ -148,9 +150,7 @@ bool UKalmalaCraftingComponent::HarvestGardenCropFromServer(AKalmalaConstruction
         return false;
     }
 
-    const FName HarvestItem = PreviousState.CropMode == EKalmalaGardenCropMode::CarrotFood
-        ? FName(TEXT("Carrot")) : PreviousState.CropMode == EKalmalaGardenCropMode::CarrotSeed
-            ? FName(TEXT("CarrotSeed")) : NAME_None;
+    const FName HarvestItem = FKalmalaGardenPlotState::GetHarvestItem(PreviousState.CropMode);
     if (HarvestItem.IsNone())
     {
         Reason = TEXT("This crop mode cannot be harvested");
@@ -166,7 +166,7 @@ bool UKalmalaCraftingComponent::HarvestGardenCropFromServer(AKalmalaConstruction
 
     const TArray<FKalmalaInventoryStack> BeforeStacks = Inventory->GetStacks();
     TArray<FKalmalaInventoryStack> CandidateStacks;
-    if (!UKalmalaInventoryComponent::BuildGrant(BeforeStacks, HarvestItem, 3,
+    if (!UKalmalaInventoryComponent::BuildGrant(BeforeStacks, HarvestItem, FKalmalaGardenPlotState::HarvestYield,
         CandidateStacks, Reason)) return false;
     FKalmalaGardenPlotState EmptyState = PreviousState;
     if (!EmptyState.ClearMatureCrop())

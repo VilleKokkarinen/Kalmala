@@ -204,7 +204,8 @@ enum class EKalmalaGardenCropMode : uint8
 {
     None,
     CarrotFood,
-    CarrotSeed
+    CarrotSeed,
+    PotatoFood
 };
 
 USTRUCT()
@@ -213,8 +214,30 @@ struct KALMALAGAMEPLAY_API FKalmalaGardenPlotState
     GENERATED_BODY()
 
     static constexpr float CropDurationSeconds = 600.0f;
+    static constexpr int32 HarvestYield = 3;
     UPROPERTY(SaveGame) EKalmalaGardenCropMode CropMode = EKalmalaGardenCropMode::None;
     UPROPERTY(SaveGame) float RemainingActiveSeconds = 0.0f;
+
+    static FName GetPlantingPaymentItem(const EKalmalaGardenCropMode Mode)
+    {
+        switch (Mode)
+        {
+        case EKalmalaGardenCropMode::CarrotFood: return FName(TEXT("CarrotSeed"));
+        case EKalmalaGardenCropMode::CarrotSeed: return FName(TEXT("Carrot"));
+        case EKalmalaGardenCropMode::PotatoFood: return FName(TEXT("Potato"));
+        default: return NAME_None;
+        }
+    }
+    static FName GetHarvestItem(const EKalmalaGardenCropMode Mode)
+    {
+        switch (Mode)
+        {
+        case EKalmalaGardenCropMode::CarrotFood: return FName(TEXT("Carrot"));
+        case EKalmalaGardenCropMode::CarrotSeed: return FName(TEXT("CarrotSeed"));
+        case EKalmalaGardenCropMode::PotatoFood: return FName(TEXT("Potato"));
+        default: return NAME_None;
+        }
+    }
 
     bool IsEmpty() const { return CropMode == EKalmalaGardenCropMode::None && RemainingActiveSeconds == 0.0f; }
     bool IsPlanted() const { return CropMode != EKalmalaGardenCropMode::None; }
@@ -224,11 +247,11 @@ struct KALMALAGAMEPLAY_API FKalmalaGardenPlotState
         if (!FMath::IsFinite(RemainingActiveSeconds) || RemainingActiveSeconds < 0.0f
             || RemainingActiveSeconds > CropDurationSeconds) return false;
         if (CropMode == EKalmalaGardenCropMode::None) return RemainingActiveSeconds == 0.0f;
-        return CropMode == EKalmalaGardenCropMode::CarrotFood || CropMode == EKalmalaGardenCropMode::CarrotSeed;
+        return !GetHarvestItem(CropMode).IsNone();
     }
-    bool PlantCarrot(const EKalmalaGardenCropMode Mode)
+    bool PlantCrop(const EKalmalaGardenCropMode Mode)
     {
-        if (!IsEmpty() || (Mode != EKalmalaGardenCropMode::CarrotFood && Mode != EKalmalaGardenCropMode::CarrotSeed)) return false;
+        if (!IsEmpty() || GetHarvestItem(Mode).IsNone()) return false;
         CropMode = Mode;
         RemainingActiveSeconds = CropDurationSeconds;
         return true;

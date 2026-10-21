@@ -86,22 +86,34 @@ bool FKalmalaConstructionSaveGameV2Test::RunTest(const FString& Parameters)
     TestTrue(TEXT("Smelter fixture queues Coal"), Smelter.Smelter.TryAddCoal());
     TestTrue(TEXT("Smelter fixture starts and saves an active job"), Smelter.Smelter.Advance(12.5f));
     FKalmalaConstructionSaveRecord Plot = MakeRecord(TEXT("camp-garden-01"), TEXT("GardenPlotKit"));
-    TestTrue(TEXT("Carrot food mode plants into an empty Garden Plot"),
-        Plot.GardenPlot.PlantCarrot(EKalmalaGardenCropMode::CarrotFood));
-    TestEqual(TEXT("Carrot growth begins at 600 active seconds"), Plot.GardenPlot.RemainingActiveSeconds,
+    TestTrue(TEXT("Carrot food mode pays Carrot Seed and yields Carrot"),
+        FKalmalaGardenPlotState::GetPlantingPaymentItem(EKalmalaGardenCropMode::CarrotFood) == FName(TEXT("CarrotSeed"))
+        && FKalmalaGardenPlotState::GetHarvestItem(EKalmalaGardenCropMode::CarrotFood) == FName(TEXT("Carrot")));
+    TestTrue(TEXT("Potato tuber mode pays and yields Potato without a seed mode"),
+        FKalmalaGardenPlotState::GetPlantingPaymentItem(EKalmalaGardenCropMode::PotatoFood) == FName(TEXT("Potato"))
+        && FKalmalaGardenPlotState::GetHarvestItem(EKalmalaGardenCropMode::PotatoFood) == FName(TEXT("Potato"))
+        && FKalmalaGardenPlotState::HarvestYield == 3);
+    FKalmalaGardenPlotState PotatoCycle;
+    TestTrue(TEXT("Potato tuber planting starts a crop"), PotatoCycle.PlantCrop(EKalmalaGardenCropMode::PotatoFood));
+    TestTrue(TEXT("Potato tuber matures after 600 active seconds"), PotatoCycle.Advance(600.0f));
+    TestTrue(TEXT("Mature Potato tuber can be harvested once"), PotatoCycle.ClearMatureCrop());
+    TestFalse(TEXT("Potato tuber cannot be harvested twice"), PotatoCycle.ClearMatureCrop());
+    TestTrue(TEXT("Potato tuber mode plants into an empty Garden Plot"),
+        Plot.GardenPlot.PlantCrop(EKalmalaGardenCropMode::PotatoFood));
+    TestEqual(TEXT("Potato growth begins at 600 active seconds"), Plot.GardenPlot.RemainingActiveSeconds,
         FKalmalaGardenPlotState::CropDurationSeconds);
-    TestTrue(TEXT("Carrot growth advances by active time"), Plot.GardenPlot.Advance(17.25f));
-    TestTrue(TEXT("Carrot state retains its exact remaining active seconds"),
+    TestTrue(TEXT("Potato growth advances by active time"), Plot.GardenPlot.Advance(17.25f));
+    TestTrue(TEXT("Potato state retains its exact remaining active seconds"),
         FMath::IsNearlyEqual(Plot.GardenPlot.RemainingActiveSeconds, 582.75f));
     TestFalse(TEXT("Zero active time cannot advance a crop"), Plot.GardenPlot.Advance(0.0f));
     FKalmalaGardenPlotState SeedPlotState;
     TestTrue(TEXT("Carrot seed mode plants from one Carrot"),
-        SeedPlotState.PlantCarrot(EKalmalaGardenCropMode::CarrotSeed));
+        SeedPlotState.PlantCrop(EKalmalaGardenCropMode::CarrotSeed));
     TestTrue(TEXT("Carrot seed mode matures after 600 active seconds"), SeedPlotState.Advance(600.0f));
     TestTrue(TEXT("Mature Carrot seed mode is harvestable once"), SeedPlotState.ClearMatureCrop());
     TestFalse(TEXT("Harvest cannot clear a crop a second time"), SeedPlotState.ClearMatureCrop());
     FKalmalaConstructionSaveRecord InvalidFloor = Floor;
-    InvalidFloor.GardenPlot.PlantCarrot(EKalmalaGardenCropMode::CarrotFood);
+    InvalidFloor.GardenPlot.PlantCrop(EKalmalaGardenCropMode::CarrotFood);
     TestFalse(TEXT("Non-plot construction rejects crop state"),
         UKalmalaConstructionSaveGameV2::IsValidRecord(InvalidFloor));
     TestTrue(TEXT("Schema 5 accepts an established camp record"), Save->AddRecord(Floor));
@@ -121,7 +133,7 @@ bool FKalmalaConstructionSaveGameV2Test::RunTest(const FString& Parameters)
         UKalmalaConstructionSaveGameV2* Candidate = NewObject<UKalmalaConstructionSaveGameV2>(GetTransientPackage());
         Candidate->InitializeForWorld(World);
         FKalmalaConstructionSaveRecord Record = MakeRecord(Id, TEXT("GardenPlotKit"));
-        Record.GardenPlot.PlantCarrot(Mode);
+        Record.GardenPlot.PlantCrop(Mode);
         TestTrue(TEXT("Planted Garden Plot fixture is a valid saved record"), Candidate->AddRecord(Record));
         return Candidate;
     };
@@ -198,7 +210,7 @@ bool FKalmalaConstructionSaveGameV2Test::RunTest(const FString& Parameters)
             [](const FKalmalaConstructionSaveRecord& Record)
             {
                 return Record.ConstructionId == TEXT("camp-garden-01") && Record.KitId == TEXT("GardenPlotKit")
-                    && Record.GardenPlot.CropMode == EKalmalaGardenCropMode::CarrotFood
+                    && Record.GardenPlot.CropMode == EKalmalaGardenCropMode::PotatoFood
                     && FMath::IsNearlyEqual(Record.GardenPlot.RemainingActiveSeconds, 582.75f);
             }));
         TestTrue(TEXT("Kiln inventory and job timer survive reload"), Reloaded->GetRecords().ContainsByPredicate(

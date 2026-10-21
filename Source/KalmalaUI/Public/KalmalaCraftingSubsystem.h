@@ -245,6 +245,7 @@ private:
     UFUNCTION() void CollectSmelterIron();
     UFUNCTION() void PlantCarrotFood();
     UFUNCTION() void PlantCarrotSeed();
+    UFUNCTION() void PlantPotatoTuber();
     UFUNCTION() void HarvestGardenCrop();
     UFUNCTION() void CloseClicked();
     void Refresh();
@@ -329,6 +330,7 @@ private:
     UPROPERTY(Transient) TObjectPtr<UTextBlock> CultivationChoicesText;
     UPROPERTY(Transient) TObjectPtr<UButton> PlantCarrotFoodButton;
     UPROPERTY(Transient) TObjectPtr<UButton> PlantCarrotSeedButton;
+    UPROPERTY(Transient) TObjectPtr<UButton> PlantPotatoTuberButton;
     UPROPERTY(Transient) TObjectPtr<UButton> HarvestGardenCropButton;
     UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> WrappedTextBlocks;
     UPROPERTY(Transient) TObjectPtr<UButton> CraftButton;

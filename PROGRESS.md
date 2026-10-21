@@ -4834,3 +4834,14 @@
 - **Observable impact and authority:** the server validates the plot, latest interaction context, Trowel, payment and harvest state. It persists crop mode and active seconds and replicates plot state from authority. No inventory item, portable construction kit or catalogue entry was added. Ordinary pack materials retain the existing transient inventory behavior.
 - **Known limitations/remaining scope:** Potato, Rutabaga and Onion modes, fishing, rendered UI review and multiplayer/persistence runtime acceptance remain. Crop state persists across server stops without offline growth; ordinary player materials remain governed by the existing transient inventory policy.
 - **Next eligible task:** A7 Potato tuber propagation; keep `PotatoSeed` unused.
+
+## Run 2026-10-21 13:59 UTC — A7 Potato tuber propagation implemented
+
+- **Selected task:** completed and checked only the A7 Potato propagation child; A7 remains in progress.
+- **Work completed:** added a Potato tuber crop mode that spends 1 Potato and yields 3 Potatoes after 600 active seconds. Added a Cultivation action, centralized planting-payment/harvest mappings, and extended the existing schema-5 Garden Plot state and save regression. `PotatoSeed` remains unused. Updated the architecture and setup summaries.
+- **Files changed by this run:** `BACKLOG.md`; `PROGRESS.md`; `docs/02-technical-architecture.md`; `docs/07-development-setup.md`; `Source/KalmalaGameplay/Private/KalmalaCultivationInteraction.cpp`; `Source/KalmalaGameplay/Private/Tests/KalmalaConstructionSaveGameTest.cpp`; `Source/KalmalaGameplay/Public/KalmalaConstructionSaveGame.h`; `Source/KalmalaGameplay/Public/KalmalaCraftingComponent.h`; `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp`; `Source/KalmalaUI/Public/KalmalaCraftingSubsystem.h`.
+- **Lightweight checks:** focused PowerShell source assertions passed for Potato payment/yield, supported-mode validation, server harvest mapping, UI action, schema round-trip coverage, and unused `PotatoSeed`; `git diff --check` passed; changed paths are below MAX_PATH. The Unreal save automation was updated but not run.
+- **Verification status:** no Unreal build, automation execution, rendered review, or peer session ran. Full I3 milestone verification remains deferred.
+- **Observable impact and authority:** the owner can plant a Potato tuber from the Cultivation menu. The server validates the existing plot context, supported crop mode, one-Potato payment, usable Main Hand Trowel, maturity, and inventory capacity. Crop mode and active time use the existing replicated and persisted schema-5 record; no RPC signature or save schema changed.
+- **Known limitations and remaining scope:** Rutabaga and Onion propagation, fishing, rendered UI review, and runtime multiplayer/persistence acceptance remain. Potato Seed has no planting or harvest route.
+- **Next eligible task:** A7 Rutabaga food/seed propagation.
