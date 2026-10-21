@@ -4694,3 +4694,13 @@
 - **Observable impact and authority:** the existing server catalogue loader can resolve the reorganized armor definitions, carried weapon profiles, and upgrade costs while retaining exact category path validation. Gameplay authority, item values, network fields, and save data are unchanged.
 - **Known limitations:** the updated C++ loader has not been compiled or exercised in Unreal; confirm full catalogue load during I2 milestone-final verification.
 - **Next eligible task:** A4 parent state closeout after all A4 children are checked. BACKLOG.md was left unchanged for this file-organization request.
+
+## 2026-10-21 08:03 UTC — A4 parent closed
+
+- **Work completed:** closed A4 after confirming its review and four Bronze armour/shield children are checked and the reviewed item values match the authored scope. No gameplay code or catalogue data changed.
+- **Files changed by this increment:** `BACKLOG.md`; `PROGRESS.md`.
+- **Lightweight checks:** verified A4's parent/child checkbox states, all four item IDs in the registered armor catalogue files, runtime icon mappings, icon-manifest rows, catalogue gear-stat assertions, and reviewed A4 values. `git diff --check` passed; current increment paths are below MAX_PATH.
+- **Full verification:** deferred to I2 milestone-final verification. No build, gameplay automation, rendered acceptance, or multiplayer checks were run for this roadmap closeout.
+- **Observable impact and authority:** BACKLOG now records A4 implementation work as complete. No runtime, network authority, RPC, save, or catalogue behavior changed.
+- **Known limitations/remaining scope:** I2 milestone-final verification remains pending; runtime compilation and equipment behavior remain unverified at that gate.
+- **Next eligible task:** A5 Basic Torch implementation. BACKLOG specifies “Basic Torch” with 2 Wood + 1 amber, while `docs/alpha-item-details.md` describes “Bark Torch” with a non-bow binding input marked for review; reconcile that authored difference before implementing the item.
