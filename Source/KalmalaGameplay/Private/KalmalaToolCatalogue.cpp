@@ -101,7 +101,7 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
     {
         const bool bIsBow = Profile.ToolKind == TEXT("Bow") || Profile.ToolKind == TEXT("LightBow");
         const bool bIsNoAttackUtility = Profile.ItemId == TEXT("ConstructionHammer")
-            || Profile.ItemId == TEXT("BasicTorch");
+            || Profile.ItemId == TEXT("BasicTorch") || Profile.ItemId == TEXT("CultivationRake");
         const bool bRequiresAttackList = !bIsNoAttackUtility;
         if (Profile.ItemId.IsNone() || SeenItemIds.Contains(Profile.ItemId)
             || (bRequiresAttackList && !AttackItemIds.Contains(Profile.ItemId))
@@ -115,7 +115,7 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
                 TEXT("BronzeSpear"), TEXT("IronAxe"), TEXT("IronKnife"), TEXT("IronPick"),
                 TEXT("IronSpear"), TEXT("StoneMace"), TEXT("BronzeMace"), TEXT("IronMace"),
                 TEXT("BronzeSword"), TEXT("IronSword"), TEXT("WoodenClub"), TEXT("ConstructionHammer"),
-                TEXT("BasicTorch"), TEXT("Bow"), TEXT("LightBow")})
+                TEXT("BasicTorch"), TEXT("CultivationRake"), TEXT("Bow"), TEXT("LightBow")})
             || (bIsBow && !Profile.bTwoHanded)
             || !IsOneOf(Profile.ToolSet, {TEXT("Starter"), TEXT("Crafted"), TEXT("Utility")})
             || !IsOneOf(Profile.Action, {TEXT("None"), TEXT("Gathering"), TEXT("Woodcutting"), TEXT("Mining")})
@@ -165,7 +165,8 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
         const FKalmalaToolProfileData* Profile = FindProfile(Recipe.ItemId);
         const FString TargetKey = FString::Printf(TEXT("%s:%d"), *Recipe.ItemId.ToString(), Recipe.Level);
         const bool bCraftableToolSet = Profile
-            && (Profile->ToolSet == TEXT("Starter") || Profile->ToolSet == TEXT("Crafted"));
+            && (Profile->ToolSet == TEXT("Starter") || Profile->ToolSet == TEXT("Crafted")
+                || Profile->ToolSet == TEXT("Utility"));
         const bool bStarterRequiresWorkbench = Profile && Profile->ToolSet == TEXT("Starter")
             && Recipe.RequiredStation != TEXT("Workbench");
         if (Recipe.RecipeId.IsNone() || SeenRecipeIds.Contains(Recipe.RecipeId)

@@ -20,6 +20,7 @@ bool UKalmalaCombatComponent::IsAttackRequestAllowed(const bool bAuthority, cons
 bool UKalmalaCombatComponent::IsAttackItemAllowed(const FName ItemId)
 {
     return ItemId.IsNone() || (ItemId != TEXT("ConstructionHammer") && ItemId != TEXT("BasicTorch")
+        && ItemId != TEXT("CultivationRake")
         && ItemId != TEXT("Bow") && ItemId != TEXT("LightBow")
         && FKalmalaToolLifecycleContract::FindDefinition(ItemId) != nullptr);
 }

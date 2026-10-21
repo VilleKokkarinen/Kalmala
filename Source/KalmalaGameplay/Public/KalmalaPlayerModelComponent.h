@@ -9,7 +9,7 @@ class UPointLightComponent;
 class USceneComponent;
 
 UENUM()
-enum class EKalmalaHeldToolVisual : uint8 { None, Hammer, Axe, Knife, Pick, Spear, Mace, Bow, Sword, Club, Torch };
+enum class EKalmalaHeldToolVisual : uint8 { None, Hammer, Axe, Knife, Pick, Spear, Mace, Bow, Sword, Club, Torch, Rake };
 
 /** Original faceted wanderer silhouette and server-selected held-tool cosmetics. */
 UCLASS()

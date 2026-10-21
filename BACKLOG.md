@@ -153,7 +153,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
 
 - [ ] **A5 — Utility tools (P1/P2).** [Rules](docs/alpha-item-details.md#a5)
   - [x] Basic Torch: inventory, 2 Wood + 1 amber; 300 s burn, 6 m light.
-  - [ ] Cultivation Rake: Forge, 10 Wood + 5 Bronze bar; requires A7.
+  - [x] Cultivation Rake: Forge, 10 Wood + 5 Bronze bar; requires A7.
 
 - [x] **A6 — Food and recovery (P1).** [Effects and limits](docs/alpha-item-details.md#a6)
   - [x] Lingonberry: hand-pick Meadow shrubs, 3 per shrub.

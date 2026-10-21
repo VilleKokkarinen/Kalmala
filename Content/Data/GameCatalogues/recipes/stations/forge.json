@@ -324,6 +324,24 @@
         }
       ],
       "Level": 1
+    },
+    {
+      "RecipeId": "CultivationRake",
+      "DisplayName": "Cultivation Rake",
+      "ItemId": "CultivationRake",
+      "RequiredStation": "Forge",
+      "RequiredStationLevel": 1,
+      "Ingredients": [
+        {
+          "ItemId": "Wood",
+          "Quantity": 10
+        },
+        {
+          "ItemId": "Bronze",
+          "Quantity": 5
+        }
+      ],
+      "Level": 1
     }
   ]
 }

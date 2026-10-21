@@ -69,10 +69,11 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaHeldToolModelTest, "Kalmala.Gameplay.To
 bool FKalmalaHeldToolModelTest::RunTest(const FString& Parameters)
 {
     const TArray<FName> Ids = {TEXT("ConstructionHammer"), TEXT("StoneAxe"), TEXT("BronzeAxe"), TEXT("IronAxe"),
-        TEXT("StoneKnife"), TEXT("StonePick"), TEXT("StoneSpear"), TEXT("StoneMace"), TEXT("Bow")};
+        TEXT("StoneKnife"), TEXT("StonePick"), TEXT("StoneSpear"), TEXT("StoneMace"), TEXT("Bow"), TEXT("CultivationRake")};
     const TArray<EKalmalaHeldToolVisual> Expected = {EKalmalaHeldToolVisual::Hammer, EKalmalaHeldToolVisual::Axe,
         EKalmalaHeldToolVisual::Axe, EKalmalaHeldToolVisual::Axe, EKalmalaHeldToolVisual::Knife,
-        EKalmalaHeldToolVisual::Pick, EKalmalaHeldToolVisual::Spear, EKalmalaHeldToolVisual::Mace, EKalmalaHeldToolVisual::Bow};
+        EKalmalaHeldToolVisual::Pick, EKalmalaHeldToolVisual::Spear, EKalmalaHeldToolVisual::Mace,
+        EKalmalaHeldToolVisual::Bow, EKalmalaHeldToolVisual::Rake};
     for (int32 Index = 0; Index < Ids.Num(); ++Index)
         TestEqual(TEXT("Known equipment maps to its actual family"),
             UKalmalaPlayerModelComponent::GetHeldToolVisualForItem(Ids[Index]), Expected[Index]);
@@ -105,14 +106,15 @@ bool FKalmalaHeldToolModelTest::RunTest(const FString& Parameters)
                 UKalmalaPlayerModelComponent::GetHeldToolVisualForItem(Tool.ItemId));
             TArray<UProceduralMeshComponent*> Meshes;
             Pawn->GetComponents(Meshes);
-            TestEqual(TEXT("Equipment swaps retain a fixed component count"), Meshes.Num(), 12);
+            TestEqual(TEXT("Equipment swaps retain a fixed component count"), Meshes.Num(), 16);
             int32 Visible = 0;
             for (auto* Mesh : Meshes)
             {
                 TestEqual(TEXT("Body and weapon visuals remain non-colliding"), Mesh->GetCollisionEnabled(), ECollisionEnabled::NoCollision);
                 if (Mesh->GetName().StartsWith(TEXT("HeldToolPart")) && Mesh->IsVisible()) ++Visible;
             }
-            const int32 ExpectedVisible = Tool.ItemId == TEXT("StoneAxe") || Tool.ItemId == TEXT("StonePick") ? 3 : 2;
+            const int32 ExpectedVisible = Tool.ItemId == TEXT("StoneAxe") || Tool.ItemId == TEXT("StonePick") ? 3
+                : Tool.ItemId == TEXT("CultivationRake") ? 7 : 2;
             TestEqual(TEXT("Only this weapon's parts are visible"), Visible, ExpectedVisible);
         }
         TestTrue(TEXT("Unequip succeeds"), Inventory->SetMainHandFromServer(FGuid(), Reason));
@@ -137,7 +139,9 @@ bool FKalmalaHeldToolModelTest::RunTest(const FString& Parameters)
             const int32 Visible = Meshes.FilterByPredicate([](const auto* Mesh)
                 { return Mesh->GetName().StartsWith(TEXT("HeldToolPart")) && Mesh->IsVisible(); }).Num();
             TestEqual(TEXT("Repnotify alone reconstructs remote tool geometry"), Visible,
-                Visual == EKalmalaHeldToolVisual::Axe || Visual == EKalmalaHeldToolVisual::Pick || Visual == EKalmalaHeldToolVisual::Bow ? 3 : 2);
+                Visual == EKalmalaHeldToolVisual::Axe || Visual == EKalmalaHeldToolVisual::Pick
+                    || Visual == EKalmalaHeldToolVisual::Bow ? 3
+                    : Visual == EKalmalaHeldToolVisual::Rake ? 7 : 2);
             TestTrue(TEXT("Remote appearance does not populate private inventory selection"), Inventory->GetActiveItem().IsNone());
             auto* Handle = *Meshes.FindByPredicate([](const auto* Mesh)
                 { return Mesh->GetName() == TEXT("HeldToolPart0"); });

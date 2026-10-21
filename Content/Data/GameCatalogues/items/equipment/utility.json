@@ -7,6 +7,14 @@
       "WeightKg": 0.5,
       "MaxDurability": 1,
       "DamageBonuses": {}
+    },
+    {
+      "ItemId": "CultivationRake",
+      "DisplayName": "Cultivation Rake",
+      "Description": "A field rake for planting and harvesting approved garden plots.",
+      "WeightKg": 1.0,
+      "MaxDurability": 100,
+      "DamageBonuses": {}
     }
   ]
 }

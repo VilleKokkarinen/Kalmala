@@ -140,7 +140,7 @@ void UKalmalaPlayerModelComponent::BeginPlay()
     LeftArm = AddPart(TEXT("PlayerLeftArm"), FVector(0, -27, 129), FVector(0, 0, -27), FVector(7, 7, 29), ClothMaterial);
     RightArm = AddPart(TEXT("PlayerRightArm"), FVector(0, 27, 129), FVector(0, 0, -27), FVector(7, 7, 29), ClothMaterial);
     // Reuse a bounded cosmetic pool; equipment changes never accumulate components.
-    for (int32 Index = 0; Index < 3; ++Index)
+    for (int32 Index = 0; Index < 7; ++Index)
     {
         HeldToolParts.Add(AddPart(FName(*FString::Printf(TEXT("HeldToolPart%d"), Index)),
             FVector::ZeroVector, FVector::ZeroVector, FVector(1), Index == 0 ? DarkMaterial : HeadMaterial,
@@ -252,6 +252,7 @@ EKalmalaHeldToolVisual UKalmalaPlayerModelComponent::GetHeldToolVisualForItem(co
         return EKalmalaHeldToolVisual::Sword;
     case EKalmalaToolKind::WoodenClub: return EKalmalaHeldToolVisual::Club;
     case EKalmalaToolKind::BasicTorch: return EKalmalaHeldToolVisual::Torch;
+    case EKalmalaToolKind::CultivationRake: return EKalmalaHeldToolVisual::Rake;
     case EKalmalaToolKind::Bow: return EKalmalaHeldToolVisual::Bow;
     default: return EKalmalaHeldToolVisual::None;
     }
@@ -259,7 +260,7 @@ EKalmalaHeldToolVisual UKalmalaPlayerModelComponent::GetHeldToolVisualForItem(co
 
 void UKalmalaPlayerModelComponent::OnRep_HeldToolVisual()
 {
-    if (HeldToolParts.Num() != 3) return;
+    if (HeldToolParts.Num() != 7) return;
     for (UProceduralMeshComponent* Part : HeldToolParts) Part->SetVisibility(false);
     HeldToolParts[0]->SetMaterial(0, DarkMaterial);
     HeldToolParts[1]->SetMaterial(0, HeadMaterial);
@@ -323,6 +324,15 @@ void UKalmalaPlayerModelComponent::OnRep_HeldToolVisual()
             TorchLight->AttachToComponent(RightArm, FAttachmentTransformRules::KeepRelativeTransform);
             TorchLight->SetRelativeLocation(HeldToolParts[2]->GetRelativeLocation());
         }
+        break;
+    case EKalmalaHeldToolVisual::Rake:
+        HeldToolParts[0]->SetMaterial(0, HeadMaterial);
+        for (int32 Index = 1; Index < HeldToolParts.Num(); ++Index)
+            HeldToolParts[Index]->SetMaterial(0, DarkMaterial);
+        Show(0, FVector(8, 0, -39), FVector(1.8f, 1.8f, 20));
+        Show(1, FVector(18, 0, -21), FVector(12, 1.8f, 2.2f));
+        for (int32 Tine = 0; Tine < 5; ++Tine)
+            Show(2 + Tine, FVector(18.0f - Tine * 5.0f, 0, -29), FVector(1.1f, 1.4f, 6.0f));
         break;
     default: break;
     }
