@@ -158,7 +158,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
 - [ ] **A6 — Food and recovery (P1).** [Effects and limits](docs/alpha-item-details.md#a6)
   - [x] Lingonberry: hand-pick Meadow shrubs, 3 per shrub.
   - [x] Forest Chanterelle: hand-pick Elderwood patches, 2 per patch.
-  - [ ] Keep one Steady Meal: 120 s, 10% less stamina use; no meal stacking.
+  - [x] Keep one Steady Meal: 120 s, 10% less stamina use; no meal stacking.
   - [ ] Review draught effects; use existing Cauldron, no brewing station.
   - [ ] Berry Recovery Draught: 3 Lingonberry + 1 Carrot; heals 20 over 10 s.
   - [ ] Root Stamina Draught: 2 Potato + 1 Onion; restores 20 stamina.

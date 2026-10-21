@@ -4734,3 +4734,13 @@
 - **Observable impact and authority:** the server selects one safe Elderwood patch per generated spatial key, validates range/capacity through the existing hand-gather transaction, grants two Chanterelles, and owns Steady Meal activation. The source ID is not client-selected. No RPC, replicated field, or save schema changed.
 - **Known limitations/remaining scope:** the new C++ source/meal assertions were not executed; generated-world interaction and runtime rendering remain unverified until I2 milestone-final verification.
 - **Next eligible task:** A6 Keep one Steady Meal — 120 seconds, 10% less stamina use, and no meal stacking; A5 Cultivation Rake remains blocked on A7.
+
+## 2026-10-21 09:28 UTC — A6 Steady Meal contract closed
+
+- **Work completed:** verified the existing single Steady Meal path for the seven prepared foods and two forage foods. Added Forest Chanterelle to the available-food summary beside Lingonberry, then checked only the selected Steady Meal child in `BACKLOG.md`.
+- **Files changed by this increment:** `BACKLOG.md`; `PROGRESS.md`; `Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp`.
+- **Lightweight checks:** focused PowerShell source assertions passed for the 120-second duration, 0.90 stamina-use multiplier, foraged-food allowlist, server authority gate, one-serving transaction and rollback, active-meal rejection, timer expiry, updated Forest Chanterelle summary, and existing automation assertions. `git diff --check` passed for the current backlog and implementation changes.
+- **Full verification:** deferred to I2 milestone-final verification. No Unreal build, gameplay automation, rendered review, or multiplayer session was run for this normal increment.
+- **Observable impact and authority:** the existing server validates supported food and active meal state, consumes exactly one item, applies the fixed effect, and owns expiry; replicated status remains presentation-only. The crafting food summary now reports both forage foods. No RPC, save schema, or client-authoritative gameplay state changed.
+- **Known limitations/remaining scope:** the `Kalmala.Gameplay.Status.SteadyMeal` automation exists but was not executed; compilation, runtime behavior, rendered presentation, and host/client checks remain for I2 milestone-final verification.
+- **Next eligible task:** A6 Review draught effects; use the existing Cauldron, with no brewing station.

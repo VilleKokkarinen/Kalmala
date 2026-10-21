@@ -1048,9 +1048,10 @@ FString UKalmalaCraftingComponent::GetFoodText() const
     const int32 RoastedRootsCount = GetFoodCount(UKalmalaPlayerStatusComponent::RoastedRootVegetablesItemId);
     const int32 DeerRoastCount = GetFoodCount(UKalmalaPlayerStatusComponent::DeerRootRoastItemId);
     const int32 LingonberryCount = GetFoodCount(UKalmalaPlayerStatusComponent::LingonberryItemId);
+    const int32 ForestChanterelleCount = GetFoodCount(UKalmalaPlayerStatusComponent::ForestChanterelleItemId);
     const FString AvailableFood = FString::Printf(
-        TEXT("Cooked boar %d; cooked deer %d; meat stew %d; root soup %d; roasted roots %d; deer roast %d; Hearth Broth %d; Lingonberry %d."),
-        CookedBoarCount, CookedDeerCount, StewCount, SoupCount, RoastedRootsCount, DeerRoastCount, BrothCount, LingonberryCount);
+        TEXT("Cooked boar %d; cooked deer %d; meat stew %d; root soup %d; roasted roots %d; deer roast %d; Hearth Broth %d; Lingonberry %d; Forest Chanterelle %d."),
+        CookedBoarCount, CookedDeerCount, StewCount, SoupCount, RoastedRootsCount, DeerRoastCount, BrothCount, LingonberryCount, ForestChanterelleCount);
     const float Remaining = Status ? Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId) : 0.0f;
     if (Remaining > 0.0f)
     {
