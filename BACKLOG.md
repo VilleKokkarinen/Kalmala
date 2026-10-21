@@ -190,21 +190,21 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [ ] Review the recommended drop-based item/recipe table; approve effects and full gear profiles.
   - [ ] Restrict boar/deer spawns to Meadows, Elderwood and Shimmering Lakes only.
   - [ ] Apply the overview's revised stats to existing boar/deer and all A8a enemies.
-  - [ ] Meadows: Rat — small defensive scavenger.
-  - [ ] Elderwood: Badger — territorial enemy; slashes with its claws.
-  - [ ] Elderwood: Moon Bear — rare hard enemy; future Moonstone source.
-  - [ ] Shimmering Lakes: Viper — shoreline ambusher; lunging bite applies weak poison for 5 s.
+  - [ ] Meadows: Rat
+  - [ ] Elderwood: Badger
+  - [ ] Elderwood: Moon Bear — rare hard enemy;
+  - [ ] Shimmering Lakes: Viper — lunging bite applies weak poison for 5 s.
   - [ ] Shimmering Lakes: Giant Snake — rare hard shoreline ambusher; powerful lunging bite.
   - [ ] Mossy Mire: Mireling — weak base enemy; spawn only in this biome.
   - [ ] Mossy Mire: Death Adder — highly venomous snake; bite applies major poison for 10 s.
   - [ ] Mossy Mire: Mosquito swarm — small bites + weak poison for 10 s; roll to shake off, lit fire repels.
-  - [ ] Mossy Mire: Peat Husk — rare hard sweeping attacker.
-  - [ ] Freezing Tundra: Wolf — tougher pursuing predator; powerful lunging bite.
-  - [ ] Freezing Tundra: Lynx — leaping predator.
-  - [ ] Freezing Tundra: Polar Bear — rare hard charging predator.
-  - [ ] Thunder Mountains: Horned Goat — territorial horn charges; push and stagger.
-  - [ ] Thunder Mountains: Thunder Sentinel — rare hard stone attacker.
-  - [ ] Ocean: Reef Maw — swimmer hunter; included in the approved aquatic route.
+  - [ ] Mossy Mire: Peat Husk — rare hard enemy;
+  - [ ] Freezing Tundra: Wolf — spawns in packs of 3
+  - [ ] Freezing Tundra: Lynx
+  - [ ] Freezing Tundra: Polar Bear — rare hard enemy;
+  - [ ] Thunder Mountains: Horned Goat — knockback attack
+  - [ ] Thunder Mountains: Thunder Sentinel — rare hard enemy;
+  - [ ] Ocean: Reef Maw — rare hard underwater enemy;
 
 - [ ] **A8b — Enemy materials and crafted items (P1/P2).** [Recipes](docs/biome-enemies.md#recommended-items-and-recipes)
   - [ ] Approve drop rates, effects and missing gear profiles; reconcile older recipe/source values.
@@ -228,7 +228,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [ ] Roasted Badger: Cooking Rack, 1 Badger Meat → 1; Steady Meal.
   - [ ] Fang Arrows: Workbench, 2 Viper Fang + 10 Wood → 20; 50 Pierce, weak poison 5 s.
   - [ ] Scale Cuirass: Forge, 10 Giant Scale + 10 Bronze → 1; Chest, 20 Armor.
-  - [ ] Antidote: Cauldron, 1 Venom Sac + 2 Lingonberry → 1; clear weak poison, 10 min resistance, reduce major poison to minor poison.
+  - [ ] Antidote: Cauldron, 1 Venom Sac + 2 Lingonberry → 1; clear minor poison, 10 min resistance, reduce major poison to minor poison.
   - [ ] Peat Heart Stew: Cauldron, 1 Peat Heart + 2 Potato + 1 Onion → 2; Steady Meal.
   - [ ] Wolf Pelt Boots: Workbench, 5 Wolf Pelt + 5 Iron → 1; Boots, 10 Armor.
   - [ ] Fang Spear: Forge, 4 Wolf Fang + 10 Iron + 10 Densewood → 1; 100 Stab.
@@ -241,7 +241,6 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [ ] Verify every approved drop/output has complete registered JSON, a reachable source and a generated runtime icon.
   - [ ] Run the combined A8a/A8b enemy and enemy-item milestone verification; record results and blockers. This gate must pass before A9 begins.
 
-  Bow String is reserved for bows. Review every pending non-bow binding input in its category contract; do not use Bow String there. Moonstone Ring and Dusk Ring stay in A9. Do not duplicate them.
   Enable new drops only when their material task is complete. Antidote resistance,
   slow-draw timing and Lightning effects need reviewed rules before coding; the aquatic route is approved.
   All 30 new material/output tasks include the item-completion gate above.
