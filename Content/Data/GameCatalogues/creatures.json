@@ -1,6 +1,203 @@
 {
   "creatures": [
     {
+      "CreatureId": "Boar",
+      "DisplayName": "Boar",
+      "ImplementationStatus": "Current",
+      "RuntimeBaseline": {
+        "Health": 100,
+        "Armor": 0,
+        "SpawnSelection": "Seeded archetype selection across existing land-biome wildlife slots; target allowlists are not yet applied.",
+        "Attacks": [
+          {
+            "AttackId": "Charge",
+            "Damage": {
+              "Crush": 15
+            },
+            "RepeatIntervalSeconds": 1.25
+          }
+        ],
+        "Drops": [
+          {
+            "ItemId": "BoarMeat",
+            "Quantity": 1,
+            "Chance": 1.0,
+            "ImplementationStatus": "Current"
+          },
+          {
+            "ItemId": "BoarHide",
+            "Quantity": 1,
+            "Chance": 1.0,
+            "ImplementationStatus": "Current"
+          },
+          {
+            "ItemId": "BoneFragment",
+            "Quantity": 1,
+            "Chance": 1.0,
+            "ImplementationStatus": "Current"
+          }
+        ]
+      },
+      "PlannedProfile": {
+        "Health": 20,
+        "Armor": 5,
+        "Biomes": [
+          "Meadows",
+          "Elderwood",
+          "ShimmeringLakes"
+        ],
+        "Behavior": "Territorial charge",
+        "Attacks": [
+          {
+            "AttackId": "Charge",
+            "Damage": {
+              "Crush": 10
+            }
+          }
+        ],
+        "Drops": [
+          {
+            "ItemId": "BoarMeat",
+            "Quantity": 1,
+            "Chance": 1.0,
+            "ImplementationStatus": "Current"
+          },
+          {
+            "ItemId": "BoarHide",
+            "Quantity": 1,
+            "Chance": 1.0,
+            "ImplementationStatus": "Current"
+          },
+          {
+            "ItemId": "BoneFragment",
+            "Quantity": 1,
+            "Chance": 1.0,
+            "ImplementationStatus": "Current"
+          }
+        ]
+      }
+    },
+    {
+      "CreatureId": "Deer",
+      "DisplayName": "Deer",
+      "ImplementationStatus": "Current",
+      "RuntimeBaseline": {
+        "Health": 100,
+        "Armor": 0,
+        "SpawnSelection": "Seeded archetype selection across existing land-biome wildlife slots; target allowlists are not yet applied.",
+        "Attacks": [],
+        "Drops": [
+          {
+            "ItemId": "DeerMeat",
+            "Quantity": 1,
+            "Chance": 1.0,
+            "ImplementationStatus": "Current"
+          },
+          {
+            "ItemId": "DeerHide",
+            "Quantity": 1,
+            "Chance": 1.0,
+            "ImplementationStatus": "Current"
+          },
+          {
+            "ItemId": "BoneFragment",
+            "Quantity": 1,
+            "Chance": 1.0,
+            "ImplementationStatus": "Current"
+          },
+          {
+            "ItemId": "Sinew",
+            "Quantity": 1,
+            "Chance": 0.5,
+            "ImplementationStatus": "Current"
+          }
+        ]
+      },
+      "PlannedProfile": {
+        "Health": 30,
+        "Armor": 5,
+        "Biomes": [
+          "Meadows",
+          "Elderwood",
+          "ShimmeringLakes"
+        ],
+        "Behavior": "Flees; fleeing alerts nearby deer",
+        "Attacks": [],
+        "Drops": [
+          {
+            "ItemId": "DeerMeat",
+            "Quantity": 1,
+            "Chance": 1.0,
+            "ImplementationStatus": "Current"
+          },
+          {
+            "ItemId": "DeerHide",
+            "Quantity": 1,
+            "Chance": 1.0,
+            "ImplementationStatus": "Current"
+          },
+          {
+            "ItemId": "BoneFragment",
+            "Quantity": 1,
+            "Chance": 1.0,
+            "ImplementationStatus": "Current"
+          },
+          {
+            "ItemId": "Sinew",
+            "Quantity": 1,
+            "Chance": 0.5,
+            "ImplementationStatus": "Current"
+          }
+        ]
+      }
+    },
+    {
+      "CreatureId": "Mireling",
+      "DisplayName": "Mireling",
+      "ImplementationStatus": "Current",
+      "RuntimeBaseline": {
+        "Health": 100,
+        "Armor": 0,
+        "SpawnSelection": "Seeded archetype selection across existing land-biome wildlife slots; target allowlists are not yet applied.",
+        "Attacks": [
+          {
+            "AttackId": "Melee",
+            "Damage": {
+              "Crush": 10
+            },
+            "RepeatIntervalSeconds": 1.25
+          }
+        ],
+        "Drops": [],
+        "RewardRule": "Eligible stable Mireling spawn IDs may claim a boss scroll through ClaimMirelingBossScroll; no ordinary material drop."
+      },
+      "PlannedProfile": {
+        "Health": 75,
+        "Armor": 15,
+        "Biomes": [
+          "MossyMire"
+        ],
+        "Behavior": "Approaches and uses simple melee",
+        "Attacks": [
+          {
+            "AttackId": "Melee",
+            "Damage": {
+              "Crush": 20
+            }
+          }
+        ],
+        "Drops": [
+          {
+            "ItemId": "DuskDiamond",
+            "Quantity": 1,
+            "Chance": 0.01,
+            "ImplementationStatus": "Planned"
+          }
+        ],
+        "RewardRule": "Retain current boss-scroll eligibility and claim route."
+      }
+    },
+    {
       "CreatureId": "Rat",
       "DisplayName": "Rat",
       "ImplementationStatus": "Planned",
@@ -146,7 +343,12 @@
             },
             "WindupSeconds": 0.5,
             "RecoverySeconds": 0.8,
-            "PoisonEffectId": "WeakPoison5s"
+            "Poison": {
+              "DamagePerTick": 1,
+              "DurationSeconds": 5,
+              "TickIntervalSeconds": 1,
+              "FirstTickDelaySeconds": 1
+            }
           }
         ],
         "Drops": [
@@ -226,7 +428,12 @@
             },
             "WindupSeconds": 0.5,
             "RecoverySeconds": 0.8,
-            "PoisonEffectId": "MajorPoison10s"
+            "Poison": {
+              "DamagePerTick": 5,
+              "DurationSeconds": 10,
+              "TickIntervalSeconds": 1,
+              "FirstTickDelaySeconds": 1
+            }
           }
         ],
         "Drops": [
@@ -264,11 +471,16 @@
             "Damage": {
               "Stab": 5
             },
-            "PoisonEffectId": "WeakPoison10s",
             "ApproachSeconds": 0.5,
             "ContactIntervalSeconds": 0.2,
             "ContactRangeCm": 100,
-            "MaxContactDamagePerSecond": 25
+            "MaxContactDamagePerSecond": 25,
+            "Poison": {
+              "DamagePerTick": 1,
+              "DurationSeconds": 10,
+              "TickIntervalSeconds": 1,
+              "FirstTickDelaySeconds": 1
+            }
           }
         ],
         "Drops": [],
