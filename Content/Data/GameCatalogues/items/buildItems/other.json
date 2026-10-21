@@ -19,6 +19,12 @@
       "MaxStack": 10
     },
     {
+      "ItemId": "GardenPlot",
+      "DisplayName": "Garden Plot",
+      "Description": "A prepared plot for growing crops.",
+      "MaxStack": 1
+    },
+    {
       "ItemId": "Roof",
       "DisplayName": "Reed Roof",
       "Description": "A reed roof that shields a small camp from rain.",

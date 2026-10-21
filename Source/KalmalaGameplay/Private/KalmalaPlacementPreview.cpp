@@ -5,6 +5,7 @@
 #include "KalmalaShimmeringLakeSampler.h"
 #include "KalmalaWorldGenerationGameState.h"
 #include "KalmalaConstructionActor.h"
+#include "KalmalaBiomeClassifier.h"
 #include "GameFramework/Pawn.h"
 
 bool FKalmalaPlacementPreview::IsSupportedKit(const FName ItemId)
@@ -14,7 +15,17 @@ bool FKalmalaPlacementPreview::IsSupportedKit(const FName ItemId)
         || ItemId == TEXT("CharcoalKilnKit") || ItemId == TEXT("SmelterKit")
         || ItemId == TEXT("CookingRackKit") || ItemId == TEXT("CauldronKit") || ItemId == TEXT("FryingPanKit")
         || ItemId == TEXT("WorkbenchToolRackKit") || ItemId == TEXT("ForgeAnvilKit") || ItemId == TEXT("GrindingStoneKit")
-        || ItemId == TEXT("FloorKit") || ItemId == TEXT("WallKit") || ItemId == TEXT("RoofKit");
+        || ItemId == TEXT("FloorKit") || ItemId == TEXT("WallKit") || ItemId == TEXT("RoofKit")
+        || ItemId == TEXT("GardenPlotKit");
+}
+
+bool FKalmalaPlacementPreview::IsGardenPlotGroundAllowed(const EKalmalaBiome Biome, const float SurfaceNormalZ)
+{
+    constexpr float MinimumUpComponentFor15Degrees = 0.9659258263f;
+    const bool bAllowedBiome = Biome == EKalmalaBiome::Meadows || Biome == EKalmalaBiome::Elderwood
+        || Biome == EKalmalaBiome::ShimmeringLakes;
+    return bAllowedBiome && FMath::IsFinite(SurfaceNormalZ)
+        && SurfaceNormalZ >= MinimumUpComponentFor15Degrees && SurfaceNormalZ <= 1.0f;
 }
 
 bool FKalmalaPlacementPreview::IsSessionOnlyKit(const FName ItemId)
@@ -29,6 +40,7 @@ FKalmalaPlacementPreview FKalmalaPlacementPreview::Evaluate(const UWorld* World,
     if (!IsSupportedKit(ItemId)) return Result;
     Result.Message = TEXT("Preview unavailable: waiting for local terrain");
     if (!World || !Pawn || Pawn->GetActorLocation().ContainsNaN()) return Result;
+    const bool bGardenPlot = ItemId == TEXT("GardenPlotKit");
 
     const FVector Forward = FRotator(0.0f, Pawn->GetActorRotation().Yaw, 0.0f).Vector();
     const FVector Probe = Pawn->GetActorLocation() + Forward * 165.0f;
@@ -36,7 +48,8 @@ FKalmalaPlacementPreview FKalmalaPlacementPreview::Evaluate(const UWorld* World,
     FHitResult Ground;
     Result.Message = TEXT("Preview invalid: face clear, dry, gently sloping ground");
     if (Probe.ContainsNaN() || !World->LineTraceSingleByChannel(Ground, Probe + FVector(0, 0, 100), Probe - FVector(0, 0, 350), ECC_Visibility, Query)
-        || !Cast<AKalmalaGeneratedTerrainPatch>(Ground.GetActor()) || Ground.ImpactNormal.Z < 0.85f) return Result;
+        || !Cast<AKalmalaGeneratedTerrainPatch>(Ground.GetActor())
+        || (!bGardenPlot && Ground.ImpactNormal.Z < 0.85f)) return Result;
 
     const auto* State = World->GetGameState<AKalmalaWorldGenerationGameState>();
     if (!State || !State->GetWorldGenerationConfig().IsValid()) return Result;
@@ -50,19 +63,36 @@ FKalmalaPlacementPreview FKalmalaPlacementPreview::Evaluate(const UWorld* World,
         return Result;
     }
 
+    if (bGardenPlot)
+    {
+        const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, Surface));
+        if (!IsGardenPlotGroundAllowed(Biome, Ground.ImpactNormal.Z))
+        {
+            Result.Message = TEXT("Preview invalid: Garden Plot needs dry Meadows, Elderwood, or Shimmering Lakes ground within 15 degrees");
+            return Result;
+        }
+        const FVector SkyStart = Ground.ImpactPoint + FVector(0, 0, 25.0f);
+        FHitResult Overhead;
+        if (World->LineTraceSingleByChannel(Overhead, SkyStart, SkyStart + FVector(0, 0, 100000.0f), ECC_Visibility, Query))
+        {
+            Result.Message = TEXT("Preview invalid: Garden Plot needs open sky");
+            return Result;
+        }
+    }
+
     const bool bIsStationAttachment = ItemId == TEXT("WorkbenchToolRackKit") || ItemId == TEXT("ForgeAnvilKit");
     const bool bIsKiln = ItemId == TEXT("CharcoalKilnKit");
     const bool bIsSmelter = ItemId == TEXT("SmelterKit");
     const bool bNeedsProcessingClearance = bIsKiln || bIsSmelter;
-    const bool bIsCompactConstruction = bIsStationAttachment || bNeedsProcessingClearance
+    const bool bIsCompactConstruction = bGardenPlot || bIsStationAttachment || bNeedsProcessingClearance
         || ItemId == TEXT("GrindingStoneKit") || ItemId == TEXT("FryingPanKit");
     const FVector PlacementExtent = bIsCompactConstruction
         ? AKalmalaConstructionActor::GetCollisionExtent(ItemId) : FVector(54, 54, 56);
-    const float PlacementHalfHeight = PlacementExtent.Z + (bIsCompactConstruction ? 2.0f : 0.0f);
+    const float PlacementHalfHeight = PlacementExtent.Z + (bIsCompactConstruction && !bGardenPlot ? 2.0f : 0.0f);
     Result.Location = Ground.ImpactPoint + FVector(0, 0, PlacementHalfHeight);
     const float PreviewRadius = bIsCompactConstruction
         ? FMath::Max3(PlacementExtent.X, PlacementExtent.Y, PlacementExtent.Z) : 54.0f;
-    const FCollisionShape PlacementShape = bNeedsProcessingClearance
+    const FCollisionShape PlacementShape = (bNeedsProcessingClearance || bGardenPlot)
         ? FCollisionShape::MakeBox(PlacementExtent) : FCollisionShape::MakeSphere(PreviewRadius);
     if (World->OverlapBlockingTestByChannel(Result.Location, FQuat::Identity, ECC_Pawn, PlacementShape, Query))
     {

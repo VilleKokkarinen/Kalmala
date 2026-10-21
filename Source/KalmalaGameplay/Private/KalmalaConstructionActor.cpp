@@ -182,6 +182,7 @@ FVector AKalmalaConstructionActor::GetCollisionExtent(const FName KitId)
     if (KitId == TEXT("WorkbenchToolRackKit")) return FVector(32, 25, 34);
     if (KitId == TEXT("ForgeAnvilKit")) return FVector(28, 16, 28);
     if (KitId == TEXT("GrindingStoneKit")) return FVector(42, 34, 18);
+    if (KitId == TEXT("GardenPlotKit")) return FVector(50, 50, 8);
     return FVector(54, 54, 56);
 }
 
@@ -227,7 +228,15 @@ void AKalmalaConstructionActor::BuildPiecePresentation()
     TArray<FVector> Vertices; TArray<int32> Triangles;
     // Placement and saved transforms already locate the collision centre.
     // Derive the visible solid from that same footprint on both peers.
-    if (ConstructionKit == TEXT("FloorKit") || IsShelterKit(ConstructionKit))
+    if (ConstructionKit == TEXT("GardenPlotKit"))
+    {
+        AddBox(Vertices, Triangles, FVector(0, 0, -3), FVector(50, 50, 5));
+        for (const float X : {-47.0f, 47.0f})
+            AddBox(Vertices, Triangles, FVector(X, 0, 1), FVector(3, 50, 4));
+        for (const float Y : {-47.0f, 47.0f})
+            AddBox(Vertices, Triangles, FVector(0, Y, 1), FVector(44, 3, 4));
+    }
+    else if (ConstructionKit == TEXT("FloorKit") || IsShelterKit(ConstructionKit))
         AddBox(Vertices, Triangles, FVector::ZeroVector, GetCollisionExtent(ConstructionKit));
     else if (ConstructionKit == TEXT("CookingRackKit"))
     {

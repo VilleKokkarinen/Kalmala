@@ -282,6 +282,27 @@
       "ExperienceSkill": "None",
       "ExperienceAward": 0,
       "bEnabled": true
+    },
+    {
+      "RecipeId": "GardenPlot",
+      "DisplayName": "Garden Plot",
+      "Ingredients": [
+        {
+          "ItemId": "Wood",
+          "Quantity": 4
+        },
+        {
+          "ItemId": "Stone",
+          "Quantity": 1
+        }
+      ],
+      "Output": "GardenPlot",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "RequiredStation": [],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
     }
   ]
 }
