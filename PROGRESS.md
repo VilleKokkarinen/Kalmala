@@ -5039,3 +5039,15 @@
 - **Next eligible task:** Rat Tail material/source/JSON/icon after Rat exists
   in the accepted A8a runtime. Recheck all sources before selecting it.
   Current run time: 2026-10-21 18:43 UTC.
+
+
+## Run 2026-10-21 18:43 UTC — A8 recovery-station expansion deferred
+
+- **Selected task:** A8 “Keep extra brewing stations deferred; Kiln/Smelter/Plot belong to A1/A7.” Checked only this existing child.
+- **Work completed:** reviewed the A8 contract in docs/alpha-item-details.md. A6 recovery recipes continue to use the existing Cauldron; no fermenter, brewing tree, or extra cooking station is in scope. Kiln and Smelter remain owned by A1; Garden Plot remains owned by A7. No runtime or design scope changed.
+- **Files changed by this run:** BACKLOG.md; PROGRESS.md.
+- **Lightweight checks:** searched Content/Data and gameplay source for fermenter/brewing-station implementation; none was found. Confirmed the A8 detail text matches the selected deferral and the A1/A7 ownership. git diff --check passed.
+- **Full verification:** deferred to the I4 milestone-final gate.
+- **Observable impact and authority:** no gameplay, networking, save, or authority behavior changed; the reviewed scope keeps recovery on Cauldron and avoids duplicate station ownership.
+- **Known limitations and remaining scope:** A8a/A8b and I4 verification remain pending. ReinforcedChest remains in the A8 detail table without a dedicated backlog child; this run did not add or implement that scope. A9 remains blocked until combined A8a/A8b and I4 verification pass.
+- **Next eligible task:** A8a review the expanded enemy roster, spawn weights, attack and loot rules. Current run time: 2026-10-21 18:43 UTC.
