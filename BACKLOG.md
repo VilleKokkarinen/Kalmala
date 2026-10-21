@@ -167,7 +167,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   Draughts: one dose per craft; shared 60 s cooldown. All cooking needs a lit hearth.
 
 - [ ] **A7 — Farming and fishing (P2).** [Growth and catch rules](docs/alpha-item-details.md#a7)
-  - [ ] Review farming. Garden Plot: Cultivation Rake, cultivation menu addition.
+  - [x] Review farming. Garden Plot: Cultivation Rake, cultivation menu addition.
   - [ ] Carrot: 1 seed → 3 carrots; 1 carrot → 3 seeds.
   - [ ] Potato: 1 potato → 3 potatoes; Potato Seed stays unused.
   - [ ] Rutabaga: 1 seed → 3 roots; 1 root → 3 seeds.

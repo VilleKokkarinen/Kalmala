@@ -4784,3 +4784,13 @@
 - **Observable impact and authority:** adding item, recipe, equipment, reward, attack, or progression catalogue records no longer requires raising a project-defined count or total-JSON ceiling. Server authority, inventory transactions, RPCs, and save schemas are unchanged.
 - **Known limitations/remaining scope:** per-entry gameplay rules (stack, batch, ingredient, and field bounds) and player inventory capacity remain intentional. New definitions still require manifest registration and the established runtime icon mapping/asset checks. Main checkout was used, so no handoff sync was needed. The A6 parent and deferral child are checked after successful I2 verification; A5 Cultivation Rake remains dependent on A7.
 - **Next eligible task:** A7 Review farming; A5 Cultivation Rake remains blocked on A7.
+
+## Run 2026-10-21 12:01 UTC — A7 farming review recorded
+
+- **Work completed:** reviewed the approved crop modes, Garden Plot placement, terrain/slope/sky limits, active-time growth, persistence and harvest rules. Specified the Cultivation menu contents and server validation. Aligned the detailed Cultivation Rake recipe with the backlog’s Forge 1, 10 Wood + 5 Bronze recipe; its behavior and repair notes remain as documented.
+- **Files changed by this run:** `BACKLOG.md`; `PROGRESS.md`; `docs/alpha-item-details.md`.
+- **Lightweight checks:** focused source-of-truth assertions and `git diff --check` passed; changed paths were checked against the 260-character Windows path limit.
+- **Verification status:** documentation-only increment; no build or runtime tests were applicable. Full I3 verification remains deferred until the milestone’s final implementation task.
+- **Observable impact and authority:** farming implementation now has an explicit plot interaction menu contract that exposes the seven approved crop/mode choices, payment and growth state. The server remains responsible for validating planting and harvest. No runtime, networking, item catalogue, or save data changed.
+- **Known limitations/remaining scope:** farming and fishing remain unimplemented; the A5 Rake and crop loops are design-only. The fishing review and remaining A7 implementations are still pending.
+- **Next eligible task:** A5 Cultivation Rake (Forge 1, 10 Wood + 5 Bronze); the A7 review dependency is now satisfied, and the Carrot loop depends on the Rake.

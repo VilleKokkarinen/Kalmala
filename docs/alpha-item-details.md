@@ -212,7 +212,7 @@ targeting, damage prevention and repulsion behavior; unlit, stored and empty
 torches must not count. This does not change torch recipes or imply warmth,
 world ignition or direct torch damage.
 
-- Review and add Cultivation Rake (`CultivationRake`) only with A7: Workbench 1, 2 Wood + 2 Stone + 2 non-bow binding input (ID/cost to review) → 1; stack 1, 1 kg, 100 condition. Hold to plant/harvest approved garden plots; one condition per accepted planting, none on harvest/rejection. Free Workbench repair, no upgrades, damage or terrain editing.
+- Add Cultivation Rake (`CultivationRake`) with A7: Forge level 1, 10 Wood + 5 Bronze → 1; stack 1, 1 kg, 100 condition. Hold to plant/harvest approved garden plots; one condition per accepted planting, none on harvest/rejection. Free Workbench repair, no upgrades, damage or terrain editing.
 - Record terrain-editing Hoe as deferred from this alpha proposal: no height edits, smoothing, roads or grass-painting system. The Rake works only on A7 plots and does not modify the shared terrain sampler.
 
 ## A6
@@ -251,7 +251,8 @@ propagation is not a recipe prerequisite.
 ## A7
 
 Crops, seeds and fishing (P2; scope approved 2026-10-19).
-- Review Garden Plot (`GardenPlot`) plus the farming table below: Hammer placement 4 Wood + 1 Stone, grounded 2 m × 2 m plot on dry Meadows/Elderwood/Shimmering Lakes terrain, maximum 15-degree slope. One crop per plot, open sky, no watering/fertilizer/season or terrain deformation. Require held usable A5 Rake for planting/harvest; reject conflicting/occupied plots before payment.
+- Garden Plot (`GardenPlot`) is a direct-material Hammer buildable placed through the Build menu for 4 Wood + 1 Stone on dry Meadows/Elderwood/Shimmering Lakes terrain, grounded within a maximum 15-degree slope. One crop per plot, open sky, no watering/fertilizer/season or terrain deformation.
+- Interacting with a plot while holding a usable A5 Rake opens its Cultivation menu. Show the seven reviewed crop/mode choices below with their exact payment and current growth state/remaining active seconds; offer one harvest when mature. The server validates the held Rake, plot, selection, payment, and harvest before changing state. Reject invalid or occupied plots before payment.
 - Implement Carrot planting, maturation, harvest and seed renewal as the first full loop, with A5 Rake and direct-material plot placement (after the A7 farming review).
 - Implement Potato tuber propagation; retain `PotatoSeed` as an unused development definition with no drops/recipes, not an alternative planting input (blocked on first crop loop).
 - Implement Rutabaga food/seed propagation from the table (blocked on first crop loop).
