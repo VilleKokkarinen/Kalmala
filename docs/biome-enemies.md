@@ -94,21 +94,22 @@ with placeholder data or a fallback icon.
 
 **Recipe reconciliation (2026-10-21).** The checklist's Badger Fur Vest and
 Lynx Mantle recipes supersede the older extra-String proposals below. Bow
-String is reserved for bows, and no ordinary String item is approved. Effects
-that lack an approved contract are identified after the table. Every retained
-drop has a use; Boar and Mosquito swarm currently have no unique A8b drop.
+String is reserved for bows, and no ordinary String item is approved. The
+delegated A8b effect and profile choices are resolved after the table. Every
+retained drop has a use; Boar and Mosquito swarm currently have no unique A8b
+drop.
 
 | Recommended item | Station      | Recipe / output                              | Proposed use / base effect     |
 | ---------------- | ------------ | -------------------------------------------- | ------------------------------ |
 | Bow String       | Workbench    | 4 Sinew → 1                                  | Existing bow material          |
-| Rat-tail Tonic   | Cauldron     | 2 Rat Tail + 2 Lingonberry → 1               | Heal 30 HP over 10 s           |
+| Rat-tail Tonic   | Cauldron     | 2 Rat Tail + 2 Lingonberry → 1               | Heal 30 HP over 10 s; shared 60 s cooldown |
 | Badger Fur Vest  | Workbench    | 6 Badger Fur → 1                             | Chest; 6 Armor                 |
 | Roasted Badger   | Cooking Rack | 1 Badger Meat → 1                            | Steady Meal                    |
 | Moonstone Ring   | Forge        | 5 Bronze + 1 Moonstone → 1                   | +20 max stamina; existing plan |
 | Fang Arrows      | Workbench    | 2 Viper Fang + 10 Wood → 20                  | 50 Pierce; weak poison 5 s     |
 | Scale Cuirass    | Forge        | 10 Giant Scale + 10 Bronze → 1               | Chest; 20 Armor                |
 | Dusk Ring        | Forge        | 5 Bronze + 1 Dusk Diamond → 1                | +10 HP, +10 stamina, +5 Armor  |
-| Antidote         | Cauldron     | 1 Venom Sac + 2 Lingonberry → 1              | Effect unresolved; see review below       |
+| Antidote         | Cauldron     | 1 Venom Sac + 2 Lingonberry → 1              | Clear weak; reduce major to weak; 10 min resistance |
 | Peat Heart Stew  | Cauldron     | 1 Peat Heart + 2 Potato + 1 Onion → 2        | Steady Meal                    |
 | Wolf Pelt Boots  | Workbench    | 5 Wolf Pelt + 5 Iron   → 1                   | Boots; 10 Armor                |
 | Fang Spear       | Forge        | 4 Wolf Fang + 10 Iron + 10 Densewood → 1     | 100 Stab                       |
@@ -125,36 +126,25 @@ drop has a use; Boar and Mosquito swarm currently have no unique A8b drop.
 - Fang Arrows use the existing weak-poison profile, 1 damage/s for 5 s, on an
   accepted hit. Apply the existing strongest-dose/refresh rules once per
   projectile hit; do not repeat the poison application.
-- Rat-tail Tonic's 30 healing over 10 s is listed in A8b, but its use limits
-  are not settled. The older recommendation proposes a 60 s Tonic/Antidote
-  shared cooldown; A6 currently shares its 60 s cooldown only between Berry
-  Recovery Draught and Root Stamina Draught. Define whether A8b uses a separate
-  or common cooldown (including those draughts), whether full-health use is
-  rejected, and whether healing stops on death before implementing use behavior.
-- Antidote remains unresolved. A6 explicitly defers poison resistance. The
-  A8b checklist says to clear weak poison, resist for 10 minutes and reduce
-  major poison to minor; this section's older revised proposal instead halves
-  major-poison damage. Neither resistance behavior nor the conflicting major-
-  poison outcome has a recorded approval. Decide whether resistance is in
-  scope; if so, define what it resists, its effect on an active/reapplied
-  poison, its duration/refresh behavior, and whether major poison is reduced
-  to minor or deals half damage. Do not implement from either draft.
+- Rat-tail Tonic and Antidote share A6's 60-second recovery cooldown with Berry
+  Recovery Draught and Root Stamina Draught. Rat-tail Tonic rejects full-health
+  use and active healing, restores 30 HP over 10 seconds, and stops on death.
+  Antidote clears active weak poison, reduces active major poison to weak, then
+  grants 10 minutes of resistance that blocks weak poison and reduces new major
+  poison to weak. Active and reapplied poison follow the existing strongest-dose
+  refresh rules. The full use and death contract is in
+  [A8b item details](alpha-item-details.md#a8b).
 - Bow damage is a weapon bonus, combined once with arrow damage. Armor is
   physical-only. Fur items grant no cold protection in this recommendation.
-- Horn Bow's +100 Pierce bonus is retained, but its slow-draw duration and full
-  bow profile have no approved values.
-- Thunder Maul's 100 Crush + 30 Lightning summary is retained as a proposal;
-  define the Lightning damage channel, mitigation/application behavior and
-  whether it adds any status effect. No new Lightning effect is implied.
-- Reef Harpoon remains in the approved aquatic route at 60 Pierce; it adds no
-  skiff damage. Its weapon profile still needs approval.
-- Full equipment profiles are missing for Badger Fur Vest, Scale Cuirass, Wolf
-  Pelt Boots, Lynx Mantle and Polar Bear Coat (weight, maximum condition,
-  repair station/cost, and whether/how each upgrades). Fang Spear, Horn Bow,
-  Thunder Maul and Reef Harpoon also need weight, hands, maximum condition,
-  attack timing/reach or draw timing, repair and upgrade profiles as applicable.
-  Do not infer these from armor/damage summaries. Each item still needs
-  server-validated crafting/use and original inventory icons.
+- A8b's armor and weapon weights, condition, hand use, repair, upgrade, timing
+  and reach profiles are selected in
+  [A8b item details](alpha-item-details.md#a8b). Horn Bow full draw is 3 seconds.
+  Thunder Maul Lightning is an instant additional 30 damage through the same
+  server hit; it bypasses wearable physical Armor and uses the target's general
+  Armor reduction, with no chain or status effect. Reef Harpoon remains a melee
+  weapon at 60 Pierce and adds no skiff damage.
+- Every item still requires complete registered catalogue data, server-owned
+  acquisition/use and an original generated runtime icon before completion.
 
 ## Proposed roster
 

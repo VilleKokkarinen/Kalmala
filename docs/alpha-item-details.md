@@ -224,7 +224,9 @@ Forage, meals and recovery consumables (P1; scope approved 2026-10-19).
 - Review the recovery table below's server-owned effect rules before implementation; use Cauldron at a lit hearth, no new brewing station, alcohol/base items or fermentation step.
 - Add Berry Recovery Draught (`BerryRecoveryDraught`) with the complete reviewed recipe/effect/icon path.
 - Add Root Stamina Draught (`RootStaminaDraught`) with the complete reviewed recipe/effect/icon path.
-- Explicitly defer cold/poison/fire-resistance preparations: no consumable hazard bypass or new resistance channel in this alpha set.
+- A6 itself adds no cold, poison or fire resistance preparation. A8b's later
+  Antidote contract is the sole poison-resistance exception; no cold- or
+  fire-resistance consumable is approved.
 
 | Consumable | Cauldron cost / output | Effect / limit |
 | --- | --- | --- |
@@ -336,22 +338,64 @@ Review outcome — 2026-10-21:
   poison profile (1 damage/s for 5 seconds) and strongest-dose refresh rules,
   applied once per projectile hit. Fur gear gives no cold protection; armor is
   physical-only. Reef Harpoon adds no skiff damage.
-- Do not implement Antidote yet. A6 explicitly defers poison resistance, while
-  the A8b backlog says to clear weak poison, resist for 10 minutes and reduce
-  major poison to minor; the older revised proposal says to halve major-poison
-  damage. No decision log entry approves resistance or resolves that conflict.
-  Decide whether resistance is in scope, what it resists, how active/reapplied
-  poison and effect refresh work, and whether major poison becomes minor or
-  deals half damage. Also decide whether Antidote shares a cooldown with
-  Rat-tail Tonic and the existing Berry/Root draught pair. Rat-tail Tonic still
-  needs approved full-health rejection and death-cancellation behavior.
-- Full profiles remain unapproved for Badger Fur Vest, Scale Cuirass, Wolf Pelt
-  Boots, Lynx Mantle and Polar Bear Coat: weight, maximum condition, repair
-  station/cost, and upgrade availability/cost/stat steps. Fang Spear, Horn Bow,
-  Thunder Maul and Reef Harpoon need weight, hand use, condition, attack/draw
-  timing and reach, and repair/upgrade profiles as applicable. Horn Bow's slow-
-  draw duration and Thunder Maul's Lightning channel, mitigation and application
-  behavior are also unresolved. Do not infer these from armor or damage totals.
+- A8b effect and equipment decisions, 2026-10-21: the user explicitly delegated
+  these values to Codex and said they may be adjusted later. They are now the
+  implementation contract unless the user changes them.
+- Rat-tail Tonic weighs 0.2 kg, stacks to 10, and uses the A8b Cauldron recipe.
+  It restores up to 30 health over 10 seconds at 3 health/second, clamped to
+  maximum health and ending early when full. Reject use when
+  dead, at full health, while this or Berry Recovery healing is active, or while
+  the shared recovery cooldown is active; rejected use consumes nothing. The
+  heal ends on death, with no item or cooldown refund. It shares A6's 60-second
+  cooldown with Berry Recovery Draught, Root Stamina Draught and Antidote.
+  Consumable crafting awards 10 Cooking XP per dose, matching A6.
+- Antidote weighs 0.2 kg and stacks to 10. It may be used by a living player at
+  full health, including before poison is applied. On use it clears active weak
+  poison; an active major dose becomes weak poison at 1 damage/second, with its
+  remaining duration capped at 5 seconds. The dose grants 600 seconds of
+  resistance: new weak poison is blocked and new major poison is reduced to the
+  weak profile (1 damage/second for up to 5 seconds). Converted weak doses use
+  the existing strongest-dose refresh rules and never stack. On resistance
+  expiry, any converted weak dose continues only for its remaining duration
+  and never returns to major strength. Reject use during
+  the shared 60-second A6 recovery cooldown or while resistance is already
+  active; rejected use consumes nothing. Death ends resistance but does not
+  refund the dose or clear the cooldown. Antidote is a targeted A8b poison
+  preparation; it does not approve other hazard-resistance consumables.
+- Armor profiles. All values below are base values; armor is physical-only and
+  fur provides no cold protection. Repair uses the existing server-validated
+  free Workbench repair, with no repair materials. Each armor item has one
+  Workbench or Forge upgrade step as listed; the shared reward is +1 Armor and
+  +10 MaxDurability. No second upgrade step is planned.
+
+  | Item | Weight / MaxDurability | Slot / Armor | Upgrade station and cost |
+  | ---- | --------------------- | ------------ | ------------------------ |
+  | Badger Fur Vest | 4 kg / 100 | Chest / 6 | Workbench: 3 Badger Fur |
+  | Scale Cuirass | 8 kg / 150 | Chest / 20 | Forge: 5 Giant Scale + 5 Bronze |
+  | Wolf Pelt Boots | 3 kg / 120 | Boots / 10 | Workbench: 2 Wolf Pelt + 2 Iron |
+  | Lynx Mantle | 2 kg / 100 | Cape / 8 | Workbench: 2 Lynx Pelt + 1 Bone Fragment |
+  | Polar Bear Coat | 12 kg / 200 | Chest / 50 | Forge: 2 Polar Bear Pelt + 10 Iron |
+
+- Weapon profiles. Melee weapons use the current server combat timing (0.18
+  second windup, 0.36 second recovery) and 220 cm reach. Repair is the existing
+  server-validated free Workbench repair. Each weapon has one upgrade step;
+  no second upgrade step is planned.
+
+  | Item | Weight / hands / MaxDurability | Attack and action | Upgrade station, cost and reward |
+  | ---- | ----------------------------- | ----------------- | -------------------------------- |
+  | Fang Spear | 4 kg / one / 200 | 100 Stab; standard melee timing and reach | Forge: 2 Wolf Fang + 5 Iron + 5 Densewood; +5 Stab, +50 MaxDurability |
+  | Horn Bow | 2.5 kg / two / 140 | 100 Pierce weapon bonus; 3-second full draw; existing arrow curves | Workbench: 1 Goat Horn + 5 Densewood + 1 Bow String; +30 MaxDurability, no damage bonus |
+  | Thunder Maul | 10 kg / two / 220 | 100 Crush + 30 Lightning; standard melee timing and reach | Forge: 1 Thunder Core + 10 Iron + 5 Densewood; +5 Crush, +50 MaxDurability, Lightning stays 30 |
+  | Reef Harpoon | 4 kg / one / 150 | 60 Pierce; standard spear-like melee timing and reach; not thrown | Forge: 1 Reef Tooth + 4 Iron + 2 Lightwood; +5 Pierce, +30 MaxDurability |
+
+- The Thunder Maul applies its 30 Lightning as instant additional damage on the
+  same accepted server hit. It bypasses wearable physical Armor, then uses the
+  target's existing general Armor reduction; it adds no Lightning resistance.
+  It does not chain, deal damage over time, stun or interact with the
+  environment. Fang Arrows retain the existing weak-poison profile and
+  strongest-dose refresh rules, applied once per accepted projectile hit.
+  Armor has no attack record; weapons have no equipment slot; consumables have
+  no equipment, attack or upgrade records.
 - Current committed source has no A8b material-producing enemy among the A8a
   roster. Keep each material and any recipe that consumes it incomplete until
   its named enemy has a reachable, accepted server-side defeat reward. Recheck

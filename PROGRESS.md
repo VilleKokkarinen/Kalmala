@@ -5000,3 +5000,39 @@
 - **Next eligible task:** resolve the remaining A8b effect and equipment-profile
   decisions in the split review child, then recheck source availability before
   selecting a material or output. Current run time: 2026-10-21 18:24 UTC.
+
+## A8b effects and equipment profiles — 2026-10-21
+
+- **Selected backlog increment:** resolve the remaining effect and full
+  equipment-profile decisions before implementing affected outputs.
+- **Work completed:** recorded a concrete Antidote poison-resistance and
+  cooldown contract, Rat-tail Tonic use/death rules, all five armor profiles,
+  all four weapon profiles, repair and one-step upgrade rules, the 3-second
+  Horn Bow draw, and instant non-chaining Thunder Maul Lightning. The user
+  explicitly delegated these choices and may adjust them later. Checked only
+  the A8b decision child; parent and item tasks remain incomplete.
+- **Files changed:** BACKLOG.md, PROGRESS.md, docs/05-decision-log.md,
+  docs/alpha-item-details.md, docs/alpha-items.md, docs/biome-enemies.md.
+- **Lightweight checks:** compared A6's shared 60-second cooldown and healing
+  rules, the existing weak/major poison profiles, equipment durability and
+  level-up rewards, and current melee timing/reach against the selected values;
+  git diff --check passed. Documentation only; no runtime or catalogue check
+  applies to this increment.
+- **Full verification:** no build or gameplay automation ran. Combined I4
+  A8/A8a/A8b verification remains deferred until the integrated final gate.
+- **Observable impact and authority:** no runtime behavior changed. Future
+  acquisition, crafting, healing, poison and damage effects remain
+  server-owned; the decision contract now makes the next item implementations
+  deterministic.
+- **Known limitations/dependencies:** no A8b item JSON, runtime catalogue
+  recipe, drop, runtime mapping or icon was implemented. All 15 material sources
+  remain absent from the committed A8a runtime; each material and dependent
+  output stays incomplete until its named enemy has an accepted server-side
+  source.
+- **Integration state:** committed handoff remains on codex/a8b-items in
+  E:\dev\Kalmala\.wt\a8b. Main has unrelated changes and the equipment
+  automation is active, so master integration and BACKLOG/PROGRESS
+  synchronization remain pending.
+- **Next eligible task:** Rat Tail material/source/JSON/icon after Rat exists
+  in the accepted A8a runtime. Recheck all sources before selecting it.
+  Current run time: 2026-10-21 18:39 UTC.

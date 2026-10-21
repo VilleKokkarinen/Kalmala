@@ -162,7 +162,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [x] Review draught effects; use existing Cauldron, no brewing station.
   - [x] Berry Recovery Draught: 3 Lingonberry + 1 Carrot; heals 20 over 10 s.
   - [x] Root Stamina Draught: 2 Potato + 1 Onion; restores 20 stamina.
-  - [x] Keep cold/poison/fire-resistance preparations deferred.
+  - [x] Keep cold/fire-resistance preparations deferred; A8b Antidote is the sole poison-resistance exception.
 
   Draughts: one dose per craft; shared 60 s cooldown. All cooking needs a lit hearth.
 
@@ -208,7 +208,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
 
 - [ ] **A8b — Enemy materials and crafted items (P1/P2).** [Recipes](docs/biome-enemies.md#recommended-items-and-recipes)
   - [x] Reconcile the user-edited drop amounts/chances and recipe station/cost/output values with existing approved contracts; align source ownership and the proposal table.
-  - [ ] Resolve the remaining effect and full equipment-profile decisions before implementing affected outputs; see [A8b review](docs/alpha-item-details.md#a8b).
+  - [x] Resolve the remaining effect and full equipment-profile decisions before implementing affected outputs; see [A8b review](docs/alpha-item-details.md#a8b).
   - [ ] Rat Tail: Rat, 1 guaranteed; material + source + JSON + generated icon.
   - [ ] Badger Fur: Badger, 1 guaranteed; material + source + JSON + generated icon.
   - [ ] Badger Meat: Badger, 1 guaranteed; material + source + JSON + generated icon.
@@ -224,12 +224,12 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [ ] Goat Horn: Horned Goat, 1 guaranteed; material + source + JSON + generated icon.
   - [ ] Thunder Core: Thunder Sentinel, 25% chance of 1; material + source + JSON + generated icon.
   - [ ] Reef Tooth: Reef Maw, 50% chance of 1; material + source + JSON + generated icon.
-  - [ ] Rat-tail Tonic: Cauldron, 2 Rat Tail + 2 Lingonberry → 1; heal 30 over 10 s; use limits remain unresolved.
+  - [ ] Rat-tail Tonic: Cauldron, 2 Rat Tail + 2 Lingonberry → 1; heal 30 over 10 s; reject full health/active healing, stop on death, share the 60 s A6 recovery cooldown.
   - [ ] Badger Fur Vest: Workbench, 6 Badger Fur → 1; Chest, 6 Armor.
   - [ ] Roasted Badger: Cooking Rack, 1 Badger Meat → 1; Steady Meal.
   - [ ] Fang Arrows: Workbench, 2 Viper Fang + 10 Wood → 20; 50 Pierce, weak poison 5 s.
   - [ ] Scale Cuirass: Forge, 10 Giant Scale + 10 Bronze → 1; Chest, 20 Armor.
-  - [ ] Antidote: Cauldron, 1 Venom Sac + 2 Lingonberry → 1; effect unresolved, see the A8b review.
+  - [ ] Antidote: Cauldron, 1 Venom Sac + 2 Lingonberry → 1; clear weak poison, reduce major poison to weak, resist poison for 10 min; share the 60 s A6 recovery cooldown.
   - [ ] Peat Heart Stew: Cauldron, 1 Peat Heart + 2 Potato + 1 Onion → 2; Steady Meal.
   - [ ] Wolf Pelt Boots: Workbench, 5 Wolf Pelt + 5 Iron → 1; Boots, 10 Armor.
   - [ ] Fang Spear: Forge, 4 Wolf Fang + 10 Iron + 10 Densewood → 1; 100 Stab.
@@ -243,10 +243,9 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [ ] Run the combined A8a/A8b enemy and enemy-item milestone verification; record results and blockers. This gate must pass before A9 begins.
 
   Bow String is reserved for bows. Review every pending non-bow binding input in its category contract; do not use Bow String there. Moonstone Ring and Dusk Ring stay in A9. Do not duplicate them.
-  Enable new drops only when their material task is complete. Antidote resistance
-  and major-poison behavior/cooldown, Rat-tail Tonic use limits, Horn Bow slow-draw
-  duration, Thunder Maul Lightning behavior, and full armor/weapon profiles remain
-  unresolved; do not infer them during implementation. The Reef Harpoon route is
+  Enable new drops only when their material task is complete. A8b effects and
+  full armor/weapon profiles are resolved in
+  [the item contract](docs/alpha-item-details.md#a8b). The Reef Harpoon route is
   approved but adds no skiff damage. At the current committed baseline, every
   A8b material source is absent from the accepted A8a runtime roster; keep each
   material and its dependent output incomplete until the named enemy has a
