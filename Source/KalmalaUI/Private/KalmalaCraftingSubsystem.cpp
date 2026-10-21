@@ -68,6 +68,18 @@ namespace
 {
 constexpr int32 RecipeGridColumns = 4;
 constexpr int32 BuildTileGridColumns = 10;
+
+bool HasUsableMainHandPlantingTrowel(const AKalmalaCharacter* Character,
+    const UKalmalaInventoryComponent* Inventory)
+{
+    if (!Character || !Inventory || Inventory->GetActiveItem() != TEXT("PlantingTrowel")) return false;
+    const FGuid ToolGuid = Inventory->GetActiveInstanceGuid();
+    if (!ToolGuid.IsValid() || Inventory->GetMainHandGuid() != ToolGuid) return false;
+    const int32 ToolLevel = Character->GetCarriedToolLevel(ToolGuid);
+    const int32 MaximumCondition = FKalmalaToolLifecycleContract::GetMaxDurability(TEXT("PlantingTrowel"), ToolLevel);
+    const int32 Condition = Character->GetToolDurability(ToolGuid);
+    return ToolLevel == 1 && MaximumCondition == 100 && Condition > 0 && Condition <= MaximumCondition;
+}
 constexpr int32 MaxFavoriteRecipeCount = 256;
 const FString CraftingNoPanelImage;
 
@@ -1175,7 +1187,9 @@ TArray<int32> UKalmalaCraftingWidget::GetVisibleRecipeIndices() const
     {
         const auto& Recipe = Recipes[Index];
         const int32 BuildGroup = GetBuildBrowseGroup(Recipe.GetOutputIdentity());
-        const bool bCategoryMatches = StationFilterKit.IsNone()
+        const bool bCategoryMatches = bFarmingBuildMenu
+            ? Recipe.GetOutputIdentity() == TEXT("GardenPlotKit") && BuildGroup != 0
+            : StationFilterKit.IsNone()
             ? bInventoryCompanion
                 ? CanInventoryMenuCraftRecipe(Recipe)
                 : BuildGroup != 0 && (RecipeCategory == 3 || (RecipeCategory == 7 && (IsRecipeFavorite(Recipe.RecipeId) || IsRecipeRecent(Recipe.RecipeId))) || (RecipeCategory >= 4 && RecipeCategory <= 6 && BuildGroup == RecipeCategory))
@@ -1215,7 +1229,7 @@ TArray<int32> UKalmalaCraftingWidget::GetVisibleRecipeIndices() const
 void UKalmalaCraftingWidget::RefreshBrowseControlLabels()
 {
     const bool bStandaloneBuildMenu = !bEmbeddedContext && !bInventoryCompanion && StationFilterKit.IsNone();
-    const FString BrowseCategoryName = GetBrowseCategoryLabel(RecipeCategory);
+    const FString BrowseCategoryName = bFarmingBuildMenu ? TEXT("Farming") : GetBrowseCategoryLabel(RecipeCategory);
     const FString SortName = bRecipeNameSort ? TEXT("Name") : TEXT("Catalogue");
     if (RecipeCategoryLabel)
         RecipeCategoryLabel->SetText(FText::FromString(bStandaloneBuildMenu
@@ -1306,11 +1320,24 @@ void UKalmalaCraftingWidget::ToggleSelectedFavorite()
     SetRecipeBrowse(RecipeQuery, RecipeCategory, bRecipeNameSort);
 }
 
-void UKalmalaCraftingWidget::Open() { OpenInternal(NAME_None); }
+void UKalmalaCraftingWidget::Open()
+{
+    bFarmingBuildMenu = false;
+    OpenInternal(NAME_None);
+}
+
+bool UKalmalaCraftingWidget::OpenForFarming()
+{
+    bFarmingBuildMenu = true;
+    if (OpenInternal(NAME_None)) return true;
+    bFarmingBuildMenu = false;
+    return false;
+}
 
 bool UKalmalaCraftingWidget::OpenAsInventoryCompanion()
 {
     if (bOpen) return false;
+    bFarmingBuildMenu = false;
     bInventoryCompanion = true;
     if (OpenInternal(NAME_None, nullptr, FString(), true, FString())) return true;
     bInventoryCompanion = false;
@@ -1325,7 +1352,8 @@ void UKalmalaCraftingWidget::CloseInventoryCompanion()
 void UKalmalaCraftingWidget::RememberMenuBrowseState()
 {
     const bool bInventoryFocused = IsInventoryInspectionFocused();
-    FKalmalaMenuBrowseMemory& Memory = MenuBrowseMemory.FindOrAdd(StationFilterKit);
+    const FName BrowseKey = bFarmingBuildMenu ? FName(TEXT("PlantingTrowelMenu")) : StationFilterKit;
+    FKalmalaMenuBrowseMemory& Memory = MenuBrowseMemory.FindOrAdd(BrowseKey);
     Memory.Query = RecipeQuery;
     Memory.Category = RecipeCategory;
     Memory.bNameSort = bRecipeNameSort;
@@ -1381,7 +1409,8 @@ bool UKalmalaCraftingWidget::RestoreMenuBrowseState(const FName StationKit)
 {
     StationFilterKit = StationKit;
     Selected = 0;
-    const FKalmalaMenuBrowseMemory* Memory = MenuBrowseMemory.Find(StationKit);
+    const FName BrowseKey = bFarmingBuildMenu ? FName(TEXT("PlantingTrowelMenu")) : StationKit;
+    const FKalmalaMenuBrowseMemory* Memory = MenuBrowseMemory.Find(BrowseKey);
     if (!Memory)
     {
         RecipeQuery.Reset();
@@ -1441,11 +1470,13 @@ bool UKalmalaCraftingWidget::RestoreMenuBrowseState(const FName StationKit)
 
 bool UKalmalaCraftingWidget::OpenForStation(const FName StationKit)
 {
+    bFarmingBuildMenu = false;
     return OpenInternal(StationKit);
 }
 
 bool UKalmalaCraftingWidget::OpenInStationContext(AKalmalaConstructionActor* Station, const FString& Section)
 {
+    bFarmingBuildMenu = false;
     UKalmalaCraftingComponent* Crafting = Model();
     const FName Kit = Crafting ? Crafting->GetLastStationContextKit() : NAME_None;
     const FString ConstructionId = Crafting ? Crafting->GetLastStationContextConstructionId() : FString();
@@ -1512,9 +1543,12 @@ bool UKalmalaCraftingWidget::OpenInternal(const FName StationKit,
     const auto* Character = Cast<AKalmalaCharacter>(PC->GetPawn());
     const UKalmalaInventoryComponent* Inventory = Character
         ? Character->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
+    const bool bHasConstructionHammer = Inventory && Inventory->GetActiveItem() == TEXT("ConstructionHammer")
+        && Character && Character->GetCarriedToolLevel(TEXT("ConstructionHammer")) >= 1;
+    const bool bHasFarmingTrowel = bFarmingBuildMenu && StationKit.IsNone() && !bInEmbeddedContext
+        && HasUsableMainHandPlantingTrowel(Character, Inventory);
     if (!Character || (!bInventoryCompanion && StationKit.IsNone()
-        && (Character->GetCarriedToolLevel(TEXT("ConstructionHammer")) < 1
-            || !Inventory || Inventory->GetActiveItem() != TEXT("ConstructionHammer")))) return false;
+        && !bHasConstructionHammer && !bHasFarmingTrowel)) return false;
     StationFilterKit = StationKit;
     bEmbeddedContext = bInEmbeddedContext;
     ContextStationActor = StationActor;
@@ -1533,7 +1567,8 @@ bool UKalmalaCraftingWidget::OpenInternal(const FName StationKit,
         SetRecipeBrowse(RecipeQuery, 3, bRecipeNameSort);
     }
     if (!bInventoryCompanion) RestoreMenuBrowseState(StationKit);
-    if (!bInventoryCompanion && StationKit.IsNone() && !MenuBrowseMemory.Contains(StationKit))
+    const FName BrowseStateKey = bFarmingBuildMenu ? FName(TEXT("PlantingTrowelMenu")) : StationKit;
+    if (!bInventoryCompanion && StationKit.IsNone() && !MenuBrowseMemory.Contains(BrowseStateKey))
     {
         const TArray<int32> VisibleBuilds = GetVisibleRecipeIndices();
         const TArray<FKalmalaRecipe>& Recipes = UKalmalaRecipeCatalogue::Get()->Recipes;
@@ -1675,9 +1710,13 @@ void UKalmalaCraftingWidget::ConfigureStationContextPresentation(const FString& 
 
     if (StationFilterKit.IsNone())
     {
-        if (HeaderText) HeaderText->SetText(FText::FromString(bInventoryCompanion ? TEXT("Crafting") : TEXT("Construction Hammer — Build")));
+        if (HeaderText) HeaderText->SetText(FText::FromString(bInventoryCompanion ? TEXT("Crafting")
+            : bFarmingBuildMenu ? TEXT("Planting Trowel — Farming") : TEXT("Construction Hammer — Build")));
         if (InstructionsText) InstructionsText->SetText(FText::FromString(bInventoryCompanion
-            ? TEXT("Item recipes, ingredients, and any required service station.") : GeneralInstructions));
+            ? TEXT("Item recipes, ingredients, and any required service station.")
+            : bFarmingBuildMenu
+                ? TEXT("Choose Garden Plot to place it from direct materials. Aim at an existing Garden Plot and right-click to open its crop choices.")
+                : GeneralInstructions));
         return;
     }
 
@@ -2486,6 +2525,7 @@ void UKalmalaCraftingWidget::Close()
     }
     bEmbeddedContext = false;
     bInventoryCompanion = false;
+    bFarmingBuildMenu = false;
     bCookingRackContext = false;
     bCauldronContext = false;
     bFryingPanContext = false;
@@ -6039,9 +6079,11 @@ bool UKalmalaCraftingSubsystem::BeginBuildPlacement(const FName BuildableId)
     const AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(Controller->GetPawn());
     const UKalmalaInventoryComponent* Inventory = Character
         ? Character->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
-    if (!Character || !Character->IsLocallyControlled() || !Inventory
-        || Inventory->GetActiveItem() != TEXT("ConstructionHammer")
-        || Character->GetCarriedToolLevel(TEXT("ConstructionHammer")) < 1) return false;
+    const bool bHammerReady = Character && Inventory && Inventory->GetActiveItem() == TEXT("ConstructionHammer")
+        && Character->GetCarriedToolLevel(TEXT("ConstructionHammer")) >= 1;
+    const bool bTrowelGardenPlot = BuildableId == TEXT("GardenPlotKit")
+        && HasUsableMainHandPlantingTrowel(Character, Inventory);
+    if (!Character || !Character->IsLocallyControlled() || (!bHammerReady && !bTrowelGardenPlot)) return false;
     PendingBuildPlacementKit = BuildableId;
     PendingBuildPlacementStartedFrame = GFrameCounter;
     return true;
@@ -6059,10 +6101,12 @@ void UKalmalaCraftingSubsystem::ConfirmBuildPlacementInput()
         ? Character->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
     UKalmalaCraftingComponent* Crafting = Character
         ? Character->FindComponentByClass<UKalmalaCraftingComponent>() : nullptr;
+    const bool bHammerReady = Character && Inventory && Inventory->GetActiveItem() == TEXT("ConstructionHammer")
+        && Character->GetCarriedToolLevel(TEXT("ConstructionHammer")) >= 1;
+    const bool bTrowelGardenPlot = BuildableId == TEXT("GardenPlotKit")
+        && HasUsableMainHandPlantingTrowel(Character, Inventory);
     if (!Character || !Character->IsLocallyControlled() || !Inventory || !Crafting
-        || Inventory->GetActiveItem() != TEXT("ConstructionHammer")
-        || Character->GetCarriedToolLevel(TEXT("ConstructionHammer")) < 1
-        || !FKalmalaPlacementPreview::IsSupportedKit(BuildableId)) return;
+        || (!bHammerReady && !bTrowelGardenPlot) || !FKalmalaPlacementPreview::IsSupportedKit(BuildableId)) return;
     if (BuildableId == TEXT("CampfireKit")) Crafting->ServerPlaceCampfire();
     else Crafting->ServerPlaceConstruction(BuildableId);
 }
@@ -6084,11 +6128,26 @@ void UKalmalaCraftingSubsystem::OpenBuildFromRightClick()
         if (const UKalmalaInventoryMenuSubsystem* InventoryMenu = LocalPlayer->GetSubsystem<UKalmalaInventoryMenuSubsystem>();
             InventoryMenu && InventoryMenu->IsMenuOpen()) return;
 
-    const AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(Controller->GetPawn());
+    AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(Controller->GetPawn());
     const UKalmalaInventoryComponent* Inventory = Character
         ? Character->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
-    if (!Character || !Inventory || Inventory->GetActiveItem() != TEXT("ConstructionHammer")
-        || Character->GetCarriedToolLevel(TEXT("ConstructionHammer")) < 1) return;
+    if (!Character || !Inventory) return;
+    const bool bHammerReady = Inventory->GetActiveItem() == TEXT("ConstructionHammer")
+        && Character->GetCarriedToolLevel(TEXT("ConstructionHammer")) >= 1;
+    const bool bTrowelReady = HasUsableMainHandPlantingTrowel(Character, Inventory);
+    if (!bHammerReady && !bTrowelReady) return;
+
+    if (bTrowelReady)
+    {
+        FHitResult Hit;
+        const AKalmalaConstructionActor* TargetPlot = Character->GetLocalInteractionCandidate(Hit)
+            ? Cast<AKalmalaConstructionActor>(Hit.GetActor()) : nullptr;
+        if (TargetPlot && TargetPlot->GetConstructionKit() == TEXT("GardenPlotKit"))
+        {
+            Character->RequestInteract();
+            return;
+        }
+    }
 
     if (!Widget)
     {
@@ -6097,7 +6156,8 @@ void UKalmalaCraftingSubsystem::OpenBuildFromRightClick()
     }
     if (!Widget) return;
     if (!Widget->IsInViewport()) Widget->AddToPlayerScreen(160);
-    Widget->Open();
+    if (bTrowelReady) Widget->OpenForFarming();
+    else Widget->Open();
 }
 bool UKalmalaCraftingSubsystem::IsOpen() const
 {

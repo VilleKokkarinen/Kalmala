@@ -41,6 +41,13 @@ is inactive, and does not advance while the server is stopped. Accepted planting
 spends one Trowel condition; harvest and rejection do not. A mature crop remains
 on a full pack and a planted plot cannot be removed.
 
+With a usable Main Hand Planting Trowel, right-click away from a Garden Plot to
+open its farming-only Build menu; it offers the existing direct-material Garden
+Plot recipe (4 Wood + 1 Stone). Aim at a visible Garden Plot and right-click to
+open that plot's Cultivation menu with the seven existing seed/plant modes. Those
+entries are usable only with a current, empty Garden Plot context, and the server
+rechecks the plot, material payment, and Trowel condition for every action.
+
 The focused live acceptance runner is
 `Scripts/Tests/Construction/Verify-GardenPlot.ps1 -Project <isolated Kalmala.uproject>`.
 Use a compiled project mirror outside the repository. The runner starts a listen

@@ -502,8 +502,24 @@ bool UKalmalaCraftingComponent::PlaceConstructionFromServer(const FName Buildabl
     auto* Character = GetCharacter();
     Reason = TEXT("Server authority required");
     if (!Character || !Character->HasAuthority() || !Character->GetController()) return false;
-    Reason = TEXT("Need your carried Construction Hammer to build");
-    if (Character->GetCarriedToolLevel(TEXT("ConstructionHammer")) < 1) return false;
+    auto* Inventory = Character->FindComponentByClass<UKalmalaInventoryComponent>();
+    const bool bHasConstructionHammer = Character->GetCarriedToolLevel(TEXT("ConstructionHammer")) >= 1;
+    const FGuid ActiveToolGuid = Inventory ? Inventory->GetActiveInstanceGuid() : FGuid();
+    const int32 TrowelLevel = ActiveToolGuid.IsValid() ? Character->GetCarriedToolLevel(ActiveToolGuid) : 0;
+    const int32 TrowelMaximumCondition = FKalmalaToolLifecycleContract::GetMaxDurability(
+        TEXT("PlantingTrowel"), TrowelLevel);
+    const int32 TrowelCondition = ActiveToolGuid.IsValid() ? Character->GetToolDurability(ActiveToolGuid) : 0;
+    const bool bUsableTrowelForGardenPlot = BuildableId == TEXT("GardenPlotKit") && Inventory
+        && Inventory->GetActiveItem() == TEXT("PlantingTrowel") && ActiveToolGuid.IsValid()
+        && Inventory->GetMainHandGuid() == ActiveToolGuid && TrowelLevel == 1
+        && TrowelMaximumCondition == 100 && TrowelCondition > 0 && TrowelCondition <= TrowelMaximumCondition;
+    if (!bHasConstructionHammer && !bUsableTrowelForGardenPlot)
+    {
+        Reason = BuildableId == TEXT("GardenPlotKit")
+            ? TEXT("Need a Construction Hammer or a usable Main Hand Planting Trowel to place a Garden Plot")
+            : TEXT("Need your carried Construction Hammer to build");
+        return false;
+    }
     if (BuildableId == TEXT("CampfireKit")) return PlaceFromServer(Reason);
     Reason = TEXT("Unknown buildable identity");
     if (!FKalmalaPlacementPreview::IsSupportedKit(BuildableId)) return false;
@@ -543,7 +559,6 @@ bool UKalmalaCraftingComponent::PlaceConstructionFromServer(const FName Buildabl
     }
     const FRotator Rotation(0.0f, Character->GetActorRotation().Yaw, 0.0f);
     if (Rotation.ContainsNaN()) { Reason = TEXT("Invalid placement rotation"); return false; }
-    auto* Inventory = Character->FindComponentByClass<UKalmalaInventoryComponent>();
     TArray<FKalmalaInventoryStack> Cost;
     if (!UKalmalaRecipeCatalogue::BuildDirectMaterialCost(BuildableId, Cost, Reason)) return false;
     TArray<FKalmalaInventoryStack> Scratch;
@@ -573,7 +588,9 @@ bool UKalmalaCraftingComponent::PlaceConstructionFromServer(const FName Buildabl
         Reason = TEXT("Could not save construction; materials restored");
         return false;
     }
-    Reason = TEXT("Built directly from materials with the construction hammer");
+    Reason = bUsableTrowelForGardenPlot
+        ? TEXT("Garden Plot built directly from materials with the Planting Trowel")
+        : TEXT("Built directly from materials with the Construction Hammer");
     return true;
 }
 

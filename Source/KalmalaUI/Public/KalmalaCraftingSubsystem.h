@@ -82,6 +82,7 @@ class KALMALAUI_API UKalmalaCraftingWidget : public UUserWidget
     GENERATED_BODY()
 public:
     void Open();
+    bool OpenForFarming();
     bool OpenAsInventoryCompanion();
     void CloseInventoryCompanion();
     bool OpenForStation(FName StationKit);
@@ -405,6 +406,7 @@ private:
     bool bOpen = false;
     bool bEmbeddedContext = false;
     bool bInventoryCompanion = false;
+    bool bFarmingBuildMenu = false;
     bool bCookingRackContext = false;
     bool bCauldronContext = false;
     bool bFryingPanContext = false;
