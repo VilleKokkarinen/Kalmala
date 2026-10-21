@@ -180,7 +180,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [x] Timber Door: 8 Wood; 1 × 2 m, saved open/closed state.
   - [x] Timber Beam: 2 Wood; 2 m, horizontal/vertical support.
   - [x] Timber Stairs: 6 Wood; 2 m run, 1 m rise, 1 m wide.
-  - [ ] Camp Bed: 4 Wood + 2 Boar Hide + 2 Deer Hide; resting pose only.
+  - [x] Camp Bed: 4 Wood + 2 Boar Hide + 2 Deer Hide; resting pose only.
   - [ ] Standing Light: 3 Wood + 1 amber; 1 fuel = 600 s, 6 m light.
   - [ ] Keep extra brewing stations deferred; Kiln/Smelter/Plot belong to A1/A7.
 

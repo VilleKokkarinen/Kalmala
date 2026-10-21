@@ -94,3 +94,4 @@ image_batch,import_batch,canonical_id,art_subject,identity_kind,catalogue_aliase
 47,AC,TimberDoorKit,framed timber doorway replacing one wall segment,buildable,TimberDoor,TimberDoor,BuildMenu;PlacementPreview;ResultPreview,none,
 48,AD,TimberBeamKit,squared timber beam with supported endpoints,buildable,TimberBeam,TimberBeam,BuildMenu;PlacementPreview;ResultPreview,none,TimberBeamKit
 49,AE,TimberStairsKit,solid timber stairs with supported upper floor edge,buildable,TimberStairs,TimberStairs,BuildMenu;PlacementPreview;ResultPreview,none,TimberStairsKit
+50,AF,CampBedKit,sturdy timber camp bed with a pale linen bedroll,buildable,CampBed,CampBed,BuildMenu;PlacementPreview;ResultPreview,none,CampBedKit

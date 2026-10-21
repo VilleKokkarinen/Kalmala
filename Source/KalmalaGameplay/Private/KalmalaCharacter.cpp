@@ -1,5 +1,6 @@
 #include "KalmalaCharacter.h"
 #include "KalmalaGameMode.h"
+#include "KalmalaConstructionActor.h"
 #include "KalmalaResistanceComponent.h"
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaItemCatalogue.h"
@@ -1085,6 +1086,11 @@ void AKalmalaCharacter::RequestInteract()
         FHitResult Hit;
         if (GetLocalInteractionCandidate(Hit))
         {
+            if (const AKalmalaConstructionActor* Bed = Cast<AKalmalaConstructionActor>(Hit.GetActor());
+                Bed && Bed->GetConstructionKit() == TEXT("CampBedKit") && Bed->CanUse(this) && PlayerModel)
+            {
+                PlayerModel->StartCampBedRestPose(Bed->GetActorTransform());
+            }
             if (const AKalmalaHarvestNode* Node = Cast<AKalmalaHarvestNode>(Hit.GetActor()))
             {
                 bool bHasUsableTool = false;

@@ -197,6 +197,139 @@ namespace
         return Result;
     }
 
+    FKalmalaPlacementPreview EvaluateCampBed(const UWorld* World, const APawn* Pawn)
+    {
+        FKalmalaPlacementPreview Result;
+        Result.Message = TEXT("Preview invalid: place the Camp Bed on dry, supported ground or a timber floor");
+        if (!World || !Pawn || Pawn->GetActorLocation().ContainsNaN())
+        {
+            Result.Message = TEXT("Preview unavailable: waiting for local terrain");
+            return Result;
+        }
+
+        Result.Rotation = FKalmalaPlacementPreview::GetTimberStairsPlacementRotation(Pawn->GetActorRotation());
+        const FVector Forward = Result.Rotation.Vector();
+        const FVector Right = FRotationMatrix(Result.Rotation).GetUnitAxis(EAxis::Y);
+        const FVector Probe = Pawn->GetActorLocation() + Forward * 165.0f;
+        FCollisionQueryParams SupportQuery(SCENE_QUERY_STAT(CampBedSupport), false, Pawn);
+        FHitResult SupportHit;
+        if (!World->LineTraceSingleByChannel(SupportHit, Probe + FVector(0, 0, 300),
+                Probe - FVector(0, 0, 500), ECC_Visibility, SupportQuery)) return Result;
+
+        AActor* SupportActor = SupportHit.GetActor();
+        AKalmalaConstructionActor* FloorSupport = Cast<AKalmalaConstructionActor>(SupportActor);
+        const bool bTerrainSupport = Cast<AKalmalaGeneratedTerrainPatch>(SupportActor) != nullptr;
+        if (FloorSupport && (FloorSupport->GetWorld() != World || FloorSupport->GetConstructionId().IsEmpty()
+            || FloorSupport->GetConstructionKit() != TEXT("FloorKit") || SupportHit.ImpactNormal.Z < 0.85f))
+        {
+            return Result;
+        }
+        if (!bTerrainSupport && !FloorSupport) return Result;
+        if (bTerrainSupport && SupportHit.ImpactNormal.Z < 0.85f)
+        {
+            Result.Message = TEXT("Preview invalid: the Camp Bed needs level supported ground");
+            return Result;
+        }
+
+        FVector SupportPoint = SupportHit.ImpactPoint;
+        FTransform FloorTransform;
+        if (FloorSupport)
+        {
+            FloorTransform = FloorSupport->GetActorTransform();
+            const FVector LocalHit = FloorTransform.InverseTransformPosition(SupportHit.ImpactPoint);
+            const float FloorTop = AKalmalaConstructionActor::GetCollisionExtent(TEXT("FloorKit")).Z;
+            if (FMath::Abs(LocalHit.X) > 110.0f || FMath::Abs(LocalHit.Y) > 110.0f
+                || FMath::Abs(LocalHit.Z - FloorTop) > 5.0f) return Result;
+            SupportPoint = FloorTransform.TransformPosition(FVector(LocalHit.X, LocalHit.Y, FloorTop));
+        }
+
+        const auto* State = World->GetGameState<AKalmalaWorldGenerationGameState>();
+        if (!State || !State->GetWorldGenerationConfig().IsValid())
+        {
+            Result.Message = TEXT("Preview unavailable: waiting for world data");
+            return Result;
+        }
+        const auto& Config = State->GetWorldGenerationConfig();
+        const FVector2D Surface(SupportPoint);
+        if (!FKalmalaWorldBounds::Contains(Config, Surface, 300))
+        {
+            Result.Message = TEXT("Preview invalid: the Camp Bed is too close to the world edge");
+            return Result;
+        }
+        const auto IsDry = [&Config](const FVector& Point)
+        {
+            const FVector2D SurfacePoint(Point);
+            return !FKalmalaOceanSampler::Sample(Config, SurfacePoint).IsWater()
+                && !FKalmalaShimmeringLakeSampler::IsWater(Config, SurfacePoint)
+                && !FKalmalaRegionalGeneration::Sample(Config, SurfacePoint).bHasWater;
+        };
+        if (!IsDry(SupportPoint))
+        {
+            Result.Message = TEXT("Preview invalid: the Camp Bed needs a dry floor");
+            return Result;
+        }
+
+        constexpr float FootprintHalfLength = 88.0f;
+        constexpr float FootprintHalfWidth = 38.0f;
+        for (const float Along : {-FootprintHalfLength, FootprintHalfLength})
+        {
+            for (const float Across : {-FootprintHalfWidth, FootprintHalfWidth})
+            {
+                const FVector Contact = SupportPoint + Forward * Along + Right * Across;
+                if (!IsDry(Contact))
+                {
+                    Result.Message = TEXT("Preview invalid: the Camp Bed footprint must stay on dry ground");
+                    return Result;
+                }
+                if (FloorSupport)
+                {
+                    const FVector LocalContact = FloorTransform.InverseTransformPosition(Contact);
+                    if (FMath::Abs(LocalContact.X) > 110.0f || FMath::Abs(LocalContact.Y) > 110.0f)
+                    {
+                        Result.Message = TEXT("Preview invalid: the complete Camp Bed needs supported floor");
+                        return Result;
+                    }
+                }
+                else
+                {
+                    FHitResult ContactHit;
+                    if (!TraceTerrainSupport(World, Pawn, Contact, ContactHit)
+                        || ContactHit.ImpactNormal.Z < 0.85f
+                        || FMath::Abs(ContactHit.ImpactPoint.Z - SupportPoint.Z) > 12.0f)
+                    {
+                        Result.Message = TEXT("Preview invalid: the complete Camp Bed needs level support");
+                        return Result;
+                    }
+                }
+            }
+        }
+
+        const FVector BedExtent = AKalmalaConstructionActor::GetCollisionExtent(TEXT("CampBedKit"));
+        Result.Location = SupportPoint + FVector(0, 0, BedExtent.Z);
+        FCollisionQueryParams OverlapQuery(SCENE_QUERY_STAT(CampBedPlacement), false, Pawn);
+        if (IsValid(SupportActor)) OverlapQuery.AddIgnoredActor(SupportActor);
+        if (World->OverlapBlockingTestByChannel(Result.Location, Result.Rotation.Quaternion(), ECC_Pawn,
+            FCollisionShape::MakeBox(BedExtent), OverlapQuery))
+        {
+            Result.Message = TEXT("Preview invalid: clear space for the Camp Bed footprint");
+            return Result;
+        }
+
+        const FVector ApproachCentre = Result.Location - Forward * 150.0f + FVector(0, 0, 28.0f - BedExtent.Z);
+        if (World->OverlapBlockingTestByChannel(ApproachCentre, Result.Rotation.Quaternion(), ECC_Pawn,
+            FCollisionShape::MakeBox(FVector(50.0f, 40.0f, 50.0f)), OverlapQuery))
+        {
+            Result.Message = TEXT("Preview invalid: keep a clear 1 m approach to the Camp Bed");
+            return Result;
+        }
+
+        Result.bIsValid = true;
+        Result.Message = FloorSupport
+            ? TEXT("Preview valid: Camp Bed rests on a dry timber floor with a clear approach")
+            : TEXT("Preview valid: Camp Bed rests on level dry ground with a clear approach");
+        return Result;
+    }
+
     FKalmalaPlacementPreview EvaluateTimberBeam(const UWorld* World, const APawn* Pawn)
     {
         FKalmalaPlacementPreview Result;
@@ -388,7 +521,7 @@ bool FKalmalaPlacementPreview::IsSupportedKit(const FName ItemId)
         || ItemId == TEXT("WorkbenchToolRackKit") || ItemId == TEXT("ForgeAnvilKit") || ItemId == TEXT("GrindingStoneKit")
         || ItemId == TEXT("FloorKit") || ItemId == TEXT("WallKit") || ItemId == TEXT("RoofKit")
         || ItemId == TEXT("GardenPlotKit") || ItemId == TEXT("TimberDoorKit") || ItemId == TEXT("TimberBeamKit")
-        || ItemId == TEXT("TimberStairsKit");
+        || ItemId == TEXT("TimberStairsKit") || ItemId == TEXT("CampBedKit");
 }
 
 bool FKalmalaPlacementPreview::IsGardenPlotGroundAllowed(const EKalmalaBiome Biome, const float SurfaceNormalZ)
@@ -409,6 +542,7 @@ FKalmalaPlacementPreview FKalmalaPlacementPreview::Evaluate(const UWorld* World,
 {
     FKalmalaPlacementPreview Result;
     Result.Message = TEXT("Preview: select a camp or construction object");
+    if (ItemId == TEXT("CampBedKit")) return EvaluateCampBed(World, Pawn);
     if (ItemId == TEXT("TimberBeamKit")) return EvaluateTimberBeam(World, Pawn);
     if (ItemId == TEXT("TimberStairsKit")) return EvaluateTimberStairs(World, Pawn);
     if (!IsSupportedKit(ItemId)) return Result;

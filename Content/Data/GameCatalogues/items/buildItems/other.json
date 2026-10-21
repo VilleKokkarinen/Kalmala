@@ -43,6 +43,12 @@
       "MaxStack": 1
     },
     {
+      "ItemId": "CampBed",
+      "DisplayName": "Camp Bed",
+      "Description": "A sturdy timber bed for a moment of rest.",
+      "MaxStack": 1
+    },
+    {
       "ItemId": "Roof",
       "DisplayName": "Reed Roof",
       "Description": "A reed roof that shields a small camp from rain.",

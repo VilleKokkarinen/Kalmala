@@ -24,6 +24,11 @@ public:
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
     static EKalmalaHeldToolVisual GetHeldToolVisualForItem(FName ItemId);
     EKalmalaHeldToolVisual GetHeldToolVisual() const { return HeldToolVisual; }
+    bool StartCampBedRestPose(const FTransform& BedTransform);
+    void StopCampBedRestPose();
+    bool IsCampBedResting() const { return bCampBedResting; }
+    static bool ShouldContinueCampBedRestPose(bool bLocallyControlled, float Speed,
+        float CurrentHealth, float StartingHealth);
     static constexpr float AttackSwingDurationSeconds = 0.54f;
     static bool EvaluateAttackArmPose(float ElapsedSeconds, float RestRightArmPitch, float& OutRightArmPitch);
     static constexpr float ToolSharpeningDurationSeconds = 1.2f;
@@ -59,6 +64,10 @@ private:
     UPROPERTY()
     TObjectPtr<UMaterialInterface> DarkMaterial;
     float GaitPhase = 0.0f;
+    bool bCampBedResting = false;
+    FVector CampBedOriginalRelativeLocation = FVector::ZeroVector;
+    FRotator CampBedOriginalRelativeRotation = FRotator::ZeroRotator;
+    float CampBedStartingHealth = 100.0f;
     uint32 LastAttackSerial = 0;
     float AttackSwingElapsedSeconds = -1.0f;
     float ToolSharpeningElapsedSeconds = -1.0f;

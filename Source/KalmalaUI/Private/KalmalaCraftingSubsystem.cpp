@@ -459,6 +459,7 @@ FString UKalmalaInteractionPromptWidget::BuildPromptText(const FString& TargetNa
 
 FString UKalmalaInteractionPromptWidget::GetConstructionActionName(const FName ConstructionKit)
 {
+    if (ConstructionKit == TEXT("CampBedKit")) return TEXT("Rest");
     return ConstructionKit == TEXT("GrindingStoneKit") ? TEXT("Repair all") : TEXT("Use");
 }
 

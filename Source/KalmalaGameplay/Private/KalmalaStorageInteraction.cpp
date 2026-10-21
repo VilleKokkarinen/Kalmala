@@ -125,6 +125,11 @@ void UKalmalaCraftingComponent::InteractWithConstructionFromServer(AKalmalaConst
         PublishResult(Reason, bAccepted);
         return;
     }
+    if (Kit == TEXT("CampBedKit"))
+    {
+        PublishResult(TEXT("Resting briefly; movement or damage will end the pose."), true);
+        return;
+    }
     if (AKalmalaConstructionActor::IsCraftingStationKit(Kit))
     {
         LastStationContextActor = Construction;

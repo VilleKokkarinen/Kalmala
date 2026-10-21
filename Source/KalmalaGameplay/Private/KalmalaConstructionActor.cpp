@@ -222,10 +222,12 @@ bool AKalmalaConstructionActor::CanUse(const AKalmalaCharacter* Character) const
 {
     const bool bIsStorageOrCraftingStation = IsStorageKit(ConstructionKit)
         || IsCraftingStationKit(ConstructionKit);
-    const float MaximumUseRange = ConstructionKit == TEXT("TimberDoorKit") ? 200.0f : 250.0f;
+    const float MaximumUseRange = ConstructionKit == TEXT("TimberDoorKit") || ConstructionKit == TEXT("CampBedKit")
+        ? 200.0f : 250.0f;
     if (!IsValid(Character) || !Character->GetController() || Character->GetWorld() != GetWorld() || ConstructionId.IsEmpty()
         || (!bIsStorageOrCraftingStation && ConstructionKit != TEXT("GrindingStoneKit")
-            && ConstructionKit != TEXT("GardenPlotKit") && ConstructionKit != TEXT("TimberDoorKit"))
+            && ConstructionKit != TEXT("GardenPlotKit") && ConstructionKit != TEXT("TimberDoorKit")
+            && ConstructionKit != TEXT("CampBedKit"))
         || Character->GetActorLocation().ContainsNaN() || GetActorLocation().ContainsNaN()
         || FVector::DistSquared(Character->GetActorLocation(), GetActorLocation()) > FMath::Square(MaximumUseRange)) return false;
     const auto* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
@@ -246,6 +248,7 @@ void AKalmalaConstructionActor::AdvanceRainWearFromServer(const float DeltaSecon
         || (ConstructionKit != TEXT("FloorKit") && ConstructionKit != TEXT("WallKit")
             && ConstructionKit != TEXT("TimberDoorKit")
             && ConstructionKit != TEXT("TimberBeamKit") && ConstructionKit != TEXT("TimberStairsKit")
+            && ConstructionKit != TEXT("CampBedKit")
             && ConstructionKit != TEXT("WorkbenchKit") && ConstructionKit != TEXT("StorageKit"))) return;
     const FVector Start = Collision->GetComponentLocation() + FVector(0, 0, 60);
     if (Start.ContainsNaN()) return;
@@ -337,6 +340,7 @@ FVector AKalmalaConstructionActor::GetCollisionExtent(const FName KitId)
     if (KitId == TEXT("TimberDoorKit")) return FVector(120, 12, 110);
     if (KitId == TEXT("TimberBeamKit")) return FVector(100, 7.5f, 7.5f);
     if (KitId == TEXT("TimberStairsKit")) return FVector(100, 50, 50);
+    if (KitId == TEXT("CampBedKit")) return FVector(100, 50, 22);
     if (KitId == TEXT("RoofKit")) return FVector(132, 132, 16);
     if (KitId == TEXT("CharcoalKilnKit")) return FVector(60, 60, 62);
     if (KitId == TEXT("SmelterKit")) return FVector(60, 60, 82);
@@ -471,6 +475,17 @@ void AKalmalaConstructionActor::BuildPiecePresentation()
                 FVector(-80.0f + static_cast<float>(StepIndex * 40), 0.0f, HalfHeight - 50.0f),
                 FVector(20.0f, 50.0f, HalfHeight));
         }
+    }
+    else if (ConstructionKit == TEXT("CampBedKit"))
+    {
+        for (const float X : {-84.0f, 84.0f})
+            for (const float Y : {-38.0f, 38.0f})
+                AddBox(Vertices, Triangles, FVector(X, Y, -9.0f), FVector(8.0f, 7.0f, 13.0f));
+        AddBox(Vertices, Triangles, FVector(0, -41.0f, 4.0f), FVector(92.0f, 5.0f, 6.0f));
+        AddBox(Vertices, Triangles, FVector(0, 41.0f, 4.0f), FVector(92.0f, 5.0f, 6.0f));
+        AddBox(Vertices, Triangles, FVector(-94.0f, 0, 4.0f), FVector(5.0f, 39.0f, 6.0f));
+        AddBox(Vertices, Triangles, FVector(94.0f, 0, 4.0f), FVector(5.0f, 39.0f, 6.0f));
+        AddBox(Vertices, Triangles, FVector(0, 0, 13.0f), FVector(84.0f, 34.0f, 5.0f));
     }
     else if (ConstructionKit == TEXT("TimberDoorKit"))
     {

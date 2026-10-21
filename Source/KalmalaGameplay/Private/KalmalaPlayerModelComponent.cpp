@@ -187,6 +187,23 @@ void UKalmalaPlayerModelComponent::TickComponent(float DeltaTime, ELevelTick Tic
             HeldToolParts[2]->SetVisibility(bTorchLit);
     }
     const float Speed = Character->GetVelocity().Size2D();
+    const AKalmalaCharacter* KalmalaCharacter = Cast<AKalmalaCharacter>(Character);
+    if (bCampBedResting)
+    {
+        if (!KalmalaCharacter || !ShouldContinueCampBedRestPose(Character->IsLocallyControlled(),
+            Speed, KalmalaCharacter->GetHealth(), CampBedStartingHealth))
+        {
+            StopCampBedRestPose();
+        }
+        else
+        {
+            LeftArm->SetRelativeRotation(FRotator(-35.0f, 0.0f, 0.0f));
+            RightArm->SetRelativeRotation(FRotator(35.0f, 0.0f, 0.0f));
+            if (LeftLeg) LeftLeg->SetRelativeRotation(FRotator::ZeroRotator);
+            if (RightLeg) RightLeg->SetRelativeRotation(FRotator::ZeroRotator);
+            return;
+        }
+    }
     const bool bFalling = Character->GetCharacterMovement()->IsFalling();
     GaitPhase = FMath::Fmod(GaitPhase + DeltaTime * Speed / 45.0f, 2.0f * PI);
     const float Swing = bFalling ? 0.0f : FMath::Sin(GaitPhase) * FMath::Clamp(Speed / 600.0f, 0.0f, 1.4f) * 25.0f;
@@ -229,6 +246,38 @@ void UKalmalaPlayerModelComponent::TickComponent(float DeltaTime, ELevelTick Tic
     RightArm->SetRelativeRotation(FRotator(RightArmPitch, 0, 0));
     LeftLeg->SetRelativeRotation(FRotator(bFalling ? 15.0f : -Swing, 0, 0));
     RightLeg->SetRelativeRotation(FRotator(bFalling ? 15.0f : Swing, 0, 0));
+}
+
+bool UKalmalaPlayerModelComponent::StartCampBedRestPose(const FTransform& BedTransform)
+{
+    const AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(GetOwner());
+    if (!Character || !Character->IsLocallyControlled() || !BedTransform.IsValid()
+        || BedTransform.GetLocation().ContainsNaN() || BedTransform.GetScale3D().ContainsNaN()) return false;
+
+    StopCampBedRestPose();
+    CampBedOriginalRelativeLocation = GetRelativeLocation();
+    CampBedOriginalRelativeRotation = GetRelativeRotation();
+    CampBedStartingHealth = Character->GetHealth();
+    const FRotator BedYaw(0.0f, BedTransform.Rotator().Yaw, 0.0f);
+    const FVector RestOrigin = BedTransform.GetLocation() + BedYaw.Vector() * 85.0f + FVector(0, 0, 35.0f);
+    SetWorldLocationAndRotation(RestOrigin, FRotator(-90.0f, BedYaw.Yaw, 0.0f));
+    bCampBedResting = true;
+    return true;
+}
+
+void UKalmalaPlayerModelComponent::StopCampBedRestPose()
+{
+    if (!bCampBedResting) return;
+    bCampBedResting = false;
+    SetRelativeLocationAndRotation(CampBedOriginalRelativeLocation, CampBedOriginalRelativeRotation);
+}
+
+bool UKalmalaPlayerModelComponent::ShouldContinueCampBedRestPose(const bool bLocallyControlled,
+    const float Speed, const float CurrentHealth, const float StartingHealth)
+{
+    return bLocallyControlled && FMath::IsFinite(Speed) && Speed <= 5.0f
+        && FMath::IsFinite(CurrentHealth) && FMath::IsFinite(StartingHealth)
+        && CurrentHealth >= StartingHealth - 0.001f;
 }
 
 EKalmalaHeldToolVisual UKalmalaPlayerModelComponent::GetHeldToolVisualForItem(const FName ItemId)
