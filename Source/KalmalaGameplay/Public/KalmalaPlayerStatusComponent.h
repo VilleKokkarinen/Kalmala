@@ -42,6 +42,7 @@ public:
     static const FName CookedBoarMeatItemId;
     static const FName CookedDeerMeatItemId;
     static const FName HearthBrothItemId;
+    static const FName LingonberryItemId;
     static const FName MeatStewItemId;
     static const FName RootVegetableSoupItemId;
     static const FName RoastedRootVegetablesItemId;

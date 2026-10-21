@@ -8,6 +8,7 @@ const FName UKalmalaPlayerStatusComponent::SteadyMealStatusId(TEXT("State.Food.S
 const FName UKalmalaPlayerStatusComponent::CookedBoarMeatItemId(TEXT("CookedBoarMeat"));
 const FName UKalmalaPlayerStatusComponent::CookedDeerMeatItemId(TEXT("CookedDeerMeat"));
 const FName UKalmalaPlayerStatusComponent::HearthBrothItemId(TEXT("HearthBroth"));
+const FName UKalmalaPlayerStatusComponent::LingonberryItemId(TEXT("Lingonberry"));
 const FName UKalmalaPlayerStatusComponent::MeatStewItemId(TEXT("MeatStew"));
 const FName UKalmalaPlayerStatusComponent::RootVegetableSoupItemId(TEXT("RootVegetableSoup"));
 const FName UKalmalaPlayerStatusComponent::RoastedRootVegetablesItemId(TEXT("RoastedRootVegetables"));
@@ -72,7 +73,7 @@ bool UKalmalaPlayerStatusComponent::IsKnownFoodItem(const FName ItemId)
     return ItemId == CookedBoarMeatItemId || ItemId == CookedDeerMeatItemId
         || ItemId == MeatStewItemId || ItemId == RootVegetableSoupItemId
         || ItemId == RoastedRootVegetablesItemId || ItemId == DeerRootRoastItemId
-        || ItemId == HearthBrothItemId;
+        || ItemId == HearthBrothItemId || ItemId == LingonberryItemId;
 }
 
 bool UKalmalaPlayerStatusComponent::ApplyFood(TArray<FKalmalaPlayerStatusEntry>& Entries, const FName ItemId)

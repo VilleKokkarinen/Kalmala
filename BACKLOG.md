@@ -156,7 +156,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [ ] Cultivation Rake: Forge, 10 Wood + 5 Bronze bar; requires A7.
 
 - [ ] **A6 — Food and recovery (P1).** [Effects and limits](docs/alpha-item-details.md#a6)
-  - [ ] Lingonberry: hand-pick Meadow shrubs, 3 per shrub.
+  - [x] Lingonberry: hand-pick Meadow shrubs, 3 per shrub.
   - [ ] Forest Chanterelle: hand-pick Elderwood patches, 2 per patch.
   - [ ] Keep one Steady Meal: 120 s, 10% less stamina use; no meal stacking.
   - [ ] Review draught effects; use existing Cauldron, no brewing station.

@@ -86,7 +86,7 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
         case EKalmalaWorldPopulationKind::Wildlife:
             return 1 + FMath::FloorToInt(Fields.Flora * 2.0f);
         case EKalmalaWorldPopulationKind::HarvestNode:
-            return 2 + FMath::FloorToInt(Fields.Flora * 4.0f);
+            return 2 + FMath::FloorToInt(Fields.Flora * 4.0f) + 1;
         case EKalmalaWorldPopulationKind::Hazard:
             return FMath::FloorToInt(Fields.Humidity * 2.0f);
         default:
@@ -102,6 +102,7 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
         const FVector2D SpatialKeyOrigin = FVector2D(SpatialKey) * SpatialKeySize;
         bool bAddedMeadowCarrotPatch = false;
         bool bAddedMeadowPotatoPatch = false;
+        bool bAddedMeadowLingonberryShrub = false;
         bool bAddedLakesRutabagaPatch = false;
         bool bAddedElderwoodOnionPatch = false;
         bool bAddedElderwoodCopperVein = false;
@@ -145,6 +146,14 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
                     ContentId = TEXT("meadows-wild-potato-patch");
                     PersistentSeed = Mix(CandidateSeed ^ 0xA0B070A71019ull);
                     bAddedMeadowPotatoPatch = true;
+                }
+                else if (!bAddedMeadowLingonberryShrub)
+                {
+                    // Give forage its own stable Meadow identity after the two
+                    // established wild-crop sources have been assigned.
+                    ContentId = TEXT("meadows-wild-lingonberry-shrub");
+                    PersistentSeed = Mix(CandidateSeed ^ 0x1A660B3A71019ull);
+                    bAddedMeadowLingonberryShrub = true;
                 }
             }
             else if (Kind == EKalmalaWorldPopulationKind::HarvestNode && Biome == EKalmalaBiome::ShimmeringLakes

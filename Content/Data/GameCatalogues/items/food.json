@@ -13,6 +13,13 @@
       "MaxStack": 20
     },
     {
+      "ItemId": "Lingonberry",
+      "DisplayName": "Lingonberry",
+      "Description": "Tart red berries gathered from Meadow shrubs.",
+      "MaxStack": 20,
+      "WeightKg": 0.05
+    },
+    {
       "ItemId": "CookedBoarMeat",
       "DisplayName": "Cooked Boar Meat",
       "Description": "Roasted boar meat, ready to eat.",

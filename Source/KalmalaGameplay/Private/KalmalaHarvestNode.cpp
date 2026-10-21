@@ -78,6 +78,7 @@ namespace
         if (PresentationId == TEXT("resinwood-bundle")) return FLinearColor(0.30f, 0.20f, 0.10f);
         if (PresentationId == TEXT("bog-iron-vein")) return FLinearColor(0.30f, 0.24f, 0.20f);
         if (PresentationId == TEXT("frostmoss-clump")) return FLinearColor(0.54f, 0.76f, 0.72f);
+        if (PresentationId == TEXT("lingonberry-shrub-harvest")) return FLinearColor(0.66f, 0.08f, 0.12f);
         if (PresentationId == TEXT("carrot-patch-harvest")) return FLinearColor(0.22f, 0.52f, 0.16f);
         if (PresentationId == TEXT("potato-patch-harvest")) return FLinearColor(0.42f, 0.50f, 0.25f);
         if (PresentationId == TEXT("onion-patch-harvest")) return FLinearColor(0.29f, 0.43f, 0.20f);
@@ -271,8 +272,9 @@ void AKalmalaHarvestNode::Interact_Implementation(AKalmalaCharacter* Interactor)
         if (GatheringSourceId == TEXT("meadows-wild-carrot-patch")) SeedItemId = FName(TEXT("CarrotSeed"));
         else if (GatheringSourceId == TEXT("lakes-wild-rutabaga-patch")) SeedItemId = FName(TEXT("RutabagaSeed"));
         else if (GatheringSourceId == TEXT("elderwood-wild-onion-patch")) SeedItemId = FName(TEXT("OnionSeed"));
+        const int32 RewardQuantity = GatheringSourceId == TEXT("meadows-wild-lingonberry-shrub") ? 3 : 2;
         if (RewardItemId.IsNone()
-            || !UKalmalaInventoryComponent::BuildGrant(Before, RewardItemId, 2, AfterReward, Reason))
+            || !UKalmalaInventoryComponent::BuildGrant(Before, RewardItemId, RewardQuantity, AfterReward, Reason))
         {
             if (Reason == TEXT("Pack output capacity reached")) PublishFullPack();
             return;
@@ -521,6 +523,7 @@ FName AKalmalaHarvestNode::GetHarvestItemId() const
     if (PersistentSpawnId.IsEmpty()) return NAME_None;
     if (IsHandGatherablePatch())
     {
+        if (GatheringSourceId == TEXT("meadows-wild-lingonberry-shrub")) return FName(TEXT("Lingonberry"));
         if (GatheringSourceId == TEXT("meadows-wild-potato-patch")) return FName(TEXT("Potato"));
         if (GatheringSourceId == TEXT("lakes-wild-rutabaga-patch")) return FName(TEXT("Rutabaga"));
         if (GatheringSourceId == TEXT("elderwood-wild-onion-patch")) return FName(TEXT("Onion"));
@@ -692,6 +695,17 @@ void AKalmalaHarvestNode::BuildSourcePresentation()
             AddTaperedBox(Vertices, Triangles, Colors, FVector(-14.0f, 0.0f, 0.0f), FVector(24.0f, 14.0f, 0.0f), 28.0f, 0.72f, -9.0f, Accent);
             AddTaperedBox(Vertices, Triangles, Colors, FVector(14.0f, 3.0f, 0.0f), FVector(18.0f, 12.0f, 0.0f), 38.0f, 0.68f, 12.0f, Accent);
         }
+    }
+    else if (PresentationId == TEXT("lingonberry-shrub-harvest"))
+    {
+        const FLinearColor LeafColor(0.18f, 0.40f, 0.17f);
+        const FLinearColor BerryColor(0.72f, 0.08f, 0.13f);
+        AddTaperedBox(Vertices, Triangles, Colors, FVector(-12.0f, 0.0f, 0.0f), FVector(12.0f, 12.0f, 0.0f), 30.0f, 0.55f, -12.0f, LeafColor);
+        AddTaperedBox(Vertices, Triangles, Colors, FVector(11.0f, 3.0f, 0.0f), FVector(12.0f, 11.0f, 0.0f), 34.0f, 0.56f, 11.0f, LeafColor);
+        AddTaperedBox(Vertices, Triangles, Colors, FVector(0.0f, -8.0f, 22.0f), FVector(13.0f, 9.0f, 0.0f), 18.0f, 0.58f, 4.0f, LeafColor);
+        AddTaperedBox(Vertices, Triangles, Colors, FVector(-18.0f, -10.0f, 23.0f), FVector(4.0f, 4.0f, 0.0f), 5.0f, 0.82f, 0.0f, BerryColor);
+        AddTaperedBox(Vertices, Triangles, Colors, FVector(-3.0f, -13.0f, 31.0f), FVector(4.0f, 4.0f, 0.0f), 5.0f, 0.82f, 0.0f, BerryColor);
+        AddTaperedBox(Vertices, Triangles, Colors, FVector(15.0f, -8.0f, 26.0f), FVector(4.0f, 4.0f, 0.0f), 5.0f, 0.82f, 0.0f, BerryColor);
     }
     else if (PresentationId == TEXT("carrot-patch-harvest"))
     {

@@ -217,6 +217,7 @@ bool UKalmalaIconWidget::FindCatalogueIcon(FName Id, EKalmalaIcon& OutIcon, int3
         {TEXT("HearthBroth"),EKalmalaIcon::Bowl,0}, {TEXT("MeatStew"),EKalmalaIcon::Bowl,1},
         {TEXT("RootVegetableSoup"),EKalmalaIcon::Bowl,2}, {TEXT("RoastedRootVegetables"),EKalmalaIcon::Pan,1}, {TEXT("DeerRootRoast"),EKalmalaIcon::Pan,2},
         {TEXT("Carrot"),EKalmalaIcon::Root,0}, {TEXT("Potato"),EKalmalaIcon::Root,1}, {TEXT("Rutabaga"),EKalmalaIcon::Root,2}, {TEXT("Onion"),EKalmalaIcon::Root,3},
+        {TEXT("Lingonberry"),EKalmalaIcon::Root,0},
         {TEXT("CarrotSeed"),EKalmalaIcon::Seed,0}, {TEXT("PotatoSeed"),EKalmalaIcon::Seed,1}, {TEXT("RutabagaSeed"),EKalmalaIcon::Seed,2}, {TEXT("OnionSeed"),EKalmalaIcon::Seed,3},
         {TEXT("StoneKnife"),EKalmalaIcon::Knife,0}, {TEXT("StoneAxe"),EKalmalaIcon::Axe,0}, {TEXT("StonePick"),EKalmalaIcon::Pick,0},
         {TEXT("ReedKnife"),EKalmalaIcon::Knife,0}, {TEXT("FieldHatchet"),EKalmalaIcon::Axe,0},
