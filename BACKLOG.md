@@ -176,7 +176,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   Crops take 600 active seconds; Planting Trowel required. No offline/inactive-region growth.
 
 - [ ] **A8 — Shelter and storage (P2).** [Placement and behavior](docs/alpha-item-details.md#a8)
-  - [ ] Review shelter rules. All pieces use direct-material Hammer placement.
+  - [x] Review shelter rules. All pieces use direct-material Hammer placement.
   - [ ] Timber Door: 8 Wood; 1 × 2 m, saved open/closed state.
   - [ ] Timber Beam: 2 Wood; 2 m, horizontal/vertical support.
   - [ ] Timber Stairs: 6 Wood; 2 m run, 1 m rise, 1 m wide.

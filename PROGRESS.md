@@ -4908,3 +4908,14 @@
 - **Observable impact and authority:** players can open a farming-only build menu with the usable Trowel, place a Garden Plot from 4 Wood + 1 Stone, and access crop actions only through an aimed Garden Plot context. The server still validates tool state, buildable identity, material payment, placement and persistence; crop actions retain their existing server validation.
 - **Known limitations and remaining scope:** the Trowel build menu contains only Garden Plot while it is the sole farming structure. Crop choices remain in the Garden Plot Cultivation context. New Unreal build and live peer acceptance for this menu were not run.
 - **Next eligible task:** A8 shelter rules review.
+
+## Run 2026-10-21 16:31 UTC — review A8 shelter rules
+
+- **Selected task:** A8 “Review shelter rules. All pieces use direct-material Hammer placement.” Checked only this already-defined backlog child.
+- **Work completed:** reconciled the detailed A8 material table with the explicit checklist costs: Timber Door 8 Wood; Camp Bed 4 Wood + 2 Boar Hide + 2 Deer Hide; Standing Light 3 Wood + 1 Amber. Recorded the reviewed placement, support, interaction, bed-rest, light-fuel/rain, and separate-chest rules in the decision log. No runtime changes.
+- **Files changed by this run:** `BACKLOG.md`; `docs/alpha-item-details.md`; `docs/05-decision-log.md`; `PROGRESS.md`.
+- **Lightweight checks:** reviewed the shelter rules against the existing server-owned shelter trace, construction placement, rain-wear, and storage contracts; exact cost and no-kit consistency checks plus `git diff --check` are recorded after review. No build, automation, rendered review, or peer session was needed for this documentation-only increment.
+- **Full verification:** deferred to the I4 milestone-final gate.
+- **Observable impact and authority:** future shelter implementation now has one material-cost contract aligned to the approved backlog. No gameplay, networking, or persistence behavior changed; placement and interactions remain server-authoritative in the planned rules.
+- **Known limitations and remaining scope:** the approved detail table includes Reinforced Chest, but A8 has no dedicated child task for it. No backlog scope was added under the current run rules; resolve that checklist gap before implementing the chest. Door, beam, stairs, bed, light, and storage implementation plus I4 verification remain.
+- **Next eligible task:** A8 Timber Door. Current run time: 2026-10-21 16:31 UTC.

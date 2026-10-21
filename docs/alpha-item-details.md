@@ -289,11 +289,11 @@ Buildables, processing and sanctuary supplies (P2; scope approved 2026-10-19; no
 
 | Buildable | Hammer material cost | Dimensions / behavior |
 | --- | --- | --- |
-| Timber Door | 4 Wood + 1 non-bow binding input (ID/cost to review) | 1 m wide × 2 m high; snaps to existing wall edge grid, takes place of a wall segment rather than overlapping it; opens/closes by server interaction within 2 m, reject closing through a pawn |
+| Timber Door | 8 Wood | 1 m wide × 2 m high; snaps to existing wall edge grid, takes place of a wall segment rather than overlapping it; opens/closes by server interaction within 2 m, reject closing through a pawn |
 | Timber Beam | 2 Wood | 2 m beam, 0.15 m square; horizontal or vertical snap to existing structural endpoints; requires ground or supported endpoint, uses existing structural support model without new material tiers |
 | Timber Stairs | 6 Wood | 2 m run × 1 m width × 1 m rise; grounded lower edge or supported floor attachment; solid walkable steps, no ladder/climb mechanic |
-| Camp Bed | 6 Wood + 2 Boar Hide + 2 non-bow binding input (ID/cost to review) | 2 m × 1 m; supported dry floor, 1 m clear approach; interaction within 2 m starts a local resting pose until movement/damage; no extra stat effect, time skip or spawn change |
-| Standing Light | 3 Wood + 1 non-bow binding input (ID/cost to review) | Grounded/floor-supported, 1.5 m tall; starts unlit, consume 1 Wood for 600 active lit seconds, fuel cap 1200 seconds; 6 m cosmetic light, uncovered rain pauses flame/fuel, no warmth/Wet removal/world ignition |
+| Camp Bed | 4 Wood + 2 Boar Hide + 2 Deer Hide | 2 m × 1 m; supported dry floor, 1 m clear approach; interaction within 2 m starts a local resting pose until movement/damage; no extra stat effect, time skip or spawn change |
+| Standing Light | 3 Wood + 1 Amber | Grounded/floor-supported, 1.5 m tall; starts unlit, consume 1 Wood for 600 active lit seconds, fuel cap 1200 seconds; 6 m cosmetic light, uncovered rain pauses flame/fuel, no warmth/Wet removal/world ignition |
 | Reinforced Chest | 8 Wood + 2 Bronze | Grounded/floor-supported 1.5 m × 1 m; 24 shared stack cells, existing per-item stack limits and validated GUID transfers, no weight/owner-lock mechanic |
 
 Use the existing construction health/rain-wear/repair rules of the matching
