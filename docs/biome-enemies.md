@@ -43,10 +43,14 @@ stats, spawn weights and loot below remain task-level implementation details.
 
 ## Unique drops
 
-**Draft for review.** One roll per credited defeat; amount is awarded only on
-success. These are additional to baseline loot. Sinew and the two gem routes
-retain their existing plans; other drops and uses below are new proposals.
-Unique means a characteristic drop, not an exclusive source for shared Sinew.
+**A8b review outcome (2026-10-21).** The 15 A8b material amounts and chances
+below match the user-edited A8b backlog rows and are the source values for this
+queue. Roll once on the server per credited defeat; award the amount only on
+success, in addition to baseline loot. These unique materials come only from
+their named enemies. Their acquisition is not reachable until the matching
+A8a enemy and credited-defeat reward are implemented and accepted. Sinew stays
+in A0; Moonstone and Dusk Diamond routes stay in A9 and are not duplicated in
+A8b.
 
 | Enemy            | Unique drop        | Amount / chance | Intended use              |
 | ---------------- | ------------------ | --------------- | ------------------------- |
@@ -61,8 +65,8 @@ Unique means a characteristic drop, not an exclusive source for shared Sinew.
 | Death Adder      | Venom Sac          | 1 / 100%        | Anti Poison potion ingr.  |
 | Peat Husk        | Peat Heart         | 1 / 25%         | Cooking component         |
 | Wolf             | Wolf Pelt          | 1 / 100%        | Armor component           |
-| Wolf             | Wolf fang          | 1 / 25%         | Weapon component          |
-| Wolf             | Wolf meat          | 1 / 100%        | Cooking component         |
+| Wolf             | Wolf Fang          | 1 / 25%         | Weapon component          |
+| Wolf             | Wolf Meat          | 1 / 100%        | Cooking component         |
 | Lynx             | Lynx Pelt          | 1 / 50%         | Armor/Weapon component    |
 | Polar Bear       | Polar Bear Pelt    | 2 / 100%        | Heavy armor component     |
 | Horned Goat      | Goat Horn          | 1 / 100%        | multi-use component       |
@@ -82,54 +86,75 @@ explicitly deferred; the aquatic route adds no skiff damage.
 ## Recommended items and recipes
 
 Implementation is queued in [BACKLOG A8b](../BACKLOG.md), one material or output
-per increment. Bow String remains in A0; the rings remain in A9. Every item
+per increment. The backlog is canonical for recipe stations, costs and output
+quantities. Bow String remains in A0; the rings remain in A9. Every item
 includes applicable catalogue JSON/manifest entries and an original generated,
 prepared/imported runtime icon with validation; none may be checked complete
 with placeholder data or a fallback icon.
 
-**Recommendations for review**, using the latest user-edited drop table above.
-Costs and base effects below are proposals; Bow String and both rings reuse
-existing backlog recipes. Every retained drop has a use; Boar and Mosquito
-swarm currently have no unique drop, so neither receives a new recipe here.
+**Recipe reconciliation (2026-10-21).** The checklist's Badger Fur Vest and
+Lynx Mantle recipes supersede the older extra-String proposals below. Bow
+String is reserved for bows, and no ordinary String item is approved. Effects
+that lack an approved contract are identified after the table. Every retained
+drop has a use; Boar and Mosquito swarm currently have no unique A8b drop.
 
 | Recommended item | Station      | Recipe / output                              | Proposed use / base effect     |
 | ---------------- | ------------ | -------------------------------------------- | ------------------------------ |
 | Bow String       | Workbench    | 4 Sinew → 1                                  | Existing bow material          |
 | Rat-tail Tonic   | Cauldron     | 2 Rat Tail + 2 Lingonberry → 1               | Heal 30 HP over 10 s           |
-| Badger Fur Vest  | Workbench    | 6 Badger Fur + 2 String → 1                  | Chest; 6 Armor                 |
+| Badger Fur Vest  | Workbench    | 6 Badger Fur → 1                             | Chest; 6 Armor                 |
 | Roasted Badger   | Cooking Rack | 1 Badger Meat → 1                            | Steady Meal                    |
 | Moonstone Ring   | Forge        | 5 Bronze + 1 Moonstone → 1                   | +20 max stamina; existing plan |
 | Fang Arrows      | Workbench    | 2 Viper Fang + 10 Wood → 20                  | 50 Pierce; weak poison 5 s     |
 | Scale Cuirass    | Forge        | 10 Giant Scale + 10 Bronze → 1               | Chest; 20 Armor                |
 | Dusk Ring        | Forge        | 5 Bronze + 1 Dusk Diamond → 1                | +10 HP, +10 stamina, +5 Armor  |
-| Antidote         | Cauldron     | 1 Venom Sac + 2 Lingonberry → 1              | Clear weak poison + poison resistance for 10 minutes. major poison effect reduced to half.        |
+| Antidote         | Cauldron     | 1 Venom Sac + 2 Lingonberry → 1              | Effect unresolved; see review below       |
 | Peat Heart Stew  | Cauldron     | 1 Peat Heart + 2 Potato + 1 Onion → 2        | Steady Meal                    |
 | Wolf Pelt Boots  | Workbench    | 5 Wolf Pelt + 5 Iron   → 1                   | Boots; 10 Armor                |
-| Fang Spear       | Forge        | 4 Wolf fang + 10 Iron + 10 Densewood → 1     | 100 Stab                       |
-| Wolf Stew        | Cauldron     | 1 Wolf meat + 3 Carrot + 3 Onion → 1         | Steady Meal                    |
-| Lynx Mantle      | Workbench    | 4 Lynx Pelt + 2 String → 1                   | Cape; 8 Armor                  |
+| Fang Spear       | Forge        | 4 Wolf Fang + 10 Iron + 10 Densewood → 1     | 100 Stab                       |
+| Wolf Stew        | Cauldron     | 1 Wolf Meat + 3 Carrot + 3 Onion → 1         | Steady Meal                    |
+| Lynx Mantle      | Workbench    | 4 Lynx Pelt → 1                              | Cape; 8 Armor                  |
 | Polar Bear Coat  | Forge        | 5 Polar Bear Pelt + 20 Iron → 1              | Chest; 50 Armor                |
 | Horn Bow         | Workbench    | 2 Goat Horn + 10 Densewood + 1 Bow String → 1| 100 Pierce bow bonus, slow draw|
 | Thunder Maul     | Forge        | 1 Thunder Core + 20 Iron + 10 Densewood → 1  | 100 Crush + 30 Lightning       |
 | Reef Harpoon     | Forge        | 3 Reef Tooth + 8 Iron + 4 Lightwood → 1      | 60 Pierce; spear weapon        |
 
-- Meals use the existing proposed Steady Meal: 120 s, stamina costs ×0.90;
-  no stacking or eating while active. Raw meat and Peat Heart are ingredients.
-- Fang Arrows apply weak poison at 1/sec for 5 s on an accepted hit; use the
-  enemy poison refresh/strongest-dose rules. No repeated poison per projectile.
-- Tonic and Antidote share the proposed 60 s recovery cooldown. Tonic cannot
-  be used at full health. The user's revised Antidote clears weak poison,
-  provides poison resistance for 600 s, and halves major-poison damage.
-  Define the exact weak-poison resistance/reapplication behavior and effect
-  refresh rules during planning; do not guess them during implementation.
-  This new resistance proposal supersedes A6's deferral only if approved.
+- Roasted Badger, Peat Heart Stew and Wolf Stew use A6's accepted Steady Meal:
+  120 s, stamina costs ×0.90, no stacking or eating while active. Raw meat and
+  Peat Heart are ingredients.
+- Fang Arrows use the existing weak-poison profile, 1 damage/s for 5 s, on an
+  accepted hit. Apply the existing strongest-dose/refresh rules once per
+  projectile hit; do not repeat the poison application.
+- Rat-tail Tonic's 30 healing over 10 s is listed in A8b, but its use limits
+  are not settled. The older recommendation proposes a 60 s Tonic/Antidote
+  shared cooldown; A6 currently shares its 60 s cooldown only between Berry
+  Recovery Draught and Root Stamina Draught. Define whether A8b uses a separate
+  or common cooldown (including those draughts), whether full-health use is
+  rejected, and whether healing stops on death before implementing use behavior.
+- Antidote remains unresolved. A6 explicitly defers poison resistance. The
+  A8b checklist says to clear weak poison, resist for 10 minutes and reduce
+  major poison to minor; this section's older revised proposal instead halves
+  major-poison damage. Neither resistance behavior nor the conflicting major-
+  poison outcome has a recorded approval. Decide whether resistance is in
+  scope; if so, define what it resists, its effect on an active/reapplied
+  poison, its duration/refresh behavior, and whether major poison is reduced
+  to minor or deals half damage. Do not implement from either draft.
 - Bow damage is a weapon bonus, combined once with arrow damage. Armor is
   physical-only. Fur items grant no cold protection in this recommendation.
-- Thunder Maul requires approved Lightning damage/channel behavior. Reef
-  Harpoon is included in the approved aquatic route; the route adds no skiff damage.
-- New items still need reviewed full profiles, attacks, durability, upgrades/
-  repair where applicable, server-validated crafting and original inventory
-  icons. These recommendations do not silently replace existing gear recipes.
+- Horn Bow's +100 Pierce bonus is retained, but its slow-draw duration and full
+  bow profile have no approved values.
+- Thunder Maul's 100 Crush + 30 Lightning summary is retained as a proposal;
+  define the Lightning damage channel, mitigation/application behavior and
+  whether it adds any status effect. No new Lightning effect is implied.
+- Reef Harpoon remains in the approved aquatic route at 60 Pierce; it adds no
+  skiff damage. Its weapon profile still needs approval.
+- Full equipment profiles are missing for Badger Fur Vest, Scale Cuirass, Wolf
+  Pelt Boots, Lynx Mantle and Polar Bear Coat (weight, maximum condition,
+  repair station/cost, and whether/how each upgrades). Fang Spear, Horn Bow,
+  Thunder Maul and Reef Harpoon also need weight, hands, maximum condition,
+  attack timing/reach or draw timing, repair and upgrade profiles as applicable.
+  Do not infer these from armor/damage summaries. Each item still needs
+  server-validated crafting/use and original inventory icons.
 
 ## Proposed roster
 

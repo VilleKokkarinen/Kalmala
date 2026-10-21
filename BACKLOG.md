@@ -207,7 +207,8 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [ ] Ocean: Reef Maw — swimmer hunter; included in the approved aquatic route.
 
 - [ ] **A8b — Enemy materials and crafted items (P1/P2).** [Recipes](docs/biome-enemies.md#recommended-items-and-recipes)
-  - [ ] Approve drop rates, effects and missing gear profiles; reconcile older recipe/source values.
+  - [x] Reconcile the user-edited drop amounts/chances and recipe station/cost/output values with existing approved contracts; align source ownership and the proposal table.
+  - [ ] Resolve the remaining effect and full equipment-profile decisions before implementing affected outputs; see [A8b review](docs/alpha-item-details.md#a8b).
   - [ ] Rat Tail: Rat, 1 guaranteed; material + source + JSON + generated icon.
   - [ ] Badger Fur: Badger, 1 guaranteed; material + source + JSON + generated icon.
   - [ ] Badger Meat: Badger, 1 guaranteed; material + source + JSON + generated icon.
@@ -223,12 +224,12 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [ ] Goat Horn: Horned Goat, 1 guaranteed; material + source + JSON + generated icon.
   - [ ] Thunder Core: Thunder Sentinel, 25% chance of 1; material + source + JSON + generated icon.
   - [ ] Reef Tooth: Reef Maw, 50% chance of 1; material + source + JSON + generated icon.
-  - [ ] Rat-tail Tonic: Cauldron, 2 Rat Tail + 2 Lingonberry → 1; heal 30 over 10 s.
+  - [ ] Rat-tail Tonic: Cauldron, 2 Rat Tail + 2 Lingonberry → 1; heal 30 over 10 s; use limits remain unresolved.
   - [ ] Badger Fur Vest: Workbench, 6 Badger Fur → 1; Chest, 6 Armor.
   - [ ] Roasted Badger: Cooking Rack, 1 Badger Meat → 1; Steady Meal.
   - [ ] Fang Arrows: Workbench, 2 Viper Fang + 10 Wood → 20; 50 Pierce, weak poison 5 s.
   - [ ] Scale Cuirass: Forge, 10 Giant Scale + 10 Bronze → 1; Chest, 20 Armor.
-  - [ ] Antidote: Cauldron, 1 Venom Sac + 2 Lingonberry → 1; clear weak poison, 10 min resistance, reduce major poison to minor poison.
+  - [ ] Antidote: Cauldron, 1 Venom Sac + 2 Lingonberry → 1; effect unresolved, see the A8b review.
   - [ ] Peat Heart Stew: Cauldron, 1 Peat Heart + 2 Potato + 1 Onion → 2; Steady Meal.
   - [ ] Wolf Pelt Boots: Workbench, 5 Wolf Pelt + 5 Iron → 1; Boots, 10 Armor.
   - [ ] Fang Spear: Forge, 4 Wolf Fang + 10 Iron + 10 Densewood → 1; 100 Stab.
@@ -242,8 +243,14 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [ ] Run the combined A8a/A8b enemy and enemy-item milestone verification; record results and blockers. This gate must pass before A9 begins.
 
   Bow String is reserved for bows. Review every pending non-bow binding input in its category contract; do not use Bow String there. Moonstone Ring and Dusk Ring stay in A9. Do not duplicate them.
-  Enable new drops only when their material task is complete. Antidote resistance,
-  slow-draw timing and Lightning effects need reviewed rules before coding; the aquatic route is approved.
+  Enable new drops only when their material task is complete. Antidote resistance
+  and major-poison behavior/cooldown, Rat-tail Tonic use limits, Horn Bow slow-draw
+  duration, Thunder Maul Lightning behavior, and full armor/weapon profiles remain
+  unresolved; do not infer them during implementation. The Reef Harpoon route is
+  approved but adds no skiff damage. At the current committed baseline, every
+  A8b material source is absent from the accepted A8a runtime roster; keep each
+  material and its dependent output incomplete until the named enemy has a
+  reachable, accepted server-side drop. Recheck after A8a work is integrated.
   All 30 new material/output tasks include the item-completion gate above.
 
 - [ ] **A9 — gems and special gear (P2).** [Rules](docs/alpha-item-details.md#a9)

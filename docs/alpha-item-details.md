@@ -319,6 +319,44 @@ using [the established workflow](material-icons.md). No placeholder/fallback
 icon counts as completion. Run relevant JSON/reference and icon checks before
 checking the item task; final acceptance audits every approved ID across A0–A9.
 
+Review outcome — 2026-10-21:
+
+- Keep the A8b backlog's 15 material amounts/chances and 15 recipe station,
+  cost and output quantities as the queue contract. Drop rolls are server-side
+  on credited defeats, additional to baseline loot, and each unique material
+  belongs only to its named enemy. Keep Sinew in A0; keep Moonstone and Dusk
+  Diamond routes and rings in A9. Do not duplicate those tasks in A8b.
+- The Badger Fur Vest is 6 Badger Fur, and the Lynx Mantle is 4 Lynx Pelt.
+  Remove the older +2 String inputs; no ordinary String item is approved and
+  Bow String is reserved for bows. The recipe table in
+  [biome-enemies.md](biome-enemies.md#recommended-items-and-recipes) is aligned
+  to these backlog values.
+- Reuse A6's Steady Meal exactly: 120 seconds and 0.90 stamina-use multiplier,
+  with no stacking or eating while active. Fang Arrows use the existing weak
+  poison profile (1 damage/s for 5 seconds) and strongest-dose refresh rules,
+  applied once per projectile hit. Fur gear gives no cold protection; armor is
+  physical-only. Reef Harpoon adds no skiff damage.
+- Do not implement Antidote yet. A6 explicitly defers poison resistance, while
+  the A8b backlog says to clear weak poison, resist for 10 minutes and reduce
+  major poison to minor; the older revised proposal says to halve major-poison
+  damage. No decision log entry approves resistance or resolves that conflict.
+  Decide whether resistance is in scope, what it resists, how active/reapplied
+  poison and effect refresh work, and whether major poison becomes minor or
+  deals half damage. Also decide whether Antidote shares a cooldown with
+  Rat-tail Tonic and the existing Berry/Root draught pair. Rat-tail Tonic still
+  needs approved full-health rejection and death-cancellation behavior.
+- Full profiles remain unapproved for Badger Fur Vest, Scale Cuirass, Wolf Pelt
+  Boots, Lynx Mantle and Polar Bear Coat: weight, maximum condition, repair
+  station/cost, and upgrade availability/cost/stat steps. Fang Spear, Horn Bow,
+  Thunder Maul and Reef Harpoon need weight, hand use, condition, attack/draw
+  timing and reach, and repair/upgrade profiles as applicable. Horn Bow's slow-
+  draw duration and Thunder Maul's Lightning channel, mitigation and application
+  behavior are also unresolved. Do not infer these from armor or damage totals.
+- Current committed source has no A8b material-producing enemy among the A8a
+  roster. Keep each material and any recipe that consumes it incomplete until
+  its named enemy has a reachable, accepted server-side defeat reward. Recheck
+  after A8a work is integrated; do not grant/debug-spawn a substitute source.
+
 ## A9
 
 Cargo, ten gems, special gear and discovery rewards (P2; scope approved 2026-10-19).

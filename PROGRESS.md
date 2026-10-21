@@ -4962,3 +4962,41 @@
 - **Observable impact and authority:** players can place a Camp Bed by paying the direct recipe. The server reruns placement support, water, bounds and overlap checks and validates accepted interaction range; Rest only changes the owning client's procedural pose. No new RPC, replicated rest property, inventory item or save field was added. The generic schema-6 placed-object record stores identity and transform.
 - **Known limitations and remaining scope:** runtime placement, rendered pose and host/client acceptance have not been exercised in Unreal. No time skip, stat change or spawn-point change is implemented.
 - **Next eligible task:** A8 Standing Light. Current run time: 2026-10-21 18:00 UTC.
+
+## Run 2026-10-21 18:24 UTC — A8b drop and recipe review
+
+- **Selected task:** split the first A8b review into reconciliation and
+  unresolved-design work. Completed only reconciliation of the user-edited
+  material drops, recipe station/cost/output values, and source ownership.
+- **Work completed:** aligned the enemy-item recommendation table with the A8b
+  backlog; removed the older +2 String costs from Badger Fur Vest and Lynx
+  Mantle; confirmed Bow String stays in A0 and both rings stay in A9. Recorded
+  existing Steady Meal and weak-poison behavior, and documented the unresolved
+  Antidote/Tonic rules, missing armor/weapon profiles, and A8a source dependency.
+  Left those decisions and all material/output item tasks unchecked.
+- **Files changed:** `BACKLOG.md`; `docs/alpha-item-details.md`;
+  `docs/biome-enemies.md`; `PROGRESS.md`.
+- **Lightweight checks:** manually cross-checked all 15 material quantity/chance
+  rows and all 15 output recipes against the A8b backlog. Confirmed no
+  A8b-specific drop IDs or new source archetypes in the committed wildlife
+  source; current A8a roster work remains unchecked. `git diff --check` passed.
+  Documentation only; no JSON, icon, build or gameplay test applies to this
+  review increment.
+- **Full verification:** no build or automation ran. Combined A8a/A8b enemy and
+  item acceptance remains deferred to the I4 final gate after integration.
+- **Observable impact and authority:** no runtime behavior changed. The review
+  now points at one recipe source of truth and prevents unimplemented A8b drops
+  from being treated as reachable. No networking or authority change.
+- **Known limitations/remaining scope:** Antidote resistance/major-poison
+  behavior/cooldown, Rat-tail Tonic use limits, Horn Bow draw duration, Thunder
+  Maul Lightning behavior, and complete armor/weapon profiles still need
+  approved values. All 15 A8b material sources are absent at this committed
+  baseline, so their material tasks and dependent outputs cannot be completed
+  or checked yet.
+- **Integration state:** work is isolated on `codex/a8b-items` at
+  `E:\dev\Kalmala\.wt\a8b`. Main-checkout tracked files already have unrelated
+  changes and a separate A8 run is active; this handoff is not integrated or
+  synchronized to main and must be retried when ownership is clear.
+- **Next eligible task:** resolve the remaining A8b effect and equipment-profile
+  decisions in the split review child, then recheck source availability before
+  selecting a material or output. Current run time: 2026-10-21 18:24 UTC.
