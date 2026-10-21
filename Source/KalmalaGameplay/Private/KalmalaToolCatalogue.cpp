@@ -101,7 +101,8 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
             || !IsOneOf(Profile.ToolKind, {TEXT("StoneKnife"), TEXT("StoneAxe"), TEXT("StonePick"),
                 TEXT("StoneSpear"), TEXT("BronzeAxe"), TEXT("BronzeKnife"), TEXT("BronzePick"),
                 TEXT("BronzeSpear"), TEXT("IronAxe"), TEXT("IronKnife"), TEXT("IronPick"),
-                TEXT("IronSpear"), TEXT("StoneMace"), TEXT("BronzeMace"), TEXT("IronMace"), TEXT("ConstructionHammer"), TEXT("Bow")})
+                TEXT("IronSpear"), TEXT("StoneMace"), TEXT("BronzeMace"), TEXT("IronMace"),
+                TEXT("BronzeSword"), TEXT("ConstructionHammer"), TEXT("Bow")})
             || (Profile.ToolKind == TEXT("Bow") && !Profile.bTwoHanded)
             || !IsOneOf(Profile.ToolSet, {TEXT("Starter"), TEXT("Crafted"), TEXT("Utility")})
             || !IsOneOf(Profile.Action, {TEXT("None"), TEXT("Gathering"), TEXT("Woodcutting"), TEXT("Mining")})

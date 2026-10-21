@@ -28,6 +28,7 @@ namespace
         if (Value == TEXT("StoneMace")) return EKalmalaToolKind::StoneMace;
         if (Value == TEXT("BronzeMace")) return EKalmalaToolKind::BronzeMace;
         if (Value == TEXT("IronMace")) return EKalmalaToolKind::IronMace;
+        if (Value == TEXT("BronzeSword")) return EKalmalaToolKind::BronzeSword;
         return EKalmalaToolKind::None;
     }
 
@@ -264,7 +265,7 @@ bool FKalmalaToolLifecycleContract::IsKnownAction(const EKalmalaToolAction Actio
 
 bool FKalmalaToolLifecycleContract::IsKnownTool(const EKalmalaToolKind Tool)
 {
-    return Tool >= EKalmalaToolKind::StoneKnife && Tool <= EKalmalaToolKind::Bow;
+    return Tool >= EKalmalaToolKind::StoneKnife && Tool <= EKalmalaToolKind::BronzeSword;
 }
 
 bool FKalmalaToolLifecycleContract::IsKnownToolTier(const EKalmalaToolTier Tier)

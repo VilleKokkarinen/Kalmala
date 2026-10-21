@@ -56,6 +56,17 @@
     },
     {
       "ItemIds": [
+        "BronzeSword"
+      ],
+      "LevelUpReward": {
+        "MaxDurability": 30,
+        "DamageBonuses": {
+          "Slash": 4.0
+        }
+      }
+    },
+    {
+      "ItemIds": [
         "StoneSpear",
         "BronzeSpear",
         "IronSpear"

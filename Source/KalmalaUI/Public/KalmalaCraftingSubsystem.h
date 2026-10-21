@@ -216,6 +216,7 @@ private:
     UFUNCTION() void RepairWorkbenchSelectedTool();
     UFUNCTION() void CraftBronzeAxe();
     UFUNCTION() void CraftBronzeMace();
+    UFUNCTION() void CraftBronzeSword();
     UFUNCTION() void CraftIronMace();
     UFUNCTION() void CraftStoneAxe();
     UFUNCTION() void CraftStoneKnife();
@@ -323,6 +324,7 @@ private:
     UPROPERTY(Transient) TObjectPtr<UButton> CampfireLightButton;
     UPROPERTY(Transient) TObjectPtr<UButton> CraftBronzeAxeButton;
     UPROPERTY(Transient) TObjectPtr<UButton> CraftBronzeMaceButton;
+    UPROPERTY(Transient) TObjectPtr<UButton> CraftBronzeSwordButton;
     UPROPERTY(Transient) TObjectPtr<UButton> CraftIronMaceButton;
     UPROPERTY(Transient) TObjectPtr<class UHorizontalBox> MaceCraftActions;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> StoneCraftTitleText;

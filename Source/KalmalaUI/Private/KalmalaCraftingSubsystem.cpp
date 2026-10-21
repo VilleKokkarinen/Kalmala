@@ -824,6 +824,8 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     CraftBronzeAxeButton->OnClicked.AddDynamic(this, &ThisClass::CraftBronzeAxe);
     CraftBronzeMaceButton = AddButton(TEXT("Craft Bronze Mace"), MaceCraftActions);
     CraftBronzeMaceButton->OnClicked.AddDynamic(this, &ThisClass::CraftBronzeMace);
+    CraftBronzeSwordButton = AddButton(TEXT("Craft Bronze Sword"), MaceCraftActions);
+    CraftBronzeSwordButton->OnClicked.AddDynamic(this, &ThisClass::CraftBronzeSword);
     CraftIronMaceButton = AddButton(TEXT("Craft Iron Mace"), MaceCraftActions);
     CraftIronMaceButton->OnClicked.AddDynamic(this, &ThisClass::CraftIronMace);
     StoneCraftItemIds = {TEXT("StoneAxe"), TEXT("StoneKnife"), TEXT("StonePick"), TEXT("StoneSpear"), TEXT("StoneMace"), TEXT("Bow")};
@@ -1919,11 +1921,12 @@ void UKalmalaCraftingWidget::RefreshStationContextState()
 
 void UKalmalaCraftingWidget::RefreshMaceCraftState()
 {
-    if (!MaceCraftActions || !CraftBronzeMaceButton || !CraftIronMaceButton) return;
+    if (!MaceCraftActions || !CraftBronzeMaceButton || !CraftIronMaceButton || !CraftBronzeSwordButton) return;
     const bool bVisible = !bInventoryCompanion && bForgeCraftContext;
     MaceCraftActions->SetVisibility(bVisible ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
     CraftBronzeMaceButton->SetVisibility(bForgeCraftContext ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
     CraftIronMaceButton->SetVisibility(bForgeCraftContext ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+    CraftBronzeSwordButton->SetVisibility(bForgeCraftContext ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
     const APlayerController* PC = GetOwningPlayer();
     const AKalmalaCharacter* Owner = PC ? Cast<AKalmalaCharacter>(PC->GetPawn()) : nullptr;
     const UKalmalaInventoryComponent* Inventory = Owner ? Owner->GetInventoryComponent() : nullptr;
@@ -1952,6 +1955,7 @@ void UKalmalaCraftingWidget::RefreshMaceCraftState()
     };
     RefreshButton(CraftBronzeMaceButton, TEXT("BronzeMace"));
     RefreshButton(CraftIronMaceButton, TEXT("IronMace"));
+    RefreshButton(CraftBronzeSwordButton, TEXT("BronzeSword"));
 }
 
 void UKalmalaCraftingWidget::RefreshStoneCraftState()
@@ -2881,6 +2885,7 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
         && CraftBronzeAxeButton && CraftBronzeAxeButton->GetVisibility() == ESlateVisibility::Collapsed
         && MaceCraftActions && MaceCraftActions->GetVisibility() == ESlateVisibility::Collapsed
         && CraftBronzeMaceButton && CraftBronzeMaceButton->GetVisibility() == ESlateVisibility::Collapsed
+        && CraftBronzeSwordButton && CraftBronzeSwordButton->GetVisibility() == ESlateVisibility::Collapsed
         && CraftIronMaceButton && CraftIronMaceButton->GetVisibility() == ESlateVisibility::Collapsed
         && UpgradeBronzeAxeButton && UpgradeBronzeAxeButton->GetVisibility() == ESlateVisibility::Collapsed;
     for (const TObjectPtr<UWidget>& ExcludedWidget : StationCraftExcludedWidgets)
@@ -2946,6 +2951,7 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
         && UpgradeBronzeAxeButton && UpgradeBronzeAxeButton->GetVisibility() == ESlateVisibility::Collapsed
         && MaceCraftActions && MaceCraftActions->GetVisibility() == ESlateVisibility::Visible
         && CraftBronzeMaceButton && CraftBronzeMaceButton->GetVisibility() == ESlateVisibility::Visible
+        && CraftBronzeSwordButton && CraftBronzeSwordButton->GetVisibility() == ESlateVisibility::Visible
         && CraftIronMaceButton && CraftIronMaceButton->GetVisibility() == ESlateVisibility::Visible
         && StationSectionSwitcher && StationSectionSwitcher->GetVisibility() == ESlateVisibility::Visible
         && ForgeCraftSectionButton && ForgeCraftSectionButton->GetVisibility() == ESlateVisibility::Visible
@@ -4750,6 +4756,11 @@ void UKalmalaCraftingWidget::CraftBronzeMace()
 {
     if (!bForgeCraftContext || StationFilterKit != TEXT("ForgeKit") || !IsStationContextValid()) return;
     if (auto* M = Model()) M->ServerProgressTool(TEXT("BronzeMace"));
+}
+void UKalmalaCraftingWidget::CraftBronzeSword()
+{
+    if (!bForgeCraftContext || StationFilterKit != TEXT("ForgeKit") || !IsStationContextValid()) return;
+    if (auto* M = Model()) M->ServerProgressTool(TEXT("BronzeSword"));
 }
 void UKalmalaCraftingWidget::CraftIronMace()
 {

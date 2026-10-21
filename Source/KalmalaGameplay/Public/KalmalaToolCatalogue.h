@@ -99,7 +99,8 @@ struct KALMALAGAMEPLAY_API FKalmalaToolProfileData
     bool IsWeapon() const
     {
         return ToolKind.EndsWith(TEXT("Knife")) || ToolKind.EndsWith(TEXT("Axe"))
-            || ToolKind.EndsWith(TEXT("Mace")) || ToolKind.EndsWith(TEXT("Spear")) || ToolKind == TEXT("Bow");
+            || ToolKind.EndsWith(TEXT("Mace")) || ToolKind.EndsWith(TEXT("Spear"))
+            || ToolKind.EndsWith(TEXT("Sword")) || ToolKind == TEXT("Bow");
     }
 
     bool GetLevelStats(int32 ToolLevel, const FKalmalaToolRewardData& Reward, FKalmalaToolLevelStats& OutStats) const;

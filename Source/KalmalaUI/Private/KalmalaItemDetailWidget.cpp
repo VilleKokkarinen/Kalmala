@@ -32,6 +32,7 @@ FString UKalmalaItemDetailWidget::DescribeCarriedTool(FName Id, const FString& V
     else if (Id == TEXT("StoneMace")) Description = TEXT("A stone mace for crushing attacks.");
     else if (Id == TEXT("BronzeMace")) Description = TEXT("A bronze mace for crushing attacks.");
     else if (Id == TEXT("IronMace")) Description = TEXT("An iron mace for crushing attacks.");
+    else if (Id == TEXT("BronzeSword")) Description = TEXT("A forged bronze sword for slashing attacks.");
     else if (Id == TEXT("ConstructionHammer")) Description = TEXT("A hand hammer for placing camp structures.");
 
     const FKalmalaToolProfileData* Profile = UKalmalaToolCatalogue::Get()->FindProfile(Id);

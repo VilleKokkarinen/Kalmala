@@ -204,6 +204,28 @@
         }
       ],
       "Level": 1
+    },
+    {
+      "RecipeId": "BronzeSword",
+      "DisplayName": "Bronze Sword",
+      "ItemId": "BronzeSword",
+      "RequiredStation": "Forge",
+      "RequiredStationLevel": 1,
+      "Ingredients": [
+        {
+          "ItemId": "Bronze",
+          "Quantity": 10
+        },
+        {
+          "ItemId": "Lightwood",
+          "Quantity": 2
+        },
+        {
+          "ItemId": "DeerHide",
+          "Quantity": 2
+        }
+      ],
+      "Level": 1
     }
   ]
 }

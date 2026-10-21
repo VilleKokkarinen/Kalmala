@@ -40,7 +40,7 @@ namespace
                 if (Family == TEXT("Axe")) Action = TEXT("Woodcutting");
                 else if (Family == TEXT("Pick")) Action = TEXT("Mining");
                 else if (Family == TEXT("Knife")) Action = TEXT("Gathering");
-                else if (Family != TEXT("Mace") && Family != TEXT("Spear")) return false;
+                else if (Family != TEXT("Mace") && Family != TEXT("Spear") && Family != TEXT("Sword")) return false;
             }
             Object->SetStringField(TEXT("ToolKind"), ItemId);
             Object->SetStringField(TEXT("ToolSet"), Set);

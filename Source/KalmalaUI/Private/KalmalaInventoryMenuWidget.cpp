@@ -58,6 +58,7 @@ FString GetCarriedToolDisplayName(const FName ItemId)
     if (ItemId == TEXT("StoneMace")) return TEXT("Stone Mace");
     if (ItemId == TEXT("BronzeMace")) return TEXT("Bronze Mace");
     if (ItemId == TEXT("IronMace")) return TEXT("Iron Mace");
+    if (ItemId == TEXT("BronzeSword")) return TEXT("Bronze Sword");
     if (ItemId == TEXT("StoneKnife")) return TEXT("Stone Knife");
     if (ItemId == TEXT("StoneAxe")) return TEXT("Stone Axe");
     if (ItemId == TEXT("StonePick")) return TEXT("Stone Pick");

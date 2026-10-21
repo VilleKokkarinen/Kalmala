@@ -41,6 +41,7 @@
     "items/equipment/knives.json",
     "items/equipment/pickaxes.json",
     "items/equipment/spears.json",
+    "items/equipment/swords.json",
     "items/equipment/maces.json",
     "items/equipment/building-hammer.json"
   ],
@@ -50,6 +51,7 @@
     "item-level-up/costs/knives.json",
     "item-level-up/costs/pickaxes.json",
     "item-level-up/costs/spears.json",
+    "item-level-up/costs/swords.json",
     "item-level-up/costs/maces.json",
     "item-level-up/costs/construction-hammer.json",
     "item-level-up/costs/boots.json",

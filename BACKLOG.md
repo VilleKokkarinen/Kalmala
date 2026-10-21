@@ -134,7 +134,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
 
 - [ ] **A2 — Melee weapons (P1).** [Stats and upgrades](docs/alpha-item-details.md#a2)
   - [x] Review the sword/club proposal.
-  - [ ] Bronze Sword: Forge, 10 Bronze + 2 Lightwood + 2 Deer hide
+  - [x] Bronze Sword: Forge, 10 Bronze + 2 Lightwood + 2 Deer hide
   - [ ] Iron Sword: Forge, 20 Iron + 2 Densewood + 2 Deer hide
 
 - [ ] **A3 — Bows and arrows (P1).** [Stats and upgrades](docs/alpha-item-details.md#a3)

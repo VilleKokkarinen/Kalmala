@@ -227,6 +227,7 @@ EKalmalaHeldToolVisual UKalmalaPlayerModelComponent::GetHeldToolVisualForItem(co
         return EKalmalaHeldToolVisual::Spear;
     case EKalmalaToolKind::StoneMace: case EKalmalaToolKind::BronzeMace: case EKalmalaToolKind::IronMace:
         return EKalmalaHeldToolVisual::Mace;
+    case EKalmalaToolKind::BronzeSword: return EKalmalaHeldToolVisual::Sword;
     case EKalmalaToolKind::Bow: return EKalmalaHeldToolVisual::Bow;
     default: return EKalmalaHeldToolVisual::None;
     }
@@ -273,6 +274,10 @@ void UKalmalaPlayerModelComponent::OnRep_HeldToolVisual()
     case EKalmalaHeldToolVisual::Mace:
         Show(0, FVector(8, 0, -45), FVector(2, 2, 16));
         Show(1, FVector(8, 0, -26), FVector(7, 7, 7)); break;
+    case EKalmalaHeldToolVisual::Sword:
+        Show(0, FVector(8, 0, -39), FVector(2.2f, 2.2f, 11));
+        Show(1, FVector(8, 0, 3), FVector(3.2f, 1.2f, 21));
+        Show(2, FVector(8, 0, -19), FVector(8, 1.5f, 2)); break;
     case EKalmalaHeldToolVisual::Bow:
         Show(0, FVector(12, 0, -25), FVector(2, 2, 20), FRotator(18, 0, 0));
         Show(1, FVector(12, 0, -63), FVector(2, 2, 20), FRotator(-18, 0, 0));

@@ -4777,3 +4777,37 @@ with empty hands and confirm it remains visible with a blue background in the HU
 and inventory. Press again to clear the hand; switch tools and move the equipped
 cell to confirm the tint follows its identity. Null-RHI automation does not verify
 rendered HUD appearance or a live multiplayer peer.
+
+## A2 Bronze Sword catalogue increment — 2026-10-21
+
+`BronzeSword` is authored as a carried weapon profile in
+`items/equipment/swords.json`, with its Forge acquisition in
+`recipes/stations/forge.json`, level-one upgrade cost in
+`item-level-up/costs/swords.json`, level reward in
+`item-level-up/rewards/item-stats.json`, and Basic attack in
+`attacks/attacks.json`. `GameCatalogues.json` registers both new family files.
+Its profile is one-handed, 100 condition, 35 Slash, and 2 kg using the existing
+carried-tool weight rule. Its Basic attack uses the existing melee timing and
+reach with zero style bonus. Level upgrades add 30 condition and 4 Slash for
+the level-one base cost of 2 Bronze + 1 Lightwood at the Forge, scaled by the
+existing upgrade-cost rule; acquisition costs 10 Bronze + 2 Lightwood + 2 Deer
+Hide at Forge level 1.
+
+The Bronze Sword uses the existing server-validated carried-tool transaction
+and Main Hand classification. The Forge action calls the existing progression
+request, which validates station context, exact recipe identity, materials,
+and tool capacity on the server. Its procedural held silhouette and generated
+inventory icon are mapped by canonical ID. A separate ordinary stack-item
+record is not applicable because carried weapons use the equipment-profile
+catalogue. Its acquisition source is the Forge recipe; it has no loot route,
+gathering role, alternate attack, elemental bonus, or new save/network field.
+The existing carried-tool weight is a presentation metric without an
+encumbrance penalty.
+
+The original, prepared, and imported icon paths and exact prompt are recorded in
+`docs/bronze-sword-icon.md`. Icon batch M was added as a one-identity batch so
+importing the sword does not regenerate an existing texture. Prepare and import
+with `python Scripts/Prepare-CatalogueIconBatch.py --batch M` and
+`Scripts/Import-CatalogueIconBatch.ps1 -Batch M`. The catalogue icon validator
+now covers 76 identities. Editor build, gameplay automation, rendered Forge
+acceptance, and peer checks remain deferred to I2 milestone-final verification.

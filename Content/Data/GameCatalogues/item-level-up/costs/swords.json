@@ -1,0 +1,20 @@
+{
+  "upgrades": [
+    {
+      "DisplayName": "Bronze Sword",
+      "ItemId": "BronzeSword",
+      "RequiredStation": "Forge",
+      "Ingredients": [
+        {
+          "ItemId": "Bronze",
+          "Quantity": 2
+        },
+        {
+          "ItemId": "Lightwood",
+          "Quantity": 1
+        }
+      ],
+      "Level": 1
+    }
+  ]
+}

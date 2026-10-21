@@ -34,7 +34,8 @@ enum class EKalmalaToolKind : uint8
     StoneMace,
     BronzeMace,
     IronMace,
-    Bow
+    Bow,
+    BronzeSword
 };
 
 /** M9 harvesting tiers; station level is validated only by later craft/upgrade transactions. */

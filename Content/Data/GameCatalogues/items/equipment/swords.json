@@ -1,0 +1,13 @@
+{
+  "items": [
+    {
+      "ItemId": "BronzeSword",
+      "DisplayName": "Bronze Sword",
+      "Description": "A forged bronze blade for slashing attacks.",
+      "MaxDurability": 100,
+      "DamageBonuses": {
+        "Slash": 35.0
+      }
+    }
+  ]
+}
