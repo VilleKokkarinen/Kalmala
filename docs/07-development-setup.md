@@ -41,6 +41,18 @@ is inactive, and does not advance while the server is stopped. Accepted planting
 spends one Trowel condition; harvest and rejection do not. A mature crop remains
 on a full pack and a planted plot cannot be removed.
 
+The focused live acceptance runner is
+`Scripts/Tests/Construction/Verify-GardenPlot.ps1 -Project <isolated Kalmala.uproject>`.
+Use a compiled project mirror outside the repository. The runner starts a listen
+server and client, places one paid Garden Plot for each peer, opens the real
+Cultivation panel, and uses its Carrot action. Require exact direct-material
+placement cost, one Carrot Seed spent, one Planting Trowel condition spent,
+server-authoritative crop state replicated to each peer, and all seven crop actions visible
+and inventory-enabled. Repeat with `-Rendered -Width 1280 -Height 720`; inspect
+both retained host/client PNG captures for clipped controls or unreadable text.
+The runner uses a fresh per-peer UserDir and retains its logs and captures under
+the system temporary directory.
+
 The focused `Kalmala.Gameplay.Construction.NoPortableKits` regression covers all
 16 routes, ordinary grant/stack/production rejection, storage/save rejection,
 raw costs and future kit-definition rejection. Transactions, CookingStationHeat,

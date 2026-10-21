@@ -78,6 +78,7 @@ FKalmalaPlacementPreview FKalmalaPlacementPreview::Evaluate(const UWorld* World,
             Result.Message = TEXT("Preview invalid: Garden Plot needs open sky");
             return Result;
         }
+        Query.AddIgnoredActor(Ground.GetActor());
     }
 
     const bool bIsStationAttachment = ItemId == TEXT("WorkbenchToolRackKit") || ItemId == TEXT("ForgeAnvilKit");

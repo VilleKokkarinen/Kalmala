@@ -1,0 +1,2 @@
+PASS: direct-material Garden Plot placement, host/client Carrot planting, material and Trowel payment, replicated crop state, seven Cultivation actions, and rendered host/client view.
+Evidence: C:\Users\Ville\AppData\Local\Temp\KGP-cd3282a104394fdb9ca47efddeb27533

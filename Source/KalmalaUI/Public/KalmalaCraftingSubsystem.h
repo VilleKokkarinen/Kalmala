@@ -115,6 +115,8 @@ public:
     bool PrepareBrowseReviewForTest(int32 View);
     bool PrepareIngredientReviewForTest(int32 View);
     bool PrepareServiceReviewForTest(int32 View, bool bDetails);
+    bool VerifyGardenPlotPresentationForTest(bool bExpectGrowing);
+    bool RequestGardenPlotPlantingForTest();
 #endif
     void SetRecipeBrowse(const FString& Query, int32 Category, bool bNameSort);
     TArray<int32> GetVisibleRecipeIndices() const;
@@ -513,5 +515,13 @@ private:
     int32 InteractionPromptReviewStage = 0;
     float InteractionPromptReviewWait = 0.0f;
     bool bInteractionPromptReviewComplete = false;
+    void RunGardenPlotUiVerification(float DeltaTime);
+    int32 GardenPlotUiTestStage = 0;
+    float GardenPlotUiTestElapsed = 0.0f;
+    uint32 GardenPlotUiTestResultSerial = 0;
+    int32 GardenPlotUiTestStartingCarrotSeeds = 0;
+    int32 GardenPlotUiTestStartingTrowelCondition = 0;
+    double GardenPlotUiTestReadyTime = -1.0;
+    bool bGardenPlotUiCaptureRequested = false;
 #endif
 };

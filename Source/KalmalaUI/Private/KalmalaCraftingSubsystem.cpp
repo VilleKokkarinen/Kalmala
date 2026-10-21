@@ -1520,7 +1520,7 @@ bool UKalmalaCraftingWidget::OpenInternal(const FName StationKit,
     ContextStationActor = StationActor;
     ContextOwnerPawn = StationActor ? PC->GetPawn() : nullptr;
     ContextConstructionId = StationActor ? MoveTemp(StationContextConstructionId) : FString();
-    this->StationContextSection = MoveTemp(StationContextSection);
+    this->StationContextSection = MoveTemp(RequestedStationContextSection);
     if (StationKit.IsNone() && bInventoryCompanion)
     {
         RecipeQuery.Reset();
@@ -5371,6 +5371,7 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
     UpdateInteractionPrompt(PC);
 #if !UE_BUILD_SHIPPING
     UpdateInteractionPromptReview(PC, DeltaTime);
+    RunGardenPlotUiVerification(DeltaTime);
 #endif
 #if !UE_BUILD_SHIPPING
     if(!bVerified && PC->GetPawn() && FParse::Param(FCommandLine::Get(),TEXT("KalmalaCraftingTest")))

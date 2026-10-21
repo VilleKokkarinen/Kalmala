@@ -124,6 +124,9 @@ private:
     void RunStorageVerification(float DeltaTime);
     void RunPersistedCampVerification(float DeltaTime);
     void RunRainVerticalSliceVerification(float DeltaTime);
+#if !UE_BUILD_SHIPPING
+    void RunGardenPlotVerification(float DeltaTime);
+#endif
     void RefreshStorageView();
     void ClearStorageView();
     AKalmalaConstructionActor* GetCurrentCharcoalKilnFromServer() const;
@@ -161,4 +164,15 @@ private:
     bool bPersistedCampAuthorityProbeReported = false;
     bool bRainVerticalSliceClientReported = false;
     float RainVerticalSliceClientObservationSeconds = 0.0f;
+#if !UE_BUILD_SHIPPING
+    int32 GardenPlotVerificationStage = 0;
+    float GardenPlotVerificationElapsed = 0.0f;
+    TWeakObjectPtr<AKalmalaConstructionActor> GardenPlotVerificationActor;
+    FGuid GardenPlotVerificationTrowelGuid;
+    int32 GardenPlotVerificationStartingCarrotSeeds = 0;
+    int32 GardenPlotVerificationStartingTrowelCondition = 0;
+    uint32 GardenPlotVerificationStartingResultSerial = 0;
+    TArray<FKalmalaInventoryStack> GardenPlotVerificationPlacementCost;
+    TArray<int32> GardenPlotVerificationCostBefore;
+#endif
 };
