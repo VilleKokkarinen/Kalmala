@@ -75,10 +75,9 @@ Keep existing gem odds independent of baseline loot. Server owns rolls and
 stable claims; full packs preserve unclaimed rewards, and retries/reloads
 cannot reroll or duplicate them. Every new material requires its registered
 catalogue definition and original generated icon. Proposed uses need separate
-reviewed recipes/effects. The approved scope includes fishing, Lightning gear,
-the Harpoon and the full Reef Maw route. Cold-protection clothing remains
-explicitly deferred; the approved aquatic route adds no fishing tether or skiff
-damage.
+reviewed recipes/effects. The approved scope includes Lightning gear, the
+Harpoon and the full Reef Maw route. Cold-protection clothing remains
+explicitly deferred; the aquatic route adds no skiff damage.
 
 ## Recommended items and recipes
 
@@ -127,7 +126,7 @@ swarm currently have no unique drop, so neither receives a new recipe here.
 - Bow damage is a weapon bonus, combined once with arrow damage. Armor is
   physical-only. Fur items grant no cold protection in this recommendation.
 - Thunder Maul requires approved Lightning damage/channel behavior. Reef
-  Harpoon is included in the approved aquatic route; no fishing tether or skiff damage is added.
+  Harpoon is included in the approved aquatic route; the route adds no skiff damage.
 - New items still need reviewed full profiles, attacks, durability, upgrades/
   repair where applicable, server-validated crafting and original inventory
   icons. These recommendations do not silently replace existing gear recipes.

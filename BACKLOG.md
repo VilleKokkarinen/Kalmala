@@ -151,7 +151,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [x] Bronze Leggings: Forge, 15 Bronze + 5 Boar Hide; 5 Armor.
   - [x] Bronze Shield: Forge, 10 Bronze + 5 Lightwood + 5 Boar Hide; 10 Armor.
 
-- [ ] **A5 — Utility tools (P1/P2).** [Rules](docs/alpha-item-details.md#a5)
+- [x] **A5 — Utility tools (P1/P2).** [Rules](docs/alpha-item-details.md#a5)
   - [x] Basic Torch: inventory, 2 Wood + 1 amber; 300 s burn, 6 m light.
   - [x] Planting Trowel: Forge, 10 Wood + 5 Bronze bar; requires A7.
 
@@ -166,18 +166,12 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
 
   Draughts: one dose per craft; shared 60 s cooldown. All cooking needs a lit hearth.
 
-- [ ] **A7 — Farming and fishing (P2).** [Growth and catch rules](docs/alpha-item-details.md#a7)
+- [x] **A7 — Farming (P2).** [Growth rules](docs/alpha-item-details.md#a7)
   - [x] Review farming. Garden Plot: Planting Trowel, cultivation menu addition.
   - [x] Carrot: 1 seed → 3 carrots; 1 carrot → 3 seeds.
   - [x] Potato: 1 potato → 3 potatoes; Potato Seed stays unused.
   - [x] Rutabaga: 1 seed → 3 roots; 1 root → 3 seeds.
   - [x] Onion: 1 seed → 3 onions; 1 onion → 3 seeds.
-
-  - [ ] Fishing Rod: Workbench, 4 Lightwood + 3 non-bow binding material; 1 kg, 80 condition, two hands, free Workbench repair, no upgrades/combat (blocked pending binding material ID/cost review).
-  - [x] Fishing Bait: inventory craft, 1 Forest Chanterelle → 5; stack 50, 0.02 kg.
-  - [ ] Lake Fish schools: visible and stationary on Shimmering Lakes water; 3 catches then deplete; no timed respawn.
-  - [ ] Fishing catch transaction: held usable Rod, school within 15 m and clear line of sight, reserve 1 Bait and one result cell, wait 5 s, remain within 1 m, then atomically grant 1 Lake Fish and spend Bait, Rod condition, and one school catch; cancellation/rejection releases reservation unchanged.
-  - [ ] Lake Fish food path: add Lake Fish and Cooked Lake Fish items/icons, and Cooking Rack recipe (1 raw → 1 cooked, MaxBatch 5, Cooking XP 10, existing Steady Meal effect).
 
   Crops take 600 active seconds; Planting Trowel required. No offline/inactive-region growth.
 
@@ -280,11 +274,11 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
 
 - [ ] **A10 — Acceptance.** [Full criteria](docs/alpha-item-details.md#a10)
   - [ ] Audit all approved item IDs against registered JSON and generated/imported runtime icons; zero missing entries, references or fallback icons.
-  - [ ] Review milestones: I0 A0; I1 A1; I2 A2–A6 except Planting Trowel; I3 A7 + Planting Trowel; I4 A8–A8b with its final enemy gate before A9; I5 A9.
+  - [ ] Review milestones: I0 A0; I1 A1; I2 A2–A6 except Planting Trowel; I3 A7 farming + Planting Trowel; I4 A8–A8b with its final enemy gate before A9; I5 A9.
   - [ ] Check each included item's source, recipe, use, upgrades, icon and save behavior.
   - [ ] Run required full verification at each milestone's final increment.
   - [ ] Verify fresh-start progression through Bronze and Iron without debug grants.
-  - [ ] Verify approved farming/fishing, shelter, cargo, accessories, peers and restart.
+  - [ ] Verify approved farming, shelter, cargo, accessories, peers and restart.
   - [ ] Record results/blockers; mark complete only after required gates pass.
 
 ## User-requested fixes

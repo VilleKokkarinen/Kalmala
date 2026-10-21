@@ -329,7 +329,8 @@ bool FKalmalaCatalogueIconTest::RunTest(const FString&)
         const bool bUsesStatusTexture = !StatusIconId.IsNone();
         const FName AssetId = Id == TEXT("StoneAxe") ? FName(TEXT("FieldHatchet"))
             : Id == TEXT("StoneKnife") ? FName(TEXT("ReedKnife"))
-            : Id == TEXT("CampFire") ? FName(TEXT("CampfireKit")) : Id;
+            : Id == TEXT("CampFire") ? FName(TEXT("CampfireKit"))
+            : Id == TEXT("GardenPlot") ? FName(TEXT("GardenPlotKit")) : Id;
         const FString AssetName = (bUsesStatusTexture ? StatusIconId : AssetId).ToString();
         const TCHAR* Directory = bUsesStatusTexture ? TEXT("Status") : TEXT("Items");
         return FString::Printf(TEXT("/Game/Kalmala/UI/Icons/%s/%s.%s"), Directory, *AssetName, *AssetName);

@@ -67,7 +67,7 @@ bool FKalmalaDirectBuildTest::RunTest(const FString& Parameters)
         TestFalse(TEXT("Forging a portable-kit recipe does not bypass production validation"),
             UKalmalaRecipeCatalogue::Scale(ForgedProduction, 1, Candidate, OutputCount));
     }
-    TestEqual(TEXT("All fifteen current placed objects use material recipes"), BuildCount, 15);
+    TestEqual(TEXT("All sixteen current placed objects use material recipes"), BuildCount, 16);
     const FKalmalaRecipe* Kiln = Recipes->Find(TEXT("CharcoalKiln"));
     TestNotNull(TEXT("Charcoal Kiln direct-build recipe is registered"), Kiln);
     if (Kiln)

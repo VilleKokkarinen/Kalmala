@@ -61,7 +61,7 @@ void AKalmalaConstructionActor::InitializeFromServer(const FName InKit, const FS
             || (InKit == TEXT("SmelterKit")
                 && (Smelter.JobRemainingSeconds > 0.0f
                     || (!Smelter.InputOreQueue.IsEmpty() && Smelter.InputCoal > 0
-                        && Smelter.GetOutputCount() < FKalmalaSmelterState::OutputCapacity))
+                        && Smelter.GetOutputCount() < FKalmalaSmelterState::OutputCapacity)))
             || (InKit == TEXT("GardenPlotKit") && GardenPlot.IsPlanted() && !GardenPlot.IsMature()));
         ApplyConstructionKit();
     }

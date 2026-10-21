@@ -2,7 +2,7 @@
 
 ## No portable construction items — 2026-10-18
 
-All 15 placed objects use direct materials through the Building Hammer. The
+All 16 placed objects use direct materials through the Building Hammer. The
 remaining Chest, Cooking Rack, Cauldron and Frying Pan kit paths are removed.
 Frying Pan now needs 5 Iron at placement, with no Forge crafting step; all
 other authored costs and station-attachment proximity checks remain intact.
@@ -42,7 +42,7 @@ spends one Trowel condition; harvest and rejection do not. A mature crop remains
 on a full pack and a planted plot cannot be removed.
 
 The focused `Kalmala.Gameplay.Construction.NoPortableKits` regression covers all
-15 routes, ordinary grant/stack/production rejection, storage/save rejection,
+16 routes, ordinary grant/stack/production rejection, storage/save rejection,
 raw costs and future kit-definition rejection. Transactions, CookingStationHeat,
 RaisedStorage, CompleteCoverage, LocalBrowsing and Requirements also pass.
 Incremental Editor build and hammer/Forge previews pass. Updated development
@@ -5037,21 +5037,20 @@ The original prompt and retained artwork are recorded in
 [`docs/root-stamina-draught-icon.md`](root-stamina-draught-icon.md). Its
 transparent original and prepared icon use the existing batch-Z import flow.
 
-### A7 Fishing Bait catalogue increment — 2026-10-21
+## A7 Garden Plot build-menu icon — 2026-10-21
 
-`FishingBait` is registered as a 50-stack, 0.02 kg crafting ingredient. One
-Forest Chanterelle crafts into five Bait through Inventory Craft. Its original
-prompt and retained files are documented in
-[`docs/fishing-bait-icon.md`](fishing-bait-icon.md). To isolate the import from
-existing icon packages, batch AB contains only `FishingBait`; prepare and
-import with:
+The original transparent artwork and prepared 64×64 texture for the direct-
+material Garden Plot buildable are retained as `GardenPlotKit`. The icon manifest
+records it as a buildable identity (not an inventory item) in isolated batch AB.
+The original prompt and retained files are documented in
+[`docs/garden-plot-icon.md`](garden-plot-icon.md).
+Prepare and import with:
 
 ```powershell
 python Scripts/Prepare-CatalogueIconBatch.py --batch AB
 Scripts/Import-CatalogueIconBatch.ps1 -Batch AB
-Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id FishingBait
+Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id GardenPlotKit
 ```
 
-The catalogue icon manifest contains 92 identities after this addition. The
-Fishing Rod binding material and cost remain pending review; no Rod recipe or
-equipment profile was added.
+The `GardenPlot` recipe identity resolves to the same placed-object icon. No
+inventory item or portable plot kit is introduced.

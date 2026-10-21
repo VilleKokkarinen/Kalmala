@@ -41,23 +41,6 @@
       "ExperienceSkill": "None",
       "ExperienceAward": 0,
       "bEnabled": true
-    },
-    {
-      "RecipeId": "FishingBait",
-      "DisplayName": "Fishing Bait",
-      "Ingredients": [
-        {
-          "ItemId": "ForestChanterelle",
-          "Quantity": 1
-        }
-      ],
-      "Output": "FishingBait",
-      "OutputCount": 5,
-      "MaxBatch": 1,
-      "RequiredStation": [],
-      "ExperienceSkill": "None",
-      "ExperienceAward": 0,
-      "bEnabled": true
     }
   ]
 }
