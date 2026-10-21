@@ -69,7 +69,7 @@ bool FKalmalaPlacementPreviewTest::RunTest(const FString& Parameters)
     World.WorldSeed = 418;
     UKalmalaConstructionSaveGameV2* CurrentSave = NewObject<UKalmalaConstructionSaveGameV2>(GetTransientPackage());
     CurrentSave->InitializeForWorld(World);
-    TestTrue(TEXT("Schema 4 persists an empty Garden Plot construction"), CurrentSave->AddRecord(PlotRecord));
+    TestTrue(TEXT("Schema 5 persists an empty Garden Plot construction"), CurrentSave->AddRecord(PlotRecord));
     return true;
 }
 #endif

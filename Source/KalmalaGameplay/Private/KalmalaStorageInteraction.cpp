@@ -127,6 +127,15 @@ void UKalmalaCraftingComponent::InteractWithConstructionFromServer(AKalmalaConst
             ? 1 : StationContextInteractionSerial + 1;
         GetOwner()->ForceNetUpdate();
     }
+    else if (Kit == TEXT("GardenPlotKit"))
+    {
+        LastStationContextActor = Construction;
+        LastStationContextKit = Kit;
+        LastStationContextConstructionId = Construction->GetConstructionId();
+        StationContextInteractionSerial = StationContextInteractionSerial == TNumericLimits<uint32>::Max()
+            ? 1 : StationContextInteractionSerial + 1;
+        GetOwner()->ForceNetUpdate();
+    }
     if (Kit == TEXT("CookingRackKit") || Kit == TEXT("CauldronKit") || Kit == TEXT("FryingPanKit"))
     {
         LastInteractedCookingStationKit = Kit;
@@ -187,18 +196,23 @@ bool UKalmalaCraftingComponent::IsStationContextTargetCurrent(AKalmalaConstructi
 {
     const AKalmalaCharacter* Character = GetCharacter();
     const bool bStorageContext = AKalmalaConstructionActor::IsStorageKit(ExpectedKit);
+    const bool bCultivationContext = ExpectedKit == TEXT("GardenPlotKit");
     if (!Character || !Character->GetController() || !IsValid(ExpectedActor)
         || ExpectedActor != LastStationContextActor.Get() || ExpectedKit != LastStationContextKit
         || ExpectedConstructionId.IsEmpty() || ExpectedConstructionId != LastStationContextConstructionId
-        || (!AKalmalaConstructionActor::IsCraftingStationKit(ExpectedKit) && !bStorageContext)
+        || (!AKalmalaConstructionActor::IsCraftingStationKit(ExpectedKit) && !bStorageContext && !bCultivationContext)
         || (bStorageContext && !bStorageViewOpen)) return false;
     const FVector CharacterLocation = Character->GetActorLocation();
     const FVector StationLocation = ExpectedActor->GetActorLocation();
     const float Range = Character->GetInteractionRange();
+    const bool bTargetUsable = !bCultivationContext
+        || (ExpectedActor->GetConstructionKit() == ExpectedKit && ExpectedActor->CanUse(Character)
+            && ExpectedActor->HasUsablePlantingTrowel(Character));
     return Character->GetWorld() == ExpectedActor->GetWorld()
         && !CharacterLocation.ContainsNaN() && !StationLocation.ContainsNaN()
         && FMath::IsFinite(Range) && Range > 0.0f
-        && FVector::DistSquared(CharacterLocation, StationLocation) <= FMath::Square(Range);
+        && FVector::DistSquared(CharacterLocation, StationLocation) <= FMath::Square(Range)
+        && bTargetUsable;
 }
 
 bool UKalmalaCraftingComponent::IsStationContextUsable(AKalmalaConstructionActor* ExpectedActor,
@@ -206,7 +220,8 @@ bool UKalmalaCraftingComponent::IsStationContextUsable(AKalmalaConstructionActor
 {
     const AKalmalaCharacter* Character = GetCharacter();
     return Character && IsStationContextTargetCurrent(ExpectedActor, ExpectedKit, ExpectedConstructionId)
-        && ExpectedActor->CanUse(Character);
+        && ExpectedActor->CanUse(Character)
+        && (ExpectedKit != TEXT("GardenPlotKit") || ExpectedActor->HasUsablePlantingTrowel(Character));
 }
 
 bool UKalmalaCraftingComponent::TransferStorageFromServer(const FGuid ItemGuid, const bool bDeposit, FString& Reason)

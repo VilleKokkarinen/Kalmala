@@ -20,7 +20,8 @@ public:
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
     void InitializeFromServer(FName InKit, const FString& InConstructionId,
         const FKalmalaCharcoalKilnState& InCharcoalKiln = FKalmalaCharcoalKilnState(),
-        const FKalmalaSmelterState& InSmelter = FKalmalaSmelterState());
+        const FKalmalaSmelterState& InSmelter = FKalmalaSmelterState(),
+        const FKalmalaGardenPlotState& InGardenPlot = FKalmalaGardenPlotState());
     FName GetConstructionKit() const { return ConstructionKit; }
     const FString& GetConstructionId() const { return ConstructionId; }
     float GetHealth() const { return Health; }
@@ -28,6 +29,9 @@ public:
     bool ApplyCharcoalKilnStateFromServer(const FKalmalaCharcoalKilnState& State);
     const FKalmalaSmelterState& GetSmelterState() const { return Smelter; }
     bool ApplySmelterStateFromServer(const FKalmalaSmelterState& State);
+    const FKalmalaGardenPlotState& GetGardenPlotState() const { return GardenPlot; }
+    bool ApplyGardenPlotStateFromServer(const FKalmalaGardenPlotState& State);
+    bool HasUsablePlantingTrowel(const AKalmalaCharacter* Character) const;
     /** Trusted server weather input; roof eligibility is sampled internally. No RPC. */
     void AdvanceRainWearFromServer(float DeltaSeconds, float Precipitation);
     static constexpr float MaximumHealth = 100.0f;
@@ -52,5 +56,6 @@ private:
     UPROPERTY(Replicated) float Health = MaximumHealth;
     UPROPERTY(Replicated) FKalmalaCharcoalKilnState CharcoalKiln;
     UPROPERTY(Replicated) FKalmalaSmelterState Smelter;
+    UPROPERTY(Replicated) FKalmalaGardenPlotState GardenPlot;
     FString LastLoggedReplicationId;
 };

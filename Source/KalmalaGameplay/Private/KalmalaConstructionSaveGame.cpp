@@ -67,7 +67,7 @@ bool UKalmalaConstructionSaveGameV2::IsValidRecord(const FKalmalaConstructionSav
     if (Record.ConstructionId.Len() <= 0 || Record.ConstructionId.Len() > 64
         || !FKalmalaPlacementPreview::IsSupportedKit(Record.KitId)
         || !IsValidConstructionTransform(Record.Transform)
-        || !Record.CharcoalKiln.IsValid() || !Record.Smelter.IsValid()) return false;
+        || !Record.CharcoalKiln.IsValid() || !Record.Smelter.IsValid() || !Record.GardenPlot.IsValid()) return false;
 
     if (Record.KitId == TEXT("CharcoalKilnKit"))
     {
@@ -81,6 +81,8 @@ bool UKalmalaConstructionSaveGameV2::IsValidRecord(const FKalmalaConstructionSav
     {
         return false;
     }
+
+    if (Record.KitId != TEXT("GardenPlotKit") && !Record.GardenPlot.IsEmpty()) return false;
 
     if (!FKalmalaPlacementPreview::IsSessionOnlyKit(Record.KitId)) return true;
     return FKalmalaToolProgressionContract::IsStationAttachmentKit(Record.KitId);
@@ -191,7 +193,8 @@ bool UKalmalaConstructionSaveGameV2::RemoveRecord(const FString& ConstructionId)
 
     const FKalmalaConstructionSaveRecord& Record = Records[RecordIndex];
     if ((Record.KitId == TEXT("CharcoalKilnKit") && !Record.CharcoalKiln.IsEmpty())
-        || (Record.KitId == TEXT("SmelterKit") && !Record.Smelter.IsEmpty())) return false;
+        || (Record.KitId == TEXT("SmelterKit") && !Record.Smelter.IsEmpty())
+        || (Record.KitId == TEXT("GardenPlotKit") && !Record.GardenPlot.IsEmpty())) return false;
 
     Records.RemoveAt(RecordIndex);
     return true;
@@ -232,6 +235,26 @@ bool UKalmalaConstructionSaveGameV2::UpdateSmelterRecord(const FString& Construc
     if (!MatchesWorld(WorldConfig))
     {
         Record->Smelter = Previous;
+        return false;
+    }
+    return true;
+}
+
+bool UKalmalaConstructionSaveGameV2::UpdateGardenPlotRecord(const FString& ConstructionId,
+    const FKalmalaGardenPlotState& State)
+{
+    if (!MatchesWorld(WorldConfig) || ConstructionId.IsEmpty() || !State.IsValid()) return false;
+    FKalmalaConstructionSaveRecord* Record = Records.FindByPredicate(
+        [&ConstructionId](FKalmalaConstructionSaveRecord& Candidate)
+        {
+            return Candidate.ConstructionId == ConstructionId && Candidate.KitId == TEXT("GardenPlotKit");
+        });
+    if (!Record) return false;
+    const FKalmalaGardenPlotState Previous = Record->GardenPlot;
+    Record->GardenPlot = State;
+    if (!MatchesWorld(WorldConfig))
+    {
+        Record->GardenPlot = Previous;
         return false;
     }
     return true;

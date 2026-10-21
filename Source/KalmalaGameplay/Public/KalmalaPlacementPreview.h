@@ -20,7 +20,7 @@ struct KALMALAGAMEPLAY_API FKalmalaPlacementPreview
     static bool IsSupportedKit(FName ItemId);
     /** Approved Garden Plot terrain: Meadows, Elderwood, or dry Shimmering Lakes terrain at <=15 degrees. */
     static bool IsGardenPlotGroundAllowed(EKalmalaBiome Biome, float SurfaceNormalZ);
-    /** Schema-1 test data excludes M9 kits; current schema-4 slots store approved attachments directly. */
+    /** Schema-1 test data excludes M9 kits; current schema-5 slots store approved attachments directly. */
     static bool IsSessionOnlyKit(FName ItemId);
     static FKalmalaPlacementPreview Evaluate(const UWorld* World, const APawn* Pawn, FName ItemId);
 };

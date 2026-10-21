@@ -4,7 +4,7 @@
 #include "Misc/AutomationTest.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaConstructionSaveWriteCandidateTest,
-    "Kalmala.Gameplay.Construction.Schema4WriteCandidate",
+    "Kalmala.Gameplay.Construction.Schema5WriteCandidate",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FKalmalaConstructionSaveWriteCandidateTest::RunTest(const FString& Parameters)
@@ -45,10 +45,10 @@ bool FKalmalaConstructionSaveWriteCandidateTest::RunTest(const FString& Paramete
         TestEqual(TEXT("Candidate retains existing facts plus the new attachment"), Candidate->GetRecords().Num(), 2);
 
         TArray<uint8> CandidateBytes;
-        TestTrue(TEXT("Schema-4 write candidate serializes"), Serialize(Candidate, CandidateBytes));
+        TestTrue(TEXT("Schema-5 write candidate serializes"), Serialize(Candidate, CandidateBytes));
         UKalmalaConstructionSaveGameV2* Reloaded = Cast<UKalmalaConstructionSaveGameV2>(
             UGameplayStatics::LoadGameFromMemory(CandidateBytes));
-        if (TestNotNull(TEXT("Write candidate reloads as schema 4"), Reloaded))
+        if (TestNotNull(TEXT("Write candidate reloads as schema 5"), Reloaded))
         {
             TestTrue(TEXT("Reloaded candidate remains valid for the same world"), Reloaded->MatchesWorld(World));
             TestEqual(TEXT("Reloaded candidate preserves existing and new records"), Reloaded->GetRecords().Num(), 2);
@@ -61,12 +61,12 @@ bool FKalmalaConstructionSaveWriteCandidateTest::RunTest(const FString& Paramete
     TestTrue(TEXT("Candidate creation leaves the existing save bytes unchanged"), ExistingBefore == ExistingAfter);
 
     UKalmalaConstructionSaveGameV2* NewWorldCandidate = nullptr;
-    TestTrue(TEXT("A new world builds an empty schema-4 candidate"),
+    TestTrue(TEXT("A new world builds an empty schema-5 candidate"),
         UKalmalaConstructionSaveGameV2::TryBuildWriteCandidate(nullptr, World, GetTransientPackage(), NewWorldCandidate));
     if (TestNotNull(TEXT("Empty candidate is available for its first construction"), NewWorldCandidate))
     {
         TestTrue(TEXT("Empty candidate matches the requested world"), NewWorldCandidate->MatchesWorld(World));
-        TestEqual(TEXT("New schema-4 world begins without invented constructions"), NewWorldCandidate->GetRecords().Num(), 0);
+        TestEqual(TEXT("New schema-5 world begins without invented constructions"), NewWorldCandidate->GetRecords().Num(), 0);
     }
 
     FKalmalaWorldGenerationConfig OtherWorld = World;

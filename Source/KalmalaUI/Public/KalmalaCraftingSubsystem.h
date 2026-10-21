@@ -181,6 +181,7 @@ private:
     void ConfigureStationContextPresentation(const FString& Section);
     void ApplyStationCraftLayout();
     void RefreshStationContextState();
+    void RefreshCultivationState(UKalmalaCraftingComponent* Crafting);
     void RefreshForgeUpgradeState(UKalmalaCraftingComponent* Crafting);
     void RefreshMaceCraftState();
     void RefreshStoneCraftState();
@@ -242,6 +243,9 @@ private:
     UFUNCTION() void CollectSmelterCopper();
     UFUNCTION() void CollectSmelterTin();
     UFUNCTION() void CollectSmelterIron();
+    UFUNCTION() void PlantCarrotFood();
+    UFUNCTION() void PlantCarrotSeed();
+    UFUNCTION() void HarvestGardenCrop();
     UFUNCTION() void CloseClicked();
     void Refresh();
     void RefreshInlineToolUpgradeComparison(int32 ContrastMode);
@@ -320,6 +324,12 @@ private:
     UPROPERTY(Transient) TObjectPtr<UButton> SmelterCollectCopperButton;
     UPROPERTY(Transient) TObjectPtr<UButton> SmelterCollectTinButton;
     UPROPERTY(Transient) TObjectPtr<UButton> SmelterCollectIronButton;
+    UPROPERTY(Transient) TObjectPtr<class UVerticalBox> CultivationContextPanel;
+    UPROPERTY(Transient) TObjectPtr<UTextBlock> CultivationContextStatusText;
+    UPROPERTY(Transient) TObjectPtr<UTextBlock> CultivationChoicesText;
+    UPROPERTY(Transient) TObjectPtr<UButton> PlantCarrotFoodButton;
+    UPROPERTY(Transient) TObjectPtr<UButton> PlantCarrotSeedButton;
+    UPROPERTY(Transient) TObjectPtr<UButton> HarvestGardenCropButton;
     UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> WrappedTextBlocks;
     UPROPERTY(Transient) TObjectPtr<UButton> CraftButton;
     UPROPERTY(Transient) TObjectPtr<UButton> PlacementPreviewButton;
@@ -392,6 +402,7 @@ private:
     bool bForgeRepairContext = false;
     bool bWorkbenchRepairContext = false;
     bool bStorageContext = false;
+    bool bCultivationContext = false;
     bool bCharcoalKilnContext = false;
     bool bSmelterContext = false;
     bool bWorkbenchRepairPending = false;

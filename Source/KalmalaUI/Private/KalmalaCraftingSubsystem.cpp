@@ -169,7 +169,8 @@ bool IsStationContextShellKit(const FName KitId)
 {
     return KitId == TEXT("CookingRackKit") || KitId == TEXT("CauldronKit")
         || KitId == TEXT("FryingPanKit") || KitId == TEXT("WorkbenchKit") || KitId == TEXT("ForgeKit")
-        || KitId == TEXT("StorageKit") || KitId == TEXT("CharcoalKilnKit") || KitId == TEXT("SmelterKit");
+        || KitId == TEXT("StorageKit") || KitId == TEXT("CharcoalKilnKit") || KitId == TEXT("SmelterKit")
+        || KitId == TEXT("GardenPlotKit");
 }
 
 bool IsStationContextSectionSupported(const FName KitId, const FString& Section)
@@ -182,7 +183,8 @@ bool IsStationContextSectionSupported(const FName KitId, const FString& Section)
             || Section.Equals(TEXT("Upgrade"), ESearchCase::IgnoreCase)))
         || (KitId == TEXT("StorageKit") && Section.Equals(TEXT("Store"), ESearchCase::IgnoreCase))
         || ((KitId == TEXT("CharcoalKilnKit") || KitId == TEXT("SmelterKit"))
-            && Section.Equals(TEXT("Process"), ESearchCase::IgnoreCase));
+            && Section.Equals(TEXT("Process"), ESearchCase::IgnoreCase))
+        || (KitId == TEXT("GardenPlotKit") && Section.Equals(TEXT("Cultivate"), ESearchCase::IgnoreCase));
 }
 
 FString BuildForgeUpgradePresentationText(const UKalmalaCraftingComponent* Crafting)
@@ -221,6 +223,7 @@ FString GetInitialStationContextSection(const FName KitId)
     if (KitId == TEXT("CookingRackKit") || KitId == TEXT("CauldronKit") || KitId == TEXT("FryingPanKit")) return TEXT("Cook");
     if (KitId == TEXT("StorageKit")) return TEXT("Store");
     if (KitId == TEXT("CharcoalKilnKit") || KitId == TEXT("SmelterKit")) return TEXT("Process");
+    if (KitId == TEXT("GardenPlotKit")) return TEXT("Cultivate");
     return FString();
 }
 
@@ -1026,11 +1029,45 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     SmelterCollectIronButton = AddButton(TEXT("Collect Iron"), SmelterOutputActions,
         TEXT("The server saves the output change before granting one Iron bar."));
     SmelterCollectIronButton->OnClicked.AddDynamic(this, &ThisClass::CollectSmelterIron);
+    CultivationContextPanel = WidgetTree->ConstructWidget<UVerticalBox>();
+    CultivationContextPanel->SetVisibility(ESlateVisibility::Collapsed);
+    CultivationContextStatusText = WidgetTree->ConstructWidget<UTextBlock>();
+    CultivationContextStatusText->SetAutoWrapText(true);
+    CultivationContextPanel->AddChildToVerticalBox(CultivationContextStatusText);
+    WrappedTextBlocks.Add(CultivationContextStatusText);
+    CultivationChoicesText = WidgetTree->ConstructWidget<UTextBlock>();
+    CultivationChoicesText->SetAutoWrapText(true);
+    CultivationChoicesText->SetText(FText::FromString(
+        TEXT("Carrot food · 1 Carrot Seed → 3 Carrot\n"
+             "Carrot seed · 1 Carrot → 3 Carrot Seed\n"
+             "Potato food · 1 Potato → 3 Potato (A7 task pending)\n"
+             "Rutabaga food · 1 Rutabaga Seed → 3 Rutabaga (A7 task pending)\n"
+             "Rutabaga seed · 1 Rutabaga → 3 Rutabaga Seed (A7 task pending)\n"
+             "Onion food · 1 Onion Seed → 3 Onion (A7 task pending)\n"
+             "Onion seed · 1 Onion → 3 Onion Seed (A7 task pending)")));
+    CultivationContextPanel->AddChildToVerticalBox(CultivationChoicesText)->SetPadding(FMargin(0.0f, 10.0f));
+    WrappedTextBlocks.Add(CultivationChoicesText);
+    PlantCarrotFoodButton = AddButton(TEXT("Plant Carrot food"), nullptr,
+        TEXT("Pay 1 Carrot Seed. The server checks the plot and Main Hand Planting Trowel."));
+    Column->RemoveChild(PlantCarrotFoodButton);
+    CultivationContextPanel->AddChildToVerticalBox(PlantCarrotFoodButton);
+    PlantCarrotFoodButton->OnClicked.AddDynamic(this, &ThisClass::PlantCarrotFood);
+    PlantCarrotSeedButton = AddButton(TEXT("Plant Carrot seed"), nullptr,
+        TEXT("Pay 1 Carrot. The server checks the plot and Main Hand Planting Trowel."));
+    Column->RemoveChild(PlantCarrotSeedButton);
+    CultivationContextPanel->AddChildToVerticalBox(PlantCarrotSeedButton);
+    PlantCarrotSeedButton->OnClicked.AddDynamic(this, &ThisClass::PlantCarrotSeed);
+    HarvestGardenCropButton = AddButton(TEXT("Harvest mature crop"), nullptr,
+        TEXT("Harvest three crops when the server says the plot is mature. A full pack keeps the crop."));
+    Column->RemoveChild(HarvestGardenCropButton);
+    CultivationContextPanel->AddChildToVerticalBox(HarvestGardenCropButton);
+    HarvestGardenCropButton->OnClicked.AddDynamic(this, &ThisClass::HarvestGardenCrop);
     CloseButton=AddButton(TEXT("Close")); CloseButton->OnClicked.AddDynamic(this, &ThisClass::CloseClicked);
     CloseButton->RemoveFromParent();
     auto* Outer=WidgetTree->ConstructWidget<UVerticalBox>();
     Outer->AddChildToVerticalBox(StationHeaderRow);
     Outer->AddChildToVerticalBox(CraftingScrollBox)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+    Outer->AddChildToVerticalBox(CultivationContextPanel)->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
     Outer->AddChildToVerticalBox(CloseButton)->SetPadding(FMargin(0,8,0,0));
     Border->SetContent(Outer); WidgetTree->RootWidget = Border;
     const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
@@ -1578,6 +1615,8 @@ void UKalmalaCraftingWidget::ConfigureStationContextPresentation(const FString& 
         && EffectiveSection.Equals(TEXT("Process"), ESearchCase::IgnoreCase);
     bSmelterContext = bEmbeddedContext && StationFilterKit == TEXT("SmelterKit")
         && EffectiveSection.Equals(TEXT("Process"), ESearchCase::IgnoreCase);
+    bCultivationContext = bEmbeddedContext && StationFilterKit == TEXT("GardenPlotKit")
+        && EffectiveSection.Equals(TEXT("Cultivate"), ESearchCase::IgnoreCase);
     bWorkbenchCraftContext = bEmbeddedContext && StationFilterKit == TEXT("WorkbenchKit")
         && EffectiveSection.Equals(TEXT("Craft"), ESearchCase::IgnoreCase);
     bForgeCraftContext = bEmbeddedContext && StationFilterKit == TEXT("ForgeKit")
@@ -1637,6 +1676,12 @@ void UKalmalaCraftingWidget::ConfigureStationContextPresentation(const FString& 
         if (InstructionsText) InstructionsText->SetText(FText::FromString(
             TEXT("Load Copper, Tin, or Iron Ore and Coal. The first accepted ore is processed first; each ore and one Coal produce a matching bar in 30 active seconds. Processing stops when output is full.")));
     }
+    else if (bCultivationContext)
+    {
+        if (HeaderText) HeaderText->SetText(FText::FromString(TEXT("Garden Plot — Cultivation")));
+        if (InstructionsText) InstructionsText->SetText(FText::FromString(
+            TEXT("One crop per plot. Growth takes 600 active seconds and pauses when the terrain patch is inactive.")));
+    }
     else if (bCookingRackContext)
     {
         if (HeaderText) HeaderText->SetText(FText::FromString(TEXT("Cooking Rack — Cook")));
@@ -1692,9 +1737,9 @@ void UKalmalaCraftingWidget::ApplyStationCraftLayout()
     const bool bRepairContext = bWorkbenchRepairContext || bForgeRepairContext;
     const bool bStationServicePresentation = bRepairContext || bForgeUpgradeContext;
     const bool bStationContext = bStationCraftContext || bForgeUpgradeContext || bRepairContext
-        || bStorageContext || bCharcoalKilnContext || bSmelterContext;
+        || bStorageContext || bCharcoalKilnContext || bSmelterContext || bCultivationContext;
     const bool bNonCraftSection = bRepairContext || bForgeUpgradeContext || bStorageContext
-        || bCharcoalKilnContext || bSmelterContext;
+        || bCharcoalKilnContext || bSmelterContext || bCultivationContext;
     const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
     const int32 TextScalePercent = UKalmalaSettingsWidget::ClampTextScale(
         UKalmalaSettingsWidget::GetTextScalePercent());
@@ -1771,13 +1816,17 @@ void UKalmalaCraftingWidget::ApplyStationCraftLayout()
         CharcoalKilnContextPanel->SetVisibility(bCharcoalKilnContext ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
     if (SmelterContextPanel)
         SmelterContextPanel->SetVisibility(bSmelterContext ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+    if (CultivationContextPanel)
+        CultivationContextPanel->SetVisibility(bCultivationContext ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+    if (CraftingScrollBox)
+        CraftingScrollBox->SetVisibility(bCultivationContext ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
     SetSectionTab(WorkbenchCraftSectionButton, TEXT("Craft"), bWorkbenchContext, bWorkbenchCraftContext);
     SetSectionTab(WorkbenchRepairSectionButton, TEXT("Repair All"), bWorkbenchContext, false);
     SetSectionTab(ForgeCraftSectionButton, TEXT("Craft"), bForgeContext, bForgeCraftContext);
     SetSectionTab(ForgeUpgradeSectionButton, TEXT("Upgrade"), bForgeContext, bForgeUpgradeContext);
     SetSectionTab(ForgeRepairSectionButton, TEXT("Repair All"), bForgeContext, false);
     if (StationContextStatusText)
-        StationContextStatusText->SetVisibility(bStationContext && !bStorageContext
+        StationContextStatusText->SetVisibility(bStationContext && !bStorageContext && !bCultivationContext
             ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
     if (UpgradeBronzeAxeButton)
         UpgradeBronzeAxeButton->SetVisibility(bInventoryCompanion || bCookingContext || bWorkbenchCraftContext || bForgeCraftContext || bWorkbenchRepairContext || bStorageContext
@@ -1853,6 +1902,11 @@ void UKalmalaCraftingWidget::ApplyStationCraftLayout()
 void UKalmalaCraftingWidget::RefreshStationContextState()
 {
     if (!StationContextStatusText) return;
+    if (bCultivationContext)
+    {
+        StationContextStatusText->SetVisibility(ESlateVisibility::Collapsed);
+        return;
+    }
     const bool bCookingContext = bCookingRackContext || bCauldronContext || bFryingPanContext;
     const bool bStationContext = bCookingContext || bWorkbenchCraftContext || bForgeCraftContext || bForgeUpgradeContext
         || bWorkbenchRepairContext || bForgeRepairContext || bStorageContext;
@@ -1925,6 +1979,78 @@ void UKalmalaCraftingWidget::RefreshStationContextState()
         FKalmalaToolProgressionContract::GetEffectiveStationLevel(Station));
     StationContextStatusText->SetText(FText::FromString(FString::Printf(
         TEXT("Level %d"), EffectiveLevel)));
+}
+
+void UKalmalaCraftingWidget::RefreshCultivationState(UKalmalaCraftingComponent* Crafting)
+{
+    if (!bCultivationContext || !CultivationContextPanel || !CultivationContextStatusText
+        || !PlantCarrotFoodButton || !PlantCarrotSeedButton || !HarvestGardenCropButton) return;
+    AKalmalaConstructionActor* Plot = ContextStationActor.Get();
+    AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(GetOwningPlayerPawn());
+    UKalmalaInventoryComponent* Inventory = Character ? Character->GetInventoryComponent() : nullptr;
+    const bool bContextValid = Crafting && IsStationContextValid() && IsValid(Plot)
+        && Plot->GetConstructionKit() == TEXT("GardenPlotKit");
+    const bool bTrowelReady = bContextValid && Plot->HasUsablePlantingTrowel(Character);
+    const FKalmalaGardenPlotState PlotState = bContextValid
+        ? Plot->GetGardenPlotState() : FKalmalaGardenPlotState();
+    const bool bEmpty = bContextValid && PlotState.IsEmpty();
+    PlantCarrotFoodButton->SetIsEnabled(bTrowelReady && bEmpty && Inventory
+        && Inventory->GetQuantity(TEXT("CarrotSeed")) > 0);
+    PlantCarrotSeedButton->SetIsEnabled(bTrowelReady && bEmpty && Inventory
+        && Inventory->GetQuantity(TEXT("Carrot")) > 0);
+
+    FName HarvestItem = NAME_None;
+    if (PlotState.CropMode == EKalmalaGardenCropMode::CarrotFood) HarvestItem = TEXT("Carrot");
+    else if (PlotState.CropMode == EKalmalaGardenCropMode::CarrotSeed) HarvestItem = TEXT("CarrotSeed");
+    TArray<FKalmalaInventoryStack> HarvestCandidate;
+    FString HarvestReason;
+    const bool bCanFitHarvest = Inventory && !HarvestItem.IsNone()
+        && UKalmalaInventoryComponent::BuildGrant(Inventory->GetStacks(), HarvestItem, 3,
+            HarvestCandidate, HarvestReason);
+    HarvestGardenCropButton->SetIsEnabled(bTrowelReady && PlotState.IsMature() && bCanFitHarvest);
+
+    FString Status;
+    if (!bContextValid)
+        Status = TEXT("Garden Plot context expired. Interact with the plot again while holding a usable Planting Trowel.");
+    else if (!bTrowelReady)
+        Status = TEXT("Equip a usable Planting Trowel in Main Hand to cultivate this plot.");
+    else if (PlotState.IsEmpty())
+        Status = TEXT("Empty plot. Choose a Carrot mode below. Accepted planting spends one Planting Trowel condition.");
+    else
+    {
+        const bool bFood = PlotState.CropMode == EKalmalaGardenCropMode::CarrotFood;
+        const FName Yield = bFood ? FName(TEXT("Carrot")) : FName(TEXT("CarrotSeed"));
+        if (PlotState.IsMature())
+            Status = FString::Printf(TEXT("%s mature · harvest yields 3 %s%s"),
+                bFood ? TEXT("Carrot food") : TEXT("Carrot seed"), *Yield.ToString(),
+                bCanFitHarvest ? TEXT("") : TEXT("\nPack full; the mature crop stays on the plot"));
+        else
+            Status = FString::Printf(TEXT("%s growing · %.0f active seconds remaining · harvest yields 3 %s"),
+                bFood ? TEXT("Carrot food") : TEXT("Carrot seed"),
+                FMath::CeilToFloat(PlotState.RemainingActiveSeconds), *Yield.ToString());
+    }
+    CultivationContextStatusText->SetText(FText::FromString(Status));
+}
+
+void UKalmalaCraftingWidget::PlantCarrotFood()
+{
+    if (!bOpen || !bCultivationContext || !IsStationContextValid()) return;
+    if (UKalmalaCraftingComponent* Crafting = Model())
+        Crafting->ServerPlantGardenCarrot(ContextStationActor.Get(), EKalmalaGardenCropMode::CarrotFood);
+}
+
+void UKalmalaCraftingWidget::PlantCarrotSeed()
+{
+    if (!bOpen || !bCultivationContext || !IsStationContextValid()) return;
+    if (UKalmalaCraftingComponent* Crafting = Model())
+        Crafting->ServerPlantGardenCarrot(ContextStationActor.Get(), EKalmalaGardenCropMode::CarrotSeed);
+}
+
+void UKalmalaCraftingWidget::HarvestGardenCrop()
+{
+    if (!bOpen || !bCultivationContext || !IsStationContextValid()) return;
+    if (UKalmalaCraftingComponent* Crafting = Model())
+        Crafting->ServerHarvestGardenCrop(ContextStationActor.Get());
 }
 
 void UKalmalaCraftingWidget::RefreshMaceCraftState()
@@ -4068,6 +4194,13 @@ void UKalmalaCraftingWidget::Refresh()
         ToolProgressionText->SetText(FText::FromString(M->GetToolProgressionText(ProgressionStation)));
     }
     RefreshStationContextState();
+    RefreshCultivationState(M);
+    if (bCultivationContext)
+    {
+        if (CraftingScrollBox) CraftingScrollBox->SetVisibility(ESlateVisibility::Collapsed);
+        if (CultivationContextPanel) CultivationContextPanel->SetVisibility(ESlateVisibility::Visible);
+        return;
+    }
     RefreshMaceCraftState();
     RefreshStoneCraftState();
     RefreshStationRepairActionState(M);

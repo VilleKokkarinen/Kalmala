@@ -2,6 +2,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "KalmalaInventoryComponent.h"
+#include "KalmalaConstructionSaveGame.h"
 #include "KalmalaCraftingComponent.generated.h"
 
 UENUM()
@@ -55,6 +56,8 @@ public:
     UFUNCTION(Server, Reliable) void ServerCollectCharcoalKilnCoal();
     UFUNCTION(Server, Reliable) void ServerLoadSmelterItem(FName ItemId);
     UFUNCTION(Server, Reliable) void ServerCollectSmelterItem(FName ItemId);
+    UFUNCTION(Server, Reliable) void ServerPlantGardenCarrot(AKalmalaConstructionActor* Plot, EKalmalaGardenCropMode Mode);
+    UFUNCTION(Server, Reliable) void ServerHarvestGardenCrop(AKalmalaConstructionActor* Plot);
     void InteractWithConstructionFromServer(AKalmalaConstructionActor* Construction);
     FName GetLastInteractedCookingStationKit() const { return LastInteractedCookingStationKit; }
     uint32 GetCookingStationInteractionSerial() const { return CookingStationInteractionSerial; }
@@ -73,6 +76,8 @@ public:
     bool CollectCharcoalKilnCoalFromServer(FString& Reason);
     bool LoadSmelterItemFromServer(FName ItemId, FString& Reason);
     bool CollectSmelterItemFromServer(FName ItemId, FString& Reason);
+    bool PlantGardenCarrotFromServer(AKalmalaConstructionActor* Plot, EKalmalaGardenCropMode Mode, FString& Reason);
+    bool HarvestGardenCropFromServer(AKalmalaConstructionActor* Plot, FString& Reason);
     const TArray<FKalmalaInventoryStack>& GetStorageView() const { return StorageView; }
     bool HasStorageView() const { return bStorageViewOpen; }
     uint32 GetResultSerial() const { return ResultSerial; }

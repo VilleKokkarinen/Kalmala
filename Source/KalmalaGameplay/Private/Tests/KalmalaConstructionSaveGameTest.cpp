@@ -50,7 +50,7 @@ bool FKalmalaConstructionSaveGameTest::RunTest(const FString& Parameters)
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaConstructionSaveGameV2Test,
-    "Kalmala.Gameplay.Construction.Schema4CurrentFormat",
+    "Kalmala.Gameplay.Construction.Schema5CurrentFormat",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FKalmalaConstructionSaveGameV2Test::RunTest(const FString& Parameters)
@@ -85,16 +85,54 @@ bool FKalmalaConstructionSaveGameV2Test::RunTest(const FString& Parameters)
     TestTrue(TEXT("Smelter fixture queues Copper Ore"), Smelter.Smelter.TryAddOre(EKalmalaSmelterOre::Copper));
     TestTrue(TEXT("Smelter fixture queues Coal"), Smelter.Smelter.TryAddCoal());
     TestTrue(TEXT("Smelter fixture starts and saves an active job"), Smelter.Smelter.Advance(12.5f));
-    TestTrue(TEXT("Schema 4 accepts an established camp record"), Save->AddRecord(Floor));
-    TestTrue(TEXT("Schema 4 accepts a bounded station attachment"), Save->AddStationAttachmentRecord(Rack));
-    TestTrue(TEXT("Schema 4 retains the stable Campfire construction identity"), Save->AddRecord(Campfire));
-    TestTrue(TEXT("Schema 4 saves kiln input, output, and remaining active seconds"), Save->AddRecord(Kiln));
-    TestTrue(TEXT("Schema 4 saves Smelter input and active job state"), Save->AddRecord(Smelter));
-    TestFalse(TEXT("Schema 4 rejects a duplicate stable construction ID across record kinds"),
+    FKalmalaConstructionSaveRecord Plot = MakeRecord(TEXT("camp-garden-01"), TEXT("GardenPlotKit"));
+    TestTrue(TEXT("Carrot food mode plants into an empty Garden Plot"),
+        Plot.GardenPlot.PlantCarrot(EKalmalaGardenCropMode::CarrotFood));
+    TestEqual(TEXT("Carrot growth begins at 600 active seconds"), Plot.GardenPlot.RemainingActiveSeconds,
+        FKalmalaGardenPlotState::CropDurationSeconds);
+    TestTrue(TEXT("Carrot growth advances by active time"), Plot.GardenPlot.Advance(17.25f));
+    TestTrue(TEXT("Carrot state retains its exact remaining active seconds"),
+        FMath::IsNearlyEqual(Plot.GardenPlot.RemainingActiveSeconds, 582.75f));
+    TestFalse(TEXT("Zero active time cannot advance a crop"), Plot.GardenPlot.Advance(0.0f));
+    FKalmalaGardenPlotState SeedPlotState;
+    TestTrue(TEXT("Carrot seed mode plants from one Carrot"),
+        SeedPlotState.PlantCarrot(EKalmalaGardenCropMode::CarrotSeed));
+    TestTrue(TEXT("Carrot seed mode matures after 600 active seconds"), SeedPlotState.Advance(600.0f));
+    TestTrue(TEXT("Mature Carrot seed mode is harvestable once"), SeedPlotState.ClearMatureCrop());
+    TestFalse(TEXT("Harvest cannot clear a crop a second time"), SeedPlotState.ClearMatureCrop());
+    FKalmalaConstructionSaveRecord InvalidFloor = Floor;
+    InvalidFloor.GardenPlot.PlantCarrot(EKalmalaGardenCropMode::CarrotFood);
+    TestFalse(TEXT("Non-plot construction rejects crop state"),
+        UKalmalaConstructionSaveGameV2::IsValidRecord(InvalidFloor));
+    TestTrue(TEXT("Schema 5 accepts an established camp record"), Save->AddRecord(Floor));
+    TestTrue(TEXT("Schema 5 accepts a bounded station attachment"), Save->AddStationAttachmentRecord(Rack));
+    TestTrue(TEXT("Schema 5 retains the stable Campfire construction identity"), Save->AddRecord(Campfire));
+    TestTrue(TEXT("Schema 5 saves kiln input, output, and remaining active seconds"), Save->AddRecord(Kiln));
+    TestTrue(TEXT("Schema 5 saves Smelter input and active job state"), Save->AddRecord(Smelter));
+    TestTrue(TEXT("Garden Plot saves in the current construction record"), Save->AddRecord(Plot));
+    TestFalse(TEXT("Schema 5 rejects a duplicate stable construction ID across record kinds"),
         Save->AddStationAttachmentRecord(MakeRecord(TEXT("camp-floor-01"), TEXT("ForgeAnvilKit"))));
-    TestFalse(TEXT("Schema 4 rejects unsupported construction identities"),
+    TestFalse(TEXT("Schema 5 rejects unsupported construction identities"),
         Save->AddRecord(MakeRecord(TEXT("camp-unknown-01"), TEXT("UnknownConstructionKit"))));
-    TestEqual(TEXT("Rejected schema-4 additions leave the live candidate unchanged"), Save->GetRecords().Num(), 5);
+    TestEqual(TEXT("Rejected schema-5 additions leave the live candidate unchanged"), Save->GetRecords().Num(), 6);
+
+    const auto BuildPlotRemovalCandidate = [this, &World, &MakeRecord](const TCHAR* Id, const EKalmalaGardenCropMode Mode)
+    {
+        UKalmalaConstructionSaveGameV2* Candidate = NewObject<UKalmalaConstructionSaveGameV2>(GetTransientPackage());
+        Candidate->InitializeForWorld(World);
+        FKalmalaConstructionSaveRecord Record = MakeRecord(Id, TEXT("GardenPlotKit"));
+        Record.GardenPlot.PlantCarrot(Mode);
+        TestTrue(TEXT("Planted Garden Plot fixture is a valid saved record"), Candidate->AddRecord(Record));
+        return Candidate;
+    };
+    UKalmalaConstructionSaveGameV2* PlantedPlot = BuildPlotRemovalCandidate(
+        TEXT("plot-growing"), EKalmalaGardenCropMode::CarrotFood);
+    TestFalse(TEXT("Growing crop prevents Garden Plot removal"), PlantedPlot->RemoveRecord(TEXT("plot-growing")));
+    FKalmalaGardenPlotState MatureCrop = PlantedPlot->GetRecords()[0].GardenPlot;
+    TestTrue(TEXT("Carrot reaches maturity after active seconds"), MatureCrop.Advance(600.0f));
+    TestTrue(TEXT("Mature crop clears to an empty reusable plot"), MatureCrop.ClearMatureCrop());
+    TestTrue(TEXT("Empty plot state can be persisted after harvest"), PlantedPlot->UpdateGardenPlotRecord(TEXT("plot-growing"), MatureCrop));
+    TestTrue(TEXT("Harvested empty Garden Plot can be removed"), PlantedPlot->RemoveRecord(TEXT("plot-growing")));
 
     const auto BuildKilnRemovalCandidate = [this, &World, &MakeRecord](const TCHAR* Id, const FKalmalaCharcoalKilnState& State)
     {
@@ -149,13 +187,20 @@ bool FKalmalaConstructionSaveGameV2Test::RunTest(const FString& Parameters)
     TestTrue(TEXT("Empty Smelter can be removed"), RemovalCandidate->RemoveRecord(TEXT("smelter-empty")));
 
     TArray<uint8> CurrentBytes;
-    TestTrue(TEXT("Schema 4 construction records serialize in memory"), Serialize(Save, CurrentBytes));
+    TestTrue(TEXT("Schema 5 construction records serialize in memory"), Serialize(Save, CurrentBytes));
     UKalmalaConstructionSaveGameV2* Reloaded =
         Cast<UKalmalaConstructionSaveGameV2>(UGameplayStatics::LoadGameFromMemory(CurrentBytes));
-    if (TestNotNull(TEXT("Schema 4 construction records reload with their type"), Reloaded))
+    if (TestNotNull(TEXT("Schema 5 construction records reload with their type"), Reloaded))
     {
         TestTrue(TEXT("Reloaded container carries exact world, revision, and world scope"), Reloaded->MatchesWorld(World));
-        TestEqual(TEXT("Existing construction, Campfire, Kiln, Smelter, and attachment records round-trip together"), Reloaded->GetRecords().Num(), 5);
+        TestEqual(TEXT("Existing construction, Campfire, Kiln, Smelter, plot, and attachment records round-trip together"), Reloaded->GetRecords().Num(), 6);
+        TestTrue(TEXT("Garden Plot crop mode and active time survive reload"), Reloaded->GetRecords().ContainsByPredicate(
+            [](const FKalmalaConstructionSaveRecord& Record)
+            {
+                return Record.ConstructionId == TEXT("camp-garden-01") && Record.KitId == TEXT("GardenPlotKit")
+                    && Record.GardenPlot.CropMode == EKalmalaGardenCropMode::CarrotFood
+                    && FMath::IsNearlyEqual(Record.GardenPlot.RemainingActiveSeconds, 582.75f);
+            }));
         TestTrue(TEXT("Kiln inventory and job timer survive reload"), Reloaded->GetRecords().ContainsByPredicate(
             [](const FKalmalaConstructionSaveRecord& Record)
             {
@@ -186,14 +231,14 @@ bool FKalmalaConstructionSaveGameV2Test::RunTest(const FString& Parameters)
     UKalmalaConstructionSaveGameV2* IdentityChecks = DuplicateObject<UKalmalaConstructionSaveGameV2>(Save, GetTransientPackage());
     const FKalmalaM7SaveIdentity ExpectedIdentity = IdentityChecks->Identity;
     IdentityChecks->Identity.WorldSeed++;
-    TestFalse(TEXT("Schema 4 rejects a mismatched identity seed"), IdentityChecks->MatchesWorld(World));
+    TestFalse(TEXT("Schema 5 rejects a mismatched identity seed"), IdentityChecks->MatchesWorld(World));
     IdentityChecks->Identity = ExpectedIdentity;
     IdentityChecks->Identity.GeneratorRevision--;
-    TestFalse(TEXT("Schema 4 rejects a mismatched generator revision"), IdentityChecks->MatchesWorld(World));
+    TestFalse(TEXT("Schema 5 rejects a mismatched generator revision"), IdentityChecks->MatchesWorld(World));
     IdentityChecks->Identity = ExpectedIdentity;
     IdentityChecks->Identity.Scope = EKalmalaM7SaveScope::Player;
     IdentityChecks->Identity.OwnerIdentity = TEXT("provider:other");
-    TestFalse(TEXT("Schema 4 rejects a mismatched persistence scope"), IdentityChecks->MatchesWorld(World));
+    TestFalse(TEXT("Schema 5 rejects a mismatched persistence scope"), IdentityChecks->MatchesWorld(World));
 
     UKalmalaConstructionSaveGameV2* InvalidCurrent = DuplicateObject<UKalmalaConstructionSaveGameV2>(Save, GetTransientPackage());
     InvalidCurrent->SchemaVersion = 0;

@@ -3,6 +3,8 @@
 #include "KalmalaCharacter.h"
 #include "KalmalaCraftingComponent.h"
 #include "KalmalaGameMode.h"
+#include "KalmalaInventoryComponent.h"
+#include "KalmalaToolLifecycleContract.h"
 #include "KalmalaWorldGenerationGameState.h"
 #include "Engine/World.h"
 #include "Components/BoxComponent.h"
@@ -40,7 +42,8 @@ AKalmalaConstructionActor::AKalmalaConstructionActor()
 }
 
 void AKalmalaConstructionActor::InitializeFromServer(const FName InKit, const FString& InConstructionId,
-    const FKalmalaCharcoalKilnState& InCharcoalKiln, const FKalmalaSmelterState& InSmelter)
+    const FKalmalaCharcoalKilnState& InCharcoalKiln, const FKalmalaSmelterState& InSmelter,
+    const FKalmalaGardenPlotState& InGardenPlot)
 {
     if (HasAuthority())
     {
@@ -50,13 +53,16 @@ void AKalmalaConstructionActor::InitializeFromServer(const FName InKit, const FS
             ? InCharcoalKiln : FKalmalaCharcoalKilnState();
         Smelter = InKit == TEXT("SmelterKit") && InSmelter.IsValid()
             ? InSmelter : FKalmalaSmelterState();
+        GardenPlot = InKit == TEXT("GardenPlotKit") && InGardenPlot.IsValid()
+            ? InGardenPlot : FKalmalaGardenPlotState();
         SetActorTickEnabled((InKit == TEXT("CharcoalKilnKit")
                 && (CharcoalKiln.JobRemainingSeconds > 0.0f
                     || (CharcoalKiln.InputWood > 0 && CharcoalKiln.OutputCoal < FKalmalaCharcoalKilnState::OutputCapacity)))
             || (InKit == TEXT("SmelterKit")
                 && (Smelter.JobRemainingSeconds > 0.0f
                     || (!Smelter.InputOreQueue.IsEmpty() && Smelter.InputCoal > 0
-                        && Smelter.GetOutputCount() < FKalmalaSmelterState::OutputCapacity))));
+                        && Smelter.GetOutputCount() < FKalmalaSmelterState::OutputCapacity))
+            || (InKit == TEXT("GardenPlotKit") && GardenPlot.IsPlanted() && !GardenPlot.IsMature()));
         ApplyConstructionKit();
     }
 }
@@ -78,6 +84,13 @@ void AKalmalaConstructionActor::Tick(const float DeltaSeconds)
         FKalmalaSmelterState Candidate = Smelter;
         if (!Candidate.Advance(DeltaSeconds) || !Mode->PersistSmelterState(this, Candidate)) return;
         ApplySmelterStateFromServer(Candidate);
+    }
+    else if (ConstructionKit == TEXT("GardenPlotKit") && GardenPlot.IsPlanted() && !GardenPlot.IsMature()
+        && Mode->IsTerrainPatchActiveAt(GetActorLocation()))
+    {
+        FKalmalaGardenPlotState Candidate = GardenPlot;
+        if (!Candidate.Advance(DeltaSeconds) || !Mode->PersistGardenPlotState(this, Candidate)) return;
+        ApplyGardenPlotStateFromServer(Candidate);
     }
 }
 
@@ -102,12 +115,36 @@ bool AKalmalaConstructionActor::ApplySmelterStateFromServer(const FKalmalaSmelte
     return true;
 }
 
+bool AKalmalaConstructionActor::ApplyGardenPlotStateFromServer(const FKalmalaGardenPlotState& State)
+{
+    if (!HasAuthority() || ConstructionKit != TEXT("GardenPlotKit") || !State.IsValid()) return false;
+    GardenPlot = State;
+    SetActorTickEnabled(State.IsPlanted() && !State.IsMature());
+    ForceNetUpdate();
+    return true;
+}
+
+bool AKalmalaConstructionActor::HasUsablePlantingTrowel(const AKalmalaCharacter* Character) const
+{
+    if (!IsValid(Character) || Character->GetWorld() != GetWorld()) return false;
+    const UKalmalaInventoryComponent* Inventory = Character->GetInventoryComponent();
+    if (!Inventory || Inventory->GetActiveItem() != TEXT("PlantingTrowel")
+        || !Inventory->GetActiveInstanceGuid().IsValid()
+        || Inventory->GetMainHandGuid() != Inventory->GetActiveInstanceGuid()) return false;
+    const FGuid ToolGuid = Inventory->GetActiveInstanceGuid();
+    const int32 ToolLevel = Character->GetCarriedToolLevel(ToolGuid);
+    const int32 MaximumCondition = FKalmalaToolLifecycleContract::GetMaxDurability(TEXT("PlantingTrowel"), ToolLevel);
+    const int32 Condition = Character->GetToolDurability(ToolGuid);
+    return ToolLevel == 1 && MaximumCondition == 100 && Condition > 0 && Condition <= MaximumCondition;
+}
+
 bool AKalmalaConstructionActor::CanUse(const AKalmalaCharacter* Character) const
 {
     const bool bIsStorageOrCraftingStation = IsStorageKit(ConstructionKit)
         || IsCraftingStationKit(ConstructionKit);
     if (!IsValid(Character) || !Character->GetController() || Character->GetWorld() != GetWorld() || ConstructionId.IsEmpty()
-        || (!bIsStorageOrCraftingStation && ConstructionKit != TEXT("GrindingStoneKit"))
+        || (!bIsStorageOrCraftingStation && ConstructionKit != TEXT("GrindingStoneKit")
+            && ConstructionKit != TEXT("GardenPlotKit"))
         || Character->GetActorLocation().ContainsNaN() || GetActorLocation().ContainsNaN()
         || FVector::DistSquared(Character->GetActorLocation(), GetActorLocation()) > FMath::Square(250.0)) return false;
     const auto* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
@@ -142,7 +179,8 @@ void AKalmalaConstructionActor::AdvanceRainWearFromServer(const float DeltaSecon
 
 bool AKalmalaConstructionActor::CanInteract_Implementation(AKalmalaCharacter* Character) const
 {
-    return HasAuthority() && IsValid(Character) && Character->HasAuthority() && CanUse(Character);
+    return HasAuthority() && IsValid(Character) && Character->HasAuthority() && CanUse(Character)
+        && (ConstructionKit != TEXT("GardenPlotKit") || HasUsablePlantingTrowel(Character));
 }
 
 void AKalmalaConstructionActor::Interact_Implementation(AKalmalaCharacter* Character)
@@ -194,6 +232,7 @@ void AKalmalaConstructionActor::GetLifetimeReplicatedProps(TArray<FLifetimePrope
     DOREPLIFETIME(AKalmalaConstructionActor, Health);
     DOREPLIFETIME(AKalmalaConstructionActor, CharcoalKiln);
     DOREPLIFETIME(AKalmalaConstructionActor, Smelter);
+    DOREPLIFETIME(AKalmalaConstructionActor, GardenPlot);
 }
 
 void AKalmalaConstructionActor::OnRep_ConstructionState()

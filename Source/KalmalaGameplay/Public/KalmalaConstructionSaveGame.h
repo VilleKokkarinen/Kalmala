@@ -199,6 +199,57 @@ struct KALMALAGAMEPLAY_API FKalmalaSmelterState
     }
 };
 
+UENUM()
+enum class EKalmalaGardenCropMode : uint8
+{
+    None,
+    CarrotFood,
+    CarrotSeed
+};
+
+USTRUCT()
+struct KALMALAGAMEPLAY_API FKalmalaGardenPlotState
+{
+    GENERATED_BODY()
+
+    static constexpr float CropDurationSeconds = 600.0f;
+    UPROPERTY(SaveGame) EKalmalaGardenCropMode CropMode = EKalmalaGardenCropMode::None;
+    UPROPERTY(SaveGame) float RemainingActiveSeconds = 0.0f;
+
+    bool IsEmpty() const { return CropMode == EKalmalaGardenCropMode::None && RemainingActiveSeconds == 0.0f; }
+    bool IsPlanted() const { return CropMode != EKalmalaGardenCropMode::None; }
+    bool IsMature() const { return IsPlanted() && RemainingActiveSeconds == 0.0f; }
+    bool IsValid() const
+    {
+        if (!FMath::IsFinite(RemainingActiveSeconds) || RemainingActiveSeconds < 0.0f
+            || RemainingActiveSeconds > CropDurationSeconds) return false;
+        if (CropMode == EKalmalaGardenCropMode::None) return RemainingActiveSeconds == 0.0f;
+        return CropMode == EKalmalaGardenCropMode::CarrotFood || CropMode == EKalmalaGardenCropMode::CarrotSeed;
+    }
+    bool PlantCarrot(const EKalmalaGardenCropMode Mode)
+    {
+        if (!IsEmpty() || (Mode != EKalmalaGardenCropMode::CarrotFood && Mode != EKalmalaGardenCropMode::CarrotSeed)) return false;
+        CropMode = Mode;
+        RemainingActiveSeconds = CropDurationSeconds;
+        return true;
+    }
+    bool Advance(const float ActiveSeconds)
+    {
+        if (!IsValid() || !IsPlanted() || RemainingActiveSeconds <= 0.0f
+            || !FMath::IsFinite(ActiveSeconds) || ActiveSeconds <= 0.0f) return false;
+        const float Before = RemainingActiveSeconds;
+        RemainingActiveSeconds = FMath::Max(0.0f, RemainingActiveSeconds - ActiveSeconds);
+        return RemainingActiveSeconds != Before;
+    }
+    bool ClearMatureCrop()
+    {
+        if (!IsValid() || !IsMature()) return false;
+        CropMode = EKalmalaGardenCropMode::None;
+        RemainingActiveSeconds = 0.0f;
+        return true;
+    }
+};
+
 USTRUCT()
 struct KALMALAGAMEPLAY_API FKalmalaConstructionSaveRecord
 {
@@ -208,9 +259,10 @@ struct KALMALAGAMEPLAY_API FKalmalaConstructionSaveRecord
     UPROPERTY(SaveGame) FTransform Transform;
     UPROPERTY(SaveGame) FKalmalaCharcoalKilnState CharcoalKiln;
     UPROPERTY(SaveGame) FKalmalaSmelterState Smelter;
+    UPROPERTY(SaveGame) FKalmalaGardenPlotState GardenPlot;
 };
 
-/** Schema-1 construction data model retained by in-memory gameplay tests; current slots use schema 4. */
+/** Schema-1 construction data model retained by in-memory gameplay tests; current slots use schema 5. */
 UCLASS()
 class KALMALAGAMEPLAY_API UKalmalaConstructionSaveGame : public USaveGame
 {
@@ -232,13 +284,13 @@ private:
     UPROPERTY(SaveGame) TArray<FKalmalaConstructionSaveRecord> Records;
 };
 
-/** Current bounded schema-4 server camp state, including Kiln and Smelter processing. Rejects identity mismatches. */
+/** Current bounded schema-5 server camp state, including Kiln, Smelter and Garden Plot state. Rejects identity mismatches. */
 UCLASS()
 class KALMALAGAMEPLAY_API UKalmalaConstructionSaveGameV2 : public USaveGame
 {
     GENERATED_BODY()
 public:
-    static constexpr int32 SchemaVersionValue = 4;
+    static constexpr int32 SchemaVersionValue = 5;
     static constexpr int32 MaxRecords = 128;
     static constexpr int32 MaxStationAttachments = 32;
 
@@ -248,10 +300,11 @@ public:
     static bool IsValidRecord(const FKalmalaConstructionSaveRecord& Record);
     bool AddRecord(const FKalmalaConstructionSaveRecord& Record);
     bool AddStationAttachmentRecord(const FKalmalaConstructionSaveRecord& Record);
-    /** Rejects deletion of a Kiln record while it contains Wood, Coal, or active job time. */
+    /** Rejects deletion of processing records with contents/jobs and Garden Plots with a crop. */
     bool RemoveRecord(const FString& ConstructionId);
     bool UpdateCharcoalKilnRecord(const FString& ConstructionId, const FKalmalaCharcoalKilnState& State);
     bool UpdateSmelterRecord(const FString& ConstructionId, const FKalmalaSmelterState& State);
+    bool UpdateGardenPlotRecord(const FString& ConstructionId, const FKalmalaGardenPlotState& State);
     const TArray<FKalmalaConstructionSaveRecord>& GetRecords() const { return Records; }
     static bool TryBuildWriteCandidate(
         class USaveGame* Existing,
