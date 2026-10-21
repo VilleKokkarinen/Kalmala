@@ -190,21 +190,21 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [ ] Review the recommended drop-based item/recipe table; approve effects and full gear profiles.
   - [ ] Restrict boar/deer spawns to Meadows, Elderwood and Shimmering Lakes only.
   - [ ] Apply the overview's revised stats to existing boar/deer and all A8a enemies.
-  - [ ] Meadows: Rat — small defensive scavenger.
-  - [ ] Elderwood: Badger — territorial enemy; slashes with its claws.
-  - [ ] Elderwood: Moon Bear — rare hard enemy; future Moonstone source.
-  - [ ] Shimmering Lakes: Viper — shoreline ambusher; lunging bite applies weak poison for 5 s.
+  - [ ] Meadows: Rat
+  - [ ] Elderwood: Badger
+  - [ ] Elderwood: Moon Bear — rare hard enemy;
+  - [ ] Shimmering Lakes: Viper — lunging bite applies weak poison for 5 s.
   - [ ] Shimmering Lakes: Giant Snake — rare hard shoreline ambusher; powerful lunging bite.
   - [ ] Mossy Mire: Mireling — weak base enemy; spawn only in this biome.
   - [ ] Mossy Mire: Death Adder — highly venomous snake; bite applies major poison for 10 s.
   - [ ] Mossy Mire: Mosquito swarm — small bites + weak poison for 10 s; roll to shake off, lit fire repels.
-  - [ ] Mossy Mire: Peat Husk — rare hard sweeping attacker.
-  - [ ] Freezing Tundra: Wolf — tougher pursuing predator; powerful lunging bite.
-  - [ ] Freezing Tundra: Lynx — leaping predator.
-  - [ ] Freezing Tundra: Polar Bear — rare hard charging predator.
-  - [ ] Thunder Mountains: Horned Goat — territorial horn charges; push and stagger.
-  - [ ] Thunder Mountains: Thunder Sentinel — rare hard stone attacker.
-  - [ ] Ocean: Reef Maw — swimmer hunter; included in the approved aquatic route.
+  - [ ] Mossy Mire: Peat Husk — rare hard enemy;
+  - [ ] Freezing Tundra: Wolf — spawns in packs of 3
+  - [ ] Freezing Tundra: Lynx
+  - [ ] Freezing Tundra: Polar Bear — rare hard enemy;
+  - [ ] Thunder Mountains: Horned Goat — knockback attack
+  - [ ] Thunder Mountains: Thunder Sentinel — rare hard enemy;
+  - [ ] Ocean: Reef Maw — rare hard underwater enemy;
 
 - [ ] **A8b — Enemy materials and crafted items (P1/P2).** [Recipes](docs/biome-enemies.md#recommended-items-and-recipes)
   - [x] Reconcile the user-edited drop amounts/chances and recipe station/cost/output values with existing approved contracts; align source ownership and the proposal table.
