@@ -173,8 +173,15 @@ No new RPC, replication field, save field, version or migration is introduced.
 `BronzeArrow` ammunition items live in sibling `items/arrows.json`, rather than
 under materials. The Stone and Bronze Arrow Workbench recipes are in
 `recipes/stations/workbench.json`; their fixed Pierce damage records are in
-`attacks/bows.json`. Bronze Arrow carries 50 Pierce in the catalogue; server
-selection and shot payment are the next A3 increment.
+`attacks/bows.json`. The server resolves an owner-selected stack GUID first;
+when that stack is no longer usable, it scans the owner's replicated grid in
+row-major order and selects the first supported arrow. A shot commits one arrow
+and one bow-condition point only after projectile validation and player-state
+save succeed. Wooden Arrow damage follows draw progress; Stone and Bronze
+Arrow damage use their fixed 25- and 50-Pierce attack records. The owner-local
+crosshair presents the selected type and current damage from inventory and
+catalogue data; it does not choose or authorize the server shot. Selection
+remains session-only and owner-only replicated; no save field is added.
 Credited deer defeats grant 1 Sinew on a server-owned 50% roll. At the Workbench,
 `recipes/stations/workbench.json` converts 4 Sinew into 1 Bow String; Bow
 acquisition and upgrades use 5 Wood and 1 Bow String each. The same file keeps

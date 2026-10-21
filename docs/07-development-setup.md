@@ -55,10 +55,13 @@ Live placement, peers and full verification remain deferred.
 
 Hammer is construction-only again: left click places selected pieces, right click
 opens the Build menu even from pending placement. Bow uses hold/release Attack,
-with authored DrawDuration=1.5 seconds, shrinking draw circle, exact preferred
-or automatic WoodenArrow/StoneArrow stack, transactional ammo/condition payment and a real
-gravity projectile. Stone Arrow deals 25 Pierce while charge continues to control
-velocity and spread; automatic selection prefers WoodenArrow first. This supersedes earlier hammer/Bow melee and unimplemented
+with authored DrawDuration=1.5 seconds for Bow and 2.0 seconds for Light Bow,
+shrinking draw circle, exact preferred
+or automatic WoodenArrow/StoneArrow/BronzeArrow stack, transactional ammo/condition payment and a real
+gravity projectile. Stone and Bronze Arrows deal 25 and 50 Pierce while charge
+continues to control velocity and spread. Automatic selection uses the first
+arrow in row-major inventory order; the crosshair shows its type and current
+Pierce damage. This supersedes earlier hammer/Bow melee and unimplemented
 shooting descriptions below.
 
 Normal-access isolated Development Editor incremental build passed; final
@@ -87,15 +90,15 @@ that fixture now destroys unhit arrows after its flight check. See PROGRESS for
 failed runs and build logs. No rendered/manual, live-peer, full-suite or packaging
 acceptance is claimed. Rebuild Development Editor; inspect hammer RMB selection /
 LMB placement, bow circle/full/partial shots and inventory arrow priority in PIE.
-WoodenArrow remains the automatic first choice; exact preference is session-only.
-StoneArrow is crafted at a Workbench from 20 Wood + 5 Stone for 20, has stack
+An exact preferred stack is session-only; automatic selection scans grid cells
+top row left-to-right, then each lower row. StoneArrow is crafted at a Workbench from 20 Wood + 5 Stone for 20, has stack
 100 and weight 0.05 kg, and uses its validated 25-Pierce attack record. The
 bow-only `BowString` material is crafted from 4 Sinew at a Workbench, and
 credited deer defeats grant 1 Sinew on a server-owned 50% roll. `BowString` and
-`Sinew` are in `items/materials/crafting-ingredients.json`; both arrow types are
-siblings in `items/arrows.json`, already registered in `GameCatalogues.json`.
-StoneArrow's attack data lives in the registered `attacks/bows.json`. Its
-original and imported icon use batch Q. Additional bow tiers, Archery progression,
+`Sinew` are in `items/materials/crafting-ingredients.json`; all three arrow types
+are siblings in `items/arrows.json`, already registered in `GameCatalogues.json`.
+`attacks/bows.json` contains StoneArrow and BronzeArrow data. Their original and
+imported icons use batches Q and R, respectively. Additional bow tiers, Archery progression,
 projectile recovery and PvP remain outside this increment.
 
 ## All-item free-swing regression — 2026-10-17
@@ -4890,7 +4893,8 @@ Icon batch R contains only `BronzeArrow`. Prepare and import with
 `python Scripts/Prepare-CatalogueIconBatch.py --batch R` and
 `Scripts/Import-CatalogueIconBatch.ps1 -Batch R`. The catalogue icon validator
 passed all 81 identities. Focused catalogue/reference checks and modified
-Python/PowerShell syntax checks passed. Bronze Arrow shot selection, payment,
-and display remain the next A3 child. Editor build, gameplay automation,
-rendered acceptance, and peer checks remain deferred to I2 milestone-final
-verification.
+Python/PowerShell syntax checks passed. The following A3 update adds Bronze
+Arrow selection, transactional shot payment, and crosshair type/damage display;
+`Kalmala.Gameplay.Combat.BowDrawAndArrows` covers selected-stack override,
+row-major fallback, and fixed Bronze/Stone Pierce. Full Editor and multiplayer
+acceptance remain deferred to I2 milestone-final verification.

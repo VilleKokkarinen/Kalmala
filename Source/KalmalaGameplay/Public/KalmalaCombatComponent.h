@@ -31,6 +31,7 @@ public:
     UFUNCTION(Server, Reliable) void ServerReleaseBow(uint32 Sequence, bool bCancel);
     UFUNCTION(Server, Reliable) void ServerPreferArrowStack(FGuid StackOrUnitGuid);
     FGuid GetPreferredArrowStack() const { return PreferredArrowStack; }
+    FName GetArrowItemIdForDisplay() const;
     bool IsBowDrawing() const;
     float GetBowDrawProgress() const;
     float GetBowDrawDuration() const;

@@ -8,15 +8,18 @@ Bow left-click draws while held and releases an arrow on release at any charge.
 Light Bow. The crosshair circle
 shrinks from 50 to 4 logical UI units over full draw. Earlier release reduces
 arrow velocity and accuracy; Wooden Arrow Pierce damage also follows draw,
-while Stone Arrow deals its authored fixed 25 Pierce. Full draw clamps. Each
+while Stone and Bronze Arrows deal their authored fixed 25 and 50 Pierce.
+Full draw clamps. Each
 successful persisted shot consumes one selected arrow and one bow condition.
-Selection may prioritize an exact inventory stack; automatic selection prefers
-Wooden Arrow before Stone Arrow, and a lost/exhausted preference falls back.
+Selection may prioritize an exact inventory stack; otherwise the server selects
+the first supported arrow in top-row-first inventory order. The crosshair shows
+the selected arrow type and current Pierce damage; a lost/exhausted preference
+falls back to that inventory order.
 Gravity-driven server projectiles stop at
 visibility blockers and can damage wildlife. Light Bow is a separate carried
 profile with its own Workbench cost, condition, weight and draw duration; it
 shares the server shot path and adds no bow damage bonus. Current shots use
-Wooden and Stone Arrows. There is no PvP, arrow recovery or Archery progression; a future
+Wooden, Stone, and Bronze Arrows. There is no PvP, arrow recovery or Archery progression; a future
 server skill multiplier can shorten effective draw duration through the existing
 calculation hook.
 
@@ -43,8 +46,9 @@ or 20 Wooden Arrows from 5 normal Wood. Light Bow weighs 1.5 kg, starts at 140
 condition, draws fully in 2 seconds, and gains 30 condition per Workbench
 upgrade for 3 Lightwood + 1 Bow String. A Workbench also crafts 20 Stone Arrows
 from 20 Wood + 5 Stone, and 20 Bronze Arrows from 20 Wood + 1 Bronze bar.
-Bronze Arrows carry a fixed 50 Pierce attack record; bow selection and shot
-payment for them are the next A3 increment.
+Bronze Arrows carry a fixed 50 Pierce attack record and use the server bow shot
+path. The owner may prioritize an exact stack; otherwise the first arrow in
+row-major inventory order is selected. The crosshair shows its type and damage.
 Bow String is reserved for bows; ammunition is catalogued in `items/arrows.json`.
 Both bow profiles use both hands. Equipping a bow clears the previous held state and returns
 a worn shield to a free pack cell as one validated transaction. Tools retain their

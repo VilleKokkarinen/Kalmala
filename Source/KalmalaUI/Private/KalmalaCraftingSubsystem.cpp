@@ -7,6 +7,7 @@
 #include "KalmalaIngredientWidget.h"
 #include "KalmalaRecipeRequirements.h"
 #include "KalmalaInventoryComponent.h"
+#include "KalmalaArrowProjectile.h"
 #include "KalmalaInventoryMenuSubsystem.h"
 #include "KalmalaStorageSaveGame.h"
 #include "KalmalaUITheme.h"
@@ -5901,5 +5902,24 @@ int32 UKalmalaBowCrosshairWidget::NativePaint(const FPaintArgs& Args, const FGeo
         FLinearColor::Black, true, 3.5f);
     FSlateDrawElement::MakeLines(Elements, Layer + 2, Geometry.ToPaintGeometry(), Ring, ESlateDrawEffect::None,
         FLinearColor::White, true, 1.5f);
+    if (Combat && Combat->GetBowDrawDuration() > 0.0f)
+    {
+        const FName ArrowItemId = Combat->GetArrowItemIdForDisplay();
+        const auto* Item = UKalmalaItemCatalogue::Get()->FindItem(ArrowItemId);
+        float Damage = 0.0f;
+        if (Item && AKalmalaArrowProjectile::ResolveShotDamage(ArrowItemId, Combat->GetBowDrawProgress(), Damage))
+        {
+            const FString Label = FString::Printf(TEXT("%s | %.0f Pierce"), *Item->DisplayName, Damage);
+            const FSlateFontInfo Font(FCoreStyle::GetDefaultFont(), 13);
+            const FVector2D Position(Centre.X - 88.0f, Centre.Y + Radius + 10.0f);
+            FSlateDrawElement::MakeText(Elements, Layer + 3,
+                Geometry.ToPaintGeometry(FSlateLayoutTransform(Position + FVector2D(1.0f))),
+                Label, Font, ESlateDrawEffect::None, FLinearColor::Black);
+            FSlateDrawElement::MakeText(Elements, Layer + 4,
+                Geometry.ToPaintGeometry(FSlateLayoutTransform(Position)),
+                Label, Font, ESlateDrawEffect::None, FLinearColor::White);
+            return Layer + 4;
+        }
+    }
     return Layer + 2;
 }

@@ -9,6 +9,21 @@
 #include "GameFramework/Controller.h"
 #include "Engine/World.h"
 
+namespace
+{
+bool IsSupportedArrowStack(const FKalmalaInventoryStack& Stack)
+{
+    if (Stack.Quantity <= 0) return false;
+    if (Stack.ItemId == TEXT("WoodenArrow")) return true;
+    if (!Stack.ItemId.ToString().EndsWith(TEXT("Arrow"))) return false;
+
+    const auto& Attacks = UKalmalaToolCatalogue::Get()->GetAttacks(Stack.ItemId);
+    const auto* Attack = Attacks.FindByPredicate(
+        [](const FKalmalaWeaponAttackData& Entry) { return Entry.AttackId == TEXT("Basic"); });
+    return Attack && FMath::IsFinite(Attack->DamageBonuses.Pierce) && Attack->DamageBonuses.Pierce > 0.0f;
+}
+}
+
 float UKalmalaCombatComponent::CalculateBowDrawProgress(float Elapsed, float Duration, float ArcherySpeedMultiplier)
 {
     if (!FMath::IsFinite(Elapsed) || !FMath::IsFinite(Duration) || Duration <= 0
@@ -27,24 +42,27 @@ int32 UKalmalaCombatComponent::FindArrowStack() const
 {
     const auto* Pawn = Cast<AKalmalaCharacter>(GetOwner());
     if (!Pawn || !Pawn->GetInventoryComponent()) return INDEX_NONE;
-    const auto& Stacks = Pawn->GetInventoryComponent()->GetStacks();
-    const auto IsArrow = [](const auto& Stack)
-    {
-        const bool bIsSupportedArrow = Stack.ItemId == TEXT("WoodenArrow")
-            || (Stack.ItemId.ToString().EndsWith(TEXT("Arrow"))
-                && !UKalmalaToolCatalogue::Get()->GetAttacks(Stack.ItemId).IsEmpty());
-        return Stack.Quantity > 0 && bIsSupportedArrow;
-    };
+    const auto* Inventory = Pawn->GetInventoryComponent();
+    const auto& Stacks = Inventory->GetStacks();
     const int32 Preferred = Stacks.IndexOfByPredicate([&](const auto& Stack)
-        { return IsArrow(Stack) && Stack.InstanceGuid == PreferredArrowStack; });
+        { return IsSupportedArrowStack(Stack) && Stack.InstanceGuid == PreferredArrowStack; });
     if (Preferred != INDEX_NONE) return Preferred;
-    for (const FName ItemId : {FName(TEXT("WoodenArrow")), FName(TEXT("StoneArrow"))})
+    // The replicated grid is row-major: scan top-left to right, then each lower row.
+    for (const FGuid& GridGuid : Inventory->GetGridInstanceGuids())
     {
         const int32 Available = Stacks.IndexOfByPredicate([&](const auto& Stack)
-            { return Stack.ItemId == ItemId && IsArrow(Stack); });
+            { return Stack.InstanceGuid == GridGuid && IsSupportedArrowStack(Stack); });
         if (Available != INDEX_NONE) return Available;
     }
     return INDEX_NONE;
+}
+FName UKalmalaCombatComponent::GetArrowItemIdForDisplay() const
+{
+    const auto* Pawn = Cast<AKalmalaCharacter>(GetOwner());
+    const auto* Inventory = Pawn ? Pawn->GetInventoryComponent() : nullptr;
+    const int32 StackIndex = FindArrowStack();
+    return Inventory && Inventory->GetStacks().IsValidIndex(StackIndex)
+        ? Inventory->GetStacks()[StackIndex].ItemId : NAME_None;
 }
 bool UKalmalaCombatComponent::CanDrawBow() const
 {
@@ -92,9 +110,7 @@ void UKalmalaCombatComponent::ServerPreferArrowStack_Implementation(FGuid Guid)
     const auto* Pawn = Cast<AKalmalaCharacter>(GetOwner());
     if (!Pawn) return;
     for (const auto& Stack : Pawn->GetInventoryComponent()->GetStacks())
-        if (Stack.Quantity > 0 && (Stack.ItemId == TEXT("WoodenArrow")
-            || (Stack.ItemId.ToString().EndsWith(TEXT("Arrow"))
-                && !UKalmalaToolCatalogue::Get()->GetAttacks(Stack.ItemId).IsEmpty()))
+        if (IsSupportedArrowStack(Stack)
             && (Stack.InstanceGuid == Guid || Stack.ItemGuids.Contains(Guid)))
         { PreferredArrowStack = Stack.InstanceGuid; GetOwner()->ForceNetUpdate(); return; }
 }

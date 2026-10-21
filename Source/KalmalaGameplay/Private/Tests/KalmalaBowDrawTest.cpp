@@ -65,6 +65,7 @@ bool FKalmalaBowDrawTest::RunTest(const FString& Parameters)
     const FGuid Preferred = Before[1].InstanceGuid;
     Combat->ServerPreferArrowStack(Before[1].ItemGuids[0]);
     TestEqual(TEXT("Inventory unit selection resolves the exact arrow stack"), Combat->GetPreferredArrowStack(), Preferred);
+    TestEqual(TEXT("Selected arrow type is available for HUD display"), Combat->GetArrowItemIdForDisplay(), FName(TEXT("WoodenArrow")));
     Combat->ServerPreferArrowStack(FGuid::NewGuid());
     TestEqual(TEXT("Forged stack request does not change preference"), Combat->GetPreferredArrowStack(), Preferred);
     TestEqual(TEXT("Light Bow draw duration loads from catalogue"), Combat->GetBowDrawDuration(), 2.0f);
@@ -117,16 +118,65 @@ bool FKalmalaBowDrawTest::RunTest(const FString& Parameters)
     {TestEqual(TEXT("Immediate release still fires a low-power arrow"),Arrow->GetShotDamage(),10.0f);Arrow->Destroy();}
     Recover();
     TestTrue(TEXT("Stone arrows can be granted from their catalogue definition"), Inventory->TryGrantFromServer(TEXT("StoneArrow"), 1));
-    const auto* StoneStack = Inventory->GetStacks().FindByPredicate(
+    const auto StoneStack = Inventory->GetStacks().FindByPredicate(
         [](const auto& Stack) { return Stack.ItemId == TEXT("StoneArrow") && Stack.Quantity > 0; });
     if (!TestNotNull(TEXT("Stone arrow stack exists"), StoneStack) || StoneStack->ItemGuids.IsEmpty()) return false;
-    Combat->ServerPreferArrowStack(StoneStack->ItemGuids[0]);
-    TestEqual(TEXT("Stone arrow unit selection resolves its exact stack"), Combat->GetPreferredArrowStack(), StoneStack->InstanceGuid);
+    const FGuid StoneRowGuid = StoneStack->InstanceGuid;
+    const FGuid StoneUnitGuid = StoneStack->ItemGuids[0];
+    TestTrue(TEXT("Two Bronze Arrows can be granted from their catalogue definition"), Inventory->TryGrantFromServer(TEXT("BronzeArrow"), 2));
+    const auto BronzeStack = Inventory->GetStacks().FindByPredicate(
+        [](const auto& Stack) { return Stack.ItemId == TEXT("BronzeArrow") && Stack.Quantity > 0; });
+    if (!TestNotNull(TEXT("Bronze arrow stack exists"), BronzeStack) || BronzeStack->ItemGuids.IsEmpty()) return false;
+    const FGuid BronzeRowGuid = BronzeStack->InstanceGuid;
+    const FGuid BronzeUnitGuid = BronzeStack->ItemGuids[0];
+    Combat->ServerPreferArrowStack(BronzeUnitGuid);
+    TestEqual(TEXT("Bronze arrow unit selection resolves its exact stack"), Combat->GetPreferredArrowStack(), BronzeRowGuid);
+    TestEqual(TEXT("Preferred Bronze Arrow overrides automatic inventory order"), Combat->GetArrowItemIdForDisplay(), FName(TEXT("BronzeArrow")));
     Recover();
     Combat->ServerBeginBowDraw(11);
     for (int32 Step = 0; Step < 8; ++Step) World->Tick(LEVELTICK_TimeOnly, 0.25f);
     Combat->ServerReleaseBow(12, false);
-    TestEqual(TEXT("Committed Stone Arrow consumes one unit"), Inventory->GetQuantity(TEXT("StoneArrow")), 0);
+    TestEqual(TEXT("Committed preferred Bronze Arrow consumes one unit"), Inventory->GetQuantity(TEXT("BronzeArrow")), 1);
+    bool bSawPreferredBronzeArrowShot = false;
+    for (TActorIterator<AKalmalaArrowProjectile> Arrow(World); Arrow; ++Arrow)
+    {
+        bSawPreferredBronzeArrowShot = true;
+        TestEqual(TEXT("Bronze Arrow uses its authored 50 Pierce attack"), Arrow->GetShotDamage(), 50.0f);
+        Arrow->Destroy();
+    }
+    TestTrue(TEXT("Preferred Bronze Arrow release creates a projectile"), bSawPreferredBronzeArrowShot);
+    TestEqual(TEXT("A remaining preferred stack stays selected"), Combat->GetPreferredArrowStack(), BronzeRowGuid);
+    Combat->ServerPreferArrowStack(FGuid());
+    const auto& GridBeforeMove = Inventory->GetGridInstanceGuids();
+    const int32 BronzeSlot = GridBeforeMove.IndexOfByKey(BronzeRowGuid);
+    const int32 FirstWoodenSlot = GridBeforeMove.IndexOfByKey(Before[0].InstanceGuid);
+    TestTrue(TEXT("Bronze Arrow moves ahead of other types in inventory order"), BronzeSlot != INDEX_NONE
+        && FirstWoodenSlot != INDEX_NONE
+        && Inventory->MoveSlotByInstanceFromServer(BronzeSlot, FirstWoodenSlot,
+            BronzeRowGuid, GridBeforeMove[FirstWoodenSlot]));
+    TestEqual(TEXT("Automatic arrow preview follows top-left inventory order"), Combat->GetArrowItemIdForDisplay(), FName(TEXT("BronzeArrow")));
+    Recover();
+    Combat->ServerBeginBowDraw(13);
+    for (int32 Step = 0; Step < 8; ++Step) World->Tick(LEVELTICK_TimeOnly, 0.25f);
+    Combat->ServerReleaseBow(14, false);
+    TestEqual(TEXT("Automatic selection consumes the first arrow in grid order"), Inventory->GetQuantity(TEXT("BronzeArrow")), 0);
+    bool bSawAutomaticBronzeArrowShot = false;
+    for (TActorIterator<AKalmalaArrowProjectile> Arrow(World); Arrow; ++Arrow)
+    {
+        bSawAutomaticBronzeArrowShot = true;
+        TestEqual(TEXT("Automatic Bronze Arrow keeps its authored 50 Pierce attack"), Arrow->GetShotDamage(), 50.0f);
+        Arrow->Destroy();
+    }
+    TestTrue(TEXT("Automatic inventory-order release creates a Bronze projectile"), bSawAutomaticBronzeArrowShot);
+    TestFalse(TEXT("Exhausted preferred Bronze Arrow stack clears"), Combat->GetPreferredArrowStack().IsValid());
+    Combat->ServerPreferArrowStack(StoneUnitGuid);
+    TestEqual(TEXT("Stone arrow unit selection resolves its exact stack"), Combat->GetPreferredArrowStack(), StoneRowGuid);
+    TestEqual(TEXT("Selected Stone Arrow overrides the first usable grid stack"), Combat->GetArrowItemIdForDisplay(), FName(TEXT("StoneArrow")));
+    Recover();
+    Combat->ServerBeginBowDraw(15);
+    for (int32 Step = 0; Step < 8; ++Step) World->Tick(LEVELTICK_TimeOnly, 0.25f);
+    Combat->ServerReleaseBow(16, false);
+    TestEqual(TEXT("Committed preferred Stone Arrow consumes one unit"), Inventory->GetQuantity(TEXT("StoneArrow")), 0);
     bool bSawStoneArrowShot = false;
     for (TActorIterator<AKalmalaArrowProjectile> Arrow(World); Arrow; ++Arrow)
     {
@@ -134,17 +184,17 @@ bool FKalmalaBowDrawTest::RunTest(const FString& Parameters)
         TestEqual(TEXT("Stone Arrow uses its authored 25 Pierce attack"), Arrow->GetShotDamage(), 25.0f);
         Arrow->Destroy();
     }
-    TestTrue(TEXT("Stone Arrow release creates a projectile"), bSawStoneArrowShot);
+    TestTrue(TEXT("Preferred Stone Arrow release creates a projectile"), bSawStoneArrowShot);
     TestFalse(TEXT("Exhausted preferred Stone Arrow stack clears"), Combat->GetPreferredArrowStack().IsValid());
     Recover();
     const int32 AmmoBeforeFailure=Inventory->GetQuantity(TEXT("WoodenArrow"));
     const int32 ConditionBeforeFailure=Pawn->GetToolDurability(TEXT("LightBow"));
     Pawn->SetPlayerState(nullptr);
-    Combat->ServerBeginBowDraw(13); Combat->ServerReleaseBow(14,false);
+    Combat->ServerBeginBowDraw(17); Combat->ServerReleaseBow(18,false);
     TestEqual(TEXT("Persistence failure rolls back ammunition"),Inventory->GetQuantity(TEXT("WoodenArrow")),AmmoBeforeFailure);
     TestEqual(TEXT("Persistence failure rolls back Light Bow condition"),Pawn->GetToolDurability(TEXT("LightBow")),ConditionBeforeFailure);
     Pawn->SetPlayerState(PlayerState);
-    Combat->ServerBeginBowDraw(15);
+    Combat->ServerBeginBowDraw(19);
     const auto Hammer=Tools.FindByPredicate([](const auto& Tool){return Tool.ItemId==TEXT("ConstructionHammer");});
     Inventory->SetMainHandFromServer(Hammer->InstanceGuid,Reason);
     Combat->TickComponent(0.01f,LEVELTICK_All,nullptr);
