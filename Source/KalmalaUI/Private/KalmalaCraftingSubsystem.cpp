@@ -1124,7 +1124,7 @@ int32 UKalmalaCraftingWidget::GetBuildBrowseGroup(const FName Output)
 {
     if (!FKalmalaPlacementPreview::IsSupportedKit(Output)) return 0;
     if (Output == TEXT("FloorKit") || AKalmalaConstructionActor::IsShelterKit(Output)
-        || Output == TEXT("TimberBeamKit")) return 4;
+        || Output == TEXT("TimberBeamKit") || Output == TEXT("TimberStairsKit")) return 4;
     if (Output == TEXT("CharcoalKilnKit") || Output == TEXT("SmelterKit")
         || AKalmalaConstructionActor::IsCraftingStationKit(Output)
         || FKalmalaToolProgressionContract::IsStationAttachmentKit(Output)) return 5;

@@ -95,6 +95,7 @@ namespace
         if (CatalogueItemId == TEXT("GardenPlot")) return TEXT("GardenPlotKit");
         if (CatalogueItemId == TEXT("TimberDoor")) return TEXT("TimberDoorKit");
         if (CatalogueItemId == TEXT("TimberBeam")) return TEXT("TimberBeamKit");
+        if (CatalogueItemId == TEXT("TimberStairs")) return TEXT("TimberStairsKit");
         return CatalogueItemId;
     }
 

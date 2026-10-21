@@ -73,6 +73,18 @@ AKalmalaConstructionActor::AKalmalaConstructionActor()
     DoorLeafCollision->SetRelativeLocation(FVector(50.0f, 0.0f, 0.0f));
     DoorLeafCollision->SetCollisionProfileName(TEXT("BlockAll"));
     DoorLeafCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+    for (int32 StepIndex = 0; StepIndex < 5; ++StepIndex)
+    {
+        const FName StepName(*FString::Printf(TEXT("StairsStepCollision%d"), StepIndex + 1));
+        UBoxComponent* StepCollision = CreateDefaultSubobject<UBoxComponent>(StepName);
+        StepCollision->SetupAttachment(Collision);
+        StepCollision->SetCollisionProfileName(TEXT("BlockAll"));
+        StepCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+        StepCollision->SetGenerateOverlapEvents(false);
+        StepCollision->SetCanEverAffectNavigation(false);
+        StairsStepCollisions.Add(StepCollision);
+    }
 }
 
 void AKalmalaConstructionActor::InitializeFromServer(const FName InKit, const FString& InConstructionId,
@@ -233,7 +245,7 @@ void AKalmalaConstructionActor::AdvanceRainWearFromServer(const float DeltaSecon
         || !FMath::IsFinite(Precipitation) || Precipitation <= 0.0f
         || (ConstructionKit != TEXT("FloorKit") && ConstructionKit != TEXT("WallKit")
             && ConstructionKit != TEXT("TimberDoorKit")
-            && ConstructionKit != TEXT("TimberBeamKit")
+            && ConstructionKit != TEXT("TimberBeamKit") && ConstructionKit != TEXT("TimberStairsKit")
             && ConstructionKit != TEXT("WorkbenchKit") && ConstructionKit != TEXT("StorageKit"))) return;
     const FVector Start = Collision->GetComponentLocation() + FVector(0, 0, 60);
     if (Start.ContainsNaN()) return;
@@ -283,7 +295,7 @@ bool AKalmalaConstructionActor::IsStorageKit(const FName KitId)
 bool AKalmalaConstructionActor::IsStructuralEndpointKit(const FName KitId)
 {
     return KitId == TEXT("FloorKit") || KitId == TEXT("WallKit") || KitId == TEXT("TimberDoorKit")
-        || KitId == TEXT("RoofKit") || KitId == TEXT("TimberBeamKit");
+        || KitId == TEXT("RoofKit") || KitId == TEXT("TimberBeamKit") || KitId == TEXT("TimberStairsKit");
 }
 
 void AKalmalaConstructionActor::GetStructuralEndpoints(const AKalmalaConstructionActor* Construction,
@@ -292,7 +304,12 @@ void AKalmalaConstructionActor::GetStructuralEndpoints(const AKalmalaConstructio
     if (!IsValid(Construction) || Construction->GetConstructionId().IsEmpty()) return;
     const FName KitId = Construction->GetConstructionKit();
     const FTransform Transform = Construction->GetActorTransform();
-    if (KitId == TEXT("TimberBeamKit"))
+    if (KitId == TEXT("TimberStairsKit"))
+    {
+        OutEndpoints.Add(Transform.TransformPosition(FVector(-100.0f, 0.0f, -50.0f)));
+        OutEndpoints.Add(Transform.TransformPosition(FVector(100.0f, 0.0f, 50.0f)));
+    }
+    else if (KitId == TEXT("TimberBeamKit"))
     {
         OutEndpoints.Add(Transform.TransformPosition(FVector(-100.0f, 0.0f, 0.0f)));
         OutEndpoints.Add(Transform.TransformPosition(FVector(100.0f, 0.0f, 0.0f)));
@@ -319,6 +336,7 @@ FVector AKalmalaConstructionActor::GetCollisionExtent(const FName KitId)
     if (KitId == TEXT("WallKit")) return FVector(120, 12, 110);
     if (KitId == TEXT("TimberDoorKit")) return FVector(120, 12, 110);
     if (KitId == TEXT("TimberBeamKit")) return FVector(100, 7.5f, 7.5f);
+    if (KitId == TEXT("TimberStairsKit")) return FVector(100, 50, 50);
     if (KitId == TEXT("RoofKit")) return FVector(132, 132, 16);
     if (KitId == TEXT("CharcoalKilnKit")) return FVector(60, 60, 62);
     if (KitId == TEXT("SmelterKit")) return FVector(60, 60, 82);
@@ -379,6 +397,8 @@ void AKalmalaConstructionActor::ApplyConstructionKit()
 void AKalmalaConstructionActor::ApplyDoorState()
 {
     if (!Collision || !DoorPivot || !DoorLeafMesh) return;
+    for (const TObjectPtr<UBoxComponent>& Step : StairsStepCollisions)
+        if (Step) Step->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     if (ConstructionKit == TEXT("TimberDoorKit"))
     {
         Collision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
@@ -388,6 +408,24 @@ void AKalmalaConstructionActor::ApplyDoorState()
         DoorPivot->SetRelativeRotation(FRotator(0.0f, bDoorOpen ? -90.0f : 0.0f, 0.0f));
         for (UBoxComponent* Frame : {DoorLeftFrameCollision.Get(), DoorRightFrameCollision.Get(), DoorHeaderCollision.Get(), DoorLeafCollision.Get()})
             if (Frame) Frame->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+        return;
+    }
+    if (ConstructionKit == TEXT("TimberStairsKit"))
+    {
+        Collision->SetCollisionResponseToAllChannels(ECR_Ignore);
+        Collision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+        for (int32 StepIndex = 0; StepIndex < StairsStepCollisions.Num(); ++StepIndex)
+        {
+            UBoxComponent* Step = StairsStepCollisions[StepIndex];
+            if (!Step) continue;
+            const float StepTop = static_cast<float>((StepIndex + 1) * 20);
+            const float HalfHeight = StepTop * 0.5f;
+            Step->SetBoxExtent(FVector(20.0f, 50.0f, HalfHeight));
+            Step->SetRelativeLocation(FVector(-80.0f + static_cast<float>(StepIndex * 40),
+                0.0f, HalfHeight - 50.0f));
+            Step->SetCollisionProfileName(TEXT("BlockAll"));
+            Step->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+        }
         return;
     }
     Collision->SetCollisionProfileName(TEXT("BlockAll"));
@@ -422,6 +460,17 @@ void AKalmalaConstructionActor::BuildPiecePresentation()
             AddBox(Vertices, Triangles, FVector(X, 0, 1), FVector(3, 50, 4));
         for (const float Y : {-47.0f, 47.0f})
             AddBox(Vertices, Triangles, FVector(0, Y, 1), FVector(44, 3, 4));
+    }
+    else if (ConstructionKit == TEXT("TimberStairsKit"))
+    {
+        for (int32 StepIndex = 0; StepIndex < 5; ++StepIndex)
+        {
+            const float StepTop = static_cast<float>((StepIndex + 1) * 20);
+            const float HalfHeight = StepTop * 0.5f;
+            AddBox(Vertices, Triangles,
+                FVector(-80.0f + static_cast<float>(StepIndex * 40), 0.0f, HalfHeight - 50.0f),
+                FVector(20.0f, 50.0f, HalfHeight));
+        }
     }
     else if (ConstructionKit == TEXT("TimberDoorKit"))
     {

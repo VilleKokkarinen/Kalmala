@@ -67,6 +67,7 @@ private:
     UPROPERTY(VisibleAnywhere) TObjectPtr<UBoxComponent> DoorRightFrameCollision;
     UPROPERTY(VisibleAnywhere) TObjectPtr<UBoxComponent> DoorHeaderCollision;
     UPROPERTY(VisibleAnywhere) TObjectPtr<UBoxComponent> DoorLeafCollision;
+    UPROPERTY(VisibleAnywhere) TArray<TObjectPtr<UBoxComponent>> StairsStepCollisions;
     UPROPERTY(ReplicatedUsing=OnRep_ConstructionState) FName ConstructionKit;
     UPROPERTY(ReplicatedUsing=OnRep_ConstructionState) FString ConstructionId;
     UPROPERTY(Replicated) float Health = MaximumHealth;

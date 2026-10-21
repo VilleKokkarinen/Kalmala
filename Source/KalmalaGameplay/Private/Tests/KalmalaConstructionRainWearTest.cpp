@@ -17,7 +17,7 @@ bool FKalmalaConstructionRainWearTest::RunTest(const FString& Parameters)
         return Piece;
     };
     int32 Index = 0;
-    for (const TCHAR* Kit : {TEXT("FloorKit"), TEXT("WallKit"), TEXT("TimberDoorKit"), TEXT("TimberBeamKit"),
+    for (const TCHAR* Kit : {TEXT("FloorKit"), TEXT("WallKit"), TEXT("TimberDoorKit"), TEXT("TimberBeamKit"), TEXT("TimberStairsKit"),
         TEXT("WorkbenchKit"), TEXT("StorageKit")})
     {
         auto* Piece = Spawn(Kit, FVector(++Index * 1000, 0, 0));

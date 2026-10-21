@@ -37,6 +37,12 @@
       "MaxStack": 1
     },
     {
+      "ItemId": "TimberStairs",
+      "DisplayName": "Timber Stairs",
+      "Description": "Solid timber steps for a 1 m rise; rests on ground or attaches to a supported floor.",
+      "MaxStack": 1
+    },
+    {
       "ItemId": "Roof",
       "DisplayName": "Reed Roof",
       "Description": "A reed roof that shields a small camp from rain.",

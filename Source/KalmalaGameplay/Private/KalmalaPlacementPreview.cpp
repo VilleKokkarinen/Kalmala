@@ -11,6 +11,9 @@
 
 namespace
 {
+    constexpr float TimberStairsHalfRun = 100.0f;
+    constexpr float TimberStairsHalfWidth = 50.0f;
+    constexpr float TimberStairsHalfRise = 50.0f;
     constexpr float TimberBeamHalfLength = 100.0f;
     constexpr float TimberBeamHalfWidth = 7.5f;
     constexpr float StructuralEndpointTolerance = 22.0f;
@@ -62,6 +65,136 @@ namespace
     void AddUniqueSupportActor(TArray<AActor*>& Supports, AActor* Actor)
     {
         if (IsValid(Actor)) Supports.AddUnique(Actor);
+    }
+
+    FKalmalaPlacementPreview EvaluateTimberStairs(const UWorld* World, const APawn* Pawn)
+    {
+        FKalmalaPlacementPreview Result;
+        Result.Message = TEXT("Preview invalid: ground the lower stair edge or attach the upper edge to a supported floor");
+        if (!World || !Pawn || Pawn->GetActorLocation().ContainsNaN())
+        {
+            Result.Message = TEXT("Preview unavailable: waiting for local terrain");
+            return Result;
+        }
+
+        const FVector ViewLocation = Pawn->GetPawnViewLocation();
+        const FVector ViewDirection = Pawn->GetViewRotation().Vector();
+        if (ViewLocation.ContainsNaN() || ViewDirection.ContainsNaN()) return Result;
+
+        FVector SlopeUp = FKalmalaPlacementPreview::GetTimberStairsPlacementRotation(Pawn->GetActorRotation()).Vector();
+        FVector LowerEndpoint = FVector::ZeroVector;
+        AActor* GroundSupport = nullptr;
+        AKalmalaConstructionActor* FloorSupport = nullptr;
+
+        FCollisionQueryParams TargetQuery(SCENE_QUERY_STAT(TimberStairsTarget), false, Pawn);
+        FHitResult TargetHit;
+        if (World->LineTraceSingleByChannel(TargetHit, ViewLocation,
+                ViewLocation + ViewDirection * 250.0f, ECC_Visibility, TargetQuery))
+        {
+            AKalmalaConstructionActor* CandidateFloor = Cast<AKalmalaConstructionActor>(TargetHit.GetActor());
+            if (IsValid(CandidateFloor) && CandidateFloor->GetWorld() == World
+                && !CandidateFloor->GetConstructionId().IsEmpty()
+                && CandidateFloor->GetConstructionKit() == TEXT("FloorKit"))
+            {
+                const FTransform FloorTransform = CandidateFloor->GetActorTransform();
+                const FVector LocalPawn = FloorTransform.InverseTransformPosition(Pawn->GetActorLocation());
+                FVector LocalOutward;
+                FVector LocalEdge;
+                if (FMath::Abs(LocalPawn.X) >= FMath::Abs(LocalPawn.Y))
+                {
+                    const float Side = LocalPawn.X < 0.0f ? -1.0f : 1.0f;
+                    LocalOutward = FVector(Side, 0.0f, 0.0f);
+                    LocalEdge = FVector(Side * 120.0f, 0.0f, AKalmalaConstructionActor::GetCollisionExtent(TEXT("FloorKit")).Z);
+                }
+                else
+                {
+                    const float Side = LocalPawn.Y < 0.0f ? -1.0f : 1.0f;
+                    LocalOutward = FVector(0.0f, Side, 0.0f);
+                    LocalEdge = FVector(0.0f, Side * 120.0f, AKalmalaConstructionActor::GetCollisionExtent(TEXT("FloorKit")).Z);
+                }
+                const FVector Outward = FloorTransform.TransformVectorNoScale(LocalOutward).GetSafeNormal();
+                SlopeUp = -Outward;
+                Result.Rotation = FRotator(0.0f, SlopeUp.Rotation().Yaw, 0.0f);
+                SlopeUp = Result.Rotation.Vector();
+                const FVector UpperEndpoint = FloorTransform.TransformPosition(LocalEdge);
+                LowerEndpoint = UpperEndpoint - SlopeUp * (TimberStairsHalfRun * 2.0f)
+                    - FVector(0.0f, 0.0f, TimberStairsHalfRise * 2.0f);
+                FloorSupport = CandidateFloor;
+            }
+        }
+
+        if (!FloorSupport)
+        {
+            Result.Rotation = FKalmalaPlacementPreview::GetTimberStairsPlacementRotation(Pawn->GetActorRotation());
+            SlopeUp = Result.Rotation.Vector();
+            const FVector LowerProbe = Pawn->GetActorLocation() + SlopeUp * 165.0f;
+            FHitResult LowerGround;
+            if (!TraceTerrainSupport(World, Pawn, LowerProbe, LowerGround))
+            {
+                Result.Message = TEXT("Preview invalid: the lower stair edge needs firm ground or a supported floor attachment");
+                return Result;
+            }
+            LowerEndpoint = LowerGround.ImpactPoint;
+            GroundSupport = LowerGround.GetActor();
+            if (LowerGround.ImpactNormal.Z < 0.85f)
+            {
+                Result.Message = TEXT("Preview invalid: the lower stair edge needs level ground");
+                return Result;
+            }
+        }
+        else
+        {
+            FHitResult LowerGround;
+            if (!TraceTerrainSupport(World, Pawn, LowerEndpoint, LowerGround)
+                || FMath::Abs(LowerGround.ImpactPoint.Z - LowerEndpoint.Z) > StructuralEndpointTolerance
+                || LowerGround.ImpactNormal.Z < 0.85f)
+            {
+                Result.Message = TEXT("Preview invalid: floor-attached stairs need firm ground at the lower edge");
+                return Result;
+            }
+            GroundSupport = LowerGround.GetActor();
+        }
+
+        const auto* State = World->GetGameState<AKalmalaWorldGenerationGameState>();
+        if (!State || !State->GetWorldGenerationConfig().IsValid())
+        {
+            Result.Message = TEXT("Preview unavailable: waiting for world data");
+            return Result;
+        }
+        const auto& Config = State->GetWorldGenerationConfig();
+        const FVector2D GroundSurface(LowerEndpoint);
+        if (!FKalmalaWorldBounds::Contains(Config, GroundSurface, 300))
+        {
+            Result.Message = TEXT("Preview invalid: stairs are too close to the world edge");
+            return Result;
+        }
+        if (FKalmalaOceanSampler::Sample(Config, GroundSurface).IsWater()
+            || FKalmalaShimmeringLakeSampler::IsWater(Config, GroundSurface)
+            || FKalmalaRegionalGeneration::Sample(Config, GroundSurface).bHasWater)
+        {
+            Result.Message = TEXT("Preview invalid: stairs need dry ground");
+            return Result;
+        }
+
+        Result.Location = LowerEndpoint + SlopeUp * TimberStairsHalfRun
+            + FVector(0.0f, 0.0f, TimberStairsHalfRise);
+        FCollisionQueryParams OverlapQuery(SCENE_QUERY_STAT(TimberStairsPlacement), false, Pawn);
+        if (IsValid(GroundSupport)) OverlapQuery.AddIgnoredActor(GroundSupport);
+        if (IsValid(FloorSupport)) OverlapQuery.AddIgnoredActor(FloorSupport);
+        const FCollisionShape StairsShape = FCollisionShape::MakeBox(
+            FVector(TimberStairsHalfRun, TimberStairsHalfWidth, TimberStairsHalfRise));
+        if (World->OverlapBlockingTestByChannel(Result.Location, Result.Rotation.Quaternion(), ECC_Pawn,
+            StairsShape, OverlapQuery))
+        {
+            Result.Message = TEXT("Preview invalid: clear more space around the Timber Stairs");
+            return Result;
+        }
+
+        Result.bIsValid = true;
+        Result.Message = FloorSupport
+            ? TEXT("Preview valid: upper stair edge attaches to the floor; server will recheck before payment")
+            : TEXT("Preview valid: lower stair edge rests on dry ground; server will recheck before payment");
+        return Result;
     }
 
     FKalmalaPlacementPreview EvaluateTimberBeam(const UWorld* World, const APawn* Pawn)
@@ -239,6 +372,13 @@ FRotator FKalmalaPlacementPreview::GetTimberBeamPlacementRotation(const FRotator
     return FRotator(bVertical ? 90.0f : 0.0f, SnappedYaw, 0.0f);
 }
 
+FRotator FKalmalaPlacementPreview::GetTimberStairsPlacementRotation(const FRotator ViewRotation)
+{
+    if (ViewRotation.ContainsNaN()) return FRotator::ZeroRotator;
+    const float SnappedYaw = static_cast<float>(FMath::RoundToInt(ViewRotation.Yaw / 90.0f) * 90);
+    return FRotator(0.0f, SnappedYaw, 0.0f);
+}
+
 bool FKalmalaPlacementPreview::IsSupportedKit(const FName ItemId)
 {
     if (ItemId == TEXT("ForgeKit")) return true;
@@ -247,7 +387,8 @@ bool FKalmalaPlacementPreview::IsSupportedKit(const FName ItemId)
         || ItemId == TEXT("CookingRackKit") || ItemId == TEXT("CauldronKit") || ItemId == TEXT("FryingPanKit")
         || ItemId == TEXT("WorkbenchToolRackKit") || ItemId == TEXT("ForgeAnvilKit") || ItemId == TEXT("GrindingStoneKit")
         || ItemId == TEXT("FloorKit") || ItemId == TEXT("WallKit") || ItemId == TEXT("RoofKit")
-        || ItemId == TEXT("GardenPlotKit") || ItemId == TEXT("TimberDoorKit") || ItemId == TEXT("TimberBeamKit");
+        || ItemId == TEXT("GardenPlotKit") || ItemId == TEXT("TimberDoorKit") || ItemId == TEXT("TimberBeamKit")
+        || ItemId == TEXT("TimberStairsKit");
 }
 
 bool FKalmalaPlacementPreview::IsGardenPlotGroundAllowed(const EKalmalaBiome Biome, const float SurfaceNormalZ)
@@ -269,6 +410,7 @@ FKalmalaPlacementPreview FKalmalaPlacementPreview::Evaluate(const UWorld* World,
     FKalmalaPlacementPreview Result;
     Result.Message = TEXT("Preview: select a camp or construction object");
     if (ItemId == TEXT("TimberBeamKit")) return EvaluateTimberBeam(World, Pawn);
+    if (ItemId == TEXT("TimberStairsKit")) return EvaluateTimberStairs(World, Pawn);
     if (!IsSupportedKit(ItemId)) return Result;
     if (Pawn) Result.Rotation = FRotator(0.0f, Pawn->GetActorRotation().Yaw, 0.0f);
     Result.Message = TEXT("Preview unavailable: waiting for local terrain");

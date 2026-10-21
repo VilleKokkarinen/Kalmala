@@ -93,3 +93,4 @@ image_batch,import_batch,canonical_id,art_subject,identity_kind,catalogue_aliase
 46,AB,GardenPlotKit,empty timber-edged tilled garden bed,buildable,GardenPlot,GardenPlot,BuildMenu;PlacementPreview;ResultPreview,none,
 47,AC,TimberDoorKit,framed timber doorway replacing one wall segment,buildable,TimberDoor,TimberDoor,BuildMenu;PlacementPreview;ResultPreview,none,
 48,AD,TimberBeamKit,squared timber beam with supported endpoints,buildable,TimberBeam,TimberBeam,BuildMenu;PlacementPreview;ResultPreview,none,TimberBeamKit
+49,AE,TimberStairsKit,solid timber stairs with supported upper floor edge,buildable,TimberStairs,TimberStairs,BuildMenu;PlacementPreview;ResultPreview,none,TimberStairsKit

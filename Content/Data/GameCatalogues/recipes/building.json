@@ -337,6 +337,23 @@
       "ExperienceSkill": "None",
       "ExperienceAward": 0,
       "bEnabled": true
+    },
+    {
+      "RecipeId": "TimberStairs",
+      "DisplayName": "Timber Stairs",
+      "Ingredients": [
+        {
+          "ItemId": "Wood",
+          "Quantity": 6
+        }
+      ],
+      "Output": "TimberStairs",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "RequiredStation": [],
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
     }
   ]
 }

@@ -58,6 +58,21 @@ saved door state and exact wall-record replacement. The icon check is
 `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id TimberDoorKit`.
 Rendered placement, interaction, and peer replication acceptance remain pending.
 
+A8 Timber Stairs cost 6 Wood through the Building Hammer and are presented as
+five solid 40 cm steps across a 2 m run, 1 m width, and 1 m rise. Aim into open
+ground to place the lower edge on dry, level terrain, or aim at a placed floor
+to attach the upper edge to its outward side; in either case the lower edge
+must be supported by terrain. The preview and server placement path share the
+support and overlap evaluator, and payment occurs only after the server
+rechecks it. Each tread has blocking collision; no ladder or climb action is
+used. Stairs persist in the current schema-6 construction record and use the
+Wall health/rain-wear category without adding shelter tags. `Kalmala.Gameplay.Construction.LocalPreview`
+covers the buildable, 6 Wood direct recipe, dimensions, endpoint span, and
+five active walkable tread colliders. Validate the original, prepared, and
+imported icon with
+`Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id TimberStairsKit`.
+Rendered placement and host/client acceptance remain part of I4 verification.
+
 A8 Timber Beam is a direct 2 Wood Hammer buildable with a 2 m length and 15 cm
 square section. Aim near an existing structural endpoint and look level for a
 horizontal span; both ends must rest on level terrain or meet an existing

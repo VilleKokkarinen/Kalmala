@@ -4,6 +4,7 @@
 #include "KalmalaConstructionSaveGame.h"
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaRecipeCatalogue.h"
+#include "Components/BoxComponent.h"
 #include "Engine/World.h"
 #include "Misc/AutomationTest.h"
 
@@ -15,7 +16,7 @@ bool FKalmalaPlacementPreviewTest::RunTest(const FString& Parameters)
     for (const FName Kit : {FName(TEXT("CampfireKit")), FName(TEXT("WorkbenchKit")), FName(TEXT("StorageKit")),
         FName(TEXT("CookingRackKit")), FName(TEXT("CauldronKit")), FName(TEXT("FryingPanKit")), FName(TEXT("CharcoalKilnKit")), FName(TEXT("SmelterKit")),
         FName(TEXT("FloorKit")), FName(TEXT("WallKit")), FName(TEXT("RoofKit")), FName(TEXT("GardenPlotKit")),
-        FName(TEXT("TimberBeamKit"))})
+        FName(TEXT("TimberBeamKit")), FName(TEXT("TimberStairsKit"))})
         TestTrue(TEXT("Camp and construction kit supports a local preview"), FKalmalaPlacementPreview::IsSupportedKit(Kit));
     TestFalse(TEXT("Removed raised chest cannot be previewed"), FKalmalaPlacementPreview::IsSupportedKit(TEXT("RaisedStorageKit")));
     for (const FName NotAKit : {FName(TEXT("Wood")), FName(TEXT("ConstructionSupply")), FName()})
@@ -26,6 +27,10 @@ bool FKalmalaPlacementPreviewTest::RunTest(const FString& Parameters)
         AKalmalaConstructionActor::IsStructuralEndpointKit(TEXT("WallKit")));
     TestFalse(TEXT("Furniture does not provide structural endpoints"),
         AKalmalaConstructionActor::IsStructuralEndpointKit(TEXT("StorageKit")));
+    TestTrue(TEXT("Timber Stairs provide supported endpoints"),
+        AKalmalaConstructionActor::IsStructuralEndpointKit(TEXT("TimberStairsKit")));
+    TestTrue(TEXT("Timber Stairs occupy a 2 m by 1 m by 1 m envelope"),
+        AKalmalaConstructionActor::GetCollisionExtent(TEXT("TimberStairsKit")) == FVector(100.0f, 50.0f, 50.0f));
     TestTrue(TEXT("Timber Beam collision is 2 m long and 0.15 m square"),
         AKalmalaConstructionActor::GetCollisionExtent(TEXT("TimberBeamKit")) == FVector(100.0f, 7.5f, 7.5f));
     const FRotator HorizontalBeamRotation = FKalmalaPlacementPreview::GetTimberBeamPlacementRotation(FRotator(20.0f, 42.0f, 0.0f));
@@ -34,6 +39,9 @@ bool FKalmalaPlacementPreviewTest::RunTest(const FString& Parameters)
     const FRotator VerticalBeamRotation = FKalmalaPlacementPreview::GetTimberBeamPlacementRotation(FRotator(-75.0f, 100.0f, 0.0f));
     TestTrue(TEXT("Steep view snaps a vertical beam to a cardinal axis"),
         VerticalBeamRotation.Pitch == 90.0f && VerticalBeamRotation.Yaw == 90.0f);
+    const FRotator StairRotation = FKalmalaPlacementPreview::GetTimberStairsPlacementRotation(FRotator(0.0f, 132.0f, 0.0f));
+    TestTrue(TEXT("Timber Stairs snap to the nearest cardinal direction"),
+        StairRotation.Pitch == 0.0f && StairRotation.Yaw == 90.0f);
     const FKalmalaPlacementPreview NullPreview = FKalmalaPlacementPreview::Evaluate(nullptr, nullptr, TEXT("CampfireKit"));
     TestFalse(TEXT("Missing local presentation context cannot claim validity"), NullPreview.bIsValid);
     TestTrue(TEXT("Missing local context reports a textual reason"), NullPreview.Message.Contains(TEXT("waiting"), ESearchCase::IgnoreCase));
@@ -100,6 +108,30 @@ bool FKalmalaPlacementPreviewTest::RunTest(const FString& Parameters)
         TestTrue(TEXT("Timber Beam costs exactly 2 Wood"), Cost.Num() == 1
             && Cost[0].ItemId == TEXT("Wood") && Cost[0].Quantity == 2);
     }
+    TestNotNull(TEXT("Timber Stairs have presentation-only buildable metadata"),
+        Items ? Items->FindBuildable(TEXT("TimberStairsKit")) : nullptr);
+    TestNull(TEXT("Timber Stairs are not a portable inventory item"),
+        Items ? Items->FindItem(TEXT("TimberStairs")) : nullptr);
+    const FKalmalaRecipe* StairsRecipe = Recipes ? Recipes->Find(TEXT("TimberStairs")) : nullptr;
+    TestNotNull(TEXT("Timber Stairs direct-material recipe loads"), StairsRecipe);
+    if (StairsRecipe)
+    {
+        TestEqual(TEXT("Timber Stairs recipe maps to the placed object identity"),
+            StairsRecipe->BuildableOutput, FName(TEXT("TimberStairsKit")));
+        TestTrue(TEXT("Timber Stairs recipe does not create a portable output item"), StairsRecipe->Output.IsNone());
+        TArray<FKalmalaInventoryStack> Cost;
+        FString Reason;
+        TestTrue(TEXT("Timber Stairs direct-material cost resolves"),
+            UKalmalaRecipeCatalogue::BuildDirectMaterialCost(TEXT("TimberStairsKit"), Cost, Reason));
+        TestTrue(TEXT("Timber Stairs cost exactly 6 Wood"), Cost.Num() == 1
+            && Cost[0].ItemId == TEXT("Wood") && Cost[0].Quantity == 6);
+    }
+    FKalmalaConstructionSaveRecord StairsRecord;
+    StairsRecord.ConstructionId = TEXT("timber-stairs-01");
+    StairsRecord.KitId = TEXT("TimberStairsKit");
+    StairsRecord.Transform = FTransform(FRotator::ZeroRotator, FVector(900.0f, 100.0f, 50.0f));
+    TestTrue(TEXT("Timber Stairs use the current construction save format"),
+        UKalmalaConstructionSaveGameV2::IsValidRecord(StairsRecord));
     FKalmalaConstructionSaveRecord BeamRecord;
     BeamRecord.ConstructionId = TEXT("timber-beam-01");
     BeamRecord.KitId = TEXT("TimberBeamKit");
@@ -132,6 +164,34 @@ bool FKalmalaPlacementPreviewTest::RunTest(const FString& Parameters)
             TestTrue(TEXT("Vertical beam endpoints follow its saved rotation"), Endpoints.Num() == 2
                 && FMath::IsNearlyEqual(FMath::Min(Endpoints[0].Z, Endpoints[1].Z), 400.0f)
                 && FMath::IsNearlyEqual(FMath::Max(Endpoints[0].Z, Endpoints[1].Z), 600.0f));
+        }
+        AKalmalaConstructionActor* Stairs = EndpointWorld->SpawnActor<AKalmalaConstructionActor>();
+        if (TestNotNull(TEXT("Timber Stairs construction spawns"), Stairs))
+        {
+            Stairs->InitializeFromServer(TEXT("TimberStairsKit"), TEXT("timber-stairs-endpoints"));
+            Stairs->SetActorTransform(StairsRecord.Transform);
+            TArray<FVector> Endpoints;
+            AKalmalaConstructionActor::GetStructuralEndpoints(Stairs, Endpoints);
+            TestEqual(TEXT("Timber Stairs expose lower and upper support endpoints"), Endpoints.Num(), 2);
+            TestTrue(TEXT("Timber Stairs endpoints span 2 m and 1 m"), Endpoints.Num() == 2
+                && FMath::IsNearlyEqual(FVector::Dist(Endpoints[0], Endpoints[1]), 223.6068f, 0.1f)
+                && FMath::IsNearlyEqual(FMath::Min(Endpoints[0].Z, Endpoints[1].Z), StairsRecord.Transform.GetLocation().Z - 50.0f)
+                && FMath::IsNearlyEqual(FMath::Max(Endpoints[0].Z, Endpoints[1].Z), StairsRecord.Transform.GetLocation().Z + 50.0f));
+
+            TArray<UBoxComponent*> BoxComponents;
+            Stairs->GetComponents<UBoxComponent>(BoxComponents);
+            int32 ActiveStepColliders = 0;
+            for (const UBoxComponent* Box : BoxComponents)
+            {
+                if (Box && Box->GetFName().ToString().StartsWith(TEXT("StairsStepCollision")))
+                {
+                    ++ActiveStepColliders;
+                    TestTrue(TEXT("Timber stair treads block walking"),
+                        Box->GetCollisionEnabled() == ECollisionEnabled::QueryAndPhysics
+                        && Box->GetCollisionResponseToChannel(ECC_Pawn) == ECR_Block);
+                }
+            }
+            TestEqual(TEXT("Timber Stairs have five solid walkable treads"), ActiveStepColliders, 5);
         }
         EndpointWorld->DestroyWorld(false);
     }
