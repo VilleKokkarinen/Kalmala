@@ -70,50 +70,63 @@ def main():
     ids = [creature["CreatureId"] for creature in creatures]
     require(len(ids) == len(set(name.casefold() for name in ids)), "Duplicate creature ID")
     require(set(ids) == EXPECTED, "Incomplete or unexpected creature roster")
-    current = {c["CreatureId"] for c in creatures if c["ImplementationStatus"] == "Current"}
-    require(current == {"Boar", "Deer", "Mireling"}, "Incorrect current roster")
-    require(manifest['creatureFiles'] == ['creatures.json'], 'Expected one creature catalogue')
-    require('creatureRuleFiles' not in manifest, 'Separate creature rules are no longer used')
+    require(manifest["creatureFiles"] == ["creatures.json"], "Expected one creature catalogue")
+    require("creatureRuleFiles" not in manifest, "Separate creature rules are no longer used")
     profiles = {}
+    allowed_fields = {
+        "CreatureId", "DisplayName", "Health", "Armor", "Biomes", "Attacks", "Drops",
+        "DefensiveTriggerRangeCm", "BodyLengthCm", "Swarm",
+    }
+    required_fields = {"CreatureId", "DisplayName", "Health", "Armor", "Biomes", "Attacks", "Drops"}
     for creature in creatures:
         cid = creature["CreatureId"]
-        require(creature["DisplayName"] and creature["ImplementationStatus"] in {"Current", "Planned"}, f"Invalid identity: {cid}")
-        require(("RuntimeBaseline" in creature) == (cid in current), f"Incorrect baseline: {cid}")
-        profiles[cid] = creature["PlannedProfile"]
-        for key in ("RuntimeBaseline", "PlannedProfile"):
-            if key not in creature:
-                continue
-            profile = creature[key]
-            require(number(profile["Health"], 1) and number(profile["Armor"]), f"Invalid stats: {cid}")
-            if key == "PlannedProfile":
-                require(profile["Biomes"] and set(profile["Biomes"]) <= BIOMES, f"Invalid biomes: {cid}")
-            attacks = profile["Attacks"]
-            require(len({a["AttackId"] for a in attacks}) == len(attacks), f"Duplicate attacks: {cid}")
-            for attack in attacks:
-                damage = attack["Damage"]
-                require(damage and set(damage) <= CHANNELS and all(number(v, .001) for v in damage.values()), f"Invalid damage: {cid}")
-                require("PoisonEffectId" not in attack, f"Unresolved external poison reference: {cid}")
-                if "Poison" in attack:
-                    poison = attack["Poison"]
-                    require(all(number(poison[field], .001) for field in
-                                ("DamagePerTick", "DurationSeconds", "TickIntervalSeconds", "FirstTickDelaySeconds")),
-                            f"Invalid inline poison: {cid}")
-                for field, value in attack.items():
-                    if field.endswith("Seconds") or field.endswith("Cm"):
-                        require(number(value, .001), f"Invalid attack timing/range: {cid}/{field}")
-            for drop in profile["Drops"]:
-                require(type(drop["Quantity"]) is int and drop["Quantity"] > 0, f"Invalid quantity: {cid}")
-                require(number(drop["Chance"]) and 0 < drop["Chance"] <= 1, f"Invalid chance: {cid}")
-                require(drop["ImplementationStatus"] in {"Current", "Planned"}, f"Invalid drop status: {cid}")
-                allowed = items if drop["ImplementationStatus"] == "Current" else items | FUTURE_DROPS
-                require(drop["ItemId"] in allowed, f"Unknown drop: {cid}/{drop['ItemId']}")
-                require(key != "RuntimeBaseline" or drop["ImplementationStatus"] == "Current", f"Planned drop in runtime baseline: {cid}")
+        require(required_fields <= creature.keys() <= allowed_fields, f"Unexpected or missing creature fields: {cid}")
+        require(isinstance(creature["DisplayName"], str) and creature["DisplayName"], f"Invalid name: {cid}")
+        require(number(creature["Health"], 1) and number(creature["Armor"]), f"Invalid stats: {cid}")
+        require(creature["Biomes"] and set(creature["Biomes"]) <= BIOMES, f"Invalid biomes: {cid}")
+        profiles[cid] = creature
+        attacks = creature["Attacks"]
+        require(len({a["AttackId"] for a in attacks}) == len(attacks), f"Duplicate attacks: {cid}")
+        for attack in attacks:
+            require(set(attack) <= {
+                "AttackId", "Damage", "WindupSeconds", "RecoverySeconds", "Poison",
+                "ApproachSeconds", "ContactIntervalSeconds", "ContactRangeCm", "MaxContactDamagePerSecond",
+            }, f"Unexpected attack fields: {cid}")
+            damage = attack["Damage"]
+            require(damage and set(damage) <= CHANNELS and all(number(v, .001) for v in damage.values()), f"Invalid damage: {cid}")
+            if "Poison" in attack:
+                poison = attack["Poison"]
+                require(set(poison) == {"DamagePerTick", "DurationSeconds", "TickIntervalSeconds", "FirstTickDelaySeconds"},
+                        f"Invalid poison fields: {cid}")
+                require(all(number(value, .001) for value in poison.values()), f"Invalid inline poison: {cid}")
+            for field, value in attack.items():
+                if field.endswith("Seconds") or field.endswith("Cm") or field == "MaxContactDamagePerSecond":
+                    require(number(value, .001), f"Invalid attack tuning: {cid}/{field}")
+        for field in ("DefensiveTriggerRangeCm", "BodyLengthCm"):
+            if field in creature:
+                require(number(creature[field], .001), f"Invalid body/trigger tuning: {cid}/{field}")
+        if "Swarm" in creature:
+            swarm = creature["Swarm"]
+            require(set(swarm) == {
+                "CosmeticInsectCount", "MinGroundClearanceCm", "MaxGroundClearanceCm",
+                "MaxAttackingSwarmsPerPlayer", "RollReacquireDelaySeconds", "HeldTorchAvoidanceRadiusCm",
+                "PlacedFlameLightAvoidanceRadiusCm", "CampfireAvoidanceRadiusCm",
+                "RequiresAuthoritativeActiveFlame", "RequiresLineOfSightToFlame", "CatchUpDamage",
+            }, f"Unexpected swarm fields: {cid}")
+            for field, value in swarm.items():
+                require(type(value) is bool if field.startswith("Requires") or field == "CatchUpDamage"
+                        else number(value, .001), f"Invalid swarm tuning: {cid}/{field}")
+        for drop in creature["Drops"]:
+            require(set(drop) == {"ItemId", "Quantity", "Chance"}, f"Unexpected drop fields: {cid}")
+            require(type(drop["Quantity"]) is int and drop["Quantity"] > 0, f"Invalid quantity: {cid}")
+            require(number(drop["Chance"]) and 0 < drop["Chance"] <= 1, f"Invalid chance: {cid}")
+            require(drop["ItemId"] in items | FUTURE_DROPS, f"Unknown drop: {cid}/{drop['ItemId']}")
     require(not profiles["Deer"]["Attacks"], "Deer cannot attack")
     require(not profiles["MosquitoSwarm"]["Drops"], "Swarm has no loot")
     for item, source in (("Moonstone", "MoonBear"), ("DuskDiamond", "Mireling")):
         sources = {cid for cid, p in profiles.items() if any(d["ItemId"] == item for d in p["Drops"])}
         require(sources == {source}, f"Incorrect exclusive gem source: {item}")
-    print("PASS: 17 unique species (3 current, 14 planned), one Wolf, stats, attacks, drop references, inline poison and biome identities; all manifest JSON parses.")
+    print("PASS: 17 unique flat species profiles, one Wolf, stats, attacks, drop references, inline poison and biome identities; all manifest JSON parses.")
 
 
 if __name__ == "__main__":
