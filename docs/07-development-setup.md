@@ -5543,3 +5543,24 @@ owner-facing effect and action. The original imported icon is covered by
 `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id WolfStew`. The focused C++
 sources remain uncompiled/unexecuted in this normal child; combined A8a/A8b I4
 is still required.
+
+## A8b Lynx Mantle item coverage — 2026-10-22
+
+`LynxMantle` is a two-kilogram Cape with 8 physical Armor and 100 maximum
+condition. Its single-item Workbench recipe consumes four Lynx Pelts; the
+existing accepted Lynx reward has a server-rolled 50% chance to claim one pelt
+for the credited owner. The registered level-one Workbench upgrade consumes
+two Lynx Pelts and one Bone Fragment; its catalogued level-two reward adds one
+Armor and ten maximum condition. Fur gear grants no cold protection.
+
+`Kalmala.Gameplay.Inventory.Catalogue` checks the Cape profile and level-two
+stats, and `Kalmala.Gameplay.M9.ToolProgressionCatalogue` checks the acquisition
+and upgrade records. `Kalmala.Gameplay.Inventory.WornGearTransactions` checks
+exact-GUID Cape replacement and return. The Workbench crafting-scope marker
+includes the registered Lynx Mantle recipe. Its existing original imported
+icon and runtime mapping are covered by
+`Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id LynxMantle`.
+`Verify-Crafting.ps1` and `Verify-PresentationOwnership.ps1` retain the route
+anchors for the combined menu acceptance. These C++ assertions remain
+uncompiled/unexecuted in this normal child; combined A8a/A8b I4 is still
+required.

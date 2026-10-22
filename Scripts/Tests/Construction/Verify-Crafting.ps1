@@ -55,7 +55,7 @@ try {
             $ready = $ready -and $peerText.Contains('Build context cleanup: Headerless=1 BrowseControls=1 ObsoleteHidden=1 GridAndRequirements=1 CardActionsHidden=1 RelightRemoved=1 StatusHidden=1 StorageShell=1')
             $ready = $ready -and $peerText.Contains('Recipe browsing: SelectionKept=1 Category=1 NoResults=1 Restored=1 SearchFocus=1')
             $ready = $ready -and $peerText.Contains('Build browsing: Groups=1 SelectionKept=1 CategoryKey=1 NoResults=1')
-            $ready = $ready -and $peerText.Contains('Workbench Craft scope: BronzeAxeForgeOnly=1 GrindingStoneExcluded=1 GrindingStoneInBuild=1 ToolRackExcluded=1 NoUnrelated=1 StonePick=1 StationLevel=1 UiScope=1')
+            $ready = $ready -and $peerText.Contains('Workbench Craft scope: BronzeAxeForgeOnly=1 GrindingStoneExcluded=1 GrindingStoneInBuild=1 ToolRackExcluded=1 NoUnrelated=1 WolfPeltBootsRecipe=1 LynxMantleRecipe=1 StonePick=1 StationLevel=1 UiScope=1')
             $ready = $ready -and $peerText.Contains('Forge Craft scope: FryingPanExcluded=1 FryingPanInBuild=1 AnvilInBuild=1 AnvilExcluded=1 BronzeAxe=1 Materials=1 Station=1 NoUnrelated=1 Route=1 StationLevel=1 UiScope=1')
             $ready = $ready -and $peerText.Contains('Cooking Rack scope: Recipes=1 Ingredients=1 Quantity=1 Description=1 Heat=1 NoUnrelated=1 StaleNoRequest=1 UiScope=1')
             $ready = $ready -and $peerText.Contains('Cauldron scope: Recipes=1 Ingredients=1 Quantity=1 Description=1 Heat=1 NoUnrelated=1 StaleNoRequest=1 UiScope=1')

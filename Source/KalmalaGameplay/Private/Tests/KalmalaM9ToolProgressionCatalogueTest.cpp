@@ -44,6 +44,7 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
         TPair<FName, FName>(TEXT("BoarHideBoots"), TEXT("Workbench")),
         TPair<FName, FName>(TEXT("WolfPeltBoots"), TEXT("Workbench")),
         TPair<FName, FName>(TEXT("BoarHideCape"), TEXT("Workbench")),
+        TPair<FName, FName>(TEXT("LynxMantle"), TEXT("Workbench")),
         TPair<FName, FName>(TEXT("BoarHideHelmet"), TEXT("Workbench")),
         TPair<FName, FName>(TEXT("BoarHideLeggings"), TEXT("Workbench")),
         TPair<FName, FName>(TEXT("BoarHideTunic"), TEXT("Workbench")),
@@ -125,6 +126,13 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
                     && Acquisition->Ingredients.ContainsByPredicate([](const FKalmalaInventoryStack& Ingredient)
                         { return Ingredient.ItemId == TEXT("Iron") && Ingredient.Quantity == 5; }));
             }
+            if (GearAndStation.Key == TEXT("LynxMantle"))
+            {
+                TestTrue(TEXT("Lynx Mantle recipe consumes four Lynx Pelts"),
+                    Acquisition->Ingredients.Num() == 1
+                    && Acquisition->Ingredients[0].ItemId == TEXT("LynxPelt")
+                    && Acquisition->Ingredients[0].Quantity == 4);
+            }
         }
 
         const FKalmalaToolRecipeData* Upgrade = AuthoredCatalogue
@@ -159,6 +167,15 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
                         { return Ingredient.ItemId == TEXT("WolfPelt") && Ingredient.Quantity == 2; })
                     && Upgrade->Ingredients.ContainsByPredicate([](const FKalmalaToolRecipeIngredientData& Ingredient)
                         { return Ingredient.ItemId == TEXT("Iron") && Ingredient.Quantity == 2; }));
+            }
+            if (GearAndStation.Key == TEXT("LynxMantle"))
+            {
+                TestTrue(TEXT("Lynx Mantle upgrade uses two Lynx Pelts and one Bone Fragment"),
+                    Upgrade->Ingredients.Num() == 2
+                    && Upgrade->Ingredients.ContainsByPredicate([](const FKalmalaToolRecipeIngredientData& Ingredient)
+                        { return Ingredient.ItemId == TEXT("LynxPelt") && Ingredient.Quantity == 2; })
+                    && Upgrade->Ingredients.ContainsByPredicate([](const FKalmalaToolRecipeIngredientData& Ingredient)
+                        { return Ingredient.ItemId == TEXT("BoneFragment") && Ingredient.Quantity == 1; }));
             }
         }
     }

@@ -104,6 +104,27 @@ bool FKalmalaInventoryEquipmentTest::RunTest(const FString& Parameters)
         CuirassAfterPack.ContainsByPredicate([VestGuid](const FKalmalaInventoryStack& Stack)
             { return Stack.ItemId == TEXT("BadgerFurVest") && Stack.ItemGuids.Contains(VestGuid); }));
 
+    const FGuid MantleGuid = FGuid::NewGuid();
+    const FGuid ExistingCapeGuid = FGuid::NewGuid();
+    TArray<FKalmalaInventoryStack> MantlePack = { MakeTestStack(TEXT("LynxMantle"), MantleGuid) };
+    FKalmalaEquippedGear ExistingCape;
+    ExistingCape.Slot = EKalmalaGearSlot::Cape;
+    ExistingCape.ItemId = TEXT("BoarHideCape");
+    ExistingCape.ItemGuid = ExistingCapeGuid;
+    TArray<FKalmalaInventoryStack> MantleAfterPack;
+    TArray<FKalmalaEquippedGear> MantleAfterGear;
+    FString MantleReason;
+    TestTrue(TEXT("Lynx Mantle replaces a worn Cape by its exact GUID"),
+        UKalmalaInventoryComponent::BuildEquipGearTransaction(
+            MantlePack, {ExistingCape}, MantleGuid, {}, MantleAfterPack, MantleAfterGear, MantleReason));
+    TestTrue(TEXT("Lynx Mantle occupies the Cape slot and retains its GUID"),
+        MantleAfterGear.ContainsByPredicate([MantleGuid](const FKalmalaEquippedGear& Entry)
+            { return Entry.ItemId == TEXT("LynxMantle") && Entry.Slot == EKalmalaGearSlot::Cape
+                && Entry.ItemGuid == MantleGuid; }));
+    TestTrue(TEXT("Cape replacement returns the displaced item with its GUID"),
+        MantleAfterPack.ContainsByPredicate([ExistingCapeGuid](const FKalmalaInventoryStack& Stack)
+            { return Stack.ItemId == TEXT("BoarHideCape") && Stack.ItemGuids.Contains(ExistingCapeGuid); }));
+
     const FGuid BootsGuid = FGuid::NewGuid();
     TArray<FKalmalaInventoryStack> AfterStacks;
     TArray<FKalmalaEquippedGear> AfterGear;
