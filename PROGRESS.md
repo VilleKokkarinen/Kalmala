@@ -5747,5 +5747,5 @@
 - **Networking/authority:** Viper defeat recording and authenticated-owner binding remain server-owned. The server constructs and commits the complete item bundle; clients submit no drop ID, chance, or quantity.
 - **Known limitations / N/A:** Viper Fang is a material with no equipment, attack, or upgrade profile; it is acquired from the Viper source and consumed by the existing Fang Arrows recipe. Live full-pack retry, restart/reconnect, peer visibility, and rendered acceptance remain for combined I4. Fang Arrows is a separate unchecked A8b output task; no A9 work was performed.
 - **Next eligible task:** A8b Giant Scale — Giant Snake, two guaranteed; material, source, JSON, and generated icon. Giant Snake exists; its A8b material drop remains disabled.
-- **Integration state:** Branch was fast-forwarded to master `1e497c6e` before work. The Viper Fang increment is committed only on `codex/a8b-items`; main integration and its progress handoff remain pending for the active equipment run to serialize and review.
+- **Integration state:** Branch was fast-forwarded to master `1e497c6e` before work. Viper Fang is integrated into `master` by fast-forward `1e497c6e..4bf73df5`; the backlog/progress handoff is visible on main. Combined A8a/A8b I4 remains pending.
 - **Handoff:** Main checkout and index were not changed. Current run time: 2026-10-22T12:48:05Z.
