@@ -6,6 +6,7 @@
 #include "KalmalaCampfire.h"
 #include "KalmalaCraftingComponent.h"
 #include "KalmalaInventoryComponent.h"
+#include "KalmalaResistanceComponent.h"
 #include "KalmalaSupportMagicComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "Engine/World.h"
@@ -476,6 +477,75 @@ bool FKalmalaRootStaminaDraughtStatusTest::RunTest(const FString& Parameters)
         Inventory->GetQuantity(TEXT("RootStaminaDraught")), 1);
     TestEqual(TEXT("Client rejection leaves stamina unchanged"), Movement->GetStamina(), 120.0f);
 
+    World->DestroyWorld(false);
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaViperWeakPoisonStatusTest,
+    "Kalmala.Gameplay.Status.ViperWeakPoison",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FKalmalaViperWeakPoisonStatusTest::RunTest(const FString& Parameters)
+{
+    UWorld* World = UWorld::CreateWorld(EWorldType::Game, false);
+    AKalmalaCharacter* Pawn = World != nullptr ? World->SpawnActor<AKalmalaCharacter>() : nullptr;
+    if (!TestNotNull(TEXT("Weak-poison character fixture exists"), Pawn))
+    {
+        if (World != nullptr) World->DestroyWorld(false);
+        return false;
+    }
+
+    UKalmalaPlayerStatusComponent* Status = Pawn->FindComponentByClass<UKalmalaPlayerStatusComponent>();
+    UKalmalaResistanceComponent* Defenses = Pawn->FindComponentByClass<UKalmalaResistanceComponent>();
+    const FFloatProperty* HealthProperty = FindFProperty<FFloatProperty>(AKalmalaCharacter::StaticClass(), TEXT("Health"));
+    if (!TestNotNull(TEXT("Weak-poison status component exists"), Status)
+        || !TestNotNull(TEXT("Poison resistance profile exists"), Defenses)
+        || !TestNotNull(TEXT("Health fixture property exists"), HealthProperty))
+    {
+        World->DestroyWorld(false);
+        return false;
+    }
+
+    HealthProperty->SetPropertyValue_InContainer(Pawn, 100.0f);
+    Defenses->Profile.Armor = 100.0f;
+    TestFalse(TEXT("Zero-duration poison is rejected"), Status->ApplyWeakPoisonFromServer(0.0f));
+    TestFalse(TEXT("Poison above the shared ten-second bound is rejected"),
+        Status->ApplyWeakPoisonFromServer(UKalmalaPlayerStatusComponent::WeakPoisonMaximumSeconds + 0.01f));
+    TestFalse(TEXT("Non-finite poison duration is rejected"),
+        Status->ApplyWeakPoisonFromServer(TNumericLimits<float>::QuietNaN()));
+    TestTrue(TEXT("Authority applies the Viper's five-second weak poison"), Status->ApplyWeakPoisonFromServer(5.0f));
+    TestEqual(TEXT("Weak poison starts at five seconds"),
+        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::WeakPoisonStatusId), 5.0f);
+
+    Status->AdvanceFromServer(0.5f);
+    TestEqual(TEXT("Weak poison waits for its first one-second tick"), Pawn->GetHealth(), 100.0f);
+    Status->AdvanceFromServer(0.5f);
+    TestEqual(TEXT("The first poison tick deals one Poison damage through physical armor"), Pawn->GetHealth(), 99.0f);
+
+    Status->AdvanceFromServer(0.5f);
+    TestEqual(TEXT("The next poison tick still waits for a full interval"), Pawn->GetHealth(), 99.0f);
+    TestTrue(TEXT("A second Viper bite refreshes poison"), Status->ApplyWeakPoisonFromServer(5.0f));
+    TestEqual(TEXT("Refresh extends expiry without adding another status"),
+        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::WeakPoisonStatusId), 5.0f);
+    TestEqual(TEXT("Weak poison never stacks entries"), Status->GetStatuses().Num(), 1);
+    Status->AdvanceFromServer(0.49f);
+    TestEqual(TEXT("Refresh preserves the existing tick clock"), Pawn->GetHealth(), 99.0f);
+    Status->AdvanceFromServer(0.01f);
+    TestEqual(TEXT("The tick remains on the original cadence after refresh"), Pawn->GetHealth(), 98.0f);
+
+    for (int32 Tick = 0; Tick < 4; ++Tick)
+    {
+        Status->AdvanceFromServer(1.0f);
+    }
+    TestEqual(TEXT("Weak poison applies one damage on each due second"), Pawn->GetHealth(), 94.0f);
+    Status->AdvanceFromServer(0.5f);
+    TestFalse(TEXT("Refreshed weak poison expires after its remaining five seconds"),
+        Status->HasStatus(UKalmalaPlayerStatusComponent::WeakPoisonStatusId));
+
+    Pawn->SetRole(ROLE_AutonomousProxy);
+    TestFalse(TEXT("A client cannot author Viper poison"), Status->ApplyWeakPoisonFromServer(5.0f));
+    Status->AdvanceFromServer(1.0f);
+    TestEqual(TEXT("Client status updates cannot add poison damage"), Pawn->GetHealth(), 94.0f);
     World->DestroyWorld(false);
     return true;
 }

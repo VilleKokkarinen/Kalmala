@@ -2543,6 +2543,25 @@ bool AKalmalaGameMode::RecordMoonBearDefeatReward(const FString& PersistentSpawn
         KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
 }
 
+bool AKalmalaGameMode::RecordViperDefeatReward(const FString& PersistentSpawnId,
+    AKalmalaCharacter* CreditedAttacker)
+{
+    if (!HasAuthority() || PersistentSpawnId.IsEmpty() || PopulationSaveGame == nullptr
+        || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
+
+    if (IsValid(CreditedAttacker) && CreditedAttacker->HasAuthority()
+        && CreditedAttacker->GetWorld() == GetWorld() && CreditedAttacker->GetPlayerState() != nullptr)
+    {
+        const FString Identity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(CreditedAttacker->GetPlayerState());
+        if (!Identity.IsEmpty() && !PopulationSaveGame->TryQueuePendingViperReward(PersistentSpawnId, Identity))
+            return false;
+    }
+
+    PopulationSaveGame->MarkDefeated(PersistentSpawnId);
+    return UGameplayStatics::SaveGameToSlot(PopulationSaveGame,
+        KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+}
+
 void AKalmalaGameMode::DeliverPendingWildlifeRewards()
 {
     if (!HasAuthority() || GetWorld() == nullptr || PopulationSaveGame == nullptr
@@ -2560,8 +2579,11 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
         FString MoonBearSpawnId;
         const bool bMoonBearReward = UKalmalaWorldPopulationSaveGame::TryGetMoonBearSpawnIdFromPendingRewardClaimId(
             Reward.PersistentSpawnId, MoonBearSpawnId);
+        FString ViperSpawnId;
+        const bool bViperReward = UKalmalaWorldPopulationSaveGame::TryGetViperSpawnIdFromPendingRewardClaimId(
+            Reward.PersistentSpawnId, ViperSpawnId);
         const FString& DefeatedSpawnId = bBadgerReward ? BadgerSpawnId
-            : (bMoonBearReward ? MoonBearSpawnId : Reward.PersistentSpawnId);
+            : (bMoonBearReward ? MoonBearSpawnId : (bViperReward ? ViperSpawnId : Reward.PersistentSpawnId));
         if (!PopulationSaveGame->IsDefeated(DefeatedSpawnId)) continue;
 
         for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
@@ -2591,7 +2613,7 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
                         WithBadgerFur, TEXT("BadgerMeat"), 1, WithBadgerMeat, Reason)) break;
                 Candidate = MoveTemp(WithBadgerMeat);
             }
-            else if (bMoonBearReward)
+            else if (bMoonBearReward || bViperReward)
             {
                 Candidate = MoveTemp(WithBone);
             }

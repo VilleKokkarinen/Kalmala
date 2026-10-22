@@ -16,7 +16,10 @@ Credited defeats queue the approved Bone Fragment, Badger Fur, and Badger Meat
 together for the authenticated attacker until their pack can accept the complete
 bundle. Moon Bear fills Elderwood's seeded 10% hard-enemy slot, uses an original
 large-bear silhouette and a server-owned overhead-paw cycle, and queues three
-Bone Fragments for the credited attacker. Mireling's biome restriction remains planned.
+Bone Fragments for the credited attacker. Viper fills 40% of Shimmering Lakes'
+shoreline slots, uses a server-owned lunge that applies the shared five-second
+weak-poison effect on an accepted bite, and queues one Bone Fragment for the
+credited attacker. Mireling's biome restriction remains planned.
 
 | Enemy               | Biome                                  | Status           | HP   | Armor | Attack       | Abilities / counters                |
 | ------------------- | -------------------------------------- | ---------------- | ---: | ----: | ------------ | ----------------------------------- |
@@ -25,7 +28,7 @@ Bone Fragments for the credited attacker. Mireling's biome restriction remains p
 | Rat                 | Meadows                                | Current          |  10  |   0   | 5 Pierce     | 3 m approach trigger; 100 cm bite   |
 | Badger              | Elderwood                              | Partial          |  100 |   10  | 20 Slash     | 3 m warning; 180 cm claws; queued Bone Fragment, Fur, and Meat; I4 pending |
 | Moon Bear           | Elderwood                              | Partial          |  250 |   20  | 75 Crush     | 3 m warning; 220 cm overhead paw; 1.2 s recovery; queued 3 Bone Fragment; I4 pending |
-| Viper               | Shimmering Lakes                       | Planned          |  100 |   10  | 50 Stab      | Weak poison: 1/s, 5 s               |
+| Viper               | Shimmering Lakes                       | Partial          |  100 |   10  | 50 Stab      | 40% dry-shore slots; 180 cm lunge; weak poison: 1/s, 5 s; queued Bone Fragment; I4 pending |
 | Giant Snake         | Shimmering Lakes                       | Planned          |  250 |   30  | 100 Stab     | Coiled lunge; slow recovery         |
 | Mireling            | Mossy Mire                             | Planned          |  75  |   15  | 20 Crush     | Weak base enemy; simple melee       |
 | Death Adder         | Mossy Mire                             | Planned          |  125 |   20  | 75 Stab      | Major poison: 5/s, 10 s             |
@@ -43,6 +46,14 @@ Moon Bear uses its reviewed server-side stat profile (250 health, 20 armor,
 exclusion, close-range overhead attack, and durable three-fragment reward claim
 are implemented. The separate 2% Moonstone route remains an A9 source task and
 is not enabled by the A8a baseline reward.
+
+Viper uses the reviewed 100-health, 10-armor, 50-Stab profile and the seeded
+40% Shimmering Lakes share. It only spawns on eligible dry shoreline, visibly
+coils before a narrow lunge, and applies the shared weak poison after an
+accepted server bite. Its one-Bone-Fragment baseline claim stays owner-bound in
+the world-population save until capacity is available. The separate Viper Fang
+drop and poison-arrow source remain A8b work and are not enabled by this A8a
+baseline reward.
 
 Current defaults: [wildlife](../Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp),
 [health](../Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h) and

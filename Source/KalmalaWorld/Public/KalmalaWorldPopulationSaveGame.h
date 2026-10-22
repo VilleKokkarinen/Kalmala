@@ -10,7 +10,7 @@ struct KALMALAWORLD_API FKalmalaPendingWildlifeReward
 {
     GENERATED_BODY()
 
-    // Rat claims keep the raw ID; Badger and Moon Bear claims prefix stable spawn IDs by reward type.
+    // Rat claims keep the raw ID; named species prefix stable IDs by reward type.
     UPROPERTY(SaveGame) FString PersistentSpawnId;
     UPROPERTY(SaveGame) FString PlayerIdentity;
 };
@@ -36,6 +36,9 @@ public:
     bool TryQueuePendingMoonBearReward(const FString& PersistentSpawnId, const FString& PlayerIdentity);
     static FString MakeMoonBearPendingRewardClaimId(const FString& PersistentSpawnId);
     static bool TryGetMoonBearSpawnIdFromPendingRewardClaimId(const FString& ClaimId, FString& OutPersistentSpawnId);
+    bool TryQueuePendingViperReward(const FString& PersistentSpawnId, const FString& PlayerIdentity);
+    static FString MakeViperPendingRewardClaimId(const FString& PersistentSpawnId);
+    static bool TryGetViperSpawnIdFromPendingRewardClaimId(const FString& ClaimId, FString& OutPersistentSpawnId);
     bool RemovePendingWildlifeReward(const FString& RewardClaimId);
     const TArray<FKalmalaPendingWildlifeReward>& GetPendingWildlifeRewards() const { return PendingWildlifeRewards; }
 
@@ -53,7 +56,7 @@ private:
     UPROPERTY(SaveGame)
     TSet<FString> DefeatedSpawnIds;
 
-    /** Credited Rat and Badger rewards retained until their owner's pack can accept the full drop. */
+    /** Credited wildlife rewards retained until their owner's pack can accept the full drop. */
     UPROPERTY(SaveGame)
     TArray<FKalmalaPendingWildlifeReward> PendingWildlifeRewards;
 };

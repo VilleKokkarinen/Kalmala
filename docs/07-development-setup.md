@@ -2287,6 +2287,23 @@ combined A8a/A8b I4 acceptance; no Unreal build or runtime acceptance was
 performed by this implementation increment. Moonstone's separate A9 source
 remains disabled until that downstream task.
 
+## Shimmering Lakes Viper contract regression
+
+The editor automation `Kalmala.Gameplay.Wildlife.Viper.ShoreLungeAndRewardClaim`
+checks the 50/40/10 Shimmering Lakes candidate slots, Viper exclusion from other
+biomes, its reviewed profile and attack timing, and its owner-bound baseline
+Bone Fragment claim through population-save serialization. Its full-pack case
+keeps the claim pending when a Bone Fragment cannot fit, then prepares a retry
+candidate that fits alongside one carried tool after two pack cells are freed.
+`Kalmala.Gameplay.Status.ViperWeakPoison` checks five-second duration, 1 damage
+per second through physical armor, refresh without stacking or tick-clock reset,
+expiry, and the server authority gate. The surface-winding automation also
+checks the procedural Viper model. Run these editor automations in the combined
+A8a/A8b I4 acceptance. They are contract coverage, not live Viper GameMode
+delivery, restart, or relevant-peer acceptance; no Unreal build or runtime
+acceptance ran in this increment. The Viper Fang drop and poison-arrow source
+remain disabled until the separate A8b tasks are implemented.
+
 ## Discovery peer privacy regression
 
 After an editor build, run `Scripts/Tests/Combat/Verify-DiscoveryPeer.ps1`. It starts a

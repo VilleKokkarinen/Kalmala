@@ -353,6 +353,13 @@ bool AKalmalaWildlifeSpawn::DefeatServer()
         if (Mode == nullptr || !Mode->RecordMoonBearDefeatReward(
                 PersistentSpawnId, LastValidatedAttacker.Get())) return false;
     }
+    else if (Archetype == EKalmalaWildlifeArchetype::Viper)
+    {
+        AKalmalaGameMode* Mode = GetWorld() != nullptr
+            ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
+        if (Mode == nullptr || !Mode->RecordViperDefeatReward(
+                PersistentSpawnId, LastValidatedAttacker.Get())) return false;
+    }
 
     bDefeated = true;
     // The population owner records the sparse server delta before this actor exposes any owner-only reward.
@@ -1293,7 +1300,8 @@ bool AKalmalaWildlifeSpawn::TryApplySnakeBite(AKalmalaCharacter* Target)
     const float ForwardDistance = FVector::DotProduct(ToTarget, SnakeLungeDirection);
     const FVector LateralOffset = ToTarget - SnakeLungeDirection * FVector::DotProduct(ToTarget, SnakeLungeDirection);
     const float MaxLateral = Archetype == EKalmalaWildlifeArchetype::GiantSnake ? 115.0f : 72.0f;
-    if (FVector::DistSquared(GetActorLocation(), Target->GetActorLocation()) > FMath::Square(180.0f)
+    if (FVector::DistSquared(GetActorLocation(), Target->GetActorLocation())
+            > FMath::Square(SnakeBiteReachCentimetres)
         || ForwardDistance < 0.25f || LateralOffset.Size2D() > MaxLateral) return false;
 
     const FKalmalaDamageChannels BiteDamage = GetBaseAttackChannelsForArchetype(Archetype);
@@ -1301,7 +1309,7 @@ bool AKalmalaWildlifeSpawn::TryApplySnakeBite(AKalmalaCharacter* Target)
     if (Archetype == EKalmalaWildlifeArchetype::Viper)
     {
         if (UKalmalaPlayerStatusComponent* Statuses = Target->GetStatusComponent())
-            Statuses->ApplyWeakPoisonFromServer(5.0f);
+            Statuses->ApplyWeakPoisonFromServer(ViperWeakPoisonDurationSeconds);
     }
     return true;
 }
@@ -1880,11 +1888,12 @@ void AKalmalaWildlifeSpawn::GrantDefeatReward()
 
     const int32 BoneFragmentQuantity = GetBoneFragmentRewardQuantity(Archetype);
     if (BoneFragmentQuantity > 0 && Archetype != EKalmalaWildlifeArchetype::Rat
-        && Archetype != EKalmalaWildlifeArchetype::Badger && Archetype != EKalmalaWildlifeArchetype::MoonBear)
+        && Archetype != EKalmalaWildlifeArchetype::Badger && Archetype != EKalmalaWildlifeArchetype::MoonBear
+        && Archetype != EKalmalaWildlifeArchetype::Viper)
     {
         Inventory->TryGrantFromServer(TEXT("BoneFragment"), BoneFragmentQuantity);
     }
-    // Rat, Badger and Moon Bear rewards use the persistent, all-or-none queue recorded before
+    // Rat, Badger, Moon Bear and Viper rewards use the persistent, all-or-none queue recorded before
     // this defeated state is replicated, so they must not be granted a second time.
 
     if (Archetype == EKalmalaWildlifeArchetype::Mireling && IsMirelingBossRewardCandidate())

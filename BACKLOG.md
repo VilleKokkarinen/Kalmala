@@ -195,7 +195,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [x] Meadows: Rat
   - [x] Elderwood: Badger
   - [x] Elderwood: Moon Bear — rare hard enemy;
-  - [ ] Shimmering Lakes: Viper — lunging bite applies weak poison for 5 s.
+  - [x] Shimmering Lakes: Viper — lunging bite applies weak poison for 5 s.
   - [ ] Shimmering Lakes: Giant Snake — rare hard shoreline ambusher; powerful lunging bite.
   - [ ] Mossy Mire: Mireling — weak base enemy; spawn only in this biome.
   - [ ] Mossy Mire: Death Adder — highly venomous snake; bite applies major poison for 10 s.

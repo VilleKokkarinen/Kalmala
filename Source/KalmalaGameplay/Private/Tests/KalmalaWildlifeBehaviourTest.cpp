@@ -54,6 +54,20 @@ bool FKalmalaWildlifeBehaviourTest::RunTest(const FString& Parameters)
     const FKalmalaDamageChannels MoonBearAttack = AKalmalaWildlifeSpawn::GetBaseAttackChannelsForArchetype(EKalmalaWildlifeArchetype::MoonBear);
     TestEqual(TEXT("Moon Bear attack uses reviewed Crush damage"), MoonBearAttack.Crush, 75.0f);
     TestEqual(TEXT("Moon Bear base attack total matches its profile"), AKalmalaWildlifeSpawn::GetBaseAttackDamageForArchetype(EKalmalaWildlifeArchetype::MoonBear), 75.0f);
+    TestEqual(TEXT("Viper runtime health matches the reviewed profile"),
+        AKalmalaWildlifeSpawn::GetMaximumHealthForArchetype(EKalmalaWildlifeArchetype::Viper), 100.0f);
+    TestEqual(TEXT("Viper runtime armor matches the reviewed profile"),
+        AKalmalaWildlifeSpawn::GetArmorForArchetype(EKalmalaWildlifeArchetype::Viper), 10.0f);
+    const FKalmalaDamageChannels ViperAttack = AKalmalaWildlifeSpawn::GetBaseAttackChannelsForArchetype(
+        EKalmalaWildlifeArchetype::Viper);
+    TestEqual(TEXT("Viper attack uses reviewed Stab damage"), ViperAttack.Stab, 50.0f);
+    TestEqual(TEXT("Viper baseline reward is one Bone Fragment"),
+        AKalmalaWildlifeSpawn::GetBoneFragmentRewardQuantity(EKalmalaWildlifeArchetype::Viper), 1);
+    TestEqual(TEXT("Viper lunge has the reviewed warning"), AKalmalaWildlifeSpawn::ViperTelegraphSeconds, 0.5f);
+    TestEqual(TEXT("Viper recovers after its reviewed lunge interval"), AKalmalaWildlifeSpawn::ViperRecoverySeconds, 0.8f);
+    TestEqual(TEXT("Viper lunge applies five seconds of weak poison"),
+        AKalmalaWildlifeSpawn::ViperWeakPoisonDurationSeconds, 5.0f);
+    TestEqual(TEXT("Snake bite reach remains close range"), AKalmalaWildlifeSpawn::SnakeBiteReachCentimetres, 180.0f);
     const TArray<EKalmalaBiome> BoarDeerHabitats =
     {
         EKalmalaBiome::Meadows, EKalmalaBiome::Elderwood, EKalmalaBiome::ShimmeringLakes
@@ -192,6 +206,17 @@ bool FKalmalaModelSurfaceTest::RunTest(const FString& Parameters)
     MoonBear->GetComponents(MoonBearParts);
     TestEqual(TEXT("Moon Bear creates a procedural model"), MoonBearParts.Num(), 1);
     for (auto* Part : MoonBearParts) CheckMesh(Part, true);
+    auto* Viper = World->SpawnActor<AKalmalaWildlifeSpawn>();
+    if (!TestNotNull(TEXT("Viper presentation fixture exists"), Viper)) return false;
+    FKalmalaWorldPopulationSpawn ViperSpawn;
+    ViperSpawn.Kind = EKalmalaWorldPopulationKind::Wildlife;
+    ViperSpawn.SpawnSeed = 5;
+    ViperSpawn.Location = FVector(1000, 0, 0);
+    Viper->InitializeServer(ViperSpawn, EKalmalaWildlifeArchetype::Viper);
+    TArray<UProceduralMeshComponent*> ViperParts;
+    Viper->GetComponents(ViperParts);
+    TestEqual(TEXT("Viper creates its procedural model"), ViperParts.Num(), 1);
+    for (auto* Part : ViperParts) CheckMesh(Part, true);
     return true;
 }
 

@@ -109,6 +109,8 @@ public:
     static constexpr float DeerCallInfluenceDurationSeconds = 180.0f;
     static constexpr float ViperTelegraphSeconds = 0.5f;
     static constexpr float ViperRecoverySeconds = 0.8f;
+    static constexpr float ViperWeakPoisonDurationSeconds = 5.0f;
+    static constexpr float SnakeBiteReachCentimetres = 180.0f;
     static constexpr float GiantSnakeTelegraphSeconds = 1.0f;
     static constexpr float GiantSnakeRecoverySeconds = 1.2f;
     static constexpr float SnakeSpawnLeashCentimetres = 2500.0f;
