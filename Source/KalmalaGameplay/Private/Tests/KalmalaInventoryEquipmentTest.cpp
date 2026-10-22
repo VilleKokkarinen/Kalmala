@@ -110,14 +110,14 @@ bool FKalmalaInventoryEquipmentTest::RunTest(const FString& Parameters)
     FString Reason;
     TestTrue(TEXT("A carried wearable equips by its physical item GUID"),
         UKalmalaInventoryComponent::BuildEquipGearTransaction(
-            {MakeTestStack(TEXT("BoarHideBoots"), BootsGuid)}, {}, BootsGuid, {}, AfterStacks, AfterGear, Reason));
+            {MakeTestStack(TEXT("WolfPeltBoots"), BootsGuid)}, {}, BootsGuid, {}, AfterStacks, AfterGear, Reason));
     TestTrue(TEXT("Equipped gear leaves the carried grid"), AfterStacks.IsEmpty());
     TestEqual(TEXT("Wearable enters its authored slot"), AfterGear.Num(), 1);
     if (AfterGear.Num() == 1)
     {
         TestEqual(TEXT("Boots occupy Boots"), AfterGear[0].Slot, EKalmalaGearSlot::Boots);
         TestTrue(TEXT("Equipped wearable retains its item identity"), AfterGear[0].ItemGuid == BootsGuid);
-        TestTrue(TEXT("Equipped wearable retains its catalogue identity"), AfterGear[0].ItemId == TEXT("BoarHideBoots"));
+        TestTrue(TEXT("Wolf Pelt Boots retain their catalogue identity"), AfterGear[0].ItemId == TEXT("WolfPeltBoots"));
     }
 
     TArray<FKalmalaInventoryStack> UnequippedStacks;

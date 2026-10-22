@@ -42,6 +42,7 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
     const UKalmalaRecipeCatalogue* RecipeCatalogue = UKalmalaRecipeCatalogue::Get();
     const TArray<TPair<FName, FName>> GearStations = {
         TPair<FName, FName>(TEXT("BoarHideBoots"), TEXT("Workbench")),
+        TPair<FName, FName>(TEXT("WolfPeltBoots"), TEXT("Workbench")),
         TPair<FName, FName>(TEXT("BoarHideCape"), TEXT("Workbench")),
         TPair<FName, FName>(TEXT("BoarHideHelmet"), TEXT("Workbench")),
         TPair<FName, FName>(TEXT("BoarHideLeggings"), TEXT("Workbench")),
@@ -115,6 +116,15 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
                     && Acquisition->Ingredients.ContainsByPredicate([](const FKalmalaInventoryStack& Ingredient)
                         { return Ingredient.ItemId == TEXT("Bronze") && Ingredient.Quantity == 10; }));
             }
+            if (GearAndStation.Key == TEXT("WolfPeltBoots"))
+            {
+                TestTrue(TEXT("Wolf Pelt Boots recipe consumes five Wolf Pelts and five Iron"),
+                    Acquisition->Ingredients.Num() == 2
+                    && Acquisition->Ingredients.ContainsByPredicate([](const FKalmalaInventoryStack& Ingredient)
+                        { return Ingredient.ItemId == TEXT("WolfPelt") && Ingredient.Quantity == 5; })
+                    && Acquisition->Ingredients.ContainsByPredicate([](const FKalmalaInventoryStack& Ingredient)
+                        { return Ingredient.ItemId == TEXT("Iron") && Ingredient.Quantity == 5; }));
+            }
         }
 
         const FKalmalaToolRecipeData* Upgrade = AuthoredCatalogue
@@ -140,6 +150,15 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
                         { return Ingredient.ItemId == TEXT("GiantScale") && Ingredient.Quantity == 5; })
                     && Upgrade->Ingredients.ContainsByPredicate([](const FKalmalaToolRecipeIngredientData& Ingredient)
                         { return Ingredient.ItemId == TEXT("Bronze") && Ingredient.Quantity == 5; }));
+            }
+            if (GearAndStation.Key == TEXT("WolfPeltBoots"))
+            {
+                TestTrue(TEXT("Wolf Pelt Boots upgrade uses two Wolf Pelts and two Iron"),
+                    Upgrade->Ingredients.Num() == 2
+                    && Upgrade->Ingredients.ContainsByPredicate([](const FKalmalaToolRecipeIngredientData& Ingredient)
+                        { return Ingredient.ItemId == TEXT("WolfPelt") && Ingredient.Quantity == 2; })
+                    && Upgrade->Ingredients.ContainsByPredicate([](const FKalmalaToolRecipeIngredientData& Ingredient)
+                        { return Ingredient.ItemId == TEXT("Iron") && Ingredient.Quantity == 2; }));
             }
         }
     }

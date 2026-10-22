@@ -95,7 +95,8 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         { TEXT("ScaleCuirass"), TEXT("Chest"), 150, 20 },
         { TEXT("BoarHideLeggings"), TEXT("Legs"), 50, 1 },
         { TEXT("BronzeLeggings"), TEXT("Legs"), 100, 5 },
-        { TEXT("BoarHideBoots"), TEXT("Boots"), 50, 1 }
+        { TEXT("BoarHideBoots"), TEXT("Boots"), 50, 1 },
+        { TEXT("WolfPeltBoots"), TEXT("Boots"), 120, 10 }
     };
     for (const FExpectedGear& Expected : Gear)
     {
@@ -120,6 +121,9 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
             }
         }
     }
+    const FKalmalaItemDefinition* WolfPeltBoots = Catalogue->FindDefinition(TEXT("WolfPeltBoots"));
+    if (TestNotNull(TEXT("Wolf Pelt Boots item definition exists"), WolfPeltBoots))
+        TestEqual(TEXT("Wolf Pelt Boots weigh three kilograms"), WolfPeltBoots->WeightKg, 3.0f);
     FString JsonText;
     TestTrue(TEXT("The catalogue JSON is available to verify its external identifiers"),
         FFileHelper::LoadFileToString(JsonText, *(FPaths::ProjectContentDir() / TEXT("Data/GameCatalogues.json"))));

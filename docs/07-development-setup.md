@@ -4679,6 +4679,30 @@ replacement. Its original imported icon remains covered by the catalogue icon
 validator. Wearable upgrade transactions are still not implemented; the
 registered level-up data does not make that action available at runtime.
 
+## A8b Wolf Pelt Boots item coverage — 2026-10-22
+
+`WolfPeltBoots` is a stack-one, 3 kg Boots wearable with 10 physical Armor and
+120 maximum condition. The registered Workbench recipe consumes five Wolf
+Pelts and five Iron; the accepted server-side Wolf reward supplies each
+credited owner with one Wolf Pelt. The Workbench menu's station filter includes
+the recipe, and ordinary server crafting validates its station, payment and
+output capacity. Exact-GUID inventory equip and replacement place the boots in
+the Boots slot; the generic server armor calculation and accepted-hit wear path
+then apply the catalogued profile. The item catalogue resolves level two from
+the shared armor reward (+1 Armor and +10 condition), and the recorded
+level-one Workbench upgrade cost is two Wolf Pelts plus two Iron. Wearable
+upgrade transactions are not implemented, so this cost/reward data is not an
+available runtime action.
+
+`Kalmala.Gameplay.ItemCatalogue`,
+`Kalmala.Gameplay.M9.ToolProgressionCatalogue`,
+`Kalmala.Gameplay.Inventory.WornGearTransactions`, and the Workbench section of
+the UI presentation contract cover the profile, acquisition/upgrade records,
+boots slot, and recipe visibility. The original imported icon is already
+covered by `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id WolfPeltBoots`.
+These regression sources await the combined A8 I4 build and automation run;
+peer crafting, armor, condition and rendered acceptance remain deferred.
+
 ## Inventory Worn Gear presentation — 2026-10-15
 
 The Inventory popup combines equipment with the 40-cell grid on one plank
