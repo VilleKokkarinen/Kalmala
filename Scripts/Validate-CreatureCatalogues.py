@@ -7,7 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "Content/Data/GameCatalogues"
-CHANNELS = {"Slash", "Stab", "Crush", "Pierce", "Fire", "Water", "Holy", "Poison"}
+CHANNELS = {"Slash", "Stab", "Crush", "Pierce", "Fire", "Water", "Holy", "Lightning", "Poison"}
 EXPECTED = {
     "Boar", "Deer", "Mireling", "Rat", "Badger", "MoonBear", "Viper",
     "GiantSnake", "DeathAdder", "MosquitoSwarm", "PeatHusk", "Wolf", "Lynx",

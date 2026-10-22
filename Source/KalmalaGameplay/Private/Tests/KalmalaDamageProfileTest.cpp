@@ -16,6 +16,7 @@ bool FKalmalaDamageProfileTest::RunTest(const FString& Parameters)
     Weapon.Slash = 50.0f;
     Weapon.Stab = 10.0f;
     Weapon.Fire = 5.0f;
+    Weapon.Lightning = 30.0f;
     FKalmalaDamageChannels Attack;
     Attack.Slash = 5.0f;
     Attack.Crush = 8.0f;
@@ -23,10 +24,12 @@ bool FKalmalaDamageProfileTest::RunTest(const FString& Parameters)
     const FKalmalaDamageChannels Combined = Weapon.Added(Attack);
     TestEqual(TEXT("Weapon and attack add the same channel"), Combined.Slash, 55.0f);
     TestEqual(TEXT("Attack can add another simultaneous melee channel"), Combined.Crush, 8.0f);
-    TestEqual(TEXT("Elemental channels contribute to the hit"), Combined.Total(), 80.0f);
+    TestEqual(TEXT("Elemental channels contribute to the hit"), Combined.Total(), 110.0f);
     TestEqual(TEXT("Strength scales every active channel"), Combined.Scaled(2.0f).Poison, 4.0f);
+    TestEqual(TEXT("Strength scales Lightning"), Combined.Scaled(2.0f).Lightning, 60.0f);
     TestTrue(TEXT("Inspection names every active type"), Combined.Describe().Contains(TEXT("Slash bonus"))
-        && Combined.Describe().Contains(TEXT("Stab bonus")) && Combined.Describe().Contains(TEXT("Fire bonus")));
+        && Combined.Describe().Contains(TEXT("Stab bonus")) && Combined.Describe().Contains(TEXT("Fire bonus"))
+        && Combined.Describe().Contains(TEXT("Lightning bonus")));
 
     FKalmalaResistanceProfile Defenses;
     Defenses.Reductions.Slash = 5.0f;
@@ -36,7 +39,7 @@ bool FKalmalaDamageProfileTest::RunTest(const FString& Parameters)
     Defenses.Armor = 4.0f;
     float Resolved = -1.0f;
     TestTrue(TEXT("Valid mixed hit resolves"), Defenses.Resolve(Combined, Resolved));
-    TestEqual(TEXT("Physical Armor applies once before independent elemental damage"), Resolved, 59.0f);
+    TestEqual(TEXT("General Armor applies once to physical and Lightning damage"), Resolved, 89.0f);
     Defenses.Armor = 100.0f;
     TestTrue(TEXT("Armor can fully block a hit"), Defenses.Resolve(Combined, Resolved));
     TestEqual(TEXT("General Armor cannot absorb the remaining Fire and Poison"), Resolved, 5.0f);
@@ -71,12 +74,29 @@ bool FKalmalaDamageProfileTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Poison channel ignores physical armor"), Resolved, 1.0f);
     TestFalse(TEXT("Negative player armor fails closed"), PlayerDefenses.Resolve(PhysicalHit, Resolved, -1));
     TestFalse(TEXT("Unbounded player armor fails closed"), PlayerDefenses.Resolve(PhysicalHit, Resolved, 6001));
+    FKalmalaDamageChannels ThunderMaulHit;
+    ThunderMaulHit.Crush = 100.0f;
+    ThunderMaulHit.Lightning = 30.0f;
+    FKalmalaResistanceProfile MaulTarget;
+    MaulTarget.Armor = 20.0f;
+    TestTrue(TEXT("Thunder Maul hit resolves against a target with wearable Armor"),
+        MaulTarget.Resolve(ThunderMaulHit, Resolved, 50));
+    TestEqual(TEXT("Lightning bypasses wearable Armor, then general Armor is subtracted once"), Resolved, 60.0f);
+    FKalmalaDamageChannels LightningOnly;
+    LightningOnly.Lightning = 30.0f;
+    TestTrue(TEXT("Lightning-only damage resolves with wearable Armor"),
+        MaulTarget.Resolve(LightningOnly, Resolved, 500));
+    TestEqual(TEXT("Wearable Armor does not reduce Lightning but general Armor does"), Resolved, 10.0f);
     FKalmalaDamageChannels Invalid = Combined;
     Invalid.Poison = -1.0f;
     TestFalse(TEXT("Negative damage is invalid"), Invalid.IsValid());
     Invalid.Poison = 100001.0f;
     TestFalse(TEXT("Unbounded damage is invalid"), Invalid.IsValid());
+    Invalid.Poison = 0.0f;
+    Invalid.Lightning = std::numeric_limits<float>::quiet_NaN();
+    TestFalse(TEXT("Nonfinite Lightning damage is invalid"), Invalid.IsValid());
 
+    Invalid.Lightning = 0.0f;
     Invalid.Fire = std::numeric_limits<float>::quiet_NaN();
     TestFalse(TEXT("Nonfinite damage is invalid"), Invalid.IsValid());
     FKalmalaDamageChannels WildlifeHit;
@@ -102,9 +122,10 @@ bool FKalmalaDamageProfileTest::RunTest(const FString& Parameters)
     FKalmalaResistanceProfile Weakness;
     Weakness.Reductions.Slash = -5.0f;
     Weakness.Reductions.Fire = -100.0f;
+    Weakness.Reductions.Lightning = -100.0f;
     Weakness.Armor = 2.0f;
     TestTrue(TEXT("Negative resistance is a valid authored weakness"), Weakness.Resolve(WeaknessHit, Resolved));
-    TestEqual(TEXT("Slash weakness adds flat damage before armor; absent fire adds none"), Resolved, 13.0f);
+    TestEqual(TEXT("Slash weakness adds damage; inactive Fire and Lightning weaknesses add none"), Resolved, 13.0f);
     TestTrue(TEXT("An empty hit remains empty despite weaknesses"), Weakness.Resolve(FKalmalaDamageChannels(), Resolved));
     TestEqual(TEXT("Weaknesses cannot create damage from inactive channels"), Resolved, 0.0f);
     Weakness.Reductions.Slash = -100001.0f;
@@ -140,7 +161,8 @@ bool FKalmalaDamageProfileTest::RunTest(const FString& Parameters)
     for (const FMaceDamageExpectation& Mace : TArray<FMaceDamageExpectation>{
         {TEXT("StoneMace"), 25.0f, 35.0f},
         {TEXT("BronzeMace"), 35.0f, 55.0f},
-        {TEXT("IronMace"), 55.0f, 80.0f}})
+        {TEXT("IronMace"), 55.0f, 80.0f},
+        {TEXT("ThunderMaul"), 100.0f, 130.0f}})
     {
         const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(Mace.ItemId);
         if (TestNotNull(TEXT("Mace identity resolves to a server weapon definition"), Definition))
@@ -148,11 +170,41 @@ bool FKalmalaDamageProfileTest::RunTest(const FString& Parameters)
             const FKalmalaDamageChannels Bonuses = FKalmalaToolLifecycleContract::GetAttackDamageBonuses(Mace.ItemId, 1, TEXT("Basic"));
             TestEqual(TEXT("Mace Basic attack resolves authored crush damage"), Bonuses.Crush, Mace.Crush);
             TestEqual(TEXT("Mace Basic attack resolves all authored damage channels"), Bonuses.Total(), Mace.Total);
+            if (Mace.ItemId == TEXT("ThunderMaul"))
+                TestEqual(TEXT("Thunder Maul Basic attack includes its authored Lightning"), Bonuses.Lightning, 30.0f);
             TestEqual(TEXT("Maces cannot perform material gathering"), Definition->Action, EKalmalaToolAction::None);
             TestTrue(TEXT("Appended mace kind is allowlisted"), FKalmalaToolLifecycleContract::IsKnownTool(Definition->Kind));
         }
     }
+    TestTrue(TEXT("Thunder Maul is a two-handed weapon"), FKalmalaToolLifecycleContract::IsTwoHanded(TEXT("ThunderMaul")));
+    TestEqual(TEXT("Thunder Maul starts with 220 condition"), FKalmalaToolLifecycleContract::GetMaxDurability(TEXT("ThunderMaul"), 1), 220);
+    TestEqual(TEXT("Thunder Maul upgrade raises Crush to 105"),
+        FKalmalaToolLifecycleContract::GetAttackDamageBonuses(TEXT("ThunderMaul"), 2, TEXT("Basic")).Crush, 105.0f);
+    TestEqual(TEXT("Thunder Maul upgrade keeps Lightning at 30"),
+        FKalmalaToolLifecycleContract::GetAttackDamageBonuses(TEXT("ThunderMaul"), 2, TEXT("Basic")).Lightning, 30.0f);
+    TestEqual(TEXT("Thunder Maul upgrade raises maximum condition to 270"),
+        FKalmalaToolLifecycleContract::GetMaxDurability(TEXT("ThunderMaul"), 2), 270);
     const UKalmalaToolCatalogue* Catalogue = UKalmalaToolCatalogue::Get();
+    if (!TestNotNull(TEXT("Thunder Maul tool catalogue is loaded"), Catalogue)) return false;
+    const auto* MaulProfile = Catalogue->FindProfile(TEXT("ThunderMaul"));
+    if (TestNotNull(TEXT("Thunder Maul profile exists"), MaulProfile))
+        TestEqual(TEXT("Thunder Maul has the approved 10 kg weight"), MaulProfile->WeightKg, 10.0f);
+    const auto* MaulRecipe = Catalogue->Recipes.FindByPredicate([](const FKalmalaToolRecipeData& Entry)
+        { return Entry.ItemId == TEXT("ThunderMaul"); });
+    if (TestNotNull(TEXT("Thunder Maul Forge recipe exists"), MaulRecipe))
+        TestTrue(TEXT("Thunder Maul Forge recipe has the approved materials"),
+            MaulRecipe->RequiredStation == TEXT("Forge") && MaulRecipe->Ingredients.Num() == 3
+            && MaulRecipe->Ingredients.ContainsByPredicate([](const auto& Cost) { return Cost.ItemId == TEXT("ThunderCore") && Cost.Quantity == 1; })
+            && MaulRecipe->Ingredients.ContainsByPredicate([](const auto& Cost) { return Cost.ItemId == TEXT("Iron") && Cost.Quantity == 20; })
+            && MaulRecipe->Ingredients.ContainsByPredicate([](const auto& Cost) { return Cost.ItemId == TEXT("Densewood") && Cost.Quantity == 10; }));
+    const auto* MaulUpgrade = Catalogue->UpgradeCosts.FindByPredicate([](const FKalmalaToolRecipeData& Entry)
+        { return Entry.ItemId == TEXT("ThunderMaul"); });
+    if (TestNotNull(TEXT("Thunder Maul Forge upgrade cost exists"), MaulUpgrade))
+        TestTrue(TEXT("Thunder Maul upgrade has the approved materials"),
+            MaulUpgrade->RequiredStation == TEXT("Forge") && MaulUpgrade->Ingredients.Num() == 3
+            && MaulUpgrade->Ingredients.ContainsByPredicate([](const auto& Cost) { return Cost.ItemId == TEXT("ThunderCore") && Cost.Quantity == 1; })
+            && MaulUpgrade->Ingredients.ContainsByPredicate([](const auto& Cost) { return Cost.ItemId == TEXT("Iron") && Cost.Quantity == 10; })
+            && MaulUpgrade->Ingredients.ContainsByPredicate([](const auto& Cost) { return Cost.ItemId == TEXT("Densewood") && Cost.Quantity == 5; }));
     TestTrue(TEXT("Knife tiers share one attack list"),
         &Catalogue->GetAttacks(TEXT("StoneKnife")) == &Catalogue->GetAttacks(TEXT("BronzeKnife"))
         && &Catalogue->GetAttacks(TEXT("StoneKnife")) == &Catalogue->GetAttacks(TEXT("IronKnife")));

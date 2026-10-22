@@ -796,7 +796,7 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     ToolUpgradeAdditionalStatsBox = WidgetTree->ConstructWidget<UVerticalBox>();
     const TCHAR* AdditionalStatLabels[] = {
         TEXT("Durability"), TEXT("Stab bonus"), TEXT("Crush bonus"), TEXT("Pierce bonus"),
-        TEXT("Fire bonus"), TEXT("Water bonus"), TEXT("Holy bonus"), TEXT("Poison bonus")
+        TEXT("Fire bonus"), TEXT("Water bonus"), TEXT("Holy bonus"), TEXT("Lightning bonus"), TEXT("Poison bonus")
     };
     for (const TCHAR* StatLabel : AdditionalStatLabels)
     {
@@ -5062,6 +5062,7 @@ void UKalmalaCraftingWidget::RefreshInlineToolUpgradeComparison(const int32 Cont
         { TEXT("Fire bonus"), PreviousDamage.Fire, TargetDamage.Fire },
         { TEXT("Water bonus"), PreviousDamage.Water, TargetDamage.Water },
         { TEXT("Holy bonus"), PreviousDamage.Holy, TargetDamage.Holy },
+        { TEXT("Lightning bonus"), PreviousDamage.Lightning, TargetDamage.Lightning },
         { TEXT("Poison bonus"), PreviousDamage.Poison, TargetDamage.Poison }
     };
     bool bHasAdditionalStats = false;

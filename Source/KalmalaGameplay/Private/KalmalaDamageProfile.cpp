@@ -10,12 +10,13 @@ bool FKalmalaDamageChannels::IsValid(const float Maximum, const float Minimum) c
         && FMath::IsFinite(Fire) && Fire >= Minimum && Fire <= Maximum
         && FMath::IsFinite(Water) && Water >= Minimum && Water <= Maximum
         && FMath::IsFinite(Holy) && Holy >= Minimum && Holy <= Maximum
+        && FMath::IsFinite(Lightning) && Lightning >= Minimum && Lightning <= Maximum
         && FMath::IsFinite(Poison) && Poison >= Minimum && Poison <= Maximum;
 }
 
 float FKalmalaDamageChannels::Total() const
 {
-    return Slash + Stab + Crush + Pierce + Fire + Water + Holy + Poison;
+    return Slash + Stab + Crush + Pierce + Fire + Water + Holy + Lightning + Poison;
 }
 
 FKalmalaDamageChannels FKalmalaDamageChannels::Added(const FKalmalaDamageChannels& Other) const
@@ -28,6 +29,7 @@ FKalmalaDamageChannels FKalmalaDamageChannels::Added(const FKalmalaDamageChannel
     Result.Fire = Fire + Other.Fire;
     Result.Water = Water + Other.Water;
     Result.Holy = Holy + Other.Holy;
+    Result.Lightning = Lightning + Other.Lightning;
     Result.Poison = Poison + Other.Poison;
     return Result;
 }
@@ -42,6 +44,7 @@ FKalmalaDamageChannels FKalmalaDamageChannels::Scaled(const float Multiplier) co
     Result.Fire = Fire * Multiplier;
     Result.Water = Water * Multiplier;
     Result.Holy = Holy * Multiplier;
+    Result.Lightning = Lightning * Multiplier;
     Result.Poison = Poison * Multiplier;
     return Result;
 }
@@ -56,6 +59,7 @@ FString FKalmalaDamageChannels::Describe() const
     if (Fire > 0.0f) Parts.Add(FString::Printf(TEXT("Fire bonus %.0f"), Fire));
     if (Water > 0.0f) Parts.Add(FString::Printf(TEXT("Water bonus %.0f"), Water));
     if (Holy > 0.0f) Parts.Add(FString::Printf(TEXT("Holy bonus %.0f"), Holy));
+    if (Lightning > 0.0f) Parts.Add(FString::Printf(TEXT("Lightning bonus %.0f"), Lightning));
     if (Poison > 0.0f) Parts.Add(FString::Printf(TEXT("Poison bonus %.0f"), Poison));
     return Parts.IsEmpty() ? TEXT("No damage bonuses") : FString::Join(Parts, TEXT(" + "));
 }
@@ -90,9 +94,13 @@ bool FKalmalaResistanceProfile::Resolve(const FKalmalaDamageChannels& Incoming, 
     if (Incoming.Stab > 0.0f) PhysicalRemaining += FMath::Max(0.0f, Incoming.Stab - Reductions.Stab);
     if (Incoming.Crush > 0.0f) PhysicalRemaining += FMath::Max(0.0f, Incoming.Crush - Reductions.Crush);
     if (Incoming.Pierce > 0.0f) PhysicalRemaining += FMath::Max(0.0f, Incoming.Pierce - Reductions.Pierce);
-    // General and wearable Armor apply only to the physical subtotal. Elemental
-    // channels retain their own reductions and cannot be absorbed by Armor.
-    float Remaining = FMath::Max(0.0f, PhysicalRemaining - PhysicalArmor - Armor);
+    const float LightningRemaining = Incoming.Lightning > 0.0f
+        ? FMath::Max(0.0f, Incoming.Lightning - Reductions.Lightning) : 0.0f;
+    // Wearable Armor only affects physical channels. Lightning joins the
+    // remaining physical subtotal before general Armor is applied once.
+    float Remaining = FMath::Max(0.0f, PhysicalRemaining - PhysicalArmor)
+        + LightningRemaining;
+    Remaining = FMath::Max(0.0f, Remaining - Armor);
     if (Incoming.Fire > 0.0f) Remaining += FMath::Max(0.0f, Incoming.Fire - Reductions.Fire);
     if (Incoming.Water > 0.0f) Remaining += FMath::Max(0.0f, Incoming.Water - Reductions.Water);
     if (Incoming.Holy > 0.0f) Remaining += FMath::Max(0.0f, Incoming.Holy - Reductions.Holy);

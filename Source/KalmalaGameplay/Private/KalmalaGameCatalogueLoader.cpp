@@ -495,7 +495,7 @@ namespace
                 ProfileObject->SetNumberField(TEXT("MaterialTier"), 0.0);
             }
             for (const TCHAR* Channel : { TEXT("Slash"), TEXT("Stab"), TEXT("Crush"), TEXT("Pierce"),
-                TEXT("Fire"), TEXT("Water"), TEXT("Holy"), TEXT("Poison") })
+                TEXT("Fire"), TEXT("Water"), TEXT("Holy"), TEXT("Lightning"), TEXT("Poison") })
             {
                 if (!(*Bonuses)->HasField(Channel))
                 {
@@ -522,7 +522,7 @@ namespace
                 (*RewardObject)->SetNumberField(TEXT("MaxDurability"), 0.0);
             }
             for (const TCHAR* Channel : { TEXT("Slash"), TEXT("Stab"), TEXT("Crush"), TEXT("Pierce"),
-                TEXT("Fire"), TEXT("Water"), TEXT("Holy"), TEXT("Poison") })
+                TEXT("Fire"), TEXT("Water"), TEXT("Holy"), TEXT("Lightning"), TEXT("Poison") })
             {
                 if (!(*Bonuses)->HasField(Channel))
                 {

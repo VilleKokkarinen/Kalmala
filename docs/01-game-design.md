@@ -38,6 +38,16 @@ Depleted items still require repair. Hammer construction remains available, and 
 requires the appropriate axe tier. Inventory materials and wearables do not
 become new Main Hand equipment through this change.
 
+## Thunder Maul — 2026-10-22
+
+Thunder Maul is a two-handed Forge mace with 100 Crush and 30 Lightning damage.
+The Lightning is applied instantly as part of the same accepted server hit.
+Wearable physical Armor reduces only its physical damage; target general Armor
+then reduces the combined remaining physical and Lightning subtotal once.
+The item has no Lightning resistance, chain effect, damage over time, stun or
+environmental effect. Its Forge upgrade adds 5 Crush and 50 maximum condition,
+leaving Lightning at 30.
+
 ## Bow crafting and two-handed equipment — 2026-10-15
 
 Bow String (`BowString`) stacks to 20; Wooden Arrows (`WoodenArrow`) and Stone
@@ -146,7 +156,7 @@ See [Game features](game-features.md) for a short inventory of additions. The pl
 
 The implemented survival loop includes gathering, paid camp construction, weather/shelter recovery, six cooking recipes, free item repair, Workbench/Forge axe progression, optional creature encounters and discoveries, a two-seat ocean skiff, local maps, and owner-private inventory/progression feedback. Four support effects remain non-damaging and scroll-learned. Exact transactions, privacy, persistence, and current overrides are consolidated in [Technical architecture](02-technical-architecture.md#consolidated-system-contracts).
 
-The current player inventory is one 10×4 grid with its first row assigned to hotbar numbers 1–0. Six wearable slots have owner-private, session-only server equip/unequip transactions, and the Inventory popup displays equipped names with owner-facing equip, replace, and return actions. Wearable defense is one integer Armor value. Sum equipped, non-depleted armor and subtract it once from the combined Slash, Crush, Pierce and Stab damage, clamped to zero. Fire, Water, Holy and Poison bypass armor. Each accepted wildlife hit spends one condition on every equipped wearable, including hits fully absorbed by defenses or support shields; depleted gear supplies no defense. Main Hand references the selected item in its original cell; its blue highlight follows the exact equipped copy. Pressing its number again unequips it without moving it. Encumbrance is not implemented. Ordinary materials, meals, cell positions, skill XP, weather, active effects, and equipped gear are not generally persisted. Saved tool state, discovered entitlements, construction, storage, and approved sparse world/player facts have separate validated owners.
+The current player inventory is one 10×4 grid with its first row assigned to hotbar numbers 1–0. Six wearable slots have owner-private, session-only server equip/unequip transactions, and the Inventory popup displays equipped names with owner-facing equip, replace, and return actions. Wearable defense is one integer Armor value. Sum equipped, non-depleted Armor and apply it once to combined Slash, Crush, Pierce and Stab damage, clamped to zero. Lightning bypasses wearable Armor but remains subject to general Armor; Fire, Water, Holy and Poison bypass both. Each accepted wildlife hit spends one condition on every equipped wearable, including hits fully absorbed by defenses or support shields; depleted gear supplies no defense. Main Hand references the selected item in its original cell; its blue highlight follows the exact equipped copy. Pressing its number again unequips it without moving it. Encumbrance is not implemented. Ordinary materials, meals, cell positions, skill XP, weather, active effects, and equipped gear are not generally persisted. Saved tool state, discovered entitlements, construction, storage, and approved sparse world/player facts have separate validated owners.
 
 As of 2026-10-15, the six wearable tiles display owner-only equipped item names and let the owner equip, replace, or return wearables through server-validated GUID transactions. Equipped wearable defenses now contribute to server-resolved wildlife damage. Main Hand equips, switches or clears a physical weapon/tool without moving its numbered grid cell. Equipped names include remaining/maximum condition; depleted wearables provide no defense.
 
@@ -156,7 +166,7 @@ M0–M13 have recorded acceptance with limitations; M13's integrated-main script
 
 ## Typed weapon damage and entity defenses
 
-Weapons define simultaneous slash, stab and crush melee bonuses; ranged uses pierce. Fire, water, holy and poison are additional channels. Each weapon attack style adds its own bonuses to the weapon level bonuses. Every production gameplay entity has a general flat Armor amount plus flat reductions for each channel. Negative per-type resistance defines a flat weakness (for example Slash −5 adds 5 to a hit containing slash). Inactive channels add no damage, even when their resistance is negative. Each active channel is reduced and clamped independently; Armor is then subtracted once from the total hit. Default defenses are zero pending balance authoring. This damage model does not introduce offensive magic, new attacks or destructibility.
+Weapons define additive damage in physical Slash, Stab, Crush and Pierce channels and elemental Fire, Water, Holy, Lightning and Poison channels. Each weapon attack style adds its bonuses to the weapon level bonuses. Every production gameplay entity has a general flat Armor amount plus flat reductions for each channel. Negative per-type resistance defines a flat weakness (for example Slash −5 adds 5 to a hit containing slash). Inactive channels add no damage, even when their resistance is negative. Each active channel is reduced and clamped independently. Wearable Armor reduces the physical subtotal once; general Armor then reduces the combined remaining physical and Lightning damage once. Fire, Water, Holy and Poison bypass both armor values. Default defenses are zero pending balance authoring. This damage model does not introduce offensive magic, new attacks or destructibility.
 
 ## Attack-driven resource trees (2026-10-13)
 

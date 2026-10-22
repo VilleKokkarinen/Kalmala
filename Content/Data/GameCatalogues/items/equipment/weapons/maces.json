@@ -47,7 +47,8 @@
       "twoHanded": true,
       "MaxDurability": 220,
       "DamageBonuses": {
-        "Crush": 100.0
+        "Crush": 100.0,
+        "Lightning": 30.0
       }
     }
   ]

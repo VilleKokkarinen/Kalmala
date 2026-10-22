@@ -3,7 +3,7 @@
 #include "CoreMinimal.h"
 #include "KalmalaDamageProfile.generated.h"
 
-/** Additive damage bonuses. Melee stab and ranged pierce are distinct channels. */
+/** Additive typed damage bonuses. Melee stab and ranged pierce are distinct channels. */
 USTRUCT(BlueprintType)
 struct KALMALAGAMEPLAY_API FKalmalaDamageChannels
 {
@@ -31,6 +31,9 @@ struct KALMALAGAMEPLAY_API FKalmalaDamageChannels
     float Holy = 0.0f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Damage")
+    float Lightning = 0.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Damage")
     float Poison = 0.0f;
 
     bool IsValid(float Maximum = 100000.0f, float Minimum = 0.0f) const;
@@ -55,7 +58,7 @@ struct KALMALAGAMEPLAY_API FKalmalaResistanceProfile
     bool IsValid() const;
     FKalmalaResistanceProfile Added(const FKalmalaResistanceProfile& Other) const;
     FKalmalaResistanceProfile Scaled(float Multiplier) const;
-    /** General and optional wearable Armor reduce only the physical subtotal; elements bypass both. */
+    /** Wearable Armor reduces physical channels; general Armor reduces physical plus Lightning once. Other elements bypass both. */
     bool Resolve(const FKalmalaDamageChannels& Incoming, float& OutDamage, int32 PhysicalArmor = 0) const;
 };
 

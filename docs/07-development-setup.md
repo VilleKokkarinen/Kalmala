@@ -1311,7 +1311,7 @@ integer `Armor` (default zero, range 0–1000). Fractional, negative, over-limit
 and old nested defense data fail loading. Gear level scaling remains bounded
 through level 20; wearable rewards now grant +1 Armor per level.
 The server sums non-depleted worn Armor and applies it once to combined
-Slash/Crush/Pierce/Stab damage, clamped to zero. Elements bypass this armor.
+Slash/Crush/Pierce/Stab damage, clamped to zero. Lightning bypasses wearable Armor but remains in the subtotal reduced once by the target general Armor. Fire, Water, Holy and Poison bypass both Armor values.
 Existing non-player resistance profiles retain their current behavior.
 `Kalmala.Gameplay.Combat.DamageProfiles` adds physical/mixed/element-only and
 invalid armor cases; `Kalmala.Gameplay.Inventory.Catalogue` checks current
@@ -4604,9 +4604,9 @@ or rendered verification was run for this normal increment.
 
 ## Typed damage profiles (catalogue schema 11)
 
-`Kalmala.Gameplay.Combat.DamageProfiles` covers additive mixed weapon/attack bonuses, flat per-channel resistance with independent zero clamping, general Armor once per hit, negative per-type weaknesses on active channels only, strength scaling, melee stab versus ranged pierce, negative/nonfinite/bounded validation, unknown attack rejection and migrated Bronze Axe values. Run it with the existing combat and tool progression automations when full verification is due. It has been authored but not executed for this normal development increment; no Unreal build or runtime acceptance was run.
+`Kalmala.Gameplay.Combat.DamageProfiles` covers additive mixed weapon/attack bonuses, flat per-channel resistance with independent zero clamping, general Armor once per hit, Lightning bypass of wearable Armor, negative per-type weaknesses on active channels only, strength scaling, melee stab versus ranged pierce, negative/nonfinite/bounded validation, unknown attack rejection and migrated Bronze Axe values. Run it with the existing combat and tool progression automations when full verification is due. It has been authored but not executed for this normal development increment; no Unreal build or runtime acceptance was run.
 
-Entity defaults expose `UKalmalaResistanceComponent::Profile`: Armor plus Slash, Stab, Crush, Pierce, Fire, Water, Holy and Poison flat reductions. All start at zero. Per-type reductions allow finite values from −100000 to +100000; negative values add that flat amount to the matching active incoming channel. Inactive channels remain zero. Damage and general Armor stay nonnegative. Player/wildlife health paths resolve them on the server before health mutation; Hearth Shield consumes post-resistance damage. Other gameplay entities have the same definitions without new health/destruction behavior. Current attacks still dispatch only the server-selected Basic style; extra style authoring is supported, with no new client action or offensive spell/projectile/damage-over-time behavior.
+Entity defaults expose `UKalmalaResistanceComponent::Profile`: Armor plus Slash, Stab, Crush, Pierce, Fire, Water, Holy, Lightning and Poison flat reductions. All start at zero. Per-type reductions allow finite values from −100000 to +100000; negative values add that flat amount to the matching active incoming channel. Inactive channels remain zero. Damage and general Armor stay nonnegative. Player/wildlife health paths resolve them on the server before health mutation; Hearth Shield consumes post-resistance damage. Other gameplay entities have the same definitions without new health/destruction behavior. Current attacks still dispatch only the server-selected Basic style; extra style authoring is supported, with no new client action or offensive spell/projectile/damage-over-time behavior.
 
 ## Mace tier and icon authoring
 
@@ -4636,7 +4636,7 @@ Catalogue schema 11 loads `Content/Data/GameCatalogues/attacks/attacks.json` thr
 
 Validation requires complete, non-overlapping known-item membership, unique bounded list/style IDs, one Basic style, and finite nonnegative bounded bonuses. `Kalmala.Gameplay.Combat.DamageProfiles` now covers shared knife membership, separate axe membership and invalid/overlapping/empty/duplicate lists. Updated transient catalogue fixtures copy AttackLists. Lightweight JSON/reference/value-preservation checks passed; Unreal build/automation/runtime verification remains deferred for this normal increment.
 
-Item profile `DamageBonuses` may omit inactive channels: the loader fills omitted Slash/Stab/Crush/Pierce/Fire/Water/Holy/Poison with zero before strict conversion. Keep the object itself (`{}` for zero damage); other required profile fields remain strict. Nonzero authored values retain existing validation. Shared attacks retain explicit channels. Shared reward DamageBonuses also allow omitted zero channels, and omitted MaxDurability defaults to zero; the reward and DamageBonuses objects remain required.
+Item profile `DamageBonuses` may omit inactive channels: the loader fills omitted Slash/Stab/Crush/Pierce/Fire/Water/Holy/Lightning/Poison with zero before strict conversion. Keep the object itself (`{}` for zero damage); other required profile fields remain strict. Nonzero authored values retain existing validation. Shared attacks retain explicit channels, including zero Lightning where unused. Shared reward DamageBonuses also allow omitted zero channels, and omitted MaxDurability defaults to zero; the reward and DamageBonuses objects remain required.
 
 Axes and pickaxes require integer `MaterialTier` in their item profiles: 1 = Stone, 2 = Bronze, 3 = Iron tool identity, independent of item level. Axe resource access continues to use the authored tool tier against the source's minimum requirement. Mining selections also carry the source resource tier and enforce the pick ceiling: Stone Pick mines through Bronze, Bronze Pick through Iron, and Iron Pick through Iron for now. `Kalmala.Gameplay.Harvest.ResourceFamilyGates` now includes Copper/Tin, all-biome Stone, and the mining ceilings for all six axe/pick identities against twelve wood/mining sources at levels 1/10/20. Automation execution remains deferred.
 
@@ -5615,3 +5615,30 @@ runtime mapping are checked with
 The new C++ assertions remain uncompiled and unexecuted in this normal child.
 Combined A8a/A8b I4, including the item suite and peer/rendered acceptance, is
 still required before A9.
+
+## A8b Thunder Maul item and Lightning damage — 2026-10-22
+
+`ThunderMaul` is a 10 kg, two-handed mace with 220 starting condition and
+100 Crush + 30 Lightning. Its Forge recipe costs one Thunder Core, twenty Iron
+and ten Densewood. Its level-one Forge upgrade costs one Thunder Core, ten
+Iron and five Densewood; level two has 105 Crush, retains 30 Lightning, and
+has 270 maximum condition.
+
+The accepted Basic melee hit keeps both damage channels in one server-owned
+damage profile. Wearable Armor reduces the physical channels only; the target's
+general Armor is subtracted once from the remaining physical plus Lightning
+subtotal. Other elemental channels retain their existing armor behavior.
+Thunder Maul is not a harvesting tool, and Lightning adds no chain, damage over
+time, stun, resistance or environment interaction.
+
+The catalogue loader preserves Lightning in item and attack profiles, and the
+existing damage description surfaces it to item inspection. The Forge upgrade
+comparison shows the current Lightning value and its unchanged level-two delta. `Kalmala.Gameplay.Combat.DamageProfiles`
+covers typed-channel arithmetic and the armor rule; `Kalmala.Gameplay.Combat.AllItemSwings`
+checks the accepted server hit. The focused Forge recipe, upgrade and level-two
+assertions are in the damage-profile catalogue test. `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id ThunderMaul`
+checks its existing original icon and runtime mapping.
+
+This normal development increment uses lightweight JSON, icon and source
+checks; it does not run an Unreal build or C++ automation. Combined A8a/A8b I4,
+including full item automation and peer/rendered acceptance, remains required.
