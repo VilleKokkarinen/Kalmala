@@ -13,7 +13,7 @@ bool FKalmalaWildlifeBadgerContractTest::RunTest(const FString& Parameters)
 {
     int32 ExistingRosterSlots = 0;
     int32 BadgerSlots = 0;
-    int32 ReservedHardSlots = 0;
+    int32 MoonBearSlots = 0;
     for (uint64 Seed = 0; Seed < 1000; ++Seed)
     {
         EKalmalaWildlifeArchetype Archetype = EKalmalaWildlifeArchetype::Mireling;
@@ -34,8 +34,9 @@ bool FKalmalaWildlifeBadgerContractTest::RunTest(const FString& Parameters)
         }
         else
         {
-            TestFalse(TEXT("Unimplemented hard-enemy share remains empty"), bEligible);
-            ++ReservedHardSlots;
+            TestTrue(TEXT("Moon Bear fills the Elderwood hard-enemy share"), bEligible);
+            TestEqual(TEXT("The stable hard slot selects Moon Bear"), Archetype, EKalmalaWildlifeArchetype::MoonBear);
+            ++MoonBearSlots;
         }
 
         if (AKalmalaWildlifeSpawn::TryGetSpawnArchetypeForBiome(
@@ -47,7 +48,7 @@ bool FKalmalaWildlifeBadgerContractTest::RunTest(const FString& Parameters)
 
     TestEqual(TEXT("Elderwood existing roster slot count"), ExistingRosterSlots, 500);
     TestEqual(TEXT("Elderwood Badger slot count"), BadgerSlots, 400);
-    TestEqual(TEXT("Reserved Elderwood hard slot count"), ReservedHardSlots, 100);
+    TestEqual(TEXT("Elderwood Moon Bear hard slot count"), MoonBearSlots, 100);
     TestEqual(TEXT("Badger warns within three metres"),
         AKalmalaWildlifeSpawn::BadgerAttackTriggerCentimetres, 300.0f);
     TestEqual(TEXT("Badger claws use the existing wildlife hit bound"),
@@ -64,8 +65,8 @@ bool FKalmalaWildlifeBadgerContractTest::RunTest(const FString& Parameters)
         AKalmalaWildlifeSpawn::GetBoneFragmentRewardQuantity(EKalmalaWildlifeArchetype::Rat), 1);
     TestEqual(TEXT("Giant Snake keeps its existing two-fragment reward"),
         AKalmalaWildlifeSpawn::GetBoneFragmentRewardQuantity(EKalmalaWildlifeArchetype::GiantSnake), 2);
-    TestEqual(TEXT("Unimplemented Moon Bear rewards remain disabled"),
-        AKalmalaWildlifeSpawn::GetBoneFragmentRewardQuantity(EKalmalaWildlifeArchetype::MoonBear), 0);
+    TestEqual(TEXT("Moon Bear baseline Bone Fragment reward is three"),
+        AKalmalaWildlifeSpawn::GetBoneFragmentRewardQuantity(EKalmalaWildlifeArchetype::MoonBear), 3);
 
     const FString BadgerSpawnId(TEXT("1/4/-8/123456"));
     const FString BadgerClaimId = UKalmalaWorldPopulationSaveGame::MakeBadgerPendingRewardClaimId(BadgerSpawnId);

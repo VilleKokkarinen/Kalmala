@@ -10,7 +10,7 @@ struct KALMALAWORLD_API FKalmalaPendingWildlifeReward
 {
     GENERATED_BODY()
 
-    // Rat claims keep the raw ID; Badger claims prefix their stable spawn ID to distinguish reward types.
+    // Rat claims keep the raw ID; Badger and Moon Bear claims prefix stable spawn IDs by reward type.
     UPROPERTY(SaveGame) FString PersistentSpawnId;
     UPROPERTY(SaveGame) FString PlayerIdentity;
 };
@@ -33,6 +33,9 @@ public:
     bool TryQueuePendingBadgerReward(const FString& PersistentSpawnId, const FString& PlayerIdentity);
     static FString MakeBadgerPendingRewardClaimId(const FString& PersistentSpawnId);
     static bool TryGetBadgerSpawnIdFromPendingRewardClaimId(const FString& ClaimId, FString& OutPersistentSpawnId);
+    bool TryQueuePendingMoonBearReward(const FString& PersistentSpawnId, const FString& PlayerIdentity);
+    static FString MakeMoonBearPendingRewardClaimId(const FString& PersistentSpawnId);
+    static bool TryGetMoonBearSpawnIdFromPendingRewardClaimId(const FString& ClaimId, FString& OutPersistentSpawnId);
     bool RemovePendingWildlifeReward(const FString& RewardClaimId);
     const TArray<FKalmalaPendingWildlifeReward>& GetPendingWildlifeRewards() const { return PendingWildlifeRewards; }
 

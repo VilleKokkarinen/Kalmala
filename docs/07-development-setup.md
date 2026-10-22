@@ -2275,6 +2275,18 @@ without losing its queued claim, then frees the cells needed for one carried
 tool and the complete reward bundle. This checks the inventory/save contract;
 it does not replace the live GameMode delivery, restart, or peer acceptance.
 
+## Elderwood Moon Bear contract regression
+
+The editor automation `Kalmala.Gameplay.Wildlife.MoonBear.HardSpawnPawAndRewardClaim`
+checks the 50/40/10 Elderwood slot distribution, 220 cm server-only paw reach,
+reviewed warning and recovery timings, baseline reward quantity, and a stable
+owner-bound claim across population-save serialization. The surface-winding
+automation includes the original procedural bear model. Moon Bear also uses
+the shared 150 m generated-player-start exclusion. Run these sources in the
+combined A8a/A8b I4 acceptance; no Unreal build or runtime acceptance was
+performed by this implementation increment. Moonstone's separate A9 source
+remains disabled until that downstream task.
+
 ## Discovery peer privacy regression
 
 After an editor build, run `Scripts/Tests/Combat/Verify-DiscoveryPeer.ps1`. It starts a

@@ -181,6 +181,17 @@ bool FKalmalaModelSurfaceTest::RunTest(const FString& Parameters)
         TestEqual(TEXT("Creature archetype creates its mesh"), CreatureParts.Num(), 1);
         for (auto* Part : CreatureParts) CheckMesh(Part, true);
     }
+    auto* MoonBear = World->SpawnActor<AKalmalaWildlifeSpawn>();
+    if (!TestNotNull(TEXT("Moon Bear presentation fixture exists"), MoonBear)) return false;
+    FKalmalaWorldPopulationSpawn MoonBearSpawn;
+    MoonBearSpawn.Kind = EKalmalaWorldPopulationKind::Wildlife;
+    MoonBearSpawn.SpawnSeed = 9;
+    MoonBearSpawn.Location = FVector(1000, 0, 0);
+    MoonBear->InitializeServer(MoonBearSpawn, EKalmalaWildlifeArchetype::MoonBear);
+    TArray<UProceduralMeshComponent*> MoonBearParts;
+    MoonBear->GetComponents(MoonBearParts);
+    TestEqual(TEXT("Moon Bear creates a procedural model"), MoonBearParts.Num(), 1);
+    for (auto* Part : MoonBearParts) CheckMesh(Part, true);
     return true;
 }
 

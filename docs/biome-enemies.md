@@ -14,7 +14,9 @@ Fragment/Rat Tail rewards. Badger now uses its deterministic 40% Elderwood
 common share, a distinct procedural silhouette, and a server-owned claw cycle.
 Credited defeats queue the approved Bone Fragment, Badger Fur, and Badger Meat
 together for the authenticated attacker until their pack can accept the complete
-bundle. Mireling's biome restriction remains planned.
+bundle. Moon Bear fills Elderwood's seeded 10% hard-enemy slot, uses an original
+large-bear silhouette and a server-owned overhead-paw cycle, and queues three
+Bone Fragments for the credited attacker. Mireling's biome restriction remains planned.
 
 | Enemy               | Biome                                  | Status           | HP   | Armor | Attack       | Abilities / counters                |
 | ------------------- | -------------------------------------- | ---------------- | ---: | ----: | ------------ | ----------------------------------- |
@@ -22,7 +24,7 @@ bundle. Mireling's biome restriction remains planned.
 | Deer                | Meadows / Elderwood / Shimmering Lakes | Current          |  30  |   5   | —            | Flees; fleeing alerts nearby deer   |
 | Rat                 | Meadows                                | Current          |  10  |   0   | 5 Pierce     | 3 m approach trigger; 100 cm bite   |
 | Badger              | Elderwood                              | Partial          |  100 |   10  | 20 Slash     | 3 m warning; 180 cm claws; queued Bone Fragment, Fur, and Meat; I4 pending |
-| Moon Bear           | Elderwood                              | Planned          |  250 |   20  | 75 Crush     | Slow overhead strike; 2% Moonstone  |
+| Moon Bear           | Elderwood                              | Partial          |  250 |   20  | 75 Crush     | 3 m warning; 220 cm overhead paw; 1.2 s recovery; queued 3 Bone Fragment; I4 pending |
 | Viper               | Shimmering Lakes                       | Planned          |  100 |   10  | 50 Stab      | Weak poison: 1/s, 5 s               |
 | Giant Snake         | Shimmering Lakes                       | Planned          |  250 |   30  | 100 Stab     | Coiled lunge; slow recovery         |
 | Mireling            | Mossy Mire                             | Planned          |  75  |   15  | 20 Crush     | Weak base enemy; simple melee       |
@@ -36,8 +38,11 @@ bundle. Mireling's biome restriction remains planned.
 | Thunder Sentinel    | Thunder Mountains                      | Planned          |  1250|   75  | 300 Crush    | Slow downward slam                  |
 | Reef Maw            | Ocean                                  | Planned          |  180 |   2   | 50 Stab      | Swimmer hunter                      |
 
-The planned Moon Bear now has a server-side stat profile (250 health, 20
-armor, 75 Crush); spawning and behavior remain queued.
+Moon Bear uses its reviewed server-side stat profile (250 health, 20 armor,
+75 Crush). Its seeded spawn slot, dry-Elderwood eligibility, 150 m player-start
+exclusion, close-range overhead attack, and durable three-fragment reward claim
+are implemented. The separate 2% Moonstone route remains an A9 source task and
+is not enabled by the A8a baseline reward.
 
 Current defaults: [wildlife](../Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp),
 [health](../Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h) and

@@ -19,6 +19,7 @@
 #include "Engine/World.h"
 #include "Net/UnrealNetwork.h"
 #include "Misc/CommandLine.h"
+#include "Misc/Crc.h"
 #include "Misc/Parse.h"
 
 namespace
@@ -199,6 +200,9 @@ void AKalmalaWildlifeSpawn::InitializeServer(const FKalmalaWorldPopulationSpawn&
         BadgerAttackCue = static_cast<uint8>(EKalmalaWildlifeAttackCue::None);
         BadgerAttackTarget.Reset();
         BadgerAttackSecondsRemaining = 0.0f;
+        MoonBearAttackCue = static_cast<uint8>(EKalmalaWildlifeAttackCue::None);
+        MoonBearAttackTarget.Reset();
+        MoonBearAttackSecondsRemaining = 0.0f;
         Health = GetMaximumHealthForArchetype(Archetype);
         if (UKalmalaResistanceComponent* Defenses = FindComponentByClass<UKalmalaResistanceComponent>())
         {
@@ -262,6 +266,13 @@ bool AKalmalaWildlifeSpawn::IsBadgerClawInReach(const bool bServerAuthority, con
         && DistanceCentimetres >= 0.0f && DistanceCentimetres <= BadgerClawReachCentimetres;
 }
 
+bool AKalmalaWildlifeSpawn::IsMoonBearPawInReach(const bool bServerAuthority, const bool bValidTarget,
+    const float DistanceCentimetres)
+{
+    return bServerAuthority && bValidTarget && FMath::IsFinite(DistanceCentimetres)
+        && DistanceCentimetres >= 0.0f && DistanceCentimetres <= MoonBearPawReachCentimetres;
+}
+
 float AKalmalaWildlifeSpawn::GetBaseAttackDamageForArchetype(const EKalmalaWildlifeArchetype InArchetype)
 {
     return GetBaseAttackChannelsForArchetype(InArchetype).Total();
@@ -299,6 +310,7 @@ int32 AKalmalaWildlifeSpawn::GetBoneFragmentRewardQuantity(const EKalmalaWildlif
     case EKalmalaWildlifeArchetype::Rat:
     case EKalmalaWildlifeArchetype::Viper: return 1;
     case EKalmalaWildlifeArchetype::GiantSnake: return 2;
+    case EKalmalaWildlifeArchetype::MoonBear: return 3;
     default: return 0;
     }
 }
@@ -333,6 +345,13 @@ bool AKalmalaWildlifeSpawn::DefeatServer()
             ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
         if (Mode == nullptr || !Mode->RecordBadgerDefeatReward(PersistentSpawnId, LastValidatedAttacker.Get()))
             return false;
+    }
+    else if (Archetype == EKalmalaWildlifeArchetype::MoonBear)
+    {
+        AKalmalaGameMode* Mode = GetWorld() != nullptr
+            ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
+        if (Mode == nullptr || !Mode->RecordMoonBearDefeatReward(
+                PersistentSpawnId, LastValidatedAttacker.Get())) return false;
     }
 
     bDefeated = true;
@@ -391,6 +410,12 @@ bool AKalmalaWildlifeSpawn::ApplyValidatedDamageFromServer(const FKalmalaDamageC
         BadgerAttackTarget = Attacker;
         BadgerAttackSecondsRemaining = 0.0f;
         SetBadgerAttackCue(EKalmalaWildlifeAttackCue::None);
+    }
+    else if (Archetype == EKalmalaWildlifeArchetype::MoonBear && Attacker != nullptr)
+    {
+        MoonBearAttackTarget = Attacker;
+        MoonBearAttackSecondsRemaining = 0.0f;
+        SetMoonBearAttackCue(EKalmalaWildlifeAttackCue::None);
     }
     else
     {
@@ -482,6 +507,9 @@ bool AKalmalaWildlifeSpawn::TryGetSpawnArchetypeForBiome(const uint64 SpawnSeed,
         case 5: case 6: case 7: case 8:
             OutArchetype = EKalmalaWildlifeArchetype::Badger;
             return true;
+        case 9:
+            OutArchetype = EKalmalaWildlifeArchetype::MoonBear;
+            return true;
         default:
             return false;
         }
@@ -537,6 +565,7 @@ void AKalmalaWildlifeSpawn::Tick(const float DeltaSeconds)
         else if (Archetype == EKalmalaWildlifeArchetype::Boar) UpdateBoarTerritory(DeltaSeconds);
         else if (Archetype == EKalmalaWildlifeArchetype::Rat) UpdateRatAttack(DeltaSeconds);
         else if (Archetype == EKalmalaWildlifeArchetype::Badger) UpdateBadgerAttack(DeltaSeconds);
+        else if (Archetype == EKalmalaWildlifeArchetype::MoonBear) UpdateMoonBearAttack(DeltaSeconds);
         else if (Archetype == EKalmalaWildlifeArchetype::Viper || Archetype == EKalmalaWildlifeArchetype::GiantSnake)
             UpdateSnakeAmbush(DeltaSeconds);
     }
@@ -940,6 +969,150 @@ bool AKalmalaWildlifeSpawn::CanBadgerMoveAlong(const FVector& Start, const FVect
         if (!IsBadgerPositionDry(Position)) return false;
     }
     return true;
+}
+
+void AKalmalaWildlifeSpawn::UpdateMoonBearAttack(const float DeltaSeconds)
+{
+    if (Behaviour != EKalmalaWildlifeBehaviour::Idle || GetWorld() == nullptr) return;
+    const float StepSeconds = FMath::Clamp(FMath::IsFinite(DeltaSeconds) ? DeltaSeconds : 0.0f, 0.0f, 0.10f);
+    EKalmalaWildlifeAttackCue Cue = static_cast<EKalmalaWildlifeAttackCue>(MoonBearAttackCue);
+    AKalmalaCharacter* Target = MoonBearAttackTarget.Get();
+
+    if (Cue != EKalmalaWildlifeAttackCue::None
+        && (Target == nullptr || !IsMoonBearAttackTargetValid(Target)))
+    {
+        MoonBearAttackTarget.Reset();
+        MoonBearAttackSecondsRemaining = 0.0f;
+        SetMoonBearAttackCue(EKalmalaWildlifeAttackCue::None);
+        Cue = EKalmalaWildlifeAttackCue::None;
+        Target = nullptr;
+    }
+    else if (Target != nullptr && !IsMoonBearAttackTargetValid(Target))
+    {
+        MoonBearAttackTarget.Reset();
+        MoonBearAttackSecondsRemaining = 0.0f;
+        Target = nullptr;
+    }
+
+    if (Cue == EKalmalaWildlifeAttackCue::None && Target == nullptr)
+    {
+        float BestDistanceSquared = FMath::Square(MoonBearAttackTriggerCentimetres);
+        for (TActorIterator<AKalmalaCharacter> It(GetWorld()); It; ++It)
+        {
+            AKalmalaCharacter* Candidate = *It;
+            if (!IsMoonBearAttackTargetValid(Candidate)) continue;
+            const float DistanceSquared = FVector::DistSquared2D(GetActorLocation(), Candidate->GetActorLocation());
+            if (DistanceSquared < BestDistanceSquared)
+            {
+                BestDistanceSquared = DistanceSquared;
+                Target = Candidate;
+            }
+        }
+        if (Target != nullptr) MoonBearAttackTarget = Target;
+    }
+
+    if (Target == nullptr)
+    {
+        const FVector ToHome = SpawnOrigin - GetActorLocation();
+        if (ToHome.SizeSquared2D() > FMath::Square(15.0f))
+        {
+            FVector End = FMath::VInterpConstantTo(GetActorLocation(), SpawnOrigin, StepSeconds, 120.0f);
+            if (const AKalmalaWorldGenerationGameState* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>())
+                End.Z = FKalmalaTerrainHeightSampler::SampleHeight(State->GetWorldGenerationConfig(), FVector2D(End));
+            if (IsBadgerPositionDry(End) && CanBadgerMoveAlong(GetActorLocation(), End)) SetActorLocation(End, true);
+        }
+        return;
+    }
+
+    FVector ToTarget = Target->GetActorLocation() - GetActorLocation();
+    float Distance = ToTarget.Size2D();
+    if (Distance > MoonBearPawReachCentimetres)
+    {
+        const float MoveDistance = FMath::Min(BadgerApproachSpeedCentimetresPerSecond * StepSeconds,
+            Distance - MoonBearPawReachCentimetres);
+        const FVector Direction = ToTarget.GetSafeNormal2D();
+        if (!Direction.IsNearlyZero()) SetActorRotation(FRotationMatrix::MakeFromX(Direction).Rotator());
+        FVector End = GetActorLocation() + Direction * MoveDistance;
+        if (const AKalmalaWorldGenerationGameState* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>())
+            End.Z = FKalmalaTerrainHeightSampler::SampleHeight(State->GetWorldGenerationConfig(), FVector2D(End));
+        if (CanBadgerMoveAlong(GetActorLocation(), End)) SetActorLocation(End, true);
+        ToTarget = Target->GetActorLocation() - GetActorLocation();
+        Distance = ToTarget.Size2D();
+    }
+
+    if (Cue == EKalmalaWildlifeAttackCue::Telegraph)
+    {
+        MoonBearAttackSecondsRemaining -= StepSeconds;
+        if (MoonBearAttackSecondsRemaining <= 0.0f)
+        {
+            TryApplyMoonBearPaw(Target);
+            MoonBearAttackSecondsRemaining = MoonBearRecoverySeconds;
+            SetMoonBearAttackCue(EKalmalaWildlifeAttackCue::Recovery);
+        }
+    }
+    else if (Cue == EKalmalaWildlifeAttackCue::Recovery)
+    {
+        MoonBearAttackSecondsRemaining -= StepSeconds;
+        if (MoonBearAttackSecondsRemaining <= 0.0f)
+        {
+            MoonBearAttackSecondsRemaining = 0.0f;
+            SetMoonBearAttackCue(EKalmalaWildlifeAttackCue::None);
+        }
+    }
+    else if (Distance <= MoonBearAttackTriggerCentimetres)
+    {
+        BeginMoonBearAttack(Target);
+    }
+}
+
+void AKalmalaWildlifeSpawn::BeginMoonBearAttack(AKalmalaCharacter* Target)
+{
+    if (!HasAuthority() || bDefeated || !IsMoonBearAttackTargetValid(Target)
+        || FVector::DistSquared2D(GetActorLocation(), Target->GetActorLocation())
+            > FMath::Square(MoonBearAttackTriggerCentimetres)) return;
+
+    const FVector Direction = (Target->GetActorLocation() - GetActorLocation()).GetSafeNormal2D();
+    if (Direction.IsNearlyZero()) return;
+    SetActorRotation(FRotationMatrix::MakeFromX(Direction).Rotator());
+    MoonBearAttackTarget = Target;
+    MoonBearAttackSecondsRemaining = MoonBearTelegraphSeconds;
+    SetMoonBearAttackCue(EKalmalaWildlifeAttackCue::Telegraph);
+}
+
+void AKalmalaWildlifeSpawn::SetMoonBearAttackCue(const EKalmalaWildlifeAttackCue NextCue)
+{
+    if (!HasAuthority()) return;
+    const uint8 NextValue = static_cast<uint8>(NextCue);
+    if (MoonBearAttackCue == NextValue) return;
+    MoonBearAttackCue = NextValue;
+    BuildArchetypePresentation();
+    ForceNetUpdate();
+}
+
+bool AKalmalaWildlifeSpawn::IsMoonBearAttackTargetValid(const AKalmalaCharacter* Target) const
+{
+    if (!HasAuthority() || bDefeated || GetWorld() == nullptr || !IsValid(Target)
+        || !Target->HasAuthority() || Target->GetWorld() != GetWorld()
+        || !FMath::IsFinite(Target->GetHealth()) || Target->GetHealth() <= 1.0f
+        || FVector::DistSquared2D(Target->GetActorLocation(), SpawnOrigin) > FMath::Square(MoonBearSpawnLeashCentimetres))
+        return false;
+    if (!CanBadgerMoveAlong(GetActorLocation(), Target->GetActorLocation())) return false;
+
+    FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(KalmalaMoonBearPawVisibility), true);
+    QueryParams.AddIgnoredActor(this);
+    FHitResult Blocker;
+    const FVector Start = GetActorLocation() + FVector(0.0f, 0.0f, 48.0f);
+    const FVector End = Target->GetActorLocation() + FVector(0.0f, 0.0f, 48.0f);
+    return !GetWorld()->LineTraceSingleByChannel(Blocker, Start, End, ECC_Visibility, QueryParams)
+        || Blocker.GetActor() == Target;
+}
+
+bool AKalmalaWildlifeSpawn::TryApplyMoonBearPaw(AKalmalaCharacter* Target)
+{
+    if (!IsMoonBearAttackTargetValid(Target)
+        || !IsMoonBearPawInReach(HasAuthority(), true, FVector::Dist(GetActorLocation(), Target->GetActorLocation())))
+        return false;
+    return Target->ApplyWildlifeDamageFromServer(this, GetBaseAttackChannelsForArchetype(Archetype));
 }
 
 void AKalmalaWildlifeSpawn::UpdateSnakeAmbush(const float DeltaSeconds)
@@ -1388,6 +1561,59 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
                 FVector(78,4,22), Coat);
         }
     }
+    else if (Archetype == EKalmalaWildlifeArchetype::MoonBear)
+    {
+        const bool bWarning = static_cast<EKalmalaWildlifeAttackCue>(MoonBearAttackCue)
+            == EKalmalaWildlifeAttackCue::Telegraph;
+        const FLinearColor Coat(0.18f, 0.13f, 0.095f);
+        const FLinearColor Shoulder(0.30f, 0.22f, 0.15f);
+        const FLinearColor Muzzle(0.56f, 0.43f, 0.30f);
+        const FLinearColor Claw(0.78f, 0.67f, 0.49f);
+        const FLinearColor Warning(0.96f, 0.68f, 0.20f);
+        const FLinearColor Eye(0.045f, 0.025f, 0.012f);
+
+        // A broad hump, barrel body, round ears and heavy paws keep the bear distinct from the low badger.
+        AddTetraPoints(FVector(-116,-43,4), FVector(-116,43,4), FVector(27,-49,14),
+            FVector(-43,0,132), Coat);
+        AddTetraPoints(FVector(-67,-45,38), FVector(-67,45,38), FVector(52,-47,41),
+            FVector(-16,0,151), Shoulder);
+        AddTetraPoints(FVector(34,-45,30), FVector(34,45,30), FVector(98,-32,51),
+            FVector(72,0,128), Coat);
+        AddTetraPoints(FVector(72,-27,49), FVector(72,27,49), FVector(127,-16,57),
+            FVector(105,0,bWarning ? 132.0f : 108.0f), Shoulder);
+        AddTetraPoints(FVector(111,-16,48), FVector(111,16,48), FVector(150,-10,52),
+            FVector(137,0,78), Muzzle);
+
+        for (const float Side : {-1.0f, 1.0f})
+        {
+            // Thick legs end in pale hooked claws; the near paw lifts high before the overhead strike.
+            for (const float LegX : {-72.0f, 42.0f})
+            {
+                const bool bRaisedPaw = bWarning && LegX > 0.0f && Side < 0.0f;
+                const float PawX = bRaisedPaw ? 121.0f : LegX + 21.0f;
+                const float PawY = Side * (bRaisedPaw ? 43.0f : 45.0f);
+                const float PawZ = bRaisedPaw ? 117.0f : -49.0f;
+                AddTetraPoints(FVector(LegX - 21.0f, Side * 33.0f, -51.0f),
+                    FVector(LegX - 21.0f, Side * 55.0f, -51.0f),
+                    FVector(LegX + 12.0f, Side * 34.0f, 30.0f),
+                    FVector(LegX + 18.0f, Side * 52.0f, 38.0f), Coat);
+                AddTetraPoints(FVector(LegX + 6.0f, Side * 34.0f, -48.0f),
+                    FVector(LegX + 6.0f, Side * 52.0f, -48.0f),
+                    FVector(PawX, PawY - 10.0f, PawZ), FVector(PawX, PawY + 10.0f, PawZ + 12.0f),
+                    bRaisedPaw ? Warning : Shoulder);
+                if (!bRaisedPaw)
+                {
+                    AddTetraPoints(FVector(PawX - 5.0f, PawY - 8.0f, -48.0f),
+                        FVector(PawX - 5.0f, PawY + 8.0f, -48.0f),
+                        FVector(PawX + 11.0f, PawY, -54.0f), FVector(PawX + 9.0f, PawY, -49.0f), Claw);
+                }
+            }
+            AddTetraPoints(FVector(119,Side * 13.0f,78), FVector(127,Side * 14.0f,78),
+                FVector(123,Side * 23.0f,92), FVector(115,Side * 22.0f,90), Coat);
+            AddTetraPoints(FVector(135,Side * 10.0f,78), FVector(142,Side * 9.0f,77),
+                FVector(140,Side * 14.0f,81), FVector(137,Side * 11.0f,83), Eye);
+        }
+    }
     else if (bSnake)
     {
         const bool bGiant = Archetype == EKalmalaWildlifeArchetype::GiantSnake;
@@ -1575,6 +1801,7 @@ void AKalmalaWildlifeSpawn::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
     DOREPLIFETIME(AKalmalaWildlifeSpawn, SnakeAttackCue);
     DOREPLIFETIME(AKalmalaWildlifeSpawn, RatAttackCue);
     DOREPLIFETIME(AKalmalaWildlifeSpawn, BadgerAttackCue);
+    DOREPLIFETIME(AKalmalaWildlifeSpawn, MoonBearAttackCue);
 }
 
 void AKalmalaWildlifeSpawn::OnRep_Archetype()
@@ -1600,6 +1827,11 @@ void AKalmalaWildlifeSpawn::OnRep_RatAttackCue()
 }
 
 void AKalmalaWildlifeSpawn::OnRep_BadgerAttackCue()
+{
+    BuildArchetypePresentation();
+}
+
+void AKalmalaWildlifeSpawn::OnRep_MoonBearAttackCue()
 {
     BuildArchetypePresentation();
 }
@@ -1648,11 +1880,11 @@ void AKalmalaWildlifeSpawn::GrantDefeatReward()
 
     const int32 BoneFragmentQuantity = GetBoneFragmentRewardQuantity(Archetype);
     if (BoneFragmentQuantity > 0 && Archetype != EKalmalaWildlifeArchetype::Rat
-        && Archetype != EKalmalaWildlifeArchetype::Badger)
+        && Archetype != EKalmalaWildlifeArchetype::Badger && Archetype != EKalmalaWildlifeArchetype::MoonBear)
     {
         Inventory->TryGrantFromServer(TEXT("BoneFragment"), BoneFragmentQuantity);
     }
-    // Rat and Badger rewards use the persistent, all-or-none queue recorded before
+    // Rat, Badger and Moon Bear rewards use the persistent, all-or-none queue recorded before
     // this defeated state is replicated, so they must not be granted a second time.
 
     if (Archetype == EKalmalaWildlifeArchetype::Mireling && IsMirelingBossRewardCandidate())

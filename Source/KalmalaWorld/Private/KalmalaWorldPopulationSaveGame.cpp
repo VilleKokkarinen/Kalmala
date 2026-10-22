@@ -3,6 +3,7 @@
 namespace
 {
     constexpr TCHAR BadgerRewardClaimPrefix[] = TEXT("badger-reward|");
+    constexpr TCHAR MoonBearRewardClaimPrefix[] = TEXT("moonbear-reward|");
 }
 
 void UKalmalaWorldPopulationSaveGame::InitializeForWorld(const FKalmalaWorldGenerationConfig& InWorldConfig)
@@ -84,6 +85,43 @@ bool UKalmalaWorldPopulationSaveGame::TryGetBadgerSpawnIdFromPendingRewardClaimI
     OutPersistentSpawnId.Reset();
     const int32 PrefixLength = UE_ARRAY_COUNT(BadgerRewardClaimPrefix) - 1;
     if (!ClaimId.StartsWith(BadgerRewardClaimPrefix, ESearchCase::CaseSensitive)
+        || ClaimId.Len() <= PrefixLength || ClaimId.Len() > 128) return false;
+
+    OutPersistentSpawnId = ClaimId.RightChop(PrefixLength);
+    return !OutPersistentSpawnId.IsEmpty();
+}
+
+bool UKalmalaWorldPopulationSaveGame::TryQueuePendingMoonBearReward(
+    const FString& PersistentSpawnId, const FString& PlayerIdentity)
+{
+    const FString ClaimId = MakeMoonBearPendingRewardClaimId(PersistentSpawnId);
+    if (ClaimId.IsEmpty() || PlayerIdentity.IsEmpty() || PlayerIdentity.Len() > 128) return false;
+
+    for (const FKalmalaPendingWildlifeReward& Existing : PendingWildlifeRewards)
+    {
+        FString ExistingSpawnId;
+        if (TryGetMoonBearSpawnIdFromPendingRewardClaimId(Existing.PersistentSpawnId, ExistingSpawnId)
+            && ExistingSpawnId == PersistentSpawnId)
+        {
+            return Existing.PlayerIdentity == PlayerIdentity;
+        }
+    }
+    return TryQueuePendingWildlifeReward(ClaimId, PlayerIdentity);
+}
+
+FString UKalmalaWorldPopulationSaveGame::MakeMoonBearPendingRewardClaimId(const FString& PersistentSpawnId)
+{
+    const int32 PrefixLength = UE_ARRAY_COUNT(MoonBearRewardClaimPrefix) - 1;
+    if (PersistentSpawnId.IsEmpty() || PersistentSpawnId.Len() > 128 - PrefixLength) return FString();
+    return FString(MoonBearRewardClaimPrefix) + PersistentSpawnId;
+}
+
+bool UKalmalaWorldPopulationSaveGame::TryGetMoonBearSpawnIdFromPendingRewardClaimId(
+    const FString& ClaimId, FString& OutPersistentSpawnId)
+{
+    OutPersistentSpawnId.Reset();
+    const int32 PrefixLength = UE_ARRAY_COUNT(MoonBearRewardClaimPrefix) - 1;
+    if (!ClaimId.StartsWith(MoonBearRewardClaimPrefix, ESearchCase::CaseSensitive)
         || ClaimId.Len() <= PrefixLength || ClaimId.Len() > 128) return false;
 
     OutPersistentSpawnId = ClaimId.RightChop(PrefixLength);

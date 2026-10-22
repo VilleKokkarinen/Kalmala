@@ -194,7 +194,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [x] Apply the overview's revised stats to existing boar/deer and all A8a enemies.
   - [x] Meadows: Rat
   - [x] Elderwood: Badger
-  - [ ] Elderwood: Moon Bear — rare hard enemy;
+  - [x] Elderwood: Moon Bear — rare hard enemy;
   - [ ] Shimmering Lakes: Viper — lunging bite applies weak poison for 5 s.
   - [ ] Shimmering Lakes: Giant Snake — rare hard shoreline ambusher; powerful lunging bite.
   - [ ] Mossy Mire: Mireling — weak base enemy; spawn only in this biome.
