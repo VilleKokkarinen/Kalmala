@@ -18,9 +18,9 @@ bool FKalmalaInventoryMenuPreparedFoodDetailsTest::RunTest(const FString& Parame
     if (!Menu) return false;
     Menu->Initialize();
     Menu->SetInventoryRowsForVerification({
-        {TEXT("HearthBroth"), TEXT("Hearth Broth"), TEXT("× 1"), false}
+        {TEXT("PeatHeartStew"), TEXT("Peat Heart Stew"), TEXT("× 2"), false}
     }, 100, 0);
-    Menu->SelectItemForVerification(TEXT("HearthBroth"));
+    Menu->SelectItemForVerification(TEXT("PeatHeartStew"));
 
     FString DetailText;
     TArray<UWidget*> Widgets;
@@ -35,7 +35,7 @@ bool FKalmalaInventoryMenuPreparedFoodDetailsTest::RunTest(const FString& Parame
                 if (const auto* Block = Cast<UTextBlock>(DetailWidget)) DetailText += Block->GetText().ToString();
         }
     }
-    TestTrue(TEXT("Selected food detail explains the real Steady Meal benefit"),
+    TestTrue(TEXT("Peat Heart Stew detail explains the real Steady Meal benefit"),
         DetailText.Contains(TEXT("10% lower stamina use for 120 seconds")));
 
     FString MenuText;

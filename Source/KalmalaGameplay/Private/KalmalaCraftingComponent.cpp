@@ -1082,6 +1082,7 @@ FString UKalmalaCraftingComponent::GetFoodText() const
     const int32 SoupCount = GetFoodCount(UKalmalaPlayerStatusComponent::RootVegetableSoupItemId);
     const int32 RoastedRootsCount = GetFoodCount(UKalmalaPlayerStatusComponent::RoastedRootVegetablesItemId);
     const int32 DeerRoastCount = GetFoodCount(UKalmalaPlayerStatusComponent::DeerRootRoastItemId);
+    const int32 PeatHeartStewCount = GetFoodCount(UKalmalaPlayerStatusComponent::PeatHeartStewItemId);
     const int32 LingonberryCount = GetFoodCount(UKalmalaPlayerStatusComponent::LingonberryItemId);
     const int32 ForestChanterelleCount = GetFoodCount(UKalmalaPlayerStatusComponent::ForestChanterelleItemId);
     const int32 BerryRecoveryDraughtCount = GetFoodCount(UKalmalaPlayerStatusComponent::BerryRecoveryDraughtItemId);
@@ -1089,8 +1090,8 @@ FString UKalmalaCraftingComponent::GetFoodText() const
     const int32 RatTailTonicCount = GetFoodCount(UKalmalaPlayerStatusComponent::RatTailTonicItemId);
     const int32 AntidoteCount = GetFoodCount(UKalmalaPlayerStatusComponent::AntidoteItemId);
     const FString AvailableFood = FString::Printf(
-        TEXT("Cooked boar %d; cooked deer %d; meat stew %d; root soup %d; roasted roots %d; deer roast %d; Hearth Broth %d; Lingonberry %d; Forest Chanterelle %d; Berry Recovery Draught %d; Root Stamina Draught %d; Rat-tail Tonic %d; Antidote %d."),
-        CookedBoarCount, CookedDeerCount, StewCount, SoupCount, RoastedRootsCount, DeerRoastCount, BrothCount,
+        TEXT("Cooked boar %d; cooked deer %d; meat stew %d; root soup %d; roasted roots %d; deer roast %d; Peat Heart Stew %d; Hearth Broth %d; Lingonberry %d; Forest Chanterelle %d; Berry Recovery Draught %d; Root Stamina Draught %d; Rat-tail Tonic %d; Antidote %d."),
+        CookedBoarCount, CookedDeerCount, StewCount, SoupCount, RoastedRootsCount, DeerRoastCount, PeatHeartStewCount, BrothCount,
         LingonberryCount, ForestChanterelleCount, BerryRecoveryDraughtCount, RootStaminaDraughtCount, RatTailTonicCount,
         AntidoteCount);
     const float Remaining = Status ? Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId) : 0.0f;

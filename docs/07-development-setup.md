@@ -3082,9 +3082,12 @@ introduced.
 detail, including Rat-tail Tonic's 30-health heal, the visible Eat/Use action,
 and the fail-closed state when owner data is absent; run it after an affected UI build.
 
-Current prepared-food catalogue items are accepted by the existing meal-use
-path. Berry Recovery Draught and Rat-tail Tonic use health-recovery
-statuses, while Root Stamina Draught restores stamina immediately; all three
+Current prepared-food catalogue items, including Peat Heart Stew, are accepted
+by the existing meal-use path. Peat Heart Stew uses the shared non-stacking
+120-second Steady Meal. Its Cauldron batch costs one Peat Heart, two Potato and
+one Onion, produces two servings, and awards ten Cooking experience. Berry
+Recovery Draught and Rat-tail Tonic use health-recovery statuses, while Root
+Stamina Draught restores stamina immediately; all three
 use the shared 60-second draught cooldown. Health draughts are rejected at full
 health, Root Stamina Draught at full stamina, and all are rejected while dead
 or during cooldown without consuming the dose. The historical
@@ -5447,3 +5450,27 @@ status transition and server authority, rejected-use inventory preservation,
 recipe exposure and costs, player-facing details, and the resistance timer.
 The focused C++ regression sources added here have not been compiled or run in
 this normal child; combined A8a/A8b I4 remains required.
+
+## A8b Peat Heart Stew item coverage — 2026-10-22
+
+Peat Heart Stew reuses the existing server-authoritative prepared-food
+transaction and Steady Meal effect: one serving grants 120 seconds of 10%
+lower stamina use, meals do not stack, and the server consumes one serving
+only after accepting the effect. Its Cauldron recipe uses one Peat Heart, two
+Potato and one Onion for two servings per batch, caps requests at five batches,
+awards ten Cooking experience, and retains the lit-hearth requirement. The
+Peat Husk's accepted owner-bound reward supplies its crafting ingredient. The
+registered item, recipe, generated/imported icon, and runtime mapping already
+existed; this increment enables the menu and food-use paths without adding a
+new RPC, replicated field, or save data.
+
+After an affected Gameplay/UI build, run
+`Kalmala.Gameplay.Status.SteadyMeal`,
+`Kalmala.UI.Inventory.PreparedFoodDetails`, and
+`Scripts/Tests/Construction/Verify-Crafting.ps1`. These cover the meal
+allowlist and server transaction, owner Inventory details/action, and the
+Cauldron recipe's ingredients, output, batch limit, Cooking experience and
+live hearth availability. `Scripts/Validate-UIIcons.ps1 -Category Catalogue
+-Id PeatHeartStew` verifies its existing original, prepared texture and runtime
+target. The focused C++ sources remain uncompiled/unexecuted in this normal
+child; combined A8a/A8b I4 is still required.

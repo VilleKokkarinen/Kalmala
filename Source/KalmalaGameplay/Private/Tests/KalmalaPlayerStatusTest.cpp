@@ -166,7 +166,7 @@ bool FKalmalaSteadyMealStatusTest::RunTest(const FString& Parameters)
     const FName CurrentCookingOutputs[] = {
         FName(TEXT("CookedBoarMeat")), FName(TEXT("CookedDeerMeat")), FName(TEXT("MeatStew")),
         FName(TEXT("RootVegetableSoup")), FName(TEXT("RoastedRootVegetables")), FName(TEXT("DeerRootRoast")),
-        FName(TEXT("RoastedBadger"))
+        FName(TEXT("RoastedBadger")), FName(TEXT("PeatHeartStew"))
     };
     for (const FName FoodId : CurrentCookingOutputs)
     {
@@ -220,29 +220,29 @@ bool FKalmalaSteadyMealStatusTest::RunTest(const FString& Parameters)
         World->DestroyWorld(false);
         return false;
     }
-    TestTrue(TEXT("Server owner may apply the current catalogue meal item"), Status && Status->ApplyFoodFromServer(TEXT("HearthBroth")));
+    TestTrue(TEXT("Server owner may apply Peat Heart Stew"), Status && Status->ApplyFoodFromServer(TEXT("PeatHeartStew")));
     Pawn->SetRole(ROLE_AutonomousProxy);
-    TestFalse(TEXT("Owning client cannot author a meal effect"), Status && Status->ApplyFoodFromServer(TEXT("HearthBroth")));
+    TestFalse(TEXT("Owning client cannot author the Peat Heart Stew meal effect"), Status && Status->ApplyFoodFromServer(TEXT("PeatHeartStew")));
     TestEqual(TEXT("Rejected client application retains the server timer"),
         Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId),
         UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);
     Pawn->SetRole(ROLE_Authority);
     Status->AdvanceFromServer(UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);
-    TestTrue(TEXT("Food transaction fixture grants two current cooking outputs"), Inventory->TryGrantFromServer(TEXT("CookedBoarMeat"), 2));
+    TestTrue(TEXT("Food transaction fixture grants two Peat Heart Stew servings"), Inventory->TryGrantFromServer(TEXT("PeatHeartStew"), 2));
     FString Reason;
-    TestTrue(TEXT("Server food transaction consumes and applies a current cooking output"), Crafting->ConsumeFoodFromServer(TEXT("CookedBoarMeat"), Reason));
-    TestEqual(TEXT("Accepted meal consumes exactly one item"), Inventory->GetQuantity(TEXT("CookedBoarMeat")), 1);
+    TestTrue(TEXT("Server food transaction consumes and applies Peat Heart Stew"), Crafting->ConsumeFoodFromServer(TEXT("PeatHeartStew"), Reason));
+    TestEqual(TEXT("Accepted meal consumes exactly one serving"), Inventory->GetQuantity(TEXT("PeatHeartStew")), 1);
     TestEqual(TEXT("Accepted meal publishes its fixed effect duration"),
         Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId),
         UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);
     const float MealTimeBeforeDuplicate = Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId);
-    TestFalse(TEXT("An active meal rejects a second consumption transaction"), Crafting->ConsumeFoodFromServer(TEXT("CookedBoarMeat"), Reason));
-    TestEqual(TEXT("Duplicate rejection preserves the remaining inventory item"), Inventory->GetQuantity(TEXT("CookedBoarMeat")), 1);
+    TestFalse(TEXT("An active meal rejects a second Peat Heart Stew transaction"), Crafting->ConsumeFoodFromServer(TEXT("PeatHeartStew"), Reason));
+    TestEqual(TEXT("Duplicate rejection preserves the remaining serving"), Inventory->GetQuantity(TEXT("PeatHeartStew")), 1);
     TestEqual(TEXT("Duplicate rejection preserves the active timer"),
         Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId), MealTimeBeforeDuplicate);
     Pawn->SetRole(ROLE_AutonomousProxy);
-    TestFalse(TEXT("Client cannot consume food through the server transaction"), Crafting->ConsumeFoodFromServer(TEXT("CookedBoarMeat"), Reason));
-    TestEqual(TEXT("Client request preserves food inventory"), Inventory->GetQuantity(TEXT("CookedBoarMeat")), 1);
+    TestFalse(TEXT("Client cannot consume Peat Heart Stew through the server transaction"), Crafting->ConsumeFoodFromServer(TEXT("PeatHeartStew"), Reason));
+    TestEqual(TEXT("Client request preserves the Peat Heart Stew serving"), Inventory->GetQuantity(TEXT("PeatHeartStew")), 1);
     TestEqual(TEXT("Client request preserves the active meal timer"),
         Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId), MealTimeBeforeDuplicate);
     World->DestroyWorld(false);
