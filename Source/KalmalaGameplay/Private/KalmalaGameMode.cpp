@@ -28,6 +28,7 @@
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaM7PersistenceContract.h"
 #include "KalmalaWildlifeSpawn.h"
+#include "KalmalaWolfPackContract.h"
 #include "KalmalaGeneratedTerrainPatch.h"
 #include "KalmalaForestLayout.h"
 #include "KalmalaTerrainPatchLayout.h"
@@ -35,6 +36,7 @@
 #include "KalmalaWorldPlayerStartResolver.h"
 #include "KalmalaShimmeringLakeSampler.h"
 #include "KalmalaOceanSampler.h"
+#include "KalmalaTerrainHeightSampler.h"
 #include "KalmalaWorldPopulationLayout.h"
 #include "KalmalaWorldBounds.h"
 #include "KalmalaWorldPopulationMarker.h"
@@ -118,6 +120,13 @@ namespace KalmalaGameMode
             return SpawnBiome == EKalmalaBiome::Meadows
                 && !FKalmalaOceanSampler::Sample(Config, Position).IsWater()
                 && !FKalmalaShimmeringLakeSampler::IsWater(Config, Position);
+        }
+        if (OutArchetype == EKalmalaWildlifeArchetype::Wolf)
+        {
+            return SpawnBiome == EKalmalaBiome::FreezingTundra
+                && !FKalmalaOceanSampler::Sample(Config, Position).IsWater()
+                && !FKalmalaShimmeringLakeSampler::IsWater(Config, Position)
+                && FKalmalaTerrainHeightSampler::SampleSurfaceNormal(Config, Position).Z >= 0.82f;
         }
         if (OutArchetype == EKalmalaWildlifeArchetype::Badger
             || OutArchetype == EKalmalaWildlifeArchetype::MoonBear)
@@ -2249,6 +2258,12 @@ void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey)
         {
             Spawns.SetNum(FMath::Min(Spawns.Num(), FKalmalaBiomeExpansionContract::ApplyPopulationBudget(Spawns.Num(), Kind, KeyBiome)));
         }
+        const int32 WildlifeActorBudget = Kind != EKalmalaWorldPopulationKind::Wildlife ? 0
+            : (KeyBiome == EKalmalaBiome::FreezingTundra
+                ? FKalmalaWolfPackContract::GetActorBudgetWithPackRoom(
+                    FKalmalaBiomeExpansionContract::ApplyPopulationBudget(Spawns.Num(), Kind, KeyBiome))
+                : Spawns.Num());
+        int32 SpawnedWildlifeActorCount = 0;
         for (const FKalmalaWorldPopulationSpawn& Spawn : Spawns)
         {
             if (Kind == EKalmalaWorldPopulationKind::HarvestNode)
@@ -2294,11 +2309,75 @@ void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey)
                     continue;
                 }
 
+                if (Archetype == EKalmalaWildlifeArchetype::Wolf)
+                {
+                    if (SpawnedWildlifeActorCount + FKalmalaWolfPackContract::MemberCount > WildlifeActorBudget)
+                        continue;
+
+                    TArray<FKalmalaWorldPopulationSpawn> MemberSpawns;
+                    MemberSpawns.Reserve(FKalmalaWolfPackContract::MemberCount);
+                    bool bValidFormation = true;
+                    for (int32 MemberIndex = 0; MemberIndex < FKalmalaWolfPackContract::MemberCount; ++MemberIndex)
+                    {
+                        FKalmalaWorldPopulationSpawn MemberSpawn;
+                        if (!FKalmalaWolfPackContract::TryBuildMemberSpawn(
+                                WorldGenerationConfig, Spawn, MemberIndex, MemberSpawn))
+                        {
+                            bValidFormation = false;
+                            break;
+                        }
+                        MemberSpawns.Add(MoveTemp(MemberSpawn));
+                    }
+                    if (!bValidFormation || MemberSpawns.Num() != FKalmalaWolfPackContract::MemberCount) continue;
+
+                    TArray<AKalmalaWildlifeSpawn*> PackMembers;
+                    PackMembers.Reserve(FKalmalaWolfPackContract::MemberCount);
+                    for (int32 MemberIndex = 0; MemberIndex < MemberSpawns.Num(); ++MemberIndex)
+                    {
+                        const FString MemberSpawnId = FKalmalaWolfPackContract::GetMemberPersistentSpawnId(Spawn, MemberIndex);
+                        if (PopulationSaveGame != nullptr && PopulationSaveGame->IsDefeated(MemberSpawnId)) continue;
+
+                        FActorSpawnParameters SpawnParameters;
+                        SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+                        AKalmalaWildlifeSpawn* Member = GetWorld()->SpawnActor<AKalmalaWildlifeSpawn>(
+                            AKalmalaWildlifeSpawn::StaticClass(), MemberSpawns[MemberIndex].Location,
+                            FRotator::ZeroRotator, SpawnParameters);
+                        if (Member == nullptr)
+                        {
+                            bValidFormation = false;
+                            break;
+                        }
+                        Member->InitializeServer(MemberSpawns[MemberIndex], EKalmalaWildlifeArchetype::Wolf, MemberIndex);
+                        if (Member->GetPersistentSpawnId() != MemberSpawnId)
+                        {
+                            Member->Destroy();
+                            bValidFormation = false;
+                            break;
+                        }
+                        Member->OnDefeated.AddUObject(this, &AKalmalaGameMode::RecordDefeatedSpawn);
+                        PackMembers.Add(Member);
+                    }
+
+                    if (!bValidFormation)
+                    {
+                        for (AKalmalaWildlifeSpawn* Member : PackMembers)
+                            if (IsValid(Member)) Member->Destroy();
+                        continue;
+                    }
+
+                    SpawnedWildlifeActorCount += PackMembers.Num();
+                    SpawnedMarkerCount += PackMembers.Num();
+                    continue;
+                }
+
+                if (SpawnedWildlifeActorCount >= WildlifeActorBudget) continue;
+
                 AKalmalaWildlifeSpawn* WildlifeSpawn = GetWorld()->SpawnActor<AKalmalaWildlifeSpawn>(AKalmalaWildlifeSpawn::StaticClass(), Spawn.Location, FRotator::ZeroRotator);
                 if (WildlifeSpawn != nullptr)
                 {
                     WildlifeSpawn->InitializeServer(Spawn, Archetype);
                     WildlifeSpawn->OnDefeated.AddUObject(this, &AKalmalaGameMode::RecordDefeatedSpawn);
+                    ++SpawnedWildlifeActorCount;
                     ++SpawnedMarkerCount;
                 }
             }
@@ -2632,6 +2711,25 @@ bool AKalmalaGameMode::RecordPeatHuskDefeatReward(const FString& PersistentSpawn
         KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
 }
 
+bool AKalmalaGameMode::RecordWolfDefeatReward(const FString& PersistentSpawnId,
+    AKalmalaCharacter* CreditedAttacker)
+{
+    if (!HasAuthority() || PersistentSpawnId.IsEmpty() || PopulationSaveGame == nullptr
+        || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
+
+    if (IsValid(CreditedAttacker) && CreditedAttacker->HasAuthority()
+        && CreditedAttacker->GetWorld() == GetWorld() && CreditedAttacker->GetPlayerState() != nullptr)
+    {
+        const FString Identity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(CreditedAttacker->GetPlayerState());
+        if (!Identity.IsEmpty() && !PopulationSaveGame->TryQueuePendingWolfReward(PersistentSpawnId, Identity))
+            return false;
+    }
+
+    PopulationSaveGame->MarkDefeated(PersistentSpawnId);
+    return UGameplayStatics::SaveGameToSlot(PopulationSaveGame,
+        KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+}
+
 void AKalmalaGameMode::DeliverPendingWildlifeRewards()
 {
     if (!HasAuthority() || GetWorld() == nullptr || PopulationSaveGame == nullptr
@@ -2664,12 +2762,16 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
         const bool bPeatHuskReward =
             UKalmalaWorldPopulationSaveGame::TryGetPeatHuskSpawnIdFromPendingRewardClaimId(
                 Reward.PersistentSpawnId, PeatHuskSpawnId);
+        FString WolfSpawnId;
+        const bool bWolfReward = UKalmalaWorldPopulationSaveGame::TryGetWolfSpawnIdFromPendingRewardClaimId(
+            Reward.PersistentSpawnId, WolfSpawnId);
         const FString& DefeatedSpawnId = bBadgerReward ? BadgerSpawnId
             : (bMoonBearReward ? MoonBearSpawnId
                 : (bViperReward ? ViperSpawnId
                     : (bGiantSnakeReward ? GiantSnakeSpawnId
                         : (bDeathAdderReward ? DeathAdderSpawnId
-                            : (bPeatHuskReward ? PeatHuskSpawnId : Reward.PersistentSpawnId)))));
+                            : (bPeatHuskReward ? PeatHuskSpawnId
+                                : (bWolfReward ? WolfSpawnId : Reward.PersistentSpawnId))))));
         if (!PopulationSaveGame->IsDefeated(DefeatedSpawnId)) continue;
 
         for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
@@ -2694,7 +2796,8 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
             {
                 TArray<FKalmalaInventoryStack> WithBone;
                 TArray<FKalmalaInventoryStack> WithBadgerFur;
-                const int32 BoneFragmentQuantity = bMoonBearReward ? 3 : (bGiantSnakeReward ? 2 : 1);
+                const int32 BoneFragmentQuantity = bMoonBearReward ? 3
+                    : ((bGiantSnakeReward || bWolfReward) ? 2 : 1);
                 if (!UKalmalaInventoryComponent::BuildGrant(
                         Before, TEXT("BoneFragment"), BoneFragmentQuantity, WithBone, Reason)) break;
                 if (bBadgerReward)
@@ -2705,7 +2808,7 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
                             WithBadgerFur, TEXT("BadgerMeat"), 1, WithBadgerMeat, Reason)) break;
                     Candidate = MoveTemp(WithBadgerMeat);
                 }
-                else if (bMoonBearReward || bViperReward || bGiantSnakeReward || bDeathAdderReward)
+                else if (bMoonBearReward || bViperReward || bGiantSnakeReward || bDeathAdderReward || bWolfReward)
                 {
                     Candidate = MoveTemp(WithBone);
                 }

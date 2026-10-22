@@ -83,7 +83,8 @@ public:
     AKalmalaWildlifeSpawn();
 
     void InitializeServer(const FKalmalaWorldPopulationSpawn& Spawn);
-    void InitializeServer(const FKalmalaWorldPopulationSpawn& Spawn, EKalmalaWildlifeArchetype InitialArchetype);
+    void InitializeServer(const FKalmalaWorldPopulationSpawn& Spawn, EKalmalaWildlifeArchetype InitialArchetype,
+        int32 WolfPackMemberIndex = 0);
     static bool IsDefeatAllowed(bool bServerAuthority, bool bAlreadyDefeated);
     static bool IsDeerSinewDropSuccessful(float ServerRoll);
     bool DefeatServer();
@@ -139,6 +140,14 @@ public:
     static constexpr float BadgerSpawnLeashCentimetres = 2500.0f;
     static constexpr float BadgerApproachSpeedCentimetresPerSecond = 170.0f;
     static bool IsBadgerClawInReach(bool bServerAuthority, bool bValidTarget, float DistanceCentimetres);
+    static constexpr float WolfAttackTriggerCentimetres = 300.0f;
+    static constexpr float WolfBiteReachCentimetres = 180.0f;
+    static constexpr float WolfTelegraphSeconds = 0.5f;
+    static constexpr float WolfLungeSeconds = 0.12f;
+    static constexpr float WolfRecoverySeconds = 0.8f;
+    static constexpr float WolfSpawnLeashCentimetres = 2500.0f;
+    static constexpr float WolfApproachSpeedCentimetresPerSecond = 170.0f;
+    static bool IsWolfBiteInReach(bool bServerAuthority, bool bValidTarget, float DistanceCentimetres);
     static constexpr float MoonBearAttackTriggerCentimetres = 300.0f;
     static constexpr float MoonBearPawReachCentimetres = 220.0f;
     static constexpr float MoonBearTelegraphSeconds = 1.0f;
@@ -191,6 +200,13 @@ private:
     bool TryApplyBadgerClaw(class AKalmalaCharacter* Target);
     bool IsBadgerPositionDry(const FVector& Position) const;
     bool CanBadgerMoveAlong(const FVector& Start, const FVector& End) const;
+    void UpdateWolfAttack(float DeltaSeconds);
+    void BeginWolfAttack(class AKalmalaCharacter* Target);
+    void SetWolfAttackCue(EKalmalaWildlifeAttackCue NextCue);
+    bool IsWolfAttackTargetValid(const class AKalmalaCharacter* Target) const;
+    bool TryApplyWolfBite(class AKalmalaCharacter* Target);
+    bool IsWolfPositionTraversable(const FVector& Position) const;
+    bool CanWolfMoveAlong(const FVector& Start, const FVector& End) const;
     void UpdateMoonBearAttack(float DeltaSeconds);
     void BeginMoonBearAttack(class AKalmalaCharacter* Target);
     void SetMoonBearAttackCue(EKalmalaWildlifeAttackCue NextCue);
@@ -251,6 +267,9 @@ private:
     UPROPERTY(ReplicatedUsing = OnRep_BadgerAttackCue)
     uint8 BadgerAttackCue = static_cast<uint8>(EKalmalaWildlifeAttackCue::None);
 
+    UPROPERTY(ReplicatedUsing = OnRep_WolfAttackCue)
+    uint8 WolfAttackCue = static_cast<uint8>(EKalmalaWildlifeAttackCue::None);
+
     UPROPERTY(ReplicatedUsing = OnRep_MoonBearAttackCue)
     uint8 MoonBearAttackCue = static_cast<uint8>(EKalmalaWildlifeAttackCue::None);
 
@@ -274,6 +293,9 @@ private:
 
     UFUNCTION()
     void OnRep_BadgerAttackCue();
+
+    UFUNCTION()
+    void OnRep_WolfAttackCue();
 
     UFUNCTION()
     void OnRep_MoonBearAttackCue();
@@ -300,6 +322,10 @@ private:
     TWeakObjectPtr<class AKalmalaCharacter> RatAttackTarget;
     float BadgerAttackSecondsRemaining = 0.0f;
     TWeakObjectPtr<class AKalmalaCharacter> BadgerAttackTarget;
+    float WolfAttackSecondsRemaining = 0.0f;
+    float WolfLungeDistanceRemaining = 0.0f;
+    FVector WolfLungeDirection = FVector::ForwardVector;
+    TWeakObjectPtr<class AKalmalaCharacter> WolfAttackTarget;
     float MoonBearAttackSecondsRemaining = 0.0f;
     TWeakObjectPtr<class AKalmalaCharacter> MoonBearAttackTarget;
     float PeatHuskAttackSecondsRemaining = 0.0f;

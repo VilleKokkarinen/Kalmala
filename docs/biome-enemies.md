@@ -27,7 +27,9 @@ its server-owned coiled bite applies non-stacking major poison and its credited
 Bone Fragment is owner-bound. Mosquito swarm now occupies a separate 20% share
 with bounded server flight, persistent contact bites, weak poison, and active
 fire/dodge counterplay. Peat Husk fills the final 10% hard slot and queues its
-baseline Amber for the credited owner.
+baseline Amber for the credited owner. Wolf occupies its two deterministic
+Freezing Tundra candidate slots and spawns as a three-member pack in a stable
+triangle; each member has its own defeat and owner-bound two-Bone claim.
 
 | Enemy               | Biome                                  | Status           | HP   | Armor | Attack       | Abilities / counters                |
 | ------------------- | -------------------------------------- | ---------------- | ---: | ----: | ------------ | ----------------------------------- |
@@ -42,7 +44,7 @@ baseline Amber for the credited owner.
 | Death Adder         | Mossy Mire                             | Partial          |  125 |   20  | 75 Stab      | 20% dry-ground slots; close coiled bite; major poison: 5/s, 10 s; queued Bone Fragment; I4 pending |
 | Mosquito swarm      | Mossy Mire                             | Partial          |  25  |   0   | 5 Stab/0.2 s | 20% dry-ground slots; one swarm per target; poison 1/s for 10 s; dodge/fire repel; I4 pending |
 | Peat Husk           | Mossy Mire                             | Partial          |  300 |   50  | 150 Crush    | 10% dry-ground hard slot; 260 cm/120° sweep; 1 s warning; 1.2 s recovery; queued Amber; I4 pending |
-| Wolf                | Freezing Tundra                        | Planned          |  250 |   40  | 100 Slash    | Pursuit; lunging bite               |
+| Wolf                | Freezing Tundra                        | Partial          |  250 |   40  | 100 Slash    | 20% dry-ground slots; three-member pack; 180 cm lunge bite; queued 2 Bone Fragment; I4 pending |
 | Lynx                | Freezing Tundra                        | Planned          |  150 |   30  | 75 Slash     | Leap at player                      |
 | Polar Bear          | Freezing Tundra                        | Planned          |  750 |   60  | 200 Crush    | Committed charge                    |
 | Horned Goat         | Thunder Mountains                      | Planned          |  200 |   50  | 50 Crush     | Territorial horn charge, push + stagger |
@@ -321,8 +323,10 @@ and original inventory icons before implementation; the uses are not recipes.
 - Freezing Tundra uses 50% existing eligible roster / 20% Wolf / 20% Lynx /
   10% Polar Bear. Elderwood uses Badger for its 40% common share. Wolves spawn
   only in Freezing Tundra, never Elderwood; each Wolf pack has three Wolves.
-  Count every pack member against the existing actor budget. Pack selection
-  and formation remain engine implementation work.
+  The Tundra per-key wildlife actor cap has a floor of three to fit one Wolf
+  pack. Count each living pack member against that cap and skip a pack that
+  cannot fit completely. Wolf selection and formation are implemented; the
+  remaining Tundra candidate shares stay empty until their species are enabled.
 - Ocean: use 10% of eligible aquatic candidate slots for Reef Maw; others
   stay empty. This task is blocked until aquatic navigation, combat and reward
   support are approved. It targets swimmers, never skiff hulls or occupants.
@@ -384,6 +388,27 @@ and original inventory icons before implementation; the uses are not recipes.
 - Occupy the existing Lakes 10% hard-enemy share, within normal spawn budgets,
   25 m leash and dry-ground rules. No deep-water pursuit. Verify body collision,
   readable bite timing, server hit validation and peer appearance.
+
+## Freezing Tundra Wolf
+
+- Wolf occupies exactly two of each ten deterministic Tundra candidate slots;
+  the other current Tundra shares remain empty. A Wolf candidate creates three
+  actors in a seed-rotated triangle with a 240 cm radius. All three positions
+  must remain in dry, traversable Freezing Tundra. Stable member suffixes keep
+  defeat state and reward claims independent across reloads.
+- The server acquires a target within 3 m, pursues only while both Wolf and
+  target stay within 25 m of the pack member's spawn anchor, and returns home
+  when its target is lost. Approach speed is 170 cm/s. It warns for the common
+  0.5 s, then visibly lunges for up to 180 cm and applies one 100-Slash bite
+  only if line of sight and the user-reviewed 180 cm impact reach still pass.
+  The attack recovers for 0.8 s. Invalid targets, blocked routes, water and
+  biome-boundary crossings prevent movement or damage.
+- Each defeated member queues two Bone Fragments for its authenticated
+  attacker in the existing population-save escrow. Full inventories retain
+  the claim for retry. Wolf Pelt, Wolf Fang, and Wolf Meat drops stay disabled
+  until their separate A8b source tasks are complete. Validate host/client
+  appearance, pack cap/partial saved packs, attack rejection, full-pack retry,
+  reconnect and restart in combined I4.
 
 ## Viper poison
 

@@ -2470,6 +2470,20 @@ reconnect/restart or relevant-peer acceptance. Peat Heart remains disabled
 pending its separate A8b item/source work. No Unreal build or automation
 execution ran in this normal increment; combined A8a/A8b I4 remains required.
 
+## Freezing Tundra Wolf pack contract regression
+
+After an editor build, run
+`Kalmala.Gameplay.Wildlife.Wolf.TundraPackLungeAndRewardClaim` and
+`Kalmala.Gameplay.Presentation.SurfaceWinding`. The Wolf contract checks the
+20% exclusive Tundra slot, the deliberately empty unimplemented Tundra shares,
+the user-reviewed 180 cm server-only bite boundary, common warning/recovery
+timings, stable three-member formation offsets and IDs, the 25 m leash, and
+owner-bound two-Bone-Fragment claim serialization/cleanup. It does not replace
+live formation habitat/cap validation, attack rejection, full-pack retry,
+reconnect/restart, or relevant-peer acceptance. Wolf Pelt, Wolf Fang, and Wolf
+Meat remain disabled pending A8b. No Unreal build or automation execution ran
+in this normal increment; combined A8a/A8b I4 remains required.
+
 ## Exposure inspection
 
 Launch a listen server with `-KalmalaExposureInspection` to log server-sampled terrain and field inputs plus the active replicated weather values and provisional exposure state. Once a player joins, the output includes continuous low-ground wetness, deterministic lake-adjacency shoreline wetness, ridge/slope wind exposure, Flora-derived natural cover, and server-traced roof/windbreak shelter inputs. Player-built collision geometry must carry `KalmalaShelterRoof` or `KalmalaShelterWindbreak`; authored volumes and client trace results are ignored. The weather cycle is selected and advanced only by the server. Every second, the server replicates actual wetness, warmth, and the resulting 69–100% Character Movement travel multiplier; shelter dries and restores warmth slowly when dry, while a nearby lit fire accelerates recovery.

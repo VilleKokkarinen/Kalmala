@@ -12,6 +12,7 @@
 #include "KalmalaWorldFieldSampler.h"
 #include "KalmalaShimmeringLakeSampler.h"
 #include "KalmalaOceanSampler.h"
+#include "KalmalaWolfPackContract.h"
 #include "KalmalaTerrainHeightSampler.h"
 #include "EngineUtils.h"
 #include "ProceduralMeshComponent.h"
@@ -184,7 +185,7 @@ void AKalmalaWildlifeSpawn::InitializeServer(const FKalmalaWorldPopulationSpawn&
 }
 
 void AKalmalaWildlifeSpawn::InitializeServer(const FKalmalaWorldPopulationSpawn& Spawn,
-    const EKalmalaWildlifeArchetype InitialArchetype)
+    const EKalmalaWildlifeArchetype InitialArchetype, const int32 WolfPackMemberIndex)
 {
     if (HasAuthority())
     {
@@ -194,6 +195,11 @@ void AKalmalaWildlifeSpawn::InitializeServer(const FKalmalaWorldPopulationSpawn&
         PersistentSpawnId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Spawn);
         CreatureNicheId = Spawn.ContentId;
         Archetype = InitialArchetype;
+        if (Archetype == EKalmalaWildlifeArchetype::Wolf)
+        {
+            PersistentSpawnId = FKalmalaWolfPackContract::GetMemberPersistentSpawnId(Spawn, WolfPackMemberIndex);
+            if (PersistentSpawnId.IsEmpty()) return;
+        }
         SnakeAttackCue = static_cast<uint8>(EKalmalaWildlifeAttackCue::None);
         SnakeAttackTarget.Reset();
         SnakeAttackSecondsRemaining = 0.0f;
@@ -207,6 +213,10 @@ void AKalmalaWildlifeSpawn::InitializeServer(const FKalmalaWorldPopulationSpawn&
         MoonBearAttackCue = static_cast<uint8>(EKalmalaWildlifeAttackCue::None);
         MoonBearAttackTarget.Reset();
         MoonBearAttackSecondsRemaining = 0.0f;
+        WolfAttackCue = static_cast<uint8>(EKalmalaWildlifeAttackCue::None);
+        WolfAttackTarget.Reset();
+        WolfAttackSecondsRemaining = 0.0f;
+        WolfLungeDistanceRemaining = 0.0f;
         Health = GetMaximumHealthForArchetype(Archetype);
         if (Archetype == EKalmalaWildlifeArchetype::MosquitoSwarm)
         {
@@ -282,6 +292,13 @@ bool AKalmalaWildlifeSpawn::IsBadgerClawInReach(const bool bServerAuthority, con
         && DistanceCentimetres >= 0.0f && DistanceCentimetres <= BadgerClawReachCentimetres;
 }
 
+bool AKalmalaWildlifeSpawn::IsWolfBiteInReach(const bool bServerAuthority, const bool bValidTarget,
+    const float DistanceCentimetres)
+{
+    return bServerAuthority && bValidTarget && FMath::IsFinite(DistanceCentimetres)
+        && DistanceCentimetres >= 0.0f && DistanceCentimetres <= WolfBiteReachCentimetres;
+}
+
 bool AKalmalaWildlifeSpawn::IsMoonBearPawInReach(const bool bServerAuthority, const bool bValidTarget,
     const float DistanceCentimetres)
 {
@@ -351,6 +368,7 @@ int32 AKalmalaWildlifeSpawn::GetBoneFragmentRewardQuantity(const EKalmalaWildlif
     case EKalmalaWildlifeArchetype::Viper: return 1;
     case EKalmalaWildlifeArchetype::GiantSnake: return 2;
     case EKalmalaWildlifeArchetype::MoonBear: return 3;
+    case EKalmalaWildlifeArchetype::Wolf: return 2;
     default: return 0;
     }
 }
@@ -391,6 +409,13 @@ bool AKalmalaWildlifeSpawn::DefeatServer()
         AKalmalaGameMode* Mode = GetWorld() != nullptr
             ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
         if (Mode == nullptr || !Mode->RecordMoonBearDefeatReward(
+                PersistentSpawnId, LastValidatedAttacker.Get())) return false;
+    }
+    else if (Archetype == EKalmalaWildlifeArchetype::Wolf)
+    {
+        AKalmalaGameMode* Mode = GetWorld() != nullptr
+            ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
+        if (Mode == nullptr || !Mode->RecordWolfDefeatReward(
                 PersistentSpawnId, LastValidatedAttacker.Get())) return false;
     }
     else if (Archetype == EKalmalaWildlifeArchetype::PeatHusk)
@@ -478,6 +503,13 @@ bool AKalmalaWildlifeSpawn::ApplyValidatedDamageFromServer(const FKalmalaDamageC
         BadgerAttackTarget = Attacker;
         BadgerAttackSecondsRemaining = 0.0f;
         SetBadgerAttackCue(EKalmalaWildlifeAttackCue::None);
+    }
+    else if (Archetype == EKalmalaWildlifeArchetype::Wolf && Attacker != nullptr)
+    {
+        WolfAttackTarget = Attacker;
+        WolfAttackSecondsRemaining = 0.0f;
+        WolfLungeDistanceRemaining = 0.0f;
+        SetWolfAttackCue(EKalmalaWildlifeAttackCue::None);
     }
     else if (Archetype == EKalmalaWildlifeArchetype::MoonBear && Attacker != nullptr)
     {
@@ -654,6 +686,13 @@ bool AKalmalaWildlifeSpawn::TryGetSpawnArchetypeForBiome(const uint64 SpawnSeed,
         return true;
     }
 
+    // The other Freezing Tundra shares remain empty until their enemies are implemented.
+    if (Biome == EKalmalaBiome::FreezingTundra && (Slot == 5 || Slot == 6))
+    {
+        OutArchetype = EKalmalaWildlifeArchetype::Wolf;
+        return true;
+    }
+
     // Unsupported biomes produce no wildlife candidates.
     return false;
 }
@@ -688,6 +727,7 @@ void AKalmalaWildlifeSpawn::Tick(const float DeltaSeconds)
         else if (Archetype == EKalmalaWildlifeArchetype::Boar) UpdateBoarTerritory(DeltaSeconds);
         else if (Archetype == EKalmalaWildlifeArchetype::Rat) UpdateRatAttack(DeltaSeconds);
         else if (Archetype == EKalmalaWildlifeArchetype::Badger) UpdateBadgerAttack(DeltaSeconds);
+        else if (Archetype == EKalmalaWildlifeArchetype::Wolf) UpdateWolfAttack(DeltaSeconds);
         else if (Archetype == EKalmalaWildlifeArchetype::MoonBear) UpdateMoonBearAttack(DeltaSeconds);
         else if (Archetype == EKalmalaWildlifeArchetype::PeatHusk) UpdatePeatHuskAttack(DeltaSeconds);
         else if (Archetype == EKalmalaWildlifeArchetype::Viper
@@ -1095,6 +1135,224 @@ bool AKalmalaWildlifeSpawn::CanBadgerMoveAlong(const FVector& Start, const FVect
     {
         const FVector Position = FMath::Lerp(Start, End, static_cast<float>(Index) / Samples);
         if (!IsBadgerPositionDry(Position)) return false;
+    }
+    return true;
+}
+
+void AKalmalaWildlifeSpawn::UpdateWolfAttack(const float DeltaSeconds)
+{
+    if (Behaviour != EKalmalaWildlifeBehaviour::Idle || GetWorld() == nullptr) return;
+    const float StepSeconds = FMath::Clamp(FMath::IsFinite(DeltaSeconds) ? DeltaSeconds : 0.0f, 0.0f, 0.10f);
+    EKalmalaWildlifeAttackCue Cue = static_cast<EKalmalaWildlifeAttackCue>(WolfAttackCue);
+    AKalmalaCharacter* Target = WolfAttackTarget.Get();
+
+    if (Cue != EKalmalaWildlifeAttackCue::None && !IsWolfAttackTargetValid(Target))
+    {
+        WolfAttackTarget.Reset();
+        WolfAttackSecondsRemaining = 0.0f;
+        WolfLungeDistanceRemaining = 0.0f;
+        SetWolfAttackCue(EKalmalaWildlifeAttackCue::None);
+        Cue = EKalmalaWildlifeAttackCue::None;
+        Target = nullptr;
+    }
+    else if (Target != nullptr && !IsWolfAttackTargetValid(Target))
+    {
+        WolfAttackTarget.Reset();
+        WolfAttackSecondsRemaining = 0.0f;
+        Target = nullptr;
+    }
+
+    if (Cue == EKalmalaWildlifeAttackCue::None && Target == nullptr)
+    {
+        float BestDistanceSquared = FMath::Square(WolfAttackTriggerCentimetres);
+        for (TActorIterator<AKalmalaCharacter> It(GetWorld()); It; ++It)
+        {
+            AKalmalaCharacter* Candidate = *It;
+            if (!IsWolfAttackTargetValid(Candidate)) continue;
+            const float DistanceSquared = FVector::DistSquared2D(GetActorLocation(), Candidate->GetActorLocation());
+            if (DistanceSquared < BestDistanceSquared)
+            {
+                BestDistanceSquared = DistanceSquared;
+                Target = Candidate;
+            }
+        }
+        if (Target != nullptr) WolfAttackTarget = Target;
+    }
+
+    if (Target == nullptr)
+    {
+        const FVector ToHome = SpawnOrigin - GetActorLocation();
+        if (ToHome.SizeSquared2D() > FMath::Square(15.0f))
+        {
+            FVector End = FMath::VInterpConstantTo(GetActorLocation(), SpawnOrigin, StepSeconds,
+                WolfApproachSpeedCentimetresPerSecond);
+            if (const AKalmalaWorldGenerationGameState* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>())
+                End.Z = FKalmalaTerrainHeightSampler::SampleHeight(State->GetWorldGenerationConfig(), FVector2D(End));
+            if (CanWolfMoveAlong(GetActorLocation(), End)) SetActorLocation(End, true);
+        }
+        return;
+    }
+
+    FVector ToTarget = Target->GetActorLocation() - GetActorLocation();
+    const float HorizontalBiteReach = FMath::Sqrt(FMath::Max(0.0f,
+        FMath::Square(WolfBiteReachCentimetres) - FMath::Square(ToTarget.Z)));
+    const float ApproachStopDistance = Cue == EKalmalaWildlifeAttackCue::None
+        ? WolfAttackTriggerCentimetres : HorizontalBiteReach;
+    const bool bPursuing = Cue == EKalmalaWildlifeAttackCue::None
+        || Cue == EKalmalaWildlifeAttackCue::Telegraph
+        || Cue == EKalmalaWildlifeAttackCue::Recovery;
+    if (bPursuing && ToTarget.Size2D() > ApproachStopDistance)
+    {
+        const FVector Direction = ToTarget.GetSafeNormal2D();
+        if (!Direction.IsNearlyZero()) SetActorRotation(FRotationMatrix::MakeFromX(Direction).Rotator());
+        const float MoveDistance = FMath::Min(WolfApproachSpeedCentimetresPerSecond * StepSeconds,
+            ToTarget.Size2D() - ApproachStopDistance);
+        FVector End = GetActorLocation() + Direction * MoveDistance;
+        if (const AKalmalaWorldGenerationGameState* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>())
+            End.Z = FKalmalaTerrainHeightSampler::SampleHeight(State->GetWorldGenerationConfig(), FVector2D(End));
+        if (CanWolfMoveAlong(GetActorLocation(), End)) SetActorLocation(End, true);
+        ToTarget = Target->GetActorLocation() - GetActorLocation();
+    }
+
+    if (Cue == EKalmalaWildlifeAttackCue::Telegraph)
+    {
+        WolfAttackSecondsRemaining -= StepSeconds;
+        if (WolfAttackSecondsRemaining <= 0.0f)
+        {
+            WolfLungeDirection = (Target->GetActorLocation() - GetActorLocation()).GetSafeNormal2D();
+            if (WolfLungeDirection.IsNearlyZero())
+            {
+                WolfAttackTarget.Reset();
+                SetWolfAttackCue(EKalmalaWildlifeAttackCue::None);
+                return;
+            }
+            SetActorRotation(FRotationMatrix::MakeFromX(WolfLungeDirection).Rotator());
+            WolfLungeDistanceRemaining = WolfBiteReachCentimetres;
+            WolfAttackSecondsRemaining = WolfLungeSeconds;
+            SetWolfAttackCue(EKalmalaWildlifeAttackCue::Lunge);
+        }
+    }
+    else if (Cue == EKalmalaWildlifeAttackCue::Lunge)
+    {
+        const float HorizontalDistance = FVector::Dist2D(GetActorLocation(), Target->GetActorLocation());
+        const float VerticalDistance = Target->GetActorLocation().Z - GetActorLocation().Z;
+        const float HorizontalImpactReach = FMath::Sqrt(FMath::Max(0.0f,
+            FMath::Square(WolfBiteReachCentimetres) - FMath::Square(VerticalDistance)));
+        const float MoveDistance = FMath::Min3(WolfLungeDistanceRemaining,
+            FMath::Max(0.0f, HorizontalDistance - HorizontalImpactReach),
+            WolfBiteReachCentimetres * StepSeconds / WolfLungeSeconds);
+        if (MoveDistance > 0.0f)
+        {
+            FVector End = GetActorLocation() + WolfLungeDirection * MoveDistance;
+            if (const AKalmalaWorldGenerationGameState* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>())
+                End.Z = FKalmalaTerrainHeightSampler::SampleHeight(State->GetWorldGenerationConfig(), FVector2D(End));
+            if (CanWolfMoveAlong(GetActorLocation(), End))
+            {
+                SetActorLocation(End, true);
+                WolfLungeDistanceRemaining -= MoveDistance;
+            }
+            else
+            {
+                WolfLungeDistanceRemaining = 0.0f;
+            }
+        }
+        WolfAttackSecondsRemaining -= StepSeconds;
+        if (WolfAttackSecondsRemaining <= 0.0f)
+        {
+            TryApplyWolfBite(Target);
+            WolfAttackSecondsRemaining = WolfRecoverySeconds;
+            WolfLungeDistanceRemaining = 0.0f;
+            SetWolfAttackCue(EKalmalaWildlifeAttackCue::Recovery);
+        }
+    }
+    else if (Cue == EKalmalaWildlifeAttackCue::Recovery)
+    {
+        WolfAttackSecondsRemaining -= StepSeconds;
+        if (WolfAttackSecondsRemaining <= 0.0f)
+        {
+            WolfAttackSecondsRemaining = 0.0f;
+            SetWolfAttackCue(EKalmalaWildlifeAttackCue::None);
+        }
+    }
+    else if (FVector::Dist2D(GetActorLocation(), Target->GetActorLocation()) <= WolfAttackTriggerCentimetres)
+    {
+        BeginWolfAttack(Target);
+    }
+}
+
+void AKalmalaWildlifeSpawn::BeginWolfAttack(AKalmalaCharacter* Target)
+{
+    if (!HasAuthority() || bDefeated || !IsWolfAttackTargetValid(Target)
+        || FVector::DistSquared2D(GetActorLocation(), Target->GetActorLocation())
+            > FMath::Square(WolfAttackTriggerCentimetres)) return;
+
+    const FVector Direction = (Target->GetActorLocation() - GetActorLocation()).GetSafeNormal2D();
+    if (Direction.IsNearlyZero()) return;
+    SetActorRotation(FRotationMatrix::MakeFromX(Direction).Rotator());
+    WolfAttackTarget = Target;
+    WolfAttackSecondsRemaining = WolfTelegraphSeconds;
+    SetWolfAttackCue(EKalmalaWildlifeAttackCue::Telegraph);
+}
+
+void AKalmalaWildlifeSpawn::SetWolfAttackCue(const EKalmalaWildlifeAttackCue NextCue)
+{
+    if (!HasAuthority()) return;
+    const uint8 NextValue = static_cast<uint8>(NextCue);
+    if (WolfAttackCue == NextValue) return;
+    WolfAttackCue = NextValue;
+    BuildArchetypePresentation();
+    ForceNetUpdate();
+}
+
+bool AKalmalaWildlifeSpawn::IsWolfAttackTargetValid(const AKalmalaCharacter* Target) const
+{
+    if (!HasAuthority() || bDefeated || GetWorld() == nullptr || !IsValid(Target)
+        || !Target->HasAuthority() || Target->GetWorld() != GetWorld()
+        || !FMath::IsFinite(Target->GetHealth()) || Target->GetHealth() <= 1.0f
+        || FVector::DistSquared2D(Target->GetActorLocation(), SpawnOrigin) > FMath::Square(WolfSpawnLeashCentimetres)
+        || FVector::DistSquared2D(GetActorLocation(), SpawnOrigin) > FMath::Square(WolfSpawnLeashCentimetres)
+        || !CanWolfMoveAlong(GetActorLocation(), Target->GetActorLocation())) return false;
+
+    FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(KalmalaWolfBiteVisibility), true);
+    QueryParams.AddIgnoredActor(this);
+    FHitResult Blocker;
+    const FVector Start = GetActorLocation() + FVector(0.0f, 0.0f, 45.0f);
+    const FVector End = Target->GetActorLocation() + FVector(0.0f, 0.0f, 48.0f);
+    return !GetWorld()->LineTraceSingleByChannel(Blocker, Start, End, ECC_Visibility, QueryParams)
+        || Blocker.GetActor() == Target;
+}
+
+bool AKalmalaWildlifeSpawn::TryApplyWolfBite(AKalmalaCharacter* Target)
+{
+    if (!IsWolfAttackTargetValid(Target)
+        || !IsWolfBiteInReach(HasAuthority(), true, FVector::Dist(GetActorLocation(), Target->GetActorLocation())))
+        return false;
+    return Target->ApplyWildlifeDamageFromServer(this, GetBaseAttackChannelsForArchetype(Archetype));
+}
+
+bool AKalmalaWildlifeSpawn::IsWolfPositionTraversable(const FVector& Position) const
+{
+    if (Position.ContainsNaN() || GetWorld() == nullptr) return false;
+    const AKalmalaWorldGenerationGameState* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
+    if (State == nullptr) return false;
+    const FKalmalaWorldGenerationConfig& Config = State->GetWorldGenerationConfig();
+    const FVector2D XY(Position);
+    return FKalmalaWorldBounds::Contains(Config, XY)
+        && FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, XY))
+            == EKalmalaBiome::FreezingTundra
+        && !FKalmalaOceanSampler::Sample(Config, XY).IsWater()
+        && !FKalmalaShimmeringLakeSampler::IsWater(Config, XY)
+        && FKalmalaTerrainHeightSampler::SampleSurfaceNormal(Config, XY).Z >= 0.82f;
+}
+
+bool AKalmalaWildlifeSpawn::CanWolfMoveAlong(const FVector& Start, const FVector& End) const
+{
+    const float Distance = FVector::Dist2D(Start, End);
+    const int32 Samples = FMath::Max(1, FMath::CeilToInt(Distance / 80.0f));
+    for (int32 Index = 0; Index <= Samples; ++Index)
+    {
+        const FVector Position = FMath::Lerp(Start, End, static_cast<float>(Index) / Samples);
+        if (!IsWolfPositionTraversable(Position)) return false;
     }
     return true;
 }
@@ -2215,6 +2473,72 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
                 FVector(140,Side * 14.0f,81), FVector(137,Side * 11.0f,83), Eye);
         }
     }
+    else if (Archetype == EKalmalaWildlifeArchetype::Wolf)
+    {
+        const EKalmalaWildlifeAttackCue Cue = static_cast<EKalmalaWildlifeAttackCue>(WolfAttackCue);
+        const bool bTelegraph = Cue == EKalmalaWildlifeAttackCue::Telegraph;
+        const bool bLunging = Cue == EKalmalaWildlifeAttackCue::Lunge;
+        const FLinearColor WinterCoat(0.39f, 0.43f, 0.44f);
+        const FLinearColor Mantle(0.20f, 0.24f, 0.25f);
+        const FLinearColor Throat(0.73f, 0.75f, 0.70f);
+        const FLinearColor Muzzle(0.58f, 0.61f, 0.58f);
+        const FLinearColor Paw(0.16f, 0.18f, 0.18f);
+        const FLinearColor Eye(0.92f, 0.64f, 0.20f);
+        const float HeadX = bLunging ? 153.0f : 132.0f;
+        const float HeadZ = bTelegraph ? 83.0f : (bLunging ? 43.0f : 68.0f);
+
+        // Long muzzle, high shoulders, winter mantle, and bushy tail give the Tundra predator
+        // a distinct four-legged silhouette. Telegraph and lunge cues change its readable pose.
+        AddTetraPoints(FVector(-102,-42,13), FVector(-102,42,13), FVector(45,-41,20),
+            FVector(-31,0,bTelegraph ? 91.0f : 80.0f), WinterCoat);
+        AddTetraPoints(FVector(-63,-35,31), FVector(-63,35,31), FVector(19,-32,41),
+            FVector(-26,0,bTelegraph ? 111.0f : 96.0f), Mantle);
+        AddTetraPoints(FVector(7,-30,32), FVector(7,30,32), FVector(75,-22,37),
+            FVector(48,0,bTelegraph ? 88.0f : (bLunging ? 49.0f : 74.0f)), WinterCoat);
+        AddTetraPoints(FVector(44,-23,48), FVector(44,23,48), FVector(HeadX - 19.0f,-15,HeadZ + 6.0f),
+            FVector(HeadX - 19.0f,15,HeadZ + 6.0f), Throat);
+        AddTetraPoints(FVector(HeadX - 30.0f,-17,HeadZ), FVector(HeadX - 30.0f,17,HeadZ),
+            FVector(HeadX + 7.0f,-12,HeadZ - 12.0f), FVector(HeadX + 7.0f,12,HeadZ - 12.0f), Muzzle);
+        AddTetraPoints(FVector(HeadX + 2.0f,-12,HeadZ - 13.0f), FVector(HeadX + 2.0f,12,HeadZ - 13.0f),
+            FVector(HeadX + 28.0f,-7,HeadZ - 14.0f), FVector(HeadX + 28.0f,7,HeadZ - 14.0f), Paw);
+
+        for (const float Side : {-1.0f, 1.0f})
+        {
+            for (const float LegX : {-60.0f, 34.0f})
+            {
+                const bool bFrontLeg = LegX > 0.0f;
+                const bool bRaised = bTelegraph && bFrontLeg && Side < 0.0f;
+                const float FootX = bLunging && bFrontLeg ? LegX + 42.0f : LegX + (bRaised ? 23.0f : 8.0f);
+                const float FootZ = bRaised ? -12.0f : -58.0f;
+                AddTetraPoints(FVector(LegX - 12.0f,Side * 21.0f,31), FVector(LegX + 10.0f,Side * 34.0f,29),
+                    FVector(FootX - 12.0f,Side * 23.0f,-10), FVector(FootX + 8.0f,Side * 31.0f,-12),
+                    bFrontLeg ? WinterCoat : Mantle);
+                AddTetraPoints(FVector(FootX - 13.0f,Side * 22.0f,FootZ + 13.0f),
+                    FVector(FootX - 1.0f,Side * 32.0f,FootZ + 12.0f),
+                    FVector(FootX + 12.0f,Side * 24.0f,FootZ), FVector(FootX + 9.0f,Side * 34.0f,FootZ + 3.0f), Paw);
+            }
+
+            AddTetraPoints(FVector(HeadX - 27.0f,Side * 10.0f,HeadZ + 4.0f),
+                FVector(HeadX - 18.0f,Side * 17.0f,HeadZ + 7.0f),
+                FVector(HeadX - 47.0f,Side * 18.0f,HeadZ + 37.0f),
+                FVector(HeadX - 57.0f,Side * 15.0f,HeadZ + 25.0f), Mantle);
+            AddTetraPoints(FVector(HeadX - 11.0f,Side * 12.0f,HeadZ + 7.0f),
+                FVector(HeadX - 4.0f,Side * 16.0f,HeadZ + 8.0f),
+                FVector(HeadX + 2.0f,Side * 15.0f,HeadZ + 11.0f),
+                FVector(HeadX,Side * 12.0f,HeadZ + 14.0f), Eye);
+        }
+
+        AddTetraPoints(FVector(-91,-9,24), FVector(-91,9,24), FVector(-130,-15,27),
+            FVector(-135,15,26), Mantle);
+        AddTetraPoints(FVector(-130,-15,27), FVector(-135,15,26), FVector(-158,-13,20),
+            FVector(-165,13,18), WinterCoat);
+        if (bTelegraph)
+        {
+            // The lifted paw and raised muzzle communicate the shared half-second warning.
+            AddTetraPoints(FVector(HeadX + 7.0f,-5,HeadZ - 19.0f), FVector(HeadX + 7.0f,5,HeadZ - 19.0f),
+                FVector(HeadX + 24.0f,-4,HeadZ - 28.0f), FVector(HeadX + 24.0f,4,HeadZ - 28.0f), Paw);
+        }
+    }
     else if (bSnake)
     {
         const bool bGiant = Archetype == EKalmalaWildlifeArchetype::GiantSnake;
@@ -2451,6 +2775,7 @@ void AKalmalaWildlifeSpawn::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
     DOREPLIFETIME(AKalmalaWildlifeSpawn, SnakeAttackCue);
     DOREPLIFETIME(AKalmalaWildlifeSpawn, RatAttackCue);
     DOREPLIFETIME(AKalmalaWildlifeSpawn, BadgerAttackCue);
+    DOREPLIFETIME(AKalmalaWildlifeSpawn, WolfAttackCue);
     DOREPLIFETIME(AKalmalaWildlifeSpawn, MoonBearAttackCue);
     DOREPLIFETIME(AKalmalaWildlifeSpawn, PeatHuskAttackCue);
 }
@@ -2480,6 +2805,11 @@ void AKalmalaWildlifeSpawn::OnRep_RatAttackCue()
 }
 
 void AKalmalaWildlifeSpawn::OnRep_BadgerAttackCue()
+{
+    BuildArchetypePresentation();
+}
+
+void AKalmalaWildlifeSpawn::OnRep_WolfAttackCue()
 {
     BuildArchetypePresentation();
 }
@@ -2516,6 +2846,10 @@ void AKalmalaWildlifeSpawn::ApplyDefeatedState()
         PeatHuskAttackTarget.Reset();
         PeatHuskAttackSecondsRemaining = 0.0f;
         SetPeatHuskAttackCue(EKalmalaWildlifeAttackCue::None);
+        WolfAttackTarget.Reset();
+        WolfAttackSecondsRemaining = 0.0f;
+        WolfLungeDistanceRemaining = 0.0f;
+        SetWolfAttackCue(EKalmalaWildlifeAttackCue::None);
         GrantDefeatReward();
     }
 }
@@ -2548,11 +2882,12 @@ void AKalmalaWildlifeSpawn::GrantDefeatReward()
         && Archetype != EKalmalaWildlifeArchetype::Badger && Archetype != EKalmalaWildlifeArchetype::MoonBear
         && Archetype != EKalmalaWildlifeArchetype::Viper && Archetype != EKalmalaWildlifeArchetype::GiantSnake
         && Archetype != EKalmalaWildlifeArchetype::DeathAdder
+        && Archetype != EKalmalaWildlifeArchetype::Wolf
         && Archetype != EKalmalaWildlifeArchetype::PeatHusk)
     {
         Inventory->TryGrantFromServer(TEXT("BoneFragment"), BoneFragmentQuantity);
     }
-    // Rat, Badger, Moon Bear, Viper, Giant Snake, Death Adder and Peat Husk rewards
+    // Rat, Badger, Moon Bear, Viper, Giant Snake, Death Adder, Wolf and Peat Husk rewards
     // use the persistent queue recorded before defeated state is replicated.
 
     if (Archetype == EKalmalaWildlifeArchetype::Mireling && IsMirelingBossRewardCandidate())

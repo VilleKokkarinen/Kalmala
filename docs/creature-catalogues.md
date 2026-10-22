@@ -53,7 +53,7 @@ telegraphed lunge with a 1.2-second recovery. Its credited baseline reward is
 two Bone Fragments in the same owner-bound population-save escrow; it does not
 apply poison. The 150 m generated-start exclusion applies to this hard enemy.
 The Giant Scale drop remains disabled pending A8b item/icon/source completion.
-The other planned species remain disabled.
+The other Tundra, Thunder Mountains and Ocean species remain disabled.
 Mireling (75 health, 15 armor, 20 Crush) now occupies half of Mossy Mire's
 seeded candidate slots and is accepted only on dry Mossy Mire ground; its
 existing melee and optional boss-scroll reward remain unchanged. Death Adder
@@ -77,6 +77,16 @@ start, and controls a slow close sweep with a one-second warning, 260 cm reach,
 120-degree forward arc, and 1.2-second recovery. Defeats queue one Amber for
 the authenticated owner in the existing population-save escrow. The Peat
 Heart drop remains disabled pending its separate A8b item/source work.
+Freezing Tundra Wolf (250 health, 40 armor, 100 Slash) occupies the seeded 20%
+Wolf slots. The server places each pack in a deterministic, seed-rotated
+three-member triangle with a 240 cm radius, requiring every member to stay in
+dry, traversable Tundra. The per-key Tundra actor cap fits one pack and counts
+each surviving member. Wolves pursue within a 25 m spawn leash, telegraph for
+0.5 seconds, visibly lunge up to 180 cm, recheck visibility and the reviewed
+180 cm bite reach at impact, then recover for 0.8 seconds. Each defeated
+member queues two Bone Fragments for its authenticated attacker under that
+member's stable identity. The Wolf Pelt, Wolf Fang and Wolf Meat drops remain
+disabled until their A8b source tasks are complete.
 Listing a drop does not enable it or certify its A8b/A9 item/icon/source work.
 Rat's runtime peer/restart acceptance remains part of combined I4. The existing
 world-population save keeps pending reward rows beside its existing harvested

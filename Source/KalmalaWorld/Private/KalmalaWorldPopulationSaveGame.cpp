@@ -8,6 +8,7 @@ namespace
     constexpr TCHAR GiantSnakeRewardClaimPrefix[] = TEXT("giantsnake-reward|");
     constexpr TCHAR DeathAdderRewardClaimPrefix[] = TEXT("deathadder-reward|");
     constexpr TCHAR PeatHuskRewardClaimPrefix[] = TEXT("peathusk-reward|");
+    constexpr TCHAR WolfRewardClaimPrefix[] = TEXT("wolf-reward|");
 }
 
 void UKalmalaWorldPopulationSaveGame::InitializeForWorld(const FKalmalaWorldGenerationConfig& InWorldConfig)
@@ -230,6 +231,32 @@ bool UKalmalaWorldPopulationSaveGame::TryGetPeatHuskSpawnIdFromPendingRewardClai
     OutPersistentSpawnId.Reset();
     const int32 PrefixLength = UE_ARRAY_COUNT(PeatHuskRewardClaimPrefix) - 1;
     if (!ClaimId.StartsWith(PeatHuskRewardClaimPrefix, ESearchCase::CaseSensitive)
+        || ClaimId.Len() <= PrefixLength || ClaimId.Len() > 128) return false;
+
+    OutPersistentSpawnId = ClaimId.RightChop(PrefixLength);
+    return !OutPersistentSpawnId.IsEmpty();
+}
+
+bool UKalmalaWorldPopulationSaveGame::TryQueuePendingWolfReward(
+    const FString& PersistentSpawnId, const FString& PlayerIdentity)
+{
+    const FString ClaimId = MakeWolfPendingRewardClaimId(PersistentSpawnId);
+    return !ClaimId.IsEmpty() && TryQueuePendingWildlifeReward(ClaimId, PlayerIdentity);
+}
+
+FString UKalmalaWorldPopulationSaveGame::MakeWolfPendingRewardClaimId(const FString& PersistentSpawnId)
+{
+    const int32 PrefixLength = UE_ARRAY_COUNT(WolfRewardClaimPrefix) - 1;
+    if (PersistentSpawnId.IsEmpty() || PersistentSpawnId.Len() > 128 - PrefixLength) return FString();
+    return FString(WolfRewardClaimPrefix) + PersistentSpawnId;
+}
+
+bool UKalmalaWorldPopulationSaveGame::TryGetWolfSpawnIdFromPendingRewardClaimId(
+    const FString& ClaimId, FString& OutPersistentSpawnId)
+{
+    OutPersistentSpawnId.Reset();
+    const int32 PrefixLength = UE_ARRAY_COUNT(WolfRewardClaimPrefix) - 1;
+    if (!ClaimId.StartsWith(WolfRewardClaimPrefix, ESearchCase::CaseSensitive)
         || ClaimId.Len() <= PrefixLength || ClaimId.Len() > 128) return false;
 
     OutPersistentSpawnId = ClaimId.RightChop(PrefixLength);

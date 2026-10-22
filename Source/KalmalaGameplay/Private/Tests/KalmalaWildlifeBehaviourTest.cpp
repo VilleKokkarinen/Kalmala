@@ -234,6 +234,17 @@ bool FKalmalaModelSurfaceTest::RunTest(const FString& Parameters)
     PeatHusk->GetComponents(PeatHuskParts);
     TestEqual(TEXT("Peat Husk creates its procedural model"), PeatHuskParts.Num(), 1);
     for (auto* Part : PeatHuskParts) CheckMesh(Part, true);
+    auto* Wolf = World->SpawnActor<AKalmalaWildlifeSpawn>();
+    if (!TestNotNull(TEXT("Wolf presentation fixture exists"), Wolf)) return false;
+    FKalmalaWorldPopulationSpawn WolfSpawn;
+    WolfSpawn.Kind = EKalmalaWorldPopulationKind::Wildlife;
+    WolfSpawn.SpawnSeed = 5;
+    WolfSpawn.Location = FVector(1000, 0, 0);
+    Wolf->InitializeServer(WolfSpawn, EKalmalaWildlifeArchetype::Wolf, 0);
+    TArray<UProceduralMeshComponent*> WolfParts;
+    Wolf->GetComponents(WolfParts);
+    TestEqual(TEXT("Wolf creates its original procedural model"), WolfParts.Num(), 1);
+    for (auto* Part : WolfParts) CheckMesh(Part, true);
     return true;
 }
 
