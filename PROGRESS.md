@@ -5427,3 +5427,15 @@
 - **Known limitations / remaining scope:** Badger Fur/Meat source rewards remain disabled pending their reserved A8b item tasks. Live full-pack retry, restart, peer-privacy, build and automation acceptance remain unverified. The A8a Badger task remains open.
 - **Next eligible task:** continue A8a Elderwood: Badger acceptance; keep A9 gated on integrated A8a/A8b and successful I4 verification.
 - **Handoff:** Main checkout used directly at 476d0d78; no worktree handoff sync was needed. The authorized A8b worktree remained clean at 109f7519; no shared integration/handoff write was observed. Current run time: 2026-10-22 08:33:11 UTC.
+
+## Run 2026-10-22 08:59 UTC — Badger full-pack retry contract
+
+- **Selected task:** continue A8a Elderwood: Badger acceptance. This partial increment does not complete or check the Badger backlog row.
+- **Work completed:** extended `Kalmala.Gameplay.Wildlife.Badger.SpawnAndClawReach` with a forty-cell catalogue inventory fixture. The test verifies that a full pack rejects a Bone Fragment grant candidate while the owner-bound Badger claim remains queued, that the claim survives serialization, and that after two cells are freed a retry candidate fits with one carried tool. Updated the setup guide to distinguish this inventory/save contract check from live GameMode delivery and multiplayer acceptance.
+- **Files changed:** `Source/KalmalaGameplay/Private/Tests/KalmalaWildlifeBadgerTest.cpp`; `docs/07-development-setup.md`; `PROGRESS.md`.
+- **Lightweight checks:** `python Scripts/Validate-CreatureCatalogues.py` passed for all 17 species and registered manifest JSON. Focused PowerShell assertions passed for the forty-cell fixture, capacity failure reason, queued-claim retention, serialization, retry candidate, candidate-plus-tool capacity, cleanup and setup-guide scope. Confirmed 102 authored non-BoneFragment item definitions can populate the fixture. `git diff --check` passed; all changed paths are below MAX_PATH.
+- **Full verification:** no Unreal build or editor automation execution ran for this normal increment. The updated automation source remains uncompiled and unexecuted; live GameMode retry, restart and peer-privacy acceptance remain deferred to A8/I4 verification.
+- **Observable impact and authority:** no runtime behavior, RPC, replication or save format changed. The regression source now guards full-pack retry capacity and durable owner-bound claim retention; server delivery authority remains unchanged.
+- **Known limitations / remaining scope:** this is a contract-level fixture and does not execute `AKalmalaGameMode::DeliverPendingWildlifeRewards`. Badger Fur/Meat source tasks remain reserved for A8b, and live full-pack, restart and relevant-peer acceptance remain open. The Badger backlog row remains unchecked.
+- **Next eligible task:** continue A8a Elderwood: Badger acceptance. A9 remains gated on integrated A8a/A8b and successful I4 verification.
+- **Handoff:** main checkout used directly; no worktree handoff synchronization is needed. The authorized A8b run remains isolated in its separate worktree. Current run time: 2026-10-22 08:59 UTC.

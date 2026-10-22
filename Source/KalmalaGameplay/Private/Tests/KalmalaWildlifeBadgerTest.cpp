@@ -1,4 +1,6 @@
 #include "KalmalaWildlifeSpawn.h"
+#include "KalmalaInventoryComponent.h"
+#include "KalmalaItemCatalogue.h"
 #include "KalmalaWorldPopulationSaveGame.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/AutomationTest.h"
@@ -92,6 +94,35 @@ bool FKalmalaWildlifeBadgerContractTest::RunTest(const FString& Parameters)
         TestEqual(TEXT("One row is retained for the credited Badger"),
             Population->GetPendingWildlifeRewards().Num(), 1);
 
+        TArray<FKalmalaInventoryStack> FullPack;
+        const UKalmalaItemCatalogue* Catalogue = UKalmalaItemCatalogue::Get();
+        if (Catalogue != nullptr)
+        {
+            for (const FKalmalaItemDefinition& Definition : Catalogue->Items)
+            {
+                if (Definition.ItemId.IsNone() || Definition.ItemId == TEXT("BoneFragment") || Definition.MaxStack <= 0)
+                    continue;
+                FKalmalaInventoryStack Stack;
+                Stack.ItemId = Definition.ItemId;
+                Stack.Quantity = 1;
+                FullPack.Add(MoveTemp(Stack));
+                if (FullPack.Num() == UKalmalaInventoryComponent::MaxSlots) break;
+            }
+        }
+        TestEqual(TEXT("The full-pack retry fixture uses all forty catalogue cells"),
+            FullPack.Num(), UKalmalaInventoryComponent::MaxSlots);
+        if (FullPack.Num() == UKalmalaInventoryComponent::MaxSlots)
+        {
+            TArray<FKalmalaInventoryStack> FullPackCandidate;
+            FString GrantReason;
+            TestFalse(TEXT("A full pack cannot accept the Badger Bone Fragment candidate"),
+                UKalmalaInventoryComponent::BuildGrant(FullPack, TEXT("BoneFragment"), 1, FullPackCandidate, GrantReason));
+            TestEqual(TEXT("The rejection is caused by pack cell capacity"),
+                GrantReason, FString(TEXT("Pack output capacity reached")));
+            TestEqual(TEXT("A full-pack rejection leaves the pending Badger claim queued"),
+                Population->GetPendingWildlifeRewards().Num(), 1);
+        }
+
         TArray<uint8> Serialized;
         TestTrue(TEXT("Pending Badger reward serializes in the existing population save"),
             UGameplayStatics::SaveGameToMemory(Population, Serialized));
@@ -106,11 +137,40 @@ bool FKalmalaWildlifeBadgerContractTest::RunTest(const FString& Parameters)
                 Reloaded->GetPendingWildlifeRewards()[0].PersistentSpawnId, BadgerClaimId);
             TestEqual(TEXT("Reload retains the credited Badger owner"),
                 Reloaded->GetPendingWildlifeRewards()[0].PlayerIdentity, FString(TEXT("player:test")));
+
+            if (FullPack.Num() == UKalmalaInventoryComponent::MaxSlots)
+            {
+                UKalmalaInventoryComponent* Capacity = NewObject<UKalmalaInventoryComponent>();
+                TestNotNull(TEXT("Inventory capacity validator can be created"), Capacity);
+                if (Capacity != nullptr)
+                {
+                    TestFalse(TEXT("A full pack plus one carried tool exceeds capacity"),
+                        Capacity->CanFitContents(FullPack, 1));
+                    FullPack.RemoveAt(0, 2);
+                    TestTrue(TEXT("Freeing two pack cells allows a carried tool and reward"),
+                        Capacity->CanFitContents(FullPack, 1));
+
+                    TArray<FKalmalaInventoryStack> RetryCandidate;
+                    FString RetryReason;
+                    TestTrue(TEXT("The Badger Bone Fragment candidate succeeds after a cell is freed"),
+                        UKalmalaInventoryComponent::BuildGrant(FullPack, TEXT("BoneFragment"), 1,
+                            RetryCandidate, RetryReason));
+                    const FKalmalaInventoryStack* BoneStack = RetryCandidate.FindByPredicate(
+                        [](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == TEXT("BoneFragment"); });
+                    TestTrue(TEXT("The retry candidate contains exactly one Bone Fragment"),
+                        BoneStack != nullptr && BoneStack->Quantity == 1);
+                    TestTrue(TEXT("The candidate and one carried tool fit together after retry"),
+                        Capacity->CanFitContents(RetryCandidate, 1));
+                    TestEqual(TEXT("The durable claim remains queued through candidate preparation"),
+                        Reloaded->GetPendingWildlifeRewards().Num(), 1);
+                }
+            }
+
+            TestTrue(TEXT("Retry claim can be cleared by its stable reward identity"),
+                Reloaded->RemovePendingWildlifeReward(BadgerClaimId));
+            TestEqual(TEXT("Cleared Badger claim leaves no pending reward"),
+                Reloaded->GetPendingWildlifeRewards().Num(), 0);
         }
-        TestTrue(TEXT("Delivered Badger claim can be cleared by its stable reward identity"),
-            Population->RemovePendingWildlifeReward(BadgerClaimId));
-        TestEqual(TEXT("Delivered Badger reward leaves no pending claim"),
-            Population->GetPendingWildlifeRewards().Num(), 0);
     }
 
     TestTrue(TEXT("Server accepts an in-range claw"),

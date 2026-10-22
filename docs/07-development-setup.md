@@ -2249,7 +2249,11 @@ Bone Fragment quantity, and serialized owner-bound reward-claim identity. The
 Badger reward uses the existing world-population pending-reward list and waits
 until the authenticated owner's pack can accept it. Combined A8a/A8b I4
 acceptance must still exercise a full-pack Badger defeat, later retry, restart,
-and relevant-peer privacy in Unreal.
+and relevant-peer privacy in Unreal. The editor contract test also fills all
+forty catalogue inventory cells, confirms the reward candidate is rejected
+without losing its queued claim, then frees the cells needed for one carried
+tool and verifies a retry candidate. This checks the inventory/save contract;
+it does not replace the live GameMode delivery, restart, or peer acceptance.
 
 ## Discovery peer privacy regression
 
