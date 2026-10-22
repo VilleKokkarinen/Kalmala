@@ -11,7 +11,9 @@ class KALMALAGAMEPLAY_API AKalmalaArrowProjectile : public AActor
 public:
     AKalmalaArrowProjectile();
     bool InitializeShot(const FVector& Direction, float DrawProgress, FName ArrowItemId);
+    bool InitializeShot(const FVector& Direction, float DrawProgress, FName ArrowItemId, FName BowItemId, int32 BowLevel);
     static bool ResolveShotDamage(FName ArrowItemId, float DrawProgress, float& OutShotDamage);
+    static bool ResolveShotDamage(FName ArrowItemId, float DrawProgress, FName BowItemId, int32 BowLevel, float& OutShotDamage);
     virtual void Tick(float DeltaSeconds) override;
     float GetShotDamage() const { return ShotDamage; }
     FName GetShotItemId() const { return ShotItemId; }

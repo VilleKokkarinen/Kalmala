@@ -5585,3 +5585,33 @@ icon and runtime mapping are covered by
 anchors for combined menu acceptance. These C++ assertions remain
 uncompiled/unexecuted in this normal child; combined A8a/A8b I4 is still
 required.
+
+## A8b Horn Bow weapon path — 2026-10-22
+
+`HornBow` is a two-handed, 2.5 kg Workbench weapon with 140 starting condition,
+a three-second full draw, and a 100 Pierce weapon bonus. Its Workbench recipe
+uses two Goat Horns, ten Densewood and one Bow String; the accepted Horned Goat
+reward supplies one guaranteed Goat Horn per credited defeat. Its Workbench
+upgrade costs one Goat Horn, five Densewood and one Bow String, adds 30
+condition, and does not increase the damage bonus.
+
+The server accepts Horn Bow through the shared bow draw and release path, keeps
+the selected arrow's existing damage curve or fixed attack, then adds the
+equipped bow level's Pierce bonus once. The owner's crosshair previews that same
+combined value. Horn Bow cannot enter the server melee attack path. Shot
+validation and the existing transaction still commit one arrow and one bow
+condition together; clients submit no damage value.
+
+`Kalmala.Gameplay.Inventory.TwoHanded` checks the profile, exact Workbench
+acquisition and upgrade costs, and level-two condition/damage values.
+`Kalmala.Gameplay.Combat.BowDrawAndArrows` checks the three-second draw, loaded
+shot path, selected arrow damage plus the bonus, and persistence rollback.
+`Kalmala.Gameplay.Combat.BasicAttack.AuthorityAndCooldown` checks that the item
+cannot use melee. The crosshair source anchor is included in
+`Verify-PresentationOwnership.ps1`; the original icon, prepared texture and
+runtime mapping are checked with
+`Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id HornBow`.
+
+The new C++ assertions remain uncompiled and unexecuted in this normal child.
+Combined A8a/A8b I4, including the item suite and peer/rendered acceptance, is
+still required before A9.

@@ -35,6 +35,7 @@ public:
     bool IsBowDrawing() const;
     float GetBowDrawProgress() const;
     float GetBowDrawDuration() const;
+    bool ResolveCurrentBowShotDamage(FName ArrowItemId, float DrawProgress, float& OutShotDamage) const;
     static float CalculateBowDrawProgress(float Elapsed, float DrawDuration, float ArcherySpeedMultiplier = 1.0f);
     static float GetBowCrosshairRadius(float Progress);
     bool CanDrawBow() const;

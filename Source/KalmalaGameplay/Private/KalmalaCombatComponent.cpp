@@ -21,7 +21,7 @@ bool UKalmalaCombatComponent::IsAttackItemAllowed(const FName ItemId)
 {
     return ItemId.IsNone() || (ItemId != TEXT("ConstructionHammer") && ItemId != TEXT("BasicTorch")
         && ItemId != TEXT("PlantingTrowel")
-        && ItemId != TEXT("Bow") && ItemId != TEXT("LightBow")
+        && ItemId != TEXT("Bow") && ItemId != TEXT("LightBow") && ItemId != TEXT("HornBow")
         && FKalmalaToolLifecycleContract::FindDefinition(ItemId) != nullptr);
 }
 bool UKalmalaCombatComponent::CanSwingWithoutTarget(const FName ItemId, const int32 Level, const int32 Condition)

@@ -38,6 +38,16 @@ float UKalmalaCombatComponent::GetBowDrawDuration() const
     const auto* Profile = Pawn ? UKalmalaToolCatalogue::Get()->FindProfile(Pawn->GetInventoryComponent()->GetActiveItem()) : nullptr;
     return Profile ? Profile->DrawDuration : 0;
 }
+bool UKalmalaCombatComponent::ResolveCurrentBowShotDamage(const FName ArrowItemId, const float DrawProgress,
+    float& OutShotDamage) const
+{
+    const auto* Pawn = Cast<AKalmalaCharacter>(GetOwner());
+    const auto* Inventory = Pawn ? Pawn->GetInventoryComponent() : nullptr;
+    const FGuid BowGuid = Inventory ? Inventory->GetActiveInstanceGuid() : FGuid();
+    if (!Pawn || !Inventory || !BowGuid.IsValid() || Inventory->GetMainHandGuid() != BowGuid) return false;
+    return AKalmalaArrowProjectile::ResolveShotDamage(ArrowItemId, DrawProgress, Inventory->GetActiveItem(),
+        Pawn->GetCarriedToolLevel(BowGuid), OutShotDamage);
+}
 int32 UKalmalaCombatComponent::FindArrowStack() const
 {
     const auto* Pawn = Cast<AKalmalaCharacter>(GetOwner());
@@ -72,7 +82,8 @@ bool UKalmalaCombatComponent::CanDrawBow() const
     const auto* Inventory = Pawn->GetInventoryComponent();
     const FName ItemId = Inventory ? Inventory->GetActiveItem() : NAME_None;
     const auto* Profile = UKalmalaToolCatalogue::Get()->FindProfile(ItemId);
-    if (!Inventory || !Profile || (Profile->ToolKind != TEXT("Bow") && Profile->ToolKind != TEXT("LightBow"))
+    if (!Inventory || !Profile || (Profile->ToolKind != TEXT("Bow") && Profile->ToolKind != TEXT("LightBow")
+        && Profile->ToolKind != TEXT("HornBow"))
         || FindArrowStack() == INDEX_NONE) return false;
     const int32 Maximum = FKalmalaToolLifecycleContract::GetMaxDurability(ItemId, Pawn->GetCarriedToolLevel(ItemId));
     const int32 Condition = Pawn->GetToolDurability(ItemId);
@@ -134,13 +145,16 @@ void UKalmalaCombatComponent::ServerReleaseBow_Implementation(uint32 Sequence, b
     if (!GetOwner() || !GetOwner()->HasAuthority() || !bBowDrawing || Sequence == 0 || Sequence <= LastRequestSequence) return;
     LastRequestSequence = Sequence;
     const bool bCanFire = !bCancel && CanDrawBow();
+    auto* Pawn = Cast<AKalmalaCharacter>(GetOwner());
+    auto* Inventory = Pawn ? Pawn->GetInventoryComponent() : nullptr;
+    const FGuid BowGuid = DrawingBowGuid;
+    const FName BowItemId = bCanFire && Inventory ? Inventory->GetActiveItem() : NAME_None;
+    const int32 BowLevel = bCanFire && Pawn && BowGuid.IsValid() ? Pawn->GetCarriedToolLevel(BowGuid) : 0;
     const auto* State = GetWorld()->GetGameState();
     const double Now = State ? State->GetServerWorldTimeSeconds() : GetWorld()->GetTimeSeconds();
     const float Progress = CalculateBowDrawProgress(Now - BowDrawStartTime, GetBowDrawDuration());
     CancelBowDrawFromServer();
-    if (!bCanFire) return;
-    auto* Pawn = Cast<AKalmalaCharacter>(GetOwner());
-    auto* Inventory = Pawn->GetInventoryComponent();
+    if (!bCanFire || !Pawn || !Inventory || BowItemId.IsNone() || BowLevel < 1) return;
     auto* Mode = GetWorld()->GetAuthGameMode<AKalmalaGameMode>();
     const int32 StackIndex = FindArrowStack();
     int32* Condition = Pawn->FindToolDurabilityFromServer(Inventory->GetMainHandGuid());
@@ -168,7 +182,7 @@ void UKalmalaCombatComponent::ServerReleaseBow_Implementation(uint32 Sequence, b
     auto* Arrow = GetWorld()->SpawnActorDeferred<AKalmalaArrowProjectile>(AKalmalaArrowProjectile::StaticClass(),
         FTransform(Direction.Rotation(), Start), Pawn, Pawn, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
     if (!Arrow) return;
-    if (!Arrow->InitializeShot(Direction, Progress, ArrowItemId)) { Arrow->Destroy(); return; }
+    if (!Arrow->InitializeShot(Direction, Progress, ArrowItemId, BowItemId, BowLevel)) { Arrow->Destroy(); return; }
     if (!Inventory->TryCommitStacksFromServer(Before, After)) { Arrow->Destroy(); return; }
     --*Condition;
     if (!Mode->PersistPlayerStateFromServer(Pawn))

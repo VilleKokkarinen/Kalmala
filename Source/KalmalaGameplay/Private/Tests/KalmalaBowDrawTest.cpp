@@ -247,12 +247,51 @@ bool FKalmalaBowDrawTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Fang poison timer clears after expiry"), FangTarget->GetFangArrowPoisonRemainingSeconds(), 0.0f);
     Combat->ServerPreferArrowStack(FGuid());
     Recover();
+
+    FKalmalaToolState HornBow;
+    HornBow.ItemId = TEXT("HornBow"); HornBow.InstanceGuid = FGuid::NewGuid(); HornBow.Durability = 140; HornBow.ToolLevel = 1;
+    Tools.Add(HornBow); Inventory->SynchronizeGridFromServer();
+    TestTrue(TEXT("Horn Bow equips through the shared two-handed server path"), Inventory->SetMainHandFromServer(HornBow.InstanceGuid, Reason));
+    TestTrue(TEXT("Equipped Horn Bow can draw a server-available arrow"), Combat->CanDrawBow());
+    TestEqual(TEXT("Horn Bow uses its authored three-second draw"), Combat->GetBowDrawDuration(), 3.0f);
+    float HornWoodenArrowPreview = 0.0f;
+    TestTrue(TEXT("Horn Bow resolves the selected Wooden Arrow preview"),
+        Combat->ResolveCurrentBowShotDamage(TEXT("WoodenArrow"), 0.5f, HornWoodenArrowPreview));
+    TestEqual(TEXT("Half-drawn Wooden Arrow preview includes the 100 Pierce bow bonus once"),
+        HornWoodenArrowPreview, 125.0f);
+    float HornStoneArrowPreview = 0.0f;
+    TestTrue(TEXT("Horn Bow resolves fixed Stone Arrow damage"),
+        AKalmalaArrowProjectile::ResolveShotDamage(TEXT("StoneArrow"), 0.0f, TEXT("HornBow"), 1, HornStoneArrowPreview));
+    TestEqual(TEXT("Horn Bow adds its bonus to fixed Stone Arrow Pierce"), HornStoneArrowPreview, 125.0f);
+    float HornFangArrowPreview = 0.0f;
+    TestTrue(TEXT("Horn Bow resolves Fang Arrow damage"),
+        AKalmalaArrowProjectile::ResolveShotDamage(TEXT("FangArrows"), 1.0f, TEXT("HornBow"), 1, HornFangArrowPreview));
+    TestEqual(TEXT("Horn Bow adds its bonus to fixed Fang Arrow Pierce"), HornFangArrowPreview, 150.0f);
+    const int32 WoodenBeforeHornShot = Inventory->GetQuantity(TEXT("WoodenArrow"));
+    Combat->ServerBeginBowDraw(19);
+    for (int32 Step = 0; Step < 6; ++Step) World->Tick(LEVELTICK_TimeOnly, 0.5f);
+    TestEqual(TEXT("Three seconds fills the Horn Bow draw"), Combat->GetBowDrawProgress(), 1.0f);
+    Combat->ServerReleaseBow(20, false);
+    TestEqual(TEXT("Horn Bow commits one Wooden Arrow"), Inventory->GetQuantity(TEXT("WoodenArrow")), WoodenBeforeHornShot - 1);
+    TestEqual(TEXT("Horn Bow consumes its own condition"), Pawn->GetToolDurability(TEXT("HornBow")), 139);
+    bool bSawHornBowShot = false;
+    for (TActorIterator<AKalmalaArrowProjectile> Arrow(World); Arrow; ++Arrow)
+    {
+        bSawHornBowShot = true;
+        TestEqual(TEXT("Horn Bow shot retains the selected Wooden Arrow"), Arrow->GetShotItemId(), FName(TEXT("WoodenArrow")));
+        TestEqual(TEXT("Full draw arrow curve plus Horn Bow bonus produces 140 Pierce"), Arrow->GetShotDamage(), 140.0f);
+        Arrow->SetActorLocation(FangTarget->GetActorLocation());
+        Arrow->Tick(0.0f);
+    }
+    TestTrue(TEXT("Horn Bow creates a server projectile"), bSawHornBowShot);
+    TestTrue(TEXT("Horn Bow bonus reaches the accepted server impact"), FangTarget->GetHealth() < HealthAfterFiveTicks);
+    Recover();
     const int32 AmmoBeforeFailure=Inventory->GetQuantity(TEXT("WoodenArrow"));
-    const int32 ConditionBeforeFailure=Pawn->GetToolDurability(TEXT("LightBow"));
+    const int32 ConditionBeforeFailure=Pawn->GetToolDurability(TEXT("HornBow"));
     Pawn->SetPlayerState(nullptr);
     Combat->ServerBeginBowDraw(21); Combat->ServerReleaseBow(22,false);
     TestEqual(TEXT("Persistence failure rolls back ammunition"),Inventory->GetQuantity(TEXT("WoodenArrow")),AmmoBeforeFailure);
-    TestEqual(TEXT("Persistence failure rolls back Light Bow condition"),Pawn->GetToolDurability(TEXT("LightBow")),ConditionBeforeFailure);
+    TestEqual(TEXT("Persistence failure rolls back Horn Bow condition"),Pawn->GetToolDurability(TEXT("HornBow")),ConditionBeforeFailure);
     Pawn->SetPlayerState(PlayerState);
     Combat->ServerBeginBowDraw(23);
     const auto Hammer=Tools.FindByPredicate([](const auto& Tool){return Tool.ItemId==TEXT("ConstructionHammer");});

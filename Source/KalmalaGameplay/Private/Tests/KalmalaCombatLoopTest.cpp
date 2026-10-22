@@ -27,6 +27,7 @@ bool FKalmalaCombatLoopTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Construction Hammer is build-only"), UKalmalaCombatComponent::IsAttackItemAllowed(TEXT("ConstructionHammer")));
     TestFalse(TEXT("Bow uses drawing rather than melee"), UKalmalaCombatComponent::IsAttackItemAllowed(TEXT("Bow")));
     TestFalse(TEXT("Light Bow uses drawing rather than melee"), UKalmalaCombatComponent::IsAttackItemAllowed(TEXT("LightBow")));
+    TestFalse(TEXT("Horn Bow uses drawing rather than melee"), UKalmalaCombatComponent::IsAttackItemAllowed(TEXT("HornBow")));
     TestTrue(TEXT("Axe remains attack-capable"), UKalmalaCombatComponent::IsAttackItemAllowed(TEXT("StoneAxe")));
     TestTrue(TEXT("Fang Spear is accepted by the server melee route"),
         UKalmalaCombatComponent::IsAttackItemAllowed(TEXT("FangSpear")));

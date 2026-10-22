@@ -1,14 +1,16 @@
 # Game design
 
-## Bow shot contract — 2026-10-18
+## Bow shot contract — updated 2026-10-22
 
 Hammer left-click builds the selected piece; right-click opens the piece menu.
 Bow left-click draws while held and releases an arrow on release at any charge.
-`DrawDuration` is authored per bow: 1.5 seconds for Bow and 2.0 seconds for
-Light Bow. The crosshair circle
+`DrawDuration` is authored per bow: 1.5 seconds for Bow, 2.0 seconds for
+Light Bow, and 3.0 seconds for Horn Bow. The crosshair circle
 shrinks from 50 to 4 logical UI units over full draw. Earlier release reduces
 arrow velocity and accuracy; Wooden Arrow Pierce damage also follows draw,
-while Stone and Bronze Arrows deal their authored fixed 25 and 50 Pierce.
+while Stone and Bronze Arrows deal their authored fixed 25 and 50 Pierce. The
+Horn Bow adds its 100 Pierce weapon bonus once to the selected arrow's damage;
+its upgrade adds condition without increasing that bonus.
 Full draw clamps. Each
 successful persisted shot consumes one selected arrow and one bow condition.
 Selection may prioritize an exact inventory stack; otherwise the server selects
@@ -18,16 +20,18 @@ falls back to that inventory order.
 Gravity-driven server projectiles stop at
 visibility blockers and can damage wildlife. Light Bow is a separate carried
 profile with its own Workbench cost, condition, weight and draw duration; it
-shares the server shot path and adds no bow damage bonus. Current shots use
-Wooden, Stone, and Bronze Arrows. There is no PvP, arrow recovery or Archery progression; a future
+shares the server shot path and adds no bow damage bonus. Horn Bow shares that
+path and combines its authored weapon bonus with arrow damage. Current shots
+use Wooden, Stone, and Bronze Arrows. There is no PvP, arrow recovery or Archery progression; a future
 server skill multiplier can shorten effective draw duration through the existing
 calculation hook.
 
 ## Free melee swings — 2026-10-17
 
 Any usable equipped melee weapon can swing without a nearby target, except
-the Building Hammer (construction only) and Bow (draw/release shooting). Empty hands can punch freely. All use the shared
-0.18-second windup and 0.36-second recovery with the arm swing animation. Misses
+the Building Hammer (construction only) and the Bow, Light Bow, and Horn Bow,
+which use draw/release shooting. Empty hands can punch freely. Melee attacks use
+the shared 0.18-second windup and 0.36-second recovery with the arm swing animation. Misses
 cost no condition and grant nothing. Validated hits use authored weapon damage,
 or the existing basic 25 Crush fallback for items without an authored attack.
 Depleted items still require repair. Hammer construction remains available, and tree harvesting still
@@ -50,7 +54,7 @@ Bronze Arrows carry a fixed 50 Pierce attack record and use the server bow shot
 path. The owner may prioritize an exact stack; otherwise the first arrow in
 row-major inventory order is selected. The crosshair shows its type and damage.
 Bow String is reserved for bows; ammunition is catalogued in `items/arrows.json`.
-Both bow profiles use both hands. Equipping a bow clears the previous held state and returns
+All bow profiles use both hands. Equipping a bow clears the previous held state and returns
 a worn shield to a free pack cell as one validated transaction. Tools retain their
 original cells; a full pack rejects shield return unchanged. Equipping a shield
 clears the held bow. Clearing a bow alone never requires a free cell.

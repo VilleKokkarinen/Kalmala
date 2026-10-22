@@ -3,6 +3,7 @@
 #include "KalmalaWildlifeSpawn.h"
 #include "KalmalaDamageProfile.h"
 #include "KalmalaToolCatalogue.h"
+#include "KalmalaToolLifecycleContract.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "ProceduralMeshComponent.h"
@@ -36,11 +37,16 @@ void AKalmalaArrowProjectile::BeginPlay()
 }
 bool AKalmalaArrowProjectile::InitializeShot(const FVector& Direction, float DrawProgress, const FName ArrowItemId)
 {
+    return InitializeShot(Direction, DrawProgress, ArrowItemId, NAME_None, 0);
+}
+bool AKalmalaArrowProjectile::InitializeShot(const FVector& Direction, float DrawProgress, const FName ArrowItemId,
+    const FName BowItemId, const int32 BowLevel)
+{
     if (!HasAuthority() || ArrowItemId.IsNone() || Direction.ContainsNaN() || !FMath::IsFinite(DrawProgress)) return false;
     const float Progress = FMath::Clamp(DrawProgress, 0.0f, 1.0f);
     PreviousPosition = GetActorLocation();
     ShotItemId = NAME_None;
-    if (!ResolveShotDamage(ArrowItemId, Progress, ShotDamage)) return false;
+    if (!ResolveShotDamage(ArrowItemId, Progress, BowItemId, BowLevel, ShotDamage)) return false;
     ShotItemId = ArrowItemId;
     Movement->Velocity = Direction.GetSafeNormal() * FMath::Lerp(1000.0f, 4500.0f, Progress);
     Collision->IgnoreActorWhenMoving(GetOwner(), true);
@@ -48,21 +54,46 @@ bool AKalmalaArrowProjectile::InitializeShot(const FVector& Direction, float Dra
 }
 bool AKalmalaArrowProjectile::ResolveShotDamage(const FName ArrowItemId, const float DrawProgress, float& OutShotDamage)
 {
+    return ResolveShotDamage(ArrowItemId, DrawProgress, NAME_None, 0, OutShotDamage);
+}
+bool AKalmalaArrowProjectile::ResolveShotDamage(const FName ArrowItemId, const float DrawProgress,
+    const FName BowItemId, const int32 BowLevel, float& OutShotDamage)
+{
     if (ArrowItemId.IsNone() || !FMath::IsFinite(DrawProgress)) return false;
     const float Progress = FMath::Clamp(DrawProgress, 0.0f, 1.0f);
+    float ArrowDamage = 0.0f;
     if (ArrowItemId == TEXT("WoodenArrow"))
     {
-        OutShotDamage = FMath::Lerp(10.0f, 40.0f, Progress);
+        ArrowDamage = FMath::Lerp(10.0f, 40.0f, Progress);
+    }
+    else
+    {
+        const auto& Attacks = UKalmalaToolCatalogue::Get()->GetAttacks(ArrowItemId);
+        const FKalmalaWeaponAttackData* Attack = Attacks.FindByPredicate(
+            [](const FKalmalaWeaponAttackData& Entry) { return Entry.AttackId == TEXT("Basic"); });
+        if (!Attack || !FMath::IsFinite(Attack->DamageBonuses.Pierce) || Attack->DamageBonuses.Pierce <= 0.0f)
+            return false;
+        ArrowDamage = Attack->DamageBonuses.Pierce;
+    }
+
+    if (BowItemId.IsNone())
+    {
+        if (BowLevel != 0) return false;
+        OutShotDamage = ArrowDamage;
         return true;
     }
 
-    const auto& Attacks = UKalmalaToolCatalogue::Get()->GetAttacks(ArrowItemId);
-    const FKalmalaWeaponAttackData* Attack = Attacks.FindByPredicate(
-        [](const FKalmalaWeaponAttackData& Entry) { return Entry.AttackId == TEXT("Basic"); });
-    if (!Attack || !FMath::IsFinite(Attack->DamageBonuses.Pierce) || Attack->DamageBonuses.Pierce <= 0.0f)
+    const FKalmalaToolProfileData* BowProfile = UKalmalaToolCatalogue::Get()->FindProfile(BowItemId);
+    if (!BowProfile || !BowProfile->bTwoHanded
+        || (BowProfile->ToolKind != TEXT("Bow") && BowProfile->ToolKind != TEXT("LightBow")
+            && BowProfile->ToolKind != TEXT("HornBow"))
+        || FKalmalaToolLifecycleContract::GetMaxDurability(BowItemId, BowLevel) <= 0)
         return false;
-    OutShotDamage = Attack->DamageBonuses.Pierce;
-    return true;
+
+    const FKalmalaDamageChannels BowDamage = FKalmalaToolLifecycleContract::GetWeaponDamageBonuses(BowItemId, BowLevel);
+    if (!FMath::IsFinite(BowDamage.Pierce) || BowDamage.Pierce < 0.0f) return false;
+    OutShotDamage = ArrowDamage + BowDamage.Pierce;
+    return FMath::IsFinite(OutShotDamage);
 }
 void AKalmalaArrowProjectile::Hit(UPrimitiveComponent*, AActor* Other, UPrimitiveComponent*, FVector, const FHitResult&)
 {

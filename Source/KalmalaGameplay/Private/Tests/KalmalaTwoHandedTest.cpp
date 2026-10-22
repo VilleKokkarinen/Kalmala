@@ -27,12 +27,20 @@ bool FKalmalaTwoHandedTest::RunTest(const FString& Parameters)
         FKalmalaToolLifecycleContract::IsTwoHanded(TEXT("Bow")));
     TestTrue(TEXT("Light Bow's authored twoHanded flag requires both hands"),
         FKalmalaToolLifecycleContract::IsTwoHanded(TEXT("LightBow")));
+    TestTrue(TEXT("Horn Bow's authored twoHanded flag requires both hands"),
+        FKalmalaToolLifecycleContract::IsTwoHanded(TEXT("HornBow")));
     const auto* LightBowProfile = Tools->FindProfile(TEXT("LightBow"));
     if (!TestNotNull(TEXT("Light Bow profile exists"), LightBowProfile)) return false;
     TestEqual(TEXT("Light Bow has its authored carry weight"), LightBowProfile->WeightKg, 1.5f);
     TestEqual(TEXT("Light Bow uses its two-second full draw"), LightBowProfile->DrawDuration, 2.0f);
     TestEqual(TEXT("Light Bow starts with 140 condition"), LightBowProfile->MaxDurability, 140);
     TestTrue(TEXT("Light Bow has no damage bonus"), LightBowProfile->DamageBonuses.Total() == 0.0f);
+    const auto* HornBowProfile = Tools->FindProfile(TEXT("HornBow"));
+    if (!TestNotNull(TEXT("Horn Bow profile exists"), HornBowProfile)) return false;
+    TestEqual(TEXT("Horn Bow has its authored carry weight"), HornBowProfile->WeightKg, 2.5f);
+    TestEqual(TEXT("Horn Bow uses its three-second full draw"), HornBowProfile->DrawDuration, 3.0f);
+    TestEqual(TEXT("Horn Bow starts with 140 condition"), HornBowProfile->MaxDurability, 140);
+    TestEqual(TEXT("Horn Bow adds its authored Pierce weapon bonus"), HornBowProfile->DamageBonuses.Pierce, 100.0f);
     TestFalse(TEXT("Omitted twoHanded flag defaults the hammer to one hand"),
         FKalmalaToolLifecycleContract::IsTwoHanded(TEXT("ConstructionHammer")));
     TestTrue(TEXT("Construction Hammer has no combat attacks"), Tools->GetAttacks(TEXT("ConstructionHammer")).IsEmpty());
@@ -84,6 +92,27 @@ bool FKalmalaTwoHandedTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Light Bow level-two stats resolve"), Tools->GetLevelStats(TEXT("LightBow"), 2, LightBowLevelTwo));
     TestEqual(TEXT("Light Bow gains thirty condition per level"), LightBowLevelTwo.MaxDurability, 170);
     TestTrue(TEXT("Light Bow upgrade adds no damage"), LightBowLevelTwo.DamageBonuses.Total() == 0.0f);
+    const auto* HornBowRecipe = Tools->Recipes.FindByPredicate([](const FKalmalaToolRecipeData& Entry)
+        { return Entry.ItemId == TEXT("HornBow"); });
+    if (!TestNotNull(TEXT("Horn Bow acquisition exists"), HornBowRecipe)) return false;
+    TestTrue(TEXT("Horn Bow costs two Goat Horns, ten Densewood and one Bow String at Workbench level one"),
+        HornBowRecipe->RequiredStation == TEXT("Workbench") && HornBowRecipe->RequiredStationLevel == 1
+        && HornBowRecipe->Ingredients.Num() == 3
+        && HornBowRecipe->Ingredients.ContainsByPredicate([](const auto& Cost) { return Cost.ItemId == TEXT("GoatHorn") && Cost.Quantity == 2; })
+        && HornBowRecipe->Ingredients.ContainsByPredicate([](const auto& Cost) { return Cost.ItemId == TEXT("Densewood") && Cost.Quantity == 10; })
+        && HornBowRecipe->Ingredients.ContainsByPredicate([](const auto& Cost) { return Cost.ItemId == TEXT("BowString") && Cost.Quantity == 1; }));
+    const auto* HornBowUpgrade = Tools->UpgradeCosts.FindByPredicate([](const FKalmalaToolRecipeData& Entry)
+        { return Entry.ItemId == TEXT("HornBow"); });
+    if (!TestNotNull(TEXT("Horn Bow upgrade cost exists"), HornBowUpgrade)) return false;
+    TestTrue(TEXT("Horn Bow upgrade costs one Goat Horn, five Densewood and one Bow String"),
+        HornBowUpgrade->RequiredStation == TEXT("Workbench") && HornBowUpgrade->Ingredients.Num() == 3
+        && HornBowUpgrade->Ingredients.ContainsByPredicate([](const auto& Cost) { return Cost.ItemId == TEXT("GoatHorn") && Cost.Quantity == 1; })
+        && HornBowUpgrade->Ingredients.ContainsByPredicate([](const auto& Cost) { return Cost.ItemId == TEXT("Densewood") && Cost.Quantity == 5; })
+        && HornBowUpgrade->Ingredients.ContainsByPredicate([](const auto& Cost) { return Cost.ItemId == TEXT("BowString") && Cost.Quantity == 1; }));
+    FKalmalaToolLevelStats HornBowLevelTwo;
+    TestTrue(TEXT("Horn Bow level-two stats resolve"), Tools->GetLevelStats(TEXT("HornBow"), 2, HornBowLevelTwo));
+    TestEqual(TEXT("Horn Bow gains thirty condition per level"), HornBowLevelTwo.MaxDurability, 170);
+    TestEqual(TEXT("Horn Bow retains its base Pierce bonus after upgrade"), HornBowLevelTwo.DamageBonuses.Pierce, 100.0f);
     const auto* ArrowRecipe = Recipes->Recipes.FindByPredicate([](const FKalmalaRecipe& Entry)
         { return Entry.Output == TEXT("WoodenArrow"); });
     if (!TestNotNull(TEXT("Arrow recipe exists"), ArrowRecipe)) return false;

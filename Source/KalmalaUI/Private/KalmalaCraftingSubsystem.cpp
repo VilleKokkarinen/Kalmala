@@ -6402,7 +6402,7 @@ int32 UKalmalaBowCrosshairWidget::NativePaint(const FPaintArgs& Args, const FGeo
         const FName ArrowItemId = Combat->GetArrowItemIdForDisplay();
         const auto* Item = UKalmalaItemCatalogue::Get()->FindItem(ArrowItemId);
         float Damage = 0.0f;
-        if (Item && AKalmalaArrowProjectile::ResolveShotDamage(ArrowItemId, Combat->GetBowDrawProgress(), Damage))
+        if (Item && Combat->ResolveCurrentBowShotDamage(ArrowItemId, Combat->GetBowDrawProgress(), Damage))
         {
             const FString Label = FString::Printf(TEXT("%s | %.0f Pierce"), *Item->DisplayName, Damage);
             const FSlateFontInfo Font(FCoreStyle::GetDefaultFont(), 13);
