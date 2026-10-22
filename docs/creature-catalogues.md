@@ -50,10 +50,11 @@ population-save escrow, and the server commits them together. Fang Arrows remain
 a separate A8b output task. Giant Snake
 (250 health, 30 armor, 100 Stab) fills the remaining seeded 10%
 Shimmering Lakes slot on dry shoreline and uses a server-owned, one-second
-telegraphed lunge with a 1.2-second recovery. Its credited baseline reward is
-two Bone Fragments in the same owner-bound population-save escrow; it does not
-apply poison. The 150 m generated-start exclusion applies to this hard enemy.
-The Giant Scale drop remains disabled pending A8b item/icon/source completion.
+telegraphed lunge with a 1.2-second recovery. Each credited defeat queues two
+Bone Fragments and two guaranteed Giant Scales in the same authenticated,
+owner-bound population-save claim; the server commits the full bundle together.
+It does not apply poison. The 150 m generated-start exclusion applies to this
+hard enemy.
 Horned Goat (200 health, 50 armor, 50 Crush) now occupies four seeded
 Thunder Mountains slots (40%), limited to dry traversable terrain. Its original
 procedural presentation shows a half-second charge warning; the server accepts

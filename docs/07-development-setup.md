@@ -2332,13 +2332,13 @@ The editor automation
 50/40/10 Shimmering Lakes candidate slots, Giant Snake exclusion from other
 biomes, its reviewed 250-health/30-armor/100-Stab profile, one-second warning,
 1.2-second recovery, 25 m leash, and baseline reward quantity. It serializes
-the owner-bound two-Bone-Fragment claim, rejects the full-pack candidate
-without clearing the claim, then prepares both fragments after capacity is
-freed. The surface-winding automation also checks the original procedural
+the owner-bound two-Bone-Fragment claim, adds the guaranteed two Giant Scales,
+and verifies the whole bundle stays queued when the baseline fits but the
+material does not. After three inventory cells are freed, both items fit
+together. The surface-winding automation also checks the original procedural
 model. Run these editor automations in combined A8a/A8b I4 acceptance; the
 source was not compiled or executed by this increment, and no live spawn,
-delivery, restart, or peer acceptance ran. The Giant Scale drop remains
-disabled until its separate A8b item/icon/source work is complete.
+delivery, restart, or peer acceptance ran.
 
 ## Discovery peer privacy regression
 

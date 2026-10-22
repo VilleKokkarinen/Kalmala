@@ -18,9 +18,10 @@ bundle. Moon Bear fills Elderwood's seeded 10% hard-enemy slot, uses an original
 large-bear silhouette and a server-owned overhead-paw cycle, and queues three
 Bone Fragments for the credited attacker. Viper fills 40% of Shimmering Lakes'
 shoreline slots, uses a server-owned lunge that applies the shared five-second
-weak-poison effect on an accepted bite, and queues one Bone Fragment for the
-credited attacker. Giant Snake fills the remaining 10% hard slot with a
-dry-shore lunge and a durable two-fragment baseline claim. Mireling now fills
+weak-poison effect on an accepted bite, and queues one Viper Fang with its
+baseline Bone Fragment. Giant Snake fills the remaining 10% hard slot with a
+dry-shore lunge and a durable claim for two Bone Fragments plus two Giant
+Scales. Mireling now fills
 50% of Mossy Mire candidate slots and is restricted to dry ground in that biome.
 Death Adder occupies 20% of those slots and shares the dry Mossy Mire gate;
 its server-owned coiled bite applies non-stacking major poison and its credited
@@ -41,7 +42,7 @@ Lynx fills the next two seeded Tundra slots with a dry-ground pounce, a
 | Badger              | Elderwood                              | Partial          |  100 |   10  | 20 Slash     | 3 m warning; 180 cm claws; queued Bone Fragment, Fur, and Meat; I4 pending |
 | Moon Bear           | Elderwood                              | Partial          |  250 |   20  | 75 Crush     | 3 m warning; 220 cm overhead paw; 1.2 s recovery; queued 3 Bone Fragment; I4 pending |
 | Viper               | Shimmering Lakes                       | Partial          |  100 |   10  | 50 Stab      | 40% dry-shore slots; 180 cm lunge; weak poison: 1/s, 5 s; queued Bone Fragment; I4 pending |
-| Giant Snake         | Shimmering Lakes                       | Partial          |  250 |   30  | 100 Stab     | 10% dry-shore hard slot; coiled 360 cm lunge; 1 s warning; 1.2 s recovery; queued 2 Bone Fragment; I4 pending |
+| Giant Snake         | Shimmering Lakes                       | Partial          |  250 |   30  | 100 Stab     | 10% dry-shore hard slot; coiled 360 cm lunge; 1 s warning; 1.2 s recovery; queued 2 Bone Fragment + 2 Giant Scale; I4 pending |
 | Mireling            | Mossy Mire                             | Partial          |  75  |   15  | 20 Crush     | 50% dry-ground share; server simple melee; boss-scroll path unchanged; I4 pending |
 | Death Adder         | Mossy Mire                             | Partial          |  125 |   20  | 75 Stab      | 20% dry-ground slots; close coiled bite; major poison: 5/s, 10 s; queued Bone Fragment; I4 pending |
 | Mosquito swarm      | Mossy Mire                             | Partial          |  25  |   0   | 5 Stab/0.2 s | 20% dry-ground slots; one swarm per target; poison 1/s for 10 s; dodge/fire repel; I4 pending |
@@ -113,10 +114,9 @@ shoreline, stays within its 25 m spawn leash, and is kept at least 150 m from
 the generated player start. The original long-bodied procedural model coils
 and hisses for one second before its strong forward lunge; it recovers for
 1.2 seconds and the bite has a narrow 180 cm impact reach. It does not apply
-poison. The two-Bone-Fragment baseline reward is saved as an authenticated,
-owner-bound claim and remains queued until both fragments fit. The Giant Scale
-drop remains disabled until its separate A8b material/icon and source work is
-complete.
+poison. Each credited defeat queues two Bone Fragments and two guaranteed Giant
+Scales for the authenticated owner in one durable claim. The server commits the
+full bundle atomically; it remains queued until the complete bundle fits.
 
 Current defaults: [wildlife](../Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp),
 [health](../Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h) and

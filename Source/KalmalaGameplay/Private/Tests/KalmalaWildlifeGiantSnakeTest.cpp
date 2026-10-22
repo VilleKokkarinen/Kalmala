@@ -112,7 +112,8 @@ bool FKalmalaWildlifeGiantSnakeContractTest::RunTest(const FString& Parameters)
     {
         for (const FKalmalaItemDefinition& Definition : Catalogue->Items)
         {
-            if (Definition.ItemId.IsNone() || Definition.ItemId == TEXT("BoneFragment") || Definition.MaxStack <= 0)
+            if (Definition.ItemId.IsNone() || Definition.ItemId == TEXT("BoneFragment")
+                || Definition.ItemId == TEXT("GiantScale") || Definition.MaxStack <= 0)
                 continue;
             FKalmalaInventoryStack Stack;
             Stack.ItemId = Definition.ItemId;
@@ -125,14 +126,35 @@ bool FKalmalaWildlifeGiantSnakeContractTest::RunTest(const FString& Parameters)
         FullPack.Num(), UKalmalaInventoryComponent::MaxSlots);
     if (FullPack.Num() == UKalmalaInventoryComponent::MaxSlots)
     {
+        TArray<FKalmalaInventoryStack> WithBone;
         TArray<FKalmalaInventoryStack> RejectedCandidate;
         FString FailureReason;
-        TestFalse(TEXT("A full pack rejects two Giant Snake Bone Fragments"),
-            UKalmalaInventoryComponent::BuildGrant(FullPack, TEXT("BoneFragment"), 2,
-                RejectedCandidate, FailureReason));
+        const bool bBuiltBone = UKalmalaInventoryComponent::BuildGrant(
+            FullPack, TEXT("BoneFragment"), 2, WithBone, FailureReason);
+        const bool bBuiltScale = bBuiltBone
+            && UKalmalaInventoryComponent::BuildGrant(
+                WithBone, TEXT("GiantScale"), 2, RejectedCandidate, FailureReason);
+        TestFalse(TEXT("A full pack rejects the Giant Snake Bone Fragment and Scale bundle"), bBuiltScale);
         TestEqual(TEXT("The full-pack rejection is capacity-related"),
             FailureReason, FString(TEXT("Pack output capacity reached")));
         TestEqual(TEXT("A full-pack failure retains the pending Giant Snake claim"),
+            Population->GetPendingWildlifeRewards().Num(), 1);
+
+        TArray<FKalmalaInventoryStack> NearlyFullPack = FullPack;
+        NearlyFullPack.RemoveAt(0);
+        TArray<FKalmalaInventoryStack> NearlyFullWithBone;
+        TArray<FKalmalaInventoryStack> NearlyFullCandidate;
+        FString NearlyFullReason;
+        const bool bBoneFitsAtCapacity = UKalmalaInventoryComponent::BuildGrant(
+            NearlyFullPack, TEXT("BoneFragment"), 2, NearlyFullWithBone, NearlyFullReason);
+        const bool bScaleFitsAtCapacity = bBoneFitsAtCapacity
+            && UKalmalaInventoryComponent::BuildGrant(
+                NearlyFullWithBone, TEXT("GiantScale"), 2, NearlyFullCandidate, NearlyFullReason);
+        TestTrue(TEXT("Baseline fragments fit the one available inventory cell"), bBoneFitsAtCapacity);
+        TestFalse(TEXT("The Scale bundle is rejected when it needs another cell"), bScaleFitsAtCapacity);
+        TestEqual(TEXT("The partial bundle rejection is capacity-related"),
+            NearlyFullReason, FString(TEXT("Pack output capacity reached")));
+        TestEqual(TEXT("A partial candidate does not clear the pending Giant Snake claim"),
             Population->GetPendingWildlifeRewards().Num(), 1);
     }
 
@@ -161,12 +183,16 @@ bool FKalmalaWildlifeGiantSnakeContractTest::RunTest(const FString& Parameters)
         TestNotNull(TEXT("Giant Snake retry capacity validator exists"), Capacity);
         if (Capacity != nullptr)
         {
-            FullPack.RemoveAt(0, 2);
+            FullPack.RemoveAt(0, 3);
+            TArray<FKalmalaInventoryStack> WithBone;
             TArray<FKalmalaInventoryStack> RetryCandidate;
             FString RetryReason;
-            const bool bBuiltReward = UKalmalaInventoryComponent::BuildGrant(
-                FullPack, TEXT("BoneFragment"), 2, RetryCandidate, RetryReason);
-            TestTrue(TEXT("Both pending fragments fit after two cells are freed"), bBuiltReward);
+            const bool bBuiltBone = UKalmalaInventoryComponent::BuildGrant(
+                FullPack, TEXT("BoneFragment"), 2, WithBone, RetryReason);
+            const bool bBuiltReward = bBuiltBone
+                && UKalmalaInventoryComponent::BuildGrant(
+                    WithBone, TEXT("GiantScale"), 2, RetryCandidate, RetryReason);
+            TestTrue(TEXT("Both fragments and Scales fit after three cells are freed"), bBuiltReward);
             if (bBuiltReward)
             {
                 TestTrue(TEXT("Two fragments and one carried tool fit after retry"),
@@ -175,6 +201,10 @@ bool FKalmalaWildlifeGiantSnakeContractTest::RunTest(const FString& Parameters)
                     [](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == TEXT("BoneFragment"); });
                 TestTrue(TEXT("Retry candidate contains both Bone Fragments"),
                     BoneStack != nullptr && BoneStack->Quantity == 2);
+                const FKalmalaInventoryStack* ScaleStack = RetryCandidate.FindByPredicate(
+                    [](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == TEXT("GiantScale"); });
+                TestTrue(TEXT("Retry candidate contains both Giant Scales"),
+                    ScaleStack != nullptr && ScaleStack->Quantity == 2);
             }
             TestEqual(TEXT("Preparing a retry does not prematurely clear the claim"),
                 Reloaded->GetPendingWildlifeRewards().Num(), 1);

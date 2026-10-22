@@ -5749,3 +5749,17 @@
 - **Next eligible task:** A8b Giant Scale — Giant Snake, two guaranteed; material, source, JSON, and generated icon. Giant Snake exists; its A8b material drop remains disabled.
 - **Integration state:** Branch was fast-forwarded to master `1e497c6e` before work. Viper Fang is integrated into `master` by fast-forward `1e497c6e..4bf73df5`; the backlog/progress handoff is visible on main. Combined A8a/A8b I4 remains pending.
 - **Handoff:** Main checkout and index were not changed. Current run time: 2026-10-22T12:48:05Z.
+
+## Run 2026-10-22 12:59 UTC — A8b Giant Scale
+
+- **Selected task:** A8b Giant Scale — Giant Snake, two guaranteed; material, source, JSON, and generated icon. Checked only this existing backlog child.
+- **Work completed:** Enabled the existing server-owned Giant Snake claim to include two Giant Scales alongside its two baseline Bone Fragments. The server builds and commits the complete bundle atomically; capacity failure retains the durable claim. Expanded the regression source for full-pack rejection, a one-free-cell partial-bundle failure, and retry after three cells are freed. Updated the reward contract and corrected the master source-status note for accepted Rat Tail, Viper Fang, and Giant Scale rewards.
+- **Files changed:** `BACKLOG.md`; `PROGRESS.md`; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`; `Source/KalmalaGameplay/Private/Tests/KalmalaWildlifeGiantSnakeTest.cpp`; `docs/07-development-setup.md`; `docs/alpha-item-details.md`; `docs/biome-enemies.md`; `docs/creature-catalogues.md`.
+- **Lightweight checks:** `python Scripts/Validate-CreatureCatalogues.py` passed for the 17 species and registered JSON; `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id GiantScale` passed. Focused JSON/source/icon assertions passed for catalogue registration, the exact two-at-100% drop, item stack, icon provenance/assets, owner-bound reward path, atomic inventory commit, and capacity/retry regression source. `git diff --check` passed. All changed paths are below 260 characters (longest 93).
+- **Full verification:** No Unreal build or editor automation ran for this normal child. The updated regression source remains uncompiled and unexecuted. Combined A8a/A8b I4 verification remains pending before A9.
+- **Observable impact:** A credited Giant Snake defeat now awards two Giant Scales with its baseline Bone Fragments through the durable owner claim, all-or-nothing when inventory capacity allows.
+- **Networking/authority:** Reward eligibility, claim ownership, bundle construction, capacity check, and inventory commit remain server-owned; no client-supplied item ID or quantity was added and no save schema changed.
+- **Known limitations / remaining scope:** Live defeat delivery, full-pack retry, restart/reconnect, peer visibility, and rendered acceptance remain for combined I4. Other A8b material and recipe children remain open.
+- **Next eligible task:** A8b Venom Sac — Death Adder, one guaranteed; material, source, JSON, and generated icon.
+- **Integration state:** The isolated `codex/a8b-items` branch was at integrated master `031c01e2` before this increment. Giant Scale handoff to master is pending this run's commit and fast-forward. Main checkout and index remain untouched. Combined A8a/A8b I4 remains pending.
+- **Handoff:** Work is isolated in `E:\dev\Kalmala\.wt\a8b`; no main-checkout files or index were modified. Current run time: 2026-10-22T12:59:50Z.
