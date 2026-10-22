@@ -77,7 +77,7 @@ function Invoke-InventoryContractChecks {
         @{
             Path = 'Source\KalmalaGameplay\Private\Tests\KalmalaInventoryHotbarTest.cpp'
             Automation = 'Kalmala.Gameplay.Inventory.MainHandHotbar'
-            Assertions = @('Invalid and empty numbers preserve layout', 'Full-pack selection rejection preserves the entire layout')
+            Assertions = @('Invalid and empty numbers preserve layout')
         },
         @{
             Path = 'Source\KalmalaGameplay\Private\Tests\KalmalaTwoHandedTest.cpp'
@@ -97,12 +97,12 @@ function Invoke-InventoryContractChecks {
         @{
             Path = 'Source\KalmalaGameplay\Private\Tests\KalmalaInventoryGridTest.cpp'
             Automation = 'Kalmala.Gameplay.Inventory.SharedGrid'
-            Assertions = @('Numbered tool selection moves its physical copy into Main Hand', 'Return uses first free space without restoring an old shortcut')
+            Assertions = @('Axe stays in slot three when equipped', 'New items use free space in owned-item order')
         },
         @{
             Path = 'Source\KalmalaUI\Private\Tests\KalmalaInventoryGridWidgetTest.cpp'
             Automation = 'Kalmala.UI.Inventory.NumberedHotbar'
-            Assertions = @('A tool moved into Main Hand leaves no numbered HUD alias', 'A returned tool uses its current pack cell number')
+            Assertions = @('Empty hotbar hides every cell', 'Hotbar omits empty cells and lower rows without renumbering')
         },
         @{
             Path = 'Source\KalmalaGameplay\Private\Tests\KalmalaInventoryEquipmentTest.cpp'

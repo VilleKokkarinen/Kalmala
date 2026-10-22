@@ -40,7 +40,7 @@ bool FKalmalaToolLifecycleContractTest::RunTest(const FString& Parameters)
         TestTrue(TEXT("Server selection reward is catalogue-valid"), UKalmalaItemCatalogue::Get()->IsValidStack(Selection.RewardItemId, Selection.RewardQuantity));
         Rewards.Add(Selection.RewardItemId);
     }
-    TestEqual(TEXT("First-wave selection covers six material rewards"), Rewards.Num(), 6);
+    TestEqual(TEXT("First-wave selection covers six material identities"), Rewards.Num(), 6);
 
     FKalmalaToolServerSelection Selection;
     const TPair<FName, FName> OreSources[] = {
@@ -64,6 +64,12 @@ bool FKalmalaToolLifecycleContractTest::RunTest(const FString& Parameters)
         FKalmalaToolLifecycleContract::GetMaximumMineableResourceTier(EKalmalaToolKind::IronPick), EKalmalaToolTier::Iron);
     TestEqual(TEXT("Non-pick tools have no mining resource ceiling"),
         FKalmalaToolLifecycleContract::GetMaximumMineableResourceTier(EKalmalaToolKind::IronAxe), EKalmalaToolTier::None);
+    TestTrue(TEXT("Mire bog-iron builds a server selection"),
+        FKalmalaToolLifecycleContract::BuildServerSelection(TEXT("mire-bog-iron"), Selection));
+    TestEqual(TEXT("Mire bog-iron pays Iron Ore"), Selection.RewardItemId, FName(TEXT("IronOre")));
+    TestEqual(TEXT("Mire bog-iron pays exactly three Iron Ore"), Selection.RewardQuantity, 3);
+    TestEqual(TEXT("Mire bog-iron requires Bronze Pick or better"), Selection.MinimumToolTier, EKalmalaToolTier::Bronze);
+    TestEqual(TEXT("Mire bog-iron is Iron-grade"), Selection.ResourceTier, EKalmalaToolTier::Iron);
     TestTrue(TEXT("Copper source builds before mining ceiling tests"),
         FKalmalaToolLifecycleContract::BuildServerSelection(TEXT("elderwood-copper-vein"), Selection));
     TestTrue(TEXT("All-biome Stone outcrop builds a server selection"),
@@ -79,6 +85,16 @@ bool FKalmalaToolLifecycleContractTest::RunTest(const FString& Parameters)
     TestNotNull(TEXT("Bronze Pick profile is available for mining-cap coverage"), BronzePick);
     TestNotNull(TEXT("Iron Pick profile is available for mining-cap coverage"), IronPick);
     if (StonePick == nullptr || BronzePick == nullptr || IronPick == nullptr) return true;
+    TestTrue(TEXT("Mire bog-iron selection is restored for pick-tier coverage"),
+        FKalmalaToolLifecycleContract::BuildServerSelection(TEXT("mire-bog-iron"), Selection));
+    TestFalse(TEXT("Stone Pick cannot mine Iron-grade bog iron"),
+        FKalmalaToolLifecycleContract::IsToolSuitableForSelection(*StonePick, Selection));
+    TestTrue(TEXT("Bronze Pick can mine Iron-grade bog iron"),
+        FKalmalaToolLifecycleContract::IsToolSuitableForSelection(*BronzePick, Selection));
+    TestTrue(TEXT("Iron Pick can mine Iron-grade bog iron"),
+        FKalmalaToolLifecycleContract::IsToolSuitableForSelection(*IronPick, Selection));
+    TestTrue(TEXT("All-biome Stone source is restored after bog-iron checks"),
+        FKalmalaToolLifecycleContract::BuildServerSelection(TEXT("allbiomes-stone-outcrop"), Selection));
     TestTrue(TEXT("Stone Pick can mine the all-biome Stone outcrop"),
         FKalmalaToolLifecycleContract::IsToolSuitableForSelection(*StonePick, Selection));
     TestTrue(TEXT("Bronze Pick can mine the all-biome Stone outcrop"),

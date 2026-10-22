@@ -286,6 +286,37 @@ struct KALMALAGAMEPLAY_API FKalmalaGardenPlotState
 };
 
 USTRUCT()
+struct KALMALAGAMEPLAY_API FKalmalaStandingLightState
+{
+    GENERATED_BODY()
+
+    static constexpr float SecondsPerWood = 600.0f;
+    static constexpr float FuelCapacitySeconds = 1200.0f;
+    UPROPERTY(SaveGame) float RemainingFuelSeconds = 0.0f;
+
+    bool IsEmpty() const { return RemainingFuelSeconds == 0.0f; }
+    bool IsValid() const
+    {
+        return FMath::IsFinite(RemainingFuelSeconds) && RemainingFuelSeconds >= 0.0f
+            && RemainingFuelSeconds <= FuelCapacitySeconds;
+    }
+    bool TryAddWood()
+    {
+        if (!IsValid() || RemainingFuelSeconds > FuelCapacitySeconds - SecondsPerWood) return false;
+        RemainingFuelSeconds += SecondsPerWood;
+        return true;
+    }
+    bool Advance(const float ActiveSeconds)
+    {
+        if (!IsValid() || RemainingFuelSeconds <= 0.0f
+            || !FMath::IsFinite(ActiveSeconds) || ActiveSeconds <= 0.0f) return false;
+        const float Before = RemainingFuelSeconds;
+        RemainingFuelSeconds = FMath::Max(0.0f, RemainingFuelSeconds - ActiveSeconds);
+        return RemainingFuelSeconds != Before;
+    }
+};
+
+USTRUCT()
 struct KALMALAGAMEPLAY_API FKalmalaConstructionSaveRecord
 {
     GENERATED_BODY()
@@ -295,10 +326,11 @@ struct KALMALAGAMEPLAY_API FKalmalaConstructionSaveRecord
     UPROPERTY(SaveGame) FKalmalaCharcoalKilnState CharcoalKiln;
     UPROPERTY(SaveGame) FKalmalaSmelterState Smelter;
     UPROPERTY(SaveGame) FKalmalaGardenPlotState GardenPlot;
+    UPROPERTY(SaveGame) FKalmalaStandingLightState StandingLight;
     UPROPERTY(SaveGame) bool bDoorOpen = false;
 };
 
-/** Schema-1 construction data model retained by in-memory gameplay tests; current slots use schema 6. */
+/** Schema-1 construction data model retained by in-memory gameplay tests; current slots use schema 7. */
 UCLASS()
 class KALMALAGAMEPLAY_API UKalmalaConstructionSaveGame : public USaveGame
 {
@@ -320,13 +352,13 @@ private:
     UPROPERTY(SaveGame) TArray<FKalmalaConstructionSaveRecord> Records;
 };
 
-/** Current bounded schema-6 server camp state, including Kiln, Smelter, Garden Plot and door state. Rejects identity mismatches. */
+/** Current bounded schema-7 server camp state, including Kiln, Smelter, Garden Plot, door, and Standing Light state. Rejects identity mismatches. */
 UCLASS()
 class KALMALAGAMEPLAY_API UKalmalaConstructionSaveGameV2 : public USaveGame
 {
     GENERATED_BODY()
 public:
-    static constexpr int32 SchemaVersionValue = 6;
+    static constexpr int32 SchemaVersionValue = 7;
     static constexpr int32 MaxRecords = 128;
     static constexpr int32 MaxStationAttachments = 32;
 
@@ -341,6 +373,7 @@ public:
     bool UpdateCharcoalKilnRecord(const FString& ConstructionId, const FKalmalaCharcoalKilnState& State);
     bool UpdateSmelterRecord(const FString& ConstructionId, const FKalmalaSmelterState& State);
     bool UpdateGardenPlotRecord(const FString& ConstructionId, const FKalmalaGardenPlotState& State);
+    bool UpdateStandingLightRecord(const FString& ConstructionId, const FKalmalaStandingLightState& State);
     bool ReplaceWallRecordWithDoor(const FString& ConstructionId, const FTransform& WallTransform);
     bool UpdateDoorOpenRecord(const FString& ConstructionId, const FTransform& DoorTransform, bool bOpen);
     const TArray<FKalmalaConstructionSaveRecord>& GetRecords() const { return Records; }

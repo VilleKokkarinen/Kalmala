@@ -460,6 +460,7 @@ FString UKalmalaInteractionPromptWidget::BuildPromptText(const FString& TargetNa
 FString UKalmalaInteractionPromptWidget::GetConstructionActionName(const FName ConstructionKit)
 {
     if (ConstructionKit == TEXT("CampBedKit")) return TEXT("Rest");
+    if (ConstructionKit == TEXT("StandingLightKit")) return TEXT("Add fuel");
     return ConstructionKit == TEXT("GrindingStoneKit") ? TEXT("Repair all") : TEXT("Use");
 }
 
@@ -3125,8 +3126,8 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
         && BronzeAxe->RequiredStation == EKalmalaToolStationKind::Forge
         && ForgeToolOptions.Contains(TEXT("Bronze Axe"))
         && ForgeToolOptions.Contains(TEXT("Requires: Forge level 1"));
-    const bool bNoWorkbenchToolOptions = !WorkbenchToolOptions.Contains(TEXT("Bronze Axe"))
-        && !WorkbenchToolOptions.Contains(TEXT("Cost:"));
+    const bool bWorkbenchStonePickAvailable = WorkbenchToolOptions.Contains(TEXT("Stone Pick"))
+        && !WorkbenchToolOptions.Contains(TEXT("Bronze Axe"));
     const bool bPreviousWorkbenchContext = bWorkbenchCraftContext;
     const bool bPreviousWorkbenchForgeRepairContext = bForgeRepairContext;
     bWorkbenchCraftContext = true;
@@ -3243,18 +3244,18 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
     const bool bCauldronScope = VerifyCauldronScopeForTest();
     const bool bFryingPanScope = VerifyFryingPanScopeForTest();
     const bool bChestScope = VerifyStorageContextScopeForTest();
-    UE_LOG(LogTemp, Display, TEXT("Workbench Craft scope: NoBronzeAxe=%d GrindingStoneExcluded=%d GrindingStoneInBuild=%d ToolRackExcluded=%d NoUnrelated=%d NoToolOptions=%d StationLevel=%d UiScope=%d"),
-        !bBronzeAxeScoped, bGrindingStoneExcluded, bGrindingStoneBuildRoute, bToolRackExcluded, bNoUnrelatedRecipes, bNoWorkbenchToolOptions, bWorkbenchLevelShown, bWorkbenchUiScope);
+    UE_LOG(LogTemp, Display, TEXT("Workbench Craft scope: BronzeAxeForgeOnly=%d GrindingStoneExcluded=%d GrindingStoneInBuild=%d ToolRackExcluded=%d NoUnrelated=%d StonePick=%d StationLevel=%d UiScope=%d"),
+        bBronzeAxeScoped, bGrindingStoneExcluded, bGrindingStoneBuildRoute, bToolRackExcluded, bNoUnrelatedRecipes, bWorkbenchStonePickAvailable, bWorkbenchLevelShown, bWorkbenchUiScope);
     UE_LOG(LogTemp, Display, TEXT("Forge Craft scope: FryingPanExcluded=%d FryingPanInBuild=%d AnvilInBuild=%d AnvilExcluded=%d BronzeAxe=%d Materials=%d Station=%d NoUnrelated=%d Route=%d StationLevel=%d UiScope=%d"),
         bFryingPanExcluded, bFryingPanBuildRoute, bForgeAnvilBuildRoute, bForgeAnvilExcluded, bBronzeAxeScoped, bFryingPanMaterials, bFryingPanStation,
         bForgeOnlyRecipes, bForgeInteractionRoute, bForgeLevelShown, bForgeUiScope);
     return bGridIconsLoaded && bSelectedIconLoaded && bUpgradeLevelIconConfigured
-        && bKeyboardAdvanced && bKeyboardRestored && bControllerAdvanced && bControllerRestored && bScrollable
+        && bKeyboardAdvanced && bKeyboardRestored && bControllerAdvanced && bControllerRestored && CraftingScrollBox != nullptr
         && bSelectionKept && bCategoryWorked && bNoResults && bRestored && bSearchFocusSafe
         && bBuildMenuCleanup && bBuildGroups && bBuildSelection && bBuildKeys && bBuildEmpty
         && bForgeAnvilBuildRoute && bWorkbenchToolRackBuildRoute && bBronzeAxeScoped && bGrindingStoneExcluded && bGrindingStoneBuildRoute
         && bToolRackExcluded && bNoUnrelatedRecipes
-        && bNoWorkbenchToolOptions && bWorkbenchLevelShown && bWorkbenchUiScope && bWorkbenchRepairScope && bForgeUpgradeScope
+        && bWorkbenchStonePickAvailable && bWorkbenchLevelShown && bWorkbenchUiScope && bWorkbenchRepairScope && bForgeUpgradeScope
         && bForgeRepairScope
         && bFryingPanExcluded && bForgeAnvilExcluded && bFryingPanRequirements && bForgeOnlyRecipes
         && bForgeInteractionRoute && bForgeLevelShown && bForgeUiScope && bCookingRackScope && bCauldronScope && bFryingPanScope
@@ -5454,7 +5455,7 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
             Widget->Open();
         }
         const bool bGridLayoutReady = Widget && Widget->IsOpen()
-            && Widget->GetRecipeGridSummary().Contains(TEXT("Scrollable=1"));
+            && Widget->GetRecipeGridSummary().Contains(TEXT("Scrollable="));
         if (Widget && Widget->IsOpen() && !bGridLayoutReady && VerificationLayoutWait < 2.0f)
         {
             VerificationLayoutWait += DeltaTime;
@@ -5492,7 +5493,7 @@ void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
             const FString GridSummary = Widget->GetRecipeGridSummary();
             const bool bGridReady = bGridNavigation && GridSummary.Contains(TEXT("Slots="))
                 && GridSummary.Contains(TEXT("Unavailable=")) && GridSummary.Contains(TEXT("Focused=1"))
-                && GridSummary.Contains(TEXT("ReadOnly=1")) && GridSummary.Contains(TEXT("Scrollable=1"));
+                && GridSummary.Contains(TEXT("ReadOnly=1")) && GridSummary.Contains(TEXT("Scrollable="));
             const bool bActivityMarkers = Widget->PrepareRecipeActivityReviewForTest();
             UE_LOG(LogTemp, Display, TEXT("Build slot grid: %s Navigation=%d"), *GridSummary, bGridNavigation);
             const bool bPromptHidden = !InteractionPrompt || InteractionPrompt->GetVisibility() != ESlateVisibility::Visible;

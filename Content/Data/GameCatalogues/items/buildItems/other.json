@@ -49,6 +49,12 @@
       "MaxStack": 1
     },
     {
+      "ItemId": "StandingLight",
+      "DisplayName": "Standing Light",
+      "Description": "A freestanding timber brazier that burns Wood for a small cosmetic light.",
+      "MaxStack": 1
+    },
+    {
       "ItemId": "Roof",
       "DisplayName": "Reed Roof",
       "Description": "A reed roof that shields a small camp from rain.",

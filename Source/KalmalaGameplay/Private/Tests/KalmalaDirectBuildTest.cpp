@@ -106,7 +106,7 @@ bool FKalmalaDirectBuildTest::RunTest(const FString& Parameters)
         TestEqual(TEXT("Bronze alloy outputs Bronze"), BronzeAlloy->Output, FName(TEXT("Bronze")));
         TestEqual(TEXT("Bronze alloy batch cap is five"), BronzeAlloy->MaxBatch, 5);
         TestTrue(TEXT("Bronze alloy uses two Copper and one Tin at the Forge"),
-            BronzeAlloy->RequiredStation.Contains(TEXT("Forge")) && BronzeAlloy->Ingredients.Num() == 2
+            BronzeAlloy->RequiredStation.Contains(TEXT("ForgeKit")) && BronzeAlloy->Ingredients.Num() == 2
             && BronzeAlloy->Ingredients[0].ItemId == TEXT("Copper") && BronzeAlloy->Ingredients[0].Quantity == 2
             && BronzeAlloy->Ingredients[1].ItemId == TEXT("Tin") && BronzeAlloy->Ingredients[1].Quantity == 1);
     }

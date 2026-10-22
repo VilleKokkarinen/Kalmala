@@ -130,6 +130,40 @@ void UKalmalaCraftingComponent::InteractWithConstructionFromServer(AKalmalaConst
         PublishResult(TEXT("Resting briefly; movement or damage will end the pose."), true);
         return;
     }
+    if (Kit == TEXT("StandingLightKit"))
+    {
+        AKalmalaCharacter* Character = GetCharacter();
+        auto* Inventory = Character ? Character->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
+        auto* Mode = GetWorld() ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
+        FKalmalaStandingLightState Candidate = Construction->GetStandingLightState();
+        FString Reason = TEXT("Standing Light is unavailable");
+        bool bAccepted = false;
+        if (Character && Inventory && Mode)
+        {
+            Reason = TEXT("Standing Light fuel is full");
+            if (Candidate.TryAddWood())
+            {
+                Reason = TEXT("Need 1 Wood in your pack");
+                if (Inventory->TryConsumeFromServer(TEXT("Wood"), 1))
+                {
+                    Reason = TEXT("Standing Light could not be saved; no Wood was consumed");
+                    if (Mode->PersistStandingLightState(Construction, Candidate))
+                    {
+                        Construction->ApplyStandingLightStateFromServer(Candidate);
+                        Character->ForceNetUpdate();
+                        Reason = TEXT("Added 1 Wood to the Standing Light");
+                        bAccepted = true;
+                    }
+                    else if (!Inventory->TryGrantFromServer(TEXT("Wood"), 1))
+                    {
+                        UE_LOG(LogTemp, Error, TEXT("Failed to restore Wood after Standing Light save rejection."));
+                    }
+                }
+            }
+        }
+        PublishResult(Reason, bAccepted);
+        return;
+    }
     if (AKalmalaConstructionActor::IsCraftingStationKit(Kit))
     {
         LastStationContextActor = Construction;

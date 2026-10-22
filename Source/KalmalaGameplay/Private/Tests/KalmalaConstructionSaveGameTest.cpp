@@ -85,6 +85,10 @@ bool FKalmalaConstructionSaveGameV2Test::RunTest(const FString& Parameters)
     TestTrue(TEXT("Smelter fixture queues Copper Ore"), Smelter.Smelter.TryAddOre(EKalmalaSmelterOre::Copper));
     TestTrue(TEXT("Smelter fixture queues Coal"), Smelter.Smelter.TryAddCoal());
     TestTrue(TEXT("Smelter fixture starts and saves an active job"), Smelter.Smelter.Advance(12.5f));
+    FKalmalaConstructionSaveRecord StandingLight = MakeRecord(TEXT("camp-standing-light-01"), TEXT("StandingLightKit"));
+    TestTrue(TEXT("Standing Light fixture accepts the first Wood charge"), StandingLight.StandingLight.TryAddWood());
+    TestTrue(TEXT("Standing Light fixture accepts a second Wood charge"), StandingLight.StandingLight.TryAddWood());
+    TestTrue(TEXT("Standing Light fixture advances active burn time"), StandingLight.StandingLight.Advance(62.75f));
     FKalmalaConstructionSaveRecord Plot = MakeRecord(TEXT("camp-garden-01"), TEXT("GardenPlotKit"));
     TestTrue(TEXT("Carrot food mode pays Carrot Seed and yields Carrot"),
         FKalmalaGardenPlotState::GetPlantingPaymentItem(EKalmalaGardenCropMode::CarrotFood) == FName(TEXT("CarrotSeed"))
@@ -160,13 +164,14 @@ bool FKalmalaConstructionSaveGameV2Test::RunTest(const FString& Parameters)
     TestTrue(TEXT("Schema 6 retains the stable Campfire construction identity"), Save->AddRecord(Campfire));
     TestTrue(TEXT("Schema 6 saves kiln input, output, and remaining active seconds"), Save->AddRecord(Kiln));
     TestTrue(TEXT("Schema 6 saves Smelter input and active job state"), Save->AddRecord(Smelter));
+    TestTrue(TEXT("Current construction schema saves Standing Light fuel"), Save->AddRecord(StandingLight));
     TestTrue(TEXT("Garden Plot saves in the current construction record"), Save->AddRecord(Plot));
     TestTrue(TEXT("Onion Garden Plot saves in the current construction record"), Save->AddRecord(OnionPlot));
     TestFalse(TEXT("Schema 6 rejects a duplicate stable construction ID across record kinds"),
         Save->AddStationAttachmentRecord(MakeRecord(TEXT("camp-floor-01"), TEXT("ForgeAnvilKit"))));
     TestFalse(TEXT("Schema 6 rejects unsupported construction identities"),
         Save->AddRecord(MakeRecord(TEXT("camp-unknown-01"), TEXT("UnknownConstructionKit"))));
-    TestEqual(TEXT("Rejected schema-6 additions leave the live candidate unchanged"), Save->GetRecords().Num(), 7);
+    TestEqual(TEXT("Rejected current-schema additions leave the live candidate unchanged"), Save->GetRecords().Num(), 8);
 
     TestTrue(TEXT("Timber Door is a directly placeable construction identity"),
         FKalmalaPlacementPreview::IsSupportedKit(TEXT("TimberDoorKit")));
@@ -268,13 +273,20 @@ bool FKalmalaConstructionSaveGameV2Test::RunTest(const FString& Parameters)
     TestTrue(TEXT("Empty Smelter can be removed"), RemovalCandidate->RemoveRecord(TEXT("smelter-empty")));
 
     TArray<uint8> CurrentBytes;
-    TestTrue(TEXT("Schema 6 construction records serialize in memory"), Serialize(Save, CurrentBytes));
+    TestTrue(TEXT("Current construction-schema records serialize in memory"), Serialize(Save, CurrentBytes));
     UKalmalaConstructionSaveGameV2* Reloaded =
         Cast<UKalmalaConstructionSaveGameV2>(UGameplayStatics::LoadGameFromMemory(CurrentBytes));
-    if (TestNotNull(TEXT("Schema 6 construction records reload with their type"), Reloaded))
+    if (TestNotNull(TEXT("Current construction-schema records reload with their type"), Reloaded))
     {
         TestTrue(TEXT("Reloaded container carries exact world, revision, and world scope"), Reloaded->MatchesWorld(World));
-        TestEqual(TEXT("Existing construction, Campfire, Kiln, Smelter, plots, and attachment records round-trip together"), Reloaded->GetRecords().Num(), 7);
+        TestEqual(TEXT("Existing construction, Campfire, Kiln, Smelter, plots, light, and attachment records round-trip together"), Reloaded->GetRecords().Num(), 8);
+        TestTrue(TEXT("Standing Light fuel survives save reload"), Reloaded->GetRecords().ContainsByPredicate(
+            [](const FKalmalaConstructionSaveRecord& Record)
+            {
+                return Record.ConstructionId == TEXT("camp-standing-light-01")
+                    && Record.KitId == TEXT("StandingLightKit")
+                    && FMath::IsNearlyEqual(Record.StandingLight.RemainingFuelSeconds, 1137.25f);
+            }));
         TestTrue(TEXT("Rutabaga Garden Plot mode and active time survive reload"), Reloaded->GetRecords().ContainsByPredicate(
             [](const FKalmalaConstructionSaveRecord& Record)
             {

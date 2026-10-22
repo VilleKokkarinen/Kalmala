@@ -789,6 +789,38 @@ bool AKalmalaGameMode::PersistGardenPlotState(AKalmalaConstructionActor* Constru
     return true;
 }
 
+bool AKalmalaGameMode::PersistStandingLightState(AKalmalaConstructionActor* Construction,
+    const FKalmalaStandingLightState& State)
+{
+    if (!HasAuthority() || !IsValid(Construction) || !Construction->HasAuthority()
+        || Construction->GetWorld() != GetWorld()
+        || Construction->GetConstructionKit() != TEXT("StandingLightKit")
+        || !State.IsValid() || ConstructionSaveGame == nullptr
+        || !ConstructionSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
+
+    const FString ConstructionId = Construction->GetConstructionId();
+    const auto* ExistingRecord = ConstructionSaveGame->GetRecords().FindByPredicate(
+        [&ConstructionId](const FKalmalaConstructionSaveRecord& Record)
+        {
+            return Record.ConstructionId == ConstructionId && Record.KitId == TEXT("StandingLightKit");
+        });
+    if (!ExistingRecord || !ExistingRecord->Transform.Equals(Construction->GetActorTransform())) return false;
+
+    UKalmalaConstructionSaveGameV2* Candidate = nullptr;
+    if (!UKalmalaConstructionSaveGameV2::TryBuildWriteCandidate(
+        ConstructionSaveGame, WorldGenerationConfig, this, Candidate) || !Candidate) return false;
+    if (!Candidate->UpdateStandingLightRecord(ConstructionId, State)
+        || !Candidate->MatchesWorld(WorldGenerationConfig)
+        || !UGameplayStatics::SaveGameToSlot(Candidate,
+            KalmalaGameMode::ConstructionSaveSlot(WorldGenerationConfig), 0))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Standing Light state save failed for %s."), *ConstructionId);
+        return false;
+    }
+    ConstructionSaveGame = Candidate;
+    return true;
+}
+
 bool AKalmalaGameMode::IsTerrainPatchActiveAt(const FVector& WorldLocation) const
 {
     if (!HasAuthority() || WorldLocation.ContainsNaN()) return false;
@@ -815,7 +847,7 @@ void AKalmalaGameMode::RestorePersistedConstruction()
             continue;
         }
         Construction->InitializeFromServer(Record.KitId, Record.ConstructionId,
-            Record.CharcoalKiln, Record.Smelter, Record.GardenPlot, Record.bDoorOpen);
+            Record.CharcoalKiln, Record.Smelter, Record.GardenPlot, Record.bDoorOpen, Record.StandingLight);
         Construction->FinishSpawning(Record.Transform);
         UE_LOG(LogTemp, Display, TEXT("Construction restored: Id=%s Kit=%s."), *Record.ConstructionId, *Record.KitId.ToString());
     }

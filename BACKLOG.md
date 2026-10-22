@@ -181,10 +181,12 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [x] Timber Beam: 2 Wood; 2 m, horizontal/vertical support.
   - [x] Timber Stairs: 6 Wood; 2 m run, 1 m rise, 1 m wide.
   - [x] Camp Bed: 4 Wood + 2 Boar Hide + 2 Deer Hide; resting pose only.
-  - [ ] Standing Light: 3 Wood + 1 amber; 1 fuel = 600 s, 6 m light.
+  - [x] Standing Light: 3 Wood + 1 amber; 1 fuel = 600 s, 6 m light.
   - [x] Keep extra brewing stations deferred; Kiln/Smelter/Plot belong to A1/A7.
 
 - [ ] **A8a — Biome enemies (before A9).** [Roster and stats](docs/biome-enemies.md)
+  - [x] Register the three current creatures and fourteen planned enemies in GameCatalogues JSON (user request, 2026-10-21); one Wolf species, pack spawning deferred to engine work. Data authoring only; runtime enemy tasks below remain open.
+  - [x] Consolidate all 17 species into creatures.json and remove redundant rules JSON (user request, 2026-10-21); shared engine policies remain in design docs. Keep one flat gameplay profile per species; no status flags, runtime snapshots or AI prose. No defensive-trigger or Swarm settings; poison uses rate and duration only.
   - [x] Review the expanded roster, spawn weights and attack/loot rules.
   - [x] Review unique enemy drops and uses; approve new materials/recipes before implementation.
   - [x] Review the recommended drop-based item/recipe table; approve effects and full gear profiles.

@@ -67,7 +67,8 @@ bool UKalmalaConstructionSaveGameV2::IsValidRecord(const FKalmalaConstructionSav
     if (Record.ConstructionId.Len() <= 0 || Record.ConstructionId.Len() > 64
         || !FKalmalaPlacementPreview::IsSupportedKit(Record.KitId)
         || !IsValidConstructionTransform(Record.Transform)
-        || !Record.CharcoalKiln.IsValid() || !Record.Smelter.IsValid() || !Record.GardenPlot.IsValid()) return false;
+        || !Record.CharcoalKiln.IsValid() || !Record.Smelter.IsValid() || !Record.GardenPlot.IsValid()
+        || !Record.StandingLight.IsValid()) return false;
 
     if (Record.KitId == TEXT("CharcoalKilnKit"))
     {
@@ -83,6 +84,7 @@ bool UKalmalaConstructionSaveGameV2::IsValidRecord(const FKalmalaConstructionSav
     }
 
     if (Record.KitId != TEXT("GardenPlotKit") && !Record.GardenPlot.IsEmpty()) return false;
+    if (Record.KitId != TEXT("StandingLightKit") && !Record.StandingLight.IsEmpty()) return false;
     if (Record.KitId != TEXT("TimberDoorKit") && Record.bDoorOpen) return false;
 
     if (!FKalmalaPlacementPreview::IsSessionOnlyKit(Record.KitId)) return true;
@@ -195,7 +197,8 @@ bool UKalmalaConstructionSaveGameV2::RemoveRecord(const FString& ConstructionId)
     const FKalmalaConstructionSaveRecord& Record = Records[RecordIndex];
     if ((Record.KitId == TEXT("CharcoalKilnKit") && !Record.CharcoalKiln.IsEmpty())
         || (Record.KitId == TEXT("SmelterKit") && !Record.Smelter.IsEmpty())
-        || (Record.KitId == TEXT("GardenPlotKit") && !Record.GardenPlot.IsEmpty())) return false;
+        || (Record.KitId == TEXT("GardenPlotKit") && !Record.GardenPlot.IsEmpty())
+        || (Record.KitId == TEXT("StandingLightKit") && !Record.StandingLight.IsEmpty())) return false;
 
     Records.RemoveAt(RecordIndex);
     return true;
@@ -256,6 +259,26 @@ bool UKalmalaConstructionSaveGameV2::UpdateGardenPlotRecord(const FString& Const
     if (!MatchesWorld(WorldConfig))
     {
         Record->GardenPlot = Previous;
+        return false;
+    }
+    return true;
+}
+
+bool UKalmalaConstructionSaveGameV2::UpdateStandingLightRecord(const FString& ConstructionId,
+    const FKalmalaStandingLightState& State)
+{
+    if (!MatchesWorld(WorldConfig) || ConstructionId.IsEmpty() || !State.IsValid()) return false;
+    FKalmalaConstructionSaveRecord* Record = Records.FindByPredicate(
+        [&ConstructionId](FKalmalaConstructionSaveRecord& Candidate)
+        {
+            return Candidate.ConstructionId == ConstructionId && Candidate.KitId == TEXT("StandingLightKit");
+        });
+    if (!Record) return false;
+    const FKalmalaStandingLightState Previous = Record->StandingLight;
+    Record->StandingLight = State;
+    if (!MatchesWorld(WorldConfig))
+    {
+        Record->StandingLight = Previous;
         return false;
     }
     return true;

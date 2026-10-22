@@ -26,7 +26,8 @@ bool FKalmalaRecipeActivityReceiptTest::RunTest(const FString& Parameters)
     const FKalmalaRecipe* ExistingCraftRecipe = Catalogue->Recipes.FindByPredicate([](const FKalmalaRecipe& Recipe)
     {
         return Recipe.BuildableOutput.IsNone() && Recipe.ExperienceSkill != EKalmalaSkill::Cooking
-            && !Recipe.Output.IsNone();
+            && !Recipe.Output.IsNone() && Recipe.Output != TEXT("BasicTorch")
+            && Recipe.Output != TEXT("ConstructionHammer");
     });
     if (!TestNotNull(TEXT("Other-craft receipt fixture resolves an authored non-cooking recipe"), ExistingCraftRecipe))
         return false;
@@ -34,7 +35,7 @@ bool FKalmalaRecipeActivityReceiptTest::RunTest(const FString& Parameters)
     SyntheticCraftRecipe.RecipeId = TEXT("ActivityReceiptTestCraft");
     SyntheticCraftRecipe.DisplayName = TEXT("Receipt test crafted item");
     GetMutableDefault<UKalmalaRecipeCatalogue>()->Recipes.Add(SyntheticCraftRecipe);
-    if (!TestTrue(TEXT("Synthetic other-craft receipt fixture satisfies active catalogue bounds"), Catalogue->IsValidCatalogue()))
+    if (!TestTrue(TEXT("Synthetic other-craft receipt fixture stays within active catalogue bounds"), Catalogue->IsValidCatalogue()))
         return false;
 
     FName BuildRecipeId = NAME_None;

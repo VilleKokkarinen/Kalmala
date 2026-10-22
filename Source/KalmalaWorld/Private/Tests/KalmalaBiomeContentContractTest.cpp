@@ -186,7 +186,7 @@ bool FKalmalaBiomeContentContractTest::RunTest(const FString& Parameters)
         {
             if (FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Candidate) == PersistentId) continue;
             TestTrue(TEXT("Stone outcrop keeps 250 cm from other harvest descriptors"),
-                FVector2D(Candidate.Location.X, Candidate.Location.Y).DistSquared(Position) >= 62500.0f);
+                FVector2D::DistSquared(FVector2D(Candidate.Location.X, Candidate.Location.Y), Position) >= 62500.0f);
         }
         TestTrue(TEXT("Stone outcrop position and identity repeat for the same seed and key"),
             RepeatedSpawns.ContainsByPredicate([&Spawn, &PersistentId](const FKalmalaWorldPopulationSpawn& Candidate)
