@@ -1,5 +1,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
+#include "KalmalaInventoryComponent.h"
+#include "KalmalaItemCatalogue.h"
 #include "KalmalaWildlifeSpawn.h"
 #include "KalmalaWorldPopulationSaveGame.h"
 #include "Kismet/GameplayStatics.h"
@@ -104,18 +106,39 @@ bool FKalmalaWildlifeThunderSentinelContractTest::RunTest(const FString& Paramet
         AKalmalaWildlifeSpawn::IsHardEnemySpawnAllowedByStart(true, false, 0.0f));
 
     const FString SpawnId(TEXT("-4/9/3/thundersentinel-117"));
-    const FString ClaimId = UKalmalaWorldPopulationSaveGame::MakeThunderSentinelPendingRewardClaimId(SpawnId);
+    const FString ClaimId = UKalmalaWorldPopulationSaveGame::MakeThunderSentinelPendingRewardClaimId(SpawnId, true);
     FString DecodedSpawnId;
+    bool bDecodedHasThunderCore = false;
     TestTrue(TEXT("The durable claim fits the stable-ID limit"), !ClaimId.IsEmpty() && ClaimId.Len() <= 128);
     TestTrue(TEXT("The claim decodes the stable spawn ID"),
         UKalmalaWorldPopulationSaveGame::TryGetThunderSentinelSpawnIdFromPendingRewardClaimId(
-            ClaimId, DecodedSpawnId));
+            ClaimId, DecodedSpawnId, bDecodedHasThunderCore));
     TestEqual(TEXT("The decoded claim retains the defeated spawn ID"), DecodedSpawnId, SpawnId);
+    TestTrue(TEXT("The claim stores the successful Thunder Core roll"), bDecodedHasThunderCore);
     TestTrue(TEXT("Empty spawn IDs are rejected"),
-        UKalmalaWorldPopulationSaveGame::MakeThunderSentinelPendingRewardClaimId(FString()).IsEmpty());
+        UKalmalaWorldPopulationSaveGame::MakeThunderSentinelPendingRewardClaimId(FString(), true).IsEmpty());
+    const FString NoCoreSpawnId(TEXT("-4/9/3/thundersentinel-118"));
+    const FString NoCoreClaimId = UKalmalaWorldPopulationSaveGame::MakeThunderSentinelPendingRewardClaimId(
+        NoCoreSpawnId, false);
+    bool bDecodedHasNoCore = true;
+    TestTrue(TEXT("A failed roll has a durable claim encoding"),
+        UKalmalaWorldPopulationSaveGame::TryGetThunderSentinelSpawnIdFromPendingRewardClaimId(
+            NoCoreClaimId, DecodedSpawnId, bDecodedHasNoCore));
+    TestEqual(TEXT("The no-Core claim retains its spawn ID"), DecodedSpawnId, NoCoreSpawnId);
+    TestFalse(TEXT("The claim stores the failed Thunder Core roll"), bDecodedHasNoCore);
+    bool bLegacyHasCore = true;
+    TestTrue(TEXT("An older unsuffixed Sentinel claim remains readable"),
+        UKalmalaWorldPopulationSaveGame::TryGetThunderSentinelSpawnIdFromPendingRewardClaimId(
+            FString(TEXT("thundersentinel-reward|")) + SpawnId, DecodedSpawnId, bLegacyHasCore));
+    TestEqual(TEXT("The legacy claim retains the original spawn ID"), DecodedSpawnId, SpawnId);
+    TestFalse(TEXT("Legacy claims remain baseline-only"), bLegacyHasCore);
     TestFalse(TEXT("A Goat claim cannot decode as a Sentinel claim"),
         UKalmalaWorldPopulationSaveGame::TryGetThunderSentinelSpawnIdFromPendingRewardClaimId(
-            TEXT("hornedgoat-reward|1/2/3"), DecodedSpawnId));
+            TEXT("hornedgoat-reward|1/2/3"), DecodedSpawnId, bDecodedHasThunderCore));
+    TestFalse(TEXT("Unknown Sentinel claim suffixes are rejected"),
+        UKalmalaWorldPopulationSaveGame::TryGetThunderSentinelSpawnIdFromPendingRewardClaimId(
+            FString(TEXT("thundersentinel-reward|")) + SpawnId + TEXT("|unknown"),
+            DecodedSpawnId, bDecodedHasThunderCore));
 
     FKalmalaWorldGenerationConfig WorldConfig;
     WorldConfig.WorldSeed = 431;
@@ -124,12 +147,12 @@ bool FKalmalaWildlifeThunderSentinelContractTest::RunTest(const FString& Paramet
     if (Population == nullptr) return false;
     Population->InitializeForWorld(WorldConfig);
     Population->MarkDefeated(SpawnId);
-    TestTrue(TEXT("A credited defeat queues three Stone for its owner"),
-        Population->TryQueuePendingThunderSentinelReward(SpawnId, TEXT("player:test")));
-    TestTrue(TEXT("Retrying the same owner's claim is idempotent"),
-        Population->TryQueuePendingThunderSentinelReward(SpawnId, TEXT("player:test")));
+    TestTrue(TEXT("A credited defeat queues its stored Stone and Thunder Core outcome"),
+        Population->TryQueuePendingThunderSentinelReward(SpawnId, TEXT("player:test"), true));
+    TestTrue(TEXT("Retrying the same owner's claim retains its first roll"),
+        Population->TryQueuePendingThunderSentinelReward(SpawnId, TEXT("player:test"), false));
     TestFalse(TEXT("A different player cannot take the pending reward"),
-        Population->TryQueuePendingThunderSentinelReward(SpawnId, TEXT("player:other")));
+        Population->TryQueuePendingThunderSentinelReward(SpawnId, TEXT("player:other"), true));
     TestEqual(TEXT("Only one Sentinel reward row is queued"), Population->GetPendingWildlifeRewards().Num(), 1);
 
     TArray<uint8> Bytes;
@@ -144,6 +167,78 @@ bool FKalmalaWildlifeThunderSentinelContractTest::RunTest(const FString& Paramet
         Reloaded->GetPendingWildlifeRewards()[0].PersistentSpawnId, ClaimId);
     TestEqual(TEXT("Reload retains the credited owner"),
         Reloaded->GetPendingWildlifeRewards()[0].PlayerIdentity, FString(TEXT("player:test")));
+    FString ReloadedSpawnId;
+    bool bReloadedHasThunderCore = false;
+    TestTrue(TEXT("Reload decodes the stored Thunder Core outcome"),
+        UKalmalaWorldPopulationSaveGame::TryGetThunderSentinelSpawnIdFromPendingRewardClaimId(
+            Reloaded->GetPendingWildlifeRewards()[0].PersistentSpawnId,
+            ReloadedSpawnId, bReloadedHasThunderCore));
+    TestTrue(TEXT("Reload retains the successful Thunder Core roll"), bReloadedHasThunderCore);
+
+    TArray<FKalmalaInventoryStack> EmptyInventory;
+    TArray<FKalmalaInventoryStack> WithStone;
+    TArray<FKalmalaInventoryStack> Candidate;
+    FString FailureReason;
+    TestTrue(TEXT("The three-Stone Sentinel baseline fits an empty inventory"),
+        UKalmalaInventoryComponent::BuildGrant(EmptyInventory, TEXT("Stone"), 3, WithStone, FailureReason));
+    TestTrue(TEXT("The successful Thunder Core roll joins the same reward candidate"),
+        UKalmalaInventoryComponent::BuildGrant(
+            WithStone, TEXT("ThunderCore"), 1, Candidate, FailureReason));
+    const FKalmalaInventoryStack* StoneStack = Candidate.FindByPredicate(
+        [](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == TEXT("Stone"); });
+    const FKalmalaInventoryStack* CoreStack = Candidate.FindByPredicate(
+        [](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == TEXT("ThunderCore"); });
+    TestTrue(TEXT("The accepted Sentinel baseline is exactly three Stone"),
+        StoneStack != nullptr && StoneStack->Quantity == 3);
+    TestTrue(TEXT("The successful material roll awards exactly one Thunder Core"),
+        CoreStack != nullptr && CoreStack->Quantity == 1);
+
+    TArray<FKalmalaInventoryStack> FullPack;
+    const UKalmalaItemCatalogue* Catalogue = UKalmalaItemCatalogue::Get();
+    if (Catalogue != nullptr)
+    {
+        for (const FKalmalaItemDefinition& Definition : Catalogue->Items)
+        {
+            if (Definition.ItemId.IsNone() || Definition.ItemId == TEXT("Stone")
+                || Definition.ItemId == TEXT("ThunderCore") || Definition.MaxStack <= 0)
+                continue;
+            FKalmalaInventoryStack Stack;
+            Stack.ItemId = Definition.ItemId;
+            Stack.Quantity = 1;
+            FullPack.Add(MoveTemp(Stack));
+            if (FullPack.Num() == UKalmalaInventoryComponent::MaxSlots) break;
+        }
+    }
+    TestEqual(TEXT("The capacity fixture fills all forty inventory cells"),
+        FullPack.Num(), UKalmalaInventoryComponent::MaxSlots);
+    if (FullPack.Num() == UKalmalaInventoryComponent::MaxSlots)
+    {
+        TArray<FKalmalaInventoryStack> OneCellPack = FullPack;
+        OneCellPack.RemoveAt(0);
+        TArray<FKalmalaInventoryStack> OneCellWithStone;
+        TArray<FKalmalaInventoryStack> OneCellCandidate;
+        const bool bOneCellStoneFits = UKalmalaInventoryComponent::BuildGrant(
+            OneCellPack, TEXT("Stone"), 3, OneCellWithStone, FailureReason);
+        const bool bOneCellCoreFits = bOneCellStoneFits && UKalmalaInventoryComponent::BuildGrant(
+            OneCellWithStone, TEXT("ThunderCore"), 1, OneCellCandidate, FailureReason);
+        TestFalse(TEXT("One free cell cannot accept the complete rolled bundle"), bOneCellCoreFits);
+        TestEqual(TEXT("A capacity-limited Sentinel claim remains pending"),
+            Reloaded->GetPendingWildlifeRewards().Num(), 1);
+
+        TArray<FKalmalaInventoryStack> TwoCellPack = FullPack;
+        TwoCellPack.RemoveAt(0, 2);
+        TArray<FKalmalaInventoryStack> TwoCellWithStone;
+        TArray<FKalmalaInventoryStack> TwoCellCandidate;
+        const bool bTwoCellStoneFits = UKalmalaInventoryComponent::BuildGrant(
+            TwoCellPack, TEXT("Stone"), 3, TwoCellWithStone, FailureReason);
+        const bool bTwoCellCoreFits = bTwoCellStoneFits && UKalmalaInventoryComponent::BuildGrant(
+            TwoCellWithStone, TEXT("ThunderCore"), 1, TwoCellCandidate, FailureReason);
+        TestTrue(TEXT("The full rolled bundle fits after two cells are freed"), bTwoCellCoreFits);
+        const FKalmalaInventoryStack* RetryCore = TwoCellCandidate.FindByPredicate(
+            [](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == TEXT("ThunderCore"); });
+        TestTrue(TEXT("The retry candidate retains the one-Core reward"),
+            RetryCore != nullptr && RetryCore->Quantity == 1);
+    }
     return true;
 }
 

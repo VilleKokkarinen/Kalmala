@@ -68,8 +68,9 @@ traversable mountain gate plus the shared 150 m generated-start exclusion. Its
 original stone silhouette raises an arm for a one-second warning, steps up to
 120 cm, and performs one server-validated downward slam within 300 cm
 horizontally, followed by a 1.2-second recovery. Credited defeats queue three
-Stone for the authenticated owner through the population-save escrow. Thunder
-Core remains disabled pending A8b. Reef Maw uses ten percent of eligible
+Stone and a server-rolled 25% chance of one Thunder Core for the authenticated
+owner through the population-save escrow. The claim stores the roll, and the
+server commits Stone and an awarded Core together. Reef Maw uses ten percent of eligible
 deep-Ocean wildlife candidates, requires at least 150 cm sampled water depth,
 visibly approaches swimming players, and performs one server-validated 50-Stab
 bite within 180 cm after a one-second warning. It recovers for 1.2 seconds and

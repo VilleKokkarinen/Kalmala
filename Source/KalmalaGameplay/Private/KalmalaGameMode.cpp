@@ -2903,12 +2903,37 @@ bool AKalmalaGameMode::RecordThunderSentinelDefeatReward(const FString& Persiste
     if (!HasAuthority() || PersistentSpawnId.IsEmpty() || PopulationSaveGame == nullptr
         || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
 
+    if (PopulationSaveGame->IsDefeated(PersistentSpawnId))
+    {
+        return UGameplayStatics::SaveGameToSlot(PopulationSaveGame,
+            KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+    }
+
     if (IsValid(CreditedAttacker) && CreditedAttacker->HasAuthority()
         && CreditedAttacker->GetWorld() == GetWorld() && CreditedAttacker->GetPlayerState() != nullptr)
     {
         const FString Identity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(CreditedAttacker->GetPlayerState());
-        if (!Identity.IsEmpty() && !PopulationSaveGame->TryQueuePendingThunderSentinelReward(
-                PersistentSpawnId, Identity)) return false;
+        if (!Identity.IsEmpty())
+        {
+            bool bFoundExistingClaim = false;
+            bool bHasThunderCore = false;
+            for (const FKalmalaPendingWildlifeReward& Existing : PopulationSaveGame->GetPendingWildlifeRewards())
+            {
+                FString ExistingSpawnId;
+                bool bExistingHasThunderCore = false;
+                if (UKalmalaWorldPopulationSaveGame::TryGetThunderSentinelSpawnIdFromPendingRewardClaimId(
+                        Existing.PersistentSpawnId, ExistingSpawnId, bExistingHasThunderCore)
+                    && ExistingSpawnId == PersistentSpawnId)
+                {
+                    bFoundExistingClaim = true;
+                    bHasThunderCore = bExistingHasThunderCore;
+                    break;
+                }
+            }
+            if (!bFoundExistingClaim) bHasThunderCore = FMath::FRand() < 0.25f;
+            if (!PopulationSaveGame->TryQueuePendingThunderSentinelReward(
+                    PersistentSpawnId, Identity, bHasThunderCore)) return false;
+        }
     }
 
     PopulationSaveGame->MarkDefeated(PersistentSpawnId);
@@ -2985,9 +3010,10 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
             UKalmalaWorldPopulationSaveGame::TryGetHornedGoatSpawnIdFromPendingRewardClaimId(
                 Reward.PersistentSpawnId, HornedGoatSpawnId);
         FString ThunderSentinelSpawnId;
+        bool bThunderSentinelHasCore = false;
         const bool bThunderSentinelReward =
             UKalmalaWorldPopulationSaveGame::TryGetThunderSentinelSpawnIdFromPendingRewardClaimId(
-                Reward.PersistentSpawnId, ThunderSentinelSpawnId);
+                Reward.PersistentSpawnId, ThunderSentinelSpawnId, bThunderSentinelHasCore);
         FString ReefMawSpawnId;
         const bool bReefMawReward = UKalmalaWorldPopulationSaveGame::TryGetReefMawSpawnIdFromPendingRewardClaimId(
             Reward.PersistentSpawnId, ReefMawSpawnId);
@@ -3036,9 +3062,19 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
             }
             else if (bThunderSentinelReward)
             {
+                TArray<FKalmalaInventoryStack> WithStone;
                 if (!UKalmalaInventoryComponent::BuildGrant(Before, TEXT("Stone"),
                         AKalmalaWildlifeSpawn::GetStoneRewardQuantityForArchetype(
-                            EKalmalaWildlifeArchetype::ThunderSentinel), Candidate, Reason)) break;
+                            EKalmalaWildlifeArchetype::ThunderSentinel), WithStone, Reason)) break;
+                if (bThunderSentinelHasCore)
+                {
+                    if (!UKalmalaInventoryComponent::BuildGrant(
+                            WithStone, TEXT("ThunderCore"), 1, Candidate, Reason)) break;
+                }
+                else
+                {
+                    Candidate = MoveTemp(WithStone);
+                }
             }
             else if (bReefMawReward)
             {

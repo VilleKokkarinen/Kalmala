@@ -2546,11 +2546,12 @@ It checks the seeded 40/10/50 Thunder Mountains candidate shares and biome
 exclusivity, dry traversable habitat, the 1250/75/300 profile, the inclusive
 300 cm horizontal server-only slam boundary, one-second warning, 120 cm short
 step, 1.2-second recovery, 25 m leash, 150 m hard-enemy start exclusion, and
-owner-bound three-Stone claim serialization. Contract coverage does not replace
-live terrain/pathing, attack rejection, full-inventory retry, reconnect/restart
-or relevant-peer presentation in combined A8a/A8b I4. Thunder Core remains
-disabled pending A8b. No Unreal build or automation execution ran in this
-normal increment.
+owner-bound claim serialization. It also checks the stored Thunder Core/no-Core
+outcome, legacy baseline-only claims, and a three-Stone plus one-Core candidate
+that waits for two free inventory cells. Contract coverage does not replace live
+terrain/pathing, attack rejection, full-inventory retry, reconnect/restart or
+relevant-peer presentation in combined A8a/A8b I4. No Unreal build or automation
+execution ran in this normal increment.
 
 ## Ocean Reef Maw contract regression
 

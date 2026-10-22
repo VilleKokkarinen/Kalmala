@@ -53,7 +53,7 @@ Lynx fills the next two seeded Tundra slots with a dry-ground pounce, a
 | Lynx                | Freezing Tundra                        | Partial          |  150 |   30  | 75 Slash     | 20% dry-ground slots; 350 cm leap; 0.5 s warning; 0.8 s hit / 1.2 s miss recovery; queued 2 Bone Fragment + 50% Lynx Pelt; I4 pending |
 | Polar Bear          | Freezing Tundra                        | Partial          |  750 |   60  | 200 Crush    | 10% hard slot; 1 s warning; 220 cm charge; retreat; queued 3 Bone Fragment + 2 Polar Bear Pelt; I4 pending |
 | Horned Goat         | Thunder Mountains                      | Partial          |  200 |   50  | 50 Crush     | 40% dry-ground slots; 0.5 s telegraph; 180 cm horn hit; up to 250 cm push and 0.75 s stagger; queued 2 Bone Fragment + 1 Goat Horn; I4 pending |
-| Thunder Sentinel    | Thunder Mountains                      | Partial          | 1250 |   75  | 300 Crush    | 10% dry-ground hard slot; 150 m start exclusion; 1 s warning, 120 cm step, 300 cm horizontal slam; 1.2 s recovery; queued 3 Stone; I4 pending |
+| Thunder Sentinel    | Thunder Mountains                      | Partial          | 1250 |   75  | 300 Crush    | 10% dry-ground hard slot; 150 m start exclusion; 1 s warning, 120 cm step, 300 cm horizontal slam; 1.2 s recovery; queued 3 Stone + 25% Thunder Core; I4 pending |
 | Reef Maw            | Ocean                                  | Partial          |  180 |   2   | 50 Stab      | 10% deep-water slot; 180 cm swimmer-only bite; queued 3 Bone Fragment; I4 pending |
 
 Mireling uses the reviewed 75-health, 15-armor, 20-Crush profile. Its
@@ -301,7 +301,7 @@ before existing defenses; no client-authored damage or offensive player magic.
 | Freezing Tundra | Lynx (`Lynx`) | Mobile predator; telegraphed leap, long recovery if it misses | 150 / 30 | 75 Slash | 2 Bone Fragment |
 | Freezing Tundra | Polar Bear (`PolarBear`) | Rare hard bear variant; committed charge, then retreat to reset | 750 / 60 | 200 Crush | 3 Bone Fragment |
 | Thunder Mountains | Horned Goat (`HornedGoat`) | Territorial wildlife; telegraphed horn charge pushes and staggers | 200 / 50 | 50 Crush | 2 Bone Fragment + 1 Goat Horn |
-| Thunder Mountains | Thunder Sentinel (`ThunderSentinel`) | Rare hard, original stone creature; short step and downward slam | 1250 / 75 | 300 Crush | 3 Stone |
+| Thunder Mountains | Thunder Sentinel (`ThunderSentinel`) | Rare hard, original stone creature; short step and downward slam | 1250 / 75 | 300 Crush | 3 Stone + 25% Thunder Core |
 | Ocean | Reef Maw (`ReefMaw`) | Rare swimming predator; visible approach and single bite against swimming players | 180 / 2 | 50 Stab | 3 Bone Fragment |
 
 The roster's guaranteed loot remains the baseline. The unique-drop table adds
@@ -352,7 +352,9 @@ and original inventory icons before implementation; the uses are not recipes.
   Horn for its authenticated owner as one retryable inventory bundle.
   Its server-owned one-second warning includes a short step before a single
   downward hit checked against the user-confirmed 300 cm horizontal reach;
-  credited defeats queue three Stone for the authenticated owner.
+  each credited Sentinel defeat queues three Stone and stores a server-side
+  25% Thunder Core roll in the authenticated owner's claim. The complete
+  awarded bundle commits together and remains pending until capacity permits.
 - Ocean: use 10% of eligible aquatic candidate slots for Reef Maw; others
   stay empty. Spawn and movement require generated Ocean water at least 150 cm
   deep, excluding Shimmering Lakes. The Maw visibly approaches swimming

@@ -71,10 +71,12 @@ public:
     static FString MakeHornedGoatPendingRewardClaimId(const FString& PersistentSpawnId);
     static bool TryGetHornedGoatSpawnIdFromPendingRewardClaimId(
         const FString& ClaimId, FString& OutPersistentSpawnId);
-    bool TryQueuePendingThunderSentinelReward(const FString& PersistentSpawnId, const FString& PlayerIdentity);
-    static FString MakeThunderSentinelPendingRewardClaimId(const FString& PersistentSpawnId);
+    bool TryQueuePendingThunderSentinelReward(
+        const FString& PersistentSpawnId, const FString& PlayerIdentity, bool bHasThunderCore);
+    static FString MakeThunderSentinelPendingRewardClaimId(
+        const FString& PersistentSpawnId, bool bHasThunderCore);
     static bool TryGetThunderSentinelSpawnIdFromPendingRewardClaimId(
-        const FString& ClaimId, FString& OutPersistentSpawnId);
+        const FString& ClaimId, FString& OutPersistentSpawnId, bool& OutHasThunderCore);
     bool TryQueuePendingReefMawReward(const FString& PersistentSpawnId, const FString& PlayerIdentity);
     static FString MakeReefMawPendingRewardClaimId(const FString& PersistentSpawnId);
     static bool TryGetReefMawSpawnIdFromPendingRewardClaimId(
