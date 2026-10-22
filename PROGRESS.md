@@ -5789,5 +5789,5 @@
 - **Networking/authority:** The server performs the roll, binds the persistent claim to the authenticated owner, validates capacity, and commits the complete reward. No client-supplied item ID or quantity or SaveGame schema change was introduced.
 - **Known limitations / remaining scope:** Live spawn, inventory-capacity retry, reconnect/restart, peer visibility, and rendered acceptance remain for combined I4. Other A8b material and recipe children remain open.
 - **Next eligible task:** A8b Wolf Pelt — Wolf, one guaranteed; material, source, JSON, and generated icon.
-- **Integration state:** Implementation and handoff are on the isolated `codex/a8b-items` branch based on master `3cccb338`; synchronization to `master` is pending.
-- **Handoff:** No main-checkout files or index were modified. Current run time: 2026-10-22T13:12:23Z.
+- **Integration state:** Peat Heart commit `f4bf31c5` was fast-forwarded from `3cccb338` onto `master`; the backlog checkbox and implementation are integrated. Combined A8a/A8b I4 remains pending before A9.
+- **Handoff:** `BACKLOG.md` and `PROGRESS.md` are visible in the main checkout; this integration record is kept in a separate progress-only commit. Current run time: 2026-10-22T13:13:25Z.
