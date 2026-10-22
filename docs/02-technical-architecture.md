@@ -225,10 +225,13 @@ gameplay compilation/runtime verification is deferred.
 `BoneFragment` (Bone fragment) is a stackable crafting ingredient in
 `items/materials/crafting-ingredients.json`, with stack limit 40 and weight
 0.1 kg. Each server-confirmed Boar or Deer defeat grants one alongside the
-existing meat/hide rewards; an A8a Badger defeat also grants one. Grants go to
-the validated attacker. Uncredited defeats grant nothing; the one-shot defeat
-reward gate prevents duplicate payment, and the server inventory grant enforces
-authority and capacity. Wood Shield crafting requires 3 Wood, 2 Bronze,
+existing meat/hide rewards; a credited A8a Badger defeat queues one for its
+authenticated attacker. Badger's stable reward claim is saved before defeat
+replication and retries as an all-or-none inventory transaction until the
+owner's pack can accept it, including after reconnect or restart. Uncredited
+defeats grant nothing; the one-shot defeat reward gate prevents duplicate
+payment, and server inventory validation enforces authority and capacity. Wood
+Shield crafting requires 3 Wood, 2 Bronze,
 1 Boar Hide and 1 Bone fragment at Forge. Its
 level-one upgrade cost requires 10 Wood, 5 Boar Hide and 1 Bone fragment at
 Forge. Boar Hide Cape crafting and its level-one upgrade cost each require one

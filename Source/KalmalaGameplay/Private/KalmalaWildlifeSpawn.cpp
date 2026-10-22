@@ -289,13 +289,14 @@ FKalmalaDamageChannels AKalmalaWildlifeSpawn::GetBaseAttackChannelsForArchetype(
     return Damage;
 }
 
-int32 AKalmalaWildlifeSpawn::GetDirectBoneFragmentRewardQuantity(const EKalmalaWildlifeArchetype InArchetype)
+int32 AKalmalaWildlifeSpawn::GetBoneFragmentRewardQuantity(const EKalmalaWildlifeArchetype InArchetype)
 {
     switch (InArchetype)
     {
     case EKalmalaWildlifeArchetype::Boar:
     case EKalmalaWildlifeArchetype::Deer:
     case EKalmalaWildlifeArchetype::Badger:
+    case EKalmalaWildlifeArchetype::Rat:
     case EKalmalaWildlifeArchetype::Viper: return 1;
     case EKalmalaWildlifeArchetype::GiantSnake: return 2;
     default: return 0;
@@ -325,6 +326,13 @@ bool AKalmalaWildlifeSpawn::DefeatServer()
         {
             if (!Mode->RecordRatDefeatReward(PersistentSpawnId, LastValidatedAttacker.Get())) return false;
         }
+    }
+    else if (Archetype == EKalmalaWildlifeArchetype::Badger)
+    {
+        AKalmalaGameMode* Mode = GetWorld() != nullptr
+            ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
+        if (Mode == nullptr || !Mode->RecordBadgerDefeatReward(PersistentSpawnId, LastValidatedAttacker.Get()))
+            return false;
     }
 
     bDefeated = true;
@@ -1638,16 +1646,14 @@ void AKalmalaWildlifeSpawn::GrantDefeatReward()
         }
     }
 
-    const int32 BoneFragmentQuantity = GetDirectBoneFragmentRewardQuantity(Archetype);
-    if (BoneFragmentQuantity > 0)
+    const int32 BoneFragmentQuantity = GetBoneFragmentRewardQuantity(Archetype);
+    if (BoneFragmentQuantity > 0 && Archetype != EKalmalaWildlifeArchetype::Rat
+        && Archetype != EKalmalaWildlifeArchetype::Badger)
     {
         Inventory->TryGrantFromServer(TEXT("BoneFragment"), BoneFragmentQuantity);
     }
-    else if (Archetype == EKalmalaWildlifeArchetype::Rat)
-    {
-        // Rat's guaranteed Bone Fragment and Rat Tail use the persistent, all-or-none
-        // reward queue recorded before this defeated state is replicated.
-    }
+    // Rat and Badger rewards use the persistent, all-or-none queue recorded before
+    // this defeated state is replicated, so they must not be granted a second time.
 
     if (Archetype == EKalmalaWildlifeArchetype::Mireling && IsMirelingBossRewardCandidate())
     {

@@ -2241,6 +2241,16 @@ selectors, the approved 100 cm bite boundary, the common attack timing and
 combined A8a/A8b I4 acceptance; it does not replace live peer, full-pack retry,
 or identity-matched restart verification.
 
+## Elderwood Badger contract regression
+
+The editor automation `Kalmala.Gameplay.Wildlife.Badger.SpawnAndClawReach`
+checks the deterministic 40% Elderwood share, attack bounds and timing, baseline
+Bone Fragment quantity, and serialized owner-bound reward-claim identity. The
+Badger reward uses the existing world-population pending-reward list and waits
+until the authenticated owner's pack can accept it. Combined A8a/A8b I4
+acceptance must still exercise a full-pack Badger defeat, later retry, restart,
+and relevant-peer privacy in Unreal.
+
 ## Discovery peer privacy regression
 
 After an editor build, run `Scripts/Tests/Combat/Verify-DiscoveryPeer.ps1`. It starts a

@@ -1,4 +1,6 @@
 #include "KalmalaWildlifeSpawn.h"
+#include "KalmalaWorldPopulationSaveGame.h"
+#include "Kismet/GameplayStatics.h"
 #include "Misc/AutomationTest.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaWildlifeBadgerContractTest,
@@ -55,13 +57,62 @@ bool FKalmalaWildlifeBadgerContractTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Badger pursuit remains within 25 metres"),
         AKalmalaWildlifeSpawn::BadgerSpawnLeashCentimetres, 2500.0f);
     TestEqual(TEXT("Badger baseline Bone Fragment reward quantity is one"),
-        AKalmalaWildlifeSpawn::GetDirectBoneFragmentRewardQuantity(EKalmalaWildlifeArchetype::Badger), 1);
-    TestEqual(TEXT("Rat stays outside the direct reward path"),
-        AKalmalaWildlifeSpawn::GetDirectBoneFragmentRewardQuantity(EKalmalaWildlifeArchetype::Rat), 0);
+        AKalmalaWildlifeSpawn::GetBoneFragmentRewardQuantity(EKalmalaWildlifeArchetype::Badger), 1);
+    TestEqual(TEXT("Rat baseline Bone Fragment reward quantity is one"),
+        AKalmalaWildlifeSpawn::GetBoneFragmentRewardQuantity(EKalmalaWildlifeArchetype::Rat), 1);
     TestEqual(TEXT("Giant Snake keeps its existing two-fragment reward"),
-        AKalmalaWildlifeSpawn::GetDirectBoneFragmentRewardQuantity(EKalmalaWildlifeArchetype::GiantSnake), 2);
+        AKalmalaWildlifeSpawn::GetBoneFragmentRewardQuantity(EKalmalaWildlifeArchetype::GiantSnake), 2);
     TestEqual(TEXT("Unimplemented Moon Bear rewards remain disabled"),
-        AKalmalaWildlifeSpawn::GetDirectBoneFragmentRewardQuantity(EKalmalaWildlifeArchetype::MoonBear), 0);
+        AKalmalaWildlifeSpawn::GetBoneFragmentRewardQuantity(EKalmalaWildlifeArchetype::MoonBear), 0);
+
+    const FString BadgerSpawnId(TEXT("1/4/-8/123456"));
+    const FString BadgerClaimId = UKalmalaWorldPopulationSaveGame::MakeBadgerPendingRewardClaimId(BadgerSpawnId);
+    FString DecodedBadgerSpawnId;
+    TestTrue(TEXT("Badger reward claims retain a namespaced stable identity"), !BadgerClaimId.IsEmpty());
+    TestTrue(TEXT("Badger reward claims decode to the original spawn identity"),
+        UKalmalaWorldPopulationSaveGame::TryGetBadgerSpawnIdFromPendingRewardClaimId(BadgerClaimId, DecodedBadgerSpawnId));
+    TestEqual(TEXT("Decoded Badger identity matches the spawned wildlife"), DecodedBadgerSpawnId, BadgerSpawnId);
+    TestFalse(TEXT("Legacy unprefixed Rat claims do not decode as Badger"),
+        UKalmalaWorldPopulationSaveGame::TryGetBadgerSpawnIdFromPendingRewardClaimId(BadgerSpawnId, DecodedBadgerSpawnId));
+
+    UKalmalaWorldPopulationSaveGame* Population = NewObject<UKalmalaWorldPopulationSaveGame>();
+    TestNotNull(TEXT("Pending Badger reward escrow can be created"), Population);
+    if (Population != nullptr)
+    {
+        FKalmalaWorldGenerationConfig World;
+        World.WorldSeed = 418;
+        Population->InitializeForWorld(World);
+        Population->MarkDefeated(BadgerSpawnId);
+        TestTrue(TEXT("A credited Badger reward is queued for its owner"),
+            Population->TryQueuePendingBadgerReward(BadgerSpawnId, TEXT("player:test")));
+        TestTrue(TEXT("Retrying the same Badger claim is idempotent"),
+            Population->TryQueuePendingBadgerReward(BadgerSpawnId, TEXT("player:test")));
+        TestFalse(TEXT("A Badger claim cannot be reassigned to another owner"),
+            Population->TryQueuePendingBadgerReward(BadgerSpawnId, TEXT("player:other")));
+        TestEqual(TEXT("One row is retained for the credited Badger"),
+            Population->GetPendingWildlifeRewards().Num(), 1);
+
+        TArray<uint8> Serialized;
+        TestTrue(TEXT("Pending Badger reward serializes in the existing population save"),
+            UGameplayStatics::SaveGameToMemory(Population, Serialized));
+        UKalmalaWorldPopulationSaveGame* Reloaded =
+            Cast<UKalmalaWorldPopulationSaveGame>(UGameplayStatics::LoadGameFromMemory(Serialized));
+        TestNotNull(TEXT("Pending Badger reward save reloads"), Reloaded);
+        if (Reloaded != nullptr && !Reloaded->GetPendingWildlifeRewards().IsEmpty())
+        {
+            TestTrue(TEXT("Reload retains the defeated Badger"), Reloaded->IsDefeated(BadgerSpawnId));
+            TestTrue(TEXT("Reload retains the world identity"), Reloaded->MatchesWorld(World));
+            TestEqual(TEXT("Reload retains the Badger claim identity"),
+                Reloaded->GetPendingWildlifeRewards()[0].PersistentSpawnId, BadgerClaimId);
+            TestEqual(TEXT("Reload retains the credited Badger owner"),
+                Reloaded->GetPendingWildlifeRewards()[0].PlayerIdentity, FString(TEXT("player:test")));
+        }
+        TestTrue(TEXT("Delivered Badger claim can be cleared by its stable reward identity"),
+            Population->RemovePendingWildlifeReward(BadgerClaimId));
+        TestEqual(TEXT("Delivered Badger reward leaves no pending claim"),
+            Population->GetPendingWildlifeRewards().Num(), 0);
+    }
+
     TestTrue(TEXT("Server accepts an in-range claw"),
         AKalmalaWildlifeSpawn::IsBadgerClawInReach(true, true, 180.0f));
     TestFalse(TEXT("Claw reach rejects targets beyond 180 cm"),

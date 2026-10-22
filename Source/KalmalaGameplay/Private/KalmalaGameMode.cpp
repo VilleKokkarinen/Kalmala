@@ -2503,6 +2503,25 @@ bool AKalmalaGameMode::RecordRatDefeatReward(const FString& PersistentSpawnId,
         KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
 }
 
+bool AKalmalaGameMode::RecordBadgerDefeatReward(const FString& PersistentSpawnId,
+    AKalmalaCharacter* CreditedAttacker)
+{
+    if (!HasAuthority() || PersistentSpawnId.IsEmpty() || PopulationSaveGame == nullptr
+        || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
+
+    if (IsValid(CreditedAttacker) && CreditedAttacker->HasAuthority()
+        && CreditedAttacker->GetWorld() == GetWorld() && CreditedAttacker->GetPlayerState() != nullptr)
+    {
+        const FString Identity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(CreditedAttacker->GetPlayerState());
+        if (!Identity.IsEmpty() && !PopulationSaveGame->TryQueuePendingBadgerReward(PersistentSpawnId, Identity))
+            return false;
+    }
+
+    PopulationSaveGame->MarkDefeated(PersistentSpawnId);
+    return UGameplayStatics::SaveGameToSlot(PopulationSaveGame,
+        KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+}
+
 void AKalmalaGameMode::DeliverPendingWildlifeRewards()
 {
     if (!HasAuthority() || GetWorld() == nullptr || PopulationSaveGame == nullptr
@@ -2513,6 +2532,12 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
     {
         if (Reward.PersistentSpawnId.IsEmpty() || Reward.PlayerIdentity.IsEmpty()
             || DeliveredWildlifeRewardSpawnIds.Contains(Reward.PersistentSpawnId)) continue;
+
+        FString BadgerSpawnId;
+        const bool bBadgerReward = UKalmalaWorldPopulationSaveGame::TryGetBadgerSpawnIdFromPendingRewardClaimId(
+            Reward.PersistentSpawnId, BadgerSpawnId);
+        const FString& DefeatedSpawnId = bBadgerReward ? BadgerSpawnId : Reward.PersistentSpawnId;
+        if (!PopulationSaveGame->IsDefeated(DefeatedSpawnId)) continue;
 
         for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
         {
@@ -2529,21 +2554,23 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
             TArray<FKalmalaInventoryStack> WithBone;
             TArray<FKalmalaInventoryStack> Candidate;
             FString Reason;
-            if (!UKalmalaInventoryComponent::BuildGrant(Before, TEXT("BoneFragment"), 1, WithBone, Reason)
-                || !UKalmalaInventoryComponent::BuildGrant(WithBone, TEXT("RatTail"), 1, Candidate, Reason)
+            if (!UKalmalaInventoryComponent::BuildGrant(Before, TEXT("BoneFragment"), 1, WithBone, Reason)) break;
+            Candidate = WithBone;
+            if ((!bBadgerReward && !UKalmalaInventoryComponent::BuildGrant(
+                    WithBone, TEXT("RatTail"), 1, Candidate, Reason))
                 || !Inventory->CanFitContents(Candidate, Inventory->CountPackedTools(Character->GetCarriedToolInventory()))
                 || !Inventory->TryCommitStacksFromServer(Before, Candidate)) break;
 
-            // The defeated spawn ID is the durable claim identity; keep a session guard if the
-            // population-save write fails after this pawn inventory has accepted both items.
+            // The reward claim ID is durable; keep a session guard if cleanup fails after the
+            // inventory has accepted the complete reward.
             DeliveredWildlifeRewardSpawnIds.Add(Reward.PersistentSpawnId);
             PopulationSaveGame->RemovePendingWildlifeReward(Reward.PersistentSpawnId);
             const bool bSaved = UGameplayStatics::SaveGameToSlot(PopulationSaveGame,
                 KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
             if (!bSaved)
             {
-                UE_LOG(LogTemp, Warning, TEXT("Rat reward %s was granted but its pending-reward cleanup did not reach disk."),
-                    *Reward.PersistentSpawnId);
+                UE_LOG(LogTemp, Warning, TEXT("Wildlife reward %s was granted but its pending-reward cleanup did not reach disk."),
+                    *DefeatedSpawnId);
             }
             break;
         }

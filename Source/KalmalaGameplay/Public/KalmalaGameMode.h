@@ -55,6 +55,7 @@ public:
     bool ClaimM9ExplorationReward(class AKalmalaCharacter* Interactor, const FKalmalaM9ExplorationRewardDescriptor& Descriptor);
     bool ClaimMirelingBossScroll(class AKalmalaCharacter* Attacker, const FString& PersistentSpawnId);
     bool RecordRatDefeatReward(const FString& PersistentSpawnId, class AKalmalaCharacter* CreditedAttacker);
+    bool RecordBadgerDefeatReward(const FString& PersistentSpawnId, class AKalmalaCharacter* CreditedAttacker);
     bool PersistPlayerStateFromServer(class AKalmalaCharacter* Character,
         const FString& AdditionalDiscoveryId = FString(), const FString& AdditionalLearnedEffectId = FString(),
         const FString& AdditionalM9ClaimId = FString());
