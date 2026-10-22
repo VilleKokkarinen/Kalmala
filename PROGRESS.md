@@ -4984,3 +4984,14 @@
 - **Observable impact and authority:** documentation and backlog review only. Creature data remains authoring-only; runtime spawn, combat, poison, and loot remain server-side implementation work. No gameplay, networking, replication, or save behavior changed.
 - **Known limitations/remaining scope:** Wolf pack formation and actor selection are not implemented; Horned Goat push distance/stagger duration still require approval before implementation; Reef Maw remains gated on aquatic navigation, combat, and reward support. A8a/A8b and the combined I4 gate remain incomplete, so A9 must not start.
 - **Next eligible task:** A8a review unique enemy drops and uses. Current run time: 2026-10-22 04:51 UTC.
+
+## Run 2026-10-22 05:10 UTC — A8a unique drops and intended uses
+
+- **Selected task:** review unique enemy drops and uses; approve new materials and recipes before implementation. Checked only this existing A8a child.
+- **Work completed:** compared all 18 creature-profile unique-drop rows with the enemy overview and intended-use table. Approved the 15 A8b material identities, named enemy sources, quantities/chances, and high-level use links; retained the existing Sinew and Moonstone/Dusk Diamond routes and baseline loot. Clarified that Goat Horn's reviewed use is Horn Bow material, since that is the only currently authored use. Recipe costs, consumable effects, and full gear profiles remain for the next A8a review. No item data or runtime drops were added or activated.
+- **Files changed:** `docs/biome-enemies.md`; `BACKLOG.md`; `PROGRESS.md`.
+- **Lightweight checks:** `python Scripts/Validate-CreatureCatalogues.py` passed for the 17-profile roster and catalogue references. A focused profile-to-table comparison passed for all 18 unique-drop IDs, source creatures, quantities, and chances. Manually checked each intended-use link against the recommended item table. `git diff --check` and changed-path MAX_PATH checks passed.
+- **Full verification:** deferred to the integrated I4 milestone-final gate; no Unreal build, runtime automation, rendering, or multiplayer test ran.
+- **Observable impact and authority:** design review only. Creature data remains authoring-only; no new item, reachable acquisition source, loot grant, networking, or save behavior was introduced. New drops remain gated on their A8b item completion and runtime enemy source.
+- **Known limitations/remaining scope:** recipe costs, effects, and complete gear profiles still need the next A8a review. Enemy runtime and loot acceptance remain open. A8b remains isolated pending integration; the combined I4 gate remains required before A9.
+- **Next eligible task:** A8a review the recommended drop-based item/recipe table; approve effects and full gear profiles. Current run time: 2026-10-22 05:10 UTC.

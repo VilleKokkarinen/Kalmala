@@ -43,9 +43,13 @@ stats, spawn weights and loot below remain task-level implementation details.
 
 ## Unique drops
 
-**Draft for review.** One roll per credited defeat; amount is awarded only on
-success. These are additional to baseline loot. Sinew and the two gem routes
-retain their existing plans; other drops and uses below are new proposals.
+**A8a review complete (2026-10-22).** For the planned loot contract, use one
+server-owned roll per credited defeat and award the listed amount only on
+success. The creature profiles match all 18 rows below; each drop is additional
+to baseline loot. Deer Sinew and the two gem routes retain their existing
+plans. The 15 A8b material identities, named enemy sources, quantities,
+chances, and intended-use links are approved. Recipe costs, consumable effects,
+and complete gear profiles remain for the next A8a review.
 Unique means a characteristic drop, not an exclusive source for shared Sinew.
 
 | Enemy            | Unique drop        | Amount / chance | Intended use              |
@@ -65,19 +69,21 @@ Unique means a characteristic drop, not an exclusive source for shared Sinew.
 | Wolf             | Wolf meat          | 1 / 100%        | Cooking component         |
 | Lynx             | Lynx Pelt          | 1 / 50%         | Armor/Weapon component    |
 | Polar Bear       | Polar Bear Pelt    | 2 / 100%        | Heavy armor component     |
-| Horned Goat      | Goat Horn          | 1 / 100%        | multi-use component       |
+| Horned Goat      | Goat Horn          | 1 / 100%        | Horn Bow component        |
 | Thunder Sentinel | Thunder Core       | 1 / 25%         | Lightning gear component  |
 | Reef Maw         | Reef Tooth         | 1 / 50%         | Harpoon component         |
 
-New materials are exclusive to their named enemy in this proposal. No shared
+New A8b materials are exclusive to their named enemy. No shared
 venom/pelt substitution, gem conversion or automatic new equipment recipe.
 Keep existing gem odds independent of baseline loot. Server owns rolls and
 stable claims; full packs preserve unclaimed rewards, and retries/reloads
 cannot reroll or duplicate them. Every new material requires its registered
-catalogue definition and original generated icon. Proposed uses need separate
-reviewed recipes/effects. The approved scope includes Lightning gear, the
-Harpoon and the full Reef Maw route. Cold-protection clothing remains
-explicitly deferred; the aquatic route adds no skiff damage.
+catalogue definition and original generated icon before its drop is enabled;
+the source enemy must also exist in runtime. This review does not activate any
+new drops. The next A8a review covers the recipe costs, effects, and full item
+profiles. The approved scope includes Lightning gear, the Harpoon and the full
+Reef Maw route. Cold-protection clothing remains explicitly deferred; the
+aquatic route adds no skiff damage.
 
 ## Recommended items and recipes
 

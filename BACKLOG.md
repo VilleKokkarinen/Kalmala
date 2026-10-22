@@ -186,7 +186,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
 
 - [ ] **A8a — Biome enemies (before A9).** [Roster and stats](docs/biome-enemies.md)
   - [x] Review the expanded roster, spawn weights and attack/loot rules.
-  - [ ] Review unique enemy drops and uses; approve new materials/recipes before implementation.
+  - [x] Review unique enemy drops and uses; approve new materials/recipes before implementation.
   - [ ] Review the recommended drop-based item/recipe table; approve effects and full gear profiles.
   - [ ] Restrict boar/deer spawns to Meadows, Elderwood and Shimmering Lakes only.
   - [ ] Apply the overview's revised stats to existing boar/deer and all A8a enemies.
