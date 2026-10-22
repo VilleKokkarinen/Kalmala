@@ -2,7 +2,7 @@
 
 `Content/Data/GameCatalogues.json` registers `creatures.json` through
 `creatureFiles`. The file contains one `creatures` array with 17 flat records,
-including exactly one Wolf.
+including one Wolf and one Lynx.
 
 Each record contains `CreatureId`, `DisplayName`, `Health`, `Armor`, `Biomes`,
 `Attacks` and `Drops`. Body length is included where specified by the design. There are no implementation-status
@@ -53,7 +53,7 @@ telegraphed lunge with a 1.2-second recovery. Its credited baseline reward is
 two Bone Fragments in the same owner-bound population-save escrow; it does not
 apply poison. The 150 m generated-start exclusion applies to this hard enemy.
 The Giant Scale drop remains disabled pending A8b item/icon/source completion.
-The other Tundra, Thunder Mountains and Ocean species remain disabled.
+Polar Bear, Thunder Mountains and Ocean species remain disabled.
 Mireling (75 health, 15 armor, 20 Crush) now occupies half of Mossy Mire's
 seeded candidate slots and is accepted only on dry Mossy Mire ground; its
 existing melee and optional boss-scroll reward remain unchanged. Death Adder
@@ -87,6 +87,14 @@ each surviving member. Wolves pursue within a 25 m spawn leash, telegraph for
 member queues two Bone Fragments for its authenticated attacker under that
 member's stable identity. The Wolf Pelt, Wolf Fang and Wolf Meat drops remain
 disabled until their A8b source tasks are complete.
+Lynx (150 health, 30 armor, 75 Slash) occupies the next seeded 20% of Tundra
+candidate slots and stays on dry, traversable Tundra. The server-owned pounce
+shows a half-second warning, closes toward the target, and applies damage only
+within the user-reviewed 350 cm impact boundary and clear line of sight. A hit
+recovers for 0.8 seconds; a miss takes 1.2 seconds. Credited defeats queue two
+Bone Fragments under the authenticated owner's identity in population-save
+escrow. Lynx Pelt remains disabled until its A8b source task is complete.
+Polar Bear and later Tundra shares remain unimplemented.
 Listing a drop does not enable it or certify its A8b/A9 item/icon/source work.
 Rat's runtime peer/restart acceptance remains part of combined I4. The existing
 world-population save keeps pending reward rows beside its existing harvested

@@ -14,6 +14,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaWildlifeWolfContractTest,
 bool FKalmalaWildlifeWolfContractTest::RunTest(const FString& Parameters)
 {
     int32 WolfSlots = 0;
+    int32 LynxSlots = 0;
     for (uint64 Seed = 0; Seed < 1000; ++Seed)
     {
         EKalmalaWildlifeArchetype Archetype = EKalmalaWildlifeArchetype::Mireling;
@@ -26,12 +27,20 @@ bool FKalmalaWildlifeWolfContractTest::RunTest(const FString& Parameters)
                 EKalmalaWildlifeArchetype::Wolf);
             ++WolfSlots;
         }
+        else if (Seed % 10ull == 7ull || Seed % 10ull == 8ull)
+        {
+            TestTrue(TEXT("Lynx occupies its two deterministic Tundra candidate slots"), bEligible);
+            TestEqual(TEXT("Tundra Lynx slots select the Lynx archetype"), Archetype,
+                EKalmalaWildlifeArchetype::Lynx);
+            ++LynxSlots;
+        }
         else
         {
             TestFalse(TEXT("Unimplemented Tundra shares stay empty"), bEligible);
         }
     }
     TestEqual(TEXT("Wolf receives twenty percent of Tundra candidate slots"), WolfSlots, 200);
+    TestEqual(TEXT("Lynx receives twenty percent of Tundra candidate slots"), LynxSlots, 200);
 
     for (const EKalmalaBiome Biome : { EKalmalaBiome::Meadows, EKalmalaBiome::Elderwood,
              EKalmalaBiome::ShimmeringLakes, EKalmalaBiome::MossyMire,
@@ -44,6 +53,8 @@ bool FKalmalaWildlifeWolfContractTest::RunTest(const FString& Parameters)
             {
                 TestTrue(TEXT("Wolf is exclusive to Freezing Tundra"),
                     Archetype != EKalmalaWildlifeArchetype::Wolf);
+                TestTrue(TEXT("Lynx is exclusive to Freezing Tundra"),
+                    Archetype != EKalmalaWildlifeArchetype::Lynx);
             }
         }
     }

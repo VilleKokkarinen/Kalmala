@@ -148,6 +148,17 @@ public:
     static constexpr float WolfSpawnLeashCentimetres = 2500.0f;
     static constexpr float WolfApproachSpeedCentimetresPerSecond = 170.0f;
     static bool IsWolfBiteInReach(bool bServerAuthority, bool bValidTarget, float DistanceCentimetres);
+    static constexpr float LynxAttackTriggerCentimetres = 500.0f;
+    static constexpr float LynxLeapImpactReachCentimetres = 350.0f;
+    static constexpr float LynxTelegraphSeconds = 0.5f;
+    static constexpr float LynxLeapSeconds = 0.24f;
+    static constexpr float LynxRecoverySeconds = 0.8f;
+    static constexpr float LynxMissRecoverySeconds = 1.2f;
+    static constexpr float LynxSpawnLeashCentimetres = 2500.0f;
+    static constexpr float LynxApproachSpeedCentimetresPerSecond = 170.0f;
+    static constexpr float LynxLeapSpeedCentimetresPerSecond = 1400.0f;
+    static constexpr float LynxLeapLandingDistanceCentimetres = 110.0f;
+    static bool IsLynxLeapInReach(bool bServerAuthority, bool bValidTarget, float DistanceCentimetres);
     static constexpr float MoonBearAttackTriggerCentimetres = 300.0f;
     static constexpr float MoonBearPawReachCentimetres = 220.0f;
     static constexpr float MoonBearTelegraphSeconds = 1.0f;
@@ -207,6 +218,13 @@ private:
     bool TryApplyWolfBite(class AKalmalaCharacter* Target);
     bool IsWolfPositionTraversable(const FVector& Position) const;
     bool CanWolfMoveAlong(const FVector& Start, const FVector& End) const;
+    void UpdateLynxAttack(float DeltaSeconds);
+    void BeginLynxAttack(class AKalmalaCharacter* Target);
+    void SetLynxAttackCue(EKalmalaWildlifeAttackCue NextCue);
+    bool IsLynxAttackTargetValid(const class AKalmalaCharacter* Target) const;
+    bool TryApplyLynxLeap(class AKalmalaCharacter* Target);
+    bool IsLynxPositionTraversable(const FVector& Position) const;
+    bool CanLynxMoveAlong(const FVector& Start, const FVector& End) const;
     void UpdateMoonBearAttack(float DeltaSeconds);
     void BeginMoonBearAttack(class AKalmalaCharacter* Target);
     void SetMoonBearAttackCue(EKalmalaWildlifeAttackCue NextCue);
@@ -270,6 +288,9 @@ private:
     UPROPERTY(ReplicatedUsing = OnRep_WolfAttackCue)
     uint8 WolfAttackCue = static_cast<uint8>(EKalmalaWildlifeAttackCue::None);
 
+    UPROPERTY(ReplicatedUsing = OnRep_LynxAttackCue)
+    uint8 LynxAttackCue = static_cast<uint8>(EKalmalaWildlifeAttackCue::None);
+
     UPROPERTY(ReplicatedUsing = OnRep_MoonBearAttackCue)
     uint8 MoonBearAttackCue = static_cast<uint8>(EKalmalaWildlifeAttackCue::None);
 
@@ -296,6 +317,9 @@ private:
 
     UFUNCTION()
     void OnRep_WolfAttackCue();
+
+    UFUNCTION()
+    void OnRep_LynxAttackCue();
 
     UFUNCTION()
     void OnRep_MoonBearAttackCue();
@@ -326,6 +350,10 @@ private:
     float WolfLungeDistanceRemaining = 0.0f;
     FVector WolfLungeDirection = FVector::ForwardVector;
     TWeakObjectPtr<class AKalmalaCharacter> WolfAttackTarget;
+    float LynxAttackSecondsRemaining = 0.0f;
+    float LynxLeapDistanceRemaining = 0.0f;
+    FVector LynxLeapDirection = FVector::ForwardVector;
+    TWeakObjectPtr<class AKalmalaCharacter> LynxAttackTarget;
     float MoonBearAttackSecondsRemaining = 0.0f;
     TWeakObjectPtr<class AKalmalaCharacter> MoonBearAttackTarget;
     float PeatHuskAttackSecondsRemaining = 0.0f;

@@ -121,7 +121,8 @@ namespace KalmalaGameMode
                 && !FKalmalaOceanSampler::Sample(Config, Position).IsWater()
                 && !FKalmalaShimmeringLakeSampler::IsWater(Config, Position);
         }
-        if (OutArchetype == EKalmalaWildlifeArchetype::Wolf)
+        if (OutArchetype == EKalmalaWildlifeArchetype::Wolf
+            || OutArchetype == EKalmalaWildlifeArchetype::Lynx)
         {
             return SpawnBiome == EKalmalaBiome::FreezingTundra
                 && !FKalmalaOceanSampler::Sample(Config, Position).IsWater()
@@ -2730,6 +2731,25 @@ bool AKalmalaGameMode::RecordWolfDefeatReward(const FString& PersistentSpawnId,
         KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
 }
 
+bool AKalmalaGameMode::RecordLynxDefeatReward(const FString& PersistentSpawnId,
+    AKalmalaCharacter* CreditedAttacker)
+{
+    if (!HasAuthority() || PersistentSpawnId.IsEmpty() || PopulationSaveGame == nullptr
+        || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
+
+    if (IsValid(CreditedAttacker) && CreditedAttacker->HasAuthority()
+        && CreditedAttacker->GetWorld() == GetWorld() && CreditedAttacker->GetPlayerState() != nullptr)
+    {
+        const FString Identity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(CreditedAttacker->GetPlayerState());
+        if (!Identity.IsEmpty() && !PopulationSaveGame->TryQueuePendingLynxReward(PersistentSpawnId, Identity))
+            return false;
+    }
+
+    PopulationSaveGame->MarkDefeated(PersistentSpawnId);
+    return UGameplayStatics::SaveGameToSlot(PopulationSaveGame,
+        KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+}
+
 void AKalmalaGameMode::DeliverPendingWildlifeRewards()
 {
     if (!HasAuthority() || GetWorld() == nullptr || PopulationSaveGame == nullptr
@@ -2765,13 +2785,17 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
         FString WolfSpawnId;
         const bool bWolfReward = UKalmalaWorldPopulationSaveGame::TryGetWolfSpawnIdFromPendingRewardClaimId(
             Reward.PersistentSpawnId, WolfSpawnId);
+        FString LynxSpawnId;
+        const bool bLynxReward = UKalmalaWorldPopulationSaveGame::TryGetLynxSpawnIdFromPendingRewardClaimId(
+            Reward.PersistentSpawnId, LynxSpawnId);
         const FString& DefeatedSpawnId = bBadgerReward ? BadgerSpawnId
             : (bMoonBearReward ? MoonBearSpawnId
                 : (bViperReward ? ViperSpawnId
                     : (bGiantSnakeReward ? GiantSnakeSpawnId
                         : (bDeathAdderReward ? DeathAdderSpawnId
                             : (bPeatHuskReward ? PeatHuskSpawnId
-                                : (bWolfReward ? WolfSpawnId : Reward.PersistentSpawnId))))));
+                                : (bWolfReward ? WolfSpawnId
+                                    : (bLynxReward ? LynxSpawnId : Reward.PersistentSpawnId)))))));
         if (!PopulationSaveGame->IsDefeated(DefeatedSpawnId)) continue;
 
         for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
@@ -2797,7 +2821,7 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
                 TArray<FKalmalaInventoryStack> WithBone;
                 TArray<FKalmalaInventoryStack> WithBadgerFur;
                 const int32 BoneFragmentQuantity = bMoonBearReward ? 3
-                    : ((bGiantSnakeReward || bWolfReward) ? 2 : 1);
+                    : ((bGiantSnakeReward || bWolfReward || bLynxReward) ? 2 : 1);
                 if (!UKalmalaInventoryComponent::BuildGrant(
                         Before, TEXT("BoneFragment"), BoneFragmentQuantity, WithBone, Reason)) break;
                 if (bBadgerReward)
@@ -2808,7 +2832,8 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
                             WithBadgerFur, TEXT("BadgerMeat"), 1, WithBadgerMeat, Reason)) break;
                     Candidate = MoveTemp(WithBadgerMeat);
                 }
-                else if (bMoonBearReward || bViperReward || bGiantSnakeReward || bDeathAdderReward || bWolfReward)
+                else if (bMoonBearReward || bViperReward || bGiantSnakeReward || bDeathAdderReward
+                    || bWolfReward || bLynxReward)
                 {
                     Candidate = MoveTemp(WithBone);
                 }

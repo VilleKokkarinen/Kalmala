@@ -217,6 +217,10 @@ void AKalmalaWildlifeSpawn::InitializeServer(const FKalmalaWorldPopulationSpawn&
         WolfAttackTarget.Reset();
         WolfAttackSecondsRemaining = 0.0f;
         WolfLungeDistanceRemaining = 0.0f;
+        LynxAttackCue = static_cast<uint8>(EKalmalaWildlifeAttackCue::None);
+        LynxAttackTarget.Reset();
+        LynxAttackSecondsRemaining = 0.0f;
+        LynxLeapDistanceRemaining = 0.0f;
         Health = GetMaximumHealthForArchetype(Archetype);
         if (Archetype == EKalmalaWildlifeArchetype::MosquitoSwarm)
         {
@@ -369,6 +373,7 @@ int32 AKalmalaWildlifeSpawn::GetBoneFragmentRewardQuantity(const EKalmalaWildlif
     case EKalmalaWildlifeArchetype::GiantSnake: return 2;
     case EKalmalaWildlifeArchetype::MoonBear: return 3;
     case EKalmalaWildlifeArchetype::Wolf: return 2;
+    case EKalmalaWildlifeArchetype::Lynx: return 2;
     default: return 0;
     }
 }
@@ -416,6 +421,13 @@ bool AKalmalaWildlifeSpawn::DefeatServer()
         AKalmalaGameMode* Mode = GetWorld() != nullptr
             ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
         if (Mode == nullptr || !Mode->RecordWolfDefeatReward(
+                PersistentSpawnId, LastValidatedAttacker.Get())) return false;
+    }
+    else if (Archetype == EKalmalaWildlifeArchetype::Lynx)
+    {
+        AKalmalaGameMode* Mode = GetWorld() != nullptr
+            ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
+        if (Mode == nullptr || !Mode->RecordLynxDefeatReward(
                 PersistentSpawnId, LastValidatedAttacker.Get())) return false;
     }
     else if (Archetype == EKalmalaWildlifeArchetype::PeatHusk)
@@ -510,6 +522,13 @@ bool AKalmalaWildlifeSpawn::ApplyValidatedDamageFromServer(const FKalmalaDamageC
         WolfAttackSecondsRemaining = 0.0f;
         WolfLungeDistanceRemaining = 0.0f;
         SetWolfAttackCue(EKalmalaWildlifeAttackCue::None);
+    }
+    else if (Archetype == EKalmalaWildlifeArchetype::Lynx && Attacker != nullptr)
+    {
+        LynxAttackTarget = Attacker;
+        LynxAttackSecondsRemaining = 0.0f;
+        LynxLeapDistanceRemaining = 0.0f;
+        SetLynxAttackCue(EKalmalaWildlifeAttackCue::None);
     }
     else if (Archetype == EKalmalaWildlifeArchetype::MoonBear && Attacker != nullptr)
     {
@@ -686,10 +705,16 @@ bool AKalmalaWildlifeSpawn::TryGetSpawnArchetypeForBiome(const uint64 SpawnSeed,
         return true;
     }
 
-    // The other Freezing Tundra shares remain empty until their enemies are implemented.
+    // Wolf and Lynx each use two seeded slots; the final Tundra shares are still pending.
     if (Biome == EKalmalaBiome::FreezingTundra && (Slot == 5 || Slot == 6))
     {
         OutArchetype = EKalmalaWildlifeArchetype::Wolf;
+        return true;
+    }
+
+    if (Biome == EKalmalaBiome::FreezingTundra && (Slot == 7 || Slot == 8))
+    {
+        OutArchetype = EKalmalaWildlifeArchetype::Lynx;
         return true;
     }
 
@@ -728,6 +753,7 @@ void AKalmalaWildlifeSpawn::Tick(const float DeltaSeconds)
         else if (Archetype == EKalmalaWildlifeArchetype::Rat) UpdateRatAttack(DeltaSeconds);
         else if (Archetype == EKalmalaWildlifeArchetype::Badger) UpdateBadgerAttack(DeltaSeconds);
         else if (Archetype == EKalmalaWildlifeArchetype::Wolf) UpdateWolfAttack(DeltaSeconds);
+        else if (Archetype == EKalmalaWildlifeArchetype::Lynx) UpdateLynxAttack(DeltaSeconds);
         else if (Archetype == EKalmalaWildlifeArchetype::MoonBear) UpdateMoonBearAttack(DeltaSeconds);
         else if (Archetype == EKalmalaWildlifeArchetype::PeatHusk) UpdatePeatHuskAttack(DeltaSeconds);
         else if (Archetype == EKalmalaWildlifeArchetype::Viper
@@ -1353,6 +1379,234 @@ bool AKalmalaWildlifeSpawn::CanWolfMoveAlong(const FVector& Start, const FVector
     {
         const FVector Position = FMath::Lerp(Start, End, static_cast<float>(Index) / Samples);
         if (!IsWolfPositionTraversable(Position)) return false;
+    }
+    return true;
+}
+
+bool AKalmalaWildlifeSpawn::IsLynxLeapInReach(const bool bServerAuthority, const bool bValidTarget,
+    const float DistanceCentimetres)
+{
+    return bServerAuthority && bValidTarget && FMath::IsFinite(DistanceCentimetres)
+        && DistanceCentimetres >= 0.0f && DistanceCentimetres <= LynxLeapImpactReachCentimetres;
+}
+
+void AKalmalaWildlifeSpawn::UpdateLynxAttack(const float DeltaSeconds)
+{
+    if (!HasAuthority() || bDefeated || Behaviour != EKalmalaWildlifeBehaviour::Idle || GetWorld() == nullptr) return;
+    const float StepSeconds = FMath::Clamp(FMath::IsFinite(DeltaSeconds) ? DeltaSeconds : 0.0f, 0.0f, 0.10f);
+    EKalmalaWildlifeAttackCue Cue = static_cast<EKalmalaWildlifeAttackCue>(LynxAttackCue);
+    AKalmalaCharacter* Target = LynxAttackTarget.Get();
+
+    if (Cue != EKalmalaWildlifeAttackCue::None && !IsLynxAttackTargetValid(Target))
+    {
+        LynxAttackTarget.Reset();
+        LynxAttackSecondsRemaining = 0.0f;
+        LynxLeapDistanceRemaining = 0.0f;
+        SetLynxAttackCue(EKalmalaWildlifeAttackCue::None);
+        Cue = EKalmalaWildlifeAttackCue::None;
+        Target = nullptr;
+    }
+    else if (Target != nullptr && !IsLynxAttackTargetValid(Target))
+    {
+        LynxAttackTarget.Reset();
+        LynxAttackSecondsRemaining = 0.0f;
+        Target = nullptr;
+    }
+
+    if (Cue == EKalmalaWildlifeAttackCue::None && Target == nullptr)
+    {
+        float BestDistanceSquared = FMath::Square(LynxAttackTriggerCentimetres);
+        for (TActorIterator<AKalmalaCharacter> It(GetWorld()); It; ++It)
+        {
+            AKalmalaCharacter* Candidate = *It;
+            if (!IsLynxAttackTargetValid(Candidate)) continue;
+            const float DistanceSquared = FVector::DistSquared2D(GetActorLocation(), Candidate->GetActorLocation());
+            if (DistanceSquared < BestDistanceSquared)
+            {
+                BestDistanceSquared = DistanceSquared;
+                Target = Candidate;
+            }
+        }
+        if (Target != nullptr) LynxAttackTarget = Target;
+    }
+
+    if (Target == nullptr)
+    {
+        const FVector ToHome = SpawnOrigin - GetActorLocation();
+        if (ToHome.SizeSquared2D() > FMath::Square(15.0f))
+        {
+            FVector End = FMath::VInterpConstantTo(GetActorLocation(), SpawnOrigin, StepSeconds,
+                LynxApproachSpeedCentimetresPerSecond);
+            if (const AKalmalaWorldGenerationGameState* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>())
+                End.Z = FKalmalaTerrainHeightSampler::SampleHeight(State->GetWorldGenerationConfig(), FVector2D(End));
+            if (CanLynxMoveAlong(GetActorLocation(), End)) SetActorLocation(End, true);
+        }
+        return;
+    }
+
+    FVector ToTarget = Target->GetActorLocation() - GetActorLocation();
+    const float VerticalDistance = ToTarget.Z;
+    const float HorizontalImpactReach = FMath::Sqrt(FMath::Max(0.0f,
+        FMath::Square(LynxLeapImpactReachCentimetres) - FMath::Square(VerticalDistance)));
+    const float ApproachStopDistance = Cue == EKalmalaWildlifeAttackCue::None
+        ? LynxAttackTriggerCentimetres : HorizontalImpactReach;
+    const bool bPursuing = Cue == EKalmalaWildlifeAttackCue::None
+        || Cue == EKalmalaWildlifeAttackCue::Telegraph
+        || Cue == EKalmalaWildlifeAttackCue::Recovery;
+    if (bPursuing && ToTarget.Size2D() > ApproachStopDistance)
+    {
+        const FVector Direction = ToTarget.GetSafeNormal2D();
+        if (!Direction.IsNearlyZero()) SetActorRotation(FRotationMatrix::MakeFromX(Direction).Rotator());
+        const float MoveDistance = FMath::Min(LynxApproachSpeedCentimetresPerSecond * StepSeconds,
+            ToTarget.Size2D() - ApproachStopDistance);
+        FVector End = GetActorLocation() + Direction * MoveDistance;
+        if (const AKalmalaWorldGenerationGameState* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>())
+            End.Z = FKalmalaTerrainHeightSampler::SampleHeight(State->GetWorldGenerationConfig(), FVector2D(End));
+        if (CanLynxMoveAlong(GetActorLocation(), End)) SetActorLocation(End, true);
+        ToTarget = Target->GetActorLocation() - GetActorLocation();
+    }
+
+    if (Cue == EKalmalaWildlifeAttackCue::Telegraph)
+    {
+        LynxAttackSecondsRemaining -= StepSeconds;
+        if (LynxAttackSecondsRemaining <= 0.0f)
+        {
+            LynxLeapDirection = (Target->GetActorLocation() - GetActorLocation()).GetSafeNormal2D();
+            if (LynxLeapDirection.IsNearlyZero())
+            {
+                LynxAttackTarget.Reset();
+                SetLynxAttackCue(EKalmalaWildlifeAttackCue::None);
+                return;
+            }
+            SetActorRotation(FRotationMatrix::MakeFromX(LynxLeapDirection).Rotator());
+            LynxLeapDistanceRemaining = FMath::Min(LynxLeapImpactReachCentimetres,
+                FMath::Max(0.0f, FVector::Dist2D(GetActorLocation(), Target->GetActorLocation())
+                    - LynxLeapLandingDistanceCentimetres));
+            LynxAttackSecondsRemaining = LynxLeapSeconds;
+            SetLynxAttackCue(EKalmalaWildlifeAttackCue::Lunge);
+        }
+    }
+    else if (Cue == EKalmalaWildlifeAttackCue::Lunge)
+    {
+        const float HorizontalDistance = FVector::Dist2D(GetActorLocation(), Target->GetActorLocation());
+        const float MoveDistance = FMath::Min3(LynxLeapDistanceRemaining,
+            FMath::Max(0.0f, HorizontalDistance - LynxLeapLandingDistanceCentimetres),
+            LynxLeapSpeedCentimetresPerSecond * StepSeconds);
+        if (MoveDistance > 0.0f)
+        {
+            FVector End = GetActorLocation() + LynxLeapDirection * MoveDistance;
+            if (const AKalmalaWorldGenerationGameState* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>())
+                End.Z = FKalmalaTerrainHeightSampler::SampleHeight(State->GetWorldGenerationConfig(), FVector2D(End));
+            if (CanLynxMoveAlong(GetActorLocation(), End))
+            {
+                SetActorLocation(End, true);
+                LynxLeapDistanceRemaining -= MoveDistance;
+            }
+            else
+            {
+                LynxLeapDistanceRemaining = 0.0f;
+            }
+        }
+        LynxAttackSecondsRemaining -= StepSeconds;
+        if (LynxAttackSecondsRemaining <= 0.0f)
+        {
+            const bool bLandedHit = TryApplyLynxLeap(Target);
+            LynxAttackSecondsRemaining = bLandedHit ? LynxRecoverySeconds : LynxMissRecoverySeconds;
+            LynxLeapDistanceRemaining = 0.0f;
+            SetLynxAttackCue(EKalmalaWildlifeAttackCue::Recovery);
+        }
+    }
+    else if (Cue == EKalmalaWildlifeAttackCue::Recovery)
+    {
+        LynxAttackSecondsRemaining -= StepSeconds;
+        if (LynxAttackSecondsRemaining <= 0.0f)
+        {
+            LynxAttackSecondsRemaining = 0.0f;
+            SetLynxAttackCue(EKalmalaWildlifeAttackCue::None);
+        }
+    }
+    else if (FVector::Dist2D(GetActorLocation(), Target->GetActorLocation()) <= LynxAttackTriggerCentimetres)
+    {
+        BeginLynxAttack(Target);
+    }
+}
+
+void AKalmalaWildlifeSpawn::BeginLynxAttack(AKalmalaCharacter* Target)
+{
+    if (!HasAuthority() || bDefeated || !IsLynxAttackTargetValid(Target)
+        || FVector::DistSquared2D(GetActorLocation(), Target->GetActorLocation())
+            > FMath::Square(LynxAttackTriggerCentimetres)) return;
+
+    const FVector Direction = (Target->GetActorLocation() - GetActorLocation()).GetSafeNormal2D();
+    if (Direction.IsNearlyZero()) return;
+    SetActorRotation(FRotationMatrix::MakeFromX(Direction).Rotator());
+    LynxAttackTarget = Target;
+    LynxAttackSecondsRemaining = LynxTelegraphSeconds;
+    SetLynxAttackCue(EKalmalaWildlifeAttackCue::Telegraph);
+}
+
+void AKalmalaWildlifeSpawn::SetLynxAttackCue(const EKalmalaWildlifeAttackCue NextCue)
+{
+    if (!HasAuthority()) return;
+    const uint8 NextValue = static_cast<uint8>(NextCue);
+    if (LynxAttackCue == NextValue) return;
+    LynxAttackCue = NextValue;
+    BuildArchetypePresentation();
+    ForceNetUpdate();
+}
+
+bool AKalmalaWildlifeSpawn::IsLynxAttackTargetValid(const AKalmalaCharacter* Target) const
+{
+    if (!HasAuthority() || bDefeated || Archetype != EKalmalaWildlifeArchetype::Lynx
+        || GetWorld() == nullptr || !IsValid(Target) || !Target->HasAuthority()
+        || Target->GetWorld() != GetWorld() || !FMath::IsFinite(Target->GetHealth())
+        || Target->GetHealth() <= 1.0f
+        || FVector::DistSquared2D(Target->GetActorLocation(), SpawnOrigin)
+            > FMath::Square(LynxSpawnLeashCentimetres)
+        || FVector::DistSquared2D(GetActorLocation(), SpawnOrigin)
+            > FMath::Square(LynxSpawnLeashCentimetres)
+        || !CanLynxMoveAlong(GetActorLocation(), Target->GetActorLocation())) return false;
+
+    FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(KalmalaLynxLeapVisibility), true);
+    QueryParams.AddIgnoredActor(this);
+    FHitResult Blocker;
+    const FVector Start = GetActorLocation() + FVector(0.0f, 0.0f, 45.0f);
+    const FVector End = Target->GetActorLocation() + FVector(0.0f, 0.0f, 48.0f);
+    return !GetWorld()->LineTraceSingleByChannel(Blocker, Start, End, ECC_Visibility, QueryParams)
+        || Blocker.GetActor() == Target;
+}
+
+bool AKalmalaWildlifeSpawn::TryApplyLynxLeap(AKalmalaCharacter* Target)
+{
+    if (!IsLynxAttackTargetValid(Target)
+        || !IsLynxLeapInReach(HasAuthority(), true,
+            FVector::Dist(GetActorLocation(), Target->GetActorLocation()))) return false;
+    return Target->ApplyWildlifeDamageFromServer(this, GetBaseAttackChannelsForArchetype(Archetype));
+}
+
+bool AKalmalaWildlifeSpawn::IsLynxPositionTraversable(const FVector& Position) const
+{
+    if (Position.ContainsNaN() || GetWorld() == nullptr) return false;
+    const AKalmalaWorldGenerationGameState* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
+    if (State == nullptr) return false;
+    const FKalmalaWorldGenerationConfig& Config = State->GetWorldGenerationConfig();
+    const FVector2D XY(Position);
+    return FKalmalaWorldBounds::Contains(Config, XY)
+        && FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, XY))
+            == EKalmalaBiome::FreezingTundra
+        && !FKalmalaOceanSampler::Sample(Config, XY).IsWater()
+        && !FKalmalaShimmeringLakeSampler::IsWater(Config, XY)
+        && FKalmalaTerrainHeightSampler::SampleSurfaceNormal(Config, XY).Z >= 0.82f;
+}
+
+bool AKalmalaWildlifeSpawn::CanLynxMoveAlong(const FVector& Start, const FVector& End) const
+{
+    const float Distance = FVector::Dist2D(Start, End);
+    const int32 Samples = FMath::Max(1, FMath::CeilToInt(Distance / 80.0f));
+    for (int32 Index = 0; Index <= Samples; ++Index)
+    {
+        const FVector Position = FMath::Lerp(Start, End, static_cast<float>(Index) / Samples);
+        if (!IsLynxPositionTraversable(Position)) return false;
     }
     return true;
 }
@@ -2539,6 +2793,93 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
                 FVector(HeadX + 24.0f,-4,HeadZ - 28.0f), FVector(HeadX + 24.0f,4,HeadZ - 28.0f), Paw);
         }
     }
+    else if (Archetype == EKalmalaWildlifeArchetype::Lynx)
+    {
+        const EKalmalaWildlifeAttackCue Cue = static_cast<EKalmalaWildlifeAttackCue>(LynxAttackCue);
+        const bool bTelegraph = Cue == EKalmalaWildlifeAttackCue::Telegraph;
+        const bool bLeaping = Cue == EKalmalaWildlifeAttackCue::Lunge;
+        const FLinearColor SnowCoat(0.68f, 0.66f, 0.59f);
+        const FLinearColor BackCoat(0.39f, 0.36f, 0.30f);
+        const FLinearColor Cream(0.84f, 0.80f, 0.69f);
+        const FLinearColor Spot(0.20f, 0.17f, 0.14f);
+        const FLinearColor EarTip(0.08f, 0.075f, 0.065f);
+        const FLinearColor Nose(0.26f, 0.19f, 0.17f);
+        const FLinearColor Eye(0.91f, 0.65f, 0.19f);
+        const float HeadX = bLeaping ? 139.0f : 122.0f;
+        const float HeadZ = bTelegraph ? 56.0f : (bLeaping ? 82.0f : 72.0f);
+
+        // A compact spotted body, cheek ruffs, short tail and tufted ears distinguish
+        // this Tundra pouncer from the longer, darker Wolf.
+        AddTetraPoints(FVector(-91,-34,8), FVector(-91,34,8), FVector(39,-31,13),
+            FVector(-25,0,bTelegraph ? 54.0f : (bLeaping ? 72.0f : 68.0f)), SnowCoat);
+        AddTetraPoints(FVector(-60,-31,25), FVector(-60,31,25), FVector(20,-27,31),
+            FVector(-24,0,bTelegraph ? 66.0f : 83.0f), BackCoat);
+        AddTetraPoints(FVector(10,-26,22), FVector(10,26,22), FVector(71,-20,31),
+            FVector(51,0,bLeaping ? 75.0f : 62.0f), SnowCoat);
+        AddTetraPoints(FVector(43,-22,43), FVector(43,22,43), FVector(HeadX - 18.0f,-15,HeadZ + 3.0f),
+            FVector(HeadX - 18.0f,15,HeadZ + 3.0f), Cream);
+        AddTetraPoints(FVector(HeadX - 23.0f,-16,HeadZ), FVector(HeadX - 23.0f,16,HeadZ),
+            FVector(HeadX + 11.0f,-11,HeadZ - 9.0f), FVector(HeadX + 11.0f,11,HeadZ - 9.0f), SnowCoat);
+        AddTetraPoints(FVector(HeadX + 7.0f,-10,HeadZ - 10.0f), FVector(HeadX + 7.0f,10,HeadZ - 10.0f),
+            FVector(HeadX + 27.0f,-6,HeadZ - 16.0f), FVector(HeadX + 27.0f,6,HeadZ - 16.0f), Nose);
+
+        for (int32 SpotIndex = 0; SpotIndex < 6; ++SpotIndex)
+        {
+            const float X = -48.0f + static_cast<float>(SpotIndex) * 15.0f;
+            const float Side = SpotIndex % 2 == 0 ? -1.0f : 1.0f;
+            const float Z = 38.0f + (SpotIndex % 3) * 7.0f;
+            AddTetraPoints(FVector(X - 5.0f,Side * 24.0f,Z - 4.0f),
+                FVector(X - 5.0f,Side * 30.0f,Z - 4.0f), FVector(X + 5.0f,Side * 27.0f,Z - 4.0f),
+                FVector(X,Side * 27.0f,Z + 3.0f), Spot);
+        }
+
+        for (const float Side : {-1.0f, 1.0f})
+        {
+            for (const float LegX : {-54.0f, 31.0f})
+            {
+                const bool bForeleg = LegX > 0.0f;
+                const bool bCrouchedForeleg = bTelegraph && bForeleg && Side < 0.0f;
+                const float FootX = bLeaping ? LegX + (bForeleg ? 45.0f : -24.0f)
+                    : (LegX + (bCrouchedForeleg ? 24.0f : 4.0f));
+                const float FootZ = bCrouchedForeleg ? -13.0f : (bLeaping ? -31.0f : -55.0f);
+                AddTetraPoints(FVector(LegX - 10.0f,Side * 18.0f,31),
+                    FVector(LegX + 10.0f,Side * 28.0f,27),
+                    FVector(FootX - 8.0f,Side * 18.0f,-8), FVector(FootX + 9.0f,Side * 25.0f,-11),
+                    bForeleg ? SnowCoat : BackCoat);
+                AddTetraPoints(FVector(FootX - 9.0f,Side * 18.0f,FootZ + 10.0f),
+                    FVector(FootX - 2.0f,Side * 27.0f,FootZ + 10.0f),
+                    FVector(FootX + 11.0f,Side * 18.0f,FootZ), FVector(FootX + 9.0f,Side * 27.0f,FootZ + 2.0f), Spot);
+            }
+
+            // Wide cheek tufts and black-tipped triangular ears give the short face a lynx outline.
+            AddTetraPoints(FVector(HeadX - 27.0f,Side * 11.0f,HeadZ - 1.0f),
+                FVector(HeadX - 20.0f,Side * 26.0f,HeadZ + 6.0f),
+                FVector(HeadX - 5.0f,Side * 18.0f,HeadZ - 18.0f),
+                FVector(HeadX + 3.0f,Side * 13.0f,HeadZ - 16.0f), Cream);
+            AddTetraPoints(FVector(HeadX - 15.0f,Side * 10.0f,HeadZ + 5.0f),
+                FVector(HeadX - 7.0f,Side * 16.0f,HeadZ + 4.0f),
+                FVector(HeadX - 12.0f,Side * 13.0f,HeadZ + 33.0f),
+                FVector(HeadX - 25.0f,Side * 12.0f,HeadZ + 22.0f), BackCoat);
+            AddTetraPoints(FVector(HeadX - 13.0f,Side * 11.0f,HeadZ + 24.0f),
+                FVector(HeadX - 9.0f,Side * 13.0f,HeadZ + 23.0f),
+                FVector(HeadX - 12.0f,Side * 12.0f,HeadZ + 39.0f),
+                FVector(HeadX - 20.0f,Side * 11.0f,HeadZ + 30.0f), EarTip);
+            AddTetraPoints(FVector(HeadX + 1.0f,Side * 11.0f,HeadZ + 1.0f),
+                FVector(HeadX + 8.0f,Side * 14.0f,HeadZ + 2.0f),
+                FVector(HeadX + 7.0f,Side * 14.0f,HeadZ + 7.0f),
+                FVector(HeadX + 2.0f,Side * 12.0f,HeadZ + 9.0f), Eye);
+        }
+        AddTetraPoints(FVector(-84,-7,28), FVector(-84,7,28), FVector(-111,-11,23),
+            FVector(-118,11,22), BackCoat);
+        AddTetraPoints(FVector(-114,-11,23), FVector(-118,11,22), FVector(-130,-10,18),
+            FVector(-133,10,17), EarTip);
+        if (bTelegraph)
+        {
+            // The lowered shoulders and tucked forelegs expose the half-second pounce warning.
+            AddTetraPoints(FVector(-7,-5,49), FVector(-7,5,49), FVector(22,-4,29),
+                FVector(22,4,29), Spot);
+        }
+    }
     else if (bSnake)
     {
         const bool bGiant = Archetype == EKalmalaWildlifeArchetype::GiantSnake;
@@ -2776,6 +3117,7 @@ void AKalmalaWildlifeSpawn::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
     DOREPLIFETIME(AKalmalaWildlifeSpawn, RatAttackCue);
     DOREPLIFETIME(AKalmalaWildlifeSpawn, BadgerAttackCue);
     DOREPLIFETIME(AKalmalaWildlifeSpawn, WolfAttackCue);
+    DOREPLIFETIME(AKalmalaWildlifeSpawn, LynxAttackCue);
     DOREPLIFETIME(AKalmalaWildlifeSpawn, MoonBearAttackCue);
     DOREPLIFETIME(AKalmalaWildlifeSpawn, PeatHuskAttackCue);
 }
@@ -2810,6 +3152,11 @@ void AKalmalaWildlifeSpawn::OnRep_BadgerAttackCue()
 }
 
 void AKalmalaWildlifeSpawn::OnRep_WolfAttackCue()
+{
+    BuildArchetypePresentation();
+}
+
+void AKalmalaWildlifeSpawn::OnRep_LynxAttackCue()
 {
     BuildArchetypePresentation();
 }
@@ -2850,6 +3197,10 @@ void AKalmalaWildlifeSpawn::ApplyDefeatedState()
         WolfAttackSecondsRemaining = 0.0f;
         WolfLungeDistanceRemaining = 0.0f;
         SetWolfAttackCue(EKalmalaWildlifeAttackCue::None);
+        LynxAttackTarget.Reset();
+        LynxAttackSecondsRemaining = 0.0f;
+        LynxLeapDistanceRemaining = 0.0f;
+        SetLynxAttackCue(EKalmalaWildlifeAttackCue::None);
         GrantDefeatReward();
     }
 }
@@ -2883,11 +3234,12 @@ void AKalmalaWildlifeSpawn::GrantDefeatReward()
         && Archetype != EKalmalaWildlifeArchetype::Viper && Archetype != EKalmalaWildlifeArchetype::GiantSnake
         && Archetype != EKalmalaWildlifeArchetype::DeathAdder
         && Archetype != EKalmalaWildlifeArchetype::Wolf
+        && Archetype != EKalmalaWildlifeArchetype::Lynx
         && Archetype != EKalmalaWildlifeArchetype::PeatHusk)
     {
         Inventory->TryGrantFromServer(TEXT("BoneFragment"), BoneFragmentQuantity);
     }
-    // Rat, Badger, Moon Bear, Viper, Giant Snake, Death Adder, Wolf and Peat Husk rewards
+    // Rat, Badger, Moon Bear, Viper, Giant Snake, Death Adder, Wolf, Lynx and Peat Husk rewards
     // use the persistent queue recorded before defeated state is replicated.
 
     if (Archetype == EKalmalaWildlifeArchetype::Mireling && IsMirelingBossRewardCandidate())

@@ -30,6 +30,8 @@ fire/dodge counterplay. Peat Husk fills the final 10% hard slot and queues its
 baseline Amber for the credited owner. Wolf occupies its two deterministic
 Freezing Tundra candidate slots and spawns as a three-member pack in a stable
 triangle; each member has its own defeat and owner-bound two-Bone claim.
+Lynx fills the next two seeded Tundra slots with a dry-ground pounce, a
+350 cm server impact limit, and an owner-bound two-Bone claim.
 
 | Enemy               | Biome                                  | Status           | HP   | Armor | Attack       | Abilities / counters                |
 | ------------------- | -------------------------------------- | ---------------- | ---: | ----: | ------------ | ----------------------------------- |
@@ -45,7 +47,7 @@ triangle; each member has its own defeat and owner-bound two-Bone claim.
 | Mosquito swarm      | Mossy Mire                             | Partial          |  25  |   0   | 5 Stab/0.2 s | 20% dry-ground slots; one swarm per target; poison 1/s for 10 s; dodge/fire repel; I4 pending |
 | Peat Husk           | Mossy Mire                             | Partial          |  300 |   50  | 150 Crush    | 10% dry-ground hard slot; 260 cm/120° sweep; 1 s warning; 1.2 s recovery; queued Amber; I4 pending |
 | Wolf                | Freezing Tundra                        | Partial          |  250 |   40  | 100 Slash    | 20% dry-ground slots; three-member pack; 180 cm lunge bite; queued 2 Bone Fragment; I4 pending |
-| Lynx                | Freezing Tundra                        | Planned          |  150 |   30  | 75 Slash     | Leap at player                      |
+| Lynx                | Freezing Tundra                        | Partial          |  150 |   30  | 75 Slash     | 20% dry-ground slots; 350 cm leap; 0.5 s warning; 0.8 s hit / 1.2 s miss recovery; queued 2 Bone Fragment; I4 pending |
 | Polar Bear          | Freezing Tundra                        | Planned          |  750 |   60  | 200 Crush    | Committed charge                    |
 | Horned Goat         | Thunder Mountains                      | Planned          |  200 |   50  | 50 Crush     | Territorial horn charge, push + stagger |
 | Thunder Sentinel    | Thunder Mountains                      | Planned          |  1250|   75  | 300 Crush    | Slow downward slam                  |
@@ -392,7 +394,8 @@ and original inventory icons before implementation; the uses are not recipes.
 ## Freezing Tundra Wolf
 
 - Wolf occupies exactly two of each ten deterministic Tundra candidate slots;
-  the other current Tundra shares remain empty. A Wolf candidate creates three
+  Lynx occupies slots seven and eight, while the remaining unimplemented Tundra
+  shares remain empty. A Wolf candidate creates three
   actors in a seed-rotated triangle with a 240 cm radius. All three positions
   must remain in dry, traversable Freezing Tundra. Stable member suffixes keep
   defeat state and reward claims independent across reloads.
@@ -409,6 +412,25 @@ and original inventory icons before implementation; the uses are not recipes.
   until their separate A8b source tasks are complete. Validate host/client
   appearance, pack cap/partial saved packs, attack rejection, full-pack retry,
   reconnect and restart in combined I4.
+
+## Freezing Tundra Lynx
+
+- Lynx occupies exactly two of each ten deterministic Tundra candidate slots,
+  after Wolf's two slots. It spawns only on dry Freezing Tundra with the same
+  traversable-slope check; no pack members or extra actor-cap allowance are
+  added. Other unimplemented Tundra shares stay empty.
+- The server acquires and pursues a target within a 25 m spawn leash on dry,
+  traversable Tundra. It crouches for the common 0.5 s warning, then visibly
+  pounces toward the target. At impact the server rechecks visibility, habitat,
+  target validity and the user-reviewed inclusive 350 cm maximum distance.
+  A landed hit recovers for the authored 0.8 s; a miss recovers for 1.2 s to
+  make the reviewed long miss recovery visible. Invalid targets, blocked routes,
+  water and biome-boundary crossings prevent movement or damage.
+- Each credited defeat queues two Bone Fragments for the authenticated attacker
+  through the population-save escrow. Full inventories retain the claim for
+  retry. Lynx Pelt remains disabled until its separate A8b source task is
+  complete. Validate the readable crouch/leap poses, attack rejection, reward
+  retry, reconnect and restart in combined I4.
 
 ## Viper poison
 
