@@ -215,7 +215,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - Item icon tasks are independent of their source/output implementation tasks. Each checkbox covers one item's original generated artwork and provenance, prepared/imported texture, runtime mapping, and icon-validator coverage. Each can be completed in its own short-path A8b worktree and must be committed individually. Completing an icon does not complete its item row or enable acquisition.
   - [x] Rat Tail icon (`RatTail`): original, provenance, mapping, import, and catalogue icon validation are complete; see `docs/rat-tail-icon.md`.
   - [x] Badger Fur icon (`BadgerFur`).
-  - [ ] Badger Meat icon (`BadgerMeat`).
+  - [x] Badger Meat icon (`BadgerMeat`): original, provenance, mapping, import, and focused catalogue icon validation are complete; see `docs/badger-meat-icon.md`.
   - [ ] Viper Fang icon (`ViperFang`).
   - [ ] Giant Scale icon (`GiantScale`).
   - [ ] Venom Sac icon (`VenomSac`).

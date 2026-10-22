@@ -98,3 +98,4 @@ image_batch,import_batch,canonical_id,art_subject,identity_kind,catalogue_aliase
 51,AG,RatTail,curled brown rat tail,item,none,none,PackInventory;ItemDetail;Storage;Ingredient,pack,
 51,AG,StandingLightKit,three-legged timber stand with a raised brazier and amber flame,buildable,StandingLight,StandingLight,BuildMenu;PlacementPreview;ResultPreview,none,StandingLightKit
 52,AH,BadgerFur,compact silver black and ivory badger fur tuft,item,none,none,PackInventory;ItemDetail;Storage;Ingredient,pack,
+53,AI,BadgerMeat,compact red and cream raw badger meat cut,item,none,none,PackInventory;ItemDetail;Storage;Ingredient,pack,

@@ -211,7 +211,7 @@ bool UKalmalaIconWidget::FindCatalogueIcon(FName Id, EKalmalaIcon& OutIcon, int3
         {TEXT("GrindingStoneKit"),EKalmalaIcon::Rock,3}, {TEXT("StorageKit"),EKalmalaIcon::Chest,0}, {TEXT("CookingRackKit"),EKalmalaIcon::Rack,0},
         {TEXT("FryingPanKit"),EKalmalaIcon::Pan,0}, {TEXT("CauldronKit"),EKalmalaIcon::Cauldron,0},
         {TEXT("FloorKit"),EKalmalaIcon::Floor,0}, {TEXT("WallKit"),EKalmalaIcon::Wall,0}, {TEXT("RoofKit"),EKalmalaIcon::Roof,0},
-        {TEXT("BoarMeat"),EKalmalaIcon::Meat,0}, {TEXT("DeerMeat"),EKalmalaIcon::Meat,1},
+        {TEXT("BoarMeat"),EKalmalaIcon::Meat,0}, {TEXT("DeerMeat"),EKalmalaIcon::Meat,1}, {TEXT("BadgerMeat"),EKalmalaIcon::Meat,4},
         {TEXT("BoarHide"),EKalmalaIcon::Hide,0}, {TEXT("DeerHide"),EKalmalaIcon::Hide,1}, {TEXT("BadgerFur"),EKalmalaIcon::Hide,2},
         {TEXT("CookedBoarMeat"),EKalmalaIcon::Meat,2}, {TEXT("CookedDeerMeat"),EKalmalaIcon::Meat,3},
         {TEXT("HearthBroth"),EKalmalaIcon::Bowl,0}, {TEXT("MeatStew"),EKalmalaIcon::Bowl,1},
