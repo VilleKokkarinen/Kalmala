@@ -599,6 +599,12 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         TestEqual(TEXT("Rat-tail Tonic stack is bounded at ten"), RatTailTonic->MaxStack, 10);
         TestEqual(TEXT("Rat-tail Tonic weight is authored at 0.2 kg"), RatTailTonic->WeightKg, 0.2f);
     }
+    const FKalmalaItemDefinition* Antidote = Catalogue->FindItem(TEXT("Antidote"));
+    if (TestNotNull(TEXT("Antidote is a current catalogue item"), Antidote))
+    {
+        TestEqual(TEXT("Antidote stack is bounded at ten"), Antidote->MaxStack, 10);
+        TestEqual(TEXT("Antidote weight is authored at 0.2 kg"), Antidote->WeightKg, 0.2f);
+    }
     const FKalmalaRecipe* RatTailTonicRecipe = Recipes->Find(TEXT("RatTailTonicRecipe"));
     if (TestNotNull(TEXT("Rat-tail Tonic Cauldron recipe exists"), RatTailTonicRecipe))
     {
@@ -618,6 +624,26 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         TestTrue(TEXT("Rat-tail Tonic recipe awards Cooking experience"),
             RatTailTonicRecipe->ExperienceSkill == EKalmalaSkill::Cooking);
         TestEqual(TEXT("Rat-tail Tonic recipe awards ten Cooking experience"), RatTailTonicRecipe->ExperienceAward, 10);
+    }
+    const FKalmalaRecipe* AntidoteRecipe = Recipes->Find(TEXT("AntidoteRecipe"));
+    if (TestNotNull(TEXT("Antidote Cauldron recipe exists"), AntidoteRecipe))
+    {
+        const auto HasIngredient = [AntidoteRecipe](const FName ItemId, const int32 Quantity)
+        {
+            const FKalmalaInventoryStack* Ingredient = AntidoteRecipe->Ingredients.FindByPredicate(
+                [ItemId](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == ItemId; });
+            return Ingredient && Ingredient->Quantity == Quantity;
+        };
+        TestEqual(TEXT("Antidote recipe has two ingredients"), AntidoteRecipe->Ingredients.Num(), 2);
+        TestTrue(TEXT("Antidote recipe costs one Venom Sac and two Lingonberries"),
+            HasIngredient(TEXT("VenomSac"), 1) && HasIngredient(TEXT("Lingonberry"), 2));
+        TestEqual(TEXT("Antidote recipe creates one dose"), AntidoteRecipe->OutputCount, 1);
+        TestEqual(TEXT("Antidote recipe caps batches at five"), AntidoteRecipe->MaxBatch, 5);
+        TestTrue(TEXT("Antidote recipe requires the Cauldron"),
+            AntidoteRecipe->RequiredStation.Contains(TEXT("CauldronKit")));
+        TestTrue(TEXT("Antidote recipe awards Cooking experience"),
+            AntidoteRecipe->ExperienceSkill == EKalmalaSkill::Cooking);
+        TestEqual(TEXT("Antidote recipe awards ten Cooking experience"), AntidoteRecipe->ExperienceAward, 10);
     }
     for (const FName RemovedRecipe : {
         FName(TEXT("RoastBoarMeat")), FName(TEXT("RoastDeerMeat")),

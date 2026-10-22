@@ -5423,3 +5423,27 @@ Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id GardenPlotKit
 
 The `GardenPlot` recipe identity resolves to the same placed-object icon. No
 inventory item or portable plot kit is introduced.
+
+## A8b Antidote item coverage — 2026-10-22
+
+The registered Antidote item and Cauldron recipe use the existing server
+crafting exchange for one Venom Sac plus two Lingonberries, one dose per batch,
+and ten Cooking experience. The station menu includes the recipe in its
+Cauldron allowlist. A living player may use a dose at full health. The server
+consumes exactly one item and publishes the shared 60-second draught cooldown
+and an owner-only 600-second poison-resistance status. On use, weak poison is
+cleared and active major poison becomes weak for the lesser of its remaining
+duration or five seconds. While resistant, new weak poison is blocked and new
+major poison is reduced to the same weak profile; converted poison expires on
+its own timer and never returns to major strength. Death removes resistance
+without refunding the dose or clearing cooldown. No save field or client
+mutation path was added.
+
+After an editor build, run `Kalmala.Gameplay.Status.Antidote`,
+`Kalmala.UI.Inventory.PreparedFoodDetails`, and
+`Kalmala.UI.StatusHotbar.SnapshotAndLayout`, along with the existing Cauldron
+scope acceptance (`VerifyCauldronScopeForTest`). These regressions cover the
+status transition and server authority, rejected-use inventory preservation,
+recipe exposure and costs, player-facing details, and the resistance timer.
+The focused C++ regression sources added here have not been compiled or run in
+this normal child; combined A8a/A8b I4 remains required.

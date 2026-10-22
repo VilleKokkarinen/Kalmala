@@ -760,4 +760,130 @@ bool FKalmalaDeathAdderMajorPoisonStatusTest::RunTest(const FString& Parameters)
     return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaAntidoteStatusTest,
+    "Kalmala.Gameplay.Status.Antidote",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FKalmalaAntidoteStatusTest::RunTest(const FString& Parameters)
+{
+    TArray<FKalmalaPlayerStatusEntry> Entries = {
+        {UKalmalaPlayerStatusComponent::WeakPoisonStatusId, 4.0f},
+        {UKalmalaPlayerStatusComponent::MajorPoisonStatusId, 8.0f}
+    };
+    TestTrue(TEXT("Antidote is a registered draught action"),
+        UKalmalaPlayerStatusComponent::IsKnownDraughtItem(TEXT("Antidote")));
+    TestTrue(TEXT("Antidote clears weak poison and downgrades major poison"),
+        UKalmalaPlayerStatusComponent::ApplyDraught(Entries, TEXT("Antidote")));
+    TestFalse(TEXT("Antidote removes the major poison profile"),
+        Entries.ContainsByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
+            { return Entry.StatusId == UKalmalaPlayerStatusComponent::MajorPoisonStatusId; }));
+    const FKalmalaPlayerStatusEntry* ConvertedPoison = Entries.FindByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
+        { return Entry.StatusId == UKalmalaPlayerStatusComponent::WeakPoisonStatusId; });
+    TestTrue(TEXT("Major poison converts to weak for at most five seconds"),
+        ConvertedPoison && ConvertedPoison->RemainingSeconds == UKalmalaPlayerStatusComponent::AntidoteWeakPoisonMaximumSeconds);
+    const FKalmalaPlayerStatusEntry* Resistance = Entries.FindByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
+        { return Entry.StatusId == UKalmalaPlayerStatusComponent::PoisonResistanceStatusId; });
+    const FKalmalaPlayerStatusEntry* Cooldown = Entries.FindByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
+        { return Entry.StatusId == UKalmalaPlayerStatusComponent::DraughtCooldownStatusId; });
+    TestTrue(TEXT("Antidote grants ten minutes of poison resistance"),
+        Resistance && Resistance->RemainingSeconds == UKalmalaPlayerStatusComponent::AntidoteResistanceMaximumSeconds);
+    TestTrue(TEXT("Antidote starts the shared sixty-second cooldown"),
+        Cooldown && Cooldown->RemainingSeconds == UKalmalaPlayerStatusComponent::DraughtCooldownMaximumSeconds);
+    TestFalse(TEXT("Resistance prevents another Antidote"),
+        UKalmalaPlayerStatusComponent::ApplyDraught(Entries, TEXT("Antidote")));
+
+    TArray<FKalmalaPlayerStatusEntry> ShortMajor = {
+        {UKalmalaPlayerStatusComponent::MajorPoisonStatusId, 3.0f}
+    };
+    TestTrue(TEXT("Antidote accepts an already-active short major dose"),
+        UKalmalaPlayerStatusComponent::ApplyDraught(ShortMajor, TEXT("Antidote")));
+    ConvertedPoison = ShortMajor.FindByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
+        { return Entry.StatusId == UKalmalaPlayerStatusComponent::WeakPoisonStatusId; });
+    TestTrue(TEXT("Conversion preserves a shorter remaining major duration"),
+        ConvertedPoison && ConvertedPoison->RemainingSeconds == 3.0f);
+    UKalmalaPlayerStatusComponent::Advance(ShortMajor, UKalmalaPlayerStatusComponent::AntidoteResistanceMaximumSeconds);
+    TestFalse(TEXT("Converted poison expires without restoring major strength"),
+        ShortMajor.ContainsByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
+            { return Entry.StatusId == UKalmalaPlayerStatusComponent::WeakPoisonStatusId
+                || Entry.StatusId == UKalmalaPlayerStatusComponent::MajorPoisonStatusId; }));
+
+    UWorld* World = UWorld::CreateWorld(EWorldType::Game, false);
+    AKalmalaCharacter* Pawn = World ? World->SpawnActor<AKalmalaCharacter>() : nullptr;
+    APlayerController* Controller = World ? World->SpawnActor<APlayerController>() : nullptr;
+    if (!TestNotNull(TEXT("Antidote character fixture spawned"), Pawn)
+        || !TestNotNull(TEXT("Antidote controller fixture spawned"), Controller))
+    {
+        if (World) World->DestroyWorld(false);
+        return false;
+    }
+    Controller->Possess(Pawn);
+    auto* Status = Pawn->FindComponentByClass<UKalmalaPlayerStatusComponent>();
+    auto* Crafting = Pawn->FindComponentByClass<UKalmalaCraftingComponent>();
+    auto* Inventory = Pawn->GetInventoryComponent();
+    const FFloatProperty* HealthProperty = FindFProperty<FFloatProperty>(AKalmalaCharacter::StaticClass(), TEXT("Health"));
+    if (!TestNotNull(TEXT("Antidote status component exists"), Status)
+        || !TestNotNull(TEXT("Antidote crafting component exists"), Crafting)
+        || !TestNotNull(TEXT("Antidote inventory exists"), Inventory)
+        || !TestNotNull(TEXT("Antidote health fixture property exists"), HealthProperty))
+    {
+        World->DestroyWorld(false);
+        return false;
+    }
+
+    HealthProperty->SetPropertyValue_InContainer(Pawn, 100.0f);
+    TestTrue(TEXT("Living player can carry multiple Antidote doses"),
+        Inventory->TryGrantFromServer(TEXT("Antidote"), 3));
+    TestTrue(TEXT("Weak poison fixture starts on the server"), Status->ApplyWeakPoisonFromServer(4.0f));
+    FString Reason;
+    TestTrue(TEXT("Antidote can be used at full health and consumes exactly one dose"),
+        Crafting->ConsumeFoodFromServer(TEXT("Antidote"), Reason));
+    TestEqual(TEXT("Accepted Antidote consumes one item"), Inventory->GetQuantity(TEXT("Antidote")), 2);
+    TestFalse(TEXT("Antidote clears active weak poison"), Status->HasStatus(UKalmalaPlayerStatusComponent::WeakPoisonStatusId));
+    TestTrue(TEXT("Antidote publishes owner poison resistance"), Status->HasStatus(UKalmalaPlayerStatusComponent::PoisonResistanceStatusId));
+    TestEqual(TEXT("Resistance publishes the ten-minute duration"),
+        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::PoisonResistanceStatusId),
+        UKalmalaPlayerStatusComponent::AntidoteResistanceMaximumSeconds);
+    TestFalse(TEXT("Resistance blocks new weak poison"), Status->ApplyWeakPoisonFromServer(5.0f));
+    TestTrue(TEXT("Resistance downgrades new major poison"), Status->ApplyMajorPoisonFromServer(10.0f));
+    TestFalse(TEXT("Resistant hits do not publish major poison"),
+        Status->HasStatus(UKalmalaPlayerStatusComponent::MajorPoisonStatusId));
+    TestEqual(TEXT("Resistant major poison is capped at five weak seconds"),
+        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::WeakPoisonStatusId),
+        UKalmalaPlayerStatusComponent::AntidoteWeakPoisonMaximumSeconds);
+    TestFalse(TEXT("Shared cooldown rejects another Antidote"),
+        Crafting->ConsumeFoodFromServer(TEXT("Antidote"), Reason));
+    TestEqual(TEXT("Cooldown rejection preserves the next dose"), Inventory->GetQuantity(TEXT("Antidote")), 2);
+
+    Status->AdvanceFromServer(60.0f);
+    TestFalse(TEXT("Converted weak poison expires independently of resistance"),
+        Status->HasStatus(UKalmalaPlayerStatusComponent::WeakPoisonStatusId));
+    TestFalse(TEXT("Shared cooldown expires after sixty server seconds"),
+        Status->HasStatus(UKalmalaPlayerStatusComponent::DraughtCooldownStatusId));
+    TestTrue(TEXT("Antidote cannot refresh an active resistance"),
+        !Crafting->ConsumeFoodFromServer(TEXT("Antidote"), Reason));
+    TestEqual(TEXT("Active-resistance rejection preserves the dose"), Inventory->GetQuantity(TEXT("Antidote")), 2);
+    Status->AdvanceFromServer(540.0f);
+    TestFalse(TEXT("Ten-minute resistance expires on server time"),
+        Status->HasStatus(UKalmalaPlayerStatusComponent::PoisonResistanceStatusId));
+    TestTrue(TEXT("Major poison is restored only for a new hit after resistance expires"),
+        Status->ApplyMajorPoisonFromServer(10.0f));
+    TestTrue(TEXT("Antidote can be used again after resistance expires"),
+        Crafting->ConsumeFoodFromServer(TEXT("Antidote"), Reason));
+    TestEqual(TEXT("Second accepted Antidote consumes exactly one dose"), Inventory->GetQuantity(TEXT("Antidote")), 1);
+    TestEqual(TEXT("Second Antidote downgrades active major poison to five weak seconds"),
+        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::WeakPoisonStatusId),
+        UKalmalaPlayerStatusComponent::AntidoteWeakPoisonMaximumSeconds);
+    HealthProperty->SetPropertyValue_InContainer(Pawn, 1.0f);
+    Status->AdvanceFromServer(1.0f);
+    TestFalse(TEXT("Death ends poison resistance"),
+        Status->HasStatus(UKalmalaPlayerStatusComponent::PoisonResistanceStatusId));
+    TestEqual(TEXT("Death does not refund the dose"), Inventory->GetQuantity(TEXT("Antidote")), 1);
+    TestEqual(TEXT("Death does not clear the shared recovery cooldown"),
+        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::DraughtCooldownStatusId),
+        UKalmalaPlayerStatusComponent::DraughtCooldownMaximumSeconds - 1.0f);
+
+    World->DestroyWorld(false);
+    return true;
+}
+
 #endif

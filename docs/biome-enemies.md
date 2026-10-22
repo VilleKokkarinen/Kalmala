@@ -73,7 +73,9 @@ share one tick clock; only the strongest active dose deals damage, and a weak
 bite cannot extend major poison. Each credited defeat queues its one baseline
 Bone Fragment and one guaranteed Venom Sac for the authenticated owner. The
 server commits both atomically and retains the claim until the complete bundle
-fits. Antidote remains a separate A8b output task.
+fits. The A8b Antidote uses one Venom Sac and two Lingonberries at the Cauldron;
+its server status transaction removes weak poison, weakens major poison, and
+grants the approved timed resistance.
 
 Peat Husk uses the reviewed 300-health, 50-armor, 150-Crush profile in the
 remaining 10% Mossy Mire slot. It is limited to dry Mossy Mire ground and its

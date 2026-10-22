@@ -123,6 +123,34 @@ bool FKalmalaInventoryMenuPreparedFoodDetailsTest::RunTest(const FString& Parame
     TestTrue(TEXT("Rat-tail Tonic exposes the use-dose action and fails closed without owner data"),
         MenuText.Contains(TEXT("Use one dose"))
         && MenuText.Contains(TEXT("Food use is unavailable while owner data is loading.")));
+
+    Menu->SetInventoryRowsForVerification({
+        {TEXT("Antidote"), TEXT("Antidote"), TEXT("× 1"), false}
+    }, 100, 0);
+    Menu->SelectItemForVerification(TEXT("Antidote"));
+    DetailText.Reset();
+    Widgets.Reset();
+    Menu->WidgetTree->GetAllWidgets(Widgets);
+    for (UWidget* Widget : Widgets)
+    {
+        if (auto* Detail = Cast<UKalmalaItemDetailWidget>(Widget))
+        {
+            TArray<UWidget*> DetailWidgets;
+            Detail->WidgetTree->GetAllWidgets(DetailWidgets);
+            for (UWidget* DetailWidget : DetailWidgets)
+                if (const auto* Block = Cast<UTextBlock>(DetailWidget)) DetailText += Block->GetText().ToString();
+        }
+    }
+    TestTrue(TEXT("Antidote detail explains poison conversion, resistance and shared cooldown"),
+        DetailText.Contains(TEXT("clears weak poison"))
+        && DetailText.Contains(TEXT("10 minutes of poison resistance"))
+        && DetailText.Contains(TEXT("60-second recovery cooldown")));
+    MenuText.Reset();
+    for (UWidget* Widget : Widgets)
+        if (const auto* Block = Cast<UTextBlock>(Widget)) MenuText += Block->GetText().ToString();
+    TestTrue(TEXT("Antidote exposes the use-dose action and fails closed without owner data"),
+        MenuText.Contains(TEXT("Use one dose"))
+        && MenuText.Contains(TEXT("Food use is unavailable while owner data is loading.")));
     return true;
 }
 

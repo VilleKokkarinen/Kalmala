@@ -1087,10 +1087,12 @@ FString UKalmalaCraftingComponent::GetFoodText() const
     const int32 BerryRecoveryDraughtCount = GetFoodCount(UKalmalaPlayerStatusComponent::BerryRecoveryDraughtItemId);
     const int32 RootStaminaDraughtCount = GetFoodCount(UKalmalaPlayerStatusComponent::RootStaminaDraughtItemId);
     const int32 RatTailTonicCount = GetFoodCount(UKalmalaPlayerStatusComponent::RatTailTonicItemId);
+    const int32 AntidoteCount = GetFoodCount(UKalmalaPlayerStatusComponent::AntidoteItemId);
     const FString AvailableFood = FString::Printf(
-        TEXT("Cooked boar %d; cooked deer %d; meat stew %d; root soup %d; roasted roots %d; deer roast %d; Hearth Broth %d; Lingonberry %d; Forest Chanterelle %d; Berry Recovery Draught %d; Root Stamina Draught %d; Rat-tail Tonic %d."),
+        TEXT("Cooked boar %d; cooked deer %d; meat stew %d; root soup %d; roasted roots %d; deer roast %d; Hearth Broth %d; Lingonberry %d; Forest Chanterelle %d; Berry Recovery Draught %d; Root Stamina Draught %d; Rat-tail Tonic %d; Antidote %d."),
         CookedBoarCount, CookedDeerCount, StewCount, SoupCount, RoastedRootsCount, DeerRoastCount, BrothCount,
-        LingonberryCount, ForestChanterelleCount, BerryRecoveryDraughtCount, RootStaminaDraughtCount, RatTailTonicCount);
+        LingonberryCount, ForestChanterelleCount, BerryRecoveryDraughtCount, RootStaminaDraughtCount, RatTailTonicCount,
+        AntidoteCount);
     const float Remaining = Status ? Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId) : 0.0f;
     const float BerryRecoveryRemaining = Status
         ? Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::BerryRecoveryStatusId) : 0.0f;
@@ -1098,11 +1100,16 @@ FString UKalmalaCraftingComponent::GetFoodText() const
         ? Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::RatTailTonicStatusId) : 0.0f;
     const float RecoveryRemaining = FMath::Max(BerryRecoveryRemaining, TonicRecoveryRemaining);
     const float CooldownRemaining = Status ? Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::DraughtCooldownStatusId) : 0.0f;
+    const float PoisonResistanceRemaining = Status
+        ? Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::PoisonResistanceStatusId) : 0.0f;
     const FString DraughtStatus = RecoveryRemaining > 0.0f
         ? FString::Printf(TEXT("Health draught recovery: %.0f seconds of healing remain; shared draught cooldown %.0f seconds."), RecoveryRemaining, CooldownRemaining)
         : CooldownRemaining > 0.0f
             ? FString::Printf(TEXT("Shared draught cooldown: %.0f seconds remain."), CooldownRemaining)
-            : TEXT("Berry Recovery Draught restores up to 20 health over 10 seconds; Rat-tail Tonic restores up to 30 health over 10 seconds; Root Stamina Draught restores up to 20 stamina immediately, clamped to the current maximum. All share a 60-second cooldown.");
+            : PoisonResistanceRemaining > 0.0f
+                ? FString::Printf(TEXT("Poison resistance: %.0f seconds remain; weak poison is blocked and major poison is reduced to weak."),
+                    PoisonResistanceRemaining)
+                : TEXT("Berry Recovery Draught restores up to 20 health over 10 seconds; Rat-tail Tonic restores up to 30 health over 10 seconds; Root Stamina Draught restores up to 20 stamina immediately; Antidote grants 10 minutes of poison resistance. All share a 60-second cooldown.");
     if (Remaining > 0.0f)
     {
         return FString::Printf(
@@ -1152,6 +1159,9 @@ bool UKalmalaCraftingComponent::ConsumeFoodFromServer(const FName FoodItemId, FS
         else if (bDraught && (Status->HasStatus(UKalmalaPlayerStatusComponent::BerryRecoveryStatusId)
             || Status->HasStatus(UKalmalaPlayerStatusComponent::RatTailTonicStatusId)))
             Reason = TEXT("Health recovery from a draught is already active");
+        else if (FoodItemId == UKalmalaPlayerStatusComponent::AntidoteItemId
+            && Status->HasStatus(UKalmalaPlayerStatusComponent::PoisonResistanceStatusId))
+            Reason = TEXT("Poison resistance is already active; the Antidote was not consumed");
         else if (bDraught && Character->GetHealth() <= 1.0f)
             Reason = TEXT("A draught cannot be used while dead");
         else if ((FoodItemId == UKalmalaPlayerStatusComponent::BerryRecoveryDraughtItemId
@@ -1204,6 +1214,14 @@ bool UKalmalaCraftingComponent::ConsumeFoodFromServer(const FName FoodItemId, FS
                 Item ? *Item->DisplayName : TEXT("Rat-tail Tonic"),
                 UKalmalaPlayerStatusComponent::RatTailTonicHealth,
                 UKalmalaPlayerStatusComponent::RatTailTonicMaximumSeconds,
+                UKalmalaPlayerStatusComponent::DraughtCooldownMaximumSeconds);
+        }
+        else if (FoodItemId == UKalmalaPlayerStatusComponent::AntidoteItemId)
+        {
+            Reason = FString::Printf(TEXT("Used %s; clears weak poison, reduces active major poison to weak for up to %.0f seconds, and grants %.0f seconds of poison resistance. Shared draught cooldown: %.0f seconds."),
+                Item ? *Item->DisplayName : TEXT("Antidote"),
+                UKalmalaPlayerStatusComponent::AntidoteWeakPoisonMaximumSeconds,
+                UKalmalaPlayerStatusComponent::AntidoteResistanceMaximumSeconds,
                 UKalmalaPlayerStatusComponent::DraughtCooldownMaximumSeconds);
         }
         else

@@ -115,7 +115,8 @@ bool IsCauldronMenuRecipe(const FKalmalaRecipe& Recipe)
         || Recipe.RecipeId == TEXT("RootVegetableSoupRecipe")
         || Recipe.RecipeId == TEXT("BerryRecoveryDraughtRecipe")
         || Recipe.RecipeId == TEXT("RootStaminaDraughtRecipe")
-        || Recipe.RecipeId == TEXT("RatTailTonicRecipe");
+        || Recipe.RecipeId == TEXT("RatTailTonicRecipe")
+        || Recipe.RecipeId == TEXT("AntidoteRecipe");
 }
 
 bool IsFryingPanMenuRecipe(const FKalmalaRecipe& Recipe)
@@ -3465,33 +3466,37 @@ bool UKalmalaCraftingWidget::VerifyCauldronScopeForTest()
     const FName BerryDraughtRecipeId(TEXT("BerryRecoveryDraughtRecipe"));
     const FName RootDraughtRecipeId(TEXT("RootStaminaDraughtRecipe"));
     const FName RatTailTonicRecipeId(TEXT("RatTailTonicRecipe"));
+    const FName AntidoteRecipeId(TEXT("AntidoteRecipe"));
     const FName BrothOutputId(TEXT("HearthBroth"));
     const FName StewOutputId(TEXT("MeatStew"));
     const FName SoupOutputId(TEXT("RootVegetableSoup"));
     const FName BerryDraughtOutputId(TEXT("BerryRecoveryDraught"));
     const FName RootDraughtOutputId(TEXT("RootStaminaDraught"));
     const FName RatTailTonicOutputId(TEXT("RatTailTonic"));
+    const FName AntidoteOutputId(TEXT("Antidote"));
     const FKalmalaRecipe* BrothRecipe = Catalogue->Find(BrothRecipeId);
     const FKalmalaRecipe* StewRecipe = Catalogue->Find(StewRecipeId);
     const FKalmalaRecipe* SoupRecipe = Catalogue->Find(SoupRecipeId);
     const FKalmalaRecipe* BerryDraughtRecipe = Catalogue->Find(BerryDraughtRecipeId);
     const FKalmalaRecipe* RootDraughtRecipe = Catalogue->Find(RootDraughtRecipeId);
     const FKalmalaRecipe* RatTailTonicRecipe = Catalogue->Find(RatTailTonicRecipeId);
+    const FKalmalaRecipe* AntidoteRecipe = Catalogue->Find(AntidoteRecipeId);
     const bool bRecipesAuthored = BrothRecipe && StewRecipe && SoupRecipe && BerryDraughtRecipe
-        && RootDraughtRecipe && RatTailTonicRecipe
+        && RootDraughtRecipe && RatTailTonicRecipe && AntidoteRecipe
         && IsCauldronMenuRecipe(*BrothRecipe) && IsCauldronMenuRecipe(*StewRecipe) && IsCauldronMenuRecipe(*SoupRecipe)
         && IsCauldronMenuRecipe(*BerryDraughtRecipe) && IsCauldronMenuRecipe(*RootDraughtRecipe)
-        && IsCauldronMenuRecipe(*RatTailTonicRecipe)
+        && IsCauldronMenuRecipe(*RatTailTonicRecipe) && IsCauldronMenuRecipe(*AntidoteRecipe)
         && BrothRecipe->Output == BrothOutputId
         && StewRecipe->Output == StewOutputId && SoupRecipe->Output == SoupOutputId
         && BerryDraughtRecipe->Output == BerryDraughtOutputId && RootDraughtRecipe->Output == RootDraughtOutputId
-        && RatTailTonicRecipe->Output == RatTailTonicOutputId
+        && RatTailTonicRecipe->Output == RatTailTonicOutputId && AntidoteRecipe->Output == AntidoteOutputId
         && BrothRecipe->RequiredStation.Contains(CauldronKit)
         && StewRecipe->RequiredStation.Contains(CauldronKit)
         && SoupRecipe->RequiredStation.Contains(CauldronKit)
         && BerryDraughtRecipe->RequiredStation.Contains(CauldronKit)
         && RootDraughtRecipe->RequiredStation.Contains(CauldronKit)
-        && RatTailTonicRecipe->RequiredStation.Contains(CauldronKit);
+        && RatTailTonicRecipe->RequiredStation.Contains(CauldronKit)
+        && AntidoteRecipe->RequiredStation.Contains(CauldronKit);
     const auto HasIngredient = [](const FKalmalaRecipe* Recipe, const FName ItemId, const int32 Quantity)
     {
         const FKalmalaInventoryStack* Ingredient = Recipe
@@ -3500,7 +3505,7 @@ bool UKalmalaCraftingWidget::VerifyCauldronScopeForTest()
         return Ingredient && Ingredient->Quantity == Quantity;
     };
     const bool bIngredientDefinitions = BrothRecipe && StewRecipe && SoupRecipe && BerryDraughtRecipe
-        && RootDraughtRecipe && RatTailTonicRecipe
+        && RootDraughtRecipe && RatTailTonicRecipe && AntidoteRecipe
         && BrothRecipe->Ingredients.Num() == 2
         && HasIngredient(BrothRecipe, TEXT("DeerMeat"), 1) && HasIngredient(BrothRecipe, TEXT("Onion"), 1)
         && StewRecipe->Ingredients.Num() == 4 && SoupRecipe->Ingredients.Num() == 4
@@ -3514,9 +3519,12 @@ bool UKalmalaCraftingWidget::VerifyCauldronScopeForTest()
         && HasIngredient(RootDraughtRecipe, TEXT("Potato"), 2) && HasIngredient(RootDraughtRecipe, TEXT("Onion"), 1)
         && RatTailTonicRecipe->Ingredients.Num() == 2
         && HasIngredient(RatTailTonicRecipe, TEXT("RatTail"), 2)
-        && HasIngredient(RatTailTonicRecipe, TEXT("Lingonberry"), 2);
+        && HasIngredient(RatTailTonicRecipe, TEXT("Lingonberry"), 2)
+        && AntidoteRecipe->Ingredients.Num() == 2
+        && HasIngredient(AntidoteRecipe, TEXT("VenomSac"), 1)
+        && HasIngredient(AntidoteRecipe, TEXT("Lingonberry"), 2);
     const bool bQuantityDefinitions = BrothRecipe && StewRecipe && SoupRecipe && BerryDraughtRecipe
-        && RootDraughtRecipe && RatTailTonicRecipe
+        && RootDraughtRecipe && RatTailTonicRecipe && AntidoteRecipe
         && BrothRecipe->MaxBatch == 5 && BrothRecipe->OutputCount == 1
         && BrothRecipe->ExperienceSkill == EKalmalaSkill::Cooking && BrothRecipe->ExperienceAward == 10
         && StewRecipe->MaxBatch == 5 && SoupRecipe->MaxBatch == 5
@@ -3526,7 +3534,9 @@ bool UKalmalaCraftingWidget::VerifyCauldronScopeForTest()
         && RootDraughtRecipe->MaxBatch == 5 && RootDraughtRecipe->OutputCount == 1
         && RootDraughtRecipe->ExperienceSkill == EKalmalaSkill::Cooking && RootDraughtRecipe->ExperienceAward == 10
         && RatTailTonicRecipe->MaxBatch == 5 && RatTailTonicRecipe->OutputCount == 1
-        && RatTailTonicRecipe->ExperienceSkill == EKalmalaSkill::Cooking && RatTailTonicRecipe->ExperienceAward == 10;
+        && RatTailTonicRecipe->ExperienceSkill == EKalmalaSkill::Cooking && RatTailTonicRecipe->ExperienceAward == 10
+        && AntidoteRecipe->MaxBatch == 5 && AntidoteRecipe->OutputCount == 1
+        && AntidoteRecipe->ExperienceSkill == EKalmalaSkill::Cooking && AntidoteRecipe->ExperienceAward == 10;
     const FString CookSection(TEXT("Cook"));
     const bool bInteractionRoute = IsStationContextShellKit(CauldronKit)
         && IsStationContextSectionSupported(CauldronKit, CookSection)
@@ -3587,12 +3597,16 @@ bool UKalmalaCraftingWidget::VerifyCauldronScopeForTest()
     {
         return Recipes.IsValidIndex(Index) && Recipes[Index].RecipeId == RatTailTonicRecipeId;
     });
+    const int32 AntidoteIndex = CauldronIndices.IndexOfByPredicate([&Recipes, AntidoteRecipeId](const int32 Index)
+    {
+        return Recipes.IsValidIndex(Index) && Recipes[Index].RecipeId == AntidoteRecipeId;
+    });
     Selected = StewIndex == INDEX_NONE ? 0 : StewIndex;
     Refresh();
 
-    bool bOnlyCauldronRecipes = CauldronIndices.Num() == 6 && bRecipesAuthored && bInteractionRoute
+    bool bOnlyCauldronRecipes = CauldronIndices.Num() == 7 && bRecipesAuthored && bInteractionRoute
         && BrothIndex != INDEX_NONE && BerryDraughtIndex != INDEX_NONE && RootDraughtIndex != INDEX_NONE
-        && RatTailTonicIndex != INDEX_NONE;
+        && RatTailTonicIndex != INDEX_NONE && AntidoteIndex != INDEX_NONE;
     for (const int32 Index : CauldronIndices)
         bOnlyCauldronRecipes &= Recipes.IsValidIndex(Index) && IsCauldronMenuRecipe(Recipes[Index])
             && Recipes[Index].RequiredStation.Contains(CauldronKit);
@@ -3666,19 +3680,32 @@ bool UKalmalaCraftingWidget::VerifyCauldronScopeForTest()
     const bool bRatTailTonicDescription = RatTailTonicOutput && DetailText
         && DetailText->GetText().ToString() == RatTailTonicOutput->Description;
     const bool bRatTailTonicQuantity = RatTailTonicRequirements.Contains(TEXT("up to 5 batches per request"));
+    Selected = AntidoteIndex == INDEX_NONE ? Selected : AntidoteIndex;
+    Refresh();
+    const FString AntidoteRequirements = RequirementText->GetText().ToString();
+    const FString AntidoteIngredients = Ingredients->GetPresentationText();
+    const bool bAntidoteCounts = AntidoteIngredients.Contains(TEXT("VenomSac |"))
+        && AntidoteIngredients.Contains(TEXT("Lingonberry |"))
+        && AntidoteIngredients.Contains(TEXT("/ required 1"))
+        && AntidoteIngredients.Contains(TEXT("/ required 2"));
+    const bool bAntidoteHeat = AntidoteRequirements.Contains(TEXT("Cooking heat: usable lit hearth"));
+    const FKalmalaItemDefinition* AntidoteOutput = UKalmalaItemCatalogue::Get()->FindDefinition(AntidoteOutputId);
+    const bool bAntidoteDescription = AntidoteOutput && DetailText
+        && DetailText->GetText().ToString() == AntidoteOutput->Description;
+    const bool bAntidoteQuantity = AntidoteRequirements.Contains(TEXT("up to 5 batches per request"));
     Selected = StewIndex == INDEX_NONE ? 0 : StewIndex;
     Refresh();
     const FString Status = StationContextStatusText->GetText().ToString();
     const bool bIngredientCounts = bIngredientDefinitions && bBrothCounts && bStewCounts && bSoupCounts
-        && bBerryDraughtCounts && bRootDraughtCounts && bRatTailTonicCounts;
+        && bBerryDraughtCounts && bRootDraughtCounts && bRatTailTonicCounts && bAntidoteCounts;
     const bool bQuantity = bQuantityDefinitions && bBrothQuantity && bStewQuantity && bSoupQuantity
-        && bBerryDraughtQuantity && bRootDraughtQuantity && bRatTailTonicQuantity;
+        && bBerryDraughtQuantity && bRootDraughtQuantity && bRatTailTonicQuantity && bAntidoteQuantity;
     const FKalmalaItemDefinition* StewOutput = UKalmalaItemCatalogue::Get()->FindDefinition(StewOutputId);
     const bool bSelectedDescription = bBrothDescription && bSoupDescription && bBerryDraughtDescription
-        && bRootDraughtDescription && bRatTailTonicDescription && StewOutput && DetailText
+        && bRootDraughtDescription && bRatTailTonicDescription && bAntidoteDescription && StewOutput && DetailText
         && DetailText->GetText().ToString() == StewOutput->Description;
     const bool bLiveHeatFeedback = bBrothHeat && bStewHeat && bSoupHeat && bBerryDraughtHeat
-        && bRootDraughtHeat && bRatTailTonicHeat
+        && bRootDraughtHeat && bRatTailTonicHeat && bAntidoteHeat
         && Status.Contains(TEXT("hearth heat"), ESearchCase::IgnoreCase);
     bool bNoUnrelatedRecipesOrActions = true;
     for (const TObjectPtr<UWidget>& ExcludedWidget : StationCraftExcludedWidgets)

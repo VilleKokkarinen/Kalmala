@@ -24,14 +24,16 @@ bool FKalmalaStatusHotbarTest::RunTest(const FString&)
     S.Statuses.Add({UKalmalaPlayerStatusComponent::WetStatusId, 31.2f});
     S.Statuses.Add({UKalmalaPlayerStatusComponent::WeakPoisonStatusId, 5.0f});
     S.Statuses.Add({UKalmalaPlayerStatusComponent::MajorPoisonStatusId, 10.0f});
+    S.Statuses.Add({UKalmalaPlayerStatusComponent::PoisonResistanceStatusId,
+        UKalmalaPlayerStatusComponent::AntidoteResistanceMaximumSeconds});
     S.Statuses.Add({UKalmalaPlayerStatusComponent::WetStatusId, 80});
     S.Exposure.HeatIntensity = .6f; S.Exposure.ColdIntensity = .5f; S.Exposure.Warmth = 20;
     S.ActiveSupportEffect = EKalmalaSupportEffect::HearthShield; S.ActiveSupportEffectExpiry = 80; S.ServerTimeSeconds = 45;
     S.bHasWeatherState = true; S.Weather.ServerStartTimeSeconds = 15;
     S.Weather.PrecipitationIntensity = .9f; S.Weather.WindStrength = .9f; S.Weather.RefreshActivityLevel();
     const auto Entries = UKalmalaStatusHotbarWidget::BuildEntries(S);
-    TestEqual(TEXT("Simultaneous effects deduplicate"), Entries.Num(), 8);
-    if (Entries.Num() != 8) return false;
+    TestEqual(TEXT("Simultaneous effects deduplicate"), Entries.Num(), 9);
+    if (Entries.Num() != 9) return false;
     TestEqual(TEXT("Stable order"), Entries[0].Id, UKalmalaPlayerStatusComponent::WetStatusId);
     TestEqual(TEXT("Accessible name remains in the entry model"), Entries[0].Name, FString(TEXT("Wet")));
     TestEqual(TEXT("Replicated finite status uses rounded m:ss"), Entries[0].TimerText, FString(TEXT("00:32")));
@@ -43,17 +45,20 @@ bool FKalmalaStatusHotbarTest::RunTest(const FString&)
     TestEqual(TEXT("Major poison is shown separately with its remaining time"), Entries[3].Name, FString(TEXT("Major poison")));
     TestEqual(TEXT("Major poison timer uses m:ss"), Entries[3].TimerText, FString(TEXT("00:10")));
     TestEqual(TEXT("Major poison uses the poison vector icon"), Entries[3].Icon, EKalmalaIcon::Poison);
-    TestTrue(TEXT("Untimed heat has no duration label"), Entries[4].TimerText.IsEmpty());
-    TestTrue(TEXT("Untimed cold has no duration label"), Entries[5].TimerText.IsEmpty());
+    TestEqual(TEXT("Poison resistance is shown to its owner"), Entries[4].Name, FString(TEXT("Poison resistance")));
+    TestEqual(TEXT("Ten-minute resistance uses m:ss"), Entries[4].TimerText, FString(TEXT("10:00")));
+    TestEqual(TEXT("Poison resistance uses a shield icon"), Entries[4].Icon, EKalmalaIcon::Shield);
+    TestTrue(TEXT("Untimed heat has no duration label"), Entries[5].TimerText.IsEmpty());
+    TestTrue(TEXT("Untimed cold has no duration label"), Entries[6].TimerText.IsEmpty());
     TestEqual(TEXT("Wet raster identity"), Entries[0].StatusIconId, FName(TEXT("Wet")));
     TestEqual(TEXT("Meal raster identity"), Entries[1].StatusIconId, FName(TEXT("SteadyMeal")));
-    TestEqual(TEXT("Hot raster identity"), Entries[4].StatusIconId, FName(TEXT("Heat")));
-    TestEqual(TEXT("Cold raster identity"), Entries[5].StatusIconId, FName(TEXT("Cold")));
-    TestEqual(TEXT("Shield maps to its canonical hearth image"), Entries[6].StatusIconId, FName(TEXT("HearthShield")));
-    TestEqual(TEXT("Storm distinct"), Entries[7].Icon, EKalmalaIcon::Storm);
-    TestEqual(TEXT("Weather maps to the canonical storm image"), Entries[7].StatusIconId, FName(TEXT("Storm")));
-    TestTrue(TEXT("Storm has no countdown"), Entries[7].TimerText.IsEmpty());
-    TestEqual(TEXT("Finite support effect uses rounded m:ss"), Entries[6].TimerText, FString(TEXT("00:35")));
+    TestEqual(TEXT("Hot raster identity"), Entries[5].StatusIconId, FName(TEXT("Heat")));
+    TestEqual(TEXT("Cold raster identity"), Entries[6].StatusIconId, FName(TEXT("Cold")));
+    TestEqual(TEXT("Shield maps to its canonical hearth image"), Entries[7].StatusIconId, FName(TEXT("HearthShield")));
+    TestEqual(TEXT("Storm distinct"), Entries[8].Icon, EKalmalaIcon::Storm);
+    TestEqual(TEXT("Weather maps to the canonical storm image"), Entries[8].StatusIconId, FName(TEXT("Storm")));
+    TestTrue(TEXT("Storm has no countdown"), Entries[8].TimerText.IsEmpty());
+    TestEqual(TEXT("Finite support effect uses rounded m:ss"), Entries[7].TimerText, FString(TEXT("00:35")));
     S.Statuses.Reset(); S.ActiveSupportEffectExpiry = 45;
     TestEqual(TEXT("Expired statuses removed together"), UKalmalaStatusHotbarWidget::BuildEntries(S).Num(), 3);
     auto HasEntry = [](const TArray<FKalmalaStatusHotbarEntry>& Values, FName Id)

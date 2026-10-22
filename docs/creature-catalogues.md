@@ -87,7 +87,9 @@ the owner-visible five-damage-per-second major poison for ten seconds; weak and
 major effects share a tick clock and the strongest dose wins. Credited defeats
 queue one baseline Bone Fragment and one guaranteed Venom Sac for the
 authenticated owner in the existing population-save escrow; the server commits
-the complete bundle together. Antidote remains a separate A8b output task.
+the complete bundle together. The Cauldron Antidote consumes that Venom Sac and
+two Lingonberries, then applies the owner-only poison conversion and resistance
+status through the server draught transaction.
 Mosquito swarm now uses a 20% common share, and Peat Husk occupies the final
 10% hard slot. Its one actor carries six original cosmetic insect
 silhouettes; server flight checks dry Mossy Mire ground and blocking geometry,

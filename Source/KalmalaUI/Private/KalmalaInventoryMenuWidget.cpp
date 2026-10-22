@@ -723,6 +723,8 @@ void UKalmalaInventoryMenuWidget::RefreshSelectionPresentation(const int32 TextS
                         VisibleState += TEXT("\n\nEffect: restores up to 20 health over 10 seconds. Draughts share a 60-second recovery cooldown.");
                     else if (Row.Id == UKalmalaPlayerStatusComponent::RatTailTonicItemId)
                         VisibleState += TEXT("\n\nEffect: restores up to 30 health over 10 seconds. Draughts share a 60-second recovery cooldown.");
+                    else if (Row.Id == UKalmalaPlayerStatusComponent::AntidoteItemId)
+                        VisibleState += TEXT("\n\nEffect: clears weak poison, reduces active major poison to weak for up to 5 seconds, and grants 10 minutes of poison resistance. Draughts share a 60-second recovery cooldown.");
                     else
                         VisibleState += TEXT("\n\nEffect: restores up to 20 stamina immediately, up to the current maximum. Draughts share a 60-second recovery cooldown.");
                 }
@@ -1002,6 +1004,10 @@ void UKalmalaInventoryMenuWidget::RefreshFoodActionPresentation(const FKalmalaCa
         && SelectedRow->Id == UKalmalaPlayerStatusComponent::BerryRecoveryDraughtItemId;
     const bool bSelectedRatTailTonic = bSelectedDraught
         && SelectedRow->Id == UKalmalaPlayerStatusComponent::RatTailTonicItemId;
+    const bool bSelectedAntidote = bSelectedDraught
+        && SelectedRow->Id == UKalmalaPlayerStatusComponent::AntidoteItemId;
+    const bool bSelectedRootStaminaDraught = bSelectedDraught
+        && SelectedRow->Id == UKalmalaPlayerStatusComponent::RootStaminaDraughtItemId;
     const bool bSelectedHealthDraught = bSelectedBerryDraught || bSelectedRatTailTonic;
     const bool bShowFoodStatus = bSelectedFood || bAwaitingFoodResult || !LastFoodResultText.IsEmpty();
     EatFoodButton->SetVisibility(bSelectedFood ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
@@ -1062,15 +1068,20 @@ void UKalmalaInventoryMenuWidget::RefreshFoodActionPresentation(const FKalmalaCa
         {
             StatusText = TEXT("A draught cannot be used while dead.");
         }
+        else if (bSelectedAntidote && Status->HasStatus(UKalmalaPlayerStatusComponent::PoisonResistanceStatusId))
+        {
+            StatusText = FString::Printf(TEXT("Poison resistance is already active for %.0f seconds; the Antidote will not be consumed."),
+                Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::PoisonResistanceStatusId));
+        }
         else if (bSelectedHealthDraught && Character->GetHealth() >= 100.0f)
         {
             StatusText = TEXT("Health is full; the draught will not be consumed.");
         }
-        else if (bSelectedDraught && !bSelectedHealthDraught && !Movement)
+        else if (bSelectedRootStaminaDraught && !Movement)
         {
             StatusText = TEXT("Stamina is unavailable while owner data is loading.");
         }
-        else if (bSelectedDraught && !bSelectedHealthDraught
+        else if (bSelectedRootStaminaDraught
             && Movement->GetStamina() >= Movement->GetMaximumStamina())
         {
             StatusText = TEXT("Stamina is full; the draught will not be consumed.");
@@ -1099,7 +1110,9 @@ void UKalmalaInventoryMenuWidget::RefreshFoodActionPresentation(const FKalmalaCa
                     ? TEXT("Ready: use one dose to restore up to 20 health over 10 seconds. Shared draught cooldown: 60 seconds.")
                     : bSelectedRatTailTonic
                         ? TEXT("Ready: use one dose to restore up to 30 health over 10 seconds. Shared draught cooldown: 60 seconds.")
-                        : TEXT("Ready: use one dose to restore up to 20 stamina immediately, up to the current maximum. Shared draught cooldown: 60 seconds."))
+                        : bSelectedAntidote
+                            ? TEXT("Ready: use one dose to clear weak poison, reduce major poison to weak for up to 5 seconds, and gain 10 minutes of poison resistance. Shared draught cooldown: 60 seconds.")
+                            : TEXT("Ready: use one dose to restore up to 20 stamina immediately, up to the current maximum. Shared draught cooldown: 60 seconds."))
                 : TEXT("Ready: eat one serving for 120 seconds of 10% lower stamina use.");
             bCanUse = !bAwaitingFoodResult && !bAwaitingAcceptedFoodStatus;
         }
@@ -1138,9 +1151,11 @@ void UKalmalaInventoryMenuWidget::EatSelectedFood()
         ? Character->FindComponentByClass<UKalmalaPlayerStatusComponent>() : nullptr;
     UKalmalaCraftingComponent* Crafting = Character
         ? Character->FindComponentByClass<UKalmalaCraftingComponent>() : nullptr;
-    const bool bEffectAlreadyActive = Status && Status->HasStatus(bDraught
-        ? UKalmalaPlayerStatusComponent::DraughtCooldownStatusId
-        : UKalmalaPlayerStatusComponent::SteadyMealStatusId);
+    const bool bEffectAlreadyActive = Status && (bDraught
+        ? (Status->HasStatus(UKalmalaPlayerStatusComponent::DraughtCooldownStatusId)
+            || (Row.Id == UKalmalaPlayerStatusComponent::AntidoteItemId
+                && Status->HasStatus(UKalmalaPlayerStatusComponent::PoisonResistanceStatusId)))
+        : Status->HasStatus(UKalmalaPlayerStatusComponent::SteadyMealStatusId));
     if (!Controller || !Controller->IsLocalController() || !Inventory || !Status || !Crafting
         || Inventory->GetQuantity(Row.Id) <= 0
         || bEffectAlreadyActive || (bDraught && (!Character || Character->GetHealth() <= 1.0f

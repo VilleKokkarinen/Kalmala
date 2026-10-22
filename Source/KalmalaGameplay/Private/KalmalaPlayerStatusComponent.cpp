@@ -17,9 +17,11 @@ const FName UKalmalaPlayerStatusComponent::ForestChanterelleItemId(TEXT("ForestC
 const FName UKalmalaPlayerStatusComponent::BerryRecoveryDraughtItemId(TEXT("BerryRecoveryDraught"));
 const FName UKalmalaPlayerStatusComponent::RootStaminaDraughtItemId(TEXT("RootStaminaDraught"));
 const FName UKalmalaPlayerStatusComponent::RatTailTonicItemId(TEXT("RatTailTonic"));
+const FName UKalmalaPlayerStatusComponent::AntidoteItemId(TEXT("Antidote"));
 const FName UKalmalaPlayerStatusComponent::BerryRecoveryStatusId(TEXT("State.Recovery.BerryDraught"));
 const FName UKalmalaPlayerStatusComponent::RatTailTonicStatusId(TEXT("State.Recovery.RatTailTonic"));
 const FName UKalmalaPlayerStatusComponent::DraughtCooldownStatusId(TEXT("State.Recovery.DraughtCooldown"));
+const FName UKalmalaPlayerStatusComponent::PoisonResistanceStatusId(TEXT("State.Poison.Resistance"));
 const FName UKalmalaPlayerStatusComponent::MeatStewItemId(TEXT("MeatStew"));
 const FName UKalmalaPlayerStatusComponent::RootVegetableSoupItemId(TEXT("RootVegetableSoup"));
 const FName UKalmalaPlayerStatusComponent::RoastedRootVegetablesItemId(TEXT("RoastedRootVegetables"));
@@ -80,7 +82,8 @@ float UKalmalaPlayerStatusComponent::GetRemainingSeconds(const FName StatusId) c
         : StatusId == SteadyMealStatusId ? SteadyMealMaximumSeconds
         : StatusId == BerryRecoveryStatusId ? BerryRecoveryMaximumSeconds
         : StatusId == RatTailTonicStatusId ? RatTailTonicMaximumSeconds
-        : StatusId == DraughtCooldownStatusId ? DraughtCooldownMaximumSeconds : WetMaximumSeconds;
+        : StatusId == DraughtCooldownStatusId ? DraughtCooldownMaximumSeconds
+        : StatusId == PoisonResistanceStatusId ? AntidoteResistanceMaximumSeconds : WetMaximumSeconds;
     return Entry ? FMath::Clamp(Entry->RemainingSeconds, 0.0f, Maximum) : 0.0f;
 }
 
@@ -123,7 +126,7 @@ bool UKalmalaPlayerStatusComponent::ApplyFoodFromServer(const FName ItemId)
 bool UKalmalaPlayerStatusComponent::IsKnownDraughtItem(const FName ItemId)
 {
     return ItemId == BerryRecoveryDraughtItemId || ItemId == RootStaminaDraughtItemId
-        || ItemId == RatTailTonicItemId;
+        || ItemId == RatTailTonicItemId || ItemId == AntidoteItemId;
 }
 
 bool UKalmalaPlayerStatusComponent::ApplyDraught(TArray<FKalmalaPlayerStatusEntry>& Entries, const FName ItemId)
@@ -133,11 +136,35 @@ bool UKalmalaPlayerStatusComponent::ApplyDraught(TArray<FKalmalaPlayerStatusEntr
             { return Entry.StatusId == DraughtCooldownStatusId && FMath::IsFinite(Entry.RemainingSeconds) && Entry.RemainingSeconds > 0.0f; })
         || Entries.ContainsByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
             { return (Entry.StatusId == BerryRecoveryStatusId || Entry.StatusId == RatTailTonicStatusId)
-                && FMath::IsFinite(Entry.RemainingSeconds) && Entry.RemainingSeconds > 0.0f; }))
+                && FMath::IsFinite(Entry.RemainingSeconds) && Entry.RemainingSeconds > 0.0f; })
+        || (ItemId == AntidoteItemId && Entries.ContainsByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
+            { return Entry.StatusId == PoisonResistanceStatusId && FMath::IsFinite(Entry.RemainingSeconds)
+                && Entry.RemainingSeconds > 0.0f; })))
         return false;
 
     Advance(Entries, 0.0f);
-    if (ItemId == BerryRecoveryDraughtItemId || ItemId == RatTailTonicItemId)
+    if (ItemId == AntidoteItemId)
+    {
+        const FKalmalaPlayerStatusEntry* MajorPoison = Entries.FindByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
+        {
+            return Entry.StatusId == MajorPoisonStatusId && FMath::IsFinite(Entry.RemainingSeconds)
+                && Entry.RemainingSeconds > 0.0f;
+        });
+        const float ConvertedWeakDuration = MajorPoison
+            ? FMath::Min(MajorPoison->RemainingSeconds, AntidoteWeakPoisonMaximumSeconds) : 0.0f;
+        Entries.RemoveAll([](const FKalmalaPlayerStatusEntry& Entry)
+            { return Entry.StatusId == WeakPoisonStatusId || Entry.StatusId == MajorPoisonStatusId; });
+        if (ConvertedWeakDuration > 0.0f)
+        {
+            FKalmalaPlayerStatusEntry& WeakPoison = Entries.AddDefaulted_GetRef();
+            WeakPoison.StatusId = WeakPoisonStatusId;
+            WeakPoison.RemainingSeconds = ConvertedWeakDuration;
+        }
+        FKalmalaPlayerStatusEntry& Resistance = Entries.AddDefaulted_GetRef();
+        Resistance.StatusId = PoisonResistanceStatusId;
+        Resistance.RemainingSeconds = AntidoteResistanceMaximumSeconds;
+    }
+    else if (ItemId == BerryRecoveryDraughtItemId || ItemId == RatTailTonicItemId)
     {
         FKalmalaPlayerStatusEntry& Recovery = Entries.AddDefaulted_GetRef();
         const bool bRatTailTonic = ItemId == RatTailTonicItemId;
@@ -158,6 +185,7 @@ bool UKalmalaPlayerStatusComponent::CanApplyDraughtFromServer(const FName ItemId
         || HasStatus(DraughtCooldownStatusId) || HasStatus(BerryRecoveryStatusId)
         || HasStatus(RatTailTonicStatusId))
         return false;
+    if (ItemId == AntidoteItemId) return !HasStatus(PoisonResistanceStatusId);
     if (ItemId == BerryRecoveryDraughtItemId || ItemId == RatTailTonicItemId)
         return Character->GetHealth() < 100.0f;
 
@@ -173,6 +201,7 @@ bool UKalmalaPlayerStatusComponent::ApplyDraughtFromServer(const FName ItemId)
     const AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(GetOwner());
     if (!CanApplyDraughtFromServer(ItemId)) return false;
 
+    const bool bHadPoison = HasStatus(WeakPoisonStatusId) || HasStatus(MajorPoisonStatusId);
     TArray<FKalmalaPlayerStatusEntry> CandidateStatuses = Statuses;
     if (!ApplyDraught(CandidateStatuses, ItemId)) return false;
     if (ItemId == RootStaminaDraughtItemId)
@@ -182,6 +211,11 @@ bool UKalmalaPlayerStatusComponent::ApplyDraughtFromServer(const FName ItemId)
         if (!Movement || !Movement->RestoreStaminaFromDraughtFromServer(RootStaminaDraughtStamina)) return false;
     }
     Statuses = MoveTemp(CandidateStatuses);
+    if (ItemId == AntidoteItemId && bHadPoison
+        && !HasStatus(WeakPoisonStatusId) && !HasStatus(MajorPoisonStatusId))
+    {
+        PoisonSecondsUntilTick = PoisonTickIntervalSeconds;
+    }
     GetOwner()->ForceNetUpdate();
     return true;
 }
@@ -195,6 +229,12 @@ void UKalmalaPlayerStatusComponent::ApplyWetFromServer()
 
 bool UKalmalaPlayerStatusComponent::ApplyWeakPoisonFromServer(const float DurationSeconds)
 {
+    return ApplyWeakPoisonFromServerInternal(DurationSeconds, false);
+}
+
+bool UKalmalaPlayerStatusComponent::ApplyWeakPoisonFromServerInternal(const float DurationSeconds,
+    const bool bIgnoreResistance)
+{
     AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(GetOwner());
     if (!IsValid(Character) || !Character->HasAuthority() || Character->GetHealth() <= 1.0f
         || !FMath::IsFinite(DurationSeconds) || DurationSeconds <= 0.0f
@@ -202,6 +242,7 @@ bool UKalmalaPlayerStatusComponent::ApplyWeakPoisonFromServer(const float Durati
     {
         return false;
     }
+    if (!bIgnoreResistance && HasStatus(PoisonResistanceStatusId)) return false;
 
     const bool bPoisonWasActive = HasStatus(WeakPoisonStatusId) || HasStatus(MajorPoisonStatusId);
     Advance(Statuses, 0.0f);
@@ -234,6 +275,11 @@ bool UKalmalaPlayerStatusComponent::ApplyMajorPoisonFromServer(const float Durat
     {
         return false;
     }
+    if (HasStatus(PoisonResistanceStatusId))
+    {
+        return ApplyWeakPoisonFromServerInternal(
+            FMath::Min(DurationSeconds, AntidoteWeakPoisonMaximumSeconds), true);
+    }
 
     const bool bPoisonWasActive = HasStatus(WeakPoisonStatusId) || HasStatus(MajorPoisonStatusId);
     Advance(Statuses, 0.0f);
@@ -262,6 +308,11 @@ void UKalmalaPlayerStatusComponent::AdvanceFromServer(const float DeltaSeconds)
     if (!GetOwner() || !GetOwner()->HasAuthority()) return;
     const float SafeDelta = FMath::Max(0.0f, FMath::IsFinite(DeltaSeconds) ? DeltaSeconds : 0.0f);
     AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(GetOwner());
+    if (!Character || Character->GetHealth() <= 1.0f)
+    {
+        Statuses.RemoveAll([](const FKalmalaPlayerStatusEntry& Entry)
+            { return Entry.StatusId == PoisonResistanceStatusId; });
+    }
     const float WeakPoisonRemaining = GetRemainingSeconds(WeakPoisonStatusId);
     const float MajorPoisonRemaining = GetRemainingSeconds(MajorPoisonStatusId);
     if (WeakPoisonRemaining > 0.0f || MajorPoisonRemaining > 0.0f)
@@ -390,6 +441,10 @@ void UKalmalaPlayerStatusComponent::Advance(TArray<FKalmalaPlayerStatusEntry>& E
         else if (Entry.StatusId == DraughtCooldownStatusId)
         {
             Entry.RemainingSeconds = FMath::Clamp(Entry.RemainingSeconds - SafeDelta, 0.0f, DraughtCooldownMaximumSeconds);
+        }
+        else if (Entry.StatusId == PoisonResistanceStatusId)
+        {
+            Entry.RemainingSeconds = FMath::Clamp(Entry.RemainingSeconds - SafeDelta, 0.0f, AntidoteResistanceMaximumSeconds);
         }
         else
         {

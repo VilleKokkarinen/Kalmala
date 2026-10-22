@@ -49,9 +49,11 @@ public:
     static const FName BerryRecoveryDraughtItemId;
     static const FName RootStaminaDraughtItemId;
     static const FName RatTailTonicItemId;
+    static const FName AntidoteItemId;
     static const FName BerryRecoveryStatusId;
     static const FName RatTailTonicStatusId;
     static const FName DraughtCooldownStatusId;
+    static const FName PoisonResistanceStatusId;
     static const FName MeatStewItemId;
     static const FName RootVegetableSoupItemId;
     static const FName RoastedRootVegetablesItemId;
@@ -67,6 +69,8 @@ public:
     static constexpr float BerryRecoveryMaximumSeconds = 10.0f;
     static constexpr float RatTailTonicMaximumSeconds = 10.0f;
     static constexpr float DraughtCooldownMaximumSeconds = 60.0f;
+    static constexpr float AntidoteResistanceMaximumSeconds = 600.0f;
+    static constexpr float AntidoteWeakPoisonMaximumSeconds = 5.0f;
     static constexpr float BerryRecoveryHealth = 20.0f;
     static constexpr float RatTailTonicHealth = 30.0f;
     static constexpr float RootStaminaDraughtStamina = 20.0f;
@@ -112,6 +116,7 @@ public:
     static void Advance(TArray<FKalmalaPlayerStatusEntry>& Entries, float DeltaSeconds);
 
 private:
+    bool ApplyWeakPoisonFromServerInternal(float DurationSeconds, bool bIgnoreResistance);
     UFUNCTION() void OnRep_Statuses();
 
     UPROPERTY(ReplicatedUsing=OnRep_Statuses, VisibleAnywhere, Category = "Status")
