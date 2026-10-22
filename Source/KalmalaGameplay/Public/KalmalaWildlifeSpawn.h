@@ -117,6 +117,13 @@ public:
     static constexpr float RatRecoverySeconds = 0.8f;
     static constexpr float RatSpawnLeashCentimetres = 2500.0f;
     static bool IsRatBiteInReach(bool bServerAuthority, bool bValidTarget, float DistanceCentimetres);
+    static constexpr float BadgerAttackTriggerCentimetres = 300.0f;
+    static constexpr float BadgerClawReachCentimetres = 180.0f;
+    static constexpr float BadgerTelegraphSeconds = 0.5f;
+    static constexpr float BadgerRecoverySeconds = 0.8f;
+    static constexpr float BadgerSpawnLeashCentimetres = 2500.0f;
+    static constexpr float BadgerApproachSpeedCentimetresPerSecond = 170.0f;
+    static bool IsBadgerClawInReach(bool bServerAuthority, bool bValidTarget, float DistanceCentimetres);
     static EKalmalaWildlifeArchetype GetArchetypeForSpawnSeed(uint64 SpawnSeed);
     static bool TryGetSpawnArchetypeForBiome(uint64 SpawnSeed, EKalmalaBiome Biome, EKalmalaWildlifeArchetype& OutArchetype);
     static bool IsBoarChargeAllowed(bool bServerAuthority, bool bAlreadyDefeated, bool bAtRest, float DistanceToRestingArea);
@@ -144,6 +151,13 @@ private:
     bool TryApplyRatBite(class AKalmalaCharacter* Target);
     bool IsRatPositionDry(const FVector& Position) const;
     bool CanRatMoveAlong(const FVector& Start, const FVector& End) const;
+    void UpdateBadgerAttack(float DeltaSeconds);
+    void BeginBadgerAttack(class AKalmalaCharacter* Target);
+    void SetBadgerAttackCue(EKalmalaWildlifeAttackCue NextCue);
+    bool IsBadgerAttackTargetValid(const class AKalmalaCharacter* Target) const;
+    bool TryApplyBadgerClaw(class AKalmalaCharacter* Target);
+    bool IsBadgerPositionDry(const FVector& Position) const;
+    bool CanBadgerMoveAlong(const FVector& Start, const FVector& End) const;
     void UpdateSnakeAmbush(float DeltaSeconds);
     void BeginSnakeAttack(class AKalmalaCharacter* Target);
     void SetSnakeAttackCue(EKalmalaWildlifeAttackCue NextCue);
@@ -178,6 +192,9 @@ private:
     UPROPERTY(ReplicatedUsing = OnRep_RatAttackCue)
     uint8 RatAttackCue = static_cast<uint8>(EKalmalaRatAttackCue::None);
 
+    UPROPERTY(ReplicatedUsing = OnRep_BadgerAttackCue)
+    uint8 BadgerAttackCue = static_cast<uint8>(EKalmalaWildlifeAttackCue::None);
+
     UFUNCTION()
     void OnRep_Defeated();
 
@@ -192,6 +209,9 @@ private:
 
     UFUNCTION()
     void OnRep_RatAttackCue();
+
+    UFUNCTION()
+    void OnRep_BadgerAttackCue();
 
     FVector SpawnOrigin = FVector::ZeroVector;
     FVector BehaviourDestination = FVector::ZeroVector;
@@ -210,6 +230,8 @@ private:
     TWeakObjectPtr<class AKalmalaCharacter> SnakeAttackTarget;
     float RatAttackSecondsRemaining = 0.0f;
     TWeakObjectPtr<class AKalmalaCharacter> RatAttackTarget;
+    float BadgerAttackSecondsRemaining = 0.0f;
+    TWeakObjectPtr<class AKalmalaCharacter> BadgerAttackTarget;
     TArray<uint8> SnakeHissAudioData;
     UPROPERTY()
     TObjectPtr<class UProceduralMeshComponent> MirelingMesh;

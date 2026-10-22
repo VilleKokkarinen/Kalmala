@@ -2,22 +2,25 @@
 
 ## Quick overview
 
-**Current** = implemented species; **Planned** = queued additions or retunes.
+**Current** = implemented species; **Partial** = runtime behavior is present
+but rewards or acceptance remain open; **Planned** = queued additions or retunes.
 Damage is before defenses. Poison rates are per second and do not stack;
 only the strongest active poison deals damage. Current wildlife uses seeded
 population slots. Boar/deer spawn origins use a server-side allowlist for the
 biomes below. Runtime health, armor, and base attack values match this table for
 the existing Boar, Deer, and Mireling actors. Rat now uses a deterministic 10%
 Meadows spawn share, its server-owned short-range bite, and credited Bone
-Fragment/Rat Tail rewards; Badger has a runtime stat profile but remains planned.
-Mireling's biome restriction remains planned.
+Fragment/Rat Tail rewards. Badger now uses its deterministic 40% Elderwood
+common share, a distinct procedural silhouette, and a server-owned claw cycle;
+its baseline and unique rewards remain open. Mireling's biome restriction
+remains planned.
 
 | Enemy               | Biome                                  | Status           | HP   | Armor | Attack       | Abilities / counters                |
 | ------------------- | -------------------------------------- | ---------------- | ---: | ----: | ------------ | ----------------------------------- |
 | Boar                | Meadows / Elderwood / Shimmering Lakes | Current          |  20  |   5   | 10 Crush     | Territorial charge                  |
 | Deer                | Meadows / Elderwood / Shimmering Lakes | Current          |  30  |   5   | —            | Flees; fleeing alerts nearby deer   |
 | Rat                 | Meadows                                | Current          |  10  |   0   | 5 Pierce     | 3 m approach trigger; 100 cm bite   |
-| Badger              | Elderwood                              | Planned          |  100 |   10  | 20 Slash     | Slashes with it's claws             |
+| Badger              | Elderwood                              | Partial          |  100 |   10  | 20 Slash     | 3 m warning; 180 cm claws; rewards open |
 | Moon Bear           | Elderwood                              | Planned          |  250 |   20  | 75 Crush     | Slow overhead strike; 2% Moonstone  |
 | Viper               | Shimmering Lakes                       | Planned          |  100 |   10  | 50 Stab      | Weak poison: 1/s, 5 s               |
 | Giant Snake         | Shimmering Lakes                       | Planned          |  250 |   30  | 100 Stab     | Coiled lunge; slow recovery         |

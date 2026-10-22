@@ -196,6 +196,9 @@ void AKalmalaWildlifeSpawn::InitializeServer(const FKalmalaWorldPopulationSpawn&
         RatAttackCue = static_cast<uint8>(EKalmalaRatAttackCue::None);
         RatAttackTarget.Reset();
         RatAttackSecondsRemaining = 0.0f;
+        BadgerAttackCue = static_cast<uint8>(EKalmalaWildlifeAttackCue::None);
+        BadgerAttackTarget.Reset();
+        BadgerAttackSecondsRemaining = 0.0f;
         Health = GetMaximumHealthForArchetype(Archetype);
         if (UKalmalaResistanceComponent* Defenses = FindComponentByClass<UKalmalaResistanceComponent>())
         {
@@ -250,6 +253,13 @@ bool AKalmalaWildlifeSpawn::IsRatBiteInReach(const bool bServerAuthority, const 
 {
     return bServerAuthority && bValidTarget && FMath::IsFinite(DistanceCentimetres)
         && DistanceCentimetres >= 0.0f && DistanceCentimetres <= RatBiteReachCentimetres;
+}
+
+bool AKalmalaWildlifeSpawn::IsBadgerClawInReach(const bool bServerAuthority, const bool bValidTarget,
+    const float DistanceCentimetres)
+{
+    return bServerAuthority && bValidTarget && FMath::IsFinite(DistanceCentimetres)
+        && DistanceCentimetres >= 0.0f && DistanceCentimetres <= BadgerClawReachCentimetres;
 }
 
 float AKalmalaWildlifeSpawn::GetBaseAttackDamageForArchetype(const EKalmalaWildlifeArchetype InArchetype)
@@ -355,6 +365,12 @@ bool AKalmalaWildlifeSpawn::ApplyValidatedDamageFromServer(const FKalmalaDamageC
         RatAttackSecondsRemaining = 0.0f;
         SetRatAttackCue(EKalmalaRatAttackCue::None);
     }
+    else if (Archetype == EKalmalaWildlifeArchetype::Badger && Attacker != nullptr)
+    {
+        BadgerAttackTarget = Attacker;
+        BadgerAttackSecondsRemaining = 0.0f;
+        SetBadgerAttackCue(EKalmalaWildlifeAttackCue::None);
+    }
     else
     {
         BeginServerBehaviour(EKalmalaWildlifeBehaviour::Flee, 1.50f, SpawnOrigin + GetDeterministicOffset(GetEcologicalFleeDistance(CreatureNicheId)));
@@ -433,6 +449,23 @@ bool AKalmalaWildlifeSpawn::TryGetSpawnArchetypeForBiome(const uint64 SpawnSeed,
         return true;
     }
 
+    if (Biome == EKalmalaBiome::Elderwood)
+    {
+        // Keep the existing roster at 50%, use Badger for the 40% common share,
+        // and leave the 10% hard-enemy share empty until its species is ready.
+        switch (SpawnSeed % 10ull)
+        {
+        case 0: case 1: case 2: case 3: case 4:
+            OutArchetype = GetArchetypeForSpawnSeed(SpawnSeed);
+            return true;
+        case 5: case 6: case 7: case 8:
+            OutArchetype = EKalmalaWildlifeArchetype::Badger;
+            return true;
+        default:
+            return false;
+        }
+    }
+
     if (Biome == EKalmalaBiome::ShimmeringLakes)
     {
         // Assign the 50/40/10 candidate-slot mix directly from the stable seed.
@@ -482,6 +515,7 @@ void AKalmalaWildlifeSpawn::Tick(const float DeltaSeconds)
         if (Archetype == EKalmalaWildlifeArchetype::Mireling) UpdateMirelingScavenge(DeltaSeconds);
         else if (Archetype == EKalmalaWildlifeArchetype::Boar) UpdateBoarTerritory(DeltaSeconds);
         else if (Archetype == EKalmalaWildlifeArchetype::Rat) UpdateRatAttack(DeltaSeconds);
+        else if (Archetype == EKalmalaWildlifeArchetype::Badger) UpdateBadgerAttack(DeltaSeconds);
         else if (Archetype == EKalmalaWildlifeArchetype::Viper || Archetype == EKalmalaWildlifeArchetype::GiantSnake)
             UpdateSnakeAmbush(DeltaSeconds);
     }
@@ -715,6 +749,174 @@ bool AKalmalaWildlifeSpawn::CanRatMoveAlong(const FVector& Start, const FVector&
     {
         const FVector Position = FMath::Lerp(Start, End, static_cast<float>(Index) / Samples);
         if (!IsRatPositionDry(Position)) return false;
+    }
+    return true;
+}
+
+void AKalmalaWildlifeSpawn::UpdateBadgerAttack(const float DeltaSeconds)
+{
+    if (Behaviour != EKalmalaWildlifeBehaviour::Idle || GetWorld() == nullptr) return;
+    const float StepSeconds = FMath::Clamp(FMath::IsFinite(DeltaSeconds) ? DeltaSeconds : 0.0f, 0.0f, 0.10f);
+    EKalmalaWildlifeAttackCue Cue = static_cast<EKalmalaWildlifeAttackCue>(BadgerAttackCue);
+    AKalmalaCharacter* Target = BadgerAttackTarget.Get();
+
+    if (Cue != EKalmalaWildlifeAttackCue::None
+        && (Target == nullptr || !IsBadgerAttackTargetValid(Target)))
+    {
+        BadgerAttackTarget.Reset();
+        BadgerAttackSecondsRemaining = 0.0f;
+        SetBadgerAttackCue(EKalmalaWildlifeAttackCue::None);
+        Cue = EKalmalaWildlifeAttackCue::None;
+        Target = nullptr;
+    }
+    else if (Target != nullptr && !IsBadgerAttackTargetValid(Target))
+    {
+        BadgerAttackTarget.Reset();
+        BadgerAttackSecondsRemaining = 0.0f;
+        Target = nullptr;
+    }
+
+    if (Cue == EKalmalaWildlifeAttackCue::None && Target == nullptr)
+    {
+        float BestDistanceSquared = FMath::Square(BadgerAttackTriggerCentimetres);
+        for (TActorIterator<AKalmalaCharacter> It(GetWorld()); It; ++It)
+        {
+            AKalmalaCharacter* Candidate = *It;
+            if (!IsBadgerAttackTargetValid(Candidate)) continue;
+            const float DistanceSquared = FVector::DistSquared2D(GetActorLocation(), Candidate->GetActorLocation());
+            if (DistanceSquared < BestDistanceSquared)
+            {
+                BestDistanceSquared = DistanceSquared;
+                Target = Candidate;
+            }
+        }
+        if (Target != nullptr) BadgerAttackTarget = Target;
+    }
+
+    if (Target == nullptr)
+    {
+        const FVector ToHome = SpawnOrigin - GetActorLocation();
+        if (ToHome.SizeSquared2D() > FMath::Square(15.0f))
+        {
+            FVector End = FMath::VInterpConstantTo(GetActorLocation(), SpawnOrigin, StepSeconds, 150.0f);
+            if (const AKalmalaWorldGenerationGameState* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>())
+                End.Z = FKalmalaTerrainHeightSampler::SampleHeight(State->GetWorldGenerationConfig(), FVector2D(End));
+            if (IsBadgerPositionDry(End) && CanBadgerMoveAlong(GetActorLocation(), End)) SetActorLocation(End, true);
+        }
+        return;
+    }
+
+    FVector ToTarget = Target->GetActorLocation() - GetActorLocation();
+    float Distance = ToTarget.Size2D();
+    if (Distance > BadgerClawReachCentimetres)
+    {
+        const float MoveDistance = FMath::Min(BadgerApproachSpeedCentimetresPerSecond * StepSeconds,
+            Distance - BadgerClawReachCentimetres);
+        const FVector Direction = ToTarget.GetSafeNormal2D();
+        if (!Direction.IsNearlyZero()) SetActorRotation(FRotationMatrix::MakeFromX(Direction).Rotator());
+        FVector End = GetActorLocation() + Direction * MoveDistance;
+        if (const AKalmalaWorldGenerationGameState* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>())
+            End.Z = FKalmalaTerrainHeightSampler::SampleHeight(State->GetWorldGenerationConfig(), FVector2D(End));
+        if (CanBadgerMoveAlong(GetActorLocation(), End)) SetActorLocation(End, true);
+        ToTarget = Target->GetActorLocation() - GetActorLocation();
+        Distance = ToTarget.Size2D();
+    }
+
+    if (Cue == EKalmalaWildlifeAttackCue::Telegraph)
+    {
+        BadgerAttackSecondsRemaining -= StepSeconds;
+        if (BadgerAttackSecondsRemaining <= 0.0f)
+        {
+            TryApplyBadgerClaw(Target);
+            BadgerAttackSecondsRemaining = BadgerRecoverySeconds;
+            SetBadgerAttackCue(EKalmalaWildlifeAttackCue::Recovery);
+        }
+    }
+    else if (Cue == EKalmalaWildlifeAttackCue::Recovery)
+    {
+        BadgerAttackSecondsRemaining -= StepSeconds;
+        if (BadgerAttackSecondsRemaining <= 0.0f)
+        {
+            BadgerAttackSecondsRemaining = 0.0f;
+            SetBadgerAttackCue(EKalmalaWildlifeAttackCue::None);
+        }
+    }
+    else if (Distance <= BadgerAttackTriggerCentimetres)
+    {
+        BeginBadgerAttack(Target);
+    }
+}
+
+void AKalmalaWildlifeSpawn::BeginBadgerAttack(AKalmalaCharacter* Target)
+{
+    if (!HasAuthority() || bDefeated || !IsBadgerAttackTargetValid(Target)
+        || FVector::DistSquared2D(GetActorLocation(), Target->GetActorLocation())
+            > FMath::Square(BadgerAttackTriggerCentimetres)) return;
+
+    const FVector Direction = (Target->GetActorLocation() - GetActorLocation()).GetSafeNormal2D();
+    if (Direction.IsNearlyZero()) return;
+    SetActorRotation(FRotationMatrix::MakeFromX(Direction).Rotator());
+    BadgerAttackTarget = Target;
+    BadgerAttackSecondsRemaining = BadgerTelegraphSeconds;
+    SetBadgerAttackCue(EKalmalaWildlifeAttackCue::Telegraph);
+}
+
+void AKalmalaWildlifeSpawn::SetBadgerAttackCue(const EKalmalaWildlifeAttackCue NextCue)
+{
+    if (!HasAuthority()) return;
+    const uint8 NextValue = static_cast<uint8>(NextCue);
+    if (BadgerAttackCue == NextValue) return;
+    BadgerAttackCue = NextValue;
+    BuildArchetypePresentation();
+    ForceNetUpdate();
+}
+
+bool AKalmalaWildlifeSpawn::IsBadgerAttackTargetValid(const AKalmalaCharacter* Target) const
+{
+    if (!HasAuthority() || bDefeated || GetWorld() == nullptr || !IsValid(Target)
+        || !Target->HasAuthority() || Target->GetWorld() != GetWorld()
+        || !FMath::IsFinite(Target->GetHealth()) || Target->GetHealth() <= 1.0f
+        || FVector::DistSquared2D(Target->GetActorLocation(), SpawnOrigin) > FMath::Square(BadgerSpawnLeashCentimetres))
+        return false;
+    if (!CanBadgerMoveAlong(GetActorLocation(), Target->GetActorLocation())) return false;
+
+    FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(KalmalaBadgerClawVisibility), true);
+    QueryParams.AddIgnoredActor(this);
+    FHitResult Blocker;
+    const FVector Start = GetActorLocation() + FVector(0.0f, 0.0f, 32.0f);
+    const FVector End = Target->GetActorLocation() + FVector(0.0f, 0.0f, 48.0f);
+    return !GetWorld()->LineTraceSingleByChannel(Blocker, Start, End, ECC_Visibility, QueryParams)
+        || Blocker.GetActor() == Target;
+}
+
+bool AKalmalaWildlifeSpawn::TryApplyBadgerClaw(AKalmalaCharacter* Target)
+{
+    if (!IsBadgerAttackTargetValid(Target)
+        || !IsBadgerClawInReach(HasAuthority(), true, FVector::Dist(GetActorLocation(), Target->GetActorLocation())))
+        return false;
+    return Target->ApplyWildlifeDamageFromServer(this, GetBaseAttackChannelsForArchetype(Archetype));
+}
+
+bool AKalmalaWildlifeSpawn::IsBadgerPositionDry(const FVector& Position) const
+{
+    if (Position.ContainsNaN() || GetWorld() == nullptr) return false;
+    const AKalmalaWorldGenerationGameState* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
+    if (State == nullptr) return false;
+    const FKalmalaWorldGenerationConfig& Config = State->GetWorldGenerationConfig();
+    const FVector2D XY(Position);
+    return FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, XY)) == EKalmalaBiome::Elderwood
+        && !FKalmalaOceanSampler::Sample(Config, XY).IsWater()
+        && !FKalmalaShimmeringLakeSampler::IsWater(Config, XY);
+}
+
+bool AKalmalaWildlifeSpawn::CanBadgerMoveAlong(const FVector& Start, const FVector& End) const
+{
+    const float Distance = FVector::Dist2D(Start, End);
+    const int32 Samples = FMath::Max(1, FMath::CeilToInt(Distance / 80.0f));
+    for (int32 Index = 0; Index <= Samples; ++Index)
+    {
+        const FVector Position = FMath::Lerp(Start, End, static_cast<float>(Index) / Samples);
+        if (!IsBadgerPositionDry(Position)) return false;
     }
     return true;
 }
@@ -1117,6 +1319,54 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
             AddTetraPoints(FVector(57,-5,17), FVector(57,5,17), FVector(70,-4,13), FVector(70,4,13), FurDark);
         }
     }
+    else if (Archetype == EKalmalaWildlifeArchetype::Badger)
+    {
+        const bool bWarning = static_cast<EKalmalaWildlifeAttackCue>(BadgerAttackCue)
+            == EKalmalaWildlifeAttackCue::Telegraph;
+        const FLinearColor Coat(0.12f, 0.105f, 0.09f);
+        const FLinearColor CoatLight(0.24f, 0.20f, 0.16f);
+        const FLinearColor FaceStripe(0.78f, 0.72f, 0.60f);
+        const FLinearColor Muzzle(0.44f, 0.40f, 0.34f);
+        const FLinearColor Claw(0.82f, 0.74f, 0.57f);
+        const FLinearColor Eye(0.035f, 0.024f, 0.018f);
+
+        // A low, broad back and white facial stripe make the territorial badger
+        // distinct from the Meadow rat and the taller forest deer.
+        AddTetraPoints(FVector(-88,-37,13), FVector(-88,37,13), FVector(17,-31,22),
+            FVector(-35,0,bWarning ? 76.0f : 63.0f), Coat);
+        AddTetraPoints(FVector(-63,-31,24), FVector(-63,31,24), FVector(6,-26,31),
+            FVector(-31,0,bWarning ? 88.0f : 76.0f), CoatLight);
+        AddTetraPoints(FVector(4,-26,24), FVector(4,26,24), FVector(50,-18,35),
+            FVector(34,0,bWarning ? 89.0f : 72.0f), Coat);
+        AddTetraPoints(FVector(35,-17,28), FVector(35,17,28), FVector(76,-12,38),
+            FVector(64,0,bWarning ? 79.0f : 65.0f), Muzzle);
+        AddTetraPoints(FVector(59,-8,bWarning ? 48.0f : 43.0f),
+            FVector(59,8,bWarning ? 48.0f : 43.0f), FVector(83,-4,38), FVector(83,4,38), FaceStripe);
+
+        for (const float Side : {-1.0f, 1.0f})
+        {
+            for (const float LegX : {-58.0f, 37.0f})
+            {
+                const float LegY = Side * 27.0f;
+                AddTetraPoints(FVector(LegX - 13.0f, LegY - 9.0f, -51.0f),
+                    FVector(LegX - 13.0f, LegY + 9.0f, -51.0f),
+                    FVector(LegX + 7.0f, LegY, 18.0f), FVector(LegX + 17.0f, LegY, 22.0f), Coat);
+                AddTetraPoints(FVector(LegX + 5.0f, LegY - 8.0f, -50.0f),
+                    FVector(LegX + 5.0f, LegY + 8.0f, -50.0f),
+                    FVector(LegX + 23.0f, LegY, -47.0f), FVector(LegX + 22.0f, LegY, -42.0f), Claw);
+            }
+            AddTetraPoints(FVector(55,Side * 11.0f,53), FVector(63,Side * 12.0f,53),
+                FVector(63,Side * 16.0f,59), FVector(57,Side * 15.0f,64), Eye);
+            AddTetraPoints(FVector(28,Side * 17.0f,65), FVector(41,Side * 21.0f,64),
+                FVector(31,Side * 22.0f,77), FVector(19,Side * 20.0f,76), Coat);
+        }
+        if (bWarning)
+        {
+            // The raised head and visible claws telegraph the common 0.5 s strike.
+            AddTetraPoints(FVector(59,-5,28), FVector(59,5,28), FVector(78,-4,22),
+                FVector(78,4,22), Coat);
+        }
+    }
     else if (bSnake)
     {
         const bool bGiant = Archetype == EKalmalaWildlifeArchetype::GiantSnake;
@@ -1303,6 +1553,7 @@ void AKalmalaWildlifeSpawn::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
     DOREPLIFETIME(AKalmalaWildlifeSpawn, CreatureNicheId);
     DOREPLIFETIME(AKalmalaWildlifeSpawn, SnakeAttackCue);
     DOREPLIFETIME(AKalmalaWildlifeSpawn, RatAttackCue);
+    DOREPLIFETIME(AKalmalaWildlifeSpawn, BadgerAttackCue);
 }
 
 void AKalmalaWildlifeSpawn::OnRep_Archetype()
@@ -1323,6 +1574,11 @@ void AKalmalaWildlifeSpawn::OnRep_SnakeAttackCue()
 }
 
 void AKalmalaWildlifeSpawn::OnRep_RatAttackCue()
+{
+    BuildArchetypePresentation();
+}
+
+void AKalmalaWildlifeSpawn::OnRep_BadgerAttackCue()
 {
     BuildArchetypePresentation();
 }

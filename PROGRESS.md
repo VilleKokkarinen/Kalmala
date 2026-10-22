@@ -5391,3 +5391,15 @@
 - **Full verification:** combined A8a/A8b I4 milestone-final verification remains deferred.
 - **Integration state:** main was last observed at `6d795ffd` before the equipment automation resumed; the writer is active. A8b-to-main integration and handoff remain pending until that writer is idle and main is rechecked. Main has not been modified by this run.
 - **Next eligible A8b task:** after safe main integration, Rat Tail material/source (`RatTail`) is the first newly unblocked child. Current run time: 2026-10-22 08:02 UTC.
+
+## Run 2026-10-22 08:15:04 UTC — Badger spawn and combat increment
+
+- **Selected task:** A8a Elderwood: Badger. The backlog checkbox remains open because baseline reward and full acceptance work are incomplete.
+- **Work completed:** Added deterministic Elderwood selection for the reviewed 50% existing roster / 40% Badger / 10% reserved hard-enemy mix. Badger spawns only on dry Elderwood ground, presents a distinct low-poly silhouette, and runs a server-owned 3 m warning and 20 Slash claw cycle. It uses the existing 180 cm wildlife hit bound, 0.5 s telegraph, 0.8 s recovery, 25 m spawn leash, visibility and dry-route checks. A validated hit resets the warning before retaliation; the attack cue replicates to peers. Added focused Unreal automation source for slot weights, biome exclusion, reach, timing, and leash.
+- **Files changed:** Source/KalmalaGameplay/Private/KalmalaGameMode.cpp; Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp; Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h; Source/KalmalaGameplay/Private/Tests/KalmalaWildlifeBadgerTest.cpp (new); docs/biome-enemies.md; docs/creature-catalogues.md; PROGRESS.md.
+- **Lightweight checks:** python Scripts/Validate-CreatureCatalogues.py passed. Focused source assertions passed for selection, dry Elderwood filtering, attack bounds and authority, damage dispatch, retaliation reset, replication, and test coverage. git diff --check passed; changed paths are below 260 characters.
+- **Full verification:** No Unreal build or automation run was performed for this normal increment. Combined A8a/A8b I4 milestone-final verification remains deferred.
+- **Observable impact and authority:** Eligible Elderwood slots now select Badger in four of ten slots; the hard-enemy slot stays empty. The server owns spawn validation, target validation, timing, line of sight, damage and cue changes. No save schema changed.
+- **Known limitations/remaining scope:** The guaranteed Bone Fragment reward and Badger Fur/Meat source drops are not enabled. A8b source-item tasks and full-pack/restart/relevant-peer acceptance remain open; the automation source was added but not executed in Unreal.
+- **Next eligible task:** Continue A8a Elderwood: Badger to complete its baseline reward and acceptance work. A9 remains gated on integrated A8a/A8b and successful I4 verification.
+- **Handoff:** Work was committed directly from the main checkout; the isolated A8b worktree had no uncommitted changes. No worktree handoff was needed. Current run time: 2026-10-22 08:15:04 UTC.

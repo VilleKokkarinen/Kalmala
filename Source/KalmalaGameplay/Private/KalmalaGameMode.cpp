@@ -109,6 +109,12 @@ namespace KalmalaGameMode
                 && !FKalmalaOceanSampler::Sample(Config, Position).IsWater()
                 && !FKalmalaShimmeringLakeSampler::IsWater(Config, Position);
         }
+        if (OutArchetype == EKalmalaWildlifeArchetype::Badger)
+        {
+            return SpawnBiome == EKalmalaBiome::Elderwood
+                && !FKalmalaOceanSampler::Sample(Config, Position).IsWater()
+                && !FKalmalaShimmeringLakeSampler::IsWater(Config, Position);
+        }
         return true;
     }
 
