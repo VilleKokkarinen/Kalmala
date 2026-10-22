@@ -5733,5 +5733,5 @@
 - **Networking/authority:** No runtime authority code changed. Existing defeat recording, authenticated owner binding, and server-side candidate commit govern acquisition; clients cannot submit a material ID or quantity.
 - **Known limitations / remaining scope:** Full-pack retry, restart/reconnect, peer visibility, and rendered acceptance remain for combined I4. Rat-tail Tonic behavior is a separate unchecked child. No new A9 work was performed; A9 acceptance remains I4-gated.
 - **Next eligible task:** A8b Viper Fang — Viper, one guaranteed drop; material, source, JSON, and generated icon. The Viper source exists; the A8b material drop remains disabled.
-- **Integration state:** The A8b branch fast-forwarded from `109f7519` to the then-current `master` `a2808dab`. This Rat Tail completion is committed only on `codex/a8b-items`; main-checkout backlog/progress handoff remains pending while the equipment run is active in `E:\dev\Kalmala`.
+- **Integration state:** The A8b branch fast-forwarded from `109f7519` to the then-current `master` `a2808dab`. This Rat Tail completion is integrated into `master` by fast-forward `a2808dab..7e0a3127`; the backlog/progress handoff is visible on main. Combined A8a/A8b I4 remains pending.
 - **Handoff:** No main-checkout files or index were modified. Current run time: 2026-10-22T12:38:50Z.
