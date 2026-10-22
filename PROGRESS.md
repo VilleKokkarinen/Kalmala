@@ -5312,6 +5312,17 @@
 - Main and codex/a8b-items both pointed to 234648c7 after the fast-forward; this integration record will be synchronized in the final handoff commit. The material/source task remains open and no Badger drop is enabled.
 - Next eligible A8b task: Badger Meat icon (BadgerMeat), after the progress handoff is synchronized.
 
+## Run 2026-10-22 06:54 UTC — Moon Bear runtime stat profile
+
+- **Selected task:** apply the overview's revised stats to existing boar/deer and all A8a enemies.
+- **Work completed:** added the planned Moon Bear runtime profile (250 health, 20 armor, 75 Crush), its enum value and focused automation assertions. Updated the biome overview. Moon Bear remains absent from live spawn selection; the broad stats child remains open, so BACKLOG.md was not changed.
+- **Files changed:** `Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h`; `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`; `Source/KalmalaGameplay/Private/Tests/KalmalaWildlifeBehaviourTest.cpp`; `docs/biome-enemies.md`; `PROGRESS.md`.
+- **Lightweight checks:** focused PowerShell source assertions passed for the profile and test coverage; source search confirmed there is no Moon Bear spawn-selection reference; `git diff --check` passed; intended paths are below 260 characters.
+- **Full verification:** no Unreal build or automation run; the new assertions remain unexecuted. Combined A8a/A8b/I4 milestone-final verification remains deferred.
+- **Observable impact and authority:** the server runtime stat lookup can resolve Moon Bear's reviewed profile, but the species is not selected for live spawning, so player-facing gameplay is unchanged. `InitializeServer` remains authority-gated; no client-authored stats, RPCs, replication fields, or save data were added.
+- **Known limitations/remaining scope:** Moon Bear spawning, behavior, presentation, and drops remain queued. The broad revised-stats child is unchecked. Pre-existing interrupted Badger-profile edits in the main checkout were preserved and excluded from this commit.
+- **Next eligible task:** continue the A8a revised-stats child for the remaining planned enemy profiles. A9 remains gated on integrated A8a/A8b and successful I4 verification. Current run time: 2026-10-22 06:54 UTC.
+
 ## Run 2026-10-22 06:56 UTC — A8b Badger Meat icon
 
 - **Selected increment:** Badger Meat icon (`BadgerMeat`), the independent icon child. Its material/source task remains open.
@@ -5321,5 +5332,5 @@
 - **Full verification:** combined A8/A8a/A8b I4 milestone-final verification remains deferred. No project build, gameplay automation, full test suite, rendered acceptance, or multiplayer test ran.
 - **Observable impact and authority:** the inventory UI can load the original BadgerMeat texture. No gameplay, acquisition, server authority, RPC, replication, or save behavior changed. No Badger drop was enabled.
 - **Known limitations:** Badger Meat remains incomplete and unreachable until Badger and its accepted server-side credited-defeat reward exist in runtime. The full catalogue icon audit remains blocked by the pre-existing missing StandingLightKit package.
-- **Integration state:** this increment is committed only on `codex/a8b-items`. The main checkout has active equipment work and uncommitted creature changes, so implementation and `BACKLOG.md`/`PROGRESS.md` handoff synchronization remain pending; main was not modified.
+- **Integration state:** A8b item commit `3c0970ce` remains on `codex/a8b-items`. Reconciled main commit `233e446f` (Moon Bear runtime stat profile) into this branch with a normal merge. The main checkout still has active equipment work and uncommitted creature changes, so main integration and `BACKLOG.md`/`PROGRESS.md` handoff synchronization remain pending; main was not modified.
 - **Next eligible A8b task:** retry safe integration and handoff first; then Viper Fang icon (`ViperFang`). Current run time: 2026-10-22 06:56 UTC.

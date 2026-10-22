@@ -30,6 +30,9 @@ Mireling's biome restriction remain planned.
 | Thunder Sentinel    | Thunder Mountains                      | Planned          |  1250|   75  | 300 Crush    | Slow downward slam                  |
 | Reef Maw            | Ocean                                  | Planned          |  180 |   2   | 50 Stab      | Swimmer hunter                      |
 
+The planned Moon Bear now has a server-side stat profile (250 health, 20
+armor, 75 Crush); spawning and behavior remain queued.
+
 Current defaults: [wildlife](../Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp),
 [health](../Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h) and
 [defenses](../Source/KalmalaGameplay/Public/KalmalaDamageProfile.h).
