@@ -398,8 +398,8 @@ Review outcome — 2026-10-21:
   no equipment, attack or upgrade records.
 - Rat Tail from Rat, Badger Fur and Badger Meat from Badger, Viper Fang from
   Viper, Giant Scale from Giant Snake, Venom Sac from Death Adder, Peat Heart
-  from Peat Husk, and Wolf Pelt and Wolf Fang from Wolf now have accepted
-  server-side material rewards on `master`. Keep every other
+  from Peat Husk, and Wolf Pelt, Wolf Fang, and Wolf Meat from Wolf now have
+  accepted server-side material rewards on `master`. Keep every other
   material and any recipe that consumes it incomplete until its named enemy
   has a reachable, accepted server-side defeat reward. Do not grant or
   debug-spawn substitute sources.

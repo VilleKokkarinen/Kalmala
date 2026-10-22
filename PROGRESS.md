@@ -5831,3 +5831,16 @@
 - **Known limitations / remaining scope:** Live pack habitat/cap behavior, attack rejection, full/partial-pack retry, reconnect/restart, peer visibility, and rendered acceptance remain for combined I4. Wolf Meat and the other listed A8b source/output items remain open.
 - **Next eligible task:** A8b Wolf Meat — Wolf, one guaranteed; material, source, JSON, and generated icon.
 - **Integration state:** Updated directly in the `E:\dev\Kalmala` master checkout; no worktree handoff was needed. Current run time: 2026-10-22T13:27:25Z.
+
+## Run 2026-10-22 13:31 UTC — A8b Wolf Meat
+
+- **Selected task:** A8b Wolf Meat — Wolf, one guaranteed; material, source, JSON, and generated icon. Checked only this existing backlog child.
+- **Work completed:** Added one guaranteed Wolf Meat to the existing server-side Wolf defeat reward candidate alongside two Bone Fragments and one guaranteed Wolf Pelt; the stored optional Wolf Fang remains included when rolled. The existing single inventory commit preserves the claim for retry when the full bundle cannot fit. Existing WolfMeat item/drop JSON and generated/imported icon were already registered and validated, so no catalogue or icon asset edits were needed. Updated Wolf behavior and verification documentation.
+- **Files changed:** `BACKLOG.md`; `PROGRESS.md`; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`; `Source/KalmalaGameplay/Private/Tests/KalmalaWildlifeWolfTest.cpp`; `docs/07-development-setup.md`; `docs/alpha-item-details.md`; `docs/biome-enemies.md`; `docs/creature-catalogues.md`.
+- **Lightweight checks:** `python Scripts/Validate-CreatureCatalogues.py` passed for all 17 species and registered JSON; `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id WolfMeat` passed. Focused assertions passed for the registered stackable material, exact Wolf reward drops, icon files/provenance, server reward construction, all-or-nothing capacity behavior, partial-capacity retry coverage, and updated docs. `git diff --check` and changed-path MAX_PATH audit passed.
+- **Full verification:** No Unreal build or editor automation ran for this normal child. The updated Wolf regression remains uncompiled and unexecuted; combined A8a/A8b I4 verification is required before A9.
+- **Observable impact:** Each credited Wolf defeat now awards two Bone Fragments, one Wolf Pelt, and one Wolf Meat, with the existing server-rolled 25% Wolf Fang; the atomic bundle is granted to the authenticated attacker when capacity permits.
+- **Networking/authority:** The server owns the reward candidate, claim retention, capacity validation, and inventory commit. No client-supplied item ID or quantity or SaveGame schema change was introduced.
+- **Known limitations / remaining scope:** Live pack habitat/cap behavior, attack rejection, full/partial-pack retry, reconnect/restart, peer visibility, and rendered acceptance remain for combined I4. Wolf Stew and the remaining A8b material sources and outputs remain open.
+- **Next eligible task:** A8b Lynx Pelt — Lynx, 50% chance of one; material, source, JSON, and generated icon.
+- **Integration state:** Updated directly in the `E:\dev\Kalmala` master checkout; no worktree handoff was needed. Current run time: 2026-10-22T13:31:07Z.

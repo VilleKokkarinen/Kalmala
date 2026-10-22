@@ -3049,6 +3049,10 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
                 {
                     if (!UKalmalaInventoryComponent::BuildGrant(
                             WithBone, TEXT("WolfPelt"), 1, Candidate, Reason)) break;
+                    TArray<FKalmalaInventoryStack> WithWolfMeat;
+                    if (!UKalmalaInventoryComponent::BuildGrant(
+                            Candidate, TEXT("WolfMeat"), 1, WithWolfMeat, Reason)) break;
+                    Candidate = MoveTemp(WithWolfMeat);
                     if (bWolfHasFang)
                     {
                         TArray<FKalmalaInventoryStack> WithWolfFang;
