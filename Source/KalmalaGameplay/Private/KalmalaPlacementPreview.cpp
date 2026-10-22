@@ -574,6 +574,110 @@ namespace
             : TEXT("Preview valid: horizontal beam snaps between supported endpoints");
         return Result;
     }
+
+    FKalmalaPlacementPreview EvaluateReinforcedChest(const UWorld* World, const APawn* Pawn)
+    {
+        FKalmalaPlacementPreview Result;
+        Result.Message = TEXT("Preview invalid: place the Reinforced Chest on dry, supported ground or a timber floor");
+        if (!World || !Pawn || Pawn->GetActorLocation().ContainsNaN())
+        {
+            Result.Message = TEXT("Preview unavailable: waiting for local terrain");
+            return Result;
+        }
+
+        Result.Rotation = FRotator(0.0f, Pawn->GetActorRotation().Yaw, 0.0f);
+        const FVector Forward = Result.Rotation.Vector();
+        const FVector Right = FRotationMatrix(Result.Rotation).GetUnitAxis(EAxis::Y);
+        const FVector Probe = Pawn->GetActorLocation() + Forward * 165.0f;
+        FCollisionQueryParams Query(SCENE_QUERY_STAT(ReinforcedChestSupport), false, Pawn);
+        FHitResult SupportHit;
+        if (!World->LineTraceSingleByChannel(SupportHit, Probe + FVector(0, 0, 300),
+                Probe - FVector(0, 0, 500), ECC_Visibility, Query)) return Result;
+
+        AKalmalaConstructionActor* Floor = Cast<AKalmalaConstructionActor>(SupportHit.GetActor());
+        const bool bTerrainSupport = Cast<AKalmalaGeneratedTerrainPatch>(SupportHit.GetActor()) != nullptr;
+        if (Floor && (Floor->GetWorld() != World || Floor->GetConstructionId().IsEmpty()
+            || Floor->GetConstructionKit() != TEXT("FloorKit") || SupportHit.ImpactNormal.Z < 0.85f)) return Result;
+        if (!Floor && (!bTerrainSupport || SupportHit.ImpactNormal.Z < 0.85f)) return Result;
+
+        FVector SupportPoint = SupportHit.ImpactPoint;
+        FTransform FloorTransform;
+        if (Floor)
+        {
+            FloorTransform = Floor->GetActorTransform();
+            const FVector LocalHit = FloorTransform.InverseTransformPosition(SupportHit.ImpactPoint);
+            const float FloorTop = AKalmalaConstructionActor::GetCollisionExtent(TEXT("FloorKit")).Z;
+            if (FMath::Abs(LocalHit.X) + 75.0f > 110.0f || FMath::Abs(LocalHit.Y) + 50.0f > 110.0f
+                || FMath::Abs(LocalHit.Z - FloorTop) > 5.0f) return Result;
+            SupportPoint = FloorTransform.TransformPosition(FVector(LocalHit.X, LocalHit.Y, FloorTop));
+        }
+
+        const auto* State = World->GetGameState<AKalmalaWorldGenerationGameState>();
+        if (!State || !State->GetWorldGenerationConfig().IsValid())
+        {
+            Result.Message = TEXT("Preview unavailable: waiting for world data");
+            return Result;
+        }
+        const auto& Config = State->GetWorldGenerationConfig();
+        if (!FKalmalaWorldBounds::Contains(Config, FVector2D(SupportPoint), 300))
+        {
+            Result.Message = TEXT("Preview invalid: the Reinforced Chest is too close to the world edge");
+            return Result;
+        }
+        const auto IsDry = [&Config](const FVector& Point)
+        {
+            const FVector2D Surface(Point);
+            return !FKalmalaOceanSampler::Sample(Config, Surface).IsWater()
+                && !FKalmalaShimmeringLakeSampler::IsWater(Config, Surface)
+                && !FKalmalaRegionalGeneration::Sample(Config, Surface).bHasWater;
+        };
+        if (!IsDry(SupportPoint)) return Result;
+        for (const float Along : {-75.0f, 75.0f})
+        {
+            for (const float Across : {-50.0f, 50.0f})
+            {
+                const FVector Contact = SupportPoint + Forward * Along + Right * Across;
+                if (!IsDry(Contact))
+                {
+                    Result.Message = TEXT("Preview invalid: the complete Reinforced Chest needs dry support");
+                    return Result;
+                }
+                if (Floor)
+                {
+                    const FVector LocalContact = FloorTransform.InverseTransformPosition(Contact);
+                    if (FMath::Abs(LocalContact.X) > 110.0f || FMath::Abs(LocalContact.Y) > 110.0f)
+                    {
+                        Result.Message = TEXT("Preview invalid: the complete Reinforced Chest needs supported floor");
+                        return Result;
+                    }
+                }
+                else
+                {
+                    FHitResult ContactHit;
+                    if (!TraceTerrainSupport(World, Pawn, Contact, ContactHit)
+                        || ContactHit.ImpactNormal.Z < 0.85f
+                        || FMath::Abs(ContactHit.ImpactPoint.Z - SupportPoint.Z) > 12.0f)
+                    {
+                        Result.Message = TEXT("Preview invalid: the complete Reinforced Chest needs level ground support");
+                        return Result;
+                    }
+                }
+            }
+        }
+
+        const FVector Extent = AKalmalaConstructionActor::GetCollisionExtent(TEXT("ReinforcedChestKit"));
+        Result.Location = SupportPoint + FVector(0.0f, 0.0f, Extent.Z);
+        Query.AddIgnoredActor(SupportHit.GetActor());
+        if (World->OverlapBlockingTestByChannel(Result.Location, Result.Rotation.Quaternion(), ECC_Pawn,
+            FCollisionShape::MakeBox(Extent), Query))
+        {
+            Result.Message = TEXT("Preview invalid: clear more space around the Reinforced Chest");
+            return Result;
+        }
+        Result.bIsValid = true;
+        Result.Message = TEXT("Preview valid: grounded or supported Reinforced Chest; server will recheck before payment");
+        return Result;
+    }
 }
 
 FRotator FKalmalaPlacementPreview::GetTimberBeamPlacementRotation(const FRotator ViewRotation)
@@ -595,6 +699,7 @@ bool FKalmalaPlacementPreview::IsSupportedKit(const FName ItemId)
 {
     if (ItemId == TEXT("ForgeKit")) return true;
     return ItemId == TEXT("CampfireKit") || ItemId == TEXT("WorkbenchKit") || ItemId == TEXT("StorageKit")
+        || ItemId == TEXT("ReinforcedChestKit")
         || ItemId == TEXT("CharcoalKilnKit") || ItemId == TEXT("SmelterKit")
         || ItemId == TEXT("CookingRackKit") || ItemId == TEXT("CauldronKit") || ItemId == TEXT("FryingPanKit")
         || ItemId == TEXT("WorkbenchToolRackKit") || ItemId == TEXT("ForgeAnvilKit") || ItemId == TEXT("GrindingStoneKit")
@@ -624,6 +729,7 @@ FKalmalaPlacementPreview FKalmalaPlacementPreview::Evaluate(const UWorld* World,
     Result.Message = TEXT("Preview: select a camp or construction object");
     if (ItemId == TEXT("StandingLightKit")) return EvaluateStandingLight(World, Pawn);
     if (ItemId == TEXT("CampBedKit")) return EvaluateCampBed(World, Pawn);
+    if (ItemId == TEXT("ReinforcedChestKit")) return EvaluateReinforcedChest(World, Pawn);
     if (ItemId == TEXT("TimberBeamKit")) return EvaluateTimberBeam(World, Pawn);
     if (ItemId == TEXT("TimberStairsKit")) return EvaluateTimberStairs(World, Pawn);
     if (!IsSupportedKit(ItemId)) return Result;

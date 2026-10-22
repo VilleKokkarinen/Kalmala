@@ -890,15 +890,17 @@ void AKalmalaGameMode::RestorePersistedConstruction()
 bool AKalmalaGameMode::ReadStorage(const AKalmalaConstructionActor* Construction, TArray<FKalmalaInventoryStack>& Out) const
 {
     if (!HasAuthority() || !IsValid(Construction) || !Construction->HasAuthority() || Construction->GetWorld() != GetWorld()) return false;
-    if (Construction->GetConstructionKit() != TEXT("StorageKit") || !StorageSaveGame || !ConstructionSaveGame
+    if (!AKalmalaConstructionActor::IsStorageKit(Construction->GetConstructionKit()) || !StorageSaveGame || !ConstructionSaveGame
         || !StorageSaveGame->MatchesWorld(WorldGenerationConfig) || !ConstructionSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
     // Only a paid, registered construction in this immutable world can address a chest record.
     const auto* Placed = ConstructionSaveGame->GetRecords().FindByPredicate([&](const auto& Record) {
-        return Record.ConstructionId == Construction->GetConstructionId() && Record.KitId == TEXT("StorageKit")
+        return Record.ConstructionId == Construction->GetConstructionId()
+            && Record.KitId == Construction->GetConstructionKit()
             && Record.Transform.Equals(Construction->GetActorTransform());
     });
     if (!Placed) return false;
     const auto* Stored = StorageSaveGame->FindRecord(Placed->ConstructionId);
+    if (Stored && Stored->KitId != Placed->KitId) return false;
     Out = Stored ? Stored->Stacks : TArray<FKalmalaInventoryStack>();
     return true;
 }
@@ -908,7 +910,7 @@ bool AKalmalaGameMode::PersistStorage(const AKalmalaConstructionActor* Construct
     TArray<FKalmalaInventoryStack> Before;
     if (!ReadStorage(Construction, Before)) return false;
     auto* Candidate = DuplicateObject<UKalmalaStorageSaveGame>(StorageSaveGame, this);
-    if (!Candidate || !Candidate->UpsertRecord(Construction->GetConstructionId(), Stacks)
+    if (!Candidate || !Candidate->UpsertRecord(Construction->GetConstructionId(), Construction->GetConstructionKit(), Stacks)
         || !UGameplayStatics::SaveGameToSlot(Candidate, UKalmalaStorageSaveGame::MakeSlotName(WorldGenerationConfig), 0)) return false;
     StorageSaveGame = Candidate;
     return true;

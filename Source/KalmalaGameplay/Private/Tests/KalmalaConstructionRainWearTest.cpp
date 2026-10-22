@@ -18,7 +18,7 @@ bool FKalmalaConstructionRainWearTest::RunTest(const FString& Parameters)
     };
     int32 Index = 0;
     for (const TCHAR* Kit : {TEXT("FloorKit"), TEXT("WallKit"), TEXT("TimberDoorKit"), TEXT("TimberBeamKit"), TEXT("TimberStairsKit"),
-        TEXT("WorkbenchKit"), TEXT("StorageKit"), TEXT("CampBedKit"), TEXT("StandingLightKit")})
+        TEXT("WorkbenchKit"), TEXT("StorageKit"), TEXT("ReinforcedChestKit"), TEXT("CampBedKit"), TEXT("StandingLightKit")})
     {
         auto* Piece = Spawn(Kit, FVector(++Index * 1000, 0, 0));
         if (!TestNotNull(TEXT("Eligible construction spawned"), Piece)) continue;

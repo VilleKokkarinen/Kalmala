@@ -3,6 +3,7 @@
 #include "KalmalaConstructionActor.h"
 #include "KalmalaGameMode.h"
 #include "KalmalaItemCatalogue.h"
+#include "KalmalaStorageSaveGame.h"
 #include "KalmalaPlayerModelComponent.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
@@ -251,9 +252,10 @@ bool UKalmalaCraftingComponent::IsStationContextTargetCurrent(AKalmalaConstructi
     const FVector CharacterLocation = Character->GetActorLocation();
     const FVector StationLocation = ExpectedActor->GetActorLocation();
     const float Range = Character->GetInteractionRange();
-    const bool bTargetUsable = !bCultivationContext
-        || (ExpectedActor->GetConstructionKit() == ExpectedKit && ExpectedActor->CanUse(Character)
-            && ExpectedActor->HasUsablePlantingTrowel(Character));
+    const bool bTargetUsable = bStorageContext
+        ? (ExpectedActor->GetConstructionKit() == ExpectedKit && ExpectedActor->CanUse(Character))
+        : (!bCultivationContext || (ExpectedActor->GetConstructionKit() == ExpectedKit
+            && ExpectedActor->CanUse(Character) && ExpectedActor->HasUsablePlantingTrowel(Character)));
     return Character->GetWorld() == ExpectedActor->GetWorld()
         && !CharacterLocation.ContainsNaN() && !StationLocation.ContainsNaN()
         && FMath::IsFinite(Range) && Range > 0.0f
@@ -281,7 +283,9 @@ bool UKalmalaCraftingComponent::TransferStorageFromServer(const FGuid ItemGuid, 
     auto* Pack = Character->FindComponentByClass<UKalmalaInventoryComponent>();
     if (!bStorageViewOpen || !Chest || !Mode || !Pack) return false;
     // Read fresh server contents on every action; never use a client's snapshot or quantity.
-    const bool Accepted = Pack->TransferStorageFromServer(StorageView, ItemGuid, bDeposit,
+    const int32 Capacity = UKalmalaStorageSaveGame::GetCapacityForKit(Chest->GetConstructionKit());
+    if (Capacity < 1) return false;
+    const bool Accepted = Pack->TransferStorageFromServer(StorageView, ItemGuid, bDeposit, Capacity,
         [&](const auto& Next) { return Mode->PersistStorage(Chest, Next); }, Reason);
     RefreshStorageView(); Character->ForceNetUpdate();
     return Accepted;

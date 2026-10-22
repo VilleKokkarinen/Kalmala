@@ -14,6 +14,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaPlacementPreviewTest, "Kalmala.Gameplay
 bool FKalmalaPlacementPreviewTest::RunTest(const FString& Parameters)
 {
     for (const FName Kit : {FName(TEXT("CampfireKit")), FName(TEXT("WorkbenchKit")), FName(TEXT("StorageKit")),
+        FName(TEXT("ReinforcedChestKit")),
         FName(TEXT("CookingRackKit")), FName(TEXT("CauldronKit")), FName(TEXT("FryingPanKit")), FName(TEXT("CharcoalKilnKit")), FName(TEXT("SmelterKit")),
         FName(TEXT("FloorKit")), FName(TEXT("WallKit")), FName(TEXT("RoofKit")), FName(TEXT("GardenPlotKit")),
         FName(TEXT("TimberBeamKit")), FName(TEXT("TimberStairsKit"))})

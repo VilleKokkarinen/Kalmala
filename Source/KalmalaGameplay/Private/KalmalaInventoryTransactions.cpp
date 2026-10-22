@@ -504,13 +504,21 @@ bool UKalmalaInventoryComponent::TransferStorageFromServer(const TArray<FKalmala
     const FGuid ItemGuid, const bool bDeposit,
     TFunctionRef<bool(const TArray<FKalmalaInventoryStack>&)> Persist, FString& Reason)
 {
+    return TransferStorageFromServer(Storage, ItemGuid, bDeposit,
+        UKalmalaStorageSaveGame::MaxStorageSlots, Persist, Reason);
+}
+
+bool UKalmalaInventoryComponent::TransferStorageFromServer(const TArray<FKalmalaInventoryStack>& Storage,
+    const FGuid ItemGuid, const bool bDeposit, const int32 StorageCapacity,
+    TFunctionRef<bool(const TArray<FKalmalaInventoryStack>&)> Persist, FString& Reason)
+{
     Reason = TEXT("Server authority required");
     if (!GetOwner() || !GetOwner()->HasAuthority()) return false;
     TArray<FKalmalaInventoryStack> NextPack, NextStorage;
     const bool Built = bDeposit ? BuildTransfer(Stacks, Storage, ItemGuid, NextPack, NextStorage, Reason)
         : BuildTransfer(Storage, Stacks, ItemGuid, NextStorage, NextPack, Reason);
     if (!Built) return false;
-    if (!UKalmalaStorageSaveGame::IsValidStacks(NextStorage))
+    if (!UKalmalaStorageSaveGame::IsValidStacks(NextStorage, StorageCapacity))
     { Reason = TEXT("Storage capacity reached"); return false; }
     const auto* Character = Cast<AKalmalaCharacter>(GetOwner());
     if (!CanFitContents(NextPack, Character ? CountPackedTools(Character->GetCarriedToolInventory()) : 0))

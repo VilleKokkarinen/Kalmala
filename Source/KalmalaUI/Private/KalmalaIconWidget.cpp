@@ -136,6 +136,10 @@ int32 UKalmalaIconWidget::NativePaint(const FPaintArgs& Args, const FGeometry& G
         Path({{18,3},{12,12},{7,15},{5,22},{8,29},{14,33},{22,33},{28,29},{31,22},{29,15},{24,12}},true);
         Path({{12,20},{15,20}}); Path({{21,20},{24,20}}); Path({{14,26},{18,28},{22,26}}); break;
     case EKalmalaIcon::Chest: Path({{5,11},{30,11},{30,31},{5,31}},true); Path({{5,19},{30,19}}); Path({{15,16},{20,16},{20,23},{15,23}},true); break;
+    case EKalmalaIcon::ReinforcedChest:
+        Path({{4,10},{31,10},{31,32},{4,32}},true); Path({{4,18},{31,18}});
+        Path({{9,10},{9,32}}); Path({{26,10},{26,32}}); Path({{15,16},{21,16},{21,23},{15,23}},true);
+        Circle({6,13},1); Circle({29,13},1); Circle({6,29},1); Circle({29,29},1); break;
     case EKalmalaIcon::Fire: Path({{18,4},{25,14},{26,21},{23,27},{13,27},{9,21},{10,13},{15,18}},true); Path({{6,31},{30,31}}); break;
     case EKalmalaIcon::Discovery: Circle({14,14},8); Path({{20,20},{31,31}}); Path({{14,9},{14,19}}); Path({{9,14},{19,14}}); break;
     case EKalmalaIcon::Level: Circle({18,18},13); Path({{10,22},{18,14},{26,22}}); Path({{18,14},{18,26}}); break;
@@ -216,7 +220,9 @@ bool UKalmalaIconWidget::FindCatalogueIcon(FName Id, EKalmalaIcon& OutIcon, int3
         {TEXT("CharcoalKilnKit"),EKalmalaIcon::Kiln,0},
         {TEXT("SmelterKit"),EKalmalaIcon::Smelter,0},
         {TEXT("WorkbenchToolRackKit"),EKalmalaIcon::Rack,1}, {TEXT("ForgeAnvilKit"),EKalmalaIcon::Ingot,1},
-        {TEXT("GrindingStoneKit"),EKalmalaIcon::Rock,3}, {TEXT("StorageKit"),EKalmalaIcon::Chest,0}, {TEXT("CookingRackKit"),EKalmalaIcon::Rack,0},
+        {TEXT("GrindingStoneKit"),EKalmalaIcon::Rock,3}, {TEXT("StorageKit"),EKalmalaIcon::Chest,0},
+        {TEXT("ReinforcedChest"),EKalmalaIcon::ReinforcedChest,0}, {TEXT("ReinforcedChestKit"),EKalmalaIcon::ReinforcedChest,0},
+        {TEXT("CookingRackKit"),EKalmalaIcon::Rack,0},
         {TEXT("FryingPanKit"),EKalmalaIcon::Pan,0}, {TEXT("CauldronKit"),EKalmalaIcon::Cauldron,0},
         {TEXT("FloorKit"),EKalmalaIcon::Floor,0}, {TEXT("WallKit"),EKalmalaIcon::Wall,0}, {TEXT("RoofKit"),EKalmalaIcon::Roof,0},
         {TEXT("BoarMeat"),EKalmalaIcon::Meat,0}, {TEXT("DeerMeat"),EKalmalaIcon::Meat,1}, {TEXT("BadgerMeat"),EKalmalaIcon::Meat,4},

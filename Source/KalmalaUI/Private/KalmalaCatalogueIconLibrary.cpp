@@ -25,6 +25,7 @@ bool FKalmalaCatalogueIconLibrary::GetTextureObjectPath(FName CanonicalId, FSoft
     else if (CanonicalId == TEXT("StoneAxe")) TextureAssetId = TEXT("FieldHatchet");
     else if (CanonicalId == TEXT("CampFire")) TextureAssetId = TEXT("CampfireKit");
     else if (CanonicalId == TEXT("GardenPlot")) TextureAssetId = TEXT("GardenPlotKit");
+    else if (CanonicalId == TEXT("ReinforcedChest")) TextureAssetId = TEXT("ReinforcedChestKit");
     else if (CanonicalId == TEXT("TimberDoor")) TextureAssetId = TEXT("TimberDoorKit");
     else if (CanonicalId == TEXT("TimberStairs")) TextureAssetId = TEXT("TimberStairsKit");
     else if (CanonicalId == TEXT("CampBed")) TextureAssetId = TEXT("CampBedKit");

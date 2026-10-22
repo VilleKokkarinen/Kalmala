@@ -13,10 +13,18 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaStorageSaveTest, "Kalmala.Gameplay.Stor
 bool FKalmalaStorageSaveTest::RunTest(const FString& Parameters)
 {
     FKalmalaWorldGenerationConfig Config; Config.WorldSeed = 418; auto* Save = NewObject<UKalmalaStorageSaveGame>(); Save->InitializeForWorld(Config);
+    TestEqual(TEXT("Storage save schema records the distinct chest-capacity format"),
+        UKalmalaStorageSaveGame::CurrentSchemaVersion, 3);
+    TestEqual(TEXT("Normal Chest keeps its sixteen-stack capacity"),
+        UKalmalaStorageSaveGame::GetCapacityForKit(TEXT("StorageKit")), 16);
+    TestEqual(TEXT("Reinforced Chest has twenty-four shared stack spaces"),
+        UKalmalaStorageSaveGame::GetCapacityForKit(TEXT("ReinforcedChestKit")), 24);
     TestTrue(TEXT("Empty identity container is valid"), Save->MatchesWorld(Config));
-    TestTrue(TEXT("Store two materials"), Save->UpsertRecord(TEXT("chest-1"), {{TEXT("Wood"),3},{TEXT("Stone"),2}}));
+    TestTrue(TEXT("Store two materials"), Save->UpsertRecord(TEXT("chest-1"), TEXT("StorageKit"),
+        {{TEXT("Wood"),3},{TEXT("Stone"),2}}));
     for (const int32 Quantity : {0, -1, MIN_int32, MAX_int32})
-        TestFalse(TEXT("Invalid stack rejected"), Save->UpsertRecord(TEXT("chest-1"), {{TEXT("Wood"),Quantity}}));
+        TestFalse(TEXT("Invalid stack rejected"), Save->UpsertRecord(TEXT("chest-1"), TEXT("StorageKit"),
+            {{TEXT("Wood"),Quantity}}));
     const FGuid WoodGuidA = FGuid::NewGuid();
     const FGuid WoodGuidB = FGuid::NewGuid();
     FKalmalaInventoryStack WoodStackA{TEXT("Wood"),1,FGuid::NewGuid()}; WoodStackA.ItemGuids.Add(WoodGuidA);
@@ -27,10 +35,10 @@ bool FKalmalaStorageSaveTest::RunTest(const FString& Parameters)
         {WoodStackA,WoodStackB}));
     TestFalse(TEXT("Duplicate item instance GUID rejected"), UKalmalaStorageSaveGame::IsValidStacks(
         {WoodStackA,DuplicateWoodStack}));
-    TestFalse(TEXT("Unknown item rejected"), Save->UpsertRecord(TEXT("chest-1"), {{TEXT("Forged"),1}}));
-    TestFalse(TEXT("Path-like identity rejected"), Save->UpsertRecord(TEXT("../chest"), {}));
-    TestFalse(TEXT("Empty identity rejected"), Save->UpsertRecord(TEXT(""), {}));
-    TestFalse(TEXT("Oversized identity rejected"), Save->UpsertRecord(FString::ChrN(65, 'a'), {}));
+    TestFalse(TEXT("Unknown item rejected"), Save->UpsertRecord(TEXT("chest-1"), TEXT("StorageKit"), {{TEXT("Forged"),1}}));
+    TestFalse(TEXT("Path-like identity rejected"), Save->UpsertRecord(TEXT("../chest"), TEXT("StorageKit"), {}));
+    TestFalse(TEXT("Empty identity rejected"), Save->UpsertRecord(TEXT(""), TEXT("StorageKit"), {}));
+    TestFalse(TEXT("Oversized identity rejected"), Save->UpsertRecord(FString::ChrN(65, 'a'), TEXT("StorageKit"), {}));
     const auto* PreservedRecord = Save->FindRecord(TEXT("chest-1"));
     if (TestNotNull(TEXT("Rejected writes preserve the existing record"), PreservedRecord))
     {
@@ -39,10 +47,22 @@ bool FKalmalaStorageSaveTest::RunTest(const FString& Parameters)
             TestEqual(TEXT("Rejected writes leave contents intact"), PreservedRecord->Stacks[0].Quantity, 3);
         }
     }
-    for (int32 N = 2; N <= UKalmalaStorageSaveGame::MaxRecords; ++N)
-        TestTrue(TEXT("Bounded chest record accepted"), Save->UpsertRecord(FString::Printf(TEXT("chest-%d"),N), {}));
-    TestFalse(TEXT("129th chest rejected"), Save->UpsertRecord(TEXT("overflow"), {}));
-    TestTrue(TEXT("Existing chest remains writable at cap"), Save->UpsertRecord(TEXT("chest-1"), {{TEXT("Wood"),3}}));
+    TArray<FKalmalaInventoryStack> ReinforcedContents;
+    for (int32 Slot = 0; Slot < UKalmalaStorageSaveGame::MaxReinforcedStorageSlots; ++Slot)
+        ReinforcedContents.Add({TEXT("Wood"), 1});
+    TestTrue(TEXT("A Reinforced Chest accepts twenty-four distinct shared stacks"),
+        Save->UpsertRecord(TEXT("reinforced-1"), TEXT("ReinforcedChestKit"), ReinforcedContents));
+    ReinforcedContents.Add({TEXT("Stone"), 1});
+    TestFalse(TEXT("A Reinforced Chest rejects a twenty-fifth stack"),
+        Save->UpsertRecord(TEXT("reinforced-1"), TEXT("ReinforcedChestKit"), ReinforcedContents));
+    TestFalse(TEXT("A stored chest cannot change its construction type"),
+        Save->UpsertRecord(TEXT("reinforced-1"), TEXT("StorageKit"), {}));
+    for (int32 N = 2; N <= UKalmalaStorageSaveGame::MaxRecords - 1; ++N)
+        TestTrue(TEXT("Bounded chest record accepted"), Save->UpsertRecord(
+            FString::Printf(TEXT("chest-%d"),N), TEXT("StorageKit"), {}));
+    TestFalse(TEXT("129th chest rejected"), Save->UpsertRecord(TEXT("overflow"), TEXT("StorageKit"), {}));
+    TestTrue(TEXT("Existing chest remains writable at cap"),
+        Save->UpsertRecord(TEXT("chest-1"), TEXT("StorageKit"), {{TEXT("Wood"),3}}));
     TArray<uint8> Bytes; TestTrue(TEXT("Serialize storage in memory"), UGameplayStatics::SaveGameToMemory(Save, Bytes));
     auto* Loaded = Cast<UKalmalaStorageSaveGame>(UGameplayStatics::LoadGameFromMemory(Bytes));
     if (TestNotNull(TEXT("Reload typed storage"), Loaded))
@@ -50,6 +70,12 @@ bool FKalmalaStorageSaveTest::RunTest(const FString& Parameters)
         TestTrue(TEXT("Reload validates all records"), Loaded->MatchesWorld(Config));
         const auto* Record = Loaded->FindRecord(TEXT("chest-1"));
         if (TestNotNull(TEXT("Stable ID survives reload"), Record)) TestEqual(TEXT("Contents survive reload"), Record->Stacks[0].Quantity, 3);
+        const auto* Reinforced = Loaded->FindRecord(TEXT("reinforced-1"));
+        if (TestNotNull(TEXT("Reinforced chest survives reload"), Reinforced))
+        {
+            TestEqual(TEXT("Reinforced chest retains its capacity identity"), Reinforced->KitId, FName(TEXT("ReinforcedChestKit")));
+            TestEqual(TEXT("All twenty-four reinforced slots survive reload"), Reinforced->Stacks.Num(), 24);
+        }
         Config.WorldSeed++;
         TestFalse(TEXT("Different seed rejected"), Loaded->MatchesWorld(Config));
         Config.WorldSeed--; Config.WorldSeed += 2;

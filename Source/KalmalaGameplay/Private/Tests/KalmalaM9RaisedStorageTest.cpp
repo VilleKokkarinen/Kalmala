@@ -17,7 +17,9 @@ bool FKalmalaM9RaisedStorageTest::RunTest(const FString& Parameters)
     TestNull(TEXT("RaisedStorage has no recipe"), Recipes->Find(TEXT("RaisedStorage")));
     TestFalse(TEXT("Raised chest construction is no longer supported"), FKalmalaPlacementPreview::IsSupportedKit(TEXT("RaisedStorageKit")));
     TestFalse(TEXT("Only the normal chest is a storage construction"), AKalmalaConstructionActor::IsStorageKit(TEXT("RaisedStorageKit")));
-    TestTrue(TEXT("Normal chest remains the supported storage construction"), AKalmalaConstructionActor::IsStorageKit(TEXT("StorageKit")));
+    TestTrue(TEXT("Normal chest remains a supported storage construction"), AKalmalaConstructionActor::IsStorageKit(TEXT("StorageKit")));
+    TestTrue(TEXT("Reinforced chest is a separate supported storage construction"),
+        AKalmalaConstructionActor::IsStorageKit(TEXT("ReinforcedChestKit")));
     const FKalmalaItemDefinition* Chest = Items->FindBuildable(TEXT("StorageKit"));
     const FKalmalaRecipe* ChestRecipe = Recipes->Find(TEXT("Storage"));
     if (TestNotNull(TEXT("Normal chest retains construction metadata"), Chest))

@@ -119,6 +119,26 @@ stop conditions. The icon check is
 is retained in `docs/camp-bed-icon.md`. Unreal build and runtime placement,
 rendered interaction and peer acceptance remain deferred to I4 verification.
 
+A8 Reinforced Chest costs 8 Wood + 2 Bronze and is placed directly with the
+Building Hammer. Its full 1.5 × 1 m footprint must fit on dry, level generated
+ground or a Timber Floor; the server repeats support, bounds, overlap and water
+checks before payment. It has 24 shared stacks with the existing item limits,
+uses the same owner-private GUID transfer path as the standard Chest, and saves
+capacity identity with its construction ID. The standard Chest remains at 16
+stacks. `Kalmala.Gameplay.Construction.ReinforcedChestContract` and
+`Kalmala.Gameplay.Storage` cover the registered recipe, placed-only identity,
+dimensions, support eligibility, capacity limits and save round-trip. Validate
+its original, prepared and imported icon with
+`Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id ReinforcedChestKit`;
+provenance and the exact generation prompt are in
+`docs/reinforced-chest-icon.md`. Build and live peer transfer/rendered
+acceptance remain deferred to combined I4 verification.
+
+Standing Light's A8 original and prepared icon were present without an
+imported package. Its retained art is imported in isolated batch AO so the
+unrelated RatTail batch is not rewritten; source and asset paths are recorded
+in `docs/standing-light-icon.md`.
+
 The focused live acceptance runner is
 `Scripts/Tests/Construction/Verify-GardenPlot.ps1 -Project <isolated Kalmala.uproject>`.
 Use a compiled project mirror outside the repository. The runner starts a listen
@@ -2211,7 +2231,7 @@ The inventory runner also requires `Harvest inventory: Passed=1` for both server
 
 ## Workbench and storage verification
 
-After the editor build, run `Kalmala.Gameplay.Storage` with the headless flags and unique temporary user/log paths above. It covers bounded storage serialization, identity mismatch, invalid stacks and quantities, transfer conservation/capacity, RPC payloads, and owner-only chest snapshots. Then run `Scripts/Tests/Construction/Verify-Storage.ps1` for paid workbench/chest placement, kit assembly, actual owner deposit/withdraw RPCs, distance/obstruction rejection, write-failure conservation, private peer snapshots, and a same-user-directory restart retaining the exact two chest IDs and contents. The runner writes only temporary user/save/log data. See `02-technical-architecture.md` for controls and limits; this fixture does not close the later complete M2 camp acceptance gate.
+After the editor build, run `Kalmala.Gameplay.Storage` with the headless flags and unique temporary user/log paths above. It covers bounded storage serialization, standard Chest 16-stack and Reinforced Chest 24-stack limits, capacity identity across reload, invalid stacks and quantities, transfer conservation, RPC payloads, and owner-only chest snapshots. Then run `Scripts/Tests/Construction/Verify-Storage.ps1` for paid workbench/standard-Chest placement, kit assembly, actual owner deposit/withdraw RPCs, distance/obstruction rejection, write-failure conservation, private peer snapshots, and a same-user-directory restart retaining the exact two standard Chest IDs and contents. The runner writes only temporary user/save/log data. See `02-technical-architecture.md` for controls and limits; this fixture does not close the later complete M2 camp acceptance gate.
 
 ## Dedicated-server build
 
@@ -4066,7 +4086,8 @@ is added.
 `Verify-Crafting.ps1 -Port <unused-port>` requires
 `Chest scope: OwnerPack=1 OwnerChest=1 Capacity=1 Route=1 StaleNoRequest=1
 UiScope=1` on both peers. Its focused marker checks the owner-local lists,
-capacity feedback, StorageKit interaction route, hidden unrelated actions, and
+capacity feedback for 16/24-stack chests, standard/reinforced Chest interaction
+routes, hidden unrelated actions, and
 no dispatch from a stale context. `Verify-PresentationOwnership.ps1` checks the
 owner-only replication conditions and selected-ID transfer routes.
 `Scripts/Tests/Construction/Verify-Storage.ps1 -Port <unused-port>` covers the live two-peer

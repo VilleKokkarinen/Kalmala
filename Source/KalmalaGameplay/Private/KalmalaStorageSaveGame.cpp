@@ -16,7 +16,20 @@ bool UKalmalaStorageSaveGame::IsValidConstructionId(const FString& Id)
 
 bool UKalmalaStorageSaveGame::IsValidStacks(const TArray<FKalmalaInventoryStack>& Stacks)
 {
-    if (Stacks.Num() > MaxStorageSlots) return false;
+    return IsValidStacks(Stacks, MaxStorageSlots);
+}
+
+int32 UKalmalaStorageSaveGame::GetCapacityForKit(const FName KitId)
+{
+    if (KitId == TEXT("StorageKit")) return MaxStorageSlots;
+    if (KitId == TEXT("ReinforcedChestKit")) return MaxReinforcedStorageSlots;
+    return 0;
+}
+
+bool UKalmalaStorageSaveGame::IsValidStacks(const TArray<FKalmalaInventoryStack>& Stacks, const int32 Capacity)
+{
+    if ((Capacity != MaxStorageSlots && Capacity != MaxReinforcedStorageSlots)
+        || Stacks.Num() > Capacity) return false;
     TSet<FGuid> SeenStackGuids;
     TSet<FGuid> SeenItemGuids;
     for (const auto& Stack : Stacks)
@@ -41,7 +54,8 @@ bool UKalmalaStorageSaveGame::MatchesWorld(const FKalmalaWorldGenerationConfig& 
     TSet<FGuid> SeenItemGuids;
     for (const auto& Record : Records)
     {
-        if (!IsValidConstructionId(Record.ConstructionId) || Seen.Contains(Record.ConstructionId) || !IsValidStacks(Record.Stacks)) return false;
+        if (!IsValidConstructionId(Record.ConstructionId) || Seen.Contains(Record.ConstructionId)
+            || !IsValidStacks(Record.Stacks, GetCapacityForKit(Record.KitId))) return false;
         Seen.Add(Record.ConstructionId);
         for (const FKalmalaInventoryStack& Stack : Record.Stacks)
             for (const FGuid& ItemGuid : Stack.ItemGuids)
@@ -58,9 +72,11 @@ const FKalmalaStorageSaveRecord* UKalmalaStorageSaveGame::FindRecord(const FStri
     return Records.FindByPredicate([&](const auto& Record) { return Record.ConstructionId == Id; });
 }
 
-bool UKalmalaStorageSaveGame::UpsertRecord(const FString& Id, const TArray<FKalmalaInventoryStack>& Stacks)
+bool UKalmalaStorageSaveGame::UpsertRecord(const FString& Id, const FName KitId,
+    const TArray<FKalmalaInventoryStack>& Stacks)
 {
-    if (!MatchesWorld(WorldConfig) || !IsValidConstructionId(Id) || Stacks.Num() > MaxStorageSlots) return false;
+    const int32 Capacity = GetCapacityForKit(KitId);
+    if (!MatchesWorld(WorldConfig) || !IsValidConstructionId(Id) || Capacity < 1 || Stacks.Num() > Capacity) return false;
     TSet<FGuid> SeenItemGuids;
     for (const FKalmalaStorageSaveRecord& Existing : Records)
     {
@@ -98,12 +114,13 @@ bool UKalmalaStorageSaveGame::UpsertRecord(const FString& Id, const TArray<FKalm
             SeenItemGuids.Add(ItemGuid);
         }
     }
-    if (!IsValidStacks(Candidate)) return false;
+    if (!IsValidStacks(Candidate, Capacity)) return false;
     auto* Record = Records.FindByPredicate([&](const auto& Entry) { return Entry.ConstructionId == Id; });
+    if (Record && Record->KitId != KitId) return false;
     if (!Record)
     {
         if (Records.Num() >= MaxRecords) return false;
-        Record = &Records.AddDefaulted_GetRef(); Record->ConstructionId = Id;
+        Record = &Records.AddDefaulted_GetRef(); Record->ConstructionId = Id; Record->KitId = KitId;
     }
     Record->Stacks = MoveTemp(Candidate);
     return true;

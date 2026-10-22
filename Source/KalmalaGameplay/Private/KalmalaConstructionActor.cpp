@@ -7,6 +7,7 @@
 #include "KalmalaToolLifecycleContract.h"
 #include "KalmalaWorldGenerationGameState.h"
 #include "Engine/World.h"
+#include "Engine/OverlapResult.h"
 #include "Components/BoxComponent.h"
 #include "Components/PointLightComponent.h"
 #include "Components/SceneComponent.h"
@@ -305,7 +306,7 @@ void AKalmalaConstructionActor::AdvanceRainWearFromServer(const float DeltaSecon
             && ConstructionKit != TEXT("TimberDoorKit")
             && ConstructionKit != TEXT("TimberBeamKit") && ConstructionKit != TEXT("TimberStairsKit")
             && ConstructionKit != TEXT("CampBedKit") && ConstructionKit != TEXT("StandingLightKit")
-            && ConstructionKit != TEXT("WorkbenchKit") && ConstructionKit != TEXT("StorageKit"))) return;
+            && ConstructionKit != TEXT("WorkbenchKit") && !IsStorageKit(ConstructionKit))) return;
     if (HasShelterRoofOverhead()) return;
     const float NextHealth = FMath::Clamp(Health - RainWearPerSecond * FMath::Clamp(Precipitation, 0.0f, 1.0f) * DeltaSeconds,
         RainHealthFloor, MaximumHealth);
@@ -371,7 +372,7 @@ bool AKalmalaConstructionActor::IsCraftingStationKit(const FName KitId)
 
 bool AKalmalaConstructionActor::IsStorageKit(const FName KitId)
 {
-    return KitId == TEXT("StorageKit");
+    return KitId == TEXT("StorageKit") || KitId == TEXT("ReinforcedChestKit");
 }
 
 bool AKalmalaConstructionActor::IsStructuralEndpointKit(const FName KitId)
@@ -420,6 +421,7 @@ FVector AKalmalaConstructionActor::GetCollisionExtent(const FName KitId)
     if (KitId == TEXT("TimberBeamKit")) return FVector(100, 7.5f, 7.5f);
     if (KitId == TEXT("TimberStairsKit")) return FVector(100, 50, 50);
     if (KitId == TEXT("CampBedKit")) return FVector(100, 50, 22);
+    if (KitId == TEXT("ReinforcedChestKit")) return FVector(75, 50, 45);
     if (KitId == TEXT("StandingLightKit")) return FVector(35, 35, 75);
     if (KitId == TEXT("RoofKit")) return FVector(132, 132, 16);
     if (KitId == TEXT("CharcoalKilnKit")) return FVector(60, 60, 62);
@@ -677,6 +679,20 @@ void AKalmalaConstructionActor::BuildPiecePresentation()
         AddBox(Vertices, Triangles, FVector(0, 0, -10), FVector(50, 50, 44));
         AddBox(Vertices, Triangles, FVector(0, 0, 42), FVector(54, 54, 8));
         AddBox(Vertices, Triangles, FVector(52, 0, 25), FVector(2, 10, 12));
+    }
+    else if (ConstructionKit == TEXT("ReinforcedChestKit"))
+    {
+        AddBox(Vertices, Triangles, FVector(0, 0, -16), FVector(70, 45, 28));
+        AddBox(Vertices, Triangles, FVector(0, 0, 19), FVector(74, 49, 8));
+        AddBox(Vertices, Triangles, FVector(0, 0, 27), FVector(70, 45, 5));
+        for (const float X : {-52.0f, 0.0f, 52.0f})
+        {
+            AddBox(Vertices, Triangles, FVector(X, -45, -16), FVector(4, 3, 28));
+            AddBox(Vertices, Triangles, FVector(X, 45, -16), FVector(4, 3, 28));
+        }
+        AddBox(Vertices, Triangles, FVector(0, -49, 0), FVector(70, 3, 4));
+        AddBox(Vertices, Triangles, FVector(0, 49, 0), FVector(70, 3, 4));
+        AddBox(Vertices, Triangles, FVector(0, -50, 10), FVector(12, 2, 8));
     }
     else if (ConstructionKit == TEXT("CharcoalKilnKit"))
     {

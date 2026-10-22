@@ -127,6 +127,7 @@ bool FKalmalaRecipeBrowseTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Named groups partition all placeable outputs"), PartitionCount, BuildIndices.Num());
     TestEqual(TEXT("Floor is structural"), Widget->GetBuildBrowseGroup(TEXT("FloorKit")), 4);
     TestEqual(TEXT("Workbench is a station"), Widget->GetBuildBrowseGroup(TEXT("WorkbenchKit")), 5);
+    TestEqual(TEXT("Reinforced Chest is a camp utility"), Widget->GetBuildBrowseGroup(TEXT("ReinforcedChestKit")), 6);
     TestEqual(TEXT("Hearth is a camp utility"), Widget->GetBuildBrowseGroup(TEXT("CampfireKit")), 6);
     TestEqual(TEXT("Unknown output is excluded"), Widget->GetBuildBrowseGroup(TEXT("UnknownKit")), 0);
     int32 PlayerRecipes = 0;

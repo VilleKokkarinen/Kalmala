@@ -28,6 +28,8 @@ bool FKalmalaInteractionPromptTest::RunTest(const FString& Parameters)
         UKalmalaInteractionPromptWidget::GetConstructionActionName(TEXT("CampBedKit")), FString(TEXT("Rest")));
     TestEqual(TEXT("Standing Light prompt names its fuel action"),
         UKalmalaInteractionPromptWidget::GetConstructionActionName(TEXT("StandingLightKit")), FString(TEXT("Add fuel")));
+    TestEqual(TEXT("Reinforced Chest uses the shared storage interaction"),
+        UKalmalaInteractionPromptWidget::GetConstructionActionName(TEXT("ReinforcedChestKit")), FString(TEXT("Use")));
     const FKalmalaItemDefinition* Workbench = UKalmalaItemCatalogue::Get()->FindBuildable(TEXT("WorkbenchKit"));
     TestNotNull(TEXT("Prompt target resolves the Workbench catalogue identity"), Workbench);
     if (Workbench)

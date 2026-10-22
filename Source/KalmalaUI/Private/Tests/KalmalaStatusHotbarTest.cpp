@@ -416,6 +416,20 @@ bool FKalmalaCatalogueIconTest::RunTest(const FString&)
         TestFalse(*FString::Printf(TEXT("%s does not create a duplicate icon path"), *Alias.Key.ToString()),
             FKalmalaCatalogueIconLibrary::GetTextureObjectPath(Alias.Key, AliasPath));
     }
+    EKalmalaIcon ReinforcedChestIcon = EKalmalaIcon::Unknown;
+    int32 ReinforcedChestVariant = INDEX_NONE;
+    TestTrue(TEXT("Reinforced Chest has a distinct original build-menu icon"),
+        UKalmalaIconWidget::FindCatalogueIcon(TEXT("ReinforcedChestKit"), ReinforcedChestIcon, ReinforcedChestVariant));
+    TestEqual(TEXT("Reinforced Chest icon uses its reinforced silhouette"),
+        ReinforcedChestIcon, EKalmalaIcon::ReinforcedChest);
+    EKalmalaIcon ReinforcedChestAliasIcon = EKalmalaIcon::Unknown;
+    int32 ReinforcedChestAliasVariant = INDEX_NONE;
+    FSoftObjectPath ReinforcedChestAliasPath;
+    TestTrue(TEXT("Reinforced Chest recipe alias resolves its original texture"),
+        UKalmalaIconWidget::FindCatalogueIcon(TEXT("ReinforcedChest"), ReinforcedChestAliasIcon, ReinforcedChestAliasVariant)
+            && ReinforcedChestAliasIcon == EKalmalaIcon::ReinforcedChest
+            && FKalmalaCatalogueIconLibrary::GetTextureObjectPath(TEXT("ReinforcedChest"), ReinforcedChestAliasPath)
+            && ReinforcedChestAliasPath.ToString().Contains(TEXT("ReinforcedChestKit.ReinforcedChestKit")));
     EKalmalaIcon Missing; int32 Variant;
     TestFalse(TEXT("Forged IDs have no assigned icon"), UKalmalaIconWidget::FindCatalogueIcon(TEXT("Forged"), Missing, Variant));
     TestEqual(TEXT("Unknown IDs retain the question-mark vector fallback"), Missing, EKalmalaIcon::Unknown);

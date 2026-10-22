@@ -262,6 +262,7 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
     };
     const FExpectedBatchThreeCopy BatchThreeCopy[] = {
         { TEXT("StorageKit"), TEXT("Chest"), TEXT("A shared chest for storing camp supplies."), 5 },
+        { TEXT("ReinforcedChestKit"), TEXT("Reinforced Chest"), TEXT("A bronze-banded shared chest with 24 stack spaces."), 1 },
         { TEXT("CookingRackKit"), TEXT("Cooking Rack"), TEXT("A rack for roasting boar and deer over a fire."), 5 },
         { TEXT("FryingPanKit"), TEXT("Frying Pan"), TEXT("An iron pan for cooking over a lit hearth."), 1 },
         { TEXT("CauldronKit"), TEXT("Cauldron"), TEXT("A pot for simmering soups over a fire."), 5 },
@@ -285,6 +286,7 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
     }
     const TPair<FName, FName> BatchThreeRecipeNames[] = {
         { TEXT("Storage"), TEXT("StorageKit") },
+        { TEXT("ReinforcedChest"), TEXT("ReinforcedChestKit") },
         { TEXT("CookingRack"), TEXT("CookingRackKit") },
         { TEXT("FryingPanRecipe"), TEXT("FryingPanKit") },
         { TEXT("Cauldron"), TEXT("CauldronKit") },
@@ -641,6 +643,7 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         {TEXT("Forge"), TEXT("ForgeKit")}, {TEXT("WorkbenchToolRack"), TEXT("WorkbenchToolRackKit")},
         {TEXT("ForgeAnvil"), TEXT("ForgeAnvilKit")}, {TEXT("GrindingStone"), TEXT("GrindingStoneKit")},
         {TEXT("Storage"), TEXT("StorageKit")},
+        {TEXT("ReinforcedChest"), TEXT("ReinforcedChestKit")},
         {TEXT("CookingRack"), TEXT("CookingRackKit")}, {TEXT("Cauldron"), TEXT("CauldronKit")},
         {TEXT("FryingPan"), TEXT("FryingPanKit")},
         {TEXT("Floor"), TEXT("FloorKit")}, {TEXT("Wall"), TEXT("WallKit")}, {TEXT("Roof"), TEXT("RoofKit")}

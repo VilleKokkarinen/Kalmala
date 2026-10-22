@@ -286,7 +286,7 @@ Buildables, processing and sanctuary supplies (P2; scope approved 2026-10-19; no
 - Add Timber Stairs (`TimberStairs`) with reviewed walkable collision.
 - Add Camp Bed (`CampBed`), furniture-only resting behavior below; do not add sleep/respawn binding.
 - Add Standing Light (`StandingLight`) with reviewed fuel/rain behavior.
-- Add Reinforced Chest (`ReinforcedChest`) as a separate placed chest, not an in-place inventory-capacity upgrade (blocked on A1).
+- Add Reinforced Chest (`ReinforcedChest`) as a separate direct-material placed buildable, not an in-place inventory-capacity upgrade. Use its distinct reinforced build-menu icon and keep it available after the A1 Bronze route.
 - Record recovery-station expansion as deferred: A6 uses the existing Cauldron; no fermenter, brewing tree or extra cooking station. A1 Kiln/Smelter and A7 Garden Plot are owned by their sections, not duplicate tasks here.
 
 | Buildable | Hammer material cost | Dimensions / behavior |
@@ -296,7 +296,7 @@ Buildables, processing and sanctuary supplies (P2; scope approved 2026-10-19; no
 | Timber Stairs | 6 Wood | 2 m run × 1 m width × 1 m rise; grounded lower edge or supported floor attachment; solid walkable steps, no ladder/climb mechanic |
 | Camp Bed | 4 Wood + 2 Boar Hide + 2 Deer Hide | 2 m × 1 m; supported dry floor, 1 m clear approach; interaction within 2 m starts a local resting pose until movement/damage; no extra stat effect, time skip or spawn change |
 | Standing Light | 3 Wood + 1 Amber | Grounded/floor-supported, 1.5 m tall; starts unlit, consume 1 Wood for 600 active lit seconds, fuel cap 1200 seconds; 6 m cosmetic light, uncovered rain pauses flame/fuel, no warmth/Wet removal/world ignition |
-| Reinforced Chest | 8 Wood + 2 Bronze | Grounded/floor-supported 1.5 m × 1 m; 24 shared stack cells, existing per-item stack limits and validated GUID transfers, no weight/owner-lock mechanic |
+| Reinforced Chest | 8 Wood + 2 Bronze | Grounded/floor-supported 1.5 m × 1 m; 24 shared stack cells, existing per-item stack limits and validated GUID transfers, no weight/owner-lock mechanic; storage save records bind capacity to the placed buildable identity |
 
 Use the existing construction health/rain-wear/repair rules of the matching
 Wall (door/beam/stairs) or Storage (bed/light/chest) category; no new defense

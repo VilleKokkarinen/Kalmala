@@ -91,6 +91,7 @@ namespace
         if (CatalogueItemId == TEXT("ForgeAnvil")) return TEXT("ForgeAnvilKit");
         if (CatalogueItemId == TEXT("GrindingStone")) return TEXT("GrindingStoneKit");
         if (CatalogueItemId == TEXT("Storage")) return TEXT("StorageKit");
+        if (CatalogueItemId == TEXT("ReinforcedChest")) return TEXT("ReinforcedChestKit");
         if (CatalogueItemId == TEXT("CookingRack")) return TEXT("CookingRackKit");
         if (CatalogueItemId == TEXT("Cauldron")) return TEXT("CauldronKit");
         if (CatalogueItemId == TEXT("FryingPan")) return TEXT("FryingPanKit");

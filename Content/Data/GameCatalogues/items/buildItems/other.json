@@ -67,6 +67,12 @@
       "MaxStack": 5
     },
     {
+      "ItemId": "ReinforcedChest",
+      "DisplayName": "Reinforced Chest",
+      "Description": "A bronze-banded shared chest with 24 stack spaces.",
+      "MaxStack": 1
+    },
+    {
       "ItemId": "Wall",
       "DisplayName": "Windbreak Wall",
       "Description": "A light timber-and-reed wall that blocks wind around camp.",

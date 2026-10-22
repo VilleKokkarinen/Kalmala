@@ -121,6 +121,7 @@ bool FKalmalaCraftingTransactionsTest::RunTest(const FString& Parameters)
         {TEXT("ForgeAnvilKit"), {{TEXT("Wood"),9},{TEXT("Stone"),4}}},
         {TEXT("GrindingStoneKit"), {{TEXT("Wood"),6},{TEXT("Stone"),4}}},
         {TEXT("StorageKit"), {{TEXT("Wood"),6}}},
+        {TEXT("ReinforcedChestKit"), {{TEXT("Wood"),8},{TEXT("Bronze"),2}}},
         {TEXT("CookingRackKit"), {{TEXT("Wood"),9}}},
         {TEXT("CauldronKit"), {{TEXT("Wood"),9},{TEXT("Stone"),3}}},
         {TEXT("FryingPanKit"), {{TEXT("Iron"),5}}},

@@ -579,7 +579,7 @@ The pawn's replicated status container is the sole player-facing Wet state. Each
 
 ### Construction and hearth rain-response contract
 
-Every accepted `FloorKit`, `WallKit`, `WorkbenchKit`, and `StorageKit` starts with replicated server-owned `Health = 100.0`; `RoofKit` has the same presentation field but is rain-immune. At each one-second server environmental update, an exposed eligible construction loses `0.10 * clamp(PrecipitationIntensity, 0, 1)` health. Health is clamped to `[50.0, 100.0]`, so rain alone takes at least 500 seconds of full precipitation to reach its floor and can never destroy, remove, refund, or change collision for a construction. The rate, maximum, and floor are configuration-owned defaults, not client settings. Repair and any persistence decision are deferred: M3 does not yet save rain wear, and a restart returns the existing accepted construction record without a new health delta.
+Every accepted `FloorKit`, `WallKit`, `WorkbenchKit`, `StorageKit`, and `ReinforcedChestKit` starts with replicated server-owned `Health = 100.0`; `RoofKit` has the same presentation field but is rain-immune. At each one-second server environmental update, an exposed eligible construction loses `0.10 * clamp(PrecipitationIntensity, 0, 1)` health. Health is clamped to `[50.0, 100.0]`, so rain alone takes at least 500 seconds of full precipitation to reach its floor and can never destroy, remove, refund, or change collision for a construction. The rate, maximum, and floor are configuration-owned defaults, not client settings. Repair and any persistence decision are deferred: M3 does not yet save rain wear, and a restart returns the existing accepted construction record without a new health delta.
 
 An accepted roof protects an actor only when the server's `ECC_Visibility` vertical trace from the actor's collision-centre plus 60 cm first hits an actor tagged `KalmalaShelterRoof` within 400 cm. The query ignores the protected actor itself, never accepts an untagged mesh, and is rerun by the server each environmental update; a client, construction transform, camera, or local overlap cannot assert roof protection. This deliberately shares the campfire protection distance and tag rather than introducing a second shelter classifier.
 
@@ -618,7 +618,7 @@ This increment uses the existing IsLit/effective-warmth interface. The later thr
 
 ### Construction rain-wear runtime
 
-Construction actors now replicate Health, initialized to 100 on a new actor. The one-second GameMode environmental update supplies trusted elapsed time and precipitation. Only initialized FloorKit, WallKit, WorkbenchKit and StorageKit actors participate; RoofKit and unknown kits are immune. Finite positive rain is clamped to one and causes 0.10 health/second at full intensity, bounded at 50. Zero rain and malformed inputs do nothing. The actor samples its own collision-centre +60 cm upward by 400 cm, ignoring itself; only a first blocking hit tagged KalmalaShelterRoof protects it. Protection stops further wear without healing. Clients receive health but local mutation calls are rejected before sampling or writing. Health changes do not rebuild mesh/collision, remove actors or modify construction/storage saves. Restoration into a new actor starts at 100; rain wear remains transient.
+Construction actors now replicate Health, initialized to 100 on a new actor. The one-second GameMode environmental update supplies trusted elapsed time and precipitation. Only initialized FloorKit, WallKit, WorkbenchKit, StorageKit and ReinforcedChestKit actors participate; RoofKit and unknown kits are immune. Finite positive rain is clamped to one and causes 0.10 health/second at full intensity, bounded at 50. Zero rain and malformed inputs do nothing. The actor samples its own collision-centre +60 cm upward by 400 cm, ignoring itself; only a first blocking hit tagged KalmalaShelterRoof protects it. Protection stops further wear without healing. Clients receive health but local mutation calls are rejected before sampling or writing. Health changes do not rebuild mesh/collision, remove actors or modify construction/storage saves. Restoration into a new actor starts at 100; rain wear remains transient.
 
 ### Three-state hearth runtime
 
@@ -1541,11 +1541,13 @@ remain session-only; replication stays owner-only. No save fields or versions ch
 
 Live grant, exchange, storage withdrawal and tool progression account for
 both tools and stacks within forty cells; equipped wearables stay outside that
-grid. World chest capacity remains sixteen
-stacks; its persistence validation and schema stay unchanged. No saved-data
-field or version changes. Grid arrangement and active selection are session
-state; reconnects rebuild arrangement from available holdings. Existing item
-and tool persistence limitations still apply.
+grid. The standard Chest keeps sixteen shared stacks; Reinforced Chest uses
+twenty-four with the same per-item limits and owner-only GUID transfer path.
+Storage schema 3 records the placed buildable identity so saved capacity is
+validated against the right chest. Older development storage schemas are
+rejected without rewrite under the pre-release save policy. Grid arrangement
+and active selection are session state; reconnects rebuild arrangement from
+available holdings. Existing item and tool persistence limitations still apply.
 
 The forty-cell and companion-panel contracts supersede older sixteen-slot player pack, separate toolbelt, searchable player-grid, and persistent item-detail panel descriptions. Legacy station/chest inspectors remain scoped to their respective services. M13 companion and scroll handoffs are implementation reports, not fresh integrated rendered acceptance.
 

@@ -137,6 +137,8 @@ public:
     /** Persist the scratch chest before publishing this pack; failed validation/writes mutate neither. */
     bool TransferStorageFromServer(const TArray<FKalmalaInventoryStack>& Storage, FGuid ItemGuid, bool bDeposit,
         TFunctionRef<bool(const TArray<FKalmalaInventoryStack>&)> Persist, FString& Reason);
+    bool TransferStorageFromServer(const TArray<FKalmalaInventoryStack>& Storage, FGuid ItemGuid, bool bDeposit,
+        int32 StorageCapacity, TFunctionRef<bool(const TArray<FKalmalaInventoryStack>&)> Persist, FString& Reason);
     /** Trusted type-based helper retained for server-side verification and inventory validation. */
     bool TransferStorageFromServer(const TArray<FKalmalaInventoryStack>& Storage, FName ItemId, bool bDeposit,
         TFunctionRef<bool(const TArray<FKalmalaInventoryStack>&)> Persist, FString& Reason);
