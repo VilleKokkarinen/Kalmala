@@ -33,11 +33,10 @@ Meadows selection, procedural presentation, an authority-validated 100 cm bite,
 and credited Bone Fragment/Rat Tail rewards. Full-pack Rat rewards stay in
 world-population save escrow until both items fit. Badger (100 health, 10 armor,
 20 Slash) now uses the reviewed 40% Elderwood common share, a generated low-poly
-silhouette, and a server-owned warning/claw cycle. Its baseline Bone Fragment
-reward is saved against the credited attacker's authenticated identity and
-delivered atomically when their pack can accept it; unclaimed rewards retry
-after reconnect or restart. Badger Fur and Badger Meat remain disabled while
-their A8b source-item tasks are incomplete. The server-side stat lookup covers
+silhouette, and a server-owned warning/claw cycle. Its Bone Fragment, Badger
+Fur, and Badger Meat reward bundle is saved against the credited attacker's
+authenticated identity and delivered atomically when their pack can accept it;
+unclaimed rewards retry after reconnect or restart. The server-side stat lookup covers
 all 17 reviewed A8a profiles; other planned species remain disabled.
 Listing a drop does not enable it or certify its A8b/A9 item/icon/source work.
 Rat's runtime peer/restart acceptance remains part of combined I4. The existing

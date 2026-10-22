@@ -20,7 +20,7 @@ BIOMES = {
 # These intentionally unresolved item references belong to A8b/A9. They must
 # never be interpreted as current, grantable inventory definitions.
 FUTURE_DROPS = {
-    "RatTail", "BadgerFur", "BadgerMeat", "Moonstone", "ViperFang",
+    "RatTail", "Moonstone", "ViperFang",
     "GiantScale", "DuskDiamond", "VenomSac", "PeatHeart", "WolfPelt",
     "WolfFang", "WolfMeat", "LynxPelt", "PolarBearPelt", "GoatHorn",
     "ThunderCore", "ReefTooth",

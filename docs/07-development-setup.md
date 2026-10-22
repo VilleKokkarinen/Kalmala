@@ -2261,7 +2261,9 @@ or identity-matched restart verification.
 
 The editor automation `Kalmala.Gameplay.Wildlife.Badger.SpawnAndClawReach`
 checks the deterministic 40% Elderwood share, attack bounds and timing, baseline
-Bone Fragment quantity, and serialized owner-bound reward-claim identity. After
+Bone Fragment quantity, and serialized owner-bound reward-claim identity. The
+pending claim now delivers one Bone Fragment, one Badger Fur, and one Badger
+Meat as a single all-or-none inventory bundle. After
 reload it also checks same-owner retry idempotency and rejects reassignment to a
 different owner. The server retains the Badger claim in the existing
 world-population pending-reward list until the authenticated owner's pack can
@@ -2270,7 +2272,7 @@ acceptance must still exercise a full-pack Badger defeat, later retry, restart,
 and relevant-peer privacy in Unreal. The editor contract test also fills all
 forty catalogue inventory cells, confirms the reward candidate is rejected
 without losing its queued claim, then frees the cells needed for one carried
-tool and verifies a retry candidate. This checks the inventory/save contract;
+tool and the complete reward bundle. This checks the inventory/save contract;
 it does not replace the live GameMode delivery, restart, or peer acceptance.
 
 ## Discovery peer privacy regression

@@ -100,7 +100,9 @@ bool FKalmalaWildlifeBadgerContractTest::RunTest(const FString& Parameters)
         {
             for (const FKalmalaItemDefinition& Definition : Catalogue->Items)
             {
-                if (Definition.ItemId.IsNone() || Definition.ItemId == TEXT("BoneFragment") || Definition.MaxStack <= 0)
+                if (Definition.ItemId.IsNone() || Definition.ItemId == TEXT("BoneFragment")
+                    || Definition.ItemId == TEXT("BadgerFur") || Definition.ItemId == TEXT("BadgerMeat")
+                    || Definition.MaxStack <= 0)
                     continue;
                 FKalmalaInventoryStack Stack;
                 Stack.ItemId = Definition.ItemId;
@@ -152,20 +154,29 @@ bool FKalmalaWildlifeBadgerContractTest::RunTest(const FString& Parameters)
                 {
                     TestFalse(TEXT("A full pack plus one carried tool exceeds capacity"),
                         Capacity->CanFitContents(FullPack, 1));
-                    FullPack.RemoveAt(0, 2);
-                    TestTrue(TEXT("Freeing two pack cells allows a carried tool and reward"),
+                    FullPack.RemoveAt(0, 4);
+                    TestTrue(TEXT("Freeing four pack cells allows a carried tool and Badger reward bundle"),
                         Capacity->CanFitContents(FullPack, 1));
 
+                    TArray<FKalmalaInventoryStack> WithBone;
+                    TArray<FKalmalaInventoryStack> WithFur;
                     TArray<FKalmalaInventoryStack> RetryCandidate;
                     FString RetryReason;
-                    TestTrue(TEXT("The Badger Bone Fragment candidate succeeds after a cell is freed"),
-                        UKalmalaInventoryComponent::BuildGrant(FullPack, TEXT("BoneFragment"), 1,
-                            RetryCandidate, RetryReason));
-                    const FKalmalaInventoryStack* BoneStack = RetryCandidate.FindByPredicate(
-                        [](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == TEXT("BoneFragment"); });
-                    TestTrue(TEXT("The retry candidate contains exactly one Bone Fragment"),
-                        BoneStack != nullptr && BoneStack->Quantity == 1);
-                    TestTrue(TEXT("The candidate and one carried tool fit together after retry"),
+                    const bool bBuiltBadgerBundle =
+                        UKalmalaInventoryComponent::BuildGrant(FullPack, TEXT("BoneFragment"), 1, WithBone, RetryReason)
+                        && UKalmalaInventoryComponent::BuildGrant(WithBone, TEXT("BadgerFur"), 1, WithFur, RetryReason)
+                        && UKalmalaInventoryComponent::BuildGrant(WithFur, TEXT("BadgerMeat"), 1, RetryCandidate, RetryReason);
+                    TestTrue(TEXT("The Badger reward bundle succeeds after cells are freed"), bBuiltBadgerBundle);
+                    const auto HasOne = [&RetryCandidate](const FName ItemId)
+                    {
+                        const FKalmalaInventoryStack* Stack = RetryCandidate.FindByPredicate(
+                            [ItemId](const FKalmalaInventoryStack& Candidate) { return Candidate.ItemId == ItemId; });
+                        return Stack != nullptr && Stack->Quantity == 1;
+                    };
+                    TestTrue(TEXT("The retry bundle contains one Bone Fragment"), HasOne(TEXT("BoneFragment")));
+                    TestTrue(TEXT("The retry bundle contains one Badger Fur"), HasOne(TEXT("BadgerFur")));
+                    TestTrue(TEXT("The retry bundle contains one Badger Meat"), HasOne(TEXT("BadgerMeat")));
+                    TestTrue(TEXT("The bundle and one carried tool fit together after retry"),
                         Capacity->CanFitContents(RetryCandidate, 1));
                     TestEqual(TEXT("The durable claim remains queued through candidate preparation"),
                         Reloaded->GetPendingWildlifeRewards().Num(), 1);

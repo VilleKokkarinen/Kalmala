@@ -193,7 +193,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [x] Restrict boar/deer spawns to Meadows, Elderwood and Shimmering Lakes only.
   - [x] Apply the overview's revised stats to existing boar/deer and all A8a enemies.
   - [x] Meadows: Rat
-  - [ ] Elderwood: Badger
+  - [x] Elderwood: Badger
   - [ ] Elderwood: Moon Bear — rare hard enemy;
   - [ ] Shimmering Lakes: Viper — lunging bite applies weak poison for 5 s.
   - [ ] Shimmering Lakes: Giant Snake — rare hard shoreline ambusher; powerful lunging bite.
@@ -246,8 +246,8 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - Grouped icon batch completed 2026-10-22 in one feature commit by user direction; originals, preparation, imports, mapping and focused coverage are recorded in `docs/a8b-icon-batch.md`. The 30 item/source rows remain open.
   - [ ] Rat Tail: Rat, 1 guaranteed; material + source + JSON + generated icon.
     - Original icon, mapping, and import are complete; item remains open until Rat has an accepted runtime drop.
-  - [ ] Badger Fur: Badger, 1 guaranteed; material + source + JSON + generated icon.
-  - [ ] Badger Meat: Badger, 1 guaranteed; material + source + JSON + generated icon.
+  - [x] Badger Fur: Badger, 1 guaranteed; material + source + JSON + generated icon.
+  - [x] Badger Meat: Badger, 1 guaranteed; material + source + JSON + generated icon.
   - [ ] Viper Fang: Viper, 1 guaranteed; material + source + JSON + generated icon.
   - [ ] Giant Scale: Giant Snake, 2 guaranteed; material + source + JSON + generated icon.
   - [ ] Venom Sac: Death Adder, 1 guaranteed; material + source + JSON + generated icon.
@@ -261,8 +261,8 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [ ] Thunder Core: Thunder Sentinel, 25% chance of 1; material + source + JSON + generated icon.
   - [ ] Reef Tooth: Reef Maw, 50% chance of 1; material + source + JSON + generated icon.
   - [ ] Rat-tail Tonic: Cauldron, 2 Rat Tail + 2 Lingonberry → 1; heal 30 over 10 s; reject full health/active healing, stop on death, share the 60 s A6 recovery cooldown.
-  - [ ] Badger Fur Vest: Workbench, 6 Badger Fur → 1; Chest, 6 Armor.
-  - [ ] Roasted Badger: Cooking Rack, 1 Badger Meat → 1; Steady Meal.
+  - [x] Badger Fur Vest: Workbench, 6 Badger Fur → 1; Chest, 6 Armor.
+  - [x] Roasted Badger: Cooking Rack, 1 Badger Meat → 1; Steady Meal.
   - [ ] Fang Arrows: Workbench, 2 Viper Fang + 10 Wood → 20; 50 Pierce, weak poison 5 s.
   - [ ] Scale Cuirass: Forge, 10 Giant Scale + 10 Bronze → 1; Chest, 20 Armor.
   - [ ] Antidote: Cauldron, 1 Venom Sac + 2 Lingonberry → 1; clear weak poison, reduce major poison to weak, resist poison for 10 min; share the 60 s A6 recovery cooldown.

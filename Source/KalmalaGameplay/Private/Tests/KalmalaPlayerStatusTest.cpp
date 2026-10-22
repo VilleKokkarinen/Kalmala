@@ -164,7 +164,8 @@ bool FKalmalaSteadyMealStatusTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Unknown items cannot create food effects"), UKalmalaPlayerStatusComponent::ApplyFood(Entries, TEXT("Wood")));
     const FName CurrentCookingOutputs[] = {
         FName(TEXT("CookedBoarMeat")), FName(TEXT("CookedDeerMeat")), FName(TEXT("MeatStew")),
-        FName(TEXT("RootVegetableSoup")), FName(TEXT("RoastedRootVegetables")), FName(TEXT("DeerRootRoast"))
+        FName(TEXT("RootVegetableSoup")), FName(TEXT("RoastedRootVegetables")), FName(TEXT("DeerRootRoast")),
+        FName(TEXT("RoastedBadger"))
     };
     for (const FName FoodId : CurrentCookingOutputs)
     {

@@ -2552,13 +2552,23 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
 
             const TArray<FKalmalaInventoryStack> Before = Inventory->GetStacks();
             TArray<FKalmalaInventoryStack> WithBone;
+            TArray<FKalmalaInventoryStack> WithBadgerFur;
             TArray<FKalmalaInventoryStack> Candidate;
             FString Reason;
             if (!UKalmalaInventoryComponent::BuildGrant(Before, TEXT("BoneFragment"), 1, WithBone, Reason)) break;
-            Candidate = WithBone;
-            if ((!bBadgerReward && !UKalmalaInventoryComponent::BuildGrant(
-                    WithBone, TEXT("RatTail"), 1, Candidate, Reason))
-                || !Inventory->CanFitContents(Candidate, Inventory->CountPackedTools(Character->GetCarriedToolInventory()))
+            if (bBadgerReward)
+            {
+                TArray<FKalmalaInventoryStack> WithBadgerMeat;
+                if (!UKalmalaInventoryComponent::BuildGrant(WithBone, TEXT("BadgerFur"), 1, WithBadgerFur, Reason)
+                    || !UKalmalaInventoryComponent::BuildGrant(
+                        WithBadgerFur, TEXT("BadgerMeat"), 1, WithBadgerMeat, Reason)) break;
+                Candidate = MoveTemp(WithBadgerMeat);
+            }
+            else if (!UKalmalaInventoryComponent::BuildGrant(WithBone, TEXT("RatTail"), 1, Candidate, Reason))
+            {
+                break;
+            }
+            if (!Inventory->CanFitContents(Candidate, Inventory->CountPackedTools(Character->GetCarriedToolInventory()))
                 || !Inventory->TryCommitStacksFromServer(Before, Candidate)) break;
 
             // The reward claim ID is durable; keep a session guard if cleanup fails after the

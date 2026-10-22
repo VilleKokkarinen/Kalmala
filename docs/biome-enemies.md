@@ -11,18 +11,17 @@ biomes below. Runtime health, armor, and base attack values match this table for
 the existing Boar, Deer, and Mireling actors. Rat now uses a deterministic 10%
 Meadows spawn share, its server-owned short-range bite, and credited Bone
 Fragment/Rat Tail rewards. Badger now uses its deterministic 40% Elderwood
-common share, a distinct procedural silhouette, and a server-owned claw cycle;
-credited defeats queue the approved baseline Bone Fragment for the authenticated
-attacker until their pack can accept it. Its unique Fur and Meat rewards remain
-disabled pending their A8b source-item tasks. Mireling's biome restriction
-remains planned.
+common share, a distinct procedural silhouette, and a server-owned claw cycle.
+Credited defeats queue the approved Bone Fragment, Badger Fur, and Badger Meat
+together for the authenticated attacker until their pack can accept the complete
+bundle. Mireling's biome restriction remains planned.
 
 | Enemy               | Biome                                  | Status           | HP   | Armor | Attack       | Abilities / counters                |
 | ------------------- | -------------------------------------- | ---------------- | ---: | ----: | ------------ | ----------------------------------- |
 | Boar                | Meadows / Elderwood / Shimmering Lakes | Current          |  20  |   5   | 10 Crush     | Territorial charge                  |
 | Deer                | Meadows / Elderwood / Shimmering Lakes | Current          |  30  |   5   | —            | Flees; fleeing alerts nearby deer   |
 | Rat                 | Meadows                                | Current          |  10  |   0   | 5 Pierce     | 3 m approach trigger; 100 cm bite   |
-| Badger              | Elderwood                              | Partial          |  100 |   10  | 20 Slash     | 3 m warning; 180 cm claws; queued Bone Fragment; Fur/Meat pending |
+| Badger              | Elderwood                              | Partial          |  100 |   10  | 20 Slash     | 3 m warning; 180 cm claws; queued Bone Fragment, Fur, and Meat; I4 pending |
 | Moon Bear           | Elderwood                              | Planned          |  250 |   20  | 75 Crush     | Slow overhead strike; 2% Moonstone  |
 | Viper               | Shimmering Lakes                       | Planned          |  100 |   10  | 50 Stab      | Weak poison: 1/s, 5 s               |
 | Giant Snake         | Shimmering Lakes                       | Planned          |  250 |   30  | 100 Stab     | Coiled lunge; slow recovery         |

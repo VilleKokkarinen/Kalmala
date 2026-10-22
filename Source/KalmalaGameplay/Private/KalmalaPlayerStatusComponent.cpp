@@ -85,7 +85,7 @@ bool UKalmalaPlayerStatusComponent::IsKnownFoodItem(const FName ItemId)
         || ItemId == MeatStewItemId || ItemId == RootVegetableSoupItemId
         || ItemId == RoastedRootVegetablesItemId || ItemId == DeerRootRoastItemId
         || ItemId == HearthBrothItemId || ItemId == LingonberryItemId
-        || ItemId == ForestChanterelleItemId;
+        || ItemId == ForestChanterelleItemId || ItemId == TEXT("RoastedBadger");
 }
 
 bool UKalmalaPlayerStatusComponent::ApplyFood(TArray<FKalmalaPlayerStatusEntry>& Entries, const FName ItemId)
