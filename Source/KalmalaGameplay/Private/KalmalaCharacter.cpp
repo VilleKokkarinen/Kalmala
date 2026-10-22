@@ -223,10 +223,15 @@ bool AKalmalaCharacter::ApplyWildlifeDamageFromServer(const AActor* SourceActor,
     return ApplyWildlifeDamageFromServer(SourceActor, Channels);
 }
 
+bool AKalmalaCharacter::IsWildlifeDamageWithinBounds(const FKalmalaDamageChannels& Damage)
+{
+    return Damage.IsValid() && Damage.Total() > 0.0f && Damage.Total() <= MaximumWildlifeHitDamage;
+}
+
 bool AKalmalaCharacter::ApplyWildlifeDamageFromServer(const AActor* SourceActor, const FKalmalaDamageChannels& Damage)
 {
     if (!HasAuthority() || !IsValid(SourceActor) || !SourceActor->HasAuthority() || SourceActor->GetWorld() != GetWorld()
-        || !Damage.IsValid() || Damage.Total() <= 0.0f || Damage.Total() > 25.0f
+        || !IsWildlifeDamageWithinBounds(Damage)
         || FVector::DistSquared(SourceActor->GetActorLocation(), GetActorLocation()) > FMath::Square(180.0f)) return false;
     // The first Mireling creates recoverable pressure; player defeat/respawn remains a later policy decision.
     const UKalmalaResistanceComponent* Defenses = FindComponentByClass<UKalmalaResistanceComponent>();

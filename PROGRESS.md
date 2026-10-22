@@ -5258,3 +5258,14 @@
 - **Observable impact and authority:** existing actors now use the reviewed combat values. Health/armor are assigned during server-authoritative initialization; current replicated health behavior is unchanged. No client-controlled stats, RPCs, replication fields, or save data changed.
 - **Known limitations/remaining scope:** fourteen planned A8a enemies still need runtime profiles; Mireling biome restrictions and all new enemy behaviors remain open. The selected stats child is not complete. A9 remains gated on integrated A8a/A8b and I4 verification.
 - **Next eligible task:** continue the A8a revised-stats child for planned enemy runtime profiles, then implement the first unchecked enemy task. Current run time: 2026-10-22 06:32 UTC.
+
+## Run 2026-10-22 06:38 UTC — A8a wildlife hit validation bound
+
+- **Selected task:** apply the overview's revised stats to existing boar/deer and all A8a enemies.
+- **Work completed:** raised the server-side wildlife-to-player damage bound from 25 to the approved maximum of 300 total damage channels. Factored the bound into a focused validator and added boundary assertions for current 25-damage pressure, exactly 300, above 300, empty input, and non-finite input. Updated the creature-catalogue implementation note. The broad stats child remains open; this increment does not add the remaining enemy runtime profiles.
+- **Files changed:** `Source/KalmalaGameplay/Public/KalmalaCharacter.h`; `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp`; `Source/KalmalaGameplay/Private/Tests/KalmalaDamageProfileTest.cpp`; `docs/creature-catalogues.md`; `PROGRESS.md`.
+- **Lightweight checks:** `python Scripts/Validate-CreatureCatalogues.py` passed for all 17 profiles; focused source assertions verified the 300-damage constant, application gate and boundary coverage; `git diff --check` passed; changed paths are below 260 characters.
+- **Full verification:** the added Unreal automation assertions were not executed. No Unreal build or runtime test ran; combined A8a/A8b/I4 milestone-final verification remains deferred.
+- **Observable impact and authority:** server-validated wildlife attacks can now apply the reviewed maximum 300 total damage, supporting the Thunder Sentinel profile. Source actor authority, world/range checks and damage-channel validity remain required. No RPC, replication or save data changed.
+- **Known limitations/remaining scope:** runtime profiles and enemy behaviors for fourteen planned A8a species remain open. The selected stats child remains unchecked; A9 remains gated on integrated A8a/A8b and successful I4 verification. The authorized A8b run was isolated in its own worktree; no integration or handoff was performed here.
+- **Next eligible task:** continue the A8a revised-stats child for planned enemy runtime profiles. Current run time: 2026-10-22 06:38 UTC.
