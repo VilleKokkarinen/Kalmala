@@ -2391,6 +2391,19 @@ production three-dimensional melee-range proof. A single rendered live run with 
 late-join/reconnect presentation, and a persisted return state remains the
 final M4 acceptance step.
 
+## Mireling Mossy Mire spawn regression
+
+The editor automation
+`Kalmala.Gameplay.Wildlife.Mireling.MossyMireShareAndHabitat` checks the 50%
+Mireling candidate share, the retained Meadows/Elderwood/Shimmering Lakes
+species proportions, rejection of Mireling outside Mossy Mire, and the dry
+Mossy Mire habitat gate. The remaining Mossy Mire slots intentionally remain
+unspawned until their own species increments. It also confirms the baseline
+Bone Fragment quantity. Existing reward and boss-scroll code remains unchanged.
+This contract source is not live-spawn, reward, or peer acceptance; run the
+M4/M5 Mireling harness and combined A8a/A8b I4 checks after an editor build.
+No Unreal build or automation execution ran in this increment.
+
 ## Exposure inspection
 
 Launch a listen server with `-KalmalaExposureInspection` to log server-sampled terrain and field inputs plus the active replicated weather values and provisional exposure state. Once a player joins, the output includes continuous low-ground wetness, deterministic lake-adjacency shoreline wetness, ridge/slope wind exposure, Flora-derived natural cover, and server-traced roof/windbreak shelter inputs. Player-built collision geometry must carry `KalmalaShelterRoof` or `KalmalaShelterWindbreak`; authored volumes and client trace results are ignored. The weather cycle is selected and advanced only by the server. Every second, the server replicates actual wetness, warmth, and the resulting 69–100% Character Movement travel multiplier; shelter dries and restores warmth slowly when dry, while a nearby lit fire accelerates recovery.

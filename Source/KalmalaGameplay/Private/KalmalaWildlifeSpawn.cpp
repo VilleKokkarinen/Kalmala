@@ -500,23 +500,44 @@ EKalmalaWildlifeArchetype AKalmalaWildlifeSpawn::GetArchetypeForSpawnSeed(const 
     return EKalmalaWildlifeArchetype::Mireling;
 }
 
+bool AKalmalaWildlifeSpawn::IsMirelingSpawnHabitatAllowed(const EKalmalaBiome Biome, const bool bIsWater)
+{
+    return Biome == EKalmalaBiome::MossyMire && !bIsWater;
+}
+
 bool AKalmalaWildlifeSpawn::TryGetSpawnArchetypeForBiome(const uint64 SpawnSeed, const EKalmalaBiome Biome,
     EKalmalaWildlifeArchetype& OutArchetype)
 {
-    if (Biome == EKalmalaBiome::Meadows && SpawnSeed % 10ull == 9ull)
+    const uint64 Slot = SpawnSeed % 10ull;
+    if (Biome == EKalmalaBiome::Meadows)
     {
-        OutArchetype = EKalmalaWildlifeArchetype::Rat;
-        return true;
+        // Keep the 90% Boar/Deer share local; Rat owns the tenth slot.
+        switch (Slot)
+        {
+        case 0: case 2: case 4: case 6: case 8:
+            OutArchetype = EKalmalaWildlifeArchetype::Boar;
+            return true;
+        case 1: case 3: case 5: case 7:
+            OutArchetype = EKalmalaWildlifeArchetype::Deer;
+            return true;
+        case 9:
+            OutArchetype = EKalmalaWildlifeArchetype::Rat;
+            return true;
+        default:
+            return false;
+        }
     }
 
     if (Biome == EKalmalaBiome::Elderwood)
     {
-        // Keep the existing roster at 50%, use Badger for the 40% common share,
-        // and leave the 10% hard-enemy share empty until its species is ready.
-        switch (SpawnSeed % 10ull)
+        // Retain a local Boar/Deer roster; Mireling is reserved for Mossy Mire.
+        switch (Slot)
         {
-        case 0: case 1: case 2: case 3: case 4:
-            OutArchetype = GetArchetypeForSpawnSeed(SpawnSeed);
+        case 0: case 2: case 4:
+            OutArchetype = EKalmalaWildlifeArchetype::Boar;
+            return true;
+        case 1: case 3:
+            OutArchetype = EKalmalaWildlifeArchetype::Deer;
             return true;
         case 5: case 6: case 7: case 8:
             OutArchetype = EKalmalaWildlifeArchetype::Badger;
@@ -533,7 +554,7 @@ bool AKalmalaWildlifeSpawn::TryGetSpawnArchetypeForBiome(const uint64 SpawnSeed,
     {
         // Assign the 50/40/10 candidate-slot mix directly from the stable seed.
         // The first five of ten slots retain the existing Boar/Deer roster.
-        switch (SpawnSeed % 10ull)
+        switch (Slot)
         {
         case 0: case 2: case 4: OutArchetype = EKalmalaWildlifeArchetype::Boar; return true;
         case 1: case 3: OutArchetype = EKalmalaWildlifeArchetype::Deer; return true;
@@ -543,11 +564,14 @@ bool AKalmalaWildlifeSpawn::TryGetSpawnArchetypeForBiome(const uint64 SpawnSeed,
         }
     }
 
-    const bool bBoarDeerBiome = Biome == EKalmalaBiome::Meadows || Biome == EKalmalaBiome::Elderwood;
-    if (!bBoarDeerBiome && (SpawnSeed % 3ull == 0ull || SpawnSeed % 5ull == 1ull)) return false;
+    if (Biome == EKalmalaBiome::MossyMire && Slot <= 4)
+    {
+        OutArchetype = EKalmalaWildlifeArchetype::Mireling;
+        return true;
+    }
 
-    OutArchetype = GetArchetypeForSpawnSeed(SpawnSeed);
-    return true;
+    // Reserve remaining Mire slots; unsupported biomes produce no wildlife candidates.
+    return false;
 }
 
 bool AKalmalaWildlifeSpawn::IsBoarChargeAllowed(const bool bServerAuthority, const bool bAlreadyDefeated, const bool bAtRest, const float DistanceToRestingArea)

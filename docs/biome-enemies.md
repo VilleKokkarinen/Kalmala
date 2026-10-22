@@ -20,8 +20,8 @@ Bone Fragments for the credited attacker. Viper fills 40% of Shimmering Lakes'
 shoreline slots, uses a server-owned lunge that applies the shared five-second
 weak-poison effect on an accepted bite, and queues one Bone Fragment for the
 credited attacker. Giant Snake fills the remaining 10% hard slot with a
-dry-shore lunge and a durable two-fragment baseline claim. Mireling's biome
-restriction remains planned.
+dry-shore lunge and a durable two-fragment baseline claim. Mireling now fills
+50% of Mossy Mire candidate slots and is restricted to dry ground in that biome.
 
 | Enemy               | Biome                                  | Status           | HP   | Armor | Attack       | Abilities / counters                |
 | ------------------- | -------------------------------------- | ---------------- | ---: | ----: | ------------ | ----------------------------------- |
@@ -32,7 +32,7 @@ restriction remains planned.
 | Moon Bear           | Elderwood                              | Partial          |  250 |   20  | 75 Crush     | 3 m warning; 220 cm overhead paw; 1.2 s recovery; queued 3 Bone Fragment; I4 pending |
 | Viper               | Shimmering Lakes                       | Partial          |  100 |   10  | 50 Stab      | 40% dry-shore slots; 180 cm lunge; weak poison: 1/s, 5 s; queued Bone Fragment; I4 pending |
 | Giant Snake         | Shimmering Lakes                       | Partial          |  250 |   30  | 100 Stab     | 10% dry-shore hard slot; coiled 360 cm lunge; 1 s warning; 1.2 s recovery; queued 2 Bone Fragment; I4 pending |
-| Mireling            | Mossy Mire                             | Planned          |  75  |   15  | 20 Crush     | Weak base enemy; simple melee       |
+| Mireling            | Mossy Mire                             | Partial          |  75  |   15  | 20 Crush     | 50% dry-ground share; server simple melee; boss-scroll path unchanged; I4 pending |
 | Death Adder         | Mossy Mire                             | Planned          |  125 |   20  | 75 Stab      | Major poison: 5/s, 10 s             |
 | Mosquito swarm      | Mossy Mire                             | Planned          |  25  |   0   | 5 Stab/0.2 s | Poison: 1/s, 10 s; roll/fire repels |
 | Peat Husk           | Mossy Mire                             | Planned          |  300 |   50  | 150 Crush    | Slow sweeping arm                   |
@@ -42,6 +42,13 @@ restriction remains planned.
 | Horned Goat         | Thunder Mountains                      | Planned          |  200 |   50  | 50 Crush     | Territorial horn charge, push + stagger |
 | Thunder Sentinel    | Thunder Mountains                      | Planned          |  1250|   75  | 300 Crush    | Slow downward slam                  |
 | Reef Maw            | Ocean                                  | Planned          |  180 |   2   | 50 Stab      | Swimmer hunter                      |
+
+Mireling uses the reviewed 75-health, 15-armor, 20-Crush profile. Its
+deterministic 50% Mossy Mire share is limited to dry spawn surfaces; all other
+biomes reject Mireling seeds, and the remaining Mossy Mire slots stay empty
+until their separate species tasks are implemented. The existing melee and
+optional server-owned boss-scroll reward are unchanged. The planned 1% Dusk
+Diamond source remains an A9 task and is not enabled here.
 
 Moon Bear uses its reviewed server-side stat profile (250 health, 20 armor,
 75 Crush). Its seeded spawn slot, dry-Elderwood eligibility, 150 m player-start

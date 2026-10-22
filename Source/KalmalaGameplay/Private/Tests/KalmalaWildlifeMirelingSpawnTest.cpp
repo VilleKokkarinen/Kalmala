@@ -1,0 +1,115 @@
+#if WITH_DEV_AUTOMATION_TESTS
+
+#include "KalmalaWildlifeSpawn.h"
+#include "Misc/AutomationTest.h"
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaWildlifeMirelingSpawnTest,
+    "Kalmala.Gameplay.Wildlife.Mireling.MossyMireShareAndHabitat",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FKalmalaWildlifeMirelingSpawnTest::RunTest(const FString& Parameters)
+{
+    int32 MeadowsBoar = 0;
+    int32 MeadowsDeer = 0;
+    int32 MeadowsRat = 0;
+    int32 ElderwoodBoar = 0;
+    int32 ElderwoodDeer = 0;
+    int32 ElderwoodBadger = 0;
+    int32 ElderwoodMoonBear = 0;
+    int32 LakeBoar = 0;
+    int32 LakeDeer = 0;
+    int32 LakeViper = 0;
+    int32 LakeGiantSnake = 0;
+    int32 MirelingSlots = 0;
+    int32 ReservedMireSlots = 0;
+    for (uint64 Seed = 0; Seed < 1000; ++Seed)
+    {
+        EKalmalaWildlifeArchetype Archetype = EKalmalaWildlifeArchetype::Mireling;
+        TestTrue(TEXT("Meadows seed retains a wildlife candidate"),
+            AKalmalaWildlifeSpawn::TryGetSpawnArchetypeForBiome(Seed, EKalmalaBiome::Meadows, Archetype));
+        TestTrue(TEXT("Meadows selects only Boar, Deer, or Rat"),
+            Archetype == EKalmalaWildlifeArchetype::Boar || Archetype == EKalmalaWildlifeArchetype::Deer
+                || Archetype == EKalmalaWildlifeArchetype::Rat);
+        if (Archetype == EKalmalaWildlifeArchetype::Boar) ++MeadowsBoar;
+        else if (Archetype == EKalmalaWildlifeArchetype::Deer) ++MeadowsDeer;
+        else if (Archetype == EKalmalaWildlifeArchetype::Rat) ++MeadowsRat;
+
+        TestTrue(TEXT("Elderwood seed retains a wildlife candidate"),
+            AKalmalaWildlifeSpawn::TryGetSpawnArchetypeForBiome(Seed, EKalmalaBiome::Elderwood, Archetype));
+        TestTrue(TEXT("Elderwood selects only its reviewed roster"),
+            Archetype == EKalmalaWildlifeArchetype::Boar || Archetype == EKalmalaWildlifeArchetype::Deer
+                || Archetype == EKalmalaWildlifeArchetype::Badger
+                || Archetype == EKalmalaWildlifeArchetype::MoonBear);
+        if (Archetype == EKalmalaWildlifeArchetype::Boar) ++ElderwoodBoar;
+        else if (Archetype == EKalmalaWildlifeArchetype::Deer) ++ElderwoodDeer;
+        else if (Archetype == EKalmalaWildlifeArchetype::Badger) ++ElderwoodBadger;
+        else if (Archetype == EKalmalaWildlifeArchetype::MoonBear) ++ElderwoodMoonBear;
+
+        TestTrue(TEXT("Shimmering Lakes seed retains a wildlife candidate"),
+            AKalmalaWildlifeSpawn::TryGetSpawnArchetypeForBiome(Seed, EKalmalaBiome::ShimmeringLakes, Archetype));
+        TestTrue(TEXT("Shimmering Lakes selects only its reviewed roster"),
+            Archetype == EKalmalaWildlifeArchetype::Boar || Archetype == EKalmalaWildlifeArchetype::Deer
+                || Archetype == EKalmalaWildlifeArchetype::Viper
+                || Archetype == EKalmalaWildlifeArchetype::GiantSnake);
+        if (Archetype == EKalmalaWildlifeArchetype::Boar) ++LakeBoar;
+        else if (Archetype == EKalmalaWildlifeArchetype::Deer) ++LakeDeer;
+        else if (Archetype == EKalmalaWildlifeArchetype::Viper) ++LakeViper;
+        else if (Archetype == EKalmalaWildlifeArchetype::GiantSnake) ++LakeGiantSnake;
+
+        const bool bMireEligible = AKalmalaWildlifeSpawn::TryGetSpawnArchetypeForBiome(
+            Seed, EKalmalaBiome::MossyMire, Archetype);
+        if (Seed % 10ull < 5ull)
+        {
+            TestTrue(TEXT("Mossy Mire's first half selects its frequent Mireling"), bMireEligible);
+            TestEqual(TEXT("The 50% Mossy Mire share is Mireling"), Archetype,
+                EKalmalaWildlifeArchetype::Mireling);
+            ++MirelingSlots;
+        }
+        else
+        {
+            TestFalse(TEXT("Unimplemented Mossy Mire enemy shares remain unspawned"), bMireEligible);
+            ++ReservedMireSlots;
+        }
+    }
+
+    TestEqual(TEXT("Meadows keeps its 50% Boar share"), MeadowsBoar, 500);
+    TestEqual(TEXT("Meadows keeps its 40% Deer share"), MeadowsDeer, 400);
+    TestEqual(TEXT("Meadows keeps its 10% Rat share"), MeadowsRat, 100);
+    TestEqual(TEXT("Elderwood keeps 30% Boar"), ElderwoodBoar, 300);
+    TestEqual(TEXT("Elderwood keeps 20% Deer"), ElderwoodDeer, 200);
+    TestEqual(TEXT("Elderwood keeps its 40% Badger share"), ElderwoodBadger, 400);
+    TestEqual(TEXT("Elderwood keeps its 10% Moon Bear share"), ElderwoodMoonBear, 100);
+    TestEqual(TEXT("Shimmering Lakes keeps 30% Boar"), LakeBoar, 300);
+    TestEqual(TEXT("Shimmering Lakes keeps 20% Deer"), LakeDeer, 200);
+    TestEqual(TEXT("Shimmering Lakes keeps its 40% Viper share"), LakeViper, 400);
+    TestEqual(TEXT("Shimmering Lakes keeps its 10% Giant Snake share"), LakeGiantSnake, 100);
+    TestEqual(TEXT("Mireling occupies exactly half the Mossy Mire slots"), MirelingSlots, 500);
+    TestEqual(TEXT("Remaining Mossy Mire shares stay reserved for later species"), ReservedMireSlots, 500);
+
+    for (const EKalmalaBiome OtherBiome : { EKalmalaBiome::Meadows, EKalmalaBiome::Elderwood,
+             EKalmalaBiome::ShimmeringLakes, EKalmalaBiome::FreezingTundra,
+             EKalmalaBiome::ThunderMountains, EKalmalaBiome::Ocean })
+    {
+        for (uint64 Seed = 0; Seed < 100; ++Seed)
+        {
+            EKalmalaWildlifeArchetype OtherArchetype = EKalmalaWildlifeArchetype::Mireling;
+            if (AKalmalaWildlifeSpawn::TryGetSpawnArchetypeForBiome(Seed, OtherBiome, OtherArchetype))
+            {
+                TestFalse(TEXT("Mireling cannot be selected outside Mossy Mire"),
+                    OtherArchetype == EKalmalaWildlifeArchetype::Mireling);
+            }
+        }
+    }
+
+    TestTrue(TEXT("Dry Mossy Mire is a valid Mireling habitat"),
+        AKalmalaWildlifeSpawn::IsMirelingSpawnHabitatAllowed(EKalmalaBiome::MossyMire, false));
+    TestFalse(TEXT("Water is not a valid Mireling spawn surface"),
+        AKalmalaWildlifeSpawn::IsMirelingSpawnHabitatAllowed(EKalmalaBiome::MossyMire, true));
+    TestFalse(TEXT("Dry terrain in another biome is not a Mireling habitat"),
+        AKalmalaWildlifeSpawn::IsMirelingSpawnHabitatAllowed(EKalmalaBiome::Meadows, false));
+    TestEqual(TEXT("The existing Mireling leaves baseline Bone Fragment loot unchanged"),
+        AKalmalaWildlifeSpawn::GetBoneFragmentRewardQuantity(EKalmalaWildlifeArchetype::Mireling), 0);
+    return true;
+}
+
+#endif

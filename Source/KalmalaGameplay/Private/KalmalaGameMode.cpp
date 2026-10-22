@@ -96,6 +96,12 @@ namespace KalmalaGameMode
         {
             return false;
         }
+        if (OutArchetype == EKalmalaWildlifeArchetype::Mireling)
+        {
+            const bool bWater = FKalmalaOceanSampler::Sample(Config, Position).IsWater()
+                || FKalmalaShimmeringLakeSampler::IsWater(Config, Position);
+            return AKalmalaWildlifeSpawn::IsMirelingSpawnHabitatAllowed(SpawnBiome, bWater);
+        }
         if (OutArchetype == EKalmalaWildlifeArchetype::Viper || OutArchetype == EKalmalaWildlifeArchetype::GiantSnake)
         {
             const bool bWater = FKalmalaOceanSampler::Sample(Config, Position).IsWater()
