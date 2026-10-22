@@ -4973,3 +4973,14 @@
 - **Observable impact and authority:** no gameplay, networking, save, or authority behavior changed; the reviewed scope keeps recovery on Cauldron and avoids duplicate station ownership.
 - **Known limitations and remaining scope:** A8a/A8b and I4 verification remain pending. ReinforcedChest remains in the A8 detail table without a dedicated backlog child; this run did not add or implement that scope. A9 remains blocked until combined A8a/A8b and I4 verification pass.
 - **Next eligible task:** A8a review the expanded enemy roster, spawn weights, attack and loot rules. Current run time: 2026-10-21 18:43 UTC.
+
+## Run 2026-10-22 04:51 UTC — A8a roster, spawn, attack and loot review
+
+- **Selected task:** A8a review of the expanded roster, spawn weights, and attack/loot rules. Checked only this existing backlog child.
+- **Work completed:** cross-checked all 17 creature profiles against the overview and detailed rules. Clarified in `docs/biome-enemies.md` that Mossy Mire and Freezing Tundra weights are overall candidate-slot weights, and aligned Wolf pack behavior with the approved three-Wolf backlog rule while keeping pack implementation in engine scope. Confirmed current drop profiles preserve the listed baseline/unique quantities and chances; unresolved Horned Goat push/stagger tuning and Reef Maw aquatic support remain explicitly gated.
+- **Files changed by this run:** `docs/biome-enemies.md`; `BACKLOG.md`; `PROGRESS.md`.
+- **Checks:** `python Scripts/Validate-CreatureCatalogues.py` passed for all 17 unique profiles, one Wolf, stats, attacks, drop references, poison, biome identities, and manifest JSON. Manually compared the profile summary with the roster and drop tables. `git diff --check` passed.
+- **Full verification:** deferred to the integrated I4 milestone-final gate; no Unreal build, runtime automation, rendering, or multiplayer test ran.
+- **Observable impact and authority:** documentation and backlog review only. Creature data remains authoring-only; runtime spawn, combat, poison, and loot remain server-side implementation work. No gameplay, networking, replication, or save behavior changed.
+- **Known limitations/remaining scope:** Wolf pack formation and actor selection are not implemented; Horned Goat push distance/stagger duration still require approval before implementation; Reef Maw remains gated on aquatic navigation, combat, and reward support. A8a/A8b and the combined I4 gate remain incomplete, so A9 must not start.
+- **Next eligible task:** A8a review unique enemy drops and uses. Current run time: 2026-10-22 04:51 UTC.

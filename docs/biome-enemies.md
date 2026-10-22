@@ -170,20 +170,22 @@ and original inventory icons before implementation; the uses are not recipes.
   regenerated/reloaded population candidates; seed selection cannot bypass it.
   This controls spawn origin, not a new movement barrier. Use the revised
   stats below; retain other behavior and loot. Verify biome filtering across fixed seeds.
-- Proposed selection: Meadows 90% existing roster / 10% Rat. Each other
-  land biome: 50% existing eligible roster / 40% new common enemy / 10% new
-  hard enemy. If there is no eligible existing entry, leave that share empty;
-  do not import creatures from another biome. Each new spawn is one enemy
-  actor; a mosquito spawn is one swarm actor with multiple cosmetic insects.
+- Proposed selection weights are percentages of eligible candidate slots.
+  Meadows uses 90% existing roster / 10% Rat. Each other land biome allocates
+  50% to its existing eligible roster, 40% to new common enemies, and 10% to
+  new hard enemies. If no existing entry is eligible, leave that share empty;
+  do not import creatures from another biome. Spawned actors use the existing
+  actor budget. A mosquito swarm is one gameplay actor with cosmetic insects.
 - Mirelings spawn **only in Mossy Mire**, including seeded/reloaded candidates.
   Use the same server-side spawn-origin allowlist policy as boar/deer.
-- Mossy Mire splits its common share: 50% Mireling / 20% Death Adder /
-  20% Mosquito swarm / 10% Peat Husk. Keep the existing actor budget;
-  the visual insects do not create extra gameplay actors or damage sources.
-- Freezing Tundra splits its common share: 50% existing roster / 20%
-  Wolf / 20% Lynx / 10% Polar Bear. Elderwood uses Badger for
-  its 40% common share. Wolves spawn only in Freezing Tundra, never Elderwood;
-  keep the existing actor budget and one wolf per spawn (no pack mechanic).
+- Mossy Mire uses the full 50/40/10 distribution: 50% Mireling (existing),
+  20% Death Adder, 20% Mosquito swarm, and 10% Peat Husk. These are overall
+  candidate-slot weights, not shares within the common-enemy allocation.
+- Freezing Tundra uses 50% existing eligible roster / 20% Wolf / 20% Lynx /
+  10% Polar Bear. Elderwood uses Badger for its 40% common share. Wolves spawn
+  only in Freezing Tundra, never Elderwood; each Wolf pack has three Wolves.
+  Count every pack member against the existing actor budget. Pack selection
+  and formation remain engine implementation work.
 - Ocean: use 10% of eligible aquatic candidate slots for Reef Maw; others
   stay empty. This task is blocked until aquatic navigation, combat and reward
   support are approved. It targets swimmers, never skiff hulls or occupants.
