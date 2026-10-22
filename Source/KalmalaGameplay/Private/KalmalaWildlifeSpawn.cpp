@@ -221,6 +221,12 @@ void AKalmalaWildlifeSpawn::InitializeServer(const FKalmalaWorldPopulationSpawn&
         LynxAttackTarget.Reset();
         LynxAttackSecondsRemaining = 0.0f;
         LynxLeapDistanceRemaining = 0.0f;
+        PolarBearAttackCue = static_cast<uint8>(EKalmalaWildlifeAttackCue::None);
+        PolarBearAttackTarget.Reset();
+        PolarBearAttackSecondsRemaining = 0.0f;
+        PolarBearChargeDistanceRemaining = 0.0f;
+        PolarBearRetreatDistanceRemaining = 0.0f;
+        bPolarBearChargeHitApplied = false;
         Health = GetMaximumHealthForArchetype(Archetype);
         if (Archetype == EKalmalaWildlifeArchetype::MosquitoSwarm)
         {
@@ -372,6 +378,7 @@ int32 AKalmalaWildlifeSpawn::GetBoneFragmentRewardQuantity(const EKalmalaWildlif
     case EKalmalaWildlifeArchetype::Viper: return 1;
     case EKalmalaWildlifeArchetype::GiantSnake: return 2;
     case EKalmalaWildlifeArchetype::MoonBear: return 3;
+    case EKalmalaWildlifeArchetype::PolarBear: return 3;
     case EKalmalaWildlifeArchetype::Wolf: return 2;
     case EKalmalaWildlifeArchetype::Lynx: return 2;
     default: return 0;
@@ -428,6 +435,13 @@ bool AKalmalaWildlifeSpawn::DefeatServer()
         AKalmalaGameMode* Mode = GetWorld() != nullptr
             ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
         if (Mode == nullptr || !Mode->RecordLynxDefeatReward(
+                PersistentSpawnId, LastValidatedAttacker.Get())) return false;
+    }
+    else if (Archetype == EKalmalaWildlifeArchetype::PolarBear)
+    {
+        AKalmalaGameMode* Mode = GetWorld() != nullptr
+            ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
+        if (Mode == nullptr || !Mode->RecordPolarBearDefeatReward(
                 PersistentSpawnId, LastValidatedAttacker.Get())) return false;
     }
     else if (Archetype == EKalmalaWildlifeArchetype::PeatHusk)
@@ -529,6 +543,15 @@ bool AKalmalaWildlifeSpawn::ApplyValidatedDamageFromServer(const FKalmalaDamageC
         LynxAttackSecondsRemaining = 0.0f;
         LynxLeapDistanceRemaining = 0.0f;
         SetLynxAttackCue(EKalmalaWildlifeAttackCue::None);
+    }
+    else if (Archetype == EKalmalaWildlifeArchetype::PolarBear && Attacker != nullptr)
+    {
+        PolarBearAttackTarget = Attacker;
+        PolarBearAttackSecondsRemaining = 0.0f;
+        PolarBearChargeDistanceRemaining = 0.0f;
+        PolarBearRetreatDistanceRemaining = 0.0f;
+        bPolarBearChargeHitApplied = false;
+        SetPolarBearAttackCue(EKalmalaWildlifeAttackCue::None);
     }
     else if (Archetype == EKalmalaWildlifeArchetype::MoonBear && Attacker != nullptr)
     {
@@ -705,7 +728,7 @@ bool AKalmalaWildlifeSpawn::TryGetSpawnArchetypeForBiome(const uint64 SpawnSeed,
         return true;
     }
 
-    // Wolf and Lynx each use two seeded slots; the final Tundra shares are still pending.
+    // Keep the reviewed 20/20/10 Wolf, Lynx and rare Polar Bear shares deterministic.
     if (Biome == EKalmalaBiome::FreezingTundra && (Slot == 5 || Slot == 6))
     {
         OutArchetype = EKalmalaWildlifeArchetype::Wolf;
@@ -715,6 +738,12 @@ bool AKalmalaWildlifeSpawn::TryGetSpawnArchetypeForBiome(const uint64 SpawnSeed,
     if (Biome == EKalmalaBiome::FreezingTundra && (Slot == 7 || Slot == 8))
     {
         OutArchetype = EKalmalaWildlifeArchetype::Lynx;
+        return true;
+    }
+
+    if (Biome == EKalmalaBiome::FreezingTundra && Slot == 9)
+    {
+        OutArchetype = EKalmalaWildlifeArchetype::PolarBear;
         return true;
     }
 
@@ -754,6 +783,7 @@ void AKalmalaWildlifeSpawn::Tick(const float DeltaSeconds)
         else if (Archetype == EKalmalaWildlifeArchetype::Badger) UpdateBadgerAttack(DeltaSeconds);
         else if (Archetype == EKalmalaWildlifeArchetype::Wolf) UpdateWolfAttack(DeltaSeconds);
         else if (Archetype == EKalmalaWildlifeArchetype::Lynx) UpdateLynxAttack(DeltaSeconds);
+        else if (Archetype == EKalmalaWildlifeArchetype::PolarBear) UpdatePolarBearAttack(DeltaSeconds);
         else if (Archetype == EKalmalaWildlifeArchetype::MoonBear) UpdateMoonBearAttack(DeltaSeconds);
         else if (Archetype == EKalmalaWildlifeArchetype::PeatHusk) UpdatePeatHuskAttack(DeltaSeconds);
         else if (Archetype == EKalmalaWildlifeArchetype::Viper
@@ -1607,6 +1637,278 @@ bool AKalmalaWildlifeSpawn::CanLynxMoveAlong(const FVector& Start, const FVector
     {
         const FVector Position = FMath::Lerp(Start, End, static_cast<float>(Index) / Samples);
         if (!IsLynxPositionTraversable(Position)) return false;
+    }
+    return true;
+}
+
+bool AKalmalaWildlifeSpawn::IsPolarBearChargeInReach(const bool bServerAuthority,
+    const bool bValidTarget, const float DistanceCentimetres)
+{
+    return bServerAuthority && bValidTarget && FMath::IsFinite(DistanceCentimetres)
+        && DistanceCentimetres >= 0.0f && DistanceCentimetres <= PolarBearChargeImpactReachCentimetres;
+}
+
+void AKalmalaWildlifeSpawn::UpdatePolarBearAttack(const float DeltaSeconds)
+{
+    if (Behaviour != EKalmalaWildlifeBehaviour::Idle || GetWorld() == nullptr) return;
+    const float StepSeconds = FMath::Clamp(FMath::IsFinite(DeltaSeconds) ? DeltaSeconds : 0.0f, 0.0f, 0.10f);
+    EKalmalaWildlifeAttackCue Cue = static_cast<EKalmalaWildlifeAttackCue>(PolarBearAttackCue);
+    AKalmalaCharacter* Target = PolarBearAttackTarget.Get();
+
+    if (Cue != EKalmalaWildlifeAttackCue::None && !IsPolarBearAttackTargetValid(Target))
+    {
+        PolarBearAttackTarget.Reset();
+        PolarBearAttackSecondsRemaining = 0.0f;
+        PolarBearChargeDistanceRemaining = 0.0f;
+        PolarBearRetreatDistanceRemaining = 0.0f;
+        bPolarBearChargeHitApplied = false;
+        SetPolarBearAttackCue(EKalmalaWildlifeAttackCue::None);
+        Cue = EKalmalaWildlifeAttackCue::None;
+        Target = nullptr;
+    }
+    else if (Target != nullptr && !IsPolarBearAttackTargetValid(Target))
+    {
+        PolarBearAttackTarget.Reset();
+        Target = nullptr;
+    }
+
+    if (Cue == EKalmalaWildlifeAttackCue::None && Target == nullptr)
+    {
+        float BestDistanceSquared = FMath::Square(PolarBearAttackTriggerCentimetres);
+        for (TActorIterator<AKalmalaCharacter> It(GetWorld()); It; ++It)
+        {
+            AKalmalaCharacter* Candidate = *It;
+            if (!IsPolarBearAttackTargetValid(Candidate)) continue;
+            const float DistanceSquared = FVector::DistSquared2D(GetActorLocation(), Candidate->GetActorLocation());
+            if (DistanceSquared < BestDistanceSquared)
+            {
+                BestDistanceSquared = DistanceSquared;
+                Target = Candidate;
+            }
+        }
+        if (Target != nullptr) PolarBearAttackTarget = Target;
+    }
+
+    if (Target == nullptr)
+    {
+        const FVector ToHome = SpawnOrigin - GetActorLocation();
+        if (ToHome.SizeSquared2D() > FMath::Square(15.0f))
+        {
+            const FVector End = FMath::VInterpConstantTo(GetActorLocation(), SpawnOrigin, StepSeconds,
+                WolfApproachSpeedCentimetresPerSecond);
+            if (CanPolarBearMoveAlong(GetActorLocation(), End)) SetActorLocation(End, true);
+        }
+        return;
+    }
+
+    if (Cue == EKalmalaWildlifeAttackCue::None)
+    {
+        const FVector ToTarget = Target->GetActorLocation() - GetActorLocation();
+        if (ToTarget.Size2D() > PolarBearAttackTriggerCentimetres)
+        {
+            const FVector Direction = ToTarget.GetSafeNormal2D();
+            if (!Direction.IsNearlyZero()) SetActorRotation(FRotationMatrix::MakeFromX(Direction).Rotator());
+            const float MoveDistance = FMath::Min(PolarBearApproachSpeedCentimetresPerSecond * StepSeconds,
+                ToTarget.Size2D() - PolarBearAttackTriggerCentimetres);
+            FVector End = GetActorLocation() + Direction * MoveDistance;
+            if (const AKalmalaWorldGenerationGameState* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>())
+                End.Z = FKalmalaTerrainHeightSampler::SampleHeight(State->GetWorldGenerationConfig(), FVector2D(End));
+            if (CanPolarBearMoveAlong(GetActorLocation(), End)) SetActorLocation(End, true);
+            return;
+        }
+        BeginPolarBearAttack(Target);
+        return;
+    }
+
+    if (Cue == EKalmalaWildlifeAttackCue::Telegraph)
+    {
+        const FVector Direction = (Target->GetActorLocation() - GetActorLocation()).GetSafeNormal2D();
+        if (!Direction.IsNearlyZero()) SetActorRotation(FRotationMatrix::MakeFromX(Direction).Rotator());
+        PolarBearAttackSecondsRemaining -= StepSeconds;
+        if (PolarBearAttackSecondsRemaining <= 0.0f)
+        {
+            PolarBearChargeDirection = (Target->GetActorLocation() - GetActorLocation()).GetSafeNormal2D();
+            if (PolarBearChargeDirection.IsNearlyZero())
+            {
+                PolarBearAttackTarget.Reset();
+                SetPolarBearAttackCue(EKalmalaWildlifeAttackCue::None);
+                return;
+            }
+            SetActorRotation(FRotationMatrix::MakeFromX(PolarBearChargeDirection).Rotator());
+            PolarBearChargeDistanceRemaining = PolarBearMaximumChargeCentimetres;
+            PolarBearAttackSecondsRemaining = PolarBearChargeSeconds;
+            bPolarBearChargeHitApplied = false;
+            SetPolarBearAttackCue(EKalmalaWildlifeAttackCue::Lunge);
+        }
+        return;
+    }
+
+    if (Cue == EKalmalaWildlifeAttackCue::Lunge)
+    {
+        const FVector ToTarget = Target->GetActorLocation() - GetActorLocation();
+        const float VerticalDistance = ToTarget.Z;
+        const float HorizontalImpactReach = FMath::Sqrt(FMath::Max(0.0f,
+            FMath::Square(PolarBearChargeImpactReachCentimetres) - FMath::Square(VerticalDistance)));
+        const float MoveDistance = FMath::Min3(PolarBearChargeDistanceRemaining,
+            FMath::Max(0.0f, ToTarget.Size2D() - HorizontalImpactReach),
+            PolarBearChargeSpeedCentimetresPerSecond * StepSeconds);
+        if (MoveDistance > 0.0f)
+        {
+            FVector End = GetActorLocation() + PolarBearChargeDirection * MoveDistance;
+            if (const AKalmalaWorldGenerationGameState* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>())
+                End.Z = FKalmalaTerrainHeightSampler::SampleHeight(State->GetWorldGenerationConfig(), FVector2D(End));
+            if (CanPolarBearMoveAlong(GetActorLocation(), End))
+            {
+                SetActorLocation(End, true);
+                PolarBearChargeDistanceRemaining -= MoveDistance;
+            }
+            else
+            {
+                PolarBearChargeDistanceRemaining = 0.0f;
+            }
+        }
+
+        if (!bPolarBearChargeHitApplied
+            && IsPolarBearChargeInReach(HasAuthority(), true,
+                FVector::Dist(GetActorLocation(), Target->GetActorLocation())))
+        {
+            bPolarBearChargeHitApplied = TryApplyPolarBearCharge(Target);
+            if (bDefeated) return;
+        }
+
+        PolarBearAttackSecondsRemaining -= StepSeconds;
+        if (bPolarBearChargeHitApplied || PolarBearChargeDistanceRemaining <= 0.0f
+            || PolarBearAttackSecondsRemaining <= 0.0f)
+        {
+            PolarBearRetreatDirection = (GetActorLocation() - Target->GetActorLocation()).GetSafeNormal2D();
+            if (PolarBearRetreatDirection.IsNearlyZero()) PolarBearRetreatDirection = -PolarBearChargeDirection;
+            if (!PolarBearRetreatDirection.IsNearlyZero())
+                SetActorRotation(FRotationMatrix::MakeFromX(PolarBearRetreatDirection).Rotator());
+            PolarBearRetreatDistanceRemaining = PolarBearRetreatDistanceCentimetres;
+            PolarBearAttackSecondsRemaining = PolarBearRetreatSeconds;
+            SetPolarBearAttackCue(EKalmalaWildlifeAttackCue::Retreat);
+        }
+        return;
+    }
+
+    if (Cue == EKalmalaWildlifeAttackCue::Retreat)
+    {
+        const float MoveDistance = FMath::Min(PolarBearRetreatDistanceRemaining,
+            PolarBearRetreatSpeedCentimetresPerSecond * StepSeconds);
+        if (MoveDistance > 0.0f)
+        {
+            FVector End = GetActorLocation() + PolarBearRetreatDirection * MoveDistance;
+            if (const AKalmalaWorldGenerationGameState* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>())
+                End.Z = FKalmalaTerrainHeightSampler::SampleHeight(State->GetWorldGenerationConfig(), FVector2D(End));
+            if (CanPolarBearMoveAlong(GetActorLocation(), End))
+            {
+                SetActorLocation(End, true);
+                PolarBearRetreatDistanceRemaining -= MoveDistance;
+            }
+            else
+            {
+                PolarBearRetreatDistanceRemaining = 0.0f;
+            }
+        }
+        PolarBearAttackSecondsRemaining -= StepSeconds;
+        if (PolarBearRetreatDistanceRemaining <= 0.0f || PolarBearAttackSecondsRemaining <= 0.0f)
+        {
+            PolarBearAttackSecondsRemaining = PolarBearRecoverySeconds;
+            SetPolarBearAttackCue(EKalmalaWildlifeAttackCue::Recovery);
+        }
+        return;
+    }
+
+    if (Cue == EKalmalaWildlifeAttackCue::Recovery)
+    {
+        PolarBearAttackSecondsRemaining -= StepSeconds;
+        if (PolarBearAttackSecondsRemaining <= 0.0f)
+        {
+            PolarBearAttackSecondsRemaining = 0.0f;
+            PolarBearAttackTarget.Reset();
+            bPolarBearChargeHitApplied = false;
+            SetPolarBearAttackCue(EKalmalaWildlifeAttackCue::None);
+        }
+    }
+}
+
+void AKalmalaWildlifeSpawn::BeginPolarBearAttack(AKalmalaCharacter* Target)
+{
+    if (!HasAuthority() || bDefeated || !IsPolarBearAttackTargetValid(Target)
+        || FVector::DistSquared2D(GetActorLocation(), Target->GetActorLocation())
+            > FMath::Square(PolarBearAttackTriggerCentimetres)) return;
+
+    const FVector Direction = (Target->GetActorLocation() - GetActorLocation()).GetSafeNormal2D();
+    if (Direction.IsNearlyZero()) return;
+    SetActorRotation(FRotationMatrix::MakeFromX(Direction).Rotator());
+    PolarBearAttackTarget = Target;
+    PolarBearAttackSecondsRemaining = PolarBearTelegraphSeconds;
+    bPolarBearChargeHitApplied = false;
+    SetPolarBearAttackCue(EKalmalaWildlifeAttackCue::Telegraph);
+}
+
+void AKalmalaWildlifeSpawn::SetPolarBearAttackCue(const EKalmalaWildlifeAttackCue NextCue)
+{
+    if (!HasAuthority()) return;
+    const uint8 NextValue = static_cast<uint8>(NextCue);
+    if (PolarBearAttackCue == NextValue) return;
+    PolarBearAttackCue = NextValue;
+    BuildArchetypePresentation();
+    ForceNetUpdate();
+}
+
+bool AKalmalaWildlifeSpawn::IsPolarBearAttackTargetValid(const AKalmalaCharacter* Target) const
+{
+    if (!HasAuthority() || bDefeated || Archetype != EKalmalaWildlifeArchetype::PolarBear
+        || GetWorld() == nullptr || !IsValid(Target) || !Target->HasAuthority()
+        || Target->GetWorld() != GetWorld() || !FMath::IsFinite(Target->GetHealth())
+        || Target->GetHealth() <= 1.0f
+        || FVector::DistSquared2D(Target->GetActorLocation(), SpawnOrigin)
+            > FMath::Square(PolarBearSpawnLeashCentimetres)
+        || FVector::DistSquared2D(GetActorLocation(), SpawnOrigin)
+            > FMath::Square(PolarBearSpawnLeashCentimetres)
+        || !CanPolarBearMoveAlong(GetActorLocation(), Target->GetActorLocation())) return false;
+
+    FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(KalmalaPolarBearChargeVisibility), true);
+    QueryParams.AddIgnoredActor(this);
+    FHitResult Blocker;
+    const FVector Start = GetActorLocation() + FVector(0.0f, 0.0f, 65.0f);
+    const FVector End = Target->GetActorLocation() + FVector(0.0f, 0.0f, 48.0f);
+    return !GetWorld()->LineTraceSingleByChannel(Blocker, Start, End, ECC_Visibility, QueryParams)
+        || Blocker.GetActor() == Target;
+}
+
+bool AKalmalaWildlifeSpawn::TryApplyPolarBearCharge(AKalmalaCharacter* Target)
+{
+    if (!IsPolarBearAttackTargetValid(Target)
+        || !IsPolarBearChargeInReach(HasAuthority(), true,
+            FVector::Dist(GetActorLocation(), Target->GetActorLocation()))) return false;
+    return Target->ApplyWildlifeDamageFromServer(this, GetBaseAttackChannelsForArchetype(Archetype));
+}
+
+bool AKalmalaWildlifeSpawn::IsPolarBearPositionTraversable(const FVector& Position) const
+{
+    if (Position.ContainsNaN() || GetWorld() == nullptr) return false;
+    const AKalmalaWorldGenerationGameState* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
+    if (State == nullptr) return false;
+    const FKalmalaWorldGenerationConfig& Config = State->GetWorldGenerationConfig();
+    const FVector2D XY(Position);
+    return FKalmalaWorldBounds::Contains(Config, XY)
+        && FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, XY))
+            == EKalmalaBiome::FreezingTundra
+        && !FKalmalaOceanSampler::Sample(Config, XY).IsWater()
+        && !FKalmalaShimmeringLakeSampler::IsWater(Config, XY)
+        && FKalmalaTerrainHeightSampler::SampleSurfaceNormal(Config, XY).Z >= 0.82f;
+}
+
+bool AKalmalaWildlifeSpawn::CanPolarBearMoveAlong(const FVector& Start, const FVector& End) const
+{
+    const float Distance = FVector::Dist2D(Start, End);
+    const int32 Samples = FMath::Max(1, FMath::CeilToInt(Distance / 80.0f));
+    for (int32 Index = 0; Index <= Samples; ++Index)
+    {
+        const FVector Position = FMath::Lerp(Start, End, static_cast<float>(Index) / Samples);
+        if (!IsPolarBearPositionTraversable(Position)) return false;
     }
     return true;
 }
@@ -2727,6 +3029,93 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
                 FVector(140,Side * 14.0f,81), FVector(137,Side * 11.0f,83), Eye);
         }
     }
+    else if (Archetype == EKalmalaWildlifeArchetype::PolarBear)
+    {
+        const EKalmalaWildlifeAttackCue Cue = static_cast<EKalmalaWildlifeAttackCue>(PolarBearAttackCue);
+        const bool bWarning = Cue == EKalmalaWildlifeAttackCue::Telegraph;
+        const bool bCharging = Cue == EKalmalaWildlifeAttackCue::Lunge;
+        const bool bRetreating = Cue == EKalmalaWildlifeAttackCue::Retreat;
+        const FLinearColor SnowCoat(0.86f, 0.83f, 0.75f);
+        const FLinearColor ShadowCoat(0.66f, 0.63f, 0.57f);
+        const FLinearColor Cream(0.96f, 0.91f, 0.80f);
+        const FLinearColor Nose(0.16f, 0.13f, 0.12f);
+        const FLinearColor Eye(0.10f, 0.09f, 0.08f);
+        const float HeadX = bCharging ? 148.0f : 128.0f;
+        const float HeadZ = bWarning ? 109.0f : (bRetreating ? 128.0f : 139.0f);
+        const float ShoulderZ = bWarning ? 101.0f : (bCharging ? 119.0f : 111.0f);
+
+        // Broad shoulders, pale coat and long muzzle distinguish the original
+        // Tundra charger from the smaller Elderwood Moon Bear.
+        AddTetraPoints(FVector(-111,-42,50), FVector(-111,42,50),
+            FVector(66,-58,54), FVector(58,58,54), ShadowCoat);
+        AddTetraPoints(FVector(-95,-50,86), FVector(-95,50,86),
+            FVector(39,-61,ShoulderZ), FVector(39,61,ShoulderZ), SnowCoat);
+        AddTetraPoints(FVector(-65,-47,116), FVector(-65,47,116),
+            FVector(37,-48,155), FVector(37,48,155), Cream);
+        AddTetraPoints(FVector(14,-46,107), FVector(14,46,107),
+            FVector(100,-38,132), FVector(100,38,132), SnowCoat);
+        AddTetraPoints(FVector(HeadX - 35.0f,-29,HeadZ - 20.0f),
+            FVector(HeadX - 35.0f,29,HeadZ - 20.0f),
+            FVector(HeadX + 9.0f,-27,HeadZ + 8.0f),
+            FVector(HeadX + 9.0f,27,HeadZ + 8.0f), Cream);
+        AddTetraPoints(FVector(HeadX - 2.0f,-23,HeadZ - 14.0f),
+            FVector(HeadX - 2.0f,23,HeadZ - 14.0f),
+            FVector(HeadX + 49.0f,-16,HeadZ - 31.0f),
+            FVector(HeadX + 49.0f,16,HeadZ - 31.0f), SnowCoat);
+        AddTetraPoints(FVector(HeadX + 40.0f,-13,HeadZ - 31.0f),
+            FVector(HeadX + 40.0f,13,HeadZ - 31.0f),
+            FVector(HeadX + 64.0f,-10,HeadZ - 36.0f),
+            FVector(HeadX + 64.0f,10,HeadZ - 36.0f), Nose);
+
+        for (const float Side : {-1.0f, 1.0f})
+        {
+            for (const float LegX : {-74.0f, 42.0f})
+            {
+                const bool bFrontLeg = LegX > 0.0f;
+                const bool bBracedPaw = bWarning && bFrontLeg && Side < 0.0f;
+                const float PawX = bBracedPaw ? LegX + 45.0f : LegX + (bCharging && bFrontLeg ? 48.0f : 25.0f);
+                const float PawY = Side * (bBracedPaw ? 43.0f : 49.0f);
+                const float PawZ = bBracedPaw ? -7.0f : -51.0f;
+                AddTetraPoints(FVector(LegX - 25.0f,Side * 32.0f,-52),
+                    FVector(LegX - 25.0f,Side * 57.0f,-52),
+                    FVector(LegX + 16.0f,Side * 37.0f,56),
+                    FVector(LegX + 19.0f,Side * 54.0f,59), SnowCoat);
+                AddTetraPoints(FVector(LegX + 8.0f,Side * 36.0f,-48),
+                    FVector(LegX + 8.0f,Side * 53.0f,-48),
+                    FVector(PawX,PawY - 14.0f,PawZ), FVector(PawX,PawY + 14.0f,PawZ + 9.0f),
+                    bBracedPaw ? Cream : ShadowCoat);
+                if (!bBracedPaw)
+                    AddTetraPoints(FVector(PawX - 8.0f,PawY - 11.0f,-49),
+                        FVector(PawX - 8.0f,PawY + 11.0f,-49),
+                        FVector(PawX + 13.0f,PawY - 5.0f,-56),
+                        FVector(PawX + 13.0f,PawY + 5.0f,-56), Cream);
+            }
+            const float EarX = HeadX - 12.0f;
+            AddTetraPoints(FVector(EarX - 7.0f,Side * 20.0f,HeadZ + 1.0f),
+                FVector(EarX + 5.0f,Side * 20.0f,HeadZ + 1.0f),
+                FVector(EarX - 4.0f,Side * 33.0f,HeadZ + 23.0f),
+                FVector(EarX + 5.0f,Side * 31.0f,HeadZ + 19.0f), ShadowCoat);
+            AddTetraPoints(FVector(HeadX - 3.0f,Side * 19.0f,HeadZ - 12.0f),
+                FVector(HeadX + 4.0f,Side * 19.0f,HeadZ - 10.0f),
+                FVector(HeadX + 11.0f,Side * 26.0f,HeadZ - 8.0f),
+                FVector(HeadX + 8.0f,Side * 27.0f,HeadZ - 2.0f), Eye);
+        }
+        if (bWarning)
+        {
+            // A braced paw and lowered muzzle give the charge a full second warning.
+            AddTetraPoints(FVector(HeadX + 4.0f,-8,HeadZ - 29.0f),
+                FVector(HeadX + 4.0f,8,HeadZ - 29.0f),
+                FVector(HeadX + 25.0f,-8,HeadZ - 33.0f),
+                FVector(HeadX + 25.0f,8,HeadZ - 33.0f), Nose);
+        }
+        else if (bCharging || bRetreating)
+        {
+            AddTetraPoints(FVector(HeadX + 28.0f,-8,HeadZ - 31.0f),
+                FVector(HeadX + 28.0f,8,HeadZ - 31.0f),
+                FVector(HeadX + 45.0f,-7,HeadZ - 27.0f),
+                FVector(HeadX + 45.0f,7,HeadZ - 27.0f), Nose);
+        }
+    }
     else if (Archetype == EKalmalaWildlifeArchetype::Wolf)
     {
         const EKalmalaWildlifeAttackCue Cue = static_cast<EKalmalaWildlifeAttackCue>(WolfAttackCue);
@@ -3118,6 +3507,7 @@ void AKalmalaWildlifeSpawn::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
     DOREPLIFETIME(AKalmalaWildlifeSpawn, BadgerAttackCue);
     DOREPLIFETIME(AKalmalaWildlifeSpawn, WolfAttackCue);
     DOREPLIFETIME(AKalmalaWildlifeSpawn, LynxAttackCue);
+    DOREPLIFETIME(AKalmalaWildlifeSpawn, PolarBearAttackCue);
     DOREPLIFETIME(AKalmalaWildlifeSpawn, MoonBearAttackCue);
     DOREPLIFETIME(AKalmalaWildlifeSpawn, PeatHuskAttackCue);
 }
@@ -3157,6 +3547,11 @@ void AKalmalaWildlifeSpawn::OnRep_WolfAttackCue()
 }
 
 void AKalmalaWildlifeSpawn::OnRep_LynxAttackCue()
+{
+    BuildArchetypePresentation();
+}
+
+void AKalmalaWildlifeSpawn::OnRep_PolarBearAttackCue()
 {
     BuildArchetypePresentation();
 }
@@ -3201,6 +3596,12 @@ void AKalmalaWildlifeSpawn::ApplyDefeatedState()
         LynxAttackSecondsRemaining = 0.0f;
         LynxLeapDistanceRemaining = 0.0f;
         SetLynxAttackCue(EKalmalaWildlifeAttackCue::None);
+        PolarBearAttackTarget.Reset();
+        PolarBearAttackSecondsRemaining = 0.0f;
+        PolarBearChargeDistanceRemaining = 0.0f;
+        PolarBearRetreatDistanceRemaining = 0.0f;
+        bPolarBearChargeHitApplied = false;
+        SetPolarBearAttackCue(EKalmalaWildlifeAttackCue::None);
         GrantDefeatReward();
     }
 }
@@ -3235,12 +3636,13 @@ void AKalmalaWildlifeSpawn::GrantDefeatReward()
         && Archetype != EKalmalaWildlifeArchetype::DeathAdder
         && Archetype != EKalmalaWildlifeArchetype::Wolf
         && Archetype != EKalmalaWildlifeArchetype::Lynx
+        && Archetype != EKalmalaWildlifeArchetype::PolarBear
         && Archetype != EKalmalaWildlifeArchetype::PeatHusk)
     {
         Inventory->TryGrantFromServer(TEXT("BoneFragment"), BoneFragmentQuantity);
     }
-    // Rat, Badger, Moon Bear, Viper, Giant Snake, Death Adder, Wolf, Lynx and Peat Husk rewards
-    // use the persistent queue recorded before defeated state is replicated.
+    // Credited Rat, Badger, bear, snake, Wolf, Lynx and Peat Husk rewards use
+    // the persistent queue recorded before defeated state is replicated.
 
     if (Archetype == EKalmalaWildlifeArchetype::Mireling && IsMirelingBossRewardCandidate())
     {

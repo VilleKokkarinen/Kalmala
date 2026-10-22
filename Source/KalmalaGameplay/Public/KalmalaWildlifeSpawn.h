@@ -44,6 +44,7 @@ enum class EKalmalaWildlifeAttackCue : uint8
     None,
     Telegraph,
     Lunge,
+    Retreat,
     Recovery
 };
 
@@ -159,6 +160,19 @@ public:
     static constexpr float LynxLeapSpeedCentimetresPerSecond = 1400.0f;
     static constexpr float LynxLeapLandingDistanceCentimetres = 110.0f;
     static bool IsLynxLeapInReach(bool bServerAuthority, bool bValidTarget, float DistanceCentimetres);
+    static constexpr float PolarBearAttackTriggerCentimetres = 850.0f;
+    static constexpr float PolarBearApproachSpeedCentimetresPerSecond = 170.0f;
+    static constexpr float PolarBearChargeImpactReachCentimetres = 220.0f;
+    static constexpr float PolarBearTelegraphSeconds = 1.0f;
+    static constexpr float PolarBearChargeSeconds = 0.48f;
+    static constexpr float PolarBearMaximumChargeCentimetres = 620.0f;
+    static constexpr float PolarBearChargeSpeedCentimetresPerSecond = 1400.0f;
+    static constexpr float PolarBearRetreatSeconds = 0.25f;
+    static constexpr float PolarBearRetreatDistanceCentimetres = 220.0f;
+    static constexpr float PolarBearRetreatSpeedCentimetresPerSecond = 880.0f;
+    static constexpr float PolarBearRecoverySeconds = 1.2f;
+    static constexpr float PolarBearSpawnLeashCentimetres = 2500.0f;
+    static bool IsPolarBearChargeInReach(bool bServerAuthority, bool bValidTarget, float DistanceCentimetres);
     static constexpr float MoonBearAttackTriggerCentimetres = 300.0f;
     static constexpr float MoonBearPawReachCentimetres = 220.0f;
     static constexpr float MoonBearTelegraphSeconds = 1.0f;
@@ -225,6 +239,13 @@ private:
     bool TryApplyLynxLeap(class AKalmalaCharacter* Target);
     bool IsLynxPositionTraversable(const FVector& Position) const;
     bool CanLynxMoveAlong(const FVector& Start, const FVector& End) const;
+    void UpdatePolarBearAttack(float DeltaSeconds);
+    void BeginPolarBearAttack(class AKalmalaCharacter* Target);
+    void SetPolarBearAttackCue(EKalmalaWildlifeAttackCue NextCue);
+    bool IsPolarBearAttackTargetValid(const class AKalmalaCharacter* Target) const;
+    bool TryApplyPolarBearCharge(class AKalmalaCharacter* Target);
+    bool IsPolarBearPositionTraversable(const FVector& Position) const;
+    bool CanPolarBearMoveAlong(const FVector& Start, const FVector& End) const;
     void UpdateMoonBearAttack(float DeltaSeconds);
     void BeginMoonBearAttack(class AKalmalaCharacter* Target);
     void SetMoonBearAttackCue(EKalmalaWildlifeAttackCue NextCue);
@@ -291,6 +312,9 @@ private:
     UPROPERTY(ReplicatedUsing = OnRep_LynxAttackCue)
     uint8 LynxAttackCue = static_cast<uint8>(EKalmalaWildlifeAttackCue::None);
 
+    UPROPERTY(ReplicatedUsing = OnRep_PolarBearAttackCue)
+    uint8 PolarBearAttackCue = static_cast<uint8>(EKalmalaWildlifeAttackCue::None);
+
     UPROPERTY(ReplicatedUsing = OnRep_MoonBearAttackCue)
     uint8 MoonBearAttackCue = static_cast<uint8>(EKalmalaWildlifeAttackCue::None);
 
@@ -320,6 +344,9 @@ private:
 
     UFUNCTION()
     void OnRep_LynxAttackCue();
+
+    UFUNCTION()
+    void OnRep_PolarBearAttackCue();
 
     UFUNCTION()
     void OnRep_MoonBearAttackCue();
@@ -354,6 +381,13 @@ private:
     float LynxLeapDistanceRemaining = 0.0f;
     FVector LynxLeapDirection = FVector::ForwardVector;
     TWeakObjectPtr<class AKalmalaCharacter> LynxAttackTarget;
+    float PolarBearAttackSecondsRemaining = 0.0f;
+    float PolarBearChargeDistanceRemaining = 0.0f;
+    float PolarBearRetreatDistanceRemaining = 0.0f;
+    FVector PolarBearChargeDirection = FVector::ForwardVector;
+    FVector PolarBearRetreatDirection = -FVector::ForwardVector;
+    TWeakObjectPtr<class AKalmalaCharacter> PolarBearAttackTarget;
+    bool bPolarBearChargeHitApplied = false;
     float MoonBearAttackSecondsRemaining = 0.0f;
     TWeakObjectPtr<class AKalmalaCharacter> MoonBearAttackTarget;
     float PeatHuskAttackSecondsRemaining = 0.0f;

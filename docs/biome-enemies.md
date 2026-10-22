@@ -48,7 +48,7 @@ Lynx fills the next two seeded Tundra slots with a dry-ground pounce, a
 | Peat Husk           | Mossy Mire                             | Partial          |  300 |   50  | 150 Crush    | 10% dry-ground hard slot; 260 cm/120° sweep; 1 s warning; 1.2 s recovery; queued Amber; I4 pending |
 | Wolf                | Freezing Tundra                        | Partial          |  250 |   40  | 100 Slash    | 20% dry-ground slots; three-member pack; 180 cm lunge bite; queued 2 Bone Fragment; I4 pending |
 | Lynx                | Freezing Tundra                        | Partial          |  150 |   30  | 75 Slash     | 20% dry-ground slots; 350 cm leap; 0.5 s warning; 0.8 s hit / 1.2 s miss recovery; queued 2 Bone Fragment; I4 pending |
-| Polar Bear          | Freezing Tundra                        | Planned          |  750 |   60  | 200 Crush    | Committed charge                    |
+| Polar Bear          | Freezing Tundra                        | Partial          |  750 |   60  | 200 Crush    | 10% hard slot; 1 s warning; 220 cm charge; retreat; queued 3 Bone Fragment; I4 pending |
 | Horned Goat         | Thunder Mountains                      | Planned          |  200 |   50  | 50 Crush     | Territorial horn charge, push + stagger |
 | Thunder Sentinel    | Thunder Mountains                      | Planned          |  1250|   75  | 300 Crush    | Slow downward slam                  |
 | Reef Maw            | Ocean                                  | Planned          |  180 |   2   | 50 Stab      | Swimmer hunter                      |
@@ -88,6 +88,16 @@ Moon Bear uses its reviewed server-side stat profile (250 health, 20 armor,
 exclusion, close-range overhead attack, and durable three-fragment reward claim
 are implemented. The separate 2% Moonstone route remains an A9 source task and
 is not enabled by the A8a baseline reward.
+
+Polar Bear uses its 750-health, 60-armor, 200-Crush profile in the seeded final
+10% Freezing Tundra slot. The server excludes spawns within 150 m of the
+generated start, keeps the bear on dry traversable Tundra, and bounds pursuit
+to its 25 m spawn leash. A visible one-second warning precedes a committed
+charge of up to 620 cm; it can damage once within 220 cm, then retreats before
+the hard-enemy 1.2-second recovery. The attack cue and movement replicate from
+the server. Credited defeats queue three Bone Fragments for the authenticated
+owner in population-save escrow. Polar Bear Pelt remains disabled pending its
+separate A8b item/source work.
 
 Viper uses the reviewed 100-health, 10-armor, 50-Stab profile and the seeded
 40% Shimmering Lakes share. It only spawns on eligible dry shoreline, visibly
@@ -328,7 +338,8 @@ and original inventory icons before implementation; the uses are not recipes.
   The Tundra per-key wildlife actor cap has a floor of three to fit one Wolf
   pack. Count each living pack member against that cap and skip a pack that
   cannot fit completely. Wolf selection and formation are implemented; the
-  remaining Tundra candidate shares stay empty until their species are enabled.
+  rare Polar Bear now occupies the final 10% hard share; the existing 50% share
+  stays empty because no current baseline species is eligible in Tundra.
 - Ocean: use 10% of eligible aquatic candidate slots for Reef Maw; others
   stay empty. This task is blocked until aquatic navigation, combat and reward
   support are approved. It targets swimmers, never skiff hulls or occupants.

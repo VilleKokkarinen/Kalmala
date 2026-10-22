@@ -15,6 +15,7 @@ bool FKalmalaWildlifeWolfContractTest::RunTest(const FString& Parameters)
 {
     int32 WolfSlots = 0;
     int32 LynxSlots = 0;
+    int32 PolarBearSlots = 0;
     for (uint64 Seed = 0; Seed < 1000; ++Seed)
     {
         EKalmalaWildlifeArchetype Archetype = EKalmalaWildlifeArchetype::Mireling;
@@ -34,6 +35,13 @@ bool FKalmalaWildlifeWolfContractTest::RunTest(const FString& Parameters)
                 EKalmalaWildlifeArchetype::Lynx);
             ++LynxSlots;
         }
+        else if (Seed % 10ull == 9ull)
+        {
+            TestTrue(TEXT("Polar Bear owns the rare seeded Tundra share"), bEligible);
+            TestEqual(TEXT("The final Tundra slot selects Polar Bear"), Archetype,
+                EKalmalaWildlifeArchetype::PolarBear);
+            ++PolarBearSlots;
+        }
         else
         {
             TestFalse(TEXT("Unimplemented Tundra shares stay empty"), bEligible);
@@ -41,6 +49,7 @@ bool FKalmalaWildlifeWolfContractTest::RunTest(const FString& Parameters)
     }
     TestEqual(TEXT("Wolf receives twenty percent of Tundra candidate slots"), WolfSlots, 200);
     TestEqual(TEXT("Lynx receives twenty percent of Tundra candidate slots"), LynxSlots, 200);
+    TestEqual(TEXT("Polar Bear receives ten percent of Tundra candidate slots"), PolarBearSlots, 100);
 
     for (const EKalmalaBiome Biome : { EKalmalaBiome::Meadows, EKalmalaBiome::Elderwood,
              EKalmalaBiome::ShimmeringLakes, EKalmalaBiome::MossyMire,
@@ -55,6 +64,8 @@ bool FKalmalaWildlifeWolfContractTest::RunTest(const FString& Parameters)
                     Archetype != EKalmalaWildlifeArchetype::Wolf);
                 TestTrue(TEXT("Lynx is exclusive to Freezing Tundra"),
                     Archetype != EKalmalaWildlifeArchetype::Lynx);
+                TestTrue(TEXT("Polar Bear is exclusive to Freezing Tundra"),
+                    Archetype != EKalmalaWildlifeArchetype::PolarBear);
             }
         }
     }

@@ -14,6 +14,7 @@ bool FKalmalaWildlifeLynxContractTest::RunTest(const FString& Parameters)
 {
     int32 WolfSlots = 0;
     int32 LynxSlots = 0;
+    int32 PolarBearSlots = 0;
     for (uint64 Seed = 0; Seed < 1000; ++Seed)
     {
         EKalmalaWildlifeArchetype Archetype = EKalmalaWildlifeArchetype::Mireling;
@@ -33,6 +34,13 @@ bool FKalmalaWildlifeLynxContractTest::RunTest(const FString& Parameters)
                 EKalmalaWildlifeArchetype::Lynx);
             ++LynxSlots;
         }
+        else if (Seed % 10ull == 9ull)
+        {
+            TestTrue(TEXT("The rare Polar Bear share remains eligible"), bEligible);
+            TestEqual(TEXT("The final Tundra slot selects Polar Bear"), Archetype,
+                EKalmalaWildlifeArchetype::PolarBear);
+            ++PolarBearSlots;
+        }
         else
         {
             TestFalse(TEXT("Unimplemented Tundra shares stay unspawned"), bEligible);
@@ -40,6 +48,7 @@ bool FKalmalaWildlifeLynxContractTest::RunTest(const FString& Parameters)
     }
     TestEqual(TEXT("Wolf keeps twenty percent of Tundra candidate slots"), WolfSlots, 200);
     TestEqual(TEXT("Lynx holds twenty percent of Tundra candidate slots"), LynxSlots, 200);
+    TestEqual(TEXT("Polar Bear holds ten percent of Tundra candidate slots"), PolarBearSlots, 100);
 
     for (const EKalmalaBiome Biome : { EKalmalaBiome::Meadows, EKalmalaBiome::Elderwood,
              EKalmalaBiome::ShimmeringLakes, EKalmalaBiome::MossyMire,
@@ -49,8 +58,12 @@ bool FKalmalaWildlifeLynxContractTest::RunTest(const FString& Parameters)
         {
             EKalmalaWildlifeArchetype Archetype = EKalmalaWildlifeArchetype::Lynx;
             if (AKalmalaWildlifeSpawn::TryGetSpawnArchetypeForBiome(Seed, Biome, Archetype))
+            {
                 TestFalse(TEXT("Lynx cannot be selected outside Freezing Tundra"),
                     Archetype == EKalmalaWildlifeArchetype::Lynx);
+                TestFalse(TEXT("Polar Bear cannot be selected outside Freezing Tundra"),
+                    Archetype == EKalmalaWildlifeArchetype::PolarBear);
+            }
         }
     }
 
