@@ -26,7 +26,8 @@ Death Adder occupies 20% of those slots and shares the dry Mossy Mire gate;
 its server-owned coiled bite applies non-stacking major poison and its credited
 Bone Fragment is owner-bound. Mosquito swarm now occupies a separate 20% share
 with bounded server flight, persistent contact bites, weak poison, and active
-fire/dodge counterplay.
+fire/dodge counterplay. Peat Husk fills the final 10% hard slot and queues its
+baseline Amber for the credited owner.
 
 | Enemy               | Biome                                  | Status           | HP   | Armor | Attack       | Abilities / counters                |
 | ------------------- | -------------------------------------- | ---------------- | ---: | ----: | ------------ | ----------------------------------- |
@@ -40,7 +41,7 @@ fire/dodge counterplay.
 | Mireling            | Mossy Mire                             | Partial          |  75  |   15  | 20 Crush     | 50% dry-ground share; server simple melee; boss-scroll path unchanged; I4 pending |
 | Death Adder         | Mossy Mire                             | Partial          |  125 |   20  | 75 Stab      | 20% dry-ground slots; close coiled bite; major poison: 5/s, 10 s; queued Bone Fragment; I4 pending |
 | Mosquito swarm      | Mossy Mire                             | Partial          |  25  |   0   | 5 Stab/0.2 s | 20% dry-ground slots; one swarm per target; poison 1/s for 10 s; dodge/fire repel; I4 pending |
-| Peat Husk           | Mossy Mire                             | Planned          |  300 |   50  | 150 Crush    | Slow sweeping arm                   |
+| Peat Husk           | Mossy Mire                             | Partial          |  300 |   50  | 150 Crush    | 10% dry-ground hard slot; 260 cm/120° sweep; 1 s warning; 1.2 s recovery; queued Amber; I4 pending |
 | Wolf                | Freezing Tundra                        | Planned          |  250 |   40  | 100 Slash    | Pursuit; lunging bite               |
 | Lynx                | Freezing Tundra                        | Planned          |  150 |   30  | 75 Slash     | Leap at player                      |
 | Polar Bear          | Freezing Tundra                        | Planned          |  750 |   60  | 200 Crush    | Committed charge                    |
@@ -52,8 +53,8 @@ Mireling uses the reviewed 75-health, 15-armor, 20-Crush profile. Its
 deterministic 50% Mossy Mire share is limited to dry spawn surfaces; all other
 biomes reject Mireling seeds. Its existing melee and optional server-owned
 boss-scroll reward are unchanged. Death Adder and Mosquito swarm each occupy
-20% dry-ground slots; Peat Husk alone remains unspawned in the remaining hard
-slot. The planned 1% Dusk Diamond source remains an A9 task and is not enabled.
+20% dry-ground slots, and Peat Husk occupies the remaining 10% hard slot. The
+planned 1% Dusk Diamond source remains an A9 task and is not enabled.
 
 Death Adder uses its reviewed 125-health, 20-armor, 75-Stab profile in 20% of
 Mossy Mire candidate slots. Spawn and return movement remain on dry Mossy Mire
@@ -66,6 +67,17 @@ bite cannot extend major poison. Its credited one-Bone-Fragment baseline claim
 is stored for its authenticated owner until inventory capacity is available.
 The Venom Sac drop and Antidote remain separate A8b work and are not enabled by
 this baseline reward.
+
+Peat Husk uses the reviewed 300-health, 50-armor, 150-Crush profile in the
+remaining 10% Mossy Mire slot. It is limited to dry Mossy Mire ground and its
+generated spawn is kept 150 m from the player start. The existing original
+peat-and-wood silhouette raises a root arm for a one-second warning, then makes
+a slow 260 cm sweep through a 120-degree forward arc and recovers for 1.2
+seconds. The server approaches at 100 cm/s, validates the live target, dry
+ground path, line of sight and 25 m leash, and resolves damage only within the
+authored sweep bounds. Its baseline one-Amber reward is a durable owner-bound
+claim delivered atomically when inventory capacity is available. The separate
+25% Peat Heart drop remains A8b work and is not enabled by this baseline.
 
 Moon Bear uses its reviewed server-side stat profile (250 health, 20 armor,
 75 Crush). Its seeded spawn slot, dry-Elderwood eligibility, 150 m player-start
@@ -303,7 +315,7 @@ and original inventory icons before implementation; the uses are not recipes.
   actor budget. A mosquito swarm is one gameplay actor with cosmetic insects.
 - Mirelings spawn **only in Mossy Mire**, including seeded/reloaded candidates.
   Use the same server-side spawn-origin allowlist policy as boar/deer.
-- Mossy Mire uses the full 50/40/10 distribution: 50% Mireling (existing),
+- Mossy Mire uses the full 50/20/20/10 distribution: 50% Mireling (existing),
   20% Death Adder, 20% Mosquito swarm, and 10% Peat Husk. These are overall
   candidate-slot weights, not shares within the common-enemy allocation.
 - Freezing Tundra uses 50% existing eligible roster / 20% Wolf / 20% Lynx /

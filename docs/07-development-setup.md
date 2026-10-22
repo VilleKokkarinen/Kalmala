@@ -2397,9 +2397,9 @@ The editor automation
 `Kalmala.Gameplay.Wildlife.Mireling.MossyMireShareAndHabitat` checks the 50%
 Mireling candidate share, the retained Meadows/Elderwood/Shimmering Lakes
 species proportions, rejection of Mireling outside Mossy Mire, and the dry
-Mossy Mire habitat gate. It also checks Death Adder's 20% share; Mosquito and
-Peat Husk slots remain unspawned until their own increments. The Mireling
-baseline Bone Fragment quantity, melee and boss-scroll code remain unchanged.
+Mossy Mire habitat gate. It also checks the complete 50/20/20/10 Mireling,
+Death Adder, Mosquito and Peat Husk distribution. The Mireling baseline Bone
+Fragment quantity, melee and boss-scroll code remain unchanged.
 This contract source is not live-spawn, reward, or peer acceptance; run the
 M4/M5 Mireling harness and combined A8a/A8b I4 checks after an editor build.
 
@@ -2424,7 +2424,7 @@ After an editor build, run `Kalmala.Gameplay.Wildlife.DeathAdder.MireBiteAndRewa
 `Kalmala.Gameplay.Status.DeathAdderMajorPoison`,
 `Kalmala.Gameplay.Presentation.SurfaceWinding`, and
 `Kalmala.UI.StatusHotbar.SnapshotAndLayout`. The wildlife contract checks
-Mossy Mire's 50/20/30 candidate split, Death Adder exclusion from other biomes,
+Mossy Mire's 50/20/20/10 candidate split, Death Adder exclusion from other biomes,
 dry habitat, reviewed stats/timing, and its namespaced owner-bound one-Bone-
 Fragment claim through full-pack retry and population-save serialization. The
 status regression checks the ten five-damage ticks, refresh without stacking
@@ -2435,6 +2435,20 @@ timer. These source-level checks are not live spawn, peer privacy, reconnect,
 or restart acceptance; run them with the combined A8a/A8b I4 verification. The
 Venom Sac drop remains disabled pending its separate A8b source task. No Unreal
 build or automation execution ran in this increment.
+
+## Peat Husk contract regression
+
+After an editor build, run
+`Kalmala.Gameplay.Wildlife.PeatHusk.MireSweepAndRewardClaim` and
+`Kalmala.Gameplay.Presentation.SurfaceWinding`. These source automations check
+the complete seeded Mossy Mire distribution, Peat Husk biome/habitat exclusion,
+the reviewed profile, attack timing and approach tuning, server-only sweep
+validation at 260 cm and its 120-degree forward arc, and the owner-bound Amber
+claim's identity, idempotency, ownership, save serialization and cleanup. They
+do not replace live hard-spawn exclusion, sweep damage, inventory-capacity,
+reconnect/restart or relevant-peer acceptance. Peat Heart remains disabled
+pending its separate A8b item/source work. No Unreal build or automation
+execution ran in this normal increment; combined A8a/A8b I4 remains required.
 
 ## Exposure inspection
 

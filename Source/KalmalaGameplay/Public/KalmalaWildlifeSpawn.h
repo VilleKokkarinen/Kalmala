@@ -145,6 +145,15 @@ public:
     static constexpr float MoonBearRecoverySeconds = 1.2f;
     static constexpr float MoonBearSpawnLeashCentimetres = 2500.0f;
     static bool IsMoonBearPawInReach(bool bServerAuthority, bool bValidTarget, float DistanceCentimetres);
+    static constexpr float PeatHuskAttackTriggerCentimetres = 500.0f;
+    static constexpr float PeatHuskSweepReachCentimetres = 260.0f;
+    static constexpr float PeatHuskSweepMinimumForwardDot = 0.5f;
+    static constexpr float PeatHuskTelegraphSeconds = 1.0f;
+    static constexpr float PeatHuskRecoverySeconds = 1.2f;
+    static constexpr float PeatHuskSpawnLeashCentimetres = 2500.0f;
+    static constexpr float PeatHuskApproachSpeedCentimetresPerSecond = 100.0f;
+    static bool IsPeatHuskSweepInReach(bool bServerAuthority, bool bValidTarget,
+        float DistanceCentimetres, float ForwardDot);
     static bool IsMosquitoBiteInReach(bool bServerAuthority, bool bValidTarget, float DistanceCentimetres);
     static bool IsMosquitoFireRepelling(bool bServerAuthority, bool bActiveFlame, float DistanceCentimetres, float RadiusCentimetres);
     static EKalmalaWildlifeArchetype GetArchetypeForSpawnSeed(uint64 SpawnSeed);
@@ -187,6 +196,13 @@ private:
     void SetMoonBearAttackCue(EKalmalaWildlifeAttackCue NextCue);
     bool IsMoonBearAttackTargetValid(const class AKalmalaCharacter* Target) const;
     bool TryApplyMoonBearPaw(class AKalmalaCharacter* Target);
+    void UpdatePeatHuskAttack(float DeltaSeconds);
+    void BeginPeatHuskAttack(class AKalmalaCharacter* Target);
+    void SetPeatHuskAttackCue(EKalmalaWildlifeAttackCue NextCue);
+    bool IsPeatHuskAttackTargetValid(const class AKalmalaCharacter* Target) const;
+    bool TryApplyPeatHuskSweep(class AKalmalaCharacter* Target);
+    bool IsPeatHuskPositionDry(const FVector& Position) const;
+    bool CanPeatHuskMoveAlong(const FVector& Start, const FVector& End) const;
     void UpdateSnakeAmbush(float DeltaSeconds);
     void BeginSnakeAttack(class AKalmalaCharacter* Target);
     void SetSnakeAttackCue(EKalmalaWildlifeAttackCue NextCue);
@@ -238,6 +254,9 @@ private:
     UPROPERTY(ReplicatedUsing = OnRep_MoonBearAttackCue)
     uint8 MoonBearAttackCue = static_cast<uint8>(EKalmalaWildlifeAttackCue::None);
 
+    UPROPERTY(ReplicatedUsing = OnRep_PeatHuskAttackCue)
+    uint8 PeatHuskAttackCue = static_cast<uint8>(EKalmalaWildlifeAttackCue::None);
+
     UFUNCTION()
     void OnRep_Defeated();
 
@@ -258,6 +277,9 @@ private:
 
     UFUNCTION()
     void OnRep_MoonBearAttackCue();
+
+    UFUNCTION()
+    void OnRep_PeatHuskAttackCue();
 
     FVector SpawnOrigin = FVector::ZeroVector;
     FVector BehaviourDestination = FVector::ZeroVector;
@@ -280,6 +302,8 @@ private:
     TWeakObjectPtr<class AKalmalaCharacter> BadgerAttackTarget;
     float MoonBearAttackSecondsRemaining = 0.0f;
     TWeakObjectPtr<class AKalmalaCharacter> MoonBearAttackTarget;
+    float PeatHuskAttackSecondsRemaining = 0.0f;
+    TWeakObjectPtr<class AKalmalaCharacter> PeatHuskAttackTarget;
     TArray<uint8> SnakeHissAudioData;
     TWeakObjectPtr<class AKalmalaCharacter> MosquitoTarget;
     float MosquitoApproachSecondsRemaining = 0.0f;

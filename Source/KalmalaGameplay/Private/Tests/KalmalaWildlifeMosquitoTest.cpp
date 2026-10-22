@@ -13,7 +13,7 @@ bool FKalmalaWildlifeMosquitoContractTest::RunTest(const FString& Parameters)
     int32 MirelingSlots = 0;
     int32 DeathAdderSlots = 0;
     int32 MosquitoSlots = 0;
-    int32 ReservedPeatSlots = 0;
+    int32 PeatHuskSlots = 0;
     for (uint64 Seed = 0; Seed < 1000; ++Seed)
     {
         EKalmalaWildlifeArchetype Archetype = EKalmalaWildlifeArchetype::Mireling;
@@ -42,14 +42,16 @@ bool FKalmalaWildlifeMosquitoContractTest::RunTest(const FString& Parameters)
         }
         else
         {
-            TestFalse(TEXT("Peat Husk remains the reserved hard slot"), bEligible);
-            ++ReservedPeatSlots;
+            TestTrue(TEXT("Peat Husk fills the remaining hard slot"), bEligible);
+            TestEqual(TEXT("The final slot selects Peat Husk"), Archetype,
+                EKalmalaWildlifeArchetype::PeatHusk);
+            ++PeatHuskSlots;
         }
     }
     TestEqual(TEXT("Mireling slot count"), MirelingSlots, 500);
     TestEqual(TEXT("Death Adder slot count"), DeathAdderSlots, 200);
     TestEqual(TEXT("Mosquito slot count"), MosquitoSlots, 200);
-    TestEqual(TEXT("Peat Husk slot count remains reserved"), ReservedPeatSlots, 100);
+    TestEqual(TEXT("Peat Husk receives ten percent of Mossy Mire slots"), PeatHuskSlots, 100);
 
     for (const EKalmalaBiome Biome : { EKalmalaBiome::Meadows, EKalmalaBiome::Elderwood,
              EKalmalaBiome::ShimmeringLakes, EKalmalaBiome::FreezingTundra,

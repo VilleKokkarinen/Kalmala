@@ -98,7 +98,8 @@ namespace KalmalaGameMode
         }
         if (OutArchetype == EKalmalaWildlifeArchetype::Mireling
             || OutArchetype == EKalmalaWildlifeArchetype::DeathAdder
-            || OutArchetype == EKalmalaWildlifeArchetype::MosquitoSwarm)
+            || OutArchetype == EKalmalaWildlifeArchetype::MosquitoSwarm
+            || OutArchetype == EKalmalaWildlifeArchetype::PeatHusk)
         {
             const bool bWater = FKalmalaOceanSampler::Sample(Config, Position).IsWater()
                 || FKalmalaShimmeringLakeSampler::IsWater(Config, Position);
@@ -2277,7 +2278,8 @@ void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey)
                 }
                 constexpr float HardEnemyStartExclusionCentimetres = 15000.0f;
                 if ((Archetype == EKalmalaWildlifeArchetype::GiantSnake
-                    || Archetype == EKalmalaWildlifeArchetype::MoonBear) && GeneratedPlayerStart != nullptr
+                    || Archetype == EKalmalaWildlifeArchetype::MoonBear
+                    || Archetype == EKalmalaWildlifeArchetype::PeatHusk) && GeneratedPlayerStart != nullptr
                     && FVector::DistSquared2D(Spawn.Location, GeneratedPlayerStart->GetActorLocation())
                         < FMath::Square(HardEnemyStartExclusionCentimetres))
                 {
@@ -2609,6 +2611,25 @@ bool AKalmalaGameMode::RecordDeathAdderDefeatReward(const FString& PersistentSpa
         KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
 }
 
+bool AKalmalaGameMode::RecordPeatHuskDefeatReward(const FString& PersistentSpawnId,
+    AKalmalaCharacter* CreditedAttacker)
+{
+    if (!HasAuthority() || PersistentSpawnId.IsEmpty() || PopulationSaveGame == nullptr
+        || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
+
+    if (IsValid(CreditedAttacker) && CreditedAttacker->HasAuthority()
+        && CreditedAttacker->GetWorld() == GetWorld() && CreditedAttacker->GetPlayerState() != nullptr)
+    {
+        const FString Identity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(CreditedAttacker->GetPlayerState());
+        if (!Identity.IsEmpty() && !PopulationSaveGame->TryQueuePendingPeatHuskReward(PersistentSpawnId, Identity))
+            return false;
+    }
+
+    PopulationSaveGame->MarkDefeated(PersistentSpawnId);
+    return UGameplayStatics::SaveGameToSlot(PopulationSaveGame,
+        KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+}
+
 void AKalmalaGameMode::DeliverPendingWildlifeRewards()
 {
     if (!HasAuthority() || GetWorld() == nullptr || PopulationSaveGame == nullptr
@@ -2637,11 +2658,16 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
         const bool bDeathAdderReward =
             UKalmalaWorldPopulationSaveGame::TryGetDeathAdderSpawnIdFromPendingRewardClaimId(
                 Reward.PersistentSpawnId, DeathAdderSpawnId);
+        FString PeatHuskSpawnId;
+        const bool bPeatHuskReward =
+            UKalmalaWorldPopulationSaveGame::TryGetPeatHuskSpawnIdFromPendingRewardClaimId(
+                Reward.PersistentSpawnId, PeatHuskSpawnId);
         const FString& DefeatedSpawnId = bBadgerReward ? BadgerSpawnId
             : (bMoonBearReward ? MoonBearSpawnId
                 : (bViperReward ? ViperSpawnId
                     : (bGiantSnakeReward ? GiantSnakeSpawnId
-                        : (bDeathAdderReward ? DeathAdderSpawnId : Reward.PersistentSpawnId))));
+                        : (bDeathAdderReward ? DeathAdderSpawnId
+                            : (bPeatHuskReward ? PeatHuskSpawnId : Reward.PersistentSpawnId)))));
         if (!PopulationSaveGame->IsDefeated(DefeatedSpawnId)) continue;
 
         for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
@@ -2656,28 +2682,35 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
             if (Inventory == nullptr) break;
 
             const TArray<FKalmalaInventoryStack> Before = Inventory->GetStacks();
-            TArray<FKalmalaInventoryStack> WithBone;
-            TArray<FKalmalaInventoryStack> WithBadgerFur;
             TArray<FKalmalaInventoryStack> Candidate;
             FString Reason;
-            const int32 BoneFragmentQuantity = bMoonBearReward ? 3 : (bGiantSnakeReward ? 2 : 1);
-            if (!UKalmalaInventoryComponent::BuildGrant(
-                    Before, TEXT("BoneFragment"), BoneFragmentQuantity, WithBone, Reason)) break;
-            if (bBadgerReward)
+            if (bPeatHuskReward)
             {
-                TArray<FKalmalaInventoryStack> WithBadgerMeat;
-                if (!UKalmalaInventoryComponent::BuildGrant(WithBone, TEXT("BadgerFur"), 1, WithBadgerFur, Reason)
-                    || !UKalmalaInventoryComponent::BuildGrant(
-                        WithBadgerFur, TEXT("BadgerMeat"), 1, WithBadgerMeat, Reason)) break;
-                Candidate = MoveTemp(WithBadgerMeat);
+                if (!UKalmalaInventoryComponent::BuildGrant(Before, TEXT("Amber"), 1, Candidate, Reason)) break;
             }
-            else if (bMoonBearReward || bViperReward || bGiantSnakeReward || bDeathAdderReward)
+            else
             {
-                Candidate = MoveTemp(WithBone);
-            }
-            else if (!UKalmalaInventoryComponent::BuildGrant(WithBone, TEXT("RatTail"), 1, Candidate, Reason))
-            {
-                break;
+                TArray<FKalmalaInventoryStack> WithBone;
+                TArray<FKalmalaInventoryStack> WithBadgerFur;
+                const int32 BoneFragmentQuantity = bMoonBearReward ? 3 : (bGiantSnakeReward ? 2 : 1);
+                if (!UKalmalaInventoryComponent::BuildGrant(
+                        Before, TEXT("BoneFragment"), BoneFragmentQuantity, WithBone, Reason)) break;
+                if (bBadgerReward)
+                {
+                    TArray<FKalmalaInventoryStack> WithBadgerMeat;
+                    if (!UKalmalaInventoryComponent::BuildGrant(WithBone, TEXT("BadgerFur"), 1, WithBadgerFur, Reason)
+                        || !UKalmalaInventoryComponent::BuildGrant(
+                            WithBadgerFur, TEXT("BadgerMeat"), 1, WithBadgerMeat, Reason)) break;
+                    Candidate = MoveTemp(WithBadgerMeat);
+                }
+                else if (bMoonBearReward || bViperReward || bGiantSnakeReward || bDeathAdderReward)
+                {
+                    Candidate = MoveTemp(WithBone);
+                }
+                else if (!UKalmalaInventoryComponent::BuildGrant(WithBone, TEXT("RatTail"), 1, Candidate, Reason))
+                {
+                    break;
+                }
             }
             if (!Inventory->CanFitContents(Candidate, Inventory->CountPackedTools(Character->GetCarriedToolInventory()))
                 || !Inventory->TryCommitStacksFromServer(Before, Candidate)) break;

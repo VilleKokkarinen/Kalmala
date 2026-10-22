@@ -289,6 +289,14 @@ bool AKalmalaWildlifeSpawn::IsMoonBearPawInReach(const bool bServerAuthority, co
         && DistanceCentimetres >= 0.0f && DistanceCentimetres <= MoonBearPawReachCentimetres;
 }
 
+bool AKalmalaWildlifeSpawn::IsPeatHuskSweepInReach(const bool bServerAuthority, const bool bValidTarget,
+    const float DistanceCentimetres, const float ForwardDot)
+{
+    return bServerAuthority && bValidTarget && FMath::IsFinite(DistanceCentimetres)
+        && DistanceCentimetres >= 0.0f && DistanceCentimetres <= PeatHuskSweepReachCentimetres
+        && FMath::IsFinite(ForwardDot) && ForwardDot >= PeatHuskSweepMinimumForwardDot && ForwardDot <= 1.0f;
+}
+
 bool AKalmalaWildlifeSpawn::IsMosquitoBiteInReach(const bool bServerAuthority, const bool bValidTarget,
     const float DistanceCentimetres)
 {
@@ -385,6 +393,13 @@ bool AKalmalaWildlifeSpawn::DefeatServer()
         if (Mode == nullptr || !Mode->RecordMoonBearDefeatReward(
                 PersistentSpawnId, LastValidatedAttacker.Get())) return false;
     }
+    else if (Archetype == EKalmalaWildlifeArchetype::PeatHusk)
+    {
+        AKalmalaGameMode* Mode = GetWorld() != nullptr
+            ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
+        if (Mode == nullptr || !Mode->RecordPeatHuskDefeatReward(
+                PersistentSpawnId, LastValidatedAttacker.Get())) return false;
+    }
     else if (Archetype == EKalmalaWildlifeArchetype::Viper)
     {
         AKalmalaGameMode* Mode = GetWorld() != nullptr
@@ -469,6 +484,12 @@ bool AKalmalaWildlifeSpawn::ApplyValidatedDamageFromServer(const FKalmalaDamageC
         MoonBearAttackTarget = Attacker;
         MoonBearAttackSecondsRemaining = 0.0f;
         SetMoonBearAttackCue(EKalmalaWildlifeAttackCue::None);
+    }
+    else if (Archetype == EKalmalaWildlifeArchetype::PeatHusk && Attacker != nullptr)
+    {
+        PeatHuskAttackTarget = Attacker;
+        PeatHuskAttackSecondsRemaining = 0.0f;
+        SetPeatHuskAttackCue(EKalmalaWildlifeAttackCue::None);
     }
     else if (Archetype == EKalmalaWildlifeArchetype::MosquitoSwarm && Attacker != nullptr)
     {
@@ -627,7 +648,13 @@ bool AKalmalaWildlifeSpawn::TryGetSpawnArchetypeForBiome(const uint64 SpawnSeed,
         return true;
     }
 
-    // Reserve remaining Mire slots; unsupported biomes produce no wildlife candidates.
+    if (Biome == EKalmalaBiome::MossyMire && Slot == 9)
+    {
+        OutArchetype = EKalmalaWildlifeArchetype::PeatHusk;
+        return true;
+    }
+
+    // Unsupported biomes produce no wildlife candidates.
     return false;
 }
 
@@ -662,6 +689,7 @@ void AKalmalaWildlifeSpawn::Tick(const float DeltaSeconds)
         else if (Archetype == EKalmalaWildlifeArchetype::Rat) UpdateRatAttack(DeltaSeconds);
         else if (Archetype == EKalmalaWildlifeArchetype::Badger) UpdateBadgerAttack(DeltaSeconds);
         else if (Archetype == EKalmalaWildlifeArchetype::MoonBear) UpdateMoonBearAttack(DeltaSeconds);
+        else if (Archetype == EKalmalaWildlifeArchetype::PeatHusk) UpdatePeatHuskAttack(DeltaSeconds);
         else if (Archetype == EKalmalaWildlifeArchetype::Viper
             || Archetype == EKalmalaWildlifeArchetype::GiantSnake
             || Archetype == EKalmalaWildlifeArchetype::DeathAdder)
@@ -1213,6 +1241,177 @@ bool AKalmalaWildlifeSpawn::TryApplyMoonBearPaw(AKalmalaCharacter* Target)
         || !IsMoonBearPawInReach(HasAuthority(), true, FVector::Dist(GetActorLocation(), Target->GetActorLocation())))
         return false;
     return Target->ApplyWildlifeDamageFromServer(this, GetBaseAttackChannelsForArchetype(Archetype));
+}
+
+void AKalmalaWildlifeSpawn::UpdatePeatHuskAttack(const float DeltaSeconds)
+{
+    if (Behaviour != EKalmalaWildlifeBehaviour::Idle || GetWorld() == nullptr) return;
+    const float StepSeconds = FMath::Clamp(FMath::IsFinite(DeltaSeconds) ? DeltaSeconds : 0.0f, 0.0f, 0.10f);
+    EKalmalaWildlifeAttackCue Cue = static_cast<EKalmalaWildlifeAttackCue>(PeatHuskAttackCue);
+    AKalmalaCharacter* Target = PeatHuskAttackTarget.Get();
+
+    if (Cue != EKalmalaWildlifeAttackCue::None
+        && (Target == nullptr || !IsPeatHuskAttackTargetValid(Target)))
+    {
+        PeatHuskAttackTarget.Reset();
+        PeatHuskAttackSecondsRemaining = 0.0f;
+        SetPeatHuskAttackCue(EKalmalaWildlifeAttackCue::None);
+        Cue = EKalmalaWildlifeAttackCue::None;
+        Target = nullptr;
+    }
+    else if (Target != nullptr && !IsPeatHuskAttackTargetValid(Target))
+    {
+        PeatHuskAttackTarget.Reset();
+        PeatHuskAttackSecondsRemaining = 0.0f;
+        Target = nullptr;
+    }
+
+    if (Cue == EKalmalaWildlifeAttackCue::None && Target == nullptr)
+    {
+        float BestDistanceSquared = FMath::Square(PeatHuskAttackTriggerCentimetres);
+        for (TActorIterator<AKalmalaCharacter> It(GetWorld()); It; ++It)
+        {
+            AKalmalaCharacter* Candidate = *It;
+            if (!IsPeatHuskAttackTargetValid(Candidate)) continue;
+            const float DistanceSquared = FVector::DistSquared2D(GetActorLocation(), Candidate->GetActorLocation());
+            if (DistanceSquared < BestDistanceSquared)
+            {
+                BestDistanceSquared = DistanceSquared;
+                Target = Candidate;
+            }
+        }
+        if (Target != nullptr) PeatHuskAttackTarget = Target;
+    }
+
+    if (Target == nullptr)
+    {
+        const FVector ToHome = SpawnOrigin - GetActorLocation();
+        if (ToHome.SizeSquared2D() > FMath::Square(15.0f))
+        {
+            FVector End = FMath::VInterpConstantTo(GetActorLocation(), SpawnOrigin, StepSeconds,
+                PeatHuskApproachSpeedCentimetresPerSecond);
+            if (const AKalmalaWorldGenerationGameState* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>())
+                End.Z = FKalmalaTerrainHeightSampler::SampleHeight(State->GetWorldGenerationConfig(), FVector2D(End));
+            if (IsPeatHuskPositionDry(End) && CanPeatHuskMoveAlong(GetActorLocation(), End)) SetActorLocation(End, true);
+        }
+        return;
+    }
+
+    FVector ToTarget = Target->GetActorLocation() - GetActorLocation();
+    float Distance = ToTarget.Size2D();
+    if (Cue != EKalmalaWildlifeAttackCue::Recovery && Distance > PeatHuskSweepReachCentimetres)
+    {
+        const float MoveDistance = FMath::Min(PeatHuskApproachSpeedCentimetresPerSecond * StepSeconds,
+            Distance - PeatHuskSweepReachCentimetres);
+        const FVector Direction = ToTarget.GetSafeNormal2D();
+        if (!Direction.IsNearlyZero()) SetActorRotation(FRotationMatrix::MakeFromX(Direction).Rotator());
+        FVector End = GetActorLocation() + Direction * MoveDistance;
+        if (const AKalmalaWorldGenerationGameState* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>())
+            End.Z = FKalmalaTerrainHeightSampler::SampleHeight(State->GetWorldGenerationConfig(), FVector2D(End));
+        if (CanPeatHuskMoveAlong(GetActorLocation(), End)) SetActorLocation(End, true);
+        ToTarget = Target->GetActorLocation() - GetActorLocation();
+        Distance = ToTarget.Size2D();
+    }
+
+    if (Cue == EKalmalaWildlifeAttackCue::Telegraph)
+    {
+        PeatHuskAttackSecondsRemaining -= StepSeconds;
+        if (PeatHuskAttackSecondsRemaining <= 0.0f)
+        {
+            TryApplyPeatHuskSweep(Target);
+            PeatHuskAttackSecondsRemaining = PeatHuskRecoverySeconds;
+            SetPeatHuskAttackCue(EKalmalaWildlifeAttackCue::Recovery);
+        }
+    }
+    else if (Cue == EKalmalaWildlifeAttackCue::Recovery)
+    {
+        PeatHuskAttackSecondsRemaining -= StepSeconds;
+        if (PeatHuskAttackSecondsRemaining <= 0.0f)
+        {
+            PeatHuskAttackSecondsRemaining = 0.0f;
+            SetPeatHuskAttackCue(EKalmalaWildlifeAttackCue::None);
+        }
+    }
+    else if (Distance <= PeatHuskSweepReachCentimetres)
+    {
+        BeginPeatHuskAttack(Target);
+    }
+}
+
+void AKalmalaWildlifeSpawn::BeginPeatHuskAttack(AKalmalaCharacter* Target)
+{
+    if (!HasAuthority() || bDefeated || !IsPeatHuskAttackTargetValid(Target)
+        || FVector::DistSquared2D(GetActorLocation(), Target->GetActorLocation())
+            > FMath::Square(PeatHuskSweepReachCentimetres)) return;
+
+    const FVector Direction = (Target->GetActorLocation() - GetActorLocation()).GetSafeNormal2D();
+    if (Direction.IsNearlyZero()) return;
+    SetActorRotation(FRotationMatrix::MakeFromX(Direction).Rotator());
+    PeatHuskAttackTarget = Target;
+    PeatHuskAttackSecondsRemaining = PeatHuskTelegraphSeconds;
+    SetPeatHuskAttackCue(EKalmalaWildlifeAttackCue::Telegraph);
+}
+
+void AKalmalaWildlifeSpawn::SetPeatHuskAttackCue(const EKalmalaWildlifeAttackCue NextCue)
+{
+    if (!HasAuthority()) return;
+    const uint8 NextValue = static_cast<uint8>(NextCue);
+    if (PeatHuskAttackCue == NextValue) return;
+    PeatHuskAttackCue = NextValue;
+    BuildArchetypePresentation();
+    ForceNetUpdate();
+}
+
+bool AKalmalaWildlifeSpawn::IsPeatHuskAttackTargetValid(const AKalmalaCharacter* Target) const
+{
+    if (!HasAuthority() || bDefeated || GetWorld() == nullptr || !IsValid(Target)
+        || !Target->HasAuthority() || Target->GetWorld() != GetWorld()
+        || !FMath::IsFinite(Target->GetHealth()) || Target->GetHealth() <= 1.0f
+        || FVector::DistSquared2D(Target->GetActorLocation(), SpawnOrigin)
+            > FMath::Square(PeatHuskSpawnLeashCentimetres)) return false;
+    if (!CanPeatHuskMoveAlong(GetActorLocation(), Target->GetActorLocation())) return false;
+
+    FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(KalmalaPeatHuskSweepVisibility), true);
+    QueryParams.AddIgnoredActor(this);
+    FHitResult Blocker;
+    const FVector Start = GetActorLocation() + FVector(0.0f, 0.0f, 88.0f);
+    const FVector End = Target->GetActorLocation() + FVector(0.0f, 0.0f, 48.0f);
+    return !GetWorld()->LineTraceSingleByChannel(Blocker, Start, End, ECC_Visibility, QueryParams)
+        || Blocker.GetActor() == Target;
+}
+
+bool AKalmalaWildlifeSpawn::TryApplyPeatHuskSweep(AKalmalaCharacter* Target)
+{
+    const FVector ToTarget = IsValid(Target) ? Target->GetActorLocation() - GetActorLocation() : FVector::ZeroVector;
+    const float ForwardDot = FVector::DotProduct(GetActorForwardVector().GetSafeNormal2D(), ToTarget.GetSafeNormal2D());
+    if (!IsPeatHuskAttackTargetValid(Target)
+        || !IsPeatHuskSweepInReach(HasAuthority(), true, ToTarget.Size2D(), ForwardDot)) return false;
+    return Target->ApplyWildlifeDamageFromServer(this, GetBaseAttackChannelsForArchetype(Archetype));
+}
+
+bool AKalmalaWildlifeSpawn::IsPeatHuskPositionDry(const FVector& Position) const
+{
+    if (Position.ContainsNaN() || GetWorld() == nullptr) return false;
+    const AKalmalaWorldGenerationGameState* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
+    if (State == nullptr) return false;
+    const FKalmalaWorldGenerationConfig& Config = State->GetWorldGenerationConfig();
+    const FVector2D XY(Position);
+    const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, XY));
+    const bool bWater = FKalmalaOceanSampler::Sample(Config, XY).IsWater()
+        || FKalmalaShimmeringLakeSampler::IsWater(Config, XY);
+    return IsMossyMireSpawnHabitatAllowed(Biome, bWater);
+}
+
+bool AKalmalaWildlifeSpawn::CanPeatHuskMoveAlong(const FVector& Start, const FVector& End) const
+{
+    const float Distance = FVector::Dist2D(Start, End);
+    const int32 Samples = FMath::Max(1, FMath::CeilToInt(Distance / 80.0f));
+    for (int32 Index = 0; Index <= Samples; ++Index)
+    {
+        const FVector Position = FMath::Lerp(Start, End, static_cast<float>(Index) / Samples);
+        if (!IsPeatHuskPositionDry(Position)) return false;
+    }
+    return true;
 }
 
 void AKalmalaWildlifeSpawn::UpdateSnakeAmbush(const float DeltaSeconds)
@@ -2100,28 +2299,48 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
                 Centre + FVector(12.0f, 0.0f, 2.5f), Centre + FVector(14.0f, 0.0f, 1.0f), Eye);
         }
     }
-    else
+    else if (Archetype == EKalmalaWildlifeArchetype::PeatHusk)
     {
-        // Camp-pressure readability: a low forward hunch, long reaching arms, and a split crown give the scavenger a distinctive silhouette at a distance.
+        const EKalmalaWildlifeAttackCue Cue = static_cast<EKalmalaWildlifeAttackCue>(PeatHuskAttackCue);
+        const bool bWarning = Cue == EKalmalaWildlifeAttackCue::Telegraph;
+        const bool bRecovering = Cue == EKalmalaWildlifeAttackCue::Recovery;
         const FLinearColor RootShadow(0.10f, 0.14f, 0.11f);
         const FLinearColor PeatBark(0.20f, 0.17f, 0.12f);
         const FLinearColor Lichen(0.34f, 0.49f, 0.25f);
         const FLinearColor WarmEye(0.72f, 0.42f, 0.17f);
+        const FLinearColor SweepWarning(0.94f, 0.57f, 0.16f);
 
         AddTetra(FVector(-7,0,0), FVector(54,44,104), RootShadow);
         AddTetra(FVector(27,0,5), FVector(42,37,78), PeatBark);
         AddTetra(FVector(48,0,70), FVector(28,28,46), RootShadow);
-        AddTetra(FVector(61,0,98), FVector(43,35,52), Lichen);
+        AddTetra(FVector(61,0,bWarning ? 104.0f : 98.0f), FVector(43,35,52), Lichen);
 
         AddTetra(FVector(36,-21,132), FVector(16,12,48), PeatBark);
         AddTetra(FVector(36,21,132), FVector(16,12,48), PeatBark);
         AddTetra(FVector(35,0,133), FVector(15,14,42), Lichen);
-        AddTetra(FVector(86,-13,122), FVector(6,5,7), WarmEye);
-        AddTetra(FVector(86,13,122), FVector(6,5,7), WarmEye);
+        AddTetra(FVector(86,-13,122), FVector(6,5,7), bWarning ? SweepWarning : WarmEye);
+        AddTetra(FVector(86,13,122), FVector(6,5,7), bWarning ? SweepWarning : WarmEye);
 
-        AddTetraPoints(FVector(16,-33,62), FVector(43,-51,54), FVector(54,-35,43), FVector(88,-69,5), PeatBark);
+        if (bWarning)
+        {
+            // Lift one root-like arm into a clear one-second warning silhouette.
+            AddTetraPoints(FVector(16,-33,62), FVector(43,-51,73),
+                FVector(66,-38,105), FVector(112,-43,119), SweepWarning);
+            AddTetra(FVector(118,-43,116), FVector(22,17,18), SweepWarning);
+        }
+        else if (bRecovering)
+        {
+            // The arm follows through low and forward while the server recovery timer runs.
+            AddTetraPoints(FVector(16,-33,62), FVector(46,-51,49),
+                FVector(84,-39,34), FVector(133,-41,25), PeatBark);
+            AddTetra(FVector(140,-42,22), FVector(20,15,16), SweepWarning);
+        }
+        else
+        {
+            AddTetraPoints(FVector(16,-33,62), FVector(43,-51,54), FVector(54,-35,43), FVector(88,-69,5), PeatBark);
+            AddTetra(FVector(98,-68,0), FVector(17,13,20), RootShadow);
+        }
         AddTetraPoints(FVector(16,33,62), FVector(54,35,43), FVector(43,51,54), FVector(88,69,5), PeatBark);
-        AddTetra(FVector(98,-68,0), FVector(17,13,20), RootShadow);
         AddTetra(FVector(98,68,0), FVector(17,13,20), RootShadow);
 
         AddTetra(FVector(-39,-22,0), FVector(21,17,72), RootShadow);
@@ -2233,6 +2452,7 @@ void AKalmalaWildlifeSpawn::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
     DOREPLIFETIME(AKalmalaWildlifeSpawn, RatAttackCue);
     DOREPLIFETIME(AKalmalaWildlifeSpawn, BadgerAttackCue);
     DOREPLIFETIME(AKalmalaWildlifeSpawn, MoonBearAttackCue);
+    DOREPLIFETIME(AKalmalaWildlifeSpawn, PeatHuskAttackCue);
 }
 
 void AKalmalaWildlifeSpawn::OnRep_Archetype()
@@ -2269,6 +2489,11 @@ void AKalmalaWildlifeSpawn::OnRep_MoonBearAttackCue()
     BuildArchetypePresentation();
 }
 
+void AKalmalaWildlifeSpawn::OnRep_PeatHuskAttackCue()
+{
+    BuildArchetypePresentation();
+}
+
 void AKalmalaWildlifeSpawn::OnRep_Defeated()
 {
     ApplyDefeatedState();
@@ -2288,6 +2513,9 @@ void AKalmalaWildlifeSpawn::ApplyDefeatedState()
         MosquitoTarget.Reset();
         MosquitoApproachSecondsRemaining = 0.0f;
         MosquitoBiteSecondsRemaining = 0.0f;
+        PeatHuskAttackTarget.Reset();
+        PeatHuskAttackSecondsRemaining = 0.0f;
+        SetPeatHuskAttackCue(EKalmalaWildlifeAttackCue::None);
         GrantDefeatReward();
     }
 }
@@ -2319,12 +2547,13 @@ void AKalmalaWildlifeSpawn::GrantDefeatReward()
     if (BoneFragmentQuantity > 0 && Archetype != EKalmalaWildlifeArchetype::Rat
         && Archetype != EKalmalaWildlifeArchetype::Badger && Archetype != EKalmalaWildlifeArchetype::MoonBear
         && Archetype != EKalmalaWildlifeArchetype::Viper && Archetype != EKalmalaWildlifeArchetype::GiantSnake
-        && Archetype != EKalmalaWildlifeArchetype::DeathAdder)
+        && Archetype != EKalmalaWildlifeArchetype::DeathAdder
+        && Archetype != EKalmalaWildlifeArchetype::PeatHusk)
     {
         Inventory->TryGrantFromServer(TEXT("BoneFragment"), BoneFragmentQuantity);
     }
-    // Rat, Badger, Moon Bear, Viper, Giant Snake and Death Adder rewards use the persistent queue recorded before
-    // this defeated state is replicated, so they must not be granted a second time.
+    // Rat, Badger, Moon Bear, Viper, Giant Snake, Death Adder and Peat Husk rewards
+    // use the persistent queue recorded before defeated state is replicated.
 
     if (Archetype == EKalmalaWildlifeArchetype::Mireling && IsMirelingBossRewardCandidate())
     {

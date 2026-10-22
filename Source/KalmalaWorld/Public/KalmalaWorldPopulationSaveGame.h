@@ -47,6 +47,10 @@ public:
     static FString MakeDeathAdderPendingRewardClaimId(const FString& PersistentSpawnId);
     static bool TryGetDeathAdderSpawnIdFromPendingRewardClaimId(
         const FString& ClaimId, FString& OutPersistentSpawnId);
+    bool TryQueuePendingPeatHuskReward(const FString& PersistentSpawnId, const FString& PlayerIdentity);
+    static FString MakePeatHuskPendingRewardClaimId(const FString& PersistentSpawnId);
+    static bool TryGetPeatHuskSpawnIdFromPendingRewardClaimId(
+        const FString& ClaimId, FString& OutPersistentSpawnId);
     bool RemovePendingWildlifeReward(const FString& RewardClaimId);
     const TArray<FKalmalaPendingWildlifeReward>& GetPendingWildlifeRewards() const { return PendingWildlifeRewards; }
 

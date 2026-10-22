@@ -223,6 +223,17 @@ bool FKalmalaModelSurfaceTest::RunTest(const FString& Parameters)
     DeathAdder->GetComponents(DeathAdderParts);
     TestEqual(TEXT("Death Adder creates its procedural model"), DeathAdderParts.Num(), 1);
     for (auto* Part : DeathAdderParts) CheckMesh(Part, true);
+    auto* PeatHusk = World->SpawnActor<AKalmalaWildlifeSpawn>();
+    if (!TestNotNull(TEXT("Peat Husk presentation fixture exists"), PeatHusk)) return false;
+    FKalmalaWorldPopulationSpawn PeatHuskSpawn;
+    PeatHuskSpawn.Kind = EKalmalaWorldPopulationKind::Wildlife;
+    PeatHuskSpawn.SpawnSeed = 9;
+    PeatHuskSpawn.Location = FVector(1000, 0, 0);
+    PeatHusk->InitializeServer(PeatHuskSpawn, EKalmalaWildlifeArchetype::PeatHusk);
+    TArray<UProceduralMeshComponent*> PeatHuskParts;
+    PeatHusk->GetComponents(PeatHuskParts);
+    TestEqual(TEXT("Peat Husk creates its procedural model"), PeatHuskParts.Num(), 1);
+    for (auto* Part : PeatHuskParts) CheckMesh(Part, true);
     return true;
 }
 
