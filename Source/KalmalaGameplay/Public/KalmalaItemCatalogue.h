@@ -36,6 +36,31 @@ struct KALMALAGAMEPLAY_API FKalmalaItemDefinition
     /** Gear-only flat reduction of combined Slash, Crush, Pierce and Stab damage. */
     UPROPERTY(EditAnywhere)
     int32 Armor = 0;
+
+    /** Proposed necklace/ring data, retained as metadata until accessory equipment behavior is implemented. */
+    UPROPERTY(EditAnywhere)
+    FString AccessorySlot;
+
+    UPROPERTY(EditAnywhere)
+    int32 AccessoryArmor = 0;
+
+    UPROPERTY(EditAnywhere)
+    int32 MaxHealthBonus = 0;
+
+    UPROPERTY(EditAnywhere)
+    int32 MaxStaminaBonus = 0;
+
+    UPROPERTY(EditAnywhere)
+    float SprintStaminaCostMultiplier = 1.0f;
+
+    UPROPERTY(EditAnywhere)
+    float SupportSpellStaminaCostMultiplier = 1.0f;
+
+    UPROPERTY(EditAnywhere)
+    float StaminaRegenerationMultiplier = 1.0f;
+
+    UPROPERTY(EditAnywhere)
+    float HealingReceivedMultiplier = 1.0f;
 };
 
 struct KALMALAGAMEPLAY_API FKalmalaGearLevelStats

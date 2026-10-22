@@ -1,0 +1,74 @@
+{
+  "items": [
+    {
+      "ItemId": "SmokyQuartz",
+      "DisplayName": "Smoky Quartz",
+      "Description": "A smoky quartz gem reserved for the Quartz Necklace.",
+      "MaxStack": 20,
+      "WeightKg": 0.1
+    },
+    {
+      "ItemId": "Moonstone",
+      "DisplayName": "Moonstone",
+      "Description": "A pale moonstone gem reserved for the Moonstone Ring.",
+      "MaxStack": 20,
+      "WeightKg": 0.1
+    },
+    {
+      "ItemId": "Garnet",
+      "DisplayName": "Garnet",
+      "Description": "A deep red garnet gem reserved for the Garnet Necklace.",
+      "MaxStack": 20,
+      "WeightKg": 0.1
+    },
+    {
+      "ItemId": "GreenJade",
+      "DisplayName": "Green Jade",
+      "Description": "A polished green jade gem reserved for the Jade Ring.",
+      "MaxStack": 20,
+      "WeightKg": 0.1
+    },
+    {
+      "ItemId": "Amethyst",
+      "DisplayName": "Amethyst",
+      "Description": "A violet amethyst gem reserved for the Amethyst Necklace.",
+      "MaxStack": 20,
+      "WeightKg": 0.1
+    },
+    {
+      "ItemId": "Aquamarine",
+      "DisplayName": "Aquamarine",
+      "Description": "A blue-green aquamarine gem reserved for the Aquamarine Ring.",
+      "MaxStack": 20,
+      "WeightKg": 0.1
+    },
+    {
+      "ItemId": "Tourmaline",
+      "DisplayName": "Tourmaline",
+      "Description": "A dark green tourmaline gem reserved for the Tourmaline Necklace.",
+      "MaxStack": 20,
+      "WeightKg": 0.1
+    },
+    {
+      "ItemId": "StarOpal",
+      "DisplayName": "Star Opal",
+      "Description": "A pale star opal gem reserved for the Opal Helm.",
+      "MaxStack": 20,
+      "WeightKg": 0.1
+    },
+    {
+      "ItemId": "StormSapphire",
+      "DisplayName": "Storm Sapphire",
+      "Description": "A cobalt sapphire gem reserved for the Stormcut Sword.",
+      "MaxStack": 20,
+      "WeightKg": 0.1
+    },
+    {
+      "ItemId": "DuskDiamond",
+      "DisplayName": "Dusk Diamond",
+      "Description": "A dark violet diamond gem reserved for the Dusk Ring.",
+      "MaxStack": 20,
+      "WeightKg": 0.1
+    }
+  ]
+}

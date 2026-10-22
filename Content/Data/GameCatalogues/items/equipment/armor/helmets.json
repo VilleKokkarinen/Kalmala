@@ -19,6 +19,16 @@
       "GearSlot": "Head",
       "MaxDurability": 100,
       "Armor": 3
+    },
+    {
+      "ItemId": "OpalHelm",
+      "DisplayName": "Opal Helm",
+      "Description": "A forged iron helm with a star opal set at the brow.",
+      "MaxStack": 1,
+      "WeightKg": 5,
+      "GearSlot": "Head",
+      "MaxDurability": 150,
+      "Armor": 12
     }
   ]
 }

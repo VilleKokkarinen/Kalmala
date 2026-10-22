@@ -1,13 +1,15 @@
 {
-  "schemaVersion": 15,
+  "schemaVersion": 16,
   "itemFiles": [
     "items/materials/cooking-ingredients.json",
     "items/materials/crafting-ingredients.json",
     "items/materials/hides.json",
     "items/materials/metal.json",
     "items/materials/ore.json",
+    "items/materials/gems.json",
     "items/materials/others.json",
     "items/materials/wood.json",
+    "items/accessories.json",
     "items/buildItems/cauldron.json",
     "items/buildItems/cooking-rack.json",
     "items/buildItems/forge.json",
@@ -32,6 +34,7 @@
     "recipes/stations/cooking-rack.json",
     "recipes/stations/forge.json",
     "recipes/stations/frying-pan.json",
+    "recipes/stations/a9-gear.json",
     "recipes/stations/inventory.json",
     "recipes/stations/workbench.json"
   ],

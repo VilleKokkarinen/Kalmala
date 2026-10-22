@@ -1,0 +1,127 @@
+{
+  "recipes": [
+    {
+      "RecipeId": "QuartzNecklace",
+      "DisplayName": "Quartz Necklace",
+      "ItemId": "QuartzNecklace",
+      "RequiredStation": "Forge",
+      "RequiredStationLevel": 1,
+      "Ingredients": [
+        { "ItemId": "Bronze", "Quantity": 3 },
+        { "ItemId": "SmokyQuartz", "Quantity": 1 }
+      ],
+      "Level": 1
+    },
+    {
+      "RecipeId": "MoonstoneRing",
+      "DisplayName": "Moonstone Ring",
+      "ItemId": "MoonstoneRing",
+      "RequiredStation": "Forge",
+      "RequiredStationLevel": 1,
+      "Ingredients": [
+        { "ItemId": "Bronze", "Quantity": 2 },
+        { "ItemId": "Moonstone", "Quantity": 1 }
+      ],
+      "Level": 1
+    },
+    {
+      "RecipeId": "GarnetNecklace",
+      "DisplayName": "Garnet Necklace",
+      "ItemId": "GarnetNecklace",
+      "RequiredStation": "Forge",
+      "RequiredStationLevel": 1,
+      "Ingredients": [
+        { "ItemId": "Bronze", "Quantity": 3 },
+        { "ItemId": "Garnet", "Quantity": 1 }
+      ],
+      "Level": 1
+    },
+    {
+      "RecipeId": "JadeRing",
+      "DisplayName": "Jade Ring",
+      "ItemId": "JadeRing",
+      "RequiredStation": "Forge",
+      "RequiredStationLevel": 1,
+      "Ingredients": [
+        { "ItemId": "Bronze", "Quantity": 2 },
+        { "ItemId": "GreenJade", "Quantity": 1 }
+      ],
+      "Level": 1
+    },
+    {
+      "RecipeId": "AmethystNecklace",
+      "DisplayName": "Amethyst Necklace",
+      "ItemId": "AmethystNecklace",
+      "RequiredStation": "Forge",
+      "RequiredStationLevel": 1,
+      "Ingredients": [
+        { "ItemId": "Bronze", "Quantity": 3 },
+        { "ItemId": "Amethyst", "Quantity": 1 }
+      ],
+      "Level": 1
+    },
+    {
+      "RecipeId": "AquamarineRing",
+      "DisplayName": "Aquamarine Ring",
+      "ItemId": "AquamarineRing",
+      "RequiredStation": "Forge",
+      "RequiredStationLevel": 1,
+      "Ingredients": [
+        { "ItemId": "Bronze", "Quantity": 2 },
+        { "ItemId": "Aquamarine", "Quantity": 1 }
+      ],
+      "Level": 1
+    },
+    {
+      "RecipeId": "TourmalineNecklace",
+      "DisplayName": "Tourmaline Necklace",
+      "ItemId": "TourmalineNecklace",
+      "RequiredStation": "Forge",
+      "RequiredStationLevel": 1,
+      "Ingredients": [
+        { "ItemId": "Bronze", "Quantity": 3 },
+        { "ItemId": "Tourmaline", "Quantity": 1 }
+      ],
+      "Level": 1
+    },
+    {
+      "RecipeId": "OpalHelm",
+      "DisplayName": "Opal Helm",
+      "ItemId": "OpalHelm",
+      "RequiredStation": "Forge",
+      "RequiredStationLevel": 1,
+      "Ingredients": [
+        { "ItemId": "Iron", "Quantity": 20 },
+        { "ItemId": "DeerHide", "Quantity": 5 },
+        { "ItemId": "StarOpal", "Quantity": 1 }
+      ],
+      "Level": 1
+    },
+    {
+      "RecipeId": "StormcutSword",
+      "DisplayName": "Stormcut Sword",
+      "ItemId": "StormcutSword",
+      "RequiredStation": "Forge",
+      "RequiredStationLevel": 1,
+      "Ingredients": [
+        { "ItemId": "Iron", "Quantity": 20 },
+        { "ItemId": "Densewood", "Quantity": 2 },
+        { "ItemId": "DeerHide", "Quantity": 2 },
+        { "ItemId": "StormSapphire", "Quantity": 1 }
+      ],
+      "Level": 1
+    },
+    {
+      "RecipeId": "DuskRing",
+      "DisplayName": "Dusk Ring",
+      "ItemId": "DuskRing",
+      "RequiredStation": "Forge",
+      "RequiredStationLevel": 1,
+      "Ingredients": [
+        { "ItemId": "Bronze", "Quantity": 5 },
+        { "ItemId": "DuskDiamond", "Quantity": 1 }
+      ],
+      "Level": 1
+    }
+  ]
+}
