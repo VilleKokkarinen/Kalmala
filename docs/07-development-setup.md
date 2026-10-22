@@ -2515,6 +2515,19 @@ reconnect/restart or relevant-peer acceptance. Polar Bear Pelt remains disabled
 pending its separate A8b source task. No Unreal build or automation execution
 ran in this normal increment; combined A8a/A8b I4 remains required.
 
+## Thunder Mountains Horned Goat contract regression
+
+After an editor build, run
+`Kalmala.Gameplay.Wildlife.HornedGoat.MountainChargeKnockbackAndRewardClaim`.
+It checks the seeded 40% mountain share and biome exclusivity, dry traversable
+habitat, the 200/50/50 profile, the 180 cm server-only impact boundary, the
+approved 250 cm / 0.75-second knockback limits, and owner-bound two-Bone reward
+claim serialization. This is focused contract coverage; live terrain/pathing,
+collision-clipped push, attack rejection, full-inventory retry, reconnect/restart
+and relevant-peer appearance remain part of combined A8a/A8b I4. Goat Horn
+remains disabled pending A8b. No Unreal build or automation execution ran in
+this normal increment.
+
 ## Exposure inspection
 
 Launch a listen server with `-KalmalaExposureInspection` to log server-sampled terrain and field inputs plus the active replicated weather values and provisional exposure state. Once a player joins, the output includes continuous low-ground wetness, deterministic lake-adjacency shoreline wetness, ridge/slope wind exposure, Flora-derived natural cover, and server-traced roof/windbreak shelter inputs. Player-built collision geometry must carry `KalmalaShelterRoof` or `KalmalaShelterWindbreak`; authored volumes and client trace results are ignored. The weather cycle is selected and advanced only by the server. Every second, the server replicates actual wetness, warmth, and the resulting 69–100% Character Movement travel multiplier; shelter dries and restores warmth slowly when dry, while a nearby lit fire accelerates recovery.

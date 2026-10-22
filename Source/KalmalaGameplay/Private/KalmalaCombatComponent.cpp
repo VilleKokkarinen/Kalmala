@@ -38,7 +38,8 @@ void UKalmalaCombatComponent::ServerRequestAttack_Implementation(const uint32 Re
     const FName EquippedItem = Inventory ? Inventory->GetActiveItem() : NAME_None;
     if (!IsAttackItemAllowed(EquippedItem)) return;
     APawn* Pawn = Cast<APawn>(GetOwner()); AActor* Target = FindServerTarget();
-    const bool bSwingAvailable = Character && FMath::IsFinite(Character->GetHealth()) && Character->GetHealth() > 1.0f
+    const bool bSwingAvailable = Character && !Character->IsWildlifeStaggered()
+        && FMath::IsFinite(Character->GetHealth()) && Character->GetHealth() > 1.0f
         && CanSwingWithoutTarget(EquippedItem, Character->GetCarriedToolLevel(EquippedItem),
             Character->GetToolDurability(EquippedItem));
     const bool bAllowed = Pawn != nullptr && IsAttackRequestAllowed(Pawn->HasAuthority(), RequestSequence != 0 && RequestSequence > LastRequestSequence, RequestSequence, ActionPhase == EKalmalaCombatActionPhase::Idle && !bBowDrawing, bSwingAvailable);
@@ -89,7 +90,7 @@ void UKalmalaCombatComponent::TickComponent(const float DeltaTime, const ELevelT
             const FName EquippedItem = Inventory ? Inventory->GetActiveItem() : NAME_None;
             const int32 EquippedLevel = OwnerCharacter ? OwnerCharacter->GetCarriedToolLevel(EquippedItem) : 0;
             // Revalidate the held item and living owner after windup, including swaps/breakage.
-            if (!OwnerCharacter || OwnerCharacter->GetHealth() <= 1.0f
+            if (!OwnerCharacter || OwnerCharacter->IsWildlifeStaggered() || OwnerCharacter->GetHealth() <= 1.0f
                 || !CanSwingWithoutTarget(EquippedItem, EquippedLevel, OwnerCharacter->GetToolDurability(EquippedItem)))
             { BeginRecovery(); return; }
             FKalmalaDamageChannels Damage = FKalmalaToolLifecycleContract::GetAttackDamageBonuses(

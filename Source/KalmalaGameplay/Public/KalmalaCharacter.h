@@ -98,6 +98,13 @@ public:
     static bool IsWildlifeDamageWithinBounds(const FKalmalaDamageChannels& Damage);
     bool ApplyWildlifeDamageFromServer(const AActor* SourceActor, float Damage);
     bool ApplyWildlifeDamageFromServer(const AActor* SourceActor, const FKalmalaDamageChannels& Damage);
+    bool ApplyWildlifeKnockbackFromServer(const AActor* SourceActor, const FVector& Direction,
+        float PushDistanceCentimetres, float StaggerDurationSeconds);
+    static bool IsWildlifeKnockbackAllowed(bool bServerAuthority, bool bLiving, bool bValidSource,
+        const FVector& Direction, float PushDistanceCentimetres, float StaggerDurationSeconds);
+    bool IsWildlifeStaggered() const { return bWildlifeStaggered; }
+    static constexpr float MaximumWildlifeKnockbackCentimetres = 250.0f;
+    static constexpr float MaximumWildlifeStaggerSeconds = 0.75f;
     bool ApplyPoisonDamageFromStatusFromServer(float DamagePerTick);
     bool ReceiveMendingFromServer(const AKalmalaCharacter* SourceCharacter, float HealAmount);
     bool RestoreHealthFromDraughtFromServer(float HealAmount);
@@ -148,6 +155,7 @@ private:
     void StopSprint();
     void RequestDodgeRoll();
     void AdvanceDodgeRollFromServer(float DeltaSeconds);
+    void AdvanceWildlifeKnockbackFromServer(float DeltaSeconds);
     void UpdateDodgeRollPresentation(float DeltaSeconds);
     void VerifyPlayerControls(float DeltaSeconds);
     void VerifyConstructionMovement(float DeltaSeconds);
@@ -298,8 +306,16 @@ private:
 
     UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
     bool bDodgeRollActive = false;
+    UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+    bool bWildlifeStaggered = false;
     float DodgeRollSecondsRemaining = 0.0f;
     float DodgeRollCooldownRemaining = 0.0f;
+    float WildlifeKnockbackSecondsRemaining = 0.0f;
+    float WildlifeKnockbackDistanceRemaining = 0.0f;
+    float WildlifeKnockbackSpeedCentimetresPerSecond = 0.0f;
+    FVector WildlifeKnockbackDirection = FVector::ZeroVector;
+    TEnumAsByte<EMovementMode> MovementModeBeforeWildlifeStagger = MOVE_Walking;
+    uint8 CustomMovementModeBeforeWildlifeStagger = 0;
     double MosquitoRollRepelUntilTime = 0.0;
     float DodgeRollPresentationSeconds = 0.0f;
     bool bDodgeRollPresentationObserved = false;

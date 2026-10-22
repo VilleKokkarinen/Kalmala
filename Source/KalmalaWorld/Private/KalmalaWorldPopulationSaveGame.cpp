@@ -11,6 +11,7 @@ namespace
     constexpr TCHAR WolfRewardClaimPrefix[] = TEXT("wolf-reward|");
     constexpr TCHAR LynxRewardClaimPrefix[] = TEXT("lynx-reward|");
     constexpr TCHAR PolarBearRewardClaimPrefix[] = TEXT("polarbear-reward|");
+    constexpr TCHAR HornedGoatRewardClaimPrefix[] = TEXT("hornedgoat-reward|");
 }
 
 void UKalmalaWorldPopulationSaveGame::InitializeForWorld(const FKalmalaWorldGenerationConfig& InWorldConfig)
@@ -311,6 +312,32 @@ bool UKalmalaWorldPopulationSaveGame::TryGetPolarBearSpawnIdFromPendingRewardCla
     OutPersistentSpawnId.Reset();
     const int32 PrefixLength = UE_ARRAY_COUNT(PolarBearRewardClaimPrefix) - 1;
     if (!ClaimId.StartsWith(PolarBearRewardClaimPrefix, ESearchCase::CaseSensitive)
+        || ClaimId.Len() <= PrefixLength || ClaimId.Len() > 128) return false;
+
+    OutPersistentSpawnId = ClaimId.RightChop(PrefixLength);
+    return !OutPersistentSpawnId.IsEmpty();
+}
+
+bool UKalmalaWorldPopulationSaveGame::TryQueuePendingHornedGoatReward(
+    const FString& PersistentSpawnId, const FString& PlayerIdentity)
+{
+    const FString ClaimId = MakeHornedGoatPendingRewardClaimId(PersistentSpawnId);
+    return !ClaimId.IsEmpty() && TryQueuePendingWildlifeReward(ClaimId, PlayerIdentity);
+}
+
+FString UKalmalaWorldPopulationSaveGame::MakeHornedGoatPendingRewardClaimId(const FString& PersistentSpawnId)
+{
+    const int32 PrefixLength = UE_ARRAY_COUNT(HornedGoatRewardClaimPrefix) - 1;
+    if (PersistentSpawnId.IsEmpty() || PersistentSpawnId.Len() > 128 - PrefixLength) return FString();
+    return FString(HornedGoatRewardClaimPrefix) + PersistentSpawnId;
+}
+
+bool UKalmalaWorldPopulationSaveGame::TryGetHornedGoatSpawnIdFromPendingRewardClaimId(
+    const FString& ClaimId, FString& OutPersistentSpawnId)
+{
+    OutPersistentSpawnId.Reset();
+    const int32 PrefixLength = UE_ARRAY_COUNT(HornedGoatRewardClaimPrefix) - 1;
+    if (!ClaimId.StartsWith(HornedGoatRewardClaimPrefix, ESearchCase::CaseSensitive)
         || ClaimId.Len() <= PrefixLength || ClaimId.Len() > 128) return false;
 
     OutPersistentSpawnId = ClaimId.RightChop(PrefixLength);

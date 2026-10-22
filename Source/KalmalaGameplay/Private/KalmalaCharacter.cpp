@@ -110,6 +110,7 @@ void AKalmalaCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
     DOREPLIFETIME_CONDITION(AKalmalaCharacter, CarriedTools, COND_OwnerOnly);
     DOREPLIFETIME(AKalmalaCharacter, bHeldTorchLit);
     DOREPLIFETIME(AKalmalaCharacter, bDodgeRollActive);
+    DOREPLIFETIME(AKalmalaCharacter, bWildlifeStaggered);
 }
 
 bool AKalmalaCharacter::IsHeldTorchFlameEligibleForServer() const
@@ -244,6 +245,49 @@ bool AKalmalaCharacter::ApplyWildlifeDamageFromServer(const AActor* SourceActor,
 bool AKalmalaCharacter::IsWildlifeDamageWithinBounds(const FKalmalaDamageChannels& Damage)
 {
     return Damage.IsValid() && Damage.Total() > 0.0f && Damage.Total() <= MaximumWildlifeHitDamage;
+}
+
+bool AKalmalaCharacter::IsWildlifeKnockbackAllowed(const bool bServerAuthority, const bool bLiving,
+    const bool bValidSource, const FVector& Direction, const float PushDistanceCentimetres,
+    const float StaggerDurationSeconds)
+{
+    return bServerAuthority && bLiving && bValidSource && !Direction.ContainsNaN()
+        && !Direction.GetSafeNormal2D().IsNearlyZero()
+        && FMath::IsFinite(PushDistanceCentimetres) && PushDistanceCentimetres > 0.0f
+        && PushDistanceCentimetres <= MaximumWildlifeKnockbackCentimetres
+        && FMath::IsFinite(StaggerDurationSeconds) && StaggerDurationSeconds > 0.0f
+        && StaggerDurationSeconds <= MaximumWildlifeStaggerSeconds;
+}
+
+bool AKalmalaCharacter::ApplyWildlifeKnockbackFromServer(const AActor* SourceActor, const FVector& Direction,
+    const float PushDistanceCentimetres, const float StaggerDurationSeconds)
+{
+    UCharacterMovementComponent* Movement = GetCharacterMovement();
+    if (!IsValid(SourceActor) || SourceActor == this || SourceActor->GetWorld() != GetWorld()
+        || Movement == nullptr || GetAttachParentActor() != nullptr
+        || (!bWildlifeStaggered && Movement->MovementMode == MOVE_None)
+        || !IsWildlifeKnockbackAllowed(HasAuthority(), Health > 1.0f,
+            SourceActor->HasAuthority(), Direction, PushDistanceCentimetres, StaggerDurationSeconds))
+        return false;
+
+    if (!bWildlifeStaggered)
+    {
+        MovementModeBeforeWildlifeStagger = Movement->MovementMode;
+        CustomMovementModeBeforeWildlifeStagger = Movement->CustomMovementMode;
+    }
+    WildlifeKnockbackDirection = Direction.GetSafeNormal2D();
+    WildlifeKnockbackDistanceRemaining = PushDistanceCentimetres;
+    WildlifeKnockbackSecondsRemaining = StaggerDurationSeconds;
+    WildlifeKnockbackSpeedCentimetresPerSecond = PushDistanceCentimetres / StaggerDurationSeconds;
+    bDodgeRollActive = false;
+    DodgeRollSecondsRemaining = 0.0f;
+    bWildlifeStaggered = true;
+    Movement->StopMovementImmediately();
+    Movement->SetMovementMode(MOVE_None);
+    if (UKalmalaCharacterMovementComponent* KalmalaMovement = Cast<UKalmalaCharacterMovementComponent>(Movement))
+        KalmalaMovement->SetSprintRequested(false);
+    ForceNetUpdate();
+    return true;
 }
 
 bool AKalmalaCharacter::ApplyWildlifeDamageFromServer(const AActor* SourceActor, const FKalmalaDamageChannels& Damage)
@@ -385,6 +429,7 @@ void AKalmalaCharacter::BeginPlay()
 void AKalmalaCharacter::Tick(const float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
+    AdvanceWildlifeKnockbackFromServer(DeltaSeconds);
     AdvanceDodgeRollFromServer(DeltaSeconds);
     UpdateDodgeRollPresentation(DeltaSeconds);
     UpdateAutomaticPickupFromServer(DeltaSeconds);
@@ -936,7 +981,7 @@ void AKalmalaCharacter::AuditOceanTravelTerrain()
 
 void AKalmalaCharacter::StartSprint()
 {
-    if (IsLocallyControlled() && Controller && !Controller->IsMoveInputIgnored())
+    if (!bWildlifeStaggered && IsLocallyControlled() && Controller && !Controller->IsMoveInputIgnored())
     {
         CastChecked<UKalmalaCharacterMovementComponent>(GetCharacterMovement())->SetSprintRequested(true);
     }
@@ -949,7 +994,7 @@ void AKalmalaCharacter::StopSprint()
 
 void AKalmalaCharacter::RequestDodgeRoll()
 {
-    if (IsLocallyControlled() && Controller && !Controller->IsMoveInputIgnored())
+    if (!bWildlifeStaggered && IsLocallyControlled() && Controller && !Controller->IsMoveInputIgnored())
     {
         ServerRequestDodgeRoll();
     }
@@ -962,7 +1007,7 @@ void AKalmalaCharacter::ServerRequestDodgeRoll_Implementation()
     if (Movement == nullptr) return;
     FVector Direction = GetVelocity().GetSafeNormal2D();
     if (Direction.IsNearlyZero()) Direction = GetActorForwardVector().GetSafeNormal2D();
-    if (Direction.IsNearlyZero() || !IsDodgeRollRequestAllowed(HasAuthority(), Health > 1.0f,
+    if (bWildlifeStaggered || Direction.IsNearlyZero() || !IsDodgeRollRequestAllowed(HasAuthority(), Health > 1.0f,
             Movement->IsMovingOnGround(), GetAttachParentActor() != nullptr, bDodgeRollActive,
             DodgeRollCooldownRemaining, Movement->GetStamina(), Cost)
         || !Movement->TryConsumeStaminaFromServer(Cost)) return;
@@ -990,6 +1035,35 @@ void AKalmalaCharacter::AdvanceDodgeRollFromServer(const float DeltaSeconds)
     }
 }
 
+void AKalmalaCharacter::AdvanceWildlifeKnockbackFromServer(const float DeltaSeconds)
+{
+    if (!HasAuthority() || !bWildlifeStaggered || !FMath::IsFinite(DeltaSeconds) || DeltaSeconds <= 0.0f) return;
+    const float Step = FMath::Min(DeltaSeconds, 0.10f);
+    const float MoveDistance = FMath::Min(WildlifeKnockbackDistanceRemaining,
+        WildlifeKnockbackSpeedCentimetresPerSecond * Step);
+    if (MoveDistance > 0.0f)
+    {
+        const FVector PreviousLocation = GetActorLocation();
+        FHitResult Hit;
+        SetActorLocation(PreviousLocation + WildlifeKnockbackDirection * MoveDistance, true, &Hit);
+        const float ActualDistance = FVector::Dist2D(PreviousLocation, GetActorLocation());
+        WildlifeKnockbackDistanceRemaining = FMath::Max(0.0f,
+            WildlifeKnockbackDistanceRemaining - ActualDistance);
+        if (Hit.IsValidBlockingHit()) WildlifeKnockbackDistanceRemaining = 0.0f;
+    }
+
+    WildlifeKnockbackSecondsRemaining = FMath::Max(0.0f, WildlifeKnockbackSecondsRemaining - Step);
+    if (WildlifeKnockbackSecondsRemaining > 0.0f) return;
+
+    WildlifeKnockbackDistanceRemaining = 0.0f;
+    WildlifeKnockbackSpeedCentimetresPerSecond = 0.0f;
+    WildlifeKnockbackDirection = FVector::ZeroVector;
+    bWildlifeStaggered = false;
+    if (UCharacterMovementComponent* Movement = GetCharacterMovement())
+        Movement->SetMovementMode(MovementModeBeforeWildlifeStagger, CustomMovementModeBeforeWildlifeStagger);
+    ForceNetUpdate();
+}
+
 void AKalmalaCharacter::UpdateDodgeRollPresentation(const float DeltaSeconds)
 {
     if (!PlayerModel || !FMath::IsFinite(DeltaSeconds) || DeltaSeconds <= 0.0f) return;
@@ -1015,6 +1089,7 @@ void AKalmalaCharacter::MoveForward(const float Value)
     if (IsLocallyControlled() && (FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanJourneyPeerTest"))
         || FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanIntegratedJourneyPeerTest")))) return;
 #endif
+    if (bWildlifeStaggered) return;
     if (AKalmalaOceanSkiff* Skiff = Cast<AKalmalaOceanSkiff>(GetAttachParentActor()))
     {
         if (IsLocallyControlled() && Skiff->GetHelmOccupant() == this)
@@ -1038,6 +1113,7 @@ void AKalmalaCharacter::MoveRight(const float Value)
     if (IsLocallyControlled() && (FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanJourneyPeerTest"))
         || FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanIntegratedJourneyPeerTest")))) return;
 #endif
+    if (bWildlifeStaggered) return;
     if (AKalmalaOceanSkiff* Skiff = Cast<AKalmalaOceanSkiff>(GetAttachParentActor()))
     {
         if (IsLocallyControlled() && Skiff->GetHelmOccupant() == this)

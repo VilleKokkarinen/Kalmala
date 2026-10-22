@@ -1,5 +1,7 @@
 # Decision log
 
+| 2026-10-22 | Finalize Horned Goat knockback values. | User-directed review | Use a 250 cm push and 0.75 s stagger for its server-confirmed horn hit. This resolves the control-effect values without enabling the separate A8b Goat Horn drop. |
+
 | 2026-10-21 | Set A8b consumable effects and equipment profiles. | User-delegated choice | Codex selected the Antidote/Tonic use rules, armor and weapon profiles, upgrade costs/rewards, Horn Bow draw time and Thunder Maul Lightning behavior after the user said “your choice, I'll adjust later.” Treat the detailed contract in [alpha-item-details.md](alpha-item-details.md#a8b) as authoritative until the user adjusts it. Runtime items and A8a material sources remain pending. |
 | 2026-10-21 | Defer fishing from the active alpha scope. | User-directed | Remove fishing systems from the active backlog and runtime. Retain completed A7 farming and unrelated Shimmering Lakes/Harpoon content. |
 | 2026-10-21 | Review A8 shelter and storage rules. | Reviewed proposal | Align detailed build costs with the explicit A8 checklist: Timber Door 8 Wood; Camp Bed 4 Wood + 2 Boar Hide + 2 Deer Hide; Standing Light 3 Wood + 1 Amber. Keep every piece a direct-material Hammer-placed Buildable with no portable kit. Preserve server-validated door state/occupancy, supported beam/stair/furniture placement, cosmetic bed rest only, cosmetic light with Wood fuel and rain pause, and a distinct Reinforced Chest. No runtime changes. |

@@ -63,6 +63,10 @@ public:
     static FString MakePolarBearPendingRewardClaimId(const FString& PersistentSpawnId);
     static bool TryGetPolarBearSpawnIdFromPendingRewardClaimId(
         const FString& ClaimId, FString& OutPersistentSpawnId);
+    bool TryQueuePendingHornedGoatReward(const FString& PersistentSpawnId, const FString& PlayerIdentity);
+    static FString MakeHornedGoatPendingRewardClaimId(const FString& PersistentSpawnId);
+    static bool TryGetHornedGoatSpawnIdFromPendingRewardClaimId(
+        const FString& ClaimId, FString& OutPersistentSpawnId);
     bool RemovePendingWildlifeReward(const FString& RewardClaimId);
     const TArray<FKalmalaPendingWildlifeReward>& GetPendingWildlifeRewards() const { return PendingWildlifeRewards; }
 

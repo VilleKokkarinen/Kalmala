@@ -67,7 +67,8 @@ FName UKalmalaCombatComponent::GetArrowItemIdForDisplay() const
 bool UKalmalaCombatComponent::CanDrawBow() const
 {
     const auto* Pawn = Cast<AKalmalaCharacter>(GetOwner());
-    if (!Pawn || !GetWorld() || Pawn->GetHealth() <= 1 || !FMath::IsFinite(Pawn->GetHealth())) return false;
+    if (!Pawn || Pawn->IsWildlifeStaggered() || !GetWorld()
+        || Pawn->GetHealth() <= 1 || !FMath::IsFinite(Pawn->GetHealth())) return false;
     const auto* Inventory = Pawn->GetInventoryComponent();
     const FName ItemId = Inventory ? Inventory->GetActiveItem() : NAME_None;
     const auto* Profile = UKalmalaToolCatalogue::Get()->FindProfile(ItemId);

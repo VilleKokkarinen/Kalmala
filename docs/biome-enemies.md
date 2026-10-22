@@ -49,7 +49,7 @@ Lynx fills the next two seeded Tundra slots with a dry-ground pounce, a
 | Wolf                | Freezing Tundra                        | Partial          |  250 |   40  | 100 Slash    | 20% dry-ground slots; three-member pack; 180 cm lunge bite; queued 2 Bone Fragment; I4 pending |
 | Lynx                | Freezing Tundra                        | Partial          |  150 |   30  | 75 Slash     | 20% dry-ground slots; 350 cm leap; 0.5 s warning; 0.8 s hit / 1.2 s miss recovery; queued 2 Bone Fragment; I4 pending |
 | Polar Bear          | Freezing Tundra                        | Partial          |  750 |   60  | 200 Crush    | 10% hard slot; 1 s warning; 220 cm charge; retreat; queued 3 Bone Fragment; I4 pending |
-| Horned Goat         | Thunder Mountains                      | Planned          |  200 |   50  | 50 Crush     | Territorial horn charge, push + stagger |
+| Horned Goat         | Thunder Mountains                      | Partial          |  200 |   50  | 50 Crush     | 40% dry-ground slots; 0.5 s telegraph; 180 cm horn hit; up to 250 cm push and 0.75 s stagger; queued 2 Bone Fragment; I4 pending |
 | Thunder Sentinel    | Thunder Mountains                      | Planned          |  1250|   75  | 300 Crush    | Slow downward slam                  |
 | Reef Maw            | Ocean                                  | Planned          |  180 |   2   | 50 Stab      | Swimmer hunter                      |
 
@@ -371,9 +371,10 @@ and original inventory icons before implementation; the uses are not recipes.
   These replace current runtime defaults, not claims of implemented stats.
 - Badger uses **20 Slash** claw attacks instead of bites. Retain its warning
   and the common enemy windup/recovery rules.
-- Horned Goat's **50 Crush** horn charge also pushes and staggers on a
-  server-confirmed hit. Push distance and stagger duration require review
-  before implementation; do not invent them during coding.
+- Horned Goat's **50 Crush** horn charge has a **180 cm** impact range and,
+  on a server-confirmed living-target hit, pushes up to **250 cm** and staggers
+  for **0.75 seconds**. Collision can shorten the push. The values were
+  confirmed by the user on 2026-10-22; see the decision log.
 - All detailed roster stats follow the overview. Update runtime health/damage
   validation limits to support the approved targets (up to 1,250 health and
   300 damage), while retaining server-owned authored values and rejecting

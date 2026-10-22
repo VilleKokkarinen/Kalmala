@@ -179,6 +179,16 @@ public:
     static constexpr float MoonBearRecoverySeconds = 1.2f;
     static constexpr float MoonBearSpawnLeashCentimetres = 2500.0f;
     static bool IsMoonBearPawInReach(bool bServerAuthority, bool bValidTarget, float DistanceCentimetres);
+    static constexpr float HornedGoatAttackTriggerCentimetres = 300.0f;
+    static constexpr float HornedGoatHornReachCentimetres = 180.0f;
+    static constexpr float HornedGoatTelegraphSeconds = 0.5f;
+    static constexpr float HornedGoatApproachSpeedCentimetresPerSecond = 170.0f;
+    static constexpr float HornedGoatChargeSpeedCentimetresPerSecond = 300.0f;
+    static constexpr float HornedGoatRecoverySeconds = 0.8f;
+    static constexpr float HornedGoatSpawnLeashCentimetres = 2500.0f;
+    static constexpr float HornedGoatPushCentimetres = 250.0f;
+    static constexpr float HornedGoatStaggerSeconds = 0.75f;
+    static bool IsHornedGoatHornInReach(bool bServerAuthority, bool bValidTarget, float DistanceCentimetres);
     static constexpr float PeatHuskAttackTriggerCentimetres = 500.0f;
     static constexpr float PeatHuskSweepReachCentimetres = 260.0f;
     static constexpr float PeatHuskSweepMinimumForwardDot = 0.5f;
@@ -195,6 +205,7 @@ public:
     static bool IsBoarChargeAllowed(bool bServerAuthority, bool bAlreadyDefeated, bool bAtRest, float DistanceToRestingArea);
     static bool IsBehaviourTransitionAllowed(bool bServerAuthority, bool bAlreadyDefeated, EKalmalaWildlifeBehaviour From, EKalmalaWildlifeBehaviour To);
     static bool IsMossyMireSpawnHabitatAllowed(EKalmalaBiome Biome, bool bIsWater);
+    static bool IsThunderMountainsSpawnHabitatAllowed(EKalmalaBiome Biome, bool bIsWater, bool bTraversable);
     FKalmalaWildlifeSpawnDefeated OnDefeated;
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
     virtual void Tick(float DeltaSeconds) override;
@@ -251,6 +262,13 @@ private:
     void SetMoonBearAttackCue(EKalmalaWildlifeAttackCue NextCue);
     bool IsMoonBearAttackTargetValid(const class AKalmalaCharacter* Target) const;
     bool TryApplyMoonBearPaw(class AKalmalaCharacter* Target);
+    void UpdateHornedGoatAttack(float DeltaSeconds);
+    void BeginHornedGoatAttack(class AKalmalaCharacter* Target);
+    void SetHornedGoatAttackCue(EKalmalaWildlifeAttackCue NextCue);
+    bool IsHornedGoatAttackTargetValid(const class AKalmalaCharacter* Target) const;
+    bool TryApplyHornedGoatCharge(class AKalmalaCharacter* Target);
+    bool IsHornedGoatPositionTraversable(const FVector& Position) const;
+    bool CanHornedGoatMoveAlong(const FVector& Start, const FVector& End) const;
     void UpdatePeatHuskAttack(float DeltaSeconds);
     void BeginPeatHuskAttack(class AKalmalaCharacter* Target);
     void SetPeatHuskAttackCue(EKalmalaWildlifeAttackCue NextCue);
@@ -318,6 +336,9 @@ private:
     UPROPERTY(ReplicatedUsing = OnRep_MoonBearAttackCue)
     uint8 MoonBearAttackCue = static_cast<uint8>(EKalmalaWildlifeAttackCue::None);
 
+    UPROPERTY(ReplicatedUsing = OnRep_HornedGoatAttackCue)
+    uint8 HornedGoatAttackCue = static_cast<uint8>(EKalmalaWildlifeAttackCue::None);
+
     UPROPERTY(ReplicatedUsing = OnRep_PeatHuskAttackCue)
     uint8 PeatHuskAttackCue = static_cast<uint8>(EKalmalaWildlifeAttackCue::None);
 
@@ -350,6 +371,9 @@ private:
 
     UFUNCTION()
     void OnRep_MoonBearAttackCue();
+
+    UFUNCTION()
+    void OnRep_HornedGoatAttackCue();
 
     UFUNCTION()
     void OnRep_PeatHuskAttackCue();
@@ -390,6 +414,8 @@ private:
     bool bPolarBearChargeHitApplied = false;
     float MoonBearAttackSecondsRemaining = 0.0f;
     TWeakObjectPtr<class AKalmalaCharacter> MoonBearAttackTarget;
+    float HornedGoatAttackSecondsRemaining = 0.0f;
+    TWeakObjectPtr<class AKalmalaCharacter> HornedGoatAttackTarget;
     float PeatHuskAttackSecondsRemaining = 0.0f;
     TWeakObjectPtr<class AKalmalaCharacter> PeatHuskAttackTarget;
     TArray<uint8> SnakeHissAudioData;

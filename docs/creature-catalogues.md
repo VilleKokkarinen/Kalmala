@@ -53,7 +53,14 @@ telegraphed lunge with a 1.2-second recovery. Its credited baseline reward is
 two Bone Fragments in the same owner-bound population-save escrow; it does not
 apply poison. The 150 m generated-start exclusion applies to this hard enemy.
 The Giant Scale drop remains disabled pending A8b item/icon/source completion.
-Polar Bear, Thunder Mountains and Ocean species remain disabled.
+Horned Goat (200 health, 50 armor, 50 Crush) now occupies four seeded
+Thunder Mountains slots (40%), limited to dry traversable terrain. Its original
+procedural presentation shows a half-second charge warning; the server accepts
+one 50-Crush horn hit within 180 cm, then pushes a living target up to 250 cm
+and staggers it for 0.75 seconds, with collision clipping the displacement.
+Credited defeats queue two Bone Fragments for the authenticated owner in the
+existing population-save escrow. Goat Horn remains disabled pending A8b.
+Thunder Sentinel and Ocean species remain disabled.
 Mireling (75 health, 15 armor, 20 Crush) now occupies half of Mossy Mire's
 seeded candidate slots and is accepted only on dry Mossy Mire ground; its
 existing melee and optional boss-scroll reward remain unchanged. Death Adder

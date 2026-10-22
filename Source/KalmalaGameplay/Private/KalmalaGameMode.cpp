@@ -130,6 +130,15 @@ namespace KalmalaGameMode
                 && !FKalmalaShimmeringLakeSampler::IsWater(Config, Position)
                 && FKalmalaTerrainHeightSampler::SampleSurfaceNormal(Config, Position).Z >= 0.82f;
         }
+        if (OutArchetype == EKalmalaWildlifeArchetype::HornedGoat)
+        {
+            const bool bWater = FKalmalaOceanSampler::Sample(Config, Position).IsWater()
+                || FKalmalaShimmeringLakeSampler::IsWater(Config, Position);
+            const bool bTraversable = FKalmalaWorldBounds::Contains(Config, Position)
+                && FKalmalaTerrainHeightSampler::SampleSurfaceNormal(Config, Position).Z >= 0.82f;
+            return AKalmalaWildlifeSpawn::IsThunderMountainsSpawnHabitatAllowed(
+                SpawnBiome, bWater, bTraversable);
+        }
         if (OutArchetype == EKalmalaWildlifeArchetype::Badger
             || OutArchetype == EKalmalaWildlifeArchetype::MoonBear)
         {
@@ -2771,6 +2780,25 @@ bool AKalmalaGameMode::RecordPolarBearDefeatReward(const FString& PersistentSpaw
         KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
 }
 
+bool AKalmalaGameMode::RecordHornedGoatDefeatReward(const FString& PersistentSpawnId,
+    AKalmalaCharacter* CreditedAttacker)
+{
+    if (!HasAuthority() || PersistentSpawnId.IsEmpty() || PopulationSaveGame == nullptr
+        || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
+
+    if (IsValid(CreditedAttacker) && CreditedAttacker->HasAuthority()
+        && CreditedAttacker->GetWorld() == GetWorld() && CreditedAttacker->GetPlayerState() != nullptr)
+    {
+        const FString Identity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(CreditedAttacker->GetPlayerState());
+        if (!Identity.IsEmpty() && !PopulationSaveGame->TryQueuePendingHornedGoatReward(PersistentSpawnId, Identity))
+            return false;
+    }
+
+    PopulationSaveGame->MarkDefeated(PersistentSpawnId);
+    return UGameplayStatics::SaveGameToSlot(PopulationSaveGame,
+        KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+}
+
 void AKalmalaGameMode::DeliverPendingWildlifeRewards()
 {
     if (!HasAuthority() || GetWorld() == nullptr || PopulationSaveGame == nullptr
@@ -2813,6 +2841,10 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
         const bool bPolarBearReward =
             UKalmalaWorldPopulationSaveGame::TryGetPolarBearSpawnIdFromPendingRewardClaimId(
                 Reward.PersistentSpawnId, PolarBearSpawnId);
+        FString HornedGoatSpawnId;
+        const bool bHornedGoatReward =
+            UKalmalaWorldPopulationSaveGame::TryGetHornedGoatSpawnIdFromPendingRewardClaimId(
+                Reward.PersistentSpawnId, HornedGoatSpawnId);
         FString DefeatedSpawnId = Reward.PersistentSpawnId;
         if (bBadgerReward) DefeatedSpawnId = BadgerSpawnId;
         else if (bMoonBearReward) DefeatedSpawnId = MoonBearSpawnId;
@@ -2823,6 +2855,7 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
         else if (bWolfReward) DefeatedSpawnId = WolfSpawnId;
         else if (bLynxReward) DefeatedSpawnId = LynxSpawnId;
         else if (bPolarBearReward) DefeatedSpawnId = PolarBearSpawnId;
+        else if (bHornedGoatReward) DefeatedSpawnId = HornedGoatSpawnId;
         if (!PopulationSaveGame->IsDefeated(DefeatedSpawnId)) continue;
 
         for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
@@ -2848,7 +2881,7 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
                 TArray<FKalmalaInventoryStack> WithBone;
                 TArray<FKalmalaInventoryStack> WithBadgerFur;
                 const int32 BoneFragmentQuantity = (bMoonBearReward || bPolarBearReward) ? 3
-                    : ((bGiantSnakeReward || bWolfReward || bLynxReward) ? 2 : 1);
+                    : ((bGiantSnakeReward || bWolfReward || bLynxReward || bHornedGoatReward) ? 2 : 1);
                 if (!UKalmalaInventoryComponent::BuildGrant(
                         Before, TEXT("BoneFragment"), BoneFragmentQuantity, WithBone, Reason)) break;
                 if (bBadgerReward)
@@ -2860,7 +2893,7 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
                     Candidate = MoveTemp(WithBadgerMeat);
                 }
                 else if (bMoonBearReward || bViperReward || bGiantSnakeReward || bDeathAdderReward
-                    || bWolfReward || bLynxReward || bPolarBearReward)
+                    || bWolfReward || bLynxReward || bPolarBearReward || bHornedGoatReward)
                 {
                     Candidate = MoveTemp(WithBone);
                 }
