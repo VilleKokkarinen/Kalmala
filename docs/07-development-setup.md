@@ -5642,3 +5642,22 @@ checks its existing original icon and runtime mapping.
 This normal development increment uses lightweight JSON, icon and source
 checks; it does not run an Unreal build or C++ automation. Combined A8a/A8b I4,
 including full item automation and peer/rendered acceptance, remains required.
+
+## A8b Reef Harpoon melee weapon — 2026-10-22
+
+`ReefHarpoon` is a one-handed, 4 kg Forge spear with 150 starting condition
+and 60 Pierce damage. It uses the shared 220 cm melee route; it is not thrown
+and adds no skiff damage. The Forge recipe consumes three Reef Teeth, eight
+Iron and four Lightwood. Its level-one Forge upgrade costs one Reef Tooth, four
+Iron and two Lightwood; level two has 65 Pierce and 180 maximum condition.
+The registered Reef Tooth is claimed from the accepted Reef Maw reward, so the
+item's source is reachable.
+
+`Kalmala.Gameplay.Combat.AllItemSwings` now requires Reef Harpoon to enter the
+server melee route and receive its catalogued hit. `Kalmala.Gameplay.Combat.DamageProfiles`
+checks its one-handed profile, damage, exact Forge recipe and upgrade costs,
+and level-two values. Its existing original imported icon and runtime mapping
+are covered by `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id ReefHarpoon`.
+These C++ assertions remain uncompiled/unexecuted in this normal child;
+combined A8a/A8b I4 still requires full item automation and peer/rendered
+acceptance before A9.

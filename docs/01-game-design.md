@@ -48,6 +48,15 @@ The item has no Lightning resistance, chain effect, damage over time, stun or
 environmental effect. Its Forge upgrade adds 5 Crush and 50 maximum condition,
 leaving Lightning at 30.
 
+## Reef Harpoon — 2026-10-22
+
+Reef Harpoon is a one-handed, 4 kg Forge spear with 150 starting condition and
+60 Pierce damage. It uses the shared 220 cm melee reach, windup, and recovery;
+the Basic attack is a server-confirmed close strike and is not thrown. The
+Forge recipe consumes three Reef Teeth, eight Iron, and four Lightwood. Its
+upgrade consumes one Reef Tooth, four Iron, and two Lightwood, adding 5 Pierce
+and 30 maximum condition. Reef Harpoon adds no skiff damage.
+
 ## Bow crafting and two-handed equipment — 2026-10-15
 
 Bow String (`BowString`) stacks to 20; Wooden Arrows (`WoodenArrow`) and Stone

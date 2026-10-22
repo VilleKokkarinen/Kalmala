@@ -152,6 +152,17 @@ bool FKalmalaDamageProfileTest::RunTest(const FString& Parameters)
         FKalmalaToolLifecycleContract::GetAttackDamageBonuses(TEXT("FangSpear"), 2, TEXT("Basic")).Stab, 105.0f);
     TestEqual(TEXT("Fang Spear Forge upgrade adds fifty condition"),
         FKalmalaToolLifecycleContract::GetMaxDurability(TEXT("FangSpear"), 2), 250);
+    const FKalmalaDamageChannels ReefHarpoon =
+        FKalmalaToolLifecycleContract::GetAttackDamageBonuses(TEXT("ReefHarpoon"), 1, TEXT("Basic"));
+    TestEqual(TEXT("Reef Harpoon Basic uses its authored 60 Pierce profile"), ReefHarpoon.Pierce, 60.0f);
+    TestEqual(TEXT("Reef Harpoon has no additional Basic attack damage"), ReefHarpoon.Total(), 60.0f);
+    TestFalse(TEXT("Reef Harpoon is one-handed"), FKalmalaToolLifecycleContract::IsTwoHanded(TEXT("ReefHarpoon")));
+    TestEqual(TEXT("Reef Harpoon starts with 150 condition"),
+        FKalmalaToolLifecycleContract::GetMaxDurability(TEXT("ReefHarpoon"), 1), 150);
+    TestEqual(TEXT("Reef Harpoon Forge upgrade adds five Pierce"),
+        FKalmalaToolLifecycleContract::GetAttackDamageBonuses(TEXT("ReefHarpoon"), 2, TEXT("Basic")).Pierce, 65.0f);
+    TestEqual(TEXT("Reef Harpoon Forge upgrade adds thirty condition"),
+        FKalmalaToolLifecycleContract::GetMaxDurability(TEXT("ReefHarpoon"), 2), 180);
     struct FMaceDamageExpectation
     {
         FName ItemId;
@@ -205,6 +216,25 @@ bool FKalmalaDamageProfileTest::RunTest(const FString& Parameters)
             && MaulUpgrade->Ingredients.ContainsByPredicate([](const auto& Cost) { return Cost.ItemId == TEXT("ThunderCore") && Cost.Quantity == 1; })
             && MaulUpgrade->Ingredients.ContainsByPredicate([](const auto& Cost) { return Cost.ItemId == TEXT("Iron") && Cost.Quantity == 10; })
             && MaulUpgrade->Ingredients.ContainsByPredicate([](const auto& Cost) { return Cost.ItemId == TEXT("Densewood") && Cost.Quantity == 5; }));
+    const auto* HarpoonProfile = Catalogue->FindProfile(TEXT("ReefHarpoon"));
+    if (TestNotNull(TEXT("Reef Harpoon profile exists"), HarpoonProfile))
+        TestEqual(TEXT("Reef Harpoon has the approved 4 kg weight"), HarpoonProfile->WeightKg, 4.0f);
+    const auto* HarpoonRecipe = Catalogue->Recipes.FindByPredicate([](const FKalmalaToolRecipeData& Entry)
+        { return Entry.ItemId == TEXT("ReefHarpoon"); });
+    if (TestNotNull(TEXT("Reef Harpoon Forge recipe exists"), HarpoonRecipe))
+        TestTrue(TEXT("Reef Harpoon Forge recipe has the approved materials"),
+            HarpoonRecipe->RequiredStation == TEXT("Forge") && HarpoonRecipe->Ingredients.Num() == 3
+            && HarpoonRecipe->Ingredients.ContainsByPredicate([](const auto& Cost) { return Cost.ItemId == TEXT("ReefTooth") && Cost.Quantity == 3; })
+            && HarpoonRecipe->Ingredients.ContainsByPredicate([](const auto& Cost) { return Cost.ItemId == TEXT("Iron") && Cost.Quantity == 8; })
+            && HarpoonRecipe->Ingredients.ContainsByPredicate([](const auto& Cost) { return Cost.ItemId == TEXT("Lightwood") && Cost.Quantity == 4; }));
+    const auto* HarpoonUpgrade = Catalogue->UpgradeCosts.FindByPredicate([](const FKalmalaToolRecipeData& Entry)
+        { return Entry.ItemId == TEXT("ReefHarpoon"); });
+    if (TestNotNull(TEXT("Reef Harpoon Forge upgrade cost exists"), HarpoonUpgrade))
+        TestTrue(TEXT("Reef Harpoon upgrade has the approved materials"),
+            HarpoonUpgrade->RequiredStation == TEXT("Forge") && HarpoonUpgrade->Ingredients.Num() == 3
+            && HarpoonUpgrade->Ingredients.ContainsByPredicate([](const auto& Cost) { return Cost.ItemId == TEXT("ReefTooth") && Cost.Quantity == 1; })
+            && HarpoonUpgrade->Ingredients.ContainsByPredicate([](const auto& Cost) { return Cost.ItemId == TEXT("Iron") && Cost.Quantity == 4; })
+            && HarpoonUpgrade->Ingredients.ContainsByPredicate([](const auto& Cost) { return Cost.ItemId == TEXT("Lightwood") && Cost.Quantity == 2; }));
     TestTrue(TEXT("Knife tiers share one attack list"),
         &Catalogue->GetAttacks(TEXT("StoneKnife")) == &Catalogue->GetAttacks(TEXT("BronzeKnife"))
         && &Catalogue->GetAttacks(TEXT("StoneKnife")) == &Catalogue->GetAttacks(TEXT("IronKnife")));
