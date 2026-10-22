@@ -1,3 +1,27 @@
+## User-directed planning 2026-10-22 — Monster spawning backlog
+
+- Added one unchecked monster-population goal to `BACKLOG.md`, queued after
+  existing alpha acceptance. Captured spatial scheduling, player-distance
+  rings, shared caps, nine server gates, physical spawners, camp suppression,
+  placement rejection, persistence safety and final verification criteria.
+- Values are provisional Kalmala proposals: existing 60 m spatial keys,
+  36–84 m ring, 5 s checks, 96 m count radius, caps 4 common / 1 rare / 6 Wolves,
+  18 m camp suppression, 32-degree land slope, and local spawners capped at 2
+  within 24 m with 8 s checks. Review precedes implementation; current runtime
+  behavior, species weights and alpha acceptance scope are unchanged.
+- Files changed by this planning run: `BACKLOG.md`, `PROGRESS.md` only.
+  Lightweight checks: reviewed the added checklist and diff, whitespace and
+  changed-path lengths. No build or runtime tests run; full implementation
+  verification remains deferred to the new goal's final increment.
+- Authority: planned decisions, counts, station-state checks and spawn outcomes
+  are server-owned. No code, RPC, catalogue or save format changed.
+- User explicitly authorized proceeding despite concurrent workspace runs.
+  Their existing implementation/documentation changes were preserved unstaged.
+  Main checkout used directly; no handoff synchronization needed.
+- Remaining scope: all implementation and tuning review are unchecked. The
+  new goal's first task is tuning/contract review; existing active alpha work
+  retains its current ordering and next eligible task.
+
 ## User-directed implementation 2026-10-19 — Bow String, Sinew and arrows
 
 - Replaced the generic `String` inventory identity with bow-only `BowString`.

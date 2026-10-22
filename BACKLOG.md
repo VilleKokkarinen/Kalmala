@@ -392,6 +392,68 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [ ] Verify approved farming, shelter, cargo, accessories, peers and restart.
   - [ ] Record results/blockers; mark complete only after required gates pass.
 
+### Monster population and camp spawn suppression — user request, 2026-10-22
+
+- [ ] **Implement player-nearby monster spawning inspired by systemic survival
+  games, using Kalmala's own tuning and original content.** Planning only;
+  queued after the existing alpha acceptance work, without changing A8a/I4
+  completion criteria. The supplied Valheim examples describe inspiration,
+  not a verified specification or values to copy.
+  - [ ] Review and finalize the provisional tuning below against the existing
+    biome roster, spawn weights, three-Wolf packs, hard-enemy start exclusions,
+    loaded-population budgets and persistent defeat/reward contracts.
+    Keep the existing invisible 60 × 60 m spatial keys; do not create visible
+    gameplay zones or reshape biome boundaries.
+  - [ ] Add a bounded server scheduler: proposed natural-spawn ring 36–84 m
+    from a living player, with a 36 m exclusion around **every** living player;
+    check each active key once per 5 seconds, staggered across keys. Process
+    the union of player neighborhoods once, with a bounded candidate budget
+    and no catch-up burst after loading or a server hitch.
+  - [ ] Share live counts across loaded neighboring keys: proposed 96 m
+    candidate-centered counting radius, common-species cap 4, rare hard-enemy
+    cap 1, and Wolf cap 6 individuals (two complete packs of 3). These are
+    additional limits within the existing total population budget, not extra
+    actor allowances. Count roaming creatures and reserve an entire group
+    atomically before spawning; overlapping players/keys cannot multiply caps.
+  - [ ] Require nine explicit server gates for each natural attempt:
+    (1) eligible active key and scheduler budget; (2) seeded chance/biome weight;
+    (3) player-distance ring and all-player exclusion; (4) species biome/habitat;
+    (5) configured time-of-day window; (6) configured weather allowance;
+    (7) configured world/boss progression prerequisites; (8) shared species/group
+    and total caps; (9) valid unsuppressed physical placement. Unrestricted
+    time/weather/progression rules pass explicitly; do not invent boss locks
+    or require an unkilled boss for existing creatures.
+  - [ ] Validate natural placement against generated ground/water, collision,
+    navigation or species movement support, overhead solid roofs, and proposed
+    maximum land slope 32 degrees. Aquatic species use their own water-depth
+    and clearance rules. Keep existing species habitat/start restrictions.
+  - [ ] Add an explicit buildable suppression allowlist: proposed 18 m radius
+    for Workbench/Forge cylinders extending 12 m above and below the station,
+    and 18 m spheres for Camp Bed, lit fuelled Campfire and lit fuelled Standing
+    Light. Check actual server state, placement height and destruction. Walls,
+    floors, roofs, cosmetics and unlisted stations emit no suppression field;
+    solid roofs still reject candidates directly beneath them. Suppression
+    prevents new natural spawns; it neither removes existing enemies nor
+    prevents them entering a camp.
+  - [ ] Define a separate environmental-spawner policy for future original
+    world spawners: proposed local cap 2 living creatures within 24 m and one
+    attempt per 8 seconds. Apply shared global caps and safe placement/player
+    exclusion checks too; explicitly decide camp-suppression interaction before
+    enabling any spawner. This task adds no new creature, nest, loot source or
+    portable construction item by itself.
+  - [ ] Define defeat, cooldown, unload/reload and restart behavior before
+    enabling replenishment. Preserve stable identities and durable owner-bound
+    loot claims; a defeated slot must not bypass its saved defeat ledger or
+    repay an old reward. Any later development save-format change requires
+    explicit direction under repository rules; do not add migrations.
+  - [ ] Add focused coverage for all nine gates, ring/suppression boundaries
+    including height, slopes/roofs/water, multiplayer overlap, roaming counts,
+    atomic pack caps, station state changes, and environmental local/global
+    caps. Verify bounded scheduling and no duplicate population/rewards after
+    unload, reconnect or restart. Run applicable full build, automation and
+    host/client verification at this goal's final increment; document the
+    accepted tuning and server authority contract before marking complete.
+
 ## User-requested fixes
 
 - [x] Resize inventory crafting to a 256 px item list/search field and 384 px selected-item pane, preserving the existing gutter and outer padding.
