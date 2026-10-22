@@ -360,6 +360,13 @@ bool AKalmalaWildlifeSpawn::DefeatServer()
         if (Mode == nullptr || !Mode->RecordViperDefeatReward(
                 PersistentSpawnId, LastValidatedAttacker.Get())) return false;
     }
+    else if (Archetype == EKalmalaWildlifeArchetype::GiantSnake)
+    {
+        AKalmalaGameMode* Mode = GetWorld() != nullptr
+            ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
+        if (Mode == nullptr || !Mode->RecordGiantSnakeDefeatReward(
+                PersistentSpawnId, LastValidatedAttacker.Get())) return false;
+    }
 
     bDefeated = true;
     // The population owner records the sparse server delta before this actor exposes any owner-only reward.
@@ -1889,11 +1896,11 @@ void AKalmalaWildlifeSpawn::GrantDefeatReward()
     const int32 BoneFragmentQuantity = GetBoneFragmentRewardQuantity(Archetype);
     if (BoneFragmentQuantity > 0 && Archetype != EKalmalaWildlifeArchetype::Rat
         && Archetype != EKalmalaWildlifeArchetype::Badger && Archetype != EKalmalaWildlifeArchetype::MoonBear
-        && Archetype != EKalmalaWildlifeArchetype::Viper)
+        && Archetype != EKalmalaWildlifeArchetype::Viper && Archetype != EKalmalaWildlifeArchetype::GiantSnake)
     {
         Inventory->TryGrantFromServer(TEXT("BoneFragment"), BoneFragmentQuantity);
     }
-    // Rat, Badger, Moon Bear and Viper rewards use the persistent, all-or-none queue recorded before
+    // Rat, Badger, Moon Bear, Viper and Giant Snake rewards use the persistent, all-or-none queue recorded before
     // this defeated state is replicated, so they must not be granted a second time.
 
     if (Archetype == EKalmalaWildlifeArchetype::Mireling && IsMirelingBossRewardCandidate())

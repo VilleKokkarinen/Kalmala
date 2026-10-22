@@ -19,7 +19,9 @@ large-bear silhouette and a server-owned overhead-paw cycle, and queues three
 Bone Fragments for the credited attacker. Viper fills 40% of Shimmering Lakes'
 shoreline slots, uses a server-owned lunge that applies the shared five-second
 weak-poison effect on an accepted bite, and queues one Bone Fragment for the
-credited attacker. Mireling's biome restriction remains planned.
+credited attacker. Giant Snake fills the remaining 10% hard slot with a
+dry-shore lunge and a durable two-fragment baseline claim. Mireling's biome
+restriction remains planned.
 
 | Enemy               | Biome                                  | Status           | HP   | Armor | Attack       | Abilities / counters                |
 | ------------------- | -------------------------------------- | ---------------- | ---: | ----: | ------------ | ----------------------------------- |
@@ -29,7 +31,7 @@ credited attacker. Mireling's biome restriction remains planned.
 | Badger              | Elderwood                              | Partial          |  100 |   10  | 20 Slash     | 3 m warning; 180 cm claws; queued Bone Fragment, Fur, and Meat; I4 pending |
 | Moon Bear           | Elderwood                              | Partial          |  250 |   20  | 75 Crush     | 3 m warning; 220 cm overhead paw; 1.2 s recovery; queued 3 Bone Fragment; I4 pending |
 | Viper               | Shimmering Lakes                       | Partial          |  100 |   10  | 50 Stab      | 40% dry-shore slots; 180 cm lunge; weak poison: 1/s, 5 s; queued Bone Fragment; I4 pending |
-| Giant Snake         | Shimmering Lakes                       | Planned          |  250 |   30  | 100 Stab     | Coiled lunge; slow recovery         |
+| Giant Snake         | Shimmering Lakes                       | Partial          |  250 |   30  | 100 Stab     | 10% dry-shore hard slot; coiled 360 cm lunge; 1 s warning; 1.2 s recovery; queued 2 Bone Fragment; I4 pending |
 | Mireling            | Mossy Mire                             | Planned          |  75  |   15  | 20 Crush     | Weak base enemy; simple melee       |
 | Death Adder         | Mossy Mire                             | Planned          |  125 |   20  | 75 Stab      | Major poison: 5/s, 10 s             |
 | Mosquito swarm      | Mossy Mire                             | Planned          |  25  |   0   | 5 Stab/0.2 s | Poison: 1/s, 10 s; roll/fire repels |
@@ -54,6 +56,17 @@ accepted server bite. Its one-Bone-Fragment baseline claim stays owner-bound in
 the world-population save until capacity is available. The separate Viper Fang
 drop and poison-arrow source remain A8b work and are not enabled by this A8a
 baseline reward.
+
+Giant Snake uses the reviewed 250-health, 30-armor, 100-Stab profile in the
+remaining 10% Shimmering Lakes candidate slot. It is restricted to dry lake
+shoreline, stays within its 25 m spawn leash, and is kept at least 150 m from
+the generated player start. The original long-bodied procedural model coils
+and hisses for one second before its strong forward lunge; it recovers for
+1.2 seconds and the bite has a narrow 180 cm impact reach. It does not apply
+poison. The two-Bone-Fragment baseline reward is saved as an authenticated,
+owner-bound claim and remains queued until both fragments fit. The Giant Scale
+drop remains disabled until its separate A8b material/icon and source work is
+complete.
 
 Current defaults: [wildlife](../Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp),
 [health](../Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h) and

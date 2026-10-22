@@ -217,6 +217,17 @@ bool FKalmalaModelSurfaceTest::RunTest(const FString& Parameters)
     Viper->GetComponents(ViperParts);
     TestEqual(TEXT("Viper creates its procedural model"), ViperParts.Num(), 1);
     for (auto* Part : ViperParts) CheckMesh(Part, true);
+    auto* GiantSnake = World->SpawnActor<AKalmalaWildlifeSpawn>();
+    if (!TestNotNull(TEXT("Giant Snake presentation fixture exists"), GiantSnake)) return false;
+    FKalmalaWorldPopulationSpawn GiantSnakeSpawn;
+    GiantSnakeSpawn.Kind = EKalmalaWorldPopulationKind::Wildlife;
+    GiantSnakeSpawn.SpawnSeed = 9;
+    GiantSnakeSpawn.Location = FVector(1000, 0, 0);
+    GiantSnake->InitializeServer(GiantSnakeSpawn, EKalmalaWildlifeArchetype::GiantSnake);
+    TArray<UProceduralMeshComponent*> GiantSnakeParts;
+    GiantSnake->GetComponents(GiantSnakeParts);
+    TestEqual(TEXT("Giant Snake creates its procedural model"), GiantSnakeParts.Num(), 1);
+    for (auto* Part : GiantSnakeParts) CheckMesh(Part, true);
     return true;
 }
 

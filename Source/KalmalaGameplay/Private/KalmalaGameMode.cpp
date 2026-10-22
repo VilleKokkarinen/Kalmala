@@ -2562,6 +2562,25 @@ bool AKalmalaGameMode::RecordViperDefeatReward(const FString& PersistentSpawnId,
         KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
 }
 
+bool AKalmalaGameMode::RecordGiantSnakeDefeatReward(const FString& PersistentSpawnId,
+    AKalmalaCharacter* CreditedAttacker)
+{
+    if (!HasAuthority() || PersistentSpawnId.IsEmpty() || PopulationSaveGame == nullptr
+        || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
+
+    if (IsValid(CreditedAttacker) && CreditedAttacker->HasAuthority()
+        && CreditedAttacker->GetWorld() == GetWorld() && CreditedAttacker->GetPlayerState() != nullptr)
+    {
+        const FString Identity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(CreditedAttacker->GetPlayerState());
+        if (!Identity.IsEmpty() && !PopulationSaveGame->TryQueuePendingGiantSnakeReward(PersistentSpawnId, Identity))
+            return false;
+    }
+
+    PopulationSaveGame->MarkDefeated(PersistentSpawnId);
+    return UGameplayStatics::SaveGameToSlot(PopulationSaveGame,
+        KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+}
+
 void AKalmalaGameMode::DeliverPendingWildlifeRewards()
 {
     if (!HasAuthority() || GetWorld() == nullptr || PopulationSaveGame == nullptr
@@ -2582,8 +2601,13 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
         FString ViperSpawnId;
         const bool bViperReward = UKalmalaWorldPopulationSaveGame::TryGetViperSpawnIdFromPendingRewardClaimId(
             Reward.PersistentSpawnId, ViperSpawnId);
+        FString GiantSnakeSpawnId;
+        const bool bGiantSnakeReward =
+            UKalmalaWorldPopulationSaveGame::TryGetGiantSnakeSpawnIdFromPendingRewardClaimId(
+                Reward.PersistentSpawnId, GiantSnakeSpawnId);
         const FString& DefeatedSpawnId = bBadgerReward ? BadgerSpawnId
-            : (bMoonBearReward ? MoonBearSpawnId : (bViperReward ? ViperSpawnId : Reward.PersistentSpawnId));
+            : (bMoonBearReward ? MoonBearSpawnId
+                : (bViperReward ? ViperSpawnId : (bGiantSnakeReward ? GiantSnakeSpawnId : Reward.PersistentSpawnId)));
         if (!PopulationSaveGame->IsDefeated(DefeatedSpawnId)) continue;
 
         for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
@@ -2602,7 +2626,7 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
             TArray<FKalmalaInventoryStack> WithBadgerFur;
             TArray<FKalmalaInventoryStack> Candidate;
             FString Reason;
-            const int32 BoneFragmentQuantity = bMoonBearReward ? 3 : 1;
+            const int32 BoneFragmentQuantity = bMoonBearReward ? 3 : (bGiantSnakeReward ? 2 : 1);
             if (!UKalmalaInventoryComponent::BuildGrant(
                     Before, TEXT("BoneFragment"), BoneFragmentQuantity, WithBone, Reason)) break;
             if (bBadgerReward)
@@ -2613,7 +2637,7 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
                         WithBadgerFur, TEXT("BadgerMeat"), 1, WithBadgerMeat, Reason)) break;
                 Candidate = MoveTemp(WithBadgerMeat);
             }
-            else if (bMoonBearReward || bViperReward)
+            else if (bMoonBearReward || bViperReward || bGiantSnakeReward)
             {
                 Candidate = MoveTemp(WithBone);
             }

@@ -45,9 +45,15 @@ reviewed A8a profiles. Viper (100 health, 10 armor, 50 Stab) occupies the seeded
 40% Shimmering Lakes share, is filtered to eligible dry shoreline, and uses the
 server-owned narrow lunge to apply the existing five-second weak-poison status
 after an accepted bite. Its one-Bone-Fragment baseline reward is a durable,
-authenticated-owner claim in the same population-save escrow. The separate
-Viper Fang drop and poison-arrow source remain disabled until their A8b work;
-the other planned species remain disabled.
+authenticated-owner claim in the same population-save escrow. The Viper Fang
+drop and poison-arrow source remain disabled until their A8b work. Giant Snake
+(250 health, 30 armor, 100 Stab) fills the remaining seeded 10%
+Shimmering Lakes slot on dry shoreline and uses a server-owned, one-second
+telegraphed lunge with a 1.2-second recovery. Its credited baseline reward is
+two Bone Fragments in the same owner-bound population-save escrow; it does not
+apply poison. The 150 m generated-start exclusion applies to this hard enemy.
+The Giant Scale drop remains disabled pending A8b item/icon/source completion.
+The other planned species remain disabled.
 Listing a drop does not enable it or certify its A8b/A9 item/icon/source work.
 Rat's runtime peer/restart acceptance remains part of combined I4. The existing
 world-population save keeps pending reward rows beside its existing harvested

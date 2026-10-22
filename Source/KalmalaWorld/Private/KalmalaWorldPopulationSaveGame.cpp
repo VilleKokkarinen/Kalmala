@@ -5,6 +5,7 @@ namespace
     constexpr TCHAR BadgerRewardClaimPrefix[] = TEXT("badger-reward|");
     constexpr TCHAR MoonBearRewardClaimPrefix[] = TEXT("moonbear-reward|");
     constexpr TCHAR ViperRewardClaimPrefix[] = TEXT("viper-reward|");
+    constexpr TCHAR GiantSnakeRewardClaimPrefix[] = TEXT("giantsnake-reward|");
 }
 
 void UKalmalaWorldPopulationSaveGame::InitializeForWorld(const FKalmalaWorldGenerationConfig& InWorldConfig)
@@ -149,6 +150,32 @@ bool UKalmalaWorldPopulationSaveGame::TryGetViperSpawnIdFromPendingRewardClaimId
     OutPersistentSpawnId.Reset();
     const int32 PrefixLength = UE_ARRAY_COUNT(ViperRewardClaimPrefix) - 1;
     if (!ClaimId.StartsWith(ViperRewardClaimPrefix, ESearchCase::CaseSensitive)
+        || ClaimId.Len() <= PrefixLength || ClaimId.Len() > 128) return false;
+
+    OutPersistentSpawnId = ClaimId.RightChop(PrefixLength);
+    return !OutPersistentSpawnId.IsEmpty();
+}
+
+bool UKalmalaWorldPopulationSaveGame::TryQueuePendingGiantSnakeReward(
+    const FString& PersistentSpawnId, const FString& PlayerIdentity)
+{
+    const FString ClaimId = MakeGiantSnakePendingRewardClaimId(PersistentSpawnId);
+    return !ClaimId.IsEmpty() && TryQueuePendingWildlifeReward(ClaimId, PlayerIdentity);
+}
+
+FString UKalmalaWorldPopulationSaveGame::MakeGiantSnakePendingRewardClaimId(const FString& PersistentSpawnId)
+{
+    const int32 PrefixLength = UE_ARRAY_COUNT(GiantSnakeRewardClaimPrefix) - 1;
+    if (PersistentSpawnId.IsEmpty() || PersistentSpawnId.Len() > 128 - PrefixLength) return FString();
+    return FString(GiantSnakeRewardClaimPrefix) + PersistentSpawnId;
+}
+
+bool UKalmalaWorldPopulationSaveGame::TryGetGiantSnakeSpawnIdFromPendingRewardClaimId(
+    const FString& ClaimId, FString& OutPersistentSpawnId)
+{
+    OutPersistentSpawnId.Reset();
+    const int32 PrefixLength = UE_ARRAY_COUNT(GiantSnakeRewardClaimPrefix) - 1;
+    if (!ClaimId.StartsWith(GiantSnakeRewardClaimPrefix, ESearchCase::CaseSensitive)
         || ClaimId.Len() <= PrefixLength || ClaimId.Len() > 128) return false;
 
     OutPersistentSpawnId = ClaimId.RightChop(PrefixLength);

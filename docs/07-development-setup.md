@@ -2304,6 +2304,21 @@ delivery, restart, or relevant-peer acceptance; no Unreal build or runtime
 acceptance ran in this increment. The Viper Fang drop and poison-arrow source
 remain disabled until the separate A8b tasks are implemented.
 
+## Shimmering Lakes Giant Snake contract regression
+
+The editor automation
+`Kalmala.Gameplay.Wildlife.GiantSnake.ShoreLungeAndRewardClaim` checks the
+50/40/10 Shimmering Lakes candidate slots, Giant Snake exclusion from other
+biomes, its reviewed 250-health/30-armor/100-Stab profile, one-second warning,
+1.2-second recovery, 25 m leash, and baseline reward quantity. It serializes
+the owner-bound two-Bone-Fragment claim, rejects the full-pack candidate
+without clearing the claim, then prepares both fragments after capacity is
+freed. The surface-winding automation also checks the original procedural
+model. Run these editor automations in combined A8a/A8b I4 acceptance; the
+source was not compiled or executed by this increment, and no live spawn,
+delivery, restart, or peer acceptance ran. The Giant Scale drop remains
+disabled until its separate A8b item/icon/source work is complete.
+
 ## Discovery peer privacy regression
 
 After an editor build, run `Scripts/Tests/Combat/Verify-DiscoveryPeer.ps1`. It starts a

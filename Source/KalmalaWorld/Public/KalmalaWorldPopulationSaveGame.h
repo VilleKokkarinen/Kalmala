@@ -39,6 +39,10 @@ public:
     bool TryQueuePendingViperReward(const FString& PersistentSpawnId, const FString& PlayerIdentity);
     static FString MakeViperPendingRewardClaimId(const FString& PersistentSpawnId);
     static bool TryGetViperSpawnIdFromPendingRewardClaimId(const FString& ClaimId, FString& OutPersistentSpawnId);
+    bool TryQueuePendingGiantSnakeReward(const FString& PersistentSpawnId, const FString& PlayerIdentity);
+    static FString MakeGiantSnakePendingRewardClaimId(const FString& PersistentSpawnId);
+    static bool TryGetGiantSnakeSpawnIdFromPendingRewardClaimId(
+        const FString& ClaimId, FString& OutPersistentSpawnId);
     bool RemovePendingWildlifeReward(const FString& RewardClaimId);
     const TArray<FKalmalaPendingWildlifeReward>& GetPendingWildlifeRewards() const { return PendingWildlifeRewards; }
 
