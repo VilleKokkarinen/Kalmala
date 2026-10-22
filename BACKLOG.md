@@ -212,37 +212,38 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [x] Reconcile the user-edited drop amounts/chances and recipe station/cost/output values with existing approved contracts; align source ownership and the proposal table.
   - [x] Resolve the remaining effect and full equipment-profile decisions before implementing affected outputs; see [A8b review](docs/alpha-item-details.md#a8b).
   - [x] Add the registered catalogue JSON records for all 15 materials and 15 outputs, including output recipes, equipment profiles, upgrade costs/rewards, and supported attack records.
-  - Item icon tasks are independent of their source/output implementation tasks. Each checkbox covers one item's original generated artwork and provenance, prepared/imported texture, runtime mapping, and icon-validator coverage. Each can be completed in its own short-path A8b worktree and must be committed individually. Completing an icon does not complete its item row or enable acquisition.
+  - Item icon tasks are independent of their source/output implementation tasks. Each checkbox covers one item's original generated artwork and provenance, prepared/imported texture, runtime mapping, and icon-validator coverage. Per the user's 2026-10-22 direction, complete all remaining A8b icon checkboxes together in one short-path A8b work batch and one feature commit. Completing icons does not complete their item rows or enable acquisition. The importer retains its supported limit of 16 textures per import batch.
   - [x] Rat Tail icon (`RatTail`): original, provenance, mapping, import, and catalogue icon validation are complete; see `docs/rat-tail-icon.md`.
   - [x] Badger Fur icon (`BadgerFur`).
   - [x] Badger Meat icon (`BadgerMeat`): original, provenance, mapping, import, and focused catalogue icon validation are complete; see `docs/badger-meat-icon.md`.
-  - [ ] Viper Fang icon (`ViperFang`).
-  - [ ] Giant Scale icon (`GiantScale`).
-  - [ ] Venom Sac icon (`VenomSac`).
-  - [ ] Peat Heart icon (`PeatHeart`).
-  - [ ] Wolf Pelt icon (`WolfPelt`).
-  - [ ] Wolf Fang icon (`WolfFang`).
-  - [ ] Wolf Meat icon (`WolfMeat`).
-  - [ ] Lynx Pelt icon (`LynxPelt`).
-  - [ ] Polar Bear Pelt icon (`PolarBearPelt`).
-  - [ ] Goat Horn icon (`GoatHorn`).
-  - [ ] Thunder Core icon (`ThunderCore`).
-  - [ ] Reef Tooth icon (`ReefTooth`).
-  - [ ] Rat-tail Tonic icon (`RatTailTonic`).
-  - [ ] Badger Fur Vest icon (`BadgerFurVest`).
-  - [ ] Roasted Badger icon (`RoastedBadger`).
-  - [ ] Fang Arrows icon (`FangArrows`).
-  - [ ] Scale Cuirass icon (`ScaleCuirass`).
-  - [ ] Antidote icon (`Antidote`).
-  - [ ] Peat Heart Stew icon (`PeatHeartStew`).
-  - [ ] Wolf Pelt Boots icon (`WolfPeltBoots`).
-  - [ ] Fang Spear icon (`FangSpear`).
-  - [ ] Wolf Stew icon (`WolfStew`).
-  - [ ] Lynx Mantle icon (`LynxMantle`).
-  - [ ] Polar Bear Coat icon (`PolarBearCoat`).
-  - [ ] Horn Bow icon (`HornBow`).
-  - [ ] Thunder Maul icon (`ThunderMaul`).
-  - [ ] Reef Harpoon icon (`ReefHarpoon`).
+  - [x] Viper Fang icon (`ViperFang`).
+  - [x] Giant Scale icon (`GiantScale`).
+  - [x] Venom Sac icon (`VenomSac`).
+  - [x] Peat Heart icon (`PeatHeart`).
+  - [x] Wolf Pelt icon (`WolfPelt`).
+  - [x] Wolf Fang icon (`WolfFang`).
+  - [x] Wolf Meat icon (`WolfMeat`).
+  - [x] Lynx Pelt icon (`LynxPelt`).
+  - [x] Polar Bear Pelt icon (`PolarBearPelt`).
+  - [x] Goat Horn icon (`GoatHorn`).
+  - [x] Thunder Core icon (`ThunderCore`).
+  - [x] Reef Tooth icon (`ReefTooth`).
+  - [x] Rat-tail Tonic icon (`RatTailTonic`).
+  - [x] Badger Fur Vest icon (`BadgerFurVest`).
+  - [x] Roasted Badger icon (`RoastedBadger`).
+  - [x] Fang Arrows icon (`FangArrows`).
+  - [x] Scale Cuirass icon (`ScaleCuirass`).
+  - [x] Antidote icon (`Antidote`).
+  - [x] Peat Heart Stew icon (`PeatHeartStew`).
+  - [x] Wolf Pelt Boots icon (`WolfPeltBoots`).
+  - [x] Fang Spear icon (`FangSpear`).
+  - [x] Wolf Stew icon (`WolfStew`).
+  - [x] Lynx Mantle icon (`LynxMantle`).
+  - [x] Polar Bear Coat icon (`PolarBearCoat`).
+  - [x] Horn Bow icon (`HornBow`).
+  - [x] Thunder Maul icon (`ThunderMaul`).
+  - [x] Reef Harpoon icon (`ReefHarpoon`).
+  - Grouped icon batch completed 2026-10-22 in one feature commit by user direction; originals, preparation, imports, mapping and focused coverage are recorded in `docs/a8b-icon-batch.md`. The 30 item/source rows remain open.
   - [ ] Rat Tail: Rat, 1 guaranteed; material + source + JSON + generated icon.
     - Original icon, mapping, and import are complete; item remains open until Rat has an accepted runtime drop.
   - [ ] Badger Fur: Badger, 1 guaranteed; material + source + JSON + generated icon.
@@ -277,10 +278,9 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [ ] Verify every approved drop/output has complete registered JSON, a reachable source and a generated runtime icon.
   - [ ] Run the combined A8a/A8b enemy and enemy-item milestone verification; record results and blockers. This gate must pass before A9 begins.
 
-  The JSON-only child is complete; all 30 item rows remain unchecked until
-  their reachable source drops (for materials), server-side item behavior and
-  original generated/imported icons with runtime mapping and validator coverage
-  are complete. No A8b enemy drop has been enabled.
+  The JSON-only child and all 30 icon children are complete; all 30 item rows
+  remain unchecked until their reachable source drops (for materials) and
+  server-side item behavior are complete. No A8b enemy drop has been enabled.
 
   Bow String is reserved for bows. Review every pending non-bow binding input in its category contract; do not use Bow String there. Moonstone Ring and Dusk Ring stay in A9. Do not duplicate them.
   Enable new drops only when their material task is complete. A8b effects and
