@@ -188,7 +188,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [x] Review the expanded roster, spawn weights and attack/loot rules.
   - [x] Review unique enemy drops and uses; approve new materials/recipes before implementation.
   - [x] Review the recommended drop-based item/recipe table; approve effects and full gear profiles.
-  - [ ] Restrict boar/deer spawns to Meadows, Elderwood and Shimmering Lakes only.
+  - [x] Restrict boar/deer spawns to Meadows, Elderwood and Shimmering Lakes only.
   - [ ] Apply the overview's revised stats to existing boar/deer and all A8a enemies.
   - [ ] Meadows: Rat
   - [ ] Elderwood: Badger

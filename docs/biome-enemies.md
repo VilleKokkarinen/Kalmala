@@ -5,9 +5,8 @@
 **Current** = existing species; **Planned** = queued additions or retunes.
 Damage is before defenses. Poison rates are per second and do not stack;
 only the strongest active poison deals damage. Current wildlife uses seeded
-population slots rather than the proposed biome restrictions below. Boar/deer
-biomes and all stats in this table are planned targets, including boar/deer retunes.
-Mireling's biome and stats are also planned changes to an existing enemy.
+population slots. Boar/deer spawn origins now use a server-side allowlist for
+the biomes below; their stats and Mireling's biome/stat retune remain planned.
 
 | Enemy               | Biome                                  | Status           | HP   | Armor | Attack       | Abilities / counters                |
 | ------------------- | -------------------------------------- | ---------------- | ---: | ----: | ------------ | ----------------------------------- |
@@ -221,11 +220,13 @@ and original inventory icons before implementation; the uses are not recipes.
 - Retain existing world-seed, biome suitability, relevance and actor budgets.
   Add variety within existing candidate slots, not additional unbounded actors.
 - Boars and deer may spawn **only in Meadows, Elderwood and Shimmering Lakes**.
-  Exclude both from Mossy Mire, Freezing Tundra, Thunder Mountains and Ocean.
-  Apply the server-side biome allowlist before archetype selection, including
-  regenerated/reloaded population candidates; seed selection cannot bypass it.
-  This controls spawn origin, not a new movement barrier. Use the revised
-  stats below; retain other behavior and loot. Verify biome filtering across fixed seeds.
+  The server samples the biome at each generated spawn origin and filters the
+  deterministic seed before actor initialization, including regenerated/reloaded
+  population candidates; a seed cannot bypass the allowlist. This controls
+  spawn origin and does not add a movement barrier. The focused automation
+  covers each allowed and excluded biome; run the fixed-seed world checks at I4.
+  Use the revised stats below; retain other behavior and loot. Verify biome
+  filtering across fixed seeds.
 - Proposed selection weights are percentages of eligible candidate slots.
   Meadows uses 90% existing roster / 10% Rat. Each other land biome allocates
   50% to its existing eligible roster, 40% to new common enemies, and 10% to

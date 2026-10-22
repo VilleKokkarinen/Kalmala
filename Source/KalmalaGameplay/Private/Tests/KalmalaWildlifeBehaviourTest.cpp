@@ -26,6 +26,36 @@ bool FKalmalaWildlifeBehaviourTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Archetype selection stays deterministic for one descriptor seed"), uint8(AKalmalaWildlifeSpawn::GetArchetypeForSpawnSeed(6)), uint8(EKalmalaWildlifeArchetype::Boar));
     TestEqual(TEXT("Existing Mireling descriptor seed stays a Mireling"), uint8(AKalmalaWildlifeSpawn::GetArchetypeForSpawnSeed(3308806006119996599ull)), uint8(EKalmalaWildlifeArchetype::Mireling));
     TestEqual(TEXT("A non-boar descriptor deterministically selects deer"), uint8(AKalmalaWildlifeSpawn::GetArchetypeForSpawnSeed(1)), uint8(EKalmalaWildlifeArchetype::Deer));
+    const TArray<EKalmalaBiome> BoarDeerHabitats =
+    {
+        EKalmalaBiome::Meadows, EKalmalaBiome::Elderwood, EKalmalaBiome::ShimmeringLakes
+    };
+    const TArray<EKalmalaBiome> ExcludedHabitats =
+    {
+        EKalmalaBiome::MossyMire, EKalmalaBiome::FreezingTundra,
+        EKalmalaBiome::ThunderMountains, EKalmalaBiome::Ocean
+    };
+    for (const EKalmalaBiome Biome : BoarDeerHabitats)
+    {
+        EKalmalaWildlifeArchetype SelectedArchetype = EKalmalaWildlifeArchetype::Mireling;
+        TestTrue(TEXT("A seeded boar is eligible in its approved biome"),
+            AKalmalaWildlifeSpawn::TryGetSpawnArchetypeForBiome(6, Biome, SelectedArchetype));
+        TestEqual(TEXT("The approved boar seed remains deterministic"), SelectedArchetype, EKalmalaWildlifeArchetype::Boar);
+        TestTrue(TEXT("A seeded deer is eligible in its approved biome"),
+            AKalmalaWildlifeSpawn::TryGetSpawnArchetypeForBiome(1, Biome, SelectedArchetype));
+        TestEqual(TEXT("The approved deer seed remains deterministic"), SelectedArchetype, EKalmalaWildlifeArchetype::Deer);
+    }
+    for (const EKalmalaBiome Biome : ExcludedHabitats)
+    {
+        EKalmalaWildlifeArchetype SelectedArchetype = EKalmalaWildlifeArchetype::Mireling;
+        TestFalse(TEXT("A seeded boar is filtered from unapproved biomes"),
+            AKalmalaWildlifeSpawn::TryGetSpawnArchetypeForBiome(6, Biome, SelectedArchetype));
+        TestFalse(TEXT("A seeded deer is filtered from unapproved biomes"),
+            AKalmalaWildlifeSpawn::TryGetSpawnArchetypeForBiome(1, Biome, SelectedArchetype));
+        TestTrue(TEXT("An otherwise eligible Mireling candidate remains unchanged"),
+            AKalmalaWildlifeSpawn::TryGetSpawnArchetypeForBiome(2, Biome, SelectedArchetype));
+        TestEqual(TEXT("The same seed and biome select the same remaining archetype"), SelectedArchetype, EKalmalaWildlifeArchetype::Mireling);
+    }
     const TArray<TPair<FName, EKalmalaWildlifeEcology>> NicheProfiles =
     {
         { TEXT("meadows-open-grazer"), EKalmalaWildlifeEcology::OpenGrazer },
