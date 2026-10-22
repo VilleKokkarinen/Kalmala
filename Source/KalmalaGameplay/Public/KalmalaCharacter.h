@@ -84,6 +84,8 @@ public:
     void AdvanceHeldTorchFromServer(float DeltaSeconds, bool bRainExposed);
     void NotifyMainHandSelectionChangedFromServer();
     float GetHealth() const { return Health; }
+    static constexpr float MaximumWildlifeHitDamage = 300.0f;
+    static bool IsWildlifeDamageWithinBounds(const FKalmalaDamageChannels& Damage);
     bool ApplyWildlifeDamageFromServer(const AActor* SourceActor, float Damage);
     bool ApplyWildlifeDamageFromServer(const AActor* SourceActor, const FKalmalaDamageChannels& Damage);
     bool ReceiveMendingFromServer(const AKalmalaCharacter* SourceCharacter, float HealAmount);

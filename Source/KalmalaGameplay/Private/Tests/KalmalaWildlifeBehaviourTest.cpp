@@ -26,6 +26,15 @@ bool FKalmalaWildlifeBehaviourTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Archetype selection stays deterministic for one descriptor seed"), uint8(AKalmalaWildlifeSpawn::GetArchetypeForSpawnSeed(6)), uint8(EKalmalaWildlifeArchetype::Boar));
     TestEqual(TEXT("Existing Mireling descriptor seed stays a Mireling"), uint8(AKalmalaWildlifeSpawn::GetArchetypeForSpawnSeed(3308806006119996599ull)), uint8(EKalmalaWildlifeArchetype::Mireling));
     TestEqual(TEXT("A non-boar descriptor deterministically selects deer"), uint8(AKalmalaWildlifeSpawn::GetArchetypeForSpawnSeed(1)), uint8(EKalmalaWildlifeArchetype::Deer));
+    TestEqual(TEXT("Boar runtime health matches the revised profile"), AKalmalaWildlifeSpawn::GetMaximumHealthForArchetype(EKalmalaWildlifeArchetype::Boar), 20.0f);
+    TestEqual(TEXT("Boar runtime armor matches the revised profile"), AKalmalaWildlifeSpawn::GetArmorForArchetype(EKalmalaWildlifeArchetype::Boar), 5.0f);
+    TestEqual(TEXT("Boar charge damage matches the revised Crush profile"), AKalmalaWildlifeSpawn::GetBaseAttackDamageForArchetype(EKalmalaWildlifeArchetype::Boar), 10.0f);
+    TestEqual(TEXT("Deer runtime health matches the revised profile"), AKalmalaWildlifeSpawn::GetMaximumHealthForArchetype(EKalmalaWildlifeArchetype::Deer), 30.0f);
+    TestEqual(TEXT("Deer runtime armor matches the revised profile"), AKalmalaWildlifeSpawn::GetArmorForArchetype(EKalmalaWildlifeArchetype::Deer), 5.0f);
+    TestEqual(TEXT("Deer has no authored attack"), AKalmalaWildlifeSpawn::GetBaseAttackDamageForArchetype(EKalmalaWildlifeArchetype::Deer), 0.0f);
+    TestEqual(TEXT("Mireling runtime health matches the revised profile"), AKalmalaWildlifeSpawn::GetMaximumHealthForArchetype(EKalmalaWildlifeArchetype::Mireling), 75.0f);
+    TestEqual(TEXT("Mireling runtime armor matches the revised profile"), AKalmalaWildlifeSpawn::GetArmorForArchetype(EKalmalaWildlifeArchetype::Mireling), 15.0f);
+    TestEqual(TEXT("Mireling melee damage matches the revised Crush profile"), AKalmalaWildlifeSpawn::GetBaseAttackDamageForArchetype(EKalmalaWildlifeArchetype::Mireling), 20.0f);
     const TArray<EKalmalaBiome> BoarDeerHabitats =
     {
         EKalmalaBiome::Meadows, EKalmalaBiome::Elderwood, EKalmalaBiome::ShimmeringLakes

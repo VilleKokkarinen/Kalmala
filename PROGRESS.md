@@ -5248,6 +5248,28 @@
 - **Known limitations/remaining scope:** no A9 item, recipe, icon, or source implementation was performed. Moonstone still requires an accepted A8a Moon Bear; raw-gem source tasks remain subject to their documented dependencies. Review A9 must resolve recipe/profile proposals before those tasks start.
 - **Next eligible task:** A8b Badger Fur icon (`BadgerFur`); A9 remains behind the combined I4 gate.
 
+## Run 2026-10-22 06:32 UTC — Apply revised stats to current wildlife
+
+- **Selected task:** apply the overview's revised stats to existing boar/deer and all A8a enemies.
+- **Work completed:** applied the approved runtime health, armor, and base Crush damage values to the three existing wildlife actors: Boar (20 / 5 / 10), Deer (30 / 5 / no attack), and Mireling (75 / 15 / 20). Server initialization selects health and defense from the archetype profile; damage clamping uses the archetype health maximum, and existing Boar/Mireling attacks use the revised values. Added focused Unreal automation assertions and updated the creature design/catalogue notes. This is a partial slice; planned A8a runtime profiles remain to be applied, so the backlog child stays unchecked.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`; `Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h`; `Source/KalmalaGameplay/Private/Tests/KalmalaWildlifeBehaviourTest.cpp`; `docs/biome-enemies.md`; `docs/creature-catalogues.md`; `PROGRESS.md`.
+- **Lightweight checks:** `python Scripts/Validate-CreatureCatalogues.py` passed for all 17 profiles. Focused source assertions confirmed the authored JSON values match runtime mappings and consumers for all three current species. `git diff --check` passed, and all changed paths are below 260 characters.
+- **Full verification:** no Unreal build or runtime automation ran. Full A8a/A8b/I4 verification remains deferred until the combined milestone gate.
+- **Observable impact and authority:** existing actors now use the reviewed combat values. Health/armor are assigned during server-authoritative initialization; current replicated health behavior is unchanged. No client-controlled stats, RPCs, replication fields, or save data changed.
+- **Known limitations/remaining scope:** fourteen planned A8a enemies still need runtime profiles; Mireling biome restrictions and all new enemy behaviors remain open. The selected stats child is not complete. A9 remains gated on integrated A8a/A8b and I4 verification.
+- **Next eligible task:** continue the A8a revised-stats child for planned enemy runtime profiles, then implement the first unchecked enemy task. Current run time: 2026-10-22 06:32 UTC.
+
+## Run 2026-10-22 06:38 UTC — A8a wildlife hit validation bound
+
+- **Selected task:** apply the overview's revised stats to existing boar/deer and all A8a enemies.
+- **Work completed:** raised the server-side wildlife-to-player damage bound from 25 to the approved maximum of 300 total damage channels. Factored the bound into a focused validator and added boundary assertions for current 25-damage pressure, exactly 300, above 300, empty input, and non-finite input. Updated the creature-catalogue implementation note. The broad stats child remains open; this increment does not add the remaining enemy runtime profiles.
+- **Files changed:** `Source/KalmalaGameplay/Public/KalmalaCharacter.h`; `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp`; `Source/KalmalaGameplay/Private/Tests/KalmalaDamageProfileTest.cpp`; `docs/creature-catalogues.md`; `PROGRESS.md`.
+- **Lightweight checks:** `python Scripts/Validate-CreatureCatalogues.py` passed for all 17 profiles; focused source assertions verified the 300-damage constant, application gate and boundary coverage; `git diff --check` passed; changed paths are below 260 characters.
+- **Full verification:** the added Unreal automation assertions were not executed. No Unreal build or runtime test ran; combined A8a/A8b/I4 milestone-final verification remains deferred.
+- **Observable impact and authority:** server-validated wildlife attacks can now apply the reviewed maximum 300 total damage, supporting the Thunder Sentinel profile. Source actor authority, world/range checks and damage-channel validity remain required. No RPC, replication or save data changed.
+- **Known limitations/remaining scope:** runtime profiles and enemy behaviors for fourteen planned A8a species remain open. The selected stats child remains unchecked; A9 remains gated on integrated A8a/A8b and successful I4 verification. The authorized A8b run was isolated in its own worktree; no integration or handoff was performed here.
+- **Next eligible task:** continue the A8a revised-stats child for planned enemy runtime profiles. Current run time: 2026-10-22 06:38 UTC.
+
 ## Run 2026-10-22 06:38:30 UTC — A8b Badger Fur icon
 
 - **Selected increment:** Badger Fur icon (BadgerFur), the independent icon child. The material/source task remains open.
@@ -5259,3 +5281,9 @@
 - **Known limitations:** Badger Fur remains incomplete and unreachable until Badger and its accepted server-side credited-defeat reward exist in runtime. Its drop remains disabled.
 - **Integration state:** committed only on the isolated codex/a8b-items branch. Main checkout and its BACKLOG/PROGRESS handoff were left untouched while the equipment run remained active there; safe integration is pending.
 - **Next eligible A8b task:** retry safe integration and handoff first; then Badger Meat icon (BadgerMeat). Current run time: 2026-10-22 06:38:30 UTC.
+
+## Run 2026-10-22 06:42 UTC — Reconcile latest main into A8b
+
+- Reconciled main commits 467c594f and a395abc4 into the isolated codex/a8b-items branch, preserving both A8a progress entries and this run's Badger Fur icon entry in chronological order.
+- Main checkout was not changed. Main integration and BACKLOG/PROGRESS handoff remain pending because an equipment run is active against the main checkout.
+- Next eligible A8b action: retry safe main integration and handoff before starting Badger Meat icon (BadgerMeat).

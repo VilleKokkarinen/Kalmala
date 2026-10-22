@@ -1,4 +1,5 @@
 #if WITH_DEV_AUTOMATION_TESTS
+#include "KalmalaCharacter.h"
 #include "KalmalaDamageProfile.h"
 #include "KalmalaToolCatalogue.h"
 #include "KalmalaToolLifecycleContract.h"
@@ -70,6 +71,21 @@ bool FKalmalaDamageProfileTest::RunTest(const FString& Parameters)
 
     Invalid.Fire = std::numeric_limits<float>::quiet_NaN();
     TestFalse(TEXT("Nonfinite damage is invalid"), Invalid.IsValid());
+    FKalmalaDamageChannels WildlifeHit;
+    WildlifeHit.Crush = 25.0f;
+    TestTrue(TEXT("Existing wildlife pressure remains within the accepted hit bound"),
+        AKalmalaCharacter::IsWildlifeDamageWithinBounds(WildlifeHit));
+    WildlifeHit = {};
+    WildlifeHit.Crush = AKalmalaCharacter::MaximumWildlifeHitDamage;
+    TestTrue(TEXT("The approved 300-damage wildlife profile is accepted"),
+        AKalmalaCharacter::IsWildlifeDamageWithinBounds(WildlifeHit));
+    WildlifeHit.Crush += 0.01f;
+    TestFalse(TEXT("Wildlife hits above the approved maximum fail closed"),
+        AKalmalaCharacter::IsWildlifeDamageWithinBounds(WildlifeHit));
+    WildlifeHit = {};
+    TestFalse(TEXT("Empty wildlife hits remain rejected"), AKalmalaCharacter::IsWildlifeDamageWithinBounds(WildlifeHit));
+    WildlifeHit.Crush = std::numeric_limits<float>::quiet_NaN();
+    TestFalse(TEXT("Nonfinite wildlife hits remain rejected"), AKalmalaCharacter::IsWildlifeDamageWithinBounds(WildlifeHit));
     Defenses.Armor = std::numeric_limits<float>::infinity();
     TestFalse(TEXT("Nonfinite defenses fail closed"), Defenses.Resolve(Combined, Resolved));
 
