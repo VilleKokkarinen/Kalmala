@@ -5775,5 +5775,5 @@
 - **Networking/authority:** Defeat identity, authenticated owner binding, reward construction, capacity validation, and inventory commit remain server-owned. No client-supplied item ID or quantity or SaveGame schema change was introduced.
 - **Known limitations / remaining scope:** Live reward delivery, full/partial-pack retry, restart/reconnect, peer visibility, and rendered acceptance remain for combined I4. Antidote and other A8b source/output tasks remain open.
 - **Next eligible task:** A8b Peat Heart — Peat Husk, 25% chance of one; material, source, JSON, and generated icon.
-- **Integration state:** The isolated `codex/a8b-items` branch was fast-forwarded to integrated master `0152c903` before this increment. Venom Sac handoff to master is pending this run's commit and fast-forward. Main checkout and index remain untouched. Combined A8a/A8b I4 remains pending.
-- **Handoff:** Work is isolated in `E:\dev\Kalmala\.wt\a8b`; no main-checkout files or index were modified. Current run time: 2026-10-22T13:04:13Z.
+- **Integration state:** The isolated `codex/a8b-items` branch was fast-forwarded to integrated master `0152c903` before this increment. Venom Sac is integrated into `master` by fast-forward `0152c903..dc7b84b0`; the backlog and progress handoff are visible on main. Combined A8a/A8b I4 remains pending.
+- **Handoff:** Implementation and backlog/progress handoff are synchronized to `E:\dev\Kalmala` on `master`; the integration record is kept in a separate commit from the implementation. Current run time: 2026-10-22T13:05:16Z.
