@@ -5335,6 +5335,29 @@
 - **Integration state:** A8b item commit `3c0970ce` remains on `codex/a8b-items`. Reconciled main commit `233e446f` (Moon Bear runtime stat profile) into this branch with a normal merge. The main checkout still has active equipment work and uncommitted creature changes, so main integration and `BACKLOG.md`/`PROGRESS.md` handoff synchronization remain pending; main was not modified.
 - **Next eligible A8b task:** retry safe integration and handoff first; then Viper Fang icon (`ViperFang`). Current run time: 2026-10-22 06:56 UTC.
 
+## Run 2026-10-22 07:18 UTC — Death Adder runtime stat profile
+
+- **Selected task:** apply the overview's revised stats to existing boar/deer and all A8a enemies. This increment adds one planned runtime profile; the broad stats task remains unchecked.
+- **Work completed:** added the Death Adder archetype stat profile (125 health, 20 armor, 75 Stab) and focused Unreal automation assertions. Death Adder is not selected for live spawning; poison behavior, presentation, spawning, and rewards remain queued.
+- **Files changed:** Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h; Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp; Source/KalmalaGameplay/Private/Tests/KalmalaWildlifeStatProfileTest.cpp; PROGRESS.md.
+- **Lightweight checks:** python Scripts/Validate-CreatureCatalogues.py passed for all 17 profiles and manifest JSON. Focused source assertions confirmed the Death Adder mapping and coverage; git diff --check passed; intended paths are below 260 characters.
+- **Full verification:** the new Unreal automation assertions were not executed. No Unreal build or runtime test ran; combined A8a/A8b/I4 milestone-final verification remains deferred.
+- **Observable impact and authority:** the server runtime can resolve the reviewed Death Adder profile when initialized with that archetype, but it is not selected for live spawning. No RPC, replication field, or save data changed.
+- **Known limitations/remaining scope:** the broad revised-stats task remains open for the remaining A8a profiles. Death Adder behavior, poison, presentation, spawning, and rewards are not implemented. Pre-existing dirty worktree changes were left untouched and excluded from this commit.
+- **Next eligible task:** continue the A8a revised-stats child for remaining planned enemy profiles; A9 remains gated on integrated A8a/A8b and successful I4 verification. Current run time: 2026-10-22 07:18 UTC.
+
+## Run 2026-10-22 07:29:56 UTC — Complete A8a revised stat profiles
+
+- **Selected task:** apply the overview's revised stats to existing boar/deer and all A8a enemies.
+- **Work completed:** Added the complete server-side runtime profile lookup for all 17 reviewed species: health, armor, and typed base attack values. Server initialization continues to apply health and armor only under authority. Expanded focused automation coverage to assert all 17 profiles, every physical attack channel, zero elemental/poison channels, and total attack. Updated creature-catalogue status and checked only the selected broad stats child in `BACKLOG.md`.
+- **Files changed:** `Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h`; `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`; `Source/KalmalaGameplay/Private/Tests/KalmalaWildlifeStatProfileTest.cpp`; `docs/creature-catalogues.md`; `BACKLOG.md`; `PROGRESS.md`.
+- **Lightweight checks:** `python Scripts/Validate-CreatureCatalogues.py` passed. A focused source-to-catalogue comparison verified exact health, armor, and typed attack agreement for all 17 species and confirmed each has test assertions. `git diff --check` passed.
+- **Full verification:** This is not the milestone-final task. No Unreal build or automation run was performed; the new automation test remains unexecuted. Combined A8a/A8b I4 verification remains deferred.
+- **Observable impact and authority:** The runtime can resolve every reviewed A8a stat profile. `InitializeServer` remains authority-gated; no new RPC, replication field, or save data was added. This increment does not enable any planned species for spawn selection.
+- **Known limitations/remaining scope:** Planned species still need their individual spawn, presentation, behavior, reward, and acceptance work. All species remain subject to combined I4 verification before A9.
+- **Next eligible task:** Meadows: Rat. A9 remains gated on integrated A8a/A8b and successful I4 verification.
+- **Handoff:** Main checkout used directly; no worktree handoff was needed. The authorized A8b run remains isolated in its separate worktree; no integration or A8b handoff was performed.
+
 ## Run 2026-10-22 07:50 UTC — Grouped A8b icon batch
 
 - **Selected scope:** user-directed batch of all remaining A8b item icon children, completed together in one feature increment.
@@ -5344,5 +5367,5 @@
 - **Full verification:** no Unreal build, gameplay automation, full test suite, rendered acceptance, or multiplayer test ran. Combined A8/A8a/A8b I4 milestone-final verification remains deferred.
 - **Observable impact and authority:** inventory UI can load the original textures for all 27 remaining A8b IDs. Presentation only; no gameplay, acquisition, server authority, RPC, replication, save data, recipe, or effect changed.
 - **Known limitations / N/A:** applicable item JSON and recipes were authored in the earlier catalogue child; this icon-only batch changes no N/A categories. A8b materials remain unreachable until their named A8a enemies and accepted server-side rewards exist. No enemy drops were enabled; all 30 material/output implementation rows remain open.
-- **Integration state:** this increment is confined to `codex/a8b-items` in `E:\dev\Kalmala\.wt\a8b`. Main advanced to commit `54820fc1` during this run; that committed A8a history still needs reconciliation into this branch. Main has an active equipment writer and uncommitted changes, so main integration and handoff synchronization remain pending. Do not stage or alter those main-checkout files.
+- **Integration state:** A8b feature commit `6501e3a7` is on `codex/a8b-items`. Reconciled committed main history through `54820fc1` into this branch with a normal merge. Main integration and `BACKLOG.md`/`PROGRESS.md` handoff synchronization remain pending because the main checkout has an active equipment writer and uncommitted changes; main was not modified.
 - **Next eligible A8b task:** reconcile committed main history, then retry safe integration/handoff. The first material row, Rat Tail, remains blocked until Rat has a reachable accepted runtime drop; choose a genuinely unblocked item task only after rechecking A8a dependencies. Current run time: 2026-10-22 07:50 UTC.

@@ -38,6 +38,106 @@ namespace
         default: return FLinearColor(0.45f, 0.45f, 0.45f);
         }
     }
+    struct FWildlifeStatProfile
+    {
+        float Health = 0.0f;
+        float Armor = 0.0f;
+        FKalmalaDamageChannels Attack;
+    };
+
+    bool TryGetWildlifeStatProfile(const EKalmalaWildlifeArchetype Archetype, FWildlifeStatProfile& OutProfile)
+    {
+        OutProfile = FWildlifeStatProfile{};
+        switch (Archetype)
+        {
+        case EKalmalaWildlifeArchetype::Boar:
+            OutProfile.Health = 20.0f;
+            OutProfile.Armor = 5.0f;
+            OutProfile.Attack.Crush = 10.0f;
+            return true;
+        case EKalmalaWildlifeArchetype::Deer:
+            OutProfile.Health = 30.0f;
+            OutProfile.Armor = 5.0f;
+            return true;
+        case EKalmalaWildlifeArchetype::Mireling:
+            OutProfile.Health = 75.0f;
+            OutProfile.Armor = 15.0f;
+            OutProfile.Attack.Crush = 20.0f;
+            return true;
+        case EKalmalaWildlifeArchetype::Rat:
+            OutProfile.Health = 10.0f;
+            OutProfile.Armor = 0.0f;
+            OutProfile.Attack.Pierce = 5.0f;
+            return true;
+        case EKalmalaWildlifeArchetype::Badger:
+            OutProfile.Health = 100.0f;
+            OutProfile.Armor = 10.0f;
+            OutProfile.Attack.Slash = 20.0f;
+            return true;
+        case EKalmalaWildlifeArchetype::MoonBear:
+            OutProfile.Health = 250.0f;
+            OutProfile.Armor = 20.0f;
+            OutProfile.Attack.Crush = 75.0f;
+            return true;
+        case EKalmalaWildlifeArchetype::DeathAdder:
+            OutProfile.Health = 125.0f;
+            OutProfile.Armor = 20.0f;
+            OutProfile.Attack.Stab = 75.0f;
+            return true;
+        case EKalmalaWildlifeArchetype::Viper:
+            OutProfile.Health = 100.0f;
+            OutProfile.Armor = 10.0f;
+            OutProfile.Attack.Stab = 50.0f;
+            return true;
+        case EKalmalaWildlifeArchetype::GiantSnake:
+            OutProfile.Health = 250.0f;
+            OutProfile.Armor = 30.0f;
+            OutProfile.Attack.Stab = 100.0f;
+            return true;
+        case EKalmalaWildlifeArchetype::MosquitoSwarm:
+            OutProfile.Health = 25.0f;
+            OutProfile.Armor = 0.0f;
+            OutProfile.Attack.Stab = 5.0f;
+            return true;
+        case EKalmalaWildlifeArchetype::PeatHusk:
+            OutProfile.Health = 300.0f;
+            OutProfile.Armor = 50.0f;
+            OutProfile.Attack.Crush = 150.0f;
+            return true;
+        case EKalmalaWildlifeArchetype::Wolf:
+            OutProfile.Health = 250.0f;
+            OutProfile.Armor = 40.0f;
+            OutProfile.Attack.Slash = 100.0f;
+            return true;
+        case EKalmalaWildlifeArchetype::Lynx:
+            OutProfile.Health = 150.0f;
+            OutProfile.Armor = 30.0f;
+            OutProfile.Attack.Slash = 75.0f;
+            return true;
+        case EKalmalaWildlifeArchetype::PolarBear:
+            OutProfile.Health = 750.0f;
+            OutProfile.Armor = 60.0f;
+            OutProfile.Attack.Crush = 200.0f;
+            return true;
+        case EKalmalaWildlifeArchetype::HornedGoat:
+            OutProfile.Health = 200.0f;
+            OutProfile.Armor = 50.0f;
+            OutProfile.Attack.Crush = 50.0f;
+            return true;
+        case EKalmalaWildlifeArchetype::ThunderSentinel:
+            OutProfile.Health = 1250.0f;
+            OutProfile.Armor = 75.0f;
+            OutProfile.Attack.Crush = 300.0f;
+            return true;
+        case EKalmalaWildlifeArchetype::ReefMaw:
+            OutProfile.Health = 180.0f;
+            OutProfile.Armor = 2.0f;
+            OutProfile.Attack.Stab = 50.0f;
+            return true;
+        default:
+            return false;
+        }
+    }
 }
 
 AKalmalaWildlifeSpawn::AKalmalaWildlifeSpawn()
@@ -85,12 +185,16 @@ void AKalmalaWildlifeSpawn::InitializeServer(const FKalmalaWorldPopulationSpawn&
 
 float AKalmalaWildlifeSpawn::GetMaximumHealthForArchetype(const EKalmalaWildlifeArchetype InArchetype)
 {
+    FWildlifeStatProfile Profile;
+    if (TryGetWildlifeStatProfile(InArchetype, Profile)) return Profile.Health;
+
     switch (InArchetype)
     {
     case EKalmalaWildlifeArchetype::Boar: return 20.0f;
     case EKalmalaWildlifeArchetype::Deer: return 30.0f;
     case EKalmalaWildlifeArchetype::Rat: return 10.0f;
     case EKalmalaWildlifeArchetype::MoonBear: return 250.0f;
+    case EKalmalaWildlifeArchetype::DeathAdder: return 125.0f;
     case EKalmalaWildlifeArchetype::Mireling:
     default: return 75.0f;
     }
@@ -98,12 +202,16 @@ float AKalmalaWildlifeSpawn::GetMaximumHealthForArchetype(const EKalmalaWildlife
 
 float AKalmalaWildlifeSpawn::GetArmorForArchetype(const EKalmalaWildlifeArchetype InArchetype)
 {
+    FWildlifeStatProfile Profile;
+    if (TryGetWildlifeStatProfile(InArchetype, Profile)) return Profile.Armor;
+
     switch (InArchetype)
     {
     case EKalmalaWildlifeArchetype::Boar:
     case EKalmalaWildlifeArchetype::Deer: return 5.0f;
     case EKalmalaWildlifeArchetype::Rat: return 0.0f;
     case EKalmalaWildlifeArchetype::MoonBear: return 20.0f;
+    case EKalmalaWildlifeArchetype::DeathAdder: return 20.0f;
     case EKalmalaWildlifeArchetype::Mireling:
     default: return 15.0f;
     }
@@ -116,6 +224,9 @@ float AKalmalaWildlifeSpawn::GetBaseAttackDamageForArchetype(const EKalmalaWildl
 
 FKalmalaDamageChannels AKalmalaWildlifeSpawn::GetBaseAttackChannelsForArchetype(const EKalmalaWildlifeArchetype InArchetype)
 {
+    FWildlifeStatProfile Profile;
+    if (TryGetWildlifeStatProfile(InArchetype, Profile)) return Profile.Attack;
+
     FKalmalaDamageChannels Damage;
     switch (InArchetype)
     {
@@ -123,6 +234,7 @@ FKalmalaDamageChannels AKalmalaWildlifeSpawn::GetBaseAttackChannelsForArchetype(
     case EKalmalaWildlifeArchetype::Mireling: Damage.Crush = 20.0f; break;
     case EKalmalaWildlifeArchetype::Rat: Damage.Pierce = 5.0f; break;
     case EKalmalaWildlifeArchetype::MoonBear: Damage.Crush = 75.0f; break;
+    case EKalmalaWildlifeArchetype::DeathAdder: Damage.Stab = 75.0f; break;
     case EKalmalaWildlifeArchetype::Deer:
     default: break;
     }
