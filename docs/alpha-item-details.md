@@ -407,6 +407,12 @@ Cargo, ten gems, special gear and discovery rewards (P2; scope approved 2026-10-
 Enemy expansion A8a precedes this category. See the
 [biome roster](biome-enemies.md); Moonstone requires its accepted Moon Bear.
 
+**User-directed A9 data/icon batch (2026-10-22):** for the requested catalogue
+and icon work, use the item stats, accessory effects and Forge costs in the
+proposal tables below. Record accessory slot/effect fields as catalogue
+metadata; equipping and applying those effects remain runtime work. Do not
+enable gem acquisition sources as part of this data/icon batch.
+
 After Review A9 and the I4 gate, handle each of the ten raw gems and each
 resulting gear item as item-scoped stages: first author its complete catalogue
 JSON and register the file in `Content/Data/GameCatalogues.json`; next add and

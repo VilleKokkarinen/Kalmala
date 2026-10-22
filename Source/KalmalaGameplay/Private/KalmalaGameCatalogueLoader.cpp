@@ -36,6 +36,7 @@ namespace
             else if (ItemId == TEXT("FangSpear")) { Set = TEXT("Crafted"); Family = TEXT("Spear"); }
             else if (ItemId == TEXT("ThunderMaul")) { Set = TEXT("Crafted"); Family = TEXT("Mace"); }
             else if (ItemId == TEXT("ReefHarpoon")) { Set = TEXT("Crafted"); Family = TEXT("Spear"); }
+            else if (ItemId == TEXT("StormcutSword")) { Set = TEXT("Crafted"); Family = TEXT("Sword"); }
             else
             {
                 if (ItemId.StartsWith(TEXT("Stone"))) { Set = TEXT("Starter"); Family = ItemId.Mid(5); }
@@ -205,6 +206,22 @@ namespace
             if (!Item->HasField(TEXT("WeightKg"))) Item->SetNumberField(TEXT("WeightKg"), 1.0);
             if (!Item->HasField(TEXT("GearSlot"))) Item->SetStringField(TEXT("GearSlot"), TEXT(""));
             if (!Item->HasField(TEXT("MaxDurability"))) Item->SetNumberField(TEXT("MaxDurability"), 0.0);
+            if (!Item->HasField(TEXT("AccessorySlot"))) Item->SetStringField(TEXT("AccessorySlot"), TEXT(""));
+            const auto EnsureFiniteNumber = [&Item](const TCHAR* Field, const double DefaultValue)
+            {
+                if (!Item->HasField(Field)) Item->SetNumberField(Field, DefaultValue);
+                double Number = 0.0;
+                return Item->TryGetNumberField(Field, Number) && FMath::IsFinite(Number);
+            };
+            FString AccessorySlot;
+            if (!Item->TryGetStringField(TEXT("AccessorySlot"), AccessorySlot)
+                || !EnsureFiniteNumber(TEXT("AccessoryArmor"), 0.0)
+                || !EnsureFiniteNumber(TEXT("MaxHealthBonus"), 0.0)
+                || !EnsureFiniteNumber(TEXT("MaxStaminaBonus"), 0.0)
+                || !EnsureFiniteNumber(TEXT("SprintStaminaCostMultiplier"), 1.0)
+                || !EnsureFiniteNumber(TEXT("SupportSpellStaminaCostMultiplier"), 1.0)
+                || !EnsureFiniteNumber(TEXT("StaminaRegenerationMultiplier"), 1.0)
+                || !EnsureFiniteNumber(TEXT("HealingReceivedMultiplier"), 1.0)) return false;
             if (!NormalizeArmor(Item)) return false;
             double Weight = 0.0;
             if (!Item->TryGetNumberField(TEXT("WeightKg"), Weight)
@@ -388,7 +405,7 @@ namespace
         }
 
         double SchemaVersion = 0.0;
-        if (!Root->TryGetNumberField(TEXT("schemaVersion"), SchemaVersion) || SchemaVersion != 15.0)
+        if (!Root->TryGetNumberField(TEXT("schemaVersion"), SchemaVersion) || SchemaVersion != 16.0)
         {
             UE_LOG(LogTemp, Error, TEXT("Gameplay catalogue manifest has an unsupported schema: %s"), *JsonPath);
             return false;

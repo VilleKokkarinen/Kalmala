@@ -295,7 +295,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   All 30 new material/output tasks include the item-completion gate above.
 
 - [ ] **A9 — gems and special gear (P2).** [Rules](docs/alpha-item-details.md#a9)
-  - Completion handoff: the 50 checked JSON/recipe/icon stages below are committed in `71fa8060` on `codex/a9-json-icons`; implementation is not yet merged into main. Acquisition, runtime accessory behavior, reviews and milestone verification remain open.
+  - Completion handoff: the 50 checked JSON/recipe/icon stages below were implemented in `71fa8060` on `codex/a9-json-icons` and merged into master on 2026-10-22. Acquisition, runtime accessory behavior, reviews and milestone verification remain open.
   - [ ] Review A9.
   - [ ] Review Necklace/Ring slots; one item per slot, bonuses only while equipped.
   - Each A9 item is completed through separate item-scoped steps in this order: add its complete item/profile JSON and register its file in `Content/Data/GameCatalogues.json` first; add and register its recipe next when crafted; generate and integrate its original icon next; add or enable its acquisition/source-table entry last when needed. Icon work includes provenance, preparation/import, runtime mapping, and validator coverage. Gem recipes are N/A; crafted gear has no drop-table entry. Each stage can be completed in its own short-path worktree and committed individually. Do not enable acquisition before its item JSON and icon are complete or its source dependency is accepted. The sequence applies only after the A9 review and I4 gate.

@@ -10,6 +10,11 @@ namespace
         return Slot == TEXT("Head") || Slot == TEXT("Cape") || Slot == TEXT("Chest")
             || Slot == TEXT("Shield") || Slot == TEXT("Legs") || Slot == TEXT("Boots");
     }
+
+    bool IsAccessorySlot(const FString& Slot)
+    {
+        return Slot == TEXT("Necklace") || Slot == TEXT("Ring");
+    }
 }
 
 const UKalmalaItemCatalogue* UKalmalaItemCatalogue::Get()
@@ -28,6 +33,22 @@ bool UKalmalaItemCatalogue::IsValidCatalogue() const
     const auto Validate = [&Seen](const FKalmalaItemDefinition& Item, const bool bBuildable)
     {
         const bool bIsGear = !Item.GearSlot.IsEmpty();
+        const bool bIsAccessory = !Item.AccessorySlot.IsEmpty();
+        const bool bHasAccessoryEffect = Item.AccessoryArmor > 0 || Item.MaxHealthBonus > 0
+            || Item.MaxStaminaBonus > 0
+            || !FMath::IsNearlyEqual(Item.SprintStaminaCostMultiplier, 1.0f)
+            || !FMath::IsNearlyEqual(Item.SupportSpellStaminaCostMultiplier, 1.0f)
+            || !FMath::IsNearlyEqual(Item.StaminaRegenerationMultiplier, 1.0f)
+            || !FMath::IsNearlyEqual(Item.HealingReceivedMultiplier, 1.0f);
+        const bool bValidAccessoryMetadata = bIsAccessory
+            ? (IsAccessorySlot(Item.AccessorySlot) && !bIsGear && !bBuildable
+                && Item.MaxStack == 1 && Item.MaxDurability == 0 && Item.Armor == 0
+                && bHasAccessoryEffect)
+            : (Item.AccessoryArmor == 0 && Item.MaxHealthBonus == 0 && Item.MaxStaminaBonus == 0
+                && FMath::IsNearlyEqual(Item.SprintStaminaCostMultiplier, 1.0f)
+                && FMath::IsNearlyEqual(Item.SupportSpellStaminaCostMultiplier, 1.0f)
+                && FMath::IsNearlyEqual(Item.StaminaRegenerationMultiplier, 1.0f)
+                && FMath::IsNearlyEqual(Item.HealingReceivedMultiplier, 1.0f));
         if (Item.ItemId.IsNone() || Seen.Contains(Item.ItemId)
             || (bBuildable ? (!FKalmalaPlacementPreview::IsSupportedKit(Item.ItemId) || bIsGear)
                 : (FKalmalaPlacementPreview::IsSupportedKit(Item.ItemId) || Item.ItemId.ToString().EndsWith(TEXT("Kit"))))
@@ -36,6 +57,18 @@ bool UKalmalaItemCatalogue::IsValidCatalogue() const
             || Item.MaxStack < 1 || Item.MaxStack > AbsoluteMaxStack
             || !FMath::IsFinite(Item.WeightKg) || Item.WeightKg < 0.0f || Item.WeightKg > 300.0f
             || Item.Armor < 0 || Item.Armor > 1000
+            || Item.AccessoryArmor < 0 || Item.AccessoryArmor > 1000
+            || Item.MaxHealthBonus < 0 || Item.MaxHealthBonus > 1000
+            || Item.MaxStaminaBonus < 0 || Item.MaxStaminaBonus > 1000
+            || !FMath::IsFinite(Item.SprintStaminaCostMultiplier)
+            || Item.SprintStaminaCostMultiplier < 0.5f || Item.SprintStaminaCostMultiplier > 2.0f
+            || !FMath::IsFinite(Item.SupportSpellStaminaCostMultiplier)
+            || Item.SupportSpellStaminaCostMultiplier < 0.5f || Item.SupportSpellStaminaCostMultiplier > 2.0f
+            || !FMath::IsFinite(Item.StaminaRegenerationMultiplier)
+            || Item.StaminaRegenerationMultiplier < 0.5f || Item.StaminaRegenerationMultiplier > 2.0f
+            || !FMath::IsFinite(Item.HealingReceivedMultiplier)
+            || Item.HealingReceivedMultiplier < 0.5f || Item.HealingReceivedMultiplier > 2.0f
+            || !bValidAccessoryMetadata
             || (bIsGear
                 ? (!IsGearSlot(Item.GearSlot) || Item.MaxStack != 1
                     || Item.MaxDurability < 1 || Item.MaxDurability > 1000)

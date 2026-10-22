@@ -1,5 +1,21 @@
 # Development setup
 
+## A9 item catalogue and icon data — 2026-10-22
+
+Catalogue schema 16 includes ten stackable gem materials, eight necklace/ring
+records, Opal Helm, and Stormcut Sword with their Forge recipes and applicable
+gear upgrades, rewards, and sword attack membership. `AccessorySlot` and the
+`Accessory*`/stat modifier fields are validated metadata only; no accessory
+equip path or stat application is implemented. Gem acquisition sources and
+gemstone-rock mining are also not enabled by this data batch. Gem records have
+no crafting, combat, equipment, or upgrade data; accessories have no durability,
+repair, upgrade, or attack data; crafted gear has no drop-table entry.
+
+The original generated icons and exact prompts are in
+[`a9-icon-batch.md`](a9-icon-batch.md). Prepare and import the 20 textures with
+batches AL (16) and AM (4), then use focused catalogue icon validation for each
+canonical ID. This work does not satisfy I4 or I5 verification.
+
 ## No portable construction items — 2026-10-18
 
 All 18 placed objects use direct materials through the Building Hammer. The

@@ -68,7 +68,8 @@
     {
       "ItemIds": [
         "BronzeSword",
-        "IronSword"
+        "IronSword",
+        "StormcutSword"
       ],
       "LevelUpReward": {
         "MaxDurability": 30,
@@ -133,7 +134,8 @@
         "LynxMantle",
         "PolarBearCoat",
         "ScaleCuirass",
-        "WolfPeltBoots"
+        "WolfPeltBoots",
+        "OpalHelm"
       ],
       "LevelUpReward": {
         "MaxDurability": 10,

@@ -118,7 +118,8 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
                 TEXT("IronSpear"), TEXT("StoneMace"), TEXT("BronzeMace"), TEXT("IronMace"),
                 TEXT("BronzeSword"), TEXT("IronSword"), TEXT("WoodenClub"), TEXT("ConstructionHammer"),
                 TEXT("BasicTorch"), TEXT("PlantingTrowel"), TEXT("Bow"), TEXT("LightBow"),
-                TEXT("FangSpear"), TEXT("HornBow"), TEXT("ThunderMaul"), TEXT("ReefHarpoon")})
+                TEXT("FangSpear"), TEXT("HornBow"), TEXT("ThunderMaul"), TEXT("ReefHarpoon"),
+                TEXT("StormcutSword")})
             || (bIsBow && !Profile.bTwoHanded)
             || !IsOneOf(Profile.ToolSet, {TEXT("Starter"), TEXT("Crafted"), TEXT("Utility")})
             || !IsOneOf(Profile.Action, {TEXT("None"), TEXT("Gathering"), TEXT("Woodcutting"), TEXT("Mining")})
@@ -172,7 +173,7 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
         const bool bCraftableToolOrGear = (Profile
             && (Profile->ToolSet == TEXT("Starter") || Profile->ToolSet == TEXT("Crafted")
                 || Profile->ToolSet == TEXT("Utility")))
-            || (GearItem && !GearItem->GearSlot.IsEmpty());
+            || (GearItem && (!GearItem->GearSlot.IsEmpty() || !GearItem->AccessorySlot.IsEmpty()));
         const bool bStarterRequiresWorkbench = Profile && Profile->ToolSet == TEXT("Starter")
             && Recipe.RequiredStation != TEXT("Workbench");
         if (Recipe.RecipeId.IsNone() || SeenRecipeIds.Contains(Recipe.RecipeId)

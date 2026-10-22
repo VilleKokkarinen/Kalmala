@@ -18,6 +18,16 @@
       "DamageBonuses": {
         "Slash": 55.0
       }
+    },
+    {
+      "ItemId": "StormcutSword",
+      "DisplayName": "Stormcut Sword",
+      "Description": "A one-handed iron sword with a storm sapphire pommel.",
+      "WeightKg": 2.5,
+      "MaxDurability": 220,
+      "DamageBonuses": {
+        "Slash": 70.0
+      }
     }
   ]
 }
