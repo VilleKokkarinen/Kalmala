@@ -73,10 +73,10 @@ stable claims; full packs preserve unclaimed rewards, and retries/reloads
 cannot reroll or duplicate them. Every new material requires its registered
 catalogue definition and original generated icon before its drop is enabled;
 the source enemy must also exist in runtime. This review does not activate any
-new drops. The next A8a review covers the recipe costs, effects, and full item
-profiles. The approved scope includes Lightning gear, the Harpoon and the full
-Reef Maw route. Cold-protection clothing remains explicitly deferred; the
-aquatic route adds no skiff damage.
+new drops. Recipe costs, effects, and full item profiles are recorded in
+[the item contract](alpha-item-details.md#a8b). The approved scope includes
+Lightning gear, the Harpoon and the full Reef Maw route.
+Cold-protection clothing remains explicitly deferred; the aquatic route adds no skiff damage.
 
 ## Recommended items and recipes
 

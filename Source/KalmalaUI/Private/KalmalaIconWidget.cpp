@@ -194,7 +194,7 @@ bool UKalmalaIconWidget::FindCatalogueIcon(FName Id, EKalmalaIcon& OutIcon, int3
     // Runtime/save identities; JSON's external construction names resolve to these IDs.
     static const FMapping Mappings[] = {
         {TEXT("BoneFragment"),EKalmalaIcon::Bone,0},
-        {TEXT("BowString"),EKalmalaIcon::String,0}, {TEXT("Sinew"),EKalmalaIcon::Bone,0},
+        {TEXT("BowString"),EKalmalaIcon::String,0}, {TEXT("Sinew"),EKalmalaIcon::Bone,0}, {TEXT("RatTail"),EKalmalaIcon::String,0},
         {TEXT("Bow"),EKalmalaIcon::Bow,0}, {TEXT("LightBow"),EKalmalaIcon::Bow,0},
         {TEXT("WoodenArrow"),EKalmalaIcon::Arrow,0}, {TEXT("StoneArrow"),EKalmalaIcon::Arrow,0},
         {TEXT("BronzeArrow"),EKalmalaIcon::Arrow,0},

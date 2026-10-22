@@ -95,3 +95,4 @@ image_batch,import_batch,canonical_id,art_subject,identity_kind,catalogue_aliase
 48,AD,TimberBeamKit,squared timber beam with supported endpoints,buildable,TimberBeam,TimberBeam,BuildMenu;PlacementPreview;ResultPreview,none,TimberBeamKit
 49,AE,TimberStairsKit,solid timber stairs with supported upper floor edge,buildable,TimberStairs,TimberStairs,BuildMenu;PlacementPreview;ResultPreview,none,TimberStairsKit
 50,AF,CampBedKit,sturdy timber camp bed with a pale linen bedroll,buildable,CampBed,CampBed,BuildMenu;PlacementPreview;ResultPreview,none,CampBedKit
+51,AG,RatTail,curled brown rat tail,item,none,none,PackInventory;ItemDetail;Storage;Ingredient,pack,

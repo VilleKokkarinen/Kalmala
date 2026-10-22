@@ -211,6 +211,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [x] Resolve the remaining effect and full equipment-profile decisions before implementing affected outputs; see [A8b review](docs/alpha-item-details.md#a8b).
   - [x] Add the registered catalogue JSON records for all 15 materials and 15 outputs, including output recipes, equipment profiles, upgrade costs/rewards, and supported attack records.
   - [ ] Rat Tail: Rat, 1 guaranteed; material + source + JSON + generated icon.
+    - Original icon, mapping, and import are complete; item remains open until Rat has an accepted runtime drop.
   - [ ] Badger Fur: Badger, 1 guaranteed; material + source + JSON + generated icon.
   - [ ] Badger Meat: Badger, 1 guaranteed; material + source + JSON + generated icon.
   - [ ] Viper Fang: Viper, 1 guaranteed; material + source + JSON + generated icon.
@@ -252,10 +253,12 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   Enable new drops only when their material task is complete. A8b effects and
   full armor/weapon profiles are resolved in
   [the item contract](docs/alpha-item-details.md#a8b). The Reef Harpoon route is
-  approved but adds no skiff damage. At the current committed baseline, every
-  A8b material source is absent from the accepted A8a runtime roster; keep each
-  material and its dependent output incomplete until the named enemy has a
-  reachable, accepted server-side drop. Recheck after A8a work is integrated.
+  approved but adds no skiff damage. The current committed baseline has none of
+  the 15 A8b material-producing enemies or their credited-defeat rewards in
+  accepted runtime; the creature catalogue is authoring data only. Keep each
+  material and dependent output incomplete until its named enemy has a
+  reachable, accepted server-side drop. Recheck after A8a runtime/loot work is
+  integrated and accepted.
   All 30 new material/output tasks include the item-completion gate above.
 
 - [ ] **A9 — gems and special gear (P2).** [Rules](docs/alpha-item-details.md#a9)
