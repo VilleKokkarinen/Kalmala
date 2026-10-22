@@ -399,10 +399,11 @@ Review outcome — 2026-10-21:
 - Rat Tail from Rat, Badger Fur and Badger Meat from Badger, Viper Fang from
   Viper, Giant Scale from Giant Snake, Venom Sac from Death Adder, Peat Heart
   from Peat Husk, Wolf Pelt, Wolf Fang, and Wolf Meat from Wolf, Lynx Pelt from
-  Lynx, and Polar Bear Pelt from Polar Bear now have accepted server-side
-  material rewards on `master`. Keep every other material and any recipe that
-  consumes it incomplete until its named enemy has a reachable, accepted
-  server-side defeat reward. Do not grant or debug-spawn substitute sources.
+  Lynx, Polar Bear Pelt from Polar Bear, and Reef Tooth from Reef Maw now have
+  accepted server-side material rewards on `master`. Keep every other material
+  and any recipe that consumes it incomplete until its named enemy has a
+  reachable, accepted server-side defeat reward. Do not grant or debug-spawn
+  substitute sources.
 
 ## A9
 

@@ -22,6 +22,8 @@ namespace
     constexpr TCHAR ThunderCoreRewardSuffix[] = TEXT("|core");
     constexpr TCHAR NoThunderCoreRewardSuffix[] = TEXT("|nocore");
     constexpr TCHAR ReefMawRewardClaimPrefix[] = TEXT("reefmaw-reward|");
+    constexpr TCHAR ReefToothRewardSuffix[] = TEXT("|tooth");
+    constexpr TCHAR NoReefToothRewardSuffix[] = TEXT("|notooth");
 }
 
 void UKalmalaWorldPopulationSaveGame::InitializeForWorld(const FKalmalaWorldGenerationConfig& InWorldConfig)
@@ -517,30 +519,63 @@ bool UKalmalaWorldPopulationSaveGame::TryGetThunderSentinelSpawnIdFromPendingRew
 }
 
 bool UKalmalaWorldPopulationSaveGame::TryQueuePendingReefMawReward(
-    const FString& PersistentSpawnId, const FString& PlayerIdentity)
+    const FString& PersistentSpawnId, const FString& PlayerIdentity, const bool bHasReefTooth)
 {
-    const FString ClaimId = MakeReefMawPendingRewardClaimId(PersistentSpawnId);
+    if (PersistentSpawnId.IsEmpty() || PlayerIdentity.IsEmpty() || PlayerIdentity.Len() > 128) return false;
+
+    for (const FKalmalaPendingWildlifeReward& Existing : PendingWildlifeRewards)
+    {
+        FString ExistingSpawnId;
+        bool bExistingHasReefTooth = false;
+        if (TryGetReefMawSpawnIdFromPendingRewardClaimId(
+                Existing.PersistentSpawnId, ExistingSpawnId, bExistingHasReefTooth)
+            && ExistingSpawnId == PersistentSpawnId)
+        {
+            return Existing.PlayerIdentity == PlayerIdentity;
+        }
+    }
+
+    const FString ClaimId = MakeReefMawPendingRewardClaimId(PersistentSpawnId, bHasReefTooth);
     return !ClaimId.IsEmpty() && TryQueuePendingWildlifeReward(ClaimId, PlayerIdentity);
 }
 
 FString UKalmalaWorldPopulationSaveGame::MakeReefMawPendingRewardClaimId(
-    const FString& PersistentSpawnId)
+    const FString& PersistentSpawnId, const bool bHasReefTooth)
 {
     const int32 PrefixLength = UE_ARRAY_COUNT(ReefMawRewardClaimPrefix) - 1;
-    if (PersistentSpawnId.IsEmpty() || PersistentSpawnId.Len() > 128 - PrefixLength) return FString();
-    return FString(ReefMawRewardClaimPrefix) + PersistentSpawnId;
+    const TCHAR* Suffix = bHasReefTooth ? ReefToothRewardSuffix : NoReefToothRewardSuffix;
+    const int32 SuffixLength = FCString::Strlen(Suffix);
+    if (PersistentSpawnId.IsEmpty() || PersistentSpawnId.Contains(TEXT("|"), ESearchCase::CaseSensitive)
+        || PersistentSpawnId.Len() > 128 - PrefixLength - SuffixLength) return FString();
+    return FString(ReefMawRewardClaimPrefix) + PersistentSpawnId + Suffix;
 }
 
 bool UKalmalaWorldPopulationSaveGame::TryGetReefMawSpawnIdFromPendingRewardClaimId(
-    const FString& ClaimId, FString& OutPersistentSpawnId)
+    const FString& ClaimId, FString& OutPersistentSpawnId, bool& OutHasReefTooth)
 {
     OutPersistentSpawnId.Reset();
+    OutHasReefTooth = false;
     const int32 PrefixLength = UE_ARRAY_COUNT(ReefMawRewardClaimPrefix) - 1;
     if (!ClaimId.StartsWith(ReefMawRewardClaimPrefix, ESearchCase::CaseSensitive)
         || ClaimId.Len() <= PrefixLength || ClaimId.Len() > 128) return false;
 
-    OutPersistentSpawnId = ClaimId.RightChop(PrefixLength);
-    return !OutPersistentSpawnId.IsEmpty();
+    FString EncodedSpawnId = ClaimId.RightChop(PrefixLength);
+    const int32 ReefToothSuffixLength = FCString::Strlen(ReefToothRewardSuffix);
+    const int32 NoReefToothSuffixLength = FCString::Strlen(NoReefToothRewardSuffix);
+    if (EncodedSpawnId.EndsWith(ReefToothRewardSuffix, ESearchCase::CaseSensitive))
+    {
+        OutHasReefTooth = true;
+        EncodedSpawnId = EncodedSpawnId.Left(EncodedSpawnId.Len() - ReefToothSuffixLength);
+    }
+    else if (EncodedSpawnId.EndsWith(NoReefToothRewardSuffix, ESearchCase::CaseSensitive))
+    {
+        EncodedSpawnId = EncodedSpawnId.Left(EncodedSpawnId.Len() - NoReefToothSuffixLength);
+    }
+    // Older unsuffixed claims remain baseline-only.
+    if (EncodedSpawnId.IsEmpty() || EncodedSpawnId.Contains(TEXT("|"), ESearchCase::CaseSensitive)) return false;
+
+    OutPersistentSpawnId = MoveTemp(EncodedSpawnId);
+    return true;
 }
 
 bool UKalmalaWorldPopulationSaveGame::RemovePendingWildlifeReward(const FString& RewardClaimId)

@@ -77,10 +77,11 @@ public:
         const FString& PersistentSpawnId, bool bHasThunderCore);
     static bool TryGetThunderSentinelSpawnIdFromPendingRewardClaimId(
         const FString& ClaimId, FString& OutPersistentSpawnId, bool& OutHasThunderCore);
-    bool TryQueuePendingReefMawReward(const FString& PersistentSpawnId, const FString& PlayerIdentity);
-    static FString MakeReefMawPendingRewardClaimId(const FString& PersistentSpawnId);
+    bool TryQueuePendingReefMawReward(
+        const FString& PersistentSpawnId, const FString& PlayerIdentity, bool bHasReefTooth);
+    static FString MakeReefMawPendingRewardClaimId(const FString& PersistentSpawnId, bool bHasReefTooth);
     static bool TryGetReefMawSpawnIdFromPendingRewardClaimId(
-        const FString& ClaimId, FString& OutPersistentSpawnId);
+        const FString& ClaimId, FString& OutPersistentSpawnId, bool& OutHasReefTooth);
     bool RemovePendingWildlifeReward(const FString& RewardClaimId);
     const TArray<FKalmalaPendingWildlifeReward>& GetPendingWildlifeRewards() const { return PendingWildlifeRewards; }
 

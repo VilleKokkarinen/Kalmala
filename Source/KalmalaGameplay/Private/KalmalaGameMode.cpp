@@ -2947,12 +2947,37 @@ bool AKalmalaGameMode::RecordReefMawDefeatReward(const FString& PersistentSpawnI
     if (!HasAuthority() || PersistentSpawnId.IsEmpty() || PopulationSaveGame == nullptr
         || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
 
+    if (PopulationSaveGame->IsDefeated(PersistentSpawnId))
+    {
+        return UGameplayStatics::SaveGameToSlot(PopulationSaveGame,
+            KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+    }
+
     if (IsValid(CreditedAttacker) && CreditedAttacker->HasAuthority()
         && CreditedAttacker->GetWorld() == GetWorld() && CreditedAttacker->GetPlayerState() != nullptr)
     {
         const FString Identity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(CreditedAttacker->GetPlayerState());
-        if (!Identity.IsEmpty() && !PopulationSaveGame->TryQueuePendingReefMawReward(
-                PersistentSpawnId, Identity)) return false;
+        if (!Identity.IsEmpty())
+        {
+            bool bFoundExistingClaim = false;
+            bool bHasReefTooth = false;
+            for (const FKalmalaPendingWildlifeReward& Existing : PopulationSaveGame->GetPendingWildlifeRewards())
+            {
+                FString ExistingSpawnId;
+                bool bExistingHasReefTooth = false;
+                if (UKalmalaWorldPopulationSaveGame::TryGetReefMawSpawnIdFromPendingRewardClaimId(
+                        Existing.PersistentSpawnId, ExistingSpawnId, bExistingHasReefTooth)
+                    && ExistingSpawnId == PersistentSpawnId)
+                {
+                    bFoundExistingClaim = true;
+                    bHasReefTooth = bExistingHasReefTooth;
+                    break;
+                }
+            }
+            if (!bFoundExistingClaim) bHasReefTooth = FMath::FRand() < 0.5f;
+            if (!PopulationSaveGame->TryQueuePendingReefMawReward(
+                    PersistentSpawnId, Identity, bHasReefTooth)) return false;
+        }
     }
 
     PopulationSaveGame->MarkDefeated(PersistentSpawnId);
@@ -3015,8 +3040,9 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
             UKalmalaWorldPopulationSaveGame::TryGetThunderSentinelSpawnIdFromPendingRewardClaimId(
                 Reward.PersistentSpawnId, ThunderSentinelSpawnId, bThunderSentinelHasCore);
         FString ReefMawSpawnId;
+        bool bReefMawHasTooth = false;
         const bool bReefMawReward = UKalmalaWorldPopulationSaveGame::TryGetReefMawSpawnIdFromPendingRewardClaimId(
-            Reward.PersistentSpawnId, ReefMawSpawnId);
+            Reward.PersistentSpawnId, ReefMawSpawnId, bReefMawHasTooth);
         FString DefeatedSpawnId = Reward.PersistentSpawnId;
         if (bBadgerReward) DefeatedSpawnId = BadgerSpawnId;
         else if (bMoonBearReward) DefeatedSpawnId = MoonBearSpawnId;
@@ -3078,9 +3104,19 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
             }
             else if (bReefMawReward)
             {
+                TArray<FKalmalaInventoryStack> WithBone;
                 if (!UKalmalaInventoryComponent::BuildGrant(Before, TEXT("BoneFragment"),
                         AKalmalaWildlifeSpawn::GetBoneFragmentRewardQuantity(
-                            EKalmalaWildlifeArchetype::ReefMaw), Candidate, Reason)) break;
+                            EKalmalaWildlifeArchetype::ReefMaw), WithBone, Reason)) break;
+                if (bReefMawHasTooth)
+                {
+                    if (!UKalmalaInventoryComponent::BuildGrant(
+                            WithBone, TEXT("ReefTooth"), 1, Candidate, Reason)) break;
+                }
+                else
+                {
+                    Candidate = MoveTemp(WithBone);
+                }
             }
             else
             {

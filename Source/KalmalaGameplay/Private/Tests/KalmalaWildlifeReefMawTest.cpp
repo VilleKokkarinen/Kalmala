@@ -1,5 +1,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
+#include "KalmalaInventoryComponent.h"
+#include "KalmalaItemCatalogue.h"
 #include "KalmalaWildlifeSpawn.h"
 #include "KalmalaWorldPopulationSaveGame.h"
 #include "Kismet/GameplayStatics.h"
@@ -97,18 +99,39 @@ bool FKalmalaWildlifeReefMawContractTest::RunTest(const FString& Parameters)
         AKalmalaWildlifeSpawn::IsHardEnemySpawnAllowedByStart(true, true, 15000.0f));
 
     const FString SpawnId(TEXT("-8/3/7/reefmaw-712"));
-    const FString ClaimId = UKalmalaWorldPopulationSaveGame::MakeReefMawPendingRewardClaimId(SpawnId);
+    const FString ClaimId = UKalmalaWorldPopulationSaveGame::MakeReefMawPendingRewardClaimId(SpawnId, true);
     FString DecodedSpawnId;
+    bool bDecodedHasReefTooth = false;
     TestTrue(TEXT("The durable claim fits the stable-ID limit"), !ClaimId.IsEmpty() && ClaimId.Len() <= 128);
     TestTrue(TEXT("The claim decodes the stable spawn ID"),
         UKalmalaWorldPopulationSaveGame::TryGetReefMawSpawnIdFromPendingRewardClaimId(
-            ClaimId, DecodedSpawnId));
+            ClaimId, DecodedSpawnId, bDecodedHasReefTooth));
     TestEqual(TEXT("The decoded claim retains the defeated spawn ID"), DecodedSpawnId, SpawnId);
+    TestTrue(TEXT("The claim stores the successful Reef Tooth roll"), bDecodedHasReefTooth);
     TestTrue(TEXT("Empty spawn IDs are rejected"),
-        UKalmalaWorldPopulationSaveGame::MakeReefMawPendingRewardClaimId(FString()).IsEmpty());
+        UKalmalaWorldPopulationSaveGame::MakeReefMawPendingRewardClaimId(FString(), true).IsEmpty());
+    const FString NoToothSpawnId(TEXT("-8/3/7/reefmaw-713"));
+    const FString NoToothClaimId = UKalmalaWorldPopulationSaveGame::MakeReefMawPendingRewardClaimId(
+        NoToothSpawnId, false);
+    bool bDecodedNoTooth = true;
+    TestTrue(TEXT("A failed roll has a durable claim encoding"),
+        UKalmalaWorldPopulationSaveGame::TryGetReefMawSpawnIdFromPendingRewardClaimId(
+            NoToothClaimId, DecodedSpawnId, bDecodedNoTooth));
+    TestEqual(TEXT("The no-Tooth claim retains its spawn ID"), DecodedSpawnId, NoToothSpawnId);
+    TestFalse(TEXT("The claim stores the failed Reef Tooth roll"), bDecodedNoTooth);
+    bool bLegacyHasTooth = true;
+    TestTrue(TEXT("An older unsuffixed Reef Maw claim remains readable"),
+        UKalmalaWorldPopulationSaveGame::TryGetReefMawSpawnIdFromPendingRewardClaimId(
+            FString(TEXT("reefmaw-reward|")) + SpawnId, DecodedSpawnId, bLegacyHasTooth));
+    TestEqual(TEXT("The legacy claim retains the original spawn ID"), DecodedSpawnId, SpawnId);
+    TestFalse(TEXT("Legacy claims remain baseline-only"), bLegacyHasTooth);
     TestFalse(TEXT("A Sentinel claim cannot decode as a Reef Maw claim"),
         UKalmalaWorldPopulationSaveGame::TryGetReefMawSpawnIdFromPendingRewardClaimId(
-            TEXT("thundersentinel-reward|1/2/3"), DecodedSpawnId));
+            TEXT("thundersentinel-reward|1/2/3"), DecodedSpawnId, bDecodedHasReefTooth));
+    TestFalse(TEXT("Unknown Reef Maw claim suffixes are rejected"),
+        UKalmalaWorldPopulationSaveGame::TryGetReefMawSpawnIdFromPendingRewardClaimId(
+            FString(TEXT("reefmaw-reward|")) + SpawnId + TEXT("|unknown"),
+            DecodedSpawnId, bDecodedHasReefTooth));
 
     FKalmalaWorldGenerationConfig WorldConfig;
     WorldConfig.WorldSeed = 431;
@@ -117,12 +140,12 @@ bool FKalmalaWildlifeReefMawContractTest::RunTest(const FString& Parameters)
     if (Population == nullptr) return false;
     Population->InitializeForWorld(WorldConfig);
     Population->MarkDefeated(SpawnId);
-    TestTrue(TEXT("A credited defeat queues the reward for its owner"),
-        Population->TryQueuePendingReefMawReward(SpawnId, TEXT("player:test")));
-    TestTrue(TEXT("Retrying the same owner's claim is idempotent"),
-        Population->TryQueuePendingReefMawReward(SpawnId, TEXT("player:test")));
+    TestTrue(TEXT("A credited defeat queues its stored Bone and Reef Tooth outcome for its owner"),
+        Population->TryQueuePendingReefMawReward(SpawnId, TEXT("player:test"), true));
+    TestTrue(TEXT("Retrying the same owner's claim retains its first roll"),
+        Population->TryQueuePendingReefMawReward(SpawnId, TEXT("player:test"), false));
     TestFalse(TEXT("A different player cannot take the pending reward"),
-        Population->TryQueuePendingReefMawReward(SpawnId, TEXT("player:other")));
+        Population->TryQueuePendingReefMawReward(SpawnId, TEXT("player:other"), true));
     TestEqual(TEXT("Only one Reef Maw reward row is queued"), Population->GetPendingWildlifeRewards().Num(), 1);
 
     TArray<uint8> Bytes;
@@ -137,6 +160,78 @@ bool FKalmalaWildlifeReefMawContractTest::RunTest(const FString& Parameters)
         Reloaded->GetPendingWildlifeRewards()[0].PersistentSpawnId, ClaimId);
     TestEqual(TEXT("Reload retains the credited owner"),
         Reloaded->GetPendingWildlifeRewards()[0].PlayerIdentity, FString(TEXT("player:test")));
+
+    FString ReloadedSpawnId;
+    bool bReloadedHasReefTooth = false;
+    TestTrue(TEXT("Reload decodes the stored Reef Tooth outcome"),
+        UKalmalaWorldPopulationSaveGame::TryGetReefMawSpawnIdFromPendingRewardClaimId(
+            Reloaded->GetPendingWildlifeRewards()[0].PersistentSpawnId,
+            ReloadedSpawnId, bReloadedHasReefTooth));
+    TestTrue(TEXT("Reload retains the successful Reef Tooth roll"), bReloadedHasReefTooth);
+
+    TArray<FKalmalaInventoryStack> EmptyInventory;
+    TArray<FKalmalaInventoryStack> WithBone;
+    TArray<FKalmalaInventoryStack> Candidate;
+    FString FailureReason;
+    TestTrue(TEXT("The three-Bone Reef Maw baseline fits an empty inventory"),
+        UKalmalaInventoryComponent::BuildGrant(EmptyInventory, TEXT("BoneFragment"), 3, WithBone, FailureReason));
+    TestTrue(TEXT("The successful Reef Tooth roll joins the same reward candidate"),
+        UKalmalaInventoryComponent::BuildGrant(WithBone, TEXT("ReefTooth"), 1, Candidate, FailureReason));
+    const FKalmalaInventoryStack* BoneStack = Candidate.FindByPredicate(
+        [](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == TEXT("BoneFragment"); });
+    const FKalmalaInventoryStack* ToothStack = Candidate.FindByPredicate(
+        [](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == TEXT("ReefTooth"); });
+    TestTrue(TEXT("The accepted Reef Maw baseline is exactly three Bone Fragments"),
+        BoneStack != nullptr && BoneStack->Quantity == 3);
+    TestTrue(TEXT("The successful material roll awards exactly one Reef Tooth"),
+        ToothStack != nullptr && ToothStack->Quantity == 1);
+
+    TArray<FKalmalaInventoryStack> FullPack;
+    const UKalmalaItemCatalogue* Catalogue = UKalmalaItemCatalogue::Get();
+    if (Catalogue != nullptr)
+    {
+        for (const FKalmalaItemDefinition& Definition : Catalogue->Items)
+        {
+            if (Definition.ItemId.IsNone() || Definition.ItemId == TEXT("BoneFragment")
+                || Definition.ItemId == TEXT("ReefTooth") || Definition.MaxStack <= 0)
+                continue;
+            FKalmalaInventoryStack Stack;
+            Stack.ItemId = Definition.ItemId;
+            Stack.Quantity = 1;
+            FullPack.Add(MoveTemp(Stack));
+            if (FullPack.Num() == UKalmalaInventoryComponent::MaxSlots) break;
+        }
+    }
+    TestEqual(TEXT("The capacity fixture fills all forty inventory cells"),
+        FullPack.Num(), UKalmalaInventoryComponent::MaxSlots);
+    if (FullPack.Num() == UKalmalaInventoryComponent::MaxSlots)
+    {
+        TArray<FKalmalaInventoryStack> OneCellPack = FullPack;
+        OneCellPack.RemoveAt(0);
+        TArray<FKalmalaInventoryStack> OneCellWithBone;
+        TArray<FKalmalaInventoryStack> OneCellCandidate;
+        const bool bOneCellBoneFits = UKalmalaInventoryComponent::BuildGrant(
+            OneCellPack, TEXT("BoneFragment"), 3, OneCellWithBone, FailureReason);
+        const bool bOneCellToothFits = bOneCellBoneFits && UKalmalaInventoryComponent::BuildGrant(
+            OneCellWithBone, TEXT("ReefTooth"), 1, OneCellCandidate, FailureReason);
+        TestFalse(TEXT("One free cell cannot accept the complete rolled bundle"), bOneCellToothFits);
+        TestEqual(TEXT("A capacity-limited Reef Maw claim remains pending"),
+            Reloaded->GetPendingWildlifeRewards().Num(), 1);
+
+        TArray<FKalmalaInventoryStack> TwoCellPack = FullPack;
+        TwoCellPack.RemoveAt(0, 2);
+        TArray<FKalmalaInventoryStack> TwoCellWithBone;
+        TArray<FKalmalaInventoryStack> TwoCellCandidate;
+        const bool bTwoCellBoneFits = UKalmalaInventoryComponent::BuildGrant(
+            TwoCellPack, TEXT("BoneFragment"), 3, TwoCellWithBone, FailureReason);
+        const bool bTwoCellToothFits = bTwoCellBoneFits && UKalmalaInventoryComponent::BuildGrant(
+            TwoCellWithBone, TEXT("ReefTooth"), 1, TwoCellCandidate, FailureReason);
+        TestTrue(TEXT("The complete rolled bundle fits after two cells are freed"), bTwoCellToothFits);
+        const FKalmalaInventoryStack* RetryTooth = TwoCellCandidate.FindByPredicate(
+            [](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == TEXT("ReefTooth"); });
+        TestTrue(TEXT("The retry candidate retains the one-Tooth reward"),
+            RetryTooth != nullptr && RetryTooth->Quantity == 1);
+    }
     return true;
 }
 

@@ -2561,10 +2561,12 @@ seeded 10% Ocean share and biome exclusivity, minimum deep-water habitat and
 lake exclusion, the 180/2/50 profile, the inclusive 180 cm server-only bite
 boundary against swimming players, one-second warning and 1.2-second recovery,
 25 m leash, shared 150 m hard-enemy start exclusion, and owner-bound three-Bone
-claim serialization. Contract coverage does not replace live water traversal,
-visibility, full-inventory retry, reconnect/restart or relevant-peer acceptance
-in combined A8a/A8b I4. Reef Tooth remains disabled pending A8b. No Unreal build
-or automation execution ran in this normal increment.
+claim serialization. It also checks the durable Reef Tooth/no-Tooth outcome,
+legacy baseline-only claims, and a three-Bone plus one-Tooth candidate that
+waits for two free inventory cells. Contract coverage does not replace live
+water traversal, visibility, full-inventory retry, reconnect/restart or
+relevant-peer acceptance in combined A8a/A8b I4. No Unreal build or automation
+execution ran in this normal increment.
 
 ## Exposure inspection
 

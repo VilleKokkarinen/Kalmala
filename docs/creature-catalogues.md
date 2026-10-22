@@ -74,9 +74,10 @@ server commits Stone and an awarded Core together. Reef Maw uses ten percent of 
 deep-Ocean wildlife candidates, requires at least 150 cm sampled water depth,
 visibly approaches swimming players, and performs one server-validated 50-Stab
 bite within 180 cm after a one-second warning. It recovers for 1.2 seconds and
-queues three Bone Fragments for its authenticated credited owner. Reef Tooth
-remains disabled until its A8b item task completes; the Maw never targets skiff
-hulls or attached occupants.
+queues three Bone Fragments and a server-rolled 50% chance of one Reef Tooth
+for its authenticated credited owner through the population-save escrow. The
+claim stores the roll, and the server commits Bone Fragments and an awarded
+Tooth together. The Maw never targets skiff hulls or attached occupants.
 Mireling (75 health, 15 armor, 20 Crush) now occupies half of Mossy Mire's
 seeded candidate slots and is accepted only on dry Mossy Mire ground; its
 existing melee and optional boss-scroll reward remain unchanged. Death Adder
