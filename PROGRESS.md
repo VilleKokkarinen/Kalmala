@@ -5237,3 +5237,13 @@
 - **Integration completed:** fast-forwarded main from `24fe8baf` to A8b task commit `22dc5ad2`. The main checkout was clean immediately before integration; the branch delta contained only `BACKLOG.md` and `PROGRESS.md`, and no other active Kalmala run was listed.
 - **Current state:** the individual icon task list and this progress record are available on main. The A8b worktree is on the same integrated history; no implementation assets or runtime files changed.
 - **Next eligible A8b task:** Badger Fur icon (`BadgerFur`), as a standalone short-path worktree task and individual commit.
+
+## Run 2026-10-22 06:26 UTC — A9 item pipeline planning
+
+- **Work completed:** decomposed all ten A9 raw gems and ten gear items into item-scoped stages: registered item/profile JSON first, recipe next when applicable, original icon/provenance/preparation/import/runtime mapping/validation next, and acquisition/source-table entry last when needed. Added this order to the A9 item contract. Kept Review A9 and the I4 gate ahead of implementation; recipe tasks use values only after Review A9. Raw gems have no recipe and crafted gear has no drop-table route.
+- **Files changed:** `BACKLOG.md`; `docs/alpha-item-details.md`; `PROGRESS.md`.
+- **Checks:** static hierarchy check passed for all 20 canonical IDs and stage order (10 gem JSON/icon/source groups and 10 gear JSON/recipe/icon groups). `git diff --check` and changed-path MAX_PATH checks passed. No code build, test suite, or runtime check was needed for this planning-only change.
+- **Full verification:** combined A8/A8a/A8b I4 milestone-final verification remains deferred; A9 stays gated behind that pass.
+- **Observable impact and authority:** A9 now has individually selectable item stages that keep source-table additions after item registration and icon validation. No catalogue, loot, network authority, RPC, replication, or save data changed. Existing proposed source references are not treated as newly enabled drops.
+- **Known limitations/remaining scope:** no A9 item, recipe, icon, or source implementation was performed. Moonstone still requires an accepted A8a Moon Bear; raw-gem source tasks remain subject to their documented dependencies. Review A9 must resolve recipe/profile proposals before those tasks start.
+- **Next eligible task:** A8b Badger Fur icon (`BadgerFur`); A9 remains behind the combined I4 gate.

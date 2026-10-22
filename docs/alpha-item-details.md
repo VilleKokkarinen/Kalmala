@@ -407,6 +407,19 @@ Cargo, ten gems, special gear and discovery rewards (P2; scope approved 2026-10-
 Enemy expansion A8a precedes this category. See the
 [biome roster](biome-enemies.md); Moonstone requires its accepted Moon Bear.
 
+After Review A9 and the I4 gate, handle each of the ten raw gems and each
+resulting gear item as item-scoped stages: first author its complete catalogue
+JSON and register the file in `Content/Data/GameCatalogues.json`; next add and
+register its recipe when it is crafted;
+then generate the original icon, retain provenance, prepare/import it, add the
+runtime mapping and icon validation; finally add or enable its acquisition
+source/drop-table entry when it needs one. Raw gems have no crafting recipe;
+crafted gear is acquired from its recipe and has no drop-table entry. Treat
+existing or proposed source references as inactive until the item's JSON and
+icon are complete and its source is accepted. Each stage is a separate
+commit-sized task that may be completed in its own short-path worktree. The
+Skiff Cargo Chest remains a direct-material buildable, not an inventory item.
+
 - Review travel scope: propose only Skiff Cargo Chest (`SkiffCargoChest`), defer cart/carry-pack progression, encumbrance and hull durability. Hammer placement costs 6 Lightwood + 2 non-bow binding input (ID/cost to review) + 1 Bronze, on one fixed cargo socket per existing skiff; no skiff inventory item or new boat tier.
 - Implement the approved cargo chest: 12 shared stack cells, interact within 2 m while skiff speed is at most 100 cm/s, same GUID/quantity/capacity rules as land storage. Save cargo against stable vessel ID; reject detachment/removal with contents, retain contents across validated vessel reload, no spill/duplication on reconnect. In-flight transfer rejects unchanged (blocked on existing vessel-persistence support; report any persistence gap).
 - Add exactly ten gems from the table below, each as a separate integrated increment. These are concrete source/rate/recipe/stat proposals for review, not a new alpha release commitment. Seven are ordinary rare gems; three special gems are required by named special gear. No empty-purpose collectibles or universal gem pool.

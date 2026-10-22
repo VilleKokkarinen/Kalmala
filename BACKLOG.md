@@ -296,28 +296,89 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
 
 - [ ] **A9 — gems and special gear (P2).** [Rules](docs/alpha-item-details.md#a9)
   - [ ] Review A9.
-  - [ ] Gemstone rocks: rare resource-slot replacements; 10% gem-smash risk per hit, success yields 1 gem.
-  - [ ] Quartz rock: Elderwood/Lakes, proposed 5% replacement of Copper/Tin spawn slots.
-  - [ ] Moonstone: proposed 2% chance of 1 per credited Moon Bear defeat; requires A8a.
-  - [ ] Garnet: proposed 10% chance of 1 in Elderwood/Lakes world treasure chests; chest-only.
-  - [ ] Jade rock: Shimmering Lakes, proposed 2% replacement of Tin spawn slots.
-  - [ ] Amethyst rock: Mossy Mire, proposed 3% replacement of Iron Ore spawn slots.
-  - [ ] Aquamarine: proposed 5% chance of 1 in Shimmering Lakes treasure chests.
-  - [ ] Tourmaline rock: Thunder Mountains, proposed 2% replacement of slate spawn slots.
-  - [ ] Star Opal rock (special): Tundra, proposed 1% replacement of Frost Salt deposit slots.
-  - [ ] Storm Sapphire (special): proposed 2% chance of 1 in Thunder Mountains treasure.
-  - [ ] Dusk Diamond (special): proposed 1% chance of 1 from Mossy Mire Mirelings.
   - [ ] Review Necklace/Ring slots; one item per slot, bonuses only while equipped.
-  - [ ] Quartz Necklace: Forge, 5 Iron + 1 Smoky Quartz; +10 Armor.
-  - [ ] Moonstone Ring: Forge, 5 Bronze + 1 Moonstone; +20 maximum stamina.
-  - [ ] Garnet Necklace: Forge, 5 Bronze + 1 Garnet; +20 maximum health.
-  - [ ] Jade Ring: Forge, 5 Bronze + 1 Green Jade; sprinting costs 10% less stamina.
-  - [ ] Amethyst Necklace: Forge, 5 Bronze + 1 Amethyst; casting spells cost 20% less stamina.
-  - [ ] Aquamarine Ring: Forge, 5 Bronze + 1 Aquamarine; +20% stamina regeneration rate.
-  - [ ] Tourmaline Necklace: Forge, 5 Iron + 1 Tourmaline; +10% damage dealt.
-  - [ ] Star Opal Helmet: Forge, 20 Iron + 5 Deer Hide + 1 Star Opal; 20 Armor + 10% Damage reduction.
-  - [ ] Stormcut Sword: Forge, 20 Iron + 2 Densewood + 2 Deer Hide + 1 Storm Sapphire; 100 Slash + 20 lightning damage.
-  - [ ] Dusk Ring: Forge, 5 Bronze + 1 Dusk Diamond; +10 max health, +10 max stamina, +5 Armor.
+  - Each A9 item is completed through separate item-scoped steps in this order: add its complete item/profile JSON and register its file in `Content/Data/GameCatalogues.json` first; add and register its recipe next when crafted; generate and integrate its original icon next; add or enable its acquisition/source-table entry last when needed. Icon work includes provenance, preparation/import, runtime mapping, and validator coverage. Gem recipes are N/A; crafted gear has no drop-table entry. Each stage can be completed in its own short-path worktree and committed individually. Do not enable acquisition before its item JSON and icon are complete or its source dependency is accepted. The sequence applies only after the A9 review and I4 gate.
+  - [ ] Smoky Quartz (`SmokyQuartz`): Quartz rock; proposed 5% replacement of Copper/Tin spawn slots.
+    - [ ] Add and register the complete raw-gem item JSON; record recipe and combat/equipment/upgrade categories as N/A.
+    - [ ] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
+    - [ ] Add or enable its Quartz-rock acquisition/source-table entry after the item JSON and icon are complete and the source is accepted.
+  - [ ] Moonstone (`Moonstone`): proposed 2% chance of 1 per credited Moon Bear defeat; requires A8a.
+    - [ ] Add and register the complete raw-gem item JSON; record recipe and combat/equipment/upgrade categories as N/A.
+    - [ ] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
+    - [ ] Add or enable the Moon Bear reward-table entry last, after item JSON/icon completion and accepted A8a source.
+  - [ ] Garnet (`Garnet`): proposed 10% chance of 1 in Elderwood/Lakes world treasure chests; chest-only.
+    - [ ] Add and register the complete raw-gem item JSON; record recipe and combat/equipment/upgrade categories as N/A.
+    - [ ] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
+    - [ ] Add or enable its eligible world-treasure source-table entry last, after item JSON/icon completion and accepted treasure support.
+  - [ ] Green Jade (`GreenJade`): Jade rock; proposed 2% replacement of Tin spawn slots in Shimmering Lakes.
+    - [ ] Add and register the complete raw-gem item JSON; record recipe and combat/equipment/upgrade categories as N/A.
+    - [ ] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
+    - [ ] Add or enable its Jade-rock acquisition/source-table entry after the item JSON and icon are complete and the source is accepted.
+  - [ ] Amethyst (`Amethyst`): Amethyst rock; proposed 3% replacement of Iron Ore spawn slots in Mossy Mire.
+    - [ ] Add and register the complete raw-gem item JSON; record recipe and combat/equipment/upgrade categories as N/A.
+    - [ ] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
+    - [ ] Add or enable its Amethyst-rock acquisition/source-table entry after the item JSON and icon are complete and the source is accepted.
+  - [ ] Aquamarine (`Aquamarine`): proposed 5% chance of 1 in Shimmering Lakes treasure chests.
+    - [ ] Add and register the complete raw-gem item JSON; record recipe and combat/equipment/upgrade categories as N/A.
+    - [ ] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
+    - [ ] Add or enable its eligible world-treasure source-table entry last, after item JSON/icon completion and accepted treasure support.
+  - [ ] Tourmaline (`Tourmaline`): Tourmaline rock; proposed 2% replacement of slate spawn slots in Thunder Mountains.
+    - [ ] Add and register the complete raw-gem item JSON; record recipe and combat/equipment/upgrade categories as N/A.
+    - [ ] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
+    - [ ] Add or enable its Tourmaline-rock acquisition/source-table entry after the item JSON and icon are complete and the source is accepted.
+  - [ ] Star Opal (`StarOpal`, special): Tundra rock; proposed 1% replacement of Frost Salt deposit slots.
+    - [ ] Add and register the complete raw-gem item JSON; record recipe and combat/equipment/upgrade categories as N/A.
+    - [ ] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
+    - [ ] Add or enable its Star-Opal-rock acquisition/source-table entry after the item JSON and icon are complete and the source is accepted.
+  - [ ] Storm Sapphire (`StormSapphire`, special): proposed 2% chance of 1 in Thunder Mountains treasure.
+    - [ ] Add and register the complete raw-gem item JSON; record recipe and combat/equipment/upgrade categories as N/A.
+    - [ ] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
+    - [ ] Add or enable its eligible world-treasure source-table entry last, after item JSON/icon completion and accepted treasure support.
+  - [ ] Dusk Diamond (`DuskDiamond`, special): proposed 1% chance of 1 from Mossy Mire Mirelings.
+    - [ ] Add and register the complete raw-gem item JSON; record recipe and combat/equipment/upgrade categories as N/A.
+    - [ ] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
+    - [ ] Add or enable its Mireling reward-table entry last, after item JSON/icon completion and accepted A8a source.
+  - [ ] Gemstone rocks: implement the shared rare resource-slot replacement and 10% gem-smash rule; successful extraction yields 1 gem. This shared source mechanic does not add per-item acquisition entries.
+  - [ ] Quartz Necklace (`QuartzNecklace`): finalize its recipe and +10 Armor profile in Review A9; see the A9 item contract.
+    - [ ] Add and register the complete item/equipment/stat JSON first, with applicable N/A categories recorded.
+    - [ ] Add and register its Forge recipe using the values finalized by Review A9.
+    - [ ] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
+  - [ ] Moonstone Ring (`MoonstoneRing`): finalize its recipe and +20 maximum stamina profile in Review A9; see the A9 item contract.
+    - [ ] Add and register the complete item/equipment/stat JSON first, with applicable N/A categories recorded.
+    - [ ] Add and register its Forge recipe using the values finalized by Review A9.
+    - [ ] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
+  - [ ] Garnet Necklace (`GarnetNecklace`): finalize its recipe and +20 maximum health profile in Review A9; see the A9 item contract.
+    - [ ] Add and register the complete item/equipment/stat JSON first, with applicable N/A categories recorded.
+    - [ ] Add and register its Forge recipe using the values finalized by Review A9.
+    - [ ] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
+  - [ ] Jade Ring (`JadeRing`): finalize its recipe and sprint-stamina profile in Review A9; see the A9 item contract.
+    - [ ] Add and register the complete item/equipment/stat JSON first, with applicable N/A categories recorded.
+    - [ ] Add and register its Forge recipe using the values finalized by Review A9.
+    - [ ] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
+  - [ ] Amethyst Necklace (`AmethystNecklace`): finalize its recipe and support-spell profile in Review A9; see the A9 item contract.
+    - [ ] Add and register the complete item/equipment/stat JSON first, with applicable N/A categories recorded.
+    - [ ] Add and register its Forge recipe using the values finalized by Review A9.
+    - [ ] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
+  - [ ] Aquamarine Ring (`AquamarineRing`): finalize its recipe and stamina-regeneration profile in Review A9; see the A9 item contract.
+    - [ ] Add and register the complete item/equipment/stat JSON first, with applicable N/A categories recorded.
+    - [ ] Add and register its Forge recipe using the values finalized by Review A9.
+    - [ ] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
+  - [ ] Tourmaline Necklace (`TourmalineNecklace`): finalize its recipe and healing-received profile in Review A9; see the A9 item contract.
+    - [ ] Add and register the complete item/equipment/stat JSON first, with applicable N/A categories recorded.
+    - [ ] Add and register its Forge recipe using the values finalized by Review A9.
+    - [ ] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
+  - [ ] Opal Helm (`OpalHelm`): finalize its Forge recipe and armor profile in Review A9; see the A9 item contract.
+    - [ ] Add and register the complete item/equipment/profile JSON first, with applicable N/A categories recorded.
+    - [ ] Add and register its Forge recipe using the values finalized by Review A9.
+    - [ ] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
+  - [ ] Stormcut Sword (`StormcutSword`): finalize its Forge recipe and attack profile in Review A9; see the A9 item contract.
+    - [ ] Add and register the complete item/equipment/attack JSON first, with applicable N/A categories recorded.
+    - [ ] Add and register its Forge recipe using the values finalized by Review A9.
+    - [ ] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
+  - [ ] Dusk Ring (`DuskRing`): finalize its recipe and combined health/stamina/Armor profile in Review A9; see the A9 item contract.
+    - [ ] Add and register the complete item/equipment/stat JSON first, with applicable N/A categories recorded.
+    - [ ] Add and register its Forge recipe using the values finalized by Review A9.
+    - [ ] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
   - [ ] Audit the four existing scroll routes; defer new scrolls, trophies and boss keys.
 
 - [ ] **A10 — Acceptance.** [Full criteria](docs/alpha-item-details.md#a10)
