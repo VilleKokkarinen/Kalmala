@@ -3182,6 +3182,13 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
     bool bFryingPanExcluded = true;
     bool bForgeAnvilExcluded = true;
     bool bForgeOnlyRecipes = true;
+    const int32 PolarBearCoatRecipeIndex = Recipes.IndexOfByPredicate([](const FKalmalaRecipe& Recipe)
+        { return Recipe.RecipeId == TEXT("PolarBearCoatRecipe"); });
+    const bool bPolarBearCoatForgeRoute = Recipes.IsValidIndex(PolarBearCoatRecipeIndex)
+        && Recipes[PolarBearCoatRecipeIndex].Output == TEXT("PolarBearCoat")
+        && Recipes[PolarBearCoatRecipeIndex].BuildableOutput.IsNone()
+        && Recipes[PolarBearCoatRecipeIndex].RequiredStation.Contains(TEXT("ForgeKit"))
+        && ForgeIndices.Contains(PolarBearCoatRecipeIndex);
     for (const int32 RecipeIndex : ForgeIndices)
     {
         if (!Recipes.IsValidIndex(RecipeIndex)) { bForgeOnlyRecipes = false; continue; }
@@ -3265,8 +3272,8 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
     const bool bChestScope = VerifyStorageContextScopeForTest();
     UE_LOG(LogTemp, Display, TEXT("Workbench Craft scope: BronzeAxeForgeOnly=%d GrindingStoneExcluded=%d GrindingStoneInBuild=%d ToolRackExcluded=%d NoUnrelated=%d WolfPeltBootsRecipe=%d LynxMantleRecipe=%d StonePick=%d StationLevel=%d UiScope=%d"),
         bBronzeAxeScoped, bGrindingStoneExcluded, bGrindingStoneBuildRoute, bToolRackExcluded, bNoUnrelatedRecipes, bWolfPeltBootsWorkbenchRoute, bLynxMantleWorkbenchRoute, bWorkbenchStonePickAvailable, bWorkbenchLevelShown, bWorkbenchUiScope);
-    UE_LOG(LogTemp, Display, TEXT("Forge Craft scope: FryingPanExcluded=%d FryingPanInBuild=%d AnvilInBuild=%d AnvilExcluded=%d BronzeAxe=%d Materials=%d Station=%d NoUnrelated=%d Route=%d StationLevel=%d UiScope=%d"),
-        bFryingPanExcluded, bFryingPanBuildRoute, bForgeAnvilBuildRoute, bForgeAnvilExcluded, bBronzeAxeScoped, bFryingPanMaterials, bFryingPanStation,
+    UE_LOG(LogTemp, Display, TEXT("Forge Craft scope: FryingPanExcluded=%d FryingPanInBuild=%d AnvilInBuild=%d AnvilExcluded=%d BronzeAxe=%d PolarBearCoatRecipe=%d Materials=%d Station=%d NoUnrelated=%d Route=%d StationLevel=%d UiScope=%d"),
+        bFryingPanExcluded, bFryingPanBuildRoute, bForgeAnvilBuildRoute, bForgeAnvilExcluded, bBronzeAxeScoped, bPolarBearCoatForgeRoute, bFryingPanMaterials, bFryingPanStation,
         bForgeOnlyRecipes, bForgeInteractionRoute, bForgeLevelShown, bForgeUiScope);
     return bGridIconsLoaded && bSelectedIconLoaded && bUpgradeLevelIconConfigured
         && bKeyboardAdvanced && bKeyboardRestored && bControllerAdvanced && bControllerRestored && CraftingScrollBox != nullptr
@@ -3276,7 +3283,7 @@ bool UKalmalaCraftingWidget::VerifyRecipeGridNavigationForTest()
         && bToolRackExcluded && bNoUnrelatedRecipes && bWolfPeltBootsWorkbenchRoute && bLynxMantleWorkbenchRoute
         && bWorkbenchStonePickAvailable && bWorkbenchLevelShown && bWorkbenchUiScope && bWorkbenchRepairScope && bForgeUpgradeScope
         && bForgeRepairScope
-        && bFryingPanExcluded && bForgeAnvilExcluded && bFryingPanRequirements && bForgeOnlyRecipes
+        && bFryingPanExcluded && bForgeAnvilExcluded && bFryingPanRequirements && bForgeOnlyRecipes && bPolarBearCoatForgeRoute
         && bForgeInteractionRoute && bForgeLevelShown && bForgeUiScope && bCookingRackScope && bCauldronScope && bFryingPanScope
         && bChestScope;
 }

@@ -49,6 +49,7 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
         TPair<FName, FName>(TEXT("BoarHideLeggings"), TEXT("Workbench")),
         TPair<FName, FName>(TEXT("BoarHideTunic"), TEXT("Workbench")),
         TPair<FName, FName>(TEXT("ScaleCuirass"), TEXT("Forge")),
+        TPair<FName, FName>(TEXT("PolarBearCoat"), TEXT("Forge")),
         TPair<FName, FName>(TEXT("WoodShield"), TEXT("Workbench"))
     };
     TestTrue(TEXT("Armor item, recipe and upgrade catalogues validate"),
@@ -133,6 +134,15 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
                     && Acquisition->Ingredients[0].ItemId == TEXT("LynxPelt")
                     && Acquisition->Ingredients[0].Quantity == 4);
             }
+            if (GearAndStation.Key == TEXT("PolarBearCoat"))
+            {
+                TestTrue(TEXT("Polar Bear Coat recipe consumes five Pelts and twenty Iron"),
+                    Acquisition->Ingredients.Num() == 2
+                    && Acquisition->Ingredients.ContainsByPredicate([](const FKalmalaInventoryStack& Ingredient)
+                        { return Ingredient.ItemId == TEXT("PolarBearPelt") && Ingredient.Quantity == 5; })
+                    && Acquisition->Ingredients.ContainsByPredicate([](const FKalmalaInventoryStack& Ingredient)
+                        { return Ingredient.ItemId == TEXT("Iron") && Ingredient.Quantity == 20; }));
+            }
         }
 
         const FKalmalaToolRecipeData* Upgrade = AuthoredCatalogue
@@ -176,6 +186,15 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
                         { return Ingredient.ItemId == TEXT("LynxPelt") && Ingredient.Quantity == 2; })
                     && Upgrade->Ingredients.ContainsByPredicate([](const FKalmalaToolRecipeIngredientData& Ingredient)
                         { return Ingredient.ItemId == TEXT("BoneFragment") && Ingredient.Quantity == 1; }));
+            }
+            if (GearAndStation.Key == TEXT("PolarBearCoat"))
+            {
+                TestTrue(TEXT("Polar Bear Coat upgrade uses two Pelts and ten Iron"),
+                    Upgrade->Ingredients.Num() == 2
+                    && Upgrade->Ingredients.ContainsByPredicate([](const FKalmalaToolRecipeIngredientData& Ingredient)
+                        { return Ingredient.ItemId == TEXT("PolarBearPelt") && Ingredient.Quantity == 2; })
+                    && Upgrade->Ingredients.ContainsByPredicate([](const FKalmalaToolRecipeIngredientData& Ingredient)
+                        { return Ingredient.ItemId == TEXT("Iron") && Ingredient.Quantity == 10; }));
             }
         }
     }

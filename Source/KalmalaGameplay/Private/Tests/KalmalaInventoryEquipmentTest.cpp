@@ -125,6 +125,27 @@ bool FKalmalaInventoryEquipmentTest::RunTest(const FString& Parameters)
         MantleAfterPack.ContainsByPredicate([ExistingCapeGuid](const FKalmalaInventoryStack& Stack)
             { return Stack.ItemId == TEXT("BoarHideCape") && Stack.ItemGuids.Contains(ExistingCapeGuid); }));
 
+    const FGuid CoatGuid = FGuid::NewGuid();
+    const FGuid ExistingChestGuid = FGuid::NewGuid();
+    TArray<FKalmalaInventoryStack> CoatPack = { MakeTestStack(TEXT("PolarBearCoat"), CoatGuid) };
+    FKalmalaEquippedGear ExistingChest;
+    ExistingChest.Slot = EKalmalaGearSlot::Chest;
+    ExistingChest.ItemId = TEXT("ScaleCuirass");
+    ExistingChest.ItemGuid = ExistingChestGuid;
+    TArray<FKalmalaInventoryStack> CoatAfterPack;
+    TArray<FKalmalaEquippedGear> CoatAfterGear;
+    FString CoatReason;
+    TestTrue(TEXT("Polar Bear Coat replaces a worn Chest item by its exact GUID"),
+        UKalmalaInventoryComponent::BuildEquipGearTransaction(
+            CoatPack, {ExistingChest}, CoatGuid, {}, CoatAfterPack, CoatAfterGear, CoatReason));
+    TestTrue(TEXT("Polar Bear Coat occupies the Chest slot and retains its GUID"),
+        CoatAfterGear.ContainsByPredicate([CoatGuid](const FKalmalaEquippedGear& Entry)
+            { return Entry.ItemId == TEXT("PolarBearCoat") && Entry.Slot == EKalmalaGearSlot::Chest
+                && Entry.ItemGuid == CoatGuid; }));
+    TestTrue(TEXT("Chest replacement returns the displaced item with its GUID"),
+        CoatAfterPack.ContainsByPredicate([ExistingChestGuid](const FKalmalaInventoryStack& Stack)
+            { return Stack.ItemId == TEXT("ScaleCuirass") && Stack.ItemGuids.Contains(ExistingChestGuid); }));
+
     const FGuid BootsGuid = FGuid::NewGuid();
     TArray<FKalmalaInventoryStack> AfterStacks;
     TArray<FKalmalaEquippedGear> AfterGear;

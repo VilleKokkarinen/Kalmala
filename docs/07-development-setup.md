@@ -5564,3 +5564,24 @@ icon and runtime mapping are covered by
 anchors for the combined menu acceptance. These C++ assertions remain
 uncompiled/unexecuted in this normal child; combined A8a/A8b I4 is still
 required.
+
+## A8b Polar Bear Coat item coverage — 2026-10-22
+
+`PolarBearCoat` is a stack-one, 12 kg Chest wearable with 50 physical Armor
+and 200 maximum condition. Its single-item Forge recipe consumes five Polar
+Bear Pelts and twenty Iron; the accepted Polar Bear reward supplies two
+guaranteed Pelts per credited defeat. The registered level-one Forge upgrade
+consumes two Pelts and ten Iron; the shared catalogued level-two reward adds
+one Armor and ten maximum condition. Fur gear grants no cold protection.
+
+`Kalmala.Gameplay.Inventory.Catalogue` checks the Chest profile and level-two
+stats, and `Kalmala.Gameplay.M9.ToolProgressionCatalogue` checks its Forge
+acquisition and upgrade records. `Kalmala.Gameplay.Inventory.WornGearTransactions`
+checks exact-GUID Chest replacement and return. The Forge crafting-scope marker
+includes the registered Polar Bear Coat recipe. Its existing original imported
+icon and runtime mapping are covered by
+`Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id PolarBearCoat`.
+`Verify-Crafting.ps1` and `Verify-PresentationOwnership.ps1` retain the route
+anchors for combined menu acceptance. These C++ assertions remain
+uncompiled/unexecuted in this normal child; combined A8a/A8b I4 is still
+required.
