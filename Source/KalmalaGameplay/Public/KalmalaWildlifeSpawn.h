@@ -24,9 +24,9 @@ enum class EKalmalaWildlifeArchetype : uint8
     Boar,
     Deer,
     Rat,
+    Badger,
     MoonBear,
     DeathAdder,
-    Badger,
     Viper,
     GiantSnake,
     MosquitoSwarm,
@@ -37,6 +37,21 @@ enum class EKalmalaWildlifeArchetype : uint8
     HornedGoat,
     ThunderSentinel,
     ReefMaw
+};
+
+enum class EKalmalaWildlifeAttackCue : uint8
+{
+    None,
+    Telegraph,
+    Lunge,
+    Recovery
+};
+
+enum class EKalmalaRatAttackCue : uint8
+{
+    None,
+    Telegraph,
+    Recovery
 };
 
 /**
@@ -55,9 +70,9 @@ enum class EKalmalaWildlifeEcology : uint8
 };
 
 /**
- * Minimal replicated, server-owned generated wildlife placeholder. It has no
- * combat or AI yet; it establishes the authority and persistence seam those
- * systems must use when they can defeat the spawn.
+ * Replicated, server-owned generated wildlife. Spawn selection, combat, reward
+ * attribution and sparse depletion remain on the authority; clients receive
+ * only the relevant actor state and attack cues.
  */
 UCLASS(NotBlueprintable)
 class KALMALAGAMEPLAY_API AKalmalaWildlifeSpawn : public AActor
@@ -91,6 +106,17 @@ public:
     // Server-owned repeat-hit interval keeps optional Mireling pressure readable.
     static constexpr float MirelingMeleeCooldownSeconds = 1.25f;
     static constexpr float DeerCallInfluenceDurationSeconds = 180.0f;
+    static constexpr float ViperTelegraphSeconds = 0.5f;
+    static constexpr float ViperRecoverySeconds = 0.8f;
+    static constexpr float GiantSnakeTelegraphSeconds = 1.0f;
+    static constexpr float GiantSnakeRecoverySeconds = 1.2f;
+    static constexpr float SnakeSpawnLeashCentimetres = 2500.0f;
+    static constexpr float RatAttackTriggerCentimetres = 300.0f;
+    static constexpr float RatBiteReachCentimetres = 100.0f;
+    static constexpr float RatTelegraphSeconds = 0.5f;
+    static constexpr float RatRecoverySeconds = 0.8f;
+    static constexpr float RatSpawnLeashCentimetres = 2500.0f;
+    static bool IsRatBiteInReach(bool bServerAuthority, bool bValidTarget, float DistanceCentimetres);
     static EKalmalaWildlifeArchetype GetArchetypeForSpawnSeed(uint64 SpawnSeed);
     static bool TryGetSpawnArchetypeForBiome(uint64 SpawnSeed, EKalmalaBiome Biome, EKalmalaWildlifeArchetype& OutArchetype);
     static bool IsBoarChargeAllowed(bool bServerAuthority, bool bAlreadyDefeated, bool bAtRest, float DistanceToRestingArea);
@@ -111,6 +137,21 @@ private:
     FVector GetDeterministicOffset(float Distance) const;
     void UpdateMirelingScavenge(float DeltaSeconds);
     void UpdateBoarTerritory(float DeltaSeconds);
+    void UpdateRatAttack(float DeltaSeconds);
+    void BeginRatAttack(class AKalmalaCharacter* Target);
+    void SetRatAttackCue(EKalmalaRatAttackCue NextCue);
+    bool IsRatAttackTargetValid(const class AKalmalaCharacter* Target) const;
+    bool TryApplyRatBite(class AKalmalaCharacter* Target);
+    bool IsRatPositionDry(const FVector& Position) const;
+    bool CanRatMoveAlong(const FVector& Start, const FVector& End) const;
+    void UpdateSnakeAmbush(float DeltaSeconds);
+    void BeginSnakeAttack(class AKalmalaCharacter* Target);
+    void SetSnakeAttackCue(EKalmalaWildlifeAttackCue NextCue);
+    void PlaySnakeHiss();
+    bool IsSnakePositionDry(const FVector& Position) const;
+    bool CanSnakeMoveAlong(const FVector& Start, const FVector& End) const;
+    bool IsSnakeAttackTargetValid(const class AKalmalaCharacter* Target) const;
+    bool TryApplySnakeBite(class AKalmalaCharacter* Target);
     void AlertNearbyDeerFromServer();
     void BuildArchetypePresentation();
     void GrantDefeatReward();
@@ -131,6 +172,12 @@ private:
     UPROPERTY(ReplicatedUsing = OnRep_CreatureNicheId)
     FName CreatureNicheId = NAME_None;
 
+    UPROPERTY(ReplicatedUsing = OnRep_SnakeAttackCue)
+    uint8 SnakeAttackCue = static_cast<uint8>(EKalmalaWildlifeAttackCue::None);
+
+    UPROPERTY(ReplicatedUsing = OnRep_RatAttackCue)
+    uint8 RatAttackCue = static_cast<uint8>(EKalmalaRatAttackCue::None);
+
     UFUNCTION()
     void OnRep_Defeated();
 
@@ -139,6 +186,12 @@ private:
 
     UFUNCTION()
     void OnRep_CreatureNicheId();
+
+    UFUNCTION()
+    void OnRep_SnakeAttackCue();
+
+    UFUNCTION()
+    void OnRep_RatAttackCue();
 
     FVector SpawnOrigin = FVector::ZeroVector;
     FVector BehaviourDestination = FVector::ZeroVector;
@@ -151,7 +204,18 @@ private:
     float MirelingMeleeCooldown = 0.0f;
     float BoarChargeSecondsRemaining = 0.0f;
     float BoarMeleeCooldown = 0.0f;
+    float SnakeAttackSecondsRemaining = 0.0f;
+    float SnakeLungeDistanceRemaining = 0.0f;
+    FVector SnakeLungeDirection = FVector::ForwardVector;
+    TWeakObjectPtr<class AKalmalaCharacter> SnakeAttackTarget;
+    float RatAttackSecondsRemaining = 0.0f;
+    TWeakObjectPtr<class AKalmalaCharacter> RatAttackTarget;
+    TArray<uint8> SnakeHissAudioData;
     UPROPERTY()
     TObjectPtr<class UProceduralMeshComponent> MirelingMesh;
+    UPROPERTY()
+    TObjectPtr<class UCapsuleComponent> SnakeBodyCollision;
+    UPROPERTY(Transient)
+    TObjectPtr<class USoundWaveProcedural> SnakeHissSound;
     bool bClientCombatVerificationDefeatLogged = false;
 };

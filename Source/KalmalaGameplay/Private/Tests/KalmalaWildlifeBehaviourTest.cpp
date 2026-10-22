@@ -43,6 +43,12 @@ bool FKalmalaWildlifeBehaviourTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Rat attack uses reviewed Pierce damage"), RatAttack.Pierce, 5.0f);
     TestEqual(TEXT("Rat attack leaves Crush inactive"), RatAttack.Crush, 0.0f);
     TestEqual(TEXT("Rat base attack total matches its profile"), AKalmalaWildlifeSpawn::GetBaseAttackDamageForArchetype(EKalmalaWildlifeArchetype::Rat), 5.0f);
+    TestEqual(TEXT("Badger runtime health matches the reviewed profile"), AKalmalaWildlifeSpawn::GetMaximumHealthForArchetype(EKalmalaWildlifeArchetype::Badger), 100.0f);
+    TestEqual(TEXT("Badger runtime armor matches the reviewed profile"), AKalmalaWildlifeSpawn::GetArmorForArchetype(EKalmalaWildlifeArchetype::Badger), 10.0f);
+    const FKalmalaDamageChannels BadgerAttack = AKalmalaWildlifeSpawn::GetBaseAttackChannelsForArchetype(EKalmalaWildlifeArchetype::Badger);
+    TestEqual(TEXT("Badger attack uses reviewed Slash damage"), BadgerAttack.Slash, 20.0f);
+    TestEqual(TEXT("Badger attack leaves Crush inactive"), BadgerAttack.Crush, 0.0f);
+    TestEqual(TEXT("Badger base attack total matches its profile"), AKalmalaWildlifeSpawn::GetBaseAttackDamageForArchetype(EKalmalaWildlifeArchetype::Badger), 20.0f);
     TestEqual(TEXT("Moon Bear runtime health matches the reviewed profile"), AKalmalaWildlifeSpawn::GetMaximumHealthForArchetype(EKalmalaWildlifeArchetype::MoonBear), 250.0f);
     TestEqual(TEXT("Moon Bear runtime armor matches the reviewed profile"), AKalmalaWildlifeSpawn::GetArmorForArchetype(EKalmalaWildlifeArchetype::MoonBear), 20.0f);
     const FKalmalaDamageChannels MoonBearAttack = AKalmalaWildlifeSpawn::GetBaseAttackChannelsForArchetype(EKalmalaWildlifeArchetype::MoonBear);

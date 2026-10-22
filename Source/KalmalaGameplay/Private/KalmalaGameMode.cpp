@@ -92,7 +92,24 @@ namespace KalmalaGameMode
         const FVector2D Position(Spawn.Location);
         const EKalmalaBiome SpawnBiome = FKalmalaBiomeClassifier::Classify(
             FKalmalaWorldFieldSampler::Sample(Config, Position));
-        return AKalmalaWildlifeSpawn::TryGetSpawnArchetypeForBiome(Spawn.SpawnSeed, SpawnBiome, OutArchetype);
+        if (!AKalmalaWildlifeSpawn::TryGetSpawnArchetypeForBiome(Spawn.SpawnSeed, SpawnBiome, OutArchetype))
+        {
+            return false;
+        }
+        if (OutArchetype == EKalmalaWildlifeArchetype::Viper || OutArchetype == EKalmalaWildlifeArchetype::GiantSnake)
+        {
+            const bool bWater = FKalmalaOceanSampler::Sample(Config, Position).IsWater()
+                || FKalmalaShimmeringLakeSampler::IsWater(Config, Position);
+            const FKalmalaEnvironmentalExposureSample Exposure = FKalmalaEnvironmentalExposureSampler::Sample(Config, Position);
+            return SpawnBiome == EKalmalaBiome::ShimmeringLakes && !bWater && Exposure.bIsShoreline;
+        }
+        if (OutArchetype == EKalmalaWildlifeArchetype::Rat)
+        {
+            return SpawnBiome == EKalmalaBiome::Meadows
+                && !FKalmalaOceanSampler::Sample(Config, Position).IsWater()
+                && !FKalmalaShimmeringLakeSampler::IsWater(Config, Position);
+        }
+        return true;
     }
 
     bool IsWildlifeSpawnOfArchetype(const FKalmalaWorldGenerationConfig& Config,
@@ -1728,6 +1745,13 @@ void AKalmalaGameMode::Tick(const float DeltaSeconds)
         return;
     }
 
+    WildlifeRewardRetrySeconds -= FMath::Clamp(DeltaSeconds, 0.0f, 0.10f);
+    if (WildlifeRewardRetrySeconds <= 0.0f)
+    {
+        WildlifeRewardRetrySeconds = 0.50f;
+        DeliverPendingWildlifeRewards();
+    }
+
     for (int32 Index = PendingOceanTravelRestores.Num() - 1; Index >= 0; --Index)
     {
         APlayerController* PendingController = PendingOceanTravelRestores[Index].Get();
@@ -2235,6 +2259,13 @@ void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey)
                 {
                     continue;
                 }
+                constexpr float HardEnemyStartExclusionCentimetres = 15000.0f;
+                if (Archetype == EKalmalaWildlifeArchetype::GiantSnake && GeneratedPlayerStart != nullptr
+                    && FVector::DistSquared2D(Spawn.Location, GeneratedPlayerStart->GetActorLocation())
+                        < FMath::Square(HardEnemyStartExclusionCentimetres))
+                {
+                    continue;
+                }
 
                 const FString PersistentSpawnId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Spawn);
                 if (PopulationSaveGame != nullptr && PopulationSaveGame->IsDefeated(PersistentSpawnId))
@@ -2444,6 +2475,72 @@ void AKalmalaGameMode::RecordDefeatedSpawn(const FString& PersistentSpawnId)
     {
         PopulationSaveGame->MarkDefeated(PersistentSpawnId);
         UGameplayStatics::SaveGameToSlot(PopulationSaveGame, KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+    }
+}
+
+bool AKalmalaGameMode::RecordRatDefeatReward(const FString& PersistentSpawnId,
+    AKalmalaCharacter* CreditedAttacker)
+{
+    if (!HasAuthority() || PersistentSpawnId.IsEmpty() || PopulationSaveGame == nullptr
+        || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
+
+    PopulationSaveGame->MarkDefeated(PersistentSpawnId);
+    if (IsValid(CreditedAttacker) && CreditedAttacker->HasAuthority()
+        && CreditedAttacker->GetWorld() == GetWorld() && CreditedAttacker->GetPlayerState() != nullptr)
+    {
+        const FString Identity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(CreditedAttacker->GetPlayerState());
+        if (!Identity.IsEmpty() && !PopulationSaveGame->TryQueuePendingWildlifeReward(PersistentSpawnId, Identity))
+            return false;
+    }
+
+    return UGameplayStatics::SaveGameToSlot(PopulationSaveGame,
+        KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+}
+
+void AKalmalaGameMode::DeliverPendingWildlifeRewards()
+{
+    if (!HasAuthority() || GetWorld() == nullptr || PopulationSaveGame == nullptr
+        || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)) return;
+
+    const TArray<FKalmalaPendingWildlifeReward> PendingRewards = PopulationSaveGame->GetPendingWildlifeRewards();
+    for (const FKalmalaPendingWildlifeReward& Reward : PendingRewards)
+    {
+        if (Reward.PersistentSpawnId.IsEmpty() || Reward.PlayerIdentity.IsEmpty()
+            || DeliveredWildlifeRewardSpawnIds.Contains(Reward.PersistentSpawnId)) continue;
+
+        for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
+        {
+            APlayerController* Controller = Iterator->Get();
+            AKalmalaCharacter* Character = Controller != nullptr ? Cast<AKalmalaCharacter>(Controller->GetPawn()) : nullptr;
+            if (!IsValid(Character) || !Character->HasAuthority() || Character->GetPlayerState() == nullptr
+                || KalmalaGameMode::GetAuthenticatedPlayerIdentity(Character->GetPlayerState()) != Reward.PlayerIdentity)
+                continue;
+
+            UKalmalaInventoryComponent* Inventory = Character->GetInventoryComponent();
+            if (Inventory == nullptr) break;
+
+            const TArray<FKalmalaInventoryStack> Before = Inventory->GetStacks();
+            TArray<FKalmalaInventoryStack> WithBone;
+            TArray<FKalmalaInventoryStack> Candidate;
+            FString Reason;
+            if (!UKalmalaInventoryComponent::BuildGrant(Before, TEXT("BoneFragment"), 1, WithBone, Reason)
+                || !UKalmalaInventoryComponent::BuildGrant(WithBone, TEXT("RatTail"), 1, Candidate, Reason)
+                || !Inventory->CanFitContents(Candidate, Inventory->CountPackedTools(Character->GetCarriedToolInventory()))
+                || !Inventory->TryCommitStacksFromServer(Before, Candidate)) break;
+
+            // The defeated spawn ID is the durable claim identity; keep a session guard if the
+            // population-save write fails after this pawn inventory has accepted both items.
+            DeliveredWildlifeRewardSpawnIds.Add(Reward.PersistentSpawnId);
+            PopulationSaveGame->RemovePendingWildlifeReward(Reward.PersistentSpawnId);
+            const bool bSaved = UGameplayStatics::SaveGameToSlot(PopulationSaveGame,
+                KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+            if (!bSaved)
+            {
+                UE_LOG(LogTemp, Warning, TEXT("Rat reward %s was granted but its pending-reward cleanup did not reach disk."),
+                    *Reward.PersistentSpawnId);
+            }
+            break;
+        }
     }
 }
 

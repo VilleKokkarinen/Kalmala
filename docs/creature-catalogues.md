@@ -26,15 +26,19 @@ separate rules JSON. Existing Mireling boss-scroll handling stays in code.
 
 This is authoring data. The schema-15 C++ item/tool loader does not consume the
 creature category yet. The existing Boar, Deer, and Mireling actors apply the
-table's health, armor, and base Crush damage values directly. Server-side
-player-hit validation accepts up to 300 total wildlife damage, matching the
-largest authored A8a attack. A server runtime stat profile now also defines
-the planned Rat's 10 health, zero armor, and 5 Pierce attack; its spawn,
-presentation, attack behavior, and rewards remain open. The server-side stat lookup now covers all 17 reviewed A8a profiles. It does not enable planned species for spawn selection;
-their presentation, behavior, rewards, and acceptance remain open. Listing a drop does not
-enable it or certify its A8b/A9 item/icon/source work.
-Rat is not selected for live spawning yet; existing species gameplay and save
-format are unchanged.
+table's health, armor, and base attack values directly. Server-side player-hit
+validation accepts up to 300 total wildlife damage, matching the largest
+authored A8a attack. Rat (10 health, zero armor, 5 Pierce) now has deterministic
+Meadows selection, procedural presentation, an authority-validated 100 cm bite,
+and credited Bone Fragment/Rat Tail rewards. Full-pack Rat rewards stay in
+world-population save escrow until both items fit. Badger (100 health, 10 armor,
+20 Slash) has a runtime stat profile but remains planned. The server-side stat
+lookup covers all 17 reviewed A8a profiles; other planned species remain
+disabled.
+Listing a drop does not enable it or certify its A8b/A9 item/icon/source work.
+Rat's runtime peer/restart acceptance remains part of combined I4. The existing
+world-population save keeps pending reward rows beside its existing harvested
+and defeated IDs; the additive row does not change those stable identities.
 
 Run `python Scripts/Validate-CreatureCatalogues.py` to check the manifest,
 17 unique IDs, allowed fields, stats, typed attacks, drop references, inline

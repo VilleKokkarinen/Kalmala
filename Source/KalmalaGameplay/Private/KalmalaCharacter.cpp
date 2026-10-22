@@ -260,6 +260,23 @@ bool AKalmalaCharacter::ApplyWildlifeDamageFromServer(const AActor* SourceActor,
     return true;
 }
 
+bool AKalmalaCharacter::ApplyPoisonDamageFromStatusFromServer(const float DamagePerTick)
+{
+    if (!HasAuthority() || Health <= 1.0f || !FMath::IsFinite(DamagePerTick)
+        || DamagePerTick <= 0.0f || DamagePerTick > 20.0f) return false;
+    const UKalmalaResistanceComponent* Defenses = FindComponentByClass<UKalmalaResistanceComponent>();
+    if (!Defenses) return false;
+
+    FKalmalaDamageChannels PoisonDamage;
+    PoisonDamage.Poison = DamagePerTick;
+    float ResolvedDamage = 0.0f;
+    if (!Defenses->Profile.Resolve(PoisonDamage, ResolvedDamage)) return false;
+    const float Absorbed = SupportMagic ? SupportMagic->AbsorbHearthShieldDamageFromServer(ResolvedDamage) : 0.0f;
+    Health = FMath::Clamp(Health - FMath::Max(0.0f, ResolvedDamage - Absorbed), 1.0f, 100.0f);
+    ForceNetUpdate();
+    return true;
+}
+
 bool AKalmalaCharacter::IsMendingReceiveAllowed(const bool bServerAuthority, const bool bValidAlly, const bool bSameWorld,
     const bool bInRange, const bool bLiving, const bool bNeedsHealing, const float HealAmount)
 {

@@ -192,7 +192,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [x] Review the recommended drop-based item/recipe table; approve effects and full gear profiles.
   - [x] Restrict boar/deer spawns to Meadows, Elderwood and Shimmering Lakes only.
   - [x] Apply the overview's revised stats to existing boar/deer and all A8a enemies.
-  - [ ] Meadows: Rat
+  - [x] Meadows: Rat
   - [ ] Elderwood: Badger
   - [ ] Elderwood: Moon Bear — rare hard enemy;
   - [ ] Shimmering Lakes: Viper — lunging bite applies weak poison for 5 s.
