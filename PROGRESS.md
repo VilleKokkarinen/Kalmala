@@ -5231,3 +5231,9 @@
 - **Observable impact and authority:** A8b now exposes one commit-sized icon task per item. No runtime, network authority, RPC, replication, or save behavior changed. Icon completion alone does not complete an item or enable acquisition.
 - **Known limitations/remaining scope:** the other 29 icon tasks remain open. A8b material sources remain unavailable until their A8a enemies and accepted server-side rewards exist; no drops were enabled. Main-checkout integration is pending this run's commit and safe fast-forward.
 - **Next eligible A8b task:** Badger Fur icon (`BadgerFur`).
+
+## Run 2026-10-22 06:20 UTC — A8b backlog handoff integrated
+
+- **Integration completed:** fast-forwarded main from `24fe8baf` to A8b task commit `22dc5ad2`. The main checkout was clean immediately before integration; the branch delta contained only `BACKLOG.md` and `PROGRESS.md`, and no other active Kalmala run was listed.
+- **Current state:** the individual icon task list and this progress record are available on main. The A8b worktree is on the same integrated history; no implementation assets or runtime files changed.
+- **Next eligible A8b task:** Badger Fur icon (`BadgerFur`), as a standalone short-path worktree task and individual commit.
