@@ -43,6 +43,11 @@ bool FKalmalaWildlifeBehaviourTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Rat attack uses reviewed Pierce damage"), RatAttack.Pierce, 5.0f);
     TestEqual(TEXT("Rat attack leaves Crush inactive"), RatAttack.Crush, 0.0f);
     TestEqual(TEXT("Rat base attack total matches its profile"), AKalmalaWildlifeSpawn::GetBaseAttackDamageForArchetype(EKalmalaWildlifeArchetype::Rat), 5.0f);
+    TestEqual(TEXT("Moon Bear runtime health matches the reviewed profile"), AKalmalaWildlifeSpawn::GetMaximumHealthForArchetype(EKalmalaWildlifeArchetype::MoonBear), 250.0f);
+    TestEqual(TEXT("Moon Bear runtime armor matches the reviewed profile"), AKalmalaWildlifeSpawn::GetArmorForArchetype(EKalmalaWildlifeArchetype::MoonBear), 20.0f);
+    const FKalmalaDamageChannels MoonBearAttack = AKalmalaWildlifeSpawn::GetBaseAttackChannelsForArchetype(EKalmalaWildlifeArchetype::MoonBear);
+    TestEqual(TEXT("Moon Bear attack uses reviewed Crush damage"), MoonBearAttack.Crush, 75.0f);
+    TestEqual(TEXT("Moon Bear base attack total matches its profile"), AKalmalaWildlifeSpawn::GetBaseAttackDamageForArchetype(EKalmalaWildlifeArchetype::MoonBear), 75.0f);
     const TArray<EKalmalaBiome> BoarDeerHabitats =
     {
         EKalmalaBiome::Meadows, EKalmalaBiome::Elderwood, EKalmalaBiome::ShimmeringLakes

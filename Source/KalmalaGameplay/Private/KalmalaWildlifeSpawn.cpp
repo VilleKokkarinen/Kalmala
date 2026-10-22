@@ -90,6 +90,7 @@ float AKalmalaWildlifeSpawn::GetMaximumHealthForArchetype(const EKalmalaWildlife
     case EKalmalaWildlifeArchetype::Boar: return 20.0f;
     case EKalmalaWildlifeArchetype::Deer: return 30.0f;
     case EKalmalaWildlifeArchetype::Rat: return 10.0f;
+    case EKalmalaWildlifeArchetype::MoonBear: return 250.0f;
     case EKalmalaWildlifeArchetype::Mireling:
     default: return 75.0f;
     }
@@ -102,6 +103,7 @@ float AKalmalaWildlifeSpawn::GetArmorForArchetype(const EKalmalaWildlifeArchetyp
     case EKalmalaWildlifeArchetype::Boar:
     case EKalmalaWildlifeArchetype::Deer: return 5.0f;
     case EKalmalaWildlifeArchetype::Rat: return 0.0f;
+    case EKalmalaWildlifeArchetype::MoonBear: return 20.0f;
     case EKalmalaWildlifeArchetype::Mireling:
     default: return 15.0f;
     }
@@ -120,6 +122,7 @@ FKalmalaDamageChannels AKalmalaWildlifeSpawn::GetBaseAttackChannelsForArchetype(
     case EKalmalaWildlifeArchetype::Boar: Damage.Crush = 10.0f; break;
     case EKalmalaWildlifeArchetype::Mireling: Damage.Crush = 20.0f; break;
     case EKalmalaWildlifeArchetype::Rat: Damage.Pierce = 5.0f; break;
+    case EKalmalaWildlifeArchetype::MoonBear: Damage.Crush = 75.0f; break;
     case EKalmalaWildlifeArchetype::Deer:
     default: break;
     }

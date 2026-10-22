@@ -23,7 +23,8 @@ enum class EKalmalaWildlifeArchetype : uint8
     Mireling,
     Boar,
     Deer,
-    Rat
+    Rat,
+    MoonBear
 };
 
 /**

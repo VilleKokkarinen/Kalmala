@@ -5311,3 +5311,14 @@
 - Fast-forwarded main from 5b179c6a to A8b branch commit 234648c7, which contains Badger Fur icon commit eff144e3 and the reconciled main history. The Badger Fur icon checkbox, original/prepared artwork, imported Texture2D, manifest row, and runtime mapping are now on main.
 - Main and codex/a8b-items both pointed to 234648c7 after the fast-forward; this integration record will be synchronized in the final handoff commit. The material/source task remains open and no Badger drop is enabled.
 - Next eligible A8b task: Badger Meat icon (BadgerMeat), after the progress handoff is synchronized.
+
+## Run 2026-10-22 06:54 UTC — Moon Bear runtime stat profile
+
+- **Selected task:** apply the overview's revised stats to existing boar/deer and all A8a enemies.
+- **Work completed:** added the planned Moon Bear runtime profile (250 health, 20 armor, 75 Crush), its enum value and focused automation assertions. Updated the biome overview. Moon Bear remains absent from live spawn selection; the broad stats child remains open, so BACKLOG.md was not changed.
+- **Files changed:** `Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h`; `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`; `Source/KalmalaGameplay/Private/Tests/KalmalaWildlifeBehaviourTest.cpp`; `docs/biome-enemies.md`; `PROGRESS.md`.
+- **Lightweight checks:** focused PowerShell source assertions passed for the profile and test coverage; source search confirmed there is no Moon Bear spawn-selection reference; `git diff --check` passed; intended paths are below 260 characters.
+- **Full verification:** no Unreal build or automation run; the new assertions remain unexecuted. Combined A8a/A8b/I4 milestone-final verification remains deferred.
+- **Observable impact and authority:** the server runtime stat lookup can resolve Moon Bear's reviewed profile, but the species is not selected for live spawning, so player-facing gameplay is unchanged. `InitializeServer` remains authority-gated; no client-authored stats, RPCs, replication fields, or save data were added.
+- **Known limitations/remaining scope:** Moon Bear spawning, behavior, presentation, and drops remain queued. The broad revised-stats child is unchecked. Pre-existing interrupted Badger-profile edits in the main checkout were preserved and excluded from this commit.
+- **Next eligible task:** continue the A8a revised-stats child for the remaining planned enemy profiles. A9 remains gated on integrated A8a/A8b and successful I4 verification. Current run time: 2026-10-22 06:54 UTC.
