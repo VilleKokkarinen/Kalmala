@@ -126,12 +126,35 @@ bool FKalmalaWildlifeWolfContractTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Invalid pack-member indexes do not receive an identity"),
         FKalmalaWolfPackContract::GetMemberPersistentSpawnId(PackSpawn, 3).IsEmpty());
 
-    const FString ClaimId = UKalmalaWorldPopulationSaveGame::MakeWolfPendingRewardClaimId(MemberIds[0]);
+    const FString ClaimId = UKalmalaWorldPopulationSaveGame::MakeWolfPendingRewardClaimId(MemberIds[0], true);
     FString DecodedSpawnId;
+    bool bDecodedHasWolfFang = false;
     TestTrue(TEXT("Wolf escrow uses a bounded species namespace"), !ClaimId.IsEmpty() && ClaimId.Len() <= 128);
     TestTrue(TEXT("Wolf reward claim decodes to the unique pack-member identity"),
-        UKalmalaWorldPopulationSaveGame::TryGetWolfSpawnIdFromPendingRewardClaimId(ClaimId, DecodedSpawnId));
+        UKalmalaWorldPopulationSaveGame::TryGetWolfSpawnIdFromPendingRewardClaimId(
+            ClaimId, DecodedSpawnId, bDecodedHasWolfFang));
     TestEqual(TEXT("Wolf reward claim retains the exact pack-member identity"), DecodedSpawnId, MemberIds[0]);
+    TestTrue(TEXT("Wolf reward claim stores the successful fang roll"), bDecodedHasWolfFang);
+
+    const FString NoFangClaimId =
+        UKalmalaWorldPopulationSaveGame::MakeWolfPendingRewardClaimId(MemberIds[1], false);
+    bool bDecodedNoWolfFang = true;
+    TestTrue(TEXT("Wolf reward claim encodes a failed fang roll"),
+        UKalmalaWorldPopulationSaveGame::TryGetWolfSpawnIdFromPendingRewardClaimId(
+            NoFangClaimId, DecodedSpawnId, bDecodedNoWolfFang));
+    TestEqual(TEXT("No-fang claim retains its member identity"), DecodedSpawnId, MemberIds[1]);
+    TestFalse(TEXT("No-fang claim stores the failed roll"), bDecodedNoWolfFang);
+
+    bool bLegacyWolfFang = true;
+    TestTrue(TEXT("An older unsuffixed Wolf claim remains readable"),
+        UKalmalaWorldPopulationSaveGame::TryGetWolfSpawnIdFromPendingRewardClaimId(
+            FString(TEXT("wolf-reward|")) + MemberIds[2], DecodedSpawnId, bLegacyWolfFang));
+    TestEqual(TEXT("Legacy Wolf claim retains its member identity"), DecodedSpawnId, MemberIds[2]);
+    TestFalse(TEXT("Legacy Wolf claim does not invent a fang roll"), bLegacyWolfFang);
+    TestFalse(TEXT("Unknown Wolf claim suffixes are rejected"),
+        UKalmalaWorldPopulationSaveGame::TryGetWolfSpawnIdFromPendingRewardClaimId(
+            FString(TEXT("wolf-reward|")) + MemberIds[0] + TEXT("|unknown"),
+            DecodedSpawnId, bLegacyWolfFang));
 
     FKalmalaWorldGenerationConfig WorldConfig;
     WorldConfig.WorldSeed = 418;
@@ -140,14 +163,17 @@ bool FKalmalaWildlifeWolfContractTest::RunTest(const FString& Parameters)
     if (Population == nullptr) return false;
     Population->InitializeForWorld(WorldConfig);
     Population->MarkDefeated(MemberIds[0]);
-    TestTrue(TEXT("A credited Wolf defeat queues its owner-bound baseline reward"),
-        Population->TryQueuePendingWolfReward(MemberIds[0], TEXT("player:test")));
+    TestTrue(TEXT("A credited Wolf defeat queues its owner-bound rolled reward"),
+        Population->TryQueuePendingWolfReward(MemberIds[0], TEXT("player:test"), true));
     TestTrue(TEXT("Retrying the Wolf reward for its owner is idempotent"),
-        Population->TryQueuePendingWolfReward(MemberIds[0], TEXT("player:test")));
+        Population->TryQueuePendingWolfReward(MemberIds[0], TEXT("player:test"), false));
     TestFalse(TEXT("A Wolf reward cannot be reassigned to another owner"),
-        Population->TryQueuePendingWolfReward(MemberIds[0], TEXT("player:other")));
-    TestEqual(TEXT("The saved pending Wolf reward remains one two-fragment claim"),
+        Population->TryQueuePendingWolfReward(MemberIds[0], TEXT("player:other"), false));
+    TestEqual(TEXT("The saved pending Wolf reward remains one claim"),
         Population->GetPendingWildlifeRewards().Num(), 1);
+    TestTrue(TEXT("The saved pending Wolf reward retains its original fang outcome"),
+        Population->GetPendingWildlifeRewards().Num() == 1
+            && Population->GetPendingWildlifeRewards()[0].PersistentSpawnId == ClaimId);
 
     TArray<uint8> Bytes;
     TestTrue(TEXT("Wolf reward escrow serializes in the existing population save"),
@@ -164,21 +190,35 @@ bool FKalmalaWildlifeWolfContractTest::RunTest(const FString& Parameters)
         Reloaded->GetPendingWildlifeRewards()[0].PlayerIdentity, FString(TEXT("player:test")));
 
     TArray<FKalmalaInventoryStack> WithBone;
+    TArray<FKalmalaInventoryStack> WithPelt;
     TArray<FKalmalaInventoryStack> Candidate;
     TArray<FKalmalaInventoryStack> EmptyInventory;
     FString FailureReason;
     TestTrue(TEXT("The two-fragment Wolf baseline fits an empty inventory"),
         UKalmalaInventoryComponent::BuildGrant(EmptyInventory, TEXT("BoneFragment"), 2, WithBone, FailureReason));
     TestTrue(TEXT("The guaranteed Wolf Pelt joins the same reward candidate"),
-        UKalmalaInventoryComponent::BuildGrant(WithBone, TEXT("WolfPelt"), 1, Candidate, FailureReason));
+        UKalmalaInventoryComponent::BuildGrant(WithBone, TEXT("WolfPelt"), 1, WithPelt, FailureReason));
+    TestTrue(TEXT("The rolled Wolf Fang joins the same reward candidate"),
+        UKalmalaInventoryComponent::BuildGrant(WithPelt, TEXT("WolfFang"), 1, Candidate, FailureReason));
     const FKalmalaInventoryStack* BoneStack = Candidate.FindByPredicate(
         [](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == TEXT("BoneFragment"); });
     const FKalmalaInventoryStack* PeltStack = Candidate.FindByPredicate(
         [](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == TEXT("WolfPelt"); });
+    const FKalmalaInventoryStack* FangStack = Candidate.FindByPredicate(
+        [](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == TEXT("WolfFang"); });
     TestTrue(TEXT("Wolf's accepted baseline is exactly two Bone Fragments"),
         BoneStack != nullptr && BoneStack->Quantity == 2);
     TestTrue(TEXT("Wolf's accepted material reward is exactly one Pelt"),
         PeltStack != nullptr && PeltStack->Quantity == 1);
+    TestTrue(TEXT("Wolf's successful roll awards exactly one Fang"),
+        FangStack != nullptr && FangStack->Quantity == 1);
+
+    TArray<FKalmalaInventoryStack> NoFangCandidate;
+    TestTrue(TEXT("The no-fang outcome keeps the guaranteed Wolf bundle"),
+        UKalmalaInventoryComponent::BuildGrant(WithBone, TEXT("WolfPelt"), 1, NoFangCandidate, FailureReason));
+    TestTrue(TEXT("A failed Wolf Fang roll does not grant a Fang"),
+        NoFangCandidate.FindByPredicate(
+            [](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == TEXT("WolfFang"); }) == nullptr);
 
     TArray<FKalmalaInventoryStack> FullPack;
     const UKalmalaItemCatalogue* Catalogue = UKalmalaItemCatalogue::Get();
@@ -187,7 +227,8 @@ bool FKalmalaWildlifeWolfContractTest::RunTest(const FString& Parameters)
         for (const FKalmalaItemDefinition& Definition : Catalogue->Items)
         {
             if (Definition.ItemId.IsNone() || Definition.ItemId == TEXT("BoneFragment")
-                || Definition.ItemId == TEXT("WolfPelt") || Definition.MaxStack <= 0)
+                || Definition.ItemId == TEXT("WolfPelt") || Definition.ItemId == TEXT("WolfFang")
+                || Definition.MaxStack <= 0)
                 continue;
             FKalmalaInventoryStack Stack;
             Stack.ItemId = Definition.ItemId;
@@ -219,20 +260,40 @@ bool FKalmalaWildlifeWolfContractTest::RunTest(const FString& Parameters)
         TestFalse(TEXT("The Pelt waits when only the baseline fits"), bPeltFits);
         TestEqual(TEXT("Partial reward deferral retains the capacity reason"),
             NearlyFullReason, FString(TEXT("Pack output capacity reached")));
-        TestEqual(TEXT("The owner-bound Wolf claim remains queued until both items fit"),
+        TestEqual(TEXT("The owner-bound Wolf claim remains queued until the complete bundle fits"),
+            Population->GetPendingWildlifeRewards().Num(), 1);
+
+        TArray<FKalmalaInventoryStack> TwoCellPack = FullPack;
+        TwoCellPack.RemoveAt(0, 2);
+        TArray<FKalmalaInventoryStack> TwoCellWithBone;
+        TArray<FKalmalaInventoryStack> TwoCellWithPelt;
+        TArray<FKalmalaInventoryStack> TwoCellCandidate;
+        FString TwoCellReason;
+        const bool bTwoCellBonesFit = UKalmalaInventoryComponent::BuildGrant(
+            TwoCellPack, TEXT("BoneFragment"), 2, TwoCellWithBone, TwoCellReason);
+        const bool bTwoCellPeltFits = bTwoCellBonesFit && UKalmalaInventoryComponent::BuildGrant(
+            TwoCellWithBone, TEXT("WolfPelt"), 1, TwoCellWithPelt, TwoCellReason);
+        const bool bTwoCellFangFits = bTwoCellPeltFits && UKalmalaInventoryComponent::BuildGrant(
+            TwoCellWithPelt, TEXT("WolfFang"), 1, TwoCellCandidate, TwoCellReason);
+        TestTrue(TEXT("The two baseline items fit after two cells are freed"), bTwoCellPeltFits);
+        TestFalse(TEXT("The Fang roll remains deferred when only baseline items fit"), bTwoCellFangFits);
+        TestEqual(TEXT("Preparing the Wolf retry retains its durable claim"),
             Population->GetPendingWildlifeRewards().Num(), 1);
 
         TArray<FKalmalaInventoryStack> RetryPack = FullPack;
-        RetryPack.RemoveAt(0, 2);
+        RetryPack.RemoveAt(0, 3);
         TArray<FKalmalaInventoryStack> RetryWithBone;
+        TArray<FKalmalaInventoryStack> RetryWithPelt;
         TArray<FKalmalaInventoryStack> RetryCandidate;
         FString RetryReason;
         const bool bRetryBonesFit = UKalmalaInventoryComponent::BuildGrant(
             RetryPack, TEXT("BoneFragment"), 2, RetryWithBone, RetryReason);
         const bool bRetryPeltFits = bRetryBonesFit && UKalmalaInventoryComponent::BuildGrant(
-            RetryWithBone, TEXT("WolfPelt"), 1, RetryCandidate, RetryReason);
-        TestTrue(TEXT("The complete Wolf bundle fits after two cells are freed"), bRetryPeltFits);
-        TestEqual(TEXT("Preparing the Wolf retry retains its durable claim"),
+            RetryWithBone, TEXT("WolfPelt"), 1, RetryWithPelt, RetryReason);
+        const bool bRetryFangFits = bRetryPeltFits && UKalmalaInventoryComponent::BuildGrant(
+            RetryWithPelt, TEXT("WolfFang"), 1, RetryCandidate, RetryReason);
+        TestTrue(TEXT("The complete Wolf bundle fits after three cells are freed"), bRetryFangFits);
+        TestEqual(TEXT("Preparing a complete Wolf retry retains its durable claim"),
             Population->GetPendingWildlifeRewards().Num(), 1);
     }
 

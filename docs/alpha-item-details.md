@@ -396,9 +396,10 @@ Review outcome — 2026-10-21:
   strongest-dose refresh rules, applied once per accepted projectile hit.
   Armor has no attack record; weapons have no equipment slot; consumables have
   no equipment, attack or upgrade records.
-- Rat Tail from Rat, Viper Fang from Viper, Giant Scale from Giant Snake,
-  Venom Sac from Death Adder, Peat Heart from Peat Husk, and Wolf Pelt from Wolf
-  now have accepted server-side material rewards on `master`. Keep every other
+- Rat Tail from Rat, Badger Fur and Badger Meat from Badger, Viper Fang from
+  Viper, Giant Scale from Giant Snake, Venom Sac from Death Adder, Peat Heart
+  from Peat Husk, and Wolf Pelt and Wolf Fang from Wolf now have accepted
+  server-side material rewards on `master`. Keep every other
   material and any recipe that consumes it incomplete until its named enemy
   has a reachable, accepted server-side defeat reward. Do not grant or
   debug-spawn substitute sources.

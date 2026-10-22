@@ -32,7 +32,7 @@ fire/dodge counterplay. Peat Husk fills the final 10% hard slot, queues baseline
 Amber, and saves the credited owner's 25% Peat Heart outcome. Wolf occupies its
 two deterministic Freezing Tundra candidate slots and spawns as a three-member
 pack in a stable triangle; each member has its own defeat and owner-bound
-two-Bone plus one-Pelt claim.
+two-Bone plus one-Pelt claim with a persisted 25% Wolf Fang roll.
 Lynx fills the next two seeded Tundra slots with a dry-ground pounce, a
 350 cm server impact limit, and an owner-bound two-Bone claim.
 
@@ -49,7 +49,7 @@ Lynx fills the next two seeded Tundra slots with a dry-ground pounce, a
 | Death Adder         | Mossy Mire                             | Partial          |  125 |   20  | 75 Stab      | 20% dry-ground slots; close coiled bite; major poison: 5/s, 10 s; queued Bone Fragment + Venom Sac; I4 pending |
 | Mosquito swarm      | Mossy Mire                             | Partial          |  25  |   0   | 5 Stab/0.2 s | 20% dry-ground slots; one swarm per target; poison 1/s for 10 s; dodge/fire repel; I4 pending |
 | Peat Husk           | Mossy Mire                             | Partial          |  300 |   50  | 150 Crush    | 10% dry-ground hard slot; 260 cm/120° sweep; 1 s warning; 1.2 s recovery; queued Amber + rolled 25% Peat Heart; I4 pending |
-| Wolf                | Freezing Tundra                        | Partial          |  250 |   40  | 100 Slash    | 20% dry-ground slots; three-member pack; 180 cm lunge bite; queued 2 Bone Fragment + Wolf Pelt; I4 pending |
+| Wolf                | Freezing Tundra                        | Partial          |  250 |   40  | 100 Slash    | 20% dry-ground slots; three-member pack; 180 cm lunge bite; queued 2 Bone Fragment + Wolf Pelt + 25% Wolf Fang; I4 pending |
 | Lynx                | Freezing Tundra                        | Partial          |  150 |   30  | 75 Slash     | 20% dry-ground slots; 350 cm leap; 0.5 s warning; 0.8 s hit / 1.2 s miss recovery; queued 2 Bone Fragment; I4 pending |
 | Polar Bear          | Freezing Tundra                        | Partial          |  750 |   60  | 200 Crush    | 10% hard slot; 1 s warning; 220 cm charge; retreat; queued 3 Bone Fragment; I4 pending |
 | Horned Goat         | Thunder Mountains                      | Partial          |  200 |   50  | 50 Crush     | 40% dry-ground slots; 0.5 s telegraph; 180 cm horn hit; up to 250 cm push and 0.75 s stagger; queued 2 Bone Fragment; I4 pending |
@@ -433,13 +433,14 @@ and original inventory icons before implementation; the uses are not recipes.
   only if line of sight and the user-reviewed 180 cm impact reach still pass.
   The attack recovers for 0.8 s. Invalid targets, blocked routes, water and
   biome-boundary crossings prevent movement or damage.
-- Each defeated member queues two Bone Fragments and one guaranteed Wolf Pelt
-  for its authenticated attacker in the existing population-save escrow. The
-  server commits the complete bundle together; insufficient capacity retains
-  the claim for retry. Wolf Fang and Wolf Meat remain disabled until their
-  separate A8b source tasks are complete. Validate host/client appearance,
-  pack cap/partial saved packs, attack rejection, full-pack retry, reconnect
-  and restart in combined I4.
+- Each credited defeat queues two Bone Fragments and one guaranteed Wolf Pelt
+  for its authenticated attacker, plus a server-side 25% roll for one Wolf
+  Fang. The durable owner claim stores that roll so retries, reloads, and
+  duplicate defeat callbacks cannot reroll or duplicate it. The complete
+  awarded bundle commits together; insufficient capacity retains the claim for
+  retry. Wolf Meat remains disabled until its separate A8b source task is
+  complete. Validate host/client appearance, pack cap/partial saved packs,
+  attack rejection, full-pack retry, reconnect and restart in combined I4.
 
 ## Freezing Tundra Lynx
 
