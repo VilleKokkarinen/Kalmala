@@ -1,6 +1,8 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "KalmalaWildlifeSpawn.h"
+#include "KalmalaInventoryComponent.h"
+#include "KalmalaItemCatalogue.h"
 #include "KalmalaWorldPopulationSaveGame.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/AutomationTest.h"
@@ -121,6 +123,69 @@ bool FKalmalaWildlifePolarBearContractTest::RunTest(const FString& Parameters)
         Reloaded->GetPendingWildlifeRewards()[0].PersistentSpawnId, ClaimId);
     TestEqual(TEXT("Reload retains the credited owner"),
         Reloaded->GetPendingWildlifeRewards()[0].PlayerIdentity, FString(TEXT("player:test")));
+
+    TArray<FKalmalaInventoryStack> EmptyInventory;
+    TArray<FKalmalaInventoryStack> WithBones;
+    TArray<FKalmalaInventoryStack> WithPelts;
+    FString FailureReason;
+    TestTrue(TEXT("Three Bone Fragments fit an empty inventory"),
+        UKalmalaInventoryComponent::BuildGrant(
+            EmptyInventory, TEXT("BoneFragment"), 3, WithBones, FailureReason));
+    TestTrue(TEXT("The guaranteed reward adds two Polar Bear Pelts to the same candidate"),
+        UKalmalaInventoryComponent::BuildGrant(
+            WithBones, TEXT("PolarBearPelt"), 2, WithPelts, FailureReason));
+    const FKalmalaInventoryStack* PeltStack = WithPelts.FindByPredicate(
+        [](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == TEXT("PolarBearPelt"); });
+    TestTrue(TEXT("The accepted Polar Bear material reward is exactly two Pelts"),
+        PeltStack != nullptr && PeltStack->Quantity == 2);
+
+    TArray<FKalmalaInventoryStack> FullPack;
+    const UKalmalaItemCatalogue* Catalogue = UKalmalaItemCatalogue::Get();
+    if (Catalogue != nullptr)
+    {
+        for (const FKalmalaItemDefinition& Definition : Catalogue->Items)
+        {
+            if (Definition.ItemId.IsNone() || Definition.ItemId == TEXT("BoneFragment")
+                || Definition.ItemId == TEXT("PolarBearPelt") || Definition.MaxStack <= 0)
+                continue;
+            FKalmalaInventoryStack Stack;
+            Stack.ItemId = Definition.ItemId;
+            Stack.Quantity = 1;
+            FullPack.Add(MoveTemp(Stack));
+            if (FullPack.Num() == UKalmalaInventoryComponent::MaxSlots) break;
+        }
+    }
+    TestEqual(TEXT("The Polar Bear capacity fixture fills all forty cells"),
+        FullPack.Num(), UKalmalaInventoryComponent::MaxSlots);
+    if (FullPack.Num() == UKalmalaInventoryComponent::MaxSlots)
+    {
+        TArray<FKalmalaInventoryStack> OneCellPack = FullPack;
+        OneCellPack.RemoveAt(0);
+        TArray<FKalmalaInventoryStack> OneCellWithBones;
+        TArray<FKalmalaInventoryStack> OneCellWithPelts;
+        TestTrue(TEXT("The three-Bone baseline fits when one cell is freed"),
+            UKalmalaInventoryComponent::BuildGrant(
+                OneCellPack, TEXT("BoneFragment"), 3, OneCellWithBones, FailureReason));
+        TestFalse(TEXT("Both guaranteed Pelts wait when the complete bundle cannot fit"),
+            UKalmalaInventoryComponent::BuildGrant(
+                OneCellWithBones, TEXT("PolarBearPelt"), 2, OneCellWithPelts, FailureReason));
+        TestEqual(TEXT("A capacity-limited Polar Bear claim remains pending"),
+            Reloaded->GetPendingWildlifeRewards().Num(), 1);
+
+        TArray<FKalmalaInventoryStack> TwoCellPack = FullPack;
+        TwoCellPack.RemoveAt(0, 2);
+        TArray<FKalmalaInventoryStack> TwoCellWithBones;
+        TArray<FKalmalaInventoryStack> TwoCellCandidate;
+        const bool bTwoCellBonesFit = UKalmalaInventoryComponent::BuildGrant(
+            TwoCellPack, TEXT("BoneFragment"), 3, TwoCellWithBones, FailureReason);
+        const bool bTwoCellPeltsFit = bTwoCellBonesFit && UKalmalaInventoryComponent::BuildGrant(
+            TwoCellWithBones, TEXT("PolarBearPelt"), 2, TwoCellCandidate, FailureReason);
+        TestTrue(TEXT("The complete reward fits after two cells are freed"), bTwoCellPeltsFit);
+        const FKalmalaInventoryStack* RetryPelts = TwoCellCandidate.FindByPredicate(
+            [](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == TEXT("PolarBearPelt"); });
+        TestTrue(TEXT("The retry candidate contains both guaranteed Pelts"),
+            RetryPelts != nullptr && RetryPelts->Quantity == 2);
+    }
     return true;
 }
 

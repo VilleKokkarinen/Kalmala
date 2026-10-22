@@ -5857,3 +5857,16 @@
 - **Known limitations / remaining scope:** Live Tundra habitat, attack rejection, full-inventory reward retry, reconnect/restart, peer visibility, and rendered acceptance remain for combined I4. Polar Bear Pelt, other remaining material sources and crafted outputs remain open.
 - **Next eligible task:** A8b Polar Bear Pelt — Polar Bear, two guaranteed; material, source, JSON, and generated icon.
 - **Integration state:** Updated directly in the `E:\dev\Kalmala` master checkout; no worktree handoff was needed. Current run time: 2026-10-22T13:36:38Z.
+
+## Run 2026-10-22 13:38 UTC — A8b Polar Bear Pelt
+
+- **Selected task:** A8b Polar Bear Pelt — Polar Bear, two guaranteed; material, source, JSON, and generated icon. Checked only this existing backlog child.
+- **Work completed:** Added two guaranteed Polar Bear Pelts to the existing server-side owner-bound reward candidate with its three Bone Fragments. The complete bundle commits together; insufficient capacity retains the claim for retry. Duplicate defeat callbacks after the bear is marked defeated no longer enqueue another reward. Existing PolarBearPelt item/drop JSON, generated icon, and runtime mapping were already registered and validated, so no catalogue or icon assets needed edits. Updated Polar Bear behavior and verification docs.
+- **Files changed:** `BACKLOG.md`; `PROGRESS.md`; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`; `Source/KalmalaGameplay/Private/Tests/KalmalaWildlifePolarBearTest.cpp`; `docs/07-development-setup.md`; `docs/alpha-item-details.md`; `docs/biome-enemies.md`; `docs/creature-catalogues.md`.
+- **Lightweight checks:** `python Scripts/Validate-CreatureCatalogues.py` passed for all 17 species and registered JSON; `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id PolarBearPelt` passed. Focused assertions passed for the registered item/drop values, icon provenance/assets/runtime mapping, owner-bound reward flow, duplicate guard, complete three-Bone/two-Pelt candidate, capacity retry coverage, and docs. `git diff --check` and changed-path MAX_PATH audit passed.
+- **Full verification:** No Unreal build or editor automation ran for this normal child. The Polar Bear regression remains uncompiled and unexecuted; combined A8a/A8b I4 verification is still required before A9.
+- **Observable impact:** Each credited Polar Bear defeat now awards three Bone Fragments and two guaranteed Polar Bear Pelts atomically to the authenticated attacker when capacity permits.
+- **Networking/authority:** The server owns defeat claims, authenticated owner binding, capacity validation, and inventory commit. No client-supplied item ID or quantity or SaveGame schema change was introduced.
+- **Known limitations / remaining scope:** Live Tundra habitat, hard-spawn exclusion, attack rejection, full-inventory retry, reconnect/restart, peer visibility, and rendered acceptance remain for combined I4. Goat Horn and the remaining A8b material sources and crafted outputs remain open.
+- **Next eligible task:** A8b Goat Horn — Horned Goat, one guaranteed; material, source, JSON, and generated icon.
+- **Integration state:** Updated directly in the `E:\dev\Kalmala` master checkout; no worktree handoff was needed. Current run time: 2026-10-22T13:38:58Z.

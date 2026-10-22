@@ -127,11 +127,12 @@ Polar Bear (750 health, 60 armor, 200 Crush) fills the final seeded 10% hard
 slot, remains on dry traversable Tundra and stays outside the 150 m generated
 start exclusion. Its replicated server-owned warning, committed charge, and
 retreat use a 25 m spawn leash and apply at most one hit within 220 cm before
-the 1.2-second hard recovery. Credited defeats queue three Bone Fragments under
-the authenticated owner's identity in population-save escrow. Polar Bear Pelt
-remains disabled until its A8b source task is complete. Live habitat, hard
-spawn exclusion, hit rejection, full-inventory retry, reconnect/restart, and
-relevant-peer acceptance remain part of combined I4.
+the 1.2-second hard recovery. Credited defeats queue three Bone Fragments and
+two guaranteed Polar Bear Pelts under the authenticated owner's identity in
+population-save escrow. The complete candidate commits together when inventory
+capacity permits. Live habitat, hard-spawn exclusion, hit rejection,
+full-inventory retry, reconnect/restart, and relevant-peer acceptance remain
+part of combined I4.
 Listing a drop does not enable it or certify its A8b/A9 item/icon/source work.
 Rat's runtime peer/restart acceptance remains part of combined I4. The existing
 world-population save keeps pending reward rows beside its existing harvested

@@ -2517,12 +2517,12 @@ After an editor build, run
 `Kalmala.Gameplay.Presentation.SurfaceWinding`. These checks cover the final
 10% Tundra slot, the hard-enemy profile and timing, the inclusive 220 cm
 server-only hit boundary, charge/retreat tuning, 25 m leash, and owner-bound
-three-Bone claim serialization. The Wolf and Lynx checks preserve their shares.
-Contract coverage does not replace live dry-habitat/traversal checks, the 150 m
-generated-start exclusion, attack rejection, full-inventory retry,
-reconnect/restart or relevant-peer acceptance. Polar Bear Pelt remains disabled
-pending its separate A8b source task. No Unreal build or automation execution
-ran in this normal increment; combined A8a/A8b I4 remains required.
+three-Bone plus two-Pelt claim serialization and capacity retry. The Wolf and
+Lynx checks preserve their shares. Contract coverage does not replace live
+dry-habitat/traversal checks, the 150 m generated-start exclusion, attack
+rejection, full-inventory retry, reconnect/restart or relevant-peer acceptance.
+No Unreal build or automation execution ran in this normal increment; combined
+A8a/A8b I4 remains required.
 
 ## Thunder Mountains Horned Goat contract regression
 

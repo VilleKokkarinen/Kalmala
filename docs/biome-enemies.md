@@ -51,7 +51,7 @@ Lynx fills the next two seeded Tundra slots with a dry-ground pounce, a
 | Peat Husk           | Mossy Mire                             | Partial          |  300 |   50  | 150 Crush    | 10% dry-ground hard slot; 260 cm/120° sweep; 1 s warning; 1.2 s recovery; queued Amber + rolled 25% Peat Heart; I4 pending |
 | Wolf                | Freezing Tundra                        | Partial          |  250 |   40  | 100 Slash    | 20% dry-ground slots; three-member pack; 180 cm lunge bite; queued 2 Bone Fragment + Wolf Pelt + Wolf Meat + 25% Wolf Fang; I4 pending |
 | Lynx                | Freezing Tundra                        | Partial          |  150 |   30  | 75 Slash     | 20% dry-ground slots; 350 cm leap; 0.5 s warning; 0.8 s hit / 1.2 s miss recovery; queued 2 Bone Fragment + 50% Lynx Pelt; I4 pending |
-| Polar Bear          | Freezing Tundra                        | Partial          |  750 |   60  | 200 Crush    | 10% hard slot; 1 s warning; 220 cm charge; retreat; queued 3 Bone Fragment; I4 pending |
+| Polar Bear          | Freezing Tundra                        | Partial          |  750 |   60  | 200 Crush    | 10% hard slot; 1 s warning; 220 cm charge; retreat; queued 3 Bone Fragment + 2 Polar Bear Pelt; I4 pending |
 | Horned Goat         | Thunder Mountains                      | Partial          |  200 |   50  | 50 Crush     | 40% dry-ground slots; 0.5 s telegraph; 180 cm horn hit; up to 250 cm push and 0.75 s stagger; queued 2 Bone Fragment; I4 pending |
 | Thunder Sentinel    | Thunder Mountains                      | Partial          | 1250 |   75  | 300 Crush    | 10% dry-ground hard slot; 150 m start exclusion; 1 s warning, 120 cm step, 300 cm horizontal slam; 1.2 s recovery; queued 3 Stone; I4 pending |
 | Reef Maw            | Ocean                                  | Partial          |  180 |   2   | 50 Stab      | 10% deep-water slot; 180 cm swimmer-only bite; queued 3 Bone Fragment; I4 pending |
@@ -100,9 +100,10 @@ generated start, keeps the bear on dry traversable Tundra, and bounds pursuit
 to its 25 m spawn leash. A visible one-second warning precedes a committed
 charge of up to 620 cm; it can damage once within 220 cm, then retreats before
 the hard-enemy 1.2-second recovery. The attack cue and movement replicate from
-the server. Credited defeats queue three Bone Fragments for the authenticated
-owner in population-save escrow. Polar Bear Pelt remains disabled pending its
-separate A8b item/source work.
+the server. Credited defeats queue three Bone Fragments and two guaranteed
+Polar Bear Pelts for the authenticated owner in population-save escrow. The
+complete reward commits together when inventory capacity permits; otherwise
+the claim remains pending for retry.
 
 Viper uses the reviewed 100-health, 10-armor, 50-Stab profile and the seeded
 40% Shimmering Lakes share. It only spawns on eligible dry shoreline, visibly
