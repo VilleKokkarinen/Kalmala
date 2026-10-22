@@ -66,8 +66,13 @@ original stone silhouette raises an arm for a one-second warning, steps up to
 120 cm, and performs one server-validated downward slam within 300 cm
 horizontally, followed by a 1.2-second recovery. Credited defeats queue three
 Stone for the authenticated owner through the population-save escrow. Thunder
-Core remains disabled pending A8b; Reef Maw and other Ocean species remain
-disabled pending aquatic support.
+Core remains disabled pending A8b. Reef Maw uses ten percent of eligible
+deep-Ocean wildlife candidates, requires at least 150 cm sampled water depth,
+visibly approaches swimming players, and performs one server-validated 50-Stab
+bite within 180 cm after a one-second warning. It recovers for 1.2 seconds and
+queues three Bone Fragments for its authenticated credited owner. Reef Tooth
+remains disabled until its A8b item task completes; the Maw never targets skiff
+hulls or attached occupants.
 Mireling (75 health, 15 armor, 20 Crush) now occupies half of Mossy Mire's
 seeded candidate slots and is accepted only on dry Mossy Mire ground; its
 existing melee and optional boss-scroll reward remain unchanged. Death Adder

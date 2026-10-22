@@ -139,9 +139,23 @@ bool FKalmalaWorldPopulationLayoutTest::RunTest(const FString& Parameters)
             if (Kind == EKalmalaWorldPopulationKind::Wildlife)
             {
                 const FVector2D Position(FirstSpawns[SpawnIndex].Location);
-                TestFalse(TEXT("Wildlife descriptors do not select ocean water"), FKalmalaOceanSampler::Sample(Config, Position).IsWater());
-                TestFalse(TEXT("Wildlife descriptors do not select lake water"), FKalmalaShimmeringLakeSampler::IsWater(Config, Position));
-                TestTrue(TEXT("Wildlife descriptors remain on gently traversable terrain"), FKalmalaTerrainHeightSampler::SampleSurfaceNormal(Config, Position).Z >= 0.82f);
+                const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(
+                    FKalmalaWorldFieldSampler::Sample(Config, Position));
+                const FKalmalaOceanSample Ocean = FKalmalaOceanSampler::Sample(Config, Position);
+                const bool bLakeWater = FKalmalaShimmeringLakeSampler::IsWater(Config, Position);
+                if (Biome == EKalmalaBiome::Ocean)
+                {
+                    TestTrue(TEXT("Ocean wildlife descriptors select swimming-depth generated water"),
+                        Ocean.IsWater() && Ocean.WaterDepth >= 150.0f);
+                    TestFalse(TEXT("Ocean wildlife descriptors do not select inland lake water"), bLakeWater);
+                }
+                else
+                {
+                    TestFalse(TEXT("Land wildlife descriptors do not select ocean water"), Ocean.IsWater());
+                    TestFalse(TEXT("Land wildlife descriptors do not select lake water"), bLakeWater);
+                    TestTrue(TEXT("Land wildlife descriptors remain on gently traversable terrain"),
+                        FKalmalaTerrainHeightSampler::SampleSurfaceNormal(Config, Position).Z >= 0.82f);
+                }
             }
         }
     }

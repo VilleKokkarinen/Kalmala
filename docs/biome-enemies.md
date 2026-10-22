@@ -51,7 +51,7 @@ Lynx fills the next two seeded Tundra slots with a dry-ground pounce, a
 | Polar Bear          | Freezing Tundra                        | Partial          |  750 |   60  | 200 Crush    | 10% hard slot; 1 s warning; 220 cm charge; retreat; queued 3 Bone Fragment; I4 pending |
 | Horned Goat         | Thunder Mountains                      | Partial          |  200 |   50  | 50 Crush     | 40% dry-ground slots; 0.5 s telegraph; 180 cm horn hit; up to 250 cm push and 0.75 s stagger; queued 2 Bone Fragment; I4 pending |
 | Thunder Sentinel    | Thunder Mountains                      | Partial          | 1250 |   75  | 300 Crush    | 10% dry-ground hard slot; 150 m start exclusion; 1 s warning, 120 cm step, 300 cm horizontal slam; 1.2 s recovery; queued 3 Stone; I4 pending |
-| Reef Maw            | Ocean                                  | Planned          |  180 |   2   | 50 Stab      | Swimmer hunter                      |
+| Reef Maw            | Ocean                                  | Partial          |  180 |   2   | 50 Stab      | 10% deep-water slot; 180 cm swimmer-only bite; queued 3 Bone Fragment; I4 pending |
 
 Mireling uses the reviewed 75-health, 15-armor, 20-Crush profile. Its
 deterministic 50% Mossy Mire share is limited to dry spawn surfaces; all other
@@ -347,8 +347,13 @@ and original inventory icons before implementation; the uses are not recipes.
   downward hit checked against the user-confirmed 300 cm horizontal reach;
   credited defeats queue three Stone for the authenticated owner.
 - Ocean: use 10% of eligible aquatic candidate slots for Reef Maw; others
-  stay empty. This task is blocked until aquatic navigation, combat and reward
-  support are approved. It targets swimmers, never skiff hulls or occupants.
+  stay empty. Spawn and movement require generated Ocean water at least 150 cm
+  deep, excluding Shimmering Lakes. The Maw visibly approaches swimming
+  players, gives a one-second warning, and attempts one 50-Stab bite within
+  180 cm before a 1.2-second recovery. The server rechecks swimming, deep-water
+  habitat, leash, path and visibility at impact. It never targets skiff hulls
+  or attached occupants. Credited defeats queue three Bone Fragments for the
+  authenticated owner; Reef Tooth remains disabled until its A8b item task.
 - Require dry traversable ground for land enemies. Lakes means dry shores,
   not deep water. Hard enemies cannot spawn within 150 m of generated start.
   No new compulsory encounters, boss keys, raids or progression locks.

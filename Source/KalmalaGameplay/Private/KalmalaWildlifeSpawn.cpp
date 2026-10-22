@@ -3,12 +3,14 @@
 
 #include "Components/SphereComponent.h"
 #include "KalmalaCharacter.h"
+#include "KalmalaCharacterMovementComponent.h"
 #include "KalmalaCampfire.h"
 #include "KalmalaConstructionActor.h"
 #include "KalmalaGameMode.h"
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaPlayerStatusComponent.h"
 #include "KalmalaWorldGenerationGameState.h"
+#include "KalmalaWorldBounds.h"
 #include "KalmalaWorldFieldSampler.h"
 #include "KalmalaShimmeringLakeSampler.h"
 #include "KalmalaOceanSampler.h"
@@ -195,6 +197,14 @@ void AKalmalaWildlifeSpawn::InitializeServer(const FKalmalaWorldPopulationSpawn&
         PersistentSpawnId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Spawn);
         CreatureNicheId = Spawn.ContentId;
         Archetype = InitialArchetype;
+        if (Archetype == EKalmalaWildlifeArchetype::ReefMaw)
+        {
+            FVector SwimLocation = Spawn.Location;
+            SwimLocation.Z = FKalmalaTerrainHeightSampler::SeaLevelWorldHeight - ReefMawSpawnDepthCentimetres;
+            SetActorLocation(SwimLocation);
+            SpawnOrigin = SwimLocation;
+            BehaviourDestination = SpawnOrigin;
+        }
         if (Archetype == EKalmalaWildlifeArchetype::Wolf)
         {
             PersistentSpawnId = FKalmalaWolfPackContract::GetMemberPersistentSpawnId(Spawn, WolfPackMemberIndex);
@@ -221,6 +231,10 @@ void AKalmalaWildlifeSpawn::InitializeServer(const FKalmalaWorldPopulationSpawn&
         ThunderSentinelAttackSecondsRemaining = 0.0f;
         ThunderSentinelStepDistanceRemaining = 0.0f;
         bThunderSentinelSlamHitApplied = false;
+        ReefMawAttackCue = static_cast<uint8>(EKalmalaWildlifeAttackCue::None);
+        ReefMawAttackTarget.Reset();
+        ReefMawAttackSecondsRemaining = 0.0f;
+        bReefMawBiteHitApplied = false;
         WolfAttackCue = static_cast<uint8>(EKalmalaWildlifeAttackCue::None);
         WolfAttackTarget.Reset();
         WolfAttackSecondsRemaining = 0.0f;
@@ -395,6 +409,7 @@ int32 AKalmalaWildlifeSpawn::GetBoneFragmentRewardQuantity(const EKalmalaWildlif
     case EKalmalaWildlifeArchetype::GiantSnake: return 2;
     case EKalmalaWildlifeArchetype::MoonBear: return 3;
     case EKalmalaWildlifeArchetype::PolarBear: return 3;
+    case EKalmalaWildlifeArchetype::ReefMaw: return 3;
     case EKalmalaWildlifeArchetype::HornedGoat: return 2;
     case EKalmalaWildlifeArchetype::Wolf: return 2;
     case EKalmalaWildlifeArchetype::Lynx: return 2;
@@ -488,6 +503,13 @@ bool AKalmalaWildlifeSpawn::DefeatServer()
         AKalmalaGameMode* Mode = GetWorld() != nullptr
             ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
         if (Mode == nullptr || !Mode->RecordThunderSentinelDefeatReward(
+                PersistentSpawnId, LastValidatedAttacker.Get())) return false;
+    }
+    else if (Archetype == EKalmalaWildlifeArchetype::ReefMaw)
+    {
+        AKalmalaGameMode* Mode = GetWorld() != nullptr
+            ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
+        if (Mode == nullptr || !Mode->RecordReefMawDefeatReward(
                 PersistentSpawnId, LastValidatedAttacker.Get())) return false;
     }
     else if (Archetype == EKalmalaWildlifeArchetype::PeatHusk)
@@ -705,6 +727,20 @@ bool AKalmalaWildlifeSpawn::IsThunderSentinelSlamInReach(const bool bServerAutho
         && HorizontalDistanceCentimetres <= ThunderSentinelSlamReachCentimetres;
 }
 
+bool AKalmalaWildlifeSpawn::IsReefMawSpawnHabitatAllowed(const EKalmalaBiome Biome,
+    const bool bLakeWater, const float WaterDepthCentimetres)
+{
+    return Biome == EKalmalaBiome::Ocean && !bLakeWater && FMath::IsFinite(WaterDepthCentimetres)
+        && WaterDepthCentimetres >= ReefMawMinimumOceanDepthCentimetres;
+}
+
+bool AKalmalaWildlifeSpawn::IsReefMawBiteInReach(const bool bServerAuthority,
+    const bool bValidTarget, const bool bTargetSwimming, const float DistanceCentimetres)
+{
+    return bServerAuthority && bValidTarget && bTargetSwimming && FMath::IsFinite(DistanceCentimetres)
+        && DistanceCentimetres >= 0.0f && DistanceCentimetres <= ReefMawBiteReachCentimetres;
+}
+
 bool AKalmalaWildlifeSpawn::TryGetSpawnArchetypeForBiome(const uint64 SpawnSeed, const EKalmalaBiome Biome,
     EKalmalaWildlifeArchetype& OutArchetype)
 {
@@ -819,6 +855,12 @@ bool AKalmalaWildlifeSpawn::TryGetSpawnArchetypeForBiome(const uint64 SpawnSeed,
         return true;
     }
 
+    if (Biome == EKalmalaBiome::Ocean && Slot == 9)
+    {
+        OutArchetype = EKalmalaWildlifeArchetype::ReefMaw;
+        return true;
+    }
+
     // Unsupported biomes produce no wildlife candidates.
     return false;
 }
@@ -859,6 +901,7 @@ void AKalmalaWildlifeSpawn::Tick(const float DeltaSeconds)
         else if (Archetype == EKalmalaWildlifeArchetype::MoonBear) UpdateMoonBearAttack(DeltaSeconds);
         else if (Archetype == EKalmalaWildlifeArchetype::HornedGoat) UpdateHornedGoatAttack(DeltaSeconds);
         else if (Archetype == EKalmalaWildlifeArchetype::ThunderSentinel) UpdateThunderSentinelAttack(DeltaSeconds);
+        else if (Archetype == EKalmalaWildlifeArchetype::ReefMaw) UpdateReefMawAttack(DeltaSeconds);
         else if (Archetype == EKalmalaWildlifeArchetype::PeatHusk) UpdatePeatHuskAttack(DeltaSeconds);
         else if (Archetype == EKalmalaWildlifeArchetype::Viper
             || Archetype == EKalmalaWildlifeArchetype::GiantSnake
@@ -2502,6 +2545,216 @@ bool AKalmalaWildlifeSpawn::TryApplyThunderSentinelSlam(AKalmalaCharacter* Targe
     return Target->ApplyWildlifeDamageFromServer(this, GetBaseAttackChannelsForArchetype(Archetype));
 }
 
+bool AKalmalaWildlifeSpawn::IsReefMawPositionNavigable(const FVector& Position) const
+{
+    if (Position.ContainsNaN() || GetWorld() == nullptr) return false;
+    const AKalmalaWorldGenerationGameState* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
+    if (State == nullptr) return false;
+    const FKalmalaWorldGenerationConfig& Config = State->GetWorldGenerationConfig();
+    const FVector2D XY(Position);
+    if (!FKalmalaWorldBounds::Contains(Config, XY)) return false;
+    const FKalmalaOceanSample Ocean = FKalmalaOceanSampler::Sample(Config, XY);
+    const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, XY));
+    return Ocean.IsWater() && IsReefMawSpawnHabitatAllowed(
+        Biome, FKalmalaShimmeringLakeSampler::IsWater(Config, XY), Ocean.WaterDepth);
+}
+
+bool AKalmalaWildlifeSpawn::CanReefMawSwimAlong(const FVector& Start, const FVector& End) const
+{
+    if (Start.ContainsNaN() || End.ContainsNaN()) return false;
+    const float Distance = FVector::Dist2D(Start, End);
+    if (!FMath::IsFinite(Distance)) return false;
+    const int32 Samples = FMath::Max(1, FMath::CeilToInt(Distance / 80.0f));
+    for (int32 Index = 0; Index <= Samples; ++Index)
+    {
+        const FVector Position = FMath::Lerp(Start, End, static_cast<float>(Index) / Samples);
+        if (!IsReefMawPositionNavigable(Position)) return false;
+    }
+    return true;
+}
+
+void AKalmalaWildlifeSpawn::UpdateReefMawAttack(const float DeltaSeconds)
+{
+    if (!HasAuthority() || bDefeated || Behaviour != EKalmalaWildlifeBehaviour::Idle || GetWorld() == nullptr) return;
+    const float StepSeconds = FMath::Clamp(FMath::IsFinite(DeltaSeconds) ? DeltaSeconds : 0.0f, 0.0f, 0.10f);
+    EKalmalaWildlifeAttackCue Cue = static_cast<EKalmalaWildlifeAttackCue>(ReefMawAttackCue);
+    AKalmalaCharacter* Target = ReefMawAttackTarget.Get();
+
+    if (Cue != EKalmalaWildlifeAttackCue::None && !IsReefMawAttackTargetValid(Target))
+    {
+        ReefMawAttackTarget.Reset();
+        ReefMawAttackSecondsRemaining = 0.0f;
+        bReefMawBiteHitApplied = false;
+        SetReefMawAttackCue(EKalmalaWildlifeAttackCue::None);
+        Cue = EKalmalaWildlifeAttackCue::None;
+        Target = nullptr;
+    }
+    else if (Target != nullptr && !IsReefMawAttackTargetValid(Target))
+    {
+        ReefMawAttackTarget.Reset();
+        Target = nullptr;
+    }
+
+    if (Cue == EKalmalaWildlifeAttackCue::None && Target == nullptr)
+    {
+        float BestDistanceSquared = FMath::Square(ReefMawDetectionCentimetres);
+        for (TActorIterator<AKalmalaCharacter> It(GetWorld()); It; ++It)
+        {
+            AKalmalaCharacter* Candidate = *It;
+            if (!IsReefMawAttackTargetValid(Candidate)) continue;
+            const float DistanceSquared = FVector::DistSquared2D(GetActorLocation(), Candidate->GetActorLocation());
+            if (DistanceSquared < BestDistanceSquared)
+            {
+                BestDistanceSquared = DistanceSquared;
+                Target = Candidate;
+            }
+        }
+        if (Target != nullptr) ReefMawAttackTarget = Target;
+    }
+    if (Target == nullptr) return;
+
+    const FVector Destination = Target->GetActorLocation();
+    FVector ToTarget = Destination - GetActorLocation();
+    const float Distance = ToTarget.Size();
+    FVector Direction = ToTarget.GetSafeNormal();
+    if (Direction.IsNearlyZero()) Direction = GetActorForwardVector().GetSafeNormal();
+    if (Direction.IsNearlyZero()) return;
+    SetActorRotation(FRotationMatrix::MakeFromX(Direction).Rotator());
+
+    if (Cue == EKalmalaWildlifeAttackCue::None)
+    {
+        if (Distance <= ReefMawAttackTriggerCentimetres)
+        {
+            BeginReefMawAttack(Target);
+            return;
+        }
+        const float MoveDistance = FMath::Min(ReefMawApproachSpeedCentimetresPerSecond * StepSeconds,
+            FMath::Max(0.0f, Distance - ReefMawAttackTriggerCentimetres));
+        if (MoveDistance > 0.0f)
+        {
+            const FVector End = GetActorLocation() + Direction * MoveDistance;
+            if (CanReefMawSwimAlong(GetActorLocation(), End)) SetActorLocation(End, true);
+            else ReefMawAttackTarget.Reset();
+        }
+        return;
+    }
+
+    if (Cue == EKalmalaWildlifeAttackCue::Telegraph)
+    {
+        const float ApproachStopDistance = ReefMawBiteReachCentimetres * 0.85f;
+        const float MoveDistance = FMath::Min(ReefMawApproachSpeedCentimetresPerSecond * StepSeconds,
+            FMath::Max(0.0f, Distance - ApproachStopDistance));
+        if (MoveDistance > 0.0f)
+        {
+            const FVector End = GetActorLocation() + Direction * MoveDistance;
+            if (CanReefMawSwimAlong(GetActorLocation(), End)) SetActorLocation(End, true);
+        }
+        ReefMawAttackSecondsRemaining -= StepSeconds;
+        if (ReefMawAttackSecondsRemaining <= 0.0f)
+        {
+            ReefMawAttackSecondsRemaining = ReefMawBiteCueSeconds;
+            bReefMawBiteHitApplied = false;
+            SetReefMawAttackCue(EKalmalaWildlifeAttackCue::Lunge);
+        }
+        return;
+    }
+
+    if (Cue == EKalmalaWildlifeAttackCue::Lunge)
+    {
+        if (!bReefMawBiteHitApplied)
+        {
+            bReefMawBiteHitApplied = true;
+            TryApplyReefMawBite(Target);
+        }
+        ReefMawAttackSecondsRemaining -= StepSeconds;
+        if (ReefMawAttackSecondsRemaining <= 0.0f)
+        {
+            ReefMawAttackSecondsRemaining = ReefMawRecoverySeconds;
+            SetReefMawAttackCue(EKalmalaWildlifeAttackCue::Recovery);
+        }
+        return;
+    }
+
+    if (Cue == EKalmalaWildlifeAttackCue::Recovery)
+    {
+        ReefMawAttackSecondsRemaining -= StepSeconds;
+        if (ReefMawAttackSecondsRemaining <= 0.0f)
+        {
+            ReefMawAttackTarget.Reset();
+            ReefMawAttackSecondsRemaining = 0.0f;
+            bReefMawBiteHitApplied = false;
+            SetReefMawAttackCue(EKalmalaWildlifeAttackCue::None);
+        }
+    }
+}
+
+void AKalmalaWildlifeSpawn::BeginReefMawAttack(AKalmalaCharacter* Target)
+{
+    if (!HasAuthority() || bDefeated || !IsReefMawAttackTargetValid(Target)) return;
+    const FVector Destination = Target->GetActorLocation();
+    if (FVector::Dist(GetActorLocation(), Destination) > ReefMawAttackTriggerCentimetres) return;
+    ReefMawAttackTarget = Target;
+    ReefMawAttackSecondsRemaining = ReefMawTelegraphSeconds;
+    bReefMawBiteHitApplied = false;
+    SetReefMawAttackCue(EKalmalaWildlifeAttackCue::Telegraph);
+}
+
+void AKalmalaWildlifeSpawn::SetReefMawAttackCue(const EKalmalaWildlifeAttackCue NextCue)
+{
+    if (!HasAuthority()) return;
+    const uint8 NextValue = static_cast<uint8>(NextCue);
+    if (ReefMawAttackCue == NextValue) return;
+    ReefMawAttackCue = NextValue;
+    BuildArchetypePresentation();
+    ForceNetUpdate();
+}
+
+bool AKalmalaWildlifeSpawn::IsReefMawAttackTargetValid(const AKalmalaCharacter* Target) const
+{
+    if (!HasAuthority() || bDefeated || Archetype != EKalmalaWildlifeArchetype::ReefMaw
+        || GetWorld() == nullptr || !IsValid(Target) || !Target->HasAuthority()
+        || Target->GetWorld() != GetWorld() || Target->GetAttachParentActor() != nullptr
+        || !FMath::IsFinite(Target->GetHealth()) || Target->GetHealth() <= 1.0f
+        || Target->GetActorLocation().ContainsNaN()
+        || FVector::DistSquared2D(Target->GetActorLocation(), SpawnOrigin)
+            > FMath::Square(ReefMawSpawnLeashCentimetres)
+        || FVector::DistSquared2D(GetActorLocation(), SpawnOrigin)
+            > FMath::Square(ReefMawSpawnLeashCentimetres)) return false;
+
+    const UKalmalaCharacterMovementComponent* Movement =
+        Cast<UKalmalaCharacterMovementComponent>(Target->GetCharacterMovement());
+    if (Movement == nullptr || !Movement->IsSwimmingInGeneratedOcean()) return false;
+    const AKalmalaWorldGenerationGameState* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
+    if (State == nullptr) return false;
+    const FKalmalaOceanSample TargetOcean = FKalmalaOceanSampler::Sample(
+        State->GetWorldGenerationConfig(), FVector2D(Target->GetActorLocation()));
+    const EKalmalaBiome TargetBiome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(
+        State->GetWorldGenerationConfig(), FVector2D(Target->GetActorLocation())));
+    if (!TargetOcean.IsWater() || !IsReefMawSpawnHabitatAllowed(TargetBiome,
+            FKalmalaShimmeringLakeSampler::IsWater(State->GetWorldGenerationConfig(),
+                FVector2D(Target->GetActorLocation())), TargetOcean.WaterDepth)
+        || !CanReefMawSwimAlong(GetActorLocation(), Target->GetActorLocation())) return false;
+
+    FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(KalmalaReefMawBiteVisibility), true);
+    QueryParams.AddIgnoredActor(this);
+    FHitResult Blocker;
+    const FVector Start = GetActorLocation() + FVector(0.0f, 0.0f, 30.0f);
+    const FVector End = Target->GetActorLocation() + FVector(0.0f, 0.0f, 48.0f);
+    return !GetWorld()->LineTraceSingleByChannel(Blocker, Start, End, ECC_Visibility, QueryParams)
+        || Blocker.GetActor() == Target;
+}
+
+bool AKalmalaWildlifeSpawn::TryApplyReefMawBite(AKalmalaCharacter* Target)
+{
+    const UKalmalaCharacterMovementComponent* Movement = Target != nullptr
+        ? Cast<UKalmalaCharacterMovementComponent>(Target->GetCharacterMovement()) : nullptr;
+    if (!IsReefMawAttackTargetValid(Target)
+        || !IsReefMawBiteInReach(HasAuthority(), true,
+            Movement != nullptr && Movement->IsSwimmingInGeneratedOcean(),
+            FVector::Dist(GetActorLocation(), Target->GetActorLocation()))) return false;
+    return Target->ApplyWildlifeDamageFromServer(this, GetBaseAttackChannelsForArchetype(Archetype));
+}
+
 void AKalmalaWildlifeSpawn::UpdatePeatHuskAttack(const float DeltaSeconds)
 {
     if (Behaviour != EKalmalaWildlifeBehaviour::Idle || GetWorld() == nullptr) return;
@@ -3195,7 +3448,8 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
     if (USphereComponent* RootSphere = Cast<USphereComponent>(GetRootComponent()))
         RootSphere->SetSphereRadius(Archetype == EKalmalaWildlifeArchetype::MosquitoSwarm ? 28.0f
             : (Archetype == EKalmalaWildlifeArchetype::Rat ? 42.0f
-                : (Archetype == EKalmalaWildlifeArchetype::ThunderSentinel ? 180.0f : 70.0f)), true);
+                : (Archetype == EKalmalaWildlifeArchetype::ThunderSentinel ? 180.0f
+                    : (Archetype == EKalmalaWildlifeArchetype::ReefMaw ? 92.0f : 70.0f))), true);
     const bool bSnake = Archetype == EKalmalaWildlifeArchetype::Viper
         || Archetype == EKalmalaWildlifeArchetype::GiantSnake
         || Archetype == EKalmalaWildlifeArchetype::DeathAdder;
@@ -3681,6 +3935,63 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
                 FVector(167,-59,32), FVector(208,-60,31), Warning);
         }
     }
+    else if (Archetype == EKalmalaWildlifeArchetype::ReefMaw)
+    {
+        const EKalmalaWildlifeAttackCue Cue = static_cast<EKalmalaWildlifeAttackCue>(ReefMawAttackCue);
+        const bool bWarning = Cue == EKalmalaWildlifeAttackCue::Telegraph;
+        const bool bBiting = Cue == EKalmalaWildlifeAttackCue::Lunge;
+        const FLinearColor ReefBack(0.035f, 0.19f, 0.25f);
+        const FLinearColor ReefLight(0.075f, 0.34f, 0.39f);
+        const FLinearColor ReefShadow(0.018f, 0.085f, 0.12f);
+        const FLinearColor CoralMark(0.78f, 0.39f, 0.18f);
+        const FLinearColor Eye = bWarning ? FLinearColor(1.0f, 0.59f, 0.12f)
+            : FLinearColor(0.46f, 0.93f, 0.84f);
+        const float JawDrop = bBiting ? -25.0f : (bWarning ? -8.0f : 0.0f);
+
+        // Original deep-bodied reef predator with a forked tail, coral ridges,
+        // angular fins, and a warning-to-bite jaw pose.
+        AddTetraPoints(FVector(-162,-8,10), FVector(-162,8,10),
+            FVector(-205,-52,4), FVector(-205,52,4), ReefShadow);
+        AddTetraPoints(FVector(-205,-52,4), FVector(-205,52,4),
+            FVector(-239,-40,14), FVector(-239,40,14), ReefLight);
+        AddTetraPoints(FVector(-146,-52,14), FVector(-146,52,14),
+            FVector(92,-61,25), FVector(92,61,25), ReefBack);
+        AddTetraPoints(FVector(-132,-58,-15), FVector(-132,58,-15),
+            FVector(104,-48,-13), FVector(104,48,-13), ReefShadow);
+        AddTetraPoints(FVector(-118,-49,26), FVector(-118,49,26),
+            FVector(72,-51,46), FVector(72,51,46), ReefLight);
+        AddTetraPoints(FVector(-85,-48,-14), FVector(-85,48,-14),
+            FVector(66,-42,3), FVector(66,42,3), FLinearColor(0.24f,0.53f,0.52f));
+        AddTetraPoints(FVector(47,-43,21), FVector(47,43,21),
+            FVector(137,-27,14), FVector(137,27,14), ReefLight);
+        AddTetraPoints(FVector(91,-33,5), FVector(91,33,5),
+            FVector(157,-22,-12 + JawDrop), FVector(157,22,-12 + JawDrop), ReefShadow);
+        AddTetraPoints(FVector(97,-29,0), FVector(97,29,0),
+            FVector(151,-17,-22 + JawDrop), FVector(151,17,-22 + JawDrop), CoralMark);
+        AddTetraPoints(FVector(-82,-28,40), FVector(-80,28,40),
+            FVector(-18,-17,104), FVector(-20,17,104), ReefBack);
+        AddTetraPoints(FVector(-20,-24,42), FVector(-20,24,42),
+            FVector(12,-13,83), FVector(12,13,83), ReefLight);
+        AddTetraPoints(FVector(-66,-43,8), FVector(-66,43,8),
+            FVector(-112,-101,-9), FVector(-112,101,-9), ReefLight);
+        AddTetraPoints(FVector(-112,-101,-9), FVector(-112,101,-9),
+            FVector(-35,-72,-24), FVector(-35,72,-24), ReefShadow);
+        AddTetraPoints(FVector(23,-44,8), FVector(23,44,8),
+            FVector(72,-92,-11), FVector(72,92,-11), ReefBack);
+        for (const float Side : {-1.0f, 1.0f})
+        {
+            AddTetraPoints(FVector(78,Side * 43.0f,16), FVector(94,Side * 38.0f,17),
+                FVector(71,Side * 48.0f,35), FVector(86,Side * 44.0f,38), Eye);
+            AddTetraPoints(FVector(-80,Side * 50.0f,10), FVector(-73,Side * 51.0f,25),
+                FVector(-45,Side * 54.0f,-1), FVector(-42,Side * 55.0f,14), CoralMark);
+            AddTetraPoints(FVector(127,Side * 17.0f,-5), FVector(140,Side * 14.0f,-5),
+                FVector(139,Side * 12.0f,-16 + JawDrop), FVector(128,Side * 15.0f,-17 + JawDrop),
+                FLinearColor(0.91f, 0.82f, 0.60f));
+            AddTetraPoints(FVector(101,Side * 25.0f,1), FVector(111,Side * 22.0f,1),
+                FVector(110,Side * 20.0f,-9 + JawDrop), FVector(102,Side * 23.0f,-10 + JawDrop),
+                FLinearColor(0.91f, 0.82f, 0.60f));
+        }
+    }
     else if (Archetype == EKalmalaWildlifeArchetype::Wolf)
     {
         const EKalmalaWildlifeAttackCue Cue = static_cast<EKalmalaWildlifeAttackCue>(WolfAttackCue);
@@ -4075,6 +4386,7 @@ void AKalmalaWildlifeSpawn::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
     DOREPLIFETIME(AKalmalaWildlifeSpawn, PolarBearAttackCue);
     DOREPLIFETIME(AKalmalaWildlifeSpawn, HornedGoatAttackCue);
     DOREPLIFETIME(AKalmalaWildlifeSpawn, ThunderSentinelAttackCue);
+    DOREPLIFETIME(AKalmalaWildlifeSpawn, ReefMawAttackCue);
     DOREPLIFETIME(AKalmalaWildlifeSpawn, MoonBearAttackCue);
     DOREPLIFETIME(AKalmalaWildlifeSpawn, PeatHuskAttackCue);
 }
@@ -4133,6 +4445,11 @@ void AKalmalaWildlifeSpawn::OnRep_ThunderSentinelAttackCue()
     BuildArchetypePresentation();
 }
 
+void AKalmalaWildlifeSpawn::OnRep_ReefMawAttackCue()
+{
+    BuildArchetypePresentation();
+}
+
 void AKalmalaWildlifeSpawn::OnRep_MoonBearAttackCue()
 {
     BuildArchetypePresentation();
@@ -4187,6 +4504,10 @@ void AKalmalaWildlifeSpawn::ApplyDefeatedState()
         ThunderSentinelStepDistanceRemaining = 0.0f;
         bThunderSentinelSlamHitApplied = false;
         SetThunderSentinelAttackCue(EKalmalaWildlifeAttackCue::None);
+        ReefMawAttackTarget.Reset();
+        ReefMawAttackSecondsRemaining = 0.0f;
+        bReefMawBiteHitApplied = false;
+        SetReefMawAttackCue(EKalmalaWildlifeAttackCue::None);
         GrantDefeatReward();
     }
 }
@@ -4223,11 +4544,12 @@ void AKalmalaWildlifeSpawn::GrantDefeatReward()
         && Archetype != EKalmalaWildlifeArchetype::Lynx
         && Archetype != EKalmalaWildlifeArchetype::PolarBear
         && Archetype != EKalmalaWildlifeArchetype::HornedGoat
+        && Archetype != EKalmalaWildlifeArchetype::ReefMaw
         && Archetype != EKalmalaWildlifeArchetype::PeatHusk)
     {
         Inventory->TryGrantFromServer(TEXT("BoneFragment"), BoneFragmentQuantity);
     }
-    // Credited Rat, Badger, bear, snake, Wolf, Lynx, Goat, Sentinel and Peat Husk
+    // Credited Rat, Badger, bear, snake, Wolf, Lynx, Goat, Sentinel, Reef Maw and Peat Husk
     // rewards use the persistent queue recorded before defeated state is replicated.
 
     if (Archetype == EKalmalaWildlifeArchetype::Mireling && IsMirelingBossRewardCandidate())

@@ -204,6 +204,19 @@ public:
     static constexpr int32 ThunderSentinelStoneRewardQuantity = 3;
     static bool IsThunderSentinelSlamInReach(bool bServerAuthority, bool bValidTarget,
         float HorizontalDistanceCentimetres);
+    static constexpr float ReefMawMinimumOceanDepthCentimetres = 150.0f;
+    static constexpr float ReefMawDetectionCentimetres = 1500.0f;
+    static constexpr float ReefMawAttackTriggerCentimetres = 500.0f;
+    static constexpr float ReefMawBiteReachCentimetres = 180.0f;
+    static constexpr float ReefMawTelegraphSeconds = 1.0f;
+    static constexpr float ReefMawBiteCueSeconds = 0.16f;
+    static constexpr float ReefMawRecoverySeconds = 1.2f;
+    static constexpr float ReefMawApproachSpeedCentimetresPerSecond = 320.0f;
+    static constexpr float ReefMawSpawnDepthCentimetres = 120.0f;
+    static constexpr float ReefMawSpawnLeashCentimetres = 2500.0f;
+    static bool IsReefMawSpawnHabitatAllowed(EKalmalaBiome Biome, bool bLakeWater, float WaterDepthCentimetres);
+    static bool IsReefMawBiteInReach(bool bServerAuthority, bool bValidTarget, bool bTargetSwimming,
+        float DistanceCentimetres);
     static constexpr float PeatHuskAttackTriggerCentimetres = 500.0f;
     static constexpr float PeatHuskSweepReachCentimetres = 260.0f;
     static constexpr float PeatHuskSweepMinimumForwardDot = 0.5f;
@@ -291,6 +304,13 @@ private:
     bool TryApplyThunderSentinelSlam(class AKalmalaCharacter* Target);
     bool IsThunderSentinelPositionTraversable(const FVector& Position) const;
     bool CanThunderSentinelMoveAlong(const FVector& Start, const FVector& End) const;
+    void UpdateReefMawAttack(float DeltaSeconds);
+    void BeginReefMawAttack(class AKalmalaCharacter* Target);
+    void SetReefMawAttackCue(EKalmalaWildlifeAttackCue NextCue);
+    bool IsReefMawAttackTargetValid(const class AKalmalaCharacter* Target) const;
+    bool TryApplyReefMawBite(class AKalmalaCharacter* Target);
+    bool IsReefMawPositionNavigable(const FVector& Position) const;
+    bool CanReefMawSwimAlong(const FVector& Start, const FVector& End) const;
     void UpdatePeatHuskAttack(float DeltaSeconds);
     void BeginPeatHuskAttack(class AKalmalaCharacter* Target);
     void SetPeatHuskAttackCue(EKalmalaWildlifeAttackCue NextCue);
@@ -364,6 +384,9 @@ private:
     UPROPERTY(ReplicatedUsing = OnRep_ThunderSentinelAttackCue)
     uint8 ThunderSentinelAttackCue = static_cast<uint8>(EKalmalaWildlifeAttackCue::None);
 
+    UPROPERTY(ReplicatedUsing = OnRep_ReefMawAttackCue)
+    uint8 ReefMawAttackCue = static_cast<uint8>(EKalmalaWildlifeAttackCue::None);
+
     UPROPERTY(ReplicatedUsing = OnRep_PeatHuskAttackCue)
     uint8 PeatHuskAttackCue = static_cast<uint8>(EKalmalaWildlifeAttackCue::None);
 
@@ -402,6 +425,9 @@ private:
 
     UFUNCTION()
     void OnRep_ThunderSentinelAttackCue();
+
+    UFUNCTION()
+    void OnRep_ReefMawAttackCue();
 
     UFUNCTION()
     void OnRep_PeatHuskAttackCue();
@@ -448,6 +474,9 @@ private:
     float ThunderSentinelStepDistanceRemaining = 0.0f;
     TWeakObjectPtr<class AKalmalaCharacter> ThunderSentinelAttackTarget;
     bool bThunderSentinelSlamHitApplied = false;
+    float ReefMawAttackSecondsRemaining = 0.0f;
+    TWeakObjectPtr<class AKalmalaCharacter> ReefMawAttackTarget;
+    bool bReefMawBiteHitApplied = false;
     float PeatHuskAttackSecondsRemaining = 0.0f;
     TWeakObjectPtr<class AKalmalaCharacter> PeatHuskAttackTarget;
     TArray<uint8> SnakeHissAudioData;

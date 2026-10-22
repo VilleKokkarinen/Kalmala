@@ -2542,6 +2542,19 @@ or relevant-peer presentation in combined A8a/A8b I4. Thunder Core remains
 disabled pending A8b. No Unreal build or automation execution ran in this
 normal increment.
 
+## Ocean Reef Maw contract regression
+
+After an editor build, run
+`Kalmala.Gameplay.Wildlife.ReefMaw.OceanBiteAndRewardClaim`. It checks the
+seeded 10% Ocean share and biome exclusivity, minimum deep-water habitat and
+lake exclusion, the 180/2/50 profile, the inclusive 180 cm server-only bite
+boundary against swimming players, one-second warning and 1.2-second recovery,
+25 m leash, shared 150 m hard-enemy start exclusion, and owner-bound three-Bone
+claim serialization. Contract coverage does not replace live water traversal,
+visibility, full-inventory retry, reconnect/restart or relevant-peer acceptance
+in combined A8a/A8b I4. Reef Tooth remains disabled pending A8b. No Unreal build
+or automation execution ran in this normal increment.
+
 ## Exposure inspection
 
 Launch a listen server with `-KalmalaExposureInspection` to log server-sampled terrain and field inputs plus the active replicated weather values and provisional exposure state. Once a player joins, the output includes continuous low-ground wetness, deterministic lake-adjacency shoreline wetness, ridge/slope wind exposure, Flora-derived natural cover, and server-traced roof/windbreak shelter inputs. Player-built collision geometry must carry `KalmalaShelterRoof` or `KalmalaShelterWindbreak`; authored volumes and client trace results are ignored. The weather cycle is selected and advanced only by the server. Every second, the server replicates actual wetness, warmth, and the resulting 69–100% Character Movement travel multiplier; shelter dries and restores warmth slowly when dry, while a nearby lit fire accelerates recovery.

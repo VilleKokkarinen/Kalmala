@@ -140,6 +140,13 @@ namespace KalmalaGameMode
             return AKalmalaWildlifeSpawn::IsThunderMountainsSpawnHabitatAllowed(
                 SpawnBiome, bWater, bTraversable);
         }
+        if (OutArchetype == EKalmalaWildlifeArchetype::ReefMaw)
+        {
+            const FKalmalaOceanSample Ocean = FKalmalaOceanSampler::Sample(Config, Position);
+            const bool bLakeWater = FKalmalaShimmeringLakeSampler::IsWater(Config, Position);
+            return Ocean.IsWater() && AKalmalaWildlifeSpawn::IsReefMawSpawnHabitatAllowed(
+                SpawnBiome, bLakeWater, Ocean.WaterDepth);
+        }
         if (OutArchetype == EKalmalaWildlifeArchetype::Badger
             || OutArchetype == EKalmalaWildlifeArchetype::MoonBear)
         {
@@ -2309,7 +2316,8 @@ void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey)
                     || Archetype == EKalmalaWildlifeArchetype::MoonBear
                     || Archetype == EKalmalaWildlifeArchetype::PeatHusk
                     || Archetype == EKalmalaWildlifeArchetype::PolarBear
-                    || Archetype == EKalmalaWildlifeArchetype::ThunderSentinel;
+                    || Archetype == EKalmalaWildlifeArchetype::ThunderSentinel
+                    || Archetype == EKalmalaWildlifeArchetype::ReefMaw;
                 const float StartDistance = GeneratedPlayerStart != nullptr
                     ? FVector::Dist2D(Spawn.Location, GeneratedPlayerStart->GetActorLocation()) : 0.0f;
                 if (!AKalmalaWildlifeSpawn::IsHardEnemySpawnAllowedByStart(
@@ -2821,6 +2829,25 @@ bool AKalmalaGameMode::RecordThunderSentinelDefeatReward(const FString& Persiste
         KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
 }
 
+bool AKalmalaGameMode::RecordReefMawDefeatReward(const FString& PersistentSpawnId,
+    AKalmalaCharacter* CreditedAttacker)
+{
+    if (!HasAuthority() || PersistentSpawnId.IsEmpty() || PopulationSaveGame == nullptr
+        || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
+
+    if (IsValid(CreditedAttacker) && CreditedAttacker->HasAuthority()
+        && CreditedAttacker->GetWorld() == GetWorld() && CreditedAttacker->GetPlayerState() != nullptr)
+    {
+        const FString Identity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(CreditedAttacker->GetPlayerState());
+        if (!Identity.IsEmpty() && !PopulationSaveGame->TryQueuePendingReefMawReward(
+                PersistentSpawnId, Identity)) return false;
+    }
+
+    PopulationSaveGame->MarkDefeated(PersistentSpawnId);
+    return UGameplayStatics::SaveGameToSlot(PopulationSaveGame,
+        KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+}
+
 void AKalmalaGameMode::DeliverPendingWildlifeRewards()
 {
     if (!HasAuthority() || GetWorld() == nullptr || PopulationSaveGame == nullptr
@@ -2871,6 +2898,9 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
         const bool bThunderSentinelReward =
             UKalmalaWorldPopulationSaveGame::TryGetThunderSentinelSpawnIdFromPendingRewardClaimId(
                 Reward.PersistentSpawnId, ThunderSentinelSpawnId);
+        FString ReefMawSpawnId;
+        const bool bReefMawReward = UKalmalaWorldPopulationSaveGame::TryGetReefMawSpawnIdFromPendingRewardClaimId(
+            Reward.PersistentSpawnId, ReefMawSpawnId);
         FString DefeatedSpawnId = Reward.PersistentSpawnId;
         if (bBadgerReward) DefeatedSpawnId = BadgerSpawnId;
         else if (bMoonBearReward) DefeatedSpawnId = MoonBearSpawnId;
@@ -2883,6 +2913,7 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
         else if (bPolarBearReward) DefeatedSpawnId = PolarBearSpawnId;
         else if (bHornedGoatReward) DefeatedSpawnId = HornedGoatSpawnId;
         else if (bThunderSentinelReward) DefeatedSpawnId = ThunderSentinelSpawnId;
+        else if (bReefMawReward) DefeatedSpawnId = ReefMawSpawnId;
         if (!PopulationSaveGame->IsDefeated(DefeatedSpawnId)) continue;
 
         for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
@@ -2909,11 +2940,17 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
                         AKalmalaWildlifeSpawn::GetStoneRewardQuantityForArchetype(
                             EKalmalaWildlifeArchetype::ThunderSentinel), Candidate, Reason)) break;
             }
+            else if (bReefMawReward)
+            {
+                if (!UKalmalaInventoryComponent::BuildGrant(Before, TEXT("BoneFragment"),
+                        AKalmalaWildlifeSpawn::GetBoneFragmentRewardQuantity(
+                            EKalmalaWildlifeArchetype::ReefMaw), Candidate, Reason)) break;
+            }
             else
             {
                 TArray<FKalmalaInventoryStack> WithBone;
                 TArray<FKalmalaInventoryStack> WithBadgerFur;
-                const int32 BoneFragmentQuantity = (bMoonBearReward || bPolarBearReward) ? 3
+                const int32 BoneFragmentQuantity = (bMoonBearReward || bPolarBearReward || bReefMawReward) ? 3
                     : ((bGiantSnakeReward || bWolfReward || bLynxReward || bHornedGoatReward) ? 2 : 1);
                 if (!UKalmalaInventoryComponent::BuildGrant(
                         Before, TEXT("BoneFragment"), BoneFragmentQuantity, WithBone, Reason)) break;

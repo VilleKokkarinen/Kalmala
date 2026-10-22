@@ -112,10 +112,10 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
         bool bAddedElderwoodChanterellePatch = false;
         bool bAddedElderwoodCopperVein = false;
         bool bAddedLakesTinGravel = false;
-        // Wildlife candidates deliberately have a small, fixed retry budget.  The
-        // server derives all candidates, rejects water and unsafe slopes, and
-        // keeps the candidate seed in the sparse-delta ID.  Clients never choose
-        // a fallback location or receive descriptors for actors outside relevancy.
+        // Wildlife candidates deliberately have a small, fixed retry budget. Land
+        // animals require dry, safe ground; Ocean candidates require deep generated
+        // water for the swimming niche. The seed remains in the sparse-delta ID.
+        // Clients never choose a fallback or receive irrelevant actor descriptors.
         const int32 CandidateBudget = Kind == EKalmalaWorldPopulationKind::Wildlife ? PrimaryBudget * 4 : PrimaryBudget;
         for (int32 SpawnIndex = 0; SpawnIndex < CandidateBudget && Spawns.Num() < PrimaryBudget; ++SpawnIndex)
         {
@@ -124,7 +124,7 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
             const float YFraction = static_cast<float>((CandidateSeed >> 16) & 0xFFFFu) / 65535.0f;
             const FVector2D Position = SpatialKeyOrigin + FVector2D(XFraction, YFraction) * SpatialKeySize;
             if (!FKalmalaWorldBounds::Contains(Config, Position)) continue;
-            if (Kind == EKalmalaWorldPopulationKind::Wildlife && !IsTerrainSafeWildlifeLocation(Config, Position)) continue;
+            if (Kind == EKalmalaWorldPopulationKind::Wildlife && !IsSafeWildlifeLocation(Config, Position)) continue;
             const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, Position));
             const EKalmalaBiomeContentKind ContentKind = Kind == EKalmalaWorldPopulationKind::Wildlife
                 ? EKalmalaBiomeContentKind::CreatureNiche
@@ -371,13 +371,22 @@ private:
             && FKalmalaTerrainHeightSampler::SampleSurfaceNormal(Config, Position).Z >= 0.88f;
     }
 
-    static bool IsTerrainSafeWildlifeLocation(const FKalmalaWorldGenerationConfig& Config, const FVector2D Position)
+    static bool IsSafeWildlifeLocation(const FKalmalaWorldGenerationConfig& Config, const FVector2D Position)
     {
-        // Wildlife remains on dry, gently traversable generated terrain.  Both
-        // water samplers and the collision-height normal are deterministic
-        // functions of the immutable world identity.
-        return !FKalmalaOceanSampler::Sample(Config, Position).IsWater()
-            && !FKalmalaShimmeringLakeSampler::IsWater(Config, Position)
+        const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(
+            FKalmalaWorldFieldSampler::Sample(Config, Position));
+        const FKalmalaOceanSample Ocean = FKalmalaOceanSampler::Sample(Config, Position);
+        const bool bLakeWater = FKalmalaShimmeringLakeSampler::IsWater(Config, Position);
+        if (Biome == EKalmalaBiome::Ocean)
+        {
+            // The Reef Maw body extends 144 cm below its sea-level origin when
+            // idle, so keep candidates above the seabed with a small margin.
+            return Ocean.IsWater() && Ocean.WaterDepth >= 150.0f && !bLakeWater;
+        }
+
+        // Land wildlife remains on dry, gently traversable terrain. All samples
+        // are deterministic functions of the immutable world identity.
+        return !Ocean.IsWater() && !bLakeWater
             && FKalmalaTerrainHeightSampler::SampleSurfaceNormal(Config, Position).Z >= 0.82f;
     }
 
