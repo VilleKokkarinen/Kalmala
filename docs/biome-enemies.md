@@ -28,10 +28,11 @@ its server-owned coiled bite applies non-stacking major poison and its credited
 Bone Fragment and guaranteed Venom Sac are owner-bound in one durable claim.
 Mosquito swarm now occupies a separate 20% share
 with bounded server flight, persistent contact bites, weak poison, and active
-fire/dodge counterplay. Peat Husk fills the final 10% hard slot and queues its
-baseline Amber for the credited owner. Wolf occupies its two deterministic
-Freezing Tundra candidate slots and spawns as a three-member pack in a stable
-triangle; each member has its own defeat and owner-bound two-Bone claim.
+fire/dodge counterplay. Peat Husk fills the final 10% hard slot, queues baseline
+Amber, and saves the credited owner's 25% Peat Heart outcome. Wolf occupies its
+two deterministic Freezing Tundra candidate slots and spawns as a three-member
+pack in a stable triangle; each member has its own defeat and owner-bound
+two-Bone claim.
 Lynx fills the next two seeded Tundra slots with a dry-ground pounce, a
 350 cm server impact limit, and an owner-bound two-Bone claim.
 
@@ -47,7 +48,7 @@ Lynx fills the next two seeded Tundra slots with a dry-ground pounce, a
 | Mireling            | Mossy Mire                             | Partial          |  75  |   15  | 20 Crush     | 50% dry-ground share; server simple melee; boss-scroll path unchanged; I4 pending |
 | Death Adder         | Mossy Mire                             | Partial          |  125 |   20  | 75 Stab      | 20% dry-ground slots; close coiled bite; major poison: 5/s, 10 s; queued Bone Fragment + Venom Sac; I4 pending |
 | Mosquito swarm      | Mossy Mire                             | Partial          |  25  |   0   | 5 Stab/0.2 s | 20% dry-ground slots; one swarm per target; poison 1/s for 10 s; dodge/fire repel; I4 pending |
-| Peat Husk           | Mossy Mire                             | Partial          |  300 |   50  | 150 Crush    | 10% dry-ground hard slot; 260 cm/120° sweep; 1 s warning; 1.2 s recovery; queued Amber; I4 pending |
+| Peat Husk           | Mossy Mire                             | Partial          |  300 |   50  | 150 Crush    | 10% dry-ground hard slot; 260 cm/120° sweep; 1 s warning; 1.2 s recovery; queued Amber + rolled 25% Peat Heart; I4 pending |
 | Wolf                | Freezing Tundra                        | Partial          |  250 |   40  | 100 Slash    | 20% dry-ground slots; three-member pack; 180 cm lunge bite; queued 2 Bone Fragment; I4 pending |
 | Lynx                | Freezing Tundra                        | Partial          |  150 |   30  | 75 Slash     | 20% dry-ground slots; 350 cm leap; 0.5 s warning; 0.8 s hit / 1.2 s miss recovery; queued 2 Bone Fragment; I4 pending |
 | Polar Bear          | Freezing Tundra                        | Partial          |  750 |   60  | 200 Crush    | 10% hard slot; 1 s warning; 220 cm charge; retreat; queued 3 Bone Fragment; I4 pending |
@@ -81,9 +82,11 @@ peat-and-wood silhouette raises a root arm for a one-second warning, then makes
 a slow 260 cm sweep through a 120-degree forward arc and recovers for 1.2
 seconds. The server approaches at 100 cm/s, validates the live target, dry
 ground path, line of sight and 25 m leash, and resolves damage only within the
-authored sweep bounds. Its baseline one-Amber reward is a durable owner-bound
-claim delivered atomically when inventory capacity is available. The separate
-25% Peat Heart drop remains A8b work and is not enabled by this baseline.
+authored sweep bounds. Each credited defeat queues one baseline Amber and rolls
+once for one Peat Heart at 25%. The outcome is stored in the durable owner-bound
+claim, so retries and reloads cannot reroll it. The server commits Amber and an
+awarded Peat Heart together; the claim stays queued until the complete bundle
+fits.
 
 Moon Bear uses its reviewed server-side stat profile (250 health, 20 armor,
 75 Crush). Its seeded spawn slot, dry-Elderwood eligibility, 150 m player-start

@@ -2721,12 +2721,37 @@ bool AKalmalaGameMode::RecordPeatHuskDefeatReward(const FString& PersistentSpawn
     if (!HasAuthority() || PersistentSpawnId.IsEmpty() || PopulationSaveGame == nullptr
         || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
 
+    if (PopulationSaveGame->IsDefeated(PersistentSpawnId))
+    {
+        return UGameplayStatics::SaveGameToSlot(PopulationSaveGame,
+            KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+    }
+
     if (IsValid(CreditedAttacker) && CreditedAttacker->HasAuthority()
         && CreditedAttacker->GetWorld() == GetWorld() && CreditedAttacker->GetPlayerState() != nullptr)
     {
         const FString Identity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(CreditedAttacker->GetPlayerState());
-        if (!Identity.IsEmpty() && !PopulationSaveGame->TryQueuePendingPeatHuskReward(PersistentSpawnId, Identity))
-            return false;
+        if (!Identity.IsEmpty())
+        {
+            bool bFoundExistingClaim = false;
+            bool bHasPeatHeart = false;
+            for (const FKalmalaPendingWildlifeReward& Existing : PopulationSaveGame->GetPendingWildlifeRewards())
+            {
+                FString ExistingSpawnId;
+                bool bExistingHasPeatHeart = false;
+                if (UKalmalaWorldPopulationSaveGame::TryGetPeatHuskSpawnIdFromPendingRewardClaimId(
+                        Existing.PersistentSpawnId, ExistingSpawnId, bExistingHasPeatHeart)
+                    && ExistingSpawnId == PersistentSpawnId)
+                {
+                    bFoundExistingClaim = true;
+                    bHasPeatHeart = bExistingHasPeatHeart;
+                    break;
+                }
+            }
+            if (!bFoundExistingClaim) bHasPeatHeart = FMath::FRand() < 0.25f;
+            if (!PopulationSaveGame->TryQueuePendingPeatHuskReward(PersistentSpawnId, Identity, bHasPeatHeart))
+                return false;
+        }
     }
 
     PopulationSaveGame->MarkDefeated(PersistentSpawnId);
@@ -2877,9 +2902,10 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
             UKalmalaWorldPopulationSaveGame::TryGetDeathAdderSpawnIdFromPendingRewardClaimId(
                 Reward.PersistentSpawnId, DeathAdderSpawnId);
         FString PeatHuskSpawnId;
+        bool bPeatHuskHasHeart = false;
         const bool bPeatHuskReward =
             UKalmalaWorldPopulationSaveGame::TryGetPeatHuskSpawnIdFromPendingRewardClaimId(
-                Reward.PersistentSpawnId, PeatHuskSpawnId);
+                Reward.PersistentSpawnId, PeatHuskSpawnId, bPeatHuskHasHeart);
         FString WolfSpawnId;
         const bool bWolfReward = UKalmalaWorldPopulationSaveGame::TryGetWolfSpawnIdFromPendingRewardClaimId(
             Reward.PersistentSpawnId, WolfSpawnId);
@@ -2932,7 +2958,17 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
             FString Reason;
             if (bPeatHuskReward)
             {
-                if (!UKalmalaInventoryComponent::BuildGrant(Before, TEXT("Amber"), 1, Candidate, Reason)) break;
+                TArray<FKalmalaInventoryStack> WithAmber;
+                if (!UKalmalaInventoryComponent::BuildGrant(Before, TEXT("Amber"), 1, WithAmber, Reason)) break;
+                if (bPeatHuskHasHeart)
+                {
+                    if (!UKalmalaInventoryComponent::BuildGrant(
+                            WithAmber, TEXT("PeatHeart"), 1, Candidate, Reason)) break;
+                }
+                else
+                {
+                    Candidate = MoveTemp(WithAmber);
+                }
             }
             else if (bThunderSentinelReward)
             {

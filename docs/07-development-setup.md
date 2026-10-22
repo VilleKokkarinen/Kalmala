@@ -2466,10 +2466,12 @@ After an editor build, run
 the complete seeded Mossy Mire distribution, Peat Husk biome/habitat exclusion,
 the reviewed profile, attack timing and approach tuning, server-only sweep
 validation at 260 cm and its 120-degree forward arc, and the owner-bound Amber
-claim's identity, idempotency, ownership, save serialization and cleanup. They
-do not replace live hard-spawn exclusion, sweep damage, inventory-capacity,
-reconnect/restart or relevant-peer acceptance. Peat Heart remains disabled
-pending its separate A8b item/source work. No Unreal build or automation
+claim's identity, idempotency, ownership, saved Peat Heart/no-heart outcomes,
+serialization and cleanup. The server rolls once at the approved 25% rate;
+the source regression covers saved outcomes, full-pack and partial-bundle
+deferral, and retry after two cells are freed. These checks do not replace live
+hard-spawn exclusion, sweep damage, inventory-capacity, reconnect/restart or
+relevant-peer acceptance. No Unreal build or automation
 execution ran in this normal increment; combined A8a/A8b I4 remains required.
 
 ## Freezing Tundra Wolf pack contract regression

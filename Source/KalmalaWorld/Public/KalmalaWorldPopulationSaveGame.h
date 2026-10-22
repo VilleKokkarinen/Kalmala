@@ -11,6 +11,7 @@ struct KALMALAWORLD_API FKalmalaPendingWildlifeReward
     GENERATED_BODY()
 
     // Rat claims keep the raw ID; named species prefix stable IDs by reward type.
+    // Peat Husk IDs also retain its one-time Peat Heart roll outcome.
     UPROPERTY(SaveGame) FString PersistentSpawnId;
     UPROPERTY(SaveGame) FString PlayerIdentity;
 };
@@ -47,10 +48,11 @@ public:
     static FString MakeDeathAdderPendingRewardClaimId(const FString& PersistentSpawnId);
     static bool TryGetDeathAdderSpawnIdFromPendingRewardClaimId(
         const FString& ClaimId, FString& OutPersistentSpawnId);
-    bool TryQueuePendingPeatHuskReward(const FString& PersistentSpawnId, const FString& PlayerIdentity);
-    static FString MakePeatHuskPendingRewardClaimId(const FString& PersistentSpawnId);
+    bool TryQueuePendingPeatHuskReward(
+        const FString& PersistentSpawnId, const FString& PlayerIdentity, bool bHasPeatHeart);
+    static FString MakePeatHuskPendingRewardClaimId(const FString& PersistentSpawnId, bool bHasPeatHeart);
     static bool TryGetPeatHuskSpawnIdFromPendingRewardClaimId(
-        const FString& ClaimId, FString& OutPersistentSpawnId);
+        const FString& ClaimId, FString& OutPersistentSpawnId, bool& OutHasPeatHeart);
     bool TryQueuePendingWolfReward(const FString& PersistentSpawnId, const FString& PlayerIdentity);
     static FString MakeWolfPendingRewardClaimId(const FString& PersistentSpawnId);
     static bool TryGetWolfSpawnIdFromPendingRewardClaimId(

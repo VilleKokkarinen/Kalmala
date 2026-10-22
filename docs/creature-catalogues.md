@@ -96,9 +96,11 @@ Peat Husk uses its reviewed 300-health, 50-armor, 150-Crush profile and the
 existing original peat-and-wood procedural silhouette. The server keeps it on
 dry Mossy Mire ground, excludes its hard spawn from within 150 m of the player
 start, and controls a slow close sweep with a one-second warning, 260 cm reach,
-120-degree forward arc, and 1.2-second recovery. Defeats queue one Amber for
-the authenticated owner in the existing population-save escrow. The Peat
-Heart drop remains disabled pending its separate A8b item/source work.
+120-degree forward arc, and 1.2-second recovery. Each credited defeat queues
+one baseline Amber and makes a server-side 25% roll for one Peat Heart. The
+outcome is encoded in the authenticated owner's durable population-save claim,
+so retry and reload preserve it; awarded Amber and Peat Heart are committed
+together when inventory capacity permits.
 Freezing Tundra Wolf (250 health, 40 armor, 100 Slash) occupies the seeded 20%
 Wolf slots. The server places each pack in a deterministic, seed-rotated
 three-member triangle with a 240 cm radius, requiring every member to stay in

@@ -8,6 +8,8 @@ namespace
     constexpr TCHAR GiantSnakeRewardClaimPrefix[] = TEXT("giantsnake-reward|");
     constexpr TCHAR DeathAdderRewardClaimPrefix[] = TEXT("deathadder-reward|");
     constexpr TCHAR PeatHuskRewardClaimPrefix[] = TEXT("peathusk-reward|");
+    constexpr TCHAR PeatHeartRewardSuffix[] = TEXT("|heart");
+    constexpr TCHAR NoPeatHeartRewardSuffix[] = TEXT("|noheart");
     constexpr TCHAR WolfRewardClaimPrefix[] = TEXT("wolf-reward|");
     constexpr TCHAR LynxRewardClaimPrefix[] = TEXT("lynx-reward|");
     constexpr TCHAR PolarBearRewardClaimPrefix[] = TEXT("polarbear-reward|");
@@ -217,29 +219,63 @@ bool UKalmalaWorldPopulationSaveGame::TryGetDeathAdderSpawnIdFromPendingRewardCl
 }
 
 bool UKalmalaWorldPopulationSaveGame::TryQueuePendingPeatHuskReward(
-    const FString& PersistentSpawnId, const FString& PlayerIdentity)
+    const FString& PersistentSpawnId, const FString& PlayerIdentity, const bool bHasPeatHeart)
 {
-    const FString ClaimId = MakePeatHuskPendingRewardClaimId(PersistentSpawnId);
+    if (PersistentSpawnId.IsEmpty() || PlayerIdentity.IsEmpty() || PlayerIdentity.Len() > 128) return false;
+
+    for (const FKalmalaPendingWildlifeReward& Existing : PendingWildlifeRewards)
+    {
+        FString ExistingSpawnId;
+        bool bExistingHasPeatHeart = false;
+        if (TryGetPeatHuskSpawnIdFromPendingRewardClaimId(
+                Existing.PersistentSpawnId, ExistingSpawnId, bExistingHasPeatHeart)
+            && ExistingSpawnId == PersistentSpawnId)
+        {
+            return Existing.PlayerIdentity == PlayerIdentity;
+        }
+    }
+
+    const FString ClaimId = MakePeatHuskPendingRewardClaimId(PersistentSpawnId, bHasPeatHeart);
     return !ClaimId.IsEmpty() && TryQueuePendingWildlifeReward(ClaimId, PlayerIdentity);
 }
 
-FString UKalmalaWorldPopulationSaveGame::MakePeatHuskPendingRewardClaimId(const FString& PersistentSpawnId)
+FString UKalmalaWorldPopulationSaveGame::MakePeatHuskPendingRewardClaimId(
+    const FString& PersistentSpawnId, const bool bHasPeatHeart)
 {
     const int32 PrefixLength = UE_ARRAY_COUNT(PeatHuskRewardClaimPrefix) - 1;
-    if (PersistentSpawnId.IsEmpty() || PersistentSpawnId.Len() > 128 - PrefixLength) return FString();
-    return FString(PeatHuskRewardClaimPrefix) + PersistentSpawnId;
+    const TCHAR* Suffix = bHasPeatHeart ? PeatHeartRewardSuffix : NoPeatHeartRewardSuffix;
+    const int32 SuffixLength = FCString::Strlen(Suffix);
+    if (PersistentSpawnId.IsEmpty() || PersistentSpawnId.Contains(TEXT("|"), ESearchCase::CaseSensitive)
+        || PersistentSpawnId.Len() > 128 - PrefixLength - SuffixLength) return FString();
+    return FString(PeatHuskRewardClaimPrefix) + PersistentSpawnId + Suffix;
 }
 
 bool UKalmalaWorldPopulationSaveGame::TryGetPeatHuskSpawnIdFromPendingRewardClaimId(
-    const FString& ClaimId, FString& OutPersistentSpawnId)
+    const FString& ClaimId, FString& OutPersistentSpawnId, bool& OutHasPeatHeart)
 {
     OutPersistentSpawnId.Reset();
+    OutHasPeatHeart = false;
     const int32 PrefixLength = UE_ARRAY_COUNT(PeatHuskRewardClaimPrefix) - 1;
     if (!ClaimId.StartsWith(PeatHuskRewardClaimPrefix, ESearchCase::CaseSensitive)
         || ClaimId.Len() <= PrefixLength || ClaimId.Len() > 128) return false;
 
-    OutPersistentSpawnId = ClaimId.RightChop(PrefixLength);
-    return !OutPersistentSpawnId.IsEmpty();
+    FString EncodedSpawnId = ClaimId.RightChop(PrefixLength);
+    const int32 PeatHeartSuffixLength = FCString::Strlen(PeatHeartRewardSuffix);
+    const int32 NoPeatHeartSuffixLength = FCString::Strlen(NoPeatHeartRewardSuffix);
+    if (EncodedSpawnId.EndsWith(PeatHeartRewardSuffix, ESearchCase::CaseSensitive))
+    {
+        OutHasPeatHeart = true;
+        EncodedSpawnId = EncodedSpawnId.Left(EncodedSpawnId.Len() - PeatHeartSuffixLength);
+    }
+    else if (EncodedSpawnId.EndsWith(NoPeatHeartRewardSuffix, ESearchCase::CaseSensitive))
+    {
+        EncodedSpawnId = EncodedSpawnId.Left(EncodedSpawnId.Len() - NoPeatHeartSuffixLength);
+    }
+    // Unsuffixed claims predate this drop and retain their original baseline-only reward.
+    if (EncodedSpawnId.IsEmpty() || EncodedSpawnId.Contains(TEXT("|"), ESearchCase::CaseSensitive)) return false;
+
+    OutPersistentSpawnId = MoveTemp(EncodedSpawnId);
+    return true;
 }
 
 bool UKalmalaWorldPopulationSaveGame::TryQueuePendingWolfReward(

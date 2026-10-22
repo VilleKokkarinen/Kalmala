@@ -1,6 +1,8 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "KalmalaWildlifeSpawn.h"
+#include "KalmalaInventoryComponent.h"
+#include "KalmalaItemCatalogue.h"
 #include "KalmalaWorldPopulationSaveGame.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/AutomationTest.h"
@@ -108,18 +110,44 @@ bool FKalmalaWildlifePeatHuskContractTest::RunTest(const FString& Parameters)
             TNumericLimits<float>::QuietNaN(), 1.0f));
 
     const FString SpawnId(TEXT("-4/9/3/12877"));
-    const FString ClaimId = UKalmalaWorldPopulationSaveGame::MakePeatHuskPendingRewardClaimId(SpawnId);
+    const FString NoHeartSpawnId(TEXT("-4/9/3/12878"));
+    const FString ClaimId = UKalmalaWorldPopulationSaveGame::MakePeatHuskPendingRewardClaimId(SpawnId, true);
     FString DecodedSpawnId;
+    bool bDecodedHasPeatHeart = false;
     TestTrue(TEXT("A Peat Husk defeat receives a namespaced claim"), !ClaimId.IsEmpty());
     TestTrue(TEXT("The claim decodes the stable spawn identity"),
         UKalmalaWorldPopulationSaveGame::TryGetPeatHuskSpawnIdFromPendingRewardClaimId(
-            ClaimId, DecodedSpawnId));
+            ClaimId, DecodedSpawnId, bDecodedHasPeatHeart));
     TestEqual(TEXT("Claim decoding preserves the spawn identity"), DecodedSpawnId, SpawnId);
+    TestTrue(TEXT("The saved claim preserves the successful Peat Heart roll"), bDecodedHasPeatHeart);
+    const FString NoHeartClaimId =
+        UKalmalaWorldPopulationSaveGame::MakePeatHuskPendingRewardClaimId(NoHeartSpawnId, false);
+    TestTrue(TEXT("A missed drop gets a stable baseline-only claim"), !NoHeartClaimId.IsEmpty());
+    FString DecodedNoHeartSpawnId;
+    bool bDecodedNoHeart = true;
+    TestTrue(TEXT("The baseline-only claim decodes"),
+        UKalmalaWorldPopulationSaveGame::TryGetPeatHuskSpawnIdFromPendingRewardClaimId(
+            NoHeartClaimId, DecodedNoHeartSpawnId, bDecodedNoHeart));
+    TestEqual(TEXT("The baseline-only claim preserves its spawn identity"), DecodedNoHeartSpawnId, NoHeartSpawnId);
+    TestFalse(TEXT("A missed Peat Heart roll stays baseline-only"), bDecodedNoHeart);
     TestTrue(TEXT("Empty Peat Husk spawn IDs are rejected"),
-        UKalmalaWorldPopulationSaveGame::MakePeatHuskPendingRewardClaimId(FString()).IsEmpty());
+        UKalmalaWorldPopulationSaveGame::MakePeatHuskPendingRewardClaimId(FString(), false).IsEmpty());
+    TestTrue(TEXT("Peat Husk spawn IDs cannot contain the claim separator"),
+        UKalmalaWorldPopulationSaveGame::MakePeatHuskPendingRewardClaimId(TEXT("spawn|id"), false).IsEmpty());
+    const FString LegacyClaimId = FString(TEXT("peathusk-reward|")) + SpawnId;
+    bool bLegacyClaimHasPeatHeart = true;
+    TestTrue(TEXT("An existing unsuffixed claim remains readable"),
+        UKalmalaWorldPopulationSaveGame::TryGetPeatHuskSpawnIdFromPendingRewardClaimId(
+            LegacyClaimId, DecodedSpawnId, bLegacyClaimHasPeatHeart));
+    TestEqual(TEXT("A legacy claim retains its spawn identity"), DecodedSpawnId, SpawnId);
+    TestFalse(TEXT("A legacy claim does not invent a Peat Heart roll"), bLegacyClaimHasPeatHeart);
+    TestFalse(TEXT("Unexpected Peat Husk claim suffixes are rejected"),
+        UKalmalaWorldPopulationSaveGame::TryGetPeatHuskSpawnIdFromPendingRewardClaimId(
+            FString(TEXT("peathusk-reward|")) + SpawnId + TEXT("|unknown"), DecodedSpawnId,
+            bDecodedHasPeatHeart));
     TestFalse(TEXT("Other reward namespaces do not decode as Peat Husk"),
         UKalmalaWorldPopulationSaveGame::TryGetPeatHuskSpawnIdFromPendingRewardClaimId(
-            TEXT("deathadder-reward|1/2/3"), DecodedSpawnId));
+            TEXT("deathadder-reward|1/2/3"), DecodedSpawnId, bDecodedHasPeatHeart));
 
     UKalmalaWorldPopulationSaveGame* Population = NewObject<UKalmalaWorldPopulationSaveGame>();
     TestNotNull(TEXT("Population reward save fixture exists"), Population);
@@ -129,14 +157,93 @@ bool FKalmalaWildlifePeatHuskContractTest::RunTest(const FString& Parameters)
         World.WorldSeed = 418;
         Population->InitializeForWorld(World);
         Population->MarkDefeated(SpawnId);
+        Population->MarkDefeated(NoHeartSpawnId);
         TestTrue(TEXT("The Amber baseline claim is queued for its credited owner"),
-            Population->TryQueuePendingPeatHuskReward(SpawnId, TEXT("player:test")));
+            Population->TryQueuePendingPeatHuskReward(SpawnId, TEXT("player:test"), true));
         TestTrue(TEXT("Retrying for the same owner is idempotent"),
-            Population->TryQueuePendingPeatHuskReward(SpawnId, TEXT("player:test")));
+            Population->TryQueuePendingPeatHuskReward(SpawnId, TEXT("player:test"), false));
         TestFalse(TEXT("A different player cannot take the pending claim"),
-            Population->TryQueuePendingPeatHuskReward(SpawnId, TEXT("player:other")));
-        TestEqual(TEXT("Only one row remains for this defeated spawn"),
-            Population->GetPendingWildlifeRewards().Num(), 1);
+            Population->TryQueuePendingPeatHuskReward(SpawnId, TEXT("player:other"), false));
+        TestTrue(TEXT("A separate missed roll queues its baseline Amber claim"),
+            Population->TryQueuePendingPeatHuskReward(NoHeartSpawnId, TEXT("player:test"), false));
+        TestEqual(TEXT("One claim remains for each of the two defeated spawns"),
+            Population->GetPendingWildlifeRewards().Num(), 2);
+
+        TArray<FKalmalaInventoryStack> FullPack;
+        const UKalmalaItemCatalogue* Catalogue = UKalmalaItemCatalogue::Get();
+        if (Catalogue != nullptr)
+        {
+            for (const FKalmalaItemDefinition& Definition : Catalogue->Items)
+            {
+                if (Definition.ItemId.IsNone() || Definition.ItemId == TEXT("Amber")
+                    || Definition.ItemId == TEXT("PeatHeart") || Definition.MaxStack <= 0)
+                    continue;
+                FKalmalaInventoryStack Stack;
+                Stack.ItemId = Definition.ItemId;
+                Stack.Quantity = 1;
+                FullPack.Add(MoveTemp(Stack));
+                if (FullPack.Num() == UKalmalaInventoryComponent::MaxSlots) break;
+            }
+        }
+        TestEqual(TEXT("The Peat Husk capacity fixture fills all forty cells"),
+            FullPack.Num(), UKalmalaInventoryComponent::MaxSlots);
+        if (FullPack.Num() == UKalmalaInventoryComponent::MaxSlots)
+        {
+            TArray<FKalmalaInventoryStack> WithAmber;
+            TArray<FKalmalaInventoryStack> Rejected;
+            FString FailureReason;
+            TestFalse(TEXT("A full pack defers the entire Peat Husk reward"),
+                UKalmalaInventoryComponent::BuildGrant(
+                    FullPack, TEXT("Amber"), 1, WithAmber, FailureReason));
+            TestEqual(TEXT("Full-pack rejection is capacity-related"),
+                FailureReason, FString(TEXT("Pack output capacity reached")));
+
+            TArray<FKalmalaInventoryStack> NearlyFullPack = FullPack;
+            NearlyFullPack.RemoveAt(0);
+            TArray<FKalmalaInventoryStack> NearlyFullWithAmber;
+            TArray<FKalmalaInventoryStack> NearlyFullCandidate;
+            FString NearlyFullReason;
+            const bool bAmberFits = UKalmalaInventoryComponent::BuildGrant(
+                NearlyFullPack, TEXT("Amber"), 1, NearlyFullWithAmber, NearlyFullReason);
+            const bool bHeartFits = bAmberFits
+                && UKalmalaInventoryComponent::BuildGrant(
+                    NearlyFullWithAmber, TEXT("PeatHeart"), 1, NearlyFullCandidate, NearlyFullReason);
+            TestTrue(TEXT("Baseline Amber fits the one free pack cell"), bAmberFits);
+            TestFalse(TEXT("A rolled Peat Heart waits when only Amber fits"), bHeartFits);
+            TestEqual(TEXT("Partial-bundle rejection is capacity-related"),
+                NearlyFullReason, FString(TEXT("Pack output capacity reached")));
+            TestEqual(TEXT("Partial capacity retains both pending outcomes"),
+                Population->GetPendingWildlifeRewards().Num(), 2);
+
+            FullPack.RemoveAt(0, 2);
+            TArray<FKalmalaInventoryStack> RetryWithAmber;
+            TArray<FKalmalaInventoryStack> RetryCandidate;
+            FString RetryReason;
+            const bool bRetryAmberFits = UKalmalaInventoryComponent::BuildGrant(
+                FullPack, TEXT("Amber"), 1, RetryWithAmber, RetryReason);
+            const bool bRetryHeartFits = bRetryAmberFits
+                && UKalmalaInventoryComponent::BuildGrant(
+                    RetryWithAmber, TEXT("PeatHeart"), 1, RetryCandidate, RetryReason);
+            TestTrue(TEXT("Amber and the saved Peat Heart outcome fit after two cells are freed"), bRetryHeartFits);
+            if (bRetryHeartFits)
+            {
+                UKalmalaInventoryComponent* Capacity = NewObject<UKalmalaInventoryComponent>();
+                TestNotNull(TEXT("Peat Husk retry capacity validator exists"), Capacity);
+                if (Capacity != nullptr)
+                    TestTrue(TEXT("The complete bundle fits with one carried tool"),
+                        Capacity->CanFitContents(RetryCandidate, 1));
+                const FKalmalaInventoryStack* AmberStack = RetryCandidate.FindByPredicate(
+                    [](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == TEXT("Amber"); });
+                const FKalmalaInventoryStack* HeartStack = RetryCandidate.FindByPredicate(
+                    [](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == TEXT("PeatHeart"); });
+                TestTrue(TEXT("Retry candidate contains the baseline Amber"),
+                    AmberStack != nullptr && AmberStack->Quantity == 1);
+                TestTrue(TEXT("Retry candidate contains one Peat Heart"),
+                    HeartStack != nullptr && HeartStack->Quantity == 1);
+            }
+            TestEqual(TEXT("Preparing the rolled retry retains both claims"),
+                Population->GetPendingWildlifeRewards().Num(), 2);
+        }
 
         TArray<uint8> Bytes;
         TestTrue(TEXT("The claim serializes with the existing population save"),
@@ -147,12 +254,28 @@ bool FKalmalaWildlifePeatHuskContractTest::RunTest(const FString& Parameters)
         if (Reloaded != nullptr && !Reloaded->GetPendingWildlifeRewards().IsEmpty())
         {
             TestTrue(TEXT("Reload preserves the defeated spawn"), Reloaded->IsDefeated(SpawnId));
-            TestEqual(TEXT("Reload preserves the namespaced claim"),
-                Reloaded->GetPendingWildlifeRewards()[0].PersistentSpawnId, ClaimId);
-            TestEqual(TEXT("Reload preserves the credited owner"),
-                Reloaded->GetPendingWildlifeRewards()[0].PlayerIdentity, FString(TEXT("player:test")));
+            TestTrue(TEXT("Reload preserves the second defeated spawn"), Reloaded->IsDefeated(NoHeartSpawnId));
+            const FKalmalaPendingWildlifeReward* HeartClaim = Reloaded->GetPendingWildlifeRewards().FindByPredicate(
+                [&ClaimId](const FKalmalaPendingWildlifeReward& Reward) { return Reward.PersistentSpawnId == ClaimId; });
+            TestNotNull(TEXT("Reload preserves the claim with its Peat Heart outcome"), HeartClaim);
+            if (HeartClaim != nullptr)
+            {
+                TestEqual(TEXT("Reload preserves the credited owner"),
+                    HeartClaim->PlayerIdentity, FString(TEXT("player:test")));
+            }
+            const FKalmalaPendingWildlifeReward* NoHeartClaim =
+                Reloaded->GetPendingWildlifeRewards().FindByPredicate(
+                    [&NoHeartClaimId](const FKalmalaPendingWildlifeReward& Reward)
+                    { return Reward.PersistentSpawnId == NoHeartClaimId; });
+            TestNotNull(TEXT("Reload preserves the baseline-only outcome"), NoHeartClaim);
+            TestEqual(TEXT("Reload retains the heart-bearing claim ID"),
+                HeartClaim != nullptr ? HeartClaim->PersistentSpawnId : FString(), ClaimId);
+            TestEqual(TEXT("Reload retains the baseline-only claim ID"),
+                NoHeartClaim != nullptr ? NoHeartClaim->PersistentSpawnId : FString(), NoHeartClaimId);
             TestTrue(TEXT("The delivered claim can be removed after successful delivery"),
                 Reloaded->RemovePendingWildlifeReward(ClaimId));
+            TestTrue(TEXT("The baseline-only claim can be removed after delivery"),
+                Reloaded->RemovePendingWildlifeReward(NoHeartClaimId));
             TestEqual(TEXT("Successful delivery cleanup leaves no claim"),
                 Reloaded->GetPendingWildlifeRewards().Num(), 0);
         }
