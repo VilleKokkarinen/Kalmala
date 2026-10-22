@@ -43,14 +43,7 @@ stats, spawn weights and loot below remain task-level implementation details.
 
 ## Unique drops
 
-**A8b review outcome (2026-10-21).** The 15 A8b material amounts and chances
-below match the user-edited A8b backlog rows and are the source values for this
-queue. Roll once on the server per credited defeat; award the amount only on
-success, in addition to baseline loot. These unique materials come only from
-their named enemies. Their acquisition is not reachable until the matching
-A8a enemy and credited-defeat reward are implemented and accepted. Sinew stays
-in A0; Moonstone and Dusk Diamond routes stay in A9 and are not duplicated in
-A8b.
+**A8a review and A8b item contract (2026-10-22).** Use one server-owned roll per credited defeat and award the listed amount only on success, in addition to baseline loot. The creature profiles match all 18 rows below. A8a approved the 15 A8b material identities, named sources, amounts, chances, and intended-use links. A8b recipe costs, effects, and full equipment profiles are recorded in [the item contract](alpha-item-details.md#a8b). Sinew stays in A0; Moonstone and Dusk Diamond routes stay in A9. Unique means a characteristic drop, not an exclusive source for shared Sinew. Material acquisition remains unreachable until its named A8a enemy and credited-defeat reward are implemented and accepted.
 
 | Enemy            | Unique drop        | Amount / chance | Intended use              |
 | ---------------- | ------------------ | --------------- | ------------------------- |
@@ -69,19 +62,21 @@ A8b.
 | Wolf             | Wolf Meat          | 1 / 100%        | Cooking component         |
 | Lynx             | Lynx Pelt          | 1 / 50%         | Armor/Weapon component    |
 | Polar Bear       | Polar Bear Pelt    | 2 / 100%        | Heavy armor component     |
-| Horned Goat      | Goat Horn          | 1 / 100%        | multi-use component       |
+| Horned Goat      | Goat Horn          | 1 / 100%        | Horn Bow component        |
 | Thunder Sentinel | Thunder Core       | 1 / 25%         | Lightning gear component  |
 | Reef Maw         | Reef Tooth         | 1 / 50%         | Harpoon component         |
 
-New materials are exclusive to their named enemy in this proposal. No shared
+New A8b materials are exclusive to their named enemy. No shared
 venom/pelt substitution, gem conversion or automatic new equipment recipe.
 Keep existing gem odds independent of baseline loot. Server owns rolls and
 stable claims; full packs preserve unclaimed rewards, and retries/reloads
 cannot reroll or duplicate them. Every new material requires its registered
-catalogue definition and original generated icon. Proposed uses need separate
-reviewed recipes/effects. The approved scope includes Lightning gear, the
-Harpoon and the full Reef Maw route. Cold-protection clothing remains
-explicitly deferred; the aquatic route adds no skiff damage.
+catalogue definition and original generated icon before its drop is enabled;
+the source enemy must also exist in runtime. This review does not activate any
+new drops. The next A8a review covers the recipe costs, effects, and full item
+profiles. The approved scope includes Lightning gear, the Harpoon and the full
+Reef Maw route. Cold-protection clothing remains explicitly deferred; the
+aquatic route adds no skiff damage.
 
 ## Recommended items and recipes
 
@@ -185,20 +180,22 @@ and original inventory icons before implementation; the uses are not recipes.
   regenerated/reloaded population candidates; seed selection cannot bypass it.
   This controls spawn origin, not a new movement barrier. Use the revised
   stats below; retain other behavior and loot. Verify biome filtering across fixed seeds.
-- Proposed selection: Meadows 90% existing roster / 10% Rat. Each other
-  land biome: 50% existing eligible roster / 40% new common enemy / 10% new
-  hard enemy. If there is no eligible existing entry, leave that share empty;
-  do not import creatures from another biome. Each new spawn is one enemy
-  actor; a mosquito spawn is one swarm actor with multiple cosmetic insects.
+- Proposed selection weights are percentages of eligible candidate slots.
+  Meadows uses 90% existing roster / 10% Rat. Each other land biome allocates
+  50% to its existing eligible roster, 40% to new common enemies, and 10% to
+  new hard enemies. If no existing entry is eligible, leave that share empty;
+  do not import creatures from another biome. Spawned actors use the existing
+  actor budget. A mosquito swarm is one gameplay actor with cosmetic insects.
 - Mirelings spawn **only in Mossy Mire**, including seeded/reloaded candidates.
   Use the same server-side spawn-origin allowlist policy as boar/deer.
-- Mossy Mire splits its common share: 50% Mireling / 20% Death Adder /
-  20% Mosquito swarm / 10% Peat Husk. Keep the existing actor budget;
-  the visual insects do not create extra gameplay actors or damage sources.
-- Freezing Tundra splits its common share: 50% existing roster / 20%
-  Wolf / 20% Lynx / 10% Polar Bear. Elderwood uses Badger for
-  its 40% common share. Wolves spawn only in Freezing Tundra, never Elderwood;
-  keep the existing actor budget and one wolf per spawn (no pack mechanic).
+- Mossy Mire uses the full 50/40/10 distribution: 50% Mireling (existing),
+  20% Death Adder, 20% Mosquito swarm, and 10% Peat Husk. These are overall
+  candidate-slot weights, not shares within the common-enemy allocation.
+- Freezing Tundra uses 50% existing eligible roster / 20% Wolf / 20% Lynx /
+  10% Polar Bear. Elderwood uses Badger for its 40% common share. Wolves spawn
+  only in Freezing Tundra, never Elderwood; each Wolf pack has three Wolves.
+  Count every pack member against the existing actor budget. Pack selection
+  and formation remain engine implementation work.
 - Ocean: use 10% of eligible aquatic candidate slots for Reef Maw; others
   stay empty. This task is blocked until aquatic navigation, combat and reward
   support are approved. It targets swimmers, never skiff hulls or occupants.

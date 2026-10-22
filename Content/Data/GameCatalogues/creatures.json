@@ -123,8 +123,7 @@
           "Quantity": 1,
           "Chance": 1.0
         }
-      ],
-      "DefensiveTriggerRangeCm": 300
+      ]
     },
     {
       "CreatureId": "Badger",
@@ -160,8 +159,7 @@
           "Quantity": 1,
           "Chance": 1.0
         }
-      ],
-      "DefensiveTriggerRangeCm": 300
+      ]
     },
     {
       "CreatureId": "MoonBear",
@@ -211,10 +209,8 @@
           "WindupSeconds": 0.5,
           "RecoverySeconds": 0.8,
           "Poison": {
-            "DamagePerTick": 1,
-            "DurationSeconds": 5,
-            "TickIntervalSeconds": 1,
-            "FirstTickDelaySeconds": 1
+            "DamagePerSecond": 1.0,
+            "DurationSeconds": 5
           }
         }
       ],
@@ -280,10 +276,8 @@
           "WindupSeconds": 0.5,
           "RecoverySeconds": 0.8,
           "Poison": {
-            "DamagePerTick": 5,
-            "DurationSeconds": 10,
-            "TickIntervalSeconds": 1,
-            "FirstTickDelaySeconds": 1
+            "DamagePerSecond": 5.0,
+            "DurationSeconds": 10
           }
         }
       ],
@@ -319,27 +313,12 @@
           "ContactRangeCm": 100,
           "MaxContactDamagePerSecond": 25,
           "Poison": {
-            "DamagePerTick": 1,
-            "DurationSeconds": 10,
-            "TickIntervalSeconds": 1,
-            "FirstTickDelaySeconds": 1
+            "DamagePerSecond": 1.0,
+            "DurationSeconds": 10
           }
         }
       ],
-      "Drops": [],
-      "Swarm": {
-        "CosmeticInsectCount": 6,
-        "MinGroundClearanceCm": 50,
-        "MaxGroundClearanceCm": 250,
-        "MaxAttackingSwarmsPerPlayer": 1,
-        "RollReacquireDelaySeconds": 2,
-        "HeldTorchAvoidanceRadiusCm": 300,
-        "PlacedFlameLightAvoidanceRadiusCm": 300,
-        "CampfireAvoidanceRadiusCm": 500,
-        "RequiresAuthoritativeActiveFlame": true,
-        "RequiresLineOfSightToFlame": true,
-        "CatchUpDamage": false
-      }
+      "Drops": []
     },
     {
       "CreatureId": "PeatHusk",
