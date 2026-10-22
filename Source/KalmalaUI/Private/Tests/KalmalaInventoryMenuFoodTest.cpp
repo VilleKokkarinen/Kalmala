@@ -46,6 +46,32 @@ bool FKalmalaInventoryMenuPreparedFoodDetailsTest::RunTest(const FString& Parame
         MenuText.Contains(TEXT("Food use is unavailable while owner data is loading.")));
 
     Menu->SetInventoryRowsForVerification({
+        {TEXT("WolfStew"), TEXT("Wolf Stew"), TEXT("× 1"), false}
+    }, 100, 0);
+    Menu->SelectItemForVerification(TEXT("WolfStew"));
+    DetailText.Reset();
+    Widgets.Reset();
+    Menu->WidgetTree->GetAllWidgets(Widgets);
+    for (UWidget* Widget : Widgets)
+    {
+        if (auto* Detail = Cast<UKalmalaItemDetailWidget>(Widget))
+        {
+            TArray<UWidget*> DetailWidgets;
+            Detail->WidgetTree->GetAllWidgets(DetailWidgets);
+            for (UWidget* DetailWidget : DetailWidgets)
+                if (const auto* Block = Cast<UTextBlock>(DetailWidget)) DetailText += Block->GetText().ToString();
+        }
+    }
+    TestTrue(TEXT("Wolf Stew detail explains the shared Steady Meal benefit"),
+        DetailText.Contains(TEXT("10% lower stamina use for 120 seconds")));
+    MenuText.Reset();
+    for (UWidget* Widget : Widgets)
+        if (const auto* Block = Cast<UTextBlock>(Widget)) MenuText += Block->GetText().ToString();
+    TestTrue(TEXT("Wolf Stew exposes the supported Eat action"), MenuText.Contains(TEXT("Eat one serving")));
+    TestTrue(TEXT("Wolf Stew use remains unavailable while owner data loads"),
+        MenuText.Contains(TEXT("Food use is unavailable while owner data is loading.")));
+
+    Menu->SetInventoryRowsForVerification({
         {TEXT("BerryRecoveryDraught"), TEXT("Berry Recovery Draught"), TEXT("× 1"), false}
     }, 100, 0);
     Menu->SelectItemForVerification(TEXT("BerryRecoveryDraught"));

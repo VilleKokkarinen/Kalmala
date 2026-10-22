@@ -112,6 +112,7 @@ bool IsCauldronMenuRecipe(const FKalmalaRecipe& Recipe)
 {
     return Recipe.RecipeId == TEXT("HearthBrothRecipe")
         || Recipe.RecipeId == TEXT("PeatHeartStewRecipe")
+        || Recipe.RecipeId == TEXT("WolfStewRecipe")
         || Recipe.RecipeId == TEXT("MeatStewRecipe")
         || Recipe.RecipeId == TEXT("RootVegetableSoupRecipe")
         || Recipe.RecipeId == TEXT("BerryRecoveryDraughtRecipe")
@@ -1763,7 +1764,7 @@ void UKalmalaCraftingWidget::ConfigureStationContextPresentation(const FString& 
     {
         if (HeaderText) HeaderText->SetText(FText::FromString(TEXT("Cauldron — Cook")));
         if (InstructionsText) InstructionsText->SetText(FText::FromString(
-            TEXT("Hearth Broth, Peat Heart Stew, Meat Stew, Root Vegetable Soup, Berry Recovery Draught, Root Stamina Draught, Rat-tail Tonic, and Antidote only. Ingredients, batch limits, result details, and live hearth heat availability are shown below.")));
+            TEXT("Hearth Broth, Peat Heart Stew, Wolf Stew, Meat Stew, Root Vegetable Soup, Berry Recovery Draught, Root Stamina Draught, Rat-tail Tonic, and Antidote only. Ingredients, batch limits, result details, and live hearth heat availability are shown below.")));
     }
     else if (bFryingPanContext)
     {
@@ -3476,6 +3477,7 @@ bool UKalmalaCraftingWidget::VerifyCauldronScopeForTest()
     const FName RatTailTonicRecipeId(TEXT("RatTailTonicRecipe"));
     const FName AntidoteRecipeId(TEXT("AntidoteRecipe"));
     const FName PeatHeartStewRecipeId(TEXT("PeatHeartStewRecipe"));
+    const FName WolfStewRecipeId(TEXT("WolfStewRecipe"));
     const FName BrothOutputId(TEXT("HearthBroth"));
     const FName StewOutputId(TEXT("MeatStew"));
     const FName SoupOutputId(TEXT("RootVegetableSoup"));
@@ -3484,6 +3486,7 @@ bool UKalmalaCraftingWidget::VerifyCauldronScopeForTest()
     const FName RatTailTonicOutputId(TEXT("RatTailTonic"));
     const FName AntidoteOutputId(TEXT("Antidote"));
     const FName PeatHeartStewOutputId(TEXT("PeatHeartStew"));
+    const FName WolfStewOutputId(TEXT("WolfStew"));
     const FKalmalaRecipe* BrothRecipe = Catalogue->Find(BrothRecipeId);
     const FKalmalaRecipe* StewRecipe = Catalogue->Find(StewRecipeId);
     const FKalmalaRecipe* SoupRecipe = Catalogue->Find(SoupRecipeId);
@@ -3492,17 +3495,18 @@ bool UKalmalaCraftingWidget::VerifyCauldronScopeForTest()
     const FKalmalaRecipe* RatTailTonicRecipe = Catalogue->Find(RatTailTonicRecipeId);
     const FKalmalaRecipe* AntidoteRecipe = Catalogue->Find(AntidoteRecipeId);
     const FKalmalaRecipe* PeatHeartStewRecipe = Catalogue->Find(PeatHeartStewRecipeId);
+    const FKalmalaRecipe* WolfStewRecipe = Catalogue->Find(WolfStewRecipeId);
     const bool bRecipesAuthored = BrothRecipe && StewRecipe && SoupRecipe && BerryDraughtRecipe
-        && RootDraughtRecipe && RatTailTonicRecipe && AntidoteRecipe && PeatHeartStewRecipe
+        && RootDraughtRecipe && RatTailTonicRecipe && AntidoteRecipe && PeatHeartStewRecipe && WolfStewRecipe
         && IsCauldronMenuRecipe(*BrothRecipe) && IsCauldronMenuRecipe(*StewRecipe) && IsCauldronMenuRecipe(*SoupRecipe)
         && IsCauldronMenuRecipe(*BerryDraughtRecipe) && IsCauldronMenuRecipe(*RootDraughtRecipe)
         && IsCauldronMenuRecipe(*RatTailTonicRecipe) && IsCauldronMenuRecipe(*AntidoteRecipe)
-        && IsCauldronMenuRecipe(*PeatHeartStewRecipe)
+        && IsCauldronMenuRecipe(*PeatHeartStewRecipe) && IsCauldronMenuRecipe(*WolfStewRecipe)
         && BrothRecipe->Output == BrothOutputId
         && StewRecipe->Output == StewOutputId && SoupRecipe->Output == SoupOutputId
         && BerryDraughtRecipe->Output == BerryDraughtOutputId && RootDraughtRecipe->Output == RootDraughtOutputId
         && RatTailTonicRecipe->Output == RatTailTonicOutputId && AntidoteRecipe->Output == AntidoteOutputId
-        && PeatHeartStewRecipe->Output == PeatHeartStewOutputId
+        && PeatHeartStewRecipe->Output == PeatHeartStewOutputId && WolfStewRecipe->Output == WolfStewOutputId
         && BrothRecipe->RequiredStation.Contains(CauldronKit)
         && StewRecipe->RequiredStation.Contains(CauldronKit)
         && SoupRecipe->RequiredStation.Contains(CauldronKit)
@@ -3510,7 +3514,8 @@ bool UKalmalaCraftingWidget::VerifyCauldronScopeForTest()
         && RootDraughtRecipe->RequiredStation.Contains(CauldronKit)
         && RatTailTonicRecipe->RequiredStation.Contains(CauldronKit)
         && AntidoteRecipe->RequiredStation.Contains(CauldronKit)
-        && PeatHeartStewRecipe->RequiredStation.Contains(CauldronKit);
+        && PeatHeartStewRecipe->RequiredStation.Contains(CauldronKit)
+        && WolfStewRecipe->RequiredStation.Contains(CauldronKit);
     const auto HasIngredient = [](const FKalmalaRecipe* Recipe, const FName ItemId, const int32 Quantity)
     {
         const FKalmalaInventoryStack* Ingredient = Recipe
@@ -3519,7 +3524,7 @@ bool UKalmalaCraftingWidget::VerifyCauldronScopeForTest()
         return Ingredient && Ingredient->Quantity == Quantity;
     };
     const bool bIngredientDefinitions = BrothRecipe && StewRecipe && SoupRecipe && BerryDraughtRecipe
-        && RootDraughtRecipe && RatTailTonicRecipe && AntidoteRecipe && PeatHeartStewRecipe
+        && RootDraughtRecipe && RatTailTonicRecipe && AntidoteRecipe && PeatHeartStewRecipe && WolfStewRecipe
         && BrothRecipe->Ingredients.Num() == 2
         && HasIngredient(BrothRecipe, TEXT("DeerMeat"), 1) && HasIngredient(BrothRecipe, TEXT("Onion"), 1)
         && StewRecipe->Ingredients.Num() == 4 && SoupRecipe->Ingredients.Num() == 4
@@ -3538,11 +3543,15 @@ bool UKalmalaCraftingWidget::VerifyCauldronScopeForTest()
         && HasIngredient(PeatHeartStewRecipe, TEXT("PeatHeart"), 1)
         && HasIngredient(PeatHeartStewRecipe, TEXT("Potato"), 2)
         && HasIngredient(PeatHeartStewRecipe, TEXT("Onion"), 1)
+        && WolfStewRecipe->Ingredients.Num() == 3
+        && HasIngredient(WolfStewRecipe, TEXT("WolfMeat"), 1)
+        && HasIngredient(WolfStewRecipe, TEXT("Carrot"), 3)
+        && HasIngredient(WolfStewRecipe, TEXT("Onion"), 3)
         && AntidoteRecipe->Ingredients.Num() == 2
         && HasIngredient(AntidoteRecipe, TEXT("VenomSac"), 1)
         && HasIngredient(AntidoteRecipe, TEXT("Lingonberry"), 2);
     const bool bQuantityDefinitions = BrothRecipe && StewRecipe && SoupRecipe && BerryDraughtRecipe
-        && RootDraughtRecipe && RatTailTonicRecipe && AntidoteRecipe && PeatHeartStewRecipe
+        && RootDraughtRecipe && RatTailTonicRecipe && AntidoteRecipe && PeatHeartStewRecipe && WolfStewRecipe
         && BrothRecipe->MaxBatch == 5 && BrothRecipe->OutputCount == 1
         && BrothRecipe->ExperienceSkill == EKalmalaSkill::Cooking && BrothRecipe->ExperienceAward == 10
         && StewRecipe->MaxBatch == 5 && SoupRecipe->MaxBatch == 5
@@ -3556,7 +3565,9 @@ bool UKalmalaCraftingWidget::VerifyCauldronScopeForTest()
         && AntidoteRecipe->MaxBatch == 5 && AntidoteRecipe->OutputCount == 1
         && AntidoteRecipe->ExperienceSkill == EKalmalaSkill::Cooking && AntidoteRecipe->ExperienceAward == 10
         && PeatHeartStewRecipe->MaxBatch == 5 && PeatHeartStewRecipe->OutputCount == 2
-        && PeatHeartStewRecipe->ExperienceSkill == EKalmalaSkill::Cooking && PeatHeartStewRecipe->ExperienceAward == 10;
+        && PeatHeartStewRecipe->ExperienceSkill == EKalmalaSkill::Cooking && PeatHeartStewRecipe->ExperienceAward == 10
+        && WolfStewRecipe->MaxBatch == 5 && WolfStewRecipe->OutputCount == 1
+        && WolfStewRecipe->ExperienceSkill == EKalmalaSkill::Cooking && WolfStewRecipe->ExperienceAward == 10;
     const FString CookSection(TEXT("Cook"));
     const bool bInteractionRoute = IsStationContextShellKit(CauldronKit)
         && IsStationContextSectionSupported(CauldronKit, CookSection)
@@ -3625,12 +3636,17 @@ bool UKalmalaCraftingWidget::VerifyCauldronScopeForTest()
     {
         return Recipes.IsValidIndex(Index) && Recipes[Index].RecipeId == PeatHeartStewRecipeId;
     });
+    const int32 WolfStewIndex = CauldronIndices.IndexOfByPredicate([&Recipes, WolfStewRecipeId](const int32 Index)
+    {
+        return Recipes.IsValidIndex(Index) && Recipes[Index].RecipeId == WolfStewRecipeId;
+    });
     Selected = StewIndex == INDEX_NONE ? 0 : StewIndex;
     Refresh();
 
-    bool bOnlyCauldronRecipes = CauldronIndices.Num() == 8 && bRecipesAuthored && bInteractionRoute
+    bool bOnlyCauldronRecipes = CauldronIndices.Num() == 9 && bRecipesAuthored && bInteractionRoute
         && BrothIndex != INDEX_NONE && BerryDraughtIndex != INDEX_NONE && RootDraughtIndex != INDEX_NONE
-        && RatTailTonicIndex != INDEX_NONE && AntidoteIndex != INDEX_NONE && PeatHeartStewIndex != INDEX_NONE;
+        && RatTailTonicIndex != INDEX_NONE && AntidoteIndex != INDEX_NONE && PeatHeartStewIndex != INDEX_NONE
+        && WolfStewIndex != INDEX_NONE;
     for (const int32 Index : CauldronIndices)
         bOnlyCauldronRecipes &= Recipes.IsValidIndex(Index) && IsCauldronMenuRecipe(Recipes[Index])
             && Recipes[Index].RequiredStation.Contains(CauldronKit);
@@ -3729,20 +3745,36 @@ bool UKalmalaCraftingWidget::VerifyCauldronScopeForTest()
     const bool bPeatHeartStewDescription = PeatHeartStewOutput && DetailText
         && DetailText->GetText().ToString() == PeatHeartStewOutput->Description;
     const bool bPeatHeartStewQuantity = PeatHeartStewRequirements.Contains(TEXT("up to 5 batches per request"));
+    Selected = WolfStewIndex == INDEX_NONE ? Selected : WolfStewIndex;
+    Refresh();
+    const FString WolfStewRequirements = RequirementText->GetText().ToString();
+    const FString WolfStewIngredients = Ingredients->GetPresentationText();
+    const bool bWolfStewCounts = WolfStewIngredients.Contains(TEXT("WolfMeat |"))
+        && WolfStewIngredients.Contains(TEXT("Carrot |")) && WolfStewIngredients.Contains(TEXT("Onion |"))
+        && WolfStewIngredients.Contains(TEXT("owned ")) && WolfStewIngredients.Contains(TEXT("/ required 1"))
+        && WolfStewIngredients.Contains(TEXT("/ required 3"));
+    const bool bWolfStewHeat = WolfStewRequirements.Contains(TEXT("Cooking heat: usable lit hearth"));
+    const FKalmalaItemDefinition* WolfStewOutput = UKalmalaItemCatalogue::Get()->FindDefinition(WolfStewOutputId);
+    const bool bWolfStewDescription = WolfStewOutput && DetailText
+        && DetailText->GetText().ToString() == WolfStewOutput->Description;
+    const bool bWolfStewQuantity = WolfStewRequirements.Contains(TEXT("up to 5 batches per request"));
     Selected = StewIndex == INDEX_NONE ? 0 : StewIndex;
     Refresh();
     const FString Status = StationContextStatusText->GetText().ToString();
     const bool bIngredientCounts = bIngredientDefinitions && bBrothCounts && bStewCounts && bSoupCounts
-        && bBerryDraughtCounts && bRootDraughtCounts && bRatTailTonicCounts && bAntidoteCounts && bPeatHeartStewCounts;
+        && bBerryDraughtCounts && bRootDraughtCounts && bRatTailTonicCounts && bAntidoteCounts
+        && bPeatHeartStewCounts && bWolfStewCounts;
     const bool bQuantity = bQuantityDefinitions && bBrothQuantity && bStewQuantity && bSoupQuantity
-        && bBerryDraughtQuantity && bRootDraughtQuantity && bRatTailTonicQuantity && bAntidoteQuantity && bPeatHeartStewQuantity;
+        && bBerryDraughtQuantity && bRootDraughtQuantity && bRatTailTonicQuantity && bAntidoteQuantity
+        && bPeatHeartStewQuantity && bWolfStewQuantity;
     const FKalmalaItemDefinition* StewOutput = UKalmalaItemCatalogue::Get()->FindDefinition(StewOutputId);
     const bool bSelectedDescription = bBrothDescription && bSoupDescription && bBerryDraughtDescription
         && bRootDraughtDescription && bRatTailTonicDescription && bAntidoteDescription && bPeatHeartStewDescription
+        && bWolfStewDescription
         && StewOutput && DetailText
         && DetailText->GetText().ToString() == StewOutput->Description;
     const bool bLiveHeatFeedback = bBrothHeat && bStewHeat && bSoupHeat && bBerryDraughtHeat
-        && bRootDraughtHeat && bRatTailTonicHeat && bAntidoteHeat && bPeatHeartStewHeat
+        && bRootDraughtHeat && bRatTailTonicHeat && bAntidoteHeat && bPeatHeartStewHeat && bWolfStewHeat
         && Status.Contains(TEXT("hearth heat"), ESearchCase::IgnoreCase);
     bool bNoUnrelatedRecipesOrActions = true;
     for (const TObjectPtr<UWidget>& ExcludedWidget : StationCraftExcludedWidgets)
@@ -3759,7 +3791,7 @@ bool UKalmalaCraftingWidget::VerifyCauldronScopeForTest()
         && StationSectionSwitcher && StationSectionSwitcher->GetVisibility() == ESlateVisibility::Collapsed;
     const bool bMenuContents = HeaderText && HeaderText->GetText().ToString() == TEXT("Cauldron — Cook")
         && InstructionsText && InstructionsText->GetText().ToString()
-            == TEXT("Hearth Broth, Peat Heart Stew, Meat Stew, Root Vegetable Soup, Berry Recovery Draught, Root Stamina Draught, Rat-tail Tonic, and Antidote only. Ingredients, batch limits, result details, and live hearth heat availability are shown below.")
+            == TEXT("Hearth Broth, Peat Heart Stew, Wolf Stew, Meat Stew, Root Vegetable Soup, Berry Recovery Draught, Root Stamina Draught, Rat-tail Tonic, and Antidote only. Ingredients, batch limits, result details, and live hearth heat availability are shown below.")
         && RecipeGrid->GetVisibility() != ESlateVisibility::Collapsed
         && Ingredients->GetVisibility() != ESlateVisibility::Collapsed
         && DetailText && DetailText->GetVisibility() != ESlateVisibility::Collapsed

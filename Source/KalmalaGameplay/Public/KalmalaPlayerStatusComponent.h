@@ -51,6 +51,7 @@ public:
     static const FName RatTailTonicItemId;
     static const FName AntidoteItemId;
     static const FName PeatHeartStewItemId;
+    static const FName WolfStewItemId;
     static const FName BerryRecoveryStatusId;
     static const FName RatTailTonicStatusId;
     static const FName DraughtCooldownStatusId;

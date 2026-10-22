@@ -19,6 +19,7 @@ const FName UKalmalaPlayerStatusComponent::RootStaminaDraughtItemId(TEXT("RootSt
 const FName UKalmalaPlayerStatusComponent::RatTailTonicItemId(TEXT("RatTailTonic"));
 const FName UKalmalaPlayerStatusComponent::AntidoteItemId(TEXT("Antidote"));
 const FName UKalmalaPlayerStatusComponent::PeatHeartStewItemId(TEXT("PeatHeartStew"));
+const FName UKalmalaPlayerStatusComponent::WolfStewItemId(TEXT("WolfStew"));
 const FName UKalmalaPlayerStatusComponent::BerryRecoveryStatusId(TEXT("State.Recovery.BerryDraught"));
 const FName UKalmalaPlayerStatusComponent::RatTailTonicStatusId(TEXT("State.Recovery.RatTailTonic"));
 const FName UKalmalaPlayerStatusComponent::DraughtCooldownStatusId(TEXT("State.Recovery.DraughtCooldown"));
@@ -95,7 +96,7 @@ bool UKalmalaPlayerStatusComponent::IsKnownFoodItem(const FName ItemId)
         || ItemId == RoastedRootVegetablesItemId || ItemId == DeerRootRoastItemId
         || ItemId == HearthBrothItemId || ItemId == LingonberryItemId
         || ItemId == ForestChanterelleItemId || ItemId == TEXT("RoastedBadger")
-        || ItemId == PeatHeartStewItemId;
+        || ItemId == PeatHeartStewItemId || ItemId == WolfStewItemId;
 }
 
 bool UKalmalaPlayerStatusComponent::ApplyFood(TArray<FKalmalaPlayerStatusEntry>& Entries, const FName ItemId)

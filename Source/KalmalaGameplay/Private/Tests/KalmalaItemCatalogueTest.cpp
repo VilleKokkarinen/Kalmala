@@ -512,6 +512,7 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         {TEXT("CookedDeerMeatRecipe"), TEXT("CookedDeerMeat")},
         {TEXT("HearthBrothRecipe"), TEXT("HearthBroth")},
         {TEXT("PeatHeartStewRecipe"), TEXT("PeatHeartStew")},
+        {TEXT("WolfStewRecipe"), TEXT("WolfStew")},
         {TEXT("MeatStewRecipe"), TEXT("MeatStew")},
         {TEXT("BerryRecoveryDraughtRecipe"), TEXT("BerryRecoveryDraught")},
         {TEXT("RootStaminaDraughtRecipe"), TEXT("RootStaminaDraught")},
@@ -533,6 +534,7 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
             : Entry.Key == FName(TEXT("HearthBrothRecipe")) || Entry.Key == FName(TEXT("MeatStewRecipe"))
                 || Entry.Key == FName(TEXT("RootVegetableSoupRecipe"))
                 || Entry.Key == FName(TEXT("PeatHeartStewRecipe"))
+                || Entry.Key == FName(TEXT("WolfStewRecipe"))
                 || Entry.Key == FName(TEXT("BerryRecoveryDraughtRecipe"))
                 || Entry.Key == FName(TEXT("RootStaminaDraughtRecipe"))
                 || Entry.Key == FName(TEXT("RatTailTonicRecipe"))
@@ -566,6 +568,27 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         TestTrue(TEXT("Peat Heart Stew recipe awards Cooking experience"),
             PeatHeartStewRecipe->ExperienceSkill == EKalmalaSkill::Cooking);
         TestEqual(TEXT("Peat Heart Stew recipe awards ten Cooking experience"), PeatHeartStewRecipe->ExperienceAward, 10);
+    }
+
+    const FKalmalaRecipe* WolfStewRecipe = Recipes->Find(TEXT("WolfStewRecipe"));
+    if (TestNotNull(TEXT("Wolf Stew Cauldron recipe exists"), WolfStewRecipe))
+    {
+        const auto HasIngredient = [WolfStewRecipe](const FName ItemId, const int32 Quantity)
+        {
+            const FKalmalaInventoryStack* Ingredient = WolfStewRecipe->Ingredients.FindByPredicate(
+                [ItemId](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == ItemId; });
+            return Ingredient && Ingredient->Quantity == Quantity;
+        };
+        TestEqual(TEXT("Wolf Stew recipe has three ingredients"), WolfStewRecipe->Ingredients.Num(), 3);
+        TestTrue(TEXT("Wolf Stew costs one Wolf Meat, three Carrots, and three Onions"),
+            HasIngredient(TEXT("WolfMeat"), 1) && HasIngredient(TEXT("Carrot"), 3) && HasIngredient(TEXT("Onion"), 3));
+        TestEqual(TEXT("Wolf Stew recipe creates one serving"), WolfStewRecipe->OutputCount, 1);
+        TestEqual(TEXT("Wolf Stew recipe caps batches at five"), WolfStewRecipe->MaxBatch, 5);
+        TestTrue(TEXT("Wolf Stew recipe requires the Cauldron"),
+            WolfStewRecipe->RequiredStation.Contains(TEXT("CauldronKit")));
+        TestTrue(TEXT("Wolf Stew recipe awards Cooking experience"),
+            WolfStewRecipe->ExperienceSkill == EKalmalaSkill::Cooking);
+        TestEqual(TEXT("Wolf Stew recipe awards ten Cooking experience"), WolfStewRecipe->ExperienceAward, 10);
     }
 
     const FKalmalaItemDefinition* BerryRecoveryDraught = Catalogue->FindItem(TEXT("BerryRecoveryDraught"));

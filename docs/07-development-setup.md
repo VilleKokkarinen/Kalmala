@@ -4141,23 +4141,25 @@ the full rendered menu matrix during M12 milestone-final verification.
 
 ## M12 Cauldron menu
 
-The Cauldron opens the shared station shell in Cook with Hearth Broth, Meat Stew,
-Root Vegetable Soup, Berry Recovery Draught, Root Stamina Draught, and Rat-tail
-Tonic. Each
-selection shows its owner-visible ingredient counts, existing one-batch-per-press
-and five-batch request limit, selected result description, and live hearth-heat availability. Expired station context disables
-Cook and sends no recipe request; the server's existing recipe-ID request and
-station, heat, cost, capacity, and exchange validation remain authoritative.
+The Cauldron opens the shared station shell in Cook with Hearth Broth, Peat
+Heart Stew, Wolf Stew, Meat Stew, Root Vegetable Soup, Berry Recovery Draught,
+Root Stamina Draught, Rat-tail Tonic, and Antidote. Each selection shows its
+owner-visible ingredient counts, existing one-batch-per-press and five-batch
+request limit, selected result description, and live hearth-heat availability.
+Expired station context disables Cook and sends no recipe request; the server's
+existing recipe-ID request and station, heat, cost, capacity, and exchange
+validation remain authoritative.
 
 `Verify-Crafting.ps1` expects `Cauldron scope: Recipes=1 Ingredients=1
 Quantity=1 Description=1 Heat=1 NoUnrelated=1 StaleNoRequest=1 UiScope=1` on
-both peers. The focused UI marker checks the six catalogue recipes, including
-Hearth Broth's Deer Meat and Onion cost plus all three draught recipes, and their
-ingredient counts, quantity limits, selected descriptions, heat requirement/status, hidden unrelated
-actions, and stale-context request suppression. `Verify-PresentationOwnership.ps1`
-checks the Cauldron recipe filter, owner-local availability read, and existing
-ID/batch request route. Run the prepared checks with the full rendered menu
-matrix during M12 milestone-final verification.
+both peers. The focused UI marker checks all nine catalogue recipes, including
+the exact Hearth Broth, Peat Heart Stew, Wolf Stew and draught ingredients,
+quantity limits, selected descriptions, heat requirement/status, hidden
+unrelated actions, and stale-context request suppression.
+`Verify-PresentationOwnership.ps1` checks the Cauldron recipe filter,
+owner-local availability read, and existing ID/batch request route. Run the
+prepared checks with the full rendered menu matrix during M12 milestone-final
+verification.
 
 ## M12 Frying Pan menu
 
@@ -5521,3 +5523,23 @@ values. After an editor build, run
 by `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id FangSpear`. These new
 C++ assertions remain uncompiled/unexecuted in this normal child; combined
 A8a/A8b I4 is still required.
+
+## A8b Wolf Stew item coverage — 2026-10-22
+
+`WolfStew` is a registered prepared food crafted at the Cauldron from one Wolf
+Meat, three Carrots and three Onions for one serving. The recipe allows up to
+five batches, awards ten Cooking experience per batch and requires a usable lit
+hearth; the accepted owner-bound Wolf reward supplies one guaranteed Wolf Meat
+per credited defeat. The server's shared food transaction consumes one serving
+only when no Steady Meal is active, then applies the existing 120-second,
+10%-lower stamina-use effect without stacking. Inventory details expose the
+same Eat action as other prepared meals.
+
+The item regression covers its exact recipe and station, and the Cauldron scope
+acceptance includes Wolf Stew's ingredients, batch limit, description and live
+hearth requirement. `Kalmala.Gameplay.Status.SteadyMeal` covers accepted server
+use and client rejection; `Kalmala.UI.Inventory.PreparedFoodDetails` covers its
+owner-facing effect and action. The original imported icon is covered by
+`Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id WolfStew`. The focused C++
+sources remain uncompiled/unexecuted in this normal child; combined A8a/A8b I4
+is still required.

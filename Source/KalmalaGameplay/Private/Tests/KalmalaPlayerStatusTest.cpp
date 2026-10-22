@@ -166,7 +166,7 @@ bool FKalmalaSteadyMealStatusTest::RunTest(const FString& Parameters)
     const FName CurrentCookingOutputs[] = {
         FName(TEXT("CookedBoarMeat")), FName(TEXT("CookedDeerMeat")), FName(TEXT("MeatStew")),
         FName(TEXT("RootVegetableSoup")), FName(TEXT("RoastedRootVegetables")), FName(TEXT("DeerRootRoast")),
-        FName(TEXT("RoastedBadger")), FName(TEXT("PeatHeartStew"))
+        FName(TEXT("RoastedBadger")), FName(TEXT("PeatHeartStew")), FName(TEXT("WolfStew"))
     };
     for (const FName FoodId : CurrentCookingOutputs)
     {
@@ -245,6 +245,19 @@ bool FKalmalaSteadyMealStatusTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Client request preserves the Peat Heart Stew serving"), Inventory->GetQuantity(TEXT("PeatHeartStew")), 1);
     TestEqual(TEXT("Client request preserves the active meal timer"),
         Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId), MealTimeBeforeDuplicate);
+    Pawn->SetRole(ROLE_Authority);
+    Status->AdvanceFromServer(UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);
+    TestTrue(TEXT("Food transaction fixture grants Wolf Stew"), Inventory->TryGrantFromServer(TEXT("WolfStew"), 1));
+    TestTrue(TEXT("Server food transaction consumes and applies Wolf Stew"), Crafting->ConsumeFoodFromServer(TEXT("WolfStew"), Reason));
+    TestEqual(TEXT("Accepted Wolf Stew consumes exactly one serving"), Inventory->GetQuantity(TEXT("WolfStew")), 0);
+    TestEqual(TEXT("Accepted Wolf Stew applies the fixed meal duration"),
+        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId),
+        UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);
+    Pawn->SetRole(ROLE_AutonomousProxy);
+    TestFalse(TEXT("Client cannot consume Wolf Stew through the server transaction"), Crafting->ConsumeFoodFromServer(TEXT("WolfStew"), Reason));
+    TestEqual(TEXT("Client Wolf Stew request preserves the meal timer"),
+        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId),
+        UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);
     World->DestroyWorld(false);
     return true;
 }
