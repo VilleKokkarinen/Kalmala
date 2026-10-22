@@ -205,7 +205,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [x] Freezing Tundra: Lynx
   - [x] Freezing Tundra: Polar Bear — rare hard enemy;
   - [x] Thunder Mountains: Horned Goat — knockback attack
-  - [ ] Thunder Mountains: Thunder Sentinel — rare hard enemy;
+  - [x] Thunder Mountains: Thunder Sentinel — rare hard enemy;
   - [ ] Ocean: Reef Maw — rare hard underwater enemy;
 
 - [ ] **A8b — Enemy materials and crafted items (P1/P2).** [Recipes](docs/biome-enemies.md#recommended-items-and-recipes)

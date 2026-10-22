@@ -2528,6 +2528,20 @@ and relevant-peer appearance remain part of combined A8a/A8b I4. Goat Horn
 remains disabled pending A8b. No Unreal build or automation execution ran in
 this normal increment.
 
+## Thunder Sentinel contract regression
+
+After an editor build, run
+`Kalmala.Gameplay.Wildlife.ThunderSentinel.MountainSlamAndRewardClaim`.
+It checks the seeded 40/10/50 Thunder Mountains candidate shares and biome
+exclusivity, dry traversable habitat, the 1250/75/300 profile, the inclusive
+300 cm horizontal server-only slam boundary, one-second warning, 120 cm short
+step, 1.2-second recovery, 25 m leash, 150 m hard-enemy start exclusion, and
+owner-bound three-Stone claim serialization. Contract coverage does not replace
+live terrain/pathing, attack rejection, full-inventory retry, reconnect/restart
+or relevant-peer presentation in combined A8a/A8b I4. Thunder Core remains
+disabled pending A8b. No Unreal build or automation execution ran in this
+normal increment.
+
 ## Exposure inspection
 
 Launch a listen server with `-KalmalaExposureInspection` to log server-sampled terrain and field inputs plus the active replicated weather values and provisional exposure state. Once a player joins, the output includes continuous low-ground wetness, deterministic lake-adjacency shoreline wetness, ridge/slope wind exposure, Flora-derived natural cover, and server-traced roof/windbreak shelter inputs. Player-built collision geometry must carry `KalmalaShelterRoof` or `KalmalaShelterWindbreak`; authored volumes and client trace results are ignored. The weather cycle is selected and advanced only by the server. Every second, the server replicates actual wetness, warmth, and the resulting 69–100% Character Movement travel multiplier; shelter dries and restores warmth slowly when dry, while a nearby lit fire accelerates recovery.

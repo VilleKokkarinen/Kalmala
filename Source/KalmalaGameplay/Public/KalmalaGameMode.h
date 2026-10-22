@@ -65,6 +65,7 @@ public:
     bool RecordLynxDefeatReward(const FString& PersistentSpawnId, class AKalmalaCharacter* CreditedAttacker);
     bool RecordPolarBearDefeatReward(const FString& PersistentSpawnId, class AKalmalaCharacter* CreditedAttacker);
     bool RecordHornedGoatDefeatReward(const FString& PersistentSpawnId, class AKalmalaCharacter* CreditedAttacker);
+    bool RecordThunderSentinelDefeatReward(const FString& PersistentSpawnId, class AKalmalaCharacter* CreditedAttacker);
     bool PersistPlayerStateFromServer(class AKalmalaCharacter* Character,
         const FString& AdditionalDiscoveryId = FString(), const FString& AdditionalLearnedEffectId = FString(),
         const FString& AdditionalM9ClaimId = FString());

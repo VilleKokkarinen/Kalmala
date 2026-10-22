@@ -50,7 +50,7 @@ Lynx fills the next two seeded Tundra slots with a dry-ground pounce, a
 | Lynx                | Freezing Tundra                        | Partial          |  150 |   30  | 75 Slash     | 20% dry-ground slots; 350 cm leap; 0.5 s warning; 0.8 s hit / 1.2 s miss recovery; queued 2 Bone Fragment; I4 pending |
 | Polar Bear          | Freezing Tundra                        | Partial          |  750 |   60  | 200 Crush    | 10% hard slot; 1 s warning; 220 cm charge; retreat; queued 3 Bone Fragment; I4 pending |
 | Horned Goat         | Thunder Mountains                      | Partial          |  200 |   50  | 50 Crush     | 40% dry-ground slots; 0.5 s telegraph; 180 cm horn hit; up to 250 cm push and 0.75 s stagger; queued 2 Bone Fragment; I4 pending |
-| Thunder Sentinel    | Thunder Mountains                      | Planned          |  1250|   75  | 300 Crush    | Slow downward slam                  |
+| Thunder Sentinel    | Thunder Mountains                      | Partial          | 1250 |   75  | 300 Crush    | 10% dry-ground hard slot; 150 m start exclusion; 1 s warning, 120 cm step, 300 cm horizontal slam; 1.2 s recovery; queued 3 Stone; I4 pending |
 | Reef Maw            | Ocean                                  | Planned          |  180 |   2   | 50 Stab      | Swimmer hunter                      |
 
 Mireling uses the reviewed 75-health, 15-armor, 20-Crush profile. Its
@@ -340,6 +340,12 @@ and original inventory icons before implementation; the uses are not recipes.
   cannot fit completely. Wolf selection and formation are implemented; the
   rare Polar Bear now occupies the final 10% hard share; the existing 50% share
   stays empty because no current baseline species is eligible in Tundra.
+- Thunder Mountains uses 40% Horned Goat, 10% Thunder Sentinel, and leaves
+  the existing 50% share empty. Both species require dry traversable mountain
+  ground; the hard Sentinel also uses the shared 150 m generated-start exclusion.
+  Its server-owned one-second warning includes a short step before a single
+  downward hit checked against the user-confirmed 300 cm horizontal reach;
+  credited defeats queue three Stone for the authenticated owner.
 - Ocean: use 10% of eligible aquatic candidate slots for Reef Maw; others
   stay empty. This task is blocked until aquatic navigation, combat and reward
   support are approved. It targets swimmers, never skiff hulls or occupants.

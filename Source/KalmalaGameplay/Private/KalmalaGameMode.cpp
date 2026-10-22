@@ -130,7 +130,8 @@ namespace KalmalaGameMode
                 && !FKalmalaShimmeringLakeSampler::IsWater(Config, Position)
                 && FKalmalaTerrainHeightSampler::SampleSurfaceNormal(Config, Position).Z >= 0.82f;
         }
-        if (OutArchetype == EKalmalaWildlifeArchetype::HornedGoat)
+        if (OutArchetype == EKalmalaWildlifeArchetype::HornedGoat
+            || OutArchetype == EKalmalaWildlifeArchetype::ThunderSentinel)
         {
             const bool bWater = FKalmalaOceanSampler::Sample(Config, Position).IsWater()
                 || FKalmalaShimmeringLakeSampler::IsWater(Config, Position);
@@ -2304,13 +2305,15 @@ void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey)
                 {
                     continue;
                 }
-                constexpr float HardEnemyStartExclusionCentimetres = 15000.0f;
-                if ((Archetype == EKalmalaWildlifeArchetype::GiantSnake
+                const bool bHardEnemy = Archetype == EKalmalaWildlifeArchetype::GiantSnake
                     || Archetype == EKalmalaWildlifeArchetype::MoonBear
                     || Archetype == EKalmalaWildlifeArchetype::PeatHusk
-                    || Archetype == EKalmalaWildlifeArchetype::PolarBear) && GeneratedPlayerStart != nullptr
-                    && FVector::DistSquared2D(Spawn.Location, GeneratedPlayerStart->GetActorLocation())
-                        < FMath::Square(HardEnemyStartExclusionCentimetres))
+                    || Archetype == EKalmalaWildlifeArchetype::PolarBear
+                    || Archetype == EKalmalaWildlifeArchetype::ThunderSentinel;
+                const float StartDistance = GeneratedPlayerStart != nullptr
+                    ? FVector::Dist2D(Spawn.Location, GeneratedPlayerStart->GetActorLocation()) : 0.0f;
+                if (!AKalmalaWildlifeSpawn::IsHardEnemySpawnAllowedByStart(
+                        bHardEnemy, GeneratedPlayerStart != nullptr, StartDistance))
                 {
                     continue;
                 }
@@ -2799,6 +2802,25 @@ bool AKalmalaGameMode::RecordHornedGoatDefeatReward(const FString& PersistentSpa
         KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
 }
 
+bool AKalmalaGameMode::RecordThunderSentinelDefeatReward(const FString& PersistentSpawnId,
+    AKalmalaCharacter* CreditedAttacker)
+{
+    if (!HasAuthority() || PersistentSpawnId.IsEmpty() || PopulationSaveGame == nullptr
+        || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
+
+    if (IsValid(CreditedAttacker) && CreditedAttacker->HasAuthority()
+        && CreditedAttacker->GetWorld() == GetWorld() && CreditedAttacker->GetPlayerState() != nullptr)
+    {
+        const FString Identity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(CreditedAttacker->GetPlayerState());
+        if (!Identity.IsEmpty() && !PopulationSaveGame->TryQueuePendingThunderSentinelReward(
+                PersistentSpawnId, Identity)) return false;
+    }
+
+    PopulationSaveGame->MarkDefeated(PersistentSpawnId);
+    return UGameplayStatics::SaveGameToSlot(PopulationSaveGame,
+        KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+}
+
 void AKalmalaGameMode::DeliverPendingWildlifeRewards()
 {
     if (!HasAuthority() || GetWorld() == nullptr || PopulationSaveGame == nullptr
@@ -2845,6 +2867,10 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
         const bool bHornedGoatReward =
             UKalmalaWorldPopulationSaveGame::TryGetHornedGoatSpawnIdFromPendingRewardClaimId(
                 Reward.PersistentSpawnId, HornedGoatSpawnId);
+        FString ThunderSentinelSpawnId;
+        const bool bThunderSentinelReward =
+            UKalmalaWorldPopulationSaveGame::TryGetThunderSentinelSpawnIdFromPendingRewardClaimId(
+                Reward.PersistentSpawnId, ThunderSentinelSpawnId);
         FString DefeatedSpawnId = Reward.PersistentSpawnId;
         if (bBadgerReward) DefeatedSpawnId = BadgerSpawnId;
         else if (bMoonBearReward) DefeatedSpawnId = MoonBearSpawnId;
@@ -2856,6 +2882,7 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
         else if (bLynxReward) DefeatedSpawnId = LynxSpawnId;
         else if (bPolarBearReward) DefeatedSpawnId = PolarBearSpawnId;
         else if (bHornedGoatReward) DefeatedSpawnId = HornedGoatSpawnId;
+        else if (bThunderSentinelReward) DefeatedSpawnId = ThunderSentinelSpawnId;
         if (!PopulationSaveGame->IsDefeated(DefeatedSpawnId)) continue;
 
         for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
@@ -2875,6 +2902,12 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
             if (bPeatHuskReward)
             {
                 if (!UKalmalaInventoryComponent::BuildGrant(Before, TEXT("Amber"), 1, Candidate, Reason)) break;
+            }
+            else if (bThunderSentinelReward)
+            {
+                if (!UKalmalaInventoryComponent::BuildGrant(Before, TEXT("Stone"),
+                        AKalmalaWildlifeSpawn::GetStoneRewardQuantityForArchetype(
+                            EKalmalaWildlifeArchetype::ThunderSentinel), Candidate, Reason)) break;
             }
             else
             {

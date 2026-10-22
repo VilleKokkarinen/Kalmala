@@ -216,6 +216,11 @@ void AKalmalaWildlifeSpawn::InitializeServer(const FKalmalaWorldPopulationSpawn&
         HornedGoatAttackCue = static_cast<uint8>(EKalmalaWildlifeAttackCue::None);
         HornedGoatAttackTarget.Reset();
         HornedGoatAttackSecondsRemaining = 0.0f;
+        ThunderSentinelAttackCue = static_cast<uint8>(EKalmalaWildlifeAttackCue::None);
+        ThunderSentinelAttackTarget.Reset();
+        ThunderSentinelAttackSecondsRemaining = 0.0f;
+        ThunderSentinelStepDistanceRemaining = 0.0f;
+        bThunderSentinelSlamHitApplied = false;
         WolfAttackCue = static_cast<uint8>(EKalmalaWildlifeAttackCue::None);
         WolfAttackTarget.Reset();
         WolfAttackSecondsRemaining = 0.0f;
@@ -397,6 +402,21 @@ int32 AKalmalaWildlifeSpawn::GetBoneFragmentRewardQuantity(const EKalmalaWildlif
     }
 }
 
+int32 AKalmalaWildlifeSpawn::GetStoneRewardQuantityForArchetype(
+    const EKalmalaWildlifeArchetype InArchetype)
+{
+    return InArchetype == EKalmalaWildlifeArchetype::ThunderSentinel
+        ? ThunderSentinelStoneRewardQuantity : 0;
+}
+
+bool AKalmalaWildlifeSpawn::IsHardEnemySpawnAllowedByStart(const bool bHardEnemy,
+    const bool bHasGeneratedPlayerStart, const float DistanceCentimetres)
+{
+    if (!bHardEnemy || !bHasGeneratedPlayerStart) return true;
+    return FMath::IsFinite(DistanceCentimetres)
+        && DistanceCentimetres >= HardEnemyStartExclusionCentimetres;
+}
+
 bool AKalmalaWildlifeSpawn::IsDefeatAllowed(const bool bServerAuthority, const bool bAlreadyDefeated)
 {
     return bServerAuthority && !bAlreadyDefeated;
@@ -461,6 +481,13 @@ bool AKalmalaWildlifeSpawn::DefeatServer()
         AKalmalaGameMode* Mode = GetWorld() != nullptr
             ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
         if (Mode == nullptr || !Mode->RecordHornedGoatDefeatReward(
+                PersistentSpawnId, LastValidatedAttacker.Get())) return false;
+    }
+    else if (Archetype == EKalmalaWildlifeArchetype::ThunderSentinel)
+    {
+        AKalmalaGameMode* Mode = GetWorld() != nullptr
+            ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
+        if (Mode == nullptr || !Mode->RecordThunderSentinelDefeatReward(
                 PersistentSpawnId, LastValidatedAttacker.Get())) return false;
     }
     else if (Archetype == EKalmalaWildlifeArchetype::PeatHusk)
@@ -670,6 +697,14 @@ bool AKalmalaWildlifeSpawn::IsThunderMountainsSpawnHabitatAllowed(
     return Biome == EKalmalaBiome::ThunderMountains && !bIsWater && bTraversable;
 }
 
+bool AKalmalaWildlifeSpawn::IsThunderSentinelSlamInReach(const bool bServerAuthority,
+    const bool bValidTarget, const float HorizontalDistanceCentimetres)
+{
+    return bServerAuthority && bValidTarget && FMath::IsFinite(HorizontalDistanceCentimetres)
+        && HorizontalDistanceCentimetres >= 0.0f
+        && HorizontalDistanceCentimetres <= ThunderSentinelSlamReachCentimetres;
+}
+
 bool AKalmalaWildlifeSpawn::TryGetSpawnArchetypeForBiome(const uint64 SpawnSeed, const EKalmalaBiome Biome,
     EKalmalaWildlifeArchetype& OutArchetype)
 {
@@ -778,6 +813,12 @@ bool AKalmalaWildlifeSpawn::TryGetSpawnArchetypeForBiome(const uint64 SpawnSeed,
         return true;
     }
 
+    if (Biome == EKalmalaBiome::ThunderMountains && Slot == 9)
+    {
+        OutArchetype = EKalmalaWildlifeArchetype::ThunderSentinel;
+        return true;
+    }
+
     // Unsupported biomes produce no wildlife candidates.
     return false;
 }
@@ -817,6 +858,7 @@ void AKalmalaWildlifeSpawn::Tick(const float DeltaSeconds)
         else if (Archetype == EKalmalaWildlifeArchetype::PolarBear) UpdatePolarBearAttack(DeltaSeconds);
         else if (Archetype == EKalmalaWildlifeArchetype::MoonBear) UpdateMoonBearAttack(DeltaSeconds);
         else if (Archetype == EKalmalaWildlifeArchetype::HornedGoat) UpdateHornedGoatAttack(DeltaSeconds);
+        else if (Archetype == EKalmalaWildlifeArchetype::ThunderSentinel) UpdateThunderSentinelAttack(DeltaSeconds);
         else if (Archetype == EKalmalaWildlifeArchetype::PeatHusk) UpdatePeatHuskAttack(DeltaSeconds);
         else if (Archetype == EKalmalaWildlifeArchetype::Viper
             || Archetype == EKalmalaWildlifeArchetype::GiantSnake
@@ -2268,6 +2310,198 @@ bool AKalmalaWildlifeSpawn::CanHornedGoatMoveAlong(const FVector& Start, const F
     return true;
 }
 
+bool AKalmalaWildlifeSpawn::IsThunderSentinelPositionTraversable(const FVector& Position) const
+{
+    if (Position.ContainsNaN() || GetWorld() == nullptr) return false;
+    const AKalmalaWorldGenerationGameState* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
+    if (State == nullptr) return false;
+    const FKalmalaWorldGenerationConfig& Config = State->GetWorldGenerationConfig();
+    const FVector2D XY(Position);
+    const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, XY));
+    const bool bWater = FKalmalaOceanSampler::Sample(Config, XY).IsWater()
+        || FKalmalaShimmeringLakeSampler::IsWater(Config, XY);
+    const bool bTraversable = FKalmalaWorldBounds::Contains(Config, XY)
+        && FKalmalaTerrainHeightSampler::SampleSurfaceNormal(Config, XY).Z >= 0.82f;
+    return IsThunderMountainsSpawnHabitatAllowed(Biome, bWater, bTraversable);
+}
+
+bool AKalmalaWildlifeSpawn::CanThunderSentinelMoveAlong(const FVector& Start, const FVector& End) const
+{
+    const float Distance = FVector::Dist2D(Start, End);
+    const int32 Samples = FMath::Max(1, FMath::CeilToInt(Distance / 80.0f));
+    for (int32 Index = 0; Index <= Samples; ++Index)
+    {
+        const FVector Position = FMath::Lerp(Start, End, static_cast<float>(Index) / Samples);
+        if (!IsThunderSentinelPositionTraversable(Position)) return false;
+    }
+    return true;
+}
+
+void AKalmalaWildlifeSpawn::UpdateThunderSentinelAttack(const float DeltaSeconds)
+{
+    if (!HasAuthority() || bDefeated || Behaviour != EKalmalaWildlifeBehaviour::Idle || GetWorld() == nullptr) return;
+    const float StepSeconds = FMath::Clamp(FMath::IsFinite(DeltaSeconds) ? DeltaSeconds : 0.0f, 0.0f, 0.10f);
+    EKalmalaWildlifeAttackCue Cue = static_cast<EKalmalaWildlifeAttackCue>(ThunderSentinelAttackCue);
+    AKalmalaCharacter* Target = ThunderSentinelAttackTarget.Get();
+
+    if (Cue != EKalmalaWildlifeAttackCue::None && !IsThunderSentinelAttackTargetValid(Target))
+    {
+        ThunderSentinelAttackTarget.Reset();
+        ThunderSentinelAttackSecondsRemaining = 0.0f;
+        ThunderSentinelStepDistanceRemaining = 0.0f;
+        bThunderSentinelSlamHitApplied = false;
+        SetThunderSentinelAttackCue(EKalmalaWildlifeAttackCue::None);
+        Cue = EKalmalaWildlifeAttackCue::None;
+        Target = nullptr;
+    }
+    else if (Target != nullptr && !IsThunderSentinelAttackTargetValid(Target))
+    {
+        ThunderSentinelAttackTarget.Reset();
+        ThunderSentinelAttackSecondsRemaining = 0.0f;
+        ThunderSentinelStepDistanceRemaining = 0.0f;
+        Target = nullptr;
+    }
+
+    if (Cue == EKalmalaWildlifeAttackCue::None && Target == nullptr)
+    {
+        float BestDistanceSquared = FMath::Square(ThunderSentinelAttackTriggerCentimetres);
+        for (TActorIterator<AKalmalaCharacter> It(GetWorld()); It; ++It)
+        {
+            AKalmalaCharacter* Candidate = *It;
+            if (!IsThunderSentinelAttackTargetValid(Candidate)) continue;
+            const float DistanceSquared = FVector::DistSquared2D(GetActorLocation(), Candidate->GetActorLocation());
+            if (DistanceSquared < BestDistanceSquared)
+            {
+                BestDistanceSquared = DistanceSquared;
+                Target = Candidate;
+            }
+        }
+        if (Target != nullptr) BeginThunderSentinelAttack(Target);
+        return;
+    }
+    if (Target == nullptr) return;
+
+    const FVector ToTarget = Target->GetActorLocation() - GetActorLocation();
+    FVector Direction = ToTarget.GetSafeNormal2D();
+    if (Direction.IsNearlyZero()) Direction = GetActorForwardVector().GetSafeNormal2D();
+    if (Direction.IsNearlyZero()) return;
+    SetActorRotation(FRotationMatrix::MakeFromX(Direction).Rotator());
+
+    if (Cue == EKalmalaWildlifeAttackCue::Telegraph)
+    {
+        const float Distance = ToTarget.Size2D();
+        const float MoveDistance = FMath::Min3(ThunderSentinelStepDistanceRemaining,
+            ThunderSentinelStepSpeedCentimetresPerSecond * StepSeconds,
+            FMath::Max(0.0f, Distance - ThunderSentinelSlamReachCentimetres));
+        if (MoveDistance > 0.0f)
+        {
+            FVector End = GetActorLocation() + Direction * MoveDistance;
+            if (const AKalmalaWorldGenerationGameState* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>())
+                End.Z = FKalmalaTerrainHeightSampler::SampleHeight(State->GetWorldGenerationConfig(), FVector2D(End));
+            if (CanThunderSentinelMoveAlong(GetActorLocation(), End))
+            {
+                SetActorLocation(End, true);
+                ThunderSentinelStepDistanceRemaining -= MoveDistance;
+            }
+            else
+            {
+                ThunderSentinelStepDistanceRemaining = 0.0f;
+            }
+        }
+
+        ThunderSentinelAttackSecondsRemaining -= StepSeconds;
+        if (ThunderSentinelAttackSecondsRemaining <= 0.0f)
+        {
+            ThunderSentinelAttackSecondsRemaining = ThunderSentinelSlamCueSeconds;
+            bThunderSentinelSlamHitApplied = false;
+            SetThunderSentinelAttackCue(EKalmalaWildlifeAttackCue::Lunge);
+        }
+        return;
+    }
+
+    if (Cue == EKalmalaWildlifeAttackCue::Lunge)
+    {
+        if (!bThunderSentinelSlamHitApplied)
+        {
+            bThunderSentinelSlamHitApplied = true;
+            TryApplyThunderSentinelSlam(Target);
+        }
+        ThunderSentinelAttackSecondsRemaining -= StepSeconds;
+        if (ThunderSentinelAttackSecondsRemaining <= 0.0f)
+        {
+            ThunderSentinelAttackSecondsRemaining = ThunderSentinelRecoverySeconds;
+            SetThunderSentinelAttackCue(EKalmalaWildlifeAttackCue::Recovery);
+        }
+        return;
+    }
+
+    if (Cue == EKalmalaWildlifeAttackCue::Recovery)
+    {
+        ThunderSentinelAttackSecondsRemaining -= StepSeconds;
+        if (ThunderSentinelAttackSecondsRemaining <= 0.0f)
+        {
+            ThunderSentinelAttackSecondsRemaining = 0.0f;
+            ThunderSentinelAttackTarget.Reset();
+            ThunderSentinelStepDistanceRemaining = 0.0f;
+            bThunderSentinelSlamHitApplied = false;
+            SetThunderSentinelAttackCue(EKalmalaWildlifeAttackCue::None);
+        }
+    }
+}
+
+void AKalmalaWildlifeSpawn::BeginThunderSentinelAttack(AKalmalaCharacter* Target)
+{
+    if (!HasAuthority() || bDefeated || !IsThunderSentinelAttackTargetValid(Target)
+        || FVector::DistSquared2D(GetActorLocation(), Target->GetActorLocation())
+            > FMath::Square(ThunderSentinelAttackTriggerCentimetres)) return;
+    const FVector Direction = (Target->GetActorLocation() - GetActorLocation()).GetSafeNormal2D();
+    if (!Direction.IsNearlyZero()) SetActorRotation(FRotationMatrix::MakeFromX(Direction).Rotator());
+    ThunderSentinelAttackTarget = Target;
+    ThunderSentinelAttackSecondsRemaining = ThunderSentinelTelegraphSeconds;
+    ThunderSentinelStepDistanceRemaining = ThunderSentinelStepDistanceCentimetres;
+    bThunderSentinelSlamHitApplied = false;
+    SetThunderSentinelAttackCue(EKalmalaWildlifeAttackCue::Telegraph);
+}
+
+void AKalmalaWildlifeSpawn::SetThunderSentinelAttackCue(const EKalmalaWildlifeAttackCue NextCue)
+{
+    if (!HasAuthority()) return;
+    const uint8 NextValue = static_cast<uint8>(NextCue);
+    if (ThunderSentinelAttackCue == NextValue) return;
+    ThunderSentinelAttackCue = NextValue;
+    BuildArchetypePresentation();
+    ForceNetUpdate();
+}
+
+bool AKalmalaWildlifeSpawn::IsThunderSentinelAttackTargetValid(const AKalmalaCharacter* Target) const
+{
+    if (!HasAuthority() || bDefeated || Archetype != EKalmalaWildlifeArchetype::ThunderSentinel
+        || GetWorld() == nullptr || !IsValid(Target) || !Target->HasAuthority()
+        || Target->GetWorld() != GetWorld() || Target->GetAttachParentActor() != nullptr
+        || !FMath::IsFinite(Target->GetHealth()) || Target->GetHealth() <= 1.0f
+        || FVector::DistSquared2D(Target->GetActorLocation(), SpawnOrigin)
+            > FMath::Square(ThunderSentinelSpawnLeashCentimetres)
+        || FVector::DistSquared2D(GetActorLocation(), SpawnOrigin)
+            > FMath::Square(ThunderSentinelSpawnLeashCentimetres)
+        || !CanThunderSentinelMoveAlong(GetActorLocation(), Target->GetActorLocation())) return false;
+
+    FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(KalmalaThunderSentinelSlamVisibility), true);
+    QueryParams.AddIgnoredActor(this);
+    FHitResult Blocker;
+    const FVector Start = GetActorLocation() + FVector(0.0f, 0.0f, 240.0f);
+    const FVector End = Target->GetActorLocation() + FVector(0.0f, 0.0f, 48.0f);
+    return !GetWorld()->LineTraceSingleByChannel(Blocker, Start, End, ECC_Visibility, QueryParams)
+        || Blocker.GetActor() == Target;
+}
+
+bool AKalmalaWildlifeSpawn::TryApplyThunderSentinelSlam(AKalmalaCharacter* Target)
+{
+    if (!IsThunderSentinelAttackTargetValid(Target)
+        || !IsThunderSentinelSlamInReach(HasAuthority(), true,
+            FVector::Dist2D(GetActorLocation(), Target->GetActorLocation()))) return false;
+    return Target->ApplyWildlifeDamageFromServer(this, GetBaseAttackChannelsForArchetype(Archetype));
+}
+
 void AKalmalaWildlifeSpawn::UpdatePeatHuskAttack(const float DeltaSeconds)
 {
     if (Behaviour != EKalmalaWildlifeBehaviour::Idle || GetWorld() == nullptr) return;
@@ -2960,7 +3194,8 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
     MirelingMesh->ClearAllMeshSections();
     if (USphereComponent* RootSphere = Cast<USphereComponent>(GetRootComponent()))
         RootSphere->SetSphereRadius(Archetype == EKalmalaWildlifeArchetype::MosquitoSwarm ? 28.0f
-            : (Archetype == EKalmalaWildlifeArchetype::Rat ? 42.0f : 70.0f), true);
+            : (Archetype == EKalmalaWildlifeArchetype::Rat ? 42.0f
+                : (Archetype == EKalmalaWildlifeArchetype::ThunderSentinel ? 180.0f : 70.0f)), true);
     const bool bSnake = Archetype == EKalmalaWildlifeArchetype::Viper
         || Archetype == EKalmalaWildlifeArchetype::GiantSnake
         || Archetype == EKalmalaWildlifeArchetype::DeathAdder;
@@ -3383,6 +3618,69 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
         AddTetraPoints(FVector(89,-6,HeadZ - 11.0f), FVector(89,6,HeadZ - 11.0f),
             FVector(95,-7,HeadZ - 35.0f), FVector(95,7,HeadZ - 35.0f), Coat);
     }
+    else if (Archetype == EKalmalaWildlifeArchetype::ThunderSentinel)
+    {
+        const EKalmalaWildlifeAttackCue Cue = static_cast<EKalmalaWildlifeAttackCue>(ThunderSentinelAttackCue);
+        const bool bWarning = Cue == EKalmalaWildlifeAttackCue::Telegraph;
+        const bool bSlamming = Cue == EKalmalaWildlifeAttackCue::Lunge;
+        const FLinearColor StoneBase(0.24f, 0.30f, 0.34f);
+        const FLinearColor StoneLight(0.40f, 0.47f, 0.49f);
+        const FLinearColor StoneShadow(0.12f, 0.17f, 0.21f);
+        const FLinearColor ThunderVein(0.18f, 0.66f, 0.79f);
+        const FLinearColor Warning(0.98f, 0.59f, 0.14f);
+        const float ShoulderZ = bWarning ? 304.0f : 274.0f;
+        const float RaisedFistZ = bWarning ? 416.0f : (bSlamming ? 18.0f : 192.0f);
+        const float RaisedFistX = bSlamming ? 188.0f : 108.0f;
+
+        // An original towering stone silhouette uses broad plates, split feet,
+        // cyan mineral seams, and a raised-then-descending arm for the slam cue.
+        AddTetraPoints(FVector(-196,-98,132), FVector(-196,98,132),
+            FVector(128,-106,154), FVector(128,106,154), StoneShadow);
+        AddTetraPoints(FVector(-151,-112,166), FVector(-151,112,166),
+            FVector(98,-121,205), FVector(98,121,205), StoneBase);
+        AddTetraPoints(FVector(-104,-99,203), FVector(-104,99,203),
+            FVector(62,-92,ShoulderZ - 14.0f), FVector(62,92,ShoulderZ - 14.0f), StoneLight);
+        AddTetraPoints(FVector(10,-72,208), FVector(10,72,208),
+            FVector(98,-58,210), FVector(98,58,210), StoneBase);
+        AddTetraPoints(FVector(20,-73,207), FVector(20,73,207),
+            FVector(62,-39,287), FVector(62,39,287), StoneLight);
+        AddTetraPoints(FVector(60,-43,265), FVector(60,43,265),
+            FVector(115,-35,258), FVector(115,35,258), StoneShadow);
+        AddTetraPoints(FVector(18,-105,ShoulderZ - 36.0f), FVector(18,-8,ShoulderZ - 38.0f),
+            FVector(84,-88,ShoulderZ + 26.0f), FVector(83,-25,ShoulderZ + 22.0f), StoneLight);
+        AddTetraPoints(FVector(40,-93,ShoulderZ + 10.0f), FVector(85,-80,ShoulderZ - 6.0f),
+            FVector(RaisedFistX,-105,RaisedFistZ + 30.0f), FVector(RaisedFistX,-59,RaisedFistZ + 18.0f),
+            bWarning ? Warning : StoneBase);
+        AddTetraPoints(FVector(RaisedFistX - 19.0f,-110,RaisedFistZ - 14.0f),
+            FVector(RaisedFistX + 19.0f,-110,RaisedFistZ - 14.0f),
+            FVector(RaisedFistX - 13.0f,-64,RaisedFistZ + 21.0f),
+            FVector(RaisedFistX + 13.0f,-64,RaisedFistZ + 21.0f), bSlamming ? Warning : StoneLight);
+        AddTetraPoints(FVector(-138,-94,166), FVector(-138,94,166),
+            FVector(-117,-75,54), FVector(-117,75,54), StoneBase);
+        AddTetraPoints(FVector(-91,-78,151), FVector(-91,78,151),
+            FVector(-70,-60,38), FVector(-70,60,38), StoneLight);
+        AddTetraPoints(FVector(73,-74,159), FVector(73,74,159),
+            FVector(91,-52,46), FVector(91,52,46), StoneBase);
+        AddTetraPoints(FVector(112,-55,141), FVector(112,55,141),
+            FVector(130,-39,32), FVector(130,39,32), StoneLight);
+        for (const float Side : {-1.0f, 1.0f})
+        {
+            AddTetraPoints(FVector(61,Side * 31.0f,274), FVector(76,Side * 29.0f,274),
+                FVector(75,Side * 32.0f,287), FVector(60,Side * 33.0f,286), bWarning ? Warning : ThunderVein);
+            AddTetraPoints(FVector(89,Side * 23.0f,252), FVector(101,Side * 22.0f,252),
+                FVector(100,Side * 24.0f,263), FVector(88,Side * 25.0f,262), StoneShadow);
+            AddTetraPoints(FVector(-91,Side * 78.0f,38), FVector(-70,Side * 60.0f,38),
+                FVector(-57,Side * 61.0f,0), FVector(-105,Side * 86.0f,0), StoneShadow);
+            AddTetraPoints(FVector(73,Side * 74.0f,46), FVector(91,Side * 52.0f,46),
+                FVector(104,Side * 55.0f,0), FVector(59,Side * 82.0f,0), StoneShadow);
+        }
+        if (bSlamming)
+        {
+            // A bright fist at the ground makes the one-hit impact phase visible to clients.
+            AddTetraPoints(FVector(166,-114,5), FVector(210,-114,5),
+                FVector(167,-59,32), FVector(208,-60,31), Warning);
+        }
+    }
     else if (Archetype == EKalmalaWildlifeArchetype::Wolf)
     {
         const EKalmalaWildlifeAttackCue Cue = static_cast<EKalmalaWildlifeAttackCue>(WolfAttackCue);
@@ -3776,6 +4074,7 @@ void AKalmalaWildlifeSpawn::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
     DOREPLIFETIME(AKalmalaWildlifeSpawn, LynxAttackCue);
     DOREPLIFETIME(AKalmalaWildlifeSpawn, PolarBearAttackCue);
     DOREPLIFETIME(AKalmalaWildlifeSpawn, HornedGoatAttackCue);
+    DOREPLIFETIME(AKalmalaWildlifeSpawn, ThunderSentinelAttackCue);
     DOREPLIFETIME(AKalmalaWildlifeSpawn, MoonBearAttackCue);
     DOREPLIFETIME(AKalmalaWildlifeSpawn, PeatHuskAttackCue);
 }
@@ -3829,6 +4128,11 @@ void AKalmalaWildlifeSpawn::OnRep_HornedGoatAttackCue()
     BuildArchetypePresentation();
 }
 
+void AKalmalaWildlifeSpawn::OnRep_ThunderSentinelAttackCue()
+{
+    BuildArchetypePresentation();
+}
+
 void AKalmalaWildlifeSpawn::OnRep_MoonBearAttackCue()
 {
     BuildArchetypePresentation();
@@ -3878,6 +4182,11 @@ void AKalmalaWildlifeSpawn::ApplyDefeatedState()
         HornedGoatAttackTarget.Reset();
         HornedGoatAttackSecondsRemaining = 0.0f;
         SetHornedGoatAttackCue(EKalmalaWildlifeAttackCue::None);
+        ThunderSentinelAttackTarget.Reset();
+        ThunderSentinelAttackSecondsRemaining = 0.0f;
+        ThunderSentinelStepDistanceRemaining = 0.0f;
+        bThunderSentinelSlamHitApplied = false;
+        SetThunderSentinelAttackCue(EKalmalaWildlifeAttackCue::None);
         GrantDefeatReward();
     }
 }
@@ -3918,8 +4227,8 @@ void AKalmalaWildlifeSpawn::GrantDefeatReward()
     {
         Inventory->TryGrantFromServer(TEXT("BoneFragment"), BoneFragmentQuantity);
     }
-    // Credited Rat, Badger, bear, snake, Wolf, Lynx, Goat and Peat Husk rewards use
-    // the persistent queue recorded before defeated state is replicated.
+    // Credited Rat, Badger, bear, snake, Wolf, Lynx, Goat, Sentinel and Peat Husk
+    // rewards use the persistent queue recorded before defeated state is replicated.
 
     if (Archetype == EKalmalaWildlifeArchetype::Mireling && IsMirelingBossRewardCandidate())
     {

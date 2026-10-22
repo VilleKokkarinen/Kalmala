@@ -106,6 +106,10 @@ public:
     static float GetBaseAttackDamageForArchetype(EKalmalaWildlifeArchetype Archetype);
     static FKalmalaDamageChannels GetBaseAttackChannelsForArchetype(EKalmalaWildlifeArchetype Archetype);
     static int32 GetBoneFragmentRewardQuantity(EKalmalaWildlifeArchetype Archetype);
+    static int32 GetStoneRewardQuantityForArchetype(EKalmalaWildlifeArchetype Archetype);
+    static constexpr float HardEnemyStartExclusionCentimetres = 15000.0f;
+    static bool IsHardEnemySpawnAllowedByStart(bool bHardEnemy, bool bHasGeneratedPlayerStart,
+        float DistanceCentimetres);
     // Server-owned repeat-hit interval keeps optional Mireling pressure readable.
     static constexpr float MirelingMeleeCooldownSeconds = 1.25f;
     static constexpr float DeerCallInfluenceDurationSeconds = 180.0f;
@@ -189,6 +193,17 @@ public:
     static constexpr float HornedGoatPushCentimetres = 250.0f;
     static constexpr float HornedGoatStaggerSeconds = 0.75f;
     static bool IsHornedGoatHornInReach(bool bServerAuthority, bool bValidTarget, float DistanceCentimetres);
+    static constexpr float ThunderSentinelAttackTriggerCentimetres = 420.0f;
+    static constexpr float ThunderSentinelSlamReachCentimetres = 300.0f;
+    static constexpr float ThunderSentinelStepDistanceCentimetres = 120.0f;
+    static constexpr float ThunderSentinelStepSpeedCentimetresPerSecond = 120.0f;
+    static constexpr float ThunderSentinelTelegraphSeconds = 1.0f;
+    static constexpr float ThunderSentinelSlamCueSeconds = 0.16f;
+    static constexpr float ThunderSentinelRecoverySeconds = 1.2f;
+    static constexpr float ThunderSentinelSpawnLeashCentimetres = 2500.0f;
+    static constexpr int32 ThunderSentinelStoneRewardQuantity = 3;
+    static bool IsThunderSentinelSlamInReach(bool bServerAuthority, bool bValidTarget,
+        float HorizontalDistanceCentimetres);
     static constexpr float PeatHuskAttackTriggerCentimetres = 500.0f;
     static constexpr float PeatHuskSweepReachCentimetres = 260.0f;
     static constexpr float PeatHuskSweepMinimumForwardDot = 0.5f;
@@ -269,6 +284,13 @@ private:
     bool TryApplyHornedGoatCharge(class AKalmalaCharacter* Target);
     bool IsHornedGoatPositionTraversable(const FVector& Position) const;
     bool CanHornedGoatMoveAlong(const FVector& Start, const FVector& End) const;
+    void UpdateThunderSentinelAttack(float DeltaSeconds);
+    void BeginThunderSentinelAttack(class AKalmalaCharacter* Target);
+    void SetThunderSentinelAttackCue(EKalmalaWildlifeAttackCue NextCue);
+    bool IsThunderSentinelAttackTargetValid(const class AKalmalaCharacter* Target) const;
+    bool TryApplyThunderSentinelSlam(class AKalmalaCharacter* Target);
+    bool IsThunderSentinelPositionTraversable(const FVector& Position) const;
+    bool CanThunderSentinelMoveAlong(const FVector& Start, const FVector& End) const;
     void UpdatePeatHuskAttack(float DeltaSeconds);
     void BeginPeatHuskAttack(class AKalmalaCharacter* Target);
     void SetPeatHuskAttackCue(EKalmalaWildlifeAttackCue NextCue);
@@ -339,6 +361,9 @@ private:
     UPROPERTY(ReplicatedUsing = OnRep_HornedGoatAttackCue)
     uint8 HornedGoatAttackCue = static_cast<uint8>(EKalmalaWildlifeAttackCue::None);
 
+    UPROPERTY(ReplicatedUsing = OnRep_ThunderSentinelAttackCue)
+    uint8 ThunderSentinelAttackCue = static_cast<uint8>(EKalmalaWildlifeAttackCue::None);
+
     UPROPERTY(ReplicatedUsing = OnRep_PeatHuskAttackCue)
     uint8 PeatHuskAttackCue = static_cast<uint8>(EKalmalaWildlifeAttackCue::None);
 
@@ -374,6 +399,9 @@ private:
 
     UFUNCTION()
     void OnRep_HornedGoatAttackCue();
+
+    UFUNCTION()
+    void OnRep_ThunderSentinelAttackCue();
 
     UFUNCTION()
     void OnRep_PeatHuskAttackCue();
@@ -416,6 +444,10 @@ private:
     TWeakObjectPtr<class AKalmalaCharacter> MoonBearAttackTarget;
     float HornedGoatAttackSecondsRemaining = 0.0f;
     TWeakObjectPtr<class AKalmalaCharacter> HornedGoatAttackTarget;
+    float ThunderSentinelAttackSecondsRemaining = 0.0f;
+    float ThunderSentinelStepDistanceRemaining = 0.0f;
+    TWeakObjectPtr<class AKalmalaCharacter> ThunderSentinelAttackTarget;
+    bool bThunderSentinelSlamHitApplied = false;
     float PeatHuskAttackSecondsRemaining = 0.0f;
     TWeakObjectPtr<class AKalmalaCharacter> PeatHuskAttackTarget;
     TArray<uint8> SnakeHissAudioData;

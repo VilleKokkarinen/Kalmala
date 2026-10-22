@@ -60,7 +60,14 @@ one 50-Crush horn hit within 180 cm, then pushes a living target up to 250 cm
 and staggers it for 0.75 seconds, with collision clipping the displacement.
 Credited defeats queue two Bone Fragments for the authenticated owner in the
 existing population-save escrow. Goat Horn remains disabled pending A8b.
-Thunder Sentinel and Ocean species remain disabled.
+Thunder Sentinel fills the rare 10% Thunder Mountains share and uses the dry,
+traversable mountain gate plus the shared 150 m generated-start exclusion. Its
+original stone silhouette raises an arm for a one-second warning, steps up to
+120 cm, and performs one server-validated downward slam within 300 cm
+horizontally, followed by a 1.2-second recovery. Credited defeats queue three
+Stone for the authenticated owner through the population-save escrow. Thunder
+Core remains disabled pending A8b; Reef Maw and other Ocean species remain
+disabled pending aquatic support.
 Mireling (75 health, 15 armor, 20 Crush) now occupies half of Mossy Mire's
 seeded candidate slots and is accepted only on dry Mossy Mire ground; its
 existing melee and optional boss-scroll reward remain unchanged. Death Adder
