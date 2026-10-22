@@ -374,6 +374,133 @@ bool FKalmalaBerryRecoveryDraughtStatusTest::RunTest(const FString& Parameters)
     return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaRatTailTonicStatusTest,
+    "Kalmala.Gameplay.Status.RatTailTonic",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FKalmalaRatTailTonicStatusTest::RunTest(const FString& Parameters)
+{
+    TArray<FKalmalaPlayerStatusEntry> Entries;
+    TestTrue(TEXT("Rat-tail Tonic is allowlisted as a draught"),
+        UKalmalaPlayerStatusComponent::IsKnownDraughtItem(TEXT("RatTailTonic")));
+    TestTrue(TEXT("Rat-tail Tonic starts a health effect and shared cooldown"),
+        UKalmalaPlayerStatusComponent::ApplyDraught(Entries, TEXT("RatTailTonic")));
+    const FKalmalaPlayerStatusEntry* TonicEntry = Entries.FindByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
+        { return Entry.StatusId == UKalmalaPlayerStatusComponent::RatTailTonicStatusId; });
+    const FKalmalaPlayerStatusEntry* CooldownEntry = Entries.FindByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
+        { return Entry.StatusId == UKalmalaPlayerStatusComponent::DraughtCooldownStatusId; });
+    TestTrue(TEXT("Tonic publishes its ten-second healing status"),
+        TonicEntry && TonicEntry->RemainingSeconds == UKalmalaPlayerStatusComponent::RatTailTonicMaximumSeconds);
+    TestTrue(TEXT("Tonic uses the shared sixty-second cooldown"),
+        CooldownEntry && CooldownEntry->RemainingSeconds == UKalmalaPlayerStatusComponent::DraughtCooldownMaximumSeconds);
+    TestFalse(TEXT("Tonic healing rejects another health draught"),
+        UKalmalaPlayerStatusComponent::ApplyDraught(Entries, TEXT("BerryRecoveryDraught")));
+    UKalmalaPlayerStatusComponent::Advance(Entries, 5.0f);
+    TonicEntry = Entries.FindByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
+        { return Entry.StatusId == UKalmalaPlayerStatusComponent::RatTailTonicStatusId; });
+    CooldownEntry = Entries.FindByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
+        { return Entry.StatusId == UKalmalaPlayerStatusComponent::DraughtCooldownStatusId; });
+    TestTrue(TEXT("Tonic healing and shared cooldown advance together"),
+        TonicEntry && TonicEntry->RemainingSeconds == 5.0f
+        && CooldownEntry && CooldownEntry->RemainingSeconds == 55.0f);
+
+    UWorld* World = UWorld::CreateWorld(EWorldType::Game, false);
+    AKalmalaCharacter* Pawn = World ? World->SpawnActor<AKalmalaCharacter>() : nullptr;
+    APlayerController* Controller = World ? World->SpawnActor<APlayerController>() : nullptr;
+    if (!TestNotNull(TEXT("Tonic character fixture spawned"), Pawn)
+        || !TestNotNull(TEXT("Tonic controller fixture spawned"), Controller))
+    {
+        if (World) World->DestroyWorld(false);
+        return false;
+    }
+    Controller->Possess(Pawn);
+    auto* Status = Pawn->FindComponentByClass<UKalmalaPlayerStatusComponent>();
+    auto* Crafting = Pawn->FindComponentByClass<UKalmalaCraftingComponent>();
+    auto* Inventory = Pawn->GetInventoryComponent();
+    const FFloatProperty* HealthProperty = FindFProperty<FFloatProperty>(AKalmalaCharacter::StaticClass(), TEXT("Health"));
+    if (!TestNotNull(TEXT("Tonic status component exists"), Status)
+        || !TestNotNull(TEXT("Tonic crafting component exists"), Crafting)
+        || !TestNotNull(TEXT("Tonic inventory exists"), Inventory)
+        || !TestNotNull(TEXT("Tonic health fixture property exists"), HealthProperty))
+    {
+        World->DestroyWorld(false);
+        return false;
+    }
+
+    HealthProperty->SetPropertyValue_InContainer(Pawn, 60.0f);
+    TestTrue(TEXT("Inventory receives the authored tonic doses"), Inventory->TryGrantFromServer(TEXT("RatTailTonic"), 5));
+    FString Reason;
+    TestTrue(TEXT("Server use consumes one tonic and starts healing"),
+        Crafting->ConsumeFoodFromServer(TEXT("RatTailTonic"), Reason));
+    TestEqual(TEXT("Accepted tonic use consumes one dose"), Inventory->GetQuantity(TEXT("RatTailTonic")), 4);
+    TestEqual(TEXT("Tonic healing does not jump immediately"), Pawn->GetHealth(), 60.0f);
+    TestEqual(TEXT("Tonic starts the owner-visible recovery timer"),
+        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::RatTailTonicStatusId), 10.0f);
+    TestEqual(TEXT("Tonic starts the A6 shared cooldown"),
+        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::DraughtCooldownStatusId), 60.0f);
+    TestTrue(TEXT("Inventory receives the A6 recovery draught for shared-cooldown coverage"),
+        Inventory->TryGrantFromServer(TEXT("BerryRecoveryDraught"), 1));
+    TestFalse(TEXT("Tonic cooldown rejects Berry Recovery Draught use"),
+        Crafting->ConsumeFoodFromServer(TEXT("BerryRecoveryDraught"), Reason));
+    TestEqual(TEXT("Shared-cooldown rejection preserves the Berry dose"),
+        Inventory->GetQuantity(TEXT("BerryRecoveryDraught")), 1);
+    Status->AdvanceFromServer(5.0f);
+    TestEqual(TEXT("Five server seconds restore fifteen tonic health"), Pawn->GetHealth(), 75.0f);
+    Status->AdvanceFromServer(5.0f);
+    TestEqual(TEXT("Ten server seconds restore thirty tonic health"), Pawn->GetHealth(), 90.0f);
+    TestFalse(TEXT("The ten-second tonic effect expires"),
+        Status->HasStatus(UKalmalaPlayerStatusComponent::RatTailTonicStatusId));
+    TestEqual(TEXT("Healing completion leaves fifty shared cooldown seconds"),
+        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::DraughtCooldownStatusId), 50.0f);
+
+    Status->AdvanceFromServer(50.0f);
+    HealthProperty->SetPropertyValue_InContainer(Pawn, 100.0f);
+    TestFalse(TEXT("Full health rejects tonic use"), Crafting->ConsumeFoodFromServer(TEXT("RatTailTonic"), Reason));
+    TestEqual(TEXT("Full-health rejection preserves the tonic"), Inventory->GetQuantity(TEXT("RatTailTonic")), 4);
+    TestFalse(TEXT("Full-health rejection does not start the cooldown"),
+        Status->HasStatus(UKalmalaPlayerStatusComponent::DraughtCooldownStatusId));
+
+    HealthProperty->SetPropertyValue_InContainer(Pawn, 80.0f);
+    TestTrue(TEXT("A tonic is usable while health is missing"),
+        Crafting->ConsumeFoodFromServer(TEXT("RatTailTonic"), Reason));
+    Status->AdvanceFromServer(10.0f);
+    TestEqual(TEXT("Tonic healing clamps at maximum health"), Pawn->GetHealth(), 100.0f);
+    TestFalse(TEXT("Tonic healing stops when health becomes full"),
+        Status->HasStatus(UKalmalaPlayerStatusComponent::RatTailTonicStatusId));
+    TestEqual(TEXT("Early healing completion does not refund its cooldown"),
+        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::DraughtCooldownStatusId), 50.0f);
+
+    Status->AdvanceFromServer(50.0f);
+    HealthProperty->SetPropertyValue_InContainer(Pawn, 60.0f);
+    TestTrue(TEXT("Tonic can be used after the cooldown expires"),
+        Crafting->ConsumeFoodFromServer(TEXT("RatTailTonic"), Reason));
+    HealthProperty->SetPropertyValue_InContainer(Pawn, 1.0f);
+    Status->AdvanceFromServer(1.0f);
+    TestEqual(TEXT("Death cancels tonic healing without restoring health"), Pawn->GetHealth(), 1.0f);
+    TestFalse(TEXT("Death clears the active tonic healing status"),
+        Status->HasStatus(UKalmalaPlayerStatusComponent::RatTailTonicStatusId));
+    TestEqual(TEXT("Death does not refund the shared cooldown"),
+        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::DraughtCooldownStatusId), 59.0f);
+
+    Status->AdvanceFromServer(59.0f);
+    HealthProperty->SetPropertyValue_InContainer(Pawn, 98.0f);
+    TestTrue(TEXT("A small missing amount accepts the final tonic dose"),
+        Crafting->ConsumeFoodFromServer(TEXT("RatTailTonic"), Reason));
+    Status->AdvanceFromServer(2.0f);
+    TestEqual(TEXT("Tonic healing never exceeds maximum health"), Pawn->GetHealth(), 100.0f);
+    TestFalse(TEXT("Healing status ends as soon as the player is full"),
+        Status->HasStatus(UKalmalaPlayerStatusComponent::RatTailTonicStatusId));
+
+    Pawn->SetRole(ROLE_AutonomousProxy);
+    HealthProperty->SetPropertyValue_InContainer(Pawn, 60.0f);
+    TestFalse(TEXT("A client cannot author tonic status"), Status->ApplyDraughtFromServer(TEXT("RatTailTonic")));
+    TestFalse(TEXT("A client cannot consume a tonic"), Crafting->ConsumeFoodFromServer(TEXT("RatTailTonic"), Reason));
+    TestEqual(TEXT("Client rejection preserves remaining tonic doses"), Inventory->GetQuantity(TEXT("RatTailTonic")), 1);
+
+    World->DestroyWorld(false);
+    return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaRootStaminaDraughtStatusTest,
     "Kalmala.Gameplay.Status.RootStaminaDraught",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)

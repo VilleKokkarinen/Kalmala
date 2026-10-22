@@ -509,6 +509,7 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         {TEXT("MeatStewRecipe"), TEXT("MeatStew")},
         {TEXT("BerryRecoveryDraughtRecipe"), TEXT("BerryRecoveryDraught")},
         {TEXT("RootStaminaDraughtRecipe"), TEXT("RootStaminaDraught")},
+        {TEXT("RatTailTonicRecipe"), TEXT("RatTailTonic")},
         {TEXT("RootVegetableSoupRecipe"), TEXT("RootVegetableSoup")},
         {TEXT("RoastedRootVegetablesRecipe"), TEXT("RoastedRootVegetables")},
         {TEXT("DeerRootRoastRecipe"), TEXT("DeerRootRoast")}
@@ -527,6 +528,7 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
                 || Entry.Key == FName(TEXT("RootVegetableSoupRecipe"))
                 || Entry.Key == FName(TEXT("BerryRecoveryDraughtRecipe"))
                 || Entry.Key == FName(TEXT("RootStaminaDraughtRecipe"))
+                || Entry.Key == FName(TEXT("RatTailTonicRecipe"))
                 ? FName(TEXT("CauldronKit")) : FName(TEXT("FryingPanKit"));
         TestTrue(TEXT("Current food recipe resolves to its required cooking station"), Recipe->RequiredStation.Contains(StationId));
 
@@ -534,7 +536,8 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         if (TestNotNull(TEXT("Current food recipe output item is defined"), Output))
             TestEqual(TEXT("Prepared food and draught stack limits are authored"), Output->MaxStack,
                 Entry.Key == FName(TEXT("BerryRecoveryDraughtRecipe"))
-                    || Entry.Key == FName(TEXT("RootStaminaDraughtRecipe")) ? 10 : 20);
+                    || Entry.Key == FName(TEXT("RootStaminaDraughtRecipe"))
+                    || Entry.Key == FName(TEXT("RatTailTonicRecipe")) ? 10 : 20);
     }
 
     const FKalmalaItemDefinition* BerryRecoveryDraught = Catalogue->FindItem(TEXT("BerryRecoveryDraught"));
@@ -588,6 +591,32 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
         TestTrue(TEXT("Root draught recipe awards Cooking experience"),
             RootStaminaDraughtRecipe->ExperienceSkill == EKalmalaSkill::Cooking);
         TestEqual(TEXT("Root draught recipe awards ten Cooking experience"), RootStaminaDraughtRecipe->ExperienceAward, 10);
+    }
+    const FKalmalaItemDefinition* RatTailTonic = Catalogue->FindItem(TEXT("RatTailTonic"));
+    if (TestNotNull(TEXT("Rat-tail Tonic is a current catalogue item"), RatTailTonic))
+    {
+        TestEqual(TEXT("Rat-tail Tonic stack is bounded at ten"), RatTailTonic->MaxStack, 10);
+        TestEqual(TEXT("Rat-tail Tonic weight is authored at 0.2 kg"), RatTailTonic->WeightKg, 0.2f);
+    }
+    const FKalmalaRecipe* RatTailTonicRecipe = Recipes->Find(TEXT("RatTailTonicRecipe"));
+    if (TestNotNull(TEXT("Rat-tail Tonic Cauldron recipe exists"), RatTailTonicRecipe))
+    {
+        const auto HasIngredient = [RatTailTonicRecipe](const FName ItemId, const int32 Quantity)
+        {
+            const FKalmalaInventoryStack* Ingredient = RatTailTonicRecipe->Ingredients.FindByPredicate(
+                [ItemId](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == ItemId; });
+            return Ingredient && Ingredient->Quantity == Quantity;
+        };
+        TestEqual(TEXT("Rat-tail Tonic recipe has two ingredients"), RatTailTonicRecipe->Ingredients.Num(), 2);
+        TestTrue(TEXT("Rat-tail Tonic costs exactly two Rat Tails and two Lingonberries"),
+            HasIngredient(TEXT("RatTail"), 2) && HasIngredient(TEXT("Lingonberry"), 2));
+        TestEqual(TEXT("Rat-tail Tonic recipe creates one dose"), RatTailTonicRecipe->OutputCount, 1);
+        TestEqual(TEXT("Rat-tail Tonic recipe caps batches at five"), RatTailTonicRecipe->MaxBatch, 5);
+        TestTrue(TEXT("Rat-tail Tonic recipe requires the Cauldron"),
+            RatTailTonicRecipe->RequiredStation.Contains(TEXT("CauldronKit")));
+        TestTrue(TEXT("Rat-tail Tonic recipe awards Cooking experience"),
+            RatTailTonicRecipe->ExperienceSkill == EKalmalaSkill::Cooking);
+        TestEqual(TEXT("Rat-tail Tonic recipe awards ten Cooking experience"), RatTailTonicRecipe->ExperienceAward, 10);
     }
     for (const FName RemovedRecipe : {
         FName(TEXT("RoastBoarMeat")), FName(TEXT("RoastDeerMeat")),

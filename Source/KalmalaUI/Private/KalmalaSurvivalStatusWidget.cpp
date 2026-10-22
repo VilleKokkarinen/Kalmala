@@ -102,16 +102,28 @@ FString UKalmalaSurvivalStatusWidget::BuildStatusText(const FKalmalaSurvivalStat
 
     const FKalmalaPlayerStatusEntry* BerryRecovery = FindStatus(Snapshot.Statuses,
         UKalmalaPlayerStatusComponent::BerryRecoveryStatusId);
+    const FKalmalaPlayerStatusEntry* RatTailTonicRecovery = FindStatus(Snapshot.Statuses,
+        UKalmalaPlayerStatusComponent::RatTailTonicStatusId);
     const FKalmalaPlayerStatusEntry* DraughtCooldown = FindStatus(Snapshot.Statuses,
         UKalmalaPlayerStatusComponent::DraughtCooldownStatusId);
-    if (BerryRecovery != nullptr)
+    if (BerryRecovery != nullptr || RatTailTonicRecovery != nullptr)
     {
+        const bool bRatTailTonic = RatTailTonicRecovery != nullptr;
+        const FKalmalaPlayerStatusEntry* Recovery = bRatTailTonic ? RatTailTonicRecovery : BerryRecovery;
         const float CooldownSeconds = DraughtCooldown
             ? FMath::Clamp(DraughtCooldown->RemainingSeconds, 0.0f, UKalmalaPlayerStatusComponent::DraughtCooldownMaximumSeconds)
             : 0.0f;
+        const float RecoveryMaximum = bRatTailTonic
+            ? UKalmalaPlayerStatusComponent::RatTailTonicMaximumSeconds
+            : UKalmalaPlayerStatusComponent::BerryRecoveryMaximumSeconds;
+        const float RecoveryHealth = bRatTailTonic
+            ? UKalmalaPlayerStatusComponent::RatTailTonicHealth
+            : UKalmalaPlayerStatusComponent::BerryRecoveryHealth;
+        const FName RecoveryLabel = bRatTailTonic ? TEXT("RAT-TAIL TONIC") : TEXT("BERRY DRAUGHT");
         Rows.Add(FString::Printf(
-            TEXT("◇ RECOVERY · BERRY DRAUGHT · healing %s · up to 20 health over 10 seconds · shared cooldown %s"),
-            *FormatSeconds(FMath::Clamp(BerryRecovery->RemainingSeconds, 0.0f, UKalmalaPlayerStatusComponent::BerryRecoveryMaximumSeconds)),
+            TEXT("◇ RECOVERY · %s · healing %s · up to %.0f health over 10 seconds · shared cooldown %s"),
+            *RecoveryLabel.ToString(),
+            *FormatSeconds(FMath::Clamp(Recovery->RemainingSeconds, 0.0f, RecoveryMaximum)), RecoveryHealth,
             *FormatSeconds(CooldownSeconds)));
     }
     else if (DraughtCooldown != nullptr)

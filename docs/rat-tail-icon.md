@@ -25,9 +25,11 @@ is registered in the crafting-ingredients catalogue and has no equipment
 profile, attack, or upgrade record. Its accepted server-side Rat reward queues
 one Rat Tail with the baseline Bone Fragment under the defeated spawn ID and
 authenticated owner. The pair is delivered atomically when both fit and stays
-in persistent escrow otherwise. The Rat-tail Tonic recipe is registered, but
-its consumable behavior remains a separate A8b task. Full-pack, restart, peer,
-and rendered acceptance remain part of combined I4 verification.
+in persistent escrow otherwise. The Rat-tail Tonic recipe is available at the
+Cauldron; its owner-validated use restores up to 30 health over 10 seconds,
+ends on death or full health, and shares the 60-second recovery cooldown with
+the other draughts. The effect is session-only. Full-pack, restart, peer, and
+rendered acceptance remain part of combined I4 verification.
 
 ## Exact generation prompt
 

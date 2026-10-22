@@ -16,7 +16,9 @@ const FName UKalmalaPlayerStatusComponent::LingonberryItemId(TEXT("Lingonberry")
 const FName UKalmalaPlayerStatusComponent::ForestChanterelleItemId(TEXT("ForestChanterelle"));
 const FName UKalmalaPlayerStatusComponent::BerryRecoveryDraughtItemId(TEXT("BerryRecoveryDraught"));
 const FName UKalmalaPlayerStatusComponent::RootStaminaDraughtItemId(TEXT("RootStaminaDraught"));
+const FName UKalmalaPlayerStatusComponent::RatTailTonicItemId(TEXT("RatTailTonic"));
 const FName UKalmalaPlayerStatusComponent::BerryRecoveryStatusId(TEXT("State.Recovery.BerryDraught"));
+const FName UKalmalaPlayerStatusComponent::RatTailTonicStatusId(TEXT("State.Recovery.RatTailTonic"));
 const FName UKalmalaPlayerStatusComponent::DraughtCooldownStatusId(TEXT("State.Recovery.DraughtCooldown"));
 const FName UKalmalaPlayerStatusComponent::MeatStewItemId(TEXT("MeatStew"));
 const FName UKalmalaPlayerStatusComponent::RootVegetableSoupItemId(TEXT("RootVegetableSoup"));
@@ -77,6 +79,7 @@ float UKalmalaPlayerStatusComponent::GetRemainingSeconds(const FName StatusId) c
         : StatusId == MajorPoisonStatusId ? MajorPoisonMaximumSeconds
         : StatusId == SteadyMealStatusId ? SteadyMealMaximumSeconds
         : StatusId == BerryRecoveryStatusId ? BerryRecoveryMaximumSeconds
+        : StatusId == RatTailTonicStatusId ? RatTailTonicMaximumSeconds
         : StatusId == DraughtCooldownStatusId ? DraughtCooldownMaximumSeconds : WetMaximumSeconds;
     return Entry ? FMath::Clamp(Entry->RemainingSeconds, 0.0f, Maximum) : 0.0f;
 }
@@ -119,7 +122,8 @@ bool UKalmalaPlayerStatusComponent::ApplyFoodFromServer(const FName ItemId)
 
 bool UKalmalaPlayerStatusComponent::IsKnownDraughtItem(const FName ItemId)
 {
-    return ItemId == BerryRecoveryDraughtItemId || ItemId == RootStaminaDraughtItemId;
+    return ItemId == BerryRecoveryDraughtItemId || ItemId == RootStaminaDraughtItemId
+        || ItemId == RatTailTonicItemId;
 }
 
 bool UKalmalaPlayerStatusComponent::ApplyDraught(TArray<FKalmalaPlayerStatusEntry>& Entries, const FName ItemId)
@@ -128,15 +132,17 @@ bool UKalmalaPlayerStatusComponent::ApplyDraught(TArray<FKalmalaPlayerStatusEntr
         || Entries.ContainsByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
             { return Entry.StatusId == DraughtCooldownStatusId && FMath::IsFinite(Entry.RemainingSeconds) && Entry.RemainingSeconds > 0.0f; })
         || Entries.ContainsByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
-            { return Entry.StatusId == BerryRecoveryStatusId && FMath::IsFinite(Entry.RemainingSeconds) && Entry.RemainingSeconds > 0.0f; }))
+            { return (Entry.StatusId == BerryRecoveryStatusId || Entry.StatusId == RatTailTonicStatusId)
+                && FMath::IsFinite(Entry.RemainingSeconds) && Entry.RemainingSeconds > 0.0f; }))
         return false;
 
     Advance(Entries, 0.0f);
-    if (ItemId == BerryRecoveryDraughtItemId)
+    if (ItemId == BerryRecoveryDraughtItemId || ItemId == RatTailTonicItemId)
     {
         FKalmalaPlayerStatusEntry& Recovery = Entries.AddDefaulted_GetRef();
-        Recovery.StatusId = BerryRecoveryStatusId;
-        Recovery.RemainingSeconds = BerryRecoveryMaximumSeconds;
+        const bool bRatTailTonic = ItemId == RatTailTonicItemId;
+        Recovery.StatusId = bRatTailTonic ? RatTailTonicStatusId : BerryRecoveryStatusId;
+        Recovery.RemainingSeconds = bRatTailTonic ? RatTailTonicMaximumSeconds : BerryRecoveryMaximumSeconds;
     }
     FKalmalaPlayerStatusEntry& Cooldown = Entries.AddDefaulted_GetRef();
     Cooldown.StatusId = DraughtCooldownStatusId;
@@ -149,9 +155,10 @@ bool UKalmalaPlayerStatusComponent::CanApplyDraughtFromServer(const FName ItemId
     const AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(GetOwner());
     if (!IsValid(Character) || !Character->HasAuthority() || !IsKnownDraughtItem(ItemId)
         || !FMath::IsFinite(Character->GetHealth()) || Character->GetHealth() <= 1.0f
-        || HasStatus(DraughtCooldownStatusId) || HasStatus(BerryRecoveryStatusId))
+        || HasStatus(DraughtCooldownStatusId) || HasStatus(BerryRecoveryStatusId)
+        || HasStatus(RatTailTonicStatusId))
         return false;
-    if (ItemId == BerryRecoveryDraughtItemId)
+    if (ItemId == BerryRecoveryDraughtItemId || ItemId == RatTailTonicItemId)
         return Character->GetHealth() < 100.0f;
 
     const UKalmalaCharacterMovementComponent* Movement = Cast<UKalmalaCharacterMovementComponent>(Character->GetCharacterMovement());
@@ -289,20 +296,35 @@ void UKalmalaPlayerStatusComponent::AdvanceFromServer(const float DeltaSeconds)
     }
     const int32 RecoveryIndex = Statuses.IndexOfByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
     {
-        return Entry.StatusId == BerryRecoveryStatusId && FMath::IsFinite(Entry.RemainingSeconds) && Entry.RemainingSeconds > 0.0f;
+        return (Entry.StatusId == BerryRecoveryStatusId || Entry.StatusId == RatTailTonicStatusId)
+            && FMath::IsFinite(Entry.RemainingSeconds) && Entry.RemainingSeconds > 0.0f;
     });
     if (RecoveryIndex != INDEX_NONE)
     {
         AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(GetOwner());
         if (!Character || Character->GetHealth() <= 1.0f)
         {
-            Statuses.RemoveAt(RecoveryIndex);
+            Statuses.RemoveAll([](const FKalmalaPlayerStatusEntry& Entry)
+            { return Entry.StatusId == BerryRecoveryStatusId || Entry.StatusId == RatTailTonicStatusId; });
+        }
+        else if (Character->GetHealth() >= 100.0f)
+        {
+            Statuses.RemoveAll([](const FKalmalaPlayerStatusEntry& Entry)
+            { return Entry.StatusId == BerryRecoveryStatusId || Entry.StatusId == RatTailTonicStatusId; });
         }
         else
         {
+            const bool bRatTailTonic = Statuses[RecoveryIndex].StatusId == RatTailTonicStatusId;
             const float Elapsed = FMath::Min(SafeDelta, Statuses[RecoveryIndex].RemainingSeconds);
             if (Elapsed > 0.0f)
-                Character->RestoreHealthFromDraughtFromServer(BerryRecoveryHealth * Elapsed / BerryRecoveryMaximumSeconds);
+            {
+                const float TotalHealing = bRatTailTonic ? RatTailTonicHealth : BerryRecoveryHealth;
+                const float HealingDuration = bRatTailTonic ? RatTailTonicMaximumSeconds : BerryRecoveryMaximumSeconds;
+                Character->RestoreHealthFromDraughtFromServer(TotalHealing * Elapsed / HealingDuration);
+                if (Character->GetHealth() >= 100.0f)
+                    Statuses.RemoveAll([](const FKalmalaPlayerStatusEntry& Entry)
+                    { return Entry.StatusId == BerryRecoveryStatusId || Entry.StatusId == RatTailTonicStatusId; });
+            }
         }
     }
     Advance(Statuses, DeltaSeconds);
@@ -360,6 +382,10 @@ void UKalmalaPlayerStatusComponent::Advance(TArray<FKalmalaPlayerStatusEntry>& E
         else if (Entry.StatusId == BerryRecoveryStatusId)
         {
             Entry.RemainingSeconds = FMath::Clamp(Entry.RemainingSeconds - SafeDelta, 0.0f, BerryRecoveryMaximumSeconds);
+        }
+        else if (Entry.StatusId == RatTailTonicStatusId)
+        {
+            Entry.RemainingSeconds = FMath::Clamp(Entry.RemainingSeconds - SafeDelta, 0.0f, RatTailTonicMaximumSeconds);
         }
         else if (Entry.StatusId == DraughtCooldownStatusId)
         {

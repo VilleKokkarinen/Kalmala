@@ -96,6 +96,33 @@ bool FKalmalaInventoryMenuPreparedFoodDetailsTest::RunTest(const FString& Parame
     TestTrue(TEXT("Root draught action remains a dose and fails closed without owner data"),
         MenuText.Contains(TEXT("Use one dose"))
         && MenuText.Contains(TEXT("Food use is unavailable while owner data is loading.")));
+
+    Menu->SetInventoryRowsForVerification({
+        {TEXT("RatTailTonic"), TEXT("Rat-tail Tonic"), TEXT("× 1"), false}
+    }, 100, 0);
+    Menu->SelectItemForVerification(TEXT("RatTailTonic"));
+    DetailText.Reset();
+    Widgets.Reset();
+    Menu->WidgetTree->GetAllWidgets(Widgets);
+    for (UWidget* Widget : Widgets)
+    {
+        if (auto* Detail = Cast<UKalmalaItemDetailWidget>(Widget))
+        {
+            TArray<UWidget*> DetailWidgets;
+            Detail->WidgetTree->GetAllWidgets(DetailWidgets);
+            for (UWidget* DetailWidget : DetailWidgets)
+                if (const auto* Block = Cast<UTextBlock>(DetailWidget)) DetailText += Block->GetText().ToString();
+        }
+    }
+    TestTrue(TEXT("Rat-tail Tonic detail shows its health effect and shared cooldown"),
+        DetailText.Contains(TEXT("up to 30 health over 10 seconds"))
+        && DetailText.Contains(TEXT("share a 60-second recovery cooldown")));
+    MenuText.Reset();
+    for (UWidget* Widget : Widgets)
+        if (const auto* Block = Cast<UTextBlock>(Widget)) MenuText += Block->GetText().ToString();
+    TestTrue(TEXT("Rat-tail Tonic exposes the use-dose action and fails closed without owner data"),
+        MenuText.Contains(TEXT("Use one dose"))
+        && MenuText.Contains(TEXT("Food use is unavailable while owner data is loading.")));
     return true;
 }
 

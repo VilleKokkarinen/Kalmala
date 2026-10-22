@@ -359,7 +359,8 @@ bool AKalmalaCharacter::ReceiveMendingFromServer(const AKalmalaCharacter* Source
 
 bool AKalmalaCharacter::RestoreHealthFromDraughtFromServer(const float HealAmount)
 {
-    if (!HasAuthority() || !FMath::IsFinite(HealAmount) || HealAmount <= 0.0f || HealAmount > 20.0f
+    if (!HasAuthority() || !FMath::IsFinite(HealAmount) || HealAmount <= 0.0f
+        || HealAmount > UKalmalaPlayerStatusComponent::RatTailTonicHealth
         || !FMath::IsFinite(Health) || Health <= 1.0f || Health >= 100.0f) return false;
     const float PreviousHealth = Health;
     Health = FMath::Min(100.0f, Health + HealAmount);

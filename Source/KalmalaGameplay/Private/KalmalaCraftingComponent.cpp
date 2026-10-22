@@ -1086,18 +1086,23 @@ FString UKalmalaCraftingComponent::GetFoodText() const
     const int32 ForestChanterelleCount = GetFoodCount(UKalmalaPlayerStatusComponent::ForestChanterelleItemId);
     const int32 BerryRecoveryDraughtCount = GetFoodCount(UKalmalaPlayerStatusComponent::BerryRecoveryDraughtItemId);
     const int32 RootStaminaDraughtCount = GetFoodCount(UKalmalaPlayerStatusComponent::RootStaminaDraughtItemId);
+    const int32 RatTailTonicCount = GetFoodCount(UKalmalaPlayerStatusComponent::RatTailTonicItemId);
     const FString AvailableFood = FString::Printf(
-        TEXT("Cooked boar %d; cooked deer %d; meat stew %d; root soup %d; roasted roots %d; deer roast %d; Hearth Broth %d; Lingonberry %d; Forest Chanterelle %d; Berry Recovery Draught %d; Root Stamina Draught %d."),
+        TEXT("Cooked boar %d; cooked deer %d; meat stew %d; root soup %d; roasted roots %d; deer roast %d; Hearth Broth %d; Lingonberry %d; Forest Chanterelle %d; Berry Recovery Draught %d; Root Stamina Draught %d; Rat-tail Tonic %d."),
         CookedBoarCount, CookedDeerCount, StewCount, SoupCount, RoastedRootsCount, DeerRoastCount, BrothCount,
-        LingonberryCount, ForestChanterelleCount, BerryRecoveryDraughtCount, RootStaminaDraughtCount);
+        LingonberryCount, ForestChanterelleCount, BerryRecoveryDraughtCount, RootStaminaDraughtCount, RatTailTonicCount);
     const float Remaining = Status ? Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId) : 0.0f;
-    const float RecoveryRemaining = Status ? Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::BerryRecoveryStatusId) : 0.0f;
+    const float BerryRecoveryRemaining = Status
+        ? Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::BerryRecoveryStatusId) : 0.0f;
+    const float TonicRecoveryRemaining = Status
+        ? Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::RatTailTonicStatusId) : 0.0f;
+    const float RecoveryRemaining = FMath::Max(BerryRecoveryRemaining, TonicRecoveryRemaining);
     const float CooldownRemaining = Status ? Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::DraughtCooldownStatusId) : 0.0f;
     const FString DraughtStatus = RecoveryRemaining > 0.0f
-        ? FString::Printf(TEXT("Berry draught recovery: %.0f seconds of healing remain; shared draught cooldown %.0f seconds."), RecoveryRemaining, CooldownRemaining)
+        ? FString::Printf(TEXT("Health draught recovery: %.0f seconds of healing remain; shared draught cooldown %.0f seconds."), RecoveryRemaining, CooldownRemaining)
         : CooldownRemaining > 0.0f
             ? FString::Printf(TEXT("Shared draught cooldown: %.0f seconds remain."), CooldownRemaining)
-            : TEXT("Berry Recovery Draught restores up to 20 health over 10 seconds; Root Stamina Draught restores up to 20 stamina immediately, clamped to the current maximum. Both share a 60-second cooldown.");
+            : TEXT("Berry Recovery Draught restores up to 20 health over 10 seconds; Rat-tail Tonic restores up to 30 health over 10 seconds; Root Stamina Draught restores up to 20 stamina immediately, clamped to the current maximum. All share a 60-second cooldown.");
     if (Remaining > 0.0f)
     {
         return FString::Printf(
@@ -1144,11 +1149,13 @@ bool UKalmalaCraftingComponent::ConsumeFoodFromServer(const FName FoodItemId, FS
         if (bDraught && Status->HasStatus(UKalmalaPlayerStatusComponent::DraughtCooldownStatusId))
             Reason = FString::Printf(TEXT("Draught recovery cooldown is active for %.0f seconds"),
                 Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::DraughtCooldownStatusId));
-        else if (bDraught && Status->HasStatus(UKalmalaPlayerStatusComponent::BerryRecoveryStatusId))
-            Reason = TEXT("Berry Recovery Draught healing is already active");
+        else if (bDraught && (Status->HasStatus(UKalmalaPlayerStatusComponent::BerryRecoveryStatusId)
+            || Status->HasStatus(UKalmalaPlayerStatusComponent::RatTailTonicStatusId)))
+            Reason = TEXT("Health recovery from a draught is already active");
         else if (bDraught && Character->GetHealth() <= 1.0f)
             Reason = TEXT("A draught cannot be used while dead");
-        else if (FoodItemId == UKalmalaPlayerStatusComponent::BerryRecoveryDraughtItemId
+        else if ((FoodItemId == UKalmalaPlayerStatusComponent::BerryRecoveryDraughtItemId
+                || FoodItemId == UKalmalaPlayerStatusComponent::RatTailTonicItemId)
             && Character->GetHealth() >= 100.0f)
             Reason = TEXT("Health is full; the draught was not consumed");
         else if (FoodItemId == UKalmalaPlayerStatusComponent::RootStaminaDraughtItemId)
@@ -1189,6 +1196,14 @@ bool UKalmalaCraftingComponent::ConsumeFoodFromServer(const FName FoodItemId, FS
                 Item ? *Item->DisplayName : TEXT("Berry Recovery Draught"),
                 UKalmalaPlayerStatusComponent::BerryRecoveryHealth,
                 UKalmalaPlayerStatusComponent::BerryRecoveryMaximumSeconds,
+                UKalmalaPlayerStatusComponent::DraughtCooldownMaximumSeconds);
+        }
+        else if (FoodItemId == UKalmalaPlayerStatusComponent::RatTailTonicItemId)
+        {
+            Reason = FString::Printf(TEXT("Used %s; restores up to %.0f health over %.0f seconds. Shared draught cooldown: %.0f seconds."),
+                Item ? *Item->DisplayName : TEXT("Rat-tail Tonic"),
+                UKalmalaPlayerStatusComponent::RatTailTonicHealth,
+                UKalmalaPlayerStatusComponent::RatTailTonicMaximumSeconds,
                 UKalmalaPlayerStatusComponent::DraughtCooldownMaximumSeconds);
         }
         else

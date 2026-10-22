@@ -64,6 +64,17 @@ bool FKalmalaSurvivalStatusWidgetTest::RunTest(const FString& Parameters)
         && StatusText.Contains(TEXT("prepared food · Recovery: wait for expiry; meals do not stack or replace.")));
     TestTrue(TEXT("Berry Recovery Draught shows healing and the shared cooldown timers"),
         StatusText.Contains(TEXT("◇ RECOVERY · BERRY DRAUGHT · healing 9 s · up to 20 health over 10 seconds · shared cooldown 59 s")));
+    FKalmalaSurvivalStatusSnapshot TonicSnapshot;
+    TonicSnapshot.bHasCharacter = true;
+    FKalmalaPlayerStatusEntry& TonicRecovery = TonicSnapshot.Statuses.AddDefaulted_GetRef();
+    TonicRecovery.StatusId = UKalmalaPlayerStatusComponent::RatTailTonicStatusId;
+    TonicRecovery.RemainingSeconds = 6.0f;
+    FKalmalaPlayerStatusEntry& TonicCooldown = TonicSnapshot.Statuses.AddDefaulted_GetRef();
+    TonicCooldown.StatusId = UKalmalaPlayerStatusComponent::DraughtCooldownStatusId;
+    TonicCooldown.RemainingSeconds = 42.0f;
+    TestTrue(TEXT("Rat-tail Tonic shows its heal and shared cooldown timers"),
+        UKalmalaSurvivalStatusWidget::BuildStatusText(TonicSnapshot).Contains(
+            TEXT("◇ RECOVERY · RAT-TAIL TONIC · healing 6 s · up to 30 health over 10 seconds · shared cooldown 42 s")));
     TestTrue(TEXT("Weather row uses replicated intensity values without a countdown"),
         StatusText.Contains(TEXT("▲ HAZARD · WEATHER · rain 80% / fog 40% / wind 70% / storm 56% · Source: server weather")));
     TestFalse(TEXT("Weather detail omits the interval countdown"),

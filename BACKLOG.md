@@ -261,7 +261,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [x] Goat Horn: Horned Goat, 1 guaranteed; material + source + JSON + generated icon.
   - [x] Thunder Core: Thunder Sentinel, 25% chance of 1; material + source + JSON + generated icon.
   - [x] Reef Tooth: Reef Maw, 50% chance of 1; material + source + JSON + generated icon.
-  - [ ] Rat-tail Tonic: Cauldron, 2 Rat Tail + 2 Lingonberry → 1; heal 30 over 10 s; reject full health/active healing, stop on death, share the 60 s A6 recovery cooldown.
+  - [x] Rat-tail Tonic: Cauldron, 2 Rat Tail + 2 Lingonberry → 1; heal 30 over 10 s; reject full health/active healing, stop on death, share the 60 s A6 recovery cooldown.
   - [x] Badger Fur Vest: Workbench, 6 Badger Fur → 1; Chest, 6 Armor.
   - [x] Roasted Badger: Cooking Rack, 1 Badger Meat → 1; Steady Meal.
   - [ ] Fang Arrows: Workbench, 2 Viper Fang + 10 Wood → 20; 50 Pierce, weak poison 5 s.

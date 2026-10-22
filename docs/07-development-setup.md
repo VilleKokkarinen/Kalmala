@@ -2211,9 +2211,9 @@ Buildable item definitions are listed in the ordinary `itemFiles` group under `i
 
 Manifest category file lists, catalogue arrays, and their aggregate JSON text have no project-defined count or size cap; each record remains subject to per-entry identity, schema, reference, and gameplay validation.
 
-`Content/Data/GameCatalogues.json` is the schema-version-15 manifest for item, recipe, and carried-item progression definitions. Ordinary items and recipes live in categorized files; ammunition is a sibling item category at items/arrows.json, while crafting materials live under items/materials/. Station recipes are grouped under `recipes/stations/` by required crafting station, including the Building Hammer under `inventory.json`; build-menu construction recipes remain in `recipes/building.json`. Carried item profiles live in `items/equipment/weapons/bows.json`, `items/equipment/weapons/axes.json`, `items/equipment/weapons/knives.json`, `items/equipment/weapons/pickaxes.json`, `items/equipment/weapons/spears.json`, `items/equipment/weapons/maces.json`, and `items/equipment/building-hammer.json`; `itemProfileFiles` lists all of them for the runtime tool catalogue. Equipment acquisition records share the corresponding station file and root `recipes` array; the loader routes records with `ItemId` into the runtime tool catalogue. Level-one costs for Stone, Bronze, and Iron weapons use family files under `item-level-up/costs/weapons/`; wearable armor costs use `item-level-up/costs/armor/`. Stone and Iron generally use acquisition ingredients, and Bronze generally replaces Stone with Bronze bars at the same quantity while retaining the wood cost. Bronze Axe, Knife, Spear, and Mace acquisitions and upgrades use Lightwood in place of Wood; Iron Axe, Knife, Spear, and Mace acquisitions and upgrades use Densewood. Pickaxe upgrade costs remain unchanged; the user-directed A1 acquisition targets are Stone Pick: 10 Wood + 5 Stone, Bronze Pick: 10 Wood + 10 Bronze, and Iron Pick: 10 Wood + 10 Iron. Apply these metal-cost recipe updates with the A1 production route; Bow upgrade costs reuse its Workbench acquisition materials (5 Wood and 1 Bow String); the Construction Hammer cost lives in `item-level-up/costs/construction-hammer.json` through `itemUpgradeFiles`. The loader sorts ordinary items and carried profiles by `ItemId`, ordinary recipes and equipment acquisitions by `RecipeId`, and upgrade costs by `ItemId`, so file organization does not define catalogue order. These files contain the authoritative definitions. No property or value in the ordinary item/recipe arrays contains `Kit`; clean buildable IDs and each recipe's `RequiredStation` array map to stable runtime construction identities, preserving construction and save compatibility. Bow gains +50 maximum durability per level and has no damage reward while shooting remains unimplemented. Item profiles author per-level durability and typed damage bonuses plus attack-style bonuses, while item recipes author acquisition costs and the upgrade file authors upgrade costs and requirements. Keep the `Data` directory in `DirectoriesToAlwaysStageAsUFS` under `[/Script/UnrealEd.ProjectPackagingSettings]`; the loader reads the manifest and each category file through Unreal's file layer so it works from both the project and a packaged UFS container. The loader validates schema version, category paths, per-entry identities and references, descriptions and display names, profile levels, recipe references, duplicate IDs, quantities, stack limits, same-item upgrade chains, and station/material references before exposing any catalogue. Hearth refuelling separately validates raw fuel materials. Missing or invalid data leaves the catalogues empty, and server transactions fail closed.
+`Content/Data/GameCatalogues.json` is the schema-version-16 manifest for item, recipe, and carried-item progression definitions. Ordinary items and recipes live in categorized files; ammunition is a sibling item category at items/arrows.json, while crafting materials live under items/materials/. Station recipes are grouped under `recipes/stations/` by required crafting station, including the Building Hammer under `inventory.json`; build-menu construction recipes remain in `recipes/building.json`. Carried item profiles live in `items/equipment/weapons/bows.json`, `items/equipment/weapons/axes.json`, `items/equipment/weapons/knives.json`, `items/equipment/weapons/pickaxes.json`, `items/equipment/weapons/spears.json`, `items/equipment/weapons/maces.json`, and `items/equipment/building-hammer.json`; `itemProfileFiles` lists all of them for the runtime tool catalogue. Equipment acquisition records share the corresponding station file and root `recipes` array; the loader routes records with `ItemId` into the runtime tool catalogue. Level-one costs for Stone, Bronze, and Iron weapons use family files under `item-level-up/costs/weapons/`; wearable armor costs use `item-level-up/costs/armor/`. Stone and Iron generally use acquisition ingredients, and Bronze generally replaces Stone with Bronze bars at the same quantity while retaining the wood cost. Bronze Axe, Knife, Spear, and Mace acquisitions and upgrades use Lightwood in place of Wood; Iron Axe, Knife, Spear, and Mace acquisitions and upgrades use Densewood. Pickaxe upgrade costs remain unchanged; the user-directed A1 acquisition targets are Stone Pick: 10 Wood + 5 Stone, Bronze Pick: 10 Wood + 10 Bronze, and Iron Pick: 10 Wood + 10 Iron. Apply these metal-cost recipe updates with the A1 production route; Bow upgrade costs reuse its Workbench acquisition materials (5 Wood and 1 Bow String); the Construction Hammer cost lives in `item-level-up/costs/construction-hammer.json` through `itemUpgradeFiles`. The loader sorts ordinary items and carried profiles by `ItemId`, ordinary recipes and equipment acquisitions by `RecipeId`, and upgrade costs by `ItemId`, so file organization does not define catalogue order. These files contain the authoritative definitions. No property or value in the ordinary item/recipe arrays contains `Kit`; clean buildable IDs and each recipe's `RequiredStation` array map to stable runtime construction identities, preserving construction and save compatibility. Bow gains +50 maximum durability per level and has no damage reward while shooting remains unimplemented. Item profiles author per-level durability and typed damage bonuses plus attack-style bonuses, while item recipes author acquisition costs and the upgrade file authors upgrade costs and requirements. Keep the `Data` directory in `DirectoriesToAlwaysStageAsUFS` under `[/Script/UnrealEd.ProjectPackagingSettings]`; the loader reads the manifest and each category file through Unreal's file layer so it works from both the project and a packaged UFS container. The loader validates schema version, category paths, per-entry identities and references, descriptions and display names, profile levels, recipe references, duplicate IDs, quantities, stack limits, same-item upgrade chains, and station/material references before exposing any catalogue. Hearth refuelling separately validates raw fuel materials. Missing or invalid data leaves the catalogues empty, and server transactions fail closed.
 
-After building the editor, run `Kalmala.Gameplay.Inventory.Catalogue` with the headless automation flags above. It checks that the manifest's category files assemble all schema-version-15 item and recipe definitions, no ordinary item/recipe property or value contains "Kit", no retired item or recipe is present, clean buildable aliases map to stable runtime IDs, every item has a bounded description and a player-facing name without "Kit", exact and exceeded stack limits, empty/unknown IDs, zero/negative/extreme quantities, overflow-safe additions, full stacks, and malformed/duplicate definitions. It also checks station-array structure and the removed ordinary-recipe fields; crop and seed definitions; the seven cooked-food recipe IDs plus Berry Recovery Draught and Root Stamina Draught, their outputs, stations, batch limits and stack limits; HearthBroth's exact Cauldron ingredients and Cooking award; Berry Recovery Draught's 3 Lingonberry + 1 Carrot recipe and Root Stamina Draught's 2 Potato + 1 Onion recipe, one-dose outputs, five-batch bounds, stack 10 and 10 Cooking award; and retired food/smoke aliases. `Kalmala.Gameplay.Tools.LifecycleContract` exercises loaded tool profiles through lifecycle operations, while `Kalmala.Gameplay.M9.ToolProgressionCatalogue` checks authored progression entries and costs, including the same-item upgrade relationship. They do not assert every balance value individually. These are catalogue definitions only; planting, growth, harvesting, and food-use behavior remain separate concerns. The crafting-menu presentation check verifies descriptions for the selected output and browsed item. This is a pure contract check; live inventory replication and harvest-grant verification remain covered by their separate checks.
+After building the editor, run `Kalmala.Gameplay.Inventory.Catalogue` with the headless automation flags above. It checks that the manifest's category files assemble all schema-version-16 item and recipe definitions, no ordinary item/recipe property or value contains "Kit", no retired item or recipe is present, clean buildable aliases map to stable runtime IDs, every item has a bounded description and a player-facing name without "Kit", exact and exceeded stack limits, empty/unknown IDs, zero/negative/extreme quantities, overflow-safe additions, full stacks, and malformed/duplicate definitions. It also checks station-array structure and the removed ordinary-recipe fields; crop and seed definitions; the seven cooked-food recipe IDs plus Berry Recovery Draught, Root Stamina Draught, and Rat-tail Tonic, their outputs, stations, batch limits and stack limits; HearthBroth's exact Cauldron ingredients and Cooking award; Berry Recovery Draught's 3 Lingonberry + 1 Carrot recipe, Root Stamina Draught's 2 Potato + 1 Onion recipe, and Rat-tail Tonic's 2 Rat Tail + 2 Lingonberry recipe, one-dose outputs, five-batch bounds, stack 10 and 10 Cooking award; and retired food/smoke aliases. `Kalmala.Gameplay.Tools.LifecycleContract` exercises loaded tool profiles through lifecycle operations, while `Kalmala.Gameplay.M9.ToolProgressionCatalogue` checks authored progression entries and costs, including the same-item upgrade relationship. They do not assert every balance value individually. These are catalogue definitions only; planting, growth, harvesting, and food-use behavior remain separate concerns. The crafting-menu presentation check verifies descriptions for the selected output and browsed item. This is a pure contract check; live inventory replication and harvest-grant verification remain covered by their separate checks.
 
 The catalogue and cooking contracts also cover Iron, the five-Iron Forge recipe
 for a placeable Frying pan, the three root-vegetable outputs, station-filtered
@@ -3063,10 +3063,11 @@ active meal time, pending request, or last owner-only server result. `Eat one
 serving` is enabled only when owner inventory/status and the existing crafting
 component are present, the selected allowlisted item has a serving, and no
 meal or food request is active. Berry Recovery Draught detail shows up-to-20
-health recovery over 10 seconds; Root Stamina Draught detail shows up-to-20
-immediate stamina recovery clamped to current maximum. Both share the 60-second
-draught cooldown, use the `Use one dose` action, and disable use while dead, at
-full relevant stat, or during cooldown. Both actions call `ServerConsumeFood`
+health recovery over 10 seconds; Rat-tail Tonic shows up-to-30 health recovery
+over 10 seconds; Root Stamina Draught shows up-to-20 immediate stamina recovery
+clamped to current maximum. All three share the 60-second draught cooldown, use
+the `Use one dose` action, and disable use while dead, at full relevant stat, or
+during cooldown. All three actions call `ServerConsumeFood`
 with only the selected item ID and have no station/range gate. The server
 revalidates the allowlist, pack quantity, and matching effect gate before the
 atomic one-item exchange; rejected and repeated requests consume nothing.
@@ -3074,14 +3075,15 @@ Meal behavior remains non-stacking, and draught effects/cooldown remain
 server-owned transient status. No new RPC, replicated field, or save data is
 introduced.
 `Kalmala.UI.Inventory.PreparedFoodDetails` checks the selected meal/draught
-detail, the visible Eat/Use action, and the fail-closed state when owner data
-is absent; run it after an affected UI build.
+detail, including Rat-tail Tonic's 30-health heal, the visible Eat/Use action,
+and the fail-closed state when owner data is absent; run it after an affected UI build.
 
-All seven current prepared-food catalogue items are accepted by the existing
-meal-use path. Berry Recovery Draught uses a health-recovery status, while
-Root Stamina Draught restores stamina immediately; both use the shared
-60-second draught cooldown. They are rejected at full relevant stat, while
-dead, and during cooldown without consuming the dose. The historical
+Current prepared-food catalogue items are accepted by the existing meal-use
+path. Berry Recovery Draught and Rat-tail Tonic use health-recovery
+statuses, while Root Stamina Draught restores stamina immediately; all three
+use the shared 60-second draught cooldown. Health draughts are rejected at full
+health, Root Stamina Draught at full stamina, and all are rejected while dead
+or during cooldown without consuming the dose. The historical
 RoastedFieldMeat/SmokedFieldMeat IDs remain absent from schema 4 and cannot be
 granted or consumed. See `docs/02-technical-architecture.md`.
 
@@ -3518,11 +3520,11 @@ Each successful prepared-food recipe transaction awards one fixed 10 Cooking exp
 The recipes do not require a Cooking level, and accepted cooking awards remain post-transaction.
 
 The `Kalmala.Gameplay.Inventory.Catalogue` check above owns the seven cooked
-food recipe IDs, Berry Recovery Draught and Root Stamina Draught, outputs,
-stations, batch/output bounds, Hearth Broth and both draught ingredients/Cooking awards,
-and retired aliases. After
+food recipe IDs, Berry Recovery Draught, Root Stamina Draught and Rat-tail
+Tonic, outputs, stations, batch/output bounds, Hearth Broth and all three
+draught ingredients/Cooking awards, and retired aliases. After
 the forced editor build, run the focused cooking, meal-use, crafting,
-`Kalmala.Gameplay.Food.CookingStationHeat+Kalmala.Gameplay.Status.SteadyMeal+Kalmala.Gameplay.Status.BerryRecoveryDraught+Kalmala.Gameplay.Status.RootStaminaDraught+Kalmala.Gameplay.Crafting.Transactions+Kalmala.Gameplay.Crafting.NetworkContract+Kalmala.Gameplay.Construction.LocalPreview+Kalmala.Gameplay.Construction.SaveContract`.
+`Kalmala.Gameplay.Food.CookingStationHeat+Kalmala.Gameplay.Status.SteadyMeal+Kalmala.Gameplay.Status.BerryRecoveryDraught+Kalmala.Gameplay.Status.RootStaminaDraught+Kalmala.Gameplay.Status.RatTailTonic+Kalmala.Gameplay.Crafting.Transactions+Kalmala.Gameplay.Crafting.NetworkContract+Kalmala.Gameplay.Construction.LocalPreview+Kalmala.Gameplay.Construction.SaveContract`.
 CookingStationHeat covers Cooking Rack, Cauldron, and Frying Pan transactions,
 including stew and Hearth Broth, station-local hearth heat, and fuel behavior.
 SteadyMeal checks meal inventory consumption, duplicate/client rejection, and
@@ -3530,12 +3532,15 @@ the active timer. BerryRecoveryDraught checks exact item consumption, shared
 cooldown, gradual server healing, full-health rejection, death cancellation,
 and client rejection. RootStaminaDraught checks immediate capped stamina
 restoration, full-stamina/death rejection, shared cooldown, and client rejection.
+RatTailTonic checks the 30-health/10-second server heal, shared cooldown with
+Berry Recovery Draught, full-health rejection, maximum-health clamping, death
+cancellation, and client rejection.
 NetworkContract checks that food/draught use sends only
 the item identity. The crafting transaction test checks raw fuel
 selection for hearth refuelling separately from recipe ingredient exchanges:
 
 ```powershell
-& 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM7FoodUser' -abslog='C:\temp\KalmalaM7Food.log' -ExecCmds="Automation RunTests Kalmala.Gameplay.Food.CookingStationHeat+Kalmala.Gameplay.Status.SteadyMeal+Kalmala.Gameplay.Status.BerryRecoveryDraught+Kalmala.Gameplay.Status.RootStaminaDraught+Kalmala.Gameplay.Crafting.Transactions+Kalmala.Gameplay.Crafting.NetworkContract+Kalmala.Gameplay.Construction.LocalPreview+Kalmala.Gameplay.Construction.SaveContract; Quit" -TestExit="Automation Test Queue Empty"
+& 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM7FoodUser' -abslog='C:\temp\KalmalaM7Food.log' -ExecCmds="Automation RunTests Kalmala.Gameplay.Food.CookingStationHeat+Kalmala.Gameplay.Status.SteadyMeal+Kalmala.Gameplay.Status.BerryRecoveryDraught+Kalmala.Gameplay.Status.RootStaminaDraught+Kalmala.Gameplay.Status.RatTailTonic+Kalmala.Gameplay.Crafting.Transactions+Kalmala.Gameplay.Crafting.NetworkContract+Kalmala.Gameplay.Construction.LocalPreview+Kalmala.Gameplay.Construction.SaveContract; Quit" -TestExit="Automation Test Queue Empty"
 ```
 
 ## Windows Development and Shipping package smoke
@@ -4130,7 +4135,8 @@ the full rendered menu matrix during M12 milestone-final verification.
 ## M12 Cauldron menu
 
 The Cauldron opens the shared station shell in Cook with Hearth Broth, Meat Stew,
-Root Vegetable Soup, Berry Recovery Draught, and Root Stamina Draught. Each
+Root Vegetable Soup, Berry Recovery Draught, Root Stamina Draught, and Rat-tail
+Tonic. Each
 selection shows its owner-visible ingredient counts, existing one-batch-per-press
 and five-batch request limit, selected result description, and live hearth-heat availability. Expired station context disables
 Cook and sends no recipe request; the server's existing recipe-ID request and
@@ -4138,8 +4144,8 @@ station, heat, cost, capacity, and exchange validation remain authoritative.
 
 `Verify-Crafting.ps1` expects `Cauldron scope: Recipes=1 Ingredients=1
 Quantity=1 Description=1 Heat=1 NoUnrelated=1 StaleNoRequest=1 UiScope=1` on
-both peers. The focused UI marker checks the five catalogue recipes, including
-Hearth Broth's Deer Meat and Onion cost plus both draught recipes, and their
+both peers. The focused UI marker checks the six catalogue recipes, including
+Hearth Broth's Deer Meat and Onion cost plus all three draught recipes, and their
 ingredient counts, quantity limits, selected descriptions, heat requirement/status, hidden unrelated
 actions, and stale-context request suppression. `Verify-PresentationOwnership.ps1`
 checks the Cauldron recipe filter, owner-local availability read, and existing
