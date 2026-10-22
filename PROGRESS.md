@@ -5221,3 +5221,13 @@
 - **Full verification:** combined A8/A8a/A8b I4 milestone-final verification remains deferred; A8b integration does not complete that gate.
 - **Observable impact and authority:** A8b catalogue and RatTail icon data are now present on main. No enemy drop was activated; material acquisition remains unreachable until its named A8a enemy and accepted credited-defeat reward exist. No gameplay authority, RPC, replication, or save behavior changed in this integration.
 - **Known limitations/next eligible A8b task:** Rat Tail remains unchecked because the Rat runtime source/reward is absent; all 15 A8b material sources remain incomplete. Recheck source availability before selecting the first A8b material task. The A8b branch and main shared the integration merge before this handoff entry; this entry will be synchronized to main by fast-forward.
+
+## Run 2026-10-22 06:18 UTC — A8b per-item icon tasks
+
+- **Work completed:** added 30 independently selectable A8b icon tasks, one for each registered material and output. Each task requires original generated artwork and provenance, prepared/imported texture, runtime mapping, and icon-validator coverage; each may be completed in its own short-path A8b worktree and committed individually. Marked Rat Tail's icon task complete based on the existing integrated asset, mapping, provenance, and passing catalogue icon check. Its material/source task remains open.
+- **Files changed:** `BACKLOG.md`; `PROGRESS.md`.
+- **Checks:** confirmed all 30 canonical item IDs against the registered catalogue data and reviewed `docs/rat-tail-icon.md` and its manifest row. `git diff --check` and changed-path MAX_PATH checks passed. No build, test suite, or runtime check was needed for this backlog-only change.
+- **Full verification:** combined A8/A8a/A8b I4 milestone-final verification remains deferred.
+- **Observable impact and authority:** A8b now exposes one commit-sized icon task per item. No runtime, network authority, RPC, replication, or save behavior changed. Icon completion alone does not complete an item or enable acquisition.
+- **Known limitations/remaining scope:** the other 29 icon tasks remain open. A8b material sources remain unavailable until their A8a enemies and accepted server-side rewards exist; no drops were enabled. Main-checkout integration is pending this run's commit and safe fast-forward.
+- **Next eligible A8b task:** Badger Fur icon (`BadgerFur`).
