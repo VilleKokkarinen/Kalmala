@@ -144,7 +144,7 @@ Unique means a characteristic drop, not an exclusive source for shared Sinew.
 | Enemy            | Unique drop        | Amount / chance | Intended use              |
 | ---------------- | ------------------ | --------------- | ------------------------- |
 | Deer             | Sinew              | 1 / 50%         | Bow String; 4 Sinew each  |
-| Rat              | Rat Tail           | 1 / 100%        | Future potion ingredient  |
+| Rat              | Rat Tail           | 1 / 100%        | Rat-tail Tonic ingredient |
 | Badger           | Badger Fur         | 1 / 100%        | Armor component           |
 | Badger           | Badger Meat        | 1 / 100%        | Cooking component         |
 | Moon Bear        | Moonstone          | 1 / 2%          | Moonstone Ring            |

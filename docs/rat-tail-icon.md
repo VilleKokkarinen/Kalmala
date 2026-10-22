@@ -21,10 +21,13 @@ Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id RatTail
 
 The catalogue mapping uses the RatTail canonical ID and the String vector
 fallback. The imported texture supplies the visible inventory artwork. RatTail
-has no equipment profile, attack, or upgrade record. It is used by the existing
-Rat-tail Tonic recipe. The icon does not add or activate a Rat drop: Rat and its
-accepted server-side defeat reward are absent from runtime, so the material and
-tonic remain incomplete and unreachable.
+is registered in the crafting-ingredients catalogue and has no equipment
+profile, attack, or upgrade record. Its accepted server-side Rat reward queues
+one Rat Tail with the baseline Bone Fragment under the defeated spawn ID and
+authenticated owner. The pair is delivered atomically when both fit and stays
+in persistent escrow otherwise. The Rat-tail Tonic recipe is registered, but
+its consumable behavior remains a separate A8b task. Full-pack, restart, peer,
+and rendered acceptance remain part of combined I4 verification.
 
 ## Exact generation prompt
 

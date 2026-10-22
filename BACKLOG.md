@@ -244,8 +244,8 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [x] Thunder Maul icon (`ThunderMaul`).
   - [x] Reef Harpoon icon (`ReefHarpoon`).
   - Grouped icon batch completed 2026-10-22 in one feature commit by user direction; originals, preparation, imports, mapping and focused coverage are recorded in `docs/a8b-icon-batch.md`. The 30 item/source rows remain open.
-  - [ ] Rat Tail: Rat, 1 guaranteed; material + source + JSON + generated icon.
-    - Original icon, mapping, and import are complete; item remains open until Rat has an accepted runtime drop.
+  - [x] Rat Tail: Rat, 1 guaranteed; material + source + JSON + generated icon.
+    - Original icon, mapping, import, registered material definition, and owner-bound credited-defeat reward are complete; combined I4 acceptance remains pending.
   - [x] Badger Fur: Badger, 1 guaranteed; material + source + JSON + generated icon.
   - [x] Badger Meat: Badger, 1 guaranteed; material + source + JSON + generated icon.
   - [ ] Viper Fang: Viper, 1 guaranteed; material + source + JSON + generated icon.
