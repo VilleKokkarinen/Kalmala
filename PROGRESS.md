@@ -1,3 +1,20 @@
+## User-directed planning 2026-10-22 — Split monster spawning into runs
+
+- Replaced the broad spawn-goal children with ordered S01–S35 checkboxes in
+  `BACKLOG.md`. Each has a concrete output and targets a 10–20 minute normal
+  increment; split further before implementation if needed. One task per run.
+- Preserved provisional tuning and scope. Added safe integration ordering:
+  natural spawning stays disabled until all gates are wired at S26. Separated
+  scheduling, caps, individual gates, placement, suppression, local spawners,
+  focused coverage and verification handoff. S35 is the final verification and
+  repair run and may exceed a normal turn under repository policy.
+- Files changed: `BACKLOG.md`, `PROGRESS.md` only. Checked checklist ordering,
+  unique task IDs, whitespace, staged ownership and path lengths. Planning only:
+  no runtime code or authority change; full verification remains deferred.
+- Existing concurrent edits preserved under the user's concurrency override.
+  Main checkout; no handoff sync. Next task for this goal: S01 tuning decisions;
+  existing alpha queue ordering is unchanged. No implementation marked complete.
+
 ## User-directed planning 2026-10-22 — Monster spawning backlog
 
 - Added one unchecked monster-population goal to `BACKLOG.md`, queued after
