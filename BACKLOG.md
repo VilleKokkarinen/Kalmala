@@ -396,7 +396,8 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
 
 Planning only, queued after existing alpha acceptance; A8a/I4 scope is unchanged.
 Use original content. The supplied Valheim examples are inspiration, not a
-verified specification. All numbers below are provisional until S01 is complete.
+verified specification. [Fixed targets and behavior](docs/monster-spawning.md)
+are specified in advance; implement them without requesting tuning values.
 
 **Run instructions:** Complete the first unchecked, unblocked child below,
 exactly one per run, in order. Each normal checkbox targets roughly 10–20 minutes
@@ -410,15 +411,15 @@ milestone-final verification/repair run and can exceed a normal turn.
 
 - [ ] **Implement Kalmala monster population and camp spawn suppression.**
 
-  - [ ] **S01 — Record tuning decisions.** Review proposed values against current
-    biome weights, hard-enemy start exclusions, three-Wolf packs and actor budgets.
-    Record accepted values or explicit unresolved blockers in the spawn contract;
-    do not change runtime behavior in this step.
-  - [ ] **S02 — Record lifecycle decisions.** Specify defeat/cooldown, unload and
-    restart rules without bypassing saved defeat IDs or repaying rewards. No save
-    format changes without explicit direction; no development save migrations.
+  - [ ] **S01 — Map the fixed contract to code.** Read `docs/monster-spawning.md`;
+    identify existing scheduler, descriptor, budget and spawn/defeat entry points.
+    Record the implementation map in that contract. Values are already decided;
+    do not reopen tuning or change runtime behavior in this step.
+  - [ ] **S02 — Map lifecycle integration.** Identify callbacks enforcing permanent
+    defeated-slot depletion, 30 s living-slot unload cooldown and reward escrow.
+    Record integration points for the fixed lifecycle; add no save-format change.
   - [ ] **S03 — Add named tuning constants.** Use existing invisible 60 × 60 m
-    spatial keys; proposed ring 36–84 m, interval 5 s and count radius 96 m.
+    spatial keys; ring 36–84 m, interval 5 s and count radius 96 m.
     Validate bounds/units; keep spawning disabled.
   - [ ] **S04 — Gather active players.** Add a server-only list of living players
     in the current world; ignore dead, disconnected and invalid pawns.
@@ -426,16 +427,18 @@ milestone-final verification/repair run and can exceed a normal turn.
     from S04; overlapping players must produce each key once.
   - [ ] **S06 — Add scheduler cadence.** Schedule each active key once per 5 s
     with stable staggering; remove inactive keys without accumulating retries.
-  - [ ] **S07 — Bound scheduler work.** Define named per-tick/per-key candidate
-    limits within existing budgets; skip missed ticks instead of catch-up bursts.
-  - [ ] **S08 — Generate ring candidates.** Use server seed/key/attempt inputs
-    for bounded candidates 36–84 m from an eligible player; preserve biome weights.
+  - [ ] **S07 — Bound scheduler work.** Use a 0.25 s wake, at most 4 keys,
+    4 candidates per key and 16 candidates total per wake; skip missed ticks
+    instead of catch-up bursts.
+  - [ ] **S08 — Generate ring candidates.** Select existing stable descriptors
+    within 36–84 m; use the contract's seeded 25% admission roll and rotating cursor.
+    Preserve descriptor positions, identities and biome weights.
   - [ ] **S09 — Exclude nearby players.** Reject a candidate within 36 m of any
     living player, including a second player outside the selecting neighborhood.
   - [ ] **S10 — Track live creatures.** Register/unregister authoritative live
     actors; remove defeated/destroyed entries and count their current positions.
   - [ ] **S11 — Enforce area caps.** Count across loaded keys within 96 m of the
-    candidate; proposed per-species caps: common 4, rare hard enemy 1, Wolves 6.
+    candidate; per-species caps: common 4, rare hard enemy 1, Wolves 6.
     Also enforce the existing total actor budget; add no extra actor allowance.
   - [ ] **S12 — Reserve pack capacity.** Reserve three Wolf slots atomically;
     reject partial packs and release reservations on failed creation.
@@ -446,23 +449,23 @@ milestone-final verification/repair run and can exceed a normal turn.
     one rejected attempt consumes only its bounded attempt budget.
   - [ ] **S15 — Wire distance and habitat gates.** Use S09 and existing species
     biome/dry-shore/start-exclusion rules; do not relax existing restrictions.
-  - [ ] **S16 — Add time-of-day gate.** Support an explicit unrestricted default
-    and configured windows from server world time; do not invent species windows.
-  - [ ] **S17 — Add weather gate.** Support unrestricted/default and configured
-    allowances from authoritative weather; do not invent species restrictions.
-  - [ ] **S18 — Add progression gate.** Support unrestricted/default and configured
-    world/boss prerequisites; do not add an unkilled-boss lock to current species.
+  - [ ] **S16 — Add time-of-day gate.** Pass for every current species;
+    expose only an internal policy seam for rejection fixtures. No new clock.
+  - [ ] **S17 — Add weather gate.** Pass for every current species;
+    expose an internal rejection-test seam. Add no new weather restrictions.
+  - [ ] **S18 — Add progression gate.** Pass for every current species;
+    expose an internal rejection-test seam. Add no boss or progression locks.
   - [ ] **S19 — Wire cap gate.** Apply S11–S12 immediately before creation so
     overlapping key/player attempts cannot overfill a species or total budget.
   - [ ] **S20 — Validate land surfaces.** Require generated dry ground, existing
-    start restrictions and proposed slope at most 32 degrees for land creatures.
+    start restrictions and slope at most 32 degrees for land creatures.
   - [ ] **S21 — Validate aquatic surfaces.** Reuse Reef Maw habitat/depth rules
     and check water clearance; land checks must not silently permit water spawns.
   - [ ] **S22 — Validate physical clearance.** Reject solid overhead roofs,
     colliding bodies and unsupported movement/navigation locations per species.
   - [ ] **S23 — Add station cylinder query.** Allowlist Workbench/Forge only;
-    proposed radius 18 m, extending 12 m above/below the actual placed station.
-  - [ ] **S24 — Add spherical suppression query.** Proposed radius 18 m for
+    radius 18 m, extending 12 m above/below the actual placed station.
+  - [ ] **S24 — Add spherical suppression query.** Use radius 18 m for
     Camp Bed, lit fuelled Campfire and lit fuelled Standing Light. Other pieces,
     cosmetics and unlisted stations emit no field; roofs retain S22 rejection.
   - [ ] **S25 — Wire placement gate.** Combine S20–S24 with current authoritative
@@ -472,9 +475,9 @@ milestone-final verification/repair run and can exceed a normal turn.
     through all nine gates, reserve/release caps and apply S02 lifecycle rules.
     Replace the corresponding old activation path to avoid duplicate populations;
     keep harvest nodes, stable identities and owner-bound reward claims intact.
-  - [ ] **S27 — Record environmental policy.** Finalize suppression interaction
-    for future original world spawners; proposed local cap 2 within 24 m, interval
-    8 s. No new creature, nest asset, loot source or portable buildable is added.
+  - [ ] **S27 — Record environmental policy.** Map the fixed local-source
+    policy to the shared scheduler; camp suppression applies. Local cap is 2
+    within 24 m, interval 8 s. Use two finite source slots; add no world content.
   - [ ] **S28 — Add local spawner scheduling.** Implement the S27 interval and
     local living count as a reusable server policy, disabled without a configured
     source; use a narrow fixture rather than adding world content.

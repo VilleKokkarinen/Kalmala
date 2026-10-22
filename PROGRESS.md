@@ -1,3 +1,23 @@
+## User-directed planning 2026-10-22 — Fix monster spawn targets in advance
+
+- Added `docs/monster-spawning.md` as the fixed S01–S35 implementation contract;
+  linked it from `BACKLOG.md`. Replaced tuning/lifecycle questions with concrete
+  integration-mapping tasks. The user requested predefined goals and values.
+- Fixed admission chance (25%), scheduler budget (0.25 s wake, 4 keys × 4
+  candidates, 16 total), species cap classification, boundary inclusivity,
+  suppression states/shapes, all-pass time/weather/progression policies and
+  environmental suppression. Reuse existing species weights and aquatic depth.
+- Specified finite-slot lifecycle: defeated IDs remain depleted; surviving
+  unloaded slots wait 30 session seconds. No renewable defeated-slot respawn,
+  save-format change or reward replay. Fixed sources use two finite slots.
+- Files changed: `BACKLOG.md`, `PROGRESS.md`, `docs/monster-spawning.md`.
+  Checked task IDs, contract link, removal of provisional task decisions,
+  whitespace and path lengths. Planning only; no runtime tests/builds run;
+  implementation and milestone-final verification remain pending.
+- Server authority remains required. Concurrent edits preserved under the
+  user's override; main checkout, no handoff sync. Next for this goal: S01 map
+  fixed targets to existing code; alpha queue order remains unchanged.
+
 ## User-directed planning 2026-10-22 — Split monster spawning into runs
 
 - Replaced the broad spawn-goal children with ordered S01–S35 checkboxes in
