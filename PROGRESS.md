@@ -5287,3 +5287,21 @@
 - Reconciled main commits 467c594f and a395abc4 into the isolated codex/a8b-items branch, preserving both A8a progress entries and this run's Badger Fur icon entry in chronological order.
 - Main checkout was not changed. Main integration and BACKLOG/PROGRESS handoff remain pending because an equipment run is active against the main checkout.
 - Next eligible A8b action: retry safe main integration and handoff before starting Badger Meat icon (BadgerMeat).
+
+## Run 2026-10-22 06:42 UTC — Add Rat runtime stat profile
+
+- **Selected task:** apply the overview's revised stats to existing boar/deer and all A8a enemies.
+- **Work completed:** added Rat (10 health, 0 armor, 5 Pierce) to the wildlife runtime stat lookup and added a typed attack-channel accessor; existing Boar and Mireling values remain Crush. Added focused automation assertions and documented that Rat's spawn, presentation, attack behavior, and rewards remain planned. The broad stats task remains unchecked.
+- **Files changed:** `Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h`; `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`; `Source/KalmalaGameplay/Private/Tests/KalmalaWildlifeBehaviourTest.cpp`; `docs/creature-catalogues.md`; `PROGRESS.md`.
+- **Lightweight checks:** `python Scripts/Validate-CreatureCatalogues.py` passed for all 17 profiles. Focused source assertions confirmed Rat's health, armor, Pierce value and test coverage; `git diff --check` passed; changed paths are below 260 characters.
+- **Full verification:** no Unreal build or runtime automation ran. The new automation assertions remain unexecuted; combined A8a/A8b/I4 verification remains deferred.
+- **Observable impact and authority:** the server runtime can resolve the reviewed Rat stat profile, but Rat is not selected for live spawning. Existing gameplay is unchanged. No client-authored stats, new RPCs, replication fields, or save data were added.
+- **Known limitations/remaining scope:** thirteen planned A8a enemies still need runtime stat profiles; Rat spawn, presentation, attack and rewards remain for its species task. The selected stats child stays unchecked. A9 remains gated on integrated A8a/A8b and successful I4 verification.
+- **Next eligible task:** continue the A8a revised-stats child for the remaining planned enemy profiles. Current run time: 2026-10-22 06:42 UTC.
+
+
+## Run 2026-10-22 06:44 UTC — Reconcile Rat profile update
+
+- Reconciled main commit 5b179c6a into the isolated codex/a8b-items branch after preserving its Rat runtime-stat progress entry. The Rat profile does not add a live spawn or reward, and this A8b increment enables no drop.
+- The main checkout remains at 5b179c6a; this branch now contains all committed main history through that point. Next I will recheck ownership and cleanliness before the fast-forward handoff.
+- Next eligible A8b task after integration: Badger Meat icon (BadgerMeat).

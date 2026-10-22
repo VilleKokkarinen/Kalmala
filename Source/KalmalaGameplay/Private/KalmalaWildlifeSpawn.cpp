@@ -89,6 +89,7 @@ float AKalmalaWildlifeSpawn::GetMaximumHealthForArchetype(const EKalmalaWildlife
     {
     case EKalmalaWildlifeArchetype::Boar: return 20.0f;
     case EKalmalaWildlifeArchetype::Deer: return 30.0f;
+    case EKalmalaWildlifeArchetype::Rat: return 10.0f;
     case EKalmalaWildlifeArchetype::Mireling:
     default: return 75.0f;
     }
@@ -100,6 +101,7 @@ float AKalmalaWildlifeSpawn::GetArmorForArchetype(const EKalmalaWildlifeArchetyp
     {
     case EKalmalaWildlifeArchetype::Boar:
     case EKalmalaWildlifeArchetype::Deer: return 5.0f;
+    case EKalmalaWildlifeArchetype::Rat: return 0.0f;
     case EKalmalaWildlifeArchetype::Mireling:
     default: return 15.0f;
     }
@@ -107,13 +109,21 @@ float AKalmalaWildlifeSpawn::GetArmorForArchetype(const EKalmalaWildlifeArchetyp
 
 float AKalmalaWildlifeSpawn::GetBaseAttackDamageForArchetype(const EKalmalaWildlifeArchetype InArchetype)
 {
+    return GetBaseAttackChannelsForArchetype(InArchetype).Total();
+}
+
+FKalmalaDamageChannels AKalmalaWildlifeSpawn::GetBaseAttackChannelsForArchetype(const EKalmalaWildlifeArchetype InArchetype)
+{
+    FKalmalaDamageChannels Damage;
     switch (InArchetype)
     {
-    case EKalmalaWildlifeArchetype::Boar: return 10.0f;
-    case EKalmalaWildlifeArchetype::Mireling: return 20.0f;
+    case EKalmalaWildlifeArchetype::Boar: Damage.Crush = 10.0f; break;
+    case EKalmalaWildlifeArchetype::Mireling: Damage.Crush = 20.0f; break;
+    case EKalmalaWildlifeArchetype::Rat: Damage.Pierce = 5.0f; break;
     case EKalmalaWildlifeArchetype::Deer:
-    default: return 0.0f;
+    default: break;
     }
+    return Damage;
 }
 
 bool AKalmalaWildlifeSpawn::IsDefeatAllowed(const bool bServerAuthority, const bool bAlreadyDefeated)
