@@ -22,7 +22,8 @@ enum class EKalmalaWildlifeArchetype : uint8
 {
     Mireling,
     Boar,
-    Deer
+    Deer,
+    Rat
 };
 
 /**
@@ -73,6 +74,7 @@ public:
     static float GetMaximumHealthForArchetype(EKalmalaWildlifeArchetype Archetype);
     static float GetArmorForArchetype(EKalmalaWildlifeArchetype Archetype);
     static float GetBaseAttackDamageForArchetype(EKalmalaWildlifeArchetype Archetype);
+    static FKalmalaDamageChannels GetBaseAttackChannelsForArchetype(EKalmalaWildlifeArchetype Archetype);
     // Server-owned repeat-hit interval keeps optional Mireling pressure readable.
     static constexpr float MirelingMeleeCooldownSeconds = 1.25f;
     static constexpr float DeerCallInfluenceDurationSeconds = 180.0f;

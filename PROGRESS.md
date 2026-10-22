@@ -5269,3 +5269,14 @@
 - **Observable impact and authority:** server-validated wildlife attacks can now apply the reviewed maximum 300 total damage, supporting the Thunder Sentinel profile. Source actor authority, world/range checks and damage-channel validity remain required. No RPC, replication or save data changed.
 - **Known limitations/remaining scope:** runtime profiles and enemy behaviors for fourteen planned A8a species remain open. The selected stats child remains unchecked; A9 remains gated on integrated A8a/A8b and successful I4 verification. The authorized A8b run was isolated in its own worktree; no integration or handoff was performed here.
 - **Next eligible task:** continue the A8a revised-stats child for planned enemy runtime profiles. Current run time: 2026-10-22 06:38 UTC.
+
+## Run 2026-10-22 06:42 UTC — Add Rat runtime stat profile
+
+- **Selected task:** apply the overview's revised stats to existing boar/deer and all A8a enemies.
+- **Work completed:** added Rat (10 health, 0 armor, 5 Pierce) to the wildlife runtime stat lookup and added a typed attack-channel accessor; existing Boar and Mireling values remain Crush. Added focused automation assertions and documented that Rat's spawn, presentation, attack behavior, and rewards remain planned. The broad stats task remains unchecked.
+- **Files changed:** `Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h`; `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`; `Source/KalmalaGameplay/Private/Tests/KalmalaWildlifeBehaviourTest.cpp`; `docs/creature-catalogues.md`; `PROGRESS.md`.
+- **Lightweight checks:** `python Scripts/Validate-CreatureCatalogues.py` passed for all 17 profiles. Focused source assertions confirmed Rat's health, armor, Pierce value and test coverage; `git diff --check` passed; changed paths are below 260 characters.
+- **Full verification:** no Unreal build or runtime automation ran. The new automation assertions remain unexecuted; combined A8a/A8b/I4 verification remains deferred.
+- **Observable impact and authority:** the server runtime can resolve the reviewed Rat stat profile, but Rat is not selected for live spawning. Existing gameplay is unchanged. No client-authored stats, new RPCs, replication fields, or save data were added.
+- **Known limitations/remaining scope:** thirteen planned A8a enemies still need runtime stat profiles; Rat spawn, presentation, attack and rewards remain for its species task. The selected stats child stays unchecked. A9 remains gated on integrated A8a/A8b and successful I4 verification.
+- **Next eligible task:** continue the A8a revised-stats child for the remaining planned enemy profiles. Current run time: 2026-10-22 06:42 UTC.
