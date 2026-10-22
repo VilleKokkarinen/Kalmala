@@ -5761,5 +5761,5 @@
 - **Networking/authority:** Reward eligibility, claim ownership, bundle construction, capacity check, and inventory commit remain server-owned; no client-supplied item ID or quantity was added and no save schema changed.
 - **Known limitations / remaining scope:** Live defeat delivery, full-pack retry, restart/reconnect, peer visibility, and rendered acceptance remain for combined I4. Other A8b material and recipe children remain open.
 - **Next eligible task:** A8b Venom Sac — Death Adder, one guaranteed; material, source, JSON, and generated icon.
-- **Integration state:** The isolated `codex/a8b-items` branch was at integrated master `031c01e2` before this increment. Giant Scale handoff to master is pending this run's commit and fast-forward. Main checkout and index remain untouched. Combined A8a/A8b I4 remains pending.
-- **Handoff:** Work is isolated in `E:\dev\Kalmala\.wt\a8b`; no main-checkout files or index were modified. Current run time: 2026-10-22T12:59:50Z.
+- **Integration state:** The isolated `codex/a8b-items` branch was at integrated master `031c01e2` before this increment. Giant Scale is integrated into `master` by fast-forward `031c01e2..ae90d081`; the backlog and progress handoff are visible on main. Combined A8a/A8b I4 remains pending.
+- **Handoff:** Implementation and backlog/progress handoff are synchronized to `E:\dev\Kalmala` on `master`; the integration record is kept in a separate commit from the implementation. Current run time: 2026-10-22T13:00:48Z.
