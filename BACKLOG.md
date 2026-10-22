@@ -265,7 +265,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [x] Badger Fur Vest: Workbench, 6 Badger Fur → 1; Chest, 6 Armor.
   - [x] Roasted Badger: Cooking Rack, 1 Badger Meat → 1; Steady Meal.
   - [x] Fang Arrows: Workbench, 2 Viper Fang + 10 Wood → 20; 50 Pierce, weak poison 5 s.
-  - [ ] Scale Cuirass: Forge, 10 Giant Scale + 10 Bronze → 1; Chest, 20 Armor.
+  - [x] Scale Cuirass: Forge, 10 Giant Scale + 10 Bronze → 1; Chest, 20 Armor.
   - [ ] Antidote: Cauldron, 1 Venom Sac + 2 Lingonberry → 1; clear weak poison, reduce major poison to weak, resist poison for 10 min; share the 60 s A6 recovery cooldown.
   - [ ] Peat Heart Stew: Cauldron, 1 Peat Heart + 2 Potato + 1 Onion → 2; Steady Meal.
   - [ ] Wolf Pelt Boots: Workbench, 5 Wolf Pelt + 5 Iron → 1; Boots, 10 Armor.

@@ -5934,3 +5934,16 @@
 - **Known limitations / remaining scope:** Runtime and regression-source compilation/execution remain for I4. Poison has no separate status presentation; existing replicated wildlife health exposes its damage. Other A8b item effects and combined enemy/item milestone acceptance remain open.
 - **Next eligible task:** Scale Cuirass — Forge, 10 Giant Scale + 10 Bronze → 1; Chest, 20 Armor.
 - **Integration state:** Updated directly on `master`; no handoff synchronization was needed. Current run time: 2026-10-22T15:48:14Z.
+
+## Run 2026-10-22 15:53 UTC — A8b Scale Cuirass
+
+- **Selected task:** Scale Cuirass — Forge, 10 Giant Scale + 10 Bronze → 1; Chest, 20 Armor. Checked only this existing A8b child.
+- **Work completed:** Added regression coverage for the Cuirass's Chest slot, 20 Armor, 150 maximum condition, level-two reward values, exact Forge recipe, five-Scale/five-Bronze level-up cost, and exact-GUID replacement of another chest wearable. Documented its existing generic server crafting, equip, armor, wear, and imported-icon coverage, including the remaining equipment-upgrade limitation.
+- **Files changed:** `BACKLOG.md`; `PROGRESS.md`; `Source/KalmalaGameplay/Private/Tests/KalmalaInventoryEquipmentTest.cpp`; `Source/KalmalaGameplay/Private/Tests/KalmalaItemCatalogueTest.cpp`; `Source/KalmalaGameplay/Private/Tests/KalmalaM9ToolProgressionCatalogueTest.cpp`; `docs/07-development-setup.md`.
+- **Lightweight checks:** `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id ScaleCuirass` passed; `python Scripts/Validate-CreatureCatalogues.py` passed for 17 profiles and manifest JSON; `Scripts/Tests/Inventory/Verify-Inventory.ps1 -ContractOnly` passed; a focused JSON assertion passed for the registered profile, Forge recipe, level-up cost, and shared stat reward; `git diff --check` passed. The first draft of the focused assertion used the wrong JSON key and failed with `KeyError`; correcting it to the catalogue's `levelUpRewards` key passed. No product failure was found.
+- **Full verification:** No Unreal build or automation ran for this normal child. Added C++ regression source remains uncompiled and unexecuted; combined A8a/A8b I4 verification remains required before A9.
+- **Observable impact:** The existing registered Cuirass definition and server crafting/equipment paths now have explicit regression coverage for its approved profile, recipe, upgrade data, and chest replacement behavior.
+- **Networking/authority:** No new runtime transaction or network path was added. Existing server-validated crafting, exact-GUID equipment, armor calculation, and durability-wear paths remain authoritative; no save schema or replicated state changed.
+- **Known limitations / remaining scope:** Wearable upgrade transactions are not implemented; level-up cost/reward records are data only. The expanded C++ regression sources await Unreal compilation/execution, and the combined A8a/A8b I4 gate remains outstanding.
+- **Next eligible task:** A8b Antidote — Cauldron, 1 Venom Sac + 2 Lingonberry → 1; clear weak poison, reduce major poison to weak, and resist poison for 10 minutes while sharing A6's 60-second recovery cooldown.
+- **Integration state:** Updated directly on `master`; no main-checkout handoff synchronization was needed. Current run time: 2026-10-22T15:53:22Z.

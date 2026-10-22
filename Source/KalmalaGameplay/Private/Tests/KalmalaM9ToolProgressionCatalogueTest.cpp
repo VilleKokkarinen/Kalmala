@@ -46,6 +46,7 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
         TPair<FName, FName>(TEXT("BoarHideHelmet"), TEXT("Workbench")),
         TPair<FName, FName>(TEXT("BoarHideLeggings"), TEXT("Workbench")),
         TPair<FName, FName>(TEXT("BoarHideTunic"), TEXT("Workbench")),
+        TPair<FName, FName>(TEXT("ScaleCuirass"), TEXT("Forge")),
         TPair<FName, FName>(TEXT("WoodShield"), TEXT("Workbench"))
     };
     TestTrue(TEXT("Armor item, recipe and upgrade catalogues validate"),
@@ -105,6 +106,15 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
                     Acquisition->Ingredients.ContainsByPredicate([](const FKalmalaInventoryStack& Ingredient)
                         { return Ingredient.ItemId == TEXT("BoneFragment") && Ingredient.Quantity == 1; }));
             }
+            if (GearAndStation.Key == TEXT("ScaleCuirass"))
+            {
+                TestTrue(TEXT("Scale Cuirass recipe consumes ten Giant Scales and ten Bronze"),
+                    Acquisition->Ingredients.Num() == 2
+                    && Acquisition->Ingredients.ContainsByPredicate([](const FKalmalaInventoryStack& Ingredient)
+                        { return Ingredient.ItemId == TEXT("GiantScale") && Ingredient.Quantity == 10; })
+                    && Acquisition->Ingredients.ContainsByPredicate([](const FKalmalaInventoryStack& Ingredient)
+                        { return Ingredient.ItemId == TEXT("Bronze") && Ingredient.Quantity == 10; }));
+            }
         }
 
         const FKalmalaToolRecipeData* Upgrade = AuthoredCatalogue
@@ -121,6 +131,15 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
                 TestTrue(TEXT("Boar Hide Cape upgrade requires one Bone Fragment"),
                     Upgrade->Ingredients.ContainsByPredicate([](const FKalmalaToolRecipeIngredientData& Ingredient)
                         { return Ingredient.ItemId == TEXT("BoneFragment") && Ingredient.Quantity == 1; }));
+            }
+            if (GearAndStation.Key == TEXT("ScaleCuirass"))
+            {
+                TestTrue(TEXT("Scale Cuirass upgrade uses five Giant Scales and five Bronze"),
+                    Upgrade->Ingredients.Num() == 2
+                    && Upgrade->Ingredients.ContainsByPredicate([](const FKalmalaToolRecipeIngredientData& Ingredient)
+                        { return Ingredient.ItemId == TEXT("GiantScale") && Ingredient.Quantity == 5; })
+                    && Upgrade->Ingredients.ContainsByPredicate([](const FKalmalaToolRecipeIngredientData& Ingredient)
+                        { return Ingredient.ItemId == TEXT("Bronze") && Ingredient.Quantity == 5; }));
             }
         }
     }

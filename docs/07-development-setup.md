@@ -4661,6 +4661,21 @@ Recipe category JSON uses the root `recipes` array, including equipment acquisit
 
 The six wearable IDs are grouped by type in `items/equipment/armor/boots.json`, `items/equipment/armor/capes.json`, `items/equipment/armor/helmets.json`, `items/equipment/armor/leggings.json`, `items/equipment/armor/shields.json`, and `items/equipment/armor/tunics.json`; each file is listed in `itemFiles`. Their ordinary station recipes remain grouped in `recipes/stations/`. Matching level-one costs are split by type into `item-level-up/costs/armor/boots.json`, `item-level-up/costs/armor/capes.json`, `item-level-up/costs/armor/helmets.json`, `item-level-up/costs/armor/leggings.json`, `item-level-up/costs/armor/shields.json`, and `item-level-up/costs/armor/tunics.json`, each listed in `itemUpgradeFiles`. Each recipe produces one non-stackable item and uses the ordinary server crafting validation for station context, materials, and capacity. Existing upgrade-cost validation checks wearable identity, station, known material references, bounded ingredients, and the shared doubling scale. Gear cost rows do not generate carried-tool progression entries or enable gear upgrades; those transactions remain pending the equipment integration work. `Kalmala.Gameplay.M9.ToolProgressionCatalogue` coverage checks all six acquisition/cost identities and confirms wearable costs remain outside the tool progression entries. This normal development increment has not run Unreal compilation or automation; full verification remains deferred.
 
+## A8b Scale Cuirass item coverage — 2026-10-22
+
+`ScaleCuirass` is a stack-one, 8 kg Chest wearable with 20 physical Armor and
+150 maximum condition. Its registered level-one Forge recipe consumes 10 Giant
+Scales and 10 Bronze; the Giant Snake's accepted server reward supplies the
+Scales. The wearable catalogue resolves its level-two values from the existing
+shared reward (+1 Armor and +10 condition), and the level-one Forge upgrade
+cost is 5 Giant Scales + 5 Bronze. Generic server equip/replacement, armor
+calculation, and accepted-hit wear paths admit the Cuirass through its
+catalogued Chest slot. The catalogue and transaction regression sources now
+assert its base profile, upgrade data, crafting recipe, and exact-GUID chest
+replacement. Its original imported icon remains covered by the catalogue icon
+validator. Wearable upgrade transactions are still not implemented; the
+registered level-up data does not make that action available at runtime.
+
 ## Inventory Worn Gear presentation — 2026-10-15
 
 The Inventory popup combines equipment with the 40-cell grid on one plank

@@ -83,6 +83,27 @@ bool FKalmalaInventoryEquipmentTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Complete round-trip restores six carried rows"), CompletePack.Num(), 6);
     TestTrue(TEXT("Complete round-trip clears the worn set"), CompleteGear.IsEmpty());
 
+    const FGuid CuirassGuid = FGuid::NewGuid();
+    const FGuid VestGuid = FGuid::NewGuid();
+    TArray<FKalmalaInventoryStack> CuirassPack = { MakeTestStack(TEXT("ScaleCuirass"), CuirassGuid) };
+    FKalmalaEquippedGear WornVest;
+    WornVest.Slot = EKalmalaGearSlot::Chest;
+    WornVest.ItemId = TEXT("BadgerFurVest");
+    WornVest.ItemGuid = VestGuid;
+    TArray<FKalmalaInventoryStack> CuirassAfterPack;
+    TArray<FKalmalaEquippedGear> CuirassAfterGear;
+    FString CuirassReason;
+    TestTrue(TEXT("Scale Cuirass can replace a worn chest item by its exact GUID"),
+        UKalmalaInventoryComponent::BuildEquipGearTransaction(CuirassPack, {WornVest}, CuirassGuid, {},
+            CuirassAfterPack, CuirassAfterGear, CuirassReason));
+    TestTrue(TEXT("Scale Cuirass becomes the chest wearable"),
+        CuirassAfterGear.ContainsByPredicate([CuirassGuid](const FKalmalaEquippedGear& Entry)
+            { return Entry.ItemId == TEXT("ScaleCuirass") && Entry.Slot == EKalmalaGearSlot::Chest
+                && Entry.ItemGuid == CuirassGuid; }));
+    TestTrue(TEXT("Chest replacement returns the displaced vest with its GUID"),
+        CuirassAfterPack.ContainsByPredicate([VestGuid](const FKalmalaInventoryStack& Stack)
+            { return Stack.ItemId == TEXT("BadgerFurVest") && Stack.ItemGuids.Contains(VestGuid); }));
+
     const FGuid BootsGuid = FGuid::NewGuid();
     TArray<FKalmalaInventoryStack> AfterStacks;
     TArray<FKalmalaEquippedGear> AfterGear;
