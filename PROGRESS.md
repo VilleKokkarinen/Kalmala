@@ -5803,5 +5803,5 @@
 - **Networking/authority:** Existing server-side defeat recording and owner-bound population-save escrow govern the reward. The server builds and commits the complete candidate; no client-supplied item ID or quantity or SaveGame schema change was introduced.
 - **Known limitations / remaining scope:** Live formation habitat/cap validation, attack rejection, full-pack delivery/retry, reconnect/restart, peer visibility, and rendered acceptance remain for combined I4. Wolf Fang and Wolf Meat remain open source tasks; other A8b materials and recipes remain open.
 - **Next eligible task:** A8b Wolf Fang — Wolf, 25% chance of one; material, source, JSON, and generated icon.
-- **Integration state:** Implementation and handoff are on isolated `codex/a8b-items` based on master `29ff229a`; synchronization to `master` is pending.
-- **Handoff:** No main-checkout files or index were modified. Current run time: 2026-10-22T13:18:53Z.
+- **Integration state:** Wolf Pelt commit `b0df2129` was fast-forwarded from `codex/a8b-items` to `master`; the backlog checkbox and implementation are integrated. Combined A8a/A8b I4 remains pending before A9.
+- **Handoff:** `BACKLOG.md` and `PROGRESS.md` are visible in the main checkout; this integration record is kept in a separate progress-only commit. Current run time: 2026-10-22T13:20:13Z.
