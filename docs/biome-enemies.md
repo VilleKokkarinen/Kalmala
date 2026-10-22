@@ -48,8 +48,8 @@ server-owned roll per credited defeat and award the listed amount only on
 success. The creature profiles match all 18 rows below; each drop is additional
 to baseline loot. Deer Sinew and the two gem routes retain their existing
 plans. The 15 A8b material identities, named enemy sources, quantities,
-chances, and intended-use links are approved. Recipe costs, consumable effects,
-and complete gear profiles remain for the next A8a review.
+chances, intended uses, recipe costs, consumable effects, and A8b gear profiles
+are approved below. This review does not implement or activate any new drops.
 Unique means a characteristic drop, not an exclusive source for shared Sinew.
 
 | Enemy            | Unique drop        | Amount / chance | Intended use              |
@@ -93,49 +93,99 @@ includes applicable catalogue JSON/manifest entries and an original generated,
 prepared/imported runtime icon with validation; none may be checked complete
 with placeholder data or a fallback icon.
 
-**Recommendations for review**, using the latest user-edited drop table above.
-Costs and base effects below are proposals; Bow String and both rings reuse
-existing backlog recipes. Every retained drop has a use; Boar and Mosquito
-swarm currently have no unique drop, so neither receives a new recipe here.
+**A8a item review complete (2026-10-22).** The A8b checklist remains canonical
+for recipe stations, costs, and output quantities. Bow String remains bow-only;
+Moonstone Ring and Dusk Ring stay in A9; their rows are downstream references,
+not additional A8b outputs. Their A9 recipe costs remain for the separate A9
+review.
+The user delegated A8b effects and gear-profile decisions to Codex on
+2026-10-21; this review confirms that contract without enabling any items.
+Every retained drop has a use; Boar and Mosquito swarm have no new unique drop.
 
 | Recommended item | Station      | Recipe / output                              | Proposed use / base effect     |
 | ---------------- | ------------ | -------------------------------------------- | ------------------------------ |
 | Bow String       | Workbench    | 4 Sinew → 1                                  | Existing bow material          |
-| Rat-tail Tonic   | Cauldron     | 2 Rat Tail + 2 Lingonberry → 1               | Heal 30 HP over 10 s           |
-| Badger Fur Vest  | Workbench    | 6 Badger Fur + 2 String → 1                  | Chest; 6 Armor                 |
+| Rat-tail Tonic   | Cauldron     | 2 Rat Tail + 2 Lingonberry → 1               | Heal 30 HP over 10 s; shared 60 s cooldown |
+| Badger Fur Vest  | Workbench    | 6 Badger Fur → 1                             | Chest; 6 Armor                 |
 | Roasted Badger   | Cooking Rack | 1 Badger Meat → 1                            | Steady Meal                    |
 | Moonstone Ring   | Forge        | 5 Bronze + 1 Moonstone → 1                   | +20 max stamina; existing plan |
 | Fang Arrows      | Workbench    | 2 Viper Fang + 10 Wood → 20                  | 50 Pierce; weak poison 5 s     |
 | Scale Cuirass    | Forge        | 10 Giant Scale + 10 Bronze → 1               | Chest; 20 Armor                |
 | Dusk Ring        | Forge        | 5 Bronze + 1 Dusk Diamond → 1                | +10 HP, +10 stamina, +5 Armor  |
-| Antidote         | Cauldron     | 1 Venom Sac + 2 Lingonberry → 1              | Clear weak poison + poison resistance for 10 minutes. major poison effect reduced to half.        |
+| Antidote         | Cauldron     | 1 Venom Sac + 2 Lingonberry → 1              | Clear weak (minor); reduce major to weak; 10 min resistance |
 | Peat Heart Stew  | Cauldron     | 1 Peat Heart + 2 Potato + 1 Onion → 2        | Steady Meal                    |
 | Wolf Pelt Boots  | Workbench    | 5 Wolf Pelt + 5 Iron   → 1                   | Boots; 10 Armor                |
-| Fang Spear       | Forge        | 4 Wolf fang + 10 Iron + 10 Densewood → 1     | 100 Stab                       |
-| Wolf Stew        | Cauldron     | 1 Wolf meat + 3 Carrot + 3 Onion → 1         | Steady Meal                    |
-| Lynx Mantle      | Workbench    | 4 Lynx Pelt + 2 String → 1                   | Cape; 8 Armor                  |
+| Fang Spear       | Forge        | 4 Wolf Fang + 10 Iron + 10 Densewood → 1     | 100 Stab                       |
+| Wolf Stew        | Cauldron     | 1 Wolf Meat + 3 Carrot + 3 Onion → 1         | Steady Meal                    |
+| Lynx Mantle      | Workbench    | 4 Lynx Pelt → 1                              | Cape; 8 Armor                  |
 | Polar Bear Coat  | Forge        | 5 Polar Bear Pelt + 20 Iron → 1              | Chest; 50 Armor                |
 | Horn Bow         | Workbench    | 2 Goat Horn + 10 Densewood + 1 Bow String → 1| 100 Pierce bow bonus, slow draw|
 | Thunder Maul     | Forge        | 1 Thunder Core + 20 Iron + 10 Densewood → 1  | 100 Crush + 30 Lightning       |
 | Reef Harpoon     | Forge        | 3 Reef Tooth + 8 Iron + 4 Lightwood → 1      | 60 Pierce; spear weapon        |
 
-- Meals use the existing proposed Steady Meal: 120 s, stamina costs ×0.90;
-  no stacking or eating while active. Raw meat and Peat Heart are ingredients.
-- Fang Arrows apply weak poison at 1/sec for 5 s on an accepted hit; use the
-  enemy poison refresh/strongest-dose rules. No repeated poison per projectile.
-- Tonic and Antidote share the proposed 60 s recovery cooldown. Tonic cannot
-  be used at full health. The user's revised Antidote clears weak poison,
-  provides poison resistance for 600 s, and halves major-poison damage.
-  Define the exact weak-poison resistance/reapplication behavior and effect
-  refresh rules during planning; do not guess them during implementation.
-  This new resistance proposal supersedes A6's deferral only if approved.
-- Bow damage is a weapon bonus, combined once with arrow damage. Armor is
-  physical-only. Fur items grant no cold protection in this recommendation.
-- Thunder Maul requires approved Lightning damage/channel behavior. Reef
-  Harpoon is included in the approved aquatic route; the route adds no skiff damage.
-- New items still need reviewed full profiles, attacks, durability, upgrades/
-  repair where applicable, server-validated crafting and original inventory
-  icons. These recommendations do not silently replace existing gear recipes.
+- Roasted Badger, Peat Heart Stew and Wolf Stew use A6's accepted Steady Meal:
+  120 s, stamina costs ×0.90, no stacking or eating while active. Raw meat and
+  Peat Heart are ingredients.
+- Fang Arrows use the existing weak-poison profile, 1 damage/s for 5 s, on an
+  accepted hit. Apply the existing strongest-dose/refresh rules once per
+  projectile hit; do not repeat the poison application.
+- Rat-tail Tonic weighs 0.2 kg and stacks to 10. It restores up to 30 health
+  over 10 seconds at 3 health/second, clamped to maximum health and ending early
+  when full. Reject use when dead, at full health, while this or Berry Recovery
+  healing is active, or while the shared recovery cooldown is active; rejected
+  use consumes nothing. Healing ends on death, with no item or cooldown refund.
+  It shares A6's 60-second cooldown with Berry Recovery Draught, Root Stamina
+  Draught and Antidote. Consumable crafting awards 10 Cooking XP per dose.
+- Antidote weighs 0.2 kg and stacks to 10. A living player may use it at full
+  health, including before poison is applied. On use it clears active weak
+  poison; an active major dose becomes weak poison at 1 damage/second, with its
+  remaining duration capped at 5 seconds. It grants 600 seconds of resistance:
+  new weak poison is blocked and new major poison is reduced to the weak profile
+  (1 damage/second for up to 5 seconds). Converted weak doses use the existing
+  strongest-dose refresh rules and never stack. On resistance expiry, converted
+  weak poison continues only for its remaining duration and never returns to
+  major strength. Reject use during the shared 60-second A6 recovery cooldown or
+  while resistance is already active; rejected use consumes nothing. Death ends
+  resistance without refunding the dose or cooldown. A8b Antidote is the sole
+  poison-resistance exception; cold and fire resistance remain deferred.
+- Armor profiles. These are base values; Armor is physical-only and fur grants
+  no cold protection. Armor repairs use the existing free server-validated
+  Workbench repair, with no materials. Each armor item has one Workbench or
+  Forge upgrade step and the shared reward of +1 Armor and +10 MaxDurability.
+  No second upgrade step is planned.
+
+  | Item | Weight / MaxDurability | Slot / Armor | Upgrade station and cost |
+  | ---- | --------------------- | ------------ | ------------------------ |
+  | Badger Fur Vest | 4 kg / 100 | Chest / 6 | Workbench: 3 Badger Fur |
+  | Scale Cuirass | 8 kg / 150 | Chest / 20 | Forge: 5 Giant Scale + 5 Bronze |
+  | Wolf Pelt Boots | 3 kg / 120 | Boots / 10 | Workbench: 2 Wolf Pelt + 2 Iron |
+  | Lynx Mantle | 2 kg / 100 | Cape / 8 | Workbench: 2 Lynx Pelt + 1 Bone Fragment |
+  | Polar Bear Coat | 12 kg / 200 | Chest / 50 | Forge: 2 Polar Bear Pelt + 10 Iron |
+
+- Weapon profiles. Melee uses current server combat timing (0.18 s windup,
+  0.36 s recovery) and 220 cm reach. Repair uses the existing free
+  server-validated Workbench repair. Each weapon has one upgrade step; no
+  second step is planned.
+
+  | Item | Weight / hands / MaxDurability | Attack and action | Upgrade station, cost and reward |
+  | ---- | ----------------------------- | ----------------- | -------------------------------- |
+  | Fang Spear | 4 kg / one / 200 | 100 Stab; standard melee timing and reach | Forge: 2 Wolf Fang + 5 Iron + 5 Densewood; +5 Stab, +50 MaxDurability |
+  | Horn Bow | 2.5 kg / two / 140 | 100 Pierce weapon bonus; 3-second full draw; existing arrow curves | Workbench: 1 Goat Horn + 5 Densewood + 1 Bow String; +30 MaxDurability, no damage bonus |
+  | Thunder Maul | 10 kg / two / 220 | 100 Crush + 30 Lightning; standard melee timing and reach | Forge: 1 Thunder Core + 10 Iron + 5 Densewood; +5 Crush, +50 MaxDurability, Lightning stays 30 |
+  | Reef Harpoon | 4 kg / one / 150 | 60 Pierce; standard spear-like melee timing and reach; not thrown | Forge: 1 Reef Tooth + 4 Iron + 2 Lightwood; +5 Pierce, +30 MaxDurability |
+
+- Thunder Maul applies its 30 Lightning as instant additional damage on the
+  same accepted server hit. It bypasses wearable physical Armor, then uses the
+  target's general Armor reduction; it adds no Lightning resistance. It does
+  not chain, deal damage over time, stun or interact with the environment. Bow
+  damage is a weapon bonus combined once with arrow damage. Reef Harpoon adds
+  no skiff damage.
+- Materials have no equipment, attack or upgrade records; armor has no attack
+  record; weapons have no equipment slot; consumables have no equipment,
+  attack or upgrade records. The current runtime catalogue lacks Lightning, so
+  A8b must add that channel explicitly. All catalogue data, item-specific
+  source/use behavior, icons, runtime mappings and validation remain required
+  in the A8b implementation tasks.
 
 ## Proposed roster
 

@@ -224,7 +224,9 @@ Forage, meals and recovery consumables (P1; scope approved 2026-10-19).
 - Review the recovery table below's server-owned effect rules before implementation; use Cauldron at a lit hearth, no new brewing station, alcohol/base items or fermentation step.
 - Add Berry Recovery Draught (`BerryRecoveryDraught`) with the complete reviewed recipe/effect/icon path.
 - Add Root Stamina Draught (`RootStaminaDraught`) with the complete reviewed recipe/effect/icon path.
-- Explicitly defer cold/poison/fire-resistance preparations: no consumable hazard bypass or new resistance channel in this alpha set.
+- A6 itself adds no cold, poison or fire resistance preparation. A8b's later
+  Antidote contract is the sole poison-resistance exception; no cold- or
+  fire-resistance consumable is approved.
 
 | Consumable | Cauldron cost / output | Effect / limit |
 | --- | --- | --- |
