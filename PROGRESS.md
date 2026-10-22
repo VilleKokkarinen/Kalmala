@@ -5322,3 +5322,15 @@
 - **Observable impact and authority:** the server runtime stat lookup can resolve Moon Bear's reviewed profile, but the species is not selected for live spawning, so player-facing gameplay is unchanged. `InitializeServer` remains authority-gated; no client-authored stats, RPCs, replication fields, or save data were added.
 - **Known limitations/remaining scope:** Moon Bear spawning, behavior, presentation, and drops remain queued. The broad revised-stats child is unchecked. Pre-existing interrupted Badger-profile edits in the main checkout were preserved and excluded from this commit.
 - **Next eligible task:** continue the A8a revised-stats child for the remaining planned enemy profiles. A9 remains gated on integrated A8a/A8b and successful I4 verification. Current run time: 2026-10-22 06:54 UTC.
+
+
+## Run 2026-10-22 07:18 UTC — Death Adder runtime stat profile
+
+- **Selected task:** apply the overview's revised stats to existing boar/deer and all A8a enemies. This increment adds one planned runtime profile; the broad stats task remains unchecked.
+- **Work completed:** added the Death Adder archetype stat profile (125 health, 20 armor, 75 Stab) and focused Unreal automation assertions. Death Adder is not selected for live spawning; poison behavior, presentation, spawning, and rewards remain queued.
+- **Files changed:** Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h; Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp; Source/KalmalaGameplay/Private/Tests/KalmalaWildlifeStatProfileTest.cpp; PROGRESS.md.
+- **Lightweight checks:** python Scripts/Validate-CreatureCatalogues.py passed for all 17 profiles and manifest JSON. Focused source assertions confirmed the Death Adder mapping and coverage; git diff --check passed; intended paths are below 260 characters.
+- **Full verification:** the new Unreal automation assertions were not executed. No Unreal build or runtime test ran; combined A8a/A8b/I4 milestone-final verification remains deferred.
+- **Observable impact and authority:** the server runtime can resolve the reviewed Death Adder profile when initialized with that archetype, but it is not selected for live spawning. No RPC, replication field, or save data changed.
+- **Known limitations/remaining scope:** the broad revised-stats task remains open for the remaining A8a profiles. Death Adder behavior, poison, presentation, spawning, and rewards are not implemented. Pre-existing dirty worktree changes were left untouched and excluded from this commit.
+- **Next eligible task:** continue the A8a revised-stats child for remaining planned enemy profiles; A9 remains gated on integrated A8a/A8b and successful I4 verification. Current run time: 2026-10-22 07:18 UTC.
