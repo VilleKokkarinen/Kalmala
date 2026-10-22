@@ -5,8 +5,10 @@
 **Current** = existing species; **Planned** = queued additions or retunes.
 Damage is before defenses. Poison rates are per second and do not stack;
 only the strongest active poison deals damage. Current wildlife uses seeded
-population slots. Boar/deer spawn origins now use a server-side allowlist for
-the biomes below; their stats and Mireling's biome/stat retune remain planned.
+population slots. Boar/deer spawn origins use a server-side allowlist for the
+biomes below. Runtime health, armor, and base Crush damage now match this table
+for the existing Boar, Deer, and Mireling actors; remaining A8a species and
+Mireling's biome restriction remain planned.
 
 | Enemy               | Biome                                  | Status           | HP   | Armor | Attack       | Abilities / counters                |
 | ------------------- | -------------------------------------- | ---------------- | ---: | ----: | ------------ | ----------------------------------- |

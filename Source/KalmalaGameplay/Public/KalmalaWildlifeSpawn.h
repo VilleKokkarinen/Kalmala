@@ -70,6 +70,9 @@ public:
     const FString& GetPersistentSpawnId() const { return PersistentSpawnId; }
     static EKalmalaWildlifeEcology GetEcologyForNiche(FName CreatureNicheId);
     static float GetEcologicalFleeDistance(FName CreatureNicheId);
+    static float GetMaximumHealthForArchetype(EKalmalaWildlifeArchetype Archetype);
+    static float GetArmorForArchetype(EKalmalaWildlifeArchetype Archetype);
+    static float GetBaseAttackDamageForArchetype(EKalmalaWildlifeArchetype Archetype);
     // Server-owned repeat-hit interval keeps optional Mireling pressure readable.
     static constexpr float MirelingMeleeCooldownSeconds = 1.25f;
     static constexpr float DeerCallInfluenceDurationSeconds = 180.0f;
@@ -101,7 +104,7 @@ private:
     bool bDefeated = false;
 
     UPROPERTY(Replicated)
-    float Health = 100.0f;
+    float Health = 75.0f;
 
     UPROPERTY(Replicated)
     FString PersistentSpawnId;

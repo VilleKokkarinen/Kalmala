@@ -74,7 +74,45 @@ void AKalmalaWildlifeSpawn::InitializeServer(const FKalmalaWorldPopulationSpawn&
         PersistentSpawnId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Spawn);
         CreatureNicheId = Spawn.ContentId;
         Archetype = InitialArchetype;
+        Health = GetMaximumHealthForArchetype(Archetype);
+        if (UKalmalaResistanceComponent* Defenses = FindComponentByClass<UKalmalaResistanceComponent>())
+        {
+            Defenses->Profile.Armor = GetArmorForArchetype(Archetype);
+        }
         BuildArchetypePresentation();
+    }
+}
+
+float AKalmalaWildlifeSpawn::GetMaximumHealthForArchetype(const EKalmalaWildlifeArchetype InArchetype)
+{
+    switch (InArchetype)
+    {
+    case EKalmalaWildlifeArchetype::Boar: return 20.0f;
+    case EKalmalaWildlifeArchetype::Deer: return 30.0f;
+    case EKalmalaWildlifeArchetype::Mireling:
+    default: return 75.0f;
+    }
+}
+
+float AKalmalaWildlifeSpawn::GetArmorForArchetype(const EKalmalaWildlifeArchetype InArchetype)
+{
+    switch (InArchetype)
+    {
+    case EKalmalaWildlifeArchetype::Boar:
+    case EKalmalaWildlifeArchetype::Deer: return 5.0f;
+    case EKalmalaWildlifeArchetype::Mireling:
+    default: return 15.0f;
+    }
+}
+
+float AKalmalaWildlifeSpawn::GetBaseAttackDamageForArchetype(const EKalmalaWildlifeArchetype InArchetype)
+{
+    switch (InArchetype)
+    {
+    case EKalmalaWildlifeArchetype::Boar: return 10.0f;
+    case EKalmalaWildlifeArchetype::Mireling: return 20.0f;
+    case EKalmalaWildlifeArchetype::Deer:
+    default: return 0.0f;
     }
 }
 
@@ -126,7 +164,7 @@ bool AKalmalaWildlifeSpawn::ApplyValidatedDamageFromServer(const FKalmalaDamageC
     float ResolvedDamage = 0.0f;
     if (!Defenses || !Defenses->ResolveFromServer(Damage, ResolvedDamage)) return false;
     if (Attacker != nullptr) LastValidatedAttacker = Attacker;
-    Health = FMath::Clamp(Health - ResolvedDamage, 0.0f, 100.0f);
+    Health = FMath::Clamp(Health - ResolvedDamage, 0.0f, GetMaximumHealthForArchetype(Archetype));
     if (Health <= 0.0f) return DefeatServer();
     if (Archetype == EKalmalaWildlifeArchetype::Boar && Attacker != nullptr)
     {
@@ -264,7 +302,7 @@ void AKalmalaWildlifeSpawn::UpdateMirelingScavenge(const float DeltaSeconds)
     }
     else if (MirelingMeleeCooldown <= 0.0f && BestDistanceSquared <= FMath::Square(180.0f))
     {
-        const bool bApplied = Nearest->ApplyWildlifeDamageFromServer(this, 10.0f);
+        const bool bApplied = Nearest->ApplyWildlifeDamageFromServer(this, GetBaseAttackDamageForArchetype(Archetype));
         UE_LOG(LogTemp, Display, TEXT("Mireling encounter attempt: Applied=%d Authority=%d SourceAuthority=%d Distance=%.1f Health=%.1f"), bApplied, Nearest->HasAuthority(), HasAuthority(), FMath::Sqrt(BestDistanceSquared), Nearest->GetHealth());
         if (bApplied) MirelingMeleeCooldown = MirelingMeleeCooldownSeconds;
     }
@@ -297,7 +335,8 @@ void AKalmalaWildlifeSpawn::UpdateBoarTerritory(const float DeltaSeconds)
         const FVector ToTarget = Target->GetActorLocation() - GetActorLocation();
         const float Distance = ToTarget.Size2D();
         if (Distance > 145.0f) SetActorLocation(GetActorLocation() + ToTarget.GetSafeNormal2D() * FMath::Min(520.0f * StepSeconds, Distance - 145.0f), true);
-        if (Distance <= 180.0f && BoarMeleeCooldown <= 0.0f && Target->ApplyWildlifeDamageFromServer(this, 15.0f)) BoarMeleeCooldown = 1.25f;
+        if (Distance <= 180.0f && BoarMeleeCooldown <= 0.0f
+            && Target->ApplyWildlifeDamageFromServer(this, GetBaseAttackDamageForArchetype(Archetype))) BoarMeleeCooldown = 1.25f;
         BoarChargeSecondsRemaining -= StepSeconds;
         return;
     }

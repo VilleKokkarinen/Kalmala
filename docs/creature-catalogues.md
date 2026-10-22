@@ -25,8 +25,10 @@ and the backlog. They belong to the later engine implementation. There is no
 separate rules JSON. Existing Mireling boss-scroll handling stays in code.
 
 This is authoring data. The schema-15 C++ item/tool loader does not consume the
-creature category yet. A8a runtime work and server validation remain open;
-listing a drop does not enable it or certify its A8b/A9 item/icon/source work.
+creature category yet. The existing Boar, Deer, and Mireling actors apply the
+table's health, armor, and base Crush damage values directly; other A8a runtime
+profiles and server validation remain open. Listing a drop does not enable it
+or certify its A8b/A9 item/icon/source work.
 This cleanup changes no gameplay, RPCs, replication or save format.
 
 Run `python Scripts/Validate-CreatureCatalogues.py` to check the manifest,
