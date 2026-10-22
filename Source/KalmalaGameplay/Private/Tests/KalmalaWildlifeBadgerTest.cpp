@@ -137,6 +137,12 @@ bool FKalmalaWildlifeBadgerContractTest::RunTest(const FString& Parameters)
                 Reloaded->GetPendingWildlifeRewards()[0].PersistentSpawnId, BadgerClaimId);
             TestEqual(TEXT("Reload retains the credited Badger owner"),
                 Reloaded->GetPendingWildlifeRewards()[0].PlayerIdentity, FString(TEXT("player:test")));
+            TestTrue(TEXT("Reloaded Badger claim remains idempotent for its credited owner"),
+                Reloaded->TryQueuePendingBadgerReward(BadgerSpawnId, TEXT("player:test")));
+            TestFalse(TEXT("Reloaded Badger claim cannot be reassigned to another owner"),
+                Reloaded->TryQueuePendingBadgerReward(BadgerSpawnId, TEXT("player:other")));
+            TestEqual(TEXT("Owner retries after reload keep one pending Badger claim"),
+                Reloaded->GetPendingWildlifeRewards().Num(), 1);
 
             if (FullPack.Num() == UKalmalaInventoryComponent::MaxSlots)
             {

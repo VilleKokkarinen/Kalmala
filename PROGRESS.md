@@ -5465,3 +5465,15 @@
 - Checks passed: all 20 focused `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id <ID>` checks; `python Scripts/Validate-CreatureCatalogues.py` (17 species and manifest references); PowerShell JSON parsing of all 62 files under Content/Data; whitespace inspection. No Unreal build or runtime automation ran; full verification remains deferred.
 - Broad `Scripts/Validate-UIIcons.ps1 -Category Catalogue` fails on missing imported `StandingLightKit.uasset`. This predates A9: `git ls-tree e0f5ce22 -- Content/Kalmala/UI/Icons/Items/StandingLightKit.uasset` returns no entry, while its prepared PNG exists in that parent; the validator is unchanged by the merge. The unrelated asset was not modified.
 - Observable impact: A9 item/recipe metadata and 20 runtime icon packages are now integrated into master. Accessory equip/effect behavior, gem sources, reviews and I4/I5 acceptance remain open. No additional gameplay, networking, save or authority change was made during integration. Next eligible main task remains A8a Badger acceptance.
+
+## Run 2026-10-22 09:07 UTC — Badger claim owner retry regression
+
+- **Selected task:** continue A8a Elderwood: Badger acceptance. This partial increment leaves the Badger backlog row unchecked.
+- **Work completed:** extended `Kalmala.Gameplay.Wildlife.Badger.SpawnAndClawReach` to retry a serialized claim after reload. The same credited owner remains idempotent, another owner cannot take over the claim, and only one pending row remains. Updated the setup guide's test description.
+- **Files changed:** `Source/KalmalaGameplay/Private/Tests/KalmalaWildlifeBadgerTest.cpp`; `docs/07-development-setup.md`; `PROGRESS.md`.
+- **Lightweight checks:** `python Scripts/Validate-CreatureCatalogues.py` passed for all 17 species and manifest JSON. Focused PowerShell source assertions confirmed both post-reload owner checks and the setup-guide note. `git diff --check` passed; all three changed paths are below 260 characters.
+- **Full verification:** no Unreal build or automation execution for this normal increment; combined A8a/A8b I4 milestone-final verification remains deferred.
+- **Observable impact and authority:** no runtime, RPC, replication, authority or save-format behavior changed. The regression source now covers post-reload idempotency and owner immutability; server delivery authority is unchanged.
+- **Known limitations / remaining scope:** the C++ automation change is not compiled or executed. Live full-pack delivery, restart, relevant-peer acceptance, and Badger Fur/Meat A8b source work remain open.
+- **Next eligible task:** continue A8a Elderwood: Badger acceptance; A9 remains gated on integrated A8a/A8b and successful I4 verification.
+- **Handoff:** main checkout used directly; no worktree handoff synchronization is needed. Current run time: 2026-10-22 09:07 UTC.

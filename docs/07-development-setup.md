@@ -2261,9 +2261,11 @@ or identity-matched restart verification.
 
 The editor automation `Kalmala.Gameplay.Wildlife.Badger.SpawnAndClawReach`
 checks the deterministic 40% Elderwood share, attack bounds and timing, baseline
-Bone Fragment quantity, and serialized owner-bound reward-claim identity. The
-Badger reward uses the existing world-population pending-reward list and waits
-until the authenticated owner's pack can accept it. Combined A8a/A8b I4
+Bone Fragment quantity, and serialized owner-bound reward-claim identity. After
+reload it also checks same-owner retry idempotency and rejects reassignment to a
+different owner. The server retains the Badger claim in the existing
+world-population pending-reward list until the authenticated owner's pack can
+accept it. Combined A8a/A8b I4
 acceptance must still exercise a full-pack Badger defeat, later retry, restart,
 and relevant-peer privacy in Unreal. The editor contract test also fills all
 forty catalogue inventory cells, confirms the reward candidate is rejected
