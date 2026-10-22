@@ -10,7 +10,7 @@ class AKalmalaCampfire;
 struct FKalmalaStatusModifiers
 {
     float Movement = 1.0f;
-    float StaminaUse = 1.0f;
+    float StaminaCostAddition = 0.0f;
 };
 
 USTRUCT(BlueprintType)
@@ -76,17 +76,17 @@ public:
     static constexpr float BerryRecoveryHealth = 20.0f;
     static constexpr float RatTailTonicHealth = 30.0f;
     static constexpr float RootStaminaDraughtStamina = 20.0f;
-    static constexpr float SteadyMealStaminaUseMultiplier = 0.90f;
+    static constexpr float SteadyMealStaminaCostAddition = -0.10f;
     static constexpr float UnroofedRainTriggerSeconds = 10.0f;
     // Wet remains a meaningful exposure pressure, but its movement and sprint
     // costs leave room for a player to recover or choose a short detour.
     static constexpr float WetMovementMultiplier = 0.92f;
-    static constexpr float WetStaminaUseMultiplier = 1.15f;
+    static constexpr float WetStaminaCostAddition = 0.15f;
 
     FKalmalaStatusModifiers GetModifiers() const { return EvaluateModifiers(Statuses); }
     static FKalmalaStatusModifiers EvaluateModifiers(const TArray<FKalmalaPlayerStatusEntry>& Entries);
     /** Base cost must come from an authoritative action definition, never an RPC payload. */
-    float CalculateStaminaCost(float BaseCost) const;
+    float CalculateStaminaCost(float BaseCost, bool bSupportSpell = false) const;
 
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 

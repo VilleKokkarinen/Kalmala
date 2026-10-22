@@ -164,7 +164,7 @@ bool UKalmalaSupportMagicComponent::ActivateSupportEffectFromHotbarServer(const 
     UKalmalaCharacterMovementComponent* Movement = Cast<UKalmalaCharacterMovementComponent>(Pawn->GetMovementComponent());
     const AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(Pawn);
     const UKalmalaPlayerStatusComponent* Status = Character ? Character->GetStatusComponent() : nullptr;
-    const float EffectiveActivationCost = Status ? Status->CalculateStaminaCost(ActivationCost) : ActivationCost;
+    const float EffectiveActivationCost = Status ? Status->CalculateStaminaCost(ActivationCost, true) : ActivationCost;
     const bool bHasStamina = Movement != nullptr && FMath::IsFinite(EffectiveActivationCost)
         && EffectiveActivationCost > 0.0f && Movement->GetStamina() >= EffectiveActivationCost;
     const bool bBaseActivationAllowed = IsActivationAllowed(Pawn->HasAuthority(), HasLearnedEffect(Effect),

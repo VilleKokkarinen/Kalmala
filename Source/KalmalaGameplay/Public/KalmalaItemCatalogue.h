@@ -25,7 +25,7 @@ struct KALMALAGAMEPLAY_API FKalmalaItemDefinition
     UPROPERTY(EditAnywhere)
     float WeightKg = 1.0f;
 
-    /** Empty for ordinary items; one of Head, Cape, Chest, Shield, Legs, or Boots for wearable gear. */
+    /** Empty for ordinary items; a wearable or accessory slot for equippable gear. */
     UPROPERTY(EditAnywhere)
     FString GearSlot;
 
@@ -33,16 +33,9 @@ struct KALMALAGAMEPLAY_API FKalmalaItemDefinition
     UPROPERTY(EditAnywhere)
     int32 MaxDurability = 0;
 
-    /** Gear-only flat reduction of combined Slash, Crush, Pierce and Stab damage. */
+    /** Flat reduction of combined physical damage while equipped. */
     UPROPERTY(EditAnywhere)
     int32 Armor = 0;
-
-    /** Proposed necklace/ring data, retained as metadata until accessory equipment behavior is implemented. */
-    UPROPERTY(EditAnywhere)
-    FString AccessorySlot;
-
-    UPROPERTY(EditAnywhere)
-    int32 AccessoryArmor = 0;
 
     UPROPERTY(EditAnywhere)
     int32 MaxHealthBonus = 0;
@@ -51,16 +44,18 @@ struct KALMALAGAMEPLAY_API FKalmalaItemDefinition
     int32 MaxStaminaBonus = 0;
 
     UPROPERTY(EditAnywhere)
-    float SprintStaminaCostMultiplier = 1.0f;
+    /** Additive fraction applied to every stamina cost; 0.1 means +10%. */
+    float StaminaCostMultiplier = 0.0f;
 
     UPROPERTY(EditAnywhere)
-    float SupportSpellStaminaCostMultiplier = 1.0f;
+    /** Additional additive fraction applied only to support spell stamina costs. */
+    float SupportSpellStaminaCostMultiplier = 0.0f;
 
     UPROPERTY(EditAnywhere)
-    float StaminaRegenerationMultiplier = 1.0f;
+    float StaminaRegenerationMultiplier = 0.0f;
 
     UPROPERTY(EditAnywhere)
-    float HealingReceivedMultiplier = 1.0f;
+    float HealingReceivedMultiplier = 0.0f;
 };
 
 struct KALMALAGAMEPLAY_API FKalmalaGearLevelStats

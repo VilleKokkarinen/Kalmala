@@ -58,7 +58,7 @@ bool FKalmalaPlayerWetModifiersTest::RunTest(const FString& Parameters)
     Movement->SetMovementMode(MOVE_Custom, UKalmalaCharacterMovementComponent::GeneratedOceanSwimmingMode);
     TestTrue(TEXT("Swimming applies tuned Wet after its speed cap"), FMath::IsNearlyEqual(Movement->GetMaxSpeed(), FMath::Min(DrySpeed, 420.0f) * UKalmalaPlayerStatusComponent::WetMovementMultiplier));
     TestEqual(TEXT("Authoritative base stamina cost gains the tuned 15 percent"), Status->CalculateStaminaCost(20.0f), 23.0f);
-    TestEqual(TEXT("Wet applies its shared multiplier to the tuned support base cost"), Status->CalculateStaminaCost(UKalmalaSupportMagicComponent::ActivationCost), 20.7f);
+    TestEqual(TEXT("Wet adds its 15 percent cost adjustment to the tuned support base"), Status->CalculateStaminaCost(UKalmalaSupportMagicComponent::ActivationCost), 20.7f);
     TestEqual(TEXT("Invalid cost cannot become a credit"), Status->CalculateStaminaCost(-20.0f), 0.0f);
     TArray<FKalmalaPlayerStatusEntry> Entries = Status->GetStatuses();
     const FKalmalaPlayerStatusEntry Duplicate = Entries[0];
@@ -189,8 +189,8 @@ bool FKalmalaSteadyMealStatusTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Meal has one server-defined finite entry"), Entries.Num(), 1);
     TestEqual(TEXT("Meal uses the fixed server duration"), Entries[0].RemainingSeconds, UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);
     TestEqual(TEXT("Meal reduces stamina use without changing movement speed"),
-        UKalmalaPlayerStatusComponent::EvaluateModifiers(Entries).StaminaUse,
-        UKalmalaPlayerStatusComponent::SteadyMealStaminaUseMultiplier);
+        UKalmalaPlayerStatusComponent::EvaluateModifiers(Entries).StaminaCostAddition,
+        UKalmalaPlayerStatusComponent::SteadyMealStaminaCostAddition);
     TestEqual(TEXT("Meal does not add a movement-speed bonus"), UKalmalaPlayerStatusComponent::EvaluateModifiers(Entries).Movement, 1.0f);
     TestFalse(TEXT("A second broth serving cannot stack or replace the active meal"), UKalmalaPlayerStatusComponent::ApplyFood(Entries, TEXT("HearthBroth")));
     TestEqual(TEXT("Rejected meal preserves its timer"), Entries[0].RemainingSeconds, UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);
@@ -199,7 +199,7 @@ bool FKalmalaSteadyMealStatusTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Meal duration advances with server status time"), Entries[0].RemainingSeconds, 90.0f);
     UKalmalaPlayerStatusComponent::Advance(Entries, UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);
     TestTrue(TEXT("Expired meal is removed"), Entries.IsEmpty());
-    TestEqual(TEXT("Expired meal restores stamina costs"), UKalmalaPlayerStatusComponent::EvaluateModifiers(Entries).StaminaUse, 1.0f);
+    TestEqual(TEXT("Expired meal restores stamina costs"), UKalmalaPlayerStatusComponent::EvaluateModifiers(Entries).StaminaCostAddition, 0.0f);
     TestTrue(TEXT("Hearth broth may supply the next meal after expiry"), UKalmalaPlayerStatusComponent::ApplyFood(Entries, TEXT("HearthBroth")));
     UKalmalaPlayerStatusComponent::Advance(Entries, UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);
 

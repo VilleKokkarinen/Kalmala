@@ -4,6 +4,8 @@
 #include "KalmalaCampfire.h"
 #include "KalmalaCharacter.h"
 #include "KalmalaCharacterMovementComponent.h"
+#include "KalmalaInventoryComponent.h"
+#include "KalmalaItemCatalogue.h"
 
 const FName UKalmalaPlayerStatusComponent::WetStatusId(TEXT("State.Wet"));
 const FName UKalmalaPlayerStatusComponent::WeakPoisonStatusId(TEXT("State.Poison.Weak"));
@@ -41,20 +43,36 @@ FKalmalaStatusModifiers UKalmalaPlayerStatusComponent::EvaluateModifiers(const T
         if (Entry.StatusId == WetStatusId)
         {
             Result.Movement *= WetMovementMultiplier;
-            Result.StaminaUse *= WetStaminaUseMultiplier;
+            Result.StaminaCostAddition += WetStaminaCostAddition;
         }
         else if (Entry.StatusId == SteadyMealStatusId)
         {
-            Result.StaminaUse *= SteadyMealStaminaUseMultiplier;
+            Result.StaminaCostAddition += SteadyMealStaminaCostAddition;
         }
     }
     return Result;
 }
 
-float UKalmalaPlayerStatusComponent::CalculateStaminaCost(const float BaseCost) const
+float UKalmalaPlayerStatusComponent::CalculateStaminaCost(const float BaseCost, const bool bSupportSpell) const
 {
     if (!FMath::IsFinite(BaseCost) || BaseCost < 0.0f) return 0.0f;
-    return FMath::Min(static_cast<double>(BaseCost) * GetModifiers().StaminaUse, static_cast<double>(MAX_flt));
+    float AdditiveCostModifier = GetModifiers().StaminaCostAddition;
+    const AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(GetOwner());
+    const UKalmalaInventoryComponent* Inventory = Character ? Character->GetInventoryComponent() : nullptr;
+    const UKalmalaItemCatalogue* Catalogue = Inventory ? UKalmalaItemCatalogue::Get() : nullptr;
+    if (Inventory && Catalogue)
+    {
+        for (const FKalmalaEquippedGear& Gear : Inventory->GetEquippedGear())
+        {
+            if (Gear.Slot != EKalmalaGearSlot::Necklace && Gear.Slot != EKalmalaGearSlot::Ring) continue;
+            const FKalmalaItemDefinition* Item = Catalogue->FindItem(Gear.ItemId);
+            if (!Item) continue;
+            AdditiveCostModifier += Item->StaminaCostMultiplier;
+            if (bSupportSpell) AdditiveCostModifier += Item->SupportSpellStaminaCostMultiplier;
+        }
+    }
+    const float CombinedMultiplier = FMath::Clamp(1.0f + AdditiveCostModifier, 0.5f, 2.0f);
+    return FMath::Min(static_cast<double>(BaseCost) * CombinedMultiplier, static_cast<double>(MAX_flt));
 }
 
 UKalmalaPlayerStatusComponent::UKalmalaPlayerStatusComponent()

@@ -69,6 +69,8 @@ private:
     UFUNCTION() void UseShieldGearSlot();
     UFUNCTION() void UseLegsGearSlot();
     UFUNCTION() void UseBootsGearSlot();
+    UFUNCTION() void UseNecklaceGearSlot();
+    UFUNCTION() void UseRingGearSlot();
     UPROPERTY(Transient) TObjectPtr<UKalmalaInventoryGridWidget> GridView;
     UPROPERTY(Transient) TObjectPtr<USizeBox> GridSizeBox;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> ToolActionStatusText;
@@ -86,7 +88,6 @@ private:
     UPROPERTY(Transient) TArray<TObjectPtr<UKalmalaIconWidget>> GearSlotIcons;
     UPROPERTY(Transient) TArray<TObjectPtr<UBorder>> GearSlotFills;
     UPROPERTY(Transient) TObjectPtr<UKalmalaIconWidget> MainHandIcon;
-    UPROPERTY(Transient) TArray<TObjectPtr<UKalmalaIconWidget>> AccessoryPlaceholderIcons;
     UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> MainHandButton;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> MainHandNameText;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> MainHandStateText;

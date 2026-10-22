@@ -4,12 +4,18 @@
 
 Catalogue schema 16 includes ten stackable gem materials, eight necklace/ring
 records, Opal Helm, and Stormcut Sword with their Forge recipes and applicable
-gear upgrades, rewards, and sword attack membership. `AccessorySlot` and the
-`Accessory*`/stat modifier fields are validated metadata only; no accessory
-equip path or stat application is implemented. Gem acquisition sources and
-gemstone-rock mining are also not enabled by this data batch. Gem records have
-no crafting, combat, equipment, or upgrade data; accessories have no durability,
-repair, upgrade, or attack data; crafted gear has no drop-table entry.
+gear upgrades, rewards, and sword attack membership. Accessories share the
+`GearSlot` and `Armor` fields with other equippable items; necklace/ring
+equipment uses the owner-bound gear transaction and has no condition wear.
+`WeightKg` is 1 for every accessory. Accessory multiplier fields are additive
+deltas with zero as neutral. Equipped stamina-cost deltas combine with Wet and
+Steady Meal adjustments for every stamina cost; the support-spell delta applies
+only to support spells. Maximum-health/stamina, stamina-regeneration and
+healing-received deltas are validated data whose runtime effects remain
+pending. Gem acquisition sources and gemstone-rock mining are also not enabled
+by this data batch. Gem records have no crafting, combat, equipment, or upgrade
+data; accessories have no durability, repair, upgrade, or attack data; crafted
+gear has no drop-table entry.
 
 The original generated icons and exact prompts are in
 [`a9-icon-batch.md`](a9-icon-batch.md). Prepare and import the 20 textures with
@@ -3036,21 +3042,23 @@ the equipment rows, repair action and response at supported scales/contrast.
 
 ## Worn gear inventory transaction increment
 
-The inventory component keeps Head, Cape, Chest, Shield, Legs, and Boots in a
-separate owner-only replicated array. `ServerEquipGear` accepts an exact item
-GUID; the server derives the compatible wearable slot from the catalogue,
+The inventory component keeps Head, Cape, Chest, Shield, Legs, Boots, Necklace
+and Ring in a separate owner-only replicated array. `ServerEquipGear` accepts
+an exact item GUID; the server derives the compatible slot from `GearSlot`,
 moves the item GUID out of its carried stack, and returns displaced gear to the
 pack using the freed grid cell. `ServerUnequipGear` accepts only a gear-slot
-enum and rejects when the forty-cell inventory has no room. Equipped wearables
-remain outside the grid. This state is session-only: no save field or schema
-version changes. The Inventory popup displays owner-only wearable names and
-server request results, with equip, replacement, and return actions. Equipped
-wearable defenses apply to server-resolved wildlife damage. Each accepted hit
-spends one condition per equipped wearable, even when fully absorbed. Depleted
-gear stops contributing defense on subsequent hits. Owner-only slot labels show
+enum and rejects when the forty-cell inventory has no room. Equipped gear
+remains outside the grid. This state is session-only: no save field or schema
+version changes. The Inventory popup displays owner-only gear names and server
+request results, with equip, replacement, and return actions. Equipped armor
+applies to server-resolved wildlife damage. Durable wearables lose one
+condition per accepted hit, even when fully absorbed; accessories have no
+condition capacity or wear. Owner-only wearable slot labels show
 remaining/maximum condition. A server-only GUID ledger preserves wear through
 same-pawn pack/equip swaps; cross-pawn transfer, reconnect persistence, repairs,
-and gear upgrades remain pending. Main Hand/tool-hotbar behavior is pending.
+and gear upgrades remain pending. Accessory Armor and additive stamina-cost
+modifiers use the same owner-bound server path; accessory maximum stats,
+regeneration and healing remain pending.
 
 After an affected Gameplay module build, run
 `Kalmala.Gameplay.Inventory.WornGearTransactions`. It covers exact-GUID equip
@@ -3434,9 +3442,9 @@ After building, run `Scripts/Tests/World/Verify-WorldMapExport.ps1`. In one warm
 Run `Kalmala.World.Regional`, `Kalmala.UI.Minimap.GenerationPerformance`, `Scripts/Tests/World/Verify-WorldMapExport.ps1` and `Scripts/Tests/World/Verify-Minimap.ps1` after shared sampling changes. The exporter has no gameplay authority or persistence path.
 ## M3 wetness and rain override (2026-09-14)
 
-`Kalmala.Gameplay.Status.WetModifiers` adds a spawned-pawn regression for the tuned 0.92 walking/sprint/swim speed, duplicate-status non-stacking, expiry recovery, and 1.15 stamina-cost calculation. It is included by the `Kalmala.Gameplay.Status.Wet` prefix. The M5 balance pass keeps the 120-second duration, 10-second rain trigger, and campfire recovery unchanged while reducing the travel/stamina tax. This test does not prove live network agreement or stamina drain; there is no stamina consumer yet. Legacy exposure speed assertions are historical and no longer represent the M3 movement contract.
+`Kalmala.Gameplay.Status.WetModifiers` adds a spawned-pawn regression for the tuned 0.92 walking/sprint/swim speed, duplicate-status non-stacking, expiry recovery, and +0.15 additive stamina-cost calculation (1.15x when Wet is the only modifier). It is included by the `Kalmala.Gameplay.Status.Wet` prefix. The M5 balance pass keeps the 120-second duration, 10-second rain trigger, and campfire recovery unchanged while reducing the travel/stamina tax. This status-only test does not prove live network agreement or stamina drain; the later sprint-stamina acceptance section covers that consumer. Legacy exposure speed assertions are historical and no longer represent the M3 movement contract.
 
-This section supersedes earlier references to continuous player wetness, warmth-derived wetness penalties, fuel wetness extinguishing, or rain damage below. `Wet` is only a server-owned player debuff with a reusable parameter definition: default maximum duration 120 seconds, unroofed-rain trigger 10 uninterrupted seconds, movement multiplier 0.92, and stamina-use multiplier 1.15. Standing in server-confirmed water applies it immediately. Rain applies it only when the server finds no accepted roof above the pawn. Reapplication cannot exceed 120 seconds; a nearby lit campfire with nonzero authoritative heat removes it. Surface moisture remains a grid material/fire input and is never a second player wetness system. The player-facing result is a replicated status-container entry with a finite remaining duration; it has no client mutation path.
+This section supersedes earlier references to continuous player wetness, warmth-derived wetness penalties, fuel wetness extinguishing, or rain damage below. `Wet` is only a server-owned player debuff with a reusable parameter definition: default maximum duration 120 seconds, unroofed-rain trigger 10 uninterrupted seconds, movement multiplier 0.92, and stamina-cost addition +0.15 (a 15% increase when it is the only modifier). Standing in server-confirmed water applies it immediately. Rain applies it only when the server finds no accepted roof above the pawn. Reapplication cannot exceed 120 seconds; a nearby lit campfire with nonzero authoritative heat removes it. Surface moisture remains a grid material/fire input and is never a second player wetness system. The player-facing result is a replicated status-container entry with a finite remaining duration; it has no client mutation path.
 
 Roofs are rain-immune. Unroofed floors, walls, workbenches, and storage take slow server-owned rain wear, clamped at 50% health; an accepted overhead roof prevents that wear. A fuelled campfire is normal in dry weather. Rain without a roof makes it `Smouldering`, with zero heat; roof protection automatically returns it to `Lit`. Clients submit no wetness, duration, roof, health, weather, fire, or relight state.
 
@@ -3520,7 +3528,7 @@ ingredients, stations, and outputs, use the catalogue contract in
 `docs/02-technical-architecture.md` and the focused current-catalogue tests
 listed below.
 
-The Cooking Rack, Cauldron, and Frying Pan use the existing paid construction path and schema-1 construction record; none adds a save field, private inventory, or persistent fuel authority. The server resolves each required station and derives heat needs from its cooking identity. A food recipe requires a usable Lit hearth with finite positive heat within 250 cm of both player and station. Looking at a rack, cauldron, frying pan, or Workbench shows a remappable Interact prompt; the default E interaction is rerun by the server, which replicates the selected station identity only to its owner. The shared themed shell opens the Cooking Rack, Cauldron, and Frying Pan Cook sections and the Workbench Craft section. Workbench Craft filters to recipes requiring that station or producing its matching Tool Rack attachment; it reports material requirements, effective level, and current Tool Rack state. Forge Craft exposes Bronze Axe and Bronze Mace actions alongside Forge recipes. The exact accepted actor and stable construction ID bind the section, and the shell closes if that actor is destroyed, leaves range, or the owning pawn changes. The standalone Build menu opens by right-clicking with the Construction Hammer active. The filter and shell do not authorize crafting: the server independently validates each recipe/tool request against the visible same-world station, required levels, private inventory, and atomic material exchange. `Kalmala.Gameplay.Food.CookingStationHeat` asserts the exact accepted Cooking Rack context and Workbench interaction identity; the M12 `Verify-Crafting.ps1` presentation check also audits Workbench Craft's limited outputs and Forge Craft's Bronze Axe/Mace actions on both peers. Each recipe exchange consumes only the listed ingredients; the hearth burns its fuel by elapsed server time at the ordinary one-fuel-second-per-second rate. A serving batch creates no raw-fuel item debit or hidden timer. The owner food request carries only the allowlisted food item ID. The server checks its private inventory and one-meal slot before consuming an accepted meal and publishing the existing 120-second server status that multiplies stamina use by 0.90. Duplicate use and alternate-food replacement are rejected without consuming food or changing the active timer; server status time expires the effect and restores ordinary stamina costs. `HearthBroth` is produced by the Cauldron from one Deer Meat and one Onion, with a five-batch cap and 10 Cooking XP after successful payment; food recipes and outputs are enumerated in `docs/02-technical-architecture.md`. Food remains optional, with no hunger drain or travel requirement. Food and the effect remain transient; no save schema changed.
+The Cooking Rack, Cauldron, and Frying Pan use the existing paid construction path and schema-1 construction record; none adds a save field, private inventory, or persistent fuel authority. The server resolves each required station and derives heat needs from its cooking identity. A food recipe requires a usable Lit hearth with finite positive heat within 250 cm of both player and station. Looking at a rack, cauldron, frying pan, or Workbench shows a remappable Interact prompt; the default E interaction is rerun by the server, which replicates the selected station identity only to its owner. The shared themed shell opens the Cooking Rack, Cauldron, and Frying Pan Cook sections and the Workbench Craft section. Workbench Craft filters to recipes requiring that station or producing its matching Tool Rack attachment; it reports material requirements, effective level, and current Tool Rack state. Forge Craft exposes Bronze Axe and Bronze Mace actions alongside Forge recipes. The exact accepted actor and stable construction ID bind the section, and the shell closes if that actor is destroyed, leaves range, or the owning pawn changes. The standalone Build menu opens by right-clicking with the Construction Hammer active. The filter and shell do not authorize crafting: the server independently validates each recipe/tool request against the visible same-world station, required levels, private inventory, and atomic material exchange. `Kalmala.Gameplay.Food.CookingStationHeat` asserts the exact accepted Cooking Rack context and Workbench interaction identity; the M12 `Verify-Crafting.ps1` presentation check also audits Workbench Craft's limited outputs and Forge Craft's Bronze Axe/Mace actions on both peers. Each recipe exchange consumes only the listed ingredients; the hearth burns its fuel by elapsed server time at the ordinary one-fuel-second-per-second rate. A serving batch creates no raw-fuel item debit or hidden timer. The owner food request carries only the allowlisted food item ID. The server checks its private inventory and one-meal slot before consuming an accepted meal and publishing the existing 120-second server status that adds a -0.10 stamina-cost delta through the shared additive calculation. Duplicate use and alternate-food replacement are rejected without consuming food or changing the active timer; server status time expires the effect and restores ordinary stamina costs. `HearthBroth` is produced by the Cauldron from one Deer Meat and one Onion, with a five-batch cap and 10 Cooking XP after successful payment; food recipes and outputs are enumerated in `docs/02-technical-architecture.md`. Food remains optional, with no hunger drain or travel requirement. Food and the effect remain transient; no save schema changed.
 
 Each successful prepared-food recipe transaction awards one fixed 10 Cooking experience through the existing server-owned skill component, regardless of its serving batch. The award happens only after the atomic private-pack exchange succeeds. Rejected stations, heat, quantities, inputs, or output capacity award no experience; client-side calls cannot reach the award path. The award is transient. `Kalmala.Gameplay.Food.CookingStationHeat` checks the station-local heat rule, no recipe fuel debit, and time-based fire burn; `Kalmala.Gameplay.Crafting.Transactions` checks recipe batches and raw-fuel selection for hearth refuelling.
 

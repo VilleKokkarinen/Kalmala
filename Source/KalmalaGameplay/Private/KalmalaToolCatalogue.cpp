@@ -173,7 +173,7 @@ bool UKalmalaToolCatalogue::IsValidCatalogue(const UKalmalaItemCatalogue* ItemDe
         const bool bCraftableToolOrGear = (Profile
             && (Profile->ToolSet == TEXT("Starter") || Profile->ToolSet == TEXT("Crafted")
                 || Profile->ToolSet == TEXT("Utility")))
-            || (GearItem && (!GearItem->GearSlot.IsEmpty() || !GearItem->AccessorySlot.IsEmpty()));
+            || (GearItem && !GearItem->GearSlot.IsEmpty());
         const bool bStarterRequiresWorkbench = Profile && Profile->ToolSet == TEXT("Starter")
             && Recipe.RequiredStation != TEXT("Workbench");
         if (Recipe.RecipeId.IsNone() || SeenRecipeIds.Contains(Recipe.RecipeId)

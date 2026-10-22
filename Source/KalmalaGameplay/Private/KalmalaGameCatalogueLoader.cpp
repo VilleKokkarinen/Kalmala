@@ -207,22 +207,20 @@ namespace
             if (!Item->HasField(TEXT("WeightKg"))) Item->SetNumberField(TEXT("WeightKg"), 1.0);
             if (!Item->HasField(TEXT("GearSlot"))) Item->SetStringField(TEXT("GearSlot"), TEXT(""));
             if (!Item->HasField(TEXT("MaxDurability"))) Item->SetNumberField(TEXT("MaxDurability"), 0.0);
-            if (!Item->HasField(TEXT("AccessorySlot"))) Item->SetStringField(TEXT("AccessorySlot"), TEXT(""));
             const auto EnsureFiniteNumber = [&Item](const TCHAR* Field, const double DefaultValue)
             {
                 if (!Item->HasField(Field)) Item->SetNumberField(Field, DefaultValue);
                 double Number = 0.0;
                 return Item->TryGetNumberField(Field, Number) && FMath::IsFinite(Number);
             };
-            FString AccessorySlot;
-            if (!Item->TryGetStringField(TEXT("AccessorySlot"), AccessorySlot)
-                || !EnsureFiniteNumber(TEXT("AccessoryArmor"), 0.0)
+            FString GearSlot;
+            if (!Item->TryGetStringField(TEXT("GearSlot"), GearSlot)
                 || !EnsureFiniteNumber(TEXT("MaxHealthBonus"), 0.0)
                 || !EnsureFiniteNumber(TEXT("MaxStaminaBonus"), 0.0)
-                || !EnsureFiniteNumber(TEXT("SprintStaminaCostMultiplier"), 1.0)
-                || !EnsureFiniteNumber(TEXT("SupportSpellStaminaCostMultiplier"), 1.0)
-                || !EnsureFiniteNumber(TEXT("StaminaRegenerationMultiplier"), 1.0)
-                || !EnsureFiniteNumber(TEXT("HealingReceivedMultiplier"), 1.0)) return false;
+                || !EnsureFiniteNumber(TEXT("StaminaCostMultiplier"), 0.0)
+                || !EnsureFiniteNumber(TEXT("SupportSpellStaminaCostMultiplier"), 0.0)
+                || !EnsureFiniteNumber(TEXT("StaminaRegenerationMultiplier"), 0.0)
+                || !EnsureFiniteNumber(TEXT("HealingReceivedMultiplier"), 0.0)) return false;
             if (!NormalizeArmor(Item)) return false;
             double Weight = 0.0;
             if (!Item->TryGetNumberField(TEXT("WeightKg"), Weight)

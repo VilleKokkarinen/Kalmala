@@ -151,19 +151,21 @@ bool TryGetGearSlot(const FString& SlotName, EKalmalaGearSlot& OutSlot)
     else if (SlotName == TEXT("Shield")) OutSlot = EKalmalaGearSlot::Shield;
     else if (SlotName == TEXT("Legs")) OutSlot = EKalmalaGearSlot::Legs;
     else if (SlotName == TEXT("Boots")) OutSlot = EKalmalaGearSlot::Boots;
+    else if (SlotName == TEXT("Necklace")) OutSlot = EKalmalaGearSlot::Necklace;
+    else if (SlotName == TEXT("Ring")) OutSlot = EKalmalaGearSlot::Ring;
     else return false;
     return true;
 }
 
 bool IsValidGearSlot(const EKalmalaGearSlot Slot)
 {
-    return static_cast<uint8>(Slot) <= static_cast<uint8>(EKalmalaGearSlot::Boots);
+    return static_cast<uint8>(Slot) <= static_cast<uint8>(EKalmalaGearSlot::Ring);
 }
 
 bool IsValidGearState(const TArray<FKalmalaInventoryStack>& Stacks,
     const TArray<FKalmalaEquippedGear>& Gear, const TArray<FGuid>& OtherOwnedGuids)
 {
-    if (Gear.Num() > 6) return false;
+    if (Gear.Num() > 8) return false;
     TSet<FGuid> SeenItemGuids;
     for (const FKalmalaInventoryStack& Stack : Stacks)
         for (const FGuid& ItemGuid : Stack.ItemGuids) SeenItemGuids.Add(ItemGuid);

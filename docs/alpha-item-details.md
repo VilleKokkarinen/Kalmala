@@ -220,7 +220,7 @@ damage. See the [swarm counter contract](biome-enemies.md#mosquito-swarm).
 Forage, meals and recovery consumables (P1; scope approved 2026-10-19).
 - Review and add Lingonberry (`Lingonberry`): hand-gather Meadow berry shrubs, 3 berries per depleted shrub; no tool, stack 20, 0.05 kg each. Eating one applies the existing Steady Meal effect.
 - Review and add Forest Chanterelle (`ForestChanterelle`): hand-gather Elderwood mushroom patches, 2 per depleted patch; no tool, stack 20, 0.1 kg each. Eating one applies the existing Steady Meal effect. The Elderwood patch is its acquisition route; it has no crafting recipe, equipment profile, upgrade cost, or attack data.
-- Retain one Steady Meal effect for all seven existing prepared foods and the two forage foods: 120 seconds, stamina-use multiplier 0.90, no stacking or eating while active. Raw meats/vegetables/seeds remain ingredients, not consumable meals. Defer differentiated nutrition, additional meal slots and new prepared-dish volume.
+- Retain one Steady Meal effect for all seven existing prepared foods and the two forage foods: 120 seconds, StaminaCostAddition = -0.10 summed with other active cost deltas, no stacking or eating while active. Raw meats/vegetables/seeds remain ingredients, not consumable meals. Defer differentiated nutrition, additional meal slots and new prepared-dish volume.
 - Review the recovery table below's server-owned effect rules before implementation; use Cauldron at a lit hearth, no new brewing station, alcohol/base items or fermentation step.
 - Add Berry Recovery Draught (`BerryRecoveryDraught`) with the complete reviewed recipe/effect/icon path.
 - Add Root Stamina Draught (`RootStaminaDraught`) with the complete reviewed recipe/effect/icon path.
@@ -333,7 +333,7 @@ Review outcome — 2026-10-21:
   Bow String is reserved for bows. The recipe table in
   [biome-enemies.md](biome-enemies.md#recommended-items-and-recipes) is aligned
   to these backlog values.
-- Reuse A6's Steady Meal exactly: 120 seconds and 0.90 stamina-use multiplier,
+- Reuse A6's Steady Meal exactly: 120 seconds and a StaminaCostAddition = -0.10 additive delta,
   with no stacking or eating while active. Fang Arrows use the existing weak
   poison profile (1 damage/s for 5 seconds) and strongest-dose refresh rules,
   applied once per projectile hit. Fur gear gives no cold protection; armor is
@@ -507,13 +507,13 @@ for the explicitly selected replacement slots.
 | Quartz Necklace | 3 Bronze + 1 Smoky Quartz | +10 integer Armor, added once to the existing physical-defense total |
 | Moonstone Ring | 2 Bronze + 1 Moonstone | +20 maximum stamina; no direct stamina refill |
 | Garnet Necklace | 3 Bronze + 1 Garnet | +20 maximum health |
-| Jade Ring | 2 Bronze + 1 Green Jade | Sprint stamina cost ×0.90; other actions unchanged |
-| Amethyst Necklace | 3 Bronze + 1 Amethyst | Authored support-spell stamina cost ×0.85 |
-| Aquamarine Ring | 2 Bronze + 1 Aquamarine | Existing stamina regeneration rate ×1.15 |
-| Tourmaline Necklace | 3 Bronze + 1 Tourmaline | Accepted Mending/draught healing received ×1.10 |
+| Jade Ring | 2 Bronze + 1 Green Jade | `StaminaCostMultiplier = -0.10` for every stamina-consuming action |
+| Amethyst Necklace | 3 Bronze + 1 Amethyst | `SupportSpellStaminaCostMultiplier = -0.15` for support spells |
+| Aquamarine Ring | 2 Bronze + 1 Aquamarine | `StaminaRegenerationMultiplier = +0.15` |
+| Tourmaline Necklace | 3 Bronze + 1 Tourmaline | `HealingReceivedMultiplier = +0.10` for Mending/draught healing |
 | Special Dusk Ring | 5 Bronze + 1 Dusk Diamond | +10 maximum health, +10 maximum stamina and +5 integer Armor |
 
-All accessories stack 1; proposed weight 0.1 kg each. No durability, upgrades, repair or
+All accessories stack 1 and weigh 1 kg each. No durability, upgrades, repair or
 attacks. Accessory Armor remains active while equipped without wear;
 use the existing physical-only Armor calculation, not elemental resistance.
 Maximum-stat bonuses never increase current health/stamina on equip;
@@ -521,25 +521,33 @@ unequip/replacement clamps current values to the new maxima. Repeated equip
 cannot heal, refill stamina or accumulate bonuses. Recompute derived stats on
 equipment changes; normal regeneration uses the applicable maximum.
 
-Jade affects sprint expenditure only, multiplying the existing authoritative
-sprint cost after its normal modifiers; no discount to jumps, dodges, swimming,
-attacks, spells or crafting. Amethyst multiplies existing stamina costs for
-Mending, Hearth Shield, Bear's Vigor and Deer Call; no new cost if an authored
-cost is zero, no cooldown/duration/potency/unlock change. Aquamarine changes
-only the active stamina regeneration rate, not the delay or conditions that
-permit regeneration; no passive stamina gain while normal regeneration is
-blocked. Tourmaline boosts actual incoming health recovery from Mending and
-healing-draught ticks once, clamped to maximum health; no passive regeneration,
-food bonus, shield bonus, outgoing-heal multiplier or resurrection. Wearing
-it never grants healing by itself. Evaluate cost/regen/heal modifiers when
-the action/tick resolves; unequip removes them from subsequent actions/ticks.
+Accessory multiplier fields are additive decimal adjustments: zero has no
+effect, `+0.10` adds ten percent and `-0.10` subtracts ten percent. Sum equipped
+accessory adjustments and active Wet/Steady Meal adjustments, including mixed
+positive and negative values, then apply the bounded factor
+`clamp(1 + sum, 0.5, 2.0)` once to each authoritative stamina cost. Jade's
+global delta applies to every stamina cost routed through the shared
+authoritative calculation. Its current callers are sprint, dodge and support
+spells; future stamina-consuming actions inherit the adjustment when routed
+through that path. The
+Amethyst support-spell adjustment is added on top only for Mending, Hearth
+Shield, Bear's Vigor and Deer Call; it does not create a cost when the authored
+cost is zero or change cooldown, duration, potency or unlocks. Aquamarine's
+regeneration delta applies only to active stamina recovery, without changing
+recovery delay or conditions. Tourmaline's healing delta applies once to actual
+incoming Mending/draught recovery, clamped to maximum health. No passive
+healing, food bonus, shield bonus, outgoing-heal multiplier or resurrection is
+added. Evaluate modifiers when the action/tick resolves; unequip removes them
+from subsequent actions/ticks.
 
 Combine flat maximum-stat/Armor contributions additively. Percentage effects
-multiply their respective server-owned base calculations once alongside
-existing Wet/Steady Meal rules; never multiply one effect twice through both
-equipment and status paths. Keep calculations finite/bounded and use the
-existing stat precision without early integer rounding. This needs explicit
-derived-stat/modifier support; these effects are not current runtime features.
+use additive deltas and are summed once per applicable server-owned base
+calculation; never apply one effect twice through equipment and status paths.
+Keep calculations finite/bounded and use the existing stat precision without
+early integer rounding. Accessory Armor and stamina-cost adjustments are now
+supported by the owner-bound equipment path. Maximum-stat, regeneration and
+healing adjustments remain authored data until their derived-stat paths are
+implemented.
 
 Acceptance must cover each effect's allowed and excluded actions, injured/full
 health, exhausted/full stamina, blocked regeneration, partial healing ticks,

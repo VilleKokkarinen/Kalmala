@@ -221,7 +221,7 @@ Every retained drop has a use; Boar and Mosquito swarm have no new unique drop.
 | Reef Harpoon     | Forge        | 3 Reef Tooth + 8 Iron + 4 Lightwood → 1      | 60 Pierce; spear weapon        |
 
 - Roasted Badger, Peat Heart Stew and Wolf Stew use A6's accepted Steady Meal:
-  120 s, stamina costs ×0.90, no stacking or eating while active. Raw meat and
+  120 s, a -10% additive stamina-cost adjustment, no stacking or eating while active. Raw meat and
   Peat Heart are ingredients.
 - Fang Arrows deal 50 Pierce and apply the existing weak-poison profile to
   living wildlife on an accepted hit: 1 Poison damage/s for 5 s. Rehits refresh

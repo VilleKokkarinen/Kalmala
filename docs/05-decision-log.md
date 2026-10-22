@@ -175,7 +175,7 @@ Accepted explicit user direction: new revision-5 worlds use a 16 km origin-centr
 
 ## M3 wetness and rain override (2026-09-14)
 
-This section supersedes earlier references to continuous player wetness, warmth-derived wetness penalties, fuel wetness extinguishing, or rain damage below. `Wet` is only a server-owned player debuff with a reusable parameter definition: default maximum duration 120 seconds, unroofed-rain trigger 10 uninterrupted seconds (7.5 seconds only in M7 Highly Active weather), movement multiplier 0.92, and stamina-use multiplier 1.15. Standing in server-confirmed water applies it immediately. Rain applies it only when the server finds no accepted roof above the pawn. Reapplication cannot exceed 120 seconds; a nearby lit campfire with nonzero authoritative heat removes it. Surface moisture remains a grid material/fire input and is never a second player wetness system.
+This section supersedes earlier references to continuous player wetness, warmth-derived wetness penalties, fuel wetness extinguishing, or rain damage below. `Wet` is only a server-owned player debuff with a reusable parameter definition: default maximum duration 120 seconds, unroofed-rain trigger 10 uninterrupted seconds (7.5 seconds only in M7 Highly Active weather), movement multiplier 0.92, and stamina-cost addition +0.15 (a 15% increase when it is the only modifier). Standing in server-confirmed water applies it immediately. Rain applies it only when the server finds no accepted roof above the pawn. Reapplication cannot exceed 120 seconds; a nearby lit campfire with nonzero authoritative heat removes it. Surface moisture remains a grid material/fire input and is never a second player wetness system.
 
 Roofs are rain-immune. Unroofed floors, walls, workbenches, and storage take slow server-owned rain wear, clamped at 50% health; an accepted overhead roof prevents that wear. A fuelled campfire is normal in dry weather. Rain without a roof makes it `Smouldering`, with zero heat; roof protection automatically returns it to `Lit`. Clients submit no wetness, duration, roof, health, weather, fire, or relight state.
 
@@ -184,6 +184,19 @@ Roofs are rain-immune. Unroofed floors, walls, workbenches, and storage take slo
 The user explicitly directed Codex to author all ten A9 gem definitions and ten
 resulting gear records/recipes/icons, overriding the normal A9/I4 ordering for
 this data batch. The proposal tables in `alpha-item-details.md` supply the
-values used. Accessory slot/effect values are registered catalogue metadata;
-accessory equip behavior, gemstone acquisition mechanics, cargo, and the
-combined I4/I5 acceptance gates are not completed or enabled by this decision.
+values used. Gemstone acquisition mechanics, cargo, and the combined I4/I5
+acceptance gates are not completed or enabled by this decision.
+
+## Accessory fields and stamina-cost stacking — 2026-10-22
+
+Accessory records share `GearSlot`, `Armor` and `WeightKg` with item definitions;
+all eight A9 accessories weigh 1 kg. Accessory percentage fields are additive
+decimal deltas (zero is neutral), including `StaminaCostMultiplier`,
+`SupportSpellStaminaCostMultiplier`, `StaminaRegenerationMultiplier` and
+`HealingReceivedMultiplier`. Positive and negative deltas sum across active
+sources. The common authoritative stamina-cost path applies the combined
+accessory and Wet/Steady Meal adjustment to every stamina expenditure; the
+support-spell-specific delta adds only on support spells. Aggregate cost factors
+remain clamped to 0.5–2.0. Necklace/Ring equipment uses the existing owner-only
+gear transactions, and accessories do not wear. Maximum-stat, regeneration
+and healing accessory effects remain pending runtime work.

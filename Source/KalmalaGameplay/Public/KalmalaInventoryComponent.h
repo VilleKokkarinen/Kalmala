@@ -27,7 +27,9 @@ enum class EKalmalaGearSlot : uint8
     Chest,
     Shield,
     Legs,
-    Boots
+    Boots,
+    Necklace,
+    Ring
 };
 
 /** A wearable item moved out of the grid while it occupies its matching slot. */

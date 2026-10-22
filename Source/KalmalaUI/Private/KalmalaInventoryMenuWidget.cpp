@@ -112,6 +112,8 @@ FString GetGearCatalogueSlot(const EKalmalaGearSlot Slot)
     case EKalmalaGearSlot::Shield: return TEXT("Shield");
     case EKalmalaGearSlot::Legs: return TEXT("Legs");
     case EKalmalaGearSlot::Boots: return TEXT("Boots");
+    case EKalmalaGearSlot::Necklace: return TEXT("Necklace");
+    case EKalmalaGearSlot::Ring: return TEXT("Ring");
     default: return FString();
     }
 }
@@ -174,8 +176,7 @@ void UKalmalaInventoryMenuWidget::NativeOnInitialized()
 
     auto* GearLayout = WidgetTree->ConstructWidget<UGridPanel>();
     auto AddGearSlot = [&](const FString& SlotName, const bool bInteractive,
-        const EKalmalaGearSlot GearSlot, const EKalmalaIcon EmptyIcon, const int32 Row, const int32 Column,
-        const bool bAccessoryPlaceholder = false)
+        const EKalmalaGearSlot GearSlot, const EKalmalaIcon EmptyIcon, const int32 Row, const int32 Column)
     {
         auto* SlotSize = WidgetTree->ConstructWidget<USizeBox>();
         SlotSize->SetWidthOverride(56.0f);
@@ -223,6 +224,8 @@ void UKalmalaInventoryMenuWidget::NativeOnInitialized()
             case EKalmalaGearSlot::Shield: Button->OnClicked.AddDynamic(this, &ThisClass::UseShieldGearSlot); break;
             case EKalmalaGearSlot::Legs: Button->OnClicked.AddDynamic(this, &ThisClass::UseLegsGearSlot); break;
             case EKalmalaGearSlot::Boots: Button->OnClicked.AddDynamic(this, &ThisClass::UseBootsGearSlot); break;
+            case EKalmalaGearSlot::Necklace: Button->OnClicked.AddDynamic(this, &ThisClass::UseNecklaceGearSlot); break;
+            case EKalmalaGearSlot::Ring: Button->OnClicked.AddDynamic(this, &ThisClass::UseRingGearSlot); break;
             default: break;
             }
             GearSlotButtons.Add(Button);
@@ -230,7 +233,7 @@ void UKalmalaInventoryMenuWidget::NativeOnInitialized()
             GearSlotNameTexts.Add(Name);
             GearSlotStateTexts.Add(State);
         }
-        else if (!bAccessoryPlaceholder)
+        else
         {
             MainHandButton = Button;
             MainHandIcon = Icon;
@@ -238,15 +241,9 @@ void UKalmalaInventoryMenuWidget::NativeOnInitialized()
             MainHandNameText = Name;
             MainHandStateText = State;
         }
-        if (bAccessoryPlaceholder)
-        {
-            Button->SetIsEnabled(false);
-            AccessoryPlaceholderIcons.Add(Icon);
-        }
         GearLayout->AddChildToGrid(SlotSize, Row, Column)->SetPadding(FMargin(4.0f));
     };
-    // Reference body placement; accessory slots remain visual until jewellery is authored.
-    // Keep wearable construction order aligned with RefreshGearPresentation's slot table.
+    // Reference body placement; construction order matches RefreshGearPresentation's slot table.
     AddGearSlot(TEXT("Head"), true, EKalmalaGearSlot::Head, EKalmalaIcon::Helmet, 0, 1);
     AddGearSlot(TEXT("Cape"), true, EKalmalaGearSlot::Cape, EKalmalaIcon::Cape, 1, 0);
     AddGearSlot(TEXT("Chest"), true, EKalmalaGearSlot::Chest, EKalmalaIcon::Tunic, 2, 1);
@@ -254,8 +251,8 @@ void UKalmalaInventoryMenuWidget::NativeOnInitialized()
     AddGearSlot(TEXT("Legs"), true, EKalmalaGearSlot::Legs, EKalmalaIcon::Leggings, 3, 1);
     AddGearSlot(TEXT("Boots"), true, EKalmalaGearSlot::Boots, EKalmalaIcon::Boots, 4, 1);
     AddGearSlot(TEXT("Main Hand"), false, EKalmalaGearSlot::Head, EKalmalaIcon::Sword, 2, 0);
-    AddGearSlot(TEXT("Necklace"), false, EKalmalaGearSlot::Head, EKalmalaIcon::Necklace, 1, 1, true);
-    AddGearSlot(TEXT("Ring"), false, EKalmalaGearSlot::Head, EKalmalaIcon::Ring, 4, 2, true);
+    AddGearSlot(TEXT("Necklace"), true, EKalmalaGearSlot::Necklace, EKalmalaIcon::Necklace, 1, 1);
+    AddGearSlot(TEXT("Ring"), true, EKalmalaGearSlot::Ring, EKalmalaIcon::Ring, 4, 2);
     auto* GearPlacement = Content->AddChildToVerticalBox(GearLayout);
     GearPlacement->SetHorizontalAlignment(HAlign_Center);
     ItemDetailView = WidgetTree->ConstructWidget<UKalmalaItemDetailWidget>();
@@ -804,15 +801,17 @@ void UKalmalaInventoryMenuWidget::RefreshGearDivider(const int32 Contrast)
 
 void UKalmalaInventoryMenuWidget::RefreshGearPresentation(const int32 TextScale, const int32 Contrast)
 {
-    if (GearSlotButtons.Num() != 6 || GearSlotStateTexts.Num() != 6
-        || GearSlotIcons.Num() != 6) return;
+    if (GearSlotButtons.Num() != 8 || GearSlotStateTexts.Num() != 8
+        || GearSlotIcons.Num() != 8) return;
 
     static const EKalmalaGearSlot Slots[] = {
         EKalmalaGearSlot::Head, EKalmalaGearSlot::Cape, EKalmalaGearSlot::Chest,
-        EKalmalaGearSlot::Shield, EKalmalaGearSlot::Legs, EKalmalaGearSlot::Boots};
+        EKalmalaGearSlot::Shield, EKalmalaGearSlot::Legs, EKalmalaGearSlot::Boots,
+        EKalmalaGearSlot::Necklace, EKalmalaGearSlot::Ring};
     static const EKalmalaIcon EmptyIcons[] = {
         EKalmalaIcon::Helmet, EKalmalaIcon::Cape, EKalmalaIcon::Tunic,
-        EKalmalaIcon::Shield, EKalmalaIcon::Leggings, EKalmalaIcon::Boots};
+        EKalmalaIcon::Shield, EKalmalaIcon::Leggings, EKalmalaIcon::Boots,
+        EKalmalaIcon::Necklace, EKalmalaIcon::Ring};
     APlayerController* Controller = GetOwningPlayer();
     UKalmalaInventoryComponent* Inventory = Controller && Controller->GetPawn()
         ? Controller->GetPawn()->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
@@ -825,7 +824,7 @@ void UKalmalaInventoryMenuWidget::RefreshGearPresentation(const int32 TextScale,
         : SelectedRow ? SelectedRow->ItemGuid : FGuid();
 
     const bool bTwoHanded = Inventory && FKalmalaToolLifecycleContract::IsTwoHanded(Inventory->GetActiveItem());
-    for (int32 Index = 0; Index < 6; ++Index)
+    for (int32 Index = 0; Index < 8; ++Index)
     {
         UKalmalaThemedButton* Button = GearSlotButtons[Index];
         UTextBlock* StateText = GearSlotStateTexts[Index];
@@ -846,11 +845,12 @@ void UKalmalaInventoryMenuWidget::RefreshGearPresentation(const int32 TextScale,
             const FKalmalaItemDefinition* Definition = Catalogue ? Catalogue->FindItem(Equipped->ItemId) : nullptr;
             State = Definition ? Definition->DisplayName : Equipped->ItemId.ToString();
             FKalmalaGearLevelStats Stats;
-            if (Catalogue && Catalogue->GetGearLevelStats(Equipped->ItemId, 1, Stats))
+            if (Catalogue && Catalogue->GetGearLevelStats(Equipped->ItemId, 1, Stats)
+                && Stats.MaxDurability > 0)
                 State += FString::Printf(TEXT(" (%d/%d)"),
                     FMath::Max(0, Stats.MaxDurability - Equipped->ConditionSpent), Stats.MaxDurability);
             Button->SetToolTipText(FText::FromString(bCanEquip
-                ? FString::Printf(TEXT("Click to replace %s with the selected wearable."), *State)
+                ? FString::Printf(TEXT("Click to replace %s with the selected gear."), *State)
                 : FString::Printf(TEXT("Select an empty grid cell, then click to return %s to your inventory."), *State)));
         }
         else
@@ -863,7 +863,7 @@ void UKalmalaInventoryMenuWidget::RefreshGearPresentation(const int32 TextScale,
             }
             else
             {
-                Button->SetToolTipText(FText::FromString(TEXT("Select a compatible wearable in the inventory grid.")));
+                Button->SetToolTipText(FText::FromString(TEXT("Select compatible gear in the inventory grid.")));
             }
         }
 
@@ -913,8 +913,6 @@ void UKalmalaInventoryMenuWidget::RefreshGearPresentation(const int32 TextScale,
         if (MainHandButton) MainHandButton->SetToolTipText(FText::FromString(
             MainHandButton->GetToolTipText().ToString() + TEXT("\n") + Feedback));
     }
-    for (UKalmalaIconWidget* Icon : AccessoryPlaceholderIcons)
-        if (Icon) Icon->SetRenderOpacity(Contrast > 0 ? 0.7f : 0.4f);
     (void)TextScale;
     (void)Contrast;
 }
@@ -985,6 +983,8 @@ void UKalmalaInventoryMenuWidget::UseChestGearSlot() { UseGearSlot(EKalmalaGearS
 void UKalmalaInventoryMenuWidget::UseShieldGearSlot() { UseGearSlot(EKalmalaGearSlot::Shield); }
 void UKalmalaInventoryMenuWidget::UseLegsGearSlot() { UseGearSlot(EKalmalaGearSlot::Legs); }
 void UKalmalaInventoryMenuWidget::UseBootsGearSlot() { UseGearSlot(EKalmalaGearSlot::Boots); }
+void UKalmalaInventoryMenuWidget::UseNecklaceGearSlot() { UseGearSlot(EKalmalaGearSlot::Necklace); }
+void UKalmalaInventoryMenuWidget::UseRingGearSlot() { UseGearSlot(EKalmalaGearSlot::Ring); }
 
 void UKalmalaInventoryMenuWidget::RefreshFoodActionPresentation(const FKalmalaCatalogueRow* SelectedRow,
     const int32 TextScale, const int32 Contrast)

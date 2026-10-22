@@ -361,7 +361,7 @@ void UKalmalaInventoryComponent::WearEquippedGearFromServer()
     for (FKalmalaEquippedGear& Gear : EquippedGear)
     {
         FKalmalaGearLevelStats Stats;
-        if (!Catalogue->GetGearLevelStats(Gear.ItemId, 1, Stats)
+        if (!Catalogue->GetGearLevelStats(Gear.ItemId, 1, Stats) || Stats.MaxDurability <= 0
             || Gear.ConditionSpent < 0 || Gear.ConditionSpent >= Stats.MaxDurability) continue;
         ++Gear.ConditionSpent;
         SessionGearWear.Add(Gear.ItemGuid, Gear.ConditionSpent);
