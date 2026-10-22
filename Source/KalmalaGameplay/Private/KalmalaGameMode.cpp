@@ -2878,6 +2878,12 @@ bool AKalmalaGameMode::RecordHornedGoatDefeatReward(const FString& PersistentSpa
     if (!HasAuthority() || PersistentSpawnId.IsEmpty() || PopulationSaveGame == nullptr
         || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
 
+    if (PopulationSaveGame->IsDefeated(PersistentSpawnId))
+    {
+        return UGameplayStatics::SaveGameToSlot(PopulationSaveGame,
+            KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+    }
+
     if (IsValid(CreditedAttacker) && CreditedAttacker->HasAuthority()
         && CreditedAttacker->GetWorld() == GetWorld() && CreditedAttacker->GetPlayerState() != nullptr)
     {
@@ -3103,8 +3109,13 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
                     if (!UKalmalaInventoryComponent::BuildGrant(
                             WithBone, TEXT("PolarBearPelt"), 2, Candidate, Reason)) break;
                 }
+                else if (bHornedGoatReward)
+                {
+                    if (!UKalmalaInventoryComponent::BuildGrant(
+                            WithBone, TEXT("GoatHorn"), 1, Candidate, Reason)) break;
+                }
                 else if (bMoonBearReward
-                    || bLynxReward || bHornedGoatReward)
+                    || bLynxReward)
                 {
                     Candidate = MoveTemp(WithBone);
                 }

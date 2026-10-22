@@ -1,6 +1,8 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "KalmalaCharacter.h"
+#include "KalmalaInventoryComponent.h"
+#include "KalmalaItemCatalogue.h"
 #include "KalmalaWildlifeSpawn.h"
 #include "KalmalaWorldPopulationSaveGame.h"
 #include "Kismet/GameplayStatics.h"
@@ -141,6 +143,72 @@ bool FKalmalaWildlifeHornedGoatContractTest::RunTest(const FString& Parameters)
         Reloaded->GetPendingWildlifeRewards()[0].PersistentSpawnId, ClaimId);
     TestEqual(TEXT("Reload retains the credited owner"),
         Reloaded->GetPendingWildlifeRewards()[0].PlayerIdentity, FString(TEXT("player:test")));
+
+    TArray<FKalmalaInventoryStack> EmptyInventory;
+    TArray<FKalmalaInventoryStack> WithBones;
+    TArray<FKalmalaInventoryStack> Candidate;
+    FString FailureReason;
+    TestTrue(TEXT("The two-Bone Horned Goat baseline fits an empty inventory"),
+        UKalmalaInventoryComponent::BuildGrant(
+            EmptyInventory, TEXT("BoneFragment"), 2, WithBones, FailureReason));
+    TestTrue(TEXT("The guaranteed Goat Horn joins the same reward candidate"),
+        UKalmalaInventoryComponent::BuildGrant(
+            WithBones, TEXT("GoatHorn"), 1, Candidate, FailureReason));
+    const FKalmalaInventoryStack* BoneStack = Candidate.FindByPredicate(
+        [](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == TEXT("BoneFragment"); });
+    const FKalmalaInventoryStack* HornStack = Candidate.FindByPredicate(
+        [](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == TEXT("GoatHorn"); });
+    TestTrue(TEXT("The reward candidate contains exactly two Bone Fragments"),
+        BoneStack != nullptr && BoneStack->Quantity == 2);
+    TestTrue(TEXT("The accepted material reward is exactly one Goat Horn"),
+        HornStack != nullptr && HornStack->Quantity == 1);
+
+    TArray<FKalmalaInventoryStack> FullPack;
+    const UKalmalaItemCatalogue* Catalogue = UKalmalaItemCatalogue::Get();
+    if (Catalogue != nullptr)
+    {
+        for (const FKalmalaItemDefinition& Definition : Catalogue->Items)
+        {
+            if (Definition.ItemId.IsNone() || Definition.ItemId == TEXT("BoneFragment")
+                || Definition.ItemId == TEXT("GoatHorn") || Definition.MaxStack <= 0)
+                continue;
+            FKalmalaInventoryStack Stack;
+            Stack.ItemId = Definition.ItemId;
+            Stack.Quantity = 1;
+            FullPack.Add(MoveTemp(Stack));
+            if (FullPack.Num() == UKalmalaInventoryComponent::MaxSlots) break;
+        }
+    }
+    TestEqual(TEXT("The capacity fixture fills all forty cells"),
+        FullPack.Num(), UKalmalaInventoryComponent::MaxSlots);
+    if (FullPack.Num() == UKalmalaInventoryComponent::MaxSlots)
+    {
+        TArray<FKalmalaInventoryStack> OneCellPack = FullPack;
+        OneCellPack.RemoveAt(0);
+        TArray<FKalmalaInventoryStack> OneCellWithBones;
+        TArray<FKalmalaInventoryStack> OneCellCandidate;
+        const bool bOneCellBonesFit = UKalmalaInventoryComponent::BuildGrant(
+            OneCellPack, TEXT("BoneFragment"), 2, OneCellWithBones, FailureReason);
+        const bool bOneCellHornFits = bOneCellBonesFit && UKalmalaInventoryComponent::BuildGrant(
+            OneCellWithBones, TEXT("GoatHorn"), 1, OneCellCandidate, FailureReason);
+        TestFalse(TEXT("A one-cell partial pack cannot accept the complete reward"), bOneCellHornFits);
+        TestEqual(TEXT("The capacity-limited Goat claim remains pending"),
+            Reloaded->GetPendingWildlifeRewards().Num(), 1);
+
+        TArray<FKalmalaInventoryStack> TwoCellPack = FullPack;
+        TwoCellPack.RemoveAt(0, 2);
+        TArray<FKalmalaInventoryStack> TwoCellWithBones;
+        TArray<FKalmalaInventoryStack> TwoCellCandidate;
+        const bool bTwoCellBonesFit = UKalmalaInventoryComponent::BuildGrant(
+            TwoCellPack, TEXT("BoneFragment"), 2, TwoCellWithBones, FailureReason);
+        const bool bTwoCellHornFits = bTwoCellBonesFit && UKalmalaInventoryComponent::BuildGrant(
+            TwoCellWithBones, TEXT("GoatHorn"), 1, TwoCellCandidate, FailureReason);
+        TestTrue(TEXT("The full reward fits after two cells are freed"), bTwoCellHornFits);
+        const FKalmalaInventoryStack* RetryHorn = TwoCellCandidate.FindByPredicate(
+            [](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == TEXT("GoatHorn"); });
+        TestTrue(TEXT("The retry candidate contains one guaranteed Goat Horn"),
+            RetryHorn != nullptr && RetryHorn->Quantity == 1);
+    }
     return true;
 }
 

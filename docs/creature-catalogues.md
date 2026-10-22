@@ -60,8 +60,9 @@ Thunder Mountains slots (40%), limited to dry traversable terrain. Its original
 procedural presentation shows a half-second charge warning; the server accepts
 one 50-Crush horn hit within 180 cm, then pushes a living target up to 250 cm
 and staggers it for 0.75 seconds, with collision clipping the displacement.
-Credited defeats queue two Bone Fragments for the authenticated owner in the
-existing population-save escrow. Goat Horn remains disabled pending A8b.
+Credited defeats queue two Bone Fragments and one guaranteed Goat Horn for the
+authenticated owner in the existing population-save escrow. The server commits
+both together and retains the claim until the complete bundle fits.
 Thunder Sentinel fills the rare 10% Thunder Mountains share and uses the dry,
 traversable mountain gate plus the shared 150 m generated-start exclusion. Its
 original stone silhouette raises an arm for a one-second warning, steps up to

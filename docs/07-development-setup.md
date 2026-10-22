@@ -2530,12 +2530,13 @@ After an editor build, run
 `Kalmala.Gameplay.Wildlife.HornedGoat.MountainChargeKnockbackAndRewardClaim`.
 It checks the seeded 40% mountain share and biome exclusivity, dry traversable
 habitat, the 200/50/50 profile, the 180 cm server-only impact boundary, the
-approved 250 cm / 0.75-second knockback limits, and owner-bound two-Bone reward
-claim serialization. This is focused contract coverage; live terrain/pathing,
-collision-clipped push, attack rejection, full-inventory retry, reconnect/restart
-and relevant-peer appearance remain part of combined A8a/A8b I4. Goat Horn
-remains disabled pending A8b. No Unreal build or automation execution ran in
-this normal increment.
+approved 250 cm / 0.75-second knockback limits, and owner-bound defeat reward
+claim serialization. The material bundle candidate contains two Bone Fragments
+and one Goat Horn; focused capacity coverage confirms the all-or-nothing retry
+when fewer than two inventory cells are free. This is focused contract coverage;
+live terrain/pathing, collision-clipped push, attack rejection, reconnect/restart
+and relevant-peer appearance remain part of combined A8a/A8b I4. No Unreal build
+or automation execution ran in this normal increment.
 
 ## Thunder Sentinel contract regression
 
