@@ -5439,3 +5439,10 @@
 - **Known limitations / remaining scope:** this is a contract-level fixture and does not execute `AKalmalaGameMode::DeliverPendingWildlifeRewards`. Badger Fur/Meat source tasks remain reserved for A8b, and live full-pack, restart and relevant-peer acceptance remain open. The Badger backlog row remains unchecked.
 - **Next eligible task:** continue A8a Elderwood: Badger acceptance. A9 remains gated on integrated A8a/A8b and successful I4 verification.
 - **Handoff:** main checkout used directly; no worktree handoff synchronization is needed. The authorized A8b run remains isolated in its separate worktree. Current run time: 2026-10-22 08:59 UTC.
+
+## User-directed handoff 2026-10-22 — A9 backlog completion
+
+- Synchronized the 50 completed A9 JSON, Forge recipe and icon checkboxes and the proposal-value scope note from feature commit `71fa8060` into the main backlog. Added an explicit branch-only completion note: implementation remains on `codex/a9-json-icons` and is not integrated into main.
+- Files changed: `BACKLOG.md`, `PROGRESS.md`. Compared task text after normalizing checkbox states and line endings and excluding the documented batch scope note; task text matched. Confirmed exactly 50 completed child stages. Parents, acquisition, reviews and acceptance remain open. Inspected the documentation diff and checked whitespace and path lengths before commit.
+- Documentation only; no gameplay, networking, authority or save behavior changed. No build or runtime tests ran; full verification remains deferred. The implementation run's detailed checks and limitations remain in its branch PROGRESS.md.
+- Next eligible main task remains A8a Badger acceptance. A9 integration and remaining runtime/source work are pending; no implementation files were synchronized.
