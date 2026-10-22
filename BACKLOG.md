@@ -214,7 +214,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [x] Add the registered catalogue JSON records for all 15 materials and 15 outputs, including output recipes, equipment profiles, upgrade costs/rewards, and supported attack records.
   - Item icon tasks are independent of their source/output implementation tasks. Each checkbox covers one item's original generated artwork and provenance, prepared/imported texture, runtime mapping, and icon-validator coverage. Each can be completed in its own short-path A8b worktree and must be committed individually. Completing an icon does not complete its item row or enable acquisition.
   - [x] Rat Tail icon (`RatTail`): original, provenance, mapping, import, and catalogue icon validation are complete; see `docs/rat-tail-icon.md`.
-  - [ ] Badger Fur icon (`BadgerFur`).
+  - [x] Badger Fur icon (`BadgerFur`).
   - [ ] Badger Meat icon (`BadgerMeat`).
   - [ ] Viper Fang icon (`ViperFang`).
   - [ ] Giant Scale icon (`GiantScale`).
