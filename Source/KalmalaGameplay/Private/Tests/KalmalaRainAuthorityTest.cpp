@@ -42,7 +42,7 @@ bool FKalmalaRainAuthorityTest::RunTest(const FString& Parameters)
     for (const TCHAR* Name : {TEXT("HearthState"), TEXT("FuelSeconds"), TEXT("EffectiveWarmth"), TEXT("bRoofProtected"), TEXT("bWindProtected")})
         CheckReplicated(GetDefault<AKalmalaCampfire>(), Name);
 
-    // Construction health remains transient; only placement identity/transform and station process state persist.
+    // Construction health remains transient; only placement identity/transform and authored object state persist.
     int32 RecordFields = 0;
     for (TFieldIterator<FProperty> It(FKalmalaConstructionSaveRecord::StaticStruct()); It; ++It)
     {
@@ -50,9 +50,10 @@ bool FKalmalaRainAuthorityTest::RunTest(const FString& Parameters)
         TestTrue(TEXT("Construction persistence contains no health, rain or fire claim"),
             It->GetFName() == TEXT("ConstructionId") || It->GetFName() == TEXT("KitId")
                 || It->GetFName() == TEXT("Transform") || It->GetFName() == TEXT("CharcoalKiln")
-                || It->GetFName() == TEXT("Smelter"));
+                || It->GetFName() == TEXT("Smelter") || It->GetFName() == TEXT("GardenPlot")
+                || It->GetFName() == TEXT("StandingLight") || It->GetFName() == TEXT("bDoorOpen"));
     }
-    TestEqual(TEXT("Construction save contract stores placement plus kiln and smelter state"), RecordFields, 5);
+    TestEqual(TEXT("Construction save contract stores placement and supported object state"), RecordFields, 8);
     TestEqual(TEXT("Legacy in-memory construction model remains schema one"), UKalmalaConstructionSaveGame::CurrentSchemaVersion, 1);
     return true;
 }

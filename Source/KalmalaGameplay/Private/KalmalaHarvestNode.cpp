@@ -11,7 +11,9 @@
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaM9SourceLootContract.h"
 #include "Materials/MaterialInterface.h"
+#include "Misc/CommandLine.h"
 #include "Misc/Crc.h"
+#include "Misc/Parse.h"
 #include "Net/UnrealNetwork.h"
 #include "GameFramework/GameStateBase.h"
 #include "TimerManager.h"
@@ -618,7 +620,12 @@ void AKalmalaHarvestNode::BuildSourcePresentation()
     SourceMesh->ClearAllMeshSections();
     // Timber and bundles use their presented mesh as the target. The fixed
     // identity-root sphere must not leave an invisible target behind them.
-    Collision->SetCollisionEnabled(bHarvested || IsFelledTrunk() || (IsTreeResource() && IsWoodDrop())
+#if !UE_BUILD_SHIPPING
+    const bool bIgnoreHarvestCollision = FParse::Param(FCommandLine::Get(), TEXT("KalmalaSwimmingTest"));
+#else
+    const bool bIgnoreHarvestCollision = false;
+#endif
+    Collision->SetCollisionEnabled(bIgnoreHarvestCollision || bHarvested || IsFelledTrunk() || (IsTreeResource() && IsWoodDrop())
         ? ECollisionEnabled::NoCollision : ECollisionEnabled::QueryOnly);
 
     const FName PresentationId = GetGatheringPresentationId();
@@ -783,7 +790,8 @@ void AKalmalaHarvestNode::BuildSourcePresentation()
     SourceMesh->SetMaterial(0, IsRockSource(PresentationId) ? RockMaterial : BarkMaterial);
     SourceMesh->CreateMeshSection_LinearColor(0, Vertices, Triangles, {}, {}, Colors, {}, IsTreeResource());
     SourceMesh->SetCollisionProfileName(TEXT("BlockAll"));
-    SourceMesh->SetCollisionEnabled(IsTreeResource() && !bHarvested ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
+    SourceMesh->SetCollisionEnabled(!bIgnoreHarvestCollision && IsTreeResource() && !bHarvested
+        ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
     SourceMesh->SetVisibility(!bHarvested);
 }
 
@@ -791,11 +799,17 @@ void AKalmalaHarvestNode::ApplyHarvestedState()
 {
     SetActorTickEnabled(IsTreeFalling() && !bHarvested);
     SetActorHiddenInGame(bHarvested);
-    Collision->SetCollisionEnabled(bHarvested || IsFelledTrunk() || (IsTreeResource() && IsWoodDrop())
+#if !UE_BUILD_SHIPPING
+    const bool bIgnoreHarvestCollision = FParse::Param(FCommandLine::Get(), TEXT("KalmalaSwimmingTest"));
+#else
+    const bool bIgnoreHarvestCollision = false;
+#endif
+    Collision->SetCollisionEnabled(bIgnoreHarvestCollision || bHarvested || IsFelledTrunk() || (IsTreeResource() && IsWoodDrop())
         ? ECollisionEnabled::NoCollision : ECollisionEnabled::QueryOnly);
     if (SourceMesh)
     {
         SourceMesh->SetVisibility(!bHarvested && !GetGatheringPresentationId().IsNone());
-        SourceMesh->SetCollisionEnabled(IsTreeResource() && !bHarvested ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
+        SourceMesh->SetCollisionEnabled(!bIgnoreHarvestCollision && IsTreeResource() && !bHarvested
+            ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
     }
 }

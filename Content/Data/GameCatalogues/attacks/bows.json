@@ -18,6 +18,7 @@
             "Fire": 0,
             "Water": 0,
             "Holy": 0,
+            "Lightning": 0,
             "Poison": 0
           }
         }
@@ -39,6 +40,7 @@
             "Fire": 0,
             "Water": 0,
             "Holy": 0,
+            "Lightning": 0,
             "Poison": 0
           }
         }
@@ -60,6 +62,7 @@
             "Fire": 0,
             "Water": 0,
             "Holy": 0,
+            "Lightning": 0,
             "Poison": 0
           }
         }
@@ -81,6 +84,7 @@
             "Fire": 0,
             "Water": 0,
             "Holy": 0,
+            "Lightning": 0,
             "Poison": 0
           }
         }

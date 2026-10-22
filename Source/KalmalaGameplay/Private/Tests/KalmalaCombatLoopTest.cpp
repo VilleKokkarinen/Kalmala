@@ -3,6 +3,7 @@
 #include "KalmalaWildlifeSpawn.h"
 #include "KalmalaCharacter.h"
 #include "KalmalaInventoryComponent.h"
+#include "KalmalaResistanceComponent.h"
 #include "KalmalaToolCatalogue.h"
 #include "KalmalaHarvestNode.h"
 #include "KalmalaPlayerModelComponent.h"
@@ -122,11 +123,16 @@ bool FKalmalaAllItemSwingTest::RunTest(const FString& Parameters)
         Combat->ServerRequestAttack(1);
         TestEqual(TEXT("Duplicate sequences cannot swing again"), Combat->GetActionSerial(), uint32(1));
         auto* Wildlife = World->SpawnActor<AKalmalaWildlifeSpawn>(Origin + FVector(140, 0, 55), FRotator::ZeroRotator);
+        auto* TargetResistance = Wildlife->FindComponentByClass<UKalmalaResistanceComponent>();
+        if (!TestNotNull(TEXT("Raw-damage target exposes its resistance profile"), TargetResistance)) return false;
+        TargetResistance->Profile.Armor = 0.0f;
         Combat->ServerRequestAttack(3);
         Advance(0.20f);
         const float AuthoredDamage = FKalmalaToolLifecycleContract::GetAttackDamageBonuses(Item, 1, TEXT("Basic")).Total();
+        const float FixtureHealth = AKalmalaWildlifeSpawn::GetMaximumHealthForArchetype(
+            EKalmalaWildlifeArchetype::Mireling);
         TestEqual(TEXT("Actual hit keeps authored damage or the existing basic melee fallback"),
-            Wildlife->GetHealth(), FMath::Max(0.0f, 100.0f - (AuthoredDamage > 0 ? AuthoredDamage : 25.0f)));
+            Wildlife->GetHealth(), FMath::Max(0.0f, FixtureHealth - (AuthoredDamage > 0 ? AuthoredDamage : 25.0f)));
         TestTrue(TEXT("Hammer, bow, weapons and fists all report validated wildlife hits"),
             Combat->GetFeedback() == EKalmalaCombatFeedback::Hit || Combat->GetFeedback() == EKalmalaCombatFeedback::Defeat);
         if (Item == TEXT("ConstructionHammer") || Item == TEXT("Bow"))

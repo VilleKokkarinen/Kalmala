@@ -14,7 +14,7 @@ namespace
 bool IsSupportedArrowStack(const FKalmalaInventoryStack& Stack)
 {
     if (Stack.Quantity <= 0) return false;
-    if (Stack.ItemId == TEXT("WoodenArrow")) return true;
+    if (Stack.ItemId == TEXT("WoodenArrow") || Stack.ItemId == TEXT("FangArrows")) return true;
     if (!Stack.ItemId.ToString().EndsWith(TEXT("Arrow"))) return false;
 
     const auto& Attacks = UKalmalaToolCatalogue::Get()->GetAttacks(Stack.ItemId);

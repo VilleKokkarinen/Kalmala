@@ -228,9 +228,17 @@ void AKalmalaCharacter::AdvanceHeldTorchFromServer(const float DeltaSeconds, con
 void AKalmalaCharacter::OnRep_Health()
 {
 #if !UE_BUILD_SHIPPING
-    if (!HasAuthority() && (FParse::Param(FCommandLine::Get(), TEXT("KalmalaMirelingPeerTest")) || FParse::Param(FCommandLine::Get(), TEXT("KalmalaBoarPeerTest")) || FParse::Param(FCommandLine::Get(), TEXT("KalmalaDeerPeerTest"))))
+    const bool bBadgerPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaBadgerPeerTest"));
+    const bool bMoonBearPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaMoonBearPeerTest"));
+    if (!HasAuthority() && (FParse::Param(FCommandLine::Get(), TEXT("KalmalaMirelingPeerTest"))
+        || FParse::Param(FCommandLine::Get(), TEXT("KalmalaBoarPeerTest"))
+        || FParse::Param(FCommandLine::Get(), TEXT("KalmalaDeerPeerTest")) || bBadgerPeerTest || bMoonBearPeerTest))
     {
-        UE_LOG(LogTemp, Display, TEXT("%s verification client observed replicated player health=%.1f."), FParse::Param(FCommandLine::Get(), TEXT("KalmalaBoarPeerTest")) ? TEXT("Boar") : (FParse::Param(FCommandLine::Get(), TEXT("KalmalaDeerPeerTest")) ? TEXT("Deer") : TEXT("Mireling")), Health);
+        const TCHAR* VerificationName = bBadgerPeerTest ? TEXT("Badger")
+            : (bMoonBearPeerTest ? TEXT("Moon Bear")
+                : (FParse::Param(FCommandLine::Get(), TEXT("KalmalaBoarPeerTest")) ? TEXT("Boar")
+                    : (FParse::Param(FCommandLine::Get(), TEXT("KalmalaDeerPeerTest")) ? TEXT("Deer") : TEXT("Mireling"))));
+        UE_LOG(LogTemp, Display, TEXT("%s verification client observed replicated player health=%.1f."), VerificationName, Health);
     }
 #endif
 }
@@ -403,6 +411,17 @@ void AKalmalaCharacter::BeginPlay()
     bControlsTestEnabled = FParse::Param(FCommandLine::Get(), TEXT("KalmalaPlayerControlsTest"));
     bSwimmingTestEnabled = FParse::Param(FCommandLine::Get(), TEXT("KalmalaSwimmingTest"));
     bOceanTravelTestEnabled = FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanTravelTest"));
+#if !UE_BUILD_SHIPPING
+    if (bSwimmingTestEnabled)
+    {
+        // Both test players spawn at the same generated start. Let them
+        // separate without changing regular player collision behavior.
+        if (GetCapsuleComponent() != nullptr)
+        {
+            GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+        }
+    }
+#endif
     if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaDiscoveryPeerTest")) && GetWorld() != nullptr)
     {
         DiscoveryPeerTestStartTime = GetWorld()->GetTimeSeconds();
@@ -502,7 +521,12 @@ void AKalmalaCharacter::Tick(const float DeltaSeconds)
 
 #if !UE_BUILD_SHIPPING
     if (!bCombatPeerTestInvalidAttackSent && !HasAuthority() && IsLocallyControlled()
-        && (FParse::Param(FCommandLine::Get(), TEXT("KalmalaCombatPeerTest")) || FParse::Param(FCommandLine::Get(), TEXT("KalmalaMirelingPeerTest")) || FParse::Param(FCommandLine::Get(), TEXT("KalmalaBoarPeerTest")) || FParse::Param(FCommandLine::Get(), TEXT("KalmalaDeerPeerTest")))
+        && (FParse::Param(FCommandLine::Get(), TEXT("KalmalaCombatPeerTest"))
+            || FParse::Param(FCommandLine::Get(), TEXT("KalmalaMirelingPeerTest"))
+            || FParse::Param(FCommandLine::Get(), TEXT("KalmalaBoarPeerTest"))
+            || FParse::Param(FCommandLine::Get(), TEXT("KalmalaDeerPeerTest"))
+            || FParse::Param(FCommandLine::Get(), TEXT("KalmalaBadgerPeerTest"))
+            || FParse::Param(FCommandLine::Get(), TEXT("KalmalaMoonBearPeerTest")))
         && Combat && Inventory && Inventory->GetActiveItem() == TEXT("StoneMace"))
     {
         bCombatPeerTestInvalidAttackSent = true;
@@ -810,31 +834,88 @@ void AKalmalaCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 void AKalmalaCharacter::ConfigureSwimmingTestTarget()
 {
-    if (!bSwimmingTestEnabled || bSwimmingTargetConfigured || GetWorld() == nullptr) return;
+    if (!bSwimmingTestEnabled || bSwimmingTargetSearchAttempted || GetWorld() == nullptr) return;
     const AKalmalaWorldGenerationGameState* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
     if (State == nullptr || !State->GetWorldGenerationConfig().IsValid()) return;
+    bSwimmingTargetSearchAttempted = true;
     const FVector2D Start(GetActorLocation());
     SwimmingTestStart = Start;
-    float ClosestDistanceSquared = TNumericLimits<float>::Max();
-    for (int32 Y = -12000; Y <= 12000; Y += 250)
+    constexpr float MinimumTargetDepth = 150.0f;
+    constexpr float MaximumSearchRadius = 300000.0f;
+    constexpr float RadialStep = 2500.0f;
+    constexpr float AngularSampleSpacing = 5000.0f;
+    FVector2D FirstDeepWaterCandidate = Start;
+    bool bFoundDeepWater = false;
+    for (float Radius = RadialStep; Radius <= MaximumSearchRadius && !bFoundDeepWater; Radius += RadialStep)
     {
-        for (int32 X = -12000; X <= 12000; X += 250)
+        const int32 DirectionCount = FMath::Max(16,
+            FMath::CeilToInt(2.0f * PI * Radius / AngularSampleSpacing));
+        for (int32 Direction = 0; Direction < DirectionCount; ++Direction)
         {
-            const FVector2D Candidate = Start + FVector2D(X, Y);
-            if (FKalmalaOceanSampler::Sample(State->GetWorldGenerationConfig(), Candidate).WaterDepth >= 150.0f)
+            const float Angle = 2.0f * PI * static_cast<float>(Direction) / DirectionCount;
+            const FVector2D Candidate = Start + FVector2D(FMath::Cos(Angle), FMath::Sin(Angle)) * Radius;
+            if (FKalmalaOceanSampler::Sample(State->GetWorldGenerationConfig(), Candidate).WaterDepth >= MinimumTargetDepth)
             {
+                FirstDeepWaterCandidate = Candidate;
+                bFoundDeepWater = true;
+                break;
+            }
+        }
+    }
+    float ClosestDistanceSquared = TNumericLimits<float>::Max();
+    if (bFoundDeepWater)
+    {
+        // Refine the first coarse radial hit to the nearest valid point on
+        // the same natural shoreline without adding a test water fixture.
+        for (int32 Y = -5000; Y <= 5000; Y += 250)
+        {
+            for (int32 X = -5000; X <= 5000; X += 250)
+            {
+                const FVector2D Candidate = FirstDeepWaterCandidate + FVector2D(X, Y);
                 const float DistanceSquared = FVector2D::DistSquared(Start, Candidate);
-                if (DistanceSquared < ClosestDistanceSquared) { ClosestDistanceSquared = DistanceSquared; SwimmingTestTarget = Candidate; }
+                if (DistanceSquared < ClosestDistanceSquared
+                    && FKalmalaOceanSampler::Sample(State->GetWorldGenerationConfig(), Candidate).WaterDepth >= MinimumTargetDepth)
+                {
+                    ClosestDistanceSquared = DistanceSquared;
+                    SwimmingTestTarget = Candidate;
+                }
             }
         }
     }
     bSwimmingTargetConfigured = ClosestDistanceSquared != TNumericLimits<float>::Max();
+    if (IsLocallyControlled())
+    {
+        if (bSwimmingTargetConfigured)
+        {
+            const float TargetDepth = FKalmalaOceanSampler::Sample(State->GetWorldGenerationConfig(), SwimmingTestTarget).WaterDepth;
+            UE_LOG(LogTemp, Display, TEXT("Swimming test selected target: Start=%s Target=(%.1f,%.1f) Distance=%.1f Depth=%.1f."),
+                *FVector(SwimmingTestStart, 0.0f).ToString(), SwimmingTestTarget.X, SwimmingTestTarget.Y,
+                FMath::Sqrt(ClosestDistanceSquared), TargetDepth);
+        }
+        else
+        {
+            UE_LOG(LogTemp, Error, TEXT("Swimming test found no 150 cm deep-water target within %.0f cm of %s."), MaximumSearchRadius,
+                *FVector(Start, 0.0f).ToString());
+        }
+    }
 }
 
 void AKalmalaCharacter::VerifySwimming(const float DeltaSeconds)
 {
     ConfigureSwimmingTestTarget();
     if (!bSwimmingTargetConfigured) return;
+    if (IsLocallyControlled() && GetWorld() != nullptr && GetWorld()->GetTimeSeconds() >= SwimmingTestNextStatusLogTime)
+    {
+        SwimmingTestNextStatusLogTime = GetWorld()->GetTimeSeconds() + 5.0f;
+        const FVector Location = GetActorLocation();
+        const FVector Velocity = GetVelocity();
+        const UCharacterMovementComponent* Movement = GetCharacterMovement();
+        UE_LOG(LogTemp, Display,
+            TEXT("Swimming test progress: Start=%s Target=(%.1f,%.1f) Position=%s Velocity=%s Mode=%d CustomMode=%d."),
+            *FVector(SwimmingTestStart, 0.0f).ToString(), SwimmingTestTarget.X, SwimmingTestTarget.Y,
+            *Location.ToString(), *Velocity.ToString(), Movement != nullptr ? static_cast<int32>(Movement->MovementMode) : -1,
+            Movement != nullptr ? static_cast<int32>(Movement->CustomMovementMode) : -1);
+    }
     if (IsLocallyControlled() && !bSwimmingReturnLogged)
     {
         const FVector2D Goal = bSwimmingEntryLogged ? SwimmingTestStart : SwimmingTestTarget;

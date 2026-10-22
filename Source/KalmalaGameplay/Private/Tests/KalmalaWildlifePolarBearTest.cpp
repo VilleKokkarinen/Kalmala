@@ -6,6 +6,7 @@
 #include "KalmalaWorldPopulationSaveGame.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/AutomationTest.h"
+#include <limits>
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaWildlifePolarBearContractTest,
     "Kalmala.Gameplay.Wildlife.PolarBear.TundraChargeAndRewardClaim",
@@ -75,7 +76,7 @@ bool FKalmalaWildlifePolarBearContractTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("An invalid target cannot receive the charge"),
         AKalmalaWildlifeSpawn::IsPolarBearChargeInReach(true, false, 100.0f));
     TestFalse(TEXT("Non-finite charge distances fail closed"),
-        AKalmalaWildlifeSpawn::IsPolarBearChargeInReach(true, true, TNumericLimits<float>::QuietNaN()));
+        AKalmalaWildlifeSpawn::IsPolarBearChargeInReach(true, true, std::numeric_limits<float>::quiet_NaN()));
     TestEqual(TEXT("The charge warning follows the hard-enemy one-second timing"),
         AKalmalaWildlifeSpawn::PolarBearTelegraphSeconds, 1.0f);
     TestEqual(TEXT("The charge retreats before the 1.2-second hard recovery"),

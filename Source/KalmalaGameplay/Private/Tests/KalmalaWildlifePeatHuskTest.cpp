@@ -6,6 +6,7 @@
 #include "KalmalaWorldPopulationSaveGame.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/AutomationTest.h"
+#include <limits>
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaWildlifePeatHuskContractTest,
     "Kalmala.Gameplay.Wildlife.PeatHusk.MireSweepAndRewardClaim",
@@ -107,7 +108,7 @@ bool FKalmalaWildlifePeatHuskContractTest::RunTest(const FString& Parameters)
         AKalmalaWildlifeSpawn::IsPeatHuskSweepInReach(true, true, -1.0f, 1.0f));
     TestFalse(TEXT("A non-finite sweep distance fails closed"),
         AKalmalaWildlifeSpawn::IsPeatHuskSweepInReach(true, true,
-            TNumericLimits<float>::QuietNaN(), 1.0f));
+            std::numeric_limits<float>::quiet_NaN(), 1.0f));
 
     const FString SpawnId(TEXT("-4/9/3/12877"));
     const FString NoHeartSpawnId(TEXT("-4/9/3/12878"));
@@ -215,7 +216,7 @@ bool FKalmalaWildlifePeatHuskContractTest::RunTest(const FString& Parameters)
             TestEqual(TEXT("Partial capacity retains both pending outcomes"),
                 Population->GetPendingWildlifeRewards().Num(), 2);
 
-            FullPack.RemoveAt(0, 2);
+            FullPack.RemoveAt(0, 3);
             TArray<FKalmalaInventoryStack> RetryWithAmber;
             TArray<FKalmalaInventoryStack> RetryCandidate;
             FString RetryReason;
@@ -224,7 +225,7 @@ bool FKalmalaWildlifePeatHuskContractTest::RunTest(const FString& Parameters)
             const bool bRetryHeartFits = bRetryAmberFits
                 && UKalmalaInventoryComponent::BuildGrant(
                     RetryWithAmber, TEXT("PeatHeart"), 1, RetryCandidate, RetryReason);
-            TestTrue(TEXT("Amber and the saved Peat Heart outcome fit after two cells are freed"), bRetryHeartFits);
+            TestTrue(TEXT("Amber and the saved Peat Heart outcome fit after three cells are freed"), bRetryHeartFits);
             if (bRetryHeartFits)
             {
                 UKalmalaInventoryComponent* Capacity = NewObject<UKalmalaInventoryComponent>();

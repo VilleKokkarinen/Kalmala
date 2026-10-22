@@ -4,6 +4,7 @@
 #include "KalmalaWorldPopulationSaveGame.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/AutomationTest.h"
+#include <limits>
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaWildlifeRatContractTest,
     "Kalmala.Gameplay.Wildlife.Rat.SpawnReachAndRewardIdentity",
@@ -25,8 +26,10 @@ bool FKalmalaWildlifeRatContractTest::RunTest(const FString& Parameters)
         }
         else
         {
-            TestEqual(TEXT("Other Meadows slots retain the existing seeded roster"),
-                MeadowsArchetype, AKalmalaWildlifeSpawn::GetArchetypeForSpawnSeed(Seed));
+            const EKalmalaWildlifeArchetype Expected = Seed % 2ull == 0ull
+                ? EKalmalaWildlifeArchetype::Boar : EKalmalaWildlifeArchetype::Deer;
+            TestEqual(TEXT("Other Meadows slots retain their biome-local Boar and Deer roster"),
+                MeadowsArchetype, Expected);
         }
 
         for (const EKalmalaBiome Biome : { EKalmalaBiome::Elderwood, EKalmalaBiome::ShimmeringLakes,
@@ -48,7 +51,7 @@ bool FKalmalaWildlifeRatContractTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("An invalid target cannot receive a Rat bite"),
         AKalmalaWildlifeSpawn::IsRatBiteInReach(true, false, 50.0f));
     TestFalse(TEXT("A non-finite bite distance is rejected"),
-        AKalmalaWildlifeSpawn::IsRatBiteInReach(true, true, TNumericLimits<float>::QuietNaN()));
+        AKalmalaWildlifeSpawn::IsRatBiteInReach(true, true, std::numeric_limits<float>::quiet_NaN()));
     TestEqual(TEXT("The approach trigger remains three metres"),
         AKalmalaWildlifeSpawn::RatAttackTriggerCentimetres, 300.0f);
     TestEqual(TEXT("Rat uses the common half-second telegraph"),

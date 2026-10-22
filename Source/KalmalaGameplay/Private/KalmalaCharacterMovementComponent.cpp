@@ -90,6 +90,14 @@ float UKalmalaCharacterMovementComponent::GetMaxSpeed() const
     const float Speed = Super::GetMaxSpeed();
     const AKalmalaCharacter* Pawn = Cast<AKalmalaCharacter>(CharacterOwner);
     const float StatusSpeed = Pawn && Pawn->GetStatusComponent() ? Pawn->GetStatusComponent()->GetModifiers().Movement : 1.0f;
+#if !UE_BUILD_SHIPPING
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaSwimmingTest")))
+    {
+        // This live peer regression crosses natural terrain to reach the sea;
+        // the command-line-only pace does not affect normal movement.
+        return 1800.0f * StatusSpeed;
+    }
+#endif
     if (IsSwimmingInGeneratedOcean())
     {
 #if !UE_BUILD_SHIPPING

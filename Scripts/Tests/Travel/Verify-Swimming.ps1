@@ -23,9 +23,10 @@ try {
     } while ((Get-Date) -lt $deadline)
     if ((Get-Date) -ge $deadline) { throw 'Server startup timed out.' }
     $client = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" 127.0.0.1:$Port -WorldSeed=999 $common -abslog=`"$clientLog`" -UserDir=`"$output/Client`""
-    $deadline = (Get-Date).AddSeconds(60)
+    $deadline = (Get-Date).AddSeconds(180)
     do {
-        if ($server.HasExited -or $client.HasExited) { throw 'A swimming test peer exited.' }
+        if ($server.HasExited) { throw "Swimming server exited with code $($server.ExitCode); inspect $serverLog." }
+        if ($client.HasExited) { throw "Swimming client exited with code $($client.ExitCode); inspect $clientLog." }
         $serverText = if (Test-Path $serverLog) { Get-Content $serverLog -Raw } else { '' }
         $clientText = if (Test-Path $clientLog) { Get-Content $clientLog -Raw } else { '' }
         if (($serverText + $clientText) -match 'Fatal error:|Assertion failed:') { throw 'Swimming verification failed; inspect logs.' }

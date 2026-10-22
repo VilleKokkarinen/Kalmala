@@ -1939,8 +1939,9 @@ void AKalmalaWildlifeSpawn::UpdatePolarBearAttack(const float DeltaSeconds)
         const float VerticalDistance = ToTarget.Z;
         const float HorizontalImpactReach = FMath::Sqrt(FMath::Max(0.0f,
             FMath::Square(PolarBearChargeImpactReachCentimetres) - FMath::Square(VerticalDistance)));
+        const float HorizontalDistanceToTarget = static_cast<float>(ToTarget.Size2D());
         const float MoveDistance = FMath::Min3(PolarBearChargeDistanceRemaining,
-            FMath::Max(0.0f, ToTarget.Size2D() - HorizontalImpactReach),
+            FMath::Max(0.0f, HorizontalDistanceToTarget - HorizontalImpactReach),
             PolarBearChargeSpeedCentimetresPerSecond * StepSeconds);
         if (MoveDistance > 0.0f)
         {
@@ -4536,10 +4537,22 @@ void AKalmalaWildlifeSpawn::OnRep_PeatHuskAttackCue()
 void AKalmalaWildlifeSpawn::OnRep_Defeated()
 {
     ApplyDefeatedState();
-    if (bDefeated && !bClientCombatVerificationDefeatLogged && (FParse::Param(FCommandLine::Get(), TEXT("KalmalaCombatPeerTest")) || FParse::Param(FCommandLine::Get(), TEXT("KalmalaMirelingPeerTest")) || FParse::Param(FCommandLine::Get(), TEXT("KalmalaBoarPeerTest")) || FParse::Param(FCommandLine::Get(), TEXT("KalmalaDeerPeerTest"))))
+    const bool bBadgerPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaBadgerPeerTest"));
+    const bool bMoonBearPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaMoonBearPeerTest"));
+    if (bDefeated && !bClientCombatVerificationDefeatLogged
+        && (FParse::Param(FCommandLine::Get(), TEXT("KalmalaCombatPeerTest"))
+            || FParse::Param(FCommandLine::Get(), TEXT("KalmalaMirelingPeerTest"))
+            || FParse::Param(FCommandLine::Get(), TEXT("KalmalaBoarPeerTest"))
+            || FParse::Param(FCommandLine::Get(), TEXT("KalmalaDeerPeerTest"))
+            || bBadgerPeerTest || bMoonBearPeerTest))
     {
         bClientCombatVerificationDefeatLogged = true;
-        UE_LOG(LogTemp, Display, TEXT("%s verification client observed relevant wildlife defeat."), FParse::Param(FCommandLine::Get(), TEXT("KalmalaBoarPeerTest")) ? TEXT("Boar") : (FParse::Param(FCommandLine::Get(), TEXT("KalmalaDeerPeerTest")) ? TEXT("Deer") : (FParse::Param(FCommandLine::Get(), TEXT("KalmalaMirelingPeerTest")) ? TEXT("Mireling") : TEXT("Combat"))));
+        const TCHAR* VerificationName = bBadgerPeerTest ? TEXT("Badger")
+            : (bMoonBearPeerTest ? TEXT("Moon Bear")
+                : (FParse::Param(FCommandLine::Get(), TEXT("KalmalaBoarPeerTest")) ? TEXT("Boar")
+                    : (FParse::Param(FCommandLine::Get(), TEXT("KalmalaDeerPeerTest")) ? TEXT("Deer")
+                        : (FParse::Param(FCommandLine::Get(), TEXT("KalmalaMirelingPeerTest")) ? TEXT("Mireling") : TEXT("Combat")))));
+        UE_LOG(LogTemp, Display, TEXT("%s verification client observed relevant wildlife defeat."), VerificationName);
     }
 }
 

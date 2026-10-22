@@ -7,6 +7,7 @@
 #include "KalmalaWorldPopulationSaveGame.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/AutomationTest.h"
+#include <limits>
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaWildlifeHornedGoatContractTest,
     "Kalmala.Gameplay.Wildlife.HornedGoat.MountainChargeKnockbackAndRewardClaim",
@@ -15,6 +16,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaWildlifeHornedGoatContractTest,
 bool FKalmalaWildlifeHornedGoatContractTest::RunTest(const FString& Parameters)
 {
     int32 GoatSlots = 0;
+    int32 SentinelSlots = 0;
     for (uint64 Seed = 0; Seed < 1000; ++Seed)
     {
         EKalmalaWildlifeArchetype Archetype = EKalmalaWildlifeArchetype::Mireling;
@@ -27,12 +29,20 @@ bool FKalmalaWildlifeHornedGoatContractTest::RunTest(const FString& Parameters)
                 EKalmalaWildlifeArchetype::HornedGoat);
             ++GoatSlots;
         }
+        else if (Seed % 10ull == 9ull)
+        {
+            TestTrue(TEXT("The final mountain slot is reserved for Thunder Sentinel"), bEligible);
+            TestEqual(TEXT("The final mountain slot selects Thunder Sentinel"), Archetype,
+                EKalmalaWildlifeArchetype::ThunderSentinel);
+            ++SentinelSlots;
+        }
         else
         {
-            TestFalse(TEXT("Other mountain slots remain empty for the Sentinel or future wildlife"), bEligible);
+            TestFalse(TEXT("Unassigned mountain slots remain empty"), bEligible);
         }
     }
     TestEqual(TEXT("Horned Goat occupies forty percent of the mountain candidates"), GoatSlots, 400);
+    TestEqual(TEXT("Thunder Sentinel occupies ten percent of the mountain candidates"), SentinelSlots, 100);
 
     for (const EKalmalaBiome Biome : { EKalmalaBiome::Meadows, EKalmalaBiome::Elderwood,
              EKalmalaBiome::ShimmeringLakes, EKalmalaBiome::MossyMire,
@@ -85,7 +95,7 @@ bool FKalmalaWildlifeHornedGoatContractTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("An invalid target cannot receive the horn hit"),
         AKalmalaWildlifeSpawn::IsHornedGoatHornInReach(true, false, 100.0f));
     TestFalse(TEXT("Non-finite impact distances fail closed"),
-        AKalmalaWildlifeSpawn::IsHornedGoatHornInReach(true, true, TNumericLimits<float>::QuietNaN()));
+        AKalmalaWildlifeSpawn::IsHornedGoatHornInReach(true, true, std::numeric_limits<float>::quiet_NaN()));
 
     const FVector PushDirection(1.0f, 0.0f, 0.0f);
     TestTrue(TEXT("The approved server knockback values are accepted"),

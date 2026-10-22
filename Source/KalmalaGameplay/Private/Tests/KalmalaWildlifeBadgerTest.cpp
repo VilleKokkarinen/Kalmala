@@ -4,6 +4,7 @@
 #include "KalmalaWorldPopulationSaveGame.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/AutomationTest.h"
+#include <limits>
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaWildlifeBadgerContractTest,
     "Kalmala.Gameplay.Wildlife.Badger.SpawnAndClawReach",
@@ -198,7 +199,7 @@ bool FKalmalaWildlifeBadgerContractTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Claw reach rejects negative distance"),
         AKalmalaWildlifeSpawn::IsBadgerClawInReach(true, true, -1.0f));
     TestFalse(TEXT("Claw reach rejects non-finite distance"),
-        AKalmalaWildlifeSpawn::IsBadgerClawInReach(true, true, TNumericLimits<float>::QuietNaN()));
+        AKalmalaWildlifeSpawn::IsBadgerClawInReach(true, true, std::numeric_limits<float>::quiet_NaN()));
     TestFalse(TEXT("Client cannot author Badger damage reach"),
         AKalmalaWildlifeSpawn::IsBadgerClawInReach(false, true, 100.0f));
     TestFalse(TEXT("Invalid target cannot receive a Badger claw"),

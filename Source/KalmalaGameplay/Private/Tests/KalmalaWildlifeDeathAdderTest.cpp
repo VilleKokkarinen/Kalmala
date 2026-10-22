@@ -178,7 +178,7 @@ bool FKalmalaWildlifeDeathAdderContractTest::RunTest(const FString& Parameters)
         TestEqual(TEXT("A partial candidate does not clear the claim"),
             Population->GetPendingWildlifeRewards().Num(), 1);
 
-        FullPack.RemoveAt(0, 2);
+        FullPack.RemoveAt(0, 3);
         TArray<FKalmalaInventoryStack> RetryWithBone;
         TArray<FKalmalaInventoryStack> Retry;
         const bool bRetryBoneFits = UKalmalaInventoryComponent::BuildGrant(

@@ -373,7 +373,6 @@ void UKalmalaPlayerStatusComponent::AdvanceFromServer(const float DeltaSeconds)
     });
     if (RecoveryIndex != INDEX_NONE)
     {
-        AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(GetOwner());
         if (!Character || Character->GetHealth() <= 1.0f)
         {
             Statuses.RemoveAll([](const FKalmalaPlayerStatusEntry& Entry)

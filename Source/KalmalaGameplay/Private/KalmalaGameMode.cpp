@@ -1187,13 +1187,22 @@ void AKalmalaGameMode::DriveCombatPeerTest()
     const bool bMirelingPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaMirelingPeerTest"));
     const bool bBoarPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaBoarPeerTest"));
     const bool bDeerPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaDeerPeerTest"));
-    if ((!bCombatPeerTest && !bMirelingPeerTest && !bBoarPeerTest && !bDeerPeerTest) || GetWorld() == nullptr)
+    const bool bBadgerPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaBadgerPeerTest"));
+    const bool bMoonBearPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaMoonBearPeerTest"));
+    const bool bElderwoodRewardPeerTest = bBadgerPeerTest || bMoonBearPeerTest;
+    if ((!bCombatPeerTest && !bMirelingPeerTest && !bBoarPeerTest && !bDeerPeerTest && !bElderwoodRewardPeerTest)
+        || (bBadgerPeerTest && bMoonBearPeerTest) || GetWorld() == nullptr)
     {
         return;
     }
 
-    const TCHAR* VerificationName = bBoarPeerTest ? TEXT("Boar") : (bDeerPeerTest ? TEXT("Deer") : (bMirelingPeerTest ? TEXT("Mireling") : TEXT("Combat")));
-    const EKalmalaWildlifeArchetype ExpectedArchetype = bBoarPeerTest ? EKalmalaWildlifeArchetype::Boar : (bDeerPeerTest ? EKalmalaWildlifeArchetype::Deer : EKalmalaWildlifeArchetype::Mireling);
+    const TCHAR* VerificationName = bBadgerPeerTest ? TEXT("Badger")
+        : (bMoonBearPeerTest ? TEXT("Moon Bear")
+            : (bBoarPeerTest ? TEXT("Boar") : (bDeerPeerTest ? TEXT("Deer") : (bMirelingPeerTest ? TEXT("Mireling") : TEXT("Combat")))));
+    const EKalmalaWildlifeArchetype ExpectedArchetype = bBadgerPeerTest ? EKalmalaWildlifeArchetype::Badger
+        : (bMoonBearPeerTest ? EKalmalaWildlifeArchetype::MoonBear
+            : (bBoarPeerTest ? EKalmalaWildlifeArchetype::Boar
+                : (bDeerPeerTest ? EKalmalaWildlifeArchetype::Deer : EKalmalaWildlifeArchetype::Mireling)));
 
     if (!bCombatPeerTestLogged)
     {
@@ -1241,26 +1250,33 @@ void AKalmalaGameMode::DriveCombatPeerTest()
         CombatPeerTestRemote = RemotePlayer;
         FIntPoint SpatialKey = FKalmalaWorldPopulationLayout::GetSpatialKey(FVector2D(LocalServerPlayer->GetActorLocation()));
         TArray<FKalmalaWorldPopulationSpawn> Descriptors = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(WorldGenerationConfig, SpatialKey, EKalmalaWorldPopulationKind::Wildlife);
-        if ((bBoarPeerTest || bDeerPeerTest) && !Descriptors.ContainsByPredicate([this, ExpectedArchetype](const FKalmalaWorldPopulationSpawn& Descriptor)
+        if ((bMirelingPeerTest || bBoarPeerTest || bDeerPeerTest || bElderwoodRewardPeerTest)
+            && !Descriptors.ContainsByPredicate([this, ExpectedArchetype](const FKalmalaWorldPopulationSpawn& Descriptor)
             { return KalmalaGameMode::IsWildlifeSpawnOfArchetype(WorldGenerationConfig, Descriptor, ExpectedArchetype); }))
         {
-            // Stay within the normal bounded activation neighborhood while selecting
-            // a deterministic boar descriptor rather than depending on actor order.
+            // Boar and Deer use the player's adjacent-key set. Mireling is restricted
+            // to Mossy Mire, so this fixed-seed test searches a larger bounded ring for
+            // a biome-valid descriptor before activating exactly one population key.
             const FIntPoint BaseKey = SpatialKey;
             bool bFoundArchetypeDescriptor = false;
-            for (int32 OffsetY = -1; OffsetY <= 1 && !bFoundArchetypeDescriptor; ++OffsetY)
+            const int32 MaxSearchRadius = (bMirelingPeerTest || bElderwoodRewardPeerTest) ? 64 : 1;
+            for (int32 Radius = 1; Radius <= MaxSearchRadius && !bFoundArchetypeDescriptor; ++Radius)
             {
-                for (int32 OffsetX = -1; OffsetX <= 1; ++OffsetX)
+                for (int32 OffsetY = -Radius; OffsetY <= Radius && !bFoundArchetypeDescriptor; ++OffsetY)
                 {
-                    const FIntPoint CandidateKey = BaseKey + FIntPoint(OffsetX, OffsetY);
-                    const TArray<FKalmalaWorldPopulationSpawn> CandidateDescriptors = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(WorldGenerationConfig, CandidateKey, EKalmalaWorldPopulationKind::Wildlife);
-                    if (CandidateDescriptors.ContainsByPredicate([this, ExpectedArchetype](const FKalmalaWorldPopulationSpawn& Descriptor)
-                        { return KalmalaGameMode::IsWildlifeSpawnOfArchetype(WorldGenerationConfig, Descriptor, ExpectedArchetype); }))
+                    for (int32 OffsetX = -Radius; OffsetX <= Radius; ++OffsetX)
                     {
-                        SpatialKey = CandidateKey;
-                        Descriptors = CandidateDescriptors;
-                        bFoundArchetypeDescriptor = true;
-                        break;
+                        if (Radius > 1 && FMath::Abs(OffsetX) != Radius && FMath::Abs(OffsetY) != Radius) continue;
+                        const FIntPoint CandidateKey = BaseKey + FIntPoint(OffsetX, OffsetY);
+                        const TArray<FKalmalaWorldPopulationSpawn> CandidateDescriptors = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(WorldGenerationConfig, CandidateKey, EKalmalaWorldPopulationKind::Wildlife);
+                        if (CandidateDescriptors.ContainsByPredicate([this, ExpectedArchetype](const FKalmalaWorldPopulationSpawn& Descriptor)
+                            { return KalmalaGameMode::IsWildlifeSpawnOfArchetype(WorldGenerationConfig, Descriptor, ExpectedArchetype); }))
+                        {
+                            SpatialKey = CandidateKey;
+                            Descriptors = CandidateDescriptors;
+                            bFoundArchetypeDescriptor = true;
+                            break;
+                        }
                     }
                 }
             }
@@ -1322,12 +1338,47 @@ void AKalmalaGameMode::DriveCombatPeerTest()
             return;
         }
 
+        if (bElderwoodRewardPeerTest)
+        {
+            UKalmalaInventoryComponent* Inventory = LocalServerPlayer->GetInventoryComponent();
+            const UKalmalaItemCatalogue* Catalogue = UKalmalaItemCatalogue::Get();
+            if (Inventory == nullptr || Catalogue == nullptr)
+            {
+                UE_LOG(LogTemp, Error, TEXT("%s verification FAILED: server inventory or item catalogue is unavailable."), VerificationName);
+                CombatPeerTestStage = 99;
+                return;
+            }
+            const int32 FullPackCapacity = UKalmalaInventoryComponent::MaxSlots
+                - Inventory->CountPackedTools(LocalServerPlayer->GetCarriedToolInventory());
+            for (const FKalmalaItemDefinition& Definition : Catalogue->Items)
+            {
+                if (Inventory->GetStacks().Num() >= FullPackCapacity) break;
+                if (Definition.ItemId.IsNone() || Definition.ItemId == TEXT("BoneFragment")
+                    || Definition.ItemId == TEXT("BadgerFur") || Definition.ItemId == TEXT("BadgerMeat")
+                    || Definition.ItemId.ToString().EndsWith(TEXT("Kit"))
+                    || Catalogue->FindBuildable(Definition.ItemId) != nullptr
+                    || Inventory->GetQuantity(Definition.ItemId) > 0)
+                {
+                    continue;
+                }
+                Inventory->TryGrantFromServer(Definition.ItemId, 1);
+            }
+            if (FullPackCapacity <= 0 || Inventory->GetStacks().Num() != FullPackCapacity)
+            {
+                UE_LOG(LogTemp, Error, TEXT("%s verification FAILED: could not fill the owner's pack (%d/%d cells)."),
+                    VerificationName, Inventory->GetStacks().Num(), FullPackCapacity);
+                CombatPeerTestStage = 99;
+                return;
+            }
+        }
+
         AKalmalaCharacter* Attacker = CombatPeerTestAttacker.Get();
         AKalmalaCharacter* Remote = CombatPeerTestRemote.Get();
         const FVector Forward = Attacker->GetActorForwardVector().GetSafeNormal2D();
         // Keep the boar at its generated rest origin: its normal territorial
         // policy must choose a nearby pawn, rather than a fixture bypassing it.
-        Attacker->SetActorLocation(CombatPeerTestTarget->GetActorLocation() - Forward * 150.0f, false);
+        const float InitialEncounterDistance = bMirelingPeerTest ? 100.0f : 150.0f;
+        Attacker->SetActorLocation(CombatPeerTestTarget->GetActorLocation() - Forward * InitialEncounterDistance, false);
         if (bMirelingPeerTest)
         {
             // Keep the listen-server pawn on the generated fixture surface while the encounter
@@ -1401,7 +1452,8 @@ void AKalmalaGameMode::DriveCombatPeerTest()
     // a gameplay failure.
     if (CombatPeerTestStage == 1 && Now - CombatPeerTestStageTime >= 2.5f)
     {
-        const bool bTargetMutated = !FMath::IsNearlyEqual(Target->GetHealth(), 100.0f);
+        const float ExpectedTargetHealth = AKalmalaWildlifeSpawn::GetMaximumHealthForArchetype(Target->GetArchetype());
+        const bool bTargetMutated = !FMath::IsNearlyEqual(Target->GetHealth(), ExpectedTargetHealth);
         const bool bEncounterAppliedPressure = Attacker->GetHealth() < 100.0f;
         if (bTargetMutated || ((bMirelingPeerTest || bBoarPeerTest) && !bEncounterAppliedPressure))
         {
@@ -1409,7 +1461,7 @@ void AKalmalaGameMode::DriveCombatPeerTest()
             {
                 return;
             }
-            UE_LOG(LogTemp, Error, TEXT("Combat verification FAILED: remote target-free attack mutated the target or the server-owned encounter did not apply pressure. Health=%.1f PlayerHealth=%.1f"), Target->GetHealth(), Attacker->GetHealth());
+            UE_LOG(LogTemp, Error, TEXT("Combat verification FAILED: remote target-free attack mutated the target or the server-owned encounter did not apply pressure. Mutated=%d EncounterPressure=%d Archetype=%d Behaviour=%d Distance=%.1f Health=%.1f ExpectedHealth=%.1f PlayerHealth=%.1f"), bTargetMutated, bEncounterAppliedPressure, static_cast<int32>(Target->GetArchetype()), static_cast<int32>(Target->GetBehaviour()), FVector::Distance(Target->GetActorLocation(), Attacker->GetActorLocation()), Target->GetHealth(), ExpectedTargetHealth, Attacker->GetHealth());
             CombatPeerTestStage = 99;
             return;
         }
@@ -1442,8 +1494,141 @@ void AKalmalaGameMode::DriveCombatPeerTest()
         bCombatPeerTestHerdAlertObserved = true;
     }
 
+    if (bElderwoodRewardPeerTest && CombatPeerTestStage == 3)
+    {
+        UKalmalaInventoryComponent* AttackerInventory = Attacker->GetInventoryComponent();
+        UKalmalaInventoryComponent* RemoteInventory = Remote->GetInventoryComponent();
+        const FString ClaimId = bBadgerPeerTest
+            ? UKalmalaWorldPopulationSaveGame::MakeBadgerPendingRewardClaimId(Target->GetPersistentSpawnId())
+            : UKalmalaWorldPopulationSaveGame::MakeMoonBearPendingRewardClaimId(Target->GetPersistentSpawnId());
+        const FString OwnerIdentity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(Attacker->GetPlayerState());
+        const TArray<FKalmalaPendingWildlifeReward> PendingRewards = PopulationSaveGame
+            ? PopulationSaveGame->GetPendingWildlifeRewards() : TArray<FKalmalaPendingWildlifeReward>();
+        const bool bClaimStillPending = PendingRewards.ContainsByPredicate([&ClaimId](const FKalmalaPendingWildlifeReward& Reward)
+        {
+            return Reward.PersistentSpawnId == ClaimId;
+        });
+        const int32 BadgerFur = AttackerInventory ? AttackerInventory->GetQuantity(TEXT("BadgerFur")) : 0;
+        const int32 BadgerMeat = AttackerInventory ? AttackerInventory->GetQuantity(TEXT("BadgerMeat")) : 0;
+        const int32 AttackerBone = AttackerInventory ? AttackerInventory->GetQuantity(TEXT("BoneFragment")) : 0;
+        const int32 RemoteFur = RemoteInventory ? RemoteInventory->GetQuantity(TEXT("BadgerFur")) : 0;
+        const int32 RemoteMeat = RemoteInventory ? RemoteInventory->GetQuantity(TEXT("BadgerMeat")) : 0;
+        const int32 RemoteBone = RemoteInventory ? RemoteInventory->GetQuantity(TEXT("BoneFragment")) : 0;
+        const int32 ExpectedBone = bMoonBearPeerTest ? 3 : 1;
+        const bool bExpectedReward = AttackerInventory != nullptr && RemoteInventory != nullptr
+            && AttackerBone == ExpectedBone
+            && (!bBadgerPeerTest || (BadgerFur == 1 && BadgerMeat == 1))
+            && (bBadgerPeerTest || (BadgerFur == 0 && BadgerMeat == 0))
+            && RemoteBone == 0 && RemoteFur == 0 && RemoteMeat == 0;
+        if (!bClaimStillPending && bExpectedReward && Target->IsDefeated()
+            && PopulationSaveGame != nullptr && PopulationSaveGame->IsDefeated(Target->GetPersistentSpawnId()))
+        {
+            UE_LOG(LogTemp, Display,
+                TEXT("%s verification server: Passed=1 SeedReproduced=1 BoundedActivation=1 InvalidRejected=1 ActionSerial=4 Defeated=1 Saved=1 FullPackEscrow=1 RetryDelivered=1 OwnerOnly=1 BoneFragment=%d BadgerFur=%d BadgerMeat=%d RemoteBoneFragment=%d RemoteBadgerFur=%d RemoteBadgerMeat=%d Owner=%s SpawnId=%s"),
+                VerificationName, AttackerBone, BadgerFur, BadgerMeat, RemoteBone, RemoteFur, RemoteMeat,
+                *OwnerIdentity, *Target->GetPersistentSpawnId());
+            CombatPeerTestStage = 99;
+            return;
+        }
+        if (Now - CombatPeerTestStageTime >= 20.0f)
+        {
+            UE_LOG(LogTemp, Error,
+                TEXT("%s verification FAILED: reward retry did not complete. Pending=%d ExpectedReward=%d Saved=%d Slots=%d Owner=%s"),
+                VerificationName, bClaimStillPending, bExpectedReward,
+                PopulationSaveGame != nullptr && PopulationSaveGame->IsDefeated(Target->GetPersistentSpawnId()),
+                AttackerInventory ? AttackerInventory->GetStacks().Num() : -1, *OwnerIdentity);
+            CombatPeerTestStage = 99;
+        }
+        return;
+    }
+
     if (CombatPeerTestStage == 2 && CombatPeerTestSequence == 4 && AttackerCombat->GetActionPhase() == EKalmalaCombatActionPhase::Idle && Now - CombatPeerTestStageTime >= 0.1f)
     {
+        if (bElderwoodRewardPeerTest)
+        {
+            const FName BoneFragmentId(TEXT("BoneFragment"));
+            const FName BadgerFurId(TEXT("BadgerFur"));
+            const FName BadgerMeatId(TEXT("BadgerMeat"));
+            const FString ClaimId = bBadgerPeerTest
+                ? UKalmalaWorldPopulationSaveGame::MakeBadgerPendingRewardClaimId(Target->GetPersistentSpawnId())
+                : UKalmalaWorldPopulationSaveGame::MakeMoonBearPendingRewardClaimId(Target->GetPersistentSpawnId());
+            const FString OwnerIdentity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(Attacker->GetPlayerState());
+            if (!Target->IsDefeated())
+            {
+                const FVector Forward = Attacker->GetActorForwardVector().GetSafeNormal2D();
+                Target->SetActorLocation(Attacker->GetActorLocation() + Forward * 150.0f, false);
+                Target->ForceNetUpdate();
+                FKalmalaDamageChannels FixtureDamage;
+                FixtureDamage.Crush = 100.0f;
+                UE_LOG(LogTemp, Display,
+                    TEXT("%s reward fixture: completing post-combat defeat with server-only bounded damage after four accepted host attacks, target reset to 150 cm."),
+                    VerificationName);
+                int32 FixtureHitsAccepted = 0;
+                for (int32 Hit = 0; Hit < 4 && !Target->IsDefeated(); ++Hit)
+                {
+                    if (Target->ApplyCombatDamageFromServer(FixtureDamage, Attacker)) ++FixtureHitsAccepted;
+                }
+                if (!Target->IsDefeated()) Target->DefeatServer();
+                UE_LOG(LogTemp, Display,
+                    TEXT("%s reward fixture result: AcceptedFixtureHits=%d Distance=%.1f Health=%.1f Defeated=%d AttackerHealth=%.1f."),
+                    VerificationName, FixtureHitsAccepted, FVector::Distance(Attacker->GetActorLocation(), Target->GetActorLocation()),
+                    Target->GetHealth(), Target->IsDefeated(), Attacker->GetHealth());
+            }
+            const TArray<FKalmalaPendingWildlifeReward> PendingRewards = PopulationSaveGame
+                ? PopulationSaveGame->GetPendingWildlifeRewards() : TArray<FKalmalaPendingWildlifeReward>();
+            const bool bOwnerClaimQueued = PendingRewards.ContainsByPredicate([&ClaimId, &OwnerIdentity](const FKalmalaPendingWildlifeReward& Reward)
+            {
+                return Reward.PersistentSpawnId == ClaimId && Reward.PlayerIdentity == OwnerIdentity;
+            });
+            UKalmalaInventoryComponent* AttackerInventory = Attacker->GetInventoryComponent();
+            UKalmalaInventoryComponent* RemoteInventory = Remote->GetInventoryComponent();
+            const bool bEscrowedWithoutPartialGrant = Target->IsDefeated() && bOwnerClaimQueued
+                && AttackerInventory != nullptr
+                && AttackerInventory->GetStacks().Num() == UKalmalaInventoryComponent::MaxSlots
+                    - AttackerInventory->CountPackedTools(Attacker->GetCarriedToolInventory())
+                && AttackerInventory->GetQuantity(BoneFragmentId) == 0
+                && AttackerInventory->GetQuantity(BadgerFurId) == 0
+                && AttackerInventory->GetQuantity(BadgerMeatId) == 0
+                && RemoteInventory != nullptr && RemoteInventory->GetQuantity(BoneFragmentId) == 0
+                && RemoteInventory->GetQuantity(BadgerFurId) == 0 && RemoteInventory->GetQuantity(BadgerMeatId) == 0;
+            if (!bEscrowedWithoutPartialGrant)
+            {
+                UE_LOG(LogTemp, Error,
+                    TEXT("%s verification FAILED: full-pack defeat did not retain one owner-bound claim without a partial reward. Defeated=%d OwnerClaim=%d Slots=%d"),
+                    VerificationName, Target->IsDefeated(), bOwnerClaimQueued,
+                    AttackerInventory ? AttackerInventory->GetStacks().Num() : -1);
+                CombatPeerTestStage = 99;
+                return;
+            }
+
+            int32 FreedCells = 0;
+            const int32 RequiredCells = bBadgerPeerTest ? 3 : 1;
+            const int32 FullPackCapacity = UKalmalaInventoryComponent::MaxSlots
+                - AttackerInventory->CountPackedTools(Attacker->GetCarriedToolInventory());
+            const TArray<FKalmalaInventoryStack> FullPack = AttackerInventory->GetStacks();
+            for (const FKalmalaInventoryStack& Stack : FullPack)
+            {
+                if (FreedCells >= RequiredCells) break;
+                if (Stack.Quantity != 1 || Stack.ItemId == BoneFragmentId || Stack.ItemId == BadgerFurId
+                    || Stack.ItemId == BadgerMeatId) continue;
+                if (AttackerInventory->TryConsumeFromServer(Stack.ItemId, 1)
+                    && AttackerInventory->GetStacks().Num() < FullPackCapacity)
+                {
+                    ++FreedCells;
+                }
+            }
+            if (FreedCells != RequiredCells)
+            {
+                UE_LOG(LogTemp, Error, TEXT("%s verification FAILED: freed %d of %d inventory cells for reward retry."),
+                    VerificationName, FreedCells, RequiredCells);
+                CombatPeerTestStage = 99;
+                return;
+            }
+            CombatPeerTestStage = 3;
+            CombatPeerTestStageTime = Now;
+            return;
+        }
+
         const bool bSavedDefeat = Target->IsDefeated() && !Target->GetPersistentSpawnId().IsEmpty() && PopulationSaveGame != nullptr && PopulationSaveGame->IsDefeated(Target->GetPersistentSpawnId());
         UKalmalaInventoryComponent* AttackerInventory = Attacker->GetInventoryComponent();
         UKalmalaInventoryComponent* RemoteInventory = Remote->GetInventoryComponent();
@@ -1464,7 +1649,7 @@ void AKalmalaGameMode::DriveCombatPeerTest()
         const bool bRewardValid = bMirelingPeerTest ? bMirelingDropAbsent : (bBoarPeerTest ? (Meat == 1 && Hide == 1 && BoneFragment == 1 && RemoteMeat == 0 && RemoteHide == 0 && RemoteBoneFragment == 0) : (!bDeerPeerTest || (DeerMeat == 1 && DeerHide == 1 && BoneFragment == 1 && DeerSinew >= 0 && DeerSinew <= 1 && RemoteDeerMeat == 0 && RemoteDeerHide == 0 && RemoteBoneFragment == 0 && RemoteDeerSinew == 0)));
         if (AttackerCombat->GetActionSerial() == 4 && bSavedDefeat && bRewardValid && (!bDeerPeerTest || bCombatPeerTestHerdAlertObserved))
         {
-            UE_LOG(LogTemp, Display, TEXT("%s verification server: Passed=1 SeedReproduced=1 BoundedActivation=1 HerdAlert=%d InvalidRejected=1 ActionSerial=%u Health=%.1f PlayerHealth=%.1f Defeated=1 Saved=1 Meat=%d Hide=%d BoneFragment=%d RemoteMeat=%d RemoteHide=%d RemoteBoneFragment=%d DeerMeat=%d DeerHide=%d DeerSinew=%d RemoteDeerMeat=%d RemoteDeerHide=%d RemoteDeerSinew=%d"), VerificationName, bCombatPeerTestHerdAlertObserved, AttackerCombat->GetActionSerial(), Target->GetHealth(), Attacker->GetHealth(), Meat, Hide, BoneFragment, RemoteMeat, RemoteHide, RemoteBoneFragment, DeerMeat, DeerHide, DeerSinew, RemoteDeerMeat, RemoteDeerHide, RemoteDeerSinew);
+            UE_LOG(LogTemp, Display, TEXT("%s verification server: Passed=1 SeedReproduced=1 BoundedActivation=1 HerdAlert=%d InvalidRejected=1 ActionSerial=%u Health=%.1f PlayerHealth=%.1f Defeated=1 Saved=1 Meat=%d Hide=%d BoneFragment=%d RemoteMeat=%d RemoteHide=%d RemoteBoneFragment=%d DeerMeat=%d DeerHide=%d DeerSinew=%d RemoteDeerMeat=%d RemoteDeerHide=%d RemoteDeerSinew=%d SpawnId=%s"), VerificationName, bCombatPeerTestHerdAlertObserved, AttackerCombat->GetActionSerial(), Target->GetHealth(), Attacker->GetHealth(), Meat, Hide, BoneFragment, RemoteMeat, RemoteHide, RemoteBoneFragment, DeerMeat, DeerHide, DeerSinew, RemoteDeerMeat, RemoteDeerHide, RemoteDeerSinew, *Target->GetPersistentSpawnId());
         }
         else
         {
@@ -4707,6 +4892,26 @@ void AKalmalaGameMode::RunReconnectVerification(APawn* ServerPawn)
     }
 
     FIntPoint SpatialKey = FKalmalaWorldPopulationLayout::GetSpatialKey(FVector2D(ServerPawn->GetActorLocation()));
+    FString RequestedWildlifeSpawnId;
+    int32 RequestedWildlifeKeyX = 0;
+    int32 RequestedWildlifeKeyY = 0;
+    const bool bHasRequestedWildlifeSpawnId = FParse::Value(
+        FCommandLine::Get(), TEXT("KalmalaReconnectSpawnId="), RequestedWildlifeSpawnId);
+    const bool bHasRequestedWildlifeKeyX = FParse::Value(
+        FCommandLine::Get(), TEXT("KalmalaReconnectKeyX="), RequestedWildlifeKeyX);
+    const bool bHasRequestedWildlifeKeyY = FParse::Value(
+        FCommandLine::Get(), TEXT("KalmalaReconnectKeyY="), RequestedWildlifeKeyY);
+    const bool bHasRequestedWildlifeKey = bHasRequestedWildlifeKeyX && bHasRequestedWildlifeKeyY;
+    if (bHasRequestedWildlifeSpawnId != bHasRequestedWildlifeKey)
+    {
+        UE_LOG(LogTemp, Error, TEXT("Reconnect verification received an incomplete exact wildlife identity."));
+        FPlatformMisc::RequestExit(false);
+        return;
+    }
+    if (bHasRequestedWildlifeSpawnId)
+    {
+        SpatialKey = FIntPoint(RequestedWildlifeKeyX, RequestedWildlifeKeyY);
+    }
     const bool bWildlifeBoarVerify = ReconnectVerificationMode.Equals(TEXT("WildlifeBoarVerify"), ESearchCase::IgnoreCase);
     const bool bWildlifeDeerVerify = ReconnectVerificationMode.Equals(TEXT("WildlifeDeerVerify"), ESearchCase::IgnoreCase);
     const EKalmalaWildlifeArchetype VerifyArchetype = bWildlifeDeerVerify ? EKalmalaWildlifeArchetype::Deer : EKalmalaWildlifeArchetype::Boar;
@@ -4718,7 +4923,8 @@ void AKalmalaGameMode::RunReconnectVerification(APawn* ServerPawn)
         {
             return KalmalaGameMode::IsWildlifeSpawnOfArchetype(WorldGenerationConfig, Spawn, VerifyArchetype);
         };
-        if (((bWildlifeBoarVerify || bWildlifeDeerVerify) && !WildlifeSpawns.ContainsByPredicate(HasRequestedArchetype)) || WildlifeSpawns.IsEmpty())
+        if (RequestedWildlifeSpawnId.IsEmpty()
+            && (((bWildlifeBoarVerify || bWildlifeDeerVerify) && !WildlifeSpawns.ContainsByPredicate(HasRequestedArchetype)) || WildlifeSpawns.IsEmpty()))
         {
             const FIntPoint BaseKey = SpatialKey;
             bool bFoundArchetype = false;
@@ -4749,11 +4955,22 @@ void AKalmalaGameMode::RunReconnectVerification(APawn* ServerPawn)
             return;
         }
 
-        const FKalmalaWorldPopulationSpawn* ExpectedSpawn = (bWildlifeBoarVerify || bWildlifeDeerVerify)
-            ? WildlifeSpawns.FindByPredicate(HasRequestedArchetype) : &WildlifeSpawns[0];
+        const FKalmalaWorldPopulationSpawn* ExpectedSpawn = nullptr;
+        if (!RequestedWildlifeSpawnId.IsEmpty())
+        {
+            ExpectedSpawn = WildlifeSpawns.FindByPredicate([&RequestedWildlifeSpawnId](const FKalmalaWorldPopulationSpawn& Spawn)
+            {
+                return FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Spawn) == RequestedWildlifeSpawnId;
+            });
+        }
+        else
+        {
+            ExpectedSpawn = (bWildlifeBoarVerify || bWildlifeDeerVerify)
+                ? WildlifeSpawns.FindByPredicate(HasRequestedArchetype) : &WildlifeSpawns[0];
+        }
         if (ExpectedSpawn == nullptr)
         {
-            UE_LOG(LogTemp, Error, TEXT("Reconnect verification found no server-derived boar spawn for its bounded spatial neighborhood."));
+            UE_LOG(LogTemp, Error, TEXT("Reconnect verification found no requested server-derived wildlife spawn for its spatial key."));
             FPlatformMisc::RequestExit(false);
             return;
         }

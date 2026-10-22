@@ -2,6 +2,7 @@
 #include "KalmalaWorldPopulationSaveGame.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/AutomationTest.h"
+#include <limits>
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaWildlifeMoonBearContractTest,
     "Kalmala.Gameplay.Wildlife.MoonBear.HardSpawnPawAndRewardClaim",
@@ -72,7 +73,7 @@ bool FKalmalaWildlifeMoonBearContractTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("The paw reach rejects a negative distance"),
         AKalmalaWildlifeSpawn::IsMoonBearPawInReach(true, true, -1.0f));
     TestFalse(TEXT("The paw reach rejects non-finite distance"),
-        AKalmalaWildlifeSpawn::IsMoonBearPawInReach(true, true, TNumericLimits<float>::QuietNaN()));
+        AKalmalaWildlifeSpawn::IsMoonBearPawInReach(true, true, std::numeric_limits<float>::quiet_NaN()));
 
     const FString SpawnId(TEXT("1/4/-8/123456"));
     const FString ClaimId = UKalmalaWorldPopulationSaveGame::MakeMoonBearPendingRewardClaimId(SpawnId);

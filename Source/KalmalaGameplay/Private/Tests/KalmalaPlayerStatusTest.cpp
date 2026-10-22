@@ -11,6 +11,7 @@
 #include "GameFramework/PlayerController.h"
 #include "Engine/World.h"
 #include "Misc/AutomationTest.h"
+#include <limits>
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaPlayerWetStatusTest, "Kalmala.Gameplay.Status.Wet",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
@@ -652,7 +653,7 @@ bool FKalmalaViperWeakPoisonStatusTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Poison above the shared ten-second bound is rejected"),
         Status->ApplyWeakPoisonFromServer(UKalmalaPlayerStatusComponent::WeakPoisonMaximumSeconds + 0.01f));
     TestFalse(TEXT("Non-finite poison duration is rejected"),
-        Status->ApplyWeakPoisonFromServer(TNumericLimits<float>::QuietNaN()));
+        Status->ApplyWeakPoisonFromServer(std::numeric_limits<float>::quiet_NaN()));
     TestTrue(TEXT("Authority applies the Viper's five-second weak poison"), Status->ApplyWeakPoisonFromServer(5.0f));
     TestEqual(TEXT("Weak poison starts at five seconds"),
         Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::WeakPoisonStatusId), 5.0f);
@@ -721,7 +722,7 @@ bool FKalmalaDeathAdderMajorPoisonStatusTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Major poison cannot exceed its ten-second bound"),
         Status->ApplyMajorPoisonFromServer(UKalmalaPlayerStatusComponent::MajorPoisonMaximumSeconds + 0.01f));
     TestFalse(TEXT("Non-finite major poison duration is rejected"),
-        Status->ApplyMajorPoisonFromServer(TNumericLimits<float>::QuietNaN()));
+        Status->ApplyMajorPoisonFromServer(std::numeric_limits<float>::quiet_NaN()));
     TestTrue(TEXT("An accepted Death Adder bite can apply major poison"), Status->ApplyMajorPoisonFromServer(10.0f));
     TestEqual(TEXT("Major poison starts with ten seconds remaining"),
         Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::MajorPoisonStatusId), 10.0f);
@@ -740,23 +741,26 @@ bool FKalmalaDeathAdderMajorPoisonStatusTest::RunTest(const FString& Parameters)
         Status->ApplyWeakPoisonFromServer(5.0f));
     TestEqual(TEXT("Weak and major poison retain separate status timers"), Status->GetStatuses().Num(), 2);
     TestEqual(TEXT("Weak applications do not extend the active major timer"),
-        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::MajorPoisonStatusId), 9.0f);
+        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::MajorPoisonStatusId), 9.4f);
     for (int32 Tick = 0; Tick < 8; ++Tick) Status->AdvanceFromServer(1.0f);
     TestEqual(TEXT("Only one five-damage major tick is applied per due second"), Pawn->GetHealth(), 55.0f);
-    TestEqual(TEXT("Major poison has one second left before its tenth tick"),
-        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::MajorPoisonStatusId), 1.0f);
+    TestEqual(TEXT("Major poison retains the refreshed timer's remaining 1.4 seconds"),
+        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::MajorPoisonStatusId), 1.4f);
 
     TestTrue(TEXT("A weak bite shortly before major expiry remains independently active"),
         Status->ApplyWeakPoisonFromServer(5.0f));
     TestEqual(TEXT("Weak bite cannot extend major poison"),
-        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::MajorPoisonStatusId), 1.0f);
+        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::MajorPoisonStatusId), 1.4f);
     Status->AdvanceFromServer(1.0f);
     TestEqual(TEXT("Major poison applies its tenth tick at expiry"), Pawn->GetHealth(), 50.0f);
+    TestEqual(TEXT("Major poison keeps the final 0.4 seconds after its tenth tick"),
+        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::MajorPoisonStatusId), 0.4f);
+    Status->AdvanceFromServer(0.4f);
     TestFalse(TEXT("The major effect expires after ten ticks"),
         Status->HasStatus(UKalmalaPlayerStatusComponent::MajorPoisonStatusId));
     TestEqual(TEXT("An unexpired weak dose resumes with its own remaining time"),
-        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::WeakPoisonStatusId), 4.0f);
-    Status->AdvanceFromServer(1.0f);
+        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::WeakPoisonStatusId), 3.6f);
+    Status->AdvanceFromServer(0.6f);
     TestEqual(TEXT("Weak poison resumes at one damage per second"), Pawn->GetHealth(), 49.0f);
 
     Pawn->SetRole(ROLE_AutonomousProxy);

@@ -2081,7 +2081,7 @@ After an editor build, run headless automation with `-unattended -nop4 -nosplash
 
 ## Generated-ocean swimming regression
 
-After an editor build, run `Scripts/Tests/Travel/Verify-Swimming.ps1`. It starts a memory-only listen server with seed 418 and a conflicting-seed client with seed 999. Each owning pawn walks to the nearest deterministic sea-depth fixture and must enter the generated-ocean custom movement mode; the server log proves authoritative entry and the client log proves prediction from the server-replicated identity. Entry requires at least 100 cm depth and return-to-land uses a 75 cm hysteresis threshold. The test adds no water volume, RPC, client depth input, island, boat, or streaming change.
+After an editor build, run `Scripts/Tests/Travel/Verify-Swimming.ps1`. It starts a memory-only listen server with seed 418 and a conflicting-seed client with seed 999. Each owning pawn walks at a development-only 1800 cm/s test pace to the nearest sampled point at least 150 cm below the natural sea surface, searched within 3000 m of its generated start; the server log proves authoritative entry and the client log proves prediction from the server-replicated identity. The two test pawns ignore each other's pawn collision because both use the same generated start. They also ignore generated harvest-node collision along the route, while retaining generated terrain collision. The 150 cm target margin exceeds the 100 cm entry threshold, and return-to-land uses a 75 cm hysteresis threshold. The runner allows 180 seconds for both peers to enter. The test adds no water volume, RPC, client depth input, island, boat, or streaming change; normal movement and collision behavior are unchanged.
 
 ## Long-distance ocean travel regression
 
@@ -2312,6 +2312,22 @@ the shared 150 m generated-player-start exclusion. Run these sources in the
 combined A8a/A8b I4 acceptance; no Unreal build or runtime acceptance was
 performed by this implementation increment. Moonstone's separate A9 source
 remains disabled until that downstream task.
+
+For live Elderwood reward acceptance, first build the Editor target, then run
+`Scripts/Tests/Combat/Verify-ElderwoodPeer.ps1 -Archetype Both`. The combined
+runner executes the Badger and Moon Bear cases sequentially, each with a
+fixed-seed listen server and two clients using conflicting local seeds. The
+server derives and activates an ordinary Badger or Moon Bear descriptor, verifies the owner's full pack
+retains the defeated-spawn claim without a partial grant, frees the needed
+inventory cells, and requires the queued reward to arrive only for that owner.
+The relevant remote client must observe the shared combat state and defeat
+without receiving the reward. A second, distant observer is allowed to remain
+outside relevancy. The fixture then restarts the same world and requires that
+exact generated spawn to remain defeated. Four ordinary host attacks are
+followed, when needed, by bounded server-only fixture damage at the approved
+220 cm melee boundary to complete the reward-path scenario; attack damage
+tuning is covered by the wildlife contract automations. The fixture adds no gameplay RPC, client-selected target or
+reward, replication field, or save schema.
 
 ## Shimmering Lakes Viper contract regression
 

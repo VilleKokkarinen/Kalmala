@@ -2,6 +2,7 @@
 #include "KalmalaCombatComponent.h"
 #include "KalmalaCharacter.h"
 #include "KalmalaInventoryComponent.h"
+#include "KalmalaResistanceComponent.h"
 #include "KalmalaToolCatalogue.h"
 #include "KalmalaArrowProjectile.h"
 #include "KalmalaWildlifeSpawn.h"
@@ -99,6 +100,9 @@ bool FKalmalaBowDrawTest::RunTest(const FString& Parameters)
     Combat->ServerReleaseBow(8,false);
     TestEqual(TEXT("Automatic selection consumes first available stack"), Inventory->GetStacks()[0].Quantity, 99);
     auto* Wildlife=World->SpawnActor<AKalmalaWildlifeSpawn>(FVector(600,20,25), FRotator::ZeroRotator);
+    auto* WildlifeResistance = Wildlife->FindComponentByClass<UKalmalaResistanceComponent>();
+    if (!TestNotNull(TEXT("Raw arrow damage target exposes its resistance profile"), WildlifeResistance)) return false;
+    WildlifeResistance->Profile.Armor = 0.0f;
     for(TActorIterator<AKalmalaArrowProjectile> Arrow(World); Arrow; ++Arrow)
     {
         TestEqual(TEXT("Full draw reaches configured maximum arrow damage"), Arrow->GetShotDamage(), 40.0f);
@@ -110,7 +114,7 @@ bool FKalmalaBowDrawTest::RunTest(const FString& Parameters)
         }
         if (IsValid(*Arrow)) Arrow->Destroy();
     }
-    TestEqual(TEXT("Real swept projectile damages wildlife beyond melee reach"), Wildlife->GetHealth(), 60.0f);
+    TestEqual(TEXT("Real swept projectile deals full damage to the default 75-health target"), Wildlife->GetHealth(), 35.0f);
     TestEqual(TEXT("Wooden arrows do not apply fang poison"), Wildlife->GetFangArrowPoisonRemainingSeconds(), 0.0f);
     Recover();
     Combat->ServerBeginBowDraw(9);
@@ -267,9 +271,14 @@ bool FKalmalaBowDrawTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Horn Bow resolves Fang Arrow damage"),
         AKalmalaArrowProjectile::ResolveShotDamage(TEXT("FangArrows"), 1.0f, TEXT("HornBow"), 1, HornFangArrowPreview));
     TestEqual(TEXT("Horn Bow adds its bonus to fixed Fang Arrow Pierce"), HornFangArrowPreview, 150.0f);
+    const auto* HornWoodenStack = Inventory->GetStacks().FindByPredicate(
+        [](const auto& Stack) { return Stack.ItemId == TEXT("WoodenArrow") && Stack.Quantity > 0; });
+    if (!TestNotNull(TEXT("Horn Bow has a selectable Wooden Arrow stack"), HornWoodenStack)
+        || HornWoodenStack->ItemGuids.IsEmpty()) return false;
+    Combat->ServerPreferArrowStack(HornWoodenStack->ItemGuids[0]);
     const int32 WoodenBeforeHornShot = Inventory->GetQuantity(TEXT("WoodenArrow"));
     Combat->ServerBeginBowDraw(19);
-    for (int32 Step = 0; Step < 6; ++Step) World->Tick(LEVELTICK_TimeOnly, 0.5f);
+    for (int32 Step = 0; Step < 12; ++Step) World->Tick(LEVELTICK_TimeOnly, 0.25f);
     TestEqual(TEXT("Three seconds fills the Horn Bow draw"), Combat->GetBowDrawProgress(), 1.0f);
     Combat->ServerReleaseBow(20, false);
     TestEqual(TEXT("Horn Bow commits one Wooden Arrow"), Inventory->GetQuantity(TEXT("WoodenArrow")), WoodenBeforeHornShot - 1);

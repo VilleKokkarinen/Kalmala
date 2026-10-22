@@ -76,6 +76,8 @@ public:
     void UpdateAutomaticPickupFromServer(float DeltaSeconds);
     /** Owner-local candidate from the same short view trace used to choose interaction intent. */
     bool GetLocalInteractionCandidate(FHitResult& OutHit) const;
+    /** Submit the current local interaction intent; the server validates the request. */
+    void RequestInteract();
     /** Resolve the current local tool/action intent for this visible node; server validation remains authoritative. */
     bool GetLocalHarvestInteractionIntent(const AKalmalaHarvestNode* Node, FName& OutItemId,
         uint8& OutAction, bool& bOutHasUsableTool) const;
@@ -145,7 +147,6 @@ private:
     void MoveForward(float Value);
     void MoveRight(float Value);
     void SendOceanSkiffSteeringInput();
-    void RequestInteract();
     void RequestAttack();
     void ReleaseAttack();
     uint32 LocalCombatSequence = 0;
@@ -235,11 +236,13 @@ private:
     bool bControlsTestReleaseObserved = false;
     bool bControlsTestLocalJumpObserved = false;
     bool bSwimmingTestEnabled = false;
+    bool bSwimmingTargetSearchAttempted = false;
     bool bSwimmingTargetConfigured = false;
     bool bSwimmingEntryLogged = false;
     bool bSwimmingReturnLogged = false;
     FVector2D SwimmingTestTarget = FVector2D::ZeroVector;
     FVector2D SwimmingTestStart = FVector2D::ZeroVector;
+    float SwimmingTestNextStatusLogTime = 0.0f;
     bool bOceanTravelTestEnabled = false;
     bool bCombatPeerTestInvalidAttackSent = false;
     uint32 LocalOceanSkiffInputSequence = 0;

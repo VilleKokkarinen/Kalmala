@@ -2,6 +2,7 @@
 
 #include "KalmalaCharacter.h"
 #include "Misc/AutomationTest.h"
+#include <limits>
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaDodgeRollContractTest,
     "Kalmala.Gameplay.Movement.DodgeRollAuthorityAndCost",
@@ -36,7 +37,7 @@ bool FKalmalaDodgeRollContractTest::RunTest(const FString& Parameters)
             AKalmalaCharacter::DodgeRollStaminaCost));
     TestFalse(TEXT("Malformed stamina fails closed"),
         AKalmalaCharacter::IsDodgeRollRequestAllowed(true, true, true, false, false,
-            0.0f, TNumericLimits<float>::QuietNaN(), AKalmalaCharacter::DodgeRollStaminaCost));
+            0.0f, std::numeric_limits<float>::quiet_NaN(), AKalmalaCharacter::DodgeRollStaminaCost));
     TestEqual(TEXT("The accepted roll briefly breaks swarm contact"),
         AKalmalaCharacter::DodgeRollMosquitoRepelSeconds, 2.0f);
     return true;

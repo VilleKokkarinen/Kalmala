@@ -296,6 +296,7 @@ EKalmalaHeldToolVisual UKalmalaPlayerModelComponent::GetHeldToolVisualForItem(co
     case EKalmalaToolKind::StoneSpear: case EKalmalaToolKind::BronzeSpear: case EKalmalaToolKind::IronSpear:
         return EKalmalaHeldToolVisual::Spear;
     case EKalmalaToolKind::StoneMace: case EKalmalaToolKind::BronzeMace: case EKalmalaToolKind::IronMace:
+    case EKalmalaToolKind::ThunderMaul:
         return EKalmalaHeldToolVisual::Mace;
     case EKalmalaToolKind::BronzeSword: case EKalmalaToolKind::IronSword:
         return EKalmalaHeldToolVisual::Sword;
