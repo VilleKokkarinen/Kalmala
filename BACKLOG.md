@@ -278,7 +278,8 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [x] Reef Harpoon: Forge, 3 Reef Tooth + 8 Iron + 4 Lightwood → 1; 60 Pierce.
   - [x] Verify every approved drop/output has complete registered JSON, a reachable source and a generated runtime icon.
   - [ ] Run the combined A8a/A8b enemy and enemy-item milestone verification; record results and blockers. This gate must pass before A9 begins.
-    - [ ] Rebuild and rerun the single sequential Badger/Moon Bear peer acceptance after the Moon Bear fixture adjustment; rerun required milestone verification and record the disposition of its three existing failures.
+    - [x] Rebuild and rerun the single sequential Badger/Moon Bear peer acceptance after the Moon Bear fixture adjustment; both cases passed. Reran the full suite and recorded its three failures in PROGRESS.md.
+    - [ ] Diagnose whether A8 changes caused the two M9 tool-progression failures, obtain the required disposition for the known pre-A8 Mireling SurfaceWinding failure, and rerun the full Kalmala queue; close I4 only after required verification passes.
 
   The JSON-only child and all 30 icon children are complete; all 30 item rows
   remain unchecked until their reachable source drops (for materials) and
