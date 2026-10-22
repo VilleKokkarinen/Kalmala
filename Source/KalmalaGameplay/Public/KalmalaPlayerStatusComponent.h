@@ -38,6 +38,7 @@ public:
     UKalmalaPlayerStatusComponent();
 
     static const FName WetStatusId;
+    static const FName WeakPoisonStatusId;
     static const FName SteadyMealStatusId;
     static const FName CookedBoarMeatItemId;
     static const FName CookedDeerMeatItemId;
@@ -53,6 +54,9 @@ public:
     static const FName RoastedRootVegetablesItemId;
     static const FName DeerRootRoastItemId;
     static constexpr float WetMaximumSeconds = 120.0f;
+    static constexpr float WeakPoisonMaximumSeconds = 10.0f;
+    static constexpr float WeakPoisonDamagePerSecond = 1.0f;
+    static constexpr float WeakPoisonTickIntervalSeconds = 1.0f;
     static constexpr float SteadyMealMaximumSeconds = 120.0f;
     static constexpr float BerryRecoveryMaximumSeconds = 10.0f;
     static constexpr float DraughtCooldownMaximumSeconds = 60.0f;
@@ -87,6 +91,8 @@ public:
 
     /** Server-only source-independent wet application. Reapplication clamps at the definition maximum. */
     void ApplyWetFromServer();
+    /** Applies or refreshes the shared weak-poison effect without stacking its ticks. */
+    bool ApplyWeakPoisonFromServer(float DurationSeconds);
     /** Server-only expiration tick. */
     void AdvanceFromServer(float DeltaSeconds);
     /** Validates a same-world authoritative heat source; no client RPC. */
@@ -100,4 +106,5 @@ private:
 
     UPROPERTY(ReplicatedUsing=OnRep_Statuses, VisibleAnywhere, Category = "Status")
     TArray<FKalmalaPlayerStatusEntry> Statuses;
+    float WeakPoisonSecondsUntilTick = WeakPoisonTickIntervalSeconds;
 };

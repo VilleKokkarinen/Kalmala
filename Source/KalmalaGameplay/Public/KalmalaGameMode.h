@@ -54,6 +54,7 @@ public:
     bool ClaimOceanDiscovery(class AKalmalaCharacter* Interactor, const FKalmalaOceanDiscoveryDescriptor& Descriptor);
     bool ClaimM9ExplorationReward(class AKalmalaCharacter* Interactor, const FKalmalaM9ExplorationRewardDescriptor& Descriptor);
     bool ClaimMirelingBossScroll(class AKalmalaCharacter* Attacker, const FString& PersistentSpawnId);
+    bool RecordRatDefeatReward(const FString& PersistentSpawnId, class AKalmalaCharacter* CreditedAttacker);
     bool PersistPlayerStateFromServer(class AKalmalaCharacter* Character,
         const FString& AdditionalDiscoveryId = FString(), const FString& AdditionalLearnedEffectId = FString(),
         const FString& AdditionalM9ClaimId = FString());
@@ -82,6 +83,7 @@ private:
     void LoadPopulationSave();
     void RecordM9ResourceDepleted(const FString& StableResourceId);
     void RecordDefeatedSpawn(const FString& PersistentSpawnId);
+    void DeliverPendingWildlifeRewards();
     class UKalmalaPlayerDiscoverySaveGameV2* GetPlayerDiscoverySave(class AKalmalaCharacter* Interactor, FString& OutIdentity);
     bool IsCurrentM9ClaimId(const FString& ClaimId) const;
     bool IsCurrentDiscoveryDescriptor(const struct FKalmalaWorldDiscoveryDescriptor& Descriptor) const;
@@ -179,6 +181,7 @@ private:
     UPROPERTY(Transient)
     TMap<FString, TObjectPtr<class UKalmalaPlayerDiscoverySaveGameV2>> PlayerDiscoverySaves;
     TSet<FString> RejectedPlayerDiscoverySaveIdentities;
+    TSet<FString> DeliveredWildlifeRewardSpawnIds;
     TMap<FString, TObjectPtr<class UKalmalaM7PersistenceSaveGame>> OceanDiscoverySaves;
     TMap<FString, TSet<FString>> SessionM9ExplorationClaims;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaOceanTravelPersistenceSaveGame> OceanTravelWorldSave;
@@ -203,6 +206,7 @@ private:
     float NextOceanDiscoveryRefreshTime = 0.0f;
     float NextExposureUpdateTime = 0.0f;
     float NextInteractionGridUpdateTime = 0.0f;
+    float WildlifeRewardRetrySeconds = 0.0f;
     TMap<FIntPoint, FKalmalaInteractionCellState> ActiveInteractionCells;
     TMap<TWeakObjectPtr<class AKalmalaCharacter>, float> UnroofedRainSecondsByCharacter;
     float WorldProfileReportTime = -1.0f;

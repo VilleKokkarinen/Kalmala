@@ -5,8 +5,17 @@
 #include "KalmalaCharacter.h"
 #include "KalmalaGameMode.h"
 #include "KalmalaInventoryComponent.h"
+#include "KalmalaPlayerStatusComponent.h"
+#include "KalmalaWorldGenerationGameState.h"
+#include "KalmalaWorldFieldSampler.h"
+#include "KalmalaShimmeringLakeSampler.h"
+#include "KalmalaOceanSampler.h"
+#include "KalmalaTerrainHeightSampler.h"
 #include "EngineUtils.h"
 #include "ProceduralMeshComponent.h"
+#include "Components/CapsuleComponent.h"
+#include "Sound/SoundWaveProcedural.h"
+#include "Kismet/GameplayStatics.h"
 #include "Engine/World.h"
 #include "Net/UnrealNetwork.h"
 #include "Misc/CommandLine.h"
@@ -153,6 +162,12 @@ AKalmalaWildlifeSpawn::AKalmalaWildlifeSpawn()
     MirelingMesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("MirelingMesh"));
     MirelingMesh->SetupAttachment(RootComponent);
     MirelingMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    SnakeBodyCollision = CreateDefaultSubobject<UCapsuleComponent>(TEXT("SnakeBodyCollision"));
+    SnakeBodyCollision->SetupAttachment(RootComponent);
+    SnakeBodyCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    SnakeBodyCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
+    SnakeBodyCollision->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+    SnakeBodyCollision->SetRelativeRotation(FRotator(0.0f, 90.0f, 0.0f));
     BuildArchetypePresentation();
     bReplicates = true;
     SetReplicateMovement(true);
@@ -174,6 +189,13 @@ void AKalmalaWildlifeSpawn::InitializeServer(const FKalmalaWorldPopulationSpawn&
         PersistentSpawnId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Spawn);
         CreatureNicheId = Spawn.ContentId;
         Archetype = InitialArchetype;
+        SnakeAttackCue = static_cast<uint8>(EKalmalaWildlifeAttackCue::None);
+        SnakeAttackTarget.Reset();
+        SnakeAttackSecondsRemaining = 0.0f;
+        SnakeLungeDistanceRemaining = 0.0f;
+        RatAttackCue = static_cast<uint8>(EKalmalaRatAttackCue::None);
+        RatAttackTarget.Reset();
+        RatAttackSecondsRemaining = 0.0f;
         Health = GetMaximumHealthForArchetype(Archetype);
         if (UKalmalaResistanceComponent* Defenses = FindComponentByClass<UKalmalaResistanceComponent>())
         {
@@ -193,8 +215,11 @@ float AKalmalaWildlifeSpawn::GetMaximumHealthForArchetype(const EKalmalaWildlife
     case EKalmalaWildlifeArchetype::Boar: return 20.0f;
     case EKalmalaWildlifeArchetype::Deer: return 30.0f;
     case EKalmalaWildlifeArchetype::Rat: return 10.0f;
+    case EKalmalaWildlifeArchetype::Badger: return 100.0f;
     case EKalmalaWildlifeArchetype::MoonBear: return 250.0f;
     case EKalmalaWildlifeArchetype::DeathAdder: return 125.0f;
+    case EKalmalaWildlifeArchetype::Viper: return 100.0f;
+    case EKalmalaWildlifeArchetype::GiantSnake: return 250.0f;
     case EKalmalaWildlifeArchetype::Mireling:
     default: return 75.0f;
     }
@@ -210,11 +235,21 @@ float AKalmalaWildlifeSpawn::GetArmorForArchetype(const EKalmalaWildlifeArchetyp
     case EKalmalaWildlifeArchetype::Boar:
     case EKalmalaWildlifeArchetype::Deer: return 5.0f;
     case EKalmalaWildlifeArchetype::Rat: return 0.0f;
+    case EKalmalaWildlifeArchetype::Badger: return 10.0f;
     case EKalmalaWildlifeArchetype::MoonBear: return 20.0f;
     case EKalmalaWildlifeArchetype::DeathAdder: return 20.0f;
+    case EKalmalaWildlifeArchetype::Viper: return 10.0f;
+    case EKalmalaWildlifeArchetype::GiantSnake: return 30.0f;
     case EKalmalaWildlifeArchetype::Mireling:
     default: return 15.0f;
     }
+}
+
+bool AKalmalaWildlifeSpawn::IsRatBiteInReach(const bool bServerAuthority, const bool bValidTarget,
+    const float DistanceCentimetres)
+{
+    return bServerAuthority && bValidTarget && FMath::IsFinite(DistanceCentimetres)
+        && DistanceCentimetres >= 0.0f && DistanceCentimetres <= RatBiteReachCentimetres;
 }
 
 float AKalmalaWildlifeSpawn::GetBaseAttackDamageForArchetype(const EKalmalaWildlifeArchetype InArchetype)
@@ -233,8 +268,11 @@ FKalmalaDamageChannels AKalmalaWildlifeSpawn::GetBaseAttackChannelsForArchetype(
     case EKalmalaWildlifeArchetype::Boar: Damage.Crush = 10.0f; break;
     case EKalmalaWildlifeArchetype::Mireling: Damage.Crush = 20.0f; break;
     case EKalmalaWildlifeArchetype::Rat: Damage.Pierce = 5.0f; break;
+    case EKalmalaWildlifeArchetype::Badger: Damage.Slash = 20.0f; break;
     case EKalmalaWildlifeArchetype::MoonBear: Damage.Crush = 75.0f; break;
     case EKalmalaWildlifeArchetype::DeathAdder: Damage.Stab = 75.0f; break;
+    case EKalmalaWildlifeArchetype::Viper: Damage.Stab = 50.0f; break;
+    case EKalmalaWildlifeArchetype::GiantSnake: Damage.Stab = 100.0f; break;
     case EKalmalaWildlifeArchetype::Deer:
     default: break;
     }
@@ -256,6 +294,14 @@ bool AKalmalaWildlifeSpawn::DefeatServer()
     if (!IsDefeatAllowed(HasAuthority(), bDefeated))
     {
         return false;
+    }
+
+    if (Archetype == EKalmalaWildlifeArchetype::Rat)
+    {
+        if (AKalmalaGameMode* Mode = GetWorld() != nullptr ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr)
+        {
+            if (!Mode->RecordRatDefeatReward(PersistentSpawnId, LastValidatedAttacker.Get())) return false;
+        }
     }
 
     bDefeated = true;
@@ -291,10 +337,23 @@ bool AKalmalaWildlifeSpawn::ApplyValidatedDamageFromServer(const FKalmalaDamageC
     if (Attacker != nullptr) LastValidatedAttacker = Attacker;
     Health = FMath::Clamp(Health - ResolvedDamage, 0.0f, GetMaximumHealthForArchetype(Archetype));
     if (Health <= 0.0f) return DefeatServer();
+    if (Archetype == EKalmalaWildlifeArchetype::Viper || Archetype == EKalmalaWildlifeArchetype::GiantSnake)
+    {
+        SnakeAttackTarget.Reset();
+        SnakeAttackSecondsRemaining = 0.0f;
+        SnakeLungeDistanceRemaining = 0.0f;
+        SetSnakeAttackCue(EKalmalaWildlifeAttackCue::None);
+    }
     if (Archetype == EKalmalaWildlifeArchetype::Boar && Attacker != nullptr)
     {
         BoarChargeTarget = Attacker;
         BoarChargeSecondsRemaining = 1.25f;
+    }
+    else if (Archetype == EKalmalaWildlifeArchetype::Rat && Attacker != nullptr)
+    {
+        RatAttackTarget = Attacker;
+        RatAttackSecondsRemaining = 0.0f;
+        SetRatAttackCue(EKalmalaRatAttackCue::None);
     }
     else
     {
@@ -368,9 +427,27 @@ EKalmalaWildlifeArchetype AKalmalaWildlifeSpawn::GetArchetypeForSpawnSeed(const 
 bool AKalmalaWildlifeSpawn::TryGetSpawnArchetypeForBiome(const uint64 SpawnSeed, const EKalmalaBiome Biome,
     EKalmalaWildlifeArchetype& OutArchetype)
 {
-    const bool bBoarDeerBiome = Biome == EKalmalaBiome::Meadows
-        || Biome == EKalmalaBiome::Elderwood
-        || Biome == EKalmalaBiome::ShimmeringLakes;
+    if (Biome == EKalmalaBiome::Meadows && SpawnSeed % 10ull == 9ull)
+    {
+        OutArchetype = EKalmalaWildlifeArchetype::Rat;
+        return true;
+    }
+
+    if (Biome == EKalmalaBiome::ShimmeringLakes)
+    {
+        // Assign the 50/40/10 candidate-slot mix directly from the stable seed.
+        // The first five of ten slots retain the existing Boar/Deer roster.
+        switch (SpawnSeed % 10ull)
+        {
+        case 0: case 2: case 4: OutArchetype = EKalmalaWildlifeArchetype::Boar; return true;
+        case 1: case 3: OutArchetype = EKalmalaWildlifeArchetype::Deer; return true;
+        case 5: case 6: case 7: case 8: OutArchetype = EKalmalaWildlifeArchetype::Viper; return true;
+        case 9: OutArchetype = EKalmalaWildlifeArchetype::GiantSnake; return true;
+        default: return false;
+        }
+    }
+
+    const bool bBoarDeerBiome = Biome == EKalmalaBiome::Meadows || Biome == EKalmalaBiome::Elderwood;
     if (!bBoarDeerBiome && (SpawnSeed % 3ull == 0ull || SpawnSeed % 5ull == 1ull)) return false;
 
     OutArchetype = GetArchetypeForSpawnSeed(SpawnSeed);
@@ -404,6 +481,9 @@ void AKalmalaWildlifeSpawn::Tick(const float DeltaSeconds)
         AdvanceServerBehaviour(DeltaSeconds);
         if (Archetype == EKalmalaWildlifeArchetype::Mireling) UpdateMirelingScavenge(DeltaSeconds);
         else if (Archetype == EKalmalaWildlifeArchetype::Boar) UpdateBoarTerritory(DeltaSeconds);
+        else if (Archetype == EKalmalaWildlifeArchetype::Rat) UpdateRatAttack(DeltaSeconds);
+        else if (Archetype == EKalmalaWildlifeArchetype::Viper || Archetype == EKalmalaWildlifeArchetype::GiantSnake)
+            UpdateSnakeAmbush(DeltaSeconds);
     }
 }
 
@@ -474,9 +554,410 @@ void AKalmalaWildlifeSpawn::UpdateBoarTerritory(const float DeltaSeconds)
     }
 }
 
+void AKalmalaWildlifeSpawn::UpdateRatAttack(const float DeltaSeconds)
+{
+    if (Behaviour != EKalmalaWildlifeBehaviour::Idle || GetWorld() == nullptr) return;
+    const float StepSeconds = FMath::Clamp(FMath::IsFinite(DeltaSeconds) ? DeltaSeconds : 0.0f, 0.0f, 0.10f);
+    const EKalmalaRatAttackCue Cue = static_cast<EKalmalaRatAttackCue>(RatAttackCue);
+    AKalmalaCharacter* Target = RatAttackTarget.Get();
+
+    if (Target != nullptr && !IsRatAttackTargetValid(Target))
+    {
+        RatAttackTarget.Reset();
+        Target = nullptr;
+        RatAttackSecondsRemaining = 0.0f;
+        SetRatAttackCue(EKalmalaRatAttackCue::None);
+    }
+
+    if (Cue == EKalmalaRatAttackCue::None && Target == nullptr)
+    {
+        float BestDistanceSquared = FMath::Square(RatAttackTriggerCentimetres);
+        for (TActorIterator<AKalmalaCharacter> It(GetWorld()); It; ++It)
+        {
+            AKalmalaCharacter* Candidate = *It;
+            if (!IsRatAttackTargetValid(Candidate)) continue;
+            const float DistanceSquared = FVector::DistSquared(GetActorLocation(), Candidate->GetActorLocation());
+            if (DistanceSquared < BestDistanceSquared)
+            {
+                BestDistanceSquared = DistanceSquared;
+                Target = Candidate;
+            }
+        }
+        if (Target != nullptr) RatAttackTarget = Target;
+    }
+
+    if (Target == nullptr)
+    {
+        const FVector ToHome = SpawnOrigin - GetActorLocation();
+        if (ToHome.SizeSquared2D() > FMath::Square(10.0f))
+        {
+            FVector End = FMath::VInterpConstantTo(GetActorLocation(), SpawnOrigin, StepSeconds, 150.0f);
+            if (const AKalmalaWorldGenerationGameState* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>())
+                End.Z = FKalmalaTerrainHeightSampler::SampleHeight(State->GetWorldGenerationConfig(), FVector2D(End));
+            if (CanRatMoveAlong(GetActorLocation(), End)) SetActorLocation(End, true);
+        }
+        return;
+    }
+
+    const FVector ToTarget = Target->GetActorLocation() - GetActorLocation();
+    const float Distance = ToTarget.Size();
+    if (Distance > RatAttackTriggerCentimetres || ToTarget.IsNearlyZero())
+    {
+        if (Cue != EKalmalaRatAttackCue::Telegraph && Cue != EKalmalaRatAttackCue::Recovery)
+        {
+            const float MoveDistance = FMath::Min(160.0f * StepSeconds,
+                FMath::Max(0.0f, FVector(ToTarget.X, ToTarget.Y, 0.0f).Size() - RatBiteReachCentimetres + 10.0f));
+            if (MoveDistance > 0.0f)
+            {
+                const FVector Direction = ToTarget.GetSafeNormal2D();
+                SetActorRotation(FRotationMatrix::MakeFromX(Direction).Rotator());
+                FVector End = GetActorLocation() + Direction * MoveDistance;
+                if (const AKalmalaWorldGenerationGameState* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>())
+                    End.Z = FKalmalaTerrainHeightSampler::SampleHeight(State->GetWorldGenerationConfig(), FVector2D(End));
+                if (CanRatMoveAlong(GetActorLocation(), End)) SetActorLocation(End, true);
+            }
+        }
+    }
+
+    if (Cue == EKalmalaRatAttackCue::Telegraph)
+    {
+        RatAttackSecondsRemaining -= StepSeconds;
+        if (RatAttackSecondsRemaining <= 0.0f)
+        {
+            TryApplyRatBite(Target);
+            RatAttackSecondsRemaining = RatRecoverySeconds;
+            SetRatAttackCue(EKalmalaRatAttackCue::Recovery);
+        }
+    }
+    else if (Cue == EKalmalaRatAttackCue::Recovery)
+    {
+        RatAttackSecondsRemaining -= StepSeconds;
+        if (RatAttackSecondsRemaining <= 0.0f)
+        {
+            RatAttackSecondsRemaining = 0.0f;
+            SetRatAttackCue(EKalmalaRatAttackCue::None);
+        }
+    }
+    else if (Distance <= RatAttackTriggerCentimetres)
+    {
+        BeginRatAttack(Target);
+    }
+}
+
+void AKalmalaWildlifeSpawn::BeginRatAttack(AKalmalaCharacter* Target)
+{
+    if (!HasAuthority() || bDefeated || !IsRatAttackTargetValid(Target)
+        || FVector::DistSquared(GetActorLocation(), Target->GetActorLocation())
+            > FMath::Square(RatAttackTriggerCentimetres)) return;
+
+    const FVector Direction = (Target->GetActorLocation() - GetActorLocation()).GetSafeNormal2D();
+    if (Direction.IsNearlyZero()) return;
+    SetActorRotation(FRotationMatrix::MakeFromX(Direction).Rotator());
+    RatAttackTarget = Target;
+    RatAttackSecondsRemaining = RatTelegraphSeconds;
+    SetRatAttackCue(EKalmalaRatAttackCue::Telegraph);
+}
+
+void AKalmalaWildlifeSpawn::SetRatAttackCue(const EKalmalaRatAttackCue NextCue)
+{
+    if (!HasAuthority()) return;
+    const uint8 NextValue = static_cast<uint8>(NextCue);
+    if (RatAttackCue == NextValue) return;
+    RatAttackCue = NextValue;
+    BuildArchetypePresentation();
+    ForceNetUpdate();
+}
+
+bool AKalmalaWildlifeSpawn::IsRatAttackTargetValid(const AKalmalaCharacter* Target) const
+{
+    if (!HasAuthority() || bDefeated || !IsValid(Target) || !Target->HasAuthority() || Target->GetWorld() != GetWorld()
+        || !FMath::IsFinite(Target->GetHealth()) || Target->GetHealth() <= 1.0f
+        || FVector::DistSquared2D(Target->GetActorLocation(), SpawnOrigin) > FMath::Square(RatSpawnLeashCentimetres))
+        return false;
+
+    if (!CanRatMoveAlong(GetActorLocation(), Target->GetActorLocation())) return false;
+
+    FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(KalmalaRatBiteVisibility), true);
+    QueryParams.AddIgnoredActor(this);
+    FHitResult Blocker;
+    const FVector Start = GetActorLocation() + FVector(0.0f, 0.0f, 24.0f);
+    const FVector End = Target->GetActorLocation() + FVector(0.0f, 0.0f, 48.0f);
+    return !GetWorld()->LineTraceSingleByChannel(Blocker, Start, End, ECC_Visibility, QueryParams)
+        || Blocker.GetActor() == Target;
+}
+
+bool AKalmalaWildlifeSpawn::TryApplyRatBite(AKalmalaCharacter* Target)
+{
+    if (!IsRatAttackTargetValid(Target)
+        || !IsRatBiteInReach(HasAuthority(), true, FVector::Dist(GetActorLocation(), Target->GetActorLocation())))
+        return false;
+
+    return Target->ApplyWildlifeDamageFromServer(this, GetBaseAttackChannelsForArchetype(Archetype));
+}
+
+bool AKalmalaWildlifeSpawn::IsRatPositionDry(const FVector& Position) const
+{
+    if (Position.ContainsNaN()) return false;
+    const AKalmalaWorldGenerationGameState* State = GetWorld() != nullptr
+        ? GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>() : nullptr;
+    if (State == nullptr) return false;
+    const FKalmalaWorldGenerationConfig& Config = State->GetWorldGenerationConfig();
+    const FVector2D XY(Position);
+    return !FKalmalaOceanSampler::Sample(Config, XY).IsWater()
+        && !FKalmalaShimmeringLakeSampler::IsWater(Config, XY);
+}
+
+bool AKalmalaWildlifeSpawn::CanRatMoveAlong(const FVector& Start, const FVector& End) const
+{
+    const float Distance = FVector::Dist2D(Start, End);
+    const int32 Samples = FMath::Max(1, FMath::CeilToInt(Distance / 80.0f));
+    for (int32 Index = 0; Index <= Samples; ++Index)
+    {
+        const FVector Position = FMath::Lerp(Start, End, static_cast<float>(Index) / Samples);
+        if (!IsRatPositionDry(Position)) return false;
+    }
+    return true;
+}
+
+void AKalmalaWildlifeSpawn::UpdateSnakeAmbush(const float DeltaSeconds)
+{
+    if (Behaviour != EKalmalaWildlifeBehaviour::Idle) return;
+    const float StepSeconds = FMath::Clamp(FMath::IsFinite(DeltaSeconds) ? DeltaSeconds : 0.0f, 0.0f, 0.10f);
+    const EKalmalaWildlifeAttackCue Cue = static_cast<EKalmalaWildlifeAttackCue>(SnakeAttackCue);
+    const bool bGiantSnake = Archetype == EKalmalaWildlifeArchetype::GiantSnake;
+    if (Cue == EKalmalaWildlifeAttackCue::None)
+    {
+        AKalmalaCharacter* Nearest = nullptr;
+        float BestDistanceSquared = FMath::Square(bGiantSnake ? 620.0f : 480.0f);
+        for (TActorIterator<AKalmalaCharacter> It(GetWorld()); It; ++It)
+        {
+            AKalmalaCharacter* Candidate = *It;
+            if (!IsSnakeAttackTargetValid(Candidate)) continue;
+            const float DistanceSquared = FVector::DistSquared2D(GetActorLocation(), Candidate->GetActorLocation());
+            if (DistanceSquared < BestDistanceSquared)
+            {
+                BestDistanceSquared = DistanceSquared;
+                Nearest = Candidate;
+            }
+        }
+        if (Nearest != nullptr) BeginSnakeAttack(Nearest);
+        return;
+    }
+
+    AKalmalaCharacter* Target = SnakeAttackTarget.Get();
+    if (Cue == EKalmalaWildlifeAttackCue::Telegraph)
+    {
+        if (!IsSnakeAttackTargetValid(Target))
+        {
+            SnakeAttackTarget.Reset();
+            SnakeAttackSecondsRemaining = 0.0f;
+            SetSnakeAttackCue(EKalmalaWildlifeAttackCue::None);
+            return;
+        }
+        SnakeAttackSecondsRemaining -= StepSeconds;
+        if (SnakeAttackSecondsRemaining > 0.0f) return;
+
+        const float MaxLunge = bGiantSnake ? 360.0f : 260.0f;
+        SnakeLungeDistanceRemaining = FMath::Min(MaxLunge,
+            FMath::Max(0.0f, FVector::Dist2D(GetActorLocation(), Target->GetActorLocation()) - 145.0f));
+        SnakeAttackSecondsRemaining = 0.24f;
+        SetSnakeAttackCue(EKalmalaWildlifeAttackCue::Lunge);
+    }
+
+    if (static_cast<EKalmalaWildlifeAttackCue>(SnakeAttackCue) == EKalmalaWildlifeAttackCue::Lunge)
+    {
+        if (SnakeLungeDistanceRemaining > 0.0f && StepSeconds > 0.0f)
+        {
+            const float Speed = bGiantSnake ? 1500.0f : 1300.0f;
+            const float MoveDistance = FMath::Min(SnakeLungeDistanceRemaining, Speed * StepSeconds);
+            const FVector Start = GetActorLocation();
+            FVector End = Start + SnakeLungeDirection * MoveDistance;
+            const AKalmalaWorldGenerationGameState* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
+            if (State == nullptr)
+            {
+                SnakeLungeDistanceRemaining = 0.0f;
+                SnakeAttackSecondsRemaining = 0.0f;
+            }
+            else
+            {
+                End.Z = FKalmalaTerrainHeightSampler::SampleHeight(State->GetWorldGenerationConfig(), FVector2D(End));
+            }
+            if (State == nullptr || (End - SpawnOrigin).Size2D() > SnakeSpawnLeashCentimetres
+                || !CanSnakeMoveAlong(Start, End))
+            {
+                SnakeLungeDistanceRemaining = 0.0f;
+            }
+            else
+            {
+                SetActorLocation(End, true);
+                const float Moved = FVector::Dist2D(Start, GetActorLocation());
+                SnakeLungeDistanceRemaining = FMath::Max(0.0f, SnakeLungeDistanceRemaining - Moved);
+                if (Moved <= KINDA_SMALL_NUMBER) SnakeLungeDistanceRemaining = 0.0f;
+            }
+        }
+        SnakeAttackSecondsRemaining -= StepSeconds;
+        if (SnakeLungeDistanceRemaining > 0.0f && SnakeAttackSecondsRemaining > 0.0f) return;
+
+        TryApplySnakeBite(Target);
+        SnakeAttackSecondsRemaining = bGiantSnake ? GiantSnakeRecoverySeconds : ViperRecoverySeconds;
+        SetSnakeAttackCue(EKalmalaWildlifeAttackCue::Recovery);
+    }
+    else if (static_cast<EKalmalaWildlifeAttackCue>(SnakeAttackCue) == EKalmalaWildlifeAttackCue::Recovery)
+    {
+        const FVector ToHome = SpawnOrigin - GetActorLocation();
+        const float ReturnStep = FMath::Min(ToHome.Size2D(), (bGiantSnake ? 300.0f : 325.0f) * StepSeconds);
+        if (ReturnStep > 0.0f)
+        {
+            FVector End = GetActorLocation() + ToHome.GetSafeNormal2D() * ReturnStep;
+            if (const AKalmalaWorldGenerationGameState* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>())
+                End.Z = FKalmalaTerrainHeightSampler::SampleHeight(State->GetWorldGenerationConfig(), FVector2D(End));
+            if (CanSnakeMoveAlong(GetActorLocation(), End)) SetActorLocation(End, true);
+        }
+        SnakeAttackSecondsRemaining -= StepSeconds;
+        if (SnakeAttackSecondsRemaining <= 0.0f)
+        {
+            SnakeAttackTarget.Reset();
+            SnakeAttackSecondsRemaining = 0.0f;
+            SetSnakeAttackCue(EKalmalaWildlifeAttackCue::None);
+        }
+    }
+}
+
+void AKalmalaWildlifeSpawn::BeginSnakeAttack(AKalmalaCharacter* Target)
+{
+    if (!HasAuthority() || bDefeated || !IsSnakeAttackTargetValid(Target)) return;
+    const FVector ToTarget = Target->GetActorLocation() - GetActorLocation();
+    SnakeLungeDirection = ToTarget.GetSafeNormal2D();
+    if (SnakeLungeDirection.IsNearlyZero()) return;
+    SetActorRotation(FRotationMatrix::MakeFromX(SnakeLungeDirection).Rotator());
+    SnakeAttackTarget = Target;
+    SnakeAttackSecondsRemaining = Archetype == EKalmalaWildlifeArchetype::GiantSnake
+        ? GiantSnakeTelegraphSeconds : ViperTelegraphSeconds;
+    SnakeLungeDistanceRemaining = 0.0f;
+    SetSnakeAttackCue(EKalmalaWildlifeAttackCue::Telegraph);
+}
+
+void AKalmalaWildlifeSpawn::SetSnakeAttackCue(const EKalmalaWildlifeAttackCue NextCue)
+{
+    if (!HasAuthority()) return;
+    const uint8 NextValue = static_cast<uint8>(NextCue);
+    if (SnakeAttackCue == NextValue) return;
+    SnakeAttackCue = NextValue;
+    BuildArchetypePresentation();
+    if (NextCue == EKalmalaWildlifeAttackCue::Telegraph) PlaySnakeHiss();
+    ForceNetUpdate();
+}
+
+bool AKalmalaWildlifeSpawn::IsSnakePositionDry(const FVector& Position) const
+{
+    if (Position.ContainsNaN() || FVector::DistSquared2D(Position, SpawnOrigin) > FMath::Square(SnakeSpawnLeashCentimetres))
+        return false;
+    const AKalmalaWorldGenerationGameState* State = GetWorld() != nullptr
+        ? GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>() : nullptr;
+    if (State == nullptr) return false;
+    const FKalmalaWorldGenerationConfig& Config = State->GetWorldGenerationConfig();
+    const FVector2D XY(Position);
+    return FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, XY)) == EKalmalaBiome::ShimmeringLakes
+        && !FKalmalaOceanSampler::Sample(Config, XY).IsWater()
+        && !FKalmalaShimmeringLakeSampler::IsWater(Config, XY);
+}
+
+bool AKalmalaWildlifeSpawn::CanSnakeMoveAlong(const FVector& Start, const FVector& End) const
+{
+    const float Distance = FVector::Dist2D(Start, End);
+    const int32 Samples = FMath::Max(1, FMath::CeilToInt(Distance / 80.0f));
+    for (int32 Index = 1; Index <= Samples; ++Index)
+    {
+        const FVector SamplePosition = FMath::Lerp(Start, End, static_cast<float>(Index) / Samples);
+        if (!IsSnakePositionDry(SamplePosition)) return false;
+    }
+    return true;
+}
+
+bool AKalmalaWildlifeSpawn::IsSnakeAttackTargetValid(const AKalmalaCharacter* Target) const
+{
+    if (!HasAuthority() || bDefeated || !IsValid(Target) || !Target->HasAuthority() || Target->GetWorld() != GetWorld()
+        || !FMath::IsFinite(Target->GetHealth()) || Target->GetHealth() <= 1.0f
+        || FVector::DistSquared2D(Target->GetActorLocation(), SpawnOrigin) > FMath::Square(SnakeSpawnLeashCentimetres)
+        || !IsSnakePositionDry(Target->GetActorLocation())) return false;
+
+    FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(KalmalaSnakeBiteVisibility), true);
+    QueryParams.AddIgnoredActor(this);
+    FHitResult Blocker;
+    const FVector Start = GetActorLocation() + FVector(0.0f, 0.0f, 75.0f);
+    const FVector End = Target->GetActorLocation() + FVector(0.0f, 0.0f, 60.0f);
+    return !GetWorld()->LineTraceSingleByChannel(Blocker, Start, End, ECC_Visibility, QueryParams)
+        || Blocker.GetActor() == Target;
+}
+
+bool AKalmalaWildlifeSpawn::TryApplySnakeBite(AKalmalaCharacter* Target)
+{
+    if (!IsSnakeAttackTargetValid(Target)) return false;
+    const FVector ToTarget = Target->GetActorLocation() - GetActorLocation();
+    const float ForwardDistance = FVector::DotProduct(ToTarget, SnakeLungeDirection);
+    const FVector LateralOffset = ToTarget - SnakeLungeDirection * FVector::DotProduct(ToTarget, SnakeLungeDirection);
+    const float MaxLateral = Archetype == EKalmalaWildlifeArchetype::GiantSnake ? 115.0f : 72.0f;
+    if (FVector::DistSquared(GetActorLocation(), Target->GetActorLocation()) > FMath::Square(180.0f)
+        || ForwardDistance < 0.25f || LateralOffset.Size2D() > MaxLateral) return false;
+
+    const FKalmalaDamageChannels BiteDamage = GetBaseAttackChannelsForArchetype(Archetype);
+    if (!Target->ApplyWildlifeDamageFromServer(this, BiteDamage)) return false;
+    if (Archetype == EKalmalaWildlifeArchetype::Viper)
+    {
+        if (UKalmalaPlayerStatusComponent* Statuses = Target->GetStatusComponent())
+            Statuses->ApplyWeakPoisonFromServer(5.0f);
+    }
+    return true;
+}
+
+void AKalmalaWildlifeSpawn::PlaySnakeHiss()
+{
+    if (SnakeHissSound == nullptr)
+    {
+        SnakeHissSound = NewObject<USoundWaveProcedural>(this, TEXT("SnakeTelegraphHiss"));
+        SnakeHissSound->SetSampleRate(22050);
+        SnakeHissSound->NumChannels = 1;
+        SnakeHissSound->Duration = 0.36f;
+        SnakeHissSound->bLooping = false;
+        constexpr int32 SampleRate = 22050;
+        constexpr int32 SampleCount = SampleRate * 36 / 100;
+        SnakeHissAudioData.SetNumUninitialized(SampleCount * sizeof(int16));
+        float FilteredNoise = 0.0f;
+        for (int32 Index = 0; Index < SampleCount; ++Index)
+        {
+            const float Noise = FMath::FRandRange(-1.0f, 1.0f);
+            FilteredNoise = FMath::Lerp(FilteredNoise, Noise, 0.34f);
+            const float Envelope = FMath::Min(1.0f, static_cast<float>(Index) / 180.0f)
+                * FMath::Min(1.0f, static_cast<float>(SampleCount - Index) / 900.0f);
+            const int16 Sample = static_cast<int16>(FMath::Clamp(FilteredNoise * Envelope * 3100.0f, -32767.0f, 32767.0f));
+            FMemory::Memcpy(SnakeHissAudioData.GetData() + Index * sizeof(int16), &Sample, sizeof(Sample));
+        }
+    }
+    SnakeHissSound->QueueAudio(SnakeHissAudioData.GetData(), SnakeHissAudioData.Num());
+    UGameplayStatics::PlaySoundAtLocation(this, SnakeHissSound, GetActorLocation(), FRotator::ZeroRotator, 0.45f, 1.0f);
+}
+
 void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
 {
     MirelingMesh->ClearAllMeshSections();
+    if (USphereComponent* RootSphere = Cast<USphereComponent>(GetRootComponent()))
+        RootSphere->SetSphereRadius(Archetype == EKalmalaWildlifeArchetype::Rat ? 42.0f : 70.0f, true);
+    const bool bSnake = Archetype == EKalmalaWildlifeArchetype::Viper
+        || Archetype == EKalmalaWildlifeArchetype::GiantSnake;
+    if (SnakeBodyCollision != nullptr)
+    {
+        if (bSnake)
+        {
+            const bool bGiant = Archetype == EKalmalaWildlifeArchetype::GiantSnake;
+            SnakeBodyCollision->SetCapsuleSize(bGiant ? 38.0f : 16.0f, bGiant ? 210.0f : 92.0f, true);
+            SnakeBodyCollision->SetRelativeLocation(FVector(-22.0f, 0.0f, 0.0f));
+            SnakeBodyCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+        }
+        else
+        {
+            SnakeBodyCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+        }
+    }
     // Original low-poly silhouettes use only project procedural geometry and vertex colour.
     TArray<FVector> Vertices; TArray<int32> Triangles; TArray<FVector> Normals; TArray<FVector2D> UV; TArray<FLinearColor> Colors;
     const auto AddTetraPoints = [&Vertices, &Triangles, &Normals, &UV, &Colors](const FVector& Point0, const FVector& Point1, const FVector& Point2, const FVector& Point3, const FLinearColor Colour)
@@ -601,6 +1082,94 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
                 FVector(101,Side * 34.0f,139), FVector(97,Side * 38.0f,144), Antler);
             AddTetraPoints(FVector(80,Side * 29.0f,132), FVector(86,Side * 33.0f,135),
                 FVector(67,Side * 41.0f,140), FVector(59,Side * 44.0f,145), Antler);
+        }
+    }
+    else if (Archetype == EKalmalaWildlifeArchetype::Rat)
+    {
+        const bool bTelegraph = static_cast<EKalmalaRatAttackCue>(RatAttackCue)
+            == EKalmalaRatAttackCue::Telegraph;
+        const FLinearColor Fur(0.34f, 0.25f, 0.17f);
+        const FLinearColor FurDark(0.18f, 0.13f, 0.09f);
+        const FLinearColor Belly(0.68f, 0.57f, 0.42f);
+        const FLinearColor Ear(0.70f, 0.31f, 0.29f);
+        const FLinearColor Eye(0.035f, 0.022f, 0.015f);
+        const FLinearColor Tooth(0.92f, 0.86f, 0.70f);
+
+        // Low oval body, long bare tail and large ears keep the tiny scavenger distinct from the herd.
+        AddTetraPoints(FVector(-58,-22,10), FVector(-58,22,10), FVector(28,-17,10), FVector(-10,0,40), FurDark);
+        AddTetraPoints(FVector(-48,-20,12), FVector(-48,20,12), FVector(24,-15,12), FVector(-8,0,bTelegraph ? 46.0f : 38.0f), Fur);
+        AddTetraPoints(FVector(-36,-9,13), FVector(-36,9,13), FVector(18,-6,15), FVector(-9,0,24), Belly);
+        for (const float Side : {-1.0f, 1.0f})
+        {
+            AddTetraPoints(FVector(-38,Side * 14,6), FVector(-26,Side * 18,6), FVector(-28,Side * 13,22), FVector(-18,Side * 14,18), FurDark);
+            AddTetraPoints(FVector(4,Side * 13,6), FVector(18,Side * 16,6), FVector(10,Side * 12,21), FVector(22,Side * 12,17), FurDark);
+            AddTetraPoints(FVector(32,Side * 8,24), FVector(40,Side * 10,24), FVector(37,Side * 14,57), FVector(24,Side * 13,39), Fur);
+            AddTetraPoints(FVector(34,Side * 10,31), FVector(38,Side * 11,31), FVector(36,Side * 13,49), FVector(29,Side * 13,38), Ear);
+            AddTetraPoints(FVector(48,Side * 9,28), FVector(55,Side * 8,27), FVector(52,Side * 12,32), FVector(50,Side * 9,34), Eye);
+            AddTetraPoints(FVector(62,Side * 1.5f,19), FVector(65,Side * 3.0f,19), FVector(72,Side * 1.0f,20), FVector(68,Side * 1.5f,23), Tooth);
+        }
+        AddTetraPoints(FVector(-62,-3,10), FVector(-62,3,10), FVector(-89,-5,14), FVector(-91,5,13), FurDark);
+        AddTetraPoints(FVector(-89,-5,14), FVector(-91,5,13), FVector(-118,-5,8), FVector(-121,4,11), Fur);
+        AddTetraPoints(FVector(-118,-5,8), FVector(-121,4,11), FVector(-143,-2,14), FVector(-145,3,17), FurDark);
+        if (bTelegraph)
+        {
+            // A dark open mouth and lifted muzzle mark the half-second defensive bite warning.
+            AddTetraPoints(FVector(57,-5,17), FVector(57,5,17), FVector(70,-4,13), FVector(70,4,13), FurDark);
+        }
+    }
+    else if (bSnake)
+    {
+        const bool bGiant = Archetype == EKalmalaWildlifeArchetype::GiantSnake;
+        const bool bCoiled = static_cast<EKalmalaWildlifeAttackCue>(SnakeAttackCue)
+            == EKalmalaWildlifeAttackCue::Telegraph;
+        const float HalfLength = bGiant ? 180.0f : 76.0f;
+        const float BodyRadius = bGiant ? 36.0f : 16.0f;
+        const float CoilWidth = bGiant ? 62.0f : 27.0f;
+        const float HeadHeight = bGiant ? (bCoiled ? 214.0f : 146.0f) : (bCoiled ? 104.0f : 69.0f);
+        const FLinearColor ScaleBase = bGiant ? FLinearColor(0.12f, 0.20f, 0.16f) : FLinearColor(0.27f, 0.34f, 0.18f);
+        const FLinearColor ScaleDark = bGiant ? FLinearColor(0.055f, 0.095f, 0.075f) : FLinearColor(0.13f, 0.19f, 0.11f);
+        const FLinearColor ScaleMark = bGiant ? FLinearColor(0.53f, 0.47f, 0.27f) : FLinearColor(0.70f, 0.60f, 0.31f);
+        const FLinearColor Belly = bGiant ? FLinearColor(0.40f, 0.34f, 0.20f) : FLinearColor(0.72f, 0.65f, 0.43f);
+        const FLinearColor Eye(0.95f, 0.72f, 0.12f);
+        const int32 BodySegments = bGiant ? 16 : 9;
+        for (int32 Segment = 0; Segment < BodySegments; ++Segment)
+        {
+            const float T = static_cast<float>(Segment) / static_cast<float>(BodySegments - 1);
+            const float X = FMath::Lerp(-HalfLength, HalfLength * 0.60f, T);
+            const float Curve = FMath::Sin(T * 3.0f * PI) * CoilWidth;
+            const float Z = BodyRadius * 0.45f + FMath::Sin(T * 2.0f * PI) * BodyRadius * 0.20f;
+            const float SegmentHalf = bGiant ? 16.0f : 9.0f;
+            const float Radius = BodyRadius * (0.72f + 0.28f * FMath::Sin(T * PI));
+            const FLinearColor BodyColour = Segment % 3 == 1 ? ScaleDark : ScaleBase;
+            AddTetraPoints(FVector(X - SegmentHalf, Curve - Radius, Z),
+                FVector(X - SegmentHalf, Curve + Radius, Z), FVector(X + SegmentHalf, Curve, Z + Radius * 0.45f),
+                FVector(X, Curve, Z + Radius), BodyColour);
+            if (Segment % 2 == 0)
+            {
+                // Repeated diamond plates give the larger shoreline ambusher its own scale pattern.
+                AddTetraPoints(FVector(X - SegmentHalf * 0.35f, Curve - Radius * 0.55f, Z + Radius * 0.45f),
+                    FVector(X - SegmentHalf * 0.35f, Curve + Radius * 0.55f, Z + Radius * 0.45f),
+                    FVector(X + SegmentHalf * 0.35f, Curve, Z + Radius * 0.48f),
+                    FVector(X, Curve, Z + Radius * 1.05f), ScaleMark);
+            }
+        }
+
+        const float NeckX = HalfLength * 0.60f;
+        const float HeadZ = bCoiled ? HeadHeight : HeadHeight * 0.78f;
+        AddTetraPoints(FVector(NeckX - BodyRadius, -BodyRadius, BodyRadius * 0.4f),
+            FVector(NeckX - BodyRadius, BodyRadius, BodyRadius * 0.4f),
+            FVector(NeckX + BodyRadius * 1.4f, -BodyRadius * 0.55f, HeadZ - BodyRadius),
+            FVector(NeckX + BodyRadius * 1.4f, BodyRadius * 0.55f, HeadZ - BodyRadius), Belly);
+        AddTetraPoints(FVector(NeckX + BodyRadius, -BodyRadius * 0.75f, HeadZ - BodyRadius * 0.85f),
+            FVector(NeckX + BodyRadius, BodyRadius * 0.75f, HeadZ - BodyRadius * 0.85f),
+            FVector(NeckX + BodyRadius * 3.2f, -BodyRadius * 0.45f, HeadZ),
+            FVector(NeckX + BodyRadius * 3.2f, BodyRadius * 0.45f, HeadZ), ScaleBase);
+        for (const float Side : {-1.0f, 1.0f})
+        {
+            AddTetraPoints(FVector(NeckX + BodyRadius * 2.0f, Side * BodyRadius * 0.48f, HeadZ + BodyRadius * 0.12f),
+                FVector(NeckX + BodyRadius * 2.0f, Side * BodyRadius * 0.72f, HeadZ + BodyRadius * 0.08f),
+                FVector(NeckX + BodyRadius * 2.45f, Side * BodyRadius * 0.53f, HeadZ + BodyRadius * 0.34f),
+                FVector(NeckX + BodyRadius * 2.55f, Side * BodyRadius * 0.65f, HeadZ + BodyRadius * 0.13f), Eye);
         }
     }
     else
@@ -732,6 +1301,8 @@ void AKalmalaWildlifeSpawn::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
     DOREPLIFETIME(AKalmalaWildlifeSpawn, PersistentSpawnId);
     DOREPLIFETIME(AKalmalaWildlifeSpawn, Archetype);
     DOREPLIFETIME(AKalmalaWildlifeSpawn, CreatureNicheId);
+    DOREPLIFETIME(AKalmalaWildlifeSpawn, SnakeAttackCue);
+    DOREPLIFETIME(AKalmalaWildlifeSpawn, RatAttackCue);
 }
 
 void AKalmalaWildlifeSpawn::OnRep_Archetype()
@@ -740,6 +1311,18 @@ void AKalmalaWildlifeSpawn::OnRep_Archetype()
 }
 
 void AKalmalaWildlifeSpawn::OnRep_CreatureNicheId()
+{
+    BuildArchetypePresentation();
+}
+
+void AKalmalaWildlifeSpawn::OnRep_SnakeAttackCue()
+{
+    BuildArchetypePresentation();
+    if (static_cast<EKalmalaWildlifeAttackCue>(SnakeAttackCue) == EKalmalaWildlifeAttackCue::Telegraph)
+        PlaySnakeHiss();
+}
+
+void AKalmalaWildlifeSpawn::OnRep_RatAttackCue()
 {
     BuildArchetypePresentation();
 }
@@ -786,9 +1369,19 @@ void AKalmalaWildlifeSpawn::GrantDefeatReward()
         }
     }
 
-    if (Archetype == EKalmalaWildlifeArchetype::Boar || Archetype == EKalmalaWildlifeArchetype::Deer)
+    if (Archetype == EKalmalaWildlifeArchetype::Boar || Archetype == EKalmalaWildlifeArchetype::Deer
+        || Archetype == EKalmalaWildlifeArchetype::Viper)
     {
         Inventory->TryGrantFromServer(TEXT("BoneFragment"), 1);
+    }
+    else if (Archetype == EKalmalaWildlifeArchetype::GiantSnake)
+    {
+        Inventory->TryGrantFromServer(TEXT("BoneFragment"), 2);
+    }
+    else if (Archetype == EKalmalaWildlifeArchetype::Rat)
+    {
+        // Rat's guaranteed Bone Fragment and Rat Tail use the persistent, all-or-none
+        // reward queue recorded before this defeated state is replicated.
     }
 
     if (Archetype == EKalmalaWildlifeArchetype::Mireling && IsMirelingBossRewardCandidate())

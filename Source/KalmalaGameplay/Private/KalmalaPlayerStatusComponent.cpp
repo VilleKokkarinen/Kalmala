@@ -6,6 +6,7 @@
 #include "KalmalaCharacterMovementComponent.h"
 
 const FName UKalmalaPlayerStatusComponent::WetStatusId(TEXT("State.Wet"));
+const FName UKalmalaPlayerStatusComponent::WeakPoisonStatusId(TEXT("State.Poison.Weak"));
 const FName UKalmalaPlayerStatusComponent::SteadyMealStatusId(TEXT("State.Food.SteadyMeal"));
 const FName UKalmalaPlayerStatusComponent::CookedBoarMeatItemId(TEXT("CookedBoarMeat"));
 const FName UKalmalaPlayerStatusComponent::CookedDeerMeatItemId(TEXT("CookedDeerMeat"));
@@ -57,7 +58,7 @@ UKalmalaPlayerStatusComponent::UKalmalaPlayerStatusComponent()
 void UKalmalaPlayerStatusComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-    DOREPLIFETIME(UKalmalaPlayerStatusComponent, Statuses);
+    DOREPLIFETIME_CONDITION(UKalmalaPlayerStatusComponent, Statuses, COND_OwnerOnly);
 }
 
 bool UKalmalaPlayerStatusComponent::HasStatus(const FName StatusId) const
@@ -71,7 +72,8 @@ float UKalmalaPlayerStatusComponent::GetRemainingSeconds(const FName StatusId) c
     {
         return Candidate.StatusId == StatusId && FMath::IsFinite(Candidate.RemainingSeconds) && Candidate.RemainingSeconds > 0.0f;
     });
-    const float Maximum = StatusId == SteadyMealStatusId ? SteadyMealMaximumSeconds
+    const float Maximum = StatusId == WeakPoisonStatusId ? WeakPoisonMaximumSeconds
+        : StatusId == SteadyMealStatusId ? SteadyMealMaximumSeconds
         : StatusId == BerryRecoveryStatusId ? BerryRecoveryMaximumSeconds
         : StatusId == DraughtCooldownStatusId ? DraughtCooldownMaximumSeconds : WetMaximumSeconds;
     return Entry ? FMath::Clamp(Entry->RemainingSeconds, 0.0f, Maximum) : 0.0f;
@@ -182,10 +184,72 @@ void UKalmalaPlayerStatusComponent::ApplyWetFromServer()
     GetOwner()->ForceNetUpdate();
 }
 
+bool UKalmalaPlayerStatusComponent::ApplyWeakPoisonFromServer(const float DurationSeconds)
+{
+    AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(GetOwner());
+    if (!IsValid(Character) || !Character->HasAuthority() || Character->GetHealth() <= 1.0f
+        || !FMath::IsFinite(DurationSeconds) || DurationSeconds <= 0.0f
+        || DurationSeconds > WeakPoisonMaximumSeconds)
+    {
+        return false;
+    }
+
+    Advance(Statuses, 0.0f);
+    FKalmalaPlayerStatusEntry* Poison = Statuses.FindByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
+    {
+        return Entry.StatusId == WeakPoisonStatusId && FMath::IsFinite(Entry.RemainingSeconds)
+            && Entry.RemainingSeconds > 0.0f;
+    });
+    if (Poison != nullptr)
+    {
+        Poison->RemainingSeconds = FMath::Max(Poison->RemainingSeconds, DurationSeconds);
+    }
+    else
+    {
+        Poison = &Statuses.AddDefaulted_GetRef();
+        Poison->StatusId = WeakPoisonStatusId;
+        Poison->RemainingSeconds = DurationSeconds;
+        WeakPoisonSecondsUntilTick = WeakPoisonTickIntervalSeconds;
+    }
+    GetOwner()->ForceNetUpdate();
+    return true;
+}
+
 void UKalmalaPlayerStatusComponent::AdvanceFromServer(const float DeltaSeconds)
 {
     if (!GetOwner() || !GetOwner()->HasAuthority()) return;
     const float SafeDelta = FMath::Max(0.0f, FMath::IsFinite(DeltaSeconds) ? DeltaSeconds : 0.0f);
+    AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(GetOwner());
+    const int32 PoisonIndex = Statuses.IndexOfByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
+    {
+        return Entry.StatusId == WeakPoisonStatusId && FMath::IsFinite(Entry.RemainingSeconds)
+            && Entry.RemainingSeconds > 0.0f;
+    });
+    if (PoisonIndex != INDEX_NONE)
+    {
+        if (!Character || Character->GetHealth() <= 1.0f)
+        {
+            Statuses.RemoveAt(PoisonIndex);
+            WeakPoisonSecondsUntilTick = WeakPoisonTickIntervalSeconds;
+        }
+        else if (SafeDelta > 0.0f)
+        {
+            const float RemainingBeforeAdvance = Statuses[PoisonIndex].RemainingSeconds;
+            const bool bTickDue = WeakPoisonSecondsUntilTick <= SafeDelta + KINDA_SMALL_NUMBER
+                && RemainingBeforeAdvance + KINDA_SMALL_NUMBER >= SafeDelta;
+            if (bTickDue)
+            {
+                Character->ApplyPoisonDamageFromStatusFromServer(WeakPoisonDamagePerSecond);
+                // Apply at most one tick in a server update. Excess elapsed time is not replayed
+                // as a burst after a hitch.
+                WeakPoisonSecondsUntilTick = WeakPoisonTickIntervalSeconds;
+            }
+            else
+            {
+                WeakPoisonSecondsUntilTick = FMath::Max(0.0f, WeakPoisonSecondsUntilTick - SafeDelta);
+            }
+        }
+    }
     const int32 RecoveryIndex = Statuses.IndexOfByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
     {
         return Entry.StatusId == BerryRecoveryStatusId && FMath::IsFinite(Entry.RemainingSeconds) && Entry.RemainingSeconds > 0.0f;
@@ -205,6 +269,7 @@ void UKalmalaPlayerStatusComponent::AdvanceFromServer(const float DeltaSeconds)
         }
     }
     Advance(Statuses, DeltaSeconds);
+    if (!HasStatus(WeakPoisonStatusId)) WeakPoisonSecondsUntilTick = WeakPoisonTickIntervalSeconds;
     GetOwner()->ForceNetUpdate();
 }
 

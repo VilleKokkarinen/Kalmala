@@ -2232,6 +2232,15 @@ restart proves the identical server-derived Deer remains suppressed. The fixture
 adds no client-selected herd, noise, target, damage, reward, ID, RPC,
 replication property, or save schema.
 
+## Meadows Rat contract regression
+
+The editor automation `Kalmala.Gameplay.Wildlife.Rat.SpawnReachAndRewardIdentity`
+checks deterministic 10% Meadows selection, exclusion from other biome
+selectors, the approved 100 cm bite boundary, the common attack timing and
+25 m leash, and stable, owner-bound pending-reward identity. Run this with the
+combined A8a/A8b I4 acceptance; it does not replace live peer, full-pack retry,
+or identity-matched restart verification.
+
 ## Discovery peer privacy regression
 
 After an editor build, run `Scripts/Tests/Combat/Verify-DiscoveryPeer.ps1`. It starts a

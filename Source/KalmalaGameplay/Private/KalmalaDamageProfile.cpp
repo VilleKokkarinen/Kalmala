@@ -85,17 +85,18 @@ bool FKalmalaResistanceProfile::Resolve(const FKalmalaDamageChannels& Incoming, 
 {
     OutDamage = 0.0f;
     if (!IsValid() || !Incoming.IsValid() || PhysicalArmor < 0 || PhysicalArmor > 6000) return false;
-    float Remaining = 0.0f;
-    if (Incoming.Slash > 0.0f) Remaining += FMath::Max(0.0f, Incoming.Slash - Reductions.Slash);
-    if (Incoming.Stab > 0.0f) Remaining += FMath::Max(0.0f, Incoming.Stab - Reductions.Stab);
-    if (Incoming.Crush > 0.0f) Remaining += FMath::Max(0.0f, Incoming.Crush - Reductions.Crush);
-    if (Incoming.Pierce > 0.0f) Remaining += FMath::Max(0.0f, Incoming.Pierce - Reductions.Pierce);
-    // Wearable armor applies once to the physical subtotal; excess cannot absorb elements.
-    Remaining = FMath::Max(0.0f, Remaining - PhysicalArmor);
+    float PhysicalRemaining = 0.0f;
+    if (Incoming.Slash > 0.0f) PhysicalRemaining += FMath::Max(0.0f, Incoming.Slash - Reductions.Slash);
+    if (Incoming.Stab > 0.0f) PhysicalRemaining += FMath::Max(0.0f, Incoming.Stab - Reductions.Stab);
+    if (Incoming.Crush > 0.0f) PhysicalRemaining += FMath::Max(0.0f, Incoming.Crush - Reductions.Crush);
+    if (Incoming.Pierce > 0.0f) PhysicalRemaining += FMath::Max(0.0f, Incoming.Pierce - Reductions.Pierce);
+    // General and wearable Armor apply only to the physical subtotal. Elemental
+    // channels retain their own reductions and cannot be absorbed by Armor.
+    float Remaining = FMath::Max(0.0f, PhysicalRemaining - PhysicalArmor - Armor);
     if (Incoming.Fire > 0.0f) Remaining += FMath::Max(0.0f, Incoming.Fire - Reductions.Fire);
     if (Incoming.Water > 0.0f) Remaining += FMath::Max(0.0f, Incoming.Water - Reductions.Water);
     if (Incoming.Holy > 0.0f) Remaining += FMath::Max(0.0f, Incoming.Holy - Reductions.Holy);
     if (Incoming.Poison > 0.0f) Remaining += FMath::Max(0.0f, Incoming.Poison - Reductions.Poison);
-    OutDamage = FMath::Max(0.0f, Remaining - Armor);
+    OutDamage = Remaining;
     return true;
 }

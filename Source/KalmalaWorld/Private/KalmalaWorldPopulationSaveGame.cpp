@@ -5,6 +5,7 @@ void UKalmalaWorldPopulationSaveGame::InitializeForWorld(const FKalmalaWorldGene
     WorldConfig = InWorldConfig;
     HarvestedSpawnIds.Reset();
     DefeatedSpawnIds.Reset();
+    PendingWildlifeRewards.Reset();
 }
 
 bool UKalmalaWorldPopulationSaveGame::MatchesWorld(const FKalmalaWorldGenerationConfig& InWorldConfig) const
@@ -36,4 +37,31 @@ void UKalmalaWorldPopulationSaveGame::MarkDefeated(const FString& PersistentSpaw
     {
         DefeatedSpawnIds.Add(PersistentSpawnId);
     }
+}
+
+bool UKalmalaWorldPopulationSaveGame::TryQueuePendingWildlifeReward(
+    const FString& PersistentSpawnId, const FString& PlayerIdentity)
+{
+    if (PersistentSpawnId.IsEmpty() || PersistentSpawnId.Len() > 128
+        || PlayerIdentity.IsEmpty() || PlayerIdentity.Len() > 128) return false;
+
+    if (const FKalmalaPendingWildlifeReward* Existing = PendingWildlifeRewards.FindByPredicate(
+        [&PersistentSpawnId](const FKalmalaPendingWildlifeReward& Reward)
+        { return Reward.PersistentSpawnId == PersistentSpawnId; }))
+    {
+        return Existing->PlayerIdentity == PlayerIdentity;
+    }
+    if (PendingWildlifeRewards.Num() >= MaxPendingWildlifeRewards) return false;
+
+    FKalmalaPendingWildlifeReward& Reward = PendingWildlifeRewards.AddDefaulted_GetRef();
+    Reward.PersistentSpawnId = PersistentSpawnId;
+    Reward.PlayerIdentity = PlayerIdentity;
+    return true;
+}
+
+bool UKalmalaWorldPopulationSaveGame::RemovePendingWildlifeReward(const FString& PersistentSpawnId)
+{
+    if (PersistentSpawnId.IsEmpty()) return false;
+    return PendingWildlifeRewards.RemoveAll([&PersistentSpawnId](const FKalmalaPendingWildlifeReward& Reward)
+        { return Reward.PersistentSpawnId == PersistentSpawnId; }) > 0;
 }

@@ -55,7 +55,7 @@ struct KALMALAGAMEPLAY_API FKalmalaResistanceProfile
     bool IsValid() const;
     FKalmalaResistanceProfile Added(const FKalmalaResistanceProfile& Other) const;
     FKalmalaResistanceProfile Scaled(float Multiplier) const;
-    /** Optional player armor reduces only the physical subtotal once, before existing entity armor. */
+    /** General and optional wearable Armor reduce only the physical subtotal; elements bypass both. */
     bool Resolve(const FKalmalaDamageChannels& Incoming, float& OutDamage, int32 PhysicalArmor = 0) const;
 };
 

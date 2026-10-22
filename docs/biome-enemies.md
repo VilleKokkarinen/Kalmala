@@ -2,19 +2,21 @@
 
 ## Quick overview
 
-**Current** = existing species; **Planned** = queued additions or retunes.
+**Current** = implemented species; **Planned** = queued additions or retunes.
 Damage is before defenses. Poison rates are per second and do not stack;
 only the strongest active poison deals damage. Current wildlife uses seeded
 population slots. Boar/deer spawn origins use a server-side allowlist for the
-biomes below. Runtime health, armor, and base Crush damage now match this table
-for the existing Boar, Deer, and Mireling actors; remaining A8a species and
-Mireling's biome restriction remain planned.
+biomes below. Runtime health, armor, and base attack values match this table for
+the existing Boar, Deer, and Mireling actors. Rat now uses a deterministic 10%
+Meadows spawn share, its server-owned short-range bite, and credited Bone
+Fragment/Rat Tail rewards; Badger has a runtime stat profile but remains planned.
+Mireling's biome restriction remains planned.
 
 | Enemy               | Biome                                  | Status           | HP   | Armor | Attack       | Abilities / counters                |
 | ------------------- | -------------------------------------- | ---------------- | ---: | ----: | ------------ | ----------------------------------- |
 | Boar                | Meadows / Elderwood / Shimmering Lakes | Current          |  20  |   5   | 10 Crush     | Territorial charge                  |
 | Deer                | Meadows / Elderwood / Shimmering Lakes | Current          |  30  |   5   | —            | Flees; fleeing alerts nearby deer   |
-| Rat                 | Meadows                                | Planned          |  10  |   0   | 5 Pierce     | Defensive bite                      |
+| Rat                 | Meadows                                | Current          |  10  |   0   | 5 Pierce     | 3 m approach trigger; 100 cm bite   |
 | Badger              | Elderwood                              | Planned          |  100 |   10  | 20 Slash     | Slashes with it's claws             |
 | Moon Bear           | Elderwood                              | Planned          |  250 |   20  | 75 Crush     | Slow overhead strike; 2% Moonstone  |
 | Viper               | Shimmering Lakes                       | Planned          |  100 |   10  | 50 Stab      | Weak poison: 1/s, 5 s               |
@@ -199,7 +201,7 @@ before existing defenses; no client-authored damage or offensive player magic.
 
 | Biome | Enemy / ID | Role and attack | Health / Armor | Hit damage | Guaranteed loot |
 | --- | --- | --- | --- | --- | --- |
-| Meadows | Rat (`Rat`) | Small scavenger; bites only when approached within 3 m or attacked | 10 / 0 | 5 Pierce | 1 Bone Fragment |
+| Meadows | Rat (`Rat`) | Small scavenger; bites only when approached within 3 m or attacked; 100 cm hit reach | 10 / 0 | 5 Pierce | 1 Bone Fragment |
 | Elderwood | Badger (`Badger`) | Territorial animal; warns within 3 m, then slashes with its claws if approached or attacked | 100 / 10 | 20 Slash | 1 Bone Fragment |
 | Elderwood | Moon Bear (`MoonBear`) | Rare hard enemy; slow overhead paw strike, punishable recovery | 250 / 20 | 75 Crush | 3 Bone Fragment |
 | Shimmering Lakes | Viper (`Viper`) | Snake hiding in dry shoreline reeds; visible coil, narrow lunging bite, then retreats; applies weak poison for 5 s | 100 / 10 | 50 Stab + poison below | 1 Bone Fragment |
@@ -233,7 +235,11 @@ and original inventory icons before implementation; the uses are not recipes.
   Use the revised stats below; retain other behavior and loot. Verify biome
   filtering across fixed seeds.
 - Proposed selection weights are percentages of eligible candidate slots.
-  Meadows uses 90% existing roster / 10% Rat. Each other land biome allocates
+  Meadows uses 90% existing roster / 10% Rat, selected deterministically from
+  each tenth candidate slot. Rat attacks only within its 3 m trigger, telegraphs
+  for 0.5 s, checks line of sight and the approved 100 cm hit reach at impact,
+  and recovers for 0.8 s. Its 25 m pursuit leash is measured from spawn.
+  Each other land biome allocates
   50% to its existing eligible roster, 40% to new common enemies, and 10% to
   new hard enemies. If no existing entry is eligible, leave that share empty;
   do not import creatures from another biome. Spawned actors use the existing

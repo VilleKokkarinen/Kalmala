@@ -55,6 +55,7 @@ public:
     AKalmalaCharacter(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
     const FKalmalaExposureState& GetExposureState() const { return ExposureState; }
+    UKalmalaPlayerStatusComponent* GetStatusComponent() { return Statuses; }
     const UKalmalaPlayerStatusComponent* GetStatusComponent() const { return Statuses; }
     UKalmalaCombatComponent* GetCombatComponent() const { return Combat; }
     UKalmalaDiscoveryProgressComponent* GetDiscoveryProgressComponent() const { return DiscoveryProgress; }
@@ -88,6 +89,7 @@ public:
     static bool IsWildlifeDamageWithinBounds(const FKalmalaDamageChannels& Damage);
     bool ApplyWildlifeDamageFromServer(const AActor* SourceActor, float Damage);
     bool ApplyWildlifeDamageFromServer(const AActor* SourceActor, const FKalmalaDamageChannels& Damage);
+    bool ApplyPoisonDamageFromStatusFromServer(float DamagePerTick);
     bool ReceiveMendingFromServer(const AKalmalaCharacter* SourceCharacter, float HealAmount);
     bool RestoreHealthFromDraughtFromServer(float HealAmount);
     static bool IsMendingReceiveAllowed(bool bServerAuthority, bool bValidAlly, bool bSameWorld, bool bInRange, bool bLiving, bool bNeedsHealing, float HealAmount);

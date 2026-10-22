@@ -36,10 +36,10 @@ bool FKalmalaDamageProfileTest::RunTest(const FString& Parameters)
     Defenses.Armor = 4.0f;
     float Resolved = -1.0f;
     TestTrue(TEXT("Valid mixed hit resolves"), Defenses.Resolve(Combined, Resolved));
-    TestEqual(TEXT("Flat per-type resistance, clamping, then armor once"), Resolved, 59.0f);
+    TestEqual(TEXT("Physical Armor applies once before independent elemental damage"), Resolved, 59.0f);
     Defenses.Armor = 100.0f;
     TestTrue(TEXT("Armor can fully block a hit"), Defenses.Resolve(Combined, Resolved));
-    TestEqual(TEXT("Blocked hits cannot heal"), Resolved, 0.0f);
+    TestEqual(TEXT("General Armor cannot absorb the remaining Fire and Poison"), Resolved, 5.0f);
     Defenses.Armor = -1.0f;
     TestFalse(TEXT("Negative armor fails closed"), Defenses.Resolve(Combined, Resolved));
     TestEqual(TEXT("Invalid resolution returns no damage"), Resolved, 0.0f);
@@ -61,6 +61,14 @@ bool FKalmalaDamageProfileTest::RunTest(const FString& Parameters)
     PhysicalHit.Slash = PhysicalHit.Crush = PhysicalHit.Pierce = PhysicalHit.Stab = 0.0f;
     TestTrue(TEXT("Element-only hits resolve with player armor"), PlayerDefenses.Resolve(PhysicalHit, Resolved, 100));
     TestEqual(TEXT("Element-only damage is unchanged"), Resolved, 16.0f);
+    FKalmalaResistanceProfile ArmoredPlayer;
+    ArmoredPlayer.Armor = 100.0f;
+    TestTrue(TEXT("General armor does not absorb element-only damage"), ArmoredPlayer.Resolve(PhysicalHit, Resolved));
+    TestEqual(TEXT("Fire, water, holy and poison bypass general armor"), Resolved, 16.0f);
+    FKalmalaDamageChannels PoisonOnly;
+    PoisonOnly.Poison = 1.0f;
+    TestTrue(TEXT("Poison still resolves through channel resistance"), ArmoredPlayer.Resolve(PoisonOnly, Resolved));
+    TestEqual(TEXT("Poison channel ignores physical armor"), Resolved, 1.0f);
     TestFalse(TEXT("Negative player armor fails closed"), PlayerDefenses.Resolve(PhysicalHit, Resolved, -1));
     TestFalse(TEXT("Unbounded player armor fails closed"), PlayerDefenses.Resolve(PhysicalHit, Resolved, 6001));
     FKalmalaDamageChannels Invalid = Combined;
