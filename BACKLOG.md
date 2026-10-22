@@ -418,8 +418,8 @@ milestone-final verification/repair run and can exceed a normal turn.
   - [ ] **S02 — Map lifecycle integration.** Identify callbacks enforcing permanent
     defeated-slot depletion, 30 s living-slot unload cooldown and reward escrow.
     Record integration points for the fixed lifecycle; add no save-format change.
-  - [ ] **S03 — Add named tuning constants.** Use existing invisible 60 × 60 m
-    spatial keys; ring 36–84 m, interval 5 s and count radius 96 m.
+  - [ ] **S03 — Add named tuning constants.** Use existing invisible 64 × 64 m
+    spatial keys; ring 32–96 m, interval 5 s and count radius 96 m.
     Validate bounds/units; keep spawning disabled.
   - [ ] **S04 — Gather active players.** Add a server-only list of living players
     in the current world; ignore dead, disconnected and invalid pawns.
@@ -431,7 +431,7 @@ milestone-final verification/repair run and can exceed a normal turn.
     4 candidates per key and 16 candidates total per wake; skip missed ticks
     instead of catch-up bursts.
   - [ ] **S08 — Generate ring candidates.** Select existing stable descriptors
-    within 36–84 m; use the contract's seeded 25% admission roll and rotating cursor.
+    within 32–96 m; use the contract's seeded 25% admission roll and rotating cursor.
     Preserve descriptor positions, identities and biome weights.
   - [ ] **S09 — Exclude nearby players.** Reject a candidate within 36 m of any
     living player, including a second player outside the selecting neighborhood.

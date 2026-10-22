@@ -10,11 +10,11 @@ weights remain governed by `biome-enemies.md`. This goal changes spawn admission
 
 ## Spatial scheduling and random rolls
 
-- Retain invisible 60 m square spatial keys, floor division for negative X/Y,
+- Retain invisible 64 m square spatial keys, floor division for negative X/Y,
   existing world bounds, 9 active population keys and 25 terrain patches. No
   separate streaming grid or increase to existing budgets.
 - Use the existing active-key selection and union of living players. Only loaded
-  keys intersecting a player's 84 m horizontal radius are eligible for attempts.
+  keys intersecting a player's 96 m horizontal radius are eligible for attempts.
   Player IDs, key order and duplicate removal use stable server ordering.
 - Scheduler wake interval: 0.25 server seconds. Process at most 4 due keys per
   wake, 4 candidate descriptors per key and 16 candidates per wake in total.
@@ -32,8 +32,8 @@ weights remain governed by `biome-enemies.md`. This goal changes spawn admission
   check ordinal in a dedicated spawn-roll domain; use an unbiased integer roll
   0–99 and accept 0–24. Ordinal advances once per serviced check, not per player.
   No repeat roll in the same check. Empty biome-weight slots stay empty.
-- Horizontal distance to at least one living player must be in [36, 84] m;
-  distance to every living player must be at least 36 m. Exact boundaries pass.
+- Horizontal distance to at least one living player must be in [32, 96] m;
+  distance to every living player must be at least 32 m. Exact boundaries pass.
   Every Wolf member must pass the distance and placement checks.
 
 ## Counts and caps
@@ -80,11 +80,11 @@ Return a distinct first rejection reason. All decisions are server-owned.
 
 ## Camp suppression
 
-- Workbench and Forge: inclusive 18 m horizontal cylinder, inclusive vertical
-  range [-12, +12] m relative to the placed actor origin. Require an existing,
+- Workbench and Forge: inclusive 16 m horizontal cylinder, inclusive vertical
+  range [-16, +16] m relative to the placed actor origin. Require an existing,
   completed, non-destroyed station; fuel and roof are irrelevant.
-- Camp Bed: inclusive 18 m 3D sphere about the placed origin, whenever intact.
-- Campfire and Standing Light: inclusive 18 m sphere only while server state is
+- Camp Bed: inclusive 16 m 3D sphere about the placed origin, whenever intact.
+- Campfire and Standing Light: inclusive 16 m sphere only while server state is
   Lit with fuel remaining. Smouldering, extinguished or empty sources do not
   suppress. Changes apply at the next attempt without a separate polling delay.
 - No other buildable suppresses. Floors/walls/roofs do not emit fields; roofs
@@ -103,7 +103,7 @@ enemy farming or change the development save format.
 - Unloading a living actor is not a defeat and grants nothing. Its stable slot
   can reactivate at its original descriptor after a 30-second session cooldown,
   subject to all gates. Do not unload a roaming actor while it remains within
-  84 m of any living player; continue counting it against its home-key budget.
+  96 m of any living player; continue counting it against its home-key budget.
 - Session-only state includes cursors, roll ordinals, due times and unload
   cooldowns. Retain that state across key unload for the session; restart resets
   it and starts admission after the normal stagger. No offline catch-up.
