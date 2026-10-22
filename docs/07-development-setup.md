@@ -2499,12 +2499,14 @@ After an editor build, run
 `Kalmala.Gameplay.Presentation.SurfaceWinding`. These checks cover the Lynx
 20% exclusive Tundra slots, the reviewed inclusive 350 cm server-only impact
 boundary, warning/leap/hit and miss-recovery timing, its 25 m leash, Slash
-profile, and owner-bound two-Bone claim serialization/cleanup. The Wolf test
-also verifies that Wolf retains its own seeded share. Contract coverage does
-not replace live habitat, attack rejection, full-inventory reward retry,
-reconnect/restart, or relevant-peer acceptance. Lynx Pelt remains disabled
-pending A8b. No Unreal build or automation execution ran in this normal
-increment; combined A8a/A8b I4 remains required.
+profile, and owner-bound two-Bone plus 50% Lynx Pelt claim serialization,
+legacy baseline-only claims, retry outcome preservation, and cleanup. The
+regression also checks the all-or-nothing reward candidate and deferral when a
+rolled pelt cannot fit. The Wolf test verifies that Wolf retains its own seeded
+share. Contract coverage does not replace live habitat, attack rejection,
+full-inventory reward retry, reconnect/restart, or relevant-peer acceptance.
+No Unreal build or automation execution ran in this normal increment; combined
+A8a/A8b I4 remains required.
 
 ## Freezing Tundra Polar Bear contract regression
 

@@ -256,7 +256,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [x] Wolf Pelt: Wolf, 1 guaranteed; material + source + JSON + generated icon.
   - [x] Wolf Fang: Wolf, 25% chance of 1; material + source + JSON + generated icon.
   - [x] Wolf Meat: Wolf, 1 guaranteed; material + source + JSON + generated icon.
-  - [ ] Lynx Pelt: Lynx, 50% chance of 1; material + source + JSON + generated icon.
+  - [x] Lynx Pelt: Lynx, 50% chance of 1; material + source + JSON + generated icon.
   - [ ] Polar Bear Pelt: Polar Bear, 2 guaranteed; material + source + JSON + generated icon.
   - [ ] Goat Horn: Horned Goat, 1 guaranteed; material + source + JSON + generated icon.
   - [ ] Thunder Core: Thunder Sentinel, 25% chance of 1; material + source + JSON + generated icon.

@@ -14,6 +14,8 @@ namespace
     constexpr TCHAR WolfFangRewardSuffix[] = TEXT("|fang");
     constexpr TCHAR NoWolfFangRewardSuffix[] = TEXT("|nofang");
     constexpr TCHAR LynxRewardClaimPrefix[] = TEXT("lynx-reward|");
+    constexpr TCHAR LynxPeltRewardSuffix[] = TEXT("|pelt");
+    constexpr TCHAR NoLynxPeltRewardSuffix[] = TEXT("|nopelt");
     constexpr TCHAR PolarBearRewardClaimPrefix[] = TEXT("polarbear-reward|");
     constexpr TCHAR HornedGoatRewardClaimPrefix[] = TEXT("hornedgoat-reward|");
     constexpr TCHAR ThunderSentinelRewardClaimPrefix[] = TEXT("thundersentinel-reward|");
@@ -341,29 +343,63 @@ bool UKalmalaWorldPopulationSaveGame::TryGetWolfSpawnIdFromPendingRewardClaimId(
 }
 
 bool UKalmalaWorldPopulationSaveGame::TryQueuePendingLynxReward(
-    const FString& PersistentSpawnId, const FString& PlayerIdentity)
+    const FString& PersistentSpawnId, const FString& PlayerIdentity, const bool bHasLynxPelt)
 {
-    const FString ClaimId = MakeLynxPendingRewardClaimId(PersistentSpawnId);
+    if (PersistentSpawnId.IsEmpty() || PlayerIdentity.IsEmpty() || PlayerIdentity.Len() > 128) return false;
+
+    for (const FKalmalaPendingWildlifeReward& Existing : PendingWildlifeRewards)
+    {
+        FString ExistingSpawnId;
+        bool bExistingHasLynxPelt = false;
+        if (TryGetLynxSpawnIdFromPendingRewardClaimId(
+                Existing.PersistentSpawnId, ExistingSpawnId, bExistingHasLynxPelt)
+            && ExistingSpawnId == PersistentSpawnId)
+        {
+            return Existing.PlayerIdentity == PlayerIdentity;
+        }
+    }
+
+    const FString ClaimId = MakeLynxPendingRewardClaimId(PersistentSpawnId, bHasLynxPelt);
     return !ClaimId.IsEmpty() && TryQueuePendingWildlifeReward(ClaimId, PlayerIdentity);
 }
 
-FString UKalmalaWorldPopulationSaveGame::MakeLynxPendingRewardClaimId(const FString& PersistentSpawnId)
+FString UKalmalaWorldPopulationSaveGame::MakeLynxPendingRewardClaimId(
+    const FString& PersistentSpawnId, const bool bHasLynxPelt)
 {
     const int32 PrefixLength = UE_ARRAY_COUNT(LynxRewardClaimPrefix) - 1;
-    if (PersistentSpawnId.IsEmpty() || PersistentSpawnId.Len() > 128 - PrefixLength) return FString();
-    return FString(LynxRewardClaimPrefix) + PersistentSpawnId;
+    const TCHAR* Suffix = bHasLynxPelt ? LynxPeltRewardSuffix : NoLynxPeltRewardSuffix;
+    const int32 SuffixLength = FCString::Strlen(Suffix);
+    if (PersistentSpawnId.IsEmpty() || PersistentSpawnId.Contains(TEXT("|"), ESearchCase::CaseSensitive)
+        || PersistentSpawnId.Len() > 128 - PrefixLength - SuffixLength) return FString();
+    return FString(LynxRewardClaimPrefix) + PersistentSpawnId + Suffix;
 }
 
 bool UKalmalaWorldPopulationSaveGame::TryGetLynxSpawnIdFromPendingRewardClaimId(
-    const FString& ClaimId, FString& OutPersistentSpawnId)
+    const FString& ClaimId, FString& OutPersistentSpawnId, bool& OutHasLynxPelt)
 {
     OutPersistentSpawnId.Reset();
+    OutHasLynxPelt = false;
     const int32 PrefixLength = UE_ARRAY_COUNT(LynxRewardClaimPrefix) - 1;
     if (!ClaimId.StartsWith(LynxRewardClaimPrefix, ESearchCase::CaseSensitive)
         || ClaimId.Len() <= PrefixLength || ClaimId.Len() > 128) return false;
 
-    OutPersistentSpawnId = ClaimId.RightChop(PrefixLength);
-    return !OutPersistentSpawnId.IsEmpty();
+    FString EncodedSpawnId = ClaimId.RightChop(PrefixLength);
+    const int32 LynxPeltSuffixLength = FCString::Strlen(LynxPeltRewardSuffix);
+    const int32 NoLynxPeltSuffixLength = FCString::Strlen(NoLynxPeltRewardSuffix);
+    if (EncodedSpawnId.EndsWith(LynxPeltRewardSuffix, ESearchCase::CaseSensitive))
+    {
+        OutHasLynxPelt = true;
+        EncodedSpawnId = EncodedSpawnId.Left(EncodedSpawnId.Len() - LynxPeltSuffixLength);
+    }
+    else if (EncodedSpawnId.EndsWith(NoLynxPeltRewardSuffix, ESearchCase::CaseSensitive))
+    {
+        EncodedSpawnId = EncodedSpawnId.Left(EncodedSpawnId.Len() - NoLynxPeltSuffixLength);
+    }
+    // Unsuffixed claims predate the optional pelt and remain baseline-only.
+    if (EncodedSpawnId.IsEmpty() || EncodedSpawnId.Contains(TEXT("|"), ESearchCase::CaseSensitive)) return false;
+
+    OutPersistentSpawnId = MoveTemp(EncodedSpawnId);
+    return true;
 }
 
 bool UKalmalaWorldPopulationSaveGame::TryQueuePendingPolarBearReward(

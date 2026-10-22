@@ -50,7 +50,7 @@ Lynx fills the next two seeded Tundra slots with a dry-ground pounce, a
 | Mosquito swarm      | Mossy Mire                             | Partial          |  25  |   0   | 5 Stab/0.2 s | 20% dry-ground slots; one swarm per target; poison 1/s for 10 s; dodge/fire repel; I4 pending |
 | Peat Husk           | Mossy Mire                             | Partial          |  300 |   50  | 150 Crush    | 10% dry-ground hard slot; 260 cm/120° sweep; 1 s warning; 1.2 s recovery; queued Amber + rolled 25% Peat Heart; I4 pending |
 | Wolf                | Freezing Tundra                        | Partial          |  250 |   40  | 100 Slash    | 20% dry-ground slots; three-member pack; 180 cm lunge bite; queued 2 Bone Fragment + Wolf Pelt + Wolf Meat + 25% Wolf Fang; I4 pending |
-| Lynx                | Freezing Tundra                        | Partial          |  150 |   30  | 75 Slash     | 20% dry-ground slots; 350 cm leap; 0.5 s warning; 0.8 s hit / 1.2 s miss recovery; queued 2 Bone Fragment; I4 pending |
+| Lynx                | Freezing Tundra                        | Partial          |  150 |   30  | 75 Slash     | 20% dry-ground slots; 350 cm leap; 0.5 s warning; 0.8 s hit / 1.2 s miss recovery; queued 2 Bone Fragment + 50% Lynx Pelt; I4 pending |
 | Polar Bear          | Freezing Tundra                        | Partial          |  750 |   60  | 200 Crush    | 10% hard slot; 1 s warning; 220 cm charge; retreat; queued 3 Bone Fragment; I4 pending |
 | Horned Goat         | Thunder Mountains                      | Partial          |  200 |   50  | 50 Crush     | 40% dry-ground slots; 0.5 s telegraph; 180 cm horn hit; up to 250 cm push and 0.75 s stagger; queued 2 Bone Fragment; I4 pending |
 | Thunder Sentinel    | Thunder Mountains                      | Partial          | 1250 |   75  | 300 Crush    | 10% dry-ground hard slot; 150 m start exclusion; 1 s warning, 120 cm step, 300 cm horizontal slam; 1.2 s recovery; queued 3 Stone; I4 pending |
@@ -455,11 +455,12 @@ and original inventory icons before implementation; the uses are not recipes.
   A landed hit recovers for the authored 0.8 s; a miss recovers for 1.2 s to
   make the reviewed long miss recovery visible. Invalid targets, blocked routes,
   water and biome-boundary crossings prevent movement or damage.
-- Each credited defeat queues two Bone Fragments for the authenticated attacker
-  through the population-save escrow. Full inventories retain the claim for
-  retry. Lynx Pelt remains disabled until its separate A8b source task is
-  complete. Validate the readable crouch/leap poses, attack rejection, reward
-  retry, reconnect and restart in combined I4.
+- Each credited defeat queues two Bone Fragments and a server-side 50% roll for
+  one Lynx Pelt for the authenticated attacker through the population-save
+  escrow. The owner claim stores the roll, and the complete awarded candidate
+  commits together; insufficient capacity retains it for retry. Legacy
+  unsuffixed Lynx claims remain baseline-only. Validate the readable crouch/leap
+  poses, attack rejection, reward retry, reconnect and restart in combined I4.
 
 ## Viper poison
 

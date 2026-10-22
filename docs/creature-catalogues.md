@@ -118,8 +118,11 @@ candidate slots and stays on dry, traversable Tundra. The server-owned pounce
 shows a half-second warning, closes toward the target, and applies damage only
 within the user-reviewed 350 cm impact boundary and clear line of sight. A hit
 recovers for 0.8 seconds; a miss takes 1.2 seconds. Credited defeats queue two
-Bone Fragments under the authenticated owner's identity in population-save
-escrow. Lynx Pelt remains disabled until its A8b source task is complete.
+Bone Fragments and a server-side 50% roll for one Lynx Pelt under the
+authenticated owner's identity in population-save escrow. The claim preserves
+the roll across retries and reloads, and the complete awarded candidate commits
+together when inventory capacity permits. Legacy unsuffixed claims remain
+baseline-only.
 Polar Bear (750 health, 60 armor, 200 Crush) fills the final seeded 10% hard
 slot, remains on dry traversable Tundra and stays outside the 150 m generated
 start exclusion. Its replicated server-owned warning, committed charge, and

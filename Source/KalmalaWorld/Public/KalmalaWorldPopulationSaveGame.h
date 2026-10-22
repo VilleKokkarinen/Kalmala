@@ -58,10 +58,11 @@ public:
     static FString MakeWolfPendingRewardClaimId(const FString& PersistentSpawnId, bool bHasWolfFang);
     static bool TryGetWolfSpawnIdFromPendingRewardClaimId(
         const FString& ClaimId, FString& OutPersistentSpawnId, bool& OutHasWolfFang);
-    bool TryQueuePendingLynxReward(const FString& PersistentSpawnId, const FString& PlayerIdentity);
-    static FString MakeLynxPendingRewardClaimId(const FString& PersistentSpawnId);
+    bool TryQueuePendingLynxReward(
+        const FString& PersistentSpawnId, const FString& PlayerIdentity, bool bHasLynxPelt);
+    static FString MakeLynxPendingRewardClaimId(const FString& PersistentSpawnId, bool bHasLynxPelt);
     static bool TryGetLynxSpawnIdFromPendingRewardClaimId(
-        const FString& ClaimId, FString& OutPersistentSpawnId);
+        const FString& ClaimId, FString& OutPersistentSpawnId, bool& OutHasLynxPelt);
     bool TryQueuePendingPolarBearReward(const FString& PersistentSpawnId, const FString& PlayerIdentity);
     static FString MakePolarBearPendingRewardClaimId(const FString& PersistentSpawnId);
     static bool TryGetPolarBearSpawnIdFromPendingRewardClaimId(

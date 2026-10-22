@@ -2809,12 +2809,37 @@ bool AKalmalaGameMode::RecordLynxDefeatReward(const FString& PersistentSpawnId,
     if (!HasAuthority() || PersistentSpawnId.IsEmpty() || PopulationSaveGame == nullptr
         || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
 
+    if (PopulationSaveGame->IsDefeated(PersistentSpawnId))
+    {
+        return UGameplayStatics::SaveGameToSlot(PopulationSaveGame,
+            KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+    }
+
     if (IsValid(CreditedAttacker) && CreditedAttacker->HasAuthority()
         && CreditedAttacker->GetWorld() == GetWorld() && CreditedAttacker->GetPlayerState() != nullptr)
     {
         const FString Identity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(CreditedAttacker->GetPlayerState());
-        if (!Identity.IsEmpty() && !PopulationSaveGame->TryQueuePendingLynxReward(PersistentSpawnId, Identity))
-            return false;
+        if (!Identity.IsEmpty())
+        {
+            bool bFoundExistingClaim = false;
+            bool bHasLynxPelt = false;
+            for (const FKalmalaPendingWildlifeReward& Existing : PopulationSaveGame->GetPendingWildlifeRewards())
+            {
+                FString ExistingSpawnId;
+                bool bExistingHasLynxPelt = false;
+                if (UKalmalaWorldPopulationSaveGame::TryGetLynxSpawnIdFromPendingRewardClaimId(
+                        Existing.PersistentSpawnId, ExistingSpawnId, bExistingHasLynxPelt)
+                    && ExistingSpawnId == PersistentSpawnId)
+                {
+                    bFoundExistingClaim = true;
+                    bHasLynxPelt = bExistingHasLynxPelt;
+                    break;
+                }
+            }
+            if (!bFoundExistingClaim) bHasLynxPelt = FMath::FRand() < 0.5f;
+            if (!PopulationSaveGame->TryQueuePendingLynxReward(PersistentSpawnId, Identity, bHasLynxPelt))
+                return false;
+        }
     }
 
     PopulationSaveGame->MarkDefeated(PersistentSpawnId);
@@ -2936,8 +2961,9 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
         const bool bWolfReward = UKalmalaWorldPopulationSaveGame::TryGetWolfSpawnIdFromPendingRewardClaimId(
             Reward.PersistentSpawnId, WolfSpawnId, bWolfHasFang);
         FString LynxSpawnId;
+        bool bLynxHasPelt = false;
         const bool bLynxReward = UKalmalaWorldPopulationSaveGame::TryGetLynxSpawnIdFromPendingRewardClaimId(
-            Reward.PersistentSpawnId, LynxSpawnId);
+            Reward.PersistentSpawnId, LynxSpawnId, bLynxHasPelt);
         FString PolarBearSpawnId;
         const bool bPolarBearReward =
             UKalmalaWorldPopulationSaveGame::TryGetPolarBearSpawnIdFromPendingRewardClaimId(
@@ -3060,6 +3086,11 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
                                 Candidate, TEXT("WolfFang"), 1, WithWolfFang, Reason)) break;
                         Candidate = MoveTemp(WithWolfFang);
                     }
+                }
+                else if (bLynxReward && bLynxHasPelt)
+                {
+                    if (!UKalmalaInventoryComponent::BuildGrant(
+                            WithBone, TEXT("LynxPelt"), 1, Candidate, Reason)) break;
                 }
                 else if (bMoonBearReward
                     || bLynxReward || bPolarBearReward || bHornedGoatReward)
