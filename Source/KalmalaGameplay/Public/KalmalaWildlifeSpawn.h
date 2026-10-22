@@ -103,6 +103,7 @@ public:
     static float GetArmorForArchetype(EKalmalaWildlifeArchetype Archetype);
     static float GetBaseAttackDamageForArchetype(EKalmalaWildlifeArchetype Archetype);
     static FKalmalaDamageChannels GetBaseAttackChannelsForArchetype(EKalmalaWildlifeArchetype Archetype);
+    static int32 GetDirectBoneFragmentRewardQuantity(EKalmalaWildlifeArchetype Archetype);
     // Server-owned repeat-hit interval keeps optional Mireling pressure readable.
     static constexpr float MirelingMeleeCooldownSeconds = 1.25f;
     static constexpr float DeerCallInfluenceDurationSeconds = 180.0f;

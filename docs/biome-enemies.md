@@ -12,8 +12,9 @@ the existing Boar, Deer, and Mireling actors. Rat now uses a deterministic 10%
 Meadows spawn share, its server-owned short-range bite, and credited Bone
 Fragment/Rat Tail rewards. Badger now uses its deterministic 40% Elderwood
 common share, a distinct procedural silhouette, and a server-owned claw cycle;
-its baseline and unique rewards remain open. Mireling's biome restriction
-remains planned.
+credited defeats grant the approved baseline Bone Fragment. Its unique Fur and
+Meat rewards remain disabled pending their A8b source-item tasks. Mireling's
+biome restriction remains planned.
 
 | Enemy               | Biome                                  | Status           | HP   | Armor | Attack       | Abilities / counters                |
 | ------------------- | -------------------------------------- | ---------------- | ---: | ----: | ------------ | ----------------------------------- |
@@ -205,7 +206,7 @@ before existing defenses; no client-authored damage or offensive player magic.
 | Biome | Enemy / ID | Role and attack | Health / Armor | Hit damage | Guaranteed loot |
 | --- | --- | --- | --- | --- | --- |
 | Meadows | Rat (`Rat`) | Small scavenger; bites only when approached within 3 m or attacked; 100 cm hit reach | 10 / 0 | 5 Pierce | 1 Bone Fragment |
-| Elderwood | Badger (`Badger`) | Territorial animal; warns within 3 m, then slashes with its claws if approached or attacked | 100 / 10 | 20 Slash | 1 Bone Fragment |
+| Elderwood | Badger (`Badger`) | Territorial animal; warns within 3 m, then slashes with its claws if approached or attacked | 100 / 10 | 20 Slash | 1 Bone Fragment; Fur/Meat pending A8b |
 | Elderwood | Moon Bear (`MoonBear`) | Rare hard enemy; slow overhead paw strike, punishable recovery | 250 / 20 | 75 Crush | 3 Bone Fragment |
 | Shimmering Lakes | Viper (`Viper`) | Snake hiding in dry shoreline reeds; visible coil, narrow lunging bite, then retreats; applies weak poison for 5 s | 100 / 10 | 50 Stab + poison below | 1 Bone Fragment |
 | Shimmering Lakes | Giant Snake (`GiantSnake`) | Rare hard snake hidden among shoreline reeds; raised-head coil, powerful lunging bite, then slow recovery | 250 / 30 | 100 Stab | 2 Bone Fragment |

@@ -54,6 +54,14 @@ bool FKalmalaWildlifeBadgerContractTest::RunTest(const FString& Parameters)
         AKalmalaWildlifeSpawn::BadgerRecoverySeconds, 0.8f);
     TestEqual(TEXT("Badger pursuit remains within 25 metres"),
         AKalmalaWildlifeSpawn::BadgerSpawnLeashCentimetres, 2500.0f);
+    TestEqual(TEXT("Badger baseline Bone Fragment reward quantity is one"),
+        AKalmalaWildlifeSpawn::GetDirectBoneFragmentRewardQuantity(EKalmalaWildlifeArchetype::Badger), 1);
+    TestEqual(TEXT("Rat stays outside the direct reward path"),
+        AKalmalaWildlifeSpawn::GetDirectBoneFragmentRewardQuantity(EKalmalaWildlifeArchetype::Rat), 0);
+    TestEqual(TEXT("Giant Snake keeps its existing two-fragment reward"),
+        AKalmalaWildlifeSpawn::GetDirectBoneFragmentRewardQuantity(EKalmalaWildlifeArchetype::GiantSnake), 2);
+    TestEqual(TEXT("Unimplemented Moon Bear rewards remain disabled"),
+        AKalmalaWildlifeSpawn::GetDirectBoneFragmentRewardQuantity(EKalmalaWildlifeArchetype::MoonBear), 0);
     TestTrue(TEXT("Server accepts an in-range claw"),
         AKalmalaWildlifeSpawn::IsBadgerClawInReach(true, true, 180.0f));
     TestFalse(TEXT("Claw reach rejects targets beyond 180 cm"),

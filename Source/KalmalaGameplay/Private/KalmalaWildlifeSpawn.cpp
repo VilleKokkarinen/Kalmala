@@ -289,6 +289,19 @@ FKalmalaDamageChannels AKalmalaWildlifeSpawn::GetBaseAttackChannelsForArchetype(
     return Damage;
 }
 
+int32 AKalmalaWildlifeSpawn::GetDirectBoneFragmentRewardQuantity(const EKalmalaWildlifeArchetype InArchetype)
+{
+    switch (InArchetype)
+    {
+    case EKalmalaWildlifeArchetype::Boar:
+    case EKalmalaWildlifeArchetype::Deer:
+    case EKalmalaWildlifeArchetype::Badger:
+    case EKalmalaWildlifeArchetype::Viper: return 1;
+    case EKalmalaWildlifeArchetype::GiantSnake: return 2;
+    default: return 0;
+    }
+}
+
 bool AKalmalaWildlifeSpawn::IsDefeatAllowed(const bool bServerAuthority, const bool bAlreadyDefeated)
 {
     return bServerAuthority && !bAlreadyDefeated;
@@ -1625,14 +1638,10 @@ void AKalmalaWildlifeSpawn::GrantDefeatReward()
         }
     }
 
-    if (Archetype == EKalmalaWildlifeArchetype::Boar || Archetype == EKalmalaWildlifeArchetype::Deer
-        || Archetype == EKalmalaWildlifeArchetype::Viper)
+    const int32 BoneFragmentQuantity = GetDirectBoneFragmentRewardQuantity(Archetype);
+    if (BoneFragmentQuantity > 0)
     {
-        Inventory->TryGrantFromServer(TEXT("BoneFragment"), 1);
-    }
-    else if (Archetype == EKalmalaWildlifeArchetype::GiantSnake)
-    {
-        Inventory->TryGrantFromServer(TEXT("BoneFragment"), 2);
+        Inventory->TryGrantFromServer(TEXT("BoneFragment"), BoneFragmentQuantity);
     }
     else if (Archetype == EKalmalaWildlifeArchetype::Rat)
     {

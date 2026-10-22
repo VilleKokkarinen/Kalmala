@@ -5403,3 +5403,15 @@
 - **Known limitations/remaining scope:** The guaranteed Bone Fragment reward and Badger Fur/Meat source drops are not enabled. A8b source-item tasks and full-pack/restart/relevant-peer acceptance remain open; the automation source was added but not executed in Unreal.
 - **Next eligible task:** Continue A8a Elderwood: Badger to complete its baseline reward and acceptance work. A9 remains gated on integrated A8a/A8b and successful I4 verification.
 - **Handoff:** Work was committed directly from the main checkout; the isolated A8b worktree had no uncommitted changes. No worktree handoff was needed. Current run time: 2026-10-22 08:15:04 UTC.
+
+## Run 2026-10-22 08:20:49 UTC — Badger baseline Bone Fragment reward
+
+- **Selected task:** A8a Elderwood: Badger. This is a partial increment; the backlog item remains unchecked while unique drops and acceptance work remain.
+- **Work completed:** Added Badger to the server wildlife's direct Bone Fragment reward map at one item per credited defeat. The existing one-shot defeat gate and validated server-owned attacker inventory path remain in force. Added focused automation source assertions for Badger's quantity, Rat's exclusion from the direct grant path, Giant Snake's existing quantity, and the still-disabled Moon Bear reward. Updated the biome enemy, creature catalogue, and architecture summaries.
+- **Files changed:** `Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h`; `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`; `Source/KalmalaGameplay/Private/Tests/KalmalaWildlifeBadgerTest.cpp`; `docs/biome-enemies.md`; `docs/creature-catalogues.md`; `docs/02-technical-architecture.md`; `PROGRESS.md`.
+- **Lightweight checks:** `python Scripts/Validate-CreatureCatalogues.py` passed for all 17 species and registered manifest JSON. Focused source assertions passed for Badger's one-item mapping, server authority/one-shot grant wiring, Rat's exclusion from the direct reward path, and automation coverage. `git diff --check` passed; changed paths are below 260 characters.
+- **Full verification:** No Unreal build or automation run. Combined A8a/A8b I4 milestone-final verification remains deferred.
+- **Observable impact and authority:** A server-confirmed Badger defeat now grants one Bone Fragment to the last validated attacker. The reward still uses the existing authority-checked, capacity-checked inventory grant and cannot replay through the one-shot defeat gate. No save schema, RPC, or replication fields changed.
+- **Known limitations/remaining scope:** Badger Fur and Meat remain disabled until their A8b source tasks are complete. Full-pack/restart and relevant-peer acceptance remain unverified; this increment does not add persistent Badger reward escrow.
+- **Next eligible task:** Continue A8a Elderwood: Badger to complete remaining source/reward and acceptance scope, then proceed to Elderwood: Moon Bear. A9 remains gated on integrated A8a/A8b and successful I4 verification.
+- **Handoff:** Main checkout used directly; no worktree handoff was needed. The authorized A8b run remains on its separate clean worktree. Current run time: 2026-10-22 08:20:49 UTC.
