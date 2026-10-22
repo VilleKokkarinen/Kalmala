@@ -82,8 +82,9 @@ existing melee and optional boss-scroll reward remain unchanged. Death Adder
 coiled snake model, and the server-owned close bite. Its accepted bite applies
 the owner-visible five-damage-per-second major poison for ten seconds; weak and
 major effects share a tick clock and the strongest dose wins. Credited defeats
-queue one Bone Fragment for the authenticated owner in the existing
-population-save escrow. The Venom Sac/Antidote path remains separate A8b work.
+queue one baseline Bone Fragment and one guaranteed Venom Sac for the
+authenticated owner in the existing population-save escrow; the server commits
+the complete bundle together. Antidote remains a separate A8b output task.
 Mosquito swarm now uses a 20% common share, and Peat Husk occupies the final
 10% hard slot. Its one actor carries six original cosmetic insect
 silhouettes; server flight checks dry Mossy Mire ground and blocking geometry,

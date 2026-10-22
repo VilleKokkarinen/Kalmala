@@ -134,7 +134,8 @@ bool FKalmalaWildlifeDeathAdderContractTest::RunTest(const FString& Parameters)
     {
         for (const FKalmalaItemDefinition& Definition : Catalogue->Items)
         {
-            if (Definition.ItemId.IsNone() || Definition.ItemId == TEXT("BoneFragment") || Definition.MaxStack <= 0)
+            if (Definition.ItemId.IsNone() || Definition.ItemId == TEXT("BoneFragment")
+                || Definition.ItemId == TEXT("VenomSac") || Definition.MaxStack <= 0)
                 continue;
             FKalmalaInventoryStack Stack;
             Stack.ItemId = Definition.ItemId;
@@ -147,16 +148,64 @@ bool FKalmalaWildlifeDeathAdderContractTest::RunTest(const FString& Parameters)
         FullPack.Num(), UKalmalaInventoryComponent::MaxSlots);
     if (FullPack.Num() == UKalmalaInventoryComponent::MaxSlots)
     {
+        TArray<FKalmalaInventoryStack> WithBone;
         TArray<FKalmalaInventoryStack> Rejected;
         FString FailureReason;
-        TestFalse(TEXT("Full pack defers the Bone Fragment grant"),
-            UKalmalaInventoryComponent::BuildGrant(FullPack, TEXT("BoneFragment"), 1,
-                Rejected, FailureReason));
+        const bool bBoneFits = UKalmalaInventoryComponent::BuildGrant(
+            FullPack, TEXT("BoneFragment"), 1, WithBone, FailureReason);
+        const bool bVenomSacFits = bBoneFits
+            && UKalmalaInventoryComponent::BuildGrant(
+                WithBone, TEXT("VenomSac"), 1, Rejected, FailureReason);
+        TestFalse(TEXT("Full pack defers the complete Bone Fragment and Venom Sac reward"), bVenomSacFits);
+        TestEqual(TEXT("Full-pack reward rejection is capacity-related"),
+            FailureReason, FString(TEXT("Pack output capacity reached")));
         TestEqual(TEXT("Capacity rejection preserves the claim"), Population->GetPendingWildlifeRewards().Num(), 1);
+
+        TArray<FKalmalaInventoryStack> NearlyFullPack = FullPack;
+        NearlyFullPack.RemoveAt(0);
+        TArray<FKalmalaInventoryStack> NearlyFullWithBone;
+        TArray<FKalmalaInventoryStack> NearlyFullCandidate;
+        FString NearlyFullReason;
+        const bool bBaselineFits = UKalmalaInventoryComponent::BuildGrant(
+            NearlyFullPack, TEXT("BoneFragment"), 1, NearlyFullWithBone, NearlyFullReason);
+        const bool bCompleteBundleFits = bBaselineFits
+            && UKalmalaInventoryComponent::BuildGrant(
+                NearlyFullWithBone, TEXT("VenomSac"), 1, NearlyFullCandidate, NearlyFullReason);
+        TestTrue(TEXT("The baseline fragment fits the one free pack cell"), bBaselineFits);
+        TestFalse(TEXT("Venom Sac waits when only the baseline fits"), bCompleteBundleFits);
+        TestEqual(TEXT("Partial-bundle rejection is capacity-related"),
+            NearlyFullReason, FString(TEXT("Pack output capacity reached")));
+        TestEqual(TEXT("A partial candidate does not clear the claim"),
+            Population->GetPendingWildlifeRewards().Num(), 1);
+
         FullPack.RemoveAt(0, 2);
+        TArray<FKalmalaInventoryStack> RetryWithBone;
         TArray<FKalmalaInventoryStack> Retry;
-        TestTrue(TEXT("The baseline reward can be prepared after capacity is freed"),
-            UKalmalaInventoryComponent::BuildGrant(FullPack, TEXT("BoneFragment"), 1, Retry, FailureReason));
+        const bool bRetryBoneFits = UKalmalaInventoryComponent::BuildGrant(
+            FullPack, TEXT("BoneFragment"), 1, RetryWithBone, FailureReason);
+        const bool bRetryBundleFits = bRetryBoneFits
+            && UKalmalaInventoryComponent::BuildGrant(
+                RetryWithBone, TEXT("VenomSac"), 1, Retry, FailureReason);
+        TestTrue(TEXT("Both owner-bound rewards fit after two cells are freed"), bRetryBundleFits);
+        if (bRetryBundleFits)
+        {
+            UKalmalaInventoryComponent* Capacity = NewObject<UKalmalaInventoryComponent>();
+            TestNotNull(TEXT("Death Adder retry capacity validator exists"), Capacity);
+            if (Capacity != nullptr)
+            {
+                TestTrue(TEXT("The complete reward fits with one carried tool"), Capacity->CanFitContents(Retry, 1));
+            }
+            const FKalmalaInventoryStack* BoneStack = Retry.FindByPredicate(
+                [](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == TEXT("BoneFragment"); });
+            const FKalmalaInventoryStack* VenomSacStack = Retry.FindByPredicate(
+                [](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == TEXT("VenomSac"); });
+            TestTrue(TEXT("Retry candidate contains the baseline fragment"),
+                BoneStack != nullptr && BoneStack->Quantity == 1);
+            TestTrue(TEXT("Retry candidate contains the guaranteed Venom Sac"),
+                VenomSacStack != nullptr && VenomSacStack->Quantity == 1);
+        }
+        TestEqual(TEXT("Preparing a complete retry retains the pending claim"),
+            Population->GetPendingWildlifeRewards().Num(), 1);
     }
 
     TArray<uint8> Bytes;

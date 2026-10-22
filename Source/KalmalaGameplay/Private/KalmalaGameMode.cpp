@@ -2976,7 +2976,14 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
                             WithBone, TEXT("GiantScale"), 2, WithGiantScale, Reason)) break;
                     Candidate = MoveTemp(WithGiantScale);
                 }
-                else if (bMoonBearReward || bDeathAdderReward
+                else if (bDeathAdderReward)
+                {
+                    TArray<FKalmalaInventoryStack> WithVenomSac;
+                    if (!UKalmalaInventoryComponent::BuildGrant(
+                            WithBone, TEXT("VenomSac"), 1, WithVenomSac, Reason)) break;
+                    Candidate = MoveTemp(WithVenomSac);
+                }
+                else if (bMoonBearReward
                     || bWolfReward || bLynxReward || bPolarBearReward || bHornedGoatReward)
                 {
                     Candidate = MoveTemp(WithBone);

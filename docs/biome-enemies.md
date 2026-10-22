@@ -25,7 +25,8 @@ Scales. Mireling now fills
 50% of Mossy Mire candidate slots and is restricted to dry ground in that biome.
 Death Adder occupies 20% of those slots and shares the dry Mossy Mire gate;
 its server-owned coiled bite applies non-stacking major poison and its credited
-Bone Fragment is owner-bound. Mosquito swarm now occupies a separate 20% share
+Bone Fragment and guaranteed Venom Sac are owner-bound in one durable claim.
+Mosquito swarm now occupies a separate 20% share
 with bounded server flight, persistent contact bites, weak poison, and active
 fire/dodge counterplay. Peat Husk fills the final 10% hard slot and queues its
 baseline Amber for the credited owner. Wolf occupies its two deterministic
@@ -44,7 +45,7 @@ Lynx fills the next two seeded Tundra slots with a dry-ground pounce, a
 | Viper               | Shimmering Lakes                       | Partial          |  100 |   10  | 50 Stab      | 40% dry-shore slots; 180 cm lunge; weak poison: 1/s, 5 s; queued Bone Fragment; I4 pending |
 | Giant Snake         | Shimmering Lakes                       | Partial          |  250 |   30  | 100 Stab     | 10% dry-shore hard slot; coiled 360 cm lunge; 1 s warning; 1.2 s recovery; queued 2 Bone Fragment + 2 Giant Scale; I4 pending |
 | Mireling            | Mossy Mire                             | Partial          |  75  |   15  | 20 Crush     | 50% dry-ground share; server simple melee; boss-scroll path unchanged; I4 pending |
-| Death Adder         | Mossy Mire                             | Partial          |  125 |   20  | 75 Stab      | 20% dry-ground slots; close coiled bite; major poison: 5/s, 10 s; queued Bone Fragment; I4 pending |
+| Death Adder         | Mossy Mire                             | Partial          |  125 |   20  | 75 Stab      | 20% dry-ground slots; close coiled bite; major poison: 5/s, 10 s; queued Bone Fragment + Venom Sac; I4 pending |
 | Mosquito swarm      | Mossy Mire                             | Partial          |  25  |   0   | 5 Stab/0.2 s | 20% dry-ground slots; one swarm per target; poison 1/s for 10 s; dodge/fire repel; I4 pending |
 | Peat Husk           | Mossy Mire                             | Partial          |  300 |   50  | 150 Crush    | 10% dry-ground hard slot; 260 cm/120° sweep; 1 s warning; 1.2 s recovery; queued Amber; I4 pending |
 | Wolf                | Freezing Tundra                        | Partial          |  250 |   40  | 100 Slash    | 20% dry-ground slots; three-member pack; 180 cm lunge bite; queued 2 Bone Fragment; I4 pending |
@@ -68,10 +69,10 @@ strikes within close range, and retreats on the shared server-owned snake
 cycle. Accepted bites apply the owner-visible major poison effect: 5 Poison per
 second for 10 seconds. Weak and major doses keep independent expiry times and
 share one tick clock; only the strongest active dose deals damage, and a weak
-bite cannot extend major poison. Its credited one-Bone-Fragment baseline claim
-is stored for its authenticated owner until inventory capacity is available.
-The Venom Sac drop and Antidote remain separate A8b work and are not enabled by
-this baseline reward.
+bite cannot extend major poison. Each credited defeat queues its one baseline
+Bone Fragment and one guaranteed Venom Sac for the authenticated owner. The
+server commits both atomically and retains the claim until the complete bundle
+fits. Antidote remains a separate A8b output task.
 
 Peat Husk uses the reviewed 300-health, 50-armor, 150-Crush profile in the
 remaining 10% Mossy Mire slot. It is limited to dry Mossy Mire ground and its

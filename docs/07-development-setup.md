@@ -2446,16 +2446,17 @@ After an editor build, run `Kalmala.Gameplay.Wildlife.DeathAdder.MireBiteAndRewa
 `Kalmala.Gameplay.Presentation.SurfaceWinding`, and
 `Kalmala.UI.StatusHotbar.SnapshotAndLayout`. The wildlife contract checks
 Mossy Mire's 50/20/20/10 candidate split, Death Adder exclusion from other biomes,
-dry habitat, reviewed stats/timing, and its namespaced owner-bound one-Bone-
-Fragment claim through full-pack retry and population-save serialization. The
-status regression checks the ten five-damage ticks, refresh without stacking
-or tick-clock reset, weak/major overlap and recovery, physical-armor bypass,
-death cleanup, and server authority. The presentation and hotbar regressions
+dry habitat, and reviewed stats/timing. It checks the namespaced owner-bound
+claim containing one Bone Fragment and one guaranteed Venom Sac, including
+full-pack rejection, one-slot partial-bundle failure, two-cell retry and
+population-save serialization. The status regression checks the ten
+five-damage ticks, refresh without stacking or tick-clock reset, weak/major
+overlap and recovery, physical-armor bypass, death cleanup, and server
+authority. The presentation and hotbar regressions
 check the procedural model winding and separate owner-visible major-poison
 timer. These source-level checks are not live spawn, peer privacy, reconnect,
-or restart acceptance; run them with the combined A8a/A8b I4 verification. The
-Venom Sac drop remains disabled pending its separate A8b source task. No Unreal
-build or automation execution ran in this increment.
+or restart acceptance; run them with the combined A8a/A8b I4 verification. No
+Unreal build or automation execution ran in this increment.
 
 ## Peat Husk contract regression
 
