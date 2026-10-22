@@ -111,6 +111,17 @@ public:
     static constexpr float ViperRecoverySeconds = 0.8f;
     static constexpr float ViperWeakPoisonDurationSeconds = 5.0f;
     static constexpr float DeathAdderMajorPoisonDurationSeconds = 10.0f;
+    static constexpr float MosquitoWeakPoisonDurationSeconds = 10.0f;
+    static constexpr float MosquitoBiteDamagePerSecond = 25.0f;
+    static constexpr float MosquitoBiteIntervalSeconds = 0.2f;
+    static constexpr float MosquitoBiteReachCentimetres = 100.0f;
+    static constexpr float MosquitoSpawnLeashCentimetres = 2500.0f;
+    static constexpr float MosquitoApproachSeconds = 0.5f;
+    static constexpr float MosquitoFlightHeightCentimetres = 150.0f;
+    static constexpr float MosquitoFlightAmplitudeCentimetres = 95.0f;
+    static constexpr float MosquitoFlightSpeedCentimetresPerSecond = 440.0f;
+    static constexpr float MosquitoTorchAvoidanceCentimetres = 300.0f;
+    static constexpr float MosquitoCampfireAvoidanceCentimetres = 500.0f;
     static constexpr float SnakeBiteReachCentimetres = 180.0f;
     static constexpr float GiantSnakeTelegraphSeconds = 1.0f;
     static constexpr float GiantSnakeRecoverySeconds = 1.2f;
@@ -134,6 +145,8 @@ public:
     static constexpr float MoonBearRecoverySeconds = 1.2f;
     static constexpr float MoonBearSpawnLeashCentimetres = 2500.0f;
     static bool IsMoonBearPawInReach(bool bServerAuthority, bool bValidTarget, float DistanceCentimetres);
+    static bool IsMosquitoBiteInReach(bool bServerAuthority, bool bValidTarget, float DistanceCentimetres);
+    static bool IsMosquitoFireRepelling(bool bServerAuthority, bool bActiveFlame, float DistanceCentimetres, float RadiusCentimetres);
     static EKalmalaWildlifeArchetype GetArchetypeForSpawnSeed(uint64 SpawnSeed);
     static bool TryGetSpawnArchetypeForBiome(uint64 SpawnSeed, EKalmalaBiome Biome, EKalmalaWildlifeArchetype& OutArchetype);
     static bool IsBoarChargeAllowed(bool bServerAuthority, bool bAlreadyDefeated, bool bAtRest, float DistanceToRestingArea);
@@ -182,6 +195,17 @@ private:
     bool CanSnakeMoveAlong(const FVector& Start, const FVector& End) const;
     bool IsSnakeAttackTargetValid(const class AKalmalaCharacter* Target) const;
     bool TryApplySnakeBite(class AKalmalaCharacter* Target);
+    void UpdateMosquitoSwarm(float DeltaSeconds);
+    bool IsMosquitoTargetValid(const class AKalmalaCharacter* Target) const;
+    bool IsMosquitoTargetReservedByOther(const class AKalmalaCharacter* Target) const;
+    bool IsMosquitoPositionValid(const FVector& Position, float& OutGroundHeight) const;
+    bool CanMosquitoFlyAlong(const FVector& Start, const FVector& End, const AActor* Target = nullptr) const;
+    bool IsMosquitoRepelledByFire(const FVector& Position, const class AKalmalaCharacter* Target,
+        FVector& OutFireLocation, float& OutAvoidanceRadius) const;
+    bool TryApplyMosquitoBite(class AKalmalaCharacter* Target);
+    void PlayMosquitoBuzz();
+    void StopMosquitoBuzz();
+    void UpdateMosquitoPresentation(float DeltaSeconds);
     void AlertNearbyDeerFromServer();
     void BuildArchetypePresentation();
     void GrantDefeatReward();
@@ -257,11 +281,23 @@ private:
     float MoonBearAttackSecondsRemaining = 0.0f;
     TWeakObjectPtr<class AKalmalaCharacter> MoonBearAttackTarget;
     TArray<uint8> SnakeHissAudioData;
+    TWeakObjectPtr<class AKalmalaCharacter> MosquitoTarget;
+    float MosquitoApproachSecondsRemaining = 0.0f;
+    float MosquitoBiteSecondsRemaining = 0.0f;
+    float MosquitoFlightElapsedSeconds = 0.0f;
+    FVector MosquitoCurrentFireLocation = FVector::ZeroVector;
+    TArray<uint8> MosquitoBuzzAudioData;
     UPROPERTY()
     TObjectPtr<class UProceduralMeshComponent> MirelingMesh;
     UPROPERTY()
     TObjectPtr<class UCapsuleComponent> SnakeBodyCollision;
     UPROPERTY(Transient)
     TObjectPtr<class USoundWaveProcedural> SnakeHissSound;
+    UPROPERTY(Transient)
+    TObjectPtr<class USoundWaveProcedural> MosquitoBuzzSound;
+    UPROPERTY(Transient)
+    TObjectPtr<class USoundAttenuation> MosquitoBuzzAttenuation;
+    UPROPERTY(Transient)
+    TObjectPtr<class UAudioComponent> MosquitoBuzzComponent;
     bool bClientCombatVerificationDefeatLogged = false;
 };

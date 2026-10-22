@@ -219,6 +219,13 @@ bool AKalmalaConstructionActor::ApplyStandingLightStateFromServer(const FKalmala
     return true;
 }
 
+bool AKalmalaConstructionActor::IsStandingLightFlameEligibleForServer() const
+{
+    return HasAuthority() && ConstructionKit == TEXT("StandingLightKit")
+        && FMath::IsFinite(StandingLight.RemainingFuelSeconds) && StandingLight.RemainingFuelSeconds > 0.0f
+        && !IsStandingLightExposedToRain();
+}
+
 bool AKalmalaConstructionActor::ReplaceWallWithDoorFromServer()
 {
     if (!HasAuthority() || ConstructionKit != TEXT("WallKit") || ConstructionId.IsEmpty()) return false;

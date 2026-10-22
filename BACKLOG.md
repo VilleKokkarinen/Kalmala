@@ -199,7 +199,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [x] Shimmering Lakes: Giant Snake — rare hard shoreline ambusher; powerful lunging bite.
   - [x] Mossy Mire: Mireling — weak base enemy; spawn only in this biome.
   - [x] Mossy Mire: Death Adder — highly venomous snake; bite applies major poison for 10 s.
-  - [ ] Mossy Mire: Mosquito swarm — small bites + weak poison for 10 s; roll to shake off, lit fire repels.
+  - [x] Mossy Mire: Mosquito swarm — small bites + weak poison for 10 s; roll to shake off, lit fire repels.
   - [ ] Mossy Mire: Peat Husk — rare hard enemy;
   - [ ] Freezing Tundra: Wolf — spawns in packs of 3
   - [ ] Freezing Tundra: Lynx

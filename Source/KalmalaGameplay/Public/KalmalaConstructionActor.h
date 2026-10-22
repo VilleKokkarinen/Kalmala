@@ -37,6 +37,7 @@ public:
     bool ApplyGardenPlotStateFromServer(const FKalmalaGardenPlotState& State);
     const FKalmalaStandingLightState& GetStandingLightState() const { return StandingLight; }
     bool ApplyStandingLightStateFromServer(const FKalmalaStandingLightState& State);
+    bool IsStandingLightFlameEligibleForServer() const;
     bool IsDoorOpen() const { return bDoorOpen; }
     bool ReplaceWallWithDoorFromServer();
     bool ToggleDoorFromServer(AKalmalaCharacter* Character, FString& Reason);

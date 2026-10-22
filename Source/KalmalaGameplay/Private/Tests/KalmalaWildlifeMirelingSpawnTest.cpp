@@ -22,6 +22,7 @@ bool FKalmalaWildlifeMirelingSpawnTest::RunTest(const FString& Parameters)
     int32 LakeGiantSnake = 0;
     int32 MirelingSlots = 0;
     int32 DeathAdderSlots = 0;
+    int32 MosquitoSlots = 0;
     int32 ReservedMireSlots = 0;
     for (uint64 Seed = 0; Seed < 1000; ++Seed)
     {
@@ -73,9 +74,16 @@ bool FKalmalaWildlifeMirelingSpawnTest::RunTest(const FString& Parameters)
                 EKalmalaWildlifeArchetype::DeathAdder);
             ++DeathAdderSlots;
         }
+        else if (Seed % 10ull < 9ull)
+        {
+            TestTrue(TEXT("Both dedicated Mosquito swarm slots are available"), bMireEligible);
+            TestEqual(TEXT("Mosquito swarm owns its reviewed twenty percent share"), Archetype,
+                EKalmalaWildlifeArchetype::MosquitoSwarm);
+            ++MosquitoSlots;
+        }
         else
         {
-            TestFalse(TEXT("Unimplemented Mossy Mire shares remain unspawned"), bMireEligible);
+            TestFalse(TEXT("Peat Husk's unfinished hard slot remains unspawned"), bMireEligible);
             ++ReservedMireSlots;
         }
     }
@@ -93,7 +101,8 @@ bool FKalmalaWildlifeMirelingSpawnTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Shimmering Lakes keeps its 10% Giant Snake share"), LakeGiantSnake, 100);
     TestEqual(TEXT("Mireling occupies exactly half the Mossy Mire slots"), MirelingSlots, 500);
     TestEqual(TEXT("Death Adder occupies twenty percent of Mossy Mire slots"), DeathAdderSlots, 200);
-    TestEqual(TEXT("Unimplemented Mossy Mire shares stay reserved for later species"), ReservedMireSlots, 300);
+    TestEqual(TEXT("Mosquito swarm occupies twenty percent of Mossy Mire slots"), MosquitoSlots, 200);
+    TestEqual(TEXT("Only Peat Husk's unfinished share stays reserved"), ReservedMireSlots, 100);
 
     for (const EKalmalaBiome OtherBiome : { EKalmalaBiome::Meadows, EKalmalaBiome::Elderwood,
              EKalmalaBiome::ShimmeringLakes, EKalmalaBiome::FreezingTundra,
@@ -108,6 +117,8 @@ bool FKalmalaWildlifeMirelingSpawnTest::RunTest(const FString& Parameters)
                     OtherArchetype == EKalmalaWildlifeArchetype::Mireling);
                 TestFalse(TEXT("Death Adder cannot be selected outside Mossy Mire"),
                     OtherArchetype == EKalmalaWildlifeArchetype::DeathAdder);
+                TestFalse(TEXT("Mosquito swarm cannot be selected outside Mossy Mire"),
+                    OtherArchetype == EKalmalaWildlifeArchetype::MosquitoSwarm);
             }
         }
     }

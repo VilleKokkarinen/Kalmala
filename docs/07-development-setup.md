@@ -2403,6 +2403,21 @@ baseline Bone Fragment quantity, melee and boss-scroll code remain unchanged.
 This contract source is not live-spawn, reward, or peer acceptance; run the
 M4/M5 Mireling harness and combined A8a/A8b I4 checks after an editor build.
 
+## Mosquito swarm contract regression
+
+After an editor build, run
+`Kalmala.Gameplay.Wildlife.MosquitoSwarm.MireContactAndCounters` and
+`Kalmala.Gameplay.Movement.DodgeRollAuthorityAndCost`. These source automations
+cover the 50/20/20/10 Mossy Mire roster, exclusive dry-Mire selection, swarm
+stats, 100 cm contact limit, 5-Stab/0.2 s cadence, shared ten-second weak
+poison, no reward, and server-only flame radii. The roll contract checks the
+server/living/grounded/attachment/cooldown/stamina gates and 2 s swarm escape.
+They do not replace live host/client tests for simultaneous swarms, rejected
+roll requests, torch fuel/rain transitions, Standing Light rain suppression,
+campfire flame state, ally fire protection, collision, poison refresh or
+relevant-peer privacy. Run those scenarios with combined A8a/A8b I4 after a
+forced editor build; that gate remains required before A9.
+
 ## Death Adder contract regression
 
 After an editor build, run `Kalmala.Gameplay.Wildlife.DeathAdder.MireBiteAndRewardClaim`,

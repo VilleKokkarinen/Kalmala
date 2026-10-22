@@ -67,7 +67,10 @@ crafting and wielding; the 2026-10-18 bow increment adds drawing, shooting and a
 
 ## Player-kit design targets
 
-- Movement: walk, sprint, jump, dodge, swim
+- Movement: walk, sprint, jump, dodge, swim. Dodge is a grounded server-owned
+  forward roll: 25 stamina before active status modifiers, 620 cm/s for 0.35 s,
+  with a 1 s cooldown and no invulnerability. Its current defaults are Left Alt
+  and Gamepad Face Button Right.
 - Vitality: health, stamina, warmth, hunger (simple and legible).
 - Gear: basic clothing and a carry pack. Progression improves warmth, durability, and carry capacity.
 - Weapons: knife, sword, bow.

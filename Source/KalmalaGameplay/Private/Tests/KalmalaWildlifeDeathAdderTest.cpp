@@ -16,6 +16,7 @@ bool FKalmalaWildlifeDeathAdderContractTest::RunTest(const FString& Parameters)
 {
     int32 MirelingSlots = 0;
     int32 DeathAdderSlots = 0;
+    int32 MosquitoSlots = 0;
     int32 ReservedSlots = 0;
     for (uint64 Seed = 0; Seed < 1000; ++Seed)
     {
@@ -36,15 +37,23 @@ bool FKalmalaWildlifeDeathAdderContractTest::RunTest(const FString& Parameters)
                 EKalmalaWildlifeArchetype::DeathAdder);
             ++DeathAdderSlots;
         }
+        else if (Seed % 10ull < 9ull)
+        {
+            TestTrue(TEXT("Both dedicated Mossy Mire swarm slots are available"), bEligible);
+            TestEqual(TEXT("The swarm occupies only its two reviewed Mire slots"), Archetype,
+                EKalmalaWildlifeArchetype::MosquitoSwarm);
+            ++MosquitoSlots;
+        }
         else
         {
-            TestFalse(TEXT("Mosquito and Peat Husk slots stay empty until their own tasks"), bEligible);
+            TestFalse(TEXT("Peat Husk remains unspawned until its task"), bEligible);
             ++ReservedSlots;
         }
     }
     TestEqual(TEXT("Mireling retains fifty percent of Mossy Mire slots"), MirelingSlots, 500);
     TestEqual(TEXT("Death Adder receives twenty percent of Mossy Mire slots"), DeathAdderSlots, 200);
-    TestEqual(TEXT("Other unfinished Mossy Mire shares remain unspawned"), ReservedSlots, 300);
+    TestEqual(TEXT("Mosquito swarm receives twenty percent of Mossy Mire slots"), MosquitoSlots, 200);
+    TestEqual(TEXT("Only Peat Husk's unfinished hard slot remains unspawned"), ReservedSlots, 100);
 
     for (const EKalmalaBiome Biome : { EKalmalaBiome::Meadows, EKalmalaBiome::Elderwood,
              EKalmalaBiome::ShimmeringLakes, EKalmalaBiome::FreezingTundra,

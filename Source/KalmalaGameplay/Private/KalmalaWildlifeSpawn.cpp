@@ -3,6 +3,8 @@
 
 #include "Components/SphereComponent.h"
 #include "KalmalaCharacter.h"
+#include "KalmalaCampfire.h"
+#include "KalmalaConstructionActor.h"
 #include "KalmalaGameMode.h"
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaPlayerStatusComponent.h"
@@ -14,7 +16,9 @@
 #include "EngineUtils.h"
 #include "ProceduralMeshComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/AudioComponent.h"
 #include "Sound/SoundWaveProcedural.h"
+#include "Sound/SoundAttenuation.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/World.h"
 #include "Net/UnrealNetwork.h"
@@ -204,11 +208,23 @@ void AKalmalaWildlifeSpawn::InitializeServer(const FKalmalaWorldPopulationSpawn&
         MoonBearAttackTarget.Reset();
         MoonBearAttackSecondsRemaining = 0.0f;
         Health = GetMaximumHealthForArchetype(Archetype);
+        if (Archetype == EKalmalaWildlifeArchetype::MosquitoSwarm)
+        {
+            float GroundHeight = 0.0f;
+            if (IsMosquitoPositionValid(Spawn.Location, GroundHeight))
+            {
+                FVector FlightLocation = Spawn.Location;
+                FlightLocation.Z = GroundHeight + MosquitoFlightHeightCentimetres;
+                SetActorLocation(FlightLocation);
+            }
+            MosquitoFlightElapsedSeconds = static_cast<float>(FCrc::StrCrc32(*PersistentSpawnId) % 1000u) * 0.001f;
+        }
         if (UKalmalaResistanceComponent* Defenses = FindComponentByClass<UKalmalaResistanceComponent>())
         {
             Defenses->Profile.Armor = GetArmorForArchetype(Archetype);
         }
         BuildArchetypePresentation();
+        if (Archetype == EKalmalaWildlifeArchetype::MosquitoSwarm) PlayMosquitoBuzz();
     }
 }
 
@@ -271,6 +287,21 @@ bool AKalmalaWildlifeSpawn::IsMoonBearPawInReach(const bool bServerAuthority, co
 {
     return bServerAuthority && bValidTarget && FMath::IsFinite(DistanceCentimetres)
         && DistanceCentimetres >= 0.0f && DistanceCentimetres <= MoonBearPawReachCentimetres;
+}
+
+bool AKalmalaWildlifeSpawn::IsMosquitoBiteInReach(const bool bServerAuthority, const bool bValidTarget,
+    const float DistanceCentimetres)
+{
+    return bServerAuthority && bValidTarget && FMath::IsFinite(DistanceCentimetres)
+        && DistanceCentimetres >= 0.0f && DistanceCentimetres <= MosquitoBiteReachCentimetres;
+}
+
+bool AKalmalaWildlifeSpawn::IsMosquitoFireRepelling(const bool bServerAuthority, const bool bActiveFlame,
+    const float DistanceCentimetres, const float RadiusCentimetres)
+{
+    return bServerAuthority && bActiveFlame && FMath::IsFinite(DistanceCentimetres)
+        && DistanceCentimetres >= 0.0f && FMath::IsFinite(RadiusCentimetres)
+        && RadiusCentimetres > 0.0f && DistanceCentimetres <= RadiusCentimetres;
 }
 
 float AKalmalaWildlifeSpawn::GetBaseAttackDamageForArchetype(const EKalmalaWildlifeArchetype InArchetype)
@@ -439,6 +470,12 @@ bool AKalmalaWildlifeSpawn::ApplyValidatedDamageFromServer(const FKalmalaDamageC
         MoonBearAttackSecondsRemaining = 0.0f;
         SetMoonBearAttackCue(EKalmalaWildlifeAttackCue::None);
     }
+    else if (Archetype == EKalmalaWildlifeArchetype::MosquitoSwarm && Attacker != nullptr)
+    {
+        MosquitoTarget = Attacker;
+        MosquitoApproachSecondsRemaining = MosquitoApproachSeconds;
+        MosquitoBiteSecondsRemaining = 0.0f;
+    }
     else
     {
         BeginServerBehaviour(EKalmalaWildlifeBehaviour::Flee, 1.50f, SpawnOrigin + GetDeterministicOffset(GetEcologicalFleeDistance(CreatureNicheId)));
@@ -584,6 +621,12 @@ bool AKalmalaWildlifeSpawn::TryGetSpawnArchetypeForBiome(const uint64 SpawnSeed,
         return true;
     }
 
+    if (Biome == EKalmalaBiome::MossyMire && (Slot == 7 || Slot == 8))
+    {
+        OutArchetype = EKalmalaWildlifeArchetype::MosquitoSwarm;
+        return true;
+    }
+
     // Reserve remaining Mire slots; unsupported biomes produce no wildlife candidates.
     return false;
 }
@@ -610,6 +653,7 @@ bool AKalmalaWildlifeSpawn::IsBehaviourTransitionAllowed(const bool bServerAutho
 void AKalmalaWildlifeSpawn::Tick(const float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
+    UpdateMosquitoPresentation(DeltaSeconds);
     if (HasAuthority() && !bDefeated)
     {
         AdvanceServerBehaviour(DeltaSeconds);
@@ -622,6 +666,8 @@ void AKalmalaWildlifeSpawn::Tick(const float DeltaSeconds)
             || Archetype == EKalmalaWildlifeArchetype::GiantSnake
             || Archetype == EKalmalaWildlifeArchetype::DeathAdder)
             UpdateSnakeAmbush(DeltaSeconds);
+        else if (Archetype == EKalmalaWildlifeArchetype::MosquitoSwarm)
+            UpdateMosquitoSwarm(DeltaSeconds);
     }
 }
 
@@ -1368,6 +1414,296 @@ bool AKalmalaWildlifeSpawn::TryApplySnakeBite(AKalmalaCharacter* Target)
     return true;
 }
 
+bool AKalmalaWildlifeSpawn::IsMosquitoPositionValid(const FVector& Position, float& OutGroundHeight) const
+{
+    OutGroundHeight = 0.0f;
+    if (!HasAuthority() || Position.ContainsNaN() || GetWorld() == nullptr) return false;
+    const AKalmalaWorldGenerationGameState* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
+    if (State == nullptr || !State->GetWorldGenerationConfig().IsValid()) return false;
+    const FKalmalaWorldGenerationConfig& Config = State->GetWorldGenerationConfig();
+    const FVector2D XY(Position);
+    if (FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, XY)) != EKalmalaBiome::MossyMire
+        || FKalmalaOceanSampler::Sample(Config, XY).IsWater()
+        || FKalmalaShimmeringLakeSampler::IsWater(Config, XY)) return false;
+    OutGroundHeight = FKalmalaTerrainHeightSampler::SampleHeight(Config, XY);
+    return FMath::IsFinite(OutGroundHeight);
+}
+
+bool AKalmalaWildlifeSpawn::CanMosquitoFlyAlong(const FVector& Start, const FVector& End, const AActor* Target) const
+{
+    if (!HasAuthority() || Start.ContainsNaN() || End.ContainsNaN() || GetWorld() == nullptr) return false;
+    const float Distance = FVector::Dist(Start, End);
+    const int32 Samples = FMath::Max(1, FMath::CeilToInt(Distance / 60.0f));
+    for (int32 Index = 0; Index <= Samples; ++Index)
+    {
+        const FVector Point = FMath::Lerp(Start, End, static_cast<float>(Index) / Samples);
+        float GroundHeight = 0.0f;
+        if (!IsMosquitoPositionValid(Point, GroundHeight)) return false;
+        const float HeightAboveGround = Point.Z - GroundHeight;
+        if (!FMath::IsFinite(HeightAboveGround) || HeightAboveGround < 50.0f || HeightAboveGround > 250.0f)
+            return false;
+    }
+
+    FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(KalmalaMosquitoFlightCollision), true);
+    QueryParams.AddIgnoredActor(this);
+    if (Target != nullptr) QueryParams.AddIgnoredActor(Target);
+    FHitResult Blocker;
+    return !GetWorld()->SweepSingleByChannel(Blocker, Start, End, FQuat::Identity, ECC_Visibility,
+        FCollisionShape::MakeSphere(12.0f), QueryParams);
+}
+
+bool AKalmalaWildlifeSpawn::IsMosquitoRepelledByFire(const FVector& Position,
+    const AKalmalaCharacter* Target, FVector& OutFireLocation, float& OutAvoidanceRadius) const
+{
+    OutFireLocation = FVector::ZeroVector;
+    OutAvoidanceRadius = 0.0f;
+    if (!HasAuthority() || Position.ContainsNaN() || GetWorld() == nullptr) return false;
+    float NearestDistance = TNumericLimits<float>::Max();
+    const auto ConsiderFlame = [this, &Position, Target, &OutFireLocation, &OutAvoidanceRadius,
+        &NearestDistance](const AActor* Flame, const FVector& FlameLocation, const float Radius,
+            const bool bActive) -> bool
+    {
+        if (!IsValid(Flame) || !IsMosquitoFireRepelling(HasAuthority(), bActive,
+                FVector::Dist2D(Position, FlameLocation), Radius)) return false;
+        FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(KalmalaMosquitoFlameVisibility), true);
+        QueryParams.AddIgnoredActor(this);
+        QueryParams.AddIgnoredActor(Flame);
+        if (Target != nullptr) QueryParams.AddIgnoredActor(Target);
+        FHitResult Blocker;
+        const FVector Start = FlameLocation + FVector(0.0f, 0.0f, 24.0f);
+        const FVector End = Position + FVector(0.0f, 0.0f, 24.0f);
+        if (GetWorld()->LineTraceSingleByChannel(Blocker, Start, End, ECC_Visibility, QueryParams)) return false;
+        const float Distance = FVector::DistSquared2D(Position, FlameLocation);
+        if (Distance >= NearestDistance) return false;
+        NearestDistance = Distance;
+        OutFireLocation = FlameLocation;
+        OutAvoidanceRadius = Radius;
+        return true;
+    };
+
+    for (TActorIterator<AKalmalaCharacter> It(GetWorld()); It; ++It)
+    {
+        AKalmalaCharacter* Character = *It;
+        if (IsValid(Character) && Character->IsHeldTorchFlameEligibleForServer())
+        {
+            ConsiderFlame(Character, Character->GetActorLocation() + FVector(35.0f, 0.0f, 80.0f),
+                MosquitoTorchAvoidanceCentimetres, true);
+        }
+    }
+    for (TActorIterator<AKalmalaConstructionActor> It(GetWorld()); It; ++It)
+    {
+        AKalmalaConstructionActor* Light = *It;
+        if (IsValid(Light) && Light->IsStandingLightFlameEligibleForServer())
+        {
+            ConsiderFlame(Light, Light->GetActorLocation() + FVector(0.0f, 0.0f, 68.0f),
+                MosquitoTorchAvoidanceCentimetres, true);
+        }
+    }
+    for (TActorIterator<AKalmalaCampfire> It(GetWorld()); It; ++It)
+    {
+        AKalmalaCampfire* Fire = *It;
+        if (IsValid(Fire) && Fire->IsFlameEligibleForMosquitoesFromServer())
+        {
+            ConsiderFlame(Fire, Fire->GetActorLocation() + FVector(0.0f, 0.0f, 32.0f),
+                MosquitoCampfireAvoidanceCentimetres, true);
+        }
+    }
+    return OutAvoidanceRadius > 0.0f;
+}
+
+bool AKalmalaWildlifeSpawn::IsMosquitoTargetValid(const AKalmalaCharacter* Target) const
+{
+    if (!HasAuthority() || bDefeated || Archetype != EKalmalaWildlifeArchetype::MosquitoSwarm
+        || GetWorld() == nullptr || !IsValid(Target) || !Target->HasAuthority()
+        || Target->GetWorld() != GetWorld() || Target->GetHealth() <= 1.0f
+        || FVector::DistSquared2D(Target->GetActorLocation(), SpawnOrigin)
+            > FMath::Square(MosquitoSpawnLeashCentimetres)
+        || Target->IsDodgeRollRepellingMosquitoesFromServer()) return false;
+
+    FVector FireLocation;
+    float FireRadius = 0.0f;
+    if (IsMosquitoRepelledByFire(Target->GetActorLocation(), Target, FireLocation, FireRadius)) return false;
+    return CanMosquitoFlyAlong(GetActorLocation(), Target->GetActorLocation() + FVector(0.0f, 0.0f, 60.0f), Target);
+}
+
+bool AKalmalaWildlifeSpawn::IsMosquitoTargetReservedByOther(const AKalmalaCharacter* Target) const
+{
+    if (!IsValid(Target) || GetWorld() == nullptr) return true;
+    for (TActorIterator<AKalmalaWildlifeSpawn> It(GetWorld()); It; ++It)
+    {
+        const AKalmalaWildlifeSpawn* Other = *It;
+        if (Other != this && IsValid(Other) && !Other->bDefeated
+            && Other->Archetype == EKalmalaWildlifeArchetype::MosquitoSwarm
+            && Other->MosquitoTarget.Get() == Target) return true;
+    }
+    return false;
+}
+
+bool AKalmalaWildlifeSpawn::TryApplyMosquitoBite(AKalmalaCharacter* Target)
+{
+    if (!IsMosquitoTargetValid(Target)
+        || !IsMosquitoBiteInReach(HasAuthority(), true,
+            FVector::Dist(GetActorLocation(), Target->GetActorLocation()))) return false;
+    const FKalmalaDamageChannels Bite = GetBaseAttackChannelsForArchetype(EKalmalaWildlifeArchetype::MosquitoSwarm);
+    if (!Target->ApplyWildlifeDamageFromServer(this, Bite)) return false;
+    if (UKalmalaPlayerStatusComponent* Statuses = Target->GetStatusComponent())
+        Statuses->ApplyWeakPoisonFromServer(MosquitoWeakPoisonDurationSeconds);
+    return true;
+}
+
+void AKalmalaWildlifeSpawn::UpdateMosquitoSwarm(const float DeltaSeconds)
+{
+    if (!HasAuthority() || bDefeated || Behaviour != EKalmalaWildlifeBehaviour::Idle || GetWorld() == nullptr) return;
+    const float Step = FMath::Clamp(FMath::IsFinite(DeltaSeconds) ? DeltaSeconds : 0.0f, 0.0f, 0.10f);
+    const auto MoveToward = [this, Step](FVector Destination, const AActor* Target)
+    {
+        float GroundHeight = 0.0f;
+        if (!IsMosquitoPositionValid(Destination, GroundHeight)) return;
+        const float Phase = MosquitoFlightElapsedSeconds * 3.1f
+            + static_cast<float>(FCrc::StrCrc32(*PersistentSpawnId) % 628u) * 0.01f;
+        Destination.Z = GroundHeight + MosquitoFlightHeightCentimetres
+            + FMath::Sin(Phase) * MosquitoFlightAmplitudeCentimetres;
+        const FVector Start = GetActorLocation();
+        const FVector End = FMath::VInterpConstantTo(Start, Destination, Step,
+            MosquitoFlightSpeedCentimetresPerSecond);
+        if (!CanMosquitoFlyAlong(Start, End, Target)) return;
+        SetActorLocation(End, true);
+        const FVector Direction = End - Start;
+        if (!Direction.IsNearlyZero()) SetActorRotation(FRotationMatrix::MakeFromX(Direction.GetSafeNormal2D()).Rotator());
+    };
+
+    FVector FireLocation;
+    float FireRadius = 0.0f;
+    if (IsMosquitoRepelledByFire(GetActorLocation(), nullptr, FireLocation, FireRadius))
+    {
+        MosquitoCurrentFireLocation = FireLocation;
+        MosquitoTarget.Reset();
+        MosquitoApproachSecondsRemaining = 0.0f;
+        MosquitoBiteSecondsRemaining = 0.0f;
+        FVector Away = (GetActorLocation() - FireLocation).GetSafeNormal2D();
+        if (Away.IsNearlyZero()) Away = GetDeterministicOffset(1.0f).GetSafeNormal2D();
+        MoveToward(FireLocation + Away * (FireRadius + 50.0f), nullptr);
+        return;
+    }
+    MosquitoCurrentFireLocation = FVector::ZeroVector;
+
+    AKalmalaCharacter* Target = MosquitoTarget.Get();
+    if (Target != nullptr && !IsMosquitoTargetValid(Target))
+    {
+        MosquitoTarget.Reset();
+        MosquitoApproachSecondsRemaining = 0.0f;
+        MosquitoBiteSecondsRemaining = 0.0f;
+        Target = nullptr;
+    }
+    if (Target == nullptr)
+    {
+        float BestDistanceSquared = FMath::Square(MosquitoSpawnLeashCentimetres);
+        for (TActorIterator<AKalmalaCharacter> It(GetWorld()); It; ++It)
+        {
+            AKalmalaCharacter* Candidate = *It;
+            if (!IsMosquitoTargetValid(Candidate) || IsMosquitoTargetReservedByOther(Candidate)) continue;
+            const float DistanceSquared = FVector::DistSquared2D(GetActorLocation(), Candidate->GetActorLocation());
+            if (DistanceSquared < BestDistanceSquared)
+            {
+                BestDistanceSquared = DistanceSquared;
+                Target = Candidate;
+            }
+        }
+        if (Target != nullptr)
+        {
+            MosquitoTarget = Target;
+            MosquitoApproachSecondsRemaining = MosquitoApproachSeconds;
+            MosquitoBiteSecondsRemaining = 0.0f;
+        }
+    }
+
+    if (Target == nullptr)
+    {
+        FVector Home = SpawnOrigin;
+        float GroundHeight = 0.0f;
+        if (IsMosquitoPositionValid(Home, GroundHeight)) MoveToward(Home, nullptr);
+        return;
+    }
+
+    const FVector ToTarget = Target->GetActorLocation() - GetActorLocation();
+    FVector Direction = ToTarget.GetSafeNormal2D();
+    if (Direction.IsNearlyZero()) Direction = GetActorForwardVector().GetSafeNormal2D();
+    FVector HarassPoint = Target->GetActorLocation() - Direction * 70.0f;
+    MoveToward(HarassPoint, Target);
+    MosquitoApproachSecondsRemaining = FMath::Max(0.0f, MosquitoApproachSecondsRemaining - Step);
+    if (MosquitoApproachSecondsRemaining > 0.0f || !IsMosquitoTargetValid(Target)) return;
+
+    const float ContactDistance = FVector::Dist(GetActorLocation(), Target->GetActorLocation());
+    if (IsMosquitoBiteInReach(true, true, ContactDistance))
+    {
+        MosquitoBiteSecondsRemaining -= Step;
+        if (MosquitoBiteSecondsRemaining <= 0.0f)
+        {
+            TryApplyMosquitoBite(Target);
+            MosquitoBiteSecondsRemaining = MosquitoBiteIntervalSeconds;
+        }
+    }
+    else
+    {
+        MosquitoBiteSecondsRemaining = 0.0f;
+    }
+}
+
+void AKalmalaWildlifeSpawn::UpdateMosquitoPresentation(const float DeltaSeconds)
+{
+    if (Archetype != EKalmalaWildlifeArchetype::MosquitoSwarm || bDefeated || MirelingMesh == nullptr
+        || !FMath::IsFinite(DeltaSeconds) || DeltaSeconds <= 0.0f) return;
+    MosquitoFlightElapsedSeconds += FMath::Min(DeltaSeconds, 0.25f);
+    const float Phase = MosquitoFlightElapsedSeconds * 3.1f;
+    MirelingMesh->SetRelativeRotation(FRotator(0.0f, FMath::Sin(Phase * 0.72f) * 16.0f, 0.0f));
+}
+
+void AKalmalaWildlifeSpawn::PlayMosquitoBuzz()
+{
+    if (MosquitoBuzzComponent != nullptr && MosquitoBuzzComponent->IsPlaying()) return;
+    if (MosquitoBuzzSound == nullptr)
+    {
+        MosquitoBuzzSound = NewObject<USoundWaveProcedural>(this, TEXT("MosquitoSwarmBuzz"));
+        MosquitoBuzzSound->SetSampleRate(22050);
+        MosquitoBuzzSound->NumChannels = 1;
+        MosquitoBuzzSound->Duration = 1.0f;
+        MosquitoBuzzSound->bLooping = true;
+        constexpr int32 SampleRate = 22050;
+        MosquitoBuzzAudioData.SetNumUninitialized(SampleRate * sizeof(int16));
+        for (int32 Index = 0; Index < SampleRate; ++Index)
+        {
+            const float Time = static_cast<float>(Index) / SampleRate;
+            const float Modulation = 1.0f + 0.12f * FMath::Sin(2.0f * PI * 8.0f * Time);
+            const float Wave = FMath::Sin(2.0f * PI * 184.0f * Modulation * Time)
+                + 0.38f * FMath::Sin(2.0f * PI * 368.0f * Modulation * Time);
+            const int16 Sample = static_cast<int16>(FMath::Clamp(Wave * 1700.0f, -32767.0f, 32767.0f));
+            FMemory::Memcpy(MosquitoBuzzAudioData.GetData() + Index * sizeof(int16), &Sample, sizeof(Sample));
+        }
+        MosquitoBuzzSound->QueueAudio(MosquitoBuzzAudioData.GetData(), MosquitoBuzzAudioData.Num());
+    }
+    if (MosquitoBuzzAttenuation == nullptr)
+    {
+        MosquitoBuzzAttenuation = NewObject<USoundAttenuation>(this, TEXT("MosquitoBuzzAttenuation"));
+        MosquitoBuzzAttenuation->Attenuation.bAttenuate = true;
+        MosquitoBuzzAttenuation->Attenuation.bSpatialize = true;
+        MosquitoBuzzAttenuation->Attenuation.AttenuationShape = EAttenuationShape::Sphere;
+        MosquitoBuzzAttenuation->Attenuation.AttenuationShapeExtents = FVector(0.0f, 0.0f, 0.0f);
+        MosquitoBuzzAttenuation->Attenuation.FalloffDistance = 2500.0f;
+    }
+    MosquitoBuzzComponent = UGameplayStatics::SpawnSoundAttached(MosquitoBuzzSound, GetRootComponent(), NAME_None,
+        FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::KeepRelativeOffset, true, 0.12f, 1.0f,
+        0.0f, MosquitoBuzzAttenuation, nullptr, true);
+}
+
+void AKalmalaWildlifeSpawn::StopMosquitoBuzz()
+{
+    if (MosquitoBuzzComponent != nullptr)
+    {
+        MosquitoBuzzComponent->FadeOut(0.08f, 0.0f);
+        MosquitoBuzzComponent = nullptr;
+    }
+}
+
 void AKalmalaWildlifeSpawn::PlaySnakeHiss()
 {
     if (SnakeHissSound == nullptr)
@@ -1399,7 +1735,8 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
 {
     MirelingMesh->ClearAllMeshSections();
     if (USphereComponent* RootSphere = Cast<USphereComponent>(GetRootComponent()))
-        RootSphere->SetSphereRadius(Archetype == EKalmalaWildlifeArchetype::Rat ? 42.0f : 70.0f, true);
+        RootSphere->SetSphereRadius(Archetype == EKalmalaWildlifeArchetype::MosquitoSwarm ? 28.0f
+            : (Archetype == EKalmalaWildlifeArchetype::Rat ? 42.0f : 70.0f), true);
     const bool bSnake = Archetype == EKalmalaWildlifeArchetype::Viper
         || Archetype == EKalmalaWildlifeArchetype::GiantSnake
         || Archetype == EKalmalaWildlifeArchetype::DeathAdder;
@@ -1740,6 +2077,29 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
                 FVector(NeckX + BodyRadius * 2.55f, Side * BodyRadius * 0.65f, HeadZ + BodyRadius * 0.13f), Eye);
         }
     }
+    else if (Archetype == EKalmalaWildlifeArchetype::MosquitoSwarm)
+    {
+        const FLinearColor Body(0.16f, 0.12f, 0.075f);
+        const FLinearColor Thorax(0.31f, 0.23f, 0.12f);
+        const FLinearColor Wing(0.66f, 0.71f, 0.59f);
+        const FLinearColor Eye(0.78f, 0.20f, 0.08f);
+        for (int32 Insect = 0; Insect < 6; ++Insect)
+        {
+            const float Angle = (2.0f * PI * static_cast<float>(Insect)) / 6.0f;
+            const FVector Centre(FMath::Cos(Angle) * 34.0f, FMath::Sin(Angle) * 34.0f,
+                FMath::Sin(Angle * 2.0f) * 15.0f);
+            AddTetraPoints(Centre + FVector(-7.0f, 0.0f, 0.0f), Centre + FVector(5.0f, 0.0f, 0.0f),
+                Centre + FVector(-1.0f, -2.5f, 0.0f), Centre + FVector(-1.0f, 2.5f, 0.0f), Body);
+            AddTetraPoints(Centre + FVector(-3.0f, -2.0f, 1.0f), Centre + FVector(3.0f, -3.0f, 1.0f),
+                Centre + FVector(-1.0f, -15.0f, 3.0f), Centre + FVector(2.0f, -13.0f, 0.0f), Wing);
+            AddTetraPoints(Centre + FVector(-3.0f, 2.0f, 1.0f), Centre + FVector(3.0f, 3.0f, 1.0f),
+                Centre + FVector(-1.0f, 15.0f, 3.0f), Centre + FVector(2.0f, 13.0f, 0.0f), Wing);
+            AddTetraPoints(Centre + FVector(4.0f, -1.0f, 1.0f), Centre + FVector(11.0f, -1.0f, 1.0f),
+                Centre + FVector(9.0f, -2.5f, 3.0f), Centre + FVector(9.0f, 2.5f, 3.0f), Thorax);
+            AddTetraPoints(Centre + FVector(10.0f, -1.0f, 1.0f), Centre + FVector(13.0f, -1.0f, 1.0f),
+                Centre + FVector(12.0f, 0.0f, 2.5f), Centre + FVector(14.0f, 0.0f, 1.0f), Eye);
+        }
+    }
     else
     {
         // Camp-pressure readability: a low forward hunch, long reaching arms, and a split crown give the scavenger a distinctive silhouette at a distance.
@@ -1878,6 +2238,8 @@ void AKalmalaWildlifeSpawn::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 void AKalmalaWildlifeSpawn::OnRep_Archetype()
 {
     BuildArchetypePresentation();
+    if (Archetype == EKalmalaWildlifeArchetype::MosquitoSwarm && !bDefeated) PlayMosquitoBuzz();
+    else StopMosquitoBuzz();
 }
 
 void AKalmalaWildlifeSpawn::OnRep_CreatureNicheId()
@@ -1922,6 +2284,10 @@ void AKalmalaWildlifeSpawn::ApplyDefeatedState()
     SetActorHiddenInGame(bDefeated);
     if (bDefeated)
     {
+        StopMosquitoBuzz();
+        MosquitoTarget.Reset();
+        MosquitoApproachSecondsRemaining = 0.0f;
+        MosquitoBiteSecondsRemaining = 0.0f;
         GrantDefeatReward();
     }
 }

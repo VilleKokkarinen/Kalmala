@@ -38,6 +38,7 @@ public:
     static bool IsLightingAllowed(bool bServerAuthority, float FuelWetness);
     float GetWarmthContributionAt(const FVector& Location) const;
     bool IsLit() const { return HearthState == EKalmalaHearthState::Lit; }
+    bool IsFlameEligibleForMosquitoesFromServer() const;
     EKalmalaHearthState GetHearthState() const { return HearthState; }
     static constexpr float RainThreshold = 0.05f;
     float GetFuelWetness() const { return FuelWetness; }

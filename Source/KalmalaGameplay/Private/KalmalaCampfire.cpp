@@ -66,6 +66,12 @@ AKalmalaCampfire::AKalmalaCampfire()
     if (StoneMaterial.Succeeded()) HearthMesh->SetMaterial(0, StoneMaterial.Object);
 }
 
+bool AKalmalaCampfire::IsFlameEligibleForMosquitoesFromServer() const
+{
+    return HasAuthority() && IsLit() && FMath::IsFinite(FuelSeconds) && FuelSeconds > 0.0f
+        && FMath::IsFinite(EffectiveWarmth) && EffectiveWarmth > 0.0f;
+}
+
 void AKalmalaCampfire::Tick(const float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);

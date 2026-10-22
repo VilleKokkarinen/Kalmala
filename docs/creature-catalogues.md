@@ -63,8 +63,13 @@ the owner-visible five-damage-per-second major poison for ten seconds; weak and
 major effects share a tick clock and the strongest dose wins. Credited defeats
 queue one Bone Fragment for the authenticated owner in the existing
 population-save escrow. The Venom Sac/Antidote path remains separate A8b work.
-Mosquito and Peat Husk slots wait for their species tasks, and the planned 1%
-Dusk Diamond source remains disabled for A9.
+Mosquito swarm now uses the other 20% common share, with the 10% Peat Husk hard
+slot still reserved. Its one actor carries six original cosmetic insect
+silhouettes; server flight checks dry Mossy Mire ground and blocking geometry,
+one swarm reserves each target, and accepted 5-Stab contacts every 0.2 seconds
+refresh the existing ten-second weak poison. Server-accepted dodges and visible
+active flames repel it; this adds no mosquito loot source. The planned 1% Dusk
+Diamond source remains disabled for A9.
 Listing a drop does not enable it or certify its A8b/A9 item/icon/source work.
 Rat's runtime peer/restart acceptance remains part of combined I4. The existing
 world-population save keeps pending reward rows beside its existing harvested

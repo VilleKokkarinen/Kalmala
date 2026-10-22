@@ -22,9 +22,11 @@ weak-poison effect on an accepted bite, and queues one Bone Fragment for the
 credited attacker. Giant Snake fills the remaining 10% hard slot with a
 dry-shore lunge and a durable two-fragment baseline claim. Mireling now fills
 50% of Mossy Mire candidate slots and is restricted to dry ground in that biome.
-Death Adder now occupies 20% of those slots, shares the dry Mossy Mire gate,
-and uses a server-owned coiled bite to apply non-stacking major poison; its
-credited one-Bone-Fragment baseline reward is durably owner-bound.
+Death Adder occupies 20% of those slots and shares the dry Mossy Mire gate;
+its server-owned coiled bite applies non-stacking major poison and its credited
+Bone Fragment is owner-bound. Mosquito swarm now occupies a separate 20% share
+with bounded server flight, persistent contact bites, weak poison, and active
+fire/dodge counterplay.
 
 | Enemy               | Biome                                  | Status           | HP   | Armor | Attack       | Abilities / counters                |
 | ------------------- | -------------------------------------- | ---------------- | ---: | ----: | ------------ | ----------------------------------- |
@@ -37,7 +39,7 @@ credited one-Bone-Fragment baseline reward is durably owner-bound.
 | Giant Snake         | Shimmering Lakes                       | Partial          |  250 |   30  | 100 Stab     | 10% dry-shore hard slot; coiled 360 cm lunge; 1 s warning; 1.2 s recovery; queued 2 Bone Fragment; I4 pending |
 | Mireling            | Mossy Mire                             | Partial          |  75  |   15  | 20 Crush     | 50% dry-ground share; server simple melee; boss-scroll path unchanged; I4 pending |
 | Death Adder         | Mossy Mire                             | Partial          |  125 |   20  | 75 Stab      | 20% dry-ground slots; close coiled bite; major poison: 5/s, 10 s; queued Bone Fragment; I4 pending |
-| Mosquito swarm      | Mossy Mire                             | Planned          |  25  |   0   | 5 Stab/0.2 s | Poison: 1/s, 10 s; roll/fire repels |
+| Mosquito swarm      | Mossy Mire                             | Partial          |  25  |   0   | 5 Stab/0.2 s | 20% dry-ground slots; one swarm per target; poison 1/s for 10 s; dodge/fire repel; I4 pending |
 | Peat Husk           | Mossy Mire                             | Planned          |  300 |   50  | 150 Crush    | Slow sweeping arm                   |
 | Wolf                | Freezing Tundra                        | Planned          |  250 |   40  | 100 Slash    | Pursuit; lunging bite               |
 | Lynx                | Freezing Tundra                        | Planned          |  150 |   30  | 75 Slash     | Leap at player                      |
@@ -49,10 +51,9 @@ credited one-Bone-Fragment baseline reward is durably owner-bound.
 Mireling uses the reviewed 75-health, 15-armor, 20-Crush profile. Its
 deterministic 50% Mossy Mire share is limited to dry spawn surfaces; all other
 biomes reject Mireling seeds. Its existing melee and optional server-owned
-boss-scroll reward are unchanged. Death Adder occupies 20% of the remaining
-Mossy Mire slots; Mosquito and Peat Husk slots remain empty until their species
-tasks are implemented. The planned 1% Dusk Diamond source remains an A9 task
-and is not enabled here.
+boss-scroll reward are unchanged. Death Adder and Mosquito swarm each occupy
+20% dry-ground slots; Peat Husk alone remains unspawned in the remaining hard
+slot. The planned 1% Dusk Diamond source remains an A9 task and is not enabled.
 
 Death Adder uses its reviewed 125-health, 20-armor, 75-Stab profile in 20% of
 Mossy Mire candidate slots. Spawn and return movement remain on dry Mossy Mire
@@ -467,6 +468,22 @@ expiry, refresh without stacking, mixed Viper/swarm bites, and poison continuing
 after rolling or lighting a torch. Define a server flame
 query shared with the approved torch/fire implementations; do not infer an
 existing heat-only API can recognize every new flame source.
+
+The runtime swarm uses the deterministic 20% Mossy Mire share and the dry
+Mossy Mire gate. One replicated wildlife actor presents six original low-poly
+insects and a spatial procedural buzz. Server flight stays 0.5–2.5 m above
+sampled dry Mire ground, stops at visibility-blocking geometry, and stays within
+its 25 m spawn leash. One swarm reserves a target at a time; contact applies
+one 5-Stab bite every 0.2 s and refreshes the existing owner-visible weak
+poison for ten seconds. A server-accepted grounded dodge roll costs 25 stamina
+after current status modifiers, launches forward at 620 cm/s for 0.35 s, has a
+1 s cooldown, grants no invulnerability, and breaks swarm contact for 2 s.
+Held fuelled torches and rain-safe fuelled Standing Lights repel within 3 m;
+Lit fuelled campfires with effective warmth repel within 5 m. The server tests
+visibility to each authoritative flame so roofs, walls and closed doors block
+protection. Unimplemented exposed-world-fire actors remain unsupported. These
+source contracts are not live multiplayer acceptance; the full fire, roll,
+peer-privacy and identity-matched restart scenarios remain in combined I4.
 
 ## Moonstone transfer
 

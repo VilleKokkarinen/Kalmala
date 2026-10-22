@@ -97,7 +97,8 @@ namespace KalmalaGameMode
             return false;
         }
         if (OutArchetype == EKalmalaWildlifeArchetype::Mireling
-            || OutArchetype == EKalmalaWildlifeArchetype::DeathAdder)
+            || OutArchetype == EKalmalaWildlifeArchetype::DeathAdder
+            || OutArchetype == EKalmalaWildlifeArchetype::MosquitoSwarm)
         {
             const bool bWater = FKalmalaOceanSampler::Sample(Config, Position).IsWater()
                 || FKalmalaShimmeringLakeSampler::IsWater(Config, Position);

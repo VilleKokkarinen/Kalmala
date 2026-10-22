@@ -82,6 +82,15 @@ public:
     const TArray<FKalmalaToolState>& GetCarriedToolInventory() const { return CarriedTools; }
     bool IsHeldTorchLit() const { return bHeldTorchLit; }
     bool IsHeldTorchFlameEligibleForServer() const;
+    bool IsDodgeRollActive() const { return bDodgeRollActive; }
+    bool IsDodgeRollRepellingMosquitoesFromServer() const;
+    static bool IsDodgeRollRequestAllowed(bool bServerAuthority, bool bLiving, bool bGrounded,
+        bool bAttached, bool bAlreadyRolling, float CooldownSeconds, float Stamina, float StaminaCost);
+    static constexpr float DodgeRollStaminaCost = 25.0f;
+    static constexpr float DodgeRollDurationSeconds = 0.35f;
+    static constexpr float DodgeRollCooldownSeconds = 1.0f;
+    static constexpr float DodgeRollSpeedCentimetresPerSecond = 620.0f;
+    static constexpr float DodgeRollMosquitoRepelSeconds = 2.0f;
     void AdvanceHeldTorchFromServer(float DeltaSeconds, bool bRainExposed);
     void NotifyMainHandSelectionChangedFromServer();
     float GetHealth() const { return Health; }
@@ -137,6 +146,9 @@ private:
     void ApplyExposureTravelPenalty();
     void StartSprint();
     void StopSprint();
+    void RequestDodgeRoll();
+    void AdvanceDodgeRollFromServer(float DeltaSeconds);
+    void UpdateDodgeRollPresentation(float DeltaSeconds);
     void VerifyPlayerControls(float DeltaSeconds);
     void VerifyConstructionMovement(float DeltaSeconds);
     void VerifyForestDelivery(float DeltaSeconds);
@@ -256,6 +268,9 @@ private:
     UFUNCTION(Server, Unreliable)
     void ServerSubmitOceanSkiffSteeringInput(float Throttle, float Rudder, uint32 Sequence);
 
+    UFUNCTION(Server, Unreliable)
+    void ServerRequestDodgeRoll();
+
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<USpringArmComponent> CameraBoom;
 
@@ -280,6 +295,14 @@ private:
     /** Public, server-derived cosmetic/gameplay state; tool inventory remains owner-only. */
     UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Tools", meta = (AllowPrivateAccess = "true"))
     bool bHeldTorchLit = false;
+
+    UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+    bool bDodgeRollActive = false;
+    float DodgeRollSecondsRemaining = 0.0f;
+    float DodgeRollCooldownRemaining = 0.0f;
+    double MosquitoRollRepelUntilTime = 0.0;
+    float DodgeRollPresentationSeconds = 0.0f;
+    bool bDodgeRollPresentationObserved = false;
 
     FGuid LastHeldTorchGuid;
     bool bHeldTorchSnuffedByRain = false;

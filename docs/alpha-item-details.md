@@ -206,11 +206,11 @@ No movement penalties, elemental resistances, active block/parry or set bonus.
 Carried utility tools (P1/P2).
 - Basic Torch (`BasicTorch`): inventory craft 2 Wood + 1 Amber → 1, stack 1, 0.5 kg. Main Hand only; 300 seconds of burning while held, local light radius 6 m from replicated lit state. No damage, warmth, Wet removal or world ignition. Uncovered rain extinguishes it; dry re-equip relights it. Stored/unequipped torches do not burn; spent torch remains unusable until inventory refuel with 1 Wood restores 300 seconds. Persist remaining burn time with item state; no repair/upgrade recipe or generic melee fallback.
 
-The server exposes a flame-eligibility query for the future user-requested
-[mosquito swarm counter](biome-enemies.md#mosquito-swarm). A8a still owns swarm
-targeting, damage prevention and repulsion behavior; unlit, stored and empty
-torches must not count. This does not change torch recipes or imply warmth,
-world ignition or direct torch damage.
+The server's mosquito-flame query recognizes only an active held torch with
+authoritative fuel, alongside the accepted Standing Light and campfire state.
+Unlit, stored, rain-extinguished and empty torches do not repel swarms. This
+does not change torch recipes or imply warmth, world ignition or direct torch
+damage. See the [swarm counter contract](biome-enemies.md#mosquito-swarm).
 
 - Add Planting Trowel (`PlantingTrowel`) with A7: Forge level 1, 10 Wood + 5 Bronze → 1; stack 1, 1 kg, 100 condition. Hold to plant/harvest approved garden plots; one condition per accepted planting, none on harvest/rejection. Free Workbench repair, no upgrades, damage or terrain editing.
 - Record terrain-editing Hoe as deferred from this alpha proposal: no height edits, smoothing, roads or grass-painting system. The Planting Trowel works only on A7 plots and does not modify the shared terrain sampler.

@@ -109,6 +109,7 @@ void AKalmalaCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
     DOREPLIFETIME(AKalmalaCharacter, Health);
     DOREPLIFETIME_CONDITION(AKalmalaCharacter, CarriedTools, COND_OwnerOnly);
     DOREPLIFETIME(AKalmalaCharacter, bHeldTorchLit);
+    DOREPLIFETIME(AKalmalaCharacter, bDodgeRollActive);
 }
 
 bool AKalmalaCharacter::IsHeldTorchFlameEligibleForServer() const
@@ -121,6 +122,23 @@ bool AKalmalaCharacter::IsHeldTorchFlameEligibleForServer() const
     });
     return Torch != nullptr && FMath::IsFinite(Torch->RemainingBurnSeconds)
         && Torch->RemainingBurnSeconds > 0.0f;
+}
+
+bool AKalmalaCharacter::IsDodgeRollRequestAllowed(const bool bServerAuthority, const bool bLiving,
+    const bool bGrounded, const bool bAttached, const bool bAlreadyRolling, const float CooldownSeconds,
+    const float Stamina, const float StaminaCost)
+{
+    return bServerAuthority && bLiving && bGrounded && !bAttached && !bAlreadyRolling
+        && FMath::IsFinite(CooldownSeconds) && CooldownSeconds <= 0.0f
+        && FMath::IsFinite(Stamina) && Stamina >= 0.0f
+        && FMath::IsFinite(StaminaCost) && StaminaCost > 0.0f && Stamina >= StaminaCost;
+}
+
+bool AKalmalaCharacter::IsDodgeRollRepellingMosquitoesFromServer() const
+{
+    if (!HasAuthority() || !GetWorld() || Health <= 1.0f) return false;
+    const double Now = GetWorld()->GetTimeSeconds();
+    return bDodgeRollActive || (FMath::IsFinite(Now) && Now < MosquitoRollRepelUntilTime);
 }
 
 void AKalmalaCharacter::NotifyMainHandSelectionChangedFromServer()
@@ -367,6 +385,8 @@ void AKalmalaCharacter::BeginPlay()
 void AKalmalaCharacter::Tick(const float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
+    AdvanceDodgeRollFromServer(DeltaSeconds);
+    UpdateDodgeRollPresentation(DeltaSeconds);
     UpdateAutomaticPickupFromServer(DeltaSeconds);
     if (IsLocallyControlled() && Controller && Controller->IsMoveInputIgnored() && Combat) Combat->CancelLocalBowDraw();
 #if !UE_BUILD_SHIPPING
@@ -728,6 +748,7 @@ void AKalmalaCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
     PlayerInputComponent->BindAction(TEXT("Jump"), IE_Released, this, &ACharacter::StopJumping);
     PlayerInputComponent->BindAction(TEXT("Sprint"), IE_Pressed, this, &AKalmalaCharacter::StartSprint);
     PlayerInputComponent->BindAction(TEXT("Sprint"), IE_Released, this, &AKalmalaCharacter::StopSprint);
+    PlayerInputComponent->BindAction(TEXT("DodgeRoll"), IE_Pressed, this, &AKalmalaCharacter::RequestDodgeRoll);
     for (int32 Slot = 0; Slot < UKalmalaInventoryComponent::Columns; ++Slot)
     {
         FInputActionBinding Binding(FName(*FString::Printf(TEXT("Hotbar%d"), (Slot + 1) % 10)), IE_Pressed);
@@ -924,6 +945,68 @@ void AKalmalaCharacter::StartSprint()
 void AKalmalaCharacter::StopSprint()
 {
     CastChecked<UKalmalaCharacterMovementComponent>(GetCharacterMovement())->SetSprintRequested(false);
+}
+
+void AKalmalaCharacter::RequestDodgeRoll()
+{
+    if (IsLocallyControlled() && Controller && !Controller->IsMoveInputIgnored())
+    {
+        ServerRequestDodgeRoll();
+    }
+}
+
+void AKalmalaCharacter::ServerRequestDodgeRoll_Implementation()
+{
+    UKalmalaCharacterMovementComponent* Movement = Cast<UKalmalaCharacterMovementComponent>(GetCharacterMovement());
+    const float Cost = Statuses ? Statuses->CalculateStaminaCost(DodgeRollStaminaCost) : DodgeRollStaminaCost;
+    if (Movement == nullptr) return;
+    FVector Direction = GetVelocity().GetSafeNormal2D();
+    if (Direction.IsNearlyZero()) Direction = GetActorForwardVector().GetSafeNormal2D();
+    if (Direction.IsNearlyZero() || !IsDodgeRollRequestAllowed(HasAuthority(), Health > 1.0f,
+            Movement->IsMovingOnGround(), GetAttachParentActor() != nullptr, bDodgeRollActive,
+            DodgeRollCooldownRemaining, Movement->GetStamina(), Cost)
+        || !Movement->TryConsumeStaminaFromServer(Cost)) return;
+
+    DodgeRollSecondsRemaining = DodgeRollDurationSeconds;
+    DodgeRollCooldownRemaining = DodgeRollCooldownSeconds;
+    bDodgeRollActive = true;
+    MosquitoRollRepelUntilTime = GetWorld() != nullptr
+        ? GetWorld()->GetTimeSeconds() + DodgeRollMosquitoRepelSeconds : 0.0;
+    LaunchCharacter(Direction * DodgeRollSpeedCentimetresPerSecond, true, false);
+    ForceNetUpdate();
+}
+
+void AKalmalaCharacter::AdvanceDodgeRollFromServer(const float DeltaSeconds)
+{
+    if (!HasAuthority() || !FMath::IsFinite(DeltaSeconds) || DeltaSeconds <= 0.0f) return;
+    const float Step = FMath::Min(DeltaSeconds, 0.25f);
+    DodgeRollCooldownRemaining = FMath::Max(0.0f, DodgeRollCooldownRemaining - Step);
+    if (!bDodgeRollActive) return;
+    DodgeRollSecondsRemaining = FMath::Max(0.0f, DodgeRollSecondsRemaining - Step);
+    if (DodgeRollSecondsRemaining <= 0.0f)
+    {
+        bDodgeRollActive = false;
+        ForceNetUpdate();
+    }
+}
+
+void AKalmalaCharacter::UpdateDodgeRollPresentation(const float DeltaSeconds)
+{
+    if (!PlayerModel || !FMath::IsFinite(DeltaSeconds) || DeltaSeconds <= 0.0f) return;
+    if (bDodgeRollActive)
+    {
+        bDodgeRollPresentationObserved = true;
+        DodgeRollPresentationSeconds = FMath::Min(DodgeRollDurationSeconds,
+            DodgeRollPresentationSeconds + FMath::Min(DeltaSeconds, 0.10f));
+        const float Progress = FMath::Clamp(DodgeRollPresentationSeconds / DodgeRollDurationSeconds, 0.0f, 1.0f);
+        PlayerModel->SetRelativeRotation(FRotator(0.0f, 0.0f, Progress * 360.0f));
+    }
+    else if (bDodgeRollPresentationObserved)
+    {
+        PlayerModel->SetRelativeRotation(FRotator::ZeroRotator);
+        DodgeRollPresentationSeconds = 0.0f;
+        bDodgeRollPresentationObserved = false;
+    }
 }
 
 void AKalmalaCharacter::MoveForward(const float Value)
