@@ -28,6 +28,8 @@ bool FKalmalaCombatLoopTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Bow uses drawing rather than melee"), UKalmalaCombatComponent::IsAttackItemAllowed(TEXT("Bow")));
     TestFalse(TEXT("Light Bow uses drawing rather than melee"), UKalmalaCombatComponent::IsAttackItemAllowed(TEXT("LightBow")));
     TestTrue(TEXT("Axe remains attack-capable"), UKalmalaCombatComponent::IsAttackItemAllowed(TEXT("StoneAxe")));
+    TestTrue(TEXT("Fang Spear is accepted by the server melee route"),
+        UKalmalaCombatComponent::IsAttackItemAllowed(TEXT("FangSpear")));
     TestTrue(TEXT("Unarmed combat fallback remains available"), UKalmalaCombatComponent::IsAttackItemAllowed(NAME_None));
     TestTrue(TEXT("Combat recovery remains a positive committed window"), UKalmalaCombatComponent::GetRecoverySeconds() > 0.0f);
     TestEqual(TEXT("M5 combat recovery uses the tuned 0.36-second window"), UKalmalaCombatComponent::GetRecoverySeconds(), 0.36f);
@@ -53,6 +55,7 @@ bool FKalmalaAllItemSwingTest::RunTest(const FString& Parameters)
     for (const auto& Profile : Catalogue->Profiles)
         if (UKalmalaCombatComponent::IsAttackItemAllowed(Profile.ItemId)) Items.Add(Profile.ItemId);
     Items.Add(NAME_None);
+    TestTrue(TEXT("Fang Spear is included in all-profile server hit coverage"), Items.Contains(TEXT("FangSpear")));
     for (int32 Index = 0; Index < Items.Num(); ++Index)
     {
         const FName Item = Items[Index];

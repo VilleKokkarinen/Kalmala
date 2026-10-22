@@ -121,6 +121,16 @@ bool FKalmalaDamageProfileTest::RunTest(const FString& Parameters)
     const FKalmalaDamageChannels Spear = FKalmalaToolLifecycleContract::GetWeaponDamageBonuses(TEXT("StoneSpear"), 1);
     TestEqual(TEXT("Stone Spear uses its authored stab bonus"), Spear.Stab, 15.0f);
     TestEqual(TEXT("Melee spears do not use ranged pierce"), Spear.Pierce, 0.0f);
+    const FKalmalaDamageChannels FangSpear =
+        FKalmalaToolLifecycleContract::GetAttackDamageBonuses(TEXT("FangSpear"), 1, TEXT("Basic"));
+    TestEqual(TEXT("Fang Spear Basic uses its authored 100 Stab profile"), FangSpear.Stab, 100.0f);
+    TestEqual(TEXT("Fang Spear Basic adds no separate attack damage"), FangSpear.Total(), 100.0f);
+    TestEqual(TEXT("Fang Spear level one has 200 condition"),
+        FKalmalaToolLifecycleContract::GetMaxDurability(TEXT("FangSpear"), 1), 200);
+    TestEqual(TEXT("Fang Spear Forge upgrade adds five Stab"),
+        FKalmalaToolLifecycleContract::GetAttackDamageBonuses(TEXT("FangSpear"), 2, TEXT("Basic")).Stab, 105.0f);
+    TestEqual(TEXT("Fang Spear Forge upgrade adds fifty condition"),
+        FKalmalaToolLifecycleContract::GetMaxDurability(TEXT("FangSpear"), 2), 250);
     struct FMaceDamageExpectation
     {
         FName ItemId;

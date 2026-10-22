@@ -5498,3 +5498,26 @@ live hearth availability. `Scripts/Validate-UIIcons.ps1 -Category Catalogue
 -Id PeatHeartStew` verifies its existing original, prepared texture and runtime
 target. The focused C++ sources remain uncompiled/unexecuted in this normal
 child; combined A8a/A8b I4 is still required.
+
+## A8b Fang Spear item coverage — 2026-10-22
+
+`FangSpear` is a one-handed, 4 kg Forge weapon with 200 maximum condition and
+100 Stab. Its Forge level-one recipe consumes four Wolf Fangs, ten Iron and ten
+Densewood; the Wolf's accepted owner-bound server reward has a 25% chance to
+grant one Fang to the credited owner. The server's shared Basic melee path
+applies the profile's 100 Stab without an extra attack bonus, using the standard
+0.18-second windup,
+0.36-second recovery and 220 cm reach. The registered level-one Forge upgrade
+costs two Wolf Fangs, five Iron and five Densewood; level two adds five Stab
+and fifty maximum condition. The item adds no status effect or attack-specific
+behavior.
+
+The combat regression now requires Fang Spear in the server melee allowlist and
+all-profile hit fixture; damage-profile coverage checks its base and upgraded
+values. After an editor build, run
+`Kalmala.Gameplay.Combat.BasicAttack.AuthorityAndCooldown`,
+`Kalmala.Gameplay.Combat.AllItemSwings`, and
+`Kalmala.Gameplay.Combat.DamageProfiles`. Its original imported icon is covered
+by `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id FangSpear`. These new
+C++ assertions remain uncompiled/unexecuted in this normal child; combined
+A8a/A8b I4 is still required.
