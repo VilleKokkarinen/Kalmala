@@ -5805,3 +5805,16 @@
 - **Next eligible task:** A8b Wolf Fang — Wolf, 25% chance of one; material, source, JSON, and generated icon.
 - **Integration state:** Wolf Pelt commit `b0df2129` was fast-forwarded from `codex/a8b-items` to `master`; the backlog checkbox and implementation are integrated. Combined A8a/A8b I4 remains pending before A9.
 - **Handoff:** `BACKLOG.md` and `PROGRESS.md` are visible in the main checkout; this integration record is kept in a separate progress-only commit. Current run time: 2026-10-22T13:20:13Z.
+
+## Run 2026-10-22 13:22 UTC — A8a implementation handoff
+
+- **Selected task:** Complete the A8a parent after confirming its existing children and implementations are complete. Checked only the A8a parent; all enumerated A8a child tasks were already checked.
+- **Work completed:** Recorded A8a implementation completion. The 17-species catalogue validator passed, the authoritative master history contains the implementation commits for the reviewed A8a roster, and the biome/enemy contract describes the implemented spawn, attack, and reward behaviors. This parent check records implementation completion only; it does not pass I4.
+- **Files changed:** `BACKLOG.md`; `PROGRESS.md`.
+- **Lightweight checks:** `python Scripts/Validate-CreatureCatalogues.py` passed (17 unique flat species profiles, stats, attacks, drop references, inline poison, biome identities, and manifest JSON). Reviewed the A8a backlog rows, master history, `docs/biome-enemies.md`, and relevant `docs/07-development-setup.md` contract-test references. `git diff --check` and changed-path MAX_PATH audit passed.
+- **Full verification:** No Unreal build, editor automation, or live peer test ran. Combined A8a/A8b I4 verification remains required before A9.
+- **Observable impact:** The A8a parent now accurately reflects that its listed enemy implementation children are complete on master; no gameplay behavior changed in this bookkeeping increment.
+- **Networking/authority:** No runtime code changed; the existing enemy behavior and reward contracts remain server-authoritative.
+- **Known limitations / remaining scope:** I4 still must verify the combined enemy and enemy-item milestone, including live behavior, full-inventory reward retry, persistence/reconnect, and relevant-peer presentation. A8b item sources and crafted outputs remain incomplete.
+- **Next eligible task:** A8b Wolf Fang — Wolf, 25% chance of one; material, source, JSON, and generated icon.
+- **Integration state:** Updated directly in the clean `E:\dev\Kalmala` master checkout; no worktree handoff was needed. Current run time: 2026-10-22T13:22:13Z.
