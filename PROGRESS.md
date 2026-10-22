@@ -5334,3 +5334,15 @@
 - **Observable impact and authority:** the server runtime can resolve the reviewed Death Adder profile when initialized with that archetype, but it is not selected for live spawning. No RPC, replication field, or save data changed.
 - **Known limitations/remaining scope:** the broad revised-stats task remains open for the remaining A8a profiles. Death Adder behavior, poison, presentation, spawning, and rewards are not implemented. Pre-existing dirty worktree changes were left untouched and excluded from this commit.
 - **Next eligible task:** continue the A8a revised-stats child for remaining planned enemy profiles; A9 remains gated on integrated A8a/A8b and successful I4 verification. Current run time: 2026-10-22 07:18 UTC.
+
+## Run 2026-10-22 07:29:56 UTC — Complete A8a revised stat profiles
+
+- **Selected task:** apply the overview's revised stats to existing boar/deer and all A8a enemies.
+- **Work completed:** Added the complete server-side runtime profile lookup for all 17 reviewed species: health, armor, and typed base attack values. Server initialization continues to apply health and armor only under authority. Expanded focused automation coverage to assert all 17 profiles, every physical attack channel, zero elemental/poison channels, and total attack. Updated creature-catalogue status and checked only the selected broad stats child in `BACKLOG.md`.
+- **Files changed:** `Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h`; `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`; `Source/KalmalaGameplay/Private/Tests/KalmalaWildlifeStatProfileTest.cpp`; `docs/creature-catalogues.md`; `BACKLOG.md`; `PROGRESS.md`.
+- **Lightweight checks:** `python Scripts/Validate-CreatureCatalogues.py` passed. A focused source-to-catalogue comparison verified exact health, armor, and typed attack agreement for all 17 species and confirmed each has test assertions. `git diff --check` passed.
+- **Full verification:** This is not the milestone-final task. No Unreal build or automation run was performed; the new automation test remains unexecuted. Combined A8a/A8b I4 verification remains deferred.
+- **Observable impact and authority:** The runtime can resolve every reviewed A8a stat profile. `InitializeServer` remains authority-gated; no new RPC, replication field, or save data was added. This increment does not enable any planned species for spawn selection.
+- **Known limitations/remaining scope:** Planned species still need their individual spawn, presentation, behavior, reward, and acceptance work. All species remain subject to combined I4 verification before A9.
+- **Next eligible task:** Meadows: Rat. A9 remains gated on integrated A8a/A8b and successful I4 verification.
+- **Handoff:** Main checkout used directly; no worktree handoff was needed. The authorized A8b run remains isolated in its separate worktree; no integration or A8b handoff was performed.

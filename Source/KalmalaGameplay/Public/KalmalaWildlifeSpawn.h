@@ -25,7 +25,18 @@ enum class EKalmalaWildlifeArchetype : uint8
     Deer,
     Rat,
     MoonBear,
-    DeathAdder
+    DeathAdder,
+    Badger,
+    Viper,
+    GiantSnake,
+    MosquitoSwarm,
+    PeatHusk,
+    Wolf,
+    Lynx,
+    PolarBear,
+    HornedGoat,
+    ThunderSentinel,
+    ReefMaw
 };
 
 /**

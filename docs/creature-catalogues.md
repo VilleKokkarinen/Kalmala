@@ -30,8 +30,8 @@ table's health, armor, and base Crush damage values directly. Server-side
 player-hit validation accepts up to 300 total wildlife damage, matching the
 largest authored A8a attack. A server runtime stat profile now also defines
 the planned Rat's 10 health, zero armor, and 5 Pierce attack; its spawn,
-presentation, attack behavior, and rewards remain open. Other planned A8a
-runtime stat profiles and attack behavior are open. Listing a drop does not
+presentation, attack behavior, and rewards remain open. The server-side stat lookup now covers all 17 reviewed A8a profiles. It does not enable planned species for spawn selection;
+their presentation, behavior, rewards, and acceptance remain open. Listing a drop does not
 enable it or certify its A8b/A9 item/icon/source work.
 Rat is not selected for live spawning yet; existing species gameplay and save
 format are unchanged.
