@@ -2397,12 +2397,29 @@ The editor automation
 `Kalmala.Gameplay.Wildlife.Mireling.MossyMireShareAndHabitat` checks the 50%
 Mireling candidate share, the retained Meadows/Elderwood/Shimmering Lakes
 species proportions, rejection of Mireling outside Mossy Mire, and the dry
-Mossy Mire habitat gate. The remaining Mossy Mire slots intentionally remain
-unspawned until their own species increments. It also confirms the baseline
-Bone Fragment quantity. Existing reward and boss-scroll code remains unchanged.
+Mossy Mire habitat gate. It also checks Death Adder's 20% share; Mosquito and
+Peat Husk slots remain unspawned until their own increments. The Mireling
+baseline Bone Fragment quantity, melee and boss-scroll code remain unchanged.
 This contract source is not live-spawn, reward, or peer acceptance; run the
 M4/M5 Mireling harness and combined A8a/A8b I4 checks after an editor build.
-No Unreal build or automation execution ran in this increment.
+
+## Death Adder contract regression
+
+After an editor build, run `Kalmala.Gameplay.Wildlife.DeathAdder.MireBiteAndRewardClaim`,
+`Kalmala.Gameplay.Status.DeathAdderMajorPoison`,
+`Kalmala.Gameplay.Presentation.SurfaceWinding`, and
+`Kalmala.UI.StatusHotbar.SnapshotAndLayout`. The wildlife contract checks
+Mossy Mire's 50/20/30 candidate split, Death Adder exclusion from other biomes,
+dry habitat, reviewed stats/timing, and its namespaced owner-bound one-Bone-
+Fragment claim through full-pack retry and population-save serialization. The
+status regression checks the ten five-damage ticks, refresh without stacking
+or tick-clock reset, weak/major overlap and recovery, physical-armor bypass,
+death cleanup, and server authority. The presentation and hotbar regressions
+check the procedural model winding and separate owner-visible major-poison
+timer. These source-level checks are not live spawn, peer privacy, reconnect,
+or restart acceptance; run them with the combined A8a/A8b I4 verification. The
+Venom Sac drop remains disabled pending its separate A8b source task. No Unreal
+build or automation execution ran in this increment.
 
 ## Exposure inspection
 

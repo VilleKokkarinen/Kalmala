@@ -6,6 +6,7 @@ namespace
     constexpr TCHAR MoonBearRewardClaimPrefix[] = TEXT("moonbear-reward|");
     constexpr TCHAR ViperRewardClaimPrefix[] = TEXT("viper-reward|");
     constexpr TCHAR GiantSnakeRewardClaimPrefix[] = TEXT("giantsnake-reward|");
+    constexpr TCHAR DeathAdderRewardClaimPrefix[] = TEXT("deathadder-reward|");
 }
 
 void UKalmalaWorldPopulationSaveGame::InitializeForWorld(const FKalmalaWorldGenerationConfig& InWorldConfig)
@@ -176,6 +177,32 @@ bool UKalmalaWorldPopulationSaveGame::TryGetGiantSnakeSpawnIdFromPendingRewardCl
     OutPersistentSpawnId.Reset();
     const int32 PrefixLength = UE_ARRAY_COUNT(GiantSnakeRewardClaimPrefix) - 1;
     if (!ClaimId.StartsWith(GiantSnakeRewardClaimPrefix, ESearchCase::CaseSensitive)
+        || ClaimId.Len() <= PrefixLength || ClaimId.Len() > 128) return false;
+
+    OutPersistentSpawnId = ClaimId.RightChop(PrefixLength);
+    return !OutPersistentSpawnId.IsEmpty();
+}
+
+bool UKalmalaWorldPopulationSaveGame::TryQueuePendingDeathAdderReward(
+    const FString& PersistentSpawnId, const FString& PlayerIdentity)
+{
+    const FString ClaimId = MakeDeathAdderPendingRewardClaimId(PersistentSpawnId);
+    return !ClaimId.IsEmpty() && TryQueuePendingWildlifeReward(ClaimId, PlayerIdentity);
+}
+
+FString UKalmalaWorldPopulationSaveGame::MakeDeathAdderPendingRewardClaimId(const FString& PersistentSpawnId)
+{
+    const int32 PrefixLength = UE_ARRAY_COUNT(DeathAdderRewardClaimPrefix) - 1;
+    if (PersistentSpawnId.IsEmpty() || PersistentSpawnId.Len() > 128 - PrefixLength) return FString();
+    return FString(DeathAdderRewardClaimPrefix) + PersistentSpawnId;
+}
+
+bool UKalmalaWorldPopulationSaveGame::TryGetDeathAdderSpawnIdFromPendingRewardClaimId(
+    const FString& ClaimId, FString& OutPersistentSpawnId)
+{
+    OutPersistentSpawnId.Reset();
+    const int32 PrefixLength = UE_ARRAY_COUNT(DeathAdderRewardClaimPrefix) - 1;
+    if (!ClaimId.StartsWith(DeathAdderRewardClaimPrefix, ESearchCase::CaseSensitive)
         || ClaimId.Len() <= PrefixLength || ClaimId.Len() > 128) return false;
 
     OutPersistentSpawnId = ClaimId.RightChop(PrefixLength);

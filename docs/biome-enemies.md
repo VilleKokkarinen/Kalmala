@@ -22,6 +22,9 @@ weak-poison effect on an accepted bite, and queues one Bone Fragment for the
 credited attacker. Giant Snake fills the remaining 10% hard slot with a
 dry-shore lunge and a durable two-fragment baseline claim. Mireling now fills
 50% of Mossy Mire candidate slots and is restricted to dry ground in that biome.
+Death Adder now occupies 20% of those slots, shares the dry Mossy Mire gate,
+and uses a server-owned coiled bite to apply non-stacking major poison; its
+credited one-Bone-Fragment baseline reward is durably owner-bound.
 
 | Enemy               | Biome                                  | Status           | HP   | Armor | Attack       | Abilities / counters                |
 | ------------------- | -------------------------------------- | ---------------- | ---: | ----: | ------------ | ----------------------------------- |
@@ -33,7 +36,7 @@ dry-shore lunge and a durable two-fragment baseline claim. Mireling now fills
 | Viper               | Shimmering Lakes                       | Partial          |  100 |   10  | 50 Stab      | 40% dry-shore slots; 180 cm lunge; weak poison: 1/s, 5 s; queued Bone Fragment; I4 pending |
 | Giant Snake         | Shimmering Lakes                       | Partial          |  250 |   30  | 100 Stab     | 10% dry-shore hard slot; coiled 360 cm lunge; 1 s warning; 1.2 s recovery; queued 2 Bone Fragment; I4 pending |
 | Mireling            | Mossy Mire                             | Partial          |  75  |   15  | 20 Crush     | 50% dry-ground share; server simple melee; boss-scroll path unchanged; I4 pending |
-| Death Adder         | Mossy Mire                             | Planned          |  125 |   20  | 75 Stab      | Major poison: 5/s, 10 s             |
+| Death Adder         | Mossy Mire                             | Partial          |  125 |   20  | 75 Stab      | 20% dry-ground slots; close coiled bite; major poison: 5/s, 10 s; queued Bone Fragment; I4 pending |
 | Mosquito swarm      | Mossy Mire                             | Planned          |  25  |   0   | 5 Stab/0.2 s | Poison: 1/s, 10 s; roll/fire repels |
 | Peat Husk           | Mossy Mire                             | Planned          |  300 |   50  | 150 Crush    | Slow sweeping arm                   |
 | Wolf                | Freezing Tundra                        | Planned          |  250 |   40  | 100 Slash    | Pursuit; lunging bite               |
@@ -45,10 +48,23 @@ dry-shore lunge and a durable two-fragment baseline claim. Mireling now fills
 
 Mireling uses the reviewed 75-health, 15-armor, 20-Crush profile. Its
 deterministic 50% Mossy Mire share is limited to dry spawn surfaces; all other
-biomes reject Mireling seeds, and the remaining Mossy Mire slots stay empty
-until their separate species tasks are implemented. The existing melee and
-optional server-owned boss-scroll reward are unchanged. The planned 1% Dusk
-Diamond source remains an A9 task and is not enabled here.
+biomes reject Mireling seeds. Its existing melee and optional server-owned
+boss-scroll reward are unchanged. Death Adder occupies 20% of the remaining
+Mossy Mire slots; Mosquito and Peat Husk slots remain empty until their species
+tasks are implemented. The planned 1% Dusk Diamond source remains an A9 task
+and is not enabled here.
+
+Death Adder uses its reviewed 125-health, 20-armor, 75-Stab profile in 20% of
+Mossy Mire candidate slots. Spawn and return movement remain on dry Mossy Mire
+ground. Its original thicker olive-brown procedural snake visibly coils,
+strikes within close range, and retreats on the shared server-owned snake
+cycle. Accepted bites apply the owner-visible major poison effect: 5 Poison per
+second for 10 seconds. Weak and major doses keep independent expiry times and
+share one tick clock; only the strongest active dose deals damage, and a weak
+bite cannot extend major poison. Its credited one-Bone-Fragment baseline claim
+is stored for its authenticated owner until inventory capacity is available.
+The Venom Sac drop and Antidote remain separate A8b work and are not enabled by
+this baseline reward.
 
 Moon Bear uses its reviewed server-side stat profile (250 health, 20 armor,
 75 Crush). Its seeded spawn slot, dry-Elderwood eligibility, 150 m player-start
@@ -378,7 +394,7 @@ and original inventory icons before implementation; the uses are not recipes.
 
 ## Death Adder major poison
 
-- A server-confirmed bite applies **major poison for 10 seconds**. Proposed
+- A server-confirmed bite applies **major poison for 10 seconds**. Implemented
   tuning: **5 Poison/second**, first tick after 1 s, ten ticks (50 total before
   Poison defenses). Use 75 Stab on the bite, 125 health and 20 Armor; retain loot.
 - Further Death Adder bites refresh the duration without stacking or extra
@@ -393,7 +409,7 @@ and original inventory icons before implementation; the uses are not recipes.
   fire does not repel Death Adders or remove poison.
 - Verify ten-second expiry, refresh, multiple adders, weak/major overlap,
   defenses, rejected bites and owner/client display. Keep its coiled windup
-  readable against Mire ground; this is proposed tuning, not playtested balance.
+  readable against Mire ground; this remains unplaytested balance.
 
 ## Mosquito swarm
 

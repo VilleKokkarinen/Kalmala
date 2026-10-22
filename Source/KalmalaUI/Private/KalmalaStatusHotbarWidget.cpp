@@ -360,11 +360,12 @@ TArray<FKalmalaStatusHotbarEntry> UKalmalaStatusHotbarWidget::BuildEntries(const
     };
     // Fixed semantic order, never replication-array order. No local ticking of owner status durations.
     for (const FName Id : { UKalmalaPlayerStatusComponent::WetStatusId, UKalmalaPlayerStatusComponent::SteadyMealStatusId,
-        UKalmalaPlayerStatusComponent::WeakPoisonStatusId })
+        UKalmalaPlayerStatusComponent::WeakPoisonStatusId, UKalmalaPlayerStatusComponent::MajorPoisonStatusId })
     {
         const auto* Status = S.Statuses.FindByPredicate([Id](const auto& E) { return E.StatusId == Id && FMath::IsFinite(E.RemainingSeconds) && E.RemainingSeconds > 0; });
         if (Status) AddEntry(Id, Id == UKalmalaPlayerStatusComponent::WetStatusId ? TEXT("Wet")
-                : Id == UKalmalaPlayerStatusComponent::SteadyMealStatusId ? TEXT("Steady meal") : TEXT("Poisoned"),
+                : Id == UKalmalaPlayerStatusComponent::SteadyMealStatusId ? TEXT("Steady meal")
+                : Id == UKalmalaPlayerStatusComponent::MajorPoisonStatusId ? TEXT("Major poison") : TEXT("Poisoned"),
             TimerForRemaining(Status->RemainingSeconds), Id == UKalmalaPlayerStatusComponent::WetStatusId ? EKalmalaIcon::Drop
                 : Id == UKalmalaPlayerStatusComponent::SteadyMealStatusId ? EKalmalaIcon::Bowl : EKalmalaIcon::Poison,
             Status->RemainingSeconds, EKalmalaStatusRefreshPolicy::RemainingIncreased);

@@ -110,6 +110,7 @@ public:
     static constexpr float ViperTelegraphSeconds = 0.5f;
     static constexpr float ViperRecoverySeconds = 0.8f;
     static constexpr float ViperWeakPoisonDurationSeconds = 5.0f;
+    static constexpr float DeathAdderMajorPoisonDurationSeconds = 10.0f;
     static constexpr float SnakeBiteReachCentimetres = 180.0f;
     static constexpr float GiantSnakeTelegraphSeconds = 1.0f;
     static constexpr float GiantSnakeRecoverySeconds = 1.2f;
@@ -137,7 +138,7 @@ public:
     static bool TryGetSpawnArchetypeForBiome(uint64 SpawnSeed, EKalmalaBiome Biome, EKalmalaWildlifeArchetype& OutArchetype);
     static bool IsBoarChargeAllowed(bool bServerAuthority, bool bAlreadyDefeated, bool bAtRest, float DistanceToRestingArea);
     static bool IsBehaviourTransitionAllowed(bool bServerAuthority, bool bAlreadyDefeated, EKalmalaWildlifeBehaviour From, EKalmalaWildlifeBehaviour To);
-    static bool IsMirelingSpawnHabitatAllowed(EKalmalaBiome Biome, bool bIsWater);
+    static bool IsMossyMireSpawnHabitatAllowed(EKalmalaBiome Biome, bool bIsWater);
     FKalmalaWildlifeSpawnDefeated OnDefeated;
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
     virtual void Tick(float DeltaSeconds) override;

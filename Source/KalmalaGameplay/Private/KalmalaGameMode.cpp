@@ -96,13 +96,15 @@ namespace KalmalaGameMode
         {
             return false;
         }
-        if (OutArchetype == EKalmalaWildlifeArchetype::Mireling)
+        if (OutArchetype == EKalmalaWildlifeArchetype::Mireling
+            || OutArchetype == EKalmalaWildlifeArchetype::DeathAdder)
         {
             const bool bWater = FKalmalaOceanSampler::Sample(Config, Position).IsWater()
                 || FKalmalaShimmeringLakeSampler::IsWater(Config, Position);
-            return AKalmalaWildlifeSpawn::IsMirelingSpawnHabitatAllowed(SpawnBiome, bWater);
+            return AKalmalaWildlifeSpawn::IsMossyMireSpawnHabitatAllowed(SpawnBiome, bWater);
         }
-        if (OutArchetype == EKalmalaWildlifeArchetype::Viper || OutArchetype == EKalmalaWildlifeArchetype::GiantSnake)
+        if (OutArchetype == EKalmalaWildlifeArchetype::Viper
+            || OutArchetype == EKalmalaWildlifeArchetype::GiantSnake)
         {
             const bool bWater = FKalmalaOceanSampler::Sample(Config, Position).IsWater()
                 || FKalmalaShimmeringLakeSampler::IsWater(Config, Position);
@@ -2587,6 +2589,25 @@ bool AKalmalaGameMode::RecordGiantSnakeDefeatReward(const FString& PersistentSpa
         KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
 }
 
+bool AKalmalaGameMode::RecordDeathAdderDefeatReward(const FString& PersistentSpawnId,
+    AKalmalaCharacter* CreditedAttacker)
+{
+    if (!HasAuthority() || PersistentSpawnId.IsEmpty() || PopulationSaveGame == nullptr
+        || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
+
+    if (IsValid(CreditedAttacker) && CreditedAttacker->HasAuthority()
+        && CreditedAttacker->GetWorld() == GetWorld() && CreditedAttacker->GetPlayerState() != nullptr)
+    {
+        const FString Identity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(CreditedAttacker->GetPlayerState());
+        if (!Identity.IsEmpty() && !PopulationSaveGame->TryQueuePendingDeathAdderReward(PersistentSpawnId, Identity))
+            return false;
+    }
+
+    PopulationSaveGame->MarkDefeated(PersistentSpawnId);
+    return UGameplayStatics::SaveGameToSlot(PopulationSaveGame,
+        KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+}
+
 void AKalmalaGameMode::DeliverPendingWildlifeRewards()
 {
     if (!HasAuthority() || GetWorld() == nullptr || PopulationSaveGame == nullptr
@@ -2611,9 +2632,15 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
         const bool bGiantSnakeReward =
             UKalmalaWorldPopulationSaveGame::TryGetGiantSnakeSpawnIdFromPendingRewardClaimId(
                 Reward.PersistentSpawnId, GiantSnakeSpawnId);
+        FString DeathAdderSpawnId;
+        const bool bDeathAdderReward =
+            UKalmalaWorldPopulationSaveGame::TryGetDeathAdderSpawnIdFromPendingRewardClaimId(
+                Reward.PersistentSpawnId, DeathAdderSpawnId);
         const FString& DefeatedSpawnId = bBadgerReward ? BadgerSpawnId
             : (bMoonBearReward ? MoonBearSpawnId
-                : (bViperReward ? ViperSpawnId : (bGiantSnakeReward ? GiantSnakeSpawnId : Reward.PersistentSpawnId)));
+                : (bViperReward ? ViperSpawnId
+                    : (bGiantSnakeReward ? GiantSnakeSpawnId
+                        : (bDeathAdderReward ? DeathAdderSpawnId : Reward.PersistentSpawnId))));
         if (!PopulationSaveGame->IsDefeated(DefeatedSpawnId)) continue;
 
         for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
@@ -2643,7 +2670,7 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
                         WithBadgerFur, TEXT("BadgerMeat"), 1, WithBadgerMeat, Reason)) break;
                 Candidate = MoveTemp(WithBadgerMeat);
             }
-            else if (bMoonBearReward || bViperReward || bGiantSnakeReward)
+            else if (bMoonBearReward || bViperReward || bGiantSnakeReward || bDeathAdderReward)
             {
                 Candidate = MoveTemp(WithBone);
             }

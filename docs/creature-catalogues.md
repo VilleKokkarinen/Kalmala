@@ -56,9 +56,15 @@ The Giant Scale drop remains disabled pending A8b item/icon/source completion.
 The other planned species remain disabled.
 Mireling (75 health, 15 armor, 20 Crush) now occupies half of Mossy Mire's
 seeded candidate slots and is accepted only on dry Mossy Mire ground; its
-existing melee and optional boss-scroll reward remain unchanged. The remaining
-Mossy Mire slots wait for their species tasks, and the planned 1% Dusk Diamond
-source remains disabled for A9.
+existing melee and optional boss-scroll reward remain unchanged. Death Adder
+(125 health, 20 armor, 75 Stab) uses 20% of the Mire slots, a thicker original
+coiled snake model, and the server-owned close bite. Its accepted bite applies
+the owner-visible five-damage-per-second major poison for ten seconds; weak and
+major effects share a tick clock and the strongest dose wins. Credited defeats
+queue one Bone Fragment for the authenticated owner in the existing
+population-save escrow. The Venom Sac/Antidote path remains separate A8b work.
+Mosquito and Peat Husk slots wait for their species tasks, and the planned 1%
+Dusk Diamond source remains disabled for A9.
 Listing a drop does not enable it or certify its A8b/A9 item/icon/source work.
 Rat's runtime peer/restart acceptance remains part of combined I4. The existing
 world-population save keeps pending reward rows beside its existing harvested

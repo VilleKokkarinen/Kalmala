@@ -308,6 +308,7 @@ int32 AKalmalaWildlifeSpawn::GetBoneFragmentRewardQuantity(const EKalmalaWildlif
     case EKalmalaWildlifeArchetype::Deer:
     case EKalmalaWildlifeArchetype::Badger:
     case EKalmalaWildlifeArchetype::Rat:
+    case EKalmalaWildlifeArchetype::DeathAdder:
     case EKalmalaWildlifeArchetype::Viper: return 1;
     case EKalmalaWildlifeArchetype::GiantSnake: return 2;
     case EKalmalaWildlifeArchetype::MoonBear: return 3;
@@ -365,6 +366,13 @@ bool AKalmalaWildlifeSpawn::DefeatServer()
         AKalmalaGameMode* Mode = GetWorld() != nullptr
             ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
         if (Mode == nullptr || !Mode->RecordGiantSnakeDefeatReward(
+                PersistentSpawnId, LastValidatedAttacker.Get())) return false;
+    }
+    else if (Archetype == EKalmalaWildlifeArchetype::DeathAdder)
+    {
+        AKalmalaGameMode* Mode = GetWorld() != nullptr
+            ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
+        if (Mode == nullptr || !Mode->RecordDeathAdderDefeatReward(
                 PersistentSpawnId, LastValidatedAttacker.Get())) return false;
     }
 
@@ -500,7 +508,7 @@ EKalmalaWildlifeArchetype AKalmalaWildlifeSpawn::GetArchetypeForSpawnSeed(const 
     return EKalmalaWildlifeArchetype::Mireling;
 }
 
-bool AKalmalaWildlifeSpawn::IsMirelingSpawnHabitatAllowed(const EKalmalaBiome Biome, const bool bIsWater)
+bool AKalmalaWildlifeSpawn::IsMossyMireSpawnHabitatAllowed(const EKalmalaBiome Biome, const bool bIsWater)
 {
     return Biome == EKalmalaBiome::MossyMire && !bIsWater;
 }
@@ -570,6 +578,12 @@ bool AKalmalaWildlifeSpawn::TryGetSpawnArchetypeForBiome(const uint64 SpawnSeed,
         return true;
     }
 
+    if (Biome == EKalmalaBiome::MossyMire && (Slot == 5 || Slot == 6))
+    {
+        OutArchetype = EKalmalaWildlifeArchetype::DeathAdder;
+        return true;
+    }
+
     // Reserve remaining Mire slots; unsupported biomes produce no wildlife candidates.
     return false;
 }
@@ -604,7 +618,9 @@ void AKalmalaWildlifeSpawn::Tick(const float DeltaSeconds)
         else if (Archetype == EKalmalaWildlifeArchetype::Rat) UpdateRatAttack(DeltaSeconds);
         else if (Archetype == EKalmalaWildlifeArchetype::Badger) UpdateBadgerAttack(DeltaSeconds);
         else if (Archetype == EKalmalaWildlifeArchetype::MoonBear) UpdateMoonBearAttack(DeltaSeconds);
-        else if (Archetype == EKalmalaWildlifeArchetype::Viper || Archetype == EKalmalaWildlifeArchetype::GiantSnake)
+        else if (Archetype == EKalmalaWildlifeArchetype::Viper
+            || Archetype == EKalmalaWildlifeArchetype::GiantSnake
+            || Archetype == EKalmalaWildlifeArchetype::DeathAdder)
             UpdateSnakeAmbush(DeltaSeconds);
     }
 }
@@ -1291,7 +1307,9 @@ bool AKalmalaWildlifeSpawn::IsSnakePositionDry(const FVector& Position) const
     if (State == nullptr) return false;
     const FKalmalaWorldGenerationConfig& Config = State->GetWorldGenerationConfig();
     const FVector2D XY(Position);
-    return FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, XY)) == EKalmalaBiome::ShimmeringLakes
+    const EKalmalaBiome ExpectedBiome = Archetype == EKalmalaWildlifeArchetype::DeathAdder
+        ? EKalmalaBiome::MossyMire : EKalmalaBiome::ShimmeringLakes;
+    return FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, XY)) == ExpectedBiome
         && !FKalmalaOceanSampler::Sample(Config, XY).IsWater()
         && !FKalmalaShimmeringLakeSampler::IsWater(Config, XY);
 }
@@ -1342,6 +1360,11 @@ bool AKalmalaWildlifeSpawn::TryApplySnakeBite(AKalmalaCharacter* Target)
         if (UKalmalaPlayerStatusComponent* Statuses = Target->GetStatusComponent())
             Statuses->ApplyWeakPoisonFromServer(ViperWeakPoisonDurationSeconds);
     }
+    else if (Archetype == EKalmalaWildlifeArchetype::DeathAdder)
+    {
+        if (UKalmalaPlayerStatusComponent* Statuses = Target->GetStatusComponent())
+            Statuses->ApplyMajorPoisonFromServer(DeathAdderMajorPoisonDurationSeconds);
+    }
     return true;
 }
 
@@ -1378,13 +1401,16 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
     if (USphereComponent* RootSphere = Cast<USphereComponent>(GetRootComponent()))
         RootSphere->SetSphereRadius(Archetype == EKalmalaWildlifeArchetype::Rat ? 42.0f : 70.0f, true);
     const bool bSnake = Archetype == EKalmalaWildlifeArchetype::Viper
-        || Archetype == EKalmalaWildlifeArchetype::GiantSnake;
+        || Archetype == EKalmalaWildlifeArchetype::GiantSnake
+        || Archetype == EKalmalaWildlifeArchetype::DeathAdder;
     if (SnakeBodyCollision != nullptr)
     {
         if (bSnake)
         {
             const bool bGiant = Archetype == EKalmalaWildlifeArchetype::GiantSnake;
-            SnakeBodyCollision->SetCapsuleSize(bGiant ? 38.0f : 16.0f, bGiant ? 210.0f : 92.0f, true);
+            const bool bDeathAdder = Archetype == EKalmalaWildlifeArchetype::DeathAdder;
+            SnakeBodyCollision->SetCapsuleSize(bGiant ? 38.0f : (bDeathAdder ? 21.0f : 16.0f),
+                bGiant ? 210.0f : (bDeathAdder ? 112.0f : 92.0f), true);
             SnakeBodyCollision->SetRelativeLocation(FVector(-22.0f, 0.0f, 0.0f));
             SnakeBodyCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
         }
@@ -1656,25 +1682,31 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
     else if (bSnake)
     {
         const bool bGiant = Archetype == EKalmalaWildlifeArchetype::GiantSnake;
+        const bool bDeathAdder = Archetype == EKalmalaWildlifeArchetype::DeathAdder;
         const bool bCoiled = static_cast<EKalmalaWildlifeAttackCue>(SnakeAttackCue)
             == EKalmalaWildlifeAttackCue::Telegraph;
-        const float HalfLength = bGiant ? 180.0f : 76.0f;
-        const float BodyRadius = bGiant ? 36.0f : 16.0f;
-        const float CoilWidth = bGiant ? 62.0f : 27.0f;
-        const float HeadHeight = bGiant ? (bCoiled ? 214.0f : 146.0f) : (bCoiled ? 104.0f : 69.0f);
-        const FLinearColor ScaleBase = bGiant ? FLinearColor(0.12f, 0.20f, 0.16f) : FLinearColor(0.27f, 0.34f, 0.18f);
-        const FLinearColor ScaleDark = bGiant ? FLinearColor(0.055f, 0.095f, 0.075f) : FLinearColor(0.13f, 0.19f, 0.11f);
-        const FLinearColor ScaleMark = bGiant ? FLinearColor(0.53f, 0.47f, 0.27f) : FLinearColor(0.70f, 0.60f, 0.31f);
-        const FLinearColor Belly = bGiant ? FLinearColor(0.40f, 0.34f, 0.20f) : FLinearColor(0.72f, 0.65f, 0.43f);
-        const FLinearColor Eye(0.95f, 0.72f, 0.12f);
-        const int32 BodySegments = bGiant ? 16 : 9;
+        const float HalfLength = bGiant ? 180.0f : (bDeathAdder ? 94.0f : 76.0f);
+        const float BodyRadius = bGiant ? 36.0f : (bDeathAdder ? 21.0f : 16.0f);
+        const float CoilWidth = bGiant ? 62.0f : (bDeathAdder ? 38.0f : 27.0f);
+        const float HeadHeight = bGiant ? (bCoiled ? 214.0f : 146.0f)
+            : (bDeathAdder ? (bCoiled ? 130.0f : 85.0f) : (bCoiled ? 104.0f : 69.0f));
+        const FLinearColor ScaleBase = bGiant ? FLinearColor(0.12f, 0.20f, 0.16f)
+            : (bDeathAdder ? FLinearColor(0.25f, 0.23f, 0.11f) : FLinearColor(0.27f, 0.34f, 0.18f));
+        const FLinearColor ScaleDark = bGiant ? FLinearColor(0.055f, 0.095f, 0.075f)
+            : (bDeathAdder ? FLinearColor(0.12f, 0.15f, 0.075f) : FLinearColor(0.13f, 0.19f, 0.11f));
+        const FLinearColor ScaleMark = bGiant ? FLinearColor(0.53f, 0.47f, 0.27f)
+            : (bDeathAdder ? FLinearColor(0.60f, 0.47f, 0.18f) : FLinearColor(0.70f, 0.60f, 0.31f));
+        const FLinearColor Belly = bGiant ? FLinearColor(0.40f, 0.34f, 0.20f)
+            : (bDeathAdder ? FLinearColor(0.47f, 0.40f, 0.22f) : FLinearColor(0.72f, 0.65f, 0.43f));
+        const FLinearColor Eye = bDeathAdder ? FLinearColor(0.96f, 0.36f, 0.08f) : FLinearColor(0.95f, 0.72f, 0.12f);
+        const int32 BodySegments = bGiant ? 16 : (bDeathAdder ? 11 : 9);
         for (int32 Segment = 0; Segment < BodySegments; ++Segment)
         {
             const float T = static_cast<float>(Segment) / static_cast<float>(BodySegments - 1);
             const float X = FMath::Lerp(-HalfLength, HalfLength * 0.60f, T);
             const float Curve = FMath::Sin(T * 3.0f * PI) * CoilWidth;
             const float Z = BodyRadius * 0.45f + FMath::Sin(T * 2.0f * PI) * BodyRadius * 0.20f;
-            const float SegmentHalf = bGiant ? 16.0f : 9.0f;
+            const float SegmentHalf = bGiant ? 16.0f : (bDeathAdder ? 11.0f : 9.0f);
             const float Radius = BodyRadius * (0.72f + 0.28f * FMath::Sin(T * PI));
             const FLinearColor BodyColour = Segment % 3 == 1 ? ScaleDark : ScaleBase;
             AddTetraPoints(FVector(X - SegmentHalf, Curve - Radius, Z),
@@ -1920,11 +1952,12 @@ void AKalmalaWildlifeSpawn::GrantDefeatReward()
     const int32 BoneFragmentQuantity = GetBoneFragmentRewardQuantity(Archetype);
     if (BoneFragmentQuantity > 0 && Archetype != EKalmalaWildlifeArchetype::Rat
         && Archetype != EKalmalaWildlifeArchetype::Badger && Archetype != EKalmalaWildlifeArchetype::MoonBear
-        && Archetype != EKalmalaWildlifeArchetype::Viper && Archetype != EKalmalaWildlifeArchetype::GiantSnake)
+        && Archetype != EKalmalaWildlifeArchetype::Viper && Archetype != EKalmalaWildlifeArchetype::GiantSnake
+        && Archetype != EKalmalaWildlifeArchetype::DeathAdder)
     {
         Inventory->TryGrantFromServer(TEXT("BoneFragment"), BoneFragmentQuantity);
     }
-    // Rat, Badger, Moon Bear, Viper and Giant Snake rewards use the persistent, all-or-none queue recorded before
+    // Rat, Badger, Moon Bear, Viper, Giant Snake and Death Adder rewards use the persistent queue recorded before
     // this defeated state is replicated, so they must not be granted a second time.
 
     if (Archetype == EKalmalaWildlifeArchetype::Mireling && IsMirelingBossRewardCandidate())

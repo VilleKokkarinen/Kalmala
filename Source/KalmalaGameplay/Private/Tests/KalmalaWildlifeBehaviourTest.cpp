@@ -212,6 +212,17 @@ bool FKalmalaModelSurfaceTest::RunTest(const FString& Parameters)
     GiantSnake->GetComponents(GiantSnakeParts);
     TestEqual(TEXT("Giant Snake creates its procedural model"), GiantSnakeParts.Num(), 1);
     for (auto* Part : GiantSnakeParts) CheckMesh(Part, true);
+    auto* DeathAdder = World->SpawnActor<AKalmalaWildlifeSpawn>();
+    if (!TestNotNull(TEXT("Death Adder presentation fixture exists"), DeathAdder)) return false;
+    FKalmalaWorldPopulationSpawn DeathAdderSpawn;
+    DeathAdderSpawn.Kind = EKalmalaWorldPopulationKind::Wildlife;
+    DeathAdderSpawn.SpawnSeed = 5;
+    DeathAdderSpawn.Location = FVector(1000, 0, 0);
+    DeathAdder->InitializeServer(DeathAdderSpawn, EKalmalaWildlifeArchetype::DeathAdder);
+    TArray<UProceduralMeshComponent*> DeathAdderParts;
+    DeathAdder->GetComponents(DeathAdderParts);
+    TestEqual(TEXT("Death Adder creates its procedural model"), DeathAdderParts.Num(), 1);
+    for (auto* Part : DeathAdderParts) CheckMesh(Part, true);
     return true;
 }
 

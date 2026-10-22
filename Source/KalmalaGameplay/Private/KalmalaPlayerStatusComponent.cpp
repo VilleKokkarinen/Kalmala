@@ -7,6 +7,7 @@
 
 const FName UKalmalaPlayerStatusComponent::WetStatusId(TEXT("State.Wet"));
 const FName UKalmalaPlayerStatusComponent::WeakPoisonStatusId(TEXT("State.Poison.Weak"));
+const FName UKalmalaPlayerStatusComponent::MajorPoisonStatusId(TEXT("State.Poison.Major"));
 const FName UKalmalaPlayerStatusComponent::SteadyMealStatusId(TEXT("State.Food.SteadyMeal"));
 const FName UKalmalaPlayerStatusComponent::CookedBoarMeatItemId(TEXT("CookedBoarMeat"));
 const FName UKalmalaPlayerStatusComponent::CookedDeerMeatItemId(TEXT("CookedDeerMeat"));
@@ -73,6 +74,7 @@ float UKalmalaPlayerStatusComponent::GetRemainingSeconds(const FName StatusId) c
         return Candidate.StatusId == StatusId && FMath::IsFinite(Candidate.RemainingSeconds) && Candidate.RemainingSeconds > 0.0f;
     });
     const float Maximum = StatusId == WeakPoisonStatusId ? WeakPoisonMaximumSeconds
+        : StatusId == MajorPoisonStatusId ? MajorPoisonMaximumSeconds
         : StatusId == SteadyMealStatusId ? SteadyMealMaximumSeconds
         : StatusId == BerryRecoveryStatusId ? BerryRecoveryMaximumSeconds
         : StatusId == DraughtCooldownStatusId ? DraughtCooldownMaximumSeconds : WetMaximumSeconds;
@@ -194,6 +196,7 @@ bool UKalmalaPlayerStatusComponent::ApplyWeakPoisonFromServer(const float Durati
         return false;
     }
 
+    const bool bPoisonWasActive = HasStatus(WeakPoisonStatusId) || HasStatus(MajorPoisonStatusId);
     Advance(Statuses, 0.0f);
     FKalmalaPlayerStatusEntry* Poison = Statuses.FindByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
     {
@@ -209,7 +212,39 @@ bool UKalmalaPlayerStatusComponent::ApplyWeakPoisonFromServer(const float Durati
         Poison = &Statuses.AddDefaulted_GetRef();
         Poison->StatusId = WeakPoisonStatusId;
         Poison->RemainingSeconds = DurationSeconds;
-        WeakPoisonSecondsUntilTick = WeakPoisonTickIntervalSeconds;
+        if (!bPoisonWasActive) PoisonSecondsUntilTick = PoisonTickIntervalSeconds;
+    }
+    GetOwner()->ForceNetUpdate();
+    return true;
+}
+
+bool UKalmalaPlayerStatusComponent::ApplyMajorPoisonFromServer(const float DurationSeconds)
+{
+    AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(GetOwner());
+    if (!IsValid(Character) || !Character->HasAuthority() || Character->GetHealth() <= 1.0f
+        || !FMath::IsFinite(DurationSeconds) || DurationSeconds <= 0.0f
+        || DurationSeconds > MajorPoisonMaximumSeconds)
+    {
+        return false;
+    }
+
+    const bool bPoisonWasActive = HasStatus(WeakPoisonStatusId) || HasStatus(MajorPoisonStatusId);
+    Advance(Statuses, 0.0f);
+    FKalmalaPlayerStatusEntry* Poison = Statuses.FindByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
+    {
+        return Entry.StatusId == MajorPoisonStatusId && FMath::IsFinite(Entry.RemainingSeconds)
+            && Entry.RemainingSeconds > 0.0f;
+    });
+    if (Poison != nullptr)
+    {
+        Poison->RemainingSeconds = FMath::Max(Poison->RemainingSeconds, DurationSeconds);
+    }
+    else
+    {
+        Poison = &Statuses.AddDefaulted_GetRef();
+        Poison->StatusId = MajorPoisonStatusId;
+        Poison->RemainingSeconds = DurationSeconds;
+        if (!bPoisonWasActive) PoisonSecondsUntilTick = PoisonTickIntervalSeconds;
     }
     GetOwner()->ForceNetUpdate();
     return true;
@@ -220,33 +255,35 @@ void UKalmalaPlayerStatusComponent::AdvanceFromServer(const float DeltaSeconds)
     if (!GetOwner() || !GetOwner()->HasAuthority()) return;
     const float SafeDelta = FMath::Max(0.0f, FMath::IsFinite(DeltaSeconds) ? DeltaSeconds : 0.0f);
     AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(GetOwner());
-    const int32 PoisonIndex = Statuses.IndexOfByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
-    {
-        return Entry.StatusId == WeakPoisonStatusId && FMath::IsFinite(Entry.RemainingSeconds)
-            && Entry.RemainingSeconds > 0.0f;
-    });
-    if (PoisonIndex != INDEX_NONE)
+    const float WeakPoisonRemaining = GetRemainingSeconds(WeakPoisonStatusId);
+    const float MajorPoisonRemaining = GetRemainingSeconds(MajorPoisonStatusId);
+    if (WeakPoisonRemaining > 0.0f || MajorPoisonRemaining > 0.0f)
     {
         if (!Character || Character->GetHealth() <= 1.0f)
         {
-            Statuses.RemoveAt(PoisonIndex);
-            WeakPoisonSecondsUntilTick = WeakPoisonTickIntervalSeconds;
+            Statuses.RemoveAll([](const FKalmalaPlayerStatusEntry& Entry)
+            { return Entry.StatusId == WeakPoisonStatusId || Entry.StatusId == MajorPoisonStatusId; });
+            PoisonSecondsUntilTick = PoisonTickIntervalSeconds;
         }
         else if (SafeDelta > 0.0f)
         {
-            const float RemainingBeforeAdvance = Statuses[PoisonIndex].RemainingSeconds;
-            const bool bTickDue = WeakPoisonSecondsUntilTick <= SafeDelta + KINDA_SMALL_NUMBER
-                && RemainingBeforeAdvance + KINDA_SMALL_NUMBER >= SafeDelta;
+            const float TimeToTick = FMath::Clamp(PoisonSecondsUntilTick, 0.0f, PoisonTickIntervalSeconds);
+            const bool bTickDue = TimeToTick <= SafeDelta + KINDA_SMALL_NUMBER;
             if (bTickDue)
             {
-                Character->ApplyPoisonDamageFromStatusFromServer(WeakPoisonDamagePerSecond);
+                const bool bMajorActiveAtTick = MajorPoisonRemaining + KINDA_SMALL_NUMBER >= TimeToTick;
+                const bool bWeakActiveAtTick = WeakPoisonRemaining + KINDA_SMALL_NUMBER >= TimeToTick;
+                if (bMajorActiveAtTick)
+                    Character->ApplyPoisonDamageFromStatusFromServer(MajorPoisonDamagePerSecond);
+                else if (bWeakActiveAtTick)
+                    Character->ApplyPoisonDamageFromStatusFromServer(WeakPoisonDamagePerSecond);
                 // Apply at most one tick in a server update. Excess elapsed time is not replayed
                 // as a burst after a hitch.
-                WeakPoisonSecondsUntilTick = WeakPoisonTickIntervalSeconds;
+                PoisonSecondsUntilTick = PoisonTickIntervalSeconds;
             }
             else
             {
-                WeakPoisonSecondsUntilTick = FMath::Max(0.0f, WeakPoisonSecondsUntilTick - SafeDelta);
+                PoisonSecondsUntilTick = FMath::Max(0.0f, TimeToTick - SafeDelta);
             }
         }
     }
@@ -269,7 +306,8 @@ void UKalmalaPlayerStatusComponent::AdvanceFromServer(const float DeltaSeconds)
         }
     }
     Advance(Statuses, DeltaSeconds);
-    if (!HasStatus(WeakPoisonStatusId)) WeakPoisonSecondsUntilTick = WeakPoisonTickIntervalSeconds;
+    if (!HasStatus(WeakPoisonStatusId) && !HasStatus(MajorPoisonStatusId))
+        PoisonSecondsUntilTick = PoisonTickIntervalSeconds;
     GetOwner()->ForceNetUpdate();
 }
 

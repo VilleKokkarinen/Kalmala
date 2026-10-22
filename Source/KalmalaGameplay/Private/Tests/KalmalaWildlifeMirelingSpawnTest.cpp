@@ -21,6 +21,7 @@ bool FKalmalaWildlifeMirelingSpawnTest::RunTest(const FString& Parameters)
     int32 LakeViper = 0;
     int32 LakeGiantSnake = 0;
     int32 MirelingSlots = 0;
+    int32 DeathAdderSlots = 0;
     int32 ReservedMireSlots = 0;
     for (uint64 Seed = 0; Seed < 1000; ++Seed)
     {
@@ -65,9 +66,16 @@ bool FKalmalaWildlifeMirelingSpawnTest::RunTest(const FString& Parameters)
                 EKalmalaWildlifeArchetype::Mireling);
             ++MirelingSlots;
         }
+        else if (Seed % 10ull < 7ull)
+        {
+            TestTrue(TEXT("Death Adder occupies its two Mossy Mire slots"), bMireEligible);
+            TestEqual(TEXT("Mossy Mire common slots select Death Adder"), Archetype,
+                EKalmalaWildlifeArchetype::DeathAdder);
+            ++DeathAdderSlots;
+        }
         else
         {
-            TestFalse(TEXT("Unimplemented Mossy Mire enemy shares remain unspawned"), bMireEligible);
+            TestFalse(TEXT("Unimplemented Mossy Mire shares remain unspawned"), bMireEligible);
             ++ReservedMireSlots;
         }
     }
@@ -84,7 +92,8 @@ bool FKalmalaWildlifeMirelingSpawnTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Shimmering Lakes keeps its 40% Viper share"), LakeViper, 400);
     TestEqual(TEXT("Shimmering Lakes keeps its 10% Giant Snake share"), LakeGiantSnake, 100);
     TestEqual(TEXT("Mireling occupies exactly half the Mossy Mire slots"), MirelingSlots, 500);
-    TestEqual(TEXT("Remaining Mossy Mire shares stay reserved for later species"), ReservedMireSlots, 500);
+    TestEqual(TEXT("Death Adder occupies twenty percent of Mossy Mire slots"), DeathAdderSlots, 200);
+    TestEqual(TEXT("Unimplemented Mossy Mire shares stay reserved for later species"), ReservedMireSlots, 300);
 
     for (const EKalmalaBiome OtherBiome : { EKalmalaBiome::Meadows, EKalmalaBiome::Elderwood,
              EKalmalaBiome::ShimmeringLakes, EKalmalaBiome::FreezingTundra,
@@ -97,16 +106,18 @@ bool FKalmalaWildlifeMirelingSpawnTest::RunTest(const FString& Parameters)
             {
                 TestFalse(TEXT("Mireling cannot be selected outside Mossy Mire"),
                     OtherArchetype == EKalmalaWildlifeArchetype::Mireling);
+                TestFalse(TEXT("Death Adder cannot be selected outside Mossy Mire"),
+                    OtherArchetype == EKalmalaWildlifeArchetype::DeathAdder);
             }
         }
     }
 
     TestTrue(TEXT("Dry Mossy Mire is a valid Mireling habitat"),
-        AKalmalaWildlifeSpawn::IsMirelingSpawnHabitatAllowed(EKalmalaBiome::MossyMire, false));
+        AKalmalaWildlifeSpawn::IsMossyMireSpawnHabitatAllowed(EKalmalaBiome::MossyMire, false));
     TestFalse(TEXT("Water is not a valid Mireling spawn surface"),
-        AKalmalaWildlifeSpawn::IsMirelingSpawnHabitatAllowed(EKalmalaBiome::MossyMire, true));
+        AKalmalaWildlifeSpawn::IsMossyMireSpawnHabitatAllowed(EKalmalaBiome::MossyMire, true));
     TestFalse(TEXT("Dry terrain in another biome is not a Mireling habitat"),
-        AKalmalaWildlifeSpawn::IsMirelingSpawnHabitatAllowed(EKalmalaBiome::Meadows, false));
+        AKalmalaWildlifeSpawn::IsMossyMireSpawnHabitatAllowed(EKalmalaBiome::Meadows, false));
     TestEqual(TEXT("The existing Mireling leaves baseline Bone Fragment loot unchanged"),
         AKalmalaWildlifeSpawn::GetBoneFragmentRewardQuantity(EKalmalaWildlifeArchetype::Mireling), 0);
     return true;
