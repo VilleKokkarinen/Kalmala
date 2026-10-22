@@ -75,9 +75,16 @@ wildlife ranged-damage helper, retaining resistances/defeat/attacker rewards whi
 bypassing only the melee 220 cm range cap. Existing melee checks are unchanged.
 No client sets projectile transform, damage, charge or hit actor. No PvP or tree
 harvesting from arrows. Lifetime is five seconds. WoodenArrow charge maps 10..40
-Pierce; StoneArrow deals 25 Pierce at any charge. Both retain 1000..4500 cm/s
-velocity and 8..0.25 degree spread. StoneArrow's attack list is keyed by its
-ordinary item ID in `attacks/bows.json`. No projectile recovery.
+Pierce; StoneArrow deals 25 Pierce at any charge; FangArrows deals its authored
+50 Pierce at any charge. An accepted FangArrows hit also applies weak poison to
+living wildlife for five seconds at one Poison damage per second. Rehits refresh
+the remaining duration up to five seconds without stacking or resetting the
+shared poison tick clock. Poison damage uses the existing resistance resolution
+with no new attacker, preserving the last accepted arrow hit's reward credit.
+Only the server owns the transient poison timer and its ticks; it does not add
+replicated status or save data. All three ammunition types retain 1000..4500
+cm/s velocity and 8..0.25 degree spread. Authored arrow attack lists are keyed
+by ordinary item ID in `attacks/bows.json`. No projectile recovery.
 
 A local hit-test-invisible full-viewport crosshair widget draws a 50..4 radius
 circle during drawing and a small idle dot, hiding during modal input. It is

@@ -191,6 +191,8 @@ void AKalmalaWildlifeSpawn::InitializeServer(const FKalmalaWorldPopulationSpawn&
 {
     if (HasAuthority())
     {
+        FangArrowPoisonRemainingSeconds = 0.0f;
+        FangArrowPoisonSecondsUntilTick = UKalmalaPlayerStatusComponent::PoisonTickIntervalSeconds;
         SetActorLocation(Spawn.Location);
         SpawnOrigin = Spawn.Location;
         BehaviourDestination = SpawnOrigin;
@@ -541,6 +543,8 @@ bool AKalmalaWildlifeSpawn::DefeatServer()
                 PersistentSpawnId, LastValidatedAttacker.Get())) return false;
     }
 
+    FangArrowPoisonRemainingSeconds = 0.0f;
+    FangArrowPoisonSecondsUntilTick = UKalmalaPlayerStatusComponent::PoisonTickIntervalSeconds;
     bDefeated = true;
     // The population owner records the sparse server delta before this actor exposes any owner-only reward.
     OnDefeated.Broadcast(PersistentSpawnId);
@@ -560,8 +564,76 @@ bool AKalmalaWildlifeSpawn::ApplyCombatDamageFromServer(const float Damage, AKal
 bool AKalmalaWildlifeSpawn::ApplyCombatDamageFromServer(const FKalmalaDamageChannels& Damage, AKalmalaCharacter* Attacker)
 { return ApplyValidatedDamageFromServer(Damage, Attacker, true); }
 
-bool AKalmalaWildlifeSpawn::ApplyArrowDamageFromServer(const FKalmalaDamageChannels& Damage, AKalmalaCharacter* Attacker)
-{ return Attacker && ApplyValidatedDamageFromServer(Damage, Attacker, false); }
+bool AKalmalaWildlifeSpawn::ApplyArrowDamageFromServer(const FKalmalaDamageChannels& Damage,
+    AKalmalaCharacter* Attacker, const FName ArrowItemId)
+{
+    if (!Attacker || ArrowItemId.IsNone()) return false;
+    const bool bDamageAccepted = ApplyValidatedDamageFromServer(Damage, Attacker, false);
+    if (bDamageAccepted && ArrowItemId == TEXT("FangArrows")) ApplyFangArrowWeakPoisonFromServer();
+    return bDamageAccepted;
+}
+
+void AKalmalaWildlifeSpawn::ApplyFangArrowWeakPoisonFromServer()
+{
+    if (!HasAuthority() || bDefeated || !FMath::IsFinite(Health) || Health <= 0.0f) return;
+    const bool bPoisonWasActive = FMath::IsFinite(FangArrowPoisonRemainingSeconds)
+        && FangArrowPoisonRemainingSeconds > 0.0f;
+    if (bPoisonWasActive)
+    {
+        FangArrowPoisonRemainingSeconds = FMath::Max(FangArrowPoisonRemainingSeconds,
+            FangArrowWeakPoisonDurationSeconds);
+        return;
+    }
+    FangArrowPoisonRemainingSeconds = FangArrowWeakPoisonDurationSeconds;
+    FangArrowPoisonSecondsUntilTick = UKalmalaPlayerStatusComponent::PoisonTickIntervalSeconds;
+}
+
+void AKalmalaWildlifeSpawn::AdvanceFangArrowWeakPoisonFromServer(const float DeltaSeconds)
+{
+    if (!HasAuthority()) return;
+    if (!FMath::IsFinite(FangArrowPoisonRemainingSeconds) || FangArrowPoisonRemainingSeconds <= 0.0f)
+    {
+        FangArrowPoisonRemainingSeconds = 0.0f;
+        FangArrowPoisonSecondsUntilTick = UKalmalaPlayerStatusComponent::PoisonTickIntervalSeconds;
+        return;
+    }
+    if (bDefeated || !FMath::IsFinite(Health) || Health <= 0.0f)
+    {
+        FangArrowPoisonRemainingSeconds = 0.0f;
+        FangArrowPoisonSecondsUntilTick = UKalmalaPlayerStatusComponent::PoisonTickIntervalSeconds;
+        return;
+    }
+
+    const float SafeDelta = FMath::Max(0.0f, FMath::IsFinite(DeltaSeconds) ? DeltaSeconds : 0.0f);
+    if (SafeDelta <= 0.0f) return;
+    const float TimeToTick = FMath::Clamp(FangArrowPoisonSecondsUntilTick,
+        0.0f, UKalmalaPlayerStatusComponent::PoisonTickIntervalSeconds);
+    if (TimeToTick <= SafeDelta + KINDA_SMALL_NUMBER)
+    {
+        if (FangArrowPoisonRemainingSeconds + KINDA_SMALL_NUMBER >= TimeToTick)
+        {
+            FKalmalaDamageChannels PoisonDamage;
+            PoisonDamage.Poison = UKalmalaPlayerStatusComponent::WeakPoisonDamagePerSecond;
+            // The previous accepted arrow hit retains reward credit for a poison defeat.
+            ApplyValidatedDamageFromServer(PoisonDamage, nullptr, false);
+        }
+        FangArrowPoisonSecondsUntilTick = UKalmalaPlayerStatusComponent::PoisonTickIntervalSeconds;
+    }
+    else
+    {
+        FangArrowPoisonSecondsUntilTick = FMath::Max(0.0f, TimeToTick - SafeDelta);
+    }
+
+    if (bDefeated || Health <= 0.0f)
+    {
+        FangArrowPoisonRemainingSeconds = 0.0f;
+        FangArrowPoisonSecondsUntilTick = UKalmalaPlayerStatusComponent::PoisonTickIntervalSeconds;
+        return;
+    }
+    FangArrowPoisonRemainingSeconds = FMath::Max(0.0f, FangArrowPoisonRemainingSeconds - SafeDelta);
+    if (FangArrowPoisonRemainingSeconds <= 0.0f)
+        FangArrowPoisonSecondsUntilTick = UKalmalaPlayerStatusComponent::PoisonTickIntervalSeconds;
+}
 
 bool AKalmalaWildlifeSpawn::ApplyValidatedDamageFromServer(const FKalmalaDamageChannels& Damage, AKalmalaCharacter* Attacker, bool bMelee)
 {
@@ -890,6 +962,7 @@ void AKalmalaWildlifeSpawn::Tick(const float DeltaSeconds)
     UpdateMosquitoPresentation(DeltaSeconds);
     if (HasAuthority() && !bDefeated)
     {
+        AdvanceFangArrowWeakPoisonFromServer(DeltaSeconds);
         AdvanceServerBehaviour(DeltaSeconds);
         if (Archetype == EKalmalaWildlifeArchetype::Mireling) UpdateMirelingScavenge(DeltaSeconds);
         else if (Archetype == EKalmalaWildlifeArchetype::Boar) UpdateBoarTerritory(DeltaSeconds);

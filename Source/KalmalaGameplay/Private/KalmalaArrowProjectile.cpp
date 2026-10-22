@@ -39,7 +39,9 @@ bool AKalmalaArrowProjectile::InitializeShot(const FVector& Direction, float Dra
     if (!HasAuthority() || ArrowItemId.IsNone() || Direction.ContainsNaN() || !FMath::IsFinite(DrawProgress)) return false;
     const float Progress = FMath::Clamp(DrawProgress, 0.0f, 1.0f);
     PreviousPosition = GetActorLocation();
+    ShotItemId = NAME_None;
     if (!ResolveShotDamage(ArrowItemId, Progress, ShotDamage)) return false;
+    ShotItemId = ArrowItemId;
     Movement->Velocity = Direction.GetSafeNormal() * FMath::Lerp(1000.0f, 4500.0f, Progress);
     Collision->IgnoreActorWhenMoving(GetOwner(), true);
     return true;
@@ -68,7 +70,7 @@ void AKalmalaArrowProjectile::Hit(UPrimitiveComponent*, AActor* Other, UPrimitiv
     if (auto* Wildlife = Cast<AKalmalaWildlifeSpawn>(Other))
     {
         FKalmalaDamageChannels Damage; Damage.Pierce = ShotDamage;
-        Wildlife->ApplyArrowDamageFromServer(Damage, Cast<AKalmalaCharacter>(GetOwner()));
+        Wildlife->ApplyArrowDamageFromServer(Damage, Cast<AKalmalaCharacter>(GetOwner()), ShotItemId);
     }
     Destroy();
 }

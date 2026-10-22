@@ -24,7 +24,7 @@
     {
       "ItemId": "FangArrows",
       "DisplayName": "Fang Arrows",
-      "Description": "Arrows tipped with sharp viper fangs.",
+      "Description": "Deal 50 Pierce damage and apply weak poison for 5 seconds.",
       "MaxStack": 100,
       "WeightKg": 0.05
     }

@@ -2323,7 +2323,11 @@ checks the procedural Viper model. Run these editor automations in the combined
 A8a/A8b I4 acceptance. They are contract coverage, not live Viper GameMode
 delivery, restart, or relevant-peer acceptance; no Unreal build or runtime
 acceptance ran in this increment. The Viper Fang drop now uses the existing
-durable claim; the Fang Arrows recipe output remains a separate unchecked task.
+durable claim. The Fang Arrows recipe output uses its registered Workbench
+recipe and fixed 50-Pierce attack; accepted wildlife hits apply the five-second
+weak-poison profile. The bow regression covers the shot, tick-clock-preserving
+refresh, five total poison ticks and the authority-owned timer. Its source is
+still contract coverage until compiled and executed during combined A8a/A8b I4.
 
 ## Shimmering Lakes Giant Snake contract regression
 
@@ -5153,8 +5157,10 @@ Run focused Editor automation:
 `Automation RunTests Kalmala.Gameplay.Inventory.SharedGrid+Kalmala.Gameplay.Inventory.MainHandHotbar+Kalmala.UI.Inventory.NumberedHotbar+Kalmala.UI.Inventory.EquippedHotbarTint+Kalmala.Gameplay.Inventory.TwoHanded+Kalmala.Gameplay.Combat.BowDrawAndArrows`.
 These verify fixed cell identities, key-three equip/toggle/switch, duplicate copies,
 full-pack unequip and forty-cell capacity, actual widget blue fills, shield capacity,
-and bow shot regressions. EquippedHotbarTint initializes its test world for play
-before constructing a local-player widget, matching the valid runtime player context.
+and bow shot regressions. Bow coverage includes Fang Arrows' fixed 50 Pierce,
+five-second wildlife poison, nonstacking refresh and preserved tick clock.
+EquippedHotbarTint initializes its test world for play before constructing a
+local-player widget, matching the valid runtime player context.
 For visual acceptance rebuild Development Editor, put an axe in cell 3, press 3
 with empty hands and confirm it remains visible with a blue background in the HUD
 and inventory. Press again to clear the hand; switch tools and move the equipped

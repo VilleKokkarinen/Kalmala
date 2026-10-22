@@ -91,6 +91,8 @@ public:
     bool DefeatServer();
     bool ApplyCombatDamageFromServer(const FKalmalaDamageChannels& Damage, class AKalmalaCharacter* Attacker = nullptr);
     bool ApplyCombatDamageFromServer(float Damage, class AKalmalaCharacter* Attacker = nullptr);
+    static constexpr float FangArrowWeakPoisonDurationSeconds = 5.0f;
+    float GetFangArrowPoisonRemainingSeconds() const { return FangArrowPoisonRemainingSeconds; }
     bool ApplyDeerCallFromServer(const FVector& SourceLocation);
     bool IsMirelingBossRewardCandidate() const;
     bool IsDefeated() const { return bDefeated; }
@@ -240,8 +242,10 @@ public:
 
 private:
     friend class AKalmalaArrowProjectile;
-    bool ApplyArrowDamageFromServer(const FKalmalaDamageChannels& Damage, AKalmalaCharacter* Attacker);
+    bool ApplyArrowDamageFromServer(const FKalmalaDamageChannels& Damage, AKalmalaCharacter* Attacker, FName ArrowItemId);
     bool ApplyValidatedDamageFromServer(const FKalmalaDamageChannels& Damage, AKalmalaCharacter* Attacker, bool bMelee);
+    void ApplyFangArrowWeakPoisonFromServer();
+    void AdvanceFangArrowWeakPoisonFromServer(float DeltaSeconds);
 
     void ApplyDefeatedState();
     void BeginServerBehaviour(EKalmalaWildlifeBehaviour NextBehaviour, float DurationSeconds, const FVector& Destination,
@@ -346,6 +350,9 @@ private:
 
     UPROPERTY(Replicated)
     float Health = 75.0f;
+
+    float FangArrowPoisonRemainingSeconds = 0.0f;
+    float FangArrowPoisonSecondsUntilTick = 1.0f;
 
     UPROPERTY(Replicated)
     FString PersistentSpawnId;

@@ -14,6 +14,7 @@ public:
     static bool ResolveShotDamage(FName ArrowItemId, float DrawProgress, float& OutShotDamage);
     virtual void Tick(float DeltaSeconds) override;
     float GetShotDamage() const { return ShotDamage; }
+    FName GetShotItemId() const { return ShotItemId; }
 protected:
     virtual void BeginPlay() override;
 private:
@@ -22,5 +23,6 @@ private:
     UPROPERTY() TObjectPtr<USphereComponent> Collision;
     UPROPERTY() TObjectPtr<UProjectileMovementComponent> Movement;
     float ShotDamage = 0;
+    FName ShotItemId = NAME_None;
     FVector PreviousPosition = FVector::ZeroVector;
 };

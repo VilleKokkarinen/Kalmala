@@ -111,7 +111,8 @@ coils before a narrow lunge, and applies the shared weak poison after an
 accepted server bite. Each credited Viper defeat now queues the one-Bone
 baseline reward plus one guaranteed Viper Fang under the same authenticated,
 owner-bound claim. The server commits both together; if both do not fit, the
-claim stays in population-save escrow. Fang Arrows remain a separate A8b task.
+claim stays in population-save escrow. Workbench-crafted Fang Arrows apply the
+accepted weak-poison profile on server-confirmed wildlife hits.
 
 Giant Snake uses the reviewed 250-health, 30-armor, 100-Stab profile in the
 remaining 10% Shimmering Lakes candidate slot. It is restricted to dry lake
@@ -220,9 +221,10 @@ Every retained drop has a use; Boar and Mosquito swarm have no new unique drop.
 - Roasted Badger, Peat Heart Stew and Wolf Stew use A6's accepted Steady Meal:
   120 s, stamina costs ×0.90, no stacking or eating while active. Raw meat and
   Peat Heart are ingredients.
-- Fang Arrows use the existing weak-poison profile, 1 damage/s for 5 s, on an
-  accepted hit. Apply the existing strongest-dose/refresh rules once per
-  projectile hit; do not repeat the poison application.
+- Fang Arrows deal 50 Pierce and apply the existing weak-poison profile to
+  living wildlife on an accepted hit: 1 Poison damage/s for 5 s. Rehits refresh
+  the duration without stacking or resetting the tick clock; poison defeats
+  retain the last accepted arrow attacker's reward credit.
 - Rat-tail Tonic weighs 0.2 kg and stacks to 10. It restores up to 30 health
   over 10 seconds at 3 health/second, clamped to maximum health and ending early
   when full. Reject use when dead, at full health, while this or Berry Recovery

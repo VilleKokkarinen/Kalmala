@@ -111,6 +111,7 @@ bool FKalmalaBowDrawTest::RunTest(const FString& Parameters)
         if (IsValid(*Arrow)) Arrow->Destroy();
     }
     TestEqual(TEXT("Real swept projectile damages wildlife beyond melee reach"), Wildlife->GetHealth(), 60.0f);
+    TestEqual(TEXT("Wooden arrows do not apply fang poison"), Wildlife->GetFangArrowPoisonRemainingSeconds(), 0.0f);
     Recover();
     Combat->ServerBeginBowDraw(9);
     Combat->ServerReleaseBow(10,false);
@@ -187,14 +188,73 @@ bool FKalmalaBowDrawTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Preferred Stone Arrow release creates a projectile"), bSawStoneArrowShot);
     TestFalse(TEXT("Exhausted preferred Stone Arrow stack clears"), Combat->GetPreferredArrowStack().IsValid());
     Recover();
+
+    TestTrue(TEXT("Fang Arrows can be granted from their catalogue definition"),
+        Inventory->TryGrantFromServer(TEXT("FangArrows"), 2));
+    const auto FangStack = Inventory->GetStacks().FindByPredicate(
+        [](const auto& Stack) { return Stack.ItemId == TEXT("FangArrows") && Stack.Quantity > 0; });
+    if (!TestNotNull(TEXT("Fang Arrow stack exists"), FangStack) || FangStack->ItemGuids.IsEmpty()) return false;
+    Combat->ServerPreferArrowStack(FangStack->ItemGuids[0]);
+    TestEqual(TEXT("Fang Arrows can be selected for a bow shot"), Combat->GetArrowItemIdForDisplay(),
+        FName(TEXT("FangArrows")));
+    float FangDamage = 0.0f;
+    const bool bResolvedFangDamage = AKalmalaArrowProjectile::ResolveShotDamage(TEXT("FangArrows"), 0.0f, FangDamage);
+    TestTrue(TEXT("Fang Arrow damage resolves at zero draw"), bResolvedFangDamage);
+    TestEqual(TEXT("Fang Arrows use fixed 50 Pierce at any draw"), FangDamage, 50.0f);
+    FKalmalaWorldPopulationSpawn FangSpawn;
+    FangSpawn.SpawnSeed = 703;
+    FangSpawn.Location = FVector(400.0f, 300.0f, 25.0f);
+    auto* FangTarget = World->SpawnActor<AKalmalaWildlifeSpawn>(FangSpawn.Location, FRotator::ZeroRotator);
+    if (!TestNotNull(TEXT("Fang Arrow wildlife target exists"), FangTarget)) return false;
+    FangTarget->InitializeServer(FangSpawn, EKalmalaWildlifeArchetype::MoonBear);
+    Combat->ServerBeginBowDraw(17);
+    for (int32 Step = 0; Step < 8; ++Step) World->Tick(LEVELTICK_TimeOnly, 0.25f);
+    Combat->ServerReleaseBow(18, false);
+    TestEqual(TEXT("Bow release consumes one Fang Arrow"), Inventory->GetQuantity(TEXT("FangArrows")), 1);
+    bool bSawFangArrowShot = false;
+    for (TActorIterator<AKalmalaArrowProjectile> Arrow(World); Arrow; ++Arrow)
+    {
+        bSawFangArrowShot = true;
+        TestEqual(TEXT("Fang Arrow projectile retains its selected item ID"), Arrow->GetShotItemId(), FName(TEXT("FangArrows")));
+        TestEqual(TEXT("Fang Arrow projectile deals 50 Pierce"), Arrow->GetShotDamage(), 50.0f);
+        Arrow->SetActorLocation(FangTarget->GetActorLocation());
+        Arrow->Tick(0.0f);
+    }
+    TestTrue(TEXT("Selected Fang Arrow creates a server projectile"), bSawFangArrowShot);
+    TestEqual(TEXT("Accepted Fang Arrow hit applies five seconds of weak poison"),
+        FangTarget->GetFangArrowPoisonRemainingSeconds(), AKalmalaWildlifeSpawn::FangArrowWeakPoisonDurationSeconds);
+    FangTarget->Tick(0.5f);
+    TestEqual(TEXT("Fang poison retains the half-second time to its first tick"),
+        FangTarget->GetFangArrowPoisonRemainingSeconds(), 4.5f);
+    auto* RefreshArrow = World->SpawnActor<AKalmalaArrowProjectile>(Pawn->GetActorLocation(), FRotator::ZeroRotator);
+    if (!TestNotNull(TEXT("Fang Arrow refresh projectile exists"), RefreshArrow)) return false;
+    RefreshArrow->SetOwner(Pawn);
+    TestTrue(TEXT("Server initializes a Fang Arrow refresh projectile"),
+        RefreshArrow->InitializeShot(FVector::ForwardVector, 1.0f, TEXT("FangArrows")));
+    RefreshArrow->SetActorLocation(FangTarget->GetActorLocation());
+    RefreshArrow->Tick(0.0f);
+    TestEqual(TEXT("Fang Arrow refresh restores duration without stacking"),
+        FangTarget->GetFangArrowPoisonRemainingSeconds(), AKalmalaWildlifeSpawn::FangArrowWeakPoisonDurationSeconds);
+    const float HealthAtRefresh = FangTarget->GetHealth();
+    FangTarget->Tick(0.5f);
+    TestEqual(TEXT("Refresh preserves the shared poison tick clock"), FangTarget->GetHealth(), HealthAtRefresh - 1.0f);
+    for (int32 Tick = 0; Tick < 4; ++Tick) FangTarget->Tick(1.0f);
+    const float HealthAfterFiveTicks = FangTarget->GetHealth();
+    TestEqual(TEXT("Fang poison applies exactly five nonstacking one-damage ticks"),
+        HealthAtRefresh - HealthAfterFiveTicks, 5.0f);
+    FangTarget->Tick(1.0f);
+    TestEqual(TEXT("Fang poison expires without a sixth tick"), FangTarget->GetHealth(), HealthAfterFiveTicks);
+    TestEqual(TEXT("Fang poison timer clears after expiry"), FangTarget->GetFangArrowPoisonRemainingSeconds(), 0.0f);
+    Combat->ServerPreferArrowStack(FGuid());
+    Recover();
     const int32 AmmoBeforeFailure=Inventory->GetQuantity(TEXT("WoodenArrow"));
     const int32 ConditionBeforeFailure=Pawn->GetToolDurability(TEXT("LightBow"));
     Pawn->SetPlayerState(nullptr);
-    Combat->ServerBeginBowDraw(17); Combat->ServerReleaseBow(18,false);
+    Combat->ServerBeginBowDraw(21); Combat->ServerReleaseBow(22,false);
     TestEqual(TEXT("Persistence failure rolls back ammunition"),Inventory->GetQuantity(TEXT("WoodenArrow")),AmmoBeforeFailure);
     TestEqual(TEXT("Persistence failure rolls back Light Bow condition"),Pawn->GetToolDurability(TEXT("LightBow")),ConditionBeforeFailure);
     Pawn->SetPlayerState(PlayerState);
-    Combat->ServerBeginBowDraw(19);
+    Combat->ServerBeginBowDraw(23);
     const auto Hammer=Tools.FindByPredicate([](const auto& Tool){return Tool.ItemId==TEXT("ConstructionHammer");});
     Inventory->SetMainHandFromServer(Hammer->InstanceGuid,Reason);
     Combat->TickComponent(0.01f,LEVELTICK_All,nullptr);
