@@ -5305,3 +5305,9 @@
 - Reconciled main commit 5b179c6a into the isolated codex/a8b-items branch after preserving its Rat runtime-stat progress entry. The Rat profile does not add a live spawn or reward, and this A8b increment enables no drop.
 - The main checkout remains at 5b179c6a; this branch now contains all committed main history through that point. Next I will recheck ownership and cleanliness before the fast-forward handoff.
 - Next eligible A8b task after integration: Badger Meat icon (BadgerMeat).
+
+## Run 2026-10-22 06:46 UTC — A8b Badger Fur main integration
+
+- Fast-forwarded main from 5b179c6a to A8b branch commit 234648c7, which contains Badger Fur icon commit eff144e3 and the reconciled main history. The Badger Fur icon checkbox, original/prepared artwork, imported Texture2D, manifest row, and runtime mapping are now on main.
+- Main and codex/a8b-items both pointed to 234648c7 after the fast-forward; this integration record will be synchronized in the final handoff commit. The material/source task remains open and no Badger drop is enabled.
+- Next eligible A8b task: Badger Meat icon (BadgerMeat), after the progress handoff is synchronized.
