@@ -102,10 +102,10 @@ separate A8b item/source work.
 Viper uses the reviewed 100-health, 10-armor, 50-Stab profile and the seeded
 40% Shimmering Lakes share. It only spawns on eligible dry shoreline, visibly
 coils before a narrow lunge, and applies the shared weak poison after an
-accepted server bite. Its one-Bone-Fragment baseline claim stays owner-bound in
-the world-population save until capacity is available. The separate Viper Fang
-drop and poison-arrow source remain A8b work and are not enabled by this A8a
-baseline reward.
+accepted server bite. Each credited Viper defeat now queues the one-Bone
+baseline reward plus one guaranteed Viper Fang under the same authenticated,
+owner-bound claim. The server commits both together; if both do not fit, the
+claim stays in population-save escrow. Fang Arrows remain a separate A8b task.
 
 Giant Snake uses the reviewed 250-health, 30-armor, 100-Stab profile in the
 remaining 10% Shimmering Lakes candidate slot. It is restricted to dry lake

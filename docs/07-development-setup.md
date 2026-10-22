@@ -2311,18 +2311,19 @@ remains disabled until that downstream task.
 
 The editor automation `Kalmala.Gameplay.Wildlife.Viper.ShoreLungeAndRewardClaim`
 checks the 50/40/10 Shimmering Lakes candidate slots, Viper exclusion from other
-biomes, its reviewed profile and attack timing, and its owner-bound baseline
-Bone Fragment claim through population-save serialization. Its full-pack case
-keeps the claim pending when a Bone Fragment cannot fit, then prepares a retry
-candidate that fits alongside one carried tool after two pack cells are freed.
+biomes, its reviewed profile and attack timing, and its owner-bound pending
+claim through population-save serialization. Its capacity fixture models the
+Bone Fragment plus guaranteed Viper Fang bundle: a full pack keeps the claim
+pending, and a retry candidate with both items fits alongside one carried tool
+after three pack cells are freed.
 `Kalmala.Gameplay.Status.ViperWeakPoison` checks five-second duration, 1 damage
 per second through physical armor, refresh without stacking or tick-clock reset,
 expiry, and the server authority gate. The surface-winding automation also
 checks the procedural Viper model. Run these editor automations in the combined
 A8a/A8b I4 acceptance. They are contract coverage, not live Viper GameMode
 delivery, restart, or relevant-peer acceptance; no Unreal build or runtime
-acceptance ran in this increment. The Viper Fang drop and poison-arrow source
-remain disabled until the separate A8b tasks are implemented.
+acceptance ran in this increment. The Viper Fang drop now uses the existing
+durable claim; the Fang Arrows recipe output remains a separate unchecked task.
 
 ## Shimmering Lakes Giant Snake contract regression
 

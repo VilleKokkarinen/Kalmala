@@ -101,7 +101,8 @@ bool FKalmalaWildlifeViperContractTest::RunTest(const FString& Parameters)
     {
         for (const FKalmalaItemDefinition& Definition : Catalogue->Items)
         {
-            if (Definition.ItemId.IsNone() || Definition.ItemId == TEXT("BoneFragment") || Definition.MaxStack <= 0)
+            if (Definition.ItemId.IsNone() || Definition.ItemId == TEXT("BoneFragment")
+                || Definition.ItemId == TEXT("ViperFang") || Definition.MaxStack <= 0)
                 continue;
             FKalmalaInventoryStack Stack;
             Stack.ItemId = Definition.ItemId;
@@ -114,11 +115,15 @@ bool FKalmalaWildlifeViperContractTest::RunTest(const FString& Parameters)
         FullPack.Num(), UKalmalaInventoryComponent::MaxSlots);
     if (FullPack.Num() == UKalmalaInventoryComponent::MaxSlots)
     {
+        TArray<FKalmalaInventoryStack> RejectedWithBone;
         TArray<FKalmalaInventoryStack> RejectedCandidate;
         FString FailureReason;
-        TestFalse(TEXT("A full pack rejects the Viper Bone Fragment"),
-            UKalmalaInventoryComponent::BuildGrant(FullPack, TEXT("BoneFragment"), 1,
-                RejectedCandidate, FailureReason));
+        const bool bBuiltRejectedBone = UKalmalaInventoryComponent::BuildGrant(
+            FullPack, TEXT("BoneFragment"), 1, RejectedWithBone, FailureReason);
+        const bool bBuiltRejectedFang = bBuiltRejectedBone
+            && UKalmalaInventoryComponent::BuildGrant(
+                RejectedWithBone, TEXT("ViperFang"), 1, RejectedCandidate, FailureReason);
+        TestFalse(TEXT("A full pack rejects the Viper Bone Fragment and Fang bundle"), bBuiltRejectedFang);
         TestEqual(TEXT("The full-pack rejection is capacity-related"),
             FailureReason, FString(TEXT("Pack output capacity reached")));
         TestEqual(TEXT("A full-pack failure retains the pending Viper claim"),
@@ -150,12 +155,16 @@ bool FKalmalaWildlifeViperContractTest::RunTest(const FString& Parameters)
         TestNotNull(TEXT("Viper retry capacity validator exists"), Capacity);
         if (Capacity != nullptr)
         {
-            FullPack.RemoveAt(0, 2);
+            FullPack.RemoveAt(0, 3);
+            TArray<FKalmalaInventoryStack> WithBone;
             TArray<FKalmalaInventoryStack> RetryCandidate;
             FString RetryReason;
-            const bool bBuiltReward = UKalmalaInventoryComponent::BuildGrant(
-                FullPack, TEXT("BoneFragment"), 1, RetryCandidate, RetryReason);
-            TestTrue(TEXT("The pending Viper reward fits after two cells are freed"), bBuiltReward);
+            const bool bBuiltBone = UKalmalaInventoryComponent::BuildGrant(
+                FullPack, TEXT("BoneFragment"), 1, WithBone, RetryReason);
+            const bool bBuiltReward = bBuiltBone
+                && UKalmalaInventoryComponent::BuildGrant(
+                    WithBone, TEXT("ViperFang"), 1, RetryCandidate, RetryReason);
+            TestTrue(TEXT("The pending Viper reward bundle fits after three cells are freed"), bBuiltReward);
             if (bBuiltReward)
             {
                 TestTrue(TEXT("The reward and one carried tool fit after retry"),
@@ -164,6 +173,10 @@ bool FKalmalaWildlifeViperContractTest::RunTest(const FString& Parameters)
                     [](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == TEXT("BoneFragment"); });
                 TestTrue(TEXT("Retry candidate contains one Bone Fragment"),
                     BoneStack != nullptr && BoneStack->Quantity == 1);
+                const FKalmalaInventoryStack* FangStack = RetryCandidate.FindByPredicate(
+                    [](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == TEXT("ViperFang"); });
+                TestTrue(TEXT("Retry candidate contains one Viper Fang"),
+                    FangStack != nullptr && FangStack->Quantity == 1);
             }
             TestEqual(TEXT("Preparing a retry does not prematurely clear the claim"),
                 Reloaded->GetPendingWildlifeRewards().Num(), 1);

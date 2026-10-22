@@ -248,7 +248,8 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     - Original icon, mapping, import, registered material definition, and owner-bound credited-defeat reward are complete; combined I4 acceptance remains pending.
   - [x] Badger Fur: Badger, 1 guaranteed; material + source + JSON + generated icon.
   - [x] Badger Meat: Badger, 1 guaranteed; material + source + JSON + generated icon.
-  - [ ] Viper Fang: Viper, 1 guaranteed; material + source + JSON + generated icon.
+  - [x] Viper Fang: Viper, 1 guaranteed; material + source + JSON + generated icon.
+    - Registered material/icon and the guaranteed fang are complete; each credited Viper claim now commits Fang plus baseline Bone Fragment atomically. Combined I4 acceptance remains pending.
   - [ ] Giant Scale: Giant Snake, 2 guaranteed; material + source + JSON + generated icon.
   - [ ] Venom Sac: Death Adder, 1 guaranteed; material + source + JSON + generated icon.
   - [ ] Peat Heart: Peat Husk, 25% chance of 1; material + source + JSON + generated icon.
