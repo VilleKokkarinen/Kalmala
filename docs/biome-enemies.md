@@ -5,9 +5,8 @@
 **Current** = existing species; **Planned** = queued additions or retunes.
 Damage is before defenses. Poison rates are per second and do not stack;
 only the strongest active poison deals damage. Current wildlife uses seeded
-population slots rather than the proposed biome restrictions below. Boar/deer
-biomes and all stats in this table are planned targets, including boar/deer retunes.
-Mireling's biome and stats are also planned changes to an existing enemy.
+population slots. Boar/deer spawn origins now use a server-side allowlist for
+the biomes below; their stats and Mireling's biome/stat retune remain planned.
 
 | Enemy               | Biome                                  | Status           | HP   | Armor | Attack       | Abilities / counters                |
 | ------------------- | -------------------------------------- | ---------------- | ---: | ----: | ------------ | ----------------------------------- |
@@ -43,7 +42,14 @@ stats, spawn weights and loot below remain task-level implementation details.
 
 ## Unique drops
 
-**A8a review and A8b item contract (2026-10-22).** Use one server-owned roll per credited defeat and award the listed amount only on success, in addition to baseline loot. The creature profiles match all 18 rows below. A8a approved the 15 A8b material identities, named sources, amounts, chances, and intended-use links. A8b recipe costs, effects, and full equipment profiles are recorded in [the item contract](alpha-item-details.md#a8b). Sinew stays in A0; Moonstone and Dusk Diamond routes stay in A9. Unique means a characteristic drop, not an exclusive source for shared Sinew. Material acquisition remains unreachable until its named A8a enemy and credited-defeat reward are implemented and accepted.
+**A8a review complete (2026-10-22).** For the planned loot contract, use one
+server-owned roll per credited defeat and award the listed amount only on
+success. The creature profiles match all 18 rows below; each drop is additional
+to baseline loot. Deer Sinew and the two gem routes retain their existing
+plans. The 15 A8b material identities, named enemy sources, quantities,
+chances, intended uses, recipe costs, consumable effects, and A8b gear profiles
+are approved below. This review does not implement or activate any new drops. Material acquisition remains unreachable until each named A8a enemy and its credited-defeat reward have an accepted server-side implementation.
+Unique means a characteristic drop, not an exclusive source for shared Sinew.
 
 | Enemy            | Unique drop        | Amount / chance | Intended use              |
 | ---------------- | ------------------ | --------------- | ------------------------- |
@@ -58,8 +64,8 @@ stats, spawn weights and loot below remain task-level implementation details.
 | Death Adder      | Venom Sac          | 1 / 100%        | Anti Poison potion ingr.  |
 | Peat Husk        | Peat Heart         | 1 / 25%         | Cooking component         |
 | Wolf             | Wolf Pelt          | 1 / 100%        | Armor component           |
-| Wolf             | Wolf Fang          | 1 / 25%         | Weapon component          |
-| Wolf             | Wolf Meat          | 1 / 100%        | Cooking component         |
+| Wolf             | Wolf fang          | 1 / 25%         | Weapon component          |
+| Wolf             | Wolf meat          | 1 / 100%        | Cooking component         |
 | Lynx             | Lynx Pelt          | 1 / 50%         | Armor/Weapon component    |
 | Polar Bear       | Polar Bear Pelt    | 2 / 100%        | Heavy armor component     |
 | Horned Goat      | Goat Horn          | 1 / 100%        | Horn Bow component        |
@@ -73,26 +79,27 @@ stable claims; full packs preserve unclaimed rewards, and retries/reloads
 cannot reroll or duplicate them. Every new material requires its registered
 catalogue definition and original generated icon before its drop is enabled;
 the source enemy must also exist in runtime. This review does not activate any
-new drops. Recipe costs, effects, and full item profiles are recorded in
-[the item contract](alpha-item-details.md#a8b). The approved scope includes
-Lightning gear, the Harpoon and the full Reef Maw route.
-Cold-protection clothing remains explicitly deferred; the aquatic route adds no skiff damage.
+new drops. The next A8a review covers the recipe costs, effects, and full item
+profiles. The approved scope includes Lightning gear, the Harpoon and the full
+Reef Maw route. Cold-protection clothing remains explicitly deferred; the
+aquatic route adds no skiff damage.
 
 ## Recommended items and recipes
 
 Implementation is queued in [BACKLOG A8b](../BACKLOG.md), one material or output
-per increment. The backlog is canonical for recipe stations, costs and output
-quantities. Bow String remains in A0; the rings remain in A9. Every item
+per increment. Bow String remains in A0; the rings remain in A9. Every item
 includes applicable catalogue JSON/manifest entries and an original generated,
 prepared/imported runtime icon with validation; none may be checked complete
 with placeholder data or a fallback icon.
 
-**Recipe reconciliation (2026-10-21).** The checklist's Badger Fur Vest and
-Lynx Mantle recipes supersede the older extra-String proposals below. Bow
-String is reserved for bows, and no ordinary String item is approved. The
-delegated A8b effect and profile choices are resolved after the table. Every
-retained drop has a use; Boar and Mosquito swarm currently have no unique A8b
-drop.
+**A8a item review complete (2026-10-22).** The A8b checklist remains canonical
+for recipe stations, costs, and output quantities. Bow String remains bow-only;
+Moonstone Ring and Dusk Ring stay in A9; their rows are downstream references,
+not additional A8b outputs. Their A9 recipe costs remain for the separate A9
+review.
+The user delegated A8b effects and gear-profile decisions to Codex on
+2026-10-21; this review confirms that contract without enabling any items.
+Every retained drop has a use; Boar and Mosquito swarm have no new unique drop.
 
 | Recommended item | Station      | Recipe / output                              | Proposed use / base effect     |
 | ---------------- | ------------ | -------------------------------------------- | ------------------------------ |
@@ -104,7 +111,7 @@ drop.
 | Fang Arrows      | Workbench    | 2 Viper Fang + 10 Wood → 20                  | 50 Pierce; weak poison 5 s     |
 | Scale Cuirass    | Forge        | 10 Giant Scale + 10 Bronze → 1               | Chest; 20 Armor                |
 | Dusk Ring        | Forge        | 5 Bronze + 1 Dusk Diamond → 1                | +10 HP, +10 stamina, +5 Armor  |
-| Antidote         | Cauldron     | 1 Venom Sac + 2 Lingonberry → 1              | Clear weak; reduce major to weak; 10 min resistance |
+| Antidote         | Cauldron     | 1 Venom Sac + 2 Lingonberry → 1              | Clear weak (minor); reduce major to weak; 10 min resistance |
 | Peat Heart Stew  | Cauldron     | 1 Peat Heart + 2 Potato + 1 Onion → 2        | Steady Meal                    |
 | Wolf Pelt Boots  | Workbench    | 5 Wolf Pelt + 5 Iron   → 1                   | Boots; 10 Armor                |
 | Fang Spear       | Forge        | 4 Wolf Fang + 10 Iron + 10 Densewood → 1     | 100 Stab                       |
@@ -121,25 +128,63 @@ drop.
 - Fang Arrows use the existing weak-poison profile, 1 damage/s for 5 s, on an
   accepted hit. Apply the existing strongest-dose/refresh rules once per
   projectile hit; do not repeat the poison application.
-- Rat-tail Tonic and Antidote share A6's 60-second recovery cooldown with Berry
-  Recovery Draught and Root Stamina Draught. Rat-tail Tonic rejects full-health
-  use and active healing, restores 30 HP over 10 seconds, and stops on death.
-  Antidote clears active weak poison, reduces active major poison to weak, then
-  grants 10 minutes of resistance that blocks weak poison and reduces new major
-  poison to weak. Active and reapplied poison follow the existing strongest-dose
-  refresh rules. The full use and death contract is in
-  [A8b item details](alpha-item-details.md#a8b).
-- Bow damage is a weapon bonus, combined once with arrow damage. Armor is
-  physical-only. Fur items grant no cold protection in this recommendation.
-- A8b's armor and weapon weights, condition, hand use, repair, upgrade, timing
-  and reach profiles are selected in
-  [A8b item details](alpha-item-details.md#a8b). Horn Bow full draw is 3 seconds.
-  Thunder Maul Lightning is an instant additional 30 damage through the same
-  server hit; it bypasses wearable physical Armor and uses the target's general
-  Armor reduction, with no chain or status effect. Reef Harpoon remains a melee
-  weapon at 60 Pierce and adds no skiff damage.
-- Every item still requires complete registered catalogue data, server-owned
-  acquisition/use and an original generated runtime icon before completion.
+- Rat-tail Tonic weighs 0.2 kg and stacks to 10. It restores up to 30 health
+  over 10 seconds at 3 health/second, clamped to maximum health and ending early
+  when full. Reject use when dead, at full health, while this or Berry Recovery
+  healing is active, or while the shared recovery cooldown is active; rejected
+  use consumes nothing. Healing ends on death, with no item or cooldown refund.
+  It shares A6's 60-second cooldown with Berry Recovery Draught, Root Stamina
+  Draught and Antidote. Consumable crafting awards 10 Cooking XP per dose.
+- Antidote weighs 0.2 kg and stacks to 10. A living player may use it at full
+  health, including before poison is applied. On use it clears active weak
+  poison; an active major dose becomes weak poison at 1 damage/second, with its
+  remaining duration capped at 5 seconds. It grants 600 seconds of resistance:
+  new weak poison is blocked and new major poison is reduced to the weak profile
+  (1 damage/second for up to 5 seconds). Converted weak doses use the existing
+  strongest-dose refresh rules and never stack. On resistance expiry, converted
+  weak poison continues only for its remaining duration and never returns to
+  major strength. Reject use during the shared 60-second A6 recovery cooldown or
+  while resistance is already active; rejected use consumes nothing. Death ends
+  resistance without refunding the dose or cooldown. A8b Antidote is the sole
+  poison-resistance exception; cold and fire resistance remain deferred.
+- Armor profiles. These are base values; Armor is physical-only and fur grants
+  no cold protection. Armor repairs use the existing free server-validated
+  Workbench repair, with no materials. Each armor item has one Workbench or
+  Forge upgrade step and the shared reward of +1 Armor and +10 MaxDurability.
+  No second upgrade step is planned.
+
+  | Item | Weight / MaxDurability | Slot / Armor | Upgrade station and cost |
+  | ---- | --------------------- | ------------ | ------------------------ |
+  | Badger Fur Vest | 4 kg / 100 | Chest / 6 | Workbench: 3 Badger Fur |
+  | Scale Cuirass | 8 kg / 150 | Chest / 20 | Forge: 5 Giant Scale + 5 Bronze |
+  | Wolf Pelt Boots | 3 kg / 120 | Boots / 10 | Workbench: 2 Wolf Pelt + 2 Iron |
+  | Lynx Mantle | 2 kg / 100 | Cape / 8 | Workbench: 2 Lynx Pelt + 1 Bone Fragment |
+  | Polar Bear Coat | 12 kg / 200 | Chest / 50 | Forge: 2 Polar Bear Pelt + 10 Iron |
+
+- Weapon profiles. Melee uses current server combat timing (0.18 s windup,
+  0.36 s recovery) and 220 cm reach. Repair uses the existing free
+  server-validated Workbench repair. Each weapon has one upgrade step; no
+  second step is planned.
+
+  | Item | Weight / hands / MaxDurability | Attack and action | Upgrade station, cost and reward |
+  | ---- | ----------------------------- | ----------------- | -------------------------------- |
+  | Fang Spear | 4 kg / one / 200 | 100 Stab; standard melee timing and reach | Forge: 2 Wolf Fang + 5 Iron + 5 Densewood; +5 Stab, +50 MaxDurability |
+  | Horn Bow | 2.5 kg / two / 140 | 100 Pierce weapon bonus; 3-second full draw; existing arrow curves | Workbench: 1 Goat Horn + 5 Densewood + 1 Bow String; +30 MaxDurability, no damage bonus |
+  | Thunder Maul | 10 kg / two / 220 | 100 Crush + 30 Lightning; standard melee timing and reach | Forge: 1 Thunder Core + 10 Iron + 5 Densewood; +5 Crush, +50 MaxDurability, Lightning stays 30 |
+  | Reef Harpoon | 4 kg / one / 150 | 60 Pierce; standard spear-like melee timing and reach; not thrown | Forge: 1 Reef Tooth + 4 Iron + 2 Lightwood; +5 Pierce, +30 MaxDurability |
+
+- Thunder Maul applies its 30 Lightning as instant additional damage on the
+  same accepted server hit. It bypasses wearable physical Armor, then uses the
+  target's general Armor reduction; it adds no Lightning resistance. It does
+  not chain, deal damage over time, stun or interact with the environment. Bow
+  damage is a weapon bonus combined once with arrow damage. Reef Harpoon adds
+  no skiff damage.
+- Materials have no equipment, attack or upgrade records; armor has no attack
+  record; weapons have no equipment slot; consumables have no equipment,
+  attack or upgrade records. The current runtime catalogue lacks Lightning, so
+  A8b must add that channel explicitly. All catalogue data, item-specific
+  source/use behavior, icons, runtime mappings and validation remain required
+  in the A8b implementation tasks.
 
 ## Proposed roster
 
@@ -175,11 +220,13 @@ and original inventory icons before implementation; the uses are not recipes.
 - Retain existing world-seed, biome suitability, relevance and actor budgets.
   Add variety within existing candidate slots, not additional unbounded actors.
 - Boars and deer may spawn **only in Meadows, Elderwood and Shimmering Lakes**.
-  Exclude both from Mossy Mire, Freezing Tundra, Thunder Mountains and Ocean.
-  Apply the server-side biome allowlist before archetype selection, including
-  regenerated/reloaded population candidates; seed selection cannot bypass it.
-  This controls spawn origin, not a new movement barrier. Use the revised
-  stats below; retain other behavior and loot. Verify biome filtering across fixed seeds.
+  The server samples the biome at each generated spawn origin and filters the
+  deterministic seed before actor initialization, including regenerated/reloaded
+  population candidates; a seed cannot bypass the allowlist. This controls
+  spawn origin and does not add a movement barrier. The focused automation
+  covers each allowed and excluded biome; run the fixed-seed world checks at I4.
+  Use the revised stats below; retain other behavior and loot. Verify biome
+  filtering across fixed seeds.
 - Proposed selection weights are percentages of eligible candidate slots.
   Meadows uses 90% existing roster / 10% Rat. Each other land biome allocates
   50% to its existing eligible roster, 40% to new common enemies, and 10% to

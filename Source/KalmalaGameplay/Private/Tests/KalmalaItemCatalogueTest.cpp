@@ -203,14 +203,14 @@ bool FKalmalaItemCatalogueTest::RunTest(const FString& Parameters)
     };
     const FExpectedBatchTwoCopy BatchTwoCopy[] = {
         { TEXT("FrostSalt"), TEXT("Frost Salt"), TEXT("Sprinkle some to preserve your food."), 40 },
-        { TEXT("WorkbenchKit"), TEXT("Workbench"), TEXT("A camp workbench for making furnishings and repairing tools."), 5 },
-        { TEXT("ForgeKit"), TEXT("Forge"), TEXT("A stone-and-timber forge for making and repairing advanced tools."), 5 },
+        { TEXT("WorkbenchKit"), TEXT("Workbench"), TEXT("A camp workbench for making furnishings and repairing items."), 5 },
+        { TEXT("ForgeKit"), TEXT("Forge"), TEXT("A stone-and-timber forge for making and repairing advanced items."), 5 },
         { TEXT("WorkbenchToolRackKit"), TEXT("Workbench Tool Rack"),
             TEXT("A tool rack that raises a Workbench to level 2."), 5 },
         { TEXT("ForgeAnvilKit"), TEXT("Forge Anvil"),
-            TEXT("An anvil that lets a Forge support higher-tier tools."), 5 },
+            TEXT("An anvil that lets a Forge support higher-tier items."), 5 },
         { TEXT("GrindingStoneKit"), TEXT("Grinding Stone"),
-            TEXT("A stone wheel for repairing all worn tools at once."), 5 },
+            TEXT("A stone wheel for repairing all worn items at once."), 5 },
     };
     for (const FExpectedBatchTwoCopy& Expected : BatchTwoCopy)
     {

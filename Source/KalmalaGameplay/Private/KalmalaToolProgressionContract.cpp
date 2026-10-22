@@ -59,6 +59,9 @@ namespace
             LoadedEntries.Reserve(Catalogue->Recipes.Num());
             for (const FKalmalaToolRecipeData& Recipe : Catalogue->Recipes)
             {
+                // Wearable acquisition records share the station recipe catalogue,
+                // but do not participate in tool-level progression.
+                if (!Catalogue->FindProfile(Recipe.ItemId)) continue;
                 FKalmalaToolProgressionEntry& Entry = LoadedEntries.AddDefaulted_GetRef();
                 Entry.ItemId = Recipe.ItemId;
                 Entry.TargetToolLevel = Recipe.Level;

@@ -46,6 +46,7 @@
 #include "KalmalaEnvironmentalExposureSampler.h"
 #include "KalmalaCampConditionSampler.h"
 #include "KalmalaBiomeExpansionContract.h"
+#include "KalmalaBiomeClassifier.h"
 #include "KalmalaShelterSampler.h"
 #include "KalmalaWorldFieldSampler.h"
 #include "KalmalaTerrainHeightSampler.h"
@@ -85,6 +86,35 @@ namespace KalmalaGameMode
     constexpr float TraversalTestArrivalDistance = 180.0f;
     constexpr int32 TraversalTargetSearchExtent = 12000;
     constexpr int32 TraversalTargetSearchStep = 250;
+    bool TryGetWildlifeArchetypeForSpawn(const FKalmalaWorldGenerationConfig& Config,
+        const FKalmalaWorldPopulationSpawn& Spawn, EKalmalaWildlifeArchetype& OutArchetype)
+    {
+        const FVector2D Position(Spawn.Location);
+        const EKalmalaBiome SpawnBiome = FKalmalaBiomeClassifier::Classify(
+            FKalmalaWorldFieldSampler::Sample(Config, Position));
+        return AKalmalaWildlifeSpawn::TryGetSpawnArchetypeForBiome(Spawn.SpawnSeed, SpawnBiome, OutArchetype);
+    }
+
+    bool IsWildlifeSpawnOfArchetype(const FKalmalaWorldGenerationConfig& Config,
+        const FKalmalaWorldPopulationSpawn& Spawn, const EKalmalaWildlifeArchetype ExpectedArchetype)
+    {
+        EKalmalaWildlifeArchetype Archetype;
+        return TryGetWildlifeArchetypeForSpawn(Config, Spawn, Archetype) && Archetype == ExpectedArchetype;
+    }
+
+    TArray<FKalmalaWorldPopulationSpawn> FilterEligibleWildlifeSpawns(const FKalmalaWorldGenerationConfig& Config,
+        const TArray<FKalmalaWorldPopulationSpawn>& Spawns)
+    {
+        TArray<FKalmalaWorldPopulationSpawn> EligibleSpawns;
+        EligibleSpawns.Reserve(Spawns.Num());
+        for (const FKalmalaWorldPopulationSpawn& Spawn : Spawns)
+        {
+            EKalmalaWildlifeArchetype Archetype;
+            if (TryGetWildlifeArchetypeForSpawn(Config, Spawn, Archetype)) EligibleSpawns.Add(Spawn);
+        }
+        return EligibleSpawns;
+    }
+
     FString PopulationSaveSlot(const FKalmalaWorldGenerationConfig& Config)
     {
         return FString::Printf(TEXT("KalmalaPopulationDeltas_%llu"), Config.WorldSeed);
@@ -759,6 +789,38 @@ bool AKalmalaGameMode::PersistGardenPlotState(AKalmalaConstructionActor* Constru
     return true;
 }
 
+bool AKalmalaGameMode::PersistStandingLightState(AKalmalaConstructionActor* Construction,
+    const FKalmalaStandingLightState& State)
+{
+    if (!HasAuthority() || !IsValid(Construction) || !Construction->HasAuthority()
+        || Construction->GetWorld() != GetWorld()
+        || Construction->GetConstructionKit() != TEXT("StandingLightKit")
+        || !State.IsValid() || ConstructionSaveGame == nullptr
+        || !ConstructionSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
+
+    const FString ConstructionId = Construction->GetConstructionId();
+    const auto* ExistingRecord = ConstructionSaveGame->GetRecords().FindByPredicate(
+        [&ConstructionId](const FKalmalaConstructionSaveRecord& Record)
+        {
+            return Record.ConstructionId == ConstructionId && Record.KitId == TEXT("StandingLightKit");
+        });
+    if (!ExistingRecord || !ExistingRecord->Transform.Equals(Construction->GetActorTransform())) return false;
+
+    UKalmalaConstructionSaveGameV2* Candidate = nullptr;
+    if (!UKalmalaConstructionSaveGameV2::TryBuildWriteCandidate(
+        ConstructionSaveGame, WorldGenerationConfig, this, Candidate) || !Candidate) return false;
+    if (!Candidate->UpdateStandingLightRecord(ConstructionId, State)
+        || !Candidate->MatchesWorld(WorldGenerationConfig)
+        || !UGameplayStatics::SaveGameToSlot(Candidate,
+            KalmalaGameMode::ConstructionSaveSlot(WorldGenerationConfig), 0))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Standing Light state save failed for %s."), *ConstructionId);
+        return false;
+    }
+    ConstructionSaveGame = Candidate;
+    return true;
+}
+
 bool AKalmalaGameMode::IsTerrainPatchActiveAt(const FVector& WorldLocation) const
 {
     if (!HasAuthority() || WorldLocation.ContainsNaN()) return false;
@@ -785,7 +847,7 @@ void AKalmalaGameMode::RestorePersistedConstruction()
             continue;
         }
         Construction->InitializeFromServer(Record.KitId, Record.ConstructionId,
-            Record.CharcoalKiln, Record.Smelter, Record.GardenPlot, Record.bDoorOpen);
+            Record.CharcoalKiln, Record.Smelter, Record.GardenPlot, Record.bDoorOpen, Record.StandingLight);
         Construction->FinishSpawning(Record.Transform);
         UE_LOG(LogTemp, Display, TEXT("Construction restored: Id=%s Kit=%s."), *Record.ConstructionId, *Record.KitId.ToString());
     }
@@ -1115,7 +1177,8 @@ void AKalmalaGameMode::DriveCombatPeerTest()
         CombatPeerTestRemote = RemotePlayer;
         FIntPoint SpatialKey = FKalmalaWorldPopulationLayout::GetSpatialKey(FVector2D(LocalServerPlayer->GetActorLocation()));
         TArray<FKalmalaWorldPopulationSpawn> Descriptors = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(WorldGenerationConfig, SpatialKey, EKalmalaWorldPopulationKind::Wildlife);
-        if ((bBoarPeerTest || bDeerPeerTest) && !Descriptors.ContainsByPredicate([ExpectedArchetype](const FKalmalaWorldPopulationSpawn& Descriptor) { return AKalmalaWildlifeSpawn::GetArchetypeForSpawnSeed(Descriptor.SpawnSeed) == ExpectedArchetype; }))
+        if ((bBoarPeerTest || bDeerPeerTest) && !Descriptors.ContainsByPredicate([this, ExpectedArchetype](const FKalmalaWorldPopulationSpawn& Descriptor)
+            { return KalmalaGameMode::IsWildlifeSpawnOfArchetype(WorldGenerationConfig, Descriptor, ExpectedArchetype); }))
         {
             // Stay within the normal bounded activation neighborhood while selecting
             // a deterministic boar descriptor rather than depending on actor order.
@@ -1127,7 +1190,8 @@ void AKalmalaGameMode::DriveCombatPeerTest()
                 {
                     const FIntPoint CandidateKey = BaseKey + FIntPoint(OffsetX, OffsetY);
                     const TArray<FKalmalaWorldPopulationSpawn> CandidateDescriptors = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(WorldGenerationConfig, CandidateKey, EKalmalaWorldPopulationKind::Wildlife);
-                    if (CandidateDescriptors.ContainsByPredicate([ExpectedArchetype](const FKalmalaWorldPopulationSpawn& Descriptor) { return AKalmalaWildlifeSpawn::GetArchetypeForSpawnSeed(Descriptor.SpawnSeed) == ExpectedArchetype; }))
+                    if (CandidateDescriptors.ContainsByPredicate([this, ExpectedArchetype](const FKalmalaWorldPopulationSpawn& Descriptor)
+                        { return KalmalaGameMode::IsWildlifeSpawnOfArchetype(WorldGenerationConfig, Descriptor, ExpectedArchetype); }))
                     {
                         SpatialKey = CandidateKey;
                         Descriptors = CandidateDescriptors;
@@ -1144,9 +1208,9 @@ void AKalmalaGameMode::DriveCombatPeerTest()
         {
             bSeedReproduced &= FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Descriptors[Index]) == FKalmalaWorldPopulationLayout::GetPersistentSpawnId(ReproducedDescriptors[Index]);
         }
-        const FKalmalaWorldPopulationSpawn* ExpectedDescriptor = Descriptors.FindByPredicate([ExpectedArchetype](const FKalmalaWorldPopulationSpawn& Descriptor)
+        const FKalmalaWorldPopulationSpawn* ExpectedDescriptor = Descriptors.FindByPredicate([this, ExpectedArchetype](const FKalmalaWorldPopulationSpawn& Descriptor)
         {
-            return AKalmalaWildlifeSpawn::GetArchetypeForSpawnSeed(Descriptor.SpawnSeed) == ExpectedArchetype;
+            return KalmalaGameMode::IsWildlifeSpawnOfArchetype(WorldGenerationConfig, Descriptor, ExpectedArchetype);
         });
         if (ExpectedDescriptor == nullptr)
         {
@@ -1173,7 +1237,8 @@ void AKalmalaGameMode::DriveCombatPeerTest()
                 {
                     const FIntPoint HerdKey = SpatialKey + FIntPoint(OffsetX, OffsetY);
                     const TArray<FKalmalaWorldPopulationSpawn> HerdDescriptors = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(WorldGenerationConfig, HerdKey, EKalmalaWorldPopulationKind::Wildlife);
-                    if (!HerdDescriptors.ContainsByPredicate([](const FKalmalaWorldPopulationSpawn& Descriptor) { return AKalmalaWildlifeSpawn::GetArchetypeForSpawnSeed(Descriptor.SpawnSeed) == EKalmalaWildlifeArchetype::Deer; })) continue;
+                    if (!HerdDescriptors.ContainsByPredicate([this](const FKalmalaWorldPopulationSpawn& Descriptor)
+                        { return KalmalaGameMode::IsWildlifeSpawnOfArchetype(WorldGenerationConfig, Descriptor, EKalmalaWildlifeArchetype::Deer); })) continue;
                     ActivatePopulationKey(HerdKey);
                     for (TActorIterator<AKalmalaWildlifeSpawn> It(GetWorld()); It; ++It)
                     {
@@ -2165,6 +2230,12 @@ void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey)
             }
             else if (Kind == EKalmalaWorldPopulationKind::Wildlife)
             {
+                EKalmalaWildlifeArchetype Archetype;
+                if (!KalmalaGameMode::TryGetWildlifeArchetypeForSpawn(WorldGenerationConfig, Spawn, Archetype))
+                {
+                    continue;
+                }
+
                 const FString PersistentSpawnId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Spawn);
                 if (PopulationSaveGame != nullptr && PopulationSaveGame->IsDefeated(PersistentSpawnId))
                 {
@@ -2174,7 +2245,7 @@ void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey)
                 AKalmalaWildlifeSpawn* WildlifeSpawn = GetWorld()->SpawnActor<AKalmalaWildlifeSpawn>(AKalmalaWildlifeSpawn::StaticClass(), Spawn.Location, FRotator::ZeroRotator);
                 if (WildlifeSpawn != nullptr)
                 {
-                    WildlifeSpawn->InitializeServer(Spawn);
+                    WildlifeSpawn->InitializeServer(Spawn, Archetype);
                     WildlifeSpawn->OnDefeated.AddUObject(this, &AKalmalaGameMode::RecordDefeatedSpawn);
                     ++SpawnedMarkerCount;
                 }
@@ -3873,8 +3944,13 @@ void AKalmalaGameMode::RunReconnectVerification(APawn* ServerPawn)
     const EKalmalaWildlifeArchetype VerifyArchetype = bWildlifeDeerVerify ? EKalmalaWildlifeArchetype::Deer : EKalmalaWildlifeArchetype::Boar;
     if (ReconnectVerificationMode.Equals(TEXT("WildlifeDefeat"), ESearchCase::IgnoreCase) || ReconnectVerificationMode.Equals(TEXT("WildlifeVerify"), ESearchCase::IgnoreCase) || bWildlifeBoarVerify || bWildlifeDeerVerify)
     {
-        TArray<FKalmalaWorldPopulationSpawn> WildlifeSpawns = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(WorldGenerationConfig, SpatialKey, EKalmalaWorldPopulationKind::Wildlife);
-        if ((bWildlifeBoarVerify || bWildlifeDeerVerify) && !WildlifeSpawns.ContainsByPredicate([VerifyArchetype](const FKalmalaWorldPopulationSpawn& Spawn) { return AKalmalaWildlifeSpawn::GetArchetypeForSpawnSeed(Spawn.SpawnSeed) == VerifyArchetype; }))
+        TArray<FKalmalaWorldPopulationSpawn> WildlifeSpawns = KalmalaGameMode::FilterEligibleWildlifeSpawns(
+            WorldGenerationConfig, FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(WorldGenerationConfig, SpatialKey, EKalmalaWorldPopulationKind::Wildlife));
+        const auto HasRequestedArchetype = [this, VerifyArchetype](const FKalmalaWorldPopulationSpawn& Spawn)
+        {
+            return KalmalaGameMode::IsWildlifeSpawnOfArchetype(WorldGenerationConfig, Spawn, VerifyArchetype);
+        };
+        if (((bWildlifeBoarVerify || bWildlifeDeerVerify) && !WildlifeSpawns.ContainsByPredicate(HasRequestedArchetype)) || WildlifeSpawns.IsEmpty())
         {
             const FIntPoint BaseKey = SpatialKey;
             bool bFoundArchetype = false;
@@ -3883,8 +3959,12 @@ void AKalmalaGameMode::RunReconnectVerification(APawn* ServerPawn)
                 for (int32 OffsetX = -1; OffsetX <= 1; ++OffsetX)
                 {
                     const FIntPoint CandidateKey = BaseKey + FIntPoint(OffsetX, OffsetY);
-                    const TArray<FKalmalaWorldPopulationSpawn> CandidateSpawns = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(WorldGenerationConfig, CandidateKey, EKalmalaWorldPopulationKind::Wildlife);
-                    if (CandidateSpawns.ContainsByPredicate([VerifyArchetype](const FKalmalaWorldPopulationSpawn& Spawn) { return AKalmalaWildlifeSpawn::GetArchetypeForSpawnSeed(Spawn.SpawnSeed) == VerifyArchetype; }))
+                    TArray<FKalmalaWorldPopulationSpawn> CandidateSpawns = KalmalaGameMode::FilterEligibleWildlifeSpawns(
+                        WorldGenerationConfig, FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(WorldGenerationConfig, CandidateKey, EKalmalaWorldPopulationKind::Wildlife));
+                    const bool bHasCandidate = (bWildlifeBoarVerify || bWildlifeDeerVerify)
+                        ? CandidateSpawns.ContainsByPredicate(HasRequestedArchetype)
+                        : !CandidateSpawns.IsEmpty();
+                    if (bHasCandidate)
                     {
                         SpatialKey = CandidateKey;
                         WildlifeSpawns = CandidateSpawns;
@@ -3901,7 +3981,8 @@ void AKalmalaGameMode::RunReconnectVerification(APawn* ServerPawn)
             return;
         }
 
-        const FKalmalaWorldPopulationSpawn* ExpectedSpawn = (bWildlifeBoarVerify || bWildlifeDeerVerify) ? WildlifeSpawns.FindByPredicate([VerifyArchetype](const FKalmalaWorldPopulationSpawn& Spawn) { return AKalmalaWildlifeSpawn::GetArchetypeForSpawnSeed(Spawn.SpawnSeed) == VerifyArchetype; }) : &WildlifeSpawns[0];
+        const FKalmalaWorldPopulationSpawn* ExpectedSpawn = (bWildlifeBoarVerify || bWildlifeDeerVerify)
+            ? WildlifeSpawns.FindByPredicate(HasRequestedArchetype) : &WildlifeSpawns[0];
         if (ExpectedSpawn == nullptr)
         {
             UE_LOG(LogTemp, Error, TEXT("Reconnect verification found no server-derived boar spawn for its bounded spatial neighborhood."));

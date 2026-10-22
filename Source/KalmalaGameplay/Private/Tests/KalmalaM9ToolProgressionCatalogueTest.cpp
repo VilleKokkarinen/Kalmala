@@ -222,7 +222,6 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Rejected scaling returns no partial costs"), ScaledCosts.IsEmpty());
 
     const TArray<FKalmalaToolProgressionEntry>& Entries = FKalmalaToolProgressionContract::GetEntries();
-
     TestTrue(TEXT("Crafted tool progression catalogue is internally valid"),
         FKalmalaToolProgressionContract::IsCatalogueValid());
     int32 ExpectedProgressionEntryCount = 0;

@@ -102,6 +102,7 @@ namespace
         if (CatalogueItemId == TEXT("TimberBeam")) return TEXT("TimberBeamKit");
         if (CatalogueItemId == TEXT("TimberStairs")) return TEXT("TimberStairsKit");
         if (CatalogueItemId == TEXT("CampBed")) return TEXT("CampBedKit");
+        if (CatalogueItemId == TEXT("StandingLight")) return TEXT("StandingLightKit");
         return CatalogueItemId;
     }
 

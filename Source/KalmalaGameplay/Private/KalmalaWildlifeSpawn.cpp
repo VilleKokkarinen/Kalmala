@@ -60,6 +60,12 @@ AKalmalaWildlifeSpawn::AKalmalaWildlifeSpawn()
 
 void AKalmalaWildlifeSpawn::InitializeServer(const FKalmalaWorldPopulationSpawn& Spawn)
 {
+    InitializeServer(Spawn, GetArchetypeForSpawnSeed(Spawn.SpawnSeed));
+}
+
+void AKalmalaWildlifeSpawn::InitializeServer(const FKalmalaWorldPopulationSpawn& Spawn,
+    const EKalmalaWildlifeArchetype InitialArchetype)
+{
     if (HasAuthority())
     {
         SetActorLocation(Spawn.Location);
@@ -67,7 +73,7 @@ void AKalmalaWildlifeSpawn::InitializeServer(const FKalmalaWorldPopulationSpawn&
         BehaviourDestination = SpawnOrigin;
         PersistentSpawnId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Spawn);
         CreatureNicheId = Spawn.ContentId;
-        Archetype = GetArchetypeForSpawnSeed(Spawn.SpawnSeed);
+        Archetype = InitialArchetype;
         BuildArchetypePresentation();
     }
 }
@@ -194,6 +200,18 @@ EKalmalaWildlifeArchetype AKalmalaWildlifeSpawn::GetArchetypeForSpawnSeed(const 
     if (SpawnSeed % 3ull == 0ull) return EKalmalaWildlifeArchetype::Boar;
     if (SpawnSeed % 5ull == 1ull) return EKalmalaWildlifeArchetype::Deer;
     return EKalmalaWildlifeArchetype::Mireling;
+}
+
+bool AKalmalaWildlifeSpawn::TryGetSpawnArchetypeForBiome(const uint64 SpawnSeed, const EKalmalaBiome Biome,
+    EKalmalaWildlifeArchetype& OutArchetype)
+{
+    const bool bBoarDeerBiome = Biome == EKalmalaBiome::Meadows
+        || Biome == EKalmalaBiome::Elderwood
+        || Biome == EKalmalaBiome::ShimmeringLakes;
+    if (!bBoarDeerBiome && (SpawnSeed % 3ull == 0ull || SpawnSeed % 5ull == 1ull)) return false;
+
+    OutArchetype = GetArchetypeForSpawnSeed(SpawnSeed);
+    return true;
 }
 
 bool AKalmalaWildlifeSpawn::IsBoarChargeAllowed(const bool bServerAuthority, const bool bAlreadyDefeated, const bool bAtRest, const float DistanceToRestingArea)

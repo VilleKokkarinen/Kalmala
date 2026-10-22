@@ -14,6 +14,7 @@ struct FKalmalaM9ExplorationRewardDescriptor;
 struct FKalmalaCharcoalKilnState;
 struct FKalmalaSmelterState;
 struct FKalmalaGardenPlotState;
+struct FKalmalaStandingLightState;
 enum class EKalmalaOceanSkiffSeat : uint8;
 
 /**
@@ -44,6 +45,8 @@ public:
         const FKalmalaSmelterState& State);
     bool PersistGardenPlotState(class AKalmalaConstructionActor* Construction,
         const FKalmalaGardenPlotState& State);
+    bool PersistStandingLightState(class AKalmalaConstructionActor* Construction,
+        const FKalmalaStandingLightState& State);
     bool IsTerrainPatchActiveAt(const FVector& WorldLocation) const;
     bool ReadStorage(const class AKalmalaConstructionActor* Construction, TArray<FKalmalaInventoryStack>& Out) const;
     bool PersistStorage(const class AKalmalaConstructionActor* Construction, const TArray<FKalmalaInventoryStack>& Stacks);

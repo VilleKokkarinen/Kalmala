@@ -7,6 +7,7 @@
 #include "KalmalaConstructionActor.generated.h"
 
 class UBoxComponent;
+class UPointLightComponent;
 class UProceduralMeshComponent;
 class USceneComponent;
 
@@ -23,7 +24,8 @@ public:
         const FKalmalaCharcoalKilnState& InCharcoalKiln = FKalmalaCharcoalKilnState(),
         const FKalmalaSmelterState& InSmelter = FKalmalaSmelterState(),
         const FKalmalaGardenPlotState& InGardenPlot = FKalmalaGardenPlotState(),
-        bool bInDoorOpen = false);
+        bool bInDoorOpen = false,
+        const FKalmalaStandingLightState& InStandingLight = FKalmalaStandingLightState());
     FName GetConstructionKit() const { return ConstructionKit; }
     const FString& GetConstructionId() const { return ConstructionId; }
     float GetHealth() const { return Health; }
@@ -33,6 +35,8 @@ public:
     bool ApplySmelterStateFromServer(const FKalmalaSmelterState& State);
     const FKalmalaGardenPlotState& GetGardenPlotState() const { return GardenPlot; }
     bool ApplyGardenPlotStateFromServer(const FKalmalaGardenPlotState& State);
+    const FKalmalaStandingLightState& GetStandingLightState() const { return StandingLight; }
+    bool ApplyStandingLightStateFromServer(const FKalmalaStandingLightState& State);
     bool IsDoorOpen() const { return bDoorOpen; }
     bool ReplaceWallWithDoorFromServer();
     bool ToggleDoorFromServer(AKalmalaCharacter* Character, FString& Reason);
@@ -55,12 +59,17 @@ public:
 private:
     UFUNCTION() void OnRep_ConstructionState();
     UFUNCTION() void OnRep_DoorState();
+    UFUNCTION() void OnRep_StandingLightState();
     void ApplyConstructionKit();
     void ApplyDoorState();
+    void UpdateStandingLightPresentation();
+    bool HasShelterRoofOverhead() const;
+    bool IsStandingLightExposedToRain() const;
     bool IsPawnInDoorway() const;
     void BuildPiecePresentation();
     UPROPERTY(VisibleAnywhere) TObjectPtr<UBoxComponent> Collision;
     UPROPERTY(VisibleAnywhere) TObjectPtr<UProceduralMeshComponent> PieceMesh;
+    UPROPERTY(VisibleAnywhere) TObjectPtr<UPointLightComponent> StandingLightComponent;
     UPROPERTY(VisibleAnywhere) TObjectPtr<USceneComponent> DoorPivot;
     UPROPERTY(VisibleAnywhere) TObjectPtr<UProceduralMeshComponent> DoorLeafMesh;
     UPROPERTY(VisibleAnywhere) TObjectPtr<UBoxComponent> DoorLeftFrameCollision;
@@ -74,6 +83,7 @@ private:
     UPROPERTY(Replicated) FKalmalaCharcoalKilnState CharcoalKiln;
     UPROPERTY(Replicated) FKalmalaSmelterState Smelter;
     UPROPERTY(Replicated) FKalmalaGardenPlotState GardenPlot;
+    UPROPERTY(ReplicatedUsing=OnRep_StandingLightState) FKalmalaStandingLightState StandingLight;
     UPROPERTY(ReplicatedUsing=OnRep_DoorState) bool bDoorOpen = false;
     FString LastLoggedReplicationId;
 };

@@ -123,6 +123,7 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
         for (int32 Batch : {MIN_int32,-1,0,MAX_int32}) Check(!CraftFromServer(TEXT("Workbench"),Batch,Reason),TEXT("Malformed batch"));
         Check(I->TryGrantFromServer(TEXT("Wood"),50) && I->TryGrantFromServer(TEXT("Stone"),40),
             TEXT("Seed bounded test materials"));
+        Check(I->TryGrantFromServer(TEXT("Sinew"),5), TEXT("Seed unrelated valid inventory sentinel"));
         const FVector StationProbeOrigin=C->GetActorLocation();
         C->SetActorLocation(StationProbeOrigin+FVector(0,0,10000));
         Check(!CraftFromServer(TEXT("Floor"),1,Reason),TEXT("Missing station rejects craft"));
@@ -247,14 +248,14 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
             C->GetController()->SetControlRotation(PreviousViewRotation);
             return false;
         };
-        Check(I->GetQuantity(TEXT("CampfireKit"))==0 && I->GetQuantity(TEXT("WorkbenchKit"))==5
+        Check(I->GetQuantity(TEXT("CampfireKit"))==0 && I->GetQuantity(TEXT("Sinew"))==5
             && I->GetQuantity(TEXT("Wood"))==HearthWoodBefore-4 && I->GetQuantity(TEXT("Stone"))==HearthStoneBefore-5,
             TEXT("Placement charges raw hearth materials and one raw-fuel item exactly once without creating a kit"));
         const int32 WoodBeforeOverlap = I->GetQuantity(TEXT("Wood"));
         const int32 StoneBeforeOverlap = I->GetQuantity(TEXT("Stone"));
-        const int32 FuelBeforeOverlap = I->GetQuantity(TEXT("WorkbenchKit"));
+        const int32 SentinelBeforeOverlap = I->GetQuantity(TEXT("Sinew"));
         Check(!PlaceFromServer(Reason) && I->GetQuantity(TEXT("CampfireKit"))==0
-            && I->GetQuantity(TEXT("WorkbenchKit"))==FuelBeforeOverlap && I->GetQuantity(TEXT("Wood"))==WoodBeforeOverlap
+            && I->GetQuantity(TEXT("Sinew"))==SentinelBeforeOverlap && I->GetQuantity(TEXT("Wood"))==WoodBeforeOverlap
             && I->GetQuantity(TEXT("Stone"))==StoneBeforeOverlap,TEXT("Overlap rejects placement without raw-material payment"));
         Check(!CraftFromServer(TEXT("Floor"),1,Reason) && GetRecipeAvailability(TEXT("Floor")) == TEXT("Ready"),
             TEXT("Floor is built directly from materials and no longer crafts into a kit"));

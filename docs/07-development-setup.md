@@ -1941,8 +1941,10 @@ material attempts, owner-only condition restoration, post-payment Crafting
 experience, and duplicate rejection. Recipe identity and batch remain the
 only crafting RPC fields.
 
-The A1 Copper/Tin source checks use these same server selections: Bronze-grade
-ore requires at least a Stone Pick and yields three matching pieces per node.
+The A1 Copper/Tin/Iron source checks use these same server selections:
+Bronze-grade Copper and Tin require at least a Stone Pick and yield three
+matching pieces per node. Iron-grade bog iron requires Bronze Pick or better
+and yields exactly three Iron Ore, replacing the former direct Iron reward.
 The deterministic Stone-outcrop pass adds at most one dry, slope-safe node in
 each of the six land biomes per 6,000 cm key where that biome has no slate
 source, preserving existing candidate sources and keeping 250 cm from other
@@ -1953,7 +1955,7 @@ The bounded extra-candidate search means an individual key can still contain
 no outcrop; Ocean is excluded.
 The maximum mineable resource tiers are Bronze for Stone Pick and Iron for
 Bronze or Iron Pick. `Kalmala.Gameplay.Tools.LifecycleContract` covers the
-three source rewards and ceilings; `Kalmala.Gameplay.Harvest.ResourceFamilyGates`
+all three ore-source rewards and ceilings; `Kalmala.Gameplay.Harvest.ResourceFamilyGates`
 covers all six pick/axe identities across the expanded source set.
 
 ## First build
@@ -2182,7 +2184,8 @@ for a placeable Frying pan, the three root-vegetable outputs, station-filtered
 Cooking rack/cauldron/pan recipes, and cooking heat at both station and player.
 Looking at the three stations shows the remappable Interact prompt; the server
 validates E and sends the selected station to the owner-local recipe GUI. Iron
-currently has no configured gathering source.
+Ore comes from Bronze-Pick-gated Mossy Mire bog-iron nodes and is smelted with
+Coal into Iron at the Smelter.
 
 ## Player inventory verification
 

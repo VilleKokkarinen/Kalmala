@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "KalmalaDamageProfile.h"
 #include "GameFramework/Actor.h"
+#include "KalmalaBiomeClassifier.h"
 #include "KalmalaWorldPopulationLayout.h"
 #include "KalmalaWildlifeSpawn.generated.h"
 
@@ -53,6 +54,7 @@ public:
     AKalmalaWildlifeSpawn();
 
     void InitializeServer(const FKalmalaWorldPopulationSpawn& Spawn);
+    void InitializeServer(const FKalmalaWorldPopulationSpawn& Spawn, EKalmalaWildlifeArchetype InitialArchetype);
     static bool IsDefeatAllowed(bool bServerAuthority, bool bAlreadyDefeated);
     static bool IsDeerSinewDropSuccessful(float ServerRoll);
     bool DefeatServer();
@@ -72,6 +74,7 @@ public:
     static constexpr float MirelingMeleeCooldownSeconds = 1.25f;
     static constexpr float DeerCallInfluenceDurationSeconds = 180.0f;
     static EKalmalaWildlifeArchetype GetArchetypeForSpawnSeed(uint64 SpawnSeed);
+    static bool TryGetSpawnArchetypeForBiome(uint64 SpawnSeed, EKalmalaBiome Biome, EKalmalaWildlifeArchetype& OutArchetype);
     static bool IsBoarChargeAllowed(bool bServerAuthority, bool bAlreadyDefeated, bool bAtRest, float DistanceToRestingArea);
     static bool IsBehaviourTransitionAllowed(bool bServerAuthority, bool bAlreadyDefeated, EKalmalaWildlifeBehaviour From, EKalmalaWildlifeBehaviour To);
     FKalmalaWildlifeSpawnDefeated OnDefeated;

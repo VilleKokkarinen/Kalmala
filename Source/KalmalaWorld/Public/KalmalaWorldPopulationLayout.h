@@ -56,6 +56,8 @@ struct KALMALAWORLD_API FKalmalaWorldDiscoveryDescriptor
 struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
 {
     static constexpr float SpatialKeySize = 6000.0f;
+    // One optional Tin node plus one Stone outcrop for each of six land biomes.
+    static constexpr int32 SupplementalHarvestSourceBudget = 7;
 
     static FIntPoint GetSpatialKey(const FVector2D WorldPosition)
     {
@@ -86,7 +88,7 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
         case EKalmalaWorldPopulationKind::Wildlife:
             return 1 + FMath::FloorToInt(Fields.Flora * 2.0f);
         case EKalmalaWorldPopulationKind::HarvestNode:
-            return 2 + FMath::FloorToInt(Fields.Flora * 4.0f) + 1;
+            return 2 + FMath::FloorToInt(Fields.Flora * 4.0f) + SupplementalHarvestSourceBudget + 1;
         case EKalmalaWorldPopulationKind::Hazard:
             return FMath::FloorToInt(Fields.Humidity * 2.0f);
         default:
@@ -98,6 +100,8 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
     {
         TArray<FKalmalaWorldPopulationSpawn> Spawns;
         const int32 Budget = GetSpawnBudget(Config, SpatialKey, Kind);
+        const int32 PrimaryBudget = Kind == EKalmalaWorldPopulationKind::HarvestNode
+            ? Budget - SupplementalHarvestSourceBudget : Budget;
         Spawns.Reserve(Budget);
         const FVector2D SpatialKeyOrigin = FVector2D(SpatialKey) * SpatialKeySize;
         bool bAddedMeadowCarrotPatch = false;
@@ -112,8 +116,8 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
         // server derives all candidates, rejects water and unsafe slopes, and
         // keeps the candidate seed in the sparse-delta ID.  Clients never choose
         // a fallback location or receive descriptors for actors outside relevancy.
-        const int32 CandidateBudget = Kind == EKalmalaWorldPopulationKind::Wildlife ? Budget * 4 : Budget;
-        for (int32 SpawnIndex = 0; SpawnIndex < CandidateBudget && Spawns.Num() < Budget; ++SpawnIndex)
+        const int32 CandidateBudget = Kind == EKalmalaWorldPopulationKind::Wildlife ? PrimaryBudget * 4 : PrimaryBudget;
+        for (int32 SpawnIndex = 0; SpawnIndex < CandidateBudget && Spawns.Num() < PrimaryBudget; ++SpawnIndex)
         {
             const uint64 CandidateSeed = Mix(DeriveSpatialSeed(Config, SpatialKey, Kind) ^ static_cast<uint64>(SpawnIndex + 1));
             const float XFraction = static_cast<float>(CandidateSeed & 0xFFFFu) / 65535.0f;
@@ -203,6 +207,39 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
 
         if (Kind == EKalmalaWorldPopulationKind::HarvestNode)
         {
+            // Preserve a Tin node in shoreline keys even when their ordinary
+            // harvest budget was filled by other biome sources first.
+            const bool bHasTinNode = Spawns.ContainsByPredicate([](const FKalmalaWorldPopulationSpawn& Spawn)
+            {
+                return Spawn.ContentId == TEXT("lakes-tin-shore-gravel");
+            });
+            constexpr int32 LakesTinCandidateBudget = 32;
+            constexpr float MinimumTinSeparation = 250.0f;
+            for (int32 CandidateOffset = 0; !bHasTinNode && CandidateOffset < LakesTinCandidateBudget; ++CandidateOffset)
+            {
+                const int32 SpawnIndex = CandidateBudget + LakesTinCandidateBudget + CandidateOffset;
+                const uint64 CandidateSeed = Mix(DeriveSpatialSeed(Config, SpatialKey, Kind) ^ static_cast<uint64>(SpawnIndex + 1));
+                const FVector2D Position = SpatialKeyOrigin + FVector2D(
+                    static_cast<float>(CandidateSeed & 0xFFFFu) / 65535.0f,
+                    static_cast<float>((CandidateSeed >> 16) & 0xFFFFu) / 65535.0f) * SpatialKeySize;
+                if (!FKalmalaWorldBounds::Contains(Config, Position) || !IsTerrainSafeDiscoveryLocation(Config, Position)) continue;
+                if (FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, Position)) != EKalmalaBiome::ShimmeringLakes
+                    || !FKalmalaEnvironmentalExposureSampler::Sample(Config, Position).bIsShoreline) continue;
+
+                const bool bTooCloseToExistingSpawn = Spawns.ContainsByPredicate([&Position, MinimumTinSeparation](const FKalmalaWorldPopulationSpawn& Spawn)
+                {
+                    return FVector2D::DistSquared(FVector2D(Spawn.Location.X, Spawn.Location.Y), Position)
+                        < MinimumTinSeparation * MinimumTinSeparation;
+                });
+                if (bTooCloseToExistingSpawn) continue;
+
+                const uint64 PersistentSeed = Mix(CandidateSeed ^ 0x71A6A271019ull);
+                Spawns.Add({ Kind, SpatialKey, PersistentSeed,
+                    FVector(Position.X, Position.Y, FKalmalaTerrainHeightSampler::SampleHeight(Config, Position)),
+                    TEXT("lakes-tin-shore-gravel") });
+                break;
+            }
+
             // Keep the existing harvest budget and source descriptors intact,
             // then add one distinct Stone outcrop for each land biome that
             // lacks a slate source in this key. Extra candidates let Meadow
@@ -234,7 +271,7 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
 
                 const bool bTooCloseToExistingSpawn = Spawns.ContainsByPredicate([&Position, MinimumOutcropSeparation](const FKalmalaWorldPopulationSpawn& Spawn)
                 {
-                    return FVector2D(Spawn.Location.X, Spawn.Location.Y).DistSquared(Position)
+                    return FVector2D::DistSquared(FVector2D(Spawn.Location.X, Spawn.Location.Y), Position)
                         < MinimumOutcropSeparation * MinimumOutcropSeparation;
                 });
                 if (bTooCloseToExistingSpawn) continue;

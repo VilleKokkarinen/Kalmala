@@ -26,6 +26,8 @@ bool FKalmalaInteractionPromptTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Prompt omits controller binding labels"), Available.Contains(TEXT("Gamepad:")));
     TestEqual(TEXT("Camp Bed prompt names its cosmetic rest action"),
         UKalmalaInteractionPromptWidget::GetConstructionActionName(TEXT("CampBedKit")), FString(TEXT("Rest")));
+    TestEqual(TEXT("Standing Light prompt names its fuel action"),
+        UKalmalaInteractionPromptWidget::GetConstructionActionName(TEXT("StandingLightKit")), FString(TEXT("Add fuel")));
     const FKalmalaItemDefinition* Workbench = UKalmalaItemCatalogue::Get()->FindBuildable(TEXT("WorkbenchKit"));
     TestNotNull(TEXT("Prompt target resolves the Workbench catalogue identity"), Workbench);
     if (Workbench)

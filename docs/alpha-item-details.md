@@ -64,7 +64,7 @@ are included in the approved queue.
 | Frost Salt | Existing Freezing Tundra deposits and frostmoss | Retain existing source-specific pick/knife actions and authored yields | Retain |
 | Copper Ore | New exposed copper-bearing rock nodes in Elderwood | Stone Pick or better; 3 Copper Ore per exhausted node | A1; biome user-confirmed |
 | Tin Ore | New tin-bearing gravel nodes on dry Shimmering Lakes shores | Stone Pick or better; 3 Tin Ore per exhausted node | A1; biome user-confirmed |
-| Iron Ore | Existing Mossy Mire bog-iron nodes | Bronze Pick or better; 3 Iron Ore per exhausted node, replacing direct Iron-bar reward | Change under A1; preserve existing behavior until approved |
+| Iron Ore | Existing Mossy Mire bog-iron nodes | Bronze Pick or better; 3 Iron Ore per exhausted node, replacing direct Iron-bar reward | Implemented under A1; smelt one Ore with one Coal into Iron |
 | Coal | Wood burned in a placed charcoal station | 1 Wood produces 1 Coal; no mined Coal source, no new fuel item | Add under A1; scope approved |
 | Copper | Copper Ore refined at placed smelter | 1 Copper Ore + 1 Coal produces 1 Copper | Add under A1; scope approved |
 | Tin | Tin Ore refined at placed smelter | 1 Tin Ore + 1 Coal produces 1 Tin | Add under A1; scope approved |
@@ -87,11 +87,11 @@ specified in the approved A1/A7 scope; their category review tasks still apply.
 ## A1
 
 Ores, bars and fuel (P0; processing scope approved 2026-10-19).
-- Review A0's source table and the station proposal below; confirm Stone Pick → Copper/Tin → Bronze Pick → Iron Ore bootstrap before implementation. Preserve current behavior until the A1 processing review.
-- Add the table's Elderwood Copper Ore and Shimmering Lakes Tin Ore nodes: Stone Pick minimum, 3 matching ore per exhausted node (blocked on A1 contract).
-- Implement the table's charcoal-station conversion of 1 Wood to 1 Coal with direct-material hammer placement; no alternative Coal source (blocked on A1 contract).
-- Implement the table's smelter conversions and Forge alloying: 1 Copper/Tin Ore + 1 Coal → 1 matching bar; 2 Copper + 1 Tin → 1 Bronze (blocked on ore/Coal acquisition and A1 contract).
-- Change Mossy Mire bog-iron nodes from direct Iron bars to 3 Iron Ore per node with Bronze Pick minimum; smelt 1 Iron Ore + 1 Coal → 1 Iron and reconcile documentation (blocked on A1 contract and refining).
+- Review A0's source table and confirm the Stone Pick → Copper/Tin → Bronze Pick → Iron Ore progression; completed under A1.
+- Add Elderwood Copper Ore and Shimmering Lakes Tin Ore nodes: Stone Pick minimum, 3 matching ore per exhausted node; completed under A1.
+- Implement the directly placed Charcoal Kiln conversion of 1 Wood to 1 Coal; completed under A1.
+- Implement Smelter conversions of one matching Ore and one Coal into a bar, plus Forge alloying of 2 Copper + 1 Tin into 1 Bronze; completed under A1.
+- Change Mossy Mire bog-iron nodes from direct Iron bars to 3 Iron Ore per node with Bronze Pick minimum; Iron smelting is implemented under A1.
 
 **Processing proposal — review before implementation:**
 
@@ -139,8 +139,8 @@ matching ore and Coal become bars at the Smelter. Forge level 1 alloys 2
 Copper + 1 Tin into Bronze. The user-directed Bronze Pick cost makes Bronze a
 real prerequisite before the planned Iron Ore nodes. Smelting that Iron Ore
 then supplies the Iron Pick recipe, so the tier chain has no Iron-material
-cycle. Preserve the current direct Iron reward until the A1 source and
-refining path are implemented together.
+cycle. The completed A1 route pays three Iron Ore per Mossy Mire node to
+Bronze Pick or better, then smelts one Ore and one Coal into one Iron bar.
 
 ## A2
 

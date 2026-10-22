@@ -143,6 +143,13 @@ namespace
             && Selection.MinimumToolTier == EKalmalaToolTier::Stone
             && Selection.ResourceTier == EKalmalaToolTier::Bronze
             && Selection.RewardItemId == TEXT("TinOre") && Selection.RewardQuantity == 3;
+        const bool bIronOre = Selection.SourceId == TEXT("mire-bog-iron")
+            && Selection.Action == EKalmalaToolAction::Mining
+            && Selection.RequiredTool == EKalmalaToolKind::None
+            && Selection.RequiredSkill == EKalmalaSkill::Mining
+            && Selection.MinimumToolTier == EKalmalaToolTier::Bronze
+            && Selection.ResourceTier == EKalmalaToolTier::Iron
+            && Selection.RewardItemId == TEXT("IronOre") && Selection.RewardQuantity == 3;
         return !Selection.SourceId.IsNone()
             && FKalmalaToolLifecycleContract::IsKnownAction(Selection.Action)
             && (bExactTool || bTieredTool)
@@ -153,7 +160,7 @@ namespace
                 || (Selection.SourceId == TEXT("meadows-aspen-trunk")
                     && Selection.RewardItemId == TEXT("Lightwood")
                     && Selection.RewardQuantity == 4)
-                || bCopperOre || bTinOre);
+                || bCopperOre || bTinOre || bIronOre);
     }
 }
 
@@ -361,7 +368,7 @@ bool FKalmalaToolLifecycleContract::BuildServerSelection(
     else if (ServerSourceId == TEXT("mire-bog-iron"))
     {
         OutSelection = { ServerSourceId, EKalmalaToolAction::Mining, EKalmalaToolKind::None,
-            EKalmalaSkill::Mining, TEXT("Iron"), 1, EKalmalaToolTier::Bronze, EKalmalaToolTier::Iron };
+            EKalmalaSkill::Mining, TEXT("IronOre"), 3, EKalmalaToolTier::Bronze, EKalmalaToolTier::Iron };
     }
     else if (ServerSourceId == TEXT("mountains-slate-vein") || ServerSourceId == TEXT("allbiomes-stone-outcrop"))
     {

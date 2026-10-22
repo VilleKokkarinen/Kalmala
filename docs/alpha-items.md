@@ -72,7 +72,7 @@ food status dispatch. Definitions do not establish obtainability or usability.
 | Ranged and ammunition | Bow and Light Bow profiles plus Wooden, Stone and Bronze Arrows; crafting, draw/release and server projectiles | Bow String is reachable through deer Sinew and Workbench crafting. A3 routes all three arrow types through selected-stack preference or row-major inventory fallback, server-paid shots, and crosshair type/damage display. |
 | Utility tools | Building Hammer, Basic Torch, plus gathering tools above | Basic Torch is an inventory-craft carried tool (2 Wood + 1 Amber), with 300 seconds of held burn, 6 m light, Wood refuelling and rain extinguishing. Planting Trowel is assigned to A7; hoe remains outside current implementation. |
 | Armour and shields | Boar Hide Helmet, Tunic, Leggings, Boots, Cape; Bronze Helmet, Tunic, Leggings and Shield; Wood Shield | Bronze armor pieces and shield are Forge-made; shields supply passive Armor only. Six functioning slots; Necklace/Ring are disabled placeholders. |
-| Crafting materials | Wood, Densewood, Lightwood, Stone, Sinew, Bow String, Bone Fragment, two hides, Amber, Frost Salt, Coal; Copper/Tin/Iron ores and Copper/Tin/Bronze/Iron bars | Deer Sinew feeds the bow-only Bow String recipe; credited boar/deer defeats now grant Bone Fragment for the cape recipe and upgrade. A1 now includes Wood → Coal at the Kiln, Copper/Tin/Iron Ore + Coal → matching bars at the Smelter, and Copper + Tin → Bronze at the Forge. Bog Iron Iron Ore acquisition remains pending; verify generated availability before calling the whole metal loop complete. |
+| Crafting materials | Wood, Densewood, Lightwood, Stone, Sinew, Bow String, Bone Fragment, two hides, Amber, Frost Salt, Coal; Copper/Tin/Iron ores and Copper/Tin/Bronze/Iron bars | Deer Sinew feeds the bow-only Bow String recipe; credited boar/deer defeats now grant Bone Fragment for the cape recipe and upgrade. A1 provides Wood → Coal at the Kiln, Copper/Tin/Iron Ore + Coal → matching bars at the Smelter, 2 Copper + 1 Tin → Bronze at the Forge, and three Iron Ore per Bronze-Pick-gated Mossy Mire node. |
 | Food | Two raw meats, Lingonberry, Forest Chanterelle, seven prepared-food definitions, Berry Recovery Draught and Root Stamina Draught | Hearth Broth and both draughts use reviewed Cauldron recipes. All seven prepared foods and both foraged foods use the existing Steady Meal effect. Berry Recovery restores up to 20 health over 10 seconds; Root Stamina restores up to 20 stamina immediately, clamped to current maximum. They share a 60-second cooldown. Four root vegetables are ingredients; planting remains deferred to A7. |
 | Crops and seeds | Carrot, Potato, Rutabaga, Onion plus four seed definitions | A0 supplies 2 Carrots + 1 Carrot Seed and 2 Potatoes per Meadow patch, 2 Rutabagas + 1 Rutabaga Seed per dry Shimmering Lakes bank patch, and 2 Onions + 1 Onion Seed per dry Elderwood patch. Potato Seed acquisition and all seed use remain deferred to A7. Farming is otherwise unimplemented. |
 | Recovery and expedition consumables | Berry Recovery Draught and Root Stamina Draught | A6 Berry/Root and A8b Rat-tail Tonic/Antidote use the Cauldron and server-owned transient status transaction, sharing one 60-second recovery cooldown. Antidote is the only poison-resistance preparation; cold/fire resistance stays deferred. Do not require consumables for direct-damage magic. |
@@ -102,15 +102,12 @@ coverage, not a count of obtainable items or the assembled runtime catalogue.
   point. The approved A0 detail row's "existing starter acquisition" remains
   unsupported by current startup/source code.
 - The generated biome contract maps Mossy Mire harvest candidates to
-  `mire-bog-iron`. `BuildServerSelection` maps that source to 1 `Iron` per node
-  with a Bronze-tier mining minimum. The current Forge `BronzePick` acquisition
-  costs 4 Wood + 4 Stone. The user-directed A1 targets are Stone Pick for 10
-  Wood + 5 Stone, Bronze Pick for 10 Wood + 10 Bronze, and Iron Pick for 10
-  Wood + 10 Iron. Thus the planned 3-IronOre-per-node replacement remains
-  Bronze-Pick-gated and now requires Bronze production. Keep the current direct
-  Iron reward and recipe until that A1 route is usable. The design sentence
-  claiming Iron has no natural source was stale. `IronOre` is catalogued but
-  has no current source or refining recipe; A1 implementation remains pending.
+  `mire-bog-iron`. `BuildServerSelection` now maps that source to 3 `IronOre`
+  per node with a Bronze-tier mining minimum and Iron resource grade. The
+  user-directed Forge `BronzePick` acquisition costs 10 Wood + 10 Bronze;
+  `IronPick` costs 10 Wood + 10 Iron. Stone Picks cannot reach the Iron-grade
+  source, while Bronze and Iron Picks can, so Bronze production bootstraps
+  Iron Ore and smelting it with Coal completes the Iron route without a cycle.
 - The user-directed Forge `IronAxe` acquisition now costs 4 Iron + 3 Lightwood,
   resolving the cycle with the only current Densewood source: Elderwood
   ironheart trees gated by the Iron Axe tier. Its level-one upgrade also costs
@@ -123,11 +120,11 @@ coverage, not a count of obtainable items or the assembled runtime catalogue.
   implemented credited-deer Sinew roll feeding the Workbench Bow String recipe,
   one Bone Fragment from each credited boar/deer defeat, and natural A0 sources
   for Carrot, Potato, Rutabaga, and Onion. Their recipes are reachable without
-  farming; seed use remains deferred to A7. Current acquisition gaps remain for
-  Coal and IronOre; three Copper Ore per eligible Elderwood node and three Tin
-  Ore per eligible dry Lakes shoreline node are now sourced to Stone Pick or
-  better. Production for Copper/Tin/Bronze/Iron and Coal remains pending A1
-  implementation.
+  farming; seed use remains deferred to A7. Coal remains production-only: Wood
+  is processed at the Kiln. Three Copper Ore per eligible Elderwood node and
+  three Tin Ore per eligible dry Lakes shoreline node are sourced to Stone
+  Pick or better; three Iron Ore per Mossy Mire node requires Bronze Pick or
+  better. A1 Kiln, Smelter, and Forge production routes are implemented.
 - The current spawn layout derives harvest identities from the classified biome
   and material rewards/tool gates from server contracts. The initial source
   audit was static; the A0 final gate now passes deterministic placement and

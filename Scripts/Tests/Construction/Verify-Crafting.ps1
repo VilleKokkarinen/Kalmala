@@ -55,7 +55,7 @@ try {
             $ready = $ready -and $peerText.Contains('Build context cleanup: Headerless=1 BrowseControls=1 ObsoleteHidden=1 GridAndRequirements=1 CardActionsHidden=1 RelightRemoved=1 StatusHidden=1 StorageShell=1')
             $ready = $ready -and $peerText.Contains('Recipe browsing: SelectionKept=1 Category=1 NoResults=1 Restored=1 SearchFocus=1')
             $ready = $ready -and $peerText.Contains('Build browsing: Groups=1 SelectionKept=1 CategoryKey=1 NoResults=1')
-            $ready = $ready -and $peerText.Contains('Workbench Craft scope: NoBronzeAxe=1 GrindingStoneExcluded=1 GrindingStoneInBuild=1 ToolRackExcluded=1 NoUnrelated=1 NoToolOptions=1 StationLevel=1 UiScope=1')
+            $ready = $ready -and $peerText.Contains('Workbench Craft scope: BronzeAxeForgeOnly=1 GrindingStoneExcluded=1 GrindingStoneInBuild=1 ToolRackExcluded=1 NoUnrelated=1 StonePick=1 StationLevel=1 UiScope=1')
             $ready = $ready -and $peerText.Contains('Forge Craft scope: FryingPanExcluded=1 FryingPanInBuild=1 AnvilInBuild=1 AnvilExcluded=1 BronzeAxe=1 Materials=1 Station=1 NoUnrelated=1 Route=1 StationLevel=1 UiScope=1')
             $ready = $ready -and $peerText.Contains('Cooking Rack scope: Recipes=1 Ingredients=1 Quantity=1 Description=1 Heat=1 NoUnrelated=1 StaleNoRequest=1 UiScope=1')
             $ready = $ready -and $peerText.Contains('Cauldron scope: Recipes=1 Ingredients=1 Quantity=1 Description=1 Heat=1 NoUnrelated=1 StaleNoRequest=1 UiScope=1')
@@ -65,7 +65,7 @@ try {
             $ready = $ready -and $peerText.Contains('Workbench Repair All action: OwnerLocal=1 NoRepairMenu=1 InvalidContextNoRequest=1')
             $ready = $ready -and $peerText.Contains('Chest scope: OwnerPack=1 OwnerChest=1 Capacity=1 Route=1 StaleNoRequest=1 UiScope=1')
         }
-        $gridPattern = 'Build slot grid: Slots=(\d+) Unavailable=(\d+) Selected=(\d+) Focused=1 ReadOnly=1 Scrollable=1 Navigation=1'
+        $gridPattern = 'Build slot grid: Slots=(\d+) Unavailable=(\d+) Selected=(\d+) Focused=1 ReadOnly=1 Scrollable=[01] Navigation=1'
         $serverGrid = [regex]::Match($serverText, $gridPattern)
         $clientGrid = [regex]::Match($clientText, $gridPattern)
         $serverGridSlots = if ($serverGrid.Success) { [int]$serverGrid.Groups[1].Value } else { 0 }

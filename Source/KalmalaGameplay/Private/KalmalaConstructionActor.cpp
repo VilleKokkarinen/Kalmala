@@ -8,6 +8,7 @@
 #include "KalmalaWorldGenerationGameState.h"
 #include "Engine/World.h"
 #include "Components/BoxComponent.h"
+#include "Components/PointLightComponent.h"
 #include "Components/SceneComponent.h"
 #include "GameFramework/Pawn.h"
 #include "Net/UnrealNetwork.h"
@@ -15,12 +16,23 @@
 
 namespace
 {
-    void AddBox(TArray<FVector>& Vertices, TArray<int32>& Triangles, const FVector& Centre, const FVector& HalfExtent)
+    void AddBox(TArray<FVector>& Vertices, TArray<int32>& Triangles, const FVector& Centre,
+        const FVector& HalfExtent, const FQuat& Orientation = FQuat::Identity)
     {
         const int32 Base = Vertices.Num();
         for (const FVector& Corner : { FVector(-1,-1,-1), FVector(1,-1,-1), FVector(1,1,-1), FVector(-1,1,-1), FVector(-1,-1,1), FVector(1,-1,1), FVector(1,1,1), FVector(-1,1,1) })
-            Vertices.Add(Centre + Corner * HalfExtent);
+            Vertices.Add(Centre + Orientation.RotateVector(Corner * HalfExtent));
         for (const int32 Index : { 0,2,1, 0,3,2, 4,5,6, 4,6,7, 0,1,5, 0,5,4, 1,2,6, 1,6,5, 2,3,7, 2,7,6, 3,0,4, 3,4,7 }) Triangles.Add(Base + Index);
+    }
+
+    void AddBeam(TArray<FVector>& Vertices, TArray<int32>& Triangles, const FVector& Start,
+        const FVector& End, const float HalfWidth)
+    {
+        const FVector Delta = End - Start;
+        const float Length = Delta.Size();
+        if (Length <= KINDA_SMALL_NUMBER) return;
+        AddBox(Vertices, Triangles, (Start + End) * 0.5f,
+            FVector(Length * 0.5f, HalfWidth, HalfWidth), FRotationMatrix::MakeFromX(Delta).ToQuat());
     }
 }
 
@@ -41,6 +53,15 @@ AKalmalaConstructionActor::AKalmalaConstructionActor()
     PieceMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     PieceMesh->SetGenerateOverlapEvents(false);
     PieceMesh->SetCanEverAffectNavigation(false);
+    StandingLightComponent = CreateDefaultSubobject<UPointLightComponent>(TEXT("StandingLightGlow"));
+    StandingLightComponent->SetupAttachment(Collision);
+    StandingLightComponent->SetMobility(EComponentMobility::Movable);
+    StandingLightComponent->SetRelativeLocation(FVector(0.0f, 0.0f, 68.0f));
+    StandingLightComponent->SetIntensity(1800.0f);
+    StandingLightComponent->SetLightColor(FLinearColor(1.0f, 0.56f, 0.22f));
+    StandingLightComponent->SetAttenuationRadius(600.0f);
+    StandingLightComponent->SetCastShadows(false);
+    StandingLightComponent->SetVisibility(false);
     DoorPivot = CreateDefaultSubobject<USceneComponent>(TEXT("DoorPivot"));
     DoorPivot->SetupAttachment(Collision);
     DoorPivot->SetRelativeLocation(FVector(-50.0f, 0.0f, 0.0f));
@@ -89,7 +110,8 @@ AKalmalaConstructionActor::AKalmalaConstructionActor()
 
 void AKalmalaConstructionActor::InitializeFromServer(const FName InKit, const FString& InConstructionId,
     const FKalmalaCharcoalKilnState& InCharcoalKiln, const FKalmalaSmelterState& InSmelter,
-    const FKalmalaGardenPlotState& InGardenPlot, const bool bInDoorOpen)
+    const FKalmalaGardenPlotState& InGardenPlot, const bool bInDoorOpen,
+    const FKalmalaStandingLightState& InStandingLight)
 {
     if (HasAuthority())
     {
@@ -101,6 +123,8 @@ void AKalmalaConstructionActor::InitializeFromServer(const FName InKit, const FS
             ? InSmelter : FKalmalaSmelterState();
         GardenPlot = InKit == TEXT("GardenPlotKit") && InGardenPlot.IsValid()
             ? InGardenPlot : FKalmalaGardenPlotState();
+        StandingLight = InKit == TEXT("StandingLightKit") && InStandingLight.IsValid()
+            ? InStandingLight : FKalmalaStandingLightState();
         bDoorOpen = InKit == TEXT("TimberDoorKit") && bInDoorOpen;
         SetActorTickEnabled((InKit == TEXT("CharcoalKilnKit")
                 && (CharcoalKiln.JobRemainingSeconds > 0.0f
@@ -109,7 +133,8 @@ void AKalmalaConstructionActor::InitializeFromServer(const FName InKit, const FS
                 && (Smelter.JobRemainingSeconds > 0.0f
                     || (!Smelter.InputOreQueue.IsEmpty() && Smelter.InputCoal > 0
                         && Smelter.GetOutputCount() < FKalmalaSmelterState::OutputCapacity)))
-            || (InKit == TEXT("GardenPlotKit") && GardenPlot.IsPlanted() && !GardenPlot.IsMature()));
+            || (InKit == TEXT("GardenPlotKit") && GardenPlot.IsPlanted() && !GardenPlot.IsMature())
+            || (InKit == TEXT("StandingLightKit") && StandingLight.RemainingFuelSeconds > 0.0f));
         ApplyConstructionKit();
     }
 }
@@ -117,6 +142,19 @@ void AKalmalaConstructionActor::InitializeFromServer(const FName InKit, const FS
 void AKalmalaConstructionActor::Tick(const float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
+    if (ConstructionKit == TEXT("StandingLightKit"))
+    {
+        const bool bRainBlocked = IsStandingLightExposedToRain();
+        if (StandingLightComponent)
+            StandingLightComponent->SetVisibility(StandingLight.RemainingFuelSeconds > 0.0f && !bRainBlocked);
+        if (!HasAuthority() || ConstructionId.IsEmpty() || StandingLight.RemainingFuelSeconds <= 0.0f || bRainBlocked) return;
+        AKalmalaGameMode* LightMode = GetWorld() ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
+        if (!LightMode) return;
+        FKalmalaStandingLightState Candidate = StandingLight;
+        if (!Candidate.Advance(DeltaSeconds) || !LightMode->PersistStandingLightState(this, Candidate)) return;
+        ApplyStandingLightStateFromServer(Candidate);
+        return;
+    }
     if (!HasAuthority() || ConstructionId.IsEmpty()) return;
     AKalmalaGameMode* Mode = GetWorld() ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
     if (!Mode) return;
@@ -167,6 +205,16 @@ bool AKalmalaConstructionActor::ApplyGardenPlotStateFromServer(const FKalmalaGar
     if (!HasAuthority() || ConstructionKit != TEXT("GardenPlotKit") || !State.IsValid()) return false;
     GardenPlot = State;
     SetActorTickEnabled(State.IsPlanted() && !State.IsMature());
+    ForceNetUpdate();
+    return true;
+}
+
+bool AKalmalaConstructionActor::ApplyStandingLightStateFromServer(const FKalmalaStandingLightState& State)
+{
+    if (!HasAuthority() || ConstructionKit != TEXT("StandingLightKit") || !State.IsValid()) return false;
+    StandingLight = State;
+    SetActorTickEnabled(State.RemainingFuelSeconds > 0.0f);
+    UpdateStandingLightPresentation();
     ForceNetUpdate();
     return true;
 }
@@ -223,11 +271,12 @@ bool AKalmalaConstructionActor::CanUse(const AKalmalaCharacter* Character) const
     const bool bIsStorageOrCraftingStation = IsStorageKit(ConstructionKit)
         || IsCraftingStationKit(ConstructionKit);
     const float MaximumUseRange = ConstructionKit == TEXT("TimberDoorKit") || ConstructionKit == TEXT("CampBedKit")
+        || ConstructionKit == TEXT("StandingLightKit")
         ? 200.0f : 250.0f;
     if (!IsValid(Character) || !Character->GetController() || Character->GetWorld() != GetWorld() || ConstructionId.IsEmpty()
         || (!bIsStorageOrCraftingStation && ConstructionKit != TEXT("GrindingStoneKit")
             && ConstructionKit != TEXT("GardenPlotKit") && ConstructionKit != TEXT("TimberDoorKit")
-            && ConstructionKit != TEXT("CampBedKit"))
+            && ConstructionKit != TEXT("CampBedKit") && ConstructionKit != TEXT("StandingLightKit"))
         || Character->GetActorLocation().ContainsNaN() || GetActorLocation().ContainsNaN()
         || FVector::DistSquared(Character->GetActorLocation(), GetActorLocation()) > FMath::Square(MaximumUseRange)) return false;
     const auto* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
@@ -248,14 +297,9 @@ void AKalmalaConstructionActor::AdvanceRainWearFromServer(const float DeltaSecon
         || (ConstructionKit != TEXT("FloorKit") && ConstructionKit != TEXT("WallKit")
             && ConstructionKit != TEXT("TimberDoorKit")
             && ConstructionKit != TEXT("TimberBeamKit") && ConstructionKit != TEXT("TimberStairsKit")
-            && ConstructionKit != TEXT("CampBedKit")
+            && ConstructionKit != TEXT("CampBedKit") && ConstructionKit != TEXT("StandingLightKit")
             && ConstructionKit != TEXT("WorkbenchKit") && ConstructionKit != TEXT("StorageKit"))) return;
-    const FVector Start = Collision->GetComponentLocation() + FVector(0, 0, 60);
-    if (Start.ContainsNaN()) return;
-    FCollisionQueryParams Query(SCENE_QUERY_STAT(ConstructionRainProtection), false, this);
-    FHitResult Hit;
-    if (GetWorld()->LineTraceSingleByChannel(Hit, Start, Start + FVector(0, 0, 400), ECC_Visibility, Query)
-        && IsValid(Hit.GetActor()) && Hit.GetActor()->ActorHasTag(TEXT("KalmalaShelterRoof"))) return;
+    if (HasShelterRoofOverhead()) return;
     const float NextHealth = FMath::Clamp(Health - RainWearPerSecond * FMath::Clamp(Precipitation, 0.0f, 1.0f) * DeltaSeconds,
         RainHealthFloor, MaximumHealth);
     if (NextHealth != Health)
@@ -263,6 +307,34 @@ void AKalmalaConstructionActor::AdvanceRainWearFromServer(const float DeltaSecon
         Health = NextHealth;
         ForceNetUpdate();
     }
+}
+
+bool AKalmalaConstructionActor::HasShelterRoofOverhead() const
+{
+    if (!GetWorld() || !Collision) return false;
+    const FVector Start = Collision->GetComponentLocation() + FVector(0.0f, 0.0f, 60.0f);
+    if (Start.ContainsNaN()) return false;
+    FCollisionQueryParams Query(SCENE_QUERY_STAT(ConstructionRainProtection), false, this);
+    FHitResult Hit;
+    return GetWorld()->LineTraceSingleByChannel(Hit, Start, Start + FVector(0.0f, 0.0f, 400.0f),
+            ECC_Visibility, Query)
+        && IsValid(Hit.GetActor()) && Hit.GetActor()->ActorHasTag(TEXT("KalmalaShelterRoof"));
+}
+
+bool AKalmalaConstructionActor::IsStandingLightExposedToRain() const
+{
+    const AKalmalaWorldGenerationGameState* State = GetWorld()
+        ? GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>() : nullptr;
+    return State == nullptr || (State->GetWeatherState().PrecipitationIntensity >= 0.05f
+        && !HasShelterRoofOverhead());
+}
+
+void AKalmalaConstructionActor::UpdateStandingLightPresentation()
+{
+    if (!StandingLightComponent) return;
+    const bool bLit = ConstructionKit == TEXT("StandingLightKit")
+        && StandingLight.RemainingFuelSeconds > 0.0f && !IsStandingLightExposedToRain();
+    StandingLightComponent->SetVisibility(bLit);
 }
 
 bool AKalmalaConstructionActor::CanInteract_Implementation(AKalmalaCharacter* Character) const
@@ -341,6 +413,7 @@ FVector AKalmalaConstructionActor::GetCollisionExtent(const FName KitId)
     if (KitId == TEXT("TimberBeamKit")) return FVector(100, 7.5f, 7.5f);
     if (KitId == TEXT("TimberStairsKit")) return FVector(100, 50, 50);
     if (KitId == TEXT("CampBedKit")) return FVector(100, 50, 22);
+    if (KitId == TEXT("StandingLightKit")) return FVector(35, 35, 75);
     if (KitId == TEXT("RoofKit")) return FVector(132, 132, 16);
     if (KitId == TEXT("CharcoalKilnKit")) return FVector(60, 60, 62);
     if (KitId == TEXT("SmelterKit")) return FVector(60, 60, 82);
@@ -363,12 +436,19 @@ void AKalmalaConstructionActor::GetLifetimeReplicatedProps(TArray<FLifetimePrope
     DOREPLIFETIME(AKalmalaConstructionActor, CharcoalKiln);
     DOREPLIFETIME(AKalmalaConstructionActor, Smelter);
     DOREPLIFETIME(AKalmalaConstructionActor, GardenPlot);
+    DOREPLIFETIME(AKalmalaConstructionActor, StandingLight);
     DOREPLIFETIME(AKalmalaConstructionActor, bDoorOpen);
 }
 
 void AKalmalaConstructionActor::OnRep_DoorState()
 {
     ApplyDoorState();
+}
+
+void AKalmalaConstructionActor::OnRep_StandingLightState()
+{
+    SetActorTickEnabled(StandingLight.RemainingFuelSeconds > 0.0f);
+    UpdateStandingLightPresentation();
 }
 
 void AKalmalaConstructionActor::OnRep_ConstructionState()
@@ -396,6 +476,7 @@ void AKalmalaConstructionActor::ApplyConstructionKit()
     if (ConstructionKit == TEXT("WallKit")) Tags.AddUnique(TEXT("KalmalaShelterWindbreak"));
     BuildPiecePresentation();
     ApplyDoorState();
+    UpdateStandingLightPresentation();
 }
 
 void AKalmalaConstructionActor::ApplyDoorState()
@@ -457,7 +538,19 @@ void AKalmalaConstructionActor::BuildPiecePresentation()
     TArray<FVector> Vertices; TArray<int32> Triangles;
     // Placement and saved transforms already locate the collision centre.
     // Derive the visible solid from that same footprint on both peers.
-    if (ConstructionKit == TEXT("GardenPlotKit"))
+    if (ConstructionKit == TEXT("StandingLightKit"))
+    {
+        const FVector Crown(0.0f, 0.0f, 26.0f);
+        AddBeam(Vertices, Triangles, Crown, FVector(25.0f, 0.0f, -72.0f), 5.0f);
+        AddBeam(Vertices, Triangles, Crown, FVector(-12.5f, 21.7f, -72.0f), 5.0f);
+        AddBeam(Vertices, Triangles, Crown, FVector(-12.5f, -21.7f, -72.0f), 5.0f);
+        AddBox(Vertices, Triangles, FVector(0.0f, 0.0f, 35.0f), FVector(17.0f, 17.0f, 4.0f));
+        AddBox(Vertices, Triangles, FVector(-14.0f, 0.0f, 49.0f), FVector(3.0f, 17.0f, 6.0f));
+        AddBox(Vertices, Triangles, FVector(14.0f, 0.0f, 49.0f), FVector(3.0f, 17.0f, 6.0f));
+        AddBox(Vertices, Triangles, FVector(0.0f, -14.0f, 49.0f), FVector(11.0f, 3.0f, 6.0f));
+        AddBox(Vertices, Triangles, FVector(0.0f, 14.0f, 49.0f), FVector(11.0f, 3.0f, 6.0f));
+    }
+    else if (ConstructionKit == TEXT("GardenPlotKit"))
     {
         AddBox(Vertices, Triangles, FVector(0, 0, -3), FVector(50, 50, 5));
         for (const float X : {-47.0f, 47.0f})

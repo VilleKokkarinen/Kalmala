@@ -67,6 +67,85 @@ namespace
         if (IsValid(Actor)) Supports.AddUnique(Actor);
     }
 
+    FKalmalaPlacementPreview EvaluateStandingLight(const UWorld* World, const APawn* Pawn)
+    {
+        FKalmalaPlacementPreview Result;
+        Result.Message = TEXT("Preview invalid: place the Standing Light on ground or a supported timber floor");
+        if (!World || !Pawn || Pawn->GetActorLocation().ContainsNaN())
+        {
+            Result.Message = TEXT("Preview unavailable: waiting for local terrain");
+            return Result;
+        }
+
+        Result.Rotation = FRotator(0.0f, Pawn->GetActorRotation().Yaw, 0.0f);
+        const FVector Probe = Pawn->GetActorLocation() + Result.Rotation.Vector() * 165.0f;
+        FCollisionQueryParams SupportQuery(SCENE_QUERY_STAT(StandingLightSupport), false, Pawn);
+        FHitResult SupportHit;
+        if (Probe.ContainsNaN() || !World->LineTraceSingleByChannel(SupportHit,
+            Probe + FVector(0.0f, 0.0f, 300.0f), Probe - FVector(0.0f, 0.0f, 500.0f),
+            ECC_Visibility, SupportQuery)) return Result;
+
+        AActor* SupportActor = SupportHit.GetActor();
+        AKalmalaConstructionActor* Floor = Cast<AKalmalaConstructionActor>(SupportActor);
+        const bool bTerrainSupport = Cast<AKalmalaGeneratedTerrainPatch>(SupportActor) != nullptr;
+        FVector SupportPoint = SupportHit.ImpactPoint;
+        if (Floor)
+        {
+            if (Floor->GetWorld() != World || Floor->GetConstructionId().IsEmpty()
+                || Floor->GetConstructionKit() != TEXT("FloorKit") || SupportHit.ImpactNormal.Z < 0.85f)
+                return Result;
+            const FTransform FloorTransform = Floor->GetActorTransform();
+            const FVector LocalHit = FloorTransform.InverseTransformPosition(SupportHit.ImpactPoint);
+            const float FloorTop = AKalmalaConstructionActor::GetCollisionExtent(TEXT("FloorKit")).Z;
+            const float FootprintRadius = AKalmalaConstructionActor::GetCollisionExtent(TEXT("StandingLightKit")).X;
+            if (FMath::Abs(LocalHit.X) + FootprintRadius > 110.0f
+                || FMath::Abs(LocalHit.Y) + FootprintRadius > 110.0f
+                || FMath::Abs(LocalHit.Z - FloorTop) > 5.0f) return Result;
+            SupportPoint = FloorTransform.TransformPosition(FVector(LocalHit.X, LocalHit.Y, FloorTop));
+        }
+        else if (!bTerrainSupport || SupportHit.ImpactNormal.Z < 0.85f)
+        {
+            return Result;
+        }
+
+        const auto* State = World->GetGameState<AKalmalaWorldGenerationGameState>();
+        if (!State || !State->GetWorldGenerationConfig().IsValid())
+        {
+            Result.Message = TEXT("Preview unavailable: waiting for world data");
+            return Result;
+        }
+        const auto& Config = State->GetWorldGenerationConfig();
+        if (!FKalmalaWorldBounds::Contains(Config, FVector2D(SupportPoint), 300))
+        {
+            Result.Message = TEXT("Preview invalid: Standing Light is too close to the world edge");
+            return Result;
+        }
+        if (bTerrainSupport && (FKalmalaOceanSampler::Sample(Config, FVector2D(SupportPoint)).IsWater()
+            || FKalmalaShimmeringLakeSampler::IsWater(Config, FVector2D(SupportPoint))
+            || FKalmalaRegionalGeneration::Sample(Config, FVector2D(SupportPoint)).bHasWater))
+        {
+            Result.Message = TEXT("Preview invalid: Standing Light needs dry ground");
+            return Result;
+        }
+
+        const FVector Extent = AKalmalaConstructionActor::GetCollisionExtent(TEXT("StandingLightKit"));
+        Result.Location = SupportPoint + FVector(0.0f, 0.0f, Extent.Z);
+        FCollisionQueryParams OverlapQuery(SCENE_QUERY_STAT(StandingLightPlacement), false, Pawn);
+        if (IsValid(SupportActor)) OverlapQuery.AddIgnoredActor(SupportActor);
+        if (World->OverlapBlockingTestByChannel(Result.Location, Result.Rotation.Quaternion(), ECC_Pawn,
+            FCollisionShape::MakeBox(Extent), OverlapQuery))
+        {
+            Result.Message = TEXT("Preview invalid: clear space for the Standing Light");
+            return Result;
+        }
+
+        Result.bIsValid = true;
+        Result.Message = Floor
+            ? TEXT("Preview valid: Standing Light rests on a supported timber floor; server will recheck")
+            : TEXT("Preview valid: Standing Light rests on level dry ground; server will recheck");
+        return Result;
+    }
+
     FKalmalaPlacementPreview EvaluateTimberStairs(const UWorld* World, const APawn* Pawn)
     {
         FKalmalaPlacementPreview Result;
@@ -521,7 +600,8 @@ bool FKalmalaPlacementPreview::IsSupportedKit(const FName ItemId)
         || ItemId == TEXT("WorkbenchToolRackKit") || ItemId == TEXT("ForgeAnvilKit") || ItemId == TEXT("GrindingStoneKit")
         || ItemId == TEXT("FloorKit") || ItemId == TEXT("WallKit") || ItemId == TEXT("RoofKit")
         || ItemId == TEXT("GardenPlotKit") || ItemId == TEXT("TimberDoorKit") || ItemId == TEXT("TimberBeamKit")
-        || ItemId == TEXT("TimberStairsKit") || ItemId == TEXT("CampBedKit");
+        || ItemId == TEXT("TimberStairsKit") || ItemId == TEXT("CampBedKit")
+        || ItemId == TEXT("StandingLightKit");
 }
 
 bool FKalmalaPlacementPreview::IsGardenPlotGroundAllowed(const EKalmalaBiome Biome, const float SurfaceNormalZ)
@@ -542,6 +622,7 @@ FKalmalaPlacementPreview FKalmalaPlacementPreview::Evaluate(const UWorld* World,
 {
     FKalmalaPlacementPreview Result;
     Result.Message = TEXT("Preview: select a camp or construction object");
+    if (ItemId == TEXT("StandingLightKit")) return EvaluateStandingLight(World, Pawn);
     if (ItemId == TEXT("CampBedKit")) return EvaluateCampBed(World, Pawn);
     if (ItemId == TEXT("TimberBeamKit")) return EvaluateTimberBeam(World, Pawn);
     if (ItemId == TEXT("TimberStairsKit")) return EvaluateTimberStairs(World, Pawn);
