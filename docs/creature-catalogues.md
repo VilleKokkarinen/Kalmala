@@ -108,9 +108,10 @@ dry, traversable Tundra. The per-key Tundra actor cap fits one pack and counts
 each surviving member. Wolves pursue within a 25 m spawn leash, telegraph for
 0.5 seconds, visibly lunge up to 180 cm, recheck visibility and the reviewed
 180 cm bite reach at impact, then recover for 0.8 seconds. Each defeated
-member queues two Bone Fragments for its authenticated attacker under that
-member's stable identity. The Wolf Pelt, Wolf Fang and Wolf Meat drops remain
-disabled until their A8b source tasks are complete.
+member queues two Bone Fragments and one guaranteed Wolf Pelt for its
+authenticated attacker under that member's stable identity. The complete
+reward commits together when inventory capacity permits. Wolf Fang and Wolf
+Meat remain disabled until their A8b source tasks are complete.
 Lynx (150 health, 30 armor, 75 Slash) occupies the next seeded 20% of Tundra
 candidate slots and stays on dry, traversable Tundra. The server-owned pounce
 shows a half-second warning, closes toward the target, and applies damage only

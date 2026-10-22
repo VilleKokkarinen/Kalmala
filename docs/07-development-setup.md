@@ -2482,11 +2482,13 @@ After an editor build, run
 20% exclusive Tundra slot, the deliberately empty unimplemented Tundra shares,
 the user-reviewed 180 cm server-only bite boundary, common warning/recovery
 timings, stable three-member formation offsets and IDs, the 25 m leash, and
-owner-bound two-Bone-Fragment claim serialization/cleanup. It does not replace
-live formation habitat/cap validation, attack rejection, full-pack retry,
-reconnect/restart, or relevant-peer acceptance. Wolf Pelt, Wolf Fang, and Wolf
-Meat remain disabled pending A8b. No Unreal build or automation execution ran
-in this normal increment; combined A8a/A8b I4 remains required.
+owner-bound two-Bone-plus-one-Pelt claim serialization/cleanup. The regression
+also covers full-pack rejection, the one-cell partial-bundle failure, and retry
+after two cells are freed. It does not replace live formation habitat/cap
+validation, attack rejection, reconnect/restart, or relevant-peer acceptance.
+Wolf Fang and Wolf Meat remain disabled pending their A8b source tasks. No
+Unreal build or automation execution ran in this normal increment; combined
+A8a/A8b I4 remains required.
 
 ## Freezing Tundra Lynx contract regression
 

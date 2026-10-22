@@ -3,6 +3,7 @@
 #include "KalmalaWildlifeSpawn.h"
 #include "KalmalaWolfPackContract.h"
 #include "KalmalaInventoryComponent.h"
+#include "KalmalaItemCatalogue.h"
 #include "KalmalaWorldPopulationSaveGame.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/AutomationTest.h"
@@ -162,15 +163,78 @@ bool FKalmalaWildlifeWolfContractTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Reload retains the credited Wolf owner"),
         Reloaded->GetPendingWildlifeRewards()[0].PlayerIdentity, FString(TEXT("player:test")));
 
+    TArray<FKalmalaInventoryStack> WithBone;
     TArray<FKalmalaInventoryStack> Candidate;
     TArray<FKalmalaInventoryStack> EmptyInventory;
     FString FailureReason;
     TestTrue(TEXT("The two-fragment Wolf baseline fits an empty inventory"),
-        UKalmalaInventoryComponent::BuildGrant(EmptyInventory, TEXT("BoneFragment"), 2, Candidate, FailureReason));
+        UKalmalaInventoryComponent::BuildGrant(EmptyInventory, TEXT("BoneFragment"), 2, WithBone, FailureReason));
+    TestTrue(TEXT("The guaranteed Wolf Pelt joins the same reward candidate"),
+        UKalmalaInventoryComponent::BuildGrant(WithBone, TEXT("WolfPelt"), 1, Candidate, FailureReason));
     const FKalmalaInventoryStack* BoneStack = Candidate.FindByPredicate(
         [](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == TEXT("BoneFragment"); });
+    const FKalmalaInventoryStack* PeltStack = Candidate.FindByPredicate(
+        [](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == TEXT("WolfPelt"); });
     TestTrue(TEXT("Wolf's accepted baseline is exactly two Bone Fragments"),
         BoneStack != nullptr && BoneStack->Quantity == 2);
+    TestTrue(TEXT("Wolf's accepted material reward is exactly one Pelt"),
+        PeltStack != nullptr && PeltStack->Quantity == 1);
+
+    TArray<FKalmalaInventoryStack> FullPack;
+    const UKalmalaItemCatalogue* Catalogue = UKalmalaItemCatalogue::Get();
+    if (Catalogue != nullptr)
+    {
+        for (const FKalmalaItemDefinition& Definition : Catalogue->Items)
+        {
+            if (Definition.ItemId.IsNone() || Definition.ItemId == TEXT("BoneFragment")
+                || Definition.ItemId == TEXT("WolfPelt") || Definition.MaxStack <= 0)
+                continue;
+            FKalmalaInventoryStack Stack;
+            Stack.ItemId = Definition.ItemId;
+            Stack.Quantity = 1;
+            FullPack.Add(MoveTemp(Stack));
+            if (FullPack.Num() == UKalmalaInventoryComponent::MaxSlots) break;
+        }
+    }
+    TestEqual(TEXT("The Wolf capacity fixture fills all forty cells"),
+        FullPack.Num(), UKalmalaInventoryComponent::MaxSlots);
+    if (FullPack.Num() == UKalmalaInventoryComponent::MaxSlots)
+    {
+        TArray<FKalmalaInventoryStack> FullWithBone;
+        FString FullReason;
+        TestFalse(TEXT("A full pack defers the complete Wolf reward"),
+            UKalmalaInventoryComponent::BuildGrant(
+                FullPack, TEXT("BoneFragment"), 2, FullWithBone, FullReason));
+
+        TArray<FKalmalaInventoryStack> NearlyFullPack = FullPack;
+        NearlyFullPack.RemoveAt(0);
+        TArray<FKalmalaInventoryStack> NearlyFullWithBone;
+        TArray<FKalmalaInventoryStack> NearlyFullCandidate;
+        FString NearlyFullReason;
+        const bool bBonesFit = UKalmalaInventoryComponent::BuildGrant(
+            NearlyFullPack, TEXT("BoneFragment"), 2, NearlyFullWithBone, NearlyFullReason);
+        const bool bPeltFits = bBonesFit && UKalmalaInventoryComponent::BuildGrant(
+            NearlyFullWithBone, TEXT("WolfPelt"), 1, NearlyFullCandidate, NearlyFullReason);
+        TestTrue(TEXT("Two Bone Fragments fit the one free cell"), bBonesFit);
+        TestFalse(TEXT("The Pelt waits when only the baseline fits"), bPeltFits);
+        TestEqual(TEXT("Partial reward deferral retains the capacity reason"),
+            NearlyFullReason, FString(TEXT("Pack output capacity reached")));
+        TestEqual(TEXT("The owner-bound Wolf claim remains queued until both items fit"),
+            Population->GetPendingWildlifeRewards().Num(), 1);
+
+        TArray<FKalmalaInventoryStack> RetryPack = FullPack;
+        RetryPack.RemoveAt(0, 2);
+        TArray<FKalmalaInventoryStack> RetryWithBone;
+        TArray<FKalmalaInventoryStack> RetryCandidate;
+        FString RetryReason;
+        const bool bRetryBonesFit = UKalmalaInventoryComponent::BuildGrant(
+            RetryPack, TEXT("BoneFragment"), 2, RetryWithBone, RetryReason);
+        const bool bRetryPeltFits = bRetryBonesFit && UKalmalaInventoryComponent::BuildGrant(
+            RetryWithBone, TEXT("WolfPelt"), 1, RetryCandidate, RetryReason);
+        TestTrue(TEXT("The complete Wolf bundle fits after two cells are freed"), bRetryPeltFits);
+        TestEqual(TEXT("Preparing the Wolf retry retains its durable claim"),
+            Population->GetPendingWildlifeRewards().Num(), 1);
+    }
 
     TestTrue(TEXT("A delivered Wolf claim can be removed by its stable ID"),
         Reloaded->RemovePendingWildlifeReward(ClaimId));

@@ -3019,8 +3019,13 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
                             WithBone, TEXT("VenomSac"), 1, WithVenomSac, Reason)) break;
                     Candidate = MoveTemp(WithVenomSac);
                 }
+                else if (bWolfReward)
+                {
+                    if (!UKalmalaInventoryComponent::BuildGrant(
+                            WithBone, TEXT("WolfPelt"), 1, Candidate, Reason)) break;
+                }
                 else if (bMoonBearReward
-                    || bWolfReward || bLynxReward || bPolarBearReward || bHornedGoatReward)
+                    || bLynxReward || bPolarBearReward || bHornedGoatReward)
                 {
                     Candidate = MoveTemp(WithBone);
                 }
