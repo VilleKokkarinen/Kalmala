@@ -590,9 +590,10 @@ Held fuelled torches and rain-safe fuelled Standing Lights repel within 3 m;
 Lit fuelled campfires with effective warmth repel within 5 m. The server tests
 visibility to each authoritative flame so roofs, walls and closed doors block
 protection. Unimplemented exposed-world-fire actors remain unsupported. These
-source contracts are not live multiplayer acceptance; the swarm-specific fire,
-roll and bite application scenarios remain in combined I4. Generic weak/major
-poison status effects have one shared automation,
+source contracts are not live multiplayer acceptance. The generated-spawn bite
+and weak-poison application slice now has a dedicated three-peer I4 runner;
+live accepted/rejected roll and authoritative fire-state counterplay remain
+open. Generic weak/major poison status effects have one shared automation,
 `Kalmala.Gameplay.Status.PoisonEffects`. `Verify-RatPeer.ps1` remains the sole
 live enemy scenario for shared reward delivery/retry, defeat persistence and
 combat replication.

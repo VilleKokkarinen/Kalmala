@@ -3331,6 +3331,9 @@ bool AKalmalaWildlifeSpawn::TryApplyMosquitoBite(AKalmalaCharacter* Target)
             FVector::Dist(GetActorLocation(), Target->GetActorLocation()))) return false;
     const FKalmalaDamageChannels Bite = GetBaseAttackChannelsForArchetype(EKalmalaWildlifeArchetype::MosquitoSwarm);
     if (!Target->ApplyWildlifeDamageFromServer(this, Bite)) return false;
+#if !UE_BUILD_SHIPPING
+    ++MosquitoAcceptedBiteCountForVerification;
+#endif
     if (UKalmalaPlayerStatusComponent* Statuses = Target->GetStatusComponent())
         Statuses->ApplyWeakPoisonFromServer(MosquitoWeakPoisonDurationSeconds);
     return true;

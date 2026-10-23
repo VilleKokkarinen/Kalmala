@@ -228,11 +228,16 @@ void AKalmalaCharacter::AdvanceHeldTorchFromServer(const float DeltaSeconds, con
 void AKalmalaCharacter::OnRep_Health()
 {
 #if !UE_BUILD_SHIPPING
+    const bool bMosquitoPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaMosquitoPeerTest"));
     const bool bBadgerPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaBadgerPeerTest"));
     const bool bMoonBearPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaMoonBearPeerTest"));
     const bool bRatPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaRatPeerTest"));
     const bool bViperPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaViperPeerTest"));
     const bool bGiantSnakePeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaGiantSnakePeerTest"));
+    if (!HasAuthority() && bMosquitoPeerTest && Health < 99.9f)
+    {
+        UE_LOG(LogTemp, Display, TEXT("Mosquito verification client observed replicated player health=%.1f."), Health);
+    }
     if (!HasAuthority() && (FParse::Param(FCommandLine::Get(), TEXT("KalmalaMirelingPeerTest"))
         || FParse::Param(FCommandLine::Get(), TEXT("KalmalaBoarPeerTest"))
         || FParse::Param(FCommandLine::Get(), TEXT("KalmalaDeerPeerTest")) || bBadgerPeerTest || bMoonBearPeerTest || bRatPeerTest || bViperPeerTest || bGiantSnakePeerTest))

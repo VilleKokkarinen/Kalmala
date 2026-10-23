@@ -6,6 +6,8 @@
 #include "KalmalaCharacterMovementComponent.h"
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaItemCatalogue.h"
+#include "Misc/CommandLine.h"
+#include "Misc/Parse.h"
 
 const FName UKalmalaPlayerStatusComponent::WetStatusId(TEXT("State.Wet"));
 const FName UKalmalaPlayerStatusComponent::WeakPoisonStatusId(TEXT("State.Poison.Weak"));
@@ -478,4 +480,16 @@ void UKalmalaPlayerStatusComponent::OnRep_Statuses()
 {
     // Replication is presentation-only on clients. Server validation happens
     // before state is published and clients never sanitize or author entries.
+#if !UE_BUILD_SHIPPING
+    const AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(GetOwner());
+    if (Character == nullptr || Character->HasAuthority()
+        || !FParse::Param(FCommandLine::Get(), TEXT("KalmalaMosquitoPeerTest"))) return;
+    const float WeakPoisonSeconds = GetRemainingSeconds(WeakPoisonStatusId);
+    if (WeakPoisonSeconds > 0.0f)
+    {
+        UE_LOG(LogTemp, Display,
+            TEXT("Mosquito verification client observed replicated weak poison remaining=%.2f."),
+            WeakPoisonSeconds);
+    }
+#endif
 }

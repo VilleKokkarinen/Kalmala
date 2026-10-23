@@ -101,6 +101,9 @@ public:
     FName GetCreatureNicheId() const { return CreatureNicheId; }
     EKalmalaWildlifeBehaviour GetBehaviour() const { return Behaviour; }
     const FString& GetPersistentSpawnId() const { return PersistentSpawnId; }
+#if !UE_BUILD_SHIPPING
+    int32 GetMosquitoAcceptedBiteCountForVerification() const { return MosquitoAcceptedBiteCountForVerification; }
+#endif
     static EKalmalaWildlifeEcology GetEcologyForNiche(FName CreatureNicheId);
     static float GetEcologicalFleeDistance(FName CreatureNicheId);
     static float GetMaximumHealthForArchetype(EKalmalaWildlifeArchetype Archetype);
@@ -491,6 +494,9 @@ private:
     float MosquitoApproachSecondsRemaining = 0.0f;
     float MosquitoBiteSecondsRemaining = 0.0f;
     float MosquitoFlightElapsedSeconds = 0.0f;
+#if !UE_BUILD_SHIPPING
+    int32 MosquitoAcceptedBiteCountForVerification = 0;
+#endif
     FVector MosquitoCurrentFireLocation = FVector::ZeroVector;
     TArray<uint8> MosquitoBuzzAudioData;
     UPROPERTY()

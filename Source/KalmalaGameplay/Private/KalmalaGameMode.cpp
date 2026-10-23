@@ -2044,6 +2044,195 @@ void AKalmalaGameMode::DriveCombatPeerTest()
 #endif
 }
 
+void AKalmalaGameMode::DriveMosquitoPeerTest()
+{
+#if !UE_BUILD_SHIPPING
+    if (!FParse::Param(FCommandLine::Get(), TEXT("KalmalaMosquitoPeerTest"))
+        || !HasAuthority() || GetWorld() == nullptr || !WorldGenerationConfig.IsValid()
+        || MosquitoPeerTestStage >= 99)
+    {
+        return;
+    }
+
+    const auto Fail = [this](const TCHAR* Reason)
+    {
+        UE_LOG(LogTemp, Error, TEXT("Mosquito verification FAILED: %s"), Reason);
+        MosquitoPeerTestStage = 99;
+    };
+    const float Now = GetWorld()->GetTimeSeconds();
+
+    if (MosquitoPeerTestStage == 0)
+    {
+        APlayerController* ListenHostController = GetWorld()->GetFirstPlayerController();
+        AKalmalaCharacter* ListenHost = ListenHostController
+            ? Cast<AKalmalaCharacter>(ListenHostController->GetPawn()) : nullptr;
+        TArray<AKalmalaCharacter*> Peers;
+        for (TActorIterator<AKalmalaCharacter> It(GetWorld()); It; ++It)
+        {
+            AKalmalaCharacter* Candidate = *It;
+            if (Candidate == nullptr || Candidate == ListenHost || Candidate->GetPlayerState() == nullptr) continue;
+            Peers.Add(Candidate);
+        }
+        if (ListenHost == nullptr || ListenHost->GetPlayerState() == nullptr || Peers.Num() < 2) return;
+
+        // One remote pawn owns the bitten character so its private status
+        // replication is exercised; the other remote peer observes public health.
+        MosquitoPeerTestHost = Peers[0];
+        MosquitoPeerTestListenHost = ListenHost;
+        MosquitoPeerTestObserver = Peers[1];
+
+        const FIntPoint StartKey = FKalmalaWorldPopulationLayout::GetSpatialKey(
+            FVector2D(ListenHost->GetActorLocation()));
+        bool bFoundSpawn = false;
+        for (int32 Radius = 0; Radius <= 64 && !bFoundSpawn; ++Radius)
+        {
+            for (int32 OffsetY = -Radius; OffsetY <= Radius && !bFoundSpawn; ++OffsetY)
+            {
+                for (int32 OffsetX = -Radius; OffsetX <= Radius; ++OffsetX)
+                {
+                    if (Radius > 0 && FMath::Abs(OffsetX) != Radius && FMath::Abs(OffsetY) != Radius) continue;
+                    const FIntPoint CandidateKey = StartKey + FIntPoint(OffsetX, OffsetY);
+                    TArray<FKalmalaWorldPopulationSpawn> Descriptors =
+                        FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(
+                            WorldGenerationConfig, CandidateKey, EKalmalaWorldPopulationKind::Wildlife);
+                    const FVector2D KeyCentre = (FVector2D(CandidateKey) + FVector2D(0.5f, 0.5f))
+                        * FKalmalaWorldPopulationLayout::SpatialKeySize;
+                    const EKalmalaBiome KeyBiome = FKalmalaBiomeClassifier::Classify(
+                        FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, KeyCentre));
+                    if (KeyBiome == EKalmalaBiome::ShimmeringLakes || KeyBiome == EKalmalaBiome::Elderwood
+                        || KeyBiome == EKalmalaBiome::MossyMire || KeyBiome == EKalmalaBiome::FreezingTundra
+                        || KeyBiome == EKalmalaBiome::ThunderMountains)
+                    {
+                        Descriptors.SetNum(FMath::Min(Descriptors.Num(),
+                            FKalmalaBiomeExpansionContract::ApplyPopulationBudget(
+                                Descriptors.Num(), EKalmalaWorldPopulationKind::Wildlife, KeyBiome)));
+                    }
+                    const FKalmalaWorldPopulationSpawn* Candidate = Descriptors.FindByPredicate(
+                        [this](const FKalmalaWorldPopulationSpawn& Descriptor)
+                        {
+                            return KalmalaGameMode::IsWildlifeSpawnOfArchetype(WorldGenerationConfig,
+                                Descriptor, EKalmalaWildlifeArchetype::MosquitoSwarm)
+                                && (PopulationSaveGame == nullptr || !PopulationSaveGame->IsDefeated(
+                                    FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Descriptor)));
+                        });
+                    if (Candidate == nullptr) continue;
+
+                    MosquitoPeerTestSpatialKey = CandidateKey;
+                    MosquitoPeerTestSpawnId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(*Candidate);
+                    MosquitoPeerTestWorldSeed = WorldGenerationConfig.WorldSeed;
+                    bFoundSpawn = true;
+                    break;
+                }
+            }
+        }
+        if (!bFoundSpawn || MosquitoPeerTestSpawnId.IsEmpty())
+        {
+            Fail(TEXT("no normal generated Mossy Mire swarm descriptor was found within the bounded search"));
+            return;
+        }
+
+        ActivatePopulationKey(MosquitoPeerTestSpatialKey);
+        MosquitoPeerTestStageTime = Now;
+        MosquitoPeerTestStage = 1;
+        UE_LOG(LogTemp, Display,
+            TEXT("Mosquito verification selected generated swarm Seed=%llu SpatialKey=(%d,%d) SpawnId=%s."),
+            static_cast<unsigned long long>(MosquitoPeerTestWorldSeed), MosquitoPeerTestSpatialKey.X,
+            MosquitoPeerTestSpatialKey.Y, *MosquitoPeerTestSpawnId);
+        return;
+    }
+
+    if (MosquitoPeerTestStage == 1)
+    {
+        AKalmalaCharacter* Host = MosquitoPeerTestHost.Get();
+        AKalmalaCharacter* ListenHost = MosquitoPeerTestListenHost.Get();
+        AKalmalaCharacter* Observer = MosquitoPeerTestObserver.Get();
+        if (!IsValid(Host) || !IsValid(ListenHost) || !IsValid(Observer))
+        {
+            Fail(TEXT("a required host or peer pawn disappeared during setup"));
+            return;
+        }
+        AKalmalaWildlifeSpawn* Target = nullptr;
+        for (TActorIterator<AKalmalaWildlifeSpawn> It(GetWorld()); It; ++It)
+        {
+            if ((*It)->GetPersistentSpawnId() == MosquitoPeerTestSpawnId)
+            {
+                Target = *It;
+                break;
+            }
+        }
+        if (Target == nullptr)
+        {
+            if (Now - MosquitoPeerTestStageTime > 15.0f)
+                Fail(TEXT("the selected generated swarm did not activate"));
+            return;
+        }
+        if (Target->IsDefeated() || Target->GetArchetype() != EKalmalaWildlifeArchetype::MosquitoSwarm)
+        {
+            Fail(TEXT("the selected generated actor is defeated or has the wrong archetype"));
+            return;
+        }
+
+        const auto PlaceOnTerrain = [this](AKalmalaCharacter* Character, const FVector& DesiredLocation)
+        {
+            const FVector2D Position(DesiredLocation);
+            ActivateTerrainPatchNeighborhood(Position);
+            FVector GroundedLocation = DesiredLocation;
+            GroundedLocation.Z = FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, Position)
+                + Character->GetSimpleCollisionHalfHeight() + 1.0f;
+            Character->SetActorLocation(GroundedLocation, false);
+            if (UCharacterMovementComponent* Movement = Character->GetCharacterMovement())
+                Movement->StopMovementImmediately();
+            Character->ForceNetUpdate();
+        };
+        const FVector SpawnLocation = Target->GetActorLocation();
+        PlaceOnTerrain(Host, SpawnLocation);
+        PlaceOnTerrain(Observer, SpawnLocation + FVector(0.0f, 3000.0f, 0.0f));
+        PlaceOnTerrain(ListenHost, SpawnLocation + FVector(0.0f, 4000.0f, 0.0f));
+        Target->SetActorTickEnabled(true);
+        Target->ForceNetUpdate();
+        MosquitoPeerTestTarget = Target;
+        MosquitoPeerTestStartingHealth = Host->GetHealth();
+        MosquitoPeerTestStageTime = Now;
+        MosquitoPeerTestStage = 2;
+        UE_LOG(LogTemp, Display,
+            TEXT("Mosquito verification placed the owner client by the swarm and the listen host and observer outside its target leash."));
+        return;
+    }
+
+    if (MosquitoPeerTestStage == 2)
+    {
+        AKalmalaCharacter* Host = MosquitoPeerTestHost.Get();
+        AKalmalaWildlifeSpawn* Target = MosquitoPeerTestTarget.Get();
+        UKalmalaPlayerStatusComponent* Statuses = IsValid(Host) ? Host->GetStatusComponent() : nullptr;
+        if (!IsValid(Host) || !IsValid(Target) || Statuses == nullptr)
+        {
+            Fail(TEXT("host, generated swarm, or status component disappeared during the encounter"));
+            return;
+        }
+
+        const int32 Bites = Target->GetMosquitoAcceptedBiteCountForVerification();
+        const float Damage = MosquitoPeerTestStartingHealth - Host->GetHealth();
+        const float WeakPoisonSeconds = Statuses->GetRemainingSeconds(
+            UKalmalaPlayerStatusComponent::WeakPoisonStatusId);
+        if (Bites >= 2 && Damage >= 10.0f && WeakPoisonSeconds >= 8.0f)
+        {
+            Target->SetActorTickEnabled(false);
+            Target->ForceNetUpdate();
+            UE_LOG(LogTemp, Display,
+                TEXT("Mosquito verification server: Passed=1 Seed=%llu Bites=%d Damage=%.1f WeakPoisonSeconds=%.2f OtherPeers=2 SpawnId=%s"),
+                static_cast<unsigned long long>(MosquitoPeerTestWorldSeed), Bites, Damage,
+                WeakPoisonSeconds, *MosquitoPeerTestSpawnId);
+            MosquitoPeerTestStage = 99;
+            return;
+        }
+        if (Now - MosquitoPeerTestStageTime > 30.0f)
+        {
+            Fail(TEXT("the normal swarm did not land two damaging bites and apply its ten-second weak poison"));
+        }
+    }
+#endif
+}
+
 void AKalmalaGameMode::DriveDiscoveryPeerTest()
 {
 #if !UE_BUILD_SHIPPING
@@ -2410,6 +2599,7 @@ void AKalmalaGameMode::Tick(const float DeltaSeconds)
     DriveCampChoiceTest();
     DriveRainVerticalSliceTest();
     DriveCombatPeerTest();
+    DriveMosquitoPeerTest();
     DriveDiscoveryPeerTest();
     DriveM9ExplorationRewardPeerTest();
     DriveOceanTravelFeedbackTest();
@@ -5535,7 +5725,8 @@ void AKalmalaGameMode::PlacePawnAtGeneratedStart(APlayerController* PlayerContro
 #if !UE_BUILD_SHIPPING
     const bool bRatPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaRatPeerTest"));
     const bool bGiantSnakePeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaGiantSnakePeerTest"));
-    if ((bRatPeerTest || bGiantSnakePeerTest)
+    const bool bMosquitoPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaMosquitoPeerTest"));
+    if ((bRatPeerTest || bGiantSnakePeerTest || bMosquitoPeerTest)
         && PlayerController->StartSpot.IsValid())
     {
         SpawnStart = PlayerController->StartSpot.Get();
@@ -5686,10 +5877,13 @@ AActor* AKalmalaGameMode::ChoosePlayerStart_Implementation(AController* Player)
 #if !UE_BUILD_SHIPPING
     const bool bRatPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaRatPeerTest"));
     const bool bGiantSnakePeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaGiantSnakePeerTest"));
-    if ((bRatPeerTest || bGiantSnakePeerTest)
+    const bool bMosquitoPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaMosquitoPeerTest"));
+    if ((bRatPeerTest || bGiantSnakePeerTest || bMosquitoPeerTest)
         && Player != nullptr && !Player->IsLocalController() && GeneratedPlayerStart != nullptr && GetWorld() != nullptr)
     {
-        const FName PeerTestStartTag(bRatPeerTest ? TEXT("KalmalaRatPeerTestStart") : TEXT("KalmalaGiantSnakePeerTestStart"));
+        const FName PeerTestStartTag(bRatPeerTest
+            ? TEXT("KalmalaRatPeerTestStart")
+            : bGiantSnakePeerTest ? TEXT("KalmalaGiantSnakePeerTestStart") : TEXT("KalmalaMosquitoPeerTestStart"));
         if (AActor* ExistingStart = Player->StartSpot.Get(); ExistingStart != nullptr && ExistingStart->ActorHasTag(PeerTestStartTag))
         {
             return ExistingStart;

@@ -112,6 +112,7 @@ private:
     void DriveCampChoiceTest();
     void DriveRainVerticalSliceTest();
     void DriveCombatPeerTest();
+    void DriveMosquitoPeerTest();
     void DriveDiscoveryPeerTest();
     void DriveM9ExplorationRewardPeerTest();
     void RunM9Schema2CandidateWorldPeerTest();
@@ -143,6 +144,16 @@ private:
     bool bCombatPeerTestHerdAlertObserved = false;
     bool bCombatPeerTestViperPoisonObserved = false;
     bool bCombatPeerTestGiantSnakeBiteObserved = false;
+    int32 MosquitoPeerTestStage = 0;
+    float MosquitoPeerTestStageTime = 0.0f;
+    float MosquitoPeerTestStartingHealth = 100.0f;
+    FIntPoint MosquitoPeerTestSpatialKey = FIntPoint::ZeroValue;
+    uint64 MosquitoPeerTestWorldSeed = 0;
+    FString MosquitoPeerTestSpawnId;
+    TWeakObjectPtr<class AKalmalaCharacter> MosquitoPeerTestHost;
+    TWeakObjectPtr<class AKalmalaCharacter> MosquitoPeerTestListenHost;
+    TWeakObjectPtr<class AKalmalaCharacter> MosquitoPeerTestObserver;
+    TWeakObjectPtr<class AKalmalaWildlifeSpawn> MosquitoPeerTestTarget;
     int32 DiscoveryPeerTestStage = 0;
     float DiscoveryPeerTestStageTime = 0.0f;
     bool bDiscoveryPeerTestLogged = false;

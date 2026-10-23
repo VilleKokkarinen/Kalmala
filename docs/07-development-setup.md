@@ -2496,6 +2496,17 @@ campfire flame state, ally fire protection, collision, poison refresh or
 relevant-peer privacy. Run those scenarios with combined A8a/A8b I4 after a
 forced editor build; that gate remains required before A9.
 
+`Scripts/Tests/Combat/Verify-MosquitoSwarmPeer.ps1` covers the live bite and
+poison application slice. It activates a normal generated dry Mossy Mire swarm,
+places one remote player at the encounter and the other peer and listen host
+within replication range but outside the swarm's target leash, then requires
+two accepted damaging bites and an active weak-poison refresh. The owner client
+must observe the host's replicated health loss and private weak-poison status;
+the other remote peer must see health loss without receiving that owner-only
+status.
+This case does not repeat the Rat shared loot/restart checks; accepted/rejected
+dodge-roll and authoritative fire-state counterplay remain for combined I4.
+
 ## Death Adder contract regression
 
 After an editor build, run `Kalmala.Gameplay.Wildlife.DeathAdder.MireBiteAndRewardClaim`,
