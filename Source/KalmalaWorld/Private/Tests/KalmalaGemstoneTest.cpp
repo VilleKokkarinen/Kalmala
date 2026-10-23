@@ -82,6 +82,59 @@ bool FKalmalaGemstoneContractTest::RunTest(const FString& Parameters)
     return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaEnemyGemPayloadTest, "Kalmala.World.EnemyGemPayload",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+bool FKalmalaEnemyGemPayloadTest::RunTest(const FString& Parameters)
+{
+    int32 Diamonds = 0;
+    for (uint64 Seed = 0; Seed < 10000; ++Seed)
+    {
+        Diamonds += FKalmalaGemstoneContract::SelectEnemyGem(false, EKalmalaBiome::MossyMire, Seed) == TEXT("DuskDiamond");
+        TestTrue(TEXT("Bear cannot use the Mireling gem source"),
+            FKalmalaGemstoneContract::SelectEnemyGem(true, EKalmalaBiome::MossyMire, Seed).IsNone());
+        TestTrue(TEXT("Mireling outside Mire cannot yield Dusk Diamond"),
+            FKalmalaGemstoneContract::SelectEnemyGem(false, EKalmalaBiome::ThunderMountains, Seed).IsNone());
+    }
+    TestTrue(TEXT("Dusk Diamond selection is near one percent"), Diamonds > 60 && Diamonds < 140);
+
+    const FKalmalaWorldGenerationConfig Config;
+    auto* Save = NewObject<UKalmalaWorldPopulationSaveGame>();
+    Save->InitializeForWorld(Config);
+    const FString MoonSpawn = TEXT("2/10/11/12");
+    const FString MoonClaim = UKalmalaWorldPopulationSaveGame::MakeMoonBearPendingRewardClaimId(MoonSpawn);
+    const FString DuskClaim = TEXT("mireling-gem|2/12/13/14");
+    TestTrue(TEXT("Credited bear reward queues"), Save->TryQueuePendingMoonBearReward(MoonSpawn, TEXT("owner-a")));
+    TestTrue(TEXT("Moonstone binds to its bear payload"), Save->SetPendingGemReward(MoonClaim, TEXT("Moonstone")));
+    TestTrue(TEXT("Credited Mireling gem reward queues"), Save->TryQueuePendingWildlifeReward(DuskClaim, TEXT("owner-b")));
+    TestTrue(TEXT("Dusk Diamond binds to its Mireling payload"), Save->SetPendingGemReward(DuskClaim, TEXT("DuskDiamond")));
+    TestFalse(TEXT("Another owner cannot take a pending bear reward"), Save->TryQueuePendingMoonBearReward(MoonSpawn, TEXT("owner-b")));
+    TestFalse(TEXT("Another owner cannot take a pending Mireling reward"), Save->TryQueuePendingWildlifeReward(DuskClaim, TEXT("owner-a")));
+    TestFalse(TEXT("Moonstone cannot be attached to a Mireling"), Save->SetPendingGemReward(DuskClaim, TEXT("Moonstone")));
+    TestFalse(TEXT("Dusk Diamond cannot be attached to a bear"), Save->SetPendingGemReward(MoonClaim, TEXT("DuskDiamond")));
+    TestFalse(TEXT("Other gems cannot enter an enemy payload"), Save->SetPendingGemReward(MoonClaim, TEXT("StarOpal")));
+    TestFalse(TEXT("An absent claim cannot receive a gem"), Save->SetPendingGemReward(TEXT("mireling-gem|absent"), TEXT("DuskDiamond")));
+
+    TArray<uint8> Bytes;
+    TestTrue(TEXT("Gem-bearing pending rewards serialize"), UGameplayStatics::SaveGameToMemory(Save, Bytes));
+    auto* Restored = Cast<UKalmalaWorldPopulationSaveGame>(UGameplayStatics::LoadGameFromMemory(Bytes));
+    if (!TestNotNull(TEXT("Gem-bearing pending rewards restore"), Restored)) return false;
+    TestTrue(TEXT("Restored payload retains world identity"), Restored->MatchesWorld(Config));
+    const auto& Pending = Restored->GetPendingWildlifeRewards();
+    TestEqual(TEXT("Rejected changes did not create or remove rewards"), Pending.Num(), 2);
+    TestTrue(TEXT("Moonstone and its credited owner survive rejection and reload"), Pending.ContainsByPredicate([&MoonClaim](const auto& Row)
+        { return Row.PersistentSpawnId == MoonClaim && Row.PlayerIdentity == TEXT("owner-a") && Row.GemItemId == TEXT("Moonstone"); }));
+    TestTrue(TEXT("Dusk Diamond and its credited owner survive rejection and reload"), Pending.ContainsByPredicate([&DuskClaim](const auto& Row)
+        { return Row.PersistentSpawnId == DuskClaim && Row.PlayerIdentity == TEXT("owner-b") && Row.GemItemId == TEXT("DuskDiamond"); }));
+    TestTrue(TEXT("Consumed bear claim can be removed"), Restored->RemovePendingWildlifeReward(MoonClaim));
+    TestFalse(TEXT("Consumed bear claim cannot be removed twice"), Restored->RemovePendingWildlifeReward(MoonClaim));
+    TestTrue(TEXT("Remaining pending reward serializes"), UGameplayStatics::SaveGameToMemory(Restored, Bytes));
+    auto* AfterClaim = Cast<UKalmalaWorldPopulationSaveGame>(UGameplayStatics::LoadGameFromMemory(Bytes));
+    TestTrue(TEXT("Claim removal survives reload without losing the other owner's gem"), AfterClaim && AfterClaim->MatchesWorld(Config)
+        && AfterClaim->GetPendingWildlifeRewards().Num() == 1 && AfterClaim->GetPendingWildlifeRewards()[0].PersistentSpawnId == DuskClaim
+        && AfterClaim->GetPendingWildlifeRewards()[0].GemItemId == TEXT("DuskDiamond"));
+    return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaGemstoneGenerationTest, "Kalmala.World.GemstoneGeneration",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 bool FKalmalaGemstoneGenerationTest::RunTest(const FString& Parameters)

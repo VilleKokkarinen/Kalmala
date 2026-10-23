@@ -413,7 +413,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [x] Audit the four existing scroll routes; defer new scrolls, trophies and boss keys. Source audit and exact routes recorded in `docs/a9-acceptance.md`; live acceptance remains I5 scope.
   - [ ] Complete applicable I5 builds/automation/catalogue/icon/peer/persistence/rendered verification, repair A9 defects, and integrate enemy-source acceptance only after I4 passes.
     - [x] Execute isolated Editor/Game builds, full automation, new gemstone/treasure peer-and-restart evidence, shared crafting/discovery/inventory checks and equipped-inventory renders; record exact passes, repairs and remaining shared-check failures.
-    - [ ] Verify prepared enemy-gem chance bounds and owner-bound pending-payload serialization/rejection without enabling I4-gated sources.
+    - [x] Verify prepared enemy-gem chance bounds and owner-bound pending-payload serialization/rejection without enabling I4-gated sources.
     - [ ] Integrate passed I4 source acceptance, enable and verify Moonstone/Dusk Diamond rewards, and resolve the inherited inventory/presentation verification disposition.
     - [ ] Pass combined integrated I5 verification and merge A9 normally into local master at a safe clean boundary, preserving the other worker's handoff.
 
