@@ -68,6 +68,16 @@ bool FKalmalaAccessoryStatsTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Other owner healing modifier remains neutral"), Ally->GetStatusComponent()->GetAccessoryModifiers().HealingReceived, 0.0f);
     TestFalse(TEXT("Unowned GUID rejected"), Inventory->EquipGearFromServer(FGuid::NewGuid(), Reason));
     TestEqual(TEXT("Rejected request leaves stats unchanged"), Pawn->GetHealth(), 82.5f);
+    TestTrue(TEXT("Quartz equips"), Equip(TEXT("QuartzNecklace")));
+    Health->SetPropertyValue_InContainer(Pawn, 100.0f);
+    FKalmalaDamageChannels Physical; Physical.Slash = 20.0f;
+    TestTrue(TEXT("Authoritative physical hit accepted"), Pawn->ApplyWildlifeDamageFromServer(Ally, Physical));
+    TestEqual(TEXT("Quartz Armor subtracts ten once"), Pawn->GetHealth(), 90.0f);
+    FKalmalaDamageChannels Elemental; Elemental.Poison = 10.0f;
+    Pawn->ApplyWildlifeDamageFromServer(Ally, Elemental);
+    TestEqual(TEXT("Quartz Armor does not resist elemental damage"), Pawn->GetHealth(), 80.0f);
+    const auto* Quartz = Inventory->FindEquippedGear(EKalmalaGearSlot::Necklace);
+    TestTrue(TEXT("Accessory never accumulates wearable damage"), Quartz && Quartz->ConditionSpent == 0);
     World->DestroyWorld(false);
     return true;
 }

@@ -3,14 +3,25 @@
     {
       "RecipeId": "QuartzNecklace",
       "DisplayName": "Quartz Necklace",
-      "ItemId": "QuartzNecklace",
-      "RequiredStation": "Forge",
-      "RequiredStationLevel": 1,
-      "Ingredients": [
-        { "ItemId": "Bronze", "Quantity": 3 },
-        { "ItemId": "SmokyQuartz", "Quantity": 1 }
+      "RequiredStation": [
+        "Forge"
       ],
-      "Level": 1
+      "Ingredients": [
+        {
+          "ItemId": "Bronze",
+          "Quantity": 3
+        },
+        {
+          "ItemId": "SmokyQuartz",
+          "Quantity": 1
+        }
+      ],
+      "Output": "QuartzNecklace",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
     },
     {
       "RecipeId": "MoonstoneRing",
