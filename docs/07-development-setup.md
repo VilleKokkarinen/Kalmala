@@ -5913,6 +5913,15 @@ server melee route and receive its catalogued hit. `Kalmala.Gameplay.Combat.Dama
 checks its one-handed profile, damage, exact Forge recipe and upgrade costs,
 and level-two values. Its existing original imported icon and runtime mapping
 are covered by `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id ReefHarpoon`.
-These C++ assertions remain uncompiled/unexecuted in this normal child;
-combined A8a/A8b I4 still requires full item automation and peer/rendered
-acceptance before A9.
+On 2026-10-23, the `KalmalaEditor Win64 Development` incremental build passed
+in four actions. `Kalmala.Gameplay.M9.ToolStationProgression`,
+`Kalmala.Gameplay.Combat.DamageProfiles`, and
+`Kalmala.Gameplay.Combat.AllItemSwings` all passed (`Result={Success}`, Editor
+exit 0); evidence: `C:/Users/Ville/AppData/Local/Temp/a8rh1/tests.log`; build:
+`C:/Users/Ville/AppData/Local/Temp/a8rh1/build.log`. The progression contract
+fixture now checks exact Forge acquisition and upgrade costs, full starting
+condition, and retention of Reef Harpoon's item identity and current condition.
+Two Unreal unified-error startup self-test `Condition failed` diagnostics
+preceded the queue. These local progression/combat automations do not replace
+multiplayer Forge crafting, peer inventory delivery, or rendered presentation
+acceptance. Combined A8a/A8b I4 remains required before A9.

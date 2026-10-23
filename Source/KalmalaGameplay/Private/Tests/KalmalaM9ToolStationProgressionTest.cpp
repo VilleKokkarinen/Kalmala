@@ -147,6 +147,62 @@ bool FKalmalaM9ToolStationProgressionTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Thunder Maul upgrade consumes five Densewood"),
         Quantity(ThunderMaulUpgradedInventory, TEXT("Densewood")), 0);
 
+    const TArray<FKalmalaInventoryStack> ReefHarpoonMaterials = {
+        {TEXT("ReefTooth"), 3}, {TEXT("Iron"), 8}, {TEXT("Lightwood"), 4}
+    };
+    TArray<FKalmalaToolState> ReefHarpoonTools;
+    TArray<FKalmalaInventoryStack> ReefHarpoonInventory;
+    TestTrue(TEXT("Reef Harpoon is crafted at the matching level-one Forge"),
+        FKalmalaToolProgressionContract::BuildServerUpgrade(
+            true, nullptr, TEXT("ForgeKit"), 1, TEXT("ReefHarpoon"), StartingTools, ReefHarpoonMaterials,
+            ReefHarpoonTools, ReefHarpoonInventory, Reason));
+    FKalmalaToolState* CraftedReefHarpoon = ReefHarpoonTools.FindByPredicate(
+        [](const FKalmalaToolState& State) { return State.ItemId == TEXT("ReefHarpoon"); });
+    TestNotNull(TEXT("Accepted Forge transaction adds Reef Harpoon"), CraftedReefHarpoon);
+    FGuid ReefHarpoonGuid;
+    const int32 ReefHarpoonWornCondition = 63;
+    if (CraftedReefHarpoon)
+    {
+        ReefHarpoonGuid = CraftedReefHarpoon->InstanceGuid;
+        TestTrue(TEXT("Crafted Reef Harpoon has its own item identity"), ReefHarpoonGuid.IsValid());
+        TestEqual(TEXT("Crafted Reef Harpoon starts at level one"), CraftedReefHarpoon->ToolLevel, 1);
+        TestEqual(TEXT("Crafted Reef Harpoon starts in full condition"), CraftedReefHarpoon->Durability, 150);
+        CraftedReefHarpoon->Durability = ReefHarpoonWornCondition;
+    }
+    TestEqual(TEXT("Reef Harpoon acquisition consumes three Reef Teeth"),
+        Quantity(ReefHarpoonInventory, TEXT("ReefTooth")), 0);
+    TestEqual(TEXT("Reef Harpoon acquisition consumes eight Iron"),
+        Quantity(ReefHarpoonInventory, TEXT("Iron")), 0);
+    TestEqual(TEXT("Reef Harpoon acquisition consumes four Lightwood"),
+        Quantity(ReefHarpoonInventory, TEXT("Lightwood")), 0);
+
+    const TArray<FKalmalaInventoryStack> ReefHarpoonUpgradeMaterials = {
+        {TEXT("ReefTooth"), 1}, {TEXT("Iron"), 4}, {TEXT("Lightwood"), 2}
+    };
+    TArray<FKalmalaToolState> ReefHarpoonUpgradedTools;
+    TArray<FKalmalaInventoryStack> ReefHarpoonUpgradedInventory;
+    TestTrue(TEXT("Reef Harpoon upgrades at the matching level-two Forge"),
+        FKalmalaToolProgressionContract::BuildServerUpgrade(
+            true, nullptr, TEXT("ForgeKit"), 2, TEXT("ReefHarpoon"), ReefHarpoonTools,
+            ReefHarpoonUpgradeMaterials, ReefHarpoonUpgradedTools, ReefHarpoonUpgradedInventory, Reason));
+    const FKalmalaToolState* UpgradedReefHarpoon = ReefHarpoonUpgradedTools.FindByPredicate(
+        [](const FKalmalaToolState& State) { return State.ItemId == TEXT("ReefHarpoon"); });
+    TestNotNull(TEXT("Accepted Forge upgrade keeps Reef Harpoon carried"), UpgradedReefHarpoon);
+    if (UpgradedReefHarpoon)
+    {
+        TestTrue(TEXT("Reef Harpoon upgrade keeps the same item identity"),
+            UpgradedReefHarpoon->InstanceGuid == ReefHarpoonGuid);
+        TestEqual(TEXT("Reef Harpoon reaches level two"), UpgradedReefHarpoon->ToolLevel, 2);
+        TestEqual(TEXT("Reef Harpoon upgrade preserves current condition"),
+            UpgradedReefHarpoon->Durability, ReefHarpoonWornCondition);
+    }
+    TestEqual(TEXT("Reef Harpoon upgrade consumes its Reef Tooth"),
+        Quantity(ReefHarpoonUpgradedInventory, TEXT("ReefTooth")), 0);
+    TestEqual(TEXT("Reef Harpoon upgrade consumes four Iron"),
+        Quantity(ReefHarpoonUpgradedInventory, TEXT("Iron")), 0);
+    TestEqual(TEXT("Reef Harpoon upgrade consumes two Lightwood"),
+        Quantity(ReefHarpoonUpgradedInventory, TEXT("Lightwood")), 0);
+
     TArray<FKalmalaToolState> RejectedTools = StartingTools;
     TArray<FKalmalaInventoryStack> RejectedInventory = BronzeMaterials;
     const auto RejectWithoutMutation = [&](const bool bServerAuthority,
