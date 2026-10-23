@@ -6715,3 +6715,9 @@
 ## A9 independent worker — Dusk Ring runtime recipe prepared (2026-10-23)
 
 - Corrected its ordinary Forge recipe (5 Bronze + 1 Dusk Diamond, one output/batch one). Added paid craft/GUID equip and +5 physical Armor regression alongside existing +10 health/+10 stamina, replacement, no-refill and Vigor-combination cases. Source remains exclusively the prepared Mossy Mire Mireling reward; EnemySourcesAccepted stays false pending I4, so parent remains unchecked. Files: a9-gear.json, A9GearTest.cpp, AccessoryStatsTest.cpp, BACKLOG/PROGRESS. JSON parsing, `Validate-UIIcons.ps1 -Category Catalogue -Id DuskRing` and git diff --check passed; paths below 260. Full executed I5 verification deferred. Next: audit existing scroll routes and prepare the full applicable I5 verification handoff. Main unchanged.
+
+
+## A9 independent worker — existing scroll route audit (2026-10-23)
+
+- Audited all four existing seeded scroll locations, canonical effect mappings, persisted player entitlement, runtime scroll-stack reconstruction, server-owned use checks and existing seed-selected Mireling boss entitlement. Recorded exact routes in docs/a9-acceptance.md, preserving locations/entitlements and deferring new scrolls/trophies/boss keys. No new source or runtime scroll behavior was added.
+- Files: docs/a9-acceptance.md, BACKLOG/PROGRESS. Lightweight source inspection and git diff --check passed; paths below 260. Full/live verification remains deferred and is now the next independent A9 acceptance task; prepared enemy-source enablement remains I4-dependent. The handoff lists new focused cases and required independent build/peer/restart/rendered evidence; no unexecuted pass is claimed. Main untouched.

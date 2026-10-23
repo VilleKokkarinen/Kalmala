@@ -408,7 +408,8 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     - [x] Add and register the complete item/equipment/stat JSON first, with applicable N/A categories recorded.
     - [x] Add and register its Forge recipe using the values finalized by Review A9.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
-  - [ ] Audit the four existing scroll routes; defer new scrolls, trophies and boss keys.
+  - [x] Audit the four existing scroll routes; defer new scrolls, trophies and boss keys. Source audit and exact routes recorded in `docs/a9-acceptance.md`; live acceptance remains I5 scope.
+  - [ ] Complete applicable I5 builds/automation/catalogue/icon/peer/persistence/rendered verification, repair A9 defects, and integrate enemy-source acceptance only after I4 passes.
 
 - [ ] **A10 — Acceptance.** [Full criteria](docs/alpha-item-details.md#a10)
   - [ ] Audit all approved item IDs against registered JSON and generated/imported runtime icons; zero missing entries, references or fallback icons.
