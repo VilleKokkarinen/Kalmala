@@ -6630,3 +6630,15 @@
 - **Known limitations / remaining scope:** Live Cauldron recipe and peer acceptance has not run. Other approved A8b item flows and the `Verify-InventoryReconnect.ps1` disposition remain open, followed by combined I4 verification. A9 remains gated.
 - **Next eligible task:** Continue A8b item acceptance in backlog order with Badger Fur Vest, while retaining the wider crafting/peer flow, InventoryReconnect disposition, and milestone-final I4 gate.
 - **Integration state:** Work ran directly on `master`; no worktree handoff synchronization was needed. Current run time: `2026-10-23 15:22:47 UTC`.
+
+## Run 2026-10-23 15:26 UTC — Badger Fur Vest acceptance slice passed
+
+- **Selected task:** Continue the open combined I4 acceptance child with the next A8b output in backlog order, Badger Fur Vest. This covers a focused catalogue/equip slice and is not milestone-final verification.
+- **Work completed:** Ran the item catalogue, worn-gear transaction, and wearable progression catalogue automations. The current isolated mirror matched all seven relevant gameplay test and catalogue data files against the main checkout.
+- **Files changed:** `PROGRESS.md`. `BACKLOG.md` remains unchanged because the combined I4 acceptance child is still incomplete.
+- **Checks and results:** `Automation RunTests Kalmala.Gameplay.Inventory.Catalogue+Kalmala.Gameplay.Inventory.WornGearTransactions+Kalmala.Gameplay.M9.ToolProgressionCatalogue` found three tests; all recorded `Result={Success}` and the editor exited 0. Evidence is in `C:/Users/Ville/AppData/Local/Temp/a8b1/vest.log`. No build ran in this increment; the existing Development target loaded successfully.
+- **Full verification:** Deferred. This slice does not complete I4; live crafting/peer acceptance, remaining A8b item flows, InventoryReconnect disposition and combined milestone-final verification remain.
+- **Observable impact / networking authority:** Confirms catalogue validity and the Badger Fur Vest's chest replacement path by physical item identity; the gear transaction suite checks the server RPC/ownerless gates. No production source or saved-data behavior changed.
+- **Known limitations / remaining scope:** These are focused editor automations, not live crafting or rendered peer acceptance. Other approved A8b item flows and `Verify-InventoryReconnect.ps1` disposition remain open; A9 remains gated by I4.
+- **Next eligible task:** Continue A8b item acceptance in backlog order with Roasted Badger, then finish the remaining item/peer flows and InventoryReconnect disposition before the milestone-final I4 gate.
+- **Integration state:** Work ran directly on `master`; no worktree handoff synchronization was needed. Current run time: `2026-10-23 15:26:40 UTC`.
