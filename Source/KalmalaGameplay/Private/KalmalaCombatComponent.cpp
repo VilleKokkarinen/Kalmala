@@ -65,14 +65,19 @@ void UKalmalaCombatComponent::TickComponent(const float DeltaTime, const ELevelT
     const bool bDeerPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaDeerPeerTest"));
     const bool bBadgerPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaBadgerPeerTest"));
     const bool bMoonBearPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaMoonBearPeerTest"));
-    if ((bCombatPeerTest || bMirelingPeerTest || bBoarPeerTest || bDeerPeerTest || bBadgerPeerTest || bMoonBearPeerTest)
+    const bool bRatPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaRatPeerTest"));
+    const uint32 ExpectedActionSerial = bRatPeerTest ? 1u : 4u;
+    if ((bCombatPeerTest || bMirelingPeerTest || bBoarPeerTest || bDeerPeerTest || bBadgerPeerTest || bMoonBearPeerTest || bRatPeerTest)
         && GetOwner() != nullptr && !GetOwner()->HasAuthority())
     {
-        const TCHAR* VerificationName = bBadgerPeerTest ? TEXT("Badger")
-            : (bMoonBearPeerTest ? TEXT("Moon Bear")
-                : (bBoarPeerTest ? TEXT("Boar") : (bDeerPeerTest ? TEXT("Deer") : (bMirelingPeerTest ? TEXT("Mireling") : TEXT("Combat")))));
+        const TCHAR* VerificationName = bRatPeerTest ? TEXT("Rat")
+            : bBadgerPeerTest ? TEXT("Badger")
+            : bMoonBearPeerTest ? TEXT("Moon Bear")
+            : bBoarPeerTest ? TEXT("Boar")
+            : bDeerPeerTest ? TEXT("Deer")
+            : bMirelingPeerTest ? TEXT("Mireling") : TEXT("Combat");
         const APawn* OwnerPawn = Cast<APawn>(GetOwner());
-        if (!bClientCombatVerificationActionLogged && ActionSerial >= 4)
+        if (!bClientCombatVerificationActionLogged && ActionSerial >= ExpectedActionSerial)
         {
             bClientCombatVerificationActionLogged = true;
             UE_LOG(LogTemp, Display, TEXT("%s verification client observed shared action serial=%u."), VerificationName, ActionSerial);

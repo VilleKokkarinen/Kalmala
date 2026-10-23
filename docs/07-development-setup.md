@@ -2283,6 +2283,19 @@ selectors, the approved 100 cm bite boundary, the common attack timing and
 combined A8a/A8b I4 acceptance; it does not replace live peer, full-pack retry,
 or identity-matched restart verification.
 
+After an Editor build, run `Scripts/Tests/Combat/Verify-RatPeer.ps1`. The runner
+starts a fixed-seed Meadows listen server and two clients with conflicting
+local seeds. The server searches for and activates an ordinary generated Rat,
+requires its real bite to pressure the host, then defeats it with one normal
+Stone Mace attack. The host pack is full before defeat, so the Rat Tail claim
+must remain pending without a partial grant; after one inventory cell is freed,
+the reward must reach only the credited owner. Clients must observe the
+rejected target-free request, shared action, replicated host health and Rat
+defeat. The runner extracts the exact spawn identity and requires that same Rat
+to remain absent after a same-world listen-server restart. The fixture adds no
+client-selected target, damage, reward, identity, RPC, replication field or save
+schema.
+
 ## Elderwood Badger contract regression
 
 The editor automation `Kalmala.Gameplay.Wildlife.Badger.SpawnAndClawReach`

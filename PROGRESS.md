@@ -1,3 +1,55 @@
+## Run 2026-10-23T07:26:32Z — Add Meadows Rat peer-acceptance runner
+
+- **Selected task:** Continue the first unchecked A8 I4 child for live A8a
+  species acceptance. Reduced the broad peer matrix to its first listed
+  species, Rat; the child remains incomplete until the live scenarios and the
+  remaining species/item work pass.
+- **Work completed:** Added a Development-only `KalmalaRatPeerTest` fixture and
+  `Verify-RatPeer.ps1`. It selects a generated Rat from the server's seeded
+  population descriptors, requires its production bite to damage the server
+  host, then uses one ordinary server Stone Mace attack to defeat the 10-health
+  Rat. The fixture fills the owner's inventory before defeat, verifies the
+  owner-bound Rat Tail claim stays queued without a partial grant, frees one
+  cell, and checks delivery only to the attacker while both non-owner peers
+  remain empty. It requires both clients to observe the invalid target-free
+  request rejection, shared action, replicated host health and relevant Rat
+  defeat, then restarts the same world and checks the exact Rat identity stays
+  suppressed. Documented the runner workflow. `BACKLOG.md` remains unchanged:
+  this acceptance child covers all remaining species and A8b flows, and its
+  completion criteria are not met by adding one runner.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`;
+  `Source/KalmalaGameplay/Private/KalmalaCombatComponent.cpp`;
+  `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp`;
+  `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`;
+  `Scripts/Tests/Combat/Verify-RatPeer.ps1`;
+  `docs/07-development-setup.md`; `PROGRESS.md`.
+- **Lightweight checks:** PowerShell parser check passed for the new runner;
+  `git diff --check` passed with only existing CRLF-to-LF warnings; every
+  changed repository path is below the 260-character Windows path limit. The
+  source diff was inspected. No Editor build or live Rat peer run was performed
+  in this increment.
+- **Full verification:** Deferred. This is not the final implementation task
+  in I4; its full queue and combined A8a/A8b acceptance gate remain open.
+- **Observable impact:** Adds repeatable live acceptance for generated Rat
+  attacks, delayed Rat Tail reward delivery, peer privacy and exact-identity
+  restart. No player-facing gameplay behavior changed.
+- **Networking/authority:** The fixture derives the Rat and reward identity on
+  the server; invalid client requests contain no target data. Production server
+  attack, defeat, owner identity, pending-reward and persistence paths are
+  exercised without new gameplay RPCs, replication fields or save data.
+- **Known limitations / remaining scope:** The runner has not been compiled or
+  executed, so its live result remains unverified. I4 is open; live acceptance
+  for Viper, Giant Snake, Death Adder, Mosquito swarm, Peat Husk, Wolf, Lynx,
+  Polar Bear, Horned Goat, Thunder Sentinel and Reef Maw, the A8b progression/
+  peer flows, and disposition of the InventoryReconnect client-baseline timeout
+  remain outstanding. A9 remains gated.
+- **Next eligible task:** Build the Editor target from the isolated source
+  mirror and run `Scripts/Tests/Combat/Verify-RatPeer.ps1`; repair any failures
+  introduced by this fixture, then continue I4 with Viper. Do not start A9.
+- **Integration state:** Changes are on `master` in the main checkout; no
+  worktree handoff synchronization was needed. Current run time:
+  `2026-10-23T07:26:32Z`.
+
 ## User-directed planning 2026-10-22 — Fix monster spawn targets in advance
 
 - Added `docs/monster-spawning.md` as the fixed S01–S35 implementation contract;

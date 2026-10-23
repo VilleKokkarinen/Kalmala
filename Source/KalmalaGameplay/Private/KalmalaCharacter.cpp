@@ -230,14 +230,16 @@ void AKalmalaCharacter::OnRep_Health()
 #if !UE_BUILD_SHIPPING
     const bool bBadgerPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaBadgerPeerTest"));
     const bool bMoonBearPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaMoonBearPeerTest"));
+    const bool bRatPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaRatPeerTest"));
     if (!HasAuthority() && (FParse::Param(FCommandLine::Get(), TEXT("KalmalaMirelingPeerTest"))
         || FParse::Param(FCommandLine::Get(), TEXT("KalmalaBoarPeerTest"))
-        || FParse::Param(FCommandLine::Get(), TEXT("KalmalaDeerPeerTest")) || bBadgerPeerTest || bMoonBearPeerTest))
+        || FParse::Param(FCommandLine::Get(), TEXT("KalmalaDeerPeerTest")) || bBadgerPeerTest || bMoonBearPeerTest || bRatPeerTest))
     {
-        const TCHAR* VerificationName = bBadgerPeerTest ? TEXT("Badger")
-            : (bMoonBearPeerTest ? TEXT("Moon Bear")
-                : (FParse::Param(FCommandLine::Get(), TEXT("KalmalaBoarPeerTest")) ? TEXT("Boar")
-                    : (FParse::Param(FCommandLine::Get(), TEXT("KalmalaDeerPeerTest")) ? TEXT("Deer") : TEXT("Mireling"))));
+        const TCHAR* VerificationName = bRatPeerTest ? TEXT("Rat")
+            : bBadgerPeerTest ? TEXT("Badger")
+            : bMoonBearPeerTest ? TEXT("Moon Bear")
+            : FParse::Param(FCommandLine::Get(), TEXT("KalmalaBoarPeerTest")) ? TEXT("Boar")
+            : FParse::Param(FCommandLine::Get(), TEXT("KalmalaDeerPeerTest")) ? TEXT("Deer") : TEXT("Mireling");
         UE_LOG(LogTemp, Display, TEXT("%s verification client observed replicated player health=%.1f."), VerificationName, Health);
     }
 #endif
@@ -526,7 +528,8 @@ void AKalmalaCharacter::Tick(const float DeltaSeconds)
             || FParse::Param(FCommandLine::Get(), TEXT("KalmalaBoarPeerTest"))
             || FParse::Param(FCommandLine::Get(), TEXT("KalmalaDeerPeerTest"))
             || FParse::Param(FCommandLine::Get(), TEXT("KalmalaBadgerPeerTest"))
-            || FParse::Param(FCommandLine::Get(), TEXT("KalmalaMoonBearPeerTest")))
+            || FParse::Param(FCommandLine::Get(), TEXT("KalmalaMoonBearPeerTest"))
+            || FParse::Param(FCommandLine::Get(), TEXT("KalmalaRatPeerTest")))
         && Combat && Inventory && Inventory->GetActiveItem() == TEXT("StoneMace"))
     {
         bCombatPeerTestInvalidAttackSent = true;
