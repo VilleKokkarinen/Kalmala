@@ -6679,3 +6679,8 @@
 ## A9 independent worker — Amethyst Necklace completion (2026-10-23)
 
 - Corrected the recipe to ordinary Forge inventory crafting (3 Bronze + 1 Amethyst, one output/batch one). Extended paid exchange/equip coverage and runtime cases proving support-only cost adjustment, no ordinary-cost discount, zero-cost preservation and single additive combination with Jade/Wet/Meal. No spell potency, duration, cooldown or entitlement change. Files: a9-gear.json, A9GearTest.cpp, AccessoryStatsTest.cpp, BACKLOG/PROGRESS. JSON parsing, `Validate-UIIcons.ps1 -Category Catalogue -Id AmethystNecklace` and git diff --check passed; paths below 260. Full executed verification deferred to I5. Next: Aquamarine Ring. Main unchanged.
+
+
+## A9 independent worker — Aquamarine Ring completion (2026-10-23)
+
+- Corrected its ordinary Forge recipe (2 Bronze + 1 Aquamarine, output one/batch one). Added paid craft/equip and runtime exclusions for sprint consumption, immediate stamina draughts and full-stamina overflow, plus immediate future-regeneration removal. Existing active-recovery +15% case is retained; no recovery condition/delay change. Files: a9-gear.json, A9GearTest.cpp, AccessoryStatsTest.cpp, BACKLOG/PROGRESS. JSON parsing, `Validate-UIIcons.ps1 -Category Catalogue -Id AquamarineRing` and git diff --check passed; paths below 260. Full executed I5 verification deferred. Next: Tourmaline Necklace. Main unchanged.

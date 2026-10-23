@@ -118,14 +118,25 @@
     {
       "RecipeId": "AquamarineRing",
       "DisplayName": "Aquamarine Ring",
-      "ItemId": "AquamarineRing",
-      "RequiredStation": "Forge",
-      "RequiredStationLevel": 1,
-      "Ingredients": [
-        { "ItemId": "Bronze", "Quantity": 2 },
-        { "ItemId": "Aquamarine", "Quantity": 1 }
+      "RequiredStation": [
+        "Forge"
       ],
-      "Level": 1
+      "Ingredients": [
+        {
+          "ItemId": "Bronze",
+          "Quantity": 2
+        },
+        {
+          "ItemId": "Aquamarine",
+          "Quantity": 1
+        }
+      ],
+      "Output": "AquamarineRing",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
     },
     {
       "RecipeId": "TourmalineNecklace",

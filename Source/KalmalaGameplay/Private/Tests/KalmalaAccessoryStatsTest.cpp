@@ -97,6 +97,26 @@ bool FKalmalaAccessoryStatsTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("A zero-cost support action remains free"), Status->CalculateStaminaCost(0.0f, true), 0.0f);
     TestTrue(TEXT("Jade and Amethyst coexist"), Equip(TEXT("JadeRing")));
     TestTrue(TEXT("Mixed accessory and status deltas sum once"), FMath::IsNearlyEqual(Status->CalculateStaminaCost(20.0f, true), 16.0f));
+    TestTrue(TEXT("Aquamarine replaces Jade"), Equip(TEXT("AquamarineRing")));
+    Movement->SetMovementMode(MOVE_Walking);
+    Movement->Velocity = FVector(100,0,0);
+    Movement->SetSprintRequested(true);
+    const float BeforeSprint = Movement->GetStamina();
+    Movement->AdvanceStaminaFromServer(.25f);
+    TestTrue(TEXT("Aquamarine cannot regenerate while sprint consumes"), Movement->GetStamina() < BeforeSprint);
+    Movement->SetSprintRequested(false);
+    Movement->Velocity = FVector::ZeroVector;
+    const float BeforeDraught = Movement->GetStamina();
+    Movement->RestoreStaminaFromDraughtFromServer(20.0f);
+    TestTrue(TEXT("Aquamarine excludes immediate draught restoration"), FMath::IsNearlyEqual(Movement->GetStamina(), BeforeDraught + 20.0f));
+    for (int32 Dose = 0; Dose < 5; ++Dose) Movement->RestoreStaminaFromDraughtFromServer(20.0f);
+    Movement->AdvanceStaminaFromServer(.25f);
+    TestEqual(TEXT("Recovery cannot exceed effective maximum"), Movement->GetStamina(), Movement->GetMaximumStamina());
+    Inventory->UnequipGearFromServer(EKalmalaGearSlot::Ring, Reason);
+    Movement->TryConsumeStaminaFromServer(60.0f);
+    const float BeforeUnmodified = Movement->GetStamina();
+    Movement->AdvanceStaminaFromServer(.25f);
+    TestTrue(TEXT("Removal restores future base recovery"), FMath::IsNearlyEqual(Movement->GetStamina() - BeforeUnmodified, 3.75f));
     World->DestroyWorld(false);
     return true;
 }

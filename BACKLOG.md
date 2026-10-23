@@ -385,7 +385,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     - [x] Add and register the complete item/equipment/stat JSON first, with applicable N/A categories recorded.
     - [x] Add and register its Forge recipe using the values finalized by Review A9.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
-  - [ ] Aquamarine Ring (`AquamarineRing`): finalize its recipe and stamina-regeneration profile in Review A9; see the A9 item contract.
+  - [x] Aquamarine Ring (`AquamarineRing`): finalized executable Forge recipe and +0.15 active-regeneration delta; sprint/full-stamina/draught exclusions and removal covered.
     - [x] Add and register the complete item/equipment/stat JSON first, with applicable N/A categories recorded.
     - [x] Add and register its Forge recipe using the values finalized by Review A9.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
