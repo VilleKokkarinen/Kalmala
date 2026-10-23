@@ -21,7 +21,7 @@ bool FKalmalaA9GearRecipesTest::RunTest(const FString& Parameters)
     {
         const auto* Recipe = UKalmalaRecipeCatalogue::Get()->Find(Entry.Key);
         if (!TestNotNull(Entry.Key.ToString() + TEXT(" has an executable inventory recipe"), Recipe)) return false;
-        TestTrue(TEXT("One Forge recipe, no batch duplication"), Recipe->RequiredStation == TArray<FName>{TEXT("Forge")}
+        TestTrue(TEXT("One Forge recipe, no batch duplication"), Recipe->RequiredStation == TArray<FName>{TEXT("ForgeKit")}
             && Recipe->MaxBatch == 1 && Recipe->OutputCount == 1 && Recipe->Output == Entry.Key);
         TArray<FKalmalaInventoryStack> Costs, After;
         int32 Output = 0;

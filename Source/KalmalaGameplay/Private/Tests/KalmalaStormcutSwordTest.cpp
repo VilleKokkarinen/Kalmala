@@ -31,10 +31,11 @@ bool FKalmalaStormcutSwordTest::RunTest(const FString& Parameters)
     if (!TestNotNull(TEXT("Craft creates a carried sword"), Sword)) return false;
     const FGuid Guid = Sword->InstanceGuid;
     TestTrue(TEXT("Paid Forge upgrade succeeds"), FKalmalaToolProgressionContract::BuildServerUpgrade(
-        true, nullptr, TEXT("ForgeKit"), 1, TEXT("StormcutSword"), Crafted, AfterCraft, Upgraded, AfterUpgrade, Reason));
+        true, nullptr, TEXT("ForgeKit"), 2, TEXT("StormcutSword"), Crafted, AfterCraft, Upgraded, AfterUpgrade, Reason));
     const auto* LevelTwo = Upgraded.FindByPredicate([](const auto& Tool) { return Tool.ItemId == TEXT("StormcutSword"); });
     if (!TestNotNull(TEXT("Upgrade retains sword"), LevelTwo)) return false;
-    TestTrue(TEXT("Upgrade retains physical identity and adds condition"), LevelTwo->InstanceGuid == Guid && LevelTwo->ToolLevel == 2 && LevelTwo->Durability == 250);
+    TestTrue(TEXT("Upgrade retains physical identity and current condition"), LevelTwo->InstanceGuid == Guid && LevelTwo->ToolLevel == 2 && LevelTwo->Durability == 220);
+    TestEqual(TEXT("Upgrade raises maximum condition by thirty"), FKalmalaToolLifecycleContract::GetMaxDurability(TEXT("StormcutSword"), 2), 250);
     TestTrue(TEXT("Exact acquisition and upgrade materials consumed"), AfterUpgrade.IsEmpty());
     TestEqual(TEXT("Upgrade adds four Slash"), FKalmalaToolLifecycleContract::GetAttackDamageBonuses(TEXT("StormcutSword"), 2, TEXT("Basic")).Slash, 74.f);
     auto Worn = *LevelTwo; Worn.Durability = 0;

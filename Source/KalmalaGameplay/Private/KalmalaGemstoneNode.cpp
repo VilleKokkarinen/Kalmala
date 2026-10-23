@@ -7,6 +7,8 @@
 #include "KalmalaWorldGenerationGameState.h"
 #include "KalmalaWorldPopulationSaveGame.h"
 #include "Misc/Crc.h"
+#include "Misc/CommandLine.h"
+#include "Misc/Parse.h"
 
 bool AKalmalaHarvestNode::ApplyPickHitFromServer(AKalmalaCharacter* Interactor)
 {
@@ -84,6 +86,10 @@ bool AKalmalaHarvestNode::ClaimGemFromServer(AKalmalaCharacter* Interactor)
 
 void AKalmalaHarvestNode::OnRep_Gemstone()
 {
+#if !UE_BUILD_SHIPPING
+    if(FParse::Param(FCommandLine::Get(),TEXT("KalmalaA9PeerTest")))
+        UE_LOG(LogTemp,Display,TEXT("A9 peer replicated node: Id=%s Hits=%d Outcome=%d"),*PersistentSpawnId,GemHits,GemOutcome);
+#endif
     BuildSourcePresentation();
     ApplyHarvestedState();
 }

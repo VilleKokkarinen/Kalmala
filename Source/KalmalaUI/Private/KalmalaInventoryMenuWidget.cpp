@@ -275,9 +275,9 @@ void UKalmalaInventoryMenuWidget::NativeOnInitialized()
     PreferArrowsButton->OnClicked.AddDynamic(this, &ThisClass::PreferSelectedArrows);
     RepairToolButton = AddAction(TEXT("Repair selected tool"));
     RepairToolButton->OnClicked.AddDynamic(this, &ThisClass::RepairSelectedTool);
-    UpgradeOpalButton = AddAction(TEXT("Upgrade equipped Opal Helm at Forge"));
+    UpgradeOpalButton = AddAction(TEXT("Upgrade Opal Helm"));
     UpgradeOpalButton->OnClicked.AddDynamic(this, &ThisClass::UpgradeOpalHelm);
-    RepairOpalButton = AddAction(TEXT("Repair equipped Opal Helm at Forge (free)"));
+    RepairOpalButton = AddAction(TEXT("Repair Opal Helm (free)"));
     RepairOpalButton->OnClicked.AddDynamic(this, &ThisClass::RepairOpalHelm);
     ToolActionStatusText = AddText(TEXT(""), false);
     ToolActionStatusText->SetVisibility(ESlateVisibility::Collapsed);
@@ -340,9 +340,11 @@ void UKalmalaInventoryMenuWidget::UpdateResponsivePanelSize(const FVector2D View
     const float NewWidth = FMath::Min(520.0f, FMath::Max(80.0f, ViewportSize.X * 0.38f));
     const float GridHeight = FMath::Max(32.0f, (NewWidth - FKalmalaUITheme::Get().PaddingX * 2.0f) * 0.4f);
     constexpr float WornGearHeight = 56.0f + 5.0f * 64.0f;
+    const float OpalActionHeight = UpgradeOpalButton && UpgradeOpalButton->GetVisibility() != ESlateVisibility::Collapsed
+        ? 96.0f * FMath::Max(1.0f, UKalmalaSettingsWidget::GetTextScalePercent() / 100.0f) : 0.0f;
     const bool bDetails = bSelectionDetailsRequested || !HoveredItemId.IsNone();
     const float NewHeight = FMath::Min(FMath::Max(80.0f, ViewportSize.Y - 32.0f),
-        GridHeight + WornGearHeight + (bDetails ? 280.0f : FKalmalaUITheme::Get().PaddingY * 2.0f));
+        GridHeight + WornGearHeight + OpalActionHeight + (bDetails ? 280.0f : FKalmalaUITheme::Get().PaddingY * 2.0f));
     if (!FMath::IsNearlyEqual(NewWidth, ResponsivePanelWidth))
     {
         ResponsivePanelWidth = NewWidth;
@@ -627,6 +629,12 @@ void UKalmalaInventoryMenuWidget::RefreshSelectionPresentation(const int32 TextS
 
         Theme.ApplyButton(*RepairToolButton, Contrast);
         Theme.ApplyText(*CastChecked<UTextBlock>(RepairToolButton->GetContent()), Theme.BodySize, false, TextScale, Contrast);
+        for (auto* Button : {UpgradeOpalButton.Get(), RepairOpalButton.Get()})
+            if (Button)
+            {
+                Theme.ApplyButton(*Button, Contrast);
+                Theme.ApplyText(*CastChecked<UTextBlock>(Button->GetContent()), Theme.BodySize, false, TextScale, Contrast);
+            }
         Theme.ApplyText(*ToolActionStatusText, Theme.BodySize, false, TextScale, Contrast);
         Theme.ApplyButton(*EatFoodButton, Contrast);
         Theme.ApplyText(*CastChecked<UTextBlock>(EatFoodButton->GetContent()), Theme.BodySize, false, TextScale, Contrast);
@@ -833,12 +841,13 @@ void UKalmalaInventoryMenuWidget::RefreshGearPresentation(const int32 TextScale,
     {
         UpgradeOpalButton->SetVisibility(bOpal ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
         UpgradeOpalButton->SetIsEnabled(bOpal && Opal->Level < 10);
-        UpgradeOpalButton->SetToolTipText(FText::FromString(TEXT("Forge level 1 within 2.5 m. Base cost: 5 Iron + 2 Deer Hide; doubles for each current level. Maximum level 10.")));
+        UpgradeOpalButton->SetToolTipText(FText::FromString(TEXT("Forge within 2.5 m at the target item level. Base cost: 5 Iron + 2 Deer Hide; doubles for each current level. Maximum level 10.")));
     }
     if (RepairOpalButton)
     {
         RepairOpalButton->SetVisibility(bOpal ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
         RepairOpalButton->SetIsEnabled(bOpal && Opal->ConditionSpent > 0);
+        RepairOpalButton->SetToolTipText(FText::FromString(TEXT("Repair the equipped Opal Helm for free at a visible Forge within 2.5 m.")));
     }
     const bool bTwoHanded = Inventory && FKalmalaToolLifecycleContract::IsTwoHanded(Inventory->GetActiveItem());
     for (int32 Index = 0; Index < 8; ++Index)

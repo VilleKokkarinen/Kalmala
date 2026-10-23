@@ -112,6 +112,19 @@ int32 URenderMenuCommandlet::Main(const FString& Params)
     {
         Inventory->TryGrantFromServer(TEXT("Wood"), 8);
         Inventory->TryGrantFromServer(TEXT("Stone"), 3);
+        if (FParse::Param(*Params, TEXT("A9Gear")))
+        {
+            for (const FName Item : {FName(TEXT("OpalHelm")), FName(TEXT("GarnetNecklace")), FName(TEXT("DuskRing"))})
+            {
+                FString Reason;
+                if (!Inventory->TryGrantFromServer(Item, 1)) { World->DestroyWorld(false); return 3; }
+                const auto* Stack = Inventory->GetStacks().FindByPredicate([Item](const auto& Row) { return Row.ItemId == Item; });
+                if (!Stack || !Inventory->EquipGearFromServer(Stack->ItemGuids[0], Reason)) { World->DestroyWorld(false); return 3; }
+            }
+            Inventory->TryGrantFromServer(TEXT("StarOpal"), 1);
+            Inventory->TryGrantFromServer(TEXT("StormSapphire"), 1);
+            UE_LOG(LogTemp, Display, TEXT("A9 menu render fixture: Head=OpalHelm Necklace=GarnetNecklace Ring=DuskRing"));
+        }
     }
     TSharedRef<SConstraintCanvas> Canvas = SNew(SConstraintCanvas);
     TArray<TStrongObjectPtr<UUserWidget>> Widgets;

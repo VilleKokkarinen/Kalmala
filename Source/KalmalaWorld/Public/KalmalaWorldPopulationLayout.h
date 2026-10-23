@@ -293,8 +293,9 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
                 const uint64 Seed = Mix(DeriveSpatialSeed(Config, SpatialKey, Kind) ^ uint64(CandidateBudget + 65 + Attempt));
                 const FVector2D Position = SpatialKeyOrigin + FVector2D(float(Seed & 0xFFFFu) / 65535.f,
                     float((Seed >> 16) & 0xFFFFu) / 65535.f) * SpatialKeySize;
-                if (!FKalmalaWorldBounds::Contains(Config, Position) || !IsTerrainSafeDiscoveryLocation(Config, Position)
-                    || FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, Position)) != EKalmalaBiome::FreezingTundra) continue;
+                if (!FKalmalaWorldBounds::Contains(Config, Position)
+                    || FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, Position)) != EKalmalaBiome::FreezingTundra
+                    || !IsTerrainSafeDiscoveryLocation(Config, Position)) continue;
                 if (Spawns.ContainsByPredicate([&Position](const auto& Spawn)
                     { return FVector2D::DistSquared(FVector2D(Spawn.Location), Position) < 62500.f; })) continue;
                 Spawns.Add({Kind, SpatialKey, Mix(Seed ^ 0xA9F20575A17ull), FVector(Position.X, Position.Y,

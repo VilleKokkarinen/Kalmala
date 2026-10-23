@@ -10,6 +10,7 @@
 #include "KalmalaCraftingComponent.h"
 #include "KalmalaCombatComponent.h"
 #include "KalmalaDiscoveryProgressComponent.h"
+#include "KalmalaDiscoveryActor.h"
 #include "KalmalaSupportMagicComponent.h"
 #include "KalmalaSkillProgressionComponent.h"
 #include "KalmalaPlayerStatusComponent.h"
@@ -475,6 +476,7 @@ void AKalmalaCharacter::BeginPlay()
 void AKalmalaCharacter::Tick(const float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
+    VerifyA9Peer();
     AdvanceWildlifeKnockbackFromServer(DeltaSeconds);
     AdvanceDodgeRollFromServer(DeltaSeconds);
     UpdateDodgeRollPresentation(DeltaSeconds);
@@ -1298,16 +1300,18 @@ bool TraceInteractionCandidate(const AKalmalaCharacter* Pawn, const FVector& Vie
     if (Pawn->GetWorld()->LineTraceSingleByChannel(OutHit, ViewLocation,
         ViewLocation + Direction * Range, ECC_Visibility, Params)) return true;
 
-    // The third-person boom must not consume physical wood-pickup reach.
-    // Extend only the visibility query; every other interaction keeps its trace.
+    // The third-person boom must not consume physical pickup/treasure reach.
+    // Extend only the visibility query; authority still uses the physical range.
     const float CameraOffset = FVector::Distance(ViewLocation, Pawn->GetActorLocation());
     if (!FMath::IsFinite(CameraOffset) || CameraOffset > 500.0f) return false;
     FHitResult ExtendedHit;
     if (!Pawn->GetWorld()->LineTraceSingleByChannel(ExtendedHit, ViewLocation,
         ViewLocation + Direction * (CameraOffset + Range), ECC_Visibility, Params)) return false;
     const auto* Drop = Cast<AKalmalaHarvestNode>(ExtendedHit.GetActor());
-    if (!Drop || !Drop->IsWoodDrop() || Drop->IsHarvested()) return false;
-    const float PhysicalDistance = FVector::Distance(Pawn->GetActorLocation(), Drop->GetActorLocation());
+    const auto* Treasure = Cast<AKalmalaDiscoveryActor>(ExtendedHit.GetActor());
+    const bool bPickup = Drop && !Drop->IsHarvested() && (Drop->IsWoodDrop() || (Drop->IsGemstone() && Drop->GetGemOutcome() == 2));
+    if (!bPickup && !(Treasure && Treasure->HasWorldTreasure() && !Treasure->IsTreasureClaimed())) return false;
+    const float PhysicalDistance = FVector::Distance(Pawn->GetActorLocation(), ExtendedHit.GetActor()->GetActorLocation());
     if (!FMath::IsFinite(PhysicalDistance) || PhysicalDistance > Range) return false;
     OutHit = ExtendedHit;
     OutHit.Distance = PhysicalDistance;
@@ -1484,6 +1488,9 @@ void AKalmalaCharacter::ReleaseAttack()
 
 void AKalmalaCharacter::ServerRequestInteract_Implementation(const FName ClientItemId, const uint8 ClientAction)
 {
+#if !UE_BUILD_SHIPPING
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaA9PeerTest"))) ++A9InteractionRequests;
+#endif
 #if !UE_BUILD_SHIPPING
     if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestContention")) && GetWorld()
         && ClientItemId.IsNone() && ClientAction == 0)

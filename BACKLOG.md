@@ -410,6 +410,9 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
   - [x] Audit the four existing scroll routes; defer new scrolls, trophies and boss keys. Source audit and exact routes recorded in `docs/a9-acceptance.md`; live acceptance remains I5 scope.
   - [ ] Complete applicable I5 builds/automation/catalogue/icon/peer/persistence/rendered verification, repair A9 defects, and integrate enemy-source acceptance only after I4 passes.
+    - [x] Execute isolated Editor/Game builds, full automation, new gemstone/treasure peer-and-restart evidence, shared crafting/discovery/inventory checks and equipped-inventory renders; record exact passes, repairs and remaining shared-check failures.
+    - [ ] Integrate passed I4 source acceptance, enable and verify Moonstone/Dusk Diamond rewards, and resolve the inherited inventory/presentation verification disposition.
+    - [ ] Pass combined integrated I5 verification and merge A9 normally into local master at a safe clean boundary, preserving the other worker's handoff.
 
 - [ ] **A10 — Acceptance.** [Full criteria](docs/alpha-item-details.md#a10)
   - [ ] Audit all approved item IDs against registered JSON and generated/imported runtime icons; zero missing entries, references or fallback icons.

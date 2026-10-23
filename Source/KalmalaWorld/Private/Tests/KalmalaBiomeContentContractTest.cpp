@@ -221,6 +221,21 @@ bool FKalmalaBiomeContentContractTest::RunTest(const FString& Parameters)
                     for (const FKalmalaWorldPopulationSpawn& Spawn : FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(Config, SpatialKey, Kind))
                     {
                         const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, FVector2D(Spawn.Location)));
+                        if (FKalmalaGemstoneContract::IsGemSource(Spawn.ContentId))
+                        {
+                            const auto Baseline = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(Config, SpatialKey, Kind, false);
+                            const auto* Original = Baseline.FindByPredicate([&Spawn](const auto& Candidate) { return Candidate.SpawnSeed == Spawn.SpawnSeed; });
+                            TestTrue(TEXT("Gem source replaces exactly its approved ordinary slot"), Original
+                                && Original->Location.Equals(Spawn.Location, 0.01f)
+                                && FKalmalaGemstoneContract::SelectReplacement(Original->ContentId, Biome, Spawn.SpawnSeed) == Spawn.ContentId);
+                            continue;
+                        }
+                        if (Spawn.ContentId == TEXT("tundra-frost-salt-deposit"))
+                        {
+                            TestEqual(TEXT("Supplemental salt deposit stays in Tundra"), Biome, EKalmalaBiome::FreezingTundra);
+                            TestTrue(TEXT("Supplemental salt deposit is a harvest node"), Kind == EKalmalaWorldPopulationKind::HarvestNode);
+                            continue;
+                        }
                         if (Spawn.ContentId == TEXT("allbiomes-stone-outcrop"))
                         {
                             TestTrue(TEXT("Added Stone outcrop is a harvest node"), Kind == EKalmalaWorldPopulationKind::HarvestNode);

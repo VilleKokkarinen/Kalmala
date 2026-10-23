@@ -4614,6 +4614,7 @@ void AKalmalaGameMode::Tick(const float DeltaSeconds)
     DriveLynxPeerTest();
     DrivePolarBearPeerTest();
     DriveHornedGoatPeerTest();
+    DriveA9PeerTest();
     DriveDiscoveryPeerTest();
     DriveM9ExplorationRewardPeerTest();
     DriveOceanTravelFeedbackTest();

@@ -4571,6 +4571,13 @@ underway voyage and owner feedback.
 
 Check each runner's supported parameters before invoking it. For milestone-final acceptance, use a successfully built integrated tree, the prescribed full Kalmala automation namespace, fresh isolated profiles, and the relevant live/rendered/package checks. A static contract PASS never proves rendered or physical input acceptance. Run UnrealBuildTool with normal read/write access to %LOCALAPPDATA%/UnrealBuildTool. Use short paths and avoid generating Binaries, Intermediate, Saved, or DerivedDataCache inside the source checkout during autonomous work.
 
+## A9 independent acceptance
+
+Use the short isolated build mirror for `Scripts/Tests/Combat/Verify-A9Peer.ps1 -Port 19309 -OutputDirectory <fresh-short-path>`.
+It starts a listen host and two owning clients, provisions explicit test gear and a pick, materializes canonical seeded Quartz and Garnet descriptors, and checks three client-driven hits, one-hit actor restoration, full-pack rejection, competing gem/treasure claims, owner-only accessory stats and relevant-peer hit/outcome replication. The fixture holds players at interaction height while distant terrain streams and removes duplicate actors for its canonical identities. A fresh process reuses only the host profile and verifies both claimed ledger entries. This is shared-system acceptance, not a no-grant fresh-character progression or physical-input certification.
+
+Render the equipped inventory with the existing `RenderMenu` commandlet and `-Menu=inventory -A9Gear`, `-AllowCommandletRendering -RenderOffscreen`, explicit dimensions and private output/UserDir/log paths. The opt-in fixture equips Opal Helm, Garnet Necklace and Dusk Ring and includes Star Opal/Storm Sapphire icons. Inspect maintenance controls and the expanded backplate. Run the complete `Kalmala` automation queue after repairs, Editor and Game builds, icon/catalogue validators and applicable shared crafting/inventory/discovery regressions. Keep I4-dependent enemy enablement and combined I5 acceptance open until integrated evidence exists.
+
 ## Native-format support tools
 
 The non-PowerShell tools directly under `Scripts/` are optional maintenance helpers;

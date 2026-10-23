@@ -161,6 +161,11 @@ private:
     void AdvanceWildlifeKnockbackFromServer(float DeltaSeconds);
     void UpdateDodgeRollPresentation(float DeltaSeconds);
     void VerifyPlayerControls(float DeltaSeconds);
+    void VerifyA9Peer();
+    bool bA9StatsLogged = false;
+    double A9NextActionTime = 0;
+    int32 A9LastLootCycle = -1;
+    int32 A9InteractionRequests = 0;
     void VerifyConstructionMovement(float DeltaSeconds);
     void VerifyForestDelivery(float DeltaSeconds);
     void VerifyForestStreaming();

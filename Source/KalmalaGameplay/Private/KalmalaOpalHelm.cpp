@@ -59,11 +59,14 @@ bool UKalmalaInventoryComponent::RepairEquippedOpalFromServer(const FGuid ItemGu
 bool UKalmalaCraftingComponent::MaintainOpalHelmFromServer(const FGuid ItemGuid, const bool bUpgrade, FString& Reason)
 {
     auto* Character = GetCharacter();
-    Reason = TEXT("Need a visible same-world level-one Forge within 2.5 m");
+    Reason = TEXT("Need a visible same-world Forge within 2.5 m at the target upgrade level");
     if (!Character || !Character->HasAuthority() || !Character->GetController()) return false;
     const auto* Forge = FindNearbyToolProgressionStation(TEXT("ForgeKit"));
-    if (!Forge || FKalmalaToolProgressionContract::GetEffectiveStationLevel(Forge) != 1) return false;
+    if (!Forge) return false;
     auto* Inventory = Character->GetInventoryComponent();
+    const auto* Gear = Inventory ? Inventory->FindEquippedGear(EKalmalaGearSlot::Head) : nullptr;
+    if (!Gear || Gear->ItemId != TEXT("OpalHelm") || Gear->ItemGuid != ItemGuid
+        || (bUpgrade && FKalmalaToolProgressionContract::GetEffectiveStationLevel(Forge) != Gear->Level + 1)) return false;
     return Inventory && (bUpgrade ? Inventory->UpgradeEquippedOpalFromServer(ItemGuid, Reason)
         : Inventory->RepairEquippedOpalFromServer(ItemGuid, Reason));
 }
