@@ -1,4 +1,5 @@
 #include "KalmalaWorldPopulationSaveGame.h"
+#include "KalmalaGemstoneContract.h"
 
 namespace
 {
@@ -28,6 +29,8 @@ namespace
 
 void UKalmalaWorldPopulationSaveGame::InitializeForWorld(const FKalmalaWorldGenerationConfig& InWorldConfig)
 {
+    SchemaVersion = 2;
+    Gemstones.Reset();
     WorldConfig = InWorldConfig;
     HarvestedSpawnIds.Reset();
     DefeatedSpawnIds.Reset();
@@ -36,7 +39,17 @@ void UKalmalaWorldPopulationSaveGame::InitializeForWorld(const FKalmalaWorldGene
 
 bool UKalmalaWorldPopulationSaveGame::MatchesWorld(const FKalmalaWorldGenerationConfig& InWorldConfig) const
 {
-    return SchemaVersion == 1 && WorldConfig == InWorldConfig;
+    if (SchemaVersion != 2 || WorldConfig != InWorldConfig || Gemstones.Num() > 65536) return false;
+    TSet<FString> Seen;
+    for (const FKalmalaGemstoneState& State : Gemstones)
+    {
+        if (State.SpawnId.IsEmpty() || State.SpawnId.Len() > 128 || Seen.Contains(State.SpawnId)
+            || !FKalmalaGemstoneContract::IsGemSource(State.SourceId) || State.Hits < 1 || State.Hits > 3
+            || State.Outcome > 3 || (State.Outcome == 0 && State.Hits >= 3)
+            || (State.Outcome >= 2 && State.Hits != 3)) return false;
+        Seen.Add(State.SpawnId);
+    }
+    return true;
 }
 
 bool UKalmalaWorldPopulationSaveGame::IsHarvested(const FString& PersistentSpawnId) const
@@ -583,4 +596,26 @@ bool UKalmalaWorldPopulationSaveGame::RemovePendingWildlifeReward(const FString&
     if (RewardClaimId.IsEmpty()) return false;
     return PendingWildlifeRewards.RemoveAll([&RewardClaimId](const FKalmalaPendingWildlifeReward& Reward)
         { return Reward.PersistentSpawnId == RewardClaimId; }) > 0;
+}
+
+const FKalmalaGemstoneState* UKalmalaWorldPopulationSaveGame::FindGemstone(const FString& SpawnId) const
+{
+    return Gemstones.FindByPredicate([&SpawnId](const auto& State) { return State.SpawnId == SpawnId; });
+}
+
+bool UKalmalaWorldPopulationSaveGame::SetGemstone(const FKalmalaGemstoneState& State)
+{
+    if (State.SpawnId.IsEmpty() || State.SpawnId.Len() > 128 || !FKalmalaGemstoneContract::IsGemSource(State.SourceId)
+        || State.Hits < 1 || State.Hits > 3 || State.Outcome > 3 || (State.Outcome == 0 && State.Hits >= 3)
+        || (State.Outcome >= 2 && State.Hits != 3)) return false;
+    auto* Existing = Gemstones.FindByPredicate([&State](const auto& Entry) { return Entry.SpawnId == State.SpawnId; });
+    if (Existing) { *Existing = State; return true; }
+    if (Gemstones.Num() >= 65536) return false;
+    Gemstones.Add(State);
+    return true;
+}
+
+bool UKalmalaWorldPopulationSaveGame::RemoveGemstone(const FString& SpawnId)
+{
+    return Gemstones.RemoveAll([&SpawnId](const auto& State) { return State.SpawnId == SpawnId; }) == 1;
 }

@@ -16,6 +16,17 @@ struct KALMALAWORLD_API FKalmalaPendingWildlifeReward
     UPROPERTY(SaveGame) FString PlayerIdentity;
 };
 
+/** Sparse attack-driven gemstone progress. Outcome 0 intact, 1 shattered, 2 loose, 3 claimed. */
+USTRUCT()
+struct KALMALAWORLD_API FKalmalaGemstoneState
+{
+    GENERATED_BODY()
+    UPROPERTY(SaveGame) FString SpawnId;
+    UPROPERTY(SaveGame) FName SourceId;
+    UPROPERTY(SaveGame) uint8 Hits = 0;
+    UPROPERTY(SaveGame) uint8 Outcome = 0;
+};
+
 /** Versioned sparse server save data for generated population deltas. */
 UCLASS()
 class KALMALAWORLD_API UKalmalaWorldPopulationSaveGame : public USaveGame
@@ -24,6 +35,9 @@ class KALMALAWORLD_API UKalmalaWorldPopulationSaveGame : public USaveGame
 
 public:
     static constexpr int32 MaxPendingWildlifeRewards = 4096;
+    const FKalmalaGemstoneState* FindGemstone(const FString& SpawnId) const;
+    bool SetGemstone(const FKalmalaGemstoneState& State);
+    bool RemoveGemstone(const FString& SpawnId);
     void InitializeForWorld(const FKalmalaWorldGenerationConfig& InWorldConfig);
     bool MatchesWorld(const FKalmalaWorldGenerationConfig& InWorldConfig) const;
     bool IsHarvested(const FString& PersistentSpawnId) const;
@@ -87,7 +101,9 @@ public:
 
 private:
     UPROPERTY(SaveGame)
-    int32 SchemaVersion = 1;
+    int32 SchemaVersion = 2;
+
+    UPROPERTY(SaveGame) TArray<FKalmalaGemstoneState> Gemstones;
 
     UPROPERTY(SaveGame)
     FKalmalaWorldGenerationConfig WorldConfig;

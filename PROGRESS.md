@@ -6566,3 +6566,13 @@
 - Checks: git diff --check and careful changed-path/static transaction inspection; all changed absolute paths below 260. Full builds, automation execution, peers and I5 verification deferred. No runtime test execution claimed.
 - User approved documented acquisition rates and three-hit mining tuning during this increment; Review A9 recorded complete. Source support/acceptance remains required. I4 is still open in the independent main worker.
 - Next: audit and implement Smoky Quartz's eligible seeded resource source, then other sources in order. Master handoff remains deferred until safe integration.
+
+
+## A9 independent worker — gemstone contract and sparse state (2026-10-23)
+
+- Added shared seeded mutually exclusive resource replacement rules, five source-to-gem identities, minimum pick tiers, and the three-hit state machine resolving the 10% smash before extraction even on the last hit. Added bounded validated sparse gemstone progress/outcome records to population schema 2; development schema 1 is incompatible and must be preserved/rejected, with no migration. This is the prerequisite child for the first blocked source entry; generation and acquisition remain disabled.
+- Added `Kalmala.World.GemstoneContract` for exhaustive 729/1000 success, final-hit smash, terminal/invalid rejection, repeatability/biome exclusion, broad seed selection and save-memory round trip.
+- Files: GemstoneContract.h, WorldPopulationSaveGame.h/.cpp, new GemstoneTest.cpp, BACKLOG/PROGRESS. Checks: source inspection, git diff --check, path lengths below 260. No build/automation execution; full verification deferred. Server-only source rules/state introduce no client input.
+- User also approved server-owned persistent treasure at existing seeded discovery points in the three eligible biomes. No treasure implementation or accepted source is claimed yet. Next: connect mining/persistence/pickup, then item sources in order. I4/I5 remain open; master untouched.
+
+- Approval review initially rejected the schema-changing commit because explicit schema authorization was missing. The user then explicitly approved population schema 2 and the preserved/rejected schema-1 behavior; no bypass or main-checkout write occurred.

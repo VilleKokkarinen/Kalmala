@@ -356,6 +356,8 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
     - [ ] Add or enable its Mireling reward-table entry last, after item JSON/icon completion and accepted A8a source.
   - [ ] Gemstone rocks: implement the shared rare resource-slot replacement and 10% gem-smash rule; successful extraction yields 1 gem. This shared source mechanic does not add per-item acquisition entries.
+    - [x] Add shared source-selection/hit-outcome contract and validated sparse gemstone save state; no sources enabled yet.
+    - [ ] Connect attack-driven pickaxe hits, durable progress/outcomes and loose-gem pickup; then enable item sources in their listed order.
   - [ ] Quartz Necklace (`QuartzNecklace`): finalize its recipe and +10 Armor profile in Review A9; see the A9 item contract.
     - [x] Add and register the complete item/equipment/stat JSON first, with applicable N/A categories recorded.
     - [x] Add and register its Forge recipe using the values finalized by Review A9.
