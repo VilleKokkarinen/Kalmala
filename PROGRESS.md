@@ -6217,3 +6217,11 @@
 - **Observable impact / authority:** The Standing Light build-menu icon now shows the updated wooden torch. Gameplay, server authority, recipe cost, networking, and save data are unchanged.
 - **Known limitations / remaining scope:** I4 remains open. The 14 A9 gameplay commits on `codex/a9-gems-special-gear` remain unintegrated because A9 is gated until I4 passes; their branch reference will be retained during worktree cleanup.
 - **Next eligible task:** Continue the combined A8a/A8b I4 peer and rendered acceptance.
+
+## Run 2026-10-23T06:03:02Z — remove stale Kalmala worktrees
+
+- **Work completed:** Reviewed all six registered worktrees. The A8b rewards, A9 JSON/icon batch, creature catalogue, Rat Tail handoff, and Standing Light gameplay changes were already represented in `master`; integrated the still-missing Standing Light torch icon first in commit `9edb09c1`. Removed the six clean worktrees under `.wt` and the empty `wt` directory. No topic branch refs were deleted.
+- **Checks:** All six worktrees were clean under `git status --porcelain`; no Unreal build/editor processes were running, and none contained `Binaries`, `Intermediate`, `Saved`, or `DerivedDataCache`. Removed targets resolved within `E:\dev\Kalmala` and were below `MAX_PATH`. Final `git worktree list` shows only the main checkout; final `git status --short --branch` is clean (`master` ahead of `origin/master` by 3 commits).
+- **Observable impact / authority:** Worktree directories are cleared. The updated torch icon is integrated; no gameplay, networking, server authority, or save behavior changed.
+- **Known limitations / remaining scope:** `codex/a9-gems-special-gear` retains 14 commits that are not integrated because A9 remains gated by the unfinished I4 acceptance. Full A8 milestone verification is still open; cleanup did not run a build or automation suite.
+- **Next eligible task:** Continue the combined A8a/A8b I4 peer and rendered acceptance.
