@@ -231,11 +231,13 @@ void AKalmalaCharacter::OnRep_Health()
     const bool bBadgerPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaBadgerPeerTest"));
     const bool bMoonBearPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaMoonBearPeerTest"));
     const bool bRatPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaRatPeerTest"));
+    const bool bViperPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaViperPeerTest"));
     if (!HasAuthority() && (FParse::Param(FCommandLine::Get(), TEXT("KalmalaMirelingPeerTest"))
         || FParse::Param(FCommandLine::Get(), TEXT("KalmalaBoarPeerTest"))
-        || FParse::Param(FCommandLine::Get(), TEXT("KalmalaDeerPeerTest")) || bBadgerPeerTest || bMoonBearPeerTest || bRatPeerTest))
+        || FParse::Param(FCommandLine::Get(), TEXT("KalmalaDeerPeerTest")) || bBadgerPeerTest || bMoonBearPeerTest || bRatPeerTest || bViperPeerTest))
     {
         const TCHAR* VerificationName = bRatPeerTest ? TEXT("Rat")
+            : bViperPeerTest ? TEXT("Viper")
             : bBadgerPeerTest ? TEXT("Badger")
             : bMoonBearPeerTest ? TEXT("Moon Bear")
             : FParse::Param(FCommandLine::Get(), TEXT("KalmalaBoarPeerTest")) ? TEXT("Boar")

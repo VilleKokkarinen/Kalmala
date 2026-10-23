@@ -4548,15 +4548,17 @@ void AKalmalaWildlifeSpawn::OnRep_Defeated()
     const bool bBadgerPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaBadgerPeerTest"));
     const bool bMoonBearPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaMoonBearPeerTest"));
     const bool bRatPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaRatPeerTest"));
+    const bool bViperPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaViperPeerTest"));
     if (bDefeated && !bClientCombatVerificationDefeatLogged
         && (FParse::Param(FCommandLine::Get(), TEXT("KalmalaCombatPeerTest"))
             || FParse::Param(FCommandLine::Get(), TEXT("KalmalaMirelingPeerTest"))
             || FParse::Param(FCommandLine::Get(), TEXT("KalmalaBoarPeerTest"))
             || FParse::Param(FCommandLine::Get(), TEXT("KalmalaDeerPeerTest"))
-            || bBadgerPeerTest || bMoonBearPeerTest || bRatPeerTest))
+            || bBadgerPeerTest || bMoonBearPeerTest || bRatPeerTest || bViperPeerTest))
     {
         bClientCombatVerificationDefeatLogged = true;
         const TCHAR* VerificationName = bRatPeerTest ? TEXT("Rat")
+            : bViperPeerTest ? TEXT("Viper")
             : bBadgerPeerTest ? TEXT("Badger")
             : bMoonBearPeerTest ? TEXT("Moon Bear")
             : FParse::Param(FCommandLine::Get(), TEXT("KalmalaBoarPeerTest")) ? TEXT("Boar")

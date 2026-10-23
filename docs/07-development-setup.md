@@ -2355,9 +2355,20 @@ after three pack cells are freed.
 per second through physical armor, refresh without stacking or tick-clock reset,
 expiry, and the server authority gate. The surface-winding automation also
 checks the procedural Viper model. Run these editor automations in the combined
-A8a/A8b I4 acceptance. They are contract coverage, not live Viper GameMode
-delivery, restart, or relevant-peer acceptance; no Unreal build or runtime
-acceptance ran in this increment. The Viper Fang drop now uses the existing
+A8a/A8b I4 acceptance. The Development-only live peer scenario is enabled by
+`-KalmalaViperPeerTest`; after an Editor build, run
+`Scripts/Tests/Combat/Verify-ViperPeer.ps1`. It searches for and activates a
+normal generated dry-shore Viper, positions the host on a sampled dry approach,
+and requires its real lunge to apply weak poison. Four ordinary host mace
+attacks exercise the registered target path, followed only when needed by
+bounded server-only fixture damage to finish the reward path. A full host pack
+must retain the Bone Fragment + Viper Fang claim without a partial grant; after
+two cells are freed, the complete bundle must reach only the credited owner.
+Both clients must observe the shared attack and defeat without receiving the
+reward, and a same-world restart must keep that exact spawn defeated. The
+fixture adds no gameplay RPC, client-selected target or reward, replication
+field, or save schema. Build and live-run verification remain deferred to the
+combined I4 gate. The Viper Fang drop now uses the existing
 durable claim. The Fang Arrows recipe output uses its registered Workbench
 recipe and fixed 50-Pierce attack; accepted wildlife hits apply the five-second
 weak-poison profile. The bow regression covers the shot, tick-clock-preserving
@@ -4429,7 +4440,7 @@ build, export, package, and render utilities remain directly under `Scripts/`;
 | --- | --- |
 | Acceptance | `Acceptance/Verify-M4VerticalSlice.ps1`; `Verify-M5DocumentationContracts.ps1`; `Verify-M7AutomatedAcceptance.ps1`; `Verify-RainVerticalSlice.ps1` |
 | Audio | `Audio/Verify-AmbientAudio.ps1` (includes `-ContractOnly`); `Verify-AmbientAudioPeers.ps1` |
-| Combat and discoveries | `Combat/Verify-BoarPeer.ps1`; `Verify-CombatPeer.ps1`; `Verify-DeerPeer.ps1`; `Verify-DiscoveryPeer.ps1`; `Verify-MirelingPeer.ps1` |
+| Combat and discoveries | `Combat/Verify-BoarPeer.ps1`; `Verify-CombatPeer.ps1`; `Verify-DeerPeer.ps1`; `Verify-DiscoveryPeer.ps1`; `Verify-MirelingPeer.ps1`; `Verify-RatPeer.ps1`; `Verify-ViperPeer.ps1` |
 | Construction and inventory | `Construction/Verify-ConstructionMovement.ps1` (floor/wall collision, roof jump/land, and replicated exposure); `Verify-ConstructionPersistence.ps1`; `Verify-Crafting.ps1`; `Verify-Storage.ps1`; `Inventory/Verify-Inventory.ps1` (includes `-ContractOnly`); `Verify-InventoryMenu.ps1`; `Verify-InventoryReconnect.ps1` |
 | Performance | `Performance/Verify-ConstrainedPerformance.ps1` |
 | Presentation and input | `Presentation/Verify-InteractionPrompt.ps1`; `Verify-LocalInputContract.ps1`; `Verify-MenuInputCopy.ps1`; `Verify-OnboardingContract.ps1`; `Verify-PlayerControls.ps1`; `Verify-PresentationOwnership.ps1`; `Verify-SettingsAccessibility.ps1` (includes `-ContractOnly`); `Verify-StatusHotbar.ps1`; `Verify-TutorialRouteFree.ps1` |
