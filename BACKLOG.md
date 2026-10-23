@@ -389,7 +389,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     - [x] Add and register the complete item/equipment/stat JSON first, with applicable N/A categories recorded.
     - [x] Add and register its Forge recipe using the values finalized by Review A9.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
-  - [ ] Tourmaline Necklace (`TourmalineNecklace`): finalize its recipe and healing-received profile in Review A9; see the A9 item contract.
+  - [x] Tourmaline Necklace (`TourmalineNecklace`): finalized executable Forge recipe and incoming-only +0.10 healing; partial ticks, removal, full health, outgoing exclusion and no resurrection covered.
     - [x] Add and register the complete item/equipment/stat JSON first, with applicable N/A categories recorded.
     - [x] Add and register its Forge recipe using the values finalized by Review A9.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.

@@ -141,14 +141,25 @@
     {
       "RecipeId": "TourmalineNecklace",
       "DisplayName": "Tourmaline Necklace",
-      "ItemId": "TourmalineNecklace",
-      "RequiredStation": "Forge",
-      "RequiredStationLevel": 1,
-      "Ingredients": [
-        { "ItemId": "Bronze", "Quantity": 3 },
-        { "ItemId": "Tourmaline", "Quantity": 1 }
+      "RequiredStation": [
+        "Forge"
       ],
-      "Level": 1
+      "Ingredients": [
+        {
+          "ItemId": "Bronze",
+          "Quantity": 3
+        },
+        {
+          "ItemId": "Tourmaline",
+          "Quantity": 1
+        }
+      ],
+      "Output": "TourmalineNecklace",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
     },
     {
       "RecipeId": "OpalHelm",

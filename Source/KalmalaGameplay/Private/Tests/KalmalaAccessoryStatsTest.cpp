@@ -117,6 +117,16 @@ bool FKalmalaAccessoryStatsTest::RunTest(const FString& Parameters)
     const float BeforeUnmodified = Movement->GetStamina();
     Movement->AdvanceStaminaFromServer(.25f);
     TestTrue(TEXT("Removal restores future base recovery"), FMath::IsNearlyEqual(Movement->GetStamina() - BeforeUnmodified, 3.75f));
+    TestTrue(TEXT("Tourmaline re-equips"), Equip(TEXT("TourmalineNecklace")));
+    Health->SetPropertyValue_InContainer(Ally, 10.0f);
+    TestTrue(TEXT("Owner can send ordinary Mending"), Ally->ReceiveMendingFromServer(Pawn, 20.0f));
+    TestEqual(TEXT("Tourmaline never increases outgoing healing"), Ally->GetHealth(), 30.0f);
+    Health->SetPropertyValue_InContainer(Pawn, 90.0f);
+    Pawn->ReceiveMendingFromServer(Ally, 20.0f);
+    TestEqual(TEXT("Incoming bonus clamps to maximum health"), Pawn->GetHealth(), Pawn->GetMaximumHealth());
+    TestFalse(TEXT("Full-health Mending remains rejected"), Pawn->ReceiveMendingFromServer(Ally, 20.0f));
+    Health->SetPropertyValue_InContainer(Pawn, 1.0f);
+    TestFalse(TEXT("Healing bonus cannot resurrect"), Pawn->RestoreHealthFromDraughtFromServer(20.0f));
     World->DestroyWorld(false);
     return true;
 }
