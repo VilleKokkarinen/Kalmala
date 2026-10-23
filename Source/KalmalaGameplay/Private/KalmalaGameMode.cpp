@@ -1224,22 +1224,24 @@ void AKalmalaGameMode::DriveCombatPeerTest()
         }
         if (LocalServerPlayer == nullptr || RemotePlayer == nullptr) return;
 
-        const auto SelectTestWeapon = [](AKalmalaCharacter* Character, FString& OutReason)
+        const auto SelectTestWeapon = [](AKalmalaCharacter* Character, const FName ItemId, FString& OutReason)
         {
             UKalmalaInventoryComponent* Inventory = Character ? Character->GetInventoryComponent() : nullptr;
             const FKalmalaToolState* TestWeapon = Character
                 ? Character->GetCarriedToolInventory().FindByPredicate(
-                    [](const FKalmalaToolState& Tool) { return Tool.ItemId == TEXT("StoneMace"); })
+                    [ItemId](const FKalmalaToolState& Tool) { return Tool.ItemId == ItemId; })
                 : nullptr;
             if (Inventory == nullptr || TestWeapon == nullptr)
             {
-                OutReason = TEXT("Stone Mace is missing from the initial loadout");
+                OutReason = FString::Printf(TEXT("%s is missing from the initial loadout"), *ItemId.ToString());
                 return false;
             }
             return Inventory->SetMainHandFromServer(TestWeapon->InstanceGuid, OutReason);
         };
         FString EquipReason;
-        if (!SelectTestWeapon(LocalServerPlayer, EquipReason) || !SelectTestWeapon(RemotePlayer, EquipReason))
+        const FName ServerWeaponId = bDeerPeerTest ? FName(TEXT("StoneKnife")) : FName(TEXT("StoneMace"));
+        if (!SelectTestWeapon(LocalServerPlayer, ServerWeaponId, EquipReason)
+            || !SelectTestWeapon(RemotePlayer, FName(TEXT("StoneMace")), EquipReason))
         {
             UE_LOG(LogTemp, Error, TEXT("%s verification FAILED: test combat weapon could not be selected for both peers (%s)."), VerificationName, *EquipReason);
             CombatPeerTestStage = 99;
@@ -1422,7 +1424,7 @@ void AKalmalaGameMode::DriveCombatPeerTest()
 #endif
         Attacker->ForceNetUpdate();
         Remote->ForceNetUpdate();
-        UE_LOG(LogTemp, Display, TEXT("%s fixture arranged: Target=%s TargetLocation=%s Attacker=%s AttackerLocation=%s Remote=%s RemoteLocation=%s"), VerificationName, *CombatPeerTestTarget->GetName(), *CombatPeerTestTarget->GetActorLocation().ToCompactString(), *Attacker->GetName(), *Attacker->GetActorLocation().ToCompactString(), *Remote->GetName(), *Remote->GetActorLocation().ToCompactString());
+        UE_LOG(LogTemp, Display, TEXT("%s fixture arranged: Target=%s TargetLocation=%s Attacker=%s AttackerLocation=%s Remote=%s RemoteLocation=%s HerdMate=%s HerdMateBehavior=%d"), VerificationName, *CombatPeerTestTarget->GetName(), *CombatPeerTestTarget->GetActorLocation().ToCompactString(), *Attacker->GetName(), *Attacker->GetActorLocation().ToCompactString(), *Remote->GetName(), *Remote->GetActorLocation().ToCompactString(), bDeerPeerTest && CombatPeerTestHerdMate.IsValid() ? *CombatPeerTestHerdMate->GetName() : TEXT("None"), bDeerPeerTest && CombatPeerTestHerdMate.IsValid() ? static_cast<int32>(CombatPeerTestHerdMate->GetBehaviour()) : -1);
         CombatPeerTestStage = 1;
         CombatPeerTestStageTime = Now;
         return;
@@ -1653,7 +1655,7 @@ void AKalmalaGameMode::DriveCombatPeerTest()
         }
         else
         {
-            UE_LOG(LogTemp, Error, TEXT("Combat verification server: Passed=0 ActionSerial=%u Health=%.1f Defeated=%d Saved=%d"), AttackerCombat->GetActionSerial(), Target->GetHealth(), Target->IsDefeated(), bSavedDefeat);
+            UE_LOG(LogTemp, Error, TEXT("Combat verification server: Passed=0 ActionSerial=%u Health=%.1f Defeated=%d Saved=%d HerdAlert=%d HerdMateBehavior=%d RewardValid=%d DeerMeat=%d DeerHide=%d DeerSinew=%d BoneFragment=%d RemoteDeerMeat=%d RemoteDeerHide=%d RemoteDeerSinew=%d RemoteBoneFragment=%d"), AttackerCombat->GetActionSerial(), Target->GetHealth(), Target->IsDefeated(), bSavedDefeat, bCombatPeerTestHerdAlertObserved, bDeerPeerTest && CombatPeerTestHerdMate.IsValid() ? static_cast<int32>(CombatPeerTestHerdMate->GetBehaviour()) : -1, bRewardValid, DeerMeat, DeerHide, DeerSinew, BoneFragment, RemoteDeerMeat, RemoteDeerHide, RemoteDeerSinew, RemoteBoneFragment);
         }
         CombatPeerTestStage = 99;
     }

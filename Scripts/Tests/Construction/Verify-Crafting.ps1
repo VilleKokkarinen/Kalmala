@@ -63,7 +63,7 @@ try {
             $ready = $ready -and $peerText.Contains('Forge Upgrade scope: Comparison=1 Requirements=1 Materials=1 Status=1 Route=1 UiScope=1 StaleNoRequest=1 ContextUnavailable=1')
             $ready = $ready -and $peerText.Contains('Forge Repair All action: OwnerLocal=1 NoRepairMenu=1 InvalidContextNoRequest=1 UpgradeSelectionSeparate=1')
             $ready = $ready -and $peerText.Contains('Workbench Repair All action: OwnerLocal=1 NoRepairMenu=1 InvalidContextNoRequest=1')
-            $ready = $ready -and $peerText.Contains('Chest scope: OwnerPack=1 OwnerChest=1 Capacity=1 Route=1 StaleNoRequest=1 UiScope=1')
+            $ready = $ready -and $peerText.Contains('Chest scope: OwnerPack=1 OwnerChest=1 Capacity=1 ReinforcedCapacity=1 Route=1 StaleNoRequest=1 UiScope=1')
         }
         $gridPattern = 'Build slot grid: Slots=(\d+) Unavailable=(\d+) Selected=(\d+) Focused=1 ReadOnly=1 Scrollable=[01] Navigation=1'
         $serverGrid = [regex]::Match($serverText, $gridPattern)
@@ -80,8 +80,13 @@ try {
             -and [regex]::Matches($serverText, 'Crafting placement RPC: Accepted=0').Count -eq 2
         foreach ($statePattern in @('Fuel=60 Lit=1 Wet=0 Warmth=1 State=1', 'Fuel=48 Lit=0 Wet=(?:9[6-9]|100) Warmth=0 State=2')) {
             $serverNames = [regex]::Matches($serverText, ('Crafting fire server: Name=(\S+) ' + $statePattern)) | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique
-            $clientNames = [regex]::Matches($clientText, ('Crafting fire client: Name=(\S+) ' + $statePattern)) | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique
-            $ready = $ready -and @($serverNames).Count -eq 2 -and @($clientNames).Count -eq 2
+            $ready = $ready -and @($serverNames).Count -eq 2
+            # The remote client can join after the server has changed the test fires;
+            # require it to observe both replicated final smouldering states.
+            if ($statePattern -match 'State=2$') {
+                $clientNames = [regex]::Matches($clientText, ('Crafting fire client: Name=(\S+) ' + $statePattern)) | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique
+                $ready = $ready -and @($clientNames).Count -eq 2
+            }
         }
         if ($Rendered) {
             foreach ($peerName in @('host', 'client')) {

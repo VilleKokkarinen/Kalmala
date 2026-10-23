@@ -4372,6 +4372,7 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
 void AKalmalaWildlifeSpawn::AlertNearbyDeerFromServer()
 {
     if (!HasAuthority() || bDefeated) return;
+    int32 AlertedCount = 0;
     for (TActorIterator<AKalmalaWildlifeSpawn> It(GetWorld()); It; ++It)
     {
         AKalmalaWildlifeSpawn* Deer = *It;
@@ -4380,7 +4381,14 @@ void AKalmalaWildlifeSpawn::AlertNearbyDeerFromServer()
             || FVector::DistSquared2D(Deer->GetActorLocation(), GetActorLocation()) > FMath::Square(800.0f)) continue;
         Deer->BeginServerBehaviour(EKalmalaWildlifeBehaviour::Flee, 1.50f,
             Deer->SpawnOrigin + Deer->GetDeterministicOffset(GetEcologicalFleeDistance(Deer->CreatureNicheId)));
+        ++AlertedCount;
     }
+#if !UE_BUILD_SHIPPING
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaDeerPeerTest")))
+    {
+        UE_LOG(LogTemp, Display, TEXT("Deer peer herd alert: Source=%s Alerted=%d"), *GetName(), AlertedCount);
+    }
+#endif
 }
 
 void AKalmalaWildlifeSpawn::BeginServerBehaviour(const EKalmalaWildlifeBehaviour NextBehaviour, const float DurationSeconds,

@@ -3371,7 +3371,7 @@ gates have passed.
 
 ## Fuelled hearth and crafting verification
 
-After the editor build, run `Kalmala.Gameplay.Crafting`, `Kalmala.Gameplay.Inventory` and `Kalmala.Gameplay.Campfire` with the headless temporary-user/log flags above, then `Scripts/Tests/Construction/Verify-Crafting.ps1 -Rendered`. Rendered runs need access to Unreal's shader working directory as well as the build-tool cache. The runner requires exact inventory conservation for both players, rejection of real forged/malformed RPCs and insufficient placement, two matching dry/rain-extinguished fire states, paid placement and fuel/protection gates, local menu input restoration, and retained host/client screenshots. Also run `Scripts/Tests/Inventory/Verify-InventoryReconnect.ps1` and `Scripts/Tests/Survival/Verify-CampChoices.ps1`. Full contract and test limits: `02-technical-architecture.md`.
+After the editor build, run `Kalmala.Gameplay.Crafting`, `Kalmala.Gameplay.Inventory` and `Kalmala.Gameplay.Campfire` with the headless temporary-user/log flags above, then `Scripts/Tests/Construction/Verify-Crafting.ps1 -Rendered`. Rendered runs need access to Unreal's shader working directory as well as the build-tool cache. The runner requires exact inventory conservation for both players, rejection of real forged/malformed RPCs and insufficient placement, two server-side fires passing through dry/lit and rain/smouldering states with both peers observing their replicated final state, paid placement and fuel/protection gates, local menu input restoration, and retained host/client screenshots. Also run `Scripts/Tests/Inventory/Verify-InventoryReconnect.ps1` and `Scripts/Tests/Survival/Verify-CampChoices.ps1`. Full contract and test limits: `02-technical-architecture.md`.
 
 ## Master-map generation verification
 
@@ -4221,8 +4221,8 @@ the accepted chest context clears the private snapshot; no RPC or save schema
 is added.
 
 `Verify-Crafting.ps1 -Port <unused-port>` requires
-`Chest scope: OwnerPack=1 OwnerChest=1 Capacity=1 Route=1 StaleNoRequest=1
-UiScope=1` on both peers. Its focused marker checks the owner-local lists,
+`Chest scope: OwnerPack=1 OwnerChest=1 Capacity=1 ReinforcedCapacity=1 Route=1
+StaleNoRequest=1 UiScope=1` on both peers. Its focused marker checks the owner-local lists,
 capacity feedback for 16/24-stack chests, standard/reinforced Chest interaction
 routes, hidden unrelated actions, and
 no dispatch from a stale context. `Verify-PresentationOwnership.ps1` checks the

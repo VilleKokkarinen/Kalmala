@@ -33,8 +33,8 @@ try {
     do {
         if ($server.HasExited -or $client.HasExited -or $remoteClient.HasExited) { throw 'A Mireling peer exited before verification.' }
         $serverText = if (Test-Path $serverLog) { Get-Content $serverLog -Raw } else { '' }; $clientText = if (Test-Path $clientLog) { Get-Content $clientLog -Raw } else { '' }; $remoteClientText = if (Test-Path $remoteClientLog) { Get-Content $remoteClientLog -Raw } else { '' }
-        if (($serverText + $clientText) -match 'Fatal error:|Assertion failed:|Ensure condition failed:|Mireling verification FAILED:|Combat verification FAILED:|Mireling verification server: Passed=0') { throw 'Mireling peer verification failed; inspect retained logs.' }
         $peerText = $clientText + $remoteClientText
+        if (($serverText + $peerText) -match 'Fatal error:|Assertion failed:|Ensure condition failed:|Mireling verification FAILED:|Combat verification FAILED:|Mireling verification server: Passed=0') { throw 'Mireling peer verification failed; inspect retained logs.' }
         $ready = $serverText -match 'Mireling verification server: Passed=1 SeedReproduced=1 BoundedActivation=1 (?:HerdAlert=0 )?InvalidRejected=1 ActionSerial=4 Health=0\.0 PlayerHealth=[0-9]+\.0 Defeated=1 Saved=1 Meat=0 Hide=0 BoneFragment=0 RemoteMeat=0 RemoteHide=0 RemoteBoneFragment=0 DeerMeat=0 DeerHide=0 DeerSinew=0 RemoteDeerMeat=0 RemoteDeerHide=0 RemoteDeerSinew=0'
         $ready = $ready -and $peerText -match 'Mireling verification client rejected invalid owned attack without target data\.'
         $ready = $ready -and $peerText -match 'Mireling verification client observed shared action serial=4\.'
@@ -42,7 +42,15 @@ try {
         $ready = $ready -and $peerText -match 'Mireling verification client observed replicated player health=[0-9]+\.0\.'
         if ($ready) { break }; Start-Sleep -Milliseconds 500
     } while ((Get-Date) -lt $deadline)
-    if (!$ready) { throw 'Mireling peer scenario timed out.' }
+    if (!$ready) {
+        Write-Output ("Mireling peer timeout detail: ServerPassed={0} InvalidRejected={1} SharedAction={2} Defeat={3} Health={4}" -f
+            ($serverText -match 'Mireling verification server: Passed=1'),
+            ($peerText -match 'Mireling verification client rejected invalid owned attack without target data\.'),
+            ($peerText -match 'Mireling verification client observed shared action serial=4\.'),
+            ($peerText -match 'Mireling verification client observed relevant wildlife defeat\.'),
+            ($peerText -match 'Mireling verification client observed replicated player health=[0-9]+\.0\.'))
+        throw 'Mireling peer scenario timed out.'
+    }
     if (($clientText + $remoteClientText) -notmatch 'Client received world-generation identity: Seed=418') { throw 'Mireling peer client identity mismatch.' }
     $spawnMatch = [regex]::Match($serverText, 'Mireling verification server: Passed=1[^\r\n]* SpawnId=([0-9]+/-?\d+/-?\d+/\d+)')
     if (!$spawnMatch.Success) { throw 'Mireling peer result did not include the defeated spawn identity.' }

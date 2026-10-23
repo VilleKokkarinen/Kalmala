@@ -185,7 +185,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [x] Keep extra brewing stations deferred; Kiln/Smelter/Plot belong to A1/A7.
 
 - [x] **A8a — Biome enemies (before A9).** [Roster and stats](docs/biome-enemies.md)
-  - [x] Register the three current creatures and fourteen planned enemies in GameCatalogues JSON (user request, 2026-10-21); one Wolf species, pack spawning deferred to engine work. Data authoring only; runtime enemy tasks below remain open.
+  - [x] Register the three current creatures and fourteen planned enemies in GameCatalogues JSON (user request, 2026-10-21); one Wolf species, pack spawning deferred to engine work. Catalogue authoring is complete; combined runtime acceptance remains tracked under I4 below.
   - [x] Consolidate all 17 species into creatures.json and remove redundant rules JSON (user request, 2026-10-21); shared engine policies remain in design docs. Keep one flat gameplay profile per species; no status flags, runtime snapshots or AI prose. No defensive-trigger or Swarm settings; poison uses rate and duration only.
   - [x] Review the expanded roster, spawn weights and attack/loot rules.
   - [x] Review unique enemy drops and uses; approve new materials/recipes before implementation.
@@ -243,7 +243,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [x] Horn Bow icon (`HornBow`).
   - [x] Thunder Maul icon (`ThunderMaul`).
   - [x] Reef Harpoon icon (`ReefHarpoon`).
-  - Grouped icon batch completed 2026-10-22 in one feature commit by user direction; originals, preparation, imports, mapping and focused coverage are recorded in `docs/a8b-icon-batch.md`. The 30 item/source rows remain open.
+  - Grouped icon batch completed 2026-10-22 in one feature commit by user direction; originals, preparation, imports, mapping and focused coverage are recorded in `docs/a8b-icon-batch.md`. All 30 source/output implementation rows are checked; combined I4 acceptance remains open.
   - [x] Rat Tail: Rat, 1 guaranteed; material + source + JSON + generated icon.
     - Original icon, mapping, import, registered material definition, and owner-bound credited-defeat reward are complete; combined I4 acceptance remains pending.
   - [x] Badger Fur: Badger, 1 guaranteed; material + source + JSON + generated icon.
@@ -278,24 +278,22 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [x] Reef Harpoon: Forge, 3 Reef Tooth + 8 Iron + 4 Lightwood → 1; 60 Pierce.
   - [x] Verify every approved drop/output has complete registered JSON, a reachable source and a generated runtime icon.
   - [ ] Run the combined A8a/A8b enemy and enemy-item milestone verification; record results and blockers. This gate must pass before A9 begins.
-    - [x] Rebuild and rerun the single sequential Badger/Moon Bear peer acceptance after the Moon Bear fixture adjustment; both cases passed. Reran the full suite and recorded its three failures in PROGRESS.md.
-    - [x] Obtain the required disposition for the Mireling `SurfaceWinding` failure, then rerun the full Kalmala queue after the M9 progression repair; close I4 only after required verification passes.
+    - [x] Rebuild and rerun the sequential Badger/Moon Bear peer acceptance after the Moon Bear fixture adjustment; both cases passed. The final full queue now passes all 180 tests.
+    - [x] Repair the procedural snake-head `SurfaceWinding` failure and the M9 progression assertions; the focused check and final 180-test Kalmala queue pass.
+    - [ ] Finish required live peer/reward acceptance for the remaining A8a species, then exercise the approved A8b item progression and peer flows. Current peer runners cover Boar, Deer, Badger, Moon Bear and Mireling; the live species checks for Rat, Viper, Giant Snake, Death Adder, Mosquito swarm, Peat Husk, Wolf, Lynx, Polar Bear, Horned Goat, Thunder Sentinel and Reef Maw remain outstanding.
+    - [ ] Resolve the `Verify-InventoryReconnect.ps1` client-baseline timeout or document an approved non-applicable disposition before closing final I4 verification.
 
-  The JSON-only child and all 30 icon children are complete; all 30 item rows
-  remain unchecked until their reachable source drops (for materials) and
-  server-side item behavior are complete. No A8b enemy drop has been enabled.
+  The JSON-only child, all 30 icon children and all 30 source/output
+  implementation rows are complete. Enemy rewards and dependent items are
+  enabled through their server-side paths; their combined live I4 acceptance
+  remains open.
 
   Bow String is reserved for bows. Review every pending non-bow binding input in its category contract; do not use Bow String there. Moonstone Ring and Dusk Ring stay in A9. Do not duplicate them.
-  Enable new drops only when their material task is complete. A8b effects and
-  full armor/weapon profiles are resolved in
-  [the item contract](docs/alpha-item-details.md#a8b). The Reef Harpoon route is
-  approved but adds no skiff damage. The current committed baseline has none of
-  the 15 A8b material-producing enemies or their credited-defeat rewards in
-  accepted runtime; the creature catalogue is authoring data only. Keep each
-  material and dependent output incomplete until its named enemy has a
-  reachable, accepted server-side drop. Recheck after A8a runtime/loot work is
-  integrated and accepted.
-  All 30 new material/output tasks include the item-completion gate above.
+  A8b effects and full armor/weapon profiles are resolved in [the item
+  contract](docs/alpha-item-details.md#a8b). The Reef Harpoon route is approved
+  but adds no skiff damage. All 15 material-producing enemy sources and their
+  registered outputs are implemented; the I4 gate above retains the remaining
+  live peer, reward retry/restart/privacy and item-progression acceptance.
 
 - [ ] **A9 — gems and special gear (P2).** [Rules](docs/alpha-item-details.md#a9)
   - Completion handoff: the 50 checked JSON/recipe/icon stages below were implemented in `71fa8060` on `codex/a9-json-icons` and merged into master on 2026-10-22. Acquisition, runtime accessory behavior, reviews and milestone verification remain open.
