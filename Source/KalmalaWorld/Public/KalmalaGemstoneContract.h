@@ -42,7 +42,7 @@ struct FKalmalaGemstoneContract
         return bMoonBear && Biome == EKalmalaBiome::Elderwood && Mix(Seed ^ 0xA9B3A2ull) % 50 == 0
             ? FName(TEXT("Moonstone")) : NAME_None;
     }
-    static bool IsTreasureGemEnabled(FName Item) { return Item == TEXT("Garnet"); }
+    static bool IsTreasureGemEnabled(FName Item) { return Item == TEXT("Garnet") || Item == TEXT("Aquamarine"); }
     static TArray<FName> SelectTreasure(EKalmalaBiome Biome, uint64 Seed)
     {
         TArray<FName> Items;

@@ -6622,3 +6622,8 @@
 ## A9 independent worker — Amethyst acquisition (2026-10-23)
 
 - Enabled Amethyst's 3% replacement of Mossy Mire `mire-bog-iron` Iron Ore candidates only. Shared validation requires Bronze Pick or better; damage/level cannot bypass three hits or per-hit smash. Existing candidate count/location/seed and ordinary Iron yield remain unchanged outside replaced slots. Files: GemstoneContract.h, BACKLOG/PROGRESS. `Validate-UIIcons.ps1 -Category Catalogue -Id Amethyst` and git diff --check passed; source ID and minimum-tier inspection passed; paths below 260. Full build/automation/live I5 checks deferred. Next: Aquamarine treasure. Main unchanged.
+
+
+## A9 independent worker — Aquamarine acquisition (2026-10-23)
+
+- Enabled the independent 1/20 Aquamarine generation roll only for Shimmering Lakes world treasure. Garnet and Aquamarine can coexist in one Lakes chest, each quantity one; complete two-item grants are capacity checked before any claim. Existing saved chest results are immutable and are not rerolled by source enablement. Files: GemstoneContract.h, BACKLOG/PROGRESS. `Validate-UIIcons.ps1 -Category Catalogue -Id Aquamarine` and git diff --check passed; biome/domain-separation/full-grant inspection and short-path audit passed. Full build/automation/live I5 checks deferred. Next: Tourmaline. Main unchanged.
