@@ -115,6 +115,7 @@ private:
     void DriveMosquitoPeerTest();
     void DrivePeatHuskPeerTest();
     void DriveWolfPeerTest();
+    void DriveLynxPeerTest();
     void DriveDiscoveryPeerTest();
     void DriveM9ExplorationRewardPeerTest();
     void RunM9Schema2CandidateWorldPeerTest();
@@ -189,6 +190,19 @@ private:
     bool bWolfPeerTestSawTelegraph = false;
     bool bWolfPeerTestSawLunge = false;
     bool bWolfPeerTestSawRecovery = false;
+    int32 LynxPeerTestStage = 0;
+    float LynxPeerTestStageTime = 0.0f;
+    float LynxPeerTestStartingHealth = 0.0f;
+    FIntPoint LynxPeerTestSpatialKey = FIntPoint::ZeroValue;
+    uint64 LynxPeerTestWorldSeed = 0;
+    FString LynxPeerTestSpawnId;
+    FVector LynxPeerTestSpawnLocation = FVector::ZeroVector;
+    TWeakObjectPtr<class AKalmalaCharacter> LynxPeerTestHost;
+    TArray<TWeakObjectPtr<class AKalmalaCharacter>> LynxPeerTestObservers;
+    TWeakObjectPtr<class AKalmalaWildlifeSpawn> LynxPeerTestTarget;
+    bool bLynxPeerTestSawTelegraph = false;
+    bool bLynxPeerTestSawLeap = false;
+    bool bLynxPeerTestSawRecovery = false;
     int32 DiscoveryPeerTestStage = 0;
     float DiscoveryPeerTestStageTime = 0.0f;
     bool bDiscoveryPeerTestLogged = false;

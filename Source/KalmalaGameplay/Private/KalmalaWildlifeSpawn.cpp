@@ -4553,6 +4553,14 @@ void AKalmalaWildlifeSpawn::OnRep_WolfAttackCue()
 void AKalmalaWildlifeSpawn::OnRep_LynxAttackCue()
 {
     BuildArchetypePresentation();
+#if !UE_BUILD_SHIPPING
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaLynxPeerTest"))
+        && static_cast<EKalmalaWildlifeAttackCue>(LynxAttackCue) == EKalmalaWildlifeAttackCue::Telegraph)
+    {
+        UE_LOG(LogTemp, Display, TEXT("Lynx verification client observed replicated telegraph: SpawnId=%s."),
+            *PersistentSpawnId);
+    }
+#endif
 }
 
 void AKalmalaWildlifeSpawn::OnRep_PolarBearAttackCue()

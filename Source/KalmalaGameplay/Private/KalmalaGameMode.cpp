@@ -3143,6 +3143,301 @@ void AKalmalaGameMode::DriveWolfPeerTest()
 #endif
 }
 
+void AKalmalaGameMode::DriveLynxPeerTest()
+{
+#if !UE_BUILD_SHIPPING
+    if (!FParse::Param(FCommandLine::Get(), TEXT("KalmalaLynxPeerTest"))
+        || !HasAuthority() || GetWorld() == nullptr || !WorldGenerationConfig.IsValid()
+        || LynxPeerTestStage >= 99)
+    {
+        return;
+    }
+
+    const float Now = GetWorld()->GetTimeSeconds();
+    if (LynxPeerTestStage == 0)
+    {
+        APlayerController* HostController = GetWorld()->GetFirstPlayerController();
+        AKalmalaCharacter* Host = HostController != nullptr
+            ? Cast<AKalmalaCharacter>(HostController->GetPawn()) : nullptr;
+        if (Host == nullptr || GeneratedPlayerStart == nullptr)
+        {
+            if (Now > 90.0f)
+            {
+                UE_LOG(LogTemp, Error, TEXT("Lynx verification FAILED: generated start or listen host was unavailable."));
+                LynxPeerTestStage = 99;
+            }
+            return;
+        }
+
+        LynxPeerTestObservers.Reset();
+        for (TActorIterator<AKalmalaCharacter> It(GetWorld()); It; ++It)
+        {
+            AKalmalaCharacter* Candidate = *It;
+            if (Candidate == Host || Candidate->GetPlayerState() == nullptr) continue;
+            LynxPeerTestObservers.Add(Candidate);
+        }
+        if (LynxPeerTestObservers.Num() < 2)
+        {
+            if (Now > 90.0f)
+            {
+                UE_LOG(LogTemp, Error, TEXT("Lynx verification FAILED: two observing client peers did not join."));
+                LynxPeerTestStage = 99;
+            }
+            return;
+        }
+
+        const FVector StartLocation = GeneratedPlayerStart->GetActorLocation();
+        const FIntPoint StartKey = FKalmalaWorldPopulationLayout::GetSpatialKey(FVector2D(StartLocation));
+        const auto IsDryTundraSurface = [this](const FVector2D& Position)
+        {
+            return FKalmalaWorldBounds::Contains(WorldGenerationConfig, Position)
+                && FKalmalaBiomeClassifier::Classify(
+                    FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, Position))
+                    == EKalmalaBiome::FreezingTundra
+                && !FKalmalaOceanSampler::Sample(WorldGenerationConfig, Position).IsWater()
+                && !FKalmalaShimmeringLakeSampler::IsWater(WorldGenerationConfig, Position)
+                && FKalmalaTerrainHeightSampler::SampleSurfaceNormal(WorldGenerationConfig, Position).Z >= 0.82f;
+        };
+        bool bFoundCandidate = false;
+        FVector HostDesiredLocation = FVector::ZeroVector;
+
+        for (int32 Radius = 0; Radius <= 64 && !bFoundCandidate; ++Radius)
+        {
+            for (int32 OffsetY = -Radius; OffsetY <= Radius && !bFoundCandidate; ++OffsetY)
+            {
+                for (int32 OffsetX = -Radius; OffsetX <= Radius; ++OffsetX)
+                {
+                    if (Radius > 0 && FMath::Abs(OffsetX) != Radius && FMath::Abs(OffsetY) != Radius) continue;
+                    const FIntPoint CandidateKey = StartKey + FIntPoint(OffsetX, OffsetY);
+                    const TArray<FKalmalaWorldPopulationSpawn> Descriptors =
+                        FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(
+                            WorldGenerationConfig, CandidateKey, EKalmalaWorldPopulationKind::Wildlife);
+                    for (const FKalmalaWorldPopulationSpawn& Spawn : Descriptors)
+                    {
+                        if (!KalmalaGameMode::IsWildlifeSpawnOfArchetype(
+                                WorldGenerationConfig, Spawn, EKalmalaWildlifeArchetype::Lynx))
+                        {
+                            continue;
+                        }
+
+                        const FString SpawnId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Spawn);
+                        if (SpawnId.IsEmpty() || (PopulationSaveGame != nullptr && PopulationSaveGame->IsDefeated(SpawnId)))
+                            continue;
+                        const FVector2D SpawnPosition(Spawn.Location);
+                        if (!IsDryTundraSurface(SpawnPosition)) continue;
+
+                        for (int32 ApproachIndex = 0; ApproachIndex < 16; ++ApproachIndex)
+                        {
+                            const float Angle = static_cast<float>(ApproachIndex) * (2.0f * PI / 16.0f);
+                            const FVector2D ApproachPosition(
+                                Spawn.Location.X + FMath::Cos(Angle) * 120.0f,
+                                Spawn.Location.Y + FMath::Sin(Angle) * 120.0f);
+                            if (!IsDryTundraSurface(ApproachPosition)) continue;
+                            const int32 PathSamples = FMath::Max(1,
+                                FMath::CeilToInt(FVector2D::Distance(SpawnPosition, ApproachPosition) / 80.0f));
+                            bool bPathTraversable = true;
+                            for (int32 PathIndex = 0; PathIndex <= PathSamples; ++PathIndex)
+                            {
+                                const FVector2D PathPosition = FMath::Lerp(SpawnPosition, ApproachPosition,
+                                    static_cast<float>(PathIndex) / PathSamples);
+                                if (!IsDryTundraSurface(PathPosition))
+                                {
+                                    bPathTraversable = false;
+                                    break;
+                                }
+                            }
+                            if (!bPathTraversable) continue;
+
+                            HostDesiredLocation = FVector(ApproachPosition.X, ApproachPosition.Y,
+                                FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, ApproachPosition));
+                            if (FVector::Dist(HostDesiredLocation, Spawn.Location)
+                                > AKalmalaWildlifeSpawn::LynxLeapImpactReachCentimetres - 10.0f)
+                            {
+                                continue;
+                            }
+
+                            LynxPeerTestSpatialKey = CandidateKey;
+                            LynxPeerTestSpawnId = SpawnId;
+                            LynxPeerTestSpawnLocation = Spawn.Location;
+                            bFoundCandidate = true;
+                            break;
+                        }
+                        if (bFoundCandidate) break;
+                    }
+                }
+            }
+        }
+
+        if (!bFoundCandidate)
+        {
+            UE_LOG(LogTemp, Error,
+                TEXT("Lynx verification FAILED: no undefeated generated Tundra Lynx with a reachable dry approach was found within 64 spatial keys."));
+            LynxPeerTestStage = 99;
+            return;
+        }
+        if (!ActivePopulationSpatialKeys.Contains(LynxPeerTestSpatialKey)
+            && ActivePopulationSpatialKeys.Num() >= KalmalaGameMode::MaxActivePopulationSpatialKeys)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Lynx verification FAILED: the bounded active population-key budget is full before fixture activation."));
+            LynxPeerTestStage = 99;
+            return;
+        }
+
+        const auto PlaceOnTerrain = [this](AKalmalaCharacter* Character, const FVector& DesiredLocation)
+        {
+            if (!IsValid(Character)) return;
+            ActivateTerrainPatchNeighborhood(FVector2D(DesiredLocation));
+            FVector GroundedLocation = DesiredLocation;
+            GroundedLocation.Z = FKalmalaTerrainHeightSampler::SampleHeight(
+                WorldGenerationConfig, FVector2D(DesiredLocation));
+            Character->SetActorLocation(GroundedLocation, false, nullptr, ETeleportType::TeleportPhysics);
+            Character->ForceNetUpdate();
+            if (UCharacterMovementComponent* Movement = Character->GetCharacterMovement())
+            {
+                Movement->StopMovementImmediately();
+                Movement->DisableMovement();
+            }
+        };
+
+        LynxPeerTestStartingHealth = Host->GetHealth();
+        if (!FMath::IsFinite(LynxPeerTestStartingHealth) || LynxPeerTestStartingHealth <= 75.0f)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Lynx verification FAILED: listen host cannot receive the test leap at health %.1f."),
+                LynxPeerTestStartingHealth);
+            LynxPeerTestStage = 99;
+            return;
+        }
+        PlaceOnTerrain(Host, HostDesiredLocation);
+
+        int32 ObserverIndex = 0;
+        for (const TWeakObjectPtr<AKalmalaCharacter>& ObserverWeak : LynxPeerTestObservers)
+        {
+            AKalmalaCharacter* Observer = ObserverWeak.Get();
+            if (!IsValid(Observer)) continue;
+
+            const float Distance = 1000.0f + 500.0f * static_cast<float>(ObserverIndex);
+            bool bPlacedObserver = false;
+            for (int32 DirectionIndex = 0; DirectionIndex < 16 && !bPlacedObserver; ++DirectionIndex)
+            {
+                const float Angle = static_cast<float>(DirectionIndex) * (2.0f * PI / 16.0f);
+                const FVector2D ObserverPosition(
+                    LynxPeerTestSpawnLocation.X + FMath::Cos(Angle) * Distance,
+                    LynxPeerTestSpawnLocation.Y + FMath::Sin(Angle) * Distance);
+                if (!FKalmalaWorldBounds::Contains(WorldGenerationConfig, ObserverPosition)) continue;
+                const FVector DesiredObserverLocation(ObserverPosition.X, ObserverPosition.Y,
+                    FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, ObserverPosition));
+                PlaceOnTerrain(Observer, DesiredObserverLocation);
+                bPlacedObserver = true;
+            }
+            if (!bPlacedObserver)
+            {
+                UE_LOG(LogTemp, Error, TEXT("Lynx verification FAILED: an observer could not be placed within replication range."));
+                LynxPeerTestStage = 99;
+                return;
+            }
+            ++ObserverIndex;
+        }
+        if (ObserverIndex < 2)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Lynx verification FAILED: an observing client disappeared before activation."));
+            LynxPeerTestStage = 99;
+            return;
+        }
+
+        LynxPeerTestWorldSeed = WorldGenerationConfig.WorldSeed;
+        LynxPeerTestHost = Host;
+        LynxPeerTestTarget.Reset();
+        bLynxPeerTestSawTelegraph = false;
+        bLynxPeerTestSawLeap = false;
+        bLynxPeerTestSawRecovery = false;
+        ActivatePopulationKey(LynxPeerTestSpatialKey);
+        LynxPeerTestStage = 1;
+        LynxPeerTestStageTime = Now;
+        return;
+    }
+
+    AKalmalaCharacter* Host = LynxPeerTestHost.Get();
+    if (!IsValid(Host))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Lynx verification FAILED: listen host disappeared."));
+        LynxPeerTestStage = 99;
+        return;
+    }
+
+    if (LynxPeerTestStage == 1)
+    {
+        AKalmalaWildlifeSpawn* Target = nullptr;
+        for (TActorIterator<AKalmalaWildlifeSpawn> It(GetWorld()); It; ++It)
+        {
+            if ((*It)->GetPersistentSpawnId() == LynxPeerTestSpawnId)
+            {
+                Target = *It;
+                break;
+            }
+        }
+        if (Target == nullptr)
+        {
+            if (Now - LynxPeerTestStageTime > 20.0f)
+            {
+                UE_LOG(LogTemp, Error, TEXT("Lynx verification FAILED: generated Lynx descriptor did not materialize."));
+                LynxPeerTestStage = 99;
+            }
+            return;
+        }
+        if (Target->GetArchetype() != EKalmalaWildlifeArchetype::Lynx
+            || !FMath::IsNearlyEqual(Target->GetHealth(), 150.0f, 0.1f))
+        {
+            UE_LOG(LogTemp, Error, TEXT("Lynx verification FAILED: generated target archetype or 150-health profile was invalid."));
+            LynxPeerTestStage = 99;
+            return;
+        }
+
+        LynxPeerTestTarget = Target;
+        Target->ForceNetUpdate();
+        UE_LOG(LogTemp, Display,
+            TEXT("Lynx verification fixture armed: Seed=%llu SpawnId=%s HostDistanceCm=%.1f Observers=2."),
+            static_cast<unsigned long long>(LynxPeerTestWorldSeed), *LynxPeerTestSpawnId,
+            FVector::Dist(Host->GetActorLocation(), Target->GetActorLocation()));
+        LynxPeerTestStage = 2;
+        LynxPeerTestStageTime = Now;
+        return;
+    }
+
+    if (LynxPeerTestStage == 2)
+    {
+        AKalmalaWildlifeSpawn* Target = LynxPeerTestTarget.Get();
+        if (!IsValid(Target))
+        {
+            UE_LOG(LogTemp, Error, TEXT("Lynx verification FAILED: generated Lynx disappeared before its leap."));
+            LynxPeerTestStage = 99;
+            return;
+        }
+
+        const EKalmalaWildlifeAttackCue Cue = Target->GetLynxAttackCueForVerification();
+        bLynxPeerTestSawTelegraph |= Cue == EKalmalaWildlifeAttackCue::Telegraph;
+        bLynxPeerTestSawLeap |= Cue == EKalmalaWildlifeAttackCue::Lunge;
+        bLynxPeerTestSawRecovery |= Cue == EKalmalaWildlifeAttackCue::Recovery;
+        const float HostDamage = LynxPeerTestStartingHealth - Host->GetHealth();
+        if (bLynxPeerTestSawTelegraph && bLynxPeerTestSawLeap && bLynxPeerTestSawRecovery && HostDamage > 0.0f)
+        {
+            UE_LOG(LogTemp, Display,
+                TEXT("Lynx verification server: Passed=1 Seed=%llu Telegraph=1 Leap=1 Recovery=1 HostDamage=%.1f SpawnId=%s"),
+                static_cast<unsigned long long>(LynxPeerTestWorldSeed), HostDamage, *LynxPeerTestSpawnId);
+            LynxPeerTestStage = 99;
+            return;
+        }
+        if (Now - LynxPeerTestStageTime > 18.0f)
+        {
+            UE_LOG(LogTemp, Error,
+                TEXT("Lynx verification FAILED: generated leap did not complete. Telegraph=%d Leap=%d Recovery=%d HostDamage=%.1f Cue=%d."),
+                bLynxPeerTestSawTelegraph, bLynxPeerTestSawLeap, bLynxPeerTestSawRecovery, HostDamage,
+                static_cast<int32>(Cue));
+            LynxPeerTestStage = 99;
+        }
+    }
+#endif
+}
+
 void AKalmalaGameMode::DriveDiscoveryPeerTest()
 {
 #if !UE_BUILD_SHIPPING
@@ -3512,6 +3807,7 @@ void AKalmalaGameMode::Tick(const float DeltaSeconds)
     DriveMosquitoPeerTest();
     DrivePeatHuskPeerTest();
     DriveWolfPeerTest();
+    DriveLynxPeerTest();
     DriveDiscoveryPeerTest();
     DriveM9ExplorationRewardPeerTest();
     DriveOceanTravelFeedbackTest();

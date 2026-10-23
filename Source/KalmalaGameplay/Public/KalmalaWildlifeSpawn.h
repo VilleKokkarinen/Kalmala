@@ -113,6 +113,10 @@ public:
         return static_cast<EKalmalaWildlifeAttackCue>(PeatHuskAttackCue);
     }
     int32 GetPeatHuskSweepHitCountForVerification() const { return PeatHuskSweepHitCountForVerification; }
+    EKalmalaWildlifeAttackCue GetLynxAttackCueForVerification() const
+    {
+        return static_cast<EKalmalaWildlifeAttackCue>(LynxAttackCue);
+    }
 #endif
     static EKalmalaWildlifeEcology GetEcologyForNiche(FName CreatureNicheId);
     static float GetEcologicalFleeDistance(FName CreatureNicheId);

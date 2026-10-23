@@ -6486,3 +6486,15 @@
 - **Known limitations / remaining scope:** I4 still needs Lynx, Polar Bear, Horned Goat, Thunder Sentinel, and Reef Maw species checks, approved A8b item progression/peer flows, InventoryReconnect disposition, and milestone-final verification. A9 remains gated.
 - **Next eligible task:** Continue I4 species-specific live acceptance with Lynx.
 - **Integration state:** Work ran directly on `master`; no worktree handoff synchronization was needed. Current run time: `2026-10-23 13:11 UTC`.
+
+## Run 2026-10-23 13:16 UTC — Add Lynx generated peer fixture
+
+- **Selected task:** Add the next A8 I4 species-specific live acceptance harness for Lynx. This is a normal child increment; the I4 combined verification gate remains open.
+- **Work completed:** Added a Development-only server fixture that selects an undefeated generated Lynx descriptor in Freezing Tundra, activates its regular population key, validates its 150-health profile, and records telegraph/leap/recovery plus accepted host damage. Added two observer clients that must log the same replicated Lynx telegraph and a three-peer runner that checks the generated identity and reach. Updated the setup guide and split the backlog item into completed fixture and pending build/live acceptance children.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`; `Source/KalmalaGameplay/Public/KalmalaGameMode.h`; `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`; `Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h`; `Scripts/Tests/Combat/Verify-LynxPeer.ps1`; `docs/07-development-setup.md`; `BACKLOG.md`; `PROGRESS.md`.
+- **Lightweight checks:** PowerShell parser passed; six focused source/runner/backlog/setup assertions passed; `git diff --check` passed; every changed path is below the 260-character Windows path limit. No Editor build or live peer run was performed in this fixture increment.
+- **Full verification:** Deferred. This is not the final implementation task in I4; remaining species peer acceptance, A8b item progression/peer flows, InventoryReconnect disposition, and combined milestone verification remain.
+- **Observable impact / networking authority:** Adds repeatable Development-only acceptance evidence. The server selects and activates a normal generated Lynx descriptor and remains authoritative for its attack and damage; clients only report the replicated telegraph. No production gameplay, RPC, replication schema, item data, or save behavior changed.
+- **Known limitations / remaining scope:** The C++ fixture and live runner have not been built or executed. I4 remains open and A9 remains gated.
+- **Next eligible task:** Build the affected Editor target and run `Scripts/Tests/Combat/Verify-LynxPeer.ps1 -WorldSeed 445`; require the 350 cm server leap to land and both clients to observe the replicated telegraph.
+- **Integration state:** Work ran directly on `master`; no worktree handoff synchronization was needed. Current run time: `2026-10-23T13:16:47Z`.
