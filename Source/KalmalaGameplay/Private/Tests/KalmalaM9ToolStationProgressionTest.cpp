@@ -91,6 +91,62 @@ bool FKalmalaM9ToolStationProgressionTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Bronze cost consumes four Lightwood"), Quantity(BronzeInventory, TEXT("Lightwood")), 0);
     TestEqual(TEXT("Bronze cost consumes three Stone"), Quantity(BronzeInventory, TEXT("Stone")), 0);
 
+    const TArray<FKalmalaInventoryStack> ThunderMaulMaterials = {
+        {TEXT("ThunderCore"), 1}, {TEXT("Iron"), 20}, {TEXT("Densewood"), 10}
+    };
+    TArray<FKalmalaToolState> ThunderMaulTools;
+    TArray<FKalmalaInventoryStack> ThunderMaulInventory;
+    TestTrue(TEXT("Thunder Maul is crafted at the matching level-one Forge"),
+        FKalmalaToolProgressionContract::BuildServerUpgrade(
+            true, nullptr, TEXT("ForgeKit"), 1, TEXT("ThunderMaul"), StartingTools, ThunderMaulMaterials,
+            ThunderMaulTools, ThunderMaulInventory, Reason));
+    FKalmalaToolState* CraftedThunderMaul = ThunderMaulTools.FindByPredicate(
+        [](const FKalmalaToolState& State) { return State.ItemId == TEXT("ThunderMaul"); });
+    TestNotNull(TEXT("Accepted Forge transaction adds Thunder Maul"), CraftedThunderMaul);
+    FGuid ThunderMaulGuid;
+    const int32 ThunderMaulWornCondition = 87;
+    if (CraftedThunderMaul)
+    {
+        ThunderMaulGuid = CraftedThunderMaul->InstanceGuid;
+        TestTrue(TEXT("Crafted Thunder Maul has its own item identity"), ThunderMaulGuid.IsValid());
+        TestEqual(TEXT("Crafted Thunder Maul starts at level one"), CraftedThunderMaul->ToolLevel, 1);
+        TestEqual(TEXT("Crafted Thunder Maul starts in full condition"), CraftedThunderMaul->Durability, 220);
+        CraftedThunderMaul->Durability = ThunderMaulWornCondition;
+    }
+    TestEqual(TEXT("Thunder Maul acquisition consumes its Thunder Core"),
+        Quantity(ThunderMaulInventory, TEXT("ThunderCore")), 0);
+    TestEqual(TEXT("Thunder Maul acquisition consumes twenty Iron"),
+        Quantity(ThunderMaulInventory, TEXT("Iron")), 0);
+    TestEqual(TEXT("Thunder Maul acquisition consumes ten Densewood"),
+        Quantity(ThunderMaulInventory, TEXT("Densewood")), 0);
+
+    const TArray<FKalmalaInventoryStack> ThunderMaulUpgradeMaterials = {
+        {TEXT("ThunderCore"), 1}, {TEXT("Iron"), 10}, {TEXT("Densewood"), 5}
+    };
+    TArray<FKalmalaToolState> ThunderMaulUpgradedTools;
+    TArray<FKalmalaInventoryStack> ThunderMaulUpgradedInventory;
+    TestTrue(TEXT("Thunder Maul upgrades at the matching level-two Forge"),
+        FKalmalaToolProgressionContract::BuildServerUpgrade(
+            true, nullptr, TEXT("ForgeKit"), 2, TEXT("ThunderMaul"), ThunderMaulTools,
+            ThunderMaulUpgradeMaterials, ThunderMaulUpgradedTools, ThunderMaulUpgradedInventory, Reason));
+    const FKalmalaToolState* UpgradedThunderMaul = ThunderMaulUpgradedTools.FindByPredicate(
+        [](const FKalmalaToolState& State) { return State.ItemId == TEXT("ThunderMaul"); });
+    TestNotNull(TEXT("Accepted Forge upgrade keeps Thunder Maul carried"), UpgradedThunderMaul);
+    if (UpgradedThunderMaul)
+    {
+        TestTrue(TEXT("Thunder Maul upgrade keeps the same item identity"),
+            UpgradedThunderMaul->InstanceGuid == ThunderMaulGuid);
+        TestEqual(TEXT("Thunder Maul reaches level two"), UpgradedThunderMaul->ToolLevel, 2);
+        TestEqual(TEXT("Thunder Maul upgrade preserves current condition"),
+            UpgradedThunderMaul->Durability, ThunderMaulWornCondition);
+    }
+    TestEqual(TEXT("Thunder Maul upgrade consumes its Thunder Core"),
+        Quantity(ThunderMaulUpgradedInventory, TEXT("ThunderCore")), 0);
+    TestEqual(TEXT("Thunder Maul upgrade consumes ten Iron"),
+        Quantity(ThunderMaulUpgradedInventory, TEXT("Iron")), 0);
+    TestEqual(TEXT("Thunder Maul upgrade consumes five Densewood"),
+        Quantity(ThunderMaulUpgradedInventory, TEXT("Densewood")), 0);
+
     TArray<FKalmalaToolState> RejectedTools = StartingTools;
     TArray<FKalmalaInventoryStack> RejectedInventory = BronzeMaterials;
     const auto RejectWithoutMutation = [&](const bool bServerAuthority,

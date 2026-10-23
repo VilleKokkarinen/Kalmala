@@ -5884,9 +5884,19 @@ checks the accepted server hit. The focused Forge recipe, upgrade and level-two
 assertions are in the damage-profile catalogue test. `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id ThunderMaul`
 checks its existing original icon and runtime mapping.
 
-This normal development increment uses lightweight JSON, icon and source
-checks; it does not run an Unreal build or C++ automation. Combined A8a/A8b I4,
-including full item automation and peer/rendered acceptance, remains required.
+On 2026-10-23, the `KalmalaEditor Win64 Development` incremental build passed
+in four actions. `Kalmala.Gameplay.M9.ToolStationProgression`,
+`Kalmala.Gameplay.Combat.DamageProfiles`, and
+`Kalmala.Gameplay.Combat.AllItemSwings` all passed (`Result={Success}`, Editor
+exit 0); evidence: `C:/Users/Ville/AppData/Local/Temp/a8tm1/tests.log`; build:
+`C:/Users/Ville/AppData/Local/Temp/a8tm1/build.log`. The progression contract
+fixture now verifies the Forge acquisition's exact materials, level-one full
+condition, and level-two upgrade payment while preserving Thunder Maul's item
+identity and current condition. Two Unreal unified-error startup self-test
+`Condition failed` diagnostics preceded the queue. These local contract and
+combat automations do not replace multiplayer Forge craft, peer item delivery,
+or rendered presentation acceptance. Combined A8a/A8b I4 remains required
+before A9.
 
 ## A8b Reef Harpoon melee weapon — 2026-10-22
 
