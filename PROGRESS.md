@@ -6654,3 +6654,15 @@
 - **Known limitations / remaining scope:** No live peer crafting or rendered acceptance ran. The broader A8b item/peer acceptance and `Verify-InventoryReconnect.ps1` disposition remain open; A9 remains gated by I4.
 - **Next eligible task:** Continue A8b item acceptance in backlog order with Fang Arrows, then complete remaining item/peer flows and InventoryReconnect disposition before the combined I4 milestone-final gate.
 - **Integration state:** Work ran directly on `master`; no worktree handoff synchronization was needed. Current run time: `2026-10-23 15:29:40 UTC`.
+
+## Run 2026-10-23 15:32 UTC — Fang Arrows bow acceptance passed
+
+- **Selected task:** Continue the open combined I4 acceptance child in A8b item order with the Fang Arrows bow regression. This is a focused item acceptance slice, not milestone-final verification.
+- **Work completed:** Exercised the catalogue-backed Fang Arrows selection and actual server projectile path, fixed 50 Pierce damage, accepted wildlife hit, five-second weak-poison refresh without stacking, preservation of the poison tick clock, five total ticks, expiry, and timer clearing.
+- **Files changed:** `PROGRESS.md`. `BACKLOG.md` remains unchanged because the combined I4 acceptance child is still incomplete.
+- **Checks and results:** The isolated mirror matched the bow automation and all four relevant manifest/item/attack/Workbench recipe files byte-for-byte with the checkout. `Automation RunTests Kalmala.Gameplay.Combat.BowDrawAndArrows` found one test and passed with `Result={Success}` and Editor exit code 0; evidence is `C:/Users/Ville/AppData/Local/Temp/a8fa1/fang.log`. Two Unreal unified-error startup self-test `Condition failed` diagnostics appeared before the automation queue began; the requested test completed successfully. No build ran in this increment; the existing Development target loaded successfully.
+- **Full verification:** Deferred. This slice does not complete I4; remaining A8b progression/peer flows, the `Verify-InventoryReconnect.ps1` disposition, and combined A8a/A8b milestone-final verification remain.
+- **Observable impact / networking authority:** Confirms the existing accepted Fang Arrow hit and poison lifecycle in the server-world automation. No production gameplay or saved-data behavior changed.
+- **Known limitations / remaining scope:** This was not a live Workbench crafting or multiplayer peer acceptance. Other approved A8b outputs/flows and InventoryReconnect disposition remain open; A9 remains gated by I4.
+- **Next eligible task:** Continue A8b item acceptance in backlog order with Scale Cuirass, then complete the remaining progression/peer flows, resolve InventoryReconnect disposition, and run combined I4 milestone-final verification.
+- **Integration state:** Work ran directly on `master`; no worktree handoff synchronization was needed. Current run time: `2026-10-23 15:32:29 UTC`.
