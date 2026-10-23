@@ -10,6 +10,7 @@
 #include "KalmalaEnvironmentalExposureSampler.h"
 #include "KalmalaBiomeClassifier.h"
 #include "KalmalaBiomeContentContract.h"
+#include "KalmalaGemstoneContract.h"
 
 /**
  * Server-only deterministic population inputs. Spatial keys are invisible
@@ -281,6 +282,18 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
                     FVector(Position.X, Position.Y, FKalmalaTerrainHeightSampler::SampleHeight(Config, Position)),
                     TEXT("allbiomes-stone-outcrop") });
                 BiomesWithStone.Add(Biome);
+            }
+        }
+        if (Kind == EKalmalaWorldPopulationKind::HarvestNode)
+        {
+            // Replace only after all ordinary suitability, candidate budgets and
+            // supplemental-source decisions. Keep exact position and stable seed.
+            for (auto& Spawn : Spawns)
+            {
+                const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(
+                    FKalmalaWorldFieldSampler::Sample(Config, FVector2D(Spawn.Location)));
+                const FName Selected = FKalmalaGemstoneContract::SelectReplacement(Spawn.ContentId, Biome, Spawn.SpawnSeed);
+                if (FKalmalaGemstoneContract::IsAcquisitionEnabled(Selected)) Spawn.ContentId = Selected;
             }
         }
         return Spawns;

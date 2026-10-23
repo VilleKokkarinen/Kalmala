@@ -315,10 +315,10 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [x] Apply the remaining authored accessory stats at runtime: `MaxHealthBonus` and `MaxStaminaBonus` as flat equipped bonuses, plus additive `StaminaRegenerationMultiplier` and `HealingReceivedMultiplier` deltas. Recalculate server-owned stats on equip/unequip and add focused status/healing coverage.
   - Each A9 item is completed through separate item-scoped steps in this order: add its complete item/profile JSON and register its file in `Content/Data/GameCatalogues.json` first; add and register its recipe next when crafted; generate and integrate its original icon next; add or enable its acquisition/source-table entry last when needed. Icon work includes provenance, preparation/import, runtime mapping, and validator coverage. Gem recipes are N/A; crafted gear has no drop-table entry. Each stage can be completed in its own short-path worktree and committed individually. Do not enable acquisition before its item JSON and icon are complete or its source dependency is accepted. The sequence applies only after the A9 review and I4 gate.
   - User-directed 2026-10-22 batch: use the proposal-table values for these JSON/recipe records and generated icons. The review, accessory runtime behavior, gem sources, and I4/I5 acceptance remain open.
-  - [ ] Smoky Quartz (`SmokyQuartz`): Quartz rock; proposed 5% replacement of Copper/Tin spawn slots.
+  - [x] Smoky Quartz (`SmokyQuartz`): Quartz rock; proposed 5% replacement of Copper/Tin spawn slots.
     - [x] Add and register the complete raw-gem item JSON; record recipe and combat/equipment/upgrade categories as N/A.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
-    - [ ] Add or enable its Quartz-rock acquisition/source-table entry after the item JSON and icon are complete and the source is accepted.
+    - [x] Add or enable its Quartz-rock acquisition/source-table entry after the item JSON and icon are complete and the source is accepted.
   - [ ] Moonstone (`Moonstone`): proposed 2% chance of 1 per credited Moon Bear defeat; requires A8a.
     - [x] Add and register the complete raw-gem item JSON; record recipe and combat/equipment/upgrade categories as N/A.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "KalmalaGemstoneContract.h"
 #include "KalmalaBiomeClassifier.h"
 
 /** The bounded content identity categories selected by the server for a biome. */
@@ -82,6 +83,7 @@ struct KALMALAWORLD_API FKalmalaBiomeContentContract
     static FName GetGatheringPresentationId(const FName GatheringSourceId)
     {
         if (GatheringSourceId.IsNone()) return NAME_None;
+        if (FKalmalaGemstoneContract::IsGemSource(GatheringSourceId)) return GatheringSourceId;
         if (GatheringSourceId == TEXT("meadows-wild-lingonberry-shrub")) return TEXT("lingonberry-shrub-harvest");
         if (GatheringSourceId == TEXT("elderwood-wild-chanterelle-patch")) return TEXT("chanterelle-patch-harvest");
         if (GatheringSourceId == TEXT("meadows-wild-carrot-patch")) return TEXT("carrot-patch-harvest");

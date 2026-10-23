@@ -35,6 +35,7 @@ struct FKalmalaGemstoneContract
         if (Source == TEXT("gem-opal-rock")) return TEXT("StarOpal");
         return NAME_None;
     }
+    static bool IsAcquisitionEnabled(FName Source) { return Source == TEXT("gem-quartz-rock"); }
     static int32 MinimumPickTier(FName Source) { return Source == TEXT("gem-amethyst-rock") ? 2 : 1; }
     static bool IsGemSource(FName Source) { return !ItemForSource(Source).IsNone(); }
     /** Outcome: 0 intact, 1 shattered, 2 extracted, 3 claimed. Roll before final extraction too. */
