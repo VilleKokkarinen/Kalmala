@@ -4614,6 +4614,8 @@ It starts a listen host and two owning clients, provisions explicit test gear an
 
 Render the equipped inventory with the existing `RenderMenu` commandlet and `-Menu=inventory -A9Gear`, `-AllowCommandletRendering -RenderOffscreen`, explicit dimensions and private output/UserDir/log paths. The opt-in fixture equips Opal Helm, Garnet Necklace and Dusk Ring and includes Star Opal/Storm Sapphire icons. Inspect maintenance controls and the expanded backplate. Run the complete `Kalmala` automation queue after repairs, Editor and Game builds, icon/catalogue validators and applicable shared crafting/inventory/discovery regressions. Keep I4-dependent enemy enablement and combined I5 acceptance open until integrated evidence exists.
 
+Run `Scripts/Tests/Acceptance/Verify-M5DocumentationContracts.ps1` for the five no-build presentation/input/audio contracts. It passes named `ContractOnly` switches and isolates inherited native exit status. Settings prose checks ignore Markdown line wrapping while retaining required content; ownership checks use the current catalogue-ID exclusion and storage-GUID routes. Negative missing-prose/source cases must still be rejected. A static contract pass does not replace the live or rendered checks above.
+
 ## Native-format support tools
 
 The non-PowerShell tools directly under `Scripts/` are optional maintenance helpers;

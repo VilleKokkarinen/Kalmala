@@ -21,7 +21,12 @@ foreach ($check in $checks) {
         throw "M5 documentation check is missing: $check"
     }
     try {
-        $checkArguments = if ($check -in @('Presentation\Verify-SettingsAccessibility.ps1', 'Audio\Verify-AmbientAudio.ps1')) { @('-ContractOnly') } else { @() }
+        $checkArguments = @{}
+        if ($check -in @('Presentation\Verify-SettingsAccessibility.ps1', 'Audio\Verify-AmbientAudio.ps1')) {
+            $checkArguments.ContractOnly = $true
+        }
+        # Native status inherited from a caller is not a result of this check.
+        $global:LASTEXITCODE = 0
         & $checkPath @checkArguments
         if ($null -ne $LASTEXITCODE -and $LASTEXITCODE -ne 0) {
             throw "exit code $LASTEXITCODE"
