@@ -4496,6 +4496,19 @@ void AKalmalaWildlifeSpawn::OnRep_Archetype()
     {
         UE_LOG(LogTemp, Display, TEXT("Peat Husk verification client observed replicated telegraph."));
     }
+    if (!HasAuthority()
+        && FParse::Param(FCommandLine::Get(), TEXT("KalmalaWolfPeerTest"))
+        && Archetype == EKalmalaWildlifeArchetype::Wolf)
+    {
+        const EKalmalaWildlifeAttackCue Cue = static_cast<EKalmalaWildlifeAttackCue>(WolfAttackCue);
+        UE_LOG(LogTemp, Display, TEXT("Wolf verification client received actor: SpawnId=%s Cue=%d."),
+            *PersistentSpawnId, static_cast<int32>(Cue));
+        if (Cue == EKalmalaWildlifeAttackCue::Telegraph)
+        {
+            UE_LOG(LogTemp, Display, TEXT("Wolf verification client observed replicated telegraph: SpawnId=%s."),
+                *PersistentSpawnId);
+        }
+    }
 #endif
     BuildArchetypePresentation();
     if (Archetype == EKalmalaWildlifeArchetype::MosquitoSwarm && !bDefeated) PlayMosquitoBuzz();

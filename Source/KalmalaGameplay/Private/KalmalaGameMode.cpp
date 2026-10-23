@@ -2977,7 +2977,7 @@ void AKalmalaGameMode::DriveWolfPeerTest()
             AKalmalaCharacter* Observer = ObserverWeak.Get();
             if (!IsValid(Observer)) continue;
 
-            const float Distance = 3000.0f + 500.0f * static_cast<float>(ObserverIndex);
+            const float Distance = 1000.0f + 500.0f * static_cast<float>(ObserverIndex);
             bool bPlacedObserver = false;
             for (int32 DirectionIndex = 0; DirectionIndex < 16 && !bPlacedObserver; ++DirectionIndex)
             {
@@ -3014,7 +3014,7 @@ void AKalmalaGameMode::DriveWolfPeerTest()
             WolfPeerTestExpectedLocations.Add(MemberSpawn.Location);
         WolfPeerTestMembers.Reset();
         WolfPeerTestHost = Host;
-        WolfPeerTestSawTelegraph = false;
+        bWolfPeerTestSawTelegraph = false;
         bWolfPeerTestSawLunge = false;
         bWolfPeerTestSawRecovery = false;
         ActivatePopulationKey(WolfPeerTestSpatialKey);
