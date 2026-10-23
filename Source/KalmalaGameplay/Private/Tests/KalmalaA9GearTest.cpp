@@ -14,7 +14,8 @@ bool FKalmalaA9GearRecipesTest::RunTest(const FString& Parameters)
         {TEXT("JadeRing"), TEXT("GreenJade")},
         {TEXT("AmethystNecklace"), TEXT("Amethyst")},
         {TEXT("AquamarineRing"), TEXT("Aquamarine")},
-        {TEXT("TourmalineNecklace"), TEXT("Tourmaline")}};
+        {TEXT("TourmalineNecklace"), TEXT("Tourmaline")},
+        {TEXT("OpalHelm"), TEXT("StarOpal")}};
     for (const auto& Entry : Cases)
     {
         const auto* Recipe = UKalmalaRecipeCatalogue::Get()->Find(Entry.Key);

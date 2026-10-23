@@ -164,15 +164,29 @@
     {
       "RecipeId": "OpalHelm",
       "DisplayName": "Opal Helm",
-      "ItemId": "OpalHelm",
-      "RequiredStation": "Forge",
-      "RequiredStationLevel": 1,
-      "Ingredients": [
-        { "ItemId": "Iron", "Quantity": 20 },
-        { "ItemId": "DeerHide", "Quantity": 5 },
-        { "ItemId": "StarOpal", "Quantity": 1 }
+      "RequiredStation": [
+        "Forge"
       ],
-      "Level": 1
+      "Ingredients": [
+        {
+          "ItemId": "Iron",
+          "Quantity": 20
+        },
+        {
+          "ItemId": "DeerHide",
+          "Quantity": 5
+        },
+        {
+          "ItemId": "StarOpal",
+          "Quantity": 1
+        }
+      ],
+      "Output": "OpalHelm",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
     },
     {
       "RecipeId": "StormcutSword",

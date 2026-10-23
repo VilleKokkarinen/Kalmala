@@ -6689,3 +6689,10 @@
 ## A9 independent worker — Tourmaline Necklace completion (2026-10-23)
 
 - Corrected ordinary Forge recipe (3 Bronze + 1 Tourmaline, one output/batch one). Added paid craft/GUID equip case and incoming-heal clamp/full-health rejection/outgoing exclusion/no-resurrection regressions; prior partial draught/removal tests remain. No passive healing, food/shield/outgoing benefit is introduced. Files: a9-gear.json, A9GearTest.cpp, AccessoryStatsTest.cpp, BACKLOG/PROGRESS. JSON parsing, `Validate-UIIcons.ps1 -Category Catalogue -Id TourmalineNecklace` and git diff --check passed; paths below 260. Full executed I5 verification deferred. Next: Opal Helm. Main unchanged.
+
+
+## A9 independent worker — Opal Helm executable acquisition (2026-10-23)
+
+- Converted Opal Helm's tool-metadata acquisition into ordinary Forge crafting (20 Iron + 5 Deer Hide + 1 Star Opal, output one/batch one). Added registered paid exchange and exact crafted-GUID Head-slot equip coverage. Source/icon/profile/upgrade data already exists.
+- Audit found equipped durable gear remains fixed at level one with no runtime wearable upgrade/repair path; split this explicitly as the next Opal integration child instead of declaring the helm complete from JSON alone. No general gear save system is authorized or planned.
+- Files: a9-gear.json, A9GearTest.cpp, BACKLOG/PROGRESS. JSON parsing, `Validate-UIIcons.ps1 -Category Catalogue -Id OpalHelm` and git diff --check passed; paths below 260. Full executed I5 verification deferred. Next: session-only Opal upgrades/repair and level-aware consumers. Main unchanged.
