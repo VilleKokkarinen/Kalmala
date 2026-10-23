@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerController.h"
 
 #include "KalmalaCharacter.h"
+#include "KalmalaCharacterMovementComponent.h"
 #include "KalmalaCombatComponent.h"
 #include "KalmalaDiscoveryActor.h"
 #include "KalmalaDiscoveryProgressComponent.h"
@@ -4586,6 +4587,356 @@ void AKalmalaGameMode::DriveThunderSentinelPeerTest()
 #endif
 }
 
+void AKalmalaGameMode::DriveReefMawPeerTest()
+{
+#if !UE_BUILD_SHIPPING
+    if (!FParse::Param(FCommandLine::Get(), TEXT("KalmalaReefMawPeerTest"))
+        || !HasAuthority() || GetWorld() == nullptr || !WorldGenerationConfig.IsValid()
+        || ReefMawPeerTestStage >= 99)
+    {
+        return;
+    }
+
+    const float Now = GetWorld()->GetTimeSeconds();
+    const auto IsNavigableOceanPosition = [this](const FVector2D& Position)
+    {
+        if (!FKalmalaWorldBounds::Contains(WorldGenerationConfig, Position)) return false;
+        const FKalmalaOceanSample Ocean = FKalmalaOceanSampler::Sample(WorldGenerationConfig, Position);
+        const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(
+            FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, Position));
+        return Ocean.IsWater() && AKalmalaWildlifeSpawn::IsReefMawSpawnHabitatAllowed(
+            Biome, FKalmalaShimmeringLakeSampler::IsWater(WorldGenerationConfig, Position), Ocean.WaterDepth);
+    };
+    const auto IsNavigableOceanPath = [&IsNavigableOceanPosition](const FVector2D& Start, const FVector2D& End)
+    {
+        if (!IsNavigableOceanPosition(Start) || !IsNavigableOceanPosition(End)) return false;
+        const float Distance = FVector2D::Distance(Start, End);
+        const int32 Samples = FMath::Max(1, FMath::CeilToInt(Distance / 80.0f));
+        for (int32 Index = 0; Index <= Samples; ++Index)
+        {
+            if (!IsNavigableOceanPosition(FMath::Lerp(Start, End, static_cast<float>(Index) / Samples))) return false;
+        }
+        return true;
+    };
+    const auto PlaceSwimmingCharacter = [this](AKalmalaCharacter* Character, const FVector2D& Position)
+    {
+        if (!IsValid(Character)) return false;
+        ActivateTerrainPatchNeighborhood(Position);
+        Character->SetActorLocation(FVector(Position.X, Position.Y,
+            Character->GetSimpleCollisionHalfHeight() + 8.0f), false, nullptr, ETeleportType::TeleportPhysics);
+        Character->ForceNetUpdate();
+        UKalmalaCharacterMovementComponent* Movement =
+            Cast<UKalmalaCharacterMovementComponent>(Character->GetCharacterMovement());
+        if (Movement == nullptr) return false;
+        Movement->StopMovementImmediately();
+        Movement->SetMovementMode(MOVE_Custom, UKalmalaCharacterMovementComponent::GeneratedOceanSwimmingMode);
+        return Movement->IsSwimmingInGeneratedOcean();
+    };
+
+    if (ReefMawPeerTestStage == 0)
+    {
+        APlayerController* HostController = GetWorld()->GetFirstPlayerController();
+        AKalmalaCharacter* Host = HostController != nullptr
+            ? Cast<AKalmalaCharacter>(HostController->GetPawn()) : nullptr;
+        if (Host == nullptr || GeneratedPlayerStart == nullptr)
+        {
+            if (Now > 90.0f)
+            {
+                UE_LOG(LogTemp, Error, TEXT("Reef Maw verification FAILED: generated start or listen host was unavailable."));
+                ReefMawPeerTestStage = 99;
+            }
+            return;
+        }
+
+        ReefMawPeerTestObservers.Reset();
+        for (TActorIterator<AKalmalaCharacter> It(GetWorld()); It; ++It)
+        {
+            AKalmalaCharacter* Candidate = *It;
+            if (Candidate == Host || Candidate->GetPlayerState() == nullptr) continue;
+            ReefMawPeerTestObservers.Add(Candidate);
+        }
+        if (ReefMawPeerTestObservers.Num() < 2)
+        {
+            if (Now > 90.0f)
+            {
+                UE_LOG(LogTemp, Error, TEXT("Reef Maw verification FAILED: two observing client peers did not join."));
+                ReefMawPeerTestStage = 99;
+            }
+            return;
+        }
+
+        const FIntPoint StartKey = FKalmalaWorldPopulationLayout::GetSpatialKey(
+            FVector2D(GeneratedPlayerStart->GetActorLocation()));
+        bool bFoundCandidate = false;
+        for (int32 Radius = 0; Radius <= 64 && !bFoundCandidate; ++Radius)
+        {
+            for (int32 OffsetY = -Radius; OffsetY <= Radius && !bFoundCandidate; ++OffsetY)
+            {
+                for (int32 OffsetX = -Radius; OffsetX <= Radius; ++OffsetX)
+                {
+                    if (Radius > 0 && FMath::Abs(OffsetX) != Radius && FMath::Abs(OffsetY) != Radius) continue;
+                    const FIntPoint CandidateKey = StartKey + FIntPoint(OffsetX, OffsetY);
+                    const FVector2D KeyCentre = (FVector2D(CandidateKey) + FVector2D(0.5f, 0.5f))
+                        * FKalmalaWorldPopulationLayout::SpatialKeySize;
+                    const EKalmalaBiome KeyBiome = FKalmalaBiomeClassifier::Classify(
+                        FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, KeyCentre));
+                    if (KeyBiome != EKalmalaBiome::Ocean) continue;
+
+                    TArray<FKalmalaWorldPopulationSpawn> Descriptors =
+                        FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(
+                            WorldGenerationConfig, CandidateKey, EKalmalaWorldPopulationKind::Wildlife);
+                    // Normal Ocean activation uses the full descriptor list; the land-biome
+                    // expansion budget intentionally has a zero Ocean multiplier.
+                    const int32 WildlifeActorBudget = Descriptors.Num();
+                    int32 SpawnedWildlifeActorCount = 0;
+                    for (const FKalmalaWorldPopulationSpawn& Spawn : Descriptors)
+                    {
+                        EKalmalaWildlifeArchetype Archetype;
+                        if (!KalmalaGameMode::TryGetWildlifeArchetypeForSpawn(
+                                WorldGenerationConfig, Spawn, Archetype)) continue;
+                        const bool bHardEnemy = Archetype == EKalmalaWildlifeArchetype::GiantSnake
+                            || Archetype == EKalmalaWildlifeArchetype::MoonBear
+                            || Archetype == EKalmalaWildlifeArchetype::PeatHusk
+                            || Archetype == EKalmalaWildlifeArchetype::PolarBear
+                            || Archetype == EKalmalaWildlifeArchetype::ThunderSentinel
+                            || Archetype == EKalmalaWildlifeArchetype::ReefMaw;
+                        const float StartDistance = FVector::Dist2D(
+                            Spawn.Location, GeneratedPlayerStart->GetActorLocation());
+                        if (!AKalmalaWildlifeSpawn::IsHardEnemySpawnAllowedByStart(
+                                bHardEnemy, true, StartDistance)) continue;
+                        const FString SpawnId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Spawn);
+                        if (PopulationSaveGame != nullptr && PopulationSaveGame->IsDefeated(SpawnId)) continue;
+                        if (SpawnedWildlifeActorCount >= WildlifeActorBudget) continue;
+                        ++SpawnedWildlifeActorCount;
+                        if (Archetype != EKalmalaWildlifeArchetype::ReefMaw) continue;
+
+                        const FVector2D SpawnPosition(Spawn.Location);
+                        const FKalmalaOceanSample SpawnOcean = FKalmalaOceanSampler::Sample(
+                            WorldGenerationConfig, SpawnPosition);
+                        for (int32 DirectionIndex = 0; DirectionIndex < 16; ++DirectionIndex)
+                        {
+                            const float Angle = static_cast<float>(DirectionIndex) * (2.0f * PI / 16.0f);
+                            const FVector2D Direction(FMath::Cos(Angle), FMath::Sin(Angle));
+                            const FVector2D HostPosition = SpawnPosition + Direction * 400.0f;
+                            TArray<FVector> OceanLocations;
+                            bool bSafeOceanPath = IsNavigableOceanPath(SpawnPosition, HostPosition);
+                            OceanLocations.Add(FVector(HostPosition.X, HostPosition.Y, 0.0f));
+                            for (int32 ObserverIndex = 0; ObserverIndex < 2 && bSafeOceanPath; ++ObserverIndex)
+                            {
+                                const float ObserverDistance = 1000.0f + 500.0f * static_cast<float>(ObserverIndex);
+                                const FVector2D ObserverPosition = SpawnPosition + Direction * ObserverDistance;
+                                bSafeOceanPath = IsNavigableOceanPath(SpawnPosition, ObserverPosition);
+                                OceanLocations.Add(FVector(ObserverPosition.X, ObserverPosition.Y, 0.0f));
+                            }
+                            if (!bSafeOceanPath) continue;
+
+                            ReefMawPeerTestSpatialKey = CandidateKey;
+                            ReefMawPeerTestSpawnId = SpawnId;
+                            ReefMawPeerTestSpawnLocation = Spawn.Location;
+                            ReefMawPeerTestStartDistanceCm = StartDistance;
+                            ReefMawPeerTestSpawnDepthCm = SpawnOcean.WaterDepth;
+                            ReefMawPeerTestOceanLocations = MoveTemp(OceanLocations);
+                            bFoundCandidate = true;
+                            break;
+                        }
+                        if (bFoundCandidate) break;
+                    }
+                }
+            }
+        }
+
+        if (!bFoundCandidate)
+        {
+            UE_LOG(LogTemp, Error,
+                TEXT("Reef Maw verification FAILED: no undefeated generated Maw with three safe deep-water peer positions and the 150 m start exclusion was found within 64 spatial keys."));
+            ReefMawPeerTestStage = 99;
+            return;
+        }
+        if (!ActivePopulationSpatialKeys.Contains(ReefMawPeerTestSpatialKey)
+            && ActivePopulationSpatialKeys.Num() >= KalmalaGameMode::MaxActivePopulationSpatialKeys)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Reef Maw verification FAILED: the bounded active population-key budget is full before fixture activation."));
+            ReefMawPeerTestStage = 99;
+            return;
+        }
+
+        ReefMawPeerTestWorldSeed = WorldGenerationConfig.WorldSeed;
+        ReefMawPeerTestHost = Host;
+        ReefMawPeerTestTarget.Reset();
+        ActivatePopulationKey(ReefMawPeerTestSpatialKey);
+        ReefMawPeerTestStage = 1;
+        ReefMawPeerTestStageTime = Now;
+        return;
+    }
+
+    AKalmalaCharacter* Host = ReefMawPeerTestHost.Get();
+    if (!IsValid(Host))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Reef Maw verification FAILED: listen host disappeared."));
+        ReefMawPeerTestStage = 99;
+        return;
+    }
+
+    if (ReefMawPeerTestStage == 1)
+    {
+        AKalmalaWildlifeSpawn* Target = nullptr;
+        for (TActorIterator<AKalmalaWildlifeSpawn> It(GetWorld()); It; ++It)
+        {
+            if ((*It)->GetPersistentSpawnId() == ReefMawPeerTestSpawnId)
+            {
+                Target = *It;
+                break;
+            }
+        }
+        if (Target == nullptr)
+        {
+            if (Now - ReefMawPeerTestStageTime > 20.0f)
+            {
+                UE_LOG(LogTemp, Error, TEXT("Reef Maw verification FAILED: generated descriptor did not materialize."));
+                ReefMawPeerTestStage = 99;
+            }
+            return;
+        }
+
+        const FVector2D SpawnPosition(ReefMawPeerTestSpawnLocation);
+        const FKalmalaOceanSample SpawnOcean = FKalmalaOceanSampler::Sample(WorldGenerationConfig, SpawnPosition);
+        if (Target->GetArchetype() != EKalmalaWildlifeArchetype::ReefMaw
+            || !FMath::IsNearlyEqual(Target->GetHealth(), 180.0f, 0.1f)
+            || !FMath::IsNearlyEqual(AKalmalaWildlifeSpawn::GetArmorForArchetype(
+                Target->GetArchetype()), 2.0f, 0.1f)
+            || ReefMawPeerTestStartDistanceCm < 15000.0f
+            || !AKalmalaWildlifeSpawn::IsReefMawSpawnHabitatAllowed(
+                EKalmalaBiome::Ocean, FKalmalaShimmeringLakeSampler::IsWater(WorldGenerationConfig, SpawnPosition),
+                SpawnOcean.WaterDepth)
+            || ReefMawPeerTestOceanLocations.Num() != 3)
+        {
+            UE_LOG(LogTemp, Error,
+                TEXT("Reef Maw verification FAILED: generated archetype, 180/2 profile, deep Ocean habitat, 150 m start exclusion, or peer positions were invalid."));
+            ReefMawPeerTestStage = 99;
+            return;
+        }
+
+        int32 ObserverIndex = 0;
+        for (const TWeakObjectPtr<AKalmalaCharacter>& ObserverWeak : ReefMawPeerTestObservers)
+        {
+            AKalmalaCharacter* Observer = ObserverWeak.Get();
+            if (!IsValid(Observer) || ObserverIndex >= 2
+                || !PlaceSwimmingCharacter(Observer,
+                    FVector2D(ReefMawPeerTestOceanLocations[ObserverIndex + 1])))
+            {
+                UE_LOG(LogTemp, Error, TEXT("Reef Maw verification FAILED: an observer could not enter deep generated Ocean."));
+                ReefMawPeerTestStage = 99;
+                return;
+            }
+            ++ObserverIndex;
+        }
+        if (ObserverIndex != 2 || !PlaceSwimmingCharacter(
+                Host, FVector2D(ReefMawPeerTestOceanLocations[0])))
+        {
+            UE_LOG(LogTemp, Error, TEXT("Reef Maw verification FAILED: the host could not enter deep generated Ocean."));
+            ReefMawPeerTestStage = 99;
+            return;
+        }
+
+        Host->Health = 150.0f;
+        Host->ForceNetUpdate();
+        ReefMawPeerTestStartingHealth = Host->GetHealth();
+        ReefMawPeerTestHostDistanceCm = FVector::Dist(Target->GetActorLocation(), Host->GetActorLocation());
+        if (ReefMawPeerTestHostDistanceCm <= AKalmalaWildlifeSpawn::ReefMawBiteReachCentimetres
+            || ReefMawPeerTestHostDistanceCm > AKalmalaWildlifeSpawn::ReefMawAttackTriggerCentimetres)
+        {
+            UE_LOG(LogTemp, Error,
+                TEXT("Reef Maw verification FAILED: host did not start outside bite reach and inside the attack trigger. HostDistanceCm=%.1f."),
+                ReefMawPeerTestHostDistanceCm);
+            ReefMawPeerTestStage = 99;
+            return;
+        }
+
+        for (const TWeakObjectPtr<AKalmalaCharacter>& ObserverWeak : ReefMawPeerTestObservers)
+        {
+            const AKalmalaCharacter* Observer = ObserverWeak.Get();
+            const UKalmalaCharacterMovementComponent* Movement = IsValid(Observer)
+                ? Cast<UKalmalaCharacterMovementComponent>(Observer->GetCharacterMovement()) : nullptr;
+            if (!IsValid(Observer) || Observer->GetAttachParentActor() != nullptr
+                || Movement == nullptr || !Movement->IsSwimmingInGeneratedOcean())
+            {
+                UE_LOG(LogTemp, Error, TEXT("Reef Maw verification FAILED: a peer observer was not swimming freely in generated Ocean."));
+                ReefMawPeerTestStage = 99;
+                return;
+            }
+        }
+        const UKalmalaCharacterMovementComponent* HostMovement =
+            Cast<UKalmalaCharacterMovementComponent>(Host->GetCharacterMovement());
+        if (Host->GetAttachParentActor() != nullptr || HostMovement == nullptr
+            || !HostMovement->IsSwimmingInGeneratedOcean())
+        {
+            UE_LOG(LogTemp, Error, TEXT("Reef Maw verification FAILED: the host was not swimming freely in generated Ocean."));
+            ReefMawPeerTestStage = 99;
+            return;
+        }
+
+        ReefMawPeerTestTarget = Target;
+        bReefMawPeerTestSawTelegraph = false;
+        bReefMawPeerTestSawBite = false;
+        bReefMawPeerTestSawRecovery = false;
+        ReefMawPeerTestBiteDistanceCm = 0.0f;
+        Target->ForceNetUpdate();
+        UE_LOG(LogTemp, Display,
+            TEXT("Reef Maw verification fixture armed: Seed=%llu SpawnId=%s StartDistanceCm=%.1f SpawnDepthCm=%.1f HostDistanceCm=%.1f Observers=2."),
+            static_cast<unsigned long long>(ReefMawPeerTestWorldSeed), *ReefMawPeerTestSpawnId,
+            ReefMawPeerTestStartDistanceCm, ReefMawPeerTestSpawnDepthCm, ReefMawPeerTestHostDistanceCm);
+        ReefMawPeerTestStage = 2;
+        ReefMawPeerTestStageTime = Now;
+        return;
+    }
+
+    if (ReefMawPeerTestStage == 2)
+    {
+        AKalmalaWildlifeSpawn* Target = ReefMawPeerTestTarget.Get();
+        if (!IsValid(Target))
+        {
+            UE_LOG(LogTemp, Error, TEXT("Reef Maw verification FAILED: generated Maw disappeared before its bite."));
+            ReefMawPeerTestStage = 99;
+            return;
+        }
+
+        const EKalmalaWildlifeAttackCue Cue = Target->GetReefMawAttackCueForVerification();
+        bReefMawPeerTestSawTelegraph |= Cue == EKalmalaWildlifeAttackCue::Telegraph;
+        bReefMawPeerTestSawBite |= Cue == EKalmalaWildlifeAttackCue::Lunge;
+        bReefMawPeerTestSawRecovery |= Cue == EKalmalaWildlifeAttackCue::Recovery;
+        if (Cue == EKalmalaWildlifeAttackCue::Lunge && ReefMawPeerTestBiteDistanceCm <= 0.0f)
+        {
+            ReefMawPeerTestBiteDistanceCm = FVector::Dist(Target->GetActorLocation(), Host->GetActorLocation());
+        }
+
+        const float HostDamage = ReefMawPeerTestStartingHealth - Host->GetHealth();
+        const bool bDamageValid = FMath::IsNearlyEqual(HostDamage, 50.0f, 1.0f);
+        const bool bBiteRangeValid = ReefMawPeerTestBiteDistanceCm > 0.0f
+            && ReefMawPeerTestBiteDistanceCm <= AKalmalaWildlifeSpawn::ReefMawBiteReachCentimetres;
+        if (bReefMawPeerTestSawTelegraph && bReefMawPeerTestSawBite
+            && bReefMawPeerTestSawRecovery && bDamageValid && bBiteRangeValid
+            && Host->GetHealth() > 1.0f)
+        {
+            UE_LOG(LogTemp, Display,
+                TEXT("Reef Maw verification server: Passed=1 Seed=%llu Telegraph=1 Bite=1 Recovery=1 HostDamage=%.1f BiteDistanceCm=%.1f SpawnId=%s"),
+                static_cast<unsigned long long>(ReefMawPeerTestWorldSeed), HostDamage,
+                ReefMawPeerTestBiteDistanceCm, *ReefMawPeerTestSpawnId);
+            ReefMawPeerTestStage = 99;
+            return;
+        }
+        if (Now - ReefMawPeerTestStageTime > 20.0f)
+        {
+            UE_LOG(LogTemp, Error,
+                TEXT("Reef Maw verification FAILED: cue, 50-Stab bite, or swimming approach incomplete. Telegraph=%d Bite=%d Recovery=%d HostDamage=%.1f BiteDistanceCm=%.1f Cue=%d."),
+                bReefMawPeerTestSawTelegraph, bReefMawPeerTestSawBite,
+                bReefMawPeerTestSawRecovery, HostDamage, ReefMawPeerTestBiteDistanceCm,
+                static_cast<int32>(Cue));
+            ReefMawPeerTestStage = 99;
+        }
+    }
+#endif
+}
+
 void AKalmalaGameMode::DriveDiscoveryPeerTest()
 {
 #if !UE_BUILD_SHIPPING
@@ -4959,6 +5310,7 @@ void AKalmalaGameMode::Tick(const float DeltaSeconds)
     DrivePolarBearPeerTest();
     DriveHornedGoatPeerTest();
     DriveThunderSentinelPeerTest();
+    DriveReefMawPeerTest();
     DriveDiscoveryPeerTest();
     DriveM9ExplorationRewardPeerTest();
     DriveOceanTravelFeedbackTest();

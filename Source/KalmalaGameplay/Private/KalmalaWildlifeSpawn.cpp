@@ -4633,6 +4633,23 @@ void AKalmalaWildlifeSpawn::OnRep_ThunderSentinelAttackCue()
 void AKalmalaWildlifeSpawn::OnRep_ReefMawAttackCue()
 {
     BuildArchetypePresentation();
+#if !UE_BUILD_SHIPPING
+    if (!HasAuthority() && FParse::Param(FCommandLine::Get(), TEXT("KalmalaReefMawPeerTest"))
+        && Archetype == EKalmalaWildlifeArchetype::ReefMaw)
+    {
+        const EKalmalaWildlifeAttackCue Cue = static_cast<EKalmalaWildlifeAttackCue>(ReefMawAttackCue);
+        if (Cue == EKalmalaWildlifeAttackCue::Telegraph)
+        {
+            UE_LOG(LogTemp, Display, TEXT("Reef Maw verification client observed replicated telegraph: SpawnId=%s."),
+                *PersistentSpawnId);
+        }
+        else if (Cue == EKalmalaWildlifeAttackCue::Lunge)
+        {
+            UE_LOG(LogTemp, Display, TEXT("Reef Maw verification client observed replicated bite: SpawnId=%s."),
+                *PersistentSpawnId);
+        }
+    }
+#endif
 }
 
 void AKalmalaWildlifeSpawn::OnRep_MoonBearAttackCue()

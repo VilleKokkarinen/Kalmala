@@ -2682,6 +2682,23 @@ the generated 150 m start exclusion and the actual step into slam reach. It does
 not repeat Rat's shared reward delivery/retry, defeat persistence, or combat
 replication acceptance; this live run remains part of combined A8a/A8b I4.
 
+## Ocean Reef Maw generated peer acceptance
+
+After an Editor build, run
+`Scripts/Tests/Combat/Verify-ReefMawPeer.ps1 -WorldSeed 445`. The Development-only
+fixture selects an undefeated Reef Maw from ordinary Ocean population descriptors
+using Ocean's full descriptor budget and ordinary actor cap (Ocean has no
+expansion-budget reduction). It requires the shared 150 m
+hard-enemy start exclusion and finds a generated Ocean path at least 150 cm deep,
+excluding Shimmering Lakes, for the host and both observers. The normal population
+key is activated before the three peers are staged as unattached swimmers. Require
+the generated 180-health/2-Armor profile, a 50-Stab server bite within 180 cm,
+telegraph, and recovery. The listen host receives a fixture-only 150 health so the
+50 damage is measurable without defeating it. Both clients must observe the same
+generated Reef Maw's replicated telegraph and bite cue. This case does not repeat
+Rat's shared reward delivery/retry, defeat persistence, or combat-replication
+acceptance; the live species run remains part of combined A8a/A8b I4.
+
 ## Freezing Tundra Polar Bear contract regression
 
 After an editor build, run
