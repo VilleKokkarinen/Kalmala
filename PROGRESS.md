@@ -6618,3 +6618,15 @@
 - **Known limitations / remaining scope:** Cauldron recipe-scope/peer acceptance and remaining approved A8b progression/peer flows are still open, followed by the InventoryReconnect disposition and full I4 gate. A9 remains gated by I4.
 - **Next eligible task:** Continue A8b acceptance with the Cauldron item/peer flow through `Scripts/Tests/Construction/Verify-Crafting.ps1`, then complete the remaining A8b flows and InventoryReconnect disposition before milestone-final verification.
 - **Integration state:** Work ran directly on `master`; no worktree handoff synchronization was needed. Current run time: `2026-10-23 15:19:54 UTC`.
+
+## Run 2026-10-23 15:22 UTC — Rat-tail Tonic acceptance passed
+
+- **Selected task:** Continue the open combined I4 acceptance child with the first A8b output's focused gameplay case in backlog order: Rat-tail Tonic. This is a partial acceptance increment, not milestone-final verification.
+- **Work completed:** Executed the focused server-status automation for Rat-tail Tonic. It exercises the ten-second gradual heal, shared A6 cooldown, competing-draught rejection, full-health rejection, clamping, and death/client rejection paths.
+- **Files changed:** `PROGRESS.md`. `BACKLOG.md` remains unchanged; the broad combined I4 acceptance child is not complete.
+- **Checks and results:** `Automation RunTests Kalmala.Gameplay.Status.RatTailTonic` found one test and passed with `Result={Success}` and editor exit code 0. Evidence is in `C:/Users/Ville/AppData/Local/Temp/a8r1/rat-tail.log`. The isolated mirror's relevant status test/component and registered Cauldron recipe matched the main checkout. No build ran in this increment; the existing Development target loaded successfully.
+- **Full verification:** Deferred. This item case does not complete I4; A8b recipe/peer flows, remaining item acceptance, InventoryReconnect disposition, and combined milestone-final verification remain.
+- **Observable impact / networking authority:** Confirms the existing Rat-tail Tonic server-owned healing and rejection behavior; no production source or saved-data behavior changed.
+- **Known limitations / remaining scope:** Live Cauldron recipe and peer acceptance has not run. Other approved A8b item flows and the `Verify-InventoryReconnect.ps1` disposition remain open, followed by combined I4 verification. A9 remains gated.
+- **Next eligible task:** Continue A8b item acceptance in backlog order with Badger Fur Vest, while retaining the wider crafting/peer flow, InventoryReconnect disposition, and milestone-final I4 gate.
+- **Integration state:** Work ran directly on `master`; no worktree handoff synchronization was needed. Current run time: `2026-10-23 15:22:47 UTC`.
