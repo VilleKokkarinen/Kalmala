@@ -26,14 +26,25 @@
     {
       "RecipeId": "MoonstoneRing",
       "DisplayName": "Moonstone Ring",
-      "ItemId": "MoonstoneRing",
-      "RequiredStation": "Forge",
-      "RequiredStationLevel": 1,
-      "Ingredients": [
-        { "ItemId": "Bronze", "Quantity": 2 },
-        { "ItemId": "Moonstone", "Quantity": 1 }
+      "RequiredStation": [
+        "Forge"
       ],
-      "Level": 1
+      "Ingredients": [
+        {
+          "ItemId": "Bronze",
+          "Quantity": 2
+        },
+        {
+          "ItemId": "Moonstone",
+          "Quantity": 1
+        }
+      ],
+      "Output": "MoonstoneRing",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
     },
     {
       "RecipeId": "GarnetNecklace",

@@ -8,7 +8,8 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaA9GearRecipesTest, "Kalmala.Gameplay.In
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 bool FKalmalaA9GearRecipesTest::RunTest(const FString& Parameters)
 {
-    const TPair<FName, FName> Cases[] = {{TEXT("QuartzNecklace"), TEXT("SmokyQuartz")}};
+    const TPair<FName, FName> Cases[] = {{TEXT("QuartzNecklace"), TEXT("SmokyQuartz")},
+        {TEXT("MoonstoneRing"), TEXT("Moonstone")}};
     for (const auto& Entry : Cases)
     {
         const auto* Recipe = UKalmalaRecipeCatalogue::Get()->Find(Entry.Key);

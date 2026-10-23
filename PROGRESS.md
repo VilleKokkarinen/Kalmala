@@ -6659,3 +6659,8 @@
 
 - Audit found A9 accessories were authored as tool acquisition metadata despite having no runtime tool profile, so their recipes could not execute through ordinary crafting. Converted only Quartz Necklace's recipe to the established ordinary Forge output shape (3 Bronze + 1 Smoky Quartz, output one, batch one, no skill XP/unlock gate). Added A9GearRecipes regression for registered paid exchange and crafted-GUID equip, and physical-only +10 Armor/no-wear coverage in AccessoryStats. Existing owner-private slot validation/source/icon paths remain intact.
 - Files: a9-gear.json, A9GearTest.cpp, AccessoryStatsTest.cpp, BACKLOG/PROGRESS. `Validate-UIIcons.ps1 -Category Catalogue -Id QuartzNecklace`, JSON parsing and git diff --check passed; path audit passed. Tests authored but not compiled/executed; full I5 verification deferred. Next eligible gear is Moonstone Ring but its source is I4-blocked; continue independent Garnet Necklace runtime recipe completion. Main unchanged.
+
+
+## A9 independent worker — Moonstone Ring recipe runtime prepared (2026-10-23)
+
+- Converted Moonstone Ring from non-executable tool metadata to the ordinary Forge recipe path: 2 Bronze + 1 Moonstone, one non-stackable output, batch one. Added its paid exchange/crafted-GUID equip case; existing AccessoryStats covers +20 stamina/no refill/Vigor/replacement/removal. Files: a9-gear.json, A9GearTest.cpp, BACKLOG/PROGRESS. JSON parsing, `Validate-UIIcons.ps1 -Category Catalogue -Id MoonstoneRing` and git diff --check passed; paths below 260. Full execution/I5 verification deferred. Parent remains unchecked because Moonstone source enablement requires accepted I4. Next: Garnet Necklace. Main unchanged.

@@ -369,6 +369,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     - [x] Add and register its Forge recipe using the values finalized by Review A9.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
   - [ ] Moonstone Ring (`MoonstoneRing`): finalize its recipe and +20 maximum stamina profile in Review A9; see the A9 item contract.
+    - [x] Complete executable Forge inventory recipe and paid craft/GUID equip coverage; source enablement remains blocked on I4.
     - [x] Add and register the complete item/equipment/stat JSON first, with applicable N/A categories recorded.
     - [x] Add and register its Forge recipe using the values finalized by Review A9.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
