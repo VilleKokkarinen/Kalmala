@@ -1573,7 +1573,12 @@ bool AKalmalaWildlifeSpawn::TryApplyWolfBite(AKalmalaCharacter* Target)
     if (!IsWolfAttackTargetValid(Target)
         || !IsWolfBiteInReach(HasAuthority(), true, FVector::Dist(GetActorLocation(), Target->GetActorLocation())))
         return false;
-    return Target->ApplyWildlifeDamageFromServer(this, GetBaseAttackChannelsForArchetype(Archetype));
+    const bool bApplied = Target->ApplyWildlifeDamageFromServer(this, GetBaseAttackChannelsForArchetype(Archetype));
+#if !UE_BUILD_SHIPPING
+    if (bApplied && FParse::Param(FCommandLine::Get(), TEXT("KalmalaWolfPeerTest")))
+        ++WolfBiteHitCountForVerification;
+#endif
+    return bApplied;
 }
 
 bool AKalmalaWildlifeSpawn::IsWolfPositionTraversable(const FVector& Position) const
@@ -4522,6 +4527,14 @@ void AKalmalaWildlifeSpawn::OnRep_BadgerAttackCue()
 void AKalmalaWildlifeSpawn::OnRep_WolfAttackCue()
 {
     BuildArchetypePresentation();
+#if !UE_BUILD_SHIPPING
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaWolfPeerTest"))
+        && static_cast<EKalmalaWildlifeAttackCue>(WolfAttackCue) == EKalmalaWildlifeAttackCue::Telegraph)
+    {
+        UE_LOG(LogTemp, Display, TEXT("Wolf verification client observed replicated telegraph: SpawnId=%s."),
+            *PersistentSpawnId);
+    }
+#endif
 }
 
 void AKalmalaWildlifeSpawn::OnRep_LynxAttackCue()

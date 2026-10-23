@@ -2795,6 +2795,354 @@ void AKalmalaGameMode::DrivePeatHuskPeerTest()
 #endif
 }
 
+void AKalmalaGameMode::DriveWolfPeerTest()
+{
+#if !UE_BUILD_SHIPPING
+    if (!FParse::Param(FCommandLine::Get(), TEXT("KalmalaWolfPeerTest"))
+        || !HasAuthority() || GetWorld() == nullptr || !WorldGenerationConfig.IsValid()
+        || WolfPeerTestStage >= 99)
+    {
+        return;
+    }
+
+    const float Now = GetWorld()->GetTimeSeconds();
+    if (WolfPeerTestStage == 0)
+    {
+        APlayerController* HostController = GetWorld()->GetFirstPlayerController();
+        AKalmalaCharacter* Host = HostController != nullptr
+            ? Cast<AKalmalaCharacter>(HostController->GetPawn()) : nullptr;
+        if (Host == nullptr || GeneratedPlayerStart == nullptr)
+        {
+            if (Now > 90.0f)
+            {
+                UE_LOG(LogTemp, Error, TEXT("Wolf verification FAILED: generated start or listen host was unavailable."));
+                WolfPeerTestStage = 99;
+            }
+            return;
+        }
+
+        WolfPeerTestObservers.Reset();
+        for (TActorIterator<AKalmalaCharacter> It(GetWorld()); It; ++It)
+        {
+            AKalmalaCharacter* Candidate = *It;
+            if (Candidate == Host || Candidate->GetPlayerState() == nullptr) continue;
+            WolfPeerTestObservers.Add(Candidate);
+        }
+        if (WolfPeerTestObservers.Num() < 2)
+        {
+            if (Now > 90.0f)
+            {
+                UE_LOG(LogTemp, Error, TEXT("Wolf verification FAILED: two observing client peers did not join."));
+                WolfPeerTestStage = 99;
+            }
+            return;
+        }
+
+        const FVector StartLocation = GeneratedPlayerStart->GetActorLocation();
+        const FIntPoint StartKey = FKalmalaWorldPopulationLayout::GetSpatialKey(FVector2D(StartLocation));
+        bool bFoundCandidate = false;
+        FVector HostDesiredLocation = FVector::ZeroVector;
+        TArray<FKalmalaWorldPopulationSpawn> SelectedMemberSpawns;
+        TArray<FString> SelectedMemberIds;
+
+        for (int32 Radius = 0; Radius <= 64 && !bFoundCandidate; ++Radius)
+        {
+            for (int32 OffsetY = -Radius; OffsetY <= Radius && !bFoundCandidate; ++OffsetY)
+            {
+                for (int32 OffsetX = -Radius; OffsetX <= Radius; ++OffsetX)
+                {
+                    if (Radius > 0 && FMath::Abs(OffsetX) != Radius && FMath::Abs(OffsetY) != Radius) continue;
+                    const FIntPoint CandidateKey = StartKey + FIntPoint(OffsetX, OffsetY);
+                    const TArray<FKalmalaWorldPopulationSpawn> Descriptors =
+                        FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(
+                            WorldGenerationConfig, CandidateKey, EKalmalaWorldPopulationKind::Wildlife);
+                    for (const FKalmalaWorldPopulationSpawn& PackSpawn : Descriptors)
+                    {
+                        if (!KalmalaGameMode::IsWildlifeSpawnOfArchetype(
+                                WorldGenerationConfig, PackSpawn, EKalmalaWildlifeArchetype::Wolf))
+                        {
+                            continue;
+                        }
+
+                        TArray<FKalmalaWorldPopulationSpawn> MemberSpawns;
+                        TArray<FString> MemberIds;
+                        bool bCompleteUndefeatedPack = true;
+                        for (int32 MemberIndex = 0; MemberIndex < FKalmalaWolfPackContract::MemberCount; ++MemberIndex)
+                        {
+                            FKalmalaWorldPopulationSpawn MemberSpawn;
+                            const FString MemberId = FKalmalaWolfPackContract::GetMemberPersistentSpawnId(
+                                PackSpawn, MemberIndex);
+                            if (MemberId.IsEmpty()
+                                || !FKalmalaWolfPackContract::TryBuildMemberSpawn(
+                                    WorldGenerationConfig, PackSpawn, MemberIndex, MemberSpawn)
+                                || (PopulationSaveGame != nullptr && PopulationSaveGame->IsDefeated(MemberId)))
+                            {
+                                bCompleteUndefeatedPack = false;
+                                break;
+                            }
+                            MemberSpawns.Add(MoveTemp(MemberSpawn));
+                            MemberIds.Add(MemberId);
+                        }
+                        if (!bCompleteUndefeatedPack
+                            || MemberSpawns.Num() != FKalmalaWolfPackContract::MemberCount)
+                        {
+                            continue;
+                        }
+
+                        bool bFoundApproach = false;
+                        for (int32 ApproachIndex = 0; ApproachIndex < 16 && !bFoundApproach; ++ApproachIndex)
+                        {
+                            const float Angle = static_cast<float>(ApproachIndex) * (2.0f * PI / 16.0f);
+                            const FVector2D ApproachPosition(
+                                MemberSpawns[0].Location.X + FMath::Cos(Angle) * 120.0f,
+                                MemberSpawns[0].Location.Y + FMath::Sin(Angle) * 120.0f);
+                            if (!FKalmalaWorldBounds::Contains(WorldGenerationConfig, ApproachPosition)
+                                || FKalmalaBiomeClassifier::Classify(
+                                    FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, ApproachPosition))
+                                    != EKalmalaBiome::FreezingTundra
+                                || FKalmalaTerrainHeightSampler::SampleSurfaceNormal(
+                                    WorldGenerationConfig, ApproachPosition).Z < 0.82f)
+                            {
+                                continue;
+                            }
+
+                            FVector CandidateHostLocation(ApproachPosition.X, ApproachPosition.Y,
+                                FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, ApproachPosition));
+                            if (FVector::Dist(CandidateHostLocation, MemberSpawns[0].Location)
+                                > AKalmalaWildlifeSpawn::WolfBiteReachCentimetres - 10.0f)
+                            {
+                                continue;
+                            }
+
+                            HostDesiredLocation = CandidateHostLocation;
+                            bFoundApproach = true;
+                        }
+                        if (!bFoundApproach) continue;
+
+                        WolfPeerTestSpatialKey = CandidateKey;
+                        WolfPeerTestPackSpawnId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(PackSpawn);
+                        SelectedMemberSpawns = MoveTemp(MemberSpawns);
+                        SelectedMemberIds = MoveTemp(MemberIds);
+                        bFoundCandidate = !WolfPeerTestPackSpawnId.IsEmpty();
+                        if (bFoundCandidate) break;
+                    }
+                }
+            }
+        }
+
+        if (!bFoundCandidate)
+        {
+            UE_LOG(LogTemp, Error,
+                TEXT("Wolf verification FAILED: no undefeated generated three-member Tundra pack with a reachable host approach was found within 64 spatial keys."));
+            WolfPeerTestStage = 99;
+            return;
+        }
+        if (!ActivePopulationSpatialKeys.Contains(WolfPeerTestSpatialKey)
+            && ActivePopulationSpatialKeys.Num() >= KalmalaGameMode::MaxActivePopulationSpatialKeys)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Wolf verification FAILED: the bounded active population-key budget is full before fixture activation."));
+            WolfPeerTestStage = 99;
+            return;
+        }
+
+        const auto PlaceOnTerrain = [this](AKalmalaCharacter* Character, const FVector& DesiredLocation)
+        {
+            if (!IsValid(Character)) return;
+            ActivateTerrainPatchNeighborhood(FVector2D(DesiredLocation));
+            FVector GroundedLocation = DesiredLocation;
+            GroundedLocation.Z = FKalmalaTerrainHeightSampler::SampleHeight(
+                WorldGenerationConfig, FVector2D(DesiredLocation));
+            Character->SetActorLocation(GroundedLocation, false, nullptr, ETeleportType::TeleportPhysics);
+            Character->ForceNetUpdate();
+            if (UCharacterMovementComponent* Movement = Character->GetCharacterMovement())
+            {
+                Movement->StopMovementImmediately();
+                Movement->DisableMovement();
+            }
+        };
+
+        WolfPeerTestStartingHealth = Host->GetHealth();
+        if (!FMath::IsFinite(WolfPeerTestStartingHealth) || WolfPeerTestStartingHealth <= 1.0f)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Wolf verification FAILED: listen host cannot receive the test bite at health %.1f."),
+                WolfPeerTestStartingHealth);
+            WolfPeerTestStage = 99;
+            return;
+        }
+
+        PlaceOnTerrain(Host, HostDesiredLocation);
+        int32 ObserverIndex = 0;
+        for (const TWeakObjectPtr<AKalmalaCharacter>& ObserverWeak : WolfPeerTestObservers)
+        {
+            AKalmalaCharacter* Observer = ObserverWeak.Get();
+            if (!IsValid(Observer)) continue;
+
+            const float Distance = 3000.0f + 500.0f * static_cast<float>(ObserverIndex);
+            bool bPlacedObserver = false;
+            for (int32 DirectionIndex = 0; DirectionIndex < 16 && !bPlacedObserver; ++DirectionIndex)
+            {
+                const float Angle = static_cast<float>(DirectionIndex) * (2.0f * PI / 16.0f);
+                const FVector2D ObserverPosition(
+                    SelectedMemberSpawns[0].Location.X + FMath::Cos(Angle) * Distance,
+                    SelectedMemberSpawns[0].Location.Y + FMath::Sin(Angle) * Distance);
+                if (!FKalmalaWorldBounds::Contains(WorldGenerationConfig, ObserverPosition)) continue;
+
+                const FVector DesiredObserverLocation(ObserverPosition.X, ObserverPosition.Y,
+                    FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, ObserverPosition));
+                PlaceOnTerrain(Observer, DesiredObserverLocation);
+                bPlacedObserver = true;
+            }
+            if (!bPlacedObserver)
+            {
+                UE_LOG(LogTemp, Error, TEXT("Wolf verification FAILED: an observer could not be placed outside the wolf leash."));
+                WolfPeerTestStage = 99;
+                return;
+            }
+            ++ObserverIndex;
+        }
+        if (ObserverIndex < 2)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Wolf verification FAILED: an observing client disappeared before pack activation."));
+            WolfPeerTestStage = 99;
+            return;
+        }
+
+        WolfPeerTestWorldSeed = WorldGenerationConfig.WorldSeed;
+        WolfPeerTestMemberSpawnIds = MoveTemp(SelectedMemberIds);
+        WolfPeerTestExpectedLocations.Reset();
+        for (const FKalmalaWorldPopulationSpawn& MemberSpawn : SelectedMemberSpawns)
+            WolfPeerTestExpectedLocations.Add(MemberSpawn.Location);
+        WolfPeerTestMembers.Reset();
+        WolfPeerTestHost = Host;
+        WolfPeerTestSawTelegraph = false;
+        bWolfPeerTestSawLunge = false;
+        bWolfPeerTestSawRecovery = false;
+        ActivatePopulationKey(WolfPeerTestSpatialKey);
+        WolfPeerTestStage = 1;
+        WolfPeerTestStageTime = Now;
+        return;
+    }
+
+    AKalmalaCharacter* Host = WolfPeerTestHost.Get();
+    if (!IsValid(Host))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Wolf verification FAILED: listen host disappeared."));
+        WolfPeerTestStage = 99;
+        return;
+    }
+
+    if (WolfPeerTestStage == 1)
+    {
+        WolfPeerTestMembers.Reset();
+        for (int32 MemberIndex = 0; MemberIndex < WolfPeerTestMemberSpawnIds.Num(); ++MemberIndex)
+        {
+            AKalmalaWildlifeSpawn* Member = nullptr;
+            for (TActorIterator<AKalmalaWildlifeSpawn> It(GetWorld()); It; ++It)
+            {
+                if ((*It)->GetPersistentSpawnId() == WolfPeerTestMemberSpawnIds[MemberIndex])
+                {
+                    Member = *It;
+                    break;
+                }
+            }
+            if (Member == nullptr)
+            {
+                WolfPeerTestMembers.Reset();
+                if (Now - WolfPeerTestStageTime > 20.0f)
+                {
+                    UE_LOG(LogTemp, Error, TEXT("Wolf verification FAILED: generated pack member %d did not materialize."),
+                        MemberIndex);
+                    WolfPeerTestStage = 99;
+                }
+                return;
+            }
+            WolfPeerTestMembers.Add(Member);
+        }
+
+        if (WolfPeerTestMembers.Num() != FKalmalaWolfPackContract::MemberCount)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Wolf verification FAILED: generated pack did not contain exactly three members."));
+            WolfPeerTestStage = 99;
+            return;
+        }
+        for (int32 MemberIndex = 0; MemberIndex < WolfPeerTestMembers.Num(); ++MemberIndex)
+        {
+            AKalmalaWildlifeSpawn* Member = WolfPeerTestMembers[MemberIndex].Get();
+            if (!IsValid(Member) || Member->GetArchetype() != EKalmalaWildlifeArchetype::Wolf
+                || !FMath::IsNearlyEqual(Member->GetHealth(), 250.0f, 0.1f)
+                || FVector::Dist2D(Member->GetActorLocation(), WolfPeerTestExpectedLocations[MemberIndex]) > 60.0f)
+            {
+                UE_LOG(LogTemp, Error,
+                    TEXT("Wolf verification FAILED: generated member identity, 250 health, or stable formation was invalid at member %d."),
+                    MemberIndex);
+                WolfPeerTestStage = 99;
+                return;
+            }
+        }
+        const float ExpectedSpacing = FKalmalaWolfPackContract::FormationRadiusCentimetres * FMath::Sqrt(3.0f);
+        for (int32 First = 0; First < WolfPeerTestMembers.Num(); ++First)
+        {
+            for (int32 Second = First + 1; Second < WolfPeerTestMembers.Num(); ++Second)
+            {
+                const float Spacing = FVector::Dist2D(WolfPeerTestMembers[First]->GetActorLocation(),
+                    WolfPeerTestMembers[Second]->GetActorLocation());
+                if (!FMath::IsNearlyEqual(Spacing, ExpectedSpacing, 100.0f))
+                {
+                    UE_LOG(LogTemp, Error, TEXT("Wolf verification FAILED: pack formation spacing %.1f was unexpected."),
+                        Spacing);
+                    WolfPeerTestStage = 99;
+                    return;
+                }
+            }
+        }
+
+        UE_LOG(LogTemp, Display,
+            TEXT("Wolf verification fixture armed: Seed=%llu PackMembers=3 MemberSpawnId=%s Observers=2."),
+            static_cast<unsigned long long>(WolfPeerTestWorldSeed), *WolfPeerTestMemberSpawnIds[0]);
+        WolfPeerTestStage = 2;
+        WolfPeerTestStageTime = Now;
+        return;
+    }
+
+    if (WolfPeerTestStage == 2)
+    {
+        AKalmalaWildlifeSpawn* AttackWolf = WolfPeerTestMembers.Num() > 0
+            ? WolfPeerTestMembers[0].Get() : nullptr;
+        if (!IsValid(AttackWolf))
+        {
+            UE_LOG(LogTemp, Error, TEXT("Wolf verification FAILED: the attacking pack member disappeared."));
+            WolfPeerTestStage = 99;
+            return;
+        }
+
+        const EKalmalaWildlifeAttackCue Cue = AttackWolf->GetWolfAttackCueForVerification();
+        bWolfPeerTestSawTelegraph |= Cue == EKalmalaWildlifeAttackCue::Telegraph;
+        bWolfPeerTestSawLunge |= Cue == EKalmalaWildlifeAttackCue::Lunge;
+        bWolfPeerTestSawRecovery |= Cue == EKalmalaWildlifeAttackCue::Recovery;
+        const int32 BiteHits = AttackWolf->GetWolfBiteHitCountForVerification();
+        const float HostDamage = WolfPeerTestStartingHealth - Host->GetHealth();
+        if (bWolfPeerTestSawTelegraph && bWolfPeerTestSawLunge && bWolfPeerTestSawRecovery
+            && BiteHits > 0 && HostDamage > 0.0f)
+        {
+            UE_LOG(LogTemp, Display,
+                TEXT("Wolf verification server: Passed=1 Seed=%llu PackMembers=3 Telegraph=1 Lunge=1 Recovery=1 BiteHits=%d HostDamage=%.1f PackSpawnId=%s MemberSpawnId=%s"),
+                static_cast<unsigned long long>(WolfPeerTestWorldSeed), BiteHits, HostDamage,
+                *WolfPeerTestPackSpawnId, *WolfPeerTestMemberSpawnIds[0]);
+            WolfPeerTestStage = 99;
+            return;
+        }
+        if (Now - WolfPeerTestStageTime > 18.0f)
+        {
+            UE_LOG(LogTemp, Error,
+                TEXT("Wolf verification FAILED: server lunge bite did not complete. Telegraph=%d Lunge=%d Recovery=%d BiteHits=%d HostDamage=%.1f Cue=%d."),
+                bWolfPeerTestSawTelegraph, bWolfPeerTestSawLunge, bWolfPeerTestSawRecovery, BiteHits, HostDamage,
+                static_cast<int32>(Cue));
+            WolfPeerTestStage = 99;
+        }
+    }
+#endif
+}
+
 void AKalmalaGameMode::DriveDiscoveryPeerTest()
 {
 #if !UE_BUILD_SHIPPING
@@ -3163,6 +3511,7 @@ void AKalmalaGameMode::Tick(const float DeltaSeconds)
     DriveCombatPeerTest();
     DriveMosquitoPeerTest();
     DrivePeatHuskPeerTest();
+    DriveWolfPeerTest();
     DriveDiscoveryPeerTest();
     DriveM9ExplorationRewardPeerTest();
     DriveOceanTravelFeedbackTest();

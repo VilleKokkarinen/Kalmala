@@ -114,6 +114,7 @@ private:
     void DriveCombatPeerTest();
     void DriveMosquitoPeerTest();
     void DrivePeatHuskPeerTest();
+    void DriveWolfPeerTest();
     void DriveDiscoveryPeerTest();
     void DriveM9ExplorationRewardPeerTest();
     void RunM9Schema2CandidateWorldPeerTest();
@@ -174,6 +175,20 @@ private:
     TWeakObjectPtr<class AKalmalaCharacter> PeatHuskPeerTestHost;
     TArray<TWeakObjectPtr<class AKalmalaCharacter>> PeatHuskPeerTestObservers;
     TWeakObjectPtr<class AKalmalaWildlifeSpawn> PeatHuskPeerTestTarget;
+    int32 WolfPeerTestStage = 0;
+    float WolfPeerTestStageTime = 0.0f;
+    float WolfPeerTestStartingHealth = 0.0f;
+    FIntPoint WolfPeerTestSpatialKey = FIntPoint::ZeroValue;
+    uint64 WolfPeerTestWorldSeed = 0;
+    FString WolfPeerTestPackSpawnId;
+    TArray<FString> WolfPeerTestMemberSpawnIds;
+    TArray<FVector> WolfPeerTestExpectedLocations;
+    TArray<TWeakObjectPtr<class AKalmalaWildlifeSpawn>> WolfPeerTestMembers;
+    TWeakObjectPtr<class AKalmalaCharacter> WolfPeerTestHost;
+    TArray<TWeakObjectPtr<class AKalmalaCharacter>> WolfPeerTestObservers;
+    bool bWolfPeerTestSawTelegraph = false;
+    bool bWolfPeerTestSawLunge = false;
+    bool bWolfPeerTestSawRecovery = false;
     int32 DiscoveryPeerTestStage = 0;
     float DiscoveryPeerTestStageTime = 0.0f;
     bool bDiscoveryPeerTestLogged = false;

@@ -103,6 +103,11 @@ public:
     const FString& GetPersistentSpawnId() const { return PersistentSpawnId; }
 #if !UE_BUILD_SHIPPING
     int32 GetMosquitoAcceptedBiteCountForVerification() const { return MosquitoAcceptedBiteCountForVerification; }
+    EKalmalaWildlifeAttackCue GetWolfAttackCueForVerification() const
+    {
+        return static_cast<EKalmalaWildlifeAttackCue>(WolfAttackCue);
+    }
+    int32 GetWolfBiteHitCountForVerification() const { return WolfBiteHitCountForVerification; }
     EKalmalaWildlifeAttackCue GetPeatHuskAttackCueForVerification() const
     {
         return static_cast<EKalmalaWildlifeAttackCue>(PeatHuskAttackCue);
@@ -406,6 +411,7 @@ private:
     uint8 PeatHuskAttackCue = static_cast<uint8>(EKalmalaWildlifeAttackCue::None);
 #if !UE_BUILD_SHIPPING
     int32 PeatHuskSweepHitCountForVerification = 0;
+    int32 WolfBiteHitCountForVerification = 0;
 #endif
 
     UFUNCTION()

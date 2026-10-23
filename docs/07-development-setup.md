@@ -2581,6 +2581,18 @@ habitat/cap validation, attack rejection, reconnect/restart, or relevant-peer
 acceptance. No Unreal build or automation execution ran in this normal
 increment; combined A8a/A8b I4 remains required.
 
+The Development-only live pack check is
+`Scripts/Tests/Combat/Verify-WolfPeer.ps1 -WorldSeed 445`. It selects an
+undefeated generated Tundra pack with three valid member identities, positions
+the listen host inside the first Wolf's 180 cm bite boundary, and activates the
+normal population key. The server requires all three 250-health members in
+their stable triangular formation, then observes the first Wolf's replicated
+telegraph, lunge, recovery, and accepted bite. Both remote clients must observe
+that member's replicated telegraph. The fixture stays outside Shipping builds
+and does not repeat Rat's shared reward, persistence, or combat-state checks.
+Build the affected Editor target and run the peer script before checking its
+live-acceptance backlog child.
+
 ## Freezing Tundra Lynx contract regression
 
 After an editor build, run
