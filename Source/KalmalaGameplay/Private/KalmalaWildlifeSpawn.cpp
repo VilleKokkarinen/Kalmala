@@ -2972,7 +2972,12 @@ bool AKalmalaWildlifeSpawn::TryApplyPeatHuskSweep(AKalmalaCharacter* Target)
     const float ForwardDot = FVector::DotProduct(GetActorForwardVector().GetSafeNormal2D(), ToTarget.GetSafeNormal2D());
     if (!IsPeatHuskAttackTargetValid(Target)
         || !IsPeatHuskSweepInReach(HasAuthority(), true, ToTarget.Size2D(), ForwardDot)) return false;
-    return Target->ApplyWildlifeDamageFromServer(this, GetBaseAttackChannelsForArchetype(Archetype));
+    const bool bApplied = Target->ApplyWildlifeDamageFromServer(this, GetBaseAttackChannelsForArchetype(Archetype));
+#if !UE_BUILD_SHIPPING
+    if (bApplied && FParse::Param(FCommandLine::Get(), TEXT("KalmalaPeatHuskPeerTest")))
+        ++PeatHuskSweepHitCountForVerification;
+#endif
+    return bApplied;
 }
 
 bool AKalmalaWildlifeSpawn::IsPeatHuskPositionDry(const FVector& Position) const
@@ -4478,6 +4483,15 @@ void AKalmalaWildlifeSpawn::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 
 void AKalmalaWildlifeSpawn::OnRep_Archetype()
 {
+#if !UE_BUILD_SHIPPING
+    if (!HasAuthority()
+        && FParse::Param(FCommandLine::Get(), TEXT("KalmalaPeatHuskPeerTest"))
+        && Archetype == EKalmalaWildlifeArchetype::PeatHusk
+        && static_cast<EKalmalaWildlifeAttackCue>(PeatHuskAttackCue) == EKalmalaWildlifeAttackCue::Telegraph)
+    {
+        UE_LOG(LogTemp, Display, TEXT("Peat Husk verification client observed replicated telegraph."));
+    }
+#endif
     BuildArchetypePresentation();
     if (Archetype == EKalmalaWildlifeArchetype::MosquitoSwarm && !bDefeated) PlayMosquitoBuzz();
     else StopMosquitoBuzz();
@@ -4542,6 +4556,15 @@ void AKalmalaWildlifeSpawn::OnRep_MoonBearAttackCue()
 
 void AKalmalaWildlifeSpawn::OnRep_PeatHuskAttackCue()
 {
+#if !UE_BUILD_SHIPPING
+    if (!HasAuthority()
+        && FParse::Param(FCommandLine::Get(), TEXT("KalmalaPeatHuskPeerTest"))
+        && Archetype == EKalmalaWildlifeArchetype::PeatHusk
+        && static_cast<EKalmalaWildlifeAttackCue>(PeatHuskAttackCue) == EKalmalaWildlifeAttackCue::Telegraph)
+    {
+        UE_LOG(LogTemp, Display, TEXT("Peat Husk verification client observed replicated telegraph."));
+    }
+#endif
     BuildArchetypePresentation();
 }
 

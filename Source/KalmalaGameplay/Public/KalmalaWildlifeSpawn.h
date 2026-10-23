@@ -103,6 +103,11 @@ public:
     const FString& GetPersistentSpawnId() const { return PersistentSpawnId; }
 #if !UE_BUILD_SHIPPING
     int32 GetMosquitoAcceptedBiteCountForVerification() const { return MosquitoAcceptedBiteCountForVerification; }
+    EKalmalaWildlifeAttackCue GetPeatHuskAttackCueForVerification() const
+    {
+        return static_cast<EKalmalaWildlifeAttackCue>(PeatHuskAttackCue);
+    }
+    int32 GetPeatHuskSweepHitCountForVerification() const { return PeatHuskSweepHitCountForVerification; }
 #endif
     static EKalmalaWildlifeEcology GetEcologyForNiche(FName CreatureNicheId);
     static float GetEcologicalFleeDistance(FName CreatureNicheId);
@@ -399,6 +404,9 @@ private:
 
     UPROPERTY(ReplicatedUsing = OnRep_PeatHuskAttackCue)
     uint8 PeatHuskAttackCue = static_cast<uint8>(EKalmalaWildlifeAttackCue::None);
+#if !UE_BUILD_SHIPPING
+    int32 PeatHuskSweepHitCountForVerification = 0;
+#endif
 
     UFUNCTION()
     void OnRep_Defeated();

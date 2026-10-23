@@ -113,6 +113,7 @@ private:
     void DriveRainVerticalSliceTest();
     void DriveCombatPeerTest();
     void DriveMosquitoPeerTest();
+    void DrivePeatHuskPeerTest();
     void DriveDiscoveryPeerTest();
     void DriveM9ExplorationRewardPeerTest();
     void RunM9Schema2CandidateWorldPeerTest();
@@ -162,6 +163,17 @@ private:
     float MosquitoPeerTestTorchStartedTime = 0.0f;
     bool bMosquitoPeerTestHeldTorchVerified = false;
     bool bMosquitoPeerTestUnlitCampfireVerified = false;
+    int32 PeatHuskPeerTestStage = 0;
+    float PeatHuskPeerTestStageTime = 0.0f;
+    float PeatHuskPeerTestStartingHealth = 0.0f;
+    float PeatHuskPeerTestStartDistance = 0.0f;
+    bool bPeatHuskPeerTestSawTelegraph = false;
+    bool bPeatHuskPeerTestSawRecovery = false;
+    FIntPoint PeatHuskPeerTestSpatialKey = FIntPoint::ZeroValue;
+    FString PeatHuskPeerTestSpawnId;
+    TWeakObjectPtr<class AKalmalaCharacter> PeatHuskPeerTestHost;
+    TArray<TWeakObjectPtr<class AKalmalaCharacter>> PeatHuskPeerTestObservers;
+    TWeakObjectPtr<class AKalmalaWildlifeSpawn> PeatHuskPeerTestTarget;
     int32 DiscoveryPeerTestStage = 0;
     float DiscoveryPeerTestStageTime = 0.0f;
     bool bDiscoveryPeerTestLogged = false;

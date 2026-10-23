@@ -2554,6 +2554,16 @@ hard-spawn exclusion, sweep damage, inventory-capacity, reconnect/restart or
 relevant-peer acceptance. No Unreal build or automation
 execution ran in this normal increment; combined A8a/A8b I4 remains required.
 
+After building the Editor target, run
+`Scripts/Tests/Combat/Verify-PeatHuskPeer.ps1 -WorldSeed 445`. Its
+Development-only fixture selects and activates a normal generated Peat Husk
+descriptor at least 150 m from the generated player start, moves the listen
+host into the reviewed sweep, and requires the server telegraph/recovery and
+accepted damage. Both remote clients must observe the replicated telegraph.
+The runner does not repeat Rat's shared reward, persistence, or combat-state
+acceptance. The new fixture is not compiled or live-verified until the focused
+I4 peer run.
+
 ## Freezing Tundra Wolf pack contract regression
 
 After an editor build, run

@@ -2513,6 +2513,288 @@ void AKalmalaGameMode::DriveMosquitoPeerTest()
 #endif
 }
 
+void AKalmalaGameMode::DrivePeatHuskPeerTest()
+{
+#if !UE_BUILD_SHIPPING
+    if (!FParse::Param(FCommandLine::Get(), TEXT("KalmalaPeatHuskPeerTest"))
+        || !HasAuthority() || GetWorld() == nullptr || !WorldGenerationConfig.IsValid()
+        || PeatHuskPeerTestStage >= 99)
+    {
+        return;
+    }
+
+    const float Now = GetWorld()->GetTimeSeconds();
+    if (PeatHuskPeerTestStage == 0)
+    {
+        APlayerController* HostController = GetWorld()->GetFirstPlayerController();
+        AKalmalaCharacter* Host = HostController != nullptr
+            ? Cast<AKalmalaCharacter>(HostController->GetPawn()) : nullptr;
+        if (Host == nullptr || GeneratedPlayerStart == nullptr)
+        {
+            if (Now > 90.0f)
+            {
+                UE_LOG(LogTemp, Error, TEXT("Peat Husk verification FAILED: generated start or listen host was unavailable."));
+                PeatHuskPeerTestStage = 99;
+            }
+            return;
+        }
+
+        PeatHuskPeerTestObservers.Reset();
+        for (TActorIterator<AKalmalaCharacter> It(GetWorld()); It; ++It)
+        {
+            AKalmalaCharacter* Candidate = *It;
+            if (Candidate == Host || Candidate->GetPlayerState() == nullptr) continue;
+            PeatHuskPeerTestObservers.Add(Candidate);
+        }
+        if (PeatHuskPeerTestObservers.Num() < 2)
+        {
+            if (Now > 90.0f)
+            {
+                UE_LOG(LogTemp, Error, TEXT("Peat Husk verification FAILED: two observing client peers did not join."));
+                PeatHuskPeerTestStage = 99;
+            }
+            return;
+        }
+
+        const FVector StartLocation = GeneratedPlayerStart->GetActorLocation();
+        const FIntPoint StartKey = FKalmalaWorldPopulationLayout::GetSpatialKey(FVector2D(StartLocation));
+        bool bFoundCandidate = false;
+        for (int32 Radius = 0; Radius <= 64 && !bFoundCandidate; ++Radius)
+        {
+            for (int32 OffsetY = -Radius; OffsetY <= Radius && !bFoundCandidate; ++OffsetY)
+            {
+                for (int32 OffsetX = -Radius; OffsetX <= Radius; ++OffsetX)
+                {
+                    if (Radius > 0 && FMath::Abs(OffsetX) != Radius && FMath::Abs(OffsetY) != Radius) continue;
+                    const FIntPoint CandidateKey = StartKey + FIntPoint(OffsetX, OffsetY);
+                    const TArray<FKalmalaWorldPopulationSpawn> Descriptors =
+                        FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(
+                            WorldGenerationConfig, CandidateKey, EKalmalaWorldPopulationKind::Wildlife);
+                    for (const FKalmalaWorldPopulationSpawn& Descriptor : Descriptors)
+                    {
+                        if (!KalmalaGameMode::IsWildlifeSpawnOfArchetype(
+                                WorldGenerationConfig, Descriptor, EKalmalaWildlifeArchetype::PeatHusk))
+                        {
+                            continue;
+                        }
+                        const float StartDistance = FVector::Dist2D(Descriptor.Location, StartLocation);
+                        if (!AKalmalaWildlifeSpawn::IsHardEnemySpawnAllowedByStart(
+                                true, true, StartDistance))
+                        {
+                            continue;
+                        }
+                        const FString PersistentSpawnId =
+                            FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Descriptor);
+                        if (PersistentSpawnId.IsEmpty()
+                            || (PopulationSaveGame != nullptr && PopulationSaveGame->IsDefeated(PersistentSpawnId)))
+                        {
+                            continue;
+                        }
+
+                        PeatHuskPeerTestSpatialKey = CandidateKey;
+                        PeatHuskPeerTestSpawnId = PersistentSpawnId;
+                        PeatHuskPeerTestStartDistance = StartDistance;
+                        bFoundCandidate = true;
+                        break;
+                    }
+                }
+            }
+        }
+        if (!bFoundCandidate)
+        {
+            UE_LOG(LogTemp, Error,
+                TEXT("Peat Husk verification FAILED: no undefeated generated Peat Husk descriptor beyond the 150 m start exclusion was found within 64 spatial keys."));
+            PeatHuskPeerTestStage = 99;
+            return;
+        }
+
+        if (!ActivePopulationSpatialKeys.Contains(PeatHuskPeerTestSpatialKey)
+            && ActivePopulationSpatialKeys.Num() >= KalmalaGameMode::MaxActivePopulationSpatialKeys)
+        {
+            UE_LOG(LogTemp, Error,
+                TEXT("Peat Husk verification FAILED: the bounded active population-key budget is full before fixture activation."));
+            PeatHuskPeerTestStage = 99;
+            return;
+        }
+        ActivatePopulationKey(PeatHuskPeerTestSpatialKey);
+        PeatHuskPeerTestHost = Host;
+        PeatHuskPeerTestStage = 1;
+        PeatHuskPeerTestStageTime = Now;
+        return;
+    }
+
+    AKalmalaCharacter* Host = PeatHuskPeerTestHost.Get();
+    if (!IsValid(Host))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Peat Husk verification FAILED: the listen host disappeared."));
+        PeatHuskPeerTestStage = 99;
+        return;
+    }
+
+    if (PeatHuskPeerTestStage == 1)
+    {
+        AKalmalaWildlifeSpawn* Target = nullptr;
+        for (TActorIterator<AKalmalaWildlifeSpawn> It(GetWorld()); It; ++It)
+        {
+            if ((*It)->GetPersistentSpawnId() == PeatHuskPeerTestSpawnId)
+            {
+                Target = *It;
+                break;
+            }
+        }
+        if (Target == nullptr)
+        {
+            if (Now - PeatHuskPeerTestStageTime > 15.0f)
+            {
+                UE_LOG(LogTemp, Error,
+                    TEXT("Peat Husk verification FAILED: the normal generated descriptor did not materialize after bounded activation. SpawnId=%s."),
+                    *PeatHuskPeerTestSpawnId);
+                PeatHuskPeerTestStage = 99;
+            }
+            return;
+        }
+        if (Target->GetArchetype() != EKalmalaWildlifeArchetype::PeatHusk
+            || !FMath::IsNearlyEqual(Target->GetHealth(), 300.0f, 0.1f)
+            || PeatHuskPeerTestStartDistance < AKalmalaWildlifeSpawn::HardEnemyStartExclusionCentimetres)
+        {
+            UE_LOG(LogTemp, Error,
+                TEXT("Peat Husk verification FAILED: generated spawn profile or start exclusion was incorrect. Archetype=%d Health=%.1f StartDistance=%.1f."),
+                static_cast<int32>(Target->GetArchetype()), Target->GetHealth(), PeatHuskPeerTestStartDistance);
+            PeatHuskPeerTestStage = 99;
+            return;
+        }
+
+        const auto PlaceOnTerrain = [this](AKalmalaCharacter* Character, const FVector& DesiredLocation)
+        {
+            if (!IsValid(Character)) return;
+            ActivateTerrainPatchNeighborhood(FVector2D(DesiredLocation));
+            FVector GroundedLocation = DesiredLocation;
+            GroundedLocation.Z = FKalmalaTerrainHeightSampler::SampleHeight(
+                WorldGenerationConfig, FVector2D(DesiredLocation))
+                + Character->GetSimpleCollisionHalfHeight() + 1.0f;
+            Character->SetActorLocation(GroundedLocation, false);
+            Character->ForceNetUpdate();
+            if (UCharacterMovementComponent* Movement = Character->GetCharacterMovement())
+            {
+                Movement->StopMovementImmediately();
+                Movement->DisableMovement();
+            }
+        };
+
+        PeatHuskPeerTestStartingHealth = Host->GetHealth();
+        if (!FMath::IsFinite(PeatHuskPeerTestStartingHealth) || PeatHuskPeerTestStartingHealth <= 1.0f)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Peat Husk verification FAILED: listen host cannot receive the test sweep at health %.1f."),
+                PeatHuskPeerTestStartingHealth);
+            PeatHuskPeerTestStage = 99;
+            return;
+        }
+
+        const FVector TargetLocation = Target->GetActorLocation();
+        const auto IsDryMossyMirePoint = [this](const FVector2D& Position)
+        {
+            const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(
+                FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, Position));
+            const bool bWater = FKalmalaOceanSampler::Sample(WorldGenerationConfig, Position).IsWater()
+                || FKalmalaShimmeringLakeSampler::IsWater(WorldGenerationConfig, Position);
+            return AKalmalaWildlifeSpawn::IsMossyMireSpawnHabitatAllowed(Biome, bWater);
+        };
+        FVector HostDesiredLocation = TargetLocation;
+        bool bFoundDryApproach = false;
+        for (int32 Direction = 0; Direction < 16 && !bFoundDryApproach; ++Direction)
+        {
+            const float Angle = FMath::DegreesToRadians(Direction * 22.5f);
+            const FVector Offset(FMath::Cos(Angle) * 180.0f, FMath::Sin(Angle) * 180.0f, 0.0f);
+            bool bPathIsDry = true;
+            for (int32 SampleIndex = 1; SampleIndex <= 3; ++SampleIndex)
+            {
+                const FVector2D SamplePosition = FVector2D(TargetLocation + Offset * (SampleIndex / 3.0f));
+                if (!IsDryMossyMirePoint(SamplePosition))
+                {
+                    bPathIsDry = false;
+                    break;
+                }
+            }
+            if (bPathIsDry)
+            {
+                HostDesiredLocation = TargetLocation + Offset;
+                bFoundDryApproach = true;
+            }
+        }
+        if (!bFoundDryApproach)
+        {
+            UE_LOG(LogTemp, Error,
+                TEXT("Peat Husk verification FAILED: generated spawn had no dry 180 cm approach for the live sweep."));
+            PeatHuskPeerTestStage = 99;
+            return;
+        }
+        PlaceOnTerrain(Host, HostDesiredLocation);
+        int32 ObserverIndex = 0;
+        for (const TWeakObjectPtr<AKalmalaCharacter>& ObserverWeak : PeatHuskPeerTestObservers)
+        {
+            AKalmalaCharacter* Observer = ObserverWeak.Get();
+            if (!IsValid(Observer)) continue;
+            ++ObserverIndex;
+            PlaceOnTerrain(Observer,
+                TargetLocation + FVector(0.0f, 1000.0f * ObserverIndex, 0.0f));
+        }
+        if (ObserverIndex < 2)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Peat Husk verification FAILED: an observing client disappeared before the attack."));
+            PeatHuskPeerTestStage = 99;
+            return;
+        }
+
+        Target->SetActorTickEnabled(true);
+        Target->ForceNetUpdate();
+        PeatHuskPeerTestTarget = Target;
+        PeatHuskPeerTestStage = 2;
+        PeatHuskPeerTestStageTime = Now;
+        UE_LOG(LogTemp, Display,
+            TEXT("Peat Husk verification fixture armed: Seed=%llu SpawnId=%s StartDistanceCm=%.1f HostHealth=%.1f Observers=2."),
+            static_cast<unsigned long long>(WorldGenerationConfig.WorldSeed), *PeatHuskPeerTestSpawnId,
+            PeatHuskPeerTestStartDistance, PeatHuskPeerTestStartingHealth);
+        return;
+    }
+
+    if (PeatHuskPeerTestStage == 2)
+    {
+        AKalmalaWildlifeSpawn* Target = PeatHuskPeerTestTarget.Get();
+        if (!IsValid(Target))
+        {
+            UE_LOG(LogTemp, Error, TEXT("Peat Husk verification FAILED: generated target disappeared before its sweep."));
+            PeatHuskPeerTestStage = 99;
+            return;
+        }
+
+        const EKalmalaWildlifeAttackCue Cue = Target->GetPeatHuskAttackCueForVerification();
+        PeatHuskPeerTestSawTelegraph |= Cue == EKalmalaWildlifeAttackCue::Telegraph;
+        PeatHuskPeerTestSawRecovery |= Cue == EKalmalaWildlifeAttackCue::Recovery;
+        const int32 SweepHits = Target->GetPeatHuskSweepHitCountForVerification();
+        const float HostDamage = PeatHuskPeerTestStartingHealth - Host->GetHealth();
+        if (PeatHuskPeerTestSawTelegraph && PeatHuskPeerTestSawRecovery
+            && SweepHits > 0 && HostDamage > 0.0f)
+        {
+            UE_LOG(LogTemp, Display,
+                TEXT("Peat Husk verification server: Passed=1 Seed=%llu StartDistanceCm=%.1f Telegraph=1 Recovery=1 SweepHits=%d HostDamage=%.1f Observers=2 SpawnId=%s"),
+                static_cast<unsigned long long>(WorldGenerationConfig.WorldSeed), PeatHuskPeerTestStartDistance,
+                SweepHits, HostDamage, *PeatHuskPeerTestSpawnId);
+            PeatHuskPeerTestStage = 99;
+            return;
+        }
+
+        if (Now - PeatHuskPeerTestStageTime > 18.0f)
+        {
+            UE_LOG(LogTemp, Error,
+                TEXT("Peat Husk verification FAILED: generated sweep did not complete. Telegraph=%d Recovery=%d SweepHits=%d HostDamage=%.1f Cue=%d."),
+                PeatHuskPeerTestSawTelegraph, PeatHuskPeerTestSawRecovery, SweepHits, HostDamage,
+                static_cast<int32>(Cue));
+            PeatHuskPeerTestStage = 99;
+        }
+    }
+#endif
+}
+
 void AKalmalaGameMode::DriveDiscoveryPeerTest()
 {
 #if !UE_BUILD_SHIPPING
@@ -2880,6 +3162,7 @@ void AKalmalaGameMode::Tick(const float DeltaSeconds)
     DriveRainVerticalSliceTest();
     DriveCombatPeerTest();
     DriveMosquitoPeerTest();
+    DrivePeatHuskPeerTest();
     DriveDiscoveryPeerTest();
     DriveM9ExplorationRewardPeerTest();
     DriveOceanTravelFeedbackTest();
