@@ -6632,3 +6632,9 @@
 ## A9 independent worker — Tourmaline acquisition (2026-10-23)
 
 - Enabled Tourmaline's 2% Thunder Mountains slate-slot replacement, retaining the existing candidate position/identity/budget and requiring Stone Pick or better. Supplemental generic Stone outcrops and other biomes are excluded. Uses the shared three-hit/smash/single-loose-gem persistence path. Files: GemstoneContract.h, BACKLOG/PROGRESS. `Validate-UIIcons.ps1 -Category Catalogue -Id Tourmaline` and git diff --check passed; source exclusion/tier/path inspection passed. Full build/automation/live I5 checks deferred. Next: Star Opal. Main unchanged.
+
+
+## A9 independent worker — Storm Sapphire acquisition (2026-10-23)
+
+- Enabled Storm Sapphire's 1/50 Thunder Mountains world-treasure generation entry, quantity one; other biomes and player storage remain excluded. Immutable saved loot/complete grant validation and server-owned claims are shared with Garnet/Aquamarine. Files: GemstoneContract.h, BACKLOG/PROGRESS. `Validate-UIIcons.ps1 -Category Catalogue -Id StormSapphire` and git diff --check passed; biome/rate/path inspection passed. Full build/automation/live I5 checks deferred.
+- Earlier Star Opal source is genuinely blocked on a factual prerequisite: `tundra-frost-salt-deposit` has a mining/loot contract and fixtures but no generation assignment anywhere in Source. Tundra descriptors select frostmoss, which is explicitly excluded. Requested approval for a bounded real-deposit pass; did not invent or enable an unsupported source. Next unblocked work: Dusk Diamond source preparation, retaining I4 acceptance. Main untouched.
