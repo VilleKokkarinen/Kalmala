@@ -6546,3 +6546,13 @@
 - **Known limitations / remaining scope:** The new C++ fixture has not yet been compiled or exercised live; the build must confirm the harness compiles and the generated encounter reaches its authored effect. A9 remains gated.
 - **Next eligible task:** Build the affected Editor target and run `Scripts/Tests/Combat/Verify-HornedGoatPeer.ps1 -WorldSeed 445`; require server damage/push/stagger and matching telegraphs on both clients.
 - **Integration state:** Work ran directly on `master`; no worktree handoff synchronization was needed. Current run time: `2026-10-23 14:16:20 UTC`.
+
+
+## A9 independent worker — accessory slot review (2026-10-23)
+
+- User-authorized isolated parallel A9 work on `codex/a9-runtime`; A8/I4 worker remains independent on master. The user assignment overrides the default single-increment stop and A9 ordering, but does not pass I4/I5 or approve undocumented values.
+- Audited the merged 71fa8060 data/icon batch, existing Necklace/Ring slots, UI actions, owner-only replication, GUID replacement/return, capacity guards and non-wearing accessory Armor/cost effects. Added `Kalmala.Gameplay.Inventory.AccessorySlots` covering both slots, replacement identity, duplicate slot/GUID rejection, full-pack return and ordinary unequip.
+- Files: BACKLOG.md, PROGRESS.md, Source/KalmalaGameplay/Private/Tests/KalmalaInventoryEquipmentTest.cpp.
+- Lightweight checks: careful transaction/test inspection and git diff --check. Full build, automation execution, peer and milestone verification deferred; no runtime pass claimed. Networking remains existing server-owned transactions and owner-private gear; no RPC/schema change.
+- Review A9 remains open because source rates and three-hit tuning are explicitly unapproved in the source document; approval requested. Runtime maximum-stat/recovery work can proceed independently using the already authorized data.
+- Next: equipped flat maxima and additive regeneration/healing, then approved acquisition sources. Main handoff synchronization deferred while master is active; only conflict-free A9 hunks will integrate at a clean boundary.
