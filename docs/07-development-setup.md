@@ -5849,9 +5849,17 @@ cannot use melee. The crosshair source anchor is included in
 runtime mapping are checked with
 `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id HornBow`.
 
-The new C++ assertions remain uncompiled and unexecuted in this normal child.
-Combined A8a/A8b I4, including the item suite and peer/rendered acceptance, is
-still required before A9.
+On 2026-10-23, the incremental `KalmalaEditor Win64 Development` build was
+up to date. `Kalmala.Gameplay.Inventory.TwoHanded`,
+`Kalmala.Gameplay.Combat.BowDrawAndArrows`,
+`Kalmala.Gameplay.Combat.BasicAttack.AuthorityAndCooldown`, and
+`Kalmala.Gameplay.Combat.AllItemSwings` all passed (`Result={Success}`, Editor
+exit 0). Evidence: `C:/Users/Ville/AppData/Local/Temp/a8hb1/tests.log`; build:
+`C:/Users/Ville/AppData/Local/Temp/a8hb1/build.log`. Unreal startup emitted two
+unified-error self-test `Condition failed` diagnostics before the test queue;
+the four focused tests completed successfully. These editor automations do not
+replace live peer crafting, item delivery, or rendered presentation acceptance.
+Combined A8a/A8b I4 remains required before A9.
 
 ## A8b Thunder Maul item and Lightning damage — 2026-10-22
 
