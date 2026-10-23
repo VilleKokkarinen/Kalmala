@@ -142,6 +142,7 @@ private:
     TWeakObjectPtr<class AKalmalaWildlifeSpawn> CombatPeerTestHerdMate;
     bool bCombatPeerTestHerdAlertObserved = false;
     bool bCombatPeerTestViperPoisonObserved = false;
+    bool bCombatPeerTestGiantSnakeBiteObserved = false;
     int32 DiscoveryPeerTestStage = 0;
     float DiscoveryPeerTestStageTime = 0.0f;
     bool bDiscoveryPeerTestLogged = false;

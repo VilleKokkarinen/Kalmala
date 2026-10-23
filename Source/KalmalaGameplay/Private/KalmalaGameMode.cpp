@@ -1191,13 +1191,16 @@ void AKalmalaGameMode::DriveCombatPeerTest()
     const bool bMoonBearPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaMoonBearPeerTest"));
     const bool bRatPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaRatPeerTest"));
     const bool bViperPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaViperPeerTest"));
+    const bool bGiantSnakePeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaGiantSnakePeerTest"));
     const bool bElderwoodRewardPeerTest = bBadgerPeerTest || bMoonBearPeerTest;
-    const bool bPendingRewardPeerTest = bElderwoodRewardPeerTest || bRatPeerTest || bViperPeerTest;
-    const bool bTwoItemRewardPeerTest = bRatPeerTest || bViperPeerTest;
+    const bool bPendingRewardPeerTest = bElderwoodRewardPeerTest || bRatPeerTest || bViperPeerTest || bGiantSnakePeerTest;
+    const bool bTwoItemRewardPeerTest = bRatPeerTest || bViperPeerTest || bGiantSnakePeerTest;
+    const bool bShoreSnakePeerTest = bViperPeerTest || bGiantSnakePeerTest;
     const uint32 ExpectedAttackCount = bRatPeerTest ? 1u : 4u;
     if ((!bCombatPeerTest && !bMirelingPeerTest && !bBoarPeerTest && !bDeerPeerTest && !bPendingRewardPeerTest)
         || (bBadgerPeerTest && bMoonBearPeerTest)
-        || (bTwoItemRewardPeerTest && (bCombatPeerTest || bMirelingPeerTest || bBoarPeerTest || bDeerPeerTest || bElderwoodRewardPeerTest || (bRatPeerTest && bViperPeerTest)))
+        || (bTwoItemRewardPeerTest && (bCombatPeerTest || bMirelingPeerTest || bBoarPeerTest || bDeerPeerTest || bElderwoodRewardPeerTest
+            || (bRatPeerTest && bViperPeerTest) || (bRatPeerTest && bGiantSnakePeerTest) || (bViperPeerTest && bGiantSnakePeerTest)))
         || GetWorld() == nullptr)
     {
         return;
@@ -1205,6 +1208,7 @@ void AKalmalaGameMode::DriveCombatPeerTest()
 
     const TCHAR* VerificationName = bRatPeerTest ? TEXT("Rat")
         : bViperPeerTest ? TEXT("Viper")
+        : bGiantSnakePeerTest ? TEXT("Giant Snake")
         : bBadgerPeerTest ? TEXT("Badger")
         : bMoonBearPeerTest ? TEXT("Moon Bear")
         : bBoarPeerTest ? TEXT("Boar")
@@ -1212,6 +1216,7 @@ void AKalmalaGameMode::DriveCombatPeerTest()
         : bMirelingPeerTest ? TEXT("Mireling") : TEXT("Combat");
     const EKalmalaWildlifeArchetype ExpectedArchetype = bRatPeerTest ? EKalmalaWildlifeArchetype::Rat
         : bViperPeerTest ? EKalmalaWildlifeArchetype::Viper
+        : bGiantSnakePeerTest ? EKalmalaWildlifeArchetype::GiantSnake
         : bBadgerPeerTest ? EKalmalaWildlifeArchetype::Badger
         : bMoonBearPeerTest ? EKalmalaWildlifeArchetype::MoonBear
         : bBoarPeerTest ? EKalmalaWildlifeArchetype::Boar
@@ -1262,7 +1267,7 @@ void AKalmalaGameMode::DriveCombatPeerTest()
             CombatPeerTestStage = 99;
             return;
         }
-        if (bRatPeerTest || bViperPeerTest)
+        if (bRatPeerTest || bViperPeerTest || bGiantSnakePeerTest)
         {
             for (TActorIterator<AKalmalaCharacter> It(GetWorld()); It; ++It)
             {
@@ -1286,8 +1291,8 @@ void AKalmalaGameMode::DriveCombatPeerTest()
             && !Descriptors.ContainsByPredicate([this, ExpectedArchetype](const FKalmalaWorldPopulationSpawn& Descriptor)
             { return KalmalaGameMode::IsWildlifeSpawnOfArchetype(WorldGenerationConfig, Descriptor, ExpectedArchetype); }))
         {
-            // Boar and Deer use the player's adjacent-key set. Mireling, Rat, Viper and
-            // the Elderwood species search a larger bounded ring for a biome-valid descriptor
+            // Boar and Deer use the player's adjacent-key set. Mireling, Rat, Viper,
+            // Giant Snake and the Elderwood species search a larger bounded ring for a biome-valid descriptor
             // before the fixture activates exactly one population key.
             const FIntPoint BaseKey = SpatialKey;
             bool bFoundArchetypeDescriptor = false;
@@ -1389,6 +1394,7 @@ void AKalmalaGameMode::DriveCombatPeerTest()
                     || Definition.ItemId == TEXT("BadgerFur") || Definition.ItemId == TEXT("BadgerMeat")
                     || Definition.ItemId == TEXT("RatTail")
                     || Definition.ItemId == TEXT("ViperFang")
+                    || Definition.ItemId == TEXT("GiantScale")
                     || Definition.ItemId.ToString().EndsWith(TEXT("Kit"))
                     || Catalogue->FindBuildable(Definition.ItemId) != nullptr
                     || Inventory->GetQuantity(Definition.ItemId) > 0)
@@ -1425,7 +1431,7 @@ void AKalmalaGameMode::DriveCombatPeerTest()
             Character->SetActorLocation(GroundedLocation, false);
             Character->ForceNetUpdate();
         };
-        const auto IsViperDryPosition = [this](const FVector2D& Position)
+        const auto IsShimmeringLakesDryPosition = [this](const FVector2D& Position)
         {
             return FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, Position))
                     == EKalmalaBiome::ShimmeringLakes
@@ -1433,11 +1439,11 @@ void AKalmalaGameMode::DriveCombatPeerTest()
                 && !FKalmalaShimmeringLakeSampler::IsWater(WorldGenerationConfig, Position);
         };
         FVector AttackerLocation = CombatPeerTestTarget->GetActorLocation() - Forward * InitialEncounterDistance;
-        if (bViperPeerTest)
+        if (bShoreSnakePeerTest)
         {
-            const FVector ViperOrigin = CombatPeerTestTarget->GetActorLocation();
+            const FVector SnakeOrigin = CombatPeerTestTarget->GetActorLocation();
             bool bFoundDryPath = false;
-            const float Radius = 150.0f;
+            const float Radius = bGiantSnakePeerTest ? 480.0f : 150.0f;
             for (int32 Direction = 0; Direction < 36 && !bFoundDryPath; ++Direction)
             {
                 const float Angle = FMath::DegreesToRadians(Direction * 10.0f);
@@ -1446,25 +1452,25 @@ void AKalmalaGameMode::DriveCombatPeerTest()
                 bool bPathIsDry = true;
                 for (int32 SampleIndex = 1; SampleIndex <= Samples; ++SampleIndex)
                 {
-                    const FVector2D SamplePosition = FVector2D(ViperOrigin) + Offset * (static_cast<float>(SampleIndex) / Samples);
-                    if (!IsViperDryPosition(SamplePosition))
+                    const FVector2D SamplePosition = FVector2D(SnakeOrigin) + Offset * (static_cast<float>(SampleIndex) / Samples);
+                    if (!IsShimmeringLakesDryPosition(SamplePosition))
                     {
                         bPathIsDry = false;
                         break;
                     }
                 }
                 if (!bPathIsDry) continue;
-                AttackerLocation = ViperOrigin + FVector(Offset.X, Offset.Y, 0.0f);
+                AttackerLocation = SnakeOrigin + FVector(Offset.X, Offset.Y, 0.0f);
                 bFoundDryPath = true;
             }
             if (!bFoundDryPath)
             {
-                UE_LOG(LogTemp, Error, TEXT("Viper verification FAILED: no dry Shimmering Lakes approach within the bite reach."));
+                UE_LOG(LogTemp, Error, TEXT("%s verification FAILED: no dry Shimmering Lakes approach within the snake lunge reach."), VerificationName);
                 CombatPeerTestStage = 99;
                 return;
             }
         }
-        if (bRatPeerTest || bViperPeerTest)
+        if (bRatPeerTest || bShoreSnakePeerTest)
         {
             PlacePeerOnTerrain(Attacker, AttackerLocation);
         }
@@ -1472,7 +1478,7 @@ void AKalmalaGameMode::DriveCombatPeerTest()
         {
             Attacker->SetActorLocation(AttackerLocation, false);
         }
-        if (bViperPeerTest)
+        if (bShoreSnakePeerTest)
         {
             Attacker->SetActorRotation((CombatPeerTestTarget->GetActorLocation() - Attacker->GetActorLocation()).Rotation());
             Attacker->GetCharacterMovement()->StopMovementImmediately();
@@ -1488,7 +1494,7 @@ void AKalmalaGameMode::DriveCombatPeerTest()
             CombatPeerTestTarget->SetActorTickInterval(0.0f);
         }
         const FVector RemoteLocation = CombatPeerTestTarget->GetActorLocation() + FVector(0.0f, 1000.0f, 0.0f);
-        if (bRatPeerTest || bViperPeerTest)
+        if (bRatPeerTest || bShoreSnakePeerTest)
         {
             PlacePeerOnTerrain(Remote, RemoteLocation);
         }
@@ -1496,7 +1502,7 @@ void AKalmalaGameMode::DriveCombatPeerTest()
         {
             Remote->SetActorLocation(RemoteLocation, false);
         }
-        if (bRatPeerTest || bViperPeerTest)
+        if (bRatPeerTest || bShoreSnakePeerTest)
         {
             int32 ObserverOffset = 2000;
             for (TActorIterator<AKalmalaCharacter> It(GetWorld()); It; ++It)
@@ -1531,6 +1537,20 @@ void AKalmalaGameMode::DriveCombatPeerTest()
                 return;
             }
             UE_LOG(LogTemp, Display, TEXT("Viper verification prepared a full-health host with prior poison expired."));
+        }
+        if (bGiantSnakePeerTest)
+        {
+            for (int32 HealAttempt = 0; HealAttempt < 4 && Attacker->GetHealth() < 100.0f; ++HealAttempt)
+            {
+                if (!Attacker->RestoreHealthFromDraughtFromServer(30.0f)) break;
+            }
+            if (!FMath::IsNearlyEqual(Attacker->GetHealth(), 100.0f))
+            {
+                UE_LOG(LogTemp, Error, TEXT("Giant Snake verification FAILED: host could not be reset to full health before the Stab bite. Health=%.1f."), Attacker->GetHealth());
+                CombatPeerTestStage = 99;
+                return;
+            }
+            UE_LOG(LogTemp, Display, TEXT("Giant Snake verification prepared a full-health host for the shoreline lunge."));
         }
         if (bDeerPeerTest)
         {
@@ -1600,16 +1620,26 @@ void AKalmalaGameMode::DriveCombatPeerTest()
             UE_LOG(LogTemp, Display, TEXT("Viper verification fixture paused the target after its first weak-poison bite."));
         }
     }
-    const auto PlacePeerTestTargetInFront = [this, Attacker, Target, bRatPeerTest, bViperPeerTest](const float Distance)
+    if (bGiantSnakePeerTest && CombatPeerTestStage >= 1 && CombatPeerTestStage <= 2
+        && Attacker->GetHealth() < 100.0f && !bCombatPeerTestGiantSnakeBiteObserved)
+    {
+        bCombatPeerTestGiantSnakeBiteObserved = true;
+        if (Target->IsActorTickEnabled())
+        {
+            Target->SetActorTickEnabled(false);
+            UE_LOG(LogTemp, Display, TEXT("Giant Snake verification fixture paused the target after its first accepted server Stab bite."));
+        }
+    }
+    const auto PlacePeerTestTargetInFront = [this, Attacker, Target, bRatPeerTest, bShoreSnakePeerTest](const float Distance)
     {
         FVector TargetLocation = Attacker->GetActorLocation()
             + Attacker->GetActorForwardVector().GetSafeNormal2D() * Distance;
-        if (bRatPeerTest || bViperPeerTest)
+        if (bRatPeerTest || bShoreSnakePeerTest)
         {
             const FVector2D TargetPosition(TargetLocation);
             TargetLocation.Z = FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, TargetPosition);
         }
-        if (bViperPeerTest)
+        if (bShoreSnakePeerTest)
         {
             const FVector2D TargetPosition(TargetLocation);
             const bool bDryShore = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, TargetPosition))
@@ -1637,7 +1667,8 @@ void AKalmalaGameMode::DriveCombatPeerTest()
         bCombatPeerTestViperPoisonObserved |= bViperPeerTest && AttackerStatuses != nullptr
             && AttackerStatuses->HasStatus(UKalmalaPlayerStatusComponent::WeakPoisonStatusId);
         const bool bEncounterPressureMissing = ((bMirelingPeerTest || bBoarPeerTest || bRatPeerTest) && !bEncounterAppliedPressure)
-            || (bViperPeerTest && !bCombatPeerTestViperPoisonObserved);
+            || (bViperPeerTest && !bCombatPeerTestViperPoisonObserved)
+            || (bGiantSnakePeerTest && !bCombatPeerTestGiantSnakeBiteObserved);
         if (bTargetMutated || bEncounterPressureMissing)
         {
             if (Now - CombatPeerTestStageTime < 8.0f)
@@ -1657,7 +1688,7 @@ void AKalmalaGameMode::DriveCombatPeerTest()
     {
         if (!PlacePeerTestTargetInFront(bRatPeerTest ? 50.0f : 150.0f))
         {
-            UE_LOG(LogTemp, Error, TEXT("Viper verification FAILED: could not keep the target on dry Shimmering Lakes shore."));
+            UE_LOG(LogTemp, Error, TEXT("%s verification FAILED: could not keep the target on dry Shimmering Lakes shore."), VerificationName);
             CombatPeerTestStage = 99;
             return;
         }
@@ -1673,7 +1704,7 @@ void AKalmalaGameMode::DriveCombatPeerTest()
     {
         if (!PlacePeerTestTargetInFront(bRatPeerTest ? 50.0f : 150.0f))
         {
-            UE_LOG(LogTemp, Error, TEXT("Viper verification FAILED: windup target left the dry Shimmering Lakes shore."));
+            UE_LOG(LogTemp, Error, TEXT("%s verification FAILED: windup target left the dry Shimmering Lakes shore."), VerificationName);
             CombatPeerTestStage = 99;
             return;
         }
@@ -1691,9 +1722,10 @@ void AKalmalaGameMode::DriveCombatPeerTest()
         UKalmalaInventoryComponent* RemoteInventory = Remote->GetInventoryComponent();
         const FString ClaimId = bRatPeerTest ? Target->GetPersistentSpawnId()
             : (bViperPeerTest ? UKalmalaWorldPopulationSaveGame::MakeViperPendingRewardClaimId(Target->GetPersistentSpawnId())
+            : (bGiantSnakePeerTest ? UKalmalaWorldPopulationSaveGame::MakeGiantSnakePendingRewardClaimId(Target->GetPersistentSpawnId())
             : (bBadgerPeerTest
                 ? UKalmalaWorldPopulationSaveGame::MakeBadgerPendingRewardClaimId(Target->GetPersistentSpawnId())
-                : UKalmalaWorldPopulationSaveGame::MakeMoonBearPendingRewardClaimId(Target->GetPersistentSpawnId())));
+                : UKalmalaWorldPopulationSaveGame::MakeMoonBearPendingRewardClaimId(Target->GetPersistentSpawnId()))));
         const FString OwnerIdentity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(Attacker->GetPlayerState());
         const TArray<FKalmalaPendingWildlifeReward> PendingRewards = PopulationSaveGame
             ? PopulationSaveGame->GetPendingWildlifeRewards() : TArray<FKalmalaPendingWildlifeReward>();
@@ -1706,14 +1738,17 @@ void AKalmalaGameMode::DriveCombatPeerTest()
         const int32 AttackerBone = AttackerInventory ? AttackerInventory->GetQuantity(TEXT("BoneFragment")) : 0;
         const int32 RatTail = AttackerInventory ? AttackerInventory->GetQuantity(TEXT("RatTail")) : 0;
         const int32 ViperFang = AttackerInventory ? AttackerInventory->GetQuantity(TEXT("ViperFang")) : 0;
+        const int32 GiantScale = AttackerInventory ? AttackerInventory->GetQuantity(TEXT("GiantScale")) : 0;
         const int32 RemoteFur = RemoteInventory ? RemoteInventory->GetQuantity(TEXT("BadgerFur")) : 0;
         const int32 RemoteMeat = RemoteInventory ? RemoteInventory->GetQuantity(TEXT("BadgerMeat")) : 0;
         const int32 RemoteBone = RemoteInventory ? RemoteInventory->GetQuantity(TEXT("BoneFragment")) : 0;
         const int32 RemoteRatTail = RemoteInventory ? RemoteInventory->GetQuantity(TEXT("RatTail")) : 0;
         const int32 RemoteViperFang = RemoteInventory ? RemoteInventory->GetQuantity(TEXT("ViperFang")) : 0;
+        const int32 RemoteGiantScale = RemoteInventory ? RemoteInventory->GetQuantity(TEXT("GiantScale")) : 0;
         int32 OtherPeerCount = 0;
         int32 OtherPeerRatTail = 0;
         int32 OtherPeerViperFang = 0;
+        int32 OtherPeerGiantScale = 0;
         int32 OtherPeerBoneFragment = 0;
         for (TActorIterator<AKalmalaCharacter> It(GetWorld()); It; ++It)
         {
@@ -1725,16 +1760,18 @@ void AKalmalaGameMode::DriveCombatPeerTest()
             {
                 OtherPeerRatTail += CandidateInventory->GetQuantity(TEXT("RatTail"));
                 OtherPeerViperFang += CandidateInventory->GetQuantity(TEXT("ViperFang"));
+                OtherPeerGiantScale += CandidateInventory->GetQuantity(TEXT("GiantScale"));
                 OtherPeerBoneFragment += CandidateInventory->GetQuantity(TEXT("BoneFragment"));
             }
             else
             {
                 OtherPeerRatTail = MAX_int32;
                 OtherPeerViperFang = MAX_int32;
+                OtherPeerGiantScale = MAX_int32;
                 OtherPeerBoneFragment = MAX_int32;
             }
         }
-        const int32 ExpectedBone = bMoonBearPeerTest ? 3 : 1;
+        const int32 ExpectedBone = bGiantSnakePeerTest ? 2 : (bMoonBearPeerTest ? 3 : 1);
         const bool bExpectedReward = AttackerInventory != nullptr && RemoteInventory != nullptr
             && (bRatPeerTest
                 ? (RatTail == 1 && AttackerBone == 1 && BadgerFur == 0 && BadgerMeat == 0
@@ -1745,10 +1782,14 @@ void AKalmalaGameMode::DriveCombatPeerTest()
                     ? (ViperFang == 1 && AttackerBone == 1 && RatTail == 0
                         && RemoteViperFang == 0 && OtherPeerCount >= 2 && OtherPeerViperFang == 0
                         && OtherPeerBoneFragment == 0 && RemoteBone == 0)
+                : (bGiantSnakePeerTest
+                    ? (GiantScale == 2 && AttackerBone == 2 && RemoteGiantScale == 0
+                        && OtherPeerCount >= 2 && OtherPeerGiantScale == 0 && OtherPeerBoneFragment == 0
+                        && RemoteBone == 0)
                 : (AttackerBone == ExpectedBone
                     && (!bBadgerPeerTest || (BadgerFur == 1 && BadgerMeat == 1))
                     && (bBadgerPeerTest || (BadgerFur == 0 && BadgerMeat == 0))
-                    && RemoteBone == 0 && RemoteFur == 0 && RemoteMeat == 0)));
+                    && RemoteBone == 0 && RemoteFur == 0 && RemoteMeat == 0))));
         if (!bClaimStillPending && bExpectedReward && Target->IsDefeated()
             && PopulationSaveGame != nullptr && PopulationSaveGame->IsDefeated(Target->GetPersistentSpawnId()))
         {
@@ -1766,6 +1807,14 @@ void AKalmalaGameMode::DriveCombatPeerTest()
                     TEXT("Viper verification server: Passed=1 SeedReproduced=1 BoundedActivation=1 InvalidRejected=1 ActionSerial=%u WeakPoison=%d Defeated=1 Saved=1 FullPackEscrow=1 RetryDelivered=1 OwnerOnly=1 BoneFragment=%d ViperFang=%d RemoteBoneFragment=%d RemoteViperFang=%d OtherPeerBoneFragments=%d OtherPeerViperFangs=%d OtherPeers=%d Owner=%s SpawnId=%s"),
                     AttackerCombat->GetActionSerial(), bCombatPeerTestViperPoisonObserved, AttackerBone, ViperFang, RemoteBone, RemoteViperFang,
                     OtherPeerBoneFragment, OtherPeerViperFang, OtherPeerCount, *OwnerIdentity, *Target->GetPersistentSpawnId());
+            }
+            else if (bGiantSnakePeerTest)
+            {
+                UE_LOG(LogTemp, Display,
+                    TEXT("Giant Snake verification server: Passed=1 SeedReproduced=1 BoundedActivation=1 InvalidRejected=1 ActionSerial=%u Bite=%d Defeated=1 Saved=1 FullPackEscrow=1 RetryDelivered=1 OwnerOnly=1 BoneFragment=%d GiantScale=%d RemoteBoneFragment=%d RemoteGiantScale=%d OtherPeerBoneFragments=%d OtherPeerGiantScales=%d OtherPeers=%d Owner=%s SpawnId=%s"),
+                    AttackerCombat->GetActionSerial(), bCombatPeerTestGiantSnakeBiteObserved, AttackerBone,
+                    GiantScale, RemoteBone, RemoteGiantScale, OtherPeerBoneFragment, OtherPeerGiantScale,
+                    OtherPeerCount, *OwnerIdentity, *Target->GetPersistentSpawnId());
             }
             else
             {
@@ -1791,11 +1840,11 @@ void AKalmalaGameMode::DriveCombatPeerTest()
 
     if (CombatPeerTestStage == 2 && CombatPeerTestSequence == ExpectedAttackCount && AttackerCombat->GetActionPhase() == EKalmalaCombatActionPhase::Idle && Now - CombatPeerTestStageTime >= 0.1f)
     {
-        if (bViperPeerTest && AttackerCombat->GetActionSerial() != ExpectedAttackCount)
+        if ((bViperPeerTest || bGiantSnakePeerTest) && AttackerCombat->GetActionSerial() != ExpectedAttackCount)
         {
             UE_LOG(LogTemp, Error,
-                TEXT("Viper verification FAILED: expected four accepted host attacks before reward setup. ActionSerial=%u RequestSequence=%u Health=%.1f."),
-                AttackerCombat->GetActionSerial(), CombatPeerTestSequence, Attacker->GetHealth());
+                TEXT("%s verification FAILED: expected four accepted host attacks before reward setup. ActionSerial=%u RequestSequence=%u Health=%.1f."),
+                VerificationName, AttackerCombat->GetActionSerial(), CombatPeerTestSequence, Attacker->GetHealth());
             CombatPeerTestStage = 99;
             return;
         }
@@ -1806,11 +1855,13 @@ void AKalmalaGameMode::DriveCombatPeerTest()
             const FName BadgerMeatId(TEXT("BadgerMeat"));
             const FName RatTailId(TEXT("RatTail"));
             const FName ViperFangId(TEXT("ViperFang"));
+            const FName GiantScaleId(TEXT("GiantScale"));
             const FString ClaimId = bRatPeerTest ? Target->GetPersistentSpawnId()
                 : (bViperPeerTest ? UKalmalaWorldPopulationSaveGame::MakeViperPendingRewardClaimId(Target->GetPersistentSpawnId())
+                : (bGiantSnakePeerTest ? UKalmalaWorldPopulationSaveGame::MakeGiantSnakePendingRewardClaimId(Target->GetPersistentSpawnId())
                 : (bBadgerPeerTest
                     ? UKalmalaWorldPopulationSaveGame::MakeBadgerPendingRewardClaimId(Target->GetPersistentSpawnId())
-                    : UKalmalaWorldPopulationSaveGame::MakeMoonBearPendingRewardClaimId(Target->GetPersistentSpawnId())));
+                    : UKalmalaWorldPopulationSaveGame::MakeMoonBearPendingRewardClaimId(Target->GetPersistentSpawnId()))));
             const FString OwnerIdentity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(Attacker->GetPlayerState());
             if (bRatPeerTest && !Target->IsDefeated())
             {
@@ -1853,6 +1904,7 @@ void AKalmalaGameMode::DriveCombatPeerTest()
             int32 OtherPeerCount = 0;
             int32 OtherPeerRatTail = 0;
             int32 OtherPeerViperFang = 0;
+            int32 OtherPeerGiantScale = 0;
             int32 OtherPeerBoneFragment = 0;
             for (TActorIterator<AKalmalaCharacter> It(GetWorld()); It; ++It)
             {
@@ -1864,12 +1916,14 @@ void AKalmalaGameMode::DriveCombatPeerTest()
                 {
                     OtherPeerRatTail += CandidateInventory->GetQuantity(RatTailId);
                     OtherPeerViperFang += CandidateInventory->GetQuantity(ViperFangId);
+                    OtherPeerGiantScale += CandidateInventory->GetQuantity(GiantScaleId);
                     OtherPeerBoneFragment += CandidateInventory->GetQuantity(BoneFragmentId);
                 }
                 else
                 {
                     OtherPeerRatTail = MAX_int32;
                     OtherPeerViperFang = MAX_int32;
+                    OtherPeerGiantScale = MAX_int32;
                     OtherPeerBoneFragment = MAX_int32;
                 }
             }
@@ -1882,12 +1936,15 @@ void AKalmalaGameMode::DriveCombatPeerTest()
                 && AttackerInventory->GetQuantity(BadgerMeatId) == 0
                 && AttackerInventory->GetQuantity(RatTailId) == 0
                 && AttackerInventory->GetQuantity(ViperFangId) == 0
+                && AttackerInventory->GetQuantity(GiantScaleId) == 0
                 && RemoteInventory != nullptr && RemoteInventory->GetQuantity(BoneFragmentId) == 0
                 && RemoteInventory->GetQuantity(BadgerFurId) == 0 && RemoteInventory->GetQuantity(BadgerMeatId) == 0
                 && RemoteInventory->GetQuantity(RatTailId) == 0
                 && RemoteInventory->GetQuantity(ViperFangId) == 0
+                && RemoteInventory->GetQuantity(GiantScaleId) == 0
                 && (!bTwoItemRewardPeerTest || (OtherPeerCount >= 2
                     && OtherPeerRatTail == 0 && OtherPeerViperFang == 0
+                    && OtherPeerGiantScale == 0
                     && OtherPeerBoneFragment == 0));
             if (!bEscrowedWithoutPartialGrant)
             {
@@ -1908,7 +1965,8 @@ void AKalmalaGameMode::DriveCombatPeerTest()
             {
                 if (FreedCells >= RequiredCells) break;
                 if (Stack.Quantity != 1 || Stack.ItemId == BoneFragmentId || Stack.ItemId == BadgerFurId
-                    || Stack.ItemId == BadgerMeatId || Stack.ItemId == RatTailId || Stack.ItemId == ViperFangId) continue;
+                    || Stack.ItemId == BadgerMeatId || Stack.ItemId == RatTailId || Stack.ItemId == ViperFangId
+                    || Stack.ItemId == GiantScaleId) continue;
                 if (AttackerInventory->TryConsumeFromServer(Stack.ItemId, 1)
                     && AttackerInventory->GetStacks().Num() < FullPackCapacity)
                 {

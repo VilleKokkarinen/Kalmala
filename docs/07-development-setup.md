@@ -2394,6 +2394,22 @@ model. Run these editor automations in combined A8a/A8b I4 acceptance; the
 source was not compiled or executed by this increment, and no live spawn,
 delivery, restart, or peer acceptance ran.
 
+For live shoreline acceptance, build the Editor target and run
+`Scripts/Tests/Combat/Verify-GiantSnakePeer.ps1`. Its Development-only
+`-KalmalaGiantSnakePeerTest` scenario activates a normal generated Giant Snake,
+places the host along a sampled dry route within the 360 cm lunge, and requires
+the real 100-Stab bite to lower host health before the target is paused. The
+host then completes four accepted mace attacks; the server checks the actual
+action serial before its bounded fixture damage finishes defeat. A full pack
+must retain the two Bone Fragments and two Giant Scales as one owner-bound claim
+without partial delivery. After two cells are freed, only the credited owner
+receives the bundle. Both clients must prove invalid-request rejection, observe
+the shared action, host health and replicated defeat without rewards, and the
+runner restarts the same world to confirm that exact spawn remains defeated.
+The fixture adds no client-selected target or reward, RPC, replication field,
+or save schema. This live scenario remains unbuilt and unexecuted until combined
+I4 verification.
+
 ## Discovery peer privacy regression
 
 After an editor build, run `Scripts/Tests/Combat/Verify-DiscoveryPeer.ps1`. It starts a

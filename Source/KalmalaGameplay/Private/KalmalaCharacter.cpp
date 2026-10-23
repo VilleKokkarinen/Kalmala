@@ -232,12 +232,14 @@ void AKalmalaCharacter::OnRep_Health()
     const bool bMoonBearPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaMoonBearPeerTest"));
     const bool bRatPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaRatPeerTest"));
     const bool bViperPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaViperPeerTest"));
+    const bool bGiantSnakePeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaGiantSnakePeerTest"));
     if (!HasAuthority() && (FParse::Param(FCommandLine::Get(), TEXT("KalmalaMirelingPeerTest"))
         || FParse::Param(FCommandLine::Get(), TEXT("KalmalaBoarPeerTest"))
-        || FParse::Param(FCommandLine::Get(), TEXT("KalmalaDeerPeerTest")) || bBadgerPeerTest || bMoonBearPeerTest || bRatPeerTest || bViperPeerTest))
+        || FParse::Param(FCommandLine::Get(), TEXT("KalmalaDeerPeerTest")) || bBadgerPeerTest || bMoonBearPeerTest || bRatPeerTest || bViperPeerTest || bGiantSnakePeerTest))
     {
         const TCHAR* VerificationName = bRatPeerTest ? TEXT("Rat")
             : bViperPeerTest ? TEXT("Viper")
+            : bGiantSnakePeerTest ? TEXT("Giant Snake")
             : bBadgerPeerTest ? TEXT("Badger")
             : bMoonBearPeerTest ? TEXT("Moon Bear")
             : FParse::Param(FCommandLine::Get(), TEXT("KalmalaBoarPeerTest")) ? TEXT("Boar")
@@ -532,7 +534,8 @@ void AKalmalaCharacter::Tick(const float DeltaSeconds)
             || FParse::Param(FCommandLine::Get(), TEXT("KalmalaBadgerPeerTest"))
             || FParse::Param(FCommandLine::Get(), TEXT("KalmalaMoonBearPeerTest"))
             || FParse::Param(FCommandLine::Get(), TEXT("KalmalaRatPeerTest"))
-            || FParse::Param(FCommandLine::Get(), TEXT("KalmalaViperPeerTest")))
+            || FParse::Param(FCommandLine::Get(), TEXT("KalmalaViperPeerTest"))
+            || FParse::Param(FCommandLine::Get(), TEXT("KalmalaGiantSnakePeerTest")))
         && Combat && Inventory && Inventory->GetActiveItem() == TEXT("StoneMace"))
     {
         bCombatPeerTestInvalidAttackSent = true;
