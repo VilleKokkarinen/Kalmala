@@ -6642,3 +6642,15 @@
 - **Known limitations / remaining scope:** These are focused editor automations, not live crafting or rendered peer acceptance. Other approved A8b item flows and `Verify-InventoryReconnect.ps1` disposition remain open; A9 remains gated by I4.
 - **Next eligible task:** Continue A8b item acceptance in backlog order with Roasted Badger, then finish the remaining item/peer flows and InventoryReconnect disposition before the milestone-final I4 gate.
 - **Integration state:** Work ran directly on `master`; no worktree handoff synchronization was needed. Current run time: `2026-10-23 15:26:40 UTC`.
+
+## Run 2026-10-23 15:29 UTC — Roasted Badger acceptance passed
+
+- **Selected task:** Continue the open combined I4 acceptance child with the next A8b output in backlog order: Roasted Badger. This focused item-flow slice is not milestone-final verification.
+- **Work completed:** Exercised the registered Cooking Rack recipe, shared server-side Steady Meal behavior, item-catalogue validity, and owner-facing prepared-food details. Roasted Badger is included explicitly in the current cooking-output allowlist checked by `SteadyMeal`.
+- **Files changed:** `PROGRESS.md`. `BACKLOG.md` remains unchanged because the combined I4 acceptance child is incomplete.
+- **Checks and results:** `Automation RunTests Kalmala.Gameplay.Inventory.Catalogue+Kalmala.Gameplay.Food.CookingStationHeat+Kalmala.Gameplay.Status.SteadyMeal+Kalmala.UI.Inventory.PreparedFoodDetails` found four tests; all recorded `Result={Success}` and editor exit code 0. Evidence is in `C:/Users/Ville/AppData/Local/Temp/a8rb1/roasted.log`. The mirror matched the focused source and catalogue files; the registered recipe is one Badger Meat to one Roasted Badger, up to five batches, at Cooking Rack, with ten Cooking XP. No build ran in this increment; the existing Development target loaded successfully.
+- **Full verification:** Deferred. This slice does not complete I4; live A8b crafting/peer acceptance, other A8b item flows, InventoryReconnect disposition, and combined milestone-final verification remain.
+- **Observable impact / networking authority:** Confirms recipe catalogue, Cooking Rack and server-owned Steady Meal contract plus player-facing food details. No production source or saved-data behavior changed.
+- **Known limitations / remaining scope:** No live peer crafting or rendered acceptance ran. The broader A8b item/peer acceptance and `Verify-InventoryReconnect.ps1` disposition remain open; A9 remains gated by I4.
+- **Next eligible task:** Continue A8b item acceptance in backlog order with Fang Arrows, then complete remaining item/peer flows and InventoryReconnect disposition before the combined I4 milestone-final gate.
+- **Integration state:** Work ran directly on `master`; no worktree handoff synchronization was needed. Current run time: `2026-10-23 15:29:40 UTC`.
