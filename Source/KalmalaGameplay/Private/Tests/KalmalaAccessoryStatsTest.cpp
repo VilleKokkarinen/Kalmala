@@ -91,6 +91,12 @@ bool FKalmalaAccessoryStatsTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Wet Meal Jade add once"), FMath::IsNearlyEqual(Status->CalculateStaminaCost(20.0f), 19.0f));
     Inventory->UnequipGearFromServer(EKalmalaGearSlot::Ring, Reason);
     TestTrue(TEXT("Jade removal immediately restores future cost"), FMath::IsNearlyEqual(Status->CalculateStaminaCost(20.0f), 21.0f));
+    TestTrue(TEXT("Amethyst equips"), Equip(TEXT("AmethystNecklace")));
+    TestTrue(TEXT("Amethyst excludes ordinary costs"), FMath::IsNearlyEqual(Status->CalculateStaminaCost(20.0f), 21.0f));
+    TestTrue(TEXT("Amethyst adds only on support resolution"), FMath::IsNearlyEqual(Status->CalculateStaminaCost(20.0f, true), 18.0f));
+    TestEqual(TEXT("A zero-cost support action remains free"), Status->CalculateStaminaCost(0.0f, true), 0.0f);
+    TestTrue(TEXT("Jade and Amethyst coexist"), Equip(TEXT("JadeRing")));
+    TestTrue(TEXT("Mixed accessory and status deltas sum once"), FMath::IsNearlyEqual(Status->CalculateStaminaCost(20.0f, true), 16.0f));
     World->DestroyWorld(false);
     return true;
 }

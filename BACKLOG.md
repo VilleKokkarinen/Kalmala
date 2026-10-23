@@ -381,7 +381,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     - [x] Add and register the complete item/equipment/stat JSON first, with applicable N/A categories recorded.
     - [x] Add and register its Forge recipe using the values finalized by Review A9.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
-  - [ ] Amethyst Necklace (`AmethystNecklace`): finalize its recipe and support-spell profile in Review A9; see the A9 item contract.
+  - [x] Amethyst Necklace (`AmethystNecklace`): finalized executable Forge recipe and support-only -0.15 cost delta; ordinary/zero-cost exclusions and additive Jade/Wet/Meal coverage added.
     - [x] Add and register the complete item/equipment/stat JSON first, with applicable N/A categories recorded.
     - [x] Add and register its Forge recipe using the values finalized by Review A9.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.

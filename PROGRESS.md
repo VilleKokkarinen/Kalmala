@@ -6674,3 +6674,8 @@
 ## A9 independent worker — Jade Ring completion (2026-10-23)
 
 - Corrected Jade Ring to executable ordinary Forge crafting (2 Bronze + 1 Green Jade, one output/batch one). Added paid exchange/equip and global/support cost, Wet+Meal additive combination and immediate unequip-effect removal regressions. Existing sprint/dodge/support callers all use the shared authoritative calculation; no stamina refill or action-specific new base costs. Files: a9-gear.json, A9GearTest.cpp, AccessoryStatsTest.cpp, BACKLOG/PROGRESS. JSON parsing, `Validate-UIIcons.ps1 -Category Catalogue -Id JadeRing` and git diff --check passed; paths below 260. Full executed verification deferred to I5. Next: Amethyst Necklace. Main unchanged.
+
+
+## A9 independent worker — Amethyst Necklace completion (2026-10-23)
+
+- Corrected the recipe to ordinary Forge inventory crafting (3 Bronze + 1 Amethyst, one output/batch one). Extended paid exchange/equip coverage and runtime cases proving support-only cost adjustment, no ordinary-cost discount, zero-cost preservation and single additive combination with Jade/Wet/Meal. No spell potency, duration, cooldown or entitlement change. Files: a9-gear.json, A9GearTest.cpp, AccessoryStatsTest.cpp, BACKLOG/PROGRESS. JSON parsing, `Validate-UIIcons.ps1 -Category Catalogue -Id AmethystNecklace` and git diff --check passed; paths below 260. Full executed verification deferred to I5. Next: Aquamarine Ring. Main unchanged.
