@@ -117,6 +117,10 @@ public:
     {
         return static_cast<EKalmalaWildlifeAttackCue>(LynxAttackCue);
     }
+    EKalmalaWildlifeAttackCue GetPolarBearAttackCueForVerification() const
+    {
+        return static_cast<EKalmalaWildlifeAttackCue>(PolarBearAttackCue);
+    }
 #endif
     static EKalmalaWildlifeEcology GetEcologyForNiche(FName CreatureNicheId);
     static float GetEcologicalFleeDistance(FName CreatureNicheId);

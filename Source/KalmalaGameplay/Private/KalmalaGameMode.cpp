@@ -3509,6 +3509,382 @@ void AKalmalaGameMode::DriveLynxPeerTest()
 #endif
 }
 
+void AKalmalaGameMode::DrivePolarBearPeerTest()
+{
+#if !UE_BUILD_SHIPPING
+    if (!FParse::Param(FCommandLine::Get(), TEXT("KalmalaPolarBearPeerTest"))
+        || !HasAuthority() || GetWorld() == nullptr || !WorldGenerationConfig.IsValid()
+        || PolarBearPeerTestStage >= 99)
+    {
+        return;
+    }
+
+    const float Now = GetWorld()->GetTimeSeconds();
+    const auto PlaceOnTerrain = [this](AKalmalaCharacter* Character, const FVector& DesiredLocation)
+    {
+        if (!IsValid(Character)) return;
+        ActivateTerrainPatchNeighborhood(FVector2D(DesiredLocation));
+        FVector GroundedLocation = DesiredLocation;
+        GroundedLocation.Z = FKalmalaTerrainHeightSampler::SampleHeight(
+            WorldGenerationConfig, FVector2D(DesiredLocation))
+            + Character->GetSimpleCollisionHalfHeight() + 1.0f;
+        Character->SetActorLocation(GroundedLocation, false, nullptr, ETeleportType::TeleportPhysics);
+        Character->ForceNetUpdate();
+        if (UCharacterMovementComponent* Movement = Character->GetCharacterMovement())
+        {
+            Movement->StopMovementImmediately();
+            Movement->DisableMovement();
+        }
+    };
+    if (PolarBearPeerTestStage == 0)
+    {
+        APlayerController* HostController = GetWorld()->GetFirstPlayerController();
+        AKalmalaCharacter* Host = HostController != nullptr
+            ? Cast<AKalmalaCharacter>(HostController->GetPawn()) : nullptr;
+        if (Host == nullptr || GeneratedPlayerStart == nullptr)
+        {
+            if (Now > 90.0f)
+            {
+                UE_LOG(LogTemp, Error, TEXT("Polar Bear verification FAILED: generated start or listen host was unavailable."));
+                PolarBearPeerTestStage = 99;
+            }
+            return;
+        }
+
+        PolarBearPeerTestObservers.Reset();
+        for (TActorIterator<AKalmalaCharacter> It(GetWorld()); It; ++It)
+        {
+            AKalmalaCharacter* Candidate = *It;
+            if (Candidate == Host || Candidate->GetPlayerState() == nullptr) continue;
+            PolarBearPeerTestObservers.Add(Candidate);
+        }
+        if (PolarBearPeerTestObservers.Num() < 2)
+        {
+            if (Now > 90.0f)
+            {
+                UE_LOG(LogTemp, Error, TEXT("Polar Bear verification FAILED: two observing client peers did not join."));
+                PolarBearPeerTestStage = 99;
+            }
+            return;
+        }
+
+        const FVector StartLocation = GeneratedPlayerStart->GetActorLocation();
+        const FIntPoint StartKey = FKalmalaWorldPopulationLayout::GetSpatialKey(FVector2D(StartLocation));
+        const auto IsDryTundraSurface = [this](const FVector2D& Position)
+        {
+            return FKalmalaWorldBounds::Contains(WorldGenerationConfig, Position)
+                && FKalmalaBiomeClassifier::Classify(
+                    FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, Position))
+                    == EKalmalaBiome::FreezingTundra
+                && !FKalmalaOceanSampler::Sample(WorldGenerationConfig, Position).IsWater()
+                && !FKalmalaShimmeringLakeSampler::IsWater(WorldGenerationConfig, Position)
+                && FKalmalaTerrainHeightSampler::SampleSurfaceNormal(WorldGenerationConfig, Position).Z >= 0.82f;
+        };
+        bool bFoundCandidate = false;
+        FVector HostDesiredLocation = FVector::ZeroVector;
+        FVector HostRingDesiredLocation = FVector::ZeroVector;
+
+        for (int32 Radius = 0; Radius <= 64 && !bFoundCandidate; ++Radius)
+        {
+            for (int32 OffsetY = -Radius; OffsetY <= Radius && !bFoundCandidate; ++OffsetY)
+            {
+                for (int32 OffsetX = -Radius; OffsetX <= Radius; ++OffsetX)
+                {
+                    if (Radius > 0 && FMath::Abs(OffsetX) != Radius && FMath::Abs(OffsetY) != Radius) continue;
+                    const FIntPoint CandidateKey = StartKey + FIntPoint(OffsetX, OffsetY);
+                    TArray<FKalmalaWorldPopulationSpawn> Descriptors =
+                        FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(
+                            WorldGenerationConfig, CandidateKey, EKalmalaWorldPopulationKind::Wildlife);
+                    const FVector2D KeyCentre = (FVector2D(CandidateKey) + FVector2D(0.5f, 0.5f))
+                        * FKalmalaWorldPopulationLayout::SpatialKeySize;
+                    const EKalmalaBiome KeyBiome = FKalmalaBiomeClassifier::Classify(
+                        FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, KeyCentre));
+                    if (KeyBiome == EKalmalaBiome::ShimmeringLakes || KeyBiome == EKalmalaBiome::Elderwood
+                        || KeyBiome == EKalmalaBiome::MossyMire || KeyBiome == EKalmalaBiome::FreezingTundra
+                        || KeyBiome == EKalmalaBiome::ThunderMountains)
+                    {
+                        Descriptors.SetNum(FMath::Min(Descriptors.Num(),
+                            FKalmalaBiomeExpansionContract::ApplyPopulationBudget(
+                                Descriptors.Num(), EKalmalaWorldPopulationKind::Wildlife, KeyBiome)));
+                    }
+                    const int32 WildlifeActorBudget = KeyBiome == EKalmalaBiome::FreezingTundra
+                        ? FKalmalaWolfPackContract::GetActorBudgetWithPackRoom(
+                            FKalmalaBiomeExpansionContract::ApplyPopulationBudget(
+                                Descriptors.Num(), EKalmalaWorldPopulationKind::Wildlife, KeyBiome))
+                        : Descriptors.Num();
+                    int32 SpawnedWildlifeActorCount = 0;
+                    for (const FKalmalaWorldPopulationSpawn& Spawn : Descriptors)
+                    {
+                        EKalmalaWildlifeArchetype Archetype;
+                        if (!KalmalaGameMode::TryGetWildlifeArchetypeForSpawn(
+                                WorldGenerationConfig, Spawn, Archetype))
+                        {
+                            continue;
+                        }
+                        const bool bHardEnemy = Archetype == EKalmalaWildlifeArchetype::GiantSnake
+                            || Archetype == EKalmalaWildlifeArchetype::MoonBear
+                            || Archetype == EKalmalaWildlifeArchetype::PeatHusk
+                            || Archetype == EKalmalaWildlifeArchetype::PolarBear
+                            || Archetype == EKalmalaWildlifeArchetype::ThunderSentinel
+                            || Archetype == EKalmalaWildlifeArchetype::ReefMaw;
+                        const float SpawnStartDistance = GeneratedPlayerStart != nullptr
+                            ? FVector::Dist2D(Spawn.Location, GeneratedPlayerStart->GetActorLocation()) : 0.0f;
+                        if (!AKalmalaWildlifeSpawn::IsHardEnemySpawnAllowedByStart(
+                                bHardEnemy, GeneratedPlayerStart != nullptr, SpawnStartDistance))
+                        {
+                            continue;
+                        }
+                        const FString SpawnId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Spawn);
+                        if (PopulationSaveGame != nullptr && PopulationSaveGame->IsDefeated(SpawnId))
+                            continue;
+
+                        if (Archetype == EKalmalaWildlifeArchetype::Wolf)
+                        {
+                            if (SpawnedWildlifeActorCount + FKalmalaWolfPackContract::MemberCount > WildlifeActorBudget)
+                                continue;
+                            int32 PackMemberCount = 0;
+                            bool bValidFormation = true;
+                            for (int32 MemberIndex = 0; MemberIndex < FKalmalaWolfPackContract::MemberCount; ++MemberIndex)
+                            {
+                                FKalmalaWorldPopulationSpawn MemberSpawn;
+                                if (!FKalmalaWolfPackContract::TryBuildMemberSpawn(
+                                        WorldGenerationConfig, Spawn, MemberIndex, MemberSpawn))
+                                {
+                                    bValidFormation = false;
+                                    break;
+                                }
+                                const FString MemberSpawnId = FKalmalaWolfPackContract::GetMemberPersistentSpawnId(
+                                    Spawn, MemberIndex);
+                                if (PopulationSaveGame == nullptr || !PopulationSaveGame->IsDefeated(MemberSpawnId))
+                                    ++PackMemberCount;
+                            }
+                            if (bValidFormation) SpawnedWildlifeActorCount += PackMemberCount;
+                            continue;
+                        }
+                        if (SpawnedWildlifeActorCount >= WildlifeActorBudget) continue;
+                        if (Archetype != EKalmalaWildlifeArchetype::PolarBear)
+                        {
+                            ++SpawnedWildlifeActorCount;
+                            continue;
+                        }
+                        const FVector2D SpawnPosition(Spawn.Location);
+                        if (!IsDryTundraSurface(SpawnPosition)) continue;
+
+                        for (int32 ApproachIndex = 0; ApproachIndex < 16; ++ApproachIndex)
+                        {
+                            const float Angle = static_cast<float>(ApproachIndex) * (2.0f * PI / 16.0f);
+                            const FVector2D ApproachDirection(FMath::Cos(Angle), FMath::Sin(Angle));
+                            const FVector2D ApproachPosition(
+                                SpawnPosition.X + ApproachDirection.X * 120.0f,
+                                SpawnPosition.Y + ApproachDirection.Y * 120.0f);
+                            const FVector2D RingPosition = SpawnPosition + ApproachDirection * 5000.0f;
+                            if (!IsDryTundraSurface(ApproachPosition)) continue;
+                            if (!IsDryTundraSurface(RingPosition)) continue;
+                            const int32 PathSamples = FMath::Max(1,
+                                FMath::CeilToInt(FVector2D::Distance(SpawnPosition, ApproachPosition) / 80.0f));
+                            bool bPathTraversable = true;
+                            for (int32 PathIndex = 0; PathIndex <= PathSamples; ++PathIndex)
+                            {
+                                const FVector2D PathPosition = FMath::Lerp(SpawnPosition, ApproachPosition,
+                                    static_cast<float>(PathIndex) / PathSamples);
+                                if (!IsDryTundraSurface(PathPosition))
+                                {
+                                    bPathTraversable = false;
+                                    break;
+                                }
+                            }
+                            if (!bPathTraversable) continue;
+
+                            HostDesiredLocation = FVector(ApproachPosition.X, ApproachPosition.Y,
+                                FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, ApproachPosition));
+                            if (FVector::Dist(HostDesiredLocation, Spawn.Location)
+                                > AKalmalaWildlifeSpawn::PolarBearChargeImpactReachCentimetres - 10.0f)
+                            {
+                                continue;
+                            }
+
+                            HostRingDesiredLocation = FVector(RingPosition.X, RingPosition.Y,
+                                FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, RingPosition));
+                            PolarBearPeerTestSpatialKey = CandidateKey;
+                            PolarBearPeerTestSpawnId = SpawnId;
+                            PolarBearPeerTestSpawnLocation = Spawn.Location;
+                            PolarBearPeerTestStartDistance = SpawnStartDistance;
+                            PolarBearPeerTestHostRingLocation = HostRingDesiredLocation;
+                            PolarBearPeerTestHostLocation = HostDesiredLocation;
+                            bFoundCandidate = true;
+                            break;
+                        }
+                        if (bFoundCandidate) break;
+                    }
+                }
+            }
+        }
+
+        if (!bFoundCandidate)
+        {
+            UE_LOG(LogTemp, Error,
+                TEXT("Polar Bear verification FAILED: no undefeated materializable Tundra Polar Bear with a reachable dry approach was found within 64 spatial keys."));
+            PolarBearPeerTestStage = 99;
+            return;
+        }
+        if (!ActivePopulationSpatialKeys.Contains(PolarBearPeerTestSpatialKey)
+            && ActivePopulationSpatialKeys.Num() >= KalmalaGameMode::MaxActivePopulationSpatialKeys)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Polar Bear verification FAILED: the bounded active population-key budget is full before fixture activation."));
+            PolarBearPeerTestStage = 99;
+            return;
+        }
+
+        PolarBearPeerTestStartingHealth = 300.0f;
+        // Keep the Development-only host alive through the 200-Crush charge and recovery.
+        Host->Health = PolarBearPeerTestStartingHealth;
+        Host->ForceNetUpdate();
+        if (!FMath::IsFinite(PolarBearPeerTestStartingHealth) || PolarBearPeerTestStartingHealth <= 200.0f)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Polar Bear verification FAILED: listen host cannot receive the test charge at health %.1f."),
+                PolarBearPeerTestStartingHealth);
+            PolarBearPeerTestStage = 99;
+            return;
+        }
+
+        PlaceOnTerrain(Host, PolarBearPeerTestHostRingLocation);
+        PolarBearPeerTestWorldSeed = WorldGenerationConfig.WorldSeed;
+        PolarBearPeerTestHost = Host;
+        PolarBearPeerTestTarget.Reset();
+        bPolarBearPeerTestSawTelegraph = false;
+        bPolarBearPeerTestSawCharge = false;
+        bPolarBearPeerTestSawRetreat = false;
+        bPolarBearPeerTestSawRecovery = false;
+        ActivatePopulationKey(PolarBearPeerTestSpatialKey);
+        PolarBearPeerTestStage = 1;
+        PolarBearPeerTestStageTime = Now;
+        return;
+    }
+
+    AKalmalaCharacter* Host = PolarBearPeerTestHost.Get();
+    if (!IsValid(Host))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Polar Bear verification FAILED: listen host disappeared."));
+        PolarBearPeerTestStage = 99;
+        return;
+    }
+
+    if (PolarBearPeerTestStage == 1)
+    {
+        AKalmalaWildlifeSpawn* Target = nullptr;
+        for (TActorIterator<AKalmalaWildlifeSpawn> It(GetWorld()); It; ++It)
+        {
+            if ((*It)->GetPersistentSpawnId() == PolarBearPeerTestSpawnId)
+            {
+                Target = *It;
+                break;
+            }
+        }
+        if (Target == nullptr)
+        {
+            if (Now - PolarBearPeerTestStageTime > 20.0f)
+            {
+                UE_LOG(LogTemp, Error, TEXT("Polar Bear verification FAILED: generated Polar Bear descriptor did not materialize."));
+                PolarBearPeerTestStage = 99;
+            }
+            return;
+        }
+        if (Target->GetArchetype() != EKalmalaWildlifeArchetype::PolarBear
+            || !AKalmalaWildlifeSpawn::IsHardEnemySpawnAllowedByStart(
+                true, true, PolarBearPeerTestStartDistance)
+            || !FMath::IsNearlyEqual(Target->GetHealth(), 750.0f, 0.1f))
+        {
+            UE_LOG(LogTemp, Error, TEXT("Polar Bear verification FAILED: generated archetype, start exclusion, or 750-health profile was invalid."));
+            PolarBearPeerTestStage = 99;
+            return;
+        }
+
+        PlaceOnTerrain(Host, PolarBearPeerTestHostLocation);
+
+        int32 ObserverIndex = 0;
+        for (const TWeakObjectPtr<AKalmalaCharacter>& ObserverWeak : PolarBearPeerTestObservers)
+        {
+            AKalmalaCharacter* Observer = ObserverWeak.Get();
+            if (!IsValid(Observer)) continue;
+
+            const float Distance = 1000.0f + 500.0f * static_cast<float>(ObserverIndex);
+            bool bPlacedObserver = false;
+            for (int32 DirectionIndex = 0; DirectionIndex < 16 && !bPlacedObserver; ++DirectionIndex)
+            {
+                const float Angle = static_cast<float>(DirectionIndex) * (2.0f * PI / 16.0f);
+                const FVector2D ObserverPosition(
+                    PolarBearPeerTestSpawnLocation.X + FMath::Cos(Angle) * Distance,
+                    PolarBearPeerTestSpawnLocation.Y + FMath::Sin(Angle) * Distance);
+                if (!FKalmalaWorldBounds::Contains(WorldGenerationConfig, ObserverPosition)) continue;
+                const FVector DesiredObserverLocation(ObserverPosition.X, ObserverPosition.Y,
+                    FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, ObserverPosition));
+                PlaceOnTerrain(Observer, DesiredObserverLocation);
+                bPlacedObserver = true;
+            }
+            if (!bPlacedObserver)
+            {
+                UE_LOG(LogTemp, Error, TEXT("Polar Bear verification FAILED: an observer could not be placed within replication range."));
+                PolarBearPeerTestStage = 99;
+                return;
+            }
+            ++ObserverIndex;
+        }
+        if (ObserverIndex < 2)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Polar Bear verification FAILED: an observing client disappeared before the attack."));
+            PolarBearPeerTestStage = 99;
+            return;
+        }
+
+        PolarBearPeerTestTarget = Target;
+        Target->ForceNetUpdate();
+        UE_LOG(LogTemp, Display,
+            TEXT("Polar Bear verification fixture armed: Seed=%llu SpawnId=%s StartDistanceCm=%.1f HostDistanceCm=%.1f Observers=2."),
+            static_cast<unsigned long long>(PolarBearPeerTestWorldSeed), *PolarBearPeerTestSpawnId,
+            PolarBearPeerTestStartDistance, FVector::Dist(Host->GetActorLocation(), Target->GetActorLocation()));
+        PolarBearPeerTestStage = 2;
+        PolarBearPeerTestStageTime = Now;
+        return;
+    }
+
+    if (PolarBearPeerTestStage == 2)
+    {
+        AKalmalaWildlifeSpawn* Target = PolarBearPeerTestTarget.Get();
+        if (!IsValid(Target))
+        {
+            UE_LOG(LogTemp, Error, TEXT("Polar Bear verification FAILED: generated Polar Bear disappeared before its charge."));
+            PolarBearPeerTestStage = 99;
+            return;
+        }
+
+        const EKalmalaWildlifeAttackCue Cue = Target->GetPolarBearAttackCueForVerification();
+        bPolarBearPeerTestSawTelegraph |= Cue == EKalmalaWildlifeAttackCue::Telegraph;
+        bPolarBearPeerTestSawCharge |= Cue == EKalmalaWildlifeAttackCue::Lunge;
+        bPolarBearPeerTestSawRetreat |= Cue == EKalmalaWildlifeAttackCue::Retreat;
+        bPolarBearPeerTestSawRecovery |= Cue == EKalmalaWildlifeAttackCue::Recovery;
+        const float HostDamage = PolarBearPeerTestStartingHealth - Host->GetHealth();
+        if (bPolarBearPeerTestSawTelegraph && bPolarBearPeerTestSawCharge && bPolarBearPeerTestSawRetreat
+            && bPolarBearPeerTestSawRecovery && HostDamage > 0.0f)
+        {
+            UE_LOG(LogTemp, Display,
+                TEXT("Polar Bear verification server: Passed=1 Seed=%llu Telegraph=1 Charge=1 Retreat=1 Recovery=1 HostDamage=%.1f SpawnId=%s"),
+                static_cast<unsigned long long>(PolarBearPeerTestWorldSeed), HostDamage, *PolarBearPeerTestSpawnId);
+            PolarBearPeerTestStage = 99;
+            return;
+        }
+        if (Now - PolarBearPeerTestStageTime > 18.0f)
+        {
+            UE_LOG(LogTemp, Error,
+                TEXT("Polar Bear verification FAILED: generated charge did not complete. Telegraph=%d Charge=%d Retreat=%d Recovery=%d HostDamage=%.1f Cue=%d."),
+                bPolarBearPeerTestSawTelegraph, bPolarBearPeerTestSawCharge, bPolarBearPeerTestSawRetreat,
+                bPolarBearPeerTestSawRecovery, HostDamage,
+                static_cast<int32>(Cue));
+            PolarBearPeerTestStage = 99;
+        }
+    }
+#endif
+}
+
 void AKalmalaGameMode::DriveDiscoveryPeerTest()
 {
 #if !UE_BUILD_SHIPPING
@@ -3879,6 +4255,7 @@ void AKalmalaGameMode::Tick(const float DeltaSeconds)
     DrivePeatHuskPeerTest();
     DriveWolfPeerTest();
     DriveLynxPeerTest();
+    DrivePolarBearPeerTest();
     DriveDiscoveryPeerTest();
     DriveM9ExplorationRewardPeerTest();
     DriveOceanTravelFeedbackTest();

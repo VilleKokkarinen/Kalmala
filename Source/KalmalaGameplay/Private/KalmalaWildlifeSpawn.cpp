@@ -4509,6 +4509,19 @@ void AKalmalaWildlifeSpawn::OnRep_Archetype()
                 *PersistentSpawnId);
         }
     }
+    if (!HasAuthority()
+        && FParse::Param(FCommandLine::Get(), TEXT("KalmalaPolarBearPeerTest"))
+        && Archetype == EKalmalaWildlifeArchetype::PolarBear)
+    {
+        const EKalmalaWildlifeAttackCue Cue = static_cast<EKalmalaWildlifeAttackCue>(PolarBearAttackCue);
+        UE_LOG(LogTemp, Display, TEXT("Polar Bear verification client received actor: SpawnId=%s Cue=%d."),
+            *PersistentSpawnId, static_cast<int32>(Cue));
+        if (Cue == EKalmalaWildlifeAttackCue::Telegraph)
+        {
+            UE_LOG(LogTemp, Display, TEXT("Polar Bear verification client observed replicated telegraph: SpawnId=%s."),
+                *PersistentSpawnId);
+        }
+    }
 #endif
     BuildArchetypePresentation();
     if (Archetype == EKalmalaWildlifeArchetype::MosquitoSwarm && !bDefeated) PlayMosquitoBuzz();
@@ -4566,6 +4579,14 @@ void AKalmalaWildlifeSpawn::OnRep_LynxAttackCue()
 void AKalmalaWildlifeSpawn::OnRep_PolarBearAttackCue()
 {
     BuildArchetypePresentation();
+#if !UE_BUILD_SHIPPING
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaPolarBearPeerTest"))
+        && static_cast<EKalmalaWildlifeAttackCue>(PolarBearAttackCue) == EKalmalaWildlifeAttackCue::Telegraph)
+    {
+        UE_LOG(LogTemp, Display, TEXT("Polar Bear verification client observed replicated telegraph: SpawnId=%s."),
+            *PersistentSpawnId);
+    }
+#endif
 }
 
 void AKalmalaWildlifeSpawn::OnRep_HornedGoatAttackCue()

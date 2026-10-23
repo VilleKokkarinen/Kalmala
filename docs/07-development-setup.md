@@ -2628,6 +2628,24 @@ species case does not repeat Rat's shared reward,
 defeat-persistence or combat-replication acceptance. The live run remains part
 of combined A8a/A8b I4.
 
+## Freezing Tundra Polar Bear generated peer acceptance
+
+After an Editor build, run
+`Scripts/Tests/Combat/Verify-PolarBearPeer.ps1 -WorldSeed 445`. The
+Development-only fixture selects an undefeated Polar Bear from the normal
+seeded Freezing Tundra descriptors, applies the normal biome population budget
+and Tundra actor cap, and verifies the 150 m generated-start exclusion. It
+stages the listen host 50 m away while the ordinary population key activates,
+then moves it onto a dry traversable approach within the 220 cm server charge
+reach. Both remote clients are placed 10 m and 15 m from the generated bear.
+The fixture validates the 750-health profile, the server's telegraph, charge,
+retreat, recovery and accepted damage, plus the same replicated telegraph on
+both client logs. The Development-only host receives a temporary 300-health
+reserve so the authored 200-Crush hit cannot end the attack before retreat and
+recovery are observed. This species case does not repeat Rat's shared reward,
+defeat-persistence or combat-replication acceptance. The live run remains part
+of combined A8a/A8b I4.
+
 ## Freezing Tundra Polar Bear contract regression
 
 After an editor build, run
