@@ -29,6 +29,7 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
     const FKalmalaRecipe* WolfPeltBootsRecipe = Recipes->Find(TEXT("WolfPeltBootsRecipe"));
     const FKalmalaRecipe* WolfStewRecipe = Recipes->Find(TEXT("WolfStewRecipe"));
     const FKalmalaRecipe* LynxMantleRecipe = Recipes->Find(TEXT("LynxMantleRecipe"));
+    const FKalmalaRecipe* PolarBearCoatRecipe = Recipes->Find(TEXT("PolarBearCoatRecipe"));
     const FKalmalaRecipe* PeatHeartStewRecipe = Recipes->Find(TEXT("PeatHeartStewRecipe"));
     const FKalmalaRecipe* BrothRecipe = Recipes->Find(TEXT("HearthBrothRecipe"));
     const FKalmalaRecipe* MeatStewRecipe = Recipes->Find(TEXT("MeatStewRecipe"));
@@ -40,6 +41,7 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
         || !TestNotNull(TEXT("Wolf Pelt Boots recipe exists"), WolfPeltBootsRecipe)
         || !TestNotNull(TEXT("Wolf Stew recipe exists"), WolfStewRecipe)
         || !TestNotNull(TEXT("Lynx Mantle recipe exists"), LynxMantleRecipe)
+        || !TestNotNull(TEXT("Polar Bear Coat recipe exists"), PolarBearCoatRecipe)
         || !TestNotNull(TEXT("Peat Heart Stew recipe exists"), PeatHeartStewRecipe)
         || !TestNotNull(TEXT("Hearth broth recipe exists"), BrothRecipe)
         || !TestNotNull(TEXT("Meat stew recipe exists"), MeatStewRecipe)
@@ -436,6 +438,16 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
             Inventory->GetQuantity(TEXT("LynxMantle")), 0);
     }
 
+    TestTrue(TEXT("Fixture grants Polar Bear Coat materials"),
+        Inventory->TryGrantFromServer(TEXT("PolarBearPelt"), 5)
+        && Inventory->TryGrantFromServer(TEXT("Iron"), 20));
+    TestFalse(TEXT("Polar Bear Coat rejects crafting without an accepted Forge"),
+        Crafting->CraftFromServer(PolarBearCoatRecipe->RecipeId, 1, Reason));
+    TestEqual(TEXT("Missing Forge preserves all five Polar Bear Pelts"),
+        Inventory->GetQuantity(TEXT("PolarBearPelt")), 5);
+    TestEqual(TEXT("Missing Forge preserves all twenty Iron"), Inventory->GetQuantity(TEXT("Iron")), 20);
+    TestEqual(TEXT("Missing Forge creates no Polar Bear Coat"), Inventory->GetQuantity(TEXT("PolarBearCoat")), 0);
+
     Forge->SetActorLocation(Pawn->GetActorLocation() + FVector(-150.0f, 150.0f, 0.0f));
     World->Tick(LEVELTICK_All, 0.25f);
     Forge->Interact_Implementation(Pawn);
@@ -449,6 +461,31 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
         Crafting->IsStationContextUsable(Forge, FName(TEXT("ForgeKit")), Forge->GetConstructionId()));
     TestEqual(TEXT("Forge interaction does not trigger the cooking-only menu event"),
         Crafting->GetCookingStationInteractionSerial(), 1u);
+
+    TestTrue(TEXT("Polar Bear Coat crafts at the accepted Forge"),
+        Crafting->CraftFromServer(PolarBearCoatRecipe->RecipeId, 1, Reason));
+    TestEqual(TEXT("Polar Bear Coat consumes five Polar Bear Pelts"),
+        Inventory->GetQuantity(TEXT("PolarBearPelt")), 0);
+    TestEqual(TEXT("Polar Bear Coat consumes twenty Iron"), Inventory->GetQuantity(TEXT("Iron")), 0);
+    TestEqual(TEXT("Accepted Forge craft grants one Polar Bear Coat"),
+        Inventory->GetQuantity(TEXT("PolarBearCoat")), 1);
+    const TArray<FKalmalaInventoryStack> CraftedCoatStacks = Inventory->GetStacks();
+    const FKalmalaInventoryStack* CraftedCoat = CraftedCoatStacks.FindByPredicate(
+        [](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == TEXT("PolarBearCoat"); });
+    TestTrue(TEXT("Crafted Polar Bear Coat carries one physical item GUID"),
+        CraftedCoat && CraftedCoat->ItemGuids.Num() == 1);
+    if (CraftedCoat && CraftedCoat->ItemGuids.Num() == 1)
+    {
+        const FGuid CoatGuid = CraftedCoat->ItemGuids[0];
+        TestTrue(TEXT("Server equips crafted Polar Bear Coat by item GUID"),
+            Inventory->EquipGearFromServer(CoatGuid, Reason));
+        const FKalmalaEquippedGear* EquippedCoat = Inventory->FindEquippedGear(EKalmalaGearSlot::Chest);
+        TestTrue(TEXT("Crafted Polar Bear Coat occupies Chest and retains its GUID"),
+            EquippedCoat && EquippedCoat->ItemId == TEXT("PolarBearCoat")
+            && EquippedCoat->ItemGuid == CoatGuid);
+        TestEqual(TEXT("Equipped Polar Bear Coat leaves the carried inventory"),
+            Inventory->GetQuantity(TEXT("PolarBearCoat")), 0);
+    }
 
     Workbench->Destroy();
     Rack->Destroy();

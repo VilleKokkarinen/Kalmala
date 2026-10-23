@@ -5809,10 +5809,19 @@ checks exact-GUID Chest replacement and return. The Forge crafting-scope marker
 includes the registered Polar Bear Coat recipe. Its existing original imported
 icon and runtime mapping are covered by
 `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id PolarBearCoat`.
-`Verify-Crafting.ps1` and `Verify-PresentationOwnership.ps1` retain the route
-anchors for combined menu acceptance. These C++ assertions remain
-uncompiled/unexecuted in this normal child; combined A8a/A8b I4 is still
-required.
+`Kalmala.Gameplay.Food.CookingStationHeat` rejects Polar Bear Coat without an
+accepted Forge while preserving five Polar Bear Pelts and twenty Iron, then
+crafts one coat at the accepted Forge, pays those exact costs, and equips its
+GUID-addressed output into Chest through the server API. `Verify-Crafting.ps1`
+and `Verify-PresentationOwnership.ps1` retain the route anchors for combined
+menu acceptance. On 2026-10-23 the isolated `KalmalaEditor Win64 Development`
+build passed in four actions; `CookingStationHeat`,
+`Kalmala.Gameplay.Inventory.Catalogue`, `WornGearTransactions`, and
+`ToolProgressionCatalogue` all passed (`Result={Success}`, Editor exit 0).
+Logs: `C:/Users/Ville/AppData/Local/Temp/a8pb1/tests.log` and
+`C:/Users/Ville/AppData/Local/Temp/a8pb1/build.log`. These server-world and
+catalogue checks do not replace live peer crafting/equipment or owner UI
+acceptance in combined A8a/A8b I4.
 
 ## A8b Horn Bow weapon path — 2026-10-22
 
