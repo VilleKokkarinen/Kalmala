@@ -409,10 +409,11 @@ bool ResolveInteractionPrompt(const AKalmalaCharacter* Character, AActor* Target
         return true;
     }
 
-    if (Cast<AKalmalaDiscoveryActor>(Target) != nullptr)
+    if (const auto* Discovery = Cast<AKalmalaDiscoveryActor>(Target))
     {
-        OutDescription.TargetName = TEXT("Landmark");
-        OutDescription.ActionName = TEXT("Discover");
+        const bool bTreasure = Discovery->HasWorldTreasure() && !Discovery->IsTreasureClaimed();
+        OutDescription.TargetName = bTreasure ? TEXT("World treasure chest") : TEXT("Landmark");
+        OutDescription.ActionName = bTreasure ? TEXT("Loot / discover") : TEXT("Discover");
         if (FVector::DistSquared(Character->GetActorLocation(), Target->GetActorLocation())
             > FMath::Square(Character->GetInteractionRange()))
             OutDescription.UnavailableReason = TEXT("Out of reach");

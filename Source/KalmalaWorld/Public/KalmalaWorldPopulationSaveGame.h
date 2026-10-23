@@ -28,6 +28,16 @@ struct KALMALAWORLD_API FKalmalaGemstoneState
     UPROPERTY(SaveGame) uint8 Outcome = 0;
 };
 
+/** Rolled exactly once at generated world treasure creation, including empty results. */
+USTRUCT()
+struct KALMALAWORLD_API FKalmalaTreasureState
+{
+    GENERATED_BODY()
+    UPROPERTY(SaveGame) FString Id;
+    UPROPERTY(SaveGame) TArray<FName> Items;
+    UPROPERTY(SaveGame) bool bClaimed = false;
+};
+
 /** Versioned sparse server save data for generated population deltas. */
 UCLASS()
 class KALMALAWORLD_API UKalmalaWorldPopulationSaveGame : public USaveGame
@@ -36,6 +46,8 @@ class KALMALAWORLD_API UKalmalaWorldPopulationSaveGame : public USaveGame
 
 public:
     static constexpr int32 MaxPendingWildlifeRewards = 4096;
+    const FKalmalaTreasureState* FindTreasure(const FString& Id) const;
+    bool SetTreasure(const FKalmalaTreasureState& State);
     const FKalmalaGemstoneState* FindGemstone(const FString& SpawnId) const;
     bool SetGemstone(const FKalmalaGemstoneState& State);
     bool RemoveGemstone(const FString& SpawnId);
@@ -106,6 +118,7 @@ private:
     int32 SchemaVersion = 2;
 
     UPROPERTY(SaveGame) TArray<FKalmalaGemstoneState> Gemstones;
+    UPROPERTY(SaveGame) TArray<FKalmalaTreasureState> Treasures;
 
     UPROPERTY(SaveGame)
     FKalmalaWorldGenerationConfig WorldConfig;

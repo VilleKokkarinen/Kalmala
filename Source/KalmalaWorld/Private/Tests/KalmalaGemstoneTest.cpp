@@ -62,6 +62,20 @@ bool FKalmalaGemstoneContractTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Loose gem state persists"), Save->SetGemstone(State));
     State.Outcome = 3;
     TestTrue(TEXT("Claimed state persists"), Save->SetGemstone(State));
+    FKalmalaTreasureState Treasure;
+    Treasure.Id = TEXT("treasure:Poi:1:elderwood-quiet-clearing:2,3:0");
+    TestTrue(TEXT("Empty treasure roll is retained"), Save->SetTreasure(Treasure));
+    TestFalse(TEXT("Opening cannot reroll even an empty chest"), Save->SetTreasure(Treasure));
+    Treasure.Items.Add(TEXT("Garnet"));
+    Treasure.bClaimed = true;
+    TestFalse(TEXT("Claim cannot change generated loot"), Save->SetTreasure(Treasure));
+    Treasure.Items.Reset();
+    TestTrue(TEXT("Empty chest can be marked opened once"), Save->SetTreasure(Treasure));
+    TestFalse(TEXT("Competing second claim rejected"), Save->SetTreasure(Treasure));
+    TestTrue(TEXT("Treasure claim serializes"), UGameplayStatics::SaveGameToMemory(Save, Bytes));
+    Restored = Cast<UKalmalaWorldPopulationSaveGame>(UGameplayStatics::LoadGameFromMemory(Bytes));
+    TestTrue(TEXT("Empty claim survives reload without reroll"), Restored && Restored->MatchesWorld(Config)
+        && Restored->FindTreasure(Treasure.Id) && Restored->FindTreasure(Treasure.Id)->bClaimed);
     State.Hits = 1;
     TestFalse(TEXT("Invalid early extraction rejected"), Save->SetGemstone(State));
     return true;

@@ -8007,3 +8007,65 @@ FName AKalmalaGameMode::SelectEnemyGemForSpawn(const FString& SpawnId, const boo
     }
     return NAME_None;
 }
+
+const FKalmalaTreasureState* AKalmalaGameMode::PrepareWorldTreasure(const FKalmalaWorldDiscoveryDescriptor& Descriptor)
+{
+    if (!HasAuthority() || !PopulationSaveGame || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)
+        || Descriptor.Kind != EKalmalaWorldDiscoveryKind::PointOfInterest) return nullptr;
+    const auto Biome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, FVector2D(Descriptor.Location)));
+    if (Biome != EKalmalaBiome::Elderwood && Biome != EKalmalaBiome::ShimmeringLakes && Biome != EKalmalaBiome::ThunderMountains) return nullptr;
+    const FString Id = TEXT("treasure:") + FKalmalaWorldPopulationLayout::GetPersistentDiscoveryId(Descriptor);
+    bool bCanonical = false;
+    for (const auto& Candidate : FKalmalaWorldPopulationLayout::BuildDiscoveryDescriptors(
+        WorldGenerationConfig, Descriptor.SpatialKey, EKalmalaWorldDiscoveryKind::PointOfInterest))
+        bCanonical |= Candidate.DefinitionId == Descriptor.DefinitionId && Candidate.DescriptorSeed == Descriptor.DescriptorSeed
+            && Candidate.Ordinal == Descriptor.Ordinal && Candidate.Location.Equals(Descriptor.Location, 0.01f);
+    if (!bCanonical) return nullptr;
+    if (const auto* Existing = PopulationSaveGame->FindTreasure(Id)) return Existing;
+    FKalmalaTreasureState State;
+    State.Id = Id;
+    State.Items = FKalmalaGemstoneContract::SelectTreasure(Biome, Descriptor.DescriptorSeed ^ WorldGenerationConfig.WorldSeed);
+    auto* CandidateSave = DuplicateObject<UKalmalaWorldPopulationSaveGame>(PopulationSaveGame, this);
+    if (!CandidateSave || !CandidateSave->SetTreasure(State) || !CandidateSave->MatchesWorld(WorldGenerationConfig)
+        || !UGameplayStatics::SaveGameToSlot(CandidateSave, KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0)) return nullptr;
+    PopulationSaveGame = CandidateSave;
+    return PopulationSaveGame->FindTreasure(Id);
+}
+
+bool AKalmalaGameMode::ClaimWorldTreasure(AKalmalaCharacter* Interactor, const FKalmalaWorldDiscoveryDescriptor& Descriptor)
+{
+    if (!HasAuthority() || !IsValid(Interactor) || !Interactor->HasAuthority() || Interactor->GetWorld() != GetWorld()
+        || Interactor->GetHealth() <= 1.0f || FVector::DistSquared(Interactor->GetActorLocation(), Descriptor.Location) > FMath::Square(250.0f)) return false;
+    const auto* Existing = PrepareWorldTreasure(Descriptor);
+    auto* Inventory = Interactor->GetInventoryComponent();
+    if (!Existing || Existing->bClaimed || !Inventory) return false;
+    FKalmalaTreasureState Claimed = *Existing;
+    const auto Before = Inventory->GetStacks();
+    auto After = Before;
+    FString Reason;
+    for (const FName Item : Claimed.Items)
+    {
+        TArray<FKalmalaInventoryStack> Next;
+        if (!UKalmalaInventoryComponent::BuildGrant(After, Item, 1, Next, Reason))
+        {
+            if (auto* Crafting = Interactor->FindComponentByClass<UKalmalaCraftingComponent>())
+                Crafting->PublishInteractionResultFromServer(TEXT("Inventory is full; treasure remains"), false);
+            return false;
+        }
+        After = MoveTemp(Next);
+    }
+    if (!Inventory->CanFitContents(After, Inventory->CountPackedTools(Interactor->GetCarriedToolInventory()))
+        || !Inventory->TryCommitStacksFromServer(Before, After)) return false;
+    Claimed.bClaimed = true;
+    auto* CandidateSave = DuplicateObject<UKalmalaWorldPopulationSaveGame>(PopulationSaveGame, this);
+    if (!CandidateSave || !CandidateSave->SetTreasure(Claimed) || !CandidateSave->MatchesWorld(WorldGenerationConfig)
+        || !UGameplayStatics::SaveGameToSlot(CandidateSave, KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0))
+    {
+        if (!Inventory->TryCommitStacksFromServer(After, Before)) UE_LOG(LogTemp, Error, TEXT("Treasure inventory rollback failed."));
+        return false;
+    }
+    PopulationSaveGame = CandidateSave;
+    if (auto* Crafting = Interactor->FindComponentByClass<UKalmalaCraftingComponent>())
+        Crafting->PublishInteractionResultFromServer(Claimed.Items.IsEmpty() ? TEXT("Treasure chest is empty") : TEXT("Treasure collected"), true);
+    return true;
+}

@@ -31,6 +31,7 @@ void UKalmalaWorldPopulationSaveGame::InitializeForWorld(const FKalmalaWorldGene
 {
     SchemaVersion = 2;
     Gemstones.Reset();
+    Treasures.Reset();
     WorldConfig = InWorldConfig;
     HarvestedSpawnIds.Reset();
     DefeatedSpawnIds.Reset();
@@ -43,6 +44,19 @@ bool UKalmalaWorldPopulationSaveGame::MatchesWorld(const FKalmalaWorldGeneration
     for (const auto& Reward : PendingWildlifeRewards)
         if (!Reward.GemItemId.IsNone() && !(Reward.GemItemId == TEXT("Moonstone")
             && Reward.PersistentSpawnId.StartsWith(TEXT("moonbear-reward|")))) return false;
+    if (Treasures.Num() > 65536) return false;
+    TSet<FString> TreasureIds;
+    for (const auto& Treasure : Treasures)
+    {
+        if (Treasure.Id.IsEmpty() || Treasure.Id.Len() > 128 || TreasureIds.Contains(Treasure.Id) || Treasure.Items.Num() > 2) return false;
+        TSet<FName> SeenItems;
+        for (const FName Item : Treasure.Items)
+        {
+            if ((Item != TEXT("Garnet") && Item != TEXT("Aquamarine") && Item != TEXT("StormSapphire")) || SeenItems.Contains(Item)) return false;
+            SeenItems.Add(Item);
+        }
+        TreasureIds.Add(Treasure.Id);
+    }
     TSet<FString> Seen;
     for (const FKalmalaGemstoneState& State : Gemstones)
     {
@@ -629,5 +643,31 @@ bool UKalmalaWorldPopulationSaveGame::SetPendingGemReward(const FString& ClaimId
     auto* Reward = PendingWildlifeRewards.FindByPredicate([&ClaimId](const auto& Entry) { return Entry.PersistentSpawnId == ClaimId; });
     if (!Reward) return false;
     Reward->GemItemId = GemItemId;
+    return true;
+}
+
+const FKalmalaTreasureState* UKalmalaWorldPopulationSaveGame::FindTreasure(const FString& Id) const
+{
+    return Treasures.FindByPredicate([&Id](const auto& State) { return State.Id == Id; });
+}
+
+bool UKalmalaWorldPopulationSaveGame::SetTreasure(const FKalmalaTreasureState& State)
+{
+    if (State.Id.IsEmpty() || State.Id.Len() > 128 || State.Items.Num() > 2) return false;
+    TSet<FName> Seen;
+    for (const FName Item : State.Items)
+    {
+        if ((Item != TEXT("Garnet") && Item != TEXT("Aquamarine") && Item != TEXT("StormSapphire")) || Seen.Contains(Item)) return false;
+        Seen.Add(Item);
+    }
+    auto* Existing = Treasures.FindByPredicate([&State](const auto& Entry) { return Entry.Id == State.Id; });
+    if (Existing)
+    {
+        if (Existing->Items != State.Items || Existing->bClaimed || !State.bClaimed) return false;
+        *Existing = State;
+        return true;
+    }
+    if (Treasures.Num() >= 65536 || State.bClaimed) return false;
+    Treasures.Add(State);
     return true;
 }

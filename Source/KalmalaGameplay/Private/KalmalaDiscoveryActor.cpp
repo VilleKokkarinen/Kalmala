@@ -3,6 +3,7 @@
 #include "Components/SphereComponent.h"
 #include "KalmalaCharacter.h"
 #include "KalmalaGameMode.h"
+#include "KalmalaWorldPopulationSaveGame.h"
 #include "Materials/MaterialInterface.h"
 #include "Net/UnrealNetwork.h"
 #include "ProceduralMeshComponent.h"
@@ -85,6 +86,9 @@ void AKalmalaDiscoveryActor::InitializeServer(const FKalmalaWorldDiscoveryDescri
         RareDiscoverySourceId = CandidateSourceId;
     }
     Descriptor = InDescriptor;
+    if (auto* Mode = GetWorld()->GetAuthGameMode<AKalmalaGameMode>())
+        if (const auto* Treasure = Mode->PrepareWorldTreasure(Descriptor))
+        { bWorldTreasure = true; bTreasureClaimed = Treasure->bClaimed; }
     SetActorLocation(InDescriptor.Location);
     BuildDiscoveryPresentation();
 }
@@ -155,6 +159,8 @@ void AKalmalaDiscoveryActor::Interact_Implementation(AKalmalaCharacter* Interact
         else
         {
             Mode->ClaimDiscovery(Interactor, Descriptor);
+            if (bWorldTreasure && !bTreasureClaimed && Mode->ClaimWorldTreasure(Interactor, Descriptor))
+            { bTreasureClaimed = true; BuildDiscoveryPresentation(); ForceNetUpdate(); }
         }
     }
 }
@@ -163,6 +169,8 @@ void AKalmalaDiscoveryActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
     DOREPLIFETIME(AKalmalaDiscoveryActor, RareDiscoverySourceId);
+    DOREPLIFETIME(AKalmalaDiscoveryActor, bWorldTreasure);
+    DOREPLIFETIME(AKalmalaDiscoveryActor, bTreasureClaimed);
     DOREPLIFETIME(AKalmalaDiscoveryActor, OceanPresentationId);
     DOREPLIFETIME(AKalmalaDiscoveryActor, M9PresentationId);
 }
@@ -273,7 +281,21 @@ void AKalmalaDiscoveryActor::BuildDiscoveryPresentation()
         AddKalmalaDiscoveryPrism(Vertices, Triangles, Colors, FVector(18.0f, 18.0f, 10.0f), FVector(2.0f, 2.0f, 0.0f), 13.0f, 0.88f, 1.0f, FLinearColor(0.70f, 0.64f, 0.40f));
     }
 
+    if (bWorldTreasure)
+    {
+        const FLinearColor Timber(.30f,.19f,.10f), Band(.48f,.48f,.43f);
+        // Original open-box geometry beside the existing marker on the same descriptor anchor.
+        AddKalmalaDiscoveryPrism(Vertices, Triangles, Colors, FVector(65,0,0), FVector(27,20,0), 5, 1, 0, Timber);
+        AddKalmalaDiscoveryPrism(Vertices, Triangles, Colors, FVector(65,-18,5), FVector(27,2,0), 30, 1, 0, Timber);
+        AddKalmalaDiscoveryPrism(Vertices, Triangles, Colors, FVector(65,18,5), FVector(27,2,0), 30, 1, 0, Timber);
+        AddKalmalaDiscoveryPrism(Vertices, Triangles, Colors, FVector(40,0,5), FVector(2,16,0), 30, 1, 0, Band);
+        AddKalmalaDiscoveryPrism(Vertices, Triangles, Colors, FVector(90,0,5), FVector(2,16,0), 30, 1, 0, Band);
+        if (!bTreasureClaimed)
+            AddKalmalaDiscoveryPrism(Vertices, Triangles, Colors, FVector(65,0,35), FVector(28,21,0), 8, .85f, 0, Timber);
+    }
     DiscoveryMesh->SetMaterial(0, DiscoveryMaterial);
     DiscoveryMesh->CreateMeshSection_LinearColor(0, Vertices, Triangles, {}, {}, Colors, {}, false);
     DiscoveryMesh->SetVisibility(true);
 }
+
+void AKalmalaDiscoveryActor::OnRep_Treasure() { BuildDiscoveryPresentation(); }

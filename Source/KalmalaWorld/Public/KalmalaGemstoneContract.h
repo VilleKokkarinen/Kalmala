@@ -42,6 +42,18 @@ struct FKalmalaGemstoneContract
         return bMoonBear && Biome == EKalmalaBiome::Elderwood && Mix(Seed ^ 0xA9B3A2ull) % 50 == 0
             ? FName(TEXT("Moonstone")) : NAME_None;
     }
+    static bool IsTreasureGemEnabled(FName Item) { return Item == TEXT("Garnet"); }
+    static TArray<FName> SelectTreasure(EKalmalaBiome Biome, uint64 Seed)
+    {
+        TArray<FName> Items;
+        if ((Biome == EKalmalaBiome::Elderwood || Biome == EKalmalaBiome::ShimmeringLakes)
+            && Mix(Seed ^ 0xA96A2A37ull) % 10 == 0 && IsTreasureGemEnabled(TEXT("Garnet"))) Items.Add(TEXT("Garnet"));
+        if (Biome == EKalmalaBiome::ShimmeringLakes && Mix(Seed ^ 0xA9A9A4ull) % 20 == 0
+            && IsTreasureGemEnabled(TEXT("Aquamarine"))) Items.Add(TEXT("Aquamarine"));
+        if (Biome == EKalmalaBiome::ThunderMountains && Mix(Seed ^ 0xA95702Aull) % 50 == 0
+            && IsTreasureGemEnabled(TEXT("StormSapphire"))) Items.Add(TEXT("StormSapphire"));
+        return Items;
+    }
     static bool IsAcquisitionEnabled(FName Source) { return Source == TEXT("gem-quartz-rock"); }
     static int32 MinimumPickTier(FName Source) { return Source == TEXT("gem-amethyst-rock") ? 2 : 1; }
     static bool IsGemSource(FName Source) { return !ItemForSource(Source).IsNone(); }
