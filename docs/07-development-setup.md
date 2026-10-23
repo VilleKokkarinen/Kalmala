@@ -4898,8 +4898,11 @@ available runtime action.
 the UI presentation contract cover the profile, acquisition/upgrade records,
 boots slot, and recipe visibility. The original imported icon is already
 covered by `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id WolfPeltBoots`.
-These regression sources await the combined A8 I4 build and automation run;
-peer crafting, armor, condition and rendered acceptance remain deferred.
+`Kalmala.Gameplay.Food.CookingStationHeat` also rejects the recipe when the
+Workbench is missing, then crafts at its accepted Workbench, checks exact
+material payment and output GUID, and equips the output into the Boots slot
+through the server inventory path. This focused server-world case does not
+replace combined I4 peer crafting, armor/condition, or rendered acceptance.
 
 ## Inventory Worn Gear presentation — 2026-10-15
 

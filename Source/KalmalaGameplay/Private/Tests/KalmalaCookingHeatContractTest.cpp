@@ -26,6 +26,7 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Recipe and item catalogues validate"), Recipes->IsValidCatalogue() && Items->IsValidCatalogue());
 
     const FKalmalaRecipe* CookRecipe = Recipes->Find(TEXT("CookedBoarMeatRecipe"));
+    const FKalmalaRecipe* WolfPeltBootsRecipe = Recipes->Find(TEXT("WolfPeltBootsRecipe"));
     const FKalmalaRecipe* PeatHeartStewRecipe = Recipes->Find(TEXT("PeatHeartStewRecipe"));
     const FKalmalaRecipe* BrothRecipe = Recipes->Find(TEXT("HearthBrothRecipe"));
     const FKalmalaRecipe* MeatStewRecipe = Recipes->Find(TEXT("MeatStewRecipe"));
@@ -34,6 +35,7 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
     const FKalmalaRecipe* RoastedRootsRecipe = Recipes->Find(TEXT("RoastedRootVegetablesRecipe"));
     const FKalmalaRecipe* DeerRootRoastRecipe = Recipes->Find(TEXT("DeerRootRoastRecipe"));
     if (!TestNotNull(TEXT("Cooked boar recipe exists"), CookRecipe)
+        || !TestNotNull(TEXT("Wolf Pelt Boots recipe exists"), WolfPeltBootsRecipe)
         || !TestNotNull(TEXT("Peat Heart Stew recipe exists"), PeatHeartStewRecipe)
         || !TestNotNull(TEXT("Hearth broth recipe exists"), BrothRecipe)
         || !TestNotNull(TEXT("Meat stew recipe exists"), MeatStewRecipe)
@@ -320,6 +322,15 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Station context rejects a mismatched station kit"),
         Crafting->IsStationContextUsable(Rack, FName(TEXT("CauldronKit")), Rack->GetConstructionId()));
 
+    TestTrue(TEXT("Fixture grants Wolf Pelt Boots materials"),
+        Inventory->TryGrantFromServer(TEXT("WolfPelt"), 5)
+        && Inventory->TryGrantFromServer(TEXT("Iron"), 5));
+    TestFalse(TEXT("Wolf Pelt Boots reject crafting while the Workbench is missing"),
+        Crafting->CraftFromServer(WolfPeltBootsRecipe->RecipeId, 1, Reason));
+    TestEqual(TEXT("Missing Workbench preserves all five Wolf Pelts"), Inventory->GetQuantity(TEXT("WolfPelt")), 5);
+    TestEqual(TEXT("Missing Workbench preserves all five Iron"), Inventory->GetQuantity(TEXT("Iron")), 5);
+    TestEqual(TEXT("Missing Workbench creates no boots"), Inventory->GetQuantity(TEXT("WolfPeltBoots")), 0);
+
     AKalmalaConstructionActor* Workbench = World->SpawnActor<AKalmalaConstructionActor>();
     if (!TestNotNull(TEXT("Workbench fixture spawned"), Workbench))
     {
@@ -345,6 +356,26 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
         Crafting->IsStationContextUsable(Workbench, FName(TEXT("WorkbenchKit")), Workbench->GetConstructionId()));
     TestEqual(TEXT("Workbench interaction does not trigger the cooking-only menu event"),
         Crafting->GetCookingStationInteractionSerial(), 1u);
+
+    TestTrue(TEXT("Wolf Pelt Boots craft at the accepted Workbench"),
+        Crafting->CraftFromServer(WolfPeltBootsRecipe->RecipeId, 1, Reason));
+    TestEqual(TEXT("Wolf Pelt Boots consume five Wolf Pelts"), Inventory->GetQuantity(TEXT("WolfPelt")), 0);
+    TestEqual(TEXT("Wolf Pelt Boots consume five Iron"), Inventory->GetQuantity(TEXT("Iron")), 0);
+    TestEqual(TEXT("Accepted Workbench craft grants one pair of boots"), Inventory->GetQuantity(TEXT("WolfPeltBoots")), 1);
+    const FKalmalaInventoryStack* CraftedBoots = Inventory->GetStacks().FindByPredicate(
+        [](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == TEXT("WolfPeltBoots"); });
+    TestTrue(TEXT("Crafted boots carry one physical item GUID"), CraftedBoots && CraftedBoots->ItemGuids.Num() == 1);
+    if (CraftedBoots && CraftedBoots->ItemGuids.Num() == 1)
+    {
+        const FGuid BootsGuid = CraftedBoots->ItemGuids[0];
+        TestTrue(TEXT("Server equips crafted Wolf Pelt Boots by item GUID"),
+            Inventory->EquipGearFromServer(BootsGuid, Reason));
+        const FKalmalaEquippedGear* EquippedBoots = Inventory->FindEquippedGear(EKalmalaGearSlot::Boots);
+        TestTrue(TEXT("Crafted Boots occupy the Boots slot and retain their GUID"),
+            EquippedBoots && EquippedBoots->ItemId == TEXT("WolfPeltBoots")
+            && EquippedBoots->ItemGuid == BootsGuid);
+        TestEqual(TEXT("Equipped boots leave the carried inventory"), Inventory->GetQuantity(TEXT("WolfPeltBoots")), 0);
+    }
 
     Forge->SetActorLocation(Pawn->GetActorLocation() + FVector(-150.0f, 150.0f, 0.0f));
     World->Tick(LEVELTICK_All, 0.25f);
