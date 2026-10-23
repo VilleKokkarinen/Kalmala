@@ -4233,6 +4233,359 @@ void AKalmalaGameMode::DriveHornedGoatPeerTest()
 #endif
 }
 
+void AKalmalaGameMode::DriveThunderSentinelPeerTest()
+{
+#if !UE_BUILD_SHIPPING
+    if (!FParse::Param(FCommandLine::Get(), TEXT("KalmalaThunderSentinelPeerTest"))
+        || !HasAuthority() || GetWorld() == nullptr || !WorldGenerationConfig.IsValid()
+        || ThunderSentinelPeerTestStage >= 99)
+    {
+        return;
+    }
+
+    const float Now = GetWorld()->GetTimeSeconds();
+    const auto PlaceOnTerrain = [this](AKalmalaCharacter* Character, const FVector& DesiredLocation)
+    {
+        if (!IsValid(Character)) return;
+        ActivateTerrainPatchNeighborhood(FVector2D(DesiredLocation));
+        FVector GroundedLocation = DesiredLocation;
+        GroundedLocation.Z = FKalmalaTerrainHeightSampler::SampleHeight(
+            WorldGenerationConfig, FVector2D(DesiredLocation))
+            + Character->GetSimpleCollisionHalfHeight() + 1.0f;
+        Character->SetActorLocation(GroundedLocation, false, nullptr, ETeleportType::TeleportPhysics);
+        Character->ForceNetUpdate();
+        if (UCharacterMovementComponent* Movement = Character->GetCharacterMovement())
+        {
+            Movement->StopMovementImmediately();
+            if (Movement->MovementMode == MOVE_None) Movement->SetMovementMode(MOVE_Walking);
+        }
+    };
+    const auto IsDryMountainSurface = [this](const FVector2D& Position)
+    {
+        if (!FKalmalaWorldBounds::Contains(WorldGenerationConfig, Position)) return false;
+        const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(
+            FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, Position));
+        const bool bWater = FKalmalaOceanSampler::Sample(WorldGenerationConfig, Position).IsWater()
+            || FKalmalaShimmeringLakeSampler::IsWater(WorldGenerationConfig, Position);
+        const bool bTraversable = FKalmalaTerrainHeightSampler::SampleSurfaceNormal(
+            WorldGenerationConfig, Position).Z >= 0.82f;
+        return AKalmalaWildlifeSpawn::IsThunderMountainsSpawnHabitatAllowed(Biome, bWater, bTraversable);
+    };
+    const auto IsSafeMountainPath = [&IsDryMountainSurface, this](const FVector2D& Start, const FVector2D& End)
+    {
+        if (!IsDryMountainSurface(Start) || !IsDryMountainSurface(End)) return false;
+        const float StartHeight = FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, Start);
+        const float Distance = FVector2D::Distance(Start, End);
+        const int32 Samples = FMath::Max(1, FMath::CeilToInt(Distance / 80.0f));
+        for (int32 Index = 0; Index <= Samples; ++Index)
+        {
+            const FVector2D Position = FMath::Lerp(Start, End, static_cast<float>(Index) / Samples);
+            if (!IsDryMountainSurface(Position)
+                || FMath::Abs(FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, Position)
+                    - StartHeight) > 80.0f)
+            {
+                return false;
+            }
+        }
+        return true;
+    };
+
+    if (ThunderSentinelPeerTestStage == 0)
+    {
+        APlayerController* HostController = GetWorld()->GetFirstPlayerController();
+        AKalmalaCharacter* Host = HostController != nullptr
+            ? Cast<AKalmalaCharacter>(HostController->GetPawn()) : nullptr;
+        if (Host == nullptr || GeneratedPlayerStart == nullptr)
+        {
+            if (Now > 90.0f)
+            {
+                UE_LOG(LogTemp, Error, TEXT("Thunder Sentinel verification FAILED: generated start or listen host was unavailable."));
+                ThunderSentinelPeerTestStage = 99;
+            }
+            return;
+        }
+
+        ThunderSentinelPeerTestObservers.Reset();
+        for (TActorIterator<AKalmalaCharacter> It(GetWorld()); It; ++It)
+        {
+            AKalmalaCharacter* Candidate = *It;
+            if (Candidate == Host || Candidate->GetPlayerState() == nullptr) continue;
+            ThunderSentinelPeerTestObservers.Add(Candidate);
+        }
+        if (ThunderSentinelPeerTestObservers.Num() < 2)
+        {
+            if (Now > 90.0f)
+            {
+                UE_LOG(LogTemp, Error, TEXT("Thunder Sentinel verification FAILED: two observing client peers did not join."));
+                ThunderSentinelPeerTestStage = 99;
+            }
+            return;
+        }
+
+        const FIntPoint StartKey = FKalmalaWorldPopulationLayout::GetSpatialKey(
+            FVector2D(GeneratedPlayerStart->GetActorLocation()));
+        bool bFoundCandidate = false;
+        for (int32 Radius = 0; Radius <= 64 && !bFoundCandidate; ++Radius)
+        {
+            for (int32 OffsetY = -Radius; OffsetY <= Radius && !bFoundCandidate; ++OffsetY)
+            {
+                for (int32 OffsetX = -Radius; OffsetX <= Radius; ++OffsetX)
+                {
+                    if (Radius > 0 && FMath::Abs(OffsetX) != Radius && FMath::Abs(OffsetY) != Radius) continue;
+                    const FIntPoint CandidateKey = StartKey + FIntPoint(OffsetX, OffsetY);
+                    const FVector2D KeyCentre = (FVector2D(CandidateKey) + FVector2D(0.5f, 0.5f))
+                        * FKalmalaWorldPopulationLayout::SpatialKeySize;
+                    const EKalmalaBiome KeyBiome = FKalmalaBiomeClassifier::Classify(
+                        FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, KeyCentre));
+                    if (KeyBiome != EKalmalaBiome::ThunderMountains) continue;
+
+                    TArray<FKalmalaWorldPopulationSpawn> Descriptors =
+                        FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(
+                            WorldGenerationConfig, CandidateKey, EKalmalaWorldPopulationKind::Wildlife);
+                    Descriptors.SetNum(FMath::Min(Descriptors.Num(),
+                        FKalmalaBiomeExpansionContract::ApplyPopulationBudget(
+                            Descriptors.Num(), EKalmalaWorldPopulationKind::Wildlife, KeyBiome)));
+                    const int32 WildlifeActorBudget = Descriptors.Num();
+                    int32 SpawnedWildlifeActorCount = 0;
+
+                    for (const FKalmalaWorldPopulationSpawn& Spawn : Descriptors)
+                    {
+                        EKalmalaWildlifeArchetype Archetype;
+                        if (!KalmalaGameMode::TryGetWildlifeArchetypeForSpawn(
+                                WorldGenerationConfig, Spawn, Archetype))
+                        {
+                            continue;
+                        }
+                        const bool bHardEnemy = Archetype == EKalmalaWildlifeArchetype::GiantSnake
+                            || Archetype == EKalmalaWildlifeArchetype::MoonBear
+                            || Archetype == EKalmalaWildlifeArchetype::PeatHusk
+                            || Archetype == EKalmalaWildlifeArchetype::PolarBear
+                            || Archetype == EKalmalaWildlifeArchetype::ThunderSentinel
+                            || Archetype == EKalmalaWildlifeArchetype::ReefMaw;
+                        const float StartDistance = FVector::Dist2D(
+                            Spawn.Location, GeneratedPlayerStart->GetActorLocation());
+                        if (!AKalmalaWildlifeSpawn::IsHardEnemySpawnAllowedByStart(
+                                bHardEnemy, true, StartDistance))
+                        {
+                            continue;
+                        }
+                        const FString SpawnId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Spawn);
+                        if (PopulationSaveGame != nullptr && PopulationSaveGame->IsDefeated(SpawnId)) continue;
+                        if (SpawnedWildlifeActorCount >= WildlifeActorBudget) continue;
+
+                        ++SpawnedWildlifeActorCount;
+                        if (Archetype != EKalmalaWildlifeArchetype::ThunderSentinel) continue;
+                        if (!IsDryMountainSurface(FVector2D(Spawn.Location))) continue;
+
+                        const FVector2D SpawnPosition(Spawn.Location);
+                        for (int32 DirectionIndex = 0; DirectionIndex < 16; ++DirectionIndex)
+                        {
+                            const float Angle = static_cast<float>(DirectionIndex) * (2.0f * PI / 16.0f);
+                            const FVector2D Direction(FMath::Cos(Angle), FMath::Sin(Angle));
+                            const FVector2D HostPosition = SpawnPosition + Direction * 400.0f;
+                            const FVector2D RingPosition = SpawnPosition + Direction * 700.0f;
+                            if (!IsSafeMountainPath(SpawnPosition, HostPosition)
+                                || !IsSafeMountainPath(SpawnPosition, RingPosition))
+                            {
+                                continue;
+                            }
+
+                            ThunderSentinelPeerTestSpatialKey = CandidateKey;
+                            ThunderSentinelPeerTestSpawnId = SpawnId;
+                            ThunderSentinelPeerTestSpawnLocation = Spawn.Location;
+                            ThunderSentinelPeerTestStartDistanceCm = StartDistance;
+                            ThunderSentinelPeerTestHostLocation = FVector(HostPosition.X, HostPosition.Y,
+                                FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, HostPosition));
+                            ThunderSentinelPeerTestHostRingLocation = FVector(RingPosition.X, RingPosition.Y,
+                                FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, RingPosition));
+                            bFoundCandidate = true;
+                            break;
+                        }
+                        if (bFoundCandidate) break;
+                    }
+                }
+            }
+        }
+
+        if (!bFoundCandidate)
+        {
+            UE_LOG(LogTemp, Error,
+                TEXT("Thunder Sentinel verification FAILED: no undefeated generated Sentinel with a safe slam path and 150 m start exclusion was found within 64 spatial keys."));
+            ThunderSentinelPeerTestStage = 99;
+            return;
+        }
+        if (!ActivePopulationSpatialKeys.Contains(ThunderSentinelPeerTestSpatialKey)
+            && ActivePopulationSpatialKeys.Num() >= KalmalaGameMode::MaxActivePopulationSpatialKeys)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Thunder Sentinel verification FAILED: the bounded active population-key budget is full before fixture activation."));
+            ThunderSentinelPeerTestStage = 99;
+            return;
+        }
+
+        ThunderSentinelPeerTestWorldSeed = WorldGenerationConfig.WorldSeed;
+        ThunderSentinelPeerTestHost = Host;
+        ThunderSentinelPeerTestTarget.Reset();
+        ThunderSentinelPeerTestStartingHealth = 600.0f;
+        Host->Health = ThunderSentinelPeerTestStartingHealth;
+        Host->ForceNetUpdate();
+        bThunderSentinelPeerTestSawTelegraph = false;
+        bThunderSentinelPeerTestSawSlam = false;
+        bThunderSentinelPeerTestSawRecovery = false;
+        ThunderSentinelPeerTestObservedStepCm = 0.0f;
+        PlaceOnTerrain(Host, ThunderSentinelPeerTestHostRingLocation);
+        ActivatePopulationKey(ThunderSentinelPeerTestSpatialKey);
+        ThunderSentinelPeerTestStage = 1;
+        ThunderSentinelPeerTestStageTime = Now;
+        return;
+    }
+
+    AKalmalaCharacter* Host = ThunderSentinelPeerTestHost.Get();
+    if (!IsValid(Host))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Thunder Sentinel verification FAILED: listen host disappeared."));
+        ThunderSentinelPeerTestStage = 99;
+        return;
+    }
+
+    if (ThunderSentinelPeerTestStage == 1)
+    {
+        AKalmalaWildlifeSpawn* Target = nullptr;
+        for (TActorIterator<AKalmalaWildlifeSpawn> It(GetWorld()); It; ++It)
+        {
+            if ((*It)->GetPersistentSpawnId() == ThunderSentinelPeerTestSpawnId)
+            {
+                Target = *It;
+                break;
+            }
+        }
+        if (Target == nullptr)
+        {
+            if (Now - ThunderSentinelPeerTestStageTime > 20.0f)
+            {
+                UE_LOG(LogTemp, Error, TEXT("Thunder Sentinel verification FAILED: generated descriptor did not materialize."));
+                ThunderSentinelPeerTestStage = 99;
+            }
+            return;
+        }
+        if (Target->GetArchetype() != EKalmalaWildlifeArchetype::ThunderSentinel
+            || !FMath::IsNearlyEqual(Target->GetHealth(), 1250.0f, 0.1f)
+            || !FMath::IsNearlyEqual(AKalmalaWildlifeSpawn::GetArmorForArchetype(
+                Target->GetArchetype()), 75.0f, 0.1f)
+            || ThunderSentinelPeerTestStartDistanceCm < 15000.0f)
+        {
+            UE_LOG(LogTemp, Error,
+                TEXT("Thunder Sentinel verification FAILED: generated archetype, 1250-health profile, 75-armor profile, or 150 m start exclusion was invalid."));
+            ThunderSentinelPeerTestStage = 99;
+            return;
+        }
+
+        ThunderSentinelPeerTestSentinelStartLocation = Target->GetActorLocation();
+        PlaceOnTerrain(Host, ThunderSentinelPeerTestHostLocation);
+        ThunderSentinelPeerTestHostDistanceCm = FVector::Dist2D(Host->GetActorLocation(), Target->GetActorLocation());
+        if (ThunderSentinelPeerTestHostDistanceCm <= AKalmalaWildlifeSpawn::ThunderSentinelSlamReachCentimetres
+            || ThunderSentinelPeerTestHostDistanceCm > AKalmalaWildlifeSpawn::ThunderSentinelAttackTriggerCentimetres)
+        {
+            UE_LOG(LogTemp, Error,
+                TEXT("Thunder Sentinel verification FAILED: host did not start outside slam reach and inside the attack trigger. HostDistanceCm=%.1f."),
+                ThunderSentinelPeerTestHostDistanceCm);
+            ThunderSentinelPeerTestStage = 99;
+            return;
+        }
+
+        ThunderSentinelPeerTestStartingHealth = Host->GetHealth();
+        int32 ObserverIndex = 0;
+        for (const TWeakObjectPtr<AKalmalaCharacter>& ObserverWeak : ThunderSentinelPeerTestObservers)
+        {
+            AKalmalaCharacter* Observer = ObserverWeak.Get();
+            if (!IsValid(Observer)) continue;
+            const float Distance = 1000.0f + 500.0f * static_cast<float>(ObserverIndex);
+            bool bPlacedObserver = false;
+            for (int32 DirectionIndex = 0; DirectionIndex < 16 && !bPlacedObserver; ++DirectionIndex)
+            {
+                const float Angle = static_cast<float>(DirectionIndex) * (2.0f * PI / 16.0f);
+                const FVector2D ObserverPosition(
+                    ThunderSentinelPeerTestSpawnLocation.X + FMath::Cos(Angle) * Distance,
+                    ThunderSentinelPeerTestSpawnLocation.Y + FMath::Sin(Angle) * Distance);
+                if (!IsDryMountainSurface(ObserverPosition)) continue;
+                const FVector DesiredObserverLocation(ObserverPosition.X, ObserverPosition.Y,
+                    FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, ObserverPosition));
+                PlaceOnTerrain(Observer, DesiredObserverLocation);
+                bPlacedObserver = true;
+            }
+            if (!bPlacedObserver)
+            {
+                UE_LOG(LogTemp, Error, TEXT("Thunder Sentinel verification FAILED: an observer could not be placed within replication range."));
+                ThunderSentinelPeerTestStage = 99;
+                return;
+            }
+            ++ObserverIndex;
+        }
+        if (ObserverIndex < 2)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Thunder Sentinel verification FAILED: an observing client disappeared before the slam."));
+            ThunderSentinelPeerTestStage = 99;
+            return;
+        }
+
+        ThunderSentinelPeerTestTarget = Target;
+        Target->ForceNetUpdate();
+        UE_LOG(LogTemp, Display,
+            TEXT("Thunder Sentinel verification fixture armed: Seed=%llu SpawnId=%s StartDistanceCm=%.1f HostDistanceCm=%.1f Observers=2."),
+            static_cast<unsigned long long>(ThunderSentinelPeerTestWorldSeed), *ThunderSentinelPeerTestSpawnId,
+            ThunderSentinelPeerTestStartDistanceCm, ThunderSentinelPeerTestHostDistanceCm);
+        ThunderSentinelPeerTestStage = 2;
+        ThunderSentinelPeerTestStageTime = Now;
+        return;
+    }
+
+    if (ThunderSentinelPeerTestStage == 2)
+    {
+        AKalmalaWildlifeSpawn* Target = ThunderSentinelPeerTestTarget.Get();
+        if (!IsValid(Target))
+        {
+            UE_LOG(LogTemp, Error, TEXT("Thunder Sentinel verification FAILED: generated Sentinel disappeared before its slam."));
+            ThunderSentinelPeerTestStage = 99;
+            return;
+        }
+
+        const EKalmalaWildlifeAttackCue Cue = Target->GetThunderSentinelAttackCueForVerification();
+        bThunderSentinelPeerTestSawTelegraph |= Cue == EKalmalaWildlifeAttackCue::Telegraph;
+        bThunderSentinelPeerTestSawSlam |= Cue == EKalmalaWildlifeAttackCue::Lunge;
+        bThunderSentinelPeerTestSawRecovery |= Cue == EKalmalaWildlifeAttackCue::Recovery;
+        if (Cue == EKalmalaWildlifeAttackCue::Lunge && ThunderSentinelPeerTestObservedStepCm <= 0.0f)
+        {
+            ThunderSentinelPeerTestObservedStepCm = FVector::Dist2D(
+                ThunderSentinelPeerTestSentinelStartLocation, Target->GetActorLocation());
+        }
+
+        const float HostDamage = ThunderSentinelPeerTestStartingHealth - Host->GetHealth();
+        const bool bDamageValid = FMath::IsNearlyEqual(HostDamage, 300.0f, 1.0f);
+        const bool bStepValid = ThunderSentinelPeerTestObservedStepCm >= 80.0f
+            && ThunderSentinelPeerTestObservedStepCm <= 120.5f;
+        if (bThunderSentinelPeerTestSawTelegraph && bThunderSentinelPeerTestSawSlam
+            && bThunderSentinelPeerTestSawRecovery && bDamageValid && bStepValid
+            && Host->GetHealth() > 1.0f)
+        {
+            UE_LOG(LogTemp, Display,
+                TEXT("Thunder Sentinel verification server: Passed=1 Seed=%llu Telegraph=1 Slam=1 Recovery=1 HostDamage=%.1f StepCm=%.1f SpawnId=%s"),
+                static_cast<unsigned long long>(ThunderSentinelPeerTestWorldSeed), HostDamage,
+                ThunderSentinelPeerTestObservedStepCm, *ThunderSentinelPeerTestSpawnId);
+            ThunderSentinelPeerTestStage = 99;
+            return;
+        }
+        if (Now - ThunderSentinelPeerTestStageTime > 18.0f)
+        {
+            UE_LOG(LogTemp, Error,
+                TEXT("Thunder Sentinel verification FAILED: cue, 300-Crush slam, or short step incomplete. Telegraph=%d Slam=%d Recovery=%d HostDamage=%.1f StepCm=%.1f Cue=%d."),
+                bThunderSentinelPeerTestSawTelegraph, bThunderSentinelPeerTestSawSlam,
+                bThunderSentinelPeerTestSawRecovery, HostDamage, ThunderSentinelPeerTestObservedStepCm,
+                static_cast<int32>(Cue));
+            ThunderSentinelPeerTestStage = 99;
+        }
+    }
+#endif
+}
+
 void AKalmalaGameMode::DriveDiscoveryPeerTest()
 {
 #if !UE_BUILD_SHIPPING
@@ -4605,6 +4958,7 @@ void AKalmalaGameMode::Tick(const float DeltaSeconds)
     DriveLynxPeerTest();
     DrivePolarBearPeerTest();
     DriveHornedGoatPeerTest();
+    DriveThunderSentinelPeerTest();
     DriveDiscoveryPeerTest();
     DriveM9ExplorationRewardPeerTest();
     DriveOceanTravelFeedbackTest();

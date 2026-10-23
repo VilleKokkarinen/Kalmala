@@ -2663,6 +2663,25 @@ push from its 250 cm maximum. This species case does not repeat Rat's shared
 reward delivery/retry, defeat persistence, or combat-replication acceptance;
 its live run remains part of combined A8a/A8b I4.
 
+## Thunder Mountains Thunder Sentinel generated peer acceptance
+
+After an Editor build, run
+`Scripts/Tests/Combat/Verify-ThunderSentinelPeer.ps1 -WorldSeed 445`. The
+Development-only fixture selects an undefeated generated Thunder Sentinel
+from normal Thunder Mountains descriptors after applying the population
+budget and actor cap. It verifies the shared 150 m hard-enemy start exclusion,
+then activates the ordinary population key with the listen host 700 cm away.
+Once the Sentinel materializes, the host is placed 400 cm away, outside the
+300 cm slam reach but inside the 420 cm attack trigger; the Sentinel must take
+its authored short step to land the downward slam. Require the 1250-health/
+75-Armor profile, 300 Crush damage, a 1.2-second recovery, and both remote
+clients observing the same generated Sentinel's replicated telegraph and slam
+cues. The Development-only host receives 600 health so the 300-Crush hit cannot
+end the encounter before recovery is observed. The case also checks the
+generated 150 m start exclusion and the actual step into slam reach. It does not
+repeat Rat's shared reward delivery/retry, defeat persistence, or combat
+replication acceptance; this live run remains part of combined A8a/A8b I4.
+
 ## Freezing Tundra Polar Bear contract regression
 
 After an editor build, run
