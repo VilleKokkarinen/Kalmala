@@ -449,9 +449,10 @@ and original inventory icons before implementation; the uses are not recipes.
   25% roll for one Wolf Fang. The durable owner claim stores that roll so
   retries, reloads, and duplicate defeat callbacks cannot reroll or duplicate
   it. The complete awarded bundle commits together; insufficient capacity
-  retains the claim for retry. Validate host/client appearance, pack
-  cap/partial saved packs, attack rejection, full-pack retry, reconnect and
-  restart in combined I4.
+  retains the claim for retry. In I4, validate Wolf-specific appearance, pack
+  formation/cap and attack rejection. `Verify-RatPeer.ps1` is the sole live
+  enemy scenario for shared reward delivery/retry, defeat persistence and
+  combat replication; do not repeat those checks for Wolf.
 
 ## Freezing Tundra Lynx
 
@@ -470,8 +471,10 @@ and original inventory icons before implementation; the uses are not recipes.
   one Lynx Pelt for the authenticated attacker through the population-save
   escrow. The owner claim stores the roll, and the complete awarded candidate
   commits together; insufficient capacity retains it for retry. Legacy
-  unsuffixed Lynx claims remain baseline-only. Validate the readable crouch/leap
-  poses, attack rejection, reward retry, reconnect and restart in combined I4.
+  unsuffixed Lynx claims remain baseline-only. In I4, validate the readable
+  crouch/leap poses and species-specific attack rejection. `Verify-RatPeer.ps1`
+  is the sole live enemy scenario for shared reward delivery/retry, defeat
+  persistence and combat replication; do not repeat those checks for Lynx.
 
 ## Viper poison
 
@@ -582,8 +585,10 @@ Held fuelled torches and rain-safe fuelled Standing Lights repel within 3 m;
 Lit fuelled campfires with effective warmth repel within 5 m. The server tests
 visibility to each authoritative flame so roofs, walls and closed doors block
 protection. Unimplemented exposed-world-fire actors remain unsupported. These
-source contracts are not live multiplayer acceptance; the full fire, roll,
-peer-privacy and identity-matched restart scenarios remain in combined I4.
+source contracts are not live multiplayer acceptance; the species-specific
+fire, roll and poison scenarios remain in combined I4. `Verify-RatPeer.ps1`
+remains the sole live enemy scenario for shared reward delivery/retry, defeat
+persistence and combat replication.
 
 ## Moonstone transfer
 
@@ -613,9 +618,12 @@ Use lightweight checks for normal increments. Before A8a is accepted, run the
 applicable full build, automation, biome/population, combat, peer/privacy and
 restart checks from [development setup](07-development-setup.md). Record exact
 commands/results and repair milestone defects. Demonstrate seeded population
-within budgets, valid/invalid attacks, visible windups, credited loot once,
-full-pack handling and relevant peers. Prove Badger/Moon Bear
-difficulty and Wolf/Lynx/Polar Bear roles in
+within budgets, valid/invalid attacks, visible windups, and each species'
+distinct profile/status behavior. `Verify-RatPeer.ps1` is the single live
+end-to-end enemy test for shared loot delivery/retry, defeat persistence and
+combat replication. Do not repeat those three checks in other species peers;
+their cases cover species-specific appearance, spawn, attacks and status.
+Prove Badger/Moon Bear difficulty and Wolf/Lynx/Polar Bear roles in
 play and check Moonstone's eligible/ineligible source cases with controlled
 loot fixtures; do not require random grinding to test the probability boundary.
 Aquatic acceptance must cover swimmers and unchanged skiff behavior separately.

@@ -2259,7 +2259,11 @@ Run the prototype map twice as a listen server with `-KalmalaReconnectVerificati
 
 ## Deer peer and restart regression
 
-After an editor build, run `Scripts/Tests/Combat/Verify-DeerPeer.ps1`. It starts a seed-418
+This completed M4 peer run is retained as historical evidence, not as an I4
+shared-system test. Its loot, combat-replication and defeat-persistence checks
+overlap the sole current I4 shared scenario, `Verify-RatPeer.ps1`.
+
+For historical reproduction, `Scripts/Tests/Combat/Verify-DeerPeer.ps1` starts a seed-418
 listen server and conflicting-seed client (999) with isolated temporary user
 directories. The server derives a bounded Deer descriptor and a second existing
 Deer descriptor from its 3x3 population neighborhood, positions that normal
@@ -2280,8 +2284,9 @@ The editor automation `Kalmala.Gameplay.Wildlife.Rat.SpawnReachAndRewardIdentity
 checks deterministic 10% Meadows selection, exclusion from other biome
 selectors, the approved 100 cm bite boundary, the common attack timing and
 25 m leash, and stable, owner-bound pending-reward identity. Run this with the
-combined A8a/A8b I4 acceptance; it does not replace live peer, full-pack retry,
-or identity-matched restart verification.
+combined A8a/A8b I4 acceptance. Its source contract complements the single live
+Rat peer scenario below, which owns shared loot, replication and persistence
+acceptance.
 
 After an Editor build, run `Scripts/Tests/Combat/Verify-RatPeer.ps1`. The runner
 starts a fixed-seed Meadows listen server and two clients with conflicting
@@ -2295,6 +2300,21 @@ defeat. The runner extracts the exact spawn identity and requires that same Rat
 to remain absent after a same-world listen-server restart. The fixture adds no
 client-selected target, damage, reward, identity, RPC, replication field or save
 schema.
+
+## I4 shared enemy acceptance: one scenario
+
+`Scripts/Tests/Combat/Verify-RatPeer.ps1` is the sole live end-to-end enemy
+scenario for the three shared checks:
+
+- loot delivery, full-pack retry, and owner-only reward;
+- defeated-spawn persistence after a same-world restart;
+- combat action, health, and defeat replication to clients.
+
+Do not repeat these checks in per-species peer scenarios. Those scenarios are
+only needed for behavior unique to a species, such as its habitat, attack, or
+status effect. Focused source contracts may still check distinct authored
+profiles and claim data; they do not add another live loot-delivery,
+defeat-persistence, or combat-replication acceptance.
 
 ## Elderwood Badger contract regression
 
@@ -2326,54 +2346,31 @@ combined A8a/A8b I4 acceptance; no Unreal build or runtime acceptance was
 performed by this implementation increment. Moonstone's separate A9 source
 remains disabled until that downstream task.
 
-For live Elderwood reward acceptance, first build the Editor target, then run
-`Scripts/Tests/Combat/Verify-ElderwoodPeer.ps1 -Archetype Both`. The combined
-runner executes the Badger and Moon Bear cases sequentially, each with a
-fixed-seed listen server and two clients using conflicting local seeds. The
-server derives and activates an ordinary Badger or Moon Bear descriptor, verifies the owner's full pack
-retains the defeated-spawn claim without a partial grant, frees the needed
-inventory cells, and requires the queued reward to arrive only for that owner.
-The relevant remote client must observe the shared combat state and defeat
-without receiving the reward. A second, distant observer is allowed to remain
-outside relevancy. The fixture then restarts the same world and requires that
-exact generated spawn to remain defeated. Four ordinary host attacks are
-followed, when needed, by bounded server-only fixture damage at the approved
-220 cm melee boundary to complete the reward-path scenario; attack damage
-tuning is covered by the wildlife contract automations. The fixture adds no gameplay RPC, client-selected target or
-reward, replication field, or save schema.
+The earlier `Verify-ElderwoodPeer.ps1` run is retained as historical evidence.
+Its full-pack reward, defeat-restart, and client-replication assertions overlap
+the shared Rat peer scenario and are not required again for I4. Species-specific
+Badger and Moon Bear profiles, spawn rules, and attacks remain in their focused
+contract automations.
 
 ## Shimmering Lakes Viper contract regression
 
 The editor automation `Kalmala.Gameplay.Wildlife.Viper.ShoreLungeAndRewardClaim`
 checks the 50/40/10 Shimmering Lakes candidate slots, Viper exclusion from other
-biomes, its reviewed profile and attack timing, and its owner-bound pending
-claim through population-save serialization. Its capacity fixture models the
-Bone Fragment plus guaranteed Viper Fang bundle: a full pack keeps the claim
-pending, and a retry candidate with both items fits alongside one carried tool
-after three pack cells are freed.
+biomes, its reviewed profile and attack timing, and its owner-bound claim data
+through population-save serialization. Its capacity fixture models the Bone
+Fragment plus guaranteed Viper Fang bundle.
 `Kalmala.Gameplay.Status.ViperWeakPoison` checks five-second duration, 1 damage
 per second through physical armor, refresh without stacking or tick-clock reset,
 expiry, and the server authority gate. The surface-winding automation also
 checks the procedural Viper model. Run these editor automations in the combined
-A8a/A8b I4 acceptance. The Development-only live peer scenario is enabled by
-`-KalmalaViperPeerTest`; after an Editor build, run
-`Scripts/Tests/Combat/Verify-ViperPeer.ps1`. It searches for and activates a
-normal generated dry-shore Viper, positions the host on a sampled dry approach,
-and requires its real lunge to apply weak poison. The Development fixture pauses
-that Viper after the first poison application, then requires four accepted host
-mace attacks on the registered target path before any bounded server-only
-fixture damage can finish the reward path. The server checks the actual action
-serial, and both clients must observe it. A full host pack
-must retain the Bone Fragment + Viper Fang claim without a partial grant; after
-two cells are freed, the complete bundle must reach only the credited owner.
-Both clients must observe the shared attack and defeat without receiving the
-reward, and a same-world restart must keep that exact spawn defeated. The
-fixture adds no gameplay RPC, client-selected target or reward, replication
-field, or save schema. Full Editor build and live-run verification remain
-required for this acceptance. Immediately before the bite scenario, the fixture
-expires any prior weak/major poison and restores the host to full health so
-unrelated startup encounters cannot make the poison bite lethal. The Viper Fang
-drop now uses the existing durable claim. The Fang Arrows recipe output uses
+A8a/A8b I4 suite. The earlier `Verify-ViperPeer.ps1` result is retained as
+historical evidence of a live weak-poison bite; its shared loot, defeat-restart,
+and replication assertions are not repeated. `Verify-RatPeer.ps1` is the sole
+live end-to-end case for those shared systems. Immediately before the historical
+bite scenario, the fixture expired any prior weak/major poison and restored the
+host to full health so unrelated startup encounters could not make the poison
+bite lethal. The Viper Fang drop uses the existing durable claim. The Fang
+Arrows recipe output uses
 its registered Workbench recipe and fixed 50-Pierce attack; accepted wildlife
 hits apply the five-second weak-poison profile. The bow regression covers the shot, tick-clock-preserving
 refresh, five total poison ticks and the authority-owned timer. Its source is
@@ -2394,26 +2391,10 @@ model. Run these editor automations in combined A8a/A8b I4 acceptance; the
 source was not compiled or executed by this increment, and no live spawn,
 delivery, restart, or peer acceptance ran.
 
-For live shoreline acceptance, build the Editor target and run
-`Scripts/Tests/Combat/Verify-GiantSnakePeer.ps1`. It uses world seed 445 by
-default and accepts `-WorldSeed` for deterministic runs with another seed.
-Its Development-only
-`-KalmalaGiantSnakePeerTest` scenario activates a normal generated Giant Snake,
-places the host along a sampled dry route within the 360 cm lunge, and requires
-the real 100-Stab bite to lower host health before the target is paused. The
-server equips the existing Polar Bear Coat through the validated inventory path
-so the host remains above the attack threshold after the bite; wildlife damage
-is unchanged. The host then completes four accepted mace attacks; the server
-checks the actual action serial before its bounded fixture damage finishes
-defeat. A full pack
-must retain the two Bone Fragments and two Giant Scales as one owner-bound claim
-without partial delivery. After two cells are freed, only the credited owner
-receives the bundle. Both clients must prove invalid-request rejection, observe
-the shared action, host health and replicated defeat without rewards, and the
-runner restarts the same world to confirm that exact spawn remains defeated.
-The fixture adds no client-selected target or reward, RPC, replication field,
-or save schema. This live scenario remains unbuilt and unexecuted until combined
-I4 verification.
+The earlier `Verify-GiantSnakePeer.ps1` result is retained as historical
+evidence of a live shoreline lunge. Its shared owner-reward retry,
+defeat-restart, and replication assertions are not repeated in I4; the Rat peer
+scenario is the sole end-to-end case for those shared systems.
 
 ## Discovery peer privacy regression
 
@@ -2533,13 +2514,10 @@ timer. These source-level checks are not live spawn, peer privacy, reconnect,
 or restart acceptance; run them with the combined A8a/A8b I4 verification. No
 Unreal build or automation execution ran in this increment.
 
-The live Death Adder peer runner is `Scripts/Tests/Combat/Verify-DeathAdderPeer.ps1`.
-It uses a normal generated dry Mossy Mire descriptor, requires the server's real
-bite to apply major poison, then checks four accepted host actions, invalid
-remote attack rejection, replicated health/defeat, and same-world defeated-spawn
-persistence across three peers. Its purpose is the species-specific combat and
-status path; the focused wildlife automation above owns the Death Adder reward
-bundle assertions, so this runner does not repeat the full-pack loot retry case.
+The focused Death Adder wildlife and status automations cover its authored
+major-poison bite and reward-claim contract. The Rat peer runner remains the
+only live end-to-end check for shared loot delivery, defeat persistence, and
+combat replication; no separate Death Adder peer runner is required.
 
 ## Peat Husk contract regression
 
@@ -2960,7 +2938,10 @@ not establish readability at other distances or during other lighting.
 
 ## M5 rendered Mireling silhouette review
 
-Run `Scripts/Tests/Combat/Verify-MirelingPeer.ps1 -Rendered` after an editor build to capture
+This completed M5 rendered peer run is retained as historical visual and
+Mireling-specific evidence. Its generic reward, combat-replication and defeat-
+persistence assertions overlap the sole I4 shared scenario, `Verify-RatPeer.ps1`.
+For historical reproduction, run `Scripts/Tests/Combat/Verify-MirelingPeer.ps1 -Rendered` after an editor build to capture
 the original Mireling in a bounded listen-host/client encounter. The transient
 host camera is positioned after the fixture arranges the generated actor; the
 runner also checks server combat, rejected client target-free attacks,
@@ -3345,7 +3326,11 @@ After an editor build, run `Scripts/Tests/Presentation/Verify-PlayerControls.ps1
 
 ## Boar encounter verification
 
-After an editor build, run `Scripts/Tests/Combat/Verify-BoarPeer.ps1 -Port <unused-port>`. It starts a seed-418 listen server and a conflicting-seed client with separate temporary user directories. The fixture derives a bounded stable boar descriptor entirely on the server, verifies its normal territorial charge damages the host, rejects the remote player's normal target-free attack sequence, then exercises four server-selected player-combat windups in the ordinary trace range. It requires relevant host/client action, health, and defeat replication, exactly one owner-only each of `BoarMeat`, `BoarHide`, and `BoneFragment`, and an identity-matched restart where the same server-derived boar remains absent. It adds no gameplay RPC, client target/damage/reward payload, descriptor replication, or save-schema change.
+The completed M7 Boar peer run is retained as historical evidence. Do not rerun
+it for I4 shared loot, combat-replication or defeat-persistence coverage; those
+three shared checks are exercised together by `Verify-RatPeer.ps1`. The Boar
+run's species-specific spawn and charge evidence remains recorded in its prior
+acceptance result.
 
 ## Regional generation verification (Phase 7)
 
@@ -4473,7 +4458,7 @@ build, export, package, and render utilities remain directly under `Scripts/`;
 | --- | --- |
 | Acceptance | `Acceptance/Verify-M4VerticalSlice.ps1`; `Verify-M5DocumentationContracts.ps1`; `Verify-M7AutomatedAcceptance.ps1`; `Verify-RainVerticalSlice.ps1` |
 | Audio | `Audio/Verify-AmbientAudio.ps1` (includes `-ContractOnly`); `Verify-AmbientAudioPeers.ps1` |
-| Combat and discoveries | `Combat/Verify-BoarPeer.ps1`; `Verify-CombatPeer.ps1`; `Verify-DeerPeer.ps1`; `Verify-DiscoveryPeer.ps1`; `Verify-MirelingPeer.ps1`; `Verify-RatPeer.ps1`; `Verify-ViperPeer.ps1` |
+| Combat and discoveries | `Combat/Verify-RatPeer.ps1` (sole I4 end-to-end test for shared enemy loot, defeat persistence, and combat replication); `Verify-CombatPeer.ps1`; `Verify-DiscoveryPeer.ps1`. `Verify-BoarPeer.ps1`, `Verify-DeerPeer.ps1`, `Verify-MirelingPeer.ps1`, `Verify-ViperPeer.ps1`, `Verify-GiantSnakePeer.ps1`, and `Verify-ElderwoodPeer.ps1` are historical evidence, not repeated I4 shared-system tests. |
 | Construction and inventory | `Construction/Verify-ConstructionMovement.ps1` (floor/wall collision, roof jump/land, and replicated exposure); `Verify-ConstructionPersistence.ps1`; `Verify-Crafting.ps1`; `Verify-Storage.ps1`; `Inventory/Verify-Inventory.ps1` (includes `-ContractOnly`); `Verify-InventoryMenu.ps1`; `Verify-InventoryReconnect.ps1` |
 | Performance | `Performance/Verify-ConstrainedPerformance.ps1` |
 | Presentation and input | `Presentation/Verify-InteractionPrompt.ps1`; `Verify-LocalInputContract.ps1`; `Verify-MenuInputCopy.ps1`; `Verify-OnboardingContract.ps1`; `Verify-PlayerControls.ps1`; `Verify-PresentationOwnership.ps1`; `Verify-SettingsAccessibility.ps1` (includes `-ContractOnly`); `Verify-StatusHotbar.ps1`; `Verify-TutorialRouteFree.ps1` |

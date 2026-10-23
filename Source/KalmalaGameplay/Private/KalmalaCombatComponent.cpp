@@ -69,15 +69,13 @@ void UKalmalaCombatComponent::TickComponent(const float DeltaTime, const ELevelT
     const bool bRatPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaRatPeerTest"));
     const bool bViperPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaViperPeerTest"));
     const bool bGiantSnakePeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaGiantSnakePeerTest"));
-    const bool bDeathAdderPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaDeathAdderPeerTest"));
     const uint32 ExpectedActionSerial = bRatPeerTest ? 1u : 4u;
-    if ((bCombatPeerTest || bMirelingPeerTest || bBoarPeerTest || bDeerPeerTest || bBadgerPeerTest || bMoonBearPeerTest || bRatPeerTest || bViperPeerTest || bGiantSnakePeerTest || bDeathAdderPeerTest)
+    if ((bCombatPeerTest || bMirelingPeerTest || bBoarPeerTest || bDeerPeerTest || bBadgerPeerTest || bMoonBearPeerTest || bRatPeerTest || bViperPeerTest || bGiantSnakePeerTest)
         && GetOwner() != nullptr && !GetOwner()->HasAuthority())
     {
         const TCHAR* VerificationName = bRatPeerTest ? TEXT("Rat")
             : bViperPeerTest ? TEXT("Viper")
             : bGiantSnakePeerTest ? TEXT("Giant Snake")
-            : bDeathAdderPeerTest ? TEXT("Death Adder")
             : bBadgerPeerTest ? TEXT("Badger")
             : bMoonBearPeerTest ? TEXT("Moon Bear")
             : bBoarPeerTest ? TEXT("Boar")
