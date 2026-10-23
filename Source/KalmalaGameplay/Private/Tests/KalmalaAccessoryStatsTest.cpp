@@ -46,6 +46,9 @@ bool FKalmalaAccessoryStatsTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Replace with Dusk"), Equip(TEXT("DuskRing")));
     TestEqual(TEXT("Replacement recalculates stamina"), Movement->GetMaximumStamina(), 150.0f);
     TestEqual(TEXT("Health contributions sum"), Pawn->GetMaximumHealth(), 130.0f);
+    Health->SetPropertyValue_InContainer(Pawn, 100.0f);
+    TestTrue(TEXT("Hybrid ring receives normal physical hit"), Pawn->ApplyWildlifeDamageFromServer(Ally, 20.0f));
+    TestEqual(TEXT("Dusk Armor contributes five once"), Pawn->GetHealth(), 85.0f);
     Pawn->RefreshEquippedStatsFromServer();
     TestEqual(TEXT("Repeated refresh cannot stack"), Pawn->GetMaximumHealth(), 130.0f);
     Health->SetPropertyValue_InContainer(Pawn, 129.0f);

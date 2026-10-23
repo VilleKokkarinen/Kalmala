@@ -205,14 +205,25 @@
     {
       "RecipeId": "DuskRing",
       "DisplayName": "Dusk Ring",
-      "ItemId": "DuskRing",
-      "RequiredStation": "Forge",
-      "RequiredStationLevel": 1,
-      "Ingredients": [
-        { "ItemId": "Bronze", "Quantity": 5 },
-        { "ItemId": "DuskDiamond", "Quantity": 1 }
+      "RequiredStation": [
+        "Forge"
       ],
-      "Level": 1
+      "Ingredients": [
+        {
+          "ItemId": "Bronze",
+          "Quantity": 5
+        },
+        {
+          "ItemId": "DuskDiamond",
+          "Quantity": 1
+        }
+      ],
+      "Output": "DuskRing",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
     }
   ]
 }
