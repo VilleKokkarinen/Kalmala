@@ -6576,3 +6576,11 @@
 - User also approved server-owned persistent treasure at existing seeded discovery points in the three eligible biomes. No treasure implementation or accepted source is claimed yet. Next: connect mining/persistence/pickup, then item sources in order. I4/I5 remain open; master untouched.
 
 - Approval review initially rejected the schema-changing commit because explicit schema authorization was missing. The user then explicitly approved population schema 2 and the preserved/rejected schema-1 behavior; no bypass or main-checkout write occurred.
+
+
+## A9 independent worker — attack-driven gemstone mining (2026-10-23)
+
+- Connected gemstone nodes to equipped Basic pickaxe attacks with server range/living/condition/family/material-tier checks. Hits spend one persisted condition; a deterministic server-only per-hit roll cannot change on a failed save/retry. Population progress/outcome must reach disk before the node publishes cracking, shattering or extraction. Failure restores in-memory node/condition state and attempts the condition rollback write.
+- Loose extraction exposes exactly one matching gem. Catalogue/capacity checks and an optimistic saved-state transition reject duplicates and leave full-pack/rejected claims unchanged. Claimed outcome reaches disk before node removal; partial, shattered, loose and claimed states reconstruct from the population ledger. Ordinary inventory remains session-only under the existing contract; persistent node claims do not add general inventory restoration. Added original mineral-inclusion geometry, crack-height progression, target names and explicit shattered feedback. All source generation remains disabled in this prerequisite increment.
+- Files: Character, CombatComponent, GameMode, HarvestNode, new GemstoneNode.cpp, CraftingSubsystem and BACKLOG/PROGRESS. Lightweight checks: changed-code inspection and git diff --check; paths below 260. No Unreal build or automation execution; full verification deferred.
+- Next: enable Smoky Quartz and the remaining per-item source entries in backlog order; enemy sources still require accepted I4. Approved treasure uses existing seeded discovery points. Main untouched.

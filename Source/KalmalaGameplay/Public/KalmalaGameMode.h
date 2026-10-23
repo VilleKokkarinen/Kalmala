@@ -54,6 +54,8 @@ public:
     bool ClaimOceanDiscovery(class AKalmalaCharacter* Interactor, const FKalmalaOceanDiscoveryDescriptor& Descriptor);
     bool ClaimM9ExplorationReward(class AKalmalaCharacter* Interactor, const FKalmalaM9ExplorationRewardDescriptor& Descriptor);
     bool ClaimMirelingBossScroll(class AKalmalaCharacter* Attacker, const FString& PersistentSpawnId);
+    const struct FKalmalaGemstoneState* ReadGemstoneState(const FString& SpawnId) const;
+    bool PersistGemstoneState(const struct FKalmalaGemstoneState& State, uint8 ExpectedHits, uint8 ExpectedOutcome);
     bool RecordRatDefeatReward(const FString& PersistentSpawnId, class AKalmalaCharacter* CreditedAttacker);
     bool RecordBadgerDefeatReward(const FString& PersistentSpawnId, class AKalmalaCharacter* CreditedAttacker);
     bool RecordMoonBearDefeatReward(const FString& PersistentSpawnId, class AKalmalaCharacter* CreditedAttacker);

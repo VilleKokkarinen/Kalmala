@@ -3258,3 +3258,8 @@ map to a supported `EKalmalaToolKind` lifecycle definition. Registered
 catalogue-only profiles for later or unimplemented items remain outside runtime
 station progression until that lifecycle mapping exists; they cannot invalidate
 progression for already supported tools.
+
+
+## A9 gemstone mining runtime — 2026-10-23
+
+Gemstone nodes use equipped Basic pickaxe attacks, never interaction mining. The server validates the pick family/tier, range, health and condition. Each of three accepted hits resolves its 10% smash before extraction; condition and sparse population schema-2 hit/outcome writes precede presentation. Failed writes do not publish node progress and the deterministic per-hit roll is stable on retry. Partial hits, shattered rocks, loose gems and consumed claims reconstruct from sparse state. A loose gem grants exactly one matching catalogue item after capacity validation; full packs retain it. Relevant peers receive node progress/outcome, while inventory stays owner-only. Inventory/gear remain session-only; this adds no general pack restoration. Source generation is enabled separately after its acquisition entry is complete.

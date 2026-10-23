@@ -4,6 +4,7 @@
 #include "GameFramework/Actor.h"
 #include "KalmalaInteractable.h"
 #include "KalmalaDamageProfile.h"
+#include "KalmalaGemstoneContract.h"
 #include "KalmalaWorldPopulationLayout.h"
 #include "KalmalaHarvestNode.generated.h"
 
@@ -46,6 +47,12 @@ public:
     FVector GetHarvestInteractionLocation() const;
     bool IsHarvested() const { return bHarvested; }
     bool IsTreeResource() const;
+    bool IsGemstone() const { return FKalmalaGemstoneContract::IsGemSource(GatheringSourceId); }
+    bool CanReceivePickAttack() const { return IsGemstone() && !bHarvested && GemOutcome == 0 && GemHits < 3; }
+    uint8 GetGemHits() const { return GemHits; }
+    uint8 GetGemOutcome() const { return GemOutcome; }
+    bool ApplyPickHitFromServer(AKalmalaCharacter* Interactor);
+    bool ClaimGemFromServer(AKalmalaCharacter* Interactor);
     bool IsHandGatherablePatch() const { return FKalmalaBiomeContentContract::IsHandGatherableSourceId(GatheringSourceId); }
     bool IsFelledTrunk() const { return TreeStage == 1; }
     bool IsTreeFalling() const { return TreeStage == 3; }
@@ -89,6 +96,9 @@ private:
     void CommitHarvestedStateFromServer();
     void SettleTreeFromServer();
     FTimerHandle TreeFallTimer;
+    UPROPERTY(ReplicatedUsing = OnRep_Gemstone) uint8 GemHits = 0;
+    UPROPERTY(ReplicatedUsing = OnRep_Gemstone) uint8 GemOutcome = 0;
+    UFUNCTION() void OnRep_Gemstone();
 
     UPROPERTY(VisibleAnywhere, Category = "Harvest")
     TObjectPtr<USphereComponent> Collision;

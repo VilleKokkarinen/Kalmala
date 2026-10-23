@@ -7919,3 +7919,27 @@ AActor* AKalmalaGameMode::ChoosePlayerStart_Implementation(AController* Player)
 #endif
     return GeneratedPlayerStart != nullptr ? GeneratedPlayerStart : Super::ChoosePlayerStart_Implementation(Player);
 }
+
+const FKalmalaGemstoneState* AKalmalaGameMode::ReadGemstoneState(const FString& SpawnId) const
+{
+    return HasAuthority() && PopulationSaveGame && PopulationSaveGame->MatchesWorld(WorldGenerationConfig)
+        ? PopulationSaveGame->FindGemstone(SpawnId) : nullptr;
+}
+
+bool AKalmalaGameMode::PersistGemstoneState(const FKalmalaGemstoneState& State,
+    const uint8 ExpectedHits, const uint8 ExpectedOutcome)
+{
+    if (!HasAuthority() || !PopulationSaveGame || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
+    const FKalmalaGemstoneState* Existing = PopulationSaveGame->FindGemstone(State.SpawnId);
+    if (Existing ? (Existing->Hits != ExpectedHits || Existing->Outcome != ExpectedOutcome || Existing->SourceId != State.SourceId)
+        : (ExpectedHits != 0 || ExpectedOutcome != 0)) return false;
+    if (!((ExpectedOutcome == 0 && State.Hits == ExpectedHits + 1)
+        || (ExpectedOutcome == 2 && State.Hits == ExpectedHits && State.Outcome == 3))) return false;
+    const bool bHadExisting = Existing != nullptr;
+    const FKalmalaGemstoneState Before = Existing ? *Existing : FKalmalaGemstoneState();
+    if (!PopulationSaveGame->SetGemstone(State)) return false;
+    if (UGameplayStatics::SaveGameToSlot(PopulationSaveGame, KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0)) return true;
+    if (bHadExisting) PopulationSaveGame->SetGemstone(Before);
+    else PopulationSaveGame->RemoveGemstone(State.SpawnId);
+    return false;
+}

@@ -1343,6 +1343,12 @@ bool AKalmalaCharacter::GetLocalHarvestInteractionIntent(const AKalmalaHarvestNo
         return true;
     }
 
+    if (Node->IsGemstone())
+    {
+        bOutHasUsableTool = Node->GetGemOutcome() == 2;
+        return true; // Interaction only claims a loose gem; mining uses equipped Basic attacks.
+    }
+
     if (Node->IsHandGatherablePatch())
     {
         OutAction = static_cast<uint8>(EKalmalaToolAction::Gathering);
