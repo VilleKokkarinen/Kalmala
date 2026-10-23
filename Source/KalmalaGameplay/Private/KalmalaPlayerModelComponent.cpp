@@ -299,7 +299,7 @@ EKalmalaHeldToolVisual UKalmalaPlayerModelComponent::GetHeldToolVisualForItem(co
     case EKalmalaToolKind::StoneMace: case EKalmalaToolKind::BronzeMace: case EKalmalaToolKind::IronMace:
     case EKalmalaToolKind::ThunderMaul:
         return EKalmalaHeldToolVisual::Mace;
-    case EKalmalaToolKind::BronzeSword: case EKalmalaToolKind::IronSword:
+    case EKalmalaToolKind::BronzeSword: case EKalmalaToolKind::IronSword: case EKalmalaToolKind::StormcutSword:
         return EKalmalaHeldToolVisual::Sword;
     case EKalmalaToolKind::WoodenClub: return EKalmalaHeldToolVisual::Club;
     case EKalmalaToolKind::BasicTorch: return EKalmalaHeldToolVisual::Torch;

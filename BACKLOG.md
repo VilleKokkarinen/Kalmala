@@ -399,7 +399,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     - [x] Add and register the complete item/equipment/profile JSON first, with applicable N/A categories recorded.
     - [x] Add and register its Forge recipe using the values finalized by Review A9.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
-  - [ ] Stormcut Sword (`StormcutSword`): finalize its Forge recipe and attack profile in Review A9; see the A9 item contract.
+  - [x] Stormcut Sword (`StormcutSword`): finalized supported runtime sword kind, Forge acquisition/upgrades/free repair, Basic Slash and held presentation; focused paid lifecycle coverage added.
     - [x] Add and register the complete item/equipment/attack JSON first, with applicable N/A categories recorded.
     - [x] Add and register its Forge recipe using the values finalized by Review A9.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.

@@ -34,6 +34,7 @@ namespace
         if (Value == TEXT("ReefHarpoon")) return EKalmalaToolKind::ReefHarpoon;
         if (Value == TEXT("BronzeSword")) return EKalmalaToolKind::BronzeSword;
         if (Value == TEXT("IronSword")) return EKalmalaToolKind::IronSword;
+        if (Value == TEXT("StormcutSword")) return EKalmalaToolKind::StormcutSword;
         if (Value == TEXT("WoodenClub")) return EKalmalaToolKind::WoodenClub;
         if (Value == TEXT("BasicTorch")) return EKalmalaToolKind::BasicTorch;
         if (Value == TEXT("PlantingTrowel")) return EKalmalaToolKind::PlantingTrowel;
@@ -290,7 +291,7 @@ bool FKalmalaToolLifecycleContract::IsKnownAction(const EKalmalaToolAction Actio
 
 bool FKalmalaToolLifecycleContract::IsKnownTool(const EKalmalaToolKind Tool)
 {
-    return Tool >= EKalmalaToolKind::StoneKnife && Tool <= EKalmalaToolKind::ReefHarpoon;
+    return Tool >= EKalmalaToolKind::StoneKnife && Tool <= EKalmalaToolKind::StormcutSword;
 }
 
 bool FKalmalaToolLifecycleContract::IsKnownToolTier(const EKalmalaToolTier Tier)

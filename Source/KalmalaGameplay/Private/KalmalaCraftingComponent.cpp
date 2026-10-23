@@ -48,6 +48,7 @@ FString GetToolDisplayName(const FName ItemId)
     if (ItemId == TEXT("IronMace")) return TEXT("Iron Mace");
     if (ItemId == TEXT("BronzeSword")) return TEXT("Bronze Sword");
     if (ItemId == TEXT("IronSword")) return TEXT("Iron Sword");
+    if (ItemId == TEXT("StormcutSword")) return TEXT("Stormcut Sword");
     if (ItemId == TEXT("WoodenClub")) return TEXT("Wooden Club");
     if (ItemId == TEXT("StoneKnife")) return TEXT("Stone Knife");
     if (ItemId == TEXT("StoneAxe")) return TEXT("Stone Axe");

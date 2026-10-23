@@ -43,7 +43,8 @@ enum class EKalmalaToolKind : uint8
     ThunderMaul,
     FangSpear,
     HornBow,
-    ReefHarpoon
+    ReefHarpoon,
+    StormcutSword
 };
 
 /** M9 harvesting tiers; station level is validated only by later craft/upgrade transactions. */
