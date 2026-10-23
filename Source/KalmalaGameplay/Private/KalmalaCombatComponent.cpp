@@ -5,6 +5,7 @@
 #include "KalmalaToolLifecycleContract.h"
 #include "KalmalaWildlifeSpawn.h"
 #include "KalmalaHarvestNode.h"
+#include "Engine/World.h"
 #include "GameFramework/Pawn.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"

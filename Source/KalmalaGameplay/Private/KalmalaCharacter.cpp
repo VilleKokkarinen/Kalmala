@@ -531,7 +531,8 @@ void AKalmalaCharacter::Tick(const float DeltaSeconds)
             || FParse::Param(FCommandLine::Get(), TEXT("KalmalaDeerPeerTest"))
             || FParse::Param(FCommandLine::Get(), TEXT("KalmalaBadgerPeerTest"))
             || FParse::Param(FCommandLine::Get(), TEXT("KalmalaMoonBearPeerTest"))
-            || FParse::Param(FCommandLine::Get(), TEXT("KalmalaRatPeerTest")))
+            || FParse::Param(FCommandLine::Get(), TEXT("KalmalaRatPeerTest"))
+            || FParse::Param(FCommandLine::Get(), TEXT("KalmalaViperPeerTest")))
         && Combat && Inventory && Inventory->GetActiveItem() == TEXT("StoneMace"))
     {
         bCombatPeerTestInvalidAttackSent = true;

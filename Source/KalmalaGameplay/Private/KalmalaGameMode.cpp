@@ -1262,7 +1262,7 @@ void AKalmalaGameMode::DriveCombatPeerTest()
             CombatPeerTestStage = 99;
             return;
         }
-        if (bRatPeerTest)
+        if (bRatPeerTest || bViperPeerTest)
         {
             for (TActorIterator<AKalmalaCharacter> It(GetWorld()); It; ++It)
             {
@@ -1271,7 +1271,7 @@ void AKalmalaGameMode::DriveCombatPeerTest()
                     || Candidate->GetPlayerState() == nullptr) continue;
                 if (!SelectTestWeapon(Candidate, FName(TEXT("StoneMace")), EquipReason))
                 {
-                    UE_LOG(LogTemp, Error, TEXT("Rat verification FAILED: a peer could not equip the test mace (%s)."), *EquipReason);
+                    UE_LOG(LogTemp, Error, TEXT("%s verification FAILED: an observer peer could not equip the test mace (%s)."), VerificationName, *EquipReason);
                     CombatPeerTestStage = 99;
                     return;
                 }
@@ -1510,6 +1510,28 @@ void AKalmalaGameMode::DriveCombatPeerTest()
                 ObserverOffset += 1000;
             }
         }
+        if (bViperPeerTest)
+        {
+            if (UKalmalaPlayerStatusComponent* Statuses = Attacker->GetStatusComponent())
+            {
+                const float PriorPoisonSeconds = FMath::Max(
+                    Statuses->GetRemainingSeconds(UKalmalaPlayerStatusComponent::WeakPoisonStatusId),
+                    Statuses->GetRemainingSeconds(UKalmalaPlayerStatusComponent::MajorPoisonStatusId));
+                if (PriorPoisonSeconds > 0.0f)
+                    Statuses->AdvanceFromServer(PriorPoisonSeconds + KINDA_SMALL_NUMBER);
+            }
+            for (int32 HealAttempt = 0; HealAttempt < 4 && Attacker->GetHealth() < 100.0f; ++HealAttempt)
+            {
+                if (!Attacker->RestoreHealthFromDraughtFromServer(30.0f)) break;
+            }
+            if (!FMath::IsNearlyEqual(Attacker->GetHealth(), 100.0f))
+            {
+                UE_LOG(LogTemp, Error, TEXT("Viper verification FAILED: host could not be reset to full health before the poison bite. Health=%.1f."), Attacker->GetHealth());
+                CombatPeerTestStage = 99;
+                return;
+            }
+            UE_LOG(LogTemp, Display, TEXT("Viper verification prepared a full-health host with prior poison expired."));
+        }
         if (bDeerPeerTest)
         {
             // The companion remains a normal generated deer. This controlled positioning only
@@ -1564,6 +1586,19 @@ void AKalmalaGameMode::DriveCombatPeerTest()
         UE_LOG(LogTemp, Error, TEXT("Combat verification FAILED: server attacker combat component missing."));
         CombatPeerTestStage = 99;
         return;
+    }
+    if (bViperPeerTest && CombatPeerTestStage >= 1 && CombatPeerTestStage <= 2)
+    {
+        const UKalmalaPlayerStatusComponent* AttackerStatuses = Attacker->GetStatusComponent();
+        bCombatPeerTestViperPoisonObserved |= AttackerStatuses != nullptr
+            && AttackerStatuses->HasStatus(UKalmalaPlayerStatusComponent::WeakPoisonStatusId);
+        if (bCombatPeerTestViperPoisonObserved && Target->IsActorTickEnabled())
+        {
+            // Stop repeat bites after the real first poison application so the
+            // four player swings test replication without requiring fixture heals.
+            Target->SetActorTickEnabled(false);
+            UE_LOG(LogTemp, Display, TEXT("Viper verification fixture paused the target after its first weak-poison bite."));
+        }
     }
     const auto PlacePeerTestTargetInFront = [this, Attacker, Target, bRatPeerTest, bViperPeerTest](const float Distance)
     {
@@ -1728,8 +1763,8 @@ void AKalmalaGameMode::DriveCombatPeerTest()
             else if (bViperPeerTest)
             {
                 UE_LOG(LogTemp, Display,
-                    TEXT("Viper verification server: Passed=1 SeedReproduced=1 BoundedActivation=1 InvalidRejected=1 ActionSerial=4 WeakPoison=%d Defeated=1 Saved=1 FullPackEscrow=1 RetryDelivered=1 OwnerOnly=1 BoneFragment=%d ViperFang=%d RemoteBoneFragment=%d RemoteViperFang=%d OtherPeerBoneFragments=%d OtherPeerViperFangs=%d OtherPeers=%d Owner=%s SpawnId=%s"),
-                    bCombatPeerTestViperPoisonObserved, AttackerBone, ViperFang, RemoteBone, RemoteViperFang,
+                    TEXT("Viper verification server: Passed=1 SeedReproduced=1 BoundedActivation=1 InvalidRejected=1 ActionSerial=%u WeakPoison=%d Defeated=1 Saved=1 FullPackEscrow=1 RetryDelivered=1 OwnerOnly=1 BoneFragment=%d ViperFang=%d RemoteBoneFragment=%d RemoteViperFang=%d OtherPeerBoneFragments=%d OtherPeerViperFangs=%d OtherPeers=%d Owner=%s SpawnId=%s"),
+                    AttackerCombat->GetActionSerial(), bCombatPeerTestViperPoisonObserved, AttackerBone, ViperFang, RemoteBone, RemoteViperFang,
                     OtherPeerBoneFragment, OtherPeerViperFang, OtherPeerCount, *OwnerIdentity, *Target->GetPersistentSpawnId());
             }
             else
@@ -1756,6 +1791,14 @@ void AKalmalaGameMode::DriveCombatPeerTest()
 
     if (CombatPeerTestStage == 2 && CombatPeerTestSequence == ExpectedAttackCount && AttackerCombat->GetActionPhase() == EKalmalaCombatActionPhase::Idle && Now - CombatPeerTestStageTime >= 0.1f)
     {
+        if (bViperPeerTest && AttackerCombat->GetActionSerial() != ExpectedAttackCount)
+        {
+            UE_LOG(LogTemp, Error,
+                TEXT("Viper verification FAILED: expected four accepted host attacks before reward setup. ActionSerial=%u RequestSequence=%u Health=%.1f."),
+                AttackerCombat->GetActionSerial(), CombatPeerTestSequence, Attacker->GetHealth());
+            CombatPeerTestStage = 99;
+            return;
+        }
         if (bPendingRewardPeerTest)
         {
             const FName BoneFragmentId(TEXT("BoneFragment"));

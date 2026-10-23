@@ -2359,19 +2359,23 @@ A8a/A8b I4 acceptance. The Development-only live peer scenario is enabled by
 `-KalmalaViperPeerTest`; after an Editor build, run
 `Scripts/Tests/Combat/Verify-ViperPeer.ps1`. It searches for and activates a
 normal generated dry-shore Viper, positions the host on a sampled dry approach,
-and requires its real lunge to apply weak poison. Four ordinary host mace
-attacks exercise the registered target path, followed only when needed by
-bounded server-only fixture damage to finish the reward path. A full host pack
+and requires its real lunge to apply weak poison. The Development fixture pauses
+that Viper after the first poison application, then requires four accepted host
+mace attacks on the registered target path before any bounded server-only
+fixture damage can finish the reward path. The server checks the actual action
+serial, and both clients must observe it. A full host pack
 must retain the Bone Fragment + Viper Fang claim without a partial grant; after
 two cells are freed, the complete bundle must reach only the credited owner.
 Both clients must observe the shared attack and defeat without receiving the
 reward, and a same-world restart must keep that exact spawn defeated. The
 fixture adds no gameplay RPC, client-selected target or reward, replication
-field, or save schema. Build and live-run verification remain deferred to the
-combined I4 gate. The Viper Fang drop now uses the existing
-durable claim. The Fang Arrows recipe output uses its registered Workbench
-recipe and fixed 50-Pierce attack; accepted wildlife hits apply the five-second
-weak-poison profile. The bow regression covers the shot, tick-clock-preserving
+field, or save schema. Full Editor build and live-run verification remain
+required for this acceptance. Immediately before the bite scenario, the fixture
+expires any prior weak/major poison and restores the host to full health so
+unrelated startup encounters cannot make the poison bite lethal. The Viper Fang
+drop now uses the existing durable claim. The Fang Arrows recipe output uses
+its registered Workbench recipe and fixed 50-Pierce attack; accepted wildlife
+hits apply the five-second weak-poison profile. The bow regression covers the shot, tick-clock-preserving
 refresh, five total poison ticks and the authority-owned timer. Its source is
 still contract coverage until compiled and executed during combined A8a/A8b I4.
 

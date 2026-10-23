@@ -46,16 +46,25 @@ try {
             throw 'Viper peer verification failed or Unreal terminated abnormally; inspect retained logs.'
         }
         $serverPassed = $serverText -match 'Viper verification server: Passed=1 SeedReproduced=1 BoundedActivation=1 InvalidRejected=1 ActionSerial=4 WeakPoison=1 Defeated=1 Saved=1 FullPackEscrow=1 RetryDelivered=1 OwnerOnly=1 BoneFragment=1 ViperFang=1 RemoteBoneFragment=0 RemoteViperFang=0 OtherPeerBoneFragments=0 OtherPeerViperFangs=0 OtherPeers=2 Owner=.* SpawnId=([0-9]+/-?\d+/-?\d+/\d+)'
-        $peerText = $clientText + $observerText
-        $peerEvidence = $peerText -match 'Viper verification client rejected invalid owned attack without target data\.'
-        $peerEvidence = $peerEvidence -and $peerText -match 'Viper verification client observed shared action serial=4\.'
-        $peerEvidence = $peerEvidence -and $peerText -match 'Viper verification client observed relevant wildlife defeat\.'
-        $peerEvidence = $peerEvidence -and $peerText -match 'Viper verification client observed replicated player health=\d+\.0\.'
-        $passed = $serverPassed -and $peerEvidence
+        $clientRejected = $clientText -match 'Viper verification client rejected invalid owned attack without target data\.'
+        $clientAction = $clientText -match 'Viper verification client observed shared action serial=4\.'
+        $clientDefeat = $clientText -match 'Viper verification client observed relevant wildlife defeat\.'
+        $clientHealth = $clientText -match 'Viper verification client observed replicated player health=\d+\.0\.'
+        $observerRejected = $observerText -match 'Viper verification client rejected invalid owned attack without target data\.'
+        $observerAction = $observerText -match 'Viper verification client observed shared action serial=4\.'
+        $observerDefeat = $observerText -match 'Viper verification client observed relevant wildlife defeat\.'
+        $observerHealth = $observerText -match 'Viper verification client observed replicated player health=\d+\.0\.'
+        $passed = $serverPassed -and $clientRejected -and $clientAction -and $clientDefeat -and $clientHealth
+        $passed = $passed -and $observerRejected -and $observerAction -and $observerDefeat -and $observerHealth
         if ($passed) { break }
         Start-Sleep -Milliseconds 500
     } while ((Get-Date) -lt $deadline)
-    if (!$passed) { throw 'Viper peer scenario timed out; inspect retained logs.' }
+    if (!$passed) {
+        Write-Output ("Viper peer timeout detail: ServerPassed={0} Client={1}/{2}/{3}/{4} Observer={5}/{6}/{7}/{8}" -f
+            $serverPassed, $clientRejected, $clientAction, $clientDefeat, $clientHealth,
+            $observerRejected, $observerAction, $observerDefeat, $observerHealth)
+        throw 'Viper peer scenario timed out; inspect retained logs.'
+    }
 
     if ($clientText -notmatch 'Client received world-generation identity: Seed=418') { throw 'Viper peer client identity mismatch.' }
     if ($observerText -notmatch 'Client received world-generation identity: Seed=418') { throw 'Viper observer identity mismatch.' }
