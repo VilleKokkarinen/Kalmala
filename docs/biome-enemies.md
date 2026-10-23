@@ -493,8 +493,10 @@ and original inventory icons before implementation; the uses are not recipes.
 - Server owns application, ticks and expiry; show the owner a poison indicator
   and remaining time. Clear on death/session end; no saved poison or offline
   catch-up ticks. Status support is part of this enemy's implementation.
-- Verify five-tick expiry, refreshed duration, multiple Vipers, defenses,
-  rejected bites and owner/client display. Damage tuning remains reviewable.
+- `Kalmala.Gameplay.Status.PoisonEffects` is the single shared regression for
+  weak/major poison ticks, refresh and expiry plus Antidote behavior.
+  Viper-specific checks retain its authored five-second bite profile and attack validation;
+  they do not repeat the shared poison lifecycle.
 
 ## Death Adder major poison
 
@@ -511,9 +513,11 @@ and original inventory icons before implementation; the uses are not recipes.
   and death/session cleanup. Physical Armor does not prevent application on
   an accepted bite. Rolls avoid bites but do not cleanse existing poison;
   fire does not repel Death Adders or remove poison.
-- Verify ten-second expiry, refresh, multiple adders, weak/major overlap,
-  defenses, rejected bites and owner/client display. Keep its coiled windup
-  readable against Mire ground; this remains unplaytested balance.
+- `Kalmala.Gameplay.Status.PoisonEffects` covers the shared major-poison
+  lifecycle, refresh, weak/major interaction and Antidote behavior. Death
+  Adder-specific checks retain its authored ten-second major profile and bite validation.
+  Keep its coiled windup readable against Mire ground; this remains
+  unplaytested balance.
 
 ## Mosquito swarm
 
@@ -566,10 +570,11 @@ Both use session-only state cleared on death/session end, with no saved debuff,
 offline catch-up damage or persistent protection.
 Verify host/client targeting, concurrent swarms, roll success/rejection,
 lit/unlit/empty/rainy torches, allies near fires, walls, fuel expiry and the
-race where a torch lights on the same tick as a bite. Check ten-second poison
-expiry, refresh without stacking, mixed Viper/swarm bites, and poison continuing
-after rolling or lighting a torch. Define a server flame
-query shared with the approved torch/fire implementations; do not infer an
+race where a torch lights on the same tick as a bite. The shared
+`Kalmala.Gameplay.Status.PoisonEffects` regression owns generic poison ticks,
+refresh, expiry and Antidote behavior; swarm acceptance checks only its
+repeated-bite application and authored ten-second profile. Define a server flame query
+shared with the approved torch/fire implementations; do not infer an
 existing heat-only API can recognize every new flame source.
 
 The runtime swarm uses the deterministic 20% Mossy Mire share and the dry
@@ -585,10 +590,12 @@ Held fuelled torches and rain-safe fuelled Standing Lights repel within 3 m;
 Lit fuelled campfires with effective warmth repel within 5 m. The server tests
 visibility to each authoritative flame so roofs, walls and closed doors block
 protection. Unimplemented exposed-world-fire actors remain unsupported. These
-source contracts are not live multiplayer acceptance; the species-specific
-fire, roll and poison scenarios remain in combined I4. `Verify-RatPeer.ps1`
-remains the sole live enemy scenario for shared reward delivery/retry, defeat
-persistence and combat replication.
+source contracts are not live multiplayer acceptance; the swarm-specific fire,
+roll and bite application scenarios remain in combined I4. Generic weak/major
+poison status effects have one shared automation,
+`Kalmala.Gameplay.Status.PoisonEffects`. `Verify-RatPeer.ps1` remains the sole
+live enemy scenario for shared reward delivery/retry, defeat persistence and
+combat replication.
 
 ## Moonstone transfer
 

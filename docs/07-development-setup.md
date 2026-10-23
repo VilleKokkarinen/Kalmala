@@ -2359,9 +2359,10 @@ checks the 50/40/10 Shimmering Lakes candidate slots, Viper exclusion from other
 biomes, its reviewed profile and attack timing, and its owner-bound claim data
 through population-save serialization. Its capacity fixture models the Bone
 Fragment plus guaranteed Viper Fang bundle.
-`Kalmala.Gameplay.Status.ViperWeakPoison` checks five-second duration, 1 damage
-per second through physical armor, refresh without stacking or tick-clock reset,
-expiry, and the server authority gate. The surface-winding automation also
+`Kalmala.Gameplay.Status.PoisonEffects` is the single shared status regression:
+it checks weak and major poison damage, refresh and expiry, Antidote resistance
+behavior, and the server authority gate. Species-specific contracts retain
+only their authored poison profiles. The surface-winding automation also
 checks the procedural Viper model. Run these editor automations in the combined
 A8a/A8b I4 suite. The earlier `Verify-ViperPeer.ps1` result is retained as
 historical evidence of a live weak-poison bite; its shared loot, defeat-restart,
@@ -2498,24 +2499,26 @@ forced editor build; that gate remains required before A9.
 ## Death Adder contract regression
 
 After an editor build, run `Kalmala.Gameplay.Wildlife.DeathAdder.MireBiteAndRewardClaim`,
-`Kalmala.Gameplay.Status.DeathAdderMajorPoison`,
+`Kalmala.Gameplay.Status.PoisonEffects`,
 `Kalmala.Gameplay.Presentation.SurfaceWinding`, and
 `Kalmala.UI.StatusHotbar.SnapshotAndLayout`. The wildlife contract checks
 Mossy Mire's 50/20/20/10 candidate split, Death Adder exclusion from other biomes,
 dry habitat, and reviewed stats/timing. It checks the namespaced owner-bound
 claim containing one Bone Fragment and one guaranteed Venom Sac, including
 full-pack rejection, one-slot partial-bundle failure, two-cell retry and
-population-save serialization. The status regression checks the ten
-five-damage ticks, refresh without stacking or tick-clock reset, weak/major
-overlap and recovery, physical-armor bypass, death cleanup, and server
-authority. The presentation and hotbar regressions
+population-save serialization. The shared status regression checks weak and
+major poison damage, refresh, natural expiry, Antidote resistance behavior,
+physical-armor bypass, death cleanup, and server authority. The Death Adder
+wildlife contract retains its authored ten-second major-poison duration. The
+presentation and hotbar regressions
 check the procedural model winding and separate owner-visible major-poison
 timer. These source-level checks are not live spawn, peer privacy, reconnect,
 or restart acceptance; run them with the combined A8a/A8b I4 verification. No
 Unreal build or automation execution ran in this increment.
 
-The focused Death Adder wildlife and status automations cover its authored
-major-poison bite and reward-claim contract. The Rat peer runner remains the
+The focused Death Adder wildlife contract and shared `PoisonEffects` status
+automation cover its authored major-poison profile and reward-claim contract.
+The Rat peer runner remains the
 only live end-to-end check for shared loot delivery, defeat persistence, and
 combat replication; no separate Death Adder peer runner is required.
 
@@ -5534,12 +5537,14 @@ its own timer and never returns to major strength. Death removes resistance
 without refunding the dose or clearing cooldown. No save field or client
 mutation path was added.
 
-After an editor build, run `Kalmala.Gameplay.Status.Antidote`,
+After an editor build, run `Kalmala.Gameplay.Status.PoisonEffects`,
 `Kalmala.UI.Inventory.PreparedFoodDetails`, and
 `Kalmala.UI.StatusHotbar.SnapshotAndLayout`, along with the existing Cauldron
-scope acceptance (`VerifyCauldronScopeForTest`). These regressions cover the
-status transition and server authority, rejected-use inventory preservation,
-recipe exposure and costs, player-facing details, and the resistance timer.
+scope acceptance (`VerifyCauldronScopeForTest`). The poison regression covers
+weak and major hits before and after Antidote, natural cure, inventory
+consumption or preservation on rejection, resistance expiry and server
+authority. The UI and recipe regressions cover recipe exposure and costs, and
+player-facing details.
 The focused C++ regression sources added here have not been compiled or run in
 this normal child; combined A8a/A8b I4 remains required.
 

@@ -622,193 +622,36 @@ bool FKalmalaRootStaminaDraughtStatusTest::RunTest(const FString& Parameters)
     return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaViperWeakPoisonStatusTest,
-    "Kalmala.Gameplay.Status.ViperWeakPoison",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
-
-bool FKalmalaViperWeakPoisonStatusTest::RunTest(const FString& Parameters)
-{
-    UWorld* World = UWorld::CreateWorld(EWorldType::Game, false);
-    AKalmalaCharacter* Pawn = World != nullptr ? World->SpawnActor<AKalmalaCharacter>() : nullptr;
-    if (!TestNotNull(TEXT("Weak-poison character fixture exists"), Pawn))
-    {
-        if (World != nullptr) World->DestroyWorld(false);
-        return false;
-    }
-
-    UKalmalaPlayerStatusComponent* Status = Pawn->FindComponentByClass<UKalmalaPlayerStatusComponent>();
-    UKalmalaResistanceComponent* Defenses = Pawn->FindComponentByClass<UKalmalaResistanceComponent>();
-    const FFloatProperty* HealthProperty = FindFProperty<FFloatProperty>(AKalmalaCharacter::StaticClass(), TEXT("Health"));
-    if (!TestNotNull(TEXT("Weak-poison status component exists"), Status)
-        || !TestNotNull(TEXT("Poison resistance profile exists"), Defenses)
-        || !TestNotNull(TEXT("Health fixture property exists"), HealthProperty))
-    {
-        World->DestroyWorld(false);
-        return false;
-    }
-
-    HealthProperty->SetPropertyValue_InContainer(Pawn, 100.0f);
-    Defenses->Profile.Armor = 100.0f;
-    TestFalse(TEXT("Zero-duration poison is rejected"), Status->ApplyWeakPoisonFromServer(0.0f));
-    TestFalse(TEXT("Poison above the shared ten-second bound is rejected"),
-        Status->ApplyWeakPoisonFromServer(UKalmalaPlayerStatusComponent::WeakPoisonMaximumSeconds + 0.01f));
-    TestFalse(TEXT("Non-finite poison duration is rejected"),
-        Status->ApplyWeakPoisonFromServer(std::numeric_limits<float>::quiet_NaN()));
-    TestTrue(TEXT("Authority applies the Viper's five-second weak poison"), Status->ApplyWeakPoisonFromServer(5.0f));
-    TestEqual(TEXT("Weak poison starts at five seconds"),
-        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::WeakPoisonStatusId), 5.0f);
-
-    Status->AdvanceFromServer(0.5f);
-    TestEqual(TEXT("Weak poison waits for its first one-second tick"), Pawn->GetHealth(), 100.0f);
-    Status->AdvanceFromServer(0.5f);
-    TestEqual(TEXT("The first poison tick deals one Poison damage through physical armor"), Pawn->GetHealth(), 99.0f);
-
-    Status->AdvanceFromServer(0.5f);
-    TestEqual(TEXT("The next poison tick still waits for a full interval"), Pawn->GetHealth(), 99.0f);
-    TestTrue(TEXT("A second Viper bite refreshes poison"), Status->ApplyWeakPoisonFromServer(5.0f));
-    TestEqual(TEXT("Refresh extends expiry without adding another status"),
-        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::WeakPoisonStatusId), 5.0f);
-    TestEqual(TEXT("Weak poison never stacks entries"), Status->GetStatuses().Num(), 1);
-    Status->AdvanceFromServer(0.49f);
-    TestEqual(TEXT("Refresh preserves the existing tick clock"), Pawn->GetHealth(), 99.0f);
-    Status->AdvanceFromServer(0.01f);
-    TestEqual(TEXT("The tick remains on the original cadence after refresh"), Pawn->GetHealth(), 98.0f);
-
-    for (int32 Tick = 0; Tick < 4; ++Tick)
-    {
-        Status->AdvanceFromServer(1.0f);
-    }
-    TestEqual(TEXT("Weak poison applies one damage on each due second"), Pawn->GetHealth(), 94.0f);
-    Status->AdvanceFromServer(0.5f);
-    TestFalse(TEXT("Refreshed weak poison expires after its remaining five seconds"),
-        Status->HasStatus(UKalmalaPlayerStatusComponent::WeakPoisonStatusId));
-
-    Pawn->SetRole(ROLE_AutonomousProxy);
-    TestFalse(TEXT("A client cannot author Viper poison"), Status->ApplyWeakPoisonFromServer(5.0f));
-    Status->AdvanceFromServer(1.0f);
-    TestEqual(TEXT("Client status updates cannot add poison damage"), Pawn->GetHealth(), 94.0f);
-    World->DestroyWorld(false);
-    return true;
-}
-
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaDeathAdderMajorPoisonStatusTest,
-    "Kalmala.Gameplay.Status.DeathAdderMajorPoison",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
-
-bool FKalmalaDeathAdderMajorPoisonStatusTest::RunTest(const FString& Parameters)
-{
-    UWorld* World = UWorld::CreateWorld(EWorldType::Game, false);
-    AKalmalaCharacter* Pawn = World != nullptr ? World->SpawnActor<AKalmalaCharacter>() : nullptr;
-    if (!TestNotNull(TEXT("Major-poison character fixture exists"), Pawn))
-    {
-        if (World != nullptr) World->DestroyWorld(false);
-        return false;
-    }
-
-    UKalmalaPlayerStatusComponent* Status = Pawn->FindComponentByClass<UKalmalaPlayerStatusComponent>();
-    UKalmalaResistanceComponent* Defenses = Pawn->FindComponentByClass<UKalmalaResistanceComponent>();
-    const FFloatProperty* HealthProperty = FindFProperty<FFloatProperty>(AKalmalaCharacter::StaticClass(), TEXT("Health"));
-    if (!TestNotNull(TEXT("Major-poison status component exists"), Status)
-        || !TestNotNull(TEXT("Poison defense profile exists"), Defenses)
-        || !TestNotNull(TEXT("Health fixture property exists"), HealthProperty))
-    {
-        World->DestroyWorld(false);
-        return false;
-    }
-
-    HealthProperty->SetPropertyValue_InContainer(Pawn, 100.0f);
-    Defenses->Profile.Armor = 100.0f;
-    TestFalse(TEXT("Zero-duration major poison is rejected"), Status->ApplyMajorPoisonFromServer(0.0f));
-    TestFalse(TEXT("Major poison cannot exceed its ten-second bound"),
-        Status->ApplyMajorPoisonFromServer(UKalmalaPlayerStatusComponent::MajorPoisonMaximumSeconds + 0.01f));
-    TestFalse(TEXT("Non-finite major poison duration is rejected"),
-        Status->ApplyMajorPoisonFromServer(std::numeric_limits<float>::quiet_NaN()));
-    TestTrue(TEXT("An accepted Death Adder bite can apply major poison"), Status->ApplyMajorPoisonFromServer(10.0f));
-    TestEqual(TEXT("Major poison starts with ten seconds remaining"),
-        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::MajorPoisonStatusId), 10.0f);
-
-    Status->AdvanceFromServer(0.4f);
-    TestTrue(TEXT("A second Death Adder refreshes the shared major effect"), Status->ApplyMajorPoisonFromServer(10.0f));
-    TestEqual(TEXT("Major refresh does not add a second status row"), Status->GetStatuses().Num(), 1);
-    TestEqual(TEXT("Major refresh retains its full bounded duration"),
-        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::MajorPoisonStatusId), 10.0f);
-    Status->AdvanceFromServer(0.59f);
-    TestEqual(TEXT("The shared poison clock does not tick early"), Pawn->GetHealth(), 100.0f);
-    Status->AdvanceFromServer(0.01f);
-    TestEqual(TEXT("First major tick deals five Poison through physical armor"), Pawn->GetHealth(), 95.0f);
-
-    TestTrue(TEXT("Weak poison can remain independently under major poison"),
-        Status->ApplyWeakPoisonFromServer(5.0f));
-    TestEqual(TEXT("Weak and major poison retain separate status timers"), Status->GetStatuses().Num(), 2);
-    TestEqual(TEXT("Weak applications do not extend the active major timer"),
-        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::MajorPoisonStatusId), 9.4f);
-    for (int32 Tick = 0; Tick < 8; ++Tick) Status->AdvanceFromServer(1.0f);
-    TestEqual(TEXT("Only one five-damage major tick is applied per due second"), Pawn->GetHealth(), 55.0f);
-    TestEqual(TEXT("Major poison retains the refreshed timer's remaining 1.4 seconds"),
-        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::MajorPoisonStatusId), 1.4f);
-
-    TestTrue(TEXT("A weak bite shortly before major expiry remains independently active"),
-        Status->ApplyWeakPoisonFromServer(5.0f));
-    TestEqual(TEXT("Weak bite cannot extend major poison"),
-        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::MajorPoisonStatusId), 1.4f);
-    Status->AdvanceFromServer(1.0f);
-    TestEqual(TEXT("Major poison applies its tenth tick at expiry"), Pawn->GetHealth(), 50.0f);
-    TestEqual(TEXT("Major poison keeps the final 0.4 seconds after its tenth tick"),
-        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::MajorPoisonStatusId), 0.4f);
-    Status->AdvanceFromServer(0.4f);
-    TestFalse(TEXT("The major effect expires after ten ticks"),
-        Status->HasStatus(UKalmalaPlayerStatusComponent::MajorPoisonStatusId));
-    TestEqual(TEXT("An unexpired weak dose resumes with its own remaining time"),
-        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::WeakPoisonStatusId), 3.6f);
-    Status->AdvanceFromServer(0.6f);
-    TestEqual(TEXT("Weak poison resumes at one damage per second"), Pawn->GetHealth(), 49.0f);
-
-    Pawn->SetRole(ROLE_AutonomousProxy);
-    TestFalse(TEXT("A client cannot author major poison"), Status->ApplyMajorPoisonFromServer(10.0f));
-    Status->AdvanceFromServer(1.0f);
-    TestEqual(TEXT("Client status updates cannot add poison damage"), Pawn->GetHealth(), 49.0f);
-    Pawn->SetRole(ROLE_Authority);
-    HealthProperty->SetPropertyValue_InContainer(Pawn, 1.0f);
-    Status->AdvanceFromServer(0.1f);
-    TestFalse(TEXT("Death clears any remaining poison status"),
-        Status->HasStatus(UKalmalaPlayerStatusComponent::WeakPoisonStatusId));
-
-    World->DestroyWorld(false);
-    return true;
-}
-
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaAntidoteStatusTest,
-    "Kalmala.Gameplay.Status.Antidote",
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaPoisonEffectsStatusTest,
+    "Kalmala.Gameplay.Status.PoisonEffects",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
-bool FKalmalaAntidoteStatusTest::RunTest(const FString& Parameters)
+bool FKalmalaPoisonEffectsStatusTest::RunTest(const FString& Parameters)
 {
-    TArray<FKalmalaPlayerStatusEntry> Entries = {
+    TestTrue(TEXT("Antidote is a registered draught action"),
+        UKalmalaPlayerStatusComponent::IsKnownDraughtItem(TEXT("Antidote")));
+
+    TArray<FKalmalaPlayerStatusEntry> ActivePoison = {
         {UKalmalaPlayerStatusComponent::WeakPoisonStatusId, 4.0f},
         {UKalmalaPlayerStatusComponent::MajorPoisonStatusId, 8.0f}
     };
-    TestTrue(TEXT("Antidote is a registered draught action"),
-        UKalmalaPlayerStatusComponent::IsKnownDraughtItem(TEXT("Antidote")));
     TestTrue(TEXT("Antidote clears weak poison and downgrades major poison"),
-        UKalmalaPlayerStatusComponent::ApplyDraught(Entries, TEXT("Antidote")));
-    TestFalse(TEXT("Antidote removes the major poison profile"),
-        Entries.ContainsByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
+        UKalmalaPlayerStatusComponent::ApplyDraught(ActivePoison, TEXT("Antidote")));
+    TestFalse(TEXT("Antidote removes the major profile"),
+        ActivePoison.ContainsByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
             { return Entry.StatusId == UKalmalaPlayerStatusComponent::MajorPoisonStatusId; }));
-    const FKalmalaPlayerStatusEntry* ConvertedPoison = Entries.FindByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
+    const FKalmalaPlayerStatusEntry* ConvertedPoison = ActivePoison.FindByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
         { return Entry.StatusId == UKalmalaPlayerStatusComponent::WeakPoisonStatusId; });
-    TestTrue(TEXT("Major poison converts to weak for at most five seconds"),
+    TestTrue(TEXT("Converted major poison is capped at five weak seconds"),
         ConvertedPoison && ConvertedPoison->RemainingSeconds == UKalmalaPlayerStatusComponent::AntidoteWeakPoisonMaximumSeconds);
-    const FKalmalaPlayerStatusEntry* Resistance = Entries.FindByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
+    const FKalmalaPlayerStatusEntry* Resistance = ActivePoison.FindByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
         { return Entry.StatusId == UKalmalaPlayerStatusComponent::PoisonResistanceStatusId; });
-    const FKalmalaPlayerStatusEntry* Cooldown = Entries.FindByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
+    const FKalmalaPlayerStatusEntry* Cooldown = ActivePoison.FindByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
         { return Entry.StatusId == UKalmalaPlayerStatusComponent::DraughtCooldownStatusId; });
-    TestTrue(TEXT("Antidote grants ten minutes of poison resistance"),
+    TestTrue(TEXT("Antidote grants ten minutes of resistance"),
         Resistance && Resistance->RemainingSeconds == UKalmalaPlayerStatusComponent::AntidoteResistanceMaximumSeconds);
     TestTrue(TEXT("Antidote starts the shared sixty-second cooldown"),
         Cooldown && Cooldown->RemainingSeconds == UKalmalaPlayerStatusComponent::DraughtCooldownMaximumSeconds);
-    TestFalse(TEXT("Resistance prevents another Antidote"),
-        UKalmalaPlayerStatusComponent::ApplyDraught(Entries, TEXT("Antidote")));
-
     TArray<FKalmalaPlayerStatusEntry> ShortMajor = {
         {UKalmalaPlayerStatusComponent::MajorPoisonStatusId, 3.0f}
     };
@@ -816,9 +659,10 @@ bool FKalmalaAntidoteStatusTest::RunTest(const FString& Parameters)
         UKalmalaPlayerStatusComponent::ApplyDraught(ShortMajor, TEXT("Antidote")));
     ConvertedPoison = ShortMajor.FindByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
         { return Entry.StatusId == UKalmalaPlayerStatusComponent::WeakPoisonStatusId; });
-    TestTrue(TEXT("Conversion preserves a shorter remaining major duration"),
+    TestTrue(TEXT("Conversion preserves a shorter remaining duration"),
         ConvertedPoison && ConvertedPoison->RemainingSeconds == 3.0f);
-    UKalmalaPlayerStatusComponent::Advance(ShortMajor, UKalmalaPlayerStatusComponent::AntidoteResistanceMaximumSeconds);
+    UKalmalaPlayerStatusComponent::Advance(ShortMajor,
+        UKalmalaPlayerStatusComponent::AntidoteResistanceMaximumSeconds);
     TestFalse(TEXT("Converted poison expires without restoring major strength"),
         ShortMajor.ContainsByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
             { return Entry.StatusId == UKalmalaPlayerStatusComponent::WeakPoisonStatusId
@@ -827,78 +671,142 @@ bool FKalmalaAntidoteStatusTest::RunTest(const FString& Parameters)
     UWorld* World = UWorld::CreateWorld(EWorldType::Game, false);
     AKalmalaCharacter* Pawn = World ? World->SpawnActor<AKalmalaCharacter>() : nullptr;
     APlayerController* Controller = World ? World->SpawnActor<APlayerController>() : nullptr;
-    if (!TestNotNull(TEXT("Antidote character fixture spawned"), Pawn)
-        || !TestNotNull(TEXT("Antidote controller fixture spawned"), Controller))
+    if (!TestNotNull(TEXT("Poison-effects character fixture spawned"), Pawn)
+        || !TestNotNull(TEXT("Poison-effects controller fixture spawned"), Controller))
     {
         if (World) World->DestroyWorld(false);
         return false;
     }
     Controller->Possess(Pawn);
     auto* Status = Pawn->FindComponentByClass<UKalmalaPlayerStatusComponent>();
+    auto* Defenses = Pawn->FindComponentByClass<UKalmalaResistanceComponent>();
     auto* Crafting = Pawn->FindComponentByClass<UKalmalaCraftingComponent>();
     auto* Inventory = Pawn->GetInventoryComponent();
-    const FFloatProperty* HealthProperty = FindFProperty<FFloatProperty>(AKalmalaCharacter::StaticClass(), TEXT("Health"));
-    if (!TestNotNull(TEXT("Antidote status component exists"), Status)
+    const FFloatProperty* HealthProperty = FindFProperty<FFloatProperty>(
+        AKalmalaCharacter::StaticClass(), TEXT("Health"));
+    if (!TestNotNull(TEXT("Poison status component exists"), Status)
+        || !TestNotNull(TEXT("Poison defense profile exists"), Defenses)
         || !TestNotNull(TEXT("Antidote crafting component exists"), Crafting)
         || !TestNotNull(TEXT("Antidote inventory exists"), Inventory)
-        || !TestNotNull(TEXT("Antidote health fixture property exists"), HealthProperty))
+        || !TestNotNull(TEXT("Health fixture property exists"), HealthProperty))
     {
         World->DestroyWorld(false);
         return false;
     }
 
     HealthProperty->SetPropertyValue_InContainer(Pawn, 100.0f);
-    TestTrue(TEXT("Living player can carry multiple Antidote doses"),
-        Inventory->TryGrantFromServer(TEXT("Antidote"), 3));
-    TestTrue(TEXT("Weak poison fixture starts on the server"), Status->ApplyWeakPoisonFromServer(4.0f));
+    Defenses->Profile.Armor = 100.0f;
+    TestFalse(TEXT("Zero-duration weak poison is rejected"), Status->ApplyWeakPoisonFromServer(0.0f));
+    TestFalse(TEXT("Weak poison above the shared bound is rejected"),
+        Status->ApplyWeakPoisonFromServer(UKalmalaPlayerStatusComponent::WeakPoisonMaximumSeconds + 0.01f));
+    TestFalse(TEXT("Non-finite weak poison duration is rejected"),
+        Status->ApplyWeakPoisonFromServer(std::numeric_limits<float>::quiet_NaN()));
+    TestFalse(TEXT("Zero-duration major poison is rejected"), Status->ApplyMajorPoisonFromServer(0.0f));
+    TestFalse(TEXT("Major poison above its bound is rejected"),
+        Status->ApplyMajorPoisonFromServer(UKalmalaPlayerStatusComponent::MajorPoisonMaximumSeconds + 0.01f));
+    TestFalse(TEXT("Non-finite major poison duration is rejected"),
+        Status->ApplyMajorPoisonFromServer(std::numeric_limits<float>::quiet_NaN()));
+    TestTrue(TEXT("The simulated weak-poison hit is accepted"),
+        Status->ApplyWeakPoisonFromServer(5.0f));
+    TestEqual(TEXT("Weak poison starts at five seconds"),
+        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::WeakPoisonStatusId), 5.0f);
+    Status->AdvanceFromServer(0.5f);
+    TestEqual(TEXT("Weak poison waits for its first one-second tick"), Pawn->GetHealth(), 100.0f);
+    TestTrue(TEXT("A repeated weak-poison hit refreshes the active effect"),
+        Status->ApplyWeakPoisonFromServer(5.0f));
+    TestEqual(TEXT("A weak-poison refresh does not add another status"), Status->GetStatuses().Num(), 1);
+    TestEqual(TEXT("A weak-poison refresh restores its five-second duration"),
+        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::WeakPoisonStatusId), 5.0f);
+    Status->AdvanceFromServer(0.49f);
+    TestEqual(TEXT("Refreshing weak poison does not restart its tick clock"), Pawn->GetHealth(), 100.0f);
+    Status->AdvanceFromServer(0.01f);
+    TestEqual(TEXT("Weak poison deals one damage through physical armor"), Pawn->GetHealth(), 99.0f);
+    for (int32 Tick = 1; Tick < 5; ++Tick) Status->AdvanceFromServer(1.0f);
+    TestEqual(TEXT("Weak poison deals five total damage"), Pawn->GetHealth(), 95.0f);
+    Status->AdvanceFromServer(0.5f);
+    TestFalse(TEXT("Weak poison clears naturally after five seconds"),
+        Status->HasStatus(UKalmalaPlayerStatusComponent::WeakPoisonStatusId));
+
+    HealthProperty->SetPropertyValue_InContainer(Pawn, 100.0f);
+    TestTrue(TEXT("The simulated major-poison hit is accepted"),
+        Status->ApplyMajorPoisonFromServer(10.0f));
+    TestEqual(TEXT("Major poison starts at ten seconds"),
+        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::MajorPoisonStatusId), 10.0f);
+    Status->AdvanceFromServer(0.4f);
+    TestTrue(TEXT("A repeated major-poison hit refreshes the active effect"),
+        Status->ApplyMajorPoisonFromServer(10.0f));
+    TestEqual(TEXT("A major-poison refresh does not add another status"), Status->GetStatuses().Num(), 1);
+    TestEqual(TEXT("A major-poison refresh restores its ten-second duration"),
+        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::MajorPoisonStatusId), 10.0f);
+    Status->AdvanceFromServer(0.59f);
+    TestEqual(TEXT("Refreshing major poison does not restart its tick clock"), Pawn->GetHealth(), 100.0f);
+    Status->AdvanceFromServer(0.01f);
+    TestEqual(TEXT("Major poison deals five damage through physical armor"), Pawn->GetHealth(), 95.0f);
+    for (int32 Tick = 1; Tick < 10; ++Tick) Status->AdvanceFromServer(1.0f);
+    TestEqual(TEXT("Major poison deals fifty total damage"), Pawn->GetHealth(), 50.0f);
+    TestEqual(TEXT("The final major tick precedes expiry by less than one second"),
+        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::MajorPoisonStatusId), 0.4f);
+    Status->AdvanceFromServer(0.4f);
+    TestFalse(TEXT("Major poison clears naturally after ten seconds"),
+        Status->HasStatus(UKalmalaPlayerStatusComponent::MajorPoisonStatusId));
+
+    HealthProperty->SetPropertyValue_InContainer(Pawn, 100.0f);
+    TestTrue(TEXT("A full-health player can carry an Antidote"),
+        Inventory->TryGrantFromServer(TEXT("Antidote"), 2));
     FString Reason;
-    TestTrue(TEXT("Antidote can be used at full health and consumes exactly one dose"),
+    TestTrue(TEXT("The player can use Antidote at full health"),
         Crafting->ConsumeFoodFromServer(TEXT("Antidote"), Reason));
-    TestEqual(TEXT("Accepted Antidote consumes one item"), Inventory->GetQuantity(TEXT("Antidote")), 2);
-    TestFalse(TEXT("Antidote clears active weak poison"), Status->HasStatus(UKalmalaPlayerStatusComponent::WeakPoisonStatusId));
-    TestTrue(TEXT("Antidote publishes owner poison resistance"), Status->HasStatus(UKalmalaPlayerStatusComponent::PoisonResistanceStatusId));
-    TestEqual(TEXT("Resistance publishes the ten-minute duration"),
+    TestEqual(TEXT("Using Antidote consumes one dose"), Inventory->GetQuantity(TEXT("Antidote")), 1);
+    TestTrue(TEXT("Antidote activates poison resistance"),
+        Status->HasStatus(UKalmalaPlayerStatusComponent::PoisonResistanceStatusId));
+    TestEqual(TEXT("Resistance lasts ten minutes"),
         Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::PoisonResistanceStatusId),
         UKalmalaPlayerStatusComponent::AntidoteResistanceMaximumSeconds);
-    TestFalse(TEXT("Resistance blocks new weak poison"), Status->ApplyWeakPoisonFromServer(5.0f));
-    TestTrue(TEXT("Resistance downgrades new major poison"), Status->ApplyMajorPoisonFromServer(10.0f));
-    TestFalse(TEXT("Resistant hits do not publish major poison"),
-        Status->HasStatus(UKalmalaPlayerStatusComponent::MajorPoisonStatusId));
-    TestEqual(TEXT("Resistant major poison is capped at five weak seconds"),
-        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::WeakPoisonStatusId),
-        UKalmalaPlayerStatusComponent::AntidoteWeakPoisonMaximumSeconds);
-    TestFalse(TEXT("Shared cooldown rejects another Antidote"),
+    TestFalse(TEXT("Active resistance rejects another Antidote"),
         Crafting->ConsumeFoodFromServer(TEXT("Antidote"), Reason));
-    TestEqual(TEXT("Cooldown rejection preserves the next dose"), Inventory->GetQuantity(TEXT("Antidote")), 2);
+    TestEqual(TEXT("Rejected Antidote use preserves the other dose"),
+        Inventory->GetQuantity(TEXT("Antidote")), 1);
 
-    Status->AdvanceFromServer(60.0f);
-    TestFalse(TEXT("Converted weak poison expires independently of resistance"),
+    TestFalse(TEXT("Antidote blocks the next weak-poison hit"),
+        Status->ApplyWeakPoisonFromServer(5.0f));
+    TestFalse(TEXT("A blocked weak hit creates no status"),
         Status->HasStatus(UKalmalaPlayerStatusComponent::WeakPoisonStatusId));
-    TestFalse(TEXT("Shared cooldown expires after sixty server seconds"),
-        Status->HasStatus(UKalmalaPlayerStatusComponent::DraughtCooldownStatusId));
-    TestTrue(TEXT("Antidote cannot refresh an active resistance"),
-        !Crafting->ConsumeFoodFromServer(TEXT("Antidote"), Reason));
-    TestEqual(TEXT("Active-resistance rejection preserves the dose"), Inventory->GetQuantity(TEXT("Antidote")), 2);
-    Status->AdvanceFromServer(540.0f);
-    TestFalse(TEXT("Ten-minute resistance expires on server time"),
-        Status->HasStatus(UKalmalaPlayerStatusComponent::PoisonResistanceStatusId));
-    TestTrue(TEXT("Major poison is restored only for a new hit after resistance expires"),
+    Status->AdvanceFromServer(5.0f);
+    TestEqual(TEXT("A blocked weak hit deals no damage"), Pawn->GetHealth(), 100.0f);
+    TestTrue(TEXT("Antidote accepts the next major-poison hit at reduced strength"),
         Status->ApplyMajorPoisonFromServer(10.0f));
-    TestTrue(TEXT("Antidote can be used again after resistance expires"),
-        Crafting->ConsumeFoodFromServer(TEXT("Antidote"), Reason));
-    TestEqual(TEXT("Second accepted Antidote consumes exactly one dose"), Inventory->GetQuantity(TEXT("Antidote")), 1);
-    TestEqual(TEXT("Second Antidote downgrades active major poison to five weak seconds"),
+    TestFalse(TEXT("Resistance prevents major poison from being applied"),
+        Status->HasStatus(UKalmalaPlayerStatusComponent::MajorPoisonStatusId));
+    TestEqual(TEXT("The resistant major hit becomes at most five weak seconds"),
         Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::WeakPoisonStatusId),
         UKalmalaPlayerStatusComponent::AntidoteWeakPoisonMaximumSeconds);
-    HealthProperty->SetPropertyValue_InContainer(Pawn, 1.0f);
     Status->AdvanceFromServer(1.0f);
-    TestFalse(TEXT("Death ends poison resistance"),
-        Status->HasStatus(UKalmalaPlayerStatusComponent::PoisonResistanceStatusId));
-    TestEqual(TEXT("Death does not refund the dose"), Inventory->GetQuantity(TEXT("Antidote")), 1);
-    TestEqual(TEXT("Death does not clear the shared recovery cooldown"),
-        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::DraughtCooldownStatusId),
-        UKalmalaPlayerStatusComponent::DraughtCooldownMaximumSeconds - 1.0f);
+    TestEqual(TEXT("The reduced major hit ticks as one-damage weak poison"), Pawn->GetHealth(), 99.0f);
+    for (int32 Tick = 1; Tick < 5; ++Tick) Status->AdvanceFromServer(1.0f);
+    TestEqual(TEXT("Reduced major poison deals five total damage"), Pawn->GetHealth(), 95.0f);
+    TestFalse(TEXT("Reduced major poison clears after its weak duration"),
+        Status->HasStatus(UKalmalaPlayerStatusComponent::WeakPoisonStatusId));
 
+    HealthProperty->SetPropertyValue_InContainer(Pawn, 100.0f);
+    Status->AdvanceFromServer(590.0f);
+    TestFalse(TEXT("Poison resistance expires after its ten-minute duration"),
+        Status->HasStatus(UKalmalaPlayerStatusComponent::PoisonResistanceStatusId));
+    TestFalse(TEXT("The shared draught cooldown has also expired"),
+        Status->HasStatus(UKalmalaPlayerStatusComponent::DraughtCooldownStatusId));
+    TestTrue(TEXT("Weak poison can apply again after resistance expires"),
+        Status->ApplyWeakPoisonFromServer(5.0f));
+    Pawn->SetRole(ROLE_AutonomousProxy);
+    TestFalse(TEXT("A client cannot author weak poison"), Status->ApplyWeakPoisonFromServer(5.0f));
+    TestFalse(TEXT("A client cannot author major poison"), Status->ApplyMajorPoisonFromServer(10.0f));
+    Status->AdvanceFromServer(1.0f);
+    TestEqual(TEXT("A client cannot advance poison damage"), Pawn->GetHealth(), 100.0f);
+    Pawn->SetRole(ROLE_Authority);
+    TestTrue(TEXT("A major-poison status exists for death cleanup"),
+        Status->ApplyMajorPoisonFromServer(10.0f));
+    HealthProperty->SetPropertyValue_InContainer(Pawn, 1.0f);
+    Status->AdvanceFromServer(0.1f);
+    TestFalse(TEXT("Death clears weak poison"), Status->HasStatus(UKalmalaPlayerStatusComponent::WeakPoisonStatusId));
+    TestFalse(TEXT("Death clears major poison"), Status->HasStatus(UKalmalaPlayerStatusComponent::MajorPoisonStatusId));
     World->DestroyWorld(false);
     return true;
 }

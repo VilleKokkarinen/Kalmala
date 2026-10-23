@@ -6390,3 +6390,15 @@
 - **Known limitations / remaining scope:** I4 remains open for Mosquito swarm, Peat Husk, Wolf, Lynx, Polar Bear, Horned Goat, Thunder Sentinel and Reef Maw species-specific behavior, approved A8b progression/peer flows, and InventoryReconnect disposition. Milestone-final verification remains pending; A9 remains gated.
 - **Next eligible task:** Continue I4 with Mosquito swarm's distinct swarm, dodge, and poison behavior; reuse the Rat peer scenario for the three shared enemy checks.
 - **Integration state:** Work ran directly on `master`; no worktree handoff synchronization was needed. Current run time: `2026-10-23T10:58:02Z`.
+
+## Run 2026-10-23T11:09:11Z — Consolidated poison status coverage
+
+- **Selected task:** Follow the user's direction to use one shared poison-effects automation for weak poison, major poison, and Antidote behavior, without duplicating common status checks across enemy species.
+- **Work completed:** Replaced the separate Viper weak-poison, Death Adder major-poison, and Antidote status automations with one `Kalmala.Gameplay.Status.PoisonEffects` automation. It simulates weak and major poison on a player, confirms damage and natural expiry with full-health resets, then uses Antidote and checks that weak poison is blocked while major poison is reduced to weak poison and expires. Preserved shared status bounds, refresh/tick-clock, Antidote conversion/cooldown/resistance, server authority, and death-cleanup assertions. Updated setup and enemy design guidance to distinguish shared status behavior from species-specific authored profiles. No backlog checkbox changed; I4 remains open.
+- **Files changed:** `Source/KalmalaGameplay/Private/Tests/KalmalaPlayerStatusTest.cpp`; `docs/07-development-setup.md`; `docs/biome-enemies.md`; `BACKLOG.md`; `PROGRESS.md`.
+- **Checks and results:** `git diff --check` and focused source/documentation checks passed: exactly one `Kalmala.Gameplay.Status.PoisonEffects` registration remains and obsolete Viper/Death Adder/Antidote status automation identifiers are absent. No Unreal build or automation was run.
+- **Full verification:** Deferred. This is not I4's final implementation task; combined A8a/A8b verification, species-specific live scenarios, item progression/peer flows and InventoryReconnect disposition remain open.
+- **Observable impact / networking authority:** One shared status automation now covers weak/major poison lifecycle and Antidote's prevention/reduction cases. Poison application, ticking and item use remain server-authoritative; no production gameplay, RPC, replication or save behavior changed.
+- **Known limitations / remaining scope:** C++ automation source has not been compiled or executed. Species-specific tests still need to verify authored poison parameters and distinct attack behavior; I4 remains incomplete.
+- **Next eligible task:** Continue I4 with Mosquito swarm live acceptance for its distinct swarm, dodge and repeated-bite application behavior.
+- **Integration state:** Work ran directly on `master`; no worktree handoff synchronization was needed. Current run time: `2026-10-23T11:09:11Z`.
