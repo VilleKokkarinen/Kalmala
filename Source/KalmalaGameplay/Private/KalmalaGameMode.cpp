@@ -2704,7 +2704,7 @@ void AKalmalaGameMode::DrivePeatHuskPeerTest()
         for (int32 Direction = 0; Direction < 16 && !bFoundDryApproach; ++Direction)
         {
             const float Angle = FMath::DegreesToRadians(Direction * 22.5f);
-            const FVector Offset(FMath::Cos(Angle) * 180.0f, FMath::Sin(Angle) * 180.0f, 0.0f);
+            const FVector Offset(FMath::Cos(Angle) * 120.0f, FMath::Sin(Angle) * 120.0f, 0.0f);
             bool bPathIsDry = true;
             for (int32 SampleIndex = 1; SampleIndex <= 3; ++SampleIndex)
             {
@@ -2724,7 +2724,7 @@ void AKalmalaGameMode::DrivePeatHuskPeerTest()
         if (!bFoundDryApproach)
         {
             UE_LOG(LogTemp, Error,
-                TEXT("Peat Husk verification FAILED: generated spawn had no dry 180 cm approach for the live sweep."));
+                TEXT("Peat Husk verification FAILED: generated spawn had no dry 120 cm approach for the live sweep."));
             PeatHuskPeerTestStage = 99;
             return;
         }
@@ -2768,11 +2768,11 @@ void AKalmalaGameMode::DrivePeatHuskPeerTest()
         }
 
         const EKalmalaWildlifeAttackCue Cue = Target->GetPeatHuskAttackCueForVerification();
-        PeatHuskPeerTestSawTelegraph |= Cue == EKalmalaWildlifeAttackCue::Telegraph;
-        PeatHuskPeerTestSawRecovery |= Cue == EKalmalaWildlifeAttackCue::Recovery;
+        bPeatHuskPeerTestSawTelegraph |= Cue == EKalmalaWildlifeAttackCue::Telegraph;
+        bPeatHuskPeerTestSawRecovery |= Cue == EKalmalaWildlifeAttackCue::Recovery;
         const int32 SweepHits = Target->GetPeatHuskSweepHitCountForVerification();
         const float HostDamage = PeatHuskPeerTestStartingHealth - Host->GetHealth();
-        if (PeatHuskPeerTestSawTelegraph && PeatHuskPeerTestSawRecovery
+        if (bPeatHuskPeerTestSawTelegraph && bPeatHuskPeerTestSawRecovery
             && SweepHits > 0 && HostDamage > 0.0f)
         {
             UE_LOG(LogTemp, Display,
@@ -2787,7 +2787,7 @@ void AKalmalaGameMode::DrivePeatHuskPeerTest()
         {
             UE_LOG(LogTemp, Error,
                 TEXT("Peat Husk verification FAILED: generated sweep did not complete. Telegraph=%d Recovery=%d SweepHits=%d HostDamage=%.1f Cue=%d."),
-                PeatHuskPeerTestSawTelegraph, PeatHuskPeerTestSawRecovery, SweepHits, HostDamage,
+                bPeatHuskPeerTestSawTelegraph, bPeatHuskPeerTestSawRecovery, SweepHits, HostDamage,
                 static_cast<int32>(Cue));
             PeatHuskPeerTestStage = 99;
         }

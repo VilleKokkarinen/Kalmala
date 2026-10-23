@@ -33,6 +33,18 @@ try {
     if ((Get-Date) -ge $deadline) { throw 'Peat Husk listen server readiness timed out.' }
 
     $client = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" 127.0.0.1:$Port -WorldSeed=999 $common -ShaderWorkingDir=`"$clientShaderDir`" -UserDir=`"$clientDir`" -abslog=`"$clientLog`""
+    $joinDeadline = (Get-Date).AddSeconds(60)
+    $firstRemoteJoined = $false
+    do {
+        if ($server.HasExited -or $client.HasExited) {
+            throw 'Peat Husk listen server or first client exited before the first remote join.'
+        }
+        $serverText = if (Test-Path $serverLog) { Get-Content $serverLog -Raw } else { '' }
+        $firstRemoteJoined = [regex]::Matches($serverText, 'LogNet: Join succeeded:').Count -ge 1
+        if (!$firstRemoteJoined) { Start-Sleep -Milliseconds 500 }
+    } while (!$firstRemoteJoined -and (Get-Date) -lt $joinDeadline)
+    if (!$firstRemoteJoined) { throw 'Peat Husk first remote client did not join before observer launch.' }
+
     $observer = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" 127.0.0.1:$Port -WorldSeed=1000 $common -ShaderWorkingDir=`"$observerShaderDir`" -UserDir=`"$observerDir`" -abslog=`"$observerLog`""
     $deadline = (Get-Date).AddSeconds(240)
     $passed = $false
