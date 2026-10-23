@@ -50,7 +50,7 @@ try {
             throw 'Mosquito peer verification failed or Unreal terminated abnormally; inspect retained logs.'
         }
 
-        $serverPassed = $serverText -match 'Mosquito verification server: Passed=1 Seed=\d+ Bites=\d+ Damage=\d+\.\d+ WeakPoisonSeconds=\d+\.\d+ OtherPeers=2 SpawnId=\d+/-?\d+/-?\d+/\d+'
+        $serverPassed = $serverText -match 'Mosquito verification server: Passed=1 Seed=\d+ Bites=\d+ Damage=\d+\.\d+ WeakPoisonSeconds=\d+\.\d+ OtherPeers=2 DodgeAccepted=1 DodgeRejected=1 RollExpired=1 HeldTorchRepelled=1 HeldTorchOffNoProtection=1 CampfireUnlitNoProtection=1 CampfireLitRepelled=1 SpawnId=\d+/-?\d+/-?\d+/\d+'
         if ($serverPassed -and $null -eq $serverPassedAt) { $serverPassedAt = Get-Date }
         $clientHealth = [regex]::Matches($clientText, 'Mosquito verification client observed replicated player health=(\d+(?:\.\d+)?)\.') |
             Where-Object { [double]$_.Groups[1].Value -lt 99.9 } | Select-Object -First 1
@@ -74,7 +74,7 @@ try {
             $serverPassed, ($null -ne $clientHealth), $clientPoison, ($null -ne $observerHealth), $observerPoison)
         throw 'Mosquito swarm live peer acceptance timed out; inspect retained logs.'
     }
-    Write-Output 'PASS: a generated Mossy Mire swarm landed repeated server bites; both peers saw health and exactly one owner peer saw private weak poison state.'
+    Write-Output 'PASS: a generated Mossy Mire swarm replicated bites and owner-only poison, accepted one dodge, rejected its cooldown retry, and respected held-torch and placed-campfire states.'
 }
 finally {
     foreach ($peer in @($client, $observer, $server)) {

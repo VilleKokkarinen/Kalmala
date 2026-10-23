@@ -154,6 +154,14 @@ private:
     TWeakObjectPtr<class AKalmalaCharacter> MosquitoPeerTestListenHost;
     TWeakObjectPtr<class AKalmalaCharacter> MosquitoPeerTestObserver;
     TWeakObjectPtr<class AKalmalaWildlifeSpawn> MosquitoPeerTestTarget;
+    TWeakObjectPtr<class AKalmalaCampfire> MosquitoPeerTestCampfire;
+    FVector MosquitoPeerTestContactLocation = FVector::ZeroVector;
+    int32 MosquitoPeerTestBiteBaseline = 0;
+    int32 MosquitoPeerTestCampfireBiteBaseline = 0;
+    float MosquitoPeerTestAcceptedRollTime = 0.0f;
+    float MosquitoPeerTestTorchStartedTime = 0.0f;
+    bool bMosquitoPeerTestHeldTorchVerified = false;
+    bool bMosquitoPeerTestUnlitCampfireVerified = false;
     int32 DiscoveryPeerTestStage = 0;
     float DiscoveryPeerTestStageTime = 0.0f;
     bool bDiscoveryPeerTestLogged = false;

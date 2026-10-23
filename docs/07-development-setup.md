@@ -2490,11 +2490,10 @@ cover the 50/20/20/10 Mossy Mire roster, exclusive dry-Mire selection, swarm
 stats, 100 cm contact limit, 5-Stab/0.2 s cadence, shared ten-second weak
 poison, no reward, and server-only flame radii. The roll contract checks the
 server/living/grounded/attachment/cooldown/stamina gates and 2 s swarm escape.
-They do not replace live host/client tests for simultaneous swarms, rejected
-roll requests, torch fuel/rain transitions, Standing Light rain suppression,
-campfire flame state, ally fire protection, collision, poison refresh or
-relevant-peer privacy. Run those scenarios with combined A8a/A8b I4 after a
-forced editor build; that gate remains required before A9.
+They do not replace live host/client tests for simultaneous swarms, torch
+fuel/rain transitions, Standing Light rain suppression, ally fire protection,
+or collision. Run those scenarios with combined A8a/A8b I4 after a forced
+editor build; that gate remains required before A9.
 
 `Scripts/Tests/Combat/Verify-MosquitoSwarmPeer.ps1` covers the live bite and
 poison application slice. It activates a normal generated dry Mossy Mire swarm,
@@ -2503,9 +2502,13 @@ within replication range but outside the swarm's target leash, then requires
 two accepted damaging bites and an active weak-poison refresh. The owner client
 must observe the host's replicated health loss and private weak-poison status;
 the other remote peer must see health loss without receiving that owner-only
-status.
-This case does not repeat the Rat shared loot/restart checks; accepted/rejected
-dodge-roll and authoritative fire-state counterplay remain for combined I4.
+status. The owner client then sends one accepted dodge request and an immediate
+cooldown retry that the server rejects. The server verifies the two-second
+repel window expires, a fuelled held Basic Torch prevents bites, unequipping
+the torch permits bites again, an unlit server-initialized placed campfire
+does not repel the swarm, and lighting it stops further bites. The peers
+continue checking public health and owner-only poison. This case does not
+repeat the Rat shared loot/restart checks.
 
 ## Death Adder contract regression
 

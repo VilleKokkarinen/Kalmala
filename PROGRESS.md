@@ -6414,3 +6414,15 @@
 - **Known limitations / remaining scope:** Mosquito accepted/rejected dodge rolls and authoritative held/placed fire counterplay remain open. I4 also needs the remaining A8a species checks, approved A8b progression/peer flows, InventoryReconnect disposition, and milestone-final verification; A9 remains gated.
 - **Next eligible task:** Finish Mosquito swarm live counterplay acceptance for accepted/rejected dodge rolls and authoritative held/placed fire states.
 - **Integration state:** Work ran directly on `master`; no worktree handoff synchronization was needed. Current run time: `2026-10-23T11:43:11Z`.
+
+## Run 2026-10-23 12:04:09 UTC — Mosquito counterplay harness
+
+- **Selected task:** Add Development-only live-peer assertions for accepted/rejected dodge requests and authoritative held/placed fire counterplay. The user explicitly authorized committing the pending five-file implementation.
+- **Work completed:** Extended the existing generated Mosquito peer scenario through one owner-client dodge acceptance and cooldown rejection, the server-side two-second repel window, a fuelled held Basic Torch, bite resumption after unequipping it, and unlit/lit placed-campfire behavior. Split the backlog item into harness implementation and live execution; the harness child is complete, while the build and live peer run remain open.
+- **Files changed:** `BACKLOG.md`; `PROGRESS.md`; `Scripts/Tests/Combat/Verify-MosquitoSwarmPeer.ps1`; `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp`; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`; `Source/KalmalaGameplay/Public/KalmalaCharacter.h`; `Source/KalmalaGameplay/Public/KalmalaGameMode.h`; `docs/07-development-setup.md`.
+- **Checks and results:** PowerShell parser, `git diff --check`, and changed-path Windows `MAX_PATH` audit passed. No C++ build or peer automation was run in this run.
+- **Full verification:** Deferred; I4 still has species-specific live checks, A8b item progression/peer flows, InventoryReconnect disposition, and milestone-final verification remaining.
+- **Observable impact / networking authority:** Added Development-only evidence for existing counterplay. The client sends the dodge request; the server validates it, owns the repel window and swarm/fire state, and controls bite effects. No production gameplay or save behavior changed.
+- **Known limitations / remaining scope:** The expanded scenario has not been compiled or run. I4 remains open and A9 remains gated.
+- **Next eligible task:** Build the Gameplay target and run `Scripts/Tests/Combat/Verify-MosquitoSwarmPeer.ps1`; verify the new counterplay plus both-peer health and owner-only poison before checking the remaining Mosquito child.
+- **Integration state:** Work ran directly on `master`; no worktree handoff synchronization was needed. Current run time: `2026-10-23 12:04:09 UTC`.

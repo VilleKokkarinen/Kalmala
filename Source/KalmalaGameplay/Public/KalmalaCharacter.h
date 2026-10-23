@@ -282,6 +282,9 @@ private:
     UFUNCTION(Server, Unreliable)
     void ServerRequestDodgeRoll();
 
+    UFUNCTION(Client, Reliable)
+    void ClientRequestMosquitoPeerTestDodgeRoll();
+
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<USpringArmComponent> CameraBoom;
 
@@ -320,6 +323,8 @@ private:
     TEnumAsByte<EMovementMode> MovementModeBeforeWildlifeStagger = MOVE_Walking;
     uint8 CustomMovementModeBeforeWildlifeStagger = 0;
     double MosquitoRollRepelUntilTime = 0.0;
+    int32 MosquitoPeerTestAcceptedDodgeRequests = 0;
+    int32 MosquitoPeerTestRejectedDodgeRequests = 0;
     float DodgeRollPresentationSeconds = 0.0f;
     bool bDodgeRollPresentationObserved = false;
 

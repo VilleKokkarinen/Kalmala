@@ -1097,17 +1097,54 @@ void AKalmalaCharacter::RequestDodgeRoll()
     }
 }
 
+void AKalmalaCharacter::ClientRequestMosquitoPeerTestDodgeRoll_Implementation()
+{
+#if !UE_BUILD_SHIPPING
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaMosquitoPeerTest")) && IsLocallyControlled())
+        ServerRequestDodgeRoll();
+#endif
+}
+
 void AKalmalaCharacter::ServerRequestDodgeRoll_Implementation()
 {
+#if !UE_BUILD_SHIPPING
+    const bool bMosquitoPeerTest = HasAuthority()
+        && FParse::Param(FCommandLine::Get(), TEXT("KalmalaMosquitoPeerTest"));
+    const auto RecordRejectedTestRoll = [this, bMosquitoPeerTest]()
+    {
+        if (!bMosquitoPeerTest) return;
+        ++MosquitoPeerTestRejectedDodgeRequests;
+        UE_LOG(LogTemp, Display, TEXT("Mosquito verification dodge request: Accepted=0 Rejected=%d."),
+            MosquitoPeerTestRejectedDodgeRequests);
+    };
+#endif
     UKalmalaCharacterMovementComponent* Movement = Cast<UKalmalaCharacterMovementComponent>(GetCharacterMovement());
     const float Cost = Statuses ? Statuses->CalculateStaminaCost(DodgeRollStaminaCost) : DodgeRollStaminaCost;
-    if (Movement == nullptr) return;
+    if (Movement == nullptr)
+    {
+#if !UE_BUILD_SHIPPING
+        RecordRejectedTestRoll();
+#endif
+        return;
+    }
     FVector Direction = GetVelocity().GetSafeNormal2D();
     if (Direction.IsNearlyZero()) Direction = GetActorForwardVector().GetSafeNormal2D();
     if (bWildlifeStaggered || Direction.IsNearlyZero() || !IsDodgeRollRequestAllowed(HasAuthority(), Health > 1.0f,
             Movement->IsMovingOnGround(), GetAttachParentActor() != nullptr, bDodgeRollActive,
-            DodgeRollCooldownRemaining, Movement->GetStamina(), Cost)
-        || !Movement->TryConsumeStaminaFromServer(Cost)) return;
+            DodgeRollCooldownRemaining, Movement->GetStamina(), Cost))
+    {
+#if !UE_BUILD_SHIPPING
+        RecordRejectedTestRoll();
+#endif
+        return;
+    }
+    if (!Movement->TryConsumeStaminaFromServer(Cost))
+    {
+#if !UE_BUILD_SHIPPING
+        RecordRejectedTestRoll();
+#endif
+        return;
+    }
 
     DodgeRollSecondsRemaining = DodgeRollDurationSeconds;
     DodgeRollCooldownRemaining = DodgeRollCooldownSeconds;
@@ -1116,6 +1153,14 @@ void AKalmalaCharacter::ServerRequestDodgeRoll_Implementation()
         ? GetWorld()->GetTimeSeconds() + DodgeRollMosquitoRepelSeconds : 0.0;
     LaunchCharacter(Direction * DodgeRollSpeedCentimetresPerSecond, true, false);
     ForceNetUpdate();
+#if !UE_BUILD_SHIPPING
+    if (bMosquitoPeerTest)
+    {
+        ++MosquitoPeerTestAcceptedDodgeRequests;
+        UE_LOG(LogTemp, Display, TEXT("Mosquito verification dodge request: Accepted=%d Rejected=%d."),
+            MosquitoPeerTestAcceptedDodgeRequests, MosquitoPeerTestRejectedDodgeRequests);
+    }
+#endif
 }
 
 void AKalmalaCharacter::AdvanceDodgeRollFromServer(const float DeltaSeconds)

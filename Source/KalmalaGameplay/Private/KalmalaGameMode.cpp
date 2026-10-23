@@ -2060,6 +2060,27 @@ void AKalmalaGameMode::DriveMosquitoPeerTest()
         MosquitoPeerTestStage = 99;
     };
     const float Now = GetWorld()->GetTimeSeconds();
+    const auto PlaceOnTerrain = [this](AKalmalaCharacter* Character, const FVector& DesiredLocation)
+    {
+        const FVector2D Position(DesiredLocation);
+        ActivateTerrainPatchNeighborhood(Position);
+        FVector GroundedLocation = DesiredLocation;
+        GroundedLocation.Z = FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, Position)
+            + Character->GetSimpleCollisionHalfHeight() + 1.0f;
+        Character->SetActorLocation(GroundedLocation, false);
+        if (UCharacterMovementComponent* Movement = Character->GetCharacterMovement())
+            Movement->StopMovementImmediately();
+        Character->ForceNetUpdate();
+    };
+    const auto PlaceSwarmAtContact = [this, &PlaceOnTerrain](AKalmalaCharacter* Character,
+        AKalmalaWildlifeSpawn* Target)
+    {
+        if (!IsValid(Character) || !IsValid(Target)) return false;
+        PlaceOnTerrain(Character, MosquitoPeerTestContactLocation);
+        Target->SetActorLocation(Character->GetActorLocation() + FVector(0.0f, 0.0f, 60.0f), false);
+        Target->ForceNetUpdate();
+        return true;
+    };
 
     if (MosquitoPeerTestStage == 0)
     {
@@ -2080,6 +2101,13 @@ void AKalmalaGameMode::DriveMosquitoPeerTest()
         MosquitoPeerTestHost = Peers[0];
         MosquitoPeerTestListenHost = ListenHost;
         MosquitoPeerTestObserver = Peers[1];
+
+        if (AKalmalaWorldGenerationGameState* WorldState = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>())
+        {
+            FKalmalaWeatherState Weather = WorldState->GetWeatherState();
+            Weather.PrecipitationIntensity = 0.0f;
+            WorldState->SetWeatherStateFromServer(Weather);
+        }
 
         const FIntPoint StartKey = FKalmalaWorldPopulationLayout::GetSpatialKey(
             FVector2D(ListenHost->GetActorLocation()));
@@ -2172,22 +2200,11 @@ void AKalmalaGameMode::DriveMosquitoPeerTest()
             return;
         }
 
-        const auto PlaceOnTerrain = [this](AKalmalaCharacter* Character, const FVector& DesiredLocation)
-        {
-            const FVector2D Position(DesiredLocation);
-            ActivateTerrainPatchNeighborhood(Position);
-            FVector GroundedLocation = DesiredLocation;
-            GroundedLocation.Z = FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, Position)
-                + Character->GetSimpleCollisionHalfHeight() + 1.0f;
-            Character->SetActorLocation(GroundedLocation, false);
-            if (UCharacterMovementComponent* Movement = Character->GetCharacterMovement())
-                Movement->StopMovementImmediately();
-            Character->ForceNetUpdate();
-        };
         const FVector SpawnLocation = Target->GetActorLocation();
         PlaceOnTerrain(Host, SpawnLocation);
         PlaceOnTerrain(Observer, SpawnLocation + FVector(0.0f, 3000.0f, 0.0f));
         PlaceOnTerrain(ListenHost, SpawnLocation + FVector(0.0f, 4000.0f, 0.0f));
+        MosquitoPeerTestContactLocation = Host->GetActorLocation();
         Target->SetActorTickEnabled(true);
         Target->ForceNetUpdate();
         MosquitoPeerTestTarget = Target;
@@ -2216,18 +2233,264 @@ void AKalmalaGameMode::DriveMosquitoPeerTest()
             UKalmalaPlayerStatusComponent::WeakPoisonStatusId);
         if (Bites >= 2 && Damage >= 10.0f && WeakPoisonSeconds >= 8.0f)
         {
-            Target->SetActorTickEnabled(false);
-            Target->ForceNetUpdate();
-            UE_LOG(LogTemp, Display,
-                TEXT("Mosquito verification server: Passed=1 Seed=%llu Bites=%d Damage=%.1f WeakPoisonSeconds=%.2f OtherPeers=2 SpawnId=%s"),
-                static_cast<unsigned long long>(MosquitoPeerTestWorldSeed), Bites, Damage,
-                WeakPoisonSeconds, *MosquitoPeerTestSpawnId);
-            MosquitoPeerTestStage = 99;
+            MosquitoPeerTestBiteBaseline = Bites;
+            MosquitoPeerTestStageTime = Now;
+            MosquitoPeerTestStage = 3;
+            Host->ClientRequestMosquitoPeerTestDodgeRoll();
+            UE_LOG(LogTemp, Display, TEXT("Mosquito verification requested an owner-client dodge roll after %d bites."), Bites);
             return;
         }
         if (Now - MosquitoPeerTestStageTime > 30.0f)
         {
             Fail(TEXT("the normal swarm did not land two damaging bites and apply its ten-second weak poison"));
+        }
+    }
+
+    if (MosquitoPeerTestStage >= 3 && MosquitoPeerTestStage <= 9)
+    {
+        AKalmalaCharacter* Host = MosquitoPeerTestHost.Get();
+        AKalmalaWildlifeSpawn* Target = MosquitoPeerTestTarget.Get();
+        if (!IsValid(Host) || !IsValid(Target))
+        {
+            Fail(TEXT("the host pawn or generated swarm disappeared during counterplay checks"));
+            return;
+        }
+        const int32 Bites = Target->GetMosquitoAcceptedBiteCountForVerification();
+        const auto FailOnUnexpectedBite = [this, Bites](const TCHAR* Reason)
+        {
+            if (Bites != MosquitoPeerTestBiteBaseline)
+            {
+                UE_LOG(LogTemp, Error, TEXT("Mosquito verification FAILED: %s (expected bites=%d actual=%d)."),
+                    Reason, MosquitoPeerTestBiteBaseline, Bites);
+                MosquitoPeerTestStage = 99;
+                return true;
+            }
+            return false;
+        };
+
+        if (MosquitoPeerTestStage == 3)
+        {
+            if (Host->MosquitoPeerTestAcceptedDodgeRequests == 1)
+            {
+                MosquitoPeerTestAcceptedRollTime = Now;
+                Host->ClientRequestMosquitoPeerTestDodgeRoll();
+                MosquitoPeerTestStageTime = Now;
+                MosquitoPeerTestStage = 4;
+            }
+            else if (Host->MosquitoPeerTestRejectedDodgeRequests > 0)
+                Fail(TEXT("the grounded owner-client dodge request was unexpectedly rejected"));
+            else if (Now - MosquitoPeerTestStageTime > 10.0f)
+                Fail(TEXT("the owner-client dodge request did not reach the server"));
+            return;
+        }
+
+        if (MosquitoPeerTestStage == 4)
+        {
+            if (FailOnUnexpectedBite(TEXT("the swarm bit after the accepted dodge roll broke contact"))) return;
+            if (Host->MosquitoPeerTestRejectedDodgeRequests == 1)
+            {
+                MosquitoPeerTestStageTime = Now;
+                MosquitoPeerTestStage = 5;
+            }
+            else if (Now - MosquitoPeerTestStageTime > 10.0f)
+                Fail(TEXT("the immediate cooldown dodge request was not rejected"));
+            return;
+        }
+
+        if (MosquitoPeerTestStage == 5)
+        {
+            if (FailOnUnexpectedBite(TEXT("the accepted roll did not keep the swarm off contact"))) return;
+            if (Host->MosquitoPeerTestAcceptedDodgeRequests != 1
+                || Host->MosquitoPeerTestRejectedDodgeRequests != 1)
+            {
+                Fail(TEXT("dodge request totals did not show one accepted roll and one rejected cooldown request"));
+                return;
+            }
+            if (Now - MosquitoPeerTestAcceptedRollTime < 1.25f) return;
+            if (!Host->IsDodgeRollRepellingMosquitoesFromServer())
+            {
+                Fail(TEXT("the accepted dodge roll did not retain its two-second mosquito escape window"));
+                return;
+            }
+
+            Host->EnsureToolInstanceGuidsFromServer();
+            UKalmalaInventoryComponent* Inventory = Host->GetInventoryComponent();
+            FKalmalaToolState* Torch = Host->CarriedTools.FindByPredicate(
+                [](const FKalmalaToolState& Tool) { return Tool.ItemId == TEXT("BasicTorch"); });
+            if (Inventory == nullptr || Torch == nullptr)
+            {
+                Fail(TEXT("the owner loadout has no valid Basic Torch for held-flame counterplay"));
+                return;
+            }
+            Torch->RemainingBurnSeconds = FKalmalaToolLifecycleContract::BasicTorchBurnDurationSeconds;
+            Inventory->SynchronizeGridFromServer();
+            FString Reason;
+            if (!Inventory->SetMainHandFromServer(Torch->InstanceGuid, Reason))
+            {
+                Fail(TEXT("the server could not select the test Basic Torch"));
+                return;
+            }
+            Host->AdvanceHeldTorchFromServer(0.01f, false);
+            if (!Host->IsHeldTorchFlameEligibleForServer())
+            {
+                Fail(TEXT("the test torch is not a valid server flame"));
+                return;
+            }
+            if (!PlaceSwarmAtContact(Host, Target))
+            {
+                Fail(TEXT("the owner and generated swarm could not be returned to the counterplay contact fixture"));
+                return;
+            }
+            MosquitoPeerTestTorchStartedTime = Now;
+            MosquitoPeerTestStageTime = Now;
+            MosquitoPeerTestStage = 6;
+            return;
+        }
+
+        if (MosquitoPeerTestStage == 6)
+        {
+            if (FailOnUnexpectedBite(TEXT("the held, fuelled torch failed to repel bites after the accepted roll expired"))) return;
+            if (!Host->IsHeldTorchFlameEligibleForServer())
+            {
+                Fail(TEXT("the held torch lost its authoritative flame during the protection interval"));
+                return;
+            }
+            if (Now - MosquitoPeerTestTorchStartedTime < 1.25f) return;
+            if (Now - MosquitoPeerTestAcceptedRollTime < 2.05f) return;
+            if (Host->IsDodgeRollRepellingMosquitoesFromServer())
+            {
+                Fail(TEXT("the rejected cooldown request extended the accepted roll's two-second escape window"));
+                return;
+            }
+
+            UKalmalaInventoryComponent* Inventory = Host->GetInventoryComponent();
+            FString Reason;
+            if (Inventory == nullptr || !Inventory->SetMainHandFromServer(FGuid(), Reason))
+            {
+                Fail(TEXT("the server could not clear the Basic Torch for its unlit state check"));
+                return;
+            }
+            Host->AdvanceHeldTorchFromServer(0.01f, false);
+            if (Host->IsHeldTorchFlameEligibleForServer())
+            {
+                Fail(TEXT("an unequipped torch still qualified as an authoritative flame"));
+                return;
+            }
+            bMosquitoPeerTestHeldTorchVerified = true;
+            MosquitoPeerTestBiteBaseline = Bites;
+            if (!PlaceSwarmAtContact(Host, Target))
+            {
+                Fail(TEXT("the swarm could not be returned after the torch was cleared"));
+                return;
+            }
+            MosquitoPeerTestStageTime = Now;
+            MosquitoPeerTestStage = 7;
+            return;
+        }
+
+        if (MosquitoPeerTestStage == 7)
+        {
+            if (Host->IsHeldTorchFlameEligibleForServer())
+            {
+                Fail(TEXT("the cleared Main Hand still reports a lit torch"));
+                return;
+            }
+            if (Bites <= MosquitoPeerTestBiteBaseline)
+            {
+                if (Now - MosquitoPeerTestStageTime > 10.0f)
+                    Fail(TEXT("the swarm did not resume bites after the held torch was unequipped"));
+                return;
+            }
+
+            FActorSpawnParameters Params;
+            Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+            AKalmalaCampfire* Fire = GetWorld()->SpawnActor<AKalmalaCampfire>(
+                AKalmalaCampfire::StaticClass(), Host->GetActorLocation() + FVector(200.0f, 0.0f, 0.0f),
+                FRotator::ZeroRotator, Params);
+            if (Fire == nullptr || Fire->IsLit() || Fire->IsFlameEligibleForMosquitoesFromServer())
+            {
+                Fail(TEXT("the unlit placed-campfire fixture did not begin without flame protection"));
+                return;
+            }
+            MosquitoPeerTestCampfire = Fire;
+            MosquitoPeerTestCampfireBiteBaseline = Bites;
+            if (!PlaceSwarmAtContact(Host, Target))
+            {
+                Fail(TEXT("the swarm could not be returned to the unlit placed-fire fixture"));
+                return;
+            }
+            MosquitoPeerTestStageTime = Now;
+            MosquitoPeerTestStage = 8;
+            return;
+        }
+
+        if (MosquitoPeerTestStage == 8)
+        {
+            AKalmalaCampfire* Fire = MosquitoPeerTestCampfire.Get();
+            if (!IsValid(Fire) || Fire->IsLit() || Fire->IsFlameEligibleForMosquitoesFromServer())
+            {
+                Fail(TEXT("the unlit placed campfire unexpectedly qualified as a flame"));
+                return;
+            }
+            if (Bites <= MosquitoPeerTestCampfireBiteBaseline)
+            {
+                if (Now - MosquitoPeerTestStageTime > 10.0f)
+                    Fail(TEXT("the swarm did not bite while the placed campfire remained unlit"));
+                return;
+            }
+            bMosquitoPeerTestUnlitCampfireVerified = true;
+            Fire->InitializePaidFromServer(Host);
+            if (!Fire->TryLightFromServer(Host) || !Fire->IsFlameEligibleForMosquitoesFromServer())
+            {
+                Fail(TEXT("the server could not light the paid placed campfire for counterplay"));
+                return;
+            }
+            MosquitoPeerTestBiteBaseline = Bites;
+            if (!PlaceSwarmAtContact(Host, Target))
+            {
+                Fail(TEXT("the swarm could not be returned to the lit placed-fire fixture"));
+                return;
+            }
+            MosquitoPeerTestStageTime = Now;
+            MosquitoPeerTestStage = 9;
+            return;
+        }
+
+        if (MosquitoPeerTestStage == 9)
+        {
+            AKalmalaCampfire* Fire = MosquitoPeerTestCampfire.Get();
+            UKalmalaPlayerStatusComponent* Statuses = Host->GetStatusComponent();
+            if (!IsValid(Fire) || !Fire->IsFlameEligibleForMosquitoesFromServer())
+            {
+                Fail(TEXT("the placed campfire lost its authoritative lit-flame state"));
+                return;
+            }
+            if (Bites != MosquitoPeerTestBiteBaseline)
+            {
+                Fail(TEXT("the lit placed campfire failed to stop the swarm from biting"));
+                return;
+            }
+            if (Now - MosquitoPeerTestStageTime < 1.25f) return;
+            const float Damage = MosquitoPeerTestStartingHealth - Host->GetHealth();
+            const float WeakPoisonSeconds = Statuses ? Statuses->GetRemainingSeconds(
+                UKalmalaPlayerStatusComponent::WeakPoisonStatusId) : 0.0f;
+            if (!bMosquitoPeerTestHeldTorchVerified || !bMosquitoPeerTestUnlitCampfireVerified
+                || Host->MosquitoPeerTestAcceptedDodgeRequests != 1
+                || Host->MosquitoPeerTestRejectedDodgeRequests != 1
+                || Host->IsDodgeRollRepellingMosquitoesFromServer()
+                || Bites < 4 || Damage < 20.0f || WeakPoisonSeconds < 8.0f)
+            {
+                Fail(TEXT("counterplay evidence did not retain the accepted/rejected roll, fire transitions, repeated bites, and weak poison"));
+                return;
+            }
+            Target->SetActorTickEnabled(false);
+            Target->ForceNetUpdate();
+            UE_LOG(LogTemp, Display,
+                TEXT("Mosquito verification server: Passed=1 Seed=%llu Bites=%d Damage=%.1f WeakPoisonSeconds=%.2f OtherPeers=2 DodgeAccepted=%d DodgeRejected=%d RollExpired=1 HeldTorchRepelled=1 HeldTorchOffNoProtection=1 CampfireUnlitNoProtection=1 CampfireLitRepelled=1 SpawnId=%s"),
+                static_cast<unsigned long long>(MosquitoPeerTestWorldSeed), Bites, Damage, WeakPoisonSeconds,
+                Host->MosquitoPeerTestAcceptedDodgeRequests, Host->MosquitoPeerTestRejectedDodgeRequests,
+                *MosquitoPeerTestSpawnId);
+            MosquitoPeerTestStage = 99;
         }
     }
 #endif
