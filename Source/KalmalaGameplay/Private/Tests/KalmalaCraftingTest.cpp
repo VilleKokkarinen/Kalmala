@@ -76,6 +76,48 @@ bool FKalmalaCraftingTransactionsTest::RunTest(const FString& Parameters)
         }
     }
 
+    const FKalmalaRecipe* Antidote = Recipes->Find(TEXT("AntidoteRecipe"));
+    if (TestNotNull(TEXT("A8b Antidote recipe is registered"), Antidote))
+    {
+        TestTrue(TEXT("Antidote recipe is enabled"), Antidote->bEnabled);
+        TestEqual(TEXT("Antidote requires exactly one station"), Antidote->RequiredStation.Num(), 1);
+        if (Antidote->RequiredStation.Num() == 1)
+            TestEqual(TEXT("Antidote resolves to the runtime Cauldron station"),
+                Antidote->RequiredStation[0], FName(TEXT("CauldronKit")));
+        TestEqual(TEXT("Antidote recipe outputs the approved item"), Antidote->Output, FName(TEXT("Antidote")));
+        TestEqual(TEXT("One Antidote batch yields one dose"), Antidote->OutputCount, 1);
+        TestEqual(TEXT("Antidote recipe allows the standard five-batch limit"), Antidote->MaxBatch, 5);
+        TestEqual(TEXT("Antidote batches award Cooking experience"), Antidote->ExperienceSkill, EKalmalaSkill::Cooking);
+        TestEqual(TEXT("Antidote batch awards ten Cooking experience"), Antidote->ExperienceAward, 10);
+        TestEqual(TEXT("Antidote recipe uses exactly two ingredients"), Antidote->Ingredients.Num(), 2);
+        for (const TPair<FName, int32>& IngredientAndQuantity : {
+            TPair<FName, int32>(TEXT("VenomSac"), 1), TPair<FName, int32>(TEXT("Lingonberry"), 2) })
+        {
+            const FKalmalaInventoryStack* Ingredient = Antidote->Ingredients.FindByPredicate(
+                [&IngredientAndQuantity](const FKalmalaInventoryStack& Stack)
+                    { return Stack.ItemId == IngredientAndQuantity.Key; });
+            TestNotNull(FString::Printf(TEXT("Antidote includes %s"), *IngredientAndQuantity.Key.ToString()), Ingredient);
+            if (Ingredient) TestEqual(TEXT("Antidote uses its approved material quantity"), Ingredient->Quantity, IngredientAndQuantity.Value);
+        }
+
+        TArray<FKalmalaInventoryStack> AntidoteCosts;
+        TArray<FKalmalaInventoryStack> AntidoteAfter;
+        int32 AntidoteOutputCount = 0;
+        FString AntidoteReason;
+        TestTrue(TEXT("One Antidote batch scales to its exact recipe costs"),
+            UKalmalaRecipeCatalogue::Scale(*Antidote, 1, AntidoteCosts, AntidoteOutputCount));
+        TestEqual(TEXT("One Antidote batch scales to one dose"), AntidoteOutputCount, 1);
+        TestTrue(TEXT("Antidote crafting exchanges the listed materials for one dose"),
+            UKalmalaInventoryComponent::BuildExchange({{TEXT("VenomSac"),1},{TEXT("Lingonberry"),2}},
+                AntidoteCosts, Antidote->Output, AntidoteOutputCount, AntidoteAfter, AntidoteReason));
+        TestEqual(TEXT("Antidote exchange leaves one output stack"), AntidoteAfter.Num(), 1);
+        if (AntidoteAfter.Num() == 1)
+        {
+            TestEqual(TEXT("Antidote exchange grants the approved item"), AntidoteAfter[0].ItemId, FName(TEXT("Antidote")));
+            TestEqual(TEXT("Antidote exchange grants one dose"), AntidoteAfter[0].Quantity, 1);
+        }
+    }
+
     const FKalmalaRecipe* FryingPan = Recipes->Find(TEXT("FryingPanRecipe"));
     const FKalmalaRecipe* RootSoup = Recipes->Find(TEXT("RootVegetableSoupRecipe"));
     if (FryingPan)

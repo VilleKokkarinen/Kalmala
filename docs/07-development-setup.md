@@ -5672,8 +5672,11 @@ weak and major hits before and after Antidote, natural cure, inventory
 consumption or preservation on rejection, resistance expiry and server
 authority. The UI and recipe regressions cover recipe exposure and costs, and
 player-facing details.
-The focused C++ regression sources added here have not been compiled or run in
-this normal child; combined A8a/A8b I4 remains required.
+`Kalmala.Gameplay.Crafting.Transactions` also asserts Antidote's exact output,
+runtime station identity (`CauldronKit`, authored as `Cauldron`), batch limit,
+ingredient quantities, Cooking award, and one-batch material exchange to one
+dose. These checks complement the status and UI regressions; live Cauldron peer
+acceptance remains part of combined I4 verification.
 
 ## A8b Peat Heart Stew item coverage — 2026-10-22
 
