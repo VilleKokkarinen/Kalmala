@@ -6207,3 +6207,13 @@
 - **Known limitations / remaining scope:** The selected full-queue child is complete, but the combined I4 peer/rendered acceptance has other remaining scope. I4 remains unchecked and A9 remains gated; this run does not claim the wider acceptance matrix is complete.
 - **Next eligible task:** Continue the combined A8a/A8b I4 peer/rendered acceptance. Do not start A9 until that gate passes.
 - **Integration state:** Changes were made directly on `master`; no worktree handoff synchronization was needed. Current run time: 2026-10-23T05:50:40Z.
+
+## Run 2026-10-23T06:01:42Z — integrate Standing Light torch icon
+
+- **Work completed:** Integrated the updated Standing Light torch artwork from the clean `codex/a8-standing-light` worktree. The Standing Light gameplay implementation was already present on `master`; only its three icon assets, manifest description, and provenance were missing. Kept the current isolated import batch `AO` because later A8b icon batches occupy `AH` and subsequent slots.
+- **Files changed:** `Content/Kalmala/UI/Icons/Items/StandingLightKit.uasset`; `Content/Kalmala/UI/Source/IconOriginals/StandingLightKit.png`; `Content/Kalmala/UI/Source/Icons/StandingLightKit.png`; `Scripts/Data/catalogue-icon-manifest.csv`; `docs/standing-light-icon.md`; `PROGRESS.md`.
+- **Checks:** `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id StandingLightKit` passed, confirming the imported package, 1254×1254 RGBA original, transparent 64×64 preparation, and runtime target. `git diff --check` passed. All three asset hashes match the committed Standing Light branch versions; changed paths are below `MAX_PATH`.
+- **Full verification:** Deferred to the combined I4 gate. No Unreal build, runtime automation, or rendered menu check was run.
+- **Observable impact / authority:** The Standing Light build-menu icon now shows the updated wooden torch. Gameplay, server authority, recipe cost, networking, and save data are unchanged.
+- **Known limitations / remaining scope:** I4 remains open. The 14 A9 gameplay commits on `codex/a9-gems-special-gear` remain unintegrated because A9 is gated until I4 passes; their branch reference will be retained during worktree cleanup.
+- **Next eligible task:** Continue the combined A8a/A8b I4 peer and rendered acceptance.
