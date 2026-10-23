@@ -6612,3 +6612,8 @@
 - Enabled Garnet's 10% Elderwood/Lakes entry only. Other treasure gem entries are authored but disabled until their item increments. Material inventory remains session-only; a persistent consumed chest does not imply general inventory restoration.
 - Files: DiscoveryActor, GameMode, CraftingSubsystem, GemstoneContract, WorldPopulationSaveGame, GemstoneTest, BACKLOG/PROGRESS and architecture documentation. Added empty-roll/claim no-reroll and serialization regressions. `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id Garnet` and git diff --check passed; all changed paths below 260. Full build/test execution/peer/restart/rendered I5 evidence deferred.
 - Next: Green Jade's Lakes Tin source. Moonstone enablement remains genuinely I4-dependent. Main untouched.
+
+
+## A9 independent worker — Green Jade acquisition (2026-10-23)
+
+- Enabled Jade's source entry: the same single Lakes Tin candidate roll selects 5% Quartz, the next 2% Jade, otherwise Tin. No Elderwood or other Tin/ore slots become Jade. Existing budget/identity/three-hit extraction and one-gem rule are shared. Files: GemstoneContract.h, BACKLOG/PROGRESS. `Validate-UIIcons.ps1 -Category Catalogue -Id GreenJade` and git diff --check passed; source/tier/payment inspection and path audit passed. Full build, automation execution and live I5 checks deferred. Server owns selection/hits/claims. Next: Amethyst. Main unchanged.
