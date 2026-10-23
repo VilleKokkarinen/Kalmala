@@ -5692,15 +5692,19 @@ existed; this increment enables the menu and food-use paths without adding a
 new RPC, replicated field, or save data.
 
 After an affected Gameplay/UI build, run
+`Kalmala.Gameplay.Food.CookingStationHeat`,
 `Kalmala.Gameplay.Status.SteadyMeal`,
 `Kalmala.UI.Inventory.PreparedFoodDetails`, and
 `Scripts/Tests/Construction/Verify-Crafting.ps1`. These cover the meal
 allowlist and server transaction, owner Inventory details/action, and the
 Cauldron recipe's ingredients, output, batch limit, Cooking experience and
-live hearth availability. `Scripts/Validate-UIIcons.ps1 -Category Catalogue
+live hearth availability. `CookingStationHeat` also crafts one Peat Heart Stew
+batch through the server Cauldron path and checks exact material payment,
+two-serving output, Cooking experience, and no per-serving hearth debit.
+`Scripts/Validate-UIIcons.ps1 -Category Catalogue
 -Id PeatHeartStew` verifies its existing original, prepared texture and runtime
-target. The focused C++ sources remain uncompiled/unexecuted in this normal
-child; combined A8a/A8b I4 is still required.
+target. This server-world automation does not replace the live peer and rendered
+Cauldron acceptance required by combined A8a/A8b I4.
 
 ## A8b Fang Spear item coverage — 2026-10-22
 
