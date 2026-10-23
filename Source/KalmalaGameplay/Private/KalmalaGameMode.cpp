@@ -4425,7 +4425,7 @@ void AKalmalaGameMode::DriveThunderSentinelPeerTest()
         ThunderSentinelPeerTestWorldSeed = WorldGenerationConfig.WorldSeed;
         ThunderSentinelPeerTestHost = Host;
         ThunderSentinelPeerTestTarget.Reset();
-        ThunderSentinelPeerTestStartingHealth = 600.0f;
+        ThunderSentinelPeerTestStartingHealth = 400.0f;
         Host->Health = ThunderSentinelPeerTestStartingHealth;
         Host->ForceNetUpdate();
         bThunderSentinelPeerTestSawTelegraph = false;

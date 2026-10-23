@@ -2676,10 +2676,10 @@ Once the Sentinel materializes, the host is placed 400 cm away, outside the
 its authored short step to land the downward slam. Require the 1250-health/
 75-Armor profile, 300 Crush damage, a 1.2-second recovery, and both remote
 clients observing the same generated Sentinel's replicated telegraph and slam
-cues. The Development-only host receives 600 health so the 300-Crush hit cannot
-end the encounter before recovery is observed. The case also checks the
-generated 150 m start exclusion and the actual step into slam reach. It does not
-repeat Rat's shared reward delivery/retry, defeat persistence, or combat
+cues. The Development-only host receives 400 health so the 300-Crush hit leaves
+the host alive while the fixture measures the exact damage. The case also checks
+the generated 150 m start exclusion and the actual step into slam reach. It does
+not repeat Rat's shared reward delivery/retry, defeat persistence, or combat
 replication acceptance; this live run remains part of combined A8a/A8b I4.
 
 ## Freezing Tundra Polar Bear contract regression
