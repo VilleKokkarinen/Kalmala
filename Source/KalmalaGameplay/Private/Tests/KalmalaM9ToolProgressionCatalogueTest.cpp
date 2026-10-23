@@ -298,16 +298,36 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
     const TArray<FKalmalaToolProgressionEntry>& Entries = FKalmalaToolProgressionContract::GetEntries();
     TestTrue(TEXT("Crafted tool progression catalogue is internally valid"),
         FKalmalaToolProgressionContract::IsCatalogueValid());
+    TestFalse(TEXT("Catalogue-only profiles without a runtime tool kind stay outside station progression"),
+        Entries.ContainsByPredicate([](const FKalmalaToolProgressionEntry& Entry)
+        {
+            const FKalmalaToolDefinition* RuntimeTool =
+                FKalmalaToolLifecycleContract::FindDefinition(Entry.ItemId);
+            return !RuntimeTool || !FKalmalaToolLifecycleContract::IsKnownTool(RuntimeTool->Kind);
+        }));
+    TestNull(TEXT("Stormcut Sword stays outside runtime station progression before its lifecycle integration"),
+        FKalmalaToolProgressionContract::FindEntry(TEXT("StormcutSword"), 1));
+    for (const FName ItemId : {FName(TEXT("FangSpear")), FName(TEXT("HornBow")), FName(TEXT("ReefHarpoon"))})
+    {
+        TestNotNull(FString::Printf(TEXT("Accepted A8 weapon %s has a station acquisition entry"), *ItemId.ToString()),
+            FKalmalaToolProgressionContract::FindEntry(ItemId, 1));
+    }
     int32 ExpectedProgressionEntryCount = 0;
+    const auto HasSupportedRuntimeKind = [](const FName ItemId)
+    {
+        const FKalmalaToolDefinition* RuntimeTool = FKalmalaToolLifecycleContract::FindDefinition(ItemId);
+        return RuntimeTool && FKalmalaToolLifecycleContract::IsKnownTool(RuntimeTool->Kind);
+    };
     if (AuthoredCatalogue)
     {
         for (const FKalmalaToolRecipeData& Recipe : AuthoredCatalogue->Recipes)
         {
-            if (AuthoredCatalogue->FindProfile(Recipe.ItemId)) ++ExpectedProgressionEntryCount;
+            if (AuthoredCatalogue->FindProfile(Recipe.ItemId) && HasSupportedRuntimeKind(Recipe.ItemId))
+                ++ExpectedProgressionEntryCount;
         }
         for (const FKalmalaToolRecipeData& Upgrade : AuthoredCatalogue->UpgradeCosts)
         {
-            if (AuthoredCatalogue->FindProfile(Upgrade.ItemId))
+            if (AuthoredCatalogue->FindProfile(Upgrade.ItemId) && HasSupportedRuntimeKind(Upgrade.ItemId))
                 ExpectedProgressionEntryCount += FKalmalaToolProgressionContract::MaxStationToolLevel - 1;
         }
     }

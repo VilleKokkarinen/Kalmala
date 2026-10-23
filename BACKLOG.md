@@ -279,7 +279,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [x] Verify every approved drop/output has complete registered JSON, a reachable source and a generated runtime icon.
   - [ ] Run the combined A8a/A8b enemy and enemy-item milestone verification; record results and blockers. This gate must pass before A9 begins.
     - [x] Rebuild and rerun the single sequential Badger/Moon Bear peer acceptance after the Moon Bear fixture adjustment; both cases passed. Reran the full suite and recorded its three failures in PROGRESS.md.
-    - [ ] Diagnose whether A8 changes caused the two M9 tool-progression failures, obtain the required disposition for the known pre-A8 Mireling SurfaceWinding failure, and rerun the full Kalmala queue; close I4 only after required verification passes.
+    - [ ] Obtain the required disposition for the Mireling `SurfaceWinding` failure, then rerun the full Kalmala queue after the M9 progression repair; close I4 only after required verification passes.
 
   The JSON-only child and all 30 icon children are complete; all 30 item rows
   remain unchecked until their reachable source drops (for materials) and
@@ -301,6 +301,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - Completion handoff: the 50 checked JSON/recipe/icon stages below were implemented in `71fa8060` on `codex/a9-json-icons` and merged into master on 2026-10-22. Acquisition, runtime accessory behavior, reviews and milestone verification remain open.
   - [ ] Review A9.
   - [ ] Review Necklace/Ring slots; one item per slot, bonuses only while equipped.
+  - [ ] Apply the remaining authored accessory stats at runtime: `MaxHealthBonus` and `MaxStaminaBonus` as flat equipped bonuses, plus additive `StaminaRegenerationMultiplier` and `HealingReceivedMultiplier` deltas. Recalculate server-owned stats on equip/unequip and add focused status/healing coverage.
   - Each A9 item is completed through separate item-scoped steps in this order: add its complete item/profile JSON and register its file in `Content/Data/GameCatalogues.json` first; add and register its recipe next when crafted; generate and integrate its original icon next; add or enable its acquisition/source-table entry last when needed. Icon work includes provenance, preparation/import, runtime mapping, and validator coverage. Gem recipes are N/A; crafted gear has no drop-table entry. Each stage can be completed in its own short-path worktree and committed individually. Do not enable acquisition before its item JSON and icon are complete or its source dependency is accepted. The sequence applies only after the A9 review and I4 gate.
   - User-directed 2026-10-22 batch: use the proposal-table values for these JSON/recipe records and generated icons. The review, accessory runtime behavior, gem sources, and I4/I5 acceptance remain open.
   - [ ] Smoky Quartz (`SmokyQuartz`): Quartz rock; proposed 5% replacement of Copper/Tin spawn slots.

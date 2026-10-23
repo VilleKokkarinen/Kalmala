@@ -40,7 +40,10 @@ enum class EKalmalaToolKind : uint8
     WoodenClub,
     BasicTorch,
     PlantingTrowel,
-    ThunderMaul
+    ThunderMaul,
+    FangSpear,
+    HornBow,
+    ReefHarpoon
 };
 
 /** M9 harvesting tiers; station level is validated only by later craft/upgrade transactions. */

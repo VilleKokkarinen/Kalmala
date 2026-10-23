@@ -294,6 +294,7 @@ EKalmalaHeldToolVisual UKalmalaPlayerModelComponent::GetHeldToolVisualForItem(co
     case EKalmalaToolKind::StonePick: case EKalmalaToolKind::BronzePick: case EKalmalaToolKind::IronPick:
         return EKalmalaHeldToolVisual::Pick;
     case EKalmalaToolKind::StoneSpear: case EKalmalaToolKind::BronzeSpear: case EKalmalaToolKind::IronSpear:
+    case EKalmalaToolKind::FangSpear: case EKalmalaToolKind::ReefHarpoon:
         return EKalmalaHeldToolVisual::Spear;
     case EKalmalaToolKind::StoneMace: case EKalmalaToolKind::BronzeMace: case EKalmalaToolKind::IronMace:
     case EKalmalaToolKind::ThunderMaul:
@@ -303,7 +304,7 @@ EKalmalaHeldToolVisual UKalmalaPlayerModelComponent::GetHeldToolVisualForItem(co
     case EKalmalaToolKind::WoodenClub: return EKalmalaHeldToolVisual::Club;
     case EKalmalaToolKind::BasicTorch: return EKalmalaHeldToolVisual::Torch;
     case EKalmalaToolKind::PlantingTrowel: return EKalmalaHeldToolVisual::Trowel;
-    case EKalmalaToolKind::Bow: return EKalmalaHeldToolVisual::Bow;
+    case EKalmalaToolKind::Bow: case EKalmalaToolKind::HornBow: return EKalmalaHeldToolVisual::Bow;
     default: return EKalmalaHeldToolVisual::None;
     }
 }

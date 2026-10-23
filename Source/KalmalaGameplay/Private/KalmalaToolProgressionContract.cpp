@@ -60,8 +60,14 @@ namespace
             for (const FKalmalaToolRecipeData& Recipe : Catalogue->Recipes)
             {
                 // Wearable acquisition records share the station recipe catalogue,
-                // but do not participate in tool-level progression.
-                if (!Catalogue->FindProfile(Recipe.ItemId)) continue;
+                // but do not participate in tool-level progression. Profiles that
+                // do not yet map to a supported runtime tool kind are catalogue-only
+                // content and must not disable progression for supported tools.
+                const FKalmalaToolProfileData* Profile = Catalogue->FindProfile(Recipe.ItemId);
+                const FKalmalaToolDefinition* RuntimeTool =
+                    FKalmalaToolLifecycleContract::FindDefinition(Recipe.ItemId);
+                if (!Profile || !RuntimeTool
+                    || !FKalmalaToolLifecycleContract::IsKnownTool(RuntimeTool->Kind)) continue;
                 FKalmalaToolProgressionEntry& Entry = LoadedEntries.AddDefaulted_GetRef();
                 Entry.ItemId = Recipe.ItemId;
                 Entry.TargetToolLevel = Recipe.Level;
@@ -84,6 +90,9 @@ namespace
                     if (GearItem && !GearItem->GearSlot.IsEmpty()) continue;
                     return TArray<FKalmalaToolProgressionEntry>();
                 }
+                const FKalmalaToolDefinition* RuntimeTool =
+                    FKalmalaToolLifecycleContract::FindDefinition(Upgrade.ItemId);
+                if (!RuntimeTool || !FKalmalaToolLifecycleContract::IsKnownTool(RuntimeTool->Kind)) continue;
                 const int32 StationTargetCap = FKalmalaToolProgressionContract::MaxStationToolLevel;
                 for (int32 CurrentLevel = 1; CurrentLevel < StationTargetCap; ++CurrentLevel)
                 {
