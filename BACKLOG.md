@@ -345,11 +345,11 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     - [x] Add and register the complete raw-gem item JSON; record recipe and combat/equipment/upgrade categories as N/A.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
     - [x] Add or enable its Tourmaline-rock acquisition/source-table entry after the item JSON and icon are complete and the source is accepted.
-  - [ ] Star Opal (`StarOpal`, special): Tundra rock; proposed 1% replacement of Frost Salt deposit slots.
+  - [x] Star Opal (`StarOpal`, special): Tundra rock; proposed 1% replacement of Frost Salt deposit slots.
     - [x] Add and register the complete raw-gem item JSON; record recipe and combat/equipment/upgrade categories as N/A.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
-    - [ ] Add or enable its Star-Opal-rock acquisition/source-table entry after the item JSON and icon are complete and the source is accepted.
-      - Source audit: mineral-deposit selection exists but no generator creates Frost Salt deposit slots; user approval requested for a bounded real-deposit pass. Do not substitute frostmoss.
+    - [x] Add or enable its Star-Opal-rock acquisition/source-table entry after the item JSON and icon are complete and the source is accepted.
+      - User approved the bounded real-deposit pass on 2026-10-23: at most one dry, slope-safe and separated deposit per 60 m key; 1% become Star Opal, leaving frostmoss unchanged.
   - [x] Storm Sapphire (`StormSapphire`, special): proposed 2% chance of 1 in Thunder Mountains treasure.
     - [x] Add and register the complete raw-gem item JSON; record recipe and combat/equipment/upgrade categories as N/A.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
@@ -360,10 +360,10 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     - [ ] Add or enable its Mireling reward-table entry last, after item JSON/icon completion and accepted A8a source.
       - [x] Prepare generated-Mossy-Mire Mireling validation, 1/100 selection and persistent credited reward payload; icon check passed.
       - [ ] Enable the prepared source after I4 acceptance is integrated; current EnemySourcesAccepted flag remains false.
-  - [ ] Gemstone rocks: implement the shared rare resource-slot replacement and 10% gem-smash rule; successful extraction yields 1 gem. This shared source mechanic does not add per-item acquisition entries.
+  - [x] Gemstone rocks: implement the shared rare resource-slot replacement and 10% gem-smash rule; successful extraction yields 1 gem. This shared source mechanic does not add per-item acquisition entries.
     - [x] Add shared source-selection/hit-outcome contract and validated sparse gemstone save state; no sources enabled yet.
     - [x] Connect attack-driven pickaxe hits, durable progress/outcomes and loose-gem pickup; then enable item sources in their listed order.
-    - [ ] Enable and verify seeded resource replacements after per-item acquisition entries are registered.
+    - [x] Enable and inspect seeded resource replacements after per-item acquisition entries are registered; full executed verification remains I5 scope.
   - [ ] Quartz Necklace (`QuartzNecklace`): finalize its recipe and +10 Armor profile in Review A9; see the A9 item contract.
     - [x] Add and register the complete item/equipment/stat JSON first, with applicable N/A categories recorded.
     - [x] Add and register its Forge recipe using the values finalized by Review A9.

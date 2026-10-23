@@ -5046,10 +5046,18 @@ void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey)
     for (const EKalmalaWorldPopulationKind Kind : { EKalmalaWorldPopulationKind::Wildlife, EKalmalaWorldPopulationKind::HarvestNode, EKalmalaWorldPopulationKind::Hazard })
     {
         TArray<FKalmalaWorldPopulationSpawn> Spawns = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(WorldGenerationConfig, SpatialKey, Kind);
+        // Preserve the ordinary budget, then retain the separately approved salt slot.
+        TArray<FKalmalaWorldPopulationSpawn> SaltSlots;
+        if (Kind == EKalmalaWorldPopulationKind::HarvestNode)
+        {
+            SaltSlots = Spawns.FilterByPredicate([](const auto& Spawn) { return Spawn.ContentId == TEXT("tundra-frost-salt-deposit") || Spawn.ContentId == TEXT("gem-opal-rock"); });
+            Spawns.RemoveAll([](const auto& Spawn) { return Spawn.ContentId == TEXT("tundra-frost-salt-deposit") || Spawn.ContentId == TEXT("gem-opal-rock"); });
+        }
         if (KeyBiome == EKalmalaBiome::ShimmeringLakes || KeyBiome == EKalmalaBiome::Elderwood || KeyBiome == EKalmalaBiome::MossyMire || KeyBiome == EKalmalaBiome::FreezingTundra || KeyBiome == EKalmalaBiome::ThunderMountains)
         {
             Spawns.SetNum(FMath::Min(Spawns.Num(), FKalmalaBiomeExpansionContract::ApplyPopulationBudget(Spawns.Num(), Kind, KeyBiome)));
         }
+        Spawns.Append(SaltSlots);
         const int32 WildlifeActorBudget = Kind != EKalmalaWorldPopulationKind::Wildlife ? 0
             : (KeyBiome == EKalmalaBiome::FreezingTundra
                 ? FKalmalaWolfPackContract::GetActorBudgetWithPackRoom(

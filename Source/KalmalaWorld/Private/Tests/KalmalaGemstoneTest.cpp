@@ -1,6 +1,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 #include "KalmalaGemstoneContract.h"
 #include "KalmalaWorldPopulationSaveGame.h"
+#include "KalmalaWorldPopulationLayout.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/AutomationTest.h"
 
@@ -78,6 +79,41 @@ bool FKalmalaGemstoneContractTest::RunTest(const FString& Parameters)
         && Restored->FindTreasure(Treasure.Id) && Restored->FindTreasure(Treasure.Id)->bClaimed);
     State.Hits = 1;
     TestFalse(TEXT("Invalid early extraction rejected"), Save->SetGemstone(State));
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaGemstoneGenerationTest, "Kalmala.World.GemstoneGeneration",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+bool FKalmalaGemstoneGenerationTest::RunTest(const FString& Parameters)
+{
+    FKalmalaWorldGenerationConfig Config;
+    Config.WorldSeed = 418;
+    int32 Replacements = 0;
+    for (int32 Y = -16; Y <= 16; Y += 2) for (int32 X = -16; X <= 16; X += 2)
+    {
+        const FIntPoint Key(X, Y);
+        const auto Before = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(Config, Key, EKalmalaWorldPopulationKind::HarvestNode, false);
+        const auto After = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(Config, Key, EKalmalaWorldPopulationKind::HarvestNode);
+        if (!TestEqual(TEXT("Gemstones never add candidates"), After.Num(), Before.Num())) return false;
+        for (int32 Index = 0; Index < Before.Num(); ++Index)
+        {
+            TestEqual(TEXT("Replacement retains sparse identity"), FKalmalaWorldPopulationLayout::GetPersistentSpawnId(After[Index]),
+                FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Before[Index]));
+            TestTrue(TEXT("Replacement retains exact location and suitability"), After[Index].Location == Before[Index].Location);
+            if (After[Index].ContentId == Before[Index].ContentId) continue;
+            ++Replacements;
+            TestTrue(TEXT("Changed slot is an enabled gemstone"), FKalmalaGemstoneContract::IsAcquisitionEnabled(After[Index].ContentId));
+            const auto Biome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, FVector2D(Before[Index].Location)));
+            const FName Original = Before[Index].ContentId;
+            TestTrue(TEXT("Only approved resource/biome slots change"),
+                (Original == TEXT("elderwood-copper-vein") && Biome == EKalmalaBiome::Elderwood)
+                || (Original == TEXT("lakes-tin-shore-gravel") && Biome == EKalmalaBiome::ShimmeringLakes)
+                || (Original == TEXT("mire-bog-iron") && Biome == EKalmalaBiome::MossyMire)
+                || (Original == TEXT("mountains-slate-vein") && Biome == EKalmalaBiome::ThunderMountains)
+                || (Original == TEXT("tundra-frost-salt-deposit") && Biome == EKalmalaBiome::FreezingTundra));
+        }
+    }
+    TestTrue(TEXT("Seeded descriptor samples exercise real replacements"), Replacements > 0);
     return true;
 }
 #endif
