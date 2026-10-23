@@ -2315,14 +2315,31 @@ void AKalmalaGameMode::DriveMosquitoPeerTest()
 
             Host->EnsureToolInstanceGuidsFromServer();
             UKalmalaInventoryComponent* Inventory = Host->GetInventoryComponent();
-            FKalmalaToolState* Torch = Host->CarriedTools.FindByPredicate(
-                [](const FKalmalaToolState& Tool) { return Tool.ItemId == TEXT("BasicTorch"); });
-            if (Inventory == nullptr || Torch == nullptr)
+            UKalmalaCraftingComponent* Crafting = Host->FindComponentByClass<UKalmalaCraftingComponent>();
+            if (Inventory == nullptr || Crafting == nullptr)
             {
-                Fail(TEXT("the owner loadout has no valid Basic Torch for held-flame counterplay"));
+                Fail(TEXT("the owner has no inventory or crafting component for held-flame counterplay"));
                 return;
             }
-            Torch->RemainingBurnSeconds = FKalmalaToolLifecycleContract::BasicTorchBurnDurationSeconds;
+            if (!Inventory->TryGrantFromServer(TEXT("Wood"), 2)
+                || !Inventory->TryGrantFromServer(TEXT("Amber"), 1))
+            {
+                Fail(TEXT("the test owner could not receive the Basic Torch recipe materials"));
+                return;
+            }
+            FString CraftReason;
+            if (!Crafting->CraftFromServer(TEXT("BasicTorch"), 1, CraftReason))
+            {
+                Fail(TEXT("the server could not craft the test Basic Torch from its recipe materials"));
+                return;
+            }
+            FKalmalaToolState* Torch = Host->CarriedTools.FindByPredicate(
+                [](const FKalmalaToolState& Tool) { return Tool.ItemId == TEXT("BasicTorch"); });
+            if (Torch == nullptr)
+            {
+                Fail(TEXT("the server-crafted Basic Torch is missing from the owner loadout"));
+                return;
+            }
             Inventory->SynchronizeGridFromServer();
             FString Reason;
             if (!Inventory->SetMainHandFromServer(Torch->InstanceGuid, Reason))

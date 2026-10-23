@@ -2504,11 +2504,13 @@ must observe the host's replicated health loss and private weak-poison status;
 the other remote peer must see health loss without receiving that owner-only
 status. The owner client then sends one accepted dodge request and an immediate
 cooldown retry that the server rejects. The server verifies the two-second
-repel window expires, a fuelled held Basic Torch prevents bites, unequipping
-the torch permits bites again, an unlit server-initialized placed campfire
-does not repel the swarm, and lighting it stops further bites. The peers
-continue checking public health and owner-only poison. This case does not
-repeat the Rat shared loot/restart checks.
+repel window expires, then seeds the exact Wood and Amber recipe materials for
+the test owner and crafts a Basic Torch through the server Inventory Craft
+path. The fuelled held torch prevents bites; unequipping it permits bites
+again. An unlit server-initialized placed campfire does not repel the swarm,
+and lighting it stops further bites. The peers continue checking public health
+and owner-only poison. This case does not repeat the Rat shared loot/restart
+checks.
 
 ## Death Adder contract regression
 
