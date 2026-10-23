@@ -411,6 +411,8 @@ Cargo, ten gems, special gear and discovery rewards (P2; scope approved 2026-10-
 Enemy expansion A8a precedes this category. See the
 [biome roster](biome-enemies.md); Moonstone requires its accepted Moon Bear.
 
+**A9 review (2026-10-23):** the user approved the documented gem source rates, mutually exclusive resource replacements, three-hit extraction, tool-tier requirements and 10% per-hit smash rule. This authorizes implementation; source prerequisites and I4/I5 acceptance remain open. Isolated parallel A9 implementation is explicitly authorized while another worker finishes A8/I4.
+
 **User-directed A9 data/icon batch (2026-10-22):** for the requested catalogue
 and icon work, use the item stats, accessory effects and Forge costs in the
 proposal tables below. Record accessory slot/effect fields as catalogue
@@ -454,8 +456,7 @@ generation, not after exhausting an ore vein. Retain the existing candidate
 budget, suitability and stable identity. Use one mutually exclusive selection
 per candidate: Copper 5% Quartz/95% Copper; Tin 5% Quartz/2% Jade/93% Tin;
 Iron Ore 3% Amethyst/97% Iron Ore; slate 2% Tourmaline/98% slate; Frost Salt
-deposits 1% Star Opal/99% Frost Salt. These replacement rates are proposed
-tuning, not user-approved values. No extra gemstone spawn on top of the ore
+deposits 1% Star Opal/99% Frost Salt. These replacement rates were approved by the user on 2026-10-23. No extra gemstone spawn on top of the ore
 candidate, no ore co-drop and no hidden gem roll from ordinary ore nodes.
 Give each rock an original visible mineral inclusion and its own target name.
 
@@ -465,7 +466,7 @@ the final hit. A smash ends the rock with zero gem reward. If extraction
 finishes without a smash, expose exactly one matching gem, with no additional
 drop-chance roll. No gem shards, secondary ore reward or retry after a smash.
 
-**Proposed hit tuning for review:** extraction takes 3 accepted hits per rock;
+**Hit tuning approved 2026-10-23:** extraction takes 3 accepted hits per rock;
 pick level/damage cannot skip hits or change the 10% risk. This gives 72.9%
 overall success (0.9 cubed), not 90%. Quartz/Jade/Tourmaline/Star Opal require
 Stone Pick or better; Amethyst requires Bronze Pick or better, matching its
@@ -545,9 +546,7 @@ use additive deltas and are summed once per applicable server-owned base
 calculation; never apply one effect twice through equipment and status paths.
 Keep calculations finite/bounded and use the existing stat precision without
 early integer rounding. Accessory Armor and stamina-cost adjustments are now
-supported by the owner-bound equipment path. Maximum-stat, regeneration and
-healing adjustments remain authored data until their derived-stat paths are
-implemented.
+supported by the owner-bound equipment path. Maximum health/stamina are recalculated on accepted equipment changes without refilling; Vigor combines with accessory stamina. Regeneration and incoming Mending/draught healing read the current equipped additive deltas once at resolution, with factors clamped to 0.5–2.0.
 
 Acceptance must cover each effect's allowed and excluded actions, injured/full
 health, exhausted/full stamina, blocked regeneration, partial healing ticks,

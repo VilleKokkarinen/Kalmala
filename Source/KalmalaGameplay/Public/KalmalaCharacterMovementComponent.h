@@ -18,6 +18,7 @@ public:
     bool TryConsumeStaminaFromServer(float Cost);
     bool RestoreStaminaFromDraughtFromServer(float Amount);
     bool SetBearsVigorFromServer(bool bEnabled);
+    bool SetAccessoryStaminaFromServer(int32 FlatBonus);
     static constexpr float MaximumStamina = 100.0f;
     static constexpr float SprintCostPerSecond = 10.0f;
     static constexpr float RecoveryPerSecond = 15.0f;
@@ -40,6 +41,9 @@ public:
     UPROPERTY(EditDefaultsOnly, Category = "Movement", meta = (ClampMin = "1.0", ClampMax = "2.0"))
     float SprintMultiplier = 1.5f;
 private:
+    bool bBearsVigorActive = false;
+    int32 AccessoryStaminaBonus = 0;
+    void RefreshMaximumStaminaFromServer();
     UPROPERTY(Replicated) float Stamina = MaximumStamina;
     UPROPERTY(Replicated) float CurrentMaximumStamina = MaximumStamina;
     UPROPERTY(Replicated) bool bSprintExhausted = false;

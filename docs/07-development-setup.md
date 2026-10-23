@@ -10,9 +10,7 @@ equipment uses the owner-bound gear transaction and has no condition wear.
 `WeightKg` is 1 for every accessory. Accessory multiplier fields are additive
 deltas with zero as neutral. Equipped stamina-cost deltas combine with Wet and
 Steady Meal adjustments for every stamina cost; the support-spell delta applies
-only to support spells. Maximum-health/stamina, stamina-regeneration and
-healing-received deltas are validated data whose runtime effects remain
-pending. Gem acquisition sources and gemstone-rock mining are also not enabled
+only to support spells. Maximum-health/stamina now recalculate without refill on accepted equipment changes; Vigor combines with ring stamina. Stamina-regeneration and healing-received deltas apply once at resolution. Run `Kalmala.Gameplay.Inventory.AccessorySlots` and `Kalmala.Gameplay.Status.AccessoryStats`, alongside the Status/Support/Inventory groups, for the focused regression paths. These new tests have not yet been compiled or executed. Gem acquisition sources and gemstone-rock mining are also not enabled
 by this data batch. Gem records have no crafting, combat, equipment, or upgrade
 data; accessories have no durability, repair, upgrade, or attack data; crafted
 gear has no drop-table entry.

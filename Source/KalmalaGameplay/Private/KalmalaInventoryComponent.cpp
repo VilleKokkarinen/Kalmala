@@ -314,6 +314,7 @@ bool UKalmalaInventoryComponent::EquipGearFromServer(const FGuid ItemGuid, FStri
 
     Stacks = MoveTemp(CandidateStacks);
     EquippedGear = MoveTemp(CandidateGear);
+    Character->RefreshEquippedStatsFromServer();
     if (bReturnTwoHanded)
     {
         ActiveItem = NAME_None;
@@ -346,6 +347,7 @@ bool UKalmalaInventoryComponent::UnequipGearFromServer(const EKalmalaGearSlot Sl
 
     Stacks = MoveTemp(CandidateStacks);
     EquippedGear = MoveTemp(CandidateGear);
+    Character->RefreshEquippedStatsFromServer();
     SynchronizeGridFromServer();
     Owner->ForceNetUpdate();
     return true;

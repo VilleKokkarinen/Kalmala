@@ -6556,3 +6556,13 @@
 - Lightweight checks: careful transaction/test inspection and git diff --check. Full build, automation execution, peer and milestone verification deferred; no runtime pass claimed. Networking remains existing server-owned transactions and owner-private gear; no RPC/schema change.
 - Review A9 remains open because source rates and three-hit tuning are explicitly unapproved in the source document; approval requested. Runtime maximum-stat/recovery work can proceed independently using the already authorized data.
 - Next: equipped flat maxima and additive regeneration/healing, then approved acquisition sources. Main handoff synchronization deferred while master is active; only conflict-free A9 hunks will integrate at a clean boundary.
+
+
+## A9 independent worker — accessory derived stats (2026-10-23)
+
+- Completed flat equipped maximum health/stamina and additive stamina recovery/incoming Mending/draught modifiers using the approved catalogue fields. Equip/replace/unequip recomputes from the owner's current slots, never refills, and clamps on removal. Vigor remains independent; draught eligibility, partial ticks, Mending target selection, damage clamps and Inventory health checks use the effective maximum. Added owner-only maximum-health replication; gear remains session-only with no save-schema change.
+- Added `Kalmala.Gameplay.Status.AccessoryStats` for no-refill, replacement, repeated refresh, additive maxima/Vigor, removal clamps, active recovery, incoming Mending, partial draught ticks, immediate removal, owner isolation and rejected GUIDs.
+- Files: Character, CharacterMovementComponent, InventoryComponent, PlayerStatusComponent, SupportMagicComponent, InventoryMenuWidget, new AccessoryStats test, BACKLOG/PROGRESS and architecture/setup/item-details/decision docs.
+- Checks: git diff --check and careful changed-path/static transaction inspection; all changed absolute paths below 260. Full builds, automation execution, peers and I5 verification deferred. No runtime test execution claimed.
+- User approved documented acquisition rates and three-hit mining tuning during this increment; Review A9 recorded complete. Source support/acceptance remains required. I4 is still open in the independent main worker.
+- Next: audit and implement Smoky Quartz's eligible seeded resource source, then other sources in order. Master handoff remains deferred until safe integration.

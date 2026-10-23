@@ -1,0 +1,74 @@
+#if WITH_DEV_AUTOMATION_TESTS
+#include "KalmalaCharacter.h"
+#include "KalmalaCharacterMovementComponent.h"
+#include "KalmalaInventoryComponent.h"
+#include "KalmalaPlayerStatusComponent.h"
+#include "Engine/World.h"
+#include "Misc/AutomationTest.h"
+#include "UObject/UnrealType.h"
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaAccessoryStatsTest, "Kalmala.Gameplay.Status.AccessoryStats",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FKalmalaAccessoryStatsTest::RunTest(const FString& Parameters)
+{
+    UWorld* World = UWorld::CreateWorld(EWorldType::Game, false);
+    AKalmalaCharacter* Pawn = World->SpawnActor<AKalmalaCharacter>();
+    AKalmalaCharacter* Ally = World->SpawnActor<AKalmalaCharacter>();
+    if (!Pawn || !Ally) { World->DestroyWorld(false); return false; }
+    auto* Inventory = Pawn->GetInventoryComponent();
+    auto* Status = Pawn->GetStatusComponent();
+    auto* Movement = CastChecked<UKalmalaCharacterMovementComponent>(Pawn->GetCharacterMovement());
+    const FFloatProperty* Health = FindFProperty<FFloatProperty>(AKalmalaCharacter::StaticClass(), TEXT("Health"));
+    if (!TestNotNull(TEXT("Health fixture property"), Health)) { World->DestroyWorld(false); return false; }
+    FString Reason;
+    const auto Equip = [&](const FName Id)
+    {
+        if (!Inventory->TryGrantFromServer(Id, 1)) return false;
+        const auto* Stack = Inventory->GetStacks().FindByPredicate([Id](const auto& Entry) { return Entry.ItemId == Id; });
+        return Stack && Inventory->EquipGearFromServer(Stack->ItemGuids[0], Reason);
+    };
+    Health->SetPropertyValue_InContainer(Pawn, 70.0f);
+    Movement->TryConsumeStaminaFromServer(60.0f);
+    TestTrue(TEXT("Garnet equips"), Equip(TEXT("GarnetNecklace")));
+    TestTrue(TEXT("Moonstone equips"), Equip(TEXT("MoonstoneRing")));
+    TestEqual(TEXT("Flat health bonus"), Pawn->GetMaximumHealth(), 120.0f);
+    TestEqual(TEXT("Flat stamina bonus"), Movement->GetMaximumStamina(), 120.0f);
+    TestEqual(TEXT("Equip never heals"), Pawn->GetHealth(), 70.0f);
+    TestEqual(TEXT("Equip never refills"), Movement->GetStamina(), 40.0f);
+    TestTrue(TEXT("Vigor coexists"), Movement->SetBearsVigorFromServer(true));
+    TestEqual(TEXT("Vigor sums with ring"), Movement->GetMaximumStamina(), 160.0f);
+    TestTrue(TEXT("Replace with Dusk"), Equip(TEXT("DuskRing")));
+    TestEqual(TEXT("Replacement recalculates stamina"), Movement->GetMaximumStamina(), 150.0f);
+    TestEqual(TEXT("Health contributions sum"), Pawn->GetMaximumHealth(), 130.0f);
+    Pawn->RefreshEquippedStatsFromServer();
+    TestEqual(TEXT("Repeated refresh cannot stack"), Pawn->GetMaximumHealth(), 130.0f);
+    Health->SetPropertyValue_InContainer(Pawn, 129.0f);
+    TestTrue(TEXT("Remove health necklace"), Inventory->UnequipGearFromServer(EKalmalaGearSlot::Necklace, Reason));
+    TestEqual(TEXT("Removal clamps health"), Pawn->GetHealth(), 110.0f);
+    TestTrue(TEXT("Remove ring"), Inventory->UnequipGearFromServer(EKalmalaGearSlot::Ring, Reason));
+    TestEqual(TEXT("No stale health bonus"), Pawn->GetMaximumHealth(), 100.0f);
+    TestEqual(TEXT("Ring removal retains Vigor"), Movement->GetMaximumStamina(), 140.0f);
+    Movement->SetBearsVigorFromServer(false);
+    TestTrue(TEXT("Aquamarine equips"), Equip(TEXT("AquamarineRing")));
+    const float Before = Movement->GetStamina();
+    Movement->AdvanceStaminaFromServer(0.25f);
+    TestTrue(TEXT("Active recovery gains exactly 15 percent"), FMath::IsNearlyEqual(Movement->GetStamina() - Before, 15.0f * 0.25f * 1.15f));
+    TestTrue(TEXT("Tourmaline equips"), Equip(TEXT("TourmalineNecklace")));
+    Health->SetPropertyValue_InContainer(Pawn, 50.0f);
+    TestTrue(TEXT("Incoming Mending accepted"), Pawn->ReceiveMendingFromServer(Ally, 20.0f));
+    TestEqual(TEXT("Incoming heal multiplied once"), Pawn->GetHealth(), 72.0f);
+    Status->ApplyDraughtFromServer(TEXT("BerryRecoveryDraught"));
+    Status->AdvanceFromServer(2.5f);
+    TestEqual(TEXT("Partial draught tick uses equipped bonus"), Pawn->GetHealth(), 77.5f);
+    Inventory->UnequipGearFromServer(EKalmalaGearSlot::Necklace, Reason);
+    Status->AdvanceFromServer(2.5f);
+    TestEqual(TEXT("Removal affects subsequent tick immediately"), Pawn->GetHealth(), 82.5f);
+    TestEqual(TEXT("Other owner maximum remains independent"), Ally->GetMaximumHealth(), 100.0f);
+    TestEqual(TEXT("Other owner healing modifier remains neutral"), Ally->GetStatusComponent()->GetAccessoryModifiers().HealingReceived, 0.0f);
+    TestFalse(TEXT("Unowned GUID rejected"), Inventory->EquipGearFromServer(FGuid::NewGuid(), Reason));
+    TestEqual(TEXT("Rejected request leaves stats unchanged"), Pawn->GetHealth(), 82.5f);
+    World->DestroyWorld(false);
+    return true;
+}
+#endif

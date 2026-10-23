@@ -107,6 +107,7 @@ void AKalmalaCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
     DOREPLIFETIME(AKalmalaCharacter, ExposureState);
     DOREPLIFETIME(AKalmalaCharacter, Health);
+    DOREPLIFETIME_CONDITION(AKalmalaCharacter, CurrentMaximumHealth, COND_OwnerOnly);
     DOREPLIFETIME_CONDITION(AKalmalaCharacter, CarriedTools, COND_OwnerOnly);
     DOREPLIFETIME(AKalmalaCharacter, bHeldTorchLit);
     DOREPLIFETIME(AKalmalaCharacter, bDodgeRollActive);
@@ -336,7 +337,7 @@ bool AKalmalaCharacter::ApplyWildlifeDamageFromServer(const AActor* SourceActor,
 
     if (!Defenses->Profile.Resolve(Damage, ResolvedDamage, GearArmor)) return false;
     const float Absorbed = SupportMagic ? SupportMagic->AbsorbHearthShieldDamageFromServer(ResolvedDamage) : 0.0f;
-    Health = FMath::Clamp(Health - FMath::Max(0.0f, ResolvedDamage - Absorbed), 1.0f, 100.0f);
+    Health = FMath::Clamp(Health - FMath::Max(0.0f, ResolvedDamage - Absorbed), 1.0f, CurrentMaximumHealth);
     if (Inventory) Inventory->WearEquippedGearFromServer();
     ForceNetUpdate();
     return true;
@@ -354,9 +355,20 @@ bool AKalmalaCharacter::ApplyPoisonDamageFromStatusFromServer(const float Damage
     float ResolvedDamage = 0.0f;
     if (!Defenses->Profile.Resolve(PoisonDamage, ResolvedDamage)) return false;
     const float Absorbed = SupportMagic ? SupportMagic->AbsorbHearthShieldDamageFromServer(ResolvedDamage) : 0.0f;
-    Health = FMath::Clamp(Health - FMath::Max(0.0f, ResolvedDamage - Absorbed), 1.0f, 100.0f);
+    Health = FMath::Clamp(Health - FMath::Max(0.0f, ResolvedDamage - Absorbed), 1.0f, CurrentMaximumHealth);
     ForceNetUpdate();
     return true;
+}
+
+void AKalmalaCharacter::RefreshEquippedStatsFromServer()
+{
+    if (!HasAuthority()) return;
+    const FKalmalaAccessoryModifiers Accessory = Statuses ? Statuses->GetAccessoryModifiers() : FKalmalaAccessoryModifiers();
+    CurrentMaximumHealth = 100.0f + Accessory.MaxHealth;
+    Health = FMath::Min(Health, CurrentMaximumHealth);
+    if (auto* Movement = Cast<UKalmalaCharacterMovementComponent>(GetCharacterMovement()))
+        Movement->SetAccessoryStaminaFromServer(Accessory.MaxStamina);
+    ForceNetUpdate();
 }
 
 bool AKalmalaCharacter::IsMendingReceiveAllowed(const bool bServerAuthority, const bool bValidAlly, const bool bSameWorld,
@@ -371,8 +383,9 @@ bool AKalmalaCharacter::ReceiveMendingFromServer(const AKalmalaCharacter* Source
     const bool bValidAlly = IsValid(SourceCharacter) && SourceCharacter != this;
     const bool bSameWorld = bValidAlly && SourceCharacter->GetWorld() == GetWorld();
     const bool bInRange = bSameWorld && FVector::DistSquared(SourceCharacter->GetActorLocation(), GetActorLocation()) <= FMath::Square(350.0f);
-    if (!IsMendingReceiveAllowed(HasAuthority(), bValidAlly, bSameWorld, bInRange, Health > 1.0f, Health < 100.0f, HealAmount)) return false;
-    Health = FMath::Min(100.0f, Health + HealAmount);
+    if (!IsMendingReceiveAllowed(HasAuthority(), bValidAlly, bSameWorld, bInRange, Health > 1.0f, Health < CurrentMaximumHealth, HealAmount)) return false;
+    Health = FMath::Min(CurrentMaximumHealth, Health + HealAmount
+        * FMath::Clamp(1.0f + (Statuses ? Statuses->GetAccessoryModifiers().HealingReceived : 0.0f), 0.5f, 2.0f));
     ForceNetUpdate();
     return true;
 }
@@ -381,9 +394,10 @@ bool AKalmalaCharacter::RestoreHealthFromDraughtFromServer(const float HealAmoun
 {
     if (!HasAuthority() || !FMath::IsFinite(HealAmount) || HealAmount <= 0.0f
         || HealAmount > UKalmalaPlayerStatusComponent::RatTailTonicHealth
-        || !FMath::IsFinite(Health) || Health <= 1.0f || Health >= 100.0f) return false;
+        || !FMath::IsFinite(Health) || Health <= 1.0f || Health >= CurrentMaximumHealth) return false;
     const float PreviousHealth = Health;
-    Health = FMath::Min(100.0f, Health + HealAmount);
+    Health = FMath::Min(CurrentMaximumHealth, Health + HealAmount
+        * FMath::Clamp(1.0f + (Statuses ? Statuses->GetAccessoryModifiers().HealingReceived : 0.0f), 0.5f, 2.0f));
     if (Health <= PreviousHealth) return false;
     ForceNetUpdate();
     return true;

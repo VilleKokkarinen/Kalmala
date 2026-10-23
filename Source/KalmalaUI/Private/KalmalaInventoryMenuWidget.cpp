@@ -1073,7 +1073,7 @@ void UKalmalaInventoryMenuWidget::RefreshFoodActionPresentation(const FKalmalaCa
             StatusText = FString::Printf(TEXT("Poison resistance is already active for %.0f seconds; the Antidote will not be consumed."),
                 Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::PoisonResistanceStatusId));
         }
-        else if (bSelectedHealthDraught && Character->GetHealth() >= 100.0f)
+        else if (bSelectedHealthDraught && Character->GetHealth() >= Character->GetMaximumHealth())
         {
             StatusText = TEXT("Health is full; the draught will not be consumed.");
         }
@@ -1159,7 +1159,7 @@ void UKalmalaInventoryMenuWidget::EatSelectedFood()
     if (!Controller || !Controller->IsLocalController() || !Inventory || !Status || !Crafting
         || Inventory->GetQuantity(Row.Id) <= 0
         || bEffectAlreadyActive || (bDraught && (!Character || Character->GetHealth() <= 1.0f
-            || (bHealthDraught && Character->GetHealth() >= 100.0f))))
+            || (bHealthDraught && Character->GetHealth() >= Character->GetMaximumHealth()))))
     {
         RefreshSelectionPresentation(UKalmalaSettingsWidget::ClampTextScale(
             UKalmalaSettingsWidget::GetTextScalePercent()), UKalmalaSettingsWidget::GetContrastMode());

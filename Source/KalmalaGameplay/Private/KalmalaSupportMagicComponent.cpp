@@ -118,7 +118,7 @@ AKalmalaCharacter* UKalmalaSupportMagicComponent::ResolveMendingTargetFromServer
     if (GetWorld()->LineTraceTestByChannel(Start, Target->GetActorLocation(), ECC_Visibility, VisibilityQuery)) return nullptr;
     const bool bInRange = FVector::DistSquared(Source->GetActorLocation(), Target->GetActorLocation()) <= FMath::Square(MendingRange);
     return AKalmalaCharacter::IsMendingReceiveAllowed(true, true, Source->GetWorld() == Target->GetWorld(), bInRange,
-        Target->GetHealth() > 1.0f, Target->GetHealth() < 100.0f, MendingHealAmount) ? Target : nullptr;
+        Target->GetHealth() > 1.0f, Target->GetHealth() < Target->GetMaximumHealth(), MendingHealAmount) ? Target : nullptr;
 }
 bool UKalmalaSupportMagicComponent::InfluenceNearbyDeerFromServer(APawn* Caster) const
 {
