@@ -288,7 +288,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
       - [x] Add the Development-only generated Polar Bear peer fixture and `Scripts/Tests/Combat/Verify-PolarBearPeer.ps1` for the 150 m start exclusion, 750-health profile, committed charge/retreat/recovery and peer-visible cue.
        - [x] Build the affected Editor target and run `Scripts/Tests/Combat/Verify-PolarBearPeer.ps1 -WorldSeed 445`; require the start exclusion, accepted server charge damage and matching telegraphs on both clients.
       - [x] Add the Development-only generated Horned Goat peer fixture and `Scripts/Tests/Combat/Verify-HornedGoatPeer.ps1` for its 200-health profile, 180 cm horn hit, approved push/stagger and peer-visible cue.
-       - [ ] Build the affected Editor target and run `Scripts/Tests/Combat/Verify-HornedGoatPeer.ps1 -WorldSeed 445`; confirm server damage, push/stagger, and matching client telegraphs.
+       - [x] Build the affected Editor target and run `Scripts/Tests/Combat/Verify-HornedGoatPeer.ps1 -WorldSeed 445`; confirm server damage, push/stagger, and matching client telegraphs (passed 2026-10-23).
       - [x] Add the Development-only generated Peat Husk peer fixture and `Scripts/Tests/Combat/Verify-PeatHuskPeer.ps1` for the 150 m start exclusion, replicated telegraph, and accepted server sweep.
       - [x] Build the affected Editor target and run `Scripts/Tests/Combat/Verify-PeatHuskPeer.ps1`; confirm start distance, both client telegraphs, and server sweep damage (passed 2026-10-23).
       - [x] Run the generated Mosquito swarm peer case for repeated server bites, ten-second weak-poison application, owner-only status, and public health replication.

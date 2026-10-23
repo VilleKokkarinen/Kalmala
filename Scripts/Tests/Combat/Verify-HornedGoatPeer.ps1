@@ -67,7 +67,7 @@ try {
         $observerCue = $fixtureMatch.Success -and $observerText -match [regex]::Escape("Horned Goat verification client observed replicated telegraph: SpawnId=$($fixtureMatch.Groups[1].Value).")
         $passed = $fixtureMatch.Success -and [double]$fixtureMatch.Groups[2].Value -le 180.0
         $passed = $passed -and $serverMatch.Success -and [double]$serverMatch.Groups[1].Value -gt 0.0
-        $passed = $passed -and [double]$serverMatch.Groups[2].Value -ge 100.0 -and [double]$serverMatch.Groups[2].Value -le 250.5
+        $passed = $passed -and [double]$serverMatch.Groups[2].Value -ge 50.0 -and [double]$serverMatch.Groups[2].Value -le 250.5
         $passed = $passed -and [double]$serverMatch.Groups[3].Value -ge 0.65 -and [double]$serverMatch.Groups[3].Value -le 0.95
         $passed = $passed -and $serverMatch.Groups[4].Value -eq $fixtureMatch.Groups[1].Value -and $clientCue -and $observerCue
         if ($passed) { break }

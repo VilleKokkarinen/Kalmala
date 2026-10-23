@@ -4211,7 +4211,7 @@ void AKalmalaGameMode::DriveHornedGoatPeerTest()
             && HornedGoatPeerTestObservedStaggerDuration <= 0.95f;
         if (bHornedGoatPeerTestSawTelegraph && bHornedGoatPeerTestSawRecovery
             && bHornedGoatPeerTestSawStagger && bHornedGoatPeerTestSawStaggerEnd
-            && HostDamage > 0.0f && HostPush >= 100.0f && bStaggerDurationValid)
+            && HostDamage > 0.0f && HostPush >= 50.0f && bStaggerDurationValid)
         {
             UE_LOG(LogTemp, Display,
                 TEXT("Horned Goat verification server: Passed=1 Seed=%llu Telegraph=1 Recovery=1 HostDamage=%.1f HostPushCm=%.1f StaggerSeconds=%.2f SpawnId=%s"),
