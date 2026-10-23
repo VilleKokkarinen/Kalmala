@@ -5752,9 +5752,17 @@ acceptance includes Wolf Stew's ingredients, batch limit, description and live
 hearth requirement. `Kalmala.Gameplay.Status.SteadyMeal` covers accepted server
 use and client rejection; `Kalmala.UI.Inventory.PreparedFoodDetails` covers its
 owner-facing effect and action. The original imported icon is covered by
-`Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id WolfStew`. The focused C++
-sources remain uncompiled/unexecuted in this normal child; combined A8a/A8b I4
-is still required.
+`Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id WolfStew`.
+`Kalmala.Gameplay.Food.CookingStationHeat` also crafts one batch at the lit
+server Cauldron and checks payment of one Wolf Meat, three Carrots and three
+Onions, one serving, ten Cooking experience, and no extra hearth-fuel debit.
+On 2026-10-23 the isolated `KalmalaEditor Win64 Development` build passed in
+four actions; the focused queue with `Kalmala.Gameplay.Status.SteadyMeal` and
+`Kalmala.UI.Inventory.PreparedFoodDetails` passed all three tests
+(`Result={Success}`, Editor exit 0). Log:
+`C:/Users/Ville/AppData/Local/Temp/a8ws1/tests.log`; build:
+`C:/Users/Ville/AppData/Local/Temp/a8ws1/build.log`. This server-world test does
+not replace live peer cooking or rendered acceptance in combined A8a/A8b I4.
 
 ## A8b Lynx Mantle item coverage — 2026-10-22
 
