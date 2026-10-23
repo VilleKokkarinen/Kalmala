@@ -36,6 +36,11 @@ bool FKalmalaAccessoryStatsTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Flat stamina bonus"), Movement->GetMaximumStamina(), 120.0f);
     TestEqual(TEXT("Equip never heals"), Pawn->GetHealth(), 70.0f);
     TestEqual(TEXT("Equip never refills"), Movement->GetStamina(), 40.0f);
+    Health->SetPropertyValue_InContainer(Pawn, 110.0f);
+    TestTrue(TEXT("Health above 100 can still need a draught"), Status->CanApplyDraughtFromServer(TEXT("BerryRecoveryDraught")));
+    TestTrue(TEXT("Recovery reaches increased maximum"), Pawn->RestoreHealthFromDraughtFromServer(20.0f));
+    TestEqual(TEXT("Recovery clamps to Garnet maximum"), Pawn->GetHealth(), 120.0f);
+    TestFalse(TEXT("Full effective health rejects recovery"), Pawn->RestoreHealthFromDraughtFromServer(1.0f));
     TestTrue(TEXT("Vigor coexists"), Movement->SetBearsVigorFromServer(true));
     TestEqual(TEXT("Vigor sums with ring"), Movement->GetMaximumStamina(), 160.0f);
     TestTrue(TEXT("Replace with Dusk"), Equip(TEXT("DuskRing")));

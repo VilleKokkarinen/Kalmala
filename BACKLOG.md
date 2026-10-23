@@ -373,7 +373,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     - [x] Add and register the complete item/equipment/stat JSON first, with applicable N/A categories recorded.
     - [x] Add and register its Forge recipe using the values finalized by Review A9.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
-  - [ ] Garnet Necklace (`GarnetNecklace`): finalize its recipe and +20 maximum health profile in Review A9; see the A9 item contract.
+  - [x] Garnet Necklace (`GarnetNecklace`): finalized executable Forge recipe and +20 maximum health; paid craft/equip, no-refill and above-100 healing/full-health checks added.
     - [x] Add and register the complete item/equipment/stat JSON first, with applicable N/A categories recorded.
     - [x] Add and register its Forge recipe using the values finalized by Review A9.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
