@@ -5728,9 +5728,13 @@ values. After an editor build, run
 `Kalmala.Gameplay.Combat.BasicAttack.AuthorityAndCooldown`,
 `Kalmala.Gameplay.Combat.AllItemSwings`, and
 `Kalmala.Gameplay.Combat.DamageProfiles`. Its original imported icon is covered
-by `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id FangSpear`. These new
-C++ assertions remain uncompiled/unexecuted in this normal child; combined
-A8a/A8b I4 is still required.
+by `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id FangSpear`. The focused
+tests passed on 2026-10-23 after the isolated `KalmalaEditor Win64 Development`
+target was confirmed up to date. The focused queue found three tests; all three
+reported `Result={Success}` with Editor exit 0. Log:
+`C:/Users/Ville/AppData/Local/Temp/a8fs1/combat.log`. This local combat coverage
+does not exercise actual Forge crafting or multiplayer item/peer delivery;
+combined A8a/A8b I4 remains required.
 
 ## A8b Wolf Stew item coverage — 2026-10-22
 
