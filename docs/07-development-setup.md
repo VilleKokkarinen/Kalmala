@@ -2395,12 +2395,17 @@ source was not compiled or executed by this increment, and no live spawn,
 delivery, restart, or peer acceptance ran.
 
 For live shoreline acceptance, build the Editor target and run
-`Scripts/Tests/Combat/Verify-GiantSnakePeer.ps1`. Its Development-only
+`Scripts/Tests/Combat/Verify-GiantSnakePeer.ps1`. It uses world seed 445 by
+default and accepts `-WorldSeed` for deterministic runs with another seed.
+Its Development-only
 `-KalmalaGiantSnakePeerTest` scenario activates a normal generated Giant Snake,
 places the host along a sampled dry route within the 360 cm lunge, and requires
 the real 100-Stab bite to lower host health before the target is paused. The
-host then completes four accepted mace attacks; the server checks the actual
-action serial before its bounded fixture damage finishes defeat. A full pack
+server equips the existing Polar Bear Coat through the validated inventory path
+so the host remains above the attack threshold after the bite; wildlife damage
+is unchanged. The host then completes four accepted mace attacks; the server
+checks the actual action serial before its bounded fixture damage finishes
+defeat. A full pack
 must retain the two Bone Fragments and two Giant Scales as one owner-bound claim
 without partial delivery. After two cells are freed, only the credited owner
 receives the bundle. Both clients must prove invalid-request rejection, observe

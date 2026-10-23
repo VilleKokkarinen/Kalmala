@@ -1,4 +1,4 @@
-param([int]$Port = 18167, [string]$OutputDirectory = '', [string]$Project = '')
+param([int]$Port = 18167, [string]$OutputDirectory = '', [string]$Project = '', [long]$WorldSeed = 445)
 . (Join-Path (Split-Path $PSScriptRoot -Parent) 'TestPaths.ps1')
 $repoPaths = Get-KalmalaPaths -StartPath $PSScriptRoot
 
@@ -21,7 +21,7 @@ $observerLog = Join-Path $output 'observer.log'
 $common = '-game -nullrhi -nosound -unattended -nosplash -DDC-ForceMemoryCache -forcelogflush -KalmalaGiantSnakePeerTest'
 $server = $null; $client = $null; $observer = $null
 try {
-    $server = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" /Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=$Port -WorldSeed=418 $common -ShaderWorkingDir=`"$hostShaderDir`" -abslog=`"$serverLog`" -UserDir=`"$output\Host`""
+    $server = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" /Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=$Port -WorldSeed=$WorldSeed $common -ShaderWorkingDir=`"$hostShaderDir`" -abslog=`"$serverLog`" -UserDir=`"$output\Host`""
     $deadline = (Get-Date).AddSeconds(90)
     do {
         if ($server.HasExited) { throw "Giant Snake listen server exited during startup with code $($server.ExitCode)." }
@@ -66,8 +66,8 @@ try {
         throw 'Giant Snake peer scenario timed out; inspect retained logs.'
     }
 
-    if ($clientText -notmatch 'Client received world-generation identity: Seed=418') { throw 'Giant Snake peer client identity mismatch.' }
-    if ($observerText -notmatch 'Client received world-generation identity: Seed=418') { throw 'Giant Snake observer identity mismatch.' }
+    if ($clientText -notmatch "Client received world-generation identity: Seed=$WorldSeed\.") { throw 'Giant Snake peer client identity mismatch.' }
+    if ($observerText -notmatch "Client received world-generation identity: Seed=$WorldSeed\.") { throw 'Giant Snake observer identity mismatch.' }
     $spawnMatch = [regex]::Match($serverText, 'Giant Snake verification server: Passed=1[^\r\n]* SpawnId=([0-9]+/-?\d+/-?\d+/\d+)')
     if (!$spawnMatch.Success) { throw 'Giant Snake peer result did not include the defeated spawn identity.' }
     $spawnId = $spawnMatch.Groups[1].Value
@@ -77,7 +77,7 @@ try {
     $client = $null; $observer = $null; $server = $null
 
     $restartLog = Join-Path $output 'restart.log'
-    $restart = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" /Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=$Port -WorldSeed=418 -game -nullrhi -nosound -unattended -nosplash -DDC-ForceMemoryCache -forcelogflush -KalmalaReconnectVerification=WildlifeVerify -KalmalaReconnectKeyX=$spawnKeyX -KalmalaReconnectKeyY=$spawnKeyY -KalmalaReconnectSpawnId=`"$spawnId`" -ShaderWorkingDir=`"$restartShaderDir`" -abslog=`"$restartLog`" -UserDir=`"$output\Host`""
+    $restart = Start-Process $editor -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" /Game/Kalmala/Maps/Prototype/L_Prototype?listen -port=$Port -WorldSeed=$WorldSeed -game -nullrhi -nosound -unattended -nosplash -DDC-ForceMemoryCache -forcelogflush -KalmalaReconnectVerification=WildlifeVerify -KalmalaReconnectKeyX=$spawnKeyX -KalmalaReconnectKeyY=$spawnKeyY -KalmalaReconnectSpawnId=`"$spawnId`" -ShaderWorkingDir=`"$restartShaderDir`" -abslog=`"$restartLog`" -UserDir=`"$output\Host`""
     if (!$restart.WaitForExit(120000)) { Stop-Process -Id $restart.Id; throw 'Giant Snake world-state restart timed out.' }
     $restartText = Get-Content $restartLog -Raw
     if ($restartText -notmatch 'Reconnect verification passed: defeated generated wildlife spawn .* remained absent after listen-server restart\.') {

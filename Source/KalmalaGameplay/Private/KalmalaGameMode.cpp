@@ -1227,6 +1227,10 @@ void AKalmalaGameMode::DriveCombatPeerTest()
         bCombatPeerTestLogged = true;
         UE_LOG(LogTemp, Display, TEXT("%s verification server fixture enabled."), VerificationName);
     }
+    if (CombatPeerTestStage == 99)
+    {
+        return;
+    }
 
     const float Now = GetWorld()->GetTimeSeconds();
     if (CombatPeerTestStage == 0)
@@ -1286,7 +1290,9 @@ void AKalmalaGameMode::DriveCombatPeerTest()
         CombatPeerTestAttacker = LocalServerPlayer;
         CombatPeerTestRemote = RemotePlayer;
         FIntPoint SpatialKey = FKalmalaWorldPopulationLayout::GetSpatialKey(FVector2D(LocalServerPlayer->GetActorLocation()));
+        const FIntPoint StartingSpatialKey = SpatialKey;
         TArray<FKalmalaWorldPopulationSpawn> Descriptors = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(WorldGenerationConfig, SpatialKey, EKalmalaWorldPopulationKind::Wildlife);
+        const int32 MaxSearchRadius = (bMirelingPeerTest || bPendingRewardPeerTest) ? 64 : 1;
         if ((bMirelingPeerTest || bBoarPeerTest || bDeerPeerTest || bPendingRewardPeerTest)
             && !Descriptors.ContainsByPredicate([this, ExpectedArchetype](const FKalmalaWorldPopulationSpawn& Descriptor)
             { return KalmalaGameMode::IsWildlifeSpawnOfArchetype(WorldGenerationConfig, Descriptor, ExpectedArchetype); }))
@@ -1296,7 +1302,6 @@ void AKalmalaGameMode::DriveCombatPeerTest()
             // before the fixture activates exactly one population key.
             const FIntPoint BaseKey = SpatialKey;
             bool bFoundArchetypeDescriptor = false;
-            const int32 MaxSearchRadius = (bMirelingPeerTest || bPendingRewardPeerTest) ? 64 : 1;
             for (int32 Radius = 1; Radius <= MaxSearchRadius && !bFoundArchetypeDescriptor; ++Radius)
             {
                 for (int32 OffsetY = -Radius; OffsetY <= Radius && !bFoundArchetypeDescriptor; ++OffsetY)
@@ -1331,7 +1336,10 @@ void AKalmalaGameMode::DriveCombatPeerTest()
         });
         if (ExpectedDescriptor == nullptr)
         {
-            UE_LOG(LogTemp, Error, TEXT("%s verification FAILED: server spatial key has no matching wildlife descriptor."), VerificationName);
+            UE_LOG(LogTemp, Error,
+                TEXT("%s verification FAILED: no matching wildlife descriptor from start key (%d,%d) within radius %d for world seed %llu."),
+                VerificationName, StartingSpatialKey.X, StartingSpatialKey.Y, MaxSearchRadius,
+                static_cast<unsigned long long>(WorldGenerationConfig.WorldSeed));
             CombatPeerTestStage = 99;
             return;
         }
@@ -1384,6 +1392,26 @@ void AKalmalaGameMode::DriveCombatPeerTest()
                 UE_LOG(LogTemp, Error, TEXT("%s verification FAILED: server inventory or item catalogue is unavailable."), VerificationName);
                 CombatPeerTestStage = 99;
                 return;
+            }
+            if (bGiantSnakePeerTest)
+            {
+                const FName TestArmorId(TEXT("PolarBearCoat"));
+                FString ProtectiveEquipReason;
+                const bool bArmorGranted = Inventory->TryGrantFromServer(TestArmorId, 1);
+                const FKalmalaInventoryStack* ArmorStack = Inventory->GetStacks().FindByPredicate(
+                    [TestArmorId](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == TestArmorId; });
+                const FGuid ArmorGuid = ArmorStack != nullptr && ArmorStack->ItemGuids.Num() == 1
+                    ? ArmorStack->ItemGuids[0] : FGuid();
+                FKalmalaGearLevelStats ArmorStats;
+                if (!bArmorGranted || !ArmorGuid.IsValid()
+                    || !Inventory->EquipGearFromServer(ArmorGuid, ProtectiveEquipReason)
+                    || !Catalogue->GetGearLevelStats(TestArmorId, 1, ArmorStats))
+                {
+                    UE_LOG(LogTemp, Error, TEXT("Giant Snake verification FAILED: could not equip the catalogue-backed protective coat (%s)."), *ProtectiveEquipReason);
+                    CombatPeerTestStage = 99;
+                    return;
+                }
+                UE_LOG(LogTemp, Display, TEXT("Giant Snake verification equipped catalogue-backed %s with %d Armor so the host can continue combat after the real bite."), *TestArmorId.ToString(), ArmorStats.Armor);
             }
             const int32 FullPackCapacity = UKalmalaInventoryComponent::MaxSlots
                 - Inventory->CountPackedTools(LocalServerPlayer->GetCarriedToolInventory());
@@ -5505,7 +5533,9 @@ void AKalmalaGameMode::PlacePawnAtGeneratedStart(APlayerController* PlayerContro
 
     AActor* SpawnStart = GeneratedPlayerStart;
 #if !UE_BUILD_SHIPPING
-    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaRatPeerTest"))
+    const bool bRatPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaRatPeerTest"));
+    const bool bGiantSnakePeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaGiantSnakePeerTest"));
+    if ((bRatPeerTest || bGiantSnakePeerTest)
         && PlayerController->StartSpot.IsValid())
     {
         SpawnStart = PlayerController->StartSpot.Get();
@@ -5654,35 +5684,37 @@ void AKalmalaGameMode::RefreshTerrainPatchNeighborhoods()
 AActor* AKalmalaGameMode::ChoosePlayerStart_Implementation(AController* Player)
 {
 #if !UE_BUILD_SHIPPING
-    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaRatPeerTest"))
+    const bool bRatPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaRatPeerTest"));
+    const bool bGiantSnakePeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaGiantSnakePeerTest"));
+    if ((bRatPeerTest || bGiantSnakePeerTest)
         && Player != nullptr && !Player->IsLocalController() && GeneratedPlayerStart != nullptr && GetWorld() != nullptr)
     {
-        const FName RatPeerStartTag(TEXT("KalmalaRatPeerTestStart"));
-        if (AActor* ExistingStart = Player->StartSpot.Get(); ExistingStart != nullptr && ExistingStart->ActorHasTag(RatPeerStartTag))
+        const FName PeerTestStartTag(bRatPeerTest ? TEXT("KalmalaRatPeerTestStart") : TEXT("KalmalaGiantSnakePeerTestStart"));
+        if (AActor* ExistingStart = Player->StartSpot.Get(); ExistingStart != nullptr && ExistingStart->ActorHasTag(PeerTestStartTag))
         {
             return ExistingStart;
         }
 
-        int32 ExistingRatPeerStarts = 0;
+        int32 ExistingPeerTestStarts = 0;
         for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
         {
             AController* ExistingController = It->Get();
             if (ExistingController != nullptr && ExistingController != Player && !ExistingController->IsLocalController())
             {
                 const AActor* ExistingStart = ExistingController->StartSpot.Get();
-                if (ExistingStart != nullptr && ExistingStart->ActorHasTag(RatPeerStartTag)) ++ExistingRatPeerStarts;
+                if (ExistingStart != nullptr && ExistingStart->ActorHasTag(PeerTestStartTag)) ++ExistingPeerTestStarts;
             }
         }
 
         FActorSpawnParameters SpawnParameters;
         SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-        const FVector StartLocation = GeneratedPlayerStart->GetActorLocation() + FVector(0.0f, 1000.0f * (ExistingRatPeerStarts + 1), 0.0f);
-        APlayerStart* RatPeerStart = GetWorld()->SpawnActor<APlayerStart>(
+        const FVector StartLocation = GeneratedPlayerStart->GetActorLocation() + FVector(0.0f, 1000.0f * (ExistingPeerTestStarts + 1), 0.0f);
+        APlayerStart* PeerTestStart = GetWorld()->SpawnActor<APlayerStart>(
             APlayerStart::StaticClass(), StartLocation, GeneratedPlayerStart->GetActorRotation(), SpawnParameters);
-        if (RatPeerStart != nullptr)
+        if (PeerTestStart != nullptr)
         {
-            RatPeerStart->Tags.Add(RatPeerStartTag);
-            return RatPeerStart;
+            PeerTestStart->Tags.Add(PeerTestStartTag);
+            return PeerTestStart;
         }
     }
 #endif

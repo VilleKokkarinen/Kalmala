@@ -280,7 +280,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [ ] Run the combined A8a/A8b enemy and enemy-item milestone verification; record results and blockers. This gate must pass before A9 begins.
     - [x] Rebuild and rerun the sequential Badger/Moon Bear peer acceptance after the Moon Bear fixture adjustment; both cases passed. The final full queue now passes all 180 tests.
     - [x] Repair the procedural snake-head `SurfaceWinding` failure and the M9 progression assertions; the focused check and final 180-test Kalmala queue pass.
-    - [ ] Finish required live peer/reward acceptance for the remaining A8a species, then exercise the approved A8b item progression and peer flows. Current peer runners cover Boar, Deer, Badger, Moon Bear and Mireling; the live species checks for Rat, Viper, Giant Snake, Death Adder, Mosquito swarm, Peat Husk, Wolf, Lynx, Polar Bear, Horned Goat, Thunder Sentinel and Reef Maw remain outstanding.
+    - [ ] Finish required live peer/reward acceptance for the remaining A8a species, then exercise the approved A8b item progression and peer flows. Rat, Viper and Giant Snake live peer acceptances have passed. Current peer runners also cover Boar, Deer, Badger, Moon Bear and Mireling; the remaining live species checks are Death Adder, Mosquito swarm, Peat Husk, Wolf, Lynx, Polar Bear, Horned Goat, Thunder Sentinel and Reef Maw.
     - [ ] Resolve the `Verify-InventoryReconnect.ps1` client-baseline timeout or document an approved non-applicable disposition before closing final I4 verification.
 
   The JSON-only child, all 30 icon children and all 30 source/output

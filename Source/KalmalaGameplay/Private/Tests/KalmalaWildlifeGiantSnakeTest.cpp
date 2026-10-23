@@ -3,6 +3,11 @@
 #include "KalmalaWildlifeSpawn.h"
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaItemCatalogue.h"
+#include "KalmalaBiomeClassifier.h"
+#include "KalmalaEnvironmentalExposureSampler.h"
+#include "KalmalaOceanSampler.h"
+#include "KalmalaShimmeringLakeSampler.h"
+#include "KalmalaWorldPopulationLayout.h"
 #include "KalmalaWorldPopulationSaveGame.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/AutomationTest.h"
@@ -46,6 +51,57 @@ bool FKalmalaWildlifeGiantSnakeContractTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Existing lake roster retains fifty percent"), ExistingRosterSlots, 500);
     TestEqual(TEXT("Viper receives forty percent"), ViperSlots, 400);
     TestEqual(TEXT("Giant Snake receives ten percent"), GiantSnakeSlots, 100);
+
+    FKalmalaWorldGenerationConfig SpawnWorldConfig;
+    bool bFoundGeneratedGiantSnake = false;
+    uint64 GeneratedGiantSnakeSeed = 0;
+    FIntPoint GeneratedGiantSnakeKey = FIntPoint::ZeroValue;
+    FString GeneratedGiantSnakeId;
+    for (uint64 SearchSeed = 418; SearchSeed < 450 && !bFoundGeneratedGiantSnake; ++SearchSeed)
+    {
+        SpawnWorldConfig.WorldSeed = SearchSeed;
+        for (int32 KeyY = -16; KeyY <= 16 && !bFoundGeneratedGiantSnake; ++KeyY)
+        {
+            for (int32 KeyX = -16; KeyX <= 16 && !bFoundGeneratedGiantSnake; ++KeyX)
+            {
+                const FIntPoint SpatialKey(KeyX, KeyY);
+                for (const FKalmalaWorldPopulationSpawn& Spawn : FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(
+                         SpawnWorldConfig, SpatialKey, EKalmalaWorldPopulationKind::Wildlife))
+                {
+                    const FVector2D Position(Spawn.Location);
+                    if (FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(SpawnWorldConfig, Position))
+                        != EKalmalaBiome::ShimmeringLakes)
+                    {
+                        continue;
+                    }
+                    EKalmalaWildlifeArchetype Archetype = EKalmalaWildlifeArchetype::Mireling;
+                    if (!AKalmalaWildlifeSpawn::TryGetSpawnArchetypeForBiome(Spawn.SpawnSeed, EKalmalaBiome::ShimmeringLakes, Archetype)
+                        || Archetype != EKalmalaWildlifeArchetype::GiantSnake
+                        || FKalmalaOceanSampler::Sample(SpawnWorldConfig, Position).IsWater()
+                        || FKalmalaShimmeringLakeSampler::IsWater(SpawnWorldConfig, Position)
+                        || !FKalmalaEnvironmentalExposureSampler::Sample(SpawnWorldConfig, Position).bIsShoreline)
+                    {
+                        continue;
+                    }
+
+                    bFoundGeneratedGiantSnake = true;
+                    GeneratedGiantSnakeSeed = SearchSeed;
+                    GeneratedGiantSnakeKey = SpatialKey;
+                    GeneratedGiantSnakeId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Spawn);
+                    break;
+                }
+            }
+        }
+    }
+    TestTrue(TEXT("A deterministic generated world contains a dry shoreline Giant Snake descriptor"),
+        bFoundGeneratedGiantSnake);
+    if (bFoundGeneratedGiantSnake)
+    {
+        AddInfo(FString::Printf(TEXT("Live peer fixture candidate: WorldSeed=%llu SpatialKey=(%d,%d) SpawnId=%s"),
+            static_cast<unsigned long long>(GeneratedGiantSnakeSeed), GeneratedGiantSnakeKey.X,
+            GeneratedGiantSnakeKey.Y, *GeneratedGiantSnakeId));
+    }
+
     for (const EKalmalaBiome OtherBiome : { EKalmalaBiome::Meadows, EKalmalaBiome::Elderwood,
              EKalmalaBiome::MossyMire, EKalmalaBiome::FreezingTundra,
              EKalmalaBiome::ThunderMountains, EKalmalaBiome::Ocean })
