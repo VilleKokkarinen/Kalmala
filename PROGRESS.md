@@ -6666,3 +6666,15 @@
 - **Known limitations / remaining scope:** This was not a live Workbench crafting or multiplayer peer acceptance. Other approved A8b outputs/flows and InventoryReconnect disposition remain open; A9 remains gated by I4.
 - **Next eligible task:** Continue A8b item acceptance in backlog order with Scale Cuirass, then complete the remaining progression/peer flows, resolve InventoryReconnect disposition, and run combined I4 milestone-final verification.
 - **Integration state:** Work ran directly on `master`; no worktree handoff synchronization was needed. Current run time: `2026-10-23 15:32:29 UTC`.
+
+## Run 2026-10-23 15:34 UTC — Scale Cuirass catalogue acceptance passed
+
+- **Selected task:** Continue the open combined I4 acceptance child with Scale Cuirass, the next A8b output in backlog order. This is focused catalogue and gear-transaction coverage, not milestone-final verification.
+- **Work completed:** Exercised the Scale Cuirass catalogue profile, exact-GUID Chest replacement, and registered Forge acquisition and level-one upgrade data, including the documented recipe/cost identities.
+- **Files changed:** `PROGRESS.md`. `BACKLOG.md` remains unchanged because combined I4 acceptance is incomplete.
+- **Checks and results:** The isolated mirror matched the three focused test sources, manifest, wearable item catalogue, Forge recipe catalogue, armor upgrade costs and shared item-stat rewards byte-for-byte. `Automation RunTests Kalmala.Gameplay.Inventory.Catalogue+Kalmala.Gameplay.Inventory.WornGearTransactions+Kalmala.Gameplay.M9.ToolProgressionCatalogue` found three tests; each recorded `Result={Success}` and Editor exit code 0. Evidence: `C:/Users/Ville/AppData/Local/Temp/a8sc1/scale.log`. No build ran; the existing Development target loaded successfully.
+- **Full verification:** Deferred. This slice does not complete I4; remaining A8b item and peer flows, the `Verify-InventoryReconnect.ps1` disposition, and combined A8a/A8b milestone-final verification remain.
+- **Observable impact / networking authority:** Confirms the existing Cuirass item data and generic exact-GUID inventory gear-transaction path. The test does not exercise multiplayer authority. No production source or saved-data behavior changed.
+- **Known limitations / remaining scope:** No live Forge crafting, multiplayer equipment/armor/wear acceptance, or rendered check ran. Wearable upgrade transactions remain unavailable at runtime as documented; their registered cost/reward data is only catalogue coverage. A9 remains gated by I4.
+- **Next eligible task:** Continue A8b item acceptance in backlog order with Antidote, then finish the remaining progression/peer flows, resolve InventoryReconnect disposition and run combined I4 milestone-final verification.
+- **Integration state:** Work ran directly on `master`; no worktree handoff synchronization was needed. Current run time: `2026-10-23 15:34:53 UTC`.
