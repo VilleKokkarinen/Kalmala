@@ -197,6 +197,8 @@ private:
     uint64 LynxPeerTestWorldSeed = 0;
     FString LynxPeerTestSpawnId;
     FVector LynxPeerTestSpawnLocation = FVector::ZeroVector;
+    FVector LynxPeerTestHostRingLocation = FVector::ZeroVector;
+    FVector LynxPeerTestHostLocation = FVector::ZeroVector;
     TWeakObjectPtr<class AKalmalaCharacter> LynxPeerTestHost;
     TArray<TWeakObjectPtr<class AKalmalaCharacter>> LynxPeerTestObservers;
     TWeakObjectPtr<class AKalmalaWildlifeSpawn> LynxPeerTestTarget;

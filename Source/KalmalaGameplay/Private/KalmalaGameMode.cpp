@@ -3154,6 +3154,22 @@ void AKalmalaGameMode::DriveLynxPeerTest()
     }
 
     const float Now = GetWorld()->GetTimeSeconds();
+    const auto PlaceOnTerrain = [this](AKalmalaCharacter* Character, const FVector& DesiredLocation)
+    {
+        if (!IsValid(Character)) return;
+        ActivateTerrainPatchNeighborhood(FVector2D(DesiredLocation));
+        FVector GroundedLocation = DesiredLocation;
+        GroundedLocation.Z = FKalmalaTerrainHeightSampler::SampleHeight(
+            WorldGenerationConfig, FVector2D(DesiredLocation))
+            + Character->GetSimpleCollisionHalfHeight() + 1.0f;
+        Character->SetActorLocation(GroundedLocation, false, nullptr, ETeleportType::TeleportPhysics);
+        Character->ForceNetUpdate();
+        if (UCharacterMovementComponent* Movement = Character->GetCharacterMovement())
+        {
+            Movement->StopMovementImmediately();
+            Movement->DisableMovement();
+        }
+    };
     if (LynxPeerTestStage == 0)
     {
         APlayerController* HostController = GetWorld()->GetFirstPlayerController();
@@ -3200,6 +3216,7 @@ void AKalmalaGameMode::DriveLynxPeerTest()
         };
         bool bFoundCandidate = false;
         FVector HostDesiredLocation = FVector::ZeroVector;
+        FVector HostRingDesiredLocation = FVector::ZeroVector;
 
         for (int32 Radius = 0; Radius <= 64 && !bFoundCandidate; ++Radius)
         {
@@ -3209,30 +3226,94 @@ void AKalmalaGameMode::DriveLynxPeerTest()
                 {
                     if (Radius > 0 && FMath::Abs(OffsetX) != Radius && FMath::Abs(OffsetY) != Radius) continue;
                     const FIntPoint CandidateKey = StartKey + FIntPoint(OffsetX, OffsetY);
-                    const TArray<FKalmalaWorldPopulationSpawn> Descriptors =
+                    TArray<FKalmalaWorldPopulationSpawn> Descriptors =
                         FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(
                             WorldGenerationConfig, CandidateKey, EKalmalaWorldPopulationKind::Wildlife);
+                    const FVector2D KeyCentre = (FVector2D(CandidateKey) + FVector2D(0.5f, 0.5f))
+                        * FKalmalaWorldPopulationLayout::SpatialKeySize;
+                    const EKalmalaBiome KeyBiome = FKalmalaBiomeClassifier::Classify(
+                        FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, KeyCentre));
+                    if (KeyBiome == EKalmalaBiome::ShimmeringLakes || KeyBiome == EKalmalaBiome::Elderwood
+                        || KeyBiome == EKalmalaBiome::MossyMire || KeyBiome == EKalmalaBiome::FreezingTundra
+                        || KeyBiome == EKalmalaBiome::ThunderMountains)
+                    {
+                        Descriptors.SetNum(FMath::Min(Descriptors.Num(),
+                            FKalmalaBiomeExpansionContract::ApplyPopulationBudget(
+                                Descriptors.Num(), EKalmalaWorldPopulationKind::Wildlife, KeyBiome)));
+                    }
+                    const int32 WildlifeActorBudget = KeyBiome == EKalmalaBiome::FreezingTundra
+                        ? FKalmalaWolfPackContract::GetActorBudgetWithPackRoom(
+                            FKalmalaBiomeExpansionContract::ApplyPopulationBudget(
+                                Descriptors.Num(), EKalmalaWorldPopulationKind::Wildlife, KeyBiome))
+                        : Descriptors.Num();
+                    int32 SpawnedWildlifeActorCount = 0;
                     for (const FKalmalaWorldPopulationSpawn& Spawn : Descriptors)
                     {
-                        if (!KalmalaGameMode::IsWildlifeSpawnOfArchetype(
-                                WorldGenerationConfig, Spawn, EKalmalaWildlifeArchetype::Lynx))
+                        EKalmalaWildlifeArchetype Archetype;
+                        if (!KalmalaGameMode::TryGetWildlifeArchetypeForSpawn(
+                                WorldGenerationConfig, Spawn, Archetype))
                         {
                             continue;
                         }
-
-                        const FString SpawnId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Spawn);
-                        if (SpawnId.IsEmpty() || (PopulationSaveGame != nullptr && PopulationSaveGame->IsDefeated(SpawnId)))
+                        const bool bHardEnemy = Archetype == EKalmalaWildlifeArchetype::GiantSnake
+                            || Archetype == EKalmalaWildlifeArchetype::MoonBear
+                            || Archetype == EKalmalaWildlifeArchetype::PeatHusk
+                            || Archetype == EKalmalaWildlifeArchetype::PolarBear
+                            || Archetype == EKalmalaWildlifeArchetype::ThunderSentinel
+                            || Archetype == EKalmalaWildlifeArchetype::ReefMaw;
+                        const float SpawnStartDistance = GeneratedPlayerStart != nullptr
+                            ? FVector::Dist2D(Spawn.Location, GeneratedPlayerStart->GetActorLocation()) : 0.0f;
+                        if (!AKalmalaWildlifeSpawn::IsHardEnemySpawnAllowedByStart(
+                                bHardEnemy, GeneratedPlayerStart != nullptr, SpawnStartDistance))
+                        {
                             continue;
+                        }
+                        const FString SpawnId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Spawn);
+                        if (PopulationSaveGame != nullptr && PopulationSaveGame->IsDefeated(SpawnId))
+                            continue;
+
+                        if (Archetype == EKalmalaWildlifeArchetype::Wolf)
+                        {
+                            if (SpawnedWildlifeActorCount + FKalmalaWolfPackContract::MemberCount > WildlifeActorBudget)
+                                continue;
+                            int32 PackMemberCount = 0;
+                            bool bValidFormation = true;
+                            for (int32 MemberIndex = 0; MemberIndex < FKalmalaWolfPackContract::MemberCount; ++MemberIndex)
+                            {
+                                FKalmalaWorldPopulationSpawn MemberSpawn;
+                                if (!FKalmalaWolfPackContract::TryBuildMemberSpawn(
+                                        WorldGenerationConfig, Spawn, MemberIndex, MemberSpawn))
+                                {
+                                    bValidFormation = false;
+                                    break;
+                                }
+                                const FString MemberSpawnId = FKalmalaWolfPackContract::GetMemberPersistentSpawnId(
+                                    Spawn, MemberIndex);
+                                if (PopulationSaveGame == nullptr || !PopulationSaveGame->IsDefeated(MemberSpawnId))
+                                    ++PackMemberCount;
+                            }
+                            if (bValidFormation) SpawnedWildlifeActorCount += PackMemberCount;
+                            continue;
+                        }
+                        if (SpawnedWildlifeActorCount >= WildlifeActorBudget) continue;
+                        if (Archetype != EKalmalaWildlifeArchetype::Lynx)
+                        {
+                            ++SpawnedWildlifeActorCount;
+                            continue;
+                        }
                         const FVector2D SpawnPosition(Spawn.Location);
                         if (!IsDryTundraSurface(SpawnPosition)) continue;
 
                         for (int32 ApproachIndex = 0; ApproachIndex < 16; ++ApproachIndex)
                         {
                             const float Angle = static_cast<float>(ApproachIndex) * (2.0f * PI / 16.0f);
+                            const FVector2D ApproachDirection(FMath::Cos(Angle), FMath::Sin(Angle));
                             const FVector2D ApproachPosition(
-                                Spawn.Location.X + FMath::Cos(Angle) * 120.0f,
-                                Spawn.Location.Y + FMath::Sin(Angle) * 120.0f);
+                                SpawnPosition.X + ApproachDirection.X * 120.0f,
+                                SpawnPosition.Y + ApproachDirection.Y * 120.0f);
+                            const FVector2D RingPosition = SpawnPosition + ApproachDirection * 5000.0f;
                             if (!IsDryTundraSurface(ApproachPosition)) continue;
+                            if (!IsDryTundraSurface(RingPosition)) continue;
                             const int32 PathSamples = FMath::Max(1,
                                 FMath::CeilToInt(FVector2D::Distance(SpawnPosition, ApproachPosition) / 80.0f));
                             bool bPathTraversable = true;
@@ -3256,9 +3337,13 @@ void AKalmalaGameMode::DriveLynxPeerTest()
                                 continue;
                             }
 
+                            HostRingDesiredLocation = FVector(RingPosition.X, RingPosition.Y,
+                                FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, RingPosition));
                             LynxPeerTestSpatialKey = CandidateKey;
                             LynxPeerTestSpawnId = SpawnId;
                             LynxPeerTestSpawnLocation = Spawn.Location;
+                            LynxPeerTestHostRingLocation = HostRingDesiredLocation;
+                            LynxPeerTestHostLocation = HostDesiredLocation;
                             bFoundCandidate = true;
                             break;
                         }
@@ -3271,7 +3356,7 @@ void AKalmalaGameMode::DriveLynxPeerTest()
         if (!bFoundCandidate)
         {
             UE_LOG(LogTemp, Error,
-                TEXT("Lynx verification FAILED: no undefeated generated Tundra Lynx with a reachable dry approach was found within 64 spatial keys."));
+                TEXT("Lynx verification FAILED: no undefeated materializable Tundra Lynx with a reachable dry approach was found within 64 spatial keys."));
             LynxPeerTestStage = 99;
             return;
         }
@@ -3283,22 +3368,6 @@ void AKalmalaGameMode::DriveLynxPeerTest()
             return;
         }
 
-        const auto PlaceOnTerrain = [this](AKalmalaCharacter* Character, const FVector& DesiredLocation)
-        {
-            if (!IsValid(Character)) return;
-            ActivateTerrainPatchNeighborhood(FVector2D(DesiredLocation));
-            FVector GroundedLocation = DesiredLocation;
-            GroundedLocation.Z = FKalmalaTerrainHeightSampler::SampleHeight(
-                WorldGenerationConfig, FVector2D(DesiredLocation));
-            Character->SetActorLocation(GroundedLocation, false, nullptr, ETeleportType::TeleportPhysics);
-            Character->ForceNetUpdate();
-            if (UCharacterMovementComponent* Movement = Character->GetCharacterMovement())
-            {
-                Movement->StopMovementImmediately();
-                Movement->DisableMovement();
-            }
-        };
-
         LynxPeerTestStartingHealth = Host->GetHealth();
         if (!FMath::IsFinite(LynxPeerTestStartingHealth) || LynxPeerTestStartingHealth <= 75.0f)
         {
@@ -3307,43 +3376,8 @@ void AKalmalaGameMode::DriveLynxPeerTest()
             LynxPeerTestStage = 99;
             return;
         }
-        PlaceOnTerrain(Host, HostDesiredLocation);
 
-        int32 ObserverIndex = 0;
-        for (const TWeakObjectPtr<AKalmalaCharacter>& ObserverWeak : LynxPeerTestObservers)
-        {
-            AKalmalaCharacter* Observer = ObserverWeak.Get();
-            if (!IsValid(Observer)) continue;
-
-            const float Distance = 1000.0f + 500.0f * static_cast<float>(ObserverIndex);
-            bool bPlacedObserver = false;
-            for (int32 DirectionIndex = 0; DirectionIndex < 16 && !bPlacedObserver; ++DirectionIndex)
-            {
-                const float Angle = static_cast<float>(DirectionIndex) * (2.0f * PI / 16.0f);
-                const FVector2D ObserverPosition(
-                    LynxPeerTestSpawnLocation.X + FMath::Cos(Angle) * Distance,
-                    LynxPeerTestSpawnLocation.Y + FMath::Sin(Angle) * Distance);
-                if (!FKalmalaWorldBounds::Contains(WorldGenerationConfig, ObserverPosition)) continue;
-                const FVector DesiredObserverLocation(ObserverPosition.X, ObserverPosition.Y,
-                    FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, ObserverPosition));
-                PlaceOnTerrain(Observer, DesiredObserverLocation);
-                bPlacedObserver = true;
-            }
-            if (!bPlacedObserver)
-            {
-                UE_LOG(LogTemp, Error, TEXT("Lynx verification FAILED: an observer could not be placed within replication range."));
-                LynxPeerTestStage = 99;
-                return;
-            }
-            ++ObserverIndex;
-        }
-        if (ObserverIndex < 2)
-        {
-            UE_LOG(LogTemp, Error, TEXT("Lynx verification FAILED: an observing client disappeared before activation."));
-            LynxPeerTestStage = 99;
-            return;
-        }
-
+        PlaceOnTerrain(Host, LynxPeerTestHostRingLocation);
         LynxPeerTestWorldSeed = WorldGenerationConfig.WorldSeed;
         LynxPeerTestHost = Host;
         LynxPeerTestTarget.Reset();
@@ -3388,6 +3422,43 @@ void AKalmalaGameMode::DriveLynxPeerTest()
             || !FMath::IsNearlyEqual(Target->GetHealth(), 150.0f, 0.1f))
         {
             UE_LOG(LogTemp, Error, TEXT("Lynx verification FAILED: generated target archetype or 150-health profile was invalid."));
+            LynxPeerTestStage = 99;
+            return;
+        }
+
+        PlaceOnTerrain(Host, LynxPeerTestHostLocation);
+
+        int32 ObserverIndex = 0;
+        for (const TWeakObjectPtr<AKalmalaCharacter>& ObserverWeak : LynxPeerTestObservers)
+        {
+            AKalmalaCharacter* Observer = ObserverWeak.Get();
+            if (!IsValid(Observer)) continue;
+
+            const float Distance = 1000.0f + 500.0f * static_cast<float>(ObserverIndex);
+            bool bPlacedObserver = false;
+            for (int32 DirectionIndex = 0; DirectionIndex < 16 && !bPlacedObserver; ++DirectionIndex)
+            {
+                const float Angle = static_cast<float>(DirectionIndex) * (2.0f * PI / 16.0f);
+                const FVector2D ObserverPosition(
+                    LynxPeerTestSpawnLocation.X + FMath::Cos(Angle) * Distance,
+                    LynxPeerTestSpawnLocation.Y + FMath::Sin(Angle) * Distance);
+                if (!FKalmalaWorldBounds::Contains(WorldGenerationConfig, ObserverPosition)) continue;
+                const FVector DesiredObserverLocation(ObserverPosition.X, ObserverPosition.Y,
+                    FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, ObserverPosition));
+                PlaceOnTerrain(Observer, DesiredObserverLocation);
+                bPlacedObserver = true;
+            }
+            if (!bPlacedObserver)
+            {
+                UE_LOG(LogTemp, Error, TEXT("Lynx verification FAILED: an observer could not be placed within replication range."));
+                LynxPeerTestStage = 99;
+                return;
+            }
+            ++ObserverIndex;
+        }
+        if (ObserverIndex < 2)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Lynx verification FAILED: an observing client disappeared before the attack."));
             LynxPeerTestStage = 99;
             return;
         }

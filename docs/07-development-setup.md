@@ -2616,12 +2616,15 @@ After an Editor build, run
 `Scripts/Tests/Combat/Verify-LynxPeer.ps1 -WorldSeed 445`. The Development-only
 fixture selects an undefeated Lynx from the normal seeded Freezing Tundra
 population descriptors, verifies its 150-health profile, and activates its
-ordinary population key. It places the listen host on sampled dry Tundra within
-the 350 cm server leap reach and two observer clients 10 m and 15 m from the
-Lynx. Require the server's telegraph, leap, recovery and accepted health damage,
-plus the same generated Lynx telegraph on both client logs. The runner retains
-per-peer logs under its output directory and serializes client joins before
-starting the observer. This species case does not repeat Rat's shared reward,
+ordinary population key after staging the listen host on dry Tundra 50 m from
+the descriptor. It selects only a descriptor retained by the same biome budget
+and Tundra actor cap as normal key activation. After the descriptor materializes,
+it moves the host within the 350 cm server leap reach and two observer clients
+10 m and 15 m from the Lynx. Require the server's
+telegraph, leap, recovery and accepted health damage, plus the same generated
+Lynx telegraph on both client logs. The runner retains per-peer logs under its
+output directory and serializes client joins before starting the observer. This
+species case does not repeat Rat's shared reward,
 defeat-persistence or combat-replication acceptance. The live run remains part
 of combined A8a/A8b I4.
 
