@@ -6627,3 +6627,8 @@
 ## A9 independent worker — Aquamarine acquisition (2026-10-23)
 
 - Enabled the independent 1/20 Aquamarine generation roll only for Shimmering Lakes world treasure. Garnet and Aquamarine can coexist in one Lakes chest, each quantity one; complete two-item grants are capacity checked before any claim. Existing saved chest results are immutable and are not rerolled by source enablement. Files: GemstoneContract.h, BACKLOG/PROGRESS. `Validate-UIIcons.ps1 -Category Catalogue -Id Aquamarine` and git diff --check passed; biome/domain-separation/full-grant inspection and short-path audit passed. Full build/automation/live I5 checks deferred. Next: Tourmaline. Main unchanged.
+
+
+## A9 independent worker — Tourmaline acquisition (2026-10-23)
+
+- Enabled Tourmaline's 2% Thunder Mountains slate-slot replacement, retaining the existing candidate position/identity/budget and requiring Stone Pick or better. Supplemental generic Stone outcrops and other biomes are excluded. Uses the shared three-hit/smash/single-loose-gem persistence path. Files: GemstoneContract.h, BACKLOG/PROGRESS. `Validate-UIIcons.ps1 -Category Catalogue -Id Tourmaline` and git diff --check passed; source exclusion/tier/path inspection passed. Full build/automation/live I5 checks deferred. Next: Star Opal. Main unchanged.
