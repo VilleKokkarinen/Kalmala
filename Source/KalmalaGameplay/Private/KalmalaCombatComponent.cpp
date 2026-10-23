@@ -149,13 +149,36 @@ AActor* UKalmalaCombatComponent::FindServerTarget() const
 {
     const APawn* Pawn = Cast<APawn>(GetOwner()); if (Pawn == nullptr || GetWorld() == nullptr) return nullptr;
     const FVector Start = Pawn->GetActorLocation() + FVector(0, 0, 55); FHitResult Hit; FCollisionQueryParams Params(SCENE_QUERY_STAT(KalmalaCombatTarget), false, Pawn);
-    if (GetWorld()->LineTraceSingleByChannel(Hit, Start, Start + Pawn->GetActorForwardVector() * AttackRange, ECC_Visibility, Params)
-        && (Cast<AKalmalaWildlifeSpawn>(Hit.GetActor()) || Cast<AKalmalaHarvestNode>(Hit.GetActor()))) return Hit.GetActor();
-    // A low melee sweep reaches fallen logs below the ordinary wildlife aim trace.
-    const FVector LowStart = Pawn->GetActorLocation() - FVector(0, 0, 20);
-    if (GetWorld()->SweepSingleByChannel(Hit, LowStart, LowStart + Pawn->GetActorForwardVector() * AttackRange,
-        FQuat::Identity, ECC_Visibility, FCollisionShape::MakeSphere(60.0f), Params))
+    const bool bLineHit = GetWorld()->LineTraceSingleByChannel(Hit, Start,
+        Start + Pawn->GetActorForwardVector() * AttackRange, ECC_Visibility, Params);
+#if !UE_BUILD_SHIPPING
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaRatPeerTest")))
     {
+        UE_LOG(LogTemp, Display, TEXT("Rat verification melee trace: Hit=%d Actor=%s Start=%s End=%s."),
+            bLineHit, Hit.GetActor() != nullptr ? *Hit.GetActor()->GetName() : TEXT("None"),
+            *Start.ToCompactString(), *(Start + Pawn->GetActorForwardVector() * AttackRange).ToCompactString());
+    }
+#endif
+    if (bLineHit
+        && (Cast<AKalmalaWildlifeSpawn>(Hit.GetActor()) || Cast<AKalmalaHarvestNode>(Hit.GetActor()))) return Hit.GetActor();
+    // The lower melee sweep reaches fallen logs and small wildlife below the ordinary aim trace.
+    const FVector LowStart = Pawn->GetActorLocation() - FVector(0, 0, 30);
+    const bool bLowSweepHit = GetWorld()->SweepSingleByChannel(Hit, LowStart,
+        LowStart + Pawn->GetActorForwardVector() * AttackRange, FQuat::Identity, ECC_Visibility,
+        FCollisionShape::MakeSphere(60.0f), Params);
+#if !UE_BUILD_SHIPPING
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaRatPeerTest")))
+    {
+        UE_LOG(LogTemp, Display, TEXT("Rat verification melee sweep: Hit=%d Actor=%s Start=%s End=%s."),
+            bLowSweepHit, Hit.GetActor() != nullptr ? *Hit.GetActor()->GetName() : TEXT("None"),
+            *LowStart.ToCompactString(), *(LowStart + Pawn->GetActorForwardVector() * AttackRange).ToCompactString());
+    }
+#endif
+    if (bLowSweepHit)
+    {
+        const auto* Wildlife = Cast<AKalmalaWildlifeSpawn>(Hit.GetActor());
+        if (Wildlife != nullptr && Wildlife->GetArchetype() == EKalmalaWildlifeArchetype::Rat
+            && !Wildlife->IsDefeated()) return Hit.GetActor();
         const auto* Tree = Cast<AKalmalaHarvestNode>(Hit.GetActor());
         if (Tree && Tree->CanReceiveAxeAttack()) return Hit.GetActor();
     }

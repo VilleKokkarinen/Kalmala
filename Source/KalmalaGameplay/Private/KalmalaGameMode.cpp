@@ -1406,8 +1406,29 @@ void AKalmalaGameMode::DriveCombatPeerTest()
         const FVector Forward = Attacker->GetActorForwardVector().GetSafeNormal2D();
         // Keep the boar at its generated rest origin: its normal territorial
         // policy must choose a nearby pawn, rather than a fixture bypassing it.
-        const float InitialEncounterDistance = bRatPeerTest ? 90.0f : (bMirelingPeerTest ? 100.0f : 150.0f);
-        Attacker->SetActorLocation(CombatPeerTestTarget->GetActorLocation() - Forward * InitialEncounterDistance, false);
+        // Keep the Rat test host near the ground-level wildlife root so the
+        // ordinary forward/low melee traces can acquire the small target.
+        const float InitialEncounterDistance = bRatPeerTest ? 1.0f : (bMirelingPeerTest ? 100.0f : 150.0f);
+        const auto PlaceRatTestPeerOnTerrain = [this](AKalmalaCharacter* Character, const FVector& DesiredLocation)
+        {
+            if (Character == nullptr) return;
+            const FVector2D Position(DesiredLocation);
+            ActivateTerrainPatchNeighborhood(Position);
+            FVector GroundedLocation = DesiredLocation;
+            GroundedLocation.Z = FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, Position)
+                + Character->GetSimpleCollisionHalfHeight() + 1.0f;
+            Character->SetActorLocation(GroundedLocation, false);
+            Character->ForceNetUpdate();
+        };
+        const FVector AttackerLocation = CombatPeerTestTarget->GetActorLocation() - Forward * InitialEncounterDistance;
+        if (bRatPeerTest)
+        {
+            PlaceRatTestPeerOnTerrain(Attacker, AttackerLocation);
+        }
+        else
+        {
+            Attacker->SetActorLocation(AttackerLocation, false);
+        }
         if (bMirelingPeerTest)
         {
             // Keep the listen-server pawn on the generated fixture surface while the encounter
@@ -1417,7 +1438,15 @@ void AKalmalaGameMode::DriveCombatPeerTest()
             CombatPeerTestTarget->SetActorTickEnabled(true);
             CombatPeerTestTarget->SetActorTickInterval(0.0f);
         }
-        Remote->SetActorLocation(CombatPeerTestTarget->GetActorLocation() + FVector(0.0f, 1000.0f, 0.0f), false);
+        const FVector RemoteLocation = CombatPeerTestTarget->GetActorLocation() + FVector(0.0f, 1000.0f, 0.0f);
+        if (bRatPeerTest)
+        {
+            PlaceRatTestPeerOnTerrain(Remote, RemoteLocation);
+        }
+        else
+        {
+            Remote->SetActorLocation(RemoteLocation, false);
+        }
         if (bRatPeerTest)
         {
             int32 ObserverOffset = 2000;
@@ -1426,9 +1455,9 @@ void AKalmalaGameMode::DriveCombatPeerTest()
                 AKalmalaCharacter* Candidate = *It;
                 if (!IsValid(Candidate) || Candidate == Attacker || Candidate == Remote
                     || Candidate->GetPlayerState() == nullptr) continue;
-                Candidate->SetActorLocation(
-                    CombatPeerTestTarget->GetActorLocation() + FVector(0.0f, ObserverOffset, 0.0f), false);
-                Candidate->ForceNetUpdate();
+                const FVector ObserverLocation = CombatPeerTestTarget->GetActorLocation()
+                    + FVector(0.0f, ObserverOffset, 0.0f);
+                PlaceRatTestPeerOnTerrain(Candidate, ObserverLocation);
                 ObserverOffset += 1000;
             }
         }
@@ -1487,6 +1516,18 @@ void AKalmalaGameMode::DriveCombatPeerTest()
         CombatPeerTestStage = 99;
         return;
     }
+    const auto PlacePeerTestTargetInFront = [this, Attacker, Target, bRatPeerTest](const float Distance)
+    {
+        FVector TargetLocation = Attacker->GetActorLocation()
+            + Attacker->GetActorForwardVector().GetSafeNormal2D() * Distance;
+        if (bRatPeerTest)
+        {
+            const FVector2D TargetPosition(TargetLocation);
+            TargetLocation.Z = FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, TargetPosition);
+        }
+        Target->SetActorLocation(TargetLocation, false);
+        Target->ForceNetUpdate();
+    };
 
     // Give the bounded server-only encounter loop enough simulated time to
     // commit one melee hit before asserting replicated pressure. Headless
@@ -1504,7 +1545,7 @@ void AKalmalaGameMode::DriveCombatPeerTest()
             {
                 return;
             }
-            UE_LOG(LogTemp, Error, TEXT("Combat verification FAILED: remote target-free attack mutated the target or the server-owned encounter did not apply pressure. Mutated=%d EncounterPressure=%d Archetype=%d Behaviour=%d Distance=%.1f Health=%.1f ExpectedHealth=%.1f PlayerHealth=%.1f"), bTargetMutated, bEncounterAppliedPressure, static_cast<int32>(Target->GetArchetype()), static_cast<int32>(Target->GetBehaviour()), FVector::Distance(Target->GetActorLocation(), Attacker->GetActorLocation()), Target->GetHealth(), ExpectedTargetHealth, Attacker->GetHealth());
+            UE_LOG(LogTemp, Error, TEXT("Combat verification FAILED: remote target-free attack mutated the target or the server-owned encounter did not apply pressure. Mutated=%d EncounterPressure=%d Archetype=%d Behaviour=%d Distance=%.1f Health=%.1f ExpectedHealth=%.1f PlayerHealth=%.1f AttackerLocation=%s TargetLocation=%s"), bTargetMutated, bEncounterAppliedPressure, static_cast<int32>(Target->GetArchetype()), static_cast<int32>(Target->GetBehaviour()), FVector::Distance(Target->GetActorLocation(), Attacker->GetActorLocation()), Target->GetHealth(), ExpectedTargetHealth, Attacker->GetHealth(), *Attacker->GetActorLocation().ToCompactString(), *Target->GetActorLocation().ToCompactString());
             CombatPeerTestStage = 99;
             return;
         }
@@ -1515,8 +1556,7 @@ void AKalmalaGameMode::DriveCombatPeerTest()
 
     if (CombatPeerTestStage == 2 && AttackerCombat->GetActionPhase() == EKalmalaCombatActionPhase::Idle && CombatPeerTestSequence < ExpectedAttackCount)
     {
-        Target->SetActorLocation(Attacker->GetActorLocation() + Attacker->GetActorForwardVector().GetSafeNormal2D() * 150.0f);
-        Target->ForceNetUpdate();
+        PlacePeerTestTargetInFront(bRatPeerTest ? 50.0f : 150.0f);
         AttackerCombat->ServerRequestAttack(++CombatPeerTestSequence);
         CombatPeerTestStageTime = Now;
         return;
@@ -1527,8 +1567,7 @@ void AKalmalaGameMode::DriveCombatPeerTest()
     // attack contract, so a moving encounter cannot race its windup recheck.
     if (CombatPeerTestStage == 2 && AttackerCombat->GetActionPhase() == EKalmalaCombatActionPhase::Windup)
     {
-        Target->SetActorLocation(Attacker->GetActorLocation() + Attacker->GetActorForwardVector().GetSafeNormal2D() * 150.0f, false);
-        Target->ForceNetUpdate();
+        PlacePeerTestTargetInFront(bRatPeerTest ? 50.0f : 150.0f);
     }
 
     if (bDeerPeerTest && CombatPeerTestSequence > 0 && CombatPeerTestHerdMate.IsValid()
@@ -1562,20 +1601,30 @@ void AKalmalaGameMode::DriveCombatPeerTest()
         const int32 RemoteRatTail = RemoteInventory ? RemoteInventory->GetQuantity(TEXT("RatTail")) : 0;
         int32 OtherPeerCount = 0;
         int32 OtherPeerRatTail = 0;
+        int32 OtherPeerBoneFragment = 0;
         for (TActorIterator<AKalmalaCharacter> It(GetWorld()); It; ++It)
         {
             AKalmalaCharacter* Candidate = *It;
             if (!IsValid(Candidate) || Candidate == Attacker || Candidate->GetPlayerState() == nullptr) continue;
             ++OtherPeerCount;
             const UKalmalaInventoryComponent* CandidateInventory = Candidate->GetInventoryComponent();
-            if (CandidateInventory != nullptr) OtherPeerRatTail += CandidateInventory->GetQuantity(TEXT("RatTail"));
-            else OtherPeerRatTail = MAX_int32;
+            if (CandidateInventory != nullptr)
+            {
+                OtherPeerRatTail += CandidateInventory->GetQuantity(TEXT("RatTail"));
+                OtherPeerBoneFragment += CandidateInventory->GetQuantity(TEXT("BoneFragment"));
+            }
+            else
+            {
+                OtherPeerRatTail = MAX_int32;
+                OtherPeerBoneFragment = MAX_int32;
+            }
         }
         const int32 ExpectedBone = bMoonBearPeerTest ? 3 : 1;
         const bool bExpectedReward = AttackerInventory != nullptr && RemoteInventory != nullptr
             && (bRatPeerTest
-                ? (RatTail == 1 && AttackerBone == 0 && BadgerFur == 0 && BadgerMeat == 0
+                ? (RatTail == 1 && AttackerBone == 1 && BadgerFur == 0 && BadgerMeat == 0
                     && RemoteRatTail == 0 && OtherPeerCount >= 2 && OtherPeerRatTail == 0
+                    && OtherPeerBoneFragment == 0
                     && RemoteBone == 0 && RemoteFur == 0 && RemoteMeat == 0)
                 : (AttackerBone == ExpectedBone
                     && (!bBadgerPeerTest || (BadgerFur == 1 && BadgerMeat == 1))
@@ -1587,9 +1636,9 @@ void AKalmalaGameMode::DriveCombatPeerTest()
             if (bRatPeerTest)
             {
                 UE_LOG(LogTemp, Display,
-                    TEXT("Rat verification server: Passed=1 SeedReproduced=1 BoundedActivation=1 InvalidRejected=1 ActionSerial=%u Health=%.1f PlayerHealth=%.1f Defeated=1 Saved=1 FullPackEscrow=1 RetryDelivered=1 OwnerOnly=1 RatTail=%d RemoteRatTail=%d OtherPeerRatTails=%d OtherPeers=%d Owner=%s SpawnId=%s"),
-                    AttackerCombat->GetActionSerial(), Target->GetHealth(), Attacker->GetHealth(), RatTail, RemoteRatTail,
-                    OtherPeerRatTail, OtherPeerCount,
+                    TEXT("Rat verification server: Passed=1 SeedReproduced=1 BoundedActivation=1 InvalidRejected=1 ActionSerial=%u Health=%.1f PlayerHealth=%.1f Defeated=1 Saved=1 FullPackEscrow=1 RetryDelivered=1 OwnerOnly=1 BoneFragment=%d RatTail=%d RemoteBoneFragment=%d RemoteRatTail=%d OtherPeerBoneFragments=%d OtherPeerRatTails=%d OtherPeers=%d Owner=%s SpawnId=%s"),
+                    AttackerCombat->GetActionSerial(), Target->GetHealth(), Attacker->GetHealth(), AttackerBone,
+                    RatTail, RemoteBone, RemoteRatTail, OtherPeerBoneFragment, OtherPeerRatTail, OtherPeerCount,
                     *OwnerIdentity, *Target->GetPersistentSpawnId());
             }
             else
@@ -1629,7 +1678,10 @@ void AKalmalaGameMode::DriveCombatPeerTest()
             const FString OwnerIdentity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(Attacker->GetPlayerState());
             if (bRatPeerTest && !Target->IsDefeated())
             {
-                UE_LOG(LogTemp, Error, TEXT("Rat verification FAILED: the single accepted server mace hit did not defeat the generated 10-health rat."));
+                UE_LOG(LogTemp, Error,
+                    TEXT("Rat verification FAILED: the single accepted server mace hit did not defeat the generated 10-health rat. Health=%.1f Distance=%.1f AttackerLocation=%s TargetLocation=%s."),
+                    Target->GetHealth(), FVector::Dist(Attacker->GetActorLocation(), Target->GetActorLocation()),
+                    *Attacker->GetActorLocation().ToCompactString(), *Target->GetActorLocation().ToCompactString());
                 CombatPeerTestStage = 99;
                 return;
             }
@@ -1664,14 +1716,23 @@ void AKalmalaGameMode::DriveCombatPeerTest()
             UKalmalaInventoryComponent* RemoteInventory = Remote->GetInventoryComponent();
             int32 OtherPeerCount = 0;
             int32 OtherPeerRatTail = 0;
+            int32 OtherPeerBoneFragment = 0;
             for (TActorIterator<AKalmalaCharacter> It(GetWorld()); It; ++It)
             {
                 AKalmalaCharacter* Candidate = *It;
                 if (!IsValid(Candidate) || Candidate == Attacker || Candidate->GetPlayerState() == nullptr) continue;
                 ++OtherPeerCount;
                 const UKalmalaInventoryComponent* CandidateInventory = Candidate->GetInventoryComponent();
-                if (CandidateInventory != nullptr) OtherPeerRatTail += CandidateInventory->GetQuantity(RatTailId);
-                else OtherPeerRatTail = MAX_int32;
+                if (CandidateInventory != nullptr)
+                {
+                    OtherPeerRatTail += CandidateInventory->GetQuantity(RatTailId);
+                    OtherPeerBoneFragment += CandidateInventory->GetQuantity(BoneFragmentId);
+                }
+                else
+                {
+                    OtherPeerRatTail = MAX_int32;
+                    OtherPeerBoneFragment = MAX_int32;
+                }
             }
             const bool bEscrowedWithoutPartialGrant = Target->IsDefeated() && bOwnerClaimQueued
                 && AttackerInventory != nullptr
@@ -1684,7 +1745,8 @@ void AKalmalaGameMode::DriveCombatPeerTest()
                 && RemoteInventory != nullptr && RemoteInventory->GetQuantity(BoneFragmentId) == 0
                 && RemoteInventory->GetQuantity(BadgerFurId) == 0 && RemoteInventory->GetQuantity(BadgerMeatId) == 0
                 && RemoteInventory->GetQuantity(RatTailId) == 0
-                && (!bRatPeerTest || (OtherPeerCount >= 2 && OtherPeerRatTail == 0));
+                && (!bRatPeerTest || (OtherPeerCount >= 2 && OtherPeerRatTail == 0
+                    && OtherPeerBoneFragment == 0));
             if (!bEscrowedWithoutPartialGrant)
             {
                 UE_LOG(LogTemp, Error,
@@ -1696,7 +1758,7 @@ void AKalmalaGameMode::DriveCombatPeerTest()
             }
 
             int32 FreedCells = 0;
-            const int32 RequiredCells = bBadgerPeerTest ? 3 : 1;
+            const int32 RequiredCells = bRatPeerTest ? 2 : (bBadgerPeerTest ? 3 : 1);
             const int32 FullPackCapacity = UKalmalaInventoryComponent::MaxSlots
                 - AttackerInventory->CountPackedTools(Attacker->GetCarriedToolInventory());
             const TArray<FKalmalaInventoryStack> FullPack = AttackerInventory->GetStacks();
@@ -5241,6 +5303,15 @@ void AKalmalaGameMode::PlacePawnAtGeneratedStart(APlayerController* PlayerContro
         return;
     }
 
+    AActor* SpawnStart = GeneratedPlayerStart;
+#if !UE_BUILD_SHIPPING
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaRatPeerTest"))
+        && PlayerController->StartSpot.IsValid())
+    {
+        SpawnStart = PlayerController->StartSpot.Get();
+    }
+#endif
+
     if (PlayerController->GetPawn() == nullptr)
     {
         RestartPlayer(PlayerController);
@@ -5253,12 +5324,12 @@ void AKalmalaGameMode::PlacePawnAtGeneratedStart(APlayerController* PlayerContro
         return;
     }
 
-    const FVector2D StartPosition(GeneratedPlayerStart->GetActorLocation());
+    const FVector2D StartPosition(SpawnStart->GetActorLocation());
     const float TerrainHeight = FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, StartPosition);
     const float RequiredCentreHeight = TerrainHeight + Pawn->GetSimpleCollisionHalfHeight() + 30.0f;
-    FVector SpawnLocation = GeneratedPlayerStart->GetActorLocation();
+    FVector SpawnLocation = SpawnStart->GetActorLocation();
     SpawnLocation.Z = FMath::Max(SpawnLocation.Z, RequiredCentreHeight);
-    Pawn->SetActorLocationAndRotation(SpawnLocation, GeneratedPlayerStart->GetActorRotation(), false, nullptr, ETeleportType::TeleportPhysics);
+    Pawn->SetActorLocationAndRotation(SpawnLocation, SpawnStart->GetActorRotation(), false, nullptr, ETeleportType::TeleportPhysics);
     Pawn->ForceNetUpdate();
     UE_LOG(LogTemp, Display, TEXT("Server placed %s at generated terrain height %.2f with capsule bottom %.2f."), *Pawn->GetName(), TerrainHeight, SpawnLocation.Z - Pawn->GetSimpleCollisionHalfHeight());
 }
@@ -5382,5 +5453,38 @@ void AKalmalaGameMode::RefreshTerrainPatchNeighborhoods()
 
 AActor* AKalmalaGameMode::ChoosePlayerStart_Implementation(AController* Player)
 {
+#if !UE_BUILD_SHIPPING
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaRatPeerTest"))
+        && Player != nullptr && !Player->IsLocalController() && GeneratedPlayerStart != nullptr && GetWorld() != nullptr)
+    {
+        const FName RatPeerStartTag(TEXT("KalmalaRatPeerTestStart"));
+        if (AActor* ExistingStart = Player->StartSpot.Get(); ExistingStart != nullptr && ExistingStart->ActorHasTag(RatPeerStartTag))
+        {
+            return ExistingStart;
+        }
+
+        int32 ExistingRatPeerStarts = 0;
+        for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+        {
+            AController* ExistingController = It->Get();
+            if (ExistingController != nullptr && ExistingController != Player && !ExistingController->IsLocalController())
+            {
+                const AActor* ExistingStart = ExistingController->StartSpot.Get();
+                if (ExistingStart != nullptr && ExistingStart->ActorHasTag(RatPeerStartTag)) ++ExistingRatPeerStarts;
+            }
+        }
+
+        FActorSpawnParameters SpawnParameters;
+        SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+        const FVector StartLocation = GeneratedPlayerStart->GetActorLocation() + FVector(0.0f, 1000.0f * (ExistingRatPeerStarts + 1), 0.0f);
+        APlayerStart* RatPeerStart = GetWorld()->SpawnActor<APlayerStart>(
+            APlayerStart::StaticClass(), StartLocation, GeneratedPlayerStart->GetActorRotation(), SpawnParameters);
+        if (RatPeerStart != nullptr)
+        {
+            RatPeerStart->Tags.Add(RatPeerStartTag);
+            return RatPeerStart;
+        }
+    }
+#endif
     return GeneratedPlayerStart != nullptr ? GeneratedPlayerStart : Super::ChoosePlayerStart_Implementation(Player);
 }

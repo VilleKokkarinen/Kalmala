@@ -33,8 +33,8 @@ try {
         $clientText = if (Test-Path $clientLog) { Get-Content $clientLog -Raw } else { '' }
         $remoteClientText = if (Test-Path $remoteClientLog) { Get-Content $remoteClientLog -Raw } else { '' }
         $peerText = $clientText + $remoteClientText
-        if (($serverText + $peerText) -match 'Fatal error:|Assertion failed:|Ensure condition failed:|Rat verification FAILED:|Rat verification server: Passed=0') { throw 'Rat peer verification failed; inspect retained logs.' }
-        $ready = $serverText -match 'Rat verification server: Passed=1 SeedReproduced=1 BoundedActivation=1 InvalidRejected=1 ActionSerial=1 Health=0\.0 PlayerHealth=[0-9]+\.0 Defeated=1 Saved=1 FullPackEscrow=1 RetryDelivered=1 OwnerOnly=1 RatTail=1 RemoteRatTail=0 OtherPeerRatTails=0 OtherPeers=(?:[2-9]|[1-9][0-9]+)'
+        if (($serverText + $peerText) -match 'Fatal error:|Assertion failed:|Ensure condition failed:|Combat verification FAILED:|Rat verification FAILED:|Rat verification server: Passed=0') { throw 'Rat peer verification failed; inspect retained logs.' }
+        $ready = $serverText -match 'Rat verification server: Passed=1 SeedReproduced=1 BoundedActivation=1 InvalidRejected=1 ActionSerial=1 Health=0\.0 PlayerHealth=[0-9]+\.0 Defeated=1 Saved=1 FullPackEscrow=1 RetryDelivered=1 OwnerOnly=1 BoneFragment=1 RatTail=1 RemoteBoneFragment=0 RemoteRatTail=0 OtherPeerBoneFragments=0 OtherPeerRatTails=0 OtherPeers=(?:[2-9]|[1-9][0-9]+)'
         $ready = $ready -and $clientText -match 'Rat verification client rejected invalid owned attack without target data\.'
         $ready = $ready -and $remoteClientText -match 'Rat verification client rejected invalid owned attack without target data\.'
         $ready = $ready -and $clientText -match 'Rat verification client observed shared action serial=1\.'
