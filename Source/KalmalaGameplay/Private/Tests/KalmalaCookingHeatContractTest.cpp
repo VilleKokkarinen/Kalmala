@@ -28,6 +28,7 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
     const FKalmalaRecipe* CookRecipe = Recipes->Find(TEXT("CookedBoarMeatRecipe"));
     const FKalmalaRecipe* WolfPeltBootsRecipe = Recipes->Find(TEXT("WolfPeltBootsRecipe"));
     const FKalmalaRecipe* WolfStewRecipe = Recipes->Find(TEXT("WolfStewRecipe"));
+    const FKalmalaRecipe* LynxMantleRecipe = Recipes->Find(TEXT("LynxMantleRecipe"));
     const FKalmalaRecipe* PeatHeartStewRecipe = Recipes->Find(TEXT("PeatHeartStewRecipe"));
     const FKalmalaRecipe* BrothRecipe = Recipes->Find(TEXT("HearthBrothRecipe"));
     const FKalmalaRecipe* MeatStewRecipe = Recipes->Find(TEXT("MeatStewRecipe"));
@@ -38,6 +39,7 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
     if (!TestNotNull(TEXT("Cooked boar recipe exists"), CookRecipe)
         || !TestNotNull(TEXT("Wolf Pelt Boots recipe exists"), WolfPeltBootsRecipe)
         || !TestNotNull(TEXT("Wolf Stew recipe exists"), WolfStewRecipe)
+        || !TestNotNull(TEXT("Lynx Mantle recipe exists"), LynxMantleRecipe)
         || !TestNotNull(TEXT("Peat Heart Stew recipe exists"), PeatHeartStewRecipe)
         || !TestNotNull(TEXT("Hearth broth recipe exists"), BrothRecipe)
         || !TestNotNull(TEXT("Meat stew recipe exists"), MeatStewRecipe)
@@ -356,6 +358,12 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Missing Workbench preserves all five Wolf Pelts"), Inventory->GetQuantity(TEXT("WolfPelt")), 5);
     TestEqual(TEXT("Missing Workbench preserves all five Iron"), Inventory->GetQuantity(TEXT("Iron")), 5);
     TestEqual(TEXT("Missing Workbench creates no boots"), Inventory->GetQuantity(TEXT("WolfPeltBoots")), 0);
+    TestTrue(TEXT("Fixture grants the four Lynx Pelts for a Mantle"),
+        Inventory->TryGrantFromServer(TEXT("LynxPelt"), 4));
+    TestFalse(TEXT("Lynx Mantle rejects crafting while the Workbench is missing"),
+        Crafting->CraftFromServer(LynxMantleRecipe->RecipeId, 1, Reason));
+    TestEqual(TEXT("Missing Workbench preserves all four Lynx Pelts"), Inventory->GetQuantity(TEXT("LynxPelt")), 4);
+    TestEqual(TEXT("Missing Workbench creates no Lynx Mantle"), Inventory->GetQuantity(TEXT("LynxMantle")), 0);
 
     AKalmalaConstructionActor* Workbench = World->SpawnActor<AKalmalaConstructionActor>();
     if (!TestNotNull(TEXT("Workbench fixture spawned"), Workbench))
@@ -401,6 +409,31 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
             EquippedBoots && EquippedBoots->ItemId == TEXT("WolfPeltBoots")
             && EquippedBoots->ItemGuid == BootsGuid);
         TestEqual(TEXT("Equipped boots leave the carried inventory"), Inventory->GetQuantity(TEXT("WolfPeltBoots")), 0);
+    }
+
+    const int32 LynxPeltBeforeMantle = Inventory->GetQuantity(TEXT("LynxPelt"));
+    TestTrue(TEXT("Lynx Mantle crafts at the accepted Workbench"),
+        Crafting->CraftFromServer(LynxMantleRecipe->RecipeId, 1, Reason));
+    TestEqual(TEXT("Lynx Mantle consumes four Lynx Pelts"),
+        Inventory->GetQuantity(TEXT("LynxPelt")), LynxPeltBeforeMantle - 4);
+    TestEqual(TEXT("Accepted Workbench craft grants one Lynx Mantle"),
+        Inventory->GetQuantity(TEXT("LynxMantle")), 1);
+    const TArray<FKalmalaInventoryStack> CraftedMantleStacks = Inventory->GetStacks();
+    const FKalmalaInventoryStack* CraftedMantle = CraftedMantleStacks.FindByPredicate(
+        [](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == TEXT("LynxMantle"); });
+    TestTrue(TEXT("Crafted Lynx Mantle carries one physical item GUID"),
+        CraftedMantle && CraftedMantle->ItemGuids.Num() == 1);
+    if (CraftedMantle && CraftedMantle->ItemGuids.Num() == 1)
+    {
+        const FGuid MantleGuid = CraftedMantle->ItemGuids[0];
+        TestTrue(TEXT("Server equips crafted Lynx Mantle by item GUID"),
+            Inventory->EquipGearFromServer(MantleGuid, Reason));
+        const FKalmalaEquippedGear* EquippedMantle = Inventory->FindEquippedGear(EKalmalaGearSlot::Cape);
+        TestTrue(TEXT("Crafted Lynx Mantle occupies Cape and retains its GUID"),
+            EquippedMantle && EquippedMantle->ItemId == TEXT("LynxMantle")
+            && EquippedMantle->ItemGuid == MantleGuid);
+        TestEqual(TEXT("Equipped Lynx Mantle leaves the carried inventory"),
+            Inventory->GetQuantity(TEXT("LynxMantle")), 0);
     }
 
     Forge->SetActorLocation(Pawn->GetActorLocation() + FVector(-150.0f, 150.0f, 0.0f));

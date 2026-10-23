@@ -5780,10 +5780,18 @@ exact-GUID Cape replacement and return. The Workbench crafting-scope marker
 includes the registered Lynx Mantle recipe. Its existing original imported
 icon and runtime mapping are covered by
 `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id LynxMantle`.
-`Verify-Crafting.ps1` and `Verify-PresentationOwnership.ps1` retain the route
-anchors for the combined menu acceptance. These C++ assertions remain
-uncompiled/unexecuted in this normal child; combined A8a/A8b I4 is still
-required.
+`Kalmala.Gameplay.Food.CookingStationHeat` also rejects Lynx Mantle without a
+nearby Workbench while preserving all four Lynx Pelts, then crafts one Mantle
+at the accepted server Workbench, consumes the exact recipe cost, and equips
+the GUID-addressed output into Cape. `Verify-Crafting.ps1` and
+`Verify-PresentationOwnership.ps1` retain the route anchors for combined menu
+acceptance. On 2026-10-23 the isolated `KalmalaEditor Win64 Development` build
+passed in four actions; `CookingStationHeat`, `WornGearTransactions`, and
+`ToolProgressionCatalogue` all passed (`Result={Success}`, Editor exit 0).
+Logs: `C:/Users/Ville/AppData/Local/Temp/a8lm1/tests.log` and
+`C:/Users/Ville/AppData/Local/Temp/a8lm1/build.log`. These server-world and
+catalogue checks do not replace live peer crafting/equipment or owner UI
+acceptance in combined A8a/A8b I4.
 
 ## A8b Polar Bear Coat item coverage — 2026-10-22
 
