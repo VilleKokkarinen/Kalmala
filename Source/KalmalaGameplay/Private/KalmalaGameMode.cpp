@@ -617,12 +617,21 @@ void AKalmalaGameMode::BeginPlay()
 
 void AKalmalaGameMode::LoadPopulationSave()
 {
-    PopulationSaveGame = Cast<UKalmalaWorldPopulationSaveGame>(UGameplayStatics::LoadGameFromSlot(KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0));
-    if (PopulationSaveGame == nullptr || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig))
+    const FString Slot = KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig);
+    PopulationSaveGame = nullptr;
+    if (UGameplayStatics::DoesSaveGameExist(Slot, 0))
     {
-        PopulationSaveGame = NewObject<UKalmalaWorldPopulationSaveGame>(this);
-        PopulationSaveGame->InitializeForWorld(WorldGenerationConfig);
+        auto* Loaded = Cast<UKalmalaWorldPopulationSaveGame>(UGameplayStatics::LoadGameFromSlot(Slot, 0));
+        if (!Loaded || !Loaded->MatchesWorld(WorldGenerationConfig))
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Population save rejected: existing data is incompatible or invalid; preserved without overwrite."));
+            return;
+        }
+        PopulationSaveGame = Loaded;
+        return;
     }
+    PopulationSaveGame = NewObject<UKalmalaWorldPopulationSaveGame>(this);
+    PopulationSaveGame->InitializeForWorld(WorldGenerationConfig);
 }
 
 void AKalmalaGameMode::SpawnOceanTravelTestFixture()
