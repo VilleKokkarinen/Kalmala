@@ -35,6 +35,13 @@ struct FKalmalaGemstoneContract
         if (Source == TEXT("gem-opal-rock")) return TEXT("StarOpal");
         return NAME_None;
     }
+    // Flip only after the independent A8/I4 source acceptance is integrated.
+    static constexpr bool EnemySourcesAccepted = false;
+    static FName SelectEnemyGem(bool bMoonBear, EKalmalaBiome Biome, uint64 Seed)
+    {
+        return bMoonBear && Biome == EKalmalaBiome::Elderwood && Mix(Seed ^ 0xA9B3A2ull) % 50 == 0
+            ? FName(TEXT("Moonstone")) : NAME_None;
+    }
     static bool IsAcquisitionEnabled(FName Source) { return Source == TEXT("gem-quartz-rock"); }
     static int32 MinimumPickTier(FName Source) { return Source == TEXT("gem-amethyst-rock") ? 2 : 1; }
     static bool IsGemSource(FName Source) { return !ItemForSource(Source).IsNone(); }

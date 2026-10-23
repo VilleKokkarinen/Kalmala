@@ -38,6 +38,14 @@ bool FKalmalaGemstoneContractTest::RunTest(const FString& Parameters)
     }
     TestTrue(TEXT("Quartz selection is near five percent"), Quartz > 400 && Quartz < 600);
     TestTrue(TEXT("Jade selection is near two percent"), Jade > 140 && Jade < 260);
+    int32 Moonstones = 0;
+    for (uint64 Seed = 0; Seed < 10000; ++Seed)
+    {
+        Moonstones += FKalmalaGemstoneContract::SelectEnemyGem(true, EKalmalaBiome::Elderwood, Seed) == TEXT("Moonstone");
+        TestTrue(TEXT("Non-bear cannot yield Moonstone"), FKalmalaGemstoneContract::SelectEnemyGem(false, EKalmalaBiome::Elderwood, Seed).IsNone());
+        TestTrue(TEXT("Wrong-biome bear cannot yield Moonstone"), FKalmalaGemstoneContract::SelectEnemyGem(true, EKalmalaBiome::Meadows, Seed).IsNone());
+    }
+    TestTrue(TEXT("Moonstone selection is near two percent"), Moonstones > 140 && Moonstones < 260);
     const FKalmalaWorldGenerationConfig Config;
     auto* Save = NewObject<UKalmalaWorldPopulationSaveGame>();
     Save->InitializeForWorld(Config);

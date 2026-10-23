@@ -40,6 +40,9 @@ void UKalmalaWorldPopulationSaveGame::InitializeForWorld(const FKalmalaWorldGene
 bool UKalmalaWorldPopulationSaveGame::MatchesWorld(const FKalmalaWorldGenerationConfig& InWorldConfig) const
 {
     if (SchemaVersion != 2 || WorldConfig != InWorldConfig || Gemstones.Num() > 65536) return false;
+    for (const auto& Reward : PendingWildlifeRewards)
+        if (!Reward.GemItemId.IsNone() && !(Reward.GemItemId == TEXT("Moonstone")
+            && Reward.PersistentSpawnId.StartsWith(TEXT("moonbear-reward|")))) return false;
     TSet<FString> Seen;
     for (const FKalmalaGemstoneState& State : Gemstones)
     {
@@ -618,4 +621,13 @@ bool UKalmalaWorldPopulationSaveGame::SetGemstone(const FKalmalaGemstoneState& S
 bool UKalmalaWorldPopulationSaveGame::RemoveGemstone(const FString& SpawnId)
 {
     return Gemstones.RemoveAll([&SpawnId](const auto& State) { return State.SpawnId == SpawnId; }) == 1;
+}
+
+bool UKalmalaWorldPopulationSaveGame::SetPendingGemReward(const FString& ClaimId, const FName GemItemId)
+{
+    if (!GemItemId.IsNone() && !(GemItemId == TEXT("Moonstone") && ClaimId.StartsWith(TEXT("moonbear-reward|")))) return false;
+    auto* Reward = PendingWildlifeRewards.FindByPredicate([&ClaimId](const auto& Entry) { return Entry.PersistentSpawnId == ClaimId; });
+    if (!Reward) return false;
+    Reward->GemItemId = GemItemId;
+    return true;
 }

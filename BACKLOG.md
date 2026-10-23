@@ -323,6 +323,8 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     - [x] Add and register the complete raw-gem item JSON; record recipe and combat/equipment/upgrade categories as N/A.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
     - [ ] Add or enable the Moon Bear reward-table entry last, after item JSON/icon completion and accepted A8a source.
+      - [x] Prepare validated generated-Moon-Bear selection, persisted optional gem payload and atomic full-reward delivery; icon check passed.
+      - [ ] Enable the prepared source after I4 acceptance is integrated; current EnemySourcesAccepted flag remains false.
   - [ ] Garnet (`Garnet`): proposed 10% chance of 1 in Elderwood/Lakes world treasure chests; chest-only.
     - [x] Add and register the complete raw-gem item JSON; record recipe and combat/equipment/upgrade categories as N/A.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.

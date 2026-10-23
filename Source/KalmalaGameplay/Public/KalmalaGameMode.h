@@ -58,6 +58,7 @@ public:
     bool PersistGemstoneState(const struct FKalmalaGemstoneState& State, uint8 ExpectedHits, uint8 ExpectedOutcome);
     bool RecordRatDefeatReward(const FString& PersistentSpawnId, class AKalmalaCharacter* CreditedAttacker);
     bool RecordBadgerDefeatReward(const FString& PersistentSpawnId, class AKalmalaCharacter* CreditedAttacker);
+    FName SelectEnemyGemForSpawn(const FString& SpawnId, bool bMoonBear) const;
     bool RecordMoonBearDefeatReward(const FString& PersistentSpawnId, class AKalmalaCharacter* CreditedAttacker);
     bool RecordViperDefeatReward(const FString& PersistentSpawnId, class AKalmalaCharacter* CreditedAttacker);
     bool RecordGiantSnakeDefeatReward(const FString& PersistentSpawnId, class AKalmalaCharacter* CreditedAttacker);

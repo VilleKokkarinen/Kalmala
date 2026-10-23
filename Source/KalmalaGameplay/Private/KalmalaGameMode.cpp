@@ -5424,6 +5424,10 @@ bool AKalmalaGameMode::RecordMoonBearDefeatReward(const FString& PersistentSpawn
         const FString Identity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(CreditedAttacker->GetPlayerState());
         if (!Identity.IsEmpty() && !PopulationSaveGame->TryQueuePendingMoonBearReward(PersistentSpawnId, Identity))
             return false;
+        if (!Identity.IsEmpty() && FKalmalaGemstoneContract::EnemySourcesAccepted
+            && !PopulationSaveGame->SetPendingGemReward(
+                UKalmalaWorldPopulationSaveGame::MakeMoonBearPendingRewardClaimId(PersistentSpawnId),
+                SelectEnemyGemForSpawn(PersistentSpawnId, true))) return false;
     }
 
     PopulationSaveGame->MarkDefeated(PersistentSpawnId);
@@ -5969,8 +5973,35 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
                     break;
                 }
             }
-            if (!Inventory->CanFitContents(Candidate, Inventory->CountPackedTools(Character->GetCarriedToolInventory()))
-                || !Inventory->TryCommitStacksFromServer(Before, Candidate)) break;
+            if (!Reward.GemItemId.IsNone())
+            {
+                TArray<FKalmalaInventoryStack> WithGem;
+                if (!UKalmalaInventoryComponent::BuildGrant(Candidate, Reward.GemItemId, 1, WithGem, Reason)) break;
+                Candidate = MoveTemp(WithGem);
+            }
+            if (!Inventory->CanFitContents(Candidate, Inventory->CountPackedTools(Character->GetCarriedToolInventory()))) break;
+            // A9 successful gem claims must be removed durably before inventory publication.
+            // The game thread cannot service a competing request during this synchronous transaction.
+            if (!Reward.GemItemId.IsNone())
+            {
+                PopulationSaveGame->RemovePendingWildlifeReward(Reward.PersistentSpawnId);
+                const auto RestoreClaim = [&]()
+                {
+                    PopulationSaveGame->TryQueuePendingWildlifeReward(Reward.PersistentSpawnId, Reward.PlayerIdentity);
+                    PopulationSaveGame->SetPendingGemReward(Reward.PersistentSpawnId, Reward.GemItemId);
+                };
+                if (!UGameplayStatics::SaveGameToSlot(PopulationSaveGame,
+                    KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0)) { RestoreClaim(); break; }
+                if (!Inventory->TryCommitStacksFromServer(Before, Candidate))
+                {
+                    RestoreClaim();
+                    UGameplayStatics::SaveGameToSlot(PopulationSaveGame, KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+                    break;
+                }
+                DeliveredWildlifeRewardSpawnIds.Add(Reward.PersistentSpawnId);
+                break;
+            }
+            if (!Inventory->TryCommitStacksFromServer(Before, Candidate)) break;
 
             // The reward claim ID is durable; keep a session guard if cleanup fails after the
             // inventory has accepted the complete reward.
@@ -7951,4 +7982,28 @@ bool AKalmalaGameMode::PersistGemstoneState(const FKalmalaGemstoneState& State,
     if (bHadExisting) PopulationSaveGame->SetGemstone(Before);
     else PopulationSaveGame->RemoveGemstone(State.SpawnId);
     return false;
+}
+
+FName AKalmalaGameMode::SelectEnemyGemForSpawn(const FString& SpawnId, const bool bMoonBear) const
+{
+    if (!HasAuthority()) return NAME_None;
+    TArray<FString> Parts;
+    SpawnId.ParseIntoArray(Parts, TEXT("/"), false);
+    int32 Kind = -1, X = 0, Y = 0;
+    uint64 Seed = 0;
+    if (Parts.Num() != 4 || !LexTryParseString(Kind, *Parts[0]) || !LexTryParseString(X, *Parts[1])
+        || !LexTryParseString(Y, *Parts[2]) || !LexTryParseString(Seed, *Parts[3])
+        || Kind != int32(EKalmalaWorldPopulationKind::Wildlife)) return NAME_None;
+    for (const auto& Spawn : FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(
+        WorldGenerationConfig, FIntPoint(X, Y), EKalmalaWorldPopulationKind::Wildlife))
+    {
+        if (FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Spawn) != SpawnId) continue;
+        const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(
+            FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, FVector2D(Spawn.Location)));
+        EKalmalaWildlifeArchetype Archetype;
+        if (!AKalmalaWildlifeSpawn::TryGetSpawnArchetypeForBiome(Spawn.SpawnSeed, Biome, Archetype)
+            || Archetype != EKalmalaWildlifeArchetype::MoonBear || !bMoonBear) return NAME_None;
+        return FKalmalaGemstoneContract::SelectEnemyGem(true, Biome, Seed ^ WorldGenerationConfig.WorldSeed);
+    }
+    return NAME_None;
 }

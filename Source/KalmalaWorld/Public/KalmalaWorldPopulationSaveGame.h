@@ -14,6 +14,7 @@ struct KALMALAWORLD_API FKalmalaPendingWildlifeReward
     // Peat Husk IDs also retain its one-time Peat Heart roll outcome.
     UPROPERTY(SaveGame) FString PersistentSpawnId;
     UPROPERTY(SaveGame) FString PlayerIdentity;
+    UPROPERTY(SaveGame) FName GemItemId;
 };
 
 /** Sparse attack-driven gemstone progress. Outcome 0 intact, 1 shattered, 2 loose, 3 claimed. */
@@ -96,6 +97,7 @@ public:
     static FString MakeReefMawPendingRewardClaimId(const FString& PersistentSpawnId, bool bHasReefTooth);
     static bool TryGetReefMawSpawnIdFromPendingRewardClaimId(
         const FString& ClaimId, FString& OutPersistentSpawnId, bool& OutHasReefTooth);
+    bool SetPendingGemReward(const FString& ClaimId, FName GemItemId);
     bool RemovePendingWildlifeReward(const FString& RewardClaimId);
     const TArray<FKalmalaPendingWildlifeReward>& GetPendingWildlifeRewards() const { return PendingWildlifeRewards; }
 

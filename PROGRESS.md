@@ -6597,3 +6597,10 @@
 
 - Source inspection found the old population loader replaced incompatible loaded data with a fresh writable object, which could overwrite the schema-1 slot after the approved schema bump. The loader now distinguishes an absent slot from an existing invalid/incompatible one: existing rejected files remain untouched and population persistence remains unavailable. Valid schema-2 slots still load normally. No migration, deletion or save write was performed.
 - Files: GameMode.cpp and PROGRESS.md. Check: git diff --check plus null-guard inspection of population-write entry points. Full build/executed save-file validation deferred to I5. This repairs the schema-2 contract introduced by this A9 work. Next remains Moonstone's I4-dependent source implementation, then Garnet. Main unchanged.
+
+
+## A9 independent worker — Moonstone source prepared, I4-gated (2026-10-23)
+
+- Prepared the Moonstone 1/50 reward alongside normal Moon Bear loot. The source helper reconstructs the canonical generated wildlife descriptor from its stable ID, checks Moon Bear archetype and Elderwood spawn biome, then uses a domain-separated seed. The optional gem payload is saved with the credited pending reward, and full-pack retry preserves the entire reward. A9 successful gem claims require durable queue removal before the complete inventory transaction publishes; failure retains the claim without granting. No client-selected rate/item/source is accepted.
+- `EnemySourcesAccepted` deliberately remains false pending the independent I4 gate. The source parent and enable child remain unchecked; no accepted Moonstone acquisition is claimed.
+- Files: GemstoneContract, WorldPopulationSaveGame, GameMode, GemstoneTest, BACKLOG/PROGRESS. Added biome/species exclusion and broad seed-rate coverage; not executed. `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id Moonstone` and git diff --check passed; changed paths below 260. Full Unreal/peer/restart verification deferred. Next unblocked work: Garnet's approved treasure prerequisite and source; main remains untouched.
