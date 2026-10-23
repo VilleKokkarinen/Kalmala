@@ -53,6 +53,8 @@ private:
     void StepSelection(int32 Direction);
     bool NavigateInventoryMenu(FKey Key);
     UFUNCTION() void RepairSelectedTool();
+    UFUNCTION() void UpgradeOpalHelm();
+    UFUNCTION() void RepairOpalHelm();
     UFUNCTION() void EatSelectedFood();
     void RefreshFoodActionPresentation(const FKalmalaCatalogueRow* SelectedRow, int32 TextScale, int32 Contrast);
     void RefreshGearPresentation(int32 TextScale, int32 Contrast);
@@ -82,6 +84,8 @@ private:
     UPROPERTY(Transient) TObjectPtr<UBorder> GearDividerRule;
     UPROPERTY(Transient) TObjectPtr<UKalmalaCraftingWidget> CraftingCompanion;
     UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> RepairToolButton;
+    UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> UpgradeOpalButton;
+    UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> RepairOpalButton;
     UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> EatFoodButton;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> FoodActionStatusText;
     UPROPERTY(Transient) TArray<TObjectPtr<UKalmalaThemedButton>> GearSlotButtons;

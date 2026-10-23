@@ -328,7 +328,7 @@ bool AKalmalaCharacter::ApplyWildlifeDamageFromServer(const AActor* SourceActor,
         for (const FKalmalaEquippedGear& Gear : Inventory->GetEquippedGear())
         {
             FKalmalaGearLevelStats GearStats;
-            if (!ItemCatalogue->GetGearLevelStats(Gear.ItemId, 1, GearStats)) return false;
+            if (!ItemCatalogue->GetGearLevelStats(Gear.ItemId, Gear.Level, GearStats)) return false;
             if (GearStats.MaxDurability > 0
                 && (Gear.ConditionSpent < 0 || Gear.ConditionSpent >= GearStats.MaxDurability)) continue;
             GearArmor += GearStats.Armor;

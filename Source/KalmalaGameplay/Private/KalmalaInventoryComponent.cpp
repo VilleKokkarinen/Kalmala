@@ -310,7 +310,10 @@ bool UKalmalaInventoryComponent::EquipGearFromServer(const FGuid ItemGuid, FStri
     }
 
     for (FKalmalaEquippedGear& Gear : CandidateGear)
+    {
         Gear.ConditionSpent = SessionGearWear.FindRef(Gear.ItemGuid);
+        Gear.Level = SessionGearLevels.Contains(Gear.ItemGuid) ? SessionGearLevels.FindRef(Gear.ItemGuid) : 1;
+    }
 
     Stacks = MoveTemp(CandidateStacks);
     EquippedGear = MoveTemp(CandidateGear);
@@ -363,7 +366,7 @@ void UKalmalaInventoryComponent::WearEquippedGearFromServer()
     for (FKalmalaEquippedGear& Gear : EquippedGear)
     {
         FKalmalaGearLevelStats Stats;
-        if (!Catalogue->GetGearLevelStats(Gear.ItemId, 1, Stats) || Stats.MaxDurability <= 0
+        if (!Catalogue->GetGearLevelStats(Gear.ItemId, Gear.Level, Stats) || Stats.MaxDurability <= 0
             || Gear.ConditionSpent < 0 || Gear.ConditionSpent >= Stats.MaxDurability) continue;
         ++Gear.ConditionSpent;
         SessionGearWear.Add(Gear.ItemGuid, Gear.ConditionSpent);

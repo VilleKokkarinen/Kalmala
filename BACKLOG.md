@@ -393,9 +393,9 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     - [x] Add and register the complete item/equipment/stat JSON first, with applicable N/A categories recorded.
     - [x] Add and register its Forge recipe using the values finalized by Review A9.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
-  - [ ] Opal Helm (`OpalHelm`): finalize its Forge recipe and armor profile in Review A9; see the A9 item contract.
+  - [x] Opal Helm (`OpalHelm`): finalized Forge acquisition, session-only levels/upgrades/free repair, level-aware physical Armor/wear/condition display and original icon.
     - [x] Complete ordinary Forge crafting and paid-output/GUID Head-slot equip coverage.
-    - [ ] Integrate session-owned levels, Forge upgrades/free repair and level-aware wear/Armor/presentation; preserve existing gear-save limits.
+    - [x] Integrate session-owned levels, Forge upgrades/free repair and level-aware wear/Armor/presentation; preserve existing gear-save limits.
     - [x] Add and register the complete item/equipment/profile JSON first, with applicable N/A categories recorded.
     - [x] Add and register its Forge recipe using the values finalized by Review A9.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.

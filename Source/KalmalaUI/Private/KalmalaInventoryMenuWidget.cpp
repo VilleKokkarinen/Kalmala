@@ -275,6 +275,10 @@ void UKalmalaInventoryMenuWidget::NativeOnInitialized()
     PreferArrowsButton->OnClicked.AddDynamic(this, &ThisClass::PreferSelectedArrows);
     RepairToolButton = AddAction(TEXT("Repair selected tool"));
     RepairToolButton->OnClicked.AddDynamic(this, &ThisClass::RepairSelectedTool);
+    UpgradeOpalButton = AddAction(TEXT("Upgrade equipped Opal Helm at Forge"));
+    UpgradeOpalButton->OnClicked.AddDynamic(this, &ThisClass::UpgradeOpalHelm);
+    RepairOpalButton = AddAction(TEXT("Repair equipped Opal Helm at Forge (free)"));
+    RepairOpalButton->OnClicked.AddDynamic(this, &ThisClass::RepairOpalHelm);
     ToolActionStatusText = AddText(TEXT(""), false);
     ToolActionStatusText->SetVisibility(ESlateVisibility::Collapsed);
     EatFoodButton = AddAction(TEXT("Eat one serving"));
@@ -823,6 +827,19 @@ void UKalmalaInventoryMenuWidget::RefreshGearPresentation(const int32 TextScale,
     const FGuid SelectedGuid = SelectedGridInstanceGuid.IsValid() ? SelectedGridInstanceGuid
         : SelectedRow ? SelectedRow->ItemGuid : FGuid();
 
+    const auto* Opal = Inventory ? Inventory->FindEquippedGear(EKalmalaGearSlot::Head) : nullptr;
+    const bool bOpal = Opal && Opal->ItemId == TEXT("OpalHelm");
+    if (UpgradeOpalButton)
+    {
+        UpgradeOpalButton->SetVisibility(bOpal ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+        UpgradeOpalButton->SetIsEnabled(bOpal && Opal->Level < 10);
+        UpgradeOpalButton->SetToolTipText(FText::FromString(TEXT("Forge level 1 within 2.5 m. Base cost: 5 Iron + 2 Deer Hide; doubles for each current level. Maximum level 10.")));
+    }
+    if (RepairOpalButton)
+    {
+        RepairOpalButton->SetVisibility(bOpal ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+        RepairOpalButton->SetIsEnabled(bOpal && Opal->ConditionSpent > 0);
+    }
     const bool bTwoHanded = Inventory && FKalmalaToolLifecycleContract::IsTwoHanded(Inventory->GetActiveItem());
     for (int32 Index = 0; Index < 8; ++Index)
     {
@@ -845,9 +862,9 @@ void UKalmalaInventoryMenuWidget::RefreshGearPresentation(const int32 TextScale,
             const FKalmalaItemDefinition* Definition = Catalogue ? Catalogue->FindItem(Equipped->ItemId) : nullptr;
             State = Definition ? Definition->DisplayName : Equipped->ItemId.ToString();
             FKalmalaGearLevelStats Stats;
-            if (Catalogue && Catalogue->GetGearLevelStats(Equipped->ItemId, 1, Stats)
+            if (Catalogue && Catalogue->GetGearLevelStats(Equipped->ItemId, Equipped->Level, Stats)
                 && Stats.MaxDurability > 0)
-                State += FString::Printf(TEXT(" (%d/%d)"),
+                State += FString::Printf(TEXT(" L%d (%d/%d)"), Equipped->Level,
                     FMath::Max(0, Stats.MaxDurability - Equipped->ConditionSpent), Stats.MaxDurability);
             Button->SetToolTipText(FText::FromString(bCanEquip
                 ? FString::Printf(TEXT("Click to replace %s with the selected gear."), *State)
@@ -1338,4 +1355,24 @@ void UKalmalaInventoryMenuWidget::PreferSelectedArrows()
             && !UKalmalaToolCatalogue::Get()->GetAttacks(Stack.ItemId).IsEmpty()))
             && (Stack.InstanceGuid == SelectedGridInstanceGuid || Stack.ItemGuids.Contains(SelectedGridInstanceGuid)))
         { Combat->ServerPreferArrowStack(Combat->GetPreferredArrowStack() == Stack.InstanceGuid ? FGuid() : SelectedGridInstanceGuid); return; }
+}
+
+void UKalmalaInventoryMenuWidget::UpgradeOpalHelm()
+{
+    auto* Character = Cast<AKalmalaCharacter>(GetOwningPlayerPawn());
+    auto* Inventory = Character ? Character->GetInventoryComponent() : nullptr;
+    const auto* Gear = Inventory ? Inventory->FindEquippedGear(EKalmalaGearSlot::Head) : nullptr;
+    auto* Crafting = Character ? Character->FindComponentByClass<UKalmalaCraftingComponent>() : nullptr;
+    if (Character && Character->IsLocallyControlled() && Gear && Gear->ItemId == TEXT("OpalHelm") && Crafting)
+        Crafting->ServerUpgradeOpalHelm(Gear->ItemGuid);
+}
+
+void UKalmalaInventoryMenuWidget::RepairOpalHelm()
+{
+    auto* Character = Cast<AKalmalaCharacter>(GetOwningPlayerPawn());
+    auto* Inventory = Character ? Character->GetInventoryComponent() : nullptr;
+    const auto* Gear = Inventory ? Inventory->FindEquippedGear(EKalmalaGearSlot::Head) : nullptr;
+    auto* Crafting = Character ? Character->FindComponentByClass<UKalmalaCraftingComponent>() : nullptr;
+    if (Character && Character->IsLocallyControlled() && Gear && Gear->ItemId == TEXT("OpalHelm") && Crafting)
+        Crafting->ServerRepairOpalHelm(Gear->ItemGuid);
 }
