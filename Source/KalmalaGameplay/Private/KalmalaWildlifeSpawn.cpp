@@ -4592,6 +4592,20 @@ void AKalmalaWildlifeSpawn::OnRep_PolarBearAttackCue()
 void AKalmalaWildlifeSpawn::OnRep_HornedGoatAttackCue()
 {
     BuildArchetypePresentation();
+#if !UE_BUILD_SHIPPING
+    if (!HasAuthority() && FParse::Param(FCommandLine::Get(), TEXT("KalmalaHornedGoatPeerTest"))
+        && Archetype == EKalmalaWildlifeArchetype::HornedGoat)
+    {
+        const EKalmalaWildlifeAttackCue Cue = static_cast<EKalmalaWildlifeAttackCue>(HornedGoatAttackCue);
+        UE_LOG(LogTemp, Display, TEXT("Horned Goat verification client received actor: SpawnId=%s Cue=%d."),
+            *PersistentSpawnId, static_cast<int32>(Cue));
+        if (Cue == EKalmalaWildlifeAttackCue::Telegraph)
+        {
+            UE_LOG(LogTemp, Display, TEXT("Horned Goat verification client observed replicated telegraph: SpawnId=%s."),
+                *PersistentSpawnId);
+        }
+    }
+#endif
 }
 
 void AKalmalaWildlifeSpawn::OnRep_ThunderSentinelAttackCue()

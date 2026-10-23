@@ -3885,6 +3885,354 @@ void AKalmalaGameMode::DrivePolarBearPeerTest()
 #endif
 }
 
+void AKalmalaGameMode::DriveHornedGoatPeerTest()
+{
+#if !UE_BUILD_SHIPPING
+    if (!FParse::Param(FCommandLine::Get(), TEXT("KalmalaHornedGoatPeerTest"))
+        || !HasAuthority() || GetWorld() == nullptr || !WorldGenerationConfig.IsValid()
+        || HornedGoatPeerTestStage >= 99)
+    {
+        return;
+    }
+
+    const float Now = GetWorld()->GetTimeSeconds();
+    const auto PlaceOnTerrain = [this](AKalmalaCharacter* Character, const FVector& DesiredLocation)
+    {
+        if (!IsValid(Character)) return;
+        ActivateTerrainPatchNeighborhood(FVector2D(DesiredLocation));
+        FVector GroundedLocation = DesiredLocation;
+        GroundedLocation.Z = FKalmalaTerrainHeightSampler::SampleHeight(
+            WorldGenerationConfig, FVector2D(DesiredLocation))
+            + Character->GetSimpleCollisionHalfHeight() + 1.0f;
+        Character->SetActorLocation(GroundedLocation, false, nullptr, ETeleportType::TeleportPhysics);
+        Character->ForceNetUpdate();
+        if (UCharacterMovementComponent* Movement = Character->GetCharacterMovement())
+        {
+            Movement->StopMovementImmediately();
+            if (Movement->MovementMode == MOVE_None) Movement->SetMovementMode(MOVE_Walking);
+        }
+    };
+    const auto IsDryMountainSurface = [this](const FVector2D& Position)
+    {
+        if (!FKalmalaWorldBounds::Contains(WorldGenerationConfig, Position)) return false;
+        const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(
+            FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, Position));
+        const bool bWater = FKalmalaOceanSampler::Sample(WorldGenerationConfig, Position).IsWater()
+            || FKalmalaShimmeringLakeSampler::IsWater(WorldGenerationConfig, Position);
+        const bool bTraversable = FKalmalaTerrainHeightSampler::SampleSurfaceNormal(
+            WorldGenerationConfig, Position).Z >= 0.82f;
+        return AKalmalaWildlifeSpawn::IsThunderMountainsSpawnHabitatAllowed(Biome, bWater, bTraversable);
+    };
+    const auto IsSafeMountainPath = [&IsDryMountainSurface, this](const FVector2D& Start, const FVector2D& End)
+    {
+        if (!IsDryMountainSurface(Start) || !IsDryMountainSurface(End)) return false;
+        const float StartHeight = FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, Start);
+        const float Distance = FVector2D::Distance(Start, End);
+        const int32 Samples = FMath::Max(1, FMath::CeilToInt(Distance / 80.0f));
+        for (int32 Index = 0; Index <= Samples; ++Index)
+        {
+            const FVector2D Position = FMath::Lerp(Start, End, static_cast<float>(Index) / Samples);
+            if (!IsDryMountainSurface(Position)
+                || FMath::Abs(FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, Position)
+                    - StartHeight) > 80.0f)
+            {
+                return false;
+            }
+        }
+        return true;
+    };
+
+    if (HornedGoatPeerTestStage == 0)
+    {
+        APlayerController* HostController = GetWorld()->GetFirstPlayerController();
+        AKalmalaCharacter* Host = HostController != nullptr
+            ? Cast<AKalmalaCharacter>(HostController->GetPawn()) : nullptr;
+        if (Host == nullptr || GeneratedPlayerStart == nullptr)
+        {
+            if (Now > 90.0f)
+            {
+                UE_LOG(LogTemp, Error, TEXT("Horned Goat verification FAILED: generated start or listen host was unavailable."));
+                HornedGoatPeerTestStage = 99;
+            }
+            return;
+        }
+
+        HornedGoatPeerTestObservers.Reset();
+        for (TActorIterator<AKalmalaCharacter> It(GetWorld()); It; ++It)
+        {
+            AKalmalaCharacter* Candidate = *It;
+            if (Candidate == Host || Candidate->GetPlayerState() == nullptr) continue;
+            HornedGoatPeerTestObservers.Add(Candidate);
+        }
+        if (HornedGoatPeerTestObservers.Num() < 2)
+        {
+            if (Now > 90.0f)
+            {
+                UE_LOG(LogTemp, Error, TEXT("Horned Goat verification FAILED: two observing client peers did not join."));
+                HornedGoatPeerTestStage = 99;
+            }
+            return;
+        }
+
+        const FIntPoint StartKey = FKalmalaWorldPopulationLayout::GetSpatialKey(
+            FVector2D(GeneratedPlayerStart->GetActorLocation()));
+        bool bFoundCandidate = false;
+        for (int32 Radius = 0; Radius <= 64 && !bFoundCandidate; ++Radius)
+        {
+            for (int32 OffsetY = -Radius; OffsetY <= Radius && !bFoundCandidate; ++OffsetY)
+            {
+                for (int32 OffsetX = -Radius; OffsetX <= Radius; ++OffsetX)
+                {
+                    if (Radius > 0 && FMath::Abs(OffsetX) != Radius && FMath::Abs(OffsetY) != Radius) continue;
+                    const FIntPoint CandidateKey = StartKey + FIntPoint(OffsetX, OffsetY);
+                    const FVector2D KeyCentre = (FVector2D(CandidateKey) + FVector2D(0.5f, 0.5f))
+                        * FKalmalaWorldPopulationLayout::SpatialKeySize;
+                    const EKalmalaBiome KeyBiome = FKalmalaBiomeClassifier::Classify(
+                        FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, KeyCentre));
+                    if (KeyBiome != EKalmalaBiome::ThunderMountains) continue;
+
+                    TArray<FKalmalaWorldPopulationSpawn> Descriptors =
+                        FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(
+                            WorldGenerationConfig, CandidateKey, EKalmalaWorldPopulationKind::Wildlife);
+                    Descriptors.SetNum(FMath::Min(Descriptors.Num(),
+                        FKalmalaBiomeExpansionContract::ApplyPopulationBudget(
+                            Descriptors.Num(), EKalmalaWorldPopulationKind::Wildlife, KeyBiome)));
+                    const int32 WildlifeActorBudget = Descriptors.Num();
+                    int32 SpawnedWildlifeActorCount = 0;
+
+                    for (const FKalmalaWorldPopulationSpawn& Spawn : Descriptors)
+                    {
+                        EKalmalaWildlifeArchetype Archetype;
+                        if (!KalmalaGameMode::TryGetWildlifeArchetypeForSpawn(
+                                WorldGenerationConfig, Spawn, Archetype))
+                        {
+                            continue;
+                        }
+                        const bool bHardEnemy = Archetype == EKalmalaWildlifeArchetype::GiantSnake
+                            || Archetype == EKalmalaWildlifeArchetype::MoonBear
+                            || Archetype == EKalmalaWildlifeArchetype::PeatHusk
+                            || Archetype == EKalmalaWildlifeArchetype::PolarBear
+                            || Archetype == EKalmalaWildlifeArchetype::ThunderSentinel
+                            || Archetype == EKalmalaWildlifeArchetype::ReefMaw;
+                        const float StartDistance = FVector::Dist2D(
+                            Spawn.Location, GeneratedPlayerStart->GetActorLocation());
+                        if (!AKalmalaWildlifeSpawn::IsHardEnemySpawnAllowedByStart(
+                                bHardEnemy, true, StartDistance))
+                        {
+                            continue;
+                        }
+                        const FString SpawnId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Spawn);
+                        if (PopulationSaveGame != nullptr && PopulationSaveGame->IsDefeated(SpawnId)) continue;
+                        if (SpawnedWildlifeActorCount >= WildlifeActorBudget) continue;
+
+                        ++SpawnedWildlifeActorCount;
+                        if (Archetype != EKalmalaWildlifeArchetype::HornedGoat) continue;
+                        if (!IsDryMountainSurface(FVector2D(Spawn.Location))) continue;
+
+                        const FVector2D SpawnPosition(Spawn.Location);
+                        for (int32 DirectionIndex = 0; DirectionIndex < 16; ++DirectionIndex)
+                        {
+                            const float Angle = static_cast<float>(DirectionIndex) * (2.0f * PI / 16.0f);
+                            const FVector2D Direction(FMath::Cos(Angle), FMath::Sin(Angle));
+                            const FVector2D ContactPosition = SpawnPosition + Direction * 120.0f;
+                            const FVector2D PushEndPosition = SpawnPosition + Direction * 400.0f;
+                            const FVector2D RingPosition = SpawnPosition + Direction * 700.0f;
+                            if (!IsSafeMountainPath(SpawnPosition, PushEndPosition)
+                                || !IsSafeMountainPath(SpawnPosition, RingPosition))
+                            {
+                                continue;
+                            }
+
+                            HornedGoatPeerTestSpatialKey = CandidateKey;
+                            HornedGoatPeerTestSpawnId = SpawnId;
+                            HornedGoatPeerTestSpawnLocation = Spawn.Location;
+                            HornedGoatPeerTestHostLocation = FVector(ContactPosition.X, ContactPosition.Y,
+                                FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, ContactPosition));
+                            HornedGoatPeerTestHostRingLocation = FVector(RingPosition.X, RingPosition.Y,
+                                FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, RingPosition));
+                            bFoundCandidate = true;
+                            break;
+                        }
+                        if (bFoundCandidate) break;
+                    }
+                }
+            }
+        }
+
+        if (!bFoundCandidate)
+        {
+            UE_LOG(LogTemp, Error,
+                TEXT("Horned Goat verification FAILED: no undefeated generated Thunder Mountains Goat with a safe attack and push path was found within 64 spatial keys."));
+            HornedGoatPeerTestStage = 99;
+            return;
+        }
+        if (!ActivePopulationSpatialKeys.Contains(HornedGoatPeerTestSpatialKey)
+            && ActivePopulationSpatialKeys.Num() >= KalmalaGameMode::MaxActivePopulationSpatialKeys)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Horned Goat verification FAILED: the bounded active population-key budget is full before fixture activation."));
+            HornedGoatPeerTestStage = 99;
+            return;
+        }
+
+        Host->Health = 100.0f;
+        Host->ForceNetUpdate();
+        HornedGoatPeerTestWorldSeed = WorldGenerationConfig.WorldSeed;
+        HornedGoatPeerTestHost = Host;
+        HornedGoatPeerTestTarget.Reset();
+        bHornedGoatPeerTestSawTelegraph = false;
+        bHornedGoatPeerTestSawRecovery = false;
+        bHornedGoatPeerTestSawStagger = false;
+        bHornedGoatPeerTestSawStaggerEnd = false;
+        HornedGoatPeerTestObservedStaggerDuration = 0.0f;
+        PlaceOnTerrain(Host, HornedGoatPeerTestHostRingLocation);
+        ActivatePopulationKey(HornedGoatPeerTestSpatialKey);
+        HornedGoatPeerTestStage = 1;
+        HornedGoatPeerTestStageTime = Now;
+        return;
+    }
+
+    AKalmalaCharacter* Host = HornedGoatPeerTestHost.Get();
+    if (!IsValid(Host))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Horned Goat verification FAILED: listen host disappeared."));
+        HornedGoatPeerTestStage = 99;
+        return;
+    }
+
+    if (HornedGoatPeerTestStage == 1)
+    {
+        AKalmalaWildlifeSpawn* Target = nullptr;
+        for (TActorIterator<AKalmalaWildlifeSpawn> It(GetWorld()); It; ++It)
+        {
+            if ((*It)->GetPersistentSpawnId() == HornedGoatPeerTestSpawnId)
+            {
+                Target = *It;
+                break;
+            }
+        }
+        if (Target == nullptr)
+        {
+            if (Now - HornedGoatPeerTestStageTime > 20.0f)
+            {
+                UE_LOG(LogTemp, Error, TEXT("Horned Goat verification FAILED: generated descriptor did not materialize."));
+                HornedGoatPeerTestStage = 99;
+            }
+            return;
+        }
+        if (Target->GetArchetype() != EKalmalaWildlifeArchetype::HornedGoat
+            || !FMath::IsNearlyEqual(Target->GetHealth(), 200.0f, 0.1f)
+            || !FMath::IsNearlyEqual(AKalmalaWildlifeSpawn::GetArmorForArchetype(
+                Target->GetArchetype()), 50.0f, 0.1f))
+        {
+            UE_LOG(LogTemp, Error,
+                TEXT("Horned Goat verification FAILED: generated archetype, 200-health profile, or 50-armor profile was invalid."));
+            HornedGoatPeerTestStage = 99;
+            return;
+        }
+
+        PlaceOnTerrain(Host, HornedGoatPeerTestHostLocation);
+        HornedGoatPeerTestHostStartingLocation = Host->GetActorLocation();
+        HornedGoatPeerTestStartingHealth = Host->GetHealth();
+        int32 ObserverIndex = 0;
+        for (const TWeakObjectPtr<AKalmalaCharacter>& ObserverWeak : HornedGoatPeerTestObservers)
+        {
+            AKalmalaCharacter* Observer = ObserverWeak.Get();
+            if (!IsValid(Observer)) continue;
+            const float Distance = 1000.0f + 500.0f * static_cast<float>(ObserverIndex);
+            bool bPlacedObserver = false;
+            for (int32 DirectionIndex = 0; DirectionIndex < 16 && !bPlacedObserver; ++DirectionIndex)
+            {
+                const float Angle = static_cast<float>(DirectionIndex) * (2.0f * PI / 16.0f);
+                const FVector2D ObserverPosition(
+                    HornedGoatPeerTestSpawnLocation.X + FMath::Cos(Angle) * Distance,
+                    HornedGoatPeerTestSpawnLocation.Y + FMath::Sin(Angle) * Distance);
+                if (!IsDryMountainSurface(ObserverPosition)) continue;
+                const FVector DesiredObserverLocation(ObserverPosition.X, ObserverPosition.Y,
+                    FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, ObserverPosition));
+                PlaceOnTerrain(Observer, DesiredObserverLocation);
+                bPlacedObserver = true;
+            }
+            if (!bPlacedObserver)
+            {
+                UE_LOG(LogTemp, Error, TEXT("Horned Goat verification FAILED: an observer could not be placed within replication range."));
+                HornedGoatPeerTestStage = 99;
+                return;
+            }
+            ++ObserverIndex;
+        }
+        if (ObserverIndex < 2)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Horned Goat verification FAILED: an observing client disappeared before the attack."));
+            HornedGoatPeerTestStage = 99;
+            return;
+        }
+
+        HornedGoatPeerTestTarget = Target;
+        Target->ForceNetUpdate();
+        UE_LOG(LogTemp, Display,
+            TEXT("Horned Goat verification fixture armed: Seed=%llu SpawnId=%s HostDistanceCm=%.1f Observers=2."),
+            static_cast<unsigned long long>(HornedGoatPeerTestWorldSeed), *HornedGoatPeerTestSpawnId,
+            FVector::Dist(Host->GetActorLocation(), Target->GetActorLocation()));
+        HornedGoatPeerTestStage = 2;
+        HornedGoatPeerTestStageTime = Now;
+        return;
+    }
+
+    if (HornedGoatPeerTestStage == 2)
+    {
+        AKalmalaWildlifeSpawn* Target = HornedGoatPeerTestTarget.Get();
+        if (!IsValid(Target))
+        {
+            UE_LOG(LogTemp, Error, TEXT("Horned Goat verification FAILED: generated Goat disappeared before its charge."));
+            HornedGoatPeerTestStage = 99;
+            return;
+        }
+
+        const EKalmalaWildlifeAttackCue Cue = Target->GetHornedGoatAttackCueForVerification();
+        bHornedGoatPeerTestSawTelegraph |= Cue == EKalmalaWildlifeAttackCue::Telegraph;
+        bHornedGoatPeerTestSawRecovery |= Cue == EKalmalaWildlifeAttackCue::Recovery;
+        if (Host->IsWildlifeStaggered())
+        {
+            if (!bHornedGoatPeerTestSawStagger)
+            {
+                HornedGoatPeerTestStaggerStartTime = Now;
+                bHornedGoatPeerTestSawStagger = true;
+            }
+        }
+        else if (bHornedGoatPeerTestSawStagger && !bHornedGoatPeerTestSawStaggerEnd)
+        {
+            HornedGoatPeerTestObservedStaggerDuration = Now - HornedGoatPeerTestStaggerStartTime;
+            bHornedGoatPeerTestSawStaggerEnd = true;
+        }
+
+        const float HostDamage = HornedGoatPeerTestStartingHealth - Host->GetHealth();
+        const float HostPush = FVector::Dist2D(HornedGoatPeerTestHostStartingLocation, Host->GetActorLocation());
+        const bool bStaggerDurationValid = HornedGoatPeerTestObservedStaggerDuration >= 0.65f
+            && HornedGoatPeerTestObservedStaggerDuration <= 0.95f;
+        if (bHornedGoatPeerTestSawTelegraph && bHornedGoatPeerTestSawRecovery
+            && bHornedGoatPeerTestSawStagger && bHornedGoatPeerTestSawStaggerEnd
+            && HostDamage > 0.0f && HostPush >= 100.0f && bStaggerDurationValid)
+        {
+            UE_LOG(LogTemp, Display,
+                TEXT("Horned Goat verification server: Passed=1 Seed=%llu Telegraph=1 Recovery=1 HostDamage=%.1f HostPushCm=%.1f StaggerSeconds=%.2f SpawnId=%s"),
+                static_cast<unsigned long long>(HornedGoatPeerTestWorldSeed), HostDamage, HostPush,
+                HornedGoatPeerTestObservedStaggerDuration, *HornedGoatPeerTestSpawnId);
+            HornedGoatPeerTestStage = 99;
+            return;
+        }
+        if (Now - HornedGoatPeerTestStageTime > 18.0f)
+        {
+            UE_LOG(LogTemp, Error,
+                TEXT("Horned Goat verification FAILED: cue or authoritative horn effects incomplete. Telegraph=%d Recovery=%d Stagger=%d StaggerEnd=%d StaggerSeconds=%.2f HostDamage=%.1f HostPushCm=%.1f Cue=%d."),
+                bHornedGoatPeerTestSawTelegraph, bHornedGoatPeerTestSawRecovery,
+                bHornedGoatPeerTestSawStagger, bHornedGoatPeerTestSawStaggerEnd,
+                HornedGoatPeerTestObservedStaggerDuration, HostDamage, HostPush, static_cast<int32>(Cue));
+            HornedGoatPeerTestStage = 99;
+        }
+    }
+#endif
+}
+
 void AKalmalaGameMode::DriveDiscoveryPeerTest()
 {
 #if !UE_BUILD_SHIPPING
@@ -4256,6 +4604,7 @@ void AKalmalaGameMode::Tick(const float DeltaSeconds)
     DriveWolfPeerTest();
     DriveLynxPeerTest();
     DrivePolarBearPeerTest();
+    DriveHornedGoatPeerTest();
     DriveDiscoveryPeerTest();
     DriveM9ExplorationRewardPeerTest();
     DriveOceanTravelFeedbackTest();

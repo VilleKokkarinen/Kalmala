@@ -2646,6 +2646,23 @@ recovery are observed. This species case does not repeat Rat's shared reward,
 defeat-persistence or combat-replication acceptance. The live run remains part
 of combined A8a/A8b I4.
 
+## Thunder Mountains Horned Goat generated peer acceptance
+
+After an Editor build, run
+`Scripts/Tests/Combat/Verify-HornedGoatPeer.ps1 -WorldSeed 445`. The
+Development-only fixture selects an undefeated Horned Goat from the ordinary
+seeded Thunder Mountains population after applying the normal population
+budget. It stages the listen host outside the 3 m territorial trigger while
+the normal key activates, then places the host within the 180 cm server horn
+reach on a dry traversable lane. Two remote clients observe the same generated
+Goat from 10 m and 15 m away. Require its 200-health/50-Armor profile, the
+server telegraph and recovery, accepted Crush damage, measurable server-owned
+push, the approved 0.75 s stagger within tick tolerance, and the same
+replicated telegraph on both client logs. Terrain collision may shorten the
+push from its 250 cm maximum. This species case does not repeat Rat's shared
+reward delivery/retry, defeat persistence, or combat-replication acceptance;
+its live run remains part of combined A8a/A8b I4.
+
 ## Freezing Tundra Polar Bear contract regression
 
 After an editor build, run
