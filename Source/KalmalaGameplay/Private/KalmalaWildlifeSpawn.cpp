@@ -4271,7 +4271,7 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
         AddTetraPoints(FVector(NeckX + BodyRadius, -BodyRadius * 0.75f, HeadZ - BodyRadius * 0.85f),
             FVector(NeckX + BodyRadius, BodyRadius * 0.75f, HeadZ - BodyRadius * 0.85f),
             FVector(NeckX + BodyRadius * 3.2f, -BodyRadius * 0.45f, HeadZ),
-            FVector(NeckX + BodyRadius * 3.2f, BodyRadius * 0.45f, HeadZ), ScaleBase);
+            FVector(NeckX + BodyRadius * 3.2f, BodyRadius * 0.45f, HeadZ + BodyRadius * 0.25f), ScaleBase);
         for (const float Side : {-1.0f, 1.0f})
         {
             AddTetraPoints(FVector(NeckX + BodyRadius * 2.0f, Side * BodyRadius * 0.48f, HeadZ + BodyRadius * 0.12f),

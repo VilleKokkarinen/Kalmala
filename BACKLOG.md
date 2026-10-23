@@ -279,7 +279,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [x] Verify every approved drop/output has complete registered JSON, a reachable source and a generated runtime icon.
   - [ ] Run the combined A8a/A8b enemy and enemy-item milestone verification; record results and blockers. This gate must pass before A9 begins.
     - [x] Rebuild and rerun the single sequential Badger/Moon Bear peer acceptance after the Moon Bear fixture adjustment; both cases passed. Reran the full suite and recorded its three failures in PROGRESS.md.
-    - [ ] Obtain the required disposition for the Mireling `SurfaceWinding` failure, then rerun the full Kalmala queue after the M9 progression repair; close I4 only after required verification passes.
+    - [x] Obtain the required disposition for the Mireling `SurfaceWinding` failure, then rerun the full Kalmala queue after the M9 progression repair; close I4 only after required verification passes.
 
   The JSON-only child and all 30 icon children are complete; all 30 item rows
   remain unchecked until their reachable source drops (for materials) and

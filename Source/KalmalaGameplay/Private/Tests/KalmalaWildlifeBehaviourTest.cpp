@@ -131,7 +131,13 @@ bool FKalmalaModelSurfaceTest::RunTest(const FString& Parameters)
     {
         const FProcMeshSection* Section = Mesh->GetProcMeshSection(0);
         if (!TestNotNull(TEXT("Model mesh has a section"), Section)) return;
+        const AKalmalaWildlifeSpawn* Wildlife = Cast<AKalmalaWildlifeSpawn>(Mesh->GetOwner());
+        const FString MeshLabel = Wildlife
+            ? FString::Printf(TEXT("%s archetype %d"), *Mesh->GetName(), static_cast<int32>(Wildlife->GetArchetype()))
+            : Mesh->GetName();
         bool bWinding = true, bOutward = true, bNonDegenerate = true;
+        int32 FirstOutwardFailureIndex = INDEX_NONE;
+        float FirstOutwardFailureDot = 0.0f;
         FVector WholeCentre = FVector::ZeroVector;
         for (const auto& Vertex : Section->ProcVertexBuffer) WholeCentre += Vertex.Position;
         WholeCentre /= Section->ProcVertexBuffer.Num();
@@ -152,11 +158,19 @@ bool FKalmalaModelSurfaceTest::RunTest(const FString& Parameters)
                     Centre += Section->ProcVertexBuffer[Vertex].Position;
                 Centre /= 12;
             }
-            bOutward &= FVector::DotProduct(A.Normal, (A.Position + B.Position + C.Position) / 3 - Centre) > 0;
+            const float OutwardDot = FVector::DotProduct(A.Normal,
+                (A.Position + B.Position + C.Position) / 3 - Centre);
+            bOutward &= OutwardDot > 0.0f;
+            if (OutwardDot <= 0.0f && FirstOutwardFailureIndex == INDEX_NONE)
+            {
+                FirstOutwardFailureIndex = Index;
+                FirstOutwardFailureDot = OutwardDot;
+            }
         }
-        TestTrue(*FString::Printf(TEXT("%s winding matches the engine exterior convention"), *Mesh->GetName()), bWinding);
-        TestTrue(*FString::Printf(TEXT("%s normals face away from its solid centre"), *Mesh->GetName()), bOutward);
-        TestTrue(*FString::Printf(TEXT("%s has no degenerate faces"), *Mesh->GetName()), bNonDegenerate);
+        TestTrue(*FString::Printf(TEXT("%s winding matches the engine exterior convention"), *MeshLabel), bWinding);
+        TestTrue(*FString::Printf(TEXT("%s normals face away from its solid centre (first bad index %d, dot %.6f)"),
+            *MeshLabel, FirstOutwardFailureIndex, FirstOutwardFailureDot), bOutward);
+        TestTrue(*FString::Printf(TEXT("%s has no degenerate faces"), *MeshLabel), bNonDegenerate);
     };
     auto* Player = World->SpawnActor<AKalmalaCharacter>();
     if (!TestNotNull(TEXT("Player fixture exists"), Player)) return false;
