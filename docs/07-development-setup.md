@@ -2533,6 +2533,14 @@ timer. These source-level checks are not live spawn, peer privacy, reconnect,
 or restart acceptance; run them with the combined A8a/A8b I4 verification. No
 Unreal build or automation execution ran in this increment.
 
+The live Death Adder peer runner is `Scripts/Tests/Combat/Verify-DeathAdderPeer.ps1`.
+It uses a normal generated dry Mossy Mire descriptor, requires the server's real
+bite to apply major poison, then checks four accepted host actions, invalid
+remote attack rejection, replicated health/defeat, and same-world defeated-spawn
+persistence across three peers. Its purpose is the species-specific combat and
+status path; the focused wildlife automation above owns the Death Adder reward
+bundle assertions, so this runner does not repeat the full-pack loot retry case.
+
 ## Peat Husk contract regression
 
 After an editor build, run

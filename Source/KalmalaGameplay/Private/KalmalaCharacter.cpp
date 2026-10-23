@@ -233,13 +233,15 @@ void AKalmalaCharacter::OnRep_Health()
     const bool bRatPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaRatPeerTest"));
     const bool bViperPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaViperPeerTest"));
     const bool bGiantSnakePeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaGiantSnakePeerTest"));
+    const bool bDeathAdderPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaDeathAdderPeerTest"));
     if (!HasAuthority() && (FParse::Param(FCommandLine::Get(), TEXT("KalmalaMirelingPeerTest"))
         || FParse::Param(FCommandLine::Get(), TEXT("KalmalaBoarPeerTest"))
-        || FParse::Param(FCommandLine::Get(), TEXT("KalmalaDeerPeerTest")) || bBadgerPeerTest || bMoonBearPeerTest || bRatPeerTest || bViperPeerTest || bGiantSnakePeerTest))
+        || FParse::Param(FCommandLine::Get(), TEXT("KalmalaDeerPeerTest")) || bBadgerPeerTest || bMoonBearPeerTest || bRatPeerTest || bViperPeerTest || bGiantSnakePeerTest || bDeathAdderPeerTest))
     {
         const TCHAR* VerificationName = bRatPeerTest ? TEXT("Rat")
             : bViperPeerTest ? TEXT("Viper")
             : bGiantSnakePeerTest ? TEXT("Giant Snake")
+            : bDeathAdderPeerTest ? TEXT("Death Adder")
             : bBadgerPeerTest ? TEXT("Badger")
             : bMoonBearPeerTest ? TEXT("Moon Bear")
             : FParse::Param(FCommandLine::Get(), TEXT("KalmalaBoarPeerTest")) ? TEXT("Boar")
@@ -535,7 +537,8 @@ void AKalmalaCharacter::Tick(const float DeltaSeconds)
             || FParse::Param(FCommandLine::Get(), TEXT("KalmalaMoonBearPeerTest"))
             || FParse::Param(FCommandLine::Get(), TEXT("KalmalaRatPeerTest"))
             || FParse::Param(FCommandLine::Get(), TEXT("KalmalaViperPeerTest"))
-            || FParse::Param(FCommandLine::Get(), TEXT("KalmalaGiantSnakePeerTest")))
+            || FParse::Param(FCommandLine::Get(), TEXT("KalmalaGiantSnakePeerTest"))
+            || FParse::Param(FCommandLine::Get(), TEXT("KalmalaDeathAdderPeerTest")))
         && Combat && Inventory && Inventory->GetActiveItem() == TEXT("StoneMace"))
     {
         bCombatPeerTestInvalidAttackSent = true;
