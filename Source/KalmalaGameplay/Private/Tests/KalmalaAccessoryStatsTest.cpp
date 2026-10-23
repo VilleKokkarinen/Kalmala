@@ -83,6 +83,14 @@ bool FKalmalaAccessoryStatsTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Quartz Armor does not resist elemental damage"), Pawn->GetHealth(), 80.0f);
     const auto* Quartz = Inventory->FindEquippedGear(EKalmalaGearSlot::Necklace);
     TestTrue(TEXT("Accessory never accumulates wearable damage"), Quartz && Quartz->ConditionSpent == 0);
+    TestTrue(TEXT("Jade equips"), Equip(TEXT("JadeRing")));
+    TestTrue(TEXT("Jade reduces global stamina costs"), FMath::IsNearlyEqual(Status->CalculateStaminaCost(20.0f), 18.0f));
+    TestTrue(TEXT("Support inherits Jade global delta"), FMath::IsNearlyEqual(Status->CalculateStaminaCost(20.0f, true), 18.0f));
+    Status->ApplyWetFromServer();
+    Status->ApplyFoodFromServer(TEXT("CookedBoarMeat"));
+    TestTrue(TEXT("Wet Meal Jade add once"), FMath::IsNearlyEqual(Status->CalculateStaminaCost(20.0f), 19.0f));
+    Inventory->UnequipGearFromServer(EKalmalaGearSlot::Ring, Reason);
+    TestTrue(TEXT("Jade removal immediately restores future cost"), FMath::IsNearlyEqual(Status->CalculateStaminaCost(20.0f), 21.0f));
     World->DestroyWorld(false);
     return true;
 }

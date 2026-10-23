@@ -10,7 +10,8 @@ bool FKalmalaA9GearRecipesTest::RunTest(const FString& Parameters)
 {
     const TPair<FName, FName> Cases[] = {{TEXT("QuartzNecklace"), TEXT("SmokyQuartz")},
         {TEXT("MoonstoneRing"), TEXT("Moonstone")},
-        {TEXT("GarnetNecklace"), TEXT("Garnet")}};
+        {TEXT("GarnetNecklace"), TEXT("Garnet")},
+        {TEXT("JadeRing"), TEXT("GreenJade")}};
     for (const auto& Entry : Cases)
     {
         const auto* Recipe = UKalmalaRecipeCatalogue::Get()->Find(Entry.Key);

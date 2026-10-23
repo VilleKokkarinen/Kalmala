@@ -72,14 +72,25 @@
     {
       "RecipeId": "JadeRing",
       "DisplayName": "Jade Ring",
-      "ItemId": "JadeRing",
-      "RequiredStation": "Forge",
-      "RequiredStationLevel": 1,
-      "Ingredients": [
-        { "ItemId": "Bronze", "Quantity": 2 },
-        { "ItemId": "GreenJade", "Quantity": 1 }
+      "RequiredStation": [
+        "Forge"
       ],
-      "Level": 1
+      "Ingredients": [
+        {
+          "ItemId": "Bronze",
+          "Quantity": 2
+        },
+        {
+          "ItemId": "GreenJade",
+          "Quantity": 1
+        }
+      ],
+      "Output": "JadeRing",
+      "OutputCount": 1,
+      "MaxBatch": 1,
+      "ExperienceSkill": "None",
+      "ExperienceAward": 0,
+      "bEnabled": true
     },
     {
       "RecipeId": "AmethystNecklace",

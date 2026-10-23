@@ -6669,3 +6669,8 @@
 ## A9 independent worker — Garnet Necklace completion (2026-10-23)
 
 - Corrected its Forge recipe to ordinary inventory crafting (3 Bronze + 1 Garnet, one output/batch one), added paid exchange/GUID equip coverage, and extended runtime regression for draught eligibility above 100, healing to the equipped maximum and full-effective-health rejection. Existing no-refill/removal clamps remain covered. Files: a9-gear.json, A9GearTest.cpp, AccessoryStatsTest.cpp, BACKLOG/PROGRESS. JSON parsing, `Validate-UIIcons.ps1 -Category Catalogue -Id GarnetNecklace` and git diff --check passed; short-path audit passed. Full build/test/peer execution deferred to I5. Server-only derivation and session-only equipped state remain intact. Next: Jade Ring. Main unchanged.
+
+
+## A9 independent worker — Jade Ring completion (2026-10-23)
+
+- Corrected Jade Ring to executable ordinary Forge crafting (2 Bronze + 1 Green Jade, one output/batch one). Added paid exchange/equip and global/support cost, Wet+Meal additive combination and immediate unequip-effect removal regressions. Existing sprint/dodge/support callers all use the shared authoritative calculation; no stamina refill or action-specific new base costs. Files: a9-gear.json, A9GearTest.cpp, AccessoryStatsTest.cpp, BACKLOG/PROGRESS. JSON parsing, `Validate-UIIcons.ps1 -Category Catalogue -Id JadeRing` and git diff --check passed; paths below 260. Full executed verification deferred to I5. Next: Amethyst Necklace. Main unchanged.
