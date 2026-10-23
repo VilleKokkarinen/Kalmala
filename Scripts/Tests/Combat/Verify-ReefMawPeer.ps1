@@ -1,5 +1,5 @@
 param([int]$Port = 18209, [string]$OutputDirectory = '', [string]$Project = '', [long]$WorldSeed = 445)
-. (Join-Path $PSScriptRoot '..\..\TestPaths.ps1')
+. (Join-Path (Split-Path $PSScriptRoot -Parent) 'TestPaths.ps1')
 $repoPaths = Get-KalmalaPaths -StartPath $PSScriptRoot
 
 $ErrorActionPreference = 'Stop'
