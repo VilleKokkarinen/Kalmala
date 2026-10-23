@@ -2661,6 +2661,42 @@ push from its 250 cm maximum. This species case does not repeat Rat's shared
 reward delivery/retry, defeat persistence, or combat-replication acceptance;
 its live run remains part of combined A8a/A8b I4.
 
+## Thunder Mountains Thunder Sentinel generated peer acceptance
+
+After an Editor build, run
+`Scripts/Tests/Combat/Verify-ThunderSentinelPeer.ps1 -WorldSeed 445`. The
+Development-only fixture selects an undefeated generated Thunder Sentinel
+from normal Thunder Mountains descriptors after applying the population
+budget and actor cap. It verifies the shared 150 m hard-enemy start exclusion,
+then activates the ordinary population key with the listen host 700 cm away.
+Once the Sentinel materializes, the host is placed 400 cm away, outside the
+300 cm slam reach but inside the 420 cm attack trigger; the Sentinel must take
+its authored short step to land the downward slam. Require the 1250-health/
+75-Armor profile, 300 Crush damage, a 1.2-second recovery, and both remote
+clients observing the same generated Sentinel's replicated telegraph and slam
+cues. The Development-only host receives 400 health so the 300-Crush hit leaves
+the host alive while the fixture measures the exact damage. The case also checks
+the generated 150 m start exclusion and the actual step into slam reach. It does
+not repeat Rat's shared reward delivery/retry, defeat persistence, or combat
+replication acceptance; this live run remains part of combined A8a/A8b I4.
+
+## Ocean Reef Maw generated peer acceptance
+
+After an Editor build, run
+`Scripts/Tests/Combat/Verify-ReefMawPeer.ps1 -WorldSeed 445`. The Development-only
+fixture selects an undefeated Reef Maw from ordinary Ocean population descriptors
+using Ocean's full descriptor budget and ordinary actor cap (Ocean has no
+expansion-budget reduction). It requires the shared 150 m
+hard-enemy start exclusion and finds a generated Ocean path at least 150 cm deep,
+excluding Shimmering Lakes, for the host and both observers. The normal population
+key is activated before the three peers are staged as unattached swimmers. Require
+the generated 180-health/2-Armor profile, a 50-Stab server bite within 180 cm,
+telegraph, and recovery. The listen host receives a fixture-only 150 health so the
+50 damage is measurable without defeating it. Both clients must observe the same
+generated Reef Maw's replicated telegraph and bite cue. This case does not repeat
+Rat's shared reward delivery/retry, defeat persistence, or combat-replication
+acceptance; the live species run remains part of combined A8a/A8b I4.
+
 ## Freezing Tundra Polar Bear contract regression
 
 After an editor build, run
@@ -5641,8 +5677,11 @@ weak and major hits before and after Antidote, natural cure, inventory
 consumption or preservation on rejection, resistance expiry and server
 authority. The UI and recipe regressions cover recipe exposure and costs, and
 player-facing details.
-The focused C++ regression sources added here have not been compiled or run in
-this normal child; combined A8a/A8b I4 remains required.
+`Kalmala.Gameplay.Crafting.Transactions` also asserts Antidote's exact output,
+runtime station identity (`CauldronKit`, authored as `Cauldron`), batch limit,
+ingredient quantities, Cooking award, and one-batch material exchange to one
+dose. These checks complement the status and UI regressions; live Cauldron peer
+acceptance remains part of combined I4 verification.
 
 ## A8b Peat Heart Stew item coverage — 2026-10-22
 
@@ -5658,15 +5697,19 @@ existed; this increment enables the menu and food-use paths without adding a
 new RPC, replicated field, or save data.
 
 After an affected Gameplay/UI build, run
+`Kalmala.Gameplay.Food.CookingStationHeat`,
 `Kalmala.Gameplay.Status.SteadyMeal`,
 `Kalmala.UI.Inventory.PreparedFoodDetails`, and
 `Scripts/Tests/Construction/Verify-Crafting.ps1`. These cover the meal
 allowlist and server transaction, owner Inventory details/action, and the
 Cauldron recipe's ingredients, output, batch limit, Cooking experience and
-live hearth availability. `Scripts/Validate-UIIcons.ps1 -Category Catalogue
+live hearth availability. `CookingStationHeat` also crafts one Peat Heart Stew
+batch through the server Cauldron path and checks exact material payment,
+two-serving output, Cooking experience, and no per-serving hearth debit.
+`Scripts/Validate-UIIcons.ps1 -Category Catalogue
 -Id PeatHeartStew` verifies its existing original, prepared texture and runtime
-target. The focused C++ sources remain uncompiled/unexecuted in this normal
-child; combined A8a/A8b I4 is still required.
+target. This server-world automation does not replace the live peer and rendered
+Cauldron acceptance required by combined A8a/A8b I4.
 
 ## A8b Fang Spear item coverage — 2026-10-22
 

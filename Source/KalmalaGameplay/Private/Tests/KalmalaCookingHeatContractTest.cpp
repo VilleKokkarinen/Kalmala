@@ -26,6 +26,7 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Recipe and item catalogues validate"), Recipes->IsValidCatalogue() && Items->IsValidCatalogue());
 
     const FKalmalaRecipe* CookRecipe = Recipes->Find(TEXT("CookedBoarMeatRecipe"));
+    const FKalmalaRecipe* PeatHeartStewRecipe = Recipes->Find(TEXT("PeatHeartStewRecipe"));
     const FKalmalaRecipe* BrothRecipe = Recipes->Find(TEXT("HearthBrothRecipe"));
     const FKalmalaRecipe* MeatStewRecipe = Recipes->Find(TEXT("MeatStewRecipe"));
     const FKalmalaRecipe* RootSoupRecipe = Recipes->Find(TEXT("RootVegetableSoupRecipe"));
@@ -33,6 +34,7 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
     const FKalmalaRecipe* RoastedRootsRecipe = Recipes->Find(TEXT("RoastedRootVegetablesRecipe"));
     const FKalmalaRecipe* DeerRootRoastRecipe = Recipes->Find(TEXT("DeerRootRoastRecipe"));
     if (!TestNotNull(TEXT("Cooked boar recipe exists"), CookRecipe)
+        || !TestNotNull(TEXT("Peat Heart Stew recipe exists"), PeatHeartStewRecipe)
         || !TestNotNull(TEXT("Hearth broth recipe exists"), BrothRecipe)
         || !TestNotNull(TEXT("Meat stew recipe exists"), MeatStewRecipe)
         || !TestNotNull(TEXT("Root soup recipe exists"), RootSoupRecipe)
@@ -232,6 +234,30 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Accepted soup creates one serving"), Inventory->GetQuantity(TEXT("RootVegetableSoup")), 1);
     TestEqual(TEXT("Accepted soup does not spend raw fuel per serving"), Inventory->GetQuantity(TEXT("Wood")), 1);
     TestEqual(TEXT("Accepted soup does not debit the lit fire"), Fire->GetFuelSeconds(), FuelBeforeSoup);
+
+    TestTrue(TEXT("Fixture grants Peat Heart Stew ingredients"),
+        Inventory->TryGrantFromServer(TEXT("PeatHeart"), 1)
+        && Inventory->TryGrantFromServer(TEXT("Potato"), 2)
+        && Inventory->TryGrantFromServer(TEXT("Onion"), 1));
+    const int32 PeatHeartBeforeStew = Inventory->GetQuantity(TEXT("PeatHeart"));
+    const int32 PotatoBeforePeatStew = Inventory->GetQuantity(TEXT("Potato"));
+    const int32 OnionBeforePeatStew = Inventory->GetQuantity(TEXT("Onion"));
+    const int32 PeatStewBefore = Inventory->GetQuantity(TEXT("PeatHeartStew"));
+    const float FuelBeforePeatStew = Fire->GetFuelSeconds();
+    const int32 ExperienceBeforePeatStew = GetCookingExperience();
+    TestTrue(TEXT("A lit fire at the Cauldron allows Peat Heart Stew"),
+        Crafting->CraftFromServer(PeatHeartStewRecipe->RecipeId, 1, Reason));
+    TestEqual(TEXT("Peat Heart Stew consumes one Peat Heart"),
+        Inventory->GetQuantity(TEXT("PeatHeart")), PeatHeartBeforeStew - 1);
+    TestEqual(TEXT("Peat Heart Stew consumes two potatoes"),
+        Inventory->GetQuantity(TEXT("Potato")), PotatoBeforePeatStew - 2);
+    TestEqual(TEXT("Peat Heart Stew consumes one onion"),
+        Inventory->GetQuantity(TEXT("Onion")), OnionBeforePeatStew - 1);
+    TestEqual(TEXT("One Cauldron batch creates two Peat Heart Stew servings"),
+        Inventory->GetQuantity(TEXT("PeatHeartStew")), PeatStewBefore + 2);
+    TestEqual(TEXT("Peat Heart Stew does not add a serving fuel debit"), Fire->GetFuelSeconds(), FuelBeforePeatStew);
+    TestEqual(TEXT("Peat Heart Stew awards ten Cooking experience after acceptance"),
+        GetCookingExperience(), ExperienceBeforePeatStew + 10);
 
     TestTrue(TEXT("Fixture grants listed stew ingredients"),
         Inventory->TryGrantFromServer(TEXT("BoarMeat"), 1)

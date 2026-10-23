@@ -1,5 +1,6 @@
 #include "KalmalaCharacter.h"
 #include "KalmalaGameMode.h"
+#include "KalmalaWildlifeSpawn.h"
 #include "KalmalaConstructionActor.h"
 #include "KalmalaResistanceComponent.h"
 #include "KalmalaInventoryComponent.h"
@@ -314,8 +315,18 @@ bool AKalmalaCharacter::ApplyWildlifeKnockbackFromServer(const AActor* SourceAct
 bool AKalmalaCharacter::ApplyWildlifeDamageFromServer(const AActor* SourceActor, const FKalmalaDamageChannels& Damage)
 {
     if (!HasAuthority() || !IsValid(SourceActor) || !SourceActor->HasAuthority() || SourceActor->GetWorld() != GetWorld()
-        || !IsWildlifeDamageWithinBounds(Damage)
-        || FVector::DistSquared(SourceActor->GetActorLocation(), GetActorLocation()) > FMath::Square(180.0f)) return false;
+        || !IsWildlifeDamageWithinBounds(Damage)) return false;
+
+    if (FVector::DistSquared(SourceActor->GetActorLocation(), GetActorLocation()) > FMath::Square(180.0f))
+    {
+        const AKalmalaWildlifeSpawn* WildlifeSource = Cast<AKalmalaWildlifeSpawn>(SourceActor);
+        const float HorizontalDistance = FVector::Dist2D(SourceActor->GetActorLocation(), GetActorLocation());
+        // The Sentinel's dedicated server attack applies its authored wider horizontal slam reach.
+        if (WildlifeSource == nullptr
+            || WildlifeSource->GetArchetype() != EKalmalaWildlifeArchetype::ThunderSentinel
+            || !AKalmalaWildlifeSpawn::IsThunderSentinelSlamInReach(HasAuthority(), true, HorizontalDistance)) return false;
+    }
+
     // The first Mireling creates recoverable pressure; player defeat/respawn remains a later policy decision.
     const UKalmalaResistanceComponent* Defenses = FindComponentByClass<UKalmalaResistanceComponent>();
     float ResolvedDamage = 0.0f;
