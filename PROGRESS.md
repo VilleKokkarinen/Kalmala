@@ -6617,3 +6617,8 @@
 ## A9 independent worker — Green Jade acquisition (2026-10-23)
 
 - Enabled Jade's source entry: the same single Lakes Tin candidate roll selects 5% Quartz, the next 2% Jade, otherwise Tin. No Elderwood or other Tin/ore slots become Jade. Existing budget/identity/three-hit extraction and one-gem rule are shared. Files: GemstoneContract.h, BACKLOG/PROGRESS. `Validate-UIIcons.ps1 -Category Catalogue -Id GreenJade` and git diff --check passed; source/tier/payment inspection and path audit passed. Full build, automation execution and live I5 checks deferred. Server owns selection/hits/claims. Next: Amethyst. Main unchanged.
+
+
+## A9 independent worker — Amethyst acquisition (2026-10-23)
+
+- Enabled Amethyst's 3% replacement of Mossy Mire `mire-bog-iron` Iron Ore candidates only. Shared validation requires Bronze Pick or better; damage/level cannot bypass three hits or per-hit smash. Existing candidate count/location/seed and ordinary Iron yield remain unchanged outside replaced slots. Files: GemstoneContract.h, BACKLOG/PROGRESS. `Validate-UIIcons.ps1 -Category Catalogue -Id Amethyst` and git diff --check passed; source ID and minimum-tier inspection passed; paths below 260. Full build/automation/live I5 checks deferred. Next: Aquamarine treasure. Main unchanged.
