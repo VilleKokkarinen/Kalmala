@@ -6606,3 +6606,15 @@
 - **Known limitations / remaining scope:** The combined I4 acceptance parent remains unchecked. The backlog has no dedicated Reef Maw child checkbox, so no backlog checkbox was changed. Per-species peer acceptance does not replace Rat's shared reward/retry, defeat persistence, or combat-replication case.
 - **Next eligible task:** Continue the same I4 acceptance parent with approved A8b item progression and peer flows; then resolve the InventoryReconnect disposition before the milestone-final suite. A9 remains gated by I4.
 - **Integration state:** Work ran directly on `master`; no worktree handoff synchronization was needed. Main checkout remains clean apart from this run's runner/progress update. Current run time: `2026-10-23 15:10:02 UTC`.
+
+## Run 2026-10-23 15:19 UTC — Antidote status acceptance slice passed
+
+- **Selected task:** Continue the unchecked combined I4 acceptance child with the focused A8b Antidote status and owner-facing UI slice. This is partial child work, not milestone-final verification.
+- **Work completed:** Ran the three documented Antidote automations from the existing short-path mirror. The mirror matched 357 tracked gameplay, UI, core and catalogue files in the main checkout. The cases cover server-owned weak/major poison and Antidote behavior, prepared-food details, and status-hotbar snapshot/layout.
+- **Files changed:** `PROGRESS.md`. `BACKLOG.md` remains unchanged because the combined I4 acceptance child is still incomplete.
+- **Checks and results:** `Automation RunTests Kalmala.Gameplay.Status.PoisonEffects+Kalmala.UI.Inventory.PreparedFoodDetails+Kalmala.UI.StatusHotbar.SnapshotAndLayout` passed 3/3 tests with editor exit code 0. The log records `Result={Success}` for each case at `C:/Users/Ville/AppData/Local/Temp/a8s1/poison5.log`. Sandboxed launches exited without logs; reran with normal Unreal process access and captured the completed results. No build was run in this increment; the existing Development target loaded successfully.
+- **Full verification:** Deferred. This slice does not complete I4; the wider A8b crafting/peer acceptance, InventoryReconnect disposition, and combined milestone-final verification remain.
+- **Observable impact / networking authority:** Confirms the existing Antidote poison lifecycle/resistance regression and owner-facing effect presentation. The test covers the server authority gate; no production source or saved-data behavior changed.
+- **Known limitations / remaining scope:** Cauldron recipe-scope/peer acceptance and remaining approved A8b progression/peer flows are still open, followed by the InventoryReconnect disposition and full I4 gate. A9 remains gated by I4.
+- **Next eligible task:** Continue A8b acceptance with the Cauldron item/peer flow through `Scripts/Tests/Construction/Verify-Crafting.ps1`, then complete the remaining A8b flows and InventoryReconnect disposition before milestone-final verification.
+- **Integration state:** Work ran directly on `master`; no worktree handoff synchronization was needed. Current run time: `2026-10-23 15:19:54 UTC`.
