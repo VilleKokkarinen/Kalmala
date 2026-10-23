@@ -39,8 +39,9 @@ struct FKalmalaGemstoneContract
     static constexpr bool EnemySourcesAccepted = false;
     static FName SelectEnemyGem(bool bMoonBear, EKalmalaBiome Biome, uint64 Seed)
     {
-        return bMoonBear && Biome == EKalmalaBiome::Elderwood && Mix(Seed ^ 0xA9B3A2ull) % 50 == 0
-            ? FName(TEXT("Moonstone")) : NAME_None;
+        if (bMoonBear && Biome == EKalmalaBiome::Elderwood && Mix(Seed ^ 0xA9B3A2ull) % 50 == 0) return TEXT("Moonstone");
+        if (!bMoonBear && Biome == EKalmalaBiome::MossyMire && Mix(Seed ^ 0xA9D1A40Dull) % 100 == 0) return TEXT("DuskDiamond");
+        return NAME_None;
     }
     static bool IsTreasureGemEnabled(FName Item) { return Item == TEXT("Garnet") || Item == TEXT("Aquamarine") || Item == TEXT("StormSapphire"); }
     static TArray<FName> SelectTreasure(EKalmalaBiome Biome, uint64 Seed)

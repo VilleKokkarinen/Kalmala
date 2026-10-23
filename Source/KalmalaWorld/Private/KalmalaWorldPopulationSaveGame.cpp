@@ -43,7 +43,8 @@ bool UKalmalaWorldPopulationSaveGame::MatchesWorld(const FKalmalaWorldGeneration
     if (SchemaVersion != 2 || WorldConfig != InWorldConfig || Gemstones.Num() > 65536) return false;
     for (const auto& Reward : PendingWildlifeRewards)
         if (!Reward.GemItemId.IsNone() && !(Reward.GemItemId == TEXT("Moonstone")
-            && Reward.PersistentSpawnId.StartsWith(TEXT("moonbear-reward|")))) return false;
+            && Reward.PersistentSpawnId.StartsWith(TEXT("moonbear-reward|")))
+            && !(Reward.GemItemId == TEXT("DuskDiamond") && Reward.PersistentSpawnId.StartsWith(TEXT("mireling-gem|")))) return false;
     if (Treasures.Num() > 65536) return false;
     TSet<FString> TreasureIds;
     for (const auto& Treasure : Treasures)
@@ -639,7 +640,8 @@ bool UKalmalaWorldPopulationSaveGame::RemoveGemstone(const FString& SpawnId)
 
 bool UKalmalaWorldPopulationSaveGame::SetPendingGemReward(const FString& ClaimId, const FName GemItemId)
 {
-    if (!GemItemId.IsNone() && !(GemItemId == TEXT("Moonstone") && ClaimId.StartsWith(TEXT("moonbear-reward|")))) return false;
+    if (!GemItemId.IsNone() && !(GemItemId == TEXT("Moonstone") && ClaimId.StartsWith(TEXT("moonbear-reward|")))
+        && !(GemItemId == TEXT("DuskDiamond") && ClaimId.StartsWith(TEXT("mireling-gem|")))) return false;
     auto* Reward = PendingWildlifeRewards.FindByPredicate([&ClaimId](const auto& Entry) { return Entry.PersistentSpawnId == ClaimId; });
     if (!Reward) return false;
     Reward->GemItemId = GemItemId;

@@ -5820,7 +5820,8 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
         bool bReefMawHasTooth = false;
         const bool bReefMawReward = UKalmalaWorldPopulationSaveGame::TryGetReefMawSpawnIdFromPendingRewardClaimId(
             Reward.PersistentSpawnId, ReefMawSpawnId, bReefMawHasTooth);
-        FString DefeatedSpawnId = Reward.PersistentSpawnId;
+        const bool bMirelingReward = Reward.PersistentSpawnId.StartsWith(TEXT("mireling-gem|"));
+        FString DefeatedSpawnId = bMirelingReward ? Reward.PersistentSpawnId.RightChop(12) : Reward.PersistentSpawnId;
         if (bBadgerReward) DefeatedSpawnId = BadgerSpawnId;
         else if (bMoonBearReward) DefeatedSpawnId = MoonBearSpawnId;
         else if (bViperReward) DefeatedSpawnId = ViperSpawnId;
@@ -5849,7 +5850,8 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
             const TArray<FKalmalaInventoryStack> Before = Inventory->GetStacks();
             TArray<FKalmalaInventoryStack> Candidate;
             FString Reason;
-            if (bPeatHuskReward)
+            if (bMirelingReward) Candidate = Before; // Mirelings have no ordinary material reward.
+            else if (bPeatHuskReward)
             {
                 TArray<FKalmalaInventoryStack> WithAmber;
                 if (!UKalmalaInventoryComponent::BuildGrant(Before, TEXT("Amber"), 1, WithAmber, Reason)) break;
@@ -5964,7 +5966,7 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
                             WithBone, TEXT("GoatHorn"), 1, Candidate, Reason)) break;
                 }
                 else if (bMoonBearReward
-                    || bLynxReward)
+                    || bLynxReward || bMirelingReward)
                 {
                     Candidate = MoveTemp(WithBone);
                 }
@@ -8002,8 +8004,8 @@ FName AKalmalaGameMode::SelectEnemyGemForSpawn(const FString& SpawnId, const boo
             FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, FVector2D(Spawn.Location)));
         EKalmalaWildlifeArchetype Archetype;
         if (!AKalmalaWildlifeSpawn::TryGetSpawnArchetypeForBiome(Spawn.SpawnSeed, Biome, Archetype)
-            || Archetype != EKalmalaWildlifeArchetype::MoonBear || !bMoonBear) return NAME_None;
-        return FKalmalaGemstoneContract::SelectEnemyGem(true, Biome, Seed ^ WorldGenerationConfig.WorldSeed);
+            || Archetype != (bMoonBear ? EKalmalaWildlifeArchetype::MoonBear : EKalmalaWildlifeArchetype::Mireling)) return NAME_None;
+        return FKalmalaGemstoneContract::SelectEnemyGem(bMoonBear, Biome, Seed ^ WorldGenerationConfig.WorldSeed);
     }
     return NAME_None;
 }
@@ -8067,5 +8069,26 @@ bool AKalmalaGameMode::ClaimWorldTreasure(AKalmalaCharacter* Interactor, const F
     PopulationSaveGame = CandidateSave;
     if (auto* Crafting = Interactor->FindComponentByClass<UKalmalaCraftingComponent>())
         Crafting->PublishInteractionResultFromServer(Claimed.Items.IsEmpty() ? TEXT("Treasure chest is empty") : TEXT("Treasure collected"), true);
+    return true;
+}
+
+bool AKalmalaGameMode::RecordMirelingDefeatReward(const FString& PersistentSpawnId, AKalmalaCharacter* CreditedAttacker)
+{
+    if (!HasAuthority() || !PopulationSaveGame || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)
+        || PersistentSpawnId.IsEmpty() || !FKalmalaGemstoneContract::EnemySourcesAccepted) return false;
+    auto* CandidateSave = DuplicateObject<UKalmalaWorldPopulationSaveGame>(PopulationSaveGame, this);
+    if (!CandidateSave) return false;
+    if (IsValid(CreditedAttacker) && CreditedAttacker->HasAuthority() && CreditedAttacker->GetWorld() == GetWorld()
+        && CreditedAttacker->GetPlayerState())
+    {
+        const FString Identity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(CreditedAttacker->GetPlayerState());
+        const FString ClaimId = TEXT("mireling-gem|") + PersistentSpawnId;
+        if (!Identity.IsEmpty() && (!CandidateSave->TryQueuePendingWildlifeReward(ClaimId, Identity)
+            || !CandidateSave->SetPendingGemReward(ClaimId, SelectEnemyGemForSpawn(PersistentSpawnId, false)))) return false;
+    }
+    CandidateSave->MarkDefeated(PersistentSpawnId);
+    if (!CandidateSave->MatchesWorld(WorldGenerationConfig) || !UGameplayStatics::SaveGameToSlot(
+        CandidateSave, KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0)) return false;
+    PopulationSaveGame = CandidateSave;
     return true;
 }

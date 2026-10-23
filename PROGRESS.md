@@ -6638,3 +6638,10 @@
 
 - Enabled Storm Sapphire's 1/50 Thunder Mountains world-treasure generation entry, quantity one; other biomes and player storage remain excluded. Immutable saved loot/complete grant validation and server-owned claims are shared with Garnet/Aquamarine. Files: GemstoneContract.h, BACKLOG/PROGRESS. `Validate-UIIcons.ps1 -Category Catalogue -Id StormSapphire` and git diff --check passed; biome/rate/path inspection passed. Full build/automation/live I5 checks deferred.
 - Earlier Star Opal source is genuinely blocked on a factual prerequisite: `tundra-frost-salt-deposit` has a mining/loot contract and fixtures but no generation assignment anywhere in Source. Tundra descriptors select frostmoss, which is explicitly excluded. Requested approval for a bounded real-deposit pass; did not invent or enable an unsupported source. Next unblocked work: Dusk Diamond source preparation, retaining I4 acceptance. Main untouched.
+
+
+## A9 independent worker — Dusk Diamond prepared, I4-gated (2026-10-23)
+
+- Prepared Dusk Diamond's server-owned 1/100 roll for canonical generated Mossy Mire Mirelings only. The shared source validator verifies actual seeded archetype and spawn biome; optional gem/credited owner is saved with defeat before replicated defeat. Pending claims retain the one-time selected result and use the complete-grant/durable-consumption path. Mireling ordinary material reward remains zero; its existing boss-scroll route is preserved.
+- Both enemy gem sources remain disabled behind EnemySourcesAccepted=false until I4 acceptance is integrated. No successful enemy-source acceptance or source enablement is claimed.
+- Files: GemstoneContract, WorldPopulationSaveGame, GameMode, WildlifeSpawn, BACKLOG/PROGRESS. `Validate-UIIcons.ps1 -Category Catalogue -Id DuskDiamond` and git diff --check passed; archetype/biome/reward/rollback inspection and path audit passed. Full build/automation/live I5 checks deferred. Next: approved Star Opal prerequisite if confirmed, otherwise shared resource validation and gear completion. Main unchanged.

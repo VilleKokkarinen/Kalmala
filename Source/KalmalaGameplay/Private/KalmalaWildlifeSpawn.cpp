@@ -7,6 +7,7 @@
 #include "KalmalaCampfire.h"
 #include "KalmalaConstructionActor.h"
 #include "KalmalaGameMode.h"
+#include "KalmalaGemstoneContract.h"
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaPlayerStatusComponent.h"
 #include "KalmalaWorldGenerationGameState.h"
@@ -541,6 +542,12 @@ bool AKalmalaWildlifeSpawn::DefeatServer()
             ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
         if (Mode == nullptr || !Mode->RecordDeathAdderDefeatReward(
                 PersistentSpawnId, LastValidatedAttacker.Get())) return false;
+    }
+
+    if (Archetype == EKalmalaWildlifeArchetype::Mireling && FKalmalaGemstoneContract::EnemySourcesAccepted)
+    {
+        auto* Mode = GetWorld() ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
+        if (!Mode || !Mode->RecordMirelingDefeatReward(PersistentSpawnId, LastValidatedAttacker.Get())) return false;
     }
 
     FangArrowPoisonRemainingSeconds = 0.0f;
@@ -4731,7 +4738,8 @@ void AKalmalaWildlifeSpawn::GrantDefeatReward()
     }
 
     const int32 BoneFragmentQuantity = GetBoneFragmentRewardQuantity(Archetype);
-    if (BoneFragmentQuantity > 0 && Archetype != EKalmalaWildlifeArchetype::Rat
+    if (BoneFragmentQuantity > 0 && !(Archetype == EKalmalaWildlifeArchetype::Mireling && FKalmalaGemstoneContract::EnemySourcesAccepted)
+        && Archetype != EKalmalaWildlifeArchetype::Rat
         && Archetype != EKalmalaWildlifeArchetype::Badger && Archetype != EKalmalaWildlifeArchetype::MoonBear
         && Archetype != EKalmalaWildlifeArchetype::Viper && Archetype != EKalmalaWildlifeArchetype::GiantSnake
         && Archetype != EKalmalaWildlifeArchetype::DeathAdder
