@@ -8024,3 +8024,16 @@
 - **Networking/authority:** Invalid or non-authoritative query context fails closed. Valid queries inspect only server-authoritative construction actors in the current world. No network protocol or save schema changed.
 - **Known limitations:** S24 still adds the Camp Bed, Campfire and Standing Light spherical query; S25 combines camp suppression and placement results. Natural actor creation remains disabled until S26.
 - **Next eligible task:** S24 is next — add the spherical camp-suppression query.
+
+
+### Monster population — S24 spherical camp suppression
+
+- **Selected increment:** S24, query spherical camp suppression around Camp Beds, Campfires and Standing Lights.
+- **Work completed:** Added an authoritative point query using the shared inclusive 1800 cm sphere radius. Any initialized, intact `CampBedKit` suppresses; a Campfire suppresses only when its current server state is lit with positive finite fuel; a Standing Light suppresses only when its current server flame-eligibility check passes and it has an initialized live construction record. Workbench/Forge cylinder results remain in the S23 query, while other pieces and cosmetics do not emit an S24 sphere. The prior documentation's 16 m sphere values are updated to the S24 backlog value of 18 m. S22 RoofKit rejection remains separate; neither camp query is wired to the final placement gate before S25, and natural actor creation remains disabled until S26.
+- **Files changed:** Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationStationCylinderTest.cpp, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSphericalSuppressionTest.cpp, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
+- **Lightweight checks:** Inspected construction initialization/health, Campfire lit/fuel state and Standing Light flame eligibility, including rain exposure. Added focused automation assertions for intact bed boundaries/destruction, unlit and fuel-exhausted Campfire states, rain-smouldered fire/light states, fuelled lit sources, unlisted stations, other pieces, cosmetics and invalid input. `git diff --check` passed; tests and builds were not run.
+- **Full verification:** Deferred to S35; S24 is not the final implementation task in the monster-population goal.
+- **Observable impact / authority:** Later placement checks can query whether a proposed point falls within the 18 m sphere of an eligible camp source. The helper reads current server-owned actor state only; it does not wire final admission, affect existing creatures, create actors or modify saved/replicated state.
+- **Networking/authority:** Invalid or non-authoritative query context fails closed. Construction and Campfire actors are considered only from the current authoritative world. No network protocol or save schema changed.
+- **Known limitations:** S25 still combines the S20–S24 placement, station and sphere results with live source state/destruction; natural actor creation remains disabled until S26.
+- **Next eligible task:** S25 is next — wire placement and camp suppression results into the physical-placement gate.

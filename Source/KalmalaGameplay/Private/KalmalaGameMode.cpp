@@ -6176,7 +6176,7 @@ bool AKalmalaGameMode::DoesPopulationPointOverlapStationCylinder(const FVector& 
         return true;
     }
 
-    const double Radius = FKalmalaMonsterSpawnTuning::PopulationStationCylinderRadiusCm;
+    const double Radius = FKalmalaMonsterSpawnTuning::CampSuppressionRadiusCm;
     const double RadiusSquared = Radius * Radius;
     constexpr double HalfHeight = FKalmalaMonsterSpawnTuning::PopulationStationCylinderHalfHeightCm;
     for (TActorIterator<AKalmalaConstructionActor> Iterator(World); Iterator; ++Iterator)
@@ -6207,6 +6207,65 @@ bool AKalmalaGameMode::DoesPopulationPointOverlapStationCylinder(const FVector& 
         {
             return true;
         }
+    }
+    return false;
+}
+
+bool AKalmalaGameMode::DoesPopulationPointOverlapCampSphere(const FVector& CandidateLocation) const
+{
+    UWorld* World = GetWorld();
+    if (!HasAuthority() || !IsValid(World)
+        || !FMath::IsFinite(CandidateLocation.X) || !FMath::IsFinite(CandidateLocation.Y)
+        || !FMath::IsFinite(CandidateLocation.Z))
+    {
+        return true;
+    }
+
+    const double Radius = FKalmalaMonsterSpawnTuning::CampSuppressionRadiusCm;
+    const double RadiusSquared = Radius * Radius;
+    const auto IsWithinCampSphere = [CandidateLocation, RadiusSquared](const FVector& Origin)
+    {
+        if (!FMath::IsFinite(Origin.X) || !FMath::IsFinite(Origin.Y) || !FMath::IsFinite(Origin.Z))
+        {
+            return false;
+        }
+        const FVector Delta = CandidateLocation - Origin;
+        return FMath::IsFinite(Delta.X) && FMath::IsFinite(Delta.Y) && FMath::IsFinite(Delta.Z)
+            && static_cast<double>(Delta.X) * Delta.X + static_cast<double>(Delta.Y) * Delta.Y
+                + static_cast<double>(Delta.Z) * Delta.Z <= RadiusSquared;
+    };
+
+    for (TActorIterator<AKalmalaConstructionActor> Iterator(World); Iterator; ++Iterator)
+    {
+        const AKalmalaConstructionActor* Construction = *Iterator;
+        if (!IsValid(Construction) || Construction->GetWorld() != World || !Construction->HasAuthority()
+            || Construction->IsActorBeingDestroyed() || Construction->GetConstructionId().IsEmpty()
+            || !FMath::IsFinite(Construction->GetHealth()) || Construction->GetHealth() <= 0.0f)
+        {
+            continue;
+        }
+
+        const FName Kit = Construction->GetConstructionKit();
+        const bool bSuppressesAsBed = Kit == TEXT("CampBedKit");
+        const bool bSuppressesAsLitStandingLight = Kit == TEXT("StandingLightKit")
+            && Construction->IsStandingLightFlameEligibleForServer();
+        if ((bSuppressesAsBed || bSuppressesAsLitStandingLight)
+            && IsWithinCampSphere(Construction->GetActorLocation()))
+        {
+            return true;
+        }
+    }
+
+    for (TActorIterator<AKalmalaCampfire> Iterator(World); Iterator; ++Iterator)
+    {
+        const AKalmalaCampfire* Campfire = *Iterator;
+        if (!IsValid(Campfire) || Campfire->GetWorld() != World || !Campfire->HasAuthority()
+            || Campfire->IsActorBeingDestroyed() || !Campfire->IsLit()
+            || !FMath::IsFinite(Campfire->GetFuelSeconds()) || Campfire->GetFuelSeconds() <= 0.0f)
+        {
+            continue;
+        }
+        if (IsWithinCampSphere(Campfire->GetActorLocation())) return true;
     }
     return false;
 }

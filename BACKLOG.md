@@ -649,7 +649,7 @@ milestone-final verification/repair run and can exceed a normal turn.
       collision.
   - [x] **S23 — Add station cylinder query.** Allowlist Workbench/Forge only;
     radius 18 m, extending 12 m above/below the actual placed station.
-  - [ ] **S24 — Add spherical suppression query.** Use radius 18 m for
+  - [x] **S24 — Add spherical suppression query.** Use radius 18 m for
     Camp Bed, lit fuelled Campfire and lit fuelled Standing Light. Other pieces,
     cosmetics and unlisted stations emit no field; roofs retain S22 rejection.
   - [ ] **S25 — Wire placement gate.** Combine S20–S24 with current authoritative

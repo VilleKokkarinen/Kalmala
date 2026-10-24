@@ -383,6 +383,13 @@ origin. Uninitialized, destroyed, nonpositive-health and other construction
 pieces do not suppress. The query remains separate from final placement until
 S25; natural actor creation remains disabled until S26.
 
+S24 adds a separate server-authoritative 3D sphere query with the same 1800 cm
+radius. An intact placed Camp Bed suppresses regardless of fuel; a Campfire
+must be lit with positive finite fuel, and a Standing Light must pass its
+existing server flame-eligibility check. Other construction, unlisted stations
+and cosmetics do not suppress. This result remains unwired until S25; RoofKit
+rejection remains the independent S22 check.
+
 - Time, weather and progression are explicitly **unrestricted for all current
   species**. These three gates return pass. Provide internal policy seams and
   fixture overrides for rejection tests; do not build a new clock, boss system,
@@ -406,8 +413,8 @@ S25; natural actor creation remains disabled until S26.
 - Workbench and Forge: inclusive 18 m horizontal cylinder, inclusive vertical
   range [-12, +12] m relative to the placed actor origin. Require an existing,
   completed, non-destroyed station; fuel and roof are irrelevant.
-- Camp Bed: inclusive 16 m 3D sphere about the placed origin, whenever intact.
-- Campfire and Standing Light: inclusive 16 m sphere only while server state is
+- Camp Bed: inclusive 18 m 3D sphere about the placed origin, whenever intact.
+- Campfire and Standing Light: inclusive 18 m sphere only while server state is
   Lit with fuel remaining. Smouldering, extinguished or empty sources do not
   suppress. Changes apply at the next attempt without a separate polling delay.
 - No other buildable suppresses. Floors/walls/roofs do not emit fields; roofs

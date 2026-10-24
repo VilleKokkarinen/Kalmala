@@ -38,7 +38,7 @@ bool FKalmalaPopulationStationCylinderTest::RunTest(const FString& Parameters)
     AKalmalaConstructionActor* Workbench = SpawnConstruction(
         TEXT("WorkbenchKit"), TEXT("station-cylinder-workbench"), FVector::ZeroVector);
     if (!TestNotNull(TEXT("Placed Workbench created"), Workbench)) return false;
-    const double Radius = FKalmalaMonsterSpawnTuning::PopulationStationCylinderRadiusCm;
+    const double Radius = FKalmalaMonsterSpawnTuning::CampSuppressionRadiusCm;
     const double HalfHeight = FKalmalaMonsterSpawnTuning::PopulationStationCylinderHalfHeightCm;
     TestTrue(TEXT("Inclusive horizontal and positive vertical boundaries suppress"),
         Mode->DoesPopulationPointOverlapStationCylinder(FVector(Radius, 0.0, HalfHeight)));
