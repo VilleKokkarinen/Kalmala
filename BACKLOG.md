@@ -672,7 +672,7 @@ milestone-final verification/repair run and can exceed a normal turn.
   - [x] **S30 — Cover spatial boundaries.** Add focused cases for ring edges,
     negative key coordinates, overlapping players, moving creatures and pack
     reservation rollback; inspect assertions against the accepted contract.
-  - [ ] **S31 — Cover gate rejection.** Add one rejection case per nine-gate
+  - [x] **S31 — Cover gate rejection.** Add one rejection case per nine-gate
     reason and unrestricted time/weather/progression cases; verify bounded work.
   - [ ] **S32 — Cover suppression and placement.** Add radius/height boundaries,
     unlisted pieces, destroyed stations, extinguished/empty lights, roof, slope

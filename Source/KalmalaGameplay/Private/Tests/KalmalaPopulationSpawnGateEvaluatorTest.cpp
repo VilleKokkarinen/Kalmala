@@ -34,51 +34,47 @@ bool FKalmalaPopulationSpawnGateEvaluatorTest::RunTest(const FString& Parameters
         AKalmalaGameMode::EvaluatePopulationSpawnGates(Results),
         EKalmalaPopulationSpawnRejectionReason::None);
 
-    Results = AllGatesPass();
-    Results.bSchedulerBudgetAvailable = false;
-    TestEqual(TEXT("Scheduler budget has its own rejection reason"),
-        AKalmalaGameMode::EvaluatePopulationSpawnGates(Results),
-        EKalmalaPopulationSpawnRejectionReason::SchedulerBudget);
-    Results = AllGatesPass();
-    Results.bSeededAdmissionRollPassed = false;
-    TestEqual(TEXT("Seeded admission has its own rejection reason"),
-        AKalmalaGameMode::EvaluatePopulationSpawnGates(Results),
-        EKalmalaPopulationSpawnRejectionReason::SeededAdmissionRoll);
-    Results = AllGatesPass();
-    Results.bPlayerDistancePassed = false;
-    TestEqual(TEXT("Player distance has its own rejection reason"),
-        AKalmalaGameMode::EvaluatePopulationSpawnGates(Results),
-        EKalmalaPopulationSpawnRejectionReason::PlayerDistance);
-    Results = AllGatesPass();
-    Results.bSpeciesHabitatPassed = false;
-    TestEqual(TEXT("Species habitat has its own rejection reason"),
-        AKalmalaGameMode::EvaluatePopulationSpawnGates(Results),
-        EKalmalaPopulationSpawnRejectionReason::SpeciesHabitat);
-    Results = AllGatesPass();
-    Results.bTimePassed = false;
-    TestEqual(TEXT("Time has its own rejection reason"),
-        AKalmalaGameMode::EvaluatePopulationSpawnGates(Results),
-        EKalmalaPopulationSpawnRejectionReason::Time);
-    Results = AllGatesPass();
-    Results.bWeatherPassed = false;
-    TestEqual(TEXT("Weather has its own rejection reason"),
-        AKalmalaGameMode::EvaluatePopulationSpawnGates(Results),
-        EKalmalaPopulationSpawnRejectionReason::Weather);
-    Results = AllGatesPass();
-    Results.bProgressionPassed = false;
-    TestEqual(TEXT("Progression has its own rejection reason"),
-        AKalmalaGameMode::EvaluatePopulationSpawnGates(Results),
-        EKalmalaPopulationSpawnRejectionReason::Progression);
-    Results = AllGatesPass();
-    Results.bCapsPassed = false;
-    TestEqual(TEXT("Caps have their own rejection reason"),
-        AKalmalaGameMode::EvaluatePopulationSpawnGates(Results),
-        EKalmalaPopulationSpawnRejectionReason::Caps);
-    Results = AllGatesPass();
-    Results.bPhysicalPlacementPassed = false;
-    TestEqual(TEXT("Physical placement has its own rejection reason"),
-        AKalmalaGameMode::EvaluatePopulationSpawnGates(Results),
-        EKalmalaPopulationSpawnRejectionReason::PhysicalPlacement);
+    const EKalmalaPopulationSpawnRejectionReason OrderedReasons[] = {
+        EKalmalaPopulationSpawnRejectionReason::SchedulerBudget,
+        EKalmalaPopulationSpawnRejectionReason::SeededAdmissionRoll,
+        EKalmalaPopulationSpawnRejectionReason::PlayerDistance,
+        EKalmalaPopulationSpawnRejectionReason::SpeciesHabitat,
+        EKalmalaPopulationSpawnRejectionReason::Time,
+        EKalmalaPopulationSpawnRejectionReason::Weather,
+        EKalmalaPopulationSpawnRejectionReason::Progression,
+        EKalmalaPopulationSpawnRejectionReason::Caps,
+        EKalmalaPopulationSpawnRejectionReason::PhysicalPlacement
+    };
+    const auto SetGatePassed = [](FKalmalaPopulationSpawnGateResults& GateResults,
+        const int32 GateIndex)
+    {
+        switch (GateIndex)
+        {
+        case 0: GateResults.bSchedulerBudgetAvailable = true; break;
+        case 1: GateResults.bSeededAdmissionRollPassed = true; break;
+        case 2: GateResults.bPlayerDistancePassed = true; break;
+        case 3: GateResults.bSpeciesHabitatPassed = true; break;
+        case 4: GateResults.bTimePassed = true; break;
+        case 5: GateResults.bWeatherPassed = true; break;
+        case 6: GateResults.bProgressionPassed = true; break;
+        case 7: GateResults.bCapsPassed = true; break;
+        case 8: GateResults.bPhysicalPlacementPassed = true; break;
+        default: break;
+        }
+    };
+    for (int32 FailingGateIndex = 0; FailingGateIndex < UE_ARRAY_COUNT(OrderedReasons);
+        ++FailingGateIndex)
+    {
+        Results = FKalmalaPopulationSpawnGateResults();
+        for (int32 EarlierGateIndex = 0; EarlierGateIndex < FailingGateIndex; ++EarlierGateIndex)
+        {
+            SetGatePassed(Results, EarlierGateIndex);
+        }
+        TestEqual(FString::Printf(TEXT("Gate %d returns its reason before later false gates"),
+                FailingGateIndex),
+            AKalmalaGameMode::EvaluatePopulationSpawnGates(Results),
+            OrderedReasons[FailingGateIndex]);
+    }
 
     Results = AllGatesPass();
     Results.bSchedulerBudgetAvailable = false;

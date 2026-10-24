@@ -132,6 +132,8 @@ bool FKalmalaPopulationRingCandidateSelectorTest::RunTest(const FString& Paramet
     }
     Mode->ApplyPopulationPlayerDistanceGate(Work, LivingPlayers);
     Mode->ApplyPopulationSpeciesHabitatGate(Work);
+    TestTrue(TEXT("A rejected attempt consumes only its original scheduler slot; later gates do not retry it"),
+        Work.SpawnAttempts.Num() == 2 && Work.SpawnAttempts.Num() <= Work.CandidateBudget);
     const FKalmalaPopulationSpawnAttempt* StillRejectedRollAttempt = Work.SpawnAttempts.FindByPredicate(
         [](const FKalmalaPopulationSpawnAttempt& Attempt)
         {

@@ -8111,3 +8111,35 @@
 - **Networking/authority:** No runtime or network behavior changed. The tested cap counts and reservation operations are authoritative GameMode paths.
 - **Known limitations:** The focused automation fixtures were not run. S31–S35 still cover gate rejection, placement/suppression, lifecycle/local-source acceptance, verification handoff and milestone-final builds/tests/peer checks.
 - **Next eligible task:** S31 — cover gate rejection.
+
+
+### Monster population — S31 gate rejection coverage
+
+- **Selected increment:** S31, cover the ordered nine-gate rejection outcomes,
+  unrestricted policy gates, and bounded work.
+- **Work completed:** Strengthened the evaluator fixture into an ordered matrix:
+  each gate is the first failing gate while all later gates remain false, and
+  each returns its distinct rejection reason. Existing fixture assertions verify
+  time, weather and progression pass for every current species, unknown species
+  fail closed, and internal seams can force each of those policies to reject.
+  Added a selector assertion that later gate evaluation does not retry a rejected
+  descriptor beyond its original bounded attempt slot. The existing scheduler
+  fixtures verify at most four keys per wake, four candidates per key, sixteen
+  candidates total, and no catch-up wake after a hitch.
+- **Files changed:**
+  `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSpawnGateEvaluatorTest.cpp`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationRingCandidateSelectorTest.cpp`,
+  `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** Inspected the nine-gate evaluation order and the
+  scheduler/selector attempt budgets; `git diff --check` passed. Automation and
+  builds were not run.
+- **Full verification:** Deferred to S35; S31 is not the final implementation
+  task in the monster-population goal.
+- **Observable impact / authority:** Test coverage only. No runtime gameplay,
+  world content, save data or replication behavior changed.
+- **Networking/authority:** No runtime authority paths changed; the fixtures
+  exercise the server GameMode evaluator and scheduler helpers.
+- **Known limitations:** The focused automation fixtures remain unrun. S32–S35
+  still cover suppression/placement, lifecycle/local-source acceptance,
+  verification handoff, and milestone-final verification.
+- **Next eligible task:** S32 — cover suppression and placement.
