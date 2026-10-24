@@ -455,10 +455,10 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     `Carrot`/`CarrotSeed`, `Potato`/`PotatoSeed`, `Rutabaga`/`RutabagaSeed`, and
     `Onion`/`OnionSeed` are complete; prior A0 Carrot, Potato, Rutabaga, and
     Onion source-pair reviews were not repeated. `PotatoSeed` remains
-    intentionally unused in A7. The A8 `TimberDoor`, `TimberBeam`, and `TimberStairs`
-    buildable audits are recorded in PROGRESS.md. Cold/fire preparations
+    intentionally unused in A7. The A8 buildable audits for `TimberDoor`, `TimberBeam`, `TimberStairs`,
+    and `CampBed` are recorded in PROGRESS.md. Cold/fire preparations
     remain deferred; A8b Antidote is tracked separately. Next A10 group:
-    A8 Camp Bed (`CampBed` buildable ID).
+    A8 Standing Light (`StandingLight` buildable ID).
     Keep this child open until every included item and scope N/A disposition
     is covered.
   - [ ] Run required full verification at each milestone's final increment.
