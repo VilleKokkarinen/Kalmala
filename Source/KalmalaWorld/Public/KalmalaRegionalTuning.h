@@ -6,6 +6,17 @@
 struct FKalmalaRegionalTuning
 {
     static constexpr double BiomeScale = 60000.0;
+    // Staged biome-height experiments in centimetres. These constants are
+    // consumed by terrain shaping only when the corresponding layer is wired.
+    static constexpr double ReliefBroadScale = 100000.0;
+    static constexpr double ReliefMiddleScale = 15000.0;
+    static constexpr double ReliefLocalScale = 3000.0;
+    static constexpr double MeadowHillScale = 16000.0;
+    static constexpr double MeadowHillAmplitude = 600.0;
+    static constexpr double MeadowRollingScale = 4500.0;
+    static constexpr double MeadowRollingAmplitude = 120.0;
+    static constexpr double MeadowFloorScale = 1200.0;
+    static constexpr double MeadowFloorAmplitude = 20.0;
     static constexpr double ElevationFrequency = 1.0 / 100000.0;
     static constexpr double ClimateFrequency = 1.0 / 150000.0;
     static constexpr double LocalReliefFrequency = 0.00035;

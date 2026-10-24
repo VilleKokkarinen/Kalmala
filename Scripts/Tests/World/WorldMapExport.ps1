@@ -32,23 +32,43 @@ function Get-Hashes {
     return $result
 }
 try {
-    $process = Start-Process $EditorCmd -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" -run=ExportWorldMaps -Watch -Verify -MaxExports=3 -Parameters=`"$inputPath`" -Output=`"$proof`" -unattended -nop4 -nosplash -nullrhi -NoZenAutoLaunch -DDC=NoZenLocalFallback -LocalDataCachePath=`"$proof/DDC`" -UserDir=`"$proof/User`" -abslog=`"$log`" -forcelogflush"
+    $process = Start-Process $EditorCmd -WindowStyle Hidden -PassThru -ArgumentList "`"$project`" -run=ExportWorldMaps -Watch -Verify -MaxExports=4 -Parameters=`"$inputPath`" -Output=`"$proof`" -unattended -nop4 -nosplash -nullrhi -NoZenAutoLaunch -DDC=NoZenLocalFallback -LocalDataCachePath=`"$proof/DDC`" -UserDir=`"$proof/User`" -abslog=`"$log`" -forcelogflush"
     Wait-Report 'World PNG export complete:' 1
     $original = Get-Hashes
-    [IO.File]::WriteAllText($inputPath, "Size=NaN`nUnknownParameter=42`n")
+    $defaultSummary = Get-Content -LiteralPath (Join-Path $proof 'LastRender.txt') -Raw
+    if ($defaultSummary -notmatch 'ReliefBroadScale=100000\.000' -or $defaultSummary -notmatch 'MeadowHillAmplitude=600\.000') {
+        throw 'LastRender.txt did not report the documented terrain-control defaults'
+    }
+    [IO.File]::WriteAllText($inputPath, ($baseline + "ReliefBroadScaleKm=0.49`n"))
     Wait-Report 'Invalid world-map parameters' 1
     $invalid = Get-Hashes
+    foreach ($name in $original.Keys) { if ($original[$name] -ne $invalid[$name]) { throw 'Out-of-range relief scale modified output' } }
+    [IO.File]::WriteAllText($inputPath, ($baseline + "MeadowHillAmplitudeM=10.01`n"))
+    Wait-Report 'Invalid world-map parameters' 2
+    $invalid = Get-Hashes
+    foreach ($name in $original.Keys) { if ($original[$name] -ne $invalid[$name]) { throw 'Out-of-range biome control modified output' } }
+    [IO.File]::WriteAllText($inputPath, "Size=NaN`nUnknownParameter=42`n")
+    Wait-Report 'Invalid world-map parameters' 3
+    $invalid = Get-Hashes
     foreach ($name in $original.Keys) { if ($original[$name] -ne $invalid[$name]) { throw 'Invalid input modified output' } }
-    [IO.File]::WriteAllText($inputPath, ($baseline + "MasterSeed=42`nMasterWavelengthKm=5.5`nLandThreshold=0.1`nBiomeScaleKm=1.4`nWarpStrengthKm=0.2`nLakesMinimumKm=3`nLakesMaximumKm=16`nMireMinimumKm=3`nMireMaximumKm=16`nWetlandHumidityMinimum=0.3`nWetlandHumidityFull=0.6`n"))
+    [IO.File]::WriteAllText($inputPath, ($baseline + "ReliefBroadScaleKm=1.25`nReliefMiddleScaleKm=0.18`nReliefLocalScaleKm=0.04`nMeadowHillScaleM=200`nMeadowHillAmplitudeM=8`nMeadowRollingScaleM=50`nMeadowRollingAmplitudeM=1.5`nMeadowFloorScaleM=15`nMeadowFloorAmplitudeM=0.25`n"))
     Wait-Report 'World PNG export complete:' 2
+    $terrainControlsOnly = Get-Hashes
+    foreach ($name in $original.Keys) { if ($original[$name] -ne $terrainControlsOnly[$name]) { throw 'Staged terrain controls changed fast-map pixels before height integration' } }
+    $terrainSummary = Get-Content -LiteralPath (Join-Path $proof 'LastRender.txt') -Raw
+    if ($terrainSummary -notmatch 'ReliefBroadScale=125000\.000' -or $terrainSummary -notmatch 'MeadowHillAmplitude=800\.000') {
+        throw 'LastRender.txt did not report the requested terrain controls'
+    }
+    [IO.File]::WriteAllText($inputPath, ($baseline + "MasterSeed=42`nMasterWavelengthKm=5.5`nLandThreshold=0.1`nBiomeScaleKm=1.4`nWarpStrengthKm=0.2`nLakesMinimumKm=3`nLakesMaximumKm=16`nMireMinimumKm=3`nMireMaximumKm=16`nWetlandHumidityMinimum=0.3`nWetlandHumidityFull=0.6`n"))
+    Wait-Report 'World PNG export complete:' 3
     $changed = Get-Hashes
     foreach ($name in $original.Keys) { if ($original[$name] -eq $changed[$name]) { throw "No tuning variation: $name" } }
     [IO.File]::WriteAllText($inputPath, $baseline)
-    Wait-Report 'World PNG export complete:' 3
+    Wait-Report 'World PNG export complete:' 4
     if (!$process.WaitForExit(10000) -or $process.ExitCode -ne 0) { throw 'Exporter failed to finish cleanly' }
     $restored = Get-Hashes
     foreach ($name in $original.Keys) { if ($original[$name] -ne $restored[$name]) { throw "Stale tuning/crop cache: $name" } }
-    Write-Output 'PASS: PNG signatures, exact fast/full pixels, shared wetland weights, warm reload, independent tuning variation, invalid-input preservation and restored-default hashes.'
+    Write-Output 'PASS: PNG signatures, exact fast/full pixels, shared wetland weights, relief-control validation/reporting, unchanged fast-map pixels, warm reload, independent tuning variation, invalid-input preservation and restored-default hashes.'
     Select-String -LiteralPath $log -Pattern 'World PNG export complete:' | ForEach-Object { $_.Line }
 }
 finally {

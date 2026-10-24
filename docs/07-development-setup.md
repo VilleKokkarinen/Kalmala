@@ -3650,6 +3650,12 @@ The file uses one `Name=value` per line, with optional blank lines and full-line
 | `LandThreshold` | 0 | -0.5–0.5; increasing it creates less land. |
 | `BiomeScaleKm` | 0.6 | Regional scale, 0.1–16 km; larger values make broader regions. |
 | `WarpStrengthKm` | 0.08 | Regional edge displacement, 0–2 km. |
+| `ReliefBroadScaleKm` | 1.0 | Staged broad terrain noise scale, 0.5–1.5 km. |
+| `ReliefMiddleScaleKm` | 0.15 | Staged shared middle relief scale, 0.08–0.25 km. |
+| `ReliefLocalScaleKm` | 0.03 | Staged shared local relief scale, 0.01–0.05 km. |
+| `MeadowHillScaleM` / `MeadowHillAmplitudeM` | 160 / 6 | Broad Meadow forms; 100–250 m / 4–10 m. |
+| `MeadowRollingScaleM` / `MeadowRollingAmplitudeM` | 45 / 1.2 | Middle Meadow relief; 30–70 m / 0.6–2 m. |
+| `MeadowFloorScaleM` / `MeadowFloorAmplitudeM` | 12 / 0.2 | Meadow floor detail; 8–20 m / 0.1–0.35 m. |
 | `StarterRadiusKm` | 0.35 | Inclusive Meadows/Ocean-only radius. |
 | `ElderwoodMinimumKm` | 0.75 | Forest eligibility minimum. |
 | `LakesMinimumKm` / `LakesMaximumKm` | 0.35 / 3 | Starter wetland distance range. |
@@ -3664,6 +3670,12 @@ The file uses one `Name=value` per line, with optional blank lines and full-line
 The starter, Elderwood, Mire and Tundra radii must be nonnegative, ordered and at most 16 km. Lakes follow the starter exclusion. Atlas dimensions and playable radius remain fixed to the current contract. Broad land thresholds can leave little or no land; such an experiment is a visual preview, not validation of a playable spawn.
 
 These parameters are **preview-only** and restricted to the headless commandlet sampling thread. Each render restores defaults and invalidates derived caches. Promote selected values into compiled production constants and rebuild all peers. There is no generator compatibility selector; the current build always defines the layout.
+
+The terrain-control keys are currently staged: the parser bounds them and
+`LastRender.txt` reports their effective centimetre values, but the fast PNG
+exporter does not consume them for height output. Changing only these keys must
+leave its map pixels unchanged. The later shaped-height preview will use them as
+its relief layers are integrated; they never tune a running game or saved world.
 
 The fast path shares the production regional classifier and wetland suitability/distance rules. It skips bowl shaping, rivers and other height work because these do not change labels. PNGs display biome identity, not final water depth. Use `RenderWorldGenerationVisualization` for hydrology and height.
 

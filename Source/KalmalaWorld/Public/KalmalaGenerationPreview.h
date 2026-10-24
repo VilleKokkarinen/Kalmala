@@ -8,6 +8,17 @@ struct FKalmalaGenerationPreviewSettings
 {
     uint64 MasterSeed = FKalmalaMasterMap::MasterSeed;
     double MasterWavelength = FKalmalaMasterMap::Wavelength;
+    // Commandlet-only staged terrain controls, centimetres. Height sampling
+    // will consume them as the corresponding layers are implemented.
+    double ReliefBroadScale = FKalmalaRegionalTuning::ReliefBroadScale;
+    double ReliefMiddleScale = FKalmalaRegionalTuning::ReliefMiddleScale;
+    double ReliefLocalScale = FKalmalaRegionalTuning::ReliefLocalScale;
+    double MeadowHillScale = FKalmalaRegionalTuning::MeadowHillScale;
+    double MeadowHillAmplitude = FKalmalaRegionalTuning::MeadowHillAmplitude;
+    double MeadowRollingScale = FKalmalaRegionalTuning::MeadowRollingScale;
+    double MeadowRollingAmplitude = FKalmalaRegionalTuning::MeadowRollingAmplitude;
+    double MeadowFloorScale = FKalmalaRegionalTuning::MeadowFloorScale;
+    double MeadowFloorAmplitude = FKalmalaRegionalTuning::MeadowFloorAmplitude;
     double LandThreshold = 0;
     double BiomeScale = FKalmalaRegionalTuning::BiomeScale;
     double WarpStrength = FKalmalaRegionalTuning::WarpStrength;
@@ -26,6 +37,23 @@ struct FKalmalaGenerationPreviewSettings
     double TundraMinimum = FKalmalaRegionalTuning::TundraMinimum;
     double MeadowsMaximum = FKalmalaRegionalTuning::MeadowsMaximum;
     double EligibilityBlend = FKalmalaRegionalTuning::EligibilityBlend;
+
+    bool HasValidReliefControls() const
+    {
+        const auto InRange = [](double Value, double Minimum, double Maximum)
+        {
+            return FMath::IsFinite(Value) && Value >= Minimum && Value <= Maximum;
+        };
+        return InRange(ReliefBroadScale, 50000.0, 150000.0)
+            && InRange(ReliefMiddleScale, 8000.0, 25000.0)
+            && InRange(ReliefLocalScale, 1000.0, 5000.0)
+            && InRange(MeadowHillScale, 10000.0, 25000.0)
+            && InRange(MeadowHillAmplitude, 400.0, 1000.0)
+            && InRange(MeadowRollingScale, 3000.0, 7000.0)
+            && InRange(MeadowRollingAmplitude, 60.0, 200.0)
+            && InRange(MeadowFloorScale, 800.0, 2000.0)
+            && InRange(MeadowFloorAmplitude, 10.0, 35.0);
+    }
 };
 
 struct KALMALAWORLD_API FKalmalaGenerationPreview

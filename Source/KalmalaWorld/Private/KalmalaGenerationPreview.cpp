@@ -11,6 +11,7 @@ const FKalmalaGenerationPreviewSettings& FKalmalaGenerationPreview::Get() { retu
 uint64 FKalmalaGenerationPreview::Serial() { return SettingsSerial; }
 bool FKalmalaGenerationPreview::Set(const FKalmalaGenerationPreviewSettings& Value)
 {
+    if (!Value.HasValidReliefControls()) return false;
 #if WITH_EDITOR
     if (IsRunningCommandlet())
     {

@@ -5,7 +5,51 @@
 #include "KalmalaWaterSurfaceMesh.h"
 #include "KalmalaTerrainPatchLayout.h"
 #include "KalmalaWorldPlayerStartResolver.h"
+#include "KalmalaGenerationPreview.h"
 #include "Misc/AutomationTest.h"
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaTerrainPreviewControlTest,
+    "Kalmala.World.Regional.PreviewHeightControls",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+bool FKalmalaTerrainPreviewControlTest::RunTest(const FString& Parameters)
+{
+    FKalmalaGenerationPreviewSettings Settings;
+    TestTrue(TEXT("Documented default terrain controls are valid"), Settings.HasValidReliefControls());
+    TestEqual(TEXT("Broad relief preview scale defaults to tuning"), Settings.ReliefBroadScale,
+        FKalmalaRegionalTuning::ReliefBroadScale);
+    TestEqual(TEXT("Meadow hill amplitude defaults to tuning"), Settings.MeadowHillAmplitude,
+        FKalmalaRegionalTuning::MeadowHillAmplitude);
+
+    auto CheckRange = [this, &Settings](double FKalmalaGenerationPreviewSettings::*Control,
+        const double Minimum, const double Maximum, const TCHAR* Label)
+    {
+        Settings = FKalmalaGenerationPreviewSettings{};
+        Settings.*Control = Minimum;
+        TestTrue(FString::Printf(TEXT("%s accepts its inclusive minimum"), Label), Settings.HasValidReliefControls());
+        Settings.*Control = Maximum;
+        TestTrue(FString::Printf(TEXT("%s accepts its inclusive maximum"), Label), Settings.HasValidReliefControls());
+        Settings.*Control = Minimum - 0.01;
+        TestFalse(FString::Printf(TEXT("%s rejects below its minimum"), Label), Settings.HasValidReliefControls());
+        Settings = FKalmalaGenerationPreviewSettings{};
+        Settings.*Control = Maximum + 0.01;
+        TestFalse(FString::Printf(TEXT("%s rejects above its maximum"), Label), Settings.HasValidReliefControls());
+    };
+
+    CheckRange(&FKalmalaGenerationPreviewSettings::ReliefBroadScale, 50000.0, 150000.0, TEXT("Broad scale"));
+    CheckRange(&FKalmalaGenerationPreviewSettings::ReliefMiddleScale, 8000.0, 25000.0, TEXT("Middle scale"));
+    CheckRange(&FKalmalaGenerationPreviewSettings::ReliefLocalScale, 1000.0, 5000.0, TEXT("Local scale"));
+    CheckRange(&FKalmalaGenerationPreviewSettings::MeadowHillScale, 10000.0, 25000.0, TEXT("Meadow hill scale"));
+    CheckRange(&FKalmalaGenerationPreviewSettings::MeadowHillAmplitude, 400.0, 1000.0, TEXT("Meadow hill amplitude"));
+    CheckRange(&FKalmalaGenerationPreviewSettings::MeadowRollingScale, 3000.0, 7000.0, TEXT("Meadow rolling scale"));
+    CheckRange(&FKalmalaGenerationPreviewSettings::MeadowRollingAmplitude, 60.0, 200.0, TEXT("Meadow rolling amplitude"));
+    CheckRange(&FKalmalaGenerationPreviewSettings::MeadowFloorScale, 800.0, 2000.0, TEXT("Meadow floor scale"));
+    CheckRange(&FKalmalaGenerationPreviewSettings::MeadowFloorAmplitude, 10.0, 35.0, TEXT("Meadow floor amplitude"));
+
+    Settings = FKalmalaGenerationPreviewSettings{};
+    Settings.ReliefBroadScale = TNumericLimits<double>::QuietNaN();
+    TestFalse(TEXT("Non-finite terrain controls are rejected"), Settings.HasValidReliefControls());
+    return true;
+}
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaBiomeHeightFunctionTest,
     "Kalmala.World.Regional.HeightFunctionBaselines",

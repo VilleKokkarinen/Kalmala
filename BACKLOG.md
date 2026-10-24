@@ -537,7 +537,7 @@ run for this goal and may exceed one turn.
   - [x] **BH06 — Extract biome height functions.** Add named candidate functions
     for Meadows, Elderwood, Shimmering Lakes, Mire, Tundra, and Mountains with
     output-preserving defaults and focused sampler coverage.
-  - [ ] **BH07 — Add validated preview controls.** Name and bound shared relief
+  - [x] **BH07 — Add validated preview controls.** Name and bound shared relief
     and biome controls in the regional tuning/preview path; keep production
     output unchanged until the corresponding shaping increment is integrated.
   - [ ] **BH08 — Add the shared relief stack.** Sample broad, middle, and local

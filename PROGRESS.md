@@ -8096,3 +8096,42 @@
   integration and final acceptance.
 - **Next task in this directed goal:** BH07 — add validated preview controls
   while keeping production output unchanged.
+
+## Run 2026-10-24 - BH07 validated terrain preview controls
+
+- **Selected increment:** BH07, add named and bounded shared relief and
+  Meadows controls in the regional tuning/preview path without changing
+  production output.
+- **Work completed:** Added shared broad/middle/local scales and documented
+  Meadows hill, rolling and floor scale/amplitude constants. Added matching
+  commandlet preview fields, finite inclusive range validation, parameter-file
+  parsing and effective-value reporting. The preview setter rejects invalid
+  staged terrain values. Added all controls to the sample parameter file,
+  documented their units/ranges and staged status, added focused bounds/default
+  automation assertions, and extended the map-export runner to reject invalid
+  values and prove staged-only controls leave current fast-map pixels unchanged.
+  Checked only BH07.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`,
+  `Source/KalmalaWorld/Public/KalmalaGenerationPreview.h`,
+  `Source/KalmalaWorld/Private/KalmalaGenerationPreview.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`,
+  `Source/KalmalaEditor/Private/ExportWorldMapsCommandlet.cpp`,
+  `Scripts/WorldMapPreview.params`, `Scripts/Tests/World/WorldMapExport.ps1`,
+  `docs/07-development-setup.md`, `docs/biome-height-rework.md`.
+- **Lightweight checks/results:** `git diff --check` passed. The updated
+  `WorldMapExport.ps1` passed PowerShell parser syntax validation. Source search
+  confirmed the new controls are read only by the preview parser/reporting and
+  range test, not by terrain sampling, so production height output remains
+  unchanged. The Unreal automation and exporter were not run. Full verification
+  remains deferred to BH26.
+- **Observable impact / authority:** Designers can provide bounded, named
+  experiment values to the headless preview and see their effective centimetre
+  values in `LastRender.txt`. The current fast PNGs do not consume terrain
+  controls for height. No gameplay, network, server-authority or save behavior
+  changed.
+- **Known limitations / remaining scope:** Relief layers and shaped-height
+  preview consumption begin in BH08 and later shaping increments; BH08–BH26
+  remain. Current map PNGs cannot visually compare terrain relief.
+- **Next task in this directed goal:** BH08 — add the deterministic shared
+  broad, middle and local relief stack.

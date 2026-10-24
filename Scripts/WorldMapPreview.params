@@ -10,6 +10,17 @@ MasterWavelengthKm=1.55
 LandThreshold=0.03
 BiomeScaleKm=8
 WarpStrengthKm=0.08
+# Staged terrain-height controls (centimetres internally). Fast biome PNGs
+# validate and report these values but do not consume them for height output.
+ReliefBroadScaleKm=1
+ReliefMiddleScaleKm=0.15
+ReliefLocalScaleKm=0.03
+MeadowHillScaleM=160
+MeadowHillAmplitudeM=6
+MeadowRollingScaleM=45
+MeadowRollingAmplitudeM=1.2
+MeadowFloorScaleM=12
+MeadowFloorAmplitudeM=0.2
 StarterRadiusKm=0.5
 ElderwoodMinimumKm=1.25
 LakesMinimumKm=0.5

@@ -630,3 +630,25 @@ collision, map and placement consumers observe it; BH19–BH23 must use the
 shared forest descriptors and existing materials; BH25–BH26 add raw-range,
 cost, rendered traversal and integrated peer acceptance. Server-owned gameplay
 selection stays authoritative throughout.
+
+## BH07 staged preview controls
+
+`FKalmalaRegionalTuning` now names the initial shared scales and documented
+Meadows trial controls in centimetres. The commandlet parameter names expose
+kilometres for shared scales and metres for Meadow values; the parser rejects
+non-finite or out-of-range inputs. Bounds are the design ranges, inclusive:
+
+| Preview controls | Default | Accepted range |
+| --- | ---: | ---: |
+| `ReliefBroadScaleKm` | 1.0 km | 0.5–1.5 km |
+| `ReliefMiddleScaleKm` | 0.15 km | 0.08–0.25 km |
+| `ReliefLocalScaleKm` | 0.03 km | 0.01–0.05 km |
+| `MeadowHillScaleM` / `MeadowHillAmplitudeM` | 160 m / 6 m | 100–250 m / 4–10 m |
+| `MeadowRollingScaleM` / `MeadowRollingAmplitudeM` | 45 m / 1.2 m | 30–70 m / 0.6–2 m |
+| `MeadowFloorScaleM` / `MeadowFloorAmplitudeM` | 12 m / 0.2 m | 8–20 m / 0.1–0.35 m |
+
+These settings are accepted only by the headless preview route and reported in
+`LastRender.txt`. Until the corresponding relief layers are connected, the fast
+classification PNGs do not consume these fields and changing them leaves map
+pixels unchanged. No production height sample reads these staged controls in
+BH07; later increments connect each layer after its baseline comparison.
