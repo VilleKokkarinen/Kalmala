@@ -531,7 +531,7 @@ run for this goal and may exceed one turn.
   - [x] **BH04 — Prevent basin resurrection.** Apply the policy to lake samplers,
     shoreline/water meshes, maps, and gameplay wetness; invalidate derived basin
     caches when policy changes. Retain reusable disabled-feature tests.
-  - [ ] **BH05 — Protect ocean and rivers.** Add focused controls proving ocean,
+  - [x] **BH05 — Protect ocean and rivers.** Add focused controls proving ocean,
     source-coast sign, sea-level rivers, swimming/wetness, and water/map
     classification still agree while basin-only water stays absent.
   - [ ] **BH06 — Extract biome height functions.** Add named candidate functions

@@ -7987,6 +7987,37 @@
 - **Next task in this directed goal:** BH04 — prevent basin resurrection across
   lake samplers, shoreline/water meshes, maps and gameplay wetness.
 
+## Run 2026-10-24 - BH05 ocean and river controls
+
+- **Selected increment:** BH05, add focused controls for retained ocean, source
+  coast, sea-level river, swimming/Wet behavior and water-map classification
+  with analytic basin water disabled.
+- **Work completed:** Connected the fixed BH01 seed-418 river, seed-419 deep
+  ocean, and former seed-418 basin fixtures across regional outputs, the same
+  ocean/lake water gate used for server Wet refresh, generated-ocean swimming
+  thresholds, exposure shoreline wetness, and minimap classification. Confirmed
+  source-coast sign remains covered by the existing Regional.RiverUnchangedControls
+  fixture and updated setup guidance to remove stale expectations for elevated
+  enclosed-lake water. No production behavior changed; checked only BH05.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaPlayerMovementTest.cpp`,
+  `Source/KalmalaUI/Private/Tests/KalmalaMinimapViewModelTest.cpp`,
+  `docs/07-development-setup.md`.
+- **Lightweight checks/results:** Reviewed fixed coordinates and baseline values
+  in `Scripts/Tests/World/BiomeBaseline418419.csv`, existing sampler, coast,
+  water-mesh and map assertions, and the server water/swimming gates.
+  `git diff --check` passed. Unreal build and automation remain deferred to
+  BH26.
+- **Observable impact / authority:** Regression coverage only. Server Wet and
+  swim decisions remain server-owned and use existing sampled sea/lake paths;
+  basin-disabled lakes cannot keep a player wet, while sea-level rivers and
+  deep ocean remain water. No RPC, replication or save change.
+- **Known limitations / remaining scope:** The new automation fixtures have not
+  been built or executed. Rendered/traversal and peer acceptance remain for
+  BH26; biome height extraction starts at BH06.
+- **Next task in this directed goal:** BH06 — extract output-preserving named
+  candidate height functions for the six land biomes.
+
 ## Run 2026-10-24 — BH04 prevent basin resurrection
 
 - **Selected increment:** BH04, apply the compiled basin policy to downstream

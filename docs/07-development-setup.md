@@ -3522,7 +3522,19 @@ alone proves that the new river cases ran. The regional prefix includes:
 | `RiverSeedRepeatability` | Height, water level, wet state and river influence repeat exactly after cache resets, reversed queries and interleaved seeds; fixed-position height/influence vary between seeds 418/419. |
 | `RiverHydrologyGridSeam` | Actual X/Y hydrology-cell crossings for both seeds retain continuous submerged channel height/influence, Z=0 water and exact cache/order reproduction. |
 | `RiverTerrainPatchSeam` | Actual X/Y 3000 cm patch crossings retain matching adjacent collision-triangle heights/depths and nonempty matching clipped sea-water mesh edges. |
-| `RiverUnchangedControls` | Distant terrain, both source-coast sides and sea retain exact baseline outputs; enclosed-lake levels retain precedence under river influence. |
+| `RiverUnchangedControls` | Distant terrain and both source-coast sides are exactly unchanged outside course envelopes; source land/sea sign and biome identity remain intact, and eligible wetland controls have no analytic basin water or support. |
+
+The basin-disabled integration controls also span regional sampling, server Wet
+refresh, generated-ocean swimming, and minimap output. In
+`Kalmala.Gameplay.Movement.SprintSavedMoves`, the seed-418 Highlandriver fixture
+remains a submerged Z=0 channel, refreshes Wet through the ocean-depth gate, but
+stays below the 100 cm swimming threshold. The seed-419 Ocean baseline remains
+deep enough to enter swimming and refresh Wet. The former seed-418 Shimmering
+Lakes basin remains dry and adds no shoreline exposure wetness. The
+`Kalmala.UI.Minimap.LocalPresentation` fixture checks that the former basin map
+cell is dry and that river/ocean map-water flags match regional water output.
+Together with `RiverUnchangedControls`, these distinguish basin-only water from
+retained coast, river, ocean, swimming and Wet behavior.
 
 Missing generated fixtures are failures, not skipped coverage. These tests
 check sampler/mesh outputs; they do not establish rendered or playable results.
@@ -3550,10 +3562,11 @@ visual acceptance.
 
 In an editor terrain view at the fixture, expect a sea-level surface over the
 submerged bed, continuous banks across patch edges, and map water classification
-over the channel independent of its land biome. Preserve elevated enclosed-lake
-water and inspect lake/river joins for gaps or steps; sampler tests alone do not
-prove visible lake-mesh continuity. Rendered minimap captures inspect HUD layout
-and may have black world backgrounds, so they cannot replace terrain inspection.
+over the channel independent of its land biome. The former analytic enclosed
+basins stay dry under the compiled policy; preserve ocean and river water.
+Sampler tests alone do not prove visible river-mesh continuity. Rendered minimap
+captures inspect HUD layout and may have black world backgrounds, so they cannot
+replace terrain inspection.
 
 Run `Scripts/Tests/World/Minimap.ps1` for peer agreement (also called by
 the combined runner). The seed-999 client must receive seed 418, then match the
