@@ -9770,3 +9770,92 @@
 
 - **Next eligible A7 crop audit:** Potato and PotatoSeed; PotatoSeed remains
   intentionally unused in the current farming contract.
+
+## Run 2026-10-24 — A10 per-item audit: A7 Potato and PotatoSeed
+
+- **Scope and definitions:** audited only the A7 cultivation use of Potato and
+  PotatoSeed. The prior A0 wild-potato source-pair review is cross-referenced,
+  not repeated. Both are registered in schema-16 `items/crops.json`. Potato is
+  displayed as `Potato`, described as `A trusty root for stews, soups, and pan
+  roasts.`, with MaxStack 20. PotatoSeed is displayed as `Potato Seeds`,
+  described as `Seeds to grow potatoes.`, with MaxStack 50. Neither item has an
+  equipment/carried-tool profile, attack data, level-up cost, or stat reward;
+  those categories are N/A. PotatoSeed remains intentionally unused per the
+  approved A0/A7 contract.
+
+- **A7 tuber contract:** `PotatoFood` is the sole Potato mode. Planting spends
+  one Potato; harvest yields three Potatoes after 600 active seconds. PotatoSeed
+  is not a payment or harvest output, and there is no PotatoSeed mode or
+  catalogue recipe reference. Potato is also an ingredient in the existing
+  RootStaminaDraughtRecipe (2), MeatStewRecipe (2), RootVegetableSoupRecipe (1),
+  PeatHeartStewRecipe (2), and RoastedRootVegetablesRecipe (1); this pass did
+  not repeat their earlier A6/A9 review.
+
+- **Authority, Trowel wear, and full-pack behavior:** the server checks
+  authority, same-world GardenPlot identity, visible current plot context, an
+  empty plot, payment inventory, and a usable Main Hand Planting Trowel. It
+  commits one Potato and one Trowel condition only for accepted planting,
+  persists player and crop candidates, and restores payment/condition if save
+  or plot application rejects the action. Harvest requires the valid Trowel
+  context but does not spend condition. The server builds the three-Potato
+  grant before clearing a mature crop; insufficient pack capacity rejects the
+  grant and leaves the crop planted.
+
+- **Persistence and growth:** GardenPlot save state contains crop mode and
+  remaining active seconds in current construction schema 7. The server
+  advances and saves an immature crop only while its terrain patch is active;
+  inactive regions and server downtime add no growth. Restoring construction
+  records restores the crop mode and remaining growth time. Ordinary Potato and
+  PotatoSeed stacks have no item-specific player-save state; their
+  ordinary-inventory save limitation is recorded in the Carrot audit.
+  Architecture/setup text that still names construction schema 6 is the
+  previously recorded documentation mismatch.
+
+- **Icons and provenance:** the catalogue icon manifest identifies Potato as
+  image batch 09/import batch C and PotatoSeed as image batch 10/import batch C,
+  both pack items. Original files exist under
+  `Content/Kalmala/UI/Source/IconOriginals/`; prepared files exist under
+  `Content/Kalmala/UI/Source/Icons/`. Imported packages are
+  `Content/Kalmala/UI/Icons/Items/Potato.uasset` and
+  `Content/Kalmala/UI/Icons/Items/PotatoSeed.uasset`. Focused validation
+  confirms each original is 1254x1254 RGBA, each prepared icon is transparent
+  64x64 RGBA, and both imported Texture2D targets resolve at
+  `/Game/Kalmala/UI/Icons/Items/Potato.Potato` and
+  `/Game/Kalmala/UI/Icons/Items/PotatoSeed.PotatoSeed`. The fallback table maps
+  Potato to Root variant 1 and PotatoSeed to Seed variant 1.
+  `docs/icon-provenance.md` has no item-specific Potato/PotatoSeed entry or
+  prompt, and `docs/material-icons.md` is absent. Batch/art identity is
+  recorded, but original prompt/tool provenance cannot be established; this is
+  a documentation gap, not a missing icon or runtime mapping.
+
+- **Evidence and remaining acceptance:** the construction-save test source
+  asserts Potato payment/output mapping, 600-second maturation, and one-time
+  crop clearing; this audit did not execute it. The historical I3 live peer run
+  exercised Carrot-food, not Potato tuber mode. Static inspection confirms the
+  full-pack guard, but no Potato full-pack or rendered-menu runtime check is
+  recorded. The post-I3 menu still needs its A10 menu-specific verification
+  refresh; later I4 build/automation evidence did not report a rendered/menu
+  run.
+
+- **Files changed:** BACKLOG.md, PROGRESS.md only.
+- **Lightweight checks:** focused JSON parsing/assertions passed for schema-16
+  crop registration, exact Potato/PotatoSeed definitions and stack caps, no
+  registered profile/attack/upgrade/reward rows, and PotatoSeed's absence from
+  recipes; it also enumerated Potato's five existing recipe ingredient
+  references. Catalogue icon validation passed separately for Potato and
+  PotatoSeed. Static inspection covered PotatoFood mapping, payment/rollback,
+  Trowel condition, full-pack harvest, active growth, save/restore, and runtime
+  icon mapping. No build, automation, gameplay, UI, peer or reconnect check was
+  run in this increment.
+
+- **Full verification:** deferred; this is not the final A10 increment.
+
+- **Impact and remaining scope:** tracking-only; no item or gameplay behavior
+  changed. PotatoSeed remains deliberately unused. The per-item art
+  prompt/provenance record and Potato-specific live GardenPlot/menu evidence
+  remain open. A10 no-grant fresh-world and restart acceptance remain open.
+  Preserve the BronzePick and IronPick acquisition-target gaps for final
+  disposition and keep the broad A10 item audit unchecked until all included
+  IDs, N/A dispositions and final acceptance are covered.
+
+- **Next eligible A7 crop audit:** Rutabaga and RutabagaSeed.
