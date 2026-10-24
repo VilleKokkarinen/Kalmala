@@ -9284,3 +9284,70 @@
   included IDs, N/A dispositions, and final runtime acceptance are covered.
 - **Next eligible A4 group:** Bronze armor and shield
   (`BronzeHelmet`, `BronzeTunic`, `BronzeLeggings`, `BronzeShield`).
+
+## Run 2026-10-24 — A10 per-item audit: A4 Bronze armor and shield
+
+- **Scope and definitions:** audited exactly `BronzeHelmet`, `BronzeTunic`,
+  `BronzeLeggings`, and `BronzeShield`. These are ordinary non-stackable
+  wearable definitions, not carried-tool profiles. Bronze Helmet is 2 kg in
+  Head, 100 maximum condition, and 3 Armor; Bronze Tunic is 5 kg in Chest, 120
+  condition, and 5 Armor; Bronze Leggings is 4 kg in Legs, 100 condition, and
+  5 Armor; Bronze Shield is 5 kg in Shield, 100 condition, and 10 Armor.
+- **Acquisition and material sources:** each has one level-one Forge acquisition
+  recipe: Helmet costs 10 Bronze + 5 Boar Hide; Tunic and Leggings each cost 15
+  Bronze + 5 Boar Hide; Shield costs 10 Bronze + 5 Lightwood + 5 Boar Hide.
+  The catalogue contains no direct loot, harvest, or starter source for these
+  four outputs, and no other recipe uses them as ingredients. Bronze comes from
+  the enabled Forge `BronzeAlloy` recipe (2 Copper + 1 Tin -> 1 Bronze,
+  `MaxBatch=5`, no Coal). Boar Hide comes from the guaranteed one-hide Boar
+  reward; Lightwood comes from Meadow aspen bundles (4 with Stone Axe or better).
+  Those input sources were audited under A0/A1; A0 records the existing lack of
+  a persistent retry when ordinary Boar rewards meet a full inventory.
+- **Upgrade data and combat:** the authored level-one Forge costs are Helmet,
+  1 Bronze + 1 Boar Hide; Tunic, 2 Bronze + 1 Boar Hide; Leggings, 2 Bronze +
+  1 Boar Hide; Shield, 1 Bronze + 1 Lightwood. Their shared reward adds 10
+  maximum condition and 1 Armor per level, with no damage bonus. These rows are
+  data only: general wearable upgrades are not executable; the separate
+  OpalHelm path does not apply to these IDs. None has an attack record. Bronze
+  Shield supplies passive Armor only, with no block/parry action. Wearable
+  Armor reduces physical Slash/Crush/Pierce/Stab damage; no elemental resistance
+  or insulation is authored. A4 defers insulation/cold protection.
+- **Icons and registration:** schema-16 `GameCatalogues.json` registers all
+  four wearable files, the Forge acquisition file, four armor cost files, and
+  shared item-stat rewards. Manifest batches S, T, U, and V identify retained
+  original artwork, prepared transparent 64x64 PNGs, and canonical imported
+  Texture2D mappings for Helmet, Tunic, Leggings, and Shield respectively.
+  `docs/icon-provenance.md#armor-icons` records the original prompt subjects,
+  source/prepared/import paths, and generation/import workflow. The linked
+  `docs/material-icons.md` and `docs/alpha-item-details.md` are absent in this
+  checkout; exact values were checked against registered JSON, the A4 backlog,
+  decision log, and development setup text where present.
+- **Equipment, authority, and save behavior:** server equip/replace accepts a
+  carried item GUID and derives the compatible slot from the catalogue;
+  return validates the slot and free-cell transaction. Equipped gear replicates
+  owner-only and remains session-only. Server-resolved wildlife hits spend one
+  condition on each non-depleted equipped wearable; same-pawn pack/equip swaps
+  retain wear in the server session ledger, but equipped slots and wear are not
+  saved or transferred to another pawn. Ordinary player item stacks also are
+  not restored. Equipping a two-handed item returns a held Shield through the
+  server-validated pack transaction; capacity failure leaves the hands intact.
+  No A4 Bronze-specific craft/equip, peer, chest, or restart case was run.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md` only.
+- **Lightweight checks:** focused PowerShell JSON assertions verified schema-16
+  registration; exact definitions, Forge acquisitions, level-one costs, shared
+  reward and Boar Hide source; no direct creature drops or attack rows were
+  found. `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id` passed for all
+  four IDs, confirming 1254x1254 RGBA originals, transparent 64x64 prepared
+  icons, canonical runtime mappings, and imported textures. Relevant catalogue,
+  source, authority, save, A4, and provenance records were inspected. No build,
+  automation, full suite, peer, or restart check ran.
+- **Full verification:** deferred; this is not A10's final increment.
+- **Impact and remaining scope:** tracking-only; no recipe, stat, source,
+  authority, icon, or save behavior changed, and no A4 catalogue/icon gap was
+  found. Runtime wearable upgrades and equipped-gear/wear persistence remain
+  open shared gaps; keep the recorded full-inventory Boar reward limitation
+  under A0, plus both BronzePick/IronPick acquisition-target gaps, for final
+  progression disposition. Keep the broad A10 audit child unchecked until all included IDs,
+  N/A dispositions, and final acceptance are covered.
+- **Next eligible A10 group:** no A4 families remain in the checklist; A5
+  Basic Torch (`BasicTorch`) comes next, followed by Planting Trowel.
