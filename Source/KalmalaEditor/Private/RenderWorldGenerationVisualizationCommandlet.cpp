@@ -267,27 +267,53 @@ int32 URenderWorldGenerationVisualizationCommandlet::Main(const FString& Params)
     }
 
     FString HillAmplitudeText;
+    FString RollingAmplitudeText;
     const bool bHasHillAmplitude = FParse::Value(*Params, TEXT("MeadowHillAmplitudeM="), HillAmplitudeText);
-    if (bHasHillAmplitude)
+    const bool bHasRollingAmplitude = FParse::Value(*Params, TEXT("MeadowRollingAmplitudeM="), RollingAmplitudeText);
+    if (bHasHillAmplitude || bHasRollingAmplitude)
     {
+        FKalmalaGenerationPreviewSettings Trial = FKalmalaGenerationPreview::Get();
         double HillAmplitudeM = 0.0;
-        if (!LexTryParseString(HillAmplitudeM, *HillAmplitudeText) || !FMath::IsFinite(HillAmplitudeM)
-            || HillAmplitudeM < 4.0 || HillAmplitudeM > 10.0)
+        double RollingAmplitudeM = 0.0;
+        if (bHasHillAmplitude)
         {
-            UE_LOG(LogTemp, Error, TEXT("MeadowHillAmplitudeM must be finite and between 4 and 10 metres."));
-            return 1;
+            if (!LexTryParseString(HillAmplitudeM, *HillAmplitudeText) || !FMath::IsFinite(HillAmplitudeM)
+                || HillAmplitudeM < 4.0 || HillAmplitudeM > 10.0)
+            {
+                UE_LOG(LogTemp, Error, TEXT("MeadowHillAmplitudeM must be finite and between 4 and 10 metres."));
+                return 1;
+            }
+
+            Trial.MeadowHillAmplitude = HillAmplitudeM * 100.0;
         }
 
-        FKalmalaGenerationPreviewSettings Trial = FKalmalaGenerationPreview::Get();
-        Trial.MeadowHillAmplitude = HillAmplitudeM * 100.0;
+        if (bHasRollingAmplitude)
+        {
+            if (!LexTryParseString(RollingAmplitudeM, *RollingAmplitudeText) || !FMath::IsFinite(RollingAmplitudeM)
+                || RollingAmplitudeM < 0.6 || RollingAmplitudeM > 1.8)
+            {
+                UE_LOG(LogTemp, Error, TEXT("MeadowRollingAmplitudeM must be finite and between 0.6 and 1.8 metres."));
+                return 1;
+            }
+
+            Trial.MeadowRollingAmplitude = RollingAmplitudeM * 100.0;
+        }
+
         if (!Trial.HasValidReliefControls() || !FKalmalaGenerationPreview::Set(Trial))
         {
-            UE_LOG(LogTemp, Error, TEXT("Could not install the commandlet-only Meadows hill trial."));
+            UE_LOG(LogTemp, Error, TEXT("Could not install the commandlet-only Meadows terrain trial."));
             return 1;
         }
-        UE_LOG(LogTemp, Display, TEXT("Meadow hill sample trial accepted: AmplitudeM=%.3f"), HillAmplitudeM);
+        if (bHasHillAmplitude)
+        {
+            UE_LOG(LogTemp, Display, TEXT("Meadow hill sample trial accepted: AmplitudeM=%.3f"), HillAmplitudeM);
+        }
+        if (bHasRollingAmplitude)
+        {
+            UE_LOG(LogTemp, Display, TEXT("Meadow rolling sample trial accepted: AmplitudeM=%.3f"), RollingAmplitudeM);
+        }
     }
-    ON_SCOPE_EXIT { if (bHasHillAmplitude) FKalmalaGenerationPreview::Reset(); };
+    ON_SCOPE_EXIT { if (bHasHillAmplitude || bHasRollingAmplitude) FKalmalaGenerationPreview::Reset(); };
 
     FString SampleInputPath;
     FString SampleOutputPath;

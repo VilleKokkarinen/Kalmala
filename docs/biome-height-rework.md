@@ -735,3 +735,19 @@ fixtures have not been built or executed. BH11b adds the reusable rolling
 amplitude sweep harness; BH25b runs it with freshly compiled code and selects
 the smallest accepted trial. Rendered traversal and connected-gentle-route
 inspection remain for BH26.
+
+### BH11b rolling profile sweep harness
+
+`Scripts/Tests/World/BiomeRollingTransects.csv` contains 264 fixed sample rows:
+24 profile groups spanning seed-418/419 Starter and outer Meadows along both
+axes, at 30/45/70 m lengths and 5 m spacing, plus four X/Y patch-seam pairs
+derived from the BH01 start-relative collision-patch origins. The numeric
+commandlet accepts a finite commandlet-only `MeadowRollingAmplitudeM` override
+from 0.6 to 1.8 m and resets it after sampling; an absent override leaves the
+current preview defaults unchanged. `Scripts/Tests/World/BiomeRollingProfiles.ps1`
+runs separate 0.6/1.2/1.8 m CSV trials, validates the fixed fixture, finite
+height/slope outputs, dry Meadows weights and adjacent-patch seam deltas, and
+requires a per-trial log marker so a stale binary is rejected. It does not
+build the Editor or select the final amplitude. BH25b must run it with freshly
+compiled source and record the measured profile ranges/slopes and selected
+setting. No build or trial was run for BH11b.

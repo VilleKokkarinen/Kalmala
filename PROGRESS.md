@@ -8318,3 +8318,36 @@
   is still BH12.
 - **Next task in this directed goal:** BH11b — add the reproducible rolling
   profile/slope/patch-seam sweep harness before BH12.
+
+## Run 2026-10-24 — BH11b Meadows rolling profile sweep harness
+
+- **Selected increment:** BH11b, add reproducible fixed-seed rolling-height,
+  collision-slope and patch-seam trial coverage.
+- **Work completed:** Added 264 fixed sampler inputs covering 24 seed-418/419
+  Starter/outer Meadows profiles at 30/45/70 m lengths and 5 m spacing, plus
+  four X/Y start-relative patch-seam pairs derived from BH01 collision metadata.
+  Added a validated commandlet-only 0.6–1.8 m rolling-amplitude override that
+  restores preview defaults after sampling and emits a trial marker. Added a
+  runner for 0.6/1.2/1.8 m CSV sweeps that rejects stale binaries, validates
+  fixture cardinality, dry Meadows classification, finite height/slope fields,
+  adjacent patch coordinates and seam deltas. Checked BH11b and BH11; BH12 is
+  next. Numeric trial selection remains in BH25b and rendered traversal in BH26.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaEditor/Private/RenderWorldGenerationVisualizationCommandlet.cpp`,
+  `Scripts/Tests/World/BiomeRollingProfiles.ps1`,
+  `Scripts/Tests/World/BiomeRollingTransects.csv`,
+  `docs/biome-height-rework.md`, `docs/07-development-setup.md`.
+- **Lightweight checks/results:** PowerShell parser validation, CSV row/profile/
+  seam-coordinate checks and `git diff --check` passed. No Editor build, commandlet
+  sweep or automation was run; full terrain verification remains deferred to
+  BH26.
+- **Observable impact / authority:** Diagnostics-only addition. The amplitude
+  override is accepted only by the editor visualization commandlet; when absent,
+  sampling defaults remain unchanged. No gameplay, networking, server authority
+  or save behavior changed.
+- **Known limitations / remaining scope:** The 1.2 m rolling amplitude is
+  provisional. BH25b must run fresh-source trials, compare measured height/slope
+  distributions and select the smallest accepted setting. Rendered route
+  inspection and integrated verification remain for BH26.
+- **Next task in this directed goal:** BH12 — add Meadows floor detail as a
+  separate local layer.

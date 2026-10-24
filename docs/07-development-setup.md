@@ -3700,6 +3700,20 @@ compare trials against `BiomeBaseline418419.csv`, select the smallest accepted
 amplitude, and preserve the measured output summary. This script does not build
 the Editor or decide final tuning by itself.
 
+### Meadows rolling profile sweep
+
+After compiling the BH11a regional sampler, run
+`Scripts/Tests/World/BiomeRollingProfiles.ps1 -Project <project-path>` with the
+matching Editor commandlet. The fixture covers seed-418/419 Starter and outer
+Meadows in both axes, over 30/45/70 m profiles with 5 m spacing, and includes
+start-relative X/Y collision-patch seam controls derived from the BH01 output.
+The runner exports final heights and collision-triangle slopes for 0.6/1.2/1.8 m
+rolling trials, rejects binaries without the effective-amplitude log marker,
+and checks adjacent patch coordinates and seam continuity. It does not build
+or select production tuning. BH25b runs the sweep with freshly compiled source
+and records measured profiles and the chosen rolling amplitude; rendered
+connected-route traversal remains part of BH26.
+
 ### Export verification
 
 After building, run `Scripts/Tests/World/WorldMapExport.ps1`. In one warm headless process it verifies PNG signatures, every visible fast/full biome pixel at 64×64, changed master/region tuning, restoration of default output hashes, and preservation of the last good PNGs after malformed input. It keeps its parameter edits and outputs in a temporary directory; the user's parameter file is untouched.

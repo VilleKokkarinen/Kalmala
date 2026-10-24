@@ -558,13 +558,13 @@ run for this goal and may exceed one turn.
       sampler; preserve default sampling when the override is absent. Provide a
       runner that exports distinct 4/6/8 m trial CSVs and records the effective
       trial so a stale binary fails visibly. Do not select final tuning here.
-  - [ ] **BH11 — Add Meadows rolling relief.** Keep open until BH11a–BH11b are
-    complete; keep final amplitude provisional until BH25b and rendered route
-    acceptance until BH26.
+  - [x] **BH11 — Add Meadows rolling relief.** Implementation and sweep harness
+    are complete; keep final amplitude provisional until BH25b and rendered
+    connected-route acceptance until BH26.
     - [x] **BH11a — Integrate the rolling layer.** Add the independently seeded
       30–70 m Meadows noise to its candidate before shoulder compression; retain
       continuous biome/coast blending and preserve lower pockets.
-    - [ ] **BH11b — Add rolling profile acceptance harness.** Add fixed-seed
+    - [x] **BH11b — Add rolling profile acceptance harness.** Add fixed-seed
       30–70 m height/slope transects, amplitude trials and patch-seam controls;
       reject stale binaries and defer numeric trial selection to BH25b.
   - [ ] **BH12 — Add Meadows floor detail.** Integrate the local layer separately;
