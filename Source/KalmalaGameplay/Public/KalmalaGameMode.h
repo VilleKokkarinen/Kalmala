@@ -201,6 +201,7 @@ private:
     bool DoesPopulationDescriptorPassBodyClearance(const FKalmalaWorldPopulationSpawn& Descriptor) const;
     bool DoesPopulationDescriptorPassRoofClearance(const FKalmalaWorldPopulationSpawn& Descriptor,
         const AActor* ProposedActorToIgnore = nullptr) const;
+    bool DoesPopulationDescriptorPassMovementSupport(const FKalmalaWorldPopulationSpawn& Descriptor) const;
     bool TryGetPopulationActorPlacementLocation(const FKalmalaWorldPopulationSpawn& Descriptor,
         EKalmalaWildlifeArchetype Archetype, const TArray<FKalmalaWildlifeBodyCollisionShape>& BodyShapes,
         FVector& OutActorLocation) const;

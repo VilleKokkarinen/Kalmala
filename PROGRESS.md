@@ -7983,8 +7983,8 @@
 - **Full verification:** Deferred to S35; S22a is one child of the physical-clearance task, not the final implementation task in the goal.
 - **Observable impact / authority:** Later server placement code can query each creature's actual configured collision shape against blocking world geometry. Land actor origins are derived from the generated-ground anchor and raised enough for every shape's support distance along the sampled surface normal while descriptor XY and identity stay stable. The query is not wired into population admission.
 - **Networking/authority:** The descriptor predicate requires authoritative GameMode and reads server-owned world/collision state. The shared profiles are deterministic component configuration; no network or save schema changed.
-- **Known limitations:** S22c still needs per-species movement support. The placement evaluator remains fail-closed until S25 and natural actor creation remains disabled until S26; S26 must consume the computed actor placement location for new land actors.
-- **Next eligible task:** Within the S22 physical-clearance task, S22c is next — preserve each species' existing movement support.
+- **Known limitations:** The placement evaluator remains fail-closed until S25 and natural actor creation remains disabled until S26; S26 must consume the computed actor placement location for new land actors.
+- **Next eligible task:** S23 is next — add the Workbench/Forge station cylinder query.
 
 
 ### Monster population — S22b solid construction-roof rejection
@@ -7996,5 +7996,18 @@
 - **Full verification:** Deferred to S35; S22b is not the final implementation task in the monster-population goal.
 - **Observable impact / authority:** Later server placement code can ask whether the actual proposed collision-profile top is under an active solid construction roof. The query does not create actors, mutate world state, wire the evaluator, or change saved/replicated data.
 - **Networking/authority:** The descriptor predicate requires GameMode authority; eligible construction hits must be server-authoritative and backed by their current query-collision root box. No network protocol or save schema changed.
-- **Known limitations:** S22c still needs species movement support. S25 must combine S20–S24 before physical placement can pass; S26 remains the first task that may enable natural actor creation.
-- **Next eligible task:** Within the S22 physical-clearance task, S22c is next — preserve each species' existing movement support.
+- **Known limitations:** S25 must combine S20–S24 before physical placement can pass; S26 remains the first task that may enable natural actor creation.
+- **Next eligible task:** S23 is next — add the Workbench/Forge station cylinder query.
+
+
+### Monster population — S22c movement support
+
+- **Selected increment:** S22c, preserve existing per-species movement support for proposed population actors.
+- **Work completed:** Added an authoritative descriptor predicate that evaluates actual proposed actor locations with the existing sampler-based support rules. It composes S20 dry generated-ground checks for land species and S21's Ocean depth and full-body water checks for Reef Maw; Wolf packs check all three member locations. Extracted the existing point-support rules into one shared config-based helper and routed Rat, Badger/Moon Bear, Tundra predators, Thunder Mountains predators, Reef Maw, Peat Husk and snake movement checks through it. Species with no separate traversal requirement continue to rely on generated ground and S22a clear collision, with no NavMesh requirement. The predicate is not wired to final admission.
+- **Files changed:** Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h, Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
+- **Lightweight checks:** Re-read the S22 support contract and inspected the current wildlife movement samplers, terrain support threshold, Reef Maw swim-depth query and actor placement anchors. Source review confirmed every shared movement rule matches its prior point query; `git diff --check` passed. No tests or builds were run.
+- **Full verification:** Deferred to S35; S22c is not the final implementation task in the monster-population goal.
+- **Observable impact / authority:** Later server placement code can verify movement support at every proposed actor location while preserving current biome, dry/water, slope, leash and depth policies. Existing movement code now shares those point checks. No actor creation, final gate activation, saved-data or replicated-state change was made.
+- **Networking/authority:** The descriptor predicate requires GameMode authority and reads server-side deterministic samplers. Existing wildlife movement remains server-authoritative; the shared helper adds no network state.
+- **Known limitations:** S23–S24 still add camp station and spherical suppression queries; S25 combines placement checks. S26 remains the first task that may enable natural actor creation.
+- **Next eligible task:** S23 is next — add the Workbench/Forge station cylinder query.

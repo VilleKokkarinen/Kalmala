@@ -365,6 +365,17 @@ canopy, cosmetics and non-roof construction cannot hide a RoofKit above them.
 S22b remains a reusable predicate only; S25 still wires the final placement
 result, and S26 remains the first task allowed to create natural actors.
 
+S22c composes the S20 generated dry-ground predicate for land species or the
+S21 Reef Maw full-body water predicate, then checks each actual proposed actor
+position against its existing sampler-based movement support. The shared point
+predicate retains the dry Meadow Rat, dry Elderwood Badger/Moon Bear, traversable
+Tundra Wolf/Lynx/Polar Bear, traversable Thunder Mountains Horned Goat/Thunder
+Sentinel, Ocean-depth Reef Maw, dry Mossy Mire Peat Husk, and biome/dry/leash
+snake rules used by existing movement code. Other land species rely on S20
+generated-ground support and S22a clear body collision; S22c adds no NavMesh
+requirement. The descriptor movement and roof checks remain unwired into
+population admission until S25 combines the physical placement result.
+
 - Time, weather and progression are explicitly **unrestricted for all current
   species**. These three gates return pass. Provide internal policy seams and
   fixture overrides for rejection tests; do not build a new clock, boss system,

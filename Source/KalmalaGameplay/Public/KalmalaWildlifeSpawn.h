@@ -293,6 +293,8 @@ public:
     static bool IsBehaviourTransitionAllowed(bool bServerAuthority, bool bAlreadyDefeated, EKalmalaWildlifeBehaviour From, EKalmalaWildlifeBehaviour To);
     static bool IsMossyMireSpawnHabitatAllowed(EKalmalaBiome Biome, bool bIsWater);
     static bool IsThunderMountainsSpawnHabitatAllowed(EKalmalaBiome Biome, bool bIsWater, bool bTraversable);
+    static bool IsPopulationSpawnPositionSupported(const FKalmalaWorldGenerationConfig& Config,
+        EKalmalaWildlifeArchetype Archetype, FVector Position, FVector SpawnOrigin);
     FKalmalaWildlifeSpawnDefeated OnDefeated;
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
     virtual void Tick(float DeltaSeconds) override;

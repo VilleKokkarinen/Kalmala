@@ -6095,6 +6095,77 @@ bool AKalmalaGameMode::DoesPopulationDescriptorPassRoofClearance(
     return true;
 }
 
+bool AKalmalaGameMode::DoesPopulationDescriptorPassMovementSupport(
+    const FKalmalaWorldPopulationSpawn& Descriptor) const
+{
+    UWorld* World = GetWorld();
+    if (!HasAuthority() || !IsValid(World) || !WorldGenerationConfig.IsValid()
+        || Descriptor.Kind != EKalmalaWorldPopulationKind::Wildlife
+        || !FMath::IsFinite(Descriptor.Location.X) || !FMath::IsFinite(Descriptor.Location.Y)
+        || !FMath::IsFinite(Descriptor.Location.Z)
+        || !FKalmalaWorldBounds::Contains(WorldGenerationConfig, FVector2D(Descriptor.Location)))
+    {
+        return false;
+    }
+
+    EKalmalaWildlifeArchetype Archetype;
+    if (!DoesPopulationDescriptorPassSpeciesHabitat(Descriptor, &Archetype)) return false;
+
+    // Land species receive the accepted generated-ground/dry-surface support;
+    // Reef Maw reuses its existing Ocean navigation, depth and whole-body water check.
+    if (IsPopulationAquaticArchetype(Archetype))
+    {
+        if (!DoesPopulationDescriptorPassAquaticSurface(Descriptor)) return false;
+    }
+    else if (!DoesPopulationDescriptorPassLandSurface(Descriptor))
+    {
+        return false;
+    }
+
+    TArray<FKalmalaWildlifeBodyCollisionShape> BodyShapes;
+    if (!AKalmalaWildlifeSpawn::GetBodyCollisionShapesForArchetype(Archetype, BodyShapes)
+        || BodyShapes.IsEmpty())
+    {
+        return false;
+    }
+
+    TArray<FKalmalaWorldPopulationSpawn> ActorDescriptors;
+    if (Archetype == EKalmalaWildlifeArchetype::Wolf)
+    {
+        ActorDescriptors.Reserve(FKalmalaWolfPackContract::MemberCount);
+        for (int32 MemberIndex = 0; MemberIndex < FKalmalaWolfPackContract::MemberCount; ++MemberIndex)
+        {
+            FKalmalaWorldPopulationSpawn MemberSpawn;
+            EKalmalaWildlifeArchetype MemberArchetype;
+            if (!FKalmalaWolfPackContract::TryBuildMemberSpawn(
+                    WorldGenerationConfig, Descriptor, MemberIndex, MemberSpawn)
+                || !DoesPopulationDescriptorPassSpeciesHabitat(MemberSpawn, &MemberArchetype)
+                || MemberArchetype != Archetype)
+            {
+                return false;
+            }
+            ActorDescriptors.Add(MoveTemp(MemberSpawn));
+        }
+    }
+    else
+    {
+        ActorDescriptors.Add(Descriptor);
+    }
+
+    for (const FKalmalaWorldPopulationSpawn& ActorDescriptor : ActorDescriptors)
+    {
+        FVector ActorLocation;
+        if (!TryGetPopulationActorPlacementLocation(
+                ActorDescriptor, Archetype, BodyShapes, ActorLocation)
+            || !AKalmalaWildlifeSpawn::IsPopulationSpawnPositionSupported(
+                WorldGenerationConfig, Archetype, ActorLocation, ActorLocation))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
 bool AKalmalaGameMode::TryGetPopulationActorPlacementLocation(
     const FKalmalaWorldPopulationSpawn& Descriptor, const EKalmalaWildlifeArchetype Archetype,
     const TArray<FKalmalaWildlifeBodyCollisionShape>& BodyShapes, FVector& OutActorLocation) const

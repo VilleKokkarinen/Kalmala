@@ -634,7 +634,7 @@ milestone-final verification/repair run and can exceed a normal turn.
     start restrictions and slope at most 32 degrees for land creatures.
   - [x] **S21 — Validate aquatic surfaces.** Reuse Reef Maw habitat/depth rules
     and check water clearance; land checks must not silently permit water spawns.
-  - [ ] **S22 — Validate physical clearance.** Reject solid overhead roofs,
+  - [x] **S22 — Validate physical clearance.** Reject solid overhead roofs,
     colliding bodies and unsupported movement/navigation locations per species.
     - [x] **S22a — Check body collision clearance.** Reuse each wildlife
       archetype's configured collision shapes and reject out-of-bounds or
@@ -643,7 +643,7 @@ milestone-final verification/repair run and can exceed a normal turn.
     - [x] **S22b — Reject solid construction roofs.** Trace upward 24 m from
       the body top and classify only active solid RoofKit construction hits.
       Ignore foliage/canopy and non-solid cosmetics.
-    - [ ] **S22c — Preserve movement support.** Apply each species' existing
+    - [x] **S22c — Preserve movement support.** Apply each species' existing
       support/traversability query; do not require navigation mesh for land
       species whose contract only requires generated-ground support and clear
       collision.
