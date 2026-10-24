@@ -3,9 +3,9 @@
 Status: user-requested design direction, 2026-10-24; implementation is in
 progress under `BACKLOG.md` after A10 acceptance and before Monster Population.
 The fixed baselines, basin policy, shared sampler, preview controls and Meadows
-hill/rolling layers are implemented incrementally; final acceptance remains
-pending BH26. This plan supersedes Meadows-specific height details where they
-differ.
+hill/rolling/floor layers are implemented incrementally; fresh-source floor
+tuning remains BH25c and final acceptance remains pending BH26. This plan
+supersedes Meadows-specific height details where they differ.
 
 This plan expands [the Meadows plan](meadows-plan.md) to all land biomes. Where
 they differ, this plan takes precedence: broad relief becomes a shared stack,
@@ -700,8 +700,9 @@ stack remains staged for the later land-biome candidates. BH10b1 supplies fixed
 transects and a validated hill-amplitude override; BH25a runs the fresh-source
 hill comparison and selects its setting. BH11b adds the rolling-profile sweep
 harness; BH25b runs fresh-source 0.6/1.2/1.8 m trials and selects the rolling
-setting. BH12b adds the floor-detail profile harness; BH25c runs fresh-source
-0.1/0.2/0.3 m trials. Rendered route and under-vegetation inspection remain BH26.
+setting. BH12b adds the floor-detail profile harness; BH25c runs the fresh-source
+8/12/20 m by 0.1/0.2/0.3 m matrix. Rendered route and under-vegetation
+inspection remain BH26.
 
 ## BH08 shared relief sampler
 
@@ -767,7 +768,25 @@ the existing continuous Meadows/coast candidate weights and does not change
 ecological fields, biome labels, other biome candidates, or the terrain mesh
 lattice. At the smallest permitted 8 m coordinate scale, the 125 cm mesh
 spacing gives 6.4 samples per scale unit; this source-level bound does not prove
-rendered aliasing acceptance. The 0.1/0.2/0.3 m trials remain provisional until
-BH12b provides the sweep harness, BH25c records fresh-source measurements, and
-BH26 inspects floor detail beneath vegetation. No profile or rendered result is
-claimed for this source-only increment.
+rendered aliasing acceptance. The 0.1/0.2/0.3 m trials remain provisional
+pending fresh-source measurements in BH25c and rendered inspection beneath
+vegetation in BH26.
+
+### BH12b floor-detail profile sweep harness
+
+`Scripts/Tests/World/BiomeFloorProfiles.csv` fixes 400 dry Meadows samples:
+eight seed-418/419 starter/outer profiles, each 60 m long with 49 points at
+125 cm spacing, plus eight outer patch-side controls. The commandlet-only sweep
+exports raw floor noise and the pre-blend floor contribution alongside final
+height, biome weight, water state, collision-triangle height/slope/grade,
+patch/cell coordinates and per-patch forest descriptor counts. Its nine trials
+cover 8/12/20 m scales and 0.1/0.2/0.3 m amplitudes. It checks finite samples,
+dry Meadows classification, signal-to-input amplitude, collision-cell
+progression, forested patch coverage and patch seam continuity. A required
+effective scale/amplitude log marker rejects stale binaries. The runner has a
+fixture-only `-ValidateOnly` mode and does not build or select final tuning;
+BH25c must run all nine combinations with freshly compiled source, then record
+the selected scale/amplitude and measurements. The
+descriptor count is a fixed-patch proxy for under-vegetation sampling, not a
+rendered foliage acceptance result; BH26 inspects aliasing and floor readability
+beneath vegetation. No build, sweep, or rendered result is claimed for BH12b.

@@ -133,7 +133,8 @@ namespace KalmalaWorldGenerationVisualization
             && FMath::IsFinite(OutSample.GradePercent);
     }
 
-    bool ExportNumericSamples(const FString& InputPath, const FString& OutputPath)
+    bool ExportNumericSamples(const FString& InputPath, const FString& OutputPath,
+        const bool bIncludeMeadowFloorDiagnostics)
     {
         TArray<FString> Lines;
         if (!FFileHelper::LoadFileToStringArray(Lines, *InputPath) || Lines.Num() < 2)
@@ -149,7 +150,12 @@ namespace KalmalaWorldGenerationVisualization
             return false;
         }
 
-        FString Csv = TEXT("Seed,Site,Xcm,Ycm,BiomeIndex,FinalHeightCm,MeadowsWeight,ShimmeringLakesWeight,ElderwoodWeight,MossyMireWeight,FreezingTundraWeight,ThunderMountainsWeight,OceanWeight,WaterLevelCm,HasWater,CollisionTriangleHeightCm,CollisionTriangleSlopeDegrees,CollisionTriangleGradePercent,PatchOriginXcm,PatchOriginYcm,PatchX,PatchY,PatchCenterXcm,PatchCenterYcm,PatchCellX,PatchCellY,PatchTriangle,ForestDescriptorCount\n");
+        FString Csv = TEXT("Seed,Site,Xcm,Ycm,BiomeIndex,FinalHeightCm,MeadowsWeight,ShimmeringLakesWeight,ElderwoodWeight,MossyMireWeight,FreezingTundraWeight,ThunderMountainsWeight,OceanWeight,WaterLevelCm,HasWater,CollisionTriangleHeightCm,CollisionTriangleSlopeDegrees,CollisionTriangleGradePercent,PatchOriginXcm,PatchOriginYcm,PatchX,PatchY,PatchCenterXcm,PatchCenterYcm,PatchCellX,PatchCellY,PatchTriangle,ForestDescriptorCount");
+        if (bIncludeMeadowFloorDiagnostics)
+        {
+            Csv += TEXT(",MeadowFloorNoise,MeadowFloorInputCm");
+        }
+        Csv += TEXT("\n");
         int32 SampleCount = 0;
         for (int32 LineIndex = 1; LineIndex < Lines.Num(); ++LineIndex)
         {
@@ -215,13 +221,22 @@ namespace KalmalaWorldGenerationVisualization
                 }
             }
 
-            Csv += FString::Printf(TEXT("%llu,%s,%.1f,%.1f,%u,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%d,%.9g,%.9g,%.9g,%.3f,%.3f,%d,%d,%.3f,%.3f,%d,%d,%u,%d\n"),
+            Csv += FString::Printf(TEXT("%llu,%s,%.1f,%.1f,%u,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%d,%.9g,%.9g,%.9g,%.3f,%.3f,%d,%d,%.3f,%.3f,%d,%d,%u,%d"),
                 static_cast<unsigned long long>(Seed), *Columns[1], X, Y, static_cast<unsigned int>(Region.Biome), Region.Height,
                 Region.Weights[0], Region.Weights[1], Region.Weights[2], Region.Weights[3],
                 Region.Weights[4], Region.Weights[5], Region.Weights[6], Region.WaterLevel, Region.bHasWater ? 1 : 0,
                 TriangleSample.Height, TriangleSample.SlopeDegrees, TriangleSample.GradePercent,
                 PatchOrigin.X, PatchOrigin.Y, PatchCoordinate.X, PatchCoordinate.Y, PatchCenter.X, PatchCenter.Y,
                 TriangleSample.CellX, TriangleSample.CellY, static_cast<unsigned int>(TriangleSample.TriangleIndex), ForestDescriptorCount);
+            if (bIncludeMeadowFloorDiagnostics)
+            {
+                const auto& Preview = FKalmalaGenerationPreview::Get();
+                const double FloorNoise = FKalmalaRegionalGeneration::Noise(
+                    Config, FKalmalaRegionalTuning::MeadowFloorSalt, Position, 1.0 / Preview.MeadowFloorScale);
+                const double FloorInputCm = double(float(FloorNoise * Preview.MeadowFloorAmplitude));
+                Csv += FString::Printf(TEXT(",%.9g,%.9g"), FloorNoise, FloorInputCm);
+            }
+            Csv += TEXT("\n");
             ++SampleCount;
         }
 
@@ -268,13 +283,25 @@ int32 URenderWorldGenerationVisualizationCommandlet::Main(const FString& Params)
 
     FString HillAmplitudeText;
     FString RollingAmplitudeText;
+    FString FloorScaleText;
+    FString FloorAmplitudeText;
     const bool bHasHillAmplitude = FParse::Value(*Params, TEXT("MeadowHillAmplitudeM="), HillAmplitudeText);
     const bool bHasRollingAmplitude = FParse::Value(*Params, TEXT("MeadowRollingAmplitudeM="), RollingAmplitudeText);
-    if (bHasHillAmplitude || bHasRollingAmplitude)
+    const bool bHasFloorScale = FParse::Value(*Params, TEXT("MeadowFloorScaleM="), FloorScaleText);
+    const bool bHasFloorAmplitude = FParse::Value(*Params, TEXT("MeadowFloorAmplitudeM="), FloorAmplitudeText);
+    if (bHasFloorScale != bHasFloorAmplitude)
+    {
+        UE_LOG(LogTemp, Error, TEXT("MeadowFloorScaleM and MeadowFloorAmplitudeM must be provided together."));
+        return 1;
+    }
+    const bool bHasFloorTrial = bHasFloorScale && bHasFloorAmplitude;
+    if (bHasHillAmplitude || bHasRollingAmplitude || bHasFloorTrial)
     {
         FKalmalaGenerationPreviewSettings Trial = FKalmalaGenerationPreview::Get();
         double HillAmplitudeM = 0.0;
         double RollingAmplitudeM = 0.0;
+        double FloorScaleM = 0.0;
+        double FloorAmplitudeM = 0.0;
         if (bHasHillAmplitude)
         {
             if (!LexTryParseString(HillAmplitudeM, *HillAmplitudeText) || !FMath::IsFinite(HillAmplitudeM)
@@ -299,6 +326,21 @@ int32 URenderWorldGenerationVisualizationCommandlet::Main(const FString& Params)
             Trial.MeadowRollingAmplitude = RollingAmplitudeM * 100.0;
         }
 
+        if (bHasFloorTrial)
+        {
+            if (!LexTryParseString(FloorScaleM, *FloorScaleText) || !FMath::IsFinite(FloorScaleM)
+                || FloorScaleM < 8.0 || FloorScaleM > 20.0
+                || !LexTryParseString(FloorAmplitudeM, *FloorAmplitudeText) || !FMath::IsFinite(FloorAmplitudeM)
+                || FloorAmplitudeM < 0.1 || FloorAmplitudeM > 0.35)
+            {
+                UE_LOG(LogTemp, Error, TEXT("MeadowFloorScaleM must be 8-20 m and MeadowFloorAmplitudeM must be 0.1-0.35 m."));
+                return 1;
+            }
+
+            Trial.MeadowFloorScale = FloorScaleM * 100.0;
+            Trial.MeadowFloorAmplitude = FloorAmplitudeM * 100.0;
+        }
+
         if (!Trial.HasValidReliefControls() || !FKalmalaGenerationPreview::Set(Trial))
         {
             UE_LOG(LogTemp, Error, TEXT("Could not install the commandlet-only Meadows terrain trial."));
@@ -312,8 +354,13 @@ int32 URenderWorldGenerationVisualizationCommandlet::Main(const FString& Params)
         {
             UE_LOG(LogTemp, Display, TEXT("Meadow rolling sample trial accepted: AmplitudeM=%.3f"), RollingAmplitudeM);
         }
+        if (bHasFloorTrial)
+        {
+            UE_LOG(LogTemp, Display, TEXT("Meadow floor sample trial accepted: ScaleM=%.3f AmplitudeM=%.3f"),
+                FloorScaleM, FloorAmplitudeM);
+        }
     }
-    ON_SCOPE_EXIT { if (bHasHillAmplitude || bHasRollingAmplitude) FKalmalaGenerationPreview::Reset(); };
+    ON_SCOPE_EXIT { if (bHasHillAmplitude || bHasRollingAmplitude || bHasFloorTrial) FKalmalaGenerationPreview::Reset(); };
 
     FString SampleInputPath;
     FString SampleOutputPath;
@@ -324,7 +371,7 @@ int32 URenderWorldGenerationVisualizationCommandlet::Main(const FString& Params)
             UE_LOG(LogTemp, Error, TEXT("SampleInput requires SampleOutput."));
             return 1;
         }
-        return ExportNumericSamples(SampleInputPath, SampleOutputPath) ? 0 : 1;
+        return ExportNumericSamples(SampleInputPath, SampleOutputPath, bHasFloorTrial) ? 0 : 1;
     }
 
     FString OutputDirectory = FPaths::ProjectContentDir() / TEXT("Kalmala/Developer/WorldGeneration");

@@ -567,17 +567,17 @@ run for this goal and may exceed one turn.
     - [x] **BH11b — Add rolling profile acceptance harness.** Add fixed-seed
       30–70 m height/slope transects, amplitude trials and patch-seam controls;
       reject stale binaries and defer numeric trial selection to BH25b.
-  - [ ] **BH12 — Add Meadows floor detail.** Keep open until BH12a and BH12b
-    provide the integrated layer and a reproducible inspection harness. The
-    numeric amplitude choice is BH25c; rendered under-vegetation acceptance is
-    BH26.
+  - [x] **BH12 — Add Meadows floor detail.** The integrated layer and
+    reproducible profile sweep harness are complete. Numeric scale/amplitude
+    selection remains BH25c; rendered under-vegetation acceptance remains BH26.
     - [x] **BH12a — Integrate local Meadows floor detail.** Add the separately
       seeded local signal at provisional 12 m / 0.2 m settings, within the
       documented 8–20 m / 0.1–0.35 m bounds, before shoulder compression.
       Preserve continuous biome/coast blending, broad hills and rolling relief.
-    - [ ] **BH12b — Add floor-detail profile harness.** Add fixed-seed local
-      profiles, lattice/aliasing metrics and a validated commandlet-only
-      amplitude override. Reject stale binaries; do not select the final value.
+    - [x] **BH12b — Add floor-detail profile harness.** Add fixed-seed local
+      profiles, lattice/aliasing metrics and validated commandlet-only scale /
+      amplitude overrides. Sweep 8/12/20 m by 0.1/0.2/0.3 m and reject stale
+      binaries; leave numeric selection to BH25c and rendered acceptance to BH26.
   - [ ] **BH13 — Shape Elderwood.** Use the shared base plus bounded detail
     without Meadows' compression curve; keep its stronger slopes/hollows and
     expose this function as the Tundra reference.
@@ -629,9 +629,10 @@ run for this goal and may exceed one turn.
       ranges, and compare sampler, map, generation, active-patch, collision,
       and decoration costs with BH01 baselines.
     - [ ] **BH25c — Run Meadows floor-detail trials.** With freshly compiled
-      source, run BH12b at 0.1/0.2/0.3 m; compare local height/slope samples and
-      choose the smallest setting that reads without corrugation or lattice
-      aliasing, then record the measured ranges.
+      source, run the BH12b 8/12/20 m by 0.1/0.2/0.3 m matrix; compare local
+      height/slope samples and select the smallest readable scale/amplitude
+      combination without corrugation or lattice aliasing, then record the
+      measured ranges.
   - [ ] **BH26 — Run final integrated verification and repair.** Inspect the full
     combined change; run the applicable Editor build, regional/master-map/
     finite-world/integrated/water checks, RegionalGeneration and Minimap peers,

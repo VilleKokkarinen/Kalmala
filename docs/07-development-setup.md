@@ -3714,6 +3714,25 @@ or select production tuning. BH25b runs the sweep with freshly compiled source
 and records measured profiles and the chosen rolling amplitude; rendered
 connected-route traversal remains part of BH26.
 
+### Meadows floor-detail profile sweep
+
+After compiling the BH12a regional sampler, run
+`Scripts/Tests/World/BiomeFloorProfiles.ps1 -Project <project-path>` with the
+matching Editor commandlet. `-ValidateOnly` checks the checked-in fixture
+without launching Unreal. The fixture contains 60 m seed-418/419 starter and
+outer Meadows transects at 125 cm collision-cell spacing, plus start-relative
+outer X/Y patch-seam controls. Nine commandlet-only trials cover 8/12/20 m
+scales and 0.1/0.2/0.3 m amplitudes. The output includes raw floor noise and
+pre-blend input contribution, final height, collision height/slope/grade,
+patch/cell coordinates and descriptor counts for the forest patches crossed by
+the profiles. The runner checks the effective-parameter log marker, so a binary
+without the BH12b sampler export cannot silently produce accepted results; it
+also checks signal/amplitude agreement, dry Meadows samples, collision-cell
+progression and patch seams. It does not build or select production tuning.
+BH25c must run the sweep with freshly compiled source, compare all nine
+combinations, and record the selected scale/amplitude and measured profiles;
+rendered under-vegetation aliasing and readability remain part of BH26.
+
 ### Export verification
 
 After building, run `Scripts/Tests/World/WorldMapExport.ps1`. In one warm headless process it verifies PNG signatures, every visible fast/full biome pixel at 64×64, changed master/region tuning, restoration of default output hashes, and preservation of the last good PNGs after malformed input. It keeps its parameter edits and outputs in a temporary directory; the user's parameter file is untouched.

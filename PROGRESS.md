@@ -8390,3 +8390,47 @@
   beneath vegetation and repairs any aliasing/corrugation found.
 - **Next task in this directed goal:** BH12b — add the validated local-floor
   profile and stale-binary-rejecting amplitude sweep harness.
+
+## Run 2026-10-24T18:54Z — Add Meadows floor-detail profile sweep harness (BH12b)
+
+- **Selected task:** BH12b, the first unchecked child under BH12. Added the
+  reproducible measurement harness; left numeric tuning selection to BH25c and
+  rendered under-vegetation acceptance to BH26.
+- **Work completed:** Added 400 fixed dry-Meadows samples: eight seed-418/419
+  starter and outer profiles with 49 samples each at 125 cm, plus eight
+  start-relative patch-side controls. Added a nine-trial commandlet-only sweep
+  for 8/12/20 m scales and 0.1/0.2/0.3 m amplitudes. The CSV exports floor
+  signal and pre-blend input contribution with final height, biome/water data,
+  collision triangle and patch/cell information, and forest descriptor counts.
+  The runner checks finite outputs, dry Meadows samples, signal/amplitude
+  agreement, profile lattice progression, forested patch coverage, seam
+  adjacency/continuity, and the fresh-parameter log marker. `-ValidateOnly`
+  validates the fixed fixture without launching Unreal. Updated BH12 state and
+  documented BH25c/BH26 boundaries.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Scripts/Tests/World/BiomeFloorProfiles.csv`,
+  `Scripts/Tests/World/BiomeFloorProfiles.ps1`,
+  `Source/KalmalaEditor/Private/RenderWorldGenerationVisualizationCommandlet.cpp`,
+  `docs/07-development-setup.md`, `docs/biome-height-rework.md`, and
+  `docs/meadows-plan.md`.
+- **Lightweight checks/results:** PowerShell parser validation passed;
+  `BiomeFloorProfiles.ps1 -ValidateOnly` passed with 400 rows, eight profiles,
+  125 cm spacing and eight seam controls; profile group cardinality and
+  `git diff --check` passed. The first fixture validation found seam coordinates
+  rounded to 0.1 cm; corrected those eight rows to match the baseline-derived
+  seam within the 0.01 cm check. No Unreal build, commandlet sweep or automation
+  was run.
+- **Full verification:** Deferred. Fresh-source numeric selection remains BH25c;
+  final terrain/rendered acceptance remains BH26.
+- **Observable impact:** Adds a reproducible way to export and compare the
+  floor-detail signal, final terrain and collision-lattice samples across the
+  specified trial matrix. It selects no production parameter and changes no
+  terrain default.
+- **Networking/authority:** The diagnostic uses the existing seeded world and
+  absolute coordinates. The override is installed only by the headless preview
+  commandlet; no RPC, gameplay authority, replicated state or save data changed.
+- **Known limitations / remaining scope:** No Unreal build or fresh-source
+  trial was run. Forest descriptor counts identify candidate-bearing patches,
+  not rendered vegetation placement or aliasing; those remain BH26 acceptance.
+- **Next task in this directed goal:** BH13 — shape Elderwood using the shared
+  base and bounded detail without Meadows shoulder compression.

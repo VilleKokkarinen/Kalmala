@@ -2,7 +2,7 @@
 
 Status: active implementation plan, 2026-10-24. BH10a/BH11a implement provisional
 Meadows hill and rolling layers, and BH12a adds a provisional floor-detail layer.
-Profile harnesses are tracked in BH10b1/BH11b/BH12b; fresh-source tuning is in
+BH10b1/BH11b/BH12b provide profile harnesses; fresh-source tuning is in
 BH25a–BH25c and rendered acceptance is in BH26. No gameplay, forest or
 presentation changes are implemented by this document. Execution is tracked in
 `BACKLOG.md` before Monster Population under the combined biome-height goal.
