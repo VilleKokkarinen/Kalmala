@@ -7736,3 +7736,42 @@
   consolidation.
 - **Next task in this directed goal:** BH01b2b — produce and validate
   fixed-site output for seeds 418/419. Keep BH01b and BH01 open.
+
+
+## Run 2026-10-24 - BH01b2b fixed-site output and validation
+
+- **Selected increment:** BH01b2b, the final child of BH01b2. This run generated
+  and validated the numeric output before checking BH01b2b, BH01b2 and BH01b.
+  BH01 remains open for BH01c.
+- **Completed:** Built KalmalaEditor in the short disposable project mirror
+  .tmp/bh01/m (55 successful UBT actions), then ran the updated visualization
+  commandlet for all 28 BH01a seed/site rows. The output CSV was byte-identical
+  on a second run. Ten additional probes exercised both sides of a cell
+  diagonal and a patch seam for each seed. Recorded the output hash, ranges,
+  checks and known warning in docs/biome-height-rework.md.
+- **Files changed:** BACKLOG.md, PROGRESS.md, docs/biome-height-rework.md.
+  Ignored CSVs, logs, build mirror and DDC remain under .tmp/bh01/; none were
+  staged. Repository Binaries, Intermediate, Saved and DerivedDataCache were
+  not modified.
+- **Commands/results:** The Editor build used UE 5.8 Build.bat with
+  -WaitMutex -NoHotReload -NoHotReloadFromIDE -MaxParallelActions=4
+  -DisableAdaptiveUnity, normal LOCALAPPDATA UnrealBuildTool access, and the
+  .tmp/bh01/m/Kalmala.uproject mirror. It passed 55 actions. The null-RHI
+  commandlet emitted 28 fixed-site rows, a byte-identical repeat, and 10
+  continuity rows; each run exited 0 with 0 errors and one known OceanSkiff
+  hull-material warning. Row checks covered schema/input identity, finite
+  scalars, normalized weights and biome identity, water state, start-relative
+  patch/cell/triangle mapping, slope/grade consistency, forest count bounds and
+  repeat determinism. Triangle diagonal and patch seam continuity checks passed.
+  All temporary paths are under 260 characters. No broader tests were run.
+- **Full verification:** Deferred; this is not milestone-final. Rendered
+  fixed-camera captures are BH01c; integrated terrain verification remains
+  BH26.
+- **Impact / authority:** Baseline measurement only. No generation, gameplay,
+  networking, server authority, RPC or save behavior changed.
+- **Known limitations:** The numeric CSV and probe evidence are ignored temporary
+  files retained for the next worktree increment, not committed. Fixed-site
+  mesh height differs from continuous height by at most 1.237548 cm at these
+  samples. One pre-existing OceanSkiff hull-material warning remains.
+- **Next task in this directed goal:** BH01c - capture rendered fixed-camera
+  views and consolidate the numeric baselines. BH01 remains open.

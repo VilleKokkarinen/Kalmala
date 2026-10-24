@@ -485,19 +485,19 @@ run for this goal and may exceed one turn.
       commandlet. Inspect the outputs, record their configuration and hashes,
       and select representative coordinates plus fixed camera poses for the
       requested biomes, transitions, coast, and high-land river.
-    - [ ] **BH01b — Add quantitative sampler diagnostics.** Keep open until
+    - [x] **BH01b — Add quantitative sampler diagnostics.** Keep open until
       BH01b1–BH01b2 are complete.
       - [x] **BH01b1 — Export scalar sample data.** Add an optional CSV-driven,
         output-only commandlet path for final sampled height, biome identity and
         seven weights, water level, and water presence at BH01a's seed 418/419
         coordinates. Keep ordinary map exports and generation behavior intact.
-      - [ ] **BH01b2 — Add collision slope and forest counts.** Keep open until
+      - [x] **BH01b2 — Add collision slope and forest counts.** Keep open until
         BH01b2a–BH01b2b are complete.
         - [x] **BH01b2a — Add mesh and forest output fields.** Match the exact
           piecewise terrain-triangle surface height/slope on the runtime
           start-relative collision grid, and count deterministic forest
           descriptors in each sample's containing patch. Do not change generation.
-        - [ ] **BH01b2b — Produce and validate fixed-site output.** Run the
+        - [x] **BH01b2b — Produce and validate fixed-site output.** Run the
           diagnostic for all BH01a coordinates and both seeds; validate every
           scalar, mesh, water, weight, and forest-count row and retain the output
           for BH01c. No terrain behavior changes.

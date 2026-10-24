@@ -289,9 +289,57 @@ ForestDescriptorCount is FKalmalaForestLayout::Generate's deterministic
 descriptor count for the containing patch and seed. It is measured before
 saved harvest suppression and actor/materialization state; it does not claim
 that every descriptor currently renders. This diagnostic is output-only and
-does not change generation. BH01b2b still needs to build/run it for all fixed
-sites and validate the resulting rows; no numeric measurements were produced
-by BH01b2a.
+does not change generation. BH01b2b below records its 28-row run and
+validation; the numeric measurements were produced in that increment, not by
+BH01b2a.
+
+## BH01b2b fixed-site numeric baseline
+
+Built the Editor target in the disposable source-matched project
+.tmp/bh01/m/Kalmala.uproject; 55 UnrealBuildTool actions succeeded. The
+project mirror kept build outputs under .tmp/bh01/m, leaving the repository
+Binaries, Intermediate, Saved and DerivedDataCache directories untouched.
+UnrealBuildTool had normal LOCALAPPDATA access.
+
+The updated RenderWorldGenerationVisualization commandlet ran in null-RHI mode
+with the 28-row input .tmp/bh01/samples.csv. It wrote 28 data rows and 28
+columns to the ignored temporary output .tmp/bh01/numeric.csv (5,563 bytes).
+Its SHA-256 is
+48d7315a014a9b33664fd1aa52eb2f574cdfcefe054c50e6b8cba7cc115c5eaf.
+A second commandlet invocation wrote a byte-identical CSV with the same hash.
+The output and logs remain under .tmp/bh01/ for BH01c; they are not committed.
+
+Validation matched every seed, site and input coordinate: 14 sites each for
+seeds 418 and 419. All 28 numeric rows are finite; the seven weights are within
+[0,1] and sum to 1 within 0.000002. BiomeIndex follows the regional sampler's
+land-weight maximum among indices 0-5 with its existing tie order; Ocean index
+6 is selected by the sampler's explicit sea-elevation branch. Water presence
+matches WaterLevelCm > FinalHeightCm. Patch centers match the 3,000 cm patch
+layout relative to the seed-derived player start; all containing-patch,
+24x24-cell and triangle indices are consistent. Slope is in [0,90), grade is
+nonnegative, and the slope/grade formula agrees in every row. Forest descriptor
+counts are integers in 0-72, range from 0 to 32 in these samples, and repeat
+identically.
+
+Fixed-site ranges are: final sample height -149.225 to 1,448.65 cm; water level
+-29.3773 to 356.951 cm; collision-triangle height -149.224 to 1,448.74 cm;
+slope 0 to 29.3808 degrees; grade 0 to 56.3029 percent. Seven rows report
+water. The mesh-triangle height minus the continuous sampler height ranges from
+-1.237548 to +1.237548 cm. BiomeIndex counts for 0 through 6 are 5, 2, 8, 3, 3,
+5, 2.
+
+Ten additional probes in continuity_input.csv/continuity_output.csv test both
+triangle sides and the exact diagonal, plus the +X patch seam for each seed.
+Triangle 0/1 heights meet within a slope-based displacement bound. Across the
+seam from patch X=0 to X=1, the height deltas over 2 cm are 0.152771 cm
+(seed 418; bound 0.305343 cm) and 0.053220 cm (seed 419; bound 0.070244 cm).
+The commandlet logs report zero errors and the same OceanSkiff hull-material
+warning recorded during BH01a: Default__KalmalaOceanSkiff:HullMesh: Material
+index 0 is invalid.
+
+This increment adds baseline evidence only; generation is unchanged. BH01c
+still needs rendered fixed-camera views and the consolidated camera/numeric
+record before BH01 can close.
 
 ## Verification and completion
 
