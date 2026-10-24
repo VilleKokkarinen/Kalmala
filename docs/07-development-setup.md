@@ -2104,7 +2104,7 @@ rejects more than 256 sparse identities.
 
 ## Water surface regression check
 
-`Kalmala.World.Water.ClippedSurface` checks partial-cell coverage, winding, flat levels, shallow shore treatment, seeded closed basins, rejection of sea-connected/unbounded/unseeded basins, deterministic meshes, and nonempty matching patch-edge intersections. Lake-biome fields seed enclosed terrain basins rather than clipping floating sheets at humidity/temperature boundaries. Basins exceeding 8,192 wet lattice vertices are conservatively omitted. The minimap uses the same visible water decision. Terrain/collision, server wetland rules, saved-data schemas are unchanged. Run `Scripts/Tests/Presentation/PlayerControls.ps1 -Rendered` for rendered host/client traversal and screenshots after building. Restart the editor to load the repaired native module.
+`Kalmala.World.Water.ClippedSurface` checks partial-cell coverage, winding, flat levels, shallow shore treatment, deterministic synthetic clipping, and the reusable `FKalmalaLakeBasin::Find` topology rules with synthetic closed, sea-connected, unbounded and unseeded fixtures. The compiled production policy `FKalmalaRegionalTuning::bEnableAnalyticBasins` defaults to false, so those helper fixtures do not represent active production lake generation. Ocean and sea-level river clipping remain enabled; BH04 owns downstream lake-consumer/cache gates. Run `Scripts/Tests/Presentation/PlayerControls.ps1 -Rendered` for rendered host/client traversal and screenshots after building. Restart the editor to load the repaired native module.
 
 ## Ocean-depth regression
 
@@ -3617,7 +3617,7 @@ Edit and save `Scripts/WorldMapPreview.params` while watching. Each stable edit 
 | --- | --- |
 | `MasterLandWater.png` | The full 128 km master land/water atlas, without a crop outline. |
 | `LandWaterCrop.png` | The game-seeded rotated crop at the current 16 km playable radius. |
-| `Biomes.png` | The same crop classified by the production biome rules, including lake basins and distance eligibility. |
+| `Biomes.png` | The same crop classified by production biome labels, including Shimmering Lakes/Mire eligibility and distance bands. Analytic basin shaping and water are disabled by compiled policy. |
 | `LastRender.txt` | Requested and effective parameters, crop transform, palette and timings from the last successful export. |
 
 Use `-Parameters <path>` for an alternate parameter file and `-Output <directory>` for a separate experiment. One exporter should own each output directory. Ctrl+C stops watch mode and its owned child process. Logs and headless engine cache/user data go to a unique temporary directory; the script prints its location. The script does not load a gameplay map, spawn terrain/population, run shaders, or join a session.

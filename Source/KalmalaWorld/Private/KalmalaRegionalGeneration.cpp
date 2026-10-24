@@ -230,41 +230,45 @@ FKalmalaRegionalSample FKalmalaRegionalGeneration::SampleInternal(const FKalmala
         for (int32 I = 0; I < 7; ++I) R.Height += R.Weights[I] * Shapes[I] * (I == 6 ? 1 : Land);
     }
 
-    // Analytic enclosed bowls: source-qualified lowland centers, continuous raised rims.
-    // Centers are separated by at least 28,000 cm; bowl supports never overlap.
-    const auto BasinCell = CellAt(P, T::BasinSpacing);
     double BasinSupport = 0;
-    for (int32 Y = -1; Y <= 1; ++Y) for (int32 X = -1; X <= 1; ++X)
+    if (T::bEnableAnalyticBasins)
     {
-        const auto Cell = BasinCell + FIntPoint(X, Y);
-        const uint64 S = Seed(C, 400, Cell);
-        const FVector2D Center = (FVector2D(Cell) + FVector2D(0.35 + RegionalUnit(S) * 0.3, 0.35 + RegionalUnit(S >> 24) * 0.3)) * T::BasinSpacing;
-        const double Radius = 4000 + 4500 * RegionalUnit(S >> 12);
-        const FVector2D Delta = P - Center;
-        const double Aspect = 0.65 + 0.35 * RegionalUnit(S >> 32);
-        const double D = FVector2D(Delta.X, Delta.Y / Aspect).Size() / Radius;
-        if (D >= 1.5) continue;
-        // Keep the entire bowl/rim beyond the starter boundary and on atlas
-        // land. Fade its influence at coast/distance edges without a height step.
-        if (Center.Size() - Radius * 1.5 <= Preview.StarterRadius || F.Elevation <= T::SeaElevation) continue;
-        // Reject out-of-support bowls before evaluating their fields and region.
-        const auto CenterFields = FKalmalaWorldFieldSampler::Sample(C, Center);
-        const double CenterWetland = WarpedRegion(C, Warp(C, Center), 3)
-            * Smooth(Preview.WetlandHumidityMinimum, Preview.WetlandHumidityFull, CenterFields.Humidity)
-            * (1 - Smooth(Preview.WetlandElevationFull, Preview.WetlandElevationMaximum, CenterFields.Elevation))
-            * Smooth(Preview.WetlandTemperatureMinimum, Preview.WetlandTemperatureFull, CenterFields.Temperature);
-        if (CenterFields.Elevation < 0.32f || CenterWetland < 0.25) continue;
-        // Lakes and Mire use exactly the same bowl parameters and suitability.
-        // Bowls shape terrain/water only; they never override the distance-gated label.
-        const double LakeEligibility = FMath::Clamp(double(R.Weights[1] + R.Weights[3]) * 2, 0.0, 1.0);
-        if (LakeEligibility <= 0) continue;
-        const double Support = (1 - Smooth(1.0, 1.5, D)) * LakeEligibility;
-        const float Level = (CenterFields.Elevation - T::SeaElevation) * 2000.0f;
-        const float Bowl = Level - 120.0f + 240.0f * D * D;
-        R.Height = FMath::Lerp(R.Height, Bowl, float(Support));
-        R.WaterLevel = Level;
-        BasinSupport = Support;
-        R.BasinWeight = (1 - Smooth(0.65, 1.0, D)) * LakeEligibility;
+        // Analytic enclosed bowls use source-qualified lowland centers and
+        // continuous raised rims. This compiled policy is the sole switch for
+        // their height, water-level and BasinWeight outputs.
+        const auto BasinCell = CellAt(P, T::BasinSpacing);
+        for (int32 Y = -1; Y <= 1; ++Y) for (int32 X = -1; X <= 1; ++X)
+        {
+            const auto Cell = BasinCell + FIntPoint(X, Y);
+            const uint64 S = Seed(C, 400, Cell);
+            const FVector2D Center = (FVector2D(Cell) + FVector2D(0.35 + RegionalUnit(S) * 0.3, 0.35 + RegionalUnit(S >> 24) * 0.3)) * T::BasinSpacing;
+            const double Radius = 4000 + 4500 * RegionalUnit(S >> 12);
+            const FVector2D Delta = P - Center;
+            const double Aspect = 0.65 + 0.35 * RegionalUnit(S >> 32);
+            const double D = FVector2D(Delta.X, Delta.Y / Aspect).Size() / Radius;
+            if (D >= 1.5) continue;
+            // Keep the entire bowl/rim beyond the starter boundary and on atlas
+            // land. Fade its influence at coast/distance edges without a height step.
+            if (Center.Size() - Radius * 1.5 <= Preview.StarterRadius || F.Elevation <= T::SeaElevation) continue;
+            // Reject out-of-support bowls before evaluating their fields and region.
+            const auto CenterFields = FKalmalaWorldFieldSampler::Sample(C, Center);
+            const double CenterWetland = WarpedRegion(C, Warp(C, Center), 3)
+                * Smooth(Preview.WetlandHumidityMinimum, Preview.WetlandHumidityFull, CenterFields.Humidity)
+                * (1 - Smooth(Preview.WetlandElevationFull, Preview.WetlandElevationMaximum, CenterFields.Elevation))
+                * Smooth(Preview.WetlandTemperatureMinimum, Preview.WetlandTemperatureFull, CenterFields.Temperature);
+            if (CenterFields.Elevation < 0.32f || CenterWetland < 0.25) continue;
+            // Lakes and Mire use exactly the same bowl parameters and suitability.
+            // Bowls shape terrain/water only; they never override the distance-gated label.
+            const double LakeEligibility = FMath::Clamp(double(R.Weights[1] + R.Weights[3]) * 2, 0.0, 1.0);
+            if (LakeEligibility <= 0) continue;
+            const double Support = (1 - Smooth(1.0, 1.5, D)) * LakeEligibility;
+            const float Level = (CenterFields.Elevation - T::SeaElevation) * 2000.0f;
+            const float Bowl = Level - 120.0f + 240.0f * D * D;
+            R.Height = FMath::Lerp(R.Height, Bowl, float(Support));
+            R.WaterLevel = Level;
+            BasinSupport = Support;
+            R.BasinWeight = (1 - Smooth(0.65, 1.0, D)) * LakeEligibility;
+        }
     }
 
     double Sum = 0, Water = 0, Influence = 0, RiverBankInfluence = 0;

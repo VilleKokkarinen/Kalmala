@@ -29,6 +29,7 @@ struct FKalmalaRegionalTuning
     static constexpr double GridCell = 6000.0;
     static constexpr int32 HydrologyCacheCells = 256;
     static constexpr double BasinSpacing = 40000.0;
+    static constexpr bool bEnableAnalyticBasins = false;
     static constexpr float SeaElevation = 0.22f;
     static constexpr float MountainElevation = 0.78f;
     // Hard eligibility distances from world zero, centimetres.

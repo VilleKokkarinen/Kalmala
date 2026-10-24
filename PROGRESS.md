@@ -7953,3 +7953,36 @@
   the planned terrain, basin, forest, presentation and verification changes.
 - **Next task in this directed goal:** BH03 — add the shared disabled-by-default
   analytic-basin policy at regional generation.
+
+## Run 2026-10-24 - BH03 disable analytic basin generation
+
+- **Selected increment:** BH03, add a shared compiled policy defaulting analytic
+  basin generation off.
+- **Work completed:** Added `FKalmalaRegionalTuning::bEnableAnalyticBasins`,
+  default false, as the sole switch around regional bowl/rim shaping, inland
+  basin water-level assignment and positive `BasinWeight` output. Regional
+  biome weights and labels remain computed by their existing path. Updated the
+  focused regional and water-mesh automation assertions and corrected the
+  architecture/setup descriptions; retained synthetic lake-mesh and basin
+  topology utility coverage. Checked only BH03.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`,
+  `Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaWaterSurfaceMeshTest.cpp`,
+  `docs/02-technical-architecture.md`, `docs/07-development-setup.md`.
+- **Lightweight checks/results:** Inspected the guarded sampler block and all
+  focused regression references; searched updated architecture/setup text for
+  stale enabled-basin claims. `git diff --check` passed. No build or automation
+  was run. Full verification remains deferred to BH26.
+- **Observable impact / authority:** Generated analytic bowl/rim terrain and
+  positive basin water support are disabled; eligible wetland biome weights
+  and labels, ocean, and sea-level rivers remain. No RPC, replicated state,
+  save data or server-authority path changed; peers derive the same compiled
+  sampler behavior from the existing seed/build.
+- **Known limitations / remaining scope:** BH04 still needs to gate downstream
+  lake samplers, meshes, map/audio/gameplay wetness and their derived caches.
+  The reusable basin flood-fill helper remains covered by synthetic utility
+  tests, not active production lake generation.
+- **Next task in this directed goal:** BH04 — prevent basin resurrection across
+  lake samplers, shoreline/water meshes, maps and gameplay wetness.

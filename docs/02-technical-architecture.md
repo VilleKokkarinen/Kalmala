@@ -315,7 +315,7 @@ The classifier and terrain-height sampler share `FKalmalaRegionalGeneration`. Sa
 
 Biome classification always uses the current generator. World identity contains only the immutable server-owned `WorldSeed`. Production tuning changes may change existing seed layouts during development. Current saves use seed-only slots; former version-specific slots are neither loaded nor deleted.
 
-The generator uses `FKalmalaMasterMap`: an independent fixed-seed 128 km land/water atlas, sampled through a game-seeded crop and rotation at the existing 16 km world radius. Its sign constrains Elevation and final ocean/land terrain; existing game-seeded Perlin fields still provide relief and environmental suitability. Special land biomes compete above hard origin-distance minima: Lakes 0.35–3 km, Elderwood at least 0.75 km, Mire 3–16 km and Tundra at least 4 km. The inclusive 350 m centre is Meadows/Ocean only. Meadows ends at 4 km; Mountains is the remaining land fallback beyond it and the elevated fallback outside the centre. Smooth eligibility ramps stay entirely within allowed distances. Lakes and Mire share all regional, climate, relief and basin parameters; only their distance ranges differ. See `02-technical-architecture.md` for exact precedence and tuning.
+The generator uses `FKalmalaMasterMap`: an independent fixed-seed 128 km land/water atlas, sampled through a game-seeded crop and rotation at the existing 16 km world radius. Its sign constrains Elevation and final ocean/land terrain; existing game-seeded Perlin fields still provide relief and environmental suitability. Special land biomes compete above hard origin-distance minima: Lakes 0.35–3 km, Elderwood at least 0.75 km, Mire 3–16 km and Tundra at least 4 km. The inclusive 350 m centre is Meadows/Ocean only. Meadows ends at 4 km; Mountains is the remaining land fallback beyond it and the elevated fallback outside the centre. Smooth eligibility ramps stay entirely within allowed distances. Lakes and Mire share regional, climate and relief suitability; only their distance ranges differ. Analytic basin generation is disabled by compiled policy. See `02-technical-architecture.md` for exact precedence and tuning.
 
 The master seed is a compiled constant. Crop transforms derive from the game seed. Rivers remain enabled and small streams are disabled. Authority, population IDs, collision and maps derive from the same server-owned seed and current build.
 
@@ -323,9 +323,10 @@ The master seed is a compiled constant. Crop transforms derive from the game see
 
 `FKalmalaRegionalGeneration` preserves seeded candidate selection, stable-ID
 coalescing and spline XY placement. Segment endpoint Z still records source
-relief for path construction; it is not the river surface. Production rivers
-use `SeaLevelWorldHeight` (Z=0 cm) outside eligible lake-basin supports. Rivers
-retain their land-biome identity; carved water does not reclassify land as Ocean.
+relief for path construction; it is not the river surface. The compiled
+`FKalmalaRegionalTuning::bEnableAnalyticBasins` policy defaults to false, so
+production rivers use `SeaLevelWorldHeight` (Z=0 cm) without lake-basin support.
+Rivers retain their land-biome identity; carved water does not reclassify land as Ocean.
 Small streams remain disabled; explicitly enabled debug streams retain their
 existing interpolated-height profile.
 
@@ -340,25 +341,24 @@ index includes the complete bank envelope, including across hydrology cells.
 The separate narrow `RiverWeight` still ends at `w`; it does not bound the
 carved banks or determine whether final terrain is wet.
 
-Shaping order is base relief and analytic bowls, optional stream shaping,
-source land/coast clamp, then river carving. With pre-carve height H, basin
-support S, and retained basin water L, the river target is
-`bed = lerp(0, L, S) - RiverBedDepth`; the final height is
-`lerp(H, min(H, bed), B*(1-S))`. Thus high source land cannot refill a channel,
-and already deeper ground is never raised. Outside basin support, the central
-bed reaches at least 80 cm below sea and river water is exactly Z=0. Shoulders
-blend back to H; points outside every bank envelope retain their prior terrain
-and source-coast sign. The shoulder can remain dry where its final height is
-above water. Regional wet state is strictly `WaterLevel > Height`.
+Shaping order is base relief and biome relief, optionally enabled analytic
+bowls, optional stream shaping, source land/coast clamp, then priority river
+carving. With pre-carve height H, bank influence B and the current disabled-basin
+policy, the river bed is `-RiverBedDepth` and final height is
+`lerp(H, min(H, -RiverBedDepth), B)`. High source land cannot refill a channel,
+and already deeper ground is never raised. The central bed reaches at least
+80 cm below sea and river water is exactly Z=0. Shoulders blend back to H;
+points outside every bank envelope retain their prior terrain and source-coast
+sign. The shoulder can remain dry where its final height is above water.
+Regional wet state is strictly `WaterLevel > Height`.
 
-Eligible analytic lake bowls take precedence: any positive basin support
-retains the existing basin water level, full support preserves its existing
-bed, and partial rim support attenuates carving while lifting the target toward
-that level minus the bed depth. This defines a continuous terrain transition;
-it does not flatten inland lakes to sea level. Visible lake water still requires
-the enclosed-component decision described below. Rendered lake joins await the
-queued preview and water-mesh verification; sampler continuity alone does not
-establish visible mesh continuity.
+Analytic basin generation is currently disabled by the compiled shared policy.
+The regional sampler therefore skips bowl/rim height shaping, inland basin
+water-level assignment and positive basin weights without changing biome
+identity. Lake-basin flood-fill and mesh helpers remain available as reusable
+utilities, but BH04 must close their production consumer/cache paths before the
+disabled inland-water behavior is fully integrated. The former lake-precedence
+path must not be treated as current production behavior.
 
 The same immutable server-owned seed and current tuning must produce identical
 height, water level, wet state and river influence regardless of query order,
@@ -378,9 +378,9 @@ hydrology-grid and terrain-patch seams, and unchanged terrain/coast/lake control
 These cases are not recorded as executed acceptance: compilation, automation,
 preview inspection and host/client agreement remain separate queued gates.
 
-The developer `ExportWorldMaps` commandlet can temporarily install thread-local preview tuning, with installation rejected outside headless commandlets. Each render restores defaults and invalidates derived crop/hydrology caches. Its fast biome query shares the normal regional/basin classifier while skipping hydrology and height-only work; default output is checked against full sampling. A warm parameter-file watcher writes PNGs without starting gameplay. This adds no runtime console setting, client authority, replicated property, production-layout setting or save change; see `07-development-setup.md` for the workflow.
+The developer `ExportWorldMaps` commandlet can temporarily install thread-local preview tuning, with installation rejected outside headless commandlets. Each render restores defaults and invalidates derived crop/hydrology caches. Its fast biome query shares the normal regional classifier while skipping hydrology and height-only work; analytic-basin generation is disabled by the compiled policy. Default output is checked against full sampling. A warm parameter-file watcher writes PNGs without starting gameplay. This adds no runtime console setting, client authority, replicated property, production-layout setting or save change; see `07-development-setup.md` for the workflow.
 
-Water presentation uses `FKalmalaWaterSurfaceMesh` to clip the shared terrain triangles at sea/lake level. `FKalmalaLakeBasin` first floods the six-connected 125 cm terrain lattice below lake level, accepting only enclosed components containing a lake-biome seed. Biome boundaries never cut an accepted lake: water extends to the physical banks. Connections to sea level and components exceeding 8,192 wet vertices are conservatively omitted rather than truncated. A bounded identity/lattice-origin cache reuses component decisions across streamed patches. The minimap uses this same visible-basin decision and interpolated terrain surface; existing server wetland/exposure/discovery sampling remains unchanged. It retains partially wet cells and interpolates intersections on shared patch edges. Shore treatment covers only terrain within 12 cm below the lake surface, not every cell or biome edge. There are no additional water collision surfaces, gameplay fields, replicated values, or saved data. The configured startup map supplies lighting without Unreal's template landscape, which otherwise intersects the generated terrain.
+Water presentation uses `FKalmalaWaterSurfaceMesh` to clip shared terrain triangles at sea or sampled regional water levels. Analytic enclosed-basin generation is disabled by the compiled shared policy, so the regional sampler emits no inland basin bowl, basin water-level assignment or positive basin weight. `FKalmalaLakeBasin::Find` remains a reusable six-connected 125 cm lattice utility; its accepted-component rules and bounded identity/lattice-origin cache are not production lake generation while the policy is off. BH04 must gate downstream samplers, minimap/audio/gameplay consumers and derived basin caches. Sea water and sea-level river clipping remain active. Shore treatment still covers only actual shallow terrain; there are no additional water collision surfaces, gameplay fields, replicated values or saved data. The configured startup map supplies lighting without Unreal's template landscape, which otherwise intersects the generated terrain.
 
 ### River terrain/water consumer audit — 2026-10-18
 
@@ -402,11 +402,11 @@ existing linear triangles; river preview, patch-seam and peer gates remain queue
 
 ## Companion minimap presentation
 
-Phase 7 begins with `FKalmalaOceanSampler`: a derived sea-depth query using the same 125 cm lattice and triangle diagonal as terrain collision and clipped ocean water. The normal overload derives the lattice origin from the immutable world's generated start and caches only that origin by identity. The explicit-origin overload supports patch callers. It returns validity, interpolated terrain height, and nonnegative depth below the existing zero-height sea surface; dry ground and the exact shore have zero depth. Invalid identity and nonfinite coordinates are rejected. The minimap now consumes this triangle height and sea-depth result instead of sampling curved Perlin height between mesh vertices, so its ocean coastline follows the visible mesh. Inland lake presentation continues through the enclosed-basin query.
+Phase 7 begins with `FKalmalaOceanSampler`: a derived sea-depth query using the same 125 cm lattice and triangle diagonal as terrain collision and clipped ocean water. The normal overload derives the lattice origin from the immutable world's generated start and caches only that origin by identity. The explicit-origin overload supports patch callers. It returns validity, interpolated terrain height, and nonnegative depth below the existing zero-height sea surface; dry ground and the exact shore have zero depth. Invalid identity and nonfinite coordinates are rejected. The minimap now consumes this triangle height and sea-depth result instead of sampling curved Perlin height between mesh vertices, so its ocean coastline follows the visible mesh. Analytic inland basins are disabled by compiled policy; the lake-basin utility is not a source of production water until its consumers are gated and verified.
 
 This query adds no world field, terrain deformation, island placement, collision volume, RPC, replicated value, or saved data. `FKalmalaIslandLocator` remains a developer-only query over existing emerging seed terrain and never reserves or creates content. The first gameplay consumer is `UKalmalaCharacterMovementComponent`: server and predicting owner sample the replicated immutable identity at the pawn's current position, enter its generated-ocean custom mode at 100 cm sea depth, and return to normal walking below 75 cm. The server remains authoritative through normal Character Movement replication and correction; the client supplies neither a depth nor a requested mode. The custom mode floats the existing pawn capsule at the zero-height visible sea and retains swept collision with the shared terrain mesh. Server terrain activation retires patches outside the bounded union of all player neighborhoods before activating needed ones, so ordinary long-distance sea movement refreshes collision/rendering without expanding the 25-patch budget. `OceanTravel.ps1` confirms a current-generator host and conflicting-seed client independently derive the same existing island, enter ocean, and arrive over normal replicated movement; its travel target and temporary pawn-collision relaxation are verification-only. Boats and inland lake-depth gameplay remain future Phase 8 work.
 
-The companion minimap uses a `ULocalPlayerSubsystem` per local player and rebuilds its widget/input binding when that player's controller changes. Viewport sizing and positioning precede anchoring because UE 5.8 resets anchors in both setters. A transient 129x129 sRGB texture fills the circle with world-anchored original biome patterns, bilinear filtering, and a transparent feathered edge; sea-level water and inland lake water override land treatment. This is disposable presentation of the existing classifier, not a new world-generation field or persisted biome map. Unchanged position/radius/world identity reuses the raster; facing still refreshes. Texture uploads update an existing GPU resource. The configured CommonUI viewport client routes modal input; Menu mode always retains wheel ownership, including menus with captured previews. No discovery/landmark visibility contract exists yet, so the minimap does not query or draw harvest nodes, hidden discoveries, hazards, or other players.
+The companion minimap uses a `ULocalPlayerSubsystem` per local player and rebuilds its widget/input binding when that player's controller changes. Viewport sizing and positioning precede anchoring because UE 5.8 resets anchors in both setters. A transient 129x129 sRGB texture fills the circle with world-anchored original biome patterns, bilinear filtering, and a transparent feathered edge; sea-level water overrides land treatment. Analytic inland lakes are disabled by compiled policy and their downstream map gates are part of BH04. This is disposable presentation of the existing classifier, not a new world-generation field or persisted biome map. Unchanged position/radius/world identity reuses the raster; facing still refreshes. Texture uploads update an existing GPU resource. The configured CommonUI viewport client routes modal input; Menu mode always retains wheel ownership, including menus with captured previews. No discovery/landmark visibility contract exists yet, so the minimap does not query or draw harvest nodes, hidden discoveries, hazards, or other players.
 
 The expanded map places a local fog texture over all generated terrain/water tiles and clears a fixed 6,500 cm circle around the owning pawn's normal replicated transform. It records the revealed 500 cm coverage cells in a separately versioned, bounded (8,192-cell) local `SaveGame`, keyed by the immutable seed and local-player index; a mismatched identity is never reused. This is separate from server-owned generated-world sparse saves and stores no terrain classification, actor, discovery, or gameplay data. Current sight is fully clear; remembered personal coverage carries a translucent sea-glass teal treatment. A contrasting warm lichen-ember palette is reserved for a future explicitly opted-in shared-cartography source, but this phase does not create, load, query, or render shared coverage. Map pan and zoom merely transform current/personal coverage into the view; neither can widen it, choose another player, issue an RPC, or query actors. Opaque fog pixels contain no terrain, water, landmark, population, or discovery treatment.
 
@@ -740,7 +740,7 @@ On land, the existing regional Perlin signals and environmental suitability sele
 
 Minimum-distance weights rise smoothly over 50 m on the eligible side, never leaking into excluded radii. The lowland Meadows fallback fades into Mountains over the last 50 m before 4 km, reaching zero at 4 km. Elevation also favours the mountain fallback nearer the centre, with no mountain influence at or inside 0.35 km. A winning special biome takes precedence over the fallback, including on high terrain. Remaining land beyond 4 km is Thunder Mountains even where source relief is low. These restrictions replace the earlier Gaussian distance preferences; they are not enemy levels or travel gates.
 
-Shimmering Lakes and Mossy Mire share the same regional noise, humidity, elevation and temperature suitability, terrain relief, and analytic basin parameters. Their only generation difference is the distance range: Lakes 0.35–3 km, Mire 3–16 km. Both ends ramp over 50 m inside the allowed range; their weight is zero at the exact endpoints. Biome labels do not require standing water. Qualified bowls shape terrain and water within either wetland without overriding biome weights or distance limits.
+Shimmering Lakes and Mossy Mire share the same regional noise, humidity, elevation and temperature suitability and terrain relief. Their only generation difference is the distance range: Lakes 0.35–3 km, Mire 3–16 km. Both ends ramp over 50 m inside the allowed range; their weight is zero at the exact endpoints. Biome labels do not require standing water. The compiled shared policy currently disables qualified bowl/rim shaping, basin water-level assignment and positive basin weights in both wetlands without changing those labels or distance limits.
 
 Shared suitability defaults: humidity rises from 0.48 to full strength at 0.65, elevation falls from full strength at 0.43 to zero at 0.58, and temperature rises from 0.18 to full strength at 0.32. `FKalmalaRegionalTuning` and the preview parameter file expose these same six settings. Rivers remain enabled; small streams are disabled. Inland water can occur in a land biome without making it Ocean. Islands come from the master crop. The player-start resolver searches dry Meadows within 320 m of zero.
 

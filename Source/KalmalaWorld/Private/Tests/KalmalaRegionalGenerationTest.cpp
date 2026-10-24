@@ -211,16 +211,17 @@ bool FKalmalaRiverUnchangedControlsTest::RunTest(const FString& Parameters)
 {
     using G = FKalmalaRegionalGeneration;
     using T = FKalmalaRegionalTuning;
+    TestFalse(TEXT("Compiled analytic-basin policy defaults disabled"), T::bEnableAnalyticBasins);
     for (const uint64 Seed : {418ull, 419ull})
     {
         const FKalmalaWorldGenerationConfig Config{Seed};
-        int32 Land = 0, Sea = 0, CoastLand = 0, CoastSea = 0, Lakes = 0;
+        int32 Land = 0, Sea = 0, CoastLand = 0, CoastSea = 0, WetlandControls = 0;
         // A bounded 50 m lattice covers both sides of the source coast and the
         // lake-eligible ring. Fixture selection never examines carved outputs.
         for (int32 Y = -120; Y <= 120; ++Y)
         for (int32 X = -120; X <= 120; ++X)
         {
-            if (Land >= 8 && Sea >= 8 && CoastLand >= 8 && CoastSea >= 8 && Lakes >= 8) break;
+            if (Land >= 8 && Sea >= 8 && CoastLand >= 8 && CoastSea >= 8 && WetlandControls >= 8) break;
             const FVector2D P(X * 5000.0, Y * 5000.0);
             const auto Fields = FKalmalaWorldFieldSampler::Sample(Config, P);
             const auto Base = G::SampleInternal(Fields, false, true);
@@ -234,16 +235,20 @@ bool FKalmalaRiverUnchangedControlsTest::RunTest(const FString& Parameters)
                 if ((P - A - Delta * U).Size() <= S.Width + (S.bStream ? 0.0 : T::RiverBankExtent))
                     bOutside = false;
             }
-            // BasinWeight is measured before courses; a positive value and a
-            // wet baseline identify an inland bowl independently of carving.
-            if (Lakes < 8 && Base.BasinWeight > 0 && Base.WaterLevel > 0 && Base.bHasWater)
+            // Sample basin-eligible land outside courses to prove that wetland
+            // labels remain while analytic water and positive basin support do not.
+            if (WetlandControls < 8 && bOutside && Fields.Elevation > T::SeaElevation
+                && Base.Weights[1] + Base.Weights[3] > 0.0f)
             {
+                TestEqual(TEXT("Analytic basin weight is zero on eligible wetland"), Base.BasinWeight, 0.0f);
+                TestFalse(TEXT("Eligible wetland without courses has no analytic water depth"), Base.bHasWater);
+                TestFalse(TEXT("Eligible wetland has no assigned inland water level"), Base.WaterLevel > 0.0f);
                 const auto Actual = G::Sample(Config, P);
-                TestEqual(TEXT("Enclosed lake retains its established water level"), Actual.WaterLevel, Base.WaterLevel);
-                TestTrue(TEXT("Enclosed lake remains wet"), Actual.bHasWater);
-                if (bOutside || Base.BasinWeight == 1.0f)
-                    TestEqual(TEXT("Uninfluenced or fully supported lake retains its bed"), Actual.Height, Base.Height);
-                ++Lakes;
+                TestEqual(TEXT("Regional output has no analytic basin support"), Actual.BasinWeight, 0.0f);
+                TestEqual(TEXT("Eligible wetland has no analytic bowl height change"), Actual.Height, Base.Height);
+                TestEqual(TEXT("Eligible wetland has no analytic basin water level"), Actual.WaterLevel, Base.WaterLevel);
+                TestEqual(TEXT("Disabling bowls leaves biome identity unchanged"), Actual.Biome, G::SampleBiome(Fields));
+                ++WetlandControls;
             }
             if (!bOutside || Base.BasinWeight > 0) continue;
             int32& Count = FMath::Abs(Source) <= 20.0f
@@ -263,9 +268,9 @@ bool FKalmalaRiverUnchangedControlsTest::RunTest(const FString& Parameters)
         TestEqual(TEXT("Away-from-river sea controls exist"), Sea, 8);
         TestEqual(TEXT("Source coast has eight land-side controls within 20 cm"), CoastLand, 8);
         TestEqual(TEXT("Source coast has eight sea-side controls within 20 cm"), CoastSea, 8);
-        TestEqual(TEXT("Eight wet enclosed-lake controls exist"), Lakes, 8);
-        AddInfo(FString::Printf(TEXT("River controls seed=%llu land=%d sea=%d coastLand=%d coastSea=%d lakes=%d"),
-            Seed, Land, Sea, CoastLand, CoastSea, Lakes));
+        TestEqual(TEXT("Eight eligible dry-wetland controls exist"), WetlandControls, 8);
+        AddInfo(FString::Printf(TEXT("River controls seed=%llu land=%d sea=%d coastLand=%d coastSea=%d wetlandControls=%d"),
+            Seed, Land, Sea, CoastLand, CoastSea, WetlandControls));
     }
     G::ClearHydrologyCache();
     return true;
@@ -467,9 +472,7 @@ bool FKalmalaRegionalGenerationTest::RunTest(const FString& Parameters)
         TArray<uint8> Biomes;
         int32 Counts[7] = {}, RiverCount = 0, StreamCount = 0, Edges = 0, Different = 0;
         double MaxJump = 0, MaxWeightJump = 0;
-        FVector2D WaterFixture = FVector2D::ZeroVector;
-        float BestBasinDepth = 0;
-        bool bWaterFixture = false;
+        int32 PositiveBasinWeights = 0;
         FVector2D RiverFixture = FVector2D::ZeroVector;
         for (int32 Y = 0; Y < Side; ++Y) for (int32 X = 0; X < Side; ++X)
         {
@@ -481,8 +484,7 @@ bool FKalmalaRegionalGenerationTest::RunTest(const FString& Parameters)
             RiverCount += R.RiverWeight > 0;
             if (R.RiverWeight > 0) RiverFixture = P;
             StreamCount += R.StreamWeight > 0;
-            if (R.BasinWeight > 0.99f && R.WaterLevel - R.Height > BestBasinDepth)
-            { WaterFixture = P; bWaterFixture = true; BestBasinDepth = R.WaterLevel - R.Height; }
+            PositiveBasinWeights += R.BasinWeight > 0.0f;
             if (!Previous.IsEmpty()) Different += Previous[Biomes.Num() - 1] != R.Biome;
             if (X > 0) Edges += R.Biome != Biomes[Biomes.Num() - 2];
             if (Y > 0) Edges += R.Biome != Biomes[Biomes.Num() - 1 - Side];
@@ -506,6 +508,7 @@ bool FKalmalaRegionalGenerationTest::RunTest(const FString& Parameters)
         }
         for (int32 I = 0; I < 7; ++I) TestTrue(FString::Printf(TEXT("Seed %llu contains biome %d"), Seed, I), Counts[I] > 5);
         TestTrue(TEXT("Large area contains rivers and no small streams"), RiverCount > 10 && StreamCount == 0);
+        TestEqual(TEXT("Integrated samples contain no analytic basin weights"), PositiveBasinWeights, 0);
         TestTrue(TEXT("Sub-centimetre terrain samples are continuous"), MaxJump < 2);
         TestTrue(TEXT("Biome blends are continuous"), MaxWeightJump < 0.005);
         const double BoundaryDensity = double(Edges) / (2 * Side * (Side - 1));
@@ -566,20 +569,6 @@ bool FKalmalaRegionalGenerationTest::RunTest(const FString& Parameters)
             const auto Ocean = FKalmalaOceanSampler::Sample(C, P, Origin);
             TestTrue(TEXT("Depth query uses shaped collision triangles"), FMath::IsNearlyEqual(Ocean.TerrainHeight, H, 0.01f));
             TestEqual(TEXT("Equivalent patch origins preserve shaped depth"), Ocean.TerrainHeight, FKalmalaOceanSampler::Sample(C, P, Origin + FVector2D(3000, 0)).TerrainHeight);
-        }
-        TestTrue(TEXT("Water seam fixture exists"), bWaterFixture);
-        if (bWaterFixture)
-        {
-            const auto Left = FKalmalaWaterSurfaceMesh::BuildPatch(C, WaterFixture, true);
-            const auto Right = FKalmalaWaterSurfaceMesh::BuildPatch(C, WaterFixture + FVector2D(3000, 0), true);
-            int32 Matches = 0;
-            for (const FVector& V : Left.Vertices) if (FMath::IsNearlyEqual(V.X, 1500.0, 0.01))
-            {
-                TestTrue(TEXT("Adjacent water patches share exact physical edge"), Right.Vertices.ContainsByPredicate([&](const FVector& W) { return (V - FVector(3000, 0, 0)).Equals(W, 0.01); }));
-                ++Matches;
-            }
-            AddInfo(FString::Printf(TEXT("Water patch seam vertices=%d"), Matches));
-            TestTrue(TEXT("Water seam comparison is nonempty"), Matches > 0);
         }
     }
     return true;

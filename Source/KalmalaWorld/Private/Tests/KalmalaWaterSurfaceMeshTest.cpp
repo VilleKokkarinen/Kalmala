@@ -47,23 +47,16 @@ bool FKalmalaWaterSurfaceMeshTest::RunTest(const FString& Parameters)
 
     FKalmalaWorldGenerationConfig Config;
     Config.WorldSeed = 418;
-    int32 SharedVertices = 0;
+    int32 PositiveInlandSurfaceVertices = 0;
     for (int32 Y = -3; Y <= 3; ++Y)
     {
         const FVector2D Centre(0, Y * 3000.0);
         const auto Left = FKalmalaWaterSurfaceMesh::BuildPatch(Config, Centre, true);
         const auto Repeat = FKalmalaWaterSurfaceMesh::BuildPatch(Config, Centre, true);
         TestTrue(TEXT("Repeated seed gives identical clipped mesh"), Left.Vertices == Repeat.Vertices && Left.Triangles == Repeat.Triangles);
-        const auto Right = FKalmalaWaterSurfaceMesh::BuildPatch(Config, Centre + FVector2D(3000, 0), true);
-        for (const FVector& V : Left.Vertices)
-        {
-            if (!FMath::IsNearlyEqual(V.X, 1500.0, 0.001)) continue;
-            ++SharedVertices;
-            TestTrue(TEXT("Adjacent patches share identical water edge intersections"), Right.Vertices.ContainsByPredicate([&V](const FVector& R)
-                { return FMath::IsNearlyEqual(R.X, -1500.0, 0.001) && FMath::IsNearlyEqual(R.Y, V.Y, 0.01) && R.Z == V.Z; }));
-        }
+        for (const FVector& V : Left.Vertices) PositiveInlandSurfaceVertices += V.Z > 0.01f;
     }
-    TestTrue(TEXT("Seed fixture exercises contained lake patch boundaries"), SharedVertices > 0);
+    TestEqual(TEXT("Disabled analytic basins produce no elevated inland water surface"), PositiveInlandSurfaceVertices, 0);
     TArray<FIntPoint> Wet;
     auto Bowl = [](FIntPoint P) { return TPair<float, bool>(P.X*P.X + P.Y*P.Y < 25 ? 300.0f : 500.0f, P == FIntPoint(0,0)); };
     TestTrue(TEXT("Enclosed depression containing a lake seed fills"), FKalmalaLakeBasin::Find(FIntPoint(0,0), Bowl, Wet));

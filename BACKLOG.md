@@ -525,7 +525,7 @@ run for this goal and may exceed one turn.
   - [x] **BH02 — Map integration points.** Recheck the current height, lake,
     river, map/wetness, forest-layout, harvest, preview, material, and test
     consumers; record the exact source/test touchpoints in the plan docs.
-  - [ ] **BH03 — Disable analytic basin generation.** Add one compiled shared
+  - [x] **BH03 — Disable analytic basin generation.** Add one compiled shared
     policy, default disabled, and bypass basin bowl/rim shaping, water-level
     assignment, and positive basin weights without changing biome identity.
   - [ ] **BH04 — Prevent basin resurrection.** Apply the policy to lake samplers,
