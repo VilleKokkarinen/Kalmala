@@ -6942,6 +6942,35 @@
 - **Next eligible task:** A9 is now unblocked and is the next roadmap milestone; this goal ends with A8/I4 complete.
 - **Integration state:** Work ran directly on `master`; no worktree handoff synchronization was needed. Current run time: `2026-10-24 09:26 UTC`.
 
+## User-directed cleanup 2026-10-24 — Consolidate item icon documentation
+
+- **Work completed:** Removed 28 redundant per-item/batch documentation files.
+  Consolidated all 29 prior icon document bodies, including exact generation
+  prompts and dated check results, in `docs/icon-provenance.md`. Replaced
+  `docs/material-icons.md` with a shared authoring/import/validation guide and
+  instructions to append future provenance to the shared reference.
+- **Files changed:** The 29 former icon documents (28 removed, material guide
+  rewritten); new `docs/icon-provenance.md`; `docs/README.md`;
+  `docs/02-technical-architecture.md`; `docs/07-development-setup.md`;
+  `BACKLOG.md`; `PROGRESS.md`. Active references now target retained sections.
+  Historical progress file lists remain unchanged; retired filenames in older
+  entries identify original files recoverable through Git history.
+- **Lightweight checks:** Compared every original document body from HEAD with
+  its consolidated record after heading/link and line-ending adjustments; all
+  29 retained. Checked active docs/backlog for retired filenames, provenance
+  anchors and icon Markdown file links. Catalogue icon validation passed for
+  all 148 identities. Whitespace, documentation-only scope and absolute changed
+  path lengths below 260 characters checked before commit.
+- **Full verification:** Deferred; documentation-only user request, no milestone
+  completion or runtime behavior change. No Unreal build or gameplay tests run.
+- **Observable impact / authority:** Fewer scattered documentation files and
+  one shared workflow; artwork, manifests, scripts, gameplay, networking and
+  save data unchanged. Historical provenance statements are explicitly dated
+  records rather than current acceptance claims.
+- **Remaining scope / next eligible task:** No remaining work for this cleanup.
+  Existing A9 roadmap work remains next; no roadmap increment implemented.
+  Main checkout used directly; no handoff synchronization needed.
+
 ## Run 2026-10-24 — Simplify Scripts/Tests item coverage
 
 - **Selected task / work completed:** User-requested test cleanup, explicitly

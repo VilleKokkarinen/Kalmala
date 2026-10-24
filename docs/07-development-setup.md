@@ -18,7 +18,7 @@ data; accessories have no durability, repair, upgrade, or attack data; crafted
 gear has no drop-table entry.
 
 The original generated icons and exact prompts are in
-[`a9-icon-batch.md`](a9-icon-batch.md). Prepare and import the 20 textures with
+[`icon-provenance.md#a9-icon-batch`](icon-provenance.md#a9-icon-batch). Prepare and import the 20 textures with
 batches AL (16) and AM (4), then use focused catalogue icon validation for each
 canonical ID. This work does not satisfy I4 or I5 verification.
 
@@ -109,7 +109,7 @@ buildable/recipe identity, 2 Wood cost, dimensions, cardinal orientations, and
 schema-6 record; the full I4 build, construction automations, and peer/rendered
 acceptance remain deferred to milestone-final verification. Its icon uses
 isolated batch AD and `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id
-TimberBeamKit`; provenance is retained in `docs/timber-beam-icon.md`.
+TimberBeamKit`; provenance is retained in `docs/icon-provenance.md#timber-beam-icon`.
 
 A8 Camp Bed costs 4 Wood, 2 Boar Hide and 2 Deer Hide through the Building
 Hammer. Its 2 m × 1 m footprint must be supported across level, dry ground or
@@ -122,7 +122,7 @@ field is added. `Kalmala.Gameplay.Construction.CampBedContract` covers the
 buildable identity, direct material costs, generic save record, and local pose
 stop conditions. The icon check is
 `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id CampBedKit`; provenance
-is retained in `docs/camp-bed-icon.md`. Unreal build and runtime placement,
+is retained in `docs/icon-provenance.md#camp-bed-icon`. Unreal build and runtime placement,
 rendered interaction and peer acceptance remain deferred to I4 verification.
 
 A8 Reinforced Chest costs 8 Wood + 2 Bronze and is placed directly with the
@@ -137,13 +137,13 @@ dimensions, support eligibility, capacity limits and save round-trip. Validate
 its original, prepared and imported icon with
 `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id ReinforcedChestKit`;
 provenance and the exact generation prompt are in
-`docs/reinforced-chest-icon.md`. Build and live peer transfer/rendered
+`docs/icon-provenance.md#reinforced-chest-icon`. Build and live peer transfer/rendered
 acceptance remain deferred to combined I4 verification.
 
 Standing Light's A8 original and prepared icon were present without an
 imported package. Its retained art is imported in isolated batch AO so the
 unrelated RatTail batch is not rewritten; source and asset paths are recorded
-in `docs/standing-light-icon.md`.
+in `docs/icon-provenance.md#standing-light-icon`.
 
 The focused live acceptance runner is
 `Scripts/Tests/Construction/Verify-GardenPlot.ps1 -Project <isolated Kalmala.uproject>`.
@@ -1303,7 +1303,7 @@ runtime mappings for the six formerly missing catalogue materials: Bronze,
 Copper, Tin, CopperOre, TinOre and IronOre. The pinned batch-J ledger and
 `Scripts/Validate-UIIcons.ps1 -Category Catalogue` now cover all 72 canonical
 catalogue textures. Generation provenance and prompts are in
-`docs/material-icons.md`. The global `CatalogueIcons.CompleteCoverage` test
+`docs/icon-provenance.md#material-icons`. The global `CatalogueIcons.CompleteCoverage` test
 traverses validated item/profile/recipe catalogues and checks runtime mappings,
 canonical texture paths, and loaded packages. The file audit passed; it does not
 load Unreal packages or establish a passing automation test. Integrated
@@ -4504,7 +4504,7 @@ editor build to verify imported texture paths and loads for all current item,
 tool and recipe-output identities. `Scripts/Tests/Construction/Verify-Crafting.ps1` also requires
 `Catalogue icons: Grid=1 Selected=1` and `Forge upgrade level icon: Configured=1` from both peers;
 the grid flag checks each visible recipe output against its canonical loaded texture, while the
-Forge marker checks the level icon now shown in the upgrade comparison. Before an editor build, run `Scripts/Validate-UIIcons.ps1 -Category Catalogue` to check all 79 identity-ledger rows, original/prepared PNGs, runtime lookup mappings, and imported packages. The ledger lives in `Scripts/Data/catalogue-icon-manifest.csv`, outside the consolidated historical documentation set. The Stone Spear uses import batch D; the Bronze and Iron Knife/Pick/Spear icons use import batch E. The Amber texture rename uses batch F, which also contains the Stone, Bronze, and Iron Mace icons. Bone fragment uses import batch H (see `docs/bone-icon.md`). The initial six wearable gear icons use import batch G; prepare them with `python Scripts/Prepare-CatalogueIconBatch.py --batch G`, then import with `Scripts/Import-CatalogueIconBatch.ps1 -Batch G`. The Charcoal Kiln construction icon is in batch K (see `docs/charcoal-kiln-icon.md`); the Smelter uses batch L (see `docs/smelter-icon.md`).
+Forge marker checks the level icon now shown in the upgrade comparison. Before an editor build, run `Scripts/Validate-UIIcons.ps1 -Category Catalogue` to check all 79 identity-ledger rows, original/prepared PNGs, runtime lookup mappings, and imported packages. The ledger lives in `Scripts/Data/catalogue-icon-manifest.csv`, outside the consolidated historical documentation set. The Stone Spear uses import batch D; the Bronze and Iron Knife/Pick/Spear icons use import batch E. The Amber texture rename uses batch F, which also contains the Stone, Bronze, and Iron Mace icons. Bone fragment uses import batch H (see `docs/icon-provenance.md#bone-icon`). The initial six wearable gear icons use import batch G; prepare them with `python Scripts/Prepare-CatalogueIconBatch.py --batch G`, then import with `Scripts/Import-CatalogueIconBatch.ps1 -Batch G`. The Charcoal Kiln construction icon is in batch K (see `docs/icon-provenance.md#charcoal-kiln-icon`); the Smelter uses batch L (see `docs/icon-provenance.md#smelter-icon`).
 
 The catalogue image ledger contains 79 imported textures, including the
 construction-only Charcoal Kiln and Smelter build-menu identities. Construction
@@ -4519,7 +4519,7 @@ status gallery includes the four shared support textures and other status
 identities; it does not add duplicate catalogue image packages.
 
 The six initial armor/gear originals, prompt subjects, prepared icon paths,
-and imported Texture2D identities are recorded in [armor icon provenance](armor-icons.md).
+and imported Texture2D identities are recorded in [armor icon provenance](icon-provenance.md#armor-icons).
 
 During M12 milestone-final verification, use
 `Scripts/Tests/Construction/Verify-Crafting.ps1 -Rendered` for Build categories and station
@@ -4809,7 +4809,7 @@ Entity defaults expose `UKalmalaResistanceComponent::Profile`: Armor plus Slash,
 
 `items/equipment/weapons/maces.json` defines Stone/Bronze/Iron mace profiles with the corresponding knife durability and damage amount, using Crush exclusively and no harvesting action. Bronze and Iron acquisition recipes are grouped with Forge service recipes in `recipes/stations/forge.json`. The starting carried loadout has six records including Stone Mace; Bronze and Iron Mace use explicit Forge Craft buttons and the existing server item-ID-only transaction. The assembled catalogue has 16 profiles, 10 acquisition recipes and 11 derived progression steps. No upgrade stats beyond mace level 1 are authored.
 
-The built-in imagegen prompts, original paths, prepared paths and Texture2D paths are recorded in [mace icon provenance](mace-icons.md). Batch F is pinned to the three new mace identities. `Scripts/Import-CatalogueIconBatch.ps1 -Batch F` imported and validated the assets from an isolated content-only project. An initial sandbox attempt produced no import log; the normal-access retry succeeded. Each original is transparent 1254×1254 RGBA, and each prepared icon is transparent 64×64 RGBA. The catalogue manifest has 58 imported canonical identities and 62 runtime identities including four shared scroll mappings.
+The built-in imagegen prompts, original paths, prepared paths and Texture2D paths are recorded in [mace icon provenance](icon-provenance.md#mace-icons). Batch F is pinned to the three new mace identities. `Scripts/Import-CatalogueIconBatch.ps1 -Batch F` imported and validated the assets from an isolated content-only project. An initial sandbox attempt produced no import log; the normal-access retry succeeded. Each original is transparent 1254×1254 RGBA, and each prepared icon is transparent 64×64 RGBA. The catalogue manifest has 58 imported canonical identities and 62 runtime identities including four shared scroll mappings.
 
 Lightweight JSON/manifest/tier/cost checks, changed PowerShell parser checks, Python importer compilation in memory, PNG metadata/alpha checks and targeted native import checks passed. Inspect the new mace assertions in `Kalmala.Gameplay.Combat.DamageProfiles`, the updated initial inventory count, progression count and icon ownership count when full verification is due. No gameplay module build, automation tests or rendered/live station UI verification ran in this increment; these remain deferred.
 
@@ -5438,7 +5438,7 @@ The existing carried-tool weight is a presentation metric without an
 encumbrance penalty.
 
 The original, prepared, and imported icon paths and exact prompt are recorded in
-`docs/bronze-sword-icon.md`. Icon batch M was added as a one-identity batch so
+`docs/icon-provenance.md#bronze-sword-icon`. Icon batch M was added as a one-identity batch so
 importing the sword does not regenerate an existing texture. Prepare and import
 with `python Scripts/Prepare-CatalogueIconBatch.py --batch M` and
 `Scripts/Import-CatalogueIconBatch.ps1 -Batch M`. The catalogue icon validator
@@ -5458,7 +5458,7 @@ is the Forge; no loot, gathering role, alternate attack, elemental bonus, or
 new save/network field is added.
 
 The original, prepared, and imported icon paths and exact built-in imagegen
-prompt are recorded in `docs/iron-sword-icon.md`. Icon batch N contains only
+prompt are recorded in `docs/icon-provenance.md#iron-sword-icon`. Icon batch N contains only
 IronSword. Prepare and import with
 `python Scripts/Prepare-CatalogueIconBatch.py --batch N` and
 `Scripts/Import-CatalogueIconBatch.ps1 -Batch N`; the catalogue icon validator
@@ -5480,7 +5480,7 @@ bonus, RPC, or new save field.
 
 The server-selected held-tool state maps the item to its wooden club silhouette.
 The original, prepared, imported texture paths and exact generation prompt are
-recorded in `docs/wooden-club-icon.md`. Import batch O contains only WoodenClub;
+recorded in `docs/icon-provenance.md#wooden-club-icon`. Import batch O contains only WoodenClub;
 prepare and import with `python Scripts/Prepare-CatalogueIconBatch.py --batch O`
 and `Scripts/Import-CatalogueIconBatch.ps1 -Batch O`. The icon validator passed
 all 78 catalogue identities. Registered catalogue JSON parsing and focused
@@ -5496,7 +5496,7 @@ Workbench acquisition costs 25 Lightwood, one Bow String, and five Deer Hide;
 level upgrades start at three Lightwood and one Bow String and add 30 condition.
 It shares the existing server-authoritative bow shot, Wooden Arrow, projectile,
 condition-payment, and save paths. The original icon and generation prompt are
-recorded in `docs/light-bow-icon.md`.
+recorded in `docs/icon-provenance.md#light-bow-icon`.
 
 Icon batch P contains only `LightBow`. Prepare and import with
 `python Scripts/Prepare-CatalogueIconBatch.py --batch P` and
@@ -5512,7 +5512,7 @@ checks remain deferred to I2 milestone-final verification.
 of 20 Wood + 1 Bronze bar → 20 and a fixed 50-Pierce Basic attack record.
 The item, recipe, and attack use the already-registered `items/arrows.json`,
 `recipes/stations/workbench.json`, and `attacks/bows.json` files. Its original
-icon and generation prompt are recorded in `docs/archery-icons.md`.
+icon and generation prompt are recorded in `docs/icon-provenance.md#archery-icons`.
 
 Icon batch R contains only `BronzeArrow`. Prepare and import with
 `python Scripts/Prepare-CatalogueIconBatch.py --batch R` and
@@ -5535,7 +5535,7 @@ the already registered `items/equipment/armor/tunics.json` and
 already registered shared files. No separate equipment profile or attack
 record applies to wearable armor.
 
-The original icon and prompt are recorded in `docs/armor-icons.md`. Icon batch
+The original icon and prompt are recorded in `docs/icon-provenance.md#armor-icons`. Icon batch
 T contains only `BronzeTunic`; prepare and import with
 `python Scripts/Prepare-CatalogueIconBatch.py --batch T` and
 `Scripts/Import-CatalogueIconBatch.ps1 -Batch T`. The catalogue icon validator
@@ -5554,7 +5554,7 @@ cost extend the already registered `items/equipment/armor/leggings.json` and
 already registered shared files. No separate equipment profile or attack
 record applies to wearable armor.
 
-The original icon and prompt are recorded in `docs/armor-icons.md`. Icon batch
+The original icon and prompt are recorded in `docs/icon-provenance.md#armor-icons`. Icon batch
 U contains only `BronzeLeggings`; prepare and import with
 `python Scripts/Prepare-CatalogueIconBatch.py --batch U` and
 `Scripts/Import-CatalogueIconBatch.ps1 -Batch U`. The catalogue icon validator
@@ -5573,7 +5573,7 @@ item and upgrade cost extend the already registered `items/equipment/armor/shiel
 already registered shared files. It has passive Armor only, with no attack
 record, active block or parry behavior.
 
-The original icon and prompt are recorded in `docs/armor-icons.md`. Icon batch
+The original icon and prompt are recorded in `docs/icon-provenance.md#armor-icons`. Icon batch
 V contains only `BronzeShield`; prepare and import with
 `python Scripts/Prepare-CatalogueIconBatch.py --batch V` and
 `Scripts/Import-CatalogueIconBatch.ps1 -Batch V`. Editor build, equipment
@@ -5590,7 +5590,7 @@ the replicated flame boolean reveals no tool inventory. It has no attack,
 repair or upgrade record. A8a mosquito targeting/repulsion remains future work.
 
 The original prompt, retained files and exact workflow are recorded in
-[`docs/basic-torch-icon.md`](basic-torch-icon.md). Icon batch W contains only
+[`docs/icon-provenance.md#basic-torch-icon`](icon-provenance.md#basic-torch-icon). Icon batch W contains only
 `BasicTorch`; prepare and import with:
 
 ```powershell
@@ -5606,7 +5606,7 @@ verification remains deferred to I2 milestone-final verification.
 ### A6 Forest Chanterelle icon
 
 The original prompt and retained artwork are recorded in
-[`docs/forest-chanterelle-icon.md`](forest-chanterelle-icon.md). Icon batch Y
+[`docs/icon-provenance.md#forest-chanterelle-icon`](icon-provenance.md#forest-chanterelle-icon). Icon batch Y
 contains only `ForestChanterelle`; prepare and import with:
 
 ```powershell
@@ -5618,7 +5618,7 @@ Scripts/Validate-UIIcons.ps1 -Category Catalogue
 ### A6 Berry Recovery Draught icon
 
 The original prompt and retained artwork are recorded in
-[`docs/berry-recovery-draught-icon.md`](berry-recovery-draught-icon.md). Icon
+[`docs/icon-provenance.md#berry-recovery-draught-icon`](icon-provenance.md#berry-recovery-draught-icon). Icon
 batch Z contains `BerryRecoveryDraught` and `RootStaminaDraught`; prepare and import with:
 
 ```powershell
@@ -5632,7 +5632,7 @@ The catalogue icon validator now expects 90 identities. `Kalmala.Gameplay.Status
 ### A6 Root Stamina Draught icon
 
 The original prompt and retained artwork are recorded in
-[`docs/root-stamina-draught-icon.md`](root-stamina-draught-icon.md). Its
+[`docs/icon-provenance.md#root-stamina-draught-icon`](icon-provenance.md#root-stamina-draught-icon). Its
 transparent original and prepared icon use the existing batch-Z import flow.
 
 ## A7 Garden Plot build-menu icon — 2026-10-21
@@ -5641,7 +5641,7 @@ The original transparent artwork and prepared 64×64 texture for the direct-
 material Garden Plot buildable are retained as `GardenPlotKit`. The icon manifest
 records it as a buildable identity (not an inventory item) in isolated batch AB.
 The original prompt and retained files are documented in
-[`docs/garden-plot-icon.md`](garden-plot-icon.md).
+[`docs/icon-provenance.md#garden-plot-icon`](icon-provenance.md#garden-plot-icon).
 Prepare and import with:
 
 ```powershell

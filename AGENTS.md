@@ -120,6 +120,7 @@ If the final implementation task in a milestone has been completed but milestone
 - Validate all client-controlled item IDs, targets, quantities, damage values, and interaction requests on the server.
 - Use original code, assets, names, lore, and level content only. Do not copy copyrighted or marketplace content.
 - Stop and report rather than guess when a choice changes the product's platform, business model, visual identity, online-service commitment, or vertical-slice scope.
+- Do not add non documentation files to `Docs/` and also prefer not adding any new files there directly without permission. If you want to modify documentation of the game it should be very important. You can use Temporary folders for mundane docs which are not needed in the long run
 
 ## Item addition completeness
 

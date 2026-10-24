@@ -222,7 +222,7 @@ Credited deer defeats grant 1 Sinew on a server-owned 50% roll. At the Workbench
 `recipes/stations/workbench.json` converts 4 Sinew into 1 Bow String; Bow
 acquisition and upgrades use 5 Wood and 1 Bow String each. The same file keeps
 the ordinary arrow recipe (5 Wood for 20 arrows). Bow, Bow String, and Sinew originals and
-imported textures are documented in `archery-icons.md` (new material icons use
+imported textures are documented in `icon-provenance.md#archery-icons` (new material icons use
 batch K).
 The owner Inventory shows both-hand occupancy and the reverse shield swap. Full
 gameplay compilation/runtime verification is deferred.
@@ -246,7 +246,7 @@ Bone fragment at Workbench in addition to their hide costs. No new RPC,
 replicated field, or save schema is needed.
 The shared icon widget resolves `BoneFragment` to its original imported
 `/Game/Kalmala/UI/Icons/Items/BoneFragment.BoneFragment` texture; batch H
-retains the transparent original and prepared 64x64 PNG. See `bone-icon.md`.
+retains the transparent original and prepared 64x64 PNG. See `icon-provenance.md#bone-icon`.
 
 Use the baseline sections below for module/network boundaries. The [consolidated contracts](#consolidated-system-contracts) preserve current system details from former docs 08–47:
 
@@ -1725,7 +1725,7 @@ Each raster fills its scaled 64x64 box. Status layout wraps within a 384-unit ro
 
 The earlier accepted icon counts (48 baseline identities, then Stone Spear, six Bronze/Iron weapons, and three maces) are historical. The current catalogue ledger contains 72 imported item textures, including the six formerly unmapped Bronze/Copper/Tin bars and Copper/Tin/Iron ores. The global icon automation traverses every validated item, tool profile, and recipe output and checks its runtime mapping and imported texture. Views reuse canonical IDs and one image per identity; aliases and recipes do not get duplicate art. Unknown IDs retain a question-mark fallback; missing imported textures retain existing vector fallbacks. Current runtime/catalogue additions must receive explicit coverage rather than assuming historical counts include them.
 
-Original PNGs live in Content/Kalmala/UI/Source/IconOriginals and prepared PNGs in Source/Icons below that UI directory. Catalogue and status importers prepare transparent 64x64 artwork and import UI textures with sRGB, no mipmaps, and no streaming. Bronze and Iron weapon icons use catalogue batch E; batch D contains the Stone Spear, batch I the archery items, and batch J the six ore/alloy materials. Code constructs icon paths dynamically; both catalogue/status directories must be included in package cooks. The CSV manifests are machine inputs used by import/validation scripts and must remain available with those tools. Material artwork and exact generation prompts are recorded in `docs/material-icons.md`.
+Original PNGs live in Content/Kalmala/UI/Source/IconOriginals and prepared PNGs in Source/Icons below that UI directory. Catalogue and status importers prepare transparent 64x64 artwork and import UI textures with sRGB, no mipmaps, and no streaming. Bronze and Iron weapon icons use catalogue batch E; batch D contains the Stone Spear, batch I the archery items, and batch J the six ore/alloy materials. Code constructs icon paths dynamically; both catalogue/status directories must be included in package cooks. The CSV manifests are machine inputs used by import/validation scripts and must remain available with those tools. Material artwork and exact generation prompts are recorded in `docs/icon-provenance.md#material-icons`.
 
 ## Item and recipe details
 

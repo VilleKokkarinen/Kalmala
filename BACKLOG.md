@@ -213,9 +213,9 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [x] Resolve the remaining effect and full equipment-profile decisions before implementing affected outputs; see [A8b review](docs/alpha-item-details.md#a8b).
   - [x] Add the registered catalogue JSON records for all 15 materials and 15 outputs, including output recipes, equipment profiles, upgrade costs/rewards, and supported attack records.
   - Item icon tasks are independent of their source/output implementation tasks. Each checkbox covers one item's original generated artwork and provenance, prepared/imported texture, runtime mapping, and icon-validator coverage. Per the user's 2026-10-22 direction, complete all remaining A8b icon checkboxes together in one short-path A8b work batch and one feature commit. Completing icons does not complete their item rows or enable acquisition. The importer retains its supported limit of 16 textures per import batch.
-  - [x] Rat Tail icon (`RatTail`): original, provenance, mapping, import, and catalogue icon validation are complete; see `docs/rat-tail-icon.md`.
+  - [x] Rat Tail icon (`RatTail`): original, provenance, mapping, import, and catalogue icon validation are complete; see `docs/icon-provenance.md#rat-tail-icon`.
   - [x] Badger Fur icon (`BadgerFur`).
-  - [x] Badger Meat icon (`BadgerMeat`): original, provenance, mapping, import, and focused catalogue icon validation are complete; see `docs/badger-meat-icon.md`.
+  - [x] Badger Meat icon (`BadgerMeat`): original, provenance, mapping, import, and focused catalogue icon validation are complete; see `docs/icon-provenance.md#badger-meat-icon`.
   - [x] Viper Fang icon (`ViperFang`).
   - [x] Giant Scale icon (`GiantScale`).
   - [x] Venom Sac icon (`VenomSac`).
@@ -243,7 +243,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [x] Horn Bow icon (`HornBow`).
   - [x] Thunder Maul icon (`ThunderMaul`).
   - [x] Reef Harpoon icon (`ReefHarpoon`).
-  - Grouped icon batch completed 2026-10-22 in one feature commit by user direction; originals, preparation, imports, mapping and focused coverage are recorded in `docs/a8b-icon-batch.md`. All 30 source/output implementation rows are checked; combined I4 acceptance remains open.
+  - Grouped icon batch completed 2026-10-22 in one feature commit by user direction; originals, preparation, imports, mapping and focused coverage are recorded in `docs/icon-provenance.md#a8b-icon-batch`. All 30 source/output implementation rows are checked; combined I4 acceptance remains open.
   - [x] Rat Tail: Rat, 1 guaranteed; material + source + JSON + generated icon.
     - Original icon, mapping, import, registered material definition, and owner-bound credited-defeat reward are complete; combined I4 acceptance remains pending.
   - [x] Badger Fur: Badger, 1 guaranteed; material + source + JSON + generated icon.
@@ -523,6 +523,8 @@ milestone-final verification/repair run and can exceed a normal turn.
 ## User-requested fixes
 
 - [x] Simplify Scripts/Tests into shared behavior coverage: consolidate item peer runners, remove repeated per-item runs and document test selection.
+
+- [x] Consolidate redundant item icon addition documents into one provenance reference and shared workflow, preserving artwork and updating active links.
 
 - [x] Resize inventory crafting to a 256 px item list/search field and 384 px selected-item pane, preserving the existing gutter and outer padding.
 
