@@ -443,6 +443,8 @@ struct FKalmalaMonsterSpawnTuning final
     static constexpr int32 WolfIndividualAreaCap = 6;
     static constexpr float PopulationKeyCheckIntervalSeconds = 5.0f;
     static constexpr float PopulationRoofClearanceTraceDistanceCm = 2400.0f;
+    static constexpr float PopulationStationCylinderRadiusCm = 1800.0f;
+    static constexpr float PopulationStationCylinderHalfHeightCm = 1200.0f;
     static constexpr float PopulationKeyPhaseStepSeconds = 0.25f;
     static constexpr int32 PopulationKeyPhaseCount = 20;
     static constexpr float PopulationSchedulerWakeIntervalSeconds = 0.25f;
@@ -473,6 +475,9 @@ struct FKalmalaMonsterSpawnTuning final
         "Monster population checks must use a positive interval.");
     static_assert(PopulationRoofClearanceTraceDistanceCm == 24.0f * 100.0f,
         "Population roof clearance is the fixed 24 m construction-roof rule.");
+    static_assert(PopulationStationCylinderRadiusCm == 18.0f * 100.0f
+        && PopulationStationCylinderHalfHeightCm == 12.0f * 100.0f,
+        "Workbench and Forge population suppression uses an 18 m radius and 12 m vertical half-height.");
     static_assert(PopulationKeyPhaseStepSeconds > 0.0f && PopulationKeyPhaseCount > 0
         && PopulationKeyPhaseStepSeconds * PopulationKeyPhaseCount == PopulationKeyCheckIntervalSeconds,
         "Monster key staggering must partition one positive check interval.");

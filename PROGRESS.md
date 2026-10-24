@@ -8011,3 +8011,16 @@
 - **Networking/authority:** The descriptor predicate requires GameMode authority and reads server-side deterministic samplers. Existing wildlife movement remains server-authoritative; the shared helper adds no network state.
 - **Known limitations:** S23–S24 still add camp station and spherical suppression queries; S25 combines placement checks. S26 remains the first task that may enable natural actor creation.
 - **Next eligible task:** S23 is next — add the Workbench/Forge station cylinder query.
+
+
+### Monster population — S23 Workbench/Forge station cylinder
+
+- **Selected increment:** S23, add a server-side query for completed placed Workbench and Forge stations.
+- **Work completed:** Added one authoritative point query that considers only initialized, non-destroyed construction actors with positive finite health and exact `WorkbenchKit` or `ForgeKit` identity. It checks the candidate against an inclusive 1800 cm horizontal radius and 1200 cm vertical half-height around each station's actual actor origin. The backlog tuning constants and current contract documentation now agree on 18 m by ±12 m; the prior 16 m documentation value is superseded. The query is not wired into final placement; S25 remains the integration step and S26 remains the first task allowed to enable natural actor creation.
+- **Files changed:** Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationStationCylinderTest.cpp, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
+- **Lightweight checks:** Added focused automation coverage for Workbench/Forge allowlisting, exact horizontal and vertical boundaries, outside-radius/outside-height points, unlisted construction, uninitialized and destroyed stations, and invalid candidate input. `git diff --check` passed; tests and builds were not run.
+- **Full verification:** Deferred to S35; S23 is not the final implementation task in the monster-population goal.
+- **Observable impact / authority:** Later camp placement checks can query whether a proposed point falls inside an active Workbench/Forge suppression cylinder. The helper only reads server-owned construction state; it does not wire the evaluator, create actors, mutate construction, or alter saved/replicated state.
+- **Networking/authority:** Invalid or non-authoritative query context fails closed. Valid queries inspect only server-authoritative construction actors in the current world. No network protocol or save schema changed.
+- **Known limitations:** S24 still adds the Camp Bed, Campfire and Standing Light spherical query; S25 combines camp suppression and placement results. Natural actor creation remains disabled until S26.
+- **Next eligible task:** S24 is next — add the spherical camp-suppression query.

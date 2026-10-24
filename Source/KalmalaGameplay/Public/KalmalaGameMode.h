@@ -154,6 +154,7 @@ private:
     friend class FKalmalaPopulationAquaticSurfaceTest;
     friend class FKalmalaPopulationBodyClearanceTest;
     friend class FKalmalaPopulationRoofClearanceTest;
+    friend class FKalmalaPopulationStationCylinderTest;
     friend class AKalmalaWildlifeSpawn;
 
 #if WITH_DEV_AUTOMATION_TESTS
@@ -202,6 +203,7 @@ private:
     bool DoesPopulationDescriptorPassRoofClearance(const FKalmalaWorldPopulationSpawn& Descriptor,
         const AActor* ProposedActorToIgnore = nullptr) const;
     bool DoesPopulationDescriptorPassMovementSupport(const FKalmalaWorldPopulationSpawn& Descriptor) const;
+    bool DoesPopulationPointOverlapStationCylinder(const FVector& CandidateLocation) const;
     bool TryGetPopulationActorPlacementLocation(const FKalmalaWorldPopulationSpawn& Descriptor,
         EKalmalaWildlifeArchetype Archetype, const TArray<FKalmalaWildlifeBodyCollisionShape>& BodyShapes,
         FVector& OutActorLocation) const;

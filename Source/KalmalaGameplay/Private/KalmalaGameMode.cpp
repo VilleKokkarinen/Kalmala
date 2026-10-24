@@ -6166,6 +6166,51 @@ bool AKalmalaGameMode::DoesPopulationDescriptorPassMovementSupport(
     return true;
 }
 
+bool AKalmalaGameMode::DoesPopulationPointOverlapStationCylinder(const FVector& CandidateLocation) const
+{
+    UWorld* World = GetWorld();
+    if (!HasAuthority() || !IsValid(World)
+        || !FMath::IsFinite(CandidateLocation.X) || !FMath::IsFinite(CandidateLocation.Y)
+        || !FMath::IsFinite(CandidateLocation.Z))
+    {
+        return true;
+    }
+
+    const double Radius = FKalmalaMonsterSpawnTuning::PopulationStationCylinderRadiusCm;
+    const double RadiusSquared = Radius * Radius;
+    constexpr double HalfHeight = FKalmalaMonsterSpawnTuning::PopulationStationCylinderHalfHeightCm;
+    for (TActorIterator<AKalmalaConstructionActor> Iterator(World); Iterator; ++Iterator)
+    {
+        const AKalmalaConstructionActor* Station = *Iterator;
+        if (!IsValid(Station) || Station->GetWorld() != World || !Station->HasAuthority()
+            || Station->IsActorBeingDestroyed() || Station->GetConstructionId().IsEmpty()
+            || !FMath::IsFinite(Station->GetHealth()) || Station->GetHealth() <= 0.0f)
+        {
+            continue;
+        }
+
+        const FName Kit = Station->GetConstructionKit();
+        if (Kit != TEXT("WorkbenchKit") && Kit != TEXT("ForgeKit")) continue;
+
+        const FVector StationOrigin = Station->GetActorLocation();
+        if (!FMath::IsFinite(StationOrigin.X) || !FMath::IsFinite(StationOrigin.Y)
+            || !FMath::IsFinite(StationOrigin.Z))
+        {
+            continue;
+        }
+
+        const FVector Delta = CandidateLocation - StationOrigin;
+        if (FMath::IsFinite(Delta.X) && FMath::IsFinite(Delta.Y) && FMath::IsFinite(Delta.Z)
+            && FMath::Abs(Delta.Z) <= HalfHeight
+            && static_cast<double>(Delta.X) * Delta.X + static_cast<double>(Delta.Y) * Delta.Y
+                <= RadiusSquared)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 bool AKalmalaGameMode::TryGetPopulationActorPlacementLocation(
     const FKalmalaWorldPopulationSpawn& Descriptor, const EKalmalaWildlifeArchetype Archetype,
     const TArray<FKalmalaWildlifeBodyCollisionShape>& BodyShapes, FVector& OutActorLocation) const

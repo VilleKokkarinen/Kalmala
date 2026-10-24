@@ -376,6 +376,13 @@ generated-ground support and S22a clear body collision; S22c adds no NavMesh
 requirement. The descriptor movement and roof checks remain unwired into
 population admission until S25 combines the physical placement result.
 
+S23 adds a server-authoritative point query for active, initialized Workbench
+and Forge construction only. Its inclusive horizontal radius is 1800 cm and
+its inclusive vertical range is 1200 cm above or below the placed station
+origin. Uninitialized, destroyed, nonpositive-health and other construction
+pieces do not suppress. The query remains separate from final placement until
+S25; natural actor creation remains disabled until S26.
+
 - Time, weather and progression are explicitly **unrestricted for all current
   species**. These three gates return pass. Provide internal policy seams and
   fixture overrides for rejection tests; do not build a new clock, boss system,
@@ -396,8 +403,8 @@ population admission until S25 combines the physical placement result.
 
 ## Camp suppression
 
-- Workbench and Forge: inclusive 16 m horizontal cylinder, inclusive vertical
-  range [-16, +16] m relative to the placed actor origin. Require an existing,
+- Workbench and Forge: inclusive 18 m horizontal cylinder, inclusive vertical
+  range [-12, +12] m relative to the placed actor origin. Require an existing,
   completed, non-destroyed station; fuel and roof are irrelevant.
 - Camp Bed: inclusive 16 m 3D sphere about the placed origin, whenever intact.
 - Campfire and Standing Light: inclusive 16 m sphere only while server state is
