@@ -8073,3 +8073,15 @@
 - **Networking/authority:** Future source configuration and policy are server-owned; S27 adds no network or save state.
 - **Known limitations:** No source actor or configured source exists. S28 must add disabled-unless-configured scheduling; S29 must apply local/shared safety gates and reservation before source creation. Boundary and peer acceptance remains S30–S35.
 - **Next eligible task:** S28 — add local spawner scheduling.
+
+### Monster population — S28 local spawner scheduling
+
+- **Selected increment:** S28, add a reusable local-source schedule and living-count policy that stays disabled without an explicit configured source.
+- **Work completed:** Added authority/configuration-gated helpers for the fixed 8-second interval, service-relative next due time that skips missed checks, two finite source slots, up to four candidates clamped by remaining shared budget, an inclusive 12 m 3D candidate radius, at most one creation per check, and the local cap of two same-source living creatures within an inclusive 24 m horizontal radius. Invalid owned living samples fail closed. No source actor, registry or world content exists, so the runtime remains dormant.
+- **Files changed:** Source/KalmalaGameplay/Public/KalmalaEnvironmentalSpawnerPolicy.h, Source/KalmalaGameplay/Private/Tests/KalmalaEnvironmentalSpawnerPolicyTest.cpp, docs/monster-spawning.md, BACKLOG.md, and PROGRESS.md.
+- **Lightweight checks:** Inspected policy/helper contracts and the S27 shared scheduler/creation integration map. Added focused automation assertions for configured/server-only gating, due-time and hitch behavior, slot and candidate limits, 12 m/24 m boundaries, shared-work clamping and one-creation limit. Automation and builds were not run. git diff --check passed; staged scope and path lengths were reviewed (all under 260 characters).
+- **Full verification:** Deferred to S35; S28 is not the final implementation task in this goal.
+- **Observable impact / authority:** No runtime scheduling or actor creation is enabled because there is no configured source. When wired later, policy inputs and local ownership counts are supplied by the authoritative server.
+- **Networking/authority:** Helpers require server authority and add no RPC, replication or save state.
+- **Known limitations:** S29 must connect configured sources to shared safety gates, capacity reservations and creation. S30–S34 add focused acceptance coverage and setup handoff; S35 performs milestone-final verification.
+- **Next eligible task:** S29 — apply environmental safety gates.

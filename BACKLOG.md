@@ -663,7 +663,7 @@ milestone-final verification/repair run and can exceed a normal turn.
   - [x] **S27 — Record environmental policy.** Map the fixed local-source
     policy to the shared scheduler; camp suppression applies. Local cap is 2
     within 24 m, interval 8 s. Use two finite source slots; add no world content.
-  - [ ] **S28 — Add local spawner scheduling.** Implement the S27 interval and
+  - [x] **S28 — Add local spawner scheduling.** Implement the S27 interval and
     local living count as a reusable server policy, disabled without a configured
     source; use a narrow fixture rather than adding world content.
   - [ ] **S29 — Apply environmental safety gates.** Combine local limits with

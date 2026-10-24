@@ -526,10 +526,32 @@ accrue no missed checks.
 Source attempts reuse the shared seeded 25% roll, player ring/exclusion,
 habitat, unrestricted time/weather/progression, cap and physical-placement
 policies. S25's current station/camp suppression therefore applies to each new
-source admission. S28 adds the disabled-unless-configured local schedule; S29
+source admission. S28 adds a disabled-unless-configured local policy; S29
 connects source limits and shared safety gates to creation. S27 adds no source
 class, source slots at runtime, candidate scheduling, actor creation or world
 content.
+
+## S28 local source scheduling policy — 2026-10-24
+
+FKalmalaEnvironmentalSpawnerPolicy provides reusable server-side policy helpers
+for a future configured environmental source. Scheduling, local count and
+admission all fail closed unless all of these are present: server authority, an explicit
+configured-source flag, a valid slot index (0 or 1), and a nonblank stable source ID.
+The codebase still has no source actor or configured source registry, so this
+increment does not activate runtime checks or add world content.
+
+A source check uses the fixed 8-second interval. After servicing a check, the
+caller schedules the next one from the actual service time, skipping missed
+intervals rather than accumulating retry work. A check can examine at most four
+fixed candidates, further clamped by the shared scheduler's remaining candidate
+budget; candidate positions must be within the inclusive 12 m 3D radius. It can
+create at most one actor. A source has exactly two valid finite slot indices.
+
+The local cap counts server-supplied current-world living samples with the same
+source ID inside the inclusive 24 m horizontal radius. Dead and other-source
+samples do not count; invalid positions for owned living samples fail closed.
+The admission helper allows a new creature only below the two-living-actor cap.
+S29 wires this policy to shared safety gates, capacity reservations and creation.
 
 ## Acceptance
 
