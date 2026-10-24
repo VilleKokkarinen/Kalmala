@@ -100,7 +100,7 @@ function Invoke-SettingsAccessibilityContract([string]$DocumentPath) {
     if ($contractText -notmatch 'Cancel.*apply.*reset|apply.*reset.*actions') {
         throw 'Settings/accessibility contract does not define reversible local changes'
     }
-    if ($contractText -notmatch 'Verify-SettingsAccessibility\.ps1' -or $contractText -notmatch 'physical\s+controller\s+hardware') {
+    if ($contractText -notmatch 'SettingsAccessibility\.ps1' -or $contractText -notmatch 'physical\s+controller\s+hardware') {
         throw 'Settings/accessibility contract does not state the rendered probe and its remaining runtime limits'
     }
     if ($contractText -notmatch '1024x768.*1280x720|1280x720.*1024x768') {

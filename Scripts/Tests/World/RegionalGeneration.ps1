@@ -41,6 +41,6 @@ try {
         if ((Get-FileHash (Join-Path $first $name)).Hash -eq (Get-FileHash (Join-Path $other $name)).Hash) { throw "No different-seed variation: $name" }
     }
     Write-Output 'PASS: all repeated field/weight/biome/overlap/hydrology/height renders match; different seeds vary.'
-    if (!$SkipPeers) { & (Join-Path $repoPaths.TestsRoot 'World\Verify-Minimap.ps1') }
+    if (!$SkipPeers) { & (Join-Path $repoPaths.TestsRoot 'World\Minimap.ps1') }
 }
 finally { Write-Output "Regional proof output: $output" }

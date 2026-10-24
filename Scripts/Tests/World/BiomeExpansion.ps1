@@ -302,7 +302,7 @@ try {
     if ((Get-Date) -ge $deadline) { throw 'Integrated biome automation timed out.' }
     $automationText = Get-Content $automationLog -Raw
     if ($automationText -match 'Fatal error:|Assertion failed:') { throw 'Integrated biome automation reported a fatal error.' }
-    & (Join-Path $repoPaths.TestsRoot 'Survival\Verify-CampChoices.ps1') -Editor $Editor
+    & (Join-Path $repoPaths.TestsRoot 'Survival\CampChoices.ps1') -Editor $Editor
     if ($LASTEXITCODE -ne 0) { throw "Two-player camp scenario exited with code $LASTEXITCODE." }
     Write-Output 'PASS: all biome deterministic seam/discovery/shelter checks and two-player replicated camp recovery passed.'
 }

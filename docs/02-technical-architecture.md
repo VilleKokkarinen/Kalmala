@@ -404,7 +404,7 @@ existing linear triangles; river preview, patch-seam and peer gates remain queue
 
 Phase 7 begins with `FKalmalaOceanSampler`: a derived sea-depth query using the same 125 cm lattice and triangle diagonal as terrain collision and clipped ocean water. The normal overload derives the lattice origin from the immutable world's generated start and caches only that origin by identity. The explicit-origin overload supports patch callers. It returns validity, interpolated terrain height, and nonnegative depth below the existing zero-height sea surface; dry ground and the exact shore have zero depth. Invalid identity and nonfinite coordinates are rejected. The minimap now consumes this triangle height and sea-depth result instead of sampling curved Perlin height between mesh vertices, so its ocean coastline follows the visible mesh. Inland lake presentation continues through the enclosed-basin query.
 
-This query adds no world field, terrain deformation, island placement, collision volume, RPC, replicated value, or saved data. `FKalmalaIslandLocator` remains a developer-only query over existing emerging seed terrain and never reserves or creates content. The first gameplay consumer is `UKalmalaCharacterMovementComponent`: server and predicting owner sample the replicated immutable identity at the pawn's current position, enter its generated-ocean custom mode at 100 cm sea depth, and return to normal walking below 75 cm. The server remains authoritative through normal Character Movement replication and correction; the client supplies neither a depth nor a requested mode. The custom mode floats the existing pawn capsule at the zero-height visible sea and retains swept collision with the shared terrain mesh. Server terrain activation retires patches outside the bounded union of all player neighborhoods before activating needed ones, so ordinary long-distance sea movement refreshes collision/rendering without expanding the 25-patch budget. `Verify-OceanTravel.ps1` confirms a current-generator host and conflicting-seed client independently derive the same existing island, enter ocean, and arrive over normal replicated movement; its travel target and temporary pawn-collision relaxation are verification-only. Boats and inland lake-depth gameplay remain future Phase 8 work.
+This query adds no world field, terrain deformation, island placement, collision volume, RPC, replicated value, or saved data. `FKalmalaIslandLocator` remains a developer-only query over existing emerging seed terrain and never reserves or creates content. The first gameplay consumer is `UKalmalaCharacterMovementComponent`: server and predicting owner sample the replicated immutable identity at the pawn's current position, enter its generated-ocean custom mode at 100 cm sea depth, and return to normal walking below 75 cm. The server remains authoritative through normal Character Movement replication and correction; the client supplies neither a depth nor a requested mode. The custom mode floats the existing pawn capsule at the zero-height visible sea and retains swept collision with the shared terrain mesh. Server terrain activation retires patches outside the bounded union of all player neighborhoods before activating needed ones, so ordinary long-distance sea movement refreshes collision/rendering without expanding the 25-patch budget. `OceanTravel.ps1` confirms a current-generator host and conflicting-seed client independently derive the same existing island, enter ocean, and arrive over normal replicated movement; its travel target and temporary pawn-collision relaxation are verification-only. Boats and inland lake-depth gameplay remain future Phase 8 work.
 
 The companion minimap uses a `ULocalPlayerSubsystem` per local player and rebuilds its widget/input binding when that player's controller changes. Viewport sizing and positioning precede anchoring because UE 5.8 resets anchors in both setters. A transient 129x129 sRGB texture fills the circle with world-anchored original biome patterns, bilinear filtering, and a transparent feathered edge; sea-level water and inland lake water override land treatment. This is disposable presentation of the existing classifier, not a new world-generation field or persisted biome map. Unchanged position/radius/world identity reuses the raster; facing still refreshes. Texture uploads update an existing GPU resource. The configured CommonUI viewport client routes modal input; Menu mode always retains wheel ownership, including menus with captured previews. No discovery/landmark visibility contract exists yet, so the minimap does not query or draw harvest nodes, hidden discoveries, hazards, or other players.
 
@@ -1748,7 +1748,7 @@ save behavior remain unchanged.
 The `Kalmala.UI.Crafting.Requirements` contract covers each direct build's
 placement and single-blocker copy, the hearth fuel summary, pending/present/
 missing hammer states, and omission of generic boilerplate. The rendered
-Verify-Crafting presentation gate checks the selected hearth copy and ensures
+Crafting presentation gate checks the selected hearth copy and ensures
 its old repeated costs, output label, skill list, and request prose are absent.
 Build, full automation, and rendered verification remain deferred to M12's
 milestone-final run.
@@ -1771,7 +1771,7 @@ ingredient totals. Catalogue prose and server recipe validation remain intact.
 heat requirements, reusable-tool text, omission of generic boilerplate and
 single-blocker behavior. `Kalmala.Gameplay.Food.CookingStationHeat` continues
 to verify the server heat gate and confirms the detail description comes from
-the canonical result item. The rendered Verify-Crafting review checks the live
+the canonical result item. The rendered Crafting review checks the live
 cooking result, ingredients, heat line and blocker count for both owners. Build,
 full automation and rendered checks remain deferred to M12's milestone-final
 run.
@@ -1915,7 +1915,7 @@ Late initial skill replication does not clear already accepted item feedback.
 Run `Kalmala.UI.Notifications.ItemGains` and `.SkillLevels`,
 `Kalmala.Gameplay.Inventory.NetworkContract`, `Kalmala.Gameplay.Crafting.Transactions`
 and `Kalmala.UI.Theme.LocalPresentation` after the affected editor build.
-`Scripts/Tests/Inventory/Verify-Inventory.ps1` additionally requires live owning-client receipt
+`Scripts/Tests/Inventory/Inventory.ps1` additionally requires live owning-client receipt
 presence/bounds and empty remote receipt buffers, alongside existing inventory
 privacy and rejected-client-mutation gates. Rendered combined notification
 placement and real reconnect pixels remain final-child acceptance scope.
@@ -2129,10 +2129,10 @@ mount a card. The default F1/F2 dismiss/revisit mappings have been removed with
 the gameplay prompts. The source-level route-free audit now also verifies that
 the presenter remains inactive.
 
-`Scripts/Tests/Presentation/Verify-OnboardingContract.ps1` validates the retained design
-specification; it is not a runtime presentation test. `Scripts/Tests/Presentation/Verify-TutorialRouteFree.ps1`
+`Scripts/Tests/Presentation/OnboardingContract.ps1` validates the retained design
+specification; it is not a runtime presentation test. `Scripts/Tests/Presentation/TutorialRouteFree.ps1`
 checks the route-free source contract and confirms that the presenter is
-disabled. `Scripts/Tests/Presentation/Verify-LocalInputContract.ps1` checks the current
+disabled. `Scripts/Tests/Presentation/LocalInputContract.ps1` checks the current
 keyboard/controller movement and interaction bindings. Fresh-player prompt
 walkthrough and prompt rendering are not part of current runtime acceptance.
 
@@ -2580,7 +2580,7 @@ results; it creates no request, target, reward, or hidden-content indication.
 The runtime implementation is accepted when a fresh local profile can open,
 navigate, change, cancel, apply, reset, and persist each option group with
 keyboard and controller bindings, while a second player observes no
-replicated settings state. `Scripts/Tests/Presentation/Verify-SettingsAccessibility.ps1` runs
+replicated settings state. `Scripts/Tests/Presentation/SettingsAccessibility.ps1` runs
 isolated host/client profiles, opens the Escape shell and live Keyboard & Mouse,
 Controller, Graphics, Audio, and Accessibility groups; it checks focusable targets, modal input
 ownership, and Escape recovery, persists every local option, and compares the
@@ -2595,7 +2595,7 @@ both viewport sizes and inspect the
 modal, HUD, and artwork; these checks do not replace physical
 keyboard/controller or packaged verification.
 
-`Scripts/Tests/Presentation/Verify-SettingsAccessibility.ps1 -ContractOnly` checks this contract
+`Scripts/Tests/Presentation/SettingsAccessibility.ps1 -ContractOnly` checks this contract
 without Unreal; the same entry point runs this check before its rendered peer
 probe. The focused `Kalmala.UI.Settings.LocalPresentation` automation
 and the rendered peer probe cover local round-trips, bounded input mappings,
@@ -2780,7 +2780,7 @@ no aggregate peer badge is used as a substitute for private skill detail.
 The selected-recipe details and skill block follow the local text-scale and
 high-contrast settings inside the existing scroll view. This is read-only
 presentation: it adds no RPC, focus target, progression mutation, or save
-field. `Scripts/Tests/Construction/Verify-Crafting.ps1` checks the fresh-owner values and
+field. `Scripts/Tests/Construction/Crafting.ps1` checks the fresh-owner values and
 host/client presentation; `-Rendered` retains both 1280x720 captures.
 
 The selected-result preview reads only the existing selected recipe output,
@@ -2839,7 +2839,7 @@ the remaining visual and accessibility work stays in M5.
 
 ## Static audit and runtime limits
 
-`Scripts/Tests/Presentation/Verify-PresentationOwnership.ps1` checks the committed project-owned
+`Scripts/Tests/Presentation/PresentationOwnership.ps1` checks the committed project-owned
 material files, the source anchors for player, wildlife, environment, UI, and
 feedback presentation, and the absence of known external/prototype asset
 paths. It also checks this ledger's scope and authority statements without
@@ -3021,9 +3021,9 @@ DiscoveryAcknowledgedCue, interaction cues, MovementFootfallCue,
 MovementJumpCue, MovementLandingCue, GeneratedOceanEntryCue, and
 GeneratedOceanExitCue are short one-shots. When audio sources change, import
 the affected assets to `/Game/Kalmala/Audio`, then run
-`Scripts/Tests/Audio/Verify-AmbientAudio.ps1`, `Scripts/Tests/Audio/Verify-AmbientAudioPeers.ps1`,
-`Scripts/Tests/Combat/Verify-CombatPeer.ps1`, `Scripts/Tests/Combat/Verify-DiscoveryPeer.ps1`,
-`Scripts/Tests/Presentation/Verify-PlayerControls.ps1 -MovementAudio -OceanTraversalAudio`, and the forced editor build.
+`Scripts/Tests/Audio/AmbientAudio.ps1`, `Scripts/Tests/Audio/AmbientAudioPeers.ps1`,
+`Scripts/Tests/Combat/CombatPeer.ps1`, `Scripts/Tests/Combat/DiscoveryPeer.ps1`,
+`Scripts/Tests/Presentation/PlayerControls.ps1 -MovementAudio -OceanTraversalAudio`, and the forced editor build.
 Pass
 `-WeatherExposureOnly` to the peer runner when
 focusing on the weather and Wet cues; its default mode also requires visible
@@ -3032,7 +3032,7 @@ assets, local-player ownership, context gates, and teardown. The peer runner
 confirms independent host/client probes for visible water and hearth context
 plus each local player's current sampled biome, accepted rainy weather/Wet
 state, and effect-specific Hearth Shield/Bear's Vigor activation and expiry
-cues. `Verify-CombatPeer.ps1` confirms that
+cues. `CombatPeer.ps1` confirms that
 owner-local Hit and Defeat feedback submit CombatResultCue, Unavailable remains
 text-only, and the other peer receives no private combat result cue. The
 discovery peer fixture confirms that only the entitled local owner submits the
@@ -3061,11 +3061,11 @@ field.
 
 ## No-build audit and runtime limits
 
-`Scripts/Tests/Audio/Verify-AmbientAudio.ps1 -ContractOnly` checks all eight cue rows, the
+`Scripts/Tests/Audio/AmbientAudio.ps1 -ContractOnly` checks all eight cue rows, the
 non-audio/accessibility requirement, project-owned asset rule, local mix scope,
 server authority/privacy boundary, the owner-only combat/support feedback
 sources, owner-only discovery cue gating, generated-ocean movement transitions,
-and the absence of a new RPC or save field. `Verify-PlayerControls.ps1
+and the absence of a new RPC or save field. `PlayerControls.ps1
 -OceanTraversalAudio` confirms both local peers submit one entry and one exit
 cue through the local movement-state transition path. Its development-only
 flag injects a three-second local sample sequence because the fixed seed-418

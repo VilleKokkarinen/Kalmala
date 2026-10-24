@@ -3,7 +3,7 @@ param([int]$Port = 17859)
 $repoPaths = Get-KalmalaPaths -StartPath $PSScriptRoot
 
 $ErrorActionPreference = 'Stop'
-& (Join-Path $repoPaths.TestsRoot 'Inventory\Verify-Inventory.ps1') -ContractOnly
+& (Join-Path $repoPaths.TestsRoot 'Inventory\Inventory.ps1') -ContractOnly
 $project = Join-Path ($repoPaths.ProjectRoot) 'Kalmala.uproject'
 $editor = 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor.exe'
 $output = Join-Path $env:TEMP ('KalmalaInventoryReconnect-' + [guid]::NewGuid().ToString('N'))

@@ -218,8 +218,8 @@ No Unreal build, preview export or gameplay acceptance was run for this plan.
 - For the final gate, use the applicable checks in
   [development setup](07-development-setup.md): the Editor build, focused
   regional/master-map/finite-world/integrated and water automation,
-  `Scripts/Tests/World/Verify-RegionalGeneration.ps1` and
-  `Scripts/Tests/World/Verify-Minimap.ps1`. Include forest/harvest lifecycle and
+  `Scripts/Tests/World/RegionalGeneration.ps1` and
+  `Scripts/Tests/World/Minimap.ps1`. Include forest/harvest lifecycle and
   peer checks when placement changes, plus rendered traversal and start/build
   checks for changed terrain. Inspect every required result, not exit code only.
 - Compare initial-generation time, sampler/map cost, active-patch count and

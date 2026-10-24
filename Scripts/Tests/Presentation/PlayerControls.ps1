@@ -10,7 +10,7 @@ param(
 $repoPaths = Get-KalmalaPaths -StartPath $PSScriptRoot
 
 $ErrorActionPreference = 'Stop'
-$tutorialCheck = Join-Path $repoPaths.TestsRoot 'Presentation\Verify-TutorialRouteFree.ps1'
+$tutorialCheck = Join-Path $repoPaths.TestsRoot 'Presentation\TutorialRouteFree.ps1'
 & $tutorialCheck
 $project = Join-Path ($repoPaths.ProjectRoot) 'Kalmala.uproject'
 $output = Join-Path $env:TEMP ('KalmalaPlayerControls-' + [guid]::NewGuid().ToString('N'))

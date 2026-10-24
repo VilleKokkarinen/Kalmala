@@ -23,7 +23,7 @@ bool FKalmalaForestRestartTest::RunTest(const FString& Parameters)
     FString Phase, Root;
     if (!FParse::Value(FCommandLine::Get(), TEXT("KalmalaForestRestart="), Phase))
     {
-        AddInfo(TEXT("Real-slot process restart is opt-in; use Verify-BiomeExpansion.ps1 -ForestRestartOnly."));
+        AddInfo(TEXT("Real-slot process restart is opt-in; use BiomeExpansion.ps1 -ForestRestartOnly."));
         return true;
     }
     if (!TestTrue(TEXT("Restart phase is Write or Read"), Phase == TEXT("Write") || Phase == TEXT("Read"))

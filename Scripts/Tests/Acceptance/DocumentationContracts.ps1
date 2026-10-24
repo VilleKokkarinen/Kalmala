@@ -7,11 +7,11 @@ $repoPaths = Get-KalmalaPaths -StartPath $PSScriptRoot
 $ErrorActionPreference = 'Stop'
 $projectRoot = $repoPaths.ProjectRoot
 $checks = @(
-    'Presentation\Verify-OnboardingContract.ps1',
-    'Presentation\Verify-SettingsAccessibility.ps1',
-    'Presentation\Verify-PresentationOwnership.ps1',
-    'Audio\Verify-AmbientAudio.ps1',
-    'Presentation\Verify-LocalInputContract.ps1'
+    'Presentation\OnboardingContract.ps1',
+    'Presentation\SettingsAccessibility.ps1',
+    'Presentation\PresentationOwnership.ps1',
+    'Audio\AmbientAudio.ps1',
+    'Presentation\LocalInputContract.ps1'
 )
 
 $passed = @()
@@ -22,7 +22,7 @@ foreach ($check in $checks) {
     }
     try {
         $checkArguments = @{}
-        if ($check -in @('Presentation\Verify-SettingsAccessibility.ps1', 'Audio\Verify-AmbientAudio.ps1')) {
+        if ($check -in @('Presentation\SettingsAccessibility.ps1', 'Audio\AmbientAudio.ps1')) {
             $checkArguments.ContractOnly = $true
         }
         # Native status inherited from a caller is not a result of this check.

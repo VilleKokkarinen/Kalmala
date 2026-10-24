@@ -39,9 +39,9 @@ function Invoke-SupportRegression {
 }
 
 try {
-    Invoke-PeerScenario 'Mireling' 'Combat\Verify-MirelingPeer.ps1' $Port
-    Invoke-PeerScenario 'Boar' 'Combat\Verify-BoarPeer.ps1' ($Port + 1)
-    Invoke-PeerScenario 'Deer' 'Combat\Verify-DeerPeer.ps1' ($Port + 2)
+    Invoke-PeerScenario 'Mireling' 'Combat\MirelingPeer.ps1' $Port
+    Invoke-PeerScenario 'Boar' 'Combat\BoarPeer.ps1' ($Port + 1)
+    Invoke-PeerScenario 'Deer' 'Combat\DeerPeer.ps1' ($Port + 2)
     Invoke-SupportRegression
     Write-Output 'PASS: route-free M4 peer fixtures covered Mireling, boar, deer, owner-only rewards, defeat persistence, all four support-effect authority/non-damage gates, and matching-world learning persistence.'
 }

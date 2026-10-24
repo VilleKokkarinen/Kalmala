@@ -4,6 +4,12 @@ Choose tests by the behavior changed. Run only relevant checks during developmen
 use the full verification prescribed by `docs/07-development-setup.md` at a
 milestone gate. Nothing in this directory is an automatic run-everything suite.
 
+Name runners after the behavior they cover, without `Verify-` or roadmap
+milestone prefixes. For example, `Combat/GemMiningTreasurePeer.ps1` covers gem
+mining and treasure claims, and `Acceptance/DocumentationContracts.ps1` runs
+the lightweight documentation gates. Internal Unreal fixture flags and log
+markers retain their existing names.
+
 ## Items: shared coverage
 
 Use Unreal automation for the shared rules:
@@ -16,7 +22,7 @@ Use Unreal automation for the shared rules:
 | Poison rules | `Kalmala.Gameplay.Status.PoisonEffects` |
 | Bow draw and ammunition | `Kalmala.Gameplay.Combat.BowDrawAndArrows` |
 
-Use `Inventory/Verify-ItemPeers.ps1` when a change needs live RPC/replication
+Use `Inventory/ItemPeers.ps1` when a change needs live RPC/replication
 coverage. Each scenario starts a listen host, remote owner and observer:
 
 | Scenario | Representative and purpose |
@@ -28,8 +34,8 @@ coverage. Each scenario starts a listen host, remote owner and observer:
 | `PoisonedArrows` | Fang Arrows: craft, real shot, ammunition cost and poison damage |
 
 ```powershell
-Scripts/Tests/Inventory/Verify-ItemPeers.ps1 -ListScenarios
-Scripts/Tests/Inventory/Verify-ItemPeers.ps1 -Scenario CraftEquipment -Port 17892 -Project C:/km/Kalmala.uproject
+Scripts/Tests/Inventory/ItemPeers.ps1 -ListScenarios
+Scripts/Tests/Inventory/ItemPeers.ps1 -Scenario CraftEquipment -Port 17892 -Project C:/km/Kalmala.uproject
 ```
 
 `-Editor` overrides the UE executable. `-OutputDirectory` must name a new, short
@@ -51,7 +57,7 @@ historical results remain in `PROGRESS.md`.
 | --- | --- |
 | `Acceptance` | Integrated vertical-slice and documentation gates |
 | `Audio` | Ambient audio contracts and peer playback |
-| `Combat` | `Verify-RatPeer.ps1` for shared reward/retry/defeat persistence; species runners for their distinct attack behavior; combat/discovery peers |
+| `Combat` | `RatPeer.ps1` for shared reward/retry/defeat persistence; species runners for their distinct attack behavior; combat/discovery peers |
 | `Construction` | Hammer placement/movement, persistence, crafting, storage and Garden Plot cultivation |
 | `Inventory` | Inventory transactions/receipts, menu and reconnect; item peer scenarios above |
 | `Performance` | Explicit constrained-performance profiles (`-ListProfiles`) |

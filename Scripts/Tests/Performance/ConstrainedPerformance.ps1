@@ -37,7 +37,7 @@ if ([IntPtr]::Size -ne 8 -or [Environment]::ProcessorCount -gt 63) {
 }
 $projectPath = (Resolve-Path -LiteralPath $Project).Path
 if ([IO.Path]::GetFileName($projectPath) -ne 'Kalmala.uproject') { throw 'Project must point to Kalmala.uproject.' }
-$runner = Join-Path $repoPaths.TestsRoot 'Travel\Verify-OceanSkiffDiscoveryDisembark.ps1'
+$runner = Join-Path $repoPaths.TestsRoot 'Travel\OceanSkiffDiscoveryDisembark.ps1'
 $output = if ($OutputDirectory) { $OutputDirectory } else { Join-Path $env:TEMP ('KalmalaCpuProfile-' + [guid]::NewGuid().ToString('N')) }
 $output = [IO.Path]::GetFullPath($output)
 if (Test-Path -LiteralPath $output) { throw 'Use a new output directory for each profile run.' }

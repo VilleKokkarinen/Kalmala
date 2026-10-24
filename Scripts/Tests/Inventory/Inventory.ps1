@@ -161,7 +161,7 @@ function Invoke-InventoryContractChecks {
         throw 'Technical architecture still describes the retired persistent inventory panel.'
     }
 
-    & (Join-Path $repoPaths.TestsRoot 'Presentation\Verify-TutorialRouteFree.ps1')
+    & (Join-Path $repoPaths.TestsRoot 'Presentation\TutorialRouteFree.ps1')
     Write-Output 'PASS: legacy inventory HUD and bottom tutorial card are absent; on-demand Inventory and empty-state coverage remain.'
     Write-Output "PASS: $($equipmentCoverageCases.Count) equipment/hotbar/privacy/save/icon automation cases retain their key source assertions; live host/client privacy checks cover nonempty Main Hand, gear and grid fields."
 }

@@ -108,11 +108,11 @@ try {
     for ($offset = 0; $offset -lt 5; ++$offset) { Assert-PortAvailable ($PortBase + $offset) }
 
     Invoke-M7Automation
-    Invoke-M7Scenario 'gathering-and-tool-lifecycle' 'Inventory\Verify-InventoryReconnect.ps1' $PortBase
-    Invoke-M7Scenario 'rendered-crafting-and-stations' 'Construction\Verify-Crafting.ps1' ($PortBase + 1) -Rendered
-    Invoke-M7Scenario 'weather-and-camp-recovery' 'Survival\Verify-CampChoices.ps1' ($PortBase + 2)
-    Invoke-M7Scenario 'optional-boar-encounter' 'Combat\Verify-BoarPeer.ps1' ($PortBase + 3) -HasOutputDirectory
-    Invoke-M7Scenario 'optional-discovery' 'Combat\Verify-DiscoveryPeer.ps1' ($PortBase + 4) -HasOutputDirectory
+    Invoke-M7Scenario 'gathering-and-tool-lifecycle' 'Inventory\InventoryReconnect.ps1' $PortBase
+    Invoke-M7Scenario 'rendered-crafting-and-stations' 'Construction\Crafting.ps1' ($PortBase + 1) -Rendered
+    Invoke-M7Scenario 'weather-and-camp-recovery' 'Survival\CampChoices.ps1' ($PortBase + 2)
+    Invoke-M7Scenario 'optional-boar-encounter' 'Combat\BoarPeer.ps1' ($PortBase + 3) -HasOutputDirectory
+    Invoke-M7Scenario 'optional-discovery' 'Combat\DiscoveryPeer.ps1' ($PortBase + 4) -HasOutputDirectory
 
     Write-Output 'PASS: M7 automated progression/recovery acceptance completed without native computer use.'
 }

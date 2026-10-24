@@ -78,9 +78,9 @@ maps.
   compare it with a different seed.
 - [x] Run the regional-generation checks for deterministic preview and
   host/client sampler agreement with
-  `Scripts/Tests/World/Verify-RegionalGeneration.ps1`.
+  `Scripts/Tests/World/RegionalGeneration.ps1`.
 - [x] Run the minimap host/client terrain, water, and river-signal agreement
-  check with `Scripts/Tests/World/Verify-Minimap.ps1`.
+  check with `Scripts/Tests/World/Minimap.ps1`.
 
 If any checkbox expands beyond the target, split it further before starting
 that increment and keep the remaining work in this order.
@@ -280,23 +280,23 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [x] Run the combined A8a/A8b enemy and enemy-item milestone verification; record results and blockers. This gate must pass before A9 begins.
     - [x] Rebuild and rerun the sequential Badger/Moon Bear peer acceptance after the Moon Bear fixture adjustment; both cases passed. The full queue at that verification point passed all 180 tests.
     - [x] Repair the procedural snake-head `SurfaceWinding` failure and the M9 progression assertions; the focused check and full 180-test Kalmala queue at that verification point passed.
-    - [x] Finish live acceptance for A8a species-specific spawn and attack/status behavior, then exercise approved A8b item progression and peer flows. `Verify-RatPeer.ps1` is the sole I4 end-to-end enemy test for loot delivery/retry, defeat persistence and combat replication; do not repeat those shared checks in other species cases. Species tests may cover their unique authored profiles, drop-table data and attack/status behavior. Prior peer passes for Boar, Deer, Badger, Moon Bear, Mireling, Viper, Giant Snake, Thunder Sentinel and Reef Maw remain historical species-specific evidence, not extra required shared-system tests. `Kalmala.Gameplay.Status.PoisonEffects` is the single shared weak/major poison and Antidote status automation. Mosquito bite/poison and dodge/fire counterplay acceptance plus Peat Husk sweep acceptance are recorded below and passed live.
-      - [x] Add the Development-only generated Wolf three-member pack peer fixture and `Scripts/Tests/Combat/Verify-WolfPeer.ps1` for stable formation, 180 cm server bite, and replicated telegraph.
-       - [x] Build the affected Editor target and run `Scripts/Tests/Combat/Verify-WolfPeer.ps1`; confirm all three generated members, formation spacing, both client telegraphs, and accepted server lunge damage (passed 2026-10-23).
-      - [x] Add the Development-only generated Lynx peer fixture and `Scripts/Tests/Combat/Verify-LynxPeer.ps1` for a seeded dry-Tundra Lynx, its 150-health profile, telegraphed leap, and peer-visible cue.
-       - [x] Build the affected Editor target and run `Scripts/Tests/Combat/Verify-LynxPeer.ps1`; confirm the 350 cm server leap lands and both clients observe its replicated telegraph (passed 2026-10-23).
-      - [x] Add the Development-only generated Polar Bear peer fixture and `Scripts/Tests/Combat/Verify-PolarBearPeer.ps1` for the 150 m start exclusion, 750-health profile, committed charge/retreat/recovery and peer-visible cue.
-       - [x] Build the affected Editor target and run `Scripts/Tests/Combat/Verify-PolarBearPeer.ps1 -WorldSeed 445`; require the start exclusion, accepted server charge damage and matching telegraphs on both clients.
-      - [x] Add the Development-only generated Horned Goat peer fixture and `Scripts/Tests/Combat/Verify-HornedGoatPeer.ps1` for its 200-health profile, 180 cm horn hit, approved push/stagger and peer-visible cue.
-       - [x] Build the affected Editor target and run `Scripts/Tests/Combat/Verify-HornedGoatPeer.ps1 -WorldSeed 445`; confirm server damage, push/stagger, and matching client telegraphs (passed 2026-10-23).
-      - [x] Add the Development-only generated Thunder Sentinel peer fixture and `Scripts/Tests/Combat/Verify-ThunderSentinelPeer.ps1` for its 150 m start exclusion, 1250-health/75-Armor profile, short step, 300-Crush slam, recovery, and peer-visible attack cues.
-       - [x] Build the affected Editor target and run `Scripts/Tests/Combat/Verify-ThunderSentinelPeer.ps1 -WorldSeed 445`; confirm the generated hard-enemy profile, step into slam reach, accepted damage, recovery, and matching telegraph/slam cues on both clients (passed 2026-10-23).
-      - [x] Add the Development-only generated Peat Husk peer fixture and `Scripts/Tests/Combat/Verify-PeatHuskPeer.ps1` for the 150 m start exclusion, replicated telegraph, and accepted server sweep.
-      - [x] Build the affected Editor target and run `Scripts/Tests/Combat/Verify-PeatHuskPeer.ps1`; confirm start distance, both client telegraphs, and server sweep damage (passed 2026-10-23).
+    - [x] Finish live acceptance for A8a species-specific spawn and attack/status behavior, then exercise approved A8b item progression and peer flows. `RatPeer.ps1` is the sole I4 end-to-end enemy test for loot delivery/retry, defeat persistence and combat replication; do not repeat those shared checks in other species cases. Species tests may cover their unique authored profiles, drop-table data and attack/status behavior. Prior peer passes for Boar, Deer, Badger, Moon Bear, Mireling, Viper, Giant Snake, Thunder Sentinel and Reef Maw remain historical species-specific evidence, not extra required shared-system tests. `Kalmala.Gameplay.Status.PoisonEffects` is the single shared weak/major poison and Antidote status automation. Mosquito bite/poison and dodge/fire counterplay acceptance plus Peat Husk sweep acceptance are recorded below and passed live.
+      - [x] Add the Development-only generated Wolf three-member pack peer fixture and `Scripts/Tests/Combat/WolfPeer.ps1` for stable formation, 180 cm server bite, and replicated telegraph.
+       - [x] Build the affected Editor target and run `Scripts/Tests/Combat/WolfPeer.ps1`; confirm all three generated members, formation spacing, both client telegraphs, and accepted server lunge damage (passed 2026-10-23).
+      - [x] Add the Development-only generated Lynx peer fixture and `Scripts/Tests/Combat/LynxPeer.ps1` for a seeded dry-Tundra Lynx, its 150-health profile, telegraphed leap, and peer-visible cue.
+       - [x] Build the affected Editor target and run `Scripts/Tests/Combat/LynxPeer.ps1`; confirm the 350 cm server leap lands and both clients observe its replicated telegraph (passed 2026-10-23).
+      - [x] Add the Development-only generated Polar Bear peer fixture and `Scripts/Tests/Combat/PolarBearPeer.ps1` for the 150 m start exclusion, 750-health profile, committed charge/retreat/recovery and peer-visible cue.
+       - [x] Build the affected Editor target and run `Scripts/Tests/Combat/PolarBearPeer.ps1 -WorldSeed 445`; require the start exclusion, accepted server charge damage and matching telegraphs on both clients.
+      - [x] Add the Development-only generated Horned Goat peer fixture and `Scripts/Tests/Combat/HornedGoatPeer.ps1` for its 200-health profile, 180 cm horn hit, approved push/stagger and peer-visible cue.
+       - [x] Build the affected Editor target and run `Scripts/Tests/Combat/HornedGoatPeer.ps1 -WorldSeed 445`; confirm server damage, push/stagger, and matching client telegraphs (passed 2026-10-23).
+      - [x] Add the Development-only generated Thunder Sentinel peer fixture and `Scripts/Tests/Combat/ThunderSentinelPeer.ps1` for its 150 m start exclusion, 1250-health/75-Armor profile, short step, 300-Crush slam, recovery, and peer-visible attack cues.
+       - [x] Build the affected Editor target and run `Scripts/Tests/Combat/ThunderSentinelPeer.ps1 -WorldSeed 445`; confirm the generated hard-enemy profile, step into slam reach, accepted damage, recovery, and matching telegraph/slam cues on both clients (passed 2026-10-23).
+      - [x] Add the Development-only generated Peat Husk peer fixture and `Scripts/Tests/Combat/PeatHuskPeer.ps1` for the 150 m start exclusion, replicated telegraph, and accepted server sweep.
+      - [x] Build the affected Editor target and run `Scripts/Tests/Combat/PeatHuskPeer.ps1`; confirm start distance, both client telegraphs, and server sweep damage (passed 2026-10-23).
       - [x] Run the generated Mosquito swarm peer case for repeated server bites, ten-second weak-poison application, owner-only status, and public health replication.
       - [x] Add Development-only generated-peer assertions for an owner-client accepted dodge, rejected cooldown retry, the roll's two-second repel window, fuelled held-torch protection, unequipped-torch bite resumption, and unlit/lit placed-campfire transitions.
-      - [x] Build the affected target and run `Scripts/Tests/Combat/Verify-MosquitoSwarmPeer.ps1`; confirm dodge/fire counterplay plus health replication and owner-only poison before completing this child (passed 2026-10-23).
-    - [x] Resolve the `Verify-InventoryReconnect.ps1` client-baseline timeout or document an approved non-applicable disposition before closing final I4 verification.
+      - [x] Build the affected target and run `Scripts/Tests/Combat/MosquitoSwarmPeer.ps1`; confirm dodge/fire counterplay plus health replication and owner-only poison before completing this child (passed 2026-10-23).
+    - [x] Resolve the `InventoryReconnect.ps1` client-baseline timeout or document an approved non-applicable disposition before closing final I4 verification.
 
   The JSON-only child, all 30 icon children and all 30 source/output
   implementation rows are complete. Enemy rewards and dependent items are
@@ -541,6 +541,8 @@ milestone-final verification/repair run and can exceed a normal turn.
     check the parent only when verification passes, otherwise record the blocker.
 
 ## User-requested fixes
+
+- [x] Rename Scripts/Tests runners by behavior, removing Verify and milestone prefixes and updating callers and documentation references.
 
 - [x] Simplify Scripts/Tests into shared behavior coverage: consolidate item peer runners, remove repeated per-item runs and document test selection.
 

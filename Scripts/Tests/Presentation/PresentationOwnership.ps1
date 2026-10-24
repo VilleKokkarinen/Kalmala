@@ -6,7 +6,7 @@ $repoPaths = Get-KalmalaPaths -StartPath $PSScriptRoot
 
 $ErrorActionPreference = 'Stop'
 $projectRoot = $repoPaths.ProjectRoot
-& (Join-Path $repoPaths.TestsRoot 'Inventory\Verify-Inventory.ps1') -ContractOnly
+& (Join-Path $repoPaths.TestsRoot 'Inventory\Inventory.ps1') -ContractOnly
 $documentPath = Join-Path $projectRoot 'docs\02-technical-architecture.md'
 if (-not (Test-Path -LiteralPath $documentPath -PathType Leaf)) {
     throw "Presentation ownership document was not found: $documentPath"

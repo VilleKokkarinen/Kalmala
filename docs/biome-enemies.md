@@ -458,7 +458,7 @@ and original inventory icons before implementation; the uses are not recipes.
   retries, reloads, and duplicate defeat callbacks cannot reroll or duplicate
   it. The complete awarded bundle commits together; insufficient capacity
   retains the claim for retry. In I4, validate Wolf-specific appearance, pack
-  formation/cap and attack rejection. `Verify-RatPeer.ps1` is the sole live
+  formation/cap and attack rejection. `RatPeer.ps1` is the sole live
   enemy scenario for shared reward delivery/retry, defeat persistence and
   combat replication; do not repeat those checks for Wolf.
 
@@ -480,7 +480,7 @@ and original inventory icons before implementation; the uses are not recipes.
   escrow. The owner claim stores the roll, and the complete awarded candidate
   commits together; insufficient capacity retains it for retry. Legacy
   unsuffixed Lynx claims remain baseline-only. In I4, validate the readable
-  crouch/leap poses and species-specific attack rejection. `Verify-RatPeer.ps1`
+  crouch/leap poses and species-specific attack rejection. `RatPeer.ps1`
   is the sole live enemy scenario for shared reward delivery/retry, defeat
   persistence and combat replication; do not repeat those checks for Lynx.
 
@@ -602,7 +602,7 @@ source contracts are not live multiplayer acceptance. The generated-spawn bite
 and weak-poison application slice now has a dedicated three-peer I4 runner;
 live accepted/rejected roll and authoritative fire-state counterplay remain
 open. Generic weak/major poison status effects have one shared automation,
-`Kalmala.Gameplay.Status.PoisonEffects`. `Verify-RatPeer.ps1` remains the sole
+`Kalmala.Gameplay.Status.PoisonEffects`. `RatPeer.ps1` remains the sole
 live enemy scenario for shared reward delivery/retry, defeat persistence and
 combat replication.
 
@@ -635,7 +635,7 @@ applicable full build, automation, biome/population, combat, peer/privacy and
 restart checks from [development setup](07-development-setup.md). Record exact
 commands/results and repair milestone defects. Demonstrate seeded population
 within budgets, valid/invalid attacks, visible windups, and each species'
-distinct profile/status behavior. `Verify-RatPeer.ps1` is the single live
+distinct profile/status behavior. `RatPeer.ps1` is the single live
 end-to-end enemy test for shared loot delivery/retry, defeat persistence and
 combat replication. Do not repeat those three checks in other species peers;
 their cases cover species-specific appearance, spawn, attacks and status.
