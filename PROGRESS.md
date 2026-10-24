@@ -7255,3 +7255,36 @@
   complete integrated I5 and merge the verified A9 branch into local master.
   Work uses the main checkout on the A9 branch; no separate checkout handoff
   synchronization is required. Master itself remains at its prior commit.
+
+## Run 2026-10-24 — Enable the accepted Moonstone source
+
+- **Selected increment:** First unfinished A9 child: enable the prepared Moon
+  Bear Moonstone source after integrated I4 acceptance. The checkout was clean;
+  no other Kalmala run was active at inspection.
+- **Completed / files:** Split the shared activation constant into
+  `MoonstoneSourceAccepted=true` and `DuskDiamondSourceAccepted=false` in
+  `Source/KalmalaWorld/Public/KalmalaGemstoneContract.h`. Updated the Moon Bear
+  and Mireling references in `KalmalaGameMode.cpp` and `KalmalaWildlifeSpawn.cpp`
+  so only Moonstone activates in this increment. Updated `BACKLOG.md` and
+  existing `docs/a9-acceptance.md`; the implemented Moonstone/Ring rows are
+  checked while A9 and combined I5 remain open.
+- **Lightweight checks:** Moonstone and Moonstone Ring catalogue icon validation
+  passed (original, prepared and imported assets). Parsed all 61 registered
+  catalogue JSON files and confirmed both identities' registered definitions
+  and recipe references. Checked no stale shared activation references remain.
+  Inspected canonical generated-spawn/species/biome validation, fixed 1/50
+  selection, owner-bound saved payload, full-pack retry and durable claim
+  removal before inventory publication. Whitespace and staged path-length
+  checks passed before commit. No C++ automation or live peer test ran.
+- **Full verification:** Deferred. Dusk Diamond activation is still an unfinished
+  implementation task; combined milestone-final I5 has not begun or passed.
+- **Observable impact / authority:** A credited generated Elderwood Moon Bear can
+  now produce exactly one Moonstone alongside its ordinary reward through the
+  prepared server-owned persistent queue. Clients still supply neither gem
+  identity nor chance. The Ring's approved paid Forge/equipped-stat path is now
+  source-reachable. No rates, item data, icons, RPCs or save schemas changed.
+- **Limitations / next:** Existing source/payload regressions await combined
+  execution; inspection and icon/JSON checks do not establish live acceptance.
+  Enable the prepared Dusk Diamond source next, then perform the combined I5
+  gate and final master integration. Main checkout is on `codex/a9-runtime`;
+  master remains unchanged and no worktree handoff synchronization is needed.

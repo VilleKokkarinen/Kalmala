@@ -35,8 +35,9 @@ struct FKalmalaGemstoneContract
         if (Source == TEXT("gem-opal-rock")) return TEXT("StarOpal");
         return NAME_None;
     }
-    // Flip only after the independent A8/I4 source acceptance is integrated.
-    static constexpr bool EnemySourcesAccepted = false;
+    // I4 is accepted; enable each source in its ordered A9 increment.
+    static constexpr bool MoonstoneSourceAccepted = true;
+    static constexpr bool DuskDiamondSourceAccepted = false;
     static FName SelectEnemyGem(bool bMoonBear, EKalmalaBiome Biome, uint64 Seed)
     {
         if (bMoonBear && Biome == EKalmalaBiome::Elderwood && Mix(Seed ^ 0xA9B3A2ull) % 50 == 0) return TEXT("Moonstone");

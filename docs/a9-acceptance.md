@@ -6,7 +6,7 @@ Implementation continues on `codex/a9-runtime`. Master's completed A8/I4 gate (`
 
 On 2026-10-23 the user approved the documented replacement/reward rates and three accepted pick hits with 10% smash resolved before extraction on every hit. They approved population save schema 2, preserving/rejecting incompatible schema-1 files without migration. They approved treasure at existing seeded discovery points in Elderwood, Lakes and Mountains and the missing bounded Frost Salt deposit generator (one possible safe, separated deposit per 60 m key, retaining frostmoss).
 
-The five rock sources and three treasure sources are implemented/enabled. Enemy Moonstone and Dusk Diamond code is prepared and `EnemySourcesAccepted` remains false. I4 acceptance is now integrated; source activation and its verification are the next increment. Their item/gear parents remain open. The independent verification increment is executed as recorded below; it does not close I4 or combined I5.
+The five rock sources and three treasure sources are implemented/enabled. Moonstone is enabled through `MoonstoneSourceAccepted` after integrated I4 acceptance: only validated generated Elderwood Moon Bears can select the fixed 1/50 reward, persisted with the credited owner's ordinary bear payload. Dusk Diamond remains prepared but disabled through `DuskDiamondSourceAccepted`; its activation is the next ordered increment. Combined runtime I5 verification remains open. The independent verification increment is executed as recorded below; it does not close I4 or combined I5.
 
 ## Existing scroll-route audit
 

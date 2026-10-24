@@ -6139,7 +6139,7 @@ bool AKalmalaGameMode::RecordMoonBearDefeatReward(const FString& PersistentSpawn
         const FString Identity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(CreditedAttacker->GetPlayerState());
         if (!Identity.IsEmpty() && !PopulationSaveGame->TryQueuePendingMoonBearReward(PersistentSpawnId, Identity))
             return false;
-        if (!Identity.IsEmpty() && FKalmalaGemstoneContract::EnemySourcesAccepted
+        if (!Identity.IsEmpty() && FKalmalaGemstoneContract::MoonstoneSourceAccepted
             && !PopulationSaveGame->SetPendingGemReward(
                 UKalmalaWorldPopulationSaveGame::MakeMoonBearPendingRewardClaimId(PersistentSpawnId),
                 SelectEnemyGemForSpawn(PersistentSpawnId, true))) return false;
@@ -8790,7 +8790,7 @@ bool AKalmalaGameMode::ClaimWorldTreasure(AKalmalaCharacter* Interactor, const F
 bool AKalmalaGameMode::RecordMirelingDefeatReward(const FString& PersistentSpawnId, AKalmalaCharacter* CreditedAttacker)
 {
     if (!HasAuthority() || !PopulationSaveGame || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)
-        || PersistentSpawnId.IsEmpty() || !FKalmalaGemstoneContract::EnemySourcesAccepted) return false;
+        || PersistentSpawnId.IsEmpty() || !FKalmalaGemstoneContract::DuskDiamondSourceAccepted) return false;
     auto* CandidateSave = DuplicateObject<UKalmalaWorldPopulationSaveGame>(PopulationSaveGame, this);
     if (!CandidateSave) return false;
     if (IsValid(CreditedAttacker) && CreditedAttacker->HasAuthority() && CreditedAttacker->GetWorld() == GetWorld()

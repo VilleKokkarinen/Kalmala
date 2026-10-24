@@ -321,12 +321,12 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     - [x] Add and register the complete raw-gem item JSON; record recipe and combat/equipment/upgrade categories as N/A.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
     - [x] Add or enable its Quartz-rock acquisition/source-table entry after the item JSON and icon are complete and the source is accepted.
-  - [ ] Moonstone (`Moonstone`): proposed 2% chance of 1 per credited Moon Bear defeat; requires A8a.
+  - [x] Moonstone (`Moonstone`): 2% chance of 1 per credited generated Elderwood Moon Bear defeat; accepted A8a/I4 source enabled.
     - [x] Add and register the complete raw-gem item JSON; record recipe and combat/equipment/upgrade categories as N/A.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
-    - [ ] Add or enable the Moon Bear reward-table entry last, after item JSON/icon completion and accepted A8a source.
+    - [x] Add or enable the Moon Bear reward-table entry last, after item JSON/icon completion and accepted A8a source.
       - [x] Prepare validated generated-Moon-Bear selection, persisted optional gem payload and atomic full-reward delivery; icon check passed.
-      - [ ] Enable the prepared source after I4 acceptance is integrated; current EnemySourcesAccepted flag remains false.
+      - [x] Enable the prepared Moonstone source after integrated I4 acceptance; `MoonstoneSourceAccepted` is true. Runtime acceptance remains in combined I5.
   - [x] Garnet (`Garnet`): proposed 10% chance of 1 in Elderwood/Lakes world treasure chests; chest-only.
     - [x] Add and register the complete raw-gem item JSON; record recipe and combat/equipment/upgrade categories as N/A.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
@@ -361,7 +361,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
     - [ ] Add or enable its Mireling reward-table entry last, after item JSON/icon completion and accepted A8a source.
       - [x] Prepare generated-Mossy-Mire Mireling validation, 1/100 selection and persistent credited reward payload; icon check passed.
-      - [ ] Enable the prepared source after I4 acceptance is integrated; current EnemySourcesAccepted flag remains false.
+      - [ ] Enable the prepared Dusk Diamond source after integrated I4 acceptance; `DuskDiamondSourceAccepted` remains false.
   - [x] Gemstone rocks: implement the shared rare resource-slot replacement and 10% gem-smash rule; successful extraction yields 1 gem. This shared source mechanic does not add per-item acquisition entries.
     - [x] Add shared source-selection/hit-outcome contract and validated sparse gemstone save state; no sources enabled yet.
     - [x] Connect attack-driven pickaxe hits, durable progress/outcomes and loose-gem pickup; then enable item sources in their listed order.
@@ -370,8 +370,8 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     - [x] Add and register the complete item/equipment/stat JSON first, with applicable N/A categories recorded.
     - [x] Add and register its Forge recipe using the values finalized by Review A9.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
-  - [ ] Moonstone Ring (`MoonstoneRing`): finalize its recipe and +20 maximum stamina profile in Review A9; see the A9 item contract.
-    - [x] Complete executable Forge inventory recipe and paid craft/GUID equip coverage; source enablement remains blocked on I4.
+  - [x] Moonstone Ring (`MoonstoneRing`): approved Forge recipe and equipped +20 maximum stamina path are implemented, with the Moonstone source enabled.
+    - [x] Complete executable Forge inventory recipe and paid craft/GUID equip coverage; Moonstone source enablement followed accepted I4.
     - [x] Add and register the complete item/equipment/stat JSON first, with applicable N/A categories recorded.
     - [x] Add and register its Forge recipe using the values finalized by Review A9.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.

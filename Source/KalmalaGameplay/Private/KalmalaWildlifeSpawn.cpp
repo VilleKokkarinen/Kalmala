@@ -544,7 +544,7 @@ bool AKalmalaWildlifeSpawn::DefeatServer()
                 PersistentSpawnId, LastValidatedAttacker.Get())) return false;
     }
 
-    if (Archetype == EKalmalaWildlifeArchetype::Mireling && FKalmalaGemstoneContract::EnemySourcesAccepted)
+    if (Archetype == EKalmalaWildlifeArchetype::Mireling && FKalmalaGemstoneContract::DuskDiamondSourceAccepted)
     {
         auto* Mode = GetWorld() ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
         if (!Mode || !Mode->RecordMirelingDefeatReward(PersistentSpawnId, LastValidatedAttacker.Get())) return false;
@@ -4772,7 +4772,7 @@ void AKalmalaWildlifeSpawn::GrantDefeatReward()
     }
 
     const int32 BoneFragmentQuantity = GetBoneFragmentRewardQuantity(Archetype);
-    if (BoneFragmentQuantity > 0 && !(Archetype == EKalmalaWildlifeArchetype::Mireling && FKalmalaGemstoneContract::EnemySourcesAccepted)
+    if (BoneFragmentQuantity > 0 && !(Archetype == EKalmalaWildlifeArchetype::Mireling && FKalmalaGemstoneContract::DuskDiamondSourceAccepted)
         && Archetype != EKalmalaWildlifeArchetype::Rat
         && Archetype != EKalmalaWildlifeArchetype::Badger && Archetype != EKalmalaWildlifeArchetype::MoonBear
         && Archetype != EKalmalaWildlifeArchetype::Viper && Archetype != EKalmalaWildlifeArchetype::GiantSnake
