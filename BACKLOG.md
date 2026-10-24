@@ -451,10 +451,10 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     A4 items, A5 `BasicTorch`, A6 foraged foods (`Lingonberry`,
     `ForestChanterelle`) and recovery draughts (`BerryRecoveryDraught`,
     `RootStaminaDraught`) are audited; no A6 family remains in scope. The
-    A7 `PlantingTrowel` and `GardenPlot` buildable/menu contract is audited;
-    shared crop modes were traced without repeating A0 crop-source reviews.
-    Cold/fire preparations remain deferred; A8b Antidote is tracked
-    separately. Next A10 group: A7 Carrot farming (`Carrot`, `CarrotSeed`).
+    The A7 `PlantingTrowel`/`GardenPlot` contract and `Carrot`/`CarrotSeed`
+    farming use are audited; the existing A0 Carrot source-pair review was not
+    repeated. Cold/fire preparations remain deferred; A8b Antidote is tracked
+    separately. Next A10 group: A7 Potato farming (`Potato`, `PotatoSeed`).
     Keep this child open until every included item and scope N/A disposition
     is covered.
   - [ ] Run required full verification at each milestone's final increment.

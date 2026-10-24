@@ -9691,3 +9691,82 @@
 
 - **Next eligible A7 crop audit:** Carrot and CarrotSeed. Their A0 source
   pairs are already covered; audit only the A7 recipe/use/growth roles.
+
+## Run 2026-10-24 — A10 per-item audit: A7 Carrot and CarrotSeed
+
+- **Scope and definitions:** audited only Carrot and CarrotSeed for their A7
+  Garden Plot roles; the existing A0 source-pair review was cross-referenced,
+  not repeated. Both are registered in schema-16 `items/crops.json`. Carrot is
+  named `Carrot`, described as “The original orange stick.” and has MaxStack
+  20. CarrotSeed is named `Carrot Seeds`, described as “Seeds to grow carrots.”
+  and has MaxStack 50. Neither item has an equipment/carried-tool profile,
+  attack data, level-up cost, or stat reward; those categories are N/A.
+
+- **Reciprocal planting and harvest:** `CarrotFood` spends one CarrotSeed and
+  yields 3 Carrots. `CarrotSeed` spends one Carrot and yields 3 CarrotSeeds.
+  Both are direct Garden Plot actions, not separate recipe outputs; the shared
+  crop state sets 600 active seconds and a harvest yield of three. PotatoSeed
+  remains unused; that pair is the next crop audit.
+
+- **Authority, Trowel wear, and full-pack behavior:** the client chooses only
+  the Garden Plot mode. Server code revalidates authority, the same-world
+  visible current plot context, an empty plot, input availability and a usable
+  Main Hand Planting Trowel. It atomically exchanges one planting input,
+  spends one Trowel condition only after accepted planting, and persists the
+  player tool and plot candidates with rollback on save failure. Rejected
+  planting and harvesting do not spend Trowel condition. Harvest requests
+  server-grant three Carrots or CarrotSeeds; if the pack cannot fit the grant,
+  the action rejects before clearing the mature crop, which remains on the plot.
+
+- **Persistence:** the current construction schema 7 saves plot crop mode and
+  remaining active seconds; the server advances and saves growth only while
+  that plot terrain patch is active. Inactive regions and server downtime add
+  no growth, and saved plot state is restored with the construction. Player
+  schema 3 saves the carried Trowel ID, level, condition and GUID, but not
+  ordinary packed Carrot/CarrotSeed stacks. The schema-6 wording remaining in
+  architecture/setup docs is the previously recorded version mismatch.
+
+- **Icons and provenance:** the icon manifest identifies Carrot as image batch
+  09 and CarrotSeed as batch 10, both imported in batch C with pack-inventory
+  identities. Runtime paths are
+  /Game/Kalmala/UI/Icons/Items/Carrot.Carrot and
+  /Game/Kalmala/UI/Icons/Items/CarrotSeed.CarrotSeed; the generic icon table
+  also maps Carrot to Root variant 0 and CarrotSeed to Seed variant 0. Both
+  focused validators passed for 1254x1254 RGBA originals, transparent 64x64
+  prepared icons, imported Texture2D packages and runtime targets. The current
+  `docs/icon-provenance.md` has no Carrot/CarrotSeed entry or generation prompt;
+  it and the manifest establish paths/batches but do not establish the original
+  prompt/tool provenance. `docs/material-icons.md` is absent, so this specific
+  origin detail remains undocumented; no generation method was inferred.
+
+- **Existing evidence and remaining acceptance:** the historical I3 live peer
+  run exercised the Carrot-food route (seed payment, Trowel wear and replicated
+  crop state) and confirmed the seven actions were visible. It did not exercise
+  the reciprocal Carrot-seed route or full-pack plot harvest. Static source
+  inspection and existing contract tests cover their mappings, but no such
+  runtime check ran in this audit. The post-I3 menu still needs its A10
+  menu-specific verification refresh; later I4 build/automation passed but
+  reported no rendered/menu-specific run.
+
+- **Files changed:** BACKLOG.md, PROGRESS.md only.
+- **Lightweight checks:** focused JSON assertions passed for schema-16
+  registration, exact item names/descriptions/stack caps, and absence of Carrot
+  or CarrotSeed profile/attack/upgrade/reward entries. Focused catalogue icon
+  validation passed separately for Carrot and CarrotSeed. Static inspection
+  covered mode mapping, server payment/rollback, active growth, persistence and
+  icon runtime mapping. No build, automation, gameplay, UI, peer or reconnect
+  check was run in this increment.
+
+- **Full verification:** deferred; this is not the final A10 increment.
+
+- **Impact and remaining scope:** tracking-only; no item or gameplay behavior
+  changed. Catalogue entries and imported icons are present; the item-specific
+  original-art prompt/provenance record is the confirmed documentation gap.
+  Full-pack harvest and Carrot-seed mode remain without recorded live evidence;
+  A10 no-grant fresh-world and restart acceptance remain open. Preserve the
+  BronzePick and IronPick acquisition-target gaps for final disposition and
+  keep the broad A10 item audit unchecked until all included IDs, N/A
+  dispositions and final acceptance are covered.
+
+- **Next eligible A7 crop audit:** Potato and PotatoSeed; PotatoSeed remains
+  intentionally unused in the current farming contract.
