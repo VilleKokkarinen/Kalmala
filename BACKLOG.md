@@ -427,7 +427,11 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     prepared, imported catalogue icons. The four support scrolls use their own
     assets. `python Scripts/Validate-CatalogueReferences.py` and
     `Scripts/Validate-UIIcons.ps1 -Category Catalogue` both pass.
-  - [ ] Review milestones: I0 A0; I1 A1; I2 A2–A6 except Planting Trowel; I3 A7 farming + Planting Trowel; I4 A8–A8b with its final enemy gate before A9; I5 A9.
+  - [x] Review milestones: I0 A0; I1 A1; I2 A2–A6 except Planting Trowel; I3 A7 farming + Planting Trowel; I4 A8–A8b with its final enemy gate before A9; I5 A9.
+    Review 2026-10-24: historical gate evidence and remaining gaps are mapped in
+    PROGRESS.md. The post-gate Planting Trowel menu update, A10 no-grant
+    fresh-world acceptance, and conflicting older cargo scope remain open for
+    later A10 review/verification.
   - [ ] Check each included item's source, recipe, use, upgrades, icon and save behavior.
   - [ ] Run required full verification at each milestone's final increment.
   - [ ] Verify fresh-start progression through Bronze and Iron without debug grants.

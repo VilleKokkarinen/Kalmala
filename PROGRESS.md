@@ -7678,3 +7678,91 @@
   recipe, use, upgrade and save review; fresh-start progression; approved
   farming/shelter/cargo/accessory/peer/restart checks; and required milestone
   final verification remain open. No other A10 child was started.
+
+## Run 2026-10-24 — Review A10 milestone evidence
+
+- **Selected increment:** Second A10 child: review I0–I5 milestone evidence.
+- **Review sources:** Reviewed current milestone/parent checkboxes in
+  `BACKLOG.md`, the milestone acceptance instructions in
+  `docs/07-development-setup.md` and `docs/04-roadmap.md`, current scope in
+  `docs/a9-acceptance.md`, and dated evidence in `PROGRESS.md`. The linked
+  `docs/alpha-item-details.md` is absent in this checkout. Read its A10 rubric
+  from `git show 9a8cbc0f^:docs/alpha-item-details.md` only; did not restore the
+  obsolete document. The rubric says each group needs its own final gate and
+  calls for per-item source/payment/use-or-equip/upgrade-or-N/A/icon/save
+  evidence, a fresh-world no-debug progression, and approved-system peer and
+  persistence scenarios. Setup requires an integrated built tree, full
+  `Automation RunTests Kalmala` queue, fresh profiles and applicable live,
+  rendered and package checks; static inspection alone is insufficient.
+- **Reviewed milestone map and evidence:**
+  - **I0 — A0:** A0 is checked. The 2026-10-20 10:15 UTC record reports an
+    isolated Editor build, focused checks and 151/151 full Kalmala automation
+    tests; Onion/Onion Seed icon checks and previously passed Boar/Deer peer
+    gates are recorded. The final record explicitly leaves package smoke,
+    rendered/manual PIE and a fresh-player walkthrough undone.
+  - **I1 — A1:** A1 is checked. The 2026-10-20 20:02 UTC final gate records a
+    successful Editor build, 151/151 automation tests, 75 catalogue icons,
+    rendered `Crafting.ps1 -Rendered`, and `ConstructionPersistence.ps1`.
+    Package smoke and an unscripted fresh-player journey were not run; active-
+    session processing and the lack of player-facing construction removal are
+    documented limitations.
+  - **I2 — A2–A6, excluding Planting Trowel:** the item parents are checked.
+    The 2026-10-21 11:45 UTC record reports a 74-action Editor build, 155/155
+    full automation tests after repairing the M7 fixture assertion, 90 catalogue
+    icons, inventory contract checks, and two-peer rendered inventory and
+    crafting/building acceptance. No no-grant end-to-end fresh-world progression
+    is recorded. The accepted hazard-preparation deferral and fishing removal
+    remain explicit; Planting Trowel is assigned to I3.
+  - **I3 — A7 farming plus Planting Trowel:** A7 is checked. The 2026-10-21
+    15:24 UTC gate records an Editor build, 11 focused automation cases plus
+    `Discovery.Schema2CurrentFormat`, and 92 catalogue icons. The 16:05 UTC
+    follow-up records a passing Garden Plot two-peer rendered run with payment,
+    seed/Trowel wear and crop-growth checks. After those gates, the 16:22 UTC
+    entry added the Trowel Farming menu and Garden Plot context route; that entry
+    explicitly says no Unreal build or tests were run. This post-gate UI change
+    needs relevant verification in the later A10 gate.
+  - **I4 — A8–A8b, ending before A9:** the A8a/A8b final gate is checked. The
+    2026-10-24 09:26 UTC record reports a successful Editor build, 178/178 full
+    automation tests, creature validation (17 profiles), catalogue icon
+    validation (148 identities), the shared Rat peer and A8b Vest peer, plus
+    earlier species-peer and two-visit InventoryReconnect evidence. Manual or
+    rendered presentation was not part of this gate. Saved-move warnings were
+    recorded without assertion failures.
+  - **I5 — A9:** A9 and its integration are checked at `d0ead245`. The final
+    2026-10-24 record reports successful Editor and Game builds, 187 completed
+    automation cases (182 clean passes, five warning passes, zero failures),
+    creature/catalogue/status validators, five documentation contracts,
+    applicable mining/treasure, crafting, discovery, inventory and reconnect
+    peers, and inspected gear renders. It explicitly does not establish a
+    no-grant fresh-character progression; general inventory/equipped gear are
+    session-only under the accepted contract. No package or dedicated-server
+    build was attempted.
+- **Review result and remaining evidence gaps:** The six groups and their
+  historical final-gate status are now mapped. I3 needs a verification refresh
+  for the later Planting Trowel menu change. No integrated A10 no-grant
+  fresh-world journey or single current-source final run covering the approved
+  item/source/use/save and competing-peer scenarios is recorded. The old A10
+  rubric includes a Skiff Cargo Chest proposal, while current A9 handoff text
+  says A9 does not imply cargo and the active A9 backlog omits it; the retained
+  A9 page still contains cargo checklist text. This scope conflict is recorded
+  for the item/scope audit; no cargo work or decision was made here. Fishing is
+  explicitly deferred. The prior 148-identity I4/I5 icon counts are historical;
+  the preceding A10 child now validates all 152 current catalogue identities.
+- **Completed:** Finished the milestone review and checked only the selected
+  A10 review child in `BACKLOG.md`. This does not mark any milestone or A10
+  complete.
+- **Files changed:** `BACKLOG.md`; `PROGRESS.md`.
+- **Checks:** Compared all six milestone groups against current backlog state,
+  dated verification reports, the setup gate, and current/historical acceptance
+  sources. No build, automation, peer, render, or package command was run for
+  this review. `git diff --check` passed; a targeted backlog-state check
+  confirmed only this review child was checked and later A10 tasks remain open.
+- **Full verification:** Not run in this review increment. The later A10
+  verification child remains open; no current integrated A10 final gate is
+  claimed.
+- **Impact / authority:** Documentation and backlog review only. No gameplay,
+  networking/server authority, RPC, item behavior or save data changed.
+- **Next eligible task:** Check each included item's source, recipe, use,
+  upgrades, icon and save behavior, recording any explicit N/A or deferral.
+  Leave full A10 verification, fresh-start progression and approved-system
+  acceptance for their later A10 children.
