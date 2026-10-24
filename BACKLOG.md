@@ -446,8 +446,9 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     their Forge recipes: BronzePick expects Wood x10 + Bronze x10 (current
     Wood x4 + Stone x4); IronPick expects Wood x10 + Iron x10 (current Iron x4
     + Wood x2 + Stone x2). Retain both for final progression disposition. Next
-    audit A4 armour and shields. Keep this child open until every included item
-    and scope N/A disposition is covered.
+    audit the retained A4 hide pair:
+    `BoarHideBoots`, `BoarHideCape`. Keep this child open until every included
+    item and scope N/A disposition is covered.
   - [ ] Run required full verification at each milestone's final increment.
   - [ ] Verify fresh-start progression through Bronze and Iron without debug grants.
   - [ ] Verify approved farming, shelter, cargo, accessories, peers and restart.

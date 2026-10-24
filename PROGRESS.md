@@ -9221,3 +9221,66 @@
   is covered. Preserve both BronzePick and IronPick acquisition-target gaps for
   final progression disposition.
 - **Next eligible group:** A4 armour and shields.
+
+## Run 2026-10-24 — A10 per-item audit: retained A4 hide boots and cape
+
+- **Scope and definitions:** audited exactly `BoarHideBoots` and
+  `BoarHideCape`, the first A4 items in backlog order and the retained hide
+  pair named by the A4 decision. They are registered ordinary wearable items,
+  not carried-tool profiles: stack limit 1; Boots, 1 kg, 50 maximum condition,
+  1 Armor; Cape, 2 kg, 50 maximum condition, 1 Armor. Both have an authored
+  shared stat reward; no attack record or attack behavior applies.
+- **Source and recipes:** there is no direct drop, harvest or starter grant for
+  either wearable. The enabled level-one Workbench recipe for Boots consumes
+  5 Boar Hide for 1. The Cape recipe consumes 5 Boar Hide + 1 Bone Fragment
+  for 1. The existing creature source gives 1 Boar Hide from each credited
+  Boar defeat; Boar and Deer defeat sources each give 1 Bone Fragment. The A0
+  source audit already records that a full inventory has no persistent retry
+  for those ordinary hide/bone rewards. No recipe uses either wearable as an
+  ingredient.
+- **Upgrades and defense:** the authored level-one Workbench cost is 2 Boar
+  Hide for Boots, and 2 Boar Hide + 1 Bone Fragment for Cape. Their shared
+  reward adds 10 maximum condition and 1 Armor per level, with no damage bonus.
+  These costs and stats are data only: general wearable upgrade transactions
+  remain pending equipment integration. Wearable Armor reduces physical
+  Slash/Crush/Pierce/Stab damage only; no attack, elemental resistance, or
+  insulation value is authored. The A4 decision defers further Boots/Cape tiers
+  and insulation/cold protection.
+- **Icons and registration:** schema-16 `GameCatalogues.json` registers the
+  ordinary Boots/Cape files, Workbench recipes, type-specific upgrade costs,
+  and shared item-stat rewards. Icon manifest batch G contains both canonical
+  IDs and maps their retained originals under
+  `Content/Kalmala/UI/Source/IconOriginals/`, prepared transparent 64x64 files
+  under `Content/Kalmala/UI/Source/Icons/`, and imported Texture2D assets at
+  `/Game/Kalmala/UI/Icons/Items/<ID>.<ID>`. `docs/icon-provenance.md#armor-icons`
+  records the shared style prompt, per-item subjects, paths, and batch workflow.
+  The referenced `docs/material-icons.md` and `docs/alpha-item-details.md` are
+  absent in this checkout; A4 decisions and values were checked against the
+  backlog, decision log, and development setup guide.
+- **Equip, authority, and save behavior:** equip/replace requests send an exact
+  carried item GUID; the server derives its compatible slot from the catalogue.
+  Return requests use the validated slot and free-cell transaction. Equipped gear
+  and the gear grid replicate owner-only; accepted wildlife hits consume one
+  condition from each non-depleted equipped wearable after resolving damage.
+  Wear is retained across same-pawn pack/equip swaps by a server-only session
+  ledger, but equipped slots and wear are not saved or transferred to another
+  pawn. Ordinary player item stacks also remain session-only. No A4-specific
+  live craft/equip, peer, or restart scenario was run.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md` only.
+- **Lightweight checks:** focused PowerShell JSON assertions parsed the
+  registered A4 definitions and confirmed exact recipes, upgrade costs, shared
+  reward, and the guaranteed Boar Hide source; the attack catalogue has no
+  record for either ID. `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id`
+  passed for `BoarHideBoots` and `BoarHideCape`, confirming original PNG,
+  prepared transparent texture, runtime mapping, and imported asset. Source,
+  authority, save, and relevant A4 design/provenance records were inspected.
+  No build, automation, full suite, peer, or restart check ran.
+- **Full verification:** deferred; this is not A10's final increment.
+- **Impact and remaining scope:** tracking-only; no item, recipe, stat,
+  authority, icon, or save behavior changed, and no missing catalogue/icon data
+  was found for these two IDs. Runtime wearable upgrading and persistence are
+  known shared gaps; the previously recorded full-inventory Boar reward gap
+  remains under A0. Keep the broad A10 item-audit child unchecked until all
+  included IDs, N/A dispositions, and final runtime acceptance are covered.
+- **Next eligible A4 group:** Bronze armor and shield
+  (`BronzeHelmet`, `BronzeTunic`, `BronzeLeggings`, `BronzeShield`).
