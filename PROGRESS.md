@@ -7635,3 +7635,40 @@
 - **Next eligible task:** A10 catalogue/icon acceptance remains ahead in queue;
   its current audit gap is four generated/imported scroll icons. After A10,
   start BH01. No main-checkout handoff synchronization is needed.
+
+## Run 2026-10-24 — BH01a seed overviews and site selection
+
+- **Selected increment:** BH01a, the first ordered part of BH01 in the
+  user-requested biome-height worktree. BH01 remains open pending BH01a–BH01c.
+- **Completed:** Exported and visually inspected full-world seed 418 and 419
+  overview maps with the existing visualization commandlet. Recorded its
+  settings, four principal-image SHA-256 hashes per seed, map resolution,
+  representative biome/transition/coast/highland-river coordinates, and the
+  fixed relative camera pose in `docs/biome-height-rework.md`. Checked BH01a
+  only in `BACKLOG.md`.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `docs/biome-height-rework.md`. Ignored map exports remain in `.tmp/bh01/`;
+  no generated outputs were staged.
+- **Lightweight checks/results:** Both commandlet exports exited successfully
+  with zero logged errors. Each produced the expected 2048×2048 P6 maps; the
+  four documented hashes per seed were recomputed directly from the files.
+  All 18 images and `Tuning.txt` per seed passed a P6 header/dimension/size
+  check, and the composite overviews were visually inspected. Each run logged
+  the same pre-existing `Default__KalmalaOceanSkiff:HullMesh: Material index 0
+  is invalid` warning. `git diff --check` and the temporary-path length scan
+  passed.
+- **Full verification:** Deferred. This capture increment did not change code
+  or generation behavior; no build, suite, gameplay acceptance or final
+  rendered fixed-camera capture was run. Final integrated terrain verification
+  remains BH26.
+- **Observable impact / authority:** Baseline evidence and site/camera choices
+  only. Runtime terrain, networking, server authority, RPCs and save behavior
+  are unchanged.
+- **Known limitations / remaining scope:** Map positions have 15.63 m pixel
+  spacing and are candidates with up to 7.82 m uncertainty per axis. The
+  height map is clamped grayscale, not numeric. Exact height/slope/weights/
+  water/tree measurements and camera anchor heights remain BH01b; rendered
+  views and baseline consolidation remain BH01c.
+- **Next task in this directed goal:** BH01b — add narrow quantitative sampler
+  diagnostics at these fixed coordinates. Do not mark BH01 or the roadmap
+  milestone complete.

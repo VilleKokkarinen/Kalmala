@@ -478,10 +478,21 @@ and stop after the increment. BH26 is the final integrated verification/repair
 run for this goal and may exceed one turn.
 
 - [ ] **Implement biome height rework and Meadows terrain dressing.**
-  - [ ] **BH01 — Capture baselines.** For seeds 418 and 419, record coordinates,
-    bounds, vertical scale, final height/slope, biome weights, water levels,
-    and tree counts at starter/outer Meadows, wooded ground, each biome,
-    transitions, coast, and a high-land river; capture fixed-camera views.
+  - [ ] **BH01 — Capture fixed-seed baselines.** Keep this parent open until
+    BH01a–BH01c are complete.
+    - [x] **BH01a — Export seed overviews and choose sites.** Render full-world
+      seed 418 and 419 diagnostic overviews with the existing visualization
+      commandlet. Inspect the outputs, record their configuration and hashes,
+      and select representative coordinates plus fixed camera poses for the
+      requested biomes, transitions, coast, and high-land river.
+    - [ ] **BH01b — Add quantitative sampler diagnostics.** If existing tools
+      cannot provide them, add a narrow output-only diagnostic for exact final
+      height, terrain-triangle slope, biome weights, water level, and forest
+      count at BH01a's fixed coordinates. Do not change generation behavior.
+    - [ ] **BH01c — Capture rendered views and consolidate baselines.** Capture
+      rendered fixed-camera views at BH01a's sites, record the numeric results
+      and camera/vertical bounds in the plan document, and verify the captured
+      evidence covers both seeds and every listed representative condition.
   - [ ] **BH02 — Map integration points.** Recheck the current height, lake,
     river, map/wetness, forest-layout, harvest, preview, material, and test
     consumers; record the exact source/test touchpoints in the plan docs.

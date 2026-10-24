@@ -184,6 +184,68 @@ and follow the one-increment-per-run protocol when this work is scheduled.
 14. Finalize tuning, update architecture/setup documentation, and complete the
     applicable combined verification before declaring the rework accepted.
 
+## BH01a map overview exports and capture sites
+
+The existing `RenderWorldGenerationVisualization` commandlet was run against
+baseline commit `460339b3` for each fixed seed, with `-Size=2048`
+(2048×2048 pixels), `-Extent=3200000` cm (32 km full width, centered on the
+world origin), and `-SkipSplineOverlay`. Outputs are in the ignored temporary
+folders `.tmp/bh01/seed418` and `.tmp/bh01/seed419`; each contains the commandlet
+PPMs and `Tuning.txt`. Each P6 PPM is 12,582,929 bytes. The full-world crop
+radius is 1,600,000 cm (16 km).
+The world coordinate of a pixel center is
+`X=(pixelX/2047−0.5)×3,200,000 cm` and likewise for Y. Pixel spacing is
+1,563.263 cm (15.63 m); each selected point is a map-pixel candidate with up
+to 781.6 cm uncertainty per axis (not yet an exact sampler validation).
+
+The exports were visually inspected as composite biome, height, hydrology and
+land/water views. `BiomeClassification.ppm` uses the commandlet palette and
+`Weight0..Weight6.ppm` map byte-scaled weights in this order: Meadows,
+Shimmering Lakes, Elderwood, Mossy Mire, Freezing Tundra, Thunder Mountains,
+Ocean. `ShapedHeight.ppm` is a diagnostic grayscale, clamped from
+`(Region.Height + 500) / 2500`; it is not a raw height measurement. The
+hydrology image stores river, stream and basin weights in R/G/B. Consequently
+these overview images select sites but do not establish final height, slope,
+water levels or tree counts; BH01b will measure those at the fixed coordinates.
+
+| Representative condition | Seed 418 X,Y (cm) | Seed 419 X,Y (cm) | Map selection |
+| --- | --- | --- | --- |
+| Starter Meadows | (-781.6, -781.6) | (-781.6, -781.6) | Nearest pixel center to origin, inside the 350 m starter band |
+| Outer dry Meadows | (208695.7, -293111.9) | (-355642.4, 55495.8) | Meadow class and source-land pixel near 3.6 km, below the 4 km eligibility edge |
+| Shimmering Lakes | (100830.5, -143038.6) | (-166487.5, 53932.6) | Classified pixel near 1.75 km |
+| Elderwood interior | (91450.9, -205569.1) | (-205569.1, 91450.9) | Classified pixel near 2.25 km |
+| Wooded Elderwood | (207132.4, -325940.4) | (294675.1, 171177.3) | High-Flora Elderwood pixels; map Flora shades 252 and 236 |
+| Mossy Mire | (-669858.3, -601074.7) | (-78944.8, 896531.5) | Classified pixels near 9 km |
+| Freezing Tundra | (-243087.4, -970004.9) | (-243087.4, 970004.9) | Classified pixels near 10 km |
+| Thunder Mountains | (-970004.9, -243087.4) | (-970004.9, 243087.4) | Classified pixels near 10 km |
+| Ocean | (970004.9, -243087.4) | (-243087.4, -970004.9) | Ocean-class pixels near 10 km |
+| Meadows/Elderwood transition | (-182120.2, 171177.3) | (-193063.0, 158671.2) | Weight0/Weight2 ≈ 0.502/0.498 and 0.498/0.502 |
+| Elderwood/Tundra transition | (-191499.8, -773033.7) | (314997.6, 735515.4) | Near-equal Weight2/Weight4 land pixels |
+| Tundra/Mountains transition | (-268099.7, 963751.8) | (1001270.2, 7034.7) | Weight4/Weight5 ≈ 0.498/0.502 and 0.502/0.498 |
+| Source coast, land side | (691744.0, -107083.5) | (-71128.5, -696433.8) | Source-land pixels adjacent to ocean pixels |
+| Highland river | (679237.9, -16414.3) | (1145090.4, -66438.7) | River weight byte 255 and height-map shade 172 in each seed |
+
+BH01c uses the same relative camera pose at every site: for land, anchor at the
+BH01b final collision height; for visible water, anchor at its measured water
+surface (ocean uses Z=0). Put the camera at `(X, Y−2400, Z+1200)` cm, aim at
+`(X, Y, Z+150)` cm, and use a 65° horizontal field of view. This is a fixed
++Y-facing view with about 23.6° downward pitch. BH01b must resolve exact anchor
+heights and wet-site targets before rendered captures are recorded.
+
+SHA-256 checksums of the principal source PPMs (the temporary exports are not
+committed):
+
+| Export | Seed 418 SHA-256 | Seed 419 SHA-256 |
+| --- | --- | --- |
+| `BiomeClassification.ppm` | `EB8D2BD4CF360095C452033DBF9DDAAF9665C9F71D59C4665D58E79D4B4D7072` | `7AF9963F490D0067AAD9A0DFF4E60327A439ADA8EDA96F5E4866863FE1746B7D` |
+| `ShapedHeight.ppm` | `D4E7A9AA5D5099D8221C862FED0F4F80B17ABF5CC3CA9F34328615CE1DE18F54` | `9DA6668112DDD0A3625F5502B7422BF94685D14AA3C0981BA372E13878B1BD2C` |
+| `Hydrology.ppm` | `2775ADD4C62014D81D8452F3D4FD145BD6A4867F52023DE68DCEDD5A48B743F7` | `FC82D5E76BCA8E3AA30E4D49528CD6DC23A9BC09BB11A63E3FE6F9ED1F894AC4` |
+| `LandWaterCrop.ppm` | `B18F15BED3A9B904A433281DDF4DBDDA76D829946BF41B3C5376A0E659B9C82D` | `B8CEBA0E7DEFDCC7C4472A8CD645FE04C86B0539A170CDA7071E7349B6631CAB` |
+
+Both commandlet exports completed successfully with zero logged errors. Each
+logged the same pre-existing warning: `Default__KalmalaOceanSkiff:HullMesh:
+Material index 0 is invalid`. No generation code was changed for these captures.
+
 ## Verification and completion
 
 During normal increments use narrow checks and careful source inspection.
