@@ -9859,3 +9859,96 @@
   IDs, N/A dispositions and final acceptance are covered.
 
 - **Next eligible A7 crop audit:** Rutabaga and RutabagaSeed.
+
+## Run 2026-10-24 — A10 per-item audit: A7 Rutabaga and RutabagaSeed
+
+- **Scope and definitions:** audited Rutabaga and RutabagaSeed for their A7
+  Garden Plot use. The prior A0 wild-rutabaga source-pair review is
+  cross-referenced, not repeated. Both are registered in schema-16
+  `items/crops.json`. Rutabaga is displayed as `Rutabaga`, described as `A hardy
+  root with a mild, earthy flavor.`, with MaxStack 20. RutabagaSeed is displayed
+  as `Rutabaga Seeds`, described as `Seeds to grow rutabagas.`, with MaxStack
+  50. Neither item has an equipment/carried-tool profile, attack data, level-up
+  cost, or stat reward; those categories are N/A. RutabagaSeed is an A0 source
+  reward and an A7 crop input/output, with no separate crafting recipe.
+
+- **Reciprocal A7 modes:** `RutabagaFood` spends one RutabagaSeed and yields
+  three Rutabagas. `RutabagaSeed` spends one Rutabaga and yields three
+  RutabagaSeeds. Both actions use the Garden Plot rather than ordinary recipe
+  outputs. Each crop takes 600 active seconds. The menu enables each button
+  only for its matching inventory input, a ready Trowel, and an empty plot.
+  PotatoSeed remains the separate, approved unused seed; the reciprocal
+  Rutabaga seed mode is registered and usable.
+
+- **Other catalogue uses:** focused JSON inspection found Rutabaga as one input
+  in `RootVegetableSoupRecipe` and `DeerRootRoastRecipe`; RutabagaSeed has no
+  recipe reference. Their earlier A6/A9 recipe review was not repeated.
+
+- **Authority, Trowel wear, and full-pack behavior:** the server checks
+  authority, same-world GardenPlot identity, visible current plot context, an
+  empty plot, matching payment inventory, and a usable Main Hand Planting
+  Trowel. It commits one planting input and one Trowel condition only for
+  accepted planting, persists player and crop candidates, and rolls payment and
+  condition back if saving or plot application rejects the action. Harvest
+  requires the valid Trowel context but spends no condition. The server
+  prebuilds the three-item harvest grant before clearing the mature crop; an
+  insufficient pack rejects the grant and leaves the crop planted.
+
+- **Persistence and growth:** GardenPlot save state contains crop mode and
+  remaining active seconds in current construction schema 7. The server
+  advances and saves an immature crop only while its terrain patch is active;
+  inactive regions and server downtime add no growth. Restoring construction
+  records restores the crop mode and remaining time. Ordinary Rutabaga and
+  RutabagaSeed stacks have no item-specific player-save state; their
+  ordinary-inventory save limitation is recorded in the Carrot audit.
+  Architecture/setup text that still names construction schema 6 is the
+  previously recorded documentation mismatch.
+
+- **Icons and provenance:** the icon manifest identifies Rutabaga as image
+  batch 10/import batch C and RutabagaSeed as image batch 11/import batch C,
+  both pack items. Original files exist under
+  `Content/Kalmala/UI/Source/IconOriginals/`; prepared files exist under
+  `Content/Kalmala/UI/Source/Icons/`. Imported packages are
+  `Content/Kalmala/UI/Icons/Items/Rutabaga.uasset` and
+  `Content/Kalmala/UI/Icons/Items/RutabagaSeed.uasset`. Focused validation
+  confirms each original is 1254x1254 RGBA, each prepared icon is transparent
+  64x64 RGBA, and both imported Texture2D targets resolve at
+  `/Game/Kalmala/UI/Icons/Items/Rutabaga.Rutabaga` and
+  `/Game/Kalmala/UI/Icons/Items/RutabagaSeed.RutabagaSeed`. The fallback table
+  maps Rutabaga to Root variant 2 and RutabagaSeed to Seed variant 2.
+  `docs/icon-provenance.md` has no item-specific Rutabaga/RutabagaSeed entry or
+  prompt, and `docs/material-icons.md` is absent. Batch/art identity is
+  recorded, but original prompt/tool provenance cannot be established; this is
+  a documentation gap, not a missing icon or runtime mapping.
+
+- **Evidence and remaining acceptance:** the construction-save test source
+  asserts both reciprocal payments/outputs, 600-second maturation, one-time
+  harvest, and Rutabaga mode/time round-trip; this audit did not execute it.
+  The historical I3 live peer run planted Carrot and confirmed the seven
+  actions were visible; it did not exercise either Rutabaga route.
+  Static inspection confirms full-pack rejection; no Rutabaga full-pack or
+  rendered-menu runtime check is recorded here. The post-I3 menu still needs
+  its A10 menu-specific verification refresh; later I4 build/automation
+  evidence did not report a rendered/menu-specific run.
+
+- **Files changed:** BACKLOG.md, PROGRESS.md only.
+- **Lightweight checks:** focused JSON parsing/assertions passed for schema-16
+  crop registration, exact Rutabaga/RutabagaSeed definitions and stack caps,
+  absence of equipment/profile/attack/upgrade/reward rows, and absence of
+  RutabagaSeed recipe references; it also found the two Rutabaga recipe inputs.
+  Catalogue icon validation passed separately for Rutabaga and RutabagaSeed.
+  Static inspection covered reciprocal mode mappings, payment/rollback, Trowel
+  condition, full-pack harvest, active growth, save/restore, and icon mapping.
+  No build, automation, gameplay, UI, peer or reconnect check was run.
+
+- **Full verification:** deferred; this is not the final A10 increment.
+
+- **Impact and remaining scope:** tracking-only; no item or gameplay behavior
+  changed. The item-specific art prompt/provenance record and Rutabaga-specific
+  live cultivation/menu evidence remain open. A10 no-grant fresh-world and
+  restart acceptance remain open. Preserve the BronzePick and IronPick
+  acquisition-target gaps for final disposition and keep the broad A10 item
+  audit unchecked until all included IDs, N/A dispositions and final acceptance
+  are covered.
+
+- **Next eligible A7 crop audit:** Onion and OnionSeed.
