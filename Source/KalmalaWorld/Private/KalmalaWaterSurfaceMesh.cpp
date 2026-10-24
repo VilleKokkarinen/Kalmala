@@ -18,6 +18,7 @@ namespace
         V.Fields.Temperature = FMath::Lerp(A.Fields.Temperature, B.Fields.Temperature, T);
         V.Fields.Flora = FMath::Lerp(A.Fields.Flora, B.Fields.Flora, T);
         V.WaterLevel = FMath::Lerp(A.WaterLevel, B.WaterLevel, T);
+        V.BasinWeight = FMath::Lerp(A.BasinWeight, B.BasinWeight, T);
         return V;
     }
 
@@ -42,10 +43,15 @@ void FKalmalaWaterSurfaceMesh::AppendTriangle(const FKalmalaWaterMeshVertex& A,
     const FKalmalaWaterMeshVertex& B, const FKalmalaWaterMeshVertex& C,
     const bool bLake, const bool bShore, FKalmalaWaterMesh& Mesh)
 {
+    if (bLake)
+    {
+        if (A.BasinWeight <= 0.0f && B.BasinWeight <= 0.0f && C.BasinWeight <= 0.0f) return;
+    }
     const float Level = bLake ? FKalmalaShimmeringLakeSampler::WaterSurfaceWorldHeight
         : FKalmalaTerrainHeightSampler::SeaLevelWorldHeight;
     FPolygon Polygon = { A, B, C };
     const bool Regional = bLake;
+    if (Regional) Clip(Polygon, [](const auto& V) { return V.BasinWeight; });
     Clip(Polygon, [Level, Regional](const auto& V) { return (Regional ? V.WaterLevel : Level) - V.TerrainHeight; });
     if (bShore)
     {
@@ -76,7 +82,7 @@ FKalmalaWaterMesh FKalmalaWaterSurfaceMesh::BuildPatch(const FKalmalaWorldGenera
     const FVector2D PatchCenter, const bool bLake, const bool bShore)
 {
     FKalmalaWaterMesh Mesh;
-    if (!Config.IsValid()) return Mesh;
+    if (!Config.IsValid() || (bLake && !FKalmalaShimmeringLakeSampler::bEnabled)) return Mesh;
     constexpr float Size = FKalmalaTerrainPatchLayout::PatchSize;
     constexpr int32 Side = CellsPerSide + 1;
     TArray<FKalmalaWaterMeshVertex> Grid;
@@ -89,7 +95,9 @@ FKalmalaWaterMesh FKalmalaWaterSurfaceMesh::BuildPatch(const FKalmalaWorldGenera
             V.Position = FVector2D(-Size * 0.5f + X * Size / CellsPerSide, -Size * 0.5f + Y * Size / CellsPerSide);
             V.Fields = FKalmalaWorldFieldSampler::Sample(Config, PatchCenter + V.Position);
             V.TerrainHeight = FKalmalaTerrainHeightSampler::SampleHeight(Config, PatchCenter + V.Position);
-                V.WaterLevel = FKalmalaRegionalGeneration::Sample(V.Fields).WaterLevel;
+            const FKalmalaRegionalSample Region = FKalmalaRegionalGeneration::Sample(V.Fields);
+            V.WaterLevel = Region.WaterLevel;
+            V.BasinWeight = Region.BasinWeight;
         }
     }
     for (int32 Y = 0; Y < CellsPerSide; ++Y)

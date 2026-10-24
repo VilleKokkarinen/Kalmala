@@ -239,8 +239,13 @@ TArray<FKalmalaMinimapTerrainSample> UKalmalaMinimapViewModel::BuildTerrainSampl
                 // Rivers share the fixed sea plane with ocean water, including inland biomes.
                 // Keep signed depth until after triangle interpolation, just like mesh clipping.
                 const double SeaDepth = FKalmalaTerrainHeightSampler::SeaLevelWorldHeight - Sample.TerrainHeight;
-                const double InlandDepth = (East.WaterLevel - East.Height) * A
-                    + (North.WaterLevel - North.Height) * B + (Opposite.WaterLevel - Opposite.Height) * D;
+                auto BasinDepth = [](const FKalmalaRegionalSample& Vertex)
+                {
+                    return FKalmalaShimmeringLakeSampler::bEnabled && Vertex.BasinWeight > 0.0f
+                        ? double(Vertex.WaterLevel - Vertex.Height) : 0.0;
+                };
+                const double InlandDepth = BasinDepth(East) * A
+                    + BasinDepth(North) * B + BasinDepth(Opposite) * D;
                 Sample.bIsWater = SeaDepth > 0.0 || InlandDepth > 0.0;
                 Biome = static_cast<EKalmalaBiome>(FKalmalaRegionalGeneration::Sample(WorldConfig, WorldPosition).Biome);
             }

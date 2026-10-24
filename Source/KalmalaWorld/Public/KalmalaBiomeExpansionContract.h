@@ -102,6 +102,11 @@ struct KALMALAWORLD_API FKalmalaBiomeExpansionContract
     /** Finds one dry, saturated lake-edge location in a spatial key. The result is a server input, not a client-visible candidate list. */
     static bool TryBuildShimmeringLakeDiscovery(const FKalmalaWorldGenerationConfig& Config, const FIntPoint SpatialKey, FKalmalaBiomeDiscoveryCandidate& OutCandidate)
     {
+        if (!FKalmalaShimmeringLakeSampler::bEnabled)
+        {
+            OutCandidate = {};
+            return false;
+        }
         const FKalmalaBiomeDiscoveryCandidate BaseCandidate = BuildDiscoveryCandidate(Config, SpatialKey, EKalmalaBiome::ShimmeringLakes);
         constexpr float ShoreProbeDistance = 350.0f;
         for (int32 Attempt = 0; Attempt < 16; ++Attempt)

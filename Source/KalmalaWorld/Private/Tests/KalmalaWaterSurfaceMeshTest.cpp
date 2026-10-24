@@ -1,6 +1,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 #include "KalmalaWaterSurfaceMesh.h"
 #include "KalmalaLakeBasin.h"
+#include "KalmalaShimmeringLakeSampler.h"
 #include "Misc/AutomationTest.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaWaterSurfaceMeshTest, "Kalmala.World.Water.ClippedSurface",
@@ -14,6 +15,7 @@ bool FKalmalaWaterSurfaceMeshTest::RunTest(const FString& Parameters)
         V.Position = FVector2D(X, Y);
         V.TerrainHeight = Height;
         V.WaterLevel = 400.0f;
+        V.BasinWeight = 1.0f;
         V.Fields = { 0.35f, Humidity, 0.5f, 0.5f };
         return V;
     };
@@ -45,8 +47,25 @@ bool FKalmalaWaterSurfaceMeshTest::RunTest(const FString& Parameters)
     FKalmalaWaterSurfaceMesh::AppendTriangle(Vertex(0, 0, 410), Vertex(0, 100, 390), Vertex(100, 0, 390), true, true, Shallow);
     TestTrue(TEXT("Physical terrain intersection receives shoreline treatment"), !Shallow.Triangles.IsEmpty());
 
+    FKalmalaWaterMesh BasinOnly, RiverSurface;
+    auto RiverA = Vertex(0, 0, -80.0f), RiverB = Vertex(0, 100, -80.0f), RiverC = Vertex(100, 0, -80.0f);
+    RiverA.WaterLevel = RiverB.WaterLevel = RiverC.WaterLevel = 0.0f;
+    RiverA.BasinWeight = RiverB.BasinWeight = RiverC.BasinWeight = 0.0f;
+    FKalmalaWaterSurfaceMesh::AppendTriangle(RiverA, RiverB, RiverC, true, false, BasinOnly);
+    FKalmalaWaterSurfaceMesh::AppendTriangle(RiverA, RiverB, RiverC, false, false, RiverSurface);
+    TestTrue(TEXT("A sea-level river cannot create a lake sheet without basin support"), BasinOnly.Triangles.IsEmpty());
+    TestTrue(TEXT("The same submerged river remains in the sea-level surface mesh"), !RiverSurface.Triangles.IsEmpty());
+    for (const FVector& V : RiverSurface.Vertices) TestEqual(TEXT("Sea-level river surface remains at zero"), V.Z, 0.0f);
+
     FKalmalaWorldGenerationConfig Config;
     Config.WorldSeed = 418;
+    TestFalse(TEXT("Analytic basin policy remains disabled"), FKalmalaShimmeringLakeSampler::bEnabled);
+    const FVector2D FormerBasinSample(100830.5f, -143038.6f);
+    TestFalse(TEXT("Disabled basin cannot report Shimmering Lakes water"), FKalmalaShimmeringLakeSampler::IsWater(Config, FormerBasinSample));
+    TestFalse(TEXT("Disabled basin cannot report basin containment"), FKalmalaLakeBasin::Contains(Config, FormerBasinSample, FVector2D::ZeroVector));
+    TestFalse(TEXT("Disabled basin cannot report visible lake water"), FKalmalaLakeBasin::IsVisibleWater(Config, FormerBasinSample));
+    const auto DisabledLakeMesh = FKalmalaWaterSurfaceMesh::BuildPatch(Config, FormerBasinSample, true);
+    TestTrue(TEXT("Disabled analytic basins produce no production lake patch"), DisabledLakeMesh.Triangles.IsEmpty());
     int32 PositiveInlandSurfaceVertices = 0;
     for (int32 Y = -3; Y <= 3; ++Y)
     {

@@ -2104,7 +2104,7 @@ rejects more than 256 sparse identities.
 
 ## Water surface regression check
 
-`Kalmala.World.Water.ClippedSurface` checks partial-cell coverage, winding, flat levels, shallow shore treatment, deterministic synthetic clipping, and the reusable `FKalmalaLakeBasin::Find` topology rules with synthetic closed, sea-connected, unbounded and unseeded fixtures. The compiled production policy `FKalmalaRegionalTuning::bEnableAnalyticBasins` defaults to false, so those helper fixtures do not represent active production lake generation. Ocean and sea-level river clipping remain enabled; BH04 owns downstream lake-consumer/cache gates. Run `Scripts/Tests/Presentation/PlayerControls.ps1 -Rendered` for rendered host/client traversal and screenshots after building. Restart the editor to load the repaired native module.
+`Kalmala.World.Water.ClippedSurface` checks partial-cell coverage, winding, flat levels, shallow shore treatment, deterministic synthetic clipping, and the reusable `FKalmalaLakeBasin::Find` topology rules with synthetic closed, sea-connected, unbounded and unseeded fixtures. It also verifies that basin-free regional samples cannot draw an inland lake sheet, while the same submerged river triangle still clips into sea-level water. The compiled production policy `FKalmalaRegionalTuning::bEnableAnalyticBasins` defaults to false, so synthetic basin fixtures do not represent active production lake generation. Ocean and sea-level river clipping remain enabled; samplers, map depth, audio proximity, shoreline exposure and lake discovery all gate on basin support. No basin-result cache exists independently of presentation output: minimap/map rasters are rebuilt through their normal input invalidation, patch mesh sections are cleared on initialization, and the only lake helper memoizes the start-relative origin. Run `Scripts/Tests/Presentation/PlayerControls.ps1 -Rendered` for rendered host/client traversal and screenshots after building. Restart the editor to load the repaired native module.
 
 ## Ocean-depth regression
 
@@ -3457,7 +3457,7 @@ variation scenario.
 
 ## Shimmering Lakes slice verification
 
-After an editor build, run the focused `Kalmala.World.BiomeExpansion.ShimmeringLakesSlice` headless automation with `-DDC-ForceMemoryCache`. It searches deterministic spatial keys for a dry Shimmering Lakes discovery location, verifies adjacent seed-derived water and the wet-shore exposure tradeoff, and confirms that the stable discovery ID reproduces. Runtime activation remains server-only: it creates at most one normal validated harvest discovery per active lake key and requires neither water physics nor a boat.
+After an editor build, run the focused `Kalmala.World.BiomeExpansion.ShimmeringLakesSlice` headless automation with `-DDC-ForceMemoryCache`. Under the current default-off basin policy it verifies that the known former basin sample has no lake water or shoreline wetness and that the server discovery contract returns no water-adjacent lake candidate. Biome labels and field-based exposure profiles remain. The reusable synthetic basin and clipping fixtures are covered separately by `Kalmala.World.Water.ClippedSurface`.
 
 ## Elderwood slice verification
 

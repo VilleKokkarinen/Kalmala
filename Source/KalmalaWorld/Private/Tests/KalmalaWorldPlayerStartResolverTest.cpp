@@ -97,6 +97,7 @@ bool FKalmalaShimmeringLakeCoverageTest::RunTest(const FString& Parameters)
 {
     FKalmalaWorldGenerationConfig Config;
     Config.WorldSeed = 418;
+    TestFalse(TEXT("Compiled analytic-basin policy is disabled"), FKalmalaShimmeringLakeSampler::bEnabled);
     int32 LakeWaterSampleCount = 0;
     for (int32 Y = -800000; Y <= 800000; Y += 8000)
     {
@@ -106,7 +107,11 @@ bool FKalmalaShimmeringLakeCoverageTest::RunTest(const FString& Parameters)
         }
     }
 
-    TestTrue(TEXT("The shared fields contain deterministic Shimmering Lakes water samples"), LakeWaterSampleCount > 0);
+    TestEqual(TEXT("Disabled analytic basins produce no Shimmering Lakes water samples"), LakeWaterSampleCount, 0);
+    const FVector2D FormerBasinSample(100830.5f, -143038.6f);
+    const FKalmalaEnvironmentalExposureSample Exposure = FKalmalaEnvironmentalExposureSampler::Sample(Config, FormerBasinSample);
+    TestFalse(TEXT("Former basin water does not remain a gameplay shoreline"), Exposure.bIsShoreline);
+    TestEqual(TEXT("Former basin water adds no shoreline wetness"), Exposure.ShorelineWetness, 0.0f);
     return true;
 }
 
@@ -442,6 +447,14 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaShimmeringLakesSliceTest, "Kalmala.Worl
 bool FKalmalaShimmeringLakesSliceTest::RunTest(const FString& Parameters)
 {
     const FKalmalaWorldGenerationConfig Config{418ull};
+    if (!FKalmalaShimmeringLakeSampler::bEnabled)
+    {
+        FKalmalaBiomeDiscoveryCandidate Discovery;
+        TestFalse(TEXT("Disabled analytic basins do not create a water-adjacent lake discovery"),
+            FKalmalaBiomeExpansionContract::TryBuildShimmeringLakeDiscovery(Config, FIntPoint(-29, 14), Discovery));
+        TestTrue(TEXT("Disabled lake discovery leaves its output empty"), Discovery.StableId.IsEmpty());
+        return true;
+    }
     bool bFoundLakeEdgeDiscovery = false;
     for (int32 Y = -160; Y <= 160 && !bFoundLakeEdgeDiscovery; ++Y)
     {
@@ -610,6 +623,15 @@ bool FKalmalaBiomeExpansionIntegratedScenarioTest::RunTest(const FString& Parame
         TestTrue(TEXT("Different seed produces visible field variation"), bFoundDifferentSeedVariation);
         for (const EKalmalaBiome Biome : LandBiomes)
         {
+            if (Biome == EKalmalaBiome::ShimmeringLakes && !FKalmalaShimmeringLakeSampler::bEnabled)
+            {
+                FKalmalaBiomeDiscoveryCandidate HostDiscovery, ClientDiscovery;
+                TestFalse(TEXT("Disabled basins suppress host lake shoreline discoveries"),
+                    FKalmalaBiomeExpansionContract::TryBuildShimmeringLakeDiscovery(HostConfig, FIntPoint(-29, 14), HostDiscovery));
+                TestFalse(TEXT("Disabled basins suppress matching client lake shoreline discoveries"),
+                    FKalmalaBiomeExpansionContract::TryBuildShimmeringLakeDiscovery(ClientConfig, FIntPoint(-29, 14), ClientDiscovery));
+                continue;
+            }
             bool bFoundDiscovery = false;
             for (int32 Y = -160; Y <= 160 && !bFoundDiscovery; ++Y) for (int32 X = -160; X <= 160 && !bFoundDiscovery; ++X)
             {

@@ -528,7 +528,7 @@ run for this goal and may exceed one turn.
   - [x] **BH03 — Disable analytic basin generation.** Add one compiled shared
     policy, default disabled, and bypass basin bowl/rim shaping, water-level
     assignment, and positive basin weights without changing biome identity.
-  - [ ] **BH04 — Prevent basin resurrection.** Apply the policy to lake samplers,
+  - [x] **BH04 — Prevent basin resurrection.** Apply the policy to lake samplers,
     shoreline/water meshes, maps, and gameplay wetness; invalidate derived basin
     caches when policy changes. Retain reusable disabled-feature tests.
   - [ ] **BH05 — Protect ocean and rivers.** Add focused controls proving ocean,

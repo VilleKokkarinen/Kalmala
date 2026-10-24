@@ -38,11 +38,16 @@ bool FKalmalaLakeBasin::Find(const FIntPoint Start,
 bool FKalmalaLakeBasin::Contains(const FKalmalaWorldGenerationConfig& Config,
     const FVector2D Position, const FVector2D GridOrigin)
 {
+    if (!FKalmalaShimmeringLakeSampler::bEnabled) return false;
     return FKalmalaRegionalGeneration::Sample(Config, Position).BasinWeight > 0;
 }
 
 bool FKalmalaLakeBasin::IsVisibleWater(const FKalmalaWorldGenerationConfig& Config, const FVector2D Position)
 {
+    // This thread-local value is only the start-relative triangle origin; no
+    // basin/water result is cached. The compiled policy cannot change at runtime.
+    if (!FKalmalaShimmeringLakeSampler::bEnabled
+        || !FKalmalaShimmeringLakeSampler::IsWater(Config, Position)) return false;
     static thread_local FKalmalaWorldGenerationConfig StartConfig;
     static thread_local FVector Start;
     static thread_local bool bHasStart = false;

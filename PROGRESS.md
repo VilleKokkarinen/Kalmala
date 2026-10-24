@@ -7986,3 +7986,52 @@
   tests, not active production lake generation.
 - **Next task in this directed goal:** BH04 — prevent basin resurrection across
   lake samplers, shoreline/water meshes, maps and gameplay wetness.
+
+## Run 2026-10-24 — BH04 prevent basin resurrection
+
+- **Selected increment:** BH04, apply the compiled basin policy to downstream
+  lake consumers and verify derived cache behavior.
+- **Work completed:** Gated Shimmering Lakes water/visibility sampling, lake
+  sheet and shore clipping, basin-derived minimap depth, basin shoreline
+  exposure, lake-adjacent discovery, and the Rillstone lake-dependent candidate
+  on analytic-basin support. Sea-level ocean and river mesh/map classification
+  stay on their existing independent paths. Retained synthetic basin topology
+  utility fixtures and added focused checks distinguishing basin-only lake
+  water from a submerged sea-level river triangle. Audited cache owners: no
+  persistent basin-result cache exists independently of presentation rasters;
+  minimap/map output follows normal input invalidation, generated patch sections
+  are cleared when rebuilt, the regional cache stores only hydrology splines,
+  and the lake visibility helper memoizes only its start-relative origin. The
+  policy is compile-time, so changing it requires a rebuild. Updated architecture
+  and setup guidance; checked only BH04.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Public/KalmalaShimmeringLakeSampler.h`,
+  `Source/KalmalaWorld/Private/KalmalaLakeBasin.cpp`,
+  `Source/KalmalaWorld/Public/KalmalaWaterSurfaceMesh.h`,
+  `Source/KalmalaWorld/Private/KalmalaWaterSurfaceMesh.cpp`,
+  `Source/KalmalaWorld/Public/KalmalaBiomeExpansionContract.h`,
+  `Source/KalmalaUI/Private/KalmalaMinimapViewModel.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaWaterSurfaceMeshTest.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaWorldPlayerStartResolverTest.cpp`,
+  `Source/KalmalaUI/Private/Tests/KalmalaMinimapViewModelTest.cpp`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaM9ExplorationRewardCatalogueTest.cpp`,
+  `docs/02-technical-architecture.md`, `docs/07-development-setup.md`.
+- **Lightweight checks/results:** Inspected lake, map, wetness, discovery,
+  audio, mesh and cache call sites; verified river/ocean paths remain independent;
+  searched documentation for stale BH04-pending notes; and ran `git diff --check`
+  successfully. No Unreal build or automation was run. Full verification remains
+  deferred to BH26.
+- **Observable impact:** With the default-off analytic-basin policy, former
+  inland basin water no longer appears through lake samplers, shoreline/water
+  meshes, minimap depth, shoreline wetness or water-adjacent lake discovery.
+  Ocean and sea-level river water remain visible in their existing mesh and map
+  paths. Shimmering Lakes biome identity and field-based exposure profile remain.
+- **Networking/authority:** The compiled policy and deterministic samples are
+  shared by server and clients. Discovery remains server-owned; no RPC,
+  replicated field, save schema or authority path changed.
+- **Known limitations / remaining scope:** The Unreal source and added
+  automation assertions have not been built or executed. Inland lake content
+  stays dormant while the compiled basin policy is off. Full milestone
+  verification remains for BH26.
+- **Next task in this directed goal:** BH05 — protect ocean and rivers with
+  focused source-coast, sea-level river, swimming/wetness and map controls.

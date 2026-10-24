@@ -9,6 +9,7 @@ struct FKalmalaWaterMeshVertex
     float TerrainHeight = 0.0f;
     FKalmalaWorldFieldSample Fields;
     float WaterLevel = 0.0f;
+    float BasinWeight = 0.0f;
 };
 
 struct FKalmalaWaterMesh
@@ -17,8 +18,7 @@ struct FKalmalaWaterMesh
     TArray<int32> Triangles;
 };
 
-/** Clips water to the same linear triangles used by terrain rendering/collision.
- *  No terrain, water classification, population or save rule is changed. */
+/** Clips sea and policy-enabled basin water to the same triangles used by terrain. */
 struct KALMALAWORLD_API FKalmalaWaterSurfaceMesh
 {
     static constexpr int32 CellsPerSide = 24;
