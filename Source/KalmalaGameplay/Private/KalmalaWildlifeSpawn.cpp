@@ -182,6 +182,35 @@ AKalmalaWildlifeSpawn::AKalmalaWildlifeSpawn()
     SetReplicateMovement(true);
 }
 
+void AKalmalaWildlifeSpawn::BeginPlay()
+{
+    Super::BeginPlay();
+    if (!HasAuthority()) return;
+
+    if (UWorld* World = GetWorld())
+    {
+        if (AKalmalaGameMode* Mode = World->GetAuthGameMode<AKalmalaGameMode>())
+        {
+            Mode->RegisterLivePopulationCreature(this);
+        }
+    }
+}
+
+void AKalmalaWildlifeSpawn::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    if (HasAuthority())
+    {
+        if (UWorld* World = GetWorld())
+        {
+            if (AKalmalaGameMode* Mode = World->GetAuthGameMode<AKalmalaGameMode>())
+            {
+                Mode->UnregisterLivePopulationCreature(this);
+            }
+        }
+    }
+    Super::EndPlay(EndPlayReason);
+}
+
 void AKalmalaWildlifeSpawn::InitializeServer(const FKalmalaWorldPopulationSpawn& Spawn)
 {
     InitializeServer(Spawn, GetArchetypeForSpawnSeed(Spawn.SpawnSeed));
@@ -553,6 +582,13 @@ bool AKalmalaWildlifeSpawn::DefeatServer()
     FangArrowPoisonRemainingSeconds = 0.0f;
     FangArrowPoisonSecondsUntilTick = UKalmalaPlayerStatusComponent::PoisonTickIntervalSeconds;
     bDefeated = true;
+    if (UWorld* World = GetWorld())
+    {
+        if (AKalmalaGameMode* Mode = World->GetAuthGameMode<AKalmalaGameMode>())
+        {
+            Mode->UnregisterLivePopulationCreature(this);
+        }
+    }
     // The population owner records the sparse server delta before this actor exposes any owner-only reward.
     OnDefeated.Broadcast(PersistentSpawnId);
     ApplyDefeatedState();

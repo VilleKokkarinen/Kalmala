@@ -100,6 +100,8 @@ private:
     friend class FKalmalaPopulationSchedulerBudgetTest;
     friend class FKalmalaPopulationRingCandidateSelectorTest;
     friend class FKalmalaPopulationPlayerDistanceGateTest;
+    friend class FKalmalaPopulationLiveCreatureRegistryTest;
+    friend class AKalmalaWildlifeSpawn;
 
 #if WITH_DEV_AUTOMATION_TESTS
     // Isolate the final disk boundary while exercising the real depletion callback.
@@ -118,6 +120,9 @@ private:
     void SelectPopulationRingCandidates(FKalmalaPopulationSchedulerKeyWork& KeyWork,
         const TArray<FKalmalaWorldPopulationSpawn>& Descriptors,
         const TArray<class AKalmalaCharacter*>& LivingPlayers);
+    void RegisterLivePopulationCreature(class AKalmalaWildlifeSpawn* Creature);
+    void UnregisterLivePopulationCreature(class AKalmalaWildlifeSpawn* Creature);
+    int32 CountLivePopulationCreaturesWithinRadius(const FVector& Center, float RadiusCm);
     void ApplyPopulationPlayerDistanceGate(FKalmalaPopulationSchedulerKeyWork& KeyWork,
         const TArray<class AKalmalaCharacter*>& LivingPlayers) const;
     bool IsDescriptorInSpawnRing(const FVector& SpawnLocation,
@@ -401,6 +406,7 @@ private:
     TMap<FIntPoint, double> PopulationKeyNextDueTimes;
     TMap<FIntPoint, int32> PopulationKeyCandidateCursors;
     TMap<FIntPoint, uint64> PopulationKeyServicedCheckOrdinals;
+    TSet<TWeakObjectPtr<class AKalmalaWildlifeSpawn>> LivePopulationCreatures;
     double NextPopulationSchedulerWakeTime = 0.0;
     // Latest wake's bounded descriptor work; evaluator/gate wiring is a later increment.
     TArray<FKalmalaPopulationSchedulerKeyWork> PopulationSchedulerWakeWork;

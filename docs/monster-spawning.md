@@ -85,18 +85,20 @@ save data.
   later key activation, reconnect and restart must never remove a defeated ID;
   each wolf member retains its own stable depleted ID.
 - **Living-actor unload/reload:** `ActivatePopulationKey` only adds keys to
-  `ActivePopulationSpatialKeys`; it does not retain actor references or remove
-  actors/keys. The wildlife and hazard classes have no `EndPlay`, destruction or
-  unregister lifecycle callback, and GameMode has no actor-destroyed registry
-  for them. Add a GameMode-owned live-actor registry alongside S10, then route
-  intentional unload through an explicit GameMode transaction. Generic actor
-  destruction is not enough to infer an unload: defeat, pack-spawn rollback and
-  world teardown have different outcomes. A living actor that is eligible to
-  unload must first be outside every living player's 96 m radius; record its
-  stable ID's 30 s cooldown in session state that survives key unload, without
-  calling `RecordDefeatedSpawn`, a reward handler or any save mutation. Recreate
-  only the same descriptor after expiry and all gates pass. Keep the actor
-  registered and charged to its home-key budget while it roams.
+  `ActivePopulationSpatialKeys`; it does not unload actors or keys. S10 adds a
+  GameMode-owned weak registry for authoritative `AKalmalaWildlifeSpawn` actors:
+  `BeginPlay` registers, accepted defeat unregisters before the existing
+  `OnDefeated` save/reward callback, and `EndPlay` unregisters destruction. The
+  GameMode count query uses each actor's current position and removes invalid or
+  defeated entries. Hazard actors are not creatures in this registry. This does
+  not implement intentional unload: generic destruction still cannot imply an
+  unload because defeat, pack-spawn rollback and world teardown have different
+  outcomes. A living actor that is eligible to unload must first be outside
+  every living player's 96 m radius; record its stable ID's 30 s cooldown in
+  session state that survives key unload, without calling
+  `RecordDefeatedSpawn`, a reward handler or any save mutation. Recreate only
+  the same descriptor after expiry and all gates pass. Keep the actor registered
+  and charged to its home-key budget while it roams.
 - **Reward escrow:** `AKalmalaWildlifeSpawn::DefeatServer` routes credited
   species rewards through the matching authoritative
   `AKalmalaGameMode::Record*DefeatReward` handler before broadcasting
@@ -186,6 +188,15 @@ less than 36 m. The check uses the full authoritative living-player list, even
 when a second player is outside the selecting player's 96 m neighborhood.
 Exactly 36 m passes. This gate does not change S08 ring membership or move
 descriptor positions.
+
+## S10 authoritative live-creature registry — 2026-10-24
+
+The GameMode weak registry tracks authoritative wildlife actor instances. Actor
+BeginPlay registers a living actor; accepted defeat removes it before the existing
+defeat notification/save path, and EndPlay removes destroyed actors. The server
+count query prunes invalid or defeated entries and measures current actor
+positions using an inclusive horizontal radius. It adds no caps, reservations,
+unload policy or actor creation, and it changes no save data.
 
 ## Spatial scheduling and random rolls
 

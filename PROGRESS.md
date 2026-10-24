@@ -7775,8 +7775,8 @@
 - **Full verification:** Deferred to S35. This is not the final implementation task in the monster-population goal.
 - **Observable impact / authority:** Server Tick now keeps scheduler eligibility synchronized with the S05 loaded-key union. It tracks cadence only; the existing nine-key materialization cap is unchanged, and natural spawn admission remains disabled.
 - **Networking/authority:** Candidate collection, active schedule state, deterministic phase and service advancement are server-authoritative. The per-key due map contains active keys only; S02 creature cooldown state is separate. No client selects or advances spawn state.
-- **Known limitations:** S10+ still needs live tracking, candidate evaluation and spawn admission. S06 does not create attempts or activate additional keys.
-- **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within the requested monster-population goal, the next child is S10 — track live creatures.
+- **Known limitations:** S11+ still needs area caps, candidate evaluation and spawn admission. S06 does not create attempts or activate additional keys.
+- **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within the requested monster-population goal, the next child is S11 — enforce area caps.
 
 
 ### Monster population — S07 bounded scheduler wake
@@ -7788,8 +7788,8 @@
 - **Full verification:** Deferred to S35. This is not the final implementation task in the monster-population goal.
 - **Observable impact / authority:** The authoritative GameMode creates a bounded due-key/budget plan on 0.25 s wake intervals; S08 now consumes it to select existing descriptors. The materialized-key limit is unchanged, and no actors are created.
 - **Networking/authority:** Wake timing, due-key selection and candidate budgets are server-only.
-- **Known limitations:** S10+ still needs live tracking, candidate evaluation and admission; this scheduler does not create actors.
-- **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within this requested monster-population goal, the next child is S10 — track live creatures.
+- **Known limitations:** S11+ still needs area caps, candidate evaluation and admission; this scheduler does not create actors.
+- **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within this requested monster-population goal, the next child is S11 — enforce area caps.
 
 
 ### Monster population — S08 stable ring candidate selector
@@ -7801,8 +7801,8 @@
 - **Full verification:** Deferred to S35. This is not the final implementation task in the monster-population goal.
 - **Observable impact / authority:** Server-side bounded work items now contain selected original descriptors for later gates. Their spawn IDs, positions, and content IDs remain unchanged; no actor or natural spawn is created.
 - **Networking/authority:** Player positions, descriptor selection, cursor, ordinal and seeded roll are used only on the authoritative GameMode.
-- **Known limitations:** S09 now adds the separate 36 m all-player exclusion; the earlier backlog-versus-contract threshold discrepancy is resolved with the backlog value. S10+ still adds live tracking, caps, evaluator wiring and actor admission.
-- **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within this requested monster-population goal, the next child is S10 — track live creatures.
+- **Known limitations:** S09 now adds the separate 36 m all-player exclusion; the earlier backlog-versus-contract threshold discrepancy is resolved with the backlog value. S11+ still adds caps, evaluator wiring and actor admission.
+- **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within this requested monster-population goal, the next child is S11 — enforce area caps.
 
 
 ### Monster population — S09 all-player distance exclusion
@@ -7814,5 +7814,18 @@
 - **Full verification:** Deferred to S35. This is not the final implementation task in the monster-population goal.
 - **Observable impact / authority:** Server-side scheduler candidates are removed when they are within 36 m horizontally of any living player; the S08 ring selection and stable descriptors remain unchanged.
 - **Networking/authority:** The GameMode applies the gate using the authoritative current-world living-player list; no client distance or spawn decision is accepted.
-- **Known limitations:** Candidate evaluation, live-actor caps, placement checks, natural-spawn actor creation and camp suppression remain for later S10–S26 work.
-- **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within this requested monster-population goal, the next child is S10 — track live creatures.
+- **Known limitations:** Live-actor registration is now in place; area caps, placement checks, natural-spawn actor creation and camp suppression remain for later S11–S26 work.
+- **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within this requested monster-population goal, the next child is S11 — enforce area caps.
+
+
+### Monster population — S10 live creature tracking
+
+- **Selected increment:** S10, register/unregister authoritative live creatures and count their current positions.
+- **Work completed:** Added a GameMode-owned weak registry for server wildlife actors. Actor BeginPlay registers after authority checks; accepted DefeatServer unregisters before the existing defeat notification, and EndPlay unregisters destroyed actors. The radius count prunes invalid, defeated, dead-health and wrong-world entries and computes inclusive horizontal distance from current actor locations.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`, `Source/KalmalaGameplay/Public/KalmalaGameMode.h`, `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`, `Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h`, `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationLiveCreatureRegistryTest.cpp`, `docs/monster-spawning.md`, `BACKLOG.md`, `PROGRESS.md`.
+- **Lightweight checks:** Lifecycle/code inspection and `git diff --check`; focused automation coverage added for duplicate registration, inclusive current-position counts after movement, unregister on accepted defeat, cleanup on destruction and invalid-radius handling. Tests and builds were not run.
+- **Full verification:** Deferred to S35. This is not the final implementation task in the monster-population goal.
+- **Observable impact / authority:** Server-only registry counts live wildlife by current location across tracked world actors. Existing defeat/reward/save callbacks and actor creation behavior are unchanged; no SaveGame fields, caps or reservations were added.
+- **Networking/authority:** Registration, removal and count queries require the authoritative GameMode/world. Clients do not maintain or affect the registry.
+- **Known limitations:** S11 area caps and S12 pack reservations remain unimplemented; this count query is not wired into admission. Unload cooldown/unload behavior, actor creation, placement and camp suppression remain later work.
+- **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within this requested monster-population goal, the next child is S11 — enforce area caps.

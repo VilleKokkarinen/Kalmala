@@ -5664,6 +5664,66 @@ void AKalmalaGameMode::ApplyPopulationPlayerDistanceGate(
     });
 }
 
+void AKalmalaGameMode::RegisterLivePopulationCreature(AKalmalaWildlifeSpawn* Creature)
+{
+    if (!HasAuthority() || !IsValid(GetWorld()) || !IsValid(Creature)
+        || !Creature->HasAuthority() || Creature->GetWorld() != GetWorld() || Creature->IsDefeated()
+        || !FMath::IsFinite(Creature->GetHealth()) || Creature->GetHealth() <= 0.0f)
+    {
+        return;
+    }
+
+    LivePopulationCreatures.Add(Creature);
+}
+
+void AKalmalaGameMode::UnregisterLivePopulationCreature(AKalmalaWildlifeSpawn* Creature)
+{
+    if (!HasAuthority() || Creature == nullptr)
+    {
+        return;
+    }
+
+    LivePopulationCreatures.Remove(TWeakObjectPtr<AKalmalaWildlifeSpawn>(Creature));
+}
+
+int32 AKalmalaGameMode::CountLivePopulationCreaturesWithinRadius(const FVector& Center, const float RadiusCm)
+{
+    const UWorld* World = GetWorld();
+    if (!HasAuthority() || !IsValid(World) || !FMath::IsFinite(Center.X) || !FMath::IsFinite(Center.Y)
+        || !FMath::IsFinite(RadiusCm) || RadiusCm < 0.0f)
+    {
+        return 0;
+    }
+
+    const double RadiusSquared = static_cast<double>(RadiusCm) * RadiusCm;
+    int32 CreatureCount = 0;
+    for (auto Iterator = LivePopulationCreatures.CreateIterator(); Iterator; ++Iterator)
+    {
+        AKalmalaWildlifeSpawn* Creature = Iterator->Get();
+        if (!IsValid(Creature) || Creature->GetWorld() != World || !Creature->HasAuthority()
+            || Creature->IsDefeated() || !FMath::IsFinite(Creature->GetHealth())
+            || Creature->GetHealth() <= 0.0f)
+        {
+            Iterator.RemoveCurrent();
+            continue;
+        }
+
+        const FVector CreatureLocation = Creature->GetActorLocation();
+        if (!FMath::IsFinite(CreatureLocation.X) || !FMath::IsFinite(CreatureLocation.Y))
+        {
+            continue;
+        }
+
+        const double DeltaX = static_cast<double>(CreatureLocation.X) - Center.X;
+        const double DeltaY = static_cast<double>(CreatureLocation.Y) - Center.Y;
+        if (DeltaX * DeltaX + DeltaY * DeltaY <= RadiusSquared)
+        {
+            ++CreatureCount;
+        }
+    }
+    return CreatureCount;
+}
+
 void AKalmalaGameMode::Tick(const float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);

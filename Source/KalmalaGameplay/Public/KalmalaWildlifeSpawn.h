@@ -272,6 +272,8 @@ public:
     FKalmalaWildlifeSpawnDefeated OnDefeated;
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
     virtual void Tick(float DeltaSeconds) override;
+    virtual void BeginPlay() override;
+    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 private:
     friend class AKalmalaArrowProjectile;

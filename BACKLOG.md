@@ -608,7 +608,7 @@ milestone-final verification/repair run and can exceed a normal turn.
     Preserve descriptor positions, identities and biome weights.
   - [x] **S09 — Exclude nearby players.** Reject a candidate within 36 m of any
     living player, including a second player outside the selecting neighborhood.
-  - [ ] **S10 — Track live creatures.** Register/unregister authoritative live
+  - [x] **S10 — Track live creatures.** Register/unregister authoritative live
     actors; remove defeated/destroyed entries and count their current positions.
   - [ ] **S11 — Enforce area caps.** Count across loaded keys within 96 m of the
     candidate; per-species caps: common 4, rare hard enemy 1, Wolves 6.
