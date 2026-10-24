@@ -26,6 +26,10 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Recipe and item catalogues validate"), Recipes->IsValidCatalogue() && Items->IsValidCatalogue());
 
     const FKalmalaRecipe* CookRecipe = Recipes->Find(TEXT("CookedBoarMeatRecipe"));
+    const FKalmalaRecipe* WolfPeltBootsRecipe = Recipes->Find(TEXT("WolfPeltBootsRecipe"));
+    const FKalmalaRecipe* WolfStewRecipe = Recipes->Find(TEXT("WolfStewRecipe"));
+    const FKalmalaRecipe* LynxMantleRecipe = Recipes->Find(TEXT("LynxMantleRecipe"));
+    const FKalmalaRecipe* PolarBearCoatRecipe = Recipes->Find(TEXT("PolarBearCoatRecipe"));
     const FKalmalaRecipe* PeatHeartStewRecipe = Recipes->Find(TEXT("PeatHeartStewRecipe"));
     const FKalmalaRecipe* BrothRecipe = Recipes->Find(TEXT("HearthBrothRecipe"));
     const FKalmalaRecipe* MeatStewRecipe = Recipes->Find(TEXT("MeatStewRecipe"));
@@ -34,6 +38,10 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
     const FKalmalaRecipe* RoastedRootsRecipe = Recipes->Find(TEXT("RoastedRootVegetablesRecipe"));
     const FKalmalaRecipe* DeerRootRoastRecipe = Recipes->Find(TEXT("DeerRootRoastRecipe"));
     if (!TestNotNull(TEXT("Cooked boar recipe exists"), CookRecipe)
+        || !TestNotNull(TEXT("Wolf Pelt Boots recipe exists"), WolfPeltBootsRecipe)
+        || !TestNotNull(TEXT("Wolf Stew recipe exists"), WolfStewRecipe)
+        || !TestNotNull(TEXT("Lynx Mantle recipe exists"), LynxMantleRecipe)
+        || !TestNotNull(TEXT("Polar Bear Coat recipe exists"), PolarBearCoatRecipe)
         || !TestNotNull(TEXT("Peat Heart Stew recipe exists"), PeatHeartStewRecipe)
         || !TestNotNull(TEXT("Hearth broth recipe exists"), BrothRecipe)
         || !TestNotNull(TEXT("Meat stew recipe exists"), MeatStewRecipe)
@@ -259,6 +267,30 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Peat Heart Stew awards ten Cooking experience after acceptance"),
         GetCookingExperience(), ExperienceBeforePeatStew + 10);
 
+    TestTrue(TEXT("Fixture grants Wolf Stew ingredients"),
+        Inventory->TryGrantFromServer(TEXT("WolfMeat"), 1)
+        && Inventory->TryGrantFromServer(TEXT("Carrot"), 3)
+        && Inventory->TryGrantFromServer(TEXT("Onion"), 3));
+    const int32 WolfMeatBeforeStew = Inventory->GetQuantity(TEXT("WolfMeat"));
+    const int32 CarrotBeforeWolfStew = Inventory->GetQuantity(TEXT("Carrot"));
+    const int32 OnionBeforeWolfStew = Inventory->GetQuantity(TEXT("Onion"));
+    const int32 WolfStewBefore = Inventory->GetQuantity(TEXT("WolfStew"));
+    const float FuelBeforeWolfStew = Fire->GetFuelSeconds();
+    const int32 ExperienceBeforeWolfStew = GetCookingExperience();
+    TestTrue(TEXT("A lit fire at the Cauldron allows Wolf Stew"),
+        Crafting->CraftFromServer(WolfStewRecipe->RecipeId, 1, Reason));
+    TestEqual(TEXT("Wolf Stew consumes one Wolf Meat"),
+        Inventory->GetQuantity(TEXT("WolfMeat")), WolfMeatBeforeStew - 1);
+    TestEqual(TEXT("Wolf Stew consumes three Carrots"),
+        Inventory->GetQuantity(TEXT("Carrot")), CarrotBeforeWolfStew - 3);
+    TestEqual(TEXT("Wolf Stew consumes three Onions"),
+        Inventory->GetQuantity(TEXT("Onion")), OnionBeforeWolfStew - 3);
+    TestEqual(TEXT("One Cauldron batch creates one Wolf Stew serving"),
+        Inventory->GetQuantity(TEXT("WolfStew")), WolfStewBefore + 1);
+    TestEqual(TEXT("Wolf Stew does not add a serving fuel debit"), Fire->GetFuelSeconds(), FuelBeforeWolfStew);
+    TestEqual(TEXT("Wolf Stew awards ten Cooking experience after acceptance"),
+        GetCookingExperience(), ExperienceBeforeWolfStew + 10);
+
     TestTrue(TEXT("Fixture grants listed stew ingredients"),
         Inventory->TryGrantFromServer(TEXT("BoarMeat"), 1)
         && Inventory->TryGrantFromServer(TEXT("DeerMeat"), 1)
@@ -320,6 +352,21 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Station context rejects a mismatched station kit"),
         Crafting->IsStationContextUsable(Rack, FName(TEXT("CauldronKit")), Rack->GetConstructionId()));
 
+    TestTrue(TEXT("Fixture grants Wolf Pelt Boots materials"),
+        Inventory->TryGrantFromServer(TEXT("WolfPelt"), 5)
+        && Inventory->TryGrantFromServer(TEXT("Iron"), 5));
+    TestFalse(TEXT("Wolf Pelt Boots reject crafting while the Workbench is missing"),
+        Crafting->CraftFromServer(WolfPeltBootsRecipe->RecipeId, 1, Reason));
+    TestEqual(TEXT("Missing Workbench preserves all five Wolf Pelts"), Inventory->GetQuantity(TEXT("WolfPelt")), 5);
+    TestEqual(TEXT("Missing Workbench preserves all five Iron"), Inventory->GetQuantity(TEXT("Iron")), 5);
+    TestEqual(TEXT("Missing Workbench creates no boots"), Inventory->GetQuantity(TEXT("WolfPeltBoots")), 0);
+    TestTrue(TEXT("Fixture grants the four Lynx Pelts for a Mantle"),
+        Inventory->TryGrantFromServer(TEXT("LynxPelt"), 4));
+    TestFalse(TEXT("Lynx Mantle rejects crafting while the Workbench is missing"),
+        Crafting->CraftFromServer(LynxMantleRecipe->RecipeId, 1, Reason));
+    TestEqual(TEXT("Missing Workbench preserves all four Lynx Pelts"), Inventory->GetQuantity(TEXT("LynxPelt")), 4);
+    TestEqual(TEXT("Missing Workbench creates no Lynx Mantle"), Inventory->GetQuantity(TEXT("LynxMantle")), 0);
+
     AKalmalaConstructionActor* Workbench = World->SpawnActor<AKalmalaConstructionActor>();
     if (!TestNotNull(TEXT("Workbench fixture spawned"), Workbench))
     {
@@ -346,6 +393,61 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Workbench interaction does not trigger the cooking-only menu event"),
         Crafting->GetCookingStationInteractionSerial(), 1u);
 
+    TestTrue(TEXT("Wolf Pelt Boots craft at the accepted Workbench"),
+        Crafting->CraftFromServer(WolfPeltBootsRecipe->RecipeId, 1, Reason));
+    TestEqual(TEXT("Wolf Pelt Boots consume five Wolf Pelts"), Inventory->GetQuantity(TEXT("WolfPelt")), 0);
+    TestEqual(TEXT("Wolf Pelt Boots consume five Iron"), Inventory->GetQuantity(TEXT("Iron")), 0);
+    TestEqual(TEXT("Accepted Workbench craft grants one pair of boots"), Inventory->GetQuantity(TEXT("WolfPeltBoots")), 1);
+    const FKalmalaInventoryStack* CraftedBoots = Inventory->GetStacks().FindByPredicate(
+        [](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == TEXT("WolfPeltBoots"); });
+    TestTrue(TEXT("Crafted boots carry one physical item GUID"), CraftedBoots && CraftedBoots->ItemGuids.Num() == 1);
+    if (CraftedBoots && CraftedBoots->ItemGuids.Num() == 1)
+    {
+        const FGuid BootsGuid = CraftedBoots->ItemGuids[0];
+        TestTrue(TEXT("Server equips crafted Wolf Pelt Boots by item GUID"),
+            Inventory->EquipGearFromServer(BootsGuid, Reason));
+        const FKalmalaEquippedGear* EquippedBoots = Inventory->FindEquippedGear(EKalmalaGearSlot::Boots);
+        TestTrue(TEXT("Crafted Boots occupy the Boots slot and retain their GUID"),
+            EquippedBoots && EquippedBoots->ItemId == TEXT("WolfPeltBoots")
+            && EquippedBoots->ItemGuid == BootsGuid);
+        TestEqual(TEXT("Equipped boots leave the carried inventory"), Inventory->GetQuantity(TEXT("WolfPeltBoots")), 0);
+    }
+
+    const int32 LynxPeltBeforeMantle = Inventory->GetQuantity(TEXT("LynxPelt"));
+    TestTrue(TEXT("Lynx Mantle crafts at the accepted Workbench"),
+        Crafting->CraftFromServer(LynxMantleRecipe->RecipeId, 1, Reason));
+    TestEqual(TEXT("Lynx Mantle consumes four Lynx Pelts"),
+        Inventory->GetQuantity(TEXT("LynxPelt")), LynxPeltBeforeMantle - 4);
+    TestEqual(TEXT("Accepted Workbench craft grants one Lynx Mantle"),
+        Inventory->GetQuantity(TEXT("LynxMantle")), 1);
+    const TArray<FKalmalaInventoryStack> CraftedMantleStacks = Inventory->GetStacks();
+    const FKalmalaInventoryStack* CraftedMantle = CraftedMantleStacks.FindByPredicate(
+        [](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == TEXT("LynxMantle"); });
+    TestTrue(TEXT("Crafted Lynx Mantle carries one physical item GUID"),
+        CraftedMantle && CraftedMantle->ItemGuids.Num() == 1);
+    if (CraftedMantle && CraftedMantle->ItemGuids.Num() == 1)
+    {
+        const FGuid MantleGuid = CraftedMantle->ItemGuids[0];
+        TestTrue(TEXT("Server equips crafted Lynx Mantle by item GUID"),
+            Inventory->EquipGearFromServer(MantleGuid, Reason));
+        const FKalmalaEquippedGear* EquippedMantle = Inventory->FindEquippedGear(EKalmalaGearSlot::Cape);
+        TestTrue(TEXT("Crafted Lynx Mantle occupies Cape and retains its GUID"),
+            EquippedMantle && EquippedMantle->ItemId == TEXT("LynxMantle")
+            && EquippedMantle->ItemGuid == MantleGuid);
+        TestEqual(TEXT("Equipped Lynx Mantle leaves the carried inventory"),
+            Inventory->GetQuantity(TEXT("LynxMantle")), 0);
+    }
+
+    TestTrue(TEXT("Fixture grants Polar Bear Coat materials"),
+        Inventory->TryGrantFromServer(TEXT("PolarBearPelt"), 5)
+        && Inventory->TryGrantFromServer(TEXT("Iron"), 20));
+    TestFalse(TEXT("Polar Bear Coat rejects crafting without an accepted Forge"),
+        Crafting->CraftFromServer(PolarBearCoatRecipe->RecipeId, 1, Reason));
+    TestEqual(TEXT("Missing Forge preserves all five Polar Bear Pelts"),
+        Inventory->GetQuantity(TEXT("PolarBearPelt")), 5);
+    TestEqual(TEXT("Missing Forge preserves all twenty Iron"), Inventory->GetQuantity(TEXT("Iron")), 20);
+    TestEqual(TEXT("Missing Forge creates no Polar Bear Coat"), Inventory->GetQuantity(TEXT("PolarBearCoat")), 0);
+
     Forge->SetActorLocation(Pawn->GetActorLocation() + FVector(-150.0f, 150.0f, 0.0f));
     World->Tick(LEVELTICK_All, 0.25f);
     Forge->Interact_Implementation(Pawn);
@@ -359,6 +461,31 @@ bool FKalmalaCookingHeatContractTest::RunTest(const FString& Parameters)
         Crafting->IsStationContextUsable(Forge, FName(TEXT("ForgeKit")), Forge->GetConstructionId()));
     TestEqual(TEXT("Forge interaction does not trigger the cooking-only menu event"),
         Crafting->GetCookingStationInteractionSerial(), 1u);
+
+    TestTrue(TEXT("Polar Bear Coat crafts at the accepted Forge"),
+        Crafting->CraftFromServer(PolarBearCoatRecipe->RecipeId, 1, Reason));
+    TestEqual(TEXT("Polar Bear Coat consumes five Polar Bear Pelts"),
+        Inventory->GetQuantity(TEXT("PolarBearPelt")), 0);
+    TestEqual(TEXT("Polar Bear Coat consumes twenty Iron"), Inventory->GetQuantity(TEXT("Iron")), 0);
+    TestEqual(TEXT("Accepted Forge craft grants one Polar Bear Coat"),
+        Inventory->GetQuantity(TEXT("PolarBearCoat")), 1);
+    const TArray<FKalmalaInventoryStack> CraftedCoatStacks = Inventory->GetStacks();
+    const FKalmalaInventoryStack* CraftedCoat = CraftedCoatStacks.FindByPredicate(
+        [](const FKalmalaInventoryStack& Stack) { return Stack.ItemId == TEXT("PolarBearCoat"); });
+    TestTrue(TEXT("Crafted Polar Bear Coat carries one physical item GUID"),
+        CraftedCoat && CraftedCoat->ItemGuids.Num() == 1);
+    if (CraftedCoat && CraftedCoat->ItemGuids.Num() == 1)
+    {
+        const FGuid CoatGuid = CraftedCoat->ItemGuids[0];
+        TestTrue(TEXT("Server equips crafted Polar Bear Coat by item GUID"),
+            Inventory->EquipGearFromServer(CoatGuid, Reason));
+        const FKalmalaEquippedGear* EquippedCoat = Inventory->FindEquippedGear(EKalmalaGearSlot::Chest);
+        TestTrue(TEXT("Crafted Polar Bear Coat occupies Chest and retains its GUID"),
+            EquippedCoat && EquippedCoat->ItemId == TEXT("PolarBearCoat")
+            && EquippedCoat->ItemGuid == CoatGuid);
+        TestEqual(TEXT("Equipped Polar Bear Coat leaves the carried inventory"),
+            Inventory->GetQuantity(TEXT("PolarBearCoat")), 0);
+    }
 
     Workbench->Destroy();
     Rack->Destroy();

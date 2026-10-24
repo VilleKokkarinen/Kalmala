@@ -4905,8 +4905,11 @@ available runtime action.
 the UI presentation contract cover the profile, acquisition/upgrade records,
 boots slot, and recipe visibility. The original imported icon is already
 covered by `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id WolfPeltBoots`.
-These regression sources await the combined A8 I4 build and automation run;
-peer crafting, armor, condition and rendered acceptance remain deferred.
+`Kalmala.Gameplay.Food.CookingStationHeat` also rejects the recipe when the
+Workbench is missing, then crafts at its accepted Workbench, checks exact
+material payment and output GUID, and equips the output into the Boots slot
+through the server inventory path. This focused server-world case does not
+replace combined I4 peer crafting, armor/condition, or rendered acceptance.
 
 ## Inventory Worn Gear presentation — 2026-10-15
 
@@ -5732,9 +5735,13 @@ values. After an editor build, run
 `Kalmala.Gameplay.Combat.BasicAttack.AuthorityAndCooldown`,
 `Kalmala.Gameplay.Combat.AllItemSwings`, and
 `Kalmala.Gameplay.Combat.DamageProfiles`. Its original imported icon is covered
-by `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id FangSpear`. These new
-C++ assertions remain uncompiled/unexecuted in this normal child; combined
-A8a/A8b I4 is still required.
+by `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id FangSpear`. The focused
+tests passed on 2026-10-23 after the isolated `KalmalaEditor Win64 Development`
+target was confirmed up to date. The focused queue found three tests; all three
+reported `Result={Success}` with Editor exit 0. Log:
+`C:/Users/Ville/AppData/Local/Temp/a8fs1/combat.log`. This local combat coverage
+does not exercise actual Forge crafting or multiplayer item/peer delivery;
+combined A8a/A8b I4 remains required.
 
 ## A8b Wolf Stew item coverage — 2026-10-22
 
@@ -5752,9 +5759,17 @@ acceptance includes Wolf Stew's ingredients, batch limit, description and live
 hearth requirement. `Kalmala.Gameplay.Status.SteadyMeal` covers accepted server
 use and client rejection; `Kalmala.UI.Inventory.PreparedFoodDetails` covers its
 owner-facing effect and action. The original imported icon is covered by
-`Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id WolfStew`. The focused C++
-sources remain uncompiled/unexecuted in this normal child; combined A8a/A8b I4
-is still required.
+`Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id WolfStew`.
+`Kalmala.Gameplay.Food.CookingStationHeat` also crafts one batch at the lit
+server Cauldron and checks payment of one Wolf Meat, three Carrots and three
+Onions, one serving, ten Cooking experience, and no extra hearth-fuel debit.
+On 2026-10-23 the isolated `KalmalaEditor Win64 Development` build passed in
+four actions; the focused queue with `Kalmala.Gameplay.Status.SteadyMeal` and
+`Kalmala.UI.Inventory.PreparedFoodDetails` passed all three tests
+(`Result={Success}`, Editor exit 0). Log:
+`C:/Users/Ville/AppData/Local/Temp/a8ws1/tests.log`; build:
+`C:/Users/Ville/AppData/Local/Temp/a8ws1/build.log`. This server-world test does
+not replace live peer cooking or rendered acceptance in combined A8a/A8b I4.
 
 ## A8b Lynx Mantle item coverage — 2026-10-22
 
@@ -5772,10 +5787,18 @@ exact-GUID Cape replacement and return. The Workbench crafting-scope marker
 includes the registered Lynx Mantle recipe. Its existing original imported
 icon and runtime mapping are covered by
 `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id LynxMantle`.
-`Verify-Crafting.ps1` and `Verify-PresentationOwnership.ps1` retain the route
-anchors for the combined menu acceptance. These C++ assertions remain
-uncompiled/unexecuted in this normal child; combined A8a/A8b I4 is still
-required.
+`Kalmala.Gameplay.Food.CookingStationHeat` also rejects Lynx Mantle without a
+nearby Workbench while preserving all four Lynx Pelts, then crafts one Mantle
+at the accepted server Workbench, consumes the exact recipe cost, and equips
+the GUID-addressed output into Cape. `Verify-Crafting.ps1` and
+`Verify-PresentationOwnership.ps1` retain the route anchors for combined menu
+acceptance. On 2026-10-23 the isolated `KalmalaEditor Win64 Development` build
+passed in four actions; `CookingStationHeat`, `WornGearTransactions`, and
+`ToolProgressionCatalogue` all passed (`Result={Success}`, Editor exit 0).
+Logs: `C:/Users/Ville/AppData/Local/Temp/a8lm1/tests.log` and
+`C:/Users/Ville/AppData/Local/Temp/a8lm1/build.log`. These server-world and
+catalogue checks do not replace live peer crafting/equipment or owner UI
+acceptance in combined A8a/A8b I4.
 
 ## A8b Polar Bear Coat item coverage — 2026-10-22
 
@@ -5793,10 +5816,19 @@ checks exact-GUID Chest replacement and return. The Forge crafting-scope marker
 includes the registered Polar Bear Coat recipe. Its existing original imported
 icon and runtime mapping are covered by
 `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id PolarBearCoat`.
-`Verify-Crafting.ps1` and `Verify-PresentationOwnership.ps1` retain the route
-anchors for combined menu acceptance. These C++ assertions remain
-uncompiled/unexecuted in this normal child; combined A8a/A8b I4 is still
-required.
+`Kalmala.Gameplay.Food.CookingStationHeat` rejects Polar Bear Coat without an
+accepted Forge while preserving five Polar Bear Pelts and twenty Iron, then
+crafts one coat at the accepted Forge, pays those exact costs, and equips its
+GUID-addressed output into Chest through the server API. `Verify-Crafting.ps1`
+and `Verify-PresentationOwnership.ps1` retain the route anchors for combined
+menu acceptance. On 2026-10-23 the isolated `KalmalaEditor Win64 Development`
+build passed in four actions; `CookingStationHeat`,
+`Kalmala.Gameplay.Inventory.Catalogue`, `WornGearTransactions`, and
+`ToolProgressionCatalogue` all passed (`Result={Success}`, Editor exit 0).
+Logs: `C:/Users/Ville/AppData/Local/Temp/a8pb1/tests.log` and
+`C:/Users/Ville/AppData/Local/Temp/a8pb1/build.log`. These server-world and
+catalogue checks do not replace live peer crafting/equipment or owner UI
+acceptance in combined A8a/A8b I4.
 
 ## A8b Horn Bow weapon path — 2026-10-22
 
@@ -5824,9 +5856,17 @@ cannot use melee. The crosshair source anchor is included in
 runtime mapping are checked with
 `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id HornBow`.
 
-The new C++ assertions remain uncompiled and unexecuted in this normal child.
-Combined A8a/A8b I4, including the item suite and peer/rendered acceptance, is
-still required before A9.
+On 2026-10-23, the incremental `KalmalaEditor Win64 Development` build was
+up to date. `Kalmala.Gameplay.Inventory.TwoHanded`,
+`Kalmala.Gameplay.Combat.BowDrawAndArrows`,
+`Kalmala.Gameplay.Combat.BasicAttack.AuthorityAndCooldown`, and
+`Kalmala.Gameplay.Combat.AllItemSwings` all passed (`Result={Success}`, Editor
+exit 0). Evidence: `C:/Users/Ville/AppData/Local/Temp/a8hb1/tests.log`; build:
+`C:/Users/Ville/AppData/Local/Temp/a8hb1/build.log`. Unreal startup emitted two
+unified-error self-test `Condition failed` diagnostics before the test queue;
+the four focused tests completed successfully. These editor automations do not
+replace live peer crafting, item delivery, or rendered presentation acceptance.
+Combined A8a/A8b I4 remains required before A9.
 
 ## A8b Thunder Maul item and Lightning damage — 2026-10-22
 
@@ -5851,9 +5891,19 @@ checks the accepted server hit. The focused Forge recipe, upgrade and level-two
 assertions are in the damage-profile catalogue test. `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id ThunderMaul`
 checks its existing original icon and runtime mapping.
 
-This normal development increment uses lightweight JSON, icon and source
-checks; it does not run an Unreal build or C++ automation. Combined A8a/A8b I4,
-including full item automation and peer/rendered acceptance, remains required.
+On 2026-10-23, the `KalmalaEditor Win64 Development` incremental build passed
+in four actions. `Kalmala.Gameplay.M9.ToolStationProgression`,
+`Kalmala.Gameplay.Combat.DamageProfiles`, and
+`Kalmala.Gameplay.Combat.AllItemSwings` all passed (`Result={Success}`, Editor
+exit 0); evidence: `C:/Users/Ville/AppData/Local/Temp/a8tm1/tests.log`; build:
+`C:/Users/Ville/AppData/Local/Temp/a8tm1/build.log`. The progression contract
+fixture now verifies the Forge acquisition's exact materials, level-one full
+condition, and level-two upgrade payment while preserving Thunder Maul's item
+identity and current condition. Two Unreal unified-error startup self-test
+`Condition failed` diagnostics preceded the queue. These local contract and
+combat automations do not replace multiplayer Forge craft, peer item delivery,
+or rendered presentation acceptance. Combined A8a/A8b I4 remains required
+before A9.
 
 ## A8b Reef Harpoon melee weapon — 2026-10-22
 
@@ -5870,6 +5920,15 @@ server melee route and receive its catalogued hit. `Kalmala.Gameplay.Combat.Dama
 checks its one-handed profile, damage, exact Forge recipe and upgrade costs,
 and level-two values. Its existing original imported icon and runtime mapping
 are covered by `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id ReefHarpoon`.
-These C++ assertions remain uncompiled/unexecuted in this normal child;
-combined A8a/A8b I4 still requires full item automation and peer/rendered
-acceptance before A9.
+On 2026-10-23, the `KalmalaEditor Win64 Development` incremental build passed
+in four actions. `Kalmala.Gameplay.M9.ToolStationProgression`,
+`Kalmala.Gameplay.Combat.DamageProfiles`, and
+`Kalmala.Gameplay.Combat.AllItemSwings` all passed (`Result={Success}`, Editor
+exit 0); evidence: `C:/Users/Ville/AppData/Local/Temp/a8rh1/tests.log`; build:
+`C:/Users/Ville/AppData/Local/Temp/a8rh1/build.log`. The progression contract
+fixture now checks exact Forge acquisition and upgrade costs, full starting
+condition, and retention of Reef Harpoon's item identity and current condition.
+Two Unreal unified-error startup self-test `Condition failed` diagnostics
+preceded the queue. These local progression/combat automations do not replace
+multiplayer Forge crafting, peer inventory delivery, or rendered presentation
+acceptance. Combined A8a/A8b I4 remains required before A9.

@@ -415,6 +415,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     - [x] Execute isolated Editor/Game builds, full automation, new gemstone/treasure peer-and-restart evidence, shared crafting/discovery/inventory checks and equipped-inventory renders; record exact passes, repairs and remaining shared-check failures.
     - [x] Verify prepared enemy-gem chance bounds and owner-bound pending-payload serialization/rejection without enabling I4-gated sources.
     - [x] Repair the presentation/M5 checker invocation and stale prose/source anchors, preserving negative checks and leaving runtime inventory-baseline disposition with I4.
+    - [x] Integrate the committed A8b progression snapshot a33711ec into the isolated A9 branch, preserve both handoffs, and rerun no-build contracts; I4 acceptance remains pending.
     - [ ] Integrate passed I4 source acceptance, enable and verify Moonstone/Dusk Diamond rewards, and resolve the inherited inventory notification-baseline verification disposition.
     - [ ] Pass combined integrated I5 verification and merge A9 normally into local master at a safe clean boundary, preserving the other worker's handoff.
 
