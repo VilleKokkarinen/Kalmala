@@ -1,6 +1,12 @@
 {
   "items": [
     {
+      "ItemId": "CampFire",
+      "DisplayName": "Campfire",
+      "Description": "A placed hearth that burns Wood to warm a camp.",
+      "MaxStack": 1
+    },
+    {
       "ItemId": "Smelter",
       "DisplayName": "Smelter",
       "Description": "A stone furnace that refines copper, tin, and iron ore into bars.",

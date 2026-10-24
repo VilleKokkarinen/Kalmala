@@ -422,6 +422,11 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
 
 - [ ] **A10 — Acceptance.** [Full criteria](docs/alpha-item-details.md#a10)
   - [ ] Audit all approved item IDs against registered JSON and generated/imported runtime icons; zero missing entries, references or fallback icons.
+    Audit 2026-10-24: 61 JSON files and 777 references resolve after adding
+    missing CampFire buildable metadata. 148/152 definitions have generated
+    icons; MendingScroll, HearthShieldScroll, BearsVigorScroll and DeerCallScroll
+    still require original generated/imported icons. Run
+    `python Scripts/Validate-CatalogueReferences.py` plus the catalogue icon validator.
   - [ ] Review milestones: I0 A0; I1 A1; I2 A2–A6 except Planting Trowel; I3 A7 farming + Planting Trowel; I4 A8–A8b with its final enemy gate before A9; I5 A9.
   - [ ] Check each included item's source, recipe, use, upgrades, icon and save behavior.
   - [ ] Run required full verification at each milestone's final increment.

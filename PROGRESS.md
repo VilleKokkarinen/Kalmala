@@ -7569,3 +7569,42 @@
 - **Limitations / next:** External callers must use the new path. Next eligible
   roadmap increment remains A10 S03, named spawn tuning constants. Main checkout
   used directly; no worktree handoff synchronization needed.
+
+## Run 2026-10-24 — Audit registered catalogue and icon coverage
+
+- **Selected increment:** First unchecked child of Alpha A10 Acceptance,
+  preceding monster spawning. Earlier S01/S02 handoffs incorrectly called S03
+  next; the actual backlog order takes precedence. No other Kalmala chat was
+  active; main checkout started clean on master. Process inventory was denied,
+  so app thread status supplied ownership evidence.
+- **Completed / files:** Added Scripts/Validate-CatalogueReferences.py to check
+  manifest registration, JSON parsing, unique item/profile definitions,
+  item/output/station references, icon ledger coverage, canonical runtime icon
+  mappings and loader aliases. Added missing CampFire metadata to the already
+  registered Content/Data/GameCatalogues/items/buildItems/other.json. Updated
+  BACKLOG.md and this progress record. This is one integrated audit/repair
+  increment; the selected checkbox remains open because four icons are missing.
+- **Checks/results:** The checker resolves all 777 references across 61 unique
+  registered JSON files and 152 definitions. Its final coverage check correctly
+  exits 1 for MendingScroll, HearthShieldScroll, BearsVigorScroll and
+  DeerCallScroll: all four have procedural runtime mappings but no generated
+  icon-ledger entries. Validate-UIIcons.ps1 -Category Catalogue passed all 148
+  existing ledger entries, originals, prepared transparent PNGs and packages.
+  Validate-CreatureCatalogues.py passed all 17 profiles. Python AST parsing,
+  git diff --check and changed-path MAX_PATH inspection passed. The initial
+  checker was corrected to include itemProfileFiles alongside ordinary items;
+  profiles are valid definitions, not missing entries.
+- **Impact / authority:** CampFire now has registered display metadata through
+  the existing CampfireKit alias. Inspected loader routing: direct-material
+  buildables enter Buildables, not inventory Items. Existing paid placement,
+  icon, recipe, server authority, RPCs and save formats are unchanged. No new
+  portable construction item or acquisition path was added.
+- **Verification / limits:** Normal increment; full Unreal build, asset loading,
+  rendering and gameplay verification remain deferred. Passing package/source
+  checks does not certify rendered icons. The audit intentionally remains red
+  for the four existing scroll gaps; no milestone completion is claimed.
+- **Next eligible work:** Continue this same A10 audit child by generating,
+  preparing/importing and registering the four scroll icons through the
+  established workflow, then rerun both audit commands. Milestone review is
+  the following child; S03 remains later in backlog order. Main checkout used
+  directly; no worktree handoff synchronization is needed.
