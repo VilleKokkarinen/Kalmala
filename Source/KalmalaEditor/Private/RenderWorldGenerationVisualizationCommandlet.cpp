@@ -2,6 +2,7 @@
 
 #include "HAL/FileManager.h"
 #include "KalmalaBiomeClassifier.h"
+#include "KalmalaRegionalGeneration.h"
 #include "KalmalaWorldFieldSampler.h"
 #include "Misc/Parse.h"
 #include "Misc/Paths.h"
@@ -47,6 +48,96 @@ namespace KalmalaWorldGenerationVisualization
         Writer->Serialize(const_cast<FVisualizationPixel*>(Pixels.GetData()), Pixels.Num() * sizeof(FVisualizationPixel));
         return !Writer->IsError();
     }
+
+    bool ExportNumericSamples(const FString& InputPath, const FString& OutputPath)
+    {
+        TArray<FString> Lines;
+        if (!FFileHelper::LoadFileToStringArray(Lines, *InputPath) || Lines.Num() < 2)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Could not load numeric sample rows from %s."), *InputPath);
+            return false;
+        }
+
+        Lines[0].TrimStartAndEndInline();
+        if (!Lines[0].Equals(TEXT("Seed,Site,Xcm,Ycm"), ESearchCase::IgnoreCase))
+        {
+            UE_LOG(LogTemp, Error, TEXT("Sample input must start with Seed,Site,Xcm,Ycm."));
+            return false;
+        }
+
+        FString Csv = TEXT("Seed,Site,Xcm,Ycm,BiomeIndex,FinalHeightCm,MeadowsWeight,ShimmeringLakesWeight,ElderwoodWeight,MossyMireWeight,FreezingTundraWeight,ThunderMountainsWeight,OceanWeight,WaterLevelCm,HasWater\n");
+        int32 SampleCount = 0;
+        for (int32 LineIndex = 1; LineIndex < Lines.Num(); ++LineIndex)
+        {
+            FString Line = Lines[LineIndex];
+            Line.TrimStartAndEndInline();
+            if (Line.IsEmpty())
+            {
+                continue;
+            }
+
+            TArray<FString> Columns;
+            Line.ParseIntoArray(Columns, TEXT(","), false);
+            if (Columns.Num() != 4)
+            {
+                UE_LOG(LogTemp, Error, TEXT("Sample input row %d must have Seed,Site,Xcm,Ycm."), LineIndex + 1);
+                return false;
+            }
+            for (FString& Column : Columns)
+            {
+                Column.TrimStartAndEndInline();
+            }
+
+            uint64 Seed = 0;
+            float X = 0.0f;
+            float Y = 0.0f;
+            if (Columns[1].IsEmpty() || Columns[0].StartsWith(TEXT("-"))
+                || !LexTryParseString(Seed, *Columns[0])
+                || !LexTryParseString(X, *Columns[2])
+                || !LexTryParseString(Y, *Columns[3])
+                || !FMath::IsFinite(X) || !FMath::IsFinite(Y))
+            {
+                UE_LOG(LogTemp, Error, TEXT("Sample input row %d has an invalid seed, site, or coordinate."), LineIndex + 1);
+                return false;
+            }
+
+            FKalmalaWorldGenerationConfig Config;
+            Config.WorldSeed = Seed;
+            const FKalmalaWorldFieldSample Fields = FKalmalaWorldFieldSampler::Sample(Config, FVector2D(X, Y));
+            const FKalmalaRegionalSample Region = FKalmalaRegionalGeneration::Sample(Fields);
+            if (!FMath::IsFinite(Region.Height) || !FMath::IsFinite(Region.WaterLevel))
+            {
+                UE_LOG(LogTemp, Error, TEXT("Sample input row %d produced a non-finite height or water level."), LineIndex + 1);
+                return false;
+            }
+            for (float Weight : Region.Weights)
+            {
+                if (!FMath::IsFinite(Weight))
+                {
+                    UE_LOG(LogTemp, Error, TEXT("Sample input row %d produced a non-finite biome weight."), LineIndex + 1);
+                    return false;
+                }
+            }
+
+            Csv += FString::Printf(TEXT("%llu,%s,%.1f,%.1f,%u,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%d\n"),
+                static_cast<unsigned long long>(Seed), *Columns[1], X, Y, static_cast<unsigned int>(Region.Biome), Region.Height,
+                Region.Weights[0], Region.Weights[1], Region.Weights[2], Region.Weights[3],
+                Region.Weights[4], Region.Weights[5], Region.Weights[6], Region.WaterLevel, Region.bHasWater ? 1 : 0);
+            ++SampleCount;
+        }
+
+        const FString OutputDirectory = FPaths::GetPath(OutputPath);
+        if (SampleCount == 0
+            || (!OutputDirectory.IsEmpty() && !IFileManager::Get().MakeDirectory(*OutputDirectory, true))
+            || !FFileHelper::SaveStringToFile(Csv, *OutputPath))
+        {
+            UE_LOG(LogTemp, Error, TEXT("Could not write numeric samples to %s."), *OutputPath);
+            return false;
+        }
+
+        UE_LOG(LogTemp, Display, TEXT("Exported %d numeric world-generation samples to %s."), SampleCount, *OutputPath);
+        return true;
+    }
 }
 
 URenderWorldGenerationVisualizationCommandlet::URenderWorldGenerationVisualizationCommandlet()
@@ -74,6 +165,18 @@ int32 URenderWorldGenerationVisualizationCommandlet::Main(const FString& Params)
     {
         UE_LOG(LogTemp, Error, TEXT("Invalid visualization parameters. Size must be 16-2048, and Extent must be positive."));
         return 1;
+    }
+
+    FString SampleInputPath;
+    FString SampleOutputPath;
+    if (FParse::Value(*Params, TEXT("SampleInput="), SampleInputPath))
+    {
+        if (!FParse::Value(*Params, TEXT("SampleOutput="), SampleOutputPath) || SampleOutputPath.IsEmpty())
+        {
+            UE_LOG(LogTemp, Error, TEXT("SampleInput requires SampleOutput."));
+            return 1;
+        }
+        return ExportNumericSamples(SampleInputPath, SampleOutputPath) ? 0 : 1;
     }
 
     FString OutputDirectory = FPaths::ProjectContentDir() / TEXT("Kalmala/Developer/WorldGeneration");

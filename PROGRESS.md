@@ -7672,3 +7672,34 @@
 - **Next task in this directed goal:** BH01b — add narrow quantitative sampler
   diagnostics at these fixed coordinates. Do not mark BH01 or the roadmap
   milestone complete.
+
+## Run 2026-10-24 — BH01b1 scalar sampler output path
+
+- **Selected increment:** BH01b1, the first ordered child of BH01b. Split
+  BH01b into scalar sampler output and runtime collision/forest output; BH01b
+  remains open until both children are complete.
+- **Completed:** Added optional `-SampleInput`/`-SampleOutput` CSV handling to
+  `RenderWorldGenerationVisualization`. It reports the final regional sample
+  height, biome index, all seven weights, water level and water-presence flag.
+  The ordinary map-export path is unchanged. The temporary input CSV contains
+  all 28 seed/site rows copied from the BH01a coordinates. Checked BH01b1 only.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaEditor/Private/RenderWorldGenerationVisualizationCommandlet.cpp`,
+  `docs/biome-height-rework.md`. Ignored `.tmp/bh01/samples.csv` is not staged.
+- **Lightweight checks/results:** Inspected the optional branch, parser,
+  validation and scalar output fields; `git diff --check` passed. A narrow
+  coordinate check confirmed all 28 CSV rows match the BH01a table and the CSV
+  path is 81 characters. No tests or Unreal build were run; the newly edited
+  commandlet was not rebuilt or executed.
+- **Full verification:** Deferred; this is not a milestone-final task. No
+  terrain or gameplay code changed. Integrated verification remains BH26.
+- **Observable impact / authority:** Adds an opt-in editor diagnostic output
+  path. Default overview exports and generated world behavior remain unchanged;
+  networking, server authority, RPCs and save behavior are unchanged.
+- **Known limitations / remaining scope:** Numeric values have not yet been
+  emitted because the updated commandlet was not compiled. Exact runtime
+  collision-triangle height/slope and deterministic forest descriptor counts
+  remain BH01b2; BH01c records the completed numeric baseline and rendered views.
+- **Next task in this directed goal:** BH01b2 — match the start-relative
+  collision grid, add triangle slope and containing-patch forest descriptor
+  counts, and complete the diagnostic for both seeds and all fixed sites.

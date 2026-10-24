@@ -246,6 +246,24 @@ Both commandlet exports completed successfully with zero logged errors. Each
 logged the same pre-existing warning: `Default__KalmalaOceanSkiff:HullMesh:
 Material index 0 is invalid`. No generation code was changed for these captures.
 
+## BH01b1 scalar sample export
+
+`RenderWorldGenerationVisualization` now accepts optional
+`-SampleInput=<csv> -SampleOutput=<csv>` arguments. Supplying `SampleInput`
+selects a sample-only path before map allocation; invocations without it retain
+the ordinary overview behavior. Input has the header `Seed,Site,Xcm,Ycm`, then
+one fixed coordinate per row. The output includes the same seed/site/coordinates,
+`BiomeIndex`, `FinalHeightCm`, all seven normalized biome weights,
+`WaterLevelCm`, and `HasWater`. Biome indices follow the `Weight0..Weight6` order
+above. Height, water level and coordinates are in centimetres; weights are
+unit fractions. Malformed rows or non-finite sample values fail the commandlet.
+
+This scalar output reads `FKalmalaWorldFieldSampler` and
+`FKalmalaRegionalGeneration` only; it does not alter generation. Exact
+piecewise-collision triangle height/slope and deterministic forest-descriptor
+counts remain in BH01b2. BH01c will record the resulting numeric table and
+rendered views.
+
 ## Verification and completion
 
 During normal increments use narrow checks and careful source inspection.
