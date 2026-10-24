@@ -7855,3 +7855,16 @@
 - **Networking/authority:** Reserve and release require the authoritative GameMode; reservations are session-only and introduce no replicated or saved-data state.
 - **Known limitations:** The S26 actor-creation path must acquire a token before spawning and release it on success after registration or on every failed/rolled-back pack. No actor creation or cap evaluator wiring was added.
 - **Next eligible task:** A10 catalogue/icon acceptance remains earlier in the global queue. Within this requested monster-population goal, S13 is next — add the nine-gate evaluator.
+
+
+### Monster population — S13 ordered spawn-gate evaluator
+
+- **Selected increment:** S13, add a nine-gate evaluator with a distinct first rejection reason.
+- **Work completed:** Added the private GameMode evaluator in contract order: scheduler budget, seeded admission roll, player distance, species habitat, time, weather, progression, caps and physical placement. Every result defaults to rejection, and only all nine passing results produce `None`. No runtime candidate pipeline or actor creation is wired in this increment.
+- **Files changed:** Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSpawnGateEvaluatorTest.cpp, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
+- **Lightweight checks:** Reviewed the gate sequence against the spatial scheduling/gate contract and inspected each evaluator branch and the focused rejection fixture. `git diff --check` passed; tests and builds were not run.
+- **Full verification:** Deferred to S35; this is not the final implementation task in the monster-population goal.
+- **Observable impact / authority:** No current gameplay behavior changes yet. The private evaluator provides ordered fail-closed decisions for later authoritative gate wiring; it does not create actors or activate natural spawning.
+- **Networking/authority:** The helper consumes already-computed results and performs no world or client queries. Future callers must supply authoritative server-side results, as documented.
+- **Known limitations:** S14–S22 must populate scheduler, roll, distance, habitat, unrestricted current-species time/weather/progression, caps and physical-placement results; S23–S25 still implement and wire the camp suppression portion of placement. Every gate currently defaults false until its wiring sets the result.
+- **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within this requested monster-population goal, S14 is next — wire scheduler and roll gates.

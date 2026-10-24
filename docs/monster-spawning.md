@@ -259,6 +259,14 @@ Evaluate in this order: active-key/scheduler budget, seeded admission roll,
 player distance, species habitat, time, weather, progression, caps, placement.
 Return a distinct first rejection reason. All decisions are server-owned.
 
+S13 adds a private ordered evaluator that accepts the nine gate results from
+later server-side wiring and returns the first failed gate. Its result fields
+default to false, so a not-yet-implemented gate rejects safely; `None` means
+every gate passed. The evaluator does not itself perform world queries, create
+actors, or turn on natural spawning. S14–S22 provide the real gate results,
+including the explicitly unrestricted current-species time, weather and
+progression policies; S23–S25 add the camp-aware placement result.
+
 - Time, weather and progression are explicitly **unrestricted for all current
   species**. These three gates return pass. Provide internal policy seams and
   fixture overrides for rejection tests; do not build a new clock, boss system,

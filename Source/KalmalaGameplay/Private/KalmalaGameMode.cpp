@@ -5863,6 +5863,48 @@ bool AKalmalaGameMode::CanAdmitPopulationCreatureWithinCaps(const FVector& Candi
         && WorldTotal < AggregateWildlifeActorBudget;
 }
 
+EKalmalaPopulationSpawnRejectionReason AKalmalaGameMode::EvaluatePopulationSpawnGates(
+    const FKalmalaPopulationSpawnGateResults& GateResults)
+{
+    if (!GateResults.bSchedulerBudgetAvailable)
+    {
+        return EKalmalaPopulationSpawnRejectionReason::SchedulerBudget;
+    }
+    if (!GateResults.bSeededAdmissionRollPassed)
+    {
+        return EKalmalaPopulationSpawnRejectionReason::SeededAdmissionRoll;
+    }
+    if (!GateResults.bPlayerDistancePassed)
+    {
+        return EKalmalaPopulationSpawnRejectionReason::PlayerDistance;
+    }
+    if (!GateResults.bSpeciesHabitatPassed)
+    {
+        return EKalmalaPopulationSpawnRejectionReason::SpeciesHabitat;
+    }
+    if (!GateResults.bTimePassed)
+    {
+        return EKalmalaPopulationSpawnRejectionReason::Time;
+    }
+    if (!GateResults.bWeatherPassed)
+    {
+        return EKalmalaPopulationSpawnRejectionReason::Weather;
+    }
+    if (!GateResults.bProgressionPassed)
+    {
+        return EKalmalaPopulationSpawnRejectionReason::Progression;
+    }
+    if (!GateResults.bCapsPassed)
+    {
+        return EKalmalaPopulationSpawnRejectionReason::Caps;
+    }
+    if (!GateResults.bPhysicalPlacementPassed)
+    {
+        return EKalmalaPopulationSpawnRejectionReason::PhysicalPlacement;
+    }
+    return EKalmalaPopulationSpawnRejectionReason::None;
+}
+
 bool AKalmalaGameMode::TryReserveWolfPackCapacity(const TArray<FVector>& MemberLocations,
     const FIntPoint& HomeSpatialKey, FGuid& OutReservationId)
 {

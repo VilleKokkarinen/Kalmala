@@ -33,6 +33,34 @@ struct FKalmalaPopulationCreatureReservation
     FIntPoint HomeSpatialKey = FIntPoint::ZeroValue;
 };
 
+enum class EKalmalaPopulationSpawnRejectionReason : uint8
+{
+    None,
+    SchedulerBudget,
+    SeededAdmissionRoll,
+    PlayerDistance,
+    SpeciesHabitat,
+    Time,
+    Weather,
+    Progression,
+    Caps,
+    PhysicalPlacement
+};
+
+/** Ordered gate results supplied by later server-side wiring; false defaults fail closed. */
+struct FKalmalaPopulationSpawnGateResults
+{
+    bool bSchedulerBudgetAvailable = false;
+    bool bSeededAdmissionRollPassed = false;
+    bool bPlayerDistancePassed = false;
+    bool bSpeciesHabitatPassed = false;
+    bool bTimePassed = false;
+    bool bWeatherPassed = false;
+    bool bProgressionPassed = false;
+    bool bCapsPassed = false;
+    bool bPhysicalPlacementPassed = false;
+};
+
 /**
  * Server-authoritative rules for a Kalmala session.
  * Gameplay systems are added in later milestones.
@@ -111,6 +139,7 @@ private:
     friend class FKalmalaPopulationLiveCreatureRegistryTest;
     friend class FKalmalaPopulationAreaCapsTest;
     friend class FKalmalaPopulationWolfReservationTest;
+    friend class FKalmalaPopulationSpawnGateEvaluatorTest;
     friend class AKalmalaWildlifeSpawn;
 
 #if WITH_DEV_AUTOMATION_TESTS
@@ -139,6 +168,8 @@ private:
         int32& OutHomeKeyTotal);
     bool CanAdmitPopulationCreatureWithinCaps(const FVector& CandidateLocation,
         const FIntPoint& HomeSpatialKey, EKalmalaWildlifeArchetype Archetype);
+    static EKalmalaPopulationSpawnRejectionReason EvaluatePopulationSpawnGates(
+        const FKalmalaPopulationSpawnGateResults& GateResults);
     bool TryReserveWolfPackCapacity(const TArray<FVector>& MemberLocations,
         const FIntPoint& HomeSpatialKey, FGuid& OutReservationId);
     bool ReleasePopulationCreatureReservation(const FGuid& ReservationId);

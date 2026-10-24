@@ -615,7 +615,7 @@ milestone-final verification/repair run and can exceed a normal turn.
     Also enforce the existing total actor budget; add no extra actor allowance.
   - [x] **S12 — Reserve pack capacity.** Reserve three Wolf slots atomically;
     reject partial packs and release reservations on failed creation.
-  - [ ] **S13 — Add the nine-gate evaluator.** Return a distinct rejection reason
+  - [x] **S13 — Add the nine-gate evaluator.** Return a distinct rejection reason
     for scheduler budget, seeded roll, player distance, habitat, time, weather,
     progression, caps and physical placement. Unimplemented gates reject safely.
   - [ ] **S14 — Wire scheduler and roll gates.** Feed S06–S08 into the evaluator;
