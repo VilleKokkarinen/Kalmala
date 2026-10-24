@@ -515,7 +515,7 @@ run for this goal and may exceed one turn.
           seed 418, recording image hashes and camera poses.
         - [x] **BH01c2b — Capture remaining seed-418 views.** Capture and
           validate the other seven fixed seed-418 sites; record hashes and poses.
-        - [ ] **BH01c2c — Capture first seven seed-419 views.** Capture and
+        - [x] **BH01c2c — Capture first seven seed-419 views.** Capture and
           validate the first seven fixed sites for seed 419; record hashes and
           poses.
         - [ ] **BH01c2d — Complete seed-419 views and manifest.** Capture the

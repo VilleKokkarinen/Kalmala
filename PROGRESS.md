@@ -7879,3 +7879,28 @@
   28-image verification remain open.
 - **Next task in this directed goal:** BH01c2c — capture and validate the first
   seven fixed seed-419 views using the documented anchor rule.
+
+## Run 2026-10-24 - BH01c2c first seven seed-419 captures
+
+- **Selected increment:** BH01c2c, the third ordered BH01c2 child. BH01c2,
+  BH01c and BH01 remain open.
+- **Completed:** Captured the first seven seed-419 fixed sites: Starter
+  Meadows, Outer dry Meadows, Shimmering Lakes, Elderwood interior, Wooded
+  Elderwood, Mossy Mire and Freezing Tundra. All seven samples have
+  HasWater=0; each camera used its collision-triangle anchor. Per-view camera
+  coordinates, aim height, image bytes, sampled-color count and SHA-256 are
+  recorded in docs/biome-height-rework.md.
+- **Files changed:** BACKLOG.md, PROGRESS.md and docs/biome-height-rework.md.
+  PNGs and logs remain ignored under .tmp/bh01/captures/419.
+- **Lightweight checks/results:** Runtime logs matched seed/site/XY/ViewZ,
+  camera, aim, FOV and output path within 0.2 cm. All seven PNGs passed
+  signature, 1024×768 dimensions and sampled-pixel nonblank checks; each was
+  visually inspected. Full project verification remains deferred.
+- **Impact / authority:** Baseline capture evidence only. No terrain generation,
+  gameplay, networking, server authority or save behavior changed.
+- **Known limitations:** These images document the current neutral prototype
+  rendering and are not terrain/art acceptance. Seven seed-419 captures and
+  final 28-row/28-image manifest verification remain in BH01c2d.
+- **Next task in this directed goal:** BH01c2d — capture the final seven
+  seed-419 views, validate all 28 image/numeric rows and finalize the baseline
+  manifest.

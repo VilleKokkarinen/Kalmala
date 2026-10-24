@@ -366,7 +366,8 @@ waits until `BeginPlay` has copied the initialized world configuration. It
 changes the standalone capture camera and explicitly activated terrain patches;
 it does not alter ordinary gameplay behavior, save data, RPCs or networking
 code. BH01c2a and BH01c2b now preserve the full numeric CSV and all 14
-seed-418 live views; c2c–c2d still need the seed-419 captures and final manifest.
+seed-418 live views; c2c has the first seven seed-419 captures; c2d remains for
+the final seven views and final manifest.
 
 ## BH01c2a durable numeric baseline and first seven seed-418 captures
 
@@ -397,8 +398,8 @@ CollisionTriangleHeightCm. At each anchor Z, place the camera at
 FOV. From all 28 numeric rows, the planned camera bounds are X
 -970,004.9..1,145,090.4 cm, Y -972,404.9..967,604.9 cm, and Z
 1,200..2,648.74426 cm; aim Z ranges 150..1,598.74426 cm. These bounds are
-derived from the numeric rows; the remaining 14 seed-419 rendered poses
-still require runtime capture.
+derived from the numeric rows; at that point 14 seed-419 rendered poses remained.
+c2c has now captured the first seven and the final seven remain in c2d.
 
 The first seven seed-418 rows were captured by the live -game -RenderOffscreen
 runner. Each runtime log matched seed, site, XY, chosen anchor, camera, aim, FOV,
@@ -422,7 +423,7 @@ The first Shimmering Lakes and Elderwood interior attempts used the dry-land
 anchor; those PNGs are marked invalid-triangle-anchor in .tmp and are not
 listed above. Their replacements use the measured water surface. The images
 record current prototype rendering and are not visual water/material acceptance;
-remaining views and the complete manifest are BH01c2c–BH01c2d.
+the remaining seven seed-419 views and complete manifest are BH01c2d.
 
 ## BH01c2b remaining seven seed-418 rendered captures
 
@@ -457,8 +458,41 @@ water surface is visually distinguishable.
 | Source coast land side | Water level / 0 | (691744.0, -107083.5) | (691744.0, -109483.5, 1200) | Sourcecoastlandside-c2b-water.png | 809491 | 419 | fc5cb1dfdb6a8ab04a103fae9b2340bf1bc4afa8f67d4fc9f265562e6b746b20 |
 | Highland river | Water level / 0 | (679237.9, -16414.3) | (679237.9, -18814.3, 1200) | Highlandriver-c2b-water.png | 953864 | 505 | ad8584b626ac0fa05bd4c93154544a8f7e75cf02fc08735a6c2e90bed6211757 |
 
-BH01c2c and BH01c2d still need the 14 seed-419 live-render captures and final
-28-view manifest verification.
+BH01c2c captured the first seven seed-419 live views; BH01c2d remains for
+the final seven views and final 28-view manifest verification.
+
+## BH01c2c first seven seed-419 rendered captures
+
+Captured the first seven seed-419 fixed sites: Starter Meadows, Outer dry
+Meadows, Shimmering Lakes, Elderwood interior, Wooded Elderwood, Mossy Mire,
+and Freezing Tundra. All seven numeric rows report HasWater=0, so the fixed
+view anchor is the measured collision-triangle height, including Mossy Mire
+where the measured water level is below the sampled surface. Cameras use
+(X, Y−2400, AnchorZ+1200) cm, aim at (X, Y, AnchorZ+150) cm, and use a
+65° horizontal field of view.
+
+Each saved runtime log matched seed 419, site, fixed XY, anchor/ViewZ, camera,
+aim, FOV and output path within 0.2 cm for Unreal float rounding. Every PNG
+passed the signature check, measured 1024×768, and passed the sampled-pixel
+nonblank check. All seven frames were visually inspected; they show the current
+neutral prototype terrain/tree geometry, lighting and sky. These baseline
+images are not art or terrain acceptance. Images and logs remain ignored under
+.tmp/bh01/captures/419 and are not committed.
+
+| Site | Anchor source / ViewZ (cm) | Fixed XY (cm) | Camera (X,Y,Z cm) | Aim Z (cm) | Output file | PNG bytes | Sampled colors | SHA-256 |
+| --- | --- | --- | --- | ---: | --- | ---: | ---: | --- |
+| Starter Meadows | Collision triangle / 895.446655 | (-781.6, -781.6) | (-781.6, -3181.6, 2095.446655) | 1045.446655 | StarterMeadows-c2c.png | 915101 | 515 | b0f2dcf360d69f230c99279185068154800d52cca6a791f9576878ec67cd81a0 |
+| Outer dry Meadows | Collision triangle / 662.852478 | (-355642.4, 55495.8) | (-355642.4, 53095.8, 1862.852478) | 812.852478 | OuterdryMeadows-c2c.png | 962176 | 472 | ba46985e10a6007ae4ecb1b3931fa7805f7464016aadecb1b5492fd1ffb4e6df |
+| Shimmering Lakes | Collision triangle / 383.571716 | (-166487.5, 53932.6) | (-166487.5, 51532.6, 1583.571716) | 533.571716 | ShimmeringLakes-c2c.png | 838228 | 408 | 8d9988905562f5724cfeb372fd03755c5fd0ae22b9ef69baf8695d3aa8fc1486 |
+| Elderwood interior | Collision triangle / 761.341431 | (-205569.1, 91450.9) | (-205569.1, 89050.9, 1961.341431) | 911.341431 | Elderwoodinterior-c2c.png | 915693 | 543 | 482cd8664439287d49a752fd98ac76d03a15373a04f8dfe88e24581df4473b63 |
+| Wooded Elderwood | Collision triangle / 321.026794 | (294675.1, 171177.3) | (294675.1, 168777.3, 1521.026794) | 471.026794 | WoodedElderwood-c2c.png | 881027 | 512 | 3df61a0a4951e49e233eb341cd238f2734497a4cbff18d3cee4199d7fbf8cb8b |
+| Mossy Mire | Collision triangle / 1 | (-78944.8, 896531.5) | (-78944.8, 894131.5, 1201) | 151 | MossyMire-c2c.png | 840682 | 430 | dc7dc3605dadc7db308387908da4e0fff1ac5322317a5c9cf85fd603d1f0de7e |
+| Freezing Tundra | Collision triangle / 1041.27319 | (-243087.4, 970004.9) | (-243087.4, 967604.9, 2241.27319) | 1191.27319 | FreezingTundra-c2c.png | 898746 | 440 | 74eac6577d25247404db8e1b191496295012e581485b8a44154d0f767e4cb6c0 |
+
+The first seven seed-419 camera bounds are X -355,642.4..294,675.1 cm,
+Y -3,181.6..967,604.9 cm and Z 1,201..2,241.27319 cm; aim Z ranges
+151..1,191.27319 cm. c2d still needs the other seven seed-419 live captures and
+the final numeric/image manifest check for all 28 seed/site rows.
 
 ## Verification and completion
 
