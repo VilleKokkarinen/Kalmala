@@ -8019,3 +8019,89 @@
 - **Next eligible A0 item:** Food use for the six current cooking outputs;
   begin with CookedBoarMeat. Keep the A10 per-item audit child unchecked until
   all included items and scope N/A dispositions are covered.
+
+## Run 2026-10-24 — A10 per-item audit: A0 cooking outputs
+
+- **Selected increment:** Audit the six existing A0 cooking outputs after the
+  preceding Sinew, Bow String, Lightwood and Bone Fragment reviews. This
+  increment covers only this cooking-output group; the broad A10 per-item
+  audit child remains unchecked.
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md`.
+- **Evidence reviewed:** A0 backlog order, `items/food.json`, its
+  `GameCatalogues.json` registration, all catalogue JSON references and
+  station recipe JSON, the server status/food-consumption path, focused status
+  and catalogue assertions by source inspection, icon manifest and runtime
+  lookup, retained icon files, `docs/icon-provenance.md`,
+  `docs/02-technical-architecture.md`, `docs/a9-acceptance.md`, and
+  `docs/07-development-setup.md`.
+- **Included IDs and registration:** The exact six are `CookedBoarMeat`,
+  `CookedDeerMeat`, `MeatStew`, `RootVegetableSoup`,
+  `RoastedRootVegetables`, and `DeerRootRoast`. All six ordinary food item
+  records are registered through `items/food.json`, each with stack limit
+  20. Searching the complete catalogue-data tree found each ID in its item
+  record and its single cooking-output recipe only; no other catalogue grant
+  source, equipment profile, attack data, or item-level upgrade/reward record
+  was found. Those equipment, attack, and own-upgrade categories are N/A for
+  these prepared foods.
+- **Cooking acquisition:** A parsed traversal of all station recipe JSON
+  confirmed the six enabled outputs, each with quantity 1 and maximum batch
+  5:
+  - `CookedBoarMeat`: `CookedBoarMeatRecipe`, Cooking Rack,
+    `BoarMeat ×1 → CookedBoarMeat ×1`.
+  - `CookedDeerMeat`: `CookedDeerMeatRecipe`, Cooking Rack,
+    `DeerMeat ×1 → CookedDeerMeat ×1`.
+  - `MeatStew`: `MeatStewRecipe`, Cauldron,
+    `BoarMeat ×1 + DeerMeat ×1 + Carrot ×2 + Potato ×2 → MeatStew ×1`.
+  - `RootVegetableSoup`: `RootVegetableSoupRecipe`, Cauldron,
+    `Carrot ×1 + Potato ×1 + Rutabaga ×1 + Onion ×1 →
+    RootVegetableSoup ×1`.
+  - `RoastedRootVegetables`: `RoastedRootVegetablesRecipe`, Frying Pan,
+    `Carrot ×1 + Potato ×1 + Onion ×1 → RoastedRootVegetables ×1`.
+  - `DeerRootRoast`: `DeerRootRoastRecipe`, Frying Pan,
+    `DeerMeat ×1 + Rutabaga ×1 + Onion ×1 → DeerRootRoast ×1`.
+  No direct item drop/grant route is registered for these outputs; cooking is
+  their catalogue acquisition path.
+- **Use and authority:** `IsKnownFoodItem` allowlists all six. The
+  `ConsumeFoodFromServer` transaction requires server authority, checks the
+  active meal slot and pack, consumes one serving through a candidate
+  inventory exchange, then applies the effect; a failed effect application
+  restores the prior stacks. Every item supplies the same `State.Food.SteadyMeal`
+  effect: stamina costs are reduced by 10% for 120 server seconds, additive
+  with existing Wet/accessory deltas. Only one meal may be active; a second
+  use is rejected without consuming a serving. No movement or item-specific
+  combat effect was found. The timer expires and removes the meal status.
+- **Icons and provenance:** Manifest batches are 07/B for CookedBoarMeat,
+  08/B for CookedDeerMeat, MeatStew and RootVegetableSoup, and 09/C for
+  RoastedRootVegetables and DeerRootRoast. Each canonical ID has a retained
+  original PNG, a prepared PNG, a matching imported `.uasset`, a vector
+  fallback identity, and the normal runtime `/Game/Kalmala/UI/Icons/Items/`
+  texture route. All six focused `Scripts/Validate-UIIcons.ps1 -Category
+  Catalogue -Id <ID>` checks passed: originals are 1254×1254 RGBA and
+  prepared images are transparent 64×64 RGBA; each check found its expected
+  imported Texture2D package and target path. The current
+  `docs/icon-provenance.md` contains no item-specific generation prompts or
+  records for these six IDs. The missing prompt provenance remains a
+  documentation gap; no wording was reconstructed.
+- **Save and expiry:** The architecture contract says carried inventory,
+  food, cooking progress and meal effects are transient and add no save field
+  or schema. `docs/a9-acceptance.md` confirms ordinary material inventory
+  remains session-only; persistence of world claims does not restore carried
+  items. The food item records define no per-item expiry/decay timer. The
+  consumed meal status itself expires after 120 server seconds. A generic
+  chest stack save is separate from carried inventory and does not establish
+  a six-item food restoration guarantee.
+- **Checks:** Parsed the food item and recipe JSON with PowerShell
+  `ConvertFrom-Json`, traversed the station recipes, and searched all
+  catalogue-data references for the six canonical IDs. Ran all six focused
+  catalogue icon validators; all passed as stated above. Reviewed runtime and
+  persistence code/docs without executing tests.
+- **Full verification:** Deferred; this is not A10's final increment. No
+  Unreal build, test suite, peer/restart run, or live runtime acceptance was
+  performed. The earlier global 152-icon result was not rerun in this audit.
+- **Impact and remaining scope:** This is a documentation-only audit; food
+  recipes, effects, authority and save behavior are unchanged. Server
+  authority remains required for meal use. The exact icon-generation prompts
+  are not present in current provenance docs. Remaining A10 work includes
+  later A0 item audits, fresh-world progression, approved-system acceptance
+  and milestone-final verification; keep the broad child unchecked.
+- **Next eligible A0 item:** Hearth Broth. Continue in backlog order.
