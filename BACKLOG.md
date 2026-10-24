@@ -540,7 +540,7 @@ run for this goal and may exceed one turn.
   - [x] **BH07 — Add validated preview controls.** Name and bound shared relief
     and biome controls in the regional tuning/preview path; keep production
     output unchanged until the corresponding shaping increment is integrated.
-  - [ ] **BH08 — Add the shared relief stack.** Sample broad, middle, and local
+  - [x] **BH08 — Add the shared relief stack.** Sample broad, middle, and local
     noise in absolute world coordinates with stable independent salts; keep
     climate/ecological Elevation separate and preserve deterministic cache and
     patch-edge behavior.

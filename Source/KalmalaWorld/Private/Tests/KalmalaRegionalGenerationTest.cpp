@@ -95,6 +95,106 @@ bool FKalmalaBiomeHeightFunctionTest::RunTest(const FString& Parameters)
     return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaSharedTerrainReliefTest,
+    "Kalmala.World.Regional.SharedTerrainRelief",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+bool FKalmalaSharedTerrainReliefTest::RunTest(const FString& Parameters)
+{
+    using G = FKalmalaRegionalGeneration;
+    using L = FKalmalaTerrainPatchLayout;
+    const FKalmalaWorldGenerationConfig Config{418ull};
+    const FKalmalaWorldGenerationConfig OtherConfig{419ull};
+    const FVector2D Positions[] = {
+        FVector2D(-153210.25, 7823.5),
+        FVector2D(-10000.0, -3000.0),
+        FVector2D(12000.0, -45000.0),
+        FVector2D(-185000.0, 276000.0),
+    };
+
+    TestTrue(TEXT("Broad, middle and local salts are independent"),
+        FKalmalaRegionalTuning::ReliefBroadSalt != FKalmalaRegionalTuning::ReliefMiddleSalt
+        && FKalmalaRegionalTuning::ReliefBroadSalt != FKalmalaRegionalTuning::ReliefLocalSalt
+        && FKalmalaRegionalTuning::ReliefMiddleSalt != FKalmalaRegionalTuning::ReliefLocalSalt);
+
+    G::ClearHydrologyCache();
+    TArray<FKalmalaTerrainReliefSample> Baseline;
+    int32 BroadMiddleDifferences = 0;
+    int32 MiddleLocalDifferences = 0;
+    int32 BroadLocalDifferences = 0;
+    int32 SeedDifferences = 0;
+    for (const FVector2D Position : Positions)
+    {
+        const double HeightBefore = G::Sample(Config, Position).Height;
+        const FKalmalaTerrainReliefSample Relief = G::SampleSharedRelief(Config, Position);
+        Baseline.Add(Relief);
+        TestTrue(TEXT("All relief channels are finite and normalized"),
+            FMath::IsFinite(Relief.Broad) && FMath::IsFinite(Relief.Middle) && FMath::IsFinite(Relief.Local)
+            && FMath::Abs(Relief.Broad) <= 1.0 && FMath::Abs(Relief.Middle) <= 1.0 && FMath::Abs(Relief.Local) <= 1.0);
+        const auto Repeated = G::SampleSharedRelief(Config, Position);
+        TestEqual(TEXT("Broad relief repeats at an absolute world position"), Repeated.Broad, Relief.Broad);
+        TestEqual(TEXT("Middle relief repeats at an absolute world position"), Repeated.Middle, Relief.Middle);
+        TestEqual(TEXT("Local relief repeats at an absolute world position"), Repeated.Local, Relief.Local);
+        const double HeightAfter = G::Sample(Config, Position).Height;
+        TestEqual(TEXT("Sampling the staged relief does not change production height"), HeightAfter, HeightBefore);
+
+        BroadMiddleDifferences += FMath::Abs(Relief.Broad - Relief.Middle) > 0.0001;
+        MiddleLocalDifferences += FMath::Abs(Relief.Middle - Relief.Local) > 0.0001;
+        BroadLocalDifferences += FMath::Abs(Relief.Broad - Relief.Local) > 0.0001;
+        const auto OtherSeed = G::SampleSharedRelief(OtherConfig, Position);
+        SeedDifferences += FMath::Abs(OtherSeed.Broad - Relief.Broad) > 0.0001
+            || FMath::Abs(OtherSeed.Middle - Relief.Middle) > 0.0001
+            || FMath::Abs(OtherSeed.Local - Relief.Local) > 0.0001;
+    }
+    TestTrue(TEXT("Broad and middle domains produce distinct signals"), BroadMiddleDifferences > 0);
+    TestTrue(TEXT("Middle and local domains produce distinct signals"), MiddleLocalDifferences > 0);
+    TestTrue(TEXT("Broad and local domains produce distinct signals"), BroadLocalDifferences > 0);
+    TestTrue(TEXT("Changing world seed changes the shared relief stack"), SeedDifferences > 0);
+
+    G::ClearHydrologyCache();
+    for (int32 Index = UE_ARRAY_COUNT(Positions) - 1; Index >= 0; --Index)
+    {
+        G::SampleSharedRelief(OtherConfig, Positions[Index]);
+        const auto Reversed = G::SampleSharedRelief(Config, Positions[Index]);
+        TestEqual(TEXT("Cache reset and reversed query order preserve broad relief"), Reversed.Broad, Baseline[Index].Broad);
+        TestEqual(TEXT("Cache reset and reversed query order preserve middle relief"), Reversed.Middle, Baseline[Index].Middle);
+        TestEqual(TEXT("Cache reset and reversed query order preserve local relief"), Reversed.Local, Baseline[Index].Local);
+    }
+
+    const FVector2D PatchOrigin(-12000.0, -24000.0);
+    const FVector2D Patch00 = L::GetPatchCenter(PatchOrigin, 0, 0);
+    const FVector2D Patch10 = L::GetPatchCenter(PatchOrigin, 1, 0);
+    const FVector2D SharedXFromLeft = Patch00 + FVector2D(L::PatchSize * 0.5, 720.0);
+    const FVector2D SharedXFromRight = Patch10 + FVector2D(-L::PatchSize * 0.5, 720.0);
+    TestTrue(TEXT("Adjacent X patches resolve the same absolute seam position"),
+        (SharedXFromLeft - SharedXFromRight).IsNearlyZero());
+    const auto XLeft = G::SampleSharedRelief(Config, SharedXFromLeft - FVector2D(0.5, 0.0));
+    const auto XRight = G::SampleSharedRelief(Config, SharedXFromRight + FVector2D(0.5, 0.0));
+    TestTrue(TEXT("Broad relief is continuous across an X patch seam"), FMath::Abs(XRight.Broad - XLeft.Broad) < 0.01);
+    TestTrue(TEXT("Middle relief is continuous across an X patch seam"), FMath::Abs(XRight.Middle - XLeft.Middle) < 0.01);
+    TestTrue(TEXT("Local relief is continuous across an X patch seam"), FMath::Abs(XRight.Local - XLeft.Local) < 0.01);
+    TestTrue(TEXT("X seam probes belong to adjacent patches"),
+        L::GetPatchCoordinate(PatchOrigin, SharedXFromLeft - FVector2D(0.5, 0.0))
+        != L::GetPatchCoordinate(PatchOrigin, SharedXFromRight + FVector2D(0.5, 0.0)));
+
+    const FVector2D Patch01 = L::GetPatchCenter(PatchOrigin, 0, 1);
+    const FVector2D SharedYFromSouth = Patch00 + FVector2D(720.0, L::PatchSize * 0.5);
+    const FVector2D SharedYFromNorth = Patch01 + FVector2D(720.0, -L::PatchSize * 0.5);
+    TestTrue(TEXT("Adjacent Y patches resolve the same absolute seam position"),
+        (SharedYFromSouth - SharedYFromNorth).IsNearlyZero());
+    const auto YSouth = G::SampleSharedRelief(Config, SharedYFromSouth - FVector2D(0.0, 0.5));
+    const auto YNorth = G::SampleSharedRelief(Config, SharedYFromNorth + FVector2D(0.0, 0.5));
+    TestTrue(TEXT("Broad relief is continuous across a Y patch seam"), FMath::Abs(YNorth.Broad - YSouth.Broad) < 0.01);
+    TestTrue(TEXT("Middle relief is continuous across a Y patch seam"), FMath::Abs(YNorth.Middle - YSouth.Middle) < 0.01);
+    TestTrue(TEXT("Local relief is continuous across a Y patch seam"), FMath::Abs(YNorth.Local - YSouth.Local) < 0.01);
+    TestTrue(TEXT("Y seam probes belong to adjacent patches"),
+        L::GetPatchCoordinate(PatchOrigin, SharedYFromSouth - FVector2D(0.0, 0.5))
+        != L::GetPatchCoordinate(PatchOrigin, SharedYFromNorth + FVector2D(0.0, 0.5)));
+
+    G::ClearHydrologyCache();
+    AddInfo(FString::Printf(TEXT("Shared relief fixed sites=%d seedDifferences=%d"), UE_ARRAY_COUNT(Positions), SeedDifferences));
+    return true;
+}
+
 // Search actual spline centers rather than a coarse lattice that can miss a channel.
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaHighGroundRiverCenterTest,
     "Kalmala.World.Regional.HighGroundRiverCenter",

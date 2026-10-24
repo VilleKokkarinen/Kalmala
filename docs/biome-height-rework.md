@@ -652,3 +652,23 @@ These settings are accepted only by the headless preview route and reported in
 classification PNGs do not consume these fields and changing them leaves map
 pixels unchanged. No production height sample reads these staged controls in
 BH07; later increments connect each layer after its baseline comparison.
+
+## BH08 shared relief sampler
+
+Added `FKalmalaRegionalGeneration::SampleSharedRelief` as a pure, output-only
+stack of three signed normalized Perlin samples at the supplied absolute world
+XY. It uses the staged scales in `FKalmalaGenerationPreviewSettings` (defaults
+100,000 / 15,000 / 3,000 cm) and stable independent domains:
+
+| Layer | Domain salt |
+| --- | --- |
+| Broad | `0x4B414C4D414C4101` |
+| Middle | `0x4B414C4D414C4102` |
+| Local | `0x4B414C4D414C4103` |
+
+This stack does not modify the four ecological fields or current regional
+height; biome shaping consumes it only in later increments. No relief cache is
+introduced. Focused sampler coverage checks domain separation, seed/query-order
+repeatability across hydrology-cache clearing, negative positions, unchanged
+production height, and continuity on both axes of the 3,000 cm terrain patch.
+The automation has been added and awaits the BH26 build and integrated run.

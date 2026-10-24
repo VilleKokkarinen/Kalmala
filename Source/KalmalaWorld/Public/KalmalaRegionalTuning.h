@@ -11,6 +11,10 @@ struct FKalmalaRegionalTuning
     static constexpr double ReliefBroadScale = 100000.0;
     static constexpr double ReliefMiddleScale = 15000.0;
     static constexpr double ReliefLocalScale = 3000.0;
+    // Stable, independent domains for the derived terrain-relief stack.
+    static constexpr uint64 ReliefBroadSalt = 0x4B414C4D414C4101ull;
+    static constexpr uint64 ReliefMiddleSalt = 0x4B414C4D414C4102ull;
+    static constexpr uint64 ReliefLocalSalt = 0x4B414C4D414C4103ull;
     static constexpr double MeadowHillScale = 16000.0;
     static constexpr double MeadowHillAmplitude = 600.0;
     static constexpr double MeadowRollingScale = 4500.0;

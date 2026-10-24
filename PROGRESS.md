@@ -8135,3 +8135,31 @@
   remain. Current map PNGs cannot visually compare terrain relief.
 - **Next task in this directed goal:** BH08 — add the deterministic shared
   broad, middle and local relief stack.
+
+## Run 2026-10-24 - BH08 shared relief stack
+
+- **Selected increment:** BH08, sample deterministic broad, middle and local
+  relief in absolute world coordinates without integrating height shaping.
+- **Work completed:** Added a pure shared-relief sampler using the validated
+  preview scales and three named, stable independent salts. Kept current field
+  and regional height sampling unchanged; no terrain consumer uses the stack
+  until later blend/shape increments. Added focused automation coverage for
+  normalized finite channels, independent domains, seed and query-order
+  determinism, cache clearing, negative coordinates, patch-edge continuity and
+  unchanged production height. Documented the salts and integration boundary.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalGeneration.h`,
+  `Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`,
+  `docs/biome-height-rework.md`.
+- **Lightweight checks/results:** Source-level inspection and `git diff --check`
+  passed. Unreal automation/build were not run; full verification remains
+  deferred to BH26.
+- **Observable impact / authority:** No production terrain, ecological field,
+  gameplay, networking, server-authority or save output changed. Peers will use
+  identical seed/domain samples when later shaping is integrated.
+- **Known limitations / remaining scope:** Relief is sampled but not yet blended
+  into candidate heights; BH09–BH26 remain.
+- **Next task in this directed goal:** BH09 — blend candidate heights through
+  existing normalized biome weights and continuous coast attenuation.

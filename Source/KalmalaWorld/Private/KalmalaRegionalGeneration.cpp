@@ -154,6 +154,17 @@ double FKalmalaRegionalGeneration::Noise(const FKalmalaWorldGenerationConfig& C,
     return FMath::PerlinNoise2D(P * Frequency + FVector2D(RegionalUnit(S) * 128, RegionalUnit(S >> 24) * 128));
 }
 
+FKalmalaTerrainReliefSample FKalmalaRegionalGeneration::SampleSharedRelief(
+    const FKalmalaWorldGenerationConfig& C, const FVector2D AbsoluteWorldPosition)
+{
+    const auto& Preview = FKalmalaGenerationPreview::Get();
+    FKalmalaTerrainReliefSample Result;
+    Result.Broad = Noise(C, T::ReliefBroadSalt, AbsoluteWorldPosition, 1.0 / Preview.ReliefBroadScale);
+    Result.Middle = Noise(C, T::ReliefMiddleSalt, AbsoluteWorldPosition, 1.0 / Preview.ReliefMiddleScale);
+    Result.Local = Noise(C, T::ReliefLocalSalt, AbsoluteWorldPosition, 1.0 / Preview.ReliefLocalScale);
+    return Result;
+}
+
 double FKalmalaRegionalGeneration::ShapeMeadows(const double SourceHeight, const double Detail)
 {
     return SourceHeight + double(float(40 * Detail));

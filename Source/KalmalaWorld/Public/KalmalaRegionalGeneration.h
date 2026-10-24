@@ -24,6 +24,14 @@ struct FKalmalaHydrologySegment
     uint64 Id = 0;
 };
 
+/** Signed normalized samples from independent, absolute-world terrain-noise domains. */
+struct FKalmalaTerrainReliefSample
+{
+    double Broad = 0.0;
+    double Middle = 0.0;
+    double Local = 0.0;
+};
+
 /** Pure regions/shaping plus a bounded, disposable spline-only spatial cache. */
 struct KALMALAWORLD_API FKalmalaRegionalGeneration
 {
@@ -37,6 +45,9 @@ struct KALMALAWORLD_API FKalmalaRegionalGeneration
     { return false; }
     static uint64 Seed(const FKalmalaWorldGenerationConfig& Config, uint64 Domain, FIntPoint Cell = FIntPoint::ZeroValue);
     static double Noise(const FKalmalaWorldGenerationConfig& Config, uint64 Domain, FVector2D Position, double Frequency);
+    /** Samples shared relief layers without applying them to ecological fields or terrain height. */
+    static FKalmalaTerrainReliefSample SampleSharedRelief(
+        const FKalmalaWorldGenerationConfig& Config, FVector2D AbsoluteWorldPosition);
 private:
     friend class FKalmalaBiomeHeightFunctionTest;
     friend class FKalmalaMasterMapTest;
