@@ -458,8 +458,9 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     intentionally unused in A7. The A8 buildable audits for `TimberDoor`, `TimberBeam`, `TimberStairs`,
     `CampBed`, and `StandingLight` are recorded in PROGRESS.md. Cold/warmth
     preparations beyond the recorded Standing Light behavior remain deferred.
-    No A8 buildable remains; the next separately tracked A10 item audit is
-    A8b Antidote (`Antidote`).
+    No A8 buildable remains. The A8b Antidote (`Antidote`) source/effect audit
+    is recorded in PROGRESS.md; next in A8b recipe/output order is Peat Heart
+    Stew (`PeatHeartStew`).
     Keep this child open until every included item and scope N/A disposition
     is covered.
   - [ ] Run required full verification at each milestone's final increment.
