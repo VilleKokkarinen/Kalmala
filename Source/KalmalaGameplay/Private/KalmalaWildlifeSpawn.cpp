@@ -223,6 +223,7 @@ void AKalmalaWildlifeSpawn::InitializeServer(const FKalmalaWorldPopulationSpawn&
     {
         FangArrowPoisonRemainingSeconds = 0.0f;
         FangArrowPoisonSecondsUntilTick = UKalmalaPlayerStatusComponent::PoisonTickIntervalSeconds;
+        HomePopulationSpatialKey = Spawn.SpatialKey;
         SetActorLocation(Spawn.Location);
         SpawnOrigin = Spawn.Location;
         BehaviourDestination = SpawnOrigin;

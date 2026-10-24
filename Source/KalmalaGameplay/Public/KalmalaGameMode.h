@@ -16,6 +16,7 @@ struct FKalmalaSmelterState;
 struct FKalmalaGardenPlotState;
 struct FKalmalaStandingLightState;
 enum class EKalmalaOceanSkiffSeat : uint8;
+enum class EKalmalaWildlifeArchetype : uint8;
 
 struct FKalmalaPopulationSchedulerKeyWork
 {
@@ -101,6 +102,7 @@ private:
     friend class FKalmalaPopulationRingCandidateSelectorTest;
     friend class FKalmalaPopulationPlayerDistanceGateTest;
     friend class FKalmalaPopulationLiveCreatureRegistryTest;
+    friend class FKalmalaPopulationAreaCapsTest;
     friend class AKalmalaWildlifeSpawn;
 
 #if WITH_DEV_AUTOMATION_TESTS
@@ -123,6 +125,12 @@ private:
     void RegisterLivePopulationCreature(class AKalmalaWildlifeSpawn* Creature);
     void UnregisterLivePopulationCreature(class AKalmalaWildlifeSpawn* Creature);
     int32 CountLivePopulationCreaturesWithinRadius(const FVector& Center, float RadiusCm);
+    int32 GetPopulationSpeciesAreaCap(EKalmalaWildlifeArchetype Archetype) const;
+    void GetLivePopulationCreatureCapCounts(const FVector& Center, EKalmalaWildlifeArchetype Archetype,
+        const FIntPoint& HomeSpatialKey, int32& OutWorldTotal, int32& OutNearbySpecies,
+        int32& OutHomeKeyTotal);
+    bool CanAdmitPopulationCreatureWithinCaps(const FVector& CandidateLocation,
+        const FIntPoint& HomeSpatialKey, EKalmalaWildlifeArchetype Archetype);
     void ApplyPopulationPlayerDistanceGate(FKalmalaPopulationSchedulerKeyWork& KeyWork,
         const TArray<class AKalmalaCharacter*>& LivingPlayers) const;
     bool IsDescriptorInSpawnRing(const FVector& SpawnLocation,
@@ -407,6 +415,7 @@ private:
     TMap<FIntPoint, int32> PopulationKeyCandidateCursors;
     TMap<FIntPoint, uint64> PopulationKeyServicedCheckOrdinals;
     TSet<TWeakObjectPtr<class AKalmalaWildlifeSpawn>> LivePopulationCreatures;
+    TMap<FIntPoint, int32> PopulationKeyWildlifeActorBudgets;
     double NextPopulationSchedulerWakeTime = 0.0;
     // Latest wake's bounded descriptor work; evaluator/gate wiring is a later increment.
     TArray<FKalmalaPopulationSchedulerKeyWork> PopulationSchedulerWakeWork;

@@ -240,6 +240,12 @@ unload policy or actor creation, and it changes no save data.
   limits. Reserve against the descriptor's home key even if actors later roam.
   Use the existing three-actor Tundra floor for Wolves. Caps may reduce density;
   never enlarge a budget to reach the species cap.
+- The server records each active key's existing wildlife actor budget from the
+  post-biome activation path. No separate global wildlife actor-cap value exists
+  in the established source; the S11 aggregate ceiling is the sum of those
+  active-key budgets, with no added allowance. Live actors remain charged to
+  their original descriptor key while roaming. Pending Wolf-pack reservations
+  are included by the later atomic reservation increment.
 - Reserve one actor or all three Wolves in a single server transaction. Count
   against every pack member's candidate-centered area. If any member cannot
   fit or spawn, roll back the entire new pack and release every reservation;

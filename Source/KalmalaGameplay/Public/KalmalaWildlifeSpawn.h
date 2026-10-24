@@ -98,6 +98,7 @@ public:
     bool IsDefeated() const { return bDefeated; }
     float GetHealth() const { return Health; }
     EKalmalaWildlifeArchetype GetArchetype() const { return Archetype; }
+    FIntPoint GetHomePopulationSpatialKey() const { return HomePopulationSpatialKey; }
     FName GetCreatureNicheId() const { return CreatureNicheId; }
     EKalmalaWildlifeBehaviour GetBehaviour() const { return Behaviour; }
     const FString& GetPersistentSpawnId() const { return PersistentSpawnId; }
@@ -391,6 +392,9 @@ private:
 
     UPROPERTY(Replicated)
     FString PersistentSpawnId;
+
+    /** Original descriptor key remains the actor's budget owner while it roams. */
+    FIntPoint HomePopulationSpatialKey = FIntPoint::ZeroValue;
 
     UPROPERTY(ReplicatedUsing = OnRep_Archetype)
     EKalmalaWildlifeArchetype Archetype = EKalmalaWildlifeArchetype::Mireling;

@@ -610,7 +610,7 @@ milestone-final verification/repair run and can exceed a normal turn.
     living player, including a second player outside the selecting neighborhood.
   - [x] **S10 — Track live creatures.** Register/unregister authoritative live
     actors; remove defeated/destroyed entries and count their current positions.
-  - [ ] **S11 — Enforce area caps.** Count across loaded keys within 96 m of the
+  - [x] **S11 — Enforce area caps.** Count across loaded keys within 96 m of the
     candidate; per-species caps: common 4, rare hard enemy 1, Wolves 6.
     Also enforce the existing total actor budget; add no extra actor allowance.
   - [ ] **S12 — Reserve pack capacity.** Reserve three Wolf slots atomically;

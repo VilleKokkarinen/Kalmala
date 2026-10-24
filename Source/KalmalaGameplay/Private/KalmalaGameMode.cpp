@@ -5724,6 +5724,119 @@ int32 AKalmalaGameMode::CountLivePopulationCreaturesWithinRadius(const FVector& 
     return CreatureCount;
 }
 
+int32 AKalmalaGameMode::GetPopulationSpeciesAreaCap(const EKalmalaWildlifeArchetype Archetype) const
+{
+    switch (Archetype)
+    {
+    case EKalmalaWildlifeArchetype::Boar:
+    case EKalmalaWildlifeArchetype::Deer:
+    case EKalmalaWildlifeArchetype::Rat:
+    case EKalmalaWildlifeArchetype::Badger:
+    case EKalmalaWildlifeArchetype::Viper:
+    case EKalmalaWildlifeArchetype::Mireling:
+    case EKalmalaWildlifeArchetype::DeathAdder:
+    case EKalmalaWildlifeArchetype::MosquitoSwarm:
+    case EKalmalaWildlifeArchetype::Lynx:
+    case EKalmalaWildlifeArchetype::HornedGoat:
+        return FKalmalaMonsterSpawnTuning::CommonSpeciesAreaCap;
+    case EKalmalaWildlifeArchetype::MoonBear:
+    case EKalmalaWildlifeArchetype::GiantSnake:
+    case EKalmalaWildlifeArchetype::PeatHusk:
+    case EKalmalaWildlifeArchetype::PolarBear:
+    case EKalmalaWildlifeArchetype::ThunderSentinel:
+    case EKalmalaWildlifeArchetype::ReefMaw:
+        return FKalmalaMonsterSpawnTuning::RareHardEnemyAreaCap;
+    case EKalmalaWildlifeArchetype::Wolf:
+        return FKalmalaMonsterSpawnTuning::WolfIndividualAreaCap;
+    default:
+        return 0;
+    }
+}
+
+void AKalmalaGameMode::GetLivePopulationCreatureCapCounts(const FVector& Center,
+    const EKalmalaWildlifeArchetype Archetype, const FIntPoint& HomeSpatialKey,
+    int32& OutWorldTotal, int32& OutNearbySpecies, int32& OutHomeKeyTotal)
+{
+    OutWorldTotal = 0;
+    OutNearbySpecies = 0;
+    OutHomeKeyTotal = 0;
+
+    const UWorld* World = GetWorld();
+    if (!HasAuthority() || !IsValid(World) || !FMath::IsFinite(Center.X) || !FMath::IsFinite(Center.Y))
+    {
+        return;
+    }
+
+    const double RadiusSquared = static_cast<double>(FKalmalaMonsterSpawnTuning::CountRadiusCm)
+        * FKalmalaMonsterSpawnTuning::CountRadiusCm;
+    for (auto Iterator = LivePopulationCreatures.CreateIterator(); Iterator; ++Iterator)
+    {
+        AKalmalaWildlifeSpawn* Creature = Iterator->Get();
+        if (!IsValid(Creature) || Creature->GetWorld() != World || !Creature->HasAuthority()
+            || Creature->IsDefeated() || !FMath::IsFinite(Creature->GetHealth())
+            || Creature->GetHealth() <= 0.0f)
+        {
+            Iterator.RemoveCurrent();
+            continue;
+        }
+
+        ++OutWorldTotal;
+        if (Creature->GetHomePopulationSpatialKey() == HomeSpatialKey)
+        {
+            ++OutHomeKeyTotal;
+        }
+
+        const FVector CreatureLocation = Creature->GetActorLocation();
+        if (!FMath::IsFinite(CreatureLocation.X) || !FMath::IsFinite(CreatureLocation.Y)
+            || Creature->GetArchetype() != Archetype)
+        {
+            continue;
+        }
+
+        const double DeltaX = static_cast<double>(CreatureLocation.X) - Center.X;
+        const double DeltaY = static_cast<double>(CreatureLocation.Y) - Center.Y;
+        if (DeltaX * DeltaX + DeltaY * DeltaY <= RadiusSquared)
+        {
+            ++OutNearbySpecies;
+        }
+    }
+}
+
+bool AKalmalaGameMode::CanAdmitPopulationCreatureWithinCaps(const FVector& CandidateLocation,
+    const FIntPoint& HomeSpatialKey, const EKalmalaWildlifeArchetype Archetype)
+{
+    const UWorld* World = GetWorld();
+    const int32 SpeciesAreaCap = GetPopulationSpeciesAreaCap(Archetype);
+    const int32* HomeKeyBudget = PopulationKeyWildlifeActorBudgets.Find(HomeSpatialKey);
+    if (!HasAuthority() || !IsValid(World) || SpeciesAreaCap <= 0
+        || !FMath::IsFinite(CandidateLocation.X) || !FMath::IsFinite(CandidateLocation.Y)
+        || !ActivePopulationSpatialKeys.Contains(HomeSpatialKey) || HomeKeyBudget == nullptr
+        || *HomeKeyBudget < 0)
+    {
+        return false;
+    }
+
+    int64 AggregateWildlifeActorBudget = 0;
+    for (const FIntPoint& ActiveKey : ActivePopulationSpatialKeys)
+    {
+        const int32* KeyBudget = PopulationKeyWildlifeActorBudgets.Find(ActiveKey);
+        if (KeyBudget == nullptr || *KeyBudget < 0)
+        {
+            return false;
+        }
+        AggregateWildlifeActorBudget += *KeyBudget;
+    }
+
+    int32 WorldTotal = 0;
+    int32 NearbySpecies = 0;
+    int32 HomeKeyTotal = 0;
+    GetLivePopulationCreatureCapCounts(CandidateLocation, Archetype, HomeSpatialKey,
+        WorldTotal, NearbySpecies, HomeKeyTotal);
+    return NearbySpecies < SpeciesAreaCap
+        && HomeKeyTotal < *HomeKeyBudget
+        && WorldTotal < AggregateWildlifeActorBudget;
+}
+
 void AKalmalaGameMode::Tick(const float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
@@ -6219,6 +6332,7 @@ void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey)
     }
 
     int32 SpawnedMarkerCount = 0;
+    int32 WildlifeActorBudgetForKey = 0;
     const EKalmalaBiome KeyBiome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, (FVector2D(SpatialKey) + FVector2D(0.5f, 0.5f)) * FKalmalaWorldPopulationLayout::SpatialKeySizeCm));
     for (const EKalmalaWorldPopulationKind Kind : { EKalmalaWorldPopulationKind::Wildlife, EKalmalaWorldPopulationKind::HarvestNode, EKalmalaWorldPopulationKind::Hazard })
     {
@@ -6240,6 +6354,10 @@ void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey)
                 ? FKalmalaWolfPackContract::GetActorBudgetWithPackRoom(
                     FKalmalaBiomeExpansionContract::ApplyPopulationBudget(Spawns.Num(), Kind, KeyBiome))
                 : Spawns.Num());
+        if (Kind == EKalmalaWorldPopulationKind::Wildlife)
+        {
+            WildlifeActorBudgetForKey = WildlifeActorBudget;
+        }
         int32 SpawnedWildlifeActorCount = 0;
         for (const FKalmalaWorldPopulationSpawn& Spawn : Spawns)
         {
@@ -6520,6 +6638,7 @@ void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey)
         }
     }
 
+    PopulationKeyWildlifeActorBudgets.Add(SpatialKey, WildlifeActorBudgetForKey);
     ActivePopulationSpatialKeys.Add(SpatialKey);
     UE_LOG(LogTemp, Display, TEXT("Server activated %d deterministic population markers for spatial key (%d, %d); %d/%d active."), SpawnedMarkerCount, SpatialKey.X, SpatialKey.Y, ActivePopulationSpatialKeys.Num(), KalmalaGameMode::MaxActivePopulationSpatialKeys);
 }

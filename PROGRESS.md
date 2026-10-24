@@ -7829,3 +7829,16 @@
 - **Networking/authority:** Registration, removal and count queries require the authoritative GameMode/world. Clients do not maintain or affect the registry.
 - **Known limitations:** S11 area caps and S12 pack reservations remain unimplemented; this count query is not wired into admission. Unload cooldown/unload behavior, actor creation, placement and camp suppression remain later work.
 - **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within this requested monster-population goal, the next child is S11 — enforce area caps.
+
+
+### Monster population — S11 area and actor-budget caps
+
+- **Selected increment:** S11, enforce species and existing actor-budget limits against the authoritative live-creature registry.
+- **Work completed:** Added the accepted caps (4 common, 1 rare hard enemy and 6 Wolf individuals) and a server-only cap policy query. Species counts use each live actor's current horizontal position within the inclusive 96 m radius; separate all-world live counts enforce the home-key budget and aggregate active-key budget. Roaming actors remain charged to their original descriptor key. The aggregate ceiling is the sum of each loaded key's existing post-biome WildlifeActorBudget; no standalone global wildlife cap existed in the source-of-truth code/docs, and no extra allowance was added. No evaluator, actor creation or reservation behavior was wired.
+- **Files changed:** Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp, Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationAreaCapsTest.cpp, Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
+- **Lightweight checks:** Inspected the existing cap classifications, activation budgets, and registry lifecycle; reviewed the authored focused automation coverage and changed code. Full builds and tests were not run.
+- **Full verification:** Deferred to S35; this is not the final implementation task in the monster-population goal.
+- **Observable impact / authority:** Later admission code can query one server-owned policy for nearby species, home-key and aggregate active-key limits. Existing actors and spawn behavior are unchanged in this increment.
+- **Networking/authority:** The query requires GameMode authority and counts only authoritative same-world live actors. Home-key ownership is server-local descriptor state; no replicated or saved-data schema changed.
+- **Known limitations:** Wolf pack capacity is not reserved atomically until S12. The cap query is not yet wired into the evaluator or actor creation; S19/S26 perform that work. Focused automation was added but not executed.
+- **Next eligible task:** A10 catalogue/icon acceptance remains earlier in the global queue. Within this requested monster-population goal, S12 is next — reserve Wolf pack capacity atomically.
