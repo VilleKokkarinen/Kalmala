@@ -2,6 +2,7 @@
 
 #include "KalmalaGameMode.h"
 #include "KalmalaWildlifeSpawn.h"
+#include "KalmalaWorldPopulationLayout.h"
 #include "Engine/World.h"
 #include "Misc/AutomationTest.h"
 #include "Misc/ScopeExit.h"
@@ -92,6 +93,67 @@ bool FKalmalaPopulationAreaCapsTest::RunTest(const FString& Parameters)
         EKalmalaWildlifeArchetype::MoonBear, FVector(0.0f, 2000.0f, 0.0f), HomeKey));
     TestFalse(TEXT("One nearby rare hard enemy fills its species cap"),
         Mode->CanAdmitPopulationCreatureWithinCaps(FVector::ZeroVector, HomeKey, EKalmalaWildlifeArchetype::MoonBear));
+
+    FKalmalaWorldPopulationSpawn AdmissibleDescriptor;
+    bool bFoundAdmissibleDescriptor = false;
+    for (uint64 Seed = 1; Seed <= 16 && !bFoundAdmissibleDescriptor; ++Seed)
+    {
+        Mode->WorldGenerationConfig.WorldSeed = Seed;
+        const TArray<FKalmalaWorldPopulationSpawn> GateDescriptors =
+            FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(
+                Mode->WorldGenerationConfig, HomeKey, EKalmalaWorldPopulationKind::Wildlife);
+        for (const FKalmalaWorldPopulationSpawn& Descriptor : GateDescriptors)
+        {
+            if (Mode->DoesPopulationDescriptorPassCaps(Descriptor))
+            {
+                AdmissibleDescriptor = Descriptor;
+                bFoundAdmissibleDescriptor = true;
+                break;
+            }
+        }
+    }
+    if (!TestNotNull(TEXT("A generated descriptor has room under the current population caps"),
+        bFoundAdmissibleDescriptor ? &AdmissibleDescriptor : nullptr)) return false;
+
+    FKalmalaPopulationSchedulerKeyWork CapGateWork;
+    CapGateWork.SpatialKey = HomeKey;
+    CapGateWork.CandidateBudget = 1;
+    CapGateWork.Candidates.Add(AdmissibleDescriptor);
+    FKalmalaPopulationSpawnAttempt& CapAttempt = CapGateWork.SpawnAttempts.AddDefaulted_GetRef();
+    CapAttempt.Descriptor = AdmissibleDescriptor;
+    CapAttempt.GateResults.bSchedulerBudgetAvailable = true;
+    CapAttempt.GateResults.bSeededAdmissionRollPassed = true;
+    CapAttempt.GateResults.bPlayerDistancePassed = true;
+    CapAttempt.GateResults.bSpeciesHabitatPassed = true;
+    CapAttempt.GateResults.bTimePassed = true;
+    CapAttempt.GateResults.bWeatherPassed = true;
+    CapAttempt.GateResults.bProgressionPassed = true;
+    CapAttempt.GateResults.bPhysicalPlacementPassed = true;
+    Mode->ApplyPopulationCapGate(CapGateWork);
+    TestTrue(TEXT("An available candidate passes the wired cap gate"),
+        CapGateWork.SpawnAttempts[0].GateResults.bCapsPassed
+        && CapGateWork.SpawnAttempts[0].RejectionReason == EKalmalaPopulationSpawnRejectionReason::None
+        && CapGateWork.Candidates.Num() == 1);
+
+    Mode->PopulationKeyWildlifeActorBudgets.Add(HomeKey, 0);
+    CapGateWork.Candidates.Reset();
+    CapGateWork.Candidates.Add(AdmissibleDescriptor);
+    CapGateWork.SpawnAttempts.Reset();
+    FKalmalaPopulationSpawnAttempt& RejectedCapAttempt = CapGateWork.SpawnAttempts.AddDefaulted_GetRef();
+    RejectedCapAttempt.Descriptor = AdmissibleDescriptor;
+    RejectedCapAttempt.GateResults.bSchedulerBudgetAvailable = true;
+    RejectedCapAttempt.GateResults.bSeededAdmissionRollPassed = true;
+    RejectedCapAttempt.GateResults.bPlayerDistancePassed = true;
+    RejectedCapAttempt.GateResults.bSpeciesHabitatPassed = true;
+    RejectedCapAttempt.GateResults.bTimePassed = true;
+    RejectedCapAttempt.GateResults.bWeatherPassed = true;
+    RejectedCapAttempt.GateResults.bProgressionPassed = true;
+    RejectedCapAttempt.GateResults.bPhysicalPlacementPassed = true;
+    Mode->ApplyPopulationCapGate(CapGateWork);
+    TestTrue(TEXT("The cap gate reports Caps and removes a candidate with no home-key budget"),
+        !CapGateWork.SpawnAttempts[0].GateResults.bCapsPassed
+        && CapGateWork.SpawnAttempts[0].RejectionReason == EKalmalaPopulationSpawnRejectionReason::Caps
+        && CapGateWork.Candidates.IsEmpty());
 
     UWorld* BudgetWorld = UWorld::CreateWorld(EWorldType::Game, false);
     if (!TestNotNull(TEXT("Population budget fixture world created"), BudgetWorld)) return false;

@@ -5547,6 +5547,7 @@ void AKalmalaGameMode::UpdatePopulationSchedulerWake(const double NowSeconds)
         ApplyPopulationTimeGate(KeyWork);
         ApplyPopulationWeatherGate(KeyWork);
         ApplyPopulationProgressionGate(KeyWork);
+        ApplyPopulationCapGate(KeyWork);
     }
 }
 
@@ -6127,6 +6128,27 @@ void AKalmalaGameMode::ApplyPopulationProgressionGate(FKalmalaPopulationSchedule
     });
 }
 
+void AKalmalaGameMode::ApplyPopulationCapGate(FKalmalaPopulationSchedulerKeyWork& KeyWork)
+{
+    TSet<FString> CapPassedSpawnIds;
+    for (FKalmalaPopulationSpawnAttempt& Attempt : KeyWork.SpawnAttempts)
+    {
+        Attempt.GateResults.bCapsPassed = DoesPopulationDescriptorPassCaps(Attempt.Descriptor);
+        Attempt.RejectionReason = EvaluatePopulationSpawnGates(Attempt.GateResults);
+        if (Attempt.GateResults.bCapsPassed)
+        {
+            CapPassedSpawnIds.Add(
+                FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Attempt.Descriptor));
+        }
+    }
+
+    KeyWork.Candidates.RemoveAll([&CapPassedSpawnIds](const FKalmalaWorldPopulationSpawn& Descriptor)
+    {
+        return !CapPassedSpawnIds.Contains(
+            FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Descriptor));
+    });
+}
+
 bool AKalmalaGameMode::DoesPopulationDescriptorPassProgressionGate(
     const FKalmalaWorldPopulationSpawn& Descriptor) const
 {
@@ -6138,6 +6160,42 @@ bool AKalmalaGameMode::DoesPopulationDescriptorPassProgressionGate(
     EKalmalaWildlifeArchetype Archetype;
     return KalmalaGameMode::TryGetWildlifeArchetypeForSpawn(WorldGenerationConfig, Descriptor, Archetype)
         && IsPopulationProgressionGateAllowed(Archetype);
+}
+
+bool AKalmalaGameMode::DoesPopulationDescriptorPassCaps(
+    const FKalmalaWorldPopulationSpawn& Descriptor)
+{
+    if (!HasAuthority() || !IsValid(GetWorld()) || !WorldGenerationConfig.IsValid())
+    {
+        return false;
+    }
+
+    EKalmalaWildlifeArchetype Archetype;
+    if (!KalmalaGameMode::TryGetWildlifeArchetypeForSpawn(WorldGenerationConfig, Descriptor, Archetype))
+    {
+        return false;
+    }
+
+    if (Archetype != EKalmalaWildlifeArchetype::Wolf)
+    {
+        return CanAdmitPopulationCreatureWithinCaps(Descriptor.Location, Descriptor.SpatialKey, Archetype);
+    }
+
+    TArray<FVector> MemberLocations;
+    MemberLocations.Reserve(FKalmalaWolfPackContract::MemberCount);
+    for (int32 MemberIndex = 0; MemberIndex < FKalmalaWolfPackContract::MemberCount; ++MemberIndex)
+    {
+        const FVector2D Offset = FKalmalaWolfPackContract::GetMemberOffset(Descriptor.SpawnSeed, MemberIndex);
+        MemberLocations.Add(Descriptor.Location + FVector(Offset.X, Offset.Y, 0.0f));
+    }
+
+    FGuid TrialReservationId;
+    if (!TryReserveWolfPackCapacity(MemberLocations, Descriptor.SpatialKey, TrialReservationId))
+    {
+        return false;
+    }
+
+    return ReleasePopulationCreatureReservation(TrialReservationId);
 }
 
 bool AKalmalaGameMode::IsPopulationProgressionGateAllowed(const EKalmalaWildlifeArchetype Archetype)

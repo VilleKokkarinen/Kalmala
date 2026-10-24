@@ -183,6 +183,7 @@ private:
     void ApplyPopulationTimeGate(FKalmalaPopulationSchedulerKeyWork& KeyWork) const;
     void ApplyPopulationWeatherGate(FKalmalaPopulationSchedulerKeyWork& KeyWork) const;
     void ApplyPopulationProgressionGate(FKalmalaPopulationSchedulerKeyWork& KeyWork) const;
+    void ApplyPopulationCapGate(FKalmalaPopulationSchedulerKeyWork& KeyWork);
     bool TryReserveWolfPackCapacity(const TArray<FVector>& MemberLocations,
         const FIntPoint& HomeSpatialKey, FGuid& OutReservationId);
     bool ReleasePopulationCreatureReservation(const FGuid& ReservationId);
@@ -192,6 +193,7 @@ private:
     bool DoesPopulationDescriptorPassTimeGate(const FKalmalaWorldPopulationSpawn& Descriptor) const;
     bool DoesPopulationDescriptorPassWeatherGate(const FKalmalaWorldPopulationSpawn& Descriptor) const;
     bool DoesPopulationDescriptorPassProgressionGate(const FKalmalaWorldPopulationSpawn& Descriptor) const;
+    bool DoesPopulationDescriptorPassCaps(const FKalmalaWorldPopulationSpawn& Descriptor);
     bool IsDescriptorInSpawnRing(const FVector& SpawnLocation,
         const TArray<class AKalmalaCharacter*>& LivingPlayers) const;
     bool IsDescriptorOutsidePlayerExclusion(const FVector& SpawnLocation,
@@ -490,7 +492,7 @@ private:
     TMap<FIntPoint, int32> PopulationKeyWildlifeActorBudgets;
     TMap<FGuid, TArray<FKalmalaPopulationCreatureReservation>> PendingPopulationCreatureReservations;
     double NextPopulationSchedulerWakeTime = 0.0;
-    // Latest wake's bounded descriptor work; evaluator/gate wiring is a later increment.
+    // Latest wake's bounded descriptor work and ordered gate results.
     TArray<FKalmalaPopulationSchedulerKeyWork> PopulationSchedulerWakeWork;
     TSet<FIntPoint> ActiveShimmeringLakeDiscoveryKeys;
     TSet<FIntPoint> ActiveElderwoodDiscoveryKeys;

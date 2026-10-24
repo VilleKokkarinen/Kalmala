@@ -628,7 +628,7 @@ milestone-final verification/repair run and can exceed a normal turn.
     expose an internal rejection-test seam. Add no new weather restrictions.
   - [x] **S18 — Add progression gate.** Pass for every current species;
     expose an internal rejection-test seam. Add no boss or progression locks.
-  - [ ] **S19 — Wire cap gate.** Apply S11–S12 immediately before creation so
+  - [x] **S19 — Wire cap gate.** Apply S11–S12 immediately before creation so
     overlapping key/player attempts cannot overfill a species or total budget.
   - [ ] **S20 — Validate land surfaces.** Require generated dry ground, existing
     start restrictions and slope at most 32 degrees for land creatures.

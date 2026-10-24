@@ -7933,3 +7933,16 @@
 - **Networking/authority:** Progression result population runs in the authoritative GameMode scheduler path; the rejection seam is compiled only with development automation tests. No replicated or saved-data state changed.
 - **Known limitations:** Cap admission remains to be wired in S19; physical placement and camp suppression remain later work. Natural actor creation remains disabled until S26.
 - **Next eligible task:** Within this requested monster-population goal, S19 is next — wire area caps and reservations immediately before creation.
+
+
+### Monster population — S19 cap gate
+
+- **Selected increment:** S19, wire existing area-cap and reservation-aware admission into the bounded attempt path.
+- **Work completed:** Added a cap stage after progression. Every bounded attempt records `bCapsPassed` and the ordered `Caps` rejection; the candidate projection removes candidates that fail. The gate resolves the existing descriptor archetype and calls the server-authoritative cap query, which counts live creatures by current position, per-species area limits, descriptor home-key budget, the aggregate active-key budget, and all pending Wolf reservation members. Wolf attempts trial-reserve all three deterministic member locations atomically through S12, then release the token immediately; a pack only passes when all three fit. No limits or actor budgets changed, no reservation is retained after evaluation, and no actors are created.
+- **Files changed:** Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationAreaCapsTest.cpp, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
+- **Lightweight checks:** Inspected the S11 count and budget path and S12 atomic reservation/release path; confirmed the cap gate follows progression and precedes physical placement in evaluator order. `git diff --check` passed. Added focused area-cap fixture assertions for an admitted descriptor and a zero home-key-budget rejection; tests and builds were not run.
+- **Full verification:** Deferred to S35; this is not the final implementation task in the monster-population goal.
+- **Observable impact / authority:** Authoritative bounded attempts now retain cap decisions and expose only candidates that fit current live and reserved population counts plus existing budgets. No actor creation or saved/replicated state change.
+- **Networking/authority:** The cap gate runs on the authoritative GameMode and its existing cap query requires authority. The Wolf token remains session-only and is unchanged.
+- **Known limitations:** The cap result is an evaluation-time query, not a held reservation. S26 must recheck immediately before creating actors and keep a `TryReserveWolfPackCapacity` token for all three Wolf members through creation, releasing on success after registration or on rollback. S20–S25 still wire physical placement and camp suppression.
+- **Next eligible task:** Within this requested monster-population goal, S20 is next — validate generated dry land and the accepted slope limit.

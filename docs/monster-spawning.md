@@ -305,6 +305,16 @@ development-automation-only fixture seam can force the `Progression`
 rejection. The evaluator keeps earlier time and weather rejections first. No
 boss system, progression setting or actor creation is added.
 
+S19 populates the caps result after progression and filters cap-rejected
+candidates. It calls the existing authoritative admission query, which counts
+living actors at current locations, their home-key budget, the sum of active
+key budgets, and pending S12 reservations. For Wolves it trial-reserves all
+three deterministic member positions through the atomic S12 API, then releases
+that token immediately; a pack passes only when all three slots fit. S19
+creates no actor and retains no reservation after evaluation. S26 must recheck
+immediately before creation and hold a three-Wolf reservation through the
+creation transaction, releasing it after registration or on rollback.
+
 - Time, weather and progression are explicitly **unrestricted for all current
   species**. These three gates return pass. Provide internal policy seams and
   fixture overrides for rejection tests; do not build a new clock, boss system,
