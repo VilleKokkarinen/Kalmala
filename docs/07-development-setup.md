@@ -6062,3 +6062,31 @@ host, and observer. Both clients received world seed 418. Logs:
 `C:/Users/Ville/AppData/Local/Temp/a8sc3/{server,owner,observer}.log`. The final
 scenario logs have no fixture failures, fatal/assert/ensure failures, or
 saved-move backlog warnings. Combined A8a/A8b I4 remains required before A9.
+
+## A8b Antidote live peer craft, poison treatment and cooldown — 2026-10-24
+
+After an Editor build, run `Scripts/Tests/Construction/Verify-A8bAntidotePeer.ps1`.
+The Development-only three-peer fixture stages two Venom Sacs and four
+Lingonberries at a lit, dry Cauldron. The remote owner crafts two doses through
+`ServerCraft`, then uses one via `ServerConsumeFood`. The server stages both
+weak and major poison before use, verifies the old weak entry is cleared and
+major poison is converted to weak for at most five seconds, and confirms the
+600-second resistance plus the shared 60-second recovery cooldown. During
+resistance, a weak hit is blocked and a major hit is reduced to the weak
+profile. A second use is rejected by the cooldown and preserves the other
+dose. The listen host receives no test items; the observer sees public poison
+damage but not the owner's inventory or owner-only statuses.
+
+On 2026-10-24, the isolated `KalmalaEditor Win64 Development` build passed in
+four actions with normal UnrealBuildTool cache access. The first generated
+makefile omitted the new fixture translation unit and failed at link; forcing
+makefile regeneration included it. The first peer attempt exposed a result
+replication race between the accepted use and the following resistance probe;
+separating those phases allowed the owner to observe each result. The final
+`Verify-A8bAntidotePeer.ps1 -Port 17906 -Project
+C:/Users/Ville/AppData/Local/Temp/msp1/Kalmala.uproject -OutputDirectory
+C:/Users/Ville/AppData/Local/Temp/a8an3` run passed for the server, owner,
+listen host, and observer. Both clients received world seed 418. Logs:
+`C:/Users/Ville/AppData/Local/Temp/a8an3/{server,owner,observer}.log`. The final
+scenario logs contain no fixture failures, fatal/assert/ensure failures, or
+saved-move backlog warnings. Combined A8a/A8b I4 remains required before A9.

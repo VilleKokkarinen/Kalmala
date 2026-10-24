@@ -132,6 +132,7 @@ private:
     void RunA8bRoastedBadgerPeerVerification(float DeltaTime);
     void RunA8bFangArrowsPeerVerification(float DeltaTime);
     void RunA8bScaleCuirassPeerVerification(float DeltaTime);
+    void RunA8bAntidotePeerVerification(float DeltaTime);
 #endif
     void RefreshStorageView();
     void ClearStorageView();
@@ -235,5 +236,18 @@ private:
     int32 A8bScaleCuirassPeerObservedOwnerPlayerId = INDEX_NONE;
     float A8bScaleCuirassPeerObserverBaselineHealth = 0.0f;
     bool bA8bScaleCuirassPeerFixtureObserved = false;
+    int32 A8bAntidotePeerStage = 0;
+    float A8bAntidotePeerElapsed = 0.0f;
+    TWeakObjectPtr<AKalmalaCharacter> A8bAntidotePeerTarget;
+    uint32 A8bAntidotePeerResultSerial = 0;
+    int32 A8bAntidotePeerBaselineVenomSac = 0;
+    int32 A8bAntidotePeerBaselineLingonberry = 0;
+    int32 A8bAntidotePeerBaselineDose = 0;
+    int32 A8bAntidotePeerHostBaselineVenomSac = 0;
+    int32 A8bAntidotePeerHostBaselineLingonberry = 0;
+    int32 A8bAntidotePeerHostBaselineDose = 0;
+    int32 A8bAntidotePeerObservedOwnerPlayerId = INDEX_NONE;
+    float A8bAntidotePeerObserverBaselineHealth = 100.0f;
+    bool bA8bAntidotePeerFixtureObserved = false;
 #endif
 };
