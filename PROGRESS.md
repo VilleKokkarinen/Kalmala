@@ -7409,3 +7409,36 @@
   RPCs remain server-validated; the merge adds no behavior or save-format change
   beyond the verified branch. Main checkout used directly; no worktree
   handoff synchronization is required. This merge commit records the handoff.
+
+## Run 2026-10-24 — Monster-spawn implementation map
+
+- **Ownership and selection:** The main checkout was clean on `master`, with no
+  other repository worktree. The Codex task list showed this automation as the
+  only active Kalmala task; the other Kalmala task was idle. Windows denied the
+  process-list query. Selected A10's first unchecked child, S01.
+- **Work completed / files changed:** Added the pre-change implementation map
+  to `docs/monster-spawning.md` and checked S01 in `BACKLOG.md`. The map records
+  descriptor and stable-ID generation, species/habitat selection, base and
+  biome-adjusted budgets, current player-key activation, defeat persistence and
+  durable reward escrow. It identifies the absent recurring scheduler, live
+  cross-key caps/reservations, actor unload lifecycle and local-source scheduler.
+  It also records the current 6,000 cm spatial-key constant versus the fixed
+  target's 64 m requirement for resolution in S03. No runtime source changed.
+- **Lightweight checks:** Inspected the current implementations and call sites
+  in `KalmalaWorldPopulationLayout`, `KalmalaBiomeExpansionContract`,
+  `KalmalaGameMode`, `KalmalaWildlifeSpawn`, `KalmalaHazardSpawn`, and
+  `KalmalaWorldPopulationSaveGame`. `git diff --check` passed. Changed absolute
+  paths are below MAX_PATH (longest path: 39 characters).
+- **Full verification:** Deferred. This is a documentation and backlog mapping
+  increment; no build or gameplay automation was run.
+- **Observable impact / networking authority:** No runtime behavior changed.
+  Existing population creation, defeat IDs and reward escrow remain server-owned;
+  no client authority or replication surface was added.
+- **Known limitations / remaining scope:** The mismatch between 60 m code keys
+  and the accepted 64 m target is recorded, not changed in S01; it must be
+  handled before S03 changes key geometry because deterministic positions and
+  sparse IDs depend on it. The spawn-policy and lifecycle gaps remain in S02–S34.
+- **Next eligible task:** S02 — map the lifecycle integration points for
+  defeated-slot depletion, living-slot unload cooldown and reward escrow.
+  Main checkout used; no handoff synchronization is required. Current run time:
+  `2026-10-24 12:09 UTC`.

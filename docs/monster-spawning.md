@@ -8,6 +8,67 @@ with evidence; do not turn ordinary tuning or implementation choices into questi
 Existing alpha acceptance scope, creature combat/loot stats and species biome
 weights remain governed by `biome-enemies.md`. This goal changes spawn admission.
 
+## S01 implementation map — 2026-10-24
+
+This records the pre-change code map for S01. It is orientation for the ordered
+implementation steps, not an acceptance waiver; the gaps below remain work for
+their corresponding backlog items.
+
+- **Keys, deterministic descriptors and IDs:**
+  `Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h` owns
+  `FKalmalaWorldPopulationLayout::GetSpatialKey`, `DeriveSpatialSeed`,
+  `GetSpawnBudget`, `BuildSpawnDescriptors` and `GetPersistentSpawnId`.
+  Descriptors use the world seed, key, population kind and candidate index to
+  derive stable positions, IDs and biome content. `IsSafeWildlifeLocation`
+  filters generated wildlife candidates before they become descriptors.
+  **Contract discrepancy for S03:** the current `SpatialKeySize` is 6,000 cm
+  (60 m), while this fixed target and the backlog specify 64 m. S01 leaves the
+  code and generated identities unchanged. Resolve the mismatch against the
+  accepted 64 m target before changing key geometry; changing it affects
+  deterministic descriptor positions and sparse IDs, and this goal forbids a
+  generator revision bump.
+- **Species selection and existing habitat filters:**
+  `AKalmalaWildlifeSpawn::TryGetSpawnArchetypeForBiome` maps a descriptor seed
+  and biome to its existing species share. The server-side helpers
+  `KalmalaGameMode::TryGetWildlifeArchetypeForSpawn` and
+  `FilterEligibleWildlifeSpawns` in
+  `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp` apply species habitat,
+  water, shoreline and traversability rules; `ActivatePopulationKey` also
+  applies the existing hard-enemy start exclusion. Species values and weights
+  remain documented in `docs/biome-enemies.md`.
+- **Current per-key budgets:**
+  `GetSpawnBudget` computes the base wildlife, harvest and hazard budgets from
+  sampled fields. `FKalmalaBiomeExpansionContract::ApplyPopulationBudget` in
+  `Source/KalmalaWorld/Public/KalmalaBiomeExpansionContract.h` applies the
+  existing biome multiplier. `AKalmalaGameMode::ActivatePopulationKey` applies
+  that budget to its descriptor list, then limits materialized wildlife to the
+  per-key actor budget, with the existing Tundra pack-room adjustment in
+  `FKalmalaWolfPackContract`. There is no cross-key species cap or shared
+  pending-capacity reservation yet.
+- **Current activation and scheduling:**
+  `AKalmalaGameMode::Tick` periodically visits each player controller's current
+  pawn key and calls `ActivatePopulationKey`. That authority-checked function
+  materializes the key's wildlife, harvest and hazard descriptors once;
+  `ActivePopulationSpatialKeys` is a nine-key session set. It does not derive
+  the 96 m union around living players, run a recurring per-key attempt
+  schedule, or remove keys/actors when players leave. No wildlife unregister or
+  living-slot unload cooldown path is present in this activation flow. A local
+  source scheduler is not present either.
+- **Spawn and defeat lifecycle entry points:**
+  `ActivatePopulationKey` creates `AKalmalaWildlifeSpawn` and
+  `AKalmalaHazardSpawn` actors and binds their `OnDefeated` delegates to
+  `AKalmalaGameMode::RecordDefeatedSpawn`. The actors' `DefeatServer` methods
+  enforce authority; wildlife first routes species rewards through the
+  `Record*DefeatReward` GameMode methods. The bound callback records the stable
+  ID through `UKalmalaWorldPopulationSaveGame::MarkDefeated` and saves it.
+  `UKalmalaWorldPopulationSaveGame` also owns durable pending reward claims,
+  which `DeliverPendingWildlifeRewards` retries from the authoritative GameMode
+  tick. There is no distinct defeat cooldown: existing defeated IDs are
+  excluded when a key is activated.
+
+The current activation map is server-owned, but it is eager and one-shot. S02
+maps the precise lifecycle callbacks before any unload/reload behavior is added.
+
 ## Spatial scheduling and random rolls
 
 - Retain invisible 64 m square spatial keys, floor division for negative X/Y,

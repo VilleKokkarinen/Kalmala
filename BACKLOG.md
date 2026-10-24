@@ -448,7 +448,7 @@ milestone-final verification/repair run and can exceed a normal turn.
 
 - [ ] **Implement Kalmala monster population and camp spawn suppression.**
 
-  - [ ] **S01 — Map the fixed contract to code.** Read `docs/monster-spawning.md`;
+  - [x] **S01 — Map the fixed contract to code.** Read `docs/monster-spawning.md`;
     identify existing scheduler, descriptor, budget and spawn/defeat entry points.
     Record the implementation map in that contract. Values are already decided;
     do not reopen tuning or change runtime behavior in this step.
