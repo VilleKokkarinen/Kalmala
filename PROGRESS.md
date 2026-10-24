@@ -8282,3 +8282,39 @@
   production amplitude. No rendered traversal acceptance has run.
 - **Next task in this directed goal:** BH11 — add Meadows rolling relief as a
   separate middle-scale layer and inspect its 30–70 m profiles and slopes.
+
+## Run 2026-10-24 — BH11a Meadows rolling relief
+
+- **Selected increment:** BH11a, integrate the Meadows middle-scale rolling
+  layer separately from the broad hill and later floor-detail layer.
+- **Work completed:** Added a dedicated deterministic Meadows rolling-noise
+  domain using the staged 45 m scale and 1.2 m amplitude. It contributes to the
+  complete Meadows candidate before the existing smooth shoulder compression,
+  is multiplied through the existing continuous Meadows/coast weight once, and
+  is sampled only where Meadows weight is positive. Added focused signed-layer,
+  lower-pocket, fixed seed-418/419 30/45/70 m profile, repeatability and
+  terrain-patch seam automation coverage. Updated the architecture/design
+  contract. Split BH11 into BH11a implementation and BH11b sweep harness;
+  moved fresh-source numerical trial selection to BH25b and rendered route
+  inspection to BH26. Checked only BH11a.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalGeneration.h`,
+  `Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`,
+  `docs/02-technical-architecture.md`, `docs/biome-height-rework.md`.
+- **Lightweight checks/results:** Inspected relief sampling, candidate blend,
+  preview bounds, fixed dry-Meadows sites, test call patterns and staged hill
+  controls. `git diff --check` passed. No Unreal build or automation was run;
+  full project verification remains deferred to BH26.
+- **Observable impact / authority:** Meadows now has an additional smooth,
+  deterministic 30–70 m rolling terrain signal. The 1.2 m amplitude and 6 m
+  hill amplitude remain experimental until BH25b and BH25a respectively.
+  Labels, ecological fields, hydrology, networking, server authority and saves
+  are unchanged.
+- **Known limitations / remaining scope:** Automation has not been built/run;
+  BH11b must add an executable rolling trial harness, BH25b must tune using a
+  fresh build, and rendered gentler-route traversal remains BH26. Floor detail
+  is still BH12.
+- **Next task in this directed goal:** BH11b — add the reproducible rolling
+  profile/slope/patch-seam sweep harness before BH12.

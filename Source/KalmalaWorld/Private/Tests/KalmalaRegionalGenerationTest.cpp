@@ -4,6 +4,7 @@
 #include "KalmalaOceanSampler.h"
 #include "KalmalaWaterSurfaceMesh.h"
 #include "KalmalaTerrainPatchLayout.h"
+#include "KalmalaTerrainHeightSampler.h"
 #include "KalmalaWorldPlayerStartResolver.h"
 #include "KalmalaGenerationPreview.h"
 #include "Misc/AutomationTest.h"
@@ -156,8 +157,11 @@ bool FKalmalaBiomeHeightBlendTest::RunTest(const FString& Parameters)
     const auto& Preview = FKalmalaGenerationPreview::Get();
     const double HillNoise = G::Noise(Config, FKalmalaRegionalTuning::MeadowHillSalt,
         Position, 1.0 / Preview.MeadowHillScale);
+    const double RollingNoise = G::Noise(Config, FKalmalaRegionalTuning::MeadowRollingSalt,
+        Position, 1.0 / Preview.MeadowRollingScale);
     const double TransitionCandidates[] = {
         G::ShapeMeadows(SourceHeight, HillNoise, Preview.MeadowHillAmplitude,
+            RollingNoise, Preview.MeadowRollingAmplitude,
             Preview.MeadowShoulderHeight, Preview.MeadowShoulderCompressionScale),
         G::ShapeShimmeringLakes(SourceHeight, Detail),
         G::ShapeElderwood(SourceHeight, Detail),
@@ -207,6 +211,85 @@ bool FKalmalaMeadowShoulderCompressionTest::RunTest(const FString& Parameters)
     const double PositiveHill = G::ShapeMeadows(400.0, 0.5, 600.0,
         ShoulderHeight, CompressionScale);
     TestEqual(TEXT("Uncompressed hill adds its signed amplitude once"), PositiveHill, 700.0);
+    const double RollingShoulder = G::ShapeMeadows(400.0, 0.5, 600.0, 0.5, 120.0,
+        ShoulderHeight, CompressionScale);
+    TestEqual(TEXT("Middle-scale rolling relief adds independently before shoulder compression"),
+        RollingShoulder, 760.0);
+    const double RollingHollow = G::ShapeMeadows(400.0, 0.0, 600.0, -0.5, 120.0,
+        ShoulderHeight, CompressionScale);
+    TestEqual(TEXT("Rolling trough preserves lower camp-pocket terrain"), RollingHollow, 340.0);
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaMeadowRollingProfileTest,
+    "Kalmala.World.Regional.MeadowRollingProfiles",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+bool FKalmalaMeadowRollingProfileTest::RunTest(const FString& Parameters)
+{
+    using G = FKalmalaRegionalGeneration;
+    const FVector2D Anchors[] = {
+        FVector2D(208695.7, -293111.9), // Seed-418 outer dry Meadows baseline.
+        FVector2D(-355642.4, 55495.8), // Seed-419 outer dry Meadows baseline.
+    };
+    const uint64 Seeds[] = {418ull, 419ull};
+    const FVector2D Directions[] = {FVector2D(1.0, 0.0), FVector2D(0.0, 1.0)};
+    const double Distances[] = {3000.0, 4500.0, 7000.0};
+
+    for (int32 SiteIndex = 0; SiteIndex < UE_ARRAY_COUNT(Anchors); ++SiteIndex)
+    {
+        const FKalmalaWorldGenerationConfig Config{Seeds[SiteIndex]};
+        for (const FVector2D Direction : Directions)
+        {
+            for (const double Distance : Distances)
+            {
+                double MinimumHeight = TNumericLimits<double>::Max();
+                double MaximumHeight = -TNumericLimits<double>::Max();
+                int32 DrySamples = 0;
+                double MaximumSlopeDegrees = 0.0;
+                for (int32 SampleIndex = 0; SampleIndex <= 10; ++SampleIndex)
+                {
+                    const double Offset = Distance * (double(SampleIndex) / 10.0 - 0.5);
+                    const FVector2D Position = Anchors[SiteIndex] + Direction * Offset;
+                    const FKalmalaRegionalSample Sample = G::Sample(Config, Position);
+                    TestTrue(TEXT("Rolling profile height is finite"), FMath::IsFinite(Sample.Height));
+                    const FKalmalaRegionalSample Repeat = G::Sample(Config, Position);
+                    TestEqual(TEXT("Rolling profile is deterministic"), Repeat.Height, Sample.Height);
+                    if (Sample.bHasWater) continue;
+                    ++DrySamples;
+                    TestTrue(TEXT("Dry profile remains within the Meadows blend"), Sample.Weights[0] > 0.0f);
+                    MinimumHeight = FMath::Min(MinimumHeight, double(Sample.Height));
+                    MaximumHeight = FMath::Max(MaximumHeight, double(Sample.Height));
+                    const FVector Normal = FKalmalaTerrainHeightSampler::SampleSurfaceNormal(Config, Position);
+                    const double SlopeDegrees = FMath::RadiansToDegrees(
+                        FMath::Acos(FMath::Clamp(double(Normal.Z), -1.0, 1.0)));
+                    TestTrue(TEXT("Rolling profile slope is finite"), FMath::IsFinite(SlopeDegrees));
+                    MaximumSlopeDegrees = FMath::Max(MaximumSlopeDegrees, SlopeDegrees);
+                }
+                TestTrue(TEXT("Fixed outer-Meadows profile retains enough dry samples"), DrySamples >= 8);
+                TestTrue(FString::Printf(TEXT("%.0f m profile has continuous height variation"), Distance / 100.0),
+                    DrySamples >= 8 && MaximumHeight - MinimumHeight > 0.01);
+                TestTrue(TEXT("Fixed outer-Meadows profile avoids extreme traversal slopes"),
+                    MaximumSlopeDegrees < 45.0);
+            }
+        }
+    }
+
+    TestTrue(TEXT("Meadow rolling noise has an independent domain"),
+        FKalmalaRegionalTuning::MeadowRollingSalt != FKalmalaRegionalTuning::MeadowHillSalt
+        && FKalmalaRegionalTuning::MeadowRollingSalt != FKalmalaRegionalTuning::ReliefBroadSalt
+        && FKalmalaRegionalTuning::MeadowRollingSalt != FKalmalaRegionalTuning::ReliefMiddleSalt
+        && FKalmalaRegionalTuning::MeadowRollingSalt != FKalmalaRegionalTuning::ReliefLocalSalt);
+
+    const FKalmalaWorldGenerationConfig Config{418ull};
+    const FVector2D PatchEdge(3000.0, 0.0);
+    const float WestHeight = FKalmalaTerrainHeightSampler::SampleHeight(Config, PatchEdge - FVector2D(0.5, 0.0));
+    const float EastHeight = FKalmalaTerrainHeightSampler::SampleHeight(Config, PatchEdge + FVector2D(0.5, 0.0));
+    TestTrue(TEXT("Middle-scale rolling signal has no X patch-edge height step"),
+        FMath::Abs(WestHeight - EastHeight) < 5.0f);
+    const float SouthHeight = FKalmalaTerrainHeightSampler::SampleHeight(Config, PatchEdge + FVector2D(0.0, 2999.5));
+    const float NorthHeight = FKalmalaTerrainHeightSampler::SampleHeight(Config, PatchEdge + FVector2D(0.0, 3000.5));
+    TestTrue(TEXT("Middle-scale rolling signal has no Y patch-edge height step"),
+        FMath::Abs(SouthHeight - NorthHeight) < 5.0f);
     return true;
 }
 

@@ -59,6 +59,8 @@ private:
     static double ShapeMeadows(double SourceHeight, double Detail);
     static double ShapeMeadows(double SourceHeight, double HillNoise,
         double HillAmplitude, double ShoulderHeight, double ShoulderCompressionScale);
+    static double ShapeMeadows(double SourceHeight, double HillNoise, double HillAmplitude,
+        double RollingNoise, double RollingAmplitude, double ShoulderHeight, double ShoulderCompressionScale);
     static double CompressMeadowShoulder(double Height, double ShoulderHeight, double ShoulderCompressionScale);
     static double ShapeElderwood(double SourceHeight, double Detail);
     static double ShapeShimmeringLakes(double SourceHeight, double Detail);

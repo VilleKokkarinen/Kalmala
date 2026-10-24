@@ -690,10 +690,13 @@ non-finite or out-of-range inputs. Bounds are the design ranges, inclusive:
 These settings are accepted only by the headless preview route and reported in
 `LastRender.txt`. The fast classification PNGs do not display height and
 changing terrain controls leaves their pixels unchanged. BH10a now consumes the
-Meadow hill scale/amplitude and shoulder controls in regional height sampling;
-the shared relief scales, rolling relief and floor detail remain staged for
-later increments. BH10b1 supplies fixed transects and a validated amplitude
-override; BH25 runs the fresh-source comparison and selects the final setting.
+Meadow hill scale/amplitude and shoulder controls in regional height sampling.
+BH11a consumes the independent Meadows rolling scale/amplitude; fine floor
+detail and the shared relief stack remain staged for later biome layers. BH10b1
+supplies fixed transects and a validated hill-amplitude override; BH25a runs the
+fresh-source hill comparison and selects its setting. BH11b adds the rolling-
+profile sweep harness; BH25b runs fresh-source 0.6/1.2/1.8 m trials and selects
+the rolling setting. Rendered gentler-route acceptance remains BH26.
 
 ## BH08 shared relief sampler
 
@@ -714,3 +717,21 @@ introduced. Focused sampler coverage checks domain separation, seed/query-order
 repeatability across hydrology-cache clearing, negative positions, unchanged
 production height, and continuity on both axes of the 3,000 cm terrain patch.
 The automation has been added and awaits the BH26 build and integrated run.
+
+## BH11a Meadows rolling relief
+
+The Meadows height candidate now adds a second, independently seeded signal at
+the staged 45 m scale and 1.2 m amplitude, before applying the existing smooth
+upper-shoulder compression. It uses absolute world coordinates and a dedicated
+domain salt; it does not consume or alter the ecological Elevation, biome
+weights, or the shared 150 m relief sample. The rolling layer can therefore
+shape 30–70 m walk profiles without changing biome identity or floor-detail
+frequency. The 6 m broad-hill amplitude is still provisional pending BH25a.
+
+Focused source automation covers signed rolling contribution, lower-pocket
+preservation, repeatable fixed seed-418/419 30/45/70 m profile samples, finite
+slope calculations, and sub-centimetre probes on both terrain-patch axes. These
+fixtures have not been built or executed. BH11b adds the reusable rolling
+amplitude sweep harness; BH25b runs it with freshly compiled code and selects
+the smallest accepted trial. Rendered traversal and connected-gentle-route
+inspection remain for BH26.

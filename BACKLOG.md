@@ -558,9 +558,15 @@ run for this goal and may exceed one turn.
       sampler; preserve default sampling when the override is absent. Provide a
       runner that exports distinct 4/6/8 m trial CSVs and records the effective
       trial so a stale binary fails visibly. Do not select final tuning here.
-  - [ ] **BH11 — Add Meadows rolling relief.** Integrate the middle-scale layer
-    separately; inspect 30–70 m profiles, traversal slopes, patch seams, and
-    connected gentler routes.
+  - [ ] **BH11 — Add Meadows rolling relief.** Keep open until BH11a–BH11b are
+    complete; keep final amplitude provisional until BH25b and rendered route
+    acceptance until BH26.
+    - [x] **BH11a — Integrate the rolling layer.** Add the independently seeded
+      30–70 m Meadows noise to its candidate before shoulder compression; retain
+      continuous biome/coast blending and preserve lower pockets.
+    - [ ] **BH11b — Add rolling profile acceptance harness.** Add fixed-seed
+      30–70 m height/slope transects, amplitude trials and patch-seam controls;
+      reject stale binaries and defer numeric trial selection to BH25b.
   - [ ] **BH12 — Add Meadows floor detail.** Integrate the local layer separately;
     confirm it reads beneath vegetation without corrugation or lattice aliasing.
   - [ ] **BH13 — Shape Elderwood.** Use the shared base plus bounded detail
@@ -607,10 +613,12 @@ run for this goal and may exceed one turn.
       source, run BH10b1 at 4/6/8 m; compare BH01 fixed-site baselines and
       100–250 m transect height/slope profiles, select the smallest accepted
       amplitude, and record measurements.
-    - [ ] **BH25b — Finalize remaining tuning and contracts.** Update
-      architecture/setup instructions and height previews with raw ranges, and
-      compare sampler, map, generation, active-patch, collision, and decoration
-      costs with BH01 baselines.
+    - [ ] **BH25b — Run rolling trials and finalize remaining tuning/contracts.**
+      With freshly compiled source, run BH11b at 0.6/1.2/1.8 m; compare BH01
+      profiles and slopes, select the smallest accepted value, record results,
+      update architecture/setup instructions and height previews with raw
+      ranges, and compare sampler, map, generation, active-patch, collision,
+      and decoration costs with BH01 baselines.
   - [ ] **BH26 — Run final integrated verification and repair.** Inspect the full
     combined change; run the applicable Editor build, regional/master-map/
     finite-world/integrated/water checks, RegionalGeneration and Minimap peers,
