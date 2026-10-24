@@ -9506,3 +9506,87 @@
   included ID, scope N/A disposition, and final acceptance are covered.
 - **Next eligible A10 group:** A6 recovery draughts
   (BerryRecoveryDraught, RootStaminaDraught).
+
+
+## Run 2026-10-24 — A10 per-item audit: A6 recovery draughts
+
+- **Scope and definitions:** audited ordinary consumable item definitions
+  BerryRecoveryDraught and RootStaminaDraught in the schema-16 food file.
+  Berry Recovery Draught: “A ruby-red berry draught that restores up to
+  20 health over 10 seconds.” MaxStack 10, WeightKg 0.2.
+  Root Stamina Draught: “A green-gold root draught that restores up to 20
+  stamina immediately.” MaxStack 10, WeightKg 0.2. Neither has a
+  spoilage/expiry field, equipment profile, attack, or level-up item data.
+  No attack, stat reward, upgrade cost, or separate direct drop/harvest/
+  starter source is authored for either ID.
+- **Acquisition and recipes:** both items are registered ordinary items
+  and are produced by enabled Cauldron recipes only. BerryRecoveryDraughtRecipe
+  consumes 3 Lingonberry + 1 Carrot for one dose. RootStaminaDraughtRecipe
+  consumes 2 Potato + 1 Onion for one dose. Each recipe has MaxBatch 5,
+  OutputCount 1, and awards 10 Cooking XP per batch. The server validates
+  the declared Cauldron, live hearth heat, batch, ingredients, and output
+  capacity. A focused scan of registered catalogue JSON found no other
+  recipe, loot, creature, or source reference for these output IDs.
+- **Use, authority, and effects:** the owner request supplies only the item
+  ID. The server requires authority, a valid controlled character, known
+  draught ID, finite living health above 1, and no active shared cooldown
+  or Berry/Tonic recovery. Berry requires health below maximum; on acceptance
+  it consumes one item and grants up to 20 health over 10 server seconds
+  (2 per second), clamped to maximum health. Healing ends at full health or
+  death; the separate shared 60-second draught cooldown is applied.
+  Root requires finite current stamina below its finite positive current
+  maximum. It consumes one item, restores up to 20 stamina immediately,
+  clamps to that current maximum, and clears sprint exhaustion once the
+  recovery threshold is met. It applies the same 60-second cooldown and no
+  timed healing status. Full-health/full-stamina, dead, cooldown, or active
+  recovery rejection preserves the dose; if effect application fails after
+  candidate exchange, the inventory is rolled back. These are draught uses,
+  not the separate Steady Meal food effect.
+- **N/A categories:** no wearable/carried-tool profile, attack, durability,
+  equipment slot, level-up cost, or stat reward applies. Neither item grants
+  a melee/ranged action. The exact JSON scan confirmed no entries in the
+  registered profile, attack, upgrade, reward, creature, or other recipe
+  files beyond the ordinary item definitions and the two Cauldron outputs.
+- **Icons and registration:** GameCatalogues.json registers food.json and
+  the Cauldron recipe file. docs/icon-provenance.md records built-in original
+  art and batch Z for both identities:
+  - Berry Recovery Draught: original Content/Kalmala/UI/Source/IconOriginals/BerryRecoveryDraught.png;
+    prepared Content/Kalmala/UI/Source/Icons/BerryRecoveryDraught.png;
+    imported Content/Kalmala/UI/Icons/Items/BerryRecoveryDraught.uasset;
+    runtime /Game/Kalmala/UI/Icons/Items/BerryRecoveryDraught.BerryRecoveryDraught.
+  - Root Stamina Draught: original Content/Kalmala/UI/Source/IconOriginals/RootStaminaDraught.png;
+    prepared Content/Kalmala/UI/Source/Icons/RootStaminaDraught.png;
+    imported Content/Kalmala/UI/Icons/Items/RootStaminaDraught.uasset;
+    runtime /Game/Kalmala/UI/Icons/Items/RootStaminaDraught.RootStaminaDraught.
+  Both catalogue validators passed, confirming 1254x1254 RGBA originals,
+  transparent 64x64 prepared icons, imported Texture2D assets, and canonical
+  runtime mappings. docs/alpha-item-details.md and docs/material-icons.md
+  are absent in this checkout; the backlog, architecture, setup guide, and
+  extant icon-provenance guide supplied the contract evidence.
+- **Inventory/effect saves:** the schema-3 PlayerDiscovery save serializes
+  discovery IDs, learned-effect IDs, M9 claim IDs, and carried-tool records.
+  It has no packed player inventory stack array or active status entries.
+  Stamina is replicated but is not saved. Ordinary packed item stacks are
+  session-only; Berry healing, Root stamina, and the shared cooldown are not
+  restored from this save. Consumption adds no persistence call or
+  save-schema field.
+- **Files changed:** BACKLOG.md, PROGRESS.md only.
+- **Lightweight checks:** focused PowerShell JSON assertions passed for
+  exact definitions, recipe ingredients/output/station/batch/XP metadata, and
+  absence of other registered catalogue references. Catalogue icon checks
+  passed separately for BerryRecoveryDraught and RootStaminaDraught.
+  Static inspection covered server gates, candidate consumption/rollback,
+  effects, cooldowns, replication, save declarations, and provenance. No
+  build, automation, gameplay/UI, peer, or reconnect check ran in this audit.
+- **Full verification:** deferred; this is not the final A10 increment.
+- **Impact and remaining scope:** tracking-only; no catalogue, recipe, icon,
+  runtime, authority, or save behavior changed, and no definition or icon gap
+  was found. A6 item families are covered; the explicit cold/fire preparation
+  deferral remains in force and A8b Antidote remains a separate item audit.
+  No live Cauldron/use/reconnect scenario was exercised in this increment;
+  A10 final acceptance remains open. Preserve BronzePick and IronPick target
+  gaps for final progression disposition. Keep the broad A10 item audit
+  unchecked until every included item, N/A disposition, and final acceptance
+  is covered.
+- **Next eligible A6 group:** none remains; A6 has no further in-scope
+  item family. Next A10 family: A7 farming.
