@@ -7884,3 +7884,66 @@
   acceptance and final milestone verification remain open. The broad per-item
   audit child remains unchecked.
 - **Next eligible item:** Lightwood (A0). Continue in backlog order.
+
+## Run 2026-10-24 — A10 per-item audit: Lightwood
+
+- **Selected increment:** The next A0 item after Bow String in A10's cumulative
+  source, recipe/use, upgrade, icon and save audit. This review covers Lightwood
+  only; the broad A10 child remains unchecked.
+- **Evidence reviewed:** Registered wood item JSON and `GameCatalogues.json`,
+  all catalogue recipes/upgrades containing `Lightwood`, the server forest and
+  campfire code, focused harvest assertions, icon manifest/runtime lookup and
+  retained files, player/world save callbacks, and the relevant design,
+  architecture, setup and icon-provenance records.
+- **Registered item and source:** `Lightwood` is registered from
+  `items/materials/wood.json`, description “Lightweight yet durable.”, stack
+  limit 50. No catalogue recipe produces it. The deterministic Meadow forest
+  marks Aspen candidates; source `meadows-aspen-trunk` selects 4 Lightwood on
+  the server and requires a Stone Axe or better. The player fells the tree,
+  breaks its trunk, then picks up the exposed bundle. The fixed four-item yield
+  is not the variable M9 source-loot table. Existing `KalmalaM9AxeHarvestGate`
+  and `KalmalaM9SourceAcceptance` assertions cover the source, tool tier and
+  quantity; they were inspected, not run here.
+- **Uses and upgrades:** A read-only traversal of all catalogue JSON found 18
+  Lightwood ingredient references. Acquisition costs: Light Bow 25; Iron Axe 3,
+  Bronze Axe 4, Bronze Knife 2, Bronze Spear 4, Bronze Mace 2, Bronze Sword 2,
+  Bronze Shield 5 and Reef Harpoon 4. Upgrade costs: Iron Axe 3, Bronze Axe 4,
+  Light Bow 3, Bronze Knife 2, Bronze Mace 2, Bronze Spear 4, Bronze Sword 1,
+  Bronze Shield 1 and Reef Harpoon 2. No other recipe output or catalogue use
+  was found. `FKalmalaRawFuelContract` also includes Lightwood as a possible
+  campfire fuel: each selected unit adds 60 seconds. Lightwood itself has no
+  equipment profile, equip slot, attack, effect, or item-level upgrade record;
+  those categories are N/A for this raw material.
+- **Icon:** Batch A manifest row maps canonical ID `Lightwood` to the pack,
+  detail and storage views. The retained original is
+  `Content/Kalmala/UI/Source/IconOriginals/Lightwood.png`, prepared texture is
+  `Content/Kalmala/UI/Source/Icons/Lightwood.png`, and imported package is
+  `Content/Kalmala/UI/Icons/Items/Lightwood.uasset`. The widget assigns the log
+  symbol variant and the catalogue library resolves the canonical ID to its
+  own `/Game/Kalmala/UI/Icons/Items/Lightwood.Lightwood` texture. The prior
+  152-identity catalogue icon audit passed. This checkout's
+  `docs/icon-provenance.md` has no Lightwood-named prompt entry; I did not infer
+  its original generation wording.
+- **Save behavior:** Carried Lightwood quantity follows the session-only
+  ordinary-material inventory limit recorded in the Sinew audit and architecture
+  docs; generic chest storage has a separate stack save, but its round-trip test
+  does not assert Lightwood by name. Forest source depletion has a distinct
+  server world-population save: successful pickup records the forest spawn ID,
+  and patch activation skips IDs already harvested. The documented
+  `Kalmala.Gameplay.Harvest.ForestProcessRestart` writer/reader gate confirms
+  saved tree depletion across process restart; it does not restore player
+  Lightwood. Uncollected tree stages/drops are session state, so the saved
+  depleted source may remain absent while carried materials are not restored.
+- **Checks:** Read-only JSON traversal/search confirmed the 18 catalogue cost
+  references; source, test, icon-path and save-contract inspections completed.
+  `git diff --check` passed after edits. No tests, builds, peer or restart runs
+  were performed for this audit.
+- **Full verification:** Deferred; this is not A10's final increment. No
+  gameplay, recipe, harvest authority, networking or save behavior changed.
+- **Impact and remaining scope:** Records the fixed Aspen source, all
+  catalogue-cost dependencies, campfire fuel use, canonical icon and distinct
+  item/source persistence boundaries. Exact Lightwood icon prompt is not
+  documented in the current provenance guide. Other item audits, fresh-start
+  progression, approved-system acceptance and final A10 verification remain
+  open; the broad per-item child stays unchecked.
+- **Next eligible item:** Bone Fragment (A0). Continue in backlog order.
