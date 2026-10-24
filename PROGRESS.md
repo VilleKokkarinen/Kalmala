@@ -9096,3 +9096,62 @@
   included item and scope N/A is covered.
 - **Next eligible group:** A2 melee weapons (`BronzeSword`, `IronSword`,
   `WoodenClub`).
+
+## Run 2026-10-24 — A10 per-item audit: A2 melee weapons
+
+- **Scope and definitions:** audited `BronzeSword`, `IronSword`, and
+  `WoodenClub`. They are carried-tool profiles, so separate ordinary stack-item
+  definitions are not applicable. Registered profiles, station recipes,
+  level-one upgrade costs, shared stat rewards, and Basic attack rows are all
+  present in the catalogue. No direct loot, harvest, or gathering source, or
+  additional recipe use as an ingredient, was found.
+- **Acquisition and stats:** Bronze Sword is crafted at a level-one Forge for
+  10 Bronze, 2 Lightwood, and 2 Deer Hide; its profile is 100 condition, 35
+  Slash, and the existing 2 kg default carried weight. Iron Sword costs 20
+  Iron, 2 Densewood, and 2 Deer Hide at a level-one Forge; it has 180 condition,
+  55 Slash, and 2.5 kg weight. Wooden Club costs 4 Wood at a level-one
+  Workbench; it has 40 condition, 10 Crush, and 1 kg weight. The reviewed
+  decision keeps Deer Hide as the swords' binding input and Bow String bow-only.
+- **Upgrades and attacks:** Bronze Sword's level-one Forge cost is 2 Bronze +
+  1 Lightwood; Iron Sword's is 2 Iron + 1 Densewood. Both receive +30 condition
+  and +4 Slash per level. Wooden Club's level-one Workbench cost is 2 Wood and
+  it receives +20 condition and +2 Crush per level. All three use their
+  registered Basic melee attack with zero additional attack-style damage; no
+  alternate or elemental attack is authored. Existing server-side combat
+  resolves the profile's typed damage through the standard melee path.
+- **Icons and registration:** schema-16 `GameCatalogues.json` registers the
+  sword and mace profile files, Forge and Workbench recipes, weapon upgrade
+  files, shared stat rewards, and attacks. The three canonical IDs appear in
+  their corresponding profile/recipe/cost/reward/attack files. Icon manifest
+  batches M, N, and O each have retained original artwork, prepared transparent
+  64x64 textures, imported canonical runtime textures, and exact original
+  prompts in `docs/icon-provenance.md`.
+- **Persistence and authority:** player-discovery save schema 3 stores each
+  carried tool's item ID, level, condition, and instance GUID. Server crafting
+  and upgrades validate station, recipe, payment, capacity, and tool state;
+  they persist a candidate before publishing the accepted change and roll back
+  on save failure. Ordinary material stacks remain session-only. No live
+  station, peer, or restart transaction was exercised for this audit.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md` only.
+- **Lightweight checks:** `python Scripts/Validate-CatalogueReferences.py`
+  passed with 61 registered JSON files, 152 unique definitions, 777 resolved
+  references, and canonical runtime icon mappings for all definitions.
+  Focused `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id` checks passed
+  for all three IDs, confirming original, prepared, and imported assets. A
+  focused parse successfully parsed all 61 registered catalogue files and
+  confirmed each ID's profile, station recipe, upgrade cost, stat reward, and
+  attack references. Source, save, and A2 contract text were inspected. No
+  build, automation, full suite, peer, or restart check ran.
+- **Full verification:** deferred; this is not A10's final increment.
+- **Impact and remaining scope:** tracking-only. No recipe, stat, attack, icon,
+  authority, or save behavior changed. A2 data and icon coverage have no gap
+  identified in this audit. The referenced `docs/alpha-item-details.md` is
+  absent from this checkout; reviewed values were cross-checked against the A2
+  backlog rows, the 2026-10-21 decision-log entry, and the A2 sections in
+  `docs/07-development-setup.md` rather than inferred. Keep the broad A10
+  item-audit child unchecked until every included ID and scope N/A disposition
+  is covered. Preserve the BronzePick target gap (10 Wood + 10 Bronze versus
+  current 4 Wood + 4 Stone) and IronPick target gap (10 Wood + 10 Iron versus
+  current 4 Iron + 2 Wood + 2 Stone) for final progression disposition.
+- **Next eligible group:** A3 ranged items (`LightBow`, `StoneArrow`,
+  `BronzeArrow`).

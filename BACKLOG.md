@@ -439,12 +439,15 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     Wild potatoes (Potato, PotatoSeed), Wild rutabaga (Rutabaga, RutabagaSeed),
     Wild onions (Onion, OnionSeed), retained Wood/Densewood/Stone, and
     Boar/Deer Hide and Meat (BoarHide, DeerHide, BoarMeat, DeerMeat), Amber,
-    Frost Salt, CopperOre, TinOre, Coal, the Copper/Tin/Bronze bar family, and
-    IronOre/Iron reviewed; see PROGRESS.md. The IronPick Forge acquisition still
-    misses its approved A1 cost (Wood x10 + Iron x10; current Iron x4 + Wood x2
-    + Stone x2); retain this for final progression acceptance. Next audit the
-    A2 melee weapons (`BronzeSword`, `IronSword`, `WoodenClub`). Keep this child
-    open until every included item and scope N/A disposition is covered.
+    Frost Salt, CopperOre, TinOre, Coal, the Copper/Tin/Bronze bar family,
+    IronOre/Iron, and A2 melee weapons (`BronzeSword`, `IronSword`,
+    `WoodenClub`) reviewed; see PROGRESS.md. Both approved A1 pick acquisition
+    targets still differ from their Forge recipes: BronzePick expects Wood x10 +
+    Bronze x10 (current Wood x4 + Stone x4); IronPick expects Wood x10 + Iron
+    x10 (current Iron x4 + Wood x2 + Stone x2). Retain both for final progression
+    disposition. Next audit A3 ranged items (`LightBow`, `StoneArrow`,
+    `BronzeArrow`). Keep this child open until every included item and scope N/A
+    disposition is covered.
   - [ ] Run required full verification at each milestone's final increment.
   - [ ] Verify fresh-start progression through Bronze and Iron without debug grants.
   - [ ] Verify approved farming, shelter, cargo, accessories, peers and restart.
