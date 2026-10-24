@@ -1,6 +1,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "KalmalaGameMode.h"
+#include "KalmalaWildlifeSpawn.h"
 #include "Misc/AutomationTest.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaPopulationSpawnGateEvaluatorTest,
@@ -85,6 +86,46 @@ bool FKalmalaPopulationSpawnGateEvaluatorTest::RunTest(const FString& Parameters
     TestEqual(TEXT("Evaluator returns only the earliest failing gate"),
         AKalmalaGameMode::EvaluatePopulationSpawnGates(Results),
         EKalmalaPopulationSpawnRejectionReason::SchedulerBudget);
+
+    const EKalmalaWildlifeArchetype CurrentSpecies[] = {
+        EKalmalaWildlifeArchetype::Mireling,
+        EKalmalaWildlifeArchetype::Boar,
+        EKalmalaWildlifeArchetype::Deer,
+        EKalmalaWildlifeArchetype::Rat,
+        EKalmalaWildlifeArchetype::Badger,
+        EKalmalaWildlifeArchetype::MoonBear,
+        EKalmalaWildlifeArchetype::DeathAdder,
+        EKalmalaWildlifeArchetype::Viper,
+        EKalmalaWildlifeArchetype::GiantSnake,
+        EKalmalaWildlifeArchetype::MosquitoSwarm,
+        EKalmalaWildlifeArchetype::PeatHusk,
+        EKalmalaWildlifeArchetype::Wolf,
+        EKalmalaWildlifeArchetype::Lynx,
+        EKalmalaWildlifeArchetype::PolarBear,
+        EKalmalaWildlifeArchetype::HornedGoat,
+        EKalmalaWildlifeArchetype::ThunderSentinel,
+        EKalmalaWildlifeArchetype::ReefMaw
+    };
+    bool bEveryCurrentSpeciesPassesTime = true;
+    for (const EKalmalaWildlifeArchetype Archetype : CurrentSpecies)
+    {
+        bEveryCurrentSpeciesPassesTime &= AKalmalaGameMode::IsPopulationTimeGateAllowed(Archetype);
+    }
+    TestTrue(TEXT("The time gate passes every current wildlife species"), bEveryCurrentSpeciesPassesTime);
+
+    const EKalmalaWildlifeArchetype UnknownArchetype = static_cast<EKalmalaWildlifeArchetype>(255);
+    TestFalse(TEXT("An unknown archetype fails the time gate closed"),
+        AKalmalaGameMode::IsPopulationTimeGateAllowed(UnknownArchetype));
+    TestFalse(TEXT("The fixture seam can force a known species time rejection"),
+        AKalmalaGameMode::IsPopulationTimeGateAllowedForTests(EKalmalaWildlifeArchetype::Deer, true));
+    TestFalse(TEXT("The fixture seam cannot allow an unknown archetype"),
+        AKalmalaGameMode::IsPopulationTimeGateAllowedForTests(UnknownArchetype, true));
+    Results = AllGatesPass();
+    Results.bTimePassed = AKalmalaGameMode::IsPopulationTimeGateAllowedForTests(
+        EKalmalaWildlifeArchetype::Deer, true);
+    TestEqual(TEXT("A forced time-policy rejection reaches the ordered evaluator"),
+        AKalmalaGameMode::EvaluatePopulationSpawnGates(Results),
+        EKalmalaPopulationSpawnRejectionReason::Time);
     return true;
 }
 

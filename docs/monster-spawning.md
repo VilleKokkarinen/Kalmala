@@ -283,6 +283,13 @@ the existing biome, dry-shore, water and terrain-traversability rules plus the
 checks; physical body clearance, roofs and the S20 slope check remain later
 placement work. Attempt records retain the first failed gate in contract order.
 
+S16 wires the time result for each bounded attempt. An exhaustive policy
+allowlist passes every current wildlife archetype without reading a game clock
+or adding species restrictions; unknown archetypes fail closed. The only
+forced-rejection seam is compiled for development automation fixtures, so a
+fixture can verify the ordered `Time` rejection without adding a runtime time
+policy. Weather and progression remain fail-closed until S17 and S18.
+
 - Time, weather and progression are explicitly **unrestricted for all current
   species**. These three gates return pass. Provide internal policy seams and
   fixture overrides for rejection tests; do not build a new clock, boss system,

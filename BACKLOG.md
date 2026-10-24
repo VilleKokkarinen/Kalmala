@@ -622,7 +622,7 @@ milestone-final verification/repair run and can exceed a normal turn.
     one rejected attempt consumes only its bounded attempt budget.
   - [x] **S15 — Wire distance and habitat gates.** Use S09 and existing species
     biome/dry-shore/start-exclusion rules; do not relax existing restrictions.
-  - [ ] **S16 — Add time-of-day gate.** Pass for every current species;
+  - [x] **S16 — Add time-of-day gate.** Pass for every current species;
     expose only an internal policy seam for rejection fixtures. No new clock.
   - [ ] **S17 — Add weather gate.** Pass for every current species;
     expose an internal rejection-test seam. Add no new weather restrictions.

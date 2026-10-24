@@ -180,16 +180,23 @@ private:
     static EKalmalaPopulationSpawnRejectionReason EvaluatePopulationSpawnGates(
         const FKalmalaPopulationSpawnGateResults& GateResults);
     void ApplyPopulationSpeciesHabitatGate(FKalmalaPopulationSchedulerKeyWork& KeyWork) const;
+    void ApplyPopulationTimeGate(FKalmalaPopulationSchedulerKeyWork& KeyWork) const;
     bool TryReserveWolfPackCapacity(const TArray<FVector>& MemberLocations,
         const FIntPoint& HomeSpatialKey, FGuid& OutReservationId);
     bool ReleasePopulationCreatureReservation(const FGuid& ReservationId);
     void ApplyPopulationPlayerDistanceGate(FKalmalaPopulationSchedulerKeyWork& KeyWork,
         const TArray<class AKalmalaCharacter*>& LivingPlayers) const;
     bool DoesPopulationDescriptorPassSpeciesHabitat(const FKalmalaWorldPopulationSpawn& Descriptor) const;
+    bool DoesPopulationDescriptorPassTimeGate(const FKalmalaWorldPopulationSpawn& Descriptor) const;
     bool IsDescriptorInSpawnRing(const FVector& SpawnLocation,
         const TArray<class AKalmalaCharacter*>& LivingPlayers) const;
     bool IsDescriptorOutsidePlayerExclusion(const FVector& SpawnLocation,
         const TArray<class AKalmalaCharacter*>& LivingPlayers) const;
+    static bool IsPopulationTimeGateAllowed(EKalmalaWildlifeArchetype Archetype);
+#if WITH_DEV_AUTOMATION_TESTS
+    static bool IsPopulationTimeGateAllowedForTests(EKalmalaWildlifeArchetype Archetype,
+        bool bForceRejectForTests);
+#endif
     void ActivatePopulationKey(const FIntPoint& SpatialKey);
     void RefreshOceanDiscoveries();
     void RecordHarvestedSpawn(const FString& PersistentSpawnId);

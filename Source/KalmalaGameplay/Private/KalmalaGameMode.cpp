@@ -5544,6 +5544,7 @@ void AKalmalaGameMode::UpdatePopulationSchedulerWake(const double NowSeconds)
         SelectPopulationRingCandidates(KeyWork, Descriptors, LivingPlayers);
         ApplyPopulationPlayerDistanceGate(KeyWork, LivingPlayers);
         ApplyPopulationSpeciesHabitatGate(KeyWork);
+        ApplyPopulationTimeGate(KeyWork);
     }
 }
 
@@ -5742,6 +5743,33 @@ bool AKalmalaGameMode::DoesPopulationDescriptorPassSpeciesHabitat(
         : 0.0f;
     return AKalmalaWildlifeSpawn::IsHardEnemySpawnAllowedByStart(
         bHardEnemy, GeneratedPlayerStart != nullptr, StartDistance);
+}
+
+void AKalmalaGameMode::ApplyPopulationTimeGate(FKalmalaPopulationSchedulerKeyWork& KeyWork) const
+{
+    for (FKalmalaPopulationSpawnAttempt& Attempt : KeyWork.SpawnAttempts)
+    {
+        Attempt.GateResults.bTimePassed = DoesPopulationDescriptorPassTimeGate(Attempt.Descriptor);
+        Attempt.RejectionReason = EvaluatePopulationSpawnGates(Attempt.GateResults);
+    }
+
+    KeyWork.Candidates.RemoveAll([this](const FKalmalaWorldPopulationSpawn& Descriptor)
+    {
+        return !DoesPopulationDescriptorPassTimeGate(Descriptor);
+    });
+}
+
+bool AKalmalaGameMode::DoesPopulationDescriptorPassTimeGate(
+    const FKalmalaWorldPopulationSpawn& Descriptor) const
+{
+    if (!HasAuthority() || !IsValid(GetWorld()) || !WorldGenerationConfig.IsValid())
+    {
+        return false;
+    }
+
+    EKalmalaWildlifeArchetype Archetype;
+    return KalmalaGameMode::TryGetWildlifeArchetypeForSpawn(WorldGenerationConfig, Descriptor, Archetype)
+        && IsPopulationTimeGateAllowed(Archetype);
 }
 
 void AKalmalaGameMode::RegisterLivePopulationCreature(AKalmalaWildlifeSpawn* Creature)
@@ -5984,6 +6012,41 @@ EKalmalaPopulationSpawnRejectionReason AKalmalaGameMode::EvaluatePopulationSpawn
     }
     return EKalmalaPopulationSpawnRejectionReason::None;
 }
+
+bool AKalmalaGameMode::IsPopulationTimeGateAllowed(const EKalmalaWildlifeArchetype Archetype)
+{
+    switch (Archetype)
+    {
+    case EKalmalaWildlifeArchetype::Mireling:
+    case EKalmalaWildlifeArchetype::Boar:
+    case EKalmalaWildlifeArchetype::Deer:
+    case EKalmalaWildlifeArchetype::Rat:
+    case EKalmalaWildlifeArchetype::Badger:
+    case EKalmalaWildlifeArchetype::MoonBear:
+    case EKalmalaWildlifeArchetype::DeathAdder:
+    case EKalmalaWildlifeArchetype::Viper:
+    case EKalmalaWildlifeArchetype::GiantSnake:
+    case EKalmalaWildlifeArchetype::MosquitoSwarm:
+    case EKalmalaWildlifeArchetype::PeatHusk:
+    case EKalmalaWildlifeArchetype::Wolf:
+    case EKalmalaWildlifeArchetype::Lynx:
+    case EKalmalaWildlifeArchetype::PolarBear:
+    case EKalmalaWildlifeArchetype::HornedGoat:
+    case EKalmalaWildlifeArchetype::ThunderSentinel:
+    case EKalmalaWildlifeArchetype::ReefMaw:
+        return true;
+    default:
+        return false;
+    }
+}
+
+#if WITH_DEV_AUTOMATION_TESTS
+bool AKalmalaGameMode::IsPopulationTimeGateAllowedForTests(
+    const EKalmalaWildlifeArchetype Archetype, const bool bForceRejectForTests)
+{
+    return !bForceRejectForTests && IsPopulationTimeGateAllowed(Archetype);
+}
+#endif
 
 bool AKalmalaGameMode::TryReserveWolfPackCapacity(const TArray<FVector>& MemberLocations,
     const FIntPoint& HomeSpatialKey, FGuid& OutReservationId)

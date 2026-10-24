@@ -7894,3 +7894,16 @@
 - **Networking/authority:** Distance uses the current-world living-player list on the authoritative GameMode. Habitat, species and start-exclusion queries also run only in that server-owned path; no save or replication schema changed.
 - **Known limitations:** Time, weather and progression remain fail-closed until S16–S18; caps wait for S19; surface, clearance and camp-aware placement remain later work. Natural actor creation remains disabled until S26.
 - **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within this requested monster-population goal, S16 is next — add the unrestricted current-species time gate and rejection-test seam.
+
+
+### Monster population — S16 unrestricted time gate
+
+- **Selected increment:** S16, wire the time-of-day gate for every bounded evaluator attempt.
+- **Work completed:** Added an exhaustive allowlist for all 17 current wildlife archetypes; each passes without consulting a clock or applying species restrictions. Unknown enum values fail closed. The scheduler now records this result after the earlier distance and habitat gates, preserving ordered rejection. A development-automation-only seam can force rejection for a known species, and the focused evaluator fixture checks current-species pass, unknown rejection, forced rejection and the `Time` reason.
+- **Files changed:** Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSpawnGateEvaluatorTest.cpp, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
+- **Lightweight checks:** Inspected the S13–S15 evaluator flow and the current wildlife archetype enum; verified the allowlist covers all current values and unknown values take the default rejection. `git diff --check` passed; the automation fixture and builds were not run.
+- **Full verification:** Deferred to S35; this is not the final implementation task in the monster-population goal.
+- **Observable impact / authority:** Server scheduler attempts now carry the unrestricted time-pass result for every known current species. No game clock, public setting, new species restriction, actor creation or natural-spawn activation was added.
+- **Networking/authority:** Time result population runs in the authoritative GameMode scheduler path; the rejection seam is compiled only with development automation tests. No replicated or saved-data state changed.
+- **Known limitations:** Weather and progression gates remain fail-closed until S17–S18; caps and placement remain later work. Natural actor creation remains disabled until S26.
+- **Next eligible task:** Within this requested monster-population goal, S17 is next — add the unrestricted current-species weather gate and rejection-test seam.
