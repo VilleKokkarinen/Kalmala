@@ -8252,3 +8252,81 @@
   gap. Later A0 item groups, approved-system/fresh-world acceptance, and
   milestone-final verification remain open; keep the broad child unchecked.
 - **Next eligible A0 group:** Wild potatoes. Continue in backlog order.
+
+## Run 2026-10-24 — A10 per-item audit: Wild potatoes
+
+- **Selected increment:** Audit the A0 Wild potatoes group only. The broad
+  A10 per-item audit child remains unchecked.
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md` only.
+- **Registered identities:** `Potato` (display Potato, stack 20) and
+  `PotatoSeed` (display Potato Seeds, stack 50) are registered in
+  `items/crops.json` through `Content/Data/GameCatalogues.json`. No equipment
+  profile, attack record, or item-specific upgrade/stat reward exists for
+  either; those categories are N/A. Neither is directly edible or allowlisted
+  by `IsKnownFoodItem`. PotatoSeed has no source or gameplay use in the current
+  item scope; A0 explicitly adds no seed source and A7 does not plant seeds.
+- **Sources and crop use:** `meadows-wild-potato-patch` is the next dry, safe
+  Meadow candidate after the carrot patch in each eligible 6,000 cm key. Its
+  independent stable identity seed domain is
+  `Mix(candidate-seed XOR 0xA0B070A71019)`. A server-validated, tool-free
+  hand gather grants exactly 2 Potato, no PotatoSeed. The A7 Garden Plot has
+  one Potato tuber mode: pay 1 Potato, then harvest 3 Potatoes after 600 active
+  seconds in an active terrain patch. It saves crop mode and remaining active
+  time in construction schema 6, pauses while the patch is inactive or server
+  stopped, spends one Trowel condition only on accepted planting, and leaves a
+  mature crop in place when the pack is full. There is no PotatoSeed planting
+  mode.
+- **Recipes/effects:** `Potato` is an ingredient in five enabled recipes, all
+  with maximum batch 5 and 10 Cooking XP per recipe:
+  - Cauldron `RootStaminaDraughtRecipe`: Potato x2 + Onion x1 produces one
+    RootStaminaDraught.
+  - Cauldron `MeatStewRecipe`: BoarMeat x1 + DeerMeat x1 + Carrot x2 +
+    Potato x2 produces one MeatStew.
+  - Cauldron `RootVegetableSoupRecipe`: Carrot x1 + Potato x1 + Rutabaga x1 +
+    Onion x1 produces one RootVegetableSoup.
+  - Cauldron `PeatHeartStewRecipe`: PeatHeart x1 + Potato x2 + Onion x1
+    produces two PeatHeartStew.
+  - Frying Pan `RoastedRootVegetablesRecipe`: Carrot x1 + Potato x1 + Onion
+    x1 produces one RoastedRootVegetables.
+  No recipe outputs Potato or PotatoSeed, and no recipe references PotatoSeed.
+  Potato itself has no direct meal effect; the prepared outputs retain their
+  own existing effects. PotatoSeed remains an unused registered item.
+- **Icon and provenance:** Manifest row 09/C assigns Potato to
+  PackInventory, ItemDetail, Storage and Ingredient views; row 10/C assigns
+  PotatoSeed to PackInventory, ItemDetail and Storage. Both retained original
+  PNGs, prepared 64x64 PNGs, and imported `.uasset` packages exist. The
+  catalogue icon library resolves each canonical ID to its matching
+  `/Game/Kalmala/UI/Icons/Items/<ID>.<ID>` texture; the vector fallback entries
+  are Root variant 1 and Seed variant 1. Both focused validators passed:
+  1254x1254 8-bit RGBA originals, transparent 64x64 RGBA prepared textures,
+  and the expected imported package paths. Current `docs/icon-provenance.md`
+  has no Potato- or PotatoSeed-specific primary generation-prompt record;
+  incidental mentions in other food prompts are not treated as provenance.
+- **Carried/save behavior:** Ordinary carried material stacks are session-only;
+  `PersistPlayerStateFromServer` stores tools and discovery/claim state, not
+  Potato or PotatoSeed stacks. The server validates player, range, capacity,
+  grant and player-state persistence before committing wild-patch depletion;
+  failed player-state persistence rolls back the item grant. The subsequent
+  population-ledger SaveGame marks the persistent spawn ID, but
+  `RecordHarvestedSpawn` ignores the disk-write result, so depletion write
+  failure is not handled. Catalogue-valid stacks can use generic world-keyed
+  chest storage; no Potato-specific chest round-trip was run. Neither item has
+  an expiry/decay field.
+- **Evidence and checks:** Inspected `KalmalaHarvestNode.cpp`,
+  `KalmalaGameMode.cpp`, `KalmalaPlayerStatusComponent.cpp`, the item/recipe
+  JSON, icon manifest/runtime lookup, and A0/A7 architecture and setup contracts
+  plus A9 inventory-save limits. PowerShell `ConvertFrom-Json` parsed
+  `crops.json` and the recipe files; the exact IDs and five Potato recipe uses
+  were enumerated, with no PotatoSeed recipe reference. Focused
+  `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id Potato` and the same
+  command for `PotatoSeed` passed. Source acceptance assertions were inspected,
+  not run. No build, test suite, peer/restart session, or live runtime check was
+  performed.
+- **Full verification:** Deferred; this is not A10's final increment.
+- **Impact and remaining scope:** Documentation-only audit; item definitions,
+  recipes, gameplay, server authority and persistence are unchanged. The lack
+  of PotatoSeed source/use and dedicated icon prompt remains an explicit scope
+  fact/provenance gap, not a new gameplay task. Later A0 item groups,
+  approved-system/fresh-world acceptance and milestone-final verification
+  remain open; keep the broad child unchecked.
+- **Next eligible A0 group:** Wild rutabaga. Continue in backlog order.
