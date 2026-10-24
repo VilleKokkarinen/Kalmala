@@ -5415,6 +5415,8 @@ void AKalmalaGameMode::UpdatePopulationKeySchedule(const double NowSeconds)
             const FIntPoint InactiveKey = *Iterator;
             Iterator.RemoveCurrent();
             PopulationKeyNextDueTimes.Remove(InactiveKey);
+            PopulationKeyCandidateCursors.Remove(InactiveKey);
+            PopulationKeyServicedCheckOrdinals.Remove(InactiveKey);
         }
     }
 
@@ -5507,7 +5509,111 @@ void AKalmalaGameMode::UpdatePopulationSchedulerWake(const double NowSeconds)
         FKalmalaPopulationSchedulerKeyWork& KeyWork = PopulationSchedulerWakeWork.AddDefaulted_GetRef();
         KeyWork.SpatialKey = SpatialKey;
         KeyWork.CandidateBudget = CandidateBudget;
+        uint64& CheckOrdinal = PopulationKeyServicedCheckOrdinals.FindOrAdd(SpatialKey);
+        KeyWork.CheckOrdinal = CheckOrdinal++;
         RemainingCandidateBudget -= CandidateBudget;
+    }
+
+    if (PopulationSchedulerWakeWork.IsEmpty())
+    {
+        return;
+    }
+
+    const TArray<AKalmalaCharacter*> LivingPlayers = GetLivingPlayerPawnsForPopulation();
+    for (FKalmalaPopulationSchedulerKeyWork& KeyWork : PopulationSchedulerWakeWork)
+    {
+        const TArray<FKalmalaWorldPopulationSpawn> Descriptors =
+            FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(
+                WorldGenerationConfig, KeyWork.SpatialKey, EKalmalaWorldPopulationKind::Wildlife);
+        SelectPopulationRingCandidates(KeyWork, Descriptors, LivingPlayers);
+    }
+}
+
+bool AKalmalaGameMode::IsDescriptorInSpawnRing(const FVector& SpawnLocation,
+    const TArray<AKalmalaCharacter*>& LivingPlayers) const
+{
+    const UWorld* World = GetWorld();
+    if (!HasAuthority() || !IsValid(World) || !FMath::IsFinite(SpawnLocation.X)
+        || !FMath::IsFinite(SpawnLocation.Y))
+    {
+        return false;
+    }
+
+    constexpr double MinimumDistanceSquared =
+        static_cast<double>(FKalmalaMonsterSpawnTuning::RingMinimumDistanceCm)
+        * FKalmalaMonsterSpawnTuning::RingMinimumDistanceCm;
+    constexpr double MaximumDistanceSquared =
+        static_cast<double>(FKalmalaMonsterSpawnTuning::RingMaximumDistanceCm)
+        * FKalmalaMonsterSpawnTuning::RingMaximumDistanceCm;
+    for (const AKalmalaCharacter* Player : LivingPlayers)
+    {
+        if (!IsValid(Player) || Player->GetWorld() != World)
+        {
+            continue;
+        }
+
+        const FVector PlayerLocation = Player->GetActorLocation();
+        if (!FMath::IsFinite(PlayerLocation.X) || !FMath::IsFinite(PlayerLocation.Y))
+        {
+            continue;
+        }
+
+        const double DeltaX = static_cast<double>(SpawnLocation.X) - PlayerLocation.X;
+        const double DeltaY = static_cast<double>(SpawnLocation.Y) - PlayerLocation.Y;
+        const double DistanceSquared = DeltaX * DeltaX + DeltaY * DeltaY;
+        if (DistanceSquared >= MinimumDistanceSquared && DistanceSquared <= MaximumDistanceSquared)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+void AKalmalaGameMode::SelectPopulationRingCandidates(
+    FKalmalaPopulationSchedulerKeyWork& KeyWork,
+    const TArray<FKalmalaWorldPopulationSpawn>& Descriptors,
+    const TArray<AKalmalaCharacter*>& LivingPlayers)
+{
+    KeyWork.Candidates.Reset();
+    if (!HasAuthority() || !IsValid(GetWorld()) || !WorldGenerationConfig.IsValid()
+        || Descriptors.IsEmpty() || LivingPlayers.IsEmpty())
+    {
+        return;
+    }
+
+    const int32 DescriptorCount = Descriptors.Num();
+    const int32 CandidateCount = FMath::Min(KeyWork.CandidateBudget,
+        FKalmalaMonsterSpawnTuning::MaxPopulationCandidatesPerKey);
+    if (CandidateCount <= 0)
+    {
+        return;
+    }
+
+    int32& Cursor = PopulationKeyCandidateCursors.FindOrAdd(KeyWork.SpatialKey);
+    Cursor %= DescriptorCount;
+    if (Cursor < 0)
+    {
+        Cursor += DescriptorCount;
+    }
+
+    const int32 StartIndex = Cursor;
+    const int32 DescriptorsToExamine = FMath::Min(CandidateCount, DescriptorCount);
+    for (int32 Offset = 0; Offset < DescriptorsToExamine; ++Offset)
+    {
+        const int32 DescriptorIndex = (StartIndex + Offset) % DescriptorCount;
+        const FKalmalaWorldPopulationSpawn& Descriptor = Descriptors[DescriptorIndex];
+        Cursor = (DescriptorIndex + 1) % DescriptorCount;
+
+        const FString PersistentSpawnId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Descriptor);
+        const uint8 AdmissionRoll = FKalmalaMonsterSpawnTuning::GetPopulationSpawnAdmissionRoll(
+            WorldGenerationConfig, KeyWork.SpatialKey, PersistentSpawnId, KeyWork.CheckOrdinal);
+        if (AdmissionRoll > FKalmalaMonsterSpawnTuning::PopulationAdmissionRollMaxAccepted
+            || !IsDescriptorInSpawnRing(Descriptor.Location, LivingPlayers))
+        {
+            continue;
+        }
+
+        KeyWork.Candidates.Add(Descriptor);
     }
 }
 

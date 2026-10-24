@@ -163,6 +163,21 @@ candidate budget of at most four, and the total candidate budget is capped at
 16. S07 records only this bounded key/budget plan; S08 generates descriptors and
 S14 connects the plan to evaluation and admission.
 
+## S08 stable ring candidate selector — 2026-10-24
+
+S08 consumes the bounded S07 key/budget plan and builds each key's existing
+stable wildlife descriptors. It examines at most the assigned budget from a
+per-key rotating cursor, advancing the cursor for every examined descriptor,
+including roll and ring rejects. A per-key check ordinal advances once per
+serviced key.
+Cursor and ordinal state are removed when a key leaves the active scheduler set.
+The selector hashes world seed, key, persistent spawn ID, ordinal
+and a dedicated roll domain, then uses rejection sampling for an unbiased 0–99
+roll; 0–24 pass. A passing descriptor is returned unchanged only when its
+horizontal distance to at least one living player is within the inclusive
+32–96 m ring. The selector does not create actors or add S09's separate
+all-player distance rejection.
+
 ## Spatial scheduling and random rolls
 
 - Retain invisible 64 m square spatial keys, floor division for negative X/Y,

@@ -7775,8 +7775,8 @@
 - **Full verification:** Deferred to S35. This is not the final implementation task in the monster-population goal.
 - **Observable impact / authority:** Server Tick now keeps scheduler eligibility synchronized with the S05 loaded-key union. It tracks cadence only; the existing nine-key materialization cap is unchanged, and natural spawn admission remains disabled.
 - **Networking/authority:** Candidate collection, active schedule state, deterministic phase and service advancement are server-authoritative. The per-key due map contains active keys only; S02 creature cooldown state is separate. No client selects or advances spawn state.
-- **Known limitations:** S08+ still needs descriptor generation, candidate evaluation and spawn admission. S06 does not create attempts or activate additional keys.
-- **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within the requested monster-population goal, the next child is S08 — generate ring candidates.
+- **Known limitations:** S09+ still needs the separate player-distance exclusion, candidate evaluation and spawn admission. S06 does not create attempts or activate additional keys.
+- **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within the requested monster-population goal, the next child is S09 — exclude nearby players.
 
 
 ### Monster population — S07 bounded scheduler wake
@@ -7786,7 +7786,20 @@
 - **Files changed:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`, `Source/KalmalaGameplay/Public/KalmalaGameMode.h`, `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSchedulerBudgetTest.cpp`, `Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h`, `docs/monster-spawning.md`, `BACKLOG.md`, `PROGRESS.md`.
 - **Lightweight checks:** Code and scheduler-contract inspection; focused automation coverage added for the 4/4/16 limits, stable key ordering, quarter-second cadence, and skipped catch-up wakes. `git diff --check` passed; staged paths/diff were reviewed before commit. The automation test and Unreal build were not run.
 - **Full verification:** Deferred to S35. This is not the final implementation task in the monster-population goal.
-- **Observable impact / authority:** The authoritative GameMode now creates a bounded due-key/budget plan on 0.25 s wake intervals. It does not generate descriptors, alter materialized-key limits, or admit natural spawns.
+- **Observable impact / authority:** The authoritative GameMode creates a bounded due-key/budget plan on 0.25 s wake intervals; S08 now consumes it to select existing descriptors. The materialized-key limit is unchanged, and no actors are created.
 - **Networking/authority:** Wake timing, due-key selection and candidate budgets are server-only.
-- **Known limitations:** S08 still needs stable ring descriptor selection and S14 must connect this plan to the evaluator; no creature spawn work is performed.
-- **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within this requested monster-population goal, the next child is S08 — generate ring candidates.
+- **Known limitations:** S09+ still needs player-distance rejection, candidate evaluation and admission; this scheduler does not create actors.
+- **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within this requested monster-population goal, the next child is S09 — exclude nearby players.
+
+
+### Monster population — S08 stable ring candidate selector
+
+- **Selected increment:** S08, stable wildlife descriptor selection within the player ring.
+- **Work completed:** The bounded S07 wake now fills each key work item from existing deterministic wildlife descriptors, examining no more than its assigned candidate budget. It advances a persistent per-key cursor even when a descriptor fails, increments a per-key check ordinal once per serviced key, and applies a dedicated deterministic unbiased 0–99 roll with 0–24 accepted. Passing descriptors inside the inclusive 32–96 m ring are returned unchanged. Cursor and ordinal state is removed when a key becomes inactive. No actor creation or later gates were added.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`, `Source/KalmalaGameplay/Public/KalmalaGameMode.h`, `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationRingCandidateSelectorTest.cpp`, `Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h`, `docs/monster-spawning.md`, `BACKLOG.md`, `PROGRESS.md`.
+- **Lightweight checks:** Source/contract inspection and `git diff --check`; focused automation coverage added for deterministic rolls, once-per-service ordinals, inclusive ring bounds, budget adherence, cursor advancement on rejects and preservation of identity/location/content. Tests and builds were not run.
+- **Full verification:** Deferred to S35. This is not the final implementation task in the monster-population goal.
+- **Observable impact / authority:** Server-side bounded work items now contain selected original descriptors for later gates. Their spawn IDs, positions, and content IDs remain unchanged; no actor or natural spawn is created.
+- **Networking/authority:** Player positions, descriptor selection, cursor, ordinal and seeded roll are used only on the authoritative GameMode.
+- **Known limitations:** S09 still adds the separate all-player distance exclusion. The backlog says its threshold is 36 m, while the current spatial contract says every player must be at least 32 m away; resolve that discrepancy in S09. S13–S21 and S14 still wire the later gates/evaluator.
+- **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within this requested monster-population goal, the next child is S09 — exclude nearby players.

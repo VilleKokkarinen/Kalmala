@@ -21,6 +21,8 @@ struct FKalmalaPopulationSchedulerKeyWork
 {
     FIntPoint SpatialKey = FIntPoint::ZeroValue;
     int32 CandidateBudget = 0;
+    uint64 CheckOrdinal = 0;
+    TArray<FKalmalaWorldPopulationSpawn> Candidates;
 };
 
 /**
@@ -96,6 +98,7 @@ private:
     friend class FKalmalaPopulationSpatialKeyUnionTest;
     friend class FKalmalaPopulationSchedulerCadenceTest;
     friend class FKalmalaPopulationSchedulerBudgetTest;
+    friend class FKalmalaPopulationRingCandidateSelectorTest;
 
 #if WITH_DEV_AUTOMATION_TESTS
     // Isolate the final disk boundary while exercising the real depletion callback.
@@ -111,6 +114,11 @@ private:
     TArray<FIntPoint> GetDuePopulationSpatialKeys(double NowSeconds) const;
     bool MarkPopulationSpatialKeyServiced(const FIntPoint& SpatialKey, double NowSeconds);
     void UpdatePopulationSchedulerWake(double NowSeconds);
+    void SelectPopulationRingCandidates(FKalmalaPopulationSchedulerKeyWork& KeyWork,
+        const TArray<FKalmalaWorldPopulationSpawn>& Descriptors,
+        const TArray<class AKalmalaCharacter*>& LivingPlayers);
+    bool IsDescriptorInSpawnRing(const FVector& SpawnLocation,
+        const TArray<class AKalmalaCharacter*>& LivingPlayers) const;
     void ActivatePopulationKey(const FIntPoint& SpatialKey);
     void RefreshOceanDiscoveries();
     void RecordHarvestedSpawn(const FString& PersistentSpawnId);
@@ -388,8 +396,10 @@ private:
     TSet<FIntPoint> ActivePopulationSpatialKeys;
     TSet<FIntPoint> ActivePopulationSchedulerKeys;
     TMap<FIntPoint, double> PopulationKeyNextDueTimes;
+    TMap<FIntPoint, int32> PopulationKeyCandidateCursors;
+    TMap<FIntPoint, uint64> PopulationKeyServicedCheckOrdinals;
     double NextPopulationSchedulerWakeTime = 0.0;
-    // Latest wake's bounded key/budget plan; descriptor generation is a later increment.
+    // Latest wake's bounded descriptor work; evaluator/gate wiring is a later increment.
     TArray<FKalmalaPopulationSchedulerKeyWork> PopulationSchedulerWakeWork;
     TSet<FIntPoint> ActiveShimmeringLakeDiscoveryKeys;
     TSet<FIntPoint> ActiveElderwoodDiscoveryKeys;

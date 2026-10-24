@@ -443,6 +443,8 @@ struct FKalmalaMonsterSpawnTuning final
     static constexpr int32 MaxPopulationKeysPerWake = 4;
     static constexpr int32 MaxPopulationCandidatesPerKey = 4;
     static constexpr int32 MaxPopulationCandidatesPerWake = 16;
+    static constexpr uint8 PopulationAdmissionRollRange = 100;
+    static constexpr uint8 PopulationAdmissionRollMaxAccepted = 24;
     static constexpr float CountRadiusCm = 96.0f * 100.0f;
     static constexpr float PlayerKeyIntersectionRadiusCm = 96.0f * 100.0f;
 
@@ -463,4 +465,31 @@ struct FKalmalaMonsterSpawnTuning final
         && MaxPopulationCandidatesPerKey > 0 && MaxPopulationCandidatesPerWake > 0
         && MaxPopulationKeysPerWake * MaxPopulationCandidatesPerKey <= MaxPopulationCandidatesPerWake,
         "Population scheduler wake and candidate budgets must be positive and bounded.");
+    static_assert(PopulationAdmissionRollRange == 100 && PopulationAdmissionRollMaxAccepted == 24,
+        "Population admission remains an unbiased 25 percent roll over 0 through 99.");
+
+    static uint8 GetPopulationSpawnAdmissionRoll(const FKalmalaWorldGenerationConfig& Config,
+        const FIntPoint SpatialKey, const FString& PersistentSpawnId, const uint64 CheckOrdinal)
+    {
+        constexpr uint64 SpawnRollDomain = 0x535041574E524F4Cull;
+        uint64 Value = FKalmalaWorldPopulationLayout::DeriveSpatialSeed(
+            Config, SpatialKey, EKalmalaWorldPopulationKind::Wildlife) ^ SpawnRollDomain;
+        for (int32 CharacterIndex = 0; CharacterIndex < PersistentSpawnId.Len(); ++CharacterIndex)
+        {
+            Value ^= static_cast<uint32>(PersistentSpawnId[CharacterIndex]);
+            Value *= 0x100000001B3ull;
+        }
+        Value ^= CheckOrdinal * 0x9E3779B185EBCA87ull;
+        Value = FKalmalaWorldPopulationLayout::Mix(Value);
+
+        constexpr uint64 RollRange = PopulationAdmissionRollRange;
+        const uint64 RejectionThreshold = (uint64(0) - RollRange) % RollRange;
+        uint64 RetryOrdinal = 0;
+        while (Value < RejectionThreshold)
+        {
+            Value = FKalmalaWorldPopulationLayout::Mix(
+                Value ^ (0x9E3779B97F4A7C15ull + RetryOrdinal++));
+        }
+        return static_cast<uint8>(Value % RollRange);
+    }
 };

@@ -603,7 +603,7 @@ milestone-final verification/repair run and can exceed a normal turn.
   - [x] **S07 — Bound scheduler work.** Use a 0.25 s wake, at most 4 keys,
     4 candidates per key and 16 candidates total per wake; skip missed ticks
     instead of catch-up bursts.
-  - [ ] **S08 — Generate ring candidates.** Select existing stable descriptors
+  - [x] **S08 — Generate ring candidates.** Select existing stable descriptors
     within 32–96 m; use the contract's seeded 25% admission roll and rotating cursor.
     Preserve descriptor positions, identities and biome weights.
   - [ ] **S09 — Exclude nearby players.** Reject a candidate within 36 m of any
