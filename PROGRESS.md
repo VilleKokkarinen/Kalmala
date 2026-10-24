@@ -8608,3 +8608,93 @@
   documented audit gaps. Continue later A0 items and the wider included-item
   and N/A audit; keep the broad child unchecked.
 - Next eligible A0 family: Boar/Deer Hide and Meat.
+
+## Run 2026-10-24 — A10 per-item audit: Boar/Deer Hide and Meat
+
+- **Scope and definitions:** audited exactly `BoarHide`, `DeerHide`, `BoarMeat`,
+  and `DeerMeat`. They are each registered once in `items/materials/hides.json`
+  (the two hides) or `items/food.json` (the two raw meats), all stack to 20,
+  and all four are listed in the catalogue icon manifest. No acquisition
+  station recipe is authored; natural creature rewards are their source.
+- **Source and linked IDs:** `creatures.json` registers `Boar` and `Deer` in
+  Meadows, Elderwood, and Shimmering Lakes. Each has a guaranteed 1 meat + 1
+  hide drop; each also lists BoneFragment x1 at 100%, and Deer lists Sinew x1
+  at 50%. `AKalmalaWildlifeSpawn::GrantDefeatReward` grants these four IDs to
+  the last validated attacker through the server-authoritative inventory path;
+  the source acceptance contract in `KalmalaGameMode.cpp` checks the owner’s
+  quantities and rejects remote-peer receipt. Bone Fragment and Deer Sinew are
+  cross-references already audited separately, not additional scope here.
+- **Use and recipes:** raw meat is not directly edible: the server food allowlist
+  accepts cooked outputs, stews and broth, not `BoarMeat` or `DeerMeat`.
+  `BoarMeat` x1 yields `CookedBoarMeat` through CookedBoarMeatRecipe at the
+  Cooking Rack; MeatStewRecipe at the Cauldron consumes BoarMeat x1 + DeerMeat
+  x1 + Carrot x2 + Potato x2. `DeerMeat` x1 yields `CookedDeerMeat` through
+  CookedDeerMeatRecipe at the Cooking Rack; HearthBrothRecipe consumes DeerMeat
+  x1 + Onion x1 at the Cauldron; DeerRootRoastRecipe consumes DeerMeat x1 +
+  Rutabaga x1 + Onion x1 at the Frying Pan. These yield 1 output per recipe.
+  `BoarHide` recipe uses: direct-material CampBed = Wood x4 + BoarHide x2 +
+  DeerHide x2; Forge BronzeHelmet = Bronze x10 + hide x5, BronzeTunic and
+  BronzeLeggings = Bronze x15 + hide x5 each, BronzeShield = Bronze x10 +
+  Lightwood x5 + hide x5; Workbench BoarHideBootsRecipe = hide x5,
+  BoarHideCapeRecipe = hide x5 + BoneFragment x1, and BoarHideHelmet,
+  BoarHideLeggings, BoarHideTunic recipes = hide x10 each; WoodShieldRecipe =
+  Wood x10 + BoarHide x3 + DeerHide x3. `DeerHide` recipe uses: the same
+  CampBed and WoodShield costs; Forge BronzeSword = Bronze x10 + Lightwood x2 +
+  hide x2, IronSword = Iron x20 + Densewood x2 + hide x2, OpalHelm = Iron x20 +
+  hide x5 + StarOpal x1, StormcutSword = Iron x20 + Densewood x2 + hide x2 +
+  StormSapphire x1; Workbench LightBow = Lightwood x25 + BowString x1 + hide
+  x5. No recipe outputs any of the four
+  audited IDs. CampBed remains direct-material Hammer placement, not an
+  inventory construction kit.
+- **N/A and upgrade references:** these are stackable materials, not equipment;
+  none has an item profile, attack, or stat-reward subject. There are no
+  upgrades of the materials themselves and no applicable equipment condition,
+  attack, or skill progression. Nine level-one gear cost rows consume BoarHide:
+  BoarHideBoots x2, BoarHideCape x2 + BoneFragment x1, BoarHideHelmet x5,
+  BronzeHelmet x1 + Bronze x1, BoarHideLeggings x5, BronzeLeggings x1 +
+  Bronze x2, WoodShield x2 + Wood x5 + DeerHide x2, BoarHideTunic x5, and
+  BronzeTunic x1 + Bronze x2. Two level-one rows consume DeerHide: OpalHelm x2
+  + Iron x5 and WoodShield x2 + Wood x5 + BoarHide x2. These are authored
+  wearable costs; the development docs say general wearable upgrades remain
+  pending equipment integration except explicitly wired cases. Higher-level
+  base-cost scaling is outside this item audit.
+- **Icons/provenance:** each item has retained `Content/Kalmala/UI/Source/IconOriginals/<ID>.png`, prepared `Content/Kalmala/UI/Source/Icons/<ID>.png`,
+  and imported `Content/Kalmala/UI/Icons/Items/<ID>.uasset`. The catalogue
+  library resolves exact canonical `/Game/Kalmala/UI/Icons/Items/<ID>.<ID>`
+  paths. Legacy widget fallbacks still map Boar/Deer Meat to Meat variants 0/1
+  and Boar/Deer Hide to Hide variants 0/1; the catalogue validator confirms
+  their distinct imported mappings. All four manifest rows are batch B. Focused
+  validation reports 1254x1254 RGBA originals, transparent 64x64 RGBA prepared
+  files, and the expected imported targets. `docs/icon-provenance.md` has gear
+  icon records but no source prompt record for these four raw materials; the
+  linked `docs/material-icons.md` is absent in this checkout. No prompt was
+  inferred or added in this tracking-only increment.
+- **Save and pending-claim behavior:** `DefeatServer()` marks the spawn defeated
+  and broadcasts `OnDefeated`; `RecordDefeatedSpawn()` persists its world
+  population defeated marker with `SaveGameToSlot` before `ApplyDefeatedState()`
+  calls `GrantDefeatReward()`. This ordinary Boar/Deer path does not enqueue a
+  pending wildlife claim. The marker save result is ignored, and the immediate
+  `TryGrantFromServer` results for these materials are also ignored, so a full
+  inventory has no recorded persistent retry path after defeat. Ordinary pack
+  stacks are owner-only, last for the pawn session, and are not restored;
+  `PersistPlayerStateFromServer()` persists carried tools and discovery/claim
+  state, not material stacks. No decay or expiry field/path is authored for
+  these raw materials. These are inspected source contracts, not a new live
+  peer/restart result.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md` only.
+- **Lightweight checks:** PowerShell `ConvertFrom-Json` parsed all 61
+  manifest-listed catalogue JSON files. `python Scripts/Validate-CatalogueReferences.py`
+  passed: 61 registered files, 152 unique definitions, 777 resolved references,
+  and canonical icon mappings for all definitions. All four commands
+  `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id <ID>` passed for
+  BoarHide, DeerHide, BoarMeat, and DeerMeat with source/prepared/import checks.
+  Item, source, recipe, upgrade, icon, reward and save paths were inspected;
+  no automation, build, full suite or live peer/restart run was performed.
+- **Full verification:** deferred; this is not A10's final increment.
+- **Impact/authority/remaining scope:** tracking-only; no definitions, gameplay,
+  recipes, reward amounts, server authority or save behavior changed. The
+  server remains authoritative for defeat attribution and reward grants. A10's
+  broad per-item audit remains unchecked; provenance prompts and actual live
+  full-pack/restart behavior remain for the final evidence gate, along with all
+  other included items and scope N/A dispositions.
+- **Next eligible A0 family:** Amber and Frost Salt.

@@ -437,9 +437,10 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     A10 item audit 2026-10-24: Sinew, Bow String, Lightwood, Bone Fragment,
     six cooking outputs, Hearth Broth, Wild carrots (Carrot, CarrotSeed),
     Wild potatoes (Potato, PotatoSeed), Wild rutabaga (Rutabaga, RutabagaSeed),
-    Wild onions (Onion, OnionSeed), and retained Wood, Densewood and Stone
-    reviewed; see PROGRESS.md. Next, audit Boar/Deer Hide and Meat. Keep this
-    child open until every included item and scope N/A disposition is covered.
+    Wild onions (Onion, OnionSeed), retained Wood/Densewood/Stone, and
+    Boar/Deer Hide and Meat (BoarHide, DeerHide, BoarMeat, DeerMeat) reviewed;
+    see PROGRESS.md. Next, audit Amber and Frost Salt. Keep this child open
+    until every included item and scope N/A disposition is covered.
   - [ ] Run required full verification at each milestone's final increment.
   - [ ] Verify fresh-start progression through Bronze and Iron without debug grants.
   - [ ] Verify approved farming, shelter, cargo, accessories, peers and restart.
