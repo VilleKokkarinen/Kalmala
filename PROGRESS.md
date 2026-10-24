@@ -7521,3 +7521,31 @@
   script paths and rendered launcher modes are retired; use the current guide.
   Next roadmap task remains A10 S02: map defeated-slot depletion, living-slot
   unload cooldown and reward escrow. No worktree handoff sync is needed.
+
+## Run 2026-10-24 — Map monster population lifecycle
+
+- **Selected increment:** A10 S02, the first unchecked child. Ownership check
+  found this automation as the only active Kalmala run; the main checkout was
+  clean on `master`, and no other repository worktree was present.
+- **Completed / files:** Recorded how `DefeatServer`, the bound GameMode
+  `OnDefeated` callback and `DefeatedSpawnIds` permanently deplete a stable slot;
+  mapped living unload as missing, and identified a GameMode-owned live registry
+  plus explicit unload transaction as the integration point. Documented the
+  existing authenticated-owner reward queue and 0.5 s delivery retry. Checked
+  S02 in `BACKLOG.md`. Files: `BACKLOG.md`, `PROGRESS.md`,
+  `docs/monster-spawning.md`.
+- **Lightweight checks:** Inspected `ActivatePopulationKey`, wildlife/hazard
+  defeat methods, GameMode defeat/reward/delivery callbacks and population-save
+  fields/methods. Confirmed the relevant actor/GameMode files have no
+  `EndPlay`, destruction or unregister hook. `git diff --check` passed; changed
+  paths are below MAX_PATH.
+- **Full verification:** Deferred. No runtime source changed; no build or
+  gameplay automation was run.
+- **Observable impact / authority:** Documentation and backlog state only.
+  Existing defeat, escrow and inventory delivery remain server-owned; no actor
+  lifecycle, networking or save-format behavior changed.
+- **Limitations / next:** Living-actor unload/reload and session cooldown are
+  not implemented. Next eligible task: A10 S03, add and validate named spawn
+  tuning constants while natural spawning remains disabled. Main checkout used;
+  no worktree handoff synchronization is required. Run time:
+  `2026-10-24 12:28 UTC`.

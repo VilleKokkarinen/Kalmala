@@ -67,7 +67,53 @@ their corresponding backlog items.
   excluded when a key is activated.
 
 The current activation map is server-owned, but it is eager and one-shot. S02
-maps the precise lifecycle callbacks before any unload/reload behavior is added.
+records the existing defeat and reward callbacks and the missing living-actor
+unload lifecycle before any unload/reload behavior is added.
+
+## S02 lifecycle integration map — 2026-10-24
+
+This is a source map for the fixed lifecycle above. It adds no runtime hook or
+save data.
+
+- **Permanent defeated-slot depletion:** `AKalmalaGameMode::ActivatePopulationKey`
+  derives stable descriptor IDs and skips wildlife/hazard IDs already present in
+  `UKalmalaWorldPopulationSaveGame::DefeatedSpawnIds`. Spawned wildlife members
+  and hazards bind `OnDefeated` to `AKalmalaGameMode::RecordDefeatedSpawn`.
+  Authority-only `DefeatServer` implementations broadcast only after accepting
+  the defeat; the GameMode callback calls `MarkDefeated` and writes the matching
+  population save slot. Wildlife reward handlers also mark and save their IDs as
+  part of the reward transaction before `OnDefeated` is broadcast. Thus unload,
+  later key activation, reconnect and restart must never remove a defeated ID;
+  each wolf member retains its own stable depleted ID.
+- **Living-actor unload/reload:** `ActivatePopulationKey` only adds keys to
+  `ActivePopulationSpatialKeys`; it does not retain actor references or remove
+  actors/keys. The wildlife and hazard classes have no `EndPlay`, destruction or
+  unregister lifecycle callback, and GameMode has no actor-destroyed registry
+  for them. Add a GameMode-owned live-actor registry alongside S10, then route
+  intentional unload through an explicit GameMode transaction. Generic actor
+  destruction is not enough to infer an unload: defeat, pack-spawn rollback and
+  world teardown have different outcomes. A living actor that is eligible to
+  unload must first be outside every living player's 96 m radius; record its
+  stable ID's 30 s cooldown in session state that survives key unload, without
+  calling `RecordDefeatedSpawn`, a reward handler or any save mutation. Recreate
+  only the same descriptor after expiry and all gates pass. Keep the actor
+  registered and charged to its home-key budget while it roams.
+- **Reward escrow:** `AKalmalaWildlifeSpawn::DefeatServer` routes credited
+  species rewards through the matching authoritative
+  `AKalmalaGameMode::Record*DefeatReward` handler before broadcasting
+  `OnDefeated`. These handlers persist the defeated ID and, for a credited
+  authenticated owner, queue a stable owner-bound claim in
+  `UKalmalaWorldPopulationSaveGame::PendingWildlifeRewards`; optional gem
+  payloads are attached to that same claim. `AKalmalaGameMode::Tick` retries
+  `DeliverPendingWildlifeRewards` every 0.5 s. Delivery requires the authenticated
+  owner to be present and enough inventory capacity; the durable claim remains
+  available when delivery cannot complete. Keep this path intact: unload,
+  suppression, failed spawn and rollback must neither create nor consume claims.
+
+Implementation consequence: the next live-actor and unload work must separate
+defeat from intentional unload at the GameMode boundary. Reuse the existing
+defeat ledger and escrow unchanged; cooldowns belong to session-only GameMode
+state and do not require a save-format change.
 
 ## Spatial scheduling and random rolls
 

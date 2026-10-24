@@ -452,7 +452,7 @@ milestone-final verification/repair run and can exceed a normal turn.
     identify existing scheduler, descriptor, budget and spawn/defeat entry points.
     Record the implementation map in that contract. Values are already decided;
     do not reopen tuning or change runtime behavior in this step.
-  - [ ] **S02 — Map lifecycle integration.** Identify callbacks enforcing permanent
+  - [x] **S02 — Map lifecycle integration.** Identify callbacks enforcing permanent
     defeated-slot depletion, 30 s living-slot unload cooldown and reward escrow.
     Record integration points for the fixed lifecycle; add no save-format change.
   - [ ] **S03 — Add named tuning constants.** Use existing invisible 64 × 64 m
