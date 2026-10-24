@@ -159,9 +159,6 @@ bool FKalmalaEnvironmentalSpawnerAdmissionTest::RunTest(const FString& Parameter
     int32 WildlifeActorCount = 0;
     for (TActorIterator<AKalmalaWildlifeSpawn> It(World); It; ++It) ++WildlifeActorCount;
     TestEqual(TEXT("An unconfigured source creates no wildlife actor"), WildlifeActorCount, 0);
-    int32 WildlifeActorCount = 0;
-    for (TActorIterator<AKalmalaWildlifeSpawn> It(World); It; ++It) ++WildlifeActorCount;
-    TestEqual(TEXT("An unconfigured source creates no wildlife actor"), WildlifeActorCount, 0);
 
     FKalmalaEnvironmentalSpawnerCheck ConfiguredCheck;
     ConfiguredCheck.bSourceConfigured = true;
