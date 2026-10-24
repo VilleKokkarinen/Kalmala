@@ -598,7 +598,7 @@ milestone-final verification/repair run and can exceed a normal turn.
     in the current world; ignore dead, disconnected and invalid pawns.
   - [x] **S05 — Deduplicate active keys.** Derive the union of nearby loaded keys
     from S04; overlapping players must produce each key once.
-  - [ ] **S06 — Add scheduler cadence.** Schedule each active key once per 5 s
+  - [x] **S06 — Add scheduler cadence.** Schedule each active key once per 5 s
     with stable staggering; remove inactive keys without accumulating retries.
   - [ ] **S07 — Bound scheduler work.** Use a 0.25 s wake, at most 4 keys,
     4 candidates per key and 16 candidates total per wake; skip missed ticks

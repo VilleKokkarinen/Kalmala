@@ -5393,6 +5393,92 @@ TArray<FIntPoint> AKalmalaGameMode::GetPopulationSpatialKeyCandidates() const
     return Candidates;
 }
 
+void AKalmalaGameMode::UpdatePopulationKeySchedule(const double NowSeconds)
+{
+    if (!HasAuthority() || !IsValid(GetWorld()) || !WorldGenerationConfig.IsValid()
+        || !FMath::IsFinite(NowSeconds))
+    {
+        return;
+    }
+
+    const TArray<FIntPoint> CandidateKeys = GetPopulationSpatialKeyCandidates();
+    TSet<FIntPoint> CurrentCandidateKeys;
+    for (const FIntPoint& SpatialKey : CandidateKeys)
+    {
+        CurrentCandidateKeys.Add(SpatialKey);
+    }
+
+    for (auto Iterator = ActivePopulationSchedulerKeys.CreateIterator(); Iterator; ++Iterator)
+    {
+        if (!CurrentCandidateKeys.Contains(*Iterator))
+        {
+            Iterator.RemoveCurrent();
+        }
+    }
+
+    for (const FIntPoint& SpatialKey : CandidateKeys)
+    {
+        const bool bWasActive = ActivePopulationSchedulerKeys.Contains(SpatialKey);
+        ActivePopulationSchedulerKeys.Add(SpatialKey);
+
+        double* NextDueTime = PopulationKeyNextDueTimes.Find(SpatialKey);
+        if (NextDueTime == nullptr)
+        {
+            const uint64 Seed = FKalmalaWorldPopulationLayout::DeriveSpatialSeed(
+                WorldGenerationConfig, SpatialKey, EKalmalaWorldPopulationKind::Wildlife);
+            const uint64 Phase = Seed % FKalmalaMonsterSpawnTuning::PopulationKeyPhaseCount;
+            PopulationKeyNextDueTimes.Add(SpatialKey, NowSeconds
+                + static_cast<double>(Phase) * FKalmalaMonsterSpawnTuning::PopulationKeyPhaseStepSeconds);
+        }
+        else if (!bWasActive && *NextDueTime <= NowSeconds)
+        {
+            // The key was inactive when its due time passed; resume after one full interval.
+            *NextDueTime = NowSeconds + FKalmalaMonsterSpawnTuning::PopulationKeyCheckIntervalSeconds;
+        }
+    }
+}
+
+TArray<FIntPoint> AKalmalaGameMode::GetDuePopulationSpatialKeys(const double NowSeconds) const
+{
+    TArray<FIntPoint> DueKeys;
+    if (!HasAuthority() || !IsValid(GetWorld()) || !FMath::IsFinite(NowSeconds))
+    {
+        return DueKeys;
+    }
+
+    for (const FIntPoint& SpatialKey : ActivePopulationSchedulerKeys)
+    {
+        const double* NextDueTime = PopulationKeyNextDueTimes.Find(SpatialKey);
+        if (NextDueTime != nullptr && *NextDueTime <= NowSeconds)
+        {
+            DueKeys.Add(SpatialKey);
+        }
+    }
+    DueKeys.Sort([](const FIntPoint& A, const FIntPoint& B)
+    {
+        return A.X == B.X ? A.Y < B.Y : A.X < B.X;
+    });
+    return DueKeys;
+}
+
+bool AKalmalaGameMode::MarkPopulationSpatialKeyServiced(const FIntPoint& SpatialKey, const double NowSeconds)
+{
+    if (!HasAuthority() || !IsValid(GetWorld()) || !FMath::IsFinite(NowSeconds)
+        || !ActivePopulationSchedulerKeys.Contains(SpatialKey))
+    {
+        return false;
+    }
+
+    double* NextDueTime = PopulationKeyNextDueTimes.Find(SpatialKey);
+    if (NextDueTime == nullptr || *NextDueTime > NowSeconds)
+    {
+        return false;
+    }
+
+    *NextDueTime = NowSeconds + FKalmalaMonsterSpawnTuning::PopulationKeyCheckIntervalSeconds;
+    return true;
+}
+
 void AKalmalaGameMode::Tick(const float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
@@ -5486,20 +5572,21 @@ void AKalmalaGameMode::Tick(const float DeltaSeconds)
         RefreshOceanDiscoveries();
     }
 
-    if (GetWorld()->GetTimeSeconds() < NextTerrainPatchActivationTime)
+    const double NowSeconds = GetWorld()->GetTimeSeconds();
+    if (NowSeconds >= NextTerrainPatchActivationTime)
     {
-        return;
-    }
-
-    NextTerrainPatchActivationTime = GetWorld()->GetTimeSeconds() + KalmalaGameMode::TerrainPatchActivationIntervalSeconds;
-    RefreshTerrainPatchNeighborhoods();
-    for (const AKalmalaCharacter* PlayerPawn : GetLivingPlayerPawnsForPopulation())
-    {
-        if (IsValid(PlayerPawn))
+        NextTerrainPatchActivationTime = NowSeconds + KalmalaGameMode::TerrainPatchActivationIntervalSeconds;
+        RefreshTerrainPatchNeighborhoods();
+        for (const AKalmalaCharacter* PlayerPawn : GetLivingPlayerPawnsForPopulation())
         {
-            ActivatePopulationKey(FKalmalaWorldPopulationLayout::GetSpatialKey(FVector2D(PlayerPawn->GetActorLocation())));
+            if (IsValid(PlayerPawn))
+            {
+                ActivatePopulationKey(FKalmalaWorldPopulationLayout::GetSpatialKey(FVector2D(PlayerPawn->GetActorLocation())));
+            }
         }
     }
+
+    UpdatePopulationKeySchedule(NowSeconds);
 }
 
 void AKalmalaGameMode::DriveOceanTravelFeedbackTest()

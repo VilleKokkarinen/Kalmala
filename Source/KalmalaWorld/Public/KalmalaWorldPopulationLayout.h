@@ -437,6 +437,8 @@ struct FKalmalaMonsterSpawnTuning final
     static constexpr float RingMinimumDistanceCm = 32.0f * 100.0f;
     static constexpr float RingMaximumDistanceCm = 96.0f * 100.0f;
     static constexpr float PopulationKeyCheckIntervalSeconds = 5.0f;
+    static constexpr float PopulationKeyPhaseStepSeconds = 0.25f;
+    static constexpr int32 PopulationKeyPhaseCount = 20;
     static constexpr float CountRadiusCm = 96.0f * 100.0f;
     static constexpr float PlayerKeyIntersectionRadiusCm = 96.0f * 100.0f;
 
@@ -450,4 +452,7 @@ struct FKalmalaMonsterSpawnTuning final
         "Player population-key radius must be positive.");
     static_assert(PopulationKeyCheckIntervalSeconds > 0.0f,
         "Monster population checks must use a positive interval.");
+    static_assert(PopulationKeyPhaseStepSeconds > 0.0f && PopulationKeyPhaseCount > 0
+        && PopulationKeyPhaseStepSeconds * PopulationKeyPhaseCount == PopulationKeyCheckIntervalSeconds,
+        "Monster key staggering must partition one positive check interval.");
 };

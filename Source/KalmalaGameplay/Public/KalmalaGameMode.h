@@ -88,6 +88,7 @@ private:
     friend class FKalmalaM9SourceAcceptanceTest;
     friend class FKalmalaPopulationLivingPlayersTest;
     friend class FKalmalaPopulationSpatialKeyUnionTest;
+    friend class FKalmalaPopulationSchedulerCadenceTest;
 
 #if WITH_DEV_AUTOMATION_TESTS
     // Isolate the final disk boundary while exercising the real depletion callback.
@@ -99,6 +100,9 @@ private:
     void RefreshTerrainPatchNeighborhoods();
     TArray<class AKalmalaCharacter*> GetLivingPlayerPawnsForPopulation() const;
     TArray<FIntPoint> GetPopulationSpatialKeyCandidates() const;
+    void UpdatePopulationKeySchedule(double NowSeconds);
+    TArray<FIntPoint> GetDuePopulationSpatialKeys(double NowSeconds) const;
+    bool MarkPopulationSpatialKeyServiced(const FIntPoint& SpatialKey, double NowSeconds);
     void ActivatePopulationKey(const FIntPoint& SpatialKey);
     void RefreshOceanDiscoveries();
     void RecordHarvestedSpawn(const FString& PersistentSpawnId);
@@ -374,6 +378,8 @@ private:
     TMap<FIntPoint, TObjectPtr<class AKalmalaGeneratedTerrainPatch>> ActiveTerrainPatches;
     TMap<FIntPoint, TArray<TWeakObjectPtr<class AKalmalaHarvestNode>>> ActiveForestNodes;
     TSet<FIntPoint> ActivePopulationSpatialKeys;
+    TSet<FIntPoint> ActivePopulationSchedulerKeys;
+    TMap<FIntPoint, double> PopulationKeyNextDueTimes;
     TSet<FIntPoint> ActiveShimmeringLakeDiscoveryKeys;
     TSet<FIntPoint> ActiveElderwoodDiscoveryKeys;
     TSet<FIntPoint> ActiveMossyMireDiscoveryKeys;

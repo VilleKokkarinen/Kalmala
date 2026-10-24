@@ -7764,3 +7764,16 @@
 - **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the
   global queue. Within this requested monster-population goal, the next child
   is S06 — add stable scheduler cadence.
+
+
+### Monster population — S06 scheduler cadence
+
+- **Selected increment:** S06, stable per-key cadence and inactive-key cleanup.
+- **Work completed:** Added deterministic 0.25 s phase staggering over the 5 s key interval, due-key query/service operations, server Tick maintenance of the active candidate-key set, and overdue-key reset on reactivation. Inactive keys leave the active schedule immediately while their session due timestamps remain available for unload/reload continuity.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`, `Source/KalmalaGameplay/Public/KalmalaGameMode.h`, `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSchedulerCadenceTest.cpp`, `Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h`, `docs/monster-spawning.md`, `BACKLOG.md`, `PROGRESS.md`.
+- **Lightweight checks:** Code and lifecycle-contract inspection; focused cadence automation coverage added for stable staggering, once-only service, five-second advancement, inactivity cleanup, retained session due state and no catch-up after overdue reactivation. `git diff --check` passed, and the staged paths/diff were reviewed before commit. The automation test and Unreal build were not run.
+- **Full verification:** Deferred to S35. This is not the final implementation task in the monster-population goal.
+- **Observable impact / authority:** Server Tick now keeps scheduler eligibility synchronized with the S05 loaded-key union. It tracks cadence only; the existing nine-key materialization cap is unchanged, and natural spawn admission remains disabled.
+- **Networking/authority:** Candidate collection, active schedule state, deterministic phase and service advancement are server-authoritative. No client selects or advances spawn state.
+- **Known limitations:** S07 still needs to add the 0.25 s wake and bounded work, and later S08+ work supplies candidate evaluation and spawn admission. S06 does not create attempts or activate additional keys.
+- **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within the requested monster-population goal, the next child is S07 — bound scheduler work.

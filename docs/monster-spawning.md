@@ -137,7 +137,22 @@ Results use lexicographic X/Y key order and remain candidates only; this query
 does not activate, remove, or otherwise materialize keys. The current normal
 `Tick` path still materializes each living player's containing key, subject to
 the unchanged nine-key cap, so nearby but unloaded cells are not added here.
-The returned union is input for later scheduler work.
+The returned union is input to the S06 cadence state. That scheduler state drops
+keys from its active due set when they leave the current player neighborhood,
+while retaining each key's session due time across inactivity.
+
+## S06 per-key cadence — 2026-10-24
+
+`AKalmalaGameMode::Tick` updates cadence from the S05 loaded-key candidate union
+on the server. Each newly active key receives a stable initial phase from its
+wildlife spatial-seed hash modulo 20, multiplied by 0.25 seconds. Due
+keys are returned in lexicographic order; servicing a key advances it to
+`now + 5` seconds. Keys leaving the player neighborhood are removed from the
+active due set. Their due-time entry remains for this session as required by
+S02. If it is overdue when the key becomes active again, it is reset to
+`now + 5` seconds, so inactivity never creates catch-up attempts. The 0.25 s
+wake and work limits remain S07; this increment adds no candidate evaluation or
+spawn admission.
 
 ## Spatial scheduling and random rolls
 
