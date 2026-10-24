@@ -9425,3 +9425,84 @@
   dispositions and final acceptance are covered.
 - **Next eligible A10 group:** A6 foraged foods, `Lingonberry` and
   `ForestChanterelle`; this is the next group directed for the audit.
+
+## Run 2026-10-24 — A10 per-item audit: A6 foraged foods
+
+- **Scope and definitions:** audited only ordinary stackable food items
+  Lingonberry and ForestChanterelle, registered in the schema-16 food file.
+  Lingonberry: “Tart red berries gathered from Meadow shrubs”; stack 20,
+  0.05 kg. Forest Chanterelle: “Golden mushrooms hand-gathered from
+  Elderwood patches”; stack 20, 0.1 kg. Neither has a wearable/carried-tool
+  profile, attack, level-up cost, stat reward, or spoilage/expiry field;
+  those categories do not apply to these raw foods.
+- **Generated source and yield:** harvest nodes are built from deterministic
+  6000 cm spatial-key candidates, not separate fixed spawn tables. In the
+  Meadow, after the established carrot and potato patches, the next eligible
+  dry terrain-safe candidate may become meadows-wild-lingonberry-shrub, with
+  the stable seed domain Mix(candidateSeed XOR 0x1A660B3A71019). In Elderwood,
+  the first eligible candidate is onion and the next may become
+  elderwood-wild-chanterelle-patch, using
+  Mix(candidateSeed XOR 0xF0E57C4A71019). The server source mapping grants
+  3 Lingonberries or 2 Forest Chanterelles per accepted hand-gather. At most
+  one of each forage source is assigned per spatial key, only if the candidate
+  is within that key's generation budget and passes the terrain safety checks;
+  coverage is therefore not guaranteed in every key.
+- **Recipes and direct use:** Lingonberry is consumed by three enabled Cauldron
+  recipes. Berry Recovery Draught consumes 3 Lingonberry + 1 Carrot for one
+  dose; Rat-tail Tonic consumes 2 Rat Tail + 2 Lingonberry for one dose;
+  Antidote consumes 1 Venom Sac + 2 Lingonberry for one dose. Each has a
+  five-batch cap and awards 10 Cooking XP per batch. Forest Chanterelle
+  has no recipe consumer in the registered catalogue. Both are directly
+  edible through the server-owned one-slot Steady Meal: 120 seconds with
+  10% lower stamina use. A meal cannot stack, refresh, or replace an active
+  meal; neither forage item has a separate healing effect.
+- **Icons and registration:** GameCatalogues.json registers the food file.
+  docs/icon-provenance.md records built-in generated original art:
+  - Lingonberry, batch X:
+    Original: `Content/Kalmala/UI/Source/IconOriginals/Lingonberry.png`
+    Prepared: `Content/Kalmala/UI/Source/Icons/Lingonberry.png`
+    Imported: `Content/Kalmala/UI/Icons/Items/Lingonberry.uasset`
+    Runtime: `/Game/Kalmala/UI/Icons/Items/Lingonberry.Lingonberry`
+  - Forest Chanterelle, batch Y:
+    Original: `Content/Kalmala/UI/Source/IconOriginals/ForestChanterelle.png`
+    Prepared: `Content/Kalmala/UI/Source/Icons/ForestChanterelle.png`
+    Imported: `Content/Kalmala/UI/Icons/Items/ForestChanterelle.uasset`
+    Runtime: `/Game/Kalmala/UI/Icons/Items/ForestChanterelle.ForestChanterelle`
+  Both catalogue validators passed: 1254x1254 RGBA originals, transparent
+  64x64 prepared icons, and canonical mappings. The referenced
+  docs/material-icons.md and docs/alpha-item-details.md are absent in this
+  checkout; the backlog, architecture, decision log, setup guide, catalogue,
+  and extant icon-provenance guide supplied the evidence.
+- **Authority and save behavior:** hand gathering validates server authority,
+  actor identity/alive state, interaction range, and pack capacity. It commits
+  the granted stacks, then requires player-state persistence before finalizing
+  actor depletion; that persistence failure rolls the inventory exchange back.
+  Depletion is then recorded as a sparse world-population ID. Static inspection
+  found that RecordHarvestedSpawn ignores the world SaveGameToSlot result
+  and does not roll back actor depletion if that separate write fails, so a
+  failed write can leave the source eligible to return after a later restart
+  unless a subsequent successful world save captures the ID. This failure path
+  was not exercised. Ordinary packed item stacks and status entries have no
+  SaveGame fields in the player save; the two forage stacks and active meal
+  therefore remain transient. Status is server-owned and owner-only replicated;
+  no save schema changed.
+- **Files changed:** BACKLOG.md, PROGRESS.md only.
+- **Lightweight checks:** focused PowerShell JSON assertions passed for schema
+  16, both exact food definitions, and all three Lingonberry ingredient recipe
+  consumers; no Forest Chanterelle ingredient recipe consumer was found.
+  Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id passed separately for
+  Lingonberry and ForestChanterelle. Source inspection covered generation,
+  harvest grant/depletion and save flow, food use, and player/world save fields.
+  No build, automation, full suite, live harvest/use, write-failure, peer, or
+  restart check ran.
+- **Full verification:** deferred; this is not the final A10 increment.
+- **Impact and remaining scope:** tracking-only; no catalogue, source, recipe,
+  icon, authority, or save behavior changed. No item definition, recipe, or icon
+  gap was found. Procedural safe-candidate availability and best-effort world
+  depletion persistence remain part of final source-coverage/restart acceptance;
+  the write-failure consequence above is an unexercised source-code finding.
+  Preserve both BronzePick/IronPick acquisition-target gaps for final
+  progression disposition. Keep the broad A10 item audit unchecked until every
+  included ID, scope N/A disposition, and final acceptance are covered.
+- **Next eligible A10 group:** A6 recovery draughts
+  (BerryRecoveryDraught, RootStaminaDraught).
