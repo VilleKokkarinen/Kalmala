@@ -9952,3 +9952,97 @@
   are covered.
 
 - **Next eligible A7 crop audit:** Onion and OnionSeed.
+
+## Run 2026-10-24 — A10 per-item audit: A7 Onion and OnionSeed
+
+- **Scope and definitions:** audited Onion and OnionSeed for their A7 Garden
+  Plot use. The prior A0 wild-onion source-pair review is cross-referenced, not
+  repeated. Both are registered in schema-16 `items/crops.json`. Onion is
+  displayed as `Onion`, described as `Layers upon layers of destruction to the
+  eyes.`, with MaxStack 20. OnionSeed is displayed as `Onion Seeds`, described
+  as `Seeds to grow onions.`, with MaxStack 50. Neither item has an
+  equipment/carried-tool profile, attack data, level-up cost, or stat reward;
+  those categories are N/A. OnionSeed is an A0 source reward and an A7 planting
+  input/harvest output.
+
+- **Reciprocal A7 modes:** `OnionFood` spends one OnionSeed and yields three
+  Onions. `OnionSeed` spends one Onion and yields three OnionSeeds. Both are
+  Garden Plot actions, not ordinary recipe outputs. Each crop takes 600 active
+  seconds. The menu enables each action only when its matching item is in the
+  pack, the Trowel is ready, and the plot is empty.
+
+- **Other catalogue uses:** Onion is used as an input in
+  `RootStaminaDraughtRecipe` (1), `HearthBrothRecipe` (1),
+  `RootVegetableSoupRecipe` (1), `PeatHeartStewRecipe` (1), `WolfStewRecipe`
+  (3), `RoastedRootVegetablesRecipe` (1), and `DeerRootRoastRecipe` (1).
+  OnionSeed has no recipe reference. Their earlier recipe reviews were
+  cross-referenced, not repeated.
+
+- **Authority, Trowel wear, and full-pack behavior:** the server checks
+  authority, same-world GardenPlot identity, visible current plot context, an
+  empty plot, matching payment inventory, and a usable Main Hand Planting
+  Trowel. It commits one planting input and one Trowel condition only for
+  accepted planting, persists player and crop candidates, and rolls payment and
+  condition back if saving or plot application rejects the action. Harvest
+  requires the valid Trowel context but spends no condition. The server
+  prebuilds the three-item harvest grant before clearing the mature crop; an
+  insufficient pack rejects the grant and leaves the crop planted.
+
+- **Persistence and growth:** GardenPlot save state contains crop mode and
+  remaining active seconds in current construction schema 7. The server
+  advances and saves an immature crop only while its terrain patch is active;
+  inactive regions and server downtime add no growth. Restoring construction
+  records restores the crop mode and remaining time. Ordinary Onion and
+  OnionSeed stacks have no item-specific player-save state; their
+  ordinary-inventory save limitation is recorded in the Carrot audit.
+  Architecture/setup text that still names construction schema 6 is the
+  previously recorded documentation mismatch.
+
+- **Icons and provenance:** the icon manifest identifies Onion as image batch
+  11/import batch C and OnionSeed as image batch 12/import batch C, both pack
+  items. Original files exist under
+  `Content/Kalmala/UI/Source/IconOriginals/`; prepared files exist under
+  `Content/Kalmala/UI/Source/Icons/`. Imported packages are
+  `Content/Kalmala/UI/Icons/Items/Onion.uasset` and
+  `Content/Kalmala/UI/Icons/Items/OnionSeed.uasset`. Focused validation
+  confirms each original is 1254x1254 RGBA, each prepared icon is transparent
+  64x64 RGBA, and both imported Texture2D targets resolve at
+  `/Game/Kalmala/UI/Icons/Items/Onion.Onion` and
+  `/Game/Kalmala/UI/Icons/Items/OnionSeed.OnionSeed`. The fallback table maps
+  Onion to Root variant 3 and OnionSeed to Seed variant 3.
+  `docs/icon-provenance.md` has no item-specific Onion/OnionSeed entry or
+  prompt, and `docs/material-icons.md` is absent. Batch/art identity is
+  recorded, but original prompt/tool provenance cannot be established; this is
+  a documentation gap, not a missing icon or runtime mapping.
+
+- **Evidence and remaining acceptance:** the construction-save test source
+  asserts both reciprocal payments/outputs, 600-second maturation, one-time
+  harvest, and an OnionSeed mode/time round-trip; this audit did not execute it.
+  The historical I3 live peer run planted Carrot and confirmed the seven
+  actions were visible; it did not exercise either Onion route. Static
+  inspection confirms full-pack rejection, but no Onion full-pack or rendered-
+  menu runtime check is recorded. The post-I3 menu still needs its A10
+  menu-specific verification refresh; later I4 build/automation evidence did
+  not report a rendered/menu-specific run.
+
+- **Files changed:** BACKLOG.md, PROGRESS.md only.
+- **Lightweight checks:** focused JSON parsing/assertions passed for schema-16
+  crop registration, exact Onion/OnionSeed definitions and stack caps, absence
+  of equipment/profile/attack/upgrade/reward rows, and absence of OnionSeed
+  recipe references; it also enumerated Onion's seven recipe-input references.
+  Catalogue icon validation passed separately for Onion and OnionSeed. Static
+  inspection covered reciprocal mode mappings, payment/rollback, Trowel
+  condition, full-pack harvest, active growth, save/restore, and icon mapping.
+  No build, automation, gameplay, UI, peer or reconnect check was run.
+
+- **Full verification:** deferred; this is not the final A10 increment.
+
+- **Impact and remaining scope:** tracking-only; no item or gameplay behavior
+  changed. The item-specific art prompt/provenance record and Onion-specific
+  live cultivation/menu evidence remain open. A10 no-grant fresh-world and
+  restart acceptance remain open. Preserve the BronzePick and IronPick
+  acquisition-target gaps for final disposition and keep the broad A10 item
+  audit unchecked until all included IDs, N/A dispositions and final acceptance
+  are covered.
+
+- **Next eligible A8 item audit:** Timber Door (`TimberDoor` buildable ID).
