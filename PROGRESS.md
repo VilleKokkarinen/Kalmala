@@ -7742,11 +7742,12 @@
   for the later Planting Trowel menu change. No integrated A10 no-grant
   fresh-world journey or single current-source final run covering the approved
   item/source/use/save and competing-peer scenarios is recorded. The old A10
-  rubric includes a Skiff Cargo Chest proposal, while current A9 handoff text
-  says A9 does not imply cargo and the active A9 backlog omits it; the retained
-  A9 page still contains cargo checklist text. This scope conflict is recorded
-  for the item/scope audit; no cargo work or decision was made here. Fishing is
-  explicitly deferred. The prior 148-identity I4/I5 icon counts are historical;
+  rubric includes a retired Skiff Cargo Chest proposal, but current A9 scope
+  explicitly excludes it (`docs/a9-acceptance.md:38`) and the active backlog
+  omits it. The remaining A9 cargo checklist is historical text; no scope
+  conflict remains. No cargo work was done. The later per-item audit should
+  record cargo as deferred/excluded (N/A). Fishing remains explicitly
+  deferred. The prior 148-identity I4/I5 icon counts are historical;
   the preceding A10 child now validates all 152 current catalogue identities.
 - **Completed:** Finished the milestone review and checked only the selected
   A10 review child in `BACKLOG.md`. This does not mark any milestone or A10
@@ -7766,3 +7767,62 @@
   upgrades, icon and save behavior, recording any explicit N/A or deferral.
   Leave full A10 verification, fresh-start progression and approved-system
   acceptance for their later A10 children.
+
+## Run 2026-10-24 — A10 per-item audit: Sinew
+
+- **Selected increment:** The first A0 item in A10's per-item source, recipe,
+  use, upgrade, icon and save audit. This is one cumulative item review; the
+  A10 child remains unchecked until all included items and scope N/A decisions
+  are covered.
+- **Evidence reviewed:** Current `BACKLOG.md`; `Content/Data/GameCatalogues/items/materials/crafting-ingredients.json`,
+  `creatures.json`, `recipes/stations/workbench.json`, and bow upgrade costs;
+  `KalmalaWildlifeSpawn.cpp`, item-catalogue/wildlife/two-handed tests,
+  `KalmalaInventoryComponent.h`, player and storage save records/tests;
+  `docs/01-game-design.md`, `docs/02-technical-architecture.md`,
+  `docs/07-development-setup.md`, `docs/a9-acceptance.md`, `docs/icon-provenance.md`,
+  and the catalogue icon manifest. The obsolete `docs/alpha-item-details.md`
+  remains absent and was not restored.
+- **Sinew source and data:** The registered Deer loot entry grants exactly 1
+  Sinew at 0.5 chance. Runtime damage attribution keeps the last validated
+  attacker; defeat rewards require server authority, process once, perform one
+  server-owned random roll, and grant one only for a finite roll in `[0, 0.5)`.
+  The item definition is stack size 20, weight 0.1 kg, with no equipment,
+  attack, or level-up data applicable. Bow String is its only authored recipe
+  use: the Workbench `BowStringRecipe` consumes 4 Sinew for 1 Bow String.
+  Bow, Light Bow and Horn Bow acquisition, and bow upgrade costs, each use
+  1 Bow String. Existing catalogue, wildlife boundary and bow progression tests
+  cover these rules; recorded A0 peer/full-automation evidence is in the earlier
+  PROGRESS entry and was not rerun in this audit.
+- **Icon:** Batch K has a retained original at
+  `Content/Kalmala/UI/Source/IconOriginals/Sinew.png`, prepared 64x64 texture at
+  `Content/Kalmala/UI/Source/Icons/Sinew.png`, imported canonical package at
+  `/Game/Kalmala/UI/Icons/Items/Sinew`, and a distinct `Sinew` manifest/runtime
+  identity. The exact generation prompt is in `docs/icon-provenance.md`. The
+  prior A10 icon audit reports the full 152-identity catalogue validation pass;
+  it was not rerun here.
+- **Save behavior:** Ordinary carried `Stacks` and `EquippedGear` are replicated
+  player state, not fields in the player SaveGame; that SaveGame stores discovery,
+  claims, learned effects and tool records, not normal material quantities.
+  Carried Sinew therefore has no player-inventory save/restore path. Chest
+  storage has a separate SaveGame record for generic validated item stacks, and
+  its existing memory round-trip test uses ordinary materials; it does not
+  assert Sinew by name. No Sinew-specific chest persistence test was found.
+- **Cargo scope correction:** Current A9 acceptance explicitly excludes the
+  retired cargo proposal (`docs/a9-acceptance.md:38`); the active backlog also
+  omits it. The old A9 cargo checklist text does not leave a scope conflict.
+  Cargo is deferred/excluded and should receive an explicit N/A disposition in
+  the later comprehensive audit. No cargo implementation or scope expansion.
+- **Files changed:** `BACKLOG.md`; `PROGRESS.md`.
+- **Checks:** Read-only catalogue/source/save/icon cross-check and existing test
+  assertions reviewed; `git diff --check` passed after edits. No tests, builds,
+  peer runs, or persistence runtime checks were run for this item audit.
+- **Full verification:** Deferred. This is not A10's final increment. No gameplay,
+  networking, authority, recipe, inventory or save behavior was changed.
+- **Impact and limitations:** Audit records Sinew's current credited-Deer path,
+  sole Bow String recipe use, dedicated icon, and session-only carried quantity;
+  storage uses a separate generic stack persistence route. Other item audits,
+  fresh-start progression, approved-system acceptance and final milestone gates
+  remain open.
+- **Next eligible item:** Bow String (A0), then continue A0 item order. Keep the
+  A10 per-item audit child unchecked until the full included-item/N/A list is
+  complete.
