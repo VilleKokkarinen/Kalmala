@@ -8105,3 +8105,78 @@
   later A0 item audits, fresh-world progression, approved-system acceptance
   and milestone-final verification; keep the broad child unchecked.
 - **Next eligible A0 item:** Hearth Broth. Continue in backlog order.
+
+## Run 2026-10-24 — A10 per-item audit: Hearth Broth
+
+- **Selected increment:** Audit the next A0 item after the six current
+  cooking outputs, Hearth Broth only. The broad A10 per-item audit child
+  remains unchecked.
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md`.
+- **Evidence reviewed:** Hearth Broth's registered item JSON and
+  GameCatalogues registration, all catalogue-data references, Cauldron recipe
+  JSON, server cooking/use/status source, focused status assertions by source
+  inspection, icon manifest/runtime lookup and retained files, current
+  `docs/icon-provenance.md`, `docs/02-technical-architecture.md`,
+  `docs/07-development-setup.md`, `docs/a9-acceptance.md`, and the generic
+  storage save/transfer contract.
+- **Registered item and acquisition:** Canonical ID `HearthBroth`, display
+  name Hearth Broth, description A simple savory broth for a camp meal,
+  stack limit 20, registered from `items/food.json`. The catalogue-data
+  search found the item entry and its single recipe output only; no separate
+  drop/grant source, equipment profile, attack data, or item-level upgrade
+  or stat reward record was found. Those equipment, combat, and own-upgrade
+  categories are N/A for this food.
+- **Recipe:** Enabled `HearthBrothRecipe` is registered in
+  `recipes/stations/cauldron.json`: Cauldron,
+  `DeerMeat ×1 + Onion ×1 → HearthBroth ×1`, maximum batch 5. Successful
+  payment awards 10 Cooking XP; no Cooking-level gate is required. The
+  server checks the visible same-world station, recipe inputs, output
+  capacity, and a usable Lit hearth with finite positive heat within 250 cm
+  of both player and station. Cooking consumes only the listed ingredients;
+  hearth fuel burns at its ordinary elapsed-time rate, with no extra recipe
+  fuel debit.
+- **Use and effect:** The Cauldron panel's Eat one Hearth Broth action sends
+  only the `HearthBroth` identity to the existing server food transaction.
+  It requires server authority, checks the private pack and meal slot,
+  consumes one item through a candidate exchange, then applies
+  `State.Food.SteadyMeal`; if application fails, the prior stack is restored.
+  The shared meal lowers stamina costs by 10% for 120 server seconds, adds
+  with existing Wet/accessory modifiers, and neither stacks nor refreshes nor
+  replaces another active meal. A duplicate use preserves the broth and
+  active timer. There is no movement bonus or HearthBroth-specific combat
+  effect.
+- **Icon and provenance:** Manifest row 08/B maps `HearthBroth` to Pack,
+  Item Detail, Storage and Recipe Result views. Its retained original,
+  prepared texture and imported `.uasset` are present. The canonical vector
+  fallback is Bowl variant 0; the catalogue icon library resolves the
+  canonical identity to `/Game/Kalmala/UI/Icons/Items/HearthBroth.HearthBroth`.
+  Focused `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id HearthBroth`
+  passed: 1254×1254 8-bit RGBA original, transparent 64×64 RGBA prepared
+  texture, and expected imported Texture2D package/target path. Current
+  `docs/icon-provenance.md` has no HearthBroth prompt or provenance record.
+  I did not reconstruct generation wording.
+- **Save and expiry:** Carried ordinary inventory is session-only and is not
+  restored on restart; food, cooking progress, and meal effects are transient
+  and add no save field or schema. The item definition has no expiry/decay
+  field; the consumed meal status expires after 120 server seconds. Storage
+  is separate: the world-keyed `UKalmalaStorageSaveGame` validates stacks
+  against the item catalogue, and the authoritative chest transfer persists
+  its candidate contents before publishing the pack change. A registered
+  HearthBroth stack can use that generic chest path, but no
+  HearthBroth-specific chest round-trip assertion or runtime storage run was
+  reviewed here.
+- **Checks:** PowerShell `ConvertFrom-Json` parsed and asserted the item and
+  exact recipe contract; searching all catalogue-data references showed
+  only the item definition and recipe entry/output. The focused catalogue
+  icon validator and `git diff --check` passed without whitespace errors;
+  Git emitted CRLF-to-LF advisory warnings. Runtime, save source and contract
+  docs were inspected; no automation, build, peer/restart, or live runtime
+  test was executed.
+- **Full verification:** Deferred; this is not A10's final increment.
+- **Impact and remaining scope:** Documentation-only audit; recipe, food
+  effect, authority and persistence behavior are unchanged. Server authority
+  remains required for cooking and meal use. The exact icon prompt is absent
+  from current provenance docs. Later A0 audits, fresh-world progression,
+  approved-system acceptance and milestone-final verification remain open;
+  keep the broad child unchecked.
+- **Next eligible A0 group:** Wild carrots. Continue in backlog order.
