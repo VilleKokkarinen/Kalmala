@@ -36,6 +36,21 @@ bool FKalmalaPopulationLandSurfaceTest::RunTest(const FString& Parameters)
         AKalmalaGameMode::IsPopulationLandSurfaceSampleAllowed(
             true, false, true, FVector::UpVector));
 
+    const TArray<bool> AllWolfMemberSurfacesAllowed = {
+        AKalmalaGameMode::IsPopulationLandSurfaceSampleAllowed(true, true, true, FVector::UpVector),
+        AKalmalaGameMode::IsPopulationLandSurfaceSampleAllowed(true, true, true, AtSlopeLimit),
+        AKalmalaGameMode::IsPopulationLandSurfaceSampleAllowed(true, true, true, FVector::UpVector)
+    };
+    TestTrue(TEXT("A Wolf pack passes only after the center and all three member surfaces pass"),
+        AKalmalaGameMode::AreAllPopulationLandSurfacesAllowed(AllWolfMemberSurfacesAllowed));
+    const TArray<bool> OneWolfMemberTooSteep = {
+        AllWolfMemberSurfacesAllowed[0], AllWolfMemberSurfacesAllowed[1],
+        AKalmalaGameMode::IsPopulationLandSurfaceSampleAllowed(true, true, true, OverSlopeLimit),
+        AllWolfMemberSurfacesAllowed[2]
+    };
+    TestFalse(TEXT("One Wolf member above 32 degrees rejects the whole pack's land check"),
+        AKalmalaGameMode::AreAllPopulationLandSurfacesAllowed(OneWolfMemberTooSteep));
+
     UWorld* World = UWorld::CreateWorld(EWorldType::Game, false);
     if (!TestNotNull(TEXT("Population land-surface fixture world created"), World)) return false;
     ON_SCOPE_EXIT { World->DestroyWorld(false); };

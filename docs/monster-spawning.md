@@ -321,9 +321,11 @@ It requires finite in-bounds generated ground, valid dry samples from the
 existing ocean and lake samplers, and a sampled surface normal at no more than
 32 degrees from vertical, inclusive. The predicate first reuses S15's species
 habitat check, including its hard-enemy generated-start exclusion, and rejects
-Reef Maw for S21's aquatic checks. It does not set the final physical-placement
-result: that result remains fail-closed until S25 combines surface, clearance,
-roof and camp checks.
+Reef Maw for S21's aquatic checks. For a Wolf descriptor it uses the existing
+pack-member builder, then applies the same bounds, dry-ground and 32-degree
+checks to each of the three actual member locations. It does not set the final
+physical-placement result: that result remains fail-closed until S25 combines
+surface, clearance, roof and camp checks.
 
 - Time, weather and progression are explicitly **unrestricted for all current
   species**. These three gates return pass. Provide internal policy seams and

@@ -193,8 +193,10 @@ private:
     bool DoesPopulationDescriptorPassSpeciesHabitat(const FKalmalaWorldPopulationSpawn& Descriptor,
         EKalmalaWildlifeArchetype* OutArchetype = nullptr) const;
     bool DoesPopulationDescriptorPassLandSurface(const FKalmalaWorldPopulationSpawn& Descriptor) const;
+    bool DoesPopulationLandPositionPassSurface(const FVector& Location) const;
     static bool IsPopulationLandSurfaceSampleAllowed(bool bWithinBounds, bool bHasGeneratedGround,
         bool bIsDry, const FVector& SurfaceNormal);
+    static bool AreAllPopulationLandSurfacesAllowed(const TArray<bool>& SurfaceResults);
     bool DoesPopulationDescriptorPassTimeGate(const FKalmalaWorldPopulationSpawn& Descriptor) const;
     bool DoesPopulationDescriptorPassWeatherGate(const FKalmalaWorldPopulationSpawn& Descriptor) const;
     bool DoesPopulationDescriptorPassProgressionGate(const FKalmalaWorldPopulationSpawn& Descriptor) const;
