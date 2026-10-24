@@ -207,9 +207,15 @@ double FKalmalaRegionalGeneration::ShapeMeadows(
     return CompressMeadowShoulder(HeightWithHills, ShoulderHeight, ShoulderCompressionScale);
 }
 
-double FKalmalaRegionalGeneration::ShapeElderwood(const double SourceHeight, const double Detail)
+double FKalmalaRegionalGeneration::ShapeElderwood(
+    const double SourceHeight, const double Detail, const FKalmalaTerrainReliefSample& SharedRelief,
+    const double BroadAmplitude, const double MiddleAmplitude, const double LocalAmplitude)
 {
-    return SourceHeight + double(float(-60 + 15 * Detail));
+    const double SharedBase = SourceHeight
+        + double(float(SharedRelief.Broad * BroadAmplitude))
+        + double(float(SharedRelief.Middle * MiddleAmplitude))
+        + double(float(SharedRelief.Local * LocalAmplitude));
+    return SharedBase + double(float(-60 + 15 * Detail));
 }
 
 double FKalmalaRegionalGeneration::ShapeShimmeringLakes(const double SourceHeight, const double Detail)
@@ -222,9 +228,12 @@ double FKalmalaRegionalGeneration::ShapeMire(const double SourceHeight, const do
     return SourceHeight + double(float(-60 + 15 * Detail));
 }
 
-double FKalmalaRegionalGeneration::ShapeTundra(const double SourceHeight, const double Detail)
+double FKalmalaRegionalGeneration::ShapeTundra(
+    const double SourceHeight, const double Detail, const FKalmalaTerrainReliefSample& SharedRelief,
+    const double BroadAmplitude, const double MiddleAmplitude, const double LocalAmplitude)
 {
-    return SourceHeight + double(float(50 * Detail));
+    return ShapeElderwood(SourceHeight, Detail, SharedRelief,
+        BroadAmplitude, MiddleAmplitude, LocalAmplitude);
 }
 
 double FKalmalaRegionalGeneration::ShapeMountains(
@@ -326,14 +335,22 @@ FKalmalaRegionalSample FKalmalaRegionalGeneration::SampleInternal(const FKalmala
         const double MeadowFloor = R.Weights[0] > 0.0f
             ? Noise(C, T::MeadowFloorSalt, P, 1.0 / Preview.MeadowFloorScale)
             : 0.0;
+        FKalmalaTerrainReliefSample ElderwoodRelief;
+        if (R.Weights[2] > 0.0f || R.Weights[4] > 0.0f)
+        {
+            ElderwoodRelief = SampleSharedRelief(C, P);
+        }
+        const double ElderwoodHeight = ShapeElderwood(Source, Detail, ElderwoodRelief,
+            T::ElderwoodBroadAmplitude, T::ElderwoodMiddleAmplitude, T::ElderwoodLocalAmplitude);
         const double CandidateHeights[] = {
             ShapeMeadows(Source, MeadowHill, Preview.MeadowHillAmplitude,
                 MeadowRolling, Preview.MeadowRollingAmplitude, MeadowFloor, Preview.MeadowFloorAmplitude,
                 Preview.MeadowShoulderHeight, Preview.MeadowShoulderCompressionScale),
             ShapeShimmeringLakes(Source, Detail),
-            ShapeElderwood(Source, Detail),
+            ElderwoodHeight,
             ShapeMire(Source, Detail),
-            ShapeTundra(Source, Detail),
+            ShapeTundra(Source, Detail, ElderwoodRelief,
+                T::ElderwoodBroadAmplitude, T::ElderwoodMiddleAmplitude, T::ElderwoodLocalAmplitude),
             ShapeMountains(Source, Detail, WarpedRegion(C, Warped, 5)),
         };
         const float OceanOffset = float(-60 * (1 - Land) * WarpedRegion(C, Warped, 6));

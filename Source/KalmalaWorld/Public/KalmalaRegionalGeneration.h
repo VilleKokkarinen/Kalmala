@@ -66,10 +66,14 @@ private:
         double RollingNoise, double RollingAmplitude, double FloorNoise, double FloorAmplitude,
         double ShoulderHeight, double ShoulderCompressionScale);
     static double CompressMeadowShoulder(double Height, double ShoulderHeight, double ShoulderCompressionScale);
-    static double ShapeElderwood(double SourceHeight, double Detail);
+    static double ShapeElderwood(double SourceHeight, double Detail,
+        const FKalmalaTerrainReliefSample& SharedRelief,
+        double BroadAmplitude, double MiddleAmplitude, double LocalAmplitude);
     static double ShapeShimmeringLakes(double SourceHeight, double Detail);
     static double ShapeMire(double SourceHeight, double Detail);
-    static double ShapeTundra(double SourceHeight, double Detail);
+    static double ShapeTundra(double SourceHeight, double Detail,
+        const FKalmalaTerrainReliefSample& SharedRelief,
+        double BroadAmplitude, double MiddleAmplitude, double LocalAmplitude);
     static double ShapeMountains(double SourceHeight, double Detail, double MountainRegion);
     /** Blend complete land candidates by coast-scaled weights, adding the shared base once. */
     static float BlendCandidateHeights(

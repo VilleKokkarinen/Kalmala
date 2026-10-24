@@ -334,6 +334,15 @@ BH25a/BH25b/BH25c run fresh-source profile sweeps and select measured settings.
 BH26 retains rendered gentler-route and under-vegetation floor inspection; no
 floor aliasing or visual result is claimed before that gate.
 
+Elderwood and Tundra share the same uncompressed candidate over the absolute-
+world 1,000 / 150 / 30 m relief stack, plus its bounded legacy detail. The
+provisional broad/middle/local amplitudes are 9 / 2.4 / 0.4 m, with 4–16 /
+0.6–4 / 0.1–1 m trial ranges scheduled for validation. Tundra directly calls
+the Elderwood function, so the candidate height cannot drift between those
+biomes; continuous classification weights still determine each final blend.
+BH25b owns fresh-source trial selection, and BH26 owns rendered profile
+acceptance.
+
 The master seed is a compiled constant. Crop transforms derive from the game seed. Rivers remain enabled and small streams are disabled. Authority, population IDs, collision and maps derive from the same server-owned seed and current build.
 
 ### Sea-level river terrain and hydrology contract

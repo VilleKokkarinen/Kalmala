@@ -8391,6 +8391,42 @@
 - **Next task in this directed goal:** BH12b — add the validated local-floor
   profile and stale-binary-rejecting amplitude sweep harness.
 
+## Run 2026-10-24 — Integrate shared Elderwood relief (BH13a)
+
+- **Selected task:** BH13a, the source-integration child under BH13. Numeric
+  amplitude selection remains assigned to BH25b; this run did not implement
+  the profile sweep harness or rendered acceptance.
+- **Work completed:** Elderwood now adds provisional broad, middle and local
+  shared relief over the same source height as other candidates, followed by
+  its bounded existing detail term. It does not use Meadows shoulder
+  compression. Tundra calls the Elderwood candidate directly. Added focused
+  checks for bounded relief, uncompressed source-height differences, signed
+  relief, exact parity at seed-418/419 baseline sites, negative coordinates,
+  and the fixed Elderwood/Tundra transition blend. Checked BH13a only.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalGeneration.h`,
+  `Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`,
+  `docs/02-technical-architecture.md`, and `docs/biome-height-rework.md`.
+- **Lightweight checks/results:** Reviewed the candidate integration, existing
+  region/coast blending, fixed baseline coordinates, and source-level
+  assertions. `git diff --check` passed. No Unreal build or automation was run.
+  Full verification remains deferred until the roadmap verification gate.
+- **Observable impact:** Elderwood and Tundra now share the same seeded,
+  absolute-coordinate broad/middle/local relief candidate and bounded detail;
+  the Elderwood shape preserves source-height differences above the Meadows
+  shoulder. The 9 / 2.4 / 0.4 m amplitudes and 4–16 / 0.6–4 / 0.1–1 m ranges
+  are provisional trial settings, not accepted tuning.
+- **Networking/authority:** The change derives only from the existing world
+  seed and absolute XY. Biome classifier inputs, weights, coast blending,
+  replication, gameplay authority and save data are unchanged.
+- **Known limitations / remaining scope:** Fresh-source amplitude trials and
+  measured numeric selection remain BH13b/BH25b; rendered terrain and profile
+  acceptance remains BH26. Full verification is deferred.
+- **Next task in this directed goal:** BH13b — add the validated Elderwood /
+  Tundra profile sweep harness and reject stale binaries.
+
 ## Run 2026-10-24T18:54Z — Add Meadows floor-detail profile sweep harness (BH12b)
 
 - **Selected task:** BH12b, the first unchecked child under BH12. Added the

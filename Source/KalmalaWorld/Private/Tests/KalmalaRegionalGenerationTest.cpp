@@ -66,24 +66,27 @@ bool FKalmalaBiomeHeightFunctionTest::RunTest(const FString& Parameters)
     using G = FKalmalaRegionalGeneration;
     constexpr double SourceHeight = 1000.0;
     const double Details[] = {-1.0, 0.0, 1.0};
+    const FKalmalaTerrainReliefSample NoSharedRelief;
     const double ExpectedMeadows[] = {960.0, 1000.0, 1040.0};
     const double ExpectedElderwood[] = {925.0, 940.0, 955.0};
     const double ExpectedLakes[] = {935.0, 1000.0, 1065.0};
     const double ExpectedMire[] = {925.0, 940.0, 955.0};
-    const double ExpectedTundra[] = {950.0, 1000.0, 1050.0};
 
     for (int32 Index = 0; Index < UE_ARRAY_COUNT(Details); ++Index)
     {
         TestEqual(TEXT("Meadows candidate preserves the prior sample"),
             G::ShapeMeadows(SourceHeight, Details[Index]), ExpectedMeadows[Index]);
-        TestEqual(TEXT("Elderwood candidate preserves the prior sample"),
-            G::ShapeElderwood(SourceHeight, Details[Index]), ExpectedElderwood[Index]);
+        TestEqual(TEXT("Elderwood candidate preserves the prior local detail at zero shared relief"),
+            G::ShapeElderwood(SourceHeight, Details[Index], NoSharedRelief, 900.0, 240.0, 40.0), ExpectedElderwood[Index]);
         TestEqual(TEXT("Shimmering Lakes candidate preserves the prior sample"),
             G::ShapeShimmeringLakes(SourceHeight, Details[Index]), ExpectedLakes[Index]);
         TestEqual(TEXT("Mire candidate preserves the prior sample"),
             G::ShapeMire(SourceHeight, Details[Index]), ExpectedMire[Index]);
-        TestEqual(TEXT("Tundra candidate preserves the prior sample"),
-            G::ShapeTundra(SourceHeight, Details[Index]), ExpectedTundra[Index]);
+        TestEqual(TEXT("Tundra uses the Elderwood candidate at zero shared relief"),
+            G::ShapeTundra(SourceHeight, Details[Index], NoSharedRelief, 900.0, 240.0, 40.0), ExpectedElderwood[Index]);
+        TestEqual(TEXT("Tundra direct reference is exactly the Elderwood function"),
+            G::ShapeTundra(SourceHeight, Details[Index], NoSharedRelief, 900.0, 240.0, 40.0),
+            G::ShapeElderwood(SourceHeight, Details[Index], NoSharedRelief, 900.0, 240.0, 40.0));
     }
 
     const double MountainRegions[] = {0.0, 0.5, 1.0};
@@ -98,6 +101,42 @@ bool FKalmalaBiomeHeightFunctionTest::RunTest(const FString& Parameters)
         TestEqual(TEXT("Mountain candidate preserves detail and regional offset"),
             G::ShapeMountains(SourceHeight, Details[DetailIndex], MountainRegions[RegionIndex]),
             ExpectedMountains[DetailIndex][RegionIndex]);
+    }
+
+    const FKalmalaTerrainReliefSample LowRelief{-1.0, -1.0, -1.0};
+    const FKalmalaTerrainReliefSample HighRelief{1.0, 1.0, 1.0};
+    const double ElderwoodLow = G::ShapeElderwood(SourceHeight, 0.0, LowRelief, 900.0, 240.0, 40.0);
+    const double ElderwoodHigh = G::ShapeElderwood(SourceHeight, 0.0, HighRelief, 900.0, 240.0, 40.0);
+    TestTrue(TEXT("Elderwood relief remains bounded by the three named amplitudes"),
+        ElderwoodLow >= SourceHeight - 900.0 - 240.0 - 40.0 - 60.0
+        && ElderwoodHigh <= SourceHeight + 900.0 + 240.0 + 40.0 - 60.0);
+    TestEqual(TEXT("Elderwood preserves source-height differences without Meadows compression"),
+        G::ShapeElderwood(SourceHeight + 500.0, 0.0, HighRelief, 900.0, 240.0, 40.0) - ElderwoodHigh,
+        500.0);
+    const double ElderwoodReliefRange = ElderwoodHigh - ElderwoodLow;
+    const double MeadowReliefRange = G::ShapeMeadows(2000.0, 1.0, 600.0, 1.0, 120.0,
+        1.0, 20.0, 1000.0, 3000.0)
+        - G::ShapeMeadows(2000.0, -1.0, 600.0, -1.0, 120.0, -1.0, 20.0, 1000.0, 3000.0);
+    TestTrue(TEXT("Elderwood keeps stronger high-ground relief than compressed Meadows"),
+        ElderwoodReliefRange > MeadowReliefRange);
+
+    const FKalmalaWorldGenerationConfig SeedConfigs[] = {{418ull}, {419ull}, {419ull}};
+    const FVector2D SamplePositions[] = {
+        FVector2D(91450.9, -205569.1), // Seed-418 Elderwood baseline.
+        FVector2D(-205569.1, 91450.9), // Seed-419 Elderwood baseline.
+        FVector2D(314997.6, 735515.4), // Seed-419 Elderwood/Tundra control.
+    };
+    for (int32 SampleIndex = 0; SampleIndex < UE_ARRAY_COUNT(SeedConfigs); ++SampleIndex)
+    {
+        const auto Shared = G::SampleSharedRelief(SeedConfigs[SampleIndex], SamplePositions[SampleIndex]);
+        const double Detail = G::Noise(SeedConfigs[SampleIndex], 250, SamplePositions[SampleIndex], 0.00015);
+        const float Source = (FKalmalaWorldFieldSampler::Sample(SeedConfigs[SampleIndex], SamplePositions[SampleIndex]).Elevation
+            - FKalmalaRegionalTuning::SeaElevation) * 2000.0f;
+        const double Elderwood = G::ShapeElderwood(Source, Detail, Shared, 900.0, 240.0, 40.0);
+        const double Tundra = G::ShapeTundra(Source, Detail, Shared, 900.0, 240.0, 40.0);
+        TestTrue(TEXT("Shared relief is finite at positive and negative world coordinates"),
+            FMath::IsFinite(Shared.Broad) && FMath::IsFinite(Shared.Middle) && FMath::IsFinite(Shared.Local));
+        TestEqual(TEXT("Tundra remains the same seeded Elderwood shape across seeds and coordinates"), Tundra, Elderwood);
     }
     return true;
 }
@@ -155,6 +194,10 @@ bool FKalmalaBiomeHeightBlendTest::RunTest(const FString& Parameters)
     const float SourceHeight = (Fields.Elevation - FKalmalaRegionalTuning::SeaElevation) * 2000.0f;
     const double Detail = G::Noise(Config, 250, Position, 0.00015);
     const auto& Preview = FKalmalaGenerationPreview::Get();
+    const FKalmalaTerrainReliefSample ElderwoodRelief = G::SampleSharedRelief(Config, Position);
+    constexpr double ElderwoodBroadAmplitude = FKalmalaRegionalTuning::ElderwoodBroadAmplitude;
+    constexpr double ElderwoodMiddleAmplitude = FKalmalaRegionalTuning::ElderwoodMiddleAmplitude;
+    constexpr double ElderwoodLocalAmplitude = FKalmalaRegionalTuning::ElderwoodLocalAmplitude;
     const double HillNoise = G::Noise(Config, FKalmalaRegionalTuning::MeadowHillSalt,
         Position, 1.0 / Preview.MeadowHillScale);
     const double RollingNoise = G::Noise(Config, FKalmalaRegionalTuning::MeadowRollingSalt,
@@ -164,9 +207,11 @@ bool FKalmalaBiomeHeightBlendTest::RunTest(const FString& Parameters)
             RollingNoise, Preview.MeadowRollingAmplitude,
             Preview.MeadowShoulderHeight, Preview.MeadowShoulderCompressionScale),
         G::ShapeShimmeringLakes(SourceHeight, Detail),
-        G::ShapeElderwood(SourceHeight, Detail),
+        G::ShapeElderwood(SourceHeight, Detail, ElderwoodRelief,
+            ElderwoodBroadAmplitude, ElderwoodMiddleAmplitude, ElderwoodLocalAmplitude),
         G::ShapeMire(SourceHeight, Detail),
-        G::ShapeTundra(SourceHeight, Detail),
+        G::ShapeTundra(SourceHeight, Detail, ElderwoodRelief,
+            ElderwoodBroadAmplitude, ElderwoodMiddleAmplitude, ElderwoodLocalAmplitude),
         G::ShapeMountains(SourceHeight, Detail, 0.0),
     };
     const float NoTransitionOceanOffset = 0.0f;
@@ -175,6 +220,34 @@ bool FKalmalaBiomeHeightBlendTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Regional sampling blends candidates with its continuous biome weights"),
         Sample.Height, ExpectedTransitionHeight);
     TestEqual(TEXT("Height blending leaves classifier identity unchanged"), Sample.Biome, G::SampleBiome(Fields));
+
+    const FVector2D ElderwoodTundraPosition(314997.6, 735515.4);
+    const FKalmalaWorldGenerationConfig ElderwoodTundraConfig{419ull};
+    const auto ElderwoodTundraFields = FKalmalaWorldFieldSampler::Sample(ElderwoodTundraConfig, ElderwoodTundraPosition);
+    const auto ElderwoodTundraSample = G::SampleInternal(ElderwoodTundraFields, false, true);
+    TestTrue(TEXT("Fixed Elderwood/Tundra control has both continuous biome weights"),
+        ElderwoodTundraSample.Weights[2] > 0.4f && ElderwoodTundraSample.Weights[4] > 0.4f);
+    const float ElderwoodTundraSource = (ElderwoodTundraFields.Elevation - FKalmalaRegionalTuning::SeaElevation) * 2000.0f;
+    const auto ElderwoodTundraRelief = G::SampleSharedRelief(ElderwoodTundraConfig, ElderwoodTundraPosition);
+    const double ElderwoodTundraDetail = G::Noise(ElderwoodTundraConfig, 250, ElderwoodTundraPosition, 0.00015);
+    const double SharedElderwoodCandidate = G::ShapeElderwood(ElderwoodTundraSource, ElderwoodTundraDetail,
+        ElderwoodTundraRelief, ElderwoodBroadAmplitude, ElderwoodMiddleAmplitude, ElderwoodLocalAmplitude);
+    const double ElderwoodTundraCandidates[] = {
+        ElderwoodTundraSource,
+        ElderwoodTundraSource,
+        SharedElderwoodCandidate,
+        ElderwoodTundraSource,
+        SharedElderwoodCandidate,
+        ElderwoodTundraSource,
+    };
+    const float ElderwoodTundraWeightTotal = ElderwoodTundraSample.Weights[2] + ElderwoodTundraSample.Weights[4];
+    const float ElderwoodTundraBlendWeights[] = {
+        0.0f, 0.0f, ElderwoodTundraSample.Weights[2] / ElderwoodTundraWeightTotal,
+        0.0f, ElderwoodTundraSample.Weights[4] / ElderwoodTundraWeightTotal, 0.0f, 0.0f,
+    };
+    TestTrue(TEXT("Elderwood/Tundra transition blends the identical shared candidate through both weights"),
+        FMath::IsNearlyEqual(G::BlendCandidateHeights(ElderwoodTundraSource, ElderwoodTundraCandidates,
+            0.0f, ElderwoodTundraBlendWeights), float(SharedElderwoodCandidate)));
     return true;
 }
 

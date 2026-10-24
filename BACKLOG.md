@@ -578,9 +578,22 @@ run for this goal and may exceed one turn.
       profiles, lattice/aliasing metrics and validated commandlet-only scale /
       amplitude overrides. Sweep 8/12/20 m by 0.1/0.2/0.3 m and reject stale
       binaries; leave numeric selection to BH25c and rendered acceptance to BH26.
-  - [ ] **BH13 — Shape Elderwood.** Use the shared base plus bounded detail
-    without Meadows' compression curve; keep its stronger slopes/hollows and
-    expose this function as the Tundra reference.
+  - [ ] **BH13 — Shape Elderwood.** Keep open until BH13a–BH13b are complete.
+    Use the shared base plus bounded detail without Meadows' compression curve;
+    keep its stronger slopes/hollows and expose the exact same function as the
+    Tundra reference. Provisional broad/middle/local amplitudes are 9 / 2.4 /
+    0.4 m within trial ranges of 4–16 / 0.6–4 / 0.1–1 m; BH25b runs their
+    fresh-source trial matrix and selects measured values.
+    - [x] **BH13a — Integrate shared Elderwood relief.** Blend the shared
+      absolute-world stack plus bounded detail into Elderwood without applying
+      Meadows shoulder compression. Make Tundra call the Elderwood function
+      directly; preserve classifier inputs, distance bands and coast blending.
+      Add source-level parity, bounds, negative-coordinate and transition tests.
+    - [ ] **BH13b — Add Elderwood/Tundra profile sweep harness.** Provide fixed
+      Elderwood and Tundra profile samples plus validated commandlet-only
+      broad/middle/local amplitude overrides. Reject stale binaries; leave
+      fresh-source trial selection to BH25b and rendered profile acceptance to
+      BH26.
   - [ ] **BH14 — Shape Shimmering Lakes.** Blend Meadows-like rounded shoulders,
     Elderwood relief, and compressed low pockets continuously, with no basin
     bowl or new perched water surface.
@@ -622,12 +635,15 @@ run for this goal and may exceed one turn.
       source, run BH10b1 at 4/6/8 m; compare BH01 fixed-site baselines and
       100–250 m transect height/slope profiles, select the smallest accepted
       amplitude, and record measurements.
-    - [ ] **BH25b — Run rolling trials and finalize remaining tuning/contracts.**
+    - [ ] **BH25b — Run rolling/Elderwood trials and finalize tuning/contracts.**
       With freshly compiled source, run BH11b at 0.6/1.2/1.8 m; compare BH01
       profiles and slopes, select the smallest accepted value, record results,
-      update architecture/setup instructions and height previews with raw
-      ranges, and compare sampler, map, generation, active-patch, collision,
-      and decoration costs with BH01 baselines.
+      then run BH13b with low/nominal/high Elderwood broad, middle and local
+      amplitudes one layer at a time, exercising every trial bound and
+      confirming Tundra uses the identical candidate. Record ranges/slopes,
+      select the smallest accepted values, update architecture/setup instructions
+      and height previews with raw ranges, and compare sampler, map, generation,
+      active-patch, collision, and decoration costs with BH01 baselines.
     - [ ] **BH25c — Run Meadows floor-detail trials.** With freshly compiled
       source, run the BH12b 8/12/20 m by 0.1/0.2/0.3 m matrix; compare local
       height/slope samples and select the smallest readable scale/amplitude

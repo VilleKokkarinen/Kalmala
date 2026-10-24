@@ -84,9 +84,14 @@ determinism and channel-connectivity acceptance, not an incidental side effect.
   compression curve. Preserve lower hollows and broad hills; do not clamp all
   high ground onto a flat shelf. Threshold and compression strength remain
   tunable and must be inspected in cross-section.
-- **Elderwood:** Use the same base and a bounded detail layer without the
-  Meadows compression curve. Establish this function as the reference for
-  Tundra so the two cannot silently diverge into unrelated terrain styles.
+- **Elderwood:** Use the shared broad/middle/local world-space relief base and
+  bounded existing detail without the Meadows compression curve. The first
+  amplitude trial is 9 / 2.4 / 0.4 m at the shared 1,000 / 150 / 30 m scales;
+  trial ranges to validate are 4–16 / 0.6–4 / 0.1–1 m. These are provisional only.
+  `ShapeTundra` directly calls the Elderwood candidate, so the two cannot
+  silently diverge into unrelated terrain styles. BH25b sweeps each layer one
+  at a time against fixed numeric profiles and selects measured values; BH26
+  remains the rendered/parity acceptance gate.
 - **Shimmering Lakes:** Interpret the requested similarity as a continuous
   mixture: Meadows-style rounded upper shoulders, Elderwood-style undulation,
   and Mire-style compressed lower pockets. Derive the lowland blend from base

@@ -6,8 +6,8 @@
 struct FKalmalaRegionalTuning
 {
     static constexpr double BiomeScale = 60000.0;
-    // Biome-height experiments in centimetres. Shared relief controls remain
-    // staged; Meadows-specific controls are consumed by their wired layers.
+    // Biome-height experiments in centimetres. Shared relief scales and salts
+    // feed derived terrain candidates; Meadows controls feed their wired layers.
     static constexpr double ReliefBroadScale = 100000.0;
     static constexpr double ReliefMiddleScale = 15000.0;
     static constexpr double ReliefLocalScale = 3000.0;
@@ -26,6 +26,10 @@ struct FKalmalaRegionalTuning
     static constexpr double MeadowRollingAmplitude = 120.0;
     static constexpr double MeadowFloorScale = 1200.0;
     static constexpr double MeadowFloorAmplitude = 20.0;
+    // Provisional Elderwood/Tundra shared-relief trials, centimetres.
+    static constexpr double ElderwoodBroadAmplitude = 900.0;
+    static constexpr double ElderwoodMiddleAmplitude = 240.0;
+    static constexpr double ElderwoodLocalAmplitude = 40.0;
     static constexpr double ElevationFrequency = 1.0 / 100000.0;
     static constexpr double ClimateFrequency = 1.0 / 150000.0;
     static constexpr double LocalReliefFrequency = 0.00035;
