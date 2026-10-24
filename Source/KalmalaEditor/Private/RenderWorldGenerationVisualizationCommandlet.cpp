@@ -134,7 +134,7 @@ namespace KalmalaWorldGenerationVisualization
     }
 
     bool ExportNumericSamples(const FString& InputPath, const FString& OutputPath,
-        const bool bIncludeMeadowFloorDiagnostics)
+        const bool bIncludeMeadowFloorDiagnostics, const bool bIncludeElderwoodDiagnostics)
     {
         TArray<FString> Lines;
         if (!FFileHelper::LoadFileToStringArray(Lines, *InputPath) || Lines.Num() < 2)
@@ -154,6 +154,10 @@ namespace KalmalaWorldGenerationVisualization
         if (bIncludeMeadowFloorDiagnostics)
         {
             Csv += TEXT(",MeadowFloorNoise,MeadowFloorInputCm");
+        }
+        if (bIncludeElderwoodDiagnostics)
+        {
+            Csv += TEXT(",ElderwoodCandidateCm,TundraCandidateCm,ReliefBroad,ReliefMiddle,ReliefLocal,ElderwoodBroadInputCm,ElderwoodMiddleInputCm,ElderwoodLocalInputCm");
         }
         Csv += TEXT("\n");
         int32 SampleCount = 0;
@@ -236,6 +240,24 @@ namespace KalmalaWorldGenerationVisualization
                 const double FloorInputCm = double(float(FloorNoise * Preview.MeadowFloorAmplitude));
                 Csv += FString::Printf(TEXT(",%.9g,%.9g"), FloorNoise, FloorInputCm);
             }
+            if (bIncludeElderwoodDiagnostics)
+            {
+                const auto& Preview = FKalmalaGenerationPreview::Get();
+                const FKalmalaTerrainReliefSample SharedRelief = FKalmalaRegionalGeneration::SampleSharedRelief(Config, Position);
+                const double Detail = FKalmalaRegionalGeneration::Noise(Config, 250, Position, 0.00015);
+                const float SourceHeight = (Fields.Elevation - FKalmalaRegionalTuning::SeaElevation) * 2000.0f;
+                const double ElderwoodCandidate = FKalmalaRegionalGeneration::ShapeElderwood(
+                    SourceHeight, Detail, SharedRelief, Preview.ElderwoodBroadAmplitude,
+                    Preview.ElderwoodMiddleAmplitude, Preview.ElderwoodLocalAmplitude);
+                const double TundraCandidate = FKalmalaRegionalGeneration::ShapeTundra(
+                    SourceHeight, Detail, SharedRelief, Preview.ElderwoodBroadAmplitude,
+                    Preview.ElderwoodMiddleAmplitude, Preview.ElderwoodLocalAmplitude);
+                Csv += FString::Printf(TEXT(",%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g"),
+                    ElderwoodCandidate, TundraCandidate, SharedRelief.Broad, SharedRelief.Middle,
+                    SharedRelief.Local, SharedRelief.Broad * Preview.ElderwoodBroadAmplitude,
+                    SharedRelief.Middle * Preview.ElderwoodMiddleAmplitude,
+                    SharedRelief.Local * Preview.ElderwoodLocalAmplitude);
+            }
             Csv += TEXT("\n");
             ++SampleCount;
         }
@@ -285,23 +307,38 @@ int32 URenderWorldGenerationVisualizationCommandlet::Main(const FString& Params)
     FString RollingAmplitudeText;
     FString FloorScaleText;
     FString FloorAmplitudeText;
+    FString ElderwoodBroadAmplitudeText;
+    FString ElderwoodMiddleAmplitudeText;
+    FString ElderwoodLocalAmplitudeText;
     const bool bHasHillAmplitude = FParse::Value(*Params, TEXT("MeadowHillAmplitudeM="), HillAmplitudeText);
     const bool bHasRollingAmplitude = FParse::Value(*Params, TEXT("MeadowRollingAmplitudeM="), RollingAmplitudeText);
     const bool bHasFloorScale = FParse::Value(*Params, TEXT("MeadowFloorScaleM="), FloorScaleText);
     const bool bHasFloorAmplitude = FParse::Value(*Params, TEXT("MeadowFloorAmplitudeM="), FloorAmplitudeText);
+    const bool bHasElderwoodBroadAmplitude = FParse::Value(*Params, TEXT("ElderwoodBroadAmplitudeM="), ElderwoodBroadAmplitudeText);
+    const bool bHasElderwoodMiddleAmplitude = FParse::Value(*Params, TEXT("ElderwoodMiddleAmplitudeM="), ElderwoodMiddleAmplitudeText);
+    const bool bHasElderwoodLocalAmplitude = FParse::Value(*Params, TEXT("ElderwoodLocalAmplitudeM="), ElderwoodLocalAmplitudeText);
     if (bHasFloorScale != bHasFloorAmplitude)
     {
         UE_LOG(LogTemp, Error, TEXT("MeadowFloorScaleM and MeadowFloorAmplitudeM must be provided together."));
         return 1;
     }
     const bool bHasFloorTrial = bHasFloorScale && bHasFloorAmplitude;
-    if (bHasHillAmplitude || bHasRollingAmplitude || bHasFloorTrial)
+    const int32 ElderwoodOverrideCount = int32(bHasElderwoodBroadAmplitude)
+        + int32(bHasElderwoodMiddleAmplitude) + int32(bHasElderwoodLocalAmplitude);
+    if (ElderwoodOverrideCount > 1)
+    {
+        UE_LOG(LogTemp, Error, TEXT("Override only one Elderwood amplitude per profile trial."));
+        return 1;
+    }
+    const bool bHasElderwoodTrial = ElderwoodOverrideCount == 1;
+    if (bHasHillAmplitude || bHasRollingAmplitude || bHasFloorTrial || bHasElderwoodTrial)
     {
         FKalmalaGenerationPreviewSettings Trial = FKalmalaGenerationPreview::Get();
         double HillAmplitudeM = 0.0;
         double RollingAmplitudeM = 0.0;
         double FloorScaleM = 0.0;
         double FloorAmplitudeM = 0.0;
+        double ElderwoodAmplitudeM = 0.0;
         if (bHasHillAmplitude)
         {
             if (!LexTryParseString(HillAmplitudeM, *HillAmplitudeText) || !FMath::IsFinite(HillAmplitudeM)
@@ -341,6 +378,26 @@ int32 URenderWorldGenerationVisualizationCommandlet::Main(const FString& Params)
             Trial.MeadowFloorAmplitude = FloorAmplitudeM * 100.0;
         }
 
+        if (bHasElderwoodTrial)
+        {
+            FString* AmplitudeText = bHasElderwoodBroadAmplitude ? &ElderwoodBroadAmplitudeText
+                : bHasElderwoodMiddleAmplitude ? &ElderwoodMiddleAmplitudeText : &ElderwoodLocalAmplitudeText;
+            const double MinimumM = bHasElderwoodBroadAmplitude ? 4.0
+                : bHasElderwoodMiddleAmplitude ? 0.6 : 0.1;
+            const double MaximumM = bHasElderwoodBroadAmplitude ? 16.0
+                : bHasElderwoodMiddleAmplitude ? 4.0 : 1.0;
+            if (!LexTryParseString(ElderwoodAmplitudeM, **AmplitudeText) || !FMath::IsFinite(ElderwoodAmplitudeM)
+                || ElderwoodAmplitudeM < MinimumM || ElderwoodAmplitudeM > MaximumM)
+            {
+                UE_LOG(LogTemp, Error, TEXT("The selected Elderwood amplitude must be finite and within its documented trial range."));
+                return 1;
+            }
+
+            if (bHasElderwoodBroadAmplitude) Trial.ElderwoodBroadAmplitude = ElderwoodAmplitudeM * 100.0;
+            else if (bHasElderwoodMiddleAmplitude) Trial.ElderwoodMiddleAmplitude = ElderwoodAmplitudeM * 100.0;
+            else Trial.ElderwoodLocalAmplitude = ElderwoodAmplitudeM * 100.0;
+        }
+
         if (!Trial.HasValidReliefControls() || !FKalmalaGenerationPreview::Set(Trial))
         {
             UE_LOG(LogTemp, Error, TEXT("Could not install the commandlet-only Meadows terrain trial."));
@@ -359,8 +416,15 @@ int32 URenderWorldGenerationVisualizationCommandlet::Main(const FString& Params)
             UE_LOG(LogTemp, Display, TEXT("Meadow floor sample trial accepted: ScaleM=%.3f AmplitudeM=%.3f"),
                 FloorScaleM, FloorAmplitudeM);
         }
+        if (bHasElderwoodTrial)
+        {
+            UE_LOG(LogTemp, Display, TEXT("Elderwood profile trial accepted: BroadAmplitudeM=%.3f MiddleAmplitudeM=%.3f LocalAmplitudeM=%.3f"),
+                Trial.ElderwoodBroadAmplitude / 100.0,
+                Trial.ElderwoodMiddleAmplitude / 100.0,
+                Trial.ElderwoodLocalAmplitude / 100.0);
+        }
     }
-    ON_SCOPE_EXIT { if (bHasHillAmplitude || bHasRollingAmplitude || bHasFloorTrial) FKalmalaGenerationPreview::Reset(); };
+    ON_SCOPE_EXIT { if (bHasHillAmplitude || bHasRollingAmplitude || bHasFloorTrial || bHasElderwoodTrial) FKalmalaGenerationPreview::Reset(); };
 
     FString SampleInputPath;
     FString SampleOutputPath;
@@ -371,7 +435,7 @@ int32 URenderWorldGenerationVisualizationCommandlet::Main(const FString& Params)
             UE_LOG(LogTemp, Error, TEXT("SampleInput requires SampleOutput."));
             return 1;
         }
-        return ExportNumericSamples(SampleInputPath, SampleOutputPath, bHasFloorTrial) ? 0 : 1;
+        return ExportNumericSamples(SampleInputPath, SampleOutputPath, bHasFloorTrial, bHasElderwoodTrial) ? 0 : 1;
     }
 
     FString OutputDirectory = FPaths::ProjectContentDir() / TEXT("Kalmala/Developer/WorldGeneration");

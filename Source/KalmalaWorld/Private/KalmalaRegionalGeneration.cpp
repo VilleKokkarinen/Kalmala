@@ -341,7 +341,7 @@ FKalmalaRegionalSample FKalmalaRegionalGeneration::SampleInternal(const FKalmala
             ElderwoodRelief = SampleSharedRelief(C, P);
         }
         const double ElderwoodHeight = ShapeElderwood(Source, Detail, ElderwoodRelief,
-            T::ElderwoodBroadAmplitude, T::ElderwoodMiddleAmplitude, T::ElderwoodLocalAmplitude);
+            Preview.ElderwoodBroadAmplitude, Preview.ElderwoodMiddleAmplitude, Preview.ElderwoodLocalAmplitude);
         const double CandidateHeights[] = {
             ShapeMeadows(Source, MeadowHill, Preview.MeadowHillAmplitude,
                 MeadowRolling, Preview.MeadowRollingAmplitude, MeadowFloor, Preview.MeadowFloorAmplitude,
@@ -350,7 +350,7 @@ FKalmalaRegionalSample FKalmalaRegionalGeneration::SampleInternal(const FKalmala
             ElderwoodHeight,
             ShapeMire(Source, Detail),
             ShapeTundra(Source, Detail, ElderwoodRelief,
-                T::ElderwoodBroadAmplitude, T::ElderwoodMiddleAmplitude, T::ElderwoodLocalAmplitude),
+                Preview.ElderwoodBroadAmplitude, Preview.ElderwoodMiddleAmplitude, Preview.ElderwoodLocalAmplitude),
             ShapeMountains(Source, Detail, WarpedRegion(C, Warped, 5)),
         };
         const float OceanOffset = float(-60 * (1 - Land) * WarpedRegion(C, Warped, 6));

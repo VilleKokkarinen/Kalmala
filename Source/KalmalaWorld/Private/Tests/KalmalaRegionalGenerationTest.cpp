@@ -24,6 +24,12 @@ bool FKalmalaTerrainPreviewControlTest::RunTest(const FString& Parameters)
         FKalmalaRegionalTuning::MeadowShoulderHeight);
     TestEqual(TEXT("Meadow shoulder scale defaults to tuning"), Settings.MeadowShoulderCompressionScale,
         FKalmalaRegionalTuning::MeadowShoulderCompressionScale);
+    TestEqual(TEXT("Elderwood broad amplitude defaults to tuning"), Settings.ElderwoodBroadAmplitude,
+        FKalmalaRegionalTuning::ElderwoodBroadAmplitude);
+    TestEqual(TEXT("Elderwood middle amplitude defaults to tuning"), Settings.ElderwoodMiddleAmplitude,
+        FKalmalaRegionalTuning::ElderwoodMiddleAmplitude);
+    TestEqual(TEXT("Elderwood local amplitude defaults to tuning"), Settings.ElderwoodLocalAmplitude,
+        FKalmalaRegionalTuning::ElderwoodLocalAmplitude);
 
     auto CheckRange = [this, &Settings](double FKalmalaGenerationPreviewSettings::*Control,
         const double Minimum, const double Maximum, const TCHAR* Label)
@@ -51,6 +57,9 @@ bool FKalmalaTerrainPreviewControlTest::RunTest(const FString& Parameters)
     CheckRange(&FKalmalaGenerationPreviewSettings::MeadowRollingAmplitude, 60.0, 200.0, TEXT("Meadow rolling amplitude"));
     CheckRange(&FKalmalaGenerationPreviewSettings::MeadowFloorScale, 800.0, 2000.0, TEXT("Meadow floor scale"));
     CheckRange(&FKalmalaGenerationPreviewSettings::MeadowFloorAmplitude, 10.0, 35.0, TEXT("Meadow floor amplitude"));
+    CheckRange(&FKalmalaGenerationPreviewSettings::ElderwoodBroadAmplitude, 400.0, 1600.0, TEXT("Elderwood broad amplitude"));
+    CheckRange(&FKalmalaGenerationPreviewSettings::ElderwoodMiddleAmplitude, 60.0, 400.0, TEXT("Elderwood middle amplitude"));
+    CheckRange(&FKalmalaGenerationPreviewSettings::ElderwoodLocalAmplitude, 10.0, 100.0, TEXT("Elderwood local amplitude"));
 
     Settings = FKalmalaGenerationPreviewSettings{};
     Settings.ReliefBroadScale = TNumericLimits<double>::QuietNaN();

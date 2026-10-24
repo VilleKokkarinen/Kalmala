@@ -8470,3 +8470,44 @@
   not rendered vegetation placement or aliasing; those remain BH26 acceptance.
 - **Next task in this directed goal:** BH13 — shape Elderwood using the shared
   base and bounded detail without Meadows shoulder compression.
+
+## Run 2026-10-24 - BH13b Elderwood/Tundra profile sweep harness
+
+- **Selected increment:** BH13b, add the fixed Elderwood/Tundra numeric profile
+  fixture, bounded commandlet-only amplitude overrides and stale-binary-safe
+  sweep runner.
+- **Work completed:** Added bounded Elderwood broad/middle/local preview
+  amplitude settings defaulted to the existing provisional tuning. Regional
+  sampling passes the same settings to the Elderwood candidate and the direct
+  Tundra reference. The numeric commandlet can export relief channels,
+  pre-blend contributions, both candidate heights, final height, weights,
+  water and collision-triangle slopes for fixed profiles. Added six 100 m
+  transects (66 samples total) at seed-418/419 Elderwood interior, wooded,
+  Elderwood/Tundra transition and Tundra interior sites, plus a nine-trial
+  one-layer-at-a-time runner. Marked BH13b and its parent complete; numeric
+  selection remains BH25b.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Scripts/Tests/World/BiomeWoodProfiles.csv`,
+  `Scripts/Tests/World/BiomeWoodProfiles.ps1`,
+  `Source/KalmalaWorld/Public/KalmalaGenerationPreview.h`,
+  `Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`,
+  `Source/KalmalaEditor/Private/RenderWorldGenerationVisualizationCommandlet.cpp`,
+  `docs/biome-height-rework.md`, `docs/07-development-setup.md`.
+- **Lightweight checks/results:** PowerShell syntax parsing and
+  `BiomeWoodProfiles.ps1 -ValidateOnly` passed for all 66 rows, six fixed
+  transects and seed/coordinate/spacing controls. `git diff --check` passed.
+  No Unreal build, commandlet sweep or automation ran; full verification remains
+  deferred to BH26.
+- **Observable impact:** Adds a reproducible path for numeric Elderwood/Tundra
+  profile and slope measurement with per-layer trials. Production defaults
+  remain the existing provisional 9 / 2.4 / 0.4 m values; only commandlet
+  overrides vary them. Fresh-source selection remains BH25b.
+- **Networking/authority:** The overrides are installed only in the headless
+  editor commandlet and reset after sampling. Existing world seed, gameplay
+  authority, replication and save data are unchanged.
+- **Known limitations / remaining scope:** No fresh-source sweep was run, so
+  amplitudes remain provisional. Rendered parity and gameplay acceptance remain
+  BH26.
+- **Next task in this directed goal:** BH14 — shape Shimmering Lakes with the
+  continuous Meadows/Elderwood/Mire candidate blend and disabled-basin policy.

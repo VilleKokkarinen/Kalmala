@@ -3733,6 +3733,21 @@ BH25c must run the sweep with freshly compiled source, compare all nine
 combinations, and record the selected scale/amplitude and measured profiles;
 rendered under-vegetation aliasing and readability remain part of BH26.
 
+### Elderwood/Tundra profile sweep
+
+After compiling BH13a, run
+`Scripts/Tests/World/BiomeWoodProfiles.ps1 -Project <project-path>` with the
+matching Editor commandlet. `-ValidateOnly` checks the fixed seed-418/419
+Elderwood interior, wooded, Elderwood/Tundra transition, and Tundra interior
+samples without launching Unreal. The runner makes nine one-layer-at-a-time
+trials across broad 4/9/16 m, middle 0.6/2.4/4 m, and local 0.1/0.4/1 m
+amplitudes. It records raw relief and candidate heights, final regional height,
+biome/water fields, and collision-triangle slopes, and requires an effective-
+trial log marker to reject a stale binary. BH25b must run the sweep with freshly
+compiled source, compare Elderwood/Tundra profiles and transition blends,
+confirm identical candidates, and record measured ranges plus selected values.
+Rendered biome appearance and profile acceptance remain in BH26.
+
 ### Export verification
 
 After building, run `Scripts/Tests/World/WorldMapExport.ps1`. In one warm headless process it verifies PNG signatures, every visible fast/full biome pixel at 64×64, changed master/region tuning, restoration of default output hashes, and preservation of the last good PNGs after malformed input. It keeps its parameter edits and outputs in a temporary directory; the user's parameter file is untouched.

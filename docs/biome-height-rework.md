@@ -795,3 +795,21 @@ the selected scale/amplitude and measurements. The
 descriptor count is a fixed-patch proxy for under-vegetation sampling, not a
 rendered foliage acceptance result; BH26 inspects aliasing and floor readability
 beneath vegetation. No build, sweep, or rendered result is claimed for BH12b.
+
+### BH13b Elderwood/Tundra profile sweep harness
+
+`Scripts/Tests/World/BiomeWoodProfiles.csv` fixes 66 samples across six 100 m
+transects: a seed-419 Elderwood interior, seed-418/419 wooded Elderwood,
+seed-418/419 Elderwood/Tundra transitions, and a seed-419 Tundra interior. The
+centers are taken from the BH01 fixed-site baseline and each transect samples
+both sides of its center at 10 m intervals. The numeric commandlet accepts one
+Elderwood amplitude override at a time: broad 4–16 m, middle 0.6–4 m, or local
+0.1–1 m. It records the three relief signals and contributions, both candidate
+heights, final regional height/weights/water and collision-triangle slope.
+`BiomeWoodProfiles.ps1` validates the fixed sites, bounds, numeric rows and exact
+Elderwood/Tundra candidate parity, then requires an effective-trial marker so a
+stale binary fails visibly. `-ValidateOnly` validates the fixture without an
+Editor launch. No build or sweep was run for BH13b; BH25b runs each low/nominal/
+high layer matrix with freshly compiled source, records the measured profiles
+and selects the smallest accepted amplitudes. Rendered biome-transition and
+terrain acceptance remains in BH26.

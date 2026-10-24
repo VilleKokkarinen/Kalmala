@@ -578,18 +578,17 @@ run for this goal and may exceed one turn.
       profiles, lattice/aliasing metrics and validated commandlet-only scale /
       amplitude overrides. Sweep 8/12/20 m by 0.1/0.2/0.3 m and reject stale
       binaries; leave numeric selection to BH25c and rendered acceptance to BH26.
-  - [ ] **BH13 — Shape Elderwood.** Keep open until BH13a–BH13b are complete.
-    Use the shared base plus bounded detail without Meadows' compression curve;
-    keep its stronger slopes/hollows and expose the exact same function as the
-    Tundra reference. Provisional broad/middle/local amplitudes are 9 / 2.4 /
-    0.4 m within trial ranges of 4–16 / 0.6–4 / 0.1–1 m; BH25b runs their
-    fresh-source trial matrix and selects measured values.
+  - [x] **BH13 — Shape Elderwood.** The shared uncompressed candidate and its
+    profile sweep harness are complete. Provisional broad/middle/local
+    amplitudes are 9 / 2.4 / 0.4 m within trial ranges of 4–16 / 0.6–4 /
+    0.1–1 m; fresh-source trial selection remains BH25b and rendered profile
+    acceptance remains BH26.
     - [x] **BH13a — Integrate shared Elderwood relief.** Blend the shared
       absolute-world stack plus bounded detail into Elderwood without applying
       Meadows shoulder compression. Make Tundra call the Elderwood function
       directly; preserve classifier inputs, distance bands and coast blending.
       Add source-level parity, bounds, negative-coordinate and transition tests.
-    - [ ] **BH13b — Add Elderwood/Tundra profile sweep harness.** Provide fixed
+    - [x] **BH13b — Add Elderwood/Tundra profile sweep harness.** Provide fixed
       Elderwood and Tundra profile samples plus validated commandlet-only
       broad/middle/local amplitude overrides. Reject stale binaries; leave
       fresh-source trial selection to BH25b and rendered profile acceptance to

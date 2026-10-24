@@ -21,6 +21,9 @@ struct FKalmalaGenerationPreviewSettings
     double MeadowRollingAmplitude = FKalmalaRegionalTuning::MeadowRollingAmplitude;
     double MeadowFloorScale = FKalmalaRegionalTuning::MeadowFloorScale;
     double MeadowFloorAmplitude = FKalmalaRegionalTuning::MeadowFloorAmplitude;
+    double ElderwoodBroadAmplitude = FKalmalaRegionalTuning::ElderwoodBroadAmplitude;
+    double ElderwoodMiddleAmplitude = FKalmalaRegionalTuning::ElderwoodMiddleAmplitude;
+    double ElderwoodLocalAmplitude = FKalmalaRegionalTuning::ElderwoodLocalAmplitude;
     double LandThreshold = 0;
     double BiomeScale = FKalmalaRegionalTuning::BiomeScale;
     double WarpStrength = FKalmalaRegionalTuning::WarpStrength;
@@ -56,7 +59,10 @@ struct FKalmalaGenerationPreviewSettings
             && InRange(MeadowRollingScale, 3000.0, 7000.0)
             && InRange(MeadowRollingAmplitude, 60.0, 200.0)
             && InRange(MeadowFloorScale, 800.0, 2000.0)
-            && InRange(MeadowFloorAmplitude, 10.0, 35.0);
+            && InRange(MeadowFloorAmplitude, 10.0, 35.0)
+            && InRange(ElderwoodBroadAmplitude, 400.0, 1600.0)
+            && InRange(ElderwoodMiddleAmplitude, 60.0, 400.0)
+            && InRange(ElderwoodLocalAmplitude, 10.0, 100.0);
     }
 };
 
