@@ -113,17 +113,41 @@ bool FKalmalaPopulationSpawnGateEvaluatorTest::RunTest(const FString& Parameters
     }
     TestTrue(TEXT("The time gate passes every current wildlife species"), bEveryCurrentSpeciesPassesTime);
 
+    bool bEveryCurrentSpeciesPassesWeather = true;
+    for (const EKalmalaWildlifeArchetype Archetype : CurrentSpecies)
+    {
+        bEveryCurrentSpeciesPassesWeather &= AKalmalaGameMode::IsPopulationWeatherGateAllowed(Archetype);
+    }
+    TestTrue(TEXT("The weather gate passes every current wildlife species"),
+        bEveryCurrentSpeciesPassesWeather);
+
     const EKalmalaWildlifeArchetype UnknownArchetype = static_cast<EKalmalaWildlifeArchetype>(255);
     TestFalse(TEXT("An unknown archetype fails the time gate closed"),
         AKalmalaGameMode::IsPopulationTimeGateAllowed(UnknownArchetype));
+    TestFalse(TEXT("An unknown archetype fails the weather gate closed"),
+        AKalmalaGameMode::IsPopulationWeatherGateAllowed(UnknownArchetype));
     TestFalse(TEXT("The fixture seam can force a known species time rejection"),
         AKalmalaGameMode::IsPopulationTimeGateAllowedForTests(EKalmalaWildlifeArchetype::Deer, true));
     TestFalse(TEXT("The fixture seam cannot allow an unknown archetype"),
         AKalmalaGameMode::IsPopulationTimeGateAllowedForTests(UnknownArchetype, true));
+    TestFalse(TEXT("The fixture seam can force a known species weather rejection"),
+        AKalmalaGameMode::IsPopulationWeatherGateAllowedForTests(EKalmalaWildlifeArchetype::Deer, true));
+    TestFalse(TEXT("The weather fixture seam cannot allow an unknown archetype"),
+        AKalmalaGameMode::IsPopulationWeatherGateAllowedForTests(UnknownArchetype, true));
     Results = AllGatesPass();
     Results.bTimePassed = AKalmalaGameMode::IsPopulationTimeGateAllowedForTests(
         EKalmalaWildlifeArchetype::Deer, true);
     TestEqual(TEXT("A forced time-policy rejection reaches the ordered evaluator"),
+        AKalmalaGameMode::EvaluatePopulationSpawnGates(Results),
+        EKalmalaPopulationSpawnRejectionReason::Time);
+    Results = AllGatesPass();
+    Results.bWeatherPassed = AKalmalaGameMode::IsPopulationWeatherGateAllowedForTests(
+        EKalmalaWildlifeArchetype::Deer, true);
+    TestEqual(TEXT("A forced weather-policy rejection reaches the ordered evaluator"),
+        AKalmalaGameMode::EvaluatePopulationSpawnGates(Results),
+        EKalmalaPopulationSpawnRejectionReason::Weather);
+    Results.bTimePassed = false;
+    TestEqual(TEXT("An earlier time rejection takes precedence over weather"),
         AKalmalaGameMode::EvaluatePopulationSpawnGates(Results),
         EKalmalaPopulationSpawnRejectionReason::Time);
     return true;

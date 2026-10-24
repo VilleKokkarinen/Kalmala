@@ -181,6 +181,7 @@ private:
         const FKalmalaPopulationSpawnGateResults& GateResults);
     void ApplyPopulationSpeciesHabitatGate(FKalmalaPopulationSchedulerKeyWork& KeyWork) const;
     void ApplyPopulationTimeGate(FKalmalaPopulationSchedulerKeyWork& KeyWork) const;
+    void ApplyPopulationWeatherGate(FKalmalaPopulationSchedulerKeyWork& KeyWork) const;
     bool TryReserveWolfPackCapacity(const TArray<FVector>& MemberLocations,
         const FIntPoint& HomeSpatialKey, FGuid& OutReservationId);
     bool ReleasePopulationCreatureReservation(const FGuid& ReservationId);
@@ -188,13 +189,17 @@ private:
         const TArray<class AKalmalaCharacter*>& LivingPlayers) const;
     bool DoesPopulationDescriptorPassSpeciesHabitat(const FKalmalaWorldPopulationSpawn& Descriptor) const;
     bool DoesPopulationDescriptorPassTimeGate(const FKalmalaWorldPopulationSpawn& Descriptor) const;
+    bool DoesPopulationDescriptorPassWeatherGate(const FKalmalaWorldPopulationSpawn& Descriptor) const;
     bool IsDescriptorInSpawnRing(const FVector& SpawnLocation,
         const TArray<class AKalmalaCharacter*>& LivingPlayers) const;
     bool IsDescriptorOutsidePlayerExclusion(const FVector& SpawnLocation,
         const TArray<class AKalmalaCharacter*>& LivingPlayers) const;
     static bool IsPopulationTimeGateAllowed(EKalmalaWildlifeArchetype Archetype);
+    static bool IsPopulationWeatherGateAllowed(EKalmalaWildlifeArchetype Archetype);
 #if WITH_DEV_AUTOMATION_TESTS
     static bool IsPopulationTimeGateAllowedForTests(EKalmalaWildlifeArchetype Archetype,
+        bool bForceRejectForTests);
+    static bool IsPopulationWeatherGateAllowedForTests(EKalmalaWildlifeArchetype Archetype,
         bool bForceRejectForTests);
 #endif
     void ActivatePopulationKey(const FIntPoint& SpatialKey);

@@ -7907,3 +7907,16 @@
 - **Networking/authority:** Time result population runs in the authoritative GameMode scheduler path; the rejection seam is compiled only with development automation tests. No replicated or saved-data state changed.
 - **Known limitations:** Weather and progression gates remain fail-closed until S17–S18; caps and placement remain later work. Natural actor creation remains disabled until S26.
 - **Next eligible task:** Within this requested monster-population goal, S17 is next — add the unrestricted current-species weather gate and rejection-test seam.
+
+
+### Monster population — S17 unrestricted weather gate
+
+- **Selected increment:** S17, wire the weather gate for every bounded evaluator attempt.
+- **Work completed:** Added an exhaustive allowlist for all 17 current wildlife archetypes; each passes without consulting weather state or applying restrictions. Unknown enum values fail closed. The scheduler now records the weather result after time and preserves first-rejection order. A development-automation-only seam can force rejection, and the focused evaluator fixture checks every current species, unknown rejection, forced `Weather` rejection and precedence of an earlier `Time` rejection.
+- **Files changed:** Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSpawnGateEvaluatorTest.cpp, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
+- **Lightweight checks:** Inspected the S13/S16 evaluator order and current wildlife archetype enum; verified the weather allowlist covers all current values and unknown values use the default rejection. `git diff --check` passed; the automation fixture and builds were not run.
+- **Full verification:** Deferred to S35; this is not the final implementation task in the monster-population goal.
+- **Observable impact / authority:** Server scheduler attempts now carry the unrestricted weather-pass result for every known current species. No weather simulation, public setting, new restriction, actor creation or natural-spawn activation was added.
+- **Networking/authority:** Weather result population runs in the authoritative GameMode scheduler path; the rejection seam is compiled only with development automation tests. No replicated or saved-data state changed.
+- **Known limitations:** Progression remains fail-closed until S18; caps and placement remain later work. Natural actor creation remains disabled until S26.
+- **Next eligible task:** Within this requested monster-population goal, S18 is next — add the unrestricted current-species progression gate and rejection-test seam.
