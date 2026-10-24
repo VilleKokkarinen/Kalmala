@@ -33,7 +33,10 @@ bool FKalmalaPopulationLivingPlayersTest::RunTest(const FString& Parameters)
     {
         FPlayerFixture Fixture;
         Fixture.Controller = World->SpawnActor<APlayerController>();
-        Fixture.Character = World->SpawnActor<AKalmalaCharacter>();
+        FActorSpawnParameters PawnParameters;
+        PawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+        Fixture.Character = World->SpawnActor<AKalmalaCharacter>(AKalmalaCharacter::StaticClass(),
+            FVector::ZeroVector, FRotator::ZeroRotator, PawnParameters);
         if (bCreatePlayerState)
         {
             Fixture.PlayerState = World->SpawnActor<APlayerState>();
