@@ -547,13 +547,17 @@ run for this goal and may exceed one turn.
   - [x] **BH09 — Blend candidate heights continuously.** Use normalized existing
     land-biome weights and continuous coast attenuation; avoid hard label
     switches, double-applied detail, and changes to classifier inputs/bands.
-  - [ ] **BH10 — Shape Meadows hills.** Keep open until BH10a–BH10b are complete.
+  - [x] **BH10 — Shape Meadows hills.** Hill source behavior and sweep harness
+    are complete; the final amplitude selection remains in BH25a.
     - [x] **BH10a — Integrate the hill layer and shoulder curve.** Add bounded,
       deterministic broad Meadows hills with smooth upper-height compression;
       retain the lower source shape and continuous biome/coast blend.
-    - [ ] **BH10b — Measure and tune Meadows hill trials.** Compare 4/6/8 m
-      amplitudes on recorded fixed-site and 100–250 m height/slope profiles;
-      select the smallest trial meeting acceptance and record the measurements.
+    - [x] **BH10b1 — Add a reproducible Meadows hill profile sweep harness.**
+      Add fixed seed-418/419 100–250 m transects and a validated commandlet-only
+      hill-amplitude override to the numeric final-height/collision-slope
+      sampler; preserve default sampling when the override is absent. Provide a
+      runner that exports distinct 4/6/8 m trial CSVs and records the effective
+      trial so a stale binary fails visibly. Do not select final tuning here.
   - [ ] **BH11 — Add Meadows rolling relief.** Integrate the middle-scale layer
     separately; inspect 30–70 m profiles, traversal slopes, patch seams, and
     connected gentler routes.
@@ -597,10 +601,16 @@ run for this goal and may exceed one turn.
   - [ ] **BH24 — Add cold-biome presentation.** Apply Tundra snow and Mountain
     snow/storm visuals through existing materials/weather paths; retain
     server-owned weather selection and add no damage, exposure, or shelter rule.
-  - [ ] **BH25 — Finalize tuning and contracts.** Select measured values, update
-    architecture/setup instructions and height previews with raw ranges, and
-    compare sampler, map, generation, active-patch, collision, and decoration
-    costs with BH01 baselines.
+  - [ ] **BH25 — Finalize tuning and contracts.** Keep open until BH25a–BH25b
+    are complete.
+    - [ ] **BH25a — Run BH10b2 Meadows hill sweep.** With freshly compiled
+      source, run BH10b1 at 4/6/8 m; compare BH01 fixed-site baselines and
+      100–250 m transect height/slope profiles, select the smallest accepted
+      amplitude, and record measurements.
+    - [ ] **BH25b — Finalize remaining tuning and contracts.** Update
+      architecture/setup instructions and height previews with raw ranges, and
+      compare sampler, map, generation, active-patch, collision, and decoration
+      costs with BH01 baselines.
   - [ ] **BH26 — Run final integrated verification and repair.** Inspect the full
     combined change; run the applicable Editor build, regional/master-map/
     finite-world/integrated/water checks, RegionalGeneration and Minimap peers,

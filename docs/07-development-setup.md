@@ -3686,6 +3686,20 @@ its relief layers are integrated; they never tune a running game or saved world.
 
 The fast path shares the production regional classifier and wetland suitability/distance rules. It skips bowl shaping, rivers and other height work because these do not change labels. PNGs display biome identity, not final water depth. Use `RenderWorldGenerationVisualization` for hydrology and height.
 
+### Meadows hill profile sweep
+
+After compiling the BH10a regional sampler, run
+`Scripts/Tests/World/BiomeHillProfiles.ps1 -Project <project-path>` with the
+matching Editor commandlet. The runner samples the fixed seed-418/419 starter
+and outer-Meadows transects at 4, 6 and 8 m hill amplitudes, recording final
+height and collision-triangle slope CSVs plus a per-profile summary under its
+short temporary output directory. It requires the commandlet's effective-trial
+log marker, so a pre-BH10a binary cannot silently produce accepted results.
+BH10b1 adds the fixture and runner; BH25 uses a freshly compiled sampler to
+compare trials against `BiomeBaseline418419.csv`, select the smallest accepted
+amplitude, and preserve the measured output summary. This script does not build
+the Editor or decide final tuning by itself.
+
 ### Export verification
 
 After building, run `Scripts/Tests/World/WorldMapExport.ps1`. In one warm headless process it verifies PNG signatures, every visible fast/full biome pixel at 64×64, changed master/region tuning, restoration of default output hashes, and preservation of the last good PNGs after malformed input. It keeps its parameter edits and outputs in a temporary directory; the user's parameter file is untouched.

@@ -3,6 +3,7 @@
 #include "HAL/FileManager.h"
 #include "KalmalaBiomeClassifier.h"
 #include "KalmalaForestLayout.h"
+#include "KalmalaGenerationPreview.h"
 #include "KalmalaRegionalGeneration.h"
 #include "KalmalaTerrainHeightSampler.h"
 #include "KalmalaTerrainPatchLayout.h"
@@ -12,6 +13,7 @@
 #include "Misc/Parse.h"
 #include "Misc/Paths.h"
 #include "Misc/FileHelper.h"
+#include "Misc/ScopeExit.h"
 
 namespace KalmalaWorldGenerationVisualization
 {
@@ -263,6 +265,29 @@ int32 URenderWorldGenerationVisualizationCommandlet::Main(const FString& Params)
         UE_LOG(LogTemp, Error, TEXT("Invalid visualization parameters. Size must be 16-2048, and Extent must be positive."));
         return 1;
     }
+
+    FString HillAmplitudeText;
+    const bool bHasHillAmplitude = FParse::Value(*Params, TEXT("MeadowHillAmplitudeM="), HillAmplitudeText);
+    if (bHasHillAmplitude)
+    {
+        double HillAmplitudeM = 0.0;
+        if (!LexTryParseString(HillAmplitudeM, *HillAmplitudeText) || !FMath::IsFinite(HillAmplitudeM)
+            || HillAmplitudeM < 4.0 || HillAmplitudeM > 10.0)
+        {
+            UE_LOG(LogTemp, Error, TEXT("MeadowHillAmplitudeM must be finite and between 4 and 10 metres."));
+            return 1;
+        }
+
+        FKalmalaGenerationPreviewSettings Trial = FKalmalaGenerationPreview::Get();
+        Trial.MeadowHillAmplitude = HillAmplitudeM * 100.0;
+        if (!Trial.HasValidReliefControls() || !FKalmalaGenerationPreview::Set(Trial))
+        {
+            UE_LOG(LogTemp, Error, TEXT("Could not install the commandlet-only Meadows hill trial."));
+            return 1;
+        }
+        UE_LOG(LogTemp, Display, TEXT("Meadow hill sample trial accepted: AmplitudeM=%.3f"), HillAmplitudeM);
+    }
+    ON_SCOPE_EXIT { if (bHasHillAmplitude) FKalmalaGenerationPreview::Reset(); };
 
     FString SampleInputPath;
     FString SampleOutputPath;

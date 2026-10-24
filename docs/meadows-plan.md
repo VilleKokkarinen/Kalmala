@@ -1,10 +1,11 @@
 # Meadows terrain and biome plan
 
 Status: proposed implementation plan, 2026-10-24. BH10a now implements a
-provisional Meadows hill signal and upper-shoulder curve; measured profile
-selection remains pending in BH10b. No gameplay, forest or presentation changes
-are implemented by this document. Execution is tracked in `BACKLOG.md` before
-Monster Population under the combined biome-height goal.
+provisional Meadows hill signal and upper-shoulder curve. BH10b1 supplies the
+reproducible profile sweep harness; BH25 runs freshly compiled 4/6/8 m trials
+and records the final measured setting in BH25a. No gameplay, forest or presentation
+changes are implemented by this document. Execution is tracked in
+`BACKLOG.md` before Monster Population under the combined biome-height goal.
 
 ## Reference interpretation
 
@@ -173,8 +174,11 @@ implementation is scheduled; split a unit further if necessary.
    values without changing output. Add corresponding commandlet-only preview
    controls with finite/range validation; keep production defaults unchanged.
 3. Add the broad hill layer, continuous Meadows blend and coast attenuation.
-   Compare conservative parameter trials with the baseline; select the smallest
-   amplitude yielding readable connected hills. Preserve hydrology ordering.
+   Keep the hill amplitude provisional and preserve hydrology ordering. BH10b1
+   adds the reproducible profile harness; after all terrain layers are
+   integrated, BH25 compares freshly compiled 4/6/8 m trials with the fixed
+   baseline in BH25a and selects the smallest amplitude yielding readable
+   connected hills.
 4. Add middle-scale rolling relief, then floor detail as separate small passes.
    Inspect local profiles, patch seams, camp pockets and traversal after each.
 5. Correct only demonstrated shoreline/clamp or river-bank defects caused by

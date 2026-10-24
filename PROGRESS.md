@@ -8247,3 +8247,38 @@
   execution and rendered acceptance remain deferred to BH26.
 - **Next task in this directed goal:** BH10 — shape Meadows hills and compare
   bounded shoulder compression against the recorded profiles.
+
+## Run 2026-10-24 — BH10b1 Meadows hill profile sweep harness
+
+- **Selected increment:** BH10b1, add repeatable fixed-site Meadows height and
+  collision-slope profile sampling for hill amplitude trials.
+- **Work completed:** Added 88 fixed seed-418/419 numeric positions spanning
+  eight east-west/north-south transects at the Starter and outer dry Meadows
+  baseline sites. The full visualization numeric commandlet now accepts a
+  finite, bounded, commandlet-only `MeadowHillAmplitudeM` override and logs the
+  effective trial; with no override it retains the existing sampling defaults.
+  Added `BiomeHillProfiles.ps1` to run separate 4/6/8 m trials, reject stale
+  binaries without the marker, validate finite height/slope data, and write
+  per-transect ranges and maximum collision-triangle slopes. Split BH10b as
+  BH10b1 harness work; moved actual trial execution and final amplitude choice
+  to BH25a, which needs freshly compiled BH10a source. Checked BH10b1 and BH10.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaEditor/Private/RenderWorldGenerationVisualizationCommandlet.cpp`,
+  `Scripts/Tests/World/BiomeHillProfiles.ps1`,
+  `Scripts/Tests/World/BiomeHillTransects.csv`, `docs/07-development-setup.md`,
+  `docs/biome-height-rework.md`, `docs/meadows-plan.md`.
+- **Lightweight checks/results:** PowerShell syntax parsing passed. The tracked
+  transect fixture contains 88 rows in eight groups of 11. Changed paths are
+  under MAX_PATH and `git diff --check` passed. No Editor build, automation, or
+  4/6/8 commandlet trial was run; measurements remain for BH25a and full
+  integrated verification for BH26.
+- **Observable impact / authority:** Diagnostics only. The amplitude override
+  is accepted only by the editor commandlet; absence of the override leaves
+  current sampling defaults unchanged. No gameplay, server authority, network,
+  or save behavior changed.
+- **Known limitations / remaining scope:** The 6 m hill amplitude remains a
+  provisional trial. Use freshly compiled source at BH25a to record actual
+  fixed-site deltas and transect height/slope distributions before selecting a
+  production amplitude. No rendered traversal acceptance has run.
+- **Next task in this directed goal:** BH11 — add Meadows rolling relief as a
+  separate middle-scale layer and inspect its 30–70 m profiles and slopes.

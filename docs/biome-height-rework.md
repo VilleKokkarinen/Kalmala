@@ -647,10 +647,28 @@ result.
 Focused source coverage now checks candidate output, lower-pocket preservation,
 monotonic bounded compression, and positive/negative hill signal across a 500 m
 neighborhood around the seed-418 outer dry Meadows baseline. The BH01 numeric
-artifact contains fixed-site points, not 100–250 m Meadow transects; BH10b must
-add/export those profiles, compare 4/6/8 m trials, and record the measured
-selection. No build, automation, or rendered acceptance was run for BH10a;
-full integrated verification remains BH26.
+artifact contains fixed-site points, not 100–250 m Meadow transects. BH10b1
+adds fixed seed-418/419 transects and a numeric amplitude sweep runner. BH25
+runs the 4/6/8 m trials with freshly compiled code, compares these profiles
+with the BH01 fixed-site baselines, and records the selected amplitude and
+measured ranges. A pre-BH10a binary cannot measure these trials; the runner
+detects missing trial logs instead of accepting stale output. No build,
+automation, or rendered acceptance was run for BH10a; full integrated
+verification remains BH26.
+
+### BH10b1 reproducible profile sweep harness
+
+`Scripts/Tests/World/BiomeHillTransects.csv` contains 88 numeric sample points:
+seed 418/419 Starter Meadows and outer dry Meadows, east-west and north-south
+transects, each 25,000 cm long at 2,500 cm intervals. The existing numeric
+sampler exports final height and the matching runtime collision-triangle slope
+for every point. `Scripts/Tests/World/BiomeHillProfiles.ps1` runs separate
+4/6/8 m amplitude trials and records eight per-transect height ranges and
+maximum triangle slopes for each trial. Its required effective-amplitude log
+marker rejects binaries predating the sampler override. It performs no build
+and selects no production tuning; BH25 must run it with freshly compiled code,
+compare to the fixed-site `BiomeBaseline418419.csv`, and record the accepted
+amplitude and measurements in BH25a (the deferred BH10b2 measurement increment).
 
 ## BH07 staged preview controls
 
@@ -674,7 +692,8 @@ These settings are accepted only by the headless preview route and reported in
 changing terrain controls leaves their pixels unchanged. BH10a now consumes the
 Meadow hill scale/amplitude and shoulder controls in regional height sampling;
 the shared relief scales, rolling relief and floor detail remain staged for
-later increments. BH10b will compare and select the hill trial.
+later increments. BH10b1 supplies fixed transects and a validated amplitude
+override; BH25 runs the fresh-source comparison and selects the final setting.
 
 ## BH08 shared relief sampler
 
