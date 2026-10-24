@@ -2,8 +2,13 @@
 
 #include "HAL/FileManager.h"
 #include "KalmalaBiomeClassifier.h"
+#include "KalmalaForestLayout.h"
 #include "KalmalaRegionalGeneration.h"
+#include "KalmalaTerrainHeightSampler.h"
+#include "KalmalaTerrainPatchLayout.h"
+#include "KalmalaWaterSurfaceMesh.h"
 #include "KalmalaWorldFieldSampler.h"
+#include "KalmalaWorldPlayerStartResolver.h"
 #include "Misc/Parse.h"
 #include "Misc/Paths.h"
 #include "Misc/FileHelper.h"
@@ -49,6 +54,83 @@ namespace KalmalaWorldGenerationVisualization
         return !Writer->IsError();
     }
 
+    struct FCollisionTriangleSample
+    {
+        float Height = 0.0f;
+        float SlopeDegrees = 0.0f;
+        float GradePercent = 0.0f;
+        int32 CellX = INDEX_NONE;
+        int32 CellY = INDEX_NONE;
+        uint8 TriangleIndex = 0;
+    };
+
+    bool TrySampleCollisionTriangle(const FKalmalaWorldGenerationConfig& Config, const FVector2D Position,
+        const FVector2D PatchCenter, FCollisionTriangleSample& OutSample)
+    {
+        constexpr int32 CellsPerSide = FKalmalaWaterSurfaceMesh::CellsPerSide;
+        constexpr float SurfaceSize = FKalmalaTerrainPatchLayout::PatchSize;
+        constexpr float HalfSurfaceSize = SurfaceSize * 0.5f;
+        constexpr float CellSize = SurfaceSize / CellsPerSide;
+        static_assert(CellsPerSide > 0 && CellSize > 0.0f, "Collision triangle sampling requires a positive grid.");
+
+        const float GridX = (Position.X - PatchCenter.X + HalfSurfaceSize) / CellSize;
+        const float GridY = (Position.Y - PatchCenter.Y + HalfSurfaceSize) / CellSize;
+        if (!FMath::IsFinite(GridX) || !FMath::IsFinite(GridY))
+        {
+            return false;
+        }
+
+        const int32 CellX = FMath::Clamp(FMath::FloorToInt(GridX), 0, CellsPerSide - 1);
+        const int32 CellY = FMath::Clamp(FMath::FloorToInt(GridY), 0, CellsPerSide - 1);
+        const float U = FMath::Clamp(GridX - CellX, 0.0f, 1.0f);
+        const float V = FMath::Clamp(GridY - CellY, 0.0f, 1.0f);
+        const float X0 = FMath::Lerp(-HalfSurfaceSize, HalfSurfaceSize, static_cast<float>(CellX) / CellsPerSide);
+        const float X1 = FMath::Lerp(-HalfSurfaceSize, HalfSurfaceSize, static_cast<float>(CellX + 1) / CellsPerSide);
+        const float Y0 = FMath::Lerp(-HalfSurfaceSize, HalfSurfaceSize, static_cast<float>(CellY) / CellsPerSide);
+        const float Y1 = FMath::Lerp(-HalfSurfaceSize, HalfSurfaceSize, static_cast<float>(CellY + 1) / CellsPerSide);
+        const FVector2D BottomLeftPosition = PatchCenter + FVector2D(X0, Y0);
+        const FVector2D BottomRightPosition = PatchCenter + FVector2D(X1, Y0);
+        const FVector2D TopLeftPosition = PatchCenter + FVector2D(X0, Y1);
+        const FVector2D TopRightPosition = PatchCenter + FVector2D(X1, Y1);
+        const float BottomLeft = FKalmalaTerrainHeightSampler::SampleHeight(Config, BottomLeftPosition);
+        const float BottomRight = FKalmalaTerrainHeightSampler::SampleHeight(Config, BottomRightPosition);
+        const float TopLeft = FKalmalaTerrainHeightSampler::SampleHeight(Config, TopLeftPosition);
+        const float TopRight = FKalmalaTerrainHeightSampler::SampleHeight(Config, TopRightPosition);
+        const float CellWidth = X1 - X0;
+        const float CellHeight = Y1 - Y0;
+        if (!FMath::IsFinite(BottomLeft) || !FMath::IsFinite(BottomRight)
+            || !FMath::IsFinite(TopLeft) || !FMath::IsFinite(TopRight)
+            || CellWidth <= 0.0f || CellHeight <= 0.0f)
+        {
+            return false;
+        }
+
+        const bool bFirstTriangle = U + V <= 1.0f;
+        float HeightGradientX = 0.0f;
+        float HeightGradientY = 0.0f;
+        if (bFirstTriangle)
+        {
+            OutSample.Height = BottomLeft * (1.0f - U - V) + BottomRight * U + TopLeft * V;
+            HeightGradientX = (BottomRight - BottomLeft) / CellWidth;
+            HeightGradientY = (TopLeft - BottomLeft) / CellHeight;
+        }
+        else
+        {
+            OutSample.Height = BottomRight * (1.0f - V) + TopLeft * (1.0f - U) + TopRight * (U + V - 1.0f);
+            HeightGradientX = (TopRight - TopLeft) / CellWidth;
+            HeightGradientY = (TopRight - BottomRight) / CellHeight;
+        }
+
+        const float GradientMagnitude = FMath::Sqrt(HeightGradientX * HeightGradientX + HeightGradientY * HeightGradientY);
+        OutSample.SlopeDegrees = FMath::RadiansToDegrees(FMath::Atan(GradientMagnitude));
+        OutSample.GradePercent = GradientMagnitude * 100.0f;
+        OutSample.CellX = CellX;
+        OutSample.CellY = CellY;
+        OutSample.TriangleIndex = bFirstTriangle ? 0 : 1;
+        return FMath::IsFinite(OutSample.Height) && FMath::IsFinite(OutSample.SlopeDegrees)
+            && FMath::IsFinite(OutSample.GradePercent);
+    }
+
     bool ExportNumericSamples(const FString& InputPath, const FString& OutputPath)
     {
         TArray<FString> Lines;
@@ -65,7 +147,7 @@ namespace KalmalaWorldGenerationVisualization
             return false;
         }
 
-        FString Csv = TEXT("Seed,Site,Xcm,Ycm,BiomeIndex,FinalHeightCm,MeadowsWeight,ShimmeringLakesWeight,ElderwoodWeight,MossyMireWeight,FreezingTundraWeight,ThunderMountainsWeight,OceanWeight,WaterLevelCm,HasWater\n");
+        FString Csv = TEXT("Seed,Site,Xcm,Ycm,BiomeIndex,FinalHeightCm,MeadowsWeight,ShimmeringLakesWeight,ElderwoodWeight,MossyMireWeight,FreezingTundraWeight,ThunderMountainsWeight,OceanWeight,WaterLevelCm,HasWater,CollisionTriangleHeightCm,CollisionTriangleSlopeDegrees,CollisionTriangleGradePercent,PatchOriginXcm,PatchOriginYcm,PatchX,PatchY,PatchCenterXcm,PatchCenterYcm,PatchCellX,PatchCellY,PatchTriangle,ForestDescriptorCount\n");
         int32 SampleCount = 0;
         for (int32 LineIndex = 1; LineIndex < Lines.Num(); ++LineIndex)
         {
@@ -103,7 +185,19 @@ namespace KalmalaWorldGenerationVisualization
 
             FKalmalaWorldGenerationConfig Config;
             Config.WorldSeed = Seed;
-            const FKalmalaWorldFieldSample Fields = FKalmalaWorldFieldSampler::Sample(Config, FVector2D(X, Y));
+            const FVector StartLocation = FKalmalaWorldPlayerStartResolver::ResolveStartTransform(Config).GetLocation();
+            const FVector2D PatchOrigin(StartLocation.X, StartLocation.Y);
+            const FVector2D Position(X, Y);
+            const FIntPoint PatchCoordinate = FKalmalaTerrainPatchLayout::GetPatchCoordinate(PatchOrigin, Position);
+            const FVector2D PatchCenter = FKalmalaTerrainPatchLayout::GetPatchCenter(PatchOrigin, PatchCoordinate.X, PatchCoordinate.Y);
+            FCollisionTriangleSample TriangleSample;
+            if (!TrySampleCollisionTriangle(Config, Position, PatchCenter, TriangleSample))
+            {
+                UE_LOG(LogTemp, Error, TEXT("Sample input row %d could not resolve its collision triangle."), LineIndex + 1);
+                return false;
+            }
+            const int32 ForestDescriptorCount = FKalmalaForestLayout::Generate(Config, PatchCenter).Num();
+            const FKalmalaWorldFieldSample Fields = FKalmalaWorldFieldSampler::Sample(Config, Position);
             const FKalmalaRegionalSample Region = FKalmalaRegionalGeneration::Sample(Fields);
             if (!FMath::IsFinite(Region.Height) || !FMath::IsFinite(Region.WaterLevel))
             {
@@ -119,10 +213,13 @@ namespace KalmalaWorldGenerationVisualization
                 }
             }
 
-            Csv += FString::Printf(TEXT("%llu,%s,%.1f,%.1f,%u,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%d\n"),
+            Csv += FString::Printf(TEXT("%llu,%s,%.1f,%.1f,%u,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%d,%.9g,%.9g,%.9g,%.3f,%.3f,%d,%d,%.3f,%.3f,%d,%d,%u,%d\n"),
                 static_cast<unsigned long long>(Seed), *Columns[1], X, Y, static_cast<unsigned int>(Region.Biome), Region.Height,
                 Region.Weights[0], Region.Weights[1], Region.Weights[2], Region.Weights[3],
-                Region.Weights[4], Region.Weights[5], Region.Weights[6], Region.WaterLevel, Region.bHasWater ? 1 : 0);
+                Region.Weights[4], Region.Weights[5], Region.Weights[6], Region.WaterLevel, Region.bHasWater ? 1 : 0,
+                TriangleSample.Height, TriangleSample.SlopeDegrees, TriangleSample.GradePercent,
+                PatchOrigin.X, PatchOrigin.Y, PatchCoordinate.X, PatchCoordinate.Y, PatchCenter.X, PatchCenter.Y,
+                TriangleSample.CellX, TriangleSample.CellY, static_cast<unsigned int>(TriangleSample.TriangleIndex), ForestDescriptorCount);
             ++SampleCount;
         }
 

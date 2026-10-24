@@ -264,6 +264,35 @@ piecewise-collision triangle height/slope and deterministic forest-descriptor
 counts remain in BH01b2. BH01c will record the resulting numeric table and
 rendered views.
 
+## BH01b2a collision and forest output fields
+
+The optional sample CSV now appends the piecewise terrain mesh height and
+slope at each requested coordinate, plus its containing patch metadata and
+deterministic forest descriptor count. Runtime patch origin is the seed-derived
+player-start XY. PatchX/PatchY use the existing floor-based
+FKalmalaTerrainPatchLayout rule; PatchCenterXcm/PatchCenterYcm identify
+the selected patch center.
+
+The terrain uses the runtime 3,000 cm square patch and its 24x24 cell grid
+(125 cm per cell). Each vertex is sampled with
+FKalmalaTerrainHeightSampler::SampleHeight, matching the generated mesh.
+PatchCellX/PatchCellY are zero-based coordinates in that patch grid.
+PatchTriangle is 0 for the first emitted triangle
+(BottomLeft, TopLeft, BottomRight) when local U+V <= 1, or 1 for the second
+(BottomRight, TopLeft, TopRight). The recorded height is barycentric
+interpolation on that exact triangle. Slope is the magnitude of that triangle
+plane's XY height gradient converted to degrees; grade percent is the same
+gradient magnitude multiplied by 100. At the shared diagonal, triangle 0 is
+reported consistently.
+
+ForestDescriptorCount is FKalmalaForestLayout::Generate's deterministic
+descriptor count for the containing patch and seed. It is measured before
+saved harvest suppression and actor/materialization state; it does not claim
+that every descriptor currently renders. This diagnostic is output-only and
+does not change generation. BH01b2b still needs to build/run it for all fixed
+sites and validate the resulting rows; no numeric measurements were produced
+by BH01b2a.
+
 ## Verification and completion
 
 During normal increments use narrow checks and careful source inspection.

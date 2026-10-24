@@ -7703,3 +7703,36 @@
 - **Next task in this directed goal:** BH01b2 — match the start-relative
   collision grid, add triangle slope and containing-patch forest descriptor
   counts, and complete the diagnostic for both seeds and all fixed sites.
+
+## Run 2026-10-24 — BH01b2a mesh and forest output fields
+
+- **Selected increment:** BH01b2a, the first ordered child of BH01b2. BH01b2
+  and BH01 remain open; BH01b2b is still required to produce and validate
+  numeric output.
+- **Completed:** Extended the opt-in sample CSV with exact piecewise collision
+  triangle height, plane slope in degrees and grade percent, runtime start-
+  relative patch origin/coordinate/center, cell and triangle indices, and the
+  containing patch's deterministic forest descriptor count. Corrected the
+  patch-center call to the actual runtime layout API. Documented field and
+  triangle semantics; checked BH01b2a only.
+- **Files changed:** BACKLOG.md, PROGRESS.md,
+  Source/KalmalaEditor/Private/RenderWorldGenerationVisualizationCommandlet.cpp,
+  docs/biome-height-rework.md. No generated outputs were staged.
+- **Lightweight checks/results:** Inspected the commandlet against the runtime
+  mesh vertex and triangle ordering, patch-origin/layout API, and forest
+  descriptor generator. git diff --check passed. A schema check confirmed 28
+  header fields, 28 format conversions and 28 arguments; all four changed paths
+  are below 260 characters. No tests or Unreal build were run; the updated
+  commandlet was not rebuilt or executed.
+- **Full verification:** Deferred; this is not milestone-final. No generation,
+  gameplay, networking, server-authority, RPC, or save behavior changed.
+- **Observable impact / authority:** Adds opt-in baseline fields. Default map
+  output and generated worlds are unchanged; the diagnostic is local editor
+  tooling and creates no gameplay state.
+- **Known limitations / remaining scope:** No numeric output has been emitted.
+  BH01b2b must build/run the commandlet for the 28 fixed seed/site rows and
+  validate scalar, triangle, water, weight and descriptor-count values. BH01c
+  remains responsible for rendered fixed-camera captures and baseline
+  consolidation.
+- **Next task in this directed goal:** BH01b2b — produce and validate
+  fixed-site output for seeds 418/419. Keep BH01b and BH01 open.

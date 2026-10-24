@@ -491,11 +491,16 @@ run for this goal and may exceed one turn.
         output-only commandlet path for final sampled height, biome identity and
         seven weights, water level, and water presence at BH01a's seed 418/419
         coordinates. Keep ordinary map exports and generation behavior intact.
-      - [ ] **BH01b2 — Add collision slope and forest counts.** Report the exact
-        piecewise terrain-triangle surface height/slope on the runtime
-        start-relative collision grid and count deterministic forest descriptors
-        in each sample's containing patch. Complete the diagnostic for all sites
-        and both seeds without changing generation behavior.
+      - [ ] **BH01b2 — Add collision slope and forest counts.** Keep open until
+        BH01b2a–BH01b2b are complete.
+        - [x] **BH01b2a — Add mesh and forest output fields.** Match the exact
+          piecewise terrain-triangle surface height/slope on the runtime
+          start-relative collision grid, and count deterministic forest
+          descriptors in each sample's containing patch. Do not change generation.
+        - [ ] **BH01b2b — Produce and validate fixed-site output.** Run the
+          diagnostic for all BH01a coordinates and both seeds; validate every
+          scalar, mesh, water, weight, and forest-count row and retain the output
+          for BH01c. No terrain behavior changes.
     - [ ] **BH01c — Capture rendered views and consolidate baselines.** Capture
       rendered fixed-camera views at BH01a's sites, record the numeric results
       and camera/vertical bounds in the plan document, and verify the captured
