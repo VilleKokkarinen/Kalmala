@@ -8931,3 +8931,88 @@
   A10 item-audit child unchecked until every included ID and scope N/A is
   covered.
 - **Next eligible A1 group:** `Copper`, `Tin`, and `Bronze` metal bars/alloy.
+
+## Run 2026-10-24 — A10 per-item audit: Copper, Tin, and Bronze
+
+- **Scope and definitions:** audited exactly `Copper`, `Tin`, and `Bronze`,
+  registered in `items/materials/metal.json`; each has `MaxStack=50`. These
+  are ordinary material stacks, not equipment. They have no item profiles,
+  attacks, stat rewards, or upgrade identities, so condition/combat/stat and
+  self-upgrade categories are N/A. Copper and Tin are not direct inputs to
+  other recipes or level-up costs; their only registered catalogue use is the
+  Bronze alloy recipe.
+- **Source and processing:** Copper and Tin have no bar-specific mining node,
+  biome, or depletion ID. The Smelter consumes one matching `CopperOre` or
+  `TinOre` plus one Coal to output one matching bar after 30 active server
+  seconds. Accepted ore is FIFO; the input limit is 10 ore including the
+  reserved job and 10 Coal including its reservation; all Copper/Tin/Iron bar
+  outputs share 10 slots. Full output pauses processing and no offline time
+  advances. Bronze has no direct drop or Smelter route: the enabled Forge
+  `BronzeAlloy` recipe immediately consumes Copper x2 and Tin x1 for Bronze
+  x1, with `MaxBatch=5`, no Coal, and no skill requirement.
+- **Downstream recipes and upgrades:** the JSON reference walk found Bronze in
+  the Forge recipes for Bronze Sword (10 Bronze, 2 Lightwood, 2 Deer Hide),
+  Bronze Helmet (10 Bronze, 5 Boar Hide), Bronze Tunic and Leggings (15 Bronze
+  and 5 Boar Hide each), Bronze Shield (10 Bronze, 5 Lightwood, 5 Boar Hide),
+  Planting Trowel (5 Bronze, 10 Wood), and Scale Cuirass (10 Bronze, 10 Giant
+  Scale). It also appears in the Workbench Bronze Arrows recipe (1 Bronze + 20
+  Wood produces 20), the direct Hammer Reinforced Chest recipe (2 Bronze + 8
+  Wood), and eight Forge accessory recipes: `QuartzNecklace` (3 Bronze),
+  `MoonstoneRing` (2), `GarnetNecklace` (3), `JadeRing` (2),
+  `AmethystNecklace` (3), `AquamarineRing` (2), `TourmalineNecklace` (3),
+  and `DuskRing` (5), each with its matching gem.
+  Bronze is an authored upgrade cost for BronzeAxe x3, BronzeKnife x2,
+  BronzePick x4, BronzeSpear x3, BronzeMace x2, BronzeSword x2,
+  BronzeHelmet x1, BronzeTunic x2, BronzeLeggings x2, BronzeShield x1, and
+  ScaleCuirass x5, plus each entry's other listed materials. These amounts are
+  the level-one base costs. Carried-tool costs use the existing doubling rule
+  and Forge progression; the architecture notes that wearable upgrade
+  execution remains pending equipment integration. Other Bronze-named tool
+  acquisitions do not all consume Bronze: the registered BronzeAxe, Knife,
+  Pick, Spear, and Mace Forge recipes still list Wood/Lightwood and Stone.
+  Specifically, the current `BronzePick` recipe is Wood x4 + Stone x4, while
+  the current A1 architecture target is Wood x10 + Bronze x10. This is a
+  confirmed acquisition-data gap for later disposition;
+  no recipe was changed in this audit.
+- **Icons and legacy identities:** all three identities are manifest-backed in
+  batch J for PackInventory, ItemDetail, Storage, and Ingredient. Their
+  retained originals are `Content/Kalmala/UI/Source/IconOriginals/<ID>.png`,
+  prepared transparent textures are `Content/Kalmala/UI/Source/Icons/<ID>.png`,
+  and imports are `/Game/Kalmala/UI/Icons/Items/<ID>.<ID>`. The catalogue icon
+  library resolves these exact IDs directly; the old widget fallback enum
+  uses Ingot variants Bronze 2, Copper 3, Tin 4. `docs/icon-provenance.md`
+  records the shared original prompt and each metal's exact subject; no
+  `CopperBar`, `TinBar`, `BronzeBar`, or `*Ingot` legacy IDs were found in the
+  catalogue, source, or icon ledger.
+- **Queue, carried stacks, and save behavior:** Smelter queues, Coal, active
+  ore, remaining active seconds, and outputs are world-saved in construction
+  schema 6 and replicated by the server. Loading one bar-input ingredient
+  consumes it only after the server accepts and persists the candidate state;
+  save rejection attempts to restore the consumed item. Collection saves the
+  output reduction before committing one carried bar, and attempts to restore
+  the saved output if the pack changes before commit. The Bronze alloy recipe
+  uses the regular server-validated atomic inventory exchange. General carried
+  material stacks are not included in `PersistPlayerStateFromServer`, so bars
+  held in the pack do not restore after restart. Chest item storage uses a
+  separate world-keyed save path; no metal-specific Chest transfer/reload or
+  live restart was exercised. No source depletion, decay, or pending claim
+  applies to the manufactured bars.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md` only.
+- **Lightweight checks:** `python Scripts/Validate-CatalogueReferences.py`
+  passed: 61 registered JSON files, 152 unique definitions, 777 resolved
+  references, and ledger-backed runtime icon mappings for all definitions.
+  Focused catalogue icon checks passed for `Copper`, `Tin`, and `Bronze`, each
+  confirming a 1254x1254 RGBA original, transparent 64x64 prepared texture,
+  and canonical imported asset. A parsed catalogue-reference walk confirmed
+  their exact registered recipe and upgrade uses; searches for legacy metal
+  bar/ingot IDs returned no matches. No build, automation, full suite, live
+  station, peer, or restart test ran.
+- **Full verification:** deferred; this is not A10's final increment.
+- **Impact and remaining scope:** tracking-only; no recipe, quantity, icon,
+  gameplay, authority, queue, or save behavior changed. The existing
+  `BronzePick` acquisition-cost discrepancy, wearable upgrade execution, and
+  actual live Smelter/Forge/Chest restart behavior remain for later review.
+  Keep the broad A10 item-audit child unchecked until every included ID and
+  scope N/A disposition is covered.
+- **Next eligible A1 group:** `IronOre` and `Iron` — Mossy Mire ore source and
+  Smelter bar.

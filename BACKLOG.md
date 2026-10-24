@@ -439,8 +439,8 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     Wild potatoes (Potato, PotatoSeed), Wild rutabaga (Rutabaga, RutabagaSeed),
     Wild onions (Onion, OnionSeed), retained Wood/Densewood/Stone, and
     Boar/Deer Hide and Meat (BoarHide, DeerHide, BoarMeat, DeerMeat), Amber,
-    Frost Salt, CopperOre, TinOre, and Coal reviewed; see PROGRESS.md. Next,
-    audit the Copper/Tin/Bronze metal bars and alloy (`Copper`, `Tin`, `Bronze`).
+    Frost Salt, CopperOre, TinOre, Coal, and the Copper/Tin/Bronze bar family
+    reviewed; see PROGRESS.md. Next, audit Iron Ore and Iron (`IronOre`, `Iron`).
     Keep this child open until every included item and scope N/A disposition is
     covered.
   - [ ] Run required full verification at each milestone's final increment.
