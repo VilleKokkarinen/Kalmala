@@ -5980,3 +5980,29 @@ the scenario logs have no fixture failures, fatal/assert/ensure failures, or
 saved-move backlog warnings. This fixture checks the authoritative gear and
 damage path, not rendered Workbench/inventory presentation or a natural Badger
 attack. Combined A8a/A8b I4 remains required before A9.
+
+## A8b Roasted Badger live peer cooking and meal use — 2026-10-24
+
+After an Editor build, run `Scripts/Tests/Construction/Verify-A8bRoastedBadgerPeer.ps1`.
+The Development-only three-peer fixture stages two Badger Meat and a Wood hearth
+fuel on the server, then spawns a nearby Cooking Rack and lit dry hearth. The
+remote owner rejects direct client craft and food-use calls, cooks two servings
+through `RoastedBadgerRecipe`, and consumes one through `ServerConsumeFood`. The
+server verifies exact meat payment, two outputs, the active 120-second Steady
+Meal and its -0.10 stamina-cost addition. The owner then tries a second use;
+the server rejects it, keeps the other serving, and does not refresh the meal.
+The listen host confirms it owns no Badger Meat/output and no meal effect. A
+second remote confirms the target's inventory and status arrays stay private.
+
+On 2026-10-24, the isolated `KalmalaEditor Win64 Development` build passed in
+four actions (`C:/Users/Ville/AppData/Local/Temp/a8rb6-build.log`).
+`Verify-A8bRoastedBadgerPeer.ps1 -Port 17896 -Project
+C:/Users/Ville/AppData/Local/Temp/msp1/Kalmala.uproject -OutputDirectory
+C:/Users/Ville/AppData/Local/Temp/a8rb4` passed for the server, owner, listen
+host, and observer. Both clients received world seed 418. Logs:
+`C:/Users/Ville/AppData/Local/Temp/a8rb4/{server,owner,observer}.log`. The fresh
+peer user directories reported absent initial SaveGame files; there were no
+fixture failures, fatal/assert/ensure failures, or saved-move backlog warnings.
+This case does not exercise rendered Cooking Rack/inventory presentation or
+repeat the separate Badger reward/retry/persistence coverage. Combined A8a/A8b
+I4 remains required before A9.

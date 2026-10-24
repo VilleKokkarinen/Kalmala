@@ -128,6 +128,7 @@ private:
     void RunGardenPlotVerification(float DeltaTime);
     void RunA8bTonicPeerVerification(float DeltaTime);
     void RunA8bVestPeerVerification(float DeltaTime);
+    void RunA8bRoastedBadgerPeerVerification(float DeltaTime);
 #endif
     void RefreshStorageView();
     void ClearStorageView();
@@ -190,5 +191,13 @@ private:
     float A8bVestPeerBaselineHealth = 100.0f;
     int32 A8bVestPeerObservedOwnerPlayerId = INDEX_NONE;
     bool bA8bVestPeerFixtureObserved = false;
+    int32 A8bRoastedBadgerPeerStage = 0;
+    float A8bRoastedBadgerPeerElapsed = 0.0f;
+    TWeakObjectPtr<AKalmalaCharacter> A8bRoastedBadgerPeerTarget;
+    uint32 A8bRoastedBadgerPeerResultSerial = 0;
+    float A8bRoastedBadgerPeerBaselineStaminaCostAddition = 0.0f;
+    float A8bRoastedBadgerPeerMealSecondsAfterUse = 0.0f;
+    int32 A8bRoastedBadgerPeerObservedOwnerPlayerId = INDEX_NONE;
+    bool bA8bRoastedBadgerPeerFixtureObserved = false;
 #endif
 };
