@@ -7788,7 +7788,7 @@
 - **Full verification:** Deferred to S35. This is not the final implementation task in the monster-population goal.
 - **Observable impact / authority:** The authoritative GameMode creates a bounded due-key/budget plan on 0.25 s wake intervals; S08 now consumes it to select existing descriptors. The materialized-key limit is unchanged, and no actors are created.
 - **Networking/authority:** Wake timing, due-key selection and candidate budgets are server-only.
-- **Known limitations:** S11+ still needs area caps, candidate evaluation and admission; this scheduler does not create actors.
+- **Known limitations:** S11+ still needs area caps, evaluator wiring and actor admission; this scheduler performs no creature spawn work.
 - **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within this requested monster-population goal, the next child is S11 — enforce area caps.
 
 
