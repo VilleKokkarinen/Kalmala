@@ -2,7 +2,6 @@
 
 #include "Engine/Texture2D.h"
 #include "KalmalaIconWidget.h"
-#include "KalmalaStatusIconLibrary.h"
 
 bool FKalmalaCatalogueIconLibrary::GetTextureObjectPath(FName CanonicalId, FSoftObjectPath& OutObjectPath)
 {
@@ -12,13 +11,6 @@ bool FKalmalaCatalogueIconLibrary::GetTextureObjectPath(FName CanonicalId, FSoft
     int32 FallbackVariant = 0;
     if (!UKalmalaIconWidget::FindCatalogueIcon(CanonicalId, FallbackIcon, FallbackVariant))
         return false;
-
-    FName StatusIconId = NAME_None;
-    if (CanonicalId == TEXT("MendingScroll")) StatusIconId = TEXT("Mending");
-    else if (CanonicalId == TEXT("HearthShieldScroll")) StatusIconId = TEXT("HearthShield");
-    else if (CanonicalId == TEXT("BearsVigorScroll")) StatusIconId = TEXT("BearsVigor");
-    else if (CanonicalId == TEXT("DeerCallScroll")) StatusIconId = TEXT("DeerCall");
-    if (!StatusIconId.IsNone()) return FKalmalaStatusIconLibrary::GetTextureObjectPath(StatusIconId, OutObjectPath);
 
     FName TextureAssetId = CanonicalId;
     if (CanonicalId == TEXT("StoneKnife")) TextureAssetId = TEXT("ReedKnife");

@@ -65,6 +65,10 @@ def audit(root):
                 assert identity not in coverage or coverage[identity] == canonical, f"Ambiguous icon: {identity}"
                 coverage[identity] = canonical
     missing_icons = sorted(ids - coverage.keys())
+    catalogue_icon_library = (root / "Source/KalmalaUI/Private/KalmalaCatalogueIconLibrary.cpp").read_text()
+    scroll_ids = {"MendingScroll", "HearthShieldScroll", "BearsVigorScroll", "DeerCallScroll"}
+    status_routed_scrolls = sorted(item for item in scroll_ids if f'CanonicalId == TEXT("{item}")' in catalogue_icon_library)
+    assert not status_routed_scrolls, f"Scroll items still redirect to shared status icons: {status_routed_scrolls}"
     runtime = (root / "Source/KalmalaUI/Private/KalmalaIconWidget.cpp").read_text()
     mappings = set(re.findall(r'\{TEXT\("([A-Za-z0-9]+)"\),EKalmalaIcon::', runtime))
     assert all(coverage[item] in mappings for item in ids if item in coverage), "Missing canonical runtime icon mapping"

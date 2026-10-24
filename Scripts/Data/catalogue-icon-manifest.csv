@@ -147,3 +147,7 @@ image_batch,import_batch,canonical_id,art_subject,identity_kind,catalogue_aliase
 82,AM,StormcutSword,iron sword with sapphire pommel,tool,none,StormcutSword,PackInventory;ItemDetail;CarriedTool;ToolDetail;Repair;RecipeResult,carried_tool,
 82,AM,DuskRing,aged bronze ring with dark diamond,item,none,DuskRing,PackInventory;ItemDetail;RecipeResult,pack,
 83,AN,ReinforcedChestKit,bronze-banded timber chest,buildable,ReinforcedChest,ReinforcedChest,BuildMenu;PlacementPreview;ResultPreview,none,ReinforcedChestKit
+84,AP,MendingScroll,unfurled parchment scroll with stitched sprout emblem,item,none,none,PackInventory;ItemDetail,pack,
+84,AP,HearthShieldScroll,unfurled parchment scroll with shield and hearth-flame emblem,item,none,none,PackInventory;ItemDetail,pack,
+84,AP,BearsVigorScroll,unfurled parchment scroll with bear paw emblem,item,none,none,PackInventory;ItemDetail,pack,
+84,AP,DeerCallScroll,unfurled parchment scroll with branching antler emblem,item,none,none,PackInventory;ItemDetail,pack,

@@ -7635,3 +7635,46 @@
 - **Next eligible task:** A10 catalogue/icon acceptance remains ahead in queue;
   its current audit gap is four generated/imported scroll icons. After A10,
   start BH01. No main-checkout handoff synchronization is needed.
+
+## Run 2026-10-24 — Complete A10 catalogue icon audit
+
+- **Selected increment:** First unchecked child of A10 Acceptance: audit every
+  approved item ID against registered JSON and generated/imported runtime icons,
+  with no missing entries, references, or fallback icons. The user authorized
+  this isolated worktree run while other Kalmala tasks were active.
+- **Completed:** Added original Mending Scroll, Hearth Shield Scroll, Bear's
+  Vigor Scroll, and Deer Call Scroll artwork; retained each original and
+  prepared transparent 64×64 texture; imported the four canonical Unreal
+  Texture2D assets in isolated batch AP. Registered all four manifest rows and
+  extended the preparation/import allowlists. Removed the shared status-icon
+  redirect for these catalogue items, added a focused regression assertion, and
+  documented paths and generation prompts in `docs/icon-provenance.md`. Checked
+  the selected child in `BACKLOG.md`.
+- **Files changed:** Four `.uasset` packages under `Content/Kalmala/UI/Icons/Items/`,
+  four original PNGs under `Content/Kalmala/UI/Source/IconOriginals/`, and four
+  prepared PNGs under `Content/Kalmala/UI/Source/Icons/` (`MendingScroll`,
+  `HearthShieldScroll`, `BearsVigorScroll`, `DeerCallScroll`); `Scripts/Data/catalogue-icon-manifest.csv`;
+  `Scripts/Prepare-CatalogueIconBatch.py`; `Scripts/Import-CatalogueIconBatch.ps1`;
+  `Scripts/Import-CatalogueIconBatch.py`; `Scripts/Validate-CatalogueReferences.py`;
+  `Source/KalmalaUI/Private/KalmalaCatalogueIconLibrary.cpp`;
+  `docs/icon-provenance.md`; `BACKLOG.md`; `PROGRESS.md`.
+- **Lightweight checks/results:** All four source PNGs passed preparation as
+  transparent RGBA inputs and centered 64×64 transparent outputs. The first AP
+  import attempt exposed a missing AP entry in the Python importer allowlist;
+  after updating the allowlists, rerun imported and validated all four canonical
+  Texture2D packages. `python Scripts/Validate-CatalogueReferences.py` passed:
+  61 registered JSON files, 152 unique definitions, and 777 resolved references;
+  all 152 definitions have ledger-backed canonical runtime icon mappings.
+  `Scripts/Validate-UIIcons.ps1 -Category Catalogue` passed for all 152
+  identities, originals, prepared textures, mappings, and imported packages.
+- **Full verification:** Deferred; this is not A10's final task. No full Unreal
+  build, full test suite, live acceptance, or rendered runtime check was run.
+- **Impact / authority:** The four reusable support scrolls now resolve to their
+  own generated catalogue textures. Gameplay names, effects, status behavior,
+  networking, server authority, RPCs, and save data were not changed.
+- **Remaining scope / next eligible task:** Continue A10 with “Review milestones:
+  I0 A0; I1 A1; I2 A2–A6 except Planting Trowel; I3 A7 farming + Planting
+  Trowel; I4 A8–A8b with its final enemy gate before A9; I5 A9.” Item source,
+  recipe, use, upgrade and save review; fresh-start progression; approved
+  farming/shelter/cargo/accessory/peer/restart checks; and required milestone
+  final verification remain open. No other A10 child was started.

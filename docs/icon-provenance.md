@@ -1299,3 +1299,56 @@ The transparent 1254×1254 RGBA original was prepared as a centered 64×64 RGBA
 icon. The batch-O importer creates
 `/Game/Kalmala/UI/Icons/Items/WoodenClub.WoodenClub`; the catalogue validator
 checks the original, prepared image, runtime mapping, and imported package.
+
+<a id="a10-support-scroll-icons"></a>
+
+## A10 reusable support-scroll icon coverage
+
+The four existing reusable support scrolls now have distinct original inventory
+icons. Mending Scroll and Hearth Shield Scroll reuse their transparent sources
+generated earlier in this A10 run. Bear's Vigor Scroll and Deer Call Scroll were
+generated with the first two scrolls as style references only; their emblems are
+original. All four sources are 1254×1254 transparent RGBA, prepared as centered
+64×64 transparent textures, and imported as canonical catalogue assets in the
+isolated AP batch (`image_batch=84`).
+
+| Item | Retained original | Prepared texture | Imported texture |
+| --- | --- | --- | --- |
+| `MendingScroll` | `Content/Kalmala/UI/Source/IconOriginals/MendingScroll.png` | `Content/Kalmala/UI/Source/Icons/MendingScroll.png` | `/Game/Kalmala/UI/Icons/Items/MendingScroll.MendingScroll` |
+| `HearthShieldScroll` | `Content/Kalmala/UI/Source/IconOriginals/HearthShieldScroll.png` | `Content/Kalmala/UI/Source/Icons/HearthShieldScroll.png` | `/Game/Kalmala/UI/Icons/Items/HearthShieldScroll.HearthShieldScroll` |
+| `BearsVigorScroll` | `Content/Kalmala/UI/Source/IconOriginals/BearsVigorScroll.png` | `Content/Kalmala/UI/Source/Icons/BearsVigorScroll.png` | `/Game/Kalmala/UI/Icons/Items/BearsVigorScroll.BearsVigorScroll` |
+| `DeerCallScroll` | `Content/Kalmala/UI/Source/IconOriginals/DeerCallScroll.png` | `Content/Kalmala/UI/Source/Icons/DeerCallScroll.png` | `/Game/Kalmala/UI/Icons/Items/DeerCallScroll.DeerCallScroll` |
+
+The runtime catalogue icon library resolves each canonical item to its own
+texture. The icon ledger includes all four identities in AP; the audit rejects
+shared status-icon redirects for these scrolls. Prepare, import, and validate
+with:
+
+```powershell
+python Scripts/Prepare-CatalogueIconBatch.py --batch AP
+Scripts/Import-CatalogueIconBatch.ps1 -Batch AP
+python Scripts/Validate-CatalogueReferences.py
+Scripts/Validate-UIIcons.ps1 -Category Catalogue
+```
+
+### Mending Scroll prompt
+
+> Use case: stylized-concept. Asset type: original Kalmala survival-fantasy inventory icon for a reusable support scroll. Primary request: create a distinct Mending Scroll item icon. Subject: one small, unfurled parchment scroll with both ends rolled, a simple stitched green sprout emblem on the vellum, and a restrained sage-green wax tie; the scroll alone clearly reads as a carried scroll. Style/medium: hand-painted game inventory artwork matching Kalmala's earthy crafted survival catalogue, bold dark brown contour, broad tactile painted facets, restrained highlights, warm aged parchment and muted natural colors. Composition/framing: one centered object filling about 78 percent of a square canvas, clean transparent padding, silhouette and emblem legible at 64 pixels. Background: genuinely transparent. Constraints: original artwork, no text or letter-like marks, no UI, border, ground, cast shadow, glow, watermark, logo, hands, extra objects, or copied references.
+
+### Hearth Shield Scroll prompt
+
+> Use case: stylized-concept. Asset type: original Kalmala survival-fantasy inventory icon for a reusable support scroll. Primary request: create a distinct Hearth Shield Scroll item icon. Subject: one small, unfurled parchment scroll with both ends rolled, a simple embossed dark red shield-and-hearth-flame emblem on the vellum, and a restrained muted rust-red wax tie; the scroll alone clearly reads as a carried scroll. Style/medium: hand-painted game inventory artwork matching Kalmala's earthy crafted survival catalogue, bold dark brown contour, broad tactile painted facets, restrained highlights, warm aged parchment and muted natural colors. Composition/framing: one centered object filling about 78 percent of a square canvas, clean transparent padding, silhouette and emblem legible at 64 pixels. Background: genuinely transparent. Constraints: original artwork, no text or letter-like marks, no UI, border, ground, cast shadow, glow, watermark, logo, hands, extra objects, or copied references.
+
+### Bear's Vigor Scroll prompt
+
+The following is a transcription of the submitted prompt content; punctuation and
+word wrapping are normalized from the generation request record.
+
+> Use case: stylized-concept. Asset type: original Kalmala survival-fantasy inventory icon for a reusable support scroll. Inputs images 1 and 2 are existing Kalmala scrolls used as style references only: match the warm vellum, rolled silhouette, dark contour, painted facets, and restrained highlights; do not copy their emblems. Primary request: create a distinct Bear's Vigor Scroll item icon. Subject: one small, unfurled parchment scroll with both ends rolled, a simple dark umber bear paw emblem on the vellum, and a muted ochre wax tie. Style/medium: hand-painted game inventory artwork in the established Kalmala scroll style. Composition/framing: one centered object filling about 78 percent of a square canvas, clean transparent padding, silhouette and emblem legible at 64 pixels. Background: genuinely transparent. Constraints: original artwork, no text, UI, border, ground, cast shadow, glow, watermark, logo, hands, or extra objects.
+
+### Deer Call Scroll prompt
+
+The following is a transcription of the submitted prompt content; punctuation and
+word wrapping are normalized from the generation request record.
+
+> Use case: stylized-concept. Asset type: original Kalmala survival-fantasy inventory icon for a reusable support scroll. Inputs images 1 and 2 are existing Kalmala scrolls used as style references only: match the warm vellum, rolled silhouette, dark contour, painted facets, and restrained highlights; do not copy their emblems. Primary request: create a distinct Deer Call Scroll item icon. Subject: one small, unfurled parchment scroll with both ends rolled, a simple branching antlers emblem on the vellum, and a forest-green wax tie. Style/medium: hand-painted game inventory artwork in the established Kalmala scroll style. Composition/framing: one centered object filling about 78 percent of a square canvas, clean transparent padding, silhouette and emblem legible at 64 pixels. Background: genuinely transparent. Constraints: original artwork, no text, UI, border, ground, cast shadow, glow, watermark, logo, hands, sound marks, or extra objects.
