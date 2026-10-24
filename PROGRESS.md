@@ -7724,3 +7724,43 @@
 - **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the
   global queue. Within this requested monster-population goal, the next child
   is S05 — deduplicate active keys.
+
+## Run 2026-10-24 — Deduplicate active population keys (S05)
+
+- **Selected increment:** S05, the first unchecked child in the requested
+  monster-population goal. Continued on codex/monster-population in the
+  isolated worktree created from local master at 460339b3.
+- **Completed:** Added a server-only GameMode query that filters the existing
+  materialized population-key set to keys whose 64 m squares intersect any
+  living player's inclusive 96 m horizontal radius. A distinct named tuning
+  constant holds the player-key radius. The query returns unique keys in
+  lexicographic X/Y order, consumes S04's living-player source, and does not
+  activate or materialize additional keys. S05 is checked in BACKLOG.md.
+- **Files changed:**
+  - BACKLOG.md
+  - PROGRESS.md
+  - Source/KalmalaGameplay/Public/KalmalaGameMode.h
+  - Source/KalmalaGameplay/Private/KalmalaGameMode.cpp
+  - Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSpatialKeyUnionTest.cpp
+  - Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h
+  - docs/monster-spawning.md
+- **Lightweight checks:** Added focused automation coverage for overlapping
+  player neighborhoods, shared-key uniqueness, stable ordering, inclusive
+  radius tangency, exclusion outside all radii, no-player behavior, and absence
+  of key materialization. A lightweight two-player geometry calculation
+  matched the expected inclusive union; git diff --check passed. The automation
+  test and Unreal build were not run.
+- **Full verification:** Deferred to S35. This is not the final implementation
+  task in the monster-population goal.
+- **Observable impact / authority:** Produces server-side scheduler input only.
+  The nine-key materialization limit and existing Tick activation behavior are
+  unchanged. No scheduler cadence, work budget, natural spawning, or client
+  authority was added.
+- **Known limitations:** The candidate union is restricted to the existing
+  ActivePopulationSpatialKeys set, whose entries are materialized keys. Normal
+  Tick currently materializes player-containing cells only; geometrically
+  nearby but unloaded cells are not created or returned. No key unload path
+  exists yet. Full integrated verification remains pending.
+- **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the
+  global queue. Within this requested monster-population goal, the next child
+  is S06 — add stable scheduler cadence.

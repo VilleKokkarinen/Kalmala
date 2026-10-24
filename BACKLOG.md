@@ -596,7 +596,7 @@ milestone-final verification/repair run and can exceed a normal turn.
     Validate bounds/units; keep spawning disabled.
   - [x] **S04 — Gather active players.** Add a server-only list of living players
     in the current world; ignore dead, disconnected and invalid pawns.
-  - [ ] **S05 — Deduplicate active keys.** Derive the union of nearby loaded keys
+  - [x] **S05 — Deduplicate active keys.** Derive the union of nearby loaded keys
     from S04; overlapping players must produce each key once.
   - [ ] **S06 — Add scheduler cadence.** Schedule each active key once per 5 s
     with stable staggering; remove inactive keys without accumulating retries.

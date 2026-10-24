@@ -438,6 +438,7 @@ struct FKalmalaMonsterSpawnTuning final
     static constexpr float RingMaximumDistanceCm = 96.0f * 100.0f;
     static constexpr float PopulationKeyCheckIntervalSeconds = 5.0f;
     static constexpr float CountRadiusCm = 96.0f * 100.0f;
+    static constexpr float PlayerKeyIntersectionRadiusCm = 96.0f * 100.0f;
 
     static_assert(FKalmalaWorldPopulationLayout::SpatialKeySizeCm == 64.0f * 100.0f,
         "Population spatial keys must remain 64 m wide.");
@@ -445,6 +446,8 @@ struct FKalmalaMonsterSpawnTuning final
         "Monster spawn ring distances must be positive and ordered.");
     static_assert(RingMaximumDistanceCm <= CountRadiusCm,
         "Monster spawn count radius must cover the outer ring.");
+    static_assert(PlayerKeyIntersectionRadiusCm > 0.0f,
+        "Player population-key radius must be positive.");
     static_assert(PopulationKeyCheckIntervalSeconds > 0.0f,
         "Monster population checks must use a positive interval.");
 };

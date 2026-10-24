@@ -124,8 +124,20 @@ is still possessed by that controller and has finite health above 1.0. Returned
 pawns are ordered by PlayerState ID, with controller object path as a stable
 within-world tie breaker, and duplicate pawn pointers are removed. The current
 server controller list excludes disconnected controllers; inactive PlayerStates
-are also rejected. This increment does not derive the 96 m neighborhood union,
-deduplicate active keys, or add an attempt scheduler; those remain later steps.
+are also rejected. S04 itself did not derive the 96 m neighborhood union,
+deduplicate active keys, or add an attempt scheduler.
+
+## S05 loaded-key candidate union — 2026-10-24
+
+`AKalmalaGameMode::GetPopulationSpatialKeyCandidates` filters the existing
+`ActivePopulationSpatialKeys` set, which contains keys already materialized by
+`ActivatePopulationKey`. A loaded key is included once if its 64 m square has
+an inclusive horizontal intersection with any living player's 96 m radius.
+Results use lexicographic X/Y key order and remain candidates only; this query
+does not activate, remove, or otherwise materialize keys. The current normal
+`Tick` path still materializes each living player's containing key, subject to
+the unchanged nine-key cap, so nearby but unloaded cells are not added here.
+The returned union is input for later scheduler work.
 
 ## Spatial scheduling and random rolls
 

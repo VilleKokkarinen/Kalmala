@@ -87,6 +87,7 @@ private:
     friend class FKalmalaForestRestartTest;
     friend class FKalmalaM9SourceAcceptanceTest;
     friend class FKalmalaPopulationLivingPlayersTest;
+    friend class FKalmalaPopulationSpatialKeyUnionTest;
 
 #if WITH_DEV_AUTOMATION_TESTS
     // Isolate the final disk boundary while exercising the real depletion callback.
@@ -97,6 +98,7 @@ private:
     void ActivateTerrainPatchNeighborhood(const FVector2D& WorldPosition);
     void RefreshTerrainPatchNeighborhoods();
     TArray<class AKalmalaCharacter*> GetLivingPlayerPawnsForPopulation() const;
+    TArray<FIntPoint> GetPopulationSpatialKeyCandidates() const;
     void ActivatePopulationKey(const FIntPoint& SpatialKey);
     void RefreshOceanDiscoveries();
     void RecordHarvestedSpawn(const FString& PersistentSpawnId);

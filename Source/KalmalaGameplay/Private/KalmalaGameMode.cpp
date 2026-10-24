@@ -5330,6 +5330,69 @@ TArray<AKalmalaCharacter*> AKalmalaGameMode::GetLivingPlayerPawnsForPopulation()
     return LivingPlayerPawns;
 }
 
+TArray<FIntPoint> AKalmalaGameMode::GetPopulationSpatialKeyCandidates() const
+{
+    TArray<FIntPoint> Candidates;
+    const UWorld* World = GetWorld();
+    if (!HasAuthority() || !IsValid(World) || ActivePopulationSpatialKeys.IsEmpty())
+    {
+        return Candidates;
+    }
+
+    const TArray<AKalmalaCharacter*> LivingPlayers = GetLivingPlayerPawnsForPopulation();
+    if (LivingPlayers.IsEmpty())
+    {
+        return Candidates;
+    }
+
+    constexpr double KeySizeCm = FKalmalaWorldPopulationLayout::SpatialKeySizeCm;
+    constexpr double RadiusCm = FKalmalaMonsterSpawnTuning::PlayerKeyIntersectionRadiusCm;
+    constexpr double RadiusSquared = RadiusCm * RadiusCm;
+    for (const FIntPoint& SpatialKey : ActivePopulationSpatialKeys)
+    {
+        const double KeyMinimumX = static_cast<double>(SpatialKey.X) * KeySizeCm;
+        const double KeyMaximumX = KeyMinimumX + KeySizeCm;
+        const double KeyMinimumY = static_cast<double>(SpatialKey.Y) * KeySizeCm;
+        const double KeyMaximumY = KeyMinimumY + KeySizeCm;
+        bool bIntersectsLivingPlayer = false;
+        for (const AKalmalaCharacter* Player : LivingPlayers)
+        {
+            if (!IsValid(Player) || Player->GetWorld() != World)
+            {
+                continue;
+            }
+
+            const FVector2D PlayerPosition(Player->GetActorLocation());
+            if (!FMath::IsFinite(PlayerPosition.X) || !FMath::IsFinite(PlayerPosition.Y))
+            {
+                continue;
+            }
+
+            // Closed square bounds preserve inclusive radius tangency.
+            const double DistanceX = PlayerPosition.X < KeyMinimumX ? KeyMinimumX - PlayerPosition.X
+                : PlayerPosition.X > KeyMaximumX ? PlayerPosition.X - KeyMaximumX : 0.0;
+            const double DistanceY = PlayerPosition.Y < KeyMinimumY ? KeyMinimumY - PlayerPosition.Y
+                : PlayerPosition.Y > KeyMaximumY ? PlayerPosition.Y - KeyMaximumY : 0.0;
+            if (DistanceX * DistanceX + DistanceY * DistanceY <= RadiusSquared)
+            {
+                bIntersectsLivingPlayer = true;
+                break;
+            }
+        }
+
+        if (bIntersectsLivingPlayer)
+        {
+            Candidates.Add(SpatialKey);
+        }
+    }
+
+    Candidates.Sort([](const FIntPoint& A, const FIntPoint& B)
+    {
+        return A.X == B.X ? A.Y < B.Y : A.X < B.X;
+    });
+    return Candidates;
+}
+
 void AKalmalaGameMode::Tick(const float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
