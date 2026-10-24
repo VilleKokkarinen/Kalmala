@@ -7826,3 +7826,61 @@
 - **Next eligible item:** Bow String (A0), then continue A0 item order. Keep the
   A10 per-item audit child unchecked until the full included-item/N/A list is
   complete.
+
+## Run 2026-10-24 — A10 per-item audit: Bow String
+
+- **Selected increment:** The next A0 item in A10's per-item audit after Sinew.
+  This is a cumulative item review only; the broad A10 child remains unchecked.
+- **Evidence reviewed:** `Content/Data/GameCatalogues/items/materials/crafting-ingredients.json`,
+  `Content/Data/GameCatalogues/recipes/stations/workbench.json`,
+  `Content/Data/GameCatalogues/item-level-up/costs/weapons/bows.json`,
+  `Content/Data/GameCatalogues.json`, `creatures.json`, the icon manifest,
+  `KalmalaIconWidget.cpp`, `KalmalaCatalogueIconLibrary.cpp`, catalogue and
+  bow-progression test assertions, inventory/player/storage save records, and
+  the relevant design, architecture, setup, A9 and icon-provenance docs.
+  Sinew's Deer source and generic inventory save limit are cross-referenced in
+  the previous A10 per-item record rather than repeated here.
+- **Registered identity and acquisition:** Runtime/catalogue ID is `BowString`
+  (display name `Bow String`), stack limit 20 and weight 0.05 kg, registered
+  through `GameCatalogues.json` via `items/materials/crafting-ingredients.json`.
+  The retired generic `String` identity has no definition. Bow String has no
+  direct creature/world drop; its authored acquisition is the enabled Workbench
+  `BowStringRecipe`: 4 Sinew produces 1 Bow String, max batch 1. The earlier
+  A10 entry audits how Sinew is sourced.
+- **Uses and dependencies:** Catalogue-wide search found Bow String only as an
+  ingredient in Bow, Light Bow and Horn Bow acquisition recipes and in their
+  matching upgrade costs; it has no other authored recipe use. Each acquisition
+  and each upgrade consumes 1 Bow String at the Workbench. The upgrades are:
+  Bow with 5 Wood; Light Bow with 3 Lightwood; Horn Bow with 1 Goat Horn and
+  5 Densewood. The item itself has no equipment profile, equip slot, attack or
+  effect, or level/stat upgrade record; these categories are N/A for a crafting
+  material. Existing item-catalogue and two-handed/bow progression tests assert
+  the name, recipe, stack limit and bow cost relationships; those tests were
+  inspected, not run in this audit.
+- **Icon:** Batch K retains the original at
+  `Content/Kalmala/UI/Source/IconOriginals/BowString.png`, the prepared 64x64
+  texture at `Content/Kalmala/UI/Source/Icons/BowString.png`, and imported
+  package `Content/Kalmala/UI/Icons/Items/BowString.uasset`. Its manifest row
+  records batch K, canonical ID `BowString`, and pack/detail/storage/ingredient
+  uses. The catalogue library resolves the canonical ID to
+  `/Game/Kalmala/UI/Icons/Items/BowString.BowString`; the widget's generic
+  `String` symbolic enum is the lookup gate, not a shared catalogue texture.
+  Its exact original prompt is retained in `docs/icon-provenance.md`. The prior
+  152-identity A10 catalogue icon audit passed; it was not rerun here.
+- **Save behavior:** As with Sinew, ordinary carried material quantities are
+  not included in the player SaveGame and remain session-only. Chest storage
+  saves generic validated item stack arrays separately; the existing storage
+  round-trip test uses Wood and Stone, not Bow String by name, so no
+  BowString-specific persistence assertion was found. There is no item-specific
+  Bow String save field or migration.
+- **Checks:** Read-only JSON/reference/use search, runtime icon-path inspection,
+  and existing test assertions reviewed; `git diff --check` passed after edits.
+  No tests, builds, peers or persistence runtime checks were run.
+- **Full verification:** Deferred; this is not A10's final increment. No
+  gameplay, crafting authority, networking or save behavior changed.
+- **Impact and remaining scope:** Bow String's current source dependency, sole
+  recipe, bow costs, dedicated icon and session-only carried quantity are
+  recorded. Other item audits, fresh-start progression, approved-system
+  acceptance and final milestone verification remain open. The broad per-item
+  audit child remains unchecked.
+- **Next eligible item:** Lightwood (A0). Continue in backlog order.

@@ -434,9 +434,9 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     explicitly excludes the retired cargo proposal; the item audit should record
     cargo as deferred/excluded (N/A), with no scope conflict or implementation.
   - [ ] Check each included item's source, recipe, use, upgrades, icon and save behavior.
-    A10 item audit 2026-10-24: Sinew reviewed; see PROGRESS.md. Continue
-    with Bow String; keep this child open until each included item and scope
-    N/A disposition is covered.
+    A10 item audit 2026-10-24: Sinew and Bow String reviewed; see PROGRESS.md.
+    Continue with Lightwood; keep this child open until each included item and
+    scope N/A disposition is covered.
   - [ ] Run required full verification at each milestone's final increment.
   - [ ] Verify fresh-start progression through Bronze and Iron without debug grants.
   - [ ] Verify approved farming, shelter, cargo, accessories, peers and restart.
