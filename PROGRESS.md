@@ -8790,3 +8790,76 @@
   N/A disposition is reviewed; full verification and fresh-start progression
   remain open.
 - **Next eligible group:** A1 metals and fuel.
+
+## Run 2026-10-24 — A10 per-item audit: CopperOre and TinOre
+
+- **Scope and definitions:** audited exactly `CopperOre` and `TinOre`, each
+  registered once in `items/materials/ore.json` with maximum stack 20. Neither
+  is an equipment item or upgrade subject; neither has an item profile, attack,
+  stat reward, or level-up cost. Condition, equipment, combat, and upgrade
+  categories are N/A.
+- **Sources and quantities:** server-generated `elderwood-copper-vein` nodes
+  use the next dry, safe Elderwood harvest candidate; `lakes-tin-shore-gravel`
+  uses a dry Shimmering Lakes shoreline candidate. Each is a stable harvest
+  identity, at most one of that source kind per shared spatial key; Tin has a
+  bounded 32-candidate shoreline search and 250 cm separation from other
+  harvest nodes. Server Mining selection requires a Stone-tier pick minimum
+  and classifies both resources as Bronze grade, so Stone Pick or better can
+  mine them; an accepted source yields exactly three matching ore. Seeded
+  gemstone replacement can substitute Quartz for 5% of Copper nodes; Tin
+  nodes can instead become Quartz at 5% or Jade at 2%. These replacements
+  change the one source identity and reward, so not every eligible key yields
+  CopperOre or TinOre.
+- **Uses, recipes, and N/A:** a scan of all registered catalogue JSON found no
+  references to either ID beyond its item definition: neither is a recipe
+  output, ordinary recipe ingredient, upgrade cost, or direct equipment/combat
+  input. The runtime Smelter path is their actual use: one CopperOre plus one
+  Coal produces one Copper bar, and one TinOre plus one Coal produces one Tin
+  bar, each after 30 active seconds. The Smelter accepts ore one item at a time,
+  with a 10-ore input capacity and shared output capacity of 10; jobs pause when
+  output is full and processing does not advance offline. Downstream Forge
+  alloying consumes Copper x2 + Tin x1 to produce Bronze x1; the bars and Coal
+  are outside this two-ID audit. No recipe directly outputs either audited ore.
+- **Icons and provenance:** both IDs are manifest-backed in batch J with
+  PackInventory, ItemDetail, Storage, and Ingredient usages, retained source
+  1254x1254 RGBA PNGs, prepared transparent 64x64 textures, and imported
+  exact-ID assets. The catalogue
+  library resolves their canonical `/Game/Kalmala/UI/Icons/Items/<ID>.<ID>`
+  paths; the legacy widget table has Rock variants 4 and 5 as visual fallbacks.
+  `docs/icon-provenance.md#material-icons` records the shared original-art
+  prompt and each exact subject (copper-seamed dark rock; pale silvery seams in
+  cool gray rock); it reports the prepared icons visually inspected at 64x64.
+- **Persistence and delivery:** accepted mining uses the existing server-side
+  tool/reward transaction: the server selects the source and quantity,
+  preflights the full inventory result and pick condition, and does not deplete
+  on capacity, tool-use, or player-save rejection. Copper/Tin use ordinary
+  stable population harvest IDs, not the separate M9 session-only depletion
+  route. `RecordHarvestedSpawn` marks the ID in the world population save and
+  calls `SaveGameToSlot`, but ignores that write's result; a failed world save
+  can therefore allow a depleted node to return after restart. Ordinary
+  carried ore stacks are transient: `PersistPlayerStateFromServer` saves
+  carried tools and discovery/claim state, not material inventory. Loading ore
+  into a Smelter persists the station queue in the world construction save;
+  no CopperOre/TinOre-specific chest transfer/reload or live restart was
+  exercised in this audit. No pending wildlife claim or decay/expiry applies.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md` only.
+- **Lightweight checks:** `python Scripts/Validate-CatalogueReferences.py`
+  passed with 61 registered files, 152 unique definitions, 777 resolved
+  references, and canonical runtime icon mappings for all definitions. Focused
+  `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id CopperOre` and the
+  corresponding `TinOre` check passed, including retained originals, prepared
+  transparent textures, and imported assets. A Python walk parsed all
+  registered catalogue JSON and confirmed the two exact definitions are their
+  only catalogue references. Source, recipe, upgrade, icon and save paths were
+  inspected; the existing `Kalmala.World.M7.BiomeContentContract` and
+  `Kalmala.Gameplay.Tools.LifecycleContract` cover deterministic descriptors,
+  exact ore rewards, and tool tiers, but were not executed. No build, full suite,
+  peer or restart run was done.
+- **Full verification:** deferred; this is not A10's final increment.
+- **Impact and remaining scope:** tracking-only. No item definitions, source
+  amounts, recipes, icons, rewards, server authority or persistence changed.
+  Existing source depletions remain server-selected and use the world-ledger
+  callback; the ignored sparse-write result and transient carried materials
+  remain acceptance limitations. Keep the broad A10 item-audit child unchecked
+  until every included ID and scope N/A is covered.
+- **Next eligible A1 group:** `Coal`, produced by the Charcoal Kiln.
