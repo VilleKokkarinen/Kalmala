@@ -366,8 +366,8 @@ waits until `BeginPlay` has copied the initialized world configuration. It
 changes the standalone capture camera and explicitly activated terrain patches;
 it does not alter ordinary gameplay behavior, save data, RPCs or networking
 code. BH01c2a and BH01c2b now preserve the full numeric CSV and all 14
-seed-418 live views; c2c has the first seven seed-419 captures; c2d remains for
-the final seven views and final manifest.
+seed-418 live views; c2c and c2d now complete all 14 seed-419 views
+and the final manifest.
 
 ## BH01c2a durable numeric baseline and first seven seed-418 captures
 
@@ -398,8 +398,8 @@ CollisionTriangleHeightCm. At each anchor Z, place the camera at
 FOV. From all 28 numeric rows, the planned camera bounds are X
 -970,004.9..1,145,090.4 cm, Y -972,404.9..967,604.9 cm, and Z
 1,200..2,648.74426 cm; aim Z ranges 150..1,598.74426 cm. These bounds are
-derived from the numeric rows; at that point 14 seed-419 rendered poses remained.
-c2c has now captured the first seven and the final seven remain in c2d.
+derived from all 28 numeric rows; the validated live captures across
+c2a–c2d match these camera and aim bounds.
 
 The first seven seed-418 rows were captured by the live -game -RenderOffscreen
 runner. Each runtime log matched seed, site, XY, chosen anchor, camera, aim, FOV,
@@ -423,7 +423,7 @@ The first Shimmering Lakes and Elderwood interior attempts used the dry-land
 anchor; those PNGs are marked invalid-triangle-anchor in .tmp and are not
 listed above. Their replacements use the measured water surface. The images
 record current prototype rendering and are not visual water/material acceptance;
-the remaining seven seed-419 views and complete manifest are BH01c2d.
+c2d has completed the final seven seed-419 views and the complete image manifest.
 
 ## BH01c2b remaining seven seed-418 rendered captures
 
@@ -458,8 +458,8 @@ water surface is visually distinguishable.
 | Source coast land side | Water level / 0 | (691744.0, -107083.5) | (691744.0, -109483.5, 1200) | Sourcecoastlandside-c2b-water.png | 809491 | 419 | fc5cb1dfdb6a8ab04a103fae9b2340bf1bc4afa8f67d4fc9f265562e6b746b20 |
 | Highland river | Water level / 0 | (679237.9, -16414.3) | (679237.9, -18814.3, 1200) | Highlandriver-c2b-water.png | 953864 | 505 | ad8584b626ac0fa05bd4c93154544a8f7e75cf02fc08735a6c2e90bed6211757 |
 
-BH01c2c captured the first seven seed-419 live views; BH01c2d remains for
-the final seven views and final 28-view manifest verification.
+BH01c2c and c2d together captured all 14 seed-419 sites; c2d validates
+the complete 28-image manifest.
 
 ## BH01c2c first seven seed-419 rendered captures
 
@@ -491,8 +491,64 @@ images are not art or terrain acceptance. Images and logs remain ignored under
 
 The first seven seed-419 camera bounds are X -355,642.4..294,675.1 cm,
 Y -3,181.6..967,604.9 cm and Z 1,201..2,241.27319 cm; aim Z ranges
-151..1,191.27319 cm. c2d still needs the other seven seed-419 live captures and
-the final numeric/image manifest check for all 28 seed/site rows.
+151..1,191.27319 cm. c2d captured the remaining seven seed-419 live views
+and records the completed 28-row/28-image validation below.
+
+## BH01c2d final seven seed-419 captures and complete manifest
+
+Captured the remaining fixed seed-419 sites: Thunder Mountains, Ocean,
+Meadows/Elderwood, Elderwood/Tundra and Tundra/Mountains transitions, source
+coast land side, and highland river. Anchors follow the shared rule: Ocean at
+Z=0; a wet non-ocean sample at WaterLevelCm; otherwise the final collision-
+triangle height. Source coast is dry in seed 419 and uses its collision height;
+Highland river is wet and uses its visible water level. Cameras use
+(X, Y−2400, AnchorZ+1200) cm, aim at (X, Y, AnchorZ+150) cm, and use 65°
+horizontal FOV.
+
+Each runtime log matched seed, site, fixed XY, chosen anchor, camera, aim, FOV
+and output path within 0.2 cm for Unreal float rounding. All seven images passed
+the PNG signature check, measured 1024×768, and passed sampled-pixel diversity
+and nonblank checks; each was visually inspected. The Ocean image shows the
+prototype checker-grid surface rather than identifiable water, and the source-
+coast and highland-river frames do not show a distinct water surface. The
+images use current neutral prototype materials/tree meshes and are baseline
+evidence, not terrain-art or water acceptance. Images and logs remain ignored
+under .tmp/bh01/captures/419 and are not committed.
+
+| Site | Anchor source / ViewZ (cm) | Fixed XY (cm) | Camera (X,Y,Z cm) | Aim Z (cm) | Output file | PNG bytes | Sampled colors | SHA-256 |
+| --- | --- | --- | --- | ---: | --- | ---: | ---: | --- |
+| Thunder Mountains | Collision triangle / 1448.74426 | (-970004.9, 243087.4) | (-970004.9, 240687.4, 2648.74426) | 1598.74426 | ThunderMountains-c2d.png | 928987 | 449 | 0083abee3f0f648e4e0d59497da83ff773284596b7bc05a9f9f6f951c62eaee6 |
+| Ocean | Ocean level / 0 | (-243087.4, -970004.9) | (-243087.4, -972404.9, 1200) | 150 | Ocean-c2d-water.png | 783739 | 409 | ab0d88bdb8ccb49c7b0b5bd9d7f1c5ac0fe336ad84af1e612402667fc3891e1f |
+| Meadows/Elderwood transition | Collision triangle / 755.517883 | (-193063.0, 158671.2) | (-193063.0, 156271.2, 1955.517883) | 905.517883 | MeadowsElderwoodtransition-c2d.png | 815631 | 480 | 77f7715d309da12126491f2d1df89c6ca49dfd6d1107560aa425b8caaec6f1c8 |
+| Elderwood/Tundra transition | Collision triangle / 821.890747 | (314997.6, 735515.4) | (314997.6, 733115.4, 2021.890747) | 971.890747 | ElderwoodTundratransition-c2d.png | 884867 | 511 | a63cab0e050ed06e8d2b74ef439411b1fb8bdd71582a2806e51c6f171b9a5baa |
+| Tundra/Mountains transition | Collision triangle / 296.832581 | (1001270.2, 7034.7) | (1001270.2, 4634.7, 1496.832581) | 446.832581 | TundraMountainstransition-c2d.png | 864211 | 501 | fa0e90e10888bd76ac6de0cde3556b75fb15816aa29f7cad7b4103164e8a05bb |
+| Source coast land side | Collision triangle / 0.926416874 | (-71128.5, -696433.8) | (-71128.5, -698833.8, 1200.926416874) | 150.926416874 | Sourcecoastlandside-c2d.png | 793924 | 399 | e32324d04d86cc71078c178b5bcf6d763a230dc6161ee7652bf586d5ae104007 |
+| Highland river | Water level / 0 | (1145090.4, -66438.7) | (1145090.4, -68838.7, 1200) | 150 | Highlandriver-c2d-water.png | 480880 | 267 | 0f031de1adad26f58050a80ff14a379a29f3ca8c61c5c3cd29c0054c4452888f |
+
+The seven c2d camera bounds are X -970,004.9..1,145,090.4 cm,
+Y -972,404.9..733,115.4 cm, Z 1,200..2,648.74426 cm, and aim Z
+150..1,598.74426 cm. Across all 28 live views, camera bounds are X
+-970,004.9..1,145,090.4 cm, Y -972,404.9..967,604.9 cm, Z
+1,200..2,648.74426 cm, and aim Z 150..1,598.74426 cm, all matching the
+numeric rows and fixed camera rule.
+
+The final validation covered the tracked 28-row, 28-column
+Scripts/Tests/World/BiomeBaseline418419.csv (SHA-256
+48d7315a014a9b33664fd1aa52eb2f574cdfcefe054c50e6b8cba7cc115c5eaf), with 14
+sites per seed. It checked finite numeric fields, normalized seven biome
+weights, biome identity, water-state agreement, slopes, grades and deterministic
+forest counts. All 28 table entries matched their image bytes and hashes; each
+runtime log matched seed/site/XY/anchor/camera/aim/FOV/output path. Every live
+capture is a -game -RenderOffscreen image; null-RHI overview images are not
+counted. Sampled final height ranges -149.225281..1448.64868 cm, collision
+height -149.223587..1448.74426 cm, water level -29.377294..356.950745 cm,
+slope 0..29.380751 degrees, and grade 0..56.302853 percent. Seven rows have
+water; forest descriptor counts range 0..32; biome index counts 0..6 are
+5, 2, 8, 3, 3, 5, 2.
+
+This closes BH01 baseline capture only. It makes no generator, gameplay,
+networking or save changes. Full terrain and gameplay acceptance remains in the
+later BH26 verification increment.
 
 ## Verification and completion
 

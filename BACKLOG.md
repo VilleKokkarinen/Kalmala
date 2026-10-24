@@ -478,7 +478,7 @@ and stop after the increment. BH26 is the final integrated verification/repair
 run for this goal and may exceed one turn.
 
 - [ ] **Implement biome height rework and Meadows terrain dressing.**
-  - [ ] **BH01 — Capture fixed-seed baselines.** Keep this parent open until
+  - [x] **BH01 — Capture fixed-seed baselines.** Keep this parent open until
     BH01a–BH01c are complete.
     - [x] **BH01a — Export seed overviews and choose sites.** Render full-world
       seed 418 and 419 diagnostic overviews with the existing visualization
@@ -501,13 +501,13 @@ run for this goal and may exceed one turn.
           diagnostic for all BH01a coordinates and both seeds; validate every
           scalar, mesh, water, weight, and forest-count row and retain the output
           for BH01c. No terrain behavior changes.
-    - [ ] **BH01c — Capture rendered views and consolidate baselines.** Keep
+    - [x] **BH01c — Capture rendered views and consolidate baselines.** Keep
       this parent open until BH01c1–BH01c2 are complete.
       - [x] **BH01c1 — Add and smoke-test actual runtime capture.** Add a
         development-only one-shot fixed-camera path and runner; build the mirror
         and capture a nonblank live-render seed-418 Starter Meadows view at its
         recorded pose. Null-RHI maps do not count as rendered captures.
-      - [ ] **BH01c2 — Capture and consolidate all baselines.** Keep open
+      - [x] **BH01c2 — Capture and consolidate all baselines.** Keep open
         until BH01c2a–BH01c2d are complete.
         - [x] **BH01c2a — Preserve numeric baseline and capture first seven
           seed-418 views.** Add the validated 28-row numeric CSV under
@@ -518,7 +518,7 @@ run for this goal and may exceed one turn.
         - [x] **BH01c2c — Capture first seven seed-419 views.** Capture and
           validate the first seven fixed sites for seed 419; record hashes and
           poses.
-        - [ ] **BH01c2d — Complete seed-419 views and manifest.** Capture the
+        - [x] **BH01c2d — Complete seed-419 views and manifest.** Capture the
           final seven views and verify all 28 image/numeric rows, range summary,
           camera poses and vertical bounds; distinguish live captures from
           null-RHI overviews.

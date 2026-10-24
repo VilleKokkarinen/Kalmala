@@ -7904,3 +7904,29 @@
 - **Next task in this directed goal:** BH01c2d — capture the final seven
   seed-419 views, validate all 28 image/numeric rows and finalize the baseline
   manifest.
+
+## Run 2026-10-24 - BH01c2d complete seed-419 baseline
+
+- **Selected increment:** BH01c2d, the final ordered BH01c2 child.
+- **Completed:** Captured the final seven live seed-419 sites, validated all
+  28 fixed-seed numeric rows and all 28 rendered image/log rows, and recorded
+  the final camera/aim bounds and per-image hashes. All BH01a, BH01b and BH01c
+  baseline criteria are complete; BH01 is checked. BH02 remains next.
+- **Files changed:** BACKLOG.md, PROGRESS.md and docs/biome-height-rework.md.
+  Numeric CSV is unchanged. Images/logs remain ignored under .tmp/bh01.
+- **Lightweight checks/results:** CSV has 28 rows and 28 columns; numeric
+  fields are finite, biome weights normalize, water flags match levels, biome
+  identities and slope/grade/forest ranges validate. Every image matched its
+  seed/site/XY/anchor/camera/aim/FOV/runtime log and documented bytes/hash.
+  All 28 PNGs have valid signatures, 1024×768 dimensions and nonblank sampled
+  pixels; all seven c2d frames were visually inspected. git diff --check
+  passed. Full terrain verification is deferred to BH26.
+- **Impact / authority:** Baseline capture and documentation only. No terrain
+  generation, gameplay, networking, server authority or save behavior changed.
+- **Known limitations:** Captures show neutral prototype materials and tree
+  meshes. Ocean has a checker-grid surface; source coast and highland river
+  show no distinct water surface. Baseline evidence is not terrain-art/water
+  acceptance. Complete terrain implementation and full integrated checks
+  remain.
+- **Next task in this directed goal:** BH02 — map integration points for
+  height, water, forest, harvest, preview, material and test consumers.
