@@ -134,6 +134,7 @@ private:
     void RunA8bScaleCuirassPeerVerification(float DeltaTime);
     void RunA8bAntidotePeerVerification(float DeltaTime);
     void RunA8bPeatHeartStewPeerVerification(float DeltaTime);
+    void RunA8bWolfPeltBootsPeerVerification(float DeltaTime);
 #endif
     void RefreshStorageView();
     void ClearStorageView();
@@ -267,5 +268,21 @@ private:
     int32 A8bPeatHeartStewPeerObservedOwnerPlayerId = INDEX_NONE;
     bool bA8bPeatHeartStewPeerFixtureObserved = false;
     bool bA8bPeatHeartStewPeerObserverDiscoveryLogged = false;
+    int32 A8bWolfPeltBootsPeerStage = 0;
+    float A8bWolfPeltBootsPeerElapsed = 0.0f;
+    TWeakObjectPtr<AKalmalaCharacter> A8bWolfPeltBootsPeerTarget;
+    FGuid A8bWolfPeltBootsPeerItemGuid;
+    uint32 A8bWolfPeltBootsPeerResultSerial = 0;
+    uint32 A8bWolfPeltBootsPeerGearRequestSerial = 0;
+    int32 A8bWolfPeltBootsPeerBaselineWolfPelt = 0;
+    int32 A8bWolfPeltBootsPeerBaselineIron = 0;
+    int32 A8bWolfPeltBootsPeerBaselineBoots = 0;
+    int32 A8bWolfPeltBootsPeerHostBaselineWolfPelt = 0;
+    int32 A8bWolfPeltBootsPeerHostBaselineIron = 0;
+    int32 A8bWolfPeltBootsPeerHostBaselineBoots = 0;
+    float A8bWolfPeltBootsPeerBaselineHealth = 0.0f;
+    int32 A8bWolfPeltBootsPeerObservedOwnerPlayerId = INDEX_NONE;
+    float A8bWolfPeltBootsPeerObserverBaselineHealth = 100.0f;
+    bool bA8bWolfPeltBootsPeerFixtureObserved = false;
 #endif
 };

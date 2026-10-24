@@ -6120,3 +6120,29 @@ listen host, and observer. Both clients received world seed 418. Logs:
 `C:/Users/Ville/AppData/Local/Temp/a8phs3/{server,owner,observer}.log`. The
 final run's fixture markers passed with no fixture, fatal, assertion, or ensure
 failures. Combined A8a/A8b I4 remains required before A9.
+
+## A8b Wolf Pelt Boots live peer craft, equip and armor — 2026-10-24
+
+After an Editor build, run
+`Scripts/Tests/Construction/Verify-A8bWolfPeltBootsPeer.ps1`. The
+Development-only three-peer fixture stages five Wolf Pelts and five Iron for
+the selected remote owner, then spawns a nearby Workbench. The owner rejects
+direct client crafting and equipment mutation, crafts one pair through
+`WolfPeltBootsRecipe` and `ServerCraft`, and equips its output GUID using
+`ServerEquipGear`. The server verifies exact payment, Boots-slot identity,
+10 physical Armor and 120 maximum condition, then applies an accepted 20-Crush
+hit: the boots reduce damage to 10 and lose one condition point. The listen
+host keeps its materials unchanged; the observer sees public health damage but
+not the owner's private inventory, worn gear or statuses.
+
+On 2026-10-24, the isolated `KalmalaEditor Win64 Development` build passed in
+10 actions after forcing UBT to regenerate the source manifest. The first
+build linked the owner RPC hook without the newly added fixture translation
+unit; `-ForceMakefile` regenerated the makefile and the subsequent build passed.
+`Verify-A8bWolfPeltBootsPeer.ps1 -Port 17910 -Project
+C:/Users/Ville/AppData/Local/Temp/msp1/Kalmala.uproject -OutputDirectory
+C:/Users/Ville/AppData/Local/Temp/a8wb1` passed for server, owner, listen host
+and observer; both clients received world seed 418. Logs:
+`C:/Users/Ville/AppData/Local/Temp/a8wb1/{server,owner,observer}.log`. The final
+logs contain no fixture, fatal, assertion, ensure, or saved-move backlog
+failures. Combined A8a/A8b I4 remains required before A9.
