@@ -354,6 +354,17 @@ persistent identity remains stable. S22a is not wired to admission. S22b adds
 the solid construction-roof trace, S22c adds species movement support, and S25
 continues to combine placement checks before admission.
 
+S22b derives a vertical trace start from the uppermost point of every active
+shape in the shared S22a collision profile and traces upward 2400 cm. Wolf
+descriptors use the deterministic three-member builder and check each member's
+own body top. The query classifies only an initialized, healthy,
+server-authoritative `AKalmalaConstructionActor` whose kit is exactly `RoofKit`
+and whose registered root box has query collision enabled and blocks visibility
+traces. Each eligible roof component is traced independently, so foliage,
+canopy, cosmetics and non-roof construction cannot hide a RoofKit above them.
+S22b remains a reusable predicate only; S25 still wires the final placement
+result, and S26 remains the first task allowed to create natural actors.
+
 - Time, weather and progression are explicitly **unrestricted for all current
   species**. These three gates return pass. Provide internal policy seams and
   fixture overrides for rejection tests; do not build a new clock, boss system,

@@ -640,7 +640,7 @@ milestone-final verification/repair run and can exceed a normal turn.
       archetype's configured collision shapes and reject out-of-bounds or
       colliding body placements; do not change descriptor identity or enable
       natural spawning.
-    - [ ] **S22b — Reject solid construction roofs.** Trace upward 24 m from
+    - [x] **S22b — Reject solid construction roofs.** Trace upward 24 m from
       the body top and classify only active solid RoofKit construction hits.
       Ignore foliage/canopy and non-solid cosmetics.
     - [ ] **S22c — Preserve movement support.** Apply each species' existing

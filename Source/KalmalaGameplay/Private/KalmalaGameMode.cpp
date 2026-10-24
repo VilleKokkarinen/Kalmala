@@ -63,6 +63,7 @@
 #include "Engine/World.h"
 #include "TimerManager.h"
 #include "EngineUtils.h"
+#include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/PrimitiveComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -6024,6 +6025,76 @@ bool AKalmalaGameMode::DoesPopulationDescriptorPassBodyClearance(
     return true;
 }
 
+bool AKalmalaGameMode::DoesPopulationDescriptorPassRoofClearance(
+    const FKalmalaWorldPopulationSpawn& Descriptor, const AActor* ProposedActorToIgnore) const
+{
+    UWorld* World = GetWorld();
+    if (!HasAuthority() || !IsValid(World) || !WorldGenerationConfig.IsValid()
+        || Descriptor.Kind != EKalmalaWorldPopulationKind::Wildlife
+        || !FMath::IsFinite(Descriptor.Location.X) || !FMath::IsFinite(Descriptor.Location.Y)
+        || !FMath::IsFinite(Descriptor.Location.Z)
+        || !FKalmalaWorldBounds::Contains(WorldGenerationConfig, FVector2D(Descriptor.Location))
+        || (ProposedActorToIgnore != nullptr
+            && (!IsValid(ProposedActorToIgnore) || ProposedActorToIgnore->GetWorld() != World)))
+    {
+        return false;
+    }
+
+    EKalmalaWildlifeArchetype Archetype;
+    if (!DoesPopulationDescriptorPassSpeciesHabitat(Descriptor, &Archetype)) return false;
+
+    TArray<FKalmalaWildlifeBodyCollisionShape> BodyShapes;
+    if (!AKalmalaWildlifeSpawn::GetBodyCollisionShapesForArchetype(Archetype, BodyShapes)
+        || BodyShapes.IsEmpty())
+    {
+        return false;
+    }
+
+    TArray<FKalmalaWorldPopulationSpawn> ActorDescriptors;
+    if (Archetype == EKalmalaWildlifeArchetype::Wolf)
+    {
+        ActorDescriptors.Reserve(FKalmalaWolfPackContract::MemberCount);
+        for (int32 MemberIndex = 0; MemberIndex < FKalmalaWolfPackContract::MemberCount; ++MemberIndex)
+        {
+            FKalmalaWorldPopulationSpawn MemberSpawn;
+            if (!FKalmalaWolfPackContract::TryBuildMemberSpawn(
+                    WorldGenerationConfig, Descriptor, MemberIndex, MemberSpawn)
+                || !DoesPopulationDescriptorPassSpeciesHabitat(MemberSpawn))
+            {
+                return false;
+            }
+            ActorDescriptors.Add(MoveTemp(MemberSpawn));
+        }
+    }
+    else
+    {
+        ActorDescriptors.Add(Descriptor);
+    }
+
+    for (const FKalmalaWorldPopulationSpawn& ActorDescriptor : ActorDescriptors)
+    {
+        FVector ActorLocation;
+        FVector BodyTop;
+        if (!TryGetPopulationActorPlacementLocation(
+                ActorDescriptor, Archetype, BodyShapes, ActorLocation)
+            || !TryGetPopulationBodyTop(
+                BodyShapes, ActorLocation, FRotator::ZeroRotator, BodyTop))
+        {
+            return false;
+        }
+
+        const FVector TraceEnd = BodyTop + FVector::UpVector
+            * FKalmalaMonsterSpawnTuning::PopulationRoofClearanceTraceDistanceCm;
+        if (DoesSolidConstructionRoofIntersectSegment(
+                World, BodyTop, TraceEnd, ProposedActorToIgnore))
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 bool AKalmalaGameMode::TryGetPopulationActorPlacementLocation(
     const FKalmalaWorldPopulationSpawn& Descriptor, const EKalmalaWildlifeArchetype Archetype,
     const TArray<FKalmalaWildlifeBodyCollisionShape>& BodyShapes, FVector& OutActorLocation) const
@@ -6123,6 +6194,123 @@ bool AKalmalaGameMode::TryGetPopulationBodyVerticalSupportOffset(
 
     OutVerticalSupportOffset = FMath::Max(0.0, OutVerticalSupportOffset);
     return FMath::IsFinite(OutVerticalSupportOffset);
+}
+
+bool AKalmalaGameMode::TryGetPopulationBodyTop(
+    const TArray<FKalmalaWildlifeBodyCollisionShape>& BodyShapes, const FVector ActorLocation,
+    const FRotator ActorRotation, FVector& OutBodyTop)
+{
+    OutBodyTop = FVector::ZeroVector;
+    if (BodyShapes.IsEmpty() || !FMath::IsFinite(ActorLocation.X)
+        || !FMath::IsFinite(ActorLocation.Y) || !FMath::IsFinite(ActorLocation.Z)
+        || !FMath::IsFinite(ActorRotation.Pitch) || !FMath::IsFinite(ActorRotation.Yaw)
+        || !FMath::IsFinite(ActorRotation.Roll))
+    {
+        return false;
+    }
+
+    const FQuat ActorRotationQuat = ActorRotation.Quaternion();
+    double BodyTopZ = -TNumericLimits<double>::Max();
+    for (const FKalmalaWildlifeBodyCollisionShape& Shape : BodyShapes)
+    {
+        if (!FMath::IsFinite(Shape.RadiusCentimetres)
+            || !FMath::IsFinite(Shape.HalfHeightCentimetres)
+            || Shape.RadiusCentimetres <= 0.0f
+            || Shape.HalfHeightCentimetres < Shape.RadiusCentimetres
+            || !FMath::IsFinite(Shape.RelativeLocation.X)
+            || !FMath::IsFinite(Shape.RelativeLocation.Y)
+            || !FMath::IsFinite(Shape.RelativeLocation.Z)
+            || !FMath::IsFinite(Shape.RelativeRotation.Pitch)
+            || !FMath::IsFinite(Shape.RelativeRotation.Yaw)
+            || !FMath::IsFinite(Shape.RelativeRotation.Roll))
+        {
+            return false;
+        }
+
+        const FVector ShapeLocation = ActorLocation
+            + ActorRotationQuat.RotateVector(Shape.RelativeLocation);
+        double VerticalSupport = 0.0;
+        if (Shape.Type == EKalmalaWildlifeBodyShapeType::Sphere)
+        {
+            VerticalSupport = Shape.RadiusCentimetres;
+        }
+        else if (Shape.Type == EKalmalaWildlifeBodyShapeType::Capsule)
+        {
+            const FVector CapsuleAxis = (ActorRotationQuat * Shape.RelativeRotation.Quaternion())
+                .RotateVector(FVector::UpVector).GetSafeNormal();
+            VerticalSupport = Shape.RadiusCentimetres
+                + (Shape.HalfHeightCentimetres - Shape.RadiusCentimetres) * FMath::Abs(CapsuleAxis.Z);
+        }
+        else
+        {
+            return false;
+        }
+
+        const double ShapeTopZ = ShapeLocation.Z + VerticalSupport;
+        if (!FMath::IsFinite(ShapeTopZ)) return false;
+        BodyTopZ = FMath::Max(BodyTopZ, ShapeTopZ);
+    }
+
+    if (!FMath::IsFinite(BodyTopZ)) return false;
+    OutBodyTop = FVector(ActorLocation.X, ActorLocation.Y, BodyTopZ);
+    return !OutBodyTop.ContainsNaN();
+}
+
+bool AKalmalaGameMode::DoesSolidConstructionRoofIntersectSegment(
+    UWorld* World, const FVector TraceStart, const FVector TraceEnd, const AActor* ActorToIgnore)
+{
+    const FVector TraceDelta = TraceEnd - TraceStart;
+    if (!IsValid(World) || !FMath::IsFinite(TraceStart.X) || !FMath::IsFinite(TraceStart.Y)
+        || !FMath::IsFinite(TraceStart.Z) || !FMath::IsFinite(TraceEnd.X)
+        || !FMath::IsFinite(TraceEnd.Y) || !FMath::IsFinite(TraceEnd.Z)
+        || (ActorToIgnore != nullptr && (!IsValid(ActorToIgnore) || ActorToIgnore->GetWorld() != World))
+        || !FMath::IsNearlyZero(TraceDelta.X) || !FMath::IsNearlyZero(TraceDelta.Y)
+        || !FMath::IsFinite(TraceDelta.Z) || TraceDelta.Z <= 0.0
+        || TraceDelta.Z > FKalmalaMonsterSpawnTuning::PopulationRoofClearanceTraceDistanceCm
+            + KINDA_SMALL_NUMBER)
+    {
+        return true;
+    }
+
+    FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(KalmalaPopulationRoofClearance), false);
+    for (TActorIterator<AKalmalaConstructionActor> Iterator(World); Iterator; ++Iterator)
+    {
+        const AKalmalaConstructionActor* Construction = *Iterator;
+        if (!IsValid(Construction) || Construction == ActorToIgnore
+            || Construction->GetWorld() != World || !Construction->HasAuthority()
+            || Construction->IsActorBeingDestroyed()
+            || Construction->GetConstructionKit() != TEXT("RoofKit")
+            || Construction->GetConstructionId().IsEmpty()
+            || !FMath::IsFinite(Construction->GetHealth()) || Construction->GetHealth() <= 0.0f
+            || !Construction->GetActorEnableCollision())
+        {
+            continue;
+        }
+
+        const UBoxComponent* Collision = Cast<UBoxComponent>(Construction->GetRootComponent());
+        if (!IsValid(Collision) || Collision->GetOwner() != Construction || !Collision->IsRegistered()
+            || (Collision->GetCollisionEnabled() != ECollisionEnabled::QueryOnly
+                && Collision->GetCollisionEnabled() != ECollisionEnabled::QueryAndPhysics)
+            || Collision->GetCollisionResponseToChannel(ECC_Visibility) != ECR_Block)
+        {
+            continue;
+        }
+
+        const FVector CollisionExtent = Collision->GetScaledBoxExtent();
+        if (!FMath::IsFinite(CollisionExtent.X) || !FMath::IsFinite(CollisionExtent.Y)
+            || !FMath::IsFinite(CollisionExtent.Z) || CollisionExtent.X <= 0.0
+            || CollisionExtent.Y <= 0.0 || CollisionExtent.Z <= 0.0)
+        {
+            continue;
+        }
+
+        FHitResult Hit;
+        if (Collision->LineTraceComponent(Hit, TraceStart, TraceEnd, QueryParams))
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 bool AKalmalaGameMode::DoesPopulationCollisionShapeOverlap(

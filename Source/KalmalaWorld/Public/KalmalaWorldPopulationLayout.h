@@ -442,6 +442,7 @@ struct FKalmalaMonsterSpawnTuning final
     static constexpr int32 RareHardEnemyAreaCap = 1;
     static constexpr int32 WolfIndividualAreaCap = 6;
     static constexpr float PopulationKeyCheckIntervalSeconds = 5.0f;
+    static constexpr float PopulationRoofClearanceTraceDistanceCm = 2400.0f;
     static constexpr float PopulationKeyPhaseStepSeconds = 0.25f;
     static constexpr int32 PopulationKeyPhaseCount = 20;
     static constexpr float PopulationSchedulerWakeIntervalSeconds = 0.25f;
@@ -470,6 +471,8 @@ struct FKalmalaMonsterSpawnTuning final
         "Population species area caps must be positive.");
     static_assert(PopulationKeyCheckIntervalSeconds > 0.0f,
         "Monster population checks must use a positive interval.");
+    static_assert(PopulationRoofClearanceTraceDistanceCm == 24.0f * 100.0f,
+        "Population roof clearance is the fixed 24 m construction-roof rule.");
     static_assert(PopulationKeyPhaseStepSeconds > 0.0f && PopulationKeyPhaseCount > 0
         && PopulationKeyPhaseStepSeconds * PopulationKeyPhaseCount == PopulationKeyCheckIntervalSeconds,
         "Monster key staggering must partition one positive check interval.");

@@ -153,6 +153,7 @@ private:
     friend class FKalmalaPopulationLandSurfaceTest;
     friend class FKalmalaPopulationAquaticSurfaceTest;
     friend class FKalmalaPopulationBodyClearanceTest;
+    friend class FKalmalaPopulationRoofClearanceTest;
     friend class AKalmalaWildlifeSpawn;
 
 #if WITH_DEV_AUTOMATION_TESTS
@@ -198,12 +199,18 @@ private:
     bool DoesPopulationDescriptorPassLandSurface(const FKalmalaWorldPopulationSpawn& Descriptor) const;
     bool DoesPopulationDescriptorPassAquaticSurface(const FKalmalaWorldPopulationSpawn& Descriptor) const;
     bool DoesPopulationDescriptorPassBodyClearance(const FKalmalaWorldPopulationSpawn& Descriptor) const;
+    bool DoesPopulationDescriptorPassRoofClearance(const FKalmalaWorldPopulationSpawn& Descriptor,
+        const AActor* ProposedActorToIgnore = nullptr) const;
     bool TryGetPopulationActorPlacementLocation(const FKalmalaWorldPopulationSpawn& Descriptor,
         EKalmalaWildlifeArchetype Archetype, const TArray<FKalmalaWildlifeBodyCollisionShape>& BodyShapes,
         FVector& OutActorLocation) const;
     static bool TryGetPopulationBodyVerticalSupportOffset(
         const TArray<FKalmalaWildlifeBodyCollisionShape>& BodyShapes, FVector SurfaceNormal,
         double& OutVerticalSupportOffset);
+    static bool TryGetPopulationBodyTop(const TArray<FKalmalaWildlifeBodyCollisionShape>& BodyShapes,
+        FVector ActorLocation, FRotator ActorRotation, FVector& OutBodyTop);
+    static bool DoesSolidConstructionRoofIntersectSegment(UWorld* World, FVector TraceStart,
+        FVector TraceEnd, const AActor* ActorToIgnore = nullptr);
     static bool DoesPopulationCollisionShapeOverlap(UWorld* World,
         const FKalmalaWildlifeBodyCollisionShape& BodyShape, FVector ActorLocation,
         FRotator ActorRotation, const AActor* ActorToIgnore = nullptr);
