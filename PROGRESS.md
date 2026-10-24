@@ -7608,3 +7608,30 @@
   established workflow, then rerun both audit commands. Milestone review is
   the following child; S03 remains later in backlog order. Main checkout used
   directly; no worktree handoff synchronization is needed.
+## User-directed planning 2026-10-24 — Biome height rework and Meadows terrain
+
+- **Work completed:** Added an unchecked, ordered BH01–BH26 implementation goal
+  immediately before Monster Population. It links both existing design plans,
+  states that the biome-wide plan takes precedence, fixes the execution order
+  from baselines through disabled inland basins, biome profiles, forest/dressing,
+  and final verification, and records experiment starting values and measured
+  acceptance. A10 remains ahead of this new goal.
+- **Files changed:** `BACKLOG.md`, `docs/biome-height-rework.md`,
+  `docs/meadows-plan.md`, `PROGRESS.md`.
+- **Lightweight checks:** Compared the planned sequence and acceptance against
+  both source documents; verified all BH IDs are sequential and unchecked, the
+  goal precedes Monster Population, design links resolve, and changed paths
+  remain under 260 characters. `git diff --check` passed.
+- **Full verification:** Planning only. No runtime build, preview, or gameplay
+  check was required or run; final integrated implementation verification
+  remains deferred to BH26.
+- **Observable impact / authority:** Backlog and design-status text only. No
+  runtime or save behavior changed; server authority and client derivation are
+  unchanged.
+- **Limitations / remaining scope:** Terrain, basin disabling, forest placement,
+  and presentation remain unimplemented. Numeric settings are experiment
+  defaults for the implementation plan; production tuning must meet the
+  documented profile and cost acceptance.
+- **Next eligible task:** A10 catalogue/icon acceptance remains ahead in queue;
+  its current audit gap is four generated/imported scroll icons. After A10,
+  start BH01. No main-checkout handoff synchronization is needed.

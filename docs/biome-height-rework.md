@@ -1,8 +1,9 @@
 # Biome height rework plan
 
 Status: user-requested design direction, 2026-10-24. Planning only; no terrain,
-forest, water or weather changes are implemented by this document. It does not
-reorder the active development backlog or mark an implementation task complete.
+forest, water or weather changes are implemented by this document. Execution is
+queued in `BACKLOG.md` after A10 acceptance and before Monster Population; this
+plan supersedes Meadows-specific height details where they differ.
 
 This plan expands [the Meadows plan](meadows-plan.md) to all land biomes. Where
 they differ, this plan takes precedence: broad relief becomes a shared stack,

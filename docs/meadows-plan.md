@@ -2,7 +2,8 @@
 
 Status: proposed implementation plan, 2026-10-24. This document records the
 requested terrain direction; no generator parameters or gameplay are changed.
-It does not reorder or complete the active item backlog.
+Execution is queued in `BACKLOG.md` after A10 acceptance and before Monster
+Population, under the combined biome-height goal.
 
 ## Reference interpretation
 
