@@ -660,7 +660,7 @@ milestone-final verification/repair run and can exceed a normal turn.
     through all nine gates, reserve/release caps and apply S02 lifecycle rules.
     Replace the corresponding old activation path to avoid duplicate populations;
     keep harvest nodes, stable identities and owner-bound reward claims intact.
-  - [ ] **S27 — Record environmental policy.** Map the fixed local-source
+  - [x] **S27 — Record environmental policy.** Map the fixed local-source
     policy to the shared scheduler; camp suppression applies. Local cap is 2
     within 24 m, interval 8 s. Use two finite source slots; add no world content.
   - [ ] **S28 — Add local spawner scheduling.** Implement the S27 interval and

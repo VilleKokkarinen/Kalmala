@@ -492,9 +492,44 @@ enemy farming or change the development save format.
   player ring, all-player exclusion, habitat, unrestricted time/weather/
   progression gates, placement and shared caps. Camp suppression applies.
 - Use deterministic source/slot IDs and the same permanent-depletion policy;
-  no replacement after a slot's defeat. Fixtures have two slots. Source-owned
-  reservations share natural-spawn budgets and the global 16-candidate wake
-  budget. Inactive sources accrue no missed attempts.
+  no replacement after a slot's defeat; each source has exactly two finite
+  slots. Source-owned reservations share natural-spawn budgets and the global
+  16-candidate wake budget. Inactive sources accrue no missed attempts.
+
+### S27 shared-scheduler integration map — 2026-10-24
+
+The codebase has no environmental spawner actor or configured source registry;
+existing Campfires, Standing Lights and stations are camp/shelter sources, not
+creature spawners. S27 records policy only and adds no placed content or runtime
+source configuration.
+
+Current seams are `AKalmalaGameMode::UpdatePopulationSchedulerWake` for the
+shared wake limit; `FKalmalaPopulationSpawnAttempt` and
+`EvaluatePopulationSpawnGates` for ordered attempt results;
+`TryCreatePopulationSpawnTransaction` for server creation;
+`DoesPopulationDescriptorPassCaps` and
+`TryReserveWolfPackCapacity` for shared budgets/reservations, and
+`DoesPopulationDescriptorPassPhysicalPlacement` for final placement including
+camp suppression. Future source work must feed this bounded path and charge
+against its remaining candidate budget rather than creating a parallel scheduler.
+
+A future configured source contributes its bounded work to the existing server
+scheduler wake and shares its 16-candidate total with natural-key work. Each
+source check runs every 8 seconds, examines at most four fixed slot candidates
+within 12 m of the source origin, and creates at most one creature. The local
+limit is two living source-owned creatures within the inclusive 24 m horizontal
+radius; escaped source-owned actors continue consuming the existing shared
+species, home-key and aggregate budgets. Each source has exactly two finite,
+stably identified slots, with no replenishment after defeat. Inactive sources
+accrue no missed checks.
+
+Source attempts reuse the shared seeded 25% roll, player ring/exclusion,
+habitat, unrestricted time/weather/progression, cap and physical-placement
+policies. S25's current station/camp suppression therefore applies to each new
+source admission. S28 adds the disabled-unless-configured local schedule; S29
+connects source limits and shared safety gates to creation. S27 adds no source
+class, source slots at runtime, candidate scheduling, actor creation or world
+content.
 
 ## Acceptance
 

@@ -8061,3 +8061,15 @@
 - **Networking/authority:** Admission, cap recheck/reservation, creation, lifecycle tracking and unload/cooldown state remain server-owned. No RPC or SaveGame schema changed; existing authenticated-owner reward claims remain in the existing defeat/reward path.
 - **Known limitations:** Environmental-source policy and scheduling remain at S27–S29. Boundary/rejection/rollback acceptance fixtures remain S30–S33, setup handoff S34, and milestone-final builds, tests and peer/restart verification remain S35.
 - **Next eligible task:** S27 — record the environmental spawner policy.
+
+### Monster population — S27 environmental policy
+
+- **Selected increment:** S27, record the fixed local environmental-source policy and its shared-scheduler integration.
+- **Work completed:** Documented the exact two finite stable source slots, no replacement after defeat, local maximum of two living source-owned actors within inclusive 24 m, 8-second check interval, at most one creation and four fixed candidates within 12 m per check, and no missed-check accrual while inactive. Mapped source attempts to share the existing global 16-candidate wake, seeded roll, player/habitat/unrestricted policy/cap/placement gates and S25 camp suppression. Source-owned actors remain charged to shared species/home-key/aggregate budgets when outside the local radius. Source inspection found no environmental-spawner actor or configured source registry; existing campfires, lights and stations remain suppression/shelter sources. Added no runtime scheduling, source slots or world content.
+- **Files changed:** `docs/monster-spawning.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** Inspected the fixed environmental policy and searched gameplay/world source for existing spawner/source classes; none were present. Reviewed the current scheduler wake/candidate limits, creation transaction, shared caps, physical-placement and camp-suppression seams. `git diff --check` passed; staged scope/path lengths were verified before commit. No tests or builds ran because S27 records policy only.
+- **Full verification:** Deferred to S35. S27 is not the final implementation task in this goal.
+- **Observable impact / authority:** No runtime behavior or world content changes. The integration map directs future source checks through server-owned shared budgets, admission gates and camp suppression.
+- **Networking/authority:** Future source configuration and policy are server-owned; S27 adds no network or save state.
+- **Known limitations:** No source actor or configured source exists. S28 must add disabled-unless-configured scheduling; S29 must apply local/shared safety gates and reservation before source creation. Boundary and peer acceptance remains S30–S35.
+- **Next eligible task:** S28 — add local spawner scheduling.
