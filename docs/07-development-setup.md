@@ -2073,7 +2073,7 @@ startup baseline, not a shipping frame-time target.
 1,760.48 MiB used physical memory, 46 actors, 28 replicated actors, 9 terrain
 patches, 1 active population key, and 2,215 serialized save bytes before the
 two-peer late-join check. `Scripts/Tests/Presentation/PlayerControls.ps1` passed normal
-generated-world movement and replicated remote movement. `Scripts/Tests/Survival/CampChoices.ps1`
+generated-world movement and replicated remote movement. `Scripts/Tests/Survival/ExposureRecoveryPeers.ps1`
 passed two freely chosen camp sites with 31 matched server exposure snapshots
 per pawn and normal fire recovery. The former standalone WorldMap profile runner
 recorded host/client map profiles; the client measured 826.540 ms open,
@@ -2800,7 +2800,7 @@ Launch a headless listen server and then join one headless client with `-Kalmala
 
 ## Two-player camp-choice scenario
 
-After the editor build, run `Scripts/Tests/Survival/CampChoices.ps1` from PowerShell. It starts a hidden listen server (seed 418) and a conflicting-seed client (999) on port 17841, with logs and user data in a unique temporary directory. Both use `-KalmalaCampChoiceTest`; this developer-only scenario requires two normal possessed pawns including a remote player. It compares separated low/high-cover dry-land fixtures within the generated starting neighborhood, logs ground wetness, water distance, and harvest availability, and samples twelve seconds without fires followed by twenty seconds with normally interacted server-owned fires. Both players must dry, warm, and improve travel speed. The runner checks matching world identity, weather, and at least ten exact exposure snapshots per replicated player ID, then stops only its own processes. It fails on timeout or scenario assertions and retains logs for diagnosis.
+After the editor build, run `Scripts/Tests/Survival/ExposureRecoveryPeers.ps1` from PowerShell. It starts a hidden listen server (seed 418) and a conflicting-seed client (999) on port 17841, with logs and user data in a unique temporary directory. Both use `-KalmalaCampChoiceTest`; this developer-only scenario requires two normal possessed pawns including a remote player. It compares separated low/high-cover dry-land fixtures within the generated starting neighborhood, logs ground wetness, water distance, and harvest availability, and samples twelve seconds without fires followed by twenty seconds with normally interacted server-owned fires. Both players must dry, warm, and improve travel speed. The runner checks matching world identity, weather, and at least ten exact exposure snapshots per replicated player ID, then stops only its own processes. It fails on timeout or scenario assertions and retains logs for diagnosis.
 
 The fixtures represent two optional camp choices, not runtime camp recommendations: no route, camp marker, authored shelter, or persistent content is added. This is automated systems verification in cold, dry starting weather, not a human usability test or validation of inventory, construction, rain preparation, or rendered feedback. Those systems retain their existing scope and limitations.
 
@@ -3574,7 +3574,7 @@ gates have passed.
 
 ## Fuelled hearth and crafting verification
 
-After the editor build, run `Kalmala.Gameplay.Crafting`, `Kalmala.Gameplay.Inventory` and `Kalmala.Gameplay.Campfire` with the headless temporary-user/log flags above, then `Scripts/Tests/Construction/Crafting.ps1 -Rendered`. Rendered runs need access to Unreal's shader working directory as well as the build-tool cache. The runner requires exact inventory conservation for both players, rejection of real forged/malformed RPCs and insufficient placement, two server-side fires passing through dry/lit and rain/smouldering states with both peers observing their replicated final state, paid placement and fuel/protection gates, local menu input restoration, and retained host/client screenshots. Also run `Scripts/Tests/Inventory/InventoryReconnect.ps1` and `Scripts/Tests/Survival/CampChoices.ps1`. Full contract and test limits: `02-technical-architecture.md`.
+After the editor build, run `Kalmala.Gameplay.Crafting`, `Kalmala.Gameplay.Inventory` and `Kalmala.Gameplay.Campfire` with the headless temporary-user/log flags above, then `Scripts/Tests/Construction/Crafting.ps1 -Rendered`. Rendered runs need access to Unreal's shader working directory as well as the build-tool cache. The runner requires exact inventory conservation for both players, rejection of real forged/malformed RPCs and insufficient placement, two server-side fires passing through dry/lit and rain/smouldering states with both peers observing their replicated final state, paid placement and fuel/protection gates, local menu input restoration, and retained host/client screenshots. Also run `Scripts/Tests/Inventory/InventoryReconnect.ps1` and `Scripts/Tests/Survival/ExposureRecoveryPeers.ps1`. Full contract and test limits: `02-technical-architecture.md`.
 
 ## Master-map generation verification
 
@@ -3713,7 +3713,7 @@ weather shortens the normal 10-second unroofed-rain Wet trigger to 7.5 seconds. 
 `Kalmala.Gameplay.Exposure.ColdStaminaRecoveryAuthority` checks the live server
 stamina path at cold and recovered warmth, and rejects mutation from a
 simulated client copy. After the forced editor build, run these tests with an
-isolated temporary user directory. Then run `Scripts/Tests/Survival/CampChoices.ps1`
+isolated temporary user directory. Then run `Scripts/Tests/Survival/ExposureRecoveryPeers.ps1`
 to compare replicated weather tier/fog and both players' heat/cold exposure
 snapshots against server logs. `Kalmala.UI.WeatherActivity.LocalPresentation`
 verifies that each replicated tier maps to distinct shape-plus-text feedback
@@ -3723,7 +3723,7 @@ replace rendered viewport inspection.
 The focused command is:
 
     & 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM7WeatherUser' -abslog='C:\temp\KalmalaM7Weather.log' -ExecCmds="Automation RunTests Kalmala.World.WeatherCycle.Determinism+Kalmala.Gameplay.Exposure.RecoverableTravelPenalty+Kalmala.Gameplay.Exposure.WeatherHazardResponse+Kalmala.Gameplay.Exposure.ColdStaminaRecoveryAuthority+Kalmala.Gameplay.Hearth.WeatherMutation+Kalmala.Gameplay.Hearth.RainState+Kalmala.UI.WeatherActivity.LocalPresentation; Quit" -TestExit="Automation Test Queue Empty"
-    Scripts\Tests\Survival\CampChoices.ps1 -Port 17842
+    Scripts\Tests\Survival\ExposureRecoveryPeers.ps1 -Port 17842
     Scripts\Tests\Acceptance\RainVerticalSlice.ps1 -Port 18119
 
 ### M7 local survival status presentation
@@ -4625,7 +4625,7 @@ build, export, package, and render utilities remain directly under `Scripts/`;
 | Performance | `Performance/ConstrainedPerformance.ps1` |
 | Presentation and input | `Presentation/InteractionPrompt.ps1`; `LocalInputContract.ps1`; `MenuInputCopy.ps1`; `OnboardingContract.ps1`; `PlayerControls.ps1`; `PresentationOwnership.ps1`; `SettingsAccessibility.ps1` (includes `-ContractOnly`); `StatusHotbar.ps1`; `TutorialRouteFree.ps1` |
 | Progression | `Progression/DiscoveryPeer.ps1`; `GemMiningTreasurePeer.ps1`; `ExplorationRewards.ps1`; `Schema2CandidateReconnect.ps1` |
-| Survival | `Survival/CampChoices.ps1`; `PersistedCampRestart.ps1` |
+| Survival | `Survival/ExposureRecoveryPeers.ps1`; `PersistedCampRestart.ps1` |
 | Travel | `Travel/OceanSkiffDiscoveryDisembark.ps1`; `OceanSkiffIntegratedReconnectJourney.ps1`; `OceanSkiffJourney.ps1`; `OceanTravel.ps1`; `Swimming.ps1` |
 | World and maps | `World/BiomeExpansion.ps1`; `MapAwareness.ps1`; `Minimap.ps1`; `RegionalGeneration.ps1`; `WorldMap.ps1`; `WorldMapExport.ps1`; `WorldProfile.ps1` |
 | Package smoke | Windows package smoke below |

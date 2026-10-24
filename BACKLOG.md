@@ -542,6 +542,8 @@ milestone-final verification/repair run and can exceed a normal turn.
 
 ## User-requested fixes
 
+- [x] Rename the camp exposure/recovery runner to ExposureRecoveryPeers.ps1 and update callers and references.
+
 - [x] Consolidate enemy peer launchers into one behavior-scenario runner, retain one shared reward/restart gate and distinct mechanics, and move discovery/mining tests into Progression.
 
 - [x] Rename Scripts/Tests runners by behavior, removing Verify and milestone prefixes and updating callers and documentation references.

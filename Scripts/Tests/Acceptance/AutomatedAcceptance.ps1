@@ -111,7 +111,7 @@ try {
     Invoke-M7Automation
     Invoke-M7Scenario 'gathering-and-tool-lifecycle' 'Inventory\InventoryReconnect.ps1' $PortBase
     Invoke-M7Scenario 'rendered-crafting-and-stations' 'Construction\Crafting.ps1' ($PortBase + 1) -Rendered
-    Invoke-M7Scenario 'weather-and-camp-recovery' 'Survival\CampChoices.ps1' ($PortBase + 2)
+    Invoke-M7Scenario 'weather-and-camp-recovery' 'Survival\ExposureRecoveryPeers.ps1' ($PortBase + 2)
     Invoke-M7Scenario 'optional-boar-encounter' 'Combat\EnemyPeers.ps1' ($PortBase + 3) -HasOutputDirectory -EnemyScenario BoarCharge
     Invoke-M7Scenario 'optional-discovery' 'Progression\DiscoveryPeer.ps1' ($PortBase + 4) -HasOutputDirectory
 

@@ -6284,7 +6284,7 @@
 - **Work completed:** Rebuilt the Editor target after the Deer peer fixture repair. Changed the Deer test host to use the nonlethal Stone Knife so the ordinary attack sequence can trigger and observe the real nearby herd alert before defeat; added test-only fixture diagnostics. Updated the Mireling peer runner to include both client logs in failure detection and print the missing evidence on timeouts. Corrected crafting acceptance to match the registered reinforced-chest marker and to require both clients to observe the final replicated smouldering state when they join after the fire transition. Updated the setup guide to describe that assertion accurately. The rendered crafting run passed with 66 captures; CampChoices passed; Boar, Deer, Badger/Moon Bear and Mireling live peer scenarios passed.
 - **Files changed:** `BACKLOG.md`; `PROGRESS.md`; `Scripts/Tests/Combat/MirelingPeer.ps1`; `Scripts/Tests/Construction/Crafting.ps1`; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`; `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`; `docs/07-development-setup.md`.
 - **Lightweight checks:** `git diff --check` passed (only existing CRLF-to-LF warnings). PowerShell parser checks passed for both changed runners; every changed absolute path is below `MAX_PATH`. `python Scripts/Validate-CreatureCatalogues.py` passed for all 17 profiles; catalogue icon validation passed for all 148 icons.
-- **Milestone-final verification:** `Build.bat KalmalaEditor Win64 Development -Project=C:/Users/Ville/AppData/Local/Temp/k8i/Kalmala.uproject -WaitMutex -NoHotReload -NoHotReloadFromIDE -MaxParallelActions=4 -DisableAdaptiveUnity` passed after the source repairs with normal UnrealBuildTool access. The complete `Automation RunTests Kalmala` queue passed 180/180 with zero failed tests, fatal errors, assertions, ensures or application failure markers; the final log is `C:/Users/Ville/AppData/Local/Temp/i4final-3b6ec93e/full.log`. `Scripts/Tests/Construction/Crafting.ps1 -Rendered` passed and retained 66 host/client captures; `Scripts/Tests/Survival/CampChoices.ps1` passed with matching replicated weather and exposure snapshots. Live peer runners passed for Boar, Deer, Badger and Moon Bear (sequential Elderwood run), and Mireling.
+- **Milestone-final verification:** `Build.bat KalmalaEditor Win64 Development -Project=C:/Users/Ville/AppData/Local/Temp/k8i/Kalmala.uproject -WaitMutex -NoHotReload -NoHotReloadFromIDE -MaxParallelActions=4 -DisableAdaptiveUnity` passed after the source repairs with normal UnrealBuildTool access. The complete `Automation RunTests Kalmala` queue passed 180/180 with zero failed tests, fatal errors, assertions, ensures or application failure markers; the final log is `C:/Users/Ville/AppData/Local/Temp/i4final-3b6ec93e/full.log`. `Scripts/Tests/Construction/Crafting.ps1 -Rendered` passed and retained 66 host/client captures; `Scripts/Tests/Survival/ExposureRecoveryPeers.ps1` passed with matching replicated weather and exposure snapshots. Live peer runners passed for Boar, Deer, Badger and Moon Bear (sequential Elderwood run), and Mireling.
 - **Failures and repairs:** The initial Deer run exposed that the Stone Mace killed the 30-HP Deer before the herd-alert assertion; the test host now uses the Stone Knife, and the rerun passed with the nearby generated companion fleeing. The crafting runner expected an obsolete Chest scope marker and both initial fire states on the remote client; its assertions now match the logged capacity marker and the final replicated state, and the rendered rerun passed. The initial Mireling timeout omitted the remote client log from its failure/proof checks; the repaired runner passed. The previous M9 and snake-surface automation failures were repaired in earlier I4 work; the final queue now passes all 180 tests.
 - **Other prescribed runner result:** `Scripts/Tests/Inventory/InventoryReconnect.ps1` timed out on its client-baseline assertion. The retained logs show the server emitted `Notification owner baseline: Silent=1 Rows=0 Sources=5`; the client emitted no such marker. Both client visits had the expected world identity, owner mutation rejection, empty remote inventory, private tool-condition state, and the server's inventory/harvest/repair/replacement fixtures all passed. No fatal/assertion/ensure appeared. The notification baseline predicate is outside A8 enemy/item behavior and was left unchanged; this is a required unresolved runner result, not a passing check.
 - **Additional peer runner result:** `Scripts/Tests/Combat/CombatPeer.ps1` was attempted from the built source mirror, then retried with an explicit short output directory. Each attempt's listen-server process exited with code 0 before creating `server.log`; a direct launch with captured stdout/stderr also exited 0 without diagnostics. No combat-peer acceptance result was produced, and no source repair was made without a diagnosable app failure.
@@ -7549,3 +7549,23 @@
   tuning constants while natural spawning remains disabled. Main checkout used;
   no worktree handoff synchronization is required. Run time:
   `2026-10-24 12:28 UTC`.
+
+
+## Run 2026-10-24 — Name the exposure recovery peer test explicitly
+
+- **Completed / scope:** User-requested rename to
+  `Scripts/Tests/Survival/ExposureRecoveryPeers.ps1`. The other Kalmala run
+  was idle, and the checkout was clean after its completed S02 commit.
+- **Files changed:** Renamed the Survival runner without changing its contents;
+  updated Acceptance/AutomatedAcceptance.ps1, World/BiomeExpansion.ps1,
+  Scripts/Tests/README.md, docs/07-development-setup.md, BACKLOG and PROGRESS
+  filename references. Internal fixture flags and log/output labels remain.
+- **Lightweight checks:** PowerShell parsing passed for the renamed runner and
+  both callers; renamed content matches the original exactly; caller paths,
+  whitespace, staged scope and MAX_PATH checks passed before commit.
+- **Full verification:** Deferred. No Unreal build or live test was run for
+  this filename-only change. Exposure/recovery behavior and server authority
+  are unchanged; no networking, gameplay or save-data changes.
+- **Limitations / next:** External callers must use the new path. Next eligible
+  roadmap increment remains A10 S03, named spawn tuning constants. Main checkout
+  used directly; no worktree handoff synchronization needed.

@@ -105,7 +105,7 @@ launchers; the commands above supersede them. The new runner is headless.
 | `Performance` | Explicit constrained-performance profiles (`-ListProfiles`) |
 | `Presentation` | Input/UI contracts and focused live or rendered checks |
 | `Progression` | Discovery claims, gem mining/treasure, exploration rewards and current-format reconnect |
-| `Survival` | Camp choices and persisted camp restart |
+| `Survival` | `ExposureRecoveryPeers.ps1` for replicated exposure/fire recovery; persisted camp restart |
 | `Travel` | Swimming, ocean travel and skiff journeys/reconnect |
 | `World` | Generation, terrain/biome peers, minimap, awareness and map export |
 
