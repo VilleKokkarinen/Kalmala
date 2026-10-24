@@ -5546,6 +5546,7 @@ void AKalmalaGameMode::UpdatePopulationSchedulerWake(const double NowSeconds)
         ApplyPopulationSpeciesHabitatGate(KeyWork);
         ApplyPopulationTimeGate(KeyWork);
         ApplyPopulationWeatherGate(KeyWork);
+        ApplyPopulationProgressionGate(KeyWork);
     }
 }
 
@@ -6108,6 +6109,69 @@ bool AKalmalaGameMode::IsPopulationWeatherGateAllowedForTests(
     const EKalmalaWildlifeArchetype Archetype, const bool bForceRejectForTests)
 {
     return !bForceRejectForTests && IsPopulationWeatherGateAllowed(Archetype);
+}
+#endif
+
+void AKalmalaGameMode::ApplyPopulationProgressionGate(FKalmalaPopulationSchedulerKeyWork& KeyWork) const
+{
+    for (FKalmalaPopulationSpawnAttempt& Attempt : KeyWork.SpawnAttempts)
+    {
+        Attempt.GateResults.bProgressionPassed =
+            DoesPopulationDescriptorPassProgressionGate(Attempt.Descriptor);
+        Attempt.RejectionReason = EvaluatePopulationSpawnGates(Attempt.GateResults);
+    }
+
+    KeyWork.Candidates.RemoveAll([this](const FKalmalaWorldPopulationSpawn& Descriptor)
+    {
+        return !DoesPopulationDescriptorPassProgressionGate(Descriptor);
+    });
+}
+
+bool AKalmalaGameMode::DoesPopulationDescriptorPassProgressionGate(
+    const FKalmalaWorldPopulationSpawn& Descriptor) const
+{
+    if (!HasAuthority() || !IsValid(GetWorld()) || !WorldGenerationConfig.IsValid())
+    {
+        return false;
+    }
+
+    EKalmalaWildlifeArchetype Archetype;
+    return KalmalaGameMode::TryGetWildlifeArchetypeForSpawn(WorldGenerationConfig, Descriptor, Archetype)
+        && IsPopulationProgressionGateAllowed(Archetype);
+}
+
+bool AKalmalaGameMode::IsPopulationProgressionGateAllowed(const EKalmalaWildlifeArchetype Archetype)
+{
+    switch (Archetype)
+    {
+    case EKalmalaWildlifeArchetype::Mireling:
+    case EKalmalaWildlifeArchetype::Boar:
+    case EKalmalaWildlifeArchetype::Deer:
+    case EKalmalaWildlifeArchetype::Rat:
+    case EKalmalaWildlifeArchetype::Badger:
+    case EKalmalaWildlifeArchetype::MoonBear:
+    case EKalmalaWildlifeArchetype::DeathAdder:
+    case EKalmalaWildlifeArchetype::Viper:
+    case EKalmalaWildlifeArchetype::GiantSnake:
+    case EKalmalaWildlifeArchetype::MosquitoSwarm:
+    case EKalmalaWildlifeArchetype::PeatHusk:
+    case EKalmalaWildlifeArchetype::Wolf:
+    case EKalmalaWildlifeArchetype::Lynx:
+    case EKalmalaWildlifeArchetype::PolarBear:
+    case EKalmalaWildlifeArchetype::HornedGoat:
+    case EKalmalaWildlifeArchetype::ThunderSentinel:
+    case EKalmalaWildlifeArchetype::ReefMaw:
+        return true;
+    default:
+        return false;
+    }
+}
+
+#if WITH_DEV_AUTOMATION_TESTS
+bool AKalmalaGameMode::IsPopulationProgressionGateAllowedForTests(
+    const EKalmalaWildlifeArchetype Archetype, const bool bForceRejectForTests)
+{
+    return !bForceRejectForTests && IsPopulationProgressionGateAllowed(Archetype);
 }
 #endif
 

@@ -296,7 +296,14 @@ exhaustive policy allowlist passes every current wildlife archetype without
 consulting weather state or adding restrictions; unknown archetypes fail
 closed. A development-automation-only fixture seam can force the `Weather`
 rejection. The evaluator still reports an earlier `Time` rejection first.
-Progression remains fail-closed until S18.
+At the S17 handoff, progression remains fail-closed; S18 wires it.
+
+S18 wires the progression result after weather for every bounded attempt. An
+exhaustive policy allowlist passes every current wildlife archetype without
+checking progression or adding locks; unknown archetypes fail closed. A
+development-automation-only fixture seam can force the `Progression`
+rejection. The evaluator keeps earlier time and weather rejections first. No
+boss system, progression setting or actor creation is added.
 
 - Time, weather and progression are explicitly **unrestricted for all current
   species**. These three gates return pass. Provide internal policy seams and

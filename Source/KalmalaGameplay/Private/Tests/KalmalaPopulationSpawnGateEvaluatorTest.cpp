@@ -121,11 +121,22 @@ bool FKalmalaPopulationSpawnGateEvaluatorTest::RunTest(const FString& Parameters
     TestTrue(TEXT("The weather gate passes every current wildlife species"),
         bEveryCurrentSpeciesPassesWeather);
 
+    bool bEveryCurrentSpeciesPassesProgression = true;
+    for (const EKalmalaWildlifeArchetype Archetype : CurrentSpecies)
+    {
+        bEveryCurrentSpeciesPassesProgression &=
+            AKalmalaGameMode::IsPopulationProgressionGateAllowed(Archetype);
+    }
+    TestTrue(TEXT("The progression gate passes every current wildlife species"),
+        bEveryCurrentSpeciesPassesProgression);
+
     const EKalmalaWildlifeArchetype UnknownArchetype = static_cast<EKalmalaWildlifeArchetype>(255);
     TestFalse(TEXT("An unknown archetype fails the time gate closed"),
         AKalmalaGameMode::IsPopulationTimeGateAllowed(UnknownArchetype));
     TestFalse(TEXT("An unknown archetype fails the weather gate closed"),
         AKalmalaGameMode::IsPopulationWeatherGateAllowed(UnknownArchetype));
+    TestFalse(TEXT("An unknown archetype fails the progression gate closed"),
+        AKalmalaGameMode::IsPopulationProgressionGateAllowed(UnknownArchetype));
     TestFalse(TEXT("The fixture seam can force a known species time rejection"),
         AKalmalaGameMode::IsPopulationTimeGateAllowedForTests(EKalmalaWildlifeArchetype::Deer, true));
     TestFalse(TEXT("The fixture seam cannot allow an unknown archetype"),
@@ -134,6 +145,11 @@ bool FKalmalaPopulationSpawnGateEvaluatorTest::RunTest(const FString& Parameters
         AKalmalaGameMode::IsPopulationWeatherGateAllowedForTests(EKalmalaWildlifeArchetype::Deer, true));
     TestFalse(TEXT("The weather fixture seam cannot allow an unknown archetype"),
         AKalmalaGameMode::IsPopulationWeatherGateAllowedForTests(UnknownArchetype, true));
+    TestFalse(TEXT("The fixture seam can force a known species progression rejection"),
+        AKalmalaGameMode::IsPopulationProgressionGateAllowedForTests(
+            EKalmalaWildlifeArchetype::Deer, true));
+    TestFalse(TEXT("The progression fixture seam cannot allow an unknown archetype"),
+        AKalmalaGameMode::IsPopulationProgressionGateAllowedForTests(UnknownArchetype, true));
     Results = AllGatesPass();
     Results.bTimePassed = AKalmalaGameMode::IsPopulationTimeGateAllowedForTests(
         EKalmalaWildlifeArchetype::Deer, true);
@@ -150,6 +166,16 @@ bool FKalmalaPopulationSpawnGateEvaluatorTest::RunTest(const FString& Parameters
     TestEqual(TEXT("An earlier time rejection takes precedence over weather"),
         AKalmalaGameMode::EvaluatePopulationSpawnGates(Results),
         EKalmalaPopulationSpawnRejectionReason::Time);
+    Results = AllGatesPass();
+    Results.bProgressionPassed = AKalmalaGameMode::IsPopulationProgressionGateAllowedForTests(
+        EKalmalaWildlifeArchetype::Deer, true);
+    TestEqual(TEXT("A forced progression-policy rejection reaches the ordered evaluator"),
+        AKalmalaGameMode::EvaluatePopulationSpawnGates(Results),
+        EKalmalaPopulationSpawnRejectionReason::Progression);
+    Results.bWeatherPassed = false;
+    TestEqual(TEXT("An earlier weather rejection takes precedence over progression"),
+        AKalmalaGameMode::EvaluatePopulationSpawnGates(Results),
+        EKalmalaPopulationSpawnRejectionReason::Weather);
     return true;
 }
 
