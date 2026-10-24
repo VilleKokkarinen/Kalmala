@@ -72,10 +72,22 @@ bool FKalmalaTerrainPreviewControlTest::RunTest(const FString& Parameters)
     CheckRange(&FKalmalaGenerationPreviewSettings::ShimmeringLakesLowlandFloor, 100.0, 500.0, TEXT("Shimmering Lakes lowland floor"));
     CheckRange(&FKalmalaGenerationPreviewSettings::ShimmeringLakesLowlandCeiling, 500.0, 2000.0, TEXT("Shimmering Lakes lowland ceiling"));
     CheckRange(&FKalmalaGenerationPreviewSettings::ShimmeringLakesLowlandCompression, 0.05, 0.35, TEXT("Shimmering Lakes lowland compression"));
+    CheckRange(&FKalmalaGenerationPreviewSettings::MireTargetHeight, 200.0, 500.0, TEXT("Mire target height"));
+    CheckRange(&FKalmalaGenerationPreviewSettings::MireCompressionScale, 300.0, 1200.0, TEXT("Mire compression scale"));
+    CheckRange(&FKalmalaGenerationPreviewSettings::MireResidualDetailAmplitude, 10.0, 60.0, TEXT("Mire residual detail amplitude"));
     Settings = FKalmalaGenerationPreviewSettings{};
     Settings.ShimmeringLakesLowlandFloor = 500.0;
     Settings.ShimmeringLakesLowlandCeiling = 500.0;
     TestFalse(TEXT("Lakes lowland ceiling must stay above its floor"), Settings.HasValidReliefControls());
+
+    Settings = FKalmalaGenerationPreviewSettings{};
+    Settings.MireTargetHeight = 200.0;
+    Settings.MireCompressionScale = 300.0;
+    Settings.MireResidualDetailAmplitude = 60.0;
+    TestTrue(TEXT("Lowest Mire target and scale with highest residual remain valid"), Settings.HasValidReliefControls());
+    TestTrue(TEXT("Lowest bounded Mire controls retain positive coast clearance"),
+        FKalmalaRegionalGeneration::ShapeMire(0.0, -1.0, Settings.MireTargetHeight,
+            Settings.MireCompressionScale, Settings.MireResidualDetailAmplitude) > 0.0);
 
     Settings = FKalmalaGenerationPreviewSettings{};
     Settings.ReliefBroadScale = TNumericLimits<double>::QuietNaN();
@@ -94,7 +106,7 @@ bool FKalmalaBiomeHeightFunctionTest::RunTest(const FString& Parameters)
     const FKalmalaTerrainReliefSample NoSharedRelief;
     const double ExpectedMeadows[] = {960.0, 1000.0, 1040.0};
     const double ExpectedElderwood[] = {925.0, 940.0, 955.0};
-    const double ExpectedMire[] = {925.0, 940.0, 955.0};
+    const double ExpectedMire[] = {625.0, 650.0, 675.0};
 
     for (int32 Index = 0; Index < UE_ARRAY_COUNT(Details); ++Index)
     {
@@ -102,8 +114,10 @@ bool FKalmalaBiomeHeightFunctionTest::RunTest(const FString& Parameters)
             G::ShapeMeadows(SourceHeight, Details[Index]), ExpectedMeadows[Index]);
         TestEqual(TEXT("Elderwood candidate preserves the prior local detail at zero shared relief"),
             G::ShapeElderwood(SourceHeight, Details[Index], NoSharedRelief, 900.0, 240.0, 40.0), ExpectedElderwood[Index]);
-        TestEqual(TEXT("Mire candidate preserves the prior sample"),
-            G::ShapeMire(SourceHeight, Details[Index]), ExpectedMire[Index]);
+        TestEqual(TEXT("Mire candidate applies the provisional monotonic lowland response"),
+            G::ShapeMire(SourceHeight, Details[Index], FKalmalaRegionalTuning::MireTargetHeight,
+                FKalmalaRegionalTuning::MireCompressionScale,
+                FKalmalaRegionalTuning::MireResidualDetailAmplitude), ExpectedMire[Index]);
         TestEqual(TEXT("Tundra uses the Elderwood candidate at zero shared relief"),
             G::ShapeTundra(SourceHeight, Details[Index], NoSharedRelief, 900.0, 240.0, 40.0), ExpectedElderwood[Index]);
         TestEqual(TEXT("Tundra direct reference is exactly the Elderwood function"),
@@ -160,6 +174,109 @@ bool FKalmalaBiomeHeightFunctionTest::RunTest(const FString& Parameters)
             FMath::IsFinite(Shared.Broad) && FMath::IsFinite(Shared.Middle) && FMath::IsFinite(Shared.Local));
         TestEqual(TEXT("Tundra remains the same seeded Elderwood shape across seeds and coordinates"), Tundra, Elderwood);
     }
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaMossyMireShapeTest,
+    "Kalmala.World.Regional.MossyMireMonotonicLowland",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+bool FKalmalaMossyMireShapeTest::RunTest(const FString& Parameters)
+{
+    using G = FKalmalaRegionalGeneration;
+    using T = FKalmalaRegionalTuning;
+    const FKalmalaGenerationPreviewSettings Preview;
+    TestEqual(TEXT("Mire target defaults to tuning"), Preview.MireTargetHeight, T::MireTargetHeight);
+    TestEqual(TEXT("Mire compression scale defaults to tuning"), Preview.MireCompressionScale, T::MireCompressionScale);
+    TestEqual(TEXT("Mire residual detail defaults to tuning"),
+        Preview.MireResidualDetailAmplitude, T::MireResidualDetailAmplitude);
+
+    double Previous = -TNumericLimits<double>::Max();
+    for (int32 Step = 0; Step <= 600; ++Step)
+    {
+        const double SourceHeight = Step * 50.0;
+        const double Height = G::ShapeMire(SourceHeight, 0.0, Preview.MireTargetHeight,
+            Preview.MireCompressionScale, Preview.MireResidualDetailAmplitude);
+        TestTrue(TEXT("Mire compression is finite"), FMath::IsFinite(Height));
+        TestTrue(TEXT("Mire source-to-height response remains strictly monotonic"), Height > Previous);
+        TestTrue(TEXT("Land source does not become ocean"), Height > 0.0);
+        TestTrue(TEXT("Mire result stays inside its bounded compression envelope"),
+            Height > Preview.MireTargetHeight - Preview.MireCompressionScale - 0.01
+            && Height < Preview.MireTargetHeight + Preview.MireCompressionScale + 0.01);
+        Previous = Height;
+    }
+
+    for (const double Detail : {-2.0, -1.0, 0.0, 1.0, 2.0})
+    {
+        const double Height = G::ShapeMire(0.0, Detail, Preview.MireTargetHeight,
+            Preview.MireCompressionScale, Preview.MireResidualDetailAmplitude);
+        TestTrue(TEXT("Coast-side source land keeps positive clearance with residual detail"), Height > 0.0);
+        TestTrue(TEXT("Residual detail cannot exceed its named bound"),
+            FMath::Abs(Height - G::ShapeMire(0.0, 0.0, Preview.MireTargetHeight,
+                Preview.MireCompressionScale, Preview.MireResidualDetailAmplitude))
+                <= Preview.MireResidualDetailAmplitude + UE_KINDA_SMALL_NUMBER);
+    }
+
+    const FKalmalaWorldGenerationConfig Config418{418ull};
+    const FKalmalaWorldGenerationConfig Config419{419ull};
+    const FVector2D MireSites[] = {
+        FVector2D(-669858.3, -601074.7),
+        FVector2D(-78944.8, 896531.5),
+    };
+    const FKalmalaWorldGenerationConfig Configs[] = {Config418, Config419};
+    for (int32 Index = 0; Index < UE_ARRAY_COUNT(MireSites); ++Index)
+    {
+        const auto Fields = FKalmalaWorldFieldSampler::Sample(Configs[Index], MireSites[Index]);
+        const auto First = G::Sample(Fields);
+        const auto Repeated = G::Sample(Fields);
+        const auto FirstCandidates = G::SampleTerrainCandidateDiagnostics(Configs[Index], Fields);
+        const auto RepeatedCandidates = G::SampleTerrainCandidateDiagnostics(Configs[Index], Fields);
+        TestEqual(TEXT("Fixed-seed Mire candidate blend input is deterministic"),
+            FirstCandidates.MireCandidate, RepeatedCandidates.MireCandidate);
+        TestTrue(TEXT("Fixed-seed Mossy Mire sample repeats its final height"), First.Height == Repeated.Height);
+        TestTrue(TEXT("Fixed-seed Mossy Mire sample repeats water state"), First.bHasWater == Repeated.bHasWater);
+        TestFalse(TEXT("Disabled analytic basins do not add Mire lake water"), First.BasinWeight > 0.0f);
+        TestFalse(TEXT("Former Mire basin controls remain dry"), First.bHasWater);
+        if (Fields.Elevation > T::SeaElevation)
+        {
+            TestTrue(TEXT("Mire source land retains positive final clearance"), First.Height > 0.0f);
+        }
+    }
+
+    // Exercise the real server sampler at a generated river center with
+    // deterministic synthetic wetland inputs, so the post-candidate channel
+    // override remains below its sea-level water plane even when Mire has weight.
+    const FKalmalaWorldGenerationConfig RiverConfig{418ull};
+    const FVector2D MireRiverSearchCenter = MireSites[0];
+    const FIntPoint MireRiverSearchCell(FMath::FloorToInt(MireRiverSearchCenter.X / T::GridCell),
+        FMath::FloorToInt(MireRiverSearchCenter.Y / T::GridCell));
+    bool bFoundMireRiver = false;
+    constexpr int32 MireRiverSearchRadius = 24;
+    for (int32 Y = -MireRiverSearchRadius; Y <= MireRiverSearchRadius && !bFoundMireRiver; ++Y)
+    for (int32 X = -MireRiverSearchRadius; X <= MireRiverSearchRadius && !bFoundMireRiver; ++X)
+    {
+        for (const FKalmalaHydrologySegment& Segment : G::GetHydrology(
+            RiverConfig, MireRiverSearchCell + FIntPoint(X, Y)))
+        {
+            if (Segment.bStream) continue;
+            const FVector2D Position((Segment.A + Segment.B) * 0.5);
+            const double Distance = Position.Size();
+            if (Distance < T::MireMinimum || Distance > T::MireMaximum) continue;
+            auto Fields = FKalmalaWorldFieldSampler::Sample(RiverConfig, Position);
+            Fields.Elevation = T::SeaElevation + 0.23f;
+            Fields.Humidity = 0.90f;
+            Fields.Temperature = 0.40f;
+            const auto River = G::Sample(Fields);
+            if (River.Weights[3] <= 0.0f || River.RiverWeight < 0.999f) continue;
+            TestEqual(TEXT("Mire river still has no analytic basin support"), River.BasinWeight, 0.0f);
+            TestEqual(TEXT("Priority Mire river retains sea-level water"), River.WaterLevel, 0.0f);
+            TestTrue(TEXT("Priority Mire river carves below the Z=0 plane"), River.Height <= -T::RiverBedDepth + 0.01);
+            TestTrue(TEXT("Priority Mire river reports water"), River.bHasWater);
+            bFoundMireRiver = true;
+            break;
+        }
+    }
+    TestTrue(TEXT("Bounded generated-world search finds a deterministic Mire river control"), bFoundMireRiver);
+    G::ClearHydrologyCache();
     return true;
 }
 
@@ -248,7 +365,9 @@ bool FKalmalaShimmeringLakesShapeTest::RunTest(const FString& Parameters)
         Preview.WetlandHumidityMinimum, Preview.WetlandHumidityFull,
         Preview.ShimmeringLakesMeadowShare, Preview.ShimmeringLakesLowlandFloor,
         Preview.ShimmeringLakesLowlandCeiling, Preview.ShimmeringLakesLowlandCompression);
-    const double Candidates[] = {Meadow, Lakes, Elderwood, G::ShapeMire(Source, Detail),
+    const double Candidates[] = {Meadow, Lakes, Elderwood,
+        G::ShapeMire(Source, Detail, Preview.MireTargetHeight,
+            Preview.MireCompressionScale, Preview.MireResidualDetailAmplitude),
         G::ShapeTundra(Source, Detail, SharedRelief, Preview.ElderwoodBroadAmplitude,
             Preview.ElderwoodMiddleAmplitude, Preview.ElderwoodLocalAmplitude),
         G::ShapeMountains(Source, Detail, 0.0)};
@@ -355,7 +474,8 @@ bool FKalmalaBiomeHeightBlendTest::RunTest(const FString& Parameters)
             Preview.ShimmeringLakesLowlandCeiling, Preview.ShimmeringLakesLowlandCompression),
         G::ShapeElderwood(SourceHeight, Detail, ElderwoodRelief,
             ElderwoodBroadAmplitude, ElderwoodMiddleAmplitude, ElderwoodLocalAmplitude),
-        G::ShapeMire(SourceHeight, Detail),
+        G::ShapeMire(SourceHeight, Detail, Preview.MireTargetHeight,
+            Preview.MireCompressionScale, Preview.MireResidualDetailAmplitude),
         G::ShapeTundra(SourceHeight, Detail, ElderwoodRelief,
             ElderwoodBroadAmplitude, ElderwoodMiddleAmplitude, ElderwoodLocalAmplitude),
         G::ShapeMountains(SourceHeight, Detail, 0.0),

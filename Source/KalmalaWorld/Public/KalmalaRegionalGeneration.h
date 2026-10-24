@@ -42,6 +42,7 @@ struct FKalmalaTerrainCandidateDiagnostics
     double TundraCandidate = 0.0;
     double ShimmeringLakesLowlandCandidate = 0.0;
     double ShimmeringLakesCandidate = 0.0;
+    double MireCandidate = 0.0;
     double WetlandHumidityMinimum = 0.0;
     double WetlandHumidityFull = 0.0;
 };
@@ -67,6 +68,7 @@ struct KALMALAWORLD_API FKalmalaRegionalGeneration
         const FKalmalaWorldGenerationConfig& Config, const FKalmalaWorldFieldSample& Fields);
 private:
     friend class FKalmalaBiomeHeightFunctionTest;
+    friend class FKalmalaMossyMireShapeTest;
     friend class FKalmalaBiomeHeightBlendTest;
     friend class FKalmalaShimmeringLakesShapeTest;
     friend class FKalmalaMeadowShoulderCompressionTest;
@@ -94,7 +96,8 @@ private:
         double ElderwoodCandidate, double Humidity, double HumidityMinimum,
         double HumidityFull, double MeadowShare, double LowlandFloor,
         double LowlandCeiling, double LowlandCompression);
-    static double ShapeMire(double SourceHeight, double Detail);
+    static double ShapeMire(double SourceHeight, double Detail,
+        double TargetHeight, double CompressionScale, double ResidualDetailAmplitude);
     static double ShapeTundra(double SourceHeight, double Detail,
         const FKalmalaTerrainReliefSample& SharedRelief,
         double BroadAmplitude, double MiddleAmplitude, double LocalAmplitude);

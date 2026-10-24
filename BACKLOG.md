@@ -604,9 +604,21 @@ run for this goal and may exceed one turn.
       Lakes profiles and bounded commandlet-only overrides for blend share and
       lowland controls. Reject stale binaries; leave measurement and numeric
       selection to BH25d and rendered acceptance to BH26.
-  - [ ] **BH15 — Shape Mossy Mire.** Compress the shared base into a smooth narrow
-    lowland band with residual detail; retain positive source-land clearance
-    outside river corridors and avoid inverted ridges or an ocean-like flat.
+  - [ ] **BH15 — Shape Mossy Mire.** Source integration is complete with
+    provisional bounded controls; keep open until the stale-safe profile harness
+    BH15b is complete. Numeric selection remains BH25e and rendered acceptance
+    remains BH26.
+    - [x] **BH15a — Integrate the monotonic lowland candidate.** Soft-compress
+      shared source height toward a bounded lowland band with clipped residual
+      detail. Preserve positive source-land clearance outside river corridors,
+      continuous biome blending, river-last priority and disabled-basin behavior.
+      Add focused formula, deterministic blend, river override and dry former-
+      basin tests; keep all coefficients provisional.
+    - [ ] **BH15b — Add the Mire numeric profile harness.** Add fixed seed-418/419
+      Mire transects, bounded commandlet-only controls and per-run effective
+      tuning logs that reject stale binaries. Export raw heights/slopes and
+      candidate diagnostics; do not select values here. Leave fresh-source
+      trials to BH25e and rendered acceptance to BH26.
   - [ ] **BH16 — Shape Freezing Tundra.** Reuse the Elderwood height function
     inside the existing outer eligibility band; confirm profile parity and
     keep snow as presentation rather than a height offset.
@@ -636,7 +648,7 @@ run for this goal and may exceed one turn.
   - [ ] **BH24 — Add cold-biome presentation.** Apply Tundra snow and Mountain
     snow/storm visuals through existing materials/weather paths; retain
     server-owned weather selection and add no damage, exposure, or shelter rule.
-  - [ ] **BH25 — Finalize tuning and contracts.** Keep open until BH25a–BH25d
+  - [ ] **BH25 — Finalize tuning and contracts.** Keep open until BH25a–BH25e
     are complete.
     - [ ] **BH25a — Run BH10b1 Meadows hill sweep.** With freshly compiled
       source, run BH10b1 at 4/6/8 m; compare BH01 fixed-site baselines and
@@ -664,6 +676,13 @@ run for this goal and may exceed one turn.
       provisional center. Record raw profiles, validate bounds and monotonic
       lowland behavior, and select only measured values; rendered acceptance
       remains BH26.
+    - [ ] **BH25e — Run Mossy Mire profile trials.** With freshly compiled
+      BH15b source, compare fixed Mire transects and collision slopes against
+      BH01. Sweep target height 200/300/500 cm, compression scale 300/700/1200 cm
+      and residual detail 10/25/60 cm one control at a time around the
+      provisional center, while checking positive coast clearance, no ocean-like
+      flattening and the river corridor profile. Record raw ranges/slopes and
+      select only measured values; rendered acceptance remains BH26.
   - [ ] **BH26 — Run final integrated verification and repair.** Inspect the full
     combined change; run the applicable Editor build, regional/master-map/
     finite-world/integrated/water checks, RegionalGeneration and Minimap peers,

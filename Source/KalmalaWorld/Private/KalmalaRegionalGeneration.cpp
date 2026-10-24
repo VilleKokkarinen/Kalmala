@@ -256,9 +256,25 @@ double FKalmalaRegionalGeneration::ShapeShimmeringLakes(
     return RoundedShoulders + (CompressedSource - SourceHeight);
 }
 
-double FKalmalaRegionalGeneration::ShapeMire(const double SourceHeight, const double Detail)
+double FKalmalaRegionalGeneration::ShapeMire(
+    const double SourceHeight, const double Detail, const double TargetHeight,
+    const double CompressionScale, const double ResidualDetailAmplitude)
 {
-    return SourceHeight + double(float(-60 + 15 * Detail));
+    if (!FMath::IsFinite(SourceHeight) || !FMath::IsFinite(Detail)
+        || !FMath::IsFinite(TargetHeight) || !FMath::IsFinite(CompressionScale)
+        || !FMath::IsFinite(ResidualDetailAmplitude) || CompressionScale <= 0.0
+        || ResidualDetailAmplitude < 0.0)
+    {
+        return SourceHeight;
+    }
+
+    // The rational response is strictly monotonic and asymptotes to a narrow
+    // band instead of clamping into a flat shelf. The selected tuning bounds
+    // keep even the lowest source-land sample above zero after residual detail.
+    const double Offset = SourceHeight - TargetHeight;
+    const double CompressedOffset = Offset / (1.0 + FMath::Abs(Offset) / CompressionScale);
+    const double Residual = FMath::Clamp(Detail, -1.0, 1.0) * ResidualDetailAmplitude;
+    return TargetHeight + CompressedOffset + Residual;
 }
 
 double FKalmalaRegionalGeneration::ShapeTundra(
@@ -299,6 +315,8 @@ FKalmalaTerrainCandidateDiagnostics FKalmalaRegionalGeneration::SampleTerrainCan
         Result.ElderwoodCandidate, F.Humidity, Preview.WetlandHumidityMinimum, Preview.WetlandHumidityFull,
         Preview.ShimmeringLakesMeadowShare, Preview.ShimmeringLakesLowlandFloor,
         Preview.ShimmeringLakesLowlandCeiling, Preview.ShimmeringLakesLowlandCompression);
+    Result.MireCandidate = ShapeMire(Result.SourceHeight, Detail, Preview.MireTargetHeight,
+        Preview.MireCompressionScale, Preview.MireResidualDetailAmplitude);
     return Result;
 }
 
@@ -422,7 +440,8 @@ FKalmalaRegionalSample FKalmalaRegionalGeneration::SampleInternal(const FKalmala
             MeadowHeight,
             ShimmeringLakesHeight,
             ElderwoodHeight,
-            ShapeMire(Source, Detail),
+            ShapeMire(Source, Detail, Preview.MireTargetHeight,
+                Preview.MireCompressionScale, Preview.MireResidualDetailAmplitude),
             ShapeTundra(Source, Detail, ElderwoodRelief,
                 Preview.ElderwoodBroadAmplitude, Preview.ElderwoodMiddleAmplitude, Preview.ElderwoodLocalAmplitude),
             ShapeMountains(Source, Detail, WarpedRegion(C, Warped, 5)),

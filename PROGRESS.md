@@ -8587,3 +8587,48 @@
   shoreline/traversal inspection was run. BH25d selects measured controls;
   rendered and integrated verification remains BH26.
 - **Next task in this directed goal:** BH15 — shape Mossy Mire.
+
+## Run 2026-10-24 — Mossy Mire source integration (BH15a)
+
+- **Selected increment:** BH15a, integrate the monotonic Mire lowland candidate
+  and focused formula/sampler coverage. BH15 remains open for BH15b.
+- **Work completed:** Replaced the Mire detail-only shape with a monotonic
+  rational compression toward a 300 cm target, 700 cm compression scale and
+  clipped ±25 cm residual detail. Added bounded preview controls (200–500 / 300–1200 /
+  10–60 cm) and a validation rule that guarantees positive coast-side clearance
+  for every accepted combination. Wired the candidate into regional sampling
+  and candidate diagnostics. Added coverage for monotonicity, bounded response,
+  coast clearance, residual limits, deterministic fixed-site results, priority
+  river carving, and dry former-basin samples. Split BH15 into source integration
+  and a stale-safe profile harness; added BH25e for fresh-source Mire tuning.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`,
+  `Source/KalmalaWorld/Public/KalmalaGenerationPreview.h`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalGeneration.h`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`,
+  `docs/02-technical-architecture.md`, and `docs/biome-height-rework.md`.
+- **Lightweight checks/results:** Inspected formula integration, all `ShapeMire`
+  call sites, candidate diagnostics and the focused regression fixtures.
+  `git diff --check` passed (Git reported existing CRLF-to-LF working-copy
+  warnings). No Unreal build or automation ran.
+- **Full verification:** Deferred to BH26. Mire fresh-source range selection
+  remains BH25e; rendered acceptance remains BH26.
+- **Observable impact:** Mossy Mire now receives a bounded lowland shape rather
+  than the former constant offset. The curve retains a positive coast-side
+  floor and small deterministic detail without a hard flat shelf. Existing
+  biome weights, coast blend, river-last override and disabled analytic basin
+  policy are preserved. Coefficients are provisional; no measured acceptance
+  is claimed.
+- **Networking/authority:** Height remains a deterministic function of
+  server-owned world fields, world seed and absolute position. No RPC,
+  replication, gameplay authority or save data changed.
+- **Known limitations / remaining scope:** The focused automation was added but
+  not run, and no build, profile sweep or rendered inspection was performed.
+  BH15b adds fixed numeric profiles and stale-binary-safe controls; BH25e selects
+  values from a fresh build; BH26 performs final integrated/rendered verification.
+  Main-checkout handoff synchronized the exact BH15 block and appended this
+  progress entry after existing S30 work under exclusive locks; the BH25 block
+  remains untouched because its wording conflicts with this worktree.
+- **Next task in this directed goal:** BH15b — add the fixed Mire profile
+  harness with bounded commandlet-only controls and stale-binary detection.

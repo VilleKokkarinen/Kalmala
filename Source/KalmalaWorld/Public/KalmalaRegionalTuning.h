@@ -36,6 +36,11 @@ struct FKalmalaRegionalTuning
     static constexpr double ShimmeringLakesLowlandFloor = 200.0;
     static constexpr double ShimmeringLakesLowlandCeiling = 1200.0;
     static constexpr double ShimmeringLakesLowlandCompression = 0.20;
+    // Provisional Mossy Mire soft-compression trials, centimetres. These
+    // retain a positive coast floor while reducing source-height variation.
+    static constexpr double MireTargetHeight = 300.0;
+    static constexpr double MireCompressionScale = 700.0;
+    static constexpr double MireResidualDetailAmplitude = 25.0;
     static constexpr double ElevationFrequency = 1.0 / 100000.0;
     static constexpr double ClimateFrequency = 1.0 / 150000.0;
     static constexpr double LocalReliefFrequency = 0.00035;

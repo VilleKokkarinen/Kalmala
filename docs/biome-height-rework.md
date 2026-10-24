@@ -4,9 +4,11 @@ Status: user-requested design direction, 2026-10-24; implementation is in
 progress under `BACKLOG.md` after A10 acceptance and before Monster Population.
 The fixed baselines, basin policy, shared sampler, preview controls and Meadows
 hill/rolling/floor layers and the provisional Shimmering Lakes blend are
-implemented incrementally; fresh-source floor tuning remains BH25c, Lakes
-numeric selection remains BH25d, and final acceptance remains pending BH26. This plan
-supersedes Meadows-specific height details where they differ.
+implemented incrementally. BH15a now integrates the provisional Mossy Mire
+lowland candidate; its profile harness is BH15b, fresh-source tuning remains
+BH25e, and final acceptance remains pending BH26. Fresh-source floor tuning
+remains BH25c and Lakes numeric selection remains BH25d. This plan supersedes
+Meadows-specific height details where they differ.
 
 This plan expands [the Meadows plan](meadows-plan.md) to all land biomes. Where
 they differ, this plan takes precedence: broad relief becomes a shared stack,
@@ -103,7 +105,14 @@ determinism and channel-connectivity acceptance, not an incidental side effect.
   residual detail. Choose a coastal target near sea level, but retain positive
   source-land clearance outside river corridors. Do not convert the entire
   biome into ocean, erase banks or introduce an elevated flat water plane.
-  Keep the compression curve monotonic to avoid inverted ridges and pits.
+  Keep the compression curve monotonic to avoid inverted ridges and pits. BH15a
+  currently uses `target + (source-target)/(1+abs(source-target)/scale) +
+  clamp(detail,-1,1)*residual`, with provisional controls of 300 / 700 / 25 cm
+  inside preview ranges of 200–500 / 300–1200 / 10–60 cm. The rational curve is
+  monotonic and bounded without a hard shelf; the selected range combinations
+  keep its lowest coast-side value above zero. BH15b adds the stale-safe profile
+  sweep harness; BH25e chooses measured values from a fresh build. River carving
+  remains the final corridor override, and basin generation stays disabled.
 - **Freezing Tundra:** Reuse Elderwood height treatment and the existing outer
   eligibility. Reuse its forest-factor pattern with a slightly lower acceptance
   probability; a 0.8–0.9 density multiplier is an initial experiment, not a final

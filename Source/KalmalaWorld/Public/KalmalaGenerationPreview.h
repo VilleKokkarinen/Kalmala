@@ -28,6 +28,9 @@ struct FKalmalaGenerationPreviewSettings
     double ShimmeringLakesLowlandFloor = FKalmalaRegionalTuning::ShimmeringLakesLowlandFloor;
     double ShimmeringLakesLowlandCeiling = FKalmalaRegionalTuning::ShimmeringLakesLowlandCeiling;
     double ShimmeringLakesLowlandCompression = FKalmalaRegionalTuning::ShimmeringLakesLowlandCompression;
+    double MireTargetHeight = FKalmalaRegionalTuning::MireTargetHeight;
+    double MireCompressionScale = FKalmalaRegionalTuning::MireCompressionScale;
+    double MireResidualDetailAmplitude = FKalmalaRegionalTuning::MireResidualDetailAmplitude;
     double LandThreshold = 0;
     double BiomeScale = FKalmalaRegionalTuning::BiomeScale;
     double WarpStrength = FKalmalaRegionalTuning::WarpStrength;
@@ -71,7 +74,12 @@ struct FKalmalaGenerationPreviewSettings
             && InRange(ShimmeringLakesLowlandFloor, 100.0, 500.0)
             && InRange(ShimmeringLakesLowlandCeiling, 500.0, 2000.0)
             && ShimmeringLakesLowlandCeiling > ShimmeringLakesLowlandFloor
-            && InRange(ShimmeringLakesLowlandCompression, 0.05, 0.35);
+            && InRange(ShimmeringLakesLowlandCompression, 0.05, 0.35)
+            && InRange(MireTargetHeight, 200.0, 500.0)
+            && InRange(MireCompressionScale, 300.0, 1200.0)
+            && InRange(MireResidualDetailAmplitude, 10.0, 60.0)
+            && MireTargetHeight * MireCompressionScale / (MireTargetHeight + MireCompressionScale)
+                > MireResidualDetailAmplitude;
     }
 };
 
