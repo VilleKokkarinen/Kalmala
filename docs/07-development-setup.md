@@ -6038,3 +6038,27 @@ host, and observer. Both clients received world seed 418. Logs:
 `C:/Users/Ville/AppData/Local/Temp/a8fa6/{server,owner,observer}.log`. The final
 scenario logs have no fixture failures, fatal/assert/ensure failures, or
 saved-move backlog warnings. Combined A8a/A8b I4 remains required before A9.
+
+## A8b Scale Cuirass live peer craft and armor — 2026-10-24
+
+After an Editor build, run `Scripts/Tests/Construction/Verify-A8bScaleCuirassPeer.ps1`.
+The Development-only three-peer fixture stages 10 Giant Scales and 10 Bronze
+on the server, then spawns a Forge beside the selected remote owner. The owner
+rejects direct client crafting, crafts one `ScaleCuirass` through the ordinary
+`ServerCraft` RPC, then equips its output GUID through `ServerEquipGear`. The
+server verifies exact payment, the Chest slot, 20 physical Armor and 150
+condition. It applies 30 Crush through the accepted server damage path; the
+owner takes 10 damage and the Cuirass spends one condition point. The listen
+host's inventory stays unchanged, while the observer sees public health loss
+and receives no owner inventory, worn gear, carried tools, or statuses.
+
+On 2026-10-24, the isolated `KalmalaEditor Win64 Development` build passed in
+four actions (`C:/Users/Ville/AppData/Local/Temp/a8sc3-build.log`). The first
+peer attempts exposed a fixture compile typo and observer-role/baseline issues;
+after repair, `Verify-A8bScaleCuirassPeer.ps1 -Port 17903 -Project
+C:/Users/Ville/AppData/Local/Temp/msp1/Kalmala.uproject -OutputDirectory
+C:/Users/Ville/AppData/Local/Temp/a8sc3` passed for the server, owner, listen
+host, and observer. Both clients received world seed 418. Logs:
+`C:/Users/Ville/AppData/Local/Temp/a8sc3/{server,owner,observer}.log`. The final
+scenario logs have no fixture failures, fatal/assert/ensure failures, or
+saved-move backlog warnings. Combined A8a/A8b I4 remains required before A9.
