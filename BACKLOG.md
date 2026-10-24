@@ -652,7 +652,7 @@ milestone-final verification/repair run and can exceed a normal turn.
   - [x] **S24 — Add spherical suppression query.** Use radius 18 m for
     Camp Bed, lit fuelled Campfire and lit fuelled Standing Light. Other pieces,
     cosmetics and unlisted stations emit no field; roofs retain S22 rejection.
-  - [ ] **S25 — Wire placement gate.** Combine S20–S24 with current authoritative
+  - [x] **S25 — Wire placement gate.** Combine S20–S24 with current authoritative
     station state/destruction. Suppression blocks new natural spawns only; it
     does not delete existing creatures or prevent their movement into camp.
   - [ ] **S26 — Enable natural spawning.** Route one bounded creation transaction

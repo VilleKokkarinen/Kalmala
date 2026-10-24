@@ -5549,6 +5549,7 @@ void AKalmalaGameMode::UpdatePopulationSchedulerWake(const double NowSeconds)
         ApplyPopulationWeatherGate(KeyWork);
         ApplyPopulationProgressionGate(KeyWork);
         ApplyPopulationCapGate(KeyWork);
+        ApplyPopulationPhysicalPlacementGate(KeyWork);
     }
 }
 
@@ -6270,6 +6271,72 @@ bool AKalmalaGameMode::DoesPopulationPointOverlapCampSphere(const FVector& Candi
     return false;
 }
 
+bool AKalmalaGameMode::DoesPopulationDescriptorPassPhysicalPlacement(
+    const FKalmalaWorldPopulationSpawn& Descriptor) const
+{
+    UWorld* World = GetWorld();
+    if (!HasAuthority() || !IsValid(World) || !WorldGenerationConfig.IsValid()
+        || Descriptor.Kind != EKalmalaWorldPopulationKind::Wildlife)
+    {
+        return false;
+    }
+
+    // S22c composes the applicable S20 land or S21 aquatic surface check with
+    // each species' existing movement support. Body and roof clearance remain
+    // independent so physical placement rejects if any S20-S24 check fails.
+    if (!DoesPopulationDescriptorPassMovementSupport(Descriptor)
+        || !DoesPopulationDescriptorPassBodyClearance(Descriptor)
+        || !DoesPopulationDescriptorPassRoofClearance(Descriptor))
+    {
+        return false;
+    }
+
+    EKalmalaWildlifeArchetype Archetype;
+    if (!DoesPopulationDescriptorPassSpeciesHabitat(Descriptor, &Archetype)) return false;
+
+    TArray<FKalmalaWildlifeBodyCollisionShape> BodyShapes;
+    if (!AKalmalaWildlifeSpawn::GetBodyCollisionShapesForArchetype(Archetype, BodyShapes)
+        || BodyShapes.IsEmpty())
+    {
+        return false;
+    }
+
+    TArray<FKalmalaWorldPopulationSpawn> ActorDescriptors;
+    if (Archetype == EKalmalaWildlifeArchetype::Wolf)
+    {
+        ActorDescriptors.Reserve(FKalmalaWolfPackContract::MemberCount);
+        for (int32 MemberIndex = 0; MemberIndex < FKalmalaWolfPackContract::MemberCount; ++MemberIndex)
+        {
+            FKalmalaWorldPopulationSpawn MemberSpawn;
+            if (!FKalmalaWolfPackContract::TryBuildMemberSpawn(
+                    WorldGenerationConfig, Descriptor, MemberIndex, MemberSpawn))
+            {
+                return false;
+            }
+            ActorDescriptors.Add(MoveTemp(MemberSpawn));
+        }
+    }
+    else
+    {
+        ActorDescriptors.Add(Descriptor);
+    }
+
+    // Camp suppression gates only new actor admission. Existing wildlife state,
+    // defeat handling and movement are not touched by this query.
+    for (const FKalmalaWorldPopulationSpawn& ActorDescriptor : ActorDescriptors)
+    {
+        FVector ActorLocation;
+        if (!TryGetPopulationActorPlacementLocation(
+                ActorDescriptor, Archetype, BodyShapes, ActorLocation)
+            || DoesPopulationPointOverlapStationCylinder(ActorLocation)
+            || DoesPopulationPointOverlapCampSphere(ActorLocation))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
 bool AKalmalaGameMode::TryGetPopulationActorPlacementLocation(
     const FKalmalaWorldPopulationSpawn& Descriptor, const EKalmalaWildlifeArchetype Archetype,
     const TArray<FKalmalaWildlifeBodyCollisionShape>& BodyShapes, FVector& OutActorLocation) const
@@ -6957,6 +7024,39 @@ void AKalmalaGameMode::ApplyPopulationCapGate(FKalmalaPopulationSchedulerKeyWork
     KeyWork.Candidates.RemoveAll([&CapPassedSpawnIds](const FKalmalaWorldPopulationSpawn& Descriptor)
     {
         return !CapPassedSpawnIds.Contains(
+            FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Descriptor));
+    });
+}
+
+void AKalmalaGameMode::ApplyPopulationPhysicalPlacementGate(
+    FKalmalaPopulationSchedulerKeyWork& KeyWork) const
+{
+    TSet<FString> PhysicalPlacementPassedSpawnIds;
+    for (FKalmalaPopulationSpawnAttempt& Attempt : KeyWork.SpawnAttempts)
+    {
+        Attempt.GateResults.bPhysicalPlacementPassed = false;
+        // Open only the final bit in a copy so ordered evaluation checks prior gates.
+        FKalmalaPopulationSpawnGateResults EarlierGateResults = Attempt.GateResults;
+        EarlierGateResults.bPhysicalPlacementPassed = true;
+        if (EvaluatePopulationSpawnGates(EarlierGateResults)
+            == EKalmalaPopulationSpawnRejectionReason::None)
+        {
+            Attempt.GateResults.bPhysicalPlacementPassed =
+                DoesPopulationDescriptorPassPhysicalPlacement(Attempt.Descriptor);
+        }
+
+        Attempt.RejectionReason = EvaluatePopulationSpawnGates(Attempt.GateResults);
+        if (Attempt.GateResults.bPhysicalPlacementPassed)
+        {
+            PhysicalPlacementPassedSpawnIds.Add(
+                FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Attempt.Descriptor));
+        }
+    }
+
+    KeyWork.Candidates.RemoveAll([&PhysicalPlacementPassedSpawnIds](
+        const FKalmalaWorldPopulationSpawn& Descriptor)
+    {
+        return !PhysicalPlacementPassedSpawnIds.Contains(
             FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Descriptor));
     });
 }

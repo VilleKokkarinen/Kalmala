@@ -323,9 +323,9 @@ existing ocean and lake samplers, and a sampled surface normal at no more than
 habitat check, including its hard-enemy generated-start exclusion, and rejects
 Reef Maw for S21's aquatic checks. For a Wolf descriptor it uses the existing
 pack-member builder, then applies the same bounds, dry-ground and 32-degree
-checks to each of the three actual member locations. It does not set the final
-physical-placement result: that result remains fail-closed until S25 combines
-surface, clearance, roof and camp checks.
+checks to each of the three actual member locations. S25 invokes this surface
+predicate as one component of the final physical-placement result; any failed
+component rejects admission.
 
 S21 adds the server-only Reef Maw aquatic predicate. The existing actor root
 sphere is the active Reef Maw body collision shape; the same 92 cm radius
@@ -336,8 +336,9 @@ is then sampled for Ocean-only, non-lake support and for terrain below the
 actual sphere's lower surface at each horizontal offset. Those geometric checks
 use the current spawn depth and actor radius; they add no competing minimum
 depth value. Land checks continue to reject Reef Maw, aquatic checks reject all
-other archetypes, and the final physical-placement result remains fail-closed
-until S25.
+other archetypes. S25 now combines the applicable surface and movement
+predicates with clearance and camp checks in the final physical-placement
+result.
 
 S22a makes the configured root sphere and the three snake archetypes' active
 secondary capsule a shared collision profile consumed by both actor component
@@ -350,9 +351,9 @@ local plane; sphere support uses its radius, and capsule support includes its
 axis and relative offset. Blocking collision remains the final overlap check.
 Mosquito flight height and Reef Maw's fixed ocean depth retain their existing
 anchors. The descriptor XY, key and seed are unchanged, so
-persistent identity remains stable. S22a is not wired to admission. S22b adds
-the solid construction-roof trace, S22c adds species movement support, and S25
-continues to combine placement checks before admission.
+persistent identity remains stable. S22a supplies body-clearance checks to the
+S25 combined physical-placement gate. S22b adds the solid construction-roof
+trace, and S22c adds species movement support.
 
 S22b derives a vertical trace start from the uppermost point of every active
 shape in the shared S22a collision profile and traces upward 2400 cm. Wolf
@@ -362,8 +363,8 @@ server-authoritative `AKalmalaConstructionActor` whose kit is exactly `RoofKit`
 and whose registered root box has query collision enabled and blocks visibility
 traces. Each eligible roof component is traced independently, so foliage,
 canopy, cosmetics and non-roof construction cannot hide a RoofKit above them.
-S22b remains a reusable predicate only; S25 still wires the final placement
-result, and S26 remains the first task allowed to create natural actors.
+S22b remains a reusable predicate; S25 now wires it into the final placement
+result. S26 remains the first task allowed to create natural actors.
 
 S22c composes the S20 generated dry-ground predicate for land species or the
 S21 Reef Maw full-body water predicate, then checks each actual proposed actor
@@ -373,22 +374,33 @@ Tundra Wolf/Lynx/Polar Bear, traversable Thunder Mountains Horned Goat/Thunder
 Sentinel, Ocean-depth Reef Maw, dry Mossy Mire Peat Husk, and biome/dry/leash
 snake rules used by existing movement code. Other land species rely on S20
 generated-ground support and S22a clear body collision; S22c adds no NavMesh
-requirement. The descriptor movement and roof checks remain unwired into
-population admission until S25 combines the physical placement result.
+requirement. The descriptor movement, surface, body-clearance and roof checks
+now feed the S25 combined physical-placement result.
 
 S23 adds a server-authoritative point query for active, initialized Workbench
 and Forge construction only. Its inclusive horizontal radius is 1800 cm and
 its inclusive vertical range is 1200 cm above or below the placed station
 origin. Uninitialized, destroyed, nonpositive-health and other construction
-pieces do not suppress. The query remains separate from final placement until
-S25; natural actor creation remains disabled until S26.
+pieces do not suppress. The query now feeds S25's combined final placement
+result; natural actor creation remains disabled until S26.
 
 S24 adds a separate server-authoritative 3D sphere query with the same 1800 cm
 radius. An intact placed Camp Bed suppresses regardless of fuel; a Campfire
 must be lit with positive finite fuel, and a Standing Light must pass its
 existing server flame-eligibility check. Other construction, unlisted stations
-and cosmetics do not suppress. This result remains unwired until S25; RoofKit
-rejection remains the independent S22 check.
+and cosmetics do not suppress. This result now feeds S25's combined placement
+result; RoofKit rejection remains the independent S22 check.
+
+S25 wires the server-authoritative physical-placement result after the cap
+gate. For each bounded attempt that passes all earlier gates, the composite
+requires S22c's applicable S20 land or S21 aquatic and movement checks, S22a
+body clearance, S22b solid RoofKit clearance, and no overlap with the current
+S23 Workbench/Forge cylinder or S24 eligible camp-source sphere. It evaluates
+the actual proposed actor origin; Wolf packs check all three member origins.
+Failure reports PhysicalPlacement and removes that descriptor from the
+bounded candidate list. This only suppresses new natural-spawn admission:
+existing creatures are not destroyed or prevented from moving into a camp.
+S26 remains the first task allowed to create natural actors.
 
 - Time, weather and progression are explicitly **unrestricted for all current
   species**. These three gates return pass. Provide internal policy seams and

@@ -8037,3 +8037,15 @@
 - **Networking/authority:** Invalid or non-authoritative query context fails closed. Construction and Campfire actors are considered only from the current authoritative world. No network protocol or save schema changed.
 - **Known limitations:** S25 still combines the S20–S24 placement, station and sphere results with live source state/destruction; natural actor creation remains disabled until S26.
 - **Next eligible task:** S25 is next — wire placement and camp suppression results into the physical-placement gate.
+
+### Monster population — S25 final placement gate
+
+- **Selected increment:** S25, combine current S20–S24 placement and camp-suppression checks in the physical-placement gate.
+- **Work completed:** Wired the server-authoritative physical-placement composite after the cap gate for bounded attempts that pass all earlier checks. The composite applies the S20/S21 surface and S22c movement predicate, S22a body clearance, S22b solid-roof clearance, and current S23 station-cylinder plus S24 camp-sphere queries at the actual proposed actor origins; Wolf packs validate all three member origins. Rejected attempts report PhysicalPlacement and are removed from this wake's bounded candidate list. This only affects new-spawn admission; it neither deletes existing creatures nor changes their movement. Actor creation remains disabled until S26.
+- **Files changed:** Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationPhysicalPlacementGateTest.cpp, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
+- **Lightweight checks:** Inspected scheduler order and confirmed physical placement follows caps; reviewed all S20–S24 helper calls, first-rejection preservation, actual Wolf/member placement origins, and candidate filtering. Added a focused automation fixture for invalid placement fail-closed behavior, earlier Caps rejection preservation, and ensuring an existing wildlife actor is neither deleted nor moved. git diff --check passed; fixture and builds were not run.
+- **Full verification:** Deferred to S35; S25 is not the final implementation task in the monster-population goal.
+- **Observable impact / authority:** The current authoritative world's surfaces, collision, solid roof and live station/camp state now determine whether a bounded new-spawn candidate survives the physical-placement gate. No actor creation or save/replication schema changes were made.
+- **Networking/authority:** Composite and component queries require GameMode authority and read the current world's state; no client-controlled input or remote state is introduced.
+- **Known limitations:** S26 must still consume eligible candidates through one bounded creation transaction, recheck caps and handle reservation/registration rollback. Natural actor creation remains disabled.
+- **Next eligible task:** S26 is next — enable natural spawning through the complete bounded creation transaction.

@@ -156,6 +156,7 @@ private:
     friend class FKalmalaPopulationRoofClearanceTest;
     friend class FKalmalaPopulationStationCylinderTest;
     friend class FKalmalaPopulationSphericalSuppressionTest;
+    friend class FKalmalaPopulationPhysicalPlacementGateTest;
     friend class AKalmalaWildlifeSpawn;
 
 #if WITH_DEV_AUTOMATION_TESTS
@@ -191,6 +192,7 @@ private:
     void ApplyPopulationWeatherGate(FKalmalaPopulationSchedulerKeyWork& KeyWork) const;
     void ApplyPopulationProgressionGate(FKalmalaPopulationSchedulerKeyWork& KeyWork) const;
     void ApplyPopulationCapGate(FKalmalaPopulationSchedulerKeyWork& KeyWork);
+    void ApplyPopulationPhysicalPlacementGate(FKalmalaPopulationSchedulerKeyWork& KeyWork) const;
     bool TryReserveWolfPackCapacity(const TArray<FVector>& MemberLocations,
         const FIntPoint& HomeSpatialKey, FGuid& OutReservationId);
     bool ReleasePopulationCreatureReservation(const FGuid& ReservationId);
@@ -204,6 +206,8 @@ private:
     bool DoesPopulationDescriptorPassRoofClearance(const FKalmalaWorldPopulationSpawn& Descriptor,
         const AActor* ProposedActorToIgnore = nullptr) const;
     bool DoesPopulationDescriptorPassMovementSupport(const FKalmalaWorldPopulationSpawn& Descriptor) const;
+    bool DoesPopulationDescriptorPassPhysicalPlacement(
+        const FKalmalaWorldPopulationSpawn& Descriptor) const;
     bool DoesPopulationPointOverlapStationCylinder(const FVector& CandidateLocation) const;
     bool DoesPopulationPointOverlapCampSphere(const FVector& CandidateLocation) const;
     bool TryGetPopulationActorPlacementLocation(const FKalmalaWorldPopulationSpawn& Descriptor,
