@@ -170,6 +170,22 @@ double FKalmalaRegionalGeneration::ShapeMeadows(const double SourceHeight, const
     return SourceHeight + double(float(40 * Detail));
 }
 
+double FKalmalaRegionalGeneration::CompressMeadowShoulder(
+    const double Height, const double ShoulderHeight, const double ShoulderCompressionScale)
+{
+    if (Height <= ShoulderHeight) return Height;
+    const double Excess = Height - ShoulderHeight;
+    return ShoulderHeight + ShoulderCompressionScale * (1.0 - FMath::Exp(-Excess / ShoulderCompressionScale));
+}
+
+double FKalmalaRegionalGeneration::ShapeMeadows(
+    const double SourceHeight, const double HillNoise, const double HillAmplitude,
+    const double ShoulderHeight, const double ShoulderCompressionScale)
+{
+    const double HeightWithHills = SourceHeight + double(float(HillNoise * HillAmplitude));
+    return CompressMeadowShoulder(HeightWithHills, ShoulderHeight, ShoulderCompressionScale);
+}
+
 double FKalmalaRegionalGeneration::ShapeElderwood(const double SourceHeight, const double Detail)
 {
     return SourceHeight + double(float(-60 + 15 * Detail));
@@ -282,8 +298,10 @@ FKalmalaRegionalSample FKalmalaRegionalGeneration::SampleInternal(const FKalmala
     if (!bBiomeOnly)
     {
         const double Detail = Noise(C, 250, P, 0.00015);
+        const double MeadowHill = Noise(C, T::MeadowHillSalt, P, 1.0 / Preview.MeadowHillScale);
         const double CandidateHeights[] = {
-            ShapeMeadows(Source, Detail),
+            ShapeMeadows(Source, MeadowHill, Preview.MeadowHillAmplitude,
+                Preview.MeadowShoulderHeight, Preview.MeadowShoulderCompressionScale),
             ShapeShimmeringLakes(Source, Detail),
             ShapeElderwood(Source, Detail),
             ShapeMire(Source, Detail),

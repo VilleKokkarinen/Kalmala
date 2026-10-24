@@ -36,7 +36,7 @@ try {
     Wait-Report 'World PNG export complete:' 1
     $original = Get-Hashes
     $defaultSummary = Get-Content -LiteralPath (Join-Path $proof 'LastRender.txt') -Raw
-    if ($defaultSummary -notmatch 'ReliefBroadScale=100000\.000' -or $defaultSummary -notmatch 'MeadowHillAmplitude=600\.000') {
+    if ($defaultSummary -notmatch 'ReliefBroadScale=100000\.000' -or $defaultSummary -notmatch 'MeadowHillAmplitude=600\.000' -or $defaultSummary -notmatch 'MeadowShoulderHeight=1000\.000' -or $defaultSummary -notmatch 'MeadowShoulderCompressionScale=3000\.000') {
         throw 'LastRender.txt did not report the documented terrain-control defaults'
     }
     [IO.File]::WriteAllText($inputPath, ($baseline + "ReliefBroadScaleKm=0.49`n"))
@@ -47,16 +47,20 @@ try {
     Wait-Report 'Invalid world-map parameters' 2
     $invalid = Get-Hashes
     foreach ($name in $original.Keys) { if ($original[$name] -ne $invalid[$name]) { throw 'Out-of-range biome control modified output' } }
-    [IO.File]::WriteAllText($inputPath, "Size=NaN`nUnknownParameter=42`n")
+    [IO.File]::WriteAllText($inputPath, ($baseline + "MeadowShoulderCompressionScaleM=60.01`n"))
     Wait-Report 'Invalid world-map parameters' 3
     $invalid = Get-Hashes
+    foreach ($name in $original.Keys) { if ($original[$name] -ne $invalid[$name]) { throw 'Out-of-range shoulder control modified output' } }
+    [IO.File]::WriteAllText($inputPath, "Size=NaN`nUnknownParameter=42`n")
+    Wait-Report 'Invalid world-map parameters' 4
+    $invalid = Get-Hashes
     foreach ($name in $original.Keys) { if ($original[$name] -ne $invalid[$name]) { throw 'Invalid input modified output' } }
-    [IO.File]::WriteAllText($inputPath, ($baseline + "ReliefBroadScaleKm=1.25`nReliefMiddleScaleKm=0.18`nReliefLocalScaleKm=0.04`nMeadowHillScaleM=200`nMeadowHillAmplitudeM=8`nMeadowRollingScaleM=50`nMeadowRollingAmplitudeM=1.5`nMeadowFloorScaleM=15`nMeadowFloorAmplitudeM=0.25`n"))
+    [IO.File]::WriteAllText($inputPath, ($baseline + "ReliefBroadScaleKm=1.25`nReliefMiddleScaleKm=0.18`nReliefLocalScaleKm=0.04`nMeadowHillScaleM=200`nMeadowHillAmplitudeM=8`nMeadowShoulderHeightM=12`nMeadowShoulderCompressionScaleM=40`nMeadowRollingScaleM=50`nMeadowRollingAmplitudeM=1.5`nMeadowFloorScaleM=15`nMeadowFloorAmplitudeM=0.25`n"))
     Wait-Report 'World PNG export complete:' 2
     $terrainControlsOnly = Get-Hashes
-    foreach ($name in $original.Keys) { if ($original[$name] -ne $terrainControlsOnly[$name]) { throw 'Staged terrain controls changed fast-map pixels before height integration' } }
+    foreach ($name in $original.Keys) { if ($original[$name] -ne $terrainControlsOnly[$name]) { throw 'Height-only terrain controls changed fast classification-map pixels' } }
     $terrainSummary = Get-Content -LiteralPath (Join-Path $proof 'LastRender.txt') -Raw
-    if ($terrainSummary -notmatch 'ReliefBroadScale=125000\.000' -or $terrainSummary -notmatch 'MeadowHillAmplitude=800\.000') {
+    if ($terrainSummary -notmatch 'ReliefBroadScale=125000\.000' -or $terrainSummary -notmatch 'MeadowHillAmplitude=800\.000' -or $terrainSummary -notmatch 'MeadowShoulderCompressionScale=4000\.000') {
         throw 'LastRender.txt did not report the requested terrain controls'
     }
     [IO.File]::WriteAllText($inputPath, ($baseline + "MasterSeed=42`nMasterWavelengthKm=5.5`nLandThreshold=0.1`nBiomeScaleKm=1.4`nWarpStrengthKm=0.2`nLakesMinimumKm=3`nLakesMaximumKm=16`nMireMinimumKm=3`nMireMaximumKm=16`nWetlandHumidityMinimum=0.3`nWetlandHumidityFull=0.6`n"))

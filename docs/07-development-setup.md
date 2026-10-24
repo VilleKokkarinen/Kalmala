@@ -3653,7 +3653,8 @@ The file uses one `Name=value` per line, with optional blank lines and full-line
 | `ReliefBroadScaleKm` | 1.0 | Staged broad terrain noise scale, 0.5–1.5 km. |
 | `ReliefMiddleScaleKm` | 0.15 | Staged shared middle relief scale, 0.08–0.25 km. |
 | `ReliefLocalScaleKm` | 0.03 | Staged shared local relief scale, 0.01–0.05 km. |
-| `MeadowHillScaleM` / `MeadowHillAmplitudeM` | 160 / 6 | Broad Meadow forms; 100–250 m / 4–10 m. |
+| `MeadowHillScaleM` / `MeadowHillAmplitudeM` | 160 / 6 | Provisional Meadows hill trial; 100–250 m / 4–10 m. |
+| `MeadowShoulderHeightM` / `MeadowShoulderCompressionScaleM` | 10 / 30 | Meadows upper shoulder begins at 6–16 m and approaches a bounded asymptote with a 10–60 m scale. |
 | `MeadowRollingScaleM` / `MeadowRollingAmplitudeM` | 45 / 1.2 | Middle Meadow relief; 30–70 m / 0.6–2 m. |
 | `MeadowFloorScaleM` / `MeadowFloorAmplitudeM` | 12 / 0.2 | Meadow floor detail; 8–20 m / 0.1–0.35 m. |
 | `StarterRadiusKm` | 0.35 | Inclusive Meadows/Ocean-only radius. |
@@ -3666,6 +3667,12 @@ The file uses one `Name=value` per line, with optional blank lines and full-line
 | `TundraMinimumKm` | 4 | Tundra eligibility minimum. |
 | `MeadowsMaximumKm` | 4 | Meadows cutoff; must exceed the starter radius and be at most 16 km. |
 | `EligibilityBlendKm` | 0.05 | Smooth eligibility ramp; 0.001 km through the Meadows maximum. |
+
+The current regional height sampler consumes the Meadows hill scale, amplitude,
+and shoulder controls. The shared relief scales are still staged for later
+biome layers; the rolling and floor controls are not yet integrated. This fast
+PNG exporter validates and reports all terrain controls but does not display
+height; use the full visualization/numeric sampler for height profiles.
 
 The starter, Elderwood, Mire and Tundra radii must be nonnegative, ordered and at most 16 km. Lakes follow the starter exclusion. Atlas dimensions and playable radius remain fixed to the current contract. Broad land thresholds can leave little or no land; such an experiment is a visual preview, not validation of a playable spawn.
 

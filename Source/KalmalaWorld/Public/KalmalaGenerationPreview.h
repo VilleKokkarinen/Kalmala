@@ -8,13 +8,15 @@ struct FKalmalaGenerationPreviewSettings
 {
     uint64 MasterSeed = FKalmalaMasterMap::MasterSeed;
     double MasterWavelength = FKalmalaMasterMap::Wavelength;
-    // Commandlet-only staged terrain controls, centimetres. Height sampling
-    // will consume them as the corresponding layers are implemented.
+    // Commandlet-only terrain controls, centimetres. Not-yet-integrated layers
+    // remain preview-only until their corresponding sampler work is complete.
     double ReliefBroadScale = FKalmalaRegionalTuning::ReliefBroadScale;
     double ReliefMiddleScale = FKalmalaRegionalTuning::ReliefMiddleScale;
     double ReliefLocalScale = FKalmalaRegionalTuning::ReliefLocalScale;
     double MeadowHillScale = FKalmalaRegionalTuning::MeadowHillScale;
     double MeadowHillAmplitude = FKalmalaRegionalTuning::MeadowHillAmplitude;
+    double MeadowShoulderHeight = FKalmalaRegionalTuning::MeadowShoulderHeight;
+    double MeadowShoulderCompressionScale = FKalmalaRegionalTuning::MeadowShoulderCompressionScale;
     double MeadowRollingScale = FKalmalaRegionalTuning::MeadowRollingScale;
     double MeadowRollingAmplitude = FKalmalaRegionalTuning::MeadowRollingAmplitude;
     double MeadowFloorScale = FKalmalaRegionalTuning::MeadowFloorScale;
@@ -49,6 +51,8 @@ struct FKalmalaGenerationPreviewSettings
             && InRange(ReliefLocalScale, 1000.0, 5000.0)
             && InRange(MeadowHillScale, 10000.0, 25000.0)
             && InRange(MeadowHillAmplitude, 400.0, 1000.0)
+            && InRange(MeadowShoulderHeight, 600.0, 1600.0)
+            && InRange(MeadowShoulderCompressionScale, 1000.0, 6000.0)
             && InRange(MeadowRollingScale, 3000.0, 7000.0)
             && InRange(MeadowRollingAmplitude, 60.0, 200.0)
             && InRange(MeadowFloorScale, 800.0, 2000.0)

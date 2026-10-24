@@ -49,6 +49,8 @@ namespace
                 else if (Key == TEXT("ReliefLocalScaleKm")) R.Tuning.ReliefLocalScale = Number * 100000;
                 else if (Key == TEXT("MeadowHillScaleM")) R.Tuning.MeadowHillScale = Number * 100;
                 else if (Key == TEXT("MeadowHillAmplitudeM")) R.Tuning.MeadowHillAmplitude = Number * 100;
+                else if (Key == TEXT("MeadowShoulderHeightM")) R.Tuning.MeadowShoulderHeight = Number * 100;
+                else if (Key == TEXT("MeadowShoulderCompressionScaleM")) R.Tuning.MeadowShoulderCompressionScale = Number * 100;
                 else if (Key == TEXT("MeadowRollingScaleM")) R.Tuning.MeadowRollingScale = Number * 100;
                 else if (Key == TEXT("MeadowRollingAmplitudeM")) R.Tuning.MeadowRollingAmplitude = Number * 100;
                 else if (Key == TEXT("MeadowFloorScaleM")) R.Tuning.MeadowFloorScale = Number * 100;
@@ -163,8 +165,9 @@ namespace
             T.StarterRadius, T.ElderwoodMinimum, T.LakesMinimum, T.LakesMaximum, T.MireMinimum, T.MireMaximum, T.TundraMinimum, T.MeadowsMaximum, T.EligibilityBlend);
         Summary += FString::Printf(TEXT("WetlandHumidityMinimum=%.6f WetlandHumidityFull=%.6f WetlandElevationFull=%.6f WetlandElevationMaximum=%.6f WetlandTemperatureMinimum=%.6f WetlandTemperatureFull=%.6f\n"),
             T.WetlandHumidityMinimum, T.WetlandHumidityFull, T.WetlandElevationFull, T.WetlandElevationMaximum, T.WetlandTemperatureMinimum, T.WetlandTemperatureFull);
-        Summary += FString::Printf(TEXT("Terrain controls (cm, staged for later height layers): ReliefBroadScale=%.3f ReliefMiddleScale=%.3f ReliefLocalScale=%.3f MeadowHillScale=%.3f MeadowHillAmplitude=%.3f MeadowRollingScale=%.3f MeadowRollingAmplitude=%.3f MeadowFloorScale=%.3f MeadowFloorAmplitude=%.3f\n"),
+        Summary += FString::Printf(TEXT("Terrain controls (cm; fast biome PNGs do not display height): ReliefBroadScale=%.3f ReliefMiddleScale=%.3f ReliefLocalScale=%.3f MeadowHillScale=%.3f MeadowHillAmplitude=%.3f MeadowShoulderHeight=%.3f MeadowShoulderCompressionScale=%.3f MeadowRollingScale=%.3f MeadowRollingAmplitude=%.3f MeadowFloorScale=%.3f MeadowFloorAmplitude=%.3f\n"),
             T.ReliefBroadScale, T.ReliefMiddleScale, T.ReliefLocalScale, T.MeadowHillScale, T.MeadowHillAmplitude,
+            T.MeadowShoulderHeight, T.MeadowShoulderCompressionScale,
             T.MeadowRollingScale, T.MeadowRollingAmplitude, T.MeadowFloorScale, T.MeadowFloorAmplitude);
         if (!FFileHelper::SaveStringToFile(Summary, *(Output / TEXT("LastRender.txt")))) return false;
         UE_LOG(LogTemp, Display, TEXT("World PNG export complete: Seed=%llu Size=%d Sampling=%.3fs Total=%.3fs Output=%s"),

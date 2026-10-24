@@ -547,9 +547,13 @@ run for this goal and may exceed one turn.
   - [x] **BH09 — Blend candidate heights continuously.** Use normalized existing
     land-biome weights and continuous coast attenuation; avoid hard label
     switches, double-applied detail, and changes to classifier inputs/bands.
-  - [ ] **BH10 — Shape Meadows hills.** Add broad hills and hollows with the
-    bounded smooth upper-shoulder compression; compare trial settings against
-    the recorded profiles and preserve lower terrain and camp pockets.
+  - [ ] **BH10 — Shape Meadows hills.** Keep open until BH10a–BH10b are complete.
+    - [x] **BH10a — Integrate the hill layer and shoulder curve.** Add bounded,
+      deterministic broad Meadows hills with smooth upper-height compression;
+      retain the lower source shape and continuous biome/coast blend.
+    - [ ] **BH10b — Measure and tune Meadows hill trials.** Compare 4/6/8 m
+      amplitudes on recorded fixed-site and 100–250 m height/slope profiles;
+      select the smallest trial meeting acceptance and record the measurements.
   - [ ] **BH11 — Add Meadows rolling relief.** Integrate the middle-scale layer
     separately; inspect 30–70 m profiles, traversal slopes, patch seams, and
     connected gentler routes.

@@ -1,9 +1,10 @@
 # Meadows terrain and biome plan
 
-Status: proposed implementation plan, 2026-10-24. This document records the
-requested terrain direction; no generator parameters or gameplay are changed.
-Execution is queued in `BACKLOG.md` after A10 acceptance and before Monster
-Population, under the combined biome-height goal.
+Status: proposed implementation plan, 2026-10-24. BH10a now implements a
+provisional Meadows hill signal and upper-shoulder curve; measured profile
+selection remains pending in BH10b. No gameplay, forest or presentation changes
+are implemented by this document. Execution is tracked in `BACKLOG.md` before
+Monster Population under the combined biome-height goal.
 
 ## Reference interpretation
 
@@ -94,6 +95,7 @@ Compare the low, middle and high settings separately with fixed seeds.
 | --- | --- | --- | --- |
 | `MeadowHillScale` | 160 m | 100–250 m | Broad inclines and hollows visible across several patches. |
 | `MeadowHillAmplitude` | 6 m | 4–10 m | A meaningful skyline and sustained uphill/downhill travel. |
+| `MeadowShoulderHeight` / `MeadowShoulderCompressionScale` | 10 m / 30 m | 6–16 m / 10–60 m | Preserve lower pockets while gradually softening higher Meadows shoulders. |
 | `MeadowRollingScale` | 45 m | 30–70 m | Rounded shoulders, smaller valleys and grove undulations. |
 | `MeadowRollingAmplitude` | 1.2 m | 0.6–2 m | Relief readable near the player without continuous steep bumps. |
 | `MeadowFloorScale` | 12 m | 8–20 m | Gentle forest-floor variation; avoid sub-lattice noise. |

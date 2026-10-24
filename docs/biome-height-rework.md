@@ -631,6 +631,27 @@ shared forest descriptors and existing materials; BH25–BH26 add raw-range,
 cost, rendered traversal and integrated peer acceptance. Server-owned gameplay
 selection stays authoritative throughout.
 
+## BH10a Meadows hill layer and shoulder curve
+
+The Meadows candidate now adds an independent, seed-derived hill signal in
+absolute world XY. Its provisional `MeadowHillScale=16000 cm` and
+`MeadowHillAmplitude=600 cm` use a salt distinct from the shared relief stack.
+The broad hill signal replaces the previous 40 cm Meadows detail term, then the
+candidate applies a smooth exponential upper-shoulder compression above `MeadowShoulderHeight=1000
+cm` with `MeadowShoulderCompressionScale=3000 cm`. The curve is monotonic, is
+bounded by the finite asymptote at threshold plus scale, and leaves lower candidates
+unchanged. The existing continuous biome/coast blend and later coast/river
+passes remain in place. These are provisional defaults, not an accepted tuning
+result.
+
+Focused source coverage now checks candidate output, lower-pocket preservation,
+monotonic bounded compression, and positive/negative hill signal across a 500 m
+neighborhood around the seed-418 outer dry Meadows baseline. The BH01 numeric
+artifact contains fixed-site points, not 100–250 m Meadow transects; BH10b must
+add/export those profiles, compare 4/6/8 m trials, and record the measured
+selection. No build, automation, or rendered acceptance was run for BH10a;
+full integrated verification remains BH26.
+
 ## BH07 staged preview controls
 
 `FKalmalaRegionalTuning` now names the initial shared scales and documented
@@ -644,14 +665,16 @@ non-finite or out-of-range inputs. Bounds are the design ranges, inclusive:
 | `ReliefMiddleScaleKm` | 0.15 km | 0.08–0.25 km |
 | `ReliefLocalScaleKm` | 0.03 km | 0.01–0.05 km |
 | `MeadowHillScaleM` / `MeadowHillAmplitudeM` | 160 m / 6 m | 100–250 m / 4–10 m |
+| `MeadowShoulderHeightM` / `MeadowShoulderCompressionScaleM` | 10 m / 30 m | 6–16 m / 10–60 m |
 | `MeadowRollingScaleM` / `MeadowRollingAmplitudeM` | 45 m / 1.2 m | 30–70 m / 0.6–2 m |
 | `MeadowFloorScaleM` / `MeadowFloorAmplitudeM` | 12 m / 0.2 m | 8–20 m / 0.1–0.35 m |
 
 These settings are accepted only by the headless preview route and reported in
-`LastRender.txt`. Until the corresponding relief layers are connected, the fast
-classification PNGs do not consume these fields and changing them leaves map
-pixels unchanged. No production height sample reads these staged controls in
-BH07; later increments connect each layer after its baseline comparison.
+`LastRender.txt`. The fast classification PNGs do not display height and
+changing terrain controls leaves their pixels unchanged. BH10a now consumes the
+Meadow hill scale/amplitude and shoulder controls in regional height sampling;
+the shared relief scales, rolling relief and floor detail remain staged for
+later increments. BH10b will compare and select the hill trial.
 
 ## BH08 shared relief sampler
 

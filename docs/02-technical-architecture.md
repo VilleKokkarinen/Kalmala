@@ -324,6 +324,14 @@ once, then keeps the existing independently weighted ocean offset. Biome labels,
 ecological fields and eligibility bands remain classifier inputs and do not
 select a hard height switch.
 
+The Meadows candidate now adds a separate seed-derived absolute-world hill
+signal at a provisional 160 m scale and 6 m amplitude. A monotonic exponential
+shoulder curve leaves candidates below 10 m unchanged and approaches a 40 m
+upper bound. This broad layer replaces the previous 40 cm Meadows detail term.
+BH10b still needs to measure the low/nominal/high
+amplitude profiles and select the smallest accepted trial; middle-scale rolling
+relief and floor detail remain later work.
+
 The master seed is a compiled constant. Crop transforms derive from the game seed. Rivers remain enabled and small streams are disabled. Authority, population IDs, collision and maps derive from the same server-owned seed and current build.
 
 ### Sea-level river terrain and hydrology contract

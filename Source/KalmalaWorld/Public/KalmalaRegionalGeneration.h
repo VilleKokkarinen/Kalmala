@@ -51,12 +51,15 @@ struct KALMALAWORLD_API FKalmalaRegionalGeneration
 private:
     friend class FKalmalaBiomeHeightFunctionTest;
     friend class FKalmalaBiomeHeightBlendTest;
+    friend class FKalmalaMeadowShoulderCompressionTest;
     friend class FKalmalaMasterMapTest;
     friend class FKalmalaRiverBankCrossSectionTest;
     friend class FKalmalaRiverUnchangedControlsTest;
-    // Named pre-relief candidates keep the existing additive shapes explicit.
-    // Their defaults intentionally reproduce the current regional sample.
+    // Named candidates keep the existing land-biome shape behavior explicit.
     static double ShapeMeadows(double SourceHeight, double Detail);
+    static double ShapeMeadows(double SourceHeight, double HillNoise,
+        double HillAmplitude, double ShoulderHeight, double ShoulderCompressionScale);
+    static double CompressMeadowShoulder(double Height, double ShoulderHeight, double ShoulderCompressionScale);
     static double ShapeElderwood(double SourceHeight, double Detail);
     static double ShapeShimmeringLakes(double SourceHeight, double Detail);
     static double ShapeMire(double SourceHeight, double Detail);

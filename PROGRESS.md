@@ -1,3 +1,53 @@
+## Run 2026-10-24T18:09:54Z — Integrate Meadows hills and shoulder curve (BH10a)
+
+- **Selected task:** BH10a, the first ordered child under BH10. BH10 remains
+  open until its profile-measurement child BH10b is complete.
+- **Work completed:** Added a deterministic broad Meadows hill signal with its
+  own world-seed noise salt and preview amplitude/scale. It replaces the old
+  40 cm Meadows detail candidate term. Added a monotonic exponential upper
+  shoulder compression with preview controls for its threshold and scale; the
+  curve is identity below its threshold and asymptotically bounded above it.
+  Kept the continuous biome/coast blend, hydrology ordering, and other biome
+  candidates intact. Added focused source coverage for bounded monotonic
+  compression, lower-candidate preservation, one-time signed hill addition,
+  continuous Meadows/Elderwood blending, and a fixed seed-418 baseline-site
+  hill neighborhood. Added the shoulder controls to commandlet parsing and
+  reporting. The provisional nominal hill amplitude is 6 m, pending BH10b.
+- **Files changed:** `BACKLOG.md`; `PROGRESS.md`;
+  `Scripts/Tests/World/WorldMapExport.ps1`; `Scripts/WorldMapPreview.params`;
+  `Source/KalmalaEditor/Private/ExportWorldMapsCommandlet.cpp`;
+  `Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp`;
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`;
+  `Source/KalmalaWorld/Public/KalmalaGenerationPreview.h`;
+  `Source/KalmalaWorld/Public/KalmalaRegionalGeneration.h`;
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`;
+  `docs/02-technical-architecture.md`; `docs/07-development-setup.md`;
+  `docs/biome-height-rework.md`; `docs/meadows-plan.md`.
+- **Lightweight checks:** `git diff --check` passed (Git reported existing
+  CRLF-to-LF working-copy warnings). PowerShell parser validation passed for
+  `Scripts/Tests/World/WorldMapExport.ps1`; the source and staged-control
+  changes were inspected. No Unreal build or automation was run.
+- **Full verification:** Deferred to BH26; BH10a is not the final implementation
+  task in the roadmap milestone.
+- **Observable impact:** Meadows regional heights now receive a deterministic
+  broad hill/hollow signal and a smooth upper-height compression. Other
+  classifier fields and fast biome-map pixels are unaffected by these height
+  controls.
+- **Networking/authority:** The new hill signal uses the existing world seed
+  and absolute world coordinates, so regional sampling stays deterministic.
+  No RPC, gameplay authority, save schema, or player-state behavior changed.
+- **Known limitations / remaining scope:** BH01 recorded fixed-site values but
+  no 100–250 m Meadows transects. No low/nominal/high profile measurements or
+  rendered/gameplay acceptance were run. The 6 m hill, 10 m threshold, and 30 m
+  compression scale are provisional; BH10b must compare 4/6/8 m trials against
+  the baselines and record results. Shared rolling relief and floor detail
+  remain later tasks.
+- **Next eligible task:** BH10b — measure and tune Meadows hill trials using
+  fixed-site and 100–250 m height/slope profiles. Keep BH10 open until that
+  work is complete.
+- **Integration state:** Changes are in the detached BH10 worktree; handoff
+  synchronization to the main checkout is pending.
+
 ## Run 2026-10-23T07:26:32Z — Add Meadows Rat peer-acceptance runner
 
 - **Selected task:** Continue the first unchecked A8 I4 child for live A8a

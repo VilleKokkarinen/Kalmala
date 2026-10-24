@@ -19,6 +19,10 @@ bool FKalmalaTerrainPreviewControlTest::RunTest(const FString& Parameters)
         FKalmalaRegionalTuning::ReliefBroadScale);
     TestEqual(TEXT("Meadow hill amplitude defaults to tuning"), Settings.MeadowHillAmplitude,
         FKalmalaRegionalTuning::MeadowHillAmplitude);
+    TestEqual(TEXT("Meadow shoulder threshold defaults to tuning"), Settings.MeadowShoulderHeight,
+        FKalmalaRegionalTuning::MeadowShoulderHeight);
+    TestEqual(TEXT("Meadow shoulder scale defaults to tuning"), Settings.MeadowShoulderCompressionScale,
+        FKalmalaRegionalTuning::MeadowShoulderCompressionScale);
 
     auto CheckRange = [this, &Settings](double FKalmalaGenerationPreviewSettings::*Control,
         const double Minimum, const double Maximum, const TCHAR* Label)
@@ -40,6 +44,8 @@ bool FKalmalaTerrainPreviewControlTest::RunTest(const FString& Parameters)
     CheckRange(&FKalmalaGenerationPreviewSettings::ReliefLocalScale, 1000.0, 5000.0, TEXT("Local scale"));
     CheckRange(&FKalmalaGenerationPreviewSettings::MeadowHillScale, 10000.0, 25000.0, TEXT("Meadow hill scale"));
     CheckRange(&FKalmalaGenerationPreviewSettings::MeadowHillAmplitude, 400.0, 1000.0, TEXT("Meadow hill amplitude"));
+    CheckRange(&FKalmalaGenerationPreviewSettings::MeadowShoulderHeight, 600.0, 1600.0, TEXT("Meadow shoulder height"));
+    CheckRange(&FKalmalaGenerationPreviewSettings::MeadowShoulderCompressionScale, 1000.0, 6000.0, TEXT("Meadow shoulder compression scale"));
     CheckRange(&FKalmalaGenerationPreviewSettings::MeadowRollingScale, 3000.0, 7000.0, TEXT("Meadow rolling scale"));
     CheckRange(&FKalmalaGenerationPreviewSettings::MeadowRollingAmplitude, 60.0, 200.0, TEXT("Meadow rolling amplitude"));
     CheckRange(&FKalmalaGenerationPreviewSettings::MeadowFloorScale, 800.0, 2000.0, TEXT("Meadow floor scale"));
@@ -147,8 +153,12 @@ bool FKalmalaBiomeHeightBlendTest::RunTest(const FString& Parameters)
 
     const float SourceHeight = (Fields.Elevation - FKalmalaRegionalTuning::SeaElevation) * 2000.0f;
     const double Detail = G::Noise(Config, 250, Position, 0.00015);
+    const auto& Preview = FKalmalaGenerationPreview::Get();
+    const double HillNoise = G::Noise(Config, FKalmalaRegionalTuning::MeadowHillSalt,
+        Position, 1.0 / Preview.MeadowHillScale);
     const double TransitionCandidates[] = {
-        G::ShapeMeadows(SourceHeight, Detail),
+        G::ShapeMeadows(SourceHeight, HillNoise, Preview.MeadowHillAmplitude,
+            Preview.MeadowShoulderHeight, Preview.MeadowShoulderCompressionScale),
         G::ShapeShimmeringLakes(SourceHeight, Detail),
         G::ShapeElderwood(SourceHeight, Detail),
         G::ShapeMire(SourceHeight, Detail),
@@ -161,6 +171,75 @@ bool FKalmalaBiomeHeightBlendTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Regional sampling blends candidates with its continuous biome weights"),
         Sample.Height, ExpectedTransitionHeight);
     TestEqual(TEXT("Height blending leaves classifier identity unchanged"), Sample.Biome, G::SampleBiome(Fields));
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaMeadowShoulderCompressionTest,
+    "Kalmala.World.Regional.MeadowShoulderCompression",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+bool FKalmalaMeadowShoulderCompressionTest::RunTest(const FString& Parameters)
+{
+    using G = FKalmalaRegionalGeneration;
+    constexpr double ShoulderHeight = 1000.0;
+    constexpr double CompressionScale = 3000.0;
+    const double Inputs[] = {-500.0, 0.0, 500.0, ShoulderHeight, 1001.0, 1500.0, 2500.0, 4000.0, 1000000.0};
+    double Previous = -TNumericLimits<double>::Max();
+    for (const double Input : Inputs)
+    {
+        const double Output = G::CompressMeadowShoulder(Input, ShoulderHeight, CompressionScale);
+        TestTrue(TEXT("Meadow compression remains finite"), FMath::IsFinite(Output));
+        TestTrue(TEXT("Upper-shoulder compression is monotonic"), Output >= Previous);
+        TestTrue(TEXT("Compression is bounded by its finite asymptote"), Output <= ShoulderHeight + CompressionScale);
+        if (Input <= ShoulderHeight)
+        {
+            TestEqual(TEXT("Lower terrain and camp pockets are unchanged by the shoulder curve"), Output, Input);
+        }
+        else
+        {
+            TestTrue(TEXT("Upper shoulders are smoothly reduced"), Output < Input && Output > ShoulderHeight);
+        }
+        Previous = Output;
+    }
+
+    const double LowerPocket = G::ShapeMeadows(400.0, -0.25, 600.0,
+        ShoulderHeight, CompressionScale);
+    TestEqual(TEXT("Meadow hills preserve the source and add the signed hill once"), LowerPocket, 250.0);
+    const double PositiveHill = G::ShapeMeadows(400.0, 0.5, 600.0,
+        ShoulderHeight, CompressionScale);
+    TestEqual(TEXT("Uncompressed hill adds its signed amplitude once"), PositiveHill, 700.0);
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaMeadowHillDomainTest,
+    "Kalmala.World.Regional.MeadowHillDomain",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+bool FKalmalaMeadowHillDomainTest::RunTest(const FString& Parameters)
+{
+    using G = FKalmalaRegionalGeneration;
+    using T = FKalmalaRegionalTuning;
+    const FKalmalaWorldGenerationConfig Config{418ull};
+    const FVector2D BaselineAnchor(208695.7, -293111.9); // Seed-418 outer dry Meadows baseline.
+    const double Frequency = 1.0 / FKalmalaRegionalTuning::MeadowHillScale;
+    double MinimumNoise = TNumericLimits<double>::Max();
+    double MaximumNoise = -TNumericLimits<double>::Max();
+    for (int32 Y = 0; Y <= 10; ++Y)
+    for (int32 X = 0; X <= 10; ++X)
+    {
+        const FVector2D Position = BaselineAnchor + FVector2D(X * 5000.0 - 25000.0, Y * 5000.0 - 25000.0);
+        const double Noise = G::Noise(Config, T::MeadowHillSalt, Position, Frequency);
+        TestTrue(TEXT("Meadow hill noise is finite"), FMath::IsFinite(Noise));
+        TestTrue(TEXT("Meadow hill signal repeats at the fixed baseline site"),
+            Noise == G::Noise(Config, T::MeadowHillSalt, Position, Frequency));
+        MinimumNoise = FMath::Min(MinimumNoise, Noise);
+        MaximumNoise = FMath::Max(MaximumNoise, Noise);
+    }
+    TestTrue(TEXT("The fixed 500 m Meadow neighborhood contains both hills and hollows"),
+        MinimumNoise < 0.0 && MaximumNoise > 0.0);
+    TestTrue(TEXT("The fixed neighborhood spans a useful continuous hill range"),
+        MaximumNoise - MinimumNoise > 0.5);
+    TestTrue(TEXT("Meadow hills use a domain separate from shared terrain relief"),
+        T::MeadowHillSalt != T::ReliefBroadSalt && T::MeadowHillSalt != T::ReliefMiddleSalt
+        && T::MeadowHillSalt != T::ReliefLocalSalt);
     return true;
 }
 
