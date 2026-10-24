@@ -8330,3 +8330,74 @@
   approved-system/fresh-world acceptance and milestone-final verification
   remain open; keep the broad child unchecked.
 - **Next eligible A0 group:** Wild rutabaga. Continue in backlog order.
+
+## Run 2026-10-24 — A10 per-item audit: Wild rutabaga
+
+- **Selected increment:** Audit the A0 Wild rutabaga group only. The broad
+  A10 per-item audit child remains unchecked.
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md` only.
+- **Registered identities:** `Rutabaga` (display Rutabaga, stack 20) and
+  `RutabagaSeed` (display Rutabaga Seeds, stack 50) are registered in
+  `items/crops.json` through `Content/Data/GameCatalogues.json`. Neither has
+  an equipment profile, attack record, or item-specific upgrade/stat reward;
+  those categories are N/A. Neither is directly edible or included in
+  `IsKnownFoodItem`.
+- **Sources and crop uses:** A0's `lakes-wild-rutabaga-patch` is the first dry,
+  safe Shimmering Lakes candidate within the shared 400 cm cardinal shoreline
+  probe in each eligible key, classified as land outside lake/ocean water. Its
+  stable identity seed domain is `Mix(candidate-seed XOR 0xA0B07ABA71019)`.
+  Server-validated hand gathering needs no tool and grants 2 Rutabagas plus 1
+  RutabagaSeed per patch. The A7 Garden Plot has reciprocal modes: pay 1
+  RutabagaSeed to grow 3 Rutabagas, or pay 1 Rutabaga to grow 3 Rutabaga Seeds.
+  Both mature after 600 active seconds in an active terrain patch. Construction
+  schema 6 saves crop mode and remaining active time; growth pauses when the
+  patch is inactive or the server is stopped. Accepted planting spends one
+  Trowel condition; harvest/rejection do not. A mature crop remains on a full
+  pack and the planted plot cannot be removed.
+- **Recipes/effects:** `Rutabaga` is an ingredient in two enabled recipes, each
+  maximum batch 5 and awards 10 Cooking XP per recipe: Cauldron
+  `RootVegetableSoupRecipe` uses Carrot x1 + Potato x1 + Rutabaga x1 + Onion x1
+  to produce one RootVegetableSoup; Frying Pan `DeerRootRoastRecipe` uses
+  DeerMeat x1 + Rutabaga x1 + Onion x1 to produce one DeerRootRoast. No recipe
+  outputs Rutabaga or RutabagaSeed, and no recipe references RutabagaSeed.
+  Neither item has a direct meal/status effect; the prepared foods retain their
+  existing behavior.
+- **Icon and provenance:** Manifest row 10/C maps Rutabaga to PackInventory,
+  ItemDetail, Storage and Ingredient; row 11/C maps RutabagaSeed to
+  PackInventory, ItemDetail and Storage. Retained originals, prepared 64x64
+  textures and imported `.uasset` packages exist for both. The catalogue icon
+  library maps each canonical ID to its matching
+  `/Game/Kalmala/UI/Icons/Items/<ID>.<ID>` path. Their vector fallback entries
+  are Root variant 2 and Seed variant 2. Both focused validators passed with
+  1254x1254 8-bit RGBA originals, transparent 64x64 RGBA prepared images and
+  expected imported package paths. Current `docs/icon-provenance.md` has no
+  Rutabaga- or RutabagaSeed-specific primary generation-prompt record; prompt
+  wording was not inferred from food or ingredient mentions.
+- **Carried/save behavior:** Ordinary carried inventory remains session-only;
+  `PersistPlayerStateFromServer` stores tools and discovery/claim state, not
+  Rutabaga/RutabagaSeed stacks. Gathering validates the living player, range,
+  full grant capacity and player-state persistence before committing patch
+  depletion. Full-pack, invalid-range or repeated-request rejection leaves the
+  patch available; failed player-state persistence rolls back both grants. The
+  subsequent population-ledger SaveGame marks the stable spawn ID, but
+  `RecordHarvestedSpawn` ignores the disk-write result, so depletion write
+  failure is not handled. Catalogue-valid stacks can use generic world-keyed
+  chest storage; no Rutabaga-specific chest round-trip was run. Neither item
+  has an expiry/decay field.
+- **Evidence and checks:** Inspected `KalmalaHarvestNode.cpp`,
+  `KalmalaGameMode.cpp`, `KalmalaPlayerStatusComponent.cpp`, item and recipe
+  JSON, icon manifest/runtime lookup, A0/A7 architecture/setup contracts and
+  A9 inventory-save limits. PowerShell `ConvertFrom-Json` parsed `crops.json`
+  and the recipe files; the exact IDs and two Rutabaga recipe uses were
+  enumerated, with no RutabagaSeed recipe reference. Focused
+  `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id Rutabaga` and the same
+  command for `RutabagaSeed` passed. Source acceptance assertions were
+  inspected, not run. No build, test suite, peer/restart session, or live
+  runtime check was performed.
+- **Full verification:** Deferred; this is not A10's final increment.
+- **Impact and remaining scope:** Documentation-only audit; definitions,
+  recipes, gameplay, authority and persistence are unchanged. The missing
+  dedicated icon prompts are a documentation gap. Later A0 groups,
+  approved-system/fresh-world acceptance and milestone-final verification
+  remain open; keep the broad child unchecked.
+- **Next eligible A0 group:** Wild onions. Continue in backlog order.
