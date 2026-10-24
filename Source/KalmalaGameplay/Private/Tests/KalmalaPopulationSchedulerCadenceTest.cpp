@@ -99,32 +99,31 @@ bool FKalmalaPopulationSchedulerCadenceTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Missed intervals do not produce catch-up retries"),
         Mode->GetDuePopulationSpatialKeys(DelayedServiceTime).IsEmpty());
 
-    const double BeforeDueTime = DelayedServiceTime + 1.0;
+    const double InactiveTime = DelayedServiceTime + 1.0;
     Character->SetActorLocation(FVector(30000.0, 30000.0, 0.0));
-    Mode->UpdatePopulationKeySchedule(BeforeDueTime);
+    Mode->UpdatePopulationKeySchedule(InactiveTime);
     TestTrue(TEXT("Inactive keys are removed from the active due set"),
         Mode->ActivePopulationSchedulerKeys.IsEmpty());
-    TestEqual(TEXT("Session due state survives key inactivity"), Mode->PopulationKeyNextDueTimes.Num(), 2);
+    TestTrue(TEXT("Inactive scheduler due entries are removed"), Mode->PopulationKeyNextDueTimes.IsEmpty());
 
+    const double ReactivationTime = DelayedServiceTime
+        + FKalmalaMonsterSpawnTuning::PopulationKeyCheckIntervalSeconds + 1.0;
     Character->SetActorLocation(FVector(3200.0, 0.0, 0.0));
-    Mode->UpdatePopulationKeySchedule(BeforeDueTime + 1.0);
-    TestTrue(TEXT("Reactivation preserves a future due time"),
-        FMath::IsNearlyEqual(Mode->PopulationKeyNextDueTimes.FindRef(FirstKey),
-            DelayedServiceTime + FKalmalaMonsterSpawnTuning::PopulationKeyCheckIntervalSeconds));
-
-    const double AfterDueTime = DelayedServiceTime + FKalmalaMonsterSpawnTuning::PopulationKeyCheckIntervalSeconds + 1.0;
-    Character->SetActorLocation(FVector(30000.0, 30000.0, 0.0));
-    Mode->UpdatePopulationKeySchedule(AfterDueTime);
-    Character->SetActorLocation(FVector(3200.0, 0.0, 0.0));
-    Mode->UpdatePopulationKeySchedule(AfterDueTime);
-    const double ResumedDueTime = AfterDueTime + FKalmalaMonsterSpawnTuning::PopulationKeyCheckIntervalSeconds;
-    TestTrue(TEXT("Reactivated overdue keys restart one interval later without catch-up"),
-        FMath::IsNearlyEqual(Mode->PopulationKeyNextDueTimes.FindRef(FirstKey), ResumedDueTime)
-        && FMath::IsNearlyEqual(Mode->PopulationKeyNextDueTimes.FindRef(SecondKey), ResumedDueTime)
-        && Mode->GetDuePopulationSpatialKeys(AfterDueTime).IsEmpty());
-    const TArray<FIntPoint> ResumedDueKeys = Mode->GetDuePopulationSpatialKeys(ResumedDueTime);
-    TestTrue(TEXT("Reactivated keys resume once in deterministic order"),
-        ResumedDueKeys.Num() == 2 && ResumedDueKeys[0] == FirstKey && ResumedDueKeys[1] == SecondKey);
+    Mode->UpdatePopulationKeySchedule(ReactivationTime);
+    const double ResumedFirstDue = ReactivationTime
+        + FirstPhase * FKalmalaMonsterSpawnTuning::PopulationKeyPhaseStepSeconds;
+    const double ResumedSecondDue = ReactivationTime
+        + SecondPhase * FKalmalaMonsterSpawnTuning::PopulationKeyPhaseStepSeconds;
+    TestTrue(TEXT("Reactivation creates fresh due entries from deterministic phases"),
+        FMath::IsNearlyEqual(Mode->PopulationKeyNextDueTimes.FindRef(FirstKey), ResumedFirstDue)
+        && FMath::IsNearlyEqual(Mode->PopulationKeyNextDueTimes.FindRef(SecondKey), ResumedSecondDue));
+    TestTrue(TEXT("A missed old interval does not trigger catch-up on reactivation"),
+        Mode->GetDuePopulationSpatialKeys(ReactivationTime).IsEmpty());
+    const FIntPoint ResumedEarlierKey = ResumedFirstDue < ResumedSecondDue ? FirstKey : SecondKey;
+    const double ResumedEarlierDue = FMath::Min(ResumedFirstDue, ResumedSecondDue);
+    const TArray<FIntPoint> ResumedDueKeys = Mode->GetDuePopulationSpatialKeys(ResumedEarlierDue);
+    TestTrue(TEXT("Reactivated keys retain their stable staggered order"),
+        ResumedDueKeys.Num() == 1 && ResumedDueKeys[0] == ResumedEarlierKey);
     return true;
 }
 

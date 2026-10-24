@@ -5412,28 +5412,23 @@ void AKalmalaGameMode::UpdatePopulationKeySchedule(const double NowSeconds)
     {
         if (!CurrentCandidateKeys.Contains(*Iterator))
         {
+            const FIntPoint InactiveKey = *Iterator;
             Iterator.RemoveCurrent();
+            PopulationKeyNextDueTimes.Remove(InactiveKey);
         }
     }
 
     for (const FIntPoint& SpatialKey : CandidateKeys)
     {
-        const bool bWasActive = ActivePopulationSchedulerKeys.Contains(SpatialKey);
         ActivePopulationSchedulerKeys.Add(SpatialKey);
 
-        double* NextDueTime = PopulationKeyNextDueTimes.Find(SpatialKey);
-        if (NextDueTime == nullptr)
+        if (!PopulationKeyNextDueTimes.Contains(SpatialKey))
         {
             const uint64 Seed = FKalmalaWorldPopulationLayout::DeriveSpatialSeed(
                 WorldGenerationConfig, SpatialKey, EKalmalaWorldPopulationKind::Wildlife);
             const uint64 Phase = Seed % FKalmalaMonsterSpawnTuning::PopulationKeyPhaseCount;
             PopulationKeyNextDueTimes.Add(SpatialKey, NowSeconds
                 + static_cast<double>(Phase) * FKalmalaMonsterSpawnTuning::PopulationKeyPhaseStepSeconds);
-        }
-        else if (!bWasActive && *NextDueTime <= NowSeconds)
-        {
-            // The key was inactive when its due time passed; resume after one full interval.
-            *NextDueTime = NowSeconds + FKalmalaMonsterSpawnTuning::PopulationKeyCheckIntervalSeconds;
         }
     }
 }
