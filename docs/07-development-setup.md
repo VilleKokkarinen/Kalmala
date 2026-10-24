@@ -5952,3 +5952,31 @@ the server, owner, listen host, and observer; logs:
 failures, or saved-move backlog warnings. This live craft and inventory-privacy
 case does not exercise the Tonic's healing effect or rendered station/inventory
 presentation. Combined A8a/A8b I4 remains required before A9.
+
+## A8b Badger Fur Vest live peer craft and equip — 2026-10-24
+
+After an Editor build, run `Scripts/Tests/Construction/Verify-A8bVestPeer.ps1`.
+The development-only three-peer fixture gives the selected remote owner six
+Badger Fur and spawns a nearby Workbench. The owner confirms direct client craft
+is rejected, then uses `BadgerFurVestRecipe` through the normal `ServerCraft`
+RPC and equips the returned GUID with `ServerEquipGear`. The server verifies
+exact payment, the single GUID-addressed output, Chest-slot equip, and the
+registered 6-Armor / 100-condition profile. A nearby fixture wildlife source
+then drives a 10-Crush hit through `ApplyWildlifeDamageFromServer`; the server
+checks the profile-derived health change and one condition point of wear. The
+observer waits for public health replication, then confirms the target's pack
+and equipped gear remain owner-private. The listen host confirms its inventory
+has no vest.
+
+On 2026-10-24, the isolated `KalmalaEditor Win64 Development` build passed in
+14 actions. `Verify-A8bVestPeer.ps1 -Port 17892 -Project
+C:/Users/Ville/AppData/Local/Temp/msp1/Kalmala.uproject -OutputDirectory
+C:/Users/Ville/AppData/Local/Temp/a8vp1` passed for the server, owner, listen
+host, and observer: the vest reduced the controlled 10-Crush hit to 4 damage
+(health 100 to 96), then took one condition point. Logs are
+`C:/Users/Ville/AppData/Local/Temp/a8vp1/{server,owner,observer}.log`. Each
+Editor log includes the three UE unified-error startup self-test diagnostics;
+the scenario logs have no fixture failures, fatal/assert/ensure failures, or
+saved-move backlog warnings. This fixture checks the authoritative gear and
+damage path, not rendered Workbench/inventory presentation or a natural Badger
+attack. Combined A8a/A8b I4 remains required before A9.

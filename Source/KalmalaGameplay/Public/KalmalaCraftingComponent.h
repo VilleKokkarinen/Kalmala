@@ -127,6 +127,7 @@ private:
 #if !UE_BUILD_SHIPPING
     void RunGardenPlotVerification(float DeltaTime);
     void RunA8bTonicPeerVerification(float DeltaTime);
+    void RunA8bVestPeerVerification(float DeltaTime);
 #endif
     void RefreshStorageView();
     void ClearStorageView();
@@ -180,5 +181,14 @@ private:
     TWeakObjectPtr<AKalmalaCharacter> A8bTonicPeerTarget;
     uint32 A8bTonicPeerReadyResultSerial = 0;
     bool bA8bTonicPeerFixtureObserved = false;
+    int32 A8bVestPeerStage = 0;
+    float A8bVestPeerElapsed = 0.0f;
+    TWeakObjectPtr<AKalmalaCharacter> A8bVestPeerTarget;
+    FGuid A8bVestPeerItemGuid;
+    uint32 A8bVestPeerReadyResultSerial = 0;
+    uint32 A8bVestPeerGearRequestSerial = 0;
+    float A8bVestPeerBaselineHealth = 100.0f;
+    int32 A8bVestPeerObservedOwnerPlayerId = INDEX_NONE;
+    bool bA8bVestPeerFixtureObserved = false;
 #endif
 };

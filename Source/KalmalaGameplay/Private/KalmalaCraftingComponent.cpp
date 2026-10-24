@@ -1139,6 +1139,7 @@ void UKalmalaCraftingComponent::TickComponent(float DeltaTime, ELevelTick TickTy
     if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaRainVerticalSliceTest"))) RunRainVerticalSliceVerification(DeltaTime);
     if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaGardenPlotTest"))) RunGardenPlotVerification(DeltaTime);
     if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaA8bTonicPeerTest"))) RunA8bTonicPeerVerification(DeltaTime);
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaA8bVestPeerTest"))) RunA8bVestPeerVerification(DeltaTime);
 #endif
 }
 
