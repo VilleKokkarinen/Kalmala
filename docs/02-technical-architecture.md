@@ -222,7 +222,7 @@ Credited deer defeats grant 1 Sinew on a server-owned 50% roll. At the Workbench
 `recipes/stations/workbench.json` converts 4 Sinew into 1 Bow String; Bow
 acquisition and upgrades use 5 Wood and 1 Bow String each. The same file keeps
 the ordinary arrow recipe (5 Wood for 20 arrows). Bow, Bow String, and Sinew originals and
-imported textures are documented in `archery-icons.md` (new material icons use
+imported textures are documented in `icon-provenance.md#archery-icons` (new material icons use
 batch K).
 The owner Inventory shows both-hand occupancy and the reverse shield swap. Full
 gameplay compilation/runtime verification is deferred.
@@ -246,7 +246,7 @@ Bone fragment at Workbench in addition to their hide costs. No new RPC,
 replicated field, or save schema is needed.
 The shared icon widget resolves `BoneFragment` to its original imported
 `/Game/Kalmala/UI/Icons/Items/BoneFragment.BoneFragment` texture; batch H
-retains the transparent original and prepared 64x64 PNG. See `bone-icon.md`.
+retains the transparent original and prepared 64x64 PNG. See `icon-provenance.md#bone-icon`.
 
 Use the baseline sections below for module/network boundaries. The [consolidated contracts](#consolidated-system-contracts) preserve current system details from former docs 08–47:
 
@@ -1725,7 +1725,7 @@ Each raster fills its scaled 64x64 box. Status layout wraps within a 384-unit ro
 
 The earlier accepted icon counts (48 baseline identities, then Stone Spear, six Bronze/Iron weapons, and three maces) are historical. The current catalogue ledger contains 72 imported item textures, including the six formerly unmapped Bronze/Copper/Tin bars and Copper/Tin/Iron ores. The global icon automation traverses every validated item, tool profile, and recipe output and checks its runtime mapping and imported texture. Views reuse canonical IDs and one image per identity; aliases and recipes do not get duplicate art. Unknown IDs retain a question-mark fallback; missing imported textures retain existing vector fallbacks. Current runtime/catalogue additions must receive explicit coverage rather than assuming historical counts include them.
 
-Original PNGs live in Content/Kalmala/UI/Source/IconOriginals and prepared PNGs in Source/Icons below that UI directory. Catalogue and status importers prepare transparent 64x64 artwork and import UI textures with sRGB, no mipmaps, and no streaming. Bronze and Iron weapon icons use catalogue batch E; batch D contains the Stone Spear, batch I the archery items, and batch J the six ore/alloy materials. Code constructs icon paths dynamically; both catalogue/status directories must be included in package cooks. The CSV manifests are machine inputs used by import/validation scripts and must remain available with those tools. Material artwork and exact generation prompts are recorded in `docs/material-icons.md`.
+Original PNGs live in Content/Kalmala/UI/Source/IconOriginals and prepared PNGs in Source/Icons below that UI directory. Catalogue and status importers prepare transparent 64x64 artwork and import UI textures with sRGB, no mipmaps, and no streaming. Bronze and Iron weapon icons use catalogue batch E; batch D contains the Stone Spear, batch I the archery items, and batch J the six ore/alloy materials. Code constructs icon paths dynamically; both catalogue/status directories must be included in package cooks. The CSV manifests are machine inputs used by import/validation scripts and must remain available with those tools. Material artwork and exact generation prompts are recorded in `docs/icon-provenance.md#material-icons`.
 
 ## Item and recipe details
 
@@ -1895,8 +1895,11 @@ not its gross output. Carried-tool records are a separate inventory contract and
 are not newly announced by this child.
 
 The owner stores only the latest 32 transient receipts with locally monotonic
-sequence numbers. The first observed buffer silently establishes a baseline,
-including already-delivered receipts on pawn attachment. Pawn replacement
+sequence numbers. Each receipt quantity is the total positive net gain for one
+item across the inventory, so it may exceed a single stack's limit up to that
+item's stack limit multiplied by the inventory slot count. The first observed
+buffer silently establishes a baseline, including already-delivered receipts
+on pawn attachment. Pawn replacement
 clears it through the existing session reset. Refresh, expiry, modal close and
 unchanged buffers never replay receipts. A UI polling gap exceeding 32 receipts
 drops older notices; it cannot change inventory. There is no receipt persistence
@@ -3134,6 +3137,16 @@ categories, transactions, replication or persistence were introduced by this
 presentation-only update.
 
 The Inventory popup reads the owner's six replicated wearable slots and two accessory slots and displays their current item names. Selecting compatible gear enables its slot action; selecting a different item for an occupied slot replaces the equipped GUID, and selecting an empty grid cell before clicking occupied gear requests its return to the pack. The client sends only the item GUID or slot enum; the server revalidates identity, compatibility, capacity, and the full candidate transaction before publishing the owner-only gear and inventory state. An owner-only client result reports accepted or rejected requests. Server-resolved wildlife damage uses the summed integer Armor of non-depleted equipped gear against physical damage only. Accessories have no condition capacity or wear; their `Armor` contributes while equipped. The Main Hand tile selects or clears an exact tool GUID without moving its grid cell. The owner sees remaining/maximum condition for durable wearables; accepted wildlife hits spend one condition per wearable and depleted items cease contributing defense. Same-pawn unequip/re-equip preserves wear.
+
+Carried-item acquisition records load into the tool progression catalogue,
+separately from ordinary item recipes. The owner sees the same-item option in
+the station's tool progression view and requests it through `ServerProgressTool`.
+The server validates the visible station and level, material costs, carried
+capacity, and progression; it creates one GUID-addressed level-one
+`CarriedTools` instance, persists it, and rolls the payment and tool state back
+if persistence fails. The owner selects that instance through the normal Main
+Hand GUID request. Accepted combat uses its authored profile and server-owned
+condition; generic `ServerCraft` remains for ordinary item recipes.
 
 Equipped accessories' additive `StaminaCostMultiplier` deltas sum with active Wet and Steady Meal adjustments and apply once through the shared authoritative cost calculation for sprint, dodge and support spells. `SupportSpellStaminaCostMultiplier` adds only on support spells. Cost factors are bounded to `[0.5, 2.0]`. Accessory maximum-health/stamina are recomputed from the owning equipped slots after accepted equip/replace/unequip. Equip preserves current values; removal clamps to the new maximum. Bear’s Vigor adds its 40 stamina independently. Maximum health replicates owner-only; no new gear persistence is added. Active stamina recovery and incoming Mending/draught healing each apply their current equipped delta once using clamp(1 + sum, 0.5, 2.0); other recovery rules, costs, unlocks and cooldowns remain unchanged.
 

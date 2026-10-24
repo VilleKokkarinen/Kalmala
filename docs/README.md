@@ -18,3 +18,8 @@ Start with [Game features](game-features.md) for a short list of additions. The 
 Former docs 08–47 are consolidated here. Repeated milestone reports, copy-audit diaries, image-generation batches, obsolete interaction descriptions, and temporary build histories remain recoverable in Git history. Useful contracts were folded into architecture and setup. Existing evidence/manifest deletions were preserved; CSV manifests required by icon tools are machine inputs, not narrative documentation.
 
 Resolve conflicts using current user direction, then the decision log, architecture, game design, and project brief. Record durable decisions explicitly. Use the live backlog for implementation state and distinguish historical acceptance from new verification.
+
+[Item icon workflow](material-icons.md) owns shared authoring/import steps;
+[icon provenance](icon-provenance.md) retains exact generation prompts and dated
+batch records. Per-item icon addition documents are consolidated there. Artwork,
+import tools and machine manifests remain in their established locations.

@@ -208,14 +208,14 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [x] Thunder Mountains: Thunder Sentinel — rare hard enemy;
   - [x] Ocean: Reef Maw — rare hard underwater enemy;
 
-- [ ] **A8b — Enemy materials and crafted items (P1/P2).** [Recipes](docs/biome-enemies.md#recommended-items-and-recipes)
+- [x] **A8b — Enemy materials and crafted items (P1/P2).** [Recipes](docs/biome-enemies.md#recommended-items-and-recipes)
   - [x] Reconcile the user-edited drop amounts/chances and recipe station/cost/output values with existing approved contracts; align source ownership and the proposal table.
   - [x] Resolve the remaining effect and full equipment-profile decisions before implementing affected outputs; see [A8b review](docs/alpha-item-details.md#a8b).
   - [x] Add the registered catalogue JSON records for all 15 materials and 15 outputs, including output recipes, equipment profiles, upgrade costs/rewards, and supported attack records.
   - Item icon tasks are independent of their source/output implementation tasks. Each checkbox covers one item's original generated artwork and provenance, prepared/imported texture, runtime mapping, and icon-validator coverage. Per the user's 2026-10-22 direction, complete all remaining A8b icon checkboxes together in one short-path A8b work batch and one feature commit. Completing icons does not complete their item rows or enable acquisition. The importer retains its supported limit of 16 textures per import batch.
-  - [x] Rat Tail icon (`RatTail`): original, provenance, mapping, import, and catalogue icon validation are complete; see `docs/rat-tail-icon.md`.
+  - [x] Rat Tail icon (`RatTail`): original, provenance, mapping, import, and catalogue icon validation are complete; see `docs/icon-provenance.md#rat-tail-icon`.
   - [x] Badger Fur icon (`BadgerFur`).
-  - [x] Badger Meat icon (`BadgerMeat`): original, provenance, mapping, import, and focused catalogue icon validation are complete; see `docs/badger-meat-icon.md`.
+  - [x] Badger Meat icon (`BadgerMeat`): original, provenance, mapping, import, and focused catalogue icon validation are complete; see `docs/icon-provenance.md#badger-meat-icon`.
   - [x] Viper Fang icon (`ViperFang`).
   - [x] Giant Scale icon (`GiantScale`).
   - [x] Venom Sac icon (`VenomSac`).
@@ -243,7 +243,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [x] Horn Bow icon (`HornBow`).
   - [x] Thunder Maul icon (`ThunderMaul`).
   - [x] Reef Harpoon icon (`ReefHarpoon`).
-  - Grouped icon batch completed 2026-10-22 in one feature commit by user direction; originals, preparation, imports, mapping and focused coverage are recorded in `docs/a8b-icon-batch.md`. All 30 source/output implementation rows are checked; combined I4 acceptance remains open.
+  - Grouped icon batch completed 2026-10-22 in one feature commit by user direction; originals, preparation, imports, mapping and focused coverage are recorded in `docs/icon-provenance.md#a8b-icon-batch`. All 30 source/output implementation rows are checked; combined I4 acceptance remains open.
   - [x] Rat Tail: Rat, 1 guaranteed; material + source + JSON + generated icon.
     - Original icon, mapping, import, registered material definition, and owner-bound credited-defeat reward are complete; combined I4 acceptance remains pending.
   - [x] Badger Fur: Badger, 1 guaranteed; material + source + JSON + generated icon.
@@ -277,10 +277,10 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   - [x] Thunder Maul: Forge, 1 Thunder Core + 20 Iron + 10 Densewood → 1; 100 Crush + 30 Lightning.
   - [x] Reef Harpoon: Forge, 3 Reef Tooth + 8 Iron + 4 Lightwood → 1; 60 Pierce.
   - [x] Verify every approved drop/output has complete registered JSON, a reachable source and a generated runtime icon.
-  - [ ] Run the combined A8a/A8b enemy and enemy-item milestone verification; record results and blockers. This gate must pass before A9 begins.
-    - [x] Rebuild and rerun the sequential Badger/Moon Bear peer acceptance after the Moon Bear fixture adjustment; both cases passed. The final full queue now passes all 180 tests.
-    - [x] Repair the procedural snake-head `SurfaceWinding` failure and the M9 progression assertions; the focused check and final 180-test Kalmala queue pass.
-    - [ ] Finish live acceptance for remaining A8a species-specific spawn and attack/status behavior, then exercise approved A8b item progression and peer flows. `Verify-RatPeer.ps1` is the sole I4 end-to-end enemy test for loot delivery/retry, defeat persistence and combat replication; do not repeat those shared checks in other species cases. Species tests may cover their unique authored profiles, drop-table data and attack/status behavior. Prior peer passes for Boar, Deer, Badger, Moon Bear, Mireling, Viper and Giant Snake remain historical evidence, not extra required shared-system tests. `Kalmala.Gameplay.Status.PoisonEffects` is the single shared weak/major poison and Antidote status automation. Mosquito bite/poison and dodge/fire counterplay acceptance plus Peat Husk sweep acceptance are recorded below and passed live. Remaining species-specific live checks are Thunder Sentinel and Reef Maw.
+  - [x] Run the combined A8a/A8b enemy and enemy-item milestone verification; record results and blockers. This gate must pass before A9 begins.
+    - [x] Rebuild and rerun the sequential Badger/Moon Bear peer acceptance after the Moon Bear fixture adjustment; both cases passed. The full queue at that verification point passed all 180 tests.
+    - [x] Repair the procedural snake-head `SurfaceWinding` failure and the M9 progression assertions; the focused check and full 180-test Kalmala queue at that verification point passed.
+    - [x] Finish live acceptance for A8a species-specific spawn and attack/status behavior, then exercise approved A8b item progression and peer flows. `Verify-RatPeer.ps1` is the sole I4 end-to-end enemy test for loot delivery/retry, defeat persistence and combat replication; do not repeat those shared checks in other species cases. Species tests may cover their unique authored profiles, drop-table data and attack/status behavior. Prior peer passes for Boar, Deer, Badger, Moon Bear, Mireling, Viper, Giant Snake, Thunder Sentinel and Reef Maw remain historical species-specific evidence, not extra required shared-system tests. `Kalmala.Gameplay.Status.PoisonEffects` is the single shared weak/major poison and Antidote status automation. Mosquito bite/poison and dodge/fire counterplay acceptance plus Peat Husk sweep acceptance are recorded below and passed live.
       - [x] Add the Development-only generated Wolf three-member pack peer fixture and `Scripts/Tests/Combat/Verify-WolfPeer.ps1` for stable formation, 180 cm server bite, and replicated telegraph.
        - [x] Build the affected Editor target and run `Scripts/Tests/Combat/Verify-WolfPeer.ps1`; confirm all three generated members, formation spacing, both client telegraphs, and accepted server lunge damage (passed 2026-10-23).
       - [x] Add the Development-only generated Lynx peer fixture and `Scripts/Tests/Combat/Verify-LynxPeer.ps1` for a seeded dry-Tundra Lynx, its 150-health profile, telegraphed leap, and peer-visible cue.
@@ -296,7 +296,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
       - [x] Run the generated Mosquito swarm peer case for repeated server bites, ten-second weak-poison application, owner-only status, and public health replication.
       - [x] Add Development-only generated-peer assertions for an owner-client accepted dodge, rejected cooldown retry, the roll's two-second repel window, fuelled held-torch protection, unequipped-torch bite resumption, and unlit/lit placed-campfire transitions.
       - [x] Build the affected target and run `Scripts/Tests/Combat/Verify-MosquitoSwarmPeer.ps1`; confirm dodge/fire counterplay plus health replication and owner-only poison before completing this child (passed 2026-10-23).
-    - [ ] Resolve the `Verify-InventoryReconnect.ps1` client-baseline timeout or document an approved non-applicable disposition before closing final I4 verification.
+    - [x] Resolve the `Verify-InventoryReconnect.ps1` client-baseline timeout or document an approved non-applicable disposition before closing final I4 verification.
 
   The JSON-only child, all 30 icon children and all 30 source/output
   implementation rows are complete. Enemy rewards and dependent items are
@@ -310,7 +310,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
   registered outputs are implemented; the I4 gate above retains the remaining
   live peer, reward retry/restart/privacy and item-progression acceptance.
 
-- [ ] **A9 — gems and special gear (P2).** [Rules](docs/alpha-item-details.md#a9)
+- [ ] **A9 — gems and special gear (P2).** [Rules](docs/a9-acceptance.md#retained-a9-gameplay-contract)
   - Completion handoff: the 50 checked JSON/recipe/icon stages below were implemented in `71fa8060` on `codex/a9-json-icons` and merged into master on 2026-10-22. Acquisition, runtime accessory behavior, reviews and milestone verification remain open.
   - [x] Review A9. User approved the documented source rates, mutually exclusive replacements and three-hit extraction on 2026-10-23; existing source prerequisites and I4/I5 acceptance remain required.
   - [x] Review Necklace/Ring slots; one item per slot, bonuses only while equipped. Existing validated owner-only transactions retained; focused AccessorySlots regression added.
@@ -416,6 +416,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     - [x] Verify prepared enemy-gem chance bounds and owner-bound pending-payload serialization/rejection without enabling I4-gated sources.
     - [x] Repair the presentation/M5 checker invocation and stale prose/source anchors, preserving negative checks and leaving runtime inventory-baseline disposition with I4.
     - [x] Integrate the committed A8b progression snapshot a33711ec into the isolated A9 branch, preserve both handoffs, and rerun no-build contracts; I4 acceptance remains pending.
+    - [x] Integrate master through `9a8cbc0f`, retaining completed I4 acceptance and the inventory-baseline fix; enemy-source activation and combined I5 remain next.
     - [ ] Integrate passed I4 source acceptance, enable and verify Moonstone/Dusk Diamond rewards, and resolve the inherited inventory notification-baseline verification disposition.
     - [ ] Pass combined integrated I5 verification and merge A9 normally into local master at a safe clean boundary, preserving the other worker's handoff.
 
@@ -540,6 +541,10 @@ milestone-final verification/repair run and can exceed a normal turn.
     check the parent only when verification passes, otherwise record the blocker.
 
 ## User-requested fixes
+
+- [x] Simplify Scripts/Tests into shared behavior coverage: consolidate item peer runners, remove repeated per-item runs and document test selection.
+
+- [x] Consolidate redundant item icon addition documents into one provenance reference and shared workflow, preserving artwork and updating active links.
 
 - [x] Resize inventory crafting to a 256 px item list/search field and 384 px selected-item pane, preserving the existing gutter and outer padding.
 

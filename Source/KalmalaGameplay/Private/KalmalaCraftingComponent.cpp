@@ -62,6 +62,9 @@ FString GetToolDisplayName(const FName ItemId)
     if (ItemId == TEXT("IronKnife")) return TEXT("Iron Knife");
     if (ItemId == TEXT("IronPick")) return TEXT("Iron Pick");
     if (ItemId == TEXT("IronSpear")) return TEXT("Iron Spear");
+    const UKalmalaToolCatalogue* Catalogue = UKalmalaToolCatalogue::Get();
+    if (const FKalmalaToolProfileData* Profile = Catalogue ? Catalogue->FindProfile(ItemId) : nullptr;
+        Profile && !Profile->DisplayName.TrimStartAndEnd().IsEmpty()) return Profile->DisplayName;
     return ItemId.ToString();
 }
 
@@ -1139,6 +1142,15 @@ void UKalmalaCraftingComponent::TickComponent(float DeltaTime, ELevelTick TickTy
         || FParse::Param(FCommandLine::Get(), TEXT("KalmalaPersistedCampRestoreTest"))) RunPersistedCampVerification(DeltaTime);
     if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaRainVerticalSliceTest"))) RunRainVerticalSliceVerification(DeltaTime);
     if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaGardenPlotTest"))) RunGardenPlotVerification(DeltaTime);
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaA8bTonicPeerTest"))) RunA8bTonicPeerVerification(DeltaTime);
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaA8bVestPeerTest"))) RunA8bVestPeerVerification(DeltaTime);
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaA8bRoastedBadgerPeerTest"))) RunA8bRoastedBadgerPeerVerification(DeltaTime);
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaA8bFangArrowsPeerTest"))) RunA8bFangArrowsPeerVerification(DeltaTime);
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaA8bScaleCuirassPeerTest"))) RunA8bScaleCuirassPeerVerification(DeltaTime);
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaA8bAntidotePeerTest"))) RunA8bAntidotePeerVerification(DeltaTime);
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaA8bPeatHeartStewPeerTest"))) RunA8bPeatHeartStewPeerVerification(DeltaTime);
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaA8bWolfPeltBootsPeerTest"))) RunA8bWolfPeltBootsPeerVerification(DeltaTime);
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaA8bFangSpearPeerTest"))) RunA8bFangSpearPeerVerification(DeltaTime);
 #endif
 }
 

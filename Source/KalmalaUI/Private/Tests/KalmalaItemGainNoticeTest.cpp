@@ -55,6 +55,19 @@ bool FKalmalaItemGainNoticeTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Expired gains do not replay"), Queue.GetRows().Num(), 0);
     Queue.Reset(); Queue.ObserveGains(Inventory->GetGainReceipts(), 4);
     TestEqual(TEXT("Reconnect receipts silently baseline"), Queue.GetRows().Num(), 0);
+    FKalmalaSkillNoticeQueue AggregateQueue;
+    TArray<FKalmalaItemGainReceipt> AggregateReceipts{{1, TEXT("Wood"), 1}};
+    TestTrue(TEXT("Aggregate receipt baseline accepts known inventory"), AggregateQueue.ObserveGains(AggregateReceipts, 4));
+    AggregateReceipts.Add({2, TEXT("BoarHideBoots"), 33});
+    TestTrue(TEXT("Aggregate gain may span multiple stacks"), AggregateQueue.ObserveGains(AggregateReceipts, 4));
+    const auto* AggregateBootNotice = AggregateQueue.GetRows().FindByPredicate(
+        [](const FKalmalaSkillNotice& Row) { return Row.ItemId == TEXT("BoarHideBoots"); });
+    TestNotNull(TEXT("Multi-stack gain produces a notice"), AggregateBootNotice);
+    if (AggregateBootNotice)
+        TestEqual(TEXT("Aggregate notice preserves the total accepted quantity"), AggregateBootNotice->Quantity, 33);
+    FKalmalaSkillNoticeQueue InvalidAggregateQueue;
+    TArray<FKalmalaItemGainReceipt> OversizedAggregate{{1, TEXT("Wood"), 1}, {2, TEXT("BoarHideBoots"), 41}};
+    TestFalse(TEXT("Aggregate beyond total pack capacity is rejected"), InvalidAggregateQueue.ObserveGains(OversizedAggregate, 4));
     TArray<FKalmalaItemGainReceipt> Invalid{{1, TEXT("Wood"), 1}, {1, TEXT("Stone"), 1}};
     TestFalse(TEXT("Duplicate sequence rejects atomically"), Queue.ObserveGains(Invalid, 4));
     // Many accepted gain/consume cycles never grow the local receipt buffer.
