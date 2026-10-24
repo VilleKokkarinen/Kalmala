@@ -522,7 +522,7 @@ run for this goal and may exceed one turn.
           final seven views and verify all 28 image/numeric rows, range summary,
           camera poses and vertical bounds; distinguish live captures from
           null-RHI overviews.
-  - [ ] **BH02 — Map integration points.** Recheck the current height, lake,
+  - [x] **BH02 — Map integration points.** Recheck the current height, lake,
     river, map/wetness, forest-layout, harvest, preview, material, and test
     consumers; record the exact source/test touchpoints in the plan docs.
   - [ ] **BH03 — Disable analytic basin generation.** Add one compiled shared

@@ -7930,3 +7930,26 @@
   remain.
 - **Next task in this directed goal:** BH02 — map integration points for
   height, water, forest, harvest, preview, material and test consumers.
+
+## Run 2026-10-24 - BH02 integration map
+
+- **Selected increment:** BH02, map the current height, lake, river, map/wetness,
+  forest-layout, harvest, preview, material and test consumers.
+- **Work completed:** Recorded the actual production source paths and their
+  shared contracts in `docs/biome-height-rework.md`, including the distinction
+  between fast biome previews and full shaped-height/hydrology diagnostics.
+  Mapped focused world, forest and UI tests and their development runners.
+  Checked only BH02; no runtime source or asset changed.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `docs/biome-height-rework.md`.
+- **Lightweight checks/results:** Inspected source symbols, test files, runner
+  references, existing material assets, and the applicable architecture/setup
+  guidance. `git diff --check` passed. Full verification remains deferred to
+  BH26.
+- **Observable impact / authority:** Planning and integration documentation only;
+  no generator, gameplay, map, networking, server-authority or save behavior
+  changed.
+- **Known limitations / remaining scope:** BH03–BH26 still implement and accept
+  the planned terrain, basin, forest, presentation and verification changes.
+- **Next task in this directed goal:** BH03 — add the shared disabled-by-default
+  analytic-basin policy at regional generation.

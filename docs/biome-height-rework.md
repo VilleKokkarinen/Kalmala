@@ -586,3 +586,47 @@ generated terrain materials, lake/basin/water/map consumers, and focused tests.
 The server retains all gameplay authority. Clients derive matching geometry
 from the existing server-owned seed and current build; this plan adds no RPC,
 client-selected height, replicated parameter map, dependency or save migration.
+
+## BH02 integration map
+
+Reviewed the current production and test paths before changing generation. This
+is a source map for BH03 onward; it records no runtime behavior change.
+
+| Concern | Production touchpoints | Integration contract to preserve |
+| --- | --- | --- |
+| Fields, labels and regional height | `Source/KalmalaWorld/Public/KalmalaWorldFieldSampler.h` (`FKalmalaWorldFieldSampler::Sample`), `KalmalaBiomeClassifier.h`, `KalmalaRegionalTuning.h`, `KalmalaRegionalGeneration.h`, `Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp` (`SampleInternal`, `SampleBiome`) | Keep the four ecological fields, biome labels/weights, distance bands and master-map coastline stable while deriving terrain height separately. Regional sampling currently combines biome height, basin support, water level, coast constraint and priority river data; it is the central height/hydrology integration point. |
+| Rendered and colliding terrain | `KalmalaTerrainHeightSampler.h`, `KalmalaTerrainPatchLayout.h`, `Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp` | `SampleHeight` delegates to regional sampling. The generated patch uses it for terrain vertices, finite-difference normals, collision, Meadow rocks and forest root heights. Render and collision share the same 30 m patch lattice and 125 cm cells. |
+| Rivers, basins and water meshes | `KalmalaLakeBasin.h/.cpp`, `KalmalaShimmeringLakeSampler.h`, `KalmalaWaterSurfaceMesh.h/.cpp`, `KalmalaOceanSampler.h/.cpp`, and `KalmalaGeneratedTerrainPatch.cpp` | Basin support is consumed after generation by containment/visible-water queries; the water mesh clips regional terrain triangles at sampled water levels, while ocean depth uses the shared collision-triangle surface and sea level. Disabling basins therefore needs both generation policy and consumer gates; ocean and Z=0 river behavior remain separate controls. |
+| Maps, wetness and nearby-water consumers | `Source/KalmalaUI/Private/KalmalaMinimapViewModel.cpp`, `KalmalaWorldMapSubsystem.cpp`, `Source/KalmalaWorld/Public/KalmalaEnvironmentalExposureSampler.h`, `KalmalaCampConditionSampler.h`, `KalmalaBiomeExpansionContract.h`, `Source/KalmalaUI/Private/KalmalaAmbientAudioSubsystem.cpp`, `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp`, `KalmalaGameMode.cpp`, and `KalmalaOceanSkiff.cpp` | Minimap raster vertices sample regional outputs and classify wet cells as water; world-map tiles derive biome/water presentation from the same world config. Exposure, camp conditions, biome shore candidates and gameplay water checks use the lake/water samplers. Audit these together so removed basin-only water cannot persist as wetness, map color, audio proximity, or gameplay eligibility. |
+| Forest and harvest identity | `Source/KalmalaWorld/Public/KalmalaForestLayout.h`, `Source/KalmalaWorld/Private/KalmalaForestLayout.cpp`, `KalmalaGeneratedTerrainPatch.cpp`, `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`, `KalmalaHarvestNode.cpp`, and `KalmalaForestDeliveryVerification.cpp` | `FKalmalaForestLayout::Generate` is shared by decorative patch trees and server materialization. Harvest nodes resolve the stable candidate index from the same descriptors; suppression, depletion, late join and restart depend on preserving descriptor identity when placement filters change. |
+| Preview and terrain materials | `Source/KalmalaWorld/Public/KalmalaGenerationPreview.h`, `Source/KalmalaWorld/Private/KalmalaGenerationPreview.cpp`, `Source/KalmalaEditor/Private/ExportWorldMapsCommandlet.cpp`, `RenderWorldGenerationVisualizationCommandlet.cpp`, `Scripts/WorldMapPreview.params`, and `KalmalaGeneratedTerrainPatch.cpp` | The fast PNG exporter previews master/biome classification and does not show final height or hydrology. The full visualization commandlet samples final shaped height, hydrology and weights and owns the BH01 CSV diagnostics. Runtime patch materials are the existing `M_GeneratedTerrain`, `M_GeneratedTerrainBiomeDebug`, `M_GeneratedWater`, `M_GeneratedLakeShore`, `M_GeneratedRock`, `M_GeneratedBark` and `M_GeneratedCanopy` assets under `Content/Kalmala/World/Materials`; BH23–BH24 should reuse these and existing weather paths. |
+
+Focused source coverage is in `Source/KalmalaWorld/Private/Tests/`:
+`KalmalaRegionalGenerationTest.cpp`, `KalmalaBiomeClassifierTest.cpp`,
+`KalmalaMasterMapTest.cpp`, `KalmalaFiniteWorldTest.cpp`,
+`KalmalaWaterSurfaceMeshTest.cpp`, `KalmalaOceanSamplerTest.cpp` and
+`KalmalaWorldPlayerStartResolverTest.cpp`. Forest descriptor, lifecycle and
+restart contracts are in `Source/KalmalaGameplay/Private/Tests/`:
+`KalmalaForestPatchTest.cpp`, `KalmalaForestLifecycleTest.cpp` and
+`KalmalaForestRestartTest.cpp`. Map agreement/performance coverage is in
+`Source/KalmalaUI/Private/Tests/`: `KalmalaGenerationPerformanceTest.cpp`,
+`KalmalaMinimapViewModelTest.cpp`, `KalmalaMinimapAsyncTest.cpp`,
+`KalmalaWorldMapWidgetTest.cpp` and `KalmalaWorldMapPerformanceTest.cpp`.
+
+The development runners tied to these paths are
+`Scripts/Tests/World/RegionalGeneration.ps1` (preview determinism and regional
+host/client agreement), `Minimap.ps1` (81-position terrain/weight/water/river
+peer agreement), `WorldMapExport.ps1` and `WorldMap.ps1` (map preview and
+presentation), and `BiomeExpansion.ps1` (biome peer integration plus forest
+delivery/lifecycle options). The applicable automation names and full final
+verification procedure remain in [development setup](07-development-setup.md).
+The fast map exporter is not a substitute for final-height diagnostics or live
+terrain traversal.
+
+Implementation dependencies from this map: BH03–BH05 disable analytic-basin
+generation and close all water/map/wetness consumers while retaining ocean and
+rivers; BH06–BH18 modify the shared regional height before terrain mesh,
+collision, map and placement consumers observe it; BH19–BH23 must use the
+shared forest descriptors and existing materials; BH25–BH26 add raw-range,
+cost, rendered traversal and integrated peer acceptance. Server-owned gameplay
+selection stays authoritative throughout.
