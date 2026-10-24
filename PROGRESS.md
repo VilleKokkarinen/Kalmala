@@ -9016,3 +9016,83 @@
   scope N/A disposition is covered.
 - **Next eligible A1 group:** `IronOre` and `Iron` — Mossy Mire ore source and
   Smelter bar.
+
+## Run 2026-10-24 — A10 per-item audit: Iron Ore and Iron
+
+- **Scope and definitions:** audited exactly `IronOre` and `Iron`, registered in
+  `items/materials/ore.json` and `items/materials/metal.json`. IronOre has a
+  maximum stack of 20; Iron bars have a maximum stack of 50. Both are materials,
+  not equipment: they have no equipment profile, attack data, stat reward, or
+  self-upgrade record. Iron is used as a recipe and level-up ingredient.
+- **Source and mining authority:** Mossy Mire's gathering-source contract maps
+  to `mire-bog-iron`; the deterministic server population layout assigns that
+  identity to generated harvest candidates and materializes them as server
+  harvest nodes with stable sparse-population IDs. The server mining selection
+  grants exactly 3 `IronOre` per accepted node, requires Mining, sets the
+  resource tier to Iron, and requires a Bronze-tier pick or better. Stone Pick's
+  mining ceiling is Bronze, so it cannot mine this Iron-tier source; Bronze and
+  Iron Picks can. The seeded gemstone replacement can substitute Amethyst for
+  3% of bog-iron candidates, retaining the source slot identity/location rather
+  than granting IronOre from those replaced nodes. There is no direct Iron bar
+  drop. It is manufactured from ore in the Smelter.
+- **Processing and catalogue uses:** each accepted Smelter job consumes one
+  IronOre and one Coal and produces one Iron bar after 30 active server seconds.
+  Ore and Coal inputs each hold 10 including reservations; Copper, Tin, and Iron
+  share 10 output slots. Full output pauses work and no offline time advances.
+  The parsed catalogue has no ordinary recipe or upgrade references to
+  `IronOre`; the Smelter path is runtime-authoritative. `Iron` appears in 14
+  recipe rows: IronAxe, IronKnife, IronPick, IronSpear, IronMace, IronSword,
+  PolarBearCoatRecipe, FangSpear, ThunderMaul, ReefHarpoon, FryingPanRecipe,
+  WolfPeltBootsRecipe, OpalHelm, and StormcutSword. It appears in 13 level-one
+  upgrade-cost rows: IronAxe, IronKnife, IronPick, IronSpear, IronMace,
+  IronSword, PolarBearCoat, FangSpear, ThunderMaul, ReefHarpoon, WolfPeltBoots,
+  OpalHelm, and StormcutSword. IronOre and Iron have no direct attack/equipment
+  behavior; material equipment fields are N/A.
+- **Progression discrepancy:** the approved A1 Iron Pick acquisition target is
+  10 Wood + 10 Iron. The current Forge acquisition recipe still costs 4 Iron +
+  2 Wood + 2 Stone. The existing level-one Iron Pick upgrade cost is the same
+  old combination; the architecture explicitly leaves pickaxe upgrade costs
+  unchanged, so this audit records the acquisition mismatch for final A10
+  progression disposition without changing either recipe. Bronze Pick has the
+  analogous acquisition-target gap recorded in the preceding bar-family audit.
+- **Icons and provenance:** focused validation confirmed retained 1254×1254 RGBA
+  originals, prepared transparent 64×64 RGBA icons, and canonical imported
+  `/Game/Kalmala/UI/Icons/Items/IronOre.IronOre` and
+  `/Game/Kalmala/UI/Icons/Items/Iron.Iron` textures. IronOre has an exact
+  subject description in the shared material provenance section; the current
+  guide has no dedicated Iron-bar prompt record. `Iron` is in the early batch-A
+  icon manifest and IronOre is in batch J. The runtime catalogue validator
+  resolves both canonical IDs; the older widget fallback remains distinct from
+  the canonical texture mapping.
+- **Inventory, Smelter, and world save:** the mining source's stable depletion
+  ID is marked in the world population save and written via `SaveGameToSlot`,
+  but the callback discards the save result; a failed sparse write can let the
+  depleted node return after restart. Mining selection and rewards remain
+  server-owned, with the server validating source ID, pick tier, inventory
+  capacity, and tool condition before committing the accepted harvest. Ordinary
+  carried ore and bar stacks are session-only and are not restored by the
+  player-discovery save. Loading IronOre into a Smelter persists the candidate
+  station state before consuming the inventory unit; save rejection attempts to
+  return it. Smelter queues, active-job time, and output are world-saved, and
+  bar collection saves the output reduction before committing the carried stack,
+  with output rollback if the pack changes. Chest storage uses its separate
+  world-keyed save path; no Iron-specific chest or live restart was exercised.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md` only.
+- **Lightweight checks:** `python Scripts/Validate-CatalogueReferences.py`
+  passed with 61 registered JSON files, 152 unique definitions, 777 resolved
+  references, and canonical icon mappings for all definitions. Focused
+  `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id IronOre` and the matching
+  `Iron` validation passed for original, prepared, and imported textures. A
+  Python parse of registered catalogue JSON found 0 IronOre recipe/upgrade
+  rows, 14 Iron recipe rows, and 13 Iron upgrade-cost rows. Source, mining,
+  Smelter, icon, and save code was inspected. Related world/resource contracts
+  were not executed. No build, full suite, peer, or restart test ran.
+- **Full verification:** deferred; this is not A10's final increment.
+- **Impact and remaining scope:** tracking-only; no source amount, recipe, icon,
+  server authority, or persistence behavior changed. The Iron Pick acquisition
+  mismatch, sparse-save write-failure behavior, exact Iron-bar prompt provenance,
+  and live Iron progression/restart evidence remain open for A10's final
+  disposition. Keep the broad A10 per-item audit child unchecked until every
+  included item and scope N/A is covered.
+- **Next eligible group:** A2 melee weapons (`BronzeSword`, `IronSword`,
+  `WoodenClub`).
