@@ -197,17 +197,55 @@ bool FKalmalaPopulationBodyClearanceTest::RunTest(const FString& Parameters)
     AKalmalaWildlifeSpawn::GetBodyCollisionShapesForArchetype(
         EKalmalaWildlifeArchetype::Boar, RootProfile);
     if (!TestTrue(TEXT("Boar profile is available for placement"), !RootProfile.IsEmpty())) return false;
+    const double TestSlopeRadians = FMath::DegreesToRadians(32.0);
+    const FVector TestSlopeNormal(FMath::Sin(TestSlopeRadians), 0.0, FMath::Cos(TestSlopeRadians));
+    double SphereSlopeOffset = 0.0;
+    TestTrue(TEXT("A sphere support offset accepts a valid sloped plane"),
+        AKalmalaGameMode::TryGetPopulationBodyVerticalSupportOffset(
+            RootProfile, TestSlopeNormal, SphereSlopeOffset));
+    TestTrue(TEXT("A sphere is raised by radius divided by normal Z on a slope"),
+        FMath::IsNearlyEqual(SphereSlopeOffset,
+            static_cast<double>(RootProfile[0].RadiusCentimetres) / TestSlopeNormal.Z));
+    TestFalse(TEXT("A zero normal fails closed for body support"),
+        AKalmalaGameMode::TryGetPopulationBodyVerticalSupportOffset(
+            RootProfile, FVector::ZeroVector, SphereSlopeOffset));
+    TestFalse(TEXT("A downward normal fails closed for body support"),
+        AKalmalaGameMode::TryGetPopulationBodyVerticalSupportOffset(
+            RootProfile, -FVector::UpVector, SphereSlopeOffset));
+
     FVector PlacementLocation;
     TestTrue(TEXT("Land placement location uses generated support and actual body extent"),
         Mode->TryGetPopulationActorPlacementLocation(
             Spawn, EKalmalaWildlifeArchetype::Boar, RootProfile, PlacementLocation));
-    TestTrue(TEXT("Land body bottom clears its sampled generated-ground support"),
-        PlacementLocation.Z >= GroundHeight + RootProfile[0].RadiusCentimetres);
+    const FVector SampledSurfaceNormal = FKalmalaTerrainHeightSampler::SampleSurfaceNormal(
+        Config, Position);
+    double SampledSupportOffset = 0.0;
+    TestTrue(TEXT("Sampled terrain normal yields a land body support offset"),
+        AKalmalaGameMode::TryGetPopulationBodyVerticalSupportOffset(
+            RootProfile, SampledSurfaceNormal, SampledSupportOffset));
+    TestTrue(TEXT("Land actor anchor clears its sampled tangent plane"),
+        PlacementLocation.Z >= GroundHeight + SampledSupportOffset);
 
     TArray<FKalmalaWildlifeBodyCollisionShape> GiantSnakeProfile;
     AKalmalaWildlifeSpawn::GetBodyCollisionShapesForArchetype(
         EKalmalaWildlifeArchetype::GiantSnake, GiantSnakeProfile);
     if (!TestTrue(TEXT("Giant Snake profile includes its root and capsule"), GiantSnakeProfile.Num() == 2)) return false;
+    const FKalmalaWildlifeBodyCollisionShape& GiantSnakeCapsule = GiantSnakeProfile[1];
+    const FVector CapsuleAxis = GiantSnakeCapsule.RelativeRotation.Quaternion()
+        .RotateVector(FVector::UpVector).GetSafeNormal();
+    const double CapsuleSupportAlongNormal = GiantSnakeCapsule.RadiusCentimetres
+        + (GiantSnakeCapsule.HalfHeightCentimetres - GiantSnakeCapsule.RadiusCentimetres)
+            * FMath::Abs(FVector::DotProduct(CapsuleAxis, TestSlopeNormal));
+    const double CapsuleOffsetAlongNormal = FVector::DotProduct(
+        GiantSnakeCapsule.RelativeLocation, TestSlopeNormal);
+    const double ExpectedCapsuleSlopeOffset =
+        (CapsuleSupportAlongNormal - CapsuleOffsetAlongNormal) / TestSlopeNormal.Z;
+    double CapsuleSlopeOffset = 0.0;
+    TestTrue(TEXT("A capsule support offset accepts the sampled nonzero slope"),
+        AKalmalaGameMode::TryGetPopulationBodyVerticalSupportOffset(
+            GiantSnakeProfile, TestSlopeNormal, CapsuleSlopeOffset));
+    TestTrue(TEXT("Capsule axis and relative offset contribute to slope support"),
+        FMath::IsNearlyEqual(CapsuleSlopeOffset, ExpectedCapsuleSlopeOffset));
     TestTrue(TEXT("Placement accounts for a snake's full active capsule extent"),
         Mode->TryGetPopulationActorPlacementLocation(
             Spawn, EKalmalaWildlifeArchetype::GiantSnake, GiantSnakeProfile, PlacementLocation));

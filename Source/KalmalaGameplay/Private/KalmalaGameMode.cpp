@@ -6050,38 +6050,16 @@ bool AKalmalaGameMode::TryGetPopulationActorPlacementLocation(
         WorldGenerationConfig, Position);
     if (!FMath::IsFinite(GroundHeight)) return false;
 
-    double RequiredSupportExtent = 0.0;
-    for (const FKalmalaWildlifeBodyCollisionShape& Shape : BodyShapes)
+    const FVector SurfaceNormal = FKalmalaTerrainHeightSampler::SampleSurfaceNormal(
+        WorldGenerationConfig, Position);
+    double RequiredSupportOffset = 0.0;
+    if (!TryGetPopulationBodyVerticalSupportOffset(
+            BodyShapes, SurfaceNormal, RequiredSupportOffset))
     {
-        if (!FMath::IsFinite(Shape.RadiusCentimetres)
-            || !FMath::IsFinite(Shape.HalfHeightCentimetres)
-            || Shape.RelativeLocation.ContainsNaN() || Shape.RelativeRotation.ContainsNaN()
-            || Shape.RadiusCentimetres <= 0.0f
-            || Shape.HalfHeightCentimetres < Shape.RadiusCentimetres)
-        {
-            return false;
-        }
-
-        double ShapeHalfHeight = 0.0;
-        if (Shape.Type == EKalmalaWildlifeBodyShapeType::Sphere)
-        {
-            ShapeHalfHeight = Shape.RadiusCentimetres;
-        }
-        else if (Shape.Type == EKalmalaWildlifeBodyShapeType::Capsule)
-        {
-            const FVector CapsuleAxis = Shape.RelativeRotation.Quaternion().RotateVector(FVector::UpVector);
-            ShapeHalfHeight = Shape.RadiusCentimetres
-                + (Shape.HalfHeightCentimetres - Shape.RadiusCentimetres) * FMath::Abs(CapsuleAxis.Z);
-        }
-        else
-        {
-            return false;
-        }
-        RequiredSupportExtent = FMath::Max(RequiredSupportExtent,
-            ShapeHalfHeight - Shape.RelativeLocation.Z);
+        return false;
     }
 
-    double PlacementHeight = GroundHeight + RequiredSupportExtent + KINDA_SMALL_NUMBER;
+    double PlacementHeight = GroundHeight + RequiredSupportOffset + KINDA_SMALL_NUMBER;
     if (Archetype == EKalmalaWildlifeArchetype::MosquitoSwarm)
     {
         PlacementHeight = FMath::Max(PlacementHeight,
@@ -6090,6 +6068,61 @@ bool AKalmalaGameMode::TryGetPopulationActorPlacementLocation(
     OutActorLocation.Z = PlacementHeight;
     return FMath::IsFinite(OutActorLocation.X) && FMath::IsFinite(OutActorLocation.Y)
         && FMath::IsFinite(OutActorLocation.Z);
+}
+
+bool AKalmalaGameMode::TryGetPopulationBodyVerticalSupportOffset(
+    const TArray<FKalmalaWildlifeBodyCollisionShape>& BodyShapes,
+    const FVector SurfaceNormal, double& OutVerticalSupportOffset)
+{
+    OutVerticalSupportOffset = 0.0;
+    if (BodyShapes.IsEmpty() || !FMath::IsFinite(SurfaceNormal.X)
+        || !FMath::IsFinite(SurfaceNormal.Y) || !FMath::IsFinite(SurfaceNormal.Z)
+        || SurfaceNormal.IsNearlyZero())
+    {
+        return false;
+    }
+
+    const FVector UpNormal = SurfaceNormal.GetSafeNormal();
+    if (UpNormal.Z <= SMALL_NUMBER) return false;
+
+    for (const FKalmalaWildlifeBodyCollisionShape& Shape : BodyShapes)
+    {
+        if (!FMath::IsFinite(Shape.RadiusCentimetres)
+            || !FMath::IsFinite(Shape.HalfHeightCentimetres)
+            || Shape.RadiusCentimetres <= 0.0f
+            || Shape.HalfHeightCentimetres < Shape.RadiusCentimetres
+            || Shape.RelativeLocation.ContainsNaN() || Shape.RelativeRotation.ContainsNaN())
+        {
+            return false;
+        }
+
+        double SupportDistanceAlongNormal = 0.0;
+        if (Shape.Type == EKalmalaWildlifeBodyShapeType::Sphere)
+        {
+            SupportDistanceAlongNormal = Shape.RadiusCentimetres;
+        }
+        else if (Shape.Type == EKalmalaWildlifeBodyShapeType::Capsule)
+        {
+            const FVector CapsuleAxis = Shape.RelativeRotation.Quaternion()
+                .RotateVector(FVector::UpVector).GetSafeNormal();
+            const double AxialProjection = FMath::Abs(FVector::DotProduct(CapsuleAxis, UpNormal));
+            SupportDistanceAlongNormal = Shape.RadiusCentimetres
+                + (Shape.HalfHeightCentimetres - Shape.RadiusCentimetres) * AxialProjection;
+        }
+        else
+        {
+            return false;
+        }
+
+        const double OffsetAlongNormal = FVector::DotProduct(Shape.RelativeLocation, UpNormal);
+        const double ShapeVerticalOffset =
+            (SupportDistanceAlongNormal - OffsetAlongNormal) / UpNormal.Z;
+        if (!FMath::IsFinite(ShapeVerticalOffset)) return false;
+        OutVerticalSupportOffset = FMath::Max(OutVerticalSupportOffset, ShapeVerticalOffset);
+    }
+
+    OutVerticalSupportOffset = FMath::Max(0.0, OutVerticalSupportOffset);
+    return FMath::IsFinite(OutVerticalSupportOffset);
 }
 
 bool AKalmalaGameMode::DoesPopulationCollisionShapeOverlap(

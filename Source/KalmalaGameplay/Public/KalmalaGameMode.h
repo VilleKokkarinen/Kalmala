@@ -201,6 +201,9 @@ private:
     bool TryGetPopulationActorPlacementLocation(const FKalmalaWorldPopulationSpawn& Descriptor,
         EKalmalaWildlifeArchetype Archetype, const TArray<FKalmalaWildlifeBodyCollisionShape>& BodyShapes,
         FVector& OutActorLocation) const;
+    static bool TryGetPopulationBodyVerticalSupportOffset(
+        const TArray<FKalmalaWildlifeBodyCollisionShape>& BodyShapes, FVector SurfaceNormal,
+        double& OutVerticalSupportOffset);
     static bool DoesPopulationCollisionShapeOverlap(UWorld* World,
         const FKalmalaWildlifeBodyCollisionShape& BodyShape, FVector ActorLocation,
         FRotator ActorRotation, const AActor* ActorToIgnore = nullptr);
