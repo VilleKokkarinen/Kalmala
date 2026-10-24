@@ -6881,7 +6881,7 @@
 
 - **Scope/status:** A9/I5 verification phase in `codex/a9-runtime`, under the user's isolated parallel assignment. This is not completed integrated I5 acceptance: independent I4, enemy-source enablement and the existing inventory notification-baseline disposition remain open. No A8 checkbox or main-checkout file was changed.
 - **Production repairs:** Ordinary third-person loose-gem/treasure interaction now retains physical reach despite the camera boom, with bounded visibility and normal server validation. Opal upgrades require the effective Forge level matching the target item level; free repairs accept a valid nearby Forge. Added a real Forge/Anvil regression. Inventory reserves space for both Opal actions, reapplies accessibility styling, and uses short labels with Forge tooltips. Salt generation checks Tundra eligibility before expensive terrain suitability without changing candidate results. Corrected new recipe/Stormcut test expectations and extended the older biome-content assertion to validate approved replacement slots.
-- **Peer fixture:** Added Development-only `KalmalaA9PeerTest.cpp` and `Scripts/Tests/Combat/GemMiningTreasurePeer.ps1`. One host plus two owning remote clients execute normal attack/interaction RPCs. The server checks three pick condition spent, actor restoration after one saved hit, full-pack rejection for both contenders, exactly one gem and one treasure reward, saved claims, owner-only accessory stats and replicated hit/outcome state. Fresh-process restart restores both claimed ledger entries. Test gear/pick are explicitly provisioned, distant players are held at interaction height while terrain streams, and duplicate actors for fixture identities are removed; this does not certify no-grant progression, physical input, or general material/equipment save restoration.
+- **Peer fixture:** Added Development-only `KalmalaA9PeerTest.cpp` and `Scripts/Tests/Progression/GemMiningTreasurePeer.ps1`. One host plus two owning remote clients execute normal attack/interaction RPCs. The server checks three pick condition spent, actor restoration after one saved hit, full-pack rejection for both contenders, exactly one gem and one treasure reward, saved claims, owner-only accessory stats and replicated hit/outcome state. Fresh-process restart restores both claimed ledger entries. Test gear/pick are explicitly provisioned, distant players are held at interaction height while terrain streams, and duplicate actors for fixture identities are removed; this does not certify no-grant progression, physical input, or general material/equipment save restoration.
 - **Build isolation/commands:** Mirror `C:/Users/Ville/AppData/Local/Temp/a9v`, evidence `C:/Users/Ville/AppData/Local/Temp/a9e`; source checkout protected output folders were not used. Invoked installed UE 5.8 `Engine/Build/BatchFiles/Build.bat KalmalaEditor Win64 Development -Project=C:/Users/Ville/AppData/Local/Temp/a9v/Kalmala.uproject -WaitMutex -NoHotReload -NoUBA -MaxParallelActions=4 -Log=C:/Users/Ville/AppData/Local/Temp/a9e/editor11.log`, then the same command with target `Kalmala` and `game4.log`. Both passed. Existing project-plugin source was copied into the mirror after its first precompile lookup failure; no plugin/dependency was installed. Earlier evidence retains a wrong-temp project lookup, a loaded-DLL link failure, and stale UHT output repaired with `-ForceHeaderGeneration`; later builds passed. No unsupported Launcher-engine Server target was attempted.
 - **Full automation:** Ran installed `UnrealEditor-Cmd.exe` against that mirror with `-unattended -nop4 -nosplash -nosound -nullrhi -NoZenAutoLaunch -DDC=NoZenLocalFallback -stdout -FullStdOutLogOutput`, private UserDir/log/report roots, `-ExecCmds="Automation RunTests Kalmala"` and `-TestExit="Automation Test Queue Empty"`. First queue: 185 cases, 176 clean passes, six warning passes, three failures (Stormcut station/condition expectations, normalized Forge recipe ID, old biome identity assertion). Second: 177 clean passes, seven warning passes, one Stormcut condition-expectation failure. Third `u3/auto3.log/r3`: all 185 passed (179 clean, six with warnings), zero not-run, process exit 0. Focused Stormcut and real-Forge Opal reruns passed. Final current-label queue `u4/auto4.log/r4` also passed all 185 (179 clean, six with warnings), zero failures/not-run, process exit 0. The two startup `LogAutomationTest: Condition failed` messages precede test execution and are retained engine diagnostics, not failed test cases.
 - **Live results:** `GemMiningTreasurePeer.ps1 -Port 19309 -OutputDirectory C:/Users/Ville/AppData/Local/Temp/a9p6` passed including fresh-process restart; both client logs contain gemstone progress, private accessory stats and treasure interaction requests. Earlier runner/fixture attempts retained evidence for Windows log sharing, unstreamed-ground falls, occupied-start pawn spawning and comma-truncated treasure IDs; each was repaired before the passing run. `Crafting.ps1 -Port 19311` passed (evidence `C:/Users/Ville/AppData/Local/Temp/KalmalaCrafting-f0da4864444d4da8b93de7675d9d410a`). `DiscoveryPeer.ps1 -Port 19313 -OutputDirectory C:/Users/Ville/AppData/Local/Temp/a9d1` passed identity/distance/duplicate/private-feedback checks.
@@ -7472,3 +7472,52 @@
   filename aliases are retained. Next roadmap task remains A10 S02, mapping
   defeated-slot depletion, living-slot unload cooldown and reward escrow.
   Main checkout used directly; no handoff synchronization required.
+
+
+## Run 2026-10-24 — Consolidate enemy peer coverage
+
+- **Completed / scope:** User-directed test consolidation, overriding roadmap
+  selection for this run. Replaced 16 enemy launchers with
+  `Scripts/Tests/Combat/EnemyPeers.ps1`: 12 explicitly selected behavior cases,
+  no run-all mode. SharedCombat retains the Rat's complete invalid-request,
+  server damage, owner-only escrow/retry, two-peer health/defeat and exact-ID
+  restart coverage. Only this case starts a restart process. CombatFeedback
+  keeps private result cues; ten other cases target charge, herd alert, pack,
+  leap, push/stagger, poison/fire/dodge, sweep, slam and aquatic bite mechanics.
+- **Removed duplication:** Retired separate Mireling, Badger/Moon Bear, Viper
+  and Giant Snake live journeys. Existing native species contracts and shared
+  poison tests remain; all 17 enemy stat profiles have existing table-driven
+  automation and catalogue/attack/drop-reference validation. Native fixtures
+  are unchanged and may still execute internal shared assertions; removing
+  those C++ fixtures is outside this script consolidation.
+- **Files changed:** Removed the 16 old enemy runners; added EnemyPeers;
+  moved DiscoveryPeer and GemMiningTreasurePeer unchanged into Progression;
+  updated Acceptance/VerticalSlice and AutomatedAcceptance callers, the test
+  README, setup guide, architecture audio commands, BACKLOG and PROGRESS.
+  The current guide supersedes older per-species commands/rendered modes;
+  historical results remain historical. All work is in the main checkout;
+  the other Kalmala chat was idle and the checkout clean at the start.
+- **Lightweight checks:** All 45 PowerShell files parsed. The 17-profile
+  creature catalogue validator and all five no-build documentation contracts
+  passed. All eight distinct-mechanic selector blocks were compared with
+  their original versions (only the mosquito timer's state scope changed);
+  both moved scripts are byte-identical. Twenty literal child runner paths
+  resolve. Whitespace, staged-scope and MAX_PATH checks passed before commit.
+- **Evidence/orchestration checks:** 84 synthetic positive/negative log checks
+  passed across all 12 cases, covering missing peers, seed mismatch, crashes,
+  retry, damage/reach/step/push bounds, poison privacy and remote cue rejection.
+  Twelve mocked-process runs passed; only SharedCombat launched a restart,
+  every started mock was cleaned up. Failure cleanup and existing-output
+  rejection also passed. Checks/evidence retained under `.tmp/ec-6a8453/`;
+  these are synthetic fixtures, not new live gameplay acceptance results.
+- **Full verification:** Deferred; no Unreal build, live session or full
+  automation suite was run for this test-infrastructure increment.
+- **Observable impact / authority:** Select behavior with `-Scenario` or list
+  cases with `-ListScenarios`; common startup, ordering, seed agreement,
+  log/error handling and cleanup replace repeated launch code. Fresh output
+  roots prevent stale saves/logs from certifying a new run. Gameplay, server
+  authority, fixture flags, RPCs and save formats are unchanged.
+- **Limitations / next:** New live execution remains deferred. Old per-species
+  script paths and rendered launcher modes are retired; use the current guide.
+  Next roadmap task remains A10 S02: map defeated-slot depletion, living-slot
+  unload cooldown and reward escrow. No worktree handoff sync is needed.

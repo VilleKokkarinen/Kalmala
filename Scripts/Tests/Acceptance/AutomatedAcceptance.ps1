@@ -82,15 +82,16 @@ function Invoke-M7Automation {
     }
 }
 
-function Invoke-M7Scenario([string]$Name, [string]$ScriptName, [int]$Port, [switch]$Rendered, [switch]$HasOutputDirectory) {
+function Invoke-M7Scenario([string]$Name, [string]$ScriptName, [int]$Port, [switch]$Rendered, [switch]$HasOutputDirectory, [string]$EnemyScenario = '') {
     $scenarioScript = Join-Path $repoPaths.TestsRoot $ScriptName
     if (!(Test-Path -LiteralPath $scenarioScript)) { throw "Missing M7 scenario script: $scenarioScript" }
     Assert-PortAvailable $Port
 
     $scenarioOutput = Join-Path $output $Name
-    New-Item -ItemType Directory -Path $scenarioOutput -Force | Out-Null
+    if (!$EnemyScenario) { New-Item -ItemType Directory -Path $scenarioOutput -Force | Out-Null }
     $scenarioLog = Join-Path $scenarioOutput 'result.txt'
     $arguments = @{ Port = $Port }
+    if ($EnemyScenario) { $arguments.Scenario = $EnemyScenario; $arguments.Editor = $Editor }
     if ($Rendered) { $arguments['Rendered'] = $true }
     if ($HasOutputDirectory) { $arguments['OutputDirectory'] = $scenarioOutput }
 
@@ -111,8 +112,8 @@ try {
     Invoke-M7Scenario 'gathering-and-tool-lifecycle' 'Inventory\InventoryReconnect.ps1' $PortBase
     Invoke-M7Scenario 'rendered-crafting-and-stations' 'Construction\Crafting.ps1' ($PortBase + 1) -Rendered
     Invoke-M7Scenario 'weather-and-camp-recovery' 'Survival\CampChoices.ps1' ($PortBase + 2)
-    Invoke-M7Scenario 'optional-boar-encounter' 'Combat\BoarPeer.ps1' ($PortBase + 3) -HasOutputDirectory
-    Invoke-M7Scenario 'optional-discovery' 'Combat\DiscoveryPeer.ps1' ($PortBase + 4) -HasOutputDirectory
+    Invoke-M7Scenario 'optional-boar-encounter' 'Combat\EnemyPeers.ps1' ($PortBase + 3) -HasOutputDirectory -EnemyScenario BoarCharge
+    Invoke-M7Scenario 'optional-discovery' 'Progression\DiscoveryPeer.ps1' ($PortBase + 4) -HasOutputDirectory
 
     Write-Output 'PASS: M7 automated progression/recovery acceptance completed without native computer use.'
 }

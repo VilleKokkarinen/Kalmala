@@ -3022,7 +3022,7 @@ MovementJumpCue, MovementLandingCue, GeneratedOceanEntryCue, and
 GeneratedOceanExitCue are short one-shots. When audio sources change, import
 the affected assets to `/Game/Kalmala/Audio`, then run
 `Scripts/Tests/Audio/AmbientAudio.ps1`, `Scripts/Tests/Audio/AmbientAudioPeers.ps1`,
-`Scripts/Tests/Combat/CombatPeer.ps1`, `Scripts/Tests/Combat/DiscoveryPeer.ps1`,
+`Scripts/Tests/Combat/EnemyPeers.ps1 -Scenario CombatFeedback`, `Scripts/Tests/Progression/DiscoveryPeer.ps1`,
 `Scripts/Tests/Presentation/PlayerControls.ps1 -MovementAudio -OceanTraversalAudio`, and the forced editor build.
 Pass
 `-WeatherExposureOnly` to the peer runner when
@@ -3032,7 +3032,7 @@ assets, local-player ownership, context gates, and teardown. The peer runner
 confirms independent host/client probes for visible water and hearth context
 plus each local player's current sampled biome, accepted rainy weather/Wet
 state, and effect-specific Hearth Shield/Bear's Vigor activation and expiry
-cues. `CombatPeer.ps1` confirms that
+cues. The `CombatFeedback` scenario confirms that
 owner-local Hit and Defeat feedback submit CombatResultCue, Unavailable remains
 text-only, and the other peer receives no private combat result cue. The
 discovery peer fixture confirms that only the entitled local owner submits the

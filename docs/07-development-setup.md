@@ -1,5 +1,27 @@
 # Development setup
 
+## Enemy peer selection — 2026-10-24
+
+`Scripts/Tests/Combat/EnemyPeers.ps1 -ListScenarios` is the current enemy peer
+entry point. Select `-Scenario SharedCombat` for the single Rat-based loot,
+retry, privacy, replicated defeat and exact-ID restart gate. Select a distinct
+mechanic such as `WolfPack`, `MosquitoCounterplay` or `ReefMawBite` when that
+behavior changes. See [the test guide](../Scripts/Tests/README.md#enemy-peers)
+for all 12 scenarios and parameters. Every run requires a fresh short output
+directory; use `-Project` for a compiled mirror and `-Editor` to override UE.
+
+The old per-species launchers and their rendered modes are retired. Commands
+and results naming them below are historical; they are not additional required
+shared loot/persistence runs. Only SharedCombat starts a restart process.
+Existing C++ fixture names and internal assertions remain stable, while stats
+for all 17 enemies remain covered by
+`Kalmala.Gameplay.Wildlife.Stats.AllReviewedArchetypes`; catalogue/attack/drop
+references use `python Scripts/Validate-CreatureCatalogues.py`. Species-specific
+Unreal contracts and shared `Kalmala.Gameplay.Status.PoisonEffects` remain.
+Discovery and mining/treasure runners now live under `Scripts/Tests/Progression/`.
+The consolidated runner has lightweight parser/evidence/orchestration coverage;
+new live execution and full Unreal verification remain deferred.
+
 ## A9 runtime verification — 2026-10-24
 
 Accessory runtime effects, all ten gem sources, Forge gear routes and the four
@@ -2408,7 +2430,7 @@ scenario is the sole end-to-end case for those shared systems.
 
 ## Discovery peer privacy regression
 
-After an editor build, run `Scripts/Tests/Combat/DiscoveryPeer.ps1`. It starts a
+After an editor build, run `Scripts/Tests/Progression/DiscoveryPeer.ps1`. It starts a
 seed-418 listen server and a conflicting-seed client (999) with isolated
 temporary user directories. The server derives the same bounded descriptor
 twice, confirms a different seed does not retain its canonical ID, materializes
@@ -3116,8 +3138,8 @@ reimporting from WAV sources, import the full set to `/Game/Kalmala/Audio`, or
 reimport only affected assets after regeneration. Use Unreal's `ImportAssets`
 commandlet, then run
 `Scripts/Tests/Audio/AmbientAudio.ps1`,
-`Scripts/Tests/Audio/AmbientAudioPeers.ps1`, `Scripts/Tests/Combat/CombatPeer.ps1`,
-`Scripts/Tests/Combat/DiscoveryPeer.ps1`, `Scripts/Tests/Presentation/PlayerControls.ps1
+`Scripts/Tests/Audio/AmbientAudioPeers.ps1`, `Scripts/Tests/Combat/EnemyPeers.ps1 -Scenario CombatFeedback`,
+`Scripts/Tests/Progression/DiscoveryPeer.ps1`, `Scripts/Tests/Presentation/PlayerControls.ps1
 -MovementAudio -OceanTraversalAudio`, and the forced editor build. This
 development-only audio mode injects one local sample transition pair and
 requires each host/client owner to submit one entry and one exit cue; it never
@@ -4597,12 +4619,12 @@ build, export, package, and render utilities remain directly under `Scripts/`;
 | --- | --- |
 | Acceptance | `Acceptance/VerticalSlice.ps1`; `DocumentationContracts.ps1`; `AutomatedAcceptance.ps1`; `RainVerticalSlice.ps1` |
 | Audio | `Audio/AmbientAudio.ps1` (includes `-ContractOnly`); `AmbientAudioPeers.ps1` |
-| Combat and discoveries | `Combat/RatPeer.ps1` (sole I4 end-to-end test for shared enemy loot, defeat persistence, and combat replication); `CombatPeer.ps1`; `DiscoveryPeer.ps1`. `BoarPeer.ps1`, `DeerPeer.ps1`, `MirelingPeer.ps1`, `ViperPeer.ps1`, `GiantSnakePeer.ps1`, and `ElderwoodPeer.ps1` are historical evidence, not repeated I4 shared-system tests. |
+| Combat | `Combat/EnemyPeers.ps1 -Scenario SharedCombat` for the sole shared reward/restart gate; `-Scenario CombatFeedback` for private cues; `-ListScenarios` for distinct mechanics. |
 | Construction and inventory | `Construction/ConstructionMovement.ps1` (floor/wall collision, roof jump/land, and replicated exposure); `ConstructionPersistence.ps1`; `Crafting.ps1`; `Storage.ps1`; `Inventory/Inventory.ps1` (includes `-ContractOnly`); `InventoryMenu.ps1`; `InventoryReconnect.ps1` |
 | Item peer behaviors | `Inventory/ItemPeers.ps1 -ListScenarios`; see [test guide](../Scripts/Tests/README.md) |
 | Performance | `Performance/ConstrainedPerformance.ps1` |
 | Presentation and input | `Presentation/InteractionPrompt.ps1`; `LocalInputContract.ps1`; `MenuInputCopy.ps1`; `OnboardingContract.ps1`; `PlayerControls.ps1`; `PresentationOwnership.ps1`; `SettingsAccessibility.ps1` (includes `-ContractOnly`); `StatusHotbar.ps1`; `TutorialRouteFree.ps1` |
-| Progression | `Progression/ExplorationRewards.ps1`; `Schema2CandidateReconnect.ps1` |
+| Progression | `Progression/DiscoveryPeer.ps1`; `GemMiningTreasurePeer.ps1`; `ExplorationRewards.ps1`; `Schema2CandidateReconnect.ps1` |
 | Survival | `Survival/CampChoices.ps1`; `PersistedCampRestart.ps1` |
 | Travel | `Travel/OceanSkiffDiscoveryDisembark.ps1`; `OceanSkiffIntegratedReconnectJourney.ps1`; `OceanSkiffJourney.ps1`; `OceanTravel.ps1`; `Swimming.ps1` |
 | World and maps | `World/BiomeExpansion.ps1`; `MapAwareness.ps1`; `Minimap.ps1`; `RegionalGeneration.ps1`; `WorldMap.ps1`; `WorldMapExport.ps1`; `WorldProfile.ps1` |
@@ -4621,7 +4643,7 @@ Check each runner's supported parameters before invoking it. For milestone-final
 
 ## A9 independent acceptance
 
-Use the short isolated build mirror for `Scripts/Tests/Combat/GemMiningTreasurePeer.ps1 -Port 19309 -OutputDirectory <fresh-short-path>`.
+Use the short isolated build mirror for `Scripts/Tests/Progression/GemMiningTreasurePeer.ps1 -Port 19309 -OutputDirectory <fresh-short-path>`.
 It starts a listen host and two owning clients, provisions explicit test gear and a pick, materializes canonical seeded Quartz and Garnet descriptors, and checks three client-driven hits, one-hit actor restoration, full-pack rejection, competing gem/treasure claims, owner-only accessory stats and relevant-peer hit/outcome replication. The fixture holds players at interaction height while distant terrain streams and removes duplicate actors for its canonical identities. A fresh process reuses only the host profile and verifies both claimed ledger entries. This is shared-system acceptance, not a no-grant fresh-character progression or physical-input certification.
 
 Render the equipped inventory with the existing `RenderMenu` commandlet and `-Menu=inventory -A9Gear`, `-AllowCommandletRendering -RenderOffscreen`, explicit dimensions and private output/UserDir/log paths. The opt-in fixture equips Opal Helm, Garnet Necklace and Dusk Ring and includes Star Opal/Storm Sapphire icons. Inspect maintenance controls and the expanded backplate. Run the complete `Kalmala` automation queue after repairs, Editor and Game builds, icon/catalogue validators and applicable shared crafting/inventory/discovery regressions. Keep I4-dependent enemy enablement and combined I5 acceptance open until integrated evidence exists.

@@ -10,14 +10,10 @@ $ErrorActionPreference = 'Stop'
 $output = if ($OutputDirectory) { $OutputDirectory } else { Join-Path $env:TEMP ('KalmalaM4VerticalSlice-' + [guid]::NewGuid().ToString('N')) }
 New-Item -ItemType Directory -Path $output -Force | Out-Null
 
-function Invoke-PeerScenario([string]$Name, [string]$Script, [int]$ScenarioPort) {
-    $scenarioOutput = Join-Path $output $Name
-    New-Item -ItemType Directory -Path $scenarioOutput -Force | Out-Null
-    Write-Output "Running M4 $Name peer scenario on port $ScenarioPort."
-    # The child is a PowerShell script, so failures propagate as terminating
-    # errors. $LASTEXITCODE is only meaningful for native executables and may
-    # be null or stale after a successful script invocation.
-    & (Join-Path $repoPaths.TestsRoot $Script) -Port $ScenarioPort -OutputDirectory $scenarioOutput
+function Invoke-EnemyScenario([string]$Scenario, [int]$ScenarioPort) {
+    $scenarioOutput = Join-Path $output $Scenario
+    Write-Output "Running $Scenario peer scenario on port $ScenarioPort."
+    & (Join-Path $repoPaths.TestsRoot 'Combat/EnemyPeers.ps1') -Scenario $Scenario -Port $ScenarioPort -OutputDirectory $scenarioOutput -Editor $Editor
 }
 
 function Invoke-SupportRegression {
@@ -39,10 +35,10 @@ function Invoke-SupportRegression {
 }
 
 try {
-    Invoke-PeerScenario 'Mireling' 'Combat\MirelingPeer.ps1' $Port
-    Invoke-PeerScenario 'Boar' 'Combat\BoarPeer.ps1' ($Port + 1)
-    Invoke-PeerScenario 'Deer' 'Combat\DeerPeer.ps1' ($Port + 2)
+    Invoke-EnemyScenario 'SharedCombat' $Port
+    Invoke-EnemyScenario 'BoarCharge' ($Port + 1)
+    Invoke-EnemyScenario 'DeerHerd' ($Port + 2)
     Invoke-SupportRegression
-    Write-Output 'PASS: route-free M4 peer fixtures covered Mireling, boar, deer, owner-only rewards, defeat persistence, all four support-effect authority/non-damage gates, and matching-world learning persistence.'
+    Write-Output 'PASS: route-free peer fixtures covered shared combat/reward persistence, boar charge, deer herd alert, all four support-effect authority/non-damage gates, and matching-world learning persistence.'
 }
 finally { Write-Output "M4 vertical-slice evidence: $output" }
