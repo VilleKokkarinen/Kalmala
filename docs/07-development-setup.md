@@ -4590,6 +4590,7 @@ build, export, package, and render utilities remain directly under `Scripts/`;
 | Audio | `Audio/Verify-AmbientAudio.ps1` (includes `-ContractOnly`); `Verify-AmbientAudioPeers.ps1` |
 | Combat and discoveries | `Combat/Verify-RatPeer.ps1` (sole I4 end-to-end test for shared enemy loot, defeat persistence, and combat replication); `Verify-CombatPeer.ps1`; `Verify-DiscoveryPeer.ps1`. `Verify-BoarPeer.ps1`, `Verify-DeerPeer.ps1`, `Verify-MirelingPeer.ps1`, `Verify-ViperPeer.ps1`, `Verify-GiantSnakePeer.ps1`, and `Verify-ElderwoodPeer.ps1` are historical evidence, not repeated I4 shared-system tests. |
 | Construction and inventory | `Construction/Verify-ConstructionMovement.ps1` (floor/wall collision, roof jump/land, and replicated exposure); `Verify-ConstructionPersistence.ps1`; `Verify-Crafting.ps1`; `Verify-Storage.ps1`; `Inventory/Verify-Inventory.ps1` (includes `-ContractOnly`); `Verify-InventoryMenu.ps1`; `Verify-InventoryReconnect.ps1` |
+| Item peer behaviors | `Inventory/Verify-ItemPeers.ps1 -ListScenarios`; see [test guide](../Scripts/Tests/README.md) |
 | Performance | `Performance/Verify-ConstrainedPerformance.ps1` |
 | Presentation and input | `Presentation/Verify-InteractionPrompt.ps1`; `Verify-LocalInputContract.ps1`; `Verify-MenuInputCopy.ps1`; `Verify-OnboardingContract.ps1`; `Verify-PlayerControls.ps1`; `Verify-PresentationOwnership.ps1`; `Verify-SettingsAccessibility.ps1` (includes `-ContractOnly`); `Verify-StatusHotbar.ps1`; `Verify-TutorialRouteFree.ps1` |
 | Progression | `Progression/Verify-M9ExplorationRewards.ps1`; `Verify-M9Schema2CandidateReconnect.ps1` |
@@ -5926,252 +5927,29 @@ preceded the queue. These local progression/combat automations do not replace
 multiplayer Forge crafting, peer inventory delivery, or rendered presentation
 acceptance. Combined A8a/A8b I4 remains required before A9.
 
-## A8b Rat-tail Tonic live peer craft — 2026-10-24
+## Item peer verification
 
-After an Editor build, run `Scripts/Tests/Construction/Verify-A8bTonicPeer.ps1`.
-The development-only three-peer fixture selects the first remote owner by
-PlayerId, spawns a Cauldron and a lit dry hearth within normal range, and seeds
-two Rat Tails, two Lingonberries, and one Wood for the hearth. The owner waits
-for the replicated station, heat, and materials, confirms client-side direct
-crafting is rejected, then sends the ordinary `RatTailTonicRecipe`
-`ServerCraft` RPC. Server and owner logs require exact ingredient payment, one
-GUID-addressed Tonic, and the accepted owner result. A second remote observer
-and the listen host verify their own inventories contain no Tonic; the observer
-also checks the non-owner replica of the target pawn's private inventory for an
-empty pack. `Verify-RatPeer.ps1` remains the
-sole I4 enemy reward, retry, defeat-persistence, and combat-replication test.
+Use [the test guide](../Scripts/Tests/README.md) to select shared automation and
+live scenarios. The nine per-item A8b runners are replaced by one behavior-based
+entry point:
 
-On 2026-10-24, an initial incremental build caught four unbraced `UE_LOG`
-conditional branches; braces were added and the build passed in five actions.
-The fixture was then strengthened to inspect the target owner's non-owner
-inventory replica directly, and the final isolated `KalmalaEditor Win64
-Development` build passed in four actions. `Verify-A8bTonicPeer.ps1` passed for
-the server, owner, listen host, and observer; logs:
-`C:/Users/Ville/AppData/Local/Temp/a8tn2/server.log`, `owner.log`, and
-`observer.log`. The final peer logs contain no fixture errors, fatal/assert/ensure
-failures, or saved-move backlog warnings. This live craft and inventory-privacy
-case does not exercise the Tonic's healing effect or rendered station/inventory
-presentation. Combined A8a/A8b I4 remains required before A9.
+```powershell
+Scripts/Tests/Inventory/Verify-ItemPeers.ps1 -ListScenarios
+Scripts/Tests/Inventory/Verify-ItemPeers.ps1 -Scenario CraftEquipment -Port 17892 -Project C:/km/Kalmala.uproject
+```
 
-## A8b Badger Fur Vest live peer craft and equip — 2026-10-24
+`CraftEquipment` uses Badger Fur Vest for shared craft/payment, GUID delivery,
+equip, armor/wear and privacy. `WeaponProgression` retains Fang Spear's distinct
+Forge progression/Main Hand/melee path. `Meal` retains heated Cauldron cooking,
+Steady Meal and repeat-use rejection. `Antidote` covers treatment, resistance and
+cooldown. `PoisonedArrows` covers a real accepted shot, ammo payment and poison.
+Tonic, Scale Cuirass, Wolf Pelt Boots and Roasted Badger no longer require
+separate live runs of shared behavior. Automation still covers all six wearable
+slots, two-handed equipment and shared recipe transactions.
 
-After an Editor build, run `Scripts/Tests/Construction/Verify-A8bVestPeer.ps1`.
-The development-only three-peer fixture gives the selected remote owner six
-Badger Fur and spawns a nearby Workbench. The owner confirms direct client craft
-is rejected, then uses `BadgerFurVestRecipe` through the normal `ServerCraft`
-RPC and equips the returned GUID with `ServerEquipGear`. The server verifies
-exact payment, the single GUID-addressed output, Chest-slot equip, and the
-registered 6-Armor / 100-condition profile. A nearby fixture wildlife source
-then drives a 10-Crush hit through `ApplyWildlifeDamageFromServer`; the server
-checks the profile-derived health change and one condition point of wear. The
-observer waits for public health replication, then confirms the target's pack
-and equipped gear remain owner-private. The listen host confirms its inventory
-has no vest.
-
-On 2026-10-24, the isolated `KalmalaEditor Win64 Development` build passed in
-14 actions. `Verify-A8bVestPeer.ps1 -Port 17892 -Project
-C:/Users/Ville/AppData/Local/Temp/msp1/Kalmala.uproject -OutputDirectory
-C:/Users/Ville/AppData/Local/Temp/a8vp1` passed for the server, owner, listen
-host, and observer: the vest reduced the controlled 10-Crush hit to 4 damage
-(health 100 to 96), then took one condition point. Logs are
-`C:/Users/Ville/AppData/Local/Temp/a8vp1/{server,owner,observer}.log`. Each
-Editor log includes the three UE unified-error startup self-test diagnostics;
-the scenario logs have no fixture failures, fatal/assert/ensure failures, or
-saved-move backlog warnings. This fixture checks the authoritative gear and
-damage path, not rendered Workbench/inventory presentation or a natural Badger
-attack. Combined A8a/A8b I4 remains required before A9.
-
-## A8b Roasted Badger live peer cooking and meal use — 2026-10-24
-
-After an Editor build, run `Scripts/Tests/Construction/Verify-A8bRoastedBadgerPeer.ps1`.
-The Development-only three-peer fixture stages two Badger Meat and a Wood hearth
-fuel on the server, then spawns a nearby Cooking Rack and lit dry hearth. The
-remote owner rejects direct client craft and food-use calls, cooks two servings
-through `RoastedBadgerRecipe`, and consumes one through `ServerConsumeFood`. The
-server verifies exact meat payment, two outputs, the active 120-second Steady
-Meal and its -0.10 stamina-cost addition. The owner then tries a second use;
-the server rejects it, keeps the other serving, and does not refresh the meal.
-The listen host confirms it owns no Badger Meat/output and no meal effect. A
-second remote confirms the target's inventory and status arrays stay private.
-
-On 2026-10-24, the isolated `KalmalaEditor Win64 Development` build passed in
-four actions (`C:/Users/Ville/AppData/Local/Temp/a8rb6-build.log`).
-`Verify-A8bRoastedBadgerPeer.ps1 -Port 17896 -Project
-C:/Users/Ville/AppData/Local/Temp/msp1/Kalmala.uproject -OutputDirectory
-C:/Users/Ville/AppData/Local/Temp/a8rb4` passed for the server, owner, listen
-host, and observer. Both clients received world seed 418. Logs:
-`C:/Users/Ville/AppData/Local/Temp/a8rb4/{server,owner,observer}.log`. The fresh
-peer user directories reported absent initial SaveGame files; there were no
-fixture failures, fatal/assert/ensure failures, or saved-move backlog warnings.
-This case does not exercise rendered Cooking Rack/inventory presentation or
-repeat the separate Badger reward/retry/persistence coverage. Combined A8a/A8b
-I4 remains required before A9.
-
-## A8b Fang Arrows live peer craft and weak-poison shot — 2026-10-24
-
-After an Editor build, run `Scripts/Tests/Construction/Verify-A8bFangArrowsPeer.ps1`.
-The Development-only three-peer fixture stages two Viper Fangs and ten Wood at
-a Workbench, equips the remote owner with a test Bow, and aims a controlled
-Moon Bear target with no armor. The target is elevated above the generated
-terrain to keep the live projectile lane clear. The owner rejects direct
-client crafting, then uses `FangArrowsRecipe` through the ordinary
-`ServerCraft` RPC, selects the crafted Fang Arrow stack, holds the actual
-server bow draw briefly, and releases through the regular bow RPC. The server
-verifies exact recipe payment, twenty
-GUID-addressed outputs, one arrow and one Bow condition spent, exactly 50 Pierce
-damage, the five-second weak-poison application, and its first one-point tick.
-The listen host confirms it received none of the test materials or arrows; the
-observer sees the public wildlife health change while the owner's inventory,
-gear and statuses remain private.
-
-The controlled target verifies the live arrow impact path and poison behavior;
-it does not repeat the bow draw/selection/poison-refresh regressions in
-`Kalmala.Gameplay.Combat.BowDrawAndArrows`, nor does it exercise rendered
-Workbench/inventory presentation. On 2026-10-24, the isolated
-`KalmalaEditor Win64 Development` build passed in four actions
-(`C:/Users/Ville/AppData/Local/Temp/a8fa6-build.log`). The first peer attempt
-showed that the original ground-level lane missed the target; after raising the
-controlled target, `Verify-A8bFangArrowsPeer.ps1 -Port 17900 -Project
-C:/Users/Ville/AppData/Local/Temp/msp1/Kalmala.uproject -OutputDirectory
-C:/Users/Ville/AppData/Local/Temp/a8fa6` passed for the server, owner, listen
-host, and observer. Both clients received world seed 418. Logs:
-`C:/Users/Ville/AppData/Local/Temp/a8fa6/{server,owner,observer}.log`. The final
-scenario logs have no fixture failures, fatal/assert/ensure failures, or
-saved-move backlog warnings. Combined A8a/A8b I4 remains required before A9.
-
-## A8b Scale Cuirass live peer craft and armor — 2026-10-24
-
-After an Editor build, run `Scripts/Tests/Construction/Verify-A8bScaleCuirassPeer.ps1`.
-The Development-only three-peer fixture stages 10 Giant Scales and 10 Bronze
-on the server, then spawns a Forge beside the selected remote owner. The owner
-rejects direct client crafting, crafts one `ScaleCuirass` through the ordinary
-`ServerCraft` RPC, then equips its output GUID through `ServerEquipGear`. The
-server verifies exact payment, the Chest slot, 20 physical Armor and 150
-condition. It applies 30 Crush through the accepted server damage path; the
-owner takes 10 damage and the Cuirass spends one condition point. The listen
-host's inventory stays unchanged, while the observer sees public health loss
-and receives no owner inventory, worn gear, carried tools, or statuses.
-
-On 2026-10-24, the isolated `KalmalaEditor Win64 Development` build passed in
-four actions (`C:/Users/Ville/AppData/Local/Temp/a8sc3-build.log`). The first
-peer attempts exposed a fixture compile typo and observer-role/baseline issues;
-after repair, `Verify-A8bScaleCuirassPeer.ps1 -Port 17903 -Project
-C:/Users/Ville/AppData/Local/Temp/msp1/Kalmala.uproject -OutputDirectory
-C:/Users/Ville/AppData/Local/Temp/a8sc3` passed for the server, owner, listen
-host, and observer. Both clients received world seed 418. Logs:
-`C:/Users/Ville/AppData/Local/Temp/a8sc3/{server,owner,observer}.log`. The final
-scenario logs have no fixture failures, fatal/assert/ensure failures, or
-saved-move backlog warnings. Combined A8a/A8b I4 remains required before A9.
-
-## A8b Antidote live peer craft, poison treatment and cooldown — 2026-10-24
-
-After an Editor build, run `Scripts/Tests/Construction/Verify-A8bAntidotePeer.ps1`.
-The Development-only three-peer fixture stages two Venom Sacs and four
-Lingonberries at a lit, dry Cauldron. The remote owner crafts two doses through
-`ServerCraft`, then uses one via `ServerConsumeFood`. The server stages both
-weak and major poison before use, verifies the old weak entry is cleared and
-major poison is converted to weak for at most five seconds, and confirms the
-600-second resistance plus the shared 60-second recovery cooldown. During
-resistance, a weak hit is blocked and a major hit is reduced to the weak
-profile. A second use is rejected by the cooldown and preserves the other
-dose. The listen host receives no test items; the observer sees public poison
-damage but not the owner's inventory or owner-only statuses.
-
-On 2026-10-24, the isolated `KalmalaEditor Win64 Development` build passed in
-four actions with normal UnrealBuildTool cache access. The first generated
-makefile omitted the new fixture translation unit and failed at link; forcing
-makefile regeneration included it. The first peer attempt exposed a result
-replication race between the accepted use and the following resistance probe;
-separating those phases allowed the owner to observe each result. The final
-`Verify-A8bAntidotePeer.ps1 -Port 17906 -Project
-C:/Users/Ville/AppData/Local/Temp/msp1/Kalmala.uproject -OutputDirectory
-C:/Users/Ville/AppData/Local/Temp/a8an3` run passed for the server, owner,
-listen host, and observer. Both clients received world seed 418. Logs:
-`C:/Users/Ville/AppData/Local/Temp/a8an3/{server,owner,observer}.log`. The final
-scenario logs contain no fixture failures, fatal/assert/ensure failures, or
-saved-move backlog warnings. Combined A8a/A8b I4 remains required before A9.
-
-## A8b Peat Heart Stew live peer cooking and meal use — 2026-10-24
-
-After an Editor build, run
-`Scripts/Tests/Construction/Verify-A8bPeatHeartStewPeer.ps1`. The
-Development-only three-peer fixture stages one Peat Heart, two Potatoes, one
-Onion and hearth fuel on the server, then places a Cauldron beside a lit, dry
-hearth near the selected remote owner. The owner rejects direct client crafting
-and food use, cooks two servings through `PeatHeartStewRecipe` and the ordinary
-`ServerCraft` RPC, and consumes one through `ServerConsumeFood`. The server and
-owner verify exact ingredient payment, two distinct valid serving GUIDs, the
-remaining serving, and the 120-second Steady Meal's -0.10 additive stamina-cost
-modifier. A second use is rejected without consuming the remaining serving or
-refreshing the effect. The listen host keeps its item/effect baseline; the
-observer confirms the owner's inventory and meal status remain private.
-
-On 2026-10-24, the isolated `KalmalaEditor Win64 Development` build passed in
-15 actions after source gathering; after strengthening the fixture's GUID
-uniqueness assertion it passed again in four actions, using normal
-UnrealBuildTool cache access. The first peer attempt did not complete the
-observer marker. Discovery diagnostics in the rerun showed that the observer's
-initial scan preceded Cauldron replication; it then observed the fixture and
-passed its privacy check. The final
-`Verify-A8bPeatHeartStewPeer.ps1 -Port 17909 -Project
-C:/Users/Ville/AppData/Local/Temp/msp1/Kalmala.uproject -OutputDirectory
-C:/Users/Ville/AppData/Local/Temp/a8phs3` run passed for the server, owner,
-listen host, and observer. Both clients received world seed 418. Logs:
-`C:/Users/Ville/AppData/Local/Temp/a8phs3/{server,owner,observer}.log`. The
-final run's fixture markers passed with no fixture, fatal, assertion, or ensure
-failures. Combined A8a/A8b I4 remains required before A9.
-
-## A8b Wolf Pelt Boots live peer craft, equip and armor — 2026-10-24
-
-After an Editor build, run
-`Scripts/Tests/Construction/Verify-A8bWolfPeltBootsPeer.ps1`. The
-Development-only three-peer fixture stages five Wolf Pelts and five Iron for
-the selected remote owner, then spawns a nearby Workbench. The owner rejects
-direct client crafting and equipment mutation, crafts one pair through
-`WolfPeltBootsRecipe` and `ServerCraft`, and equips its output GUID using
-`ServerEquipGear`. The server verifies exact payment, Boots-slot identity,
-10 physical Armor and 120 maximum condition, then applies an accepted 20-Crush
-hit: the boots reduce damage to 10 and lose one condition point. The listen
-host keeps its materials unchanged; the observer sees public health damage but
-not the owner's private inventory, worn gear or statuses.
-
-On 2026-10-24, the isolated `KalmalaEditor Win64 Development` build passed in
-10 actions after forcing UBT to regenerate the source manifest. The first
-build linked the owner RPC hook without the newly added fixture translation
-unit; `-ForceMakefile` regenerated the makefile and the subsequent build passed.
-`Verify-A8bWolfPeltBootsPeer.ps1 -Port 17910 -Project
-C:/Users/Ville/AppData/Local/Temp/msp1/Kalmala.uproject -OutputDirectory
-C:/Users/Ville/AppData/Local/Temp/a8wb1` passed for server, owner, listen host
-and observer; both clients received world seed 418. Logs:
-`C:/Users/Ville/AppData/Local/Temp/a8wb1/{server,owner,observer}.log`. The final
-logs contain no fixture, fatal, assertion, ensure, or saved-move backlog
-failures. Combined A8a/A8b I4 remains required before A9.
-
-## A8b Fang Spear live peer Forge progression and melee acceptance — 2026-10-24
-
-After an Editor build, run
-`Scripts/Tests/Construction/Verify-A8bFangSpearPeer.ps1`. The Development-only
-three-peer fixture stages four Wolf Fangs, ten Iron and ten Densewood for a
-remote owner, then spawns a visible in-range Forge and controlled Moon Bear.
-Fang Spear acquisition is a carried-item progression record, so the owner
-requests it through `ServerProgressTool`; ordinary `ServerCraft` does not handle
-it. The progression view now shows the catalogue display name “Fang Spear.” The
-server confirms exact material payment and one level-one GUID-bearing tool at
-200 durability. The owner equips that GUID through `ServerSetMainHand`
-and its accepted attack deals exactly 100 Stab to the armor-free target. Spear
-durability remains at 200 because the existing combat rule does not wear spear
-condition. Direct client progression/equipment mutation is rejected, host
-materials remain unchanged, and the observer sees public wildlife health while
-the owner's inventory, carried equipment and statuses remain private.
-
-On 2026-10-24, the isolated short-path `KalmalaEditor Win64 Development` build
-passed in five actions with normal UnrealBuildTool cache access.
-`Verify-A8bFangSpearPeer.ps1 -Port 17919 -Project
-C:/Users/Ville/AppData/Local/Temp/msp1/Kalmala.uproject -OutputDirectory
-C:/Users/Ville/AppData/Local/Temp/a8fsp10` passed for the server, remote owner,
-listen host and observer; both clients received world seed 418. Logs:
-`C:/Users/Ville/AppData/Local/Temp/a8fsp10/{server,owner,observer}.log`. The
-successful run has no fixture failures, fatal/assert/ensure failures, or
-saved-move backlog warnings. This case stages rather than naturally earns the
-Wolf Fangs and does not exercise rendered Forge/Main Hand presentation. The
-combined A8a/A8b I4 gate remains open before A9.
+The runner uses the existing Development-only server fixtures, exact four-role
+pass markers, conflicting client seeds and seed-418 agreement. It retains logs
+and stops its peers on exit. `-Editor` overrides the executable;
+`-OutputDirectory` must be new and short to avoid stale saves/pass markers.
+These headless fixtures stage materials rather than earn source drops and do
+not prove rendered UI acceptance. Historical A8 results remain in `PROGRESS.md`.

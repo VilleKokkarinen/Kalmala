@@ -6941,3 +6941,36 @@
 - **Known limitations / remaining scope:** The headless Rat peers reached the 96 saved-move limit during the uncapped run while all I4 acceptance assertions passed. Rendered/manual presentation was not part of this gate. A9 was not started in this A8 completion goal.
 - **Next eligible task:** A9 is now unblocked and is the next roadmap milestone; this goal ends with A8/I4 complete.
 - **Integration state:** Work ran directly on `master`; no worktree handoff synchronization was needed. Current run time: `2026-10-24 09:26 UTC`.
+
+## Run 2026-10-24 — Simplify Scripts/Tests item coverage
+
+- **Selected task / work completed:** User-requested test cleanup, explicitly
+  overriding the concurrent-run stop for the separate documentation cleanup.
+  Replaced nine nearly identical A8b item launchers with
+  `Scripts/Tests/Inventory/Verify-ItemPeers.ps1`: five selectable behaviors for
+  craft/equip, weapon progression, meals, antidotes and poisoned arrows. Removed
+  the redundant Tonic craft, Scale Cuirass/Boots armor and Roasted Badger meal
+  runs. Added `Scripts/Tests/README.md` with coverage and selection guidance;
+  replaced repeated per-item setup procedures with the shared entry point.
+- **Files changed:** Nine retired `Scripts/Tests/Construction/Verify-A8b*Peer.ps1`
+  runners; new `Scripts/Tests/Inventory/Verify-ItemPeers.ps1` and test README;
+  `docs/07-development-setup.md`; `BACKLOG.md`; `PROGRESS.md`.
+- **Lightweight checks:** All test PowerShell files parsed; `-ListScenarios`
+  listed five behaviors. A temporary mocked process/log harness passed 50 cases
+  (five successes; each missing role marker, wrong seed, explicit FAILED,
+  Passed=0, fatal error and early process exit for every scenario), checking
+  cleanup as well as failure reporting. Existing output directory rejection
+  passed. Retained flags and all four success markers were compared against the
+  original runners. Whitespace and changed-path lengths checked before commit.
+- **Full verification:** Deferred. No Unreal build, live peer session or full
+  automation suite run; this cleanup does not complete a roadmap milestone.
+- **Observable impact / authority:** One discoverable item entry point with
+  shared process handling, fresh-output enforcement, seed checks and retained
+  logs. Unique species runners and shared wearable-slot/crafting automation
+  remain available. No gameplay, RPC, replication or save changes.
+- **Limitations / next eligible task:** C++ fixtures keep legacy internal A8b
+  names, including unused per-item fixtures; their removal is outside this
+  script cleanup. Headless scenarios stage materials and do not verify rendered
+  menus or acquisition. This request is complete; A9 remains next in the roadmap.
+  Main checkout used; no handoff synchronization required. Concurrent unrelated
+  documentation edits are preserved and excluded from this commit.

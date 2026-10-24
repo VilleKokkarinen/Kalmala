@@ -522,6 +522,8 @@ milestone-final verification/repair run and can exceed a normal turn.
 
 ## User-requested fixes
 
+- [x] Simplify Scripts/Tests into shared behavior coverage: consolidate item peer runners, remove repeated per-item runs and document test selection.
+
 - [x] Resize inventory crafting to a 256 px item list/search field and 384 px selected-item pane, preserving the existing gutter and outer padding.
 
 - [x] Remove all portable construction kits, separate buildable metadata from inventory, require direct-material hammer placement for every object, and guard against future kit generation.
