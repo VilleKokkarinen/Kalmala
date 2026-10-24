@@ -110,7 +110,7 @@ TArray<FKalmalaM9ExplorationRewardDescriptor> FKalmalaM9ExplorationRewardCatalog
     if (!Config.IsValid()) return Descriptors;
 
     const FVector2D KeyCenter = (FVector2D(SpatialKey) + FVector2D(0.5f, 0.5f))
-        * FKalmalaWorldPopulationLayout::SpatialKeySize;
+        * FKalmalaWorldPopulationLayout::SpatialKeySizeCm;
     const EKalmalaBiome KeyBiome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, KeyCenter));
     const FKalmalaM9ExplorationRewardDefinition* Definition = nullptr;
     FKalmalaBiomeDiscoveryCandidate BaseCandidate;

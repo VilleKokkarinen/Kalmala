@@ -77,7 +77,7 @@ bool FKalmalaM9ExplorationRewardCatalogueTest::RunTest(const FString& Parameters
         {
             const FIntPoint SpatialKey(X, Y);
             const FVector2D KeyCenter = (FVector2D(SpatialKey) + FVector2D(0.5f, 0.5f))
-                * FKalmalaWorldPopulationLayout::SpatialKeySize;
+                * FKalmalaWorldPopulationLayout::SpatialKeySizeCm;
             const EKalmalaBiome KeyBiome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(World, KeyCenter));
             if (KeyBiome != EKalmalaBiome::ShimmeringLakes && KeyBiome != EKalmalaBiome::ThunderMountains) continue;
 

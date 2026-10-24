@@ -7635,3 +7635,55 @@
 - **Next eligible task:** A10 catalogue/icon acceptance remains ahead in queue;
   its current audit gap is four generated/imported scroll icons. After A10,
   start BH01. No main-checkout handoff synchronization is needed.
+
+
+## Run 2026-10-24 — Add monster spawn tuning constants (S03)
+
+- **Selected increment:** S03, the first unchecked child in the requested
+  monster-population goal. The worktree was created from local master at
+  460339b3 on branch codex/monster-population. Work proceeded in this isolated
+  worktree after explicit user authorization to continue alongside other active
+  Kalmala tasks.
+- **Completed:** Changed the shared spatial key side from 6,000 cm to 6,400 cm
+  (64 m), renamed the shared constant to SpatialKeySizeCm at all source
+  references, and added named monster tuning values for the 32–96 m ring,
+  five-second key check interval, and 96 m count radius. Compile-time
+  assertions validate the unit conversion, positive ordered ring, count-radius
+  coverage, and positive interval. Current architecture/setup/acceptance text
+  now reflects 64 m; the historical 60 m Frost Salt approval is preserved with
+  a dated S03 superseding note. S03 is checked in BACKLOG.md. Natural spawning
+  remains disabled.
+- **Files changed:**
+  - BACKLOG.md
+  - PROGRESS.md
+  - Source/KalmalaGameplay/Private/KalmalaGameMode.cpp
+  - Source/KalmalaGameplay/Private/KalmalaM9ExplorationRewardCatalogue.cpp
+  - Source/KalmalaGameplay/Private/KalmalaOceanDiscoveryCatalogue.cpp
+  - Source/KalmalaGameplay/Private/Tests/KalmalaM9ExplorationRewardCatalogueTest.cpp
+  - Source/KalmalaWorld/Public/KalmalaBiomeExpansionContract.h
+  - Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h
+  - docs/02-technical-architecture.md
+  - docs/05-decision-log.md
+  - docs/07-development-setup.md
+  - docs/a9-acceptance.md
+  - docs/monster-spawning.md
+- **Lightweight checks:** Source scan found no old unsuffixed SpatialKeySize
+  references; the named constants and compile-time bounds were inspected.
+  Current architecture and setup docs no longer state 6,000 cm. git diff
+  --check passed. No Unreal build or automation was run.
+- **Full verification:** Deferred to S35. This is not the final implementation
+  task in the monster-population goal.
+- **Observable impact / authority:** Shared deterministic population and
+  discovery layout uses invisible 64 m square keys. Descriptor positions and
+  sparse identities can differ across wildlife, harvest, hazard, biome
+  discovery, ocean discovery, and M9 exploration systems that share the layout.
+  No natural-spawn scheduler, RPC, or client authority was added; current
+  population activation remains server-owned.
+- **Known limitations:** No generator revision, save schema, or migration was
+  changed, per the fixed S03 contract. Existing development save IDs made with
+  the previous 60 m layout may not match the new deterministic descriptors.
+  Remaining S04–S35 work, including recurring admission and camp suppression,
+  is not implemented. Full integrated verification remains pending.
+- **Next eligible task:** A10 catalogue/icon acceptance remains earliest in the
+  global queue. Within this requested monster-population goal, the next child
+  is S04 — gather active living players on the server.

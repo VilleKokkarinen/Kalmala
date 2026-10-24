@@ -351,7 +351,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     - [x] Add and register the complete raw-gem item JSON; record recipe and combat/equipment/upgrade categories as N/A.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
     - [x] Add or enable its Star-Opal-rock acquisition/source-table entry after the item JSON and icon are complete and the source is accepted.
-      - User approved the bounded real-deposit pass on 2026-10-23: at most one dry, slope-safe and separated deposit per 60 m key; 1% become Star Opal, leaving frostmoss unchanged.
+      - User approved the bounded real-deposit pass on 2026-10-23: at most one dry, slope-safe and separated deposit per 60 m key; 1% become Star Opal, leaving frostmoss unchanged. The 2026-10-24 S03 shared-layout change supersedes only the key width to 64 m; all other source conditions remain.
   - [x] Storm Sapphire (`StormSapphire`, special): proposed 2% chance of 1 in Thunder Mountains treasure.
     - [x] Add and register the complete raw-gem item JSON; record recipe and combat/equipment/upgrade categories as N/A.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
@@ -591,7 +591,7 @@ milestone-final verification/repair run and can exceed a normal turn.
   - [x] **S02 — Map lifecycle integration.** Identify callbacks enforcing permanent
     defeated-slot depletion, 30 s living-slot unload cooldown and reward escrow.
     Record integration points for the fixed lifecycle; add no save-format change.
-  - [ ] **S03 — Add named tuning constants.** Use existing invisible 64 × 64 m
+  - [x] **S03 — Add named tuning constants.** Use existing invisible 64 × 64 m
     spatial keys; ring 32–96 m, interval 5 s and count radius 96 m.
     Validate bounds/units; keep spawning disabled.
   - [ ] **S04 — Gather active players.** Add a server-only list of living players

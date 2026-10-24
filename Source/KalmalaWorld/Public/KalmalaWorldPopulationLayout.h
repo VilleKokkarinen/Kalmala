@@ -56,15 +56,15 @@ struct KALMALAWORLD_API FKalmalaWorldDiscoveryDescriptor
 
 struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
 {
-    static constexpr float SpatialKeySize = 6000.0f;
+    static constexpr float SpatialKeySizeCm = 6400.0f;
     // One optional Tin node, six land-biome Stone outcrops and one Tundra salt deposit.
     static constexpr int32 SupplementalHarvestSourceBudget = 8;
 
     static FIntPoint GetSpatialKey(const FVector2D WorldPosition)
     {
         return FIntPoint(
-            FMath::FloorToInt(WorldPosition.X / SpatialKeySize),
-            FMath::FloorToInt(WorldPosition.Y / SpatialKeySize));
+            FMath::FloorToInt(WorldPosition.X / SpatialKeySizeCm),
+            FMath::FloorToInt(WorldPosition.Y / SpatialKeySizeCm));
     }
 
     static uint64 DeriveSpatialSeed(const FKalmalaWorldGenerationConfig& Config, const FIntPoint SpatialKey, const EKalmalaWorldPopulationKind Kind)
@@ -82,7 +82,7 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
 
     static int32 GetSpawnBudget(const FKalmalaWorldGenerationConfig& Config, const FIntPoint SpatialKey, const EKalmalaWorldPopulationKind Kind)
     {
-        const FVector2D KeyCenter = (FVector2D(SpatialKey) + FVector2D(0.5f, 0.5f)) * SpatialKeySize;
+        const FVector2D KeyCenter = (FVector2D(SpatialKey) + FVector2D(0.5f, 0.5f)) * SpatialKeySizeCm;
         const FKalmalaWorldFieldSample Fields = FKalmalaWorldFieldSampler::Sample(Config, KeyCenter);
         switch (Kind)
         {
@@ -104,7 +104,7 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
         const int32 PrimaryBudget = Kind == EKalmalaWorldPopulationKind::HarvestNode
             ? Budget - SupplementalHarvestSourceBudget : Budget;
         Spawns.Reserve(Budget);
-        const FVector2D SpatialKeyOrigin = FVector2D(SpatialKey) * SpatialKeySize;
+        const FVector2D SpatialKeyOrigin = FVector2D(SpatialKey) * SpatialKeySizeCm;
         bool bAddedMeadowCarrotPatch = false;
         bool bAddedMeadowPotatoPatch = false;
         bool bAddedMeadowLingonberryShrub = false;
@@ -123,7 +123,7 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
             const uint64 CandidateSeed = Mix(DeriveSpatialSeed(Config, SpatialKey, Kind) ^ static_cast<uint64>(SpawnIndex + 1));
             const float XFraction = static_cast<float>(CandidateSeed & 0xFFFFu) / 65535.0f;
             const float YFraction = static_cast<float>((CandidateSeed >> 16) & 0xFFFFu) / 65535.0f;
-            const FVector2D Position = SpatialKeyOrigin + FVector2D(XFraction, YFraction) * SpatialKeySize;
+            const FVector2D Position = SpatialKeyOrigin + FVector2D(XFraction, YFraction) * SpatialKeySizeCm;
             if (!FKalmalaWorldBounds::Contains(Config, Position)) continue;
             if (Kind == EKalmalaWorldPopulationKind::Wildlife && !IsSafeWildlifeLocation(Config, Position)) continue;
             const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, Position));
@@ -222,7 +222,7 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
                 const uint64 CandidateSeed = Mix(DeriveSpatialSeed(Config, SpatialKey, Kind) ^ static_cast<uint64>(SpawnIndex + 1));
                 const FVector2D Position = SpatialKeyOrigin + FVector2D(
                     static_cast<float>(CandidateSeed & 0xFFFFu) / 65535.0f,
-                    static_cast<float>((CandidateSeed >> 16) & 0xFFFFu) / 65535.0f) * SpatialKeySize;
+                    static_cast<float>((CandidateSeed >> 16) & 0xFFFFu) / 65535.0f) * SpatialKeySizeCm;
                 if (!FKalmalaWorldBounds::Contains(Config, Position) || !IsTerrainSafeDiscoveryLocation(Config, Position)) continue;
                 if (FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, Position)) != EKalmalaBiome::ShimmeringLakes
                     || !FKalmalaEnvironmentalExposureSampler::Sample(Config, Position).bIsShoreline) continue;
@@ -264,7 +264,7 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
                 const uint64 CandidateSeed = Mix(DeriveSpatialSeed(Config, SpatialKey, Kind) ^ static_cast<uint64>(SpawnIndex + 1));
                 const FVector2D Position = SpatialKeyOrigin + FVector2D(
                     static_cast<float>(CandidateSeed & 0xFFFFu) / 65535.0f,
-                    static_cast<float>((CandidateSeed >> 16) & 0xFFFFu) / 65535.0f) * SpatialKeySize;
+                    static_cast<float>((CandidateSeed >> 16) & 0xFFFFu) / 65535.0f) * SpatialKeySizeCm;
                 if (!FKalmalaWorldBounds::Contains(Config, Position) || !IsTerrainSafeDiscoveryLocation(Config, Position)) continue;
 
                 const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, Position));
@@ -292,7 +292,7 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
             {
                 const uint64 Seed = Mix(DeriveSpatialSeed(Config, SpatialKey, Kind) ^ uint64(CandidateBudget + 65 + Attempt));
                 const FVector2D Position = SpatialKeyOrigin + FVector2D(float(Seed & 0xFFFFu) / 65535.f,
-                    float((Seed >> 16) & 0xFFFFu) / 65535.f) * SpatialKeySize;
+                    float((Seed >> 16) & 0xFFFFu) / 65535.f) * SpatialKeySizeCm;
                 if (!FKalmalaWorldBounds::Contains(Config, Position)
                     || FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, Position)) != EKalmalaBiome::FreezingTundra
                     || !IsTerrainSafeDiscoveryLocation(Config, Position)) continue;
@@ -333,14 +333,14 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
     static TArray<FKalmalaWorldDiscoveryDescriptor> BuildDiscoveryDescriptors(const FKalmalaWorldGenerationConfig& Config, const FIntPoint SpatialKey, const EKalmalaWorldDiscoveryKind Kind)
     {
         TArray<FKalmalaWorldDiscoveryDescriptor> Descriptors;
-        const FVector2D SpatialKeyOrigin = FVector2D(SpatialKey) * SpatialKeySize;
+        const FVector2D SpatialKeyOrigin = FVector2D(SpatialKey) * SpatialKeySizeCm;
         constexpr int32 CandidateBudget = 8;
         for (int32 CandidateOrdinal = 0; CandidateOrdinal < CandidateBudget; ++CandidateOrdinal)
         {
             const uint64 DescriptorSeed = Mix(DeriveDiscoverySeed(Config, SpatialKey, Kind) ^ static_cast<uint64>(CandidateOrdinal + 1));
             const FVector2D Position = SpatialKeyOrigin + FVector2D(
                 static_cast<float>(DescriptorSeed & 0xFFFFu) / 65535.0f,
-                static_cast<float>((DescriptorSeed >> 16) & 0xFFFFu) / 65535.0f) * SpatialKeySize;
+                static_cast<float>((DescriptorSeed >> 16) & 0xFFFFu) / 65535.0f) * SpatialKeySizeCm;
             if (!FKalmalaWorldBounds::Contains(Config, Position) || !IsTerrainSafeDiscoveryLocation(Config, Position)) continue;
 
             const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, Position));
@@ -430,4 +430,21 @@ private:
         Value *= 0x94D049BB133111EBull;
         return Value ^ (Value >> 31);
     }
+};
+
+struct FKalmalaMonsterSpawnTuning final
+{
+    static constexpr float RingMinimumDistanceCm = 32.0f * 100.0f;
+    static constexpr float RingMaximumDistanceCm = 96.0f * 100.0f;
+    static constexpr float PopulationKeyCheckIntervalSeconds = 5.0f;
+    static constexpr float CountRadiusCm = 96.0f * 100.0f;
+
+    static_assert(FKalmalaWorldPopulationLayout::SpatialKeySizeCm == 64.0f * 100.0f,
+        "Population spatial keys must remain 64 m wide.");
+    static_assert(RingMinimumDistanceCm > 0.0f && RingMinimumDistanceCm < RingMaximumDistanceCm,
+        "Monster spawn ring distances must be positive and ordered.");
+    static_assert(RingMaximumDistanceCm <= CountRadiusCm,
+        "Monster spawn count radius must cover the outer ring.");
+    static_assert(PopulationKeyCheckIntervalSeconds > 0.0f,
+        "Monster population checks must use a positive interval.");
 };

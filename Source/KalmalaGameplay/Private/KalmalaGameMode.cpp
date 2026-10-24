@@ -2134,7 +2134,7 @@ void AKalmalaGameMode::DriveMosquitoPeerTest()
                         FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(
                             WorldGenerationConfig, CandidateKey, EKalmalaWorldPopulationKind::Wildlife);
                     const FVector2D KeyCentre = (FVector2D(CandidateKey) + FVector2D(0.5f, 0.5f))
-                        * FKalmalaWorldPopulationLayout::SpatialKeySize;
+                        * FKalmalaWorldPopulationLayout::SpatialKeySizeCm;
                     const EKalmalaBiome KeyBiome = FKalmalaBiomeClassifier::Classify(
                         FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, KeyCentre));
                     if (KeyBiome == EKalmalaBiome::ShimmeringLakes || KeyBiome == EKalmalaBiome::Elderwood
@@ -3240,7 +3240,7 @@ void AKalmalaGameMode::DriveLynxPeerTest()
                         FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(
                             WorldGenerationConfig, CandidateKey, EKalmalaWorldPopulationKind::Wildlife);
                     const FVector2D KeyCentre = (FVector2D(CandidateKey) + FVector2D(0.5f, 0.5f))
-                        * FKalmalaWorldPopulationLayout::SpatialKeySize;
+                        * FKalmalaWorldPopulationLayout::SpatialKeySizeCm;
                     const EKalmalaBiome KeyBiome = FKalmalaBiomeClassifier::Classify(
                         FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, KeyCentre));
                     if (KeyBiome == EKalmalaBiome::ShimmeringLakes || KeyBiome == EKalmalaBiome::Elderwood
@@ -3606,7 +3606,7 @@ void AKalmalaGameMode::DrivePolarBearPeerTest()
                         FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(
                             WorldGenerationConfig, CandidateKey, EKalmalaWorldPopulationKind::Wildlife);
                     const FVector2D KeyCentre = (FVector2D(CandidateKey) + FVector2D(0.5f, 0.5f))
-                        * FKalmalaWorldPopulationLayout::SpatialKeySize;
+                        * FKalmalaWorldPopulationLayout::SpatialKeySizeCm;
                     const EKalmalaBiome KeyBiome = FKalmalaBiomeClassifier::Classify(
                         FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, KeyCentre));
                     if (KeyBiome == EKalmalaBiome::ShimmeringLakes || KeyBiome == EKalmalaBiome::Elderwood
@@ -3996,7 +3996,7 @@ void AKalmalaGameMode::DriveHornedGoatPeerTest()
                     if (Radius > 0 && FMath::Abs(OffsetX) != Radius && FMath::Abs(OffsetY) != Radius) continue;
                     const FIntPoint CandidateKey = StartKey + FIntPoint(OffsetX, OffsetY);
                     const FVector2D KeyCentre = (FVector2D(CandidateKey) + FVector2D(0.5f, 0.5f))
-                        * FKalmalaWorldPopulationLayout::SpatialKeySize;
+                        * FKalmalaWorldPopulationLayout::SpatialKeySizeCm;
                     const EKalmalaBiome KeyBiome = FKalmalaBiomeClassifier::Classify(
                         FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, KeyCentre));
                     if (KeyBiome != EKalmalaBiome::ThunderMountains) continue;
@@ -4344,7 +4344,7 @@ void AKalmalaGameMode::DriveThunderSentinelPeerTest()
                     if (Radius > 0 && FMath::Abs(OffsetX) != Radius && FMath::Abs(OffsetY) != Radius) continue;
                     const FIntPoint CandidateKey = StartKey + FIntPoint(OffsetX, OffsetY);
                     const FVector2D KeyCentre = (FVector2D(CandidateKey) + FVector2D(0.5f, 0.5f))
-                        * FKalmalaWorldPopulationLayout::SpatialKeySize;
+                        * FKalmalaWorldPopulationLayout::SpatialKeySizeCm;
                     const EKalmalaBiome KeyBiome = FKalmalaBiomeClassifier::Classify(
                         FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, KeyCentre));
                     if (KeyBiome != EKalmalaBiome::ThunderMountains) continue;
@@ -4686,7 +4686,7 @@ void AKalmalaGameMode::DriveReefMawPeerTest()
                     if (Radius > 0 && FMath::Abs(OffsetX) != Radius && FMath::Abs(OffsetY) != Radius) continue;
                     const FIntPoint CandidateKey = StartKey + FIntPoint(OffsetX, OffsetY);
                     const FVector2D KeyCentre = (FVector2D(CandidateKey) + FVector2D(0.5f, 0.5f))
-                        * FKalmalaWorldPopulationLayout::SpatialKeySize;
+                        * FKalmalaWorldPopulationLayout::SpatialKeySizeCm;
                     const EKalmalaBiome KeyBiome = FKalmalaBiomeClassifier::Classify(
                         FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, KeyCentre));
                     if (KeyBiome != EKalmalaBiome::Ocean) continue;
@@ -5096,7 +5096,7 @@ void AKalmalaGameMode::DriveM9ExplorationRewardPeerTest()
             {
                 const FIntPoint SpatialKey(X, Y);
                 const FVector2D KeyCenter = (FVector2D(SpatialKey) + FVector2D(0.5f, 0.5f))
-                    * FKalmalaWorldPopulationLayout::SpatialKeySize;
+                    * FKalmalaWorldPopulationLayout::SpatialKeySizeCm;
                 const EKalmalaBiome KeyBiome = FKalmalaBiomeClassifier::Classify(
                     FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, KeyCenter));
                 if (KeyBiome != EKalmalaBiome::ShimmeringLakes && KeyBiome != EKalmalaBiome::ThunderMountains) continue;
@@ -5759,7 +5759,7 @@ void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey)
     }
 
     int32 SpawnedMarkerCount = 0;
-    const EKalmalaBiome KeyBiome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, (FVector2D(SpatialKey) + FVector2D(0.5f, 0.5f)) * FKalmalaWorldPopulationLayout::SpatialKeySize));
+    const EKalmalaBiome KeyBiome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, (FVector2D(SpatialKey) + FVector2D(0.5f, 0.5f)) * FKalmalaWorldPopulationLayout::SpatialKeySizeCm));
     for (const EKalmalaWorldPopulationKind Kind : { EKalmalaWorldPopulationKind::Wildlife, EKalmalaWorldPopulationKind::HarvestNode, EKalmalaWorldPopulationKind::Hazard })
     {
         TArray<FKalmalaWorldPopulationSpawn> Spawns = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(WorldGenerationConfig, SpatialKey, Kind);

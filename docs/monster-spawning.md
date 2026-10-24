@@ -21,12 +21,11 @@ their corresponding backlog items.
   Descriptors use the world seed, key, population kind and candidate index to
   derive stable positions, IDs and biome content. `IsSafeWildlifeLocation`
   filters generated wildlife candidates before they become descriptors.
-  **Contract discrepancy for S03:** the current `SpatialKeySize` is 6,000 cm
-  (60 m), while this fixed target and the backlog specify 64 m. S01 leaves the
-  code and generated identities unchanged. Resolve the mismatch against the
-  accepted 64 m target before changing key geometry; changing it affects
-  deterministic descriptor positions and sparse IDs, and this goal forbids a
-  generator revision bump.
+  **S03 resolution:** the shared SpatialKeySizeCm is now 6,400 cm (64 m),
+  matching this fixed target and the backlog. This changes deterministic
+  descriptor positions and sparse IDs for population and discovery systems that
+  share the layout. No generator revision or save schema change was made, as
+  required by this goal.
 - **Species selection and existing habitat filters:**
   `AKalmalaWildlifeSpawn::TryGetSpawnArchetypeForBiome` maps a descriptor seed
   and biome to its existing species share. The server-side helpers

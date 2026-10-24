@@ -2019,7 +2019,7 @@ Bronze-grade Copper and Tin require at least a Stone Pick and yield three
 matching pieces per node. Iron-grade bog iron requires Bronze Pick or better
 and yields exactly three Iron Ore, replacing the former direct Iron reward.
 The deterministic Stone-outcrop pass adds at most one dry, slope-safe node in
-each of the six land biomes per 6,000 cm key where that biome has no slate
+each of the six land biomes per 6,400 cm key where that biome has no slate
 source, preserving existing candidate sources and keeping 250 cm from other
 harvest descriptors. The biome-content
 contract regression covers Meadows through Thunder Mountains, stable identity,

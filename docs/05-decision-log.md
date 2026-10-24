@@ -209,3 +209,11 @@ The user authorized isolated parallel A9/I5 implementation and separate local ma
 The user explicitly approved population save schema 2 for gemstone progress/outcomes/claims, with existing schema-1 development files rejected and left untouched and no migration. The user also approved server-owned treasure at existing seeded discovery-point locations in Elderwood, Shimmering Lakes and Thunder Mountains.
 
 The user approved repairing the absent Frost Salt deposit generator with at most one dry, safe-slope, separated mineral deposit per 60 m population key and a 1% Star Opal replacement. Existing frostmoss remains unchanged; the new deposit pass is a bounded A9 prerequisite, not a substitution of frostmoss or an unapproved ordinary-resource change.
+
+## Shared spatial-key width — 2026-10-24
+
+The fixed Monster Population S03 contract sets the shared invisible spatial key
+to 64 m (6,400 cm), superseding only the 60 m width in the 2026-10-23 Frost
+Salt deposit approval above. Its one safe, separated deposit per key, 1% Star
+Opal replacement, and frostmoss retention remain unchanged. No generator
+revision or save schema change is made for this pre-release adjustment.
