@@ -8163,3 +8163,37 @@
   into candidate heights; BH09–BH26 remain.
 - **Next task in this directed goal:** BH09 — blend candidate heights through
   existing normalized biome weights and continuous coast attenuation.
+
+## Run 2026-10-24 — BH09 continuous biome-height blend
+
+- **Selected increment:** BH09, blend candidate heights with normalized land-
+  biome weights and continuous coast attenuation.
+- **Work completed:** Added a single candidate-height blend that adds the shared
+  source base once and applies the already coast-scaled land weights directly.
+  Removed the duplicate coast multiplication from land offsets while retaining
+  the existing separately weighted ocean offset, biome classifier inputs,
+  labels and eligibility bands. Added fixed transition and synthetic blend
+  regressions for normalized weights, coast attenuation, near-tie continuity,
+  ocean contribution and classifier identity. Updated the architecture contract;
+  checked only BH09.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalGeneration.h`,
+  `Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`,
+  `docs/02-technical-architecture.md`.
+- **Lightweight checks/results:** Inspected the existing weight normalization,
+  candidate functions, coast clamp and fixed seed-418 Meadows/Elderwood profile.
+  `git diff --check` passed. Added automation coverage but did not run Unreal
+  build or automation; full integrated verification remains deferred to BH26.
+- **Observable impact:** Land-biome relief now receives one continuous coast
+  attenuation instead of a second attenuation; fully inland candidate blending
+  retains its previous float accumulation. The ocean offset and its existing
+  weight are unchanged.
+- **Networking/authority:** Shared deterministic sampling remains derived from
+  the immutable world seed/current build; server gameplay authority is
+  unchanged. No RPC, replicated property or save data changed.
+- **Known limitations / remaining scope:** This adds the shared blend only;
+  biome-specific relief layers and their tuning remain BH10–BH18. Build, test
+  execution and rendered acceptance remain deferred to BH26.
+- **Next task in this directed goal:** BH10 — shape Meadows hills and compare
+  bounded shoulder compression against the recorded profiles.

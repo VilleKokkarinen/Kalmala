@@ -50,6 +50,7 @@ struct KALMALAWORLD_API FKalmalaRegionalGeneration
         const FKalmalaWorldGenerationConfig& Config, FVector2D AbsoluteWorldPosition);
 private:
     friend class FKalmalaBiomeHeightFunctionTest;
+    friend class FKalmalaBiomeHeightBlendTest;
     friend class FKalmalaMasterMapTest;
     friend class FKalmalaRiverBankCrossSectionTest;
     friend class FKalmalaRiverUnchangedControlsTest;
@@ -61,6 +62,9 @@ private:
     static double ShapeMire(double SourceHeight, double Detail);
     static double ShapeTundra(double SourceHeight, double Detail);
     static double ShapeMountains(double SourceHeight, double Detail, double MountainRegion);
+    /** Blend complete land candidates by coast-scaled weights, adding the shared base once. */
+    static float BlendCandidateHeights(
+        float SourceHeight, const double CandidateHeights[6], float OceanOffset, const float Weights[7]);
     // Private regression control: retain all land/basin shaping, omit only courses.
     static FKalmalaRegionalSample SampleInternal(const FKalmalaWorldFieldSample& Fields, bool bBiomeOnly, bool bSkipHydrology = false);
 };

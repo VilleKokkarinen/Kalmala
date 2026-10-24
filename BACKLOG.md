@@ -544,7 +544,7 @@ run for this goal and may exceed one turn.
     noise in absolute world coordinates with stable independent salts; keep
     climate/ecological Elevation separate and preserve deterministic cache and
     patch-edge behavior.
-  - [ ] **BH09 — Blend candidate heights continuously.** Use normalized existing
+  - [x] **BH09 — Blend candidate heights continuously.** Use normalized existing
     land-biome weights and continuous coast attenuation; avoid hard label
     switches, double-applied detail, and changes to classifier inputs/bands.
   - [ ] **BH10 — Shape Meadows hills.** Add broad hills and hollows with the

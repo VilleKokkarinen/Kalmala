@@ -317,6 +317,13 @@ Biome classification always uses the current generator. World identity contains 
 
 The generator uses `FKalmalaMasterMap`: an independent fixed-seed 128 km land/water atlas, sampled through a game-seeded crop and rotation at the existing 16 km world radius. Its sign constrains Elevation and final ocean/land terrain; existing game-seeded Perlin fields still provide relief and environmental suitability. Special land biomes compete above hard origin-distance minima: Lakes 0.35–3 km, Elderwood at least 0.75 km, Mire 3–16 km and Tundra at least 4 km. The inclusive 350 m centre is Meadows/Ocean only. Meadows ends at 4 km; Mountains is the remaining land fallback beyond it and the elevated fallback outside the centre. Smooth eligibility ramps stay entirely within allowed distances. Lakes and Mire share regional, climate and relief suitability; only their distance ranges differ. Analytic basin generation is disabled by compiled policy. See `02-technical-architecture.md` for exact precedence and tuning.
 
+Final land height blends complete biome candidates by the existing normalized
+land-biome weights. Those weights include the continuous source-land/coast
+attenuation; height adds each candidate's delta from the shared source height
+once, then keeps the existing independently weighted ocean offset. Biome labels,
+ecological fields and eligibility bands remain classifier inputs and do not
+select a hard height switch.
+
 The master seed is a compiled constant. Crop transforms derive from the game seed. Rivers remain enabled and small streams are disabled. Authority, population IDs, collision and maps derive from the same server-owned seed and current build.
 
 ### Sea-level river terrain and hydrology contract

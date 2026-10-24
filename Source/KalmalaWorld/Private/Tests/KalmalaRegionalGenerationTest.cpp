@@ -95,6 +95,75 @@ bool FKalmalaBiomeHeightFunctionTest::RunTest(const FString& Parameters)
     return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaBiomeHeightBlendTest,
+    "Kalmala.World.Regional.ContinuousHeightBlend",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+bool FKalmalaBiomeHeightBlendTest::RunTest(const FString& Parameters)
+{
+    using G = FKalmalaRegionalGeneration;
+    constexpr float Source = 1000.0f;
+    const double Candidates[] = {1100.0, 1200.0, 900.0, 950.0, 1050.0, 1300.0};
+
+    // These weights are already normalized land-biome shares multiplied by Land=0.75;
+    // the ocean share completes the seven weights to one.
+    const float InlandWeights[] = {0.375f, 0.375f, 0.0f, 0.0f, 0.0f, 0.0f, 0.25f};
+    float WeightTotal = 0.0f;
+    float LandWeightTotal = 0.0f;
+    for (int32 Index = 0; Index < 7; ++Index)
+    {
+        WeightTotal += InlandWeights[Index];
+        if (Index < 6) LandWeightTotal += InlandWeights[Index];
+    }
+    TestTrue(TEXT("Normalized land weights plus ocean weight sum to one"), FMath::IsNearlyEqual(WeightTotal, 1.0f));
+    TestTrue(TEXT("Land weights retain one coast factor"), FMath::IsNearlyEqual(LandWeightTotal, 0.75f));
+
+    const float NoOceanOffset = 0.0f;
+    const float InlandHeight = G::BlendCandidateHeights(Source, Candidates, NoOceanOffset, InlandWeights);
+    TestTrue(TEXT("Candidate deltas use the source base once"), FMath::IsNearlyEqual(InlandHeight, 1112.5f));
+
+    const float CoastWeights[] = {0.2f, 0.2f, 0.0f, 0.0f, 0.0f, 0.0f, 0.6f};
+    const float CoastHeight = G::BlendCandidateHeights(Source, Candidates, NoOceanOffset, CoastWeights);
+    const float InlandRelief = InlandHeight - Source;
+    const float CoastRelief = CoastHeight - Source;
+    TestTrue(TEXT("Continuous coast attenuation scales the land blend once"),
+        FMath::IsNearlyEqual(CoastRelief / InlandRelief, 0.4f / 0.75f, 0.0001f));
+
+    const float NearTieWeights[] = {0.3751f, 0.3749f, 0.0f, 0.0f, 0.0f, 0.0f, 0.25f};
+    const float NearTieHeight = G::BlendCandidateHeights(Source, Candidates, NoOceanOffset, NearTieWeights);
+    TestTrue(TEXT("A small biome-weight change has no label-switch height step"),
+        FMath::Abs(NearTieHeight - InlandHeight) < 0.05f);
+
+    const float OceanOffset = -20.0f;
+    TestTrue(TEXT("Ocean shaping remains weighted independently"),
+        FMath::IsNearlyEqual(G::BlendCandidateHeights(Source, Candidates, OceanOffset, InlandWeights), 1107.5f));
+
+    const FKalmalaWorldGenerationConfig Config{418ull};
+    const FVector2D Position(-182120.2, 171177.3);
+    const FKalmalaWorldFieldSample Fields = FKalmalaWorldFieldSampler::Sample(Config, Position);
+    const FKalmalaRegionalSample Sample = G::SampleInternal(Fields, false, true);
+    TestTrue(TEXT("Fixed Meadows/Elderwood transition has both candidate weights"),
+        Sample.Weights[0] > 0.49f && Sample.Weights[2] > 0.49f);
+    TestEqual(TEXT("Fixed transition does not use an ocean candidate"), Sample.Weights[6], 0.0f);
+
+    const float SourceHeight = (Fields.Elevation - FKalmalaRegionalTuning::SeaElevation) * 2000.0f;
+    const double Detail = G::Noise(Config, 250, Position, 0.00015);
+    const double TransitionCandidates[] = {
+        G::ShapeMeadows(SourceHeight, Detail),
+        G::ShapeShimmeringLakes(SourceHeight, Detail),
+        G::ShapeElderwood(SourceHeight, Detail),
+        G::ShapeMire(SourceHeight, Detail),
+        G::ShapeTundra(SourceHeight, Detail),
+        G::ShapeMountains(SourceHeight, Detail, 0.0),
+    };
+    const float NoTransitionOceanOffset = 0.0f;
+    const float ExpectedTransitionHeight = G::BlendCandidateHeights(
+        SourceHeight, TransitionCandidates, NoTransitionOceanOffset, Sample.Weights);
+    TestEqual(TEXT("Regional sampling blends candidates with its continuous biome weights"),
+        Sample.Height, ExpectedTransitionHeight);
+    TestEqual(TEXT("Height blending leaves classifier identity unchanged"), Sample.Biome, G::SampleBiome(Fields));
+    return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaSharedTerrainReliefTest,
     "Kalmala.World.Regional.SharedTerrainRelief",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)

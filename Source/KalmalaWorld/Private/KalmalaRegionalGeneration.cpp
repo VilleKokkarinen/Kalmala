@@ -196,6 +196,21 @@ double FKalmalaRegionalGeneration::ShapeMountains(
     return SourceHeight + double(float(160 * Detail + 100 * MountainRegion));
 }
 
+float FKalmalaRegionalGeneration::BlendCandidateHeights(
+    const float SourceHeight, const double CandidateHeights[6], const float OceanOffset, const float Weights[7])
+{
+    float Result = SourceHeight;
+    for (int32 Index = 0; Index < 6; ++Index)
+    {
+        // Land weights are normalized against the six land biomes, then already
+        // attenuated by the continuous coast factor. Do not apply that factor twice.
+        const float Offset = float(CandidateHeights[Index] - double(SourceHeight));
+        Result += Weights[Index] * Offset;
+    }
+    Result += Weights[6] * OceanOffset;
+    return Result;
+}
+
 TArray<FKalmalaHydrologySegment> FKalmalaRegionalGeneration::GetHydrology(const FKalmalaWorldGenerationConfig& C, FIntPoint Cell)
 {
     FScopeLock Lock(&CacheMutex);
@@ -275,16 +290,8 @@ FKalmalaRegionalSample FKalmalaRegionalGeneration::SampleInternal(const FKalmala
             ShapeTundra(Source, Detail),
             ShapeMountains(Source, Detail, WarpedRegion(C, Warped, 5)),
         };
-        const float Shapes[] = {
-            float(CandidateHeights[0] - Source),
-            float(CandidateHeights[1] - Source),
-            float(CandidateHeights[2] - Source),
-            float(CandidateHeights[3] - Source),
-            float(CandidateHeights[4] - Source),
-            float(CandidateHeights[5] - Source),
-            float(-60 * (1 - Land) * WarpedRegion(C, Warped, 6)),
-        };
-        for (int32 I = 0; I < 7; ++I) R.Height += R.Weights[I] * Shapes[I] * (I == 6 ? 1 : Land);
+        const float OceanOffset = float(-60 * (1 - Land) * WarpedRegion(C, Warped, 6));
+        R.Height = BlendCandidateHeights(Source, CandidateHeights, OceanOffset, R.Weights);
     }
 
     double BasinSupport = 0;
