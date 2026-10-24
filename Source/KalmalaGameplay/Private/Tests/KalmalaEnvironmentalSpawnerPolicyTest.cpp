@@ -16,6 +16,13 @@ bool FKalmalaEnvironmentalSpawnerPolicyTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("A source has exactly two finite slots"), Policy::SourceSlotCount, 2);
     TestTrue(TEXT("Both finite source slot indices are valid"),
         Policy::IsSourceSlotIndexValid(0) && Policy::IsSourceSlotIndexValid(1));
+    TestTrue(TEXT("Source slot IDs are stable and distinct"),
+        !Policy::GetStableSlotPersistentSpawnId(SourceId, 0).IsEmpty()
+        && Policy::GetStableSlotPersistentSpawnId(SourceId, 0)
+            != Policy::GetStableSlotPersistentSpawnId(SourceId, 1));
+    TestEqual(TEXT("A source slot identity uses its stable source and slot tuple"),
+        Policy::GetStableSlotPersistentSpawnId(SourceId, 0),
+        FString(TEXT("environmental/configured-source-a/slot/0")));
     TestFalse(TEXT("No third source slot can be configured"),
         Policy::IsSourceSlotIndexValid(2));
     TestEqual(TEXT("Local checks use the fixed eight-second interval"), Policy::CheckIntervalSeconds, 8.0);
@@ -70,6 +77,14 @@ bool FKalmalaEnvironmentalSpawnerPolicyTest::RunTest(const FString& Parameters)
         Policy::GetCandidateBudgetForCheck(0), 0);
     TestTrue(TEXT("A configured source below its local cap may admit one"),
         Policy::CanAdmitLivingCreature(true, true, SourceId, 0, 1));
+    TestTrue(TEXT("Two empty local slots may reserve the two-creature maximum atomically"),
+        Policy::CanFitLivingCreatures(true, true, SourceId, 0, 0, 2));
+    TestFalse(TEXT("A three-member Wolf pack cannot fit the two-creature source cap"),
+        Policy::CanFitLivingCreatures(true, true, SourceId, 0, 0, 3));
+    TestTrue(TEXT("One remaining local slot admits one individual"),
+        Policy::CanFitLivingCreatures(true, true, SourceId, 1, 1, 1));
+    TestFalse(TEXT("An unconfigured source cannot reserve a pack or individual"),
+        Policy::CanFitLivingCreatures(true, false, SourceId, 0, 0, 1));
     TestFalse(TEXT("The local cap rejects a third living creature"),
         Policy::CanAdmitLivingCreature(true, true, SourceId, 0, 2));
     TestTrue(TEXT("Only one creation is allowed in a check"),

@@ -11,6 +11,18 @@ struct FKalmalaEnvironmentalSpawnerCreatureSample
     bool bIsLiving = false;
 };
 
+/** Per-source-slot input owned by the authoritative scheduler caller. */
+struct FKalmalaEnvironmentalSpawnerCheck
+{
+    bool bSourceConfigured = false;
+    FString SourceId;
+    int32 SourceSlotIndex = INDEX_NONE;
+    FVector SourceOrigin = FVector::ZeroVector;
+    double NextDueSeconds = 0.0;
+    uint64 CheckOrdinal = 0;
+    int32 CreatedCountThisCheck = 0;
+};
+
 /** Reusable finite local-source scheduling and ownership policy. */
 struct FKalmalaEnvironmentalSpawnerPolicy final
 {
@@ -43,6 +55,16 @@ struct FKalmalaEnvironmentalSpawnerPolicy final
         return bHasServerAuthority && bSourceConfigured
             && IsSourceSlotIndexValid(SourceSlotIndex)
             && !SourceId.TrimStartAndEnd().IsEmpty();
+    }
+
+    /** Stable persistent identity for one finite source slot, independent of its selected candidate position. */
+    static FString GetStableSlotPersistentSpawnId(const FString& SourceId, const int32 SourceSlotIndex)
+    {
+        if (SourceId.TrimStartAndEnd().IsEmpty() || !IsSourceSlotIndexValid(SourceSlotIndex))
+        {
+            return FString();
+        }
+        return FString::Printf(TEXT("environmental/%s/slot/%d"), *SourceId, SourceSlotIndex);
     }
 
     static bool IsCheckDue(const bool bHasServerAuthority, const bool bSourceConfigured,
@@ -95,12 +117,20 @@ struct FKalmalaEnvironmentalSpawnerPolicy final
             && CreatedCountThisCheck >= 0 && CreatedCountThisCheck < MaximumCreationsPerCheck;
     }
 
+    static bool CanFitLivingCreatures(const bool bHasServerAuthority, const bool bSourceConfigured,
+        const FString& SourceId, const int32 SourceSlotIndex, const int32 LivingSourceOwnedCount,
+        const int32 AdditionalLivingCreatureCount)
+    {
+        return IsSourceConfigured(bHasServerAuthority, bSourceConfigured, SourceId, SourceSlotIndex)
+            && LivingSourceOwnedCount >= 0 && AdditionalLivingCreatureCount > 0
+            && LivingSourceOwnedCount <= MaximumLivingCreaturesPerSource - AdditionalLivingCreatureCount;
+    }
+
     static bool CanAdmitLivingCreature(const bool bHasServerAuthority, const bool bSourceConfigured,
         const FString& SourceId, const int32 SourceSlotIndex, const int32 LivingSourceOwnedCount)
     {
-        return IsSourceConfigured(bHasServerAuthority, bSourceConfigured, SourceId, SourceSlotIndex)
-            && LivingSourceOwnedCount >= 0
-            && LivingSourceOwnedCount < MaximumLivingCreaturesPerSource;
+        return CanFitLivingCreatures(bHasServerAuthority, bSourceConfigured, SourceId, SourceSlotIndex,
+            LivingSourceOwnedCount, 1);
     }
 
     /** Counts finite, living, same-source samples using inclusive horizontal distance. */

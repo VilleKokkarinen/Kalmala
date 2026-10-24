@@ -666,7 +666,7 @@ milestone-final verification/repair run and can exceed a normal turn.
   - [x] **S28 — Add local spawner scheduling.** Implement the S27 interval and
     local living count as a reusable server policy, disabled without a configured
     source; use a narrow fixture rather than adding world content.
-  - [ ] **S29 — Apply environmental safety gates.** Combine local limits with
+  - [x] **S29 — Apply environmental safety gates.** Combine local limits with
     shared species/total caps, player exclusion, physical placement and the
     accepted suppression policy; reserve capacity before creation.
   - [ ] **S30 — Cover spatial boundaries.** Add focused cases for ring edges,

@@ -4,6 +4,7 @@
 #include "GameFramework/GameModeBase.h"
 #include "KalmalaWorldGenerationConfig.h"
 #include "KalmalaWorldPopulationLayout.h"
+#include "KalmalaEnvironmentalSpawnerPolicy.h"
 #include "KalmalaWildlifeSpawn.h"
 #include "KalmalaM9ExplorationRewardCatalogue.h"
 #include "KalmalaInventoryComponent.h"
@@ -19,11 +20,13 @@ struct FKalmalaGardenPlotState;
 struct FKalmalaStandingLightState;
 enum class EKalmalaOceanSkiffSeat : uint8;
 
-/** Session-only capacity held for one prospective Wolf pack; no actor is created here. */
+/** Session-only capacity held for prospective wildlife actors; no actor is created here. */
 struct FKalmalaPopulationCreatureReservation
 {
     FVector Location = FVector::ZeroVector;
     FIntPoint HomeSpatialKey = FIntPoint::ZeroValue;
+    TOptional<EKalmalaWildlifeArchetype> Archetype;
+    FString EnvironmentalSpawnerSourceId;
 };
 
 enum class EKalmalaPopulationSpawnRejectionReason : uint8
@@ -60,6 +63,12 @@ struct FKalmalaPopulationSpawnAttempt
     FKalmalaWorldPopulationSpawn Descriptor;
     FKalmalaPopulationSpawnGateResults GateResults;
     EKalmalaPopulationSpawnRejectionReason RejectionReason = EKalmalaPopulationSpawnRejectionReason::None;
+    bool bIsEnvironmentalSpawnerAttempt = false;
+    bool bEnvironmentalSpawnerConfigured = false;
+    FString EnvironmentalSpawnerSourceId;
+    int32 EnvironmentalSpawnerSlotIndex = INDEX_NONE;
+    FVector EnvironmentalSpawnerOrigin = FVector::ZeroVector;
+    int32 EnvironmentalSpawnerCreatedCountThisCheck = 0;
 };
 
 struct FKalmalaPopulationSchedulerKeyWork
@@ -158,6 +167,7 @@ private:
     friend class FKalmalaPopulationSphericalSuppressionTest;
     friend class FKalmalaPopulationPhysicalPlacementGateTest;
     friend class FKalmalaPopulationCreationTest;
+    friend class FKalmalaEnvironmentalSpawnerAdmissionTest;
     friend class AKalmalaWildlifeSpawn;
 
 #if WITH_DEV_AUTOMATION_TESTS
@@ -178,6 +188,15 @@ private:
         const TArray<class AKalmalaCharacter*>& LivingPlayers);
     bool TryCreatePopulationSpawnTransaction(FKalmalaPopulationSpawnAttempt& Attempt,
         double NowSeconds);
+    bool TryCreateConfiguredEnvironmentalSpawnerCandidates(
+        FKalmalaEnvironmentalSpawnerCheck& Check,
+        const TArray<FKalmalaWorldPopulationSpawn>& FixedCandidates,
+        int32& RemainingGlobalCandidateBudget, double NowSeconds,
+        int32& OutCandidatesExamined, TArray<FKalmalaPopulationSpawnAttempt>& OutAttempts);
+    TArray<FKalmalaEnvironmentalSpawnerCreatureSample> GetEnvironmentalSpawnerLivingSamples(
+        const FString& SourceId) const;
+    bool DoesEnvironmentalSpawnerAttemptPassLocalCap(
+        const FKalmalaPopulationSpawnAttempt& Attempt, int32 AdditionalCreatureCount) const;
     bool HasLivePopulationCreatureWithSpawnId(const FString& PersistentSpawnId);
     bool IsPopulationSpawnReactivationReady(const FString& PersistentSpawnId,
         double NowSeconds) const;
@@ -203,6 +222,10 @@ private:
     void ApplyPopulationPhysicalPlacementGate(FKalmalaPopulationSchedulerKeyWork& KeyWork) const;
     bool TryReserveWolfPackCapacity(const TArray<FVector>& MemberLocations,
         const FIntPoint& HomeSpatialKey, FGuid& OutReservationId);
+    bool TryReservePopulationCreatureCapacity(const TArray<FVector>& Locations,
+        const FIntPoint& HomeSpatialKey, EKalmalaWildlifeArchetype Archetype,
+        const FString& EnvironmentalSpawnerSourceId, int32 EnvironmentalSpawnerSlotIndex,
+        const FVector& EnvironmentalSpawnerOrigin, FGuid& OutReservationId);
     bool ReleasePopulationCreatureReservation(const FGuid& ReservationId);
     void ApplyPopulationPlayerDistanceGate(FKalmalaPopulationSchedulerKeyWork& KeyWork,
         const TArray<class AKalmalaCharacter*>& LivingPlayers) const;
@@ -540,6 +563,7 @@ private:
     TMap<FIntPoint, int32> PopulationKeyCandidateCursors;
     TMap<FIntPoint, uint64> PopulationKeyServicedCheckOrdinals;
     TSet<TWeakObjectPtr<class AKalmalaWildlifeSpawn>> LivePopulationCreatures;
+    TMap<FString, FString> EnvironmentalSpawnerSourceIdBySpawnId;
     TMap<FIntPoint, int32> PopulationKeyWildlifeActorBudgets;
     TMap<FString, double> PopulationCreatureReactivationDueTimes;
     TMap<FGuid, TArray<FKalmalaPopulationCreatureReservation>> PendingPopulationCreatureReservations;

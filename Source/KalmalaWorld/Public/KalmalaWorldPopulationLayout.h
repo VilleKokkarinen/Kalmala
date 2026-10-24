@@ -42,6 +42,8 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationSpawn
     FVector Location = FVector::ZeroVector;
     /** Server-selected biome material or creature-niche identity. */
     FName ContentId = NAME_None;
+    /** Optional server-selected stable slot identity; ordinary descriptors leave this empty. */
+    FString PersistentSpawnIdOverride;
 };
 
 struct KALMALAWORLD_API FKalmalaWorldDiscoveryDescriptor
@@ -321,6 +323,10 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
     /** Stable server identifier for sparse deltas within a world identity/revision save. */
     static FString GetPersistentSpawnId(const FKalmalaWorldPopulationSpawn& Spawn)
     {
+        if (!Spawn.PersistentSpawnIdOverride.IsEmpty())
+        {
+            return Spawn.PersistentSpawnIdOverride;
+        }
         return FString::Printf(TEXT("%d/%d/%d/%llu"), static_cast<uint8>(Spawn.Kind), Spawn.SpatialKey.X, Spawn.SpatialKey.Y, Spawn.SpawnSeed);
     }
 

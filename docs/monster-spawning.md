@@ -508,7 +508,7 @@ shared wake limit; `FKalmalaPopulationSpawnAttempt` and
 `EvaluatePopulationSpawnGates` for ordered attempt results;
 `TryCreatePopulationSpawnTransaction` for server creation;
 `DoesPopulationDescriptorPassCaps` and
-`TryReserveWolfPackCapacity` for shared budgets/reservations, and
+`TryReservePopulationCreatureCapacity` (with the Wolf-pack wrapper) for shared budgets/reservations, and
 `DoesPopulationDescriptorPassPhysicalPlacement` for final placement including
 camp suppression. Future source work must feed this bounded path and charge
 against its remaining candidate budget rather than creating a parallel scheduler.
@@ -526,10 +526,9 @@ accrue no missed checks.
 Source attempts reuse the shared seeded 25% roll, player ring/exclusion,
 habitat, unrestricted time/weather/progression, cap and physical-placement
 policies. S25's current station/camp suppression therefore applies to each new
-source admission. S28 adds a disabled-unless-configured local policy; S29
-connects source limits and shared safety gates to creation. S27 adds no source
-class, source slots at runtime, candidate scheduling, actor creation or world
-content.
+source admission. S28 added a disabled-unless-configured local policy; S29 now
+provides the configured-candidate transaction path below. S27 added no source
+class, configured source registry, actor creation or world content.
 
 ## S28 local source scheduling policy — 2026-10-24
 
@@ -550,8 +549,41 @@ create at most one actor. A source has exactly two valid finite slot indices.
 The local cap counts server-supplied current-world living samples with the same
 source ID inside the inclusive 24 m horizontal radius. Dead and other-source
 samples do not count; invalid positions for owned living samples fail closed.
-The admission helper allows a new creature only below the two-living-actor cap.
-S29 wires this policy to shared safety gates, capacity reservations and creation.
+The admission helper allows a new creature only when its full transaction fits
+the two-living-actor cap.
+
+## S29 configured-source safety-gate path — 2026-10-24
+
+`TryCreateConfiguredEnvironmentalSpawnerCandidates` is a server-only seam for
+an explicitly configured stable source ID and one of its two slot indices. It
+services only due checks, examines up to four fixed candidates within the
+inclusive 12 m 3D source radius, and subtracts each examined attempt from the
+shared remaining 16-candidate wake budget. An unconfigured or invalid source
+does not advance its due time, consume candidate budget or create an attempt.
+No source actor, registry or placed source exists, so no runtime environmental
+checks or actor creation are currently active.
+
+Configured attempts use the same ordered admission evaluation and final
+creation transaction as natural candidates: seeded roll, current-world living
+player ring and all-player exclusion, species habitat, time, weather,
+progression, shared area/aggregate budgets, and S20–S25 placement including
+current camp suppression. The transaction rechecks shared and source-local caps
+immediately before creation. The descriptor's selected position and species
+seed stay unchanged, while its stable actor/save identity is overridden with
+the tuple `(SourceId, slot 0|1)`. That ID drives defeat persistence and reward
+ownership, so a defeated finite slot cannot be replenished by another
+candidate. It reserves each proposed actor against shared species, home-key
+and aggregate counts before spawning; all reservations are released after
+successful registration or on rollback. Wolf packs remain atomic, and their
+three-member size cannot fit the two-creature local source cap, so a source
+attempt rejects the entire pack.
+
+Source ownership is held in server session state keyed by the source/slot
+spawn ID and is removed through the existing defeat/destroy lifecycle. Live
+source-owned actors and pending source-owned reservations count toward the
+inclusive 24 m horizontal local cap. Actors outside that radius remain in
+shared area counts. No save field, network protocol, source content, or existing
+camp/creature behavior changes. S30 remains the next implementation step.
 
 ## Acceptance
 
