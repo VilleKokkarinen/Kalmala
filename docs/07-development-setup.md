@@ -6090,3 +6090,33 @@ listen host, and observer. Both clients received world seed 418. Logs:
 `C:/Users/Ville/AppData/Local/Temp/a8an3/{server,owner,observer}.log`. The final
 scenario logs contain no fixture failures, fatal/assert/ensure failures, or
 saved-move backlog warnings. Combined A8a/A8b I4 remains required before A9.
+
+## A8b Peat Heart Stew live peer cooking and meal use — 2026-10-24
+
+After an Editor build, run
+`Scripts/Tests/Construction/Verify-A8bPeatHeartStewPeer.ps1`. The
+Development-only three-peer fixture stages one Peat Heart, two Potatoes, one
+Onion and hearth fuel on the server, then places a Cauldron beside a lit, dry
+hearth near the selected remote owner. The owner rejects direct client crafting
+and food use, cooks two servings through `PeatHeartStewRecipe` and the ordinary
+`ServerCraft` RPC, and consumes one through `ServerConsumeFood`. The server and
+owner verify exact ingredient payment, two distinct valid serving GUIDs, the
+remaining serving, and the 120-second Steady Meal's -0.10 additive stamina-cost
+modifier. A second use is rejected without consuming the remaining serving or
+refreshing the effect. The listen host keeps its item/effect baseline; the
+observer confirms the owner's inventory and meal status remain private.
+
+On 2026-10-24, the isolated `KalmalaEditor Win64 Development` build passed in
+15 actions after source gathering; after strengthening the fixture's GUID
+uniqueness assertion it passed again in four actions, using normal
+UnrealBuildTool cache access. The first peer attempt did not complete the
+observer marker. Discovery diagnostics in the rerun showed that the observer's
+initial scan preceded Cauldron replication; it then observed the fixture and
+passed its privacy check. The final
+`Verify-A8bPeatHeartStewPeer.ps1 -Port 17909 -Project
+C:/Users/Ville/AppData/Local/Temp/msp1/Kalmala.uproject -OutputDirectory
+C:/Users/Ville/AppData/Local/Temp/a8phs3` run passed for the server, owner,
+listen host, and observer. Both clients received world seed 418. Logs:
+`C:/Users/Ville/AppData/Local/Temp/a8phs3/{server,owner,observer}.log`. The
+final run's fixture markers passed with no fixture, fatal, assertion, or ensure
+failures. Combined A8a/A8b I4 remains required before A9.

@@ -133,6 +133,7 @@ private:
     void RunA8bFangArrowsPeerVerification(float DeltaTime);
     void RunA8bScaleCuirassPeerVerification(float DeltaTime);
     void RunA8bAntidotePeerVerification(float DeltaTime);
+    void RunA8bPeatHeartStewPeerVerification(float DeltaTime);
 #endif
     void RefreshStorageView();
     void ClearStorageView();
@@ -249,5 +250,22 @@ private:
     int32 A8bAntidotePeerObservedOwnerPlayerId = INDEX_NONE;
     float A8bAntidotePeerObserverBaselineHealth = 100.0f;
     bool bA8bAntidotePeerFixtureObserved = false;
+    int32 A8bPeatHeartStewPeerStage = 0;
+    float A8bPeatHeartStewPeerElapsed = 0.0f;
+    TWeakObjectPtr<AKalmalaCharacter> A8bPeatHeartStewPeerTarget;
+    uint32 A8bPeatHeartStewPeerResultSerial = 0;
+    int32 A8bPeatHeartStewPeerBaselinePeatHeart = 0;
+    int32 A8bPeatHeartStewPeerBaselinePotato = 0;
+    int32 A8bPeatHeartStewPeerBaselineOnion = 0;
+    int32 A8bPeatHeartStewPeerBaselineStew = 0;
+    int32 A8bPeatHeartStewPeerHostBaselinePeatHeart = 0;
+    int32 A8bPeatHeartStewPeerHostBaselinePotato = 0;
+    int32 A8bPeatHeartStewPeerHostBaselineOnion = 0;
+    int32 A8bPeatHeartStewPeerHostBaselineStew = 0;
+    float A8bPeatHeartStewPeerBaselineStaminaCostAddition = 0.0f;
+    float A8bPeatHeartStewPeerMealSecondsAfterUse = 0.0f;
+    int32 A8bPeatHeartStewPeerObservedOwnerPlayerId = INDEX_NONE;
+    bool bA8bPeatHeartStewPeerFixtureObserved = false;
+    bool bA8bPeatHeartStewPeerObserverDiscoveryLogged = false;
 #endif
 };
