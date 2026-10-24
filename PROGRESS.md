@@ -9155,3 +9155,69 @@
   current 4 Iron + 2 Wood + 2 Stone) for final progression disposition.
 - **Next eligible group:** A3 ranged items (`LightBow`, `StoneArrow`,
   `BronzeArrow`).
+
+## Run 2026-10-24 — A10 per-item audit: A3 ranged items
+
+- **Scope and definitions:** audited `LightBow`, `StoneArrow`, and
+  `BronzeArrow`. Light Bow is a carried-tool profile, so a separate ordinary
+  stack-item definition is not applicable. Stone and Bronze Arrows are ordinary
+  stack items; they have no equipment profile or level-up cost. The catalogue
+  has the Light Bow profile/acquisition/upgrade, shared stat reward, and Bow
+  attack rows, plus arrow item, Workbench recipe, and fixed Pierce attack rows.
+  No direct loot, harvest, or gathering sources exist; the Workbench recipes
+  below are their acquisition routes.
+- **Acquisition and authored values:** Light Bow's level-one Workbench recipe
+  costs 25 Lightwood, 1 Bow String, and 5 Deer Hide. It is two-handed, weighs
+  1.5 kg, starts at 140 condition, has no bow damage bonus, and draws fully in
+  2 seconds. Stone Arrows stack to 100 at 0.05 kg and cost 20 Wood + 5 Stone
+  for 20 at a Workbench. Bronze Arrows stack to 100 at 0.05 kg and cost 20
+  Wood + 1 Bronze for 20 at a Workbench. Both arrow recipes have a one-batch
+  cap. No additional recipe use as an ingredient was found.
+- **Upgrades and shot behavior:** Light Bow's level-one Workbench upgrade costs
+  3 Lightwood + 1 Bow String and adds 30 maximum condition per level, with no
+  damage reward. Its Basic bow attack and profile have zero Pierce bonus. Stone
+  Arrow's Basic attack is fixed at 25 Pierce; Bronze Arrow's is fixed at 50
+  Pierce. Bow charge changes their projectile velocity and spread, not those
+  fixed damages. Each accepted shot commits one selected arrow and one bow
+  condition together; the server selects a validated preferred owned stack or
+  falls back to row-major inventory order, derives arrow/bow damage from the
+  catalogue, and finishes the projectile only after player-state persistence
+  succeeds. A persistence failure restores the arrow and bow condition. No
+  arrow recovery, PvP, or Archery progression is in this item's accepted design.
+- **Icons and registration:** schema-16 `GameCatalogues.json` registers the
+  ordinary arrow file, carried bow profiles, Workbench recipes, bow upgrade
+  costs, shared stat rewards, and bow/arrow attacks. Manifest batches P, Q, and
+  R map LightBow, StoneArrow, and BronzeArrow to canonical runtime icons.
+  `docs/icon-provenance.md` records the original generation prompts and asset
+  paths. Focused validation confirmed each retained original, prepared
+  transparent 64x64 texture, runtime mapping, and imported Texture2D.
+- **Persistence and authority:** player-discovery save schema 3 stores carried
+  tool identity, level, condition, and instance GUID; Light Bow therefore uses
+  the existing carried-tool save path. Ordinary arrow stacks are not in the
+  player save and remain session inventory, so the audit found no saved-arrow
+  restoration. The server owns shot selection, damage, projectile creation,
+  ammunition debit, condition payment, and candidate persistence; clients send
+  only draw/release intent and an optional preference GUID that the server
+  validates against owned stacks. No save schema or network field changed.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md` only.
+- **Lightweight checks:** a focused JSON parser verified schema-16 registration
+  and exact Light Bow profile/recipe/upgrade/reward, arrow stack/recipe, and
+  attack values. `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id` passed
+  for `LightBow`, `StoneArrow`, and `BronzeArrow`, confirming original,
+  prepared, and imported assets. Bow, projectile, inventory-selection, and save
+  paths plus the A3 design/setup/provenance records were inspected. No build,
+  automation, full suite, peer, or restart check ran.
+- **Full verification:** deferred; this is not A10's final increment.
+- **Impact and remaining scope:** tracking-only; no item, recipe, damage,
+  icon, authority, or save behavior changed. No A3 catalogue or icon gap was
+  found. Historical `BowDrawAndArrows` Editor automation passes are recorded
+  in `PROGRESS.md` and `docs/07-development-setup.md`; this audit did not rerun
+  them and adds no A3-specific live craft/delivery, rendered Workbench/Inventory,
+  or restart evidence. The linked `docs/alpha-item-details.md` is absent in this
+  checkout; A3 values were cross-checked against the backlog,
+  `docs/01-game-design.md`, and `docs/07-development-setup.md`, without
+  inferring data. Keep the broad A10
+  item-audit child unchecked until every included ID and scope N/A disposition
+  is covered. Preserve both BronzePick and IronPick acquisition-target gaps for
+  final progression disposition.
+- **Next eligible group:** A4 armour and shields.
