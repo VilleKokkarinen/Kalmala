@@ -8484,3 +8484,127 @@
   milestone-final verification remain open; keep the broad child unchecked.
 - **Next eligible A0 group:** Retained material sources: Wood, Densewood, Stone,
   Boar/Deer Hide and Meat, Amber, and Frost Salt. Continue in A0 scope order.
+
+## Run 2026-10-24 — A10 per-item audit: Wood, Densewood, Stone
+
+- Selected increment: audit the retained A0 Wood, Densewood and Stone family
+  only. The broad A10 per-item audit child remains unchecked.
+- Files changed: BACKLOG.md and PROGRESS.md only.
+- Registered identities: Wood and Densewood are in
+  Content/Data/GameCatalogues/items/materials/wood.json; Stone is in
+  items/materials/ore.json. All three are listed through
+  Content/Data/GameCatalogues.json, each has MaxStack 50, and each has exactly
+  one registered definition. These raw materials have no equipment profile,
+  attack record, item-level upgrade target, direct consumable/status effect, or
+  expiry field; those categories are N/A. Their downstream recipe ingredients
+  and the separate upgrade costs that consume them are audited below.
+
+- Sources and quantities:
+  - The first-wave biome source contract retains Meadow meadows-birch-bark,
+    Lakes lakes-reed-cluster, and Elderwood elderwood-resinwood as Wood routes;
+    Thunder Mountains mountains-slate-vein yields Stone. Their server tool
+    selections award one material per accepted node. The separate M2 generated
+    harvest-node route deterministically selects one Wood or one Stone from
+    PersistentSpawnId CRC parity.
+  - The current generated forest route uses meadows-birch-trunk for Wood and
+    elderwood-ironheart-trunk for Densewood. Birch requires Stone Axe or
+    better; Ironheart requires Iron Axe. Axe felling, settled-log break and
+    bundle pickup are server-owned. FKalmalaM9SourceLootContract uses a
+    stable seed/source/spawn hash: the pickup is one item, with a deterministic
+    one-in-four bonus item (one or two total). Densewood is not the reward from
+    the older elderwood-resinwood selector; that selector still produces Wood.
+  - Stone also comes from allbiomes-stone-outcrop at exactly one per exhausted
+    outcrop, with a Stone Pick minimum. The reviewed layout permits at most one
+    dry, slope-safe candidate per 6,000 cm key in each of the six land biomes,
+    including Meadows, where no slate source occupies the key; candidates keep
+    250 cm from other harvest descriptors. Thunder Mountains' Thunder Sentinel
+    is a separate combat source: creatures.json sets three Stone at chance 1.0,
+    and the server reward contract confirms that amount. No other creature
+    Stone drop was found in the current creature catalogue.
+
+- Recipe and processing uses:
+  - Wood is an ingredient in 37 registered recipe rows. The 20 direct-build
+    rows consume: Floor 6, Wall 6, Roof 6, CampFire 3, Smelter 20, Workbench 9,
+    Forge 15, Storage 6, ReinforcedChest 8, CookingRack 9, Cauldron 9,
+    ForgeAnvil 9, GrindingStone 6, WorkbenchToolRack 6, GardenPlot 4,
+    TimberDoor 8, TimberBeam 2, TimberStairs 6, CampBed 4 and StandingLight 3.
+    Other recipe rows consume: BuildingHammer 3, BasicTorch 2, IronPick 2,
+    BronzePick 4, PlantingTrowel 10, WoodenClub 4, Bow 5, StoneAxe 3,
+    StoneKnife 1, StoneMace 2, StonePick 3, StoneSpear 3, WoodShieldRecipe
+    10, WoodenArrows 5, StoneArrows 20, BronzeArrows 20, and FangArrowsRecipe
+    10. Wood is also the Charcoal Kiln input: one Wood becomes one Coal in
+    30 seconds; this processing operation is described in the A1 contract,
+    outside the ordinary recipe arrays.
+  - Densewood is consumed by eight acquisition recipes: Forge IronKnife 2,
+    IronSpear 3, IronMace 2, IronSword 2, FangSpear 10, ThunderMaul 10 and
+    StormcutSword 2; Workbench HornBow 10.
+  - Stone is an ingredient in 22 recipe rows. Direct-build rows consume:
+    CampFire 5, CharcoalKiln 20, Smelter 20, Workbench 2, Forge 6, Cauldron 3,
+    ForgeAnvil 4, GrindingStone 4 and GardenPlot 1. Other recipe rows consume:
+    IronPick 2, BronzeAxe 3, BronzeKnife 2, BronzePick 4, BronzeSpear 3,
+    BronzeMace 2, BuildingHammer 1, StoneAxe 2, StoneKnife 1, StoneMace 2,
+    StonePick 3, StoneSpear 2 and StoneArrows 5. These rows produce their
+    named crafted/buildable outputs; no registered recipe outputs Wood,
+    Densewood or Stone.
+  - Nineteen level-one upgrade-cost records consume this family. Wood costs
+    appear on Bow 5, StoneAxe 3, StoneKnife 1, BronzePick 4, IronPick 2,
+    StonePick 3, StoneSpear 3, WoodenClub 2, StoneMace 2,
+    ConstructionHammer 2 and WoodShield 5. Densewood costs appear on HornBow
+    5, IronKnife 2, IronSpear 3, FangSpear 5, IronSword 1, StormcutSword 1,
+    IronMace 2 and ThunderMaul 5. Stone upgrade inputs appear on StoneAxe 2,
+    StoneKnife 1, IronPick 2, StonePick 3, StoneSpear 2, StoneMace 2 and
+    ConstructionHammer 2. Authored costs are the base level-one records; the
+    existing carried-tool upgrade path scales them for higher levels.
+
+- Icons and provenance: the catalogue icon manifest has rows for all three.
+  Wood uses its retained original
+  Content/Kalmala/UI/Source/IconOriginals/Wood.png, prepared
+  Source/Icons/Wood.png, and imported UI/Icons/Items/Wood.uasset; Densewood
+  and Stone have the corresponding exact-ID files. The catalogue icon library
+  builds each exact canonical asset path with no alias. Runtime fallback
+  identities are Wood Log variant 0, Densewood Log variant 2, and Stone Rock
+  variant 0. The manifest marks Wood and Stone for Ingredient presentation;
+  Densewood's usage list omits Ingredient even though recipe detail
+  UKalmalaIngredientWidget calls SetCatalogueIcon for each cost. The focused
+  icon validator checks the exact asset/source/prepared/mapping but does not
+  validate that usage tag, so retain it as manifest metadata follow-up rather
+  than claiming a missing runtime icon. All three focused
+  Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id checks passed:
+  original 1254x1254 RGBA, prepared transparent 64x64 RGBA, and expected
+  imported target paths. docs/icon-provenance.md has no dedicated primary
+  generation-prompt record for these three originals; mentions of Stone as a
+  style reference for other icons are not Stone provenance. The linked
+  docs/material-icons.md workflow document is absent in this checkout. No
+  prompt was inferred or added in this tracking-only increment.
+
+- Carried and world-save behavior: ordinary carried material stacks last for
+  the pawn session and are not saved/restored; PersistPlayerStateFromServer
+  writes carried-tool state and discovery/claim fields, not ordinary inventory.
+  Generic world-keyed storage is a separate save path; no material-specific
+  chest round-trip was run. Harvested stable source IDs are written through the
+  world population sparse ledger. For generated forests, uncollected tree
+  health/stages/drop reset if the actor regenerates/restarts before pickup;
+  successful bundle pickup records the forest ID to prevent regrant. The
+  RecordHarvestedSpawn callback calls SaveGameToSlot but ignores its boolean
+  result, so disk-write failure handling is not established for that depletion
+  marker. The Thunder Sentinel defeat/pending-reward claim has a separate
+  population-save path; the awarded Stone stacks still are not ordinary
+  player-inventory saves. No decay timer applies to these items.
+
+- Evidence and checks: parsed every manifest-listed item, recipe, item-profile,
+  upgrade-cost, stat-reward, attack and creature JSON file with PowerShell
+  ConvertFrom-Json (26, 8, 9, 14, 1, 2 and 1 files respectively). Confirmed
+  one registered definition per ID, no raw-material item-profile or attack
+  subject record, no recipe output for these IDs, and enumerated 37 Wood,
+  eight Densewood and 22 Stone recipe consumers plus 19 upgrade-cost rows.
+  Focused catalogue icon validation passed for Wood, Densewood and Stone.
+  Source, recipe, save and UI call paths were inspected; automation/source
+  acceptance tests were not run. No build, full suite, peer/restart session or
+  live runtime verification was performed.
+- Full verification: deferred; this is not A10's final increment.
+- Impact and remaining scope: tracking-only audit; definitions, gameplay,
+  source quantities, server authority and saves did not change. The missing
+  original prompt records and Densewood Ingredient manifest tag remain
+  documented audit gaps. Continue later A0 items and the wider included-item
+  and N/A audit; keep the broad child unchecked.
+- Next eligible A0 family: Boar/Deer Hide and Meat.
