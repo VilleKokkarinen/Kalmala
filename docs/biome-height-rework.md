@@ -229,8 +229,8 @@ BH01c uses the same relative camera pose at every site: for land, anchor at the
 BH01b final collision height; for visible water, anchor at its measured water
 surface (ocean uses Z=0). Put the camera at `(X, Y−2400, Z+1200)` cm, aim at
 `(X, Y, Z+150)` cm, and use a 65° horizontal field of view. This is a fixed
-+Y-facing view with about 23.6° downward pitch. BH01b must resolve exact anchor
-heights and wet-site targets before rendered captures are recorded.
++Y-facing view with about 23.6° downward pitch. The BH01b numeric CSV resolves each per-site anchor: Ocean uses Z=0,
+water-present non-ocean samples use WaterLevelCm, and dry land uses the collision-triangle height.
 
 SHA-256 checksums of the principal source PPMs (the temporary exports are not
 committed):
@@ -365,8 +365,64 @@ The capture fixture runs only in non-shipping builds with the explicit flag and
 waits until `BeginPlay` has copied the initialized world configuration. It
 changes the standalone capture camera and explicitly activated terrain patches;
 it does not alter ordinary gameplay behavior, save data, RPCs or networking
-code. BH01c2 remains responsible for all 28 rendered captures and the complete
-numeric/camera/vertical-bound baseline record.
+code. BH01c2a now preserves the 28-row numeric CSV and first seven seed-418
+views; c2b–c2d still need the remaining live captures and final manifest.
+
+## BH01c2a durable numeric baseline and first seven seed-418 captures
+
+The validated 28-site numeric output is tracked as
+Scripts/Tests/World/BiomeBaseline418419.csv (28 data rows, 28 columns,
+5,563 bytes; SHA-256
+48d7315a014a9b33664fd1aa52eb2f574cdfcefe054c50e6b8cba7cc115c5eaf). It is
+byte-identical to the BH01b2b commandlet output, so all measured rows remain
+reviewable after ignored .tmp outputs are removed. The c2a recheck matched all
+28 seeds/sites/coordinates, found only finite numeric values, confirmed seven
+biome weights in [0,1] summing within 0.000002 of one, and matched each water
+flag against WaterLevelCm > FinalHeightCm. The previous BH01b2b checks on biome
+identity, triangle continuity, slope/grade, and deterministic forest counts
+remain applicable because the file hash is unchanged.
+
+Across the 28 fixed samples, final sampled height ranges from -149.225281 to
+1,448.64868 cm; collision-triangle height ranges from -149.223587 to
+1,448.74426 cm; water level ranges from -29.377294 to 356.950745 cm; slope
+ranges from 0 to 29.380751 degrees; and grade ranges from 0 to 56.302853
+percent. Seven rows have water; forest descriptor counts range from 0 to 32.
+Biome index counts 0 through 6 are 5, 2, 8, 3, 3, 5, 2. These are
+current-generator measurements, not trial terrain settings.
+
+Camera anchors follow the fixed BH01a rule: Ocean uses Z=0; a water-present
+non-ocean sample uses its measured WaterLevelCm; otherwise use
+CollisionTriangleHeightCm. At each anchor Z, place the camera at
+(X, Y−2400, Z+1200) cm, aim at (X, Y, Z+150) cm, and use 65° horizontal
+FOV. From all 28 numeric rows, the planned camera bounds are X
+-970,004.9..1,145,090.4 cm, Y -972,404.9..967,604.9 cm, and Z
+1,200..2,648.74426 cm; aim Z ranges 150..1,598.74426 cm. These bounds are
+derived from the numeric rows; the remaining 21 rendered poses still require
+runtime capture.
+
+The first seven seed-418 rows were captured by the live -game -RenderOffscreen
+runner. Each runtime log matched seed, site, XY, chosen anchor, camera, aim, FOV,
+and output path within 0.2 cm for Unreal's float-rounded coordinates. Every PNG
+is 1024×768, passed the sampled-pixel nonblank check (at least eight distinct
+sampled colors and 40 non-black samples), and was visually reviewed. Screenshots
+and logs remain ignored under .tmp/bh01/captures; no generated image is
+committed.
+
+| Site | Anchor source / ViewZ (cm) | Fixed XY (cm) | Camera (X,Y,Z cm) | Output file | PNG bytes | SHA-256 |
+| --- | --- | --- | --- | --- | ---: | --- |
+| Starter Meadows | Collision triangle / 528.94458 | (-781.6, -781.6) | (-781.6, -3181.6, 1728.94458) | StarterMeadows-c2a.png | 921694 | 25c17c4f8bdd07b71513891202209a84d8cfec717db6c181810a8564bc5e5912 |
+| Outer dry Meadows | Collision triangle / 662.1427 | (208695.7, -293111.9) | (208695.7, -295511.9, 1862.1427) | OuterdryMeadows-c2a.png | 952607 | 7fa19c4a238cc86ce6cbbc4dcc16012065a82034f507f152018e394073754ba7 |
+| Shimmering Lakes | Water level / 356.950745 | (100830.5, -143038.6) | (100830.5, -145438.6, 1556.950745) | ShimmeringLakes-c2a-water.png | 797043 | d9453364e88b4d66b88134db455e687656432df5462976b78f0caa9aba4958c8 |
+| Elderwood interior | Water level / 0 | (91450.9, -205569.1) | (91450.9, -207969.1, 1200) | Elderwoodinterior-c2a-water.png | 976670 | e46b74324ab84747afb3ce36116e37356194414843c6cce37f27cf227e71412a |
+| Wooded Elderwood | Collision triangle / 15.1806488 | (207132.4, -325940.4) | (207132.4, -328340.4, 1215.1806488) | WoodedElderwood-c2a.png | 895744 | 98406f6afdaa0e5c8412820e900150dcd8d4da9c251ffcd7aade6a97c401ea5c |
+| Mossy Mire | Collision triangle / 399.156616 | (-669858.3, -601074.7) | (-669858.3, -603474.7, 1599.156616) | MossyMire-c2a.png | 874637 | 9bcf6b05a7ffc6e5796ed1be4cdc250df99ba8aea1d38b94a16e0f10eceb0343 |
+| Freezing Tundra | Collision triangle / 824.412842 | (-243087.4, -970004.9) | (-243087.4, -972404.9, 2024.412842) | FreezingTundra-c2a.png | 854300 | 3946011d7db9ceda319b69e53ac4de05cf814068f986d6af0a70cc5ce5f105bd |
+
+The first Shimmering Lakes and Elderwood interior attempts used the dry-land
+anchor; those PNGs are marked invalid-triangle-anchor in .tmp and are not
+listed above. Their replacements use the measured water surface. The images
+record current prototype rendering and are not visual water/material acceptance;
+remaining views and the complete manifest are BH01c2b–BH01c2d.
 
 ## Verification and completion
 

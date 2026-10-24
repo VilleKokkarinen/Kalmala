@@ -507,10 +507,21 @@ run for this goal and may exceed one turn.
         development-only one-shot fixed-camera path and runner; build the mirror
         and capture a nonblank live-render seed-418 Starter Meadows view at its
         recorded pose. Null-RHI maps do not count as rendered captures.
-      - [ ] **BH01c2 — Capture and consolidate all baselines.** Use the runtime
-        renderer for all 28 fixed seed/site rows; validate seed/site/pose and
-        image content; record numeric samples and camera/vertical bounds in the
-        plan, distinguishing live captures from null-RHI diagnostic overviews.
+      - [ ] **BH01c2 — Capture and consolidate all baselines.** Keep open
+        until BH01c2a–BH01c2d are complete.
+        - [x] **BH01c2a — Preserve numeric baseline and capture first seven
+          seed-418 views.** Add the validated 28-row numeric CSV under
+          Scripts/Tests and capture/validate the first seven fixed sites for
+          seed 418, recording image hashes and camera poses.
+        - [ ] **BH01c2b — Capture remaining seed-418 views.** Capture and
+          validate the other seven fixed seed-418 sites; record hashes and poses.
+        - [ ] **BH01c2c — Capture first seven seed-419 views.** Capture and
+          validate the first seven fixed sites for seed 419; record hashes and
+          poses.
+        - [ ] **BH01c2d — Complete seed-419 views and manifest.** Capture the
+          final seven views and verify all 28 image/numeric rows, range summary,
+          camera poses and vertical bounds; distinguish live captures from
+          null-RHI overviews.
   - [ ] **BH02 — Map integration points.** Recheck the current height, lake,
     river, map/wetness, forest-layout, harvest, preview, material, and test
     consumers; record the exact source/test touchpoints in the plan docs.

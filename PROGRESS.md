@@ -7816,3 +7816,38 @@
 - **Next task in this directed goal:** BH01c2 — capture and validate all fixed
   rendered views for seeds 418/419 and consolidate the baseline record. Keep
   BH01c and BH01 open.
+
+## Run 2026-10-24 - BH01c2a durable baseline and seed-418 captures
+
+- **Selected increment:** BH01c2a, the first of four ordered BH01c2 children.
+  BH01c2, BH01c and BH01 remain open.
+- **Completed:** Preserved the validated BH01b2b numeric output as the tracked
+  28-row, 28-column CSV at Scripts/Tests/World/BiomeBaseline418419.csv. Captured
+  and validated the first seven fixed seed-418 sites with the live renderer:
+  Starter Meadows, Outer dry Meadows, Shimmering Lakes, Elderwood interior,
+  Wooded Elderwood, Mossy Mire and Freezing Tundra. The plan records per-site
+  anchor, XY, camera coordinates, dimensions, bytes and image hashes. Fixed
+  anchors use collision-triangle height on dry land, WaterLevelCm for
+  water-present non-ocean samples, and Z=0 for Ocean.
+- **Files changed:** BACKLOG.md, PROGRESS.md, docs/biome-height-rework.md and
+  Scripts/Tests/World/BiomeBaseline418419.csv. The rendered PNGs, logs and
+  capture user data remain ignored under .tmp/bh01 and are not committed.
+- **Lightweight checks/results:** Revalidated all 28 CSV rows and columns,
+  seed/site/coordinate identity, finite numeric fields, normalized biome
+  weights and water flags. The durable CSV hash is
+  48d7315a014a9b33664fd1aa52eb2f574cdfcefe054c50e6b8cba7cc115c5eaf, matching
+  the previously validated commandlet output. All seven live capture logs
+  matched requested seed/site/XY, anchor Z, camera, aim, FOV and output path
+  within 0.2 cm for Unreal float rounding. Every image was 1024x768, passed
+  sampled-pixel diversity/nonblank checks and was visually reviewed. Per-image
+  SHA-256 values are in docs/biome-height-rework.md.
+- **Full verification:** Deferred; this is not milestone-final.
+- **Impact / authority:** Baseline evidence and test-only rendering only. No
+  terrain generation, gameplay, networking, authority or save behavior changed.
+- **Known limitations:** Only the first seven of 28 live views are captured.
+  Two initial wet-site attempts used the land-height anchor; they are marked
+  invalid in temporary output and excluded from the manifest. Their corrected
+  water-level views are recorded. The captures document current prototype
+  rendering, not water/material acceptance.
+- **Next task in this directed goal:** BH01c2b — capture and validate the other
+  seven fixed seed-418 views with their appropriate land/water/ocean anchors.
