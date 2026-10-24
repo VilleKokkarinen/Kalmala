@@ -7946,3 +7946,16 @@
 - **Networking/authority:** The cap gate runs on the authoritative GameMode and its existing cap query requires authority. The Wolf token remains session-only and is unchanged.
 - **Known limitations:** The cap result is an evaluation-time query, not a held reservation. S26 must recheck immediately before creating actors and keep a `TryReserveWolfPackCapacity` token for all three Wolf members through creation, releasing on success after registration or on rollback. S20–S25 still wire physical placement and camp suppression.
 - **Next eligible task:** Within this requested monster-population goal, S20 is next — validate generated dry land and the accepted slope limit.
+
+
+### Monster population — S20 land-surface validation
+
+- **Selected increment:** S20, validate land descriptors against generated dry ground, world bounds, the existing hard-enemy start restriction and the accepted slope limit.
+- **Work completed:** Added the reusable server-side land-surface predicate. It rejects nonfinite or out-of-bounds positions, missing generated-height samples, invalid/ocean/lake water samples, Reef Maw, and slopes above 32 degrees; the inclusive slope limit is a named tuning constant. It reuses S15's habitat method, which retains biome and start-exclusion rules. The final physical-placement gate remains false until S25; natural actor creation remains disabled until S26.
+- **Files changed:** Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationLandSurfaceTest.cpp, Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
+- **Lightweight checks:** Inspected the generated terrain, ocean and lake sampler contracts, the S15 start-exclusion path, and evaluator order. Added focused automation assertions for dry/water, bounds, generated-ground validity and the inclusive 32-degree boundary plus over-limit slope; the existing hard-enemy tests cover the reused 150 m start rule. Tests and builds were not run.
+- **Full verification:** Deferred to S35; S20 is not the final implementation task in the monster-population goal.
+- **Observable impact / authority:** Later placement code can now query one server-only predicate for land-surface eligibility. The scheduler does not call it yet, no gate result is enabled, and no actors or saved/replicated state are changed.
+- **Networking/authority:** The predicate requires GameMode authority and a valid current world/config. It reads only deterministic server-side terrain and water samples; no networking or save schema changed.
+- **Known limitations:** S21 must implement Reef Maw aquatic checks; S22–S24 add clearance and camp suppression; S25 combines those policies into the final placement result. S26 remains the first task allowed to enable natural actor creation.
+- **Next eligible task:** Within this requested monster-population goal, S21 is next — validate Reef Maw aquatic surfaces and water clearance.

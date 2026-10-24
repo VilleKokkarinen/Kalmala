@@ -5726,7 +5726,7 @@ void AKalmalaGameMode::ApplyPopulationSpeciesHabitatGate(
 }
 
 bool AKalmalaGameMode::DoesPopulationDescriptorPassSpeciesHabitat(
-    const FKalmalaWorldPopulationSpawn& Descriptor) const
+    const FKalmalaWorldPopulationSpawn& Descriptor, EKalmalaWildlifeArchetype* OutArchetype) const
 {
     const UWorld* World = GetWorld();
     if (!HasAuthority() || !IsValid(World) || !WorldGenerationConfig.IsValid())
@@ -5740,12 +5740,73 @@ bool AKalmalaGameMode::DoesPopulationDescriptorPassSpeciesHabitat(
         return false;
     }
 
+    if (OutArchetype != nullptr)
+    {
+        *OutArchetype = Archetype;
+    }
+
     const bool bHardEnemy = KalmalaGameMode::IsHardEnemyWildlifeArchetype(Archetype);
     const float StartDistance = GeneratedPlayerStart != nullptr
         ? FVector::Dist2D(Descriptor.Location, GeneratedPlayerStart->GetActorLocation())
         : 0.0f;
     return AKalmalaWildlifeSpawn::IsHardEnemySpawnAllowedByStart(
         bHardEnemy, GeneratedPlayerStart != nullptr, StartDistance);
+}
+
+bool AKalmalaGameMode::DoesPopulationDescriptorPassLandSurface(
+    const FKalmalaWorldPopulationSpawn& Descriptor) const
+{
+    const UWorld* World = GetWorld();
+    if (!HasAuthority() || !IsValid(World) || !WorldGenerationConfig.IsValid())
+    {
+        return false;
+    }
+
+    if (Descriptor.Kind != EKalmalaWorldPopulationKind::Wildlife)
+    {
+        return false;
+    }
+
+    const FVector2D Position(Descriptor.Location);
+    if (!FMath::IsFinite(Position.X) || !FMath::IsFinite(Position.Y)
+        || !FKalmalaWorldBounds::Contains(WorldGenerationConfig, Position))
+    {
+        return false;
+    }
+
+    EKalmalaWildlifeArchetype Archetype;
+    if (!DoesPopulationDescriptorPassSpeciesHabitat(Descriptor, &Archetype)
+        || Archetype == EKalmalaWildlifeArchetype::ReefMaw)
+    {
+        return false;
+    }
+
+    const float GroundHeight = FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, Position);
+    const FKalmalaOceanSample Ocean = FKalmalaOceanSampler::Sample(WorldGenerationConfig, Position);
+    const bool bIsDry = Ocean.bIsValid && !Ocean.IsWater()
+        && !FKalmalaShimmeringLakeSampler::IsWater(WorldGenerationConfig, Position);
+    const FVector SurfaceNormal = FKalmalaTerrainHeightSampler::SampleSurfaceNormal(
+        WorldGenerationConfig, Position);
+
+    return IsPopulationLandSurfaceSampleAllowed(true,
+        FMath::IsFinite(GroundHeight) && FMath::IsFinite(Descriptor.Location.Z), bIsDry, SurfaceNormal);
+}
+
+bool AKalmalaGameMode::IsPopulationLandSurfaceSampleAllowed(const bool bWithinBounds,
+    const bool bHasGeneratedGround, const bool bIsDry, const FVector& SurfaceNormal)
+{
+    if (!bWithinBounds || !bHasGeneratedGround || !bIsDry
+        || !FMath::IsFinite(SurfaceNormal.X) || !FMath::IsFinite(SurfaceNormal.Y)
+        || !FMath::IsFinite(SurfaceNormal.Z) || SurfaceNormal.IsNearlyZero())
+    {
+        return false;
+    }
+
+    const double HorizontalNormal = FMath::Sqrt(FMath::Square(SurfaceNormal.X)
+        + FMath::Square(SurfaceNormal.Y));
+    const double SlopeDegrees = FMath::RadiansToDegrees(
+        FMath::Atan2(HorizontalNormal, SurfaceNormal.Z));
+    return SlopeDegrees <= FKalmalaMonsterSpawnTuning::MaximumLandSlopeDegrees;
 }
 
 void AKalmalaGameMode::ApplyPopulationTimeGate(FKalmalaPopulationSchedulerKeyWork& KeyWork) const

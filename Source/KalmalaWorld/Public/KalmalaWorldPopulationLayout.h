@@ -437,6 +437,7 @@ struct FKalmalaMonsterSpawnTuning final
     static constexpr float RingMinimumDistanceCm = 32.0f * 100.0f;
     static constexpr float RingMaximumDistanceCm = 96.0f * 100.0f;
     static constexpr float PlayerExclusionDistanceCm = 36.0f * 100.0f;
+    static constexpr double MaximumLandSlopeDegrees = 32.0;
     static constexpr int32 CommonSpeciesAreaCap = 4;
     static constexpr int32 RareHardEnemyAreaCap = 1;
     static constexpr int32 WolfIndividualAreaCap = 6;
@@ -459,6 +460,8 @@ struct FKalmalaMonsterSpawnTuning final
     static_assert(PlayerExclusionDistanceCm > RingMinimumDistanceCm
         && PlayerExclusionDistanceCm < RingMaximumDistanceCm,
         "Player exclusion distance must remain inside the spawn ring.");
+    static_assert(MaximumLandSlopeDegrees > 0.0f && MaximumLandSlopeDegrees < 90.0f,
+        "Land population surfaces must use a positive slope limit below vertical.");
     static_assert(RingMaximumDistanceCm <= CountRadiusCm,
         "Monster spawn count radius must cover the outer ring.");
     static_assert(PlayerKeyIntersectionRadiusCm > 0.0f,

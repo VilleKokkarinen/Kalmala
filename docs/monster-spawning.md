@@ -280,8 +280,9 @@ must be within the inclusive 32–96 m ring, and no living player may be closer
 than 36 m. It derives the species from the existing seed/biome mapping and uses
 the existing biome, dry-shore, water and terrain-traversability rules plus the
 150 m hard-enemy start exclusion. These are the established species-habitat
-checks; physical body clearance, roofs and the S20 slope check remain later
-placement work. Attempt records retain the first failed gate in contract order.
+checks. S20 supplies an additional land-surface predicate; body clearance and
+roof checks remain later placement work. Attempt records retain the first
+failed gate in contract order.
 
 S16 wires the time result for each bounded attempt. An exhaustive policy
 allowlist passes every current wildlife archetype without reading a game clock
@@ -314,6 +315,15 @@ that token immediately; a pack passes only when all three slots fit. S19
 creates no actor and retains no reservation after evaluation. S26 must recheck
 immediately before creation and hold a three-Wolf reservation through the
 creation transaction, releasing it after registration or on rollback.
+
+S20 adds a reusable server-side land-surface predicate for wildlife descriptors.
+It requires finite in-bounds generated ground, valid dry samples from the
+existing ocean and lake samplers, and a sampled surface normal at no more than
+32 degrees from vertical, inclusive. The predicate first reuses S15's species
+habitat check, including its hard-enemy generated-start exclusion, and rejects
+Reef Maw for S21's aquatic checks. It does not set the final physical-placement
+result: that result remains fail-closed until S25 combines surface, clearance,
+roof and camp checks.
 
 - Time, weather and progression are explicitly **unrestricted for all current
   species**. These three gates return pass. Provide internal policy seams and

@@ -630,7 +630,7 @@ milestone-final verification/repair run and can exceed a normal turn.
     expose an internal rejection-test seam. Add no boss or progression locks.
   - [x] **S19 — Wire cap gate.** Apply S11–S12 immediately before creation so
     overlapping key/player attempts cannot overfill a species or total budget.
-  - [ ] **S20 — Validate land surfaces.** Require generated dry ground, existing
+  - [x] **S20 — Validate land surfaces.** Require generated dry ground, existing
     start restrictions and slope at most 32 degrees for land creatures.
   - [ ] **S21 — Validate aquatic surfaces.** Reuse Reef Maw habitat/depth rules
     and check water clearance; land checks must not silently permit water spawns.

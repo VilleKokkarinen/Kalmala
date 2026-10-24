@@ -149,6 +149,7 @@ private:
     friend class FKalmalaPopulationAreaCapsTest;
     friend class FKalmalaPopulationWolfReservationTest;
     friend class FKalmalaPopulationSpawnGateEvaluatorTest;
+    friend class FKalmalaPopulationLandSurfaceTest;
     friend class AKalmalaWildlifeSpawn;
 
 #if WITH_DEV_AUTOMATION_TESTS
@@ -189,7 +190,11 @@ private:
     bool ReleasePopulationCreatureReservation(const FGuid& ReservationId);
     void ApplyPopulationPlayerDistanceGate(FKalmalaPopulationSchedulerKeyWork& KeyWork,
         const TArray<class AKalmalaCharacter*>& LivingPlayers) const;
-    bool DoesPopulationDescriptorPassSpeciesHabitat(const FKalmalaWorldPopulationSpawn& Descriptor) const;
+    bool DoesPopulationDescriptorPassSpeciesHabitat(const FKalmalaWorldPopulationSpawn& Descriptor,
+        EKalmalaWildlifeArchetype* OutArchetype = nullptr) const;
+    bool DoesPopulationDescriptorPassLandSurface(const FKalmalaWorldPopulationSpawn& Descriptor) const;
+    static bool IsPopulationLandSurfaceSampleAllowed(bool bWithinBounds, bool bHasGeneratedGround,
+        bool bIsDry, const FVector& SurfaceNormal);
     bool DoesPopulationDescriptorPassTimeGate(const FKalmalaWorldPopulationSpawn& Descriptor) const;
     bool DoesPopulationDescriptorPassWeatherGate(const FKalmalaWorldPopulationSpawn& Descriptor) const;
     bool DoesPopulationDescriptorPassProgressionGate(const FKalmalaWorldPopulationSpawn& Descriptor) const;
