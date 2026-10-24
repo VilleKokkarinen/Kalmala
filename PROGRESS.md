@@ -7687,3 +7687,40 @@
 - **Next eligible task:** A10 catalogue/icon acceptance remains earliest in the
   global queue. Within this requested monster-population goal, the next child
   is S04 — gather active living players on the server.
+
+## Run 2026-10-24 — Gather active population players (S04)
+
+- **Selected increment:** S04, the first unchecked child in the requested
+  monster-population goal. Continued on codex/monster-population in the
+  isolated worktree created from local master at 460339b3.
+- **Completed:** Added a private, authority-checked GameMode helper that gathers
+  current-world living player characters from the current PlayerController list.
+  It excludes invalid or cross-world controllers, missing/inactive/spectator
+  PlayerStates, invalid or cross-world characters, pawns not still possessed by
+  that controller, and non-finite or dead health (the existing 1.0 threshold).
+  It orders results by PlayerState ID, uses controller path as a tie breaker,
+  and removes duplicate pawn pointers. The existing once-per-second population
+  key activation now uses this list. S04 is checked in BACKLOG.md.
+- **Files changed:**
+  - BACKLOG.md
+  - PROGRESS.md
+  - Source/KalmalaGameplay/Public/KalmalaGameMode.h
+  - Source/KalmalaGameplay/Private/KalmalaGameMode.cpp
+  - Source/KalmalaGameplay/Private/Tests/KalmalaPopulationLivingPlayersTest.cpp
+  - docs/monster-spawning.md
+- **Lightweight checks:** Added focused automation coverage for stable PlayerId
+  ordering and exclusion of dead, spectator, inactive/disconnected, unpossessed,
+  and no-PlayerState entries. Reviewed the helper and test fixture; git
+  diff --check passed. The automation test and any Unreal build were not run.
+- **Full verification:** Deferred to S35. This is not the final implementation
+  task in the monster-population goal.
+- **Observable impact / authority:** Existing key activation now considers only
+  the server's current living, possessed Kalmala player pawns. Dead or
+  disconnected players no longer activate a population key. No client RPC,
+  scheduler, natural spawn admission, or key neighborhood behavior was added.
+- **Known limitations:** S05 still needs to build the 96 m union of loaded keys
+  and deduplicate those keys in stable order. S04 does not add recurring spawn
+  attempts or camp suppression. Full integrated verification remains pending.
+- **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the
+  global queue. Within this requested monster-population goal, the next child
+  is S05 — deduplicate active keys.

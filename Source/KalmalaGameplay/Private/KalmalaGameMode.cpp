@@ -5264,6 +5264,72 @@ void AKalmalaGameMode::DriveM9ExplorationRewardPeerTest()
 #endif
 }
 
+TArray<AKalmalaCharacter*> AKalmalaGameMode::GetLivingPlayerPawnsForPopulation() const
+{
+    TArray<AKalmalaCharacter*> LivingPlayerPawns;
+    UWorld* World = GetWorld();
+    if (!HasAuthority() || !IsValid(World))
+    {
+        return LivingPlayerPawns;
+    }
+
+    struct FPopulationPlayerEntry
+    {
+        int32 PlayerId = INDEX_NONE;
+        FString ControllerPath;
+        AKalmalaCharacter* Character = nullptr;
+    };
+    TArray<FPopulationPlayerEntry> Candidates;
+    for (FConstPlayerControllerIterator Iterator = World->GetPlayerControllerIterator(); Iterator; ++Iterator)
+    {
+        APlayerController* Controller = Iterator->Get();
+        if (!IsValid(Controller) || Controller->GetWorld() != World)
+        {
+            continue;
+        }
+
+        const APlayerState* PlayerState = Controller->GetPlayerState<APlayerState>();
+        if (!IsValid(PlayerState) || PlayerState->GetWorld() != World
+            || PlayerState->IsInactive() || PlayerState->IsSpectator() || PlayerState->IsOnlyASpectator())
+        {
+            continue;
+        }
+
+        AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(Controller->GetPawn());
+        if (!IsValid(Character) || Character->GetWorld() != World || Character->GetController() != Controller
+            || !FMath::IsFinite(Character->GetHealth()) || Character->GetHealth() <= 1.0f)
+        {
+            continue;
+        }
+
+        FPopulationPlayerEntry& Entry = Candidates.AddDefaulted_GetRef();
+        Entry.PlayerId = PlayerState->GetPlayerId();
+        Entry.ControllerPath = Controller->GetPathName();
+        Entry.Character = Character;
+    }
+
+    Candidates.Sort([](const FPopulationPlayerEntry& A, const FPopulationPlayerEntry& B)
+    {
+        if (A.PlayerId != B.PlayerId)
+        {
+            return A.PlayerId < B.PlayerId;
+        }
+        return A.ControllerPath < B.ControllerPath;
+    });
+
+    TSet<const AKalmalaCharacter*> SeenPawns;
+    for (const FPopulationPlayerEntry& Candidate : Candidates)
+    {
+        if (SeenPawns.Contains(Candidate.Character))
+        {
+            continue;
+        }
+        SeenPawns.Add(Candidate.Character);
+        LivingPlayerPawns.Add(Candidate.Character);
+    }
+    return LivingPlayerPawns;
+}
+
 void AKalmalaGameMode::Tick(const float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
@@ -5364,11 +5430,9 @@ void AKalmalaGameMode::Tick(const float DeltaSeconds)
 
     NextTerrainPatchActivationTime = GetWorld()->GetTimeSeconds() + KalmalaGameMode::TerrainPatchActivationIntervalSeconds;
     RefreshTerrainPatchNeighborhoods();
-    for (FConstPlayerControllerIterator PlayerControllerIterator = GetWorld()->GetPlayerControllerIterator(); PlayerControllerIterator; ++PlayerControllerIterator)
+    for (const AKalmalaCharacter* PlayerPawn : GetLivingPlayerPawnsForPopulation())
     {
-        const APlayerController* PlayerController = PlayerControllerIterator->Get();
-        const APawn* PlayerPawn = PlayerController != nullptr ? PlayerController->GetPawn() : nullptr;
-        if (PlayerPawn != nullptr)
+        if (IsValid(PlayerPawn))
         {
             ActivatePopulationKey(FKalmalaWorldPopulationLayout::GetSpatialKey(FVector2D(PlayerPawn->GetActorLocation())));
         }

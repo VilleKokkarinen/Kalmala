@@ -114,6 +114,19 @@ defeat from intentional unload at the GameMode boundary. Reuse the existing
 defeat ledger and escrow unchanged; cooldowns belong to session-only GameMode
 state and do not require a save-format change.
 
+## S04 active player source — 2026-10-24
+
+`AKalmalaGameMode::GetLivingPlayerPawnsForPopulation` is the server-only source
+for the existing population-key activation loop. It enumerates the current
+world's `PlayerControllers` and keeps only controllers with a valid same-world,
+active non-spectator `PlayerState` and a valid same-world `AKalmalaCharacter` that
+is still possessed by that controller and has finite health above 1.0. Returned
+pawns are ordered by PlayerState ID, with controller object path as a stable
+within-world tie breaker, and duplicate pawn pointers are removed. The current
+server controller list excludes disconnected controllers; inactive PlayerStates
+are also rejected. This increment does not derive the 96 m neighborhood union,
+deduplicate active keys, or add an attempt scheduler; those remain later steps.
+
 ## Spatial scheduling and random rolls
 
 - Retain invisible 64 m square spatial keys, floor division for negative X/Y,
