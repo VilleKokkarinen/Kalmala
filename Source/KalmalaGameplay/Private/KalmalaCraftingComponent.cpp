@@ -61,6 +61,9 @@ FString GetToolDisplayName(const FName ItemId)
     if (ItemId == TEXT("IronKnife")) return TEXT("Iron Knife");
     if (ItemId == TEXT("IronPick")) return TEXT("Iron Pick");
     if (ItemId == TEXT("IronSpear")) return TEXT("Iron Spear");
+    const UKalmalaToolCatalogue* Catalogue = UKalmalaToolCatalogue::Get();
+    if (const FKalmalaToolProfileData* Profile = Catalogue ? Catalogue->FindProfile(ItemId) : nullptr;
+        Profile && !Profile->DisplayName.TrimStartAndEnd().IsEmpty()) return Profile->DisplayName;
     return ItemId.ToString();
 }
 
@@ -293,52 +296,6 @@ bool UKalmalaCraftingComponent::CraftFromServer(FName RecipeId, int32 Batch, FSt
     {
         Reason = FString::Printf(TEXT("Need a %s in your pack"), *GetRecipeToolDisplayName(Recipe->RequiredTool));
         return false;
-    }
-    if (FKalmalaToolLifecycleContract::FindDefinition(Recipe->Output) != nullptr)
-    {
-        Reason = TEXT("Carried equipment recipes craft one item at a time");
-        if (OutputCount != 1) return false;
-        const TArray<FKalmalaInventoryStack> Before = Inventory->GetStacks();
-        TArray<FKalmalaInventoryStack> After;
-        if (!UKalmalaInventoryComponent::BuildExchange(Before, Costs, NAME_None, 0, After, Reason)) return false;
-        if (!Inventory->CanFitContents(After, Inventory->CountPackedTools(Character->GetCarriedToolInventory()) + 1))
-        {
-            Reason = TEXT("Inventory capacity reached");
-            return false;
-        }
-
-        const TArray<FKalmalaToolState> PreviousTools = Character->CarriedTools;
-        FKalmalaToolState Tool;
-        Tool.ItemId = Recipe->Output;
-        Tool.ToolLevel = 1;
-        Tool.Durability = FKalmalaToolLifecycleContract::GetMaxDurability(Recipe->Output, Tool.ToolLevel);
-        Tool.InstanceGuid = FGuid::NewGuid();
-        if (Tool.Durability <= 0 || !Inventory->TryCommitStacksFromServer(Before, After))
-        {
-            Reason = TEXT("Could not create the carried item");
-            return false;
-        }
-
-        Character->CarriedTools.Add(Tool);
-        auto* GameMode = GetWorld() ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
-        if (!GameMode || !GameMode->PersistPlayerStateFromServer(Character))
-        {
-            Character->CarriedTools = PreviousTools;
-            if (!Inventory->TryCommitStacksFromServer(After, Before))
-                UE_LOG(LogTemp, Error, TEXT("Failed to roll back carried-equipment material payment."));
-            Reason = TEXT("Could not save the crafted equipment; no materials were spent");
-            return false;
-        }
-
-        Inventory->SynchronizeGridFromServer();
-        Character->ForceNetUpdate();
-        if (Recipe->ExperienceAward > 0)
-        {
-            if (auto* Progression = Character->GetSkillProgressionComponent())
-                Progression->AwardExperienceFromAcceptedServerAction(Recipe->ExperienceSkill, Recipe->ExperienceAward);
-        }
-        Reason = FString::Printf(TEXT("Crafted %s"), *Recipe->DisplayName);
-        return true;
     }
     if (!Inventory || !Inventory->TryExchangeFromServer(Costs, Recipe->Output, OutputCount, Reason)) return false;
     if (Recipe->ExperienceAward > 0)

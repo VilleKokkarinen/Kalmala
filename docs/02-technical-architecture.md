@@ -3135,15 +3135,15 @@ presentation-only update.
 
 The Inventory popup reads the owner's six replicated wearable slots and two accessory slots and displays their current item names. Selecting compatible gear enables its slot action; selecting a different item for an occupied slot replaces the equipped GUID, and selecting an empty grid cell before clicking occupied gear requests its return to the pack. The client sends only the item GUID or slot enum; the server revalidates identity, compatibility, capacity, and the full candidate transaction before publishing the owner-only gear and inventory state. An owner-only client result reports accepted or rejected requests. Server-resolved wildlife damage uses the summed integer Armor of non-depleted equipped gear against physical damage only. Accessories have no condition capacity or wear; their `Armor` contributes while equipped. The Main Hand tile selects or clears an exact tool GUID without moving its grid cell. The owner sees remaining/maximum condition for durable wearables; accepted wildlife hits spend one condition per wearable and depleted items cease contributing defense. Same-pawn unequip/re-equip preserves wear.
 
-Station recipes that produce a registered carried-item profile create one
-server-owned, GUID-addressed `CarriedTools` instance at level one instead of an
-ordinary inventory stack. The server validates the station and recipe, pays
-materials atomically, checks carried capacity, persists the new instance, and
-rolls the payment and tool state back if persistence fails. The owner selects
-the resulting instance through the normal Main Hand GUID request; accepted
-combat uses its authored profile and server-owned condition. Carried-profile
-recipes produce one instance per request; ordinary item recipes retain their
-stack output path.
+Carried-item acquisition records load into the tool progression catalogue,
+separately from ordinary item recipes. The owner sees the same-item option in
+the station's tool progression view and requests it through `ServerProgressTool`.
+The server validates the visible station and level, material costs, carried
+capacity, and progression; it creates one GUID-addressed level-one
+`CarriedTools` instance, persists it, and rolls the payment and tool state back
+if persistence fails. The owner selects that instance through the normal Main
+Hand GUID request. Accepted combat uses its authored profile and server-owned
+condition; generic `ServerCraft` remains for ordinary item recipes.
 
 Equipped accessories' additive `StaminaCostMultiplier` deltas sum with active Wet and Steady Meal adjustments and apply once through the shared authoritative cost calculation for sprint, dodge and support spells. `SupportSpellStaminaCostMultiplier` adds only on support spells. Cost factors are bounded to `[0.5, 2.0]`. Accessory maximum-health/stamina, stamina-regeneration and healing-received fields are validated additive data; their runtime effects remain pending.
 

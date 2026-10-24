@@ -15,11 +15,27 @@
 
 namespace
 {
-    constexpr TCHAR FangSpearRecipe[] = TEXT("FangSpear");
+    constexpr TCHAR FangSpearItemId[] = TEXT("FangSpear");
     constexpr TCHAR FangSpearReadyResult[] = TEXT("A8b Fang Spear peer ready");
     constexpr TCHAR FangSpearAttackResult[] = TEXT("A8b Fang Spear peer attack accepted");
+    constexpr TCHAR FangSpearProgressedResult[] = TEXT("Crafted FangSpear at level 1");
     constexpr TCHAR FangSpearForgeId[] = TEXT("A8bPeerFangSpearForge");
     constexpr TCHAR FangSpearTargetId[] = TEXT("a8b-peer-fang-spear-target");
+
+    bool HasReadyFangSpearOption(const FString& ToolOptions)
+    {
+        const int32 EntryStart = ToolOptions.Find(TEXT("New tool: Fang Spear 1"));
+        if (EntryStart == INDEX_NONE) return false;
+        const int32 StatusStart = ToolOptions.Find(
+            TEXT("Status: "), ESearchCase::CaseSensitive, ESearchDir::FromStart, EntryStart);
+        if (StatusStart == INDEX_NONE) return false;
+        const int32 StatusEnd = ToolOptions.Find(
+            TEXT("\n"), ESearchCase::CaseSensitive, ESearchDir::FromStart, StatusStart);
+        const FString Status = StatusEnd == INDEX_NONE
+            ? ToolOptions.RightChop(StatusStart)
+            : ToolOptions.Mid(StatusStart, StatusEnd - StatusStart);
+        return Status == TEXT("Status: Ready to upgrade.");
+    }
 
     const FKalmalaToolState* FindFangSpear(const AKalmalaCharacter* Character)
     {
@@ -128,7 +144,7 @@ void UKalmalaCraftingComponent::RunA8bFangSpearPeerVerification(const float Delt
 
             const FVector Forward = Target->GetActorForwardVector().GetSafeNormal2D();
             const FVector WildlifeLocation = Target->GetPawnViewLocation() + Forward * 170.0f;
-            const FVector ForgeLocation = Target->GetActorLocation() + Target->GetActorRightVector() * 150.0f;
+            const FVector ForgeLocation = Target->GetPawnViewLocation() + FVector(0.0f, 0.0f, 100.0f);
             FActorSpawnParameters SpawnParameters;
             SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
             AKalmalaConstructionActor* Forge = GetWorld()->SpawnActor<AKalmalaConstructionActor>(
@@ -157,19 +173,43 @@ void UKalmalaCraftingComponent::RunA8bFangSpearPeerVerification(const float Delt
                 Resistance->Profile.Armor = 0.0f;
             FaceFangSpearTarget(Target, Wildlife);
 
-            const bool bStationReady = FVector::DistSquared(Target->GetActorLocation(), Forge->GetActorLocation())
-                    <= FMath::Square(250.0f)
-                && TargetCrafting->GetRecipeAvailability(FangSpearRecipe) == TEXT("Ready");
+            const double ForgeDistance = FVector::Dist(Target->GetActorLocation(), Forge->GetActorLocation());
+            const FString ToolOptions = TargetCrafting->GetToolProgressionText(TEXT("ForgeKit"));
+            FCollisionQueryParams StationQuery(SCENE_QUERY_STAT(A8bFangSpearStationDiagnostics), false, Target);
+            FHitResult StationHit;
+            const bool bStationTraceHit = GetWorld()->LineTraceSingleByChannel(
+                StationHit, Target->GetPawnViewLocation(), Forge->GetActorLocation(), ECC_Visibility, StationQuery);
+            const bool bStationReady = ForgeDistance <= 250.0
+                && TargetCrafting->FindNearbyToolProgressionStation(TEXT("ForgeKit")) != nullptr
+                && HasReadyFangSpearOption(ToolOptions);
             const bool bTargetReady = Wildlife->GetArchetype() == EKalmalaWildlifeArchetype::MoonBear
                 && Wildlife->GetCreatureNicheId() == FName(FangSpearTargetId)
                 && FMath::IsNearlyEqual(Wildlife->GetHealth(), 250.0f, 0.1f)
                 && Wildlife->GetHealth() > 100.0f;
             if (!bStationReady || !bTargetReady)
             {
+                const int32 FangTextStart = ToolOptions.Find(TEXT("Fang"));
+                const FString FangText = FangTextStart == INDEX_NONE ? TEXT("<missing>")
+                    : ToolOptions.Mid(FangTextStart, 180).Replace(TEXT("\n"), TEXT(" | "));
                 Forge->Destroy();
                 Wildlife->Destroy();
-                UE_LOG(LogTemp, Error, TEXT("A8b Fang Spear peer FAILED: station=%d target=%d"),
-                    bStationReady ? 1 : 0, bTargetReady ? 1 : 0);
+                UE_LOG(LogTemp, Error,
+                    TEXT("A8b Fang Spear peer FAILED: station=%d visibleForge=%d distance=%.1f optionReady=%d target=%d"),
+                    bStationReady ? 1 : 0,
+                    TargetCrafting->FindNearbyToolProgressionStation(TEXT("ForgeKit")) ? 1 : 0,
+                    ForgeDistance,
+                    HasReadyFangSpearOption(ToolOptions) ? 1 : 0,
+                    bTargetReady ? 1 : 0);
+                UE_LOG(LogTemp, Error,
+                    TEXT("A8b Fang Spear peer station diagnostics: Authority=%d ForgeAuthority=%d Kit=%s Id=%s TraceHit=%d HitActor=%s HitComponent=%s HitForge=%d ToolHeader=%d Ready=%d FangText=%s"),
+                    Target->HasAuthority() ? 1 : 0, Forge->HasAuthority() ? 1 : 0,
+                    *Forge->GetConstructionKit().ToString(), *Forge->GetConstructionId(),
+                    bStationTraceHit ? 1 : 0,
+                    bStationTraceHit && StationHit.GetActor() ? *StationHit.GetActor()->GetName() : TEXT("None"),
+                    bStationTraceHit && StationHit.GetComponent() ? *StationHit.GetComponent()->GetName() : TEXT("None"),
+                    bStationTraceHit && StationHit.GetActor() == Forge ? 1 : 0,
+                    ToolOptions.Contains(TEXT("New tool: Fang Spear 1")) ? 1 : 0,
+                    HasReadyFangSpearOption(ToolOptions) ? 1 : 0, *FangText);
                 A8bFangSpearPeerStage = 99;
                 return;
             }
@@ -219,7 +259,7 @@ void UKalmalaCraftingComponent::RunA8bFangSpearPeerVerification(const float Delt
                 TEXT("FangSpear"), 1, TEXT("Basic"));
             const bool bProfileValid = FMath::IsNearlyEqual(Damage.Stab, 100.0f, 0.1f)
                 && FMath::IsNearlyZero(Damage.Total() - Damage.Stab, 0.1f);
-            const bool bCraftPassed = TargetCrafting->GetLastResult() == TEXT("Crafted Fang Spear")
+            const bool bCraftPassed = TargetCrafting->GetLastResult() == FangSpearProgressedResult
                 && TargetCrafting->WasLastResultAccepted()
                 && TargetInventory->GetQuantity(TEXT("WolfFang")) == A8bFangSpearPeerBaselineWolfFang
                 && TargetInventory->GetQuantity(TEXT("Iron")) == A8bFangSpearPeerBaselineIron
@@ -231,7 +271,7 @@ void UKalmalaCraftingComponent::RunA8bFangSpearPeerVerification(const float Delt
             {
                 UE_LOG(LogTemp, Error,
                     TEXT("A8b Fang Spear peer server: Passed=0 Craft=%d Accepted=%d WolfFang=%d Iron=%d Densewood=%d Stack=%d Tools=%d Durability=%d Stab=%.1f"),
-                    TargetCrafting->GetLastResult() == TEXT("Crafted Fang Spear") ? 1 : 0,
+                    TargetCrafting->GetLastResult() == FangSpearProgressedResult ? 1 : 0,
                     TargetCrafting->WasLastResultAccepted() ? 1 : 0,
                     TargetInventory->GetQuantity(TEXT("WolfFang")), TargetInventory->GetQuantity(TEXT("Iron")),
                     TargetInventory->GetQuantity(TEXT("Densewood")), TargetInventory->GetQuantity(TEXT("FangSpear")),
@@ -260,7 +300,7 @@ void UKalmalaCraftingComponent::RunA8bFangSpearPeerVerification(const float Delt
                 && TargetCombat->GetActionSerial() > A8bFangSpearPeerBaselineActionSerial
                 && TargetCombat->GetFeedback() == EKalmalaCombatFeedback::Hit
                 && FMath::IsNearlyEqual(Wildlife->GetHealth(), ExpectedHealth, 0.1f)
-                && Target->GetToolDurability(A8bFangSpearPeerItemGuid) == 199
+                && Target->GetToolDurability(A8bFangSpearPeerItemGuid) == 200
                 && TargetInventory->GetActiveItem() == TEXT("FangSpear")
                 && TargetInventory->GetActiveInstanceGuid() == A8bFangSpearPeerItemGuid;
             if (!bAcceptedStab)
@@ -286,7 +326,7 @@ void UKalmalaCraftingComponent::RunA8bFangSpearPeerVerification(const float Delt
             A8bFangSpearPeerStage = 3;
             A8bFangSpearPeerElapsed = 0.0f;
             UE_LOG(LogTemp, Display,
-                TEXT("A8b Fang Spear peer server: Passed=1 Craft=1 Payment=1 Equip=1 Stab=100 Damage=100 Condition=1"));
+                TEXT("A8b Fang Spear peer server: Passed=1 Craft=1 Payment=1 Equip=1 Stab=100 Damage=100 Durability=200"));
             return;
         }
         if (A8bFangSpearPeerStage == 3)
@@ -370,9 +410,10 @@ void UKalmalaCraftingComponent::RunA8bFangSpearPeerVerification(const float Delt
 
     if (A8bFangSpearPeerStage == 0 && OwnerCrafting->GetLastResult() == FangSpearReadyResult)
     {
+        const FString ToolOptions = OwnerCrafting->GetToolProgressionText(TEXT("ForgeKit"));
         if (!Wildlife || Inventory->GetQuantity(TEXT("WolfFang")) < 4
             || Inventory->GetQuantity(TEXT("Iron")) < 10 || Inventory->GetQuantity(TEXT("Densewood")) < 10
-            || OwnerCrafting->GetRecipeAvailability(FangSpearRecipe) != TEXT("Ready"))
+            || !HasReadyFangSpearOption(ToolOptions))
         {
             if (A8bFangSpearPeerElapsed < 20.0f) return;
             UE_LOG(LogTemp, Error, TEXT("A8b Fang Spear peer owner: Passed=0 Forge, target or recipe inputs not ready"));
@@ -386,13 +427,13 @@ void UKalmalaCraftingComponent::RunA8bFangSpearPeerVerification(const float Delt
         A8bFangSpearPeerBaselineSpear = Inventory->GetQuantity(TEXT("FangSpear"));
         A8bFangSpearPeerResultSerial = OwnerCrafting->GetResultSerial();
         FString DirectReason;
-        if (OwnerCrafting->CraftFromServer(FangSpearRecipe, 1, DirectReason))
+        if (OwnerCrafting->ProgressToolFromServer(FangSpearItemId, DirectReason))
         {
-            UE_LOG(LogTemp, Error, TEXT("A8b Fang Spear peer FAILED: direct client craft bypassed server authority"));
+            UE_LOG(LogTemp, Error, TEXT("A8b Fang Spear peer FAILED: direct client progression bypassed server authority"));
             A8bFangSpearPeerStage = 99;
             return;
         }
-        OwnerCrafting->ServerCraft(FangSpearRecipe, 1);
+        OwnerCrafting->ServerProgressTool(FangSpearItemId);
         A8bFangSpearPeerStage = 1;
         A8bFangSpearPeerElapsed = 0.0f;
         return;
@@ -409,7 +450,7 @@ void UKalmalaCraftingComponent::RunA8bFangSpearPeerVerification(const float Delt
             return;
         }
         const FKalmalaToolState* Spear = FindFangSpear(Character);
-        const bool bCrafted = OwnerCrafting->GetLastResult() == TEXT("Crafted Fang Spear")
+        const bool bCrafted = OwnerCrafting->GetLastResult() == FangSpearProgressedResult
             && OwnerCrafting->WasLastResultAccepted()
             && Inventory->GetQuantity(TEXT("WolfFang")) == A8bFangSpearPeerBaselineWolfFang
             && Inventory->GetQuantity(TEXT("Iron")) == A8bFangSpearPeerBaselineIron
@@ -480,14 +521,14 @@ void UKalmalaCraftingComponent::RunA8bFangSpearPeerVerification(const float Delt
             && Combat->GetActionSerial() > A8bFangSpearPeerBaselineActionSerial
             && Combat->GetFeedback() == EKalmalaCombatFeedback::Hit && Wildlife
             && FMath::IsNearlyEqual(Wildlife->GetHealth(), 150.0f, 0.1f)
-            && Spear && Spear->InstanceGuid == A8bFangSpearPeerItemGuid && Spear->Durability == 199
+            && Spear && Spear->InstanceGuid == A8bFangSpearPeerItemGuid && Spear->Durability == 200
             && Inventory->GetQuantity(TEXT("WolfFang")) == A8bFangSpearPeerBaselineWolfFang
             && Inventory->GetQuantity(TEXT("Iron")) == A8bFangSpearPeerBaselineIron
             && Inventory->GetQuantity(TEXT("Densewood")) == A8bFangSpearPeerBaselineDensewood;
         if (bAttackPassed)
         {
             UE_LOG(LogTemp, Display,
-                TEXT("A8b Fang Spear peer owner: Passed=1 Authority=0 Craft=1 Payment=1 MainHand=1 Stab=100 Damage=100 Condition=1"));
+                TEXT("A8b Fang Spear peer owner: Passed=1 Authority=0 Craft=1 Payment=1 MainHand=1 Stab=100 Damage=100 Durability=200"));
             A8bFangSpearPeerStage = 4;
         }
         else if (A8bFangSpearPeerElapsed > 25.0f)

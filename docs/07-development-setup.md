@@ -6121,26 +6121,6 @@ listen host, and observer. Both clients received world seed 418. Logs:
 final run's fixture markers passed with no fixture, fatal, assertion, or ensure
 failures. Combined A8a/A8b I4 remains required before A9.
 
-## A8b Fang Spear live peer craft and melee acceptance
-
-After an Editor build, run `Scripts/Tests/Construction/Verify-A8bFangSpearPeer.ps1`.
-The development-only three-peer fixture stages four Wolf Fangs, ten Iron and
-ten Densewood for a remote owner, then places a nearby Forge and a controlled
-Moon Bear. The owner rejects direct client craft and Main Hand mutation, crafts
-Fang Spear through `ServerCraft`, and selects the resulting carried-item GUID
-through `ServerSetMainHand`. The server verifies exact payment, level-one
-identity and 200 condition, then observes the normal melee RPC applying exactly
-100 Stab to the armor-free target and spending one condition. The listen host
-keeps its inventory unchanged; the observer sees public wildlife health while
-the owner's inventory, carried equipment and statuses remain private.
-
-Registered carried-profile recipe outputs are committed as persistent carried
-items after the recipe's station checks, rather than as ordinary stacks. The
-server checks capacity and rolls payment back if it cannot persist the output.
-This case does not exercise a natural Wolf Fang reward or rendered Forge/Main
-Hand presentation; those acceptance gaps and combined A8a/A8b I4 verification
-remain open before A9.
-
 ## A8b Wolf Pelt Boots live peer craft, equip and armor — 2026-10-24
 
 After an Editor build, run
@@ -6166,3 +6146,32 @@ and observer; both clients received world seed 418. Logs:
 `C:/Users/Ville/AppData/Local/Temp/a8wb1/{server,owner,observer}.log`. The final
 logs contain no fixture, fatal, assertion, ensure, or saved-move backlog
 failures. Combined A8a/A8b I4 remains required before A9.
+
+## A8b Fang Spear live peer Forge progression and melee acceptance — 2026-10-24
+
+After an Editor build, run
+`Scripts/Tests/Construction/Verify-A8bFangSpearPeer.ps1`. The Development-only
+three-peer fixture stages four Wolf Fangs, ten Iron and ten Densewood for a
+remote owner, then spawns a visible in-range Forge and controlled Moon Bear.
+Fang Spear acquisition is a carried-item progression record, so the owner
+requests it through `ServerProgressTool`; ordinary `ServerCraft` does not handle
+it. The progression view now shows the catalogue display name “Fang Spear.” The
+server confirms exact material payment and one level-one GUID-bearing tool at
+200 durability. The owner equips that GUID through `ServerSetMainHand`
+and its accepted attack deals exactly 100 Stab to the armor-free target. Spear
+durability remains at 200 because the existing combat rule does not wear spear
+condition. Direct client progression/equipment mutation is rejected, host
+materials remain unchanged, and the observer sees public wildlife health while
+the owner's inventory, carried equipment and statuses remain private.
+
+On 2026-10-24, the isolated short-path `KalmalaEditor Win64 Development` build
+passed in five actions with normal UnrealBuildTool cache access.
+`Verify-A8bFangSpearPeer.ps1 -Port 17919 -Project
+C:/Users/Ville/AppData/Local/Temp/msp1/Kalmala.uproject -OutputDirectory
+C:/Users/Ville/AppData/Local/Temp/a8fsp10` passed for the server, remote owner,
+listen host and observer; both clients received world seed 418. Logs:
+`C:/Users/Ville/AppData/Local/Temp/a8fsp10/{server,owner,observer}.log`. The
+successful run has no fixture failures, fatal/assert/ensure failures, or
+saved-move backlog warnings. This case stages rather than naturally earns the
+Wolf Fangs and does not exercise rendered Forge/Main Hand presentation. The
+combined A8a/A8b I4 gate remains open before A9.

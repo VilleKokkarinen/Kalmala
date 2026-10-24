@@ -54,9 +54,9 @@ try {
         if ($allText -match 'Fatal error:|Assertion failed:|Ensure condition failed:|Saved move record backlog|A8b Fang Spear peer FAILED:|A8b Fang Spear peer (server|owner|listen host|observer): Passed=0') {
             throw 'A8b Fang Spear peer verification failed; inspect retained logs.'
         }
-        $passed = $serverText.Contains('A8b Fang Spear peer server: Passed=1 Craft=1 Payment=1 Equip=1 Stab=100 Damage=100 Condition=1') `
+        $passed = $serverText.Contains('A8b Fang Spear peer server: Passed=1 Craft=1 Payment=1 Equip=1 Stab=100 Damage=100 Durability=200') `
             -and $serverText.Contains('A8b Fang Spear peer listen host: Passed=1 HostItems=Stable') `
-            -and $ownerText.Contains('A8b Fang Spear peer owner: Passed=1 Authority=0 Craft=1 Payment=1 MainHand=1 Stab=100 Damage=100 Condition=1') `
+            -and $ownerText.Contains('A8b Fang Spear peer owner: Passed=1 Authority=0 Craft=1 Payment=1 MainHand=1 Stab=100 Damage=100 Durability=200') `
             -and $observerText.Contains('A8b Fang Spear peer observer: Passed=1 Authority=0 PublicHealth=1 OwnerPrivate=1')
         if (!$passed) { Start-Sleep -Milliseconds 500 }
     } while (!$passed -and (Get-Date) -lt $deadline)
@@ -64,7 +64,7 @@ try {
     if (($ownerText -notmatch 'Client received world-generation identity: Seed=418') -or ($observerText -notmatch 'Client received world-generation identity: Seed=418')) {
         throw 'Fang Spear peer client world identity mismatch.'
     }
-    Write-Output 'PASS: the remote owner crafted Fang Spear from Forge materials, equipped its carried GUID, and delivered the server accepted 100 Stab hit with one condition wear; peer privacy passed.'
+    Write-Output 'PASS: the remote owner acquired Fang Spear through Forge progression, equipped its carried GUID, delivered exactly 100 server-accepted Stab damage with unchanged 200 durability, and peer privacy passed.'
 }
 finally {
     foreach ($peer in @($observer, $owner, $server)) {
