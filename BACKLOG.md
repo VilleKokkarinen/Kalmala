@@ -296,7 +296,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
       - [x] Run the generated Mosquito swarm peer case for repeated server bites, ten-second weak-poison application, owner-only status, and public health replication.
       - [x] Add Development-only generated-peer assertions for an owner-client accepted dodge, rejected cooldown retry, the roll's two-second repel window, fuelled held-torch protection, unequipped-torch bite resumption, and unlit/lit placed-campfire transitions.
       - [x] Build the affected target and run `Scripts/Tests/Combat/Verify-MosquitoSwarmPeer.ps1`; confirm dodge/fire counterplay plus health replication and owner-only poison before completing this child (passed 2026-10-23).
-    - [ ] Resolve the `Verify-InventoryReconnect.ps1` client-baseline timeout or document an approved non-applicable disposition before closing final I4 verification.
+    - [x] Resolve the `Verify-InventoryReconnect.ps1` client-baseline timeout or document an approved non-applicable disposition before closing final I4 verification.
 
   The JSON-only child, all 30 icon children and all 30 source/output
   implementation rows are complete. Enemy rewards and dependent items are

@@ -56,10 +56,13 @@ bool FKalmalaSkillNoticeQueue::Observe(const TArray<FKalmalaSkillState>& Snapsho
 bool FKalmalaSkillNoticeQueue::ObserveGains(const TArray<FKalmalaItemGainReceipt>& Receipts, float Lifetime)
 {
     if (Receipts.Num() > UKalmalaInventoryComponent::MaxGainReceipts) return false;
+    const UKalmalaItemCatalogue* Catalogue = UKalmalaItemCatalogue::Get();
     int64 Previous = 0;
     for (const auto& Receipt : Receipts)
     {
-        if (Receipt.Sequence <= Previous || !UKalmalaItemCatalogue::Get()->IsValidStack(Receipt.ItemId, Receipt.Quantity))
+        const FKalmalaItemDefinition* Item = Catalogue ? Catalogue->FindItem(Receipt.ItemId) : nullptr;
+        if (Receipt.Sequence <= Previous || !Item || Item->MaxStack <= 0 || Receipt.Quantity <= 0
+            || static_cast<int64>(Receipt.Quantity) > static_cast<int64>(Item->MaxStack) * UKalmalaInventoryComponent::MaxSlots)
             return false;
         Previous = Receipt.Sequence;
     }

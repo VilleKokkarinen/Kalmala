@@ -1895,8 +1895,11 @@ not its gross output. Carried-tool records are a separate inventory contract and
 are not newly announced by this child.
 
 The owner stores only the latest 32 transient receipts with locally monotonic
-sequence numbers. The first observed buffer silently establishes a baseline,
-including already-delivered receipts on pawn attachment. Pawn replacement
+sequence numbers. Each receipt quantity is the total positive net gain for one
+item across the inventory, so it may exceed a single stack's limit up to that
+item's stack limit multiplied by the inventory slot count. The first observed
+buffer silently establishes a baseline, including already-delivered receipts
+on pawn attachment. Pawn replacement
 clears it through the existing session reset. Refresh, expiry, modal close and
 unchanged buffers never replay receipts. A UI polling gap exceeding 32 receipts
 drops older notices; it cannot change inventory. There is no receipt persistence
