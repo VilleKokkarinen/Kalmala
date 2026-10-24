@@ -8143,3 +8143,34 @@
   still cover suppression/placement, lifecycle/local-source acceptance,
   verification handoff, and milestone-final verification.
 - **Next eligible task:** S32 — cover suppression and placement.
+
+
+### Monster population — S32 suppression and placement coverage
+
+- **Selected increment:** S32, cover suppression boundaries and physical
+  placement rejection cases.
+- **Work completed:** Added mixed-axis camp-sphere assertions: a point just
+  inside the 18 m three-dimensional radius suppresses, while a point whose
+  individual axes are each inside 18 m but whose combined distance is outside
+  does not. Reviewed the existing focused fixtures and confirmed coverage for
+  station cylinder radius/height edges; unlisted and destroyed stations; empty,
+  rain-extinguished and fuel-exhausted lights; solid RoofKit at the exact 24 m
+  trace limit and ignored non-roof/cosmetic hits; the inclusive 32-degree land
+  slope and over-limit case; dry-land rejection of water; and Reef Maw water
+  containment, insufficient water and terrain penetration.
+- **Files changed:**
+  `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSphericalSuppressionTest.cpp`,
+  `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** Inspected existing S20–S25 predicates and focused
+  fixtures against the S32 checklist; `git diff --check` passed. Automation and
+  builds were not run.
+- **Full verification:** Deferred to S35; S32 is not the final implementation
+  task in the monster-population goal.
+- **Observable impact / authority:** Test coverage only; no runtime behavior,
+  world content, save data or replication behavior changed.
+- **Networking/authority:** No runtime authority paths changed. The fixtures
+  exercise server-side station, camp and placement queries.
+- **Known limitations:** The focused automation fixtures remain unrun. S33–S35
+  still cover lifecycle/local-source acceptance, verification handoff and
+  milestone-final verification.
+- **Next eligible task:** S33 — cover lifecycle and local spawners.

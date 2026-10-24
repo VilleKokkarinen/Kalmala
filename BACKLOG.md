@@ -674,7 +674,7 @@ milestone-final verification/repair run and can exceed a normal turn.
     reservation rollback; inspect assertions against the accepted contract.
   - [x] **S31 — Cover gate rejection.** Add one rejection case per nine-gate
     reason and unrestricted time/weather/progression cases; verify bounded work.
-  - [ ] **S32 — Cover suppression and placement.** Add radius/height boundaries,
+  - [x] **S32 — Cover suppression and placement.** Add radius/height boundaries,
     unlisted pieces, destroyed stations, extinguished/empty lights, roof, slope
     and land/water clearance cases.
   - [ ] **S33 — Cover lifecycle and local spawners.** Add unload/reload, cooldown,

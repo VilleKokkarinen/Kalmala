@@ -54,6 +54,12 @@ bool FKalmalaPopulationSphericalSuppressionTest::RunTest(const FString& Paramete
         Mode->DoesPopulationPointOverlapCampSphere(FVector(Radius, 0.0, 0.0)));
     TestTrue(TEXT("Camp Bed uses a full 3D sphere at the exact vertical boundary"),
         Mode->DoesPopulationPointOverlapCampSphere(FVector(0.0, 0.0, Radius)));
+    const double DiagonalInside = (Radius - 0.01) / FMath::Sqrt(2.0);
+    TestTrue(TEXT("A mixed-axis point just inside the 3D radius remains suppressed"),
+        Mode->DoesPopulationPointOverlapCampSphere(FVector(DiagonalInside, 0.0, DiagonalInside)));
+    const double InsideAxisExtent = Radius * 0.8;
+    TestFalse(TEXT("Mixed-axis distance outside the radius is not treated as a cylinder"),
+        Mode->DoesPopulationPointOverlapCampSphere(FVector(InsideAxisExtent, 0.0, InsideAxisExtent)));
     TestFalse(TEXT("Camp Bed excludes points beyond the sphere"),
         Mode->DoesPopulationPointOverlapCampSphere(FVector(Radius + 1.0, 0.0, 0.0)));
     Bed->Destroy();
