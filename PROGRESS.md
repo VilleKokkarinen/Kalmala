@@ -8863,3 +8863,71 @@
   remain acceptance limitations. Keep the broad A10 item-audit child unchecked
   until every included ID and scope N/A is covered.
 - **Next eligible A1 group:** `Coal`, produced by the Charcoal Kiln.
+
+## Run 2026-10-24 — A10 per-item audit: Coal
+
+- **Scope and definition:** audited exactly `Coal`, registered once in
+  `items/materials/others.json` with maximum stack 50. It has no equipment
+  profile, attack, stat reward, or level-up cost; equipment condition, combat,
+  and upgrades are N/A.
+- **Source and quantity:** Coal has no natural mining/harvest source, biome,
+  tool-tier requirement, or world-depletion identity. Its current acquisition
+  is the directly placed Charcoal Kiln: load one Wood and receive one Coal
+  after 30 active server seconds. The Kiln holds up to 10 Wood and 10 Coal,
+  runs one job at a time, and pauses at full output. There is no offline
+  processing. The Kiln itself is a presentation-only buildable placed with the
+  Building Hammer for 20 Stone; it is not a portable Coal source or inventory
+  item.
+- **Fuel and recipe uses:** the registered catalogue scan found no Coal
+  references outside its own definition, so Kiln/Smelter processing and hearth
+  fuel are runtime operations rather than ordinary recipe rows. The Smelter
+  accepts one Coal per ore, matching one Copper/Tin/Iron bar after 30 active
+  seconds; Coal input capacity is 10, output is shared across bar types, and
+  full output pauses the queue. Campfire placement also requires one initial
+  raw-fuel unit; later direct Interact refuelling consumes one raw-fuel item
+  for 60 seconds up to the 300-second cap. Coal is accepted after Wood,
+  Lightwood, and Densewood in the server's raw-fuel priority. No other Coal
+  recipe/fuel consumer, crafted output, equipment use, attack, or upgrade was
+  found. `BasicTorch` refuelling and `StandingLight` burn Wood instead.
+- **Icons and provenance:** Coal is manifest-backed in batch A for
+  PackInventory, ItemDetail, and Storage. The validator confirmed a retained
+  1254x1254 RGBA original, prepared transparent 64x64 RGBA texture, and
+  imported `/Game/Kalmala/UI/Icons/Items/Coal.Coal` asset. The catalogue
+  library uses that canonical texture; the older widget fallback is Rock
+  variant 1. `docs/icon-provenance.md` has no dedicated Coal generation prompt
+  or source-path record, and the linked `docs/material-icons.md` is absent in
+  this checkout. No prompt was inferred or added in this tracking-only audit.
+- **Inventory, containers, and world save:** the Kiln's queued Wood, output
+  Coal, and remaining active job time are saved with its world construction
+  record. Accepted Wood input is consumed only after server validation and
+  restored if the Kiln save fails. Coal collection saves the reduced Kiln
+  output before granting one item; a capacity failure keeps the Coal in the
+  Kiln. If inventory changes before commit, the code attempts to restore the
+  prior output record; failure of that rollback save is logged. Smelter Coal
+  input and processing state are also world-saved, with the item restored if
+  the station save rejects its transfer. Once carried, ordinary Coal stacks
+  are owner-only pawn-session inventory and are not restored by
+  `PersistPlayerStateFromServer`.
+  Coal placed in a Chest uses the separate world-keyed storage save path; no
+  Coal-specific chest transfer/reload was exercised here. Campfire fuel/state
+  is transient and is not in the construction save record, so Coal burned
+  there does not persist across server restart. No source-depletion callback
+  applies to the manufactured item.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md` only.
+- **Lightweight checks:** `python Scripts/Validate-CatalogueReferences.py`
+  passed: 61 registered files, 152 unique definitions, 777 resolved
+  references, and canonical runtime icon mappings for every definition.
+  `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id Coal` passed with the
+  original/prepared/imported checks. A Python walk parsed all registered
+  catalogue JSON and confirmed `Coal` appears only in its definition. The
+  source, Kiln, Smelter, raw-fuel, save, storage, and Campfire paths were
+  inspected; no automation, build, full suite, live peer or restart check ran.
+- **Full verification:** deferred; this is not A10's final increment.
+- **Impact and remaining scope:** tracking-only; no item, process, fuel amount,
+  authority, inventory, container, or save behavior changed. The Coal item is
+  server-created/consumed through the existing Kiln, Smelter, and Campfire
+  transactions. Its missing dedicated icon prompt record and actual live
+  station/storage/restart behavior remain for later evidence. Keep the broad
+  A10 item-audit child unchecked until every included ID and scope N/A is
+  covered.
+- **Next eligible A1 group:** `Copper`, `Tin`, and `Bronze` metal bars/alloy.
