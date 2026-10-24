@@ -244,8 +244,10 @@ unload policy or actor creation, and it changes no save data.
   post-biome activation path. No separate global wildlife actor-cap value exists
   in the established source; the S11 aggregate ceiling is the sum of those
   active-key budgets, with no added allowance. Live actors remain charged to
-  their original descriptor key while roaming. Pending Wolf-pack reservations
-  are included by the later atomic reservation increment.
+  their original descriptor key while roaming. S12 reservations hold all three
+  prospective Wolf positions atomically and contribute to area, home-key and
+  aggregate counts until released. Actor-creation code must release the token
+  after all members are registered or on any failed/rolled-back pack.
 - Reserve one actor or all three Wolves in a single server transaction. Count
   against every pack member's candidate-centered area. If any member cannot
   fit or spawn, roll back the entire new pack and release every reservation;
@@ -301,11 +303,12 @@ enemy farming or change the development save format.
   can reactivate at its original descriptor after a 30-second session cooldown,
   subject to all gates. Do not unload a roaming actor while it remains within
   96 m of any living player; continue counting it against its home-key budget.
-- Session-only state includes cursors, roll ordinals, due times and unload
-  cooldowns. Retain the 30 s living-creature cooldown, keyed by stable spawn ID,
-  across key unload for the session. Remove per-key scheduler due state while a
-  key is inactive; reactivation assigns its deterministic initial phase again.
-  Restart resets session state. No offline catch-up.
+- Session-only state includes cursors, roll ordinals, due times, unload
+  cooldowns and pending pack reservations. Retain the 30 s living-creature
+  cooldown, keyed by stable spawn ID, across key unload for the session. Remove
+  per-key scheduler due state while a key is inactive; reactivation assigns its
+  deterministic initial phase again. Restart resets session state. No offline
+  catch-up.
 - Preserve durable reward escrow and authenticated-owner claims. Failed spawn,
   rollback, unload and suppression produce no reward. Never clear a saved defeat
   ID to make room. No new save fields, migrations or generator revision bump.

@@ -5753,7 +5753,7 @@ int32 AKalmalaGameMode::GetPopulationSpeciesAreaCap(const EKalmalaWildlifeArchet
     }
 }
 
-void AKalmalaGameMode::GetLivePopulationCreatureCapCounts(const FVector& Center,
+void AKalmalaGameMode::GetPopulationCreatureCapCounts(const FVector& Center,
     const EKalmalaWildlifeArchetype Archetype, const FIntPoint& HomeSpatialKey,
     int32& OutWorldTotal, int32& OutNearbySpecies, int32& OutHomeKeyTotal)
 {
@@ -5800,6 +5800,32 @@ void AKalmalaGameMode::GetLivePopulationCreatureCapCounts(const FVector& Center,
             ++OutNearbySpecies;
         }
     }
+
+    for (const TPair<FGuid, TArray<FKalmalaPopulationCreatureReservation>>& ReservationEntry
+        : PendingPopulationCreatureReservations)
+    {
+        for (const FKalmalaPopulationCreatureReservation& Reservation : ReservationEntry.Value)
+        {
+            ++OutWorldTotal;
+            if (Reservation.HomeSpatialKey == HomeSpatialKey)
+            {
+                ++OutHomeKeyTotal;
+            }
+
+            if (Archetype != EKalmalaWildlifeArchetype::Wolf
+                || !FMath::IsFinite(Reservation.Location.X) || !FMath::IsFinite(Reservation.Location.Y))
+            {
+                continue;
+            }
+
+            const double DeltaX = static_cast<double>(Reservation.Location.X) - Center.X;
+            const double DeltaY = static_cast<double>(Reservation.Location.Y) - Center.Y;
+            if (DeltaX * DeltaX + DeltaY * DeltaY <= RadiusSquared)
+            {
+                ++OutNearbySpecies;
+            }
+        }
+    }
 }
 
 bool AKalmalaGameMode::CanAdmitPopulationCreatureWithinCaps(const FVector& CandidateLocation,
@@ -5830,11 +5856,65 @@ bool AKalmalaGameMode::CanAdmitPopulationCreatureWithinCaps(const FVector& Candi
     int32 WorldTotal = 0;
     int32 NearbySpecies = 0;
     int32 HomeKeyTotal = 0;
-    GetLivePopulationCreatureCapCounts(CandidateLocation, Archetype, HomeSpatialKey,
+    GetPopulationCreatureCapCounts(CandidateLocation, Archetype, HomeSpatialKey,
         WorldTotal, NearbySpecies, HomeKeyTotal);
     return NearbySpecies < SpeciesAreaCap
         && HomeKeyTotal < *HomeKeyBudget
         && WorldTotal < AggregateWildlifeActorBudget;
+}
+
+bool AKalmalaGameMode::TryReserveWolfPackCapacity(const TArray<FVector>& MemberLocations,
+    const FIntPoint& HomeSpatialKey, FGuid& OutReservationId)
+{
+    OutReservationId = FGuid();
+    if (!HasAuthority() || !IsValid(GetWorld())
+        || MemberLocations.Num() != FKalmalaWolfPackContract::MemberCount)
+    {
+        return false;
+    }
+
+    for (const FVector& Location : MemberLocations)
+    {
+        if (!FMath::IsFinite(Location.X) || !FMath::IsFinite(Location.Y) || !FMath::IsFinite(Location.Z))
+        {
+            return false;
+        }
+    }
+
+    FGuid ReservationId;
+    do
+    {
+        ReservationId = FGuid::NewGuid();
+    }
+    while (!ReservationId.IsValid() || PendingPopulationCreatureReservations.Contains(ReservationId));
+
+    TArray<FKalmalaPopulationCreatureReservation>& ProvisionalReservations =
+        PendingPopulationCreatureReservations.FindOrAdd(ReservationId);
+    for (const FVector& Location : MemberLocations)
+    {
+        if (!CanAdmitPopulationCreatureWithinCaps(Location, HomeSpatialKey, EKalmalaWildlifeArchetype::Wolf))
+        {
+            PendingPopulationCreatureReservations.Remove(ReservationId);
+            return false;
+        }
+
+        FKalmalaPopulationCreatureReservation& Reservation = ProvisionalReservations.AddDefaulted_GetRef();
+        Reservation.Location = Location;
+        Reservation.HomeSpatialKey = HomeSpatialKey;
+    }
+
+    OutReservationId = ReservationId;
+    return true;
+}
+
+bool AKalmalaGameMode::ReleasePopulationCreatureReservation(const FGuid& ReservationId)
+{
+    if (!HasAuthority() || !ReservationId.IsValid())
+    {
+        return false;
+    }
+
+    return PendingPopulationCreatureReservations.Remove(ReservationId) > 0;
 }
 
 void AKalmalaGameMode::Tick(const float DeltaSeconds)

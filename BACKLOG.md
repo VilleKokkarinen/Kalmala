@@ -613,7 +613,7 @@ milestone-final verification/repair run and can exceed a normal turn.
   - [x] **S11 — Enforce area caps.** Count across loaded keys within 96 m of the
     candidate; per-species caps: common 4, rare hard enemy 1, Wolves 6.
     Also enforce the existing total actor budget; add no extra actor allowance.
-  - [ ] **S12 — Reserve pack capacity.** Reserve three Wolf slots atomically;
+  - [x] **S12 — Reserve pack capacity.** Reserve three Wolf slots atomically;
     reject partial packs and release reservations on failed creation.
   - [ ] **S13 — Add the nine-gate evaluator.** Return a distinct rejection reason
     for scheduler budget, seeded roll, player distance, habitat, time, weather,

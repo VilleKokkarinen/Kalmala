@@ -26,6 +26,13 @@ struct FKalmalaPopulationSchedulerKeyWork
     TArray<FKalmalaWorldPopulationSpawn> Candidates;
 };
 
+/** Session-only capacity held for one prospective Wolf pack; no actor is created here. */
+struct FKalmalaPopulationCreatureReservation
+{
+    FVector Location = FVector::ZeroVector;
+    FIntPoint HomeSpatialKey = FIntPoint::ZeroValue;
+};
+
 /**
  * Server-authoritative rules for a Kalmala session.
  * Gameplay systems are added in later milestones.
@@ -103,6 +110,7 @@ private:
     friend class FKalmalaPopulationPlayerDistanceGateTest;
     friend class FKalmalaPopulationLiveCreatureRegistryTest;
     friend class FKalmalaPopulationAreaCapsTest;
+    friend class FKalmalaPopulationWolfReservationTest;
     friend class AKalmalaWildlifeSpawn;
 
 #if WITH_DEV_AUTOMATION_TESTS
@@ -126,11 +134,14 @@ private:
     void UnregisterLivePopulationCreature(class AKalmalaWildlifeSpawn* Creature);
     int32 CountLivePopulationCreaturesWithinRadius(const FVector& Center, float RadiusCm);
     int32 GetPopulationSpeciesAreaCap(EKalmalaWildlifeArchetype Archetype) const;
-    void GetLivePopulationCreatureCapCounts(const FVector& Center, EKalmalaWildlifeArchetype Archetype,
+    void GetPopulationCreatureCapCounts(const FVector& Center, EKalmalaWildlifeArchetype Archetype,
         const FIntPoint& HomeSpatialKey, int32& OutWorldTotal, int32& OutNearbySpecies,
         int32& OutHomeKeyTotal);
     bool CanAdmitPopulationCreatureWithinCaps(const FVector& CandidateLocation,
         const FIntPoint& HomeSpatialKey, EKalmalaWildlifeArchetype Archetype);
+    bool TryReserveWolfPackCapacity(const TArray<FVector>& MemberLocations,
+        const FIntPoint& HomeSpatialKey, FGuid& OutReservationId);
+    bool ReleasePopulationCreatureReservation(const FGuid& ReservationId);
     void ApplyPopulationPlayerDistanceGate(FKalmalaPopulationSchedulerKeyWork& KeyWork,
         const TArray<class AKalmalaCharacter*>& LivingPlayers) const;
     bool IsDescriptorInSpawnRing(const FVector& SpawnLocation,
@@ -416,6 +427,7 @@ private:
     TMap<FIntPoint, uint64> PopulationKeyServicedCheckOrdinals;
     TSet<TWeakObjectPtr<class AKalmalaWildlifeSpawn>> LivePopulationCreatures;
     TMap<FIntPoint, int32> PopulationKeyWildlifeActorBudgets;
+    TMap<FGuid, TArray<FKalmalaPopulationCreatureReservation>> PendingPopulationCreatureReservations;
     double NextPopulationSchedulerWakeTime = 0.0;
     // Latest wake's bounded descriptor work; evaluator/gate wiring is a later increment.
     TArray<FKalmalaPopulationSchedulerKeyWork> PopulationSchedulerWakeWork;

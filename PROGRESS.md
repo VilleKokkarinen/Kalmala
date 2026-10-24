@@ -7842,3 +7842,16 @@
 - **Networking/authority:** The query requires GameMode authority and counts only authoritative same-world live actors. Home-key ownership is server-local descriptor state; no replicated or saved-data schema changed.
 - **Known limitations:** Wolf pack capacity is not reserved atomically until S12. The cap query is not yet wired into the evaluator or actor creation; S19/S26 perform that work. Focused automation was added but not executed.
 - **Next eligible task:** A10 catalogue/icon acceptance remains earlier in the global queue. Within this requested monster-population goal, S12 is next — reserve Wolf pack capacity atomically.
+
+
+### Monster population — S12 atomic Wolf pack reservations
+
+- **Selected increment:** S12, reserve all three Wolf member slots atomically and expose release for spawn success/failure handling.
+- **Work completed:** Added a server-only reservation API accepting exactly three finite member positions and a home key. Each member is checked against S11's live and pending species-area, home-key and aggregate budgets before its slot is added to the provisional token. Any failed member removes the whole provisional token. Successful tokens remain session-only until explicit release; later S26 creation code must release after members are registered and on every creation failure/rollback path.
+- **Files changed:** Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationWolfReservationTest.cpp, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
+- **Lightweight checks:** Inspected the S11 cap count path and Wolf pack's fixed three-member contract; reviewed the authored fixture for overlap, cap exhaustion, rollback, release, home-key and aggregate-budget behavior. Tests and builds were not run.
+- **Full verification:** Deferred to S35; this is not the final implementation task in the monster-population goal.
+- **Observable impact / authority:** Server-side pending Wolf members now reserve three individual species slots and consume the same active-key budgets as live creatures. No actors are created in this increment.
+- **Networking/authority:** Reserve and release require the authoritative GameMode; reservations are session-only and introduce no replicated or saved-data state.
+- **Known limitations:** The S26 actor-creation path must acquire a token before spawning and release it on success after registration or on every failed/rolled-back pack. No actor creation or cap evaluator wiring was added.
+- **Next eligible task:** A10 catalogue/icon acceptance remains earlier in the global queue. Within this requested monster-population goal, S13 is next — add the nine-gate evaluator.
