@@ -6006,3 +6006,35 @@ fixture failures, fatal/assert/ensure failures, or saved-move backlog warnings.
 This case does not exercise rendered Cooking Rack/inventory presentation or
 repeat the separate Badger reward/retry/persistence coverage. Combined A8a/A8b
 I4 remains required before A9.
+
+## A8b Fang Arrows live peer craft and weak-poison shot — 2026-10-24
+
+After an Editor build, run `Scripts/Tests/Construction/Verify-A8bFangArrowsPeer.ps1`.
+The Development-only three-peer fixture stages two Viper Fangs and ten Wood at
+a Workbench, equips the remote owner with a test Bow, and aims a controlled
+Moon Bear target with no armor. The target is elevated above the generated
+terrain to keep the live projectile lane clear. The owner rejects direct
+client crafting, then uses `FangArrowsRecipe` through the ordinary
+`ServerCraft` RPC, selects the crafted Fang Arrow stack, holds the actual
+server bow draw briefly, and releases through the regular bow RPC. The server
+verifies exact recipe payment, twenty
+GUID-addressed outputs, one arrow and one Bow condition spent, exactly 50 Pierce
+damage, the five-second weak-poison application, and its first one-point tick.
+The listen host confirms it received none of the test materials or arrows; the
+observer sees the public wildlife health change while the owner's inventory,
+gear and statuses remain private.
+
+The controlled target verifies the live arrow impact path and poison behavior;
+it does not repeat the bow draw/selection/poison-refresh regressions in
+`Kalmala.Gameplay.Combat.BowDrawAndArrows`, nor does it exercise rendered
+Workbench/inventory presentation. On 2026-10-24, the isolated
+`KalmalaEditor Win64 Development` build passed in four actions
+(`C:/Users/Ville/AppData/Local/Temp/a8fa6-build.log`). The first peer attempt
+showed that the original ground-level lane missed the target; after raising the
+controlled target, `Verify-A8bFangArrowsPeer.ps1 -Port 17900 -Project
+C:/Users/Ville/AppData/Local/Temp/msp1/Kalmala.uproject -OutputDirectory
+C:/Users/Ville/AppData/Local/Temp/a8fa6` passed for the server, owner, listen
+host, and observer. Both clients received world seed 418. Logs:
+`C:/Users/Ville/AppData/Local/Temp/a8fa6/{server,owner,observer}.log`. The final
+scenario logs have no fixture failures, fatal/assert/ensure failures, or
+saved-move backlog warnings. Combined A8a/A8b I4 remains required before A9.

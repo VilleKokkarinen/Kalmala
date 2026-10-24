@@ -26,6 +26,7 @@ struct KALMALAGAMEPLAY_API FKalmalaAcceptedCraftingActionReceipt
 class AKalmalaCampfire;
 class AKalmalaCharacter;
 class AKalmalaConstructionActor;
+class AKalmalaWildlifeSpawn;
 struct FKalmalaRecipe;
 
 /** Owner intent and read-only presentation seam. Server recomputes all costs and targets. */
@@ -129,6 +130,7 @@ private:
     void RunA8bTonicPeerVerification(float DeltaTime);
     void RunA8bVestPeerVerification(float DeltaTime);
     void RunA8bRoastedBadgerPeerVerification(float DeltaTime);
+    void RunA8bFangArrowsPeerVerification(float DeltaTime);
 #endif
     void RefreshStorageView();
     void ClearStorageView();
@@ -199,5 +201,22 @@ private:
     float A8bRoastedBadgerPeerMealSecondsAfterUse = 0.0f;
     int32 A8bRoastedBadgerPeerObservedOwnerPlayerId = INDEX_NONE;
     bool bA8bRoastedBadgerPeerFixtureObserved = false;
+    int32 A8bFangArrowsPeerStage = 0;
+    float A8bFangArrowsPeerElapsed = 0.0f;
+    TWeakObjectPtr<AKalmalaCharacter> A8bFangArrowsPeerTarget;
+    TWeakObjectPtr<AKalmalaWildlifeSpawn> A8bFangArrowsPeerWildlife;
+    FGuid A8bFangArrowsPeerBowGuid;
+    uint32 A8bFangArrowsPeerResultSerial = 0;
+    int32 A8bFangArrowsPeerBaselineViperFang = 0;
+    int32 A8bFangArrowsPeerBaselineWood = 0;
+    int32 A8bFangArrowsPeerBaselineFangArrows = 0;
+    int32 A8bFangArrowsPeerHostBaselineViperFang = 0;
+    int32 A8bFangArrowsPeerHostBaselineFangArrows = 0;
+    int32 A8bFangArrowsPeerBaselineBowCondition = 0;
+    float A8bFangArrowsPeerBaselineWildlifeHealth = 0.0f;
+    float A8bFangArrowsPeerHealthAfterShot = 0.0f;
+    int32 A8bFangArrowsPeerObservedOwnerPlayerId = INDEX_NONE;
+    float A8bFangArrowsPeerObserverBaselineHealth = 0.0f;
+    bool bA8bFangArrowsPeerFixtureObserved = false;
 #endif
 };
