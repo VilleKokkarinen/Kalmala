@@ -46,9 +46,9 @@ function Invoke-SettingsAccessibilityContract([string]$DocumentPath) {
         'Inventory backplate reused' = '(?s)`InventoryPanelImage` shared with the Inventory\s+backplate'
         'Shared-theme button states' = 'shared-theme hover, pressed, selected, and focus states'
         'Audio option group' = 'Audio'
-        'Local master volume' = 'master-volume cycle in\s+25% steps'
+        'Local master volume' = 'focusable master-volume slider'
         'Mute and restore' = 'mute/restore button'
-        'Ambient/music/feedback category levels' = '(?s)Ambient, music, and interaction/combat feedback each have.*0%, 25%, 50%, 75%, and 100%'
+        'Ambient/music/feedback category levels' = 'Ambient, music, and interaction/combat feedback each have a focusable 0–100% slider with a live percentage label'
         'Ambient loop mix' = '(?s)ambient value scales the local.*wind, rain, water, fire, and biome loops'
         'Interaction/combat cue mix' = '(?s)interaction/combat value.*scales owner-local.*one-shots'
         'Current music playback limit' = 'there is no music track in the current runtime'
@@ -60,7 +60,7 @@ function Invoke-SettingsAccessibilityContract([string]$DocumentPath) {
         'Control config persistence' = 'store(?:s)? only allowlisted local choices|local overrides'
         'Control baseline preservation' = 'DefaultInput\.ini.*never rewritten|DefaultInput\.ini.*unchanged'
         'Text scale option' = 'text scale'
-        'Text-scale choices' = '100%, 125%, and 150%'
+        'Text-scale choices' = '50%, 75%, 100%, 125%, and 150%'
         'Whole-interface scale choices' = '80%,\s*90%,\s*100%,\s*110%,\s*or 120%'
         'Interface-scale default and local persistence' = '(?s)defaulting to 100%.*existing local `GameUserSettings` configuration'
         'Interface scale layered over project defaults' = 'multiplier over the project.s\s+existing DPI curve and `UUserInterfaceSettings::ApplicationScale`'
@@ -70,7 +70,7 @@ function Invoke-SettingsAccessibilityContract([string]$DocumentPath) {
         'Immediate static feedback under reduced motion' = 'Static focus, selection,\s+contrast, labels, status changes, and menu actions remain immediate'
         'Fresh-process persistence check' = '(?s)restarts both peers.*confirms both choices.*reload'
         'Contrast option' = 'contrast'
-        'Contrast choices' = 'Standard or High contrast'
+        'Contrast choices' = 'Low, Standard, or High contrast'
         'Readable modal scaling' = 'auto-wrapped labels and buttons.*larger bounded panel'
         'Contrast palette' = 'backdrop, panel, button surfaces, text, and focusable state controls'
         'Non-colour feedback' = 'colour-independent feedback'
@@ -86,22 +86,24 @@ function Invoke-SettingsAccessibilityContract([string]$DocumentPath) {
         'Server authority' = 'server continues to own gameplay outcomes'
         'No hidden client outcome' = 'cannot use settings to select a target'
     }
+    # Markdown line wrapping must not change the prose contract.
+    $contractText = $text -replace '\s+', ' '
     foreach ($term in $requiredTerms.GetEnumerator()) {
-        if ($text -notmatch $term.Value) {
+        if ($contractText -notmatch $term.Value) {
             throw "Settings/accessibility contract is missing $($term.Key)"
         }
     }
 
-    if ($text -notmatch 'Escape') {
+    if ($contractText -notmatch 'Escape') {
         throw 'Settings/accessibility contract does not define the modal Escape path'
     }
-    if ($text -notmatch 'Cancel.*apply.*reset|apply.*reset.*actions') {
+    if ($contractText -notmatch 'Cancel.*apply.*reset|apply.*reset.*actions') {
         throw 'Settings/accessibility contract does not define reversible local changes'
     }
-    if ($text -notmatch 'Verify-SettingsAccessibility\.ps1' -or $text -notmatch 'physical\s+controller\s+hardware') {
+    if ($contractText -notmatch 'Verify-SettingsAccessibility\.ps1' -or $contractText -notmatch 'physical\s+controller\s+hardware') {
         throw 'Settings/accessibility contract does not state the rendered probe and its remaining runtime limits'
     }
-    if ($text -notmatch '1024x768.*1280x720|1280x720.*1024x768') {
+    if ($contractText -notmatch '1024x768.*1280x720|1280x720.*1024x768') {
         throw 'Settings/accessibility acceptance does not cover both supported verification viewports'
     }
 

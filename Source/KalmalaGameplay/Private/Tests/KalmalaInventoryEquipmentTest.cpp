@@ -258,4 +258,47 @@ bool FKalmalaInventoryEquipmentTest::RunTest(const FString& Parameters)
         OwnerlessInventory->UnequipGearFromServer(EKalmalaGearSlot::Boots, Reason));
     return true;
 }
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaAccessorySlotsTest,
+    "Kalmala.Gameplay.Inventory.AccessorySlots",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FKalmalaAccessorySlotsTest::RunTest(const FString& Parameters)
+{
+    const FGuid Necklace = FGuid::NewGuid(), Ring = FGuid::NewGuid(), Replacement = FGuid::NewGuid();
+    TArray<FKalmalaInventoryStack> Pack = {MakeTestStack(TEXT("QuartzNecklace"), Necklace),
+        MakeTestStack(TEXT("MoonstoneRing"), Ring), MakeTestStack(TEXT("DuskRing"), Replacement)};
+    TArray<FKalmalaEquippedGear> Gear;
+    FString Reason;
+    for (const FGuid Guid : {Necklace, Ring, Replacement})
+    {
+        TArray<FKalmalaInventoryStack> NextPack;
+        TArray<FKalmalaEquippedGear> NextGear;
+        if (!TestTrue(TEXT("Accessory equips or replaces its own slot"),
+            UKalmalaInventoryComponent::BuildEquipGearTransaction(Pack, Gear, Guid, {}, NextPack, NextGear, Reason))) return false;
+        Pack = MoveTemp(NextPack);
+        Gear = MoveTemp(NextGear);
+    }
+    TestEqual(TEXT("Replacement retains exactly two slots"), Gear.Num(), 2);
+    TestTrue(TEXT("Replaced ring returns with its original GUID"), Pack.Num() == 1 && Pack[0].ItemGuids.Contains(Ring));
+    TestTrue(TEXT("Necklace remains equipped"), Gear.ContainsByPredicate([Necklace](const auto& Entry)
+        { return Entry.Slot == EKalmalaGearSlot::Necklace && Entry.ItemGuid == Necklace; }));
+    TArray<FKalmalaInventoryStack> Output;
+    TArray<FKalmalaEquippedGear> OutputGear;
+    TestFalse(TEXT("Equipped copy cannot be equipped again"), UKalmalaInventoryComponent::BuildEquipGearTransaction(
+        Pack, Gear, Replacement, {}, Output, OutputGear, Reason));
+    TArray<FKalmalaEquippedGear> Duplicate = Gear;
+    Duplicate.Add(Gear.Last());
+    TestFalse(TEXT("Duplicate accessory slots fail closed"), UKalmalaInventoryComponent::BuildUnequipGearTransaction(
+        Pack, Duplicate, EKalmalaGearSlot::Ring, {}, Output, OutputGear, Reason));
+    TArray<FKalmalaInventoryStack> FullPack;
+    for (int32 Cell = 0; Cell < UKalmalaInventoryComponent::MaxSlots; ++Cell)
+        FullPack.Add(MakeTestStack(TEXT("Stone"), FGuid::NewGuid()));
+    TestFalse(TEXT("Full pack rejects accessory return unchanged"), UKalmalaInventoryComponent::BuildUnequipGearTransaction(
+        FullPack, Gear, EKalmalaGearSlot::Ring, {}, Output, OutputGear, Reason));
+    TestTrue(TEXT("Rejected requests publish no candidate state"), Output.IsEmpty() && OutputGear.IsEmpty());
+    TestTrue(TEXT("Accessory can return to a free cell"), UKalmalaInventoryComponent::BuildUnequipGearTransaction(
+        Pack, Gear, EKalmalaGearSlot::Ring, {}, Output, OutputGear, Reason));
+    TestEqual(TEXT("Unequipping ring preserves necklace only"), OutputGear.Num(), 1);
+    return true;
+}
 #endif

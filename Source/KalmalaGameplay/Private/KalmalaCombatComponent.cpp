@@ -122,7 +122,8 @@ void UKalmalaCombatComponent::TickComponent(const float DeltaTime, const ELevelT
             AKalmalaWildlifeSpawn* Wildlife = Cast<AKalmalaWildlifeSpawn>(Target);
             AKalmalaHarvestNode* Tree = Cast<AKalmalaHarvestNode>(Target);
             const bool bApplied = Wildlife ? Wildlife->ApplyCombatDamageFromServer(Damage, Cast<AKalmalaCharacter>(GetOwner()))
-                : Tree && Tree->ApplyAxeDamageFromServer(Cast<AKalmalaCharacter>(GetOwner()), Damage);
+                : Tree && (Tree->IsGemstone() ? Tree->ApplyPickHitFromServer(Cast<AKalmalaCharacter>(GetOwner()))
+                    : Tree->ApplyAxeDamageFromServer(Cast<AKalmalaCharacter>(GetOwner()), Damage));
             const bool bDefeated = bApplied && Wildlife && Wildlife->GetHealth() <= 0.0f;
 #if !UE_BUILD_SHIPPING
             if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaBoarPeerTest")))
@@ -185,7 +186,7 @@ AActor* UKalmalaCombatComponent::FindServerTarget() const
         if (Wildlife != nullptr && Wildlife->GetArchetype() == EKalmalaWildlifeArchetype::Rat
             && !Wildlife->IsDefeated()) return Hit.GetActor();
         const auto* Tree = Cast<AKalmalaHarvestNode>(Hit.GetActor());
-        if (Tree && Tree->CanReceiveAxeAttack()) return Hit.GetActor();
+        if (Tree && (Tree->CanReceiveAxeAttack() || Tree->CanReceivePickAttack())) return Hit.GetActor();
     }
     return nullptr;
 }
@@ -194,7 +195,9 @@ bool UKalmalaCombatComponent::IsServerTargetValid(const AActor* Target) const
     const APawn* Pawn = Cast<APawn>(GetOwner());
     if (!Pawn || !IsValid(Target) || Target->GetWorld() != GetWorld()) return false;
     if (const auto* Tree = Cast<AKalmalaHarvestNode>(Target))
-        return Tree->IsWithinAxeRange(Pawn->GetActorLocation(), AttackRange);
+        return Tree->IsGemstone() ? Tree->CanReceivePickAttack()
+            && FVector::DistSquared(Pawn->GetActorLocation(), Tree->GetActorLocation()) <= FMath::Square(AttackRange)
+            : Tree->IsWithinAxeRange(Pawn->GetActorLocation(), AttackRange);
     if (const auto* Wildlife = Cast<AKalmalaWildlifeSpawn>(Target))
         return !Wildlife->IsDefeated()
             && FVector::DistSquared(Pawn->GetActorLocation(), Target->GetActorLocation()) <= FMath::Square(AttackRange);

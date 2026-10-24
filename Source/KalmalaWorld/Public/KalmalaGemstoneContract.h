@@ -1,0 +1,70 @@
+#pragma once
+#include "CoreMinimal.h"
+#include "KalmalaBiomeClassifier.h"
+
+/** Server generation/mining rules approved on 2026-10-23. No ordinary ore co-drop. */
+struct FKalmalaGemstoneContract
+{
+    static uint64 Mix(uint64 Value)
+    {
+        Value ^= Value >> 30; Value *= 0xBF58476D1CE4E5B9ull;
+        Value ^= Value >> 27; Value *= 0x94D049BB133111EBull;
+        return Value ^ (Value >> 31);
+    }
+    static FName SelectReplacement(FName Source, EKalmalaBiome Biome, uint64 Seed)
+    {
+        const uint32 Roll = Mix(Seed ^ 0xA9C057A1ull) % 100;
+        if (Source == TEXT("elderwood-copper-vein") && Biome == EKalmalaBiome::Elderwood)
+            return Roll < 5 ? FName(TEXT("gem-quartz-rock")) : Source;
+        if (Source == TEXT("lakes-tin-shore-gravel") && Biome == EKalmalaBiome::ShimmeringLakes)
+            return Roll < 5 ? FName(TEXT("gem-quartz-rock")) : Roll < 7 ? FName(TEXT("gem-jade-rock")) : Source;
+        if (Source == TEXT("mire-bog-iron") && Biome == EKalmalaBiome::MossyMire)
+            return Roll < 3 ? FName(TEXT("gem-amethyst-rock")) : Source;
+        if (Source == TEXT("mountains-slate-vein") && Biome == EKalmalaBiome::ThunderMountains)
+            return Roll < 2 ? FName(TEXT("gem-tourmaline-rock")) : Source;
+        if (Source == TEXT("tundra-frost-salt-deposit") && Biome == EKalmalaBiome::FreezingTundra)
+            return Roll < 1 ? FName(TEXT("gem-opal-rock")) : Source;
+        return Source;
+    }
+    static FName ItemForSource(FName Source)
+    {
+        if (Source == TEXT("gem-quartz-rock")) return TEXT("SmokyQuartz");
+        if (Source == TEXT("gem-jade-rock")) return TEXT("GreenJade");
+        if (Source == TEXT("gem-amethyst-rock")) return TEXT("Amethyst");
+        if (Source == TEXT("gem-tourmaline-rock")) return TEXT("Tourmaline");
+        if (Source == TEXT("gem-opal-rock")) return TEXT("StarOpal");
+        return NAME_None;
+    }
+    // I4 is accepted; enable each source in its ordered A9 increment.
+    static constexpr bool MoonstoneSourceAccepted = true;
+    static constexpr bool DuskDiamondSourceAccepted = true;
+    static FName SelectEnemyGem(bool bMoonBear, EKalmalaBiome Biome, uint64 Seed)
+    {
+        if (bMoonBear && Biome == EKalmalaBiome::Elderwood && Mix(Seed ^ 0xA9B3A2ull) % 50 == 0) return TEXT("Moonstone");
+        if (!bMoonBear && Biome == EKalmalaBiome::MossyMire && Mix(Seed ^ 0xA9D1A40Dull) % 100 == 0) return TEXT("DuskDiamond");
+        return NAME_None;
+    }
+    static bool IsTreasureGemEnabled(FName Item) { return Item == TEXT("Garnet") || Item == TEXT("Aquamarine") || Item == TEXT("StormSapphire"); }
+    static TArray<FName> SelectTreasure(EKalmalaBiome Biome, uint64 Seed)
+    {
+        TArray<FName> Items;
+        if ((Biome == EKalmalaBiome::Elderwood || Biome == EKalmalaBiome::ShimmeringLakes)
+            && Mix(Seed ^ 0xA96A2A37ull) % 10 == 0 && IsTreasureGemEnabled(TEXT("Garnet"))) Items.Add(TEXT("Garnet"));
+        if (Biome == EKalmalaBiome::ShimmeringLakes && Mix(Seed ^ 0xA9A9A4ull) % 20 == 0
+            && IsTreasureGemEnabled(TEXT("Aquamarine"))) Items.Add(TEXT("Aquamarine"));
+        if (Biome == EKalmalaBiome::ThunderMountains && Mix(Seed ^ 0xA95702Aull) % 50 == 0
+            && IsTreasureGemEnabled(TEXT("StormSapphire"))) Items.Add(TEXT("StormSapphire"));
+        return Items;
+    }
+    static bool IsAcquisitionEnabled(FName Source) { return Source == TEXT("gem-quartz-rock") || Source == TEXT("gem-jade-rock") || Source == TEXT("gem-amethyst-rock") || Source == TEXT("gem-tourmaline-rock") || Source == TEXT("gem-opal-rock"); }
+    static int32 MinimumPickTier(FName Source) { return Source == TEXT("gem-amethyst-rock") ? 2 : 1; }
+    static bool IsGemSource(FName Source) { return !ItemForSource(Source).IsNone(); }
+    /** Outcome: 0 intact, 1 shattered, 2 extracted, 3 claimed. Roll before final extraction too. */
+    static bool Advance(uint8 Hits, uint8 Outcome, uint32 Roll, uint8& NextHits, uint8& NextOutcome)
+    {
+        if (Hits >= 3 || Outcome != 0 || Roll >= 10) return false;
+        NextHits = Hits + 1;
+        NextOutcome = Roll == 0 ? 1 : NextHits == 3 ? 2 : 0;
+        return true;
+    }
+};

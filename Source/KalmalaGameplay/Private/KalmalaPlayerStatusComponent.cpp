@@ -55,24 +55,38 @@ FKalmalaStatusModifiers UKalmalaPlayerStatusComponent::EvaluateModifiers(const T
     return Result;
 }
 
-float UKalmalaPlayerStatusComponent::CalculateStaminaCost(const float BaseCost, const bool bSupportSpell) const
+FKalmalaAccessoryModifiers UKalmalaPlayerStatusComponent::GetAccessoryModifiers() const
 {
-    if (!FMath::IsFinite(BaseCost) || BaseCost < 0.0f) return 0.0f;
-    float AdditiveCostModifier = GetModifiers().StaminaCostAddition;
+    FKalmalaAccessoryModifiers Result;
     const AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(GetOwner());
     const UKalmalaInventoryComponent* Inventory = Character ? Character->GetInventoryComponent() : nullptr;
     const UKalmalaItemCatalogue* Catalogue = Inventory ? UKalmalaItemCatalogue::Get() : nullptr;
-    if (Inventory && Catalogue)
+    if (!Inventory || !Catalogue) return Result;
+    TSet<EKalmalaGearSlot> AppliedSlots;
+    for (const FKalmalaEquippedGear& Gear : Inventory->GetEquippedGear())
     {
-        for (const FKalmalaEquippedGear& Gear : Inventory->GetEquippedGear())
-        {
-            if (Gear.Slot != EKalmalaGearSlot::Necklace && Gear.Slot != EKalmalaGearSlot::Ring) continue;
-            const FKalmalaItemDefinition* Item = Catalogue->FindItem(Gear.ItemId);
-            if (!Item) continue;
-            AdditiveCostModifier += Item->StaminaCostMultiplier;
-            if (bSupportSpell) AdditiveCostModifier += Item->SupportSpellStaminaCostMultiplier;
-        }
+        if ((Gear.Slot != EKalmalaGearSlot::Necklace && Gear.Slot != EKalmalaGearSlot::Ring)
+            || AppliedSlots.Contains(Gear.Slot)) continue;
+        const FKalmalaItemDefinition* Item = Catalogue->FindItem(Gear.ItemId);
+        const FString ExpectedSlot = Gear.Slot == EKalmalaGearSlot::Necklace ? TEXT("Necklace") : TEXT("Ring");
+        if (!Item || Item->GearSlot != ExpectedSlot || !Gear.ItemGuid.IsValid()) continue;
+        AppliedSlots.Add(Gear.Slot);
+        Result.MaxHealth += Item->MaxHealthBonus;
+        Result.MaxStamina += Item->MaxStaminaBonus;
+        Result.StaminaCost += Item->StaminaCostMultiplier;
+        Result.SupportSpellCost += Item->SupportSpellStaminaCostMultiplier;
+        Result.StaminaRegeneration += Item->StaminaRegenerationMultiplier;
+        Result.HealingReceived += Item->HealingReceivedMultiplier;
     }
+    return Result;
+}
+
+float UKalmalaPlayerStatusComponent::CalculateStaminaCost(const float BaseCost, const bool bSupportSpell) const
+{
+    if (!FMath::IsFinite(BaseCost) || BaseCost < 0.0f) return 0.0f;
+    const FKalmalaAccessoryModifiers Accessory = GetAccessoryModifiers();
+    const float AdditiveCostModifier = GetModifiers().StaminaCostAddition + Accessory.StaminaCost
+        + (bSupportSpell ? Accessory.SupportSpellCost : 0.0f);
     const float CombinedMultiplier = FMath::Clamp(1.0f + AdditiveCostModifier, 0.5f, 2.0f);
     return FMath::Min(static_cast<double>(BaseCost) * CombinedMultiplier, static_cast<double>(MAX_flt));
 }
@@ -210,7 +224,7 @@ bool UKalmalaPlayerStatusComponent::CanApplyDraughtFromServer(const FName ItemId
         return false;
     if (ItemId == AntidoteItemId) return !HasStatus(PoisonResistanceStatusId);
     if (ItemId == BerryRecoveryDraughtItemId || ItemId == RatTailTonicItemId)
-        return Character->GetHealth() < 100.0f;
+        return Character->GetHealth() < Character->GetMaximumHealth();
 
     const UKalmalaCharacterMovementComponent* Movement = Cast<UKalmalaCharacterMovementComponent>(Character->GetCharacterMovement());
     return Movement && FMath::IsFinite(Movement->GetStamina())
@@ -380,7 +394,7 @@ void UKalmalaPlayerStatusComponent::AdvanceFromServer(const float DeltaSeconds)
             Statuses.RemoveAll([](const FKalmalaPlayerStatusEntry& Entry)
             { return Entry.StatusId == BerryRecoveryStatusId || Entry.StatusId == RatTailTonicStatusId; });
         }
-        else if (Character->GetHealth() >= 100.0f)
+        else if (Character->GetHealth() >= Character->GetMaximumHealth())
         {
             Statuses.RemoveAll([](const FKalmalaPlayerStatusEntry& Entry)
             { return Entry.StatusId == BerryRecoveryStatusId || Entry.StatusId == RatTailTonicStatusId; });
@@ -394,7 +408,7 @@ void UKalmalaPlayerStatusComponent::AdvanceFromServer(const float DeltaSeconds)
                 const float TotalHealing = bRatTailTonic ? RatTailTonicHealth : BerryRecoveryHealth;
                 const float HealingDuration = bRatTailTonic ? RatTailTonicMaximumSeconds : BerryRecoveryMaximumSeconds;
                 Character->RestoreHealthFromDraughtFromServer(TotalHealing * Elapsed / HealingDuration);
-                if (Character->GetHealth() >= 100.0f)
+                if (Character->GetHealth() >= Character->GetMaximumHealth())
                     Statuses.RemoveAll([](const FKalmalaPlayerStatusEntry& Entry)
                     { return Entry.StatusId == BerryRecoveryStatusId || Entry.StatusId == RatTailTonicStatusId; });
             }

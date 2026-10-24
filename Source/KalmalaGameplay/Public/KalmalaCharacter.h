@@ -96,6 +96,8 @@ public:
     void AdvanceHeldTorchFromServer(float DeltaSeconds, bool bRainExposed);
     void NotifyMainHandSelectionChangedFromServer();
     float GetHealth() const { return Health; }
+    float GetMaximumHealth() const { return CurrentMaximumHealth; }
+    void RefreshEquippedStatsFromServer();
     static constexpr float MaximumWildlifeHitDamage = 300.0f;
     static bool IsWildlifeDamageWithinBounds(const FKalmalaDamageChannels& Damage);
     bool ApplyWildlifeDamageFromServer(const AActor* SourceActor, float Damage);
@@ -159,6 +161,11 @@ private:
     void AdvanceWildlifeKnockbackFromServer(float DeltaSeconds);
     void UpdateDodgeRollPresentation(float DeltaSeconds);
     void VerifyPlayerControls(float DeltaSeconds);
+    void VerifyA9Peer();
+    bool bA9StatsLogged = false;
+    double A9NextActionTime = 0;
+    int32 A9LastLootCycle = -1;
+    int32 A9InteractionRequests = 0;
     void VerifyConstructionMovement(float DeltaSeconds);
     void VerifyForestDelivery(float DeltaSeconds);
     void VerifyForestStreaming();
@@ -301,6 +308,7 @@ private:
 
     UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
     float Health = 100.0f;
+    UPROPERTY(Replicated) float CurrentMaximumHealth = 100.0f;
 
     /** Server-owned carried tools; condition and level are replicated only to the owning player. */
     UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Tools", meta = (AllowPrivateAccess = "true"))

@@ -200,3 +200,12 @@ support-spell-specific delta adds only on support spells. Aggregate cost factors
 remain clamped to 0.5–2.0. Necklace/Ring equipment uses the existing owner-only
 gear transactions, and accessories do not wear. Maximum-stat, regeneration
 and healing accessory effects remain pending runtime work.
+
+
+## A9 runtime and source review — 2026-10-23
+
+The user authorized isolated parallel A9/I5 implementation and separate local master integration while the existing worker finishes A8/I4. The user then explicitly approved the documented source rates, mutually exclusive resource replacements and three-hit gemstone extraction with 10% smash per accepted hit. Existing factual source prerequisites and I4/I5 acceptance still require evidence. Accessory maxima now recompute without refill, Vigor combines additively, and current equipped regeneration/incoming-healing deltas resolve once; equipped gear remains session-only.
+
+The user explicitly approved population save schema 2 for gemstone progress/outcomes/claims, with existing schema-1 development files rejected and left untouched and no migration. The user also approved server-owned treasure at existing seeded discovery-point locations in Elderwood, Shimmering Lakes and Thunder Mountains.
+
+The user approved repairing the absent Frost Salt deposit generator with at most one dry, safe-slope, separated mineral deposit per 60 m population key and a 1% Star Opal replacement. Existing frostmoss remains unchanged; the new deposit pass is a bounded A9 prerequisite, not a substitution of frostmoss or an unapproved ordinary-resource change.

@@ -7,6 +7,7 @@
 #include "KalmalaCombatComponent.h"
 #include "KalmalaConstructionActor.h"
 #include "KalmalaInventoryComponent.h"
+#include "KalmalaPlayerStatusComponent.h"
 #include "KalmalaResistanceComponent.h"
 #include "KalmalaWildlifeSpawn.h"
 #include "Camera/PlayerCameraManager.h"

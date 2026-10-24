@@ -10,6 +10,7 @@
 #include "KalmalaEnvironmentalExposureSampler.h"
 #include "KalmalaBiomeClassifier.h"
 #include "KalmalaBiomeContentContract.h"
+#include "KalmalaGemstoneContract.h"
 
 /**
  * Server-only deterministic population inputs. Spatial keys are invisible
@@ -56,8 +57,8 @@ struct KALMALAWORLD_API FKalmalaWorldDiscoveryDescriptor
 struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
 {
     static constexpr float SpatialKeySize = 6000.0f;
-    // One optional Tin node plus one Stone outcrop for each of six land biomes.
-    static constexpr int32 SupplementalHarvestSourceBudget = 7;
+    // One optional Tin node, six land-biome Stone outcrops and one Tundra salt deposit.
+    static constexpr int32 SupplementalHarvestSourceBudget = 8;
 
     static FIntPoint GetSpatialKey(const FVector2D WorldPosition)
     {
@@ -96,7 +97,7 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
         }
     }
 
-    static TArray<FKalmalaWorldPopulationSpawn> BuildSpawnDescriptors(const FKalmalaWorldGenerationConfig& Config, const FIntPoint SpatialKey, const EKalmalaWorldPopulationKind Kind)
+    static TArray<FKalmalaWorldPopulationSpawn> BuildSpawnDescriptors(const FKalmalaWorldGenerationConfig& Config, const FIntPoint SpatialKey, const EKalmalaWorldPopulationKind Kind, const bool bApplyGemstoneReplacements = true)
     {
         TArray<FKalmalaWorldPopulationSpawn> Spawns;
         const int32 Budget = GetSpawnBudget(Config, SpatialKey, Kind);
@@ -281,6 +282,37 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
                     FVector(Position.X, Position.Y, FKalmalaTerrainHeightSampler::SampleHeight(Config, Position)),
                     TEXT("allbiomes-stone-outcrop") });
                 BiomesWithStone.Add(Biome);
+            }
+        }
+        if (Kind == EKalmalaWorldPopulationKind::HarvestNode)
+        {
+            // Explicitly approved A9 prerequisite: at most one actual mineral
+            // deposit per key, preserving frostmoss and all ordinary candidates.
+            for (int32 Attempt = 0; Attempt < 32; ++Attempt)
+            {
+                const uint64 Seed = Mix(DeriveSpatialSeed(Config, SpatialKey, Kind) ^ uint64(CandidateBudget + 65 + Attempt));
+                const FVector2D Position = SpatialKeyOrigin + FVector2D(float(Seed & 0xFFFFu) / 65535.f,
+                    float((Seed >> 16) & 0xFFFFu) / 65535.f) * SpatialKeySize;
+                if (!FKalmalaWorldBounds::Contains(Config, Position)
+                    || FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, Position)) != EKalmalaBiome::FreezingTundra
+                    || !IsTerrainSafeDiscoveryLocation(Config, Position)) continue;
+                if (Spawns.ContainsByPredicate([&Position](const auto& Spawn)
+                    { return FVector2D::DistSquared(FVector2D(Spawn.Location), Position) < 62500.f; })) continue;
+                Spawns.Add({Kind, SpatialKey, Mix(Seed ^ 0xA9F20575A17ull), FVector(Position.X, Position.Y,
+                    FKalmalaTerrainHeightSampler::SampleHeight(Config, Position)), TEXT("tundra-frost-salt-deposit")});
+                break;
+            }
+        }
+        if (bApplyGemstoneReplacements && Kind == EKalmalaWorldPopulationKind::HarvestNode)
+        {
+            // Replace only after all ordinary suitability, candidate budgets and
+            // supplemental-source decisions. Keep exact position and stable seed.
+            for (auto& Spawn : Spawns)
+            {
+                const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(
+                    FKalmalaWorldFieldSampler::Sample(Config, FVector2D(Spawn.Location)));
+                const FName Selected = FKalmalaGemstoneContract::SelectReplacement(Spawn.ContentId, Biome, Spawn.SpawnSeed);
+                if (FKalmalaGemstoneContract::IsAcquisitionEnabled(Selected)) Spawn.ContentId = Selected;
             }
         }
         return Spawns;

@@ -4,6 +4,7 @@
 #include "KalmalaToolLifecycleContract.h"
 #include "KalmalaGameMode.h"
 #include "KalmalaWorldGenerationGameState.h"
+#include "KalmalaWorldPopulationSaveGame.h"
 
 #include "Components/SphereComponent.h"
 #include "KalmalaCharacter.h"
@@ -164,12 +165,20 @@ void AKalmalaHarvestNode::InitializeServer(const FKalmalaWorldPopulationSpawn& S
 {
     if (HasAuthority() && PersistentSpawnId.IsEmpty() && !bHarvested
         && Spawn.Kind == EKalmalaWorldPopulationKind::HarvestNode && !Spawn.Location.ContainsNaN()
-        && (Spawn.ContentId.IsNone() || FKalmalaBiomeContentContract::IsValidGatheringSourceId(Spawn.ContentId)))
+        && (Spawn.ContentId.IsNone() || FKalmalaGemstoneContract::IsGemSource(Spawn.ContentId) || FKalmalaBiomeContentContract::IsValidGatheringSourceId(Spawn.ContentId)))
     {
         SetActorLocation(Spawn.Location);
         PersistentSpawnId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Spawn);
         GatheringSourceId = Spawn.ContentId;
+        if (IsGemstone())
+        {
+            const auto* Mode = GetWorld()->GetAuthGameMode<AKalmalaGameMode>();
+            const auto* State = Mode ? Mode->ReadGemstoneState(PersistentSpawnId) : nullptr;
+            if (State && State->SourceId == GatheringSourceId)
+            { GemHits = State->Hits; GemOutcome = State->Outcome; bHarvested = GemOutcome == 3; }
+        }
         BuildSourcePresentation();
+        ApplyHarvestedState();
     }
 }
 
@@ -187,7 +196,7 @@ void AKalmalaHarvestNode::InitializeDiscoveryServer(const FString& InPersistentS
 
 bool AKalmalaHarvestNode::CanInteract_Implementation(AKalmalaCharacter* Interactor) const
 {
-    return (!IsTreeResource() || IsWoodDrop()) && IsValid(Interactor) && Interactor->HasAuthority() && Interactor->GetWorld() == GetWorld()
+    return (!IsGemstone() || GemOutcome == 2) && (!IsTreeResource() || IsWoodDrop()) && IsValid(Interactor) && Interactor->HasAuthority() && Interactor->GetWorld() == GetWorld()
         && !PersistentSpawnId.IsEmpty()
         && IsHarvestAllowed(HasAuthority(), bHarvested, Interactor->GetActorLocation(), GetHarvestInteractionLocation());
 }
@@ -201,7 +210,7 @@ bool AKalmalaHarvestNode::IsHarvestAllowed(const bool bServerAuthority, const bo
 
 FName AKalmalaHarvestNode::GetGatheringPresentationId() const
 {
-    return FKalmalaBiomeContentContract::GetGatheringPresentationId(GatheringSourceId);
+    return IsGemstone() ? GatheringSourceId : FKalmalaBiomeContentContract::GetGatheringPresentationId(GatheringSourceId);
 }
 
 FString AKalmalaHarvestNode::GetM9ResourceDepletionId() const
@@ -214,6 +223,7 @@ FString AKalmalaHarvestNode::GetM9ResourceDepletionId() const
 
 void AKalmalaHarvestNode::Interact_Implementation(AKalmalaCharacter* Interactor)
 {
+    if (IsGemstone()) { ClaimGemFromServer(Interactor); return; }
     if (IsTreeResource())
     {
         if (!IsWoodDrop() || !CanInteract_Implementation(Interactor)) return;
@@ -324,6 +334,12 @@ void AKalmalaHarvestNode::Interact_Implementation(AKalmalaCharacter* Interactor)
 bool AKalmalaHarvestNode::InteractWithToolIntentFromServer(AKalmalaCharacter* Interactor,
     const float TraceDistance, const float MaximumRange, const FName ClientItemId, const uint8 ClientAction)
 {
+    if (IsGemstone())
+    {
+        if (!FMath::IsFinite(TraceDistance) || TraceDistance < 0.0f || !FMath::IsFinite(MaximumRange)
+            || MaximumRange <= 0.0f || TraceDistance > MaximumRange) return false;
+        return ClaimGemFromServer(Interactor);
+    }
     if (IsTreeResource())
     {
         if (!FMath::IsFinite(TraceDistance) || !FMath::IsFinite(MaximumRange)
@@ -524,6 +540,7 @@ void AKalmalaHarvestNode::CommitHarvestedStateFromServer()
 FName AKalmalaHarvestNode::GetHarvestItemId() const
 {
     if (PersistentSpawnId.IsEmpty()) return NAME_None;
+    if (IsGemstone()) return FKalmalaGemstoneContract::ItemForSource(GatheringSourceId);
     if (IsHandGatherablePatch())
     {
         if (GatheringSourceId == TEXT("meadows-wild-lingonberry-shrub")) return FName(TEXT("Lingonberry"));
@@ -545,7 +562,7 @@ bool AKalmalaHarvestNode::GetPickupInfo(FName& OutItemId, int32& OutQuantity) co
     OutItemId = NAME_None;
     OutQuantity = 0;
     if (bHarvested || PersistentSpawnId.IsEmpty()
-        || (IsTreeResource() ? !IsWoodDrop() : !GatheringSourceId.IsNone())) return false;
+        || (IsGemstone() ? GemOutcome != 2 : IsTreeResource() ? !IsWoodDrop() : !GatheringSourceId.IsNone())) return false;
     int32 Quantity = 1;
     FName ItemId = NAME_None;
     if (IsTreeResource())
@@ -595,6 +612,8 @@ void AKalmalaHarvestNode::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
     DOREPLIFETIME(AKalmalaHarvestNode, bHarvested);
     DOREPLIFETIME(AKalmalaHarvestNode, TreeStage);
+    DOREPLIFETIME(AKalmalaHarvestNode, GemHits);
+    DOREPLIFETIME(AKalmalaHarvestNode, GemOutcome);
     DOREPLIFETIME(AKalmalaHarvestNode, TreeHealth);
     DOREPLIFETIME(AKalmalaHarvestNode, TreeFallStartedAt);
     DOREPLIFETIME(AKalmalaHarvestNode, ForestDimensions);
@@ -639,7 +658,21 @@ void AKalmalaHarvestNode::BuildSourcePresentation()
     TArray<FVector> Vertices;
     TArray<int32> Triangles;
     TArray<FLinearColor> Colors;
-    if (IsTreeResource())
+    if (IsGemstone())
+    {
+        const FName Gem = GetHarvestItemId();
+        const FLinearColor Inclusion = Gem == TEXT("GreenJade") ? FLinearColor(.12f,.7f,.3f)
+            : Gem == TEXT("Amethyst") ? FLinearColor(.65f,.2f,.9f)
+            : Gem == TEXT("Tourmaline") ? FLinearColor(.9f,.25f,.45f)
+            : Gem == TEXT("StarOpal") ? FLinearColor(.55f,.85f,1.f) : FLinearColor(.65f,.5f,.35f);
+        if (GemOutcome != 2)
+            AddTaperedBox(Vertices, Triangles, Colors, FVector::ZeroVector, FVector(28,24,0),
+                GemOutcome == 1 ? 8.f : 45.f - GemHits * 6.f, .65f, 12.f, FLinearColor(.22f,.24f,.27f));
+        if (GemOutcome != 1)
+            AddTaperedBox(Vertices, Triangles, Colors, FVector(0,-12,GemOutcome == 2 ? 0 : 24), FVector(9,7,0),
+                GemOutcome == 2 ? 14.f : 18.f, .25f, -15.f, Inclusion);
+    }
+    else if (IsTreeResource())
     {
         const bool bAspen = PresentationId == TEXT("aspen-trunk-harvest");
         const FLinearColor BarkColor = bAspen ? FLinearColor(0.66f, 0.62f, 0.54f) : FLinearColor(0.34f, 0.22f, 0.12f);
@@ -787,7 +820,7 @@ void AKalmalaHarvestNode::BuildSourcePresentation()
         AddTaperedBox(Vertices, Triangles, Colors, FVector(20.0f, -4.0f, 0.0f), FVector(6.0f, 11.0f, 0.0f), 60.0f, 0.5f, 18.0f, Accent);
     }
 
-    SourceMesh->SetMaterial(0, IsRockSource(PresentationId) ? RockMaterial : BarkMaterial);
+    SourceMesh->SetMaterial(0, (IsGemstone() || IsRockSource(PresentationId)) ? RockMaterial : BarkMaterial);
     SourceMesh->CreateMeshSection_LinearColor(0, Vertices, Triangles, {}, {}, Colors, {}, IsTreeResource());
     SourceMesh->SetCollisionProfileName(TEXT("BlockAll"));
     SourceMesh->SetCollisionEnabled(!bIgnoreHarvestCollision && IsTreeResource() && !bHarvested

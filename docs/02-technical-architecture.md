@@ -3148,7 +3148,7 @@ if persistence fails. The owner selects that instance through the normal Main
 Hand GUID request. Accepted combat uses its authored profile and server-owned
 condition; generic `ServerCraft` remains for ordinary item recipes.
 
-Equipped accessories' additive `StaminaCostMultiplier` deltas sum with active Wet and Steady Meal adjustments and apply once through the shared authoritative cost calculation for sprint, dodge and support spells. `SupportSpellStaminaCostMultiplier` adds only on support spells. Cost factors are bounded to `[0.5, 2.0]`. Accessory maximum-health/stamina, stamina-regeneration and healing-received fields are validated additive data; their runtime effects remain pending.
+Equipped accessories' additive `StaminaCostMultiplier` deltas sum with active Wet and Steady Meal adjustments and apply once through the shared authoritative cost calculation for sprint, dodge and support spells. `SupportSpellStaminaCostMultiplier` adds only on support spells. Cost factors are bounded to `[0.5, 2.0]`. Accessory maximum-health/stamina are recomputed from the owning equipped slots after accepted equip/replace/unequip. Equip preserves current values; removal clamps to the new maximum. Bear’s Vigor adds its 40 stamina independently. Maximum health replicates owner-only; no new gear persistence is added. Active stamina recovery and incoming Mending/draught healing each apply their current equipped delta once using clamp(1 + sum, 0.5, 2.0); other recovery rules, costs, unlocks and cooldowns remain unchanged.
 
 ### Generated-forest harvesting contract (reconciled 2026-10-17)
 
@@ -3271,3 +3271,32 @@ map to a supported `EKalmalaToolKind` lifecycle definition. Registered
 catalogue-only profiles for later or unimplemented items remain outside runtime
 station progression until that lifecycle mapping exists; they cannot invalidate
 progression for already supported tools.
+
+
+## A9 gemstone mining runtime — 2026-10-23
+
+After accepted A8/I4, the server enables the two enemy gem sources: generated
+Elderwood Moon Bears select one Moonstone at 1/50, and generated Mossy Mire
+Mirelings select one Dusk Diamond at 1/100. The server authenticates each stable
+spawn ID against the current generated descriptor, biome and species. The
+optional gem is persisted in the credited owner's pending reward payload;
+capacity rejection retains that payload without rerolling, and a successful gem
+claim is removed durably before its inventory publication. No client supplies
+a gem, roll or quantity, and general material inventory remains session-only.
+
+A distinct existing scroll location can commit its own discovery while reusing
+an already learned, allowlisted effect entitlement. The same location still
+rejects duplicate claims; no second learned-effect record or scroll stack is
+created. This preserves the four existing scroll routes and their owner-bound
+persistence without new scrolls or save-format changes.
+
+Gemstone nodes use equipped Basic pickaxe attacks, never interaction mining. The server validates the pick family/tier, range, health and condition. Each of three accepted hits resolves its 10% smash before extraction; condition and sparse population schema-2 hit/outcome writes precede presentation. Failed writes do not publish node progress and the deterministic per-hit roll is stable on retry. Partial hits, shattered rocks, loose gems and consumed claims reconstruct from sparse state. A loose gem grants exactly one matching catalogue item after capacity validation; full packs retain it. Relevant peers receive node progress/outcome, while inventory stays owner-only. Inventory/gear remain session-only; this adds no general pack restoration. Source generation is enabled separately after its acquisition entry is complete.
+
+
+A9 world treasure is attached to the existing seeded PointOfInterest discovery actors in Elderwood, Shimmering Lakes and Thunder Mountains, as explicitly approved on 2026-10-23. Server-generated schema-2 treasure records retain even empty results and one shared consumed flag. The actor retains its original discovery route and adds a chest with an open/claimed cue; no new location, player-storage entry, item or buildable is created. Claiming the entire loot validates canonical descriptor, authority/range/living owner and inventory capacity, then commits the consumed save state before publishing removal. Full-pack and persistence failures retain availability. Enabled source entries control only initial generation, never reroll an existing chest; Lakes rolls are domain separated. General material inventory remains session-only.
+
+A9 source audit found Frost Salt mineral deposits existed only as contracts/fixtures. The user approved an additional bounded one-deposit-per-60-m-key pass on 2026-10-23. It uses 32 distinct deterministic candidates, dry slope-safe Tundra terrain and 250 cm separation. Ordinary candidates and frostmoss stay unchanged. Ordinary population multipliers apply before retaining this separately budgeted slot. A single 1% selection replaces it with Star Opal; the other 99% uses the existing Frost Salt mining/yield contract.
+
+Opal Helm now uses owner-only replicated equipped Level and a server-only same-pawn GUID level ledger. Its Inventory actions submit only the equipped GUID to throttled server Forge maintenance. A visible same-world Forge within 2.5 m is required; paid upgrades match the target item level to the effective Forge level, while free repair accepts that Forge without a target-level gate. Authored costs double with current level through the existing item-level cap 10; existing station attachments currently raise a Forge only to level two, so higher authored tiers retain that existing station prerequisite. Armor/maximum condition grow by 1/10 per level and upgraded condition is restored. Head-slot wear and damage read that equipped level. Levels/wear are not saved or transferred across pawn ownership; this does not add a general gear-save system. Other wearables remain level one through existing actions.
+
+Ordinary third-person interaction extends the camera visibility query for loose gemstones and unclaimed world treasure using the same bounded camera-offset rule as wood drops. The server still checks physical pawn-to-target reach and blocking visibility. This changes camera reach only; intact gemstone mining remains the normal equipped-pick combat route.

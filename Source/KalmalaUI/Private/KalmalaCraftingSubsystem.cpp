@@ -331,6 +331,16 @@ bool ResolveInteractionPrompt(const AKalmalaCharacter* Character, AActor* Target
         }
         OutDescription.TargetName = FString::Printf(TEXT("%s source"), *ItemName);
         OutDescription.ActionName = TEXT("Harvest");
+        if (Node->IsGemstone())
+        {
+            OutDescription.TargetName = FString::Printf(TEXT("%s rock (%d/3)"), *ItemName, Node->GetGemHits());
+            OutDescription.ActionName = TEXT("Attack with a pickaxe");
+            if (Node->GetGemOutcome() == 1) OutDescription.UnavailableReason = TEXT("Gem shattered");
+            else if (Node->IsHarvested()) OutDescription.UnavailableReason = TEXT("Depleted");
+            else if (FVector::DistSquared(Character->GetActorLocation(), Node->GetActorLocation()) > FMath::Square(220.0f))
+                OutDescription.UnavailableReason = TEXT("Out of reach");
+            return true;
+        }
         if (Node->IsTreeResource())
         {
             OutDescription.TargetName = Node->IsWoodDrop() ? FString::Printf(TEXT("%s drop"), *ItemName)
@@ -399,10 +409,11 @@ bool ResolveInteractionPrompt(const AKalmalaCharacter* Character, AActor* Target
         return true;
     }
 
-    if (Cast<AKalmalaDiscoveryActor>(Target) != nullptr)
+    if (const auto* Discovery = Cast<AKalmalaDiscoveryActor>(Target))
     {
-        OutDescription.TargetName = TEXT("Landmark");
-        OutDescription.ActionName = TEXT("Discover");
+        const bool bTreasure = Discovery->HasWorldTreasure() && !Discovery->IsTreasureClaimed();
+        OutDescription.TargetName = bTreasure ? TEXT("World treasure chest") : TEXT("Landmark");
+        OutDescription.ActionName = bTreasure ? TEXT("Loot / discover") : TEXT("Discover");
         if (FVector::DistSquared(Character->GetActorLocation(), Target->GetActorLocation())
             > FMath::Square(Character->GetInteractionRange()))
             OutDescription.UnavailableReason = TEXT("Out of reach");

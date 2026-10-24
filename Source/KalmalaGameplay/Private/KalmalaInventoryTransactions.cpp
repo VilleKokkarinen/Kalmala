@@ -191,7 +191,7 @@ bool IsValidGearState(const TArray<FKalmalaInventoryStack>& Stacks,
         if (!Item || Item->MaxStack != 1 || !TryGetGearSlot(Item->GearSlot, ItemSlot) || ItemSlot != Entry.Slot)
             return false;
         FKalmalaGearLevelStats Stats;
-        if (!Catalogue->GetGearLevelStats(Entry.ItemId, 1, Stats)
+        if (!Catalogue->GetGearLevelStats(Entry.ItemId, Entry.Level, Stats)
             || Entry.ConditionSpent < 0 || Entry.ConditionSpent > Stats.MaxDurability) return false;
         SeenSlots.Add(static_cast<uint8>(Entry.Slot));
         SeenGearGuids.Add(Entry.ItemGuid);

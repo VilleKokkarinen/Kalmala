@@ -48,6 +48,9 @@ public:
     UFUNCTION(Server, Reliable) void ServerRefuelTorch(FGuid ToolInstanceGuid);
     UFUNCTION(Server, Reliable) void ServerRepairAllTools();
     UFUNCTION(Server, Reliable) void ServerProgressTool(FName ItemId);
+    UFUNCTION(Server, Reliable) void ServerUpgradeOpalHelm(FGuid ItemGuid);
+    UFUNCTION(Server, Reliable) void ServerRepairOpalHelm(FGuid ItemGuid);
+    bool MaintainOpalHelmFromServer(FGuid ItemGuid, bool bUpgrade, FString& Reason);
     UFUNCTION(Server, Reliable) void ServerConsumeFood(FName FoodItemId);
     UFUNCTION(Server, Reliable) void ServerOpenStorage();
     UFUNCTION(Server, Reliable) void ServerCloseStorage();

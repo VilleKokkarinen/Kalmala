@@ -14,6 +14,28 @@ struct KALMALAWORLD_API FKalmalaPendingWildlifeReward
     // Peat Husk IDs also retain its one-time Peat Heart roll outcome.
     UPROPERTY(SaveGame) FString PersistentSpawnId;
     UPROPERTY(SaveGame) FString PlayerIdentity;
+    UPROPERTY(SaveGame) FName GemItemId;
+};
+
+/** Sparse attack-driven gemstone progress. Outcome 0 intact, 1 shattered, 2 loose, 3 claimed. */
+USTRUCT()
+struct KALMALAWORLD_API FKalmalaGemstoneState
+{
+    GENERATED_BODY()
+    UPROPERTY(SaveGame) FString SpawnId;
+    UPROPERTY(SaveGame) FName SourceId;
+    UPROPERTY(SaveGame) uint8 Hits = 0;
+    UPROPERTY(SaveGame) uint8 Outcome = 0;
+};
+
+/** Rolled exactly once at generated world treasure creation, including empty results. */
+USTRUCT()
+struct KALMALAWORLD_API FKalmalaTreasureState
+{
+    GENERATED_BODY()
+    UPROPERTY(SaveGame) FString Id;
+    UPROPERTY(SaveGame) TArray<FName> Items;
+    UPROPERTY(SaveGame) bool bClaimed = false;
 };
 
 /** Versioned sparse server save data for generated population deltas. */
@@ -24,6 +46,11 @@ class KALMALAWORLD_API UKalmalaWorldPopulationSaveGame : public USaveGame
 
 public:
     static constexpr int32 MaxPendingWildlifeRewards = 4096;
+    const FKalmalaTreasureState* FindTreasure(const FString& Id) const;
+    bool SetTreasure(const FKalmalaTreasureState& State);
+    const FKalmalaGemstoneState* FindGemstone(const FString& SpawnId) const;
+    bool SetGemstone(const FKalmalaGemstoneState& State);
+    bool RemoveGemstone(const FString& SpawnId);
     void InitializeForWorld(const FKalmalaWorldGenerationConfig& InWorldConfig);
     bool MatchesWorld(const FKalmalaWorldGenerationConfig& InWorldConfig) const;
     bool IsHarvested(const FString& PersistentSpawnId) const;
@@ -82,12 +109,16 @@ public:
     static FString MakeReefMawPendingRewardClaimId(const FString& PersistentSpawnId, bool bHasReefTooth);
     static bool TryGetReefMawSpawnIdFromPendingRewardClaimId(
         const FString& ClaimId, FString& OutPersistentSpawnId, bool& OutHasReefTooth);
+    bool SetPendingGemReward(const FString& ClaimId, FName GemItemId);
     bool RemovePendingWildlifeReward(const FString& RewardClaimId);
     const TArray<FKalmalaPendingWildlifeReward>& GetPendingWildlifeRewards() const { return PendingWildlifeRewards; }
 
 private:
     UPROPERTY(SaveGame)
-    int32 SchemaVersion = 1;
+    int32 SchemaVersion = 2;
+
+    UPROPERTY(SaveGame) TArray<FKalmalaGemstoneState> Gemstones;
+    UPROPERTY(SaveGame) TArray<FKalmalaTreasureState> Treasures;
 
     UPROPERTY(SaveGame)
     FKalmalaWorldGenerationConfig WorldConfig;

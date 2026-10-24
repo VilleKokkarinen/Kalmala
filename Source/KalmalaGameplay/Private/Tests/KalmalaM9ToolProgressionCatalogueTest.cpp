@@ -305,7 +305,7 @@ bool FKalmalaM9ToolProgressionCatalogueTest::RunTest(const FString& Parameters)
                 FKalmalaToolLifecycleContract::FindDefinition(Entry.ItemId);
             return !RuntimeTool || !FKalmalaToolLifecycleContract::IsKnownTool(RuntimeTool->Kind);
         }));
-    TestNull(TEXT("Stormcut Sword stays outside runtime station progression before its lifecycle integration"),
+    TestNotNull(TEXT("Stormcut Sword has a runtime station progression entry"),
         FKalmalaToolProgressionContract::FindEntry(TEXT("StormcutSword"), 1));
     for (const FName ItemId : {FName(TEXT("FangSpear")), FName(TEXT("HornBow")), FName(TEXT("ReefHarpoon"))})
     {

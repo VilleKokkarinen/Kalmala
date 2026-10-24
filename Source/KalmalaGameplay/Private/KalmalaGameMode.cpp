@@ -618,12 +618,21 @@ void AKalmalaGameMode::BeginPlay()
 
 void AKalmalaGameMode::LoadPopulationSave()
 {
-    PopulationSaveGame = Cast<UKalmalaWorldPopulationSaveGame>(UGameplayStatics::LoadGameFromSlot(KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0));
-    if (PopulationSaveGame == nullptr || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig))
+    const FString Slot = KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig);
+    PopulationSaveGame = nullptr;
+    if (UGameplayStatics::DoesSaveGameExist(Slot, 0))
     {
-        PopulationSaveGame = NewObject<UKalmalaWorldPopulationSaveGame>(this);
-        PopulationSaveGame->InitializeForWorld(WorldGenerationConfig);
+        auto* Loaded = Cast<UKalmalaWorldPopulationSaveGame>(UGameplayStatics::LoadGameFromSlot(Slot, 0));
+        if (!Loaded || !Loaded->MatchesWorld(WorldGenerationConfig))
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Population save rejected: existing data is incompatible or invalid; preserved without overwrite."));
+            return;
+        }
+        PopulationSaveGame = Loaded;
+        return;
     }
+    PopulationSaveGame = NewObject<UKalmalaWorldPopulationSaveGame>(this);
+    PopulationSaveGame->InitializeForWorld(WorldGenerationConfig);
 }
 
 void AKalmalaGameMode::SpawnOceanTravelTestFixture()
@@ -5002,6 +5011,13 @@ void AKalmalaGameMode::DriveDiscoveryPeerTest()
         }
         AKalmalaDiscoveryActor* Actor = DiscoveryPeerTestActor.Get();
         if (Actor == nullptr) return;
+        // Keep the reach fixture stationary while streamed terrain settles.
+        // Falling between probes must not replace the intended duplicate-claim test.
+        for (AKalmalaCharacter* Pawn : {Entitled, Remote})
+        {
+            Pawn->GetCharacterMovement()->StopMovementImmediately();
+            Pawn->GetCharacterMovement()->SetMovementMode(MOVE_Flying);
+        }
         Entitled->SetActorLocation(Actor->GetActorLocation() - FVector(125.0f, 0.0f, 0.0f), false);
         Remote->SetActorLocation(Actor->GetActorLocation() + FVector(1000.0f, 0.0f, 0.0f), false);
         Entitled->ForceNetUpdate(); Remote->ForceNetUpdate();
@@ -5024,6 +5040,9 @@ void AKalmalaGameMode::DriveDiscoveryPeerTest()
     }
     if (DiscoveryPeerTestStage == 3 && Now - DiscoveryPeerTestStageTime >= 0.25f)
     {
+        UE_LOG(LogTemp, Display, TEXT("Discovery duplicate probe: CanInteract=%d Distance=%.1f Pawn=%s Actor=%s"),
+            Actor->CanInteract_Implementation(Entitled), FVector::Distance(Entitled->GetActorLocation(), Actor->GetActorLocation()),
+            *Entitled->GetActorLocation().ToCompactString(), *Actor->GetActorLocation().ToCompactString());
         Actor->Interact_Implementation(Entitled);
         const bool bPassed = EntitledFeedback->GetFeedback() == EKalmalaDiscoveryFeedback::AlreadyFound && EntitledFeedback->GetFeedbackSerial() == 2
             && RemoteFeedback->GetFeedback() == EKalmalaDiscoveryFeedback::None && RemoteFeedback->GetFeedbackSerial() == 0;
@@ -5311,6 +5330,7 @@ void AKalmalaGameMode::Tick(const float DeltaSeconds)
     DriveHornedGoatPeerTest();
     DriveThunderSentinelPeerTest();
     DriveReefMawPeerTest();
+    DriveA9PeerTest();
     DriveDiscoveryPeerTest();
     DriveM9ExplorationRewardPeerTest();
     DriveOceanTravelFeedbackTest();
@@ -5743,10 +5763,18 @@ void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey)
     for (const EKalmalaWorldPopulationKind Kind : { EKalmalaWorldPopulationKind::Wildlife, EKalmalaWorldPopulationKind::HarvestNode, EKalmalaWorldPopulationKind::Hazard })
     {
         TArray<FKalmalaWorldPopulationSpawn> Spawns = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(WorldGenerationConfig, SpatialKey, Kind);
+        // Preserve the ordinary budget, then retain the separately approved salt slot.
+        TArray<FKalmalaWorldPopulationSpawn> SaltSlots;
+        if (Kind == EKalmalaWorldPopulationKind::HarvestNode)
+        {
+            SaltSlots = Spawns.FilterByPredicate([](const auto& Spawn) { return Spawn.ContentId == TEXT("tundra-frost-salt-deposit") || Spawn.ContentId == TEXT("gem-opal-rock"); });
+            Spawns.RemoveAll([](const auto& Spawn) { return Spawn.ContentId == TEXT("tundra-frost-salt-deposit") || Spawn.ContentId == TEXT("gem-opal-rock"); });
+        }
         if (KeyBiome == EKalmalaBiome::ShimmeringLakes || KeyBiome == EKalmalaBiome::Elderwood || KeyBiome == EKalmalaBiome::MossyMire || KeyBiome == EKalmalaBiome::FreezingTundra || KeyBiome == EKalmalaBiome::ThunderMountains)
         {
             Spawns.SetNum(FMath::Min(Spawns.Num(), FKalmalaBiomeExpansionContract::ApplyPopulationBudget(Spawns.Num(), Kind, KeyBiome)));
         }
+        Spawns.Append(SaltSlots);
         const int32 WildlifeActorBudget = Kind != EKalmalaWorldPopulationKind::Wildlife ? 0
             : (KeyBiome == EKalmalaBiome::FreezingTundra
                 ? FKalmalaWolfPackContract::GetActorBudgetWithPackRoom(
@@ -6121,6 +6149,10 @@ bool AKalmalaGameMode::RecordMoonBearDefeatReward(const FString& PersistentSpawn
         const FString Identity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(CreditedAttacker->GetPlayerState());
         if (!Identity.IsEmpty() && !PopulationSaveGame->TryQueuePendingMoonBearReward(PersistentSpawnId, Identity))
             return false;
+        if (!Identity.IsEmpty() && FKalmalaGemstoneContract::MoonstoneSourceAccepted
+            && !PopulationSaveGame->SetPendingGemReward(
+                UKalmalaWorldPopulationSaveGame::MakeMoonBearPendingRewardClaimId(PersistentSpawnId),
+                SelectEnemyGemForSpawn(PersistentSpawnId, true))) return false;
     }
 
     PopulationSaveGame->MarkDefeated(PersistentSpawnId);
@@ -6513,7 +6545,8 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
         bool bReefMawHasTooth = false;
         const bool bReefMawReward = UKalmalaWorldPopulationSaveGame::TryGetReefMawSpawnIdFromPendingRewardClaimId(
             Reward.PersistentSpawnId, ReefMawSpawnId, bReefMawHasTooth);
-        FString DefeatedSpawnId = Reward.PersistentSpawnId;
+        const bool bMirelingReward = Reward.PersistentSpawnId.StartsWith(TEXT("mireling-gem|"));
+        FString DefeatedSpawnId = bMirelingReward ? Reward.PersistentSpawnId.RightChop(12) : Reward.PersistentSpawnId;
         if (bBadgerReward) DefeatedSpawnId = BadgerSpawnId;
         else if (bMoonBearReward) DefeatedSpawnId = MoonBearSpawnId;
         else if (bViperReward) DefeatedSpawnId = ViperSpawnId;
@@ -6542,7 +6575,8 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
             const TArray<FKalmalaInventoryStack> Before = Inventory->GetStacks();
             TArray<FKalmalaInventoryStack> Candidate;
             FString Reason;
-            if (bPeatHuskReward)
+            if (bMirelingReward) Candidate = Before; // Mirelings have no ordinary material reward.
+            else if (bPeatHuskReward)
             {
                 TArray<FKalmalaInventoryStack> WithAmber;
                 if (!UKalmalaInventoryComponent::BuildGrant(Before, TEXT("Amber"), 1, WithAmber, Reason)) break;
@@ -6657,7 +6691,7 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
                             WithBone, TEXT("GoatHorn"), 1, Candidate, Reason)) break;
                 }
                 else if (bMoonBearReward
-                    || bLynxReward)
+                    || bLynxReward || bMirelingReward)
                 {
                     Candidate = MoveTemp(WithBone);
                 }
@@ -6666,8 +6700,35 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
                     break;
                 }
             }
-            if (!Inventory->CanFitContents(Candidate, Inventory->CountPackedTools(Character->GetCarriedToolInventory()))
-                || !Inventory->TryCommitStacksFromServer(Before, Candidate)) break;
+            if (!Reward.GemItemId.IsNone())
+            {
+                TArray<FKalmalaInventoryStack> WithGem;
+                if (!UKalmalaInventoryComponent::BuildGrant(Candidate, Reward.GemItemId, 1, WithGem, Reason)) break;
+                Candidate = MoveTemp(WithGem);
+            }
+            if (!Inventory->CanFitContents(Candidate, Inventory->CountPackedTools(Character->GetCarriedToolInventory()))) break;
+            // A9 successful gem claims must be removed durably before inventory publication.
+            // The game thread cannot service a competing request during this synchronous transaction.
+            if (!Reward.GemItemId.IsNone())
+            {
+                PopulationSaveGame->RemovePendingWildlifeReward(Reward.PersistentSpawnId);
+                const auto RestoreClaim = [&]()
+                {
+                    PopulationSaveGame->TryQueuePendingWildlifeReward(Reward.PersistentSpawnId, Reward.PlayerIdentity);
+                    PopulationSaveGame->SetPendingGemReward(Reward.PersistentSpawnId, Reward.GemItemId);
+                };
+                if (!UGameplayStatics::SaveGameToSlot(PopulationSaveGame,
+                    KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0)) { RestoreClaim(); break; }
+                if (!Inventory->TryCommitStacksFromServer(Before, Candidate))
+                {
+                    RestoreClaim();
+                    UGameplayStatics::SaveGameToSlot(PopulationSaveGame, KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+                    break;
+                }
+                DeliveredWildlifeRewardSpawnIds.Add(Reward.PersistentSpawnId);
+                break;
+            }
+            if (!Inventory->TryCommitStacksFromServer(Before, Candidate)) break;
 
             // The reward claim ID is durable; keep a session guard if cleanup fails after the
             // inventory has accepted the complete reward.
@@ -6952,8 +7013,7 @@ bool AKalmalaGameMode::PersistPlayerStateFromServer(
     if (!AdditionalDiscoveryId.IsEmpty()
         && (Candidate->HasDiscovery(AdditionalDiscoveryId) || !Candidate->AddDiscovery(AdditionalDiscoveryId))) return false;
     if (!AdditionalLearnedEffectId.IsEmpty()
-        && (Candidate->HasLearnedEffect(AdditionalLearnedEffectId)
-            || !Candidate->AddLearnedEffect(AdditionalLearnedEffectId))) return false;
+        && !Candidate->EnsureLearnedEffect(AdditionalLearnedEffectId)) return false;
     if (!AdditionalM9ClaimId.IsEmpty()
         && (!IsCurrentM9ClaimId(AdditionalM9ClaimId) || Candidate->HasDiscovery(AdditionalM9ClaimId)
             || !Candidate->AddM9Claim(AdditionalM9ClaimId))) return false;
@@ -8624,4 +8684,135 @@ AActor* AKalmalaGameMode::ChoosePlayerStart_Implementation(AController* Player)
     }
 #endif
     return GeneratedPlayerStart != nullptr ? GeneratedPlayerStart : Super::ChoosePlayerStart_Implementation(Player);
+}
+
+const FKalmalaGemstoneState* AKalmalaGameMode::ReadGemstoneState(const FString& SpawnId) const
+{
+    return HasAuthority() && PopulationSaveGame && PopulationSaveGame->MatchesWorld(WorldGenerationConfig)
+        ? PopulationSaveGame->FindGemstone(SpawnId) : nullptr;
+}
+
+bool AKalmalaGameMode::PersistGemstoneState(const FKalmalaGemstoneState& State,
+    const uint8 ExpectedHits, const uint8 ExpectedOutcome)
+{
+    if (!HasAuthority() || !PopulationSaveGame || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
+    const FKalmalaGemstoneState* Existing = PopulationSaveGame->FindGemstone(State.SpawnId);
+    if (Existing ? (Existing->Hits != ExpectedHits || Existing->Outcome != ExpectedOutcome || Existing->SourceId != State.SourceId)
+        : (ExpectedHits != 0 || ExpectedOutcome != 0)) return false;
+    if (!((ExpectedOutcome == 0 && State.Hits == ExpectedHits + 1)
+        || (ExpectedOutcome == 2 && State.Hits == ExpectedHits && State.Outcome == 3))) return false;
+    const bool bHadExisting = Existing != nullptr;
+    const FKalmalaGemstoneState Before = Existing ? *Existing : FKalmalaGemstoneState();
+    if (!PopulationSaveGame->SetGemstone(State)) return false;
+    if (UGameplayStatics::SaveGameToSlot(PopulationSaveGame, KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0)) return true;
+    if (bHadExisting) PopulationSaveGame->SetGemstone(Before);
+    else PopulationSaveGame->RemoveGemstone(State.SpawnId);
+    return false;
+}
+
+FName AKalmalaGameMode::SelectEnemyGemForSpawn(const FString& SpawnId, const bool bMoonBear) const
+{
+    if (!HasAuthority()) return NAME_None;
+    TArray<FString> Parts;
+    SpawnId.ParseIntoArray(Parts, TEXT("/"), false);
+    int32 Kind = -1, X = 0, Y = 0;
+    uint64 Seed = 0;
+    if (Parts.Num() != 4 || !LexTryParseString(Kind, *Parts[0]) || !LexTryParseString(X, *Parts[1])
+        || !LexTryParseString(Y, *Parts[2]) || !LexTryParseString(Seed, *Parts[3])
+        || Kind != int32(EKalmalaWorldPopulationKind::Wildlife)) return NAME_None;
+    for (const auto& Spawn : FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(
+        WorldGenerationConfig, FIntPoint(X, Y), EKalmalaWorldPopulationKind::Wildlife))
+    {
+        if (FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Spawn) != SpawnId) continue;
+        const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(
+            FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, FVector2D(Spawn.Location)));
+        EKalmalaWildlifeArchetype Archetype;
+        if (!AKalmalaWildlifeSpawn::TryGetSpawnArchetypeForBiome(Spawn.SpawnSeed, Biome, Archetype)
+            || Archetype != (bMoonBear ? EKalmalaWildlifeArchetype::MoonBear : EKalmalaWildlifeArchetype::Mireling)) return NAME_None;
+        return FKalmalaGemstoneContract::SelectEnemyGem(bMoonBear, Biome, Seed ^ WorldGenerationConfig.WorldSeed);
+    }
+    return NAME_None;
+}
+
+const FKalmalaTreasureState* AKalmalaGameMode::PrepareWorldTreasure(const FKalmalaWorldDiscoveryDescriptor& Descriptor)
+{
+    if (!HasAuthority() || !PopulationSaveGame || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)
+        || Descriptor.Kind != EKalmalaWorldDiscoveryKind::PointOfInterest) return nullptr;
+    const auto Biome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, FVector2D(Descriptor.Location)));
+    if (Biome != EKalmalaBiome::Elderwood && Biome != EKalmalaBiome::ShimmeringLakes && Biome != EKalmalaBiome::ThunderMountains) return nullptr;
+    const FString Id = TEXT("treasure:") + FKalmalaWorldPopulationLayout::GetPersistentDiscoveryId(Descriptor);
+    bool bCanonical = false;
+    for (const auto& Candidate : FKalmalaWorldPopulationLayout::BuildDiscoveryDescriptors(
+        WorldGenerationConfig, Descriptor.SpatialKey, EKalmalaWorldDiscoveryKind::PointOfInterest))
+        bCanonical |= Candidate.DefinitionId == Descriptor.DefinitionId && Candidate.DescriptorSeed == Descriptor.DescriptorSeed
+            && Candidate.Ordinal == Descriptor.Ordinal && Candidate.Location.Equals(Descriptor.Location, 0.01f);
+    if (!bCanonical) return nullptr;
+    if (const auto* Existing = PopulationSaveGame->FindTreasure(Id)) return Existing;
+    FKalmalaTreasureState State;
+    State.Id = Id;
+    State.Items = FKalmalaGemstoneContract::SelectTreasure(Biome, Descriptor.DescriptorSeed ^ WorldGenerationConfig.WorldSeed);
+    auto* CandidateSave = DuplicateObject<UKalmalaWorldPopulationSaveGame>(PopulationSaveGame, this);
+    if (!CandidateSave || !CandidateSave->SetTreasure(State) || !CandidateSave->MatchesWorld(WorldGenerationConfig)
+        || !UGameplayStatics::SaveGameToSlot(CandidateSave, KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0)) return nullptr;
+    PopulationSaveGame = CandidateSave;
+    return PopulationSaveGame->FindTreasure(Id);
+}
+
+bool AKalmalaGameMode::ClaimWorldTreasure(AKalmalaCharacter* Interactor, const FKalmalaWorldDiscoveryDescriptor& Descriptor)
+{
+    if (!HasAuthority() || !IsValid(Interactor) || !Interactor->HasAuthority() || Interactor->GetWorld() != GetWorld()
+        || Interactor->GetHealth() <= 1.0f || FVector::DistSquared(Interactor->GetActorLocation(), Descriptor.Location) > FMath::Square(250.0f)) return false;
+    const auto* Existing = PrepareWorldTreasure(Descriptor);
+    auto* Inventory = Interactor->GetInventoryComponent();
+    if (!Existing || Existing->bClaimed || !Inventory) return false;
+    FKalmalaTreasureState Claimed = *Existing;
+    const auto Before = Inventory->GetStacks();
+    auto After = Before;
+    FString Reason;
+    for (const FName Item : Claimed.Items)
+    {
+        TArray<FKalmalaInventoryStack> Next;
+        if (!UKalmalaInventoryComponent::BuildGrant(After, Item, 1, Next, Reason))
+        {
+            if (auto* Crafting = Interactor->FindComponentByClass<UKalmalaCraftingComponent>())
+                Crafting->PublishInteractionResultFromServer(TEXT("Inventory is full; treasure remains"), false);
+            return false;
+        }
+        After = MoveTemp(Next);
+    }
+    if (!Inventory->CanFitContents(After, Inventory->CountPackedTools(Interactor->GetCarriedToolInventory()))
+        || !Inventory->TryCommitStacksFromServer(Before, After)) return false;
+    Claimed.bClaimed = true;
+    auto* CandidateSave = DuplicateObject<UKalmalaWorldPopulationSaveGame>(PopulationSaveGame, this);
+    if (!CandidateSave || !CandidateSave->SetTreasure(Claimed) || !CandidateSave->MatchesWorld(WorldGenerationConfig)
+        || !UGameplayStatics::SaveGameToSlot(CandidateSave, KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0))
+    {
+        if (!Inventory->TryCommitStacksFromServer(After, Before)) UE_LOG(LogTemp, Error, TEXT("Treasure inventory rollback failed."));
+        return false;
+    }
+    PopulationSaveGame = CandidateSave;
+    if (auto* Crafting = Interactor->FindComponentByClass<UKalmalaCraftingComponent>())
+        Crafting->PublishInteractionResultFromServer(Claimed.Items.IsEmpty() ? TEXT("Treasure chest is empty") : TEXT("Treasure collected"), true);
+    return true;
+}
+
+bool AKalmalaGameMode::RecordMirelingDefeatReward(const FString& PersistentSpawnId, AKalmalaCharacter* CreditedAttacker)
+{
+    if (!HasAuthority() || !PopulationSaveGame || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)
+        || PersistentSpawnId.IsEmpty() || !FKalmalaGemstoneContract::DuskDiamondSourceAccepted) return false;
+    auto* CandidateSave = DuplicateObject<UKalmalaWorldPopulationSaveGame>(PopulationSaveGame, this);
+    if (!CandidateSave) return false;
+    if (IsValid(CreditedAttacker) && CreditedAttacker->HasAuthority() && CreditedAttacker->GetWorld() == GetWorld()
+        && CreditedAttacker->GetPlayerState())
+    {
+        const FString Identity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(CreditedAttacker->GetPlayerState());
+        const FString ClaimId = TEXT("mireling-gem|") + PersistentSpawnId;
+        if (!Identity.IsEmpty() && (!CandidateSave->TryQueuePendingWildlifeReward(ClaimId, Identity)
+            || !CandidateSave->SetPendingGemReward(ClaimId, SelectEnemyGemForSpawn(PersistentSpawnId, false)))) return false;
+    }
+    CandidateSave->MarkDefeated(PersistentSpawnId);
+    if (!CandidateSave->MatchesWorld(WorldGenerationConfig) || !UGameplayStatics::SaveGameToSlot(
+        CandidateSave, KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0)) return false;
+    PopulationSaveGame = CandidateSave;
+    return true;
 }

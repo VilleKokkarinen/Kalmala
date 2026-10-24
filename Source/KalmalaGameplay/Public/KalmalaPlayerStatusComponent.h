@@ -13,6 +13,17 @@ struct FKalmalaStatusModifiers
     float StaminaCostAddition = 0.0f;
 };
 
+/** Derived only from the owning inventory, never client numeric input. */
+struct FKalmalaAccessoryModifiers
+{
+    int32 MaxHealth = 0;
+    int32 MaxStamina = 0;
+    float StaminaCost = 0.0f;
+    float SupportSpellCost = 0.0f;
+    float StaminaRegeneration = 0.0f;
+    float HealingReceived = 0.0f;
+};
+
 USTRUCT(BlueprintType)
 struct FKalmalaPlayerStatusEntry
 {
@@ -87,6 +98,7 @@ public:
     static FKalmalaStatusModifiers EvaluateModifiers(const TArray<FKalmalaPlayerStatusEntry>& Entries);
     /** Base cost must come from an authoritative action definition, never an RPC payload. */
     float CalculateStaminaCost(float BaseCost, bool bSupportSpell = false) const;
+    FKalmalaAccessoryModifiers GetAccessoryModifiers() const;
 
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 

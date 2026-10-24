@@ -6703,6 +6703,220 @@
 - **Next eligible task:** Continue A8b item acceptance in backlog order with Wolf Pelt Boots, then remaining progression/peer flows, InventoryReconnect disposition, and combined I4 milestone-final verification.
 - **Integration state:** Work ran directly on `master`; no worktree handoff synchronization was needed. Current run time: `2026-10-23 15:47:02 UTC`.
 
+## A9 independent worker — accessory slot review (2026-10-23)
+
+- User-authorized isolated parallel A9 work on `codex/a9-runtime`; A8/I4 worker remains independent on master. The user assignment overrides the default single-increment stop and A9 ordering, but does not pass I4/I5 or approve undocumented values.
+- Audited the merged 71fa8060 data/icon batch, existing Necklace/Ring slots, UI actions, owner-only replication, GUID replacement/return, capacity guards and non-wearing accessory Armor/cost effects. Added `Kalmala.Gameplay.Inventory.AccessorySlots` covering both slots, replacement identity, duplicate slot/GUID rejection, full-pack return and ordinary unequip.
+- Files: BACKLOG.md, PROGRESS.md, Source/KalmalaGameplay/Private/Tests/KalmalaInventoryEquipmentTest.cpp.
+- Lightweight checks: careful transaction/test inspection and git diff --check. Full build, automation execution, peer and milestone verification deferred; no runtime pass claimed. Networking remains existing server-owned transactions and owner-private gear; no RPC/schema change.
+- Review A9 remains open because source rates and three-hit tuning are explicitly unapproved in the source document; approval requested. Runtime maximum-stat/recovery work can proceed independently using the already authorized data.
+- Next: equipped flat maxima and additive regeneration/healing, then approved acquisition sources. Main handoff synchronization deferred while master is active; only conflict-free A9 hunks will integrate at a clean boundary.
+
+
+## A9 independent worker — accessory derived stats (2026-10-23)
+
+- Completed flat equipped maximum health/stamina and additive stamina recovery/incoming Mending/draught modifiers using the approved catalogue fields. Equip/replace/unequip recomputes from the owner's current slots, never refills, and clamps on removal. Vigor remains independent; draught eligibility, partial ticks, Mending target selection, damage clamps and Inventory health checks use the effective maximum. Added owner-only maximum-health replication; gear remains session-only with no save-schema change.
+- Added `Kalmala.Gameplay.Status.AccessoryStats` for no-refill, replacement, repeated refresh, additive maxima/Vigor, removal clamps, active recovery, incoming Mending, partial draught ticks, immediate removal, owner isolation and rejected GUIDs.
+- Files: Character, CharacterMovementComponent, InventoryComponent, PlayerStatusComponent, SupportMagicComponent, InventoryMenuWidget, new AccessoryStats test, BACKLOG/PROGRESS and architecture/setup/item-details/decision docs.
+- Checks: git diff --check and careful changed-path/static transaction inspection; all changed absolute paths below 260. Full builds, automation execution, peers and I5 verification deferred. No runtime test execution claimed.
+- User approved documented acquisition rates and three-hit mining tuning during this increment; Review A9 recorded complete. Source support/acceptance remains required. I4 is still open in the independent main worker.
+- Next: audit and implement Smoky Quartz's eligible seeded resource source, then other sources in order. Master handoff remains deferred until safe integration.
+
+
+## A9 independent worker — gemstone contract and sparse state (2026-10-23)
+
+- Added shared seeded mutually exclusive resource replacement rules, five source-to-gem identities, minimum pick tiers, and the three-hit state machine resolving the 10% smash before extraction even on the last hit. Added bounded validated sparse gemstone progress/outcome records to population schema 2; development schema 1 is incompatible and must be preserved/rejected, with no migration. This is the prerequisite child for the first blocked source entry; generation and acquisition remain disabled.
+- Added `Kalmala.World.GemstoneContract` for exhaustive 729/1000 success, final-hit smash, terminal/invalid rejection, repeatability/biome exclusion, broad seed selection and save-memory round trip.
+- Files: GemstoneContract.h, WorldPopulationSaveGame.h/.cpp, new GemstoneTest.cpp, BACKLOG/PROGRESS. Checks: source inspection, git diff --check, path lengths below 260. No build/automation execution; full verification deferred. Server-only source rules/state introduce no client input.
+- User also approved server-owned persistent treasure at existing seeded discovery points in the three eligible biomes. No treasure implementation or accepted source is claimed yet. Next: connect mining/persistence/pickup, then item sources in order. I4/I5 remain open; master untouched.
+
+- Approval review initially rejected the schema-changing commit because explicit schema authorization was missing. The user then explicitly approved population schema 2 and the preserved/rejected schema-1 behavior; no bypass or main-checkout write occurred.
+
+
+## A9 independent worker — attack-driven gemstone mining (2026-10-23)
+
+- Connected gemstone nodes to equipped Basic pickaxe attacks with server range/living/condition/family/material-tier checks. Hits spend one persisted condition; a deterministic server-only per-hit roll cannot change on a failed save/retry. Population progress/outcome must reach disk before the node publishes cracking, shattering or extraction. Failure restores in-memory node/condition state and attempts the condition rollback write.
+- Loose extraction exposes exactly one matching gem. Catalogue/capacity checks and an optimistic saved-state transition reject duplicates and leave full-pack/rejected claims unchanged. Claimed outcome reaches disk before node removal; partial, shattered, loose and claimed states reconstruct from the population ledger. Ordinary inventory remains session-only under the existing contract; persistent node claims do not add general inventory restoration. Added original mineral-inclusion geometry, crack-height progression, target names and explicit shattered feedback. All source generation remains disabled in this prerequisite increment.
+- Files: Character, CombatComponent, GameMode, HarvestNode, new GemstoneNode.cpp, CraftingSubsystem and BACKLOG/PROGRESS. Lightweight checks: changed-code inspection and git diff --check; paths below 260. No Unreal build or automation execution; full verification deferred.
+- Next: enable Smoky Quartz and the remaining per-item source entries in backlog order; enemy sources still require accepted I4. Approved treasure uses existing seeded discovery points. Main untouched.
+
+
+## A9 independent worker — Smoky Quartz acquisition (2026-10-23)
+
+- Enabled only the Quartz entry in the shared source table. Final seeded harvest descriptors replace 5% of eligible Elderwood Copper and Lakes Tin slots with Quartz rocks after ordinary candidate/suitability/supplemental decisions. Position, stable seed/ID and total candidate budget are preserved; ordinary ore has no hidden gem roll or co-drop. Other gemstone entries remain disabled.
+- Files: GemstoneContract.h, WorldPopulationLayout.h, BiomeContentContract.h, BACKLOG/PROGRESS. Audited registered gem JSON and original icon pipeline; `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id SmokyQuartz` passed (original 1254x1254 RGBA, prepared 64x64 transparent, imported runtime asset). git diff --check passed; changed paths below 260. Full builds, automation, live extraction/peer/restart evidence deferred to I5.
+- Authority: server seeded descriptors choose one occupant; clients receive only relevant actor source/progress. Gem claims remain server validated. Next: Moonstone reward source implementation, retaining its I4 acceptance dependency, then Garnet treasure support. Main unchanged.
+
+
+## A9 independent worker — incompatible population-save guard (2026-10-23)
+
+- Source inspection found the old population loader replaced incompatible loaded data with a fresh writable object, which could overwrite the schema-1 slot after the approved schema bump. The loader now distinguishes an absent slot from an existing invalid/incompatible one: existing rejected files remain untouched and population persistence remains unavailable. Valid schema-2 slots still load normally. No migration, deletion or save write was performed.
+- Files: GameMode.cpp and PROGRESS.md. Check: git diff --check plus null-guard inspection of population-write entry points. Full build/executed save-file validation deferred to I5. This repairs the schema-2 contract introduced by this A9 work. Next remains Moonstone's I4-dependent source implementation, then Garnet. Main unchanged.
+
+
+## A9 independent worker — Moonstone source prepared, I4-gated (2026-10-23)
+
+- Prepared the Moonstone 1/50 reward alongside normal Moon Bear loot. The source helper reconstructs the canonical generated wildlife descriptor from its stable ID, checks Moon Bear archetype and Elderwood spawn biome, then uses a domain-separated seed. The optional gem payload is saved with the credited pending reward, and full-pack retry preserves the entire reward. A9 successful gem claims require durable queue removal before the complete inventory transaction publishes; failure retains the claim without granting. No client-selected rate/item/source is accepted.
+- `EnemySourcesAccepted` deliberately remains false pending the independent I4 gate. The source parent and enable child remain unchecked; no accepted Moonstone acquisition is claimed.
+- Files: GemstoneContract, WorldPopulationSaveGame, GameMode, GemstoneTest, BACKLOG/PROGRESS. Added biome/species exclusion and broad seed-rate coverage; not executed. `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id Moonstone` and git diff --check passed; changed paths below 260. Full Unreal/peer/restart verification deferred. Next unblocked work: Garnet's approved treasure prerequisite and source; main remains untouched.
+
+
+## A9 independent worker — Garnet and generated treasure (2026-10-23)
+
+- Implemented user-approved treasure at existing seeded PointOfInterest descriptor locations in Elderwood, Shimmering Lakes and Thunder Mountains. Existing discovery actors retain their canonical identity and discovery/scroll entitlements and add original chest geometry with a replicated open/claimed cue. No player storage or portable construction item is involved. Server preparation validates the canonical descriptor, persists the generated loot (including empty rolls) before presentation, and never rerolls it on opening/retry/reload. Claims validate authority, living owner, range, registered rewards, full grant/capacity and saved-state transition. Rejected/full-pack/save-failed transactions leave loot available; competing claims cannot duplicate it.
+- Enabled Garnet's 10% Elderwood/Lakes entry only. Other treasure gem entries are authored but disabled until their item increments. Material inventory remains session-only; a persistent consumed chest does not imply general inventory restoration.
+- Files: DiscoveryActor, GameMode, CraftingSubsystem, GemstoneContract, WorldPopulationSaveGame, GemstoneTest, BACKLOG/PROGRESS and architecture documentation. Added empty-roll/claim no-reroll and serialization regressions. `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id Garnet` and git diff --check passed; all changed paths below 260. Full build/test execution/peer/restart/rendered I5 evidence deferred.
+- Next: Green Jade's Lakes Tin source. Moonstone enablement remains genuinely I4-dependent. Main untouched.
+
+
+## A9 independent worker — Green Jade acquisition (2026-10-23)
+
+- Enabled Jade's source entry: the same single Lakes Tin candidate roll selects 5% Quartz, the next 2% Jade, otherwise Tin. No Elderwood or other Tin/ore slots become Jade. Existing budget/identity/three-hit extraction and one-gem rule are shared. Files: GemstoneContract.h, BACKLOG/PROGRESS. `Validate-UIIcons.ps1 -Category Catalogue -Id GreenJade` and git diff --check passed; source/tier/payment inspection and path audit passed. Full build, automation execution and live I5 checks deferred. Server owns selection/hits/claims. Next: Amethyst. Main unchanged.
+
+
+## A9 independent worker — Amethyst acquisition (2026-10-23)
+
+- Enabled Amethyst's 3% replacement of Mossy Mire `mire-bog-iron` Iron Ore candidates only. Shared validation requires Bronze Pick or better; damage/level cannot bypass three hits or per-hit smash. Existing candidate count/location/seed and ordinary Iron yield remain unchanged outside replaced slots. Files: GemstoneContract.h, BACKLOG/PROGRESS. `Validate-UIIcons.ps1 -Category Catalogue -Id Amethyst` and git diff --check passed; source ID and minimum-tier inspection passed; paths below 260. Full build/automation/live I5 checks deferred. Next: Aquamarine treasure. Main unchanged.
+
+
+## A9 independent worker — Aquamarine acquisition (2026-10-23)
+
+- Enabled the independent 1/20 Aquamarine generation roll only for Shimmering Lakes world treasure. Garnet and Aquamarine can coexist in one Lakes chest, each quantity one; complete two-item grants are capacity checked before any claim. Existing saved chest results are immutable and are not rerolled by source enablement. Files: GemstoneContract.h, BACKLOG/PROGRESS. `Validate-UIIcons.ps1 -Category Catalogue -Id Aquamarine` and git diff --check passed; biome/domain-separation/full-grant inspection and short-path audit passed. Full build/automation/live I5 checks deferred. Next: Tourmaline. Main unchanged.
+
+
+## A9 independent worker — Tourmaline acquisition (2026-10-23)
+
+- Enabled Tourmaline's 2% Thunder Mountains slate-slot replacement, retaining the existing candidate position/identity/budget and requiring Stone Pick or better. Supplemental generic Stone outcrops and other biomes are excluded. Uses the shared three-hit/smash/single-loose-gem persistence path. Files: GemstoneContract.h, BACKLOG/PROGRESS. `Validate-UIIcons.ps1 -Category Catalogue -Id Tourmaline` and git diff --check passed; source exclusion/tier/path inspection passed. Full build/automation/live I5 checks deferred. Next: Star Opal. Main unchanged.
+
+
+## A9 independent worker — Storm Sapphire acquisition (2026-10-23)
+
+- Enabled Storm Sapphire's 1/50 Thunder Mountains world-treasure generation entry, quantity one; other biomes and player storage remain excluded. Immutable saved loot/complete grant validation and server-owned claims are shared with Garnet/Aquamarine. Files: GemstoneContract.h, BACKLOG/PROGRESS. `Validate-UIIcons.ps1 -Category Catalogue -Id StormSapphire` and git diff --check passed; biome/rate/path inspection passed. Full build/automation/live I5 checks deferred.
+- Earlier Star Opal source is genuinely blocked on a factual prerequisite: `tundra-frost-salt-deposit` has a mining/loot contract and fixtures but no generation assignment anywhere in Source. Tundra descriptors select frostmoss, which is explicitly excluded. Requested approval for a bounded real-deposit pass; did not invent or enable an unsupported source. Next unblocked work: Dusk Diamond source preparation, retaining I4 acceptance. Main untouched.
+
+
+## A9 independent worker — Dusk Diamond prepared, I4-gated (2026-10-23)
+
+- Prepared Dusk Diamond's server-owned 1/100 roll for canonical generated Mossy Mire Mirelings only. The shared source validator verifies actual seeded archetype and spawn biome; optional gem/credited owner is saved with defeat before replicated defeat. Pending claims retain the one-time selected result and use the complete-grant/durable-consumption path. Mireling ordinary material reward remains zero; its existing boss-scroll route is preserved.
+- Both enemy gem sources remain disabled behind EnemySourcesAccepted=false until I4 acceptance is integrated. No successful enemy-source acceptance or source enablement is claimed.
+- Files: GemstoneContract, WorldPopulationSaveGame, GameMode, WildlifeSpawn, BACKLOG/PROGRESS. `Validate-UIIcons.ps1 -Category Catalogue -Id DuskDiamond` and git diff --check passed; archetype/biome/reward/rollback inspection and path audit passed. Full build/automation/live I5 checks deferred. Next: approved Star Opal prerequisite if confirmed, otherwise shared resource validation and gear completion. Main unchanged.
+
+
+## A9 independent worker — approved Frost Salt deposits and Star Opal (2026-10-23)
+
+- User explicitly approved the discovered missing-source prerequisite: a bounded dry-ground Frost Salt deposit pass with at most one deposit per 60 m key, existing slope/water/bounds/250 cm separation rules, and unchanged frostmoss. Added a 32-attempt pass in a separate seed domain/candidate range, preserving ordinary candidates. The supplemental allowance adds exactly this possible slot; normal population multipliers still apply to ordinary resources before the separately approved deposit is retained.
+- Enabled Star Opal's mutually exclusive 1% replacement of these mineral deposits, never frostmoss. Shares Stone Pick minimum, three hits, per-hit smash and one-gem persistent pickup. Added GemstoneGeneration regression comparing unmodified versus replaced descriptors for unchanged count/location/stable identities and approved source/biome exclusivity. Its optional baseline parameter affects only tests; production defaults to replacement enabled.
+- Files: GemstoneContract, WorldPopulationLayout, GameMode, GemstoneTest, BACKLOG/PROGRESS and architecture/decision docs. `Validate-UIIcons.ps1 -Category Catalogue -Id StarOpal` and git diff --check passed; candidate/identity/budget/tier inspection and path audit passed. No Unreal build or test execution; full I5 verification deferred.
+- Next: finalize shared mining source checklist, then gear entries in order while enemy-source enablement remains I4-dependent. Main untouched.
+
+
+## A9 independent worker — Quartz Necklace completion (2026-10-23)
+
+- Audit found A9 accessories were authored as tool acquisition metadata despite having no runtime tool profile, so their recipes could not execute through ordinary crafting. Converted only Quartz Necklace's recipe to the established ordinary Forge output shape (3 Bronze + 1 Smoky Quartz, output one, batch one, no skill XP/unlock gate). Added A9GearRecipes regression for registered paid exchange and crafted-GUID equip, and physical-only +10 Armor/no-wear coverage in AccessoryStats. Existing owner-private slot validation/source/icon paths remain intact.
+- Files: a9-gear.json, A9GearTest.cpp, AccessoryStatsTest.cpp, BACKLOG/PROGRESS. `Validate-UIIcons.ps1 -Category Catalogue -Id QuartzNecklace`, JSON parsing and git diff --check passed; path audit passed. Tests authored but not compiled/executed; full I5 verification deferred. Next eligible gear is Moonstone Ring but its source is I4-blocked; continue independent Garnet Necklace runtime recipe completion. Main unchanged.
+
+
+## A9 independent worker — Moonstone Ring recipe runtime prepared (2026-10-23)
+
+- Converted Moonstone Ring from non-executable tool metadata to the ordinary Forge recipe path: 2 Bronze + 1 Moonstone, one non-stackable output, batch one. Added its paid exchange/crafted-GUID equip case; existing AccessoryStats covers +20 stamina/no refill/Vigor/replacement/removal. Files: a9-gear.json, A9GearTest.cpp, BACKLOG/PROGRESS. JSON parsing, `Validate-UIIcons.ps1 -Category Catalogue -Id MoonstoneRing` and git diff --check passed; paths below 260. Full execution/I5 verification deferred. Parent remains unchecked because Moonstone source enablement requires accepted I4. Next: Garnet Necklace. Main unchanged.
+
+
+## A9 independent worker — Garnet Necklace completion (2026-10-23)
+
+- Corrected its Forge recipe to ordinary inventory crafting (3 Bronze + 1 Garnet, one output/batch one), added paid exchange/GUID equip coverage, and extended runtime regression for draught eligibility above 100, healing to the equipped maximum and full-effective-health rejection. Existing no-refill/removal clamps remain covered. Files: a9-gear.json, A9GearTest.cpp, AccessoryStatsTest.cpp, BACKLOG/PROGRESS. JSON parsing, `Validate-UIIcons.ps1 -Category Catalogue -Id GarnetNecklace` and git diff --check passed; short-path audit passed. Full build/test/peer execution deferred to I5. Server-only derivation and session-only equipped state remain intact. Next: Jade Ring. Main unchanged.
+
+
+## A9 independent worker — Jade Ring completion (2026-10-23)
+
+- Corrected Jade Ring to executable ordinary Forge crafting (2 Bronze + 1 Green Jade, one output/batch one). Added paid exchange/equip and global/support cost, Wet+Meal additive combination and immediate unequip-effect removal regressions. Existing sprint/dodge/support callers all use the shared authoritative calculation; no stamina refill or action-specific new base costs. Files: a9-gear.json, A9GearTest.cpp, AccessoryStatsTest.cpp, BACKLOG/PROGRESS. JSON parsing, `Validate-UIIcons.ps1 -Category Catalogue -Id JadeRing` and git diff --check passed; paths below 260. Full executed verification deferred to I5. Next: Amethyst Necklace. Main unchanged.
+
+
+## A9 independent worker — Amethyst Necklace completion (2026-10-23)
+
+- Corrected the recipe to ordinary Forge inventory crafting (3 Bronze + 1 Amethyst, one output/batch one). Extended paid exchange/equip coverage and runtime cases proving support-only cost adjustment, no ordinary-cost discount, zero-cost preservation and single additive combination with Jade/Wet/Meal. No spell potency, duration, cooldown or entitlement change. Files: a9-gear.json, A9GearTest.cpp, AccessoryStatsTest.cpp, BACKLOG/PROGRESS. JSON parsing, `Validate-UIIcons.ps1 -Category Catalogue -Id AmethystNecklace` and git diff --check passed; paths below 260. Full executed verification deferred to I5. Next: Aquamarine Ring. Main unchanged.
+
+
+## A9 independent worker — Aquamarine Ring completion (2026-10-23)
+
+- Corrected its ordinary Forge recipe (2 Bronze + 1 Aquamarine, output one/batch one). Added paid craft/equip and runtime exclusions for sprint consumption, immediate stamina draughts and full-stamina overflow, plus immediate future-regeneration removal. Existing active-recovery +15% case is retained; no recovery condition/delay change. Files: a9-gear.json, A9GearTest.cpp, AccessoryStatsTest.cpp, BACKLOG/PROGRESS. JSON parsing, `Validate-UIIcons.ps1 -Category Catalogue -Id AquamarineRing` and git diff --check passed; paths below 260. Full executed I5 verification deferred. Next: Tourmaline Necklace. Main unchanged.
+
+
+## A9 independent worker — Tourmaline Necklace completion (2026-10-23)
+
+- Corrected ordinary Forge recipe (3 Bronze + 1 Tourmaline, one output/batch one). Added paid craft/GUID equip case and incoming-heal clamp/full-health rejection/outgoing exclusion/no-resurrection regressions; prior partial draught/removal tests remain. No passive healing, food/shield/outgoing benefit is introduced. Files: a9-gear.json, A9GearTest.cpp, AccessoryStatsTest.cpp, BACKLOG/PROGRESS. JSON parsing, `Validate-UIIcons.ps1 -Category Catalogue -Id TourmalineNecklace` and git diff --check passed; paths below 260. Full executed I5 verification deferred. Next: Opal Helm. Main unchanged.
+
+
+## A9 independent worker — Opal Helm executable acquisition (2026-10-23)
+
+- Converted Opal Helm's tool-metadata acquisition into ordinary Forge crafting (20 Iron + 5 Deer Hide + 1 Star Opal, output one/batch one). Added registered paid exchange and exact crafted-GUID Head-slot equip coverage. Source/icon/profile/upgrade data already exists.
+- Audit found equipped durable gear remains fixed at level one with no runtime wearable upgrade/repair path; split this explicitly as the next Opal integration child instead of declaring the helm complete from JSON alone. No general gear save system is authorized or planned.
+- Files: a9-gear.json, A9GearTest.cpp, BACKLOG/PROGRESS. JSON parsing, `Validate-UIIcons.ps1 -Category Catalogue -Id OpalHelm` and git diff --check passed; paths below 260. Full executed I5 verification deferred. Next: session-only Opal upgrades/repair and level-aware consumers. Main unchanged.
+
+
+## A9 independent worker — Opal Helm runtime progression (2026-10-23)
+
+- Added session-owned level state for the exact equipped Opal Helm GUID, preserving it through same-pawn unequip/re-equip. Forge maintenance validates owning/living server character, exact equipped Head item, visible same-world Forge level 1 within 2.5 m and existing request throttling. Upgrades use authored 5 Iron + 2 Deer Hide costs with existing doubling/current-level cap 10, +1 Armor/+10 condition per level, retaining GUID and restoring condition. Repair is free at that validated Forge. Inventory provides explicit equipped-helm upgrade/repair actions; worn display and damage/wear/transaction validation use the replicated equipped level. No saved gear or migration was added; transfer/reconnect/restart retain existing gear-save limits.
+- Added `Kalmala.Gameplay.Inventory.OpalHelm` for paid upgrade, invalid-GUID/no-station rejection, doubled-cost failure without partial spend, exact identity, level-two Armor/condition, physical hit/wear, free repair and same-pawn re-equip.
+- Files: OpalHelm.cpp/test, InventoryComponent/Transactions, Character, CraftingComponent/InventoryComponent headers, InventoryMenuWidget/header, BACKLOG/PROGRESS and architecture. git diff --check and careful transaction/authority/path inspection passed; no Unreal build/automation/peer/rendered run yet. Full I5 verification deferred. Next: Stormcut Sword runtime integration. Main unchanged.
+
+
+## A9 independent worker — Stormcut Sword runtime completion (2026-10-23)
+
+- Added the missing supported runtime StormcutSword kind/parser/range and held-Sword mapping. Existing Forge progression, Basic combat, condition, repair and carried-tool save paths now consume its already-authored profile/acquisition/upgrade/reward/attack data. Added readable crafting name and updated the former catalogue-only regression expectation.
+- Added `Kalmala.Gameplay.Combat.StormcutSword` for one hand, sword silhouette, combat-only action, 70 Slash/220 condition, exact paid acquisition and +4 Slash/+30 condition upgrade with GUID retention, client rejection and normal free repair. Existing source is Thunder Mountains Storm Sapphire world treasure; no elemental/gathering/socketed-gem behavior.
+- Files: ToolLifecycleContract/header, PlayerModelComponent, CraftingComponent, progression catalogue test, new StormcutSwordTest, BACKLOG/PROGRESS. `Validate-UIIcons.ps1 -Category Catalogue -Id StormcutSword` and git diff --check passed; lifecycle/payment/path inspection passed. Test/build/live I5 execution deferred. Next: Dusk Ring runtime recipe preparation, retaining its I4-dependent gem source. Main unchanged.
+
+
+## A9 independent worker — Dusk Ring runtime recipe prepared (2026-10-23)
+
+- Corrected its ordinary Forge recipe (5 Bronze + 1 Dusk Diamond, one output/batch one). Added paid craft/GUID equip and +5 physical Armor regression alongside existing +10 health/+10 stamina, replacement, no-refill and Vigor-combination cases. Source remains exclusively the prepared Mossy Mire Mireling reward; EnemySourcesAccepted stays false pending I4, so parent remains unchecked. Files: a9-gear.json, A9GearTest.cpp, AccessoryStatsTest.cpp, BACKLOG/PROGRESS. JSON parsing, `Validate-UIIcons.ps1 -Category Catalogue -Id DuskRing` and git diff --check passed; paths below 260. Full executed I5 verification deferred. Next: audit existing scroll routes and prepare the full applicable I5 verification handoff. Main unchanged.
+
+
+## A9 independent worker — existing scroll route audit (2026-10-23)
+
+- Audited all four existing seeded scroll locations, canonical effect mappings, persisted player entitlement, runtime scroll-stack reconstruction, server-owned use checks and existing seed-selected Mireling boss entitlement. Recorded exact routes in docs/a9-acceptance.md, preserving locations/entitlements and deferring new scrolls/trophies/boss keys. No new source or runtime scroll behavior was added.
+- Files: docs/a9-acceptance.md, BACKLOG/PROGRESS. Lightweight source inspection and git diff --check passed; paths below 260. Full/live verification remains deferred and is now the next independent A9 acceptance task; prepared enemy-source enablement remains I4-dependent. The handoff lists new focused cases and required independent build/peer/restart/rendered evidence; no unexecuted pass is claimed. Main untouched.
+
+## A9 independent worker — executed verification and integration repairs (2026-10-23)
+
+- **Scope/status:** A9/I5 verification phase in `codex/a9-runtime`, under the user's isolated parallel assignment. This is not completed integrated I5 acceptance: independent I4, enemy-source enablement and the existing inventory notification-baseline disposition remain open. No A8 checkbox or main-checkout file was changed.
+- **Production repairs:** Ordinary third-person loose-gem/treasure interaction now retains physical reach despite the camera boom, with bounded visibility and normal server validation. Opal upgrades require the effective Forge level matching the target item level; free repairs accept a valid nearby Forge. Added a real Forge/Anvil regression. Inventory reserves space for both Opal actions, reapplies accessibility styling, and uses short labels with Forge tooltips. Salt generation checks Tundra eligibility before expensive terrain suitability without changing candidate results. Corrected new recipe/Stormcut test expectations and extended the older biome-content assertion to validate approved replacement slots.
+- **Peer fixture:** Added Development-only `KalmalaA9PeerTest.cpp` and `Scripts/Tests/Combat/Verify-A9Peer.ps1`. One host plus two owning remote clients execute normal attack/interaction RPCs. The server checks three pick condition spent, actor restoration after one saved hit, full-pack rejection for both contenders, exactly one gem and one treasure reward, saved claims, owner-only accessory stats and replicated hit/outcome state. Fresh-process restart restores both claimed ledger entries. Test gear/pick are explicitly provisioned, distant players are held at interaction height while terrain streams, and duplicate actors for fixture identities are removed; this does not certify no-grant progression, physical input, or general material/equipment save restoration.
+- **Build isolation/commands:** Mirror `C:/Users/Ville/AppData/Local/Temp/a9v`, evidence `C:/Users/Ville/AppData/Local/Temp/a9e`; source checkout protected output folders were not used. Invoked installed UE 5.8 `Engine/Build/BatchFiles/Build.bat KalmalaEditor Win64 Development -Project=C:/Users/Ville/AppData/Local/Temp/a9v/Kalmala.uproject -WaitMutex -NoHotReload -NoUBA -MaxParallelActions=4 -Log=C:/Users/Ville/AppData/Local/Temp/a9e/editor11.log`, then the same command with target `Kalmala` and `game4.log`. Both passed. Existing project-plugin source was copied into the mirror after its first precompile lookup failure; no plugin/dependency was installed. Earlier evidence retains a wrong-temp project lookup, a loaded-DLL link failure, and stale UHT output repaired with `-ForceHeaderGeneration`; later builds passed. No unsupported Launcher-engine Server target was attempted.
+- **Full automation:** Ran installed `UnrealEditor-Cmd.exe` against that mirror with `-unattended -nop4 -nosplash -nosound -nullrhi -NoZenAutoLaunch -DDC=NoZenLocalFallback -stdout -FullStdOutLogOutput`, private UserDir/log/report roots, `-ExecCmds="Automation RunTests Kalmala"` and `-TestExit="Automation Test Queue Empty"`. First queue: 185 cases, 176 clean passes, six warning passes, three failures (Stormcut station/condition expectations, normalized Forge recipe ID, old biome identity assertion). Second: 177 clean passes, seven warning passes, one Stormcut condition-expectation failure. Third `u3/auto3.log/r3`: all 185 passed (179 clean, six with warnings), zero not-run, process exit 0. Focused Stormcut and real-Forge Opal reruns passed. Final current-label queue `u4/auto4.log/r4` also passed all 185 (179 clean, six with warnings), zero failures/not-run, process exit 0. The two startup `LogAutomationTest: Condition failed` messages precede test execution and are retained engine diagnostics, not failed test cases.
+- **Live results:** `Verify-A9Peer.ps1 -Port 19309 -OutputDirectory C:/Users/Ville/AppData/Local/Temp/a9p6` passed including fresh-process restart; both client logs contain gemstone progress, private accessory stats and treasure interaction requests. Earlier runner/fixture attempts retained evidence for Windows log sharing, unstreamed-ground falls, occupied-start pawn spawning and comma-truncated treasure IDs; each was repaired before the passing run. `Verify-Crafting.ps1 -Port 19311` passed (evidence `C:/Users/Ville/AppData/Local/Temp/KalmalaCrafting-f0da4864444d4da8b93de7675d9d410a`). `Verify-DiscoveryPeer.ps1 -Port 19313 -OutputDirectory C:/Users/Ville/AppData/Local/Temp/a9d1` passed identity/distance/duplicate/private-feedback checks.
+- **Rendered results:** Executed `RenderMenu` with `-Menu=inventory -A9Gear -AllowCommandletRendering -RenderOffscreen -sm6`, private `ur1` profile and explicit output/log paths. Initial 1920x1080 render exposed buttons below the backplate; enlarged high-contrast render exposed label overflow. Repaired both and visually inspected final `gear720b.png` (1280x720,100%,contrast0) and `gear150b.png` (1024x768,150%,contrast1), with readable labels and icons contained in the backplate. This is commandlet presentation evidence, not physical mouse/controller certification.
+- **Validators/path checks:** Catalogue icons passed all 148 identities, status icons all nine entries, creature catalogue all 17 species and manifest JSON (`icons-cat.log`, `icons-status.log`, `creatures.log` in evidence root). All 1,083 tracked/new build and runner inputs matched the mirror by SHA-256; maximum source path 127. Audit of 4,286 mirror/evidence/peer files found maximum absolute path 210 and zero MAX_PATH violations. PowerShell parser and diff checks passed.
+- **Outstanding shared checks:** `Verify-PresentationOwnership.ps1` fails the pre-existing `Tool Rack` text anchor in untouched `KalmalaCraftingSubsystem.cpp`; its preceding inventory/static contracts pass. `Verify-Inventory.ps1 -Port 19315` reached owner transaction/privacy/receipt checks but failed because the client `Notification owner baseline` log is absent, not a logged replay. Evidence `C:/Users/Ville/AppData/Local/Temp/KalmalaInventory-e6aba8b04c2a4faa9d98ea44e5c6bb9b`; the I4 handoff already records a client notification-baseline timeout. Notification source/runner are unchanged by A9. Do not claim that runner passed or I5 complete; integration/disposition remains required.
+- **Other static diagnostics:** Aggregate `Verify-M5DocumentationContracts.ps1` fails argument binding (`Width=111`) in its existing settings-runner invocation. Direct `Verify-SettingsAccessibility.ps1 -ContractOnly` fails its stale `Empty Gameplay group stays hidden` documentation anchor; direct audio, local-input and onboarding contracts pass. Settings/presentation scripts and notification source are unchanged from A9 baseline `22deb8c1c7ff79053b6e5fb09babba1cfec5b96b`; that baseline already contains neither required text anchor. No unrelated settings/notification system was modified to silence these failures. Logs are `m5*.log` in the evidence root.
+- **Files changed/authority:** GameMode/Character fixture hooks and headers; gemstone logging/camera interaction; Opal maintenance and regression; A9 recipe/Stormcut/world-content regressions; inventory widget; world layout; render commandlet; peer runner; BACKLOG/PROGRESS and architecture/setup/A9 handoff docs. Gameplay decisions and saves remain server-owned; fixture observations expose only relevant/owner-permitted state. General inventory/gear remain session-only. Authored item tiers extend to 10, but current Forge attachments reach level two; no higher station tier was invented.
+- **Next:** Commit only this A9 verification increment, integrate committed I4 work in the isolated branch where safe, and retain enemy enablement/I5 gates until I4 and shared-check disposition actually pass. Main handoff/implementation merge must preserve the active worker's edits and occur at a safe boundary.
+
+## A9 independent worker — committed I4 snapshot integration (2026-10-23)
+
+- Merged the inspected committed master snapshot `09ea50e4ea49b72c20a6942a2862ec180de57e77` into the isolated A9 branch after A9 verification commit `a2bc1076`. This does not merge A9 into main or accept I4. The active main checkout and its uncommitted edits were untouched; final synchronization/integration remains deferred to the user-required safe boundary.
+- Resolved only understood append conflicts: preserved both progress-log blocks, both A8 fixture methods/calls and the A9 method/fields/call. All 656 unique progress headings from the two inputs remain. Automatic Character merge preserves the committed Sentinel slam reach and A9's effective maximum-health clamp. Retained all committed Horned Goat/Sentinel/Reef Maw, Antidote and Peat Heart Stew handoffs and regressions.
+- Updated the independent `a9v` mirror from the resolved source. Ran installed UE 5.8 `Build.bat KalmalaEditor Win64 Development` and `Kalmala Win64 Development` with that mirror project, `-WaitMutex -NoHotReload -NoUBA -MaxParallelActions=4 -ForceHeaderGeneration`, private `ie1.log`/`ig1.log`: both passed. The full `Automation RunTests Kalmala` command used the same null-render/private-log/profile/queue-empty flags as above, with `iu1/ia1.log/ir1`: all 185 passed (178 clean, seven warning passes), zero failures/not-run. Engine queue exited successfully; no source repair was required by this integration.
+- `Verify-A9Peer.ps1 -Port 19319 -OutputDirectory C:/Users/Ville/AppData/Local/Temp/a9ip1` passed normal owning-client mining/loot, saved partial progress, both full-pack rejections, exactly-one gem and treasure grants, private accessory stats, peer node replication and fresh-process claimed-ledger restoration on the combined snapshot.
+- Merge diff/path checks passed; 14 integration/handoff paths, maximum absolute source path 116, no unmerged markers/files. Only already-committed I4 changes, reviewed A9 union resolutions and this integration handoff enter the normal merge; no other-worker working-tree edits were staged. Existing static-anchor and inventory notification-baseline dispositions remain as recorded above, not newly passed checks.
+- A9 and I5 stay open; `EnemySourcesAccepted` remains false. Next independent A9 increment: add focused chance/pending-payload serialization assertions for the prepared enemy gems, then integrate accepted I4 and perform final combined acceptance when available. No new source rates, saved-data schema or product scope is introduced by this merge.
+
+## A9 independent worker — prepared enemy-gem payload verification (2026-10-23)
+
+- Added `Kalmala.World.EnemyGemPayload` for the approved near-1% Dusk Diamond selection and wrong-species/biome exclusion. It queues owner-bound Moonstone and Dusk Diamond payloads, rejects owner changes, cross-species/unsupported gem assignments and absent claims, serializes both rewards, checks retained gem/owner identity, and verifies one claim's removal survives another serialization without removing the other owner's gem.
+- Files: `KalmalaGemstoneTest.cpp`, BACKLOG/PROGRESS and `docs/a9-acceptance.md`. This is test-only; source activation, production code, rates and save schema remain unchanged. Enemy sources remain disabled pending accepted I4.
+- Updated the independent mirror, built `KalmalaEditor Win64 Development` with the same private project/logs and four-action limit (`payload-build.log`), then ran `Automation RunTests Kalmala.World.EnemyGemPayload` in a fresh `pu1` profile with null renderer and queue-empty exit. Build passed; the one focused test passed, zero failed/not-run, process exit 0 (`payload-test.log/pr1`). Diff and changed-path inspection passed; all changed paths remain below MAX_PATH.
+- Full combined verification is deferred until the remaining I4-dependent acceptance is available. The previously executed integrated queue passed all 185 existing cases; the namespace now contains this additional case and requires the final combined rerun before I5 closure. This focused test does not prove enabled live enemy acquisition or change the inherited shared-check dispositions.
+- Next eligible A9 task is genuinely I4-dependent: integrate accepted I4, enable/verify the two prepared enemy rewards, and complete combined I5. The independent main worker remains active, so main synchronization/final integration remains deferred under the user's serialization instruction.
+
+## A9 independent worker — no-build presentation verification repaired (2026-10-23)
+
+- **Selected increment:** Resolve the independent presentation/M5 checker portion of I5; retain I4 ownership of the runtime inventory notification-baseline issue. No gameplay, settings values, UI behavior, network authority, save data or other-worker files changed.
+- **Repairs:** The aggregate now splats a named `ContractOnly` hashtable instead of a scalar string and clears inherited native exit status before each child check. Settings prose checks normalize Markdown whitespace and verify the existing documented master/category sliders, five text scales and Low/Standard/High contrast. Section/source requirements remain intact. Ownership checks now require the actual Tool Rack exclusion by catalogue ID and GUID-based storage RPC calls, replacing obsolete hardcoded label/item-ID expectations.
+- **Checks/results:** `Verify-M5DocumentationContracts.ps1` passes all five no-build contracts on the actual A9 worktree (`a9e/m5-final2.log`); direct `Verify-PresentationOwnership.ps1` passes seven project assets and 32 source seams (`ownership-final.log`). All three modified PowerShell files parse and `git diff --check` passes. These results supersede the earlier static-check failures recorded above; they do not certify rendered or live input behavior.
+- **Negative checks:** Missing Gameplay prose and master-slider prose are rejected; removed Tool Rack exclusion and storage-GUID source anchors are rejected. The private mirror's source was restored byte-for-byte with its original timestamp and compared to the worktree. An inherited native exit 7 no longer fails successful checks (`m5-stale-exit.log`), while the aggregate still propagates a real child ownership failure under that condition. The final aggregate passes again after restoration. Temporary negative docs are under the independent `a9e` evidence root; no source-checkout fixture mutation was used.
+- **Files:** Three checker scripts, BACKLOG/PROGRESS, A9 handoff and development setup. All changed absolute paths remain below MAX_PATH. This checker-only increment needs no Unreal rebuild; the final combined runtime queue remains deferred until the I4-dependent source increment. Prior integrated 185-test and focused additional payload passes remain historical evidence.
+- **Remaining/next:** Enemy sources stay disabled and A9/I5 remain open. Integrate accepted I4, resolve its inherited runtime inventory-baseline disposition, verify enabled Moonstone/Dusk acquisition, rerun combined I5, and merge normally into main at the required safe boundary. Main's active work and handoff files were untouched.
 ## Run 2026-10-23 15:54 UTC — Wolf Pelt Boots Workbench progression passed
 
 - **Selected task:** Continue the first open combined I4 child with the next A8b item acceptance in order, Wolf Pelt Boots. This is focused server-world progression coverage, not I4 milestone-final verification.
@@ -6797,6 +7011,15 @@
 - **Known limitations / remaining scope:** No multiplayer crafting/upgrade delivery, owner inventory UI, or rendered presentation ran. The startup self-test diagnostics are noted above; no selected test failed. InventoryReconnect disposition, other item peer flows, and combined I4 remain open; A9 stays gated. Reef Maw live acceptance passed earlier on 2026-10-23.
 - **Next eligible task:** Begin live peer acceptance for approved A8b item progression/delivery in backlog order, then resolve the InventoryReconnect disposition and run combined I4 milestone-final verification.
 - **Integration state:** Work ran in the main checkout; no worktree handoff synchronization was needed. Current run time: `2026-10-23 16:23 UTC`.
+
+## A9 independent worker — latest committed A8b snapshot integration (2026-10-24)
+
+- **Selected increment:** Integrate committed main snapshot `a33711ec` into isolated `codex/a9-runtime`, advancing the combined A9/I5 state without taking over the active A8/I4 worker. The main checkout was inspected read-only and left untouched.
+- **Work completed/files:** Normal merge includes eight committed A8b increments since `09ea50e4`: two progression test files, development setup and the existing progress handoffs. Resolved only the append conflict in PROGRESS by retaining both sides. Added this record, the checked snapshot child in BACKLOG and the A9 acceptance note. No production gameplay, authority or save behavior changed.
+- **Lightweight checks:** All five `Scripts/Tests/Acceptance/Verify-M5DocumentationContracts.ps1` contracts passed on the merged worktree. Checked every progress heading from both inputs: all 659 HEAD headings and 636 snapshot headings remain. Inspected the incoming test and setup changes; `git diff --check` passed. Changed absolute paths remain below 260 characters.
+- **Verification limits:** No new Unreal build, automation queue or live peer run was performed for this snapshot integration. Incoming focused passes remain the original main worker's evidence. Full combined verification is deferred until I4 acceptance and enemy source activation; the historical A9 queues do not certify this newer snapshot.
+- **Observable impact/authority:** The isolated A9 branch now retains the latest committed A8b item progression regressions and handoff, reducing final merge divergence. Server-owned gameplay and the disabled enemy-source flag remain unchanged.
+- **Remaining/next:** Main is actively working on I4 peer acceptance. Integrate actual passed I4 acceptance when available, resolve its inventory notification-baseline disposition, enable and verify Moonstone/Dusk Diamond, run combined I5 and merge A9 into local master at the safe boundary. I4, A9 and I5 remain open. Main handoff synchronization is deferred while its worker is active, under the authorized isolated-work assignment.
 
 ## Run 2026-10-24 06:25 UTC — Rat-tail Tonic live peer craft passed
 
@@ -7003,3 +7226,186 @@
   menus or acquisition. This request is complete; A9 remains next in the roadmap.
   Main checkout used; no handoff synchronization required. Concurrent unrelated
   documentation edits are preserved and excluded from this commit.
+
+## Run 2026-10-24 — Resume A9 with accepted I4 integration
+
+- **Selected increment:** Reconcile the existing A9 runtime branch with current
+  master before activating the pending enemy gem sources. The checkout was
+  clean and no other Kalmala chat was active at inspection.
+- **Completed / files:** Merged master `9a8cbc0f` into `codex/a9-runtime`.
+  Resolved the progress append conflict by preserving both histories and the
+  architecture conflict by preserving both carried-tool acquisition and A9
+  accessory runtime contracts. Honored master's deletion of the obsolete alpha
+  proposal document; retained its active A9 contract in existing
+  `docs/a9-acceptance.md` and updated the A9 backlog link. All other incoming
+  master changes retain their committed form. This is prerequisite integration,
+  not A9 implementation completion.
+- **Lightweight checks:** Inspected merge conflicts and combined crafting RPC
+  hooks; checked both input progress-heading sets are retained, no unresolved
+  conflicts remain, PowerShell parsing, whitespace and staged absolute path
+  lengths below 260. All five M5 no-build contracts passed on the merged state.
+  No Unreal build or live test ran.
+- **Full verification:** Deferred to combined I5; previous branch automation and
+  master's I4 results do not prove the new combined build.
+- **Observable impact / authority:** The branch includes accepted I4 and the
+  aggregate inventory-receipt fix. Enemy gem sources remain disabled in this
+  increment. No new client authority, RPC or save change.
+- **Remaining / next:** Enable the prepared Moonstone/Dusk Diamond source gate
+  against accepted I4, verify both sources and pending reward semantics, then
+  complete integrated I5 and merge the verified A9 branch into local master.
+  Work uses the main checkout on the A9 branch; no separate checkout handoff
+  synchronization is required. Master itself remains at its prior commit.
+
+## Run 2026-10-24 — Enable the accepted Moonstone source
+
+- **Selected increment:** First unfinished A9 child: enable the prepared Moon
+  Bear Moonstone source after integrated I4 acceptance. The checkout was clean;
+  no other Kalmala run was active at inspection.
+- **Completed / files:** Split the shared activation constant into
+  `MoonstoneSourceAccepted=true` and `DuskDiamondSourceAccepted=false` in
+  `Source/KalmalaWorld/Public/KalmalaGemstoneContract.h`. Updated the Moon Bear
+  and Mireling references in `KalmalaGameMode.cpp` and `KalmalaWildlifeSpawn.cpp`
+  so only Moonstone activates in this increment. Updated `BACKLOG.md` and
+  existing `docs/a9-acceptance.md`; the implemented Moonstone/Ring rows are
+  checked while A9 and combined I5 remain open.
+- **Lightweight checks:** Moonstone and Moonstone Ring catalogue icon validation
+  passed (original, prepared and imported assets). Parsed all 61 registered
+  catalogue JSON files and confirmed both identities' registered definitions
+  and recipe references. Checked no stale shared activation references remain.
+  Inspected canonical generated-spawn/species/biome validation, fixed 1/50
+  selection, owner-bound saved payload, full-pack retry and durable claim
+  removal before inventory publication. Whitespace and staged path-length
+  checks passed before commit. No C++ automation or live peer test ran.
+- **Full verification:** Deferred. Dusk Diamond activation is still an unfinished
+  implementation task; combined milestone-final I5 has not begun or passed.
+- **Observable impact / authority:** A credited generated Elderwood Moon Bear can
+  now produce exactly one Moonstone alongside its ordinary reward through the
+  prepared server-owned persistent queue. Clients still supply neither gem
+  identity nor chance. The Ring's approved paid Forge/equipped-stat path is now
+  source-reachable. No rates, item data, icons, RPCs or save schemas changed.
+- **Limitations / next:** Existing source/payload regressions await combined
+  execution; inspection and icon/JSON checks do not establish live acceptance.
+  Enable the prepared Dusk Diamond source next, then perform the combined I5
+  gate and final master integration. Main checkout is on `codex/a9-runtime`;
+  master remains unchanged and no worktree handoff synchronization is needed.
+
+## Run 2026-10-24 — Final A9 source and milestone-final I5 verification passed
+
+- **Selected increment:** Enabled the remaining Dusk Diamond source after
+  integrated I4. This was the last A9 implementation task, so this same run
+  performed milestone-final verification and repairs. A9's final normal master
+  integration remains the last unchecked handoff child until the merge occurs.
+- **Implementation / files:** Enabled `DuskDiamondSourceAccepted` in
+  `Source/KalmalaWorld/Public/KalmalaGemstoneContract.h`; added the canonical
+  enemy-source regression to existing `KalmalaA9GearTest.cpp`. Added direct
+  includes in the incoming A8b Fang Arrows/Tonic fixtures. Updated
+  `KalmalaCombatLoopTest.cpp` and the discovery fixture in `KalmalaGameMode.cpp`.
+  Reused the scroll-route fix and regressions from unmerged `931f85e0` in
+  `KalmalaGameMode.cpp`, `KalmalaPlayerDiscoverySaveGame.cpp/.h`,
+  `KalmalaPlayerDiscoverySaveGameTest.cpp` and `KalmalaDiscoveryProgressTest.cpp`.
+  Updated BACKLOG, this progress record, architecture, development setup and
+  existing `docs/a9-acceptance.md`. No item values, icons or save schema changed.
+- **Build/verification environment:** Isolated short mirror
+  `C:/Users/Ville/AppData/Local/Temp/a9v`; fresh profiles/evidence under
+  `C:/Users/Ville/AppData/Local/Temp/a9f1`. All 1,143 current tracked
+  runtime/build/runner inputs matched the mirror by SHA-256 after final repairs.
+  Including active docs/handoffs, 1,163 inputs were synchronized. Generated mirror
+  paths had maximum length 210; all changed checkout paths are below 260.
+  Builds used normal `%LOCALAPPDATA%/UnrealBuildTool` access. The previously
+  documented installed-engine dedicated-server limitation still applies;
+  no Server build or packaging was attempted for this I5 scope.
+- **Full build commands actually run:** `Build.bat KalmalaEditor Win64
+  Development -Project=C:/Users/Ville/AppData/Local/Temp/a9v/Kalmala.uproject
+  -WaitMutex -NoHotReload -ForceMakefile`, then the same command with target
+  `Kalmala`. Both final targets succeeded. Initial Editor build: 182 planned
+  actions, failed on missing player-status/player-state types in two incoming
+  A8b fixtures; their direct includes fixed it and a seven-action rebuild passed.
+  Initial Game target passed 174 actions. Later post-repair Editor/Game builds
+  also passed, ending with `editor-discovery-final.log` and
+  `game-discovery-final.log`.
+- **Full automation command actually run:** `UnrealEditor-Cmd.exe` against the
+  mirror project with `-unattended -nop4 -nosplash -nosound -nullrhi
+  -NoZenAutoLaunch -DDC=NoZenLocalFallback`, a fresh `-UserDir`, retained
+  `-abslog` and `-ReportExportPath`, `-ExecCmds="Automation RunTests Kalmala"`
+  and `-TestExit="Automation Test Queue Empty"`. Final evidence is
+  `automation4.log`, `report4/index.json`, `auto4-user/` and
+  `automation4-exit.txt` under a9f1: **187 completed, 182 clean passes, five
+  warning passes, zero failures/not-run/in-process, process exit 0**.
+- **Failures, fixes and reruns:** The first full report had 181 clean passes,
+  five warning passes and one AllItemSwings failure, despite process exit 0.
+  That isolated weapon fixture has no population persistence owner; lethal
+  Mireling hits now require that owner. Its target now explicitly uses Boar,
+  retaining authored-damage and lethal-hit/defeat assertions. Editor rebuild
+  and the one-case focused rerun passed; full `report2` passed all 187.
+  Completion audit then found the older branch's scroll fix absent: a distinct
+  second location for a known spell was rejected as a duplicate entitlement.
+  Reused validated idempotent entitlement reuse without allowing duplicate
+  discovery claims, unknown effects or extra effect records. Editor/Game
+  rebuilt; all three focused Discovery cases passed; `report3` passed all 187.
+  The discovery peer initially retained feedback serial 1. Its diagnostic
+  rerun passed but showed 122 cm of pawn fall between probes. Held both fixture
+  pawns stationary while terrain streams; the final probe stayed exactly
+  125 cm away and passed every original distance/duplicate/privacy assertion.
+  Both targets rebuilt again; the final full `report4` passed as above.
+- **Applicable live checks:** The A9 three-peer mining/treasure case passed
+  initially at port 19491 (`peers/`) and again after the scroll repair at 19503
+  (`peers-final/`): real owner requests, partial reload, pick wear, full-pack
+  rejection, competing claims, owner-only stats and fresh-process claimed-ledger
+  restoration. Shared crafting passed at 19494 (`crafting-runner.log`); discovery
+  passed at 19505 (`discovery-final.log`, `discovery-final/`). Final inventory
+  19501 and two-visit reconnect 19502 passed (`inventory-final.log`,
+  `reconnect-final.log`), resolving the inherited notification-baseline failure.
+  Their original per-run profile/log paths are retained in the runner output.
+- **Other checks / visual evidence:** `python Scripts/Validate-CreatureCatalogues.py`
+  passed 17 profiles and manifest JSON; `Scripts/Validate-UIIcons.ps1 -Category
+  Catalogue` passed 148 identities and `-Category Status` passed nine entries.
+  All five `Scripts/Tests/Acceptance/Verify-M5DocumentationContracts.ps1` checks
+  passed. Retained logs: `creatures.log`, `catalogue-icons.log`,
+  `status-icons.log`, `m5.log`. `RenderMenu -Menu=inventory -A9Gear` captures
+  `gear720.png` (1280x720, text 100, contrast 0) and `gear150.png` (1024x768,
+  text 150, contrast 1) were inspected: Helm/necklace/ring icons and upgrade/
+  repair controls remain visible, readable and unclipped. These are commandlet
+  renders, not physical input certification. Whitespace and staged scope/path
+  checks passed before commit.
+- **Coverage / limits / authority:** Final reports include canonical enemy gem
+  sources, saved owner-bound optional payloads, gemstone rates/generation/
+  persistence, accessory slots/stats, paid A9 gear recipes, Opal maintenance,
+  Stormcut combat and scroll persistence. Peer fixtures stage materials and
+  equipment; they do not establish an unassisted fresh-character progression
+  playthrough. General inventory/equipped gear remain session-only under the
+  accepted contract. No cargo, new scroll, trophy, boss key, client authority,
+  RPC or migration was added. Five warning-bearing cases retain synthetic-world
+  cleanup/expected missing-asset diagnostics; no required verification remains
+  failing and none was waived as a pre-existing failure.
+- **Final I5 status / next:** Combined I5 passed for this repaired source state.
+  Commit these run-owned changes, then merge A9 normally into local master at
+  its clean boundary and finalize the parent/integration checkboxes there.
+  Main checkout is on `codex/a9-runtime`; master has not yet moved. No separate
+  worktree synchronization is needed. A10 remains later work outside this goal.
+
+## Run 2026-10-24 — A9 verified integration into local master
+
+- **Completed:** Normal non-fast-forward merge of verified A9 runtime commit
+  `d0ead245` into clean local master `9a8cbc0f`, preserving independent master
+  history and all A9 incremental commits. No other Kalmala chat was active at
+  the integration boundary. The merge had no conflicts.
+- **Finalization files:** BACKLOG marks the last integration child, its I5 parent
+  and A9 complete. Existing `docs/a9-acceptance.md` identifies the integrated
+  source and final acceptance status. This progress record preserves the exact
+  milestone-final build/test commands, failures, repairs and passing reruns in
+  the preceding entry.
+- **Integration checks:** The merged Source, Config, Content, Plugins, Scripts
+  and project inputs are byte-identical to the verified A9 source and isolated
+  mirror; all 1,143 input hashes match. No runtime repair was needed during
+  integration. All five M5 no-build contracts and whitespace checks passed on
+  the prepared final merge. Incoming/staged absolute paths remain below 260.
+  No extra full build/queue was run for metadata-only finalization; the final
+  187/187 report, successful Editor/Game builds and applicable peers/restart/
+  renders certify the identical runtime input state now integrated here.
+- **Final milestone status:** A9 implementation and I5 acceptance are complete.
+  Broader A10 acceptance is the next eligible backlog task and was not started.
+  Accepted session-only general inventory/gear and installed-engine Server-build
+  limits remain as documented. A9's verified GUID-addressed Opal maintenance
+  RPCs remain server-validated; the merge adds no behavior or save-format change
+  beyond the verified branch. Main checkout used directly; no worktree
+  handoff synchronization is required. This merge commit records the handoff.

@@ -44,7 +44,9 @@ void UKalmalaCharacterMovementComponent::AdvanceStaminaFromServer(const float De
     {
         const float Warmth = Pawn != nullptr ? Pawn->GetExposureState().Warmth : 100.0f;
         const float RecoveryMultiplier = FKalmalaExposureResponse::GetStaminaRecoveryMultiplier(Warmth);
-        Stamina = FMath::Min(CurrentMaximumStamina, Stamina + RecoveryPerSecond * RecoveryMultiplier * Step);
+        Stamina = FMath::Min(CurrentMaximumStamina, Stamina + RecoveryPerSecond * RecoveryMultiplier * Step
+            * FMath::Clamp(1.0f + (Pawn && Pawn->GetStatusComponent()
+                ? Pawn->GetStatusComponent()->GetAccessoryModifiers().StaminaRegeneration : 0.0f), 0.5f, 2.0f));
         if (Stamina >= SprintRecoveryThreshold) bSprintExhausted = false;
     }
 }
@@ -73,16 +75,29 @@ bool UKalmalaCharacterMovementComponent::RestoreStaminaFromDraughtFromServer(con
 bool UKalmalaCharacterMovementComponent::SetBearsVigorFromServer(const bool bEnabled)
 {
     if (!CharacterOwner || !CharacterOwner->HasAuthority()) return false;
-    const float NewMaximum = bEnabled ? MaximumStamina + 40.0f : MaximumStamina;
-    if (!FMath::IsFinite(NewMaximum) || NewMaximum < MaximumStamina || NewMaximum > MaximumStamina + 40.0f) return false;
-    if (FMath::IsNearlyEqual(CurrentMaximumStamina, NewMaximum)) return true;
+    bBearsVigorActive = bEnabled;
+    RefreshMaximumStaminaFromServer();
+    return true;
+}
+
+bool UKalmalaCharacterMovementComponent::SetAccessoryStaminaFromServer(const int32 FlatBonus)
+{
+    if (!CharacterOwner || !CharacterOwner->HasAuthority() || FlatBonus < 0 || FlatBonus > 2000) return false;
+    AccessoryStaminaBonus = FlatBonus;
+    RefreshMaximumStaminaFromServer();
+    return true;
+}
+
+void UKalmalaCharacterMovementComponent::RefreshMaximumStaminaFromServer()
+{
+    const float NewMaximum = MaximumStamina + AccessoryStaminaBonus + (bBearsVigorActive ? 40.0f : 0.0f);
+    if (FMath::IsNearlyEqual(CurrentMaximumStamina, NewMaximum)) return;
     CurrentMaximumStamina = NewMaximum;
     // Vigor never refills stamina. Its removal only clamps the existing authoritative value.
     Stamina = FMath::Clamp(Stamina, 0.0f, CurrentMaximumStamina);
     if (Stamina <= 0.0f) bSprintExhausted = true;
     else if (Stamina >= SprintRecoveryThreshold) bSprintExhausted = false;
     CharacterOwner->ForceNetUpdate();
-    return true;
 }
 
 float UKalmalaCharacterMovementComponent::GetMaxSpeed() const

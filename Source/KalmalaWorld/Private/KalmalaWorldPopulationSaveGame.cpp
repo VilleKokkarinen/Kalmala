@@ -1,4 +1,5 @@
 #include "KalmalaWorldPopulationSaveGame.h"
+#include "KalmalaGemstoneContract.h"
 
 namespace
 {
@@ -28,6 +29,9 @@ namespace
 
 void UKalmalaWorldPopulationSaveGame::InitializeForWorld(const FKalmalaWorldGenerationConfig& InWorldConfig)
 {
+    SchemaVersion = 2;
+    Gemstones.Reset();
+    Treasures.Reset();
     WorldConfig = InWorldConfig;
     HarvestedSpawnIds.Reset();
     DefeatedSpawnIds.Reset();
@@ -36,7 +40,34 @@ void UKalmalaWorldPopulationSaveGame::InitializeForWorld(const FKalmalaWorldGene
 
 bool UKalmalaWorldPopulationSaveGame::MatchesWorld(const FKalmalaWorldGenerationConfig& InWorldConfig) const
 {
-    return SchemaVersion == 1 && WorldConfig == InWorldConfig;
+    if (SchemaVersion != 2 || WorldConfig != InWorldConfig || Gemstones.Num() > 65536) return false;
+    for (const auto& Reward : PendingWildlifeRewards)
+        if (!Reward.GemItemId.IsNone() && !(Reward.GemItemId == TEXT("Moonstone")
+            && Reward.PersistentSpawnId.StartsWith(TEXT("moonbear-reward|")))
+            && !(Reward.GemItemId == TEXT("DuskDiamond") && Reward.PersistentSpawnId.StartsWith(TEXT("mireling-gem|")))) return false;
+    if (Treasures.Num() > 65536) return false;
+    TSet<FString> TreasureIds;
+    for (const auto& Treasure : Treasures)
+    {
+        if (Treasure.Id.IsEmpty() || Treasure.Id.Len() > 128 || TreasureIds.Contains(Treasure.Id) || Treasure.Items.Num() > 2) return false;
+        TSet<FName> SeenItems;
+        for (const FName Item : Treasure.Items)
+        {
+            if ((Item != TEXT("Garnet") && Item != TEXT("Aquamarine") && Item != TEXT("StormSapphire")) || SeenItems.Contains(Item)) return false;
+            SeenItems.Add(Item);
+        }
+        TreasureIds.Add(Treasure.Id);
+    }
+    TSet<FString> Seen;
+    for (const FKalmalaGemstoneState& State : Gemstones)
+    {
+        if (State.SpawnId.IsEmpty() || State.SpawnId.Len() > 128 || Seen.Contains(State.SpawnId)
+            || !FKalmalaGemstoneContract::IsGemSource(State.SourceId) || State.Hits < 1 || State.Hits > 3
+            || State.Outcome > 3 || (State.Outcome == 0 && State.Hits >= 3)
+            || (State.Outcome >= 2 && State.Hits != 3)) return false;
+        Seen.Add(State.SpawnId);
+    }
+    return true;
 }
 
 bool UKalmalaWorldPopulationSaveGame::IsHarvested(const FString& PersistentSpawnId) const
@@ -583,4 +614,62 @@ bool UKalmalaWorldPopulationSaveGame::RemovePendingWildlifeReward(const FString&
     if (RewardClaimId.IsEmpty()) return false;
     return PendingWildlifeRewards.RemoveAll([&RewardClaimId](const FKalmalaPendingWildlifeReward& Reward)
         { return Reward.PersistentSpawnId == RewardClaimId; }) > 0;
+}
+
+const FKalmalaGemstoneState* UKalmalaWorldPopulationSaveGame::FindGemstone(const FString& SpawnId) const
+{
+    return Gemstones.FindByPredicate([&SpawnId](const auto& State) { return State.SpawnId == SpawnId; });
+}
+
+bool UKalmalaWorldPopulationSaveGame::SetGemstone(const FKalmalaGemstoneState& State)
+{
+    if (State.SpawnId.IsEmpty() || State.SpawnId.Len() > 128 || !FKalmalaGemstoneContract::IsGemSource(State.SourceId)
+        || State.Hits < 1 || State.Hits > 3 || State.Outcome > 3 || (State.Outcome == 0 && State.Hits >= 3)
+        || (State.Outcome >= 2 && State.Hits != 3)) return false;
+    auto* Existing = Gemstones.FindByPredicate([&State](const auto& Entry) { return Entry.SpawnId == State.SpawnId; });
+    if (Existing) { *Existing = State; return true; }
+    if (Gemstones.Num() >= 65536) return false;
+    Gemstones.Add(State);
+    return true;
+}
+
+bool UKalmalaWorldPopulationSaveGame::RemoveGemstone(const FString& SpawnId)
+{
+    return Gemstones.RemoveAll([&SpawnId](const auto& State) { return State.SpawnId == SpawnId; }) == 1;
+}
+
+bool UKalmalaWorldPopulationSaveGame::SetPendingGemReward(const FString& ClaimId, const FName GemItemId)
+{
+    if (!GemItemId.IsNone() && !(GemItemId == TEXT("Moonstone") && ClaimId.StartsWith(TEXT("moonbear-reward|")))
+        && !(GemItemId == TEXT("DuskDiamond") && ClaimId.StartsWith(TEXT("mireling-gem|")))) return false;
+    auto* Reward = PendingWildlifeRewards.FindByPredicate([&ClaimId](const auto& Entry) { return Entry.PersistentSpawnId == ClaimId; });
+    if (!Reward) return false;
+    Reward->GemItemId = GemItemId;
+    return true;
+}
+
+const FKalmalaTreasureState* UKalmalaWorldPopulationSaveGame::FindTreasure(const FString& Id) const
+{
+    return Treasures.FindByPredicate([&Id](const auto& State) { return State.Id == Id; });
+}
+
+bool UKalmalaWorldPopulationSaveGame::SetTreasure(const FKalmalaTreasureState& State)
+{
+    if (State.Id.IsEmpty() || State.Id.Len() > 128 || State.Items.Num() > 2) return false;
+    TSet<FName> Seen;
+    for (const FName Item : State.Items)
+    {
+        if ((Item != TEXT("Garnet") && Item != TEXT("Aquamarine") && Item != TEXT("StormSapphire")) || Seen.Contains(Item)) return false;
+        Seen.Add(Item);
+    }
+    auto* Existing = Treasures.FindByPredicate([&State](const auto& Entry) { return Entry.Id == State.Id; });
+    if (Existing)
+    {
+        if (Existing->Items != State.Items || Existing->bClaimed || !State.bClaimed) return false;
+        *Existing = State;
+        return true;
+    }
+    if (Treasures.Num() >= 65536 || State.bClaimed) return false;
+    Treasures.Add(State);
+    return true;
 }

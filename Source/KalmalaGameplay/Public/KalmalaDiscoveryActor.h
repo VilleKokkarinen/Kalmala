@@ -24,10 +24,15 @@ public:
     bool InitializeM9ExplorationRewardServer(const FKalmalaM9ExplorationRewardDescriptor& InDescriptor);
     const FKalmalaWorldDiscoveryDescriptor& GetDescriptor() const { return Descriptor; }
     const FKalmalaM9ExplorationRewardDescriptor& GetM9ExplorationRewardDescriptor() const { return M9ExplorationRewardDescriptor; }
+    bool HasWorldTreasure() const { return bWorldTreasure; }
+    bool IsTreasureClaimed() const { return bTreasureClaimed; }
     virtual bool CanInteract_Implementation(AKalmalaCharacter* Interactor) const override;
     virtual void Interact_Implementation(AKalmalaCharacter* Interactor) override;
 private:
     void BuildDiscoveryPresentation();
+    UPROPERTY(ReplicatedUsing = OnRep_Treasure) bool bWorldTreasure = false;
+    UPROPERTY(ReplicatedUsing = OnRep_Treasure) bool bTreasureClaimed = false;
+    UFUNCTION() void OnRep_Treasure();
 
     UPROPERTY(VisibleAnywhere) TObjectPtr<USphereComponent> Collision;
     UPROPERTY(ReplicatedUsing = OnRep_RareDiscoverySourceId, VisibleAnywhere, Category = "Discovery")

@@ -1,5 +1,16 @@
 # Development setup
 
+## A9 runtime verification — 2026-10-24
+
+Accessory runtime effects, all ten gem sources, Forge gear routes and the four
+existing scroll routes are implemented. Combined I5 passed the Editor/Game
+builds, full 187-case Kalmala queue, catalogue/icon checks, applicable peers and
+restart, and standard/compact equipped-inventory renders. See the
+[A9 contract and evidence handoff](a9-acceptance.md) and `PROGRESS.md` for exact
+commands, repairs, retained evidence and session-only inventory/gear limits.
+The older data-batch notes below do not describe current runtime completion.
+
+
 ## A9 item catalogue and icon data — 2026-10-22
 
 Catalogue schema 16 includes ten stackable gem materials, eight necklace/ring
@@ -10,9 +21,7 @@ equipment uses the owner-bound gear transaction and has no condition wear.
 `WeightKg` is 1 for every accessory. Accessory multiplier fields are additive
 deltas with zero as neutral. Equipped stamina-cost deltas combine with Wet and
 Steady Meal adjustments for every stamina cost; the support-spell delta applies
-only to support spells. Maximum-health/stamina, stamina-regeneration and
-healing-received deltas are validated data whose runtime effects remain
-pending. Gem acquisition sources and gemstone-rock mining are also not enabled
+only to support spells. Maximum-health/stamina now recalculate without refill on accepted equipment changes; Vigor combines with ring stamina. Stamina-regeneration and healing-received deltas apply once at resolution. Run `Kalmala.Gameplay.Inventory.AccessorySlots` and `Kalmala.Gameplay.Status.AccessoryStats`, alongside the Status/Support/Inventory groups, for the focused regression paths. These new tests have not yet been compiled or executed. Gem acquisition sources and gemstone-rock mining are also not enabled
 by this data batch. Gem records have no crafting, combat, equipment, or upgrade
 data; accessories have no durability, repair, upgrade, or attack data; crafted
 gear has no drop-table entry.
@@ -4609,6 +4618,15 @@ post-restart late join, and rejected discovery replay, in addition to the
 underway voyage and owner feedback.
 
 Check each runner's supported parameters before invoking it. For milestone-final acceptance, use a successfully built integrated tree, the prescribed full Kalmala automation namespace, fresh isolated profiles, and the relevant live/rendered/package checks. A static contract PASS never proves rendered or physical input acceptance. Run UnrealBuildTool with normal read/write access to %LOCALAPPDATA%/UnrealBuildTool. Use short paths and avoid generating Binaries, Intermediate, Saved, or DerivedDataCache inside the source checkout during autonomous work.
+
+## A9 independent acceptance
+
+Use the short isolated build mirror for `Scripts/Tests/Combat/Verify-A9Peer.ps1 -Port 19309 -OutputDirectory <fresh-short-path>`.
+It starts a listen host and two owning clients, provisions explicit test gear and a pick, materializes canonical seeded Quartz and Garnet descriptors, and checks three client-driven hits, one-hit actor restoration, full-pack rejection, competing gem/treasure claims, owner-only accessory stats and relevant-peer hit/outcome replication. The fixture holds players at interaction height while distant terrain streams and removes duplicate actors for its canonical identities. A fresh process reuses only the host profile and verifies both claimed ledger entries. This is shared-system acceptance, not a no-grant fresh-character progression or physical-input certification.
+
+Render the equipped inventory with the existing `RenderMenu` commandlet and `-Menu=inventory -A9Gear`, `-AllowCommandletRendering -RenderOffscreen`, explicit dimensions and private output/UserDir/log paths. The opt-in fixture equips Opal Helm, Garnet Necklace and Dusk Ring and includes Star Opal/Storm Sapphire icons. Inspect maintenance controls and the expanded backplate. Run the complete `Kalmala` automation queue after repairs, Editor and Game builds, icon/catalogue validators and applicable shared crafting/inventory/discovery regressions. Keep I4-dependent enemy enablement and combined I5 acceptance open until integrated evidence exists.
+
+Run `Scripts/Tests/Acceptance/Verify-M5DocumentationContracts.ps1` for the five no-build presentation/input/audio contracts. It passes named `ContractOnly` switches and isolates inherited native exit status. Settings prose checks ignore Markdown line wrapping while retaining required content; ownership checks use the current catalogue-ID exclusion and storage-GUID routes. Negative missing-prose/source cases must still be rejected. A static contract pass does not replace the live or rendered checks above.
 
 ## Native-format support tools
 

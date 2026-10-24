@@ -11,6 +11,7 @@
 #include "KalmalaCraftingComponent.h"
 #include "KalmalaCombatComponent.h"
 #include "KalmalaDiscoveryProgressComponent.h"
+#include "KalmalaDiscoveryActor.h"
 #include "KalmalaSupportMagicComponent.h"
 #include "KalmalaSkillProgressionComponent.h"
 #include "KalmalaPlayerStatusComponent.h"
@@ -108,6 +109,7 @@ void AKalmalaCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
     DOREPLIFETIME(AKalmalaCharacter, ExposureState);
     DOREPLIFETIME(AKalmalaCharacter, Health);
+    DOREPLIFETIME_CONDITION(AKalmalaCharacter, CurrentMaximumHealth, COND_OwnerOnly);
     DOREPLIFETIME_CONDITION(AKalmalaCharacter, CarriedTools, COND_OwnerOnly);
     DOREPLIFETIME(AKalmalaCharacter, bHeldTorchLit);
     DOREPLIFETIME(AKalmalaCharacter, bDodgeRollActive);
@@ -338,7 +340,7 @@ bool AKalmalaCharacter::ApplyWildlifeDamageFromServer(const AActor* SourceActor,
         for (const FKalmalaEquippedGear& Gear : Inventory->GetEquippedGear())
         {
             FKalmalaGearLevelStats GearStats;
-            if (!ItemCatalogue->GetGearLevelStats(Gear.ItemId, 1, GearStats)) return false;
+            if (!ItemCatalogue->GetGearLevelStats(Gear.ItemId, Gear.Level, GearStats)) return false;
             if (GearStats.MaxDurability > 0
                 && (Gear.ConditionSpent < 0 || Gear.ConditionSpent >= GearStats.MaxDurability)) continue;
             GearArmor += GearStats.Armor;
@@ -347,7 +349,7 @@ bool AKalmalaCharacter::ApplyWildlifeDamageFromServer(const AActor* SourceActor,
 
     if (!Defenses->Profile.Resolve(Damage, ResolvedDamage, GearArmor)) return false;
     const float Absorbed = SupportMagic ? SupportMagic->AbsorbHearthShieldDamageFromServer(ResolvedDamage) : 0.0f;
-    Health = FMath::Clamp(Health - FMath::Max(0.0f, ResolvedDamage - Absorbed), 1.0f, 100.0f);
+    Health = FMath::Clamp(Health - FMath::Max(0.0f, ResolvedDamage - Absorbed), 1.0f, CurrentMaximumHealth);
     if (Inventory) Inventory->WearEquippedGearFromServer();
     ForceNetUpdate();
     return true;
@@ -365,9 +367,20 @@ bool AKalmalaCharacter::ApplyPoisonDamageFromStatusFromServer(const float Damage
     float ResolvedDamage = 0.0f;
     if (!Defenses->Profile.Resolve(PoisonDamage, ResolvedDamage)) return false;
     const float Absorbed = SupportMagic ? SupportMagic->AbsorbHearthShieldDamageFromServer(ResolvedDamage) : 0.0f;
-    Health = FMath::Clamp(Health - FMath::Max(0.0f, ResolvedDamage - Absorbed), 1.0f, 100.0f);
+    Health = FMath::Clamp(Health - FMath::Max(0.0f, ResolvedDamage - Absorbed), 1.0f, CurrentMaximumHealth);
     ForceNetUpdate();
     return true;
+}
+
+void AKalmalaCharacter::RefreshEquippedStatsFromServer()
+{
+    if (!HasAuthority()) return;
+    const FKalmalaAccessoryModifiers Accessory = Statuses ? Statuses->GetAccessoryModifiers() : FKalmalaAccessoryModifiers();
+    CurrentMaximumHealth = 100.0f + Accessory.MaxHealth;
+    Health = FMath::Min(Health, CurrentMaximumHealth);
+    if (auto* Movement = Cast<UKalmalaCharacterMovementComponent>(GetCharacterMovement()))
+        Movement->SetAccessoryStaminaFromServer(Accessory.MaxStamina);
+    ForceNetUpdate();
 }
 
 bool AKalmalaCharacter::IsMendingReceiveAllowed(const bool bServerAuthority, const bool bValidAlly, const bool bSameWorld,
@@ -382,8 +395,9 @@ bool AKalmalaCharacter::ReceiveMendingFromServer(const AKalmalaCharacter* Source
     const bool bValidAlly = IsValid(SourceCharacter) && SourceCharacter != this;
     const bool bSameWorld = bValidAlly && SourceCharacter->GetWorld() == GetWorld();
     const bool bInRange = bSameWorld && FVector::DistSquared(SourceCharacter->GetActorLocation(), GetActorLocation()) <= FMath::Square(350.0f);
-    if (!IsMendingReceiveAllowed(HasAuthority(), bValidAlly, bSameWorld, bInRange, Health > 1.0f, Health < 100.0f, HealAmount)) return false;
-    Health = FMath::Min(100.0f, Health + HealAmount);
+    if (!IsMendingReceiveAllowed(HasAuthority(), bValidAlly, bSameWorld, bInRange, Health > 1.0f, Health < CurrentMaximumHealth, HealAmount)) return false;
+    Health = FMath::Min(CurrentMaximumHealth, Health + HealAmount
+        * FMath::Clamp(1.0f + (Statuses ? Statuses->GetAccessoryModifiers().HealingReceived : 0.0f), 0.5f, 2.0f));
     ForceNetUpdate();
     return true;
 }
@@ -392,9 +406,10 @@ bool AKalmalaCharacter::RestoreHealthFromDraughtFromServer(const float HealAmoun
 {
     if (!HasAuthority() || !FMath::IsFinite(HealAmount) || HealAmount <= 0.0f
         || HealAmount > UKalmalaPlayerStatusComponent::RatTailTonicHealth
-        || !FMath::IsFinite(Health) || Health <= 1.0f || Health >= 100.0f) return false;
+        || !FMath::IsFinite(Health) || Health <= 1.0f || Health >= CurrentMaximumHealth) return false;
     const float PreviousHealth = Health;
-    Health = FMath::Min(100.0f, Health + HealAmount);
+    Health = FMath::Min(CurrentMaximumHealth, Health + HealAmount
+        * FMath::Clamp(1.0f + (Statuses ? Statuses->GetAccessoryModifiers().HealingReceived : 0.0f), 0.5f, 2.0f));
     if (Health <= PreviousHealth) return false;
     ForceNetUpdate();
     return true;
@@ -472,6 +487,7 @@ void AKalmalaCharacter::BeginPlay()
 void AKalmalaCharacter::Tick(const float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
+    VerifyA9Peer();
     AdvanceWildlifeKnockbackFromServer(DeltaSeconds);
     AdvanceDodgeRollFromServer(DeltaSeconds);
     UpdateDodgeRollPresentation(DeltaSeconds);
@@ -1295,16 +1311,18 @@ bool TraceInteractionCandidate(const AKalmalaCharacter* Pawn, const FVector& Vie
     if (Pawn->GetWorld()->LineTraceSingleByChannel(OutHit, ViewLocation,
         ViewLocation + Direction * Range, ECC_Visibility, Params)) return true;
 
-    // The third-person boom must not consume physical wood-pickup reach.
-    // Extend only the visibility query; every other interaction keeps its trace.
+    // The third-person boom must not consume physical pickup/treasure reach.
+    // Extend only the visibility query; authority still uses the physical range.
     const float CameraOffset = FVector::Distance(ViewLocation, Pawn->GetActorLocation());
     if (!FMath::IsFinite(CameraOffset) || CameraOffset > 500.0f) return false;
     FHitResult ExtendedHit;
     if (!Pawn->GetWorld()->LineTraceSingleByChannel(ExtendedHit, ViewLocation,
         ViewLocation + Direction * (CameraOffset + Range), ECC_Visibility, Params)) return false;
     const auto* Drop = Cast<AKalmalaHarvestNode>(ExtendedHit.GetActor());
-    if (!Drop || !Drop->IsWoodDrop() || Drop->IsHarvested()) return false;
-    const float PhysicalDistance = FVector::Distance(Pawn->GetActorLocation(), Drop->GetActorLocation());
+    const auto* Treasure = Cast<AKalmalaDiscoveryActor>(ExtendedHit.GetActor());
+    const bool bPickup = Drop && !Drop->IsHarvested() && (Drop->IsWoodDrop() || (Drop->IsGemstone() && Drop->GetGemOutcome() == 2));
+    if (!bPickup && !(Treasure && Treasure->HasWorldTreasure() && !Treasure->IsTreasureClaimed())) return false;
+    const float PhysicalDistance = FVector::Distance(Pawn->GetActorLocation(), ExtendedHit.GetActor()->GetActorLocation());
     if (!FMath::IsFinite(PhysicalDistance) || PhysicalDistance > Range) return false;
     OutHit = ExtendedHit;
     OutHit.Distance = PhysicalDistance;
@@ -1338,6 +1356,12 @@ bool AKalmalaCharacter::GetLocalHarvestInteractionIntent(const AKalmalaHarvestNo
     {
         bOutHasUsableTool = Node->IsWoodDrop() && !Node->IsHarvested();
         return true;
+    }
+
+    if (Node->IsGemstone())
+    {
+        bOutHasUsableTool = Node->GetGemOutcome() == 2;
+        return true; // Interaction only claims a loose gem; mining uses equipped Basic attacks.
     }
 
     if (Node->IsHandGatherablePatch())
@@ -1475,6 +1499,9 @@ void AKalmalaCharacter::ReleaseAttack()
 
 void AKalmalaCharacter::ServerRequestInteract_Implementation(const FName ClientItemId, const uint8 ClientAction)
 {
+#if !UE_BUILD_SHIPPING
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaA9PeerTest"))) ++A9InteractionRequests;
+#endif
 #if !UE_BUILD_SHIPPING
     if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestContention")) && GetWorld()
         && ClientItemId.IsNone() && ClientAction == 0)

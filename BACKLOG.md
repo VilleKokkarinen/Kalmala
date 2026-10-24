@@ -300,105 +300,125 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
 
   The JSON-only child, all 30 icon children and all 30 source/output
   implementation rows are complete. Enemy rewards and dependent items are
-  enabled through their server-side paths; their combined live I4 acceptance
-  remains open.
+  enabled through their server-side paths; combined live I4 acceptance passed
+  in `fdda0f39` on 2026-10-24.
 
   Bow String is reserved for bows. Review every pending non-bow binding input in its category contract; do not use Bow String there. Moonstone Ring and Dusk Ring stay in A9. Do not duplicate them.
   A8b effects and full armor/weapon profiles are resolved in [the item
   contract](docs/alpha-item-details.md#a8b). The Reef Harpoon route is approved
   but adds no skiff damage. All 15 material-producing enemy sources and their
-  registered outputs are implemented; the I4 gate above retains the remaining
-  live peer, reward retry/restart/privacy and item-progression acceptance.
+  registered outputs are implemented; the I4 gate above records accepted
+  live peer, reward retry/restart/privacy and item-progression verification.
 
-- [ ] **A9 — gems and special gear (P2).** [Rules](docs/alpha-item-details.md#a9)
-  - Completion handoff: the 50 checked JSON/recipe/icon stages below were implemented in `71fa8060` on `codex/a9-json-icons` and merged into master on 2026-10-22. Acquisition, runtime accessory behavior, reviews and milestone verification remain open.
-  - [ ] Review A9.
-  - [ ] Review Necklace/Ring slots; one item per slot, bonuses only while equipped.
-  - [ ] Apply the remaining authored accessory stats at runtime: `MaxHealthBonus` and `MaxStaminaBonus` as flat equipped bonuses, plus additive `StaminaRegenerationMultiplier` and `HealingReceivedMultiplier` deltas. Recalculate server-owned stats on equip/unequip and add focused status/healing coverage.
+- [x] **A9 — gems and special gear (P2).** [Rules](docs/a9-acceptance.md#retained-a9-gameplay-contract)
+  - Completion handoff: JSON/recipe/icon stages were merged from `71fa8060`; runtime accessories, all ten gem sources and special gear are now implemented on `codex/a9-runtime`. Combined I5 passed on 2026-10-24 (187 automation cases plus applicable builds, validators, peers/restart and renders). Verified runtime commit `d0ead245` is integrated into local master by the final normal merge; all A9 implementation and I5 acceptance work is complete.
+  - [x] Review A9. User approved the documented source rates, mutually exclusive replacements and three-hit extraction on 2026-10-23; existing source prerequisites and I4/I5 acceptance remain required.
+  - [x] Review Necklace/Ring slots; one item per slot, bonuses only while equipped. Existing validated owner-only transactions retained; focused AccessorySlots regression added.
+  - [x] Apply the remaining authored accessory stats at runtime: `MaxHealthBonus` and `MaxStaminaBonus` as flat equipped bonuses, plus additive `StaminaRegenerationMultiplier` and `HealingReceivedMultiplier` deltas. Recalculate server-owned stats on equip/unequip and add focused status/healing coverage.
   - Each A9 item is completed through separate item-scoped steps in this order: add its complete item/profile JSON and register its file in `Content/Data/GameCatalogues.json` first; add and register its recipe next when crafted; generate and integrate its original icon next; add or enable its acquisition/source-table entry last when needed. Icon work includes provenance, preparation/import, runtime mapping, and validator coverage. Gem recipes are N/A; crafted gear has no drop-table entry. Each stage can be completed in its own short-path worktree and committed individually. Do not enable acquisition before its item JSON and icon are complete or its source dependency is accepted. The sequence applies only after the A9 review and I4 gate.
   - User-directed 2026-10-22 batch: use the proposal-table values for these JSON/recipe records and generated icons. The review, accessory runtime behavior, gem sources, and I4/I5 acceptance remain open.
-  - [ ] Smoky Quartz (`SmokyQuartz`): Quartz rock; proposed 5% replacement of Copper/Tin spawn slots.
+  - [x] Smoky Quartz (`SmokyQuartz`): Quartz rock; proposed 5% replacement of Copper/Tin spawn slots.
     - [x] Add and register the complete raw-gem item JSON; record recipe and combat/equipment/upgrade categories as N/A.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
-    - [ ] Add or enable its Quartz-rock acquisition/source-table entry after the item JSON and icon are complete and the source is accepted.
-  - [ ] Moonstone (`Moonstone`): proposed 2% chance of 1 per credited Moon Bear defeat; requires A8a.
+    - [x] Add or enable its Quartz-rock acquisition/source-table entry after the item JSON and icon are complete and the source is accepted.
+  - [x] Moonstone (`Moonstone`): 2% chance of 1 per credited generated Elderwood Moon Bear defeat; accepted A8a/I4 source enabled.
     - [x] Add and register the complete raw-gem item JSON; record recipe and combat/equipment/upgrade categories as N/A.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
-    - [ ] Add or enable the Moon Bear reward-table entry last, after item JSON/icon completion and accepted A8a source.
-  - [ ] Garnet (`Garnet`): proposed 10% chance of 1 in Elderwood/Lakes world treasure chests; chest-only.
+    - [x] Add or enable the Moon Bear reward-table entry last, after item JSON/icon completion and accepted A8a source.
+      - [x] Prepare validated generated-Moon-Bear selection, persisted optional gem payload and atomic full-reward delivery; icon check passed.
+      - [x] Enable the prepared Moonstone source after integrated I4 acceptance; `MoonstoneSourceAccepted` is true. Runtime acceptance remains in combined I5.
+  - [x] Garnet (`Garnet`): proposed 10% chance of 1 in Elderwood/Lakes world treasure chests; chest-only.
     - [x] Add and register the complete raw-gem item JSON; record recipe and combat/equipment/upgrade categories as N/A.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
-    - [ ] Add or enable its eligible world-treasure source-table entry last, after item JSON/icon completion and accepted treasure support.
-  - [ ] Green Jade (`GreenJade`): Jade rock; proposed 2% replacement of Tin spawn slots in Shimmering Lakes.
+    - [x] Add or enable its eligible world-treasure source-table entry last, after item JSON/icon completion and accepted treasure support.
+  - [x] Green Jade (`GreenJade`): Jade rock; proposed 2% replacement of Tin spawn slots in Shimmering Lakes.
     - [x] Add and register the complete raw-gem item JSON; record recipe and combat/equipment/upgrade categories as N/A.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
-    - [ ] Add or enable its Jade-rock acquisition/source-table entry after the item JSON and icon are complete and the source is accepted.
-  - [ ] Amethyst (`Amethyst`): Amethyst rock; proposed 3% replacement of Iron Ore spawn slots in Mossy Mire.
+    - [x] Add or enable its Jade-rock acquisition/source-table entry after the item JSON and icon are complete and the source is accepted.
+  - [x] Amethyst (`Amethyst`): Amethyst rock; proposed 3% replacement of Iron Ore spawn slots in Mossy Mire.
     - [x] Add and register the complete raw-gem item JSON; record recipe and combat/equipment/upgrade categories as N/A.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
-    - [ ] Add or enable its Amethyst-rock acquisition/source-table entry after the item JSON and icon are complete and the source is accepted.
-  - [ ] Aquamarine (`Aquamarine`): proposed 5% chance of 1 in Shimmering Lakes treasure chests.
+    - [x] Add or enable its Amethyst-rock acquisition/source-table entry after the item JSON and icon are complete and the source is accepted.
+  - [x] Aquamarine (`Aquamarine`): proposed 5% chance of 1 in Shimmering Lakes treasure chests.
     - [x] Add and register the complete raw-gem item JSON; record recipe and combat/equipment/upgrade categories as N/A.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
-    - [ ] Add or enable its eligible world-treasure source-table entry last, after item JSON/icon completion and accepted treasure support.
-  - [ ] Tourmaline (`Tourmaline`): Tourmaline rock; proposed 2% replacement of slate spawn slots in Thunder Mountains.
+    - [x] Add or enable its eligible world-treasure source-table entry last, after item JSON/icon completion and accepted treasure support.
+  - [x] Tourmaline (`Tourmaline`): Tourmaline rock; proposed 2% replacement of slate spawn slots in Thunder Mountains.
     - [x] Add and register the complete raw-gem item JSON; record recipe and combat/equipment/upgrade categories as N/A.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
-    - [ ] Add or enable its Tourmaline-rock acquisition/source-table entry after the item JSON and icon are complete and the source is accepted.
-  - [ ] Star Opal (`StarOpal`, special): Tundra rock; proposed 1% replacement of Frost Salt deposit slots.
+    - [x] Add or enable its Tourmaline-rock acquisition/source-table entry after the item JSON and icon are complete and the source is accepted.
+  - [x] Star Opal (`StarOpal`, special): Tundra rock; proposed 1% replacement of Frost Salt deposit slots.
     - [x] Add and register the complete raw-gem item JSON; record recipe and combat/equipment/upgrade categories as N/A.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
-    - [ ] Add or enable its Star-Opal-rock acquisition/source-table entry after the item JSON and icon are complete and the source is accepted.
-  - [ ] Storm Sapphire (`StormSapphire`, special): proposed 2% chance of 1 in Thunder Mountains treasure.
+    - [x] Add or enable its Star-Opal-rock acquisition/source-table entry after the item JSON and icon are complete and the source is accepted.
+      - User approved the bounded real-deposit pass on 2026-10-23: at most one dry, slope-safe and separated deposit per 60 m key; 1% become Star Opal, leaving frostmoss unchanged.
+  - [x] Storm Sapphire (`StormSapphire`, special): proposed 2% chance of 1 in Thunder Mountains treasure.
     - [x] Add and register the complete raw-gem item JSON; record recipe and combat/equipment/upgrade categories as N/A.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
-    - [ ] Add or enable its eligible world-treasure source-table entry last, after item JSON/icon completion and accepted treasure support.
-  - [ ] Dusk Diamond (`DuskDiamond`, special): proposed 1% chance of 1 from Mossy Mire Mirelings.
+    - [x] Add or enable its eligible world-treasure source-table entry last, after item JSON/icon completion and accepted treasure support.
+  - [x] Dusk Diamond (`DuskDiamond`, special): approved 1% chance of 1 from credited generated Mossy Mire Mirelings; source enabled, combined I5 verification pending.
     - [x] Add and register the complete raw-gem item JSON; record recipe and combat/equipment/upgrade categories as N/A.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
-    - [ ] Add or enable its Mireling reward-table entry last, after item JSON/icon completion and accepted A8a source.
-  - [ ] Gemstone rocks: implement the shared rare resource-slot replacement and 10% gem-smash rule; successful extraction yields 1 gem. This shared source mechanic does not add per-item acquisition entries.
-  - [ ] Quartz Necklace (`QuartzNecklace`): finalize its recipe and +10 Armor profile in Review A9; see the A9 item contract.
+    - [x] Add or enable its Mireling reward-table entry last, after item JSON/icon completion and accepted A8a source.
+      - [x] Prepare generated-Mossy-Mire Mireling validation, 1/100 selection and persistent credited reward payload; icon check passed.
+      - [x] Enable the prepared Dusk Diamond source after integrated I4 acceptance; `DuskDiamondSourceAccepted` is true.
+  - [x] Gemstone rocks: implement the shared rare resource-slot replacement and 10% gem-smash rule; successful extraction yields 1 gem. This shared source mechanic does not add per-item acquisition entries.
+    - [x] Add shared source-selection/hit-outcome contract and validated sparse gemstone save state; no sources enabled yet.
+    - [x] Connect attack-driven pickaxe hits, durable progress/outcomes and loose-gem pickup; then enable item sources in their listed order.
+    - [x] Enable and inspect seeded resource replacements after per-item acquisition entries are registered; full executed verification remains I5 scope.
+  - [x] Quartz Necklace (`QuartzNecklace`): finalized Forge inventory-crafting route and +10 Armor profile; focused paid exchange/equip/physical-only/no-wear coverage added.
     - [x] Add and register the complete item/equipment/stat JSON first, with applicable N/A categories recorded.
     - [x] Add and register its Forge recipe using the values finalized by Review A9.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
-  - [ ] Moonstone Ring (`MoonstoneRing`): finalize its recipe and +20 maximum stamina profile in Review A9; see the A9 item contract.
+  - [x] Moonstone Ring (`MoonstoneRing`): approved Forge recipe and equipped +20 maximum stamina path are implemented, with the Moonstone source enabled.
+    - [x] Complete executable Forge inventory recipe and paid craft/GUID equip coverage; Moonstone source enablement followed accepted I4.
     - [x] Add and register the complete item/equipment/stat JSON first, with applicable N/A categories recorded.
     - [x] Add and register its Forge recipe using the values finalized by Review A9.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
-  - [ ] Garnet Necklace (`GarnetNecklace`): finalize its recipe and +20 maximum health profile in Review A9; see the A9 item contract.
+  - [x] Garnet Necklace (`GarnetNecklace`): finalized executable Forge recipe and +20 maximum health; paid craft/equip, no-refill and above-100 healing/full-health checks added.
     - [x] Add and register the complete item/equipment/stat JSON first, with applicable N/A categories recorded.
     - [x] Add and register its Forge recipe using the values finalized by Review A9.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
-  - [ ] Jade Ring (`JadeRing`): finalize its recipe and sprint-stamina profile in Review A9; see the A9 item contract.
+  - [x] Jade Ring (`JadeRing`): finalized executable Forge recipe and global -0.10 stamina-cost delta, including additive Wet/Meal and immediate-removal coverage.
     - [x] Add and register the complete item/equipment/stat JSON first, with applicable N/A categories recorded.
     - [x] Add and register its Forge recipe using the values finalized by Review A9.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
-  - [ ] Amethyst Necklace (`AmethystNecklace`): finalize its recipe and support-spell profile in Review A9; see the A9 item contract.
+  - [x] Amethyst Necklace (`AmethystNecklace`): finalized executable Forge recipe and support-only -0.15 cost delta; ordinary/zero-cost exclusions and additive Jade/Wet/Meal coverage added.
     - [x] Add and register the complete item/equipment/stat JSON first, with applicable N/A categories recorded.
     - [x] Add and register its Forge recipe using the values finalized by Review A9.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
-  - [ ] Aquamarine Ring (`AquamarineRing`): finalize its recipe and stamina-regeneration profile in Review A9; see the A9 item contract.
+  - [x] Aquamarine Ring (`AquamarineRing`): finalized executable Forge recipe and +0.15 active-regeneration delta; sprint/full-stamina/draught exclusions and removal covered.
     - [x] Add and register the complete item/equipment/stat JSON first, with applicable N/A categories recorded.
     - [x] Add and register its Forge recipe using the values finalized by Review A9.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
-  - [ ] Tourmaline Necklace (`TourmalineNecklace`): finalize its recipe and healing-received profile in Review A9; see the A9 item contract.
+  - [x] Tourmaline Necklace (`TourmalineNecklace`): finalized executable Forge recipe and incoming-only +0.10 healing; partial ticks, removal, full health, outgoing exclusion and no resurrection covered.
     - [x] Add and register the complete item/equipment/stat JSON first, with applicable N/A categories recorded.
     - [x] Add and register its Forge recipe using the values finalized by Review A9.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
-  - [ ] Opal Helm (`OpalHelm`): finalize its Forge recipe and armor profile in Review A9; see the A9 item contract.
+  - [x] Opal Helm (`OpalHelm`): finalized Forge acquisition, session-only levels/upgrades/free repair, level-aware physical Armor/wear/condition display and original icon.
+    - [x] Complete ordinary Forge crafting and paid-output/GUID Head-slot equip coverage.
+    - [x] Integrate session-owned levels, Forge upgrades/free repair and level-aware wear/Armor/presentation; preserve existing gear-save limits.
     - [x] Add and register the complete item/equipment/profile JSON first, with applicable N/A categories recorded.
     - [x] Add and register its Forge recipe using the values finalized by Review A9.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
-  - [ ] Stormcut Sword (`StormcutSword`): finalize its Forge recipe and attack profile in Review A9; see the A9 item contract.
+  - [x] Stormcut Sword (`StormcutSword`): finalized supported runtime sword kind, Forge acquisition/upgrades/free repair, Basic Slash and held presentation; focused paid lifecycle coverage added.
     - [x] Add and register the complete item/equipment/attack JSON first, with applicable N/A categories recorded.
     - [x] Add and register its Forge recipe using the values finalized by Review A9.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
-  - [ ] Dusk Ring (`DuskRing`): finalize its recipe and combined health/stamina/Armor profile in Review A9; see the A9 item contract.
+  - [x] Dusk Ring (`DuskRing`): approved paid Forge recipe and hybrid equipped stats implemented; Dusk Diamond source enabled, combined I5 pending.
+    - [x] Complete executable Forge recipe and combined flat-stat/physical-Armor craft/equip coverage; source enablement remains I4-dependent.
     - [x] Add and register the complete item/equipment/stat JSON first, with applicable N/A categories recorded.
     - [x] Add and register its Forge recipe using the values finalized by Review A9.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
-  - [ ] Audit the four existing scroll routes; defer new scrolls, trophies and boss keys.
+  - [x] Audit the four existing scroll routes; defer new scrolls, trophies and boss keys. Source audit and exact routes recorded in `docs/a9-acceptance.md`; live acceptance remains I5 scope.
+  - [x] Complete applicable I5 builds/automation/catalogue/icon/peer/persistence/rendered verification, repair A9 defects, and integrate enemy-source acceptance only after I4 passes.
+    - [x] Execute isolated Editor/Game builds, full automation, new gemstone/treasure peer-and-restart evidence, shared crafting/discovery/inventory checks and equipped-inventory renders; record exact passes, repairs and remaining shared-check failures.
+    - [x] Verify prepared enemy-gem chance bounds and owner-bound pending-payload serialization/rejection without enabling I4-gated sources.
+    - [x] Repair the presentation/M5 checker invocation and stale prose/source anchors, preserving negative checks and leaving runtime inventory-baseline disposition with I4.
+    - [x] Integrate the committed A8b progression snapshot a33711ec into the isolated A9 branch, preserve both handoffs, and rerun no-build contracts; I4 acceptance remains pending.
+    - [x] Integrate master through `9a8cbc0f`, retaining completed I4 acceptance and the inventory-baseline fix; enemy-source activation and combined I5 remain next.
+    - [x] Integrate passed I4 source acceptance, enable and verify Moonstone/Dusk Diamond rewards, and resolve the inherited inventory notification-baseline verification disposition. Canonical source and persisted payload tests, inventory and two-visit reconnect checks passed.
+    - [x] Pass combined integrated I5 verification and merge A9 normally into local master at a safe clean boundary, preserving the other worker's handoff. Final runtime commit `d0ead245`; 187/187 automation cases passed, with applicable builds, validators, peers/restart and renders.
 
 - [ ] **A10 — Acceptance.** [Full criteria](docs/alpha-item-details.md#a10)
   - [ ] Audit all approved item IDs against registered JSON and generated/imported runtime icons; zero missing entries, references or fallback icons.
