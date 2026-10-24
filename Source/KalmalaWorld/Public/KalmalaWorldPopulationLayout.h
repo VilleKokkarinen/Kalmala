@@ -454,6 +454,7 @@ struct FKalmalaMonsterSpawnTuning final
     static constexpr uint8 PopulationAdmissionRollRange = 100;
     static constexpr uint8 PopulationAdmissionRollMaxAccepted = 24;
     static constexpr float CountRadiusCm = 96.0f * 100.0f;
+    static constexpr double LivingCreatureUnloadCooldownSeconds = 30.0;
     static constexpr float PlayerKeyIntersectionRadiusCm = 96.0f * 100.0f;
 
     static_assert(FKalmalaWorldPopulationLayout::SpatialKeySizeCm == 64.0f * 100.0f,
@@ -467,6 +468,8 @@ struct FKalmalaMonsterSpawnTuning final
         "Land population surfaces must use a positive slope limit below vertical.");
     static_assert(RingMaximumDistanceCm <= CountRadiusCm,
         "Monster spawn count radius must cover the outer ring.");
+    static_assert(LivingCreatureUnloadCooldownSeconds == 30.0,
+        "Living population slots retain the fixed 30-second session cooldown.");
     static_assert(PlayerKeyIntersectionRadiusCm > 0.0f,
         "Player population-key radius must be positive.");
     static_assert(CommonSpeciesAreaCap > 0 && RareHardEnemyAreaCap > 0 && WolfIndividualAreaCap > 0,

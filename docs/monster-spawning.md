@@ -312,9 +312,9 @@ living actors at current locations, their home-key budget, the sum of active
 key budgets, and pending S12 reservations. For Wolves it trial-reserves all
 three deterministic member positions through the atomic S12 API, then releases
 that token immediately; a pack passes only when all three slots fit. S19
-creates no actor and retains no reservation after evaluation. S26 must recheck
-immediately before creation and hold a three-Wolf reservation through the
-creation transaction, releasing it after registration or on rollback.
+creates no actor and retains no reservation after evaluation. S26 rechecks caps
+and physical placement before creation, then holds a three-Wolf reservation
+through the transaction, releasing it after registration or on rollback.
 
 S20 adds a reusable server-side land-surface predicate for wildlife descriptors.
 It requires finite in-bounds generated ground, valid dry samples from the
@@ -363,8 +363,8 @@ server-authoritative `AKalmalaConstructionActor` whose kit is exactly `RoofKit`
 and whose registered root box has query collision enabled and blocks visibility
 traces. Each eligible roof component is traced independently, so foliage,
 canopy, cosmetics and non-roof construction cannot hide a RoofKit above them.
-S22b remains a reusable predicate; S25 now wires it into the final placement
-result. S26 remains the first task allowed to create natural actors.
+S22b remains a reusable predicate; S25 wires it into the final placement
+result, which S26 now uses before actor creation.
 
 S22c composes the S20 generated dry-ground predicate for land species or the
 S21 Reef Maw full-body water predicate, then checks each actual proposed actor
@@ -382,7 +382,7 @@ and Forge construction only. Its inclusive horizontal radius is 1800 cm and
 its inclusive vertical range is 1200 cm above or below the placed station
 origin. Uninitialized, destroyed, nonpositive-health and other construction
 pieces do not suppress. The query now feeds S25's combined final placement
-result; natural actor creation remains disabled until S26.
+result; S26 now creates natural actors only when this result passes.
 
 S24 adds a separate server-authoritative 3D sphere query with the same 1800 cm
 radius. An intact placed Camp Bed suppresses regardless of fuel; a Campfire
@@ -400,7 +400,32 @@ the actual proposed actor origin; Wolf packs check all three member origins.
 Failure reports PhysicalPlacement and removes that descriptor from the
 bounded candidate list. This only suppresses new natural-spawn admission:
 existing creatures are not destroyed or prevented from moving into a camp.
-S26 remains the first task allowed to create natural actors.
+S26 now creates natural actors only after this placement result passes.
+
+## S26 bounded natural actor creation — 2026-10-24
+
+The scheduler now sends each bounded attempt that passes the ordered nine-gate
+result into one authoritative creation transaction. The transaction rechecks
+caps and final physical placement immediately before creation. It rejects
+already defeated or live stable IDs and applies the session-only 30-second
+reactivation cooldown to living slots unloaded outside every living player's
+inclusive 96 m radius. New land actors use their computed collision-support
+origin while retaining the descriptor's stable key, seed and identity.
+
+Wolf attempts build the existing three member descriptors and hold the S12
+atomic capacity reservation through creation and live registration. Every
+partial creation or initialization failure destroys the newly created members
+and releases the reservation without defeat, reward or save callbacks. On
+success the reservation is released after all members register, and each actor
+binds to the existing defeat/reward/save callback. No save fields or reward
+claim behavior change.
+
+The normal key activation path continues to materialize harvest nodes and hazards;
+the separate discovery path remains unchanged. It no longer directly creates
+wildlife. Existing direct wildlife activation remains available only to explicit
+non-shipping combat and reconnect verification calls. Natural creation is server-authoritative and
+bounded by the existing scheduler wake budget. Camp suppression gates only new
+admissions; existing creatures are not unloaded or moved because of a camp.
 
 - Time, weather and progression are explicitly **unrestricted for all current
   species**. These three gates return pass. Provide internal policy seams and

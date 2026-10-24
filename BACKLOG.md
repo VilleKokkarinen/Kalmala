@@ -576,7 +576,8 @@ are specified in advance; implement them without requesting tuning values.
 exactly one per run, in order. Each normal checkbox targets roughly 10–20 minutes
 of integrated work plus a lightweight check. If it will exceed one turn, split
 that checkbox into smaller ordered children before implementing its first part.
-Keep intermediate code safe: do not enable natural spawning until S26. Record
+Keep intermediate code safe: S26 is the first increment that enables natural
+spawning. Record
 files, checks, remaining scope and next task in `PROGRESS.md`; commit only the
 run's changes, then stop. Add focused tests with the helper they exercise where
 practical; execute full verification only at the final gate. S35 is the required
@@ -655,7 +656,7 @@ milestone-final verification/repair run and can exceed a normal turn.
   - [x] **S25 — Wire placement gate.** Combine S20–S24 with current authoritative
     station state/destruction. Suppression blocks new natural spawns only; it
     does not delete existing creatures or prevent their movement into camp.
-  - [ ] **S26 — Enable natural spawning.** Route one bounded creation transaction
+  - [x] **S26 — Enable natural spawning.** Route one bounded creation transaction
     through all nine gates, reserve/release caps and apply S02 lifecycle rules.
     Replace the corresponding old activation path to avoid duplicate populations;
     keep harvest nodes, stable identities and owner-bound reward claims intact.

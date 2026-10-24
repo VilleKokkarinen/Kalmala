@@ -157,6 +157,7 @@ private:
     friend class FKalmalaPopulationStationCylinderTest;
     friend class FKalmalaPopulationSphericalSuppressionTest;
     friend class FKalmalaPopulationPhysicalPlacementGateTest;
+    friend class FKalmalaPopulationCreationTest;
     friend class AKalmalaWildlifeSpawn;
 
 #if WITH_DEV_AUTOMATION_TESTS
@@ -173,6 +174,13 @@ private:
     TArray<FIntPoint> GetDuePopulationSpatialKeys(double NowSeconds) const;
     bool MarkPopulationSpatialKeyServiced(const FIntPoint& SpatialKey, double NowSeconds);
     void UpdatePopulationSchedulerWake(double NowSeconds);
+    void UpdatePopulationCreatureUnloads(double NowSeconds,
+        const TArray<class AKalmalaCharacter*>& LivingPlayers);
+    bool TryCreatePopulationSpawnTransaction(FKalmalaPopulationSpawnAttempt& Attempt,
+        double NowSeconds);
+    bool HasLivePopulationCreatureWithSpawnId(const FString& PersistentSpawnId);
+    bool IsPopulationSpawnReactivationReady(const FString& PersistentSpawnId,
+        double NowSeconds) const;
     void SelectPopulationRingCandidates(FKalmalaPopulationSchedulerKeyWork& KeyWork,
         const TArray<FKalmalaWorldPopulationSpawn>& Descriptors,
         const TArray<class AKalmalaCharacter*>& LivingPlayers);
@@ -251,7 +259,8 @@ private:
     static bool IsPopulationProgressionGateAllowedForTests(EKalmalaWildlifeArchetype Archetype,
         bool bForceRejectForTests);
 #endif
-    void ActivatePopulationKey(const FIntPoint& SpatialKey);
+    void ActivatePopulationKey(const FIntPoint& SpatialKey,
+        bool bAllowLegacyWildlifeForVerification = false);
     void RefreshOceanDiscoveries();
     void RecordHarvestedSpawn(const FString& PersistentSpawnId);
     void LoadPopulationSave();
@@ -532,6 +541,7 @@ private:
     TMap<FIntPoint, uint64> PopulationKeyServicedCheckOrdinals;
     TSet<TWeakObjectPtr<class AKalmalaWildlifeSpawn>> LivePopulationCreatures;
     TMap<FIntPoint, int32> PopulationKeyWildlifeActorBudgets;
+    TMap<FString, double> PopulationCreatureReactivationDueTimes;
     TMap<FGuid, TArray<FKalmalaPopulationCreatureReservation>> PendingPopulationCreatureReservations;
     double NextPopulationSchedulerWakeTime = 0.0;
     // Latest wake's bounded descriptor work and ordered gate results.
