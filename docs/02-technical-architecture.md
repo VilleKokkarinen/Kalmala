@@ -330,7 +330,7 @@ adds a third independently seeded 12 m / 0.2 m floor-detail signal. These
 layers enter the smooth, monotonic shoulder curve; candidates below 10 m remain
 unchanged and the curve approaches a 40 m upper bound. The broad layer replaces
 the previous 40 cm Meadows detail term. All amplitudes remain provisional:
-BH25a/BH25b/BH25c run fresh-source profile sweeps and select measured settings.
+BH25a/BH25b/BH25c/BH25d run fresh-source profile sweeps and select measured settings.
 BH26 retains rendered gentler-route and under-vegetation floor inspection; no
 floor aliasing or visual result is claimed before that gate.
 
@@ -340,8 +340,8 @@ provisional broad/middle/local amplitudes are 9 / 2.4 / 0.4 m, with 4–16 /
 0.6–4 / 0.1–1 m trial ranges scheduled for validation. Tundra directly calls
 the Elderwood function, so the candidate height cannot drift between those
 biomes; continuous classification weights still determine each final blend.
-BH25b owns fresh-source trial selection, and BH26 owns rendered profile
-acceptance.
+BH25b owns fresh-source trial selection for rolling/Elderwood controls, BH25d
+owns Lakes blend/lowland selection, and BH26 owns rendered profile acceptance.
 
 The master seed is a compiled constant. Crop transforms derive from the game seed. Rivers remain enabled and small streams are disabled. Authority, population IDs, collision and maps derive from the same server-owned seed and current build.
 
@@ -766,7 +766,7 @@ On land, the existing regional Perlin signals and environmental suitability sele
 
 Minimum-distance weights rise smoothly over 50 m on the eligible side, never leaking into excluded radii. The lowland Meadows fallback fades into Mountains over the last 50 m before 4 km, reaching zero at 4 km. Elevation also favours the mountain fallback nearer the centre, with no mountain influence at or inside 0.35 km. A winning special biome takes precedence over the fallback, including on high terrain. Remaining land beyond 4 km is Thunder Mountains even where source relief is low. These restrictions replace the earlier Gaussian distance preferences; they are not enemy levels or travel gates.
 
-Shimmering Lakes and Mossy Mire share the same regional noise, humidity, elevation and temperature suitability and terrain relief. Their only generation difference is the distance range: Lakes 0.35–3 km, Mire 3–16 km. Both ends ramp over 50 m inside the allowed range; their weight is zero at the exact endpoints. Biome labels do not require standing water. The compiled shared policy disables qualified bowl/rim shaping, basin water-level assignment and positive basin weights in both wetlands without changing those labels, their field-based profiles or distance limits.
+Shimmering Lakes and Mossy Mire share the same regional noise, humidity, elevation and temperature suitability. Their distance ranges differ: Lakes 0.35–3 km, Mire 3–16 km. Both ends ramp over 50 m inside the allowed range; their weight is zero at the exact endpoints. Their height candidates now differ: Lakes continuously mixes the Meadows and Elderwood candidates, then adds humidity-weighted compression across a bounded source-height band; Mire retains its existing candidate pending BH15. The Lakes lowland term is height-only and independent of basin support. Biome labels do not require standing water. The compiled shared policy disables qualified bowl/rim shaping, basin water-level assignment and positive basin weights in both wetlands without changing those labels, their field-based profiles or distance limits.
 
 Shared suitability defaults: humidity rises from 0.48 to full strength at 0.65, elevation falls from full strength at 0.43 to zero at 0.58, and temperature rises from 0.18 to full strength at 0.32. `FKalmalaRegionalTuning` and the preview parameter file expose these same six settings. Rivers remain enabled; small streams are disabled. Inland water can occur in a land biome without making it Ocean. Islands come from the master crop. The player-start resolver searches dry Meadows within 320 m of zero.
 

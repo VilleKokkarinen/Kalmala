@@ -24,6 +24,10 @@ struct FKalmalaGenerationPreviewSettings
     double ElderwoodBroadAmplitude = FKalmalaRegionalTuning::ElderwoodBroadAmplitude;
     double ElderwoodMiddleAmplitude = FKalmalaRegionalTuning::ElderwoodMiddleAmplitude;
     double ElderwoodLocalAmplitude = FKalmalaRegionalTuning::ElderwoodLocalAmplitude;
+    double ShimmeringLakesMeadowShare = FKalmalaRegionalTuning::ShimmeringLakesMeadowShare;
+    double ShimmeringLakesLowlandFloor = FKalmalaRegionalTuning::ShimmeringLakesLowlandFloor;
+    double ShimmeringLakesLowlandCeiling = FKalmalaRegionalTuning::ShimmeringLakesLowlandCeiling;
+    double ShimmeringLakesLowlandCompression = FKalmalaRegionalTuning::ShimmeringLakesLowlandCompression;
     double LandThreshold = 0;
     double BiomeScale = FKalmalaRegionalTuning::BiomeScale;
     double WarpStrength = FKalmalaRegionalTuning::WarpStrength;
@@ -62,7 +66,12 @@ struct FKalmalaGenerationPreviewSettings
             && InRange(MeadowFloorAmplitude, 10.0, 35.0)
             && InRange(ElderwoodBroadAmplitude, 400.0, 1600.0)
             && InRange(ElderwoodMiddleAmplitude, 60.0, 400.0)
-            && InRange(ElderwoodLocalAmplitude, 10.0, 100.0);
+            && InRange(ElderwoodLocalAmplitude, 10.0, 100.0)
+            && InRange(ShimmeringLakesMeadowShare, 0.35, 0.65)
+            && InRange(ShimmeringLakesLowlandFloor, 100.0, 500.0)
+            && InRange(ShimmeringLakesLowlandCeiling, 500.0, 2000.0)
+            && ShimmeringLakesLowlandCeiling > ShimmeringLakesLowlandFloor
+            && InRange(ShimmeringLakesLowlandCompression, 0.05, 0.35);
     }
 };
 

@@ -30,6 +30,12 @@ struct FKalmalaRegionalTuning
     static constexpr double ElderwoodBroadAmplitude = 900.0;
     static constexpr double ElderwoodMiddleAmplitude = 240.0;
     static constexpr double ElderwoodLocalAmplitude = 40.0;
+    // Provisional Shimmering Lakes shoulder/low-pocket trials, centimetres
+    // except for the unitless blend share and compression fraction.
+    static constexpr double ShimmeringLakesMeadowShare = 0.50;
+    static constexpr double ShimmeringLakesLowlandFloor = 200.0;
+    static constexpr double ShimmeringLakesLowlandCeiling = 1200.0;
+    static constexpr double ShimmeringLakesLowlandCompression = 0.20;
     static constexpr double ElevationFrequency = 1.0 / 100000.0;
     static constexpr double ClimateFrequency = 1.0 / 150000.0;
     static constexpr double LocalReliefFrequency = 0.00035;

@@ -30,6 +30,14 @@ bool FKalmalaTerrainPreviewControlTest::RunTest(const FString& Parameters)
         FKalmalaRegionalTuning::ElderwoodMiddleAmplitude);
     TestEqual(TEXT("Elderwood local amplitude defaults to tuning"), Settings.ElderwoodLocalAmplitude,
         FKalmalaRegionalTuning::ElderwoodLocalAmplitude);
+    TestEqual(TEXT("Shimmering Lakes Meadow share defaults to tuning"), Settings.ShimmeringLakesMeadowShare,
+        FKalmalaRegionalTuning::ShimmeringLakesMeadowShare);
+    TestEqual(TEXT("Shimmering Lakes lowland floor defaults to tuning"), Settings.ShimmeringLakesLowlandFloor,
+        FKalmalaRegionalTuning::ShimmeringLakesLowlandFloor);
+    TestEqual(TEXT("Shimmering Lakes lowland ceiling defaults to tuning"), Settings.ShimmeringLakesLowlandCeiling,
+        FKalmalaRegionalTuning::ShimmeringLakesLowlandCeiling);
+    TestEqual(TEXT("Shimmering Lakes lowland compression defaults to tuning"), Settings.ShimmeringLakesLowlandCompression,
+        FKalmalaRegionalTuning::ShimmeringLakesLowlandCompression);
 
     auto CheckRange = [this, &Settings](double FKalmalaGenerationPreviewSettings::*Control,
         const double Minimum, const double Maximum, const TCHAR* Label)
@@ -60,6 +68,14 @@ bool FKalmalaTerrainPreviewControlTest::RunTest(const FString& Parameters)
     CheckRange(&FKalmalaGenerationPreviewSettings::ElderwoodBroadAmplitude, 400.0, 1600.0, TEXT("Elderwood broad amplitude"));
     CheckRange(&FKalmalaGenerationPreviewSettings::ElderwoodMiddleAmplitude, 60.0, 400.0, TEXT("Elderwood middle amplitude"));
     CheckRange(&FKalmalaGenerationPreviewSettings::ElderwoodLocalAmplitude, 10.0, 100.0, TEXT("Elderwood local amplitude"));
+    CheckRange(&FKalmalaGenerationPreviewSettings::ShimmeringLakesMeadowShare, 0.35, 0.65, TEXT("Shimmering Lakes Meadow share"));
+    CheckRange(&FKalmalaGenerationPreviewSettings::ShimmeringLakesLowlandFloor, 100.0, 500.0, TEXT("Shimmering Lakes lowland floor"));
+    CheckRange(&FKalmalaGenerationPreviewSettings::ShimmeringLakesLowlandCeiling, 500.0, 2000.0, TEXT("Shimmering Lakes lowland ceiling"));
+    CheckRange(&FKalmalaGenerationPreviewSettings::ShimmeringLakesLowlandCompression, 0.05, 0.35, TEXT("Shimmering Lakes lowland compression"));
+    Settings = FKalmalaGenerationPreviewSettings{};
+    Settings.ShimmeringLakesLowlandFloor = 500.0;
+    Settings.ShimmeringLakesLowlandCeiling = 500.0;
+    TestFalse(TEXT("Lakes lowland ceiling must stay above its floor"), Settings.HasValidReliefControls());
 
     Settings = FKalmalaGenerationPreviewSettings{};
     Settings.ReliefBroadScale = TNumericLimits<double>::QuietNaN();
@@ -78,7 +94,6 @@ bool FKalmalaBiomeHeightFunctionTest::RunTest(const FString& Parameters)
     const FKalmalaTerrainReliefSample NoSharedRelief;
     const double ExpectedMeadows[] = {960.0, 1000.0, 1040.0};
     const double ExpectedElderwood[] = {925.0, 940.0, 955.0};
-    const double ExpectedLakes[] = {935.0, 1000.0, 1065.0};
     const double ExpectedMire[] = {925.0, 940.0, 955.0};
 
     for (int32 Index = 0; Index < UE_ARRAY_COUNT(Details); ++Index)
@@ -87,8 +102,6 @@ bool FKalmalaBiomeHeightFunctionTest::RunTest(const FString& Parameters)
             G::ShapeMeadows(SourceHeight, Details[Index]), ExpectedMeadows[Index]);
         TestEqual(TEXT("Elderwood candidate preserves the prior local detail at zero shared relief"),
             G::ShapeElderwood(SourceHeight, Details[Index], NoSharedRelief, 900.0, 240.0, 40.0), ExpectedElderwood[Index]);
-        TestEqual(TEXT("Shimmering Lakes candidate preserves the prior sample"),
-            G::ShapeShimmeringLakes(SourceHeight, Details[Index]), ExpectedLakes[Index]);
         TestEqual(TEXT("Mire candidate preserves the prior sample"),
             G::ShapeMire(SourceHeight, Details[Index]), ExpectedMire[Index]);
         TestEqual(TEXT("Tundra uses the Elderwood candidate at zero shared relief"),
@@ -147,6 +160,119 @@ bool FKalmalaBiomeHeightFunctionTest::RunTest(const FString& Parameters)
             FMath::IsFinite(Shared.Broad) && FMath::IsFinite(Shared.Middle) && FMath::IsFinite(Shared.Local));
         TestEqual(TEXT("Tundra remains the same seeded Elderwood shape across seeds and coordinates"), Tundra, Elderwood);
     }
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaShimmeringLakesShapeTest,
+    "Kalmala.World.Regional.ShimmeringLakesContinuousShape",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+bool FKalmalaShimmeringLakesShapeTest::RunTest(const FString& Parameters)
+{
+    using G = FKalmalaRegionalGeneration;
+    using T = FKalmalaRegionalTuning;
+    const double SourceSamples[] = {-100.0, 0.0, 199.0, 200.0, 250.0, 450.0, 700.0,
+        950.0, 1200.0, 1300.0};
+    double Previous = -TNumericLimits<double>::Max();
+    for (const double Source : SourceSamples)
+    {
+        const double Compressed = G::CompressShimmeringLakesLowland(Source, T::WetlandHumidityFull,
+            T::WetlandHumidityMinimum, T::WetlandHumidityFull, T::ShimmeringLakesLowlandFloor,
+            T::ShimmeringLakesLowlandCeiling, T::ShimmeringLakesLowlandCompression);
+        TestTrue(TEXT("Lowland transform remains finite"), FMath::IsFinite(Compressed));
+        TestTrue(TEXT("Lowland compression is monotonic across both smooth band edges"), Compressed >= Previous);
+        TestTrue(TEXT("Lowland compression never raises source height"), Compressed <= Source);
+        TestTrue(TEXT("Lowland compression stays within the configured maximum reduction"),
+            Compressed >= Source - FMath::Max(0.0, Source - T::ShimmeringLakesLowlandFloor) * 0.35 - 0.001);
+        if (Source <= T::ShimmeringLakesLowlandFloor || Source >= T::ShimmeringLakesLowlandCeiling)
+        {
+            TestEqual(TEXT("Outside lowland band the source height is unchanged"), Compressed, Source);
+        }
+        else
+        {
+            TestTrue(TEXT("Compressed lowland remains above its floor"), Compressed >= T::ShimmeringLakesLowlandFloor);
+        }
+        Previous = Compressed;
+    }
+
+    TestEqual(TEXT("Humidity below the existing wetland threshold adds no lowland compression"),
+        G::CompressShimmeringLakesLowland(700.0, T::WetlandHumidityMinimum - 0.01,
+            T::WetlandHumidityMinimum, T::WetlandHumidityFull, T::ShimmeringLakesLowlandFloor,
+            T::ShimmeringLakesLowlandCeiling, T::ShimmeringLakesLowlandCompression), 700.0);
+    TestEqual(TEXT("Invalid lowland interval safely preserves source height"),
+        G::CompressShimmeringLakesLowland(700.0, T::WetlandHumidityFull,
+            T::WetlandHumidityMinimum, T::WetlandHumidityFull, 800.0, 700.0, 0.2), 700.0);
+    TestEqual(TEXT("Invalid humidity interval safely preserves source height"),
+        G::CompressShimmeringLakesLowland(700.0, T::WetlandHumidityFull,
+            0.7, 0.6, T::ShimmeringLakesLowlandFloor, T::ShimmeringLakesLowlandCeiling, 0.2), 700.0);
+
+    constexpr double SourceHeight = 700.0;
+    constexpr double MeadowCandidate = 1100.0;
+    constexpr double ElderwoodCandidate = 900.0;
+    const double CompressedSource = G::CompressShimmeringLakesLowland(SourceHeight,
+        T::WetlandHumidityFull, T::WetlandHumidityMinimum, T::WetlandHumidityFull,
+        T::ShimmeringLakesLowlandFloor, T::ShimmeringLakesLowlandCeiling,
+        T::ShimmeringLakesLowlandCompression);
+    const double LakesCandidate = G::ShapeShimmeringLakes(SourceHeight, MeadowCandidate,
+        ElderwoodCandidate, T::WetlandHumidityFull, T::WetlandHumidityMinimum,
+        T::WetlandHumidityFull, T::ShimmeringLakesMeadowShare,
+        T::ShimmeringLakesLowlandFloor, T::ShimmeringLakesLowlandCeiling,
+        T::ShimmeringLakesLowlandCompression);
+    const double RoundedShoulders = FMath::Lerp(ElderwoodCandidate, MeadowCandidate,
+        T::ShimmeringLakesMeadowShare);
+    TestEqual(TEXT("Lakes candidate mixes Meadow and Elderwood shoulders with only the lowland offset"),
+        LakesCandidate, RoundedShoulders + (CompressedSource - SourceHeight));
+
+    // Use the fixed former-basin site where Meadows, Lakes and Elderwood all
+    // have continuous non-zero shares. Transfer a tiny share between adjacent
+    // candidates and require the height to follow their weighted difference.
+    const FKalmalaWorldGenerationConfig Config{418ull};
+    const FVector2D FormerBasinPosition(100830.5, -143038.6);
+    const FKalmalaWorldFieldSample Fields = FKalmalaWorldFieldSampler::Sample(Config, FormerBasinPosition);
+    const FKalmalaRegionalSample WeightsSample = G::SampleInternal(Fields, true, true);
+    TestTrue(TEXT("Former basin fixture has continuous Meadows, Lakes and Elderwood weights"),
+        WeightsSample.Weights[0] > 0.0f && WeightsSample.Weights[1] > 0.0f && WeightsSample.Weights[2] > 0.0f);
+
+    const auto& Preview = FKalmalaGenerationPreview::Get();
+    const double Source = (Fields.Elevation - T::SeaElevation) * 2000.0;
+    const double Detail = G::Noise(Config, 250, FormerBasinPosition, 0.00015);
+    const double Hill = G::Noise(Config, T::MeadowHillSalt, FormerBasinPosition, 1.0 / Preview.MeadowHillScale);
+    const double Rolling = G::Noise(Config, T::MeadowRollingSalt, FormerBasinPosition, 1.0 / Preview.MeadowRollingScale);
+    const double Floor = G::Noise(Config, T::MeadowFloorSalt, FormerBasinPosition, 1.0 / Preview.MeadowFloorScale);
+    const double Meadow = G::ShapeMeadows(Source, Hill, Preview.MeadowHillAmplitude,
+        Rolling, Preview.MeadowRollingAmplitude, Floor, Preview.MeadowFloorAmplitude,
+        Preview.MeadowShoulderHeight, Preview.MeadowShoulderCompressionScale);
+    const auto SharedRelief = G::SampleSharedRelief(Config, FormerBasinPosition);
+    const double Elderwood = G::ShapeElderwood(Source, Detail, SharedRelief,
+        Preview.ElderwoodBroadAmplitude, Preview.ElderwoodMiddleAmplitude, Preview.ElderwoodLocalAmplitude);
+    const double Lakes = G::ShapeShimmeringLakes(Source, Meadow, Elderwood, Fields.Humidity,
+        Preview.WetlandHumidityMinimum, Preview.WetlandHumidityFull,
+        Preview.ShimmeringLakesMeadowShare, Preview.ShimmeringLakesLowlandFloor,
+        Preview.ShimmeringLakesLowlandCeiling, Preview.ShimmeringLakesLowlandCompression);
+    const double Candidates[] = {Meadow, Lakes, Elderwood, G::ShapeMire(Source, Detail),
+        G::ShapeTundra(Source, Detail, SharedRelief, Preview.ElderwoodBroadAmplitude,
+            Preview.ElderwoodMiddleAmplitude, Preview.ElderwoodLocalAmplitude),
+        G::ShapeMountains(Source, Detail, 0.0)};
+    const float FullWeights[] = {WeightsSample.Weights[0], WeightsSample.Weights[1],
+        WeightsSample.Weights[2], WeightsSample.Weights[3], WeightsSample.Weights[4],
+        WeightsSample.Weights[5], WeightsSample.Weights[6]};
+    const FKalmalaRegionalSample Integrated = G::SampleInternal(Fields, false, true);
+    TestEqual(TEXT("Regional sampler uses the Meadows/Elderwood Lakes candidate blend"), Integrated.Height,
+        G::BlendCandidateHeights(float(Source), Candidates, 0.0f, FullWeights));
+    constexpr float WeightStep = 0.0001f;
+    float NeighborWeights[7];
+    FMemory::Memcpy(NeighborWeights, FullWeights, sizeof(FullWeights));
+    NeighborWeights[0] += WeightStep;
+    NeighborWeights[1] -= WeightStep;
+    const float HeightBefore = G::BlendCandidateHeights(float(Source), Candidates, 0.0f, FullWeights);
+    const float HeightAfter = G::BlendCandidateHeights(float(Source), Candidates, 0.0f, NeighborWeights);
+    TestTrue(TEXT("Neighboring Meadows/Lakes weight transfer changes height continuously"),
+        FMath::IsNearlyEqual(HeightAfter - HeightBefore, WeightStep * float(Meadow - Lakes), 0.02f));
+
+    TestFalse(TEXT("Compiled analytic basin support remains disabled"), T::bEnableAnalyticBasins);
+    const FKalmalaRegionalSample FormerBasin = G::Sample(Config, FormerBasinPosition);
+    TestEqual(TEXT("Former basin receives no analytic basin support"), FormerBasin.BasinWeight, 0.0f);
+    TestEqual(TEXT("Former basin receives no inland basin water level"), FormerBasin.WaterLevel, 0.0f);
+    TestFalse(TEXT("Former basin remains dry without river water"), FormerBasin.bHasWater);
     return true;
 }
 
@@ -211,11 +337,22 @@ bool FKalmalaBiomeHeightBlendTest::RunTest(const FString& Parameters)
         Position, 1.0 / Preview.MeadowHillScale);
     const double RollingNoise = G::Noise(Config, FKalmalaRegionalTuning::MeadowRollingSalt,
         Position, 1.0 / Preview.MeadowRollingScale);
+    const double MeadowFloorNoise = G::Noise(Config, FKalmalaRegionalTuning::MeadowFloorSalt,
+        Position, 1.0 / Preview.MeadowFloorScale);
     const double TransitionCandidates[] = {
         G::ShapeMeadows(SourceHeight, HillNoise, Preview.MeadowHillAmplitude,
             RollingNoise, Preview.MeadowRollingAmplitude,
+            MeadowFloorNoise, Preview.MeadowFloorAmplitude,
             Preview.MeadowShoulderHeight, Preview.MeadowShoulderCompressionScale),
-        G::ShapeShimmeringLakes(SourceHeight, Detail),
+        G::ShapeShimmeringLakes(SourceHeight,
+            G::ShapeMeadows(SourceHeight, HillNoise, Preview.MeadowHillAmplitude,
+                RollingNoise, Preview.MeadowRollingAmplitude, MeadowFloorNoise, Preview.MeadowFloorAmplitude,
+                Preview.MeadowShoulderHeight, Preview.MeadowShoulderCompressionScale),
+            G::ShapeElderwood(SourceHeight, Detail, ElderwoodRelief,
+                ElderwoodBroadAmplitude, ElderwoodMiddleAmplitude, ElderwoodLocalAmplitude),
+            Fields.Humidity, Preview.WetlandHumidityMinimum, Preview.WetlandHumidityFull,
+            Preview.ShimmeringLakesMeadowShare, Preview.ShimmeringLakesLowlandFloor,
+            Preview.ShimmeringLakesLowlandCeiling, Preview.ShimmeringLakesLowlandCompression),
         G::ShapeElderwood(SourceHeight, Detail, ElderwoodRelief,
             ElderwoodBroadAmplitude, ElderwoodMiddleAmplitude, ElderwoodLocalAmplitude),
         G::ShapeMire(SourceHeight, Detail),

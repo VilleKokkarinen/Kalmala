@@ -3,8 +3,9 @@
 Status: user-requested design direction, 2026-10-24; implementation is in
 progress under `BACKLOG.md` after A10 acceptance and before Monster Population.
 The fixed baselines, basin policy, shared sampler, preview controls and Meadows
-hill/rolling/floor layers are implemented incrementally; fresh-source floor
-tuning remains BH25c and final acceptance remains pending BH26. This plan
+hill/rolling/floor layers and the provisional Shimmering Lakes blend are
+implemented incrementally; fresh-source floor tuning remains BH25c, Lakes
+numeric selection remains BH25d, and final acceptance remains pending BH26. This plan
 supersedes Meadows-specific height details where they differ.
 
 This plan expands [the Meadows plan](meadows-plan.md) to all land biomes. Where
@@ -813,3 +814,32 @@ Editor launch. No build or sweep was run for BH13b; BH25b runs each low/nominal/
 high layer matrix with freshly compiled source, records the measured profiles
 and selects the smallest accepted amplitudes. Rendered biome-transition and
 terrain acceptance remains in BH26.
+
+### BH14a Shimmering Lakes source integration
+
+The Lakes height candidate continuously mixes the existing rounded Meadows
+candidate and shared-relief Elderwood candidate. It then adds a humidity-
+weighted, smooth compression offset derived from the existing source height;
+it uses no independent basin cells, bowl support, or water level. For source
+height `H`, floor `F`, ceiling `C`, humidity `U`, and blend share `M`, the
+lowland transform is:
+
+```text
+band = smoothstep(F, F + 0.25 * (C - F), H)
+     * (1 - smoothstep(C - 0.25 * (C - F), C, H))
+strength = compression * smoothstep(humidityMinimum, humidityFull, U) * band
+compressed = H - max(0, H - F) * strength
+lakes = lerp(elderwoodCandidate, meadowsCandidate, M) + compressed - H
+```
+
+The provisional controls are Meadow share 0.50 (bounded 0.35–0.65), floor
+200 cm (100–500 cm), ceiling 1,200 cm (500–2,000 cm and above the floor), and
+compression 0.20 (0.05–0.35). These ranges are commandlet preview bounds,
+not accepted terrain tuning. The lowland factor is continuous through both
+height-band edges and humidity, is monotonic and never lowers the source below
+the configured floor. The shared compiled basin-disabled policy remains
+unchanged; no inland water is created. Focused source tests cover those
+properties, neighboring Meadows/Lakes weights and the fixed former-basin site.
+No build or automation was run for BH14a. BH14b adds stale-safe fixed profile
+trials; BH25d must use freshly compiled source to measure and select values.
+Rendered profile acceptance remains BH26.

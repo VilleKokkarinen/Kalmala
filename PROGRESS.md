@@ -8511,3 +8511,42 @@
   BH26.
 - **Next task in this directed goal:** BH14 — shape Shimmering Lakes with the
   continuous Meadows/Elderwood/Mire candidate blend and disabled-basin policy.
+
+## Run 2026-10-24T19:23Z — Shimmering Lakes source integration (BH14a)
+
+- **Selected increment:** BH14a, integrate the continuous Shimmering Lakes
+  terrain blend and focused formula coverage. BH14 remains open for BH14b.
+- **Work completed:** Replaced the Lakes legacy detail-only candidate with a
+  continuous 0.50 Meadows/Elderwood candidate blend and a smooth lowland
+  offset derived from shared source height and existing humidity. The
+  lowland transform is independent of basin support; the existing disabled
+  basin policy, normalized biome weights, coast blending and hydrology order
+  remain intact. Added tests for monotonic/bounded lowland behavior, control
+  validation, the Lakes candidate formula, neighboring Meadows/Lakes weight
+  continuity, and a dry former-basin sample. Recorded the formula and
+  provisional bounds, split BH14a/BH14b, and added BH25d numeric selection.
+- **Files changed:** `Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`,
+  `Source/KalmalaWorld/Public/KalmalaGenerationPreview.h`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalGeneration.h`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`, `BACKLOG.md`,
+  `docs/02-technical-architecture.md`, and `docs/biome-height-rework.md`.
+- **Lightweight checks/results:** Source and test changes were inspected;
+  `git diff --check` passed. Unreal build and automation were not run.
+- **Full verification:** Deferred to BH26. Fresh-source Lakes measurement and
+  numeric selection remain BH25d; rendered acceptance remains BH26.
+- **Observable impact:** Shimmering Lakes now uses blended rounded shoulders,
+  shared Elderwood undulation and a humidity-weighted, bounded compression of
+  low source-height pockets. No analytic bowl or inland/perched water is added.
+  The 0.50 share, 200 cm floor, 1,200 cm ceiling and 0.20 compression are
+  provisional controls within the documented preview ranges; no trial result
+  or acceptance is claimed.
+- **Networking/authority:** Terrain remains deterministically sampled from
+  server-owned world fields and absolute coordinates. No RPC, replication,
+  gameplay authority or save data changed.
+- **Known limitations / remaining scope:** No build or automation was run.
+  BH14b adds the stale-safe numeric profile harness; BH25d measures and selects
+  Lakes values from fresh-source trials; BH26 performs rendered and integrated
+  verification.
+- **Next task in this directed goal:** BH14b — add fixed Lakes profile samples,
+  bounded preview overrides and a stale-binary-safe trial runner.

@@ -51,6 +51,7 @@ struct KALMALAWORLD_API FKalmalaRegionalGeneration
 private:
     friend class FKalmalaBiomeHeightFunctionTest;
     friend class FKalmalaBiomeHeightBlendTest;
+    friend class FKalmalaShimmeringLakesShapeTest;
     friend class FKalmalaMeadowShoulderCompressionTest;
     friend class FKalmalaMeadowFloorDetailTest;
     friend class FKalmalaMasterMapTest;
@@ -69,7 +70,13 @@ private:
     static double ShapeElderwood(double SourceHeight, double Detail,
         const FKalmalaTerrainReliefSample& SharedRelief,
         double BroadAmplitude, double MiddleAmplitude, double LocalAmplitude);
-    static double ShapeShimmeringLakes(double SourceHeight, double Detail);
+    static double CompressShimmeringLakesLowland(double SourceHeight, double Humidity,
+        double HumidityMinimum, double HumidityFull, double LowlandFloor,
+        double LowlandCeiling, double Compression);
+    static double ShapeShimmeringLakes(double SourceHeight, double MeadowCandidate,
+        double ElderwoodCandidate, double Humidity, double HumidityMinimum,
+        double HumidityFull, double MeadowShare, double LowlandFloor,
+        double LowlandCeiling, double LowlandCompression);
     static double ShapeMire(double SourceHeight, double Detail);
     static double ShapeTundra(double SourceHeight, double Detail,
         const FKalmalaTerrainReliefSample& SharedRelief,

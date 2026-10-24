@@ -218,9 +218,42 @@ double FKalmalaRegionalGeneration::ShapeElderwood(
     return SharedBase + double(float(-60 + 15 * Detail));
 }
 
-double FKalmalaRegionalGeneration::ShapeShimmeringLakes(const double SourceHeight, const double Detail)
+double FKalmalaRegionalGeneration::CompressShimmeringLakesLowland(
+    const double SourceHeight, const double Humidity, const double HumidityMinimum,
+    const double HumidityFull, const double LowlandFloor, const double LowlandCeiling,
+    const double Compression)
 {
-    return SourceHeight + double(float(65 * Detail));
+    if (!FMath::IsFinite(SourceHeight) || !FMath::IsFinite(Humidity)
+        || !FMath::IsFinite(HumidityMinimum) || !FMath::IsFinite(HumidityFull)
+        || !FMath::IsFinite(LowlandFloor) || !FMath::IsFinite(LowlandCeiling)
+        || !FMath::IsFinite(Compression) || HumidityFull <= HumidityMinimum
+        || LowlandCeiling <= LowlandFloor)
+    {
+        return SourceHeight;
+    }
+
+    const double BandWidth = (LowlandCeiling - LowlandFloor) * 0.25;
+    const double LowlandEntry = Smooth(LowlandFloor, LowlandFloor + BandWidth, SourceHeight);
+    const double LowlandExit = 1.0 - Smooth(LowlandCeiling - BandWidth, LowlandCeiling, SourceHeight);
+    const double LowlandBand = LowlandEntry * LowlandExit;
+    const double HumidityWeight = Smooth(HumidityMinimum, HumidityFull, Humidity);
+    const double Strength = FMath::Clamp(Compression, 0.0, 0.35) * HumidityWeight * LowlandBand;
+    const double AboveFloor = FMath::Max(0.0, SourceHeight - LowlandFloor);
+    return SourceHeight - AboveFloor * Strength;
+}
+
+double FKalmalaRegionalGeneration::ShapeShimmeringLakes(
+    const double SourceHeight, const double MeadowCandidate, const double ElderwoodCandidate,
+    const double Humidity, const double HumidityMinimum, const double HumidityFull,
+    const double MeadowShare, const double LowlandFloor, const double LowlandCeiling,
+    const double LowlandCompression)
+{
+    const double RoundedShoulders = FMath::Lerp(
+        ElderwoodCandidate, MeadowCandidate, FMath::Clamp(MeadowShare, 0.0, 1.0));
+    const double CompressedSource = CompressShimmeringLakesLowland(
+        SourceHeight, Humidity, HumidityMinimum, HumidityFull,
+        LowlandFloor, LowlandCeiling, LowlandCompression);
+    return RoundedShoulders + (CompressedSource - SourceHeight);
 }
 
 double FKalmalaRegionalGeneration::ShapeMire(const double SourceHeight, const double Detail)
@@ -328,25 +361,33 @@ FKalmalaRegionalSample FKalmalaRegionalGeneration::SampleInternal(const FKalmala
     if (!bBiomeOnly)
     {
         const double Detail = Noise(C, 250, P, 0.00015);
-        const double MeadowHill = Noise(C, T::MeadowHillSalt, P, 1.0 / Preview.MeadowHillScale);
-        const double MeadowRolling = R.Weights[0] > 0.0f
+        const bool bNeedsMeadowCandidate = R.Weights[0] > 0.0f || R.Weights[1] > 0.0f;
+        const double MeadowHill = bNeedsMeadowCandidate
+            ? Noise(C, T::MeadowHillSalt, P, 1.0 / Preview.MeadowHillScale)
+            : 0.0;
+        const double MeadowRolling = bNeedsMeadowCandidate
             ? Noise(C, T::MeadowRollingSalt, P, 1.0 / Preview.MeadowRollingScale)
             : 0.0;
-        const double MeadowFloor = R.Weights[0] > 0.0f
+        const double MeadowFloor = bNeedsMeadowCandidate
             ? Noise(C, T::MeadowFloorSalt, P, 1.0 / Preview.MeadowFloorScale)
             : 0.0;
         FKalmalaTerrainReliefSample ElderwoodRelief;
-        if (R.Weights[2] > 0.0f || R.Weights[4] > 0.0f)
+        if (R.Weights[1] > 0.0f || R.Weights[2] > 0.0f || R.Weights[4] > 0.0f)
         {
             ElderwoodRelief = SampleSharedRelief(C, P);
         }
         const double ElderwoodHeight = ShapeElderwood(Source, Detail, ElderwoodRelief,
             Preview.ElderwoodBroadAmplitude, Preview.ElderwoodMiddleAmplitude, Preview.ElderwoodLocalAmplitude);
+        const double MeadowHeight = ShapeMeadows(Source, MeadowHill, Preview.MeadowHillAmplitude,
+            MeadowRolling, Preview.MeadowRollingAmplitude, MeadowFloor, Preview.MeadowFloorAmplitude,
+            Preview.MeadowShoulderHeight, Preview.MeadowShoulderCompressionScale);
+        const double ShimmeringLakesHeight = ShapeShimmeringLakes(Source, MeadowHeight, ElderwoodHeight,
+            F.Humidity, Preview.WetlandHumidityMinimum, Preview.WetlandHumidityFull,
+            Preview.ShimmeringLakesMeadowShare, Preview.ShimmeringLakesLowlandFloor,
+            Preview.ShimmeringLakesLowlandCeiling, Preview.ShimmeringLakesLowlandCompression);
         const double CandidateHeights[] = {
-            ShapeMeadows(Source, MeadowHill, Preview.MeadowHillAmplitude,
-                MeadowRolling, Preview.MeadowRollingAmplitude, MeadowFloor, Preview.MeadowFloorAmplitude,
-                Preview.MeadowShoulderHeight, Preview.MeadowShoulderCompressionScale),
-            ShapeShimmeringLakes(Source, Detail),
+            MeadowHeight,
+            ShimmeringLakesHeight,
             ElderwoodHeight,
             ShapeMire(Source, Detail),
             ShapeTundra(Source, Detail, ElderwoodRelief,

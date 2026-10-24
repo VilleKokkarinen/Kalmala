@@ -596,6 +596,14 @@ run for this goal and may exceed one turn.
   - [ ] **BH14 — Shape Shimmering Lakes.** Blend Meadows-like rounded shoulders,
     Elderwood relief, and compressed low pockets continuously, with no basin
     bowl or new perched water surface.
+    - [x] **BH14a — Integrate the Lakes terrain blend.** Mix existing Meadows
+      and Elderwood candidates, and add a smooth humidity/base-height lowland
+      compression independent of basin support. Add focused formula, weight-
+      continuity and disabled-basin tests; keep coefficients provisional.
+    - [ ] **BH14b — Add the Lakes numeric profile harness.** Provide fixed
+      Lakes profiles and bounded commandlet-only overrides for blend share and
+      lowland controls. Reject stale binaries; leave measurement and numeric
+      selection to BH25d and rendered acceptance to BH26.
   - [ ] **BH15 — Shape Mossy Mire.** Compress the shared base into a smooth narrow
     lowland band with residual detail; retain positive source-land clearance
     outside river corridors and avoid inverted ridges or an ocean-like flat.
@@ -628,7 +636,7 @@ run for this goal and may exceed one turn.
   - [ ] **BH24 — Add cold-biome presentation.** Apply Tundra snow and Mountain
     snow/storm visuals through existing materials/weather paths; retain
     server-owned weather selection and add no damage, exposure, or shelter rule.
-  - [ ] **BH25 — Finalize tuning and contracts.** Keep open until BH25a–BH25c
+  - [ ] **BH25 — Finalize tuning and contracts.** Keep open until BH25a–BH25d
     are complete.
     - [ ] **BH25a — Run BH10b1 Meadows hill sweep.** With freshly compiled
       source, run BH10b1 at 4/6/8 m; compare BH01 fixed-site baselines and
@@ -648,6 +656,14 @@ run for this goal and may exceed one turn.
       height/slope samples and select the smallest readable scale/amplitude
       combination without corrugation or lattice aliasing, then record the
       measured ranges.
+    - [ ] **BH25d — Run Shimmering Lakes profile trials.** With freshly compiled
+      BH14b source, compare the fixed Lakes transects and collision slopes
+      against BH01. Sweep Meadow share 0.35/0.50/0.65, lowland floor
+      100/200/500 cm, ceiling 500/1200/2000 cm subject to ceiling > floor, and
+      compression 0.05/0.20/0.35, varying one control at a time around the
+      provisional center. Record raw profiles, validate bounds and monotonic
+      lowland behavior, and select only measured values; rendered acceptance
+      remains BH26.
   - [ ] **BH26 — Run final integrated verification and repair.** Inspect the full
     combined change; run the applicable Editor build, regional/master-map/
     finite-world/integrated/water checks, RegionalGeneration and Minimap peers,
