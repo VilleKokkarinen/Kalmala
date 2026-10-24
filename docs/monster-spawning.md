@@ -327,6 +327,18 @@ checks to each of the three actual member locations. It does not set the final
 physical-placement result: that result remains fail-closed until S25 combines
 surface, clearance, roof and camp checks.
 
+S21 adds the server-only Reef Maw aquatic predicate. The existing actor root
+sphere is the active Reef Maw body collision shape; the same 92 cm radius
+constant configures that component and the surface check. The actor remains at
+its existing 120 cm spawn depth. The existing Ocean habitat/swimming rule and
+150 cm minimum-depth helper apply at the candidate center. The sphere footprint
+is then sampled for Ocean-only, non-lake support and for terrain below the
+actual sphere's lower surface at each horizontal offset. Those geometric checks
+use the current spawn depth and actor radius; they add no competing minimum
+depth value. Land checks continue to reject Reef Maw, aquatic checks reject all
+other archetypes, and the final physical-placement result remains fail-closed
+until S25.
+
 - Time, weather and progression are explicitly **unrestricted for all current
   species**. These three gates return pass. Provide internal policy seams and
   fixture overrides for rejection tests; do not build a new clock, boss system,

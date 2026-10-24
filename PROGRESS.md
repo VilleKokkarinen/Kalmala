@@ -7959,3 +7959,16 @@
 - **Networking/authority:** The predicate requires GameMode authority and a valid current world/config. It reads only deterministic server-side terrain and water samples; no networking or save schema changed.
 - **Known limitations:** S21 must implement Reef Maw aquatic checks; S22–S24 add clearance and camp suppression; S25 combines those policies into the final placement result. S26 remains the first task allowed to enable natural actor creation.
 - **Next eligible task:** Within this requested monster-population goal, S21 is next — validate Reef Maw aquatic surfaces and water clearance.
+
+
+### Monster population — S21 aquatic-surface validation
+
+- **Selected increment:** S21, validate Reef Maw water habitat and the full body collision shape at its existing spawn depth.
+- **Work completed:** Added an authoritative aquatic descriptor predicate that accepts only Reef Maw, reuses S15 habitat/start checks plus the existing Reef Maw Ocean navigation rule and 150 cm minimum-depth helper at the spawn center, and checks a bounded grid across the actual root-sphere footprint. Each footprint point must have Ocean/non-lake water and enough vertical clearance for the lower sphere surface above generated terrain. The 92 cm radius is now one shared constant used by the actor's root sphere and the clearance calculation; the actor remains at its existing 120 cm spawn depth. S20 continues to reject Reef Maw. The final physical-placement gate remains false until S25; natural actor creation remains disabled until S26.
+- **Files changed:** Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp, Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationAquaticSurfaceTest.cpp, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
+- **Lightweight checks:** Inspected the existing Reef Maw habitat/depth helper, swimming-navigation path, spawn-depth assignment, root sphere configuration and disabled secondary snake collider. Added focused automation assertions for the 150 cm habitat boundary, lake rejection, full-sphere water containment, shallow-water rejection, terrain penetration, invalid samples, aquatic species classification, and equality between the configured root-sphere radius and the clearance radius. Tests and builds were not run.
+- **Full verification:** Deferred to S35; S21 is not the final implementation task in the monster-population goal.
+- **Observable impact / authority:** Later placement code can now query a server-only Reef Maw aquatic-surface predicate. It is not wired into the evaluator, does not create actors, and changes no saved or replicated state.
+- **Networking/authority:** The predicate requires authoritative GameMode/world state and uses deterministic server-side Ocean, biome and terrain samples. No network protocol or save schema changed.
+- **Known limitations:** The footprint check uses bounded terrain-derived samples; S22–S24 still add collision/navigation clearance, roofs and camp suppression, and S25 combines all placement results before any later actor admission.
+- **Next eligible task:** Within this requested monster-population goal, S22 is next — validate physical clearance and species movement support.

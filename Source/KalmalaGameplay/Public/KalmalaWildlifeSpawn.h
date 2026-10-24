@@ -248,9 +248,14 @@ public:
     static constexpr float ReefMawBiteCueSeconds = 0.16f;
     static constexpr float ReefMawRecoverySeconds = 1.2f;
     static constexpr float ReefMawApproachSpeedCentimetresPerSecond = 320.0f;
+    static constexpr float ReefMawBodyCollisionRadiusCentimetres = 92.0f;
     static constexpr float ReefMawSpawnDepthCentimetres = 120.0f;
     static constexpr float ReefMawSpawnLeashCentimetres = 2500.0f;
     static bool IsReefMawSpawnHabitatAllowed(EKalmalaBiome Biome, bool bLakeWater, float WaterDepthCentimetres);
+    static bool IsReefMawOceanPosition(const FKalmalaWorldGenerationConfig& Config,
+        FVector2D Position, FKalmalaOceanSample* OutOceanSample = nullptr);
+    static bool IsReefMawPositionNavigable(const FKalmalaWorldGenerationConfig& Config,
+        FVector2D Position, FKalmalaOceanSample* OutOceanSample = nullptr);
     static bool IsReefMawBiteInReach(bool bServerAuthority, bool bValidTarget, bool bTargetSwimming,
         float DistanceCentimetres);
     static constexpr float PeatHuskAttackTriggerCentimetres = 500.0f;

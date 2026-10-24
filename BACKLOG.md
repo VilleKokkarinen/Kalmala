@@ -632,7 +632,7 @@ milestone-final verification/repair run and can exceed a normal turn.
     overlapping key/player attempts cannot overfill a species or total budget.
   - [x] **S20 — Validate land surfaces.** Require generated dry ground, existing
     start restrictions and slope at most 32 degrees for land creatures.
-  - [ ] **S21 — Validate aquatic surfaces.** Reuse Reef Maw habitat/depth rules
+  - [x] **S21 — Validate aquatic surfaces.** Reuse Reef Maw habitat/depth rules
     and check water clearance; land checks must not silently permit water spawns.
   - [ ] **S22 — Validate physical clearance.** Reject solid overhead roofs,
     colliding bodies and unsupported movement/navigation locations per species.

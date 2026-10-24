@@ -150,6 +150,7 @@ private:
     friend class FKalmalaPopulationWolfReservationTest;
     friend class FKalmalaPopulationSpawnGateEvaluatorTest;
     friend class FKalmalaPopulationLandSurfaceTest;
+    friend class FKalmalaPopulationAquaticSurfaceTest;
     friend class AKalmalaWildlifeSpawn;
 
 #if WITH_DEV_AUTOMATION_TESTS
@@ -193,10 +194,14 @@ private:
     bool DoesPopulationDescriptorPassSpeciesHabitat(const FKalmalaWorldPopulationSpawn& Descriptor,
         EKalmalaWildlifeArchetype* OutArchetype = nullptr) const;
     bool DoesPopulationDescriptorPassLandSurface(const FKalmalaWorldPopulationSpawn& Descriptor) const;
+    bool DoesPopulationDescriptorPassAquaticSurface(const FKalmalaWorldPopulationSpawn& Descriptor) const;
     bool DoesPopulationLandPositionPassSurface(const FVector& Location) const;
     static bool IsPopulationLandSurfaceSampleAllowed(bool bWithinBounds, bool bHasGeneratedGround,
         bool bIsDry, const FVector& SurfaceNormal);
     static bool AreAllPopulationLandSurfacesAllowed(const TArray<bool>& SurfaceResults);
+    static bool DoesReefMawBodyFitOceanSample(const FKalmalaOceanSample& OceanSample,
+        double HorizontalDistanceFromCenterCentimetres);
+    static bool IsPopulationAquaticArchetype(EKalmalaWildlifeArchetype Archetype);
     bool DoesPopulationDescriptorPassTimeGate(const FKalmalaWorldPopulationSpawn& Descriptor) const;
     bool DoesPopulationDescriptorPassWeatherGate(const FKalmalaWorldPopulationSpawn& Descriptor) const;
     bool DoesPopulationDescriptorPassProgressionGate(const FKalmalaWorldPopulationSpawn& Descriptor) const;

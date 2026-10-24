@@ -2673,13 +2673,38 @@ bool AKalmalaWildlifeSpawn::IsReefMawPositionNavigable(const FVector& Position) 
     if (Position.ContainsNaN() || GetWorld() == nullptr) return false;
     const AKalmalaWorldGenerationGameState* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
     if (State == nullptr) return false;
-    const FKalmalaWorldGenerationConfig& Config = State->GetWorldGenerationConfig();
-    const FVector2D XY(Position);
-    if (!FKalmalaWorldBounds::Contains(Config, XY)) return false;
-    const FKalmalaOceanSample Ocean = FKalmalaOceanSampler::Sample(Config, XY);
-    const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, XY));
-    return Ocean.IsWater() && IsReefMawSpawnHabitatAllowed(
-        Biome, FKalmalaShimmeringLakeSampler::IsWater(Config, XY), Ocean.WaterDepth);
+    return IsReefMawPositionNavigable(State->GetWorldGenerationConfig(), FVector2D(Position));
+}
+
+bool AKalmalaWildlifeSpawn::IsReefMawOceanPosition(const FKalmalaWorldGenerationConfig& Config,
+    const FVector2D Position, FKalmalaOceanSample* OutOceanSample)
+{
+    if (OutOceanSample != nullptr) *OutOceanSample = FKalmalaOceanSample{};
+    if (!Config.IsValid() || !FMath::IsFinite(Position.X) || !FMath::IsFinite(Position.Y)
+        || !FKalmalaWorldBounds::Contains(Config, Position))
+    {
+        return false;
+    }
+
+    const FKalmalaOceanSample Ocean = FKalmalaOceanSampler::Sample(Config, Position);
+    if (OutOceanSample != nullptr) *OutOceanSample = Ocean;
+    if (!Ocean.IsWater()) return false;
+
+    const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(
+        FKalmalaWorldFieldSampler::Sample(Config, Position));
+    return Biome == EKalmalaBiome::Ocean
+        && !FKalmalaShimmeringLakeSampler::IsWater(Config, Position);
+}
+
+bool AKalmalaWildlifeSpawn::IsReefMawPositionNavigable(
+    const FKalmalaWorldGenerationConfig& Config, const FVector2D Position,
+    FKalmalaOceanSample* OutOceanSample)
+{
+    FKalmalaOceanSample Ocean;
+    const bool bOceanPosition = IsReefMawOceanPosition(Config, Position, &Ocean);
+    if (OutOceanSample != nullptr) *OutOceanSample = Ocean;
+    return bOceanPosition && IsReefMawSpawnHabitatAllowed(EKalmalaBiome::Ocean,
+        false, Ocean.WaterDepth);
 }
 
 bool AKalmalaWildlifeSpawn::CanReefMawSwimAlong(const FVector& Start, const FVector& End) const
@@ -3580,7 +3605,8 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
         RootSphere->SetSphereRadius(Archetype == EKalmalaWildlifeArchetype::MosquitoSwarm ? 28.0f
             : (Archetype == EKalmalaWildlifeArchetype::Rat ? 42.0f
                 : (Archetype == EKalmalaWildlifeArchetype::ThunderSentinel ? 180.0f
-                    : (Archetype == EKalmalaWildlifeArchetype::ReefMaw ? 92.0f : 70.0f))), true);
+                    : (Archetype == EKalmalaWildlifeArchetype::ReefMaw
+                        ? ReefMawBodyCollisionRadiusCentimetres : 70.0f))), true);
     const bool bSnake = Archetype == EKalmalaWildlifeArchetype::Viper
         || Archetype == EKalmalaWildlifeArchetype::GiantSnake
         || Archetype == EKalmalaWildlifeArchetype::DeathAdder;

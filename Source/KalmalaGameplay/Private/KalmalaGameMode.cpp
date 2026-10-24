@@ -5776,7 +5776,7 @@ bool AKalmalaGameMode::DoesPopulationDescriptorPassLandSurface(
 
     EKalmalaWildlifeArchetype Archetype;
     if (!DoesPopulationDescriptorPassSpeciesHabitat(Descriptor, &Archetype)
-        || Archetype == EKalmalaWildlifeArchetype::ReefMaw)
+        || IsPopulationAquaticArchetype(Archetype))
     {
         return false;
     }
@@ -5861,6 +5861,99 @@ bool AKalmalaGameMode::AreAllPopulationLandSurfacesAllowed(const TArray<bool>& S
         }
     }
     return true;
+}
+
+bool AKalmalaGameMode::DoesPopulationDescriptorPassAquaticSurface(
+    const FKalmalaWorldPopulationSpawn& Descriptor) const
+{
+    const UWorld* World = GetWorld();
+    if (!HasAuthority() || !IsValid(World) || !WorldGenerationConfig.IsValid()
+        || Descriptor.Kind != EKalmalaWorldPopulationKind::Wildlife
+        || !FMath::IsFinite(Descriptor.Location.X) || !FMath::IsFinite(Descriptor.Location.Y)
+        || !FMath::IsFinite(Descriptor.Location.Z))
+    {
+        return false;
+    }
+
+    const FVector2D CenterPosition(Descriptor.Location);
+    if (!FKalmalaWorldBounds::Contains(WorldGenerationConfig, CenterPosition))
+    {
+        return false;
+    }
+
+    EKalmalaWildlifeArchetype Archetype;
+    if (!DoesPopulationDescriptorPassSpeciesHabitat(Descriptor, &Archetype)
+        || !IsPopulationAquaticArchetype(Archetype))
+    {
+        return false;
+    }
+
+    const double BodyRadius = AKalmalaWildlifeSpawn::ReefMawBodyCollisionRadiusCentimetres;
+    const double SpawnDepth = AKalmalaWildlifeSpawn::ReefMawSpawnDepthCentimetres;
+    if (!FMath::IsFinite(BodyRadius) || !FMath::IsFinite(SpawnDepth)
+        || BodyRadius <= 0.0 || SpawnDepth < BodyRadius)
+    {
+        return false;
+    }
+
+    const double SampleStepLimit = FKalmalaTerrainHeightSampler::NormalSampleDistance * 0.25;
+    const int32 SampleIntervals = FMath::Max(1,
+        FMath::CeilToInt(BodyRadius / SampleStepLimit));
+    const double SampleStep = BodyRadius / SampleIntervals;
+    for (int32 XIndex = -SampleIntervals; XIndex <= SampleIntervals; ++XIndex)
+    {
+        for (int32 YIndex = -SampleIntervals; YIndex <= SampleIntervals; ++YIndex)
+        {
+            const FVector2D Offset(XIndex * SampleStep, YIndex * SampleStep);
+            const double HorizontalDistanceSquared = Offset.SizeSquared();
+            if (HorizontalDistanceSquared > FMath::Square(BodyRadius)) continue;
+
+            const FVector2D SamplePosition = CenterPosition + Offset;
+            FKalmalaOceanSample OceanSample;
+            const bool bIsCenterSample = XIndex == 0 && YIndex == 0;
+            const bool bHasReefMawSwimmingSupport = bIsCenterSample
+                ? AKalmalaWildlifeSpawn::IsReefMawPositionNavigable(
+                    WorldGenerationConfig, SamplePosition, &OceanSample)
+                : AKalmalaWildlifeSpawn::IsReefMawOceanPosition(
+                    WorldGenerationConfig, SamplePosition, &OceanSample);
+            if (!bHasReefMawSwimmingSupport
+                || !DoesReefMawBodyFitOceanSample(OceanSample,
+                    FMath::Sqrt(HorizontalDistanceSquared)))
+            {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+bool AKalmalaGameMode::DoesReefMawBodyFitOceanSample(const FKalmalaOceanSample& OceanSample,
+    const double HorizontalDistanceFromCenterCentimetres)
+{
+    const double BodyRadius = AKalmalaWildlifeSpawn::ReefMawBodyCollisionRadiusCentimetres;
+    const double SpawnDepth = AKalmalaWildlifeSpawn::ReefMawSpawnDepthCentimetres;
+    if (!OceanSample.bIsValid || !OceanSample.IsWater()
+        || !FMath::IsFinite(OceanSample.TerrainHeight) || !FMath::IsFinite(OceanSample.WaterDepth)
+        || !FMath::IsFinite(HorizontalDistanceFromCenterCentimetres)
+        || !FMath::IsFinite(BodyRadius) || !FMath::IsFinite(SpawnDepth)
+        || BodyRadius <= 0.0 || SpawnDepth < BodyRadius
+        || HorizontalDistanceFromCenterCentimetres < 0.0
+        || HorizontalDistanceFromCenterCentimetres > BodyRadius)
+    {
+        return false;
+    }
+
+    const double VerticalHalfExtent = FMath::Sqrt(FMath::Max(0.0,
+        FMath::Square(BodyRadius) - FMath::Square(HorizontalDistanceFromCenterCentimetres)));
+    const double RequiredDepth = SpawnDepth + VerticalHalfExtent;
+    const double BodyBottom = FKalmalaTerrainHeightSampler::SeaLevelWorldHeight - RequiredDepth;
+    return OceanSample.WaterDepth >= RequiredDepth && OceanSample.TerrainHeight <= BodyBottom;
+}
+
+bool AKalmalaGameMode::IsPopulationAquaticArchetype(const EKalmalaWildlifeArchetype Archetype)
+{
+    return Archetype == EKalmalaWildlifeArchetype::ReefMaw;
 }
 
 void AKalmalaGameMode::ApplyPopulationTimeGate(FKalmalaPopulationSchedulerKeyWork& KeyWork) const
