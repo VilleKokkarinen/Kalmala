@@ -7775,8 +7775,8 @@
 - **Full verification:** Deferred to S35. This is not the final implementation task in the monster-population goal.
 - **Observable impact / authority:** Server Tick now keeps scheduler eligibility synchronized with the S05 loaded-key union. It tracks cadence only; the existing nine-key materialization cap is unchanged, and natural spawn admission remains disabled.
 - **Networking/authority:** Candidate collection, active schedule state, deterministic phase and service advancement are server-authoritative. The per-key due map contains active keys only; S02 creature cooldown state is separate. No client selects or advances spawn state.
-- **Known limitations:** S09+ still needs the separate player-distance exclusion, candidate evaluation and spawn admission. S06 does not create attempts or activate additional keys.
-- **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within the requested monster-population goal, the next child is S09 — exclude nearby players.
+- **Known limitations:** S10+ still needs live tracking, candidate evaluation and spawn admission. S06 does not create attempts or activate additional keys.
+- **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within the requested monster-population goal, the next child is S10 — track live creatures.
 
 
 ### Monster population — S07 bounded scheduler wake
@@ -7788,8 +7788,8 @@
 - **Full verification:** Deferred to S35. This is not the final implementation task in the monster-population goal.
 - **Observable impact / authority:** The authoritative GameMode creates a bounded due-key/budget plan on 0.25 s wake intervals; S08 now consumes it to select existing descriptors. The materialized-key limit is unchanged, and no actors are created.
 - **Networking/authority:** Wake timing, due-key selection and candidate budgets are server-only.
-- **Known limitations:** S09+ still needs player-distance rejection, candidate evaluation and admission; this scheduler does not create actors.
-- **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within this requested monster-population goal, the next child is S09 — exclude nearby players.
+- **Known limitations:** S10+ still needs live tracking, candidate evaluation and admission; this scheduler does not create actors.
+- **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within this requested monster-population goal, the next child is S10 — track live creatures.
 
 
 ### Monster population — S08 stable ring candidate selector
@@ -7801,5 +7801,18 @@
 - **Full verification:** Deferred to S35. This is not the final implementation task in the monster-population goal.
 - **Observable impact / authority:** Server-side bounded work items now contain selected original descriptors for later gates. Their spawn IDs, positions, and content IDs remain unchanged; no actor or natural spawn is created.
 - **Networking/authority:** Player positions, descriptor selection, cursor, ordinal and seeded roll are used only on the authoritative GameMode.
-- **Known limitations:** S09 still adds the separate all-player distance exclusion. The backlog says its threshold is 36 m, while the current spatial contract says every player must be at least 32 m away; resolve that discrepancy in S09. S13–S21 and S14 still wire the later gates/evaluator.
-- **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within this requested monster-population goal, the next child is S09 — exclude nearby players.
+- **Known limitations:** S09 now adds the separate 36 m all-player exclusion; the earlier backlog-versus-contract threshold discrepancy is resolved with the backlog value. S10+ still adds live tracking, caps, evaluator wiring and actor admission.
+- **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within this requested monster-population goal, the next child is S10 — track live creatures.
+
+
+### Monster population — S09 all-player distance exclusion
+
+- **Selected increment:** S09, reject candidates closer than 36 m to any living player.
+- **Work completed:** Added a separate server-side gate after the unchanged S08 inclusive 32–96 m ring selector. It compares each selected descriptor against every current-world living player and rejects horizontal distances below 36 m; exactly 36 m passes. This includes a second player outside the selecting player's 96 m neighborhood.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`, `Source/KalmalaGameplay/Public/KalmalaGameMode.h`, `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationPlayerDistanceGateTest.cpp`, `Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h`, `docs/monster-spawning.md`, `BACKLOG.md`, `PROGRESS.md`.
+- **Lightweight checks:** Source/contract inspection and `git diff --check`; focused automation coverage added for the inclusive 36 m boundary and a second player outside the selecting player's 96 m neighborhood. Tests and builds were not run.
+- **Full verification:** Deferred to S35. This is not the final implementation task in the monster-population goal.
+- **Observable impact / authority:** Server-side scheduler candidates are removed when they are within 36 m horizontally of any living player; the S08 ring selection and stable descriptors remain unchanged.
+- **Networking/authority:** The GameMode applies the gate using the authoritative current-world living-player list; no client distance or spawn decision is accepted.
+- **Known limitations:** Candidate evaluation, live-actor caps, placement checks, natural-spawn actor creation and camp suppression remain for later S10–S26 work.
+- **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within this requested monster-population goal, the next child is S10 — track live creatures.

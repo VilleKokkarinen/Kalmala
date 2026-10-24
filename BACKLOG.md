@@ -606,7 +606,7 @@ milestone-final verification/repair run and can exceed a normal turn.
   - [x] **S08 — Generate ring candidates.** Select existing stable descriptors
     within 32–96 m; use the contract's seeded 25% admission roll and rotating cursor.
     Preserve descriptor positions, identities and biome weights.
-  - [ ] **S09 — Exclude nearby players.** Reject a candidate within 36 m of any
+  - [x] **S09 — Exclude nearby players.** Reject a candidate within 36 m of any
     living player, including a second player outside the selecting neighborhood.
   - [ ] **S10 — Track live creatures.** Register/unregister authoritative live
     actors; remove defeated/destroyed entries and count their current positions.

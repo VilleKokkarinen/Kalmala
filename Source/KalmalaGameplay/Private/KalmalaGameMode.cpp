@@ -5526,6 +5526,7 @@ void AKalmalaGameMode::UpdatePopulationSchedulerWake(const double NowSeconds)
             FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(
                 WorldGenerationConfig, KeyWork.SpatialKey, EKalmalaWorldPopulationKind::Wildlife);
         SelectPopulationRingCandidates(KeyWork, Descriptors, LivingPlayers);
+        ApplyPopulationPlayerDistanceGate(KeyWork, LivingPlayers);
     }
 }
 
@@ -5615,6 +5616,52 @@ void AKalmalaGameMode::SelectPopulationRingCandidates(
 
         KeyWork.Candidates.Add(Descriptor);
     }
+}
+
+void AKalmalaGameMode::ApplyPopulationPlayerDistanceGate(
+    FKalmalaPopulationSchedulerKeyWork& KeyWork,
+    const TArray<AKalmalaCharacter*>& LivingPlayers) const
+{
+    const UWorld* World = GetWorld();
+    if (!HasAuthority() || !IsValid(World) || LivingPlayers.IsEmpty())
+    {
+        KeyWork.Candidates.Reset();
+        return;
+    }
+
+    constexpr double ExclusionDistanceSquared =
+        static_cast<double>(FKalmalaMonsterSpawnTuning::PlayerExclusionDistanceCm)
+        * FKalmalaMonsterSpawnTuning::PlayerExclusionDistanceCm;
+    KeyWork.Candidates.RemoveAll([World, &LivingPlayers, ExclusionDistanceSquared](
+        const FKalmalaWorldPopulationSpawn& Descriptor)
+    {
+        if (!FMath::IsFinite(Descriptor.Location.X) || !FMath::IsFinite(Descriptor.Location.Y))
+        {
+            return true;
+        }
+
+        for (const AKalmalaCharacter* Player : LivingPlayers)
+        {
+            if (!IsValid(Player) || Player->GetWorld() != World)
+            {
+                continue;
+            }
+
+            const FVector PlayerLocation = Player->GetActorLocation();
+            if (!FMath::IsFinite(PlayerLocation.X) || !FMath::IsFinite(PlayerLocation.Y))
+            {
+                continue;
+            }
+
+            const double DeltaX = static_cast<double>(Descriptor.Location.X) - PlayerLocation.X;
+            const double DeltaY = static_cast<double>(Descriptor.Location.Y) - PlayerLocation.Y;
+            if (DeltaX * DeltaX + DeltaY * DeltaY < ExclusionDistanceSquared)
+            {
+                return true;
+            }
+        }
+        return false;
+    });
 }
 
 void AKalmalaGameMode::Tick(const float DeltaSeconds)

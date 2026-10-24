@@ -178,6 +178,15 @@ horizontal distance to at least one living player is within the inclusive
 32–96 m ring. The selector does not create actors or add S09's separate
 all-player distance rejection.
 
+## S09 all-player exclusion gate — 2026-10-24
+
+After S08 selects descriptors in the inclusive 32–96 m ring, S09 rejects any
+candidate whose horizontal distance from any current-world living player is
+less than 36 m. The check uses the full authoritative living-player list, even
+when a second player is outside the selecting player's 96 m neighborhood.
+Exactly 36 m passes. This gate does not change S08 ring membership or move
+descriptor positions.
+
 ## Spatial scheduling and random rolls
 
 - Retain invisible 64 m square spatial keys, floor division for negative X/Y,
@@ -203,7 +212,8 @@ all-player distance rejection.
   0–99 and accept 0–24. Ordinal advances once per serviced check, not per player.
   No repeat roll in the same check. Empty biome-weight slots stay empty.
 - Horizontal distance to at least one living player must be in [32, 96] m;
-  distance to every living player must be at least 32 m. Exact boundaries pass.
+  distance to every living player must be at least 36 m. The 36 m exclusion
+  boundary passes; candidates closer than 36 m are rejected.
   Every Wolf member must pass the distance and placement checks.
 
 ## Counts and caps

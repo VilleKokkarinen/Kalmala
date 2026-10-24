@@ -99,6 +99,7 @@ private:
     friend class FKalmalaPopulationSchedulerCadenceTest;
     friend class FKalmalaPopulationSchedulerBudgetTest;
     friend class FKalmalaPopulationRingCandidateSelectorTest;
+    friend class FKalmalaPopulationPlayerDistanceGateTest;
 
 #if WITH_DEV_AUTOMATION_TESTS
     // Isolate the final disk boundary while exercising the real depletion callback.
@@ -117,6 +118,8 @@ private:
     void SelectPopulationRingCandidates(FKalmalaPopulationSchedulerKeyWork& KeyWork,
         const TArray<FKalmalaWorldPopulationSpawn>& Descriptors,
         const TArray<class AKalmalaCharacter*>& LivingPlayers);
+    void ApplyPopulationPlayerDistanceGate(FKalmalaPopulationSchedulerKeyWork& KeyWork,
+        const TArray<class AKalmalaCharacter*>& LivingPlayers) const;
     bool IsDescriptorInSpawnRing(const FVector& SpawnLocation,
         const TArray<class AKalmalaCharacter*>& LivingPlayers) const;
     void ActivatePopulationKey(const FIntPoint& SpatialKey);
