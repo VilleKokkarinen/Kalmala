@@ -41,20 +41,28 @@ Lynx fills the next two seeded Tundra slots with a dry-ground pounce, a
 | Boar                | Meadows / Elderwood / Shimmering Lakes | Current          |  20  |   5   | 10 Crush     | Territorial charge                  |
 | Deer                | Meadows / Elderwood / Shimmering Lakes | Current          |  30  |   5   | —            | Flees; fleeing alerts nearby deer   |
 | Rat                 | Meadows                                | Current          |  10  |   0   | 5 Pierce     | 3 m approach trigger; 100 cm bite   |
-| Badger              | Elderwood                              | Partial          |  100 |   10  | 20 Slash     | 3 m warning; 180 cm claws; queued Bone Fragment, Fur, and Meat; I4 pending |
-| Moon Bear           | Elderwood                              | Partial          |  250 |   20  | 75 Crush     | 3 m warning; 220 cm overhead paw; 1.2 s recovery; queued 3 Bone Fragment; I4 pending |
-| Viper               | Shimmering Lakes                       | Partial          |  100 |   10  | 50 Stab      | 40% dry-shore slots; 180 cm lunge; weak poison: 1/s, 5 s; queued Bone Fragment; I4 pending |
-| Giant Snake         | Shimmering Lakes                       | Partial          |  250 |   30  | 100 Stab     | 10% dry-shore hard slot; coiled 360 cm lunge; 1 s warning; 1.2 s recovery; queued 2 Bone Fragment + 2 Giant Scale; I4 pending |
-| Mireling            | Mossy Mire                             | Partial          |  75  |   15  | 20 Crush     | 50% dry-ground share; server simple melee; boss-scroll path unchanged; I4 pending |
-| Death Adder         | Mossy Mire                             | Partial          |  125 |   20  | 75 Stab      | 20% dry-ground slots; close coiled bite; major poison: 5/s, 10 s; queued Bone Fragment + Venom Sac; I4 pending |
-| Mosquito swarm      | Mossy Mire                             | Partial          |  25  |   0   | 5 Stab/0.2 s | 20% dry-ground slots; one swarm per target; poison 1/s for 10 s; dodge/fire repel; I4 pending |
-| Peat Husk           | Mossy Mire                             | Partial          |  300 |   50  | 150 Crush    | 10% dry-ground hard slot; 260 cm/120° sweep; 1 s warning; 1.2 s recovery; queued Amber + rolled 25% Peat Heart; I4 pending |
-| Wolf                | Freezing Tundra                        | Partial          |  250 |   40  | 100 Slash    | 20% dry-ground slots; three-member pack; 180 cm lunge bite; queued 2 Bone Fragment + Wolf Pelt + Wolf Meat + 25% Wolf Fang; I4 pending |
-| Lynx                | Freezing Tundra                        | Partial          |  150 |   30  | 75 Slash     | 20% dry-ground slots; 350 cm leap; 0.5 s warning; 0.8 s hit / 1.2 s miss recovery; queued 2 Bone Fragment + 50% Lynx Pelt; I4 pending |
-| Polar Bear          | Freezing Tundra                        | Partial          |  750 |   60  | 200 Crush    | 10% hard slot; 1 s warning; 220 cm charge; retreat; queued 3 Bone Fragment + 2 Polar Bear Pelt; I4 pending |
-| Horned Goat         | Thunder Mountains                      | Partial          |  200 |   50  | 50 Crush     | 40% dry-ground slots; 0.5 s telegraph; 180 cm horn hit; up to 250 cm push and 0.75 s stagger; queued 2 Bone Fragment + 1 Goat Horn; I4 pending |
-| Thunder Sentinel    | Thunder Mountains                      | Partial          | 1250 |   75  | 300 Crush    | 10% dry-ground hard slot; 150 m start exclusion; 1 s warning, 120 cm step, 300 cm horizontal slam; 1.2 s recovery; queued 3 Stone + 25% Thunder Core; I4 pending |
-| Reef Maw            | Ocean                                  | Partial          |  180 |   2   | 50 Stab      | 10% deep-water slot; 180 cm swimmer-only bite; queued 3 Bone Fragment + 50% Reef Tooth; I4 pending |
+| Badger              | Elderwood                              | Current          |  100 |   10  | 20 Slash     | 3 m warning; 180 cm claws; queued Bone Fragment, Fur, and Meat |
+| Moon Bear           | Elderwood                              | Current          |  250 |   20  | 75 Crush     | 3 m warning; 220 cm overhead paw; 1.2 s recovery; queued 3 Bone Fragment |
+| Viper               | Shimmering Lakes                       | Current          |  100 |   10  | 50 Stab      | 40% dry-shore slots; 180 cm lunge; weak poison: 1/s, 5 s; queued Bone Fragment |
+| Giant Snake         | Shimmering Lakes                       | Current          |  250 |   30  | 100 Stab     | 10% dry-shore hard slot; coiled 360 cm lunge; 1 s warning; 1.2 s recovery; queued 2 Bone Fragment + 2 Giant Scale |
+| Mireling            | Mossy Mire                             | Current          |  75  |   15  | 20 Crush     | 50% dry-ground share; server simple melee; boss-scroll path unchanged |
+| Death Adder         | Mossy Mire                             | Current          |  125 |   20  | 75 Stab      | 20% dry-ground slots; close coiled bite; major poison: 5/s, 10 s; queued Bone Fragment + Venom Sac |
+| Mosquito swarm      | Mossy Mire                             | Current          |  25  |   0   | 5 Stab/0.2 s | 20% dry-ground slots; one swarm per target; poison 1/s for 10 s; dodge/fire repel |
+| Peat Husk           | Mossy Mire                             | Current          |  300 |   50  | 150 Crush    | 10% dry-ground hard slot; 260 cm/120° sweep; 1 s warning; 1.2 s recovery; queued Amber + rolled 25% Peat Heart |
+| Wolf                | Freezing Tundra                        | Current          |  250 |   40  | 100 Slash    | 20% dry-ground slots; three-member pack; 180 cm lunge bite; queued 2 Bone Fragment + Wolf Pelt + Wolf Meat + 25% Wolf Fang |
+| Lynx                | Freezing Tundra                        | Current          |  150 |   30  | 75 Slash     | 20% dry-ground slots; 350 cm leap; 0.5 s warning; 0.8 s hit / 1.2 s miss recovery; queued 2 Bone Fragment + 50% Lynx Pelt |
+| Polar Bear          | Freezing Tundra                        | Current          |  750 |   60  | 200 Crush    | 10% hard slot; 1 s warning; 220 cm charge; retreat; queued 3 Bone Fragment + 2 Polar Bear Pelt |
+| Horned Goat         | Thunder Mountains                      | Current          |  200 |   50  | 50 Crush     | 40% dry-ground slots; 0.5 s telegraph; 180 cm horn hit; up to 250 cm push and 0.75 s stagger; queued 2 Bone Fragment + 1 Goat Horn |
+| Thunder Sentinel    | Thunder Mountains                      | Current          | 1250 |   75  | 300 Crush    | 10% dry-ground hard slot; 150 m start exclusion; 1 s warning, 120 cm step, 300 cm horizontal slam; 1.2 s recovery; queued 3 Stone + 25% Thunder Core |
+| Reef Maw            | Ocean                                  | Current          |  180 |   2   | 50 Stab      | 10% deep-water slot; 180 cm swimmer-only bite; queued 3 Bone Fragment + 50% Reef Tooth |
+
+Combined A8a/A8b I4 acceptance passed on 2026-10-24. The full Editor build,
+creature and icon validators, 178-test Kalmala automation queue, shared Rat
+reward/retry/restart peer case, and representative Badger Fur Vest craft/equip
+peer case passed. Existing live species-specific acceptance remains recorded
+in `PROGRESS.md`; inventory automation equips a representative in each wearable
+slot, and the A8b craft/equip peer covers the shared server-validated recipe
+path. A9 remains separate follow-on scope.
 
 Mireling uses the reviewed 75-health, 15-armor, 20-Crush profile. Its
 deterministic 50% Mossy Mire share is limited to dry spawn surfaces; all other
