@@ -8066,3 +8066,33 @@
   verification remains for BH26.
 - **Next task in this directed goal:** BH05 — protect ocean and rivers with
   focused source-coast, sea-level river, swimming/wetness and map controls.
+
+## Run 2026-10-24 - BH06 biome height candidate functions
+
+- **Selected increment:** BH06, extract named candidate land-height functions
+  for Meadows, Elderwood, Shimmering Lakes, Mossy Mire, Freezing Tundra and
+  Thunder Mountains with output-preserving defaults.
+- **Work completed:** Replaced the anonymous per-biome offset array with six
+  named functions that each return a complete candidate height from the shared
+  source height and existing detail inputs. The sampler blends the same float
+  offsets in the same biome-weight order; Ocean's independent seabed term,
+  classifications, weights, basins and rivers are unchanged. Added focused
+  fixed expected-value automation coverage for each candidate across negative,
+  neutral and positive detail, including the Mountains region contribution.
+  Checked only BH06.
+- **Files changed:** BACKLOG.md, PROGRESS.md,
+  Source/KalmalaWorld/Public/KalmalaRegionalGeneration.h,
+  Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp,
+  Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp.
+- **Lightweight checks/results:** Inspected candidate-to-weight ordering and
+  verified the extracted expressions match the previous six land shape terms;
+  `git diff --check` passed. The new automation fixture was added but not built
+  or run. Full verification remains deferred to BH26.
+- **Observable impact / authority:** No intended terrain-output change. The
+  sampler now exposes explicit candidate functions for later per-biome relief
+  work; no gameplay, networking, server-authority or save behavior changed.
+- **Known limitations / remaining scope:** The focused automation has not been
+  compiled or executed. BH07–BH26 still add controls, relief, forest/presentation
+  integration and final acceptance.
+- **Next task in this directed goal:** BH07 — add validated preview controls
+  while keeping production output unchanged.

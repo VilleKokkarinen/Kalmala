@@ -7,6 +7,50 @@
 #include "KalmalaWorldPlayerStartResolver.h"
 #include "Misc/AutomationTest.h"
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaBiomeHeightFunctionTest,
+    "Kalmala.World.Regional.HeightFunctionBaselines",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+bool FKalmalaBiomeHeightFunctionTest::RunTest(const FString& Parameters)
+{
+    using G = FKalmalaRegionalGeneration;
+    constexpr double SourceHeight = 1000.0;
+    const double Details[] = {-1.0, 0.0, 1.0};
+    const double ExpectedMeadows[] = {960.0, 1000.0, 1040.0};
+    const double ExpectedElderwood[] = {925.0, 940.0, 955.0};
+    const double ExpectedLakes[] = {935.0, 1000.0, 1065.0};
+    const double ExpectedMire[] = {925.0, 940.0, 955.0};
+    const double ExpectedTundra[] = {950.0, 1000.0, 1050.0};
+
+    for (int32 Index = 0; Index < UE_ARRAY_COUNT(Details); ++Index)
+    {
+        TestEqual(TEXT("Meadows candidate preserves the prior sample"),
+            G::ShapeMeadows(SourceHeight, Details[Index]), ExpectedMeadows[Index]);
+        TestEqual(TEXT("Elderwood candidate preserves the prior sample"),
+            G::ShapeElderwood(SourceHeight, Details[Index]), ExpectedElderwood[Index]);
+        TestEqual(TEXT("Shimmering Lakes candidate preserves the prior sample"),
+            G::ShapeShimmeringLakes(SourceHeight, Details[Index]), ExpectedLakes[Index]);
+        TestEqual(TEXT("Mire candidate preserves the prior sample"),
+            G::ShapeMire(SourceHeight, Details[Index]), ExpectedMire[Index]);
+        TestEqual(TEXT("Tundra candidate preserves the prior sample"),
+            G::ShapeTundra(SourceHeight, Details[Index]), ExpectedTundra[Index]);
+    }
+
+    const double MountainRegions[] = {0.0, 0.5, 1.0};
+    const double ExpectedMountains[3][3] = {
+        {840.0, 890.0, 940.0},
+        {1000.0, 1050.0, 1100.0},
+        {1160.0, 1210.0, 1260.0},
+    };
+    for (int32 DetailIndex = 0; DetailIndex < UE_ARRAY_COUNT(Details); ++DetailIndex)
+    for (int32 RegionIndex = 0; RegionIndex < UE_ARRAY_COUNT(MountainRegions); ++RegionIndex)
+    {
+        TestEqual(TEXT("Mountain candidate preserves detail and regional offset"),
+            G::ShapeMountains(SourceHeight, Details[DetailIndex], MountainRegions[RegionIndex]),
+            ExpectedMountains[DetailIndex][RegionIndex]);
+    }
+    return true;
+}
+
 // Search actual spline centers rather than a coarse lattice that can miss a channel.
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaHighGroundRiverCenterTest,
     "Kalmala.World.Regional.HighGroundRiverCenter",

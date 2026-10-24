@@ -534,7 +534,7 @@ run for this goal and may exceed one turn.
   - [x] **BH05 — Protect ocean and rivers.** Add focused controls proving ocean,
     source-coast sign, sea-level rivers, swimming/wetness, and water/map
     classification still agree while basin-only water stays absent.
-  - [ ] **BH06 — Extract biome height functions.** Add named candidate functions
+  - [x] **BH06 — Extract biome height functions.** Add named candidate functions
     for Meadows, Elderwood, Shimmering Lakes, Mire, Tundra, and Mountains with
     output-preserving defaults and focused sampler coverage.
   - [ ] **BH07 — Add validated preview controls.** Name and bound shared relief

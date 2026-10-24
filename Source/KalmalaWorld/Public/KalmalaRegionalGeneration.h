@@ -38,9 +38,18 @@ struct KALMALAWORLD_API FKalmalaRegionalGeneration
     static uint64 Seed(const FKalmalaWorldGenerationConfig& Config, uint64 Domain, FIntPoint Cell = FIntPoint::ZeroValue);
     static double Noise(const FKalmalaWorldGenerationConfig& Config, uint64 Domain, FVector2D Position, double Frequency);
 private:
+    friend class FKalmalaBiomeHeightFunctionTest;
     friend class FKalmalaMasterMapTest;
     friend class FKalmalaRiverBankCrossSectionTest;
     friend class FKalmalaRiverUnchangedControlsTest;
+    // Named pre-relief candidates keep the existing additive shapes explicit.
+    // Their defaults intentionally reproduce the current regional sample.
+    static double ShapeMeadows(double SourceHeight, double Detail);
+    static double ShapeElderwood(double SourceHeight, double Detail);
+    static double ShapeShimmeringLakes(double SourceHeight, double Detail);
+    static double ShapeMire(double SourceHeight, double Detail);
+    static double ShapeTundra(double SourceHeight, double Detail);
+    static double ShapeMountains(double SourceHeight, double Detail, double MountainRegion);
     // Private regression control: retain all land/basin shaping, omit only courses.
     static FKalmalaRegionalSample SampleInternal(const FKalmalaWorldFieldSample& Fields, bool bBiomeOnly, bool bSkipHydrology = false);
 };

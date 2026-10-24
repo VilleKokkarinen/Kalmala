@@ -154,6 +154,37 @@ double FKalmalaRegionalGeneration::Noise(const FKalmalaWorldGenerationConfig& C,
     return FMath::PerlinNoise2D(P * Frequency + FVector2D(RegionalUnit(S) * 128, RegionalUnit(S >> 24) * 128));
 }
 
+double FKalmalaRegionalGeneration::ShapeMeadows(const double SourceHeight, const double Detail)
+{
+    return SourceHeight + double(float(40 * Detail));
+}
+
+double FKalmalaRegionalGeneration::ShapeElderwood(const double SourceHeight, const double Detail)
+{
+    return SourceHeight + double(float(-60 + 15 * Detail));
+}
+
+double FKalmalaRegionalGeneration::ShapeShimmeringLakes(const double SourceHeight, const double Detail)
+{
+    return SourceHeight + double(float(65 * Detail));
+}
+
+double FKalmalaRegionalGeneration::ShapeMire(const double SourceHeight, const double Detail)
+{
+    return SourceHeight + double(float(-60 + 15 * Detail));
+}
+
+double FKalmalaRegionalGeneration::ShapeTundra(const double SourceHeight, const double Detail)
+{
+    return SourceHeight + double(float(50 * Detail));
+}
+
+double FKalmalaRegionalGeneration::ShapeMountains(
+    const double SourceHeight, const double Detail, const double MountainRegion)
+{
+    return SourceHeight + double(float(160 * Detail + 100 * MountainRegion));
+}
+
 TArray<FKalmalaHydrologySegment> FKalmalaRegionalGeneration::GetHydrology(const FKalmalaWorldGenerationConfig& C, FIntPoint Cell)
 {
     FScopeLock Lock(&CacheMutex);
@@ -225,8 +256,23 @@ FKalmalaRegionalSample FKalmalaRegionalGeneration::SampleInternal(const FKalmala
     if (!bBiomeOnly)
     {
         const double Detail = Noise(C, 250, P, 0.00015);
-        const float Shapes[] = { float(40 * Detail), float(-60 + 15 * Detail), float(65 * Detail), float(-60 + 15 * Detail),
-            float(50 * Detail), float(160 * Detail + 100 * WarpedRegion(C, Warped, 5)), float(-60 * (1 - Land) * WarpedRegion(C, Warped, 6)) };
+        const double CandidateHeights[] = {
+            ShapeMeadows(Source, Detail),
+            ShapeShimmeringLakes(Source, Detail),
+            ShapeElderwood(Source, Detail),
+            ShapeMire(Source, Detail),
+            ShapeTundra(Source, Detail),
+            ShapeMountains(Source, Detail, WarpedRegion(C, Warped, 5)),
+        };
+        const float Shapes[] = {
+            float(CandidateHeights[0] - Source),
+            float(CandidateHeights[1] - Source),
+            float(CandidateHeights[2] - Source),
+            float(CandidateHeights[3] - Source),
+            float(CandidateHeights[4] - Source),
+            float(CandidateHeights[5] - Source),
+            float(-60 * (1 - Land) * WarpedRegion(C, Warped, 6)),
+        };
         for (int32 I = 0; I < 7; ++I) R.Height += R.Weights[I] * Shapes[I] * (I == 6 ? 1 : Land);
     }
 
