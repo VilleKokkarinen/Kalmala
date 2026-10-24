@@ -7947,3 +7947,75 @@
   progression, approved-system acceptance and final A10 verification remain
   open; the broad per-item child stays unchecked.
 - **Next eligible item:** Bone Fragment (A0). Continue in backlog order.
+
+## Run 2026-10-24 — A10 per-item audit: Bone Fragment
+
+- **Selected increment:** Next included A0 item after Lightwood in A10's
+  per-item review. This is a source/recipe/use/icon/save audit only; the broad
+  A10 child remains unchecked.
+- **Files changed:** BACKLOG.md and PROGRESS.md.
+- **Evidence reviewed:** Registered material and creature catalogues,
+  GameCatalogues.json, a recursive parse of catalogue references, Workbench
+  recipe and cape upgrade files, wildlife reward and GameMode claim code,
+  focused reward assertions, catalogue icon manifest/runtime lookup and retained
+  files, plus item/save contracts in 02-technical-architecture.md,
+  biome-enemies.md, creature-catalogues.md, a9-acceptance.md,
+  07-development-setup.md and icon-provenance.md.
+- **Registered item and sources:** Canonical ID BoneFragment, display name
+  “Bone fragment,” stack limit 40 and weight 0.1 kg, registered through
+  items/materials/crafting-ingredients.json. Current creatures.json and
+  GetBoneFragmentRewardQuantity agree on 13 guaranteed sources: Boar and Deer
+  (1 each); Rat, Badger, Viper and Death Adder (1 each); Giant Snake, Wolf,
+  Lynx and Horned Goat (2 each); Moon Bear, Polar Bear and Reef Maw (3 each).
+  Every drop has chance 1.0. Mireling, MosquitoSwarm, PeatHusk and
+  ThunderSentinel have no Bone Fragment drop. The earlier A0 child records the
+  original Boar/Deer increment; later creature catalogue additions expand the
+  current source list.
+- **Reward delivery and authority:** The server credits LastValidatedAttacker.
+  Boar and Deer grant Bone Fragment directly with TryGrantFromServer; this path
+  does not queue a saved claim or retry a capacity failure, and the grant result
+  is ignored. Other Bone-dropping species use owner-bound, spawn-keyed
+  population-save claims; the complete reward bundle is delivered atomically
+  when capacity permits and remains queued for retry/reload otherwise. Once
+  delivered, Bone Fragment is an ordinary carried stack.
+- **Recipe, uses and N/A categories:** The recursive catalogue scan found one
+  acquisition recipe use: enabled Workbench BoarHideCapeRecipe, 5 Boar Hide +
+  1 Bone Fragment → 1 Boar Hide Cape, maximum batch 1. Level-one Workbench
+  upgrade costs also use 2 Boar Hide + 1 Bone Fragment for Boar Hide Cape and
+  2 Lynx Pelt + 1 Bone Fragment for Lynx Mantle. No recipe produces Bone
+  Fragment. It has no equipment profile, equip slot, attack data, item effect
+  or use handler, or own item-level upgrade/stat reward; those categories are
+  N/A for this crafting material.
+- **Icon:** Batch H manifest row maps BoneFragment to pack, detail, storage and
+  ingredient views. The retained 1254×1254 RGBA original is
+  Content/Kalmala/UI/Source/IconOriginals/BoneFragment.png; the prepared 64×64
+  texture is Content/Kalmala/UI/Source/Icons/BoneFragment.png; and the imported
+  texture is Content/Kalmala/UI/Icons/Items/BoneFragment.uasset.
+  FindCatalogueIcon assigns its bone vector symbol as fallback, while the
+  catalogue library resolves BoneFragment to
+  /Game/Kalmala/UI/Icons/Items/BoneFragment.BoneFragment. The imported package
+  is present and the earlier 152-item A10 icon audit passed; in-game rendering
+  was not rerun. The exact prompt and reproduction steps remain in
+  docs/icon-provenance.md.
+- **Save behavior:** Carried player inventory is transient and is not restored
+  after reconnect/restart; a9-acceptance.md and
+  02-technical-architecture.md distinguish inventory from persistent
+  world/source claims. Pending later-enemy reward claims persist for owner
+  retry, but do not persist Bone Fragment after delivery to the player's pack.
+  Storage saves validated generic item stacks separately; no
+  BoneFragment-specific chest round-trip assertion was found. Boar/Deer's
+  direct path has no pending claim, so a failed full-pack grant is not saved.
+- **Checks:** Parsed and traversed catalogue JSON read-only; inspected runtime
+  source, reward claims, icon files/mapping, focused test assertions and save
+  contracts. git diff --check passed after the documentation edit. No tests,
+  builds, peers, restart runs or runtime rendering were run.
+- **Full verification:** Deferred; this is not A10's final increment. No
+  gameplay, recipe, inventory, networking, authority or save behavior changed.
+- **Impact and remaining scope:** Records all current guaranteed Bone Fragment
+  sources, three catalogue cost relationships, its dedicated imported icon and
+  the distinction between persistent pending claims and transient delivered
+  inventory. Fresh-start progression, remaining per-item audits,
+  approved-system acceptance and final A10 verification remain open.
+- **Next eligible A0 item:** Food use for the six current cooking outputs;
+  begin with CookedBoarMeat. Keep the A10 per-item audit child unchecked until
+  all included items and scope N/A dispositions are covered.
