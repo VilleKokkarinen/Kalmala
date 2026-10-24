@@ -60,11 +60,11 @@ bool FKalmalaPopulationAreaCapsTest::RunTest(const FString& Parameters)
             Mode->GetPopulationSpeciesAreaCap(Expected.Key), Expected.Value);
     }
 
-    for (int32 Index = 0; Index < 2; ++Index)
-    {
-        TestNotNull(TEXT("Nearby Boar fixture created"), SpawnCreature(1000 + Index,
-            EKalmalaWildlifeArchetype::Boar, FVector(Index * 200.0f, 0.0f, 0.0f), HomeKey));
-    }
+    AKalmalaWildlifeSpawn* MovingBoar = SpawnCreature(1000,
+        EKalmalaWildlifeArchetype::Boar, FVector::ZeroVector, HomeKey);
+    TestNotNull(TEXT("Nearby movable Boar fixture created"), MovingBoar);
+    TestNotNull(TEXT("Second nearby Boar fixture created"), SpawnCreature(1001,
+        EKalmalaWildlifeArchetype::Boar, FVector(200.0f, 0.0f, 0.0f), HomeKey));
     TestNotNull(TEXT("Out-of-radius Boar fixture created"), SpawnCreature(1003,
         EKalmalaWildlifeArchetype::Boar,
         FVector(FKalmalaMonsterSpawnTuning::CountRadiusCm + 1.0f, 0.0f, 0.0f), HomeKey));
@@ -76,6 +76,26 @@ bool FKalmalaPopulationAreaCapsTest::RunTest(const FString& Parameters)
         EKalmalaWildlifeArchetype::Boar, FVector(600.0f, 0.0f, 0.0f), HomeKey));
     TestFalse(TEXT("Four nearby Boars including the exact 96 m boundary fill the common-species cap"),
         Mode->CanAdmitPopulationCreatureWithinCaps(FVector::ZeroVector, HomeKey, EKalmalaWildlifeArchetype::Boar));
+    if (!TestNotNull(TEXT("The first Boar remains registered for movement checks"), MovingBoar)) return false;
+    TestTrue(TEXT("A live creature can move beyond the count radius"),
+        MovingBoar->SetActorLocation(FVector(FKalmalaMonsterSpawnTuning::CountRadiusCm + 1.0f,
+            0.0f, 0.0f), false, nullptr, ETeleportType::TeleportPhysics));
+    int32 MovingWorldTotal = 0;
+    int32 MovingNearbyBoars = 0;
+    int32 MovingHomeKeyTotal = 0;
+    Mode->GetPopulationCreatureCapCounts(FVector::ZeroVector, EKalmalaWildlifeArchetype::Boar,
+        HomeKey, MovingWorldTotal, MovingNearbyBoars, MovingHomeKeyTotal);
+    TestEqual(TEXT("Species caps use the creature's current moved position"), MovingNearbyBoars, 3);
+    TestEqual(TEXT("Moving does not remove the actor from the shared world total"), MovingWorldTotal, 12);
+    TestEqual(TEXT("Moving does not change its immutable home-key budget charge"), MovingHomeKeyTotal, 12);
+    TestTrue(TEXT("Moving one live Boar outside 96 m frees one nearby species slot"),
+        Mode->CanAdmitPopulationCreatureWithinCaps(FVector::ZeroVector, HomeKey,
+            EKalmalaWildlifeArchetype::Boar));
+    TestTrue(TEXT("The same live Boar can move back into the counted area"),
+        MovingBoar->SetActorLocation(FVector::ZeroVector, false, nullptr, ETeleportType::TeleportPhysics));
+    TestFalse(TEXT("Returning the Boar restores the full nearby species cap"),
+        Mode->CanAdmitPopulationCreatureWithinCaps(FVector::ZeroVector, HomeKey,
+            EKalmalaWildlifeArchetype::Boar));
 
     for (int32 Index = 0; Index < 5; ++Index)
     {

@@ -669,7 +669,7 @@ milestone-final verification/repair run and can exceed a normal turn.
   - [x] **S29 — Apply environmental safety gates.** Combine local limits with
     shared species/total caps, player exclusion, physical placement and the
     accepted suppression policy; reserve capacity before creation.
-  - [ ] **S30 — Cover spatial boundaries.** Add focused cases for ring edges,
+  - [x] **S30 — Cover spatial boundaries.** Add focused cases for ring edges,
     negative key coordinates, overlapping players, moving creatures and pack
     reservation rollback; inspect assertions against the accepted contract.
   - [ ] **S31 — Cover gate rejection.** Add one rejection case per nine-gate

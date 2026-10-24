@@ -8098,3 +8098,16 @@
 - **Networking/authority:** Configuration, candidate selection, cap counts, reservation, creation, source ownership and cleanup remain server-owned. No RPC, replication field or save schema changed.
 - **Known limitations:** No source actor/configuration registry exists. The new path is intentionally disabled without explicit caller-supplied configuration. A source-local cap of two rejects a three-individual Wolf pack atomically. S30–S35 still cover acceptance cases and milestone-final verification.
 - **Next eligible task:** S30 — cover spatial boundaries.
+
+
+### Monster population — S30 spatial boundary coverage
+
+- **Selected increment:** S30, cover ring/key boundaries, overlapping player neighborhoods, moving-creature counts and Wolf reservation rollback.
+- **Work completed:** Reviewed the existing ring selector fixture and confirmed exact inclusive 32 m/96 m edges, adjacent outside points and seeded-roll isolation; reviewed the key-union fixture for overlapping players, one-result shared keys and deterministic order; reviewed the Wolf reservation fixture for provisional-member rollback with earlier reservations preserved. Added explicit floor-boundary assertions for negative spatial coordinates and a live Boar movement case proving species counts follow its current position while world and immutable home-key totals remain charged. No gameplay code changed.
+- **Files changed:** `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationAreaCapsTest.cpp`, `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSpatialKeyUnionTest.cpp`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** Inspected the accepted ring, 64 m spatial-key floor, 96 m count radius, overlapping-neighborhood union and atomic pack rollback implementations. Carefully reviewed the new negative-coordinate and moved-creature assertions against those contracts. `git diff --check` passed; automation and builds were not run.
+- **Full verification:** Deferred to S35; S30 is not the final implementation task in this goal.
+- **Observable impact / authority:** Added test coverage only. The fixture moves a server-owned registered wildlife actor and checks current live counts without changing spawn policy, world content, save data or replication.
+- **Networking/authority:** No runtime or network behavior changed. The tested cap counts and reservation operations are authoritative GameMode paths.
+- **Known limitations:** The focused automation fixtures were not run. S31–S35 still cover gate rejection, placement/suppression, lifecycle/local-source acceptance, verification handoff and milestone-final builds/tests/peer checks.
+- **Next eligible task:** S31 — cover gate rejection.

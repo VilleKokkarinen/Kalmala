@@ -22,6 +22,13 @@ bool FKalmalaPopulationSpatialKeyUnionTest::RunTest(const FString& Parameters)
     AKalmalaGameMode* Mode = World->SpawnActor<AKalmalaGameMode>();
     if (!TestNotNull(TEXT("Population key-union fixture GameMode created"), Mode)) return false;
 
+    TestTrue(TEXT("Negative positions floor into the preceding invisible key"),
+        FKalmalaWorldPopulationLayout::GetSpatialKey(FVector2D(-0.01, -0.01)) == FIntPoint(-1, -1));
+    TestTrue(TEXT("An exact negative key boundary belongs to the west/south key"),
+        FKalmalaWorldPopulationLayout::GetSpatialKey(FVector2D(-6400.0, -6400.0)) == FIntPoint(-1, -1));
+    TestTrue(TEXT("Coordinates just below a negative boundary floor into the next negative key"),
+        FKalmalaWorldPopulationLayout::GetSpatialKey(FVector2D(-6400.1, -6400.1)) == FIntPoint(-2, -2));
+
     const FIntPoint TangentLeft(-2, 0);
     const FIntPoint CenterKey(0, 0);
     const FIntPoint SharedKey(1, 0);
