@@ -7851,3 +7851,31 @@
   rendering, not water/material acceptance.
 - **Next task in this directed goal:** BH01c2b — capture and validate the other
   seven fixed seed-418 views with their appropriate land/water/ocean anchors.
+
+## Run 2026-10-24 - BH01c2b remaining seed-418 captures
+
+- **Selected increment:** BH01c2b, the second BH01c2 child. BH01c2, BH01c and
+  BH01 remain open.
+- **Completed:** Captured the other seven fixed seed-418 sites: Thunder
+  Mountains, Ocean, Meadows/Elderwood, Elderwood/Tundra and Tundra/Mountains
+  transitions, source coast, and highland river. The live runtime matched each
+  site, coordinate, anchor, camera, aim, FOV and output path within 0.2 cm.
+  Dry land used collision-triangle heights, wet non-ocean sites used
+  WaterLevelCm, and Ocean used Z=0. Together with c2a, all 14 seed-418 rows now
+  have live captures.
+- **Files changed:** BACKLOG.md, PROGRESS.md and docs/biome-height-rework.md.
+  PNGs and logs are ignored under .tmp/bh01/captures/418 and are not committed.
+- **Lightweight checks/results:** Each capture passed PNG signature, 1024x768
+  dimensions and sampled-pixel nonblank checks; each image was visually
+  inspected. External validation matched runtime seed/site/XY/anchor/camera/
+  aim/FOV/output-path data. Per-image bytes, sampled-color counts, hashes and
+  camera bounds are in docs/biome-height-rework.md.
+- **Full verification:** Deferred; this is not milestone-final.
+- **Impact / authority:** Baseline evidence only; no terrain generation,
+  gameplay, networking, server authority or save behavior changed.
+- **Known limitations:** The prototype renderer does not show a distinct water
+  surface in the Ocean, source-coast or highland-river frames; these are not
+  visual water/material acceptance. The 14 seed-419 captures and final
+  28-image verification remain open.
+- **Next task in this directed goal:** BH01c2c — capture and validate the first
+  seven fixed seed-419 views using the documented anchor rule.

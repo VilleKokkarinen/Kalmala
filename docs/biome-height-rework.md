@@ -365,8 +365,8 @@ The capture fixture runs only in non-shipping builds with the explicit flag and
 waits until `BeginPlay` has copied the initialized world configuration. It
 changes the standalone capture camera and explicitly activated terrain patches;
 it does not alter ordinary gameplay behavior, save data, RPCs or networking
-code. BH01c2a now preserves the 28-row numeric CSV and first seven seed-418
-views; c2b–c2d still need the remaining live captures and final manifest.
+code. BH01c2a and BH01c2b now preserve the full numeric CSV and all 14
+seed-418 live views; c2c–c2d still need the seed-419 captures and final manifest.
 
 ## BH01c2a durable numeric baseline and first seven seed-418 captures
 
@@ -397,8 +397,8 @@ CollisionTriangleHeightCm. At each anchor Z, place the camera at
 FOV. From all 28 numeric rows, the planned camera bounds are X
 -970,004.9..1,145,090.4 cm, Y -972,404.9..967,604.9 cm, and Z
 1,200..2,648.74426 cm; aim Z ranges 150..1,598.74426 cm. These bounds are
-derived from the numeric rows; the remaining 21 rendered poses still require
-runtime capture.
+derived from the numeric rows; the remaining 14 seed-419 rendered poses
+still require runtime capture.
 
 The first seven seed-418 rows were captured by the live -game -RenderOffscreen
 runner. Each runtime log matched seed, site, XY, chosen anchor, camera, aim, FOV,
@@ -422,7 +422,43 @@ The first Shimmering Lakes and Elderwood interior attempts used the dry-land
 anchor; those PNGs are marked invalid-triangle-anchor in .tmp and are not
 listed above. Their replacements use the measured water surface. The images
 record current prototype rendering and are not visual water/material acceptance;
-remaining views and the complete manifest are BH01c2b–BH01c2d.
+remaining views and the complete manifest are BH01c2c–BH01c2d.
+
+## BH01c2b remaining seven seed-418 rendered captures
+
+Captured the other seven seed-418 fixed sites: Thunder Mountains, Ocean,
+Meadows/Elderwood transition, Elderwood/Tundra transition, Tundra/Mountains
+transition, source coast land side, and highland river. Anchors use the
+collision-triangle height on dry land, measured WaterLevelCm for wet non-ocean
+samples, and Z=0 for Ocean. These images complete the 14 seed-418 views; all
+14 seed-418 poses now have live-render captures.
+
+Each of the seven runtime logs matched seed, site, fixed XY, anchor height,
+camera, aim, FOV and output filename within 0.2 cm for Unreal float rounding.
+Every PNG passed the runner's PNG-signature check, is 1024×768, and passed the
+sampled-pixel diversity/nonblank check. All seven images were visually
+inspected. Capture files and logs remain under ignored
+.tmp/bh01/captures/418 and are not committed.
+
+Across these 14 fixed seed-418 sites, camera bounds are X
+-970,004.9..970,004.9 cm, Y -972,404.9..961,351.8 cm, and Z
+1,200..2,573.79517 cm; aim Z ranges 150..1,523.79517 cm. The shared horizontal
+FOV is 65°. The images document current prototype rendering, not water/material
+acceptance. In the Ocean, source-coast and highland-river frames, no separate
+water surface is visually distinguishable.
+
+| Site | Anchor source / ViewZ (cm) | Fixed XY (cm) | Camera (X,Y,Z cm) | Output file | PNG bytes | Sampled colors | SHA-256 |
+| --- | --- | --- | --- | --- | ---: | ---: | --- |
+| Thunder Mountains | Collision triangle / 767.497437 | (-970004.9, -243087.4) | (-970004.9, -245487.4, 1967.497437) | ThunderMountains-c2b.png | 786797 | 408 | 65bd9b3c5a17b02486996b4e720aad1b3d9f388ad9d3a0a539bc002343c2f406 |
+| Ocean | Ocean level / 0 | (970004.9, -243087.4) | (970004.9, -245487.4, 1200) | Ocean-c2b-water.png | 773402 | 418 | 53ba17d0dc1473348a5eeada20b967bad618a05cfdecc646fe7bd7b11182b707 |
+| Meadows/Elderwood transition | Collision triangle / 302.549988 | (-182120.2, 171177.3) | (-182120.2, 168777.3, 1502.549988) | MeadowsElderwoodtransition-c2b.png | 947508 | 472 | a26f8e5e30efdd48e888557ebc7f772ca0235223fdf5c4c743999efbd52cf799 |
+| Elderwood/Tundra transition | Collision triangle / 1373.79517 | (-191499.8, -773033.7) | (-191499.8, -775433.7, 2573.79517) | ElderwoodTundratransition-c2b.png | 825175 | 492 | bcdb7fb48bfde5f2ae4d7196aa15befbd30dc8dfc0eb33a96c2b0caef167ed99 |
+| Tundra/Mountains transition | Collision triangle / 960.330872 | (-268099.7, 963751.8) | (-268099.7, 961351.8, 2160.330872) | TundraMountainstransition-c2b.png | 831080 | 397 | 3e29bb7059cc5b069d12cc5716c5675efd54cb4aace9dbd6decbae0f7a880d38 |
+| Source coast land side | Water level / 0 | (691744.0, -107083.5) | (691744.0, -109483.5, 1200) | Sourcecoastlandside-c2b-water.png | 809491 | 419 | fc5cb1dfdb6a8ab04a103fae9b2340bf1bc4afa8f67d4fc9f265562e6b746b20 |
+| Highland river | Water level / 0 | (679237.9, -16414.3) | (679237.9, -18814.3, 1200) | Highlandriver-c2b-water.png | 953864 | 505 | ad8584b626ac0fa05bd4c93154544a8f7e75cf02fc08735a6c2e90bed6211757 |
+
+BH01c2c and BH01c2d still need the 14 seed-419 live-render captures and final
+28-view manifest verification.
 
 ## Verification and completion
 
