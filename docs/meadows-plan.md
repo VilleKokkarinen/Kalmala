@@ -1,10 +1,10 @@
 # Meadows terrain and biome plan
 
-Status: proposed implementation plan, 2026-10-24. BH10a now implements a
-provisional Meadows hill signal and upper-shoulder curve. BH10b1 supplies the
-reproducible profile sweep harness; BH25 runs freshly compiled 4/6/8 m trials
-and records the final measured setting in BH25a. No gameplay, forest or presentation
-changes are implemented by this document. Execution is tracked in
+Status: active implementation plan, 2026-10-24. BH10a/BH11a implement provisional
+Meadows hill and rolling layers, and BH12a adds a provisional floor-detail layer.
+Profile harnesses are tracked in BH10b1/BH11b/BH12b; fresh-source tuning is in
+BH25a–BH25c and rendered acceptance is in BH26. No gameplay, forest or
+presentation changes are implemented by this document. Execution is tracked in
 `BACKLOG.md` before Monster Population under the combined biome-height goal.
 
 ## Reference interpretation
@@ -35,13 +35,13 @@ Reviewed source paths are relative to the repository root:
   map. Inland Elevation is `0.22 + coastFade * (0.10 + 0.65 * elevationNoise)`.
   `coastFade` is smoothstep of the clamped master mask divided by `0.12`.
   The atlas controls the coast; it is not a walking-scale relief generator.
-- `Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp` converts Elevation
-  to centimetres with `(Elevation - 0.22) * 2000`. Its Meadows shape contributes
-  `40 * Detail`, with Detail frequency `0.00015` (about 66.7 m), attenuated by
-  the Meadows weight and an additional land factor. The field's local relief
-  contributes at most 19.5 cm before coast attenuation
-  (`0.015 * 0.65 * 2000`); the Meadows term has a 40 cm coefficient.
-  These are coefficient bounds, not measured peak-to-trough heights.
+- At baseline commit `460339b3`, `KalmalaRegionalGeneration.cpp` converted
+  Elevation to centimetres with `(Elevation - 0.22) * 2000` and used a
+  `40 * Detail` Meadows term. BH10a replaced that term with broad hills; BH11a
+  and BH12a add separate rolling and floor signals. The old 40 cm coefficient
+  is baseline evidence, not the current height contract or a measured terrain
+  range. The field's local relief at baseline contributed at most 19.5 cm
+  before coast attenuation (`0.015 * 0.65 * 2000`).
 - Broad source relief can provide elevation differences across a region, but
   the small local terms explain why a short walk can still look almost flat.
   This is a source-based hypothesis; baseline captures and profiles must verify

@@ -8349,5 +8349,44 @@
   provisional. BH25b must run fresh-source trials, compare measured height/slope
   distributions and select the smallest accepted setting. Rendered route
   inspection and integrated verification remain for BH26.
-- **Next task in this directed goal:** BH12 — add Meadows floor detail as a
-  separate local layer.
+- **Next task in this directed goal:** BH12b — add a reproducible local-floor
+  profile and stale-binary-rejecting amplitude sweep harness.
+
+## Run 2026-10-24 — BH12a integrate local Meadows floor detail
+
+- **Selected increment:** BH12a, the first child of BH12 after splitting its
+  source implementation from fresh-source profile and rendered acceptance.
+- **Work completed:** Added an independently salted, absolute-world MeadowFloor
+  noise signal at the provisional 12 m / 0.2 m settings. The candidate now adds
+  it after the broad hills and rolling layer, before monotonic shoulder
+  compression, and only when the continuous Meadows weight is positive. Added
+  focused automation coverage for signed contribution, shoulder ordering,
+  deterministic seed variation, domain separation, mesh-scale sampling density
+  and patch-edge continuity. Split BH12 into BH12a/BH12b, moved fresh-source
+  trial selection to BH25c, and retained under-vegetation acceptance at BH26.
+  Checked only BH12a.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalGeneration.h`,
+  `Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`,
+  `docs/02-technical-architecture.md`, `docs/biome-height-rework.md`, and
+  `docs/meadows-plan.md`.
+- **Lightweight checks/results:** Inspected the source integration and focused
+  assertions; confirmed the 8 m minimum coordinate scale spans at least 6.4
+  collision samples on the 125 cm lattice. `git diff --check` passed and stale
+  BH10b2/floor-staged contract text was corrected. The automation was not built
+  or run. Full verification remains deferred to BH26.
+- **Observable impact / authority:** Meadows height samples now include up to
+  the provisional 20 cm signed floor term through the existing deterministic
+  candidate blend. The four ecological fields, biome weights, labels, other
+  biome candidates, terrain lattice and coast behavior are unchanged.
+- **Networking/authority:** Server and clients derive the same floor signal
+  from the existing world seed and absolute XY. No RPC, replicated field,
+  gameplay authority or save data changed.
+- **Known limitations / remaining scope:** The 12 m / 0.2 m values are
+  provisional. BH12b adds a sweep harness, BH25c measures and selects the floor
+  value with freshly compiled source, and BH26 checks rendered readability
+  beneath vegetation and repairs any aliasing/corrugation found.
+- **Next task in this directed goal:** BH12b — add the validated local-floor
+  profile and stale-binary-rejecting amplitude sweep harness.

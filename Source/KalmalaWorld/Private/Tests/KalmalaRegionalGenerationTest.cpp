@@ -293,6 +293,68 @@ bool FKalmalaMeadowRollingProfileTest::RunTest(const FString& Parameters)
     return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaMeadowFloorDetailTest,
+    "Kalmala.World.Regional.MeadowFloorDetail",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+bool FKalmalaMeadowFloorDetailTest::RunTest(const FString& Parameters)
+{
+    using G = FKalmalaRegionalGeneration;
+    using L = FKalmalaTerrainPatchLayout;
+    using T = FKalmalaRegionalTuning;
+    const FKalmalaGenerationPreviewSettings Preview;
+    const FKalmalaWorldGenerationConfig Config{418ull};
+    const FKalmalaWorldGenerationConfig OtherSeed{419ull};
+
+    TestTrue(TEXT("Documented Meadow floor settings are valid"), Preview.HasValidReliefControls());
+    TestEqual(TEXT("Floor scale uses the documented nominal trial"), Preview.MeadowFloorScale, 1200.0);
+    TestEqual(TEXT("Floor amplitude uses the documented nominal trial"), Preview.MeadowFloorAmplitude, 20.0);
+    TestTrue(TEXT("Floor detail uses at least six collision samples per smallest allowed scale"),
+        800.0 / (L::PatchSize / FKalmalaWaterSurfaceMesh::CellsPerSide) >= 6.0);
+
+    const FVector2D Position(208695.7, -293111.9); // Fixed seed-418 outer dry Meadows site.
+    const double FloorNoise = G::Noise(Config, T::MeadowFloorSalt, Position, 1.0 / Preview.MeadowFloorScale);
+    TestTrue(TEXT("Meadow floor sample is finite and normalized"),
+        FMath::IsFinite(FloorNoise) && FMath::Abs(FloorNoise) <= 1.0);
+    TestEqual(TEXT("Meadow floor sample repeats for a fixed seed and XY"), FloorNoise,
+        G::Noise(Config, T::MeadowFloorSalt, Position, 1.0 / Preview.MeadowFloorScale));
+    TestTrue(TEXT("Meadow floor sample varies with world seed"),
+        FloorNoise != G::Noise(OtherSeed, T::MeadowFloorSalt, Position, 1.0 / Preview.MeadowFloorScale));
+    TestTrue(TEXT("Meadow floor has an independent noise domain"),
+        T::MeadowFloorSalt != T::MeadowHillSalt && T::MeadowFloorSalt != T::MeadowRollingSalt
+        && T::MeadowFloorSalt != T::ReliefBroadSalt && T::MeadowFloorSalt != T::ReliefMiddleSalt
+        && T::MeadowFloorSalt != T::ReliefLocalSalt);
+
+    const double FlatBase = G::ShapeMeadows(400.0, 0.2, 600.0, -0.1, 120.0,
+        0.0, 20.0, 1000.0, 3000.0);
+    const double FloorHollow = G::ShapeMeadows(400.0, 0.2, 600.0, -0.1, 120.0,
+        -0.5, 20.0, 1000.0, 3000.0);
+    const double FloorRise = G::ShapeMeadows(400.0, 0.2, 600.0, -0.1, 120.0,
+        0.5, 20.0, 1000.0, 3000.0);
+    TestTrue(TEXT("Floor hollow adds its signed detail without flattening lower terrain"),
+        FMath::IsNearlyEqual(FlatBase - FloorHollow, 10.0, 0.001) && FloorHollow < FlatBase);
+    TestTrue(TEXT("Floor rise adds its signed detail before shoulder shaping"),
+        FMath::IsNearlyEqual(FloorRise - FlatBase, 10.0, 0.001) && FloorRise > FlatBase);
+    const double RaisedBase = G::ShapeMeadows(1400.0, 0.2, 600.0, -0.1, 120.0,
+        0.0, 20.0, 1000.0, 3000.0);
+    const double RaisedWithFloor = G::ShapeMeadows(1400.0, 0.2, 600.0, -0.1, 120.0,
+        0.5, 20.0, 1000.0, 3000.0);
+    TestTrue(TEXT("Floor detail remains ordered through shoulder compression"),
+        RaisedWithFloor > RaisedBase && RaisedWithFloor - RaisedBase < 10.0);
+
+    const FVector2D PatchOrigin(0.0, 0.0);
+    const FVector2D LeftCenter = L::GetPatchCenter(PatchOrigin, 0, 0);
+    const FVector2D RightCenter = L::GetPatchCenter(PatchOrigin, 1, 0);
+    const FVector2D FromLeft = LeftCenter + FVector2D(L::PatchSize * 0.5 - 0.5, 0.0);
+    const FVector2D FromRight = RightCenter - FVector2D(L::PatchSize * 0.5 - 0.5, 0.0);
+    TestTrue(TEXT("Floor probes straddle an X patch edge"),
+        L::GetPatchCoordinate(PatchOrigin, FromLeft) != L::GetPatchCoordinate(PatchOrigin, FromRight));
+    const double LeftSample = G::Noise(Config, T::MeadowFloorSalt, FromLeft, 1.0 / Preview.MeadowFloorScale);
+    const double RightSample = G::Noise(Config, T::MeadowFloorSalt, FromRight, 1.0 / Preview.MeadowFloorScale);
+    TestTrue(TEXT("Absolute-world floor noise is continuous across the X patch edge"),
+        FMath::Abs(RightSample - LeftSample) * Preview.MeadowFloorAmplitude < 0.5);
+    return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaMeadowHillDomainTest,
     "Kalmala.World.Regional.MeadowHillDomain",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)

@@ -1,9 +1,11 @@
 # Biome height rework plan
 
-Status: user-requested design direction, 2026-10-24. Planning only; no terrain,
-forest, water or weather changes are implemented by this document. Execution is
-queued in `BACKLOG.md` after A10 acceptance and before Monster Population; this
-plan supersedes Meadows-specific height details where they differ.
+Status: user-requested design direction, 2026-10-24; implementation is in
+progress under `BACKLOG.md` after A10 acceptance and before Monster Population.
+The fixed baselines, basin policy, shared sampler, preview controls and Meadows
+hill/rolling layers are implemented incrementally; final acceptance remains
+pending BH26. This plan supersedes Meadows-specific height details where they
+differ.
 
 This plan expands [the Meadows plan](meadows-plan.md) to all land biomes. Where
 they differ, this plan takes precedence: broad relief becomes a shared stack,
@@ -668,7 +670,7 @@ maximum triangle slopes for each trial. Its required effective-amplitude log
 marker rejects binaries predating the sampler override. It performs no build
 and selects no production tuning; BH25 must run it with freshly compiled code,
 compare to the fixed-site `BiomeBaseline418419.csv`, and record the accepted
-amplitude and measurements in BH25a (the deferred BH10b2 measurement increment).
+amplitude and measurements in BH25a.
 
 ## BH07 staged preview controls
 
@@ -687,16 +689,19 @@ non-finite or out-of-range inputs. Bounds are the design ranges, inclusive:
 | `MeadowRollingScaleM` / `MeadowRollingAmplitudeM` | 45 m / 1.2 m | 30–70 m / 0.6–2 m |
 | `MeadowFloorScaleM` / `MeadowFloorAmplitudeM` | 12 m / 0.2 m | 8–20 m / 0.1–0.35 m |
 
-These settings are accepted only by the headless preview route and reported in
-`LastRender.txt`. The fast classification PNGs do not display height and
+Custom settings are accepted only by the headless preview route and reported in
+`LastRender.txt`; normal gameplay uses the compiled defaults. The fast
+classification PNGs do not display height and
 changing terrain controls leaves their pixels unchanged. BH10a now consumes the
 Meadow hill scale/amplitude and shoulder controls in regional height sampling.
-BH11a consumes the independent Meadows rolling scale/amplitude; fine floor
-detail and the shared relief stack remain staged for later biome layers. BH10b1
-supplies fixed transects and a validated hill-amplitude override; BH25a runs the
-fresh-source hill comparison and selects its setting. BH11b adds the rolling-
-profile sweep harness; BH25b runs fresh-source 0.6/1.2/1.8 m trials and selects
-the rolling setting. Rendered gentler-route acceptance remains BH26.
+BH11a consumes the independent Meadows rolling scale/amplitude, and BH12a
+consumes the local Meadows floor scale/amplitude; the shared broad/middle/local
+stack remains staged for the later land-biome candidates. BH10b1 supplies fixed
+transects and a validated hill-amplitude override; BH25a runs the fresh-source
+hill comparison and selects its setting. BH11b adds the rolling-profile sweep
+harness; BH25b runs fresh-source 0.6/1.2/1.8 m trials and selects the rolling
+setting. BH12b adds the floor-detail profile harness; BH25c runs fresh-source
+0.1/0.2/0.3 m trials. Rendered route and under-vegetation inspection remain BH26.
 
 ## BH08 shared relief sampler
 
@@ -751,3 +756,18 @@ requires a per-trial log marker so a stale binary is rejected. It does not
 build the Editor or select the final amplitude. BH25b must run it with freshly
 compiled source and record the measured profile ranges/slopes and selected
 setting. No build or trial was run for BH11b.
+
+## BH12a Meadows floor-detail integration
+
+The Meadows candidate now adds an independently seeded local floor signal at
+the provisional 12 m scale and 0.2 m amplitude. The term is sampled in absolute
+world coordinates, added after hill and rolling contributions, and passes
+through the existing monotonic shoulder compression. It is applied only through
+the existing continuous Meadows/coast candidate weights and does not change
+ecological fields, biome labels, other biome candidates, or the terrain mesh
+lattice. At the smallest permitted 8 m coordinate scale, the 125 cm mesh
+spacing gives 6.4 samples per scale unit; this source-level bound does not prove
+rendered aliasing acceptance. The 0.1/0.2/0.3 m trials remain provisional until
+BH12b provides the sweep harness, BH25c records fresh-source measurements, and
+BH26 inspects floor detail beneath vegetation. No profile or rendered result is
+claimed for this source-only increment.

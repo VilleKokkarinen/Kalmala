@@ -324,16 +324,15 @@ once, then keeps the existing independently weighted ocean offset. Biome labels,
 ecological fields and eligibility bands remain classifier inputs and do not
 select a hard height switch.
 
-The Meadows candidate now adds a separate seed-derived absolute-world hill
-signal at a provisional 160 m scale and 6 m amplitude, plus an independently
-seeded 45 m rolling layer at 1.2 m amplitude. Both enter the smooth, monotonic
-shoulder curve; candidates below 10 m remain unchanged and the curve approaches
-a 40 m upper bound. The broad layer replaces the previous 40 cm Meadows detail
-term. These amplitudes remain provisional until BH25a measures the low/nominal/
-high hill profile and selects the smallest accepted trial, and BH25b measures
-the 0.6/1.2/1.8 m rolling trials. The BH11b profile/slope harness and numeric
-measurement remain pending; rendered gentler-route inspection belongs to BH26.
-Fine floor detail remains staged for BH12.
+The Meadows candidate adds separate seed-derived absolute-world hill and
+rolling signals at provisional 160 m / 6 m and 45 m / 1.2 m settings. BH12a
+adds a third independently seeded 12 m / 0.2 m floor-detail signal. These
+layers enter the smooth, monotonic shoulder curve; candidates below 10 m remain
+unchanged and the curve approaches a 40 m upper bound. The broad layer replaces
+the previous 40 cm Meadows detail term. All amplitudes remain provisional:
+BH25a/BH25b/BH25c run fresh-source profile sweeps and select measured settings.
+BH26 retains rendered gentler-route and under-vegetation floor inspection; no
+floor aliasing or visual result is claimed before that gate.
 
 The master seed is a compiled constant. Crop transforms derive from the game seed. Rivers remain enabled and small streams are disabled. Authority, population IDs, collision and maps derive from the same server-owned seed and current build.
 

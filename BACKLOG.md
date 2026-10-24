@@ -567,8 +567,17 @@ run for this goal and may exceed one turn.
     - [x] **BH11b — Add rolling profile acceptance harness.** Add fixed-seed
       30–70 m height/slope transects, amplitude trials and patch-seam controls;
       reject stale binaries and defer numeric trial selection to BH25b.
-  - [ ] **BH12 — Add Meadows floor detail.** Integrate the local layer separately;
-    confirm it reads beneath vegetation without corrugation or lattice aliasing.
+  - [ ] **BH12 — Add Meadows floor detail.** Keep open until BH12a and BH12b
+    provide the integrated layer and a reproducible inspection harness. The
+    numeric amplitude choice is BH25c; rendered under-vegetation acceptance is
+    BH26.
+    - [x] **BH12a — Integrate local Meadows floor detail.** Add the separately
+      seeded local signal at provisional 12 m / 0.2 m settings, within the
+      documented 8–20 m / 0.1–0.35 m bounds, before shoulder compression.
+      Preserve continuous biome/coast blending, broad hills and rolling relief.
+    - [ ] **BH12b — Add floor-detail profile harness.** Add fixed-seed local
+      profiles, lattice/aliasing metrics and a validated commandlet-only
+      amplitude override. Reject stale binaries; do not select the final value.
   - [ ] **BH13 — Shape Elderwood.** Use the shared base plus bounded detail
     without Meadows' compression curve; keep its stronger slopes/hollows and
     expose this function as the Tundra reference.
@@ -607,9 +616,9 @@ run for this goal and may exceed one turn.
   - [ ] **BH24 — Add cold-biome presentation.** Apply Tundra snow and Mountain
     snow/storm visuals through existing materials/weather paths; retain
     server-owned weather selection and add no damage, exposure, or shelter rule.
-  - [ ] **BH25 — Finalize tuning and contracts.** Keep open until BH25a–BH25b
+  - [ ] **BH25 — Finalize tuning and contracts.** Keep open until BH25a–BH25c
     are complete.
-    - [ ] **BH25a — Run BH10b2 Meadows hill sweep.** With freshly compiled
+    - [ ] **BH25a — Run BH10b1 Meadows hill sweep.** With freshly compiled
       source, run BH10b1 at 4/6/8 m; compare BH01 fixed-site baselines and
       100–250 m transect height/slope profiles, select the smallest accepted
       amplitude, and record measurements.
@@ -619,11 +628,16 @@ run for this goal and may exceed one turn.
       update architecture/setup instructions and height previews with raw
       ranges, and compare sampler, map, generation, active-patch, collision,
       and decoration costs with BH01 baselines.
+    - [ ] **BH25c — Run Meadows floor-detail trials.** With freshly compiled
+      source, run BH12b at 0.1/0.2/0.3 m; compare local height/slope samples and
+      choose the smallest setting that reads without corrugation or lattice
+      aliasing, then record the measured ranges.
   - [ ] **BH26 — Run final integrated verification and repair.** Inspect the full
     combined change; run the applicable Editor build, regional/master-map/
     finite-world/integrated/water checks, RegionalGeneration and Minimap peers,
-    forest/harvest lifecycle, and rendered traversal/start/build checks from
-    `docs/07-development-setup.md`. Repair regressions and rerun affected plus
+    forest/harvest lifecycle, and rendered terrain traversal, under-vegetation
+    floor detail, start/build checks from `docs/07-development-setup.md`.
+    Repair regressions and rerun affected plus
     required full checks; mark this goal complete only after required results
     pass and all remaining limitations are recorded.
 

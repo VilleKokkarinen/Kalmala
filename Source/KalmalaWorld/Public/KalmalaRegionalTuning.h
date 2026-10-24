@@ -6,8 +6,8 @@
 struct FKalmalaRegionalTuning
 {
     static constexpr double BiomeScale = 60000.0;
-    // Staged biome-height experiments in centimetres. These constants are
-    // consumed by terrain shaping only when the corresponding layer is wired.
+    // Biome-height experiments in centimetres. Shared relief controls remain
+    // staged; Meadows-specific controls are consumed by their wired layers.
     static constexpr double ReliefBroadScale = 100000.0;
     static constexpr double ReliefMiddleScale = 15000.0;
     static constexpr double ReliefLocalScale = 3000.0;
@@ -17,6 +17,7 @@ struct FKalmalaRegionalTuning
     static constexpr uint64 ReliefLocalSalt = 0x4B414C4D414C4103ull;
     static constexpr uint64 MeadowHillSalt = 0x4B414C4D414C4104ull;
     static constexpr uint64 MeadowRollingSalt = 0x4B414C4D414C4105ull;
+    static constexpr uint64 MeadowFloorSalt = 0x4B414C4D414C4106ull;
     static constexpr double MeadowHillScale = 16000.0;
     static constexpr double MeadowHillAmplitude = 600.0;
     static constexpr double MeadowShoulderHeight = 1000.0;
