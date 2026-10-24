@@ -496,3 +496,5 @@ void UKalmalaCraftingComponent::RunA8bWolfPeltBootsPeerVerification(const float 
 }
 
 #endif
+
+#include "KalmalaA8bFangSpearPeerVerification.inl"

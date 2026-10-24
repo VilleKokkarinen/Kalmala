@@ -294,6 +294,52 @@ bool UKalmalaCraftingComponent::CraftFromServer(FName RecipeId, int32 Batch, FSt
         Reason = FString::Printf(TEXT("Need a %s in your pack"), *GetRecipeToolDisplayName(Recipe->RequiredTool));
         return false;
     }
+    if (FKalmalaToolLifecycleContract::FindDefinition(Recipe->Output) != nullptr)
+    {
+        Reason = TEXT("Carried equipment recipes craft one item at a time");
+        if (OutputCount != 1) return false;
+        const TArray<FKalmalaInventoryStack> Before = Inventory->GetStacks();
+        TArray<FKalmalaInventoryStack> After;
+        if (!UKalmalaInventoryComponent::BuildExchange(Before, Costs, NAME_None, 0, After, Reason)) return false;
+        if (!Inventory->CanFitContents(After, Inventory->CountPackedTools(Character->GetCarriedToolInventory()) + 1))
+        {
+            Reason = TEXT("Inventory capacity reached");
+            return false;
+        }
+
+        const TArray<FKalmalaToolState> PreviousTools = Character->CarriedTools;
+        FKalmalaToolState Tool;
+        Tool.ItemId = Recipe->Output;
+        Tool.ToolLevel = 1;
+        Tool.Durability = FKalmalaToolLifecycleContract::GetMaxDurability(Recipe->Output, Tool.ToolLevel);
+        Tool.InstanceGuid = FGuid::NewGuid();
+        if (Tool.Durability <= 0 || !Inventory->TryCommitStacksFromServer(Before, After))
+        {
+            Reason = TEXT("Could not create the carried item");
+            return false;
+        }
+
+        Character->CarriedTools.Add(Tool);
+        auto* GameMode = GetWorld() ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
+        if (!GameMode || !GameMode->PersistPlayerStateFromServer(Character))
+        {
+            Character->CarriedTools = PreviousTools;
+            if (!Inventory->TryCommitStacksFromServer(After, Before))
+                UE_LOG(LogTemp, Error, TEXT("Failed to roll back carried-equipment material payment."));
+            Reason = TEXT("Could not save the crafted equipment; no materials were spent");
+            return false;
+        }
+
+        Inventory->SynchronizeGridFromServer();
+        Character->ForceNetUpdate();
+        if (Recipe->ExperienceAward > 0)
+        {
+            if (auto* Progression = Character->GetSkillProgressionComponent())
+                Progression->AwardExperienceFromAcceptedServerAction(Recipe->ExperienceSkill, Recipe->ExperienceAward);
+        }
+        Reason = FString::Printf(TEXT("Crafted %s"), *Recipe->DisplayName);
+        return true;
+    }
     if (!Inventory || !Inventory->TryExchangeFromServer(Costs, Recipe->Output, OutputCount, Reason)) return false;
     if (Recipe->ExperienceAward > 0)
     {
@@ -1146,6 +1192,7 @@ void UKalmalaCraftingComponent::TickComponent(float DeltaTime, ELevelTick TickTy
     if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaA8bAntidotePeerTest"))) RunA8bAntidotePeerVerification(DeltaTime);
     if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaA8bPeatHeartStewPeerTest"))) RunA8bPeatHeartStewPeerVerification(DeltaTime);
     if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaA8bWolfPeltBootsPeerTest"))) RunA8bWolfPeltBootsPeerVerification(DeltaTime);
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaA8bFangSpearPeerTest"))) RunA8bFangSpearPeerVerification(DeltaTime);
 #endif
 }
 

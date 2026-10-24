@@ -135,6 +135,7 @@ private:
     void RunA8bAntidotePeerVerification(float DeltaTime);
     void RunA8bPeatHeartStewPeerVerification(float DeltaTime);
     void RunA8bWolfPeltBootsPeerVerification(float DeltaTime);
+    void RunA8bFangSpearPeerVerification(float DeltaTime);
 #endif
     void RefreshStorageView();
     void ClearStorageView();
@@ -284,5 +285,25 @@ private:
     int32 A8bWolfPeltBootsPeerObservedOwnerPlayerId = INDEX_NONE;
     float A8bWolfPeltBootsPeerObserverBaselineHealth = 100.0f;
     bool bA8bWolfPeltBootsPeerFixtureObserved = false;
+    int32 A8bFangSpearPeerStage = 0;
+    float A8bFangSpearPeerElapsed = 0.0f;
+    TWeakObjectPtr<AKalmalaCharacter> A8bFangSpearPeerTarget;
+    TWeakObjectPtr<AKalmalaWildlifeSpawn> A8bFangSpearPeerWildlife;
+    FGuid A8bFangSpearPeerItemGuid;
+    uint32 A8bFangSpearPeerResultSerial = 0;
+    uint32 A8bFangSpearPeerGearRequestSerial = 0;
+    uint32 A8bFangSpearPeerBaselineActionSerial = 0;
+    int32 A8bFangSpearPeerBaselineWolfFang = 0;
+    int32 A8bFangSpearPeerBaselineIron = 0;
+    int32 A8bFangSpearPeerBaselineDensewood = 0;
+    int32 A8bFangSpearPeerBaselineSpear = 0;
+    int32 A8bFangSpearPeerHostBaselineWolfFang = 0;
+    int32 A8bFangSpearPeerHostBaselineIron = 0;
+    int32 A8bFangSpearPeerHostBaselineDensewood = 0;
+    int32 A8bFangSpearPeerHostBaselineSpear = 0;
+    int32 A8bFangSpearPeerHostBaselineTools = 0;
+    float A8bFangSpearPeerBaselineWildlifeHealth = 0.0f;
+    int32 A8bFangSpearPeerObservedOwnerPlayerId = INDEX_NONE;
+    bool bA8bFangSpearPeerFixtureObserved = false;
 #endif
 };

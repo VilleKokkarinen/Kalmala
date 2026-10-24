@@ -6121,6 +6121,26 @@ listen host, and observer. Both clients received world seed 418. Logs:
 final run's fixture markers passed with no fixture, fatal, assertion, or ensure
 failures. Combined A8a/A8b I4 remains required before A9.
 
+## A8b Fang Spear live peer craft and melee acceptance
+
+After an Editor build, run `Scripts/Tests/Construction/Verify-A8bFangSpearPeer.ps1`.
+The development-only three-peer fixture stages four Wolf Fangs, ten Iron and
+ten Densewood for a remote owner, then places a nearby Forge and a controlled
+Moon Bear. The owner rejects direct client craft and Main Hand mutation, crafts
+Fang Spear through `ServerCraft`, and selects the resulting carried-item GUID
+through `ServerSetMainHand`. The server verifies exact payment, level-one
+identity and 200 condition, then observes the normal melee RPC applying exactly
+100 Stab to the armor-free target and spending one condition. The listen host
+keeps its inventory unchanged; the observer sees public wildlife health while
+the owner's inventory, carried equipment and statuses remain private.
+
+Registered carried-profile recipe outputs are committed as persistent carried
+items after the recipe's station checks, rather than as ordinary stacks. The
+server checks capacity and rolls payment back if it cannot persist the output.
+This case does not exercise a natural Wolf Fang reward or rendered Forge/Main
+Hand presentation; those acceptance gaps and combined A8a/A8b I4 verification
+remain open before A9.
+
 ## A8b Wolf Pelt Boots live peer craft, equip and armor — 2026-10-24
 
 After an Editor build, run
