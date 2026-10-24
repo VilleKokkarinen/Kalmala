@@ -9590,3 +9590,104 @@
   is covered.
 - **Next eligible A6 group:** none remains; A6 has no further in-scope
   item family. Next A10 family: A7 farming.
+
+## Run 2026-10-24 — A10 per-item audit: A7 Planting Trowel and Garden Plot
+
+- **Scope and catalogue identities:** reviewed the registered PlantingTrowel
+  utility profile and Forge acquisition row, plus GardenPlot presentation-only
+  buildable metadata and its direct construction recipe. GardenPlot is the
+  catalogue identity; the loader normalizes it to placed construction ID
+  GardenPlotKit and partitions it into Buildables, not inventory Items. Its
+  legacy MaxStack 1 metadata does not create a stackable or portable object.
+  Crop source-pair definitions already reviewed under A0 were not re-audited;
+  only the shared Garden Plot planting/harvest modes were traced here.
+
+- **Acquisition, recipe, and N/A data:** PlantingTrowel is acquired from Forge
+  level 1 with 10 Wood + 5 Bronze. Its utility profile is weight 1.0 kg,
+  MaxDurability 100, and empty DamageBonuses. The only registered catalogue
+  references are that profile and Forge recipe; no attack list, item-level
+  upgrade cost, or level-up stat reward applies. Existing free Workbench/Forge
+  repair behavior remains. The `GardenPlot` recipe is enabled and places one
+  buildable for 4 Wood + 1 Stone, with MaxBatch 1 and no station or XP
+  requirement. The loader sets BuildableOutput to GardenPlotKit and leaves
+  inventory Output empty.
+  There is no GardenPlotKit inventory/recipe entry. The Farming menu exposes
+  this sole plot recipe with a usable Main Hand Trowel; the server placement
+  transaction rechecks placement, direct material payment, save capacity and
+  permits the existing Construction Hammer path or a usable Main Hand Trowel.
+  GardenPlot has no equipment, attack, item upgrade or stat-reward category.
+
+- **Cultivation modes and authority:** four crop families use seven server
+  actions, each planting 1 input and yielding 3 matching items after 600
+  active seconds: Carrot food (1 CarrotSeed → 3 Carrot), Carrot seed
+  (1 Carrot → 3 CarrotSeed); Potato tuber (1 Potato → 3 Potato; PotatoSeed
+  remains unused); Rutabaga food (1 RutabagaSeed → 3 Rutabaga), Rutabaga seed
+  (1 Rutabaga → 3 RutabagaSeed); Onion food (1 OnionSeed → 3 Onion), Onion
+  seed (1 Onion → 3 OnionSeed). Cultivation requires the current visible
+  GardenPlot context and usable Main Hand Trowel. Server RPC validation checks
+  authority, current same-world plot/context, empty or mature state, input
+  availability, output capacity and Trowel condition. Accepted planting spends
+  one input and one Trowel condition; harvest and rejected actions do not wear
+  the tool. A full pack fails the harvest grant before the mature crop state
+  is cleared, leaving the crop available on the plot.
+
+- **Placement limits and persistence:** preview accepts dry Meadows, Elderwood
+  or Shimmering Lakes ground at up to 15 degrees, with open sky and clearance;
+  server re-evaluates placement and payment. Construction schema 7 currently
+  stores GardenPlot crop mode and remaining active seconds in the saved
+  construction record; each server tick advances and persists only while the
+  plot terrain patch is active. Inactive patches and server downtime add no
+  growth. Restore loads the saved crop state. Player Discovery schema 3 stores
+  carried-tool ID, level, condition and instance GUID, so Trowel condition is
+  persistent; ordinary packed crop stacks are not in that player save. Plant
+  and harvest paths write candidate state before applying it and roll back
+  resource/tool changes on save rejection. Architecture/setup passages still
+  call the current construction format schema 6; schema 7 is confirmed by
+  the current header and later progress, so those contract references are
+  stale.
+
+- **Icons and provenance:** docs/icon-provenance.md records built-in generated
+  originals and transparent prepared icons: PlantingTrowel batch AA and
+  GardenPlotKit batch AB. The manifest maps PlantingTrowel to its carried-tool
+  views and GardenPlotKit to BuildMenu/PlacementPreview/ResultPreview;
+  GardenPlot recipe identity GardenPlot resolves to the GardenPlotKit texture.
+  Runtime paths are /Game/Kalmala/UI/Icons/Items/PlantingTrowel.PlantingTrowel
+  and /Game/Kalmala/UI/Icons/Items/GardenPlotKit.GardenPlotKit. Both focused
+  validators passed (1254x1254 RGBA original, transparent 64x64 prepared
+  image, imported Texture2D and runtime mapping). docs/alpha-item-details.md
+  and docs/material-icons.md are absent in this checkout; architecture, setup
+  and icon-provenance were the available contract sources.
+
+- **Menu and acceptance gaps:** the 2026-10-21 I3 live runner covered direct
+  placement, one Carrot planting/payment/replication, and all seven actions
+  visible/enabled. The later post-I3 Farming-menu addition record says no build
+  or tests were run. A 2026-10-22 I4 build then reported the RequestInteract
+  access error; commit a172e6be moved the declaration public, and the 2026-10-24
+  I4 Editor build and full automation later passed. That gate reports no
+  rendered or menu-specific check, and the A10 review still calls for an I3
+  verification refresh. The other six crop transactions and full-pack Garden
+  Plot harvest have no recorded live run; their mapping and capacity behavior
+  were source-inspected only.
+
+- **Files changed:** BACKLOG.md, PROGRESS.md only.
+- **Lightweight checks:** focused JSON assertions passed for schema-16
+  registration, exact profile/recipes, direct-material ingredients, and no
+  registered PlantingTrowel upgrade/attack or GardenPlotKit portable entry.
+  Focused catalogue icon validation passed for PlantingTrowel and GardenPlotKit.
+  Static inspection covered server gates, payment/rollback, crop modes, active
+  growth, save/restore and menu history. No build, automation, gameplay, UI,
+  peer or reconnect check was run in this increment.
+
+- **Full verification:** deferred; this is not the final A10 increment.
+
+- **Impact and remaining scope:** tracking-only; no item, recipe, icon, runtime,
+  authority or persistence behavior changed, and no catalogue or icon gap was
+  found. Record schema-version documentation mismatch and post-I3 menu/runtime
+  acceptance as later A10 evidence gaps. No no-grant fresh-world progression,
+  all-mode peer exercise, full-pack GardenPlot test or restart run was performed
+  here. Preserve both BronzePick/IronPick acquisition-target gaps for final
+  progression disposition. Keep the broad A10 item audit unchecked until all
+  included IDs, N/A dispositions and final acceptance are covered.
+
+- **Next eligible A7 crop audit:** Carrot and CarrotSeed. Their A0 source
+  pairs are already covered; audit only the A7 recipe/use/growth roles.
