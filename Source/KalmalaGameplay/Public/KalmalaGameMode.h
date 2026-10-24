@@ -179,12 +179,16 @@ private:
         const FIntPoint& HomeSpatialKey, EKalmalaWildlifeArchetype Archetype);
     static EKalmalaPopulationSpawnRejectionReason EvaluatePopulationSpawnGates(
         const FKalmalaPopulationSpawnGateResults& GateResults);
+    void ApplyPopulationSpeciesHabitatGate(FKalmalaPopulationSchedulerKeyWork& KeyWork) const;
     bool TryReserveWolfPackCapacity(const TArray<FVector>& MemberLocations,
         const FIntPoint& HomeSpatialKey, FGuid& OutReservationId);
     bool ReleasePopulationCreatureReservation(const FGuid& ReservationId);
     void ApplyPopulationPlayerDistanceGate(FKalmalaPopulationSchedulerKeyWork& KeyWork,
         const TArray<class AKalmalaCharacter*>& LivingPlayers) const;
+    bool DoesPopulationDescriptorPassSpeciesHabitat(const FKalmalaWorldPopulationSpawn& Descriptor) const;
     bool IsDescriptorInSpawnRing(const FVector& SpawnLocation,
+        const TArray<class AKalmalaCharacter*>& LivingPlayers) const;
+    bool IsDescriptorOutsidePlayerExclusion(const FVector& SpawnLocation,
         const TArray<class AKalmalaCharacter*>& LivingPlayers) const;
     void ActivatePopulationKey(const FIntPoint& SpatialKey);
     void RefreshOceanDiscoveries();

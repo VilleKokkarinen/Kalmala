@@ -85,15 +85,49 @@ bool FKalmalaPopulationPlayerDistanceGateTest::RunTest(const FString& Parameters
     FKalmalaPopulationSchedulerKeyWork Work;
     Work.SpatialKey = NearSecondPlayer.SpatialKey;
     Work.Candidates.Add(NearSecondPlayer);
+    const auto AddAttempt = [&Work](const FKalmalaWorldPopulationSpawn& Descriptor,
+        const bool bSeededAdmissionRollPassed)
+    {
+        FKalmalaPopulationSpawnAttempt& Attempt = Work.SpawnAttempts.AddDefaulted_GetRef();
+        Attempt.Descriptor = Descriptor;
+        Attempt.GateResults.bSchedulerBudgetAvailable = true;
+        Attempt.GateResults.bSeededAdmissionRollPassed = bSeededAdmissionRollPassed;
+    };
+    AddAttempt(NearSecondPlayer, true);
+    AddAttempt(NearSecondPlayer, false);
     Mode->ApplyPopulationPlayerDistanceGate(Work, LivingPlayers);
     TestTrue(TEXT("A candidate 35 m from the second, distant player is rejected"), Work.Candidates.IsEmpty());
+    TestEqual(TEXT("Both bounded attempts remain represented after distance evaluation"),
+        Work.SpawnAttempts.Num(), 2);
+    if (Work.SpawnAttempts.Num() >= 2)
+    {
+        TestFalse(TEXT("The S15 distance result uses every living player"),
+            Work.SpawnAttempts[0].GateResults.bPlayerDistancePassed);
+        TestEqual(TEXT("Distance failure reports its distinct first rejection reason"),
+            Work.SpawnAttempts[0].RejectionReason,
+            EKalmalaPopulationSpawnRejectionReason::PlayerDistance);
+        TestEqual(TEXT("A distance failure cannot replace an earlier seeded-roll rejection"),
+            Work.SpawnAttempts[1].RejectionReason,
+            EKalmalaPopulationSpawnRejectionReason::SeededAdmissionRoll);
+    }
 
     FKalmalaWorldPopulationSpawn ExactBoundary = NearSecondPlayer;
     ExactBoundary.Location = FVector(6400.0, 0.0, 0.0);
     Work.Candidates.Add(ExactBoundary);
+    AddAttempt(ExactBoundary, true);
     Mode->ApplyPopulationPlayerDistanceGate(Work, LivingPlayers);
+    TestEqual(TEXT("The exact-boundary attempt remains in the evaluator work list"),
+        Work.SpawnAttempts.Num(), 3);
     TestTrue(TEXT("Exactly 36 m from every player passes the S09 exclusion gate"),
         Work.Candidates.Num() == 1 && Work.Candidates[0].SpawnSeed == ExactBoundary.SpawnSeed);
+    if (Work.SpawnAttempts.Num() >= 3)
+    {
+        TestTrue(TEXT("The inclusive S08 ring and S09 36 m boundary pass the evaluator distance gate"),
+            Work.SpawnAttempts[2].GateResults.bPlayerDistancePassed);
+        TestEqual(TEXT("A passed distance gate advances to the still-default habitat result"),
+            Work.SpawnAttempts[2].RejectionReason,
+            EKalmalaPopulationSpawnRejectionReason::SpeciesHabitat);
+    }
     return true;
 }
 

@@ -275,6 +275,14 @@ only its existing bounded descriptor attempt; there are no retries or catch-up
 attempts. A passing roll still fails closed at the unwired player-distance gate
 until S15 supplies its result; later gate fields also remain false.
 
+S15 evaluates distance for every retained attempt: at least one living player
+must be within the inclusive 32–96 m ring, and no living player may be closer
+than 36 m. It derives the species from the existing seed/biome mapping and uses
+the existing biome, dry-shore, water and terrain-traversability rules plus the
+150 m hard-enemy start exclusion. These are the established species-habitat
+checks; physical body clearance, roofs and the S20 slope check remain later
+placement work. Attempt records retain the first failed gate in contract order.
+
 - Time, weather and progression are explicitly **unrestricted for all current
   species**. These three gates return pass. Provide internal policy seams and
   fixture overrides for rejection tests; do not build a new clock, boss system,

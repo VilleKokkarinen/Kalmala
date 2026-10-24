@@ -620,7 +620,7 @@ milestone-final verification/repair run and can exceed a normal turn.
     progression, caps and physical placement. Unimplemented gates reject safely.
   - [x] **S14 — Wire scheduler and roll gates.** Feed S06–S08 into the evaluator;
     one rejected attempt consumes only its bounded attempt budget.
-  - [ ] **S15 — Wire distance and habitat gates.** Use S09 and existing species
+  - [x] **S15 — Wire distance and habitat gates.** Use S09 and existing species
     biome/dry-shore/start-exclusion rules; do not relax existing restrictions.
   - [ ] **S16 — Add time-of-day gate.** Pass for every current species;
     expose only an internal policy seam for rejection fixtures. No new clock.

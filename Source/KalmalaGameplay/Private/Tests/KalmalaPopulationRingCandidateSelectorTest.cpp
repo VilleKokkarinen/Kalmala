@@ -130,6 +130,22 @@ bool FKalmalaPopulationRingCandidateSelectorTest::RunTest(const FString& Paramet
             RejectedRollAttempt->RejectionReason,
             EKalmalaPopulationSpawnRejectionReason::SeededAdmissionRoll);
     }
+    Mode->ApplyPopulationPlayerDistanceGate(Work, LivingPlayers);
+    Mode->ApplyPopulationSpeciesHabitatGate(Work);
+    const FKalmalaPopulationSpawnAttempt* StillRejectedRollAttempt = Work.SpawnAttempts.FindByPredicate(
+        [](const FKalmalaPopulationSpawnAttempt& Attempt)
+        {
+            return Attempt.Descriptor.SpawnSeed == 1006;
+        });
+    if (TestNotNull(TEXT("The roll-rejected descriptor remains after later gates are populated"),
+        StillRejectedRollAttempt))
+    {
+        TestTrue(TEXT("The later distance gate also passes for the 50 m descriptor"),
+            StillRejectedRollAttempt->GateResults.bPlayerDistancePassed);
+        TestEqual(TEXT("Later gates preserve the earlier seeded-roll rejection"),
+            StillRejectedRollAttempt->RejectionReason,
+            EKalmalaPopulationSpawnRejectionReason::SeededAdmissionRoll);
+    }
     TestEqual(TEXT("The cursor advances even when every examined descriptor is rejected"),
         Mode->PopulationKeyCandidateCursors.FindRef(Key), 0);
 

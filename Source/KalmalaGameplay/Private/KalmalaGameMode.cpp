@@ -158,6 +158,22 @@ namespace KalmalaGameMode
         return true;
     }
 
+    bool IsHardEnemyWildlifeArchetype(const EKalmalaWildlifeArchetype Archetype)
+    {
+        switch (Archetype)
+        {
+        case EKalmalaWildlifeArchetype::GiantSnake:
+        case EKalmalaWildlifeArchetype::MoonBear:
+        case EKalmalaWildlifeArchetype::PeatHusk:
+        case EKalmalaWildlifeArchetype::PolarBear:
+        case EKalmalaWildlifeArchetype::ThunderSentinel:
+        case EKalmalaWildlifeArchetype::ReefMaw:
+            return true;
+        default:
+            return false;
+        }
+    }
+
     bool IsWildlifeSpawnOfArchetype(const FKalmalaWorldGenerationConfig& Config,
         const FKalmalaWorldPopulationSpawn& Spawn, const EKalmalaWildlifeArchetype ExpectedArchetype)
     {
@@ -5527,6 +5543,7 @@ void AKalmalaGameMode::UpdatePopulationSchedulerWake(const double NowSeconds)
                 WorldGenerationConfig, KeyWork.SpatialKey, EKalmalaWorldPopulationKind::Wildlife);
         SelectPopulationRingCandidates(KeyWork, Descriptors, LivingPlayers);
         ApplyPopulationPlayerDistanceGate(KeyWork, LivingPlayers);
+        ApplyPopulationSpeciesHabitatGate(KeyWork);
     }
 }
 
@@ -5630,45 +5647,101 @@ void AKalmalaGameMode::ApplyPopulationPlayerDistanceGate(
     const TArray<AKalmalaCharacter*>& LivingPlayers) const
 {
     const UWorld* World = GetWorld();
-    if (!HasAuthority() || !IsValid(World) || LivingPlayers.IsEmpty())
+    const bool bCanCheckDistance = HasAuthority() && IsValid(World) && !LivingPlayers.IsEmpty();
+    for (FKalmalaPopulationSpawnAttempt& Attempt : KeyWork.SpawnAttempts)
+    {
+        Attempt.GateResults.bPlayerDistancePassed = bCanCheckDistance
+            && IsDescriptorInSpawnRing(Attempt.Descriptor.Location, LivingPlayers)
+            && IsDescriptorOutsidePlayerExclusion(Attempt.Descriptor.Location, LivingPlayers);
+        Attempt.RejectionReason = EvaluatePopulationSpawnGates(Attempt.GateResults);
+    }
+
+    if (!bCanCheckDistance)
     {
         KeyWork.Candidates.Reset();
         return;
     }
 
+    KeyWork.Candidates.RemoveAll([this, &LivingPlayers](
+        const FKalmalaWorldPopulationSpawn& Descriptor)
+    {
+        return !IsDescriptorOutsidePlayerExclusion(Descriptor.Location, LivingPlayers);
+    });
+}
+
+bool AKalmalaGameMode::IsDescriptorOutsidePlayerExclusion(const FVector& SpawnLocation,
+    const TArray<AKalmalaCharacter*>& LivingPlayers) const
+{
+    const UWorld* World = GetWorld();
+    if (!HasAuthority() || !IsValid(World) || !FMath::IsFinite(SpawnLocation.X)
+        || !FMath::IsFinite(SpawnLocation.Y))
+    {
+        return false;
+    }
+
     constexpr double ExclusionDistanceSquared =
         static_cast<double>(FKalmalaMonsterSpawnTuning::PlayerExclusionDistanceCm)
         * FKalmalaMonsterSpawnTuning::PlayerExclusionDistanceCm;
-    KeyWork.Candidates.RemoveAll([World, &LivingPlayers, ExclusionDistanceSquared](
-        const FKalmalaWorldPopulationSpawn& Descriptor)
+    for (const AKalmalaCharacter* Player : LivingPlayers)
     {
-        if (!FMath::IsFinite(Descriptor.Location.X) || !FMath::IsFinite(Descriptor.Location.Y))
+        if (!IsValid(Player) || Player->GetWorld() != World)
         {
-            return true;
+            continue;
         }
 
-        for (const AKalmalaCharacter* Player : LivingPlayers)
+        const FVector PlayerLocation = Player->GetActorLocation();
+        if (!FMath::IsFinite(PlayerLocation.X) || !FMath::IsFinite(PlayerLocation.Y))
         {
-            if (!IsValid(Player) || Player->GetWorld() != World)
-            {
-                continue;
-            }
-
-            const FVector PlayerLocation = Player->GetActorLocation();
-            if (!FMath::IsFinite(PlayerLocation.X) || !FMath::IsFinite(PlayerLocation.Y))
-            {
-                continue;
-            }
-
-            const double DeltaX = static_cast<double>(Descriptor.Location.X) - PlayerLocation.X;
-            const double DeltaY = static_cast<double>(Descriptor.Location.Y) - PlayerLocation.Y;
-            if (DeltaX * DeltaX + DeltaY * DeltaY < ExclusionDistanceSquared)
-            {
-                return true;
-            }
+            continue;
         }
-        return false;
+
+        const double DeltaX = static_cast<double>(SpawnLocation.X) - PlayerLocation.X;
+        const double DeltaY = static_cast<double>(SpawnLocation.Y) - PlayerLocation.Y;
+        if (DeltaX * DeltaX + DeltaY * DeltaY < ExclusionDistanceSquared)
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+void AKalmalaGameMode::ApplyPopulationSpeciesHabitatGate(
+    FKalmalaPopulationSchedulerKeyWork& KeyWork) const
+{
+    for (FKalmalaPopulationSpawnAttempt& Attempt : KeyWork.SpawnAttempts)
+    {
+        Attempt.GateResults.bSpeciesHabitatPassed =
+            DoesPopulationDescriptorPassSpeciesHabitat(Attempt.Descriptor);
+        Attempt.RejectionReason = EvaluatePopulationSpawnGates(Attempt.GateResults);
+    }
+
+    KeyWork.Candidates.RemoveAll([this](const FKalmalaWorldPopulationSpawn& Descriptor)
+    {
+        return !DoesPopulationDescriptorPassSpeciesHabitat(Descriptor);
     });
+}
+
+bool AKalmalaGameMode::DoesPopulationDescriptorPassSpeciesHabitat(
+    const FKalmalaWorldPopulationSpawn& Descriptor) const
+{
+    const UWorld* World = GetWorld();
+    if (!HasAuthority() || !IsValid(World) || !WorldGenerationConfig.IsValid())
+    {
+        return false;
+    }
+
+    EKalmalaWildlifeArchetype Archetype;
+    if (!KalmalaGameMode::TryGetWildlifeArchetypeForSpawn(WorldGenerationConfig, Descriptor, Archetype))
+    {
+        return false;
+    }
+
+    const bool bHardEnemy = KalmalaGameMode::IsHardEnemyWildlifeArchetype(Archetype);
+    const float StartDistance = GeneratedPlayerStart != nullptr
+        ? FVector::Dist2D(Descriptor.Location, GeneratedPlayerStart->GetActorLocation())
+        : 0.0f;
+    return AKalmalaWildlifeSpawn::IsHardEnemySpawnAllowedByStart(
+        bHardEnemy, GeneratedPlayerStart != nullptr, StartDistance);
 }
 
 void AKalmalaGameMode::RegisterLivePopulationCreature(AKalmalaWildlifeSpawn* Creature)
@@ -6517,12 +6590,7 @@ void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey)
                 {
                     continue;
                 }
-                const bool bHardEnemy = Archetype == EKalmalaWildlifeArchetype::GiantSnake
-                    || Archetype == EKalmalaWildlifeArchetype::MoonBear
-                    || Archetype == EKalmalaWildlifeArchetype::PeatHusk
-                    || Archetype == EKalmalaWildlifeArchetype::PolarBear
-                    || Archetype == EKalmalaWildlifeArchetype::ThunderSentinel
-                    || Archetype == EKalmalaWildlifeArchetype::ReefMaw;
+                const bool bHardEnemy = KalmalaGameMode::IsHardEnemyWildlifeArchetype(Archetype);
                 const float StartDistance = GeneratedPlayerStart != nullptr
                     ? FVector::Dist2D(Spawn.Location, GeneratedPlayerStart->GetActorLocation()) : 0.0f;
                 if (!AKalmalaWildlifeSpawn::IsHardEnemySpawnAllowedByStart(

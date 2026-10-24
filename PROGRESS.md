@@ -7881,3 +7881,16 @@
 - **Networking/authority:** Scheduler records, world seed, descriptor IDs, roll and evaluator results are produced in the authoritative GameMode. No replicated or saved state changed.
 - **Known limitations:** S15 must populate player-distance and species-habitat gate results; time, weather, progression, caps and physical placement remain safely false until their later increments. Spawn actor admission remains S26.
 - **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within this requested monster-population goal, S15 is next — wire distance and habitat gates.
+
+
+### Monster population — S15 distance and species-habitat gates
+
+- **Selected increment:** S15, populate distance and habitat results for every bounded evaluator attempt.
+- **Work completed:** Distance now requires the inclusive S08 32–96 m ring to at least one living player and the S09 minimum 36 m from every living player. Habitat uses the existing seed/biome species mapping and activation habitat helper, including dry-shore, water/traversability rules and the existing hard-enemy start exclusion. The same hard-enemy species classification now serves both natural-work evaluation and the existing activation path. Attempts remain in the work list and are reevaluated in gate order; the candidate projection removes distance- and habitat-rejected descriptors.
+- **Files changed:** Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationPlayerDistanceGateTest.cpp, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationRingCandidateSelectorTest.cpp, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
+- **Lightweight checks:** Inspected the existing activation habitat path, biome-specific tests and hard-enemy start helper; updated focused assertions for the 36 m inclusive boundary, a second player outside the selecting neighborhood, and preservation of earlier seeded-roll rejection. `git diff --check` passed; tests and builds were not run.
+- **Full verification:** Deferred to S35; this is not the final implementation task in the monster-population goal.
+- **Observable impact / authority:** Server-owned scheduler attempts now carry distance and habitat rejection results. Existing generated descriptors and their IDs/positions are unchanged; no actor creation, cap gate or physical placement was added.
+- **Networking/authority:** Distance uses the current-world living-player list on the authoritative GameMode. Habitat, species and start-exclusion queries also run only in that server-owned path; no save or replication schema changed.
+- **Known limitations:** Time, weather and progression remain fail-closed until S16–S18; caps wait for S19; surface, clearance and camp-aware placement remain later work. Natural actor creation remains disabled until S26.
+- **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within this requested monster-population goal, S16 is next — add the unrestricted current-species time gate and rejection-test seam.
