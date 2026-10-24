@@ -341,6 +341,33 @@ This increment adds baseline evidence only; generation is unchanged. BH01c
 still needs rendered fixed-camera views and the consolidated camera/numeric
 record before BH01 can close.
 
+## BH01c1 runtime rendered capture fixture
+
+Added the development-only `-KalmalaBiomeBaselineCapture` path in
+`AKalmalaGameMode` and the one-site runner
+`Scripts/Tests/World/BiomeBaselineCapture.ps1`. The runner launches the actual
+`-game -RenderOffscreen` viewport from a supplied project mirror, sets the
+requested fixed site pose, then requires the matching seed/site runtime log and
+a 1024x768 PNG with varied sampled pixels. It rejects missing, malformed,
+wrong-size, or blank output. The null-RHI visualization commandlet is not used
+for these images.
+
+The seed-418 Starter Meadows smoke view is
+`.tmp/bh01/captures/418/StarterMeadows-camera-only.png` (921,694 bytes; SHA-256
+`25c17c4f8bdd07b71513891202209a84d8cfec717db6c181810a8564bc5e5912`). The
+runtime log confirms world seed 418, coordinate (-781.6, -781.6) cm, camera
+(-781.6, -3181.6, 1728.94) cm, aim (-781.6, -781.6, 678.94) cm, and 65-degree
+horizontal FOV. ViewZ 528.94458 cm is the fixed site's measured collision
+triangle height. Visual inspection confirms rendered terrain, tree geometry,
+shadows and sky; this smoke capture does not claim the other 27 views.
+
+The capture fixture runs only in non-shipping builds with the explicit flag and
+waits until `BeginPlay` has copied the initialized world configuration. It
+changes the standalone capture camera and explicitly activated terrain patches;
+it does not alter ordinary gameplay behavior, save data, RPCs or networking
+code. BH01c2 remains responsible for all 28 rendered captures and the complete
+numeric/camera/vertical-bound baseline record.
+
 ## Verification and completion
 
 During normal increments use narrow checks and careful source inspection.

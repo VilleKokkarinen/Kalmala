@@ -501,10 +501,16 @@ run for this goal and may exceed one turn.
           diagnostic for all BH01a coordinates and both seeds; validate every
           scalar, mesh, water, weight, and forest-count row and retain the output
           for BH01c. No terrain behavior changes.
-    - [ ] **BH01c — Capture rendered views and consolidate baselines.** Capture
-      rendered fixed-camera views at BH01a's sites, record the numeric results
-      and camera/vertical bounds in the plan document, and verify the captured
-      evidence covers both seeds and every listed representative condition.
+    - [ ] **BH01c — Capture rendered views and consolidate baselines.** Keep
+      this parent open until BH01c1–BH01c2 are complete.
+      - [x] **BH01c1 — Add and smoke-test actual runtime capture.** Add a
+        development-only one-shot fixed-camera path and runner; build the mirror
+        and capture a nonblank live-render seed-418 Starter Meadows view at its
+        recorded pose. Null-RHI maps do not count as rendered captures.
+      - [ ] **BH01c2 — Capture and consolidate all baselines.** Use the runtime
+        renderer for all 28 fixed seed/site rows; validate seed/site/pose and
+        image content; record numeric samples and camera/vertical bounds in the
+        plan, distinguishing live captures from null-RHI diagnostic overviews.
   - [ ] **BH02 — Map integration points.** Recheck the current height, lake,
     river, map/wetness, forest-layout, harvest, preview, material, and test
     consumers; record the exact source/test touchpoints in the plan docs.

@@ -338,6 +338,7 @@ private:
     void InitializeWeatherCycle();
     void AdvanceWeatherCycleIfNeeded();
     void PlacePawnAtGeneratedStart(class APlayerController* PlayerController);
+    void TryCaptureBiomeBaselineView(class APlayerController* LocalController);
     void SpawnOceanTravelTestFixture();
     void LoadOceanTravelWorldSave();
     void RestorePersistedOceanSkiff();
@@ -349,6 +350,10 @@ private:
 
     class APlayerStart* GeneratedPlayerStart = nullptr;
     FKalmalaWorldGenerationConfig WorldGenerationConfig;
+#if !UE_BUILD_SHIPPING
+    bool bWorldGenerationConfigInitialized = false;
+    bool bBiomeBaselineCaptureRequested = false;
+#endif
     UPROPERTY(Transient) TObjectPtr<class AKalmalaOceanTravelTestFixture> OceanTravelTestFixture;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaWorldPopulationSaveGame> PopulationSaveGame;
     TSet<FString> SessionM9ResourceDepletionIds;

@@ -1,5 +1,6 @@
 #include "KalmalaGameMode.h"
 #include "Camera/CameraActor.h"
+#include "Camera/CameraComponent.h"
 #include "UnrealClient.h"
 
 #include "GameFramework/Controller.h"
@@ -513,6 +514,9 @@ void AKalmalaGameMode::BeginPlay()
 
     WorldGenerationConfig = WorldGenerationState->GetWorldGenerationConfig();
 #if !UE_BUILD_SHIPPING
+    bWorldGenerationConfigInitialized = true;
+#endif
+#if !UE_BUILD_SHIPPING
     bM9Schema2CandidatePeerTestEnabled = FParse::Param(FCommandLine::Get(), TEXT("KalmalaM9Schema2PeerTest"));
     if (bM9Schema2CandidatePeerTestEnabled)
     {
@@ -599,6 +603,7 @@ void AKalmalaGameMode::BeginPlay()
         for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
         {
             PlacePawnAtGeneratedStart(Iterator->Get());
+            TryCaptureBiomeBaselineView(Iterator->Get());
         }
         ConfigureTraversalTest();
         bExposureInspectionEnabled = FParse::Param(FCommandLine::Get(), TEXT("KalmalaExposureInspection"));
@@ -7650,6 +7655,59 @@ FString AKalmalaGameMode::GetMirelingBossScrollId(const uint64 WorldSeed)
     return FString::Printf(TEXT("Scroll:1:%s:mireling-boss"), *GetMirelingBossScrollDefinition(WorldSeed));
 }
 
+void AKalmalaGameMode::TryCaptureBiomeBaselineView(APlayerController* LocalController)
+{
+#if !UE_BUILD_SHIPPING
+    if (bBiomeBaselineCaptureRequested || LocalController == nullptr || !LocalController->IsLocalController()
+        || !FParse::Param(FCommandLine::Get(), TEXT("KalmalaBiomeBaselineCapture"))
+        || !bWorldGenerationConfigInitialized || !WorldGenerationConfig.IsValid())
+    {
+        return;
+    }
+
+    FString Site;
+    FString ScreenshotPath;
+    float Xcm = 0.0f;
+    float Ycm = 0.0f;
+    float ViewZcm = 0.0f;
+    const bool bHasCaptureArguments = FParse::Value(FCommandLine::Get(), TEXT("KalmalaBiomeBaselineSite="), Site)
+        && FParse::Value(FCommandLine::Get(), TEXT("KalmalaBiomeBaselineXcm="), Xcm)
+        && FParse::Value(FCommandLine::Get(), TEXT("KalmalaBiomeBaselineYcm="), Ycm)
+        && FParse::Value(FCommandLine::Get(), TEXT("KalmalaBiomeBaselineViewZcm="), ViewZcm)
+        && FParse::Value(FCommandLine::Get(), TEXT("KalmalaBiomeBaselineOutput="), ScreenshotPath);
+    if (!bHasCaptureArguments || Site.IsEmpty() || ScreenshotPath.IsEmpty()
+        || !FMath::IsFinite(Xcm) || !FMath::IsFinite(Ycm) || !FMath::IsFinite(ViewZcm))
+    {
+        bBiomeBaselineCaptureRequested = true;
+        UE_LOG(LogTemp, Error, TEXT("Biome baseline capture rejected: arguments or output path are invalid."));
+        return;
+    }
+    bBiomeBaselineCaptureRequested = true;
+    ActivateTerrainPatchNeighborhood(FVector2D(Xcm, Ycm));
+
+    const FVector CameraLocation(Xcm, Ycm - 2400.0f, ViewZcm + 1200.0f);
+    const FVector ViewTarget(Xcm, Ycm, ViewZcm + 150.0f);
+    FActorSpawnParameters CameraParameters;
+    CameraParameters.ObjectFlags |= RF_Transient;
+    CameraParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+    ACameraActor* CaptureCamera = GetWorld()->SpawnActor<ACameraActor>(
+        ACameraActor::StaticClass(), CameraLocation, (ViewTarget - CameraLocation).Rotation(), CameraParameters);
+    if (CaptureCamera == nullptr || CaptureCamera->GetCameraComponent() == nullptr)
+    {
+        UE_LOG(LogTemp, Error, TEXT("Biome baseline capture failed to create its fixed camera: Seed=%llu Site=%s."),
+            WorldGenerationConfig.WorldSeed, *Site);
+        return;
+    }
+    CaptureCamera->GetCameraComponent()->SetFieldOfView(65.0f);
+    LocalController->SetViewTarget(CaptureCamera);
+    FScreenshotRequest::RequestScreenshot(ScreenshotPath, false, false);
+    UE_LOG(LogTemp, Display,
+        TEXT("Biome baseline rendered capture requested: Seed=%llu Site=%s XY=(%.3f,%.3f) ViewZ=%.3f Camera=%s Aim=%s FOV=65 Output=%s."),
+        WorldGenerationConfig.WorldSeed, *Site, Xcm, Ycm, ViewZcm,
+        *CameraLocation.ToCompactString(), *ViewTarget.ToCompactString(), *ScreenshotPath);
+#endif
+}
+
 void AKalmalaGameMode::Logout(AController* Exiting)
 {
     if (HasAuthority() && Exiting != nullptr)
@@ -7739,6 +7797,7 @@ void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)
 #endif
 
     PlacePawnAtGeneratedStart(NewPlayer);
+    TryCaptureBiomeBaselineView(NewPlayer);
 
     if (NewPlayer != nullptr)
     {

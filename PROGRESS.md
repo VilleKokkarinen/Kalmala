@@ -7775,3 +7775,44 @@
   samples. One pre-existing OceanSkiff hull-material warning remains.
 - **Next task in this directed goal:** BH01c - capture rendered fixed-camera
   views and consolidate the numeric baselines. BH01 remains open.
+
+## Run 2026-10-24 - BH01c1 runtime capture fixture
+
+- **Selected increment:** BH01c1, the first child of BH01c. Added a one-shot
+  development-only game-view capture path, a narrow runner and one actual
+  rendered smoke capture. BH01c and BH01 remain open.
+- **Completed:** The game mode defers capture until its world-generation config
+  is initialized, activates terrain around the fixed site, sets the local
+  standalone camera to BH01a's pose and requests a no-UI PNG. The runner checks
+  the runtime seed/site log, PNG signature and dimensions, and sampled-pixel
+  variation. The seed-418 Starter Meadows smoke capture succeeded and visual
+  inspection confirmed rendered terrain, tree geometry, shadows and sky. The
+  first launch exposed early PostLogin ordering and a seed-zero attempt; an
+  explicit config-initialized guard corrected it. The local pawn remains at its
+  generated start.
+- **Files changed:** BACKLOG.md, PROGRESS.md, docs/biome-height-rework.md,
+  Source/KalmalaGameplay/Private/KalmalaGameMode.cpp,
+  Source/KalmalaGameplay/Public/KalmalaGameMode.h,
+  Scripts/Tests/World/BiomeBaselineCapture.ps1. The final PNG, logs, user cache
+  and build mirror remain ignored under .tmp/bh01/ and are not staged.
+- **Lightweight checks/results:** PowerShell AST parsing and `git diff --check`
+  passed. The exact final source built in the isolated KalmalaEditor mirror in
+  4 UBT actions with normal LOCALAPPDATA access. The runner produced a
+  1024x768, 921,694-byte PNG; signature, dimensions, pixel variance, seed, site
+  and fixed pose checks passed. Its SHA-256 is
+  `25c17c4f8bdd07b71513891202209a84d8cfec717db6c181810a8564bc5e5912`. No
+  terrain-generation behavior changed.
+- **Full verification:** Deferred; this is not milestone-final. No full test
+  suite, multiplayer peers, or broad world verification ran.
+- **Impact / authority:** Diagnostic-only development flag. It changes the
+  standalone capture camera and activates requested terrain patches for the
+  view; no gameplay rules, RPCs, networking code or save schema changed. Peer
+  replication is not exercised by this renderer capture.
+- **Known limitations:** Only the seed-418 Starter Meadows pose has an actual
+  rendered capture. Earlier overview images are null-RHI diagnostics and are not
+  treated as rendered evidence. The numeric CSV remains temporary. BH01c2 must
+  capture all 28 seed/site rows and consolidate numeric measurements plus
+  camera and vertical bounds before BH01 closes.
+- **Next task in this directed goal:** BH01c2 — capture and validate all fixed
+  rendered views for seeds 418/419 and consolidate the baseline record. Keep
+  BH01c and BH01 open.
