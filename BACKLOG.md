@@ -604,17 +604,16 @@ run for this goal and may exceed one turn.
       Lakes profiles and bounded commandlet-only overrides for blend share and
       lowland controls. Reject stale binaries; leave measurement and numeric
       selection to BH25d and rendered acceptance to BH26.
-  - [ ] **BH15 — Shape Mossy Mire.** Source integration is complete with
-    provisional bounded controls; keep open until the stale-safe profile harness
-    BH15b is complete. Numeric selection remains BH25e and rendered acceptance
-    remains BH26.
+  - [x] **BH15 — Shape Mossy Mire.** The source integration and stale-safe
+    numeric profile harness are complete with provisional bounded controls.
+    Numeric selection remains BH25e and rendered acceptance remains BH26.
     - [x] **BH15a — Integrate the monotonic lowland candidate.** Soft-compress
       shared source height toward a bounded lowland band with clipped residual
       detail. Preserve positive source-land clearance outside river corridors,
       continuous biome blending, river-last priority and disabled-basin behavior.
       Add focused formula, deterministic blend, river override and dry former-
       basin tests; keep all coefficients provisional.
-    - [ ] **BH15b — Add the Mire numeric profile harness.** Add fixed seed-418/419
+    - [x] **BH15b — Add the Mire numeric profile harness.** Add fixed seed-418/419
       Mire transects, bounded commandlet-only controls and per-run effective
       tuning logs that reject stale binaries. Export raw heights/slopes and
       candidate diagnostics; do not select values here. Leave fresh-source

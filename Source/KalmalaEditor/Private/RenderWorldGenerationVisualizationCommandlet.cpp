@@ -135,7 +135,7 @@ namespace KalmalaWorldGenerationVisualization
 
     bool ExportNumericSamples(const FString& InputPath, const FString& OutputPath,
         const bool bIncludeMeadowFloorDiagnostics, const bool bIncludeElderwoodDiagnostics,
-        const bool bIncludeShimmeringLakesDiagnostics)
+        const bool bIncludeShimmeringLakesDiagnostics, const bool bIncludeMireDiagnostics)
     {
         TArray<FString> Lines;
         if (!FFileHelper::LoadFileToStringArray(Lines, *InputPath) || Lines.Num() < 2)
@@ -163,6 +163,10 @@ namespace KalmalaWorldGenerationVisualization
         if (bIncludeShimmeringLakesDiagnostics)
         {
             Csv += TEXT(",ShimmeringLakesCandidateCm,MeadowCandidateCm,ElderwoodCandidateCm,LowlandCandidateCm,SourceHeightCm,Humidity,WetlandHumidityMinimum,WetlandHumidityFull,MeadowShare,LowlandFloorCm,LowlandCeilingCm,LowlandCompression,BasinWeight,RiverWeight,StreamWeight");
+        }
+        if (bIncludeMireDiagnostics)
+        {
+            Csv += TEXT(",MireCandidateCm,SourceHeightCm,MireDetail,MireTargetHeightCm,MireCompressionScaleCm,MireResidualDetailAmplitudeCm,MireWorstCaseClearanceCm,BasinWeight,RiverWeight,StreamWeight");
         }
         Csv += TEXT("\n");
         int32 SampleCount = 0;
@@ -270,6 +274,21 @@ namespace KalmalaWorldGenerationVisualization
                     Preview.ShimmeringLakesLowlandFloor, Preview.ShimmeringLakesLowlandCeiling,
                     Preview.ShimmeringLakesLowlandCompression, Region.BasinWeight, Region.RiverWeight, Region.StreamWeight);
             }
+            if (bIncludeMireDiagnostics)
+            {
+                const auto& Preview = FKalmalaGenerationPreview::Get();
+                const FKalmalaTerrainCandidateDiagnostics Diagnostics =
+                    FKalmalaRegionalGeneration::SampleTerrainCandidateDiagnostics(Config, Fields);
+                const double MireDetail = FKalmalaRegionalGeneration::Noise(Config, 250, Position, 0.00015);
+                const double MireWorstCaseClearance = Diagnostics.MireCandidate
+                    - FMath::Clamp(MireDetail, -1.0, 1.0) * Preview.MireResidualDetailAmplitude
+                    - Preview.MireResidualDetailAmplitude;
+                Csv += FString::Printf(TEXT(",%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g"),
+                    Diagnostics.MireCandidate, Diagnostics.SourceHeight, MireDetail,
+                    Preview.MireTargetHeight, Preview.MireCompressionScale,
+                    Preview.MireResidualDetailAmplitude, MireWorstCaseClearance,
+                    Region.BasinWeight, Region.RiverWeight, Region.StreamWeight);
+            }
             Csv += TEXT("\n");
             ++SampleCount;
         }
@@ -326,6 +345,9 @@ int32 URenderWorldGenerationVisualizationCommandlet::Main(const FString& Params)
     FString ShimmeringLakesLowlandFloorCmText;
     FString ShimmeringLakesLowlandCeilingCmText;
     FString ShimmeringLakesLowlandCompressionText;
+    FString MireTargetHeightCmText;
+    FString MireCompressionScaleCmText;
+    FString MireResidualDetailAmplitudeCmText;
     const bool bHasHillAmplitude = FParse::Value(*Params, TEXT("MeadowHillAmplitudeM="), HillAmplitudeText);
     const bool bHasRollingAmplitude = FParse::Value(*Params, TEXT("MeadowRollingAmplitudeM="), RollingAmplitudeText);
     const bool bHasFloorScale = FParse::Value(*Params, TEXT("MeadowFloorScaleM="), FloorScaleText);
@@ -337,6 +359,9 @@ int32 URenderWorldGenerationVisualizationCommandlet::Main(const FString& Params)
     const bool bHasShimmeringLakesLowlandFloorCm = FParse::Value(*Params, TEXT("ShimmeringLakesLowlandFloorCm="), ShimmeringLakesLowlandFloorCmText);
     const bool bHasShimmeringLakesLowlandCeilingCm = FParse::Value(*Params, TEXT("ShimmeringLakesLowlandCeilingCm="), ShimmeringLakesLowlandCeilingCmText);
     const bool bHasShimmeringLakesLowlandCompression = FParse::Value(*Params, TEXT("ShimmeringLakesLowlandCompression="), ShimmeringLakesLowlandCompressionText);
+    const bool bHasMireTargetHeightCm = FParse::Value(*Params, TEXT("MireTargetHeightCm="), MireTargetHeightCmText);
+    const bool bHasMireCompressionScaleCm = FParse::Value(*Params, TEXT("MireCompressionScaleCm="), MireCompressionScaleCmText);
+    const bool bHasMireResidualDetailAmplitudeCm = FParse::Value(*Params, TEXT("MireResidualDetailAmplitudeCm="), MireResidualDetailAmplitudeCmText);
     if (bHasFloorScale != bHasFloorAmplitude)
     {
         UE_LOG(LogTemp, Error, TEXT("MeadowFloorScaleM and MeadowFloorAmplitudeM must be provided together."));
@@ -360,12 +385,27 @@ int32 URenderWorldGenerationVisualizationCommandlet::Main(const FString& Params)
         return 1;
     }
     const bool bHasShimmeringLakesTrial = ShimmeringLakesOverrideCount == 1;
+    const int32 MireOverrideCount = int32(bHasMireTargetHeightCm)
+        + int32(bHasMireCompressionScaleCm) + int32(bHasMireResidualDetailAmplitudeCm);
+    if (MireOverrideCount > 1)
+    {
+        UE_LOG(LogTemp, Error, TEXT("Override only one Mossy Mire control per profile trial."));
+        return 1;
+    }
+    const bool bHasMireTrial = MireOverrideCount == 1;
     if (bHasShimmeringLakesTrial && (bHasHillAmplitude || bHasRollingAmplitude || bHasFloorTrial || bHasElderwoodTrial))
     {
         UE_LOG(LogTemp, Error, TEXT("Run Shimmering Lakes trials independently from Meadows and Elderwood controls."));
         return 1;
     }
-    if (bHasHillAmplitude || bHasRollingAmplitude || bHasFloorTrial || bHasElderwoodTrial || bHasShimmeringLakesTrial)
+    if (bHasMireTrial && (bHasHillAmplitude || bHasRollingAmplitude || bHasFloorTrial
+        || bHasElderwoodTrial || bHasShimmeringLakesTrial))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Run Mossy Mire trials independently from other terrain controls."));
+        return 1;
+    }
+    if (bHasHillAmplitude || bHasRollingAmplitude || bHasFloorTrial || bHasElderwoodTrial
+        || bHasShimmeringLakesTrial || bHasMireTrial)
     {
         FKalmalaGenerationPreviewSettings Trial = FKalmalaGenerationPreview::Get();
         double HillAmplitudeM = 0.0;
@@ -374,6 +414,7 @@ int32 URenderWorldGenerationVisualizationCommandlet::Main(const FString& Params)
         double FloorAmplitudeM = 0.0;
         double ElderwoodAmplitudeM = 0.0;
         double ShimmeringLakesControl = 0.0;
+        double MireControlCm = 0.0;
         if (bHasHillAmplitude)
         {
             if (!LexTryParseString(HillAmplitudeM, *HillAmplitudeText) || !FMath::IsFinite(HillAmplitudeM)
@@ -455,6 +496,26 @@ int32 URenderWorldGenerationVisualizationCommandlet::Main(const FString& Params)
             }
         }
 
+        if (bHasMireTrial)
+        {
+            FString* ControlText = bHasMireTargetHeightCm ? &MireTargetHeightCmText
+                : bHasMireCompressionScaleCm ? &MireCompressionScaleCmText
+                : &MireResidualDetailAmplitudeCmText;
+            if (!LexTryParseString(MireControlCm, **ControlText) || !FMath::IsFinite(MireControlCm))
+            {
+                UE_LOG(LogTemp, Error, TEXT("The selected Mossy Mire control must be finite."));
+                return 1;
+            }
+            if (bHasMireTargetHeightCm) Trial.MireTargetHeight = MireControlCm;
+            else if (bHasMireCompressionScaleCm) Trial.MireCompressionScale = MireControlCm;
+            else Trial.MireResidualDetailAmplitude = MireControlCm;
+            if (!Trial.HasValidReliefControls())
+            {
+                UE_LOG(LogTemp, Error, TEXT("Mossy Mire control is outside its documented bounds or violates positive coast clearance."));
+                return 1;
+            }
+        }
+
         if (!Trial.HasValidReliefControls() || !FKalmalaGenerationPreview::Set(Trial))
         {
             UE_LOG(LogTemp, Error, TEXT("Could not install the commandlet-only terrain profile trial."));
@@ -486,8 +547,14 @@ int32 URenderWorldGenerationVisualizationCommandlet::Main(const FString& Params)
                 Trial.ShimmeringLakesMeadowShare, Trial.ShimmeringLakesLowlandFloor,
                 Trial.ShimmeringLakesLowlandCeiling, Trial.ShimmeringLakesLowlandCompression);
         }
+        if (bHasMireTrial)
+        {
+            UE_LOG(LogTemp, Display, TEXT("Mossy Mire profile trial accepted: TargetHeightCm=%.1f CompressionScaleCm=%.1f ResidualDetailAmplitudeCm=%.1f"),
+                Trial.MireTargetHeight, Trial.MireCompressionScale, Trial.MireResidualDetailAmplitude);
+        }
     }
-    ON_SCOPE_EXIT { if (bHasHillAmplitude || bHasRollingAmplitude || bHasFloorTrial || bHasElderwoodTrial || bHasShimmeringLakesTrial) FKalmalaGenerationPreview::Reset(); };
+    ON_SCOPE_EXIT { if (bHasHillAmplitude || bHasRollingAmplitude || bHasFloorTrial || bHasElderwoodTrial
+        || bHasShimmeringLakesTrial || bHasMireTrial) FKalmalaGenerationPreview::Reset(); };
 
     FString SampleInputPath;
     FString SampleOutputPath;
@@ -498,7 +565,8 @@ int32 URenderWorldGenerationVisualizationCommandlet::Main(const FString& Params)
             UE_LOG(LogTemp, Error, TEXT("SampleInput requires SampleOutput."));
             return 1;
         }
-        return ExportNumericSamples(SampleInputPath, SampleOutputPath, bHasFloorTrial, bHasElderwoodTrial, bHasShimmeringLakesTrial) ? 0 : 1;
+        return ExportNumericSamples(SampleInputPath, SampleOutputPath, bHasFloorTrial,
+            bHasElderwoodTrial, bHasShimmeringLakesTrial, bHasMireTrial) ? 0 : 1;
     }
 
     FString OutputDirectory = FPaths::ProjectContentDir() / TEXT("Kalmala/Developer/WorldGeneration");

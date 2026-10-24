@@ -8632,3 +8632,45 @@
   remains untouched because its wording conflicts with this worktree.
 - **Next task in this directed goal:** BH15b — add the fixed Mire profile
   harness with bounded commandlet-only controls and stale-binary detection.
+
+## Run 2026-10-24 — Mossy Mire profile harness (BH15b)
+
+- **Selected increment:** BH15b, add the fixed numeric Mire profile sweep
+  harness. The worktree was clean at `31e8f2be` before implementation, and no
+  other active run was modifying this worktree.
+- **Work completed:** Added twelve 100 m transects at 5 m spacing on both axes
+  around the seed-418/419 Mire interiors, source-coast controls and Highland
+  river sites from BH01. Added one-at-a-time commandlet overrides for Mire
+  target height, compression scale and residual detail, each checked against
+  preview bounds and positive source-land clearance. Mire trials export the
+  source height, detail, shaped candidate, effective controls, worst-case
+  source-land clearance, biome/hydrology values, final/collision heights and
+  slopes. The PowerShell runner checks fixed rows, formula/bounds, water and
+  disabled-basin invariants, and the full effective-control log marker to
+  reject a stale binary. Updated this plan and the development-setup profile
+  instructions. Marked BH15b and BH15 implementation complete; BH25e still owns
+  numeric selection and BH26 owns rendered/integrated verification.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaEditor/Private/RenderWorldGenerationVisualizationCommandlet.cpp`,
+  `Scripts/Tests/World/BiomeMireProfiles.ps1`,
+  `Scripts/Tests/World/BiomeMireProfiles.csv`, `docs/biome-height-rework.md`,
+  and `docs/07-development-setup.md`.
+- **Lightweight checks/results:** PowerShell parser validation and
+  `BiomeMireProfiles.ps1 -ValidateOnly` passed for all 252 coordinates across
+  twelve fixed transects. Static inspection confirmed one Mire override is
+  applied before export and the runner expects the exact full-control marker.
+  No Unreal build, commandlet sweep or automation ran. Full verification remains
+  deferred to BH26.
+- **Observable impact:** Adds repeatable raw candidate, collision, slope and
+  source-land clearance measurements for BH25e, with coastal, interior, ocean
+  and river controls. It does not change sampler outputs unless an explicit
+  commandlet-only trial argument is supplied; trial state resets on commandlet
+  exit. No trial values are selected or claimed.
+- **Networking/authority:** Controls are local commandlet preview values only;
+  no client input, RPC, replication, gameplay authority, or save data changed.
+- **Known limitations / remaining scope:** Fresh-source parameter selection is
+  BH25e. Rendered coast/interior/river acceptance and full integrated checks are
+  BH26. The script was parser/fixture-checked but no Unreal binary was built or
+  used to run the sweep.
+- **Next task in this directed goal:** BH16 — shape Freezing Tundra by reusing
+  the Elderwood candidate inside the existing outer eligibility band.

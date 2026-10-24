@@ -3764,6 +3764,22 @@ are written to a short temporary directory. BH25d uses fresh-source results to
 select values; the script does not build or select tuning. Rendered shoreline
 and traversal acceptance remain in BH26.
 
+### Mossy Mire profile sweep
+
+`Scripts/Tests/World/BiomeMireProfiles.ps1 -ValidateOnly` checks 252 fixed
+seed-418/419 samples in 100 m transects at 5 m spacing, covering the two Mire
+interiors, both source-coast controls and both Highland river corridors on X/Y
+axes. After compiling the BH15b commandlet source, run the script with
+`-Project <project-path>` for target-height 200/300/500 cm, compression-scale
+300/700/1200 cm and residual-detail 10/25/60 cm trials, varying one control at
+a time. It exports candidate/source/detail diagnostics, current effective
+controls, raw final/collision heights, slopes, and numeric dry-clearance and
+range summaries. It checks the compression formula, positive worst-case
+source-land clearance, river-last water behavior, disabled basin support and
+the exact effective-control log marker to reject stale binaries. The script
+does not build or choose tuning. BH25e records fresh-source measurements and
+selects Mire values; rendered acceptance remains BH26.
+
 ### Export verification
 
 After building, run `Scripts/Tests/World/WorldMapExport.ps1`. In one warm headless process it verifies PNG signatures, every visible fast/full biome pixel at 64×64, changed master/region tuning, restoration of default output hashes, and preservation of the last good PNGs after malformed input. It keeps its parameter edits and outputs in a temporary directory; the user's parameter file is untouched.

@@ -109,10 +109,20 @@ determinism and channel-connectivity acceptance, not an incidental side effect.
   currently uses `target + (source-target)/(1+abs(source-target)/scale) +
   clamp(detail,-1,1)*residual`, with provisional controls of 300 / 700 / 25 cm
   inside preview ranges of 200–500 / 300–1200 / 10–60 cm. The rational curve is
-  monotonic and bounded without a hard shelf; the selected range combinations
-  keep its lowest coast-side value above zero. BH15b adds the stale-safe profile
-  sweep harness; BH25e chooses measured values from a fresh build. River carving
-  remains the final corridor override, and basin generation stays disabled.
+  monotonic and bounded without a hard shelf; every accepted combination keeps
+  its lowest source-land value above zero. `Scripts/Tests/World/BiomeMireProfiles.ps1`
+  exports 100 m profiles at 5 m spacing on both axes around the seed-418/419
+  Mire interiors, source coasts and Highland river sites from BH01. Each trial
+  varies one control at a time across its minimum, provisional center and
+  maximum; CSV rows include source/detail inputs, the Mire candidate, effective
+  controls, final/collision heights, slopes, hydrology and a worst-case
+  source-land clearance. The runner checks the fixed coordinates, compression
+  formula, water/basin behavior and an exact effective-control log marker so a
+  stale binary is rejected. Run `-ValidateOnly` for fixture checks; run the
+  full script with a project path only after compiling the source. BH15b adds
+  this harness but does not select values; BH25e chooses measured values from a
+  fresh build. River carving remains the final corridor override, and basin
+  generation stays disabled.
 - **Freezing Tundra:** Reuse Elderwood height treatment and the existing outer
   eligibility. Reuse its forest-factor pattern with a slightly lower acceptance
   probability; a 0.8–0.9 density multiplier is an initial experiment, not a final
