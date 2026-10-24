@@ -5925,3 +5925,30 @@ Two Unreal unified-error startup self-test `Condition failed` diagnostics
 preceded the queue. These local progression/combat automations do not replace
 multiplayer Forge crafting, peer inventory delivery, or rendered presentation
 acceptance. Combined A8a/A8b I4 remains required before A9.
+
+## A8b Rat-tail Tonic live peer craft — 2026-10-24
+
+After an Editor build, run `Scripts/Tests/Construction/Verify-A8bTonicPeer.ps1`.
+The development-only three-peer fixture selects the first remote owner by
+PlayerId, spawns a Cauldron and a lit dry hearth within normal range, and seeds
+two Rat Tails, two Lingonberries, and one Wood for the hearth. The owner waits
+for the replicated station, heat, and materials, confirms client-side direct
+crafting is rejected, then sends the ordinary `RatTailTonicRecipe`
+`ServerCraft` RPC. Server and owner logs require exact ingredient payment, one
+GUID-addressed Tonic, and the accepted owner result. A second remote observer
+and the listen host verify their own inventories contain no Tonic; the observer
+also checks the non-owner replica of the target pawn's private inventory for an
+empty pack. `Verify-RatPeer.ps1` remains the
+sole I4 enemy reward, retry, defeat-persistence, and combat-replication test.
+
+On 2026-10-24, an initial incremental build caught four unbraced `UE_LOG`
+conditional branches; braces were added and the build passed in five actions.
+The fixture was then strengthened to inspect the target owner's non-owner
+inventory replica directly, and the final isolated `KalmalaEditor Win64
+Development` build passed in four actions. `Verify-A8bTonicPeer.ps1` passed for
+the server, owner, listen host, and observer; logs:
+`C:/Users/Ville/AppData/Local/Temp/a8tn2/server.log`, `owner.log`, and
+`observer.log`. The final peer logs contain no fixture errors, fatal/assert/ensure
+failures, or saved-move backlog warnings. This live craft and inventory-privacy
+case does not exercise the Tonic's healing effect or rendered station/inventory
+presentation. Combined A8a/A8b I4 remains required before A9.

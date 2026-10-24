@@ -126,6 +126,7 @@ private:
     void RunRainVerticalSliceVerification(float DeltaTime);
 #if !UE_BUILD_SHIPPING
     void RunGardenPlotVerification(float DeltaTime);
+    void RunA8bTonicPeerVerification(float DeltaTime);
 #endif
     void RefreshStorageView();
     void ClearStorageView();
@@ -174,5 +175,10 @@ private:
     uint32 GardenPlotVerificationStartingResultSerial = 0;
     TArray<FKalmalaInventoryStack> GardenPlotVerificationPlacementCost;
     TArray<int32> GardenPlotVerificationCostBefore;
+    int32 A8bTonicPeerStage = 0;
+    float A8bTonicPeerElapsed = 0.0f;
+    TWeakObjectPtr<AKalmalaCharacter> A8bTonicPeerTarget;
+    uint32 A8bTonicPeerReadyResultSerial = 0;
+    bool bA8bTonicPeerFixtureObserved = false;
 #endif
 };
