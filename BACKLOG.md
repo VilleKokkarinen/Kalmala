@@ -600,7 +600,7 @@ milestone-final verification/repair run and can exceed a normal turn.
     from S04; overlapping players must produce each key once.
   - [x] **S06 — Add scheduler cadence.** Schedule each active key once per 5 s
     with stable staggering; remove inactive keys without accumulating retries.
-  - [ ] **S07 — Bound scheduler work.** Use a 0.25 s wake, at most 4 keys,
+  - [x] **S07 — Bound scheduler work.** Use a 0.25 s wake, at most 4 keys,
     4 candidates per key and 16 candidates total per wake; skip missed ticks
     instead of catch-up bursts.
   - [ ] **S08 — Generate ring candidates.** Select existing stable descriptors

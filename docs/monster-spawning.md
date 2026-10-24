@@ -150,9 +150,18 @@ keys are returned in lexicographic order; servicing a key advances it to
 active due set and their per-key due entry is discarded. Reactivation derives a
 fresh phase from the same key seed, so an inactive key cannot accumulate missed
 attempts. This cadence state is separate from S02's 30 s living-creature unload
-cooldown, which remains keyed by stable spawn ID and survives key unload. The
-0.25 s wake and work limits remain S07; this increment adds no candidate
-evaluation or spawn admission.
+cooldown, which remains keyed by stable spawn ID and survives key unload. S07
+adds the bounded 0.25 s wake; S06 and S07 add no descriptor generation or spawn
+admission.
+
+## S07 bounded scheduler wake — 2026-10-24
+
+The server checks for a scheduler wake every 0.25 seconds. When a frame arrives
+late, the next wake is set to `now + 0.25` rather than replaying missed ticks.
+Each wake selects at most four due keys in stable order. Each key carries a
+candidate budget of at most four, and the total candidate budget is capped at
+16. S07 records only this bounded key/budget plan; S08 generates descriptors and
+S14 connects the plan to evaluation and admission.
 
 ## Spatial scheduling and random rolls
 

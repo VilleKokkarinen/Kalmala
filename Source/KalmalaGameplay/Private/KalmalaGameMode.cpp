@@ -5474,6 +5474,43 @@ bool AKalmalaGameMode::MarkPopulationSpatialKeyServiced(const FIntPoint& Spatial
     return true;
 }
 
+void AKalmalaGameMode::UpdatePopulationSchedulerWake(const double NowSeconds)
+{
+    PopulationSchedulerWakeWork.Reset();
+    if (!HasAuthority() || !IsValid(GetWorld()) || !FMath::IsFinite(NowSeconds)
+        || NowSeconds < NextPopulationSchedulerWakeTime)
+    {
+        return;
+    }
+
+    // Rebase from the current time so a hitch never causes catch-up wakes.
+    NextPopulationSchedulerWakeTime = NowSeconds
+        + FKalmalaMonsterSpawnTuning::PopulationSchedulerWakeIntervalSeconds;
+
+    int32 RemainingCandidateBudget = FKalmalaMonsterSpawnTuning::MaxPopulationCandidatesPerWake;
+    const TArray<FIntPoint> DueKeys = GetDuePopulationSpatialKeys(NowSeconds);
+    for (const FIntPoint& SpatialKey : DueKeys)
+    {
+        if (PopulationSchedulerWakeWork.Num() >= FKalmalaMonsterSpawnTuning::MaxPopulationKeysPerWake
+            || RemainingCandidateBudget <= 0)
+        {
+            break;
+        }
+
+        const int32 CandidateBudget = FMath::Min(
+            FKalmalaMonsterSpawnTuning::MaxPopulationCandidatesPerKey, RemainingCandidateBudget);
+        if (!MarkPopulationSpatialKeyServiced(SpatialKey, NowSeconds))
+        {
+            continue;
+        }
+
+        FKalmalaPopulationSchedulerKeyWork& KeyWork = PopulationSchedulerWakeWork.AddDefaulted_GetRef();
+        KeyWork.SpatialKey = SpatialKey;
+        KeyWork.CandidateBudget = CandidateBudget;
+        RemainingCandidateBudget -= CandidateBudget;
+    }
+}
+
 void AKalmalaGameMode::Tick(const float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
@@ -5582,6 +5619,7 @@ void AKalmalaGameMode::Tick(const float DeltaSeconds)
     }
 
     UpdatePopulationKeySchedule(NowSeconds);
+    UpdatePopulationSchedulerWake(NowSeconds);
 }
 
 void AKalmalaGameMode::DriveOceanTravelFeedbackTest()

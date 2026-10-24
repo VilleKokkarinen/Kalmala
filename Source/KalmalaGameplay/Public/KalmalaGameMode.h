@@ -17,6 +17,12 @@ struct FKalmalaGardenPlotState;
 struct FKalmalaStandingLightState;
 enum class EKalmalaOceanSkiffSeat : uint8;
 
+struct FKalmalaPopulationSchedulerKeyWork
+{
+    FIntPoint SpatialKey = FIntPoint::ZeroValue;
+    int32 CandidateBudget = 0;
+};
+
 /**
  * Server-authoritative rules for a Kalmala session.
  * Gameplay systems are added in later milestones.
@@ -89,6 +95,7 @@ private:
     friend class FKalmalaPopulationLivingPlayersTest;
     friend class FKalmalaPopulationSpatialKeyUnionTest;
     friend class FKalmalaPopulationSchedulerCadenceTest;
+    friend class FKalmalaPopulationSchedulerBudgetTest;
 
 #if WITH_DEV_AUTOMATION_TESTS
     // Isolate the final disk boundary while exercising the real depletion callback.
@@ -103,6 +110,7 @@ private:
     void UpdatePopulationKeySchedule(double NowSeconds);
     TArray<FIntPoint> GetDuePopulationSpatialKeys(double NowSeconds) const;
     bool MarkPopulationSpatialKeyServiced(const FIntPoint& SpatialKey, double NowSeconds);
+    void UpdatePopulationSchedulerWake(double NowSeconds);
     void ActivatePopulationKey(const FIntPoint& SpatialKey);
     void RefreshOceanDiscoveries();
     void RecordHarvestedSpawn(const FString& PersistentSpawnId);
@@ -380,6 +388,9 @@ private:
     TSet<FIntPoint> ActivePopulationSpatialKeys;
     TSet<FIntPoint> ActivePopulationSchedulerKeys;
     TMap<FIntPoint, double> PopulationKeyNextDueTimes;
+    double NextPopulationSchedulerWakeTime = 0.0;
+    // Latest wake's bounded key/budget plan; descriptor generation is a later increment.
+    TArray<FKalmalaPopulationSchedulerKeyWork> PopulationSchedulerWakeWork;
     TSet<FIntPoint> ActiveShimmeringLakeDiscoveryKeys;
     TSet<FIntPoint> ActiveElderwoodDiscoveryKeys;
     TSet<FIntPoint> ActiveMossyMireDiscoveryKeys;

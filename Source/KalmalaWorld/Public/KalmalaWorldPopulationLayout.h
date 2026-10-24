@@ -439,6 +439,10 @@ struct FKalmalaMonsterSpawnTuning final
     static constexpr float PopulationKeyCheckIntervalSeconds = 5.0f;
     static constexpr float PopulationKeyPhaseStepSeconds = 0.25f;
     static constexpr int32 PopulationKeyPhaseCount = 20;
+    static constexpr float PopulationSchedulerWakeIntervalSeconds = 0.25f;
+    static constexpr int32 MaxPopulationKeysPerWake = 4;
+    static constexpr int32 MaxPopulationCandidatesPerKey = 4;
+    static constexpr int32 MaxPopulationCandidatesPerWake = 16;
     static constexpr float CountRadiusCm = 96.0f * 100.0f;
     static constexpr float PlayerKeyIntersectionRadiusCm = 96.0f * 100.0f;
 
@@ -455,4 +459,8 @@ struct FKalmalaMonsterSpawnTuning final
     static_assert(PopulationKeyPhaseStepSeconds > 0.0f && PopulationKeyPhaseCount > 0
         && PopulationKeyPhaseStepSeconds * PopulationKeyPhaseCount == PopulationKeyCheckIntervalSeconds,
         "Monster key staggering must partition one positive check interval.");
+    static_assert(PopulationSchedulerWakeIntervalSeconds > 0.0f && MaxPopulationKeysPerWake > 0
+        && MaxPopulationCandidatesPerKey > 0 && MaxPopulationCandidatesPerWake > 0
+        && MaxPopulationKeysPerWake * MaxPopulationCandidatesPerKey <= MaxPopulationCandidatesPerWake,
+        "Population scheduler wake and candidate budgets must be positive and bounded.");
 };

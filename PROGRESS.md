@@ -7775,5 +7775,18 @@
 - **Full verification:** Deferred to S35. This is not the final implementation task in the monster-population goal.
 - **Observable impact / authority:** Server Tick now keeps scheduler eligibility synchronized with the S05 loaded-key union. It tracks cadence only; the existing nine-key materialization cap is unchanged, and natural spawn admission remains disabled.
 - **Networking/authority:** Candidate collection, active schedule state, deterministic phase and service advancement are server-authoritative. The per-key due map contains active keys only; S02 creature cooldown state is separate. No client selects or advances spawn state.
-- **Known limitations:** S07 still needs to add the 0.25 s wake and bounded work, and later S08+ work supplies candidate evaluation and spawn admission. S06 does not create attempts or activate additional keys.
-- **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within the requested monster-population goal, the next child is S07 — bound scheduler work.
+- **Known limitations:** S08+ still needs descriptor generation, candidate evaluation and spawn admission. S06 does not create attempts or activate additional keys.
+- **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within the requested monster-population goal, the next child is S08 — generate ring candidates.
+
+
+### Monster population — S07 bounded scheduler wake
+
+- **Selected increment:** S07, the 0.25 s wake and bounded per-wake work plan.
+- **Work completed:** Added a server-side wake that selects at most four due keys; each key receives at most four candidate slots and the total candidate budget is capped at 16. The next wake is reset to `now + 0.25 s`, so missed wake intervals are skipped. This records a key/budget plan only; descriptor generation and spawn admission remain later increments.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`, `Source/KalmalaGameplay/Public/KalmalaGameMode.h`, `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSchedulerBudgetTest.cpp`, `Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h`, `docs/monster-spawning.md`, `BACKLOG.md`, `PROGRESS.md`.
+- **Lightweight checks:** Code and scheduler-contract inspection; focused automation coverage added for the 4/4/16 limits, stable key ordering, quarter-second cadence, and skipped catch-up wakes. `git diff --check` passed; staged paths/diff were reviewed before commit. The automation test and Unreal build were not run.
+- **Full verification:** Deferred to S35. This is not the final implementation task in the monster-population goal.
+- **Observable impact / authority:** The authoritative GameMode now creates a bounded due-key/budget plan on 0.25 s wake intervals. It does not generate descriptors, alter materialized-key limits, or admit natural spawns.
+- **Networking/authority:** Wake timing, due-key selection and candidate budgets are server-only.
+- **Known limitations:** S08 still needs stable ring descriptor selection and S14 must connect this plan to the evaluator; no creature spawn work is performed.
+- **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within this requested monster-population goal, the next child is S08 — generate ring candidates.
