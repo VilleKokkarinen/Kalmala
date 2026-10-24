@@ -8698,3 +8698,95 @@
   full-pack/restart behavior remain for the final evidence gate, along with all
   other included items and scope N/A dispositions.
 - **Next eligible A0 family:** Amber and Frost Salt.
+
+## Run 2026-10-24 — A10 per-item audit: Amber and Frost Salt
+
+- **Scope and definitions:** audited exactly `Amber` and `FrostSalt`. Both are
+  registered once in `items/materials/crafting-ingredients.json` and
+  `items/materials/cooking-ingredients.json`, respectively; each has a maximum
+  stack of 40. Neither has a recipe output, item profile, attack, stat reward,
+  or upgrade record. Neither is equipment, so condition, attack, and equipment
+  upgrade categories are N/A.
+- **Sources and quantities:** `creatures.json` defines one guaranteed Amber
+  from each credited PeatHusk defeat; PeatHeart is a separate 25% drop. The
+  server queues the baseline Amber reward for its credited owner, including
+  when the separate PeatHeart roll misses. The architecture source table also
+  declares `mire-peat-amber-seam` / `peat-amber-seam` as an Amber mining source,
+  and the M9 loot/tool contracts map that identity to Stone-tier mining and a
+  deterministic unique-source quantity of 1 or 2. A search of `Source` found
+  no generated or placed descriptor for this seam, including in population
+  descriptor construction, so it is declared and contract-tested but not an
+  active reachable source in the inspected code.
+
+  Frost Salt has two source routes. Existing `tundra-frostmoss` nodes in the
+  Freezing Tundra map through the ordinary gathering selection to one
+  `FrostSalt`; this is not the M9 mining deposit. The supplemental
+  `tundra-frost-salt-deposit` / `tundra-salt-crystals` source yields one
+  guaranteed FrostSalt plus a deterministic unique-source bonus, for 1 or 2
+  total, with Stone-tier Mining selection. Its generator allows at most one
+  deposit per 6,000 cm spatial key and 32 candidate attempts; eligible slots
+  are terrain/biome filtered and at least 250 cm from other harvest nodes.
+  Gemstone replacement uses 1% of eligible deposit slots for Opal, leaving
+  Frost Salt in the other 99%.
+- **Recipes, use, and N/A:** Amber is consumed by exactly two registered
+  recipes: inventory `BasicTorch` uses Wood x2 + Amber x1 to craft one torch;
+  the direct-material Building Hammer `StandingLight` recipe uses Wood x3 +
+  Amber x1 to place one light. Amber is a construction/crafting cost, not the
+  Basic Torch's fuel (the utility item description gives 300 seconds of held
+  fuel and 6 m light). FrostSalt has no registered recipe consumer or gameplay
+  preservation effect. Its catalogue description says it can preserve food,
+  but no current recipe or effect implements that use; do not treat this
+  description as behavior. Neither raw material is itself upgraded or used
+  directly for combat, equipment, or attacks; no level-up cost record consumes
+  either ID.
+- **Icons and provenance:** both exact IDs have catalogue-manifest entries and
+  canonical runtime catalogue mappings to `/Game/Kalmala/UI/Icons/Items/<ID>.<ID>`.
+  The older widget fallback table still lists Amber as Rock variant 2 and
+  FrostSalt as Snow variant 0, but focused catalogue validation confirms the
+  direct imported assets for both. Amber is batch F and FrostSalt batch A;
+  each manifest row covers PackInventory, ItemDetail, and Storage. The
+  validator confirmed retained 1254x1254 RGBA originals, transparent 64x64
+  prepared RGBA textures, and the expected imported `.uasset` targets.
+  `docs/icon-provenance.md` has no dedicated original generation prompt for
+  either material; the linked `docs/material-icons.md` is absent in this
+  checkout. No prompt was inferred or added in this tracking-only increment.
+- **Persistence and reward delivery:** a credited PeatHusk defeat queues the
+  owner-bound Amber claim in world-population state and persists it before the
+  defeat path accepts finalization; delivery grants one Amber, retains the
+  pending claim if the inventory cannot accept it, and includes PeatHeart only
+  when its separate roll succeeded. Once delivered, Amber is an ordinary
+  carried stack. Ordinary Amber and FrostSalt stacks are owner-only, last for
+  the pawn session, and are not restored by `PersistPlayerStateFromServer`,
+  which saves carried tools and discovery/claim state rather than ordinary
+  materials. Generic storage has a separate world-keyed save path; no
+  Amber/FrostSalt-specific chest transfer or reload was exercised here.
+  Existing Frostmoss depletion marks the persistent spawn ID and invokes
+  `SaveGameToSlot`, but ignores its boolean result. By contrast, M9
+  `resource:m9:v1:` depletion is
+  only added to `SessionM9ResourceDepletionIds`; no save write or other use of
+  that set was found, so the new Frost Salt deposit (and any generated Amber
+  seam) could reactivate after server restart. This source behavior conflicts
+  with `docs/02-technical-architecture.md`, which describes M9 depletion as a
+  world-scoped `ResourceDepleted` sparse delta. Record as an acceptance gap;
+  no runtime/save change was made.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md` only.
+- **Lightweight checks:** `python Scripts/Validate-CatalogueReferences.py`
+  passed: 61 registered files, 152 unique definitions, 777 resolved
+  references, and ledger-backed canonical icon mappings for all definitions.
+  Focused catalogue icon validation passed for `Amber` and `FrostSalt`, each
+  confirming source/prepared/imported targets. PowerShell `ConvertFrom-Json`
+  parsed the two material files, two recipe files, and creature catalogue
+  inspected for this increment. Source, recipe, icon, reward and save paths
+  were inspected; no automation, build, full suite, live peer or restart check
+  was run.
+- **Full verification:** deferred; this is not A10's final increment.
+- **Impact and remaining scope:** tracking-only; no item definitions, reward
+  quantities, recipes, gameplay effects, authority, icons or save behavior
+  changed. Server authority remains in the existing harvest/defeat routes. The
+  ungenerated Amber seam, missing material prompt records, nonimplemented Frost
+  Salt preservation description, and M9 session-only depletion versus the
+  architecture save contract remain for later disposition/verification. A10's
+  broad per-item audit remains unchecked until every included item and scope
+  N/A disposition is reviewed; full verification and fresh-start progression
+  remain open.
+- **Next eligible group:** A1 metals and fuel.
