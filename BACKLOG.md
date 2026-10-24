@@ -593,14 +593,14 @@ run for this goal and may exceed one turn.
       broad/middle/local amplitude overrides. Reject stale binaries; leave
       fresh-source trial selection to BH25b and rendered profile acceptance to
       BH26.
-  - [ ] **BH14 — Shape Shimmering Lakes.** Blend Meadows-like rounded shoulders,
+  - [x] **BH14 — Shape Shimmering Lakes.** Blend Meadows-like rounded shoulders,
     Elderwood relief, and compressed low pockets continuously, with no basin
     bowl or new perched water surface.
     - [x] **BH14a — Integrate the Lakes terrain blend.** Mix existing Meadows
       and Elderwood candidates, and add a smooth humidity/base-height lowland
       compression independent of basin support. Add focused formula, weight-
       continuity and disabled-basin tests; keep coefficients provisional.
-    - [ ] **BH14b — Add the Lakes numeric profile harness.** Provide fixed
+    - [x] **BH14b — Add the Lakes numeric profile harness.** Provide fixed
       Lakes profiles and bounded commandlet-only overrides for blend share and
       lowland controls. Reject stale binaries; leave measurement and numeric
       selection to BH25d and rendered acceptance to BH26.

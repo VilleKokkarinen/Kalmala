@@ -3748,6 +3748,22 @@ compiled source, compare Elderwood/Tundra profiles and transition blends,
 confirm identical candidates, and record measured ranges plus selected values.
 Rendered biome appearance and profile acceptance remain in BH26.
 
+### Shimmering Lakes profile sweep
+
+`Scripts/Tests/World/BiomeLakesProfiles.ps1 -ValidateOnly` checks the fixed
+seed-418 former-basin composite and seed-419 Lakes interior transects on both
+axes without launching Unreal. After compiling the BH14b commandlet source, run
+the script with `-Project <project-path>` for 12 independent Meadow-share,
+lowland-floor, lowland-ceiling and compression trials around their provisional
+center. It records candidate and compressed-lowland heights, humidity and
+effective controls, biome/water fields, and collision-triangle slopes. It
+checks the effective-control log marker to reject a stale binary, along with
+fixed profile coordinates, normalized weights, disabled basin support,
+lowland bounds/formula and candidate composition. Trial CSVs and the summary
+are written to a short temporary directory. BH25d uses fresh-source results to
+select values; the script does not build or select tuning. Rendered shoreline
+and traversal acceptance remain in BH26.
+
 ### Export verification
 
 After building, run `Scripts/Tests/World/WorldMapExport.ps1`. In one warm headless process it verifies PNG signatures, every visible fast/full biome pixel at 64×64, changed master/region tuning, restoration of default output hashes, and preservation of the last good PNGs after malformed input. It keeps its parameter edits and outputs in a temporary directory; the user's parameter file is untouched.

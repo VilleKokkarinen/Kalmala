@@ -8550,3 +8550,40 @@
   verification.
 - **Next task in this directed goal:** BH14b — add fixed Lakes profile samples,
   bounded preview overrides and a stale-binary-safe trial runner.
+
+## Run 2026-10-24 — Shimmering Lakes profile harness (BH14b)
+
+- **Selected increment:** BH14b, add fixed Shimmering Lakes samples and a
+  commandlet-only numeric profile sweep. No BH15 work was started.
+- **Work completed:** Added four fixed 100 m transects with 10 m spacing for
+  the seed-418 Meadows/Lakes/Elderwood former-basin blend and seed-419 Lakes
+  interior, each along X and Y (44 samples). The numeric commandlet accepts
+  one bounded Lakes control override per invocation, logs all effective
+  controls for stale-binary detection, exports the candidate/lowland inputs
+  and results, and resets preview settings after sampling. Added a 12-value
+  one-factor runner that validates lowland bounds/formula and candidate blend
+  parity while retaining raw output for BH25d. Checked BH14 and BH14b complete;
+  numeric selection remains BH25d and rendered acceptance remains BH26.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Scripts/Tests/World/BiomeLakesProfiles.csv`,
+  `Scripts/Tests/World/BiomeLakesProfiles.ps1`,
+  `Source/KalmalaEditor/Private/RenderWorldGenerationVisualizationCommandlet.cpp`,
+  `Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalGeneration.h`,
+  `docs/biome-height-rework.md`, and `docs/07-development-setup.md`.
+- **Lightweight checks/results:** PowerShell parser validation and
+  `BiomeLakesProfiles.ps1 -ValidateOnly` passed for all 44 fixed coordinates
+  and four transects. `git diff --check` passed. No Unreal build, commandlet
+  sweep or automation ran; full verification remains deferred to BH26.
+- **Observable impact:** Adds reproducible numeric Lakes-profile and slope
+  measurement, with raw candidate components and a stale-binary guard. The
+  diagnostic snapshot is used only by commandlet CSV export and does not alter
+  production sampling. No trial values are claimed; all Lakes controls remain
+  provisional pending BH25d fresh-source measurement.
+- **Networking/authority:** Trial values are commandlet-only, reset after each
+  export, and cannot be supplied by clients. No RPC, replication, gameplay
+  authority or save data changed.
+- **Known limitations / remaining scope:** No fresh-source sweep or rendered
+  shoreline/traversal inspection was run. BH25d selects measured controls;
+  rendered and integrated verification remains BH26.
+- **Next task in this directed goal:** BH15 — shape Mossy Mire.

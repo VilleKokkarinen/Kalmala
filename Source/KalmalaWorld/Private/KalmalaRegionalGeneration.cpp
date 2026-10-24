@@ -269,6 +269,39 @@ double FKalmalaRegionalGeneration::ShapeTundra(
         BroadAmplitude, MiddleAmplitude, LocalAmplitude);
 }
 
+FKalmalaTerrainCandidateDiagnostics FKalmalaRegionalGeneration::SampleTerrainCandidateDiagnostics(
+    const FKalmalaWorldGenerationConfig& C, const FKalmalaWorldFieldSample& F)
+{
+    const auto& Preview = FKalmalaGenerationPreview::Get();
+    const FVector2D P = F.Position;
+    FKalmalaTerrainCandidateDiagnostics Result;
+    const float SourceHeight = (F.Elevation - T::SeaElevation) * 2000.0f;
+    Result.SourceHeight = SourceHeight;
+    Result.WetlandHumidityMinimum = Preview.WetlandHumidityMinimum;
+    Result.WetlandHumidityFull = Preview.WetlandHumidityFull;
+    const double Detail = Noise(C, 250, P, 0.00015);
+    const double MeadowHill = Noise(C, T::MeadowHillSalt, P, 1.0 / Preview.MeadowHillScale);
+    const double MeadowRolling = Noise(C, T::MeadowRollingSalt, P, 1.0 / Preview.MeadowRollingScale);
+    const double MeadowFloor = Noise(C, T::MeadowFloorSalt, P, 1.0 / Preview.MeadowFloorScale);
+    Result.SharedRelief = SampleSharedRelief(C, P);
+    Result.MeadowCandidate = ShapeMeadows(Result.SourceHeight, MeadowHill, Preview.MeadowHillAmplitude,
+        MeadowRolling, Preview.MeadowRollingAmplitude, MeadowFloor, Preview.MeadowFloorAmplitude,
+        Preview.MeadowShoulderHeight, Preview.MeadowShoulderCompressionScale);
+    Result.ElderwoodCandidate = ShapeElderwood(Result.SourceHeight, Detail, Result.SharedRelief,
+        Preview.ElderwoodBroadAmplitude, Preview.ElderwoodMiddleAmplitude, Preview.ElderwoodLocalAmplitude);
+    Result.TundraCandidate = ShapeTundra(Result.SourceHeight, Detail, Result.SharedRelief,
+        Preview.ElderwoodBroadAmplitude, Preview.ElderwoodMiddleAmplitude, Preview.ElderwoodLocalAmplitude);
+    Result.ShimmeringLakesLowlandCandidate = CompressShimmeringLakesLowland(
+        Result.SourceHeight, F.Humidity, Preview.WetlandHumidityMinimum, Preview.WetlandHumidityFull,
+        Preview.ShimmeringLakesLowlandFloor, Preview.ShimmeringLakesLowlandCeiling,
+        Preview.ShimmeringLakesLowlandCompression);
+    Result.ShimmeringLakesCandidate = ShapeShimmeringLakes(Result.SourceHeight, Result.MeadowCandidate,
+        Result.ElderwoodCandidate, F.Humidity, Preview.WetlandHumidityMinimum, Preview.WetlandHumidityFull,
+        Preview.ShimmeringLakesMeadowShare, Preview.ShimmeringLakesLowlandFloor,
+        Preview.ShimmeringLakesLowlandCeiling, Preview.ShimmeringLakesLowlandCompression);
+    return Result;
+}
+
 double FKalmalaRegionalGeneration::ShapeMountains(
     const double SourceHeight, const double Detail, const double MountainRegion)
 {

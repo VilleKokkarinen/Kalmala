@@ -32,6 +32,20 @@ struct FKalmalaTerrainReliefSample
     double Local = 0.0;
 };
 
+/** Raw deterministic height candidates exposed for commandlet profile diagnostics. */
+struct FKalmalaTerrainCandidateDiagnostics
+{
+    FKalmalaTerrainReliefSample SharedRelief;
+    double SourceHeight = 0.0;
+    double MeadowCandidate = 0.0;
+    double ElderwoodCandidate = 0.0;
+    double TundraCandidate = 0.0;
+    double ShimmeringLakesLowlandCandidate = 0.0;
+    double ShimmeringLakesCandidate = 0.0;
+    double WetlandHumidityMinimum = 0.0;
+    double WetlandHumidityFull = 0.0;
+};
+
 /** Pure regions/shaping plus a bounded, disposable spline-only spatial cache. */
 struct KALMALAWORLD_API FKalmalaRegionalGeneration
 {
@@ -48,6 +62,9 @@ struct KALMALAWORLD_API FKalmalaRegionalGeneration
     /** Samples shared relief layers without applying them to ecological fields or terrain height. */
     static FKalmalaTerrainReliefSample SampleSharedRelief(
         const FKalmalaWorldGenerationConfig& Config, FVector2D AbsoluteWorldPosition);
+    /** Samples exact production candidates without changing biome identity or terrain. */
+    static FKalmalaTerrainCandidateDiagnostics SampleTerrainCandidateDiagnostics(
+        const FKalmalaWorldGenerationConfig& Config, const FKalmalaWorldFieldSample& Fields);
 private:
     friend class FKalmalaBiomeHeightFunctionTest;
     friend class FKalmalaBiomeHeightBlendTest;

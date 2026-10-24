@@ -134,7 +134,8 @@ namespace KalmalaWorldGenerationVisualization
     }
 
     bool ExportNumericSamples(const FString& InputPath, const FString& OutputPath,
-        const bool bIncludeMeadowFloorDiagnostics, const bool bIncludeElderwoodDiagnostics)
+        const bool bIncludeMeadowFloorDiagnostics, const bool bIncludeElderwoodDiagnostics,
+        const bool bIncludeShimmeringLakesDiagnostics)
     {
         TArray<FString> Lines;
         if (!FFileHelper::LoadFileToStringArray(Lines, *InputPath) || Lines.Num() < 2)
@@ -158,6 +159,10 @@ namespace KalmalaWorldGenerationVisualization
         if (bIncludeElderwoodDiagnostics)
         {
             Csv += TEXT(",ElderwoodCandidateCm,TundraCandidateCm,ReliefBroad,ReliefMiddle,ReliefLocal,ElderwoodBroadInputCm,ElderwoodMiddleInputCm,ElderwoodLocalInputCm");
+        }
+        if (bIncludeShimmeringLakesDiagnostics)
+        {
+            Csv += TEXT(",ShimmeringLakesCandidateCm,MeadowCandidateCm,ElderwoodCandidateCm,LowlandCandidateCm,SourceHeightCm,Humidity,WetlandHumidityMinimum,WetlandHumidityFull,MeadowShare,LowlandFloorCm,LowlandCeilingCm,LowlandCompression,BasinWeight,RiverWeight,StreamWeight");
         }
         Csv += TEXT("\n");
         int32 SampleCount = 0;
@@ -243,20 +248,27 @@ namespace KalmalaWorldGenerationVisualization
             if (bIncludeElderwoodDiagnostics)
             {
                 const auto& Preview = FKalmalaGenerationPreview::Get();
-                const FKalmalaTerrainReliefSample SharedRelief = FKalmalaRegionalGeneration::SampleSharedRelief(Config, Position);
-                const double Detail = FKalmalaRegionalGeneration::Noise(Config, 250, Position, 0.00015);
-                const float SourceHeight = (Fields.Elevation - FKalmalaRegionalTuning::SeaElevation) * 2000.0f;
-                const double ElderwoodCandidate = FKalmalaRegionalGeneration::ShapeElderwood(
-                    SourceHeight, Detail, SharedRelief, Preview.ElderwoodBroadAmplitude,
-                    Preview.ElderwoodMiddleAmplitude, Preview.ElderwoodLocalAmplitude);
-                const double TundraCandidate = FKalmalaRegionalGeneration::ShapeTundra(
-                    SourceHeight, Detail, SharedRelief, Preview.ElderwoodBroadAmplitude,
-                    Preview.ElderwoodMiddleAmplitude, Preview.ElderwoodLocalAmplitude);
+                const FKalmalaTerrainCandidateDiagnostics Diagnostics =
+                    FKalmalaRegionalGeneration::SampleTerrainCandidateDiagnostics(Config, Fields);
+                const FKalmalaTerrainReliefSample& SharedRelief = Diagnostics.SharedRelief;
                 Csv += FString::Printf(TEXT(",%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g"),
-                    ElderwoodCandidate, TundraCandidate, SharedRelief.Broad, SharedRelief.Middle,
+                    Diagnostics.ElderwoodCandidate, Diagnostics.TundraCandidate, SharedRelief.Broad, SharedRelief.Middle,
                     SharedRelief.Local, SharedRelief.Broad * Preview.ElderwoodBroadAmplitude,
                     SharedRelief.Middle * Preview.ElderwoodMiddleAmplitude,
                     SharedRelief.Local * Preview.ElderwoodLocalAmplitude);
+            }
+            if (bIncludeShimmeringLakesDiagnostics)
+            {
+                const auto& Preview = FKalmalaGenerationPreview::Get();
+                const FKalmalaTerrainCandidateDiagnostics Diagnostics =
+                    FKalmalaRegionalGeneration::SampleTerrainCandidateDiagnostics(Config, Fields);
+                Csv += FString::Printf(TEXT(",%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g"),
+                    Diagnostics.ShimmeringLakesCandidate, Diagnostics.MeadowCandidate,
+                    Diagnostics.ElderwoodCandidate, Diagnostics.ShimmeringLakesLowlandCandidate, Diagnostics.SourceHeight,
+                    Fields.Humidity, Diagnostics.WetlandHumidityMinimum, Diagnostics.WetlandHumidityFull,
+                    Preview.ShimmeringLakesMeadowShare,
+                    Preview.ShimmeringLakesLowlandFloor, Preview.ShimmeringLakesLowlandCeiling,
+                    Preview.ShimmeringLakesLowlandCompression, Region.BasinWeight, Region.RiverWeight, Region.StreamWeight);
             }
             Csv += TEXT("\n");
             ++SampleCount;
@@ -310,6 +322,10 @@ int32 URenderWorldGenerationVisualizationCommandlet::Main(const FString& Params)
     FString ElderwoodBroadAmplitudeText;
     FString ElderwoodMiddleAmplitudeText;
     FString ElderwoodLocalAmplitudeText;
+    FString ShimmeringLakesMeadowShareText;
+    FString ShimmeringLakesLowlandFloorCmText;
+    FString ShimmeringLakesLowlandCeilingCmText;
+    FString ShimmeringLakesLowlandCompressionText;
     const bool bHasHillAmplitude = FParse::Value(*Params, TEXT("MeadowHillAmplitudeM="), HillAmplitudeText);
     const bool bHasRollingAmplitude = FParse::Value(*Params, TEXT("MeadowRollingAmplitudeM="), RollingAmplitudeText);
     const bool bHasFloorScale = FParse::Value(*Params, TEXT("MeadowFloorScaleM="), FloorScaleText);
@@ -317,6 +333,10 @@ int32 URenderWorldGenerationVisualizationCommandlet::Main(const FString& Params)
     const bool bHasElderwoodBroadAmplitude = FParse::Value(*Params, TEXT("ElderwoodBroadAmplitudeM="), ElderwoodBroadAmplitudeText);
     const bool bHasElderwoodMiddleAmplitude = FParse::Value(*Params, TEXT("ElderwoodMiddleAmplitudeM="), ElderwoodMiddleAmplitudeText);
     const bool bHasElderwoodLocalAmplitude = FParse::Value(*Params, TEXT("ElderwoodLocalAmplitudeM="), ElderwoodLocalAmplitudeText);
+    const bool bHasShimmeringLakesMeadowShare = FParse::Value(*Params, TEXT("ShimmeringLakesMeadowShare="), ShimmeringLakesMeadowShareText);
+    const bool bHasShimmeringLakesLowlandFloorCm = FParse::Value(*Params, TEXT("ShimmeringLakesLowlandFloorCm="), ShimmeringLakesLowlandFloorCmText);
+    const bool bHasShimmeringLakesLowlandCeilingCm = FParse::Value(*Params, TEXT("ShimmeringLakesLowlandCeilingCm="), ShimmeringLakesLowlandCeilingCmText);
+    const bool bHasShimmeringLakesLowlandCompression = FParse::Value(*Params, TEXT("ShimmeringLakesLowlandCompression="), ShimmeringLakesLowlandCompressionText);
     if (bHasFloorScale != bHasFloorAmplitude)
     {
         UE_LOG(LogTemp, Error, TEXT("MeadowFloorScaleM and MeadowFloorAmplitudeM must be provided together."));
@@ -331,7 +351,21 @@ int32 URenderWorldGenerationVisualizationCommandlet::Main(const FString& Params)
         return 1;
     }
     const bool bHasElderwoodTrial = ElderwoodOverrideCount == 1;
-    if (bHasHillAmplitude || bHasRollingAmplitude || bHasFloorTrial || bHasElderwoodTrial)
+    const int32 ShimmeringLakesOverrideCount = int32(bHasShimmeringLakesMeadowShare)
+        + int32(bHasShimmeringLakesLowlandFloorCm) + int32(bHasShimmeringLakesLowlandCeilingCm)
+        + int32(bHasShimmeringLakesLowlandCompression);
+    if (ShimmeringLakesOverrideCount > 1)
+    {
+        UE_LOG(LogTemp, Error, TEXT("Override only one Shimmering Lakes control per profile trial."));
+        return 1;
+    }
+    const bool bHasShimmeringLakesTrial = ShimmeringLakesOverrideCount == 1;
+    if (bHasShimmeringLakesTrial && (bHasHillAmplitude || bHasRollingAmplitude || bHasFloorTrial || bHasElderwoodTrial))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Run Shimmering Lakes trials independently from Meadows and Elderwood controls."));
+        return 1;
+    }
+    if (bHasHillAmplitude || bHasRollingAmplitude || bHasFloorTrial || bHasElderwoodTrial || bHasShimmeringLakesTrial)
     {
         FKalmalaGenerationPreviewSettings Trial = FKalmalaGenerationPreview::Get();
         double HillAmplitudeM = 0.0;
@@ -339,6 +373,7 @@ int32 URenderWorldGenerationVisualizationCommandlet::Main(const FString& Params)
         double FloorScaleM = 0.0;
         double FloorAmplitudeM = 0.0;
         double ElderwoodAmplitudeM = 0.0;
+        double ShimmeringLakesControl = 0.0;
         if (bHasHillAmplitude)
         {
             if (!LexTryParseString(HillAmplitudeM, *HillAmplitudeText) || !FMath::IsFinite(HillAmplitudeM)
@@ -398,9 +433,31 @@ int32 URenderWorldGenerationVisualizationCommandlet::Main(const FString& Params)
             else Trial.ElderwoodLocalAmplitude = ElderwoodAmplitudeM * 100.0;
         }
 
+        if (bHasShimmeringLakesTrial)
+        {
+            FString* ControlText = bHasShimmeringLakesMeadowShare ? &ShimmeringLakesMeadowShareText
+                : bHasShimmeringLakesLowlandFloorCm ? &ShimmeringLakesLowlandFloorCmText
+                : bHasShimmeringLakesLowlandCeilingCm ? &ShimmeringLakesLowlandCeilingCmText
+                : &ShimmeringLakesLowlandCompressionText;
+            if (!LexTryParseString(ShimmeringLakesControl, **ControlText) || !FMath::IsFinite(ShimmeringLakesControl))
+            {
+                UE_LOG(LogTemp, Error, TEXT("The selected Shimmering Lakes control must be finite."));
+                return 1;
+            }
+            if (bHasShimmeringLakesMeadowShare) Trial.ShimmeringLakesMeadowShare = ShimmeringLakesControl;
+            else if (bHasShimmeringLakesLowlandFloorCm) Trial.ShimmeringLakesLowlandFloor = ShimmeringLakesControl;
+            else if (bHasShimmeringLakesLowlandCeilingCm) Trial.ShimmeringLakesLowlandCeiling = ShimmeringLakesControl;
+            else Trial.ShimmeringLakesLowlandCompression = ShimmeringLakesControl;
+            if (!Trial.HasValidReliefControls())
+            {
+                UE_LOG(LogTemp, Error, TEXT("Shimmering Lakes control is outside its documented bounds or violates ceiling > floor."));
+                return 1;
+            }
+        }
+
         if (!Trial.HasValidReliefControls() || !FKalmalaGenerationPreview::Set(Trial))
         {
-            UE_LOG(LogTemp, Error, TEXT("Could not install the commandlet-only Meadows terrain trial."));
+            UE_LOG(LogTemp, Error, TEXT("Could not install the commandlet-only terrain profile trial."));
             return 1;
         }
         if (bHasHillAmplitude)
@@ -423,8 +480,14 @@ int32 URenderWorldGenerationVisualizationCommandlet::Main(const FString& Params)
                 Trial.ElderwoodMiddleAmplitude / 100.0,
                 Trial.ElderwoodLocalAmplitude / 100.0);
         }
+        if (bHasShimmeringLakesTrial)
+        {
+            UE_LOG(LogTemp, Display, TEXT("Shimmering Lakes profile trial accepted: MeadowShare=%.3f LowlandFloorCm=%.1f LowlandCeilingCm=%.1f LowlandCompression=%.3f"),
+                Trial.ShimmeringLakesMeadowShare, Trial.ShimmeringLakesLowlandFloor,
+                Trial.ShimmeringLakesLowlandCeiling, Trial.ShimmeringLakesLowlandCompression);
+        }
     }
-    ON_SCOPE_EXIT { if (bHasHillAmplitude || bHasRollingAmplitude || bHasFloorTrial || bHasElderwoodTrial) FKalmalaGenerationPreview::Reset(); };
+    ON_SCOPE_EXIT { if (bHasHillAmplitude || bHasRollingAmplitude || bHasFloorTrial || bHasElderwoodTrial || bHasShimmeringLakesTrial) FKalmalaGenerationPreview::Reset(); };
 
     FString SampleInputPath;
     FString SampleOutputPath;
@@ -435,7 +498,7 @@ int32 URenderWorldGenerationVisualizationCommandlet::Main(const FString& Params)
             UE_LOG(LogTemp, Error, TEXT("SampleInput requires SampleOutput."));
             return 1;
         }
-        return ExportNumericSamples(SampleInputPath, SampleOutputPath, bHasFloorTrial, bHasElderwoodTrial) ? 0 : 1;
+        return ExportNumericSamples(SampleInputPath, SampleOutputPath, bHasFloorTrial, bHasElderwoodTrial, bHasShimmeringLakesTrial) ? 0 : 1;
     }
 
     FString OutputDirectory = FPaths::ProjectContentDir() / TEXT("Kalmala/Developer/WorldGeneration");

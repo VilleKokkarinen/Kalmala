@@ -843,3 +843,28 @@ properties, neighboring Meadows/Lakes weights and the fixed former-basin site.
 No build or automation was run for BH14a. BH14b adds stale-safe fixed profile
 trials; BH25d must use freshly compiled source to measure and select values.
 Rendered profile acceptance remains BH26.
+
+### BH14b Shimmering Lakes profile sweep
+
+`Scripts/Tests/World/BiomeLakesProfiles.csv` fixes four 100 m transects with
+10 m spacing (44 samples total): the seed-418 former-basin Meadows/Lakes/
+Elderwood blend and the seed-419 Lakes interior, each sampled along X and Y.
+The numeric commandlet accepts one Lakes control override per invocation:
+Meadow share 0.35–0.65, lowland floor 100–500 cm, ceiling 500–2,000 cm with
+ceiling greater than floor, or compression 0.05–0.35. Each trial resets its
+preview settings after sampling. The exported rows include all three candidate
+heights, compressed lowland, source height, humidity thresholds and effective
+controls, plus basin/course weights, final terrain, water state and collision
+triangle slopes.
+
+Run `Scripts/Tests/World/BiomeLakesProfiles.ps1 -ValidateOnly` to validate the
+fixed fixture without Unreal. After compiling BH14b source, run the script with
+`-Project <project-path>` to run 12 one-control-at-a-time values around the
+provisional center. It checks the effective-control log marker and output
+shape, so a stale binary cannot produce accepted rows. The runner checks
+normalized biome weights, disabled basin support, lowland bounds/formula,
+candidate composition and fixed-site Lakes controls, then writes raw CSVs and a
+summary under a short temporary directory. It neither builds nor selects
+production controls. No build or trial was run for BH14b; BH25d must measure
+the fixed profiles using freshly compiled source and select only measured
+values. Rendered shoreline/traversal acceptance remains BH26.
