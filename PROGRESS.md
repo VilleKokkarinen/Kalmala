@@ -8401,3 +8401,86 @@
   approved-system/fresh-world acceptance and milestone-final verification
   remain open; keep the broad child unchecked.
 - **Next eligible A0 group:** Wild onions. Continue in backlog order.
+
+## Run 2026-10-24 — A10 per-item audit: Wild onions
+
+- **Selected increment:** Audit the A0 Wild onions group only. The broad A10
+  per-item audit child remains unchecked.
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md` only.
+- **Registered identities:** `Onion` (display Onion, stack 20) and
+  `OnionSeed` (display Onion Seeds, stack 50) are registered in
+  `items/crops.json` through `Content/Data/GameCatalogues.json`. Neither has
+  an equipment profile, attack record, or item-specific upgrade/stat reward;
+  those categories are N/A. Neither is directly edible or allowlisted by
+  `IsKnownFoodItem`.
+- **Source and crop uses:** A0's `elderwood-wild-onion-patch` uses the first
+  dry, safe Elderwood harvest candidate in each eligible key, with separate
+  stable seed domain `Mix(candidate-seed XOR 0xA0E10A71019)`. The server
+  accepts tool-free, range-validated hand gathering and grants exactly 2 Onion
+  plus 1 OnionSeed. The A7 Garden Plot has reciprocal modes: pay 1 OnionSeed to
+  grow 3 Onions, or pay 1 Onion to grow 3 Onion Seeds after 600 active seconds
+  in an active terrain patch. Schema 6 saves crop mode and remaining active
+  time; growth pauses for inactive patches and server downtime. Accepted
+  planting spends one Trowel condition; harvest/rejection do not. A full pack
+  leaves the mature crop on the plot, which cannot be removed while planted.
+- **Recipes/effects:** Onion is used by seven enabled recipes, all maximum
+  batch 5 and 10 Cooking XP per recipe:
+  - Cauldron `RootStaminaDraughtRecipe`: Potato x2 + Onion x1 → one
+    RootStaminaDraught.
+  - Cauldron `HearthBrothRecipe`: DeerMeat x1 + Onion x1 → one HearthBroth.
+  - Cauldron `RootVegetableSoupRecipe`: Carrot x1 + Potato x1 + Rutabaga x1 +
+    Onion x1 → one RootVegetableSoup.
+  - Cauldron `PeatHeartStewRecipe`: PeatHeart x1 + Potato x2 + Onion x1 →
+    two PeatHeartStew.
+  - Cauldron `WolfStewRecipe`: WolfMeat x1 + Carrot x3 + Onion x3 → one
+    WolfStew.
+  - Frying Pan `RoastedRootVegetablesRecipe`: Carrot x1 + Potato x1 + Onion
+    x1 → one RoastedRootVegetables.
+  - Frying Pan `DeerRootRoastRecipe`: DeerMeat x1 + Rutabaga x1 + Onion x1
+    → one DeerRootRoast.
+  No recipe outputs Onion or OnionSeed, and no recipe references OnionSeed.
+  Neither item has a direct food/status effect; prepared outputs retain their
+  existing effects.
+- **Icon and provenance:** Manifest row 10/C maps Onion to PackInventory,
+  ItemDetail, Storage and Ingredient; row 11/C maps OnionSeed to PackInventory,
+  ItemDetail and Storage. Retained original PNGs, prepared 64x64 PNGs and
+  imported `.uasset` packages exist for both. The catalogue icon library maps
+  each canonical ID to `/Game/Kalmala/UI/Icons/Items/<ID>.<ID>`; fallback
+  identities are Root variant 3 and Seed variant 3. Both focused validators
+  passed: 1254x1254 8-bit RGBA originals, transparent 64x64 RGBA prepared
+  textures, and expected imported package paths. `docs/icon-provenance.md`
+  contains no Onion- or OnionSeed-specific primary prompt; its onion mentions
+  are ingredients in other food icons, not these items' provenance. The linked
+  `docs/material-icons.md` workflow guide is absent in this checkout; validation
+  relied on the current manifest, import/validation scripts and runtime code.
+- **Carried/world-save behavior:** Ordinary carried item stacks are
+  session-only; `PersistPlayerStateFromServer` saves carried tools and
+  discovery/claim state, not Onion/OnionSeed stacks. The authoritative gather
+  checks player/range/capacity and player-state persistence before source
+  depletion; full-pack, invalid-range, repeated-request or failed-player-save
+  paths do not grant/commit the patch. Population depletion marks the stable
+  source ID in its SaveGame, but `RecordHarvestedSpawn` ignores the disk-write
+  result, so failure recovery is not established. Garden Plot crop mode/time is
+  persisted separately in construction schema 6; it does not restore carried
+  Onion stacks. No item expiry/decay field exists. Generic chest storage is a
+  separate path; no Onion-specific chest round-trip was run.
+- **Evidence and checks:** Inspected `KalmalaHarvestNode.cpp`,
+  `KalmalaGameMode.cpp`, `KalmalaPlayerStatusComponent.cpp`, the crops and
+  station-recipe JSON, icon manifest/runtime lookup, A0/A7 architecture and
+  setup contracts, and A9 inventory-save limits. PowerShell `ConvertFrom-Json`
+  parsed `crops.json` and recipe files; seven Onion recipe uses and no
+  OnionSeed recipe reference were enumerated. Focused
+  `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id Onion` and the same
+  command for `OnionSeed` passed. The documented
+  `Kalmala.Gameplay.M9.SecondWaveHarvestAcceptance` covers exact Onion/OnionSeed
+  rewards, full-pack rejection, persistence rollback and duplicate prevention;
+  source assertions were inspected but not run. No build, test suite,
+  peer/restart session, or live runtime check was performed.
+- **Full verification:** Deferred; this is not A10's final increment.
+- **Impact and remaining scope:** Documentation-only audit; definitions,
+  recipes, gameplay, server authority and persistence are unchanged. Missing
+  dedicated Onion icon prompt and workflow doc are documentation gaps. Later
+  A0 source items, A1+ item groups, approved-system/fresh-world acceptance and
+  milestone-final verification remain open; keep the broad child unchecked.
+- **Next eligible A0 group:** Retained material sources: Wood, Densewood, Stone,
+  Boar/Deer Hide and Meat, Amber, and Frost Salt. Continue in A0 scope order.
