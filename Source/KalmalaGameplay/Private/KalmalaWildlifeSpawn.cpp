@@ -3598,34 +3598,107 @@ void AKalmalaWildlifeSpawn::PlaySnakeHiss()
     UGameplayStatics::PlaySoundAtLocation(this, SnakeHissSound, GetActorLocation(), FRotator::ZeroRotator, 0.45f, 1.0f);
 }
 
+bool AKalmalaWildlifeSpawn::GetBodyCollisionShapesForArchetype(
+    const EKalmalaWildlifeArchetype InArchetype,
+    TArray<FKalmalaWildlifeBodyCollisionShape>& OutShapes)
+{
+    OutShapes.Reset();
+    float RootRadius = 70.0f;
+    switch (InArchetype)
+    {
+    case EKalmalaWildlifeArchetype::MosquitoSwarm: RootRadius = 28.0f; break;
+    case EKalmalaWildlifeArchetype::Rat: RootRadius = 42.0f; break;
+    case EKalmalaWildlifeArchetype::ThunderSentinel: RootRadius = 180.0f; break;
+    case EKalmalaWildlifeArchetype::ReefMaw: RootRadius = ReefMawBodyCollisionRadiusCentimetres; break;
+    case EKalmalaWildlifeArchetype::Mireling:
+    case EKalmalaWildlifeArchetype::Boar:
+    case EKalmalaWildlifeArchetype::Deer:
+    case EKalmalaWildlifeArchetype::Badger:
+    case EKalmalaWildlifeArchetype::MoonBear:
+    case EKalmalaWildlifeArchetype::DeathAdder:
+    case EKalmalaWildlifeArchetype::Viper:
+    case EKalmalaWildlifeArchetype::GiantSnake:
+    case EKalmalaWildlifeArchetype::PeatHusk:
+    case EKalmalaWildlifeArchetype::Wolf:
+    case EKalmalaWildlifeArchetype::Lynx:
+    case EKalmalaWildlifeArchetype::PolarBear:
+    case EKalmalaWildlifeArchetype::HornedGoat:
+        break;
+    default:
+        return false;
+    }
+
+    FKalmalaWildlifeBodyCollisionShape& RootShape = OutShapes.AddDefaulted_GetRef();
+    RootShape.Type = EKalmalaWildlifeBodyShapeType::Sphere;
+    RootShape.RadiusCentimetres = RootRadius;
+    RootShape.HalfHeightCentimetres = RootRadius;
+
+    float CapsuleRadius = 0.0f;
+    float CapsuleHalfHeight = 0.0f;
+    switch (InArchetype)
+    {
+    case EKalmalaWildlifeArchetype::Viper:
+        CapsuleRadius = 16.0f;
+        CapsuleHalfHeight = 92.0f;
+        break;
+    case EKalmalaWildlifeArchetype::GiantSnake:
+        CapsuleRadius = 38.0f;
+        CapsuleHalfHeight = 210.0f;
+        break;
+    case EKalmalaWildlifeArchetype::DeathAdder:
+        CapsuleRadius = 21.0f;
+        CapsuleHalfHeight = 112.0f;
+        break;
+    default:
+        break;
+    }
+    if (CapsuleRadius > 0.0f)
+    {
+        FKalmalaWildlifeBodyCollisionShape& CapsuleShape = OutShapes.AddDefaulted_GetRef();
+        CapsuleShape.Type = EKalmalaWildlifeBodyShapeType::Capsule;
+        CapsuleShape.RelativeLocation = FVector(-22.0f, 0.0f, 0.0f);
+        CapsuleShape.RelativeRotation = FRotator(0.0f, 90.0f, 0.0f);
+        CapsuleShape.RadiusCentimetres = CapsuleRadius;
+        CapsuleShape.HalfHeightCentimetres = CapsuleHalfHeight;
+    }
+    return true;
+}
+
 void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
 {
     MirelingMesh->ClearAllMeshSections();
-    if (USphereComponent* RootSphere = Cast<USphereComponent>(GetRootComponent()))
-        RootSphere->SetSphereRadius(Archetype == EKalmalaWildlifeArchetype::MosquitoSwarm ? 28.0f
-            : (Archetype == EKalmalaWildlifeArchetype::Rat ? 42.0f
-                : (Archetype == EKalmalaWildlifeArchetype::ThunderSentinel ? 180.0f
-                    : (Archetype == EKalmalaWildlifeArchetype::ReefMaw
-                        ? ReefMawBodyCollisionRadiusCentimetres : 70.0f))), true);
+    TArray<FKalmalaWildlifeBodyCollisionShape> BodyShapes;
+    if (GetBodyCollisionShapesForArchetype(Archetype, BodyShapes))
+    {
+        if (!BodyShapes.IsEmpty())
+        {
+            if (USphereComponent* RootSphere = Cast<USphereComponent>(GetRootComponent()))
+            {
+                RootSphere->SetSphereRadius(BodyShapes[0].RadiusCentimetres, true);
+            }
+        }
+        if (SnakeBodyCollision != nullptr)
+        {
+            const FKalmalaWildlifeBodyCollisionShape* CapsuleShape = BodyShapes.FindByPredicate(
+                [](const FKalmalaWildlifeBodyCollisionShape& Shape)
+                { return Shape.Type == EKalmalaWildlifeBodyShapeType::Capsule; });
+            if (CapsuleShape != nullptr)
+            {
+                SnakeBodyCollision->SetCapsuleSize(CapsuleShape->RadiusCentimetres,
+                    CapsuleShape->HalfHeightCentimetres, true);
+                SnakeBodyCollision->SetRelativeLocation(CapsuleShape->RelativeLocation);
+                SnakeBodyCollision->SetRelativeRotation(CapsuleShape->RelativeRotation);
+                SnakeBodyCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+            }
+            else
+            {
+                SnakeBodyCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+            }
+        }
+    }
     const bool bSnake = Archetype == EKalmalaWildlifeArchetype::Viper
         || Archetype == EKalmalaWildlifeArchetype::GiantSnake
         || Archetype == EKalmalaWildlifeArchetype::DeathAdder;
-    if (SnakeBodyCollision != nullptr)
-    {
-        if (bSnake)
-        {
-            const bool bGiant = Archetype == EKalmalaWildlifeArchetype::GiantSnake;
-            const bool bDeathAdder = Archetype == EKalmalaWildlifeArchetype::DeathAdder;
-            SnakeBodyCollision->SetCapsuleSize(bGiant ? 38.0f : (bDeathAdder ? 21.0f : 16.0f),
-                bGiant ? 210.0f : (bDeathAdder ? 112.0f : 92.0f), true);
-            SnakeBodyCollision->SetRelativeLocation(FVector(-22.0f, 0.0f, 0.0f));
-            SnakeBodyCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-        }
-        else
-        {
-            SnakeBodyCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-        }
-    }
     // Original low-poly silhouettes use only project procedural geometry and vertex colour.
     TArray<FVector> Vertices; TArray<int32> Triangles; TArray<FVector> Normals; TArray<FVector2D> UV; TArray<FLinearColor> Colors;
     const auto AddTetraPoints = [&Vertices, &Triangles, &Normals, &UV, &Colors](const FVector& Point0, const FVector& Point1, const FVector& Point2, const FVector& Point3, const FLinearColor Colour)

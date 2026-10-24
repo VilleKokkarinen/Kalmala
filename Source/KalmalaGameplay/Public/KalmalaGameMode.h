@@ -4,11 +4,13 @@
 #include "GameFramework/GameModeBase.h"
 #include "KalmalaWorldGenerationConfig.h"
 #include "KalmalaWorldPopulationLayout.h"
+#include "KalmalaWildlifeSpawn.h"
 #include "KalmalaM9ExplorationRewardCatalogue.h"
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaInteractionGrid.h"
 #include "KalmalaGameMode.generated.h"
 
+class UWorld;
 struct FKalmalaOceanDiscoveryDescriptor;
 struct FKalmalaM9ExplorationRewardDescriptor;
 struct FKalmalaCharcoalKilnState;
@@ -16,7 +18,6 @@ struct FKalmalaSmelterState;
 struct FKalmalaGardenPlotState;
 struct FKalmalaStandingLightState;
 enum class EKalmalaOceanSkiffSeat : uint8;
-enum class EKalmalaWildlifeArchetype : uint8;
 
 /** Session-only capacity held for one prospective Wolf pack; no actor is created here. */
 struct FKalmalaPopulationCreatureReservation
@@ -151,6 +152,7 @@ private:
     friend class FKalmalaPopulationSpawnGateEvaluatorTest;
     friend class FKalmalaPopulationLandSurfaceTest;
     friend class FKalmalaPopulationAquaticSurfaceTest;
+    friend class FKalmalaPopulationBodyClearanceTest;
     friend class AKalmalaWildlifeSpawn;
 
 #if WITH_DEV_AUTOMATION_TESTS
@@ -195,6 +197,15 @@ private:
         EKalmalaWildlifeArchetype* OutArchetype = nullptr) const;
     bool DoesPopulationDescriptorPassLandSurface(const FKalmalaWorldPopulationSpawn& Descriptor) const;
     bool DoesPopulationDescriptorPassAquaticSurface(const FKalmalaWorldPopulationSpawn& Descriptor) const;
+    bool DoesPopulationDescriptorPassBodyClearance(const FKalmalaWorldPopulationSpawn& Descriptor) const;
+    bool TryGetPopulationActorPlacementLocation(const FKalmalaWorldPopulationSpawn& Descriptor,
+        EKalmalaWildlifeArchetype Archetype, const TArray<FKalmalaWildlifeBodyCollisionShape>& BodyShapes,
+        FVector& OutActorLocation) const;
+    static bool DoesPopulationCollisionShapeOverlap(UWorld* World,
+        const FKalmalaWildlifeBodyCollisionShape& BodyShape, FVector ActorLocation,
+        FRotator ActorRotation, const AActor* ActorToIgnore = nullptr);
+    static bool IsPopulationBodyShapeWithinWorldBounds(const FKalmalaWildlifeBodyCollisionShape& BodyShape,
+        FVector ActorLocation, FRotator ActorRotation);
     bool DoesPopulationLandPositionPassSurface(const FVector& Location) const;
     static bool IsPopulationLandSurfaceSampleAllowed(bool bWithinBounds, bool bHasGeneratedGround,
         bool bIsDry, const FVector& SurfaceNormal);

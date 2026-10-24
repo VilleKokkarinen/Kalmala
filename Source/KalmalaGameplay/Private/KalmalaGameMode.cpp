@@ -5956,6 +5956,214 @@ bool AKalmalaGameMode::IsPopulationAquaticArchetype(const EKalmalaWildlifeArchet
     return Archetype == EKalmalaWildlifeArchetype::ReefMaw;
 }
 
+bool AKalmalaGameMode::DoesPopulationDescriptorPassBodyClearance(
+    const FKalmalaWorldPopulationSpawn& Descriptor) const
+{
+    UWorld* World = GetWorld();
+    if (!HasAuthority() || !IsValid(World) || !WorldGenerationConfig.IsValid()
+        || Descriptor.Kind != EKalmalaWorldPopulationKind::Wildlife
+        || !FMath::IsFinite(Descriptor.Location.X) || !FMath::IsFinite(Descriptor.Location.Y)
+        || !FMath::IsFinite(Descriptor.Location.Z)
+        || !FKalmalaWorldBounds::Contains(WorldGenerationConfig, FVector2D(Descriptor.Location)))
+    {
+        return false;
+    }
+
+    EKalmalaWildlifeArchetype Archetype;
+    if (!DoesPopulationDescriptorPassSpeciesHabitat(Descriptor, &Archetype)) return false;
+
+    TArray<FKalmalaWildlifeBodyCollisionShape> BodyShapes;
+    if (!AKalmalaWildlifeSpawn::GetBodyCollisionShapesForArchetype(Archetype, BodyShapes)
+        || BodyShapes.IsEmpty())
+    {
+        return false;
+    }
+
+    TArray<FKalmalaWorldPopulationSpawn> ActorDescriptors;
+    if (Archetype == EKalmalaWildlifeArchetype::Wolf)
+    {
+        ActorDescriptors.Reserve(FKalmalaWolfPackContract::MemberCount);
+        for (int32 MemberIndex = 0; MemberIndex < FKalmalaWolfPackContract::MemberCount; ++MemberIndex)
+        {
+            FKalmalaWorldPopulationSpawn MemberSpawn;
+            if (!FKalmalaWolfPackContract::TryBuildMemberSpawn(
+                    WorldGenerationConfig, Descriptor, MemberIndex, MemberSpawn)
+                || !DoesPopulationDescriptorPassSpeciesHabitat(MemberSpawn))
+            {
+                return false;
+            }
+            ActorDescriptors.Add(MoveTemp(MemberSpawn));
+        }
+    }
+    else
+    {
+        ActorDescriptors.Add(Descriptor);
+    }
+
+    for (const FKalmalaWorldPopulationSpawn& ActorDescriptor : ActorDescriptors)
+    {
+        FVector ActorLocation;
+        if (!TryGetPopulationActorPlacementLocation(
+                ActorDescriptor, Archetype, BodyShapes, ActorLocation))
+        {
+            return false;
+        }
+
+        for (const FKalmalaWildlifeBodyCollisionShape& BodyShape : BodyShapes)
+        {
+            if (!IsPopulationBodyShapeWithinWorldBounds(
+                    BodyShape, ActorLocation, FRotator::ZeroRotator)
+                || DoesPopulationCollisionShapeOverlap(
+                    World, BodyShape, ActorLocation, FRotator::ZeroRotator))
+            {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+bool AKalmalaGameMode::TryGetPopulationActorPlacementLocation(
+    const FKalmalaWorldPopulationSpawn& Descriptor, const EKalmalaWildlifeArchetype Archetype,
+    const TArray<FKalmalaWildlifeBodyCollisionShape>& BodyShapes, FVector& OutActorLocation) const
+{
+    OutActorLocation = FVector::ZeroVector;
+    const FVector2D Position(Descriptor.Location);
+    if (!WorldGenerationConfig.IsValid() || BodyShapes.IsEmpty()
+        || !FMath::IsFinite(Position.X) || !FMath::IsFinite(Position.Y)
+        || !FMath::IsFinite(Descriptor.Location.Z)
+        || !FKalmalaWorldBounds::Contains(WorldGenerationConfig, Position))
+    {
+        return false;
+    }
+
+    OutActorLocation = Descriptor.Location;
+    if (Archetype == EKalmalaWildlifeArchetype::ReefMaw)
+    {
+        OutActorLocation.Z = FKalmalaTerrainHeightSampler::SeaLevelWorldHeight
+            - AKalmalaWildlifeSpawn::ReefMawSpawnDepthCentimetres;
+        return FMath::IsFinite(OutActorLocation.Z);
+    }
+
+    const float GroundHeight = FKalmalaTerrainHeightSampler::SampleHeight(
+        WorldGenerationConfig, Position);
+    if (!FMath::IsFinite(GroundHeight)) return false;
+
+    double RequiredSupportExtent = 0.0;
+    for (const FKalmalaWildlifeBodyCollisionShape& Shape : BodyShapes)
+    {
+        if (!FMath::IsFinite(Shape.RadiusCentimetres)
+            || !FMath::IsFinite(Shape.HalfHeightCentimetres)
+            || Shape.RelativeLocation.ContainsNaN() || Shape.RelativeRotation.ContainsNaN()
+            || Shape.RadiusCentimetres <= 0.0f
+            || Shape.HalfHeightCentimetres < Shape.RadiusCentimetres)
+        {
+            return false;
+        }
+
+        double ShapeHalfHeight = 0.0;
+        if (Shape.Type == EKalmalaWildlifeBodyShapeType::Sphere)
+        {
+            ShapeHalfHeight = Shape.RadiusCentimetres;
+        }
+        else if (Shape.Type == EKalmalaWildlifeBodyShapeType::Capsule)
+        {
+            const FVector CapsuleAxis = Shape.RelativeRotation.Quaternion().RotateVector(FVector::UpVector);
+            ShapeHalfHeight = Shape.RadiusCentimetres
+                + (Shape.HalfHeightCentimetres - Shape.RadiusCentimetres) * FMath::Abs(CapsuleAxis.Z);
+        }
+        else
+        {
+            return false;
+        }
+        RequiredSupportExtent = FMath::Max(RequiredSupportExtent,
+            ShapeHalfHeight - Shape.RelativeLocation.Z);
+    }
+
+    double PlacementHeight = GroundHeight + RequiredSupportExtent + KINDA_SMALL_NUMBER;
+    if (Archetype == EKalmalaWildlifeArchetype::MosquitoSwarm)
+    {
+        PlacementHeight = FMath::Max(PlacementHeight,
+            static_cast<double>(GroundHeight + AKalmalaWildlifeSpawn::MosquitoFlightHeightCentimetres));
+    }
+    OutActorLocation.Z = PlacementHeight;
+    return FMath::IsFinite(OutActorLocation.X) && FMath::IsFinite(OutActorLocation.Y)
+        && FMath::IsFinite(OutActorLocation.Z);
+}
+
+bool AKalmalaGameMode::DoesPopulationCollisionShapeOverlap(
+    UWorld* World, const FKalmalaWildlifeBodyCollisionShape& BodyShape,
+    const FVector ActorLocation, const FRotator ActorRotation, const AActor* ActorToIgnore)
+{
+    if (!IsValid(World) || ActorLocation.ContainsNaN() || ActorRotation.ContainsNaN()
+        || !FMath::IsFinite(BodyShape.RadiusCentimetres)
+        || !FMath::IsFinite(BodyShape.HalfHeightCentimetres)
+        || BodyShape.RadiusCentimetres <= 0.0f
+        || BodyShape.HalfHeightCentimetres < BodyShape.RadiusCentimetres
+        || BodyShape.RelativeLocation.ContainsNaN() || BodyShape.RelativeRotation.ContainsNaN())
+    {
+        return true;
+    }
+
+    FCollisionShape CollisionShape;
+    switch (BodyShape.Type)
+    {
+    case EKalmalaWildlifeBodyShapeType::Sphere:
+        CollisionShape = FCollisionShape::MakeSphere(BodyShape.RadiusCentimetres);
+        break;
+    case EKalmalaWildlifeBodyShapeType::Capsule:
+        CollisionShape = FCollisionShape::MakeCapsule(
+            BodyShape.RadiusCentimetres, BodyShape.HalfHeightCentimetres);
+        break;
+    default:
+        return true;
+    }
+
+    const FQuat ActorQuat = ActorRotation.Quaternion();
+    const FVector ShapeLocation = ActorLocation + ActorQuat.RotateVector(BodyShape.RelativeLocation);
+    const FQuat ShapeRotation = ActorQuat * BodyShape.RelativeRotation.Quaternion();
+    FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(KalmalaPopulationBodyClearance), true);
+    if (IsValid(ActorToIgnore)) QueryParams.AddIgnoredActor(ActorToIgnore);
+    return World->OverlapAnyTestByChannel(
+        ShapeLocation, ShapeRotation, ECC_Visibility, CollisionShape, QueryParams);
+}
+
+bool AKalmalaGameMode::IsPopulationBodyShapeWithinWorldBounds(
+    const FKalmalaWildlifeBodyCollisionShape& BodyShape, const FVector ActorLocation,
+    const FRotator ActorRotation)
+{
+    if (ActorLocation.ContainsNaN() || ActorRotation.ContainsNaN()
+        || !FMath::IsFinite(BodyShape.RadiusCentimetres)
+        || !FMath::IsFinite(BodyShape.HalfHeightCentimetres)
+        || BodyShape.RadiusCentimetres <= 0.0f
+        || BodyShape.HalfHeightCentimetres < BodyShape.RadiusCentimetres
+        || BodyShape.RelativeLocation.ContainsNaN() || BodyShape.RelativeRotation.ContainsNaN())
+    {
+        return false;
+    }
+
+    const FQuat ShapeRotation = ActorRotation.Quaternion()
+        * BodyShape.RelativeRotation.Quaternion();
+    const FVector ShapeOffset = ActorRotation.Quaternion().RotateVector(BodyShape.RelativeLocation);
+    const FVector2D ShapeCenter(ActorLocation.X + ShapeOffset.X, ActorLocation.Y + ShapeOffset.Y);
+    double HorizontalExtent = BodyShape.RadiusCentimetres;
+    if (BodyShape.Type == EKalmalaWildlifeBodyShapeType::Capsule)
+    {
+        const FVector CapsuleAxis = ShapeRotation.RotateVector(FVector::UpVector);
+        const double HorizontalAxis = FMath::Sqrt(
+            FMath::Square(CapsuleAxis.X) + FMath::Square(CapsuleAxis.Y));
+        HorizontalExtent += (BodyShape.HalfHeightCentimetres - BodyShape.RadiusCentimetres)
+            * HorizontalAxis;
+    }
+    else if (BodyShape.Type != EKalmalaWildlifeBodyShapeType::Sphere)
+    {
+        return false;
+    }
+
+    return ShapeCenter.Size() + HorizontalExtent <= FKalmalaWorldBounds::Radius;
+}
+
 void AKalmalaGameMode::ApplyPopulationTimeGate(FKalmalaPopulationSchedulerKeyWork& KeyWork) const
 {
     for (FKalmalaPopulationSpawnAttempt& Attempt : KeyWork.SpawnAttempts)

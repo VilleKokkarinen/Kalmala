@@ -636,6 +636,17 @@ milestone-final verification/repair run and can exceed a normal turn.
     and check water clearance; land checks must not silently permit water spawns.
   - [ ] **S22 — Validate physical clearance.** Reject solid overhead roofs,
     colliding bodies and unsupported movement/navigation locations per species.
+    - [x] **S22a — Check body collision clearance.** Reuse each wildlife
+      archetype's configured collision shapes and reject out-of-bounds or
+      colliding body placements; do not change descriptor identity or enable
+      natural spawning.
+    - [ ] **S22b — Reject solid construction roofs.** Trace upward 24 m from
+      the body top and classify only active solid RoofKit construction hits.
+      Ignore foliage/canopy and non-solid cosmetics.
+    - [ ] **S22c — Preserve movement support.** Apply each species' existing
+      support/traversability query; do not require navigation mesh for land
+      species whose contract only requires generated-ground support and clear
+      collision.
   - [ ] **S23 — Add station cylinder query.** Allowlist Workbench/Forge only;
     radius 18 m, extending 12 m above/below the actual placed station.
   - [ ] **S24 — Add spherical suppression query.** Use radius 18 m for

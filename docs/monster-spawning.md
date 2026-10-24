@@ -339,6 +339,18 @@ depth value. Land checks continue to reject Reef Maw, aquatic checks reject all
 other archetypes, and the final physical-placement result remains fail-closed
 until S25.
 
+S22a makes the configured root sphere and the three snake archetypes' active
+secondary capsule a shared collision profile consumed by both actor component
+setup and an authoritative body-overlap query. It checks the full horizontal
+body extent against world bounds and uses queryable blocking collision to reject
+intersecting placements. For land descriptors, the proposed actor origin is
+raised from the stable descriptor's generated-ground point by the lowest active
+body extent; mosquito flight height and Reef Maw's fixed ocean depth retain
+their existing anchors. The descriptor XY, key and seed are unchanged, so
+persistent identity remains stable. S22a is not wired to admission. S22b adds
+the solid construction-roof trace, S22c adds species movement support, and S25
+continues to combine placement checks before admission.
+
 - Time, weather and progression are explicitly **unrestricted for all current
   species**. These three gates return pass. Provide internal policy seams and
   fixture overrides for rejection tests; do not build a new clock, boss system,

@@ -39,6 +39,22 @@ enum class EKalmalaWildlifeArchetype : uint8
     ReefMaw
 };
 
+enum class EKalmalaWildlifeBodyShapeType : uint8
+{
+    Sphere,
+    Capsule
+};
+
+/** Authored collision geometry shared by the actor components and spawn placement checks. */
+struct FKalmalaWildlifeBodyCollisionShape
+{
+    EKalmalaWildlifeBodyShapeType Type = EKalmalaWildlifeBodyShapeType::Sphere;
+    FVector RelativeLocation = FVector::ZeroVector;
+    FRotator RelativeRotation = FRotator::ZeroRotator;
+    float RadiusCentimetres = 0.0f;
+    float HalfHeightCentimetres = 0.0f;
+};
+
 enum class EKalmalaWildlifeAttackCue : uint8
 {
     None,
@@ -271,6 +287,8 @@ public:
     static bool IsMosquitoFireRepelling(bool bServerAuthority, bool bActiveFlame, float DistanceCentimetres, float RadiusCentimetres);
     static EKalmalaWildlifeArchetype GetArchetypeForSpawnSeed(uint64 SpawnSeed);
     static bool TryGetSpawnArchetypeForBiome(uint64 SpawnSeed, EKalmalaBiome Biome, EKalmalaWildlifeArchetype& OutArchetype);
+    static bool GetBodyCollisionShapesForArchetype(EKalmalaWildlifeArchetype Archetype,
+        TArray<FKalmalaWildlifeBodyCollisionShape>& OutShapes);
     static bool IsBoarChargeAllowed(bool bServerAuthority, bool bAlreadyDefeated, bool bAtRest, float DistanceToRestingArea);
     static bool IsBehaviourTransitionAllowed(bool bServerAuthority, bool bAlreadyDefeated, EKalmalaWildlifeBehaviour From, EKalmalaWildlifeBehaviour To);
     static bool IsMossyMireSpawnHabitatAllowed(EKalmalaBiome Biome, bool bIsWater);
