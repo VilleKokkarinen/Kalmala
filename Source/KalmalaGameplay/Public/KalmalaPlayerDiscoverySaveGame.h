@@ -65,6 +65,7 @@ public:
     bool AddDiscovery(const FString& Id);
     bool AddM9Claim(const FString& Id);
     bool AddLearnedEffect(const FString& Id);
+    bool EnsureLearnedEffect(const FString& Id);
     bool AddToolRecord(const FKalmalaPlayerToolSaveRecord& Record);
     bool TryReplaceToolRecords(const TArray<FKalmalaPlayerToolSaveRecord>& Records);
     bool HasDiscovery(const FString& Id) const;

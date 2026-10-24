@@ -37,7 +37,7 @@ struct FKalmalaGemstoneContract
     }
     // I4 is accepted; enable each source in its ordered A9 increment.
     static constexpr bool MoonstoneSourceAccepted = true;
-    static constexpr bool DuskDiamondSourceAccepted = false;
+    static constexpr bool DuskDiamondSourceAccepted = true;
     static FName SelectEnemyGem(bool bMoonBear, EKalmalaBiome Biome, uint64 Seed)
     {
         if (bMoonBear && Biome == EKalmalaBiome::Elderwood && Mix(Seed ^ 0xA9B3A2ull) % 50 == 0) return TEXT("Moonstone");

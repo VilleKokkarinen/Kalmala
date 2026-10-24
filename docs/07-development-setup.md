@@ -1,5 +1,16 @@
 # Development setup
 
+## A9 runtime verification — 2026-10-24
+
+Accessory runtime effects, all ten gem sources, Forge gear routes and the four
+existing scroll routes are implemented. Combined I5 passed the Editor/Game
+builds, full 187-case Kalmala queue, catalogue/icon checks, applicable peers and
+restart, and standard/compact equipped-inventory renders. See the
+[A9 contract and evidence handoff](a9-acceptance.md) and `PROGRESS.md` for exact
+commands, repairs, retained evidence and session-only inventory/gear limits.
+The older data-batch notes below do not describe current runtime completion.
+
+
 ## A9 item catalogue and icon data — 2026-10-22
 
 Catalogue schema 16 includes ten stackable gem materials, eight necklace/ring

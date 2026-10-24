@@ -300,18 +300,18 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
 
   The JSON-only child, all 30 icon children and all 30 source/output
   implementation rows are complete. Enemy rewards and dependent items are
-  enabled through their server-side paths; their combined live I4 acceptance
-  remains open.
+  enabled through their server-side paths; combined live I4 acceptance passed
+  in `fdda0f39` on 2026-10-24.
 
   Bow String is reserved for bows. Review every pending non-bow binding input in its category contract; do not use Bow String there. Moonstone Ring and Dusk Ring stay in A9. Do not duplicate them.
   A8b effects and full armor/weapon profiles are resolved in [the item
   contract](docs/alpha-item-details.md#a8b). The Reef Harpoon route is approved
   but adds no skiff damage. All 15 material-producing enemy sources and their
-  registered outputs are implemented; the I4 gate above retains the remaining
-  live peer, reward retry/restart/privacy and item-progression acceptance.
+  registered outputs are implemented; the I4 gate above records accepted
+  live peer, reward retry/restart/privacy and item-progression verification.
 
 - [ ] **A9 — gems and special gear (P2).** [Rules](docs/a9-acceptance.md#retained-a9-gameplay-contract)
-  - Completion handoff: the 50 checked JSON/recipe/icon stages below were implemented in `71fa8060` on `codex/a9-json-icons` and merged into master on 2026-10-22. Acquisition, runtime accessory behavior, reviews and milestone verification remain open.
+  - Completion handoff: JSON/recipe/icon stages were merged from `71fa8060`; runtime accessories, all ten gem sources and special gear are now implemented on `codex/a9-runtime`. Combined I5 passed on 2026-10-24 (187 automation cases plus applicable builds, validators, peers/restart and renders). Normal master integration is the final handoff step.
   - [x] Review A9. User approved the documented source rates, mutually exclusive replacements and three-hit extraction on 2026-10-23; existing source prerequisites and I4/I5 acceptance remain required.
   - [x] Review Necklace/Ring slots; one item per slot, bonuses only while equipped. Existing validated owner-only transactions retained; focused AccessorySlots regression added.
   - [x] Apply the remaining authored accessory stats at runtime: `MaxHealthBonus` and `MaxStaminaBonus` as flat equipped bonuses, plus additive `StaminaRegenerationMultiplier` and `HealingReceivedMultiplier` deltas. Recalculate server-owned stats on equip/unequip and add focused status/healing coverage.
@@ -356,12 +356,12 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     - [x] Add and register the complete raw-gem item JSON; record recipe and combat/equipment/upgrade categories as N/A.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
     - [x] Add or enable its eligible world-treasure source-table entry last, after item JSON/icon completion and accepted treasure support.
-  - [ ] Dusk Diamond (`DuskDiamond`, special): proposed 1% chance of 1 from Mossy Mire Mirelings.
+  - [x] Dusk Diamond (`DuskDiamond`, special): approved 1% chance of 1 from credited generated Mossy Mire Mirelings; source enabled, combined I5 verification pending.
     - [x] Add and register the complete raw-gem item JSON; record recipe and combat/equipment/upgrade categories as N/A.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
-    - [ ] Add or enable its Mireling reward-table entry last, after item JSON/icon completion and accepted A8a source.
+    - [x] Add or enable its Mireling reward-table entry last, after item JSON/icon completion and accepted A8a source.
       - [x] Prepare generated-Mossy-Mire Mireling validation, 1/100 selection and persistent credited reward payload; icon check passed.
-      - [ ] Enable the prepared Dusk Diamond source after integrated I4 acceptance; `DuskDiamondSourceAccepted` remains false.
+      - [x] Enable the prepared Dusk Diamond source after integrated I4 acceptance; `DuskDiamondSourceAccepted` is true.
   - [x] Gemstone rocks: implement the shared rare resource-slot replacement and 10% gem-smash rule; successful extraction yields 1 gem. This shared source mechanic does not add per-item acquisition entries.
     - [x] Add shared source-selection/hit-outcome contract and validated sparse gemstone save state; no sources enabled yet.
     - [x] Connect attack-driven pickaxe hits, durable progress/outcomes and loose-gem pickup; then enable item sources in their listed order.
@@ -405,7 +405,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     - [x] Add and register the complete item/equipment/attack JSON first, with applicable N/A categories recorded.
     - [x] Add and register its Forge recipe using the values finalized by Review A9.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
-  - [ ] Dusk Ring (`DuskRing`): finalize its recipe and combined health/stamina/Armor profile in Review A9; see the A9 item contract.
+  - [x] Dusk Ring (`DuskRing`): approved paid Forge recipe and hybrid equipped stats implemented; Dusk Diamond source enabled, combined I5 pending.
     - [x] Complete executable Forge recipe and combined flat-stat/physical-Armor craft/equip coverage; source enablement remains I4-dependent.
     - [x] Add and register the complete item/equipment/stat JSON first, with applicable N/A categories recorded.
     - [x] Add and register its Forge recipe using the values finalized by Review A9.
@@ -417,7 +417,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     - [x] Repair the presentation/M5 checker invocation and stale prose/source anchors, preserving negative checks and leaving runtime inventory-baseline disposition with I4.
     - [x] Integrate the committed A8b progression snapshot a33711ec into the isolated A9 branch, preserve both handoffs, and rerun no-build contracts; I4 acceptance remains pending.
     - [x] Integrate master through `9a8cbc0f`, retaining completed I4 acceptance and the inventory-baseline fix; enemy-source activation and combined I5 remain next.
-    - [ ] Integrate passed I4 source acceptance, enable and verify Moonstone/Dusk Diamond rewards, and resolve the inherited inventory notification-baseline verification disposition.
+    - [x] Integrate passed I4 source acceptance, enable and verify Moonstone/Dusk Diamond rewards, and resolve the inherited inventory notification-baseline verification disposition. Canonical source and persisted payload tests, inventory and two-visit reconnect checks passed.
     - [ ] Pass combined integrated I5 verification and merge A9 normally into local master at a safe clean boundary, preserving the other worker's handoff.
 
 - [ ] **A10 — Acceptance.** [Full criteria](docs/alpha-item-details.md#a10)

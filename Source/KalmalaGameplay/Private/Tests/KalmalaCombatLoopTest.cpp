@@ -123,6 +123,13 @@ bool FKalmalaAllItemSwingTest::RunTest(const FString& Parameters)
         Combat->ServerRequestAttack(1);
         TestEqual(TEXT("Duplicate sequences cannot swing again"), Combat->GetActionSerial(), uint32(1));
         auto* Wildlife = World->SpawnActor<AKalmalaWildlifeSpawn>(Origin + FVector(140, 0, 55), FRotator::ZeroRotator);
+        // This isolated weapon fixture has no persistent population owner.
+        // Mireling defeats now require that owner for their durable gem queue;
+        // use an ordinary Boar while retaining lethal-hit/defeat assertions.
+        FKalmalaWorldPopulationSpawn TargetSpawn;
+        TargetSpawn.Kind = EKalmalaWorldPopulationKind::Wildlife;
+        TargetSpawn.Location = Wildlife->GetActorLocation();
+        Wildlife->InitializeServer(TargetSpawn, EKalmalaWildlifeArchetype::Boar);
         auto* TargetResistance = Wildlife->FindComponentByClass<UKalmalaResistanceComponent>();
         if (!TestNotNull(TEXT("Raw-damage target exposes its resistance profile"), TargetResistance)) return false;
         TargetResistance->Profile.Armor = 0.0f;
@@ -130,7 +137,7 @@ bool FKalmalaAllItemSwingTest::RunTest(const FString& Parameters)
         Advance(0.20f);
         const float AuthoredDamage = FKalmalaToolLifecycleContract::GetAttackDamageBonuses(Item, 1, TEXT("Basic")).Total();
         const float FixtureHealth = AKalmalaWildlifeSpawn::GetMaximumHealthForArchetype(
-            EKalmalaWildlifeArchetype::Mireling);
+            EKalmalaWildlifeArchetype::Boar);
         TestEqual(TEXT("Actual hit keeps authored damage or the existing basic melee fallback"),
             Wildlife->GetHealth(), FMath::Max(0.0f, FixtureHealth - (AuthoredDamage > 0 ? AuthoredDamage : 25.0f)));
         TestTrue(TEXT("Hammer, bow, weapons and fists all report validated wildlife hits"),

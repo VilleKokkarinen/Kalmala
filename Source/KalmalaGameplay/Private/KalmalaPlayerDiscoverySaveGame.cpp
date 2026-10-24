@@ -201,6 +201,12 @@ bool UKalmalaPlayerDiscoverySaveGameV2::AddLearnedEffect(const FString& Id)
     return true;
 }
 
+bool UKalmalaPlayerDiscoverySaveGameV2::EnsureLearnedEffect(const FString& Id)
+{
+    if (!MatchesPlayer(WorldConfig, PlayerIdentity) || !IsKnownLearnedEffectId(Id)) return false;
+    return LearnedEffectIds.Contains(Id) || AddLearnedEffect(Id);
+}
+
 bool UKalmalaPlayerDiscoverySaveGameV2::AddToolRecord(const FKalmalaPlayerToolSaveRecord& Record)
 {
     FKalmalaPlayerToolSaveRecord CanonicalRecord = Record;

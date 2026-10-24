@@ -1,12 +1,12 @@
 # A9 implementation and acceptance handoff
 
-Implementation continues on `codex/a9-runtime`. Master's completed A8/I4 gate (`fdda0f39`) is now integrated. A9/I5 remains open; earlier independent results do not certify the combined state. All executed checks/results are recorded in PROGRESS.md.
+Implementation and combined I5 verification are complete on `codex/a9-runtime`, including master's accepted A8/I4 gate (`fdda0f39`). The final queue passed all 187 tests; Editor/Game builds, catalogue/icon contracts, applicable peers/restart and current gear renders passed. Normal integration into local master is the final handoff step. Exact commands, repairs and evidence are recorded in `PROGRESS.md`.
 
 ## Approved source decisions
 
 On 2026-10-23 the user approved the documented replacement/reward rates and three accepted pick hits with 10% smash resolved before extraction on every hit. They approved population save schema 2, preserving/rejecting incompatible schema-1 files without migration. They approved treasure at existing seeded discovery points in Elderwood, Lakes and Mountains and the missing bounded Frost Salt deposit generator (one possible safe, separated deposit per 60 m key, retaining frostmoss).
 
-The five rock sources and three treasure sources are implemented/enabled. Moonstone is enabled through `MoonstoneSourceAccepted` after integrated I4 acceptance: only validated generated Elderwood Moon Bears can select the fixed 1/50 reward, persisted with the credited owner's ordinary bear payload. Dusk Diamond remains prepared but disabled through `DuskDiamondSourceAccepted`; its activation is the next ordered increment. Combined runtime I5 verification remains open. The independent verification increment is executed as recorded below; it does not close I4 or combined I5.
+The five rock sources and three treasure sources are implemented/enabled. Moonstone is enabled through `MoonstoneSourceAccepted` after integrated I4 acceptance: only validated generated Elderwood Moon Bears can select the fixed 1/50 reward, persisted with the credited owner's ordinary bear payload. Dusk Diamond is enabled through `DuskDiamondSourceAccepted` for validated generated Mossy Mire Mirelings at the approved 1/100 chance. Both use owner-bound persisted payloads; combined I5 verification passed. The independent verification increment is executed as recorded below; it does not close I4 or combined I5.
 
 ## Existing scroll-route audit
 
@@ -21,7 +21,7 @@ The five rock sources and three treasure sources are implemented/enabled. Moonst
 
 This audit is source inspection, not a new live discovery/restart pass. Applicable verification includes `Kalmala.Gameplay.Discovery`, support/status/inventory automation and the existing discovery peer/restart procedures in 07-development-setup.md.
 
-## Executed independent verification and remaining gates
+## Historical independent verification and then-remaining gates
 
 The isolated mirror is `C:/Users/Ville/AppData/Local/Temp/a9v`; general evidence is `C:/Users/Ville/AppData/Local/Temp/a9e`. Editor and Game builds passed. Final full queue `auto4.log/r4` passed all 185 tests (179 clean, six with warnings), zero failures/not-run, exit 0. All 148 catalogue icons, nine status icons and 17 creature profiles passed validation. All 1,083 build/runner inputs matched the source by SHA-256; generated/output path audit found a maximum of 210 and no MAX_PATH violations. The installed Launcher engine's documented dedicated-server limitation remains applicable; no unsupported Server target was attempted.
 

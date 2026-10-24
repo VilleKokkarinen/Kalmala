@@ -4,6 +4,7 @@
 #include "KalmalaSupportMagicComponent.h"
 #include "KalmalaWildlifeSpawn.h"
 #include "KalmalaGameMode.h"
+#include "KalmalaItemCatalogue.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/AutomationTest.h"
 
@@ -25,6 +26,31 @@ bool FKalmalaDiscoveryProgressTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Entitled player learns the effect once"), Save->AddLearnedEffect(Effect));
     TestFalse(TEXT("Unknown effect fails closed"), Save->AddLearnedEffect(TEXT("Effect:unknown")));
     const TArray<EKalmalaSupportEffect> Effects = { EKalmalaSupportEffect::Mending, EKalmalaSupportEffect::HearthShield, EKalmalaSupportEffect::BearsVigor, EKalmalaSupportEffect::DeerCall };
+    struct FScrollRouteCheck
+    {
+        EKalmalaSupportEffect Effect;
+        const TCHAR* Definition;
+        const TCHAR* ItemId;
+    };
+    const FScrollRouteCheck ScrollRoutes[] = {
+        {EKalmalaSupportEffect::Mending, TEXT("mending"), TEXT("MendingScroll")},
+        {EKalmalaSupportEffect::HearthShield, TEXT("hearth-shield"), TEXT("HearthShieldScroll")},
+        {EKalmalaSupportEffect::BearsVigor, TEXT("bears-vigor"), TEXT("BearsVigorScroll")},
+        {EKalmalaSupportEffect::DeerCall, TEXT("deer-call"), TEXT("DeerCallScroll")}
+    };
+    const UKalmalaItemCatalogue* Items = UKalmalaItemCatalogue::Get();
+    TestNotNull(TEXT("The registered scroll catalogue is available"), Items);
+    for (const FScrollRouteCheck& Route : ScrollRoutes)
+    {
+        const FName ScrollId = UKalmalaSupportMagicComponent::ScrollItemId(Route.Effect);
+        TestEqual(TEXT("Each existing scroll definition maps to its learned effect"),
+            UKalmalaSupportMagicComponent::FromScrollDefinition(Route.Definition), Route.Effect);
+        TestEqual(TEXT("Each learned effect maps back to its existing scroll item"), ScrollId, FName(Route.ItemId));
+        TestEqual(TEXT("Each scroll item maps back to its learned effect"),
+            UKalmalaSupportMagicComponent::FromScrollItemId(ScrollId), Route.Effect);
+        if (Items)
+            TestNotNull(TEXT("Every support scroll has a registered item definition"), Items->FindDefinition(ScrollId));
+    }
     for (const EKalmalaSupportEffect SupportEffect : Effects)
     {
         const FString Canonical = UKalmalaSupportMagicComponent::CanonicalId(SupportEffect);

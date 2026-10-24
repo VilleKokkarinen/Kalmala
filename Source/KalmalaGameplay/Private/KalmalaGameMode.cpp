@@ -5011,6 +5011,13 @@ void AKalmalaGameMode::DriveDiscoveryPeerTest()
         }
         AKalmalaDiscoveryActor* Actor = DiscoveryPeerTestActor.Get();
         if (Actor == nullptr) return;
+        // Keep the reach fixture stationary while streamed terrain settles.
+        // Falling between probes must not replace the intended duplicate-claim test.
+        for (AKalmalaCharacter* Pawn : {Entitled, Remote})
+        {
+            Pawn->GetCharacterMovement()->StopMovementImmediately();
+            Pawn->GetCharacterMovement()->SetMovementMode(MOVE_Flying);
+        }
         Entitled->SetActorLocation(Actor->GetActorLocation() - FVector(125.0f, 0.0f, 0.0f), false);
         Remote->SetActorLocation(Actor->GetActorLocation() + FVector(1000.0f, 0.0f, 0.0f), false);
         Entitled->ForceNetUpdate(); Remote->ForceNetUpdate();
@@ -5033,6 +5040,9 @@ void AKalmalaGameMode::DriveDiscoveryPeerTest()
     }
     if (DiscoveryPeerTestStage == 3 && Now - DiscoveryPeerTestStageTime >= 0.25f)
     {
+        UE_LOG(LogTemp, Display, TEXT("Discovery duplicate probe: CanInteract=%d Distance=%.1f Pawn=%s Actor=%s"),
+            Actor->CanInteract_Implementation(Entitled), FVector::Distance(Entitled->GetActorLocation(), Actor->GetActorLocation()),
+            *Entitled->GetActorLocation().ToCompactString(), *Actor->GetActorLocation().ToCompactString());
         Actor->Interact_Implementation(Entitled);
         const bool bPassed = EntitledFeedback->GetFeedback() == EKalmalaDiscoveryFeedback::AlreadyFound && EntitledFeedback->GetFeedbackSerial() == 2
             && RemoteFeedback->GetFeedback() == EKalmalaDiscoveryFeedback::None && RemoteFeedback->GetFeedbackSerial() == 0;
@@ -7003,8 +7013,7 @@ bool AKalmalaGameMode::PersistPlayerStateFromServer(
     if (!AdditionalDiscoveryId.IsEmpty()
         && (Candidate->HasDiscovery(AdditionalDiscoveryId) || !Candidate->AddDiscovery(AdditionalDiscoveryId))) return false;
     if (!AdditionalLearnedEffectId.IsEmpty()
-        && (Candidate->HasLearnedEffect(AdditionalLearnedEffectId)
-            || !Candidate->AddLearnedEffect(AdditionalLearnedEffectId))) return false;
+        && !Candidate->EnsureLearnedEffect(AdditionalLearnedEffectId)) return false;
     if (!AdditionalM9ClaimId.IsEmpty()
         && (!IsCurrentM9ClaimId(AdditionalM9ClaimId) || Candidate->HasDiscovery(AdditionalM9ClaimId)
             || !Candidate->AddM9Claim(AdditionalM9ClaimId))) return false;

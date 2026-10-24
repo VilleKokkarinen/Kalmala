@@ -7288,3 +7288,97 @@
   Enable the prepared Dusk Diamond source next, then perform the combined I5
   gate and final master integration. Main checkout is on `codex/a9-runtime`;
   master remains unchanged and no worktree handoff synchronization is needed.
+
+## Run 2026-10-24 — Final A9 source and milestone-final I5 verification passed
+
+- **Selected increment:** Enabled the remaining Dusk Diamond source after
+  integrated I4. This was the last A9 implementation task, so this same run
+  performed milestone-final verification and repairs. A9's final normal master
+  integration remains the last unchecked handoff child until the merge occurs.
+- **Implementation / files:** Enabled `DuskDiamondSourceAccepted` in
+  `Source/KalmalaWorld/Public/KalmalaGemstoneContract.h`; added the canonical
+  enemy-source regression to existing `KalmalaA9GearTest.cpp`. Added direct
+  includes in the incoming A8b Fang Arrows/Tonic fixtures. Updated
+  `KalmalaCombatLoopTest.cpp` and the discovery fixture in `KalmalaGameMode.cpp`.
+  Reused the scroll-route fix and regressions from unmerged `931f85e0` in
+  `KalmalaGameMode.cpp`, `KalmalaPlayerDiscoverySaveGame.cpp/.h`,
+  `KalmalaPlayerDiscoverySaveGameTest.cpp` and `KalmalaDiscoveryProgressTest.cpp`.
+  Updated BACKLOG, this progress record, architecture, development setup and
+  existing `docs/a9-acceptance.md`. No item values, icons or save schema changed.
+- **Build/verification environment:** Isolated short mirror
+  `C:/Users/Ville/AppData/Local/Temp/a9v`; fresh profiles/evidence under
+  `C:/Users/Ville/AppData/Local/Temp/a9f1`. All 1,143 current tracked
+  runtime/build/runner inputs matched the mirror by SHA-256 after final repairs.
+  Including active docs/handoffs, 1,163 inputs were synchronized. Generated mirror
+  paths had maximum length 210; all changed checkout paths are below 260.
+  Builds used normal `%LOCALAPPDATA%/UnrealBuildTool` access. The previously
+  documented installed-engine dedicated-server limitation still applies;
+  no Server build or packaging was attempted for this I5 scope.
+- **Full build commands actually run:** `Build.bat KalmalaEditor Win64
+  Development -Project=C:/Users/Ville/AppData/Local/Temp/a9v/Kalmala.uproject
+  -WaitMutex -NoHotReload -ForceMakefile`, then the same command with target
+  `Kalmala`. Both final targets succeeded. Initial Editor build: 182 planned
+  actions, failed on missing player-status/player-state types in two incoming
+  A8b fixtures; their direct includes fixed it and a seven-action rebuild passed.
+  Initial Game target passed 174 actions. Later post-repair Editor/Game builds
+  also passed, ending with `editor-discovery-final.log` and
+  `game-discovery-final.log`.
+- **Full automation command actually run:** `UnrealEditor-Cmd.exe` against the
+  mirror project with `-unattended -nop4 -nosplash -nosound -nullrhi
+  -NoZenAutoLaunch -DDC=NoZenLocalFallback`, a fresh `-UserDir`, retained
+  `-abslog` and `-ReportExportPath`, `-ExecCmds="Automation RunTests Kalmala"`
+  and `-TestExit="Automation Test Queue Empty"`. Final evidence is
+  `automation4.log`, `report4/index.json`, `auto4-user/` and
+  `automation4-exit.txt` under a9f1: **187 completed, 182 clean passes, five
+  warning passes, zero failures/not-run/in-process, process exit 0**.
+- **Failures, fixes and reruns:** The first full report had 181 clean passes,
+  five warning passes and one AllItemSwings failure, despite process exit 0.
+  That isolated weapon fixture has no population persistence owner; lethal
+  Mireling hits now require that owner. Its target now explicitly uses Boar,
+  retaining authored-damage and lethal-hit/defeat assertions. Editor rebuild
+  and the one-case focused rerun passed; full `report2` passed all 187.
+  Completion audit then found the older branch's scroll fix absent: a distinct
+  second location for a known spell was rejected as a duplicate entitlement.
+  Reused validated idempotent entitlement reuse without allowing duplicate
+  discovery claims, unknown effects or extra effect records. Editor/Game
+  rebuilt; all three focused Discovery cases passed; `report3` passed all 187.
+  The discovery peer initially retained feedback serial 1. Its diagnostic
+  rerun passed but showed 122 cm of pawn fall between probes. Held both fixture
+  pawns stationary while terrain streams; the final probe stayed exactly
+  125 cm away and passed every original distance/duplicate/privacy assertion.
+  Both targets rebuilt again; the final full `report4` passed as above.
+- **Applicable live checks:** The A9 three-peer mining/treasure case passed
+  initially at port 19491 (`peers/`) and again after the scroll repair at 19503
+  (`peers-final/`): real owner requests, partial reload, pick wear, full-pack
+  rejection, competing claims, owner-only stats and fresh-process claimed-ledger
+  restoration. Shared crafting passed at 19494 (`crafting-runner.log`); discovery
+  passed at 19505 (`discovery-final.log`, `discovery-final/`). Final inventory
+  19501 and two-visit reconnect 19502 passed (`inventory-final.log`,
+  `reconnect-final.log`), resolving the inherited notification-baseline failure.
+  Their original per-run profile/log paths are retained in the runner output.
+- **Other checks / visual evidence:** `python Scripts/Validate-CreatureCatalogues.py`
+  passed 17 profiles and manifest JSON; `Scripts/Validate-UIIcons.ps1 -Category
+  Catalogue` passed 148 identities and `-Category Status` passed nine entries.
+  All five `Scripts/Tests/Acceptance/Verify-M5DocumentationContracts.ps1` checks
+  passed. Retained logs: `creatures.log`, `catalogue-icons.log`,
+  `status-icons.log`, `m5.log`. `RenderMenu -Menu=inventory -A9Gear` captures
+  `gear720.png` (1280x720, text 100, contrast 0) and `gear150.png` (1024x768,
+  text 150, contrast 1) were inspected: Helm/necklace/ring icons and upgrade/
+  repair controls remain visible, readable and unclipped. These are commandlet
+  renders, not physical input certification. Whitespace and staged scope/path
+  checks passed before commit.
+- **Coverage / limits / authority:** Final reports include canonical enemy gem
+  sources, saved owner-bound optional payloads, gemstone rates/generation/
+  persistence, accessory slots/stats, paid A9 gear recipes, Opal maintenance,
+  Stormcut combat and scroll persistence. Peer fixtures stage materials and
+  equipment; they do not establish an unassisted fresh-character progression
+  playthrough. General inventory/equipped gear remain session-only under the
+  accepted contract. No cargo, new scroll, trophy, boss key, client authority,
+  RPC or migration was added. Five warning-bearing cases retain synthetic-world
+  cleanup/expected missing-asset diagnostics; no required verification remains
+  failing and none was waived as a pre-existing failure.
+- **Final I5 status / next:** Combined I5 passed for this repaired source state.
+  Commit these run-owned changes, then merge A9 normally into local master at
+  its clean boundary and finalize the parent/integration checkboxes there.
+  Main checkout is on `codex/a9-runtime`; master has not yet moved. No separate
+  worktree synchronization is needed. A10 remains later work outside this goal.

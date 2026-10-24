@@ -3275,6 +3275,21 @@ progression for already supported tools.
 
 ## A9 gemstone mining runtime — 2026-10-23
 
+After accepted A8/I4, the server enables the two enemy gem sources: generated
+Elderwood Moon Bears select one Moonstone at 1/50, and generated Mossy Mire
+Mirelings select one Dusk Diamond at 1/100. The server authenticates each stable
+spawn ID against the current generated descriptor, biome and species. The
+optional gem is persisted in the credited owner's pending reward payload;
+capacity rejection retains that payload without rerolling, and a successful gem
+claim is removed durably before its inventory publication. No client supplies
+a gem, roll or quantity, and general material inventory remains session-only.
+
+A distinct existing scroll location can commit its own discovery while reusing
+an already learned, allowlisted effect entitlement. The same location still
+rejects duplicate claims; no second learned-effect record or scroll stack is
+created. This preserves the four existing scroll routes and their owner-bound
+persistence without new scrolls or save-format changes.
+
 Gemstone nodes use equipped Basic pickaxe attacks, never interaction mining. The server validates the pick family/tier, range, health and condition. Each of three accepted hits resolves its 10% smash before extraction; condition and sparse population schema-2 hit/outcome writes precede presentation. Failed writes do not publish node progress and the deterministic per-hit roll is stable on retry. Partial hits, shattered rocks, loose gems and consumed claims reconstruct from sparse state. A loose gem grants exactly one matching catalogue item after capacity validation; full packs retain it. Relevant peers receive node progress/outcome, while inventory stays owner-only. Inventory/gear remain session-only; this adds no general pack restoration. Source generation is enabled separately after its acquisition entry is complete.
 
 
