@@ -5576,6 +5576,7 @@ void AKalmalaGameMode::SelectPopulationRingCandidates(
     const TArray<AKalmalaCharacter*>& LivingPlayers)
 {
     KeyWork.Candidates.Reset();
+    KeyWork.SpawnAttempts.Reset();
     if (!HasAuthority() || !IsValid(GetWorld()) || !WorldGenerationConfig.IsValid()
         || Descriptors.IsEmpty() || LivingPlayers.IsEmpty())
     {
@@ -5605,10 +5606,16 @@ void AKalmalaGameMode::SelectPopulationRingCandidates(
         const FKalmalaWorldPopulationSpawn& Descriptor = Descriptors[DescriptorIndex];
         Cursor = (DescriptorIndex + 1) % DescriptorCount;
 
+        FKalmalaPopulationSpawnAttempt& Attempt = KeyWork.SpawnAttempts.AddDefaulted_GetRef();
+        Attempt.Descriptor = Descriptor;
+        Attempt.GateResults.bSchedulerBudgetAvailable = true;
         const FString PersistentSpawnId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Descriptor);
         const uint8 AdmissionRoll = FKalmalaMonsterSpawnTuning::GetPopulationSpawnAdmissionRoll(
             WorldGenerationConfig, KeyWork.SpatialKey, PersistentSpawnId, KeyWork.CheckOrdinal);
-        if (AdmissionRoll > FKalmalaMonsterSpawnTuning::PopulationAdmissionRollMaxAccepted
+        Attempt.GateResults.bSeededAdmissionRollPassed =
+            AdmissionRoll <= FKalmalaMonsterSpawnTuning::PopulationAdmissionRollMaxAccepted;
+        Attempt.RejectionReason = EvaluatePopulationSpawnGates(Attempt.GateResults);
+        if (!Attempt.GateResults.bSeededAdmissionRollPassed
             || !IsDescriptorInSpawnRing(Descriptor.Location, LivingPlayers))
         {
             continue;

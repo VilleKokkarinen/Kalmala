@@ -18,14 +18,6 @@ struct FKalmalaStandingLightState;
 enum class EKalmalaOceanSkiffSeat : uint8;
 enum class EKalmalaWildlifeArchetype : uint8;
 
-struct FKalmalaPopulationSchedulerKeyWork
-{
-    FIntPoint SpatialKey = FIntPoint::ZeroValue;
-    int32 CandidateBudget = 0;
-    uint64 CheckOrdinal = 0;
-    TArray<FKalmalaWorldPopulationSpawn> Candidates;
-};
-
 /** Session-only capacity held for one prospective Wolf pack; no actor is created here. */
 struct FKalmalaPopulationCreatureReservation
 {
@@ -59,6 +51,23 @@ struct FKalmalaPopulationSpawnGateResults
     bool bProgressionPassed = false;
     bool bCapsPassed = false;
     bool bPhysicalPlacementPassed = false;
+};
+
+/** One descriptor examined within the bounded scheduler budget, including gate failures. */
+struct FKalmalaPopulationSpawnAttempt
+{
+    FKalmalaWorldPopulationSpawn Descriptor;
+    FKalmalaPopulationSpawnGateResults GateResults;
+    EKalmalaPopulationSpawnRejectionReason RejectionReason = EKalmalaPopulationSpawnRejectionReason::None;
+};
+
+struct FKalmalaPopulationSchedulerKeyWork
+{
+    FIntPoint SpatialKey = FIntPoint::ZeroValue;
+    int32 CandidateBudget = 0;
+    uint64 CheckOrdinal = 0;
+    TArray<FKalmalaWorldPopulationSpawn> Candidates;
+    TArray<FKalmalaPopulationSpawnAttempt> SpawnAttempts;
 };
 
 /**

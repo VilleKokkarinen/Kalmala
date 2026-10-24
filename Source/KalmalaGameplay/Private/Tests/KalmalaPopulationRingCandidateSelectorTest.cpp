@@ -87,6 +87,8 @@ bool FKalmalaPopulationRingCandidateSelectorTest::RunTest(const FString& Paramet
     Work.CandidateBudget = 4;
     Work.CheckOrdinal = 7;
     Mode->SelectPopulationRingCandidates(Work, Descriptors, LivingPlayers);
+    TestEqual(TEXT("The evaluator receives one record per bounded descriptor attempt"),
+        Work.SpawnAttempts.Num(), 4);
     TestTrue(TEXT("Selection stays within the four-descriptor scheduler budget"), Work.Candidates.Num() == 3);
     TestTrue(TEXT("The inclusive 32 m and 96 m ring boundaries pass, while the next centimetre outside fails"),
         Work.Candidates.Num() == 3
@@ -108,8 +110,26 @@ bool FKalmalaPopulationRingCandidateSelectorTest::RunTest(const FString& Paramet
     Work.CandidateBudget = 2;
     Work.CheckOrdinal = 8;
     Mode->SelectPopulationRingCandidates(Work, Descriptors, LivingPlayers);
+    TestEqual(TEXT("Rejected rolls still consume only their bounded descriptor attempts"),
+        Work.SpawnAttempts.Num(), 2);
     TestTrue(TEXT("A passing roll inside 32 m and a rejected roll yield no candidate"),
         Work.Candidates.IsEmpty());
+    const FKalmalaPopulationSpawnAttempt* RejectedRollAttempt = Work.SpawnAttempts.FindByPredicate(
+        [](const FKalmalaPopulationSpawnAttempt& Attempt)
+        {
+            return Attempt.Descriptor.SpawnSeed == 1006;
+        });
+    TestNotNull(TEXT("The failed seeded roll remains available to the evaluator"), RejectedRollAttempt);
+    if (RejectedRollAttempt != nullptr)
+    {
+        TestTrue(TEXT("A descriptor in the assigned bounded budget passes the scheduler gate"),
+            RejectedRollAttempt->GateResults.bSchedulerBudgetAvailable);
+        TestFalse(TEXT("The rejected seed result is retained in the gate record"),
+            RejectedRollAttempt->GateResults.bSeededAdmissionRollPassed);
+        TestEqual(TEXT("The evaluator reports the failed seeded roll instead of dropping it"),
+            RejectedRollAttempt->RejectionReason,
+            EKalmalaPopulationSpawnRejectionReason::SeededAdmissionRoll);
+    }
     TestEqual(TEXT("The cursor advances even when every examined descriptor is rejected"),
         Mode->PopulationKeyCandidateCursors.FindRef(Key), 0);
 

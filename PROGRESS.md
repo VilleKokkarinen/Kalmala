@@ -7868,3 +7868,16 @@
 - **Networking/authority:** The helper consumes already-computed results and performs no world or client queries. Future callers must supply authoritative server-side results, as documented.
 - **Known limitations:** S14–S22 must populate scheduler, roll, distance, habitat, unrestricted current-species time/weather/progression, caps and physical-placement results; S23–S25 still implement and wire the camp suppression portion of placement. Every gate currently defaults false until its wiring sets the result.
 - **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within this requested monster-population goal, S14 is next — wire scheduler and roll gates.
+
+
+### Monster population — S14 scheduler and seeded-roll gates
+
+- **Selected increment:** S14, feed the bounded scheduler work and S08 seeded admission roll into the S13 evaluator.
+- **Work completed:** Added one evaluation-attempt record per descriptor examined within the assigned per-key and per-wake budgets. Each record marks its scheduler slot as available, stores the single deterministic S08 roll outcome, and retains the evaluator's first rejection reason even when the roll fails. The cursor and check ordinal advance only through those already bounded attempts; no retry/catch-up path was added. Passing rolls remain rejected at the unwired player-distance gate.
+- **Files changed:** Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationRingCandidateSelectorTest.cpp, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
+- **Lightweight checks:** Inspected the S06–S13 scheduling, selector and evaluator flow; updated focused automation assertions for a seeded-roll rejection retained in the evaluator attempt list and exact attempt-budget accounting. `git diff --check` passed; tests and builds were not run.
+- **Full verification:** Deferred to S35; this is not the final implementation task in the monster-population goal.
+- **Observable impact / authority:** Server scheduler work now records and evaluates every examined descriptor, including failed rolls. The existing bounded work limits remain unchanged; no natural actor is created.
+- **Networking/authority:** Scheduler records, world seed, descriptor IDs, roll and evaluator results are produced in the authoritative GameMode. No replicated or saved state changed.
+- **Known limitations:** S15 must populate player-distance and species-habitat gate results; time, weather, progression, caps and physical placement remain safely false until their later increments. Spawn actor admission remains S26.
+- **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within this requested monster-population goal, S15 is next — wire distance and habitat gates.

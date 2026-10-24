@@ -618,7 +618,7 @@ milestone-final verification/repair run and can exceed a normal turn.
   - [x] **S13 — Add the nine-gate evaluator.** Return a distinct rejection reason
     for scheduler budget, seeded roll, player distance, habitat, time, weather,
     progression, caps and physical placement. Unimplemented gates reject safely.
-  - [ ] **S14 — Wire scheduler and roll gates.** Feed S06–S08 into the evaluator;
+  - [x] **S14 — Wire scheduler and roll gates.** Feed S06–S08 into the evaluator;
     one rejected attempt consumes only its bounded attempt budget.
   - [ ] **S15 — Wire distance and habitat gates.** Use S09 and existing species
     biome/dry-shore/start-exclusion rules; do not relax existing restrictions.

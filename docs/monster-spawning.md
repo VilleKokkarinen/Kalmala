@@ -267,6 +267,14 @@ actors, or turn on natural spawning. S14–S22 provide the real gate results,
 including the explicitly unrestricted current-species time, weather and
 progression policies; S23–S25 add the camp-aware placement result.
 
+S14 records one evaluation attempt for each descriptor examined within the
+existing per-key and per-wake budgets. It marks that scheduled slot as budgeted,
+computes the S08 seeded roll once, and evaluates even a failed roll so it carries
+the `SeededAdmissionRoll` reason instead of disappearing. Each record consumes
+only its existing bounded descriptor attempt; there are no retries or catch-up
+attempts. A passing roll still fails closed at the unwired player-distance gate
+until S15 supplies its result; later gate fields also remain false.
+
 - Time, weather and progression are explicitly **unrestricted for all current
   species**. These three gates return pass. Provide internal policy seams and
   fixture overrides for rejection tests; do not build a new clock, boss system,
