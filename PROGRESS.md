@@ -9351,3 +9351,77 @@
   N/A dispositions, and final acceptance are covered.
 - **Next eligible A10 group:** no A4 families remain in the checklist; A5
   Basic Torch (`BasicTorch`) comes next, followed by Planting Trowel.
+
+## Run 2026-10-24 — A10 per-item audit: A5 Basic Torch
+
+- **Scope and definition:** audited only `BasicTorch`, the Utility item profile,
+  rather than an ordinary stack item. It weighs 0.5 kg, has a maximum durability
+  of 1 and an empty damage-bonus object. Its recipe creates one carried-tool
+  instance. The fresh starter-tool set does not include Basic Torch. Catalogue
+  schema 16 registers `items/equipment/utility.json` in `itemProfileFiles`
+  and registers the separate inventory recipe file.
+- **Acquisition and material sources:** the only authored Basic Torch output
+  is the enabled, stationless Inventory recipe `BasicTorch`: 2 Wood + 1 Amber
+  creates one torch, with `MaxBatch=1`. The catalogue has no Basic Torch
+  creature drop, starter grant, pickup, or additional recipe output. Wood routes
+  were audited under A0. Amber is a guaranteed one-item reward for credited
+  Peat Husk defeats. A0 also records the declared `mire-peat-amber-seam`
+  mining source but found no generated descriptor for it, so the seam is not an
+  active source in the inspected runtime.
+- **Use, refuelling and expiry:** the torch burns only while selected in Main
+  Hand, for at most 300 seconds, and presents a 600 cm point light. The server
+  advances fuel; when it reaches zero the flame turns off and the carried tool
+  remains available for refuelling. Uncovered-rain exposure snuffs the flame
+  without draining further fuel; selecting the torch again in dry conditions
+  clears the rain-suppression state. Refuelling addresses the exact carried
+  tool GUID, consumes exactly 1 Wood from inventory, and resets remaining fuel
+  to 300 seconds (it does not add time past the cap). Craft and refuel each
+  persist before success and roll back the material payment if saving fails.
+- **Profile N/A and external behavior:** runtime kind is `BasicTorch`, action
+  is `None`, and the profile has no damage bonuses. Registered attack, level-up
+  cost, and reward data contain no Basic Torch row; generic combat explicitly
+  rejects it. It has no harvest, attack, repair, or upgrade action and does not
+  grant warmth, remove Wet, or ignite world objects. Mosquito repulsion is the
+  separate A8a held-flame interaction, not a torch attack.
+- **Icons and provenance:** `docs/icon-provenance.md#basic-torch-icon` records
+  the original built-in generated prompt and confirms no outside reference was
+  used. Batch W retains the 1254x1254 RGBA original, prepared transparent 64x64
+  PNG, and imported `BasicTorch` Texture2D. The manifest maps canonical
+  `BasicTorch` to the carried-tool views (tool detail, refuel and recipe result);
+  runtime lookup resolves `/Game/Kalmala/UI/Icons/Items/BasicTorch.BasicTorch`.
+  A legacy Fire fallback row remains in the generic icon table, but the direct
+  imported texture is present and the focused validator passes. The referenced
+  `docs/material-icons.md` and `docs/alpha-item-details.md` are absent in this
+  checkout; the backlog, decision log and extant provenance guide were used.
+- **Authority and save behavior:** server authority owns craft payment, refuel
+  validation, fuel drain and rain suppression. The lit boolean replicates for
+  presentation; the carried-tool array is owner-only. Player-discovery save
+  schema 3 records each carried tool ID, level, condition, instance GUID and
+  remaining burn seconds. Validation accepts finite Basic Torch fuel from 0 to
+  300 seconds; burning persists every 10 seconds and flushes dirty fuel when
+  unequipped, rain-snuffed or exhausted. The save record has no Main Hand
+  selection field and does not persist ordinary packed inventory stacks. Schema-2
+  player saves remain incompatible and are rejected without migration, per the
+  recorded decision.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md` only.
+- **Lightweight checks:** focused PowerShell JSON assertions passed for schema
+  and registrations, exact profile and recipe values, absence of attack/upgrade
+  rows, the guaranteed Peat Husk Amber input, and the batch-W icon manifest.
+  `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id BasicTorch` passed:
+  original 1254x1254 RGBA, prepared transparent 64x64 RGBA, and imported target
+  confirmed. Static source inspection covered craft/refuel rollback, server fuel
+  advancement, rain handling, save validation and restore. The earlier A8a
+  MosquitoCounterplay peer run covered held-torch repulsion and no protection
+  while unequipped, but did not exercise full burn, refuelling, rain, or save
+  restoration. `KalmalaBasicTorchTest` was not built or executed.
+- **Full verification:** deferred; the A10 audit is not complete. No build,
+  automation, or full suite was run for this tracking-only audit.
+- **Impact and remaining scope:** no runtime, recipe, icon, authority or save
+  behavior changed. No Basic Torch catalogue or icon gap was found. Runtime
+  refuel/expiry/rain/save acceptance and A10 no-grant fresh-world progression
+  remain for later verification; preserve the existing BronzePick/IronPick
+  acquisition-target gaps and the A0 Amber seam limitation for final disposition.
+  Keep the broad A10 per-item child unchecked until the included IDs, N/A
+  dispositions and final acceptance are covered.
+- **Next eligible A10 group:** A6 foraged foods, `Lingonberry` and
+  `ForestChanterelle`; this is the next group directed for the audit.

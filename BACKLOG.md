@@ -441,16 +441,16 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     Boar/Deer Hide and Meat (BoarHide, DeerHide, BoarMeat, DeerMeat), Amber,
     Frost Salt, CopperOre, TinOre, Coal, the Copper/Tin/Bronze bar family,
     IronOre/Iron, A2 melee weapons (`BronzeSword`, `IronSword`, `WoodenClub`),
-    A3 ranged items (`LightBow`, `StoneArrow`, `BronzeArrow`), and A4 wearables
+    A3 ranged items (`LightBow`, `StoneArrow`, `BronzeArrow`), A4 wearables
     (`BoarHideBoots`, `BoarHideCape`, `BronzeHelmet`, `BronzeTunic`,
-    `BronzeLeggings`, `BronzeShield`) reviewed; see PROGRESS.md. Both approved
-    A1 pick acquisition targets still differ from
+    `BronzeLeggings`, `BronzeShield`), and A5 `BasicTorch` reviewed; see
+    PROGRESS.md. Both approved A1 pick acquisition targets still differ from
     their Forge recipes: BronzePick expects Wood x10 + Bronze x10 (current
     Wood x4 + Stone x4); IronPick expects Wood x10 + Iron x10 (current Iron x4
     + Wood x2 + Stone x2). Retain both for final progression disposition.
-    A4 listed items are complete; next audit A5 Basic Torch (`BasicTorch`).
-    Keep this child open until every included item and scope N/A disposition
-    is covered.
+    A4 listed items are complete and A5 `BasicTorch` is audited; next audit
+    A6 foraged foods (`Lingonberry`, `ForestChanterelle`). Keep this child
+    open until every included item and scope N/A disposition is covered.
   - [ ] Run required full verification at each milestone's final increment.
   - [ ] Verify fresh-start progression through Bronze and Iron without debug grants.
   - [ ] Verify approved farming, shelter, cargo, accessories, peers and restart.
