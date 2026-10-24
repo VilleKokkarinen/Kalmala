@@ -8180,3 +8180,75 @@
   approved-system acceptance and milestone-final verification remain open;
   keep the broad child unchecked.
 - **Next eligible A0 group:** Wild carrots. Continue in backlog order.
+
+## Run 2026-10-24 — A10 per-item audit: Wild carrots
+
+- **Selected increment:** Audit the A0 Wild carrots item group only. The broad
+  A10 per-item audit child remains unchecked.
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md` only.
+- **Registered identities:** `Carrot` (display Carrot, stack 20) and
+  `CarrotSeed` (display Carrot Seeds, stack 50) are in
+  `items/crops.json`, registered by `Content/Data/GameCatalogues.json`.
+  No equipment profile, attack record, or item-specific upgrade/stat reward
+  record exists for either; those categories are N/A. Carrot is an ingredient,
+  not a directly edible meal; `IsKnownFoodItem` excludes both IDs. CarrotSeed
+  has no recipe ingredient/output use.
+- **Sources and uses:** A0's Meadow source is
+  `meadows-wild-carrot-patch`: the first dry, safe candidate per eligible
+  6,000 cm spatial key, with its documented stable seed domain. The server
+  hand-gathers without a tool and grants 2 Carrots plus 1 CarrotSeed per patch.
+  The A7 Garden Plot adds reciprocal planting: 1 CarrotSeed grows 3 Carrots,
+  while 1 Carrot grows 3 Carrot Seeds, after 600 active seconds in an active
+  terrain patch. Crop mode and remaining active time are saved in construction
+  schema 6; growth pauses for inactive patches/server downtime, a full pack
+  leaves the mature crop on the plot, and accepted planting spends one Trowel
+  condition.
+- **Recipes/effects:** Carrot is used by five enabled recipes, all maximum
+  batch 5 and 10 Cooking XP per recipe: Cauldron
+  `BerryRecoveryDraughtRecipe` uses Lingonberry x3 + Carrot x1 for one
+  BerryRecoveryDraught; `MeatStewRecipe` uses BoarMeat x1 + DeerMeat x1 +
+  Carrot x2 + Potato x2 for one MeatStew; `RootVegetableSoupRecipe` uses
+  Carrot x1 + Potato x1 + Rutabaga x1 + Onion x1 for one
+  RootVegetableSoup; `WolfStewRecipe` uses WolfMeat x1 + Carrot x3 + Onion x3
+  for one WolfStew; Frying Pan `RoastedRootVegetablesRecipe` uses Carrot x1 +
+  Potato x1 + Onion x1 for one RoastedRootVegetables. Carrot itself has no
+  status effect or direct meal action; the outputs retain their existing food
+  behavior. CarrotSeed is only used by wild-patch gathering and A7 planting.
+- **Icon and provenance:** Manifest rows 09 and 10 assign Carrot and
+  CarrotSeed to import batch C, respectively; the declared views are
+  PackInventory, ItemDetail, Storage and Ingredient for Carrot, and
+  PackInventory, ItemDetail and Storage for CarrotSeed. Both retained original
+  PNGs, prepared 64x64 PNGs, and expected imported `.uasset` packages exist.
+  The runtime canonical IDs resolve through the catalogue icon library to
+  `/Game/Kalmala/UI/Icons/Items/Carrot.Carrot` and
+  `/Game/Kalmala/UI/Icons/Items/CarrotSeed.CarrotSeed`; the general vector
+  fallbacks are Root variant 0 and Seed variant 0. The focused validator passed
+  for each: 1254x1254 8-bit RGBA originals and transparent 64x64 RGBA prepared
+  textures at the expected package paths. Current `docs/icon-provenance.md`
+  contains no dedicated original generation-prompt entries for either ID;
+  prompt wording was not reconstructed.
+- **Carried/save behavior:** Ordinary carried inventory is session-only; the
+  player-state save does not restore these stacks. On gathering, the server
+  checks the living player, range, final pack capacity, and grants before
+  committing patch depletion; failed player-state persistence rolls both
+  item grants back. Patch depletion is then written through the population
+  SaveGame path, but `RecordHarvestedSpawn` currently ignores the disk-write
+  result, so write-failure recovery is not established. Catalogue-valid stacks
+  can use the generic world-keyed chest save path; no carrot-specific chest
+  round-trip was run. Neither item defines its own expiry or decay timer.
+- **Evidence and checks:** Inspected `KalmalaHarvestNode.cpp`,
+  `KalmalaGameMode.cpp`, `KalmalaPlayerStatusComponent.cpp`, the recipe/item
+  JSON, manifest, icon runtime lookup, and architecture/setup/A9 save contracts.
+  PowerShell `ConvertFrom-Json` parsed `crops.json` and the recipe files; the
+  exact registered IDs and five recipe uses were enumerated. Focused
+  `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id Carrot` and the same
+  command for `CarrotSeed` passed. Source automation assertions were inspected,
+  not run. No build, test suite, peer/restart session, or live runtime check was
+  performed.
+- **Full verification:** Deferred; this is not A10's final increment.
+- **Impact and remaining scope:** Documentation-only audit; no item, recipe,
+  gameplay, network-authority, or persistence behavior changed. Gathering and
+  planting remain server-authoritative. Prompt provenance is a documentation
+  gap. Later A0 item groups, approved-system/fresh-world acceptance, and
+  milestone-final verification remain open; keep the broad child unchecked.
+- **Next eligible A0 group:** Wild potatoes. Continue in backlog order.

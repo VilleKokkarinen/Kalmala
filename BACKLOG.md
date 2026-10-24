@@ -435,9 +435,9 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     cargo as deferred/excluded (N/A), with no scope conflict or implementation.
   - [ ] Check each included item's source, recipe, use, upgrades, icon and save behavior.
     A10 item audit 2026-10-24: Sinew, Bow String, Lightwood, Bone Fragment,
-    six cooking outputs and Hearth Broth reviewed; see PROGRESS.md.
-    Continue with Wild carrots next. Keep this child open until every included
-    item and scope N/A disposition is covered.
+    six cooking outputs, Hearth Broth and Wild carrots (Carrot, CarrotSeed)
+    reviewed; see PROGRESS.md. Continue with Wild potatoes next. Keep this
+    child open until every included item and scope N/A disposition is covered.
   - [ ] Run required full verification at each milestone's final increment.
   - [ ] Verify fresh-start progression through Bronze and Iron without debug grants.
   - [ ] Verify approved farming, shelter, cargo, accessories, peers and restart.
