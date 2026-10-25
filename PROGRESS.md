@@ -11474,3 +11474,69 @@
 - **Next eligible A10 gate:** run fresh-start progression through Bronze and
   Iron without debug grants, then complete the separate approved farming,
   shelter, accessories, peer/restart acceptance before full verification.
+
+## Run 2026-10-25 — A10 no-debug Bronze/Iron progression harness
+
+- **Selected increment:** add the smallest executable source-to-Forge fresh-
+  start path after the A10 audit found no directly runnable progression
+  acceptance. The A10 gate remains open until this automation is compiled and
+  passes in the runner's compiled project mirror.
+- **Harness route:** normal Character `BeginPlay` initializes the authored
+  starter tools after a unique player identity is assigned. The test starts
+  with zero Wood, ore, Coal, bars, Bronze Pick or Iron Pick; then it uses the
+  server interaction trace to harvest 60 Wood, 21 Copper Ore, 12 Tin Ore and
+  12 Iron Ore. Test source actors use canonical gathering IDs and coordinates
+  classified in their matching generated biomes; Copper uses safe Elderwood
+  terrain and Tin uses safe Shimmering Lakes terrain. These are deterministic
+  placed fixtures, not procedural-world traversal. Each depletion uses the
+  same GameMode population-save callback as generated sources, and the test
+  reloads the world save to check every accepted fixture identity.
+- **Processing and crafting:** placed, persisted Charcoal Kiln, Smelter and
+  Forge fixtures are selected by ordinary server interaction. Normal server
+  requests load and collect Kiln/Smelter materials; production actors are
+  advanced with active-time ticks. The Forge crafts Bronze Alloy and creates
+  both level-one Picks with the approved Wood x10 + Bronze x10 and Wood x10 +
+  Iron x10 acquisition recipes. The test contains no direct material grant or
+  stack-commit call. It intentionally does not assert traversal, procedural
+  world availability, peer replication, restart, or rendered presentation.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Scripts/Tests/README.md`,
+  `Scripts/Tests/Progression/FreshStartBronzeAndIron.ps1`,
+  `Source/KalmalaGameplay/Public/KalmalaGameMode.h`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaA10FreshStartBronzeAndIronTest.cpp`,
+  and `docs/07-development-setup.md`.
+- **Runner:** added
+  `Kalmala.Gameplay.Progression.FreshStartBronzeAndIron` and
+  `Scripts/Tests/Progression/FreshStartBronzeAndIron.ps1`. The runner requires
+  a compiled mirror outside the source checkout, uses unique world/player
+  identities, and checks the longest population, construction and player save
+  paths against the 260-character limit. Updated `Scripts/Tests/README.md` and
+  `docs/07-development-setup.md`; added Dev Automation-only GameMode friend
+  access to bind and inspect the production depletion save callback. No
+  production gameplay behavior changed. `BACKLOG.md` and this progress record
+  keep the acceptance child unchecked until the harness passes.
+- **Lightweight checks:** PowerShell parser passed; `git diff --check` passed;
+  source searches confirmed the route uses `ServerRequestInteract`, Kiln and
+  Smelter load/collect requests, `ServerCraft`, and `ServerProgressTool`, with
+  no direct grant or stack-mutation calls. Reviewed exact Stone/Bronze Pick
+  source-tier gates, biome/safe-terrain placement, construction persistence and population-save
+  callback wiring. No build or Unreal automation was run because the test has
+  not been compiled; the existing Editor binary was not used as evidence.
+- **Observable impact:** provides repeatable, no-debug coverage for the
+  approved fresh-start harvest, processing and pick-acquisition route, including
+  persisted source depletion. It does not yet establish accepted progression
+  because it has not run.
+- **Networking/authority:** harvesting, station interactions, inventory
+  changes, processing, crafting, tool progression and population persistence
+  all execute through server-owned paths. No debug grant, client material
+  payload or production authority change was added.
+- **Known limitations / remaining scope:** deterministic fixture actors are
+  used instead of a procedural-world route; the automation and runner remain
+  uncompiled and unexecuted. The approved farming, shelter, cargo, accessories,
+  peer/restart gate and A10 final verification also remain open.
+- **Full verification:** deferred; this is not the final A10 increment.
+- **Next eligible A10 work:** run the new fresh-start automation in a compiled
+  mirror after the remaining approved farming/shelter/accessory/peer/restart
+  gate is ready for final acceptance, then perform the required integrated
+  A10 verification. Keep the Bronze/Iron backlog item unchecked until the
+  automation actually passes.

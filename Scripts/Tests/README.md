@@ -93,6 +93,15 @@ discovery claims and gem acquisition independently of enemy combat. Historical
 per-species commands and rendered captures in older handoffs describe the old
 launchers; the commands above supersede them. The new runner is headless.
 
+`Progression/FreshStartBronzeAndIron.ps1 -ProjectPath C:/km/Kalmala.uproject`
+checks the fresh starter kit through Wood/Copper/Tin harvest, Kiln Coal,
+Smelter bars, Forge Bronze alloy, and Bronze/Iron Pick acquisition without
+inventory grants. It uses deterministic placed source and station actors and
+the normal server transactions; it does not claim procedural-world traversal,
+rendered presentation, peer replication, or restart coverage. Point it at a
+compiled project mirror outside the source checkout so its player and
+construction SaveGames stay isolated.
+
 ## Other tests
 
 | Directory | Choose for |

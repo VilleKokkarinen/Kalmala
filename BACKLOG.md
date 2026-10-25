@@ -447,8 +447,10 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     PROGRESS.md. The two approved A1 pick acquisition costs were corrected on
     2026-10-25: BronzePick now costs Wood x10 + Bronze x10; IronPick now costs
     Wood x10 + Iron x10. Their separate pickaxe upgrade costs remain
-    unchanged. The no-debug fresh-start acceptance below remains open; no
-    directly runnable source-to-Forge progression runner was found.
+    unchanged. No-debug fresh-start acceptance below remains open. A focused
+    Dev Automation and compiled-mirror runner now cover normal source harvest,
+    Kiln/Smelter processing, Forge recipes and source-depletion persistence;
+    the harness still must be built and pass before the gate is complete.
     A4 items, A5 `BasicTorch`, A6 foraged foods (`Lingonberry`,
     `ForestChanterelle`) and recovery draughts (`BerryRecoveryDraught`,
     `RootStaminaDraught`) are audited; no A6 family remains in scope. The

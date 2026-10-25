@@ -2031,6 +2031,14 @@ Bronze or Iron Pick. `Kalmala.Gameplay.Tools.LifecycleContract` covers the
 all three ore-source rewards and ceilings; `Kalmala.Gameplay.Harvest.ResourceFamilyGates`
 covers all six pick/axe identities across the expanded source set.
 
+Run `Scripts/Tests/Progression/FreshStartBronzeAndIron.ps1` with a compiled
+mirror passed through `-ProjectPath`. It drives the approved no-debug pick
+route from the authored starter tools through normal server source, Kiln,
+Smelter, Bronze alloy and Forge transactions. Its deterministic placed
+source/station actors do not represent procedural-world traversal; the gate
+also needs the named automation to pass in a compiled mirror before fresh-start
+progression is accepted.
+
 ## First build
 
 For M10 lower-resource diagnostics on the available high-end PC, see
