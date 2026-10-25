@@ -466,9 +466,14 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     A8b recipe/output audits and per-item A9 audits for Smoky Quartz
     (`SmokyQuartz`), Moonstone (`Moonstone`), Garnet (`Garnet`), Green Jade
     (`GreenJade`), Amethyst (`Amethyst`), Aquamarine (`Aquamarine`),
-    Tourmaline (`Tourmaline`), Star Opal (`StarOpal`), and Storm Sapphire
-    (`StormSapphire`) are recorded in PROGRESS.md; next in A9 backlog order is
-    Dusk Diamond (`DuskDiamond`).
+    Tourmaline (`Tourmaline`), Star Opal (`StarOpal`), Storm Sapphire
+    (`StormSapphire`), and Dusk Diamond (`DuskDiamond`) are recorded in
+    PROGRESS.md; next in A9 backlog order is Dusk Ring (`DuskRing`).
+    A required cross-item follow-up remains: A9 acceptance says
+    Stormcut Sword spends one condition per accepted hit, but current combat
+    damage does not consume it. Next repair must add server-authoritative
+    accepted-hit wear and focused authority/persistence tests before final A10
+    verification.
     Keep this child open until every included item and scope N/A disposition
     is covered.
   - [ ] Run required full verification at each milestone's final increment.
