@@ -644,9 +644,23 @@ run for this goal and may exceed one turn.
     Flora and consumes no candidate-stream draws. Candidate counts, positions,
     ordinals and IDs remain unchanged; suitability gating remains BH20.
   - [ ] **BH20 — Integrate Meadows forest suitability.** Use the shared descriptor
-    path for decorative and harvestable trees; gate by Flora, final slope, and
-    dry-ground suitability, preserving roots on collision and depletion,
-    suppression, late-join, and restart identity.
+    path for decorative and harvestable trees; gate by Flora, forest factor,
+    final slope, and dry-ground suitability while preserving collision and
+    harvest lifecycle identity.
+    - [x] **BH20a — Apply Meadows Flora suitability.** The shared layout now
+      uses the existing Flora probability curve for Meadow candidates with a
+      stable patch/ordinal roll after existing candidate draws. Both decorative
+      and harvestable paths see the same filtering; later draws, original
+      ordinals and IDs are preserved.
+    - [ ] **BH20b — Apply forest-factor patchiness.** Combine the independent
+      world-space factor with Meadows density using stable per-ID thresholds;
+      create clearings without changing candidate budgets or patch boundaries.
+    - [ ] **BH20c — Gate on final terrain slope.** Use the shared final surface
+      slope for decorative and harvestable descriptors, preserving the
+      collision-aligned root and stable candidate identity.
+    - [ ] **BH20d — Gate on dry-ground suitability.** Use final shared water/
+      terrain samples for the same descriptor path; preserve existing basin,
+      suppression, depletion, late-join and restart identity contracts.
   - [ ] **BH21 — Add Tundra forest participation.** Reuse the forest factor with
     the planned reduced density; keep resource identity explicit and consistent
     across rendering, harvesting, suppression, and persistence.

@@ -29,6 +29,8 @@ struct FKalmalaRegionalTuning
     // Separate world-space forest placement domain; suitability remains a later gate.
     static constexpr uint64 ForestFactorSalt = 0x4B414C4D414C4107ull;
     static constexpr double ForestFactorScale = 48000.0;
+    // Independent stable threshold domain for forest candidate acceptance.
+    static constexpr uint64 ForestCandidateGateSalt = 0x4B414C4D414C4108ull;
     // Provisional Elderwood/Tundra shared-relief trials, centimetres.
     static constexpr double ElderwoodBroadAmplitude = 900.0;
     static constexpr double ElderwoodMiddleAmplitude = 240.0;

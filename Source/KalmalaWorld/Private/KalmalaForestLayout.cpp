@@ -15,6 +15,31 @@ namespace
     constexpr int32 ElderwoodTreeCandidateCount = 72;
     constexpr float TreeEdgeMargin = 260.0f;
     constexpr uint64 TreeSeedSalt = 0xD1B54A32D192ED03ull;
+
+    double CandidateAdmissionRoll(const FKalmalaWorldGenerationConfig& Config,
+        const FVector2D& PatchCenter, const int32 CandidateIndex)
+    {
+        if (!Config.IsValid() || !FMath::IsFinite(PatchCenter.X) || !FMath::IsFinite(PatchCenter.Y)
+            || CandidateIndex < 0)
+        {
+            return 1.0;
+        }
+
+        const double PatchX = PatchCenter.X == 0.0 ? 0.0 : PatchCenter.X;
+        const double PatchY = PatchCenter.Y == 0.0 ? 0.0 : PatchCenter.Y;
+        uint64 PatchXBits = 0, PatchYBits = 0;
+        FMemory::Memcpy(&PatchXBits, &PatchX, sizeof(PatchXBits));
+        FMemory::Memcpy(&PatchYBits, &PatchY, sizeof(PatchYBits));
+
+        uint64 Hash = FKalmalaRegionalGeneration::Seed(
+            Config, T::ForestCandidateGateSalt, FIntPoint(CandidateIndex, 0));
+        Hash ^= PatchXBits * 0xd6e8feb86659fd93ull;
+        Hash ^= PatchYBits * 0xa0761d6478bd642full;
+        Hash = (Hash ^ (Hash >> 30)) * 0xbf58476d1ce4e5b9ull;
+        Hash = (Hash ^ (Hash >> 27)) * 0x94d049bb133111ebull;
+        Hash ^= Hash >> 31;
+        return double(Hash >> 11) * (1.0 / 9007199254740992.0);
+    }
 }
 
 FString FKalmalaForestLayout::GetPersistentSpawnId(const FKalmalaWorldGenerationConfig& Config,
@@ -71,8 +96,9 @@ TArray<FKalmalaForestTreeDescriptor> FKalmalaForestLayout::Generate(
         {
             continue;
         }
+        const float FloraProbability = FMath::Clamp((Fields.Flora - 0.60f) / 0.24f, 0.20f, 0.92f);
         // Flora continuously controls Elderwood density: lower-flora pockets stay clear without becoming authored spaces.
-        if (Biome == EKalmalaBiome::Elderwood && RandomStream.FRand() > FMath::Clamp((Fields.Flora - 0.60f) / 0.24f, 0.20f, 0.92f))
+        if (Biome == EKalmalaBiome::Elderwood && RandomStream.FRand() > FloraProbability)
         {
             continue;
         }
@@ -87,6 +113,13 @@ TArray<FKalmalaForestTreeDescriptor> FKalmalaForestLayout::Generate(
         const float CanopyHeight = RandomStream.FRandRange(bElderwood ? 220.0f : 140.0f, bElderwood ? 360.0f : 240.0f);
         const float SurfaceHeight = FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, SamplePosition);
         const float TreeYaw = RandomStream.FRandRange(0.0f, 360.0f);
+        // Consume the existing candidate draw sequence before applying the new Meadow gate.
+        // Its independent per-ID roll cannot shift later positions or dimensions when rejected.
+        if (Biome == EKalmalaBiome::Meadows
+            && CandidateAdmissionRoll(WorldGenerationConfig, PatchCenter, CandidateIndex) > FloraProbability)
+        {
+            continue;
+        }
         Result.Add({CandidateIndex, FVector(SamplePosition.X, SamplePosition.Y, SurfaceHeight),
             FVector(LocalPosition.X, LocalPosition.Y, SurfaceHeight),
             TrunkRadius, TrunkHeight, CanopyRadius, CanopyHeight, TreeYaw, bElderwood, bAspen});

@@ -3197,8 +3197,11 @@ shared by terrain rendering and server materialization: original candidate ordin
 world/local position, biome, dimensions, yaw, and a normalized `ForestFactor`
 sampled from a separate absolute-world noise domain. This derived placement mask
 is independent of terrain detail, Flora and candidate-stream draws; it is not an
-additional ecological field or replicated map. It does not yet gate descriptors;
-Meadows suitability is applied through the same shared descriptors in BH20.
+additional ecological field or replicated map. Meadows candidates now use the
+existing Flora probability curve through this shared layout, with a stable
+world/patch/original-ordinal roll applied after existing geometry draws so a new
+rejection cannot shift later candidate randomness. The forest-factor, final-slope
+and dry-ground gates remain in BH20b–BH20d.
 Each accepted descriptor has a
 `forest:v1:<world-seed>:<patch-x>:<patch-y>:<candidate>` identity. Patch coordinates
 are exact world-space centers formatted with 17 significant digits and normalized

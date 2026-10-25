@@ -8830,3 +8830,44 @@
   Implementation files remain in this detached worktree.
 - **Next task in this directed goal:** BH20 — integrate Meadows forest
   suitability through shared descriptors while preserving identity and lifecycle.
+
+## Run 2026-10-25 — Apply Meadows Flora suitability (BH20a)
+
+- **Selected increment:** Split BH20 into four ordered children, then selected
+  BH20a, the first unchecked child. The worktree was clean at `e3c06597`; A10
+  and monster-population work remains in separate worktrees, with no concurrent
+  run in this checkout.
+- **Work completed:** Added BH20a–BH20d in order: Meadows Flora admission,
+  forest-factor patchiness, final-slope gating, and dry-ground gating. Applied
+  the existing Elderwood Flora probability curve to Meadows candidates through
+  the shared layout used by decorative rendering and server materialization.
+  The new decision uses an independent world/patch/original-ordinal hash roll
+  after the current candidate geometry draws, so rejection cannot shift later
+  candidate randomness. Original indices/IDs and the 18-Meadows/72-total
+  candidate limits are preserved; Elderwood behavior is unchanged.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Private/KalmalaForestLayout.cpp`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`, and
+  `docs/02-technical-architecture.md`.
+- **Lightweight checks/results:** Re-read AGENTS.md, BACKLOG.md, PROGRESS.md,
+  Meadows/forest plans, architecture and development setup. Inspected both
+  rendering and server-materialization consumers of `FKalmalaForestLayout::Generate`.
+  Static review confirmed the gate uses a separate deterministic domain and
+  adds no random-stream draws; `git diff --check` passed. No build or automation
+  was run; full verification remains deferred to BH26.
+- **Observable impact:** Meadow descriptors now become sparser where the
+  existing Flora probability is lower. Rendering and server materialization
+  consume the same filtered descriptors; candidate IDs remain tied to original
+  patch/index identity.
+- **Networking/authority:** No RPC, replicated state, save data or authority
+  path changed. The selection is deterministic from the existing world seed,
+  patch center and original candidate ordinal.
+- **Known limitations / remaining scope:** Forest-factor patchiness, final
+  slope and dry-ground gates remain BH20b–BH20d. The reused Flora probability
+  curve and rendered density are not yet compiled or visually validated; full
+  verification remains deferred to BH26.
+- **Main-checkout handoff:** Synchronized only `BACKLOG.md` and `PROGRESS.md`,
+  preserving existing Monster S34 progress and leaving A10 work intact.
+  Implementation files remain in this detached worktree.
+- **Next task in this directed goal:** BH20b — apply forest-factor patchiness to
+  Meadows descriptor admission with stable per-ID thresholds.
