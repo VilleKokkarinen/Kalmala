@@ -38,7 +38,7 @@ namespace
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaPlayerDiscoverySaveGameV2Test,
-    "Kalmala.Gameplay.Discovery.Schema2CurrentFormat",
+    "Kalmala.Gameplay.Discovery.Schema3CurrentFormat",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FKalmalaPlayerDiscoverySaveGameV2Test::RunTest(const FString& Parameters)
@@ -53,19 +53,19 @@ bool FKalmalaPlayerDiscoverySaveGameV2Test::RunTest(const FString& Parameters)
 
     UKalmalaPlayerDiscoverySaveGameV2* Current = NewObject<UKalmalaPlayerDiscoverySaveGameV2>(GetTransientPackage());
     Current->InitializeForPlayer(World, PlayerIdentity);
-    TestTrue(TEXT("Schema 2 accepts a canonical first-wave discovery"), Current->AddDiscovery(PoiId));
+    TestTrue(TEXT("Schema 3 accepts a canonical first-wave discovery"), Current->AddDiscovery(PoiId));
     TestTrue(TEXT("A second world scroll location keeps its own discovery identity"),
         Current->AddDiscovery(TEXT("Scroll:1:mending:2,1:1")));
-    TestTrue(TEXT("Schema 2 accepts a canonical M9 land claim"), Current->AddM9Claim(M9RillstoneId));
-    TestTrue(TEXT("Schema 2 accepts a second independent M9 candidate"), Current->AddM9Claim(M9GrainId));
-    TestTrue(TEXT("Schema 2 accepts an allowlisted learned effect"), Current->AddLearnedEffect(TEXT("Effect:mending")));
+    TestTrue(TEXT("Schema 3 accepts a canonical M9 land claim"), Current->AddM9Claim(M9RillstoneId));
+    TestTrue(TEXT("Schema 3 accepts a second independent M9 candidate"), Current->AddM9Claim(M9GrainId));
+    TestTrue(TEXT("Schema 3 accepts an allowlisted learned effect"), Current->AddLearnedEffect(TEXT("Effect:mending")));
     TestTrue(TEXT("A distinct scroll discovery reuses an existing learned entitlement"),
         Current->EnsureLearnedEffect(TEXT("Effect:mending")));
     TestEqual(TEXT("Reusing an entitlement does not add another effect record"), Current->GetLearnedEffectIds().Num(), 1);
     TestFalse(TEXT("Reusing an unknown learned effect remains rejected"), Current->EnsureLearnedEffect(TEXT("Effect:unknown")));
-    TestTrue(TEXT("Schema 2 accepts the canonical Stone Knife ID"), Current->AddToolRecord(MakeToolRecord(TEXT("StoneKnife"), 1, 9)));
-    TestTrue(TEXT("Schema 2 accepts the authored Bronze Axe level and condition"), Current->AddToolRecord(MakeToolRecord(TEXT("BronzeAxe"), 1, 0)));
-    TestTrue(TEXT("Schema 2 accepts the authored Iron Axe level and condition"), Current->AddToolRecord(MakeToolRecord(TEXT("IronAxe"), 2, 20)));
+    TestTrue(TEXT("Schema 3 accepts the canonical Stone Knife ID"), Current->AddToolRecord(MakeToolRecord(TEXT("StoneKnife"), 1, 9)));
+    TestTrue(TEXT("Schema 3 accepts the authored Bronze Axe level and condition"), Current->AddToolRecord(MakeToolRecord(TEXT("BronzeAxe"), 1, 0)));
+    TestTrue(TEXT("Schema 3 accepts the authored Iron Axe level and condition"), Current->AddToolRecord(MakeToolRecord(TEXT("IronAxe"), 2, 20)));
     TestFalse(TEXT("A duplicate first-wave discovery is rejected without mutation"), Current->AddDiscovery(PoiId));
     TestFalse(TEXT("A duplicate M9 claim is rejected without mutation"), Current->AddM9Claim(M9RillstoneId));
     TestFalse(TEXT("A malformed M9 identity is rejected"), Current->AddM9Claim(TEXT("land-discovery:m9:1:unknown:0,0")));
@@ -84,10 +84,10 @@ bool FKalmalaPlayerDiscoverySaveGameV2Test::RunTest(const FString& Parameters)
         ToolReplacement->GetToolRecords()[2].ToolLevel, 2);
 
     TArray<uint8> CurrentBytes;
-    TestTrue(TEXT("Schema 2 player facts serialize in memory"), Serialize(Current, CurrentBytes));
+    TestTrue(TEXT("Schema 3 player facts serialize in memory"), Serialize(Current, CurrentBytes));
     UKalmalaPlayerDiscoverySaveGameV2* Reloaded =
         Cast<UKalmalaPlayerDiscoverySaveGameV2>(UGameplayStatics::LoadGameFromMemory(CurrentBytes));
-    if (TestNotNull(TEXT("Schema 2 player facts reload with their type"), Reloaded))
+    if (TestNotNull(TEXT("Schema 3 player facts reload with their type"), Reloaded))
     {
         TestTrue(TEXT("Reloaded facts carry exact seed, revision, scope, and owner"), Reloaded->MatchesPlayer(World, PlayerIdentity));
         TestTrue(TEXT("First-wave and M9 discoveries both survive round-trip"),

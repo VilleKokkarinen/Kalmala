@@ -11577,6 +11577,147 @@
   accessories, peer/restart gate; then perform the source-matched fresh-start
   and integrated final verification.
 
+## Run 2026-10-25 — A10 milestone-final verification
+
+- **Selected task:** complete the final A10 acceptance and verification gates.
+  Re-read the current A10 checklist and the milestone-final instructions in
+  `docs/07-development-setup.md`; built and tested only in the short disposable
+  mirror `C:\Users\Ville\AppData\Local\Temp\a10v\Kalmala.uproject`. No
+  repository `Binaries`, `Intermediate`, `Saved`, or
+  `DerivedDataCache` directories were used for build/test output. UnrealBuildTool
+  had ordinary access to `%LOCALAPPDATA%\UnrealBuildTool`.
+- **Builds:**
+  `& 'C:/Program Files/Epic Games/UE_5.8/Engine/Build/BatchFiles/Build.bat' KalmalaEditor Win64 Development '-Project=C:/Users/Ville/AppData/Local/Temp/a10v/Kalmala.uproject' -WaitMutex -NoHotReload -NoHotReloadFromIDE -MaxParallelActions=4 -DisableAdaptiveUnity`
+  passed 55 actions; log
+  `C:\Users\Ville\AppData\Local\Temp\a10v\build-editor.log`.
+  `& 'C:/Program Files/Epic Games/UE_5.8/Engine/Build/BatchFiles/Build.bat' Kalmala Win64 Development '-Project=C:/Users/Ville/AppData/Local/Temp/a10v/Kalmala.uproject' -WaitMutex -NoHotReload -NoHotReloadFromIDE -MaxParallelActions=4 -DisableAdaptiveUnity`
+  passed 25 actions; log
+  `C:\Users\Ville\AppData\Local\Temp\a10v\build-game.log`.
+- **Full automation:** ran the complete `Automation RunTests Kalmala; Quit`
+  queue against the current compiled mirror with this command:
+  `& 'C:/Program Files/Epic Games/UE_5.8/Engine/Binaries/Win64/UnrealEditor-Cmd.exe' C:/Users/Ville/AppData/Local/Temp/a10v/Kalmala.uproject -unattended -nop4 -nosplash -nullrhi -NoZenAutoLaunch -DDC-ForceMemoryCache -stdout -FullStdOutLogOutput '-UserDir=C:/Users/Ville/AppData/Local/Temp/a10auto4/User' '-abslog=C:/Users/Ville/AppData/Local/Temp/a10auto4/queue.log' '-ExecCmds=Automation RunTests Kalmala; Quit' '-TestExit=Automation Test Queue Empty'`.
+  Exit was 0 and all 209/209 tests reported Success, with zero failures and
+  zero not-run tests. The 8 tests with warning events
+  were `Kalmala.Gameplay.Harvest.ForestPatchLifecycle`,
+  `Kalmala.Gameplay.M9.SecondWaveHarvestAcceptance`,
+  `Kalmala.Gameplay.Harvest.ForestReconstructionLifecycle`,
+  `Kalmala.Gameplay.Construction.GeometryAlignment`,
+  `Kalmala.Gameplay.Population.SphericalCampSuppression`,
+  `Kalmala.UI.Theme.LocalPresentation`,
+  `Kalmala.Gameplay.Population.CreationLifecycle`, and
+  `Kalmala.Gameplay.Population.StationCylinder`. These forwarded
+  `UWorld::DestroyActor: World has no context!` teardown warnings did not fail
+  tests. Queue log: `C:\Users\Ville\AppData\Local\Temp\a10auto4\queue.log`.
+  Startup also printed ZenLocal unavailable, the existing default Skiff
+  `HullMesh` invalid-material warning, and two generic automation self-test
+  `Condition failed` lines; no A10 test failed.
+- **A10 fresh-start progression:**
+  `Scripts/Tests/Progression/FreshStartBronzeAndIron.ps1 -ProjectPath
+  C:\Users\Ville\AppData\Local\Temp\a10v\Kalmala.uproject
+  -OutputDirectory C:\Users\Ville\AppData\Local\Temp\a10fresh2` passed
+  (seed `389677532032488492`). With no debug grants, the fresh character
+  harvested source nodes, processed materials through Kiln and Smelter, and
+  acquired Bronze and Iron Picks through Forge server transactions. Reload
+  retained all 75/75 source depletion identities. The sources and stations are
+  deterministic placed fixtures at valid biome coordinates; this proves the
+  normal transaction chain, not traversal of procedural world generation.
+  Evidence: `C:\Users\Ville\AppData\Local\Temp\a10fresh2\automation.log`.
+- **Required acceptance:**
+  - `C:\Users\Ville\AppData\Local\Temp\a10f1\Scripts\Tests\Construction\GardenPlot.ps1
+    -Project C:\Users\Ville\AppData\Local\Temp\a10f1\Kalmala.uproject
+    -Port 19417 -Rendered -Width 1280 -Height 720` passed the host/client rendered growth and payment gate, including
+    Trowel wear, 600 active seconds and no portable kit; evidence directory
+    `C:\Users\Ville\AppData\Local\Temp\KGP-a3a98c0e7bd54946a07245aea30d7231`.
+  - `C:\Users\Ville\AppData\Local\Temp\a10f1\Scripts\Tests\Survival\PersistedCampRestart.ps1
+    -Port 19418` passed with schema 7, save/restore and owner isolation;
+    `C:\Users\Ville\AppData\Local\Temp\a10f1\Scripts\Tests\Construction\ConstructionPersistence.ps1
+    -Port 19420` passed with exact restored construction IDs, replicated state and two fresh paid
+    placements. Evidence directories:
+    `C:\Users\Ville\AppData\Local\Temp\KalmalaPersistedCampRestart-4f40cc6bef8c43129597c0112647cd9a`
+    and
+    `C:\Users\Ville\AppData\Local\Temp\KalmalaConstructionRestore-5312ec675acc4e74820429f74dec1545`.
+  - `C:\Users\Ville\AppData\Local\Temp\a10f1\Scripts\Tests\Progression\Schema2CandidateReconnect.ps1
+    -Port 19424 -ProjectPath C:\Users\Ville\AppData\Local\Temp\a10f1\Kalmala.uproject`
+    passed Seed and
+    Resume: construction schema 7, player discovery schema 3, six canonical
+    owner starter tools, three earned candidate tools, observer privacy,
+    persisted claim and replay rejection. Evidence:
+    `C:\Users\Ville\AppData\Local\Temp\KalmalaM9Schema2Reconnect-f6bd3e095166477f90a00f4a6baff81e`.
+  - `C:\Users\Ville\AppData\Local\Temp\a10v\Scripts\Tests\Progression\GemMiningTreasurePeer.ps1
+    -Port 19431 -OutputDirectory C:\Users\Ville\AppData\Local\Temp\a10g3`
+    passed with owner-only
+    accessory stats, shared peer hit progress, gem/treasure claim behavior and
+    both claims retained after fresh-process restart. Evidence:
+    `C:\Users\Ville\AppData\Local\Temp\a10g3`.
+  - `& 'C:/Program Files/Epic Games/UE_5.8/Engine/Binaries/Win64/UnrealEditor-Cmd.exe' C:/Users/Ville/AppData/Local/Temp/a10v/Kalmala.uproject -run=RenderMenu
+    -Menu=inventory -Output=C:\Users\Ville\AppData\Local\Temp\a10i-verify\inventory.png
+    -A9Gear -AllowCommandletRendering -RenderOffscreen -sm6 -Width=1280
+    -Height=720 -UserDir=C:\Users\Ville\AppData\Local\Temp\a10i-verify\user
+    -abslog=C:\Users\Ville\AppData\Local\Temp\a10i-verify\render.log
+    -unattended -nop4 -nosplash -nosound -DDC-ForceMemoryCache` passed the equipped-inventory render
+    (`Saved=1`, no errors); inspected output shows the equipped Opal Helm,
+    Garnet Necklace and Dusk Ring, icons, maintenance controls and expanded
+    inventory backplate. The only render warning was the existing default Skiff
+    `HullMesh` invalid material. Evidence:
+    `C:\Users\Ville\AppData\Local\Temp\a10i-verify\render.log` and
+    `C:\Users\Ville\AppData\Local\Temp\a10i-verify\inventory.png`.
+  - Cargo is explicitly excluded/N/A by the accepted A9 scope; no cargo route
+    was added or required for acceptance.
+- **Validators and contracts:** `python Scripts/Validate-CatalogueReferences.py`
+  passed (61 registered JSON files, 152 definitions, 776 resolved references,
+  152 ledger-backed runtime icon mappings); `Scripts/Validate-UIIcons.ps1
+  -Category Catalogue` passed all 152; `python
+  Scripts/Validate-CreatureCatalogues.py` passed 17 unique profiles/stats/
+  attacks/drop references/biome IDs; and
+  `Scripts/Tests/Acceptance/DocumentationContracts.ps1` passed all five
+  no-build contracts. PowerShell parsing passed for the changed construction,
+  schema-reconnect and fresh-start runners. The final C++ assertions include
+  Stormcut accepted-hit wear and rejection/persistence behavior, current save
+  schemas and the fresh-start fixture. Stale schema expectations were corrected
+  to construction schema 7/player schema 3 and current six starter tools. The
+  obsolete generated-snake-descriptor search assertion was removed; archetype
+  slot/profile/behavior and reward-claim serialization checks remain.
+- **Failures and repairs:** the first full queue exposed a Stormcut identity
+  fixture in `Kalmala.Gameplay.Combat.AllItemSwings`, the stale item-icon asset
+  paths in `Kalmala.UI.CatalogueIcons.CompleteCoverage`, and the obsolete
+  generated shoreline descriptor search in
+  `Kalmala.Gameplay.Wildlife.GiantSnake.ShoreLungeAndRewardClaim`; targeted tests
+  also exposed old save-schema/starter-tool-count expectations. The combat
+  fixture now gives Stormcut an authenticated player identity and reports
+  per-item assertions; the icon expectation uses the current catalogue item
+  texture mapping; only the unsupported generated-descriptor search was
+  removed, retaining archetype slot/profile/behavior and reward-claim
+  serialization coverage. Save runner/tests now expect construction schema 7,
+  player-discovery schema 3, and six canonical starter tools. Those
+  expectations/fixtures were corrected;
+  temporary per-interaction diagnostic output was removed while retaining
+  concise stage/failure evidence. The current-source rebuild, complete queue,
+  reconnect, peer/restart, render and fresh-start run above passed after repairs.
+  No unresolved A10 failure remains.
+- **Changed files:** final run repairs are in
+  `Scripts/Tests/Construction/ConstructionPersistence.ps1`,
+  `Scripts/Tests/Progression/Schema2CandidateReconnect.ps1`, the relevant
+  gameplay/UI/world test and fixture sources, `docs/02-technical-architecture.md`,
+  and `docs/07-development-setup.md`; this final record and the A10 checklist
+  are in `PROGRESS.md` and `BACKLOG.md`.
+- **Impact and authority:** test/runner/schema-contract expectation repairs and
+  verification records only; production server authority and save formats were
+  not changed in this final verification run. The earlier A10 Stormcut change
+  remains server-authored and is covered by the passing current-source suite.
+- **Path and diff checks:** all build/evidence paths are below 260 characters
+  and outside the source checkouts. `git diff --check` passed before final
+  handoff edits; it is rerun before commit. No output was written to repository
+  generated directories.
+- **A10 status:** milestone-final verification passed; all A10 children and
+  the A10 parent are complete. Cargo remains excluded/N/A. Remaining limit is
+  that the fresh-start route uses deterministic source/station fixtures rather
+  than proving a fully procedural-world run; no further required A10 gate is
+  outstanding. The A10 checklist's legacy link to `docs/alpha-item-details.md`
+  is unresolved because that file is absent; this run used the checklist text
+  itself and the current setup/acceptance documentation.
+- **Next eligible task:** the separate biome-height-rework goal continues at
+  its own next backlog item; this A10 milestone has no remaining child.
+
 ## Run 2026-10-24 — Add monster spawn tuning constants (S03)
 
 - **Selected increment:** S03, the first unchecked child in the requested

@@ -3,6 +3,7 @@
 #include "KalmalaWildlifeSpawn.h"
 #include "KalmalaCharacter.h"
 #include "KalmalaInventoryComponent.h"
+#include "KalmalaGameMode.h"
 #include "KalmalaResistanceComponent.h"
 #include "KalmalaToolCatalogue.h"
 #include "KalmalaHarvestNode.h"
@@ -10,6 +11,10 @@
 #include "ProceduralMeshComponent.h"
 #include "Engine/World.h"
 #include "Engine/Engine.h"
+#include "Engine/GameInstance.h"
+#include "GameFramework/PlayerState.h"
+#include "GameFramework/WorldSettings.h"
+#include "OnlineSubsystemTypes.h"
 #include "Misc/ScopeExit.h"
 #include <limits>
 #include "Misc/AutomationTest.h"
@@ -56,6 +61,9 @@ bool FKalmalaAllItemSwingTest::RunTest(const FString& Parameters)
     if (!TestNotNull(TEXT("All-item swing fixture world exists"), World)) return false;
     GEngine->CreateNewWorldContext(EWorldType::Game).SetCurrentWorld(World);
     ON_SCOPE_EXIT { World->DestroyWorld(false); GEngine->DestroyWorldContext(World); };
+    World->SetGameInstance(NewObject<UGameInstance>(GEngine));
+    World->GetWorldSettings()->DefaultGameMode = AKalmalaGameMode::StaticClass();
+    if (!World->SetGameMode(FURL())) return false;
     World->InitializeActorsForPlay(FURL());
     const auto* Catalogue = UKalmalaToolCatalogue::Get();
     if (!TestNotNull(TEXT("All carried item profiles load"), Catalogue)) return false;
@@ -73,6 +81,17 @@ bool FKalmalaAllItemSwingTest::RunTest(const FString& Parameters)
         auto* Pawn = World->SpawnActor<AKalmalaCharacter>(Origin, FRotator::ZeroRotator);
         if (!TestNotNull(TEXT("Swinging pawn spawns"), Pawn)) return false;
         Pawn->DispatchBeginPlay();
+        if (Item == TEXT("StormcutSword"))
+        {
+            auto* PlayerState = World->SpawnActor<APlayerState>();
+            if (!TestNotNull(TEXT("Stormcut swing fixture has an authenticated player state"), PlayerState)) return false;
+            const FUniqueNetIdStringRef NetId = FUniqueNetIdString::Create(
+                FString::Printf(TEXT("all-item-stormcut-%s"), *FGuid::NewGuid().ToString(EGuidFormats::Digits)),
+                FName(TEXT("KalmalaAllItemSwingTest")));
+            const FUniqueNetIdRef BaseNetId = NetId;
+            PlayerState->SetUniqueId(FUniqueNetIdRepl(BaseNetId));
+            Pawn->SetPlayerState(PlayerState);
+        }
         auto* Inventory = Pawn->GetInventoryComponent();
         FString Reason;
         if (!Item.IsNone())
@@ -138,9 +157,10 @@ bool FKalmalaAllItemSwingTest::RunTest(const FString& Parameters)
         const float AuthoredDamage = FKalmalaToolLifecycleContract::GetAttackDamageBonuses(Item, 1, TEXT("Basic")).Total();
         const float FixtureHealth = AKalmalaWildlifeSpawn::GetMaximumHealthForArchetype(
             EKalmalaWildlifeArchetype::Boar);
-        TestEqual(TEXT("Actual hit keeps authored damage or the existing basic melee fallback"),
+        TestEqual(FString::Printf(TEXT("%s actual hit keeps authored damage or the existing basic melee fallback"),
+                *Item.ToString()),
             Wildlife->GetHealth(), FMath::Max(0.0f, FixtureHealth - (AuthoredDamage > 0 ? AuthoredDamage : 25.0f)));
-        TestTrue(TEXT("Hammer, bow, weapons and fists all report validated wildlife hits"),
+        TestTrue(FString::Printf(TEXT("%s reports a validated wildlife hit"), *Item.ToString()),
             Combat->GetFeedback() == EKalmalaCombatFeedback::Hit || Combat->GetFeedback() == EKalmalaCombatFeedback::Defeat);
         if (Item == TEXT("ConstructionHammer") || Item == TEXT("Bow"))
         {

@@ -373,6 +373,9 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
     }
 
 private:
+#if WITH_DEV_AUTOMATION_TESTS
+    friend class FKalmalaA10FreshStartBronzeAndIronTest;
+#endif
     friend struct FKalmalaMonsterSpawnTuning;
     static uint64 DeriveDiscoverySeed(const FKalmalaWorldGenerationConfig& Config, const FIntPoint SpatialKey, const EKalmalaWorldDiscoveryKind Kind)
     {

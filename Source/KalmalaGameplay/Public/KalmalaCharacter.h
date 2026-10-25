@@ -131,6 +131,9 @@ private:
     friend class UKalmalaCraftingComponent;
     friend class AKalmalaGameMode;
     friend class AKalmalaWildlifeSpawn;
+#if WITH_DEV_AUTOMATION_TESTS
+    friend class FKalmalaA10FreshStartBronzeAndIronTest;
+#endif
 
     bool CommitToolHarvestFromServer(AKalmalaHarvestNode* Node, float TraceDistance, float MaximumRange,
         FName ClientItemId, uint8 ClientAction);

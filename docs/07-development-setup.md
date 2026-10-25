@@ -127,11 +127,10 @@ server saves its 10/10 queues and 30-active-second job state. The A1 Smelter
 costs 20 Stone + 20 Wood through Hammer placement and has a registered
 construction icon. Its panel loads Copper/Tin/Iron Ore and Coal one at a time,
 processes the accepted ore FIFO into matching bars after 30 active seconds,
-shares a 10-bar output, and pauses when full. Construction schema 6 saves both
-stations and Garden Plot crop mode/remaining active seconds, rejects removal while
-station contents/jobs or planted crops remain, and rejects incompatible
-older development saves without rewriting them.
-`Kalmala.Gameplay.Construction.Schema6CurrentFormat`
+shares a 10-bar output, and pauses when full. Construction schema 7 saves
+both stations, Garden Plot crop mode/remaining active seconds, and Standing Light fuel.
+Removal remains rejected while station contents/jobs or planted crops remain; incompatible older development saves are rejected without rewriting them.
+`Kalmala.Gameplay.Construction.Schema7CurrentFormat`
 covers station processing state, Garden Plot active-time round-trips and removal
 guards. Icon preparation and
 import use the batch-L catalogue workflow. A1 multiplayer and rendered
@@ -139,7 +138,7 @@ acceptance remain pending; there is no player-facing construction-removal
 action yet. Forge level 1 also has the immediate 2 Copper + 1 Tin → 1 Bronze
 recipe, with `MaxBatch=5` and no Coal or skill cost.
 
-A7 Garden Plot uses current construction schema 6. Interact with it while holding a
+A7 Garden Plot uses current construction schema 7. Interact with it while holding a
 usable Main Hand Planting Trowel to open cultivation. Carrot food mode spends 1
 Carrot Seed for 3 Carrots; Carrot seed mode spends 1 Carrot for 3 Carrot Seeds.
 Potato tuber mode spends 1 Potato for 3 Potatoes. Rutabaga food mode spends
@@ -161,9 +160,9 @@ rechecks the plot, material payment, and Trowel condition for every action.
 A8 Timber Door directly replaces a saved Windbreak Wall segment for 8 Wood. Aim
 at a wall within 2 m and select Timber Door in the Hammer build menu; the server
 keeps the segment's construction ID and transform and saves the door closed in
-construction schema 6. Interact within 2 m to open or close it; closing is
+construction schema 7. Interact within 2 m to open or close it; closing is
 rejected while a pawn occupies the opening. Closed doors remain windbreaks;
-open doors do not. `Kalmala.Gameplay.Construction.Schema6CurrentFormat` covers
+open doors do not. `Kalmala.Gameplay.Construction.Schema7CurrentFormat` covers
 saved door state and exact wall-record replacement. The icon check is
 `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id TimberDoorKit`.
 Rendered placement, interaction, and peer replication acceptance remain pending.
@@ -175,7 +174,7 @@ to attach the upper edge to its outward side; in either case the lower edge
 must be supported by terrain. The preview and server placement path share the
 support and overlap evaluator, and payment occurs only after the server
 rechecks it. Each tread has blocking collision; no ladder or climb action is
-used. Stairs persist in the current schema-6 construction record and use the
+used. Stairs persist in the current schema-7 construction record and use the
 Wall health/rain-wear category without adding shelter tags. `Kalmala.Gameplay.Construction.LocalPreview`
 covers the buildable, 6 Wood direct recipe, dimensions, endpoint span, and
 five active walkable tread colliders. Validate the original, prepared, and
@@ -191,10 +190,10 @@ its lower end must rest on ground or a supported endpoint. Structural endpoints
 come from placed floors, walls, Timber Doors, roofs, and beams. The beam uses
 the Wall-category health and rain-wear rules without acting as a windbreak.
 Placement is rechecked by the server and the snapped transform uses the existing
-schema-6 construction record. There is no inventory Timber Beam item or portable kit.
+schema-7 construction record. There is no inventory Timber Beam item or portable kit.
 The focused `Kalmala.Gameplay.Construction.LocalPreview` regression covers its
 buildable/recipe identity, 2 Wood cost, dimensions, cardinal orientations, and
-schema-6 record; the full I4 build, construction automations, and peer/rendered
+schema-7 record; the full I4 build, construction automations, and peer/rendered
 acceptance remain deferred to milestone-final verification. Its icon uses
 isolated batch AD and `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id
 TimberBeamKit`; provenance is retained in `docs/icon-provenance.md#timber-beam-icon`.
@@ -1369,7 +1368,7 @@ equipment. A current-format record missing its GUID must fail without backfill.
 No disk save, compatibility conversion, save field or schema change is involved.
 
 This is added Unreal automation source, not an executed result. Run it after
-an editor build alongside `Kalmala.Gameplay.Discovery.Schema2CurrentFormat`.
+an editor build alongside `Kalmala.Gameplay.Discovery.Schema3CurrentFormat`.
 It covers the save object boundary, not the GameMode disk-write/authentication
 path or live reconnect. Main Hand location, grid arrangement and wearables
 remain session state; the existing forty-tool save cap remains. Live equipment,
@@ -1939,7 +1938,7 @@ After the editor build, run it with the documented temporary-user pattern:
 
 ### M9 current-schema persistence
 
-Construction uses save schema 6; player-discovery saves use schema 3, with carried equipment stored directly as `ItemId` and Basic Torch fuel stored as bounded remaining seconds. Save data must match the exact seed, revision, scope, and authenticated player identity. The game is unreleased and has no user save files; change active development formats directly and do not add save migrations until release. Current-format writers validate complete server-owned candidates before saving, and incompatible or invalid slots fail closed without rewriting. The player writer also re-derives live M9 claim identities and saves the owner's bounded carried-item records without adding replicated inventory state. See `docs/02-technical-architecture.md` for bounds and authority rules.
+Construction uses save schema 7; player-discovery saves use schema 3, with carried equipment stored directly as `ItemId` and Basic Torch fuel stored as bounded remaining seconds. Save data must match the exact seed, revision, scope, and authenticated player identity. The game is unreleased and has no user save files; change active development formats directly and do not add save migrations until release. Current-format writers validate complete server-owned candidates before saving, and incompatible or invalid slots fail closed without rewriting. The player writer also re-derives live M9 claim identities and saves the owner's bounded carried-item records without adding replicated inventory state. See `docs/02-technical-architecture.md` for bounds and authority rules.
 ### M8 travel-save contract
 
 `UKalmalaOceanTravelPersistenceSaveGame` is a separate schema-1 gate over the
@@ -4175,8 +4174,8 @@ discovery's visual presentation in-world.
 
 ### M9 current-schema save verification
 
-After the forced editor build, run `Kalmala.Gameplay.Construction.Schema6CurrentFormat`, `Kalmala.Gameplay.Construction.Schema6WriteCandidate`, and `Kalmala.Gameplay.Discovery.Schema2CurrentFormat` with isolated `-UserDir`, `-abslog`, `-DDC-ForceMemoryCache`, and `-TestExit="Automation Test Queue Empty"` arguments. These checks cover current-format round-trips, exact identity and owner validation, malformed and over-cap rejection, Kiln and Smelter queue/timer persistence, Garden Plot crop-mode/active-time and Timber Door open-state persistence, exact wall-record replacement, duplicate IDs, and candidate isolation. No schema-conversion tests run because compatibility migrations are intentionally absent until the game is released.
-### M9 schema-2 current-format host-client reconnect
+After the forced editor build, run `Kalmala.Gameplay.Construction.Schema7CurrentFormat`, `Kalmala.Gameplay.Construction.Schema7WriteCandidate`, and `Kalmala.Gameplay.Discovery.Schema3CurrentFormat` with isolated `-UserDir`, `-abslog`, `-DDC-ForceMemoryCache`, and `-TestExit="Automation Test Queue Empty"` arguments. These checks cover current-format round-trips, exact identity and owner validation, malformed and over-cap rejection, Kiln and Smelter queue/timer persistence, Garden Plot crop-mode/active-time and Timber Door open-state persistence, exact wall-record replacement, duplicate IDs, and candidate isolation. No schema-conversion tests run because compatibility migrations are intentionally absent until the game is released.
+### M9 current-format host-client reconnect
 
 After the forced editor build and current-format save verifications, run the two-client restart fixture against the isolated project mirror:
 
@@ -4184,7 +4183,7 @@ After the forced editor build and current-format save verifications, run the two
 & '.\Scripts\Tests\Progression\Schema2CandidateReconnect.ps1' -Port 19725 -ProjectPath "$projectMirror/Kalmala.uproject"
 ```
 
-The fixture writes current world and player candidates to isolated slots, then checks exact identity after a host restart. It verifies a saved M9 claim and carried tools reload, replay is rejected without changing the claim set, and each client sees only its own carried-item details. Construction uses schema 6; player discovery uses schema 2. The fixture creates no old-schema save and performs no migration. Separate construction restart coverage is provided by `Scripts/Tests/Construction/ConstructionPersistence.ps1`.
+The fixture writes current world and player candidates to isolated slots, then checks exact identity after a host restart. It verifies a saved M9 claim and carried tools reload, replay is rejected without changing the claim set, and each client sees only its own carried-item details. Construction uses schema 7; player discovery uses schema 3. The fixture creates no old-schema save and performs no migration. Separate construction restart coverage is provided by `Scripts/Tests/Construction/ConstructionPersistence.ps1`.
 
 This null-renderer authority and replication check uses deterministic test-provider identities; it does not verify a production online identity provider or rendered UI.
 ## M11 item-gain notification child
@@ -4653,7 +4652,7 @@ construction identity and icon key, never an inventory output. Keep the
 existing 5 Stone + 3 Wood direct cost and one priority-selected raw fuel item.
 
 `Kalmala.Gameplay.Inventory.Catalogue` asserts the item is absent while the
-recipe descriptor validates. `Kalmala.Gameplay.Construction.Schema6CurrentFormat`
+recipe descriptor validates. `Kalmala.Gameplay.Construction.Schema7CurrentFormat`
 retains a CampfireKit save-record round trip. `Kalmala.Gameplay.Crafting`
 continues to cover successful payment and overlap rejection without payment;
 the placement path still allocates before the atomic inventory exchange and

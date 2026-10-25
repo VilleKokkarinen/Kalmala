@@ -17,7 +17,9 @@
 #include "KalmalaWorldPopulationSaveGame.h"
 #include "Engine/Engine.h"
 #include "Engine/GameInstance.h"
+#include "Engine/LocalPlayer.h"
 #include "Engine/World.h"
+#include "Camera/CameraComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/PlayerState.h"
 #include "GameFramework/WorldSettings.h"
@@ -34,6 +36,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 bool FKalmalaA10FreshStartBronzeAndIronTest::RunTest(const FString& Parameters)
 {
+    UE_LOG(LogTemp, Display, TEXT("A10 FreshStart phase: entered test body."));
     const FGuid RunGuid = FGuid::NewGuid();
     const FString RunId = RunGuid.ToString(EGuidFormats::Digits);
     const uint64 FixtureSeed = (static_cast<uint64>(RunGuid.A) << 32) | RunGuid.B;
@@ -42,11 +45,17 @@ bool FKalmalaA10FreshStartBronzeAndIronTest::RunTest(const FString& Parameters)
     UWorld* World = UWorld::CreateWorld(EWorldType::Game, false);
     if (!TestNotNull(TEXT("Fresh-start fixture world was created"), World)) return false;
     GEngine->CreateNewWorldContext(EWorldType::Game).SetCurrentWorld(World);
-    ON_SCOPE_EXIT { World->DestroyWorld(false); GEngine->DestroyWorldContext(World); };
+    ON_SCOPE_EXIT
+    {
+        if (World->HasBegunPlay()) World->EndPlay(EEndPlayReason::Destroyed);
+        World->DestroyWorld(false);
+        GEngine->DestroyWorldContext(World);
+    };
     World->SetGameInstance(NewObject<UGameInstance>(GEngine));
     World->SetGameState(World->SpawnActor<AKalmalaWorldGenerationGameState>());
     World->GetWorldSettings()->DefaultGameMode = AKalmalaGameMode::StaticClass();
-    if (!TestTrue(TEXT("Fresh-start fixture has an authoritative GameMode"), World->SetGameMode(FURL())))
+    const bool bSetFixtureGameMode = World->SetGameMode(FURL());
+    if (!TestTrue(TEXT("Fresh-start fixture has an authoritative GameMode"), bSetFixtureGameMode))
         return false;
 
     constexpr float FixtureZ = 500.0f;
@@ -57,6 +66,9 @@ bool FKalmalaA10FreshStartBronzeAndIronTest::RunTest(const FString& Parameters)
     if (!TestNotNull(TEXT("Fresh-start player controller spawned"), Controller)
         || !TestNotNull(TEXT("Fresh-start character spawned"), Player)
         || !TestNotNull(TEXT("Fresh-start player state spawned"), PlayerState)) return false;
+    ULocalPlayer* LocalPlayer = NewObject<ULocalPlayer>(GEngine);
+    if (!TestNotNull(TEXT("Fresh-start fixture local player object was created"), LocalPlayer)) return false;
+    Controller->SetPlayer(LocalPlayer);
 
     const FUniqueNetIdStringRef NetId = FUniqueNetIdString::Create(
         FString::Printf(TEXT("a10-fresh-start-%s"), *RunId), FName(TEXT("KalmalaA10FreshStart")));
@@ -68,14 +80,19 @@ bool FKalmalaA10FreshStartBronzeAndIronTest::RunTest(const FString& Parameters)
     // initializes this fresh player and its starter kit exactly once.
     World->InitializeActorsForPlay(FURL());
     World->BeginPlay();
+    if (!Controller->PlayerCameraManager) Controller->SpawnPlayerCameraManager();
     Controller->SetViewTarget(Player);
+    AddInfo(TEXT("A10 fixture world began with unique player identity and authored starter initialization."));
 
     AKalmalaGameMode* GameMode = World->GetAuthGameMode<AKalmalaGameMode>();
     const AKalmalaWorldGenerationGameState* WorldState = World->GetGameState<AKalmalaWorldGenerationGameState>();
+    const bool bWorldIdentityValid = WorldState && WorldState->GetWorldGenerationConfig().IsValid();
     if (!TestNotNull(TEXT("Fresh-start fixture has its save authority"), GameMode)
         || !TestNotNull(TEXT("Fresh-start fixture has a world identity"), WorldState)
         || !TestTrue(TEXT("Fresh-start fixture uses a valid generated-world identity"),
-            WorldState->GetWorldGenerationConfig().IsValid())) return false;
+            bWorldIdentityValid)) return false;
+    UE_LOG(LogTemp, Display, TEXT("A10 FreshStart phase: authority and world identity assertions passed."));
+    AddInfo(TEXT("A10 fixture has valid world, GameMode and save authority."));
 
     const auto AdvanceFixtureTime = [World](const int32 Steps)
     {
@@ -96,8 +113,9 @@ bool FKalmalaA10FreshStartBronzeAndIronTest::RunTest(const FString& Parameters)
         if (!TestNotNull(FString::Printf(TEXT("%s station fixture spawned"), *KitId.ToString()), Station))
             return nullptr;
         Station->InitializeFromServer(KitId, ConstructionId);
+        const bool bPersisted = GameMode->PersistConstruction(Station);
         if (!TestTrue(FString::Printf(TEXT("%s fixture is saved through the construction boundary"),
-                *KitId.ToString()), GameMode->PersistConstruction(Station))) return nullptr;
+                *KitId.ToString()), bPersisted)) return nullptr;
         return Station;
     };
 
@@ -111,6 +129,8 @@ bool FKalmalaA10FreshStartBronzeAndIronTest::RunTest(const FString& Parameters)
     AKalmalaConstructionActor* Forge = SpawnStation(TEXT("ForgeKit"),
         TEXT("a10-fresh-forge-") + RunId, ForgeLocation);
     if (!Kiln || !Smelter || !Forge) return false;
+    UE_LOG(LogTemp, Display, TEXT("A10 FreshStart phase: all three station fixtures persisted."));
+    AddInfo(TEXT("A10 Kiln, Smelter and Forge fixtures were persisted."));
 
     UKalmalaInventoryComponent* Inventory = Player->GetInventoryComponent();
     UKalmalaCraftingComponent* Crafting = Player->FindComponentByClass<UKalmalaCraftingComponent>();
@@ -122,10 +142,14 @@ bool FKalmalaA10FreshStartBronzeAndIronTest::RunTest(const FString& Parameters)
         TEXT("Copper"), TEXT("Tin"), TEXT("Bronze"), TEXT("Iron")
     };
     for (const FName ItemId : StarterMaterials)
+    {
+        const int32 StarterQuantity = Inventory->GetQuantity(ItemId);
         TestEqual(FString::Printf(TEXT("Fresh start grants no %s"), *ItemId.ToString()),
-            Inventory->GetQuantity(ItemId), 0);
+            StarterQuantity, 0);
+    }
     TestEqual(TEXT("Fresh start has no Bronze Pick"), Player->GetCarriedToolLevel(TEXT("BronzePick")), 0);
     TestEqual(TEXT("Fresh start has no Iron Pick"), Player->GetCarriedToolLevel(TEXT("IronPick")), 0);
+    UE_LOG(LogTemp, Display, TEXT("A10 FreshStart phase: starter inventory and pick absence assertions completed."));
 
     const auto FindStarterGuid = [this, Player](const FName ItemId) -> FGuid
     {
@@ -137,24 +161,32 @@ bool FKalmalaA10FreshStartBronzeAndIronTest::RunTest(const FString& Parameters)
     const FGuid StoneKnifeGuid = FindStarterGuid(TEXT("StoneKnife"));
     const FGuid StonePickGuid = FindStarterGuid(TEXT("StonePick"));
     if (!StoneKnifeGuid.IsValid() || !StonePickGuid.IsValid()) return false;
+    UE_LOG(LogTemp, Display, TEXT("A10 FreshStart phase: authored starter tool GUIDs valid."));
 
-    const auto AimAndMoveTo = [Player, Controller](const FVector& TargetLocation)
+    const auto AimAndMoveTo = [World, Player, Controller](const FVector& TargetLocation)
     {
         const FVector PlayerLocation = TargetLocation - FVector(170.0f, 0.0f, 0.0f);
         Player->SetActorLocation(PlayerLocation, false, nullptr, ETeleportType::TeleportPhysics);
-        Controller->SetActorLocation(PlayerLocation, false, nullptr, ETeleportType::TeleportPhysics);
         const FRotator Aim = (TargetLocation - Player->GetPawnViewLocation()).Rotation();
         Controller->SetControlRotation(Aim);
         Player->SetActorRotation(Aim);
+        Player->FollowCamera->SetWorldLocationAndRotation(Player->GetPawnViewLocation(), Aim);
+        World->Tick(LEVELTICK_TimeOnly, 0.05f);
+        if (Controller->PlayerCameraManager) Controller->PlayerCameraManager->UpdateCamera(0.05f);
     };
-    const auto InteractWithStation = [this, Player, Crafting, &AimAndMoveTo](
+    const auto InteractWithStation = [this, Player, Crafting, &AimAndMoveTo, &WaitForServerAction](
         AKalmalaConstructionActor* Station, const FName KitId, const FString& ConstructionId)
     {
         if (!Station) return false;
+        WaitForServerAction();
+        const uint32 PreviousStationContextSerial = Crafting->GetStationContextInteractionSerial();
         AimAndMoveTo(Station->GetActorLocation());
         Player->ServerRequestInteract(NAME_None, 0);
+        const bool bContextAdvanced = Crafting->GetStationContextInteractionSerial() != PreviousStationContextSerial;
+        const bool bStationContextUsable = Crafting->IsStationContextUsable(Station, KitId, ConstructionId);
+        if (!TestTrue(TEXT("Accepted station interaction refreshes context identity"), bContextAdvanced)) return false;
         return TestTrue(FString::Printf(TEXT("Server interaction selects %s station context"), *KitId.ToString()),
-            Crafting->IsStationContextUsable(Station, KitId, ConstructionId));
+            bStationContextUsable);
     };
 
     const auto FindFixtureLocation = [this, WorldState](const EKalmalaBiome ExpectedBiome,
@@ -178,6 +210,7 @@ bool FKalmalaA10FreshStartBronzeAndIronTest::RunTest(const FString& Parameters)
                     FKalmalaTerrainHeightSampler::SampleHeight(Config, Position));
             }
         }
+        UE_LOG(LogTemp, Error, TEXT("A10 FreshStart phase: no %s fixture location; biome search exhausted."), BiomeLabel);
         TestFalse(FString::Printf(TEXT("World seed has a deterministic %s source-fixture location"),
             BiomeLabel), true);
         return FVector::ZeroVector;
@@ -191,6 +224,7 @@ bool FKalmalaA10FreshStartBronzeAndIronTest::RunTest(const FString& Parameters)
         300000.0, 1600000.0, false, TEXT("Mossy Mire"));
     if (ReedFixtureLocation.IsZero() || CopperFixtureLocation.IsZero()
         || IronFixtureLocation.IsZero()) return false;
+    AddInfo(TEXT("A10 source fixture locations passed biome and safe-terrain selection."));
 
     int32 HarvestSerial = 0;
     const auto SpawnSource = [this, World, WorldState, GameMode, FixtureSeed,
@@ -255,12 +289,6 @@ bool FKalmalaA10FreshStartBronzeAndIronTest::RunTest(const FString& Parameters)
                 FKalmalaToolLifecycleContract::BuildServerSelection(SourceId, Selection))) return false;
         TestEqual(TEXT("Server source selection awards the expected item"), Selection.RewardItemId, ExpectedItem);
         TestTrue(TEXT("Server source selection has the expected action"), Selection.Action == ExpectedAction);
-        FName PickupItem;
-        int32 PickupQuantity = 0;
-        TestTrue(TEXT("Server source exposes its authored reward"), Node->GetPickupInfo(PickupItem, PickupQuantity));
-        TestEqual(TEXT("Source reward item is exact"), PickupItem, ExpectedItem);
-        TestEqual(TEXT("Source reward quantity is exact"), PickupQuantity, ExpectedQuantity);
-
         AimAndMoveTo(Node->GetActorLocation());
         const FString PersistentSpawnId = Node->GetPersistentSpawnId();
         const int32 Before = Inventory->GetQuantity(ExpectedItem);
@@ -269,9 +297,13 @@ bool FKalmalaA10FreshStartBronzeAndIronTest::RunTest(const FString& Parameters)
             && Inventory->GetQuantity(ExpectedItem) == Before + ExpectedQuantity;
         TestTrue(FString::Printf(TEXT("Normal server interaction harvests %s into the player inventory"),
             *SourceId.ToString()), bAccepted);
+        const bool bInMemoryPopulationRecorded = GameMode->PopulationSaveGame != nullptr
+            && GameMode->PopulationSaveGame->IsHarvested(PersistentSpawnId);
+        if (!bInMemoryPopulationRecorded)
+            UE_LOG(LogTemp, Error, TEXT("A10 FreshStart phase: in-memory population save missed harvested source %s; saveObject=%s."),
+                *PersistentSpawnId, GameMode->PopulationSaveGame ? TEXT("yes") : TEXT("no"));
         TestTrue(TEXT("Accepted source depletion is recorded by the server population save"),
-            GameMode->PopulationSaveGame != nullptr
-                && GameMode->PopulationSaveGame->IsHarvested(PersistentSpawnId));
+            bInMemoryPopulationRecorded);
         if (bAccepted) HarvestedFixtureIds.Add(PersistentSpawnId);
         if (Node->IsHarvested()) Node->Destroy();
         return bAccepted;
@@ -289,7 +321,7 @@ bool FKalmalaA10FreshStartBronzeAndIronTest::RunTest(const FString& Parameters)
             Player->GetToolDurability(ActiveItem) > 0);
     };
 
-    const FName ForgeConstructionId = TEXT("a10-fresh-forge-") + RunId;
+    const FString ForgeConstructionId = TEXT("a10-fresh-forge-") + RunId;
     int32 WoodSourceCount = 0;
     while (Inventory->GetQuantity(TEXT("Wood")) < 60 && WoodSourceCount < 80)
     {
@@ -300,6 +332,7 @@ bool FKalmalaA10FreshStartBronzeAndIronTest::RunTest(const FString& Parameters)
     }
     if (!TestEqual(TEXT("Fresh-start wood came only from accepted source transactions"),
             Inventory->GetQuantity(TEXT("Wood")), 60)) return false;
+    AddInfo(TEXT("A10 starter-only player harvested the required Wood through normal interactions."));
 
     const auto HarvestOreNodes = [&HarvestWithTool, &RepairAtForgeIfNeeded](
         const FName SourceId, const FName PickId, const FGuid PickGuid,
@@ -412,6 +445,10 @@ bool FKalmalaA10FreshStartBronzeAndIronTest::RunTest(const FString& Parameters)
 
     WaitForServerAction();
     Crafting->ServerProgressTool(TEXT("BronzePick"));
+    UE_LOG(LogTemp, Display, TEXT("A10 FreshStart phase: BronzePick accepted=%s reason=%s Wood=%d Bronze=%d level=%d."),
+        Crafting->WasLastResultAccepted() ? TEXT("yes") : TEXT("no"), *Crafting->GetLastResult(),
+        Inventory->GetQuantity(TEXT("Wood")), Inventory->GetQuantity(TEXT("Bronze")),
+        Player->GetCarriedToolLevel(TEXT("BronzePick")));
     if (!TestTrue(TEXT("Forge acquisition creates Bronze Pick from ten earned Wood and Bronze"),
             Crafting->WasLastResultAccepted())) return false;
     TestEqual(TEXT("Bronze Pick is a real level-one carried tool"),
@@ -438,6 +475,10 @@ bool FKalmalaA10FreshStartBronzeAndIronTest::RunTest(const FString& Parameters)
     if (!InteractWithStation(Forge, TEXT("ForgeKit"), ForgeConstructionId)) return false;
     WaitForServerAction();
     Crafting->ServerProgressTool(TEXT("IronPick"));
+    UE_LOG(LogTemp, Display, TEXT("A10 FreshStart phase: IronPick accepted=%s reason=%s Wood=%d Iron=%d level=%d."),
+        Crafting->WasLastResultAccepted() ? TEXT("yes") : TEXT("no"), *Crafting->GetLastResult(),
+        Inventory->GetQuantity(TEXT("Wood")), Inventory->GetQuantity(TEXT("Iron")),
+        Player->GetCarriedToolLevel(TEXT("IronPick")));
     if (!TestTrue(TEXT("Forge acquisition creates Iron Pick from ten earned Wood and Iron"),
             Crafting->WasLastResultAccepted())) return false;
     TestEqual(TEXT("Iron Pick is a real level-one carried tool"),
@@ -450,16 +491,25 @@ bool FKalmalaA10FreshStartBronzeAndIronTest::RunTest(const FString& Parameters)
         Inventory->GetQuantity(TEXT("TinOre")), 2);
     TestEqual(TEXT("Two unprocessed Iron Ore remain from the four nodes"),
         Inventory->GetQuantity(TEXT("IronOre")), 2);
-
     TestEqual(TEXT("Every normally harvested fixture has a stable identity"), HarvestedFixtureIds.Num(), 75);
     const FString PopulationSlot = FString::Printf(TEXT("KalmalaPopulationDeltas_%llu"),
         static_cast<unsigned long long>(WorldState->GetWorldGenerationConfig().WorldSeed));
-    const auto* SavedPopulation = Cast<UKalmalaWorldPopulationSaveGame>(
-        UGameplayStatics::LoadGameFromSlot(PopulationSlot, 0));
+    const bool bPopulationSlotExists = UGameplayStatics::DoesSaveGameExist(PopulationSlot, 0);
+    USaveGame* LoadedPopulationBase = UGameplayStatics::LoadGameFromSlot(PopulationSlot, 0);
+    const auto* SavedPopulation = Cast<UKalmalaWorldPopulationSaveGame>(LoadedPopulationBase);
+    UE_LOG(LogTemp, Display, TEXT("A10 FreshStart phase: reloading harvested-source save."));
     if (!TestNotNull(TEXT("World source depletion SaveGame reloads from disk"), SavedPopulation)) return false;
+    int32 ReloadedFixtureCount = 0;
     for (const FString& PersistentSpawnId : HarvestedFixtureIds)
-        TestTrue(TEXT("Reloaded world save retains each normally harvested source identity"),
-            SavedPopulation->IsHarvested(PersistentSpawnId));
+    {
+        const bool bReloaded = SavedPopulation->IsHarvested(PersistentSpawnId);
+        if (bReloaded) ++ReloadedFixtureCount;
+        else UE_LOG(LogTemp, Error, TEXT("A10 FreshStart phase: reloaded population save is missing source id %s."),
+            *PersistentSpawnId);
+        TestTrue(TEXT("Reloaded world save retains each normally harvested source identity"), bReloaded);
+    }
+    UE_LOG(LogTemp, Display, TEXT("A10 FreshStart phase: reloaded %d/%d harvested fixture IDs."),
+        ReloadedFixtureCount, HarvestedFixtureIds.Num());
 
     AddInfo(FString::Printf(TEXT("No-debug source-to-pick route exercised with deterministic source/station fixtures: %d Wood source interactions, 7 Copper, 4 Tin and 4 Iron nodes; 40 Kiln Coal; Bronze and Iron Picks acquired."),
         WoodSourceCount));

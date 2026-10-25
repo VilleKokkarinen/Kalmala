@@ -148,9 +148,9 @@ bool FKalmalaPlacementPreviewTest::RunTest(const FString& Parameters)
     World.WorldSeed = 418;
     UKalmalaConstructionSaveGameV2* CurrentSave = NewObject<UKalmalaConstructionSaveGameV2>(GetTransientPackage());
     CurrentSave->InitializeForWorld(World);
-    TestTrue(TEXT("Schema 6 persists an empty Garden Plot construction"), CurrentSave->AddRecord(PlotRecord));
-    TestTrue(TEXT("Schema 6 persists a vertical beam without a new state field"), CurrentSave->AddRecord(BeamRecord));
-    TestTrue(TEXT("Schema 6 persists a horizontal beam without a new state field"), CurrentSave->AddRecord(HorizontalBeamRecord));
+    TestTrue(TEXT("Schema 7 persists an empty Garden Plot construction"), CurrentSave->AddRecord(PlotRecord));
+    TestTrue(TEXT("Schema 7 persists a vertical beam without a new state field"), CurrentSave->AddRecord(BeamRecord));
+    TestTrue(TEXT("Schema 7 persists a horizontal beam without a new state field"), CurrentSave->AddRecord(HorizontalBeamRecord));
     UWorld* EndpointWorld = UWorld::CreateWorld(EWorldType::Game, false);
     if (TestNotNull(TEXT("Structural endpoint test world is available"), EndpointWorld))
     {

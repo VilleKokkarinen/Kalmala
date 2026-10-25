@@ -334,20 +334,12 @@ bool FKalmalaCatalogueIconTest::RunTest(const FString&)
     TSet<FName> CheckedIds;
     const auto ExpectedTexturePath = [](FName Id)
     {
-        FName StatusIconId = NAME_None;
-        if (Id == TEXT("MendingScroll")) StatusIconId = TEXT("Mending");
-        else if (Id == TEXT("HearthShieldScroll")) StatusIconId = TEXT("HearthShield");
-        else if (Id == TEXT("BearsVigorScroll")) StatusIconId = TEXT("BearsVigor");
-        else if (Id == TEXT("DeerCallScroll")) StatusIconId = TEXT("DeerCall");
-
-        const bool bUsesStatusTexture = !StatusIconId.IsNone();
         const FName AssetId = Id == TEXT("StoneAxe") ? FName(TEXT("FieldHatchet"))
             : Id == TEXT("StoneKnife") ? FName(TEXT("ReedKnife"))
             : Id == TEXT("CampFire") ? FName(TEXT("CampfireKit"))
             : Id == TEXT("GardenPlot") ? FName(TEXT("GardenPlotKit")) : Id;
-        const FString AssetName = (bUsesStatusTexture ? StatusIconId : AssetId).ToString();
-        const TCHAR* Directory = bUsesStatusTexture ? TEXT("Status") : TEXT("Items");
-        return FString::Printf(TEXT("/Game/Kalmala/UI/Icons/%s/%s.%s"), Directory, *AssetName, *AssetName);
+        const FString AssetName = AssetId.ToString();
+        return FString::Printf(TEXT("/Game/Kalmala/UI/Icons/Items/%s.%s"), *AssetName, *AssetName);
     };
     const auto Check = [&](FName Id)
     {

@@ -50,7 +50,7 @@ bool FKalmalaConstructionSaveGameTest::RunTest(const FString& Parameters)
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaConstructionSaveGameV2Test,
-    "Kalmala.Gameplay.Construction.Schema6CurrentFormat",
+    "Kalmala.Gameplay.Construction.Schema7CurrentFormat",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FKalmalaConstructionSaveGameV2Test::RunTest(const FString& Parameters)
@@ -159,17 +159,17 @@ bool FKalmalaConstructionSaveGameV2Test::RunTest(const FString& Parameters)
     InvalidFloor.GardenPlot.PlantCrop(EKalmalaGardenCropMode::CarrotFood);
     TestFalse(TEXT("Non-plot construction rejects crop state"),
         UKalmalaConstructionSaveGameV2::IsValidRecord(InvalidFloor));
-    TestTrue(TEXT("Schema 6 accepts an established camp record"), Save->AddRecord(Floor));
-    TestTrue(TEXT("Schema 6 accepts a bounded station attachment"), Save->AddStationAttachmentRecord(Rack));
-    TestTrue(TEXT("Schema 6 retains the stable Campfire construction identity"), Save->AddRecord(Campfire));
-    TestTrue(TEXT("Schema 6 saves kiln input, output, and remaining active seconds"), Save->AddRecord(Kiln));
-    TestTrue(TEXT("Schema 6 saves Smelter input and active job state"), Save->AddRecord(Smelter));
+    TestTrue(TEXT("Schema 7 accepts an established camp record"), Save->AddRecord(Floor));
+    TestTrue(TEXT("Schema 7 accepts a bounded station attachment"), Save->AddStationAttachmentRecord(Rack));
+    TestTrue(TEXT("Schema 7 retains the stable Campfire construction identity"), Save->AddRecord(Campfire));
+    TestTrue(TEXT("Schema 7 saves kiln input, output, and remaining active seconds"), Save->AddRecord(Kiln));
+    TestTrue(TEXT("Schema 7 saves Smelter input and active job state"), Save->AddRecord(Smelter));
     TestTrue(TEXT("Current construction schema saves Standing Light fuel"), Save->AddRecord(StandingLight));
     TestTrue(TEXT("Garden Plot saves in the current construction record"), Save->AddRecord(Plot));
     TestTrue(TEXT("Onion Garden Plot saves in the current construction record"), Save->AddRecord(OnionPlot));
-    TestFalse(TEXT("Schema 6 rejects a duplicate stable construction ID across record kinds"),
+    TestFalse(TEXT("Schema 7 rejects a duplicate stable construction ID across record kinds"),
         Save->AddStationAttachmentRecord(MakeRecord(TEXT("camp-floor-01"), TEXT("ForgeAnvilKit"))));
-    TestFalse(TEXT("Schema 6 rejects unsupported construction identities"),
+    TestFalse(TEXT("Schema 7 rejects unsupported construction identities"),
         Save->AddRecord(MakeRecord(TEXT("camp-unknown-01"), TEXT("UnknownConstructionKit"))));
     TestEqual(TEXT("Rejected current-schema additions leave the live candidate unchanged"), Save->GetRecords().Num(), 8);
 
@@ -331,14 +331,14 @@ bool FKalmalaConstructionSaveGameV2Test::RunTest(const FString& Parameters)
     UKalmalaConstructionSaveGameV2* IdentityChecks = DuplicateObject<UKalmalaConstructionSaveGameV2>(Save, GetTransientPackage());
     const FKalmalaM7SaveIdentity ExpectedIdentity = IdentityChecks->Identity;
     IdentityChecks->Identity.WorldSeed++;
-    TestFalse(TEXT("Schema 6 rejects a mismatched identity seed"), IdentityChecks->MatchesWorld(World));
+    TestFalse(TEXT("Schema 7 rejects a mismatched identity seed"), IdentityChecks->MatchesWorld(World));
     IdentityChecks->Identity = ExpectedIdentity;
     IdentityChecks->Identity.GeneratorRevision--;
-    TestFalse(TEXT("Schema 6 rejects a mismatched generator revision"), IdentityChecks->MatchesWorld(World));
+    TestFalse(TEXT("Schema 7 rejects a mismatched generator revision"), IdentityChecks->MatchesWorld(World));
     IdentityChecks->Identity = ExpectedIdentity;
     IdentityChecks->Identity.Scope = EKalmalaM7SaveScope::Player;
     IdentityChecks->Identity.OwnerIdentity = TEXT("provider:other");
-    TestFalse(TEXT("Schema 6 rejects a mismatched persistence scope"), IdentityChecks->MatchesWorld(World));
+    TestFalse(TEXT("Schema 7 rejects a mismatched persistence scope"), IdentityChecks->MatchesWorld(World));
 
     UKalmalaConstructionSaveGameV2* InvalidCurrent = DuplicateObject<UKalmalaConstructionSaveGameV2>(Save, GetTransientPackage());
     InvalidCurrent->SchemaVersion = 0;

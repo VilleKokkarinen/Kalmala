@@ -420,7 +420,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     - [x] Integrate passed I4 source acceptance, enable and verify Moonstone/Dusk Diamond rewards, and resolve the inherited inventory notification-baseline verification disposition. Canonical source and persisted payload tests, inventory and two-visit reconnect checks passed.
     - [x] Pass combined integrated I5 verification and merge A9 normally into local master at a safe clean boundary, preserving the other worker's handoff. Final runtime commit `d0ead245`; 187/187 automation cases passed, with applicable builds, validators, peers/restart and renders.
 
-- [ ] **A10 — Acceptance.** [Full criteria](docs/alpha-item-details.md#a10)
+- [x] **A10 — Acceptance.** [Full criteria](docs/alpha-item-details.md#a10)
   - [x] Audit all approved item IDs against registered JSON and generated/imported runtime icons; zero missing entries, references or fallback icons.
     Audit 2026-10-24: 61 registered JSON files and 777 references resolve;
     all 152 definitions have ledger-backed runtime mappings and generated,
@@ -429,10 +429,11 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     `Scripts/Validate-UIIcons.ps1 -Category Catalogue` both pass.
   - [x] Review milestones: I0 A0; I1 A1; I2 A2–A6 except Planting Trowel; I3 A7 farming + Planting Trowel; I4 A8–A8b with its final enemy gate before A9; I5 A9.
     Review 2026-10-24: historical gate evidence and remaining gaps are mapped in
-    PROGRESS.md. The post-gate Planting Trowel menu update and A10 no-grant
-    fresh-world acceptance remain open for later verification. Current A9 scope
-    explicitly excludes the retired cargo proposal; the item audit should record
-    cargo as deferred/excluded (N/A), with no scope conflict or implementation.
+    PROGRESS.md. Final A10 verification on 2026-10-25 includes the post-gate
+    Planting Trowel menu, no-debug Bronze/Iron fresh-start route, shelter,
+    accessory peers/restart and rendered inventory acceptance. The retired
+    cargo proposal is excluded/N/A under the accepted A9 scope; it has no
+    implementation or verification requirement.
   - [x] Check each included item's source, recipe, use, upgrades, icon and save behavior.
     A10 item audit 2026-10-24: Sinew, Bow String, Lightwood, Bone Fragment,
     six cooking outputs, Hearth Broth, Wild carrots (Carrot, CarrotSeed),
@@ -447,10 +448,10 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     PROGRESS.md. The two approved A1 pick acquisition costs were corrected on
     2026-10-25: BronzePick now costs Wood x10 + Bronze x10; IronPick now costs
     Wood x10 + Iron x10. Their separate pickaxe upgrade costs remain
-    unchanged. No-debug fresh-start acceptance below remains open. A focused
-    Dev Automation and compiled-mirror runner now cover normal source harvest,
+    unchanged. The no-debug fresh-start acceptance below passed in a
+    source-matched compiled mirror: the harness used normal source harvest,
     Kiln/Smelter processing, Forge recipes and source-depletion persistence;
-    the harness still must be built and pass before the gate is complete.
+    deterministic placed fixtures do not establish procedural-world traversal.
     A4 items, A5 `BasicTorch`, A6 foraged foods (`Lingonberry`,
     `ForestChanterelle`) and recovery draughts (`BerryRecoveryDraught`,
     `RootStaminaDraught`) are audited; no A6 family remains in scope. The
@@ -478,16 +479,26 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     carried GUID. Condition persistence commits before target health changes;
     failed player persistence rolls condition back and rejects the hit. Focused
     authority, miss, wrong-GUID, depleted, persistence-failure, accepted-hit,
-    saved-condition, and other-melee no-wear assertions were added. Their
-    automation execution remains for final verification; the existing Editor
-    binary was not treated as current code. No other weapon's wear behavior was
-    changed. All approved item audits and N/A dispositions are now recorded;
-    A10 remains open for the fresh-start progression and final verification
-    gates below.
-  - [ ] Run required full verification at each milestone's final increment.
-  - [ ] Verify fresh-start progression through Bronze and Iron without debug grants.
-  - [ ] Verify approved farming, shelter, cargo, accessories, peers and restart.
-  - [ ] Record results/blockers; mark complete only after required gates pass.
+    saved-condition, and other-melee no-wear assertions passed in the final
+    current-source automation queue. No other weapon's wear behavior changed.
+    All approved item audits and N/A dispositions are recorded.
+  - [x] Run required full verification at each milestone's final increment.
+  - [x] Verify fresh-start progression through Bronze and Iron without debug grants.
+  - [x] Verify approved farming, shelter, cargo, accessories, peers and restart.
+  - [x] Record results/blockers; mark complete only after required gates pass.
+    Final A10 verification 2026-10-25: isolated Editor and Game Development
+    builds passed; the current-source Kalmala automation queue passed 209/209
+    tests (eight tests emitted non-failing context-free world teardown warnings).
+    Catalogue references/icons, creature catalogue and documentation contracts
+    passed. The fresh-start runner earned Bronze and Iron Picks through ordinary
+    server harvest, processing and Forge transactions, with 75/75 source IDs
+    retained after reload. Garden Plot, camp/shelter persistence, construction
+    persistence, Seed/Resume reconnect, A9Gear peer/restart and rendered
+    equipped-inventory acceptance passed. Cargo is excluded/N/A under accepted
+    scope. Exact commands, logs, warnings, repairs and evidence limits are in
+    the 2026-10-25 A10 final-verification record in PROGRESS.md. The fixture
+    progression uses deterministic placed actors and does not claim procedural
+    traversal; no required A10 gate remains open.
 
 ### Biome height rework and Meadows terrain — user request, 2026-10-24
 
