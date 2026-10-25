@@ -3800,9 +3800,14 @@ effective controls, biome/water fields, and collision-triangle slopes. It
 checks the effective-control log marker to reject a stale binary, along with
 fixed profile coordinates, normalized weights, disabled basin support,
 lowland bounds/formula and candidate composition. Trial CSVs and the summary
-are written to a short temporary directory. BH25d uses fresh-source results to
-select values; the script does not build or select tuning. Rendered shoreline
-and traversal acceptance remain in BH26.
+are written to a short temporary directory. BH25d ran the 12 trials from a
+source-hash-verified Editor mirror and retained the measured center defaults:
+0.50 Meadow share, 200 cm floor, 1,200 cm ceiling and 0.20 compression. Each
+trial returned 44 rows; all variants preserved water/course state, biome labels
+and weights, and had zero basin weight. The nominal 44-sample nearest-rank
+slope p50/p90/p95/max was 0.907/13.286/18.073/23.543 degrees. The script does
+not build or select tuning. Rendered shoreline and traversal acceptance remain
+in BH26.
 
 ### Mossy Mire profile sweep
 

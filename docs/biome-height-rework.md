@@ -3,14 +3,14 @@
 Status: user-requested design direction, 2026-10-24; implementation is in
 progress under `BACKLOG.md` after A10 acceptance and before Monster Population.
 The fixed baselines, basin policy, shared sampler, preview controls and Meadows
-hill/rolling/floor layers and the provisional Shimmering Lakes blend are
+hill/rolling/floor layers and the Shimmering Lakes blend are
 implemented incrementally. BH25b2 selected 4 / 0.6 / 0.1 m shared
 Elderwood/Tundra relief amplitudes after repairing a bank-caused new-water
 regression and a fixed 1 cm source-land shelf; BH25b3 consolidated the selected
 profile ranges and measured cost guardrails. BH25c selected 8 m / 0.1 m Meadows
-floor detail from fresh-source trials. BH15a integrates the provisional Mossy
-Mire lowland candidate; its profile harness is BH15b, fresh-source tuning
-remains BH25e, and Lakes numeric selection remains BH25d. Rendered terrain and
+floor detail, and BH25d retained measured Shimmering Lakes center controls.
+BH15a integrates the provisional Mossy Mire lowland candidate; its profile
+harness is BH15b and fresh-source tuning remains BH25e. Rendered terrain and
 under-vegetation acceptance remains BH26. This plan supersedes
 Meadows-specific height details where they differ.
 
@@ -966,17 +966,18 @@ compressed = H - max(0, H - F) * strength
 lakes = lerp(elderwoodCandidate, meadowsCandidate, M) + compressed - H
 ```
 
-The provisional controls are Meadow share 0.50 (bounded 0.35–0.65), floor
-200 cm (100–500 cm), ceiling 1,200 cm (500–2,000 cm and above the floor), and
-compression 0.20 (0.05–0.35). These ranges are commandlet preview bounds,
-not accepted terrain tuning. The lowland factor is continuous through both
-height-band edges and humidity, is monotonic and never lowers the source below
-the configured floor. The shared compiled basin-disabled policy remains
+The commandlet preview bounds are Meadow share 0.35–0.65, floor 100–500 cm,
+ceiling 500–2,000 cm (above the floor), and compression 0.05–0.35. BH25d ran
+the one-factor profile trials and retained the measured center controls: share
+0.50, floor 200 cm, ceiling 1,200 cm, and compression 0.20. The lowland factor
+is continuous through both height-band edges and humidity, is monotonic and
+never lowers the source below the configured floor. The shared compiled
+basin-disabled policy remains
 unchanged; no inland water is created. Focused source tests cover those
 properties, neighboring Meadows/Lakes weights and the fixed former-basin site.
 No build or automation was run for BH14a. BH14b adds stale-safe fixed profile
-trials; BH25d must use freshly compiled source to measure and select values.
-Rendered profile acceptance remains BH26.
+trials; BH25d measured and selected controls from those profiles. Rendered
+profile acceptance remains BH26.
 
 ### BH14b Shimmering Lakes profile sweep
 
@@ -994,14 +995,69 @@ triangle slopes.
 Run `Scripts/Tests/World/BiomeLakesProfiles.ps1 -ValidateOnly` to validate the
 fixed fixture without Unreal. After compiling BH14b source, run the script with
 `-Project <project-path>` to run 12 one-control-at-a-time values around the
-provisional center. It checks the effective-control log marker and output
+measured center. It checks the effective-control log marker and output
 shape, so a stale binary cannot produce accepted rows. The runner checks
 normalized biome weights, disabled basin support, lowland bounds/formula,
 candidate composition and fixed-site Lakes controls, then writes raw CSVs and a
 summary under a short temporary directory. It neither builds nor selects
-production controls. No build or trial was run for BH14b; BH25d must measure
-the fixed profiles using freshly compiled source and select only measured
-values. Rendered shoreline/traversal acceptance remains BH26.
+production controls. BH14b itself ran no build or trial; BH25d used a
+source-hash-verified BH25c Editor mirror, excluding only the unchanged pre-goal
+water-mesh test translation unit. The 12 trial outputs and selection are
+recorded below. Rendered shoreline/traversal acceptance remains BH26.
+
+### BH25d fresh-source Shimmering Lakes selection
+
+The BH14b runner completed 12 exact-marker trials, varying one control at a
+time over the four fixed 100 m profiles (44 samples per trial). The current
+BH25c Editor mirror matched 1,071 tracked runtime input hashes exactly; one
+unchanged test source differed only in line endings, and the unchanged pre-goal
+water-mesh test translation unit was absent as documented. The binary therefore
+included the selected Meadows 8 m / 0.1 m defaults. No rebuild was needed
+because the mirror matched current source; no automation suite was run.
+
+All trials satisfied the runner's finite-value, normalized-weight, lowland
+formula/bounds, candidate-composition, and fixed-site checks. A numeric sweep of
+the lowland function at both humidity-weight endpoints checked 144,000 adjacent
+source-height comparisons across the 12 settings; every curve remained
+monotonic. Every trial retained four sea-level wet river-channel rows with
+positive river weight and zero basin weight; the other 40 rows stayed dry.
+Water level, HasWater, river/stream/ocean weights, biome labels and biome
+weights were identical to the combined nominal output for all 44 coordinates.
+The four measured nominal trial files were byte-identical, confirming the
+combined selected center state was exercised. Profile spans and slope
+percentiles below include the four expected wet river samples.
+
+| One varied control | Value | Four profile height spans: min / mean / max (cm) | Collision slope nearest-rank p50 / p90 / p95 / max (degrees) | Lowland candidate min–max (cm) | Max source reduction (cm) | Max final / collision height change vs nominal (cm) |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Meadow share | 0.35 | 21.512 / 325.849 / 534.155 | 0.818 / 12.943 / 18.015 / 23.469 | 292.980–393.027 | 48.031 | 15.937 / 15.895 |
+| Meadow share | 0.50 | 24.651 / 334.335 / 550.026 | 0.907 / 13.286 / 18.073 / 23.543 | 292.980–393.027 | 48.031 | 0 / 0 |
+| Meadow share | 0.65 | 27.850 / 342.939 / 566.115 | 0.997 / 13.633 / 18.132 / 23.619 | 292.980–393.027 | 48.031 | 16.155 / 16.112 |
+| Lowland floor (cm) | 100 | 22.819 / 327.062 / 538.937 | 0.864 / 12.947 / 17.935 / 23.441 | 267.319–372.846 | 68.212 | 13.616 / 13.614 |
+| Lowland floor (cm) | 200 | 24.651 / 334.335 / 550.026 | 0.907 / 13.286 / 18.073 / 23.543 | 292.980–393.027 | 48.031 | 0 / 0 |
+| Lowland floor (cm) | 500 | 20.728 / 342.715 / 575.312 | 0.963 / 13.497 / 18.126 / 23.599 | 300.024–441.058 | 0 | 26.061 / 26.060 |
+| Lowland ceiling (cm) | 500 | 21.674 / 332.364 / 550.647 | 0.898 / 13.159 / 18.009 / 23.502 | 280.019–398.530 | 45.020 | 3.884 / 3.884 |
+| Lowland ceiling (cm) | 1,200 | 24.651 / 334.335 / 550.026 | 0.907 / 13.286 / 18.073 / 23.543 | 292.980–393.027 | 48.031 | 0 / 0 |
+| Lowland ceiling (cm) | 2,000 | 24.201 / 338.930 / 561.707 | 0.936 / 13.414 / 18.107 / 23.578 | 297.499–414.376 | 26.682 | 11.762 / 11.761 |
+| Compression | 0.05 | 21.729 / 340.610 / 568.943 | 0.942 / 13.444 / 18.113 / 23.585 | 298.263–429.050 | 12.008 | 19.494 / 19.493 |
+| Compression | 0.20 | 24.651 / 334.335 / 550.026 | 0.907 / 13.286 / 18.073 / 23.543 | 292.980–393.027 | 48.031 | 0 / 0 |
+| Compression | 0.35 | 27.444 / 328.121 / 531.410 | 0.873 / 13.128 / 18.033 / 23.502 | 287.696–357.004 | 84.054 | 19.169 / 19.168 |
+
+The selected controls remain the measured nominal combination: 0.50 Meadow
+share, 200 cm floor, 1,200 cm ceiling, and 0.20 compression. It yields up to
+48.031 cm of source-height compression while keeping all four channel controls
+and their water states unchanged. The low/high trials trade lowland depth and
+profile ranges without a consistent collision-slope or water-state advantage;
+the one-control trials do not establish the response of a combined off-center
+set. BH01 supplies only fixed center samples for direct comparison: the seed-418
+former-basin center changed from 307.496 / 307.512 cm final/collision height,
+2.297 degrees and basin water at 356.951 cm to current nominal 25.399 / 24.792
+cm, 12.421 degrees and dry sea-level status under the already-disabled basin
+policy from BH03; its biome label remained Lakes. The seed-419 center changed
+from 383.552 / 383.572 cm and 0.095 degrees to 441.498 / 441.548 cm and 0.793
+degrees; it remained dry and retained the Lakes label. These baseline-to-current
+differences predate BH25d; all BH25d trial variants match the current nominal
+water and biome state. Rendered shoreline and traversal acceptance remains
+BH26.
 
 ### BH17 Thunder Mountains high-base shaping
 

@@ -766,14 +766,16 @@ run for this goal and may exceed one turn.
       maximum final/collision seam deltas were 0.026 / 0.028 cm. Raw profiles
       and comparisons are in `docs/meadows-plan.md`. Rendered readability and
       under-vegetation acceptance remain BH26.
-    - [ ] **BH25d — Run Shimmering Lakes profile trials.** With freshly compiled
-      BH14b source, compare the fixed Lakes transects and collision slopes
-      against BH01. Sweep Meadow share 0.35/0.50/0.65, lowland floor
-      100/200/500 cm, ceiling 500/1200/2000 cm subject to ceiling > floor, and
-      compression 0.05/0.20/0.35, varying one control at a time around the
-      provisional center. Record raw profiles, validate bounds and monotonic
-      lowland behavior, and select only measured values; rendered acceptance
-      remains BH26.
+    - [x] **BH25d — Run Shimmering Lakes profile trials.** The current-source
+      BH14b mirror ran all 12 one-control trials against the fixed 44 samples.
+      The measured center settings remain selected: Meadow share 0.50, floor
+      200 cm, ceiling 1,200 cm and compression 0.20. All trials preserved
+      water/course state, biome labels and weights, with zero basin weight; the
+      nominal output's 44-sample nearest-rank slope p50/p90/p95/max was
+      0.907/13.286/18.073/23.543 degrees. Raw profile ranges, monotonic checks,
+      and BH01 center comparisons are recorded in
+      `docs/biome-height-rework.md`. Rendered
+      shoreline/traversal acceptance remains BH26.
     - [ ] **BH25e — Run Mossy Mire profile trials.** With freshly compiled
       BH15b source, compare fixed Mire transects and collision slopes against
       BH01. Sweep target height 200/300/500 cm, compression scale 300/700/1200 cm

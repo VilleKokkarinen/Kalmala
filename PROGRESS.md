@@ -9767,3 +9767,67 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   BH25c backlog block and this progress entry were synchronized. Active
   A10/Monster content was preserved.
 - **Next eligible task:** BH25d — run Shimmering Lakes profile trials.
+
+## Run 2026-10-25 — Select Shimmering Lakes controls (BH25d)
+
+- **Selected increment:** BH25d, the first unchecked child under BH25. The
+  worktree was clean at `99c8db0a`; no other run was modifying this checkout.
+  A10 and Monster work remained in separate worktrees.
+- **Work completed:** Ran all 12 BH14b one-control-at-a-time profile trials
+  across four fixed 100 m transects (44 samples per trial). Retained the
+  measured combined center settings: Meadow share 0.50, lowland floor 200 cm,
+  ceiling 1,200 cm and compression 0.20. Full raw ranges and the selection
+  rationale are recorded in `docs/biome-height-rework.md`.
+- **Source freshness:** The BH25c Editor mirror matched 1,071 of 1,073 tracked
+  runtime input hashes exactly. The one other test source was byte-different
+  only by line endings; the single unchanged pre-goal water-mesh test
+  translation unit was absent as documented. The mirror binary therefore
+  included the current source and selected Meadows 8 m / 0.1 m defaults; no
+  rebuild was needed. All 12 commandlets returned the exact effective-control
+  marker and 44 fixed rows.
+- **Measurements and checks:** All 12 settings passed finite-output, normalized
+  biome-weight, disabled-basin, lowland formula/bounds, candidate-composition
+  and fixed-site checks. A numeric lowland-curve sweep passed 144,000 adjacent
+  source-height comparisons across the 12 control settings and both humidity
+  weight endpoints. Each trial retained four sea-level wet river-channel rows
+  with positive river weight and zero basin weight; the other 40 rows remained
+  dry. Compared with the combined nominal trial, water level, `HasWater`,
+  river/stream/ocean weights, biome labels and biome weights changed at zero of
+  44 coordinates. The four nominal trial CSVs were byte-identical. Nominal
+  profile spans min/mean/max were 24.651 / 334.335 / 550.026 cm; nearest-rank
+  collision slope p50/p90/p95/max across all 44 samples was 0.907 / 13.286 /
+  18.073 / 23.543 degrees. The maximum source-to-lowland reduction was
+  48.031 cm. `BiomeLakesProfiles.ps1 -ValidateOnly` and its PowerShell parser
+  check passed.
+- **BH01 comparison:** BH01 records only the two Lakes center samples, not the
+  full 44-point profiles. At the seed-418 former-basin center, BH01 measured
+  307.496 / 307.512 cm final/collision height, 2.297 degrees, and basin water
+  at 356.951 cm; current nominal measures 25.399 / 24.792 cm, 12.421 degrees
+  and dry sea-level status under the basin-disabled policy introduced by BH03.
+  The Lakes biome label remains. The seed-419 center changed from
+  383.552 / 383.572 cm and 0.095 degrees to 441.498 / 441.548 cm and 0.793
+  degrees; it remained dry and retained its label. These BH01-to-current
+  differences predate BH25d. All profile variants matched current nominal
+  water and biome state.
+- **Selection:** Kept the measured center combination because it was directly
+  exercised together, preserves the four river controls and basin-disabled
+  behavior, and avoids combining one-factor alternatives whose joint response
+  was not measured. Rendered shoreline and traversal acceptance remains BH26.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, and
+  `docs/biome-height-rework.md`. No gameplay source or generated asset changed.
+- **Full verification:** Deferred to BH26. No new Editor build, automation
+  suite, rendered preview or traversal inspection was run in this increment.
+- **Observable impact:** The selected Lakes controls are now documented and
+  tracked; their compiled values remain the measured center defaults already
+  present in source.
+- **Networking/authority:** No network, authority, persistence, or gameplay
+  behavior changed.
+- **Known limitations / remaining scope:** Numeric profiles do not establish
+  rendered shoreline readability. The BH01 wet-to-dry former-basin change is
+  the expected BH03 basin-policy effect, not a BH25d trial change.
+- **Main-checkout handoff:** Main `BACKLOG.md` has a genuine BH25 scope conflict:
+  it ends BH25 at BH25d, while this worktree has BH25e. Per the handoff rules,
+  main backlog remains untouched. This BH25d entry was appended to main
+  `PROGRESS.md`; A10/Monster content is preserved.
+- **Next eligible task:** BH25e — run Mossy Mire profile trials.
