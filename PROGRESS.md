@@ -11114,3 +11114,95 @@
   final acceptance pass.
 - **Next eligible A10 item audit:** Storm Sapphire (`StormSapphire`), next in
   A9 backlog order.
+
+## Run 2026-10-25 — A10 per-item audit: A9 Storm Sapphire
+
+- **Selected increment and registration:** audited only `StormSapphire` and its
+  directly applicable `StormcutSword`; the A10 item-audit child remains open.
+  Schema-16 registration includes `items/materials/gems.json`, the weapon
+  profile file `items/equipment/weapons/swords.json`, A9 Forge recipes, sword
+  level-up costs, shared item-stat rewards, and attacks. `StormSapphire` is a
+  20-stack, 0.1 kg raw cobalt sapphire. It has no equipment, attack, upgrade,
+  repair, or raw-gem crafting profile. Its only approved source is Thunder
+  Mountains treasure; it has no enemy-drop or gemstone-rock source. The sword
+  is one-handed, combat-only, and uses its weapon profile and Basic attack.
+- **Source and authority:** `FKalmalaGemstoneContract::SelectTreasure` adds
+  Storm Sapphire only for Thunder Mountains and a deterministic 1/50
+  descriptor-seed/world-seed roll. `PrepareWorldTreasure` checks server
+  authority, world-population identity, POI type, biome, and exact canonical
+  generated descriptor before storing the generated loot, including empty
+  results, in population save schema 2. The claim path checks server authority,
+  same-world living interactor, 250 cm range, existing unclaimed canonical
+  treasure, and inventory capacity. It commits the server-selected items,
+  persists the claimed chest state before publishing success, and rolls back
+  the inventory transaction if persistence fails. Ordinary inventory materials
+  remain session-only. Carried sword state uses the separate authenticated
+  player save; current code schema 3 stores item ID, level, condition, and
+  instance GUID. The schema-2 record has no Stormcut-specific reconnect
+  evidence.
+- **Weapon, recipe, and upgrades:** the Forge level-one recipe consumes 20 Iron,
+  2 Densewood, 2 Deer Hide, and 1 Storm Sapphire for one Stormcut Sword. The
+  profile starts at 220 condition, weighs 2.5 kg, and authors 70 Slash. Basic
+  has no added style or elemental channels, including Lightning. Its level-one
+  Forge upgrade consumes 5 Iron and 1 Densewood; the shared reward adds 4 Slash
+  and 30 maximum condition. Current stations reach Forge level two; higher
+  authored tiers retain the existing station prerequisite. The specific
+  `Kalmala.Gameplay.Combat.StormcutSword` case checks sword lifecycle,
+  one-handed held silhouette, Slash-only damage, initial condition, client
+  craft rejection, paid Forge acquisition, upgrade cost/stats, GUID retention,
+  and free station repair. The A9 gear-recipe case is included in historical
+  acceptance for paid gear exchanges and equip behavior. No accessory applies.
+- **Condition contract assessment:** the shared `ApplyServerUse` path spends
+  one condition for validated tool-action uses. The melee combat path separately
+  revalidates a usable carried item and applies server-authored damage; it does
+  not call that action-use path or spend condition on accepted wildlife hits.
+  The Free Melee contract explicitly says misses cost no condition and
+  successful hits use authored damage, but does not state a hit-cost rule. The
+  architecture's Spear-only sentence may be a specific item exception or stale
+  legacy wording; it does not clearly establish a Stormcut hit-wear
+  requirement. No Stormcut source change was justified by this audit.
+- **Icon, provenance, and visual acceptance:** original, prepared, and imported
+  assets exist for both items. Provenance prompts describe a deep cobalt
+  sapphire and a plain iron blade with a sapphire pommel and no lightning
+  effect, consistent with the item text and Slash-only profile. Manifest and
+  runtime mappings are present (StormSapphire → Rock variant 0; StormcutSword
+  → Sword variant 3). Focused icon validation passed for both. The historical
+  A9 menu render fixture includes the raw Storm Sapphire icon but equips
+  Opal Helm, Garnet Necklace, and Dusk Ring; it does not render Stormcut Sword
+  in inventory or hand.
+- **Focused checks and acceptance gaps:** `python
+  Scripts/Validate-CatalogueReferences.py` passed for 61 registered JSON files,
+  777 references, and all 152 ledger-backed icon mappings.
+  `Validate-UIIcons.ps1 -Category Catalogue -Id StormSapphire` and the
+  corresponding StormcutSword check passed (both source PNGs are 1254×1254
+  RGBA; imported assets are 64×64 RGBA with transparency). No Unreal test,
+  build, peer runner, or render was run in this increment. Historical A9 docs
+  record the specific Stormcut automation in the 187-case passing queue.
+  Shared gemstone automation covers deterministic generic mining and treasure
+  persistence, but does not directly assert Storm Sapphire's 1/50 rate or a
+  Thunder Mountains claim. The documented two-client treasure/restart peer
+  covers Quartz and Garnet only, not Storm Sapphire. There is no
+  Storm-Sapphire-specific live claim/restart or fresh source-to-Forge-to-sword
+  progression. A10's no-grant fresh-start progression remains open.
+- **Shared documentation mismatches:** the architecture save table still lists
+  player discovery schema 2 and population schema 1; current code uses player
+  schema 3 and population schema 2. Architecture line 949 also describes the
+  current player-discovery save as schema 2. The generic `AGENTS.md` icon
+  reference `docs/material-icons.md` and A10 details link
+  `docs/alpha-item-details.md#a10` point to absent files; available contracts
+  are in `docs/icon-provenance.md` and `docs/a9-acceptance.md`. These shared
+  issues were left unchanged.
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md` only; no gameplay,
+  catalogue, icon, or save implementation changed.
+- **Full verification:** deferred; this is not the final A10 increment.
+- **Networking/authority:** treasure source selection, canonical descriptor
+  validation, claim payment/persistence, carried-item crafting/upgrades, and
+  melee damage remain server-authored. The client does not choose the biome,
+  reward, quantity, damage, recipe cost, or upgrade cost.
+- **Impact and remaining scope:** tracking-only; no within-item source, data,
+  recipe, combat-profile, authority, persistence, or icon defect was
+  established. Item-specific Thunder Mountains claim/restart, sword render,
+  source-to-equip live progression, no-grant progression, and full A10
+  verification remain for later acceptance.
+- **Next eligible A10 item audit:** Dusk Diamond (`DuskDiamond`), next in
+  A9 backlog order.

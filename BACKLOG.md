@@ -466,8 +466,9 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     A8b recipe/output audits and per-item A9 audits for Smoky Quartz
     (`SmokyQuartz`), Moonstone (`Moonstone`), Garnet (`Garnet`), Green Jade
     (`GreenJade`), Amethyst (`Amethyst`), Aquamarine (`Aquamarine`),
-    Tourmaline (`Tourmaline`), and Star Opal (`StarOpal`) are recorded in
-    PROGRESS.md; next in A9 backlog order is Storm Sapphire (`StormSapphire`).
+    Tourmaline (`Tourmaline`), Star Opal (`StarOpal`), and Storm Sapphire
+    (`StormSapphire`) are recorded in PROGRESS.md; next in A9 backlog order is
+    Dusk Diamond (`DuskDiamond`).
     Keep this child open until every included item and scope N/A disposition
     is covered.
   - [ ] Run required full verification at each milestone's final increment.
