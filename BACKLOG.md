@@ -444,10 +444,11 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     A3 ranged items (`LightBow`, `StoneArrow`, `BronzeArrow`), A4 wearables
     (`BoarHideBoots`, `BoarHideCape`, `BronzeHelmet`, `BronzeTunic`,
     `BronzeLeggings`, `BronzeShield`), and A5 `BasicTorch` reviewed; see
-    PROGRESS.md. Both approved A1 pick acquisition targets still differ from
-    their Forge recipes: BronzePick expects Wood x10 + Bronze x10 (current
-    Wood x4 + Stone x4); IronPick expects Wood x10 + Iron x10 (current Iron x4
-    + Wood x2 + Stone x2). Retain both for final progression disposition.
+    PROGRESS.md. The two approved A1 pick acquisition costs were corrected on
+    2026-10-25: BronzePick now costs Wood x10 + Bronze x10; IronPick now costs
+    Wood x10 + Iron x10. Their separate pickaxe upgrade costs remain
+    unchanged. The no-debug fresh-start acceptance below remains open; no
+    directly runnable source-to-Forge progression runner was found.
     A4 items, A5 `BasicTorch`, A6 foraged foods (`Lingonberry`,
     `ForestChanterelle`) and recovery draughts (`BerryRecoveryDraught`,
     `RootStaminaDraught`) are audited; no A6 family remains in scope. The

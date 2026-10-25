@@ -67,16 +67,12 @@
       "RequiredStationLevel": 1,
       "Ingredients": [
         {
-          "ItemId": "Iron",
-          "Quantity": 4
-        },
-        {
           "ItemId": "Wood",
-          "Quantity": 2
+          "Quantity": 10
         },
         {
-          "ItemId": "Stone",
-          "Quantity": 2
+          "ItemId": "Iron",
+          "Quantity": 10
         }
       ],
       "Level": 1
@@ -162,11 +158,11 @@
       "Ingredients": [
         {
           "ItemId": "Wood",
-          "Quantity": 4
+          "Quantity": 10
         },
         {
-          "ItemId": "Stone",
-          "Quantity": 4
+          "ItemId": "Bronze",
+          "Quantity": 10
         }
       ],
       "Level": 1

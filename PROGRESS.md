@@ -11435,3 +11435,42 @@
 - **Next eligible A10 increment:** perform final acceptance and verification;
   build the current Editor target and run
   `Automation RunTests Kalmala.Gameplay.Combat.StormcutAcceptedHitWear`.
+
+## Run 2026-10-25 — A10 Bronze/Iron pick acquisition costs
+
+- **Selected increment and approved target:** corrected the two A1 pick
+  acquisition mismatches identified by the A10 audit. The technical
+  architecture and development setup specify Bronze Pick as 10 Wood + 10
+  Bronze and Iron Pick as 10 Wood + 10 Iron at the Forge.
+- **Work completed:** the registered level-one Forge recipes in
+  `Content/Data/GameCatalogues/recipes/stations/forge.json` now use those exact
+  ingredient sets. The separate entries in
+  `Content/Data/GameCatalogues/item-level-up/costs/weapons/pickaxes.json` were
+  not changed: Bronze Pick upgrade remains 4 Wood + 4 Bronze; Iron Pick
+  upgrade remains 4 Iron + 2 Wood + 2 Stone.
+- **Lightweight checks:** `python Scripts/Validate-CatalogueReferences.py`
+  passed (61 registered JSON files, 152 unique item/buildable definitions,
+  776 resolved item/output/station references, 152 ledger-backed runtime icon
+  mappings). A focused Python JSON assertion passed for each level-one Forge
+  acquisition's exact ingredients and for both unchanged upgrade ingredient
+  sets. No direct no-debug fresh-start runner exists among the documented
+  `Scripts/Tests/Progression` runners; no Unreal automation or Editor run was
+  performed.
+- **Files changed:** `Content/Data/GameCatalogues/recipes/stations/forge.json`,
+  `BACKLOG.md`, and `PROGRESS.md`. No upgrade costs, source routes, gameplay
+  code, profiles, icons, or save data changed.
+- **Observable impact:** crafting a Bronze or Iron Pick at a Forge now consumes
+  the approved A1 materials and quantities. A fresh-start source-to-recipe run
+  without debug grants has not been observed.
+- **Networking/authority:** this is catalogue data only; the existing server
+  Forge transaction continues to validate station context, materials, and
+  capacity before committing a craft. No RPC or persistence behavior changed.
+- **Known limitations / remaining scope:** the no-debug fresh-start progression
+  gate remains open because no directly runnable route was available in this
+  increment. The approved farming, shelter, accessories, peer/restart gate and
+  A10 final verification also remain outstanding. Do not infer acceptance from
+  the static recipe checks.
+- **Full verification:** deferred; this is not the final A10 increment.
+- **Next eligible A10 gate:** run fresh-start progression through Bronze and
+  Iron without debug grants, then complete the separate approved farming,
+  shelter, accessories, peer/restart acceptance before full verification.
