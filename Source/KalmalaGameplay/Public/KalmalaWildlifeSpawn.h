@@ -39,6 +39,22 @@ enum class EKalmalaWildlifeArchetype : uint8
     ReefMaw
 };
 
+enum class EKalmalaWildlifeBodyShapeType : uint8
+{
+    Sphere,
+    Capsule
+};
+
+/** Authored collision geometry shared by the actor components and spawn placement checks. */
+struct FKalmalaWildlifeBodyCollisionShape
+{
+    EKalmalaWildlifeBodyShapeType Type = EKalmalaWildlifeBodyShapeType::Sphere;
+    FVector RelativeLocation = FVector::ZeroVector;
+    FRotator RelativeRotation = FRotator::ZeroRotator;
+    float RadiusCentimetres = 0.0f;
+    float HalfHeightCentimetres = 0.0f;
+};
+
 enum class EKalmalaWildlifeAttackCue : uint8
 {
     None,
@@ -100,6 +116,7 @@ public:
     bool IsDefeated() const { return bDefeated; }
     float GetHealth() const { return Health; }
     EKalmalaWildlifeArchetype GetArchetype() const { return Archetype; }
+    FIntPoint GetHomePopulationSpatialKey() const { return HomePopulationSpatialKey; }
     FName GetCreatureNicheId() const { return CreatureNicheId; }
     EKalmalaWildlifeBehaviour GetBehaviour() const { return Behaviour; }
     const FString& GetPersistentSpawnId() const { return PersistentSpawnId; }
@@ -249,9 +266,14 @@ public:
     static constexpr float ReefMawBiteCueSeconds = 0.16f;
     static constexpr float ReefMawRecoverySeconds = 1.2f;
     static constexpr float ReefMawApproachSpeedCentimetresPerSecond = 320.0f;
+    static constexpr float ReefMawBodyCollisionRadiusCentimetres = 92.0f;
     static constexpr float ReefMawSpawnDepthCentimetres = 120.0f;
     static constexpr float ReefMawSpawnLeashCentimetres = 2500.0f;
     static bool IsReefMawSpawnHabitatAllowed(EKalmalaBiome Biome, bool bLakeWater, float WaterDepthCentimetres);
+    static bool IsReefMawOceanPosition(const FKalmalaWorldGenerationConfig& Config,
+        FVector2D Position, FKalmalaOceanSample* OutOceanSample = nullptr);
+    static bool IsReefMawPositionNavigable(const FKalmalaWorldGenerationConfig& Config,
+        FVector2D Position, FKalmalaOceanSample* OutOceanSample = nullptr);
     static bool IsReefMawBiteInReach(bool bServerAuthority, bool bValidTarget, bool bTargetSwimming,
         float DistanceCentimetres);
     static constexpr float PeatHuskAttackTriggerCentimetres = 500.0f;
@@ -267,13 +289,19 @@ public:
     static bool IsMosquitoFireRepelling(bool bServerAuthority, bool bActiveFlame, float DistanceCentimetres, float RadiusCentimetres);
     static EKalmalaWildlifeArchetype GetArchetypeForSpawnSeed(uint64 SpawnSeed);
     static bool TryGetSpawnArchetypeForBiome(uint64 SpawnSeed, EKalmalaBiome Biome, EKalmalaWildlifeArchetype& OutArchetype);
+    static bool GetBodyCollisionShapesForArchetype(EKalmalaWildlifeArchetype Archetype,
+        TArray<FKalmalaWildlifeBodyCollisionShape>& OutShapes);
     static bool IsBoarChargeAllowed(bool bServerAuthority, bool bAlreadyDefeated, bool bAtRest, float DistanceToRestingArea);
     static bool IsBehaviourTransitionAllowed(bool bServerAuthority, bool bAlreadyDefeated, EKalmalaWildlifeBehaviour From, EKalmalaWildlifeBehaviour To);
     static bool IsMossyMireSpawnHabitatAllowed(EKalmalaBiome Biome, bool bIsWater);
     static bool IsThunderMountainsSpawnHabitatAllowed(EKalmalaBiome Biome, bool bIsWater, bool bTraversable);
+    static bool IsPopulationSpawnPositionSupported(const FKalmalaWorldGenerationConfig& Config,
+        EKalmalaWildlifeArchetype Archetype, FVector Position, FVector SpawnOrigin);
     FKalmalaWildlifeSpawnDefeated OnDefeated;
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
     virtual void Tick(float DeltaSeconds) override;
+    virtual void BeginPlay() override;
+    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 private:
     friend class AKalmalaArrowProjectile;
@@ -392,6 +420,9 @@ private:
 
     UPROPERTY(Replicated)
     FString PersistentSpawnId;
+
+    /** Original descriptor key remains the actor's budget owner while it roams. */
+    FIntPoint HomePopulationSpatialKey = FIntPoint::ZeroValue;
 
     UPROPERTY(ReplicatedUsing = OnRep_Archetype)
     EKalmalaWildlifeArchetype Archetype = EKalmalaWildlifeArchetype::Mireling;

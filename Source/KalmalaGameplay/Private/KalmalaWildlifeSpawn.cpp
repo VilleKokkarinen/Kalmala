@@ -182,6 +182,35 @@ AKalmalaWildlifeSpawn::AKalmalaWildlifeSpawn()
     SetReplicateMovement(true);
 }
 
+void AKalmalaWildlifeSpawn::BeginPlay()
+{
+    Super::BeginPlay();
+    if (!HasAuthority()) return;
+
+    if (UWorld* World = GetWorld())
+    {
+        if (AKalmalaGameMode* Mode = World->GetAuthGameMode<AKalmalaGameMode>())
+        {
+            Mode->RegisterLivePopulationCreature(this);
+        }
+    }
+}
+
+void AKalmalaWildlifeSpawn::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    if (HasAuthority())
+    {
+        if (UWorld* World = GetWorld())
+        {
+            if (AKalmalaGameMode* Mode = World->GetAuthGameMode<AKalmalaGameMode>())
+            {
+                Mode->UnregisterLivePopulationCreature(this);
+            }
+        }
+    }
+    Super::EndPlay(EndPlayReason);
+}
+
 void AKalmalaWildlifeSpawn::InitializeServer(const FKalmalaWorldPopulationSpawn& Spawn)
 {
     InitializeServer(Spawn, GetArchetypeForSpawnSeed(Spawn.SpawnSeed));
@@ -194,6 +223,7 @@ void AKalmalaWildlifeSpawn::InitializeServer(const FKalmalaWorldPopulationSpawn&
     {
         FangArrowPoisonRemainingSeconds = 0.0f;
         FangArrowPoisonSecondsUntilTick = UKalmalaPlayerStatusComponent::PoisonTickIntervalSeconds;
+        HomePopulationSpatialKey = Spawn.SpatialKey;
         SetActorLocation(Spawn.Location);
         SpawnOrigin = Spawn.Location;
         BehaviourDestination = SpawnOrigin;
@@ -553,6 +583,13 @@ bool AKalmalaWildlifeSpawn::DefeatServer()
     FangArrowPoisonRemainingSeconds = 0.0f;
     FangArrowPoisonSecondsUntilTick = UKalmalaPlayerStatusComponent::PoisonTickIntervalSeconds;
     bDefeated = true;
+    if (UWorld* World = GetWorld())
+    {
+        if (AKalmalaGameMode* Mode = World->GetAuthGameMode<AKalmalaGameMode>())
+        {
+            Mode->UnregisterLivePopulationCreature(this);
+        }
+    }
     // The population owner records the sparse server delta before this actor exposes any owner-only reward.
     OnDefeated.Broadcast(PersistentSpawnId);
     ApplyDefeatedState();
@@ -806,6 +843,76 @@ bool AKalmalaWildlifeSpawn::IsThunderMountainsSpawnHabitatAllowed(
     const EKalmalaBiome Biome, const bool bIsWater, const bool bTraversable)
 {
     return Biome == EKalmalaBiome::ThunderMountains && !bIsWater && bTraversable;
+}
+
+bool AKalmalaWildlifeSpawn::IsPopulationSpawnPositionSupported(
+    const FKalmalaWorldGenerationConfig& Config, const EKalmalaWildlifeArchetype Archetype,
+    const FVector Position, const FVector SpawnOrigin)
+{
+    if (!Config.IsValid() || !FMath::IsFinite(Position.X) || !FMath::IsFinite(Position.Y)
+        || !FMath::IsFinite(Position.Z))
+    {
+        return false;
+    }
+
+    const FVector2D XY(Position);
+    const auto GetBiome = [&Config, &XY]()
+    {
+        return FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, XY));
+    };
+    const auto IsWater = [&Config, &XY]()
+    {
+        return FKalmalaOceanSampler::Sample(Config, XY).IsWater()
+            || FKalmalaShimmeringLakeSampler::IsWater(Config, XY);
+    };
+    switch (Archetype)
+    {
+    case EKalmalaWildlifeArchetype::Rat:
+        return !IsWater();
+    case EKalmalaWildlifeArchetype::Badger:
+    case EKalmalaWildlifeArchetype::MoonBear:
+        return GetBiome() == EKalmalaBiome::Elderwood && !IsWater();
+    case EKalmalaWildlifeArchetype::Wolf:
+    case EKalmalaWildlifeArchetype::Lynx:
+    case EKalmalaWildlifeArchetype::PolarBear:
+        return FKalmalaWorldBounds::Contains(Config, XY)
+            && GetBiome() == EKalmalaBiome::FreezingTundra && !IsWater()
+            && FKalmalaTerrainHeightSampler::SampleSurfaceNormal(Config, XY).Z >= 0.82f;
+    case EKalmalaWildlifeArchetype::HornedGoat:
+    case EKalmalaWildlifeArchetype::ThunderSentinel:
+    {
+        const bool bTraversable = FKalmalaWorldBounds::Contains(Config, XY)
+            && FKalmalaTerrainHeightSampler::SampleSurfaceNormal(Config, XY).Z >= 0.82f;
+        return IsThunderMountainsSpawnHabitatAllowed(GetBiome(), IsWater(), bTraversable);
+    }
+    case EKalmalaWildlifeArchetype::ReefMaw:
+        return IsReefMawPositionNavigable(Config, XY);
+    case EKalmalaWildlifeArchetype::PeatHusk:
+        return IsMossyMireSpawnHabitatAllowed(GetBiome(), IsWater());
+    case EKalmalaWildlifeArchetype::DeathAdder:
+    case EKalmalaWildlifeArchetype::Viper:
+    case EKalmalaWildlifeArchetype::GiantSnake:
+    {
+        if (!FMath::IsFinite(SpawnOrigin.X) || !FMath::IsFinite(SpawnOrigin.Y)
+            || !FMath::IsFinite(SpawnOrigin.Z)
+            || FVector::DistSquared2D(Position, SpawnOrigin) > FMath::Square(SnakeSpawnLeashCentimetres))
+        {
+            return false;
+        }
+        const EKalmalaBiome ExpectedBiome = Archetype == EKalmalaWildlifeArchetype::DeathAdder
+            ? EKalmalaBiome::MossyMire : EKalmalaBiome::ShimmeringLakes;
+        return GetBiome() == ExpectedBiome && !IsWater();
+    }
+    case EKalmalaWildlifeArchetype::Mireling:
+    case EKalmalaWildlifeArchetype::Boar:
+    case EKalmalaWildlifeArchetype::Deer:
+    case EKalmalaWildlifeArchetype::MosquitoSwarm:
+        // These species use the S20 generated-ground and dry-surface checks,
+        // with no separate NavMesh or species-specific traversal restriction.
+        return true;
+    default:
+        return false;
+    }
 }
 
 bool AKalmalaWildlifeSpawn::IsThunderSentinelSlamInReach(const bool bServerAuthority,
@@ -1217,9 +1324,8 @@ bool AKalmalaWildlifeSpawn::IsRatPositionDry(const FVector& Position) const
         ? GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>() : nullptr;
     if (State == nullptr) return false;
     const FKalmalaWorldGenerationConfig& Config = State->GetWorldGenerationConfig();
-    const FVector2D XY(Position);
-    return !FKalmalaOceanSampler::Sample(Config, XY).IsWater()
-        && !FKalmalaShimmeringLakeSampler::IsWater(Config, XY);
+    return IsPopulationSpawnPositionSupported(
+        Config, EKalmalaWildlifeArchetype::Rat, Position, SpawnOrigin);
 }
 
 bool AKalmalaWildlifeSpawn::CanRatMoveAlong(const FVector& Start, const FVector& End) const
@@ -1384,10 +1490,8 @@ bool AKalmalaWildlifeSpawn::IsBadgerPositionDry(const FVector& Position) const
     const AKalmalaWorldGenerationGameState* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
     if (State == nullptr) return false;
     const FKalmalaWorldGenerationConfig& Config = State->GetWorldGenerationConfig();
-    const FVector2D XY(Position);
-    return FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, XY)) == EKalmalaBiome::Elderwood
-        && !FKalmalaOceanSampler::Sample(Config, XY).IsWater()
-        && !FKalmalaShimmeringLakeSampler::IsWater(Config, XY);
+    return IsPopulationSpawnPositionSupported(
+        Config, EKalmalaWildlifeArchetype::Badger, Position, SpawnOrigin);
 }
 
 bool AKalmalaWildlifeSpawn::CanBadgerMoveAlong(const FVector& Start, const FVector& End) const
@@ -1604,13 +1708,8 @@ bool AKalmalaWildlifeSpawn::IsWolfPositionTraversable(const FVector& Position) c
     const AKalmalaWorldGenerationGameState* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
     if (State == nullptr) return false;
     const FKalmalaWorldGenerationConfig& Config = State->GetWorldGenerationConfig();
-    const FVector2D XY(Position);
-    return FKalmalaWorldBounds::Contains(Config, XY)
-        && FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, XY))
-            == EKalmalaBiome::FreezingTundra
-        && !FKalmalaOceanSampler::Sample(Config, XY).IsWater()
-        && !FKalmalaShimmeringLakeSampler::IsWater(Config, XY)
-        && FKalmalaTerrainHeightSampler::SampleSurfaceNormal(Config, XY).Z >= 0.82f;
+    return IsPopulationSpawnPositionSupported(
+        Config, EKalmalaWildlifeArchetype::Wolf, Position, SpawnOrigin);
 }
 
 bool AKalmalaWildlifeSpawn::CanWolfMoveAlong(const FVector& Start, const FVector& End) const
@@ -1832,13 +1931,8 @@ bool AKalmalaWildlifeSpawn::IsLynxPositionTraversable(const FVector& Position) c
     const AKalmalaWorldGenerationGameState* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
     if (State == nullptr) return false;
     const FKalmalaWorldGenerationConfig& Config = State->GetWorldGenerationConfig();
-    const FVector2D XY(Position);
-    return FKalmalaWorldBounds::Contains(Config, XY)
-        && FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, XY))
-            == EKalmalaBiome::FreezingTundra
-        && !FKalmalaOceanSampler::Sample(Config, XY).IsWater()
-        && !FKalmalaShimmeringLakeSampler::IsWater(Config, XY)
-        && FKalmalaTerrainHeightSampler::SampleSurfaceNormal(Config, XY).Z >= 0.82f;
+    return IsPopulationSpawnPositionSupported(
+        Config, EKalmalaWildlifeArchetype::Lynx, Position, SpawnOrigin);
 }
 
 bool AKalmalaWildlifeSpawn::CanLynxMoveAlong(const FVector& Start, const FVector& End) const
@@ -2105,13 +2199,8 @@ bool AKalmalaWildlifeSpawn::IsPolarBearPositionTraversable(const FVector& Positi
     const AKalmalaWorldGenerationGameState* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
     if (State == nullptr) return false;
     const FKalmalaWorldGenerationConfig& Config = State->GetWorldGenerationConfig();
-    const FVector2D XY(Position);
-    return FKalmalaWorldBounds::Contains(Config, XY)
-        && FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, XY))
-            == EKalmalaBiome::FreezingTundra
-        && !FKalmalaOceanSampler::Sample(Config, XY).IsWater()
-        && !FKalmalaShimmeringLakeSampler::IsWater(Config, XY)
-        && FKalmalaTerrainHeightSampler::SampleSurfaceNormal(Config, XY).Z >= 0.82f;
+    return IsPopulationSpawnPositionSupported(
+        Config, EKalmalaWildlifeArchetype::PolarBear, Position, SpawnOrigin);
 }
 
 bool AKalmalaWildlifeSpawn::CanPolarBearMoveAlong(const FVector& Start, const FVector& End) const
@@ -2428,13 +2517,8 @@ bool AKalmalaWildlifeSpawn::IsHornedGoatPositionTraversable(const FVector& Posit
     const AKalmalaWorldGenerationGameState* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
     if (State == nullptr) return false;
     const FKalmalaWorldGenerationConfig& Config = State->GetWorldGenerationConfig();
-    const FVector2D XY(Position);
-    const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, XY));
-    const bool bWater = FKalmalaOceanSampler::Sample(Config, XY).IsWater()
-        || FKalmalaShimmeringLakeSampler::IsWater(Config, XY);
-    const bool bTraversable = FKalmalaWorldBounds::Contains(Config, XY)
-        && FKalmalaTerrainHeightSampler::SampleSurfaceNormal(Config, XY).Z >= 0.82f;
-    return IsThunderMountainsSpawnHabitatAllowed(Biome, bWater, bTraversable);
+    return IsPopulationSpawnPositionSupported(
+        Config, EKalmalaWildlifeArchetype::HornedGoat, Position, SpawnOrigin);
 }
 
 bool AKalmalaWildlifeSpawn::CanHornedGoatMoveAlong(const FVector& Start, const FVector& End) const
@@ -2455,13 +2539,8 @@ bool AKalmalaWildlifeSpawn::IsThunderSentinelPositionTraversable(const FVector& 
     const AKalmalaWorldGenerationGameState* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
     if (State == nullptr) return false;
     const FKalmalaWorldGenerationConfig& Config = State->GetWorldGenerationConfig();
-    const FVector2D XY(Position);
-    const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, XY));
-    const bool bWater = FKalmalaOceanSampler::Sample(Config, XY).IsWater()
-        || FKalmalaShimmeringLakeSampler::IsWater(Config, XY);
-    const bool bTraversable = FKalmalaWorldBounds::Contains(Config, XY)
-        && FKalmalaTerrainHeightSampler::SampleSurfaceNormal(Config, XY).Z >= 0.82f;
-    return IsThunderMountainsSpawnHabitatAllowed(Biome, bWater, bTraversable);
+    return IsPopulationSpawnPositionSupported(
+        Config, EKalmalaWildlifeArchetype::ThunderSentinel, Position, SpawnOrigin);
 }
 
 bool AKalmalaWildlifeSpawn::CanThunderSentinelMoveAlong(const FVector& Start, const FVector& End) const
@@ -2646,13 +2725,39 @@ bool AKalmalaWildlifeSpawn::IsReefMawPositionNavigable(const FVector& Position) 
     if (Position.ContainsNaN() || GetWorld() == nullptr) return false;
     const AKalmalaWorldGenerationGameState* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
     if (State == nullptr) return false;
-    const FKalmalaWorldGenerationConfig& Config = State->GetWorldGenerationConfig();
-    const FVector2D XY(Position);
-    if (!FKalmalaWorldBounds::Contains(Config, XY)) return false;
-    const FKalmalaOceanSample Ocean = FKalmalaOceanSampler::Sample(Config, XY);
-    const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, XY));
-    return Ocean.IsWater() && IsReefMawSpawnHabitatAllowed(
-        Biome, FKalmalaShimmeringLakeSampler::IsWater(Config, XY), Ocean.WaterDepth);
+    return IsPopulationSpawnPositionSupported(
+        State->GetWorldGenerationConfig(), EKalmalaWildlifeArchetype::ReefMaw, Position, SpawnOrigin);
+}
+
+bool AKalmalaWildlifeSpawn::IsReefMawOceanPosition(const FKalmalaWorldGenerationConfig& Config,
+    const FVector2D Position, FKalmalaOceanSample* OutOceanSample)
+{
+    if (OutOceanSample != nullptr) *OutOceanSample = FKalmalaOceanSample{};
+    if (!Config.IsValid() || !FMath::IsFinite(Position.X) || !FMath::IsFinite(Position.Y)
+        || !FKalmalaWorldBounds::Contains(Config, Position))
+    {
+        return false;
+    }
+
+    const FKalmalaOceanSample Ocean = FKalmalaOceanSampler::Sample(Config, Position);
+    if (OutOceanSample != nullptr) *OutOceanSample = Ocean;
+    if (!Ocean.IsWater()) return false;
+
+    const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(
+        FKalmalaWorldFieldSampler::Sample(Config, Position));
+    return Biome == EKalmalaBiome::Ocean
+        && !FKalmalaShimmeringLakeSampler::IsWater(Config, Position);
+}
+
+bool AKalmalaWildlifeSpawn::IsReefMawPositionNavigable(
+    const FKalmalaWorldGenerationConfig& Config, const FVector2D Position,
+    FKalmalaOceanSample* OutOceanSample)
+{
+    FKalmalaOceanSample Ocean;
+    const bool bOceanPosition = IsReefMawOceanPosition(Config, Position, &Ocean);
+    if (OutOceanSample != nullptr) *OutOceanSample = Ocean;
+    return bOceanPosition && IsReefMawSpawnHabitatAllowed(EKalmalaBiome::Ocean,
+        false, Ocean.WaterDepth);
 }
 
 bool AKalmalaWildlifeSpawn::CanReefMawSwimAlong(const FVector& Start, const FVector& End) const
@@ -3008,11 +3113,8 @@ bool AKalmalaWildlifeSpawn::IsPeatHuskPositionDry(const FVector& Position) const
     const AKalmalaWorldGenerationGameState* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
     if (State == nullptr) return false;
     const FKalmalaWorldGenerationConfig& Config = State->GetWorldGenerationConfig();
-    const FVector2D XY(Position);
-    const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, XY));
-    const bool bWater = FKalmalaOceanSampler::Sample(Config, XY).IsWater()
-        || FKalmalaShimmeringLakeSampler::IsWater(Config, XY);
-    return IsMossyMireSpawnHabitatAllowed(Biome, bWater);
+    return IsPopulationSpawnPositionSupported(
+        Config, EKalmalaWildlifeArchetype::PeatHusk, Position, SpawnOrigin);
 }
 
 bool AKalmalaWildlifeSpawn::CanPeatHuskMoveAlong(const FVector& Start, const FVector& End) const
@@ -3158,18 +3260,12 @@ void AKalmalaWildlifeSpawn::SetSnakeAttackCue(const EKalmalaWildlifeAttackCue Ne
 
 bool AKalmalaWildlifeSpawn::IsSnakePositionDry(const FVector& Position) const
 {
-    if (Position.ContainsNaN() || FVector::DistSquared2D(Position, SpawnOrigin) > FMath::Square(SnakeSpawnLeashCentimetres))
-        return false;
+    if (Position.ContainsNaN()) return false;
     const AKalmalaWorldGenerationGameState* State = GetWorld() != nullptr
         ? GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>() : nullptr;
     if (State == nullptr) return false;
     const FKalmalaWorldGenerationConfig& Config = State->GetWorldGenerationConfig();
-    const FVector2D XY(Position);
-    const EKalmalaBiome ExpectedBiome = Archetype == EKalmalaWildlifeArchetype::DeathAdder
-        ? EKalmalaBiome::MossyMire : EKalmalaBiome::ShimmeringLakes;
-    return FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, XY)) == ExpectedBiome
-        && !FKalmalaOceanSampler::Sample(Config, XY).IsWater()
-        && !FKalmalaShimmeringLakeSampler::IsWater(Config, XY);
+    return IsPopulationSpawnPositionSupported(Config, Archetype, Position, SpawnOrigin);
 }
 
 bool AKalmalaWildlifeSpawn::CanSnakeMoveAlong(const FVector& Start, const FVector& End) const
@@ -3546,33 +3642,107 @@ void AKalmalaWildlifeSpawn::PlaySnakeHiss()
     UGameplayStatics::PlaySoundAtLocation(this, SnakeHissSound, GetActorLocation(), FRotator::ZeroRotator, 0.45f, 1.0f);
 }
 
+bool AKalmalaWildlifeSpawn::GetBodyCollisionShapesForArchetype(
+    const EKalmalaWildlifeArchetype InArchetype,
+    TArray<FKalmalaWildlifeBodyCollisionShape>& OutShapes)
+{
+    OutShapes.Reset();
+    float RootRadius = 70.0f;
+    switch (InArchetype)
+    {
+    case EKalmalaWildlifeArchetype::MosquitoSwarm: RootRadius = 28.0f; break;
+    case EKalmalaWildlifeArchetype::Rat: RootRadius = 42.0f; break;
+    case EKalmalaWildlifeArchetype::ThunderSentinel: RootRadius = 180.0f; break;
+    case EKalmalaWildlifeArchetype::ReefMaw: RootRadius = ReefMawBodyCollisionRadiusCentimetres; break;
+    case EKalmalaWildlifeArchetype::Mireling:
+    case EKalmalaWildlifeArchetype::Boar:
+    case EKalmalaWildlifeArchetype::Deer:
+    case EKalmalaWildlifeArchetype::Badger:
+    case EKalmalaWildlifeArchetype::MoonBear:
+    case EKalmalaWildlifeArchetype::DeathAdder:
+    case EKalmalaWildlifeArchetype::Viper:
+    case EKalmalaWildlifeArchetype::GiantSnake:
+    case EKalmalaWildlifeArchetype::PeatHusk:
+    case EKalmalaWildlifeArchetype::Wolf:
+    case EKalmalaWildlifeArchetype::Lynx:
+    case EKalmalaWildlifeArchetype::PolarBear:
+    case EKalmalaWildlifeArchetype::HornedGoat:
+        break;
+    default:
+        return false;
+    }
+
+    FKalmalaWildlifeBodyCollisionShape& RootShape = OutShapes.AddDefaulted_GetRef();
+    RootShape.Type = EKalmalaWildlifeBodyShapeType::Sphere;
+    RootShape.RadiusCentimetres = RootRadius;
+    RootShape.HalfHeightCentimetres = RootRadius;
+
+    float CapsuleRadius = 0.0f;
+    float CapsuleHalfHeight = 0.0f;
+    switch (InArchetype)
+    {
+    case EKalmalaWildlifeArchetype::Viper:
+        CapsuleRadius = 16.0f;
+        CapsuleHalfHeight = 92.0f;
+        break;
+    case EKalmalaWildlifeArchetype::GiantSnake:
+        CapsuleRadius = 38.0f;
+        CapsuleHalfHeight = 210.0f;
+        break;
+    case EKalmalaWildlifeArchetype::DeathAdder:
+        CapsuleRadius = 21.0f;
+        CapsuleHalfHeight = 112.0f;
+        break;
+    default:
+        break;
+    }
+    if (CapsuleRadius > 0.0f)
+    {
+        FKalmalaWildlifeBodyCollisionShape& CapsuleShape = OutShapes.AddDefaulted_GetRef();
+        CapsuleShape.Type = EKalmalaWildlifeBodyShapeType::Capsule;
+        CapsuleShape.RelativeLocation = FVector(-22.0f, 0.0f, 0.0f);
+        CapsuleShape.RelativeRotation = FRotator(0.0f, 90.0f, 0.0f);
+        CapsuleShape.RadiusCentimetres = CapsuleRadius;
+        CapsuleShape.HalfHeightCentimetres = CapsuleHalfHeight;
+    }
+    return true;
+}
+
 void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
 {
     MirelingMesh->ClearAllMeshSections();
-    if (USphereComponent* RootSphere = Cast<USphereComponent>(GetRootComponent()))
-        RootSphere->SetSphereRadius(Archetype == EKalmalaWildlifeArchetype::MosquitoSwarm ? 28.0f
-            : (Archetype == EKalmalaWildlifeArchetype::Rat ? 42.0f
-                : (Archetype == EKalmalaWildlifeArchetype::ThunderSentinel ? 180.0f
-                    : (Archetype == EKalmalaWildlifeArchetype::ReefMaw ? 92.0f : 70.0f))), true);
+    TArray<FKalmalaWildlifeBodyCollisionShape> BodyShapes;
+    if (GetBodyCollisionShapesForArchetype(Archetype, BodyShapes))
+    {
+        if (!BodyShapes.IsEmpty())
+        {
+            if (USphereComponent* RootSphere = Cast<USphereComponent>(GetRootComponent()))
+            {
+                RootSphere->SetSphereRadius(BodyShapes[0].RadiusCentimetres, true);
+            }
+        }
+        if (SnakeBodyCollision != nullptr)
+        {
+            const FKalmalaWildlifeBodyCollisionShape* CapsuleShape = BodyShapes.FindByPredicate(
+                [](const FKalmalaWildlifeBodyCollisionShape& Shape)
+                { return Shape.Type == EKalmalaWildlifeBodyShapeType::Capsule; });
+            if (CapsuleShape != nullptr)
+            {
+                SnakeBodyCollision->SetCapsuleSize(CapsuleShape->RadiusCentimetres,
+                    CapsuleShape->HalfHeightCentimetres, true);
+                SnakeBodyCollision->SetRelativeLocation(CapsuleShape->RelativeLocation);
+                SnakeBodyCollision->SetRelativeRotation(CapsuleShape->RelativeRotation);
+                SnakeBodyCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+            }
+            else
+            {
+                SnakeBodyCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+            }
+        }
+    }
     const bool bSnake = Archetype == EKalmalaWildlifeArchetype::Viper
         || Archetype == EKalmalaWildlifeArchetype::GiantSnake
         || Archetype == EKalmalaWildlifeArchetype::DeathAdder;
-    if (SnakeBodyCollision != nullptr)
-    {
-        if (bSnake)
-        {
-            const bool bGiant = Archetype == EKalmalaWildlifeArchetype::GiantSnake;
-            const bool bDeathAdder = Archetype == EKalmalaWildlifeArchetype::DeathAdder;
-            SnakeBodyCollision->SetCapsuleSize(bGiant ? 38.0f : (bDeathAdder ? 21.0f : 16.0f),
-                bGiant ? 210.0f : (bDeathAdder ? 112.0f : 92.0f), true);
-            SnakeBodyCollision->SetRelativeLocation(FVector(-22.0f, 0.0f, 0.0f));
-            SnakeBodyCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-        }
-        else
-        {
-            SnakeBodyCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-        }
-    }
     // Original low-poly silhouettes use only project procedural geometry and vertex colour.
     TArray<FVector> Vertices; TArray<int32> Triangles; TArray<FVector> Normals; TArray<FVector2D> UV; TArray<FLinearColor> Colors;
     const auto AddTetraPoints = [&Vertices, &Triangles, &Normals, &UV, &Colors](const FVector& Point0, const FVector& Point1, const FVector& Point2, const FVector& Point3, const FLinearColor Colour)

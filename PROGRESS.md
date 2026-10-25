@@ -11576,3 +11576,634 @@
 - **Next eligible A10 work:** complete the approved farming, shelter, cargo,
   accessories, peer/restart gate; then perform the source-matched fresh-start
   and integrated final verification.
+
+## Run 2026-10-24 — Add monster spawn tuning constants (S03)
+
+- **Selected increment:** S03, the first unchecked child in the requested
+  monster-population goal. The worktree was created from local master at
+  460339b3 on branch codex/monster-population. Work proceeded in this isolated
+  worktree after explicit user authorization to continue alongside other active
+  Kalmala tasks.
+- **Completed:** Changed the shared spatial key side from 6,000 cm to 6,400 cm
+  (64 m), renamed the shared constant to SpatialKeySizeCm at all source
+  references, and added named monster tuning values for the 32–96 m ring,
+  five-second key check interval, and 96 m count radius. Compile-time
+  assertions validate the unit conversion, positive ordered ring, count-radius
+  coverage, and positive interval. Current architecture/setup/acceptance text
+  now reflects 64 m; the historical 60 m Frost Salt approval is preserved with
+  a dated S03 superseding note. S03 is checked in BACKLOG.md. Natural spawning
+  remains disabled.
+- **Files changed:**
+  - BACKLOG.md
+  - PROGRESS.md
+  - Source/KalmalaGameplay/Private/KalmalaGameMode.cpp
+  - Source/KalmalaGameplay/Private/KalmalaM9ExplorationRewardCatalogue.cpp
+  - Source/KalmalaGameplay/Private/KalmalaOceanDiscoveryCatalogue.cpp
+  - Source/KalmalaGameplay/Private/Tests/KalmalaM9ExplorationRewardCatalogueTest.cpp
+  - Source/KalmalaWorld/Public/KalmalaBiomeExpansionContract.h
+  - Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h
+  - docs/02-technical-architecture.md
+  - docs/05-decision-log.md
+  - docs/07-development-setup.md
+  - docs/a9-acceptance.md
+  - docs/monster-spawning.md
+- **Lightweight checks:** Source scan found no old unsuffixed SpatialKeySize
+  references; the named constants and compile-time bounds were inspected.
+  Current architecture and setup docs no longer state 6,000 cm. git diff
+  --check passed. No Unreal build or automation was run.
+- **Full verification:** Deferred to S35. This is not the final implementation
+  task in the monster-population goal.
+- **Observable impact / authority:** Shared deterministic population and
+  discovery layout uses invisible 64 m square keys. Descriptor positions and
+  sparse identities can differ across wildlife, harvest, hazard, biome
+  discovery, ocean discovery, and M9 exploration systems that share the layout.
+  No natural-spawn scheduler, RPC, or client authority was added; current
+  population activation remains server-owned.
+- **Known limitations:** No generator revision, save schema, or migration was
+  changed, per the fixed S03 contract. Existing development save IDs made with
+  the previous 60 m layout may not match the new deterministic descriptors.
+  Remaining S04–S35 work, including recurring admission and camp suppression,
+  is not implemented. Full integrated verification remains pending.
+- **Next eligible task:** A10 catalogue/icon acceptance remains earliest in the
+  global queue. Within this requested monster-population goal, the next child
+  is S04 — gather active living players on the server.
+
+## Run 2026-10-24 — Gather active population players (S04)
+
+- **Selected increment:** S04, the first unchecked child in the requested
+  monster-population goal. Continued on codex/monster-population in the
+  isolated worktree created from local master at 460339b3.
+- **Completed:** Added a private, authority-checked GameMode helper that gathers
+  current-world living player characters from the current PlayerController list.
+  It excludes invalid or cross-world controllers, missing/inactive/spectator
+  PlayerStates, invalid or cross-world characters, pawns not still possessed by
+  that controller, and non-finite or dead health (the existing 1.0 threshold).
+  It orders results by PlayerState ID, uses controller path as a tie breaker,
+  and removes duplicate pawn pointers. The existing once-per-second population
+  key activation now uses this list. S04 is checked in BACKLOG.md.
+- **Files changed:**
+  - BACKLOG.md
+  - PROGRESS.md
+  - Source/KalmalaGameplay/Public/KalmalaGameMode.h
+  - Source/KalmalaGameplay/Private/KalmalaGameMode.cpp
+  - Source/KalmalaGameplay/Private/Tests/KalmalaPopulationLivingPlayersTest.cpp
+  - docs/monster-spawning.md
+- **Lightweight checks:** Added focused automation coverage for stable PlayerId
+  ordering and exclusion of dead, spectator, inactive/disconnected, unpossessed,
+  and no-PlayerState entries. Reviewed the helper and test fixture; git
+  diff --check passed. The automation test and any Unreal build were not run.
+- **Full verification:** Deferred to S35. This is not the final implementation
+  task in the monster-population goal.
+- **Observable impact / authority:** Existing key activation now considers only
+  the server's current living, possessed Kalmala player pawns. Dead or
+  disconnected players no longer activate a population key. No client RPC,
+  scheduler, natural spawn admission, or key neighborhood behavior was added.
+- **Known limitations:** S05 still needs to build the 96 m union of loaded keys
+  and deduplicate those keys in stable order. S04 does not add recurring spawn
+  attempts or camp suppression. Full integrated verification remains pending.
+- **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the
+  global queue. Within this requested monster-population goal, the next child
+  is S05 — deduplicate active keys.
+
+## Run 2026-10-24 — Deduplicate active population keys (S05)
+
+- **Selected increment:** S05, the first unchecked child in the requested
+  monster-population goal. Continued on codex/monster-population in the
+  isolated worktree created from local master at 460339b3.
+- **Completed:** Added a server-only GameMode query that filters the existing
+  materialized population-key set to keys whose 64 m squares intersect any
+  living player's inclusive 96 m horizontal radius. A distinct named tuning
+  constant holds the player-key radius. The query returns unique keys in
+  lexicographic X/Y order, consumes S04's living-player source, and does not
+  activate or materialize additional keys. S05 is checked in BACKLOG.md.
+- **Files changed:**
+  - BACKLOG.md
+  - PROGRESS.md
+  - Source/KalmalaGameplay/Public/KalmalaGameMode.h
+  - Source/KalmalaGameplay/Private/KalmalaGameMode.cpp
+  - Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSpatialKeyUnionTest.cpp
+  - Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h
+  - docs/monster-spawning.md
+- **Lightweight checks:** Added focused automation coverage for overlapping
+  player neighborhoods, shared-key uniqueness, stable ordering, inclusive
+  radius tangency, exclusion outside all radii, no-player behavior, and absence
+  of key materialization. A lightweight two-player geometry calculation
+  matched the expected inclusive union; git diff --check passed. The automation
+  test and Unreal build were not run.
+- **Full verification:** Deferred to S35. This is not the final implementation
+  task in the monster-population goal.
+- **Observable impact / authority:** Produces server-side scheduler input only.
+  The nine-key materialization limit and existing Tick activation behavior are
+  unchanged. No scheduler cadence, work budget, natural spawning, or client
+  authority was added.
+- **Known limitations:** The candidate union is restricted to the existing
+  ActivePopulationSpatialKeys set, whose entries are materialized keys. Normal
+  Tick currently materializes player-containing cells only; geometrically
+  nearby but unloaded cells are not created or returned. No key unload path
+  exists yet. Full integrated verification remains pending.
+- **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the
+  global queue. Within this requested monster-population goal, the next child
+  is S06 — add stable scheduler cadence.
+
+
+### Monster population — S06 scheduler cadence
+
+- **Selected increment:** S06, stable per-key cadence and inactive-key cleanup.
+- **Work completed:** Added deterministic 0.25 s phase staggering over the 5 s key interval, due-key query/service operations, and server Tick maintenance of the active candidate-key set. Inactive keys leave the active schedule and lose their per-key due entry; reactivation assigns the deterministic initial phase again. S02 creature unload cooldowns remain separately keyed by stable spawn ID.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`, `Source/KalmalaGameplay/Public/KalmalaGameMode.h`, `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSchedulerCadenceTest.cpp`, `Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h`, `docs/monster-spawning.md`, `BACKLOG.md`, `PROGRESS.md`.
+- **Lightweight checks:** Code and lifecycle-contract inspection; focused cadence automation coverage added for stable staggering, once-only service, five-second advancement, due-entry cleanup on inactivity, fresh deterministic phase on reactivation and no catch-up after a missed interval. `git diff --check` passed, and the staged paths/diff were reviewed before commit. The automation test and Unreal build were not run.
+- **Full verification:** Deferred to S35. This is not the final implementation task in the monster-population goal.
+- **Observable impact / authority:** Server Tick now keeps scheduler eligibility synchronized with the S05 loaded-key union. It tracks cadence only; the existing nine-key materialization cap is unchanged, and natural spawn admission remains disabled.
+- **Networking/authority:** Candidate collection, active schedule state, deterministic phase and service advancement are server-authoritative. The per-key due map contains active keys only; S02 creature cooldown state is separate. No client selects or advances spawn state.
+- **Known limitations:** S11+ still needs area caps, candidate evaluation and spawn admission. S06 does not create attempts or activate additional keys.
+- **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within the requested monster-population goal, the next child is S11 — enforce area caps.
+
+
+### Monster population — S07 bounded scheduler wake
+
+- **Selected increment:** S07, the 0.25 s wake and bounded per-wake work plan.
+- **Work completed:** Added a server-side wake that selects at most four due keys; each key receives at most four candidate slots and the total candidate budget is capped at 16. The next wake is reset to `now + 0.25 s`, so missed wake intervals are skipped. This records a key/budget plan only; descriptor generation and spawn admission remain later increments.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`, `Source/KalmalaGameplay/Public/KalmalaGameMode.h`, `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSchedulerBudgetTest.cpp`, `Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h`, `docs/monster-spawning.md`, `BACKLOG.md`, `PROGRESS.md`.
+- **Lightweight checks:** Code and scheduler-contract inspection; focused automation coverage added for the 4/4/16 limits, stable key ordering, quarter-second cadence, and skipped catch-up wakes. `git diff --check` passed; staged paths/diff were reviewed before commit. The automation test and Unreal build were not run.
+- **Full verification:** Deferred to S35. This is not the final implementation task in the monster-population goal.
+- **Observable impact / authority:** The authoritative GameMode creates a bounded due-key/budget plan on 0.25 s wake intervals; S08 now consumes it to select existing descriptors. The materialized-key limit is unchanged, and no actors are created.
+- **Networking/authority:** Wake timing, due-key selection and candidate budgets are server-only.
+- **Known limitations:** S11+ still needs area caps, evaluator wiring and actor admission; this scheduler performs no creature spawn work.
+- **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within this requested monster-population goal, the next child is S11 — enforce area caps.
+
+
+### Monster population — S08 stable ring candidate selector
+
+- **Selected increment:** S08, stable wildlife descriptor selection within the player ring.
+- **Work completed:** The bounded S07 wake now fills each key work item from existing deterministic wildlife descriptors, examining no more than its assigned candidate budget. It advances a persistent per-key cursor even when a descriptor fails, increments a per-key check ordinal once per serviced key, and applies a dedicated deterministic unbiased 0–99 roll with 0–24 accepted. Passing descriptors inside the inclusive 32–96 m ring are returned unchanged. Cursor and ordinal state is removed when a key becomes inactive. No actor creation or later gates were added.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`, `Source/KalmalaGameplay/Public/KalmalaGameMode.h`, `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationRingCandidateSelectorTest.cpp`, `Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h`, `docs/monster-spawning.md`, `BACKLOG.md`, `PROGRESS.md`.
+- **Lightweight checks:** Source/contract inspection and `git diff --check`; focused automation coverage added for deterministic rolls, once-per-service ordinals, inclusive ring bounds, budget adherence, cursor advancement on rejects and preservation of identity/location/content. Tests and builds were not run.
+- **Full verification:** Deferred to S35. This is not the final implementation task in the monster-population goal.
+- **Observable impact / authority:** Server-side bounded work items now contain selected original descriptors for later gates. Their spawn IDs, positions, and content IDs remain unchanged; no actor or natural spawn is created.
+- **Networking/authority:** Player positions, descriptor selection, cursor, ordinal and seeded roll are used only on the authoritative GameMode.
+- **Known limitations:** S09 now adds the separate 36 m all-player exclusion; the earlier backlog-versus-contract threshold discrepancy is resolved with the backlog value. S11+ still adds caps, evaluator wiring and actor admission.
+- **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within this requested monster-population goal, the next child is S11 — enforce area caps.
+
+
+### Monster population — S09 all-player distance exclusion
+
+- **Selected increment:** S09, reject candidates closer than 36 m to any living player.
+- **Work completed:** Added a separate server-side gate after the unchanged S08 inclusive 32–96 m ring selector. It compares each selected descriptor against every current-world living player and rejects horizontal distances below 36 m; exactly 36 m passes. This includes a second player outside the selecting player's 96 m neighborhood.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`, `Source/KalmalaGameplay/Public/KalmalaGameMode.h`, `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationPlayerDistanceGateTest.cpp`, `Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h`, `docs/monster-spawning.md`, `BACKLOG.md`, `PROGRESS.md`.
+- **Lightweight checks:** Source/contract inspection and `git diff --check`; focused automation coverage added for the inclusive 36 m boundary and a second player outside the selecting player's 96 m neighborhood. Tests and builds were not run.
+- **Full verification:** Deferred to S35. This is not the final implementation task in the monster-population goal.
+- **Observable impact / authority:** Server-side scheduler candidates are removed when they are within 36 m horizontally of any living player; the S08 ring selection and stable descriptors remain unchanged.
+- **Networking/authority:** The GameMode applies the gate using the authoritative current-world living-player list; no client distance or spawn decision is accepted.
+- **Known limitations:** Live-actor registration is now in place; area caps, placement checks, natural-spawn actor creation and camp suppression remain for later S11–S26 work.
+- **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within this requested monster-population goal, the next child is S11 — enforce area caps.
+
+
+### Monster population — S10 live creature tracking
+
+- **Selected increment:** S10, register/unregister authoritative live creatures and count their current positions.
+- **Work completed:** Added a GameMode-owned weak registry for server wildlife actors. Actor BeginPlay registers after authority checks; accepted DefeatServer unregisters before the existing defeat notification, and EndPlay unregisters destroyed actors. The radius count prunes invalid, defeated, dead-health and wrong-world entries and computes inclusive horizontal distance from current actor locations.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`, `Source/KalmalaGameplay/Public/KalmalaGameMode.h`, `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`, `Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h`, `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationLiveCreatureRegistryTest.cpp`, `docs/monster-spawning.md`, `BACKLOG.md`, `PROGRESS.md`.
+- **Lightweight checks:** Lifecycle/code inspection and `git diff --check`; focused automation coverage added for duplicate registration, inclusive current-position counts after movement, unregister on accepted defeat, cleanup on destruction and invalid-radius handling. Tests and builds were not run.
+- **Full verification:** Deferred to S35. This is not the final implementation task in the monster-population goal.
+- **Observable impact / authority:** Server-only registry counts live wildlife by current location across tracked world actors. Existing defeat/reward/save callbacks and actor creation behavior are unchanged; no SaveGame fields, caps or reservations were added.
+- **Networking/authority:** Registration, removal and count queries require the authoritative GameMode/world. Clients do not maintain or affect the registry.
+- **Known limitations:** S11 area caps and S12 pack reservations remain unimplemented; this count query is not wired into admission. Unload cooldown/unload behavior, actor creation, placement and camp suppression remain later work.
+- **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within this requested monster-population goal, the next child is S11 — enforce area caps.
+
+
+### Monster population — S11 area and actor-budget caps
+
+- **Selected increment:** S11, enforce species and existing actor-budget limits against the authoritative live-creature registry.
+- **Work completed:** Added the accepted caps (4 common, 1 rare hard enemy and 6 Wolf individuals) and a server-only cap policy query. Species counts use each live actor's current horizontal position within the inclusive 96 m radius; separate all-world live counts enforce the home-key budget and aggregate active-key budget. Roaming actors remain charged to their original descriptor key. The aggregate ceiling is the sum of each loaded key's existing post-biome WildlifeActorBudget; no standalone global wildlife cap existed in the source-of-truth code/docs, and no extra allowance was added. No evaluator, actor creation or reservation behavior was wired.
+- **Files changed:** Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp, Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationAreaCapsTest.cpp, Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
+- **Lightweight checks:** Inspected the existing cap classifications, activation budgets, and registry lifecycle; reviewed the authored focused automation coverage and changed code. Full builds and tests were not run.
+- **Full verification:** Deferred to S35; this is not the final implementation task in the monster-population goal.
+- **Observable impact / authority:** Later admission code can query one server-owned policy for nearby species, home-key and aggregate active-key limits. Existing actors and spawn behavior are unchanged in this increment.
+- **Networking/authority:** The query requires GameMode authority and counts only authoritative same-world live actors. Home-key ownership is server-local descriptor state; no replicated or saved-data schema changed.
+- **Known limitations:** Wolf pack capacity is not reserved atomically until S12. The cap query is not yet wired into the evaluator or actor creation; S19/S26 perform that work. Focused automation was added but not executed.
+- **Next eligible task:** A10 catalogue/icon acceptance remains earlier in the global queue. Within this requested monster-population goal, S12 is next — reserve Wolf pack capacity atomically.
+
+
+### Monster population — S12 atomic Wolf pack reservations
+
+- **Selected increment:** S12, reserve all three Wolf member slots atomically and expose release for spawn success/failure handling.
+- **Work completed:** Added a server-only reservation API accepting exactly three finite member positions and a home key. Each member is checked against S11's live and pending species-area, home-key and aggregate budgets before its slot is added to the provisional token. Any failed member removes the whole provisional token. Successful tokens remain session-only until explicit release; later S26 creation code must release after members are registered and on every creation failure/rollback path.
+- **Files changed:** Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationWolfReservationTest.cpp, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
+- **Lightweight checks:** Inspected the S11 cap count path and Wolf pack's fixed three-member contract; reviewed the authored fixture for overlap, cap exhaustion, rollback, release, home-key and aggregate-budget behavior. Tests and builds were not run.
+- **Full verification:** Deferred to S35; this is not the final implementation task in the monster-population goal.
+- **Observable impact / authority:** Server-side pending Wolf members now reserve three individual species slots and consume the same active-key budgets as live creatures. No actors are created in this increment.
+- **Networking/authority:** Reserve and release require the authoritative GameMode; reservations are session-only and introduce no replicated or saved-data state.
+- **Known limitations:** The S26 actor-creation path must acquire a token before spawning and release it on success after registration or on every failed/rolled-back pack. No actor creation or cap evaluator wiring was added.
+- **Next eligible task:** A10 catalogue/icon acceptance remains earlier in the global queue. Within this requested monster-population goal, S13 is next — add the nine-gate evaluator.
+
+
+### Monster population — S13 ordered spawn-gate evaluator
+
+- **Selected increment:** S13, add a nine-gate evaluator with a distinct first rejection reason.
+- **Work completed:** Added the private GameMode evaluator in contract order: scheduler budget, seeded admission roll, player distance, species habitat, time, weather, progression, caps and physical placement. Every result defaults to rejection, and only all nine passing results produce `None`. No runtime candidate pipeline or actor creation is wired in this increment.
+- **Files changed:** Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSpawnGateEvaluatorTest.cpp, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
+- **Lightweight checks:** Reviewed the gate sequence against the spatial scheduling/gate contract and inspected each evaluator branch and the focused rejection fixture. `git diff --check` passed; tests and builds were not run.
+- **Full verification:** Deferred to S35; this is not the final implementation task in the monster-population goal.
+- **Observable impact / authority:** No current gameplay behavior changes yet. The private evaluator provides ordered fail-closed decisions for later authoritative gate wiring; it does not create actors or activate natural spawning.
+- **Networking/authority:** The helper consumes already-computed results and performs no world or client queries. Future callers must supply authoritative server-side results, as documented.
+- **Known limitations:** S14–S22 must populate scheduler, roll, distance, habitat, unrestricted current-species time/weather/progression, caps and physical-placement results; S23–S25 still implement and wire the camp suppression portion of placement. Every gate currently defaults false until its wiring sets the result.
+- **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within this requested monster-population goal, S14 is next — wire scheduler and roll gates.
+
+
+### Monster population — S14 scheduler and seeded-roll gates
+
+- **Selected increment:** S14, feed the bounded scheduler work and S08 seeded admission roll into the S13 evaluator.
+- **Work completed:** Added one evaluation-attempt record per descriptor examined within the assigned per-key and per-wake budgets. Each record marks its scheduler slot as available, stores the single deterministic S08 roll outcome, and retains the evaluator's first rejection reason even when the roll fails. The cursor and check ordinal advance only through those already bounded attempts; no retry/catch-up path was added. Passing rolls remain rejected at the unwired player-distance gate.
+- **Files changed:** Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationRingCandidateSelectorTest.cpp, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
+- **Lightweight checks:** Inspected the S06–S13 scheduling, selector and evaluator flow; updated focused automation assertions for a seeded-roll rejection retained in the evaluator attempt list and exact attempt-budget accounting. `git diff --check` passed; tests and builds were not run.
+- **Full verification:** Deferred to S35; this is not the final implementation task in the monster-population goal.
+- **Observable impact / authority:** Server scheduler work now records and evaluates every examined descriptor, including failed rolls. The existing bounded work limits remain unchanged; no natural actor is created.
+- **Networking/authority:** Scheduler records, world seed, descriptor IDs, roll and evaluator results are produced in the authoritative GameMode. No replicated or saved state changed.
+- **Known limitations:** S15 must populate player-distance and species-habitat gate results; time, weather, progression, caps and physical placement remain safely false until their later increments. Spawn actor admission remains S26.
+- **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within this requested monster-population goal, S15 is next — wire distance and habitat gates.
+
+
+### Monster population — S15 distance and species-habitat gates
+
+- **Selected increment:** S15, populate distance and habitat results for every bounded evaluator attempt.
+- **Work completed:** Distance now requires the inclusive S08 32–96 m ring to at least one living player and the S09 minimum 36 m from every living player. Habitat uses the existing seed/biome species mapping and activation habitat helper, including dry-shore, water/traversability rules and the existing hard-enemy start exclusion. The same hard-enemy species classification now serves both natural-work evaluation and the existing activation path. Attempts remain in the work list and are reevaluated in gate order; the candidate projection removes distance- and habitat-rejected descriptors.
+- **Files changed:** Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationPlayerDistanceGateTest.cpp, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationRingCandidateSelectorTest.cpp, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
+- **Lightweight checks:** Inspected the existing activation habitat path, biome-specific tests and hard-enemy start helper; updated focused assertions for the 36 m inclusive boundary, a second player outside the selecting neighborhood, and preservation of earlier seeded-roll rejection. `git diff --check` passed; tests and builds were not run.
+- **Full verification:** Deferred to S35; this is not the final implementation task in the monster-population goal.
+- **Observable impact / authority:** Server-owned scheduler attempts now carry distance and habitat rejection results. Existing generated descriptors and their IDs/positions are unchanged; no actor creation, cap gate or physical placement was added.
+- **Networking/authority:** Distance uses the current-world living-player list on the authoritative GameMode. Habitat, species and start-exclusion queries also run only in that server-owned path; no save or replication schema changed.
+- **Known limitations:** Time, weather and progression remain fail-closed until S16–S18; caps wait for S19; surface, clearance and camp-aware placement remain later work. Natural actor creation remains disabled until S26.
+- **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within this requested monster-population goal, S16 is next — add the unrestricted current-species time gate and rejection-test seam.
+
+
+### Monster population — S16 unrestricted time gate
+
+- **Selected increment:** S16, wire the time-of-day gate for every bounded evaluator attempt.
+- **Work completed:** Added an exhaustive allowlist for all 17 current wildlife archetypes; each passes without consulting a clock or applying species restrictions. Unknown enum values fail closed. The scheduler now records this result after the earlier distance and habitat gates, preserving ordered rejection. A development-automation-only seam can force rejection for a known species, and the focused evaluator fixture checks current-species pass, unknown rejection, forced rejection and the `Time` reason.
+- **Files changed:** Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSpawnGateEvaluatorTest.cpp, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
+- **Lightweight checks:** Inspected the S13–S15 evaluator flow and the current wildlife archetype enum; verified the allowlist covers all current values and unknown values take the default rejection. `git diff --check` passed; the automation fixture and builds were not run.
+- **Full verification:** Deferred to S35; this is not the final implementation task in the monster-population goal.
+- **Observable impact / authority:** Server scheduler attempts now carry the unrestricted time-pass result for every known current species. No game clock, public setting, new species restriction, actor creation or natural-spawn activation was added.
+- **Networking/authority:** Time result population runs in the authoritative GameMode scheduler path; the rejection seam is compiled only with development automation tests. No replicated or saved-data state changed.
+- **Known limitations:** Weather and progression gates remain fail-closed until S17–S18; caps and placement remain later work. Natural actor creation remains disabled until S26.
+- **Next eligible task:** Within this requested monster-population goal, S17 is next — add the unrestricted current-species weather gate and rejection-test seam.
+
+
+### Monster population — S17 unrestricted weather gate
+
+- **Selected increment:** S17, wire the weather gate for every bounded evaluator attempt.
+- **Work completed:** Added an exhaustive allowlist for all 17 current wildlife archetypes; each passes without consulting weather state or applying restrictions. Unknown enum values fail closed. The scheduler now records the weather result after time and preserves first-rejection order. A development-automation-only seam can force rejection, and the focused evaluator fixture checks every current species, unknown rejection, forced `Weather` rejection and precedence of an earlier `Time` rejection.
+- **Files changed:** Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSpawnGateEvaluatorTest.cpp, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
+- **Lightweight checks:** Inspected the S13/S16 evaluator order and current wildlife archetype enum; verified the weather allowlist covers all current values and unknown values use the default rejection. `git diff --check` passed; the automation fixture and builds were not run.
+- **Full verification:** Deferred to S35; this is not the final implementation task in the monster-population goal.
+- **Observable impact / authority:** Server scheduler attempts now carry the unrestricted weather-pass result for every known current species. No weather simulation, public setting, new restriction, actor creation or natural-spawn activation was added.
+- **Networking/authority:** Weather result population runs in the authoritative GameMode scheduler path; the rejection seam is compiled only with development automation tests. No replicated or saved-data state changed.
+- **Known limitations:** Progression remains fail-closed until S18; caps and placement remain later work. Natural actor creation remains disabled until S26.
+- **Next eligible task:** Within this requested monster-population goal, S18 is next — add the unrestricted current-species progression gate and rejection-test seam.
+
+
+### Monster population — S18 unrestricted progression gate
+
+- **Selected increment:** S18, wire the progression gate for every bounded evaluator attempt.
+- **Work completed:** Added an exhaustive allowlist for all 17 current wildlife archetypes; each passes without consulting progression or applying locks. Unknown enum values fail closed. The scheduler records progression after time and weather while retaining first-rejection ordering. A development-automation-only seam can force rejection, and the focused evaluator fixture checks all current species, unknown rejection, forced `Progression` rejection, and precedence of an earlier `Weather` rejection.
+- **Files changed:** Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSpawnGateEvaluatorTest.cpp, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
+- **Lightweight checks:** Inspected the S13/S16/S17 evaluator order and current wildlife archetype enum; verified the progression allowlist covers all current values and unknown values take the default rejection. `git diff --check` passed; the automation fixture and builds were not run.
+- **Full verification:** Deferred to S35; this is not the final implementation task in the monster-population goal.
+- **Observable impact / authority:** Server scheduler attempts now carry the unrestricted progression-pass result for every known current species. No boss system, progression lock, public setting, actor creation or natural-spawn activation was added.
+- **Networking/authority:** Progression result population runs in the authoritative GameMode scheduler path; the rejection seam is compiled only with development automation tests. No replicated or saved-data state changed.
+- **Known limitations:** Cap admission remains to be wired in S19; physical placement and camp suppression remain later work. Natural actor creation remains disabled until S26.
+- **Next eligible task:** Within this requested monster-population goal, S19 is next — wire area caps and reservations immediately before creation.
+
+
+### Monster population — S19 cap gate
+
+- **Selected increment:** S19, wire existing area-cap and reservation-aware admission into the bounded attempt path.
+- **Work completed:** Added a cap stage after progression. Every bounded attempt records `bCapsPassed` and the ordered `Caps` rejection; the candidate projection removes candidates that fail. The gate resolves the existing descriptor archetype and calls the server-authoritative cap query, which counts live creatures by current position, per-species area limits, descriptor home-key budget, the aggregate active-key budget, and all pending Wolf reservation members. Wolf attempts trial-reserve all three deterministic member locations atomically through S12, then release the token immediately; a pack only passes when all three fit. No limits or actor budgets changed, no reservation is retained after evaluation, and no actors are created.
+- **Files changed:** Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationAreaCapsTest.cpp, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
+- **Lightweight checks:** Inspected the S11 count and budget path and S12 atomic reservation/release path; confirmed the cap gate follows progression and precedes physical placement in evaluator order. `git diff --check` passed. Added focused area-cap fixture assertions for an admitted descriptor and a zero home-key-budget rejection; tests and builds were not run.
+- **Full verification:** Deferred to S35; this is not the final implementation task in the monster-population goal.
+- **Observable impact / authority:** Authoritative bounded attempts now retain cap decisions and expose only candidates that fit current live and reserved population counts plus existing budgets. No actor creation or saved/replicated state change.
+- **Networking/authority:** The cap gate runs on the authoritative GameMode and its existing cap query requires authority. The Wolf token remains session-only and is unchanged.
+- **Known limitations:** The cap result is an evaluation-time query, not a held reservation. S26 must recheck immediately before creating actors and keep a `TryReserveWolfPackCapacity` token for all three Wolf members through creation, releasing on success after registration or on rollback. S20–S25 still wire physical placement and camp suppression.
+- **Next eligible task:** Within this requested monster-population goal, S20 is next — validate generated dry land and the accepted slope limit.
+
+
+### Monster population — S20 land-surface validation
+
+- **Selected increment:** S20, validate land descriptors against generated dry ground, world bounds, the existing hard-enemy start restriction and the accepted slope limit.
+- **Work completed:** Added the reusable server-side land-surface predicate. It rejects nonfinite or out-of-bounds positions, missing generated-height samples, invalid/ocean/lake water samples, Reef Maw, and slopes above 32 degrees; the inclusive slope limit is a named tuning constant. It reuses S15's habitat method, which retains biome and start-exclusion rules. Wolf descriptors use the existing pack-member builder and validate the center plus all three actual member locations independently, so one member above the limit rejects the pack. The final physical-placement gate remains false until S25; natural actor creation remains disabled until S26.
+- **Files changed:** Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationLandSurfaceTest.cpp, Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
+- **Lightweight checks:** Inspected the generated terrain, ocean and lake sampler contracts, the S15 start-exclusion path, the Wolf member builder and evaluator order. Added focused automation assertions for dry/water, bounds, generated-ground validity, the inclusive 32-degree boundary, over-limit slope and whole-pack rejection when one member fails; the existing hard-enemy tests cover the reused 150 m start rule. Tests and builds were not run.
+- **Full verification:** Deferred to S35; S20 is not the final implementation task in the monster-population goal.
+- **Observable impact / authority:** Later placement code can now query one server-only predicate for land-surface eligibility. The scheduler does not call it yet, no gate result is enabled, and no actors or saved/replicated state are changed.
+- **Networking/authority:** The predicate requires GameMode authority and a valid current world/config. It reads only deterministic server-side terrain and water samples; no networking or save schema changed.
+- **Known limitations:** S21 must implement Reef Maw aquatic checks; S22–S24 add clearance and camp suppression; S25 combines those policies into the final placement result. S26 remains the first task allowed to enable natural actor creation.
+- **Next eligible task:** Within this requested monster-population goal, S21 is next — validate Reef Maw aquatic surfaces and water clearance.
+
+
+### Monster population — S21 aquatic-surface validation
+
+- **Selected increment:** S21, validate Reef Maw water habitat and the full body collision shape at its existing spawn depth.
+- **Work completed:** Added an authoritative aquatic descriptor predicate that accepts only Reef Maw, reuses S15 habitat/start checks plus the existing Reef Maw Ocean navigation rule and 150 cm minimum-depth helper at the spawn center, and checks a bounded grid across the actual root-sphere footprint. Each footprint point must have Ocean/non-lake water and enough vertical clearance for the lower sphere surface above generated terrain. The 92 cm radius is now one shared constant used by the actor's root sphere and the clearance calculation; the actor remains at its existing 120 cm spawn depth. S20 continues to reject Reef Maw. The final physical-placement gate remains false until S25; natural actor creation remains disabled until S26.
+- **Files changed:** Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp, Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationAquaticSurfaceTest.cpp, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
+- **Lightweight checks:** Inspected the existing Reef Maw habitat/depth helper, swimming-navigation path, spawn-depth assignment, root sphere configuration and disabled secondary snake collider. Added focused automation assertions for the 150 cm habitat boundary, lake rejection, full-sphere water containment, shallow-water rejection, terrain penetration, invalid samples, aquatic species classification, and equality between the configured root-sphere radius and the clearance radius. Tests and builds were not run.
+- **Full verification:** Deferred to S35; S21 is not the final implementation task in the monster-population goal.
+- **Observable impact / authority:** Later placement code can now query a server-only Reef Maw aquatic-surface predicate. It is not wired into the evaluator, does not create actors, and changes no saved or replicated state.
+- **Networking/authority:** The predicate requires authoritative GameMode/world state and uses deterministic server-side Ocean, biome and terrain samples. No network protocol or save schema changed.
+- **Known limitations:** The footprint check uses bounded terrain-derived samples; S22–S24 still add collision/navigation clearance, roofs and camp suppression, and S25 combines all placement results before any later actor admission.
+- **Next eligible task:** Within this requested monster-population goal, S22 is next — validate physical clearance and species movement support.
+
+
+### Monster population — S22a body-collision clearance
+
+- **Selected increment:** S22a, share each archetype's configured body shapes and reject out-of-bounds or colliding physical placements.
+- **Work completed:** Added an explicit profile for every current wildlife archetype. The root sphere and the Viper, Giant Snake and Death Adder secondary capsules are configured from this profile and consumed by a server-authoritative overlap query, so geometry values are not duplicated. The check validates the full shape footprint against world bounds and evaluates Wolves at their three deterministic member locations. A helper derives the actor origin from generated ground and the sampled upward surface normal: sphere support uses radius divided by normal Z, while capsule support includes its axis and relative offset. The actual world-overlap query remains the final check. Mosquito's existing flight height and Reef Maw's existing ocean depth are retained. Candidate descriptor position, key and seed remain unchanged. No evaluator gate is wired and natural actor creation remains disabled.
+- **Files changed:** Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h, Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationBodyClearanceTest.cpp, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
+- **Lightweight checks:** Inspected every current archetype's active root/capsule configuration, spawn anchor, generated world bounds, sampled surface normal and visibility-channel collision setup. Added focused automation coverage for all archetype profiles, component/profile agreement, sphere and capsule overlap and clearance, ignored candidate actor, full-body world bounds, unsupported profiles, invalid geometry, existing land/Mosquito/Reef Maw anchors, and nonzero-slope sphere/capsule support math including capsule axis and relative offset. `git diff --check` was run; tests and builds were not run.
+- **Full verification:** Deferred to S35; S22a is one child of the physical-clearance task, not the final implementation task in the goal.
+- **Observable impact / authority:** Later server placement code can query each creature's actual configured collision shape against blocking world geometry. Land actor origins are derived from the generated-ground anchor and raised enough for every shape's support distance along the sampled surface normal while descriptor XY and identity stay stable. The query is not wired into population admission.
+- **Networking/authority:** The descriptor predicate requires authoritative GameMode and reads server-owned world/collision state. The shared profiles are deterministic component configuration; no network or save schema changed.
+- **Known limitations:** The placement evaluator remains fail-closed until S25 and natural actor creation remains disabled until S26; S26 must consume the computed actor placement location for new land actors.
+- **Next eligible task:** S23 is next — add the Workbench/Forge station cylinder query.
+
+
+### Monster population — S22b solid construction-roof rejection
+
+- **Selected increment:** S22b, reject a descriptor when any proposed actor body top intersects active solid RoofKit construction within 24 m above it.
+- **Work completed:** Added a reusable authoritative descriptor predicate that derives the vertical body top from S22a's shared sphere/capsule collision profile. Wolf descriptors use all three deterministic member positions and check each member independently. The 2400 cm trace only classifies initialized, healthy, server-authoritative `AKalmalaConstructionActor` RoofKit instances with registered root box query collision that blocks visibility traces. It traces eligible roof components individually, so intervening foliage, non-solid cosmetics or non-roof construction cannot mask a RoofKit above. The final placement gate remains unwired and fail-closed; natural actor creation remains disabled until S26.
+- **Files changed:** Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationRoofClearanceTest.cpp, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
+- **Lightweight checks:** Reviewed the S22a shape profile, Wolf member builder, construction initialization, kit identity, health, root box extent and collision setup, and confirmed the component-only line trace API against installed Unreal Engine headers/source. Added focused automation coverage for the inclusive 24 m boundary, a roof beyond range, no roof, RoofKit versus WallKit, an intervening foliage blocker, non-solid cosmetics, uninitialized construction, ignored proposed actor, invalid traces, snake and Wolf body tops, and the still-fail-closed evaluator. `git diff --check` passed; the fixture and builds were not run.
+- **Full verification:** Deferred to S35; S22b is not the final implementation task in the monster-population goal.
+- **Observable impact / authority:** Later server placement code can ask whether the actual proposed collision-profile top is under an active solid construction roof. The query does not create actors, mutate world state, wire the evaluator, or change saved/replicated data.
+- **Networking/authority:** The descriptor predicate requires GameMode authority; eligible construction hits must be server-authoritative and backed by their current query-collision root box. No network protocol or save schema changed.
+- **Known limitations:** S25 must combine S20–S24 before physical placement can pass; S26 remains the first task that may enable natural actor creation.
+- **Next eligible task:** S23 is next — add the Workbench/Forge station cylinder query.
+
+
+### Monster population — S22c movement support
+
+- **Selected increment:** S22c, preserve existing per-species movement support for proposed population actors.
+- **Work completed:** Added an authoritative descriptor predicate that evaluates actual proposed actor locations with the existing sampler-based support rules. It composes S20 dry generated-ground checks for land species and S21's Ocean depth and full-body water checks for Reef Maw; Wolf packs check all three member locations. Extracted the existing point-support rules into one shared config-based helper and routed Rat, Badger/Moon Bear, Tundra predators, Thunder Mountains predators, Reef Maw, Peat Husk and snake movement checks through it. Species with no separate traversal requirement continue to rely on generated ground and S22a clear collision, with no NavMesh requirement. The predicate is not wired to final admission.
+- **Files changed:** Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h, Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
+- **Lightweight checks:** Re-read the S22 support contract and inspected the current wildlife movement samplers, terrain support threshold, Reef Maw swim-depth query and actor placement anchors. Source review confirmed every shared movement rule matches its prior point query; `git diff --check` passed. No tests or builds were run.
+- **Full verification:** Deferred to S35; S22c is not the final implementation task in the monster-population goal.
+- **Observable impact / authority:** Later server placement code can verify movement support at every proposed actor location while preserving current biome, dry/water, slope, leash and depth policies. Existing movement code now shares those point checks. No actor creation, final gate activation, saved-data or replicated-state change was made.
+- **Networking/authority:** The descriptor predicate requires GameMode authority and reads server-side deterministic samplers. Existing wildlife movement remains server-authoritative; the shared helper adds no network state.
+- **Known limitations:** S23–S24 still add camp station and spherical suppression queries; S25 combines placement checks. S26 remains the first task that may enable natural actor creation.
+- **Next eligible task:** S23 is next — add the Workbench/Forge station cylinder query.
+
+
+### Monster population — S23 Workbench/Forge station cylinder
+
+- **Selected increment:** S23, add a server-side query for completed placed Workbench and Forge stations.
+- **Work completed:** Added one authoritative point query that considers only initialized, non-destroyed construction actors with positive finite health and exact `WorkbenchKit` or `ForgeKit` identity. It checks the candidate against an inclusive 1800 cm horizontal radius and 1200 cm vertical half-height around each station's actual actor origin. The backlog tuning constants and current contract documentation now agree on 18 m by ±12 m; the prior 16 m documentation value is superseded. The query is not wired into final placement; S25 remains the integration step and S26 remains the first task allowed to enable natural actor creation.
+- **Files changed:** Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationStationCylinderTest.cpp, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
+- **Lightweight checks:** Added focused automation coverage for Workbench/Forge allowlisting, exact horizontal and vertical boundaries, outside-radius/outside-height points, unlisted construction, uninitialized and destroyed stations, and invalid candidate input. `git diff --check` passed; tests and builds were not run.
+- **Full verification:** Deferred to S35; S23 is not the final implementation task in the monster-population goal.
+- **Observable impact / authority:** Later camp placement checks can query whether a proposed point falls inside an active Workbench/Forge suppression cylinder. The helper only reads server-owned construction state; it does not wire the evaluator, create actors, mutate construction, or alter saved/replicated state.
+- **Networking/authority:** Invalid or non-authoritative query context fails closed. Valid queries inspect only server-authoritative construction actors in the current world. No network protocol or save schema changed.
+- **Known limitations:** S24 still adds the Camp Bed, Campfire and Standing Light spherical query; S25 combines camp suppression and placement results. Natural actor creation remains disabled until S26.
+- **Next eligible task:** S24 is next — add the spherical camp-suppression query.
+
+
+### Monster population — S24 spherical camp suppression
+
+- **Selected increment:** S24, query spherical camp suppression around Camp Beds, Campfires and Standing Lights.
+- **Work completed:** Added an authoritative point query using the shared inclusive 1800 cm sphere radius. Any initialized, intact `CampBedKit` suppresses; a Campfire suppresses only when its current server state is lit with positive finite fuel; a Standing Light suppresses only when its current server flame-eligibility check passes and it has an initialized live construction record. Workbench/Forge cylinder results remain in the S23 query, while other pieces and cosmetics do not emit an S24 sphere. The prior documentation's 16 m sphere values are updated to the S24 backlog value of 18 m. S22 RoofKit rejection remains separate; neither camp query is wired to the final placement gate before S25, and natural actor creation remains disabled until S26.
+- **Files changed:** Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationStationCylinderTest.cpp, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSphericalSuppressionTest.cpp, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
+- **Lightweight checks:** Inspected construction initialization/health, Campfire lit/fuel state and Standing Light flame eligibility, including rain exposure. Added focused automation assertions for intact bed boundaries/destruction, unlit and fuel-exhausted Campfire states, rain-smouldered fire/light states, fuelled lit sources, unlisted stations, other pieces, cosmetics and invalid input. `git diff --check` passed; tests and builds were not run.
+- **Full verification:** Deferred to S35; S24 is not the final implementation task in the monster-population goal.
+- **Observable impact / authority:** Later placement checks can query whether a proposed point falls within the 18 m sphere of an eligible camp source. The helper reads current server-owned actor state only; it does not wire final admission, affect existing creatures, create actors or modify saved/replicated state.
+- **Networking/authority:** Invalid or non-authoritative query context fails closed. Construction and Campfire actors are considered only from the current authoritative world. No network protocol or save schema changed.
+- **Known limitations:** S25 still combines the S20–S24 placement, station and sphere results with live source state/destruction; natural actor creation remains disabled until S26.
+- **Next eligible task:** S25 is next — wire placement and camp suppression results into the physical-placement gate.
+
+### Monster population — S25 final placement gate
+
+- **Selected increment:** S25, combine current S20–S24 placement and camp-suppression checks in the physical-placement gate.
+- **Work completed:** Wired the server-authoritative physical-placement composite after the cap gate for bounded attempts that pass all earlier checks. The composite applies the S20/S21 surface and S22c movement predicate, S22a body clearance, S22b solid-roof clearance, and current S23 station-cylinder plus S24 camp-sphere queries at the actual proposed actor origins; Wolf packs validate all three member origins. Rejected attempts report PhysicalPlacement and are removed from this wake's bounded candidate list. This only affects new-spawn admission; it neither deletes existing creatures nor changes their movement. Actor creation remains disabled until S26.
+- **Files changed:** Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationPhysicalPlacementGateTest.cpp, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
+- **Lightweight checks:** Inspected scheduler order and confirmed physical placement follows caps; reviewed all S20–S24 helper calls, first-rejection preservation, actual Wolf/member placement origins, and candidate filtering. Added a focused automation fixture for invalid placement fail-closed behavior, earlier Caps rejection preservation, and ensuring an existing wildlife actor is neither deleted nor moved. git diff --check passed; fixture and builds were not run.
+- **Full verification:** Deferred to S35; S25 is not the final implementation task in the monster-population goal.
+- **Observable impact / authority:** The current authoritative world's surfaces, collision, solid roof and live station/camp state now determine whether a bounded new-spawn candidate survives the physical-placement gate. No actor creation or save/replication schema changes were made.
+- **Networking/authority:** Composite and component queries require GameMode authority and read the current world's state; no client-controlled input or remote state is introduced.
+- **Known limitations:** S26 must still consume eligible candidates through one bounded creation transaction, recheck caps and handle reservation/registration rollback. Natural actor creation remains disabled.
+- **Next eligible task:** S26 is next — enable natural spawning through the complete bounded creation transaction.
+
+### Monster population — S26 bounded natural creation
+
+- **Selected increment:** S26, enable natural wildlife creation through the bounded authoritative scheduler transaction.
+- **Work completed:** Passing attempt records now enter one server-side creation transaction after all nine gates. It rechecks caps and final placement immediately before spawning, rejects defeated/live IDs, uses computed body-supported origins, and holds/releases the atomic S12 reservation for all three Wolf members. Partial spawn or initialization failure destroys the new actors and releases reservations without defeat, reward or save callbacks. Success initializes stable descriptor/member IDs, registers actors and binds the existing defeat/reward/save callback. Normal key activation no longer creates wildlife; it continues materializing harvest nodes and hazards while the separate discovery path remains unchanged. Direct wildlife activation is limited to explicit non-shipping combat/reconnect verification. Added S02 session-only unload behavior: living actors beyond every current-world living player's inclusive 96 m radius are destroyed without defeat/reward/save, and their stable IDs receive a 30-second reactivation cooldown.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`, `Source/KalmalaGameplay/Public/KalmalaGameMode.h`, `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationCreationLifecycleTest.cpp`, `Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h`, `docs/monster-spawning.md`, `docs/02-technical-architecture.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** Inspected scheduler/gate ordering, stable solo and Wolf member ID derivation, existing cap and reservation accounting, placement origin computation, BeginPlay/EndPlay/defeat registry callbacks, and reward/save delegates. Added focused coverage for attempts failing closed before actor creation and for inclusive 96 m unload distance, live-registry removal, no defeat persistence and the 30-second cooldown boundary. `git diff --check` passed, and staged scope/path lengths were reviewed before commit. Automation and builds were not run.
+- **Full verification:** Deferred to S35. S26 is not the final implementation task in this goal.
+- **Observable impact / authority:** Server scheduler candidates that pass every gate can now create replicated wildlife. Existing per-key materialization continues for harvest, hazards and discoveries. Camp suppression blocks only new admissions; it does not delete or move existing creatures. Recreated land actors use their computed collision-support origins while preserving stable identities.
+- **Networking/authority:** Admission, cap recheck/reservation, creation, lifecycle tracking and unload/cooldown state remain server-owned. No RPC or SaveGame schema changed; existing authenticated-owner reward claims remain in the existing defeat/reward path.
+- **Known limitations:** Environmental-source policy and scheduling remain at S27–S29. Boundary/rejection/rollback acceptance fixtures remain S30–S33, setup handoff S34, and milestone-final builds, tests and peer/restart verification remain S35.
+- **Next eligible task:** S27 — record the environmental spawner policy.
+
+### Monster population — S27 environmental policy
+
+- **Selected increment:** S27, record the fixed local environmental-source policy and its shared-scheduler integration.
+- **Work completed:** Documented the exact two finite stable source slots, no replacement after defeat, local maximum of two living source-owned actors within inclusive 24 m, 8-second check interval, at most one creation and four fixed candidates within 12 m per check, and no missed-check accrual while inactive. Mapped source attempts to share the existing global 16-candidate wake, seeded roll, player/habitat/unrestricted policy/cap/placement gates and S25 camp suppression. Source-owned actors remain charged to shared species/home-key/aggregate budgets when outside the local radius. Source inspection found no environmental-spawner actor or configured source registry; existing campfires, lights and stations remain suppression/shelter sources. Added no runtime scheduling, source slots or world content.
+- **Files changed:** `docs/monster-spawning.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** Inspected the fixed environmental policy and searched gameplay/world source for existing spawner/source classes; none were present. Reviewed the current scheduler wake/candidate limits, creation transaction, shared caps, physical-placement and camp-suppression seams. `git diff --check` passed; staged scope/path lengths were verified before commit. No tests or builds ran because S27 records policy only.
+- **Full verification:** Deferred to S35. S27 is not the final implementation task in this goal.
+- **Observable impact / authority:** No runtime behavior or world content changes. The integration map directs future source checks through server-owned shared budgets, admission gates and camp suppression.
+- **Networking/authority:** Future source configuration and policy are server-owned; S27 adds no network or save state.
+- **Known limitations:** No source actor or configured source exists. S28 must add disabled-unless-configured scheduling; S29 must apply local/shared safety gates and reservation before source creation. Boundary and peer acceptance remains S30–S35.
+- **Next eligible task:** S28 — add local spawner scheduling.
+
+### Monster population — S28 local spawner scheduling
+
+- **Selected increment:** S28, add a reusable local-source schedule and living-count policy that stays disabled without an explicit configured source.
+- **Work completed:** Added authority/configuration-gated helpers for the fixed 8-second interval, service-relative next due time that skips missed checks, two finite source slots, up to four candidates clamped by remaining shared budget, an inclusive 12 m 3D candidate radius, at most one creation per check, and the local cap of two same-source living creatures within an inclusive 24 m horizontal radius. Invalid owned living samples fail closed. No source actor, registry or world content exists, so the runtime remains dormant.
+- **Files changed:** Source/KalmalaGameplay/Public/KalmalaEnvironmentalSpawnerPolicy.h, Source/KalmalaGameplay/Private/Tests/KalmalaEnvironmentalSpawnerPolicyTest.cpp, docs/monster-spawning.md, BACKLOG.md, and PROGRESS.md.
+- **Lightweight checks:** Inspected policy/helper contracts and the S27 shared scheduler/creation integration map. Added focused automation assertions for configured/server-only gating, due-time and hitch behavior, slot and candidate limits, 12 m/24 m boundaries, shared-work clamping and one-creation limit. Automation and builds were not run. git diff --check passed; staged scope and path lengths were reviewed (all under 260 characters).
+- **Full verification:** Deferred to S35; S28 is not the final implementation task in this goal.
+- **Observable impact / authority:** No runtime scheduling or actor creation is enabled because there is no configured source. When wired later, policy inputs and local ownership counts are supplied by the authoritative server.
+- **Networking/authority:** Helpers require server authority and add no RPC, replication or save state.
+- **Known limitations:** S29 must connect configured sources to shared safety gates, capacity reservations and creation. S30–S34 add focused acceptance coverage and setup handoff; S35 performs milestone-final verification.
+- **Next eligible task:** S29 — apply environmental safety gates.
+
+
+### Monster population — S29 environmental safety gates
+
+- **Selected increment:** S29, apply local-source safety limits together with shared wildlife admission gates and reservations.
+- **Work completed:** Added a server-only configured-source candidate seam that services the fixed 8-second check, enforces source/slot identity, 12 m candidate radius, four-candidate limit, one-creation check and remaining shared wake budget. Each recorded candidate runs through the existing seeded admission, living-player ring/exclusion, habitat, unrestricted time/weather/progression, shared caps and S25 physical-placement/camp gate before entering the normal creation transaction. The descriptor keeps its selected position and species seed but uses a stable actor/save ID derived from `(SourceId, slot 0|1)`; a defeated slot is not replaced by another candidate. The transaction rechecks shared caps and local source ownership immediately before creation, reserves every actor against species/home-key/aggregate budgets, and releases all reservations after registration or on any rollback. Pending reservations carry archetype and source identity so both shared species counts and local source counts see them. Successful source-owned actors are mapped by stable source-slot ID and removed from source ownership through the existing defeat/destroy lifecycle. Wolf packs remain all-or-none and cannot fit a 2-creature local cap.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`, `Source/KalmalaGameplay/Public/KalmalaGameMode.h`, `Source/KalmalaGameplay/Public/KalmalaEnvironmentalSpawnerPolicy.h`, `Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h`, `Source/KalmalaGameplay/Private/Tests/KalmalaEnvironmentalSpawnerAdmissionTest.cpp`, `Source/KalmalaGameplay/Private/Tests/KalmalaEnvironmentalSpawnerPolicyTest.cpp`, `docs/monster-spawning.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** Inspected the current player, habitat, gate order, physical-placement/camp, cap and actor lifecycle paths. Added focused automation coverage for source/slot stable IDs and permanent defeat, pending source reservations counting toward shared world/species/home-key caps, the inclusive two-actor local cap and rollback release, a three-member Wolf pack not fitting the local cap, fail-closed unconfigured checks, candidate-budget charging, service-relative due time and first cap rejection. `git diff --check` passed, `rg` confirmed the new reservation/slot-ID references are consistent, and all changed absolute paths are under 260 characters. Automation and builds were not run.
+- **Full verification:** Deferred to S35; S29 is not the final implementation task in this goal.
+- **Observable impact / authority:** There is still no environmental source actor or configured source registry, so runtime environmental spawning remains dormant. If an authoritative caller explicitly configures a source, its fixed candidates use the existing shared admission and creation safety path. No placed content or save data changed.
+- **Networking/authority:** Configuration, candidate selection, cap counts, reservation, creation, source ownership and cleanup remain server-owned. No RPC, replication field or save schema changed.
+- **Known limitations:** No source actor/configuration registry exists. The new path is intentionally disabled without explicit caller-supplied configuration. A source-local cap of two rejects a three-individual Wolf pack atomically. S30–S35 still cover acceptance cases and milestone-final verification.
+- **Next eligible task:** S30 — cover spatial boundaries.
+
+
+### Monster population — S30 spatial boundary coverage
+
+- **Selected increment:** S30, cover ring/key boundaries, overlapping player neighborhoods, moving-creature counts and Wolf reservation rollback.
+- **Work completed:** Reviewed the existing ring selector fixture and confirmed exact inclusive 32 m/96 m edges, adjacent outside points and seeded-roll isolation; reviewed the key-union fixture for overlapping players, one-result shared keys and deterministic order; reviewed the Wolf reservation fixture for provisional-member rollback with earlier reservations preserved. Added explicit floor-boundary assertions for negative spatial coordinates and a live Boar movement case proving species counts follow its current position while world and immutable home-key totals remain charged. No gameplay code changed.
+- **Files changed:** `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationAreaCapsTest.cpp`, `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSpatialKeyUnionTest.cpp`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** Inspected the accepted ring, 64 m spatial-key floor, 96 m count radius, overlapping-neighborhood union and atomic pack rollback implementations. Carefully reviewed the new negative-coordinate and moved-creature assertions against those contracts. `git diff --check` passed; automation and builds were not run.
+- **Full verification:** Deferred to S35; S30 is not the final implementation task in this goal.
+- **Observable impact / authority:** Added test coverage only. The fixture moves a server-owned registered wildlife actor and checks current live counts without changing spawn policy, world content, save data or replication.
+- **Networking/authority:** No runtime or network behavior changed. The tested cap counts and reservation operations are authoritative GameMode paths.
+- **Known limitations:** The focused automation fixtures were not run. S31–S35 still cover gate rejection, placement/suppression, lifecycle/local-source acceptance, verification handoff and milestone-final builds/tests/peer checks.
+- **Next eligible task:** S31 — cover gate rejection.
+
+
+### Monster population — S31 gate rejection coverage
+
+- **Selected increment:** S31, cover the ordered nine-gate rejection outcomes,
+  unrestricted policy gates, and bounded work.
+- **Work completed:** Strengthened the evaluator fixture into an ordered matrix:
+  each gate is the first failing gate while all later gates remain false, and
+  each returns its distinct rejection reason. Existing fixture assertions verify
+  time, weather and progression pass for every current species, unknown species
+  fail closed, and internal seams can force each of those policies to reject.
+  Added a selector assertion that later gate evaluation does not retry a rejected
+  descriptor beyond its original bounded attempt slot. The existing scheduler
+  fixtures verify at most four keys per wake, four candidates per key, sixteen
+  candidates total, and no catch-up wake after a hitch.
+- **Files changed:**
+  `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSpawnGateEvaluatorTest.cpp`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationRingCandidateSelectorTest.cpp`,
+  `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** Inspected the nine-gate evaluation order and the
+  scheduler/selector attempt budgets; `git diff --check` passed. Automation and
+  builds were not run.
+- **Full verification:** Deferred to S35; S31 is not the final implementation
+  task in the monster-population goal.
+- **Observable impact / authority:** Test coverage only. No runtime gameplay,
+  world content, save data or replication behavior changed.
+- **Networking/authority:** No runtime authority paths changed; the fixtures
+  exercise the server GameMode evaluator and scheduler helpers.
+- **Known limitations:** The focused automation fixtures remain unrun. S32–S35
+  still cover suppression/placement, lifecycle/local-source acceptance,
+  verification handoff, and milestone-final verification.
+- **Next eligible task:** S32 — cover suppression and placement.
+
+
+### Monster population — S32 suppression and placement coverage
+
+- **Selected increment:** S32, cover suppression boundaries and physical
+  placement rejection cases.
+- **Work completed:** Added mixed-axis camp-sphere assertions: a point just
+  inside the 18 m three-dimensional radius suppresses, while a point whose
+  individual axes are each inside 18 m but whose combined distance is outside
+  does not. Reviewed the existing focused fixtures and confirmed coverage for
+  station cylinder radius/height edges; unlisted and destroyed stations; empty,
+  rain-extinguished and fuel-exhausted lights; solid RoofKit at the exact 24 m
+  trace limit and ignored non-roof/cosmetic hits; the inclusive 32-degree land
+  slope and over-limit case; dry-land rejection of water; and Reef Maw water
+  containment, insufficient water and terrain penetration.
+- **Files changed:**
+  `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSphericalSuppressionTest.cpp`,
+  `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** Inspected existing S20–S25 predicates and focused
+  fixtures against the S32 checklist; `git diff --check` passed. Automation and
+  builds were not run.
+- **Full verification:** Deferred to S35; S32 is not the final implementation
+  task in the monster-population goal.
+- **Observable impact / authority:** Test coverage only; no runtime behavior,
+  world content, save data or replication behavior changed.
+- **Networking/authority:** No runtime authority paths changed. The fixtures
+  exercise server-side station, camp and placement queries.
+- **Known limitations:** The focused automation fixtures remain unrun. S33–S35
+  still cover lifecycle/local-source acceptance, verification handoff and
+  milestone-final verification.
+- **Next eligible task:** S35 — perform milestone-final verification.
+
+
+### Monster population — S33 lifecycle and local-source coverage
+
+- **Selected increment:** S33, cover unload/reload, cooldown, defeat/reward
+  deduplication and local/shared cap behavior.
+- **Work completed:** Extended the population creation lifecycle fixture to
+  reload the same descriptor after its inclusive 30-second cooldown. It checks
+  that the reloaded actor keeps the original stable spawn ID, is re-registered
+  while within the inclusive living-player radius, clears its cooldown entry,
+  and remains undefeated. Existing focused tests cover unload outside every
+  living player's radius, no reward/save defeat on unload, and readiness just
+  before and at expiry. Reused existing Rat claim coverage for stable reward
+  idempotency and existing authority coverage for rejecting repeat defeats.
+  Reused the environmental-source admission fixture for the local two-actor
+  cap, atomic Wolf-pack local rejection, and pending reservations counted against
+  shared world/species/home-key limits; the Wolf reservation fixture covers
+  all-or-none rollback and capacity release.
+- **Files changed:**
+  `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationCreationLifecycleTest.cpp`,
+  `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** Inspected the S02 unload/cooldown lifecycle, S26
+  creation registration and defeat callbacks, S29 local/shared reservation path,
+  and mapped the focused tests to the requested acceptance cases.
+  `git diff --check` passed. Automation and builds were not run.
+- **Full verification:** Deferred to S35; S33 is not the final implementation
+  task in the monster-population goal.
+- **Observable impact / authority:** Test coverage only; no runtime behavior,
+  save schema, world content or replication behavior changed.
+- **Networking/authority:** No runtime authority paths changed. Fixtures cover
+  server-owned live registries, cooldown state, reservations and save claims.
+- **Known limitations:** The focused automation fixtures remain unrun. S34–S35
+  still prepare and execute the milestone verification handoff.
+- **Next eligible task:** S35 — perform milestone-final verification.
+
+### Monster population — S34 verification handoff
+
+- **Selected increment:** S34, prepare the architecture and milestone-final
+  verification handoff.
+- **Work completed:** Documented the accepted natural-spawn scheduler, spatial
+  and species limits, ordered server-owned admission, camp suppression geometry,
+  living-actor unload/reload and durable defeated/reward identity contracts in
+  the technical architecture. Added exact isolated-mirror build, focused
+  population/camp automation, and deterministic host/client/restart commands to
+  the development setup guide. The handoff maps each command to its acceptance
+  evidence and records the dormant environmental-source limitation.
+- **Files changed:** docs/02-technical-architecture.md,
+  docs/07-development-setup.md, BACKLOG.md, and PROGRESS.md.
+- **Lightweight checks:** Reviewed the accepted specification, S26/S29 server
+  paths, all population fixture names, CampBedContract, the EnemyPeers
+  SharedCombat parameters and restart marker, and existing UE 5.8 build/test
+  invocation patterns. The S35 PowerShell command block parsed successfully and
+  git diff --check passed. Full build, automation and peers were not run.
+- **Full verification:** Deferred to S35, the final implementation task in this
+  goal.
+- **Observable impact:** Documentation only; no runtime, save, network or
+  gameplay behavior changed.
+- **Networking/authority:** The architecture and handoff describe server-owned
+  scheduler decisions and creation, existing replicated actor state and
+  authenticated-owner reward claims. No authority paths changed.
+- **Known limitations:** No configured environmental-spawner actor/registry or
+  population-specific live peer runner exists. Native population fixtures cover
+  two-player neighborhood overlap, lifecycle and scheduler bounds; the existing
+  SharedCombat peer runner covers replication, reward delivery and exact-ID
+  restart. S35 must record actual results and not overstate this coverage.
+- **Next eligible task:** S35 — perform milestone-final verification.
+
+### Monster population — S35 milestone-final verification
+
+- **Selected increment:** S35, the final verification and repair gate.
+- **Combined review:** Reviewed the full S03–S34 branch change and the S34 architecture/setup handoff. The feature worktree started clean at S34. All changes were confined to the feature worktree and a temporary mirror; the main checkout was not modified by this run.
+- **Build command:** Copied the project to C:\Users\Ville\AppData\Local\Temp\kmpop35, excluding Binaries, Intermediate, Saved, DerivedDataCache and .git, then ran:
+  ~~~powershell
+  & 'C:/Program Files/Epic Games/UE_5.8/Engine/Build/BatchFiles/Build.bat' KalmalaEditor Win64 Development '-Project=C:/Users/Ville/AppData/Local/Temp/kmpop35/Kalmala.uproject' -WaitMutex -NoHotReload -NoHotReloadFromIDE -MaxParallelActions=4 -DisableAdaptiveUnity
+  ~~~
+  UnrealBuildTool ran with normal per-user access and wrote its log/trace under C:\Users\Ville\AppData\Local\UnrealBuildTool. The first build exited 6 with three milestone compile defects: the spawn-tuning helper accessed private FKalmalaWorldPopulationLayout::Mix; the roof query called non-const LineTraceComponent through a const component; and a double/float TestEqual call was ambiguous. Added narrow friendship for the tuning helper, made the roof-query component pointers mutable for the trace call, and cast the aquatic expected depth to double. The build then succeeded (20 actions); log: C:\Users\Ville\AppData\Local\Temp\kmpop35\build-compilefix.log. After the test-fixture repairs, the final KalmalaEditor target rebuild succeeded (4 actions). Final log: C:\Users\Ville\AppData\Local\Temp\kmpop35\build.log. Initial failure: C:\Users\Ville\AppData\Local\Temp\kmpop35\build-initial.log.
+- **Automation command:** Ran the full Kalmala.Gameplay.Population group plus Rat reward identity, server-only defeat and Camp Bed contract:
+  ~~~powershell
+  & 'C:/Program Files/Epic Games/UE_5.8/Engine/Binaries/Win64/UnrealEditor-Cmd.exe' 'C:/Users/Ville/AppData/Local/Temp/kmpop35/Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -NoZenAutoLaunch -DDC-ForceMemoryCache -stdout -FullStdOutLogOutput '-UserDir=C:/Users/Ville/AppData/Local/Temp/kmpop35/population-user' '-abslog=C:/Users/Ville/AppData/Local/Temp/kmpop35/population-tests.log' '-ExecCmds=Automation RunTests Kalmala.Gameplay.Population+Kalmala.Gameplay.Wildlife.Rat.SpawnReachAndRewardIdentity+Kalmala.Gameplay.WildlifeSpawn.ServerOnlyDefeat+Kalmala.Gameplay.Construction.CampBedContract; Quit' '-TestExit=Automation Test Queue Empty'
+  ~~~
+  The first run exposed fixture defects: AreaCaps expected 12 world/home actors although its fixture creates five; LiveCreatureRegistry spawned an unattached GameMode and destroyed an actor before BeginPlay; and RoofClearance passed a default wildlife descriptor at the valid world origin while expecting it to be invalid. Corrected the expected counts to five, installed the fixture as the authoritative world GameMode and dispatched BeginPlay before testing EndPlay, and made the roof test explicitly use a non-wildlife descriptor. The first automation run exited 255 with three failing test cases; after the first fixture repair, the second run exited 255 with one remaining EndPlay failure. The second run found the destroyed actor still had not begun play; the final fixture repair dispatched BeginPlay before Destroy. The final build rerun succeeded and all 23 requested tests passed: 20 Population tests, Rat SpawnReachAndRewardIdentity, WildlifeSpawn.ServerOnlyDefeat, and Construction.CampBedContract. Exit code 0. Final log: C:\Users\Ville\AppData\Local\Temp\kmpop35\population-tests.log. Failed attempts retained at C:\Users\Ville\AppData\Local\Temp\kmpop35\population-tests-initial.log and C:\Users\Ville\AppData\Local\Temp\kmpop35\population-tests-second.log.
+- **Host/client/restart command:**
+  ~~~powershell
+  Scripts/Tests/Combat/EnemyPeers.ps1 -Scenario SharedCombat -Port 18149 -WorldSeed 418 -Project $project -Editor 'C:/Program Files/Epic Games/UE_5.8/Engine/Binaries/Win64/UnrealEditor.exe'
+  if (!$?) { throw 'SharedCombat host/client/restart acceptance failed.' }
+  ~~~
+  The documented PowerShell $? guard is accurate; this runner does not set LASTEXITCODE. The clean rerun exited 0 and printed PASS. The server reported Passed=1, full reward escrow/retry, OwnerOnly=1 and no remote reward; client and observer saw replicated defeat. The restart process confirmed defeated spawn ID 0/-2/-1/7913717384534915769 remained absent. Logs: C:\Users\Ville\AppData\Local\Temp\km-enemy-934ab7512387484780f993fb204326fe\acceptance.log, client.log, observer.log and server.log. The earlier successful runner output was mistakenly flagged by this run's wrapper because LASTEXITCODE was empty; the exact documented guard was rerun cleanly.
+- **Non-failing diagnostics:** The final Unreal automation log contains the existing ZenLocal inability to reach the local ZenServer and two engine automation self-test “Condition failed” messages before the queue. The requested queue still completed with exit code 0 and 23 successes. No other pre-existing project failures were identified.
+- **Full verification status:** Milestone-final verification succeeded: final Editor build, 23/23 requested native automation tests, and the seed-418 host/owner/observer/restart acceptance all passed after repairs. The peer runner does not exercise scheduler admission or configured environmental-source activation; those contracts are covered by the native Population fixtures. No environmental-spawner actor or source registry is in scope and none was added.
+- **Files changed:** Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h; Source/KalmalaGameplay/Private/KalmalaGameMode.cpp; the AquaticSurface, AreaCaps, LiveCreatureRegistry and RoofClearance population tests; BACKLOG.md; PROGRESS.md.
+- **Observable impact / networking:** The final fixes restore compilation and correct fixture assertions/lifecycle setup. No gameplay policy, saved-data schema, replication protocol or client authority changed. The live runner confirmed server-owned defeat/reward and replicated state.
+- **Known limitations:** Environmental source behavior remains a reusable dormant policy seam without configured world content; its native policy/admission tests passed. No verification blocker remains.
+- **Final milestone status:** Complete. S01–S35 and the parent goal are checked. No next task remains in this goal.

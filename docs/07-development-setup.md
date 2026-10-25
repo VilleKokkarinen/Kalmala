@@ -22,6 +22,63 @@ Discovery and mining/treasure runners now live under `Scripts/Tests/Progression/
 The consolidated runner has lightweight parser/evidence/orchestration coverage;
 new live execution and full Unreal verification remain deferred.
 
+## Monster population milestone-final verification — 2026-10-25
+
+The runtime and accepted tuning summary is in
+[02-technical-architecture.md](02-technical-architecture.md); [monster-spawning.md](monster-spawning.md) is the detailed
+numeric contract. No environmental-spawner actor or configured source registry
+exists. The source-policy fixture remains a policy test, not a live content
+scenario.
+
+Run the S35 verification from the feature worktree repository root. Build in a
+new short mirror so the source worktree's Binaries, Intermediate, Saved and
+DerivedDataCache remain untouched. These commands use a fresh $env:TEMP\kmpop35
+directory; if it already exists, choose a different unused short child name and
+use that same path throughout. Run UnrealBuildTool with ordinary per-user access
+to %LOCALAPPDATA%\UnrealBuildTool.
+
+~~~powershell
+$mirror = Join-Path $env:TEMP 'kmpop35'
+if (Test-Path -LiteralPath $mirror) { throw 'Choose a new empty short mirror path; do not reuse existing output.' }
+New-Item -ItemType Directory -Path $mirror | Out-Null
+robocopy . $mirror /E /XD Binaries Intermediate Saved DerivedDataCache /XF .git
+if ($LASTEXITCODE -ge 8) { throw 'Source mirror copy failed.' }
+
+& 'C:/Program Files/Epic Games/UE_5.8/Engine/Build/BatchFiles/Build.bat' KalmalaEditor Win64 Development "-Project=$mirror/Kalmala.uproject" -WaitMutex -NoHotReload -NoHotReloadFromIDE -MaxParallelActions=4 -DisableAdaptiveUnity
+if ($LASTEXITCODE -ne 0) { throw 'KalmalaEditor build failed.' }
+
+$project = Join-Path $mirror 'Kalmala.uproject'
+$userDir = Join-Path $mirror 'population-user'
+$log = Join-Path $mirror 'population-tests.log'
+& 'C:/Program Files/Epic Games/UE_5.8/Engine/Binaries/Win64/UnrealEditor-Cmd.exe' $project -unattended -nop4 -nosplash -nullrhi -NoZenAutoLaunch -DDC-ForceMemoryCache -stdout -FullStdOutLogOutput "-UserDir=$userDir" "-abslog=$log" '-ExecCmds=Automation RunTests Kalmala.Gameplay.Population+Kalmala.Gameplay.Wildlife.Rat.SpawnReachAndRewardIdentity+Kalmala.Gameplay.WildlifeSpawn.ServerOnlyDefeat+Kalmala.Gameplay.Construction.CampBedContract; Quit' '-TestExit=Automation Test Queue Empty'
+if ($LASTEXITCODE -ne 0) { throw 'Monster-population automation failed.' }
+
+& ./Scripts/Tests/Combat/EnemyPeers.ps1 -Scenario SharedCombat -Port 18149 -WorldSeed 418 -Project $project -Editor 'C:/Program Files/Epic Games/UE_5.8/Engine/Binaries/Win64/UnrealEditor.exe'
+if (!$?) { throw 'SharedCombat host/client/restart acceptance failed.' }
+~~~
+
+The automation command selects the full Kalmala.Gameplay.Population test group for
+player-key unions, schedule bounds, all admission gates, caps, camp geometry,
+placement and unload/reload lifecycle. It also selects Rat stable reward
+identity, server-only defeat and Camp Bed contracts. Require a successful
+result for every requested test and exit 0. The peer runner starts the fixed
+seed-418 listen host, owner client and observer client, then starts a fresh
+listen-server process to confirm the same defeated wildlife ID remains absent.
+It creates a fresh temporary log/save directory when OutputDirectory is omitted;
+retain and record that output path. The peer scenario covers replicated defeat,
+owner-only reward escrow/retry and exact-ID restart. It is not evidence that a
+configured environmental source exists or that peers control scheduler choices.
+
+At S35, record actual build output and test names/results, all peer role and
+restart markers, and the retained log paths. Verify overlapping player
+neighborhoods form a key union with each key processed once, while disjoint
+neighborhoods retain each player's eligible keys. Confirm unload/reload preserves
+stable IDs and does not reward or defeat, no area/species/home-key/aggregate cap
+is exceeded, no duplicate actor or reward appears, all spawn choices remain
+server-authoritative, and no wake examines more than 16 candidates. The native
+population fixtures cover the two-player neighborhoods and bounded scheduler;
+the live peer run supplies replication and process-restart coverage.
+
 ## A9 runtime verification — 2026-10-24
 
 Accessory runtime effects, all ten gem sources, Forge gear routes and the four
@@ -2019,7 +2076,7 @@ Bronze-grade Copper and Tin require at least a Stone Pick and yield three
 matching pieces per node. Iron-grade bog iron requires Bronze Pick or better
 and yields exactly three Iron Ore, replacing the former direct Iron reward.
 The deterministic Stone-outcrop pass adds at most one dry, slope-safe node in
-each of the six land biomes per 6,000 cm key where that biome has no slate
+each of the six land biomes per 6,400 cm key where that biome has no slate
 source, preserving existing candidate sources and keeping 250 cm from other
 harvest descriptors. The biome-content
 contract regression covers Meadows through Thunder Mountains, stable identity,

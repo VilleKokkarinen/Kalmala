@@ -351,7 +351,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     - [x] Add and register the complete raw-gem item JSON; record recipe and combat/equipment/upgrade categories as N/A.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
     - [x] Add or enable its Star-Opal-rock acquisition/source-table entry after the item JSON and icon are complete and the source is accepted.
-      - User approved the bounded real-deposit pass on 2026-10-23: at most one dry, slope-safe and separated deposit per 60 m key; 1% become Star Opal, leaving frostmoss unchanged.
+      - User approved the bounded real-deposit pass on 2026-10-23: at most one dry, slope-safe and separated deposit per 60 m key; 1% become Star Opal, leaving frostmoss unchanged. The 2026-10-24 S03 shared-layout change supersedes only the key width to 64 m; all other source conditions remain.
   - [x] Storm Sapphire (`StormSapphire`, special): proposed 2% chance of 1 in Thunder Mountains treasure.
     - [x] Add and register the complete raw-gem item JSON; record recipe and combat/equipment/upgrade categories as N/A.
     - [x] Generate original icon and provenance; prepare/import it, register runtime mapping, and add catalogue icon validation.
@@ -631,13 +631,14 @@ are specified in advance; implement them without requesting tuning values.
 exactly one per run, in order. Each normal checkbox targets roughly 10–20 minutes
 of integrated work plus a lightweight check. If it will exceed one turn, split
 that checkbox into smaller ordered children before implementing its first part.
-Keep intermediate code safe: do not enable natural spawning until S26. Record
+Keep intermediate code safe: S26 is the first increment that enables natural
+spawning. Record
 files, checks, remaining scope and next task in `PROGRESS.md`; commit only the
 run's changes, then stop. Add focused tests with the helper they exercise where
 practical; execute full verification only at the final gate. S35 is the required
 milestone-final verification/repair run and can exceed a normal turn.
 
-- [ ] **Implement Kalmala monster population and camp spawn suppression.**
+- [x] **Implement Kalmala monster population and camp spawn suppression.**
 
   - [x] **S01 — Map the fixed contract to code.** Read `docs/monster-spawning.md`;
     identify existing scheduler, descriptor, budget and spawn/defeat entry points.
@@ -646,86 +647,97 @@ milestone-final verification/repair run and can exceed a normal turn.
   - [x] **S02 — Map lifecycle integration.** Identify callbacks enforcing permanent
     defeated-slot depletion, 30 s living-slot unload cooldown and reward escrow.
     Record integration points for the fixed lifecycle; add no save-format change.
-  - [ ] **S03 — Add named tuning constants.** Use existing invisible 64 × 64 m
+  - [x] **S03 — Add named tuning constants.** Use existing invisible 64 × 64 m
     spatial keys; ring 32–96 m, interval 5 s and count radius 96 m.
     Validate bounds/units; keep spawning disabled.
-  - [ ] **S04 — Gather active players.** Add a server-only list of living players
+  - [x] **S04 — Gather active players.** Add a server-only list of living players
     in the current world; ignore dead, disconnected and invalid pawns.
-  - [ ] **S05 — Deduplicate active keys.** Derive the union of nearby loaded keys
+  - [x] **S05 — Deduplicate active keys.** Derive the union of nearby loaded keys
     from S04; overlapping players must produce each key once.
-  - [ ] **S06 — Add scheduler cadence.** Schedule each active key once per 5 s
+  - [x] **S06 — Add scheduler cadence.** Schedule each active key once per 5 s
     with stable staggering; remove inactive keys without accumulating retries.
-  - [ ] **S07 — Bound scheduler work.** Use a 0.25 s wake, at most 4 keys,
+  - [x] **S07 — Bound scheduler work.** Use a 0.25 s wake, at most 4 keys,
     4 candidates per key and 16 candidates total per wake; skip missed ticks
     instead of catch-up bursts.
-  - [ ] **S08 — Generate ring candidates.** Select existing stable descriptors
+  - [x] **S08 — Generate ring candidates.** Select existing stable descriptors
     within 32–96 m; use the contract's seeded 25% admission roll and rotating cursor.
     Preserve descriptor positions, identities and biome weights.
-  - [ ] **S09 — Exclude nearby players.** Reject a candidate within 36 m of any
+  - [x] **S09 — Exclude nearby players.** Reject a candidate within 36 m of any
     living player, including a second player outside the selecting neighborhood.
-  - [ ] **S10 — Track live creatures.** Register/unregister authoritative live
+  - [x] **S10 — Track live creatures.** Register/unregister authoritative live
     actors; remove defeated/destroyed entries and count their current positions.
-  - [ ] **S11 — Enforce area caps.** Count across loaded keys within 96 m of the
+  - [x] **S11 — Enforce area caps.** Count across loaded keys within 96 m of the
     candidate; per-species caps: common 4, rare hard enemy 1, Wolves 6.
     Also enforce the existing total actor budget; add no extra actor allowance.
-  - [ ] **S12 — Reserve pack capacity.** Reserve three Wolf slots atomically;
+  - [x] **S12 — Reserve pack capacity.** Reserve three Wolf slots atomically;
     reject partial packs and release reservations on failed creation.
-  - [ ] **S13 — Add the nine-gate evaluator.** Return a distinct rejection reason
+  - [x] **S13 — Add the nine-gate evaluator.** Return a distinct rejection reason
     for scheduler budget, seeded roll, player distance, habitat, time, weather,
     progression, caps and physical placement. Unimplemented gates reject safely.
-  - [ ] **S14 — Wire scheduler and roll gates.** Feed S06–S08 into the evaluator;
+  - [x] **S14 — Wire scheduler and roll gates.** Feed S06–S08 into the evaluator;
     one rejected attempt consumes only its bounded attempt budget.
-  - [ ] **S15 — Wire distance and habitat gates.** Use S09 and existing species
+  - [x] **S15 — Wire distance and habitat gates.** Use S09 and existing species
     biome/dry-shore/start-exclusion rules; do not relax existing restrictions.
-  - [ ] **S16 — Add time-of-day gate.** Pass for every current species;
+  - [x] **S16 — Add time-of-day gate.** Pass for every current species;
     expose only an internal policy seam for rejection fixtures. No new clock.
-  - [ ] **S17 — Add weather gate.** Pass for every current species;
+  - [x] **S17 — Add weather gate.** Pass for every current species;
     expose an internal rejection-test seam. Add no new weather restrictions.
-  - [ ] **S18 — Add progression gate.** Pass for every current species;
+  - [x] **S18 — Add progression gate.** Pass for every current species;
     expose an internal rejection-test seam. Add no boss or progression locks.
-  - [ ] **S19 — Wire cap gate.** Apply S11–S12 immediately before creation so
+  - [x] **S19 — Wire cap gate.** Apply S11–S12 immediately before creation so
     overlapping key/player attempts cannot overfill a species or total budget.
-  - [ ] **S20 — Validate land surfaces.** Require generated dry ground, existing
+  - [x] **S20 — Validate land surfaces.** Require generated dry ground, existing
     start restrictions and slope at most 32 degrees for land creatures.
-  - [ ] **S21 — Validate aquatic surfaces.** Reuse Reef Maw habitat/depth rules
+  - [x] **S21 — Validate aquatic surfaces.** Reuse Reef Maw habitat/depth rules
     and check water clearance; land checks must not silently permit water spawns.
-  - [ ] **S22 — Validate physical clearance.** Reject solid overhead roofs,
+  - [x] **S22 — Validate physical clearance.** Reject solid overhead roofs,
     colliding bodies and unsupported movement/navigation locations per species.
-  - [ ] **S23 — Add station cylinder query.** Allowlist Workbench/Forge only;
+    - [x] **S22a — Check body collision clearance.** Reuse each wildlife
+      archetype's configured collision shapes and reject out-of-bounds or
+      colliding body placements; do not change descriptor identity or enable
+      natural spawning.
+    - [x] **S22b — Reject solid construction roofs.** Trace upward 24 m from
+      the body top and classify only active solid RoofKit construction hits.
+      Ignore foliage/canopy and non-solid cosmetics.
+    - [x] **S22c — Preserve movement support.** Apply each species' existing
+      support/traversability query; do not require navigation mesh for land
+      species whose contract only requires generated-ground support and clear
+      collision.
+  - [x] **S23 — Add station cylinder query.** Allowlist Workbench/Forge only;
     radius 18 m, extending 12 m above/below the actual placed station.
-  - [ ] **S24 — Add spherical suppression query.** Use radius 18 m for
+  - [x] **S24 — Add spherical suppression query.** Use radius 18 m for
     Camp Bed, lit fuelled Campfire and lit fuelled Standing Light. Other pieces,
     cosmetics and unlisted stations emit no field; roofs retain S22 rejection.
-  - [ ] **S25 — Wire placement gate.** Combine S20–S24 with current authoritative
+  - [x] **S25 — Wire placement gate.** Combine S20–S24 with current authoritative
     station state/destruction. Suppression blocks new natural spawns only; it
     does not delete existing creatures or prevent their movement into camp.
-  - [ ] **S26 — Enable natural spawning.** Route one bounded creation transaction
+  - [x] **S26 — Enable natural spawning.** Route one bounded creation transaction
     through all nine gates, reserve/release caps and apply S02 lifecycle rules.
     Replace the corresponding old activation path to avoid duplicate populations;
     keep harvest nodes, stable identities and owner-bound reward claims intact.
-  - [ ] **S27 — Record environmental policy.** Map the fixed local-source
+  - [x] **S27 — Record environmental policy.** Map the fixed local-source
     policy to the shared scheduler; camp suppression applies. Local cap is 2
     within 24 m, interval 8 s. Use two finite source slots; add no world content.
-  - [ ] **S28 — Add local spawner scheduling.** Implement the S27 interval and
+  - [x] **S28 — Add local spawner scheduling.** Implement the S27 interval and
     local living count as a reusable server policy, disabled without a configured
     source; use a narrow fixture rather than adding world content.
-  - [ ] **S29 — Apply environmental safety gates.** Combine local limits with
+  - [x] **S29 — Apply environmental safety gates.** Combine local limits with
     shared species/total caps, player exclusion, physical placement and the
     accepted suppression policy; reserve capacity before creation.
-  - [ ] **S30 — Cover spatial boundaries.** Add focused cases for ring edges,
+  - [x] **S30 — Cover spatial boundaries.** Add focused cases for ring edges,
     negative key coordinates, overlapping players, moving creatures and pack
     reservation rollback; inspect assertions against the accepted contract.
-  - [ ] **S31 — Cover gate rejection.** Add one rejection case per nine-gate
+  - [x] **S31 — Cover gate rejection.** Add one rejection case per nine-gate
     reason and unrestricted time/weather/progression cases; verify bounded work.
-  - [ ] **S32 — Cover suppression and placement.** Add radius/height boundaries,
+  - [x] **S32 — Cover suppression and placement.** Add radius/height boundaries,
     unlisted pieces, destroyed stations, extinguished/empty lights, roof, slope
     and land/water clearance cases.
-  - [ ] **S33 — Cover lifecycle and local spawners.** Add unload/reload, cooldown,
+  - [x] **S33 — Cover lifecycle and local spawners.** Add unload/reload, cooldown,
     defeat/reward deduplication and local/shared cap cases using narrow fixtures.
-  - [ ] **S34 — Prepare verification handoff.** Update architecture and setup
+  - [x] **S34 — Prepare verification handoff.** Update architecture and setup
     docs with accepted tuning, server authority, lifecycle and exact build,
     automation and host/client/restart commands required for this goal.
-  - [ ] **S35 — Perform milestone-final verification.** Inspect the combined
+  - [x] **S35 — Perform milestone-final verification.** Inspect the combined
     work; run S34's prescribed full build, automation and peer/restart checks.
     Verify no duplicate actors/rewards and bounded scheduling. Repair related
     failures and rerun required checks in this run. Record actual commands/results;

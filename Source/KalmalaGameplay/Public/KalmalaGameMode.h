@@ -4,11 +4,14 @@
 #include "GameFramework/GameModeBase.h"
 #include "KalmalaWorldGenerationConfig.h"
 #include "KalmalaWorldPopulationLayout.h"
+#include "KalmalaEnvironmentalSpawnerPolicy.h"
+#include "KalmalaWildlifeSpawn.h"
 #include "KalmalaM9ExplorationRewardCatalogue.h"
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaInteractionGrid.h"
 #include "KalmalaGameMode.generated.h"
 
+class UWorld;
 struct FKalmalaOceanDiscoveryDescriptor;
 struct FKalmalaM9ExplorationRewardDescriptor;
 struct FKalmalaCharcoalKilnState;
@@ -16,6 +19,66 @@ struct FKalmalaSmelterState;
 struct FKalmalaGardenPlotState;
 struct FKalmalaStandingLightState;
 enum class EKalmalaOceanSkiffSeat : uint8;
+
+/** Session-only capacity held for prospective wildlife actors; no actor is created here. */
+struct FKalmalaPopulationCreatureReservation
+{
+    FVector Location = FVector::ZeroVector;
+    FIntPoint HomeSpatialKey = FIntPoint::ZeroValue;
+    TOptional<EKalmalaWildlifeArchetype> Archetype;
+    FString EnvironmentalSpawnerSourceId;
+};
+
+enum class EKalmalaPopulationSpawnRejectionReason : uint8
+{
+    None,
+    SchedulerBudget,
+    SeededAdmissionRoll,
+    PlayerDistance,
+    SpeciesHabitat,
+    Time,
+    Weather,
+    Progression,
+    Caps,
+    PhysicalPlacement
+};
+
+/** Ordered gate results supplied by later server-side wiring; false defaults fail closed. */
+struct FKalmalaPopulationSpawnGateResults
+{
+    bool bSchedulerBudgetAvailable = false;
+    bool bSeededAdmissionRollPassed = false;
+    bool bPlayerDistancePassed = false;
+    bool bSpeciesHabitatPassed = false;
+    bool bTimePassed = false;
+    bool bWeatherPassed = false;
+    bool bProgressionPassed = false;
+    bool bCapsPassed = false;
+    bool bPhysicalPlacementPassed = false;
+};
+
+/** One descriptor examined within the bounded scheduler budget, including gate failures. */
+struct FKalmalaPopulationSpawnAttempt
+{
+    FKalmalaWorldPopulationSpawn Descriptor;
+    FKalmalaPopulationSpawnGateResults GateResults;
+    EKalmalaPopulationSpawnRejectionReason RejectionReason = EKalmalaPopulationSpawnRejectionReason::None;
+    bool bIsEnvironmentalSpawnerAttempt = false;
+    bool bEnvironmentalSpawnerConfigured = false;
+    FString EnvironmentalSpawnerSourceId;
+    int32 EnvironmentalSpawnerSlotIndex = INDEX_NONE;
+    FVector EnvironmentalSpawnerOrigin = FVector::ZeroVector;
+    int32 EnvironmentalSpawnerCreatedCountThisCheck = 0;
+};
+
+struct FKalmalaPopulationSchedulerKeyWork
+{
+    FIntPoint SpatialKey = FIntPoint::ZeroValue;
+    int32 CandidateBudget = 0;
+    uint64 CheckOrdinal = 0;
+    TArray<FKalmalaWorldPopulationSpawn> Candidates;
+    TArray<FKalmalaPopulationSpawnAttempt> SpawnAttempts;
+};
 
 /**
  * Server-authoritative rules for a Kalmala session.
@@ -88,6 +151,26 @@ private:
     friend class FKalmalaForestRestartTest;
     friend class FKalmalaM9SourceAcceptanceTest;
     friend class FKalmalaStormcutAcceptedHitWearTest;
+    friend class FKalmalaPopulationLivingPlayersTest;
+    friend class FKalmalaPopulationSpatialKeyUnionTest;
+    friend class FKalmalaPopulationSchedulerCadenceTest;
+    friend class FKalmalaPopulationSchedulerBudgetTest;
+    friend class FKalmalaPopulationRingCandidateSelectorTest;
+    friend class FKalmalaPopulationPlayerDistanceGateTest;
+    friend class FKalmalaPopulationLiveCreatureRegistryTest;
+    friend class FKalmalaPopulationAreaCapsTest;
+    friend class FKalmalaPopulationWolfReservationTest;
+    friend class FKalmalaPopulationSpawnGateEvaluatorTest;
+    friend class FKalmalaPopulationLandSurfaceTest;
+    friend class FKalmalaPopulationAquaticSurfaceTest;
+    friend class FKalmalaPopulationBodyClearanceTest;
+    friend class FKalmalaPopulationRoofClearanceTest;
+    friend class FKalmalaPopulationStationCylinderTest;
+    friend class FKalmalaPopulationSphericalSuppressionTest;
+    friend class FKalmalaPopulationPhysicalPlacementGateTest;
+    friend class FKalmalaPopulationCreationTest;
+    friend class FKalmalaEnvironmentalSpawnerAdmissionTest;
+    friend class AKalmalaWildlifeSpawn;
 
 #if WITH_DEV_AUTOMATION_TESTS
     friend class FKalmalaA10FreshStartBronzeAndIronTest;
@@ -100,7 +183,112 @@ private:
     void ActivateTerrainPatch(const FIntPoint& PatchCoordinate);
     void ActivateTerrainPatchNeighborhood(const FVector2D& WorldPosition);
     void RefreshTerrainPatchNeighborhoods();
-    void ActivatePopulationKey(const FIntPoint& SpatialKey);
+    TArray<class AKalmalaCharacter*> GetLivingPlayerPawnsForPopulation() const;
+    TArray<FIntPoint> GetPopulationSpatialKeyCandidates() const;
+    void UpdatePopulationKeySchedule(double NowSeconds);
+    TArray<FIntPoint> GetDuePopulationSpatialKeys(double NowSeconds) const;
+    bool MarkPopulationSpatialKeyServiced(const FIntPoint& SpatialKey, double NowSeconds);
+    void UpdatePopulationSchedulerWake(double NowSeconds);
+    void UpdatePopulationCreatureUnloads(double NowSeconds,
+        const TArray<class AKalmalaCharacter*>& LivingPlayers);
+    bool TryCreatePopulationSpawnTransaction(FKalmalaPopulationSpawnAttempt& Attempt,
+        double NowSeconds);
+    bool TryCreateConfiguredEnvironmentalSpawnerCandidates(
+        FKalmalaEnvironmentalSpawnerCheck& Check,
+        const TArray<FKalmalaWorldPopulationSpawn>& FixedCandidates,
+        int32& RemainingGlobalCandidateBudget, double NowSeconds,
+        int32& OutCandidatesExamined, TArray<FKalmalaPopulationSpawnAttempt>& OutAttempts);
+    TArray<FKalmalaEnvironmentalSpawnerCreatureSample> GetEnvironmentalSpawnerLivingSamples(
+        const FString& SourceId) const;
+    bool DoesEnvironmentalSpawnerAttemptPassLocalCap(
+        const FKalmalaPopulationSpawnAttempt& Attempt, int32 AdditionalCreatureCount) const;
+    bool HasLivePopulationCreatureWithSpawnId(const FString& PersistentSpawnId);
+    bool IsPopulationSpawnReactivationReady(const FString& PersistentSpawnId,
+        double NowSeconds) const;
+    void SelectPopulationRingCandidates(FKalmalaPopulationSchedulerKeyWork& KeyWork,
+        const TArray<FKalmalaWorldPopulationSpawn>& Descriptors,
+        const TArray<class AKalmalaCharacter*>& LivingPlayers);
+    void RegisterLivePopulationCreature(class AKalmalaWildlifeSpawn* Creature);
+    void UnregisterLivePopulationCreature(class AKalmalaWildlifeSpawn* Creature);
+    int32 CountLivePopulationCreaturesWithinRadius(const FVector& Center, float RadiusCm);
+    int32 GetPopulationSpeciesAreaCap(EKalmalaWildlifeArchetype Archetype) const;
+    void GetPopulationCreatureCapCounts(const FVector& Center, EKalmalaWildlifeArchetype Archetype,
+        const FIntPoint& HomeSpatialKey, int32& OutWorldTotal, int32& OutNearbySpecies,
+        int32& OutHomeKeyTotal);
+    bool CanAdmitPopulationCreatureWithinCaps(const FVector& CandidateLocation,
+        const FIntPoint& HomeSpatialKey, EKalmalaWildlifeArchetype Archetype);
+    static EKalmalaPopulationSpawnRejectionReason EvaluatePopulationSpawnGates(
+        const FKalmalaPopulationSpawnGateResults& GateResults);
+    void ApplyPopulationSpeciesHabitatGate(FKalmalaPopulationSchedulerKeyWork& KeyWork) const;
+    void ApplyPopulationTimeGate(FKalmalaPopulationSchedulerKeyWork& KeyWork) const;
+    void ApplyPopulationWeatherGate(FKalmalaPopulationSchedulerKeyWork& KeyWork) const;
+    void ApplyPopulationProgressionGate(FKalmalaPopulationSchedulerKeyWork& KeyWork) const;
+    void ApplyPopulationCapGate(FKalmalaPopulationSchedulerKeyWork& KeyWork);
+    void ApplyPopulationPhysicalPlacementGate(FKalmalaPopulationSchedulerKeyWork& KeyWork) const;
+    bool TryReserveWolfPackCapacity(const TArray<FVector>& MemberLocations,
+        const FIntPoint& HomeSpatialKey, FGuid& OutReservationId);
+    bool TryReservePopulationCreatureCapacity(const TArray<FVector>& Locations,
+        const FIntPoint& HomeSpatialKey, EKalmalaWildlifeArchetype Archetype,
+        const FString& EnvironmentalSpawnerSourceId, int32 EnvironmentalSpawnerSlotIndex,
+        const FVector& EnvironmentalSpawnerOrigin, FGuid& OutReservationId);
+    bool ReleasePopulationCreatureReservation(const FGuid& ReservationId);
+    void ApplyPopulationPlayerDistanceGate(FKalmalaPopulationSchedulerKeyWork& KeyWork,
+        const TArray<class AKalmalaCharacter*>& LivingPlayers) const;
+    bool DoesPopulationDescriptorPassSpeciesHabitat(const FKalmalaWorldPopulationSpawn& Descriptor,
+        EKalmalaWildlifeArchetype* OutArchetype = nullptr) const;
+    bool DoesPopulationDescriptorPassLandSurface(const FKalmalaWorldPopulationSpawn& Descriptor) const;
+    bool DoesPopulationDescriptorPassAquaticSurface(const FKalmalaWorldPopulationSpawn& Descriptor) const;
+    bool DoesPopulationDescriptorPassBodyClearance(const FKalmalaWorldPopulationSpawn& Descriptor) const;
+    bool DoesPopulationDescriptorPassRoofClearance(const FKalmalaWorldPopulationSpawn& Descriptor,
+        const AActor* ProposedActorToIgnore = nullptr) const;
+    bool DoesPopulationDescriptorPassMovementSupport(const FKalmalaWorldPopulationSpawn& Descriptor) const;
+    bool DoesPopulationDescriptorPassPhysicalPlacement(
+        const FKalmalaWorldPopulationSpawn& Descriptor) const;
+    bool DoesPopulationPointOverlapStationCylinder(const FVector& CandidateLocation) const;
+    bool DoesPopulationPointOverlapCampSphere(const FVector& CandidateLocation) const;
+    bool TryGetPopulationActorPlacementLocation(const FKalmalaWorldPopulationSpawn& Descriptor,
+        EKalmalaWildlifeArchetype Archetype, const TArray<FKalmalaWildlifeBodyCollisionShape>& BodyShapes,
+        FVector& OutActorLocation) const;
+    static bool TryGetPopulationBodyVerticalSupportOffset(
+        const TArray<FKalmalaWildlifeBodyCollisionShape>& BodyShapes, FVector SurfaceNormal,
+        double& OutVerticalSupportOffset);
+    static bool TryGetPopulationBodyTop(const TArray<FKalmalaWildlifeBodyCollisionShape>& BodyShapes,
+        FVector ActorLocation, FRotator ActorRotation, FVector& OutBodyTop);
+    static bool DoesSolidConstructionRoofIntersectSegment(UWorld* World, FVector TraceStart,
+        FVector TraceEnd, const AActor* ActorToIgnore = nullptr);
+    static bool DoesPopulationCollisionShapeOverlap(UWorld* World,
+        const FKalmalaWildlifeBodyCollisionShape& BodyShape, FVector ActorLocation,
+        FRotator ActorRotation, const AActor* ActorToIgnore = nullptr);
+    static bool IsPopulationBodyShapeWithinWorldBounds(const FKalmalaWildlifeBodyCollisionShape& BodyShape,
+        FVector ActorLocation, FRotator ActorRotation);
+    bool DoesPopulationLandPositionPassSurface(const FVector& Location) const;
+    static bool IsPopulationLandSurfaceSampleAllowed(bool bWithinBounds, bool bHasGeneratedGround,
+        bool bIsDry, const FVector& SurfaceNormal);
+    static bool AreAllPopulationLandSurfacesAllowed(const TArray<bool>& SurfaceResults);
+    static bool DoesReefMawBodyFitOceanSample(const FKalmalaOceanSample& OceanSample,
+        double HorizontalDistanceFromCenterCentimetres);
+    static bool IsPopulationAquaticArchetype(EKalmalaWildlifeArchetype Archetype);
+    bool DoesPopulationDescriptorPassTimeGate(const FKalmalaWorldPopulationSpawn& Descriptor) const;
+    bool DoesPopulationDescriptorPassWeatherGate(const FKalmalaWorldPopulationSpawn& Descriptor) const;
+    bool DoesPopulationDescriptorPassProgressionGate(const FKalmalaWorldPopulationSpawn& Descriptor) const;
+    bool DoesPopulationDescriptorPassCaps(const FKalmalaWorldPopulationSpawn& Descriptor);
+    bool IsDescriptorInSpawnRing(const FVector& SpawnLocation,
+        const TArray<class AKalmalaCharacter*>& LivingPlayers) const;
+    bool IsDescriptorOutsidePlayerExclusion(const FVector& SpawnLocation,
+        const TArray<class AKalmalaCharacter*>& LivingPlayers) const;
+    static bool IsPopulationTimeGateAllowed(EKalmalaWildlifeArchetype Archetype);
+    static bool IsPopulationWeatherGateAllowed(EKalmalaWildlifeArchetype Archetype);
+    static bool IsPopulationProgressionGateAllowed(EKalmalaWildlifeArchetype Archetype);
+#if WITH_DEV_AUTOMATION_TESTS
+    static bool IsPopulationTimeGateAllowedForTests(EKalmalaWildlifeArchetype Archetype,
+        bool bForceRejectForTests);
+    static bool IsPopulationWeatherGateAllowedForTests(EKalmalaWildlifeArchetype Archetype,
+        bool bForceRejectForTests);
+    static bool IsPopulationProgressionGateAllowedForTests(EKalmalaWildlifeArchetype Archetype,
+        bool bForceRejectForTests);
+#endif
+    void ActivatePopulationKey(const FIntPoint& SpatialKey,
+        bool bAllowLegacyWildlifeForVerification = false);
     void RefreshOceanDiscoveries();
     void RecordHarvestedSpawn(const FString& PersistentSpawnId);
     void LoadPopulationSave();
@@ -375,6 +563,18 @@ private:
     TMap<FIntPoint, TObjectPtr<class AKalmalaGeneratedTerrainPatch>> ActiveTerrainPatches;
     TMap<FIntPoint, TArray<TWeakObjectPtr<class AKalmalaHarvestNode>>> ActiveForestNodes;
     TSet<FIntPoint> ActivePopulationSpatialKeys;
+    TSet<FIntPoint> ActivePopulationSchedulerKeys;
+    TMap<FIntPoint, double> PopulationKeyNextDueTimes;
+    TMap<FIntPoint, int32> PopulationKeyCandidateCursors;
+    TMap<FIntPoint, uint64> PopulationKeyServicedCheckOrdinals;
+    TSet<TWeakObjectPtr<class AKalmalaWildlifeSpawn>> LivePopulationCreatures;
+    TMap<FString, FString> EnvironmentalSpawnerSourceIdBySpawnId;
+    TMap<FIntPoint, int32> PopulationKeyWildlifeActorBudgets;
+    TMap<FString, double> PopulationCreatureReactivationDueTimes;
+    TMap<FGuid, TArray<FKalmalaPopulationCreatureReservation>> PendingPopulationCreatureReservations;
+    double NextPopulationSchedulerWakeTime = 0.0;
+    // Latest wake's bounded descriptor work and ordered gate results.
+    TArray<FKalmalaPopulationSchedulerKeyWork> PopulationSchedulerWakeWork;
     TSet<FIntPoint> ActiveShimmeringLakeDiscoveryKeys;
     TSet<FIntPoint> ActiveElderwoodDiscoveryKeys;
     TSet<FIntPoint> ActiveMossyMireDiscoveryKeys;

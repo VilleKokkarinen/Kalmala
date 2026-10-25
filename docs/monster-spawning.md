@@ -21,12 +21,11 @@ their corresponding backlog items.
   Descriptors use the world seed, key, population kind and candidate index to
   derive stable positions, IDs and biome content. `IsSafeWildlifeLocation`
   filters generated wildlife candidates before they become descriptors.
-  **Contract discrepancy for S03:** the current `SpatialKeySize` is 6,000 cm
-  (60 m), while this fixed target and the backlog specify 64 m. S01 leaves the
-  code and generated identities unchanged. Resolve the mismatch against the
-  accepted 64 m target before changing key geometry; changing it affects
-  deterministic descriptor positions and sparse IDs, and this goal forbids a
-  generator revision bump.
+  **S03 resolution:** the shared SpatialKeySizeCm is now 6,400 cm (64 m),
+  matching this fixed target and the backlog. This changes deterministic
+  descriptor positions and sparse IDs for population and discovery systems that
+  share the layout. No generator revision or save schema change was made, as
+  required by this goal.
 - **Species selection and existing habitat filters:**
   `AKalmalaWildlifeSpawn::TryGetSpawnArchetypeForBiome` maps a descriptor seed
   and biome to its existing species share. The server-side helpers
@@ -86,18 +85,20 @@ save data.
   later key activation, reconnect and restart must never remove a defeated ID;
   each wolf member retains its own stable depleted ID.
 - **Living-actor unload/reload:** `ActivatePopulationKey` only adds keys to
-  `ActivePopulationSpatialKeys`; it does not retain actor references or remove
-  actors/keys. The wildlife and hazard classes have no `EndPlay`, destruction or
-  unregister lifecycle callback, and GameMode has no actor-destroyed registry
-  for them. Add a GameMode-owned live-actor registry alongside S10, then route
-  intentional unload through an explicit GameMode transaction. Generic actor
-  destruction is not enough to infer an unload: defeat, pack-spawn rollback and
-  world teardown have different outcomes. A living actor that is eligible to
-  unload must first be outside every living player's 96 m radius; record its
-  stable ID's 30 s cooldown in session state that survives key unload, without
-  calling `RecordDefeatedSpawn`, a reward handler or any save mutation. Recreate
-  only the same descriptor after expiry and all gates pass. Keep the actor
-  registered and charged to its home-key budget while it roams.
+  `ActivePopulationSpatialKeys`; it does not unload actors or keys. S10 adds a
+  GameMode-owned weak registry for authoritative `AKalmalaWildlifeSpawn` actors:
+  `BeginPlay` registers, accepted defeat unregisters before the existing
+  `OnDefeated` save/reward callback, and `EndPlay` unregisters destruction. The
+  GameMode count query uses each actor's current position and removes invalid or
+  defeated entries. Hazard actors are not creatures in this registry. This does
+  not implement intentional unload: generic destruction still cannot imply an
+  unload because defeat, pack-spawn rollback and world teardown have different
+  outcomes. A living actor that is eligible to unload must first be outside
+  every living player's 96 m radius; record its stable ID's 30 s cooldown in
+  session state that survives key unload, without calling
+  `RecordDefeatedSpawn`, a reward handler or any save mutation. Recreate only
+  the same descriptor after expiry and all gates pass. Keep the actor registered
+  and charged to its home-key budget while it roams.
 - **Reward escrow:** `AKalmalaWildlifeSpawn::DefeatServer` routes credited
   species rewards through the matching authoritative
   `AKalmalaGameMode::Record*DefeatReward` handler before broadcasting
@@ -114,6 +115,88 @@ Implementation consequence: the next live-actor and unload work must separate
 defeat from intentional unload at the GameMode boundary. Reuse the existing
 defeat ledger and escrow unchanged; cooldowns belong to session-only GameMode
 state and do not require a save-format change.
+
+## S04 active player source — 2026-10-24
+
+`AKalmalaGameMode::GetLivingPlayerPawnsForPopulation` is the server-only source
+for the existing population-key activation loop. It enumerates the current
+world's `PlayerControllers` and keeps only controllers with a valid same-world,
+active non-spectator `PlayerState` and a valid same-world `AKalmalaCharacter` that
+is still possessed by that controller and has finite health above 1.0. Returned
+pawns are ordered by PlayerState ID, with controller object path as a stable
+within-world tie breaker, and duplicate pawn pointers are removed. The current
+server controller list excludes disconnected controllers; inactive PlayerStates
+are also rejected. S04 itself did not derive the 96 m neighborhood union,
+deduplicate active keys, or add an attempt scheduler.
+
+## S05 loaded-key candidate union — 2026-10-24
+
+`AKalmalaGameMode::GetPopulationSpatialKeyCandidates` filters the existing
+`ActivePopulationSpatialKeys` set, which contains keys already materialized by
+`ActivatePopulationKey`. A loaded key is included once if its 64 m square has
+an inclusive horizontal intersection with any living player's 96 m radius.
+Results use lexicographic X/Y key order and remain candidates only; this query
+does not activate, remove, or otherwise materialize keys. The current normal
+`Tick` path still materializes each living player's containing key, subject to
+the unchanged nine-key cap, so nearby but unloaded cells are not added here.
+The returned union is input to the S06 cadence state. That scheduler state drops
+keys and their due-time entries when they leave the current player neighborhood.
+
+## S06 per-key cadence — 2026-10-24
+
+`AKalmalaGameMode::Tick` updates cadence from the S05 loaded-key candidate union
+on the server. Each newly active key receives a stable initial phase from its
+wildlife spatial-seed hash modulo 20, multiplied by 0.25 seconds. Due
+keys are returned in lexicographic order; servicing a key advances it to
+`now + 5` seconds. Keys leaving the player neighborhood are removed from the
+active due set and their per-key due entry is discarded. Reactivation derives a
+fresh phase from the same key seed, so an inactive key cannot accumulate missed
+attempts. This cadence state is separate from S02's 30 s living-creature unload
+cooldown, which remains keyed by stable spawn ID and survives key unload. S07
+adds the bounded 0.25 s wake; S06 and S07 add no descriptor generation or spawn
+admission.
+
+## S07 bounded scheduler wake — 2026-10-24
+
+The server checks for a scheduler wake every 0.25 seconds. When a frame arrives
+late, the next wake is set to `now + 0.25` rather than replaying missed ticks.
+Each wake selects at most four due keys in stable order. Each key carries a
+candidate budget of at most four, and the total candidate budget is capped at
+16. S07 records only this bounded key/budget plan; S08 generates descriptors and
+S14 connects the plan to evaluation and admission.
+
+## S08 stable ring candidate selector — 2026-10-24
+
+S08 consumes the bounded S07 key/budget plan and builds each key's existing
+stable wildlife descriptors. It examines at most the assigned budget from a
+per-key rotating cursor, advancing the cursor for every examined descriptor,
+including roll and ring rejects. A per-key check ordinal advances once per
+serviced key.
+Cursor and ordinal state are removed when a key leaves the active scheduler set.
+The selector hashes world seed, key, persistent spawn ID, ordinal
+and a dedicated roll domain, then uses rejection sampling for an unbiased 0–99
+roll; 0–24 pass. A passing descriptor is returned unchanged only when its
+horizontal distance to at least one living player is within the inclusive
+32–96 m ring. The selector does not create actors or add S09's separate
+all-player distance rejection.
+
+## S09 all-player exclusion gate — 2026-10-24
+
+After S08 selects descriptors in the inclusive 32–96 m ring, S09 rejects any
+candidate whose horizontal distance from any current-world living player is
+less than 36 m. The check uses the full authoritative living-player list, even
+when a second player is outside the selecting player's 96 m neighborhood.
+Exactly 36 m passes. This gate does not change S08 ring membership or move
+descriptor positions.
+
+## S10 authoritative live-creature registry — 2026-10-24
+
+The GameMode weak registry tracks authoritative wildlife actor instances. Actor
+BeginPlay registers a living actor; accepted defeat removes it before the existing
+defeat notification/save path, and EndPlay removes destroyed actors. The server
+count query prunes invalid or defeated entries and measures current actor
+positions using an inclusive horizontal radius. It adds no caps, reservations,
+unload policy or actor creation, and it changes no save data.
 
 ## Spatial scheduling and random rolls
 
@@ -140,7 +223,8 @@ state and do not require a save-format change.
   0–99 and accept 0–24. Ordinal advances once per serviced check, not per player.
   No repeat roll in the same check. Empty biome-weight slots stay empty.
 - Horizontal distance to at least one living player must be in [32, 96] m;
-  distance to every living player must be at least 32 m. Exact boundaries pass.
+  distance to every living player must be at least 36 m. The 36 m exclusion
+  boundary passes; candidates closer than 36 m are rejected.
   Every Wolf member must pass the distance and placement checks.
 
 ## Counts and caps
@@ -156,6 +240,14 @@ state and do not require a save-format change.
   limits. Reserve against the descriptor's home key even if actors later roam.
   Use the existing three-actor Tundra floor for Wolves. Caps may reduce density;
   never enlarge a budget to reach the species cap.
+- The server records each active key's existing wildlife actor budget from the
+  post-biome activation path. No separate global wildlife actor-cap value exists
+  in the established source; the S11 aggregate ceiling is the sum of those
+  active-key budgets, with no added allowance. Live actors remain charged to
+  their original descriptor key while roaming. S12 reservations hold all three
+  prospective Wolf positions atomically and contribute to area, home-key and
+  aggregate counts until released. Actor-creation code must release the token
+  after all members are registered or on any failed/rolled-back pack.
 - Reserve one actor or all three Wolves in a single server transaction. Count
   against every pack member's candidate-centered area. If any member cannot
   fit or spawn, roll back the entire new pack and release every reservation;
@@ -166,6 +258,174 @@ state and do not require a save-format change.
 Evaluate in this order: active-key/scheduler budget, seeded admission roll,
 player distance, species habitat, time, weather, progression, caps, placement.
 Return a distinct first rejection reason. All decisions are server-owned.
+
+S13 adds a private ordered evaluator that accepts the nine gate results from
+later server-side wiring and returns the first failed gate. Its result fields
+default to false, so a not-yet-implemented gate rejects safely; `None` means
+every gate passed. The evaluator does not itself perform world queries, create
+actors, or turn on natural spawning. S14–S22 provide the real gate results,
+including the explicitly unrestricted current-species time, weather and
+progression policies; S23–S25 add the camp-aware placement result.
+
+S14 records one evaluation attempt for each descriptor examined within the
+existing per-key and per-wake budgets. It marks that scheduled slot as budgeted,
+computes the S08 seeded roll once, and evaluates even a failed roll so it carries
+the `SeededAdmissionRoll` reason instead of disappearing. Each record consumes
+only its existing bounded descriptor attempt; there are no retries or catch-up
+attempts. A passing roll still fails closed at the unwired player-distance gate
+until S15 supplies its result; later gate fields also remain false.
+
+S15 evaluates distance for every retained attempt: at least one living player
+must be within the inclusive 32–96 m ring, and no living player may be closer
+than 36 m. It derives the species from the existing seed/biome mapping and uses
+the existing biome, dry-shore, water and terrain-traversability rules plus the
+150 m hard-enemy start exclusion. These are the established species-habitat
+checks. S20 supplies an additional land-surface predicate; body clearance and
+roof checks remain later placement work. Attempt records retain the first
+failed gate in contract order.
+
+S16 wires the time result for each bounded attempt. An exhaustive policy
+allowlist passes every current wildlife archetype without reading a game clock
+or adding species restrictions; unknown archetypes fail closed. The only
+forced-rejection seam is compiled for development automation fixtures, so a
+fixture can verify the ordered `Time` rejection without adding a runtime time
+policy. At the S16 handoff, weather and progression remain fail-closed; S17 and
+S18 wire them.
+
+S17 wires the weather result after time for every bounded attempt. An
+exhaustive policy allowlist passes every current wildlife archetype without
+consulting weather state or adding restrictions; unknown archetypes fail
+closed. A development-automation-only fixture seam can force the `Weather`
+rejection. The evaluator still reports an earlier `Time` rejection first.
+At the S17 handoff, progression remains fail-closed; S18 wires it.
+
+S18 wires the progression result after weather for every bounded attempt. An
+exhaustive policy allowlist passes every current wildlife archetype without
+checking progression or adding locks; unknown archetypes fail closed. A
+development-automation-only fixture seam can force the `Progression`
+rejection. The evaluator keeps earlier time and weather rejections first. No
+boss system, progression setting or actor creation is added.
+
+S19 populates the caps result after progression and filters cap-rejected
+candidates. It calls the existing authoritative admission query, which counts
+living actors at current locations, their home-key budget, the sum of active
+key budgets, and pending S12 reservations. For Wolves it trial-reserves all
+three deterministic member positions through the atomic S12 API, then releases
+that token immediately; a pack passes only when all three slots fit. S19
+creates no actor and retains no reservation after evaluation. S26 rechecks caps
+and physical placement before creation, then holds a three-Wolf reservation
+through the transaction, releasing it after registration or on rollback.
+
+S20 adds a reusable server-side land-surface predicate for wildlife descriptors.
+It requires finite in-bounds generated ground, valid dry samples from the
+existing ocean and lake samplers, and a sampled surface normal at no more than
+32 degrees from vertical, inclusive. The predicate first reuses S15's species
+habitat check, including its hard-enemy generated-start exclusion, and rejects
+Reef Maw for S21's aquatic checks. For a Wolf descriptor it uses the existing
+pack-member builder, then applies the same bounds, dry-ground and 32-degree
+checks to each of the three actual member locations. S25 invokes this surface
+predicate as one component of the final physical-placement result; any failed
+component rejects admission.
+
+S21 adds the server-only Reef Maw aquatic predicate. The existing actor root
+sphere is the active Reef Maw body collision shape; the same 92 cm radius
+constant configures that component and the surface check. The actor remains at
+its existing 120 cm spawn depth. The existing Ocean habitat/swimming rule and
+150 cm minimum-depth helper apply at the candidate center. The sphere footprint
+is then sampled for Ocean-only, non-lake support and for terrain below the
+actual sphere's lower surface at each horizontal offset. Those geometric checks
+use the current spawn depth and actor radius; they add no competing minimum
+depth value. Land checks continue to reject Reef Maw, aquatic checks reject all
+other archetypes. S25 now combines the applicable surface and movement
+predicates with clearance and camp checks in the final physical-placement
+result.
+
+S22a makes the configured root sphere and the three snake archetypes' active
+secondary capsule a shared collision profile consumed by both actor component
+setup and an authoritative body-overlap query. It checks the full horizontal
+body extent against world bounds and uses queryable blocking collision to reject
+intersecting placements. For land descriptors, the proposed actor origin is
+raised from the stable descriptor's generated-ground point until each active
+shape's support distance along the sampled upward surface normal clears the
+local plane; sphere support uses its radius, and capsule support includes its
+axis and relative offset. Blocking collision remains the final overlap check.
+Mosquito flight height and Reef Maw's fixed ocean depth retain their existing
+anchors. The descriptor XY, key and seed are unchanged, so
+persistent identity remains stable. S22a supplies body-clearance checks to the
+S25 combined physical-placement gate. S22b adds the solid construction-roof
+trace, and S22c adds species movement support.
+
+S22b derives a vertical trace start from the uppermost point of every active
+shape in the shared S22a collision profile and traces upward 2400 cm. Wolf
+descriptors use the deterministic three-member builder and check each member's
+own body top. The query classifies only an initialized, healthy,
+server-authoritative `AKalmalaConstructionActor` whose kit is exactly `RoofKit`
+and whose registered root box has query collision enabled and blocks visibility
+traces. Each eligible roof component is traced independently, so foliage,
+canopy, cosmetics and non-roof construction cannot hide a RoofKit above them.
+S22b remains a reusable predicate; S25 wires it into the final placement
+result, which S26 now uses before actor creation.
+
+S22c composes the S20 generated dry-ground predicate for land species or the
+S21 Reef Maw full-body water predicate, then checks each actual proposed actor
+position against its existing sampler-based movement support. The shared point
+predicate retains the dry Meadow Rat, dry Elderwood Badger/Moon Bear, traversable
+Tundra Wolf/Lynx/Polar Bear, traversable Thunder Mountains Horned Goat/Thunder
+Sentinel, Ocean-depth Reef Maw, dry Mossy Mire Peat Husk, and biome/dry/leash
+snake rules used by existing movement code. Other land species rely on S20
+generated-ground support and S22a clear body collision; S22c adds no NavMesh
+requirement. The descriptor movement, surface, body-clearance and roof checks
+now feed the S25 combined physical-placement result.
+
+S23 adds a server-authoritative point query for active, initialized Workbench
+and Forge construction only. Its inclusive horizontal radius is 1800 cm and
+its inclusive vertical range is 1200 cm above or below the placed station
+origin. Uninitialized, destroyed, nonpositive-health and other construction
+pieces do not suppress. The query now feeds S25's combined final placement
+result; S26 now creates natural actors only when this result passes.
+
+S24 adds a separate server-authoritative 3D sphere query with the same 1800 cm
+radius. An intact placed Camp Bed suppresses regardless of fuel; a Campfire
+must be lit with positive finite fuel, and a Standing Light must pass its
+existing server flame-eligibility check. Other construction, unlisted stations
+and cosmetics do not suppress. This result now feeds S25's combined placement
+result; RoofKit rejection remains the independent S22 check.
+
+S25 wires the server-authoritative physical-placement result after the cap
+gate. For each bounded attempt that passes all earlier gates, the composite
+requires S22c's applicable S20 land or S21 aquatic and movement checks, S22a
+body clearance, S22b solid RoofKit clearance, and no overlap with the current
+S23 Workbench/Forge cylinder or S24 eligible camp-source sphere. It evaluates
+the actual proposed actor origin; Wolf packs check all three member origins.
+Failure reports PhysicalPlacement and removes that descriptor from the
+bounded candidate list. This only suppresses new natural-spawn admission:
+existing creatures are not destroyed or prevented from moving into a camp.
+S26 now creates natural actors only after this placement result passes.
+
+## S26 bounded natural actor creation — 2026-10-24
+
+The scheduler now sends each bounded attempt that passes the ordered nine-gate
+result into one authoritative creation transaction. The transaction rechecks
+caps and final physical placement immediately before creation. It rejects
+already defeated or live stable IDs and applies the session-only 30-second
+reactivation cooldown to living slots unloaded outside every living player's
+inclusive 96 m radius. New land actors use their computed collision-support
+origin while retaining the descriptor's stable key, seed and identity.
+
+Wolf attempts build the existing three member descriptors and hold the S12
+atomic capacity reservation through creation and live registration. Every
+partial creation or initialization failure destroys the newly created members
+and releases the reservation without defeat, reward or save callbacks. On
+success the reservation is released after all members register, and each actor
+binds to the existing defeat/reward/save callback. No save fields or reward
+claim behavior change.
+
+The normal key activation path continues to materialize harvest nodes and hazards;
+the separate discovery path remains unchanged. It no longer directly creates
+wildlife. Existing direct wildlife activation remains available only to explicit
+non-shipping combat and reconnect verification calls. Natural creation is server-authoritative and
+bounded by the existing scheduler wake budget. Camp suppression gates only new
+admissions; existing creatures are not unloaded or moved because of a camp.
 
 - Time, weather and progression are explicitly **unrestricted for all current
   species**. These three gates return pass. Provide internal policy seams and
@@ -187,11 +447,11 @@ Return a distinct first rejection reason. All decisions are server-owned.
 
 ## Camp suppression
 
-- Workbench and Forge: inclusive 16 m horizontal cylinder, inclusive vertical
-  range [-16, +16] m relative to the placed actor origin. Require an existing,
+- Workbench and Forge: inclusive 18 m horizontal cylinder, inclusive vertical
+  range [-12, +12] m relative to the placed actor origin. Require an existing,
   completed, non-destroyed station; fuel and roof are irrelevant.
-- Camp Bed: inclusive 16 m 3D sphere about the placed origin, whenever intact.
-- Campfire and Standing Light: inclusive 16 m sphere only while server state is
+- Camp Bed: inclusive 18 m 3D sphere about the placed origin, whenever intact.
+- Campfire and Standing Light: inclusive 18 m sphere only while server state is
   Lit with fuel remaining. Smouldering, extinguished or empty sources do not
   suppress. Changes apply at the next attempt without a separate polling delay.
 - No other buildable suppresses. Floors/walls/roofs do not emit fields; roofs
@@ -211,9 +471,12 @@ enemy farming or change the development save format.
   can reactivate at its original descriptor after a 30-second session cooldown,
   subject to all gates. Do not unload a roaming actor while it remains within
   96 m of any living player; continue counting it against its home-key budget.
-- Session-only state includes cursors, roll ordinals, due times and unload
-  cooldowns. Retain that state across key unload for the session; restart resets
-  it and starts admission after the normal stagger. No offline catch-up.
+- Session-only state includes cursors, roll ordinals, due times, unload
+  cooldowns and pending pack reservations. Retain the 30 s living-creature
+  cooldown, keyed by stable spawn ID, across key unload for the session. Remove
+  per-key scheduler due state while a key is inactive; reactivation assigns its
+  deterministic initial phase again. Restart resets session state. No offline
+  catch-up.
 - Preserve durable reward escrow and authenticated-owner claims. Failed spawn,
   rollback, unload and suppression produce no reward. Never clear a saved defeat
   ID to make room. No new save fields, migrations or generator revision bump.
@@ -229,9 +492,98 @@ enemy farming or change the development save format.
   player ring, all-player exclusion, habitat, unrestricted time/weather/
   progression gates, placement and shared caps. Camp suppression applies.
 - Use deterministic source/slot IDs and the same permanent-depletion policy;
-  no replacement after a slot's defeat. Fixtures have two slots. Source-owned
-  reservations share natural-spawn budgets and the global 16-candidate wake
-  budget. Inactive sources accrue no missed attempts.
+  no replacement after a slot's defeat; each source has exactly two finite
+  slots. Source-owned reservations share natural-spawn budgets and the global
+  16-candidate wake budget. Inactive sources accrue no missed attempts.
+
+### S27 shared-scheduler integration map — 2026-10-24
+
+The codebase has no environmental spawner actor or configured source registry;
+existing Campfires, Standing Lights and stations are camp/shelter sources, not
+creature spawners. S27 records policy only and adds no placed content or runtime
+source configuration.
+
+Current seams are `AKalmalaGameMode::UpdatePopulationSchedulerWake` for the
+shared wake limit; `FKalmalaPopulationSpawnAttempt` and
+`EvaluatePopulationSpawnGates` for ordered attempt results;
+`TryCreatePopulationSpawnTransaction` for server creation;
+`DoesPopulationDescriptorPassCaps` and
+`TryReservePopulationCreatureCapacity` (with the Wolf-pack wrapper) for shared budgets/reservations, and
+`DoesPopulationDescriptorPassPhysicalPlacement` for final placement including
+camp suppression. Future source work must feed this bounded path and charge
+against its remaining candidate budget rather than creating a parallel scheduler.
+
+A future configured source contributes its bounded work to the existing server
+scheduler wake and shares its 16-candidate total with natural-key work. Each
+source check runs every 8 seconds, examines at most four fixed slot candidates
+within 12 m of the source origin, and creates at most one creature. The local
+limit is two living source-owned creatures within the inclusive 24 m horizontal
+radius; escaped source-owned actors continue consuming the existing shared
+species, home-key and aggregate budgets. Each source has exactly two finite,
+stably identified slots, with no replenishment after defeat. Inactive sources
+accrue no missed checks.
+
+Source attempts reuse the shared seeded 25% roll, player ring/exclusion,
+habitat, unrestricted time/weather/progression, cap and physical-placement
+policies. S25's current station/camp suppression therefore applies to each new
+source admission. S28 added a disabled-unless-configured local policy; S29 now
+provides the configured-candidate transaction path below. S27 added no source
+class, configured source registry, actor creation or world content.
+
+## S28 local source scheduling policy — 2026-10-24
+
+FKalmalaEnvironmentalSpawnerPolicy provides reusable server-side policy helpers
+for a future configured environmental source. Scheduling, local count and
+admission all fail closed unless all of these are present: server authority, an explicit
+configured-source flag, a valid slot index (0 or 1), and a nonblank stable source ID.
+The codebase still has no source actor or configured source registry, so this
+increment does not activate runtime checks or add world content.
+
+A source check uses the fixed 8-second interval. After servicing a check, the
+caller schedules the next one from the actual service time, skipping missed
+intervals rather than accumulating retry work. A check can examine at most four
+fixed candidates, further clamped by the shared scheduler's remaining candidate
+budget; candidate positions must be within the inclusive 12 m 3D radius. It can
+create at most one actor. A source has exactly two valid finite slot indices.
+
+The local cap counts server-supplied current-world living samples with the same
+source ID inside the inclusive 24 m horizontal radius. Dead and other-source
+samples do not count; invalid positions for owned living samples fail closed.
+The admission helper allows a new creature only when its full transaction fits
+the two-living-actor cap.
+
+## S29 configured-source safety-gate path — 2026-10-24
+
+`TryCreateConfiguredEnvironmentalSpawnerCandidates` is a server-only seam for
+an explicitly configured stable source ID and one of its two slot indices. It
+services only due checks, examines up to four fixed candidates within the
+inclusive 12 m 3D source radius, and subtracts each examined attempt from the
+shared remaining 16-candidate wake budget. An unconfigured or invalid source
+does not advance its due time, consume candidate budget or create an attempt.
+No source actor, registry or placed source exists, so no runtime environmental
+checks or actor creation are currently active.
+
+Configured attempts use the same ordered admission evaluation and final
+creation transaction as natural candidates: seeded roll, current-world living
+player ring and all-player exclusion, species habitat, time, weather,
+progression, shared area/aggregate budgets, and S20–S25 placement including
+current camp suppression. The transaction rechecks shared and source-local caps
+immediately before creation. The descriptor's selected position and species
+seed stay unchanged, while its stable actor/save identity is overridden with
+the tuple `(SourceId, slot 0|1)`. That ID drives defeat persistence and reward
+ownership, so a defeated finite slot cannot be replenished by another
+candidate. It reserves each proposed actor against shared species, home-key
+and aggregate counts before spawning; all reservations are released after
+successful registration or on rollback. Wolf packs remain atomic, and their
+three-member size cannot fit the two-creature local source cap, so a source
+attempt rejects the entire pack.
+
+Source ownership is held in server session state keyed by the source/slot
+spawn ID and is removed through the existing defeat/destroy lifecycle. Live
+source-owned actors and pending source-owned reservations count toward the
+inclusive 24 m horizontal local cap. Actors outside that radius remain in
+shared area counts. No save field, network protocol, source content, or existing
+camp/creature behavior changes. S30 remains the next implementation step.
 
 ## Acceptance
 

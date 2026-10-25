@@ -74,8 +74,8 @@ struct KALMALAWORLD_API FKalmalaBiomeExpansionContract
     static FKalmalaBiomeDiscoveryCandidate BuildDiscoveryCandidate(const FKalmalaWorldGenerationConfig& Config, const FIntPoint SpatialKey, const EKalmalaBiome Biome)
     {
         const uint64 CandidateSeed = Mix(FKalmalaWorldPopulationLayout::DeriveSpatialSeed(Config, SpatialKey, EKalmalaWorldPopulationKind::Hazard) ^ (static_cast<uint64>(Biome) + 1ull));
-        const FVector2D Origin = FVector2D(SpatialKey) * FKalmalaWorldPopulationLayout::SpatialKeySize;
-        const FVector2D Position = Origin + FVector2D(static_cast<float>(CandidateSeed & 0xFFFFu) / 65535.0f, static_cast<float>((CandidateSeed >> 16) & 0xFFFFu) / 65535.0f) * FKalmalaWorldPopulationLayout::SpatialKeySize;
+        const FVector2D Origin = FVector2D(SpatialKey) * FKalmalaWorldPopulationLayout::SpatialKeySizeCm;
+        const FVector2D Position = Origin + FVector2D(static_cast<float>(CandidateSeed & 0xFFFFu) / 65535.0f, static_cast<float>((CandidateSeed >> 16) & 0xFFFFu) / 65535.0f) * FKalmalaWorldPopulationLayout::SpatialKeySizeCm;
         FKalmalaBiomeDiscoveryCandidate Candidate;
         Candidate.Biome = Biome;
         Candidate.SpatialKey = SpatialKey;
@@ -107,10 +107,10 @@ struct KALMALAWORLD_API FKalmalaBiomeExpansionContract
         for (int32 Attempt = 0; Attempt < 16; ++Attempt)
         {
             const uint64 AttemptSeed = Mix(BaseCandidate.CandidateSeed ^ static_cast<uint64>(Attempt + 1) * 0x9E3779B185EBCA87ull);
-            const FVector2D Origin = FVector2D(SpatialKey) * FKalmalaWorldPopulationLayout::SpatialKeySize;
+            const FVector2D Origin = FVector2D(SpatialKey) * FKalmalaWorldPopulationLayout::SpatialKeySizeCm;
             const FVector2D Position = Origin + FVector2D(
                 static_cast<float>(AttemptSeed & 0xFFFFu) / 65535.0f,
-                static_cast<float>((AttemptSeed >> 16) & 0xFFFFu) / 65535.0f) * FKalmalaWorldPopulationLayout::SpatialKeySize;
+                static_cast<float>((AttemptSeed >> 16) & 0xFFFFu) / 65535.0f) * FKalmalaWorldPopulationLayout::SpatialKeySizeCm;
             const bool bLakeBiome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, Position)) == EKalmalaBiome::ShimmeringLakes;
             const bool bWaterNearby = FKalmalaShimmeringLakeSampler::IsWater(Config, Position + FVector2D(ShoreProbeDistance, 0.0f))
                 || FKalmalaShimmeringLakeSampler::IsWater(Config, Position - FVector2D(ShoreProbeDistance, 0.0f))
@@ -133,10 +133,10 @@ struct KALMALAWORLD_API FKalmalaBiomeExpansionContract
         for (int32 Attempt = 0; Attempt < 24; ++Attempt)
         {
             const uint64 AttemptSeed = Mix(BaseCandidate.CandidateSeed ^ static_cast<uint64>(Attempt + 1) * 0xD1B54A32D192ED03ull);
-            const FVector2D Origin = FVector2D(SpatialKey) * FKalmalaWorldPopulationLayout::SpatialKeySize;
+            const FVector2D Origin = FVector2D(SpatialKey) * FKalmalaWorldPopulationLayout::SpatialKeySizeCm;
             const FVector2D Position = Origin + FVector2D(
                 static_cast<float>(AttemptSeed & 0xFFFFu) / 65535.0f,
-                static_cast<float>((AttemptSeed >> 16) & 0xFFFFu) / 65535.0f) * FKalmalaWorldPopulationLayout::SpatialKeySize;
+                static_cast<float>((AttemptSeed >> 16) & 0xFFFFu) / 65535.0f) * FKalmalaWorldPopulationLayout::SpatialKeySizeCm;
             const FKalmalaWorldFieldSample Fields = FKalmalaWorldFieldSampler::Sample(Config, Position);
             if (FKalmalaBiomeClassifier::Classify(Fields) == EKalmalaBiome::Elderwood
                 && Fields.Flora <= 0.76f
@@ -157,10 +157,10 @@ struct KALMALAWORLD_API FKalmalaBiomeExpansionContract
         for (int32 Attempt = 0; Attempt < 32; ++Attempt)
         {
             const uint64 AttemptSeed = Mix(BaseCandidate.CandidateSeed ^ static_cast<uint64>(Attempt + 1) * 0x94D049BB133111EBull);
-            const FVector2D Origin = FVector2D(SpatialKey) * FKalmalaWorldPopulationLayout::SpatialKeySize;
+            const FVector2D Origin = FVector2D(SpatialKey) * FKalmalaWorldPopulationLayout::SpatialKeySizeCm;
             const FVector2D Position = Origin + FVector2D(
                 static_cast<float>(AttemptSeed & 0xFFFFu) / 65535.0f,
-                static_cast<float>((AttemptSeed >> 16) & 0xFFFFu) / 65535.0f) * FKalmalaWorldPopulationLayout::SpatialKeySize;
+                static_cast<float>((AttemptSeed >> 16) & 0xFFFFu) / 65535.0f) * FKalmalaWorldPopulationLayout::SpatialKeySizeCm;
             const FKalmalaWorldFieldSample Fields = FKalmalaWorldFieldSampler::Sample(Config, Position);
             const FKalmalaEnvironmentalExposureSample Exposure = FKalmalaEnvironmentalExposureSampler::Sample(Config, Position);
             if (FKalmalaBiomeClassifier::Classify(Fields) == EKalmalaBiome::MossyMire
@@ -182,10 +182,10 @@ struct KALMALAWORLD_API FKalmalaBiomeExpansionContract
         for (int32 Attempt = 0; Attempt < 32; ++Attempt)
         {
             const uint64 AttemptSeed = Mix(BaseCandidate.CandidateSeed ^ static_cast<uint64>(Attempt + 1) * 0xBF58476D1CE4E5B9ull);
-            const FVector2D Origin = FVector2D(SpatialKey) * FKalmalaWorldPopulationLayout::SpatialKeySize;
+            const FVector2D Origin = FVector2D(SpatialKey) * FKalmalaWorldPopulationLayout::SpatialKeySizeCm;
             const FVector2D Position = Origin + FVector2D(
                 static_cast<float>(AttemptSeed & 0xFFFFu) / 65535.0f,
-                static_cast<float>((AttemptSeed >> 16) & 0xFFFFu) / 65535.0f) * FKalmalaWorldPopulationLayout::SpatialKeySize;
+                static_cast<float>((AttemptSeed >> 16) & 0xFFFFu) / 65535.0f) * FKalmalaWorldPopulationLayout::SpatialKeySizeCm;
             const FKalmalaWorldFieldSample Fields = FKalmalaWorldFieldSampler::Sample(Config, Position);
             if (FKalmalaBiomeClassifier::Classify(Fields) == EKalmalaBiome::FreezingTundra
                 && Fields.Elevation >= 0.35f
@@ -206,10 +206,10 @@ struct KALMALAWORLD_API FKalmalaBiomeExpansionContract
         for (int32 Attempt = 0; Attempt < 40; ++Attempt)
         {
             const uint64 AttemptSeed = Mix(BaseCandidate.CandidateSeed ^ static_cast<uint64>(Attempt + 1) * 0xD6E8FEB86659FD93ull);
-            const FVector2D Origin = FVector2D(SpatialKey) * FKalmalaWorldPopulationLayout::SpatialKeySize;
+            const FVector2D Origin = FVector2D(SpatialKey) * FKalmalaWorldPopulationLayout::SpatialKeySizeCm;
             const FVector2D Position = Origin + FVector2D(
                 static_cast<float>(AttemptSeed & 0xFFFFu) / 65535.0f,
-                static_cast<float>((AttemptSeed >> 16) & 0xFFFFu) / 65535.0f) * FKalmalaWorldPopulationLayout::SpatialKeySize;
+                static_cast<float>((AttemptSeed >> 16) & 0xFFFFu) / 65535.0f) * FKalmalaWorldPopulationLayout::SpatialKeySizeCm;
             const FKalmalaWorldFieldSample Fields = FKalmalaWorldFieldSampler::Sample(Config, Position);
             const float NormalZ = FKalmalaTerrainHeightSampler::SampleSurfaceNormal(Config, Position).Z;
             if (FKalmalaBiomeClassifier::Classify(Fields) == EKalmalaBiome::ThunderMountains

@@ -42,6 +42,8 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationSpawn
     FVector Location = FVector::ZeroVector;
     /** Server-selected biome material or creature-niche identity. */
     FName ContentId = NAME_None;
+    /** Optional server-selected stable slot identity; ordinary descriptors leave this empty. */
+    FString PersistentSpawnIdOverride;
 };
 
 struct KALMALAWORLD_API FKalmalaWorldDiscoveryDescriptor
@@ -56,15 +58,15 @@ struct KALMALAWORLD_API FKalmalaWorldDiscoveryDescriptor
 
 struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
 {
-    static constexpr float SpatialKeySize = 6000.0f;
+    static constexpr float SpatialKeySizeCm = 6400.0f;
     // One optional Tin node, six land-biome Stone outcrops and one Tundra salt deposit.
     static constexpr int32 SupplementalHarvestSourceBudget = 8;
 
     static FIntPoint GetSpatialKey(const FVector2D WorldPosition)
     {
         return FIntPoint(
-            FMath::FloorToInt(WorldPosition.X / SpatialKeySize),
-            FMath::FloorToInt(WorldPosition.Y / SpatialKeySize));
+            FMath::FloorToInt(WorldPosition.X / SpatialKeySizeCm),
+            FMath::FloorToInt(WorldPosition.Y / SpatialKeySizeCm));
     }
 
     static uint64 DeriveSpatialSeed(const FKalmalaWorldGenerationConfig& Config, const FIntPoint SpatialKey, const EKalmalaWorldPopulationKind Kind)
@@ -82,7 +84,7 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
 
     static int32 GetSpawnBudget(const FKalmalaWorldGenerationConfig& Config, const FIntPoint SpatialKey, const EKalmalaWorldPopulationKind Kind)
     {
-        const FVector2D KeyCenter = (FVector2D(SpatialKey) + FVector2D(0.5f, 0.5f)) * SpatialKeySize;
+        const FVector2D KeyCenter = (FVector2D(SpatialKey) + FVector2D(0.5f, 0.5f)) * SpatialKeySizeCm;
         const FKalmalaWorldFieldSample Fields = FKalmalaWorldFieldSampler::Sample(Config, KeyCenter);
         switch (Kind)
         {
@@ -104,7 +106,7 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
         const int32 PrimaryBudget = Kind == EKalmalaWorldPopulationKind::HarvestNode
             ? Budget - SupplementalHarvestSourceBudget : Budget;
         Spawns.Reserve(Budget);
-        const FVector2D SpatialKeyOrigin = FVector2D(SpatialKey) * SpatialKeySize;
+        const FVector2D SpatialKeyOrigin = FVector2D(SpatialKey) * SpatialKeySizeCm;
         bool bAddedMeadowCarrotPatch = false;
         bool bAddedMeadowPotatoPatch = false;
         bool bAddedMeadowLingonberryShrub = false;
@@ -123,7 +125,7 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
             const uint64 CandidateSeed = Mix(DeriveSpatialSeed(Config, SpatialKey, Kind) ^ static_cast<uint64>(SpawnIndex + 1));
             const float XFraction = static_cast<float>(CandidateSeed & 0xFFFFu) / 65535.0f;
             const float YFraction = static_cast<float>((CandidateSeed >> 16) & 0xFFFFu) / 65535.0f;
-            const FVector2D Position = SpatialKeyOrigin + FVector2D(XFraction, YFraction) * SpatialKeySize;
+            const FVector2D Position = SpatialKeyOrigin + FVector2D(XFraction, YFraction) * SpatialKeySizeCm;
             if (!FKalmalaWorldBounds::Contains(Config, Position)) continue;
             if (Kind == EKalmalaWorldPopulationKind::Wildlife && !IsSafeWildlifeLocation(Config, Position)) continue;
             const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, Position));
@@ -222,7 +224,7 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
                 const uint64 CandidateSeed = Mix(DeriveSpatialSeed(Config, SpatialKey, Kind) ^ static_cast<uint64>(SpawnIndex + 1));
                 const FVector2D Position = SpatialKeyOrigin + FVector2D(
                     static_cast<float>(CandidateSeed & 0xFFFFu) / 65535.0f,
-                    static_cast<float>((CandidateSeed >> 16) & 0xFFFFu) / 65535.0f) * SpatialKeySize;
+                    static_cast<float>((CandidateSeed >> 16) & 0xFFFFu) / 65535.0f) * SpatialKeySizeCm;
                 if (!FKalmalaWorldBounds::Contains(Config, Position) || !IsTerrainSafeDiscoveryLocation(Config, Position)) continue;
                 if (FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, Position)) != EKalmalaBiome::ShimmeringLakes
                     || !FKalmalaEnvironmentalExposureSampler::Sample(Config, Position).bIsShoreline) continue;
@@ -264,7 +266,7 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
                 const uint64 CandidateSeed = Mix(DeriveSpatialSeed(Config, SpatialKey, Kind) ^ static_cast<uint64>(SpawnIndex + 1));
                 const FVector2D Position = SpatialKeyOrigin + FVector2D(
                     static_cast<float>(CandidateSeed & 0xFFFFu) / 65535.0f,
-                    static_cast<float>((CandidateSeed >> 16) & 0xFFFFu) / 65535.0f) * SpatialKeySize;
+                    static_cast<float>((CandidateSeed >> 16) & 0xFFFFu) / 65535.0f) * SpatialKeySizeCm;
                 if (!FKalmalaWorldBounds::Contains(Config, Position) || !IsTerrainSafeDiscoveryLocation(Config, Position)) continue;
 
                 const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, Position));
@@ -292,7 +294,7 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
             {
                 const uint64 Seed = Mix(DeriveSpatialSeed(Config, SpatialKey, Kind) ^ uint64(CandidateBudget + 65 + Attempt));
                 const FVector2D Position = SpatialKeyOrigin + FVector2D(float(Seed & 0xFFFFu) / 65535.f,
-                    float((Seed >> 16) & 0xFFFFu) / 65535.f) * SpatialKeySize;
+                    float((Seed >> 16) & 0xFFFFu) / 65535.f) * SpatialKeySizeCm;
                 if (!FKalmalaWorldBounds::Contains(Config, Position)
                     || FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, Position)) != EKalmalaBiome::FreezingTundra
                     || !IsTerrainSafeDiscoveryLocation(Config, Position)) continue;
@@ -321,6 +323,10 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
     /** Stable server identifier for sparse deltas within a world identity/revision save. */
     static FString GetPersistentSpawnId(const FKalmalaWorldPopulationSpawn& Spawn)
     {
+        if (!Spawn.PersistentSpawnIdOverride.IsEmpty())
+        {
+            return Spawn.PersistentSpawnIdOverride;
+        }
         return FString::Printf(TEXT("%d/%d/%d/%llu"), static_cast<uint8>(Spawn.Kind), Spawn.SpatialKey.X, Spawn.SpatialKey.Y, Spawn.SpawnSeed);
     }
 
@@ -333,14 +339,14 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
     static TArray<FKalmalaWorldDiscoveryDescriptor> BuildDiscoveryDescriptors(const FKalmalaWorldGenerationConfig& Config, const FIntPoint SpatialKey, const EKalmalaWorldDiscoveryKind Kind)
     {
         TArray<FKalmalaWorldDiscoveryDescriptor> Descriptors;
-        const FVector2D SpatialKeyOrigin = FVector2D(SpatialKey) * SpatialKeySize;
+        const FVector2D SpatialKeyOrigin = FVector2D(SpatialKey) * SpatialKeySizeCm;
         constexpr int32 CandidateBudget = 8;
         for (int32 CandidateOrdinal = 0; CandidateOrdinal < CandidateBudget; ++CandidateOrdinal)
         {
             const uint64 DescriptorSeed = Mix(DeriveDiscoverySeed(Config, SpatialKey, Kind) ^ static_cast<uint64>(CandidateOrdinal + 1));
             const FVector2D Position = SpatialKeyOrigin + FVector2D(
                 static_cast<float>(DescriptorSeed & 0xFFFFu) / 65535.0f,
-                static_cast<float>((DescriptorSeed >> 16) & 0xFFFFu) / 65535.0f) * SpatialKeySize;
+                static_cast<float>((DescriptorSeed >> 16) & 0xFFFFu) / 65535.0f) * SpatialKeySizeCm;
             if (!FKalmalaWorldBounds::Contains(Config, Position) || !IsTerrainSafeDiscoveryLocation(Config, Position)) continue;
 
             const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(Config, Position));
@@ -367,6 +373,7 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
     }
 
 private:
+    friend struct FKalmalaMonsterSpawnTuning;
     static uint64 DeriveDiscoverySeed(const FKalmalaWorldGenerationConfig& Config, const FIntPoint SpatialKey, const EKalmalaWorldDiscoveryKind Kind)
     {
         uint64 Value = Config.WorldSeed ^ 0xD15C0A71E5ull;
@@ -429,5 +436,90 @@ private:
         Value ^= Value >> 27;
         Value *= 0x94D049BB133111EBull;
         return Value ^ (Value >> 31);
+    }
+};
+
+struct FKalmalaMonsterSpawnTuning final
+{
+    static constexpr float RingMinimumDistanceCm = 32.0f * 100.0f;
+    static constexpr float RingMaximumDistanceCm = 96.0f * 100.0f;
+    static constexpr float PlayerExclusionDistanceCm = 36.0f * 100.0f;
+    static constexpr double MaximumLandSlopeDegrees = 32.0;
+    static constexpr int32 CommonSpeciesAreaCap = 4;
+    static constexpr int32 RareHardEnemyAreaCap = 1;
+    static constexpr int32 WolfIndividualAreaCap = 6;
+    static constexpr float PopulationKeyCheckIntervalSeconds = 5.0f;
+    static constexpr float PopulationRoofClearanceTraceDistanceCm = 2400.0f;
+    static constexpr float CampSuppressionRadiusCm = 1800.0f;
+    static constexpr float PopulationStationCylinderHalfHeightCm = 1200.0f;
+    static constexpr float PopulationKeyPhaseStepSeconds = 0.25f;
+    static constexpr int32 PopulationKeyPhaseCount = 20;
+    static constexpr float PopulationSchedulerWakeIntervalSeconds = 0.25f;
+    static constexpr int32 MaxPopulationKeysPerWake = 4;
+    static constexpr int32 MaxPopulationCandidatesPerKey = 4;
+    static constexpr int32 MaxPopulationCandidatesPerWake = 16;
+    static constexpr uint8 PopulationAdmissionRollRange = 100;
+    static constexpr uint8 PopulationAdmissionRollMaxAccepted = 24;
+    static constexpr float CountRadiusCm = 96.0f * 100.0f;
+    static constexpr double LivingCreatureUnloadCooldownSeconds = 30.0;
+    static constexpr float PlayerKeyIntersectionRadiusCm = 96.0f * 100.0f;
+
+    static_assert(FKalmalaWorldPopulationLayout::SpatialKeySizeCm == 64.0f * 100.0f,
+        "Population spatial keys must remain 64 m wide.");
+    static_assert(RingMinimumDistanceCm > 0.0f && RingMinimumDistanceCm < RingMaximumDistanceCm,
+        "Monster spawn ring distances must be positive and ordered.");
+    static_assert(PlayerExclusionDistanceCm > RingMinimumDistanceCm
+        && PlayerExclusionDistanceCm < RingMaximumDistanceCm,
+        "Player exclusion distance must remain inside the spawn ring.");
+    static_assert(MaximumLandSlopeDegrees > 0.0f && MaximumLandSlopeDegrees < 90.0f,
+        "Land population surfaces must use a positive slope limit below vertical.");
+    static_assert(RingMaximumDistanceCm <= CountRadiusCm,
+        "Monster spawn count radius must cover the outer ring.");
+    static_assert(LivingCreatureUnloadCooldownSeconds == 30.0,
+        "Living population slots retain the fixed 30-second session cooldown.");
+    static_assert(PlayerKeyIntersectionRadiusCm > 0.0f,
+        "Player population-key radius must be positive.");
+    static_assert(CommonSpeciesAreaCap > 0 && RareHardEnemyAreaCap > 0 && WolfIndividualAreaCap > 0,
+        "Population species area caps must be positive.");
+    static_assert(PopulationKeyCheckIntervalSeconds > 0.0f,
+        "Monster population checks must use a positive interval.");
+    static_assert(PopulationRoofClearanceTraceDistanceCm == 24.0f * 100.0f,
+        "Population roof clearance is the fixed 24 m construction-roof rule.");
+    static_assert(CampSuppressionRadiusCm == 18.0f * 100.0f
+        && PopulationStationCylinderHalfHeightCm == 12.0f * 100.0f,
+        "Camp suppression uses an 18 m radius; Workbench and Forge use a 12 m vertical half-height.");
+    static_assert(PopulationKeyPhaseStepSeconds > 0.0f && PopulationKeyPhaseCount > 0
+        && PopulationKeyPhaseStepSeconds * PopulationKeyPhaseCount == PopulationKeyCheckIntervalSeconds,
+        "Monster key staggering must partition one positive check interval.");
+    static_assert(PopulationSchedulerWakeIntervalSeconds > 0.0f && MaxPopulationKeysPerWake > 0
+        && MaxPopulationCandidatesPerKey > 0 && MaxPopulationCandidatesPerWake > 0
+        && MaxPopulationKeysPerWake * MaxPopulationCandidatesPerKey <= MaxPopulationCandidatesPerWake,
+        "Population scheduler wake and candidate budgets must be positive and bounded.");
+    static_assert(PopulationAdmissionRollRange == 100 && PopulationAdmissionRollMaxAccepted == 24,
+        "Population admission remains an unbiased 25 percent roll over 0 through 99.");
+
+    static uint8 GetPopulationSpawnAdmissionRoll(const FKalmalaWorldGenerationConfig& Config,
+        const FIntPoint SpatialKey, const FString& PersistentSpawnId, const uint64 CheckOrdinal)
+    {
+        constexpr uint64 SpawnRollDomain = 0x535041574E524F4Cull;
+        uint64 Value = FKalmalaWorldPopulationLayout::DeriveSpatialSeed(
+            Config, SpatialKey, EKalmalaWorldPopulationKind::Wildlife) ^ SpawnRollDomain;
+        for (int32 CharacterIndex = 0; CharacterIndex < PersistentSpawnId.Len(); ++CharacterIndex)
+        {
+            Value ^= static_cast<uint32>(PersistentSpawnId[CharacterIndex]);
+            Value *= 0x100000001B3ull;
+        }
+        Value ^= CheckOrdinal * 0x9E3779B185EBCA87ull;
+        Value = FKalmalaWorldPopulationLayout::Mix(Value);
+
+        constexpr uint64 RollRange = PopulationAdmissionRollRange;
+        const uint64 RejectionThreshold = (uint64(0) - RollRange) % RollRange;
+        uint64 RetryOrdinal = 0;
+        while (Value < RejectionThreshold)
+        {
+            Value = FKalmalaWorldPopulationLayout::Mix(
+                Value ^ (0x9E3779B97F4A7C15ull + RetryOrdinal++));
+        }
+        return static_cast<uint8>(Value % RollRange);
     }
 };
