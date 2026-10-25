@@ -1912,6 +1912,53 @@ int32* AKalmalaCharacter::FindToolDurabilityFromServer(const FGuid& InstanceGuid
     return nullptr;
 }
 
+bool AKalmalaCharacter::SpendStormcutConditionForAcceptedHitFromServer(const FGuid& ActiveSwordGuid)
+{
+    if (!HasAuthority() || !Inventory || Inventory->GetActiveItem() != TEXT("StormcutSword")
+        || !ActiveSwordGuid.IsValid() || Inventory->GetActiveInstanceGuid() != ActiveSwordGuid)
+    {
+        return false;
+    }
+
+    AKalmalaGameMode* GameMode = GetWorld() != nullptr
+        ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
+    if (GameMode == nullptr) return false;
+    FString PlayerIdentity;
+    if (GameMode->GetPlayerDiscoverySave(this, PlayerIdentity) == nullptr) return false;
+
+    // Loading the player's save can restore its canonical carried-tool records.
+    // Revalidate the active exact instance after that possible restore.
+    if (Inventory->GetActiveItem() != TEXT("StormcutSword")
+        || Inventory->GetActiveInstanceGuid() != ActiveSwordGuid) return false;
+    FKalmalaToolState* Sword = CarriedTools.FindByPredicate([&ActiveSwordGuid](const FKalmalaToolState& Candidate)
+    {
+        return Candidate.InstanceGuid == ActiveSwordGuid;
+    });
+    if (!Sword || Sword->ItemId != TEXT("StormcutSword")) return false;
+
+    const int32 MaximumCondition = FKalmalaToolLifecycleContract::GetMaxDurability(Sword->ItemId, Sword->ToolLevel);
+    if (MaximumCondition <= 0 || Sword->Durability <= 0 || Sword->Durability > MaximumCondition) return false;
+
+    const int32 PreviousCondition = Sword->Durability;
+    --Sword->Durability;
+    if (!GameMode->PersistPlayerStateFromServer(this))
+    {
+        if (FKalmalaToolState* RollbackSword = CarriedTools.FindByPredicate(
+            [&ActiveSwordGuid](const FKalmalaToolState& Candidate)
+            {
+                return Candidate.InstanceGuid == ActiveSwordGuid && Candidate.ItemId == TEXT("StormcutSword");
+            }))
+        {
+            RollbackSword->Durability = PreviousCondition;
+        }
+        ForceNetUpdate();
+        return false;
+    }
+
+    ForceNetUpdate();
+    return true;
+}
+
 bool AKalmalaCharacter::CommitToolHarvestFromServer(AKalmalaHarvestNode* Node, const float TraceDistance,
     const float MaximumRange, const FName ClientItemId, const uint8 ClientAction)
 {

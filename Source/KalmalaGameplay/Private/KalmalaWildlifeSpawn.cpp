@@ -569,13 +569,20 @@ bool AKalmalaWildlifeSpawn::ApplyCombatDamageFromServer(const float Damage, AKal
 }
 
 bool AKalmalaWildlifeSpawn::ApplyCombatDamageFromServer(const FKalmalaDamageChannels& Damage, AKalmalaCharacter* Attacker)
-{ return ApplyValidatedDamageFromServer(Damage, Attacker, true); }
+{ return ApplyValidatedDamageFromServer(Damage, Attacker, true, nullptr); }
+
+bool AKalmalaWildlifeSpawn::ApplyStormcutCombatDamageFromServer(const FKalmalaDamageChannels& Damage,
+    AKalmalaCharacter* Attacker, const FGuid& ActiveSwordGuid)
+{
+    if (!ActiveSwordGuid.IsValid()) return false;
+    return ApplyValidatedDamageFromServer(Damage, Attacker, true, &ActiveSwordGuid);
+}
 
 bool AKalmalaWildlifeSpawn::ApplyArrowDamageFromServer(const FKalmalaDamageChannels& Damage,
     AKalmalaCharacter* Attacker, const FName ArrowItemId)
 {
     if (!Attacker || ArrowItemId.IsNone()) return false;
-    const bool bDamageAccepted = ApplyValidatedDamageFromServer(Damage, Attacker, false);
+    const bool bDamageAccepted = ApplyValidatedDamageFromServer(Damage, Attacker, false, nullptr);
     if (bDamageAccepted && ArrowItemId == TEXT("FangArrows")) ApplyFangArrowWeakPoisonFromServer();
     return bDamageAccepted;
 }
@@ -622,7 +629,7 @@ void AKalmalaWildlifeSpawn::AdvanceFangArrowWeakPoisonFromServer(const float Del
             FKalmalaDamageChannels PoisonDamage;
             PoisonDamage.Poison = UKalmalaPlayerStatusComponent::WeakPoisonDamagePerSecond;
             // The previous accepted arrow hit retains reward credit for a poison defeat.
-            ApplyValidatedDamageFromServer(PoisonDamage, nullptr, false);
+            ApplyValidatedDamageFromServer(PoisonDamage, nullptr, false, nullptr);
         }
         FangArrowPoisonSecondsUntilTick = UKalmalaPlayerStatusComponent::PoisonTickIntervalSeconds;
     }
@@ -642,7 +649,8 @@ void AKalmalaWildlifeSpawn::AdvanceFangArrowWeakPoisonFromServer(const float Del
         FangArrowPoisonSecondsUntilTick = UKalmalaPlayerStatusComponent::PoisonTickIntervalSeconds;
 }
 
-bool AKalmalaWildlifeSpawn::ApplyValidatedDamageFromServer(const FKalmalaDamageChannels& Damage, AKalmalaCharacter* Attacker, bool bMelee)
+bool AKalmalaWildlifeSpawn::ApplyValidatedDamageFromServer(const FKalmalaDamageChannels& Damage,
+    AKalmalaCharacter* Attacker, bool bMelee, const FGuid* StormcutSwordGuid)
 {
     if (!HasAuthority() || bDefeated || !Damage.IsValid() || Damage.Total() <= 0.0f) return false;
     if (Attacker != nullptr && (!Attacker->HasAuthority() || Attacker->GetWorld() != GetWorld()
@@ -650,6 +658,8 @@ bool AKalmalaWildlifeSpawn::ApplyValidatedDamageFromServer(const FKalmalaDamageC
     const UKalmalaResistanceComponent* Defenses = FindComponentByClass<UKalmalaResistanceComponent>();
     float ResolvedDamage = 0.0f;
     if (!Defenses || !Defenses->ResolveFromServer(Damage, ResolvedDamage)) return false;
+    if (StormcutSwordGuid != nullptr
+        && (Attacker == nullptr || !Attacker->SpendStormcutConditionForAcceptedHitFromServer(*StormcutSwordGuid))) return false;
     if (Attacker != nullptr) LastValidatedAttacker = Attacker;
     Health = FMath::Clamp(Health - ResolvedDamage, 0.0f, GetMaximumHealthForArchetype(Archetype));
     if (Health <= 0.0f) return DefeatServer();

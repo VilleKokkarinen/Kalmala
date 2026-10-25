@@ -11383,3 +11383,55 @@
 - **Next eligible A10 increment:** repair Stormcut accepted-hit condition
   wear and add focused server-authority/persistence tests before final A10
   verification.
+
+## Run 2026-10-25 — A10 Stormcut Sword accepted-hit wear repair
+
+- **Selected increment and contract:** repaired the required A9 Stormcut Sword
+  behavior. `docs/a9-acceptance.md` requires one condition per accepted hit;
+  `docs/01-game-design.md` also makes misses free and validated hits use
+  authored damage. The prior shared melee path never spent condition.
+- **Implementation and transaction:** the combat component uses the dedicated
+  Stormcut wildlife-hit route only while the server's current main-hand item is
+  `StormcutSword`, passing that active carried instance GUID. Wildlife keeps
+  all existing authority, defeated-state, damage, range, and resistance checks
+  ahead of the wear transaction. The character first ensures the canonical
+  player save is loaded, then revalidates authority, active item and exact GUID,
+  checks level-bounded condition, decrements once, and persists the carried-tool
+  save before wildlife health is mutated. Failed player save reacquires the
+  exact sword by GUID, restores condition, and rejects the hit. Existing generic
+  melee, arrow, poison, and tree routes remain unworn by this Stormcut-specific
+  change.
+- **Focused coverage added:**
+  `Kalmala.Gameplay.Combat.StormcutAcceptedHitWear` now exercises a target-free
+  miss, wrong GUID, non-authoritative attacker and target, depleted sword and
+  rejected combat request, actual combat rejection with an injected final
+  player-save failure after candidate preparation (no target damage and
+  condition rollback), one accepted 70-Slash hit spending
+  exactly one, the persisted tool record matching condition 219, and a
+  subsequent Stone Knife hit with no new wear. The existing Editor binary was
+  not used because it may not contain this source; automation execution is
+  deferred to A10 final verification.
+- **Files changed:** `KalmalaCharacter.{h,cpp}`, `KalmalaCombatComponent.cpp`,
+  `KalmalaWildlifeSpawn.{h,cpp}`, `KalmalaGameMode.{h,cpp}` (save-failure test
+  seam and test access),
+  `KalmalaStormcutSwordTest.cpp`, `BACKLOG.md`, and `PROGRESS.md`. No catalogue,
+  gameplay data, save schema, or icon changes.
+- **Lightweight checks:** `git diff --check` passed. Inspected the complete
+  server attack and wildlife validation order and all callers of
+  `ApplyValidatedDamageFromServer`; only the Stormcut-specific call supplies a
+  sword GUID. Manually reviewed the transaction rollback and focused test
+  fixture against the new final player-slot failure seam. No build or
+  automation was run; full verification remains deferred.
+- **Observable impact:** successful Stormcut wildlife hits reduce the exact
+  active sword condition by one and durably save it before target damage. Misses,
+  invalid GUIDs, depleted tools, non-authoritative requests, and player-save
+  failure do not damage the target or consume condition.
+- **Networking/authority:** active item identity, condition mutation, save,
+  damage validation, and health mutation are server-owned. No client damage or
+  item identity payload was added.
+- **Known limitations / remaining scope:** the focused automation has not yet
+  been compiled or executed. A10 no-grant fresh-start progression and required
+  integrated final verification, peer, restart, and render gates remain open.
+- **Next eligible A10 increment:** perform final acceptance and verification;
+  build the current Editor target and run
+  `Automation RunTests Kalmala.Gameplay.Combat.StormcutAcceptedHitWear`.

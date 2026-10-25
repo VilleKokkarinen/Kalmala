@@ -433,7 +433,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     fresh-world acceptance remain open for later verification. Current A9 scope
     explicitly excludes the retired cargo proposal; the item audit should record
     cargo as deferred/excluded (N/A), with no scope conflict or implementation.
-  - [ ] Check each included item's source, recipe, use, upgrades, icon and save behavior.
+  - [x] Check each included item's source, recipe, use, upgrades, icon and save behavior.
     A10 item audit 2026-10-24: Sinew, Bow String, Lightwood, Bone Fragment,
     six cooking outputs, Hearth Broth, Wild carrots (Carrot, CarrotSeed),
     Wild potatoes (Potato, PotatoSeed), Wild rutabaga (Rutabaga, RutabagaSeed),
@@ -470,13 +470,17 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     (`StormSapphire`), Dusk Diamond (`DuskDiamond`), and Dusk Ring
     (`DuskRing`) are recorded in PROGRESS.md; all per-item A9 audits are
     complete.
-    A required cross-item follow-up remains: A9 acceptance requires Stormcut
-    Sword to spend one condition per accepted hit, but accepted combat damage
-    currently does not consume condition. The next A10 increment must implement
-    server-authoritative accepted-hit wear and focused authority/persistence
-    tests before final verification.
-    Keep this child open until every included item and scope N/A disposition
-    is covered.
+    Cross-item follow-up completed 2026-10-25: Stormcut Sword now spends one
+    condition for each accepted wildlife hit using the exact active server-side
+    carried GUID. Condition persistence commits before target health changes;
+    failed player persistence rolls condition back and rejects the hit. Focused
+    authority, miss, wrong-GUID, depleted, persistence-failure, accepted-hit,
+    saved-condition, and other-melee no-wear assertions were added. Their
+    automation execution remains for final verification; the existing Editor
+    binary was not treated as current code. No other weapon's wear behavior was
+    changed. All approved item audits and N/A dispositions are now recorded;
+    A10 remains open for the fresh-start progression and final verification
+    gates below.
   - [ ] Run required full verification at each milestone's final increment.
   - [ ] Verify fresh-start progression through Bronze and Iron without debug grants.
   - [ ] Verify approved farming, shelter, cargo, accessories, peers and restart.

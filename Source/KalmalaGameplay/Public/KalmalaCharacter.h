@@ -130,9 +130,11 @@ private:
     friend class UKalmalaCombatComponent;
     friend class UKalmalaCraftingComponent;
     friend class AKalmalaGameMode;
+    friend class AKalmalaWildlifeSpawn;
 
     bool CommitToolHarvestFromServer(AKalmalaHarvestNode* Node, float TraceDistance, float MaximumRange,
         FName ClientItemId, uint8 ClientAction);
+    bool SpendStormcutConditionForAcceptedHitFromServer(const FGuid& ActiveSwordGuid);
     int32* FindToolDurabilityFromServer(FName ItemId);
     int32* FindToolDurabilityFromServer(const FGuid& InstanceGuid);
 

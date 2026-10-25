@@ -121,9 +121,26 @@ void UKalmalaCombatComponent::TickComponent(const float DeltaTime, const ELevelT
             Damage = Damage.Scaled(Multiplier);
             AKalmalaWildlifeSpawn* Wildlife = Cast<AKalmalaWildlifeSpawn>(Target);
             AKalmalaHarvestNode* Tree = Cast<AKalmalaHarvestNode>(Target);
-            const bool bApplied = Wildlife ? Wildlife->ApplyCombatDamageFromServer(Damage, Cast<AKalmalaCharacter>(GetOwner()))
-                : Tree && (Tree->IsGemstone() ? Tree->ApplyPickHitFromServer(Cast<AKalmalaCharacter>(GetOwner()))
-                    : Tree->ApplyAxeDamageFromServer(Cast<AKalmalaCharacter>(GetOwner()), Damage));
+            AKalmalaCharacter* Attacker = Cast<AKalmalaCharacter>(GetOwner());
+            bool bApplied = false;
+            if (Wildlife != nullptr)
+            {
+                if (EquippedItem == TEXT("StormcutSword"))
+                {
+                    const FGuid ActiveSwordGuid = Inventory ? Inventory->GetActiveInstanceGuid() : FGuid();
+                    bApplied = Wildlife->ApplyStormcutCombatDamageFromServer(Damage, Attacker, ActiveSwordGuid);
+                }
+                else
+                {
+                    bApplied = Wildlife->ApplyCombatDamageFromServer(Damage, Attacker);
+                }
+            }
+            else if (Tree != nullptr)
+            {
+                bApplied = Tree->IsGemstone()
+                    ? Tree->ApplyPickHitFromServer(Attacker)
+                    : Tree->ApplyAxeDamageFromServer(Attacker, Damage);
+            }
             const bool bDefeated = bApplied && Wildlife && Wildlife->GetHealth() <= 0.0f;
 #if !UE_BUILD_SHIPPING
             if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaBoarPeerTest")))

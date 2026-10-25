@@ -83,13 +83,17 @@ public:
     bool ClearOceanTravelPassenger(class AKalmalaCharacter* Interactor, const FString& VesselId);
 
 private:
+    friend class AKalmalaCharacter;
     friend class FKalmalaForestPatchLifecycleTest;
     friend class FKalmalaForestRestartTest;
     friend class FKalmalaM9SourceAcceptanceTest;
+    friend class FKalmalaStormcutAcceptedHitWearTest;
 
 #if WITH_DEV_AUTOMATION_TESTS
     // Isolate the final disk boundary while exercising the real depletion callback.
     TFunction<void(class UKalmalaWorldPopulationSaveGame*, const FString&, int32)> PopulationSaveWriterForTests;
+    // Force the player-slot write boundary to fail after a candidate save is prepared.
+    TFunction<bool()> PlayerStateSaveGateForTests;
 #endif
 
     void ActivateTerrainPatch(const FIntPoint& PatchCoordinate);

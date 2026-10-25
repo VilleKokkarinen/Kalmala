@@ -7020,6 +7020,9 @@ bool AKalmalaGameMode::PersistPlayerStateFromServer(
 
     if (!Candidate->MatchesPlayer(WorldGenerationConfig, Identity)) return false;
     const FString Slot = KalmalaGameMode::PlayerDiscoverySaveSlot(WorldGenerationConfig, Identity);
+#if WITH_DEV_AUTOMATION_TESTS
+    if (PlayerStateSaveGateForTests && !PlayerStateSaveGateForTests()) return false;
+#endif
     if (!UGameplayStatics::SaveGameToSlot(Candidate, Slot, 0)) return false;
 
     PlayerDiscoverySaves.Add(Identity, Candidate);
