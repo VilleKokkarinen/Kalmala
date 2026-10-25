@@ -10303,3 +10303,100 @@
 - **Networking/authority:** the server owns the Thunder Core roll/claim/retry, exact Forge cost/station validation, tool progression persistence, target selection, attack timing and damage application. No client-provided damage channel or material quantity is trusted.
 - **Impact and remaining scope:** tracking-only; no gameplay, catalogue, icon or save files changed. No within-item recipe/profile/Lightning/runtime-mapping contradiction was found. Thunder Maul-specific live source-to-Forge delivery, peer-visible hit/presentation, and the undefined melee-hit condition cost remain for final acceptance disposition. Keep the broad A10 item audit open, preserve the BronzePick/IronPick acquisition-target gaps, and defer milestone-final verification.
 - **Next eligible A8b item audit:** Reef Harpoon (`ReefHarpoon`), following Thunder Maul in recipe/output order.
+
+## Run 2026-10-25 — A10 per-item audit: A8b Reef Harpoon
+
+- **Selected increment and registration:** audited only `ReefHarpoon`; the A10
+  item-audit child remains open. Schema-16 `GameCatalogues.json` registers the
+  spear profile, Forge acquisition, spear-family upgrade costs, shared stat
+  reward, attack list and creature definitions. `ReefHarpoon` is a carried
+  tool profile, not an ordinary stack item. Its one-handed profile weighs
+  4 kg, starts at 150 condition and adds 60 Pierce. The registered `Basic`
+  attack row is zero in every channel; the spear profile supplies Pierce
+  damage. It has no thrown/ammunition mode, harvesting action, use effect or
+  skiff-damage behavior. These categories are N/A under the approved contract.
+
+- **Sources and Forge costs:** enabled level-one Forge acquisition consumes
+  exactly 3 `ReefTooth` + 8 `Iron` + 4 `Lightwood` for one harpoon. Reef Maw is
+  registered in the Ocean with the accepted 50% Reef Tooth reward; the server
+  binds the roll to the credited owner's persisted population claim and commits
+  the Bone/Tooth bundle atomically, retaining the claim when inventory capacity
+  is insufficient. Iron and Lightwood routes were cross-referenced to earlier
+  A10 source audits: Bronze-tier mining yields 3 `IronOre` per accepted Mossy
+  Mire bog-iron node; the Smelter consumes 1 IronOre + 1 Coal for 1 Iron after
+  30 active server seconds; the Kiln produces Coal from 1 Wood after 30 active
+  seconds. Meadow Aspen bundles yield exactly 4 Lightwood with Stone Axe or
+  better. The earlier Iron audit's failed sparse-write risk for depleted
+  bog-iron, and the `BronzePick`/`IronPick` acquisition-target mismatches,
+  remain upstream A10 limitations; they were not retested here.
+
+- **Combat and upgrade:** shared server melee validates a fresh request, active
+  carried item, usable condition and owner state, then rechecks after windup and
+  applies the registered `Basic` attack through the authoritative target path.
+  The `Spear` family runtime contract explicitly states spear attack condition
+  does not wear; this resolves the generic “consuming uses” wording for Reef
+  Harpoon, so accepted hits do not spend condition. Misses also spend none. The
+  weapon uses the approved 220 cm close strike and is not thrown. Its level-one
+  Forge upgrade costs 1 `ReefTooth` + 4 `Iron` + 2 `Lightwood`; shared level-two
+  stats add 5 Pierce and 30 maximum condition, for 65 Pierce and 180 maximum
+  condition. `ProgressToolFromServer` requires authority, a visible same-world
+  Forge and exact station level/material contract, commits candidate tool and
+  inventory state together, and rolls both back when player-save persistence
+  fails.
+
+- **Save behavior:** current schema-3 player SaveGame records carried-tool item
+  ID, level, condition and instance GUID, so harpoon ownership, upgrade level
+  and condition persist. Ordinary material stacks and selected Main Hand remain
+  session state. Reef Tooth's owner-bound reward outcome lives in the separate
+  world-population claim; Lightwood depletion uses the forest source's sparse
+  world-save record. No save schema changed.
+
+- **Icon and held mapping:** catalogue icon manifest row 80, batch AK, maps
+  ReefHarpoon to the `CarriedTool`, `ToolDetail`, `Repair` and `RecipeResult`
+  views. `docs/icon-provenance.md` records the original prompt for one wooden
+  shaft, barbed iron head and pale reef-tooth inset on a transparent background.
+  Runtime icon lookup maps the ID to Spear variant 3 and canonical texture
+  `/Game/Kalmala/UI/Icons/Items/ReefHarpoon.ReefHarpoon`; the player model maps
+  `EKalmalaToolKind::ReefHarpoon` to the shared Spear held visual. The focused
+  validator confirmed the original RGBA source, transparent 64×64 prepared
+  texture and imported target.
+
+- **Acceptance evidence and gaps:** historical
+  `Kalmala.Gameplay.Combat.AllItemSwings` covers the Harpoon's server melee
+  route and catalogued hit; `DamageProfiles` covers handedness, Pierce, recipe,
+  upgrade and level-two stats; `M9.ToolStationProgression` covers exact Forge
+  costs, full starting condition and GUID/current-condition retention across
+  the level-two contract. The documented 2026-10-23 Editor incremental build
+  and these focused automations passed; records were inspected, not rerun. The
+  2026-10-24 combined A8/I4 gate passed its 178-test queue and shared Rat
+  reward / Badger Fur Vest live craft-equip peers. Reef Maw's earlier peer
+  confirms its own server bite and replicated cues, not Harpoon acquisition.
+  No ReefHarpoon-specific live Forge delivery, remote equip/combat or rendered
+  owner acceptance is recorded.
+
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md` only.
+- **Lightweight checks:** focused PowerShell assertions passed for schema-16
+  data registration, the exact profile, Forge acquisition and upgrade costs,
+  level-two reward and zero-valued `Basic` attack row.
+  `python Scripts/Validate-CatalogueReferences.py` passed with 61 registered
+  JSON files, 152 definitions, 777 resolved references and 152 canonical
+  runtime icon mappings. `Scripts/Validate-UIIcons.ps1 -Category Catalogue
+  -Id ReefHarpoon` passed and confirmed the 1254×1254 RGBA original plus
+  transparent 64×64 target. Static inspection confirmed server Forge
+  transaction/persistence rollback, server melee validation, the spear
+  condition-wear contract, carried-tool save records and the held/icon mappings.
+  No Unreal build, automation, live peer or game session was run in this A10
+  audit.
+- **Full verification:** deferred; this is not the final A10 increment.
+- **Networking/authority:** server owns source reward rolls and claims, Forge
+  station/material validation, tool progression persistence, attack timing,
+  active-item validation and damage application; no client-authored damage or
+  cost is trusted.
+- **Impact and remaining scope:** tracking-only; no gameplay, catalogue, icon
+  or save files changed. No within-item recipe/profile/source/icon mismatch or
+  runtime defect was found. ReefHarpoon-specific live progression/combat/render
+  acceptance remains for A10/I4 disposition, alongside broader A9 item and N/A
+  audits, fresh-start progression, the pre-existing Iron/Pick source notes, and
+  final A10 verification.
+- **Next eligible A10 item audit:** Smoky Quartz (`SmokyQuartz`), first in A9
+  backlog order.

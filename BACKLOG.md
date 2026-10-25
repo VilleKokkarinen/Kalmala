@@ -461,8 +461,10 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     No A8 buildable remains. The A8b per-item audits for Antidote, Peat Heart
     Stew, Wolf Pelt Boots, Fang Spear (`FangSpear`), Wolf Stew (`WolfStew`),
     Lynx Mantle (`LynxMantle`), Polar Bear Coat (`PolarBearCoat`), Horn Bow
-    (`HornBow`), and Thunder Maul (`ThunderMaul`) are recorded in PROGRESS.md;
-    next in A8b recipe/output order is Reef Harpoon (`ReefHarpoon`).
+    (`HornBow`), Thunder Maul (`ThunderMaul`), and Reef Harpoon (`ReefHarpoon`)
+    are recorded in PROGRESS.md;
+    A8b recipe/output audits are now recorded; next in A9 backlog order is
+    Smoky Quartz (`SmokyQuartz`).
     Keep this child open until every included item and scope N/A disposition
     is covered.
   - [ ] Run required full verification at each milestone's final increment.
