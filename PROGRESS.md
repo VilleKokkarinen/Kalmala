@@ -8174,3 +8174,37 @@
   still cover lifecycle/local-source acceptance, verification handoff and
   milestone-final verification.
 - **Next eligible task:** S33 — cover lifecycle and local spawners.
+
+
+### Monster population — S33 lifecycle and local-source coverage
+
+- **Selected increment:** S33, cover unload/reload, cooldown, defeat/reward
+  deduplication and local/shared cap behavior.
+- **Work completed:** Extended the population creation lifecycle fixture to
+  reload the same descriptor after its inclusive 30-second cooldown. It checks
+  that the reloaded actor keeps the original stable spawn ID, is re-registered
+  while within the inclusive living-player radius, clears its cooldown entry,
+  and remains undefeated. Existing focused tests cover unload outside every
+  living player's radius, no reward/save defeat on unload, and readiness just
+  before and at expiry. Reused existing Rat claim coverage for stable reward
+  idempotency and existing authority coverage for rejecting repeat defeats.
+  Reused the environmental-source admission fixture for the local two-actor
+  cap, atomic Wolf-pack local rejection, and pending reservations counted against
+  shared world/species/home-key limits; the Wolf reservation fixture covers
+  all-or-none rollback and capacity release.
+- **Files changed:**
+  `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationCreationLifecycleTest.cpp`,
+  `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** Inspected the S02 unload/cooldown lifecycle, S26
+  creation registration and defeat callbacks, S29 local/shared reservation path,
+  and mapped the focused tests to the requested acceptance cases.
+  `git diff --check` passed. Automation and builds were not run.
+- **Full verification:** Deferred to S35; S33 is not the final implementation
+  task in the monster-population goal.
+- **Observable impact / authority:** Test coverage only; no runtime behavior,
+  save schema, world content or replication behavior changed.
+- **Networking/authority:** No runtime authority paths changed. Fixtures cover
+  server-owned live registries, cooldown state, reservations and save claims.
+- **Known limitations:** The focused automation fixtures remain unrun. S34–S35
+  still prepare and execute the milestone verification handoff.
+- **Next eligible task:** S34 — prepare verification handoff.

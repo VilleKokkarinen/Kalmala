@@ -90,6 +90,28 @@ bool FKalmalaPopulationCreationTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Reactivation is allowed at the inclusive cooldown expiry"),
         Mode->IsPopulationSpawnReactivationReady(PersistentSpawnId, 41.0));
 
+    FActorSpawnParameters ReloadParameters;
+    ReloadParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+    AKalmalaWildlifeSpawn* ReloadedCreature = World->SpawnActor<AKalmalaWildlifeSpawn>(
+        AKalmalaWildlifeSpawn::StaticClass(), Descriptor.Location,
+        FRotator::ZeroRotator, ReloadParameters);
+    if (!TestNotNull(TEXT("The cooled-down descriptor can be reloaded"), ReloadedCreature)) return false;
+    ReloadedCreature->InitializeServer(Descriptor, EKalmalaWildlifeArchetype::Rat);
+    Mode->RegisterLivePopulationCreature(ReloadedCreature);
+    TestEqual(TEXT("Reload preserves the descriptor's stable spawn identity"),
+        ReloadedCreature->GetPersistentSpawnId(), PersistentSpawnId);
+
+    Player->SetActorLocation(Descriptor.Location + FVector(
+        FKalmalaMonsterSpawnTuning::CountRadiusCm, 0.0, 0.0));
+    Mode->UpdatePopulationCreatureUnloads(41.0, LivingPlayers);
+    TestTrue(TEXT("The reloaded living actor remains tracked at the inclusive player radius"),
+        IsValid(ReloadedCreature)
+        && Mode->HasLivePopulationCreatureWithSpawnId(PersistentSpawnId));
+    TestFalse(TEXT("Cooldown state clears after the same slot is reactivated"),
+        Mode->PopulationCreatureReactivationDueTimes.Contains(PersistentSpawnId));
+    TestFalse(TEXT("Reload does not turn an intentional unload into a defeat"),
+        Save->IsDefeated(PersistentSpawnId));
+
     return true;
 }
 
