@@ -10400,3 +10400,79 @@
   final A10 verification.
 - **Next eligible A10 item audit:** Smoky Quartz (`SmokyQuartz`), first in A9
   backlog order.
+
+## Run 2026-10-25 — A10 per-item audit: A9 Smoky Quartz
+
+- **Selected increment and registration:** audited only `SmokyQuartz`, the next
+  A9 item in backlog order. Schema-16 catalogue registration includes
+  `items/materials/gems.json` and the A9 gear recipes. Smoky Quartz is a raw
+  material stack (20 maximum, 0.1 kg); it has no equipment profile, attack,
+  upgrade, or use effect. A direct crafting recipe is N/A: it is acquired from
+  its world source and used in one enabled Forge recipe, `QuartzNecklace`, for
+  3 `Bronze` + 1 `SmokyQuartz` → 1 Quartz Necklace.
+
+- **World source and behavior:** the accepted A9 contract replaces 5% of
+  eligible Elderwood copper-vein slots or Shimmering Lakes tin-gravel slots
+  with a dedicated `gem-quartz-rock`; it does not add a gem co-drop to ordinary
+  ore. The seeded source maps to exactly one `SmokyQuartz`, is enabled, and
+  requires Stone-tier pick access. The node contract allows three accepted
+  hits and resolves a deterministic 10% smash roll on each, including the last;
+  if intact through extraction it releases one gem. No separate direct drop or
+  additional acquisition route was found.
+
+- **Authority, persistence, and save boundary:** server node handling validates
+  owner, target/range, active pick family/tier, living state and usable
+  condition. Accepted hit condition and sparse world-population hit/outcome
+  state are committed before replicated progress; a loose-gem claim validates
+  capacity and commits exactly one item and the consumed node state with
+  rollback on persistence failure. The world-population save schema is 2 and
+  retains partial, shattered, loose and claimed node states. Ordinary inventory
+  and gear remain session-only; this source persistence does not restore the
+  player's general item stacks. The save-version table in
+  `docs/02-technical-architecture.md` still lists generated population deltas
+  as schema 1, unlike the current code and A9 contract. This is a separate
+  cross-cutting documentation mismatch; it was not changed in this item audit.
+
+- **Icon and runtime mapping:** manifest row 81, batch AL, covers inventory
+  and item-detail views. The original icon is
+  `Content/Kalmala/UI/Source/IconOriginals/SmokyQuartz.png`, with the prepared
+  source at `Content/Kalmala/UI/Source/Icons/SmokyQuartz.png` and imported
+  asset at `Content/Kalmala/UI/Icons/Items/SmokyQuartz.uasset`. The provenance
+  guide records its original prompt; runtime lookup maps it to Rock variant 0.
+
+- **Focused and live acceptance evidence:** inspected focused gemstone contract
+  coverage for deterministic 5% Quartz slot replacement, three-hit/10% smash
+  behavior, and node-state save round trips; the A9 gear contract covers the
+  Quartz Necklace recipe and one-gem consumption. Historical A9 peer records
+  exercise a canonical Quartz node with two owning clients, partial-hit
+  reconstruction, full-pack claim rejection/retry, a single SmokyQuartz reward,
+  and fresh-process claim-state restoration. The peer provisions the pick and
+  equipment and does not prove fresh-start no-grant progression; no standalone
+  SmokyQuartz inventory/detail render is recorded. Historical A9 combined I5
+  records include 187 passing automation cases plus applicable peers/restarts
+  and renders; these records were inspected, not rerun here.
+
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md` only.
+- **Lightweight checks:** focused PowerShell assertions passed for schema-16
+  registration, Smoky Quartz stack/weight, the exact enabled Forge recipe and
+  ingredients, source mapping, and icon manifest row. `python
+  Scripts/Validate-CatalogueReferences.py` passed with 61 registered JSON
+  files, 152 definitions, 777 resolved references, and 152 canonical runtime
+  icon mappings. `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id
+  SmokyQuartz` passed for the 1254×1254 RGBA original and transparent 64×64
+  imported target. Static inspection confirmed server validation and
+  persistence ordering. No Unreal build, automation, live peer, or game
+  session was run for this audit.
+- **Full verification:** deferred; this is not the final A10 increment.
+- **Networking/authority:** world-source selection, mining rolls, condition
+  changes, inventory grant and node claims are server-authored. The relevant
+  inventory grant remains owner-specific; no client-provided reward or damage
+  is trusted.
+- **Impact and remaining scope:** tracking-only; no gameplay, catalogue, icon,
+  or save files changed. No within-item data, recipe, source, icon, authority,
+  or persistence defect was found. A9 no-grant acceptance and the standalone
+  raw-gem render evidence remain unproven for this item; broader A10 item/N/A
+  coverage, previously identified Iron/Pick source issues, and final A10
+  verification remain open.
+- **Next eligible A10 item audit:** Moonstone (`Moonstone`), next in A9 backlog
+  order.

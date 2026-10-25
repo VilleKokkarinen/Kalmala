@@ -463,8 +463,9 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     Lynx Mantle (`LynxMantle`), Polar Bear Coat (`PolarBearCoat`), Horn Bow
     (`HornBow`), Thunder Maul (`ThunderMaul`), and Reef Harpoon (`ReefHarpoon`)
     are recorded in PROGRESS.md;
-    A8b recipe/output audits are now recorded; next in A9 backlog order is
-    Smoky Quartz (`SmokyQuartz`).
+    A8b recipe/output audits and the Smoky Quartz (`SmokyQuartz`) audit are
+    recorded in PROGRESS.md; next in A9 backlog order is Moonstone
+    (`Moonstone`).
     Keep this child open until every included item and scope N/A disposition
     is covered.
   - [ ] Run required full verification at each milestone's final increment.
