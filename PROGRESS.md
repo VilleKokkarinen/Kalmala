@@ -10476,3 +10476,95 @@
   verification remain open.
 - **Next eligible A10 item audit:** Moonstone (`Moonstone`), next in A9 backlog
   order.
+
+## Run 2026-10-25 — A10 per-item audit: A9 Moonstone
+
+- **Selected increment and registration:** audited only `Moonstone`, next in
+  A9 backlog order. Schema-16 catalogues register the raw gem in
+  `items/materials/gems.json` and its use in `recipes/stations/a9-gear.json`.
+  Moonstone is a raw material stack (20 maximum, 0.1 kg); it has no equipment
+  profile, attack, upgrade, or use effect. It has no direct crafting recipe.
+  Its sole registered recipe use is the enabled Forge `MoonstoneRing` recipe:
+  2 `Bronze` + 1 `Moonstone` → 1 Moonstone Ring. The accessory profile gives
+  the equipped ring +20 maximum stamina without directly refilling stamina;
+  that effect belongs to the ring, not the raw gem.
+
+- **Accepted source and runtime route:** only a credited defeat of a validated,
+  generated Elderwood Moon Bear can select exactly one Moonstone, at the
+  accepted fixed 1/50 chance. `MoonstoneSourceAccepted` is enabled. The server
+  authenticates the stable generated descriptor, biome and actual species
+  before selecting the seed-derived result; non-Moon-Bear identities, other
+  biomes and malformed/forged spawn IDs fail closed. No other Moonstone source
+  or direct drop is registered.
+
+- **Authority, persistence, and save boundary:** the server records the
+  credited player's authenticated identity and the optional gem in the same
+  owner-bound pending Moon Bear reward, then saves the defeated source in the
+  world-population schema-2 record. Client input supplies neither gem ID nor
+  roll. Claim delivery validates the owner and complete inventory capacity;
+  a full pack retains the payload. For gem-bearing rewards the server durably
+  removes the pending payload before publishing the inventory change. A failed
+  removal write restores the pending reward in memory. If the inventory commit
+  fails after removal, the code restores the payload and attempts a rollback
+  save. Ordinary inventory remains session-only, so the delivered Moonstone
+  stack itself is not restored by the world claim record. No save schema
+  changed in this item.
+
+- **Icon and runtime mapping:** catalogue icon manifest row 81, batch AL,
+  covers PackInventory and ItemDetail. The original at
+  `Content/Kalmala/UI/Source/IconOriginals/Moonstone.png`, prepared source at
+  `Content/Kalmala/UI/Source/Icons/Moonstone.png`, and imported
+  `Content/Kalmala/UI/Icons/Items/Moonstone.uasset` are present. The provenance
+  guide records the original prompt; runtime lookup maps Moonstone to Rock
+  variant 1.
+
+- **Focused and acceptance evidence:** inspected `Kalmala.World.GemstoneContract`
+  coverage for the 1/50 roll and wrong-biome exclusion,
+  `Kalmala.Gameplay.Discovery.EnemyGemSources` for canonical generated
+  Moon-Bear selection, repeatability and species/forged-ID rejection,
+  `Kalmala.World.EnemyGemPayload` for credited-owner payload serialization and
+  claim removal, and `Kalmala.Gameplay.Inventory.A9GearRecipes` for the exact
+  ring recipe and crafted-item equip transaction. Historical A9 I5 records say
+  the 187-case automation queue passed and report canonical enemy-source and
+  owner-bound payload coverage; these were inspected, not rerun. The final live
+  three-peer A9 mining/treasure scenario covers Quartz and Garnet, not Moonstone.
+  The earlier Moon Bear acceptance predates Moonstone activation and covers
+  species/combat/ordinary rewards, not this gem route. No Moonstone-specific
+  live delivery/reconnect, fresh-process pending-reward restoration, or
+  unassisted fresh-start progression is recorded. No fault-injection acceptance
+  covers the rollback-save failure branch. The final A9 inventory render
+  uses Opal Helm, Garnet Necklace and Dusk Ring; it does not show Moonstone Ring
+  or a raw Moonstone inventory/detail tile.
+
+- **Cross-cutting documentation discrepancies:**
+  `docs/02-technical-architecture.md`'s current save-version table still says
+  generated population deltas use schema 1, while the implementation and A9
+  acceptance contract use schema 2. The older Moon Bear regression text in
+  `docs/07-development-setup.md` says the separate A9 Moonstone source remains
+  disabled; current A9 acceptance/code enable it. That note is pre-A9 context.
+  Neither document was changed in this item-scoped audit.
+
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md` only.
+- **Lightweight checks:** focused PowerShell assertions passed for schema-16
+  registration, Moonstone stack/weight, the exact enabled Forge recipe and
+  ingredients, Moonstone Ring's +20 maximum stamina profile, the accepted 1/50
+  generated Moon Bear source, and its icon manifest row. `python
+  Scripts/Validate-CatalogueReferences.py` passed with 61 registered JSON
+  files, 152 definitions, 777 resolved references, and 152 canonical runtime
+  icon mappings. `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id
+  Moonstone` passed for the 1254×1254 RGBA original and transparent 64×64
+  imported target. Static inspection confirmed server source validation,
+  owner-bound queueing and persistence-before-grant ordering. No Unreal build,
+  automation, live peer or game session was run in this audit.
+- **Full verification:** deferred; this is not the final A10 increment.
+- **Networking/authority:** server owns generated-source validation, the 1/50
+  roll, owner-bound pending reward, capacity check and payload removal/grant.
+  No client-authored gem identity, roll or quantity is accepted.
+- **Impact and remaining scope:** tracking-only; no gameplay, catalogue, icon,
+  or save files changed. No within-item data, source, recipe, icon, authority,
+  or persistence defect was found. Moonstone-specific live delivery and ring
+  render remain unproven; fresh-start progression, broader A10 item/N/A
+  coverage, the previously identified Iron/Pick source issues and final A10
+  verification remain open.
+- **Next eligible A10 item audit:** Garnet (`Garnet`), next in A9 backlog
+  order.
