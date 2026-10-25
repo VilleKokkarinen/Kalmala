@@ -1,6 +1,8 @@
 #include "KalmalaForestLayout.h"
 
 #include "KalmalaBiomeClassifier.h"
+#include "KalmalaRegionalGeneration.h"
+#include "KalmalaRegionalTuning.h"
 #include "KalmalaTerrainHeightSampler.h"
 #include "KalmalaTerrainPatchLayout.h"
 #include "KalmalaWorldBounds.h"
@@ -8,6 +10,7 @@
 
 namespace
 {
+    using T = FKalmalaRegionalTuning;
     constexpr int32 MeadowTreeCandidateCount = 18;
     constexpr int32 ElderwoodTreeCandidateCount = 72;
     constexpr float TreeEdgeMargin = 260.0f;
@@ -24,6 +27,20 @@ FString FKalmalaForestLayout::GetPersistentSpawnId(const FKalmalaWorldGeneration
         static_cast<unsigned long long>(Config.WorldSeed),
         PatchCenter.X == 0.0 ? 0.0 : PatchCenter.X,
         PatchCenter.Y == 0.0 ? 0.0 : PatchCenter.Y, CandidateIndex);
+}
+
+float FKalmalaForestLayout::SampleForestFactor(const FKalmalaWorldGenerationConfig& Config,
+    const FVector2D& AbsoluteWorldPosition)
+{
+    if (!Config.IsValid() || !FMath::IsFinite(AbsoluteWorldPosition.X)
+        || !FMath::IsFinite(AbsoluteWorldPosition.Y) || T::ForestFactorScale <= 0.0)
+    {
+        return 0.0f;
+    }
+
+    const double Noise = FKalmalaRegionalGeneration::Noise(
+        Config, T::ForestFactorSalt, AbsoluteWorldPosition, 1.0 / T::ForestFactorScale);
+    return float(FMath::Clamp(0.5 + 0.5 * Noise, 0.0, 1.0));
 }
 
 TArray<FKalmalaForestTreeDescriptor> FKalmalaForestLayout::Generate(
@@ -73,6 +90,8 @@ TArray<FKalmalaForestTreeDescriptor> FKalmalaForestLayout::Generate(
         Result.Add({CandidateIndex, FVector(SamplePosition.X, SamplePosition.Y, SurfaceHeight),
             FVector(LocalPosition.X, LocalPosition.Y, SurfaceHeight),
             TrunkRadius, TrunkHeight, CanopyRadius, CanopyHeight, TreeYaw, bElderwood, bAspen});
+        // This absolute-world noise sample is stateless and consumes no candidate-stream draws.
+        Result.Last().ForestFactor = SampleForestFactor(WorldGenerationConfig, SamplePosition);
         Result.Last().PersistentSpawnId = GetPersistentSpawnId(WorldGenerationConfig, PatchCenter, CandidateIndex);
     }
     return Result;

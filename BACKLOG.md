@@ -638,9 +638,11 @@ run for this goal and may exceed one turn.
     80 cm bed and 1,800 cm bank extent. Coast controls and seam coverage protect
     shared consumers. No relief-caused defect was found; rendered acceptance
     remains BH26.
-  - [ ] **BH19 — Add independent forest factor.** Add a seeded world-space
-    placement signal separate from terrain detail and Flora; preserve candidate
-    ordinals/IDs and random independence across rejection and patch boundaries.
+  - [x] **BH19 — Add independent forest factor.** Shared forest descriptors now
+    carry a normalized absolute-world noise sample from a separate seed domain
+    at a provisional 48,000 cm scale. It is independent of terrain detail and
+    Flora and consumes no candidate-stream draws. Candidate counts, positions,
+    ordinals and IDs remain unchanged; suitability gating remains BH20.
   - [ ] **BH20 — Integrate Meadows forest suitability.** Use the shared descriptor
     path for decorative and harvestable trees; gate by Flora, final slope, and
     dry-ground suitability, preserving roots on collision and depletion,

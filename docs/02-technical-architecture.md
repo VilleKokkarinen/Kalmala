@@ -3194,7 +3194,12 @@ Equipped accessories' additive `StaminaCostMultiplier` deltas sum with active We
 
 `FKalmalaForestLayout::Generate` supplies individual Meadow/Elderwood descriptors
 shared by terrain rendering and server materialization: original candidate ordinal,
-world/local position, biome, dimensions and yaw. Each accepted descriptor has a
+world/local position, biome, dimensions, yaw, and a normalized `ForestFactor`
+sampled from a separate absolute-world noise domain. This derived placement mask
+is independent of terrain detail, Flora and candidate-stream draws; it is not an
+additional ecological field or replicated map. It does not yet gate descriptors;
+Meadows suitability is applied through the same shared descriptors in BH20.
+Each accepted descriptor has a
 `forest:v1:<world-seed>:<patch-x>:<patch-y>:<candidate>` identity. Patch coordinates
 are exact world-space centers formatted with 17 significant digits and normalized
 signed zero; full unsigned seeds and original ordinals prevent filtered-order and

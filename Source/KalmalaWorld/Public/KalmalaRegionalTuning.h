@@ -26,6 +26,9 @@ struct FKalmalaRegionalTuning
     static constexpr double MeadowRollingAmplitude = 120.0;
     static constexpr double MeadowFloorScale = 1200.0;
     static constexpr double MeadowFloorAmplitude = 20.0;
+    // Separate world-space forest placement domain; suitability remains a later gate.
+    static constexpr uint64 ForestFactorSalt = 0x4B414C4D414C4107ull;
+    static constexpr double ForestFactorScale = 48000.0;
     // Provisional Elderwood/Tundra shared-relief trials, centimetres.
     static constexpr double ElderwoodBroadAmplitude = 900.0;
     static constexpr double ElderwoodMiddleAmplitude = 240.0;

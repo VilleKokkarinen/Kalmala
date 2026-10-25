@@ -8790,3 +8790,43 @@
   Implementation files remain in this detached worktree.
 - **Next task in this directed goal:** BH19 — add the independent seeded forest
   factor while preserving candidate identity and random independence.
+
+## Run 2026-10-25 — Add independent forest factor (BH19)
+
+- **Selected increment:** BH19, the first unchecked task after BH18. The
+  worktree was clean at `b6217cee`; A10 and monster-population work remains in
+  separate worktrees, with no concurrent run in this checkout.
+- **Work completed:** Added a normalized `ForestFactor` value to the shared
+  forest descriptor. It samples an independently salted Perlin domain at the
+  candidate's absolute world position, using a provisional 48,000 cm scale.
+  The value is not an ecological field or replicated map. It consumes no
+  candidate-stream draws and does not gate candidates, so current counts,
+  positions, original ordinals and persistent IDs remain unchanged. Meadows
+  suitability integration remains BH20.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Private/KalmalaForestLayout.cpp`,
+  `Source/KalmalaWorld/Public/KalmalaForestLayout.h`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`, and
+  `docs/02-technical-architecture.md`.
+- **Lightweight checks/results:** Re-read AGENTS.md, BACKLOG.md, PROGRESS.md,
+  biome/Meadows plans, architecture and development setup. Static inspection
+  confirmed the new domain salt is separate from Flora and terrain detail, the
+  sample uses absolute XY, no random draws were added, and candidate counts and
+  the existing random-stream call order are unchanged. `git diff --check`
+  passed. No build or automation was run; full verification remains deferred to
+  BH26.
+- **Observable impact:** Existing shared descriptors now expose a stable
+  0-to-1 world-space forest placement signal. Current forest admission,
+  rendering and materialization behavior is unchanged.
+- **Networking/authority:** The value is a deterministic function of the
+  existing world seed and absolute position. No RPC, replicated field, save
+  data or server-authority behavior changed.
+- **Known limitations / remaining scope:** The 48,000 cm scale is provisional.
+  The factor does not yet affect density or biome suitability; Meadows gating
+  and its identity/lifecycle checks remain BH20, with integrated verification
+  deferred to BH26.
+- **Main-checkout handoff:** Synchronized only `BACKLOG.md` and `PROGRESS.md`,
+  preserving existing Monster S34 progress and leaving A10 work intact.
+  Implementation files remain in this detached worktree.
+- **Next task in this directed goal:** BH20 — integrate Meadows forest
+  suitability through shared descriptors while preserving identity and lifecycle.

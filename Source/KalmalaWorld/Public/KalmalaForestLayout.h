@@ -16,6 +16,8 @@ struct KALMALAWORLD_API FKalmalaForestTreeDescriptor
     float Yaw = 0.0f;
     bool bElderwood = false;
     bool bAspen = false;
+    /** Continuous absolute-world placement mask, independent of ecological fields and candidate draws. */
+    float ForestFactor = 0.0f;
     FString PersistentSpawnId;
 };
 
@@ -25,6 +27,10 @@ struct KALMALAWORLD_API FKalmalaForestLayout
     /** World/patch/candidate identity; empty for invalid inputs. Never derived from filtered array order. */
     static FString GetPersistentSpawnId(const FKalmalaWorldGenerationConfig& Config,
         const FVector2D& PatchCenter, int32 CandidateIndex);
+
+    /** Samples the deterministic forest-placement mask at an absolute world position. */
+    static float SampleForestFactor(const FKalmalaWorldGenerationConfig& Config,
+        const FVector2D& AbsoluteWorldPosition);
 
     static TArray<FKalmalaForestTreeDescriptor> Generate(
         const FKalmalaWorldGenerationConfig& Config, const FVector2D& PatchCenter);
