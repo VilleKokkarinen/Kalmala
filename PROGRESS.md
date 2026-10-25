@@ -11540,3 +11540,39 @@
   gate is ready for final acceptance, then perform the required integrated
   A10 verification. Keep the Bronze/Iron backlog item unchecked until the
   automation actually passes.
+
+## Run 2026-10-25 — A10 progression harness build feasibility
+
+- **Selected check:** determine whether the no-debug Bronze/Iron automation can
+  be compiled and run with a module-only build before milestone-final
+  verification. The fresh-start acceptance child remains unchecked.
+- **Tool availability:** UE 5.8 UnrealEditor-Cmd.exe and
+  UnrealBuildTool.exe exist at C:\Program Files\Epic Games\UE_5.8; the
+  short C:\km\Kalmala.uproject path does not exist. The only discovered
+  short project mirror is
+  C:\Users\Ville\AppData\Local\Temp\kmforest\Kalmala.uproject.
+- **Mirror parity:** compared that mirror with this worktree without modifying
+  either. Current/mirror file counts and differences were: Source 395/349
+  files, 46 missing and 152 different; Config 4/4, 2 different;
+  Content/Data 63/57, 31 missing, 25 extra and 25 different. It lacks
+  KalmalaA10FreshStartBronzeAndIronTest.cpp, so its existing binaries cannot
+  run this new automation or establish current-source behavior.
+- **Build scope:** UnrealBuildTool.exe -help lists target builds and no
+  module-only build option. The project defines Kalmala, KalmalaEditor and
+  KalmalaServer targets, but no KalmalaGameplay target. Making the mirror
+  source/data current would require a broad project sync and a
+  KalmalaEditor target build; that build was not invoked.
+- **UBT access and isolation:** %LOCALAPPDATA%\UnrealBuildTool exists and
+  its ACL grants Ville FullControl. No Unreal build or automation was started,
+  and no repository Binaries, Intermediate or Saved path was touched.
+- **Result and remaining scope:** no valid narrow module-only path is
+  available from the discovered mirror. Keep the Bronze/Iron acceptance child
+  unchecked. At the final A10 verification, use a source-matched compiled
+  mirror, build the current Editor target, and run
+  Scripts/Tests/Progression/FreshStartBronzeAndIron.ps1. The approved
+  farming, shelter, cargo, accessories, peer/restart gate also remains open.
+- **Full verification:** deferred; this was a build-feasibility check, not
+  milestone-final verification.
+- **Next eligible A10 work:** complete the approved farming, shelter, cargo,
+  accessories, peer/restart gate; then perform the source-matched fresh-start
+  and integrated final verification.
