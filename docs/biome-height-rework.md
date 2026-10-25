@@ -6,8 +6,9 @@ The fixed baselines, basin policy, shared sampler, preview controls and Meadows
 hill/rolling/floor layers and the provisional Shimmering Lakes blend are
 implemented incrementally. BH25b2 selected 4 / 0.6 / 0.1 m shared
 Elderwood/Tundra relief amplitudes after repairing a bank-caused new-water
-regression and a fixed 1 cm source-land shelf. BH15a now integrates the provisional Mossy Mire
-lowland candidate; its profile harness is BH15b, fresh-source tuning remains
+regression and a fixed 1 cm source-land shelf; BH25b3 consolidated the selected
+profile ranges and measured cost guardrails. BH15a integrates the provisional
+Mossy Mire lowland candidate; its profile harness is BH15b, fresh-source tuning remains
 BH25e, and final acceptance remains pending BH26. Fresh-source floor tuning
 remains BH25c and Lakes numeric selection remains BH25d. This plan supersedes
 Meadows-specific height details where they differ.
@@ -900,6 +901,31 @@ and 10.79 degrees; local 0.1 m, 252.80 / 96.18 cm and 10.14 degrees; local
 and 10.47 degrees. These center deltas include all active biome relief and
 the coast transition; they are not isolated candidate amplitudes. The repaired
 seed-418 bank point retains its +15.17 cm BH01 dry state.
+
+### BH25b3 aggregate profile and cost comparison
+
+The selected profile ranges above are the raw numeric acceptance reference for
+the current rolling and Elderwood/Tundra defaults. BH01's retained
+`BiomeBaseline418419.csv` has 28 fixed points with final/collision heights,
+slopes, water and per-site containing-patch descriptor counts; it does not
+contain elapsed sampler, patch-generation or collision-build timings.
+
+| Cost area | BH01 reference | Current measured/contract value | Comparison |
+| --- | --- | --- | --- |
+| Sampler/minimap refresh | No timing in the BH01 CSV. The closest retained pre-height `Kalmala.UI.Minimap.GenerationPerformance` run (2026-10-18, `PROGRESS.md`) measured 68.326 / 90.594 / 145.952 ms at 25 / 50 / 100 m radii. | Same focused automation against the fresh BH25b2 Editor mirror on 2026-10-25: 55.395 / 70.863 / 116.175 ms. It passed. | The recorded current run was about 19% / 22% / 20% lower than the historical pre-height readings. This local, unpaired timing comparison does not attribute the difference to terrain work or promise hardware-independent performance. |
+| Expanded map | No BH01 wall-time result retained; the bounded cache and tile/sample layout predate this goal. | `Kalmala.UI.WorldMap.PerformanceBudget`: one 33x33 tile 19.211 ms; a 129x129 minimap while four tile workers ran 54.613 ms; cached terrain/fog payload 5,341,696 bytes. | Passed unchanged 250 ms tile and 1.50 s minimap limits. There is no direct BH01 timing delta. |
+| Patch generation and active streaming | BH01 fixed-site samples identify patch coordinates but do not time patch construction. | Patch remains 30 m, with a 24x24 cell lattice (625 vertices, 1,152 triangles); server active terrain remains capped at 25 patches. | Geometry/sample payload and streaming cap are unchanged. Per-patch generation wall time was not retained or measured here; BH26 must verify integrated generation cost. |
+| Collision | The 28-point BH01 output records exact collision-triangle heights/slopes, not collision-build time. | Same 125 cm grid, vertices and triangles as patch rendering; final Z values come from the shared sampler. | No collision resolution or triangle-count increase. Collision-build wall time has no comparable BH01 metric and remains for BH26. |
+| Decoration | BH01 fixed-site descriptor counts ranged 0–32; the sum of the 28 site observations was 243 (sites can share a containing patch). | Current-source numeric export at the same 28 points ranged 0–32, with a sum of 213; 12 site observations changed as Meadows/Lakes/Tundra suitability was integrated. The candidate loops remain 72 per patch for broad forest biomes and 18 for Meadows/Lakes. | The sampled descriptor range and candidate-loop bounds did not grow. The sums are per-site observations, not global tree totals or a placement-time benchmark. |
+
+Current narrow-run logs and output remain untracked in
+`C:\Users\Ville\AppData\Local\Temp\bh25b3\`. The Editor mirror's sampler,
+terrain patch, forest, map and performance-test sources matched the selected
+BH25b2 worktree before those measurements. BH25b is complete: both fresh-source
+tuning children selected their smallest accepted amplitudes, numeric water and
+profile constraints passed, and fixed terrain/map budgets did not grow. Full
+generation/collision timing under representative streaming and rendered
+acceptance remain part of BH26.
 
 ### BH14a Shimmering Lakes source integration
 

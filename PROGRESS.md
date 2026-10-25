@@ -9636,3 +9636,65 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   the Biome goal paragraphs and this BH25b2 progress entry were synchronized;
   those edits and the unrelated untracked lighting-plan document were preserved.
 - **Next eligible task:** BH25b3 — aggregate terrain tuning and cost contracts.
+
+## Run 2026-10-25 — Aggregate relief tuning and cost contracts (BH25b3)
+
+- **Selected increment:** BH25b3. The detached worktree was clean at
+  `177bc6ca`; no other autonomous run was modifying this checkout. A10 and
+  Monster work remained in separate worktrees.
+- **Work completed:** Aggregated the BH25b1 rolling and BH25b2
+  Elderwood/Tundra raw profile ranges into the architecture, setup and biome-
+  height preview documentation. Closed BH25b after both tuning children passed
+  their fixed-site/profile, water, parity and seam criteria. BH25 remains open.
+- **Cost comparison:** The retained BH01 CSV contains 28 fixed coordinates,
+  final/collision heights and slopes, water state, and per-site containing-patch
+  descriptor counts; it has no sampler, map, patch-generation or collision-build
+  timings. The closest retained pre-height minimap benchmark (2026-10-18,
+  `C:/Users/Ville/AppData/Local/Temp/krfinal/perf.log`) measured 68.326 / 90.594 /
+  145.952 ms at 25 / 50 / 100 m radii. The same focused automation passed on
+  2026-10-25 against the current BH25b2 mirror at 55.395 / 70.863 / 116.175 ms
+  (`C:/Users/Ville/AppData/Local/Temp/bh25b3/minimap.log`). These local readings
+  are about 19% / 22% / 20% lower, but are not a controlled paired benchmark and
+  do not attribute the difference to biome relief.
+- **Map and geometry costs:** `Kalmala.UI.WorldMap.PerformanceBudget` passed in
+  `C:/Users/Ville/AppData/Local/Temp/bh25b3/worldmap.log`: a 33x33 tile took
+  19.211 ms, a 129x129 minimap while four tile workers ran took 54.613 ms, and
+  the bounded terrain/fog cache remained 5,341,696 bytes. These are below the
+  existing 250 ms / 1.50 s limits; BH01 did not retain a comparable tile-time
+  result. The BH01 and current source retain a 30 m patch, 24x24 collision cells,
+  625 terrain vertices, 1,152 triangles and the 25 active-patch cap. No map or
+  collision payload grew. Per-patch generation and collision-build wall times
+  were not retained and remain for BH26.
+- **Decoration comparison:** A current-source `RenderWorldGenerationVisualization`
+  numeric export at the exact 28 BH01 coordinates completed and wrote
+  `C:/Users/Ville/AppData/Local/Temp/bh25b3/current.csv`. Per-site containing-
+  patch descriptor counts remained 0–32; their observations summed to 213,
+  versus 243 in BH01, with 12 of 28 site observations changed as the Meadows,
+  Lakes and Tundra suitability gates were integrated. These repeated-site sums
+  are not global tree totals or timings. The unchanged per-patch candidate loops
+  are 72 for broad forest biomes and 18 for Meadows/Lakes.
+- **Lightweight checks/results:** The checked sampler/layout/map/performance
+  source files in the disposable UE 5.8 mirror hash-matched this worktree. Its
+  recorded BH25b2 build had succeeded (24 actions). The two focused performance
+  automations both explicitly reported `Result={Success}`; the 28-row current
+  numeric export reported success. Unreal logged two startup `Condition failed`
+  diagnostics in each automation log before the selected test; both requested
+  tests then completed successfully. `git diff --check`, source review and
+  changed-path length review passed.
+- **Full verification:** Deferred to BH26. No full build, full automation suite,
+  material generation, rendered preview, traversal or peer run was performed
+  in this documentation-and-cost-contract increment.
+- **Observable impact:** Documentation now records selected rolling and
+  Elderwood/Tundra raw ranges and measured local sampler/map costs. Fixed patch,
+  cache, collision-lattice, active-patch and candidate-loop budgets remain
+  unchanged; sampled descriptor counts reflect intended biome suitability.
+- **Networking/authority:** No runtime source, networking, gameplay authority,
+  persistence, resource identity or save behavior changed.
+- **Known limitations / remaining scope:** The stored BH01 artifact did not
+  include generation/collision wall times or expanded-map tile timings. The
+  historical minimap comparison is unpaired and local; representative runtime
+  generation, collision, traversal and rendered acceptance remain BH26.
+- **Main-checkout handoff:** Main files were inspected before sync; only this
+  BH25b tracking update and progress entry were synchronized. Concurrent
+  A10/Monster edits and unrelated content were preserved.
+- **Next eligible task:** BH25c — measure the Meadows floor-detail profile matrix.

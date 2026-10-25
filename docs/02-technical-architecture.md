@@ -335,23 +335,39 @@ constant shelf. Sea-side height remains constrained by source elevation.
 
 The Meadows candidate adds separate seed-derived absolute-world hill and
 rolling signals. BH25a selected a 4 m hill amplitude with the 160 m hill scale
-held fixed; BH25b1 selected a 0.6 m rolling amplitude at 45 m. BH12a adds a
-third independently seeded 12 m / 0.2 m floor-detail signal. These layers
-enter the smooth, monotonic shoulder curve; candidates below 10 m remain unchanged and
-the curve approaches a 40 m upper bound. The broad layer replaces the previous
-40 cm Meadows detail term. Rolling is numerically selected; floor detail and
-Lakes tuning remain provisional pending BH25c/BH25d. BH26
-retains rendered gentler-route and under-vegetation inspection; numeric profiles do not claim
-rendered traversal or floor aliasing acceptance.
+held fixed; BH25b1 selected a 0.6 m rolling amplitude at 45 m. Across the eight
+fixed profiles, the selected rolling trial's final-height min/mean/max ranges
+were 42.4/176.2/767.8 cm at 30 m, 49.5/226.8/935.1 cm at 45 m, and
+66.4/286.3/1,074.0 cm at 70 m; dry collision-slope p50/p90/p95/maximum was
+2.31/4.55/28.07/36.20 degrees. BH12a adds a third independently seeded 12 m /
+0.2 m floor-detail signal. These layers enter the smooth, monotonic shoulder
+curve; candidates below 10 m remain unchanged and the curve approaches a 40 m
+upper bound. The broad layer replaces the previous 40 cm Meadows detail term.
+Floor detail and Lakes tuning remain provisional pending BH25c/BH25d. BH26
+retains rendered gentler-route and under-vegetation inspection; numeric profiles
+do not claim rendered traversal or floor aliasing acceptance.
 
 Elderwood and Tundra share the same uncompressed candidate over the absolute-
 world 1,000 / 150 / 30 m relief stack, plus its bounded legacy detail. BH25b2
 selected broad/middle/local amplitudes of 4 / 0.6 / 0.1 m from fresh-source
-one-layer trials spanning 4–16 / 0.6–4 / 0.1–1 m. Tundra directly calls the
-Elderwood function, so the candidate height cannot drift between those biomes;
-continuous classification weights still determine each final blend. BH25b3
-owns aggregate tuning/cost documentation, BH25d owns Lakes blend/lowland
-selection, and BH26 owns rendered profile acceptance.
+one-layer trials spanning 4–16 / 0.6–4 / 0.1–1 m. On the selected trials,
+the six dry 100 m profile ranges (min/mean/max, cm) were 62.59/212.16/561.43
+(broad), 33.58/194.91/557.29 (middle), and 33.77/176.00/519.75 (local); the
+corresponding collision-slope p50/p90/p95/maximum values were
+1.36/4.17/10.60/23.52, 1.00/2.99/9.86/21.71, and
+1.27/2.96/9.51/22.06 degrees. Tundra directly calls the Elderwood function,
+so candidate height cannot drift between those biomes; continuous
+classification weights still determine each final blend. Detailed trial data
+and the cost/budget comparison are in [the biome-height plan](biome-height-rework.md).
+BH25d owns Lakes blend/lowland selection, and BH26 owns rendered profile acceptance.
+
+The BH25b measurements did not change fixed map or terrain payload sizes. Each
+terrain patch remains 30 m across with a 24x24 collision-cell lattice (625
+vertices and 1,152 triangles); the server remains capped at 25 active patches.
+The existing 129x129 minimap raster and bounded world-map tile/cache sizes are
+unchanged. Cost measurements and unavailable BH01 runtime timings are recorded
+in the biome-height plan; those local readings are guardrails, not hardware-
+independent frame-time promises.
 
 Thunder Mountains now increase gain only above the named `MountainHighlandThreshold`
 of 1,000 cm. The increase ramps with smoothstep across a further 1,000 cm,

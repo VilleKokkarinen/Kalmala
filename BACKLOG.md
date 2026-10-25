@@ -736,8 +736,10 @@ run for this goal and may exceed one turn.
     - [x] **BH25a — Run BH10b1 Meadows hill sweep.** Fresh-source 4/6/8 m
       trials were compared with all 28 BH01 fixed sites and eight 100–250 m
       transects; 4 m was selected and measured ranges/slopes were recorded.
-    - [ ] **BH25b — Finalize rolling/Elderwood relief tuning and contracts.**
-      Keep open until BH25b1–BH25b3 are complete.
+    - [x] **BH25b — Finalize rolling/Elderwood relief tuning and contracts.**
+      BH25b1–BH25b3 are complete: selected numeric defaults, raw profile ranges,
+      fixed-site comparisons and cost/budget evidence are recorded. Integrated
+      generation/collision timing and rendered acceptance remain in BH26.
       - [x] **BH25b1 — Select Meadows rolling relief.** Run fresh-source
         0.6/1.2/1.8 m trials and all 28 BH01 fixed sites, select the smallest
         accepted amplitude and record 30/45/70 m ranges, slopes, river controls
@@ -750,10 +752,12 @@ run for this goal and may exceed one turn.
         relief-caused wet river-bank sample and the fixed 1 cm coast shelf;
         numeric measurements and remaining render limits are recorded in the
         biome-height plan.
-      - [ ] **BH25b3 — Aggregate terrain tuning and cost contracts.** Update
+      - [x] **BH25b3 — Aggregate terrain tuning and cost contracts.** Updated
         architecture/setup and height-preview documentation with raw ranges;
-        compare sampler, map, generation, active-patch, collision and decoration
-        costs against BH01, then close BH25b when both tuning children pass.
+        compared current sampler/map timings and fixed patch, active-streaming,
+        collision and decoration budgets with BH01 evidence. No fixed mesh/map
+        payload or candidate-loop budget grew; unavailable BH01 generation and
+        collision timings remain explicitly assigned to BH26. BH25b is closed.
     - [ ] **BH25c — Run Meadows floor-detail trials.** With freshly compiled
       source, run the BH12b 8/12/20 m by 0.1/0.2/0.3 m matrix; compare local
       height/slope samples and select the smallest readable scale/amplitude

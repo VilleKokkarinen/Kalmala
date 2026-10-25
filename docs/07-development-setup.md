@@ -3694,11 +3694,11 @@ The file uses one `Name=value` per line, with optional blank lines and full-line
 | `MeadowsMaximumKm` | 4 | Meadows cutoff; must exceed the starter radius and be at most 16 km. |
 | `EligibilityBlendKm` | 0.05 | Smooth eligibility ramp; 0.001 km through the Meadows maximum. |
 
-The current regional height sampler consumes the Meadows hill scale, amplitude,
-and shoulder controls. The shared relief scales are still staged for later
-biome layers; the rolling and floor controls are not yet integrated. This fast
-PNG exporter validates and reports all terrain controls but does not display
-height; use the full visualization/numeric sampler for height profiles.
+The production regional sampler consumes the selected Meadows hill and rolling
+controls and the shared Elderwood/Tundra relief. Meadows floor detail remains
+provisional. This fast PNG exporter validates and reports its own map controls
+but does not display shaped height; use the full visualization commandlet and
+the numeric profile runners below for final-height ranges.
 
 The starter, Elderwood, Mire and Tundra radii must be nonnegative, ordered and at most 16 km. Lakes follow the starter exclusion. Atlas dimensions and playable radius remain fixed to the current contract. Broad land thresholds can leave little or no land; such an experiment is a visual preview, not validation of a playable spawn.
 
@@ -3736,9 +3736,13 @@ start-relative X/Y collision-patch seam controls derived from the BH01 output.
 The runner exports final heights and collision-triangle slopes for 0.6/1.2/1.8 m
 rolling trials, rejects binaries without the effective-amplitude log marker,
 and checks adjacent patch coordinates and seam continuity. It does not build
-the Editor. BH25b1 ran the sweep with fresh source and selected 0.6 m; measured
-profiles and BH01 fixed-site results are recorded in the Meadows plan. Rendered
-connected-route traversal remains part of BH26.
+the Editor. BH25b1 ran the sweep with fresh source and selected 0.6 m. The
+eight-profile final-height min/mean/max ranges were 42.4/176.2/767.8 cm at
+30 m, 49.5/226.8/935.1 cm at 45 m, and 66.4/286.3/1,074.0 cm at 70 m; dry
+collision-slope p50/p90/p95/maximum was 2.31/4.55/28.07/36.20 degrees. The
+full trial and BH01 fixed-site comparisons are recorded in
+[`meadows-plan.md`](meadows-plan.md). Rendered connected-route traversal remains
+part of BH26.
 
 ### Meadows floor-detail profile sweep
 
@@ -3769,9 +3773,14 @@ samples without launching Unreal. The runner makes nine one-layer-at-a-time
 trials across broad 4/9/16 m, middle 0.6/2.4/4 m, and local 0.1/0.4/1 m
 amplitudes. It records raw relief and candidate heights, final regional height,
 biome/water fields, and collision-triangle slopes, and requires an effective-
-trial log marker to reject a stale binary. BH25b2 must run the sweep with freshly
-compiled source, compare Elderwood/Tundra profiles and transition blends,
-confirm identical candidates, and record measured ranges plus selected values.
+trial log marker to reject a stale binary. BH25b2 ran all nine trials with
+freshly compiled source, confirmed candidate parity, and selected 4 / 0.6 /
+0.1 m. The selected dry 100 m final-height min/mean/max ranges were
+62.59/212.16/561.43 cm (broad), 33.58/194.91/557.29 cm (middle), and
+33.77/176.00/519.75 cm (local); corresponding slope p50/p90/p95/maximum was
+1.36/4.17/10.60/23.52, 1.00/2.99/9.86/21.71, and
+1.27/2.96/9.51/22.06 degrees. The complete trial table, BH01 comparisons and
+cost/budget notes are in [`biome-height-rework.md`](biome-height-rework.md).
 Rendered biome appearance and profile acceptance remain in BH26.
 
 ### Shimmering Lakes profile sweep
