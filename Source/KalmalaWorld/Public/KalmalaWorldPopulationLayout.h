@@ -373,6 +373,7 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
     }
 
 private:
+    friend struct FKalmalaMonsterSpawnTuning;
     static uint64 DeriveDiscoverySeed(const FKalmalaWorldGenerationConfig& Config, const FIntPoint SpatialKey, const EKalmalaWorldDiscoveryKind Kind)
     {
         uint64 Value = Config.WorldSeed ^ 0xD15C0A71E5ull;

@@ -583,7 +583,7 @@ run's changes, then stop. Add focused tests with the helper they exercise where
 practical; execute full verification only at the final gate. S35 is the required
 milestone-final verification/repair run and can exceed a normal turn.
 
-- [ ] **Implement Kalmala monster population and camp spawn suppression.**
+- [x] **Implement Kalmala monster population and camp spawn suppression.**
 
   - [x] **S01 — Map the fixed contract to code.** Read `docs/monster-spawning.md`;
     identify existing scheduler, descriptor, budget and spawn/defeat entry points.
@@ -682,7 +682,7 @@ milestone-final verification/repair run and can exceed a normal turn.
   - [x] **S34 — Prepare verification handoff.** Update architecture and setup
     docs with accepted tuning, server authority, lifecycle and exact build,
     automation and host/client/restart commands required for this goal.
-  - [ ] **S35 — Perform milestone-final verification.** Inspect the combined
+  - [x] **S35 — Perform milestone-final verification.** Inspect the combined
     work; run S34's prescribed full build, automation and peer/restart checks.
     Verify no duplicate actors/rewards and bounded scheduling. Repair related
     failures and rerun required checks in this run. Record actual commands/results;

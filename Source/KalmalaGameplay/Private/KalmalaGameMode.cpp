@@ -6645,7 +6645,7 @@ bool AKalmalaGameMode::DoesSolidConstructionRoofIntersectSegment(
     FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(KalmalaPopulationRoofClearance), false);
     for (TActorIterator<AKalmalaConstructionActor> Iterator(World); Iterator; ++Iterator)
     {
-        const AKalmalaConstructionActor* Construction = *Iterator;
+        AKalmalaConstructionActor* Construction = *Iterator;
         if (!IsValid(Construction) || Construction == ActorToIgnore
             || Construction->GetWorld() != World || !Construction->HasAuthority()
             || Construction->IsActorBeingDestroyed()
@@ -6657,7 +6657,7 @@ bool AKalmalaGameMode::DoesSolidConstructionRoofIntersectSegment(
             continue;
         }
 
-        const UBoxComponent* Collision = Cast<UBoxComponent>(Construction->GetRootComponent());
+        UBoxComponent* Collision = Cast<UBoxComponent>(Construction->GetRootComponent());
         if (!IsValid(Collision) || Collision->GetOwner() != Construction || !Collision->IsRegistered()
             || (Collision->GetCollisionEnabled() != ECollisionEnabled::QueryOnly
                 && Collision->GetCollisionEnabled() != ECollisionEnabled::QueryAndPhysics)

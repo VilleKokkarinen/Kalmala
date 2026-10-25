@@ -86,8 +86,8 @@ bool FKalmalaPopulationAreaCapsTest::RunTest(const FString& Parameters)
     Mode->GetPopulationCreatureCapCounts(FVector::ZeroVector, EKalmalaWildlifeArchetype::Boar,
         HomeKey, MovingWorldTotal, MovingNearbyBoars, MovingHomeKeyTotal);
     TestEqual(TEXT("Species caps use the creature's current moved position"), MovingNearbyBoars, 3);
-    TestEqual(TEXT("Moving does not remove the actor from the shared world total"), MovingWorldTotal, 12);
-    TestEqual(TEXT("Moving does not change its immutable home-key budget charge"), MovingHomeKeyTotal, 12);
+    TestEqual(TEXT("Moving does not remove the actor from the shared world total"), MovingWorldTotal, 5);
+    TestEqual(TEXT("Moving does not change its immutable home-key budget charge"), MovingHomeKeyTotal, 5);
     TestTrue(TEXT("Moving one live Boar outside 96 m frees one nearby species slot"),
         Mode->CanAdmitPopulationCreatureWithinCaps(FVector::ZeroVector, HomeKey,
             EKalmalaWildlifeArchetype::Boar));

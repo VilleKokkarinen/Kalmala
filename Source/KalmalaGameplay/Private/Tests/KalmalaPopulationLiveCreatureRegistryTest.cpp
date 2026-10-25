@@ -2,7 +2,10 @@
 
 #include "KalmalaGameMode.h"
 #include "KalmalaWildlifeSpawn.h"
+#include "Engine/Engine.h"
+#include "Engine/GameInstance.h"
 #include "Engine/World.h"
+#include "GameFramework/WorldSettings.h"
 #include "Misc/AutomationTest.h"
 #include "Misc/ScopeExit.h"
 
@@ -14,10 +17,15 @@ bool FKalmalaPopulationLiveCreatureRegistryTest::RunTest(const FString& Paramete
 {
     UWorld* World = UWorld::CreateWorld(EWorldType::Game, false);
     if (!TestNotNull(TEXT("Live population fixture world created"), World)) return false;
-    ON_SCOPE_EXIT { World->DestroyWorld(false); };
-
-    AKalmalaGameMode* Mode = World->SpawnActor<AKalmalaGameMode>();
-    if (!TestNotNull(TEXT("Live population fixture GameMode created"), Mode)) return false;
+    GEngine->CreateNewWorldContext(EWorldType::Game).SetCurrentWorld(World);
+    ON_SCOPE_EXIT { World->DestroyWorld(false); GEngine->DestroyWorldContext(World); };
+    World->SetGameInstance(NewObject<UGameInstance>(GEngine));
+    World->GetWorldSettings()->DefaultGameMode = AKalmalaGameMode::StaticClass();
+    if (!TestTrue(TEXT("Live population fixture installs its authoritative GameMode"),
+        World->SetGameMode(FURL()))) return false;
+    World->InitializeActorsForPlay(FURL());
+    AKalmalaGameMode* Mode = World->GetAuthGameMode<AKalmalaGameMode>();
+    if (!TestNotNull(TEXT("Live population fixture authoritative GameMode is available"), Mode)) return false;
 
     const auto SpawnCreature = [World, Mode](const uint64 SpawnSeed, const FVector& Location)
     {
@@ -64,6 +72,7 @@ bool FKalmalaPopulationLiveCreatureRegistryTest::RunTest(const FString& Paramete
     TestEqual(TEXT("Defeated actors no longer contribute to live counts"),
         Mode->CountLivePopulationCreaturesWithinRadius(FVector::ZeroVector, 1500.0f), 1);
 
+    Destroyed->DispatchBeginPlay();
     const TWeakObjectPtr<AKalmalaWildlifeSpawn> DestroyedWeak = Destroyed;
     Destroyed->Destroy();
     TestFalse(TEXT("EndPlay removes destroyed actors from the registry"),

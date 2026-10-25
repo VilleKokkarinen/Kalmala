@@ -112,7 +112,7 @@ bool FKalmalaPopulationAquaticSurfaceTest::RunTest(const FString& Parameters)
         RootSphere->GetUnscaledSphereRadius(), AKalmalaWildlifeSpawn::ReefMawBodyCollisionRadiusCentimetres);
     TestEqual(TEXT("The Reef Maw actor remains at its existing spawn depth"),
         ReefMaw->GetActorLocation().Z,
-        FKalmalaTerrainHeightSampler::SeaLevelWorldHeight - AKalmalaWildlifeSpawn::ReefMawSpawnDepthCentimetres);
+        static_cast<double>(FKalmalaTerrainHeightSampler::SeaLevelWorldHeight) - AKalmalaWildlifeSpawn::ReefMawSpawnDepthCentimetres);
     FKalmalaPopulationSpawnGateResults PlacementResults;
     PlacementResults.bSchedulerBudgetAvailable = true;
     PlacementResults.bSeededAdmissionRollPassed = true;

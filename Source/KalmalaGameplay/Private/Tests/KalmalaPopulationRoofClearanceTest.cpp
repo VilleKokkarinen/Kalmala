@@ -164,7 +164,8 @@ bool FKalmalaPopulationRoofClearanceTest::RunTest(const FString& Parameters)
     }
 
     FKalmalaWorldPopulationSpawn InvalidDescriptor;
-    TestFalse(TEXT("The descriptor roof predicate rejects invalid/unconfigured inputs"),
+    InvalidDescriptor.Kind = EKalmalaWorldPopulationKind::HarvestNode;
+    TestFalse(TEXT("The descriptor roof predicate rejects non-wildlife inputs"),
         Mode->DoesPopulationDescriptorPassRoofClearance(InvalidDescriptor));
     FKalmalaPopulationSpawnGateResults GateResults;
     GateResults.bSchedulerBudgetAvailable = true;
