@@ -713,8 +713,8 @@ run for this goal and may exceed one turn.
       established grass and rock colors with a new original muted
       `M_GeneratedSoil` material; it adds no grass or reed asset. The Editor-
       generated material packages and rendered result remain for BH26.
-  - [ ] **BH24 — Add cold-biome presentation.** Keep open until BH24a–BH24c are
-    complete; rendered acceptance remains BH26.
+  - [x] **BH24 — Add cold-biome presentation.** BH24a–BH24c are complete;
+    rendered acceptance remains BH26.
     - [x] **BH24a — Add Tundra snow coverage.** Use continuous Tundra biome
       weight and the final terrain slope in the snow mask of the existing
       generated terrain material. Preserve RGB grass/soil/rock weights and the
@@ -724,9 +724,10 @@ run for this goal and may exceed one turn.
       mask with continuous Mountain weight, final terrain height and slope;
       snow fades in above the named highland threshold. Preserve foothill
       height, Tundra coverage, RGB ground weights and player-cloth palette.
-    - [ ] **BH24c — Add Mountain storm presentation.** Reflect the existing
-      replicated server weather state in cosmetic Mountain storm visuals; do
-      not add exposure, damage or shelter mechanics.
+    - [x] **BH24c — Add Mountain storm presentation.** Fade a client-local cool
+      fog visual from replicated storm intensity multiplied by the continuous
+      Mountain weight at the local player; do not add exposure, damage, shelter
+      mechanics, RPCs or replicated fields.
   - [ ] **BH25 — Finalize tuning and contracts.** Keep open until BH25a–BH25e
     are complete.
     - [ ] **BH25a — Run BH10b1 Meadows hill sweep.** With freshly compiled

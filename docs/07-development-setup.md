@@ -3611,7 +3611,7 @@ The main biome preview also masks the exterior. `-SkipSplineOverlay` skips only 
 
 ### Generated terrain ground materials
 
-After rebuilding the Editor target for BH23 and BH24a, run the project-owned
+After rebuilding the Editor target for BH23 and BH24a/BH24b, run the project-owned
 `CreateWorldMaterials` commandlet against the project with
 `UnrealEditor-Cmd.exe <project.uproject> -run=CreateWorldMaterials`. It updates
 `Content/Kalmala/World/Materials/M_GeneratedTerrain.uasset` with the
@@ -3620,7 +3620,10 @@ vertex-color grass/soil/rock blend and creates the original
 Vertex alpha blends a pale snow tone over Freezing Tundra by continuous biome
 weight and final slope, and over Thunder Mountains only above the named
 highland threshold, with continuous height and slope coverage; Mountain storm
-visuals remain BH24c.
+visuals use a client-local cool fog whose intensity follows the replicated
+server storm intensity and continuous Mountain weight at the local player. It
+does not change weather authority or gameplay exposure and requires no generated
+material asset.
 No grass texture or reed material is generated. Run
 `Scripts/Tests/Presentation/PresentationOwnership.ps1` after the material
 generation step so it can check the new soil asset. BH26 owns the Editor build,

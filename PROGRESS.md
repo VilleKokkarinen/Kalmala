@@ -9370,3 +9370,47 @@
   to `E:\dev\Kalmala` after inspecting both main versions; A10 and Monster
   progress plus unrelated main-checkout files were preserved.
 - **Next eligible task:** BH24c — add Mountain storm presentation.
+
+### BH24c — Add Mountain storm presentation (2026-10-25)
+
+- **Selected increment:** BH24c, the final cold-biome presentation child. The
+  worktree was clean at `6f221be4`; no other autonomous run is modifying this
+  checkout. A10 and Monster work remains in separate worktrees.
+- **Work completed:** The local weather presentation subsystem now samples
+  the existing server-selected, replicated weather interval and the local
+  pawn's continuous Thunder Mountains weight once per second. It fades a
+  client-local cool exponential-height fog effect by their product, and removes
+  the transient actor when the player leaves the Mountains or the storm eases.
+  The fog actor does not replicate. No weather RPC/field, authority, exposure,
+  damage, shelter rule, terrain snow mask, player-cloth palette or gameplay
+  state changed. Marked BH24c and BH24 implementation complete; rendered
+  acceptance remains BH26.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaUI/Public/KalmalaWeatherActivitySubsystem.h`,
+  `Source/KalmalaUI/Private/KalmalaWeatherActivitySubsystem.cpp`,
+  `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, and
+  `docs/biome-height-rework.md`.
+- **Lightweight checks/results:** Re-read AGENTS.md, BACKLOG.md, PROGRESS.md,
+  weather replication and activity presentation, local-player subsystem
+  lifetime, and Mountain coverage contracts. Static review confirmed the visual
+  reads the current valid server interval, uses continuous regional Mountain
+  weight, is local-only, samples at a bounded one-second cadence, and leaves
+  weather authority and gameplay unchanged. Confirmed the engine fog actor and
+  component setters in the installed Unreal 5.8 headers. No build, automation,
+  generated material, or render was run; full visual and integration
+  verification remains deferred to BH26.
+- **Observable impact:** During server-selected storms, the local view gains a
+  softly faded cool fog in Thunder Mountains; it fades out beyond the Mountain
+  transition and when storm intensity falls. No new authored asset is required.
+  Rendered intensity and visibility remain uninspected.
+- **Networking/authority:** Clients read the replicated `FKalmalaWeatherState`
+  and immutable world configuration. The transient fog actor does not replicate;
+  the server's weather selection and all gameplay paths remain unchanged.
+- **Known limitations / remaining scope:** Fog is a local atmosphere effect for
+  the owning player's view, not a replicated weather actor or terrain material
+  change. BH26 must inspect fade, visibility, storm transitions, snow coverage,
+  and traversal in rendered Mountain and foothill views.
+- **Main-checkout handoff:** Synchronized only `BACKLOG.md` and `PROGRESS.md`
+  to `E:\dev\Kalmala` after inspecting both main versions; A10 and Monster
+  progress plus unrelated main-checkout files were preserved.
+- **Next eligible task:** BH25a — run the Meadows hill sweep.
