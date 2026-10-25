@@ -460,8 +460,9 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     preparations beyond the recorded Standing Light behavior remain deferred.
     No A8 buildable remains. The A8b per-item audits for Antidote, Peat Heart Stew, Wolf Pelt Boots,
     Fang Spear (`FangSpear`), Wolf Stew (`WolfStew`), Lynx Mantle
-    (`LynxMantle`), and Polar Bear Coat (`PolarBearCoat`) are recorded in
-    PROGRESS.md; next in A8b recipe/output order is Horn Bow (`HornBow`).
+    (`LynxMantle`), Polar Bear Coat (`PolarBearCoat`), and Horn Bow
+    (`HornBow`) are recorded in PROGRESS.md; next in A8b recipe/output order
+    is Thunder Maul (`ThunderMaul`).
     Keep this child open until every included item and scope N/A disposition
     is covered.
   - [ ] Run required full verification at each milestone's final increment.
