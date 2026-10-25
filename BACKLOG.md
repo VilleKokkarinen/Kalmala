@@ -731,8 +731,9 @@ run for this goal and may exceed one turn.
       fog visual from replicated storm intensity multiplied by the continuous
       Mountain weight at the local player; do not add exposure, damage, shelter
       mechanics, RPCs or replicated fields.
-  - [ ] **BH25 — Finalize tuning and contracts.** Keep open until BH25a–BH25e
-    are complete.
+  - [x] **BH25 — Finalize tuning and contracts.** Fresh-source numeric
+    selections and cost contracts BH25a–BH25e are complete; rendered
+    acceptance remains in BH26.
     - [x] **BH25a — Run BH10b1 Meadows hill sweep.** Fresh-source 4/6/8 m
       trials were compared with all 28 BH01 fixed sites and eight 100–250 m
       transects; 4 m was selected and measured ranges/slopes were recorded.
@@ -776,13 +777,15 @@ run for this goal and may exceed one turn.
       and BH01 center comparisons are recorded in
       `docs/biome-height-rework.md`. Rendered
       shoreline/traversal acceptance remains BH26.
-    - [ ] **BH25e — Run Mossy Mire profile trials.** With freshly compiled
-      BH15b source, compare fixed Mire transects and collision slopes against
-      BH01. Sweep target height 200/300/500 cm, compression scale 300/700/1200 cm
-      and residual detail 10/25/60 cm one control at a time around the
-      provisional center, while checking positive coast clearance, no ocean-like
-      flattening and the river corridor profile. Record raw ranges/slopes and
-      select only measured values; rendered acceptance remains BH26.
+    - [x] **BH25e — Run Mossy Mire profile trials.** The source-matched BH15b
+      mirror ran all nine one-control trials over 252 samples. Retained the
+      measured nominal settings: 300 cm target, 700 cm compression scale and
+      25 cm residual detail. All variants preserved the nominal 50 wet samples,
+      water coverage and active river/basin fields; none added wet terrain. The
+      minimum positive source-land clearance was 19.538 cm, and the lowland
+      curve passed 180,000 monotonic comparisons across every target/scale
+      pairing. Raw ranges and BH01 comparisons are in
+      `docs/biome-height-rework.md`; rendered acceptance remains BH26.
   - [ ] **BH26 — Run final integrated verification and repair.** Inspect the full
     combined change; run the applicable Editor build, regional/master-map/
     finite-world/integrated/water checks, RegionalGeneration and Minimap peers,

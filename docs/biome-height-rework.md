@@ -8,9 +8,9 @@ implemented incrementally. BH25b2 selected 4 / 0.6 / 0.1 m shared
 Elderwood/Tundra relief amplitudes after repairing a bank-caused new-water
 regression and a fixed 1 cm source-land shelf; BH25b3 consolidated the selected
 profile ranges and measured cost guardrails. BH25c selected 8 m / 0.1 m Meadows
-floor detail, and BH25d retained measured Shimmering Lakes center controls.
-BH15a integrates the provisional Mossy Mire lowland candidate; its profile
-harness is BH15b and fresh-source tuning remains BH25e. Rendered terrain and
+floor detail, BH25d retained measured Shimmering Lakes center controls, and
+BH25e retained the measured Mossy Mire center settings. BH15a integrates the
+Mire lowland candidate and BH15b supplies its profile harness. Rendered terrain and
 under-vegetation acceptance remains BH26. This plan supersedes
 Meadows-specific height details where they differ.
 
@@ -112,11 +112,12 @@ determinism and channel-connectivity acceptance, not an incidental side effect.
   source-land clearance outside river corridors. Do not convert the entire
   biome into ocean, erase banks or introduce an elevated flat water plane.
   Keep the compression curve monotonic to avoid inverted ridges and pits. BH15a
-  currently uses `target + (source-target)/(1+abs(source-target)/scale) +
-  clamp(detail,-1,1)*residual`, with provisional controls of 300 / 700 / 25 cm
-  inside preview ranges of 200–500 / 300–1200 / 10–60 cm. The rational curve is
-  monotonic and bounded without a hard shelf; every accepted combination keeps
-  its lowest source-land value above zero. `Scripts/Tests/World/BiomeMireProfiles.ps1`
+  uses `target + (source-target)/(1+abs(source-target)/scale) +
+  clamp(detail,-1,1)*residual`; BH25e retained the measured center settings of
+  300 / 700 / 25 cm inside preview ranges of 200–500 / 300–1200 / 10–60 cm.
+  The rational curve is monotonic and bounded without a hard shelf; all nine
+  tested settings kept positive-source worst-case clearance above zero.
+  `Scripts/Tests/World/BiomeMireProfiles.ps1`
   exports 100 m profiles at 5 m spacing on both axes around the seed-418/419
   Mire interiors, source coasts and Highland river sites from BH01. Each trial
   varies one control at a time across its minimum, provisional center and
@@ -125,9 +126,9 @@ determinism and channel-connectivity acceptance, not an incidental side effect.
   source-land clearance. The runner checks the fixed coordinates, compression
   formula, water/basin behavior and an exact effective-control log marker so a
   stale binary is rejected. Run `-ValidateOnly` for fixture checks; run the
-  full script with a project path only after compiling the source. BH15b adds
-  this harness but does not select values; BH25e chooses measured values from a
-  fresh build. River carving remains the final corridor override, and basin
+  full script with a project path after source freshness is confirmed. BH25e
+  records the one-factor results; river carving remains the final corridor
+  override, and basin
   generation stays disabled.
 - **Freezing Tundra:** Reuse Elderwood height treatment and the existing outer
   eligibility. Reuse its forest-factor pattern with a slightly lower acceptance
@@ -1058,6 +1059,93 @@ degrees; it remained dry and retained the Lakes label. These baseline-to-current
 differences predate BH25d; all BH25d trial variants match the current nominal
 water and biome state. Rendered shoreline and traversal acceptance remains
 BH26.
+
+### BH25e fresh-source Mossy Mire selection
+
+The BH15b runner completed all nine exact-marker, one-control trials against
+252 samples on twelve 100 m transects. The `kb25a` Editor mirror matched 1,071
+of 1,073 tracked runtime inputs exactly; the only differing source was
+line-ending-only and normalized to identical content, and the unchanged
+pre-goal water-mesh test source was absent as documented. The current regional
+source hash matched the mirror, and its compiled world unity object was newer
+than that source, so no rebuild was needed. Raw outputs and the runner summary
+remain under `C:\Users\Ville\AppData\Local\Temp\bm655e5ef5`.
+
+The initial runner expected the seed-418 source-coast center to remain
+submerged as in BH01. At the exact center `(691744, -107083.5)`, BH01 measured
+final/collision height -9.279 / -9.313 cm at water level 0. The current source
+height is +2.396 cm and the nominal final/collision heights are +0.845 / +0.879
+cm, with `OceanWeight=0.999334`, `MossyMireWeight=0`, and dry water status. The
+source sign is on land; the adjacent negative-source coast samples remain
+submerged. The water mesh clips at `WaterLevel - TerrainHeight`, leaving the
+positive center above the Z=0 surface. This is the BH25b2 source-coast-sign
+repair, not an ocean control or a Mire-trial effect. The runner now checks a
+positive dry coast-land center and submerged ocean-side neighbors.
+
+Across all nine variants, the same 50 of 252 samples remained wet, with zero
+water-coverage changes or new wet points. Basin, river and stream weights and
+water levels on wet/course-supported samples were unchanged; all four fixed
+river centers remain at Z=0 with `RiverWeight=1`, `BasinWeight=0` and a -80 cm
+bed. Some dry, no-course rows have a stored below-ground `WaterLevel` sentinel
+derived from terrain height; it changed by at most 4.847 cm at target 500 cm,
+without creating a surface or changing `HasWater`. The runner checks coverage
+exactly and compares water levels where a water surface or course is active.
+
+The rational compression function was checked at both domain extremes for
+each of the nine target/scale pairings: 180,009 finite, bounded outputs and
+180,000 strictly monotonic adjacent comparisons passed over source heights
+-100,000 to 100,000 cm. The runner also checked every candidate against its
+formula and confirmed positive-source worst-case clearance at all 100
+source-land/Mire-weighted rows in each trial. The smallest measured clearance
+was 19.538 cm at target 200 cm, scale 700 cm and residual 25 cm.
+
+The table reports `MireCandidateCm` ranges across the 84 fixed interior
+samples; the four dry interior profile spans exclude wet or river/stream rows.
+Collision-slope percentiles are nearest-rank values over the 76 dry interior
+samples. The clearance column is the minimum across all positive-source,
+Mire-weighted rows in the full 252-sample fixture.
+
+| One varied control | Value | Mire candidate min–max (cm) | Four dry profile height spans: min / mean / max (cm) | Collision slope p50 / p90 / p95 / max (degrees) | Minimum source-land clearance (cm) |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Target height (cm) | 200 | 29.724–404.872 | 17.702 / 110.190 / 243.398 | 0.624 / 2.844 / 3.224 / 3.986 | 19.538 |
+| Target height (cm) | 300 | 77.245–447.897 | 18.443 / 117.023 / 247.873 | 0.708 / 2.994 / 3.244 / 3.861 | 65.076 |
+| Target height (cm) | 500 | 198.147–484.876 | 18.600 / 128.654 / 269.058 | 0.760 / 3.519 / 3.565 / 3.692 | 183.386 |
+| Compression scale (cm) | 300 | 141.439–417.523 | 17.319 / 115.209 / 252.338 | 0.617 / 3.163 / 3.233 / 3.728 | 125.039 |
+| Compression scale (cm) | 700 | 77.245–447.897 | 18.443 / 117.023 / 247.873 | 0.708 / 2.994 / 3.244 / 3.861 | 65.076 |
+| Compression scale (cm) | 1,200 | 44.590–461.080 | 18.948 / 117.864 / 246.092 | 0.735 / 2.925 / 3.256 / 3.920 | 35.099 |
+| Residual detail (cm) | 10 | 79.820–444.584 | 15.503 / 115.877 / 247.136 | 0.679 / 3.027 / 3.202 / 3.810 | 80.076 |
+| Residual detail (cm) | 25 | 77.245–447.897 | 18.443 / 117.023 / 247.873 | 0.708 / 2.994 / 3.244 / 3.861 | 65.076 |
+| Residual detail (cm) | 60 | 71.236–455.628 | 25.324 / 119.707 / 249.598 | 0.793 / 2.936 / 3.340 / 3.981 | 30.076 |
+
+The retained combined settings are the measured nominal 300 / 700 / 25 cm.
+Lower targets and scales reduce the sampled lowland ranges; residual detail
+changes the local range and slopes. These are one-control trials, so they do
+not establish the response of a combined off-center set, and no rendered view
+supports a different combination. The nominal dry interior spans average
+117.023 cm, with collision slope p50/p90/p95/max of 0.708 / 2.994 / 3.244 /
+3.861 degrees; the profile is not a uniform Z=0 water plane. Full rendered
+shoreline, under-vegetation and traversal acceptance remains BH26.
+
+BH01 fixed-center comparisons against the current nominal output (300 / 700 /
+25 cm) are below. Heights are final / collision centimeters and slopes are
+degrees. The seed-418 coast wet-to-dry change is the BH25b2 source-land-sign
+repair described above; all BH25e variants match the current nominal coverage.
+
+| Seed / fixed site | BH01 final / collision / slope; water level and state | Current nominal final / collision / slope; water level and state |
+| --- | --- | --- |
+| 418 Mire interior | 399.146 / 399.157 / 0.858; Z=0, dry | 475.019 / 475.024 / 0.567; Z=0, dry |
+| 419 Mire interior | 1.000 / 1.000 / 0.000; Z=-12.332, dry | 19.891 / 19.922 / 1.822; Z=-13.635, dry |
+| 418 source-coast land side | -9.279 / -9.313 / 2.071; Z=0, wet | 0.845 / 0.879 / 0.423; Z=0, dry |
+| 419 source-coast land side | 1.000 / 0.926 / 0.144; Z=-29.377, dry | 0 / 0 / 0; Z=-29.367, dry |
+| 418 Highland river | -80 / -80 / 0; Z=0, wet | -80 / -80 / 0; Z=0, wet |
+| 419 Highland river | -80 / -79.237 / 0.571; Z=0, wet | -80 / -79.219 / 0.584; Z=0, wet |
+
+The current Mire-center weights are 0.510667 for seed 418 and 0.031964 for
+seed 419; the 419 center is a shallow Mire blend. Neither center nor any river
+control changed water state across the matrix. BH25e changes the measured
+documentation and stale coast fixture only; numeric defaults remain the
+selected nominal values already in source. No Editor build, automation suite,
+rendered preview or traversal run was performed; these remain BH26 work.
 
 ### BH17 Thunder Mountains high-base shaping
 

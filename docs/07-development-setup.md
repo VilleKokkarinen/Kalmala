@@ -3814,16 +3814,23 @@ in BH26.
 `Scripts/Tests/World/BiomeMireProfiles.ps1 -ValidateOnly` checks 252 fixed
 seed-418/419 samples in 100 m transects at 5 m spacing, covering the two Mire
 interiors, both source-coast controls and both Highland river corridors on X/Y
-axes. After compiling the BH15b commandlet source, run the script with
+axes. After verifying the BH15b commandlet source, run the script with
 `-Project <project-path>` for target-height 200/300/500 cm, compression-scale
 300/700/1200 cm and residual-detail 10/25/60 cm trials, varying one control at
 a time. It exports candidate/source/detail diagnostics, current effective
 controls, raw final/collision heights, slopes, and numeric dry-clearance and
 range summaries. It checks the compression formula, positive worst-case
 source-land clearance, river-last water behavior, disabled basin support and
-the exact effective-control log marker to reject stale binaries. The script
-does not build or choose tuning. BH25e records fresh-source measurements and
-selects Mire values; rendered acceptance remains BH26.
+the exact effective-control log marker to reject stale binaries. The runner
+also compares water coverage and course fields with its combined nominal
+trial. The seed-418 source-coast center is a positive-source land-side sample
+after the BH25b2 coast-sign repair; its neighboring negative-source ocean-side
+samples must remain submerged. Water levels are compared where a surface or
+course is active; dry no-course rows use a below-ground sentinel derived from
+terrain height. BH25e ran all nine fresh-source trials and retained the
+measured center settings: 300 cm target, 700 cm scale and 25 cm residual
+detail. The script does not build or choose tuning; rendered acceptance remains
+BH26.
 
 ### Export verification
 

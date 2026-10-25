@@ -13,8 +13,8 @@ $expectedProfiles = @(
     [pscustomobject]@{ Seed = 418; Site = 'MireInterior418_Y'; X = -669858.3; Y = -601074.7; Axis = 'Y'; Kind = 'Mire' },
     [pscustomobject]@{ Seed = 419; Site = 'MireInterior419_X'; X = -78944.8; Y = 896531.5; Axis = 'X'; Kind = 'Mire' },
     [pscustomobject]@{ Seed = 419; Site = 'MireInterior419_Y'; X = -78944.8; Y = 896531.5; Axis = 'Y'; Kind = 'Mire' },
-    [pscustomobject]@{ Seed = 418; Site = 'SourceCoast418_X'; X = 691744.0; Y = -107083.5; Axis = 'X'; Kind = 'Ocean' },
-    [pscustomobject]@{ Seed = 418; Site = 'SourceCoast418_Y'; X = 691744.0; Y = -107083.5; Axis = 'Y'; Kind = 'Ocean' },
+    [pscustomobject]@{ Seed = 418; Site = 'SourceCoast418_X'; X = 691744.0; Y = -107083.5; Axis = 'X'; Kind = 'CoastLand' },
+    [pscustomobject]@{ Seed = 418; Site = 'SourceCoast418_Y'; X = 691744.0; Y = -107083.5; Axis = 'Y'; Kind = 'CoastLand' },
     [pscustomobject]@{ Seed = 419; Site = 'SourceCoast419_X'; X = -71128.5; Y = -696433.8; Axis = 'X'; Kind = 'DryCoast' },
     [pscustomobject]@{ Seed = 419; Site = 'SourceCoast419_Y'; X = -71128.5; Y = -696433.8; Axis = 'Y'; Kind = 'DryCoast' },
     [pscustomobject]@{ Seed = 418; Site = 'HighlandRiver418_X'; X = 679237.9; Y = -16414.3; Axis = 'X'; Kind = 'River' },
@@ -88,6 +88,7 @@ $trials = @(
     [pscustomobject]@{ Control = 'ResidualDetailAmplitudeCm'; Parameter = 'MireResidualDetailAmplitudeCm'; Values = @(10.0, 25.0, 60.0) }
 )
 $summaryRows = [Collections.Generic.List[object]]::new()
+$trialRowsByTag = @{}
 
 foreach ($trial in $trials) {
     foreach ($value in $trial.Values) {
@@ -229,8 +230,21 @@ foreach ($trial in $trials) {
             if ($profile.Kind -eq 'Mire' -and ([double]$center.MossyMireWeight -le 0.01 -or $center.HasWater -ne '0')) {
                 throw "Fixed Mossy Mire control $($profile.Site) lost its dry Mire center in trial $trialTag."
             }
-            if ($profile.Kind -eq 'Ocean' -and ([double]$center.OceanWeight -lt 0.99 -or $center.HasWater -ne '1')) {
-                throw "Fixed ocean coast control $($profile.Site) changed in trial $trialTag."
+            if ($profile.Kind -eq 'CoastLand') {
+                # BH25b2 restored this source-land point above Z=0; nearby negative-source ocean samples remain submerged.
+                $centerSource = [double]::Parse($center.SourceHeightCm, $culture)
+                $centerHeight = [double]::Parse($center.FinalHeightCm, $culture)
+                $centerWaterLevel = [double]::Parse($center.WaterLevelCm, $culture)
+                $wetOceanNeighbors = @($group | Where-Object {
+                    [double]::Parse($_.OceanWeight, $culture) -ge 0.99 -and
+                    $_.HasWater -eq '1' -and
+                    [double]::Parse($_.WaterLevelCm, $culture) -gt [double]::Parse($_.FinalHeightCm, $culture)
+                })
+                if ([double]$center.OceanWeight -lt 0.99 -or $centerSource -le 0.0 -or
+                    $centerHeight -le $centerWaterLevel -or $center.HasWater -ne '0' -or
+                    $wetOceanNeighbors.Count -eq 0) {
+                    throw "Fixed source-land coast control $($profile.Site) lost its dry positive shoreline or adjacent submerged ocean samples in trial $trialTag."
+                }
             }
             if ($profile.Kind -eq 'DryCoast' -and ($center.HasWater -ne '0' -or [double]$center.FinalHeightCm -le 0.0)) {
                 throw "Fixed dry coast control $($profile.Site) lost positive surface clearance in trial $trialTag."
@@ -281,6 +295,50 @@ foreach ($trial in $trials) {
                 CenterRiverWeight = [double]::Parse($center.RiverWeight, $culture)
                 OutputCsv = $outputPath
             })
+        }
+        $trialRowsByTag[$trialTag] = $rows
+    }
+}
+
+$nominalTag = 'targetheightcm-300'
+if (-not $trialRowsByTag.ContainsKey($nominalTag)) { throw 'The combined nominal Mire trial is missing.' }
+$nominalRows = $trialRowsByTag[$nominalTag]
+foreach ($trialTag in $trialRowsByTag.Keys) {
+    $trialRows = $trialRowsByTag[$trialTag]
+    if ($trialRows.Count -ne $nominalRows.Count) { throw "Trial $trialTag row count differs from the nominal Mire trial." }
+    for ($index = 0; $index -lt $nominalRows.Count; $index++) {
+        $baseline = $nominalRows[$index]
+        $actual = $trialRows[$index]
+        if ($actual.Site -cne $baseline.Site -or $actual.Seed -cne $baseline.Seed -or
+            [math]::Abs([double]::Parse($actual.Xcm, $culture) - [double]::Parse($baseline.Xcm, $culture)) -gt 0.01 -or
+            [math]::Abs([double]::Parse($actual.Ycm, $culture) - [double]::Parse($baseline.Ycm, $culture)) -gt 0.01) {
+            throw "Trial $trialTag row $($index + 1) does not align with the nominal sample."
+        }
+        if ($baseline.HasWater -eq '0' -and $actual.HasWater -eq '1') {
+            throw "Trial $trialTag introduced new wet terrain at $($actual.Site) ($($actual.Xcm), $($actual.Ycm))."
+        }
+        if ($actual.HasWater -cne $baseline.HasWater) {
+            throw "Trial $trialTag changed existing water coverage at $($actual.Site) ($($actual.Xcm), $($actual.Ycm))."
+        }
+        foreach ($column in @('BasinWeight', 'RiverWeight', 'StreamWeight')) {
+            $baseValue = [double]::Parse($baseline.$column, $culture)
+            $actualValue = [double]::Parse($actual.$column, $culture)
+            if ([math]::Abs($actualValue - $baseValue) -gt 0.000001) {
+                throw "Trial $trialTag changed $column at $($actual.Site) ($($actual.Xcm), $($actual.Ycm))."
+            }
+        }
+        # Dry land stores a below-ground WaterLevel sentinel derived from its height;
+        # compare levels only where a surface or supported water course is active.
+        $hasWaterCourse = $baseline.HasWater -eq '1' -or $actual.HasWater -eq '1' -or
+            [double]::Parse($baseline.BasinWeight, $culture) -gt 0.000001 -or
+            [double]::Parse($actual.BasinWeight, $culture) -gt 0.000001 -or
+            [double]::Parse($baseline.RiverWeight, $culture) -gt 0.000001 -or
+            [double]::Parse($actual.RiverWeight, $culture) -gt 0.000001 -or
+            [double]::Parse($baseline.StreamWeight, $culture) -gt 0.000001 -or
+            [double]::Parse($actual.StreamWeight, $culture) -gt 0.000001
+        if ($hasWaterCourse -and [math]::Abs(
+            [double]::Parse($actual.WaterLevelCm, $culture) - [double]::Parse($baseline.WaterLevelCm, $culture)) -gt 0.000001) {
+            throw "Trial $trialTag changed an active water level at $($actual.Site) ($($actual.Xcm), $($actual.Ycm))."
         }
     }
 }

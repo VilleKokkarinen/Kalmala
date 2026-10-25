@@ -9828,6 +9828,63 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   the expected BH03 basin-policy effect, not a BH25d trial change.
 - **Main-checkout handoff:** Main `BACKLOG.md` has a genuine BH25 scope conflict:
   it ends BH25 at BH25d, while this worktree has BH25e. Per the handoff rules,
-  main backlog remains untouched. This BH25d entry was appended to main
+  main backlog remains at its existing BH25d parent scope. The nonconflicting
+  BH25d child state was synchronized, and this BH25d entry was appended to main
   `PROGRESS.md`; A10/Monster content is preserved.
 - **Next eligible task:** BH25e — run Mossy Mire profile trials.
+
+## Biome height rework — BH25e Mossy Mire trial selection
+
+- **Selected increment:** BH25e, the first remaining child under BH25 in the
+  isolated biome-height worktree. The checkout was clean at start commit
+  `9312c594`; no concurrent writer was active.
+- **Work completed:** Ran all nine fresh-source one-control Mossy Mire trials
+  over 252 points: target 200/300/500 cm, compression scale 300/700/1,200 cm,
+  and residual detail 10/25/60 cm. Retained the measured nominal combination
+  of 300/700/25 cm because the sweeps do not establish the joint response of
+  an off-center combination and there is no rendered evidence for another
+  choice. Updated the stale coast fixture to identify the seed-418 positive-
+  source land-side center, require it dry, and preserve submerged negative-
+  source ocean neighbors. Water-level sentinels are compared only where a
+  surface or channel is active. Corrected the measured minimum clearance in
+  BACKLOG to 19.538 cm.
+- **Source freshness/build:** Compared 1,073 tracked runtime input files with
+  the disposable `kb25a` mirror: 1,071 matched exactly; the only source
+  difference normalized to identical content after line-ending normalization;
+  the unchanged pre-goal water-mesh test TU was absent from the mirror. The
+  current regional-generation source hash matched, and its compiled unity
+  object was newer than the source. No rebuild was needed. Trial outputs and
+  exact control markers are under
+  `C:\Users\Ville\AppData\Local\Temp\bm655e5ef5`.
+- **Measurements/checks:** All nine variants preserved the same 50/252 wet
+  samples as nominal; no new wet samples and no basin, river, stream, or active
+  surface-level changes occurred. The four fixed river centers remained at
+  Z=0 with RiverWeight=1, BasinWeight=0 and an -80 cm bed. The numerical sweep
+  produced 180,009 finite/bounded values and passed 180,000 monotonic adjacent
+  comparisons across all target/scale pairings. The selected nominal dry
+  interior spans min/mean/max were 18.443/117.023/247.873 cm; nearest-rank
+  collision-slope p50/p90/p95/max were 0.708/2.994/3.244/3.861 degrees. Full
+  per-control ranges, fixed-site BH01 comparisons and source-coast attribution
+  are recorded in `docs/biome-height-rework.md`. `BiomeMireProfiles.ps1
+  -ValidateOnly`, its PowerShell parser, and `git diff --check` passed.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Scripts/Tests/World/BiomeMireProfiles.ps1`,
+  `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, and
+  `docs/biome-height-rework.md`.
+- **Full verification:** Deferred to BH26. No Editor rebuild, automation suite,
+  rendered preview, shoreline inspection, or traversal run was performed.
+- **Observable impact:** Mire tuning and numeric profile contract now record
+  the tested nominal values and their measured ranges. Runtime defaults were
+  already at those values; this increment changed the fixture and documents.
+- **Networking/authority:** No gameplay, network authority, persistence, or
+  replication behavior changed.
+- **Known limitations / remaining scope:** One-factor trials do not establish
+  off-center joint behavior. The BH01 seed-418 coast wet-to-dry change is the
+  positive source-land sign correction from BH25b2, not a BH25e trial result.
+  Rendered shore readability, vegetation interaction and traversal remain for
+  BH26.
+- **Main-checkout handoff:** Main `BACKLOG.md` has a genuine BH25 parent-scope
+  conflict and no BH25e block. Leave it unchanged. Append only this
+  nonconflicting BH25e record to main `PROGRESS.md` after inspection; preserve
+  A10/Monster edits.
+- **Next eligible task:** BH26 — final integrated verification and repair.
