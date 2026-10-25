@@ -9482,3 +9482,77 @@
   after inspecting the main versions; existing A10/Monster edits and unrelated
   main-checkout files were preserved.
 - **Next eligible task:** BH25b — run Meadows rolling and Elderwood trials.
+
+### BH25b1 — Select Meadows rolling relief (2026-10-25)
+
+- **Selected increment:** BH25b1. The isolated worktree was clean at
+  `09deb80d52cfe379aad8a3bd4f4457cb5b5f7169`; no other autonomous run was
+  modifying this checkout. A10 and Monster work remains in separate worktrees.
+- **Work completed:** The existing rolling runner incorrectly rejected all
+  wet samples and required every profile point to have Meadows weight above
+  0.5. A focused diagnostic confirmed four seed-419 Starter EW samples are
+  priority river controls (RiverWeight 0.1731/0.3293/1.0000/0.7202,
+  StreamWeight=0, OceanWeight=0, WaterLevel=0). The runner now requires those
+  exact points to remain wet at Z=0, rejects any other wet sample, keeps them in
+  raw CSVs, and excludes their channel beds from dry-land profile/slope metrics.
+  The outer seed-419 profiles have positive continuous Meadows influence down
+  to 0.4125, so the fixture now rejects zero weight while allowing the gradual
+  biome blend. Selected the smallest tested rolling amplitude, 0.6 m, and set
+  `MeadowRollingAmplitude` to 60 cm in the tuning header. Split BH25b into its
+  rolling-selection, Elderwood/Tundra-selection and aggregate-contract children.
+- **Freshness and measurements:** The existing `C:\Users\Ville\AppData\Local\Temp\kb25a`
+  mirror contained the BH25a-selected `MeadowHillAmplitude=400` cm and its
+  `build5.log` reports `Result: Succeeded`; the regional-generation and Lakes
+  test sources matched the worktree before this increment. The build had the
+  pre-selection rolling default of 120 cm, but every measurement explicitly
+  overrode it before sampling and confirmed the exact effective-value marker.
+  The profile command was
+  `BiomeRollingProfiles.ps1 -Project C:\Users\Ville\AppData\Local\Temp\kb25a\Kalmala.uproject -TimeoutSeconds 900`.
+  Each 0.6/1.2/1.8 m run exported 264 rows across 24 profiles and eight seam
+  points. Separate `RenderWorldGenerationVisualization` commandlets sampled
+  all 28 BH01 fixed sites for the same three overrides; all six trial groups
+  had exact markers and expected row counts.
+- **Measured profile ranges:** The min/mean/max final-height ranges (cm) across
+  the eight profiles at each length were 42.4/176.2/767.8, 49.5/226.8/935.1
+  and 66.4/286.3/1,074.0 at 0.6 m; 50.4/179.8/744.1, 52.5/233.2/921.0 and
+  65.9/297.3/1,072.3 at 1.2 m; and 60.1/183.6/720.3, 68.0/242.1/906.7 and
+  74.9/310.8/1,070.6 at 1.8 m (30/45/70 m respectively). Across 260 dry
+collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
+  at 0.6 m, 2.60/5.29/27.36/35.93 degrees at 1.2 m and
+  2.97/6.37/26.64/35.76 degrees at 1.8 m. Each trial had 22 samples at or
+  above 15 degrees and 16 at or above 25 degrees. All four river controls
+  stayed wet at Z=0; the other 260 samples remained dry.
+- **BH01 fixed-site comparison:** At the four Starter/outer Meadows sites,
+  maximum/mean absolute height deltas were 136.18/90.43 cm at 0.6 m,
+  111.75/85.13 cm at 1.2 m, and 130.93/79.78 cm at 1.8 m. Maximum absolute
+  collision-slope deltas were 2.04, 2.58 and 3.12 degrees. The 17 fixed rows
+  with zero Meadows weight were identical across all overrides. Maximum
+  terrain/collision seam deltas remained below 0.06 cm at each amplitude.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`,
+  `Scripts/Tests/World/BiomeRollingProfiles.ps1`,
+  `docs/02-technical-architecture.md`, `docs/07-development-setup.md`,
+  `docs/biome-height-rework.md`, and `docs/meadows-plan.md`.
+- **Lightweight checks/results:** The PowerShell parser check and
+  `BiomeRollingProfiles.ps1 -ValidateOnly` passed. All three profile trials
+  passed exact markers, 264-row checks, expected river controls and seam
+  limits. All three fixed-site commandlets passed their exact markers and
+  28-row checks. `git diff --check` passed.
+- **Full verification:** Deferred to BH26. No Editor build or automation suite
+  was run in this increment; BH25b1's exact commandlet overrides used the
+  successful current BH25a production build. Rendered readability and
+  connected-route traversal remain unverified.
+- **Observable impact:** The regional tuning source now selects 0.6 m at the
+  existing 45 m rolling scale. The signal remains deterministic and changes
+  only the existing continuous Meadows height candidate.
+- **Networking/authority:** No networking, gameplay authority, persistence or
+  save behavior changed; peers continue to sample the same seed-derived terrain.
+- **Known limitations / remaining scope:** This is numeric tuning only. The
+  four water controls and profile slopes are source-sampled, not rendered.
+  Elderwood/Tundra selection and BH25b aggregate cost/preview contracts remain
+  BH25b2 and BH25b3; final integrated verification remains BH26.
+- **Main-checkout handoff:** Main `BACKLOG.md` and `PROGRESS.md` were inspected
+  with their A10/Monster edits present. Only the Biome BH25b tracking section
+  and this progress entry were synchronized; unrelated content remains
+  preserved.
+- **Next eligible task:** BH25b2 — select shared Elderwood/Tundra relief.

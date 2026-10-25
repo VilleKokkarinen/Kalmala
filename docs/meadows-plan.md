@@ -1,10 +1,11 @@
 # Meadows terrain and biome plan
 
 Status: active implementation plan, updated 2026-10-25. BH25a selected the
-4 m broad-hill amplitude from fresh-source profiles. BH10a/BH11a implement the
-Meadows hill and rolling layers, and BH12a adds a provisional floor-detail layer.
-BH10b1/BH11b/BH12b provide profile harnesses; remaining fresh-source tuning is
-in BH25b–BH25c and rendered acceptance is in BH26. No gameplay, forest or
+4 m broad-hill amplitude and BH25b1 selected 0.6 m rolling amplitude from
+fresh-source profiles. BH10a/BH11a implement the Meadows hill and rolling
+layers, and BH12a adds a provisional floor-detail layer. BH10b1/BH11b/BH12b
+provide profile harnesses; remaining fresh-source tuning is in BH25b2–BH25c
+and rendered acceptance is in BH26. No gameplay, forest or
 presentation changes are implemented by this document. Execution is tracked in
 `BACKLOG.md` before Monster Population under the combined biome-height goal.
 
@@ -100,7 +101,7 @@ Compare the low, middle and high settings separately with fixed seeds.
 | `MeadowHillAmplitude` | 4 m selected (BH25a) | 4/6/8 m swept; preview accepts 4–10 m | Smallest tested amplitude with multi-metre 100–250 m profiles. |
 | `MeadowShoulderHeight` / `MeadowShoulderCompressionScale` | 10 m / 30 m | 6–16 m / 10–60 m | Preserve lower pockets while gradually softening higher Meadows shoulders. |
 | `MeadowRollingScale` | 45 m | 30–70 m | Rounded shoulders, smaller valleys and grove undulations. |
-| `MeadowRollingAmplitude` | 1.2 m | 0.6–2 m | Relief readable near the player without continuous steep bumps. |
+| `MeadowRollingAmplitude` | 0.6 m selected (BH25b1) | 0.6–2 m | Smallest tested amplitude with measured 30–70 m profiles and the lowest sampled slope percentiles. |
 | `MeadowFloorScale` | 12 m | 8–20 m | Gentle forest-floor variation; avoid sub-lattice noise. |
 | `MeadowFloorAmplitude` | 0.2 m | 0.1–0.35 m | Small rises and depressions beneath vegetation. |
 
@@ -134,6 +135,52 @@ in collision slope; corresponding maxima are 188.5 cm / 2.78° at 6 m and
 identical across the three overrides. Other weighted fixed points include
 later Elderwood/Lakes shaping, so their full BH01 deltas are not attributed to
 the hill amplitude.
+
+### BH25b1 fresh-source rolling measurements
+
+The fresh Editor mirror retained the BH25a-selected 4 m hill default. Separate
+0.6/1.2/1.8 m rolling overrides each exported 264 samples: 24 fixed 30/45/70 m
+profiles and eight patch-side seam points. All exact trial markers were
+present. Four confirmed seed-419 river controls remained wet at Z=0, no other
+Meadows sample was wet, and each patch seam remained within the 5 cm limit.
+The four wet channel beds were retained in raw outputs and excluded from
+dry-land range/slope summaries, leaving 260 collision-slope samples per trial.
+Outer seed-419 profiles retain continuous Meadows influence down to weight
+0.4125; the fixture requires positive weight rather than an artificial 0.5
+cutoff.
+
+Final-height ranges include the 4 m broad hills, existing floor detail and
+Meadows blending, so they describe the complete terrain profile rather than an
+isolated rolling-noise contribution. Each value is the min/mean/max range among
+the eight profiles of that length, in centimetres.
+
+| Rolling amplitude | 30 m range | 45 m range | 70 m range |
+| --- | ---: | ---: | ---: |
+| 0.6 m | 42.4 / 176.2 / 767.8 | 49.5 / 226.8 / 935.1 | 66.4 / 286.3 / 1,074.0 |
+| 1.2 m | 50.4 / 179.8 / 744.1 | 52.5 / 233.2 / 921.0 | 65.9 / 297.3 / 1,072.3 |
+| 1.8 m | 60.1 / 183.6 / 720.3 | 68.0 / 242.1 / 906.7 | 74.9 / 310.8 / 1,070.6 |
+
+Dry-sample slope p50/p90/p95/maximum was 2.31/4.55/28.07/36.20 degrees at
+0.6 m, 2.60/5.29/27.36/35.93 degrees at 1.2 m, and
+2.97/6.37/26.64/35.76 degrees at 1.8 m. Twenty-two samples were at least
+15 degrees and 16 were at least 25 degrees in each trial. The 0.6 m option
+had the smallest median per-profile maximum slope (3.59 degrees) and the
+smallest fixed-site maximum slope change (2.04 degrees).
+
+At the four BH01 fixed Starter/outer Meadows sites, maximum/mean absolute
+height differences from BH01 were 136.18/90.43 cm at 0.6 m,
+111.75/85.13 cm at 1.2 m, and 130.93/79.78 cm at 1.8 m. Maximum absolute
+collision-slope changes were 2.04, 2.58 and 3.12 degrees. The 17 other fixed
+sites with zero Meadows weight were identical across the three trials.
+Maximum terrain/collision seam deltas stayed below 0.06 cm for every amplitude.
+
+BH25b1 selected 0.6 m as the smallest tested amplitude. It retained measurable
+dry-land variation in every profile length; larger values modestly increased
+mean ranges while raising median and p90 collision slopes.
+This numeric choice does not establish rendered readability or traversability;
+player-height route inspection remains part of BH26. Raw trial CSVs and logs
+were exported to the temporary `brpcff2dd9b` and `bh25b1` folders during the
+measurement run.
 
 Prefer broad form first, then rolling relief, then floor detail. Do not maximize
 all amplitudes at once. Reject candidates producing noisy corrugations or

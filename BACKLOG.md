@@ -451,9 +451,9 @@ save migrations as part of this goal.
 
 **Implementation trial defaults selected for this plan:** Shared relief scales
 start at 1,000 m / 150 m / 30 m (broad / middle / local). Meadows uses the
-BH25a-selected 160 m / 4 m broad hills; rolling relief and floor detail remain
-provisional at 45 m / 1.2 m and 12 m / 0.2 m. Tundra forest density starts at
-0.85 of comparable Elderwood density. Remaining experiment settings are agent-
+BH25a-selected 160 m / 4 m broad hills and BH25b1-selected 45 m / 0.6 m rolling
+relief; floor detail remains provisional at 12 m / 0.2 m. Tundra forest
+density starts at 0.85 of comparable Elderwood density. Remaining experiment settings are agent-
 selected, not prior user-approved production values; compare low / nominal /
 high documented amplitudes one layer at a time (rolling relief: 0.6 / 1.2 /
 1.8 m; floor detail: 0.1 / 0.2 / 0.3 m), then retain the smallest values that
@@ -560,15 +560,16 @@ run for this goal and may exceed one turn.
       sampler; preserve default sampling when the override is absent. Provide a
       runner that exports distinct 4/6/8 m trial CSVs and records the effective
       trial so a stale binary fails visibly. Do not select final tuning here.
-  - [x] **BH11 — Add Meadows rolling relief.** Implementation and sweep harness
-    are complete; keep final amplitude provisional until BH25b and rendered
-    connected-route acceptance until BH26.
+  - [x] **BH11 — Add Meadows rolling relief.** Implementation, sweep harness and
+    fresh numeric 0.6 m amplitude selection are complete; rendered connected-
+    route acceptance remains in BH26.
     - [x] **BH11a — Integrate the rolling layer.** Add the independently seeded
       30–70 m Meadows noise to its candidate before shoulder compression; retain
       continuous biome/coast blending and preserve lower pockets.
     - [x] **BH11b — Add rolling profile acceptance harness.** Add fixed-seed
       30–70 m height/slope transects, amplitude trials and patch-seam controls;
-      reject stale binaries and defer numeric trial selection to BH25b.
+      retain confirmed Z=0 river controls separately from dry-land metrics,
+      reject stale binaries, and defer numeric selection to BH25b1.
   - [x] **BH12 — Add Meadows floor detail.** The integrated layer and
     reproducible profile sweep harness are complete. Numeric scale/amplitude
     selection remains BH25c; rendered under-vegetation acceptance remains BH26.
@@ -583,7 +584,7 @@ run for this goal and may exceed one turn.
   - [x] **BH13 — Shape Elderwood.** The shared uncompressed candidate and its
     profile sweep harness are complete. Provisional broad/middle/local
     amplitudes are 9 / 2.4 / 0.4 m within trial ranges of 4–16 / 0.6–4 /
-    0.1–1 m; fresh-source trial selection remains BH25b and rendered profile
+    0.1–1 m; fresh-source trial selection remains BH25b2 and rendered profile
     acceptance remains BH26.
     - [x] **BH13a — Integrate shared Elderwood relief.** Blend the shared
       absolute-world stack plus bounded detail into Elderwood without applying
@@ -593,7 +594,7 @@ run for this goal and may exceed one turn.
     - [x] **BH13b — Add Elderwood/Tundra profile sweep harness.** Provide fixed
       Elderwood and Tundra profile samples plus validated commandlet-only
       broad/middle/local amplitude overrides. Reject stale binaries; leave
-      fresh-source trial selection to BH25b and rendered profile acceptance to
+      fresh-source trial selection to BH25b2 and rendered profile acceptance to
       BH26.
   - [x] **BH14 — Shape Shimmering Lakes.** Blend Meadows-like rounded shoulders,
     Elderwood relief, and compressed low pockets continuously, with no basin
@@ -623,7 +624,7 @@ run for this goal and may exceed one turn.
   - [x] **BH16 — Shape Freezing Tundra.** Reuse the Elderwood height function
     inside the existing outer eligibility band; confirm profile parity and
     keep snow as presentation rather than a height offset. Source-level
-    parity coverage is in BH13a; numeric profile confirmation remains BH25b,
+    parity coverage is in BH13a; numeric profile confirmation remains BH25b2,
     snow presentation remains BH24, and rendered acceptance remains BH26.
   - [x] **BH17 — Shape Thunder Mountains.** `ShapeMountains` now amplifies only
     source height above a 1,000 cm threshold, ramps gain smoothly over 1,000 cm,
@@ -735,15 +736,20 @@ run for this goal and may exceed one turn.
     - [x] **BH25a — Run BH10b1 Meadows hill sweep.** Fresh-source 4/6/8 m
       trials were compared with all 28 BH01 fixed sites and eight 100–250 m
       transects; 4 m was selected and measured ranges/slopes were recorded.
-    - [ ] **BH25b — Run rolling/Elderwood trials and finalize tuning/contracts.**
-      With freshly compiled source, run BH11b at 0.6/1.2/1.8 m; compare BH01
-      profiles and slopes, select the smallest accepted value, record results,
-      then run BH13b with low/nominal/high Elderwood broad, middle and local
-      amplitudes one layer at a time, exercising every trial bound and
-      confirming Tundra uses the identical candidate. Record ranges/slopes,
-      select the smallest accepted values, update architecture/setup instructions
-      and height previews with raw ranges, and compare sampler, map, generation,
-      active-patch, collision, and decoration costs with BH01 baselines.
+    - [ ] **BH25b — Finalize rolling/Elderwood relief tuning and contracts.**
+      Keep open until BH25b1–BH25b3 are complete.
+      - [x] **BH25b1 — Select Meadows rolling relief.** Run fresh-source
+        0.6/1.2/1.8 m trials and all 28 BH01 fixed sites, select the smallest
+        accepted amplitude and record 30/45/70 m ranges, slopes, river controls
+        and patch-seam results. The 0.6 m setting is selected.
+      - [ ] **BH25b2 — Select shared Elderwood/Tundra relief.** Run fresh-source
+        low/nominal/high broad, middle and local amplitudes one layer at a time,
+        exercise each trial bound, compare BH01 profiles and slopes, confirm
+        Tundra candidate parity, and select measured values.
+      - [ ] **BH25b3 — Aggregate terrain tuning and cost contracts.** Update
+        architecture/setup and height-preview documentation with raw ranges;
+        compare sampler, map, generation, active-patch, collision and decoration
+        costs against BH01, then close BH25b when both tuning children pass.
     - [ ] **BH25c — Run Meadows floor-detail trials.** With freshly compiled
       source, run the BH12b 8/12/20 m by 0.1/0.2/0.3 m matrix; compare local
       height/slope samples and select the smallest readable scale/amplitude

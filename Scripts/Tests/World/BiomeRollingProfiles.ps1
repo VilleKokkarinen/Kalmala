@@ -16,6 +16,17 @@ $expectedRows = 264
 $expectedProfiles = 24
 $expectedSeams = 8
 $profileCounts = @{ '30m' = 7; '45m' = 10; '70m' = 15 }
+# These fixed seed-419 points are priority river controls within the Meadows
+# transects. Fresh Lakes-diagnostics samples confirmed RiverWeight > 0,
+# StreamWeight = 0 and OceanWeight = 0 at each point. Keep them in the raw CSV
+# and require their Z=0 water state, but exclude submerged channel beds from
+# dry-land relief and slope summaries.
+$confirmedRiverControls = @(
+    [pscustomobject]@{ Seed = 419; Site = 'S419_StarterMeadows_EW_45m'; X = -3031.6; Y = -781.6 },
+    [pscustomobject]@{ Seed = 419; Site = 'S419_StarterMeadows_EW_70m'; X = -4281.6; Y = -781.6 },
+    [pscustomobject]@{ Seed = 419; Site = 'S419_StarterMeadows_EW_70m'; X = -3781.6; Y = -781.6 },
+    [pscustomobject]@{ Seed = 419; Site = 'S419_StarterMeadows_EW_70m'; X = -3281.6; Y = -781.6 }
+)
 
 foreach ($path in @($projectPath, $inputPath, $baselinePath, $editorPath, $outputRoot)) {
     if ($path.Length -ge 260) { throw "Path exceeds MAX_PATH: $path" }
@@ -193,19 +204,45 @@ foreach ($amplitudeM in @(0.6, 1.2, 1.8)) {
                 throw "Trial $amplitudeText m has a non-finite $column for $($row.Site)."
             }
         }
-        if ([int]$row.HasWater -ne 0 -or [double]::Parse($row.MeadowsWeight, $culture) -le 0.5) {
-            throw "Trial $amplitudeText m left fixed dry-Meadows profile $($row.Site)."
+        if ([double]::Parse($row.MeadowsWeight, $culture) -le 0.0) {
+            throw "Trial $amplitudeText m left the continuous Meadows influence at $($row.Site)."
         }
     }
 
+    foreach ($control in $confirmedRiverControls) {
+        $controlRows = @($rows | Where-Object {
+            [int]$_.Seed -eq $control.Seed -and $_.Site -ceq $control.Site -and
+            [math]::Abs([double]::Parse($_.Xcm, $culture) - $control.X) -le 0.01 -and
+            [math]::Abs([double]::Parse($_.Ycm, $culture) - $control.Y) -le 0.01
+        })
+        if ($controlRows.Count -ne 1) { throw "Trial $amplitudeText m is missing river control $($control.Site) at $($control.X),$($control.Y)." }
+        $controlRow = $controlRows[0]
+        if ([int]$controlRow.HasWater -ne 1 -or
+            [double]::Parse($controlRow.WaterLevelCm, $culture) -ne 0.0 -or
+            [double]::Parse($controlRow.FinalHeightCm, $culture) -ge 0.0) {
+            throw "Trial $amplitudeText m changed the confirmed Z=0 river control $($control.Site) at $($control.X),$($control.Y)."
+        }
+    }
+    foreach ($row in $rows | Where-Object { [int]$_.HasWater -eq 1 }) {
+        $isConfirmedRiverControl = @($confirmedRiverControls | Where-Object {
+            [int]$row.Seed -eq $_.Seed -and $row.Site -ceq $_.Site -and
+            [math]::Abs([double]::Parse($row.Xcm, $culture) - $_.X) -le 0.01 -and
+            [math]::Abs([double]::Parse($row.Ycm, $culture) - $_.Y) -le 0.01
+        }).Count -eq 1
+        if (-not $isConfirmedRiverControl) { throw "Trial $amplitudeText m has an unexpected wet Meadows sample at $($row.Site) ($($row.Xcm),$($row.Ycm))." }
+    }
+
     foreach ($group in $rows | Where-Object { $_.Site -notmatch 'Patch[XY]' } | Group-Object Site) {
-        $heights = @($group.Group | ForEach-Object { [double]::Parse($_.FinalHeightCm, $culture) })
-        $slopes = @($group.Group | ForEach-Object { [double]::Parse($_.CollisionTriangleSlopeDegrees, $culture) })
-        $grades = @($group.Group | ForEach-Object { [double]::Parse($_.CollisionTriangleGradePercent, $culture) })
+        $landRows = @($group.Group | Where-Object { [int]$_.HasWater -eq 0 })
+        if ($landRows.Count -eq 0) { throw "Trial $amplitudeText m has no dry land samples for $($group.Name)." }
+        $heights = @($landRows | ForEach-Object { [double]::Parse($_.FinalHeightCm, $culture) })
+        $slopes = @($landRows | ForEach-Object { [double]::Parse($_.CollisionTriangleSlopeDegrees, $culture) })
+        $grades = @($landRows | ForEach-Object { [double]::Parse($_.CollisionTriangleGradePercent, $culture) })
         $summaryRows.Add([pscustomobject]@{
             AmplitudeM = $amplitudeText
             Site = $group.Name
-            Samples = $group.Count
+            Samples = $landRows.Count
+            WaterSamples = $group.Count - $landRows.Count
             ProfileHeightRangeCm = (($heights | Measure-Object -Maximum).Maximum - ($heights | Measure-Object -Minimum).Minimum)
             MaxTriangleSlopeDegrees = ($slopes | Measure-Object -Maximum).Maximum
             MaxTriangleGradePercent = ($grades | Measure-Object -Maximum).Maximum
@@ -241,6 +278,7 @@ foreach ($amplitudeM in @(0.6, 1.2, 1.8)) {
                 AmplitudeM = $amplitudeText
                 Site = ("S" + $seed + '_Patch' + $axis)
                 Samples = 2
+                WaterSamples = 0
                 ProfileHeightRangeCm = ''
                 MaxTriangleSlopeDegrees = ''
                 MaxTriangleGradePercent = ''

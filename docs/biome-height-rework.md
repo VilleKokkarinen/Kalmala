@@ -721,7 +721,7 @@ non-finite or out-of-range inputs. Bounds are the design ranges, inclusive:
 | `ReliefLocalScaleKm` | 0.03 km | 0.01–0.05 km |
 | `MeadowHillScaleM` / `MeadowHillAmplitudeM` | 160 m / 4 m selected in BH25a | 100–250 m / 4–10 m |
 | `MeadowShoulderHeightM` / `MeadowShoulderCompressionScaleM` | 10 m / 30 m | 6–16 m / 10–60 m |
-| `MeadowRollingScaleM` / `MeadowRollingAmplitudeM` | 45 m / 1.2 m | 30–70 m / 0.6–2 m |
+| `MeadowRollingScaleM` / `MeadowRollingAmplitudeM` | 45 m / 0.6 m selected in BH25b1 | 30–70 m / 0.6–2 m |
 | `MeadowFloorScaleM` / `MeadowFloorAmplitudeM` | 12 m / 0.2 m | 8–20 m / 0.1–0.35 m |
 
 Custom settings are accepted only by the headless preview route and reported in
@@ -734,7 +734,7 @@ consumes the local Meadows floor scale/amplitude; the shared broad/middle/local
 stack remains staged for the later land-biome candidates. BH10b1 supplies fixed
 transects and a validated hill-amplitude override; BH25a runs the fresh-source
 hill comparison and selects its setting. BH11b adds the rolling-profile sweep
-harness; BH25b runs fresh-source 0.6/1.2/1.8 m trials and selects the rolling
+harness; BH25b1 runs fresh-source 0.6/1.2/1.8 m trials and selects the rolling
 setting. BH12b adds the floor-detail profile harness; BH25c runs the fresh-source
 8/12/20 m by 0.1/0.2/0.3 m matrix. Rendered route and under-vegetation
 inspection remain BH26.
@@ -761,22 +761,22 @@ The automation has been added and awaits the BH26 build and integrated run.
 
 ## BH11a Meadows rolling relief
 
-The Meadows height candidate now adds a second, independently seeded signal at
-the staged 45 m scale and 1.2 m amplitude, before applying the existing smooth
-upper-shoulder compression. It uses absolute world coordinates and a dedicated
+The Meadows height candidate adds a second, independently seeded signal at the
+45 m scale and BH25b1-selected 0.6 m amplitude, before applying the existing
+smooth upper-shoulder compression. It uses absolute world coordinates and a dedicated
 domain salt; it does not consume or alter the ecological Elevation, biome
 weights, or the shared 150 m relief sample. The rolling layer can therefore
 shape 30–70 m walk profiles without changing biome identity or floor-detail
-frequency. BH25a selected the 4 m broad-hill amplitude; rolling selection
-remains BH25b.
+frequency. BH25a selected the 4 m broad-hill amplitude and BH25b1 selected
+0.6 m rolling amplitude.
 
 Focused source automation covers signed rolling contribution, lower-pocket
 preservation, repeatable fixed seed-418/419 30/45/70 m profile samples, finite
-slope calculations, and sub-centimetre probes on both terrain-patch axes. These
-fixtures have not been built or executed. BH11b adds the reusable rolling
-amplitude sweep harness; BH25b runs it with freshly compiled code and selects
-the smallest accepted trial. Rendered traversal and connected-gentle-route
-inspection remain for BH26.
+slope calculations, and sub-centimetre probes on both terrain-patch axes. The
+source automation remains for BH26. BH11b adds the reusable rolling amplitude
+sweep harness; BH25b1 ran it with fresh source and selected the smallest
+accepted trial. Rendered traversal and connected-gentle-route inspection remain
+for BH26.
 
 ### BH11b rolling profile sweep harness
 
@@ -788,11 +788,13 @@ commandlet accepts a finite commandlet-only `MeadowRollingAmplitudeM` override
 from 0.6 to 1.8 m and resets it after sampling; an absent override leaves the
 current preview defaults unchanged. `Scripts/Tests/World/BiomeRollingProfiles.ps1`
 runs separate 0.6/1.2/1.8 m CSV trials, validates the fixed fixture, finite
-height/slope outputs, dry Meadows weights and adjacent-patch seam deltas, and
-requires a per-trial log marker so a stale binary is rejected. It does not
-build the Editor or select the final amplitude. BH25b must run it with freshly
-compiled source and record the measured profile ranges/slopes and selected
-setting. No build or trial was run for BH11b.
+height/slope outputs, positive continuous Meadows influence and adjacent-patch
+seams, and requires a per-trial log marker so a stale binary is rejected. Four
+confirmed seed-419 river controls remain wet at Z=0, are retained in raw CSVs,
+and are excluded from dry-land summaries; any other wet sample fails the run.
+BH25b1 ran the fresh-source sweep and selected 0.6 m. Measured ranges, slopes,
+and BH01 fixed-site deltas are recorded in the Meadows plan. Rendered traversal
+and connected-gentle-route inspection remain for BH26.
 
 ## BH12a Meadows floor-detail integration
 
@@ -840,10 +842,10 @@ heights, final regional height/weights/water and collision-triangle slope.
 `BiomeWoodProfiles.ps1` validates the fixed sites, bounds, numeric rows and exact
 Elderwood/Tundra candidate parity, then requires an effective-trial marker so a
 stale binary fails visibly. `-ValidateOnly` validates the fixture without an
-Editor launch. No build or sweep was run for BH13b; BH25b runs each low/nominal/
-high layer matrix with freshly compiled source, records the measured profiles
-and selects the smallest accepted amplitudes. Rendered biome-transition and
-terrain acceptance remains in BH26.
+Editor launch. No build or sweep was run for BH13b; BH25b2 runs each
+low/nominal/high layer matrix with freshly compiled source, records the measured
+profiles and selects the smallest accepted amplitudes. Rendered
+biome-transition and terrain acceptance remains in BH26.
 
 ### BH14a Shimmering Lakes source integration
 

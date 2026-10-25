@@ -3679,7 +3679,7 @@ The file uses one `Name=value` per line, with optional blank lines and full-line
 | `ReliefLocalScaleKm` | 0.03 | Staged shared local relief scale, 0.01–0.05 km. |
 | `MeadowHillScaleM` / `MeadowHillAmplitudeM` | 160 / 4 | BH25a selected 4 m from fresh 4/6/8 m profiles; 100–250 m / preview bounds 4–10 m. |
 | `MeadowShoulderHeightM` / `MeadowShoulderCompressionScaleM` | 10 / 30 | Meadows upper shoulder begins at 6–16 m and approaches a bounded asymptote with a 10–60 m scale. |
-| `MeadowRollingScaleM` / `MeadowRollingAmplitudeM` | 45 / 1.2 | Middle Meadow relief; 30–70 m / 0.6–2 m. |
+| `MeadowRollingScaleM` / `MeadowRollingAmplitudeM` | 45 / 0.6 | BH25b1 selected 0.6 m from fresh 0.6/1.2/1.8 m profile trials; 30–70 m / preview bounds 0.6–2 m. |
 | `MeadowFloorScaleM` / `MeadowFloorAmplitudeM` | 12 / 0.2 | Meadow floor detail; 8–20 m / 0.1–0.35 m. |
 | `StarterRadiusKm` | 0.35 | Inclusive Meadows/Ocean-only radius. |
 | `ElderwoodMinimumKm` | 0.75 | Forest eligibility minimum. |
@@ -3734,8 +3734,8 @@ start-relative X/Y collision-patch seam controls derived from the BH01 output.
 The runner exports final heights and collision-triangle slopes for 0.6/1.2/1.8 m
 rolling trials, rejects binaries without the effective-amplitude log marker,
 and checks adjacent patch coordinates and seam continuity. It does not build
-or select production tuning. BH25b runs the sweep with freshly compiled source
-and records measured profiles and the chosen rolling amplitude; rendered
+the Editor. BH25b1 ran the sweep with fresh source and selected 0.6 m; measured
+profiles and BH01 fixed-site results are recorded in the Meadows plan. Rendered
 connected-route traversal remains part of BH26.
 
 ### Meadows floor-detail profile sweep
@@ -3767,7 +3767,7 @@ samples without launching Unreal. The runner makes nine one-layer-at-a-time
 trials across broad 4/9/16 m, middle 0.6/2.4/4 m, and local 0.1/0.4/1 m
 amplitudes. It records raw relief and candidate heights, final regional height,
 biome/water fields, and collision-triangle slopes, and requires an effective-
-trial log marker to reject a stale binary. BH25b must run the sweep with freshly
+trial log marker to reject a stale binary. BH25b2 must run the sweep with freshly
 compiled source, compare Elderwood/Tundra profiles and transition blends,
 confirm identical candidates, and record measured ranges plus selected values.
 Rendered biome appearance and profile acceptance remain in BH26.
