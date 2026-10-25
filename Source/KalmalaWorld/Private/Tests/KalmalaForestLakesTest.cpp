@@ -84,7 +84,7 @@ bool FKalmalaForestLakesShouldersTest::RunTest(const FString& Parameters)
                 <= FKalmalaForestLayout::CombineForestAcceptanceProbability(FloraProbability, Tree.ForestFactor));
 
         const FKalmalaRegionalSample Regional = FKalmalaRegionalGeneration::Sample(Config, Position);
-        TestEqual(TEXT("Lakes root uses the shared final regional surface"), Tree.Location.Z, Regional.Height);
+        TestEqual(TEXT("Lakes root uses the shared final regional surface"), Tree.Location.Z, static_cast<double>(Regional.Height));
         FKalmalaOceanSample Ocean;
         if (!Regional.bHasWater) Ocean = FKalmalaOceanSampler::Sample(Config, Position, GridOrigin);
         TestTrue(TEXT("Final regional and collision-lattice samples prove dry ground"),

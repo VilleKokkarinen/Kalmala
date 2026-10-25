@@ -450,14 +450,15 @@ sites, new gameplay effects, new ground-cover assets, network fields/RPCs, or
 save migrations as part of this goal.
 
 **Implementation trial defaults selected for this plan:** Shared relief scales
-start at 1,000 m / 150 m / 30 m (broad / middle / local). Meadows starts at
-160 m / 6 m hills, 45 m / 1.2 m rolling relief, and 12 m / 0.2 m floor detail.
-Tundra forest density starts at 0.85 of comparable Elderwood density. These are
-agent-selected experiment settings, not prior user-approved production values;
-compare low / nominal / high documented amplitudes one layer at a time (Meadows
-hills: 4 / 6 / 8 m; rolling relief: 0.6 / 1.2 / 1.8 m; floor detail: 0.1 / 0.2 /
-0.3 m), then retain the smallest values that satisfy measured acceptance. Do
-not maximize layers together or leave tuning as a later user decision.
+start at 1,000 m / 150 m / 30 m (broad / middle / local). Meadows uses the
+BH25a-selected 160 m / 4 m broad hills; rolling relief and floor detail remain
+provisional at 45 m / 1.2 m and 12 m / 0.2 m. Tundra forest density starts at
+0.85 of comparable Elderwood density. Remaining experiment settings are agent-
+selected, not prior user-approved production values; compare low / nominal /
+high documented amplitudes one layer at a time (rolling relief: 0.6 / 1.2 /
+1.8 m; floor detail: 0.1 / 0.2 / 0.3 m), then retain the smallest values that
+satisfy measured acceptance. Do not maximize layers together or leave tuning as
+a later user decision.
 
 **Acceptance direction:** Candidate heights blend through existing continuous
 biome weights; labels and ecological fields do not move. Meadows should show
@@ -547,8 +548,9 @@ run for this goal and may exceed one turn.
   - [x] **BH09 — Blend candidate heights continuously.** Use normalized existing
     land-biome weights and continuous coast attenuation; avoid hard label
     switches, double-applied detail, and changes to classifier inputs/bands.
-  - [x] **BH10 — Shape Meadows hills.** Hill source behavior and sweep harness
-    are complete; the final amplitude selection remains in BH25a.
+  - [x] **BH10 — Shape Meadows hills.** Hill source behavior, sweep harness,
+    and fresh-source 4 m amplitude selection are complete; rendered acceptance
+    remains in BH26.
     - [x] **BH10a — Integrate the hill layer and shoulder curve.** Add bounded,
       deterministic broad Meadows hills with smooth upper-height compression;
       retain the lower source shape and continuous biome/coast blend.
@@ -730,10 +732,9 @@ run for this goal and may exceed one turn.
       mechanics, RPCs or replicated fields.
   - [ ] **BH25 — Finalize tuning and contracts.** Keep open until BH25a–BH25e
     are complete.
-    - [ ] **BH25a — Run BH10b1 Meadows hill sweep.** With freshly compiled
-      source, run BH10b1 at 4/6/8 m; compare BH01 fixed-site baselines and
-      100–250 m transect height/slope profiles, select the smallest accepted
-      amplitude, and record measurements.
+    - [x] **BH25a — Run BH10b1 Meadows hill sweep.** Fresh-source 4/6/8 m
+      trials were compared with all 28 BH01 fixed sites and eight 100–250 m
+      transects; 4 m was selected and measured ranges/slopes were recorded.
     - [ ] **BH25b — Run rolling/Elderwood trials and finalize tuning/contracts.**
       With freshly compiled source, run BH11b at 0.6/1.2/1.8 m; compare BH01
       profiles and slopes, select the smallest accepted value, record results,

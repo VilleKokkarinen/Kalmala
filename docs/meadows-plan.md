@@ -1,9 +1,10 @@
 # Meadows terrain and biome plan
 
-Status: active implementation plan, 2026-10-24. BH10a/BH11a implement provisional
+Status: active implementation plan, updated 2026-10-25. BH25a selected the
+4 m broad-hill amplitude from fresh-source profiles. BH10a/BH11a implement the
 Meadows hill and rolling layers, and BH12a adds a provisional floor-detail layer.
-BH10b1/BH11b/BH12b provide profile harnesses; fresh-source tuning is in
-BH25a–BH25c and rendered acceptance is in BH26. No gameplay, forest or
+BH10b1/BH11b/BH12b provide profile harnesses; remaining fresh-source tuning is
+in BH25b–BH25c and rendered acceptance is in BH26. No gameplay, forest or
 presentation changes are implemented by this document. Execution is tracked in
 `BACKLOG.md` before Monster Population under the combined biome-height goal.
 
@@ -96,12 +97,43 @@ Compare the low, middle and high settings separately with fixed seeds.
 | Proposed named control | Initial trial | Range to compare | Purpose |
 | --- | --- | --- | --- |
 | `MeadowHillScale` | 160 m | 100–250 m | Broad inclines and hollows visible across several patches. |
-| `MeadowHillAmplitude` | 6 m | 4–10 m | A meaningful skyline and sustained uphill/downhill travel. |
+| `MeadowHillAmplitude` | 4 m selected (BH25a) | 4/6/8 m swept; preview accepts 4–10 m | Smallest tested amplitude with multi-metre 100–250 m profiles. |
 | `MeadowShoulderHeight` / `MeadowShoulderCompressionScale` | 10 m / 30 m | 6–16 m / 10–60 m | Preserve lower pockets while gradually softening higher Meadows shoulders. |
 | `MeadowRollingScale` | 45 m | 30–70 m | Rounded shoulders, smaller valleys and grove undulations. |
 | `MeadowRollingAmplitude` | 1.2 m | 0.6–2 m | Relief readable near the player without continuous steep bumps. |
 | `MeadowFloorScale` | 12 m | 8–20 m | Gentle forest-floor variation; avoid sub-lattice noise. |
 | `MeadowFloorAmplitude` | 0.2 m | 0.1–0.35 m | Small rises and depressions beneath vegetation. |
+
+### BH25a fresh-source hill measurements
+
+The Editor target was freshly compiled from the selected 4 m source setting.
+The sweep then overrode the amplitude to 4, 6 and 8 m and exported all 88
+samples (eight seed-418/419 profiles, 11 points each, 25 m spacing). The table
+reports the minimum, mean and maximum of the eight final-height ranges and the
+collision-triangle slope distribution across all 88 samples.
+
+| Hill amplitude | Profile range min / mean / max | Slope p50 / p90 / p95 / max | Samples <15° / 15–25° / >25° |
+| --- | --- | --- | --- |
+| 4 m | 2.61 / 5.36 / 12.01 m | 2.38 / 13.08 / 16.73 / 30.40° | 90.9% / 4.5% / 4.5% |
+| 6 m | 2.68 / 5.75 / 12.83 m | 3.13 / 12.74 / 16.48 / 30.79° | 89.8% / 5.7% / 4.5% |
+| 8 m | 2.78 / 6.31 / 13.67 m | 3.61 / 13.23 / 16.23 / 32.12° | 90.9% / 4.5% / 4.5% |
+
+The 4 m trial gives at least 3.48 m of variation in seven of eight profiles;
+the remaining outer north–south profile spans 2.61 m. Its 90th-percentile
+slope is 13.08°, while 4 of 88 samples exceed 25° (including a short paired
+shoulder in Starter419NS). Higher amplitudes add mean range but do not reduce
+the steep-slope tail. BH25a therefore selected 4 m as the smallest accepted
+numeric trial; BH26 must inspect the steep shoulders and connected gentler
+routes in the rendered world.
+
+All 28 BH01 fixed-site coordinates were sampled at each trial amplitude. At
+the four Starter Meadows and outer dry Meadows sites, 4 m differs from BH01 by
+at most 111.7 cm in final height (85.1 cm mean absolute difference) and 2.58°
+in collision slope; corresponding maxima are 188.5 cm / 2.78° at 6 m and
+263.3 cm / 2.98° at 8 m. The 17 fixed points with zero Meadows weight are
+identical across the three overrides. Other weighted fixed points include
+later Elderwood/Lakes shaping, so their full BH01 deltas are not attributed to
+the hill amplitude.
 
 Prefer broad form first, then rolling relief, then floor detail. Do not maximize
 all amplitudes at once. Reject candidates producing noisy corrugations or
@@ -207,7 +239,9 @@ shows a separately justified need.
 For ordinary increments use source inspection, parameter parsing, focused
 sampler checks and small preview exports as appropriate. Reserve full builds
 and complete prescribed verification for the final implementation increment.
-No Unreal build, preview export or gameplay acceptance was run for this plan.
+BH25a ran a fresh targeted Editor build and numeric-only 4/6/8 m commandlet
+profiles; it did not run rendered preview or gameplay acceptance. BH26 retains
+the full integrated and rendered gate.
 
 - Compare baseline and proposed local height profiles at identical positions.
   Across representative 100–250 m dry Meadows transects, seek several metres

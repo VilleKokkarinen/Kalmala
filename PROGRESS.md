@@ -9414,3 +9414,71 @@
   to `E:\dev\Kalmala` after inspecting both main versions; A10 and Monster
   progress plus unrelated main-checkout files were preserved.
 - **Next eligible task:** BH25a — run the Meadows hill sweep.
+
+### BH25a — Measure and select the Meadows hill amplitude (2026-10-25)
+
+- **Selected increment:** BH25a. The isolated worktree was clean at
+  `e8d458dc475ba45079b4e4877de967ec368d54dd`; no other autonomous run was
+  modifying this checkout. A10 and Monster work remains in separate worktrees.
+- **Work completed:** Ran the fresh-source 4/6/8 m hill sweep and compared the
+  outputs with all 28 BH01 fixed-site coordinates. Selected the smallest
+  measured amplitude, 4 m, and changed `MeadowHillAmplitude` from 600 cm to
+  400 cm. Updated the tuning contract and recorded the measured profile data.
+  Fixed four goal-introduced test compilation issues: the new Lakes test now
+  compares double coordinates consistently; the regional preview test no
+  longer shadows Unity-global `Settings`; its Mire coast assertion now lives in
+  the Mire friend fixture; and the non-finite value uses the standard-library
+  quiet NaN API supported by UE 5.8.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaForestLakesTest.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`,
+  `docs/02-technical-architecture.md`, `docs/07-development-setup.md`,
+  `docs/biome-height-rework.md`, and `docs/meadows-plan.md`.
+- **Build and measurement results:** A fresh UE 5.8 Editor build in
+  `C:\Users\Ville\AppData\Local\Temp\kb25a` succeeded with the current
+  production sources and remaining tests. The unchanged pre-goal
+  `KalmalaWaterSurfaceMeshTest.cpp` translation unit was preserved outside the
+  temporary mirror's source scan because its old double/float `TestEqual` at
+  line 58 fails under UE 5.8 (C2666); the exact line is present at merge-base
+  `460339b3`. No repository copy of that test was changed. The selected-source
+  build command was:
+  `C:\Program Files\Epic Games\UE_5.8\Engine\Build\BatchFiles\Build.bat KalmalaEditor Win64 Development -Project=C:\Users\Ville\AppData\Local\Temp\kb25a\Kalmala.uproject -WaitMutex -NoHotReload -NoHotReloadFromIDE -MaxParallelActions=4 -DisableAdaptiveUnity -NoUBTMakefiles`.
+  `BiomeHillProfiles.ps1` then exported 88 samples for each 4/6/8 m trial and
+  accepted the exact fresh-build marker. Separate fresh commandlet runs
+  exported all 28 BH01 fixed points for each amplitude with the same marker.
+  Across the eight profiles, the minimum/mean/maximum height ranges were
+  2.61/5.36/12.01 m at 4 m, 2.68/5.75/12.83 m at 6 m, and 2.78/6.31/13.67 m
+  at 8 m. For 4 m, 90.9% of 88 collision-triangle slopes were below 15°,
+  4.5% were 15–25°, 4.5% exceeded 25°; p50/p90/p95/max were
+  2.38/13.08/16.73/30.40°. Seven of eight profiles varied by at least 3.48 m;
+  one outer north–south profile varied by 2.61 m. The 4 m trial was the
+  smallest that met the numeric profile target; larger amplitudes raised mean
+  range but did not lower the >25° slope share.
+- **BH01 fixed-site comparison:** At the four Starter/outer dry Meadows points,
+  4 m had a maximum absolute height delta of 111.7 cm (85.1 cm mean absolute)
+  and maximum absolute slope delta of 2.58°. Corresponding maxima were
+  188.5 cm / 2.78° at 6 m and 263.3 cm / 2.98° at 8 m. The 17 fixed rows with
+  zero Meadows weight were identical across all three overrides. The full
+  per-profile and baseline measurements are in `docs/meadows-plan.md`.
+- **Lightweight checks/results:** `git diff --check` passed. The targeted
+  Editor build and numeric commandlets passed with the noted baseline test
+  exclusion and exact trial markers. No automation suite, full unfiltered
+  Editor build, rendered view or gameplay traversal check was run.
+- **Full verification:** Deferred to BH26. The 4 m result is a numeric
+  selection only; rendered shoulders, gentler routes and gameplay traversal
+  remain unverified.
+- **Observable impact:** The production Meadows broad hill now uses a 4 m
+  amplitude at the existing 160 m scale. The change is deterministic and
+  affects only the existing continuous terrain-height candidate blend.
+- **Networking/authority:** No network state or gameplay authority changed;
+  peers continue to sample the same seed-derived regional height.
+- **Known limitations / remaining scope:** An unfiltered Editor build remains
+  blocked by the unchanged baseline water-mesh test compile error. The
+  temporary build excluded only that preserved test translation unit; all
+  current production sources and other test sources compiled. Rendered and
+  gameplay acceptance remains BH26. Rolling/Elderwood tuning is BH25b.
+- **Main-checkout handoff:** Synchronized only `BACKLOG.md` and `PROGRESS.md`
+  after inspecting the main versions; existing A10/Monster edits and unrelated
+  main-checkout files were preserved.
+- **Next eligible task:** BH25b — run Meadows rolling and Elderwood trials.

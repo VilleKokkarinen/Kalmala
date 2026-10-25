@@ -670,27 +670,28 @@ selection stays authoritative throughout.
 ## BH10a Meadows hill layer and shoulder curve
 
 The Meadows candidate now adds an independent, seed-derived hill signal in
-absolute world XY. Its provisional `MeadowHillScale=16000 cm` and
-`MeadowHillAmplitude=600 cm` use a salt distinct from the shared relief stack.
-The broad hill signal replaces the previous 40 cm Meadows detail term, then the
+absolute world XY. `MeadowHillScale=16000 cm` was held fixed while BH25a
+selected `MeadowHillAmplitude=400 cm` from fresh-source 4/6/8 m trials. The
+signal uses a salt distinct from the shared relief stack. The broad hill signal
+replaces the previous 40 cm Meadows detail term, then the
 candidate applies a smooth exponential upper-shoulder compression above `MeadowShoulderHeight=1000
 cm` with `MeadowShoulderCompressionScale=3000 cm`. The curve is monotonic, is
 bounded by the finite asymptote at threshold plus scale, and leaves lower candidates
 unchanged. The existing continuous biome/coast blend and later coast/river
-passes remain in place. These are provisional defaults, not an accepted tuning
-result.
+passes remain in place. The selected hill amplitude is numerical only;
+rendered traversal acceptance remains BH26.
 
 Focused source coverage now checks candidate output, lower-pocket preservation,
 monotonic bounded compression, and positive/negative hill signal across a 500 m
 neighborhood around the seed-418 outer dry Meadows baseline. The BH01 numeric
 artifact contains fixed-site points, not 100–250 m Meadow transects. BH10b1
-adds fixed seed-418/419 transects and a numeric amplitude sweep runner. BH25
-runs the 4/6/8 m trials with freshly compiled code, compares these profiles
-with the BH01 fixed-site baselines, and records the selected amplitude and
-measured ranges. A pre-BH10a binary cannot measure these trials; the runner
-detects missing trial logs instead of accepting stale output. No build,
-automation, or rendered acceptance was run for BH10a; full integrated
-verification remains BH26.
+adds fixed seed-418/419 transects and a numeric amplitude sweep runner. BH25a
+ran the 4/6/8 m trials with freshly compiled code, compared eight profiles and
+all BH01 fixed sites, and selected 4 m; measurements are recorded in
+[`meadows-plan.md`](meadows-plan.md). A pre-BH10a binary cannot measure these
+trials; the runner detects missing trial logs instead of accepting stale
+output. Numeric build and commandlet results do not replace BH26 rendered
+traversal acceptance.
 
 ### BH10b1 reproducible profile sweep harness
 
@@ -702,9 +703,9 @@ for every point. `Scripts/Tests/World/BiomeHillProfiles.ps1` runs separate
 4/6/8 m amplitude trials and records eight per-transect height ranges and
 maximum triangle slopes for each trial. Its required effective-amplitude log
 marker rejects binaries predating the sampler override. It performs no build
-and selects no production tuning; BH25 must run it with freshly compiled code,
-compare to the fixed-site `BiomeBaseline418419.csv`, and record the accepted
-amplitude and measurements in BH25a.
+and selects no production tuning. BH25a ran it with a fresh Editor build,
+compared to the fixed-site `BiomeBaseline418419.csv`, and selected the measured
+4 m hill amplitude.
 
 ## BH07 staged preview controls
 
@@ -718,7 +719,7 @@ non-finite or out-of-range inputs. Bounds are the design ranges, inclusive:
 | `ReliefBroadScaleKm` | 1.0 km | 0.5–1.5 km |
 | `ReliefMiddleScaleKm` | 0.15 km | 0.08–0.25 km |
 | `ReliefLocalScaleKm` | 0.03 km | 0.01–0.05 km |
-| `MeadowHillScaleM` / `MeadowHillAmplitudeM` | 160 m / 6 m | 100–250 m / 4–10 m |
+| `MeadowHillScaleM` / `MeadowHillAmplitudeM` | 160 m / 4 m selected in BH25a | 100–250 m / 4–10 m |
 | `MeadowShoulderHeightM` / `MeadowShoulderCompressionScaleM` | 10 m / 30 m | 6–16 m / 10–60 m |
 | `MeadowRollingScaleM` / `MeadowRollingAmplitudeM` | 45 m / 1.2 m | 30–70 m / 0.6–2 m |
 | `MeadowFloorScaleM` / `MeadowFloorAmplitudeM` | 12 m / 0.2 m | 8–20 m / 0.1–0.35 m |
@@ -766,7 +767,8 @@ upper-shoulder compression. It uses absolute world coordinates and a dedicated
 domain salt; it does not consume or alter the ecological Elevation, biome
 weights, or the shared 150 m relief sample. The rolling layer can therefore
 shape 30–70 m walk profiles without changing biome identity or floor-detail
-frequency. The 6 m broad-hill amplitude is still provisional pending BH25a.
+frequency. BH25a selected the 4 m broad-hill amplitude; rolling selection
+remains BH25b.
 
 Focused source automation covers signed rolling contribution, lower-pocket
 preservation, repeatable fixed seed-418/419 30/45/70 m profile samples, finite

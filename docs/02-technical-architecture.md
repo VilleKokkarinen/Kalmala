@@ -325,14 +325,15 @@ ecological fields and eligibility bands remain classifier inputs and do not
 select a hard height switch.
 
 The Meadows candidate adds separate seed-derived absolute-world hill and
-rolling signals at provisional 160 m / 6 m and 45 m / 1.2 m settings. BH12a
-adds a third independently seeded 12 m / 0.2 m floor-detail signal. These
-layers enter the smooth, monotonic shoulder curve; candidates below 10 m remain
-unchanged and the curve approaches a 40 m upper bound. The broad layer replaces
-the previous 40 cm Meadows detail term. All amplitudes remain provisional:
-BH25a/BH25b/BH25c/BH25d run fresh-source profile sweeps and select measured settings.
-BH26 retains rendered gentler-route and under-vegetation floor inspection; no
-floor aliasing or visual result is claimed before that gate.
+rolling signals. BH25a selected a 4 m hill amplitude with the 160 m hill scale
+held fixed; rolling remains provisional at 45 m / 1.2 m. BH12a adds a third
+independently seeded 12 m / 0.2 m floor-detail signal. These layers enter the
+smooth, monotonic shoulder curve; candidates below 10 m remain unchanged and
+the curve approaches a 40 m upper bound. The broad layer replaces the previous
+40 cm Meadows detail term. Rolling, floor detail, and later biome settings
+remain provisional pending BH25b/BH25c/BH25d. BH26 retains rendered
+gentler-route and under-vegetation inspection; numeric profiles do not claim
+rendered traversal or floor aliasing acceptance.
 
 Elderwood and Tundra share the same uncompressed candidate over the absolute-
 world 1,000 / 150 / 30 m relief stack, plus its bounded legacy detail. The

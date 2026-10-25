@@ -7,6 +7,7 @@
 #include "KalmalaTerrainHeightSampler.h"
 #include "KalmalaWorldPlayerStartResolver.h"
 #include "KalmalaGenerationPreview.h"
+#include <limits>
 #include "Misc/AutomationTest.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaTerrainPreviewControlTest,
@@ -14,52 +15,52 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaTerrainPreviewControlTest,
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 bool FKalmalaTerrainPreviewControlTest::RunTest(const FString& Parameters)
 {
-    FKalmalaGenerationPreviewSettings Settings;
-    TestTrue(TEXT("Documented default terrain controls are valid"), Settings.HasValidReliefControls());
-    TestEqual(TEXT("Broad relief preview scale defaults to tuning"), Settings.ReliefBroadScale,
+    FKalmalaGenerationPreviewSettings PreviewControls;
+    TestTrue(TEXT("Documented default terrain controls are valid"), PreviewControls.HasValidReliefControls());
+    TestEqual(TEXT("Broad relief preview scale defaults to tuning"), PreviewControls.ReliefBroadScale,
         FKalmalaRegionalTuning::ReliefBroadScale);
-    TestEqual(TEXT("Meadow hill amplitude defaults to tuning"), Settings.MeadowHillAmplitude,
+    TestEqual(TEXT("Meadow hill amplitude defaults to tuning"), PreviewControls.MeadowHillAmplitude,
         FKalmalaRegionalTuning::MeadowHillAmplitude);
-    TestEqual(TEXT("Meadow shoulder threshold defaults to tuning"), Settings.MeadowShoulderHeight,
+    TestEqual(TEXT("Meadow shoulder threshold defaults to tuning"), PreviewControls.MeadowShoulderHeight,
         FKalmalaRegionalTuning::MeadowShoulderHeight);
-    TestEqual(TEXT("Meadow shoulder scale defaults to tuning"), Settings.MeadowShoulderCompressionScale,
+    TestEqual(TEXT("Meadow shoulder scale defaults to tuning"), PreviewControls.MeadowShoulderCompressionScale,
         FKalmalaRegionalTuning::MeadowShoulderCompressionScale);
-    TestEqual(TEXT("Elderwood broad amplitude defaults to tuning"), Settings.ElderwoodBroadAmplitude,
+    TestEqual(TEXT("Elderwood broad amplitude defaults to tuning"), PreviewControls.ElderwoodBroadAmplitude,
         FKalmalaRegionalTuning::ElderwoodBroadAmplitude);
-    TestEqual(TEXT("Elderwood middle amplitude defaults to tuning"), Settings.ElderwoodMiddleAmplitude,
+    TestEqual(TEXT("Elderwood middle amplitude defaults to tuning"), PreviewControls.ElderwoodMiddleAmplitude,
         FKalmalaRegionalTuning::ElderwoodMiddleAmplitude);
-    TestEqual(TEXT("Elderwood local amplitude defaults to tuning"), Settings.ElderwoodLocalAmplitude,
+    TestEqual(TEXT("Elderwood local amplitude defaults to tuning"), PreviewControls.ElderwoodLocalAmplitude,
         FKalmalaRegionalTuning::ElderwoodLocalAmplitude);
-    TestEqual(TEXT("Shimmering Lakes Meadow share defaults to tuning"), Settings.ShimmeringLakesMeadowShare,
+    TestEqual(TEXT("Shimmering Lakes Meadow share defaults to tuning"), PreviewControls.ShimmeringLakesMeadowShare,
         FKalmalaRegionalTuning::ShimmeringLakesMeadowShare);
-    TestEqual(TEXT("Shimmering Lakes lowland floor defaults to tuning"), Settings.ShimmeringLakesLowlandFloor,
+    TestEqual(TEXT("Shimmering Lakes lowland floor defaults to tuning"), PreviewControls.ShimmeringLakesLowlandFloor,
         FKalmalaRegionalTuning::ShimmeringLakesLowlandFloor);
-    TestEqual(TEXT("Shimmering Lakes lowland ceiling defaults to tuning"), Settings.ShimmeringLakesLowlandCeiling,
+    TestEqual(TEXT("Shimmering Lakes lowland ceiling defaults to tuning"), PreviewControls.ShimmeringLakesLowlandCeiling,
         FKalmalaRegionalTuning::ShimmeringLakesLowlandCeiling);
-    TestEqual(TEXT("Shimmering Lakes lowland compression defaults to tuning"), Settings.ShimmeringLakesLowlandCompression,
+    TestEqual(TEXT("Shimmering Lakes lowland compression defaults to tuning"), PreviewControls.ShimmeringLakesLowlandCompression,
         FKalmalaRegionalTuning::ShimmeringLakesLowlandCompression);
-    TestEqual(TEXT("Mountain highland threshold defaults to tuning"), Settings.MountainHighlandThreshold,
+    TestEqual(TEXT("Mountain highland threshold defaults to tuning"), PreviewControls.MountainHighlandThreshold,
         FKalmalaRegionalTuning::MountainHighlandThreshold);
-    TestEqual(TEXT("Mountain highland blend range defaults to tuning"), Settings.MountainHighlandBlendRange,
+    TestEqual(TEXT("Mountain highland blend range defaults to tuning"), PreviewControls.MountainHighlandBlendRange,
         FKalmalaRegionalTuning::MountainHighlandBlendRange);
-    TestEqual(TEXT("Mountain highland gain defaults to tuning"), Settings.MountainHighlandGain,
+    TestEqual(TEXT("Mountain highland gain defaults to tuning"), PreviewControls.MountainHighlandGain,
         FKalmalaRegionalTuning::MountainHighlandGain);
-    TestEqual(TEXT("Mountain detail amplitude defaults to tuning"), Settings.MountainDetailAmplitude,
+    TestEqual(TEXT("Mountain detail amplitude defaults to tuning"), PreviewControls.MountainDetailAmplitude,
         FKalmalaRegionalTuning::MountainDetailAmplitude);
 
-    auto CheckRange = [this, &Settings](double FKalmalaGenerationPreviewSettings::*Control,
+    auto CheckRange = [this, &PreviewControls](double FKalmalaGenerationPreviewSettings::*Control,
         const double Minimum, const double Maximum, const TCHAR* Label)
     {
-        Settings = FKalmalaGenerationPreviewSettings{};
-        Settings.*Control = Minimum;
-        TestTrue(FString::Printf(TEXT("%s accepts its inclusive minimum"), Label), Settings.HasValidReliefControls());
-        Settings.*Control = Maximum;
-        TestTrue(FString::Printf(TEXT("%s accepts its inclusive maximum"), Label), Settings.HasValidReliefControls());
-        Settings.*Control = Minimum - 0.01;
-        TestFalse(FString::Printf(TEXT("%s rejects below its minimum"), Label), Settings.HasValidReliefControls());
-        Settings = FKalmalaGenerationPreviewSettings{};
-        Settings.*Control = Maximum + 0.01;
-        TestFalse(FString::Printf(TEXT("%s rejects above its maximum"), Label), Settings.HasValidReliefControls());
+        PreviewControls = FKalmalaGenerationPreviewSettings{};
+        PreviewControls.*Control = Minimum;
+        TestTrue(FString::Printf(TEXT("%s accepts its inclusive minimum"), Label), PreviewControls.HasValidReliefControls());
+        PreviewControls.*Control = Maximum;
+        TestTrue(FString::Printf(TEXT("%s accepts its inclusive maximum"), Label), PreviewControls.HasValidReliefControls());
+        PreviewControls.*Control = Minimum - 0.01;
+        TestFalse(FString::Printf(TEXT("%s rejects below its minimum"), Label), PreviewControls.HasValidReliefControls());
+        PreviewControls = FKalmalaGenerationPreviewSettings{};
+        PreviewControls.*Control = Maximum + 0.01;
+        TestFalse(FString::Printf(TEXT("%s rejects above its maximum"), Label), PreviewControls.HasValidReliefControls());
     };
 
     CheckRange(&FKalmalaGenerationPreviewSettings::ReliefBroadScale, 50000.0, 150000.0, TEXT("Broad scale"));
@@ -87,23 +88,20 @@ bool FKalmalaTerrainPreviewControlTest::RunTest(const FString& Parameters)
     CheckRange(&FKalmalaGenerationPreviewSettings::MountainHighlandBlendRange, 500.0, 2000.0, TEXT("Mountain highland blend range"));
     CheckRange(&FKalmalaGenerationPreviewSettings::MountainHighlandGain, 0.1, 0.8, TEXT("Mountain highland gain"));
     CheckRange(&FKalmalaGenerationPreviewSettings::MountainDetailAmplitude, 40.0, 160.0, TEXT("Mountain detail amplitude"));
-    Settings = FKalmalaGenerationPreviewSettings{};
-    Settings.ShimmeringLakesLowlandFloor = 500.0;
-    Settings.ShimmeringLakesLowlandCeiling = 500.0;
-    TestFalse(TEXT("Lakes lowland ceiling must stay above its floor"), Settings.HasValidReliefControls());
+    PreviewControls = FKalmalaGenerationPreviewSettings{};
+    PreviewControls.ShimmeringLakesLowlandFloor = 500.0;
+    PreviewControls.ShimmeringLakesLowlandCeiling = 500.0;
+    TestFalse(TEXT("Lakes lowland ceiling must stay above its floor"), PreviewControls.HasValidReliefControls());
 
-    Settings = FKalmalaGenerationPreviewSettings{};
-    Settings.MireTargetHeight = 200.0;
-    Settings.MireCompressionScale = 300.0;
-    Settings.MireResidualDetailAmplitude = 60.0;
-    TestTrue(TEXT("Lowest Mire target and scale with highest residual remain valid"), Settings.HasValidReliefControls());
-    TestTrue(TEXT("Lowest bounded Mire controls retain positive coast clearance"),
-        FKalmalaRegionalGeneration::ShapeMire(0.0, -1.0, Settings.MireTargetHeight,
-            Settings.MireCompressionScale, Settings.MireResidualDetailAmplitude) > 0.0);
+    PreviewControls = FKalmalaGenerationPreviewSettings{};
+    PreviewControls.MireTargetHeight = 200.0;
+    PreviewControls.MireCompressionScale = 300.0;
+    PreviewControls.MireResidualDetailAmplitude = 60.0;
+    TestTrue(TEXT("Lowest Mire target and scale with highest residual remain valid"), PreviewControls.HasValidReliefControls());
 
-    Settings = FKalmalaGenerationPreviewSettings{};
-    Settings.ReliefBroadScale = TNumericLimits<double>::QuietNaN();
-    TestFalse(TEXT("Non-finite terrain controls are rejected"), Settings.HasValidReliefControls());
+    PreviewControls = FKalmalaGenerationPreviewSettings{};
+    PreviewControls.ReliefBroadScale = std::numeric_limits<double>::quiet_NaN();
+    TestFalse(TEXT("Non-finite terrain controls are rejected"), PreviewControls.HasValidReliefControls());
     return true;
 }
 
@@ -221,6 +219,8 @@ bool FKalmalaMossyMireShapeTest::RunTest(const FString& Parameters)
     using G = FKalmalaRegionalGeneration;
     using T = FKalmalaRegionalTuning;
     const FKalmalaGenerationPreviewSettings Preview;
+    TestTrue(TEXT("Lowest valid Mire controls retain positive coast clearance"),
+        G::ShapeMire(0.0, -1.0, 200.0, 300.0, 60.0) > 0.0);
     TestEqual(TEXT("Mire target defaults to tuning"), Preview.MireTargetHeight, T::MireTargetHeight);
     TestEqual(TEXT("Mire compression scale defaults to tuning"), Preview.MireCompressionScale, T::MireCompressionScale);
     TestEqual(TEXT("Mire residual detail defaults to tuning"),
