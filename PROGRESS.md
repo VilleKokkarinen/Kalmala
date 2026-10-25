@@ -10747,3 +10747,97 @@
   final A10 verification remain open.
 - **Next eligible A10 item audit:** Amethyst (`Amethyst`), next in A9 backlog
   order.
+
+## Run 2026-10-25 — A10 per-item audit: A9 Amethyst
+
+- **Selected increment and item registration:** audited only `Amethyst`, next
+  in A9 backlog order. Schema-16 catalogue registration includes the raw gem
+  through `items/materials/gems.json`, its accessory profile in
+  `items/accessories.json`, and its Forge recipe in
+  `recipes/stations/a9-gear.json`. The raw gem stacks to 20 at 0.1 kg and has
+  no equipment profile, attack, upgrade, direct-craft recipe, or use effect.
+  Its only recipe use is 3 `Bronze` + 1 `Amethyst` → 1 `AmethystNecklace`,
+  output one, batch one. The necklace has no attack, durability, or authored
+  upgrade path; its equipped profile applies only the approved -15% support
+  spell stamina-cost modifier.
+
+- **Approved source and generation:** the source contract replaces existing
+  `mire-bog-iron` Iron Ore candidates in Mossy Mire only: 3% Amethyst and 97%
+  ordinary Iron Ore. No other biome/source selects the gem. Replacement runs
+  after ordinary and supplemental population decisions and keeps candidate
+  count, location, seed and persistent ID; the slot does not also yield Iron.
+  `gem-amethyst-rock` maps to exactly one `Amethyst` after successful
+  extraction. The source requires pick tier 2 or higher; three accepted hits
+  each use the approved 10% smash chance and spend one pick condition.
+
+- **Mining authority and save boundary:** server code validates authoritative
+  source/node state, a live same-world attacker, 220 cm range, the active
+  server-held mining pick, tier and condition. It derives each smash roll from
+  the server world seed, stable spawn identity and hit number. Player condition
+  and sparse gemstone hit/outcome state are persisted before hit presentation;
+  failed writes restore state where rollback succeeds. Extraction claim grants
+  one matching item only after full capacity validation, persists the consumed
+  outcome before replicated depletion, and rolls back inventory if that save
+  fails. World population save schema 2 stores sparse node identity/source/hit/
+  outcome state. Ordinary gem inventory and accessory gear remain session-only;
+  the gem inventory itself is not restored on restart.
+
+- **Icon and runtime mapping:** manifest row (image batch 81, import batch AL)
+  covers Amethyst in PackInventory/ItemDetail and AmethystNecklace in
+  PackInventory/ItemDetail/RecipeResult. Original, prepared and imported assets
+  exist for both items. The Amethyst provenance prompt specifies a violet
+  crystal cluster; runtime mapping uses Rock variant 4. The necklace uses
+  Necklace variant 2. Validators confirmed 1254×1254 RGBA sources and
+  transparent 64×64 runtime textures. The world node also renders a violet
+  Amethyst inclusion.
+
+- **Focused and acceptance evidence:** `Kalmala.World.GemstoneContract` covers
+  the common three-hit/smash rules and generic world-save serialization; its
+  current direct 10,000-seed selector assertions measure Quartz/Jade, not
+  Amethyst's 3% rate or wrong-biome rejection. `Kalmala.World.GemstoneGeneration`
+  confirms replacements add no candidates, preserve identity/location, and
+  restrict observed changes to approved source/biome pairs. `Kalmala.Gameplay.Inventory.A9GearRecipes`
+  covers the paid Forge exchange and crafted-GUID equip; `Kalmala.Gameplay.Status.AccessoryStats`
+  covers support-only Amethyst cost reduction, ordinary-cost exclusion, zero
+  cost and Jade/Wet/Meal combination. These cases are recorded as passing in
+  the historical A9 187/187 automation queue; they were inspected, not rerun.
+  The historical peer fixture grants/equips Amethyst Necklace to a remote
+  player, but its owner-stat assertion checks max health/stamina, not support
+  spell cost. Its mined gem and fresh-process claimed ledger are Quartz; the
+  restart also checks Garnet treasure, not Amethyst. The documented A9 render
+  fixture shows Opal Helm, Garnet Necklace and Dusk Ring, with no Amethyst item
+  render recorded. Peer test gear/pick are provisioned; no-grant fresh-start
+  progression remains unproven.
+
+- **Cross-cutting gaps:** `docs/02-technical-architecture.md` still lists
+  generated population deltas as schema 1 while source and the approved A9
+  contract use schema 2. `AGENTS.md` points to absent `docs/material-icons.md`
+  and the A10 backlog link targets absent `docs/alpha-item-details.md#a10`;
+  icon instructions and accepted source/effect decisions are present in
+  `docs/icon-provenance.md` and `docs/a9-acceptance.md`. The approved Bronze
+  Pick acquisition target also differs from its current Forge recipe, already
+  retained in A10 for final no-grant progression disposition. These shared
+  issues were not changed in this item-scoped audit.
+
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md` only; no gameplay,
+  catalogue, icon, or save implementation changed.
+- **Lightweight checks:** `python Scripts/Validate-CatalogueReferences.py`
+  passed (61 registered JSON files, 152 definitions, 777 resolved references,
+  152 ledger-backed runtime mappings). `Scripts/Validate-UIIcons.ps1 -Category
+  Catalogue -Id Amethyst` and the same validator for `AmethystNecklace` passed.
+  Static inspection confirmed schema registration, recipe/profile categories,
+  the 3% selector and pick tier, authoritative hit/claim saves, icon provenance
+  and mappings, and the specific limitations of historical tests/peer/render
+  evidence. No Unreal build, automation, live peer, restart, render or fresh-start
+  check was run for this A10 audit.
+- **Full verification:** deferred; this is not the final A10 increment.
+- **Networking/authority:** server owns source replacement, hit/smash result,
+  tool condition, sparse hit/claim state and capacity-validated item grant;
+  the client does not select the source, reward ID or quantity.
+- **Impact and remaining scope:** tracking-only; no within-item data, source,
+  recipe, profile, icon, authority or persistence defect was found. Amethyst-
+  specific source-rate, claim/restart, support-cost multiplayer and render
+  acceptance, no-grant fresh start, broader A10 item/N/A coverage and final A10
+  verification remain open.
+- **Next eligible A10 item audit:** Aquamarine (`Aquamarine`), next in A9
+  backlog order.
