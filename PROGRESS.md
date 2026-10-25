@@ -10841,3 +10841,104 @@
   verification remain open.
 - **Next eligible A10 item audit:** Aquamarine (`Aquamarine`), next in A9
   backlog order.
+
+## Run 2026-10-25 — A10 per-item audit: A9 Aquamarine
+
+- **Selected increment and item registration:** audited only `Aquamarine`, next
+  in A9 backlog order. Schema-16 catalogue registration includes the raw gem
+  in `items/materials/gems.json`, its profile in `items/accessories.json`, and
+  its Forge recipe in `recipes/stations/a9-gear.json`. The raw item stacks to
+  20 at 0.1 kg, has no equipment or attack profile, no upgrade entry, and no
+  use effect. Its only recipe use is 2 `Bronze` + 1 `Aquamarine` → 1
+  `AquamarineRing`, output one, batch one. The ring stacks to one at 1 kg, has
+  no durability, repair, attack or authored upgrade path, and grants the
+  approved +15% stamina-regeneration modifier while equipped.
+
+- **Approved source and generation:** only Shimmering Lakes world treasure
+  chests can yield Aquamarine. The deterministic per-chest roll is 1/20 and is
+  independent of the separate 1/10 Garnet roll, so a Lakes chest can contain
+  one of each. Other biomes have no Aquamarine treasure source; it is not
+  sourced from player storage or ordinary drops. The server derives the saved
+  treasure selection from the canonical discovery descriptor seed and world
+  seed, and retains that exact loot instead of rerolling on open/reload.
+
+- **Claim authority and save boundary:** `PrepareWorldTreasure` accepts only a
+  canonical server-generated point-of-interest descriptor in an approved
+  treasure biome and returns an existing saved state or persists the selected
+  contents before exposing it. Claims require server authority, a live
+  same-world player within 250 cm, an unclaimed treasure state and complete
+  inventory capacity for the entire saved bundle. The server grants from that
+  persisted bundle, writes the shared claimed flag before publishing success,
+  and rolls back the inventory update if the save fails. The world population
+  save schema is 2; the treasure record retains stable chest ID, item list and
+  claimed state, including empty results to prevent rerolls. Ordinary gem
+  inventory and ring equipment remain session-only; restarting restores chest
+  loot/claim state, not the player's Aquamarine stack or ring.
+
+- **Use/profile behavior:** `AquamarineRing` applies +15% to active stamina
+  recovery only, without changing recovery delay or conditions. The focused
+  status test exercises the exact 15% recovery gain,
+  confirms no recovery while sprint consumes stamina, excludes immediate draught
+  restoration, checks the maximum cap, and verifies that unequip restores base
+  recovery. The raw gem has no equip, use, attack or upgrade behavior beyond its
+  ring ingredient role.
+
+- **Icon and runtime mapping:** manifest row (image batch 81, import batch AL)
+  covers Aquamarine in PackInventory/ItemDetail and AquamarineRing in
+  PackInventory/ItemDetail/RecipeResult. The original provenance prompts describe
+  a blue-green crystal and a bronze ring with aquamarine; original, prepared
+  and imported files exist for both. Runtime mapping uses Rock variant 5 for
+  the gem and Ring variant 2 for the ring. Both icon validators confirmed
+  1254×1254 RGBA source images and transparent 64×64 runtime textures.
+
+- **Focused and acceptance evidence:** `Kalmala.Gameplay.Inventory.A9GearRecipes`
+  covers the one-gem paid Forge recipe path and crafted-GUID equip; the
+  `Kalmala.Gameplay.Status.AccessoryStats` case covers the +15% active recovery
+  effect and its sprint/draught/unequip boundaries. These cases are recorded as
+  passing in the historical A9 187/187 automation queue; they were inspected,
+  not rerun. No current automation directly exercises `SelectTreasure` for the
+  Aquamarine 1/20 frequency or biome exclusion, and generic treasure
+  persistence assertions do not serialize an Aquamarine-specific payload. The
+  documented peer fixture provisions an Aquamarine Ring to the host player, but
+  its owner-stat checks cover max health/stamina, not stamina regeneration. It
+  selects a chest containing Garnet; because Lakes rolls are independent that
+  chest could also contain Aquamarine, but the peer pass criteria assert only
+  one Garnet and generic saved claim state. The fresh-process step restores the
+  claimed chest record without asserting Aquamarine contents or delivery. The
+  A9 render fixture displays Opal Helm, Garnet Necklace and Dusk Ring; no
+  Aquamarine or Aquamarine Ring render is recorded. Test gear is provisioned,
+  so no-grant fresh-start progression remains unproven.
+
+- **Cross-cutting documentation gaps:** the current save table in
+  `docs/02-technical-architecture.md` still lists generated population deltas
+  as schema 1, while source and the accepted A9 contract use schema 2.
+  `AGENTS.md` references absent `docs/material-icons.md`, and the A10 backlog
+  link targets absent `docs/alpha-item-details.md#a10`; icon workflow and A9
+  source/effect decisions are recorded instead in `docs/icon-provenance.md` and
+  `docs/a9-acceptance.md`. The Bronze Pick approved acquisition target/current
+  Forge recipe mismatch remains open for final no-grant progression disposition.
+  These shared gaps were not changed in this item-scoped audit.
+
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md` only; no gameplay,
+  catalogue, icon or save implementation changed.
+- **Lightweight checks:** `python Scripts/Validate-CatalogueReferences.py`
+  passed (61 registered JSON files, 152 definitions, 777 resolved references,
+  152 ledger-backed runtime mappings). `Scripts/Validate-UIIcons.ps1 -Category
+  Catalogue -Id Aquamarine` and the same validator for `AquamarineRing` passed.
+  Narrow static assertions passed for schema-16 registration, stack/weight,
+  exact recipe/profile, Lakes 1/20 gate and runtime icon variants. Source/test
+  inspection confirmed canonical server selection, bundle save/claim rollback,
+  session-only player inventory, and the exact scope of historical peer/restart/
+  render evidence. No Unreal build, automation, live peer, restart, render or
+  fresh-start check was run for this A10 audit.
+- **Full verification:** deferred; this is not the final A10 increment.
+- **Networking/authority:** server owns the descriptor validation, seeded loot
+  selection, persisted chest bundle/claim, capacity-checked item IDs/quantities
+  and ring effect state; clients cannot choose a treasure item or quantity.
+- **Impact and remaining scope:** tracking-only; no within-item data, recipe,
+  profile, source eligibility, authority, persistence or icon defect was found.
+  Aquamarine-specific 1/20 source-rate, treasure payload/restart, ring-regeneration
+  multiplayer and render acceptance, no-grant fresh start, broader A10 item/N/A
+  coverage and final A10 verification remain open.
+- **Next eligible A10 item audit:** Tourmaline (`Tourmaline`), next in A9
+  backlog order.
