@@ -8754,3 +8754,39 @@
   this detached worktree.
 - **Next task in this directed goal:** BH18 — reapply priority river carving
   after biome relief while preserving sea level, banks and shared consumers.
+
+## Run 2026-10-25 — Reapply priority river carving (BH18)
+
+- **Selected increment:** BH18, the first unchecked task after BH17. The
+  worktree was clean at `6a409971`; A10 and monster-population work remains in
+  separate worktrees, with no concurrent run in this checkout.
+- **Work completed:** Inspected the regional sampler and confirmed its priority
+  river profile runs after biome-candidate relief, optional basin/stream stages
+  and the source-coast clamp. Existing high-ground and two-bank regressions
+  compare final output with a no-course sample that retains biome relief and
+  coast shaping; the profile uses the configured 80 cm bed and 1,800 cm bank
+  extent, with Z=0 water. Existing controls and seam coverage protect unchanged
+  source-coast behavior and shared samples. The analytic-basin policy remains
+  disabled. No relief-caused bank or coast defect was demonstrated, so no
+  runtime code change was needed. Checked BH18; rendered acceptance remains
+  BH26.
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md` only.
+- **Lightweight checks/results:** Re-read the autonomous-run instructions,
+  backlog, progress and relevant terrain/hydrology documentation. Inspected
+  sampler ordering, tuning values and focused high-ground, bank, coast-control
+  and seam regression definitions. `git diff --check` passed. No automation
+  or build was run; full verification remains deferred to BH26.
+- **Observable impact:** No runtime behavior changed. The existing final
+  regional output continues to provide the carved river profile to terrain,
+  collision, water and map consumers after biome relief and coast shaping.
+- **Networking/authority:** No authority, replicated state, RPC or save data
+  changed; regional terrain continues to derive from the existing seeded
+  sampler.
+- **Known limitations / remaining scope:** Source inspection confirms the
+  intended ordering and existing regression coverage, but compiled behavior,
+  rendered terrain and traversal remain unverified until BH26.
+- **Main-checkout handoff:** Synchronized only `BACKLOG.md` and `PROGRESS.md`,
+  preserving existing Monster S33 progress and leaving other active work intact.
+  Implementation files remain in this detached worktree.
+- **Next task in this directed goal:** BH19 — add the independent seeded forest
+  factor while preserving candidate identity and random independence.

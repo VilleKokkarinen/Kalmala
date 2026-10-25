@@ -631,10 +631,13 @@ run for this goal and may exceed one turn.
     coverage checks sub-threshold preservation, bounded detail, threshold
     continuity, monotonic foothills and the fixed Tundra/Mountain transition.
     Rendered acceptance remains BH26.
-  - [ ] **BH18 — Reapply priority river carving.** Run the existing channel after
-    biome relief and coast shaping; preserve Z=0 water, 80 cm bed depth,
-    1,800 cm bank extent, lake-disabled behavior, and shared render/collision/map
-    samples. Fix only demonstrated relief-caused bank/coast defects.
+  - [x] **BH18 — Reapply priority river carving.** Confirmed the existing
+    channel runs after biome candidate relief and source-coast shaping. Focused
+    high-ground and two-bank regressions compare the final sample with its
+    post-relief no-course baseline; profile assertions preserve Z=0 water, the
+    80 cm bed and 1,800 cm bank extent. Coast controls and seam coverage protect
+    shared consumers. No relief-caused defect was found; rendered acceptance
+    remains BH26.
   - [ ] **BH19 — Add independent forest factor.** Add a seeded world-space
     placement signal separate from terrain detail and Flora; preserve candidate
     ordinals/IDs and random independence across rejection and patch boundaries.
