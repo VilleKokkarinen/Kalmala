@@ -3203,8 +3203,12 @@ world/patch/original-ordinal roll applied after existing geometry draws so a new
 rejection cannot shift later candidate randomness. Meadow admission probability
 multiplies the existing Flora probability by the continuous absolute-world
 factor; low-factor areas form clearings without changing the candidate budget or
-resetting at patch boundaries. Final-slope and dry-ground gates remain in
-BH20c–BH20d.
+resetting at patch boundaries. Meadows descriptors also require a final
+`FKalmalaTerrainHeightSampler::SampleSurfaceNormal` Z component of at least
+0.88; its four neighboring height samples run only after Flora, forest-factor
+and stable per-ID candidate gates. `SampleHeight` remains the root height. The
+same shared descriptors feed cosmetic rendering and server materialization.
+Dry-ground gating remains in BH20d.
 Each accepted descriptor has a
 `forest:v1:<world-seed>:<patch-x>:<patch-y>:<candidate>` identity. Patch coordinates
 are exact world-space centers formatted with 17 significant digits and normalized

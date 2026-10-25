@@ -39,6 +39,9 @@ struct KALMALAWORLD_API FKalmalaForestLayout
     static double SampleForestCandidateThreshold(const FKalmalaWorldGenerationConfig& Config,
         const FVector2D& PatchCenter, int32 CandidateIndex);
 
+    /** True when the final sampled surface normal is within the Meadows tree-slope limit. */
+    static bool IsMeadowSurfaceSlopeSuitable(float SurfaceNormalZ);
+
     static TArray<FKalmalaForestTreeDescriptor> Generate(
         const FKalmalaWorldGenerationConfig& Config, const FVector2D& PatchCenter);
 };

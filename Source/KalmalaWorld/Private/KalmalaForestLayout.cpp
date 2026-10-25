@@ -14,6 +14,7 @@ namespace
     constexpr int32 MeadowTreeCandidateCount = 18;
     constexpr int32 ElderwoodTreeCandidateCount = 72;
     constexpr float TreeEdgeMargin = 260.0f;
+    constexpr float MeadowMinimumSurfaceNormalZ = 0.88f;
     constexpr uint64 TreeSeedSalt = 0xD1B54A32D192ED03ull;
 }
 
@@ -75,6 +76,11 @@ double FKalmalaForestLayout::SampleForestCandidateThreshold(
     return double(Hash >> 11) * (1.0 / 9007199254740992.0);
 }
 
+bool FKalmalaForestLayout::IsMeadowSurfaceSlopeSuitable(const float SurfaceNormalZ)
+{
+    return FMath::IsFinite(SurfaceNormalZ) && SurfaceNormalZ >= MeadowMinimumSurfaceNormalZ;
+}
+
 TArray<FKalmalaForestTreeDescriptor> FKalmalaForestLayout::Generate(
     const FKalmalaWorldGenerationConfig& WorldGenerationConfig, const FVector2D& PatchCenter)
 {
@@ -122,7 +128,6 @@ TArray<FKalmalaForestTreeDescriptor> FKalmalaForestLayout::Generate(
         const float TrunkRadius = RandomStream.FRandRange(bElderwood ? 28.0f : 14.0f, bElderwood ? 48.0f : 25.0f);
         const float CanopyRadius = RandomStream.FRandRange(bElderwood ? 185.0f : 105.0f, bElderwood ? 285.0f : 170.0f);
         const float CanopyHeight = RandomStream.FRandRange(bElderwood ? 220.0f : 140.0f, bElderwood ? 360.0f : 240.0f);
-        const float SurfaceHeight = FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, SamplePosition);
         const float TreeYaw = RandomStream.FRandRange(0.0f, 360.0f);
         // Consume the existing candidate draw sequence before applying the new Meadow gate.
         // Its independent per-ID roll cannot shift later positions or dimensions when rejected.
@@ -133,6 +138,16 @@ TArray<FKalmalaForestTreeDescriptor> FKalmalaForestLayout::Generate(
         {
             continue;
         }
+
+        // Only slope-check Meadows candidates that passed the existing gates.
+        if (Biome == EKalmalaBiome::Meadows
+            && !IsMeadowSurfaceSlopeSuitable(
+                FKalmalaTerrainHeightSampler::SampleSurfaceNormal(WorldGenerationConfig, SamplePosition).Z))
+        {
+            continue;
+        }
+
+        const float SurfaceHeight = FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, SamplePosition);
         Result.Add({CandidateIndex, FVector(SamplePosition.X, SamplePosition.Y, SurfaceHeight),
             FVector(LocalPosition.X, LocalPosition.Y, SurfaceHeight),
             TrunkRadius, TrunkHeight, CanopyRadius, CanopyHeight, TreeYaw, bElderwood, bAspen});

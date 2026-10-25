@@ -8913,3 +8913,47 @@
   separate worktree. Implementation files remain in this detached worktree.
 - **Next task in this directed goal:** BH20c — gate Meadows descriptors by final
   terrain slope through the shared descriptor path.
+
+## Run 2026-10-25 — Gate Meadows trees by final terrain slope (BH20c)
+
+- **Selected increment:** BH20c, the first unchecked child after BH20b. The
+  worktree was clean at `71aa2116`; no other autonomous run is modifying this
+  checkout. A10 and monster-population work remains in separate worktrees.
+- **Work completed:** Added a named final-surface normal-Z floor of 0.88 for
+  Meadows trees, using the shared `SampleSurfaceNormal` from final regional
+  height. It runs after Flora, forest-factor and stable per-ID threshold gates
+  and after all candidate random draws. Rejected trees cannot shift later
+  candidate positions, dimensions, yaw, ordinals or IDs.
+  Accepted descriptors retain their existing `SampleHeight` root placement.
+  Elderwood remains ungated. Marked BH20c complete; BH20d still owns dry-ground
+  filtering.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Private/KalmalaForestLayout.cpp`,
+  `Source/KalmalaWorld/Public/KalmalaForestLayout.h`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaForestSlopeTest.cpp`, and
+  `docs/02-technical-architecture.md`.
+- **Lightweight checks/results:** Re-read AGENTS.md, BACKLOG.md, PROGRESS.md,
+  the biome-height and Meadows plans, forest contract, terrain-sampler and
+  collision docs. Inspected both descriptor consumers, the normal sampler and
+  mesh heights. Static review confirmed only Meadows candidates that pass the
+  Flora, factor and stable-threshold gates incur four neighboring final-height
+  samples; accepted roots retain the same central final-height sample. Added
+  focused source coverage for the 0.88 boundary; it was not built or run.
+  `git diff --check` passed. Full verification remains deferred to BH26.
+- **Observable impact:** Meadows trees are filtered off steeper final surfaces
+  in both decorative rendering and server materialization. Existing root
+  placement stays on the final sampled terrain; candidate identity and forest
+  budgets remain unchanged.
+- **Networking/authority:** The gate is deterministic from world seed and
+  absolute position; both server and cosmetic consumers use the shared layout.
+  No RPC, replicated state, gameplay authority or save data changed.
+- **Known limitations / remaining scope:** The 0.88 normal-Z floor reuses the
+  existing terrain-safe placement threshold. It is a finite-difference normal
+  of final regional heights, not a measured runtime collision-face slope.
+  Compiled and rendered/collision acceptance remains BH26; dry-ground filtering
+  remains BH20d.
+- **Main-checkout handoff:** Synchronized only `BACKLOG.md` and `PROGRESS.md`,
+  preserving pre-existing Monster and A10 progress. Implementation files
+  remain in this detached worktree.
+- **Next task in this directed goal:** BH20d — reject Meadows trees on wet
+  ground using the shared final water and terrain samples.

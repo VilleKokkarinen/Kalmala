@@ -657,9 +657,10 @@ run for this goal and may exceed one turn.
       independent absolute-world factor and compares a stable world/patch/
       original-ordinal threshold. Low-factor areas become clearings; candidate
       limits, patch continuity and Elderwood behavior remain unchanged.
-    - [ ] **BH20c — Gate on final terrain slope.** Use the shared final surface
-      slope for decorative and harvestable descriptors, preserving the
-      collision-aligned root and stable candidate identity.
+    - [x] **BH20c — Gate on final terrain slope.** Meadows descriptors now pass
+      the shared final-surface normal-Z floor of 0.88 before admission. The gate
+      affects both decorative and harvestable trees while retaining final-height
+      roots, Elderwood behavior and stable candidate identity.
     - [ ] **BH20d — Gate on dry-ground suitability.** Use final shared water/
       terrain samples for the same descriptor path; preserve existing basin,
       suppression, depletion, late-join and restart identity contracts.
