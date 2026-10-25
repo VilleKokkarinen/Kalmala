@@ -4,7 +4,7 @@
 #include "Misc/AutomationTest.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaForestFactorPatchinessTest,
-    "Kalmala.World.ForestFactor.MeadowsPatchiness",
+    "Kalmala.World.ForestFactor.PatchinessAndDensity",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FKalmalaForestFactorPatchinessTest::RunTest(const FString& Parameters)
@@ -22,6 +22,13 @@ bool FKalmalaForestFactorPatchinessTest::RunTest(const FString& Parameters)
         LowFactorProbability < HighFactorProbability);
     TestTrue(TEXT("Combined probability never exceeds Flora suitability"),
         HighFactorProbability <= FloraProbability);
+    const float TundraProbability = FKalmalaForestLayout::CombineTundraAcceptanceProbability(
+        FloraProbability, 0.9f);
+    TestEqual(TEXT("Tundra reuses Flora and forest factor with the provisional 0.85 density multiplier"),
+        TundraProbability, FloraProbability * 0.9f * 0.85f);
+    TestTrue(TEXT("Tundra remains below comparable Elderwood acceptance at full factor"),
+        FKalmalaForestLayout::CombineTundraAcceptanceProbability(FloraProbability, 1.0f)
+            < FloraProbability);
 
     const FKalmalaWorldGenerationConfig Config{418ull};
     const FVector2D PatchCenter(123000.0, -75000.0);

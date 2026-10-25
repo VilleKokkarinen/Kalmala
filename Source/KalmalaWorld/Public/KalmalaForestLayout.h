@@ -43,6 +43,9 @@ struct KALMALAWORLD_API FKalmalaForestLayout
     /** Combines the existing Meadows Flora probability with the continuous forest factor. */
     static float CombineMeadowAcceptanceProbability(float FloraProbability, float ForestFactor);
 
+    /** Combines the existing forest Flora probability/factor with provisional reduced Tundra density. */
+    static float CombineTundraAcceptanceProbability(float FloraProbability, float ForestFactor);
+
     /** Stable unit threshold keyed by world, patch center, and original candidate ordinal. */
     static double SampleForestCandidateThreshold(const FKalmalaWorldGenerationConfig& Config,
         const FVector2D& PatchCenter, int32 CandidateIndex);

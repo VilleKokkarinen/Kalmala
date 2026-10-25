@@ -3226,6 +3226,11 @@ Elderwood/Aspen flags. Meadows birch, Meadows aspen and Elderwood ironheart reta
 their current resource and presentation mappings. The reserved Freezing Tundra
 birch kind maps to the existing Meadows birch source and presentation; it is not
 an Elderwood-only resource and adds no timber item or reward.
+Freezing Tundra forest candidates reuse the Flora curve and absolute-world forest
+factor with a provisional 0.85 density multiplier and a stable patch/ordinal
+threshold. Their appearance uses an independent per-candidate stream so newly
+eligible Tundra samples cannot advance the existing Meadow/Elderwood candidate
+stream; BH25 finalizes the multiplier and BH26 owns rendered acceptance.
 
 GameMode loads the matching population save before terrain activation. It generates
 the shared descriptors once, skips IDs already harvested, and initializes each
@@ -3233,9 +3238,10 @@ remaining node through the private descriptor initializer. Public
 `AKalmalaHarvestNode::InitializeForestServer` reconstructs from server config,
 patch center and ordinal through that same path. Authority, unused actor state,
 candidate identity and finite positive dimensions are validated before mutation.
-There is no client descriptor or reward RPC. Nodes use the Meadows birch-trunk or
-Elderwood ironheart-trunk tier/yield contracts and bind `OnHarvested` to GameMode's
-existing sparse population callback. Forest IDs bypass the session M9 overlay.
+There is no client descriptor or reward RPC. Nodes use the Meadows birch/aspen,
+the existing birch source for Freezing Tundra birch, or Elderwood ironheart
+tier/yield contracts and bind `OnHarvested` to GameMode's existing sparse
+population callback. Forest IDs bypass the session M9 overlay.
 
 ### Patch ownership, suppression and replication
 

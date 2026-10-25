@@ -677,11 +677,13 @@ run for this goal and may exceed one turn.
       the kind contract; Tundra birch maps to the existing Meadows birch source
       and presentation. Current placements, appearance, sources and random
       draws are unchanged.
-    - [ ] **BH21b — Add reduced-density Tundra forest candidates.** Reuse the
-      absolute-world factor and stable per-candidate threshold with a lower
-      Tundra acceptance multiplier. Preserve Meadow/Elderwood candidates,
-      ordinals, IDs and random-stream behavior; use the explicit Tundra tree
-      kind and existing resource/presentation mapping.
+    - [x] **BH21b — Add reduced-density Tundra forest candidates.** Existing
+      Tundra-classified candidates use the Flora curve, absolute-world factor
+      and stable patch/ordinal threshold with provisional 0.85 density. They
+      use the explicit Tundra Birch kind and existing Birch source/presentation.
+      Tundra appearance draws use a separate patch/candidate stream, preserving
+      the Meadow/Elderwood candidate stream, counts and IDs; BH25 finalizes the
+      multiplier and BH21c proves lifecycle behavior.
     - [ ] **BH21c — Verify Tundra forest identity and lifecycle.** Add focused
       source proof for Tundra-only selection, resource/presentation agreement,
       suppression, depletion, late join and restart identity. Defer integrated

@@ -31,6 +31,10 @@ struct FKalmalaRegionalTuning
     static constexpr double ForestFactorScale = 48000.0;
     // Independent stable threshold domain for forest candidate acceptance.
     static constexpr uint64 ForestCandidateGateSalt = 0x4B414C4D414C4108ull;
+    // Independent per-patch/candidate stream for Tundra tree appearance; never advances candidate positions.
+    static constexpr uint64 ForestCandidateGeometrySalt = 0x4B414C4D414C4109ull;
+    // Provisional density relative to the existing forest Flora curve; BH25 finalizes this trial.
+    static constexpr float FreezingTundraForestDensityMultiplier = 0.85f;
     // Provisional Elderwood/Tundra shared-relief trials, centimetres.
     static constexpr double ElderwoodBroadAmplitude = 900.0;
     static constexpr double ElderwoodMiddleAmplitude = 240.0;

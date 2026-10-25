@@ -9051,3 +9051,52 @@
   Implementation and source-coverage files remain in this detached worktree.
 - **Next eligible task:** BH21b — add reduced-density Tundra forest candidates
   through the shared descriptor path without shifting existing candidate draws.
+
+## Run 2026-10-25 — Add reduced-density Tundra forest (BH21b)
+
+- **Selected increment:** BH21b, the first unchecked child after BH21a. The
+  detached worktree was clean at `6267f7cd`; no other autonomous run is
+  modifying this checkout. A10 and monster-population work remains in separate
+  worktrees.
+- **Work completed:** Existing Freezing Tundra-classified candidate positions
+  can now enter the shared forest layout when their existing Flora probability
+  multiplied by the absolute-world forest factor and provisional 0.85 density
+  passes the stable world/patch/original-ordinal threshold. Accepted descriptors
+  use `FreezingTundraBirch`, which maps to the existing Birch presentation and
+  source. Tundra appearance dimensions use a separate seed domain keyed by
+  world, patch and candidate; no Tundra eligibility, rejection or geometry draw
+  advances the existing Meadow/Elderwood candidate stream. The original 72
+  candidate budget, Meadows cap, Elderwood Flora gate, candidate positions,
+  resource IDs and persistent IDs remain unchanged. BH21b is complete; lifecycle
+  acceptance remains BH21c.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`,
+  `Source/KalmalaWorld/Public/KalmalaForestLayout.h`,
+  `Source/KalmalaWorld/Private/KalmalaForestLayout.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaForestFactorTest.cpp`, and
+  `docs/02-technical-architecture.md`.
+- **Lightweight checks/results:** Re-read AGENTS.md, BACKLOG.md, PROGRESS.md,
+  the Tundra/forest-factor plan, candidate identity and resource contracts, and
+  the Tundra verification setup. Static inspection confirmed only existing
+  Freezing Tundra labels enter the gate; accepted trees use the explicit Birch
+  kind and stable threshold. Reviewed the shared stream flow: candidate XY and
+  all current Meadow/Elderwood geometry draws are unchanged, while Tundra's five
+  dimensions/yaw draws use the independent geometry salt. Added source coverage
+  for factor/Flora composition and the 0.85 provisional multiplier; it was not
+  built or run. `git diff --check` passed. Full verification remains deferred
+  to BH26.
+- **Observable impact:** Freezing Tundra can now produce a lower-density,
+  factor-patched Birch forest using the existing resource and presentation.
+  Runtime counts and visuals were not measured.
+- **Networking/authority:** No RPC, replicated state, save schema or authority
+  changed. Cosmetic rendering and server materialization continue to consume
+  the same deterministic descriptors; candidate ID and suppression contracts
+  remain unchanged.
+- **Known limitations / remaining scope:** The 0.85 multiplier is provisional
+  pending BH25 tuning. Tundra depletion/suppression, late-join and restart
+  identity proof remain BH21c; full build and rendered acceptance remain BH26.
+- **Main-checkout handoff:** Synchronized only `BACKLOG.md` and `PROGRESS.md`
+  in `E:\dev\Kalmala`, preserving the existing A10 and Monster progress.
+  Implementation and source-coverage files remain in this detached worktree.
+- **Next eligible task:** BH21c — verify Tundra resource identity and forest
+  lifecycle behavior.

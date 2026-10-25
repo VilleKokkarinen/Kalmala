@@ -17,6 +17,27 @@ namespace
     constexpr float TreeEdgeMargin = 260.0f;
     constexpr float MeadowMinimumSurfaceNormalZ = 0.88f;
     constexpr uint64 TreeSeedSalt = 0xD1B54A32D192ED03ull;
+
+    uint64 HashForestCandidate(const FKalmalaWorldGenerationConfig& Config,
+        const FVector2D& PatchCenter, const int32 CandidateIndex, const uint64 Domain)
+    {
+        if (!Config.IsValid() || !FMath::IsFinite(PatchCenter.X) || !FMath::IsFinite(PatchCenter.Y)
+            || CandidateIndex < 0 || CandidateIndex >= ElderwoodTreeCandidateCount) return 0;
+
+        const double PatchX = PatchCenter.X == 0.0 ? 0.0 : PatchCenter.X;
+        const double PatchY = PatchCenter.Y == 0.0 ? 0.0 : PatchCenter.Y;
+        uint64 PatchXBits = 0, PatchYBits = 0;
+        FMemory::Memcpy(&PatchXBits, &PatchX, sizeof(PatchXBits));
+        FMemory::Memcpy(&PatchYBits, &PatchY, sizeof(PatchYBits));
+
+        uint64 Hash = FKalmalaRegionalGeneration::Seed(
+            Config, Domain, FIntPoint(CandidateIndex, 0));
+        Hash ^= PatchXBits * 0xd6e8feb86659fd93ull;
+        Hash ^= PatchYBits * 0xa0761d6478bd642full;
+        Hash = (Hash ^ (Hash >> 30)) * 0xbf58476d1ce4e5b9ull;
+        Hash = (Hash ^ (Hash >> 27)) * 0x94d049bb133111ebull;
+        return Hash ^ (Hash >> 31);
+    }
 }
 
 FString FKalmalaForestLayout::GetPersistentSpawnId(const FKalmalaWorldGenerationConfig& Config,
@@ -52,28 +73,21 @@ float FKalmalaForestLayout::CombineMeadowAcceptanceProbability(
     return FMath::Clamp(FloraProbability, 0.0f, 1.0f) * FMath::Clamp(ForestFactor, 0.0f, 1.0f);
 }
 
+float FKalmalaForestLayout::CombineTundraAcceptanceProbability(
+    const float FloraProbability, const float ForestFactor)
+{
+    if (!FMath::IsFinite(FloraProbability) || !FMath::IsFinite(ForestFactor)) return 0.0f;
+    return FMath::Clamp(FloraProbability, 0.0f, 1.0f)
+        * FMath::Clamp(ForestFactor, 0.0f, 1.0f)
+        * T::FreezingTundraForestDensityMultiplier;
+}
+
 double FKalmalaForestLayout::SampleForestCandidateThreshold(
     const FKalmalaWorldGenerationConfig& Config, const FVector2D& PatchCenter, const int32 CandidateIndex)
 {
     if (!Config.IsValid() || !FMath::IsFinite(PatchCenter.X) || !FMath::IsFinite(PatchCenter.Y)
-        || CandidateIndex < 0 || CandidateIndex >= ElderwoodTreeCandidateCount)
-    {
-        return 1.0;
-    }
-
-    const double PatchX = PatchCenter.X == 0.0 ? 0.0 : PatchCenter.X;
-    const double PatchY = PatchCenter.Y == 0.0 ? 0.0 : PatchCenter.Y;
-    uint64 PatchXBits = 0, PatchYBits = 0;
-    FMemory::Memcpy(&PatchXBits, &PatchX, sizeof(PatchXBits));
-    FMemory::Memcpy(&PatchYBits, &PatchY, sizeof(PatchYBits));
-
-    uint64 Hash = FKalmalaRegionalGeneration::Seed(
-        Config, T::ForestCandidateGateSalt, FIntPoint(CandidateIndex, 0));
-    Hash ^= PatchXBits * 0xd6e8feb86659fd93ull;
-    Hash ^= PatchYBits * 0xa0761d6478bd642full;
-    Hash = (Hash ^ (Hash >> 30)) * 0xbf58476d1ce4e5b9ull;
-    Hash = (Hash ^ (Hash >> 27)) * 0x94d049bb133111ebull;
-    Hash ^= Hash >> 31;
+        || CandidateIndex < 0 || CandidateIndex >= ElderwoodTreeCandidateCount) return 1.0;
+    const uint64 Hash = HashForestCandidate(Config, PatchCenter, CandidateIndex, T::ForestCandidateGateSalt);
     return double(Hash >> 11) * (1.0 / 9007199254740992.0);
 }
 
@@ -107,7 +121,9 @@ TArray<FKalmalaForestTreeDescriptor> FKalmalaForestLayout::Generate(
         if (!FKalmalaWorldBounds::Contains(WorldGenerationConfig, SamplePosition, 1000)) continue;
         const FKalmalaWorldFieldSample Fields = FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, SamplePosition);
         const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(Fields);
-        if (Biome != EKalmalaBiome::Meadows && Biome != EKalmalaBiome::Elderwood)
+        const bool bElderwood = Biome == EKalmalaBiome::Elderwood;
+        const bool bTundra = Biome == EKalmalaBiome::FreezingTundra;
+        if (Biome != EKalmalaBiome::Meadows && !bElderwood && !bTundra)
         {
             continue;
         }
@@ -124,18 +140,39 @@ TArray<FKalmalaForestTreeDescriptor> FKalmalaForestLayout::Generate(
         }
 
         const float ForestFactor = SampleForestFactor(WorldGenerationConfig, SamplePosition);
-        const float MeadowAcceptanceProbability = CombineMeadowAcceptanceProbability(
-            FloraProbability, ForestFactor);
+        const float MeadowAcceptanceProbability = CombineMeadowAcceptanceProbability(FloraProbability, ForestFactor);
+        const float TundraAcceptanceProbability = CombineTundraAcceptanceProbability(FloraProbability, ForestFactor);
+        if (bTundra
+            && (TundraAcceptanceProbability <= 0.0f
+                || SampleForestCandidateThreshold(WorldGenerationConfig, PatchCenter, CandidateIndex)
+                    > TundraAcceptanceProbability))
+        {
+            continue;
+        }
 
-        const bool bElderwood = Biome == EKalmalaBiome::Elderwood;
         // Keep the existing candidate positions, dimensions, yaw and IDs. A
         // stable ordinal pattern gives Meadow groves both birch and aspen.
         const bool bAspen = Biome == EKalmalaBiome::Meadows && CandidateIndex % 3 == 0;
-        const float TrunkHeight = RandomStream.FRandRange(bElderwood ? 520.0f : 340.0f, bElderwood ? 850.0f : 620.0f);
-        const float TrunkRadius = RandomStream.FRandRange(bElderwood ? 28.0f : 14.0f, bElderwood ? 48.0f : 25.0f);
-        const float CanopyRadius = RandomStream.FRandRange(bElderwood ? 185.0f : 105.0f, bElderwood ? 285.0f : 170.0f);
-        const float CanopyHeight = RandomStream.FRandRange(bElderwood ? 220.0f : 140.0f, bElderwood ? 360.0f : 240.0f);
-        const float TreeYaw = RandomStream.FRandRange(0.0f, 360.0f);
+        float TrunkHeight = 0.0f, TrunkRadius = 0.0f, CanopyRadius = 0.0f, CanopyHeight = 0.0f, TreeYaw = 0.0f;
+        if (bTundra)
+        {
+            const uint64 AppearanceHash = HashForestCandidate(WorldGenerationConfig, PatchCenter,
+                CandidateIndex, T::ForestCandidateGeometrySalt);
+            FRandomStream AppearanceStream(static_cast<int32>(AppearanceHash >> 32));
+            TrunkHeight = AppearanceStream.FRandRange(340.0f, 620.0f);
+            TrunkRadius = AppearanceStream.FRandRange(14.0f, 25.0f);
+            CanopyRadius = AppearanceStream.FRandRange(105.0f, 170.0f);
+            CanopyHeight = AppearanceStream.FRandRange(140.0f, 240.0f);
+            TreeYaw = AppearanceStream.FRandRange(0.0f, 360.0f);
+        }
+        else
+        {
+            TrunkHeight = RandomStream.FRandRange(bElderwood ? 520.0f : 340.0f, bElderwood ? 850.0f : 620.0f);
+            TrunkRadius = RandomStream.FRandRange(bElderwood ? 28.0f : 14.0f, bElderwood ? 48.0f : 25.0f);
+            CanopyRadius = RandomStream.FRandRange(bElderwood ? 185.0f : 105.0f, bElderwood ? 285.0f : 170.0f);
+            CanopyHeight = RandomStream.FRandRange(bElderwood ? 220.0f : 140.0f, bElderwood ? 360.0f : 240.0f);
+            TreeYaw = RandomStream.FRandRange(0.0f, 360.0f);
+        }
         // Consume the existing candidate draw sequence before applying the new Meadow gate.
         // Its independent per-ID roll cannot shift later positions or dimensions when rejected.
         if (Biome == EKalmalaBiome::Meadows
@@ -169,9 +206,11 @@ TArray<FKalmalaForestTreeDescriptor> FKalmalaForestLayout::Generate(
         }
 
         const float SurfaceHeight = FinalSurface.Height;
-        const EKalmalaForestTreeKind TreeKind = bElderwood
+        const EKalmalaForestTreeKind TreeKind = bTundra
+            ? EKalmalaForestTreeKind::FreezingTundraBirch
+            : (bElderwood
             ? EKalmalaForestTreeKind::ElderwoodIronheart
-            : (bAspen ? EKalmalaForestTreeKind::MeadowsAspen : EKalmalaForestTreeKind::MeadowsBirch);
+            : (bAspen ? EKalmalaForestTreeKind::MeadowsAspen : EKalmalaForestTreeKind::MeadowsBirch));
         Result.Add({CandidateIndex, FVector(SamplePosition.X, SamplePosition.Y, SurfaceHeight),
             FVector(LocalPosition.X, LocalPosition.Y, SurfaceHeight),
             TrunkRadius, TrunkHeight, CanopyRadius, CanopyHeight, TreeYaw, TreeKind});
