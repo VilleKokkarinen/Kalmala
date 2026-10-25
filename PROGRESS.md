@@ -10942,3 +10942,83 @@
   coverage and final A10 verification remain open.
 - **Next eligible A10 item audit:** Tourmaline (`Tourmaline`), next in A9
   backlog order.
+
+## Run 2026-10-25 — A10 per-item audit: A9 Tourmaline
+
+- **Selected increment and registration:** audited only `Tourmaline` and its
+  directly applicable `TourmalineNecklace`; the A10 item-audit child remains
+  open. Schema-16 `GameCatalogues.json` registers the gem, accessory, and A9
+  Forge recipe files. `Tourmaline` is a raw 20-stack, 0.1 kg material with no
+  equipment, attack, upgrade, or repair profile. The necklace is a 1-stack,
+  1 kg Necklace-slot accessory whose only nonzero combat/status field is
+  `HealingReceivedMultiplier: 0.10`; armor, attacks, condition, upgrades, and
+  repairs are not applicable.
+- **Source, recipe, use, and persistence:** the seeded source contract replaces
+  only Thunder Mountains `mountains-slate-vein` descriptors when the stable
+  roll is below 2/100, mapping `gem-tourmaline-rock` to one Tourmaline. The
+  shared population pass applies replacements after ordinary and supplemental
+  source selection, retaining candidate count, location, seed, and persistent
+  identity; it adds no co-drop. Stone Pick or better is required. The shared
+  server mining path validates authority, same-world/living owner, range,
+  active pick tier and condition; it persists each accepted hit and deterministic
+  outcome before replication, then capacity-checks and persists the one-item
+  claim before depletion. Population save schema 2 stores sparse node/claim
+  state; ordinary inventory and equipped gear remain session-only. The exact
+  Forge recipe is 3 Bronze + 1 Tourmaline for one necklace, batch one. The
+  focused A9 gear automation contains the recipe case and checks Forge station,
+  single output, named gem cost, paid exchange, and GUID-based equip. Server
+  accessory tests cover +10% incoming Mending and periodic draught healing,
+  immediate removal for later ticks, full-health rejection/clamping, no outgoing
+  heal increase, no resurrection, and another pawn's neutral modifier.
+- **Icon and presentation:** both original icons are present in the generated,
+  prepared, imported catalogue pipeline and ledger manifest. Runtime mapping is
+  Tourmaline → Rock variant 6 and TourmalineNecklace → Necklace variant 3.
+  Focused icon validation passed for both. The item and necklace descriptions
+  and provenance prompts specify dark forest green, while the visible mining
+  inclusion uses a pink-red `FLinearColor(.9,.25,.45)`. A9 does not specify the
+  mining inclusion hue and there is no Tourmaline render acceptance; this is a
+  visual consistency gap to resolve during presentation acceptance, not a
+  source edit inferred in this audit.
+- **Focused checks and acceptance evidence:** `python
+  Scripts/Validate-CatalogueReferences.py` passed (61 registered JSON files,
+  152 definitions, 777 resolved references, 152 ledger-backed runtime icon
+  mappings). `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id Tourmaline`
+  and the same validator for `TourmalineNecklace` passed; narrow assertions for
+  schema registration, item/profile data, exact recipe inputs, source roll/tier,
+  and icon variants passed. Source automation has shared three-hit/10%-per-hit
+  smash and save-round-trip cases; generation inspection verifies replacement
+  count/identity/location and restricts changed descriptors to approved source
+  and biome pairs. The seed-418 generation case does not directly assert
+  Tourmaline's 2% rate or biome exclusion, and no Unreal automation was run in
+  this A10 increment.
+- **Peer, restart, render, and fresh-start evidence:** the documented A9 peer
+  fixture provisions Quartz and Garnet source descriptors, not Tourmaline; its
+  owner gear set does not craft/equip Tourmaline Necklace. Its fresh reader
+  verifies Quartz and Garnet claim entries, not Tourmaline's source/claim or
+  necklace persistence. The render fixture covers Opal Helm, Garnet Necklace,
+  Dusk Ring, Star Opal, and Storm Sapphire, not Tourmaline. No Tourmaline
+  source-to-item/Forge-to-equip peer run, fresh-process Tourmaline claim check,
+  rendered acceptance, or A10 no-grant fresh-start run was performed here.
+  Full A9/I5 and A10 acceptance remain open.
+- **Shared documentation mismatches:** the architecture save table still lists
+  `UKalmalaWorldPopulationSaveGame` as schema 1 although source and A9 mining
+  documentation use schema 2. `AGENTS.md` points to absent
+  `docs/material-icons.md`, and the A10 backlog link targets absent
+  `docs/alpha-item-details.md#a10`; available icon and item contracts are in
+  `docs/icon-provenance.md` and `docs/a9-acceptance.md`. These cross-cutting
+  issues were not changed in this item audit.
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md` only; no gameplay, catalogue,
+  icon, or save implementation changed.
+- **Full verification:** deferred; this is not the final A10 increment.
+- **Networking/authority:** source selection, hit rolls, pick wear, sparse
+  persistence, capacity validation, item grant, claim, and accessory stat
+  calculation remain server-authored. No client-selected gem, quantity, or
+  healing modifier was found.
+- **Impact and remaining scope:** tracking-only; no within-item data, recipe,
+  authority, persistence, or acquisition defect was established. Resolve the
+  Tourmaline world-node hue during rendered presentation acceptance, add direct
+  source-rate/biome acceptance if required, and retain Tourmaline peer/restart/
+  no-grant evidence along with the broader A10 list. Keep A10 and full
+  milestone verification open.
+- **Next eligible A10 item audit:** Star Opal (`StarOpal`), next in A9 backlog
+  order.
