@@ -11022,3 +11022,95 @@
   milestone verification open.
 - **Next eligible A10 item audit:** Star Opal (`StarOpal`), next in A9 backlog
   order.
+
+## Run 2026-10-25 — A10 per-item audit: A9 Star Opal
+
+- **Selected increment and registration:** audited only `StarOpal` and its
+  directly applicable `OpalHelm`; the A10 item-audit child remains open.
+  Schema-16 registration includes the gem item file, helmet catalogue, A9 Forge
+  recipes, helmet level-up costs, and shared stat rewards. `StarOpal` is a raw
+  20-stack, 0.1 kg material with no equipment, attack, upgrade, or repair
+  profile. `OpalHelm` is a stack-one, 5 kg Head-slot item with 150 starting
+  condition and 12 Armor; its attack behavior is not applicable.
+- **Source, item mapping, and save boundary:** generation adds at most one
+  supplemental safe Frost Salt deposit per 60 m spatial key after checking up
+  to 32 candidates and 250 cm separation; it retains ordinary candidates and
+  frostmoss. Only a Freezing Tundra `tundra-frost-salt-deposit` descriptor can
+  be replaced, at a stable 1/100 roll, with `gem-opal-rock`; other biomes and
+  `tundra-frostmoss` are excluded. The replacement retains the descriptor's
+  location and persistent seed identity, with no Frost Salt co-drop. Server
+  source mapping resolves `gem-opal-rock` to `StarOpal`, and Stone Pick or
+  better is required. Each of three accepted hits has a deterministic 10%
+  server-only smash roll; a successful extraction exposes exactly one matching
+  gem. Authority, same-world/living owner, range, active pick family/tier and
+  condition are checked. Accepted condition and hit/outcome state are persisted
+  before replication; claim capacity is checked and the claim is persisted
+  before depletion. Population deltas use schema 2. Gem inventory, Opal Helm
+  equipment, wear and item level remain session-only; no gear-save behavior is
+  implied.
+- **Recipe, profile, and upgrades:** the single-batch Forge recipe consumes
+  20 Iron, 5 Deer Hide and 1 Star Opal for one Opal Helm. Its registered level-one
+  Forge upgrade consumes 5 Iron and 2 Deer Hide; scaled costs double by current
+  level, while each level adds 1 Armor and 10 maximum condition. Server
+  maintenance requires the exact equipped Head-slot item GUID, living owning
+  character, visible same-world Forge within 2.5 m and the effective Forge level
+  for an upgrade. Repair is free at that Forge. The
+  `Kalmala.Gameplay.Inventory.OpalHelm` case covers payment, Forge-level
+  rejection/acceptance, armor, durability, physical damage/wear, repair and
+  same-pawn re-equip; it passed in the historical 187-case final automation
+  queue. Current station attachments reach Forge two;
+  higher authored upgrade levels retain that existing station prerequisite.
+  `Kalmala.Gameplay.Inventory.A9GearRecipes` includes Opal Helm's paid recipe
+  exchange and GUID-based equip case. No attack profile or raw-gem upgrade is
+  applicable.
+- **Icon and color:** original, prepared, and imported assets exist for both
+  `StarOpal` and `OpalHelm`; manifest rows and runtime mappings are present
+  (StarOpal → Rock variant 7; OpalHelm → Helmet variant 2). Focused icon checks
+  passed for both. The icon prompt describes a milky opal with subtle blue,
+  gold, and rose pinfire; the item description calls it pale, and the procedural
+  rock inclusion is pale cyan. A9 requires a visible inclusion but sets no exact
+  world-node hue, so no concrete color/data defect was established and no color
+  change was inferred.
+- **Focused test and acceptance evidence:** the shared gemstone tests cover
+  three-hit extraction, 10% smash behavior, save round-trip and replacement
+  identity/location/source restrictions. The biome-content check verifies
+  observed gem replacements against the approved selector and confirms salt
+  descriptors stay in Tundra. These checks do not directly assert Star Opal's
+  1% frequency, the supplemental one-deposit-per-key budget, or its restart
+  route. The A9 gear recipe and Opal Helm maintenance cases passed in the
+  historical 187-case final automation queue; they were inspected, not rerun.
+  `python Scripts/Validate-CatalogueReferences.py`, focused Star Opal and Opal
+  Helm icon validators, and narrow catalogue/source/upgrade/icon assertions
+  passed in this increment. No Unreal automation was run here.
+- **Peer, restart, render, and fresh-start evidence:** the documented A9 peer
+  run exercises Quartz mining and Garnet treasure; its accessory fixture does
+  not equip Opal Helm. Fresh-process restoration checks those Quartz/Garnet
+  claim records, not a Star Opal node. Historical final inventory renders
+  `gear720b.png` and `gear150b.png` were inspected with the Opal Helm and Star
+  Opal inventory icon fixture; this is menu-render evidence, not an in-world
+  Star Opal rock view or acquisition-through-equip playthrough. The peer and
+  render fixtures provision test items, so A10 no-grant fresh-start progression
+  remains open. Opal gear level/wear is intentionally session-only; no restart
+  persistence is expected for that equipment state.
+- **Shared documentation mismatches:** the architecture save table still lists
+  `UKalmalaWorldPopulationSaveGame` as schema 1 while source and A9 mining
+  documentation use schema 2. `AGENTS.md` references absent
+  `docs/material-icons.md`, and the A10 backlog link targets absent
+  `docs/alpha-item-details.md#a10`; the available icon/item contracts are in
+  `docs/icon-provenance.md` and `docs/a9-acceptance.md`. These shared issues
+  were not changed in this item audit.
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md` only; no gameplay, catalogue,
+  icon, or save implementation changed.
+- **Full verification:** deferred; this is not the final A10 increment.
+- **Networking/authority:** generated source selection, gem mapping, hit rolls,
+  pick wear, sparse node/claim persistence, item grant, Forge payment, gear
+  upgrade/repair and damage resolution remain server-authored. Client input does
+  not choose the source, reward ID, quantity, damage, or upgrade cost.
+- **Impact and remaining scope:** tracking-only; no within-item source, data,
+  recipe, profile, authority, persistence or icon defect was established.
+  Add direct Star Opal source-rate/key-budget and source-to-item/recipe/equip
+  live evidence if required; retain Tourmaline's recorded hue question, the
+  remaining A9 items, no-grant progression, and broad A10 verification for the
+  final acceptance pass.
+- **Next eligible A10 item audit:** Storm Sapphire (`StormSapphire`), next in
+  A9 backlog order.
