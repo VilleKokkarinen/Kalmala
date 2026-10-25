@@ -1,6 +1,7 @@
 #include "KalmalaForestLayout.h"
 
 #include "KalmalaBiomeClassifier.h"
+#include "KalmalaOceanSampler.h"
 #include "KalmalaRegionalGeneration.h"
 #include "KalmalaRegionalTuning.h"
 #include "KalmalaTerrainHeightSampler.h"
@@ -81,6 +82,12 @@ bool FKalmalaForestLayout::IsMeadowSurfaceSlopeSuitable(const float SurfaceNorma
     return FMath::IsFinite(SurfaceNormalZ) && SurfaceNormalZ >= MeadowMinimumSurfaceNormalZ;
 }
 
+bool FKalmalaForestLayout::IsMeadowGroundDry(const bool bRegionalHasWater,
+    const bool bOceanSampleValid, const bool bOceanHasWater)
+{
+    return !bRegionalHasWater && bOceanSampleValid && !bOceanHasWater;
+}
+
 TArray<FKalmalaForestTreeDescriptor> FKalmalaForestLayout::Generate(
     const FKalmalaWorldGenerationConfig& WorldGenerationConfig, const FVector2D& PatchCenter)
 {
@@ -147,7 +154,21 @@ TArray<FKalmalaForestTreeDescriptor> FKalmalaForestLayout::Generate(
             continue;
         }
 
-        const float SurfaceHeight = FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, SamplePosition);
+        const FKalmalaRegionalSample FinalSurface =
+            FKalmalaRegionalGeneration::Sample(WorldGenerationConfig, SamplePosition);
+        FKalmalaOceanSample OceanSurface;
+        if (Biome == EKalmalaBiome::Meadows && !FinalSurface.bHasWater)
+        {
+            OceanSurface = FKalmalaOceanSampler::Sample(WorldGenerationConfig, SamplePosition,
+                PatchCenter - FVector2D(HalfSurfaceSize, HalfSurfaceSize));
+        }
+        if (Biome == EKalmalaBiome::Meadows
+            && !IsMeadowGroundDry(FinalSurface.bHasWater, OceanSurface.bIsValid, OceanSurface.IsWater()))
+        {
+            continue;
+        }
+
+        const float SurfaceHeight = FinalSurface.Height;
         Result.Add({CandidateIndex, FVector(SamplePosition.X, SamplePosition.Y, SurfaceHeight),
             FVector(LocalPosition.X, LocalPosition.Y, SurfaceHeight),
             TrunkRadius, TrunkHeight, CanopyRadius, CanopyHeight, TreeYaw, bElderwood, bAspen});

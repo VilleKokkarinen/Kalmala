@@ -42,6 +42,9 @@ struct KALMALAWORLD_API FKalmalaForestLayout
     /** True when the final sampled surface normal is within the Meadows tree-slope limit. */
     static bool IsMeadowSurfaceSlopeSuitable(float SurfaceNormalZ);
 
+    /** True only when final regional water and a valid collision-lattice sea sample both allow placement. */
+    static bool IsMeadowGroundDry(bool bRegionalHasWater, bool bOceanSampleValid, bool bOceanHasWater);
+
     static TArray<FKalmalaForestTreeDescriptor> Generate(
         const FKalmalaWorldGenerationConfig& Config, const FVector2D& PatchCenter);
 };

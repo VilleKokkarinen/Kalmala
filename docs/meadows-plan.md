@@ -52,11 +52,12 @@ Reviewed source paths are relative to the repository root:
   lattice initially: it can represent broad hills and metre-scale shoulders.
   Tiny noise would alias, and changing mesh density would increase cost without
   addressing the small height amplitudes.
-- `KalmalaForestLayout.cpp` permits the first 18 candidates per Meadows patch;
-  its Flora density gate currently applies to Elderwood only. Meadows trees
-  sample height but have no wetness/slope rejection there. Changes to grove
-  placement must use the shared forest descriptor path for both decorative
-  trees and authoritative harvest materialization.
+- `KalmalaForestLayout.cpp` permits the first 18 candidates per Meadows patch.
+  The shared descriptor path applies Flora, forest-factor, final-slope and dry-
+  ground suitability to both decorative trees and authoritative harvest
+  materialization. Dry-ground checks use final regional water state and the
+  explicit patch collision-lattice ocean sample; candidate ordinals and IDs are
+  retained through rejection.
 
 ## Proposed terrain model
 

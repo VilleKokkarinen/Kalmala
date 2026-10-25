@@ -8957,3 +8957,47 @@
   remain in this detached worktree.
 - **Next task in this directed goal:** BH20d — reject Meadows trees on wet
   ground using the shared final water and terrain samples.
+
+## Run 2026-10-25 — Gate Meadows trees off wet ground (BH20d)
+
+- **Selected increment:** BH20d, the first unchecked child under BH20. The
+  detached worktree was clean at `4061a237`; no other autonomous run is
+  modifying this checkout. A10 and monster-population work remains in separate
+  worktrees.
+- **Work completed:** The shared forest descriptor path now uses one final
+  regional sample for Meadows water state and root height, rejecting candidates
+  on regional water. Remaining Meadows candidates require a valid dry ocean
+  sample on the explicit 3 km patch triangle lattice. The ocean query is
+  skipped when regional water already rejects the candidate. Disabled analytic
+  basin policy remains owned by the regional sampler. Elderwood, candidate
+  random draws, ordinals, IDs and root alignment remain unchanged. Marked BH20d
+  and the BH20 implementation parent complete; integrated milestone acceptance
+  remains for BH26.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Private/KalmalaForestLayout.cpp`,
+  `Source/KalmalaWorld/Public/KalmalaForestLayout.h`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaForestWetGroundTest.cpp`,
+  `docs/02-technical-architecture.md`, and `docs/meadows-plan.md`.
+- **Lightweight checks/results:** Re-read AGENTS.md, BACKLOG.md, PROGRESS.md,
+  Meadows and biome-height plans, water/terrain architecture and forest
+  lifecycle setup. Static inspection confirmed the layout remains the common
+  input for cosmetics, server materialization and suppression; lifecycle tests
+  still key off original CandidateIndex/PersistentSpawnId for depletion, patch
+  reconstruction and restart. Added source coverage for regional wet, ocean wet,
+  invalid-sample rejection, dry placement and original-ordinal identity; it was
+  not built or run. Full build and automation remain deferred to BH26.
+- **Observable impact:** Meadows trees are omitted from wet/invalid ground in
+  both presentation and harvest materialization. Accepted roots use the same
+  final regional height already used by `SampleHeight`.
+- **Networking/authority:** No RPC, replicated state, save data or authority
+  path changed. Server and cosmetic consumers continue to derive descriptors
+  from the shared seeded layout; existing suppression and sparse depletion IDs
+  are unchanged.
+- **Known limitations / remaining scope:** Focused source coverage was not
+  compiled or executed. Full rendering, collision, hydrology and gameplay
+  lifecycle acceptance remains deferred to BH26.
+- **Main-checkout handoff:** Synchronized only `BACKLOG.md` and `PROGRESS.md`
+  in `E:\dev\Kalmala`, preserving the existing A10 and Monster progress.
+  Implementation and source-coverage files remain in this detached worktree.
+- **Next eligible task:** BH21 — add Tundra forest participation with reduced
+  density and explicit resource identity.

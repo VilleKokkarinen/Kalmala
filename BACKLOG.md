@@ -643,7 +643,7 @@ run for this goal and may exceed one turn.
     at a provisional 48,000 cm scale. It is independent of terrain detail and
     Flora and consumes no candidate-stream draws. Candidate counts, positions,
     ordinals and IDs remain unchanged; suitability gating remains BH20.
-  - [ ] **BH20 — Integrate Meadows forest suitability.** Use the shared descriptor
+  - [x] **BH20 — Integrate Meadows forest suitability.** Use the shared descriptor
     path for decorative and harvestable trees; gate by Flora, forest factor,
     final slope, and dry-ground suitability while preserving collision and
     harvest lifecycle identity.
@@ -661,9 +661,12 @@ run for this goal and may exceed one turn.
       the shared final-surface normal-Z floor of 0.88 before admission. The gate
       affects both decorative and harvestable trees while retaining final-height
       roots, Elderwood behavior and stable candidate identity.
-    - [ ] **BH20d — Gate on dry-ground suitability.** Use final shared water/
-      terrain samples for the same descriptor path; preserve existing basin,
-      suppression, depletion, late-join and restart identity contracts.
+    - [x] **BH20d — Gate on dry-ground suitability.** Meadows descriptors now
+      reject final regional water and wet/invalid ocean samples on the explicit
+      patch collision lattice. The final regional sample also supplies root
+      height; original ordinals, IDs, basin policy and lifecycle consumers stay
+      unchanged. Focused helper and identity coverage was added; full integrated
+      acceptance remains in BH26.
   - [ ] **BH21 — Add Tundra forest participation.** Reuse the forest factor with
     the planned reduced density; keep resource identity explicit and consistent
     across rendering, harvesting, suppression, and persistence.

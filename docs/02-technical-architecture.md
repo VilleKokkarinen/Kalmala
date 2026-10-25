@@ -3206,9 +3206,15 @@ factor; low-factor areas form clearings without changing the candidate budget or
 resetting at patch boundaries. Meadows descriptors also require a final
 `FKalmalaTerrainHeightSampler::SampleSurfaceNormal` Z component of at least
 0.88; its four neighboring height samples run only after Flora, forest-factor
-and stable per-ID candidate gates. `SampleHeight` remains the root height. The
-same shared descriptors feed cosmetic rendering and server materialization.
-Dry-ground gating remains in BH20d.
+and stable per-ID candidate gates. After those checks, a single final regional
+sample supplies both water state and root height. Meadows candidates with
+regional water are rejected; remaining candidates also require a valid dry sea
+sample on the same explicit 125 cm patch triangle lattice used by clipped ocean
+water. This rejects sea, river and policy-enabled basin water without creating
+basins when analytic basin support is disabled. Elderwood behavior is unchanged.
+The same shared descriptors feed cosmetic rendering and server materialization,
+so wet-ground rejection preserves original candidate ordinals and persistent IDs
+for suppression, depletion, late join and restart reconstruction.
 Each accepted descriptor has a
 `forest:v1:<world-seed>:<patch-x>:<patch-y>:<candidate>` identity. Patch coordinates
 are exact world-space centers formatted with 17 significant digits and normalized
