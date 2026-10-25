@@ -3617,9 +3617,10 @@ After rebuilding the Editor target for BH23 and BH24a, run the project-owned
 `Content/Kalmala/World/Materials/M_GeneratedTerrain.uasset` with the
 vertex-color grass/soil/rock blend and creates the original
 `M_GeneratedSoil.uasset`; the existing grass and rock palette remains in place.
-Vertex alpha also blends a pale snow tone over Freezing Tundra according to its
-continuous biome weight and final slope; Mountain snow is BH24b and Mountain
-storm visuals are BH24c.
+Vertex alpha blends a pale snow tone over Freezing Tundra by continuous biome
+weight and final slope, and over Thunder Mountains only above the named
+highland threshold, with continuous height and slope coverage; Mountain storm
+visuals remain BH24c.
 No grass texture or reed material is generated. Run
 `Scripts/Tests/Presentation/PresentationOwnership.ps1` after the material
 generation step so it can check the new soil asset. BH26 owns the Editor build,

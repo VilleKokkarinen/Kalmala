@@ -2718,8 +2718,11 @@ child. See `02-technical-architecture.md` for identities and verification bounda
 The terrain mesh writes normalized grass, soil and rock weights into vertex
 colour RGB from its final-surface normal, world-humidity field and final
 regional water state. Regional water sets moisture to its wet endpoint. Vertex
-colour alpha is the continuous Freezing Tundra snow mask: Tundra biome weight
-multiplied by final surface normal Z, so steep faces receive less coverage.
+colour alpha carries a continuous cold-biome snow mask. Tundra coverage is its
+biome weight multiplied by final surface normal Z. Mountain coverage also uses
+its continuous biome weight, a smooth final-height transition from the named
+highland threshold through its blend range, and final surface normal Z, so low
+foothills stay clear and steep faces receive less snow.
 `M_GeneratedTerrain` blends the established grass and rock colors with the
 original muted soil color from `M_GeneratedSoil`, then blends the existing
 terrain color toward a pale snow tone using alpha; the packages are generated

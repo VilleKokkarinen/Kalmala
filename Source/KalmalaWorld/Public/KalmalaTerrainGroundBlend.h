@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "KalmalaRegionalTuning.h"
 
 /** Deterministic cosmetic channels for generated terrain ground materials. */
 struct KALMALAWORLD_API FKalmalaTerrainGroundBlend
@@ -10,9 +11,10 @@ struct KALMALAWORLD_API FKalmalaTerrainGroundBlend
     static constexpr float RockSlopeStart = 0.08f;
     static constexpr float RockSlopeFull = 0.30f;
 
-    /** Vertex RGB carries normalized grass/soil/rock weights; alpha carries Tundra snow coverage. */
+    /** Vertex RGB carries ground weights; alpha carries Tundra and high-Mountain snow coverage. */
     static FLinearColor SampleWeights(const float SurfaceNormalZ, const float Moisture,
-        const float TundraBiomeWeight = 0.0f)
+        const float TundraBiomeWeight = 0.0f, const float MountainBiomeWeight = 0.0f,
+        const float FinalHeight = 0.0f)
     {
         const float NormalZ = FMath::IsFinite(SurfaceNormalZ)
             ? FMath::Clamp(SurfaceNormalZ, 0.0f, 1.0f) : 1.0f;
@@ -23,7 +25,16 @@ struct KALMALAWORLD_API FKalmalaTerrainGroundBlend
         const float SoilMoistureWeight = SmoothStep(SoilMoistureStart, SoilMoistureFull, NormalizedMoisture);
         const float NormalizedTundraWeight = FMath::IsFinite(TundraBiomeWeight)
             ? FMath::Clamp(TundraBiomeWeight, 0.0f, 1.0f) : 0.0f;
-        const float SnowCoverage = NormalizedTundraWeight * NormalZ;
+        const float NormalizedMountainWeight = FMath::IsFinite(MountainBiomeWeight)
+            ? FMath::Clamp(MountainBiomeWeight, 0.0f, 1.0f) : 0.0f;
+        const float SafeFinalHeight = FMath::IsFinite(FinalHeight) ? FinalHeight : 0.0f;
+        const float MountainHeightCoverage = SmoothStep(
+            static_cast<float>(FKalmalaRegionalTuning::MountainHighlandThreshold),
+            static_cast<float>(FKalmalaRegionalTuning::MountainHighlandThreshold
+                + FKalmalaRegionalTuning::MountainHighlandBlendRange), SafeFinalHeight);
+        const float SnowCoverage = FMath::Clamp(
+            (NormalizedTundraWeight + NormalizedMountainWeight * MountainHeightCoverage) * NormalZ,
+            0.0f, 1.0f);
         const float LowlandWeight = 1.0f - RockWeight;
         return FLinearColor(
             LowlandWeight * (1.0f - SoilMoistureWeight),

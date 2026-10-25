@@ -403,7 +403,9 @@ bool AKalmalaGeneratedTerrainPatch::BuildVisualSurface()
             VertexColors.Add(bBiomeDebug ? KalmalaGeneratedTerrainPatch::GetBiomeDebugColor(Biome)
                 : FKalmalaTerrainGroundBlend::SampleWeights(SurfaceNormal.Z,
                     FinalSurface.bHasWater ? 1.0f : Fields.Humidity,
-                    FinalSurface.Weights[static_cast<uint8>(EKalmalaBiome::FreezingTundra)]));
+                    FinalSurface.Weights[static_cast<uint8>(EKalmalaBiome::FreezingTundra)],
+                    FinalSurface.Weights[static_cast<uint8>(EKalmalaBiome::ThunderMountains)],
+                    FinalSurface.Height));
             Tangents.Add(FProcMeshTangent(1.0f, 0.0f, 0.0f));
         }
     }
@@ -436,7 +438,9 @@ bool AKalmalaGeneratedTerrainPatch::BuildVisualSurface()
             const auto Biome = FKalmalaBiomeClassifier::Classify(Fields);
             VertexColors.Add(bBiomeDebug ? KalmalaGeneratedTerrainPatch::GetBiomeDebugColor(Biome)
                 : FKalmalaTerrainGroundBlend::SampleWeights(SurfaceNormal.Z, Fields.Humidity,
-                    FinalSurface.Weights[static_cast<uint8>(EKalmalaBiome::FreezingTundra)]));
+                    FinalSurface.Weights[static_cast<uint8>(EKalmalaBiome::FreezingTundra)],
+                    FinalSurface.Weights[static_cast<uint8>(EKalmalaBiome::ThunderMountains)],
+                    FinalSurface.Height));
             Tangents.Add(FProcMeshTangent(1, 0, 0));
         }
     }

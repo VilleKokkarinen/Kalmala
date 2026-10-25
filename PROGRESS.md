@@ -9327,3 +9327,46 @@
   to `E:\dev\Kalmala` after inspecting both main versions; existing A10 and
   Monster progress and unrelated main-checkout files were preserved.
 - **Next eligible task:** BH24b — add Mountain snow coverage.
+
+### BH24b — Add Mountain snow coverage (2026-10-25)
+
+- **Selected increment:** BH24b, the next cold-biome child after Tundra snow.
+  The worktree was clean at `3ebd60ce`; no other autonomous run is modifying
+  this checkout. A10 and Monster work remains in separate worktrees.
+- **Work completed:** Extended the existing vertex-alpha snow mask with
+  continuous Thunder Mountains biome weight multiplied by a smooth final-height
+  transition from the existing 1,000 cm highland threshold through its
+  1,000 cm blend range and final surface normal Z. This leaves low foothills
+  without Mountain snow, reduces coverage on steep faces, preserves the prior
+  Tundra contribution and leaves RGB grass/soil/rock weights unchanged. Both
+  ordinary and bounded-world clipped mesh vertices use their existing final
+  regional sample. No terrain heights, player cloth, weather state or gameplay
+  path changed. Marked BH24b complete; BH24c remains next.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Public/KalmalaTerrainGroundBlend.h`,
+  `Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp`,
+  `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, and
+  `docs/biome-height-rework.md`.
+- **Lightweight checks/results:** Re-read AGENTS.md, BACKLOG.md, PROGRESS.md,
+  Mountain height tuning, terrain material generation and weather authority
+  contracts. Static inspection confirmed continuous Mountain weight, final
+  height and slope drive only the snow alpha; RGB weights, Tundra coverage,
+  foothill height, player-cloth palette, replicated weather and gameplay
+  authority are unchanged. `git diff --check` passed. No build, automation,
+  material generation or rendering was run; full verification remains deferred
+  to BH26.
+- **Observable impact:** High Mountain terrain now shares the pale snow overlay;
+  the coverage fades in above the highland threshold and decreases on steep
+  faces. The generated material package and rendered appearance were not
+  inspected.
+- **Networking/authority:** Mountain snow is deterministic cosmetic vertex data
+  from the shared final terrain sample. No replicated weather or gameplay
+  authority path changed.
+- **Known limitations / remaining scope:** `M_GeneratedTerrain.uasset` must be
+  updated after the Editor target is built. Material compilation, rendered
+  peaks/foothills and traversal remain for BH26. Mountain storm visuals remain
+  BH24c.
+- **Main-checkout handoff:** Synchronized only `BACKLOG.md` and `PROGRESS.md`
+  to `E:\dev\Kalmala` after inspecting both main versions; A10 and Monster
+  progress plus unrelated main-checkout files were preserved.
+- **Next eligible task:** BH24c — add Mountain storm presentation.

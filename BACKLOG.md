@@ -720,10 +720,10 @@ run for this goal and may exceed one turn.
       generated terrain material. Preserve RGB grass/soil/rock weights and the
       existing player-cloth palette; do not change terrain height, weather
       authority or gameplay behavior.
-    - [ ] **BH24b — Add Mountain snow coverage.** Use existing final terrain
-      height/slope and continuous Mountain weight to blend snow through the
-      existing generated terrain material; preserve foothill height and RGB
-      ground weights.
+    - [x] **BH24b — Add Mountain snow coverage.** Extend the existing snow
+      mask with continuous Mountain weight, final terrain height and slope;
+      snow fades in above the named highland threshold. Preserve foothill
+      height, Tundra coverage, RGB ground weights and player-cloth palette.
     - [ ] **BH24c — Add Mountain storm presentation.** Reflect the existing
       replicated server weather state in cosmetic Mountain storm visuals; do
       not add exposure, damage or shelter mechanics.
