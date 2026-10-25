@@ -288,7 +288,7 @@ The server owns player state, inventories, construction, damage, AI decisions, s
 | Generated player start | server | resolve a Meadow-preferred seed-specific transform above the sampled terrain height, then place each pawn with its actual collision half-height plus server clearance after the terrain patch collision exists |
 | Meadow rocks | client cosmetic | derive non-interactable low-poly procedural rocks from the replicated identity, terrain sample, and biome classification |
 | Meadow trees | client cosmetic | derive non-interactable low-poly procedural trunks and canopies from the replicated identity, terrain sample, and biome classification |
-| Gameplay population layout | server | activate a bounded set of invisible spatial keys around pawns, then spawn replicated server-owned harvest nodes, minimal wildlife spawns, and minimal hazard spawns from deterministic per-kind, field-informed descriptors; each carries a stable spatial ID for sparse server persistence; clients never select gameplay placements or defeat outcomes |
+| Gameplay population layout | server | activate a bounded set of invisible spatial keys around pawns, materialize harvest nodes and hazards, and admit replicated wildlife through a bounded server scheduler after ordered distance, habitat, cap and camp-placement gates; each uses deterministic per-kind, field-informed descriptors with stable IDs for sparse persistence; clients never select gameplay placements or defeat outcomes |
 | Environmental exposure | server | sample ambient temperature, precipitation, wind exposure, and shelter for each pawn; update clamped wetness and warmth at a fixed server interval; replicate the resulting state for display only |
 | Biome expansion | server | `FKalmalaBiomeExpansionContract` supplies deterministic per-biome terrain-feature intent, bounded population multipliers, normalized exposure modifiers, and stable discovery candidates. The completed Shimmering Lakes slice applies its profile only in lake-classified spatial keys and pawn samples, then materializes at most one dry, water-adjacent harvest discovery per active lake key. The Elderwood slice applies its profile only in Elderwood-classified keys and pawn samples, materializes at most one gently sloped lower-flora clearing discovery per active key, and locally derives dense field-driven canopy and roots with natural clearings. The Mossy Mire slice applies its profile only in Mire-classified keys and pawn samples, applies bounded server-owned footing drag through the existing replicated exposure state, and materializes at most one gently sloped relatively dry hummock harvest discovery per active key. The Freezing Tundra slice applies its sparse-cover, stronger-wind profile only in Tundra-classified keys and pawn samples, and materializes at most one exposed, gently rolling high-ground harvest discovery per active key. The Thunder Mountains slice applies its high-wind profile only in Mountain-classified keys and pawn samples, and materializes at most one steep-but-traversable storm-carved overlook discovery per active key. All use the normal validated harvest path and persist only sparse depletion deltas. Clients receive no candidate list or discovery location. |
 | Companion minimap | client UI | `UKalmalaMinimapViewModel` derives a local terrain/water sample grid from the replicated world identity and owning pawn transform; `UKalmalaMinimapSubsystem` creates a local top-right circular presentation that draws only in-circle terrain/water samples and a centred facing marker. Local mouse-wheel input adjusts a session-only view radius between tunable 2,500–10,000 cm bounds only while CommonUI allows normal game input; a modal UI retains wheel ownership. The UI never reveals hidden server-owned content. |
@@ -825,7 +825,7 @@ Wood source stacks cap at 50 like current `Wood`; mineral source stacks cap at
 ### A0 hand-gathered crop patches
 
 The existing deterministic `HarvestNode` descriptors assign the first dry,
-safe Meadow candidate in each 6,000 cm spatial key to a carrot patch. Its
+safe Meadow candidate in each 6,400 cm spatial key to a carrot patch. Its
 persistent seed is `Mix(candidate-seed XOR 0xA0CA22071019)`, which keeps the
 `meadows-wild-carrot-patch` identity distinct from its former biome-source
 occupant. The next dry, safe Meadow candidate in that key becomes a potato
@@ -867,7 +867,7 @@ seed use remains deferred to A7; no Potato Seed source is added in A0.
 
 ## Deterministic placement and population budget
 
-- Use the existing invisible 6,000 cm `SpatialKey` and the current world seed,
+- Use the existing invisible 6,400 cm `SpatialKey` and the current world seed,
   generator revision, source ID, and key coordinates for deterministic
   placement. The generator revision is part of the matching world-save
   identity; it is not a visible region boundary.
@@ -938,7 +938,7 @@ Stone-or-better and the ironheart trunk to the Iron woodcutting tier; it does no
 station at the source. Tool acquisition and upgrades validate their matching
 visible Workbench or Forge separately.
 
-First-wave sources remain birch bark and resinwood for Wood, reed clusters for Wood, frostmoss for Frost Salt, and mountain slate veins for Stone. A separate deterministic pass adds at most one dry, slope-safe Stone outcrop in each land biome per 6,000 cm spatial key when that biome has no existing slate source, including Meadows; it keeps a 250 cm separation from other harvest nodes and preserves the ordinary source budget and existing crop/ore nodes. Outcrops reuse the slate presentation and server selection, requiring Stone Pick or better and yielding one Stone. The bounded extra-candidate search can leave a key without an outcrop; Ocean receives none. Deterministic secondary ore nodes add three Copper Ore per dry, safe Elderwood rock and three Tin Ore per dry Shimmering Lakes shoreline gravel node. Both are Bronze-grade mining resources available to Stone Pick or better. The Iron-grade Mossy Mire bog-iron vein yields exactly three Iron Ore per exhausted node and requires Bronze Pick or better; the Smelter converts one Iron Ore and one Coal into one Iron bar. Stone Picks mine through Bronze-grade resources; Bronze and Iron Picks currently mine through Iron. Amber and Frost Salt require Stone Pick/Mining; birch trunks yield Wood and Meadow Aspen trunks yield four Lightwood, both requiring Stone Axe or better; ironheart trunks require the Iron woodcutting tier. Harvesting tier is determined by the axe item identity: Bronze Axe level 2 remains Bronze, and only Iron Axe meets the Iron woodcutting gate. Older Iron Axe level-two records remain valid. Accepted harvest preflights the entire inventory reward, spends one tool-condition point, and depletes once. Failure preserves inventory, condition, and availability. Clients never choose reward, quantity, target, sparse ID, or bonus.
+First-wave sources remain birch bark and resinwood for Wood, reed clusters for Wood, frostmoss for Frost Salt, and mountain slate veins for Stone. A separate deterministic pass adds at most one dry, slope-safe Stone outcrop in each land biome per 6,400 cm spatial key when that biome has no existing slate source, including Meadows; it keeps a 250 cm separation from other harvest nodes and preserves the ordinary source budget and existing crop/ore nodes. Outcrops reuse the slate presentation and server selection, requiring Stone Pick or better and yielding one Stone. The bounded extra-candidate search can leave a key without an outcrop; Ocean receives none. Deterministic secondary ore nodes add three Copper Ore per dry, safe Elderwood rock and three Tin Ore per dry Shimmering Lakes shoreline gravel node. Both are Bronze-grade mining resources available to Stone Pick or better. The Iron-grade Mossy Mire bog-iron vein yields exactly three Iron Ore per exhausted node and requires Bronze Pick or better; the Smelter converts one Iron Ore and one Coal into one Iron bar. Stone Picks mine through Bronze-grade resources; Bronze and Iron Picks currently mine through Iron. Amber and Frost Salt require Stone Pick/Mining; birch trunks yield Wood and Meadow Aspen trunks yield four Lightwood, both requiring Stone Axe or better; ironheart trunks require the Iron woodcutting tier. Harvesting tier is determined by the axe item identity: Bronze Axe level 2 remains Bronze, and only Iron Axe meets the Iron woodcutting gate. Older Iron Axe level-two records remain valid. Accepted harvest preflights the entire inventory reward, spends one tool-condition point, and depletes once. Failure preserves inventory, condition, and availability. Clients never choose reward, quantity, target, sparse ID, or bonus.
 
 The Copper, Tin, and Iron Ore sources use the existing server-authoritative harvest transaction and stable sparse population identities; each key has at most one of each secondary source, and Lakes Tin requires the shared dry-shoreline classification. The user-directed level-one Iron Axe Forge acquisition and upgrade now both require Lightwood instead of Densewood, resolving the axe's Densewood dependency. Iron Knife, Spear, and Mace acquisitions still require Densewood; Iron Pick's recipe uses Iron, Wood, and Stone. Meadow Aspen trees provide Lightwood without a Bronze prerequisite. See the A0 source audit in `alpha-items.md`.
 
@@ -3300,3 +3300,59 @@ A9 source audit found Frost Salt mineral deposits existed only as contracts/fixt
 Opal Helm now uses owner-only replicated equipped Level and a server-only same-pawn GUID level ledger. Its Inventory actions submit only the equipped GUID to throttled server Forge maintenance. A visible same-world Forge within 2.5 m is required; paid upgrades match the target item level to the effective Forge level, while free repair accepts that Forge without a target-level gate. Authored costs double with current level through the existing item-level cap 10; existing station attachments currently raise a Forge only to level two, so higher authored tiers retain that existing station prerequisite. Armor/maximum condition grow by 1/10 per level and upgraded condition is restored. Head-slot wear and damage read that equipped level. Levels/wear are not saved or transferred across pawn ownership; this does not add a general gear-save system. Other wearables remain level one through existing actions.
 
 Ordinary third-person interaction extends the camera visibility query for loose gemstones and unclaimed world treasure using the same bounded camera-offset rule as wood drops. The server still checks physical pawn-to-target reach and blocking visibility. This changes camera reach only; intact gemstone mining remains the normal equipped-pick combat route.
+
+## Monster population and camp spawn suppression — 2026-10-25
+
+The accepted source of numeric tuning is [monster-spawning.md](monster-spawning.md). The
+implementation keeps the existing finite deterministic wildlife descriptors,
+species weights, world identity, sparse defeated-ID ledger and durable reward
+claims. Natural admission is server-owned by AKalmalaGameMode; clients do not
+choose a descriptor, species, position, roll, stable spawn ID or creation time.
+
+The scheduler considers loaded 64 m spatial keys in the union of current living
+players' inclusive 96 m horizontal neighborhoods, with no more than nine active
+keys. It wakes every 0.25 server seconds, services at most four due keys, examines
+at most four descriptors per key and at most 16 candidates per wake. Each key is
+serviced every five seconds after a deterministic initial phase; missed wakes
+are skipped. A per-key cursor rotates through descriptors. The admission roll
+is deterministic at 25%; a candidate must be in the inclusive 32–96 m ring of
+at least one living player and at least 36 m from every living player. Time,
+weather and progression gates remain unrestricted for current species. Existing
+per-key, aggregate, area and per-species limits remain enforced with atomic
+three-member Wolf reservations.
+
+All spawn attempts pass the existing species habitat, support, collision and
+world-bound checks. Land slope is at most 32 degrees inclusive. Reef Maw keeps
+its existing Ocean depth/swimming contract. A solid construction roof rejects
+the volume above a proposed creature through the existing 24 m upward trace.
+The server evaluates physical placement at the proposed actor origin and applies
+camp suppression only to new admission.
+
+Workbench and Forge each suppress within an inclusive 18 m horizontal radius
+and vertical interval [-12, +12] m, while existing, complete and undestroyed.
+An intact Camp Bed suppresses inside its inclusive 18 m three-dimensional
+sphere. Campfire and Standing Light use the same sphere only while lit with
+fuel remaining. No other placed object emits a suppression field. Destroyed,
+removed, extinguished and empty sources stop suppressing at the next attempt.
+Roofs retain their separate overhead collision rule. Existing wildlife is not
+destroyed, displaced or excluded from moving into a camp.
+
+The server tracks live wildlife actors by stable ID and current position while
+retaining each actor's charge against its descriptor home key. A living actor
+may unload only when it is outside every living player's inclusive 96 m radius;
+unload grants no reward and does not mark defeat. The same stable slot can be
+recreated at its original descriptor after the 30 second session-only cooldown
+and all current gates pass. Defeated IDs remain depleted through reconnect and
+restart, without a defeat cooldown or save-format change. Existing durable reward
+escrow and authenticated-owner claims remain the only reward delivery path.
+
+The environmental-spawner helpers define a reusable but currently dormant
+policy: there is no configured source registry or world spawner actor. A
+configured source would check every eight seconds, examine at most four fixed
+candidates within the inclusive 12 m 3D radius, and create at most one actor
+per check. It would own at most two living creatures within an inclusive 24 m
+horizontal radius. Each source has two finite
+stable slots. Source reservations share the global 16-candidate wake and the
+same species, home-key, aggregate, habitat, player-distance and camp gates.
+Inactive sources accrue no missed checks. The full stage map and exact values
+remain in [monster-spawning.md](monster-spawning.md).

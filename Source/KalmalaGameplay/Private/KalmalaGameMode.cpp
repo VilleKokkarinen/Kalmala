@@ -63,6 +63,7 @@
 #include "Engine/World.h"
 #include "TimerManager.h"
 #include "EngineUtils.h"
+#include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/PrimitiveComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -156,6 +157,22 @@ namespace KalmalaGameMode
                 && !FKalmalaShimmeringLakeSampler::IsWater(Config, Position);
         }
         return true;
+    }
+
+    bool IsHardEnemyWildlifeArchetype(const EKalmalaWildlifeArchetype Archetype)
+    {
+        switch (Archetype)
+        {
+        case EKalmalaWildlifeArchetype::GiantSnake:
+        case EKalmalaWildlifeArchetype::MoonBear:
+        case EKalmalaWildlifeArchetype::PeatHusk:
+        case EKalmalaWildlifeArchetype::PolarBear:
+        case EKalmalaWildlifeArchetype::ThunderSentinel:
+        case EKalmalaWildlifeArchetype::ReefMaw:
+            return true;
+        default:
+            return false;
+        }
     }
 
     bool IsWildlifeSpawnOfArchetype(const FKalmalaWorldGenerationConfig& Config,
@@ -1354,7 +1371,7 @@ void AKalmalaGameMode::DriveCombatPeerTest()
             return;
         }
         const FString ExpectedSpawnId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(*ExpectedDescriptor);
-        ActivatePopulationKey(SpatialKey);
+        ActivatePopulationKey(SpatialKey, true);
         int32 ActiveInKey = 0;
         for (TActorIterator<AKalmalaWildlifeSpawn> It(GetWorld()); It; ++It)
         {
@@ -1374,7 +1391,7 @@ void AKalmalaGameMode::DriveCombatPeerTest()
                     const TArray<FKalmalaWorldPopulationSpawn> HerdDescriptors = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(WorldGenerationConfig, HerdKey, EKalmalaWorldPopulationKind::Wildlife);
                     if (!HerdDescriptors.ContainsByPredicate([this](const FKalmalaWorldPopulationSpawn& Descriptor)
                         { return KalmalaGameMode::IsWildlifeSpawnOfArchetype(WorldGenerationConfig, Descriptor, EKalmalaWildlifeArchetype::Deer); })) continue;
-                    ActivatePopulationKey(HerdKey);
+                    ActivatePopulationKey(HerdKey, true);
                     for (TActorIterator<AKalmalaWildlifeSpawn> It(GetWorld()); It; ++It)
                     {
                         if (!(*It)->IsDefeated() && (*It)->GetArchetype() == EKalmalaWildlifeArchetype::Deer && (*It)->GetPersistentSpawnId() != ExpectedSpawnId)
@@ -2134,7 +2151,7 @@ void AKalmalaGameMode::DriveMosquitoPeerTest()
                         FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(
                             WorldGenerationConfig, CandidateKey, EKalmalaWorldPopulationKind::Wildlife);
                     const FVector2D KeyCentre = (FVector2D(CandidateKey) + FVector2D(0.5f, 0.5f))
-                        * FKalmalaWorldPopulationLayout::SpatialKeySize;
+                        * FKalmalaWorldPopulationLayout::SpatialKeySizeCm;
                     const EKalmalaBiome KeyBiome = FKalmalaBiomeClassifier::Classify(
                         FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, KeyCentre));
                     if (KeyBiome == EKalmalaBiome::ShimmeringLakes || KeyBiome == EKalmalaBiome::Elderwood
@@ -2169,7 +2186,7 @@ void AKalmalaGameMode::DriveMosquitoPeerTest()
             return;
         }
 
-        ActivatePopulationKey(MosquitoPeerTestSpatialKey);
+        ActivatePopulationKey(MosquitoPeerTestSpatialKey, true);
         MosquitoPeerTestStageTime = Now;
         MosquitoPeerTestStage = 1;
         UE_LOG(LogTemp, Display,
@@ -2626,7 +2643,7 @@ void AKalmalaGameMode::DrivePeatHuskPeerTest()
             PeatHuskPeerTestStage = 99;
             return;
         }
-        ActivatePopulationKey(PeatHuskPeerTestSpatialKey);
+        ActivatePopulationKey(PeatHuskPeerTestSpatialKey, true);
         PeatHuskPeerTestHost = Host;
         PeatHuskPeerTestStage = 1;
         PeatHuskPeerTestStageTime = Now;
@@ -3027,7 +3044,7 @@ void AKalmalaGameMode::DriveWolfPeerTest()
         bWolfPeerTestSawTelegraph = false;
         bWolfPeerTestSawLunge = false;
         bWolfPeerTestSawRecovery = false;
-        ActivatePopulationKey(WolfPeerTestSpatialKey);
+        ActivatePopulationKey(WolfPeerTestSpatialKey, true);
         WolfPeerTestStage = 1;
         WolfPeerTestStageTime = Now;
         return;
@@ -3240,7 +3257,7 @@ void AKalmalaGameMode::DriveLynxPeerTest()
                         FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(
                             WorldGenerationConfig, CandidateKey, EKalmalaWorldPopulationKind::Wildlife);
                     const FVector2D KeyCentre = (FVector2D(CandidateKey) + FVector2D(0.5f, 0.5f))
-                        * FKalmalaWorldPopulationLayout::SpatialKeySize;
+                        * FKalmalaWorldPopulationLayout::SpatialKeySizeCm;
                     const EKalmalaBiome KeyBiome = FKalmalaBiomeClassifier::Classify(
                         FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, KeyCentre));
                     if (KeyBiome == EKalmalaBiome::ShimmeringLakes || KeyBiome == EKalmalaBiome::Elderwood
@@ -3394,7 +3411,7 @@ void AKalmalaGameMode::DriveLynxPeerTest()
         bLynxPeerTestSawTelegraph = false;
         bLynxPeerTestSawLeap = false;
         bLynxPeerTestSawRecovery = false;
-        ActivatePopulationKey(LynxPeerTestSpatialKey);
+        ActivatePopulationKey(LynxPeerTestSpatialKey, true);
         LynxPeerTestStage = 1;
         LynxPeerTestStageTime = Now;
         return;
@@ -3606,7 +3623,7 @@ void AKalmalaGameMode::DrivePolarBearPeerTest()
                         FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(
                             WorldGenerationConfig, CandidateKey, EKalmalaWorldPopulationKind::Wildlife);
                     const FVector2D KeyCentre = (FVector2D(CandidateKey) + FVector2D(0.5f, 0.5f))
-                        * FKalmalaWorldPopulationLayout::SpatialKeySize;
+                        * FKalmalaWorldPopulationLayout::SpatialKeySizeCm;
                     const EKalmalaBiome KeyBiome = FKalmalaBiomeClassifier::Classify(
                         FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, KeyCentre));
                     if (KeyBiome == EKalmalaBiome::ShimmeringLakes || KeyBiome == EKalmalaBiome::Elderwood
@@ -3765,7 +3782,7 @@ void AKalmalaGameMode::DrivePolarBearPeerTest()
         bPolarBearPeerTestSawCharge = false;
         bPolarBearPeerTestSawRetreat = false;
         bPolarBearPeerTestSawRecovery = false;
-        ActivatePopulationKey(PolarBearPeerTestSpatialKey);
+        ActivatePopulationKey(PolarBearPeerTestSpatialKey, true);
         PolarBearPeerTestStage = 1;
         PolarBearPeerTestStageTime = Now;
         return;
@@ -3996,7 +4013,7 @@ void AKalmalaGameMode::DriveHornedGoatPeerTest()
                     if (Radius > 0 && FMath::Abs(OffsetX) != Radius && FMath::Abs(OffsetY) != Radius) continue;
                     const FIntPoint CandidateKey = StartKey + FIntPoint(OffsetX, OffsetY);
                     const FVector2D KeyCentre = (FVector2D(CandidateKey) + FVector2D(0.5f, 0.5f))
-                        * FKalmalaWorldPopulationLayout::SpatialKeySize;
+                        * FKalmalaWorldPopulationLayout::SpatialKeySizeCm;
                     const EKalmalaBiome KeyBiome = FKalmalaBiomeClassifier::Classify(
                         FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, KeyCentre));
                     if (KeyBiome != EKalmalaBiome::ThunderMountains) continue;
@@ -4095,7 +4112,7 @@ void AKalmalaGameMode::DriveHornedGoatPeerTest()
         bHornedGoatPeerTestSawStaggerEnd = false;
         HornedGoatPeerTestObservedStaggerDuration = 0.0f;
         PlaceOnTerrain(Host, HornedGoatPeerTestHostRingLocation);
-        ActivatePopulationKey(HornedGoatPeerTestSpatialKey);
+        ActivatePopulationKey(HornedGoatPeerTestSpatialKey, true);
         HornedGoatPeerTestStage = 1;
         HornedGoatPeerTestStageTime = Now;
         return;
@@ -4344,7 +4361,7 @@ void AKalmalaGameMode::DriveThunderSentinelPeerTest()
                     if (Radius > 0 && FMath::Abs(OffsetX) != Radius && FMath::Abs(OffsetY) != Radius) continue;
                     const FIntPoint CandidateKey = StartKey + FIntPoint(OffsetX, OffsetY);
                     const FVector2D KeyCentre = (FVector2D(CandidateKey) + FVector2D(0.5f, 0.5f))
-                        * FKalmalaWorldPopulationLayout::SpatialKeySize;
+                        * FKalmalaWorldPopulationLayout::SpatialKeySizeCm;
                     const EKalmalaBiome KeyBiome = FKalmalaBiomeClassifier::Classify(
                         FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, KeyCentre));
                     if (KeyBiome != EKalmalaBiome::ThunderMountains) continue;
@@ -4443,7 +4460,7 @@ void AKalmalaGameMode::DriveThunderSentinelPeerTest()
         bThunderSentinelPeerTestSawRecovery = false;
         ThunderSentinelPeerTestObservedStepCm = 0.0f;
         PlaceOnTerrain(Host, ThunderSentinelPeerTestHostRingLocation);
-        ActivatePopulationKey(ThunderSentinelPeerTestSpatialKey);
+        ActivatePopulationKey(ThunderSentinelPeerTestSpatialKey, true);
         ThunderSentinelPeerTestStage = 1;
         ThunderSentinelPeerTestStageTime = Now;
         return;
@@ -4686,7 +4703,7 @@ void AKalmalaGameMode::DriveReefMawPeerTest()
                     if (Radius > 0 && FMath::Abs(OffsetX) != Radius && FMath::Abs(OffsetY) != Radius) continue;
                     const FIntPoint CandidateKey = StartKey + FIntPoint(OffsetX, OffsetY);
                     const FVector2D KeyCentre = (FVector2D(CandidateKey) + FVector2D(0.5f, 0.5f))
-                        * FKalmalaWorldPopulationLayout::SpatialKeySize;
+                        * FKalmalaWorldPopulationLayout::SpatialKeySizeCm;
                     const EKalmalaBiome KeyBiome = FKalmalaBiomeClassifier::Classify(
                         FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, KeyCentre));
                     if (KeyBiome != EKalmalaBiome::Ocean) continue;
@@ -4772,7 +4789,7 @@ void AKalmalaGameMode::DriveReefMawPeerTest()
         ReefMawPeerTestWorldSeed = WorldGenerationConfig.WorldSeed;
         ReefMawPeerTestHost = Host;
         ReefMawPeerTestTarget.Reset();
-        ActivatePopulationKey(ReefMawPeerTestSpatialKey);
+        ActivatePopulationKey(ReefMawPeerTestSpatialKey, true);
         ReefMawPeerTestStage = 1;
         ReefMawPeerTestStageTime = Now;
         return;
@@ -5096,7 +5113,7 @@ void AKalmalaGameMode::DriveM9ExplorationRewardPeerTest()
             {
                 const FIntPoint SpatialKey(X, Y);
                 const FVector2D KeyCenter = (FVector2D(SpatialKey) + FVector2D(0.5f, 0.5f))
-                    * FKalmalaWorldPopulationLayout::SpatialKeySize;
+                    * FKalmalaWorldPopulationLayout::SpatialKeySizeCm;
                 const EKalmalaBiome KeyBiome = FKalmalaBiomeClassifier::Classify(
                     FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, KeyCenter));
                 if (KeyBiome != EKalmalaBiome::ShimmeringLakes && KeyBiome != EKalmalaBiome::ThunderMountains) continue;
@@ -5264,6 +5281,2528 @@ void AKalmalaGameMode::DriveM9ExplorationRewardPeerTest()
 #endif
 }
 
+TArray<AKalmalaCharacter*> AKalmalaGameMode::GetLivingPlayerPawnsForPopulation() const
+{
+    TArray<AKalmalaCharacter*> LivingPlayerPawns;
+    UWorld* World = GetWorld();
+    if (!HasAuthority() || !IsValid(World))
+    {
+        return LivingPlayerPawns;
+    }
+
+    struct FPopulationPlayerEntry
+    {
+        int32 PlayerId = INDEX_NONE;
+        FString ControllerPath;
+        AKalmalaCharacter* Character = nullptr;
+    };
+    TArray<FPopulationPlayerEntry> Candidates;
+    for (FConstPlayerControllerIterator Iterator = World->GetPlayerControllerIterator(); Iterator; ++Iterator)
+    {
+        APlayerController* Controller = Iterator->Get();
+        if (!IsValid(Controller) || Controller->GetWorld() != World)
+        {
+            continue;
+        }
+
+        const APlayerState* PlayerState = Controller->GetPlayerState<APlayerState>();
+        if (!IsValid(PlayerState) || PlayerState->GetWorld() != World
+            || PlayerState->IsInactive() || PlayerState->IsSpectator() || PlayerState->IsOnlyASpectator())
+        {
+            continue;
+        }
+
+        AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(Controller->GetPawn());
+        if (!IsValid(Character) || Character->GetWorld() != World || Character->GetController() != Controller
+            || !FMath::IsFinite(Character->GetHealth()) || Character->GetHealth() <= 1.0f)
+        {
+            continue;
+        }
+
+        FPopulationPlayerEntry& Entry = Candidates.AddDefaulted_GetRef();
+        Entry.PlayerId = PlayerState->GetPlayerId();
+        Entry.ControllerPath = Controller->GetPathName();
+        Entry.Character = Character;
+    }
+
+    Candidates.Sort([](const FPopulationPlayerEntry& A, const FPopulationPlayerEntry& B)
+    {
+        if (A.PlayerId != B.PlayerId)
+        {
+            return A.PlayerId < B.PlayerId;
+        }
+        return A.ControllerPath < B.ControllerPath;
+    });
+
+    TSet<const AKalmalaCharacter*> SeenPawns;
+    for (const FPopulationPlayerEntry& Candidate : Candidates)
+    {
+        if (SeenPawns.Contains(Candidate.Character))
+        {
+            continue;
+        }
+        SeenPawns.Add(Candidate.Character);
+        LivingPlayerPawns.Add(Candidate.Character);
+    }
+    return LivingPlayerPawns;
+}
+
+TArray<FIntPoint> AKalmalaGameMode::GetPopulationSpatialKeyCandidates() const
+{
+    TArray<FIntPoint> Candidates;
+    const UWorld* World = GetWorld();
+    if (!HasAuthority() || !IsValid(World) || ActivePopulationSpatialKeys.IsEmpty())
+    {
+        return Candidates;
+    }
+
+    const TArray<AKalmalaCharacter*> LivingPlayers = GetLivingPlayerPawnsForPopulation();
+    if (LivingPlayers.IsEmpty())
+    {
+        return Candidates;
+    }
+
+    constexpr double KeySizeCm = FKalmalaWorldPopulationLayout::SpatialKeySizeCm;
+    constexpr double RadiusCm = FKalmalaMonsterSpawnTuning::PlayerKeyIntersectionRadiusCm;
+    constexpr double RadiusSquared = RadiusCm * RadiusCm;
+    for (const FIntPoint& SpatialKey : ActivePopulationSpatialKeys)
+    {
+        const double KeyMinimumX = static_cast<double>(SpatialKey.X) * KeySizeCm;
+        const double KeyMaximumX = KeyMinimumX + KeySizeCm;
+        const double KeyMinimumY = static_cast<double>(SpatialKey.Y) * KeySizeCm;
+        const double KeyMaximumY = KeyMinimumY + KeySizeCm;
+        bool bIntersectsLivingPlayer = false;
+        for (const AKalmalaCharacter* Player : LivingPlayers)
+        {
+            if (!IsValid(Player) || Player->GetWorld() != World)
+            {
+                continue;
+            }
+
+            const FVector2D PlayerPosition(Player->GetActorLocation());
+            if (!FMath::IsFinite(PlayerPosition.X) || !FMath::IsFinite(PlayerPosition.Y))
+            {
+                continue;
+            }
+
+            // Closed square bounds preserve inclusive radius tangency.
+            const double DistanceX = PlayerPosition.X < KeyMinimumX ? KeyMinimumX - PlayerPosition.X
+                : PlayerPosition.X > KeyMaximumX ? PlayerPosition.X - KeyMaximumX : 0.0;
+            const double DistanceY = PlayerPosition.Y < KeyMinimumY ? KeyMinimumY - PlayerPosition.Y
+                : PlayerPosition.Y > KeyMaximumY ? PlayerPosition.Y - KeyMaximumY : 0.0;
+            if (DistanceX * DistanceX + DistanceY * DistanceY <= RadiusSquared)
+            {
+                bIntersectsLivingPlayer = true;
+                break;
+            }
+        }
+
+        if (bIntersectsLivingPlayer)
+        {
+            Candidates.Add(SpatialKey);
+        }
+    }
+
+    Candidates.Sort([](const FIntPoint& A, const FIntPoint& B)
+    {
+        return A.X == B.X ? A.Y < B.Y : A.X < B.X;
+    });
+    return Candidates;
+}
+
+void AKalmalaGameMode::UpdatePopulationKeySchedule(const double NowSeconds)
+{
+    if (!HasAuthority() || !IsValid(GetWorld()) || !WorldGenerationConfig.IsValid()
+        || !FMath::IsFinite(NowSeconds))
+    {
+        return;
+    }
+
+    const TArray<FIntPoint> CandidateKeys = GetPopulationSpatialKeyCandidates();
+    TSet<FIntPoint> CurrentCandidateKeys;
+    for (const FIntPoint& SpatialKey : CandidateKeys)
+    {
+        CurrentCandidateKeys.Add(SpatialKey);
+    }
+
+    for (auto Iterator = ActivePopulationSchedulerKeys.CreateIterator(); Iterator; ++Iterator)
+    {
+        if (!CurrentCandidateKeys.Contains(*Iterator))
+        {
+            const FIntPoint InactiveKey = *Iterator;
+            Iterator.RemoveCurrent();
+            PopulationKeyNextDueTimes.Remove(InactiveKey);
+            PopulationKeyCandidateCursors.Remove(InactiveKey);
+            PopulationKeyServicedCheckOrdinals.Remove(InactiveKey);
+        }
+    }
+
+    for (const FIntPoint& SpatialKey : CandidateKeys)
+    {
+        ActivePopulationSchedulerKeys.Add(SpatialKey);
+
+        if (!PopulationKeyNextDueTimes.Contains(SpatialKey))
+        {
+            const uint64 Seed = FKalmalaWorldPopulationLayout::DeriveSpatialSeed(
+                WorldGenerationConfig, SpatialKey, EKalmalaWorldPopulationKind::Wildlife);
+            const uint64 Phase = Seed % FKalmalaMonsterSpawnTuning::PopulationKeyPhaseCount;
+            PopulationKeyNextDueTimes.Add(SpatialKey, NowSeconds
+                + static_cast<double>(Phase) * FKalmalaMonsterSpawnTuning::PopulationKeyPhaseStepSeconds);
+        }
+    }
+}
+
+TArray<FIntPoint> AKalmalaGameMode::GetDuePopulationSpatialKeys(const double NowSeconds) const
+{
+    TArray<FIntPoint> DueKeys;
+    if (!HasAuthority() || !IsValid(GetWorld()) || !FMath::IsFinite(NowSeconds))
+    {
+        return DueKeys;
+    }
+
+    for (const FIntPoint& SpatialKey : ActivePopulationSchedulerKeys)
+    {
+        const double* NextDueTime = PopulationKeyNextDueTimes.Find(SpatialKey);
+        if (NextDueTime != nullptr && *NextDueTime <= NowSeconds)
+        {
+            DueKeys.Add(SpatialKey);
+        }
+    }
+    DueKeys.Sort([](const FIntPoint& A, const FIntPoint& B)
+    {
+        return A.X == B.X ? A.Y < B.Y : A.X < B.X;
+    });
+    return DueKeys;
+}
+
+bool AKalmalaGameMode::MarkPopulationSpatialKeyServiced(const FIntPoint& SpatialKey, const double NowSeconds)
+{
+    if (!HasAuthority() || !IsValid(GetWorld()) || !FMath::IsFinite(NowSeconds)
+        || !ActivePopulationSchedulerKeys.Contains(SpatialKey))
+    {
+        return false;
+    }
+
+    double* NextDueTime = PopulationKeyNextDueTimes.Find(SpatialKey);
+    if (NextDueTime == nullptr || *NextDueTime > NowSeconds)
+    {
+        return false;
+    }
+
+    *NextDueTime = NowSeconds + FKalmalaMonsterSpawnTuning::PopulationKeyCheckIntervalSeconds;
+    return true;
+}
+
+void AKalmalaGameMode::UpdatePopulationSchedulerWake(const double NowSeconds)
+{
+    PopulationSchedulerWakeWork.Reset();
+    if (!HasAuthority() || !IsValid(GetWorld()) || !FMath::IsFinite(NowSeconds)
+        || NowSeconds < NextPopulationSchedulerWakeTime)
+    {
+        return;
+    }
+
+    // Rebase from the current time so a hitch never causes catch-up wakes.
+    NextPopulationSchedulerWakeTime = NowSeconds
+        + FKalmalaMonsterSpawnTuning::PopulationSchedulerWakeIntervalSeconds;
+
+    int32 RemainingCandidateBudget = FKalmalaMonsterSpawnTuning::MaxPopulationCandidatesPerWake;
+    const TArray<FIntPoint> DueKeys = GetDuePopulationSpatialKeys(NowSeconds);
+    for (const FIntPoint& SpatialKey : DueKeys)
+    {
+        if (PopulationSchedulerWakeWork.Num() >= FKalmalaMonsterSpawnTuning::MaxPopulationKeysPerWake
+            || RemainingCandidateBudget <= 0)
+        {
+            break;
+        }
+
+        const int32 CandidateBudget = FMath::Min(
+            FKalmalaMonsterSpawnTuning::MaxPopulationCandidatesPerKey, RemainingCandidateBudget);
+        if (!MarkPopulationSpatialKeyServiced(SpatialKey, NowSeconds))
+        {
+            continue;
+        }
+
+        FKalmalaPopulationSchedulerKeyWork& KeyWork = PopulationSchedulerWakeWork.AddDefaulted_GetRef();
+        KeyWork.SpatialKey = SpatialKey;
+        KeyWork.CandidateBudget = CandidateBudget;
+        uint64& CheckOrdinal = PopulationKeyServicedCheckOrdinals.FindOrAdd(SpatialKey);
+        KeyWork.CheckOrdinal = CheckOrdinal++;
+        RemainingCandidateBudget -= CandidateBudget;
+    }
+
+    if (PopulationSchedulerWakeWork.IsEmpty())
+    {
+        return;
+    }
+
+    const TArray<AKalmalaCharacter*> LivingPlayers = GetLivingPlayerPawnsForPopulation();
+    for (FKalmalaPopulationSchedulerKeyWork& KeyWork : PopulationSchedulerWakeWork)
+    {
+        const TArray<FKalmalaWorldPopulationSpawn> Descriptors =
+            FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(
+                WorldGenerationConfig, KeyWork.SpatialKey, EKalmalaWorldPopulationKind::Wildlife);
+        SelectPopulationRingCandidates(KeyWork, Descriptors, LivingPlayers);
+        ApplyPopulationPlayerDistanceGate(KeyWork, LivingPlayers);
+        ApplyPopulationSpeciesHabitatGate(KeyWork);
+        ApplyPopulationTimeGate(KeyWork);
+        ApplyPopulationWeatherGate(KeyWork);
+        ApplyPopulationProgressionGate(KeyWork);
+        ApplyPopulationCapGate(KeyWork);
+        ApplyPopulationPhysicalPlacementGate(KeyWork);
+        for (FKalmalaPopulationSpawnAttempt& Attempt : KeyWork.SpawnAttempts)
+        {
+            if (Attempt.RejectionReason == EKalmalaPopulationSpawnRejectionReason::None)
+            {
+                TryCreatePopulationSpawnTransaction(Attempt, NowSeconds);
+            }
+        }
+    }
+}
+
+bool AKalmalaGameMode::TryCreateConfiguredEnvironmentalSpawnerCandidates(
+    FKalmalaEnvironmentalSpawnerCheck& Check,
+    const TArray<FKalmalaWorldPopulationSpawn>& FixedCandidates,
+    int32& RemainingGlobalCandidateBudget, const double NowSeconds,
+    int32& OutCandidatesExamined, TArray<FKalmalaPopulationSpawnAttempt>& OutAttempts)
+{
+    OutCandidatesExamined = 0;
+    OutAttempts.Reset();
+    UWorld* World = GetWorld();
+    if (!HasAuthority() || !IsValid(World) || !WorldGenerationConfig.IsValid()
+        || PopulationSaveGame == nullptr || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)
+        || !FMath::IsFinite(NowSeconds)
+        || !FKalmalaEnvironmentalSpawnerPolicy::IsCheckDue(
+            HasAuthority(), Check.bSourceConfigured, Check.SourceId, Check.SourceSlotIndex,
+            NowSeconds, Check.NextDueSeconds)
+        || !FMath::IsFinite(Check.SourceOrigin.X) || !FMath::IsFinite(Check.SourceOrigin.Y)
+        || !FMath::IsFinite(Check.SourceOrigin.Z))
+    {
+        return false;
+    }
+
+    RemainingGlobalCandidateBudget = FMath::Clamp(RemainingGlobalCandidateBudget, 0,
+        FKalmalaMonsterSpawnTuning::MaxPopulationCandidatesPerWake);
+    const int32 CandidateBudget = FKalmalaEnvironmentalSpawnerPolicy::GetCandidateBudgetForCheck(
+        RemainingGlobalCandidateBudget);
+    if (CandidateBudget <= 0)
+    {
+        return false;
+    }
+
+    double NextDueSeconds = 0.0;
+    if (!FKalmalaEnvironmentalSpawnerPolicy::TryGetNextDueTimeAfterService(
+            NowSeconds, NextDueSeconds))
+    {
+        return false;
+    }
+    Check.NextDueSeconds = NextDueSeconds;
+    if (!FKalmalaEnvironmentalSpawnerPolicy::CanCreateMoreThisCheck(
+            HasAuthority(), Check.bSourceConfigured, Check.SourceId, Check.SourceSlotIndex,
+            Check.CreatedCountThisCheck))
+    {
+        return false;
+    }
+
+    const FString SourceSlotPersistentSpawnId =
+        FKalmalaEnvironmentalSpawnerPolicy::GetStableSlotPersistentSpawnId(
+            Check.SourceId, Check.SourceSlotIndex);
+    if (SourceSlotPersistentSpawnId.IsEmpty()
+        || PopulationSaveGame->IsDefeated(SourceSlotPersistentSpawnId)
+        || HasLivePopulationCreatureWithSpawnId(SourceSlotPersistentSpawnId)
+        || !IsPopulationSpawnReactivationReady(SourceSlotPersistentSpawnId, NowSeconds))
+    {
+        return false;
+    }
+
+    const int32 CandidatesToExamine = FMath::Min(CandidateBudget, FixedCandidates.Num());
+    const TArray<AKalmalaCharacter*> LivingPlayers = GetLivingPlayerPawnsForPopulation();
+
+    bool bCreatedCreature = false;
+    for (int32 CandidateIndex = 0; CandidateIndex < CandidatesToExamine; ++CandidateIndex)
+    {
+        const FKalmalaWorldPopulationSpawn& Descriptor = FixedCandidates[CandidateIndex];
+        ++OutCandidatesExamined;
+        if (!FKalmalaEnvironmentalSpawnerPolicy::IsCandidateWithinSourceRadius(
+                Check.SourceOrigin, Descriptor.Location)
+            || FKalmalaWorldPopulationLayout::GetSpatialKey(FVector2D(Descriptor.Location))
+                != Descriptor.SpatialKey)
+        {
+            continue;
+        }
+
+        FKalmalaPopulationSchedulerKeyWork KeyWork;
+        KeyWork.SpatialKey = Descriptor.SpatialKey;
+        KeyWork.CandidateBudget = 1;
+        KeyWork.CheckOrdinal = Check.CheckOrdinal;
+        FKalmalaPopulationSpawnAttempt& Attempt = KeyWork.SpawnAttempts.AddDefaulted_GetRef();
+        Attempt.Descriptor = Descriptor;
+        Attempt.Descriptor.PersistentSpawnIdOverride = SourceSlotPersistentSpawnId;
+        Attempt.bIsEnvironmentalSpawnerAttempt = true;
+        Attempt.bEnvironmentalSpawnerConfigured = Check.bSourceConfigured;
+        Attempt.EnvironmentalSpawnerSourceId = Check.SourceId;
+        Attempt.EnvironmentalSpawnerSlotIndex = Check.SourceSlotIndex;
+        Attempt.EnvironmentalSpawnerOrigin = Check.SourceOrigin;
+        Attempt.EnvironmentalSpawnerCreatedCountThisCheck = Check.CreatedCountThisCheck;
+        Attempt.GateResults.bSchedulerBudgetAvailable = true;
+        const FString PersistentSpawnId =
+            FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Attempt.Descriptor);
+        const uint8 AdmissionRoll = FKalmalaMonsterSpawnTuning::GetPopulationSpawnAdmissionRoll(
+            WorldGenerationConfig, Descriptor.SpatialKey, PersistentSpawnId, Check.CheckOrdinal);
+        Attempt.GateResults.bSeededAdmissionRollPassed =
+            AdmissionRoll <= FKalmalaMonsterSpawnTuning::PopulationAdmissionRollMaxAccepted;
+        Attempt.RejectionReason = EvaluatePopulationSpawnGates(Attempt.GateResults);
+        KeyWork.Candidates.Add(Attempt.Descriptor);
+
+        ApplyPopulationPlayerDistanceGate(KeyWork, LivingPlayers);
+        ApplyPopulationSpeciesHabitatGate(KeyWork);
+        ApplyPopulationTimeGate(KeyWork);
+        ApplyPopulationWeatherGate(KeyWork);
+        ApplyPopulationProgressionGate(KeyWork);
+        ApplyPopulationCapGate(KeyWork);
+        ApplyPopulationPhysicalPlacementGate(KeyWork);
+
+        FKalmalaPopulationSpawnAttempt& GatedAttempt = KeyWork.SpawnAttempts[0];
+        if (GatedAttempt.RejectionReason == EKalmalaPopulationSpawnRejectionReason::None
+            && TryCreatePopulationSpawnTransaction(GatedAttempt, NowSeconds))
+        {
+            ++Check.CreatedCountThisCheck;
+            bCreatedCreature = true;
+        }
+        OutAttempts.Add(GatedAttempt);
+        if (bCreatedCreature)
+        {
+            break;
+        }
+    }
+
+    RemainingGlobalCandidateBudget = FMath::Max(0,
+        RemainingGlobalCandidateBudget - OutCandidatesExamined);
+    return bCreatedCreature;
+}
+
+bool AKalmalaGameMode::IsDescriptorInSpawnRing(const FVector& SpawnLocation,
+    const TArray<AKalmalaCharacter*>& LivingPlayers) const
+{
+    const UWorld* World = GetWorld();
+    if (!HasAuthority() || !IsValid(World) || !FMath::IsFinite(SpawnLocation.X)
+        || !FMath::IsFinite(SpawnLocation.Y))
+    {
+        return false;
+    }
+
+    constexpr double MinimumDistanceSquared =
+        static_cast<double>(FKalmalaMonsterSpawnTuning::RingMinimumDistanceCm)
+        * FKalmalaMonsterSpawnTuning::RingMinimumDistanceCm;
+    constexpr double MaximumDistanceSquared =
+        static_cast<double>(FKalmalaMonsterSpawnTuning::RingMaximumDistanceCm)
+        * FKalmalaMonsterSpawnTuning::RingMaximumDistanceCm;
+    for (const AKalmalaCharacter* Player : LivingPlayers)
+    {
+        if (!IsValid(Player) || Player->GetWorld() != World)
+        {
+            continue;
+        }
+
+        const FVector PlayerLocation = Player->GetActorLocation();
+        if (!FMath::IsFinite(PlayerLocation.X) || !FMath::IsFinite(PlayerLocation.Y))
+        {
+            continue;
+        }
+
+        const double DeltaX = static_cast<double>(SpawnLocation.X) - PlayerLocation.X;
+        const double DeltaY = static_cast<double>(SpawnLocation.Y) - PlayerLocation.Y;
+        const double DistanceSquared = DeltaX * DeltaX + DeltaY * DeltaY;
+        if (DistanceSquared >= MinimumDistanceSquared && DistanceSquared <= MaximumDistanceSquared)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+void AKalmalaGameMode::SelectPopulationRingCandidates(
+    FKalmalaPopulationSchedulerKeyWork& KeyWork,
+    const TArray<FKalmalaWorldPopulationSpawn>& Descriptors,
+    const TArray<AKalmalaCharacter*>& LivingPlayers)
+{
+    KeyWork.Candidates.Reset();
+    KeyWork.SpawnAttempts.Reset();
+    if (!HasAuthority() || !IsValid(GetWorld()) || !WorldGenerationConfig.IsValid()
+        || Descriptors.IsEmpty() || LivingPlayers.IsEmpty())
+    {
+        return;
+    }
+
+    const int32 DescriptorCount = Descriptors.Num();
+    const int32 CandidateCount = FMath::Min(KeyWork.CandidateBudget,
+        FKalmalaMonsterSpawnTuning::MaxPopulationCandidatesPerKey);
+    if (CandidateCount <= 0)
+    {
+        return;
+    }
+
+    int32& Cursor = PopulationKeyCandidateCursors.FindOrAdd(KeyWork.SpatialKey);
+    Cursor %= DescriptorCount;
+    if (Cursor < 0)
+    {
+        Cursor += DescriptorCount;
+    }
+
+    const int32 StartIndex = Cursor;
+    const int32 DescriptorsToExamine = FMath::Min(CandidateCount, DescriptorCount);
+    for (int32 Offset = 0; Offset < DescriptorsToExamine; ++Offset)
+    {
+        const int32 DescriptorIndex = (StartIndex + Offset) % DescriptorCount;
+        const FKalmalaWorldPopulationSpawn& Descriptor = Descriptors[DescriptorIndex];
+        Cursor = (DescriptorIndex + 1) % DescriptorCount;
+
+        FKalmalaPopulationSpawnAttempt& Attempt = KeyWork.SpawnAttempts.AddDefaulted_GetRef();
+        Attempt.Descriptor = Descriptor;
+        Attempt.GateResults.bSchedulerBudgetAvailable = true;
+        const FString PersistentSpawnId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Descriptor);
+        const uint8 AdmissionRoll = FKalmalaMonsterSpawnTuning::GetPopulationSpawnAdmissionRoll(
+            WorldGenerationConfig, KeyWork.SpatialKey, PersistentSpawnId, KeyWork.CheckOrdinal);
+        Attempt.GateResults.bSeededAdmissionRollPassed =
+            AdmissionRoll <= FKalmalaMonsterSpawnTuning::PopulationAdmissionRollMaxAccepted;
+        Attempt.RejectionReason = EvaluatePopulationSpawnGates(Attempt.GateResults);
+        if (!Attempt.GateResults.bSeededAdmissionRollPassed
+            || !IsDescriptorInSpawnRing(Descriptor.Location, LivingPlayers))
+        {
+            continue;
+        }
+
+        KeyWork.Candidates.Add(Descriptor);
+    }
+}
+
+void AKalmalaGameMode::ApplyPopulationPlayerDistanceGate(
+    FKalmalaPopulationSchedulerKeyWork& KeyWork,
+    const TArray<AKalmalaCharacter*>& LivingPlayers) const
+{
+    const UWorld* World = GetWorld();
+    const bool bCanCheckDistance = HasAuthority() && IsValid(World) && !LivingPlayers.IsEmpty();
+    for (FKalmalaPopulationSpawnAttempt& Attempt : KeyWork.SpawnAttempts)
+    {
+        Attempt.GateResults.bPlayerDistancePassed = bCanCheckDistance
+            && IsDescriptorInSpawnRing(Attempt.Descriptor.Location, LivingPlayers)
+            && IsDescriptorOutsidePlayerExclusion(Attempt.Descriptor.Location, LivingPlayers);
+        Attempt.RejectionReason = EvaluatePopulationSpawnGates(Attempt.GateResults);
+    }
+
+    if (!bCanCheckDistance)
+    {
+        KeyWork.Candidates.Reset();
+        return;
+    }
+
+    KeyWork.Candidates.RemoveAll([this, &LivingPlayers](
+        const FKalmalaWorldPopulationSpawn& Descriptor)
+    {
+        return !IsDescriptorOutsidePlayerExclusion(Descriptor.Location, LivingPlayers);
+    });
+}
+
+bool AKalmalaGameMode::IsDescriptorOutsidePlayerExclusion(const FVector& SpawnLocation,
+    const TArray<AKalmalaCharacter*>& LivingPlayers) const
+{
+    const UWorld* World = GetWorld();
+    if (!HasAuthority() || !IsValid(World) || !FMath::IsFinite(SpawnLocation.X)
+        || !FMath::IsFinite(SpawnLocation.Y))
+    {
+        return false;
+    }
+
+    constexpr double ExclusionDistanceSquared =
+        static_cast<double>(FKalmalaMonsterSpawnTuning::PlayerExclusionDistanceCm)
+        * FKalmalaMonsterSpawnTuning::PlayerExclusionDistanceCm;
+    for (const AKalmalaCharacter* Player : LivingPlayers)
+    {
+        if (!IsValid(Player) || Player->GetWorld() != World)
+        {
+            continue;
+        }
+
+        const FVector PlayerLocation = Player->GetActorLocation();
+        if (!FMath::IsFinite(PlayerLocation.X) || !FMath::IsFinite(PlayerLocation.Y))
+        {
+            continue;
+        }
+
+        const double DeltaX = static_cast<double>(SpawnLocation.X) - PlayerLocation.X;
+        const double DeltaY = static_cast<double>(SpawnLocation.Y) - PlayerLocation.Y;
+        if (DeltaX * DeltaX + DeltaY * DeltaY < ExclusionDistanceSquared)
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+void AKalmalaGameMode::ApplyPopulationSpeciesHabitatGate(
+    FKalmalaPopulationSchedulerKeyWork& KeyWork) const
+{
+    for (FKalmalaPopulationSpawnAttempt& Attempt : KeyWork.SpawnAttempts)
+    {
+        Attempt.GateResults.bSpeciesHabitatPassed =
+            DoesPopulationDescriptorPassSpeciesHabitat(Attempt.Descriptor);
+        Attempt.RejectionReason = EvaluatePopulationSpawnGates(Attempt.GateResults);
+    }
+
+    KeyWork.Candidates.RemoveAll([this](const FKalmalaWorldPopulationSpawn& Descriptor)
+    {
+        return !DoesPopulationDescriptorPassSpeciesHabitat(Descriptor);
+    });
+}
+
+bool AKalmalaGameMode::DoesPopulationDescriptorPassSpeciesHabitat(
+    const FKalmalaWorldPopulationSpawn& Descriptor, EKalmalaWildlifeArchetype* OutArchetype) const
+{
+    const UWorld* World = GetWorld();
+    if (!HasAuthority() || !IsValid(World) || !WorldGenerationConfig.IsValid())
+    {
+        return false;
+    }
+
+    EKalmalaWildlifeArchetype Archetype;
+    if (!KalmalaGameMode::TryGetWildlifeArchetypeForSpawn(WorldGenerationConfig, Descriptor, Archetype))
+    {
+        return false;
+    }
+
+    if (OutArchetype != nullptr)
+    {
+        *OutArchetype = Archetype;
+    }
+
+    const bool bHardEnemy = KalmalaGameMode::IsHardEnemyWildlifeArchetype(Archetype);
+    const float StartDistance = GeneratedPlayerStart != nullptr
+        ? FVector::Dist2D(Descriptor.Location, GeneratedPlayerStart->GetActorLocation())
+        : 0.0f;
+    return AKalmalaWildlifeSpawn::IsHardEnemySpawnAllowedByStart(
+        bHardEnemy, GeneratedPlayerStart != nullptr, StartDistance);
+}
+
+bool AKalmalaGameMode::DoesPopulationDescriptorPassLandSurface(
+    const FKalmalaWorldPopulationSpawn& Descriptor) const
+{
+    const UWorld* World = GetWorld();
+    if (!HasAuthority() || !IsValid(World) || !WorldGenerationConfig.IsValid())
+    {
+        return false;
+    }
+
+    if (Descriptor.Kind != EKalmalaWorldPopulationKind::Wildlife)
+    {
+        return false;
+    }
+
+    const FVector2D PackPosition(Descriptor.Location);
+    if (!FMath::IsFinite(PackPosition.X) || !FMath::IsFinite(PackPosition.Y)
+        || !FKalmalaWorldBounds::Contains(WorldGenerationConfig, PackPosition))
+    {
+        return false;
+    }
+
+    EKalmalaWildlifeArchetype Archetype;
+    if (!DoesPopulationDescriptorPassSpeciesHabitat(Descriptor, &Archetype)
+        || IsPopulationAquaticArchetype(Archetype))
+    {
+        return false;
+    }
+
+    TArray<bool> SurfaceResults;
+    SurfaceResults.Add(DoesPopulationLandPositionPassSurface(Descriptor.Location));
+    if (Archetype == EKalmalaWildlifeArchetype::Wolf)
+    {
+        SurfaceResults.Reserve(1 + FKalmalaWolfPackContract::MemberCount);
+        for (int32 MemberIndex = 0; MemberIndex < FKalmalaWolfPackContract::MemberCount; ++MemberIndex)
+        {
+            FKalmalaWorldPopulationSpawn MemberSpawn;
+            if (!FKalmalaWolfPackContract::TryBuildMemberSpawn(
+                WorldGenerationConfig, Descriptor, MemberIndex, MemberSpawn))
+            {
+                return false;
+            }
+
+            EKalmalaWildlifeArchetype MemberArchetype;
+            if (!DoesPopulationDescriptorPassSpeciesHabitat(MemberSpawn, &MemberArchetype)
+                || MemberArchetype != Archetype)
+            {
+                return false;
+            }
+
+            SurfaceResults.Add(DoesPopulationLandPositionPassSurface(MemberSpawn.Location));
+        }
+    }
+
+    return AreAllPopulationLandSurfacesAllowed(SurfaceResults);
+}
+
+bool AKalmalaGameMode::DoesPopulationLandPositionPassSurface(const FVector& Location) const
+{
+    const FVector2D Position(Location);
+    if (!FMath::IsFinite(Position.X) || !FMath::IsFinite(Position.Y)
+        || !FKalmalaWorldBounds::Contains(WorldGenerationConfig, Position))
+    {
+        return false;
+    }
+
+    const float GroundHeight = FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, Position);
+    const FKalmalaOceanSample Ocean = FKalmalaOceanSampler::Sample(WorldGenerationConfig, Position);
+    const bool bIsDry = Ocean.bIsValid && !Ocean.IsWater()
+        && !FKalmalaShimmeringLakeSampler::IsWater(WorldGenerationConfig, Position);
+    const FVector SurfaceNormal = FKalmalaTerrainHeightSampler::SampleSurfaceNormal(
+        WorldGenerationConfig, Position);
+
+    return IsPopulationLandSurfaceSampleAllowed(true,
+        FMath::IsFinite(GroundHeight) && FMath::IsFinite(Location.Z), bIsDry, SurfaceNormal);
+}
+
+bool AKalmalaGameMode::IsPopulationLandSurfaceSampleAllowed(const bool bWithinBounds,
+    const bool bHasGeneratedGround, const bool bIsDry, const FVector& SurfaceNormal)
+{
+    if (!bWithinBounds || !bHasGeneratedGround || !bIsDry
+        || !FMath::IsFinite(SurfaceNormal.X) || !FMath::IsFinite(SurfaceNormal.Y)
+        || !FMath::IsFinite(SurfaceNormal.Z) || SurfaceNormal.IsNearlyZero())
+    {
+        return false;
+    }
+
+    const double HorizontalNormal = FMath::Sqrt(FMath::Square(SurfaceNormal.X)
+        + FMath::Square(SurfaceNormal.Y));
+    const double SlopeDegrees = FMath::RadiansToDegrees(
+        FMath::Atan2(HorizontalNormal, SurfaceNormal.Z));
+    return SlopeDegrees <= FKalmalaMonsterSpawnTuning::MaximumLandSlopeDegrees;
+}
+
+bool AKalmalaGameMode::AreAllPopulationLandSurfacesAllowed(const TArray<bool>& SurfaceResults)
+{
+    if (SurfaceResults.IsEmpty())
+    {
+        return false;
+    }
+
+    for (const bool bSurfaceAllowed : SurfaceResults)
+    {
+        if (!bSurfaceAllowed)
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool AKalmalaGameMode::DoesPopulationDescriptorPassAquaticSurface(
+    const FKalmalaWorldPopulationSpawn& Descriptor) const
+{
+    const UWorld* World = GetWorld();
+    if (!HasAuthority() || !IsValid(World) || !WorldGenerationConfig.IsValid()
+        || Descriptor.Kind != EKalmalaWorldPopulationKind::Wildlife
+        || !FMath::IsFinite(Descriptor.Location.X) || !FMath::IsFinite(Descriptor.Location.Y)
+        || !FMath::IsFinite(Descriptor.Location.Z))
+    {
+        return false;
+    }
+
+    const FVector2D CenterPosition(Descriptor.Location);
+    if (!FKalmalaWorldBounds::Contains(WorldGenerationConfig, CenterPosition))
+    {
+        return false;
+    }
+
+    EKalmalaWildlifeArchetype Archetype;
+    if (!DoesPopulationDescriptorPassSpeciesHabitat(Descriptor, &Archetype)
+        || !IsPopulationAquaticArchetype(Archetype))
+    {
+        return false;
+    }
+
+    const double BodyRadius = AKalmalaWildlifeSpawn::ReefMawBodyCollisionRadiusCentimetres;
+    const double SpawnDepth = AKalmalaWildlifeSpawn::ReefMawSpawnDepthCentimetres;
+    if (!FMath::IsFinite(BodyRadius) || !FMath::IsFinite(SpawnDepth)
+        || BodyRadius <= 0.0 || SpawnDepth < BodyRadius)
+    {
+        return false;
+    }
+
+    const double SampleStepLimit = FKalmalaTerrainHeightSampler::NormalSampleDistance * 0.25;
+    const int32 SampleIntervals = FMath::Max(1,
+        FMath::CeilToInt(BodyRadius / SampleStepLimit));
+    const double SampleStep = BodyRadius / SampleIntervals;
+    for (int32 XIndex = -SampleIntervals; XIndex <= SampleIntervals; ++XIndex)
+    {
+        for (int32 YIndex = -SampleIntervals; YIndex <= SampleIntervals; ++YIndex)
+        {
+            const FVector2D Offset(XIndex * SampleStep, YIndex * SampleStep);
+            const double HorizontalDistanceSquared = Offset.SizeSquared();
+            if (HorizontalDistanceSquared > FMath::Square(BodyRadius)) continue;
+
+            const FVector2D SamplePosition = CenterPosition + Offset;
+            FKalmalaOceanSample OceanSample;
+            const bool bIsCenterSample = XIndex == 0 && YIndex == 0;
+            const bool bHasReefMawSwimmingSupport = bIsCenterSample
+                ? AKalmalaWildlifeSpawn::IsReefMawPositionNavigable(
+                    WorldGenerationConfig, SamplePosition, &OceanSample)
+                : AKalmalaWildlifeSpawn::IsReefMawOceanPosition(
+                    WorldGenerationConfig, SamplePosition, &OceanSample);
+            if (!bHasReefMawSwimmingSupport
+                || !DoesReefMawBodyFitOceanSample(OceanSample,
+                    FMath::Sqrt(HorizontalDistanceSquared)))
+            {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+bool AKalmalaGameMode::DoesReefMawBodyFitOceanSample(const FKalmalaOceanSample& OceanSample,
+    const double HorizontalDistanceFromCenterCentimetres)
+{
+    const double BodyRadius = AKalmalaWildlifeSpawn::ReefMawBodyCollisionRadiusCentimetres;
+    const double SpawnDepth = AKalmalaWildlifeSpawn::ReefMawSpawnDepthCentimetres;
+    if (!OceanSample.bIsValid || !OceanSample.IsWater()
+        || !FMath::IsFinite(OceanSample.TerrainHeight) || !FMath::IsFinite(OceanSample.WaterDepth)
+        || !FMath::IsFinite(HorizontalDistanceFromCenterCentimetres)
+        || !FMath::IsFinite(BodyRadius) || !FMath::IsFinite(SpawnDepth)
+        || BodyRadius <= 0.0 || SpawnDepth < BodyRadius
+        || HorizontalDistanceFromCenterCentimetres < 0.0
+        || HorizontalDistanceFromCenterCentimetres > BodyRadius)
+    {
+        return false;
+    }
+
+    const double VerticalHalfExtent = FMath::Sqrt(FMath::Max(0.0,
+        FMath::Square(BodyRadius) - FMath::Square(HorizontalDistanceFromCenterCentimetres)));
+    const double RequiredDepth = SpawnDepth + VerticalHalfExtent;
+    const double BodyBottom = FKalmalaTerrainHeightSampler::SeaLevelWorldHeight - RequiredDepth;
+    return OceanSample.WaterDepth >= RequiredDepth && OceanSample.TerrainHeight <= BodyBottom;
+}
+
+bool AKalmalaGameMode::IsPopulationAquaticArchetype(const EKalmalaWildlifeArchetype Archetype)
+{
+    return Archetype == EKalmalaWildlifeArchetype::ReefMaw;
+}
+
+bool AKalmalaGameMode::DoesPopulationDescriptorPassBodyClearance(
+    const FKalmalaWorldPopulationSpawn& Descriptor) const
+{
+    UWorld* World = GetWorld();
+    if (!HasAuthority() || !IsValid(World) || !WorldGenerationConfig.IsValid()
+        || Descriptor.Kind != EKalmalaWorldPopulationKind::Wildlife
+        || !FMath::IsFinite(Descriptor.Location.X) || !FMath::IsFinite(Descriptor.Location.Y)
+        || !FMath::IsFinite(Descriptor.Location.Z)
+        || !FKalmalaWorldBounds::Contains(WorldGenerationConfig, FVector2D(Descriptor.Location)))
+    {
+        return false;
+    }
+
+    EKalmalaWildlifeArchetype Archetype;
+    if (!DoesPopulationDescriptorPassSpeciesHabitat(Descriptor, &Archetype)) return false;
+
+    TArray<FKalmalaWildlifeBodyCollisionShape> BodyShapes;
+    if (!AKalmalaWildlifeSpawn::GetBodyCollisionShapesForArchetype(Archetype, BodyShapes)
+        || BodyShapes.IsEmpty())
+    {
+        return false;
+    }
+
+    TArray<FKalmalaWorldPopulationSpawn> ActorDescriptors;
+    if (Archetype == EKalmalaWildlifeArchetype::Wolf)
+    {
+        ActorDescriptors.Reserve(FKalmalaWolfPackContract::MemberCount);
+        for (int32 MemberIndex = 0; MemberIndex < FKalmalaWolfPackContract::MemberCount; ++MemberIndex)
+        {
+            FKalmalaWorldPopulationSpawn MemberSpawn;
+            if (!FKalmalaWolfPackContract::TryBuildMemberSpawn(
+                    WorldGenerationConfig, Descriptor, MemberIndex, MemberSpawn)
+                || !DoesPopulationDescriptorPassSpeciesHabitat(MemberSpawn))
+            {
+                return false;
+            }
+            ActorDescriptors.Add(MoveTemp(MemberSpawn));
+        }
+    }
+    else
+    {
+        ActorDescriptors.Add(Descriptor);
+    }
+
+    for (const FKalmalaWorldPopulationSpawn& ActorDescriptor : ActorDescriptors)
+    {
+        FVector ActorLocation;
+        if (!TryGetPopulationActorPlacementLocation(
+                ActorDescriptor, Archetype, BodyShapes, ActorLocation))
+        {
+            return false;
+        }
+
+        for (const FKalmalaWildlifeBodyCollisionShape& BodyShape : BodyShapes)
+        {
+            if (!IsPopulationBodyShapeWithinWorldBounds(
+                    BodyShape, ActorLocation, FRotator::ZeroRotator)
+                || DoesPopulationCollisionShapeOverlap(
+                    World, BodyShape, ActorLocation, FRotator::ZeroRotator))
+            {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+bool AKalmalaGameMode::DoesPopulationDescriptorPassRoofClearance(
+    const FKalmalaWorldPopulationSpawn& Descriptor, const AActor* ProposedActorToIgnore) const
+{
+    UWorld* World = GetWorld();
+    if (!HasAuthority() || !IsValid(World) || !WorldGenerationConfig.IsValid()
+        || Descriptor.Kind != EKalmalaWorldPopulationKind::Wildlife
+        || !FMath::IsFinite(Descriptor.Location.X) || !FMath::IsFinite(Descriptor.Location.Y)
+        || !FMath::IsFinite(Descriptor.Location.Z)
+        || !FKalmalaWorldBounds::Contains(WorldGenerationConfig, FVector2D(Descriptor.Location))
+        || (ProposedActorToIgnore != nullptr
+            && (!IsValid(ProposedActorToIgnore) || ProposedActorToIgnore->GetWorld() != World)))
+    {
+        return false;
+    }
+
+    EKalmalaWildlifeArchetype Archetype;
+    if (!DoesPopulationDescriptorPassSpeciesHabitat(Descriptor, &Archetype)) return false;
+
+    TArray<FKalmalaWildlifeBodyCollisionShape> BodyShapes;
+    if (!AKalmalaWildlifeSpawn::GetBodyCollisionShapesForArchetype(Archetype, BodyShapes)
+        || BodyShapes.IsEmpty())
+    {
+        return false;
+    }
+
+    TArray<FKalmalaWorldPopulationSpawn> ActorDescriptors;
+    if (Archetype == EKalmalaWildlifeArchetype::Wolf)
+    {
+        ActorDescriptors.Reserve(FKalmalaWolfPackContract::MemberCount);
+        for (int32 MemberIndex = 0; MemberIndex < FKalmalaWolfPackContract::MemberCount; ++MemberIndex)
+        {
+            FKalmalaWorldPopulationSpawn MemberSpawn;
+            if (!FKalmalaWolfPackContract::TryBuildMemberSpawn(
+                    WorldGenerationConfig, Descriptor, MemberIndex, MemberSpawn)
+                || !DoesPopulationDescriptorPassSpeciesHabitat(MemberSpawn))
+            {
+                return false;
+            }
+            ActorDescriptors.Add(MoveTemp(MemberSpawn));
+        }
+    }
+    else
+    {
+        ActorDescriptors.Add(Descriptor);
+    }
+
+    for (const FKalmalaWorldPopulationSpawn& ActorDescriptor : ActorDescriptors)
+    {
+        FVector ActorLocation;
+        FVector BodyTop;
+        if (!TryGetPopulationActorPlacementLocation(
+                ActorDescriptor, Archetype, BodyShapes, ActorLocation)
+            || !TryGetPopulationBodyTop(
+                BodyShapes, ActorLocation, FRotator::ZeroRotator, BodyTop))
+        {
+            return false;
+        }
+
+        const FVector TraceEnd = BodyTop + FVector::UpVector
+            * FKalmalaMonsterSpawnTuning::PopulationRoofClearanceTraceDistanceCm;
+        if (DoesSolidConstructionRoofIntersectSegment(
+                World, BodyTop, TraceEnd, ProposedActorToIgnore))
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool AKalmalaGameMode::DoesPopulationDescriptorPassMovementSupport(
+    const FKalmalaWorldPopulationSpawn& Descriptor) const
+{
+    UWorld* World = GetWorld();
+    if (!HasAuthority() || !IsValid(World) || !WorldGenerationConfig.IsValid()
+        || Descriptor.Kind != EKalmalaWorldPopulationKind::Wildlife
+        || !FMath::IsFinite(Descriptor.Location.X) || !FMath::IsFinite(Descriptor.Location.Y)
+        || !FMath::IsFinite(Descriptor.Location.Z)
+        || !FKalmalaWorldBounds::Contains(WorldGenerationConfig, FVector2D(Descriptor.Location)))
+    {
+        return false;
+    }
+
+    EKalmalaWildlifeArchetype Archetype;
+    if (!DoesPopulationDescriptorPassSpeciesHabitat(Descriptor, &Archetype)) return false;
+
+    // Land species receive the accepted generated-ground/dry-surface support;
+    // Reef Maw reuses its existing Ocean navigation, depth and whole-body water check.
+    if (IsPopulationAquaticArchetype(Archetype))
+    {
+        if (!DoesPopulationDescriptorPassAquaticSurface(Descriptor)) return false;
+    }
+    else if (!DoesPopulationDescriptorPassLandSurface(Descriptor))
+    {
+        return false;
+    }
+
+    TArray<FKalmalaWildlifeBodyCollisionShape> BodyShapes;
+    if (!AKalmalaWildlifeSpawn::GetBodyCollisionShapesForArchetype(Archetype, BodyShapes)
+        || BodyShapes.IsEmpty())
+    {
+        return false;
+    }
+
+    TArray<FKalmalaWorldPopulationSpawn> ActorDescriptors;
+    if (Archetype == EKalmalaWildlifeArchetype::Wolf)
+    {
+        ActorDescriptors.Reserve(FKalmalaWolfPackContract::MemberCount);
+        for (int32 MemberIndex = 0; MemberIndex < FKalmalaWolfPackContract::MemberCount; ++MemberIndex)
+        {
+            FKalmalaWorldPopulationSpawn MemberSpawn;
+            EKalmalaWildlifeArchetype MemberArchetype;
+            if (!FKalmalaWolfPackContract::TryBuildMemberSpawn(
+                    WorldGenerationConfig, Descriptor, MemberIndex, MemberSpawn)
+                || !DoesPopulationDescriptorPassSpeciesHabitat(MemberSpawn, &MemberArchetype)
+                || MemberArchetype != Archetype)
+            {
+                return false;
+            }
+            ActorDescriptors.Add(MoveTemp(MemberSpawn));
+        }
+    }
+    else
+    {
+        ActorDescriptors.Add(Descriptor);
+    }
+
+    for (const FKalmalaWorldPopulationSpawn& ActorDescriptor : ActorDescriptors)
+    {
+        FVector ActorLocation;
+        if (!TryGetPopulationActorPlacementLocation(
+                ActorDescriptor, Archetype, BodyShapes, ActorLocation)
+            || !AKalmalaWildlifeSpawn::IsPopulationSpawnPositionSupported(
+                WorldGenerationConfig, Archetype, ActorLocation, ActorLocation))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool AKalmalaGameMode::DoesPopulationPointOverlapStationCylinder(const FVector& CandidateLocation) const
+{
+    UWorld* World = GetWorld();
+    if (!HasAuthority() || !IsValid(World)
+        || !FMath::IsFinite(CandidateLocation.X) || !FMath::IsFinite(CandidateLocation.Y)
+        || !FMath::IsFinite(CandidateLocation.Z))
+    {
+        return true;
+    }
+
+    const double Radius = FKalmalaMonsterSpawnTuning::CampSuppressionRadiusCm;
+    const double RadiusSquared = Radius * Radius;
+    constexpr double HalfHeight = FKalmalaMonsterSpawnTuning::PopulationStationCylinderHalfHeightCm;
+    for (TActorIterator<AKalmalaConstructionActor> Iterator(World); Iterator; ++Iterator)
+    {
+        const AKalmalaConstructionActor* Station = *Iterator;
+        if (!IsValid(Station) || Station->GetWorld() != World || !Station->HasAuthority()
+            || Station->IsActorBeingDestroyed() || Station->GetConstructionId().IsEmpty()
+            || !FMath::IsFinite(Station->GetHealth()) || Station->GetHealth() <= 0.0f)
+        {
+            continue;
+        }
+
+        const FName Kit = Station->GetConstructionKit();
+        if (Kit != TEXT("WorkbenchKit") && Kit != TEXT("ForgeKit")) continue;
+
+        const FVector StationOrigin = Station->GetActorLocation();
+        if (!FMath::IsFinite(StationOrigin.X) || !FMath::IsFinite(StationOrigin.Y)
+            || !FMath::IsFinite(StationOrigin.Z))
+        {
+            continue;
+        }
+
+        const FVector Delta = CandidateLocation - StationOrigin;
+        if (FMath::IsFinite(Delta.X) && FMath::IsFinite(Delta.Y) && FMath::IsFinite(Delta.Z)
+            && FMath::Abs(Delta.Z) <= HalfHeight
+            && static_cast<double>(Delta.X) * Delta.X + static_cast<double>(Delta.Y) * Delta.Y
+                <= RadiusSquared)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool AKalmalaGameMode::DoesPopulationPointOverlapCampSphere(const FVector& CandidateLocation) const
+{
+    UWorld* World = GetWorld();
+    if (!HasAuthority() || !IsValid(World)
+        || !FMath::IsFinite(CandidateLocation.X) || !FMath::IsFinite(CandidateLocation.Y)
+        || !FMath::IsFinite(CandidateLocation.Z))
+    {
+        return true;
+    }
+
+    const double Radius = FKalmalaMonsterSpawnTuning::CampSuppressionRadiusCm;
+    const double RadiusSquared = Radius * Radius;
+    const auto IsWithinCampSphere = [CandidateLocation, RadiusSquared](const FVector& Origin)
+    {
+        if (!FMath::IsFinite(Origin.X) || !FMath::IsFinite(Origin.Y) || !FMath::IsFinite(Origin.Z))
+        {
+            return false;
+        }
+        const FVector Delta = CandidateLocation - Origin;
+        return FMath::IsFinite(Delta.X) && FMath::IsFinite(Delta.Y) && FMath::IsFinite(Delta.Z)
+            && static_cast<double>(Delta.X) * Delta.X + static_cast<double>(Delta.Y) * Delta.Y
+                + static_cast<double>(Delta.Z) * Delta.Z <= RadiusSquared;
+    };
+
+    for (TActorIterator<AKalmalaConstructionActor> Iterator(World); Iterator; ++Iterator)
+    {
+        const AKalmalaConstructionActor* Construction = *Iterator;
+        if (!IsValid(Construction) || Construction->GetWorld() != World || !Construction->HasAuthority()
+            || Construction->IsActorBeingDestroyed() || Construction->GetConstructionId().IsEmpty()
+            || !FMath::IsFinite(Construction->GetHealth()) || Construction->GetHealth() <= 0.0f)
+        {
+            continue;
+        }
+
+        const FName Kit = Construction->GetConstructionKit();
+        const bool bSuppressesAsBed = Kit == TEXT("CampBedKit");
+        const bool bSuppressesAsLitStandingLight = Kit == TEXT("StandingLightKit")
+            && Construction->IsStandingLightFlameEligibleForServer();
+        if ((bSuppressesAsBed || bSuppressesAsLitStandingLight)
+            && IsWithinCampSphere(Construction->GetActorLocation()))
+        {
+            return true;
+        }
+    }
+
+    for (TActorIterator<AKalmalaCampfire> Iterator(World); Iterator; ++Iterator)
+    {
+        const AKalmalaCampfire* Campfire = *Iterator;
+        if (!IsValid(Campfire) || Campfire->GetWorld() != World || !Campfire->HasAuthority()
+            || Campfire->IsActorBeingDestroyed() || !Campfire->IsLit()
+            || !FMath::IsFinite(Campfire->GetFuelSeconds()) || Campfire->GetFuelSeconds() <= 0.0f)
+        {
+            continue;
+        }
+        if (IsWithinCampSphere(Campfire->GetActorLocation())) return true;
+    }
+    return false;
+}
+
+bool AKalmalaGameMode::DoesPopulationDescriptorPassPhysicalPlacement(
+    const FKalmalaWorldPopulationSpawn& Descriptor) const
+{
+    UWorld* World = GetWorld();
+    if (!HasAuthority() || !IsValid(World) || !WorldGenerationConfig.IsValid()
+        || Descriptor.Kind != EKalmalaWorldPopulationKind::Wildlife)
+    {
+        return false;
+    }
+
+    // S22c composes the applicable S20 land or S21 aquatic surface check with
+    // each species' existing movement support. Body and roof clearance remain
+    // independent so physical placement rejects if any S20-S24 check fails.
+    if (!DoesPopulationDescriptorPassMovementSupport(Descriptor)
+        || !DoesPopulationDescriptorPassBodyClearance(Descriptor)
+        || !DoesPopulationDescriptorPassRoofClearance(Descriptor))
+    {
+        return false;
+    }
+
+    EKalmalaWildlifeArchetype Archetype;
+    if (!DoesPopulationDescriptorPassSpeciesHabitat(Descriptor, &Archetype)) return false;
+
+    TArray<FKalmalaWildlifeBodyCollisionShape> BodyShapes;
+    if (!AKalmalaWildlifeSpawn::GetBodyCollisionShapesForArchetype(Archetype, BodyShapes)
+        || BodyShapes.IsEmpty())
+    {
+        return false;
+    }
+
+    TArray<FKalmalaWorldPopulationSpawn> ActorDescriptors;
+    if (Archetype == EKalmalaWildlifeArchetype::Wolf)
+    {
+        ActorDescriptors.Reserve(FKalmalaWolfPackContract::MemberCount);
+        for (int32 MemberIndex = 0; MemberIndex < FKalmalaWolfPackContract::MemberCount; ++MemberIndex)
+        {
+            FKalmalaWorldPopulationSpawn MemberSpawn;
+            if (!FKalmalaWolfPackContract::TryBuildMemberSpawn(
+                    WorldGenerationConfig, Descriptor, MemberIndex, MemberSpawn))
+            {
+                return false;
+            }
+            ActorDescriptors.Add(MoveTemp(MemberSpawn));
+        }
+    }
+    else
+    {
+        ActorDescriptors.Add(Descriptor);
+    }
+
+    // Camp suppression gates only new actor admission. Existing wildlife state,
+    // defeat handling and movement are not touched by this query.
+    for (const FKalmalaWorldPopulationSpawn& ActorDescriptor : ActorDescriptors)
+    {
+        FVector ActorLocation;
+        if (!TryGetPopulationActorPlacementLocation(
+                ActorDescriptor, Archetype, BodyShapes, ActorLocation)
+            || DoesPopulationPointOverlapStationCylinder(ActorLocation)
+            || DoesPopulationPointOverlapCampSphere(ActorLocation))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool AKalmalaGameMode::TryGetPopulationActorPlacementLocation(
+    const FKalmalaWorldPopulationSpawn& Descriptor, const EKalmalaWildlifeArchetype Archetype,
+    const TArray<FKalmalaWildlifeBodyCollisionShape>& BodyShapes, FVector& OutActorLocation) const
+{
+    OutActorLocation = FVector::ZeroVector;
+    const FVector2D Position(Descriptor.Location);
+    if (!WorldGenerationConfig.IsValid() || BodyShapes.IsEmpty()
+        || !FMath::IsFinite(Position.X) || !FMath::IsFinite(Position.Y)
+        || !FMath::IsFinite(Descriptor.Location.Z)
+        || !FKalmalaWorldBounds::Contains(WorldGenerationConfig, Position))
+    {
+        return false;
+    }
+
+    OutActorLocation = Descriptor.Location;
+    if (Archetype == EKalmalaWildlifeArchetype::ReefMaw)
+    {
+        OutActorLocation.Z = FKalmalaTerrainHeightSampler::SeaLevelWorldHeight
+            - AKalmalaWildlifeSpawn::ReefMawSpawnDepthCentimetres;
+        return FMath::IsFinite(OutActorLocation.Z);
+    }
+
+    const float GroundHeight = FKalmalaTerrainHeightSampler::SampleHeight(
+        WorldGenerationConfig, Position);
+    if (!FMath::IsFinite(GroundHeight)) return false;
+
+    const FVector SurfaceNormal = FKalmalaTerrainHeightSampler::SampleSurfaceNormal(
+        WorldGenerationConfig, Position);
+    double RequiredSupportOffset = 0.0;
+    if (!TryGetPopulationBodyVerticalSupportOffset(
+            BodyShapes, SurfaceNormal, RequiredSupportOffset))
+    {
+        return false;
+    }
+
+    double PlacementHeight = GroundHeight + RequiredSupportOffset + KINDA_SMALL_NUMBER;
+    if (Archetype == EKalmalaWildlifeArchetype::MosquitoSwarm)
+    {
+        PlacementHeight = FMath::Max(PlacementHeight,
+            static_cast<double>(GroundHeight + AKalmalaWildlifeSpawn::MosquitoFlightHeightCentimetres));
+    }
+    OutActorLocation.Z = PlacementHeight;
+    return FMath::IsFinite(OutActorLocation.X) && FMath::IsFinite(OutActorLocation.Y)
+        && FMath::IsFinite(OutActorLocation.Z);
+}
+
+bool AKalmalaGameMode::TryGetPopulationBodyVerticalSupportOffset(
+    const TArray<FKalmalaWildlifeBodyCollisionShape>& BodyShapes,
+    const FVector SurfaceNormal, double& OutVerticalSupportOffset)
+{
+    OutVerticalSupportOffset = 0.0;
+    if (BodyShapes.IsEmpty() || !FMath::IsFinite(SurfaceNormal.X)
+        || !FMath::IsFinite(SurfaceNormal.Y) || !FMath::IsFinite(SurfaceNormal.Z)
+        || SurfaceNormal.IsNearlyZero())
+    {
+        return false;
+    }
+
+    const FVector UpNormal = SurfaceNormal.GetSafeNormal();
+    if (UpNormal.Z <= SMALL_NUMBER) return false;
+
+    for (const FKalmalaWildlifeBodyCollisionShape& Shape : BodyShapes)
+    {
+        if (!FMath::IsFinite(Shape.RadiusCentimetres)
+            || !FMath::IsFinite(Shape.HalfHeightCentimetres)
+            || Shape.RadiusCentimetres <= 0.0f
+            || Shape.HalfHeightCentimetres < Shape.RadiusCentimetres
+            || Shape.RelativeLocation.ContainsNaN() || Shape.RelativeRotation.ContainsNaN())
+        {
+            return false;
+        }
+
+        double SupportDistanceAlongNormal = 0.0;
+        if (Shape.Type == EKalmalaWildlifeBodyShapeType::Sphere)
+        {
+            SupportDistanceAlongNormal = Shape.RadiusCentimetres;
+        }
+        else if (Shape.Type == EKalmalaWildlifeBodyShapeType::Capsule)
+        {
+            const FVector CapsuleAxis = Shape.RelativeRotation.Quaternion()
+                .RotateVector(FVector::UpVector).GetSafeNormal();
+            const double AxialProjection = FMath::Abs(FVector::DotProduct(CapsuleAxis, UpNormal));
+            SupportDistanceAlongNormal = Shape.RadiusCentimetres
+                + (Shape.HalfHeightCentimetres - Shape.RadiusCentimetres) * AxialProjection;
+        }
+        else
+        {
+            return false;
+        }
+
+        const double OffsetAlongNormal = FVector::DotProduct(Shape.RelativeLocation, UpNormal);
+        const double ShapeVerticalOffset =
+            (SupportDistanceAlongNormal - OffsetAlongNormal) / UpNormal.Z;
+        if (!FMath::IsFinite(ShapeVerticalOffset)) return false;
+        OutVerticalSupportOffset = FMath::Max(OutVerticalSupportOffset, ShapeVerticalOffset);
+    }
+
+    OutVerticalSupportOffset = FMath::Max(0.0, OutVerticalSupportOffset);
+    return FMath::IsFinite(OutVerticalSupportOffset);
+}
+
+bool AKalmalaGameMode::TryGetPopulationBodyTop(
+    const TArray<FKalmalaWildlifeBodyCollisionShape>& BodyShapes, const FVector ActorLocation,
+    const FRotator ActorRotation, FVector& OutBodyTop)
+{
+    OutBodyTop = FVector::ZeroVector;
+    if (BodyShapes.IsEmpty() || !FMath::IsFinite(ActorLocation.X)
+        || !FMath::IsFinite(ActorLocation.Y) || !FMath::IsFinite(ActorLocation.Z)
+        || !FMath::IsFinite(ActorRotation.Pitch) || !FMath::IsFinite(ActorRotation.Yaw)
+        || !FMath::IsFinite(ActorRotation.Roll))
+    {
+        return false;
+    }
+
+    const FQuat ActorRotationQuat = ActorRotation.Quaternion();
+    double BodyTopZ = -TNumericLimits<double>::Max();
+    for (const FKalmalaWildlifeBodyCollisionShape& Shape : BodyShapes)
+    {
+        if (!FMath::IsFinite(Shape.RadiusCentimetres)
+            || !FMath::IsFinite(Shape.HalfHeightCentimetres)
+            || Shape.RadiusCentimetres <= 0.0f
+            || Shape.HalfHeightCentimetres < Shape.RadiusCentimetres
+            || !FMath::IsFinite(Shape.RelativeLocation.X)
+            || !FMath::IsFinite(Shape.RelativeLocation.Y)
+            || !FMath::IsFinite(Shape.RelativeLocation.Z)
+            || !FMath::IsFinite(Shape.RelativeRotation.Pitch)
+            || !FMath::IsFinite(Shape.RelativeRotation.Yaw)
+            || !FMath::IsFinite(Shape.RelativeRotation.Roll))
+        {
+            return false;
+        }
+
+        const FVector ShapeLocation = ActorLocation
+            + ActorRotationQuat.RotateVector(Shape.RelativeLocation);
+        double VerticalSupport = 0.0;
+        if (Shape.Type == EKalmalaWildlifeBodyShapeType::Sphere)
+        {
+            VerticalSupport = Shape.RadiusCentimetres;
+        }
+        else if (Shape.Type == EKalmalaWildlifeBodyShapeType::Capsule)
+        {
+            const FVector CapsuleAxis = (ActorRotationQuat * Shape.RelativeRotation.Quaternion())
+                .RotateVector(FVector::UpVector).GetSafeNormal();
+            VerticalSupport = Shape.RadiusCentimetres
+                + (Shape.HalfHeightCentimetres - Shape.RadiusCentimetres) * FMath::Abs(CapsuleAxis.Z);
+        }
+        else
+        {
+            return false;
+        }
+
+        const double ShapeTopZ = ShapeLocation.Z + VerticalSupport;
+        if (!FMath::IsFinite(ShapeTopZ)) return false;
+        BodyTopZ = FMath::Max(BodyTopZ, ShapeTopZ);
+    }
+
+    if (!FMath::IsFinite(BodyTopZ)) return false;
+    OutBodyTop = FVector(ActorLocation.X, ActorLocation.Y, BodyTopZ);
+    return !OutBodyTop.ContainsNaN();
+}
+
+bool AKalmalaGameMode::DoesSolidConstructionRoofIntersectSegment(
+    UWorld* World, const FVector TraceStart, const FVector TraceEnd, const AActor* ActorToIgnore)
+{
+    const FVector TraceDelta = TraceEnd - TraceStart;
+    if (!IsValid(World) || !FMath::IsFinite(TraceStart.X) || !FMath::IsFinite(TraceStart.Y)
+        || !FMath::IsFinite(TraceStart.Z) || !FMath::IsFinite(TraceEnd.X)
+        || !FMath::IsFinite(TraceEnd.Y) || !FMath::IsFinite(TraceEnd.Z)
+        || (ActorToIgnore != nullptr && (!IsValid(ActorToIgnore) || ActorToIgnore->GetWorld() != World))
+        || !FMath::IsNearlyZero(TraceDelta.X) || !FMath::IsNearlyZero(TraceDelta.Y)
+        || !FMath::IsFinite(TraceDelta.Z) || TraceDelta.Z <= 0.0
+        || TraceDelta.Z > FKalmalaMonsterSpawnTuning::PopulationRoofClearanceTraceDistanceCm
+            + KINDA_SMALL_NUMBER)
+    {
+        return true;
+    }
+
+    FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(KalmalaPopulationRoofClearance), false);
+    for (TActorIterator<AKalmalaConstructionActor> Iterator(World); Iterator; ++Iterator)
+    {
+        AKalmalaConstructionActor* Construction = *Iterator;
+        if (!IsValid(Construction) || Construction == ActorToIgnore
+            || Construction->GetWorld() != World || !Construction->HasAuthority()
+            || Construction->IsActorBeingDestroyed()
+            || Construction->GetConstructionKit() != TEXT("RoofKit")
+            || Construction->GetConstructionId().IsEmpty()
+            || !FMath::IsFinite(Construction->GetHealth()) || Construction->GetHealth() <= 0.0f
+            || !Construction->GetActorEnableCollision())
+        {
+            continue;
+        }
+
+        UBoxComponent* Collision = Cast<UBoxComponent>(Construction->GetRootComponent());
+        if (!IsValid(Collision) || Collision->GetOwner() != Construction || !Collision->IsRegistered()
+            || (Collision->GetCollisionEnabled() != ECollisionEnabled::QueryOnly
+                && Collision->GetCollisionEnabled() != ECollisionEnabled::QueryAndPhysics)
+            || Collision->GetCollisionResponseToChannel(ECC_Visibility) != ECR_Block)
+        {
+            continue;
+        }
+
+        const FVector CollisionExtent = Collision->GetScaledBoxExtent();
+        if (!FMath::IsFinite(CollisionExtent.X) || !FMath::IsFinite(CollisionExtent.Y)
+            || !FMath::IsFinite(CollisionExtent.Z) || CollisionExtent.X <= 0.0
+            || CollisionExtent.Y <= 0.0 || CollisionExtent.Z <= 0.0)
+        {
+            continue;
+        }
+
+        FHitResult Hit;
+        if (Collision->LineTraceComponent(Hit, TraceStart, TraceEnd, QueryParams))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool AKalmalaGameMode::DoesPopulationCollisionShapeOverlap(
+    UWorld* World, const FKalmalaWildlifeBodyCollisionShape& BodyShape,
+    const FVector ActorLocation, const FRotator ActorRotation, const AActor* ActorToIgnore)
+{
+    if (!IsValid(World) || ActorLocation.ContainsNaN() || ActorRotation.ContainsNaN()
+        || !FMath::IsFinite(BodyShape.RadiusCentimetres)
+        || !FMath::IsFinite(BodyShape.HalfHeightCentimetres)
+        || BodyShape.RadiusCentimetres <= 0.0f
+        || BodyShape.HalfHeightCentimetres < BodyShape.RadiusCentimetres
+        || BodyShape.RelativeLocation.ContainsNaN() || BodyShape.RelativeRotation.ContainsNaN())
+    {
+        return true;
+    }
+
+    FCollisionShape CollisionShape;
+    switch (BodyShape.Type)
+    {
+    case EKalmalaWildlifeBodyShapeType::Sphere:
+        CollisionShape = FCollisionShape::MakeSphere(BodyShape.RadiusCentimetres);
+        break;
+    case EKalmalaWildlifeBodyShapeType::Capsule:
+        CollisionShape = FCollisionShape::MakeCapsule(
+            BodyShape.RadiusCentimetres, BodyShape.HalfHeightCentimetres);
+        break;
+    default:
+        return true;
+    }
+
+    const FQuat ActorQuat = ActorRotation.Quaternion();
+    const FVector ShapeLocation = ActorLocation + ActorQuat.RotateVector(BodyShape.RelativeLocation);
+    const FQuat ShapeRotation = ActorQuat * BodyShape.RelativeRotation.Quaternion();
+    FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(KalmalaPopulationBodyClearance), true);
+    if (IsValid(ActorToIgnore)) QueryParams.AddIgnoredActor(ActorToIgnore);
+    return World->OverlapAnyTestByChannel(
+        ShapeLocation, ShapeRotation, ECC_Visibility, CollisionShape, QueryParams);
+}
+
+bool AKalmalaGameMode::IsPopulationBodyShapeWithinWorldBounds(
+    const FKalmalaWildlifeBodyCollisionShape& BodyShape, const FVector ActorLocation,
+    const FRotator ActorRotation)
+{
+    if (ActorLocation.ContainsNaN() || ActorRotation.ContainsNaN()
+        || !FMath::IsFinite(BodyShape.RadiusCentimetres)
+        || !FMath::IsFinite(BodyShape.HalfHeightCentimetres)
+        || BodyShape.RadiusCentimetres <= 0.0f
+        || BodyShape.HalfHeightCentimetres < BodyShape.RadiusCentimetres
+        || BodyShape.RelativeLocation.ContainsNaN() || BodyShape.RelativeRotation.ContainsNaN())
+    {
+        return false;
+    }
+
+    const FQuat ShapeRotation = ActorRotation.Quaternion()
+        * BodyShape.RelativeRotation.Quaternion();
+    const FVector ShapeOffset = ActorRotation.Quaternion().RotateVector(BodyShape.RelativeLocation);
+    const FVector2D ShapeCenter(ActorLocation.X + ShapeOffset.X, ActorLocation.Y + ShapeOffset.Y);
+    double HorizontalExtent = BodyShape.RadiusCentimetres;
+    if (BodyShape.Type == EKalmalaWildlifeBodyShapeType::Capsule)
+    {
+        const FVector CapsuleAxis = ShapeRotation.RotateVector(FVector::UpVector);
+        const double HorizontalAxis = FMath::Sqrt(
+            FMath::Square(CapsuleAxis.X) + FMath::Square(CapsuleAxis.Y));
+        HorizontalExtent += (BodyShape.HalfHeightCentimetres - BodyShape.RadiusCentimetres)
+            * HorizontalAxis;
+    }
+    else if (BodyShape.Type != EKalmalaWildlifeBodyShapeType::Sphere)
+    {
+        return false;
+    }
+
+    return ShapeCenter.Size() + HorizontalExtent <= FKalmalaWorldBounds::Radius;
+}
+
+void AKalmalaGameMode::ApplyPopulationTimeGate(FKalmalaPopulationSchedulerKeyWork& KeyWork) const
+{
+    for (FKalmalaPopulationSpawnAttempt& Attempt : KeyWork.SpawnAttempts)
+    {
+        Attempt.GateResults.bTimePassed = DoesPopulationDescriptorPassTimeGate(Attempt.Descriptor);
+        Attempt.RejectionReason = EvaluatePopulationSpawnGates(Attempt.GateResults);
+    }
+
+    KeyWork.Candidates.RemoveAll([this](const FKalmalaWorldPopulationSpawn& Descriptor)
+    {
+        return !DoesPopulationDescriptorPassTimeGate(Descriptor);
+    });
+}
+
+bool AKalmalaGameMode::DoesPopulationDescriptorPassTimeGate(
+    const FKalmalaWorldPopulationSpawn& Descriptor) const
+{
+    if (!HasAuthority() || !IsValid(GetWorld()) || !WorldGenerationConfig.IsValid())
+    {
+        return false;
+    }
+
+    EKalmalaWildlifeArchetype Archetype;
+    return KalmalaGameMode::TryGetWildlifeArchetypeForSpawn(WorldGenerationConfig, Descriptor, Archetype)
+        && IsPopulationTimeGateAllowed(Archetype);
+}
+
+void AKalmalaGameMode::RegisterLivePopulationCreature(AKalmalaWildlifeSpawn* Creature)
+{
+    if (!HasAuthority() || !IsValid(GetWorld()) || !IsValid(Creature)
+        || !Creature->HasAuthority() || Creature->GetWorld() != GetWorld() || Creature->IsDefeated()
+        || !FMath::IsFinite(Creature->GetHealth()) || Creature->GetHealth() <= 0.0f)
+    {
+        return;
+    }
+
+    LivePopulationCreatures.Add(Creature);
+}
+
+void AKalmalaGameMode::UnregisterLivePopulationCreature(AKalmalaWildlifeSpawn* Creature)
+{
+    if (!HasAuthority() || Creature == nullptr)
+    {
+        return;
+    }
+
+    if (IsValid(Creature))
+    {
+        const FString PersistentSpawnId = Creature->GetPersistentSpawnId();
+        if (!PersistentSpawnId.IsEmpty())
+        {
+            EnvironmentalSpawnerSourceIdBySpawnId.Remove(PersistentSpawnId);
+        }
+    }
+    LivePopulationCreatures.Remove(TWeakObjectPtr<AKalmalaWildlifeSpawn>(Creature));
+}
+
+int32 AKalmalaGameMode::CountLivePopulationCreaturesWithinRadius(const FVector& Center, const float RadiusCm)
+{
+    const UWorld* World = GetWorld();
+    if (!HasAuthority() || !IsValid(World) || !FMath::IsFinite(Center.X) || !FMath::IsFinite(Center.Y)
+        || !FMath::IsFinite(RadiusCm) || RadiusCm < 0.0f)
+    {
+        return 0;
+    }
+
+    const double RadiusSquared = static_cast<double>(RadiusCm) * RadiusCm;
+    int32 CreatureCount = 0;
+    for (auto Iterator = LivePopulationCreatures.CreateIterator(); Iterator; ++Iterator)
+    {
+        AKalmalaWildlifeSpawn* Creature = Iterator->Get();
+        if (!IsValid(Creature) || Creature->GetWorld() != World || !Creature->HasAuthority()
+            || Creature->IsDefeated() || !FMath::IsFinite(Creature->GetHealth())
+            || Creature->GetHealth() <= 0.0f)
+        {
+            Iterator.RemoveCurrent();
+            continue;
+        }
+
+        const FVector CreatureLocation = Creature->GetActorLocation();
+        if (!FMath::IsFinite(CreatureLocation.X) || !FMath::IsFinite(CreatureLocation.Y))
+        {
+            continue;
+        }
+
+        const double DeltaX = static_cast<double>(CreatureLocation.X) - Center.X;
+        const double DeltaY = static_cast<double>(CreatureLocation.Y) - Center.Y;
+        if (DeltaX * DeltaX + DeltaY * DeltaY <= RadiusSquared)
+        {
+            ++CreatureCount;
+        }
+    }
+    return CreatureCount;
+}
+
+int32 AKalmalaGameMode::GetPopulationSpeciesAreaCap(const EKalmalaWildlifeArchetype Archetype) const
+{
+    switch (Archetype)
+    {
+    case EKalmalaWildlifeArchetype::Boar:
+    case EKalmalaWildlifeArchetype::Deer:
+    case EKalmalaWildlifeArchetype::Rat:
+    case EKalmalaWildlifeArchetype::Badger:
+    case EKalmalaWildlifeArchetype::Viper:
+    case EKalmalaWildlifeArchetype::Mireling:
+    case EKalmalaWildlifeArchetype::DeathAdder:
+    case EKalmalaWildlifeArchetype::MosquitoSwarm:
+    case EKalmalaWildlifeArchetype::Lynx:
+    case EKalmalaWildlifeArchetype::HornedGoat:
+        return FKalmalaMonsterSpawnTuning::CommonSpeciesAreaCap;
+    case EKalmalaWildlifeArchetype::MoonBear:
+    case EKalmalaWildlifeArchetype::GiantSnake:
+    case EKalmalaWildlifeArchetype::PeatHusk:
+    case EKalmalaWildlifeArchetype::PolarBear:
+    case EKalmalaWildlifeArchetype::ThunderSentinel:
+    case EKalmalaWildlifeArchetype::ReefMaw:
+        return FKalmalaMonsterSpawnTuning::RareHardEnemyAreaCap;
+    case EKalmalaWildlifeArchetype::Wolf:
+        return FKalmalaMonsterSpawnTuning::WolfIndividualAreaCap;
+    default:
+        return 0;
+    }
+}
+
+void AKalmalaGameMode::GetPopulationCreatureCapCounts(const FVector& Center,
+    const EKalmalaWildlifeArchetype Archetype, const FIntPoint& HomeSpatialKey,
+    int32& OutWorldTotal, int32& OutNearbySpecies, int32& OutHomeKeyTotal)
+{
+    OutWorldTotal = 0;
+    OutNearbySpecies = 0;
+    OutHomeKeyTotal = 0;
+
+    const UWorld* World = GetWorld();
+    if (!HasAuthority() || !IsValid(World) || !FMath::IsFinite(Center.X) || !FMath::IsFinite(Center.Y))
+    {
+        return;
+    }
+
+    const double RadiusSquared = static_cast<double>(FKalmalaMonsterSpawnTuning::CountRadiusCm)
+        * FKalmalaMonsterSpawnTuning::CountRadiusCm;
+    for (auto Iterator = LivePopulationCreatures.CreateIterator(); Iterator; ++Iterator)
+    {
+        AKalmalaWildlifeSpawn* Creature = Iterator->Get();
+        if (!IsValid(Creature) || Creature->GetWorld() != World || !Creature->HasAuthority()
+            || Creature->IsDefeated() || !FMath::IsFinite(Creature->GetHealth())
+            || Creature->GetHealth() <= 0.0f)
+        {
+            Iterator.RemoveCurrent();
+            continue;
+        }
+
+        ++OutWorldTotal;
+        if (Creature->GetHomePopulationSpatialKey() == HomeSpatialKey)
+        {
+            ++OutHomeKeyTotal;
+        }
+
+        const FVector CreatureLocation = Creature->GetActorLocation();
+        if (!FMath::IsFinite(CreatureLocation.X) || !FMath::IsFinite(CreatureLocation.Y)
+            || Creature->GetArchetype() != Archetype)
+        {
+            continue;
+        }
+
+        const double DeltaX = static_cast<double>(CreatureLocation.X) - Center.X;
+        const double DeltaY = static_cast<double>(CreatureLocation.Y) - Center.Y;
+        if (DeltaX * DeltaX + DeltaY * DeltaY <= RadiusSquared)
+        {
+            ++OutNearbySpecies;
+        }
+    }
+
+    for (const TPair<FGuid, TArray<FKalmalaPopulationCreatureReservation>>& ReservationEntry
+        : PendingPopulationCreatureReservations)
+    {
+        for (const FKalmalaPopulationCreatureReservation& Reservation : ReservationEntry.Value)
+        {
+            ++OutWorldTotal;
+            if (Reservation.HomeSpatialKey == HomeSpatialKey)
+            {
+                ++OutHomeKeyTotal;
+            }
+
+            if (!Reservation.Archetype.IsSet() || Reservation.Archetype.GetValue() != Archetype
+                || !FMath::IsFinite(Reservation.Location.X) || !FMath::IsFinite(Reservation.Location.Y))
+            {
+                continue;
+            }
+
+            const double DeltaX = static_cast<double>(Reservation.Location.X) - Center.X;
+            const double DeltaY = static_cast<double>(Reservation.Location.Y) - Center.Y;
+            if (DeltaX * DeltaX + DeltaY * DeltaY <= RadiusSquared)
+            {
+                ++OutNearbySpecies;
+            }
+        }
+    }
+}
+
+bool AKalmalaGameMode::CanAdmitPopulationCreatureWithinCaps(const FVector& CandidateLocation,
+    const FIntPoint& HomeSpatialKey, const EKalmalaWildlifeArchetype Archetype)
+{
+    const UWorld* World = GetWorld();
+    const int32 SpeciesAreaCap = GetPopulationSpeciesAreaCap(Archetype);
+    const int32* HomeKeyBudget = PopulationKeyWildlifeActorBudgets.Find(HomeSpatialKey);
+    if (!HasAuthority() || !IsValid(World) || SpeciesAreaCap <= 0
+        || !FMath::IsFinite(CandidateLocation.X) || !FMath::IsFinite(CandidateLocation.Y)
+        || !ActivePopulationSpatialKeys.Contains(HomeSpatialKey) || HomeKeyBudget == nullptr
+        || *HomeKeyBudget < 0)
+    {
+        return false;
+    }
+
+    int64 AggregateWildlifeActorBudget = 0;
+    for (const FIntPoint& ActiveKey : ActivePopulationSpatialKeys)
+    {
+        const int32* KeyBudget = PopulationKeyWildlifeActorBudgets.Find(ActiveKey);
+        if (KeyBudget == nullptr || *KeyBudget < 0)
+        {
+            return false;
+        }
+        AggregateWildlifeActorBudget += *KeyBudget;
+    }
+
+    int32 WorldTotal = 0;
+    int32 NearbySpecies = 0;
+    int32 HomeKeyTotal = 0;
+    GetPopulationCreatureCapCounts(CandidateLocation, Archetype, HomeSpatialKey,
+        WorldTotal, NearbySpecies, HomeKeyTotal);
+    return NearbySpecies < SpeciesAreaCap
+        && HomeKeyTotal < *HomeKeyBudget
+        && WorldTotal < AggregateWildlifeActorBudget;
+}
+
+EKalmalaPopulationSpawnRejectionReason AKalmalaGameMode::EvaluatePopulationSpawnGates(
+    const FKalmalaPopulationSpawnGateResults& GateResults)
+{
+    if (!GateResults.bSchedulerBudgetAvailable)
+    {
+        return EKalmalaPopulationSpawnRejectionReason::SchedulerBudget;
+    }
+    if (!GateResults.bSeededAdmissionRollPassed)
+    {
+        return EKalmalaPopulationSpawnRejectionReason::SeededAdmissionRoll;
+    }
+    if (!GateResults.bPlayerDistancePassed)
+    {
+        return EKalmalaPopulationSpawnRejectionReason::PlayerDistance;
+    }
+    if (!GateResults.bSpeciesHabitatPassed)
+    {
+        return EKalmalaPopulationSpawnRejectionReason::SpeciesHabitat;
+    }
+    if (!GateResults.bTimePassed)
+    {
+        return EKalmalaPopulationSpawnRejectionReason::Time;
+    }
+    if (!GateResults.bWeatherPassed)
+    {
+        return EKalmalaPopulationSpawnRejectionReason::Weather;
+    }
+    if (!GateResults.bProgressionPassed)
+    {
+        return EKalmalaPopulationSpawnRejectionReason::Progression;
+    }
+    if (!GateResults.bCapsPassed)
+    {
+        return EKalmalaPopulationSpawnRejectionReason::Caps;
+    }
+    if (!GateResults.bPhysicalPlacementPassed)
+    {
+        return EKalmalaPopulationSpawnRejectionReason::PhysicalPlacement;
+    }
+    return EKalmalaPopulationSpawnRejectionReason::None;
+}
+
+bool AKalmalaGameMode::IsPopulationTimeGateAllowed(const EKalmalaWildlifeArchetype Archetype)
+{
+    switch (Archetype)
+    {
+    case EKalmalaWildlifeArchetype::Mireling:
+    case EKalmalaWildlifeArchetype::Boar:
+    case EKalmalaWildlifeArchetype::Deer:
+    case EKalmalaWildlifeArchetype::Rat:
+    case EKalmalaWildlifeArchetype::Badger:
+    case EKalmalaWildlifeArchetype::MoonBear:
+    case EKalmalaWildlifeArchetype::DeathAdder:
+    case EKalmalaWildlifeArchetype::Viper:
+    case EKalmalaWildlifeArchetype::GiantSnake:
+    case EKalmalaWildlifeArchetype::MosquitoSwarm:
+    case EKalmalaWildlifeArchetype::PeatHusk:
+    case EKalmalaWildlifeArchetype::Wolf:
+    case EKalmalaWildlifeArchetype::Lynx:
+    case EKalmalaWildlifeArchetype::PolarBear:
+    case EKalmalaWildlifeArchetype::HornedGoat:
+    case EKalmalaWildlifeArchetype::ThunderSentinel:
+    case EKalmalaWildlifeArchetype::ReefMaw:
+        return true;
+    default:
+        return false;
+    }
+}
+
+#if WITH_DEV_AUTOMATION_TESTS
+bool AKalmalaGameMode::IsPopulationTimeGateAllowedForTests(
+    const EKalmalaWildlifeArchetype Archetype, const bool bForceRejectForTests)
+{
+    return !bForceRejectForTests && IsPopulationTimeGateAllowed(Archetype);
+}
+#endif
+
+void AKalmalaGameMode::ApplyPopulationWeatherGate(FKalmalaPopulationSchedulerKeyWork& KeyWork) const
+{
+    for (FKalmalaPopulationSpawnAttempt& Attempt : KeyWork.SpawnAttempts)
+    {
+        Attempt.GateResults.bWeatherPassed = DoesPopulationDescriptorPassWeatherGate(Attempt.Descriptor);
+        Attempt.RejectionReason = EvaluatePopulationSpawnGates(Attempt.GateResults);
+    }
+
+    KeyWork.Candidates.RemoveAll([this](const FKalmalaWorldPopulationSpawn& Descriptor)
+    {
+        return !DoesPopulationDescriptorPassWeatherGate(Descriptor);
+    });
+}
+
+bool AKalmalaGameMode::DoesPopulationDescriptorPassWeatherGate(
+    const FKalmalaWorldPopulationSpawn& Descriptor) const
+{
+    if (!HasAuthority() || !IsValid(GetWorld()) || !WorldGenerationConfig.IsValid())
+    {
+        return false;
+    }
+
+    EKalmalaWildlifeArchetype Archetype;
+    return KalmalaGameMode::TryGetWildlifeArchetypeForSpawn(WorldGenerationConfig, Descriptor, Archetype)
+        && IsPopulationWeatherGateAllowed(Archetype);
+}
+
+bool AKalmalaGameMode::IsPopulationWeatherGateAllowed(const EKalmalaWildlifeArchetype Archetype)
+{
+    switch (Archetype)
+    {
+    case EKalmalaWildlifeArchetype::Mireling:
+    case EKalmalaWildlifeArchetype::Boar:
+    case EKalmalaWildlifeArchetype::Deer:
+    case EKalmalaWildlifeArchetype::Rat:
+    case EKalmalaWildlifeArchetype::Badger:
+    case EKalmalaWildlifeArchetype::MoonBear:
+    case EKalmalaWildlifeArchetype::DeathAdder:
+    case EKalmalaWildlifeArchetype::Viper:
+    case EKalmalaWildlifeArchetype::GiantSnake:
+    case EKalmalaWildlifeArchetype::MosquitoSwarm:
+    case EKalmalaWildlifeArchetype::PeatHusk:
+    case EKalmalaWildlifeArchetype::Wolf:
+    case EKalmalaWildlifeArchetype::Lynx:
+    case EKalmalaWildlifeArchetype::PolarBear:
+    case EKalmalaWildlifeArchetype::HornedGoat:
+    case EKalmalaWildlifeArchetype::ThunderSentinel:
+    case EKalmalaWildlifeArchetype::ReefMaw:
+        return true;
+    default:
+        return false;
+    }
+}
+
+#if WITH_DEV_AUTOMATION_TESTS
+bool AKalmalaGameMode::IsPopulationWeatherGateAllowedForTests(
+    const EKalmalaWildlifeArchetype Archetype, const bool bForceRejectForTests)
+{
+    return !bForceRejectForTests && IsPopulationWeatherGateAllowed(Archetype);
+}
+#endif
+
+void AKalmalaGameMode::ApplyPopulationProgressionGate(FKalmalaPopulationSchedulerKeyWork& KeyWork) const
+{
+    for (FKalmalaPopulationSpawnAttempt& Attempt : KeyWork.SpawnAttempts)
+    {
+        Attempt.GateResults.bProgressionPassed =
+            DoesPopulationDescriptorPassProgressionGate(Attempt.Descriptor);
+        Attempt.RejectionReason = EvaluatePopulationSpawnGates(Attempt.GateResults);
+    }
+
+    KeyWork.Candidates.RemoveAll([this](const FKalmalaWorldPopulationSpawn& Descriptor)
+    {
+        return !DoesPopulationDescriptorPassProgressionGate(Descriptor);
+    });
+}
+
+void AKalmalaGameMode::ApplyPopulationCapGate(FKalmalaPopulationSchedulerKeyWork& KeyWork)
+{
+    TSet<FString> CapPassedSpawnIds;
+    for (FKalmalaPopulationSpawnAttempt& Attempt : KeyWork.SpawnAttempts)
+    {
+        bool bLocalSourceCapacityPassed = true;
+        if (Attempt.bIsEnvironmentalSpawnerAttempt)
+        {
+            EKalmalaWildlifeArchetype Archetype;
+            if (!KalmalaGameMode::TryGetWildlifeArchetypeForSpawn(
+                    WorldGenerationConfig, Attempt.Descriptor, Archetype))
+            {
+                bLocalSourceCapacityPassed = false;
+            }
+            else
+            {
+                const int32 AdditionalCreatureCount = Archetype == EKalmalaWildlifeArchetype::Wolf
+                    ? FKalmalaWolfPackContract::MemberCount : 1;
+                bLocalSourceCapacityPassed = DoesEnvironmentalSpawnerAttemptPassLocalCap(
+                    Attempt, AdditionalCreatureCount);
+            }
+        }
+        Attempt.GateResults.bCapsPassed = bLocalSourceCapacityPassed
+            && DoesPopulationDescriptorPassCaps(Attempt.Descriptor);
+        Attempt.RejectionReason = EvaluatePopulationSpawnGates(Attempt.GateResults);
+        if (Attempt.GateResults.bCapsPassed)
+        {
+            CapPassedSpawnIds.Add(
+                FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Attempt.Descriptor));
+        }
+    }
+
+    KeyWork.Candidates.RemoveAll([&CapPassedSpawnIds](const FKalmalaWorldPopulationSpawn& Descriptor)
+    {
+        return !CapPassedSpawnIds.Contains(
+            FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Descriptor));
+    });
+}
+
+void AKalmalaGameMode::ApplyPopulationPhysicalPlacementGate(
+    FKalmalaPopulationSchedulerKeyWork& KeyWork) const
+{
+    TSet<FString> PhysicalPlacementPassedSpawnIds;
+    for (FKalmalaPopulationSpawnAttempt& Attempt : KeyWork.SpawnAttempts)
+    {
+        Attempt.GateResults.bPhysicalPlacementPassed = false;
+        // Open only the final bit in a copy so ordered evaluation checks prior gates.
+        FKalmalaPopulationSpawnGateResults EarlierGateResults = Attempt.GateResults;
+        EarlierGateResults.bPhysicalPlacementPassed = true;
+        if (EvaluatePopulationSpawnGates(EarlierGateResults)
+            == EKalmalaPopulationSpawnRejectionReason::None)
+        {
+            Attempt.GateResults.bPhysicalPlacementPassed =
+                DoesPopulationDescriptorPassPhysicalPlacement(Attempt.Descriptor);
+        }
+
+        Attempt.RejectionReason = EvaluatePopulationSpawnGates(Attempt.GateResults);
+        if (Attempt.GateResults.bPhysicalPlacementPassed)
+        {
+            PhysicalPlacementPassedSpawnIds.Add(
+                FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Attempt.Descriptor));
+        }
+    }
+
+    KeyWork.Candidates.RemoveAll([&PhysicalPlacementPassedSpawnIds](
+        const FKalmalaWorldPopulationSpawn& Descriptor)
+    {
+        return !PhysicalPlacementPassedSpawnIds.Contains(
+            FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Descriptor));
+    });
+}
+
+void AKalmalaGameMode::UpdatePopulationCreatureUnloads(const double NowSeconds,
+    const TArray<AKalmalaCharacter*>& LivingPlayers)
+{
+    UWorld* World = GetWorld();
+    if (!HasAuthority() || !IsValid(World) || !FMath::IsFinite(NowSeconds)) return;
+
+    for (auto Iterator = PopulationCreatureReactivationDueTimes.CreateIterator(); Iterator; ++Iterator)
+    {
+        if (!FMath::IsFinite(Iterator.Value()) || Iterator.Value() <= NowSeconds)
+        {
+            Iterator.RemoveCurrent();
+        }
+    }
+
+    TArray<AKalmalaWildlifeSpawn*> CreaturesToUnload;
+    for (auto Iterator = LivePopulationCreatures.CreateIterator(); Iterator; ++Iterator)
+    {
+        AKalmalaWildlifeSpawn* Creature = Iterator->Get();
+        if (!IsValid(Creature) || Creature->GetWorld() != World || !Creature->HasAuthority()
+            || Creature->IsDefeated() || !FMath::IsFinite(Creature->GetHealth())
+            || Creature->GetHealth() <= 0.0f)
+        {
+            Iterator.RemoveCurrent();
+            continue;
+        }
+
+        const FString& PersistentSpawnId = Creature->GetPersistentSpawnId();
+        if (PersistentSpawnId.IsEmpty()) continue;
+
+        const FVector CreatureLocation = Creature->GetActorLocation();
+        bool bNearLivingPlayer = false;
+        if (FMath::IsFinite(CreatureLocation.X) && FMath::IsFinite(CreatureLocation.Y))
+        {
+            for (const AKalmalaCharacter* Player : LivingPlayers)
+            {
+                if (!IsValid(Player) || Player->GetWorld() != World || !Player->HasAuthority()
+                    || !FMath::IsFinite(Player->GetHealth()) || Player->GetHealth() <= 1.0f)
+                {
+                    continue;
+                }
+
+                const FVector PlayerLocation = Player->GetActorLocation();
+                if (!FMath::IsFinite(PlayerLocation.X) || !FMath::IsFinite(PlayerLocation.Y))
+                {
+                    continue;
+                }
+
+                const double DeltaX = static_cast<double>(CreatureLocation.X) - PlayerLocation.X;
+                const double DeltaY = static_cast<double>(CreatureLocation.Y) - PlayerLocation.Y;
+                if (DeltaX * DeltaX + DeltaY * DeltaY
+                    <= FMath::Square(FKalmalaMonsterSpawnTuning::CountRadiusCm))
+                {
+                    bNearLivingPlayer = true;
+                    break;
+                }
+            }
+        }
+
+        if (bNearLivingPlayer)
+        {
+            PopulationCreatureReactivationDueTimes.Remove(PersistentSpawnId);
+        }
+        else
+        {
+            CreaturesToUnload.Add(Creature);
+        }
+    }
+
+    for (AKalmalaWildlifeSpawn* Creature : CreaturesToUnload)
+    {
+        if (!IsValid(Creature) || Creature->IsDefeated()
+            || Creature->GetPersistentSpawnId().IsEmpty())
+        {
+            continue;
+        }
+
+        const FString PersistentSpawnId = Creature->GetPersistentSpawnId();
+        if (Creature->Destroy())
+        {
+            PopulationCreatureReactivationDueTimes.Add(PersistentSpawnId,
+                NowSeconds + FKalmalaMonsterSpawnTuning::LivingCreatureUnloadCooldownSeconds);
+        }
+    }
+}
+
+bool AKalmalaGameMode::HasLivePopulationCreatureWithSpawnId(const FString& PersistentSpawnId)
+{
+    const UWorld* World = GetWorld();
+    if (!HasAuthority() || !IsValid(World) || PersistentSpawnId.IsEmpty()) return false;
+
+    for (auto Iterator = LivePopulationCreatures.CreateIterator(); Iterator; ++Iterator)
+    {
+        AKalmalaWildlifeSpawn* Creature = Iterator->Get();
+        if (!IsValid(Creature) || Creature->GetWorld() != World || !Creature->HasAuthority()
+            || Creature->IsDefeated() || !FMath::IsFinite(Creature->GetHealth())
+            || Creature->GetHealth() <= 0.0f)
+        {
+            Iterator.RemoveCurrent();
+            continue;
+        }
+
+        if (Creature->GetPersistentSpawnId() == PersistentSpawnId) return true;
+    }
+    return false;
+}
+
+bool AKalmalaGameMode::IsPopulationSpawnReactivationReady(
+    const FString& PersistentSpawnId, const double NowSeconds) const
+{
+    if (PersistentSpawnId.IsEmpty() || !FMath::IsFinite(NowSeconds)) return false;
+
+    const double* ReactivationDueTime = PopulationCreatureReactivationDueTimes.Find(PersistentSpawnId);
+    return ReactivationDueTime == nullptr
+        || (FMath::IsFinite(*ReactivationDueTime) && NowSeconds >= *ReactivationDueTime);
+}
+TArray<FKalmalaEnvironmentalSpawnerCreatureSample>
+AKalmalaGameMode::GetEnvironmentalSpawnerLivingSamples(const FString& SourceId) const
+{
+    TArray<FKalmalaEnvironmentalSpawnerCreatureSample> Samples;
+    const UWorld* World = GetWorld();
+    if (!HasAuthority() || !IsValid(World) || SourceId.TrimStartAndEnd().IsEmpty())
+    {
+        return Samples;
+    }
+
+    for (const TWeakObjectPtr<AKalmalaWildlifeSpawn>& WeakCreature : LivePopulationCreatures)
+    {
+        AKalmalaWildlifeSpawn* Creature = WeakCreature.Get();
+        if (!IsValid(Creature) || Creature->GetWorld() != World || !Creature->HasAuthority()
+            || Creature->IsDefeated() || !FMath::IsFinite(Creature->GetHealth())
+            || Creature->GetHealth() <= 0.0f)
+        {
+            continue;
+        }
+
+        const FString* OwnerSourceId = EnvironmentalSpawnerSourceIdBySpawnId.Find(
+            Creature->GetPersistentSpawnId());
+        if (OwnerSourceId != nullptr && *OwnerSourceId == SourceId)
+        {
+            Samples.Add({ SourceId, Creature->GetActorLocation(), true });
+        }
+    }
+
+    for (const TPair<FGuid, TArray<FKalmalaPopulationCreatureReservation>>& ReservationEntry
+        : PendingPopulationCreatureReservations)
+    {
+        for (const FKalmalaPopulationCreatureReservation& Reservation : ReservationEntry.Value)
+        {
+            if (Reservation.EnvironmentalSpawnerSourceId == SourceId)
+            {
+                Samples.Add({ SourceId, Reservation.Location, true });
+            }
+        }
+    }
+    return Samples;
+}
+
+bool AKalmalaGameMode::DoesEnvironmentalSpawnerAttemptPassLocalCap(
+    const FKalmalaPopulationSpawnAttempt& Attempt, const int32 AdditionalCreatureCount) const
+{
+    if (!Attempt.bIsEnvironmentalSpawnerAttempt
+        || !FKalmalaEnvironmentalSpawnerPolicy::IsSourceConfigured(
+            HasAuthority(), Attempt.bEnvironmentalSpawnerConfigured,
+            Attempt.EnvironmentalSpawnerSourceId, Attempt.EnvironmentalSpawnerSlotIndex)
+        || !FKalmalaEnvironmentalSpawnerPolicy::CanCreateMoreThisCheck(
+            HasAuthority(), Attempt.bEnvironmentalSpawnerConfigured,
+            Attempt.EnvironmentalSpawnerSourceId, Attempt.EnvironmentalSpawnerSlotIndex,
+            Attempt.EnvironmentalSpawnerCreatedCountThisCheck)
+        || !FKalmalaEnvironmentalSpawnerPolicy::IsCandidateWithinSourceRadius(
+            Attempt.EnvironmentalSpawnerOrigin, Attempt.Descriptor.Location))
+    {
+        return false;
+    }
+
+    const TArray<FKalmalaEnvironmentalSpawnerCreatureSample> Samples =
+        GetEnvironmentalSpawnerLivingSamples(Attempt.EnvironmentalSpawnerSourceId);
+    int32 LivingSourceOwnedCount = -1;
+    if (!FKalmalaEnvironmentalSpawnerPolicy::TryCountLivingOwnedWithinRadius(
+            HasAuthority(), Attempt.bEnvironmentalSpawnerConfigured,
+            Attempt.EnvironmentalSpawnerSourceId, Attempt.EnvironmentalSpawnerSlotIndex,
+            Attempt.EnvironmentalSpawnerOrigin, Samples, LivingSourceOwnedCount))
+    {
+        return false;
+    }
+
+    return FKalmalaEnvironmentalSpawnerPolicy::CanFitLivingCreatures(
+        HasAuthority(), Attempt.bEnvironmentalSpawnerConfigured,
+        Attempt.EnvironmentalSpawnerSourceId, Attempt.EnvironmentalSpawnerSlotIndex,
+        LivingSourceOwnedCount, AdditionalCreatureCount);
+}
+
+bool AKalmalaGameMode::TryCreatePopulationSpawnTransaction(
+    FKalmalaPopulationSpawnAttempt& Attempt, const double NowSeconds)
+{
+    UWorld* World = GetWorld();
+    if (!HasAuthority() || !IsValid(World) || !FMath::IsFinite(NowSeconds)
+        || Attempt.RejectionReason != EKalmalaPopulationSpawnRejectionReason::None
+        || EvaluatePopulationSpawnGates(Attempt.GateResults)
+            != EKalmalaPopulationSpawnRejectionReason::None
+        || Attempt.Descriptor.Kind != EKalmalaWorldPopulationKind::Wildlife
+        || PopulationSaveGame == nullptr || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig))
+    {
+        return false;
+    }
+
+    const bool bHasEnvironmentalSourceContext = Attempt.bIsEnvironmentalSpawnerAttempt
+        || Attempt.bEnvironmentalSpawnerConfigured
+        || !Attempt.EnvironmentalSpawnerSourceId.IsEmpty()
+        || Attempt.EnvironmentalSpawnerSlotIndex != INDEX_NONE
+        || Attempt.EnvironmentalSpawnerCreatedCountThisCheck != 0
+        || !Attempt.EnvironmentalSpawnerOrigin.IsNearlyZero();
+    if (bHasEnvironmentalSourceContext
+        && (!Attempt.bIsEnvironmentalSpawnerAttempt
+            || !FKalmalaEnvironmentalSpawnerPolicy::IsSourceConfigured(
+                HasAuthority(), Attempt.bEnvironmentalSpawnerConfigured,
+                Attempt.EnvironmentalSpawnerSourceId, Attempt.EnvironmentalSpawnerSlotIndex)
+            || !FKalmalaEnvironmentalSpawnerPolicy::CanCreateMoreThisCheck(
+                HasAuthority(), Attempt.bEnvironmentalSpawnerConfigured,
+                Attempt.EnvironmentalSpawnerSourceId, Attempt.EnvironmentalSpawnerSlotIndex,
+                Attempt.EnvironmentalSpawnerCreatedCountThisCheck)
+            || !FKalmalaEnvironmentalSpawnerPolicy::IsCandidateWithinSourceRadius(
+                Attempt.EnvironmentalSpawnerOrigin, Attempt.Descriptor.Location)))
+    {
+        return false;
+    }
+
+    const FKalmalaWorldPopulationSpawn& Descriptor = Attempt.Descriptor;
+    EKalmalaWildlifeArchetype Archetype;
+    if (!KalmalaGameMode::TryGetWildlifeArchetypeForSpawn(
+            WorldGenerationConfig, Descriptor, Archetype))
+    {
+        return false;
+    }
+
+    const bool bWolfPack = Archetype == EKalmalaWildlifeArchetype::Wolf;
+    TArray<FKalmalaWorldPopulationSpawn> ActorDescriptors;
+    TArray<FString> ActorPersistentSpawnIds;
+    ActorDescriptors.Reserve(bWolfPack ? FKalmalaWolfPackContract::MemberCount : 1);
+    ActorPersistentSpawnIds.Reserve(bWolfPack ? FKalmalaWolfPackContract::MemberCount : 1);
+
+    const FString DescriptorPersistentSpawnId =
+        FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Descriptor);
+    if (DescriptorPersistentSpawnId.IsEmpty()
+        || PopulationSaveGame->IsDefeated(DescriptorPersistentSpawnId))
+    {
+        return false;
+    }
+
+    if (bWolfPack)
+    {
+        for (int32 MemberIndex = 0; MemberIndex < FKalmalaWolfPackContract::MemberCount; ++MemberIndex)
+        {
+            FKalmalaWorldPopulationSpawn MemberSpawn;
+            const FString MemberPersistentSpawnId =
+                FKalmalaWolfPackContract::GetMemberPersistentSpawnId(Descriptor, MemberIndex);
+            if (!FKalmalaWolfPackContract::TryBuildMemberSpawn(
+                    WorldGenerationConfig, Descriptor, MemberIndex, MemberSpawn)
+                || MemberPersistentSpawnId.IsEmpty()
+                || PopulationSaveGame->IsDefeated(MemberPersistentSpawnId)
+                || HasLivePopulationCreatureWithSpawnId(MemberPersistentSpawnId)
+                || !IsPopulationSpawnReactivationReady(MemberPersistentSpawnId, NowSeconds))
+            {
+                return false;
+            }
+
+            ActorDescriptors.Add(MoveTemp(MemberSpawn));
+            ActorPersistentSpawnIds.Add(MemberPersistentSpawnId);
+        }
+    }
+    else
+    {
+        if (HasLivePopulationCreatureWithSpawnId(DescriptorPersistentSpawnId)
+            || !IsPopulationSpawnReactivationReady(DescriptorPersistentSpawnId, NowSeconds))
+        {
+            return false;
+        }
+
+        ActorDescriptors.Add(Descriptor);
+        ActorPersistentSpawnIds.Add(DescriptorPersistentSpawnId);
+    }
+
+    TArray<FKalmalaWildlifeBodyCollisionShape> BodyShapes;
+    if (!AKalmalaWildlifeSpawn::GetBodyCollisionShapesForArchetype(Archetype, BodyShapes)
+        || BodyShapes.IsEmpty())
+    {
+        return false;
+    }
+
+    TArray<FVector> PlacementLocations;
+    PlacementLocations.Reserve(ActorDescriptors.Num());
+    for (FKalmalaWorldPopulationSpawn& ActorDescriptor : ActorDescriptors)
+    {
+        FVector PlacementLocation;
+        if (!TryGetPopulationActorPlacementLocation(
+                ActorDescriptor, Archetype, BodyShapes, PlacementLocation))
+        {
+            return false;
+        }
+        ActorDescriptor.Location = PlacementLocation;
+        PlacementLocations.Add(PlacementLocation);
+    }
+
+    // Recheck the final two live-world gates just before creating anything.
+    const bool bLocalSourceCapacityPassed = !Attempt.bIsEnvironmentalSpawnerAttempt
+        || DoesEnvironmentalSpawnerAttemptPassLocalCap(Attempt, ActorDescriptors.Num());
+    Attempt.GateResults.bCapsPassed = bLocalSourceCapacityPassed
+        && DoesPopulationDescriptorPassCaps(Descriptor);
+    Attempt.GateResults.bPhysicalPlacementPassed = false;
+    FKalmalaPopulationSpawnGateResults EarlierGateResults = Attempt.GateResults;
+    EarlierGateResults.bPhysicalPlacementPassed = true;
+    if (EvaluatePopulationSpawnGates(EarlierGateResults)
+        == EKalmalaPopulationSpawnRejectionReason::None)
+    {
+        Attempt.GateResults.bPhysicalPlacementPassed =
+            DoesPopulationDescriptorPassPhysicalPlacement(Descriptor);
+    }
+    Attempt.RejectionReason = EvaluatePopulationSpawnGates(Attempt.GateResults);
+    if (Attempt.RejectionReason != EKalmalaPopulationSpawnRejectionReason::None)
+    {
+        return false;
+    }
+
+    FGuid PopulationReservationId;
+    const FString ReservationSourceId = Attempt.bIsEnvironmentalSpawnerAttempt
+        ? Attempt.EnvironmentalSpawnerSourceId : FString();
+    const int32 ReservationSourceSlotIndex = Attempt.bIsEnvironmentalSpawnerAttempt
+        ? Attempt.EnvironmentalSpawnerSlotIndex : INDEX_NONE;
+    const FVector ReservationSourceOrigin = Attempt.bIsEnvironmentalSpawnerAttempt
+        ? Attempt.EnvironmentalSpawnerOrigin : FVector::ZeroVector;
+    if (!TryReservePopulationCreatureCapacity(PlacementLocations, Descriptor.SpatialKey, Archetype,
+            ReservationSourceId, ReservationSourceSlotIndex, ReservationSourceOrigin,
+            PopulationReservationId))
+    {
+        Attempt.GateResults.bCapsPassed = false;
+        Attempt.RejectionReason = EvaluatePopulationSpawnGates(Attempt.GateResults);
+        return false;
+    }
+
+    TArray<AKalmalaWildlifeSpawn*> CreatedCreatures;
+    CreatedCreatures.Reserve(ActorDescriptors.Num());
+    for (int32 Index = 0; Index < ActorDescriptors.Num(); ++Index)
+    {
+        const int32 WolfMemberIndex = bWolfPack ? Index : 0;
+        FActorSpawnParameters SpawnParameters;
+        SpawnParameters.SpawnCollisionHandlingOverride =
+            ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+        AKalmalaWildlifeSpawn* Creature = World->SpawnActor<AKalmalaWildlifeSpawn>(
+            AKalmalaWildlifeSpawn::StaticClass(), PlacementLocations[Index],
+            FRotator::ZeroRotator, SpawnParameters);
+        if (Creature == nullptr)
+        {
+            for (AKalmalaWildlifeSpawn* Created : CreatedCreatures)
+            {
+                if (IsValid(Created)) Created->Destroy();
+            }
+            if (PopulationReservationId.IsValid()) ReleasePopulationCreatureReservation(PopulationReservationId);
+            return false;
+        }
+
+        Creature->InitializeServer(ActorDescriptors[Index], Archetype, WolfMemberIndex);
+        if (Creature->GetPersistentSpawnId() != ActorPersistentSpawnIds[Index]
+            || Creature->GetArchetype() != Archetype || Creature->IsDefeated()
+            || !FMath::IsFinite(Creature->GetHealth()) || Creature->GetHealth() <= 0.0f
+            || !Creature->GetActorLocation().Equals(PlacementLocations[Index]))
+        {
+            Creature->Destroy();
+            for (AKalmalaWildlifeSpawn* Created : CreatedCreatures)
+            {
+                if (IsValid(Created)) Created->Destroy();
+            }
+            if (PopulationReservationId.IsValid()) ReleasePopulationCreatureReservation(PopulationReservationId);
+            return false;
+        }
+
+        RegisterLivePopulationCreature(Creature);
+        Creature->OnDefeated.AddUObject(this, &AKalmalaGameMode::RecordDefeatedSpawn);
+        CreatedCreatures.Add(Creature);
+    }
+
+    if (PopulationReservationId.IsValid()
+        && !ReleasePopulationCreatureReservation(PopulationReservationId))
+    {
+        for (AKalmalaWildlifeSpawn* Created : CreatedCreatures)
+        {
+            if (IsValid(Created)) Created->Destroy();
+        }
+        return false;
+    }
+
+    for (const FString& PersistentSpawnId : ActorPersistentSpawnIds)
+    {
+        PopulationCreatureReactivationDueTimes.Remove(PersistentSpawnId);
+        if (Attempt.bIsEnvironmentalSpawnerAttempt)
+        {
+            EnvironmentalSpawnerSourceIdBySpawnId.Add(
+                PersistentSpawnId, Attempt.EnvironmentalSpawnerSourceId);
+        }
+    }
+    return true;
+}
+bool AKalmalaGameMode::DoesPopulationDescriptorPassProgressionGate(
+    const FKalmalaWorldPopulationSpawn& Descriptor) const
+{
+    if (!HasAuthority() || !IsValid(GetWorld()) || !WorldGenerationConfig.IsValid())
+    {
+        return false;
+    }
+
+    EKalmalaWildlifeArchetype Archetype;
+    return KalmalaGameMode::TryGetWildlifeArchetypeForSpawn(WorldGenerationConfig, Descriptor, Archetype)
+        && IsPopulationProgressionGateAllowed(Archetype);
+}
+
+bool AKalmalaGameMode::DoesPopulationDescriptorPassCaps(
+    const FKalmalaWorldPopulationSpawn& Descriptor)
+{
+    if (!HasAuthority() || !IsValid(GetWorld()) || !WorldGenerationConfig.IsValid())
+    {
+        return false;
+    }
+
+    EKalmalaWildlifeArchetype Archetype;
+    if (!KalmalaGameMode::TryGetWildlifeArchetypeForSpawn(WorldGenerationConfig, Descriptor, Archetype))
+    {
+        return false;
+    }
+
+    if (Archetype != EKalmalaWildlifeArchetype::Wolf)
+    {
+        return CanAdmitPopulationCreatureWithinCaps(Descriptor.Location, Descriptor.SpatialKey, Archetype);
+    }
+
+    TArray<FVector> MemberLocations;
+    MemberLocations.Reserve(FKalmalaWolfPackContract::MemberCount);
+    for (int32 MemberIndex = 0; MemberIndex < FKalmalaWolfPackContract::MemberCount; ++MemberIndex)
+    {
+        const FVector2D Offset = FKalmalaWolfPackContract::GetMemberOffset(Descriptor.SpawnSeed, MemberIndex);
+        MemberLocations.Add(Descriptor.Location + FVector(Offset.X, Offset.Y, 0.0f));
+    }
+
+    FGuid TrialReservationId;
+    if (!TryReserveWolfPackCapacity(MemberLocations, Descriptor.SpatialKey, TrialReservationId))
+    {
+        return false;
+    }
+
+    return ReleasePopulationCreatureReservation(TrialReservationId);
+}
+
+bool AKalmalaGameMode::IsPopulationProgressionGateAllowed(const EKalmalaWildlifeArchetype Archetype)
+{
+    switch (Archetype)
+    {
+    case EKalmalaWildlifeArchetype::Mireling:
+    case EKalmalaWildlifeArchetype::Boar:
+    case EKalmalaWildlifeArchetype::Deer:
+    case EKalmalaWildlifeArchetype::Rat:
+    case EKalmalaWildlifeArchetype::Badger:
+    case EKalmalaWildlifeArchetype::MoonBear:
+    case EKalmalaWildlifeArchetype::DeathAdder:
+    case EKalmalaWildlifeArchetype::Viper:
+    case EKalmalaWildlifeArchetype::GiantSnake:
+    case EKalmalaWildlifeArchetype::MosquitoSwarm:
+    case EKalmalaWildlifeArchetype::PeatHusk:
+    case EKalmalaWildlifeArchetype::Wolf:
+    case EKalmalaWildlifeArchetype::Lynx:
+    case EKalmalaWildlifeArchetype::PolarBear:
+    case EKalmalaWildlifeArchetype::HornedGoat:
+    case EKalmalaWildlifeArchetype::ThunderSentinel:
+    case EKalmalaWildlifeArchetype::ReefMaw:
+        return true;
+    default:
+        return false;
+    }
+}
+
+#if WITH_DEV_AUTOMATION_TESTS
+bool AKalmalaGameMode::IsPopulationProgressionGateAllowedForTests(
+    const EKalmalaWildlifeArchetype Archetype, const bool bForceRejectForTests)
+{
+    return !bForceRejectForTests && IsPopulationProgressionGateAllowed(Archetype);
+}
+#endif
+
+bool AKalmalaGameMode::TryReserveWolfPackCapacity(const TArray<FVector>& MemberLocations,
+    const FIntPoint& HomeSpatialKey, FGuid& OutReservationId)
+{
+    if (MemberLocations.Num() != FKalmalaWolfPackContract::MemberCount)
+    {
+        OutReservationId = FGuid();
+        return false;
+    }
+
+    return TryReservePopulationCreatureCapacity(MemberLocations, HomeSpatialKey,
+        EKalmalaWildlifeArchetype::Wolf, FString(), INDEX_NONE, FVector::ZeroVector, OutReservationId);
+}
+
+bool AKalmalaGameMode::TryReservePopulationCreatureCapacity(const TArray<FVector>& Locations,
+    const FIntPoint& HomeSpatialKey, const EKalmalaWildlifeArchetype Archetype,
+    const FString& EnvironmentalSpawnerSourceId, const int32 EnvironmentalSpawnerSlotIndex,
+    const FVector& EnvironmentalSpawnerOrigin, FGuid& OutReservationId)
+{
+    OutReservationId = FGuid();
+    if (!HasAuthority() || !IsValid(GetWorld()) || Locations.IsEmpty()
+        || GetPopulationSpeciesAreaCap(Archetype) <= 0)
+    {
+        return false;
+    }
+
+    const bool bHasEnvironmentalSource = !EnvironmentalSpawnerSourceId.IsEmpty()
+        || EnvironmentalSpawnerSlotIndex != INDEX_NONE;
+    if (bHasEnvironmentalSource
+        && (!FKalmalaEnvironmentalSpawnerPolicy::IsSourceConfigured(
+                HasAuthority(), true, EnvironmentalSpawnerSourceId, EnvironmentalSpawnerSlotIndex)
+            || !FMath::IsFinite(EnvironmentalSpawnerOrigin.X)
+            || !FMath::IsFinite(EnvironmentalSpawnerOrigin.Y)
+            || !FMath::IsFinite(EnvironmentalSpawnerOrigin.Z)))
+    {
+        return false;
+    }
+
+    for (const FVector& Location : Locations)
+    {
+        if (!FMath::IsFinite(Location.X) || !FMath::IsFinite(Location.Y)
+            || !FMath::IsFinite(Location.Z))
+        {
+            return false;
+        }
+    }
+
+    FGuid ReservationId;
+    do
+    {
+        ReservationId = FGuid::NewGuid();
+    }
+    while (!ReservationId.IsValid() || PendingPopulationCreatureReservations.Contains(ReservationId));
+
+    TArray<FKalmalaPopulationCreatureReservation>& ProvisionalReservations =
+        PendingPopulationCreatureReservations.FindOrAdd(ReservationId);
+    for (const FVector& Location : Locations)
+    {
+        if (!CanAdmitPopulationCreatureWithinCaps(Location, HomeSpatialKey, Archetype))
+        {
+            PendingPopulationCreatureReservations.Remove(ReservationId);
+            return false;
+        }
+
+        if (bHasEnvironmentalSource)
+        {
+            const TArray<FKalmalaEnvironmentalSpawnerCreatureSample> Samples =
+                GetEnvironmentalSpawnerLivingSamples(EnvironmentalSpawnerSourceId);
+            int32 LivingSourceOwnedCount = -1;
+            if (!FKalmalaEnvironmentalSpawnerPolicy::TryCountLivingOwnedWithinRadius(
+                    HasAuthority(), true, EnvironmentalSpawnerSourceId, EnvironmentalSpawnerSlotIndex,
+                    EnvironmentalSpawnerOrigin, Samples, LivingSourceOwnedCount)
+                || !FKalmalaEnvironmentalSpawnerPolicy::CanFitLivingCreatures(
+                    HasAuthority(), true, EnvironmentalSpawnerSourceId, EnvironmentalSpawnerSlotIndex,
+                    LivingSourceOwnedCount, 1))
+            {
+                PendingPopulationCreatureReservations.Remove(ReservationId);
+                return false;
+            }
+        }
+
+        FKalmalaPopulationCreatureReservation& Reservation = ProvisionalReservations.AddDefaulted_GetRef();
+        Reservation.Location = Location;
+        Reservation.HomeSpatialKey = HomeSpatialKey;
+        Reservation.Archetype = Archetype;
+        if (bHasEnvironmentalSource)
+        {
+            Reservation.EnvironmentalSpawnerSourceId = EnvironmentalSpawnerSourceId;
+        }
+    }
+
+    OutReservationId = ReservationId;
+    return true;
+}
+
+bool AKalmalaGameMode::ReleasePopulationCreatureReservation(const FGuid& ReservationId)
+{
+    if (!HasAuthority() || !ReservationId.IsValid())
+    {
+        return false;
+    }
+
+    return PendingPopulationCreatureReservations.Remove(ReservationId) > 0;
+}
+
 void AKalmalaGameMode::Tick(const float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
@@ -5357,22 +7896,23 @@ void AKalmalaGameMode::Tick(const float DeltaSeconds)
         RefreshOceanDiscoveries();
     }
 
-    if (GetWorld()->GetTimeSeconds() < NextTerrainPatchActivationTime)
+    const double NowSeconds = GetWorld()->GetTimeSeconds();
+    if (NowSeconds >= NextTerrainPatchActivationTime)
     {
-        return;
-    }
-
-    NextTerrainPatchActivationTime = GetWorld()->GetTimeSeconds() + KalmalaGameMode::TerrainPatchActivationIntervalSeconds;
-    RefreshTerrainPatchNeighborhoods();
-    for (FConstPlayerControllerIterator PlayerControllerIterator = GetWorld()->GetPlayerControllerIterator(); PlayerControllerIterator; ++PlayerControllerIterator)
-    {
-        const APlayerController* PlayerController = PlayerControllerIterator->Get();
-        const APawn* PlayerPawn = PlayerController != nullptr ? PlayerController->GetPawn() : nullptr;
-        if (PlayerPawn != nullptr)
+        NextTerrainPatchActivationTime = NowSeconds + KalmalaGameMode::TerrainPatchActivationIntervalSeconds;
+        RefreshTerrainPatchNeighborhoods();
+        for (const AKalmalaCharacter* PlayerPawn : GetLivingPlayerPawnsForPopulation())
         {
-            ActivatePopulationKey(FKalmalaWorldPopulationLayout::GetSpatialKey(FVector2D(PlayerPawn->GetActorLocation())));
+            if (IsValid(PlayerPawn))
+            {
+                ActivatePopulationKey(FKalmalaWorldPopulationLayout::GetSpatialKey(FVector2D(PlayerPawn->GetActorLocation())));
+            }
         }
     }
+
+    UpdatePopulationCreatureUnloads(NowSeconds, GetLivingPlayerPawnsForPopulation());
+    UpdatePopulationKeySchedule(NowSeconds);
+    UpdatePopulationSchedulerWake(NowSeconds);
 }
 
 void AKalmalaGameMode::DriveOceanTravelFeedbackTest()
@@ -5751,7 +8291,8 @@ void AKalmalaGameMode::ReportWorldProfileIfReady()
     bWorldProfileReported = true;
 }
 
-void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey)
+void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey,
+    const bool bAllowLegacyWildlifeForVerification)
 {
     if (!HasAuthority() || GetWorld() == nullptr || ActivePopulationSpatialKeys.Contains(SpatialKey) || ActivePopulationSpatialKeys.Num() >= KalmalaGameMode::MaxActivePopulationSpatialKeys)
     {
@@ -5759,7 +8300,8 @@ void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey)
     }
 
     int32 SpawnedMarkerCount = 0;
-    const EKalmalaBiome KeyBiome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, (FVector2D(SpatialKey) + FVector2D(0.5f, 0.5f)) * FKalmalaWorldPopulationLayout::SpatialKeySize));
+    int32 WildlifeActorBudgetForKey = 0;
+    const EKalmalaBiome KeyBiome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, (FVector2D(SpatialKey) + FVector2D(0.5f, 0.5f)) * FKalmalaWorldPopulationLayout::SpatialKeySizeCm));
     for (const EKalmalaWorldPopulationKind Kind : { EKalmalaWorldPopulationKind::Wildlife, EKalmalaWorldPopulationKind::HarvestNode, EKalmalaWorldPopulationKind::Hazard })
     {
         TArray<FKalmalaWorldPopulationSpawn> Spawns = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(WorldGenerationConfig, SpatialKey, Kind);
@@ -5780,6 +8322,10 @@ void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey)
                 ? FKalmalaWolfPackContract::GetActorBudgetWithPackRoom(
                     FKalmalaBiomeExpansionContract::ApplyPopulationBudget(Spawns.Num(), Kind, KeyBiome))
                 : Spawns.Num());
+        if (Kind == EKalmalaWorldPopulationKind::Wildlife)
+        {
+            WildlifeActorBudgetForKey = WildlifeActorBudget;
+        }
         int32 SpawnedWildlifeActorCount = 0;
         for (const FKalmalaWorldPopulationSpawn& Spawn : Spawns)
         {
@@ -5803,19 +8349,14 @@ void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey)
                     ++SpawnedMarkerCount;
                 }
             }
-            else if (Kind == EKalmalaWorldPopulationKind::Wildlife)
+            else if (Kind == EKalmalaWorldPopulationKind::Wildlife && bAllowLegacyWildlifeForVerification && !UE_BUILD_SHIPPING)
             {
                 EKalmalaWildlifeArchetype Archetype;
                 if (!KalmalaGameMode::TryGetWildlifeArchetypeForSpawn(WorldGenerationConfig, Spawn, Archetype))
                 {
                     continue;
                 }
-                const bool bHardEnemy = Archetype == EKalmalaWildlifeArchetype::GiantSnake
-                    || Archetype == EKalmalaWildlifeArchetype::MoonBear
-                    || Archetype == EKalmalaWildlifeArchetype::PeatHusk
-                    || Archetype == EKalmalaWildlifeArchetype::PolarBear
-                    || Archetype == EKalmalaWildlifeArchetype::ThunderSentinel
-                    || Archetype == EKalmalaWildlifeArchetype::ReefMaw;
+                const bool bHardEnemy = KalmalaGameMode::IsHardEnemyWildlifeArchetype(Archetype);
                 const float StartDistance = GeneratedPlayerStart != nullptr
                     ? FVector::Dist2D(Spawn.Location, GeneratedPlayerStart->GetActorLocation()) : 0.0f;
                 if (!AKalmalaWildlifeSpawn::IsHardEnemySpawnAllowedByStart(
@@ -6060,6 +8601,7 @@ void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey)
         }
     }
 
+    PopulationKeyWildlifeActorBudgets.Add(SpatialKey, WildlifeActorBudgetForKey);
     ActivePopulationSpatialKeys.Add(SpatialKey);
     UE_LOG(LogTemp, Display, TEXT("Server activated %d deterministic population markers for spatial key (%d, %d); %d/%d active."), SpawnedMarkerCount, SpatialKey.X, SpatialKey.Y, ActivePopulationSpatialKeys.Num(), KalmalaGameMode::MaxActivePopulationSpatialKeys);
 }
@@ -8320,7 +10862,7 @@ void AKalmalaGameMode::RunReconnectVerification(APawn* ServerPawn)
             return;
         }
         const FString PersistentSpawnId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(*ExpectedSpawn);
-        ActivatePopulationKey(SpatialKey);
+        ActivatePopulationKey(SpatialKey, true);
         if (ReconnectVerificationMode.Equals(TEXT("WildlifeDefeat"), ESearchCase::IgnoreCase))
         {
             for (TActorIterator<AKalmalaWildlifeSpawn> WildlifeIterator(GetWorld()); WildlifeIterator; ++WildlifeIterator)
