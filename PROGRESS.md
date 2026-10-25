@@ -9001,3 +9001,53 @@
   Implementation and source-coverage files remain in this detached worktree.
 - **Next eligible task:** BH21 — add Tundra forest participation with reduced
   density and explicit resource identity.
+
+## Run 2026-10-25 — Make forest tree kind explicit (BH21a)
+
+- **Selected increment:** BH21a, the first child after splitting the broad BH21
+  acceptance into explicit identity, Tundra admission and lifecycle proof. The
+  detached worktree was clean at `929ff985`; no other autonomous run is
+  modifying this checkout. A10 and monster-population work remains in separate
+  worktrees.
+- **Work completed:** Replaced the overlapping `bElderwood`/`bAspen` descriptor
+  flags with `EKalmalaForestTreeKind`. Existing Meadows birch, Meadows aspen and
+  Elderwood ironheart candidates retain their prior appearance and gathering
+  sources. Added an explicit Freezing Tundra birch kind that maps to the existing
+  Meadows birch source and presentation, adding no timber content or reward.
+  Updated cosmetic rendering, server source selection, delivery verification
+  and existing source/lifecycle coverage to consume the explicit kind. Tundra
+  candidate generation remains BH21b.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Public/KalmalaForestLayout.h`,
+  `Source/KalmalaWorld/Private/KalmalaForestLayout.cpp`,
+  `Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp`,
+  `Source/KalmalaGameplay/Public/KalmalaForestResourceContract.h`,
+  `Source/KalmalaGameplay/Private/KalmalaHarvestNode.cpp`,
+  `Source/KalmalaGameplay/Private/KalmalaForestDeliveryVerification.cpp`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaForestLifecycleTest.cpp`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaM9SourceAcceptanceTest.cpp`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaForestResourceContractTest.cpp`,
+  and `docs/02-technical-architecture.md`.
+- **Lightweight checks/results:** Re-read AGENTS.md, BACKLOG.md, PROGRESS.md,
+  the forest-factor and Tundra plan, forest architecture, harvest lifecycle and
+  Tundra verification setup. Static search found no remaining descriptor
+  consumers of the removed boolean flags. Source inspection confirmed existing
+  placement, dimensions, random draws, persistent IDs and Meadow/Elderwood
+  source choices remain unchanged. Added source assertions for every tree-kind
+  source/presentation mapping and unknown-kind rejection; they were not built
+  or run. `git diff --check` passed. Full verification remains deferred to BH26.
+- **Observable impact:** Existing trees keep their current appearance and
+  harvesting source. Shared descriptors now carry an explicit type so later
+  Tundra placement cannot inherit Elderwood's ironheart source by height reuse.
+- **Networking/authority:** No RPC, replication, save schema or gameplay
+  authority changed. Server materialization and cosmetic rendering consume the
+  same descriptor kind; suppression and sparse persistence IDs are unchanged.
+- **Known limitations / remaining scope:** This increment defines the explicit
+  Tundra birch mapping but does not generate Tundra trees. Reduced-density
+  candidate admission and its identity/lifecycle proof remain BH21b–BH21c;
+  full build, automation and rendered acceptance remain deferred to BH26.
+- **Main-checkout handoff:** Synchronized only `BACKLOG.md` and `PROGRESS.md`
+  in `E:\dev\Kalmala`, preserving the existing A10 and Monster progress.
+  Implementation and source-coverage files remain in this detached worktree.
+- **Next eligible task:** BH21b — add reduced-density Tundra forest candidates
+  through the shared descriptor path without shifting existing candidate draws.

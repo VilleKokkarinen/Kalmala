@@ -5,6 +5,7 @@
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "KalmalaForestLayout.h"
+#include "KalmalaForestResourceContract.h"
 #include "KalmalaGeneratedTerrainPatch.h"
 #include "KalmalaHarvestNode.h"
 #include "KalmalaM9SourceLootContract.h"
@@ -118,8 +119,7 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
                 // compresses yaw to a byte (half-step error at most 360/512).
                 && FMath::Abs(FMath::FindDeltaAngleDegrees(Node->GetActorRotation().Yaw, Tree.Yaw)) <= 360.0f / 512.0f + 0.01f
                 && Node->GetForestDimensionsForVerification().Equals(Dimensions, 0.01f)
-                && Node->GetGatheringSourceId() == (Tree.bElderwood ? FName(TEXT("elderwood-ironheart-trunk"))
-                    : (Tree.bAspen ? FName(TEXT("meadows-aspen-trunk")) : FName(TEXT("meadows-birch-trunk"))))
+                && Node->GetGatheringSourceId() == FKalmalaForestResourceContract::GetSourceId(Tree.TreeKind)
                 && !Node->IsHarvested()
                 && (!HasAuthority() || Node->bNetUseOwnerRelevancy) && Node->IsReplicatingMovement();
             const bool bStanding = Node && Node->CanReceiveAxeAttack() && !Node->IsFelledTrunk() && !Node->IsWoodDrop();

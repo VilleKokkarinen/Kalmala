@@ -3221,6 +3221,11 @@ are exact world-space centers formatted with 17 significant digits and normalize
 signed zero; full unsigned seeds and original ordinals prevent filtered-order and
 cross-patch aliasing. Invalid centers/ordinals yield an empty identity; rejected
 candidates do not renumber later trees or alter the existing random draw order.
+Descriptors carry an explicit `EKalmalaForestTreeKind` rather than overlapping
+Elderwood/Aspen flags. Meadows birch, Meadows aspen and Elderwood ironheart retain
+their current resource and presentation mappings. The reserved Freezing Tundra
+birch kind maps to the existing Meadows birch source and presentation; it is not
+an Elderwood-only resource and adds no timber item or reward.
 
 GameMode loads the matching population save before terrain activation. It generates
 the shared descriptors once, skips IDs already harvested, and initializes each

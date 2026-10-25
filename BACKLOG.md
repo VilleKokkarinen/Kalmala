@@ -668,8 +668,24 @@ run for this goal and may exceed one turn.
       unchanged. Focused helper and identity coverage was added; full integrated
       acceptance remains in BH26.
   - [ ] **BH21 — Add Tundra forest participation.** Reuse the forest factor with
-    the planned reduced density; keep resource identity explicit and consistent
-    across rendering, harvesting, suppression, and persistence.
+    reduced density; keep resource identity explicit and consistent across
+    rendering, harvesting, suppression, and persistence. Keep BH21 open until
+    BH21a–BH21c are complete.
+    - [x] **BH21a — Make forest tree kind explicit.** Shared descriptors now
+      use explicit Meadows birch, Meadows aspen, Elderwood ironheart and
+      Freezing Tundra birch kinds. Existing renderer and harvest consumers use
+      the kind contract; Tundra birch maps to the existing Meadows birch source
+      and presentation. Current placements, appearance, sources and random
+      draws are unchanged.
+    - [ ] **BH21b — Add reduced-density Tundra forest candidates.** Reuse the
+      absolute-world factor and stable per-candidate threshold with a lower
+      Tundra acceptance multiplier. Preserve Meadow/Elderwood candidates,
+      ordinals, IDs and random-stream behavior; use the explicit Tundra tree
+      kind and existing resource/presentation mapping.
+    - [ ] **BH21c — Verify Tundra forest identity and lifecycle.** Add focused
+      source proof for Tundra-only selection, resource/presentation agreement,
+      suppression, depletion, late join and restart identity. Defer integrated
+      rendered and gameplay acceptance to BH26.
   - [ ] **BH22 — Add eligible Lakes forest shoulders.** Reuse shared forest
     placement only on suitable dry shoulders; reject wet ground and retain
     existing resource/catalogue rules and bounded counts.

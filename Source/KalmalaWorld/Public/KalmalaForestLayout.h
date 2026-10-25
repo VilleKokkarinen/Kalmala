@@ -3,6 +3,15 @@
 #include "CoreMinimal.h"
 #include "KalmalaWorldGenerationConfig.h"
 
+/** Explicit forest presentation/resource identity, independent of the height candidate reused by a biome. */
+enum class EKalmalaForestTreeKind : uint8
+{
+    MeadowsBirch,
+    MeadowsAspen,
+    ElderwoodIronheart,
+    FreezingTundraBirch
+};
+
 /** A forest candidate's ordinal is stable within a seed and patch center, even across rejected candidates. */
 struct KALMALAWORLD_API FKalmalaForestTreeDescriptor
 {
@@ -14,8 +23,7 @@ struct KALMALAWORLD_API FKalmalaForestTreeDescriptor
     float CanopyRadius = 0.0f;
     float CanopyHeight = 0.0f;
     float Yaw = 0.0f;
-    bool bElderwood = false;
-    bool bAspen = false;
+    EKalmalaForestTreeKind TreeKind = EKalmalaForestTreeKind::MeadowsBirch;
     /** Continuous absolute-world placement mask, independent of ecological fields and candidate draws. */
     float ForestFactor = 0.0f;
     FString PersistentSpawnId;

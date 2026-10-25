@@ -169,9 +169,12 @@ TArray<FKalmalaForestTreeDescriptor> FKalmalaForestLayout::Generate(
         }
 
         const float SurfaceHeight = FinalSurface.Height;
+        const EKalmalaForestTreeKind TreeKind = bElderwood
+            ? EKalmalaForestTreeKind::ElderwoodIronheart
+            : (bAspen ? EKalmalaForestTreeKind::MeadowsAspen : EKalmalaForestTreeKind::MeadowsBirch);
         Result.Add({CandidateIndex, FVector(SamplePosition.X, SamplePosition.Y, SurfaceHeight),
             FVector(LocalPosition.X, LocalPosition.Y, SurfaceHeight),
-            TrunkRadius, TrunkHeight, CanopyRadius, CanopyHeight, TreeYaw, bElderwood, bAspen});
+            TrunkRadius, TrunkHeight, CanopyRadius, CanopyHeight, TreeYaw, TreeKind});
         // This absolute-world noise sample is stateless and consumes no candidate-stream draws.
         Result.Last().ForestFactor = ForestFactor;
         Result.Last().PersistentSpawnId = GetPersistentSpawnId(WorldGenerationConfig, PatchCenter, CandidateIndex);

@@ -1,6 +1,7 @@
 #include "KalmalaHarvestNode.h"
 #include "KalmalaResistanceComponent.h"
 #include "KalmalaForestLayout.h"
+#include "KalmalaForestResourceContract.h"
 #include "KalmalaToolLifecycleContract.h"
 #include "KalmalaGameMode.h"
 #include "KalmalaWorldGenerationGameState.h"
@@ -141,9 +142,7 @@ bool AKalmalaHarvestNode::InitializeGeneratedForestServer(const FKalmalaForestTr
         || !FMath::IsFinite(Tree.TrunkHeight) || Tree.TrunkHeight <= 0
         || !FMath::IsFinite(Tree.CanopyRadius) || Tree.CanopyRadius <= 0
         || !FMath::IsFinite(Tree.CanopyHeight) || Tree.CanopyHeight <= 0) return false;
-    if (Tree.bElderwood && Tree.bAspen) return false;
-    const FName SourceId = Tree.bElderwood ? FName(TEXT("elderwood-ironheart-trunk"))
-        : (Tree.bAspen ? FName(TEXT("meadows-aspen-trunk")) : FName(TEXT("meadows-birch-trunk")));
+    const FName SourceId = FKalmalaForestResourceContract::GetSourceId(Tree.TreeKind);
     if (!FKalmalaBiomeContentContract::IsValidGatheringSourceId(SourceId)) return false;
     // Forest candidates may be reconstructed after actor spawning. Replicate the
     // authoritative transform as well as their shape, including late relevance.

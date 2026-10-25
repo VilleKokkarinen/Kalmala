@@ -86,12 +86,13 @@ namespace KalmalaGeneratedTerrainPatch
 
     static void AppendTaperedTree(
         TArray<FVector>& Vertices, TArray<int32>& Triangles, TArray<FVector>& Normals, TArray<FVector2D>& UVs, TArray<FLinearColor>& VertexColors, TArray<FProcMeshTangent>& Tangents,
-        const FVector BaseCenter, const float TrunkRadius, const float TrunkHeight, const float CanopyRadius, const float CanopyHeight, const float YawDegrees, const bool bAspen,
+        const FVector BaseCenter, const float TrunkRadius, const float TrunkHeight, const float CanopyRadius, const float CanopyHeight, const float YawDegrees, const EKalmalaForestTreeKind TreeKind,
         TArray<FVector>& CanopyVertices, TArray<int32>& CanopyTriangles, TArray<FVector>& CanopyNormals, TArray<FVector2D>& CanopyUVs, TArray<FLinearColor>& CanopyColors, TArray<FProcMeshTangent>& CanopyTangents)
     {
         constexpr int32 SideCount = 6;
         const int32 TrunkFirstVertex = Vertices.Num();
         const int32 CanopyFirstVertex = CanopyVertices.Num();
+        const bool bAspen = TreeKind == EKalmalaForestTreeKind::MeadowsAspen;
         const FLinearColor BarkBase = bAspen ? FLinearColor(0.58f, 0.55f, 0.48f) : FLinearColor(0.18f, 0.12f, 0.08f);
         const FLinearColor BarkTop = bAspen ? FLinearColor(0.68f, 0.64f, 0.56f) : FLinearColor(0.22f, 0.15f, 0.10f);
         const FLinearColor LeafSide = bAspen ? FLinearColor(0.35f, 0.48f, 0.19f) : FLinearColor(0.16f, 0.31f, 0.17f);
@@ -521,9 +522,9 @@ bool AKalmalaGeneratedTerrainPatch::BuildMeadowTrees()
         KalmalaGeneratedTerrainPatch::AppendTaperedTree(
             TrunkVertices, TrunkTriangles, TrunkNormals, TrunkUVs, TrunkColors, TrunkTangents,
             LocalPosition, Tree.TrunkRadius, Tree.TrunkHeight, Tree.CanopyRadius, Tree.CanopyHeight, Tree.Yaw,
-            Tree.bAspen,
+            Tree.TreeKind,
             CanopyVertices, CanopyTriangles, CanopyNormals, CanopyUVs, CanopyColors, CanopyTangents);
-        if (Tree.bElderwood)
+        if (Tree.TreeKind == EKalmalaForestTreeKind::ElderwoodIronheart)
         {
             KalmalaGeneratedTerrainPatch::AppendRootButtresses(TrunkVertices, TrunkTriangles, TrunkNormals, TrunkUVs, TrunkColors, TrunkTangents, LocalPosition, Tree.TrunkRadius, Tree.Yaw);
         }
