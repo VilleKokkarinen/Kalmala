@@ -6,6 +6,7 @@
 #include "Materials/MaterialExpressionComponentMask.h"
 #include "Materials/MaterialExpressionConstant.h"
 #include "Materials/MaterialExpressionConstant3Vector.h"
+#include "Materials/MaterialExpressionLinearInterpolate.h"
 #include "Materials/MaterialExpressionMultiply.h"
 #include "Materials/MaterialExpressionVertexColor.h"
 #include "Misc/PackageName.h"
@@ -17,6 +18,7 @@ namespace KalmalaWorldMaterials
     static const FLinearColor TerrainGrassColor(0.22f, 0.34f, 0.17f);
     static const FLinearColor TerrainSoilColor(0.34f, 0.26f, 0.17f);
     static const FLinearColor TerrainRockColor(0.24f, 0.27f, 0.23f);
+    static const FLinearColor TerrainSnowColor(0.78f, 0.84f, 0.87f);
 
     static bool CreateMaterial(const FString& PackageName, const FLinearColor Color, const float Roughness)
     {
@@ -103,14 +105,14 @@ namespace KalmalaWorldMaterials
         EditorOnlyData->ExpressionCollection.Expressions.Add(VertexColor);
 
         const auto CreateWeightChannel = [Material, EditorOnlyData, VertexColor](const bool bRed,
-            const bool bGreen, const bool bBlue)
+            const bool bGreen, const bool bBlue, const bool bAlpha)
         {
             UMaterialExpressionComponentMask* Mask = NewObject<UMaterialExpressionComponentMask>(Material);
             Mask->Input.Connect(0, VertexColor);
             Mask->R = bRed;
             Mask->G = bGreen;
             Mask->B = bBlue;
-            Mask->A = false;
+            Mask->A = bAlpha;
             EditorOnlyData->ExpressionCollection.Expressions.Add(Mask);
             return Mask;
         };
@@ -139,23 +141,36 @@ namespace KalmalaWorldMaterials
             EditorOnlyData->ExpressionCollection.Expressions.Add(Add);
             return Add;
         };
+        const auto CreateBlend = [Material, EditorOnlyData](UMaterialExpression* Base,
+            UMaterialExpression* Overlay, UMaterialExpression* Weight)
+        {
+            UMaterialExpressionLinearInterpolate* Blend = NewObject<UMaterialExpressionLinearInterpolate>(Material);
+            Blend->A.Connect(0, Base);
+            Blend->B.Connect(0, Overlay);
+            Blend->Alpha.Connect(0, Weight);
+            EditorOnlyData->ExpressionCollection.Expressions.Add(Blend);
+            return Blend;
+        };
 
-        UMaterialExpression* GrassWeight = CreateWeightChannel(true, false, false);
+        UMaterialExpression* GrassWeight = CreateWeightChannel(true, false, false, false);
         UMaterialExpression* GrassColorExpression = CreateColor(TerrainGrassColor);
         UMaterialExpressionMultiply* GrassLayer = CreateLayer(GrassWeight, GrassColorExpression);
-        UMaterialExpression* SoilWeight = CreateWeightChannel(false, true, false);
+        UMaterialExpression* SoilWeight = CreateWeightChannel(false, true, false, false);
         UMaterialExpression* SoilColorExpression = CreateColor(TerrainSoilColor);
         UMaterialExpressionMultiply* SoilLayer = CreateLayer(SoilWeight, SoilColorExpression);
-        UMaterialExpression* RockWeight = CreateWeightChannel(false, false, true);
+        UMaterialExpression* RockWeight = CreateWeightChannel(false, false, true, false);
         UMaterialExpression* RockColorExpression = CreateColor(TerrainRockColor);
         UMaterialExpressionMultiply* RockLayer = CreateLayer(RockWeight, RockColorExpression);
         UMaterialExpressionAdd* GrassAndSoil = CreateAdd(GrassLayer, SoilLayer);
         UMaterialExpressionAdd* GroundColor = CreateAdd(GrassAndSoil, RockLayer);
+        UMaterialExpression* SnowWeight = CreateWeightChannel(false, false, false, true);
+        UMaterialExpression* SnowColorExpression = CreateColor(TerrainSnowColor);
+        UMaterialExpression* GroundAndSnowColor = CreateBlend(GroundColor, SnowColorExpression, SnowWeight);
         UMaterialExpressionConstant* RoughnessExpression = NewObject<UMaterialExpressionConstant>(Material);
         RoughnessExpression->R = Roughness;
         EditorOnlyData->ExpressionCollection.Expressions.Add(RoughnessExpression);
 
-        EditorOnlyData->BaseColor.Expression = GroundColor;
+        EditorOnlyData->BaseColor.Expression = GroundAndSnowColor;
         EditorOnlyData->Roughness.Expression = RoughnessExpression;
         Material->PostEditChange();
         Package->MarkPackageDirty();
@@ -168,7 +183,7 @@ namespace KalmalaWorldMaterials
             return false;
         }
 
-        UE_LOG(LogTemp, Display, TEXT("Generated grass/soil/rock terrain material %s."), *PackageName);
+        UE_LOG(LogTemp, Display, TEXT("Generated grass/soil/rock/Tundra-snow terrain material %s."), *PackageName);
         return true;
     }
 

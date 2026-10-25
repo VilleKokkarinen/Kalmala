@@ -713,9 +713,20 @@ run for this goal and may exceed one turn.
       established grass and rock colors with a new original muted
       `M_GeneratedSoil` material; it adds no grass or reed asset. The Editor-
       generated material packages and rendered result remain for BH26.
-  - [ ] **BH24 — Add cold-biome presentation.** Apply Tundra snow and Mountain
-    snow/storm visuals through existing materials/weather paths; retain
-    server-owned weather selection and add no damage, exposure, or shelter rule.
+  - [ ] **BH24 — Add cold-biome presentation.** Keep open until BH24a–BH24c are
+    complete; rendered acceptance remains BH26.
+    - [x] **BH24a — Add Tundra snow coverage.** Use continuous Tundra biome
+      weight and the final terrain slope in the snow mask of the existing
+      generated terrain material. Preserve RGB grass/soil/rock weights and the
+      existing player-cloth palette; do not change terrain height, weather
+      authority or gameplay behavior.
+    - [ ] **BH24b — Add Mountain snow coverage.** Use existing final terrain
+      height/slope and continuous Mountain weight to blend snow through the
+      existing generated terrain material; preserve foothill height and RGB
+      ground weights.
+    - [ ] **BH24c — Add Mountain storm presentation.** Reflect the existing
+      replicated server weather state in cosmetic Mountain storm visuals; do
+      not add exposure, damage or shelter mechanics.
   - [ ] **BH25 — Finalize tuning and contracts.** Keep open until BH25a–BH25e
     are complete.
     - [ ] **BH25a — Run BH10b1 Meadows hill sweep.** With freshly compiled

@@ -41,6 +41,8 @@ UProceduralMeshComponent* UKalmalaPlayerModelComponent::AddPart(const FName Name
     TArray<FVector2D> UVs;
     TArray<FLinearColor> Colours;
     TArray<FProcMeshTangent> Tangents;
+    const FLinearColor TerrainClothVertexColor = Material == ClothMaterial
+        ? FLinearColor(1.0f, 0.0f, 0.0f, 0.0f) : FLinearColor::White;
     const auto Quad = [&](const FVector A, const FVector B, const FVector C, const FVector D)
     {
         const int32 I = Vertices.Num();
@@ -51,7 +53,7 @@ UProceduralMeshComponent* UKalmalaPlayerModelComponent::AddPart(const FName Name
         for (int32 J = 0; J < 4; ++J)
         {
             Normals.Add(Normal);
-            Colours.Add(FLinearColor::White);
+            Colours.Add(TerrainClothVertexColor);
             Tangents.Add(FProcMeshTangent((B - A).GetSafeNormal(), false));
         }
         UVs.Append({FVector2D(0, 0), FVector2D(0, 1), FVector2D(1, 0), FVector2D(1, 1)});
@@ -65,7 +67,7 @@ UProceduralMeshComponent* UKalmalaPlayerModelComponent::AddPart(const FName Name
         for (int32 J = 0; J < 3; ++J)
         {
             Normals.Add(Normal);
-            Colours.Add(FLinearColor::White);
+            Colours.Add(TerrainClothVertexColor);
             Tangents.Add(FProcMeshTangent((B - A).GetSafeNormal(), false));
         }
         UVs.Append({FVector2D(0, 0), FVector2D(0, 1), FVector2D(1, 0)});
@@ -79,7 +81,7 @@ UProceduralMeshComponent* UKalmalaPlayerModelComponent::AddPart(const FName Name
         for (int32 J = 0; J < 4; ++J)
         {
             Normals.Add(Normal);
-            Colours.Add(FLinearColor::White);
+            Colours.Add(TerrainClothVertexColor);
             Tangents.Add(FProcMeshTangent(U.GetSafeNormal(), false));
         }
         UVs.Append({FVector2D(0, 0), FVector2D(0, 1), FVector2D(1, 0), FVector2D(1, 1)});

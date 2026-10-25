@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 
-/** Deterministic cosmetic weights for generated terrain ground materials. */
+/** Deterministic cosmetic channels for generated terrain ground materials. */
 struct KALMALAWORLD_API FKalmalaTerrainGroundBlend
 {
     static constexpr float SoilMoistureStart = 0.40f;
@@ -10,8 +10,9 @@ struct KALMALAWORLD_API FKalmalaTerrainGroundBlend
     static constexpr float RockSlopeStart = 0.08f;
     static constexpr float RockSlopeFull = 0.30f;
 
-    /** Vertex color RGB carries normalized grass, soil and rock weights. */
-    static FLinearColor SampleWeights(const float SurfaceNormalZ, const float Moisture)
+    /** Vertex RGB carries normalized grass/soil/rock weights; alpha carries Tundra snow coverage. */
+    static FLinearColor SampleWeights(const float SurfaceNormalZ, const float Moisture,
+        const float TundraBiomeWeight = 0.0f)
     {
         const float NormalZ = FMath::IsFinite(SurfaceNormalZ)
             ? FMath::Clamp(SurfaceNormalZ, 0.0f, 1.0f) : 1.0f;
@@ -20,12 +21,15 @@ struct KALMALAWORLD_API FKalmalaTerrainGroundBlend
         const float Slope = 1.0f - NormalZ;
         const float RockWeight = SmoothStep(RockSlopeStart, RockSlopeFull, Slope);
         const float SoilMoistureWeight = SmoothStep(SoilMoistureStart, SoilMoistureFull, NormalizedMoisture);
+        const float NormalizedTundraWeight = FMath::IsFinite(TundraBiomeWeight)
+            ? FMath::Clamp(TundraBiomeWeight, 0.0f, 1.0f) : 0.0f;
+        const float SnowCoverage = NormalizedTundraWeight * NormalZ;
         const float LowlandWeight = 1.0f - RockWeight;
         return FLinearColor(
             LowlandWeight * (1.0f - SoilMoistureWeight),
             LowlandWeight * SoilMoistureWeight,
             RockWeight,
-            1.0f);
+            SnowCoverage);
     }
 
 private:

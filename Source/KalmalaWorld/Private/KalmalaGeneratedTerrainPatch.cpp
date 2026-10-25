@@ -402,7 +402,8 @@ bool AKalmalaGeneratedTerrainPatch::BuildVisualSurface()
             const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(Fields);
             VertexColors.Add(bBiomeDebug ? KalmalaGeneratedTerrainPatch::GetBiomeDebugColor(Biome)
                 : FKalmalaTerrainGroundBlend::SampleWeights(SurfaceNormal.Z,
-                    FinalSurface.bHasWater ? 1.0f : Fields.Humidity));
+                    FinalSurface.bHasWater ? 1.0f : Fields.Humidity,
+                    FinalSurface.Weights[static_cast<uint8>(EKalmalaBiome::FreezingTundra)]));
             Tangents.Add(FProcMeshTangent(1.0f, 0.0f, 0.0f));
         }
     }
@@ -429,11 +430,13 @@ bool AKalmalaGeneratedTerrainPatch::BuildVisualSurface()
             const FVector2D P = PatchCenter + FVector2D(V);
             const FVector SurfaceNormal = FKalmalaTerrainHeightSampler::SampleSurfaceNormal(WorldGenerationConfig, P);
             const FKalmalaWorldFieldSample Fields = FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, P);
+            const FKalmalaRegionalSample FinalSurface = FKalmalaRegionalGeneration::Sample(Fields);
             Normals.Add(SurfaceNormal);
             UVs.Add((FVector2D(V) + FVector2D(HalfSurfaceSize)) / (HalfSurfaceSize * 2));
             const auto Biome = FKalmalaBiomeClassifier::Classify(Fields);
             VertexColors.Add(bBiomeDebug ? KalmalaGeneratedTerrainPatch::GetBiomeDebugColor(Biome)
-                : FKalmalaTerrainGroundBlend::SampleWeights(SurfaceNormal.Z, Fields.Humidity));
+                : FKalmalaTerrainGroundBlend::SampleWeights(SurfaceNormal.Z, Fields.Humidity,
+                    FinalSurface.Weights[static_cast<uint8>(EKalmalaBiome::FreezingTundra)]));
             Tangents.Add(FProcMeshTangent(1, 0, 0));
         }
     }

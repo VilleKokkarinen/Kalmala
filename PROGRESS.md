@@ -9282,3 +9282,47 @@
   to `E:\dev\Kalmala` after inspecting both main versions; A10 and Monster
   progress plus unrelated main-checkout files were preserved.
 - **Next eligible task:** BH24 — add cold-biome presentation.
+
+### BH24a — Add Tundra snow coverage (2026-10-25)
+
+- **Selected increment:** BH24a, the first child after splitting cold-biome
+  presentation into Tundra snow, Mountain snow, and Mountain storm visuals. The
+  worktree was clean at `1b43ccb7`; no other autonomous run is modifying this
+  checkout. A10 and Monster work remains in separate worktrees.
+- **Work completed:** Extended terrain vertex alpha into a deterministic snow
+  mask: continuous Freezing Tundra biome weight multiplied by the final surface
+  normal Z. RGB grass/soil/rock weights remain unchanged. The existing
+  `M_GeneratedTerrain` material pipeline now lerps the established ground blend
+  toward a pale snow color using that alpha. Both ordinary and bounded-world
+  clipped mesh vertices derive the mask from the shared regional sample; no
+  extra world-field sample or geometry budget was added. Updated the acceptance
+  backlog split and material/weather docs. Marked BH24a complete; BH24b is next.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaEditor/Private/CreateWorldMaterialsCommandlet.cpp`,
+  `Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp`,
+  `Source/KalmalaGameplay/Private/KalmalaPlayerModelComponent.cpp`,
+  `Source/KalmalaWorld/Public/KalmalaTerrainGroundBlend.h`,
+  `docs/02-technical-architecture.md`, `docs/biome-height-rework.md`, and
+  `docs/07-development-setup.md`.
+- **Lightweight checks/results:** Re-read AGENTS.md, BACKLOG.md, PROGRESS.md,
+  the biome-height plan, terrain material contract, and server-owned weather
+  state/cycle. Static inspection confirmed alpha uses the already sampled
+  continuous Tundra weight and final normal, RGB layer weights are unchanged,
+  player clothing explicitly selects the grass channel with snow alpha zero,
+  and weather selection, replicated fields, terrain height/collision and
+  gameplay exposure remain unchanged. `git diff --check` passed. No build,
+  automation, material generation or rendering was run; full verification
+  remains deferred to BH26.
+- **Observable impact:** Tundra portions of the generated terrain receive a
+  pale snow overlay that decreases continuously on steep faces. The generated
+  material package and rendered appearance were not inspected.
+- **Networking/authority:** Snow is deterministic client cosmetic vertex data
+  from shared world configuration; no replicated weather or gameplay authority
+  path changed.
+- **Known limitations / remaining scope:** The Editor-generated
+  `M_GeneratedTerrain.uasset` must be updated after the Editor target is built.
+  Material compilation and rendered Tundra coverage remain for BH26. Mountain
+  snow remains BH24b and Mountain storm presentation remains BH24c.
+- **Main-checkout handoff:** Pending inspection and synchronization of only
+  `BACKLOG.md` and `PROGRESS.md` while preserving current A10/Monster edits.
+- **Next eligible task:** BH24b — add Mountain snow coverage.
