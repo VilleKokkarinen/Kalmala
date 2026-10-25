@@ -38,6 +38,14 @@ bool FKalmalaTerrainPreviewControlTest::RunTest(const FString& Parameters)
         FKalmalaRegionalTuning::ShimmeringLakesLowlandCeiling);
     TestEqual(TEXT("Shimmering Lakes lowland compression defaults to tuning"), Settings.ShimmeringLakesLowlandCompression,
         FKalmalaRegionalTuning::ShimmeringLakesLowlandCompression);
+    TestEqual(TEXT("Mountain highland threshold defaults to tuning"), Settings.MountainHighlandThreshold,
+        FKalmalaRegionalTuning::MountainHighlandThreshold);
+    TestEqual(TEXT("Mountain highland blend range defaults to tuning"), Settings.MountainHighlandBlendRange,
+        FKalmalaRegionalTuning::MountainHighlandBlendRange);
+    TestEqual(TEXT("Mountain highland gain defaults to tuning"), Settings.MountainHighlandGain,
+        FKalmalaRegionalTuning::MountainHighlandGain);
+    TestEqual(TEXT("Mountain detail amplitude defaults to tuning"), Settings.MountainDetailAmplitude,
+        FKalmalaRegionalTuning::MountainDetailAmplitude);
 
     auto CheckRange = [this, &Settings](double FKalmalaGenerationPreviewSettings::*Control,
         const double Minimum, const double Maximum, const TCHAR* Label)
@@ -75,6 +83,10 @@ bool FKalmalaTerrainPreviewControlTest::RunTest(const FString& Parameters)
     CheckRange(&FKalmalaGenerationPreviewSettings::MireTargetHeight, 200.0, 500.0, TEXT("Mire target height"));
     CheckRange(&FKalmalaGenerationPreviewSettings::MireCompressionScale, 300.0, 1200.0, TEXT("Mire compression scale"));
     CheckRange(&FKalmalaGenerationPreviewSettings::MireResidualDetailAmplitude, 10.0, 60.0, TEXT("Mire residual detail amplitude"));
+    CheckRange(&FKalmalaGenerationPreviewSettings::MountainHighlandThreshold, 500.0, 2000.0, TEXT("Mountain highland threshold"));
+    CheckRange(&FKalmalaGenerationPreviewSettings::MountainHighlandBlendRange, 500.0, 2000.0, TEXT("Mountain highland blend range"));
+    CheckRange(&FKalmalaGenerationPreviewSettings::MountainHighlandGain, 0.1, 0.8, TEXT("Mountain highland gain"));
+    CheckRange(&FKalmalaGenerationPreviewSettings::MountainDetailAmplitude, 40.0, 160.0, TEXT("Mountain detail amplitude"));
     Settings = FKalmalaGenerationPreviewSettings{};
     Settings.ShimmeringLakesLowlandFloor = 500.0;
     Settings.ShimmeringLakesLowlandCeiling = 500.0;
@@ -125,18 +137,42 @@ bool FKalmalaBiomeHeightFunctionTest::RunTest(const FString& Parameters)
             G::ShapeElderwood(SourceHeight, Details[Index], NoSharedRelief, 900.0, 240.0, 40.0));
     }
 
-    const double MountainRegions[] = {0.0, 0.5, 1.0};
-    const double ExpectedMountains[3][3] = {
-        {840.0, 890.0, 940.0},
-        {1000.0, 1050.0, 1100.0},
-        {1160.0, 1210.0, 1260.0},
-    };
-    for (int32 DetailIndex = 0; DetailIndex < UE_ARRAY_COUNT(Details); ++DetailIndex)
-    for (int32 RegionIndex = 0; RegionIndex < UE_ARRAY_COUNT(MountainRegions); ++RegionIndex)
+    const FKalmalaGenerationPreviewSettings MountainSettings;
+    auto ShapeMountain = [&MountainSettings](const double Height, const double Detail, const double Region)
     {
-        TestEqual(TEXT("Mountain candidate preserves detail and regional offset"),
-            G::ShapeMountains(SourceHeight, Details[DetailIndex], MountainRegions[RegionIndex]),
-            ExpectedMountains[DetailIndex][RegionIndex]);
+        return G::ShapeMountains(Height, Detail, Region,
+            MountainSettings.MountainHighlandThreshold, MountainSettings.MountainHighlandBlendRange,
+            MountainSettings.MountainHighlandGain, MountainSettings.MountainDetailAmplitude);
+    };
+    const double HighlandThreshold = MountainSettings.MountainHighlandThreshold;
+    TestEqual(TEXT("Sub-threshold mountain terrain receives no regional height lift"),
+        ShapeMountain(HighlandThreshold - 500.0, 0.0, 1.0), HighlandThreshold - 500.0);
+    TestEqual(TEXT("Mountain fine detail clamps to its positive amplitude bound"),
+        ShapeMountain(HighlandThreshold - 500.0, 4.0, 1.0), HighlandThreshold - 500.0 + 80.0);
+    TestEqual(TEXT("Mountain fine detail clamps to its negative amplitude bound"),
+        ShapeMountain(HighlandThreshold - 500.0, -4.0, 0.0), HighlandThreshold - 500.0 - 80.0);
+    TestEqual(TEXT("Highland amplification starts without a threshold step"),
+        ShapeMountain(HighlandThreshold, 0.0, 1.0), HighlandThreshold);
+    TestEqual(TEXT("Highland amplification ramps smoothly through its blend range"),
+        ShapeMountain(HighlandThreshold + 500.0, 0.0, 1.0), HighlandThreshold + 600.0);
+    TestEqual(TEXT("Low mountain-region factor leaves high base height unchanged"),
+        ShapeMountain(HighlandThreshold + 1000.0, 0.0, 0.0), HighlandThreshold + 1000.0);
+    TestEqual(TEXT("Mountain-region factor scales highland gain continuously"),
+        ShapeMountain(HighlandThreshold + 1000.0, 0.0, 0.5), HighlandThreshold + 1200.0);
+    TestEqual(TEXT("Full mountain-region factor amplifies only the high base component"),
+        ShapeMountain(HighlandThreshold + 1000.0, 0.0, 1.0), HighlandThreshold + 1400.0);
+    TestTrue(TEXT("Mountain candidate approaches the threshold without a foothill step"),
+        FMath::Abs(ShapeMountain(HighlandThreshold, 0.0, 1.0)
+            - ShapeMountain(HighlandThreshold - 0.01, 0.0, 1.0)) <= 0.02
+        && FMath::Abs(ShapeMountain(HighlandThreshold + 0.01, 0.0, 1.0)
+            - ShapeMountain(HighlandThreshold, 0.0, 1.0)) <= 0.02);
+    double PreviousMountainHeight = ShapeMountain(0.0, 0.0, 0.75);
+    for (double Height = 100.0; Height <= HighlandThreshold + 2000.0; Height += 100.0)
+    {
+        const double CurrentMountainHeight = ShapeMountain(Height, 0.0, 0.75);
+        TestTrue(TEXT("Mountain profile remains monotonic from foothills through high ground"),
+            CurrentMountainHeight >= PreviousMountainHeight);
+        PreviousMountainHeight = CurrentMountainHeight;
     }
 
     const FKalmalaTerrainReliefSample LowRelief{-1.0, -1.0, -1.0};
@@ -370,7 +406,9 @@ bool FKalmalaShimmeringLakesShapeTest::RunTest(const FString& Parameters)
             Preview.MireCompressionScale, Preview.MireResidualDetailAmplitude),
         G::ShapeTundra(Source, Detail, SharedRelief, Preview.ElderwoodBroadAmplitude,
             Preview.ElderwoodMiddleAmplitude, Preview.ElderwoodLocalAmplitude),
-        G::ShapeMountains(Source, Detail, 0.0)};
+        G::ShapeMountains(Source, Detail, 0.0, Preview.MountainHighlandThreshold,
+            Preview.MountainHighlandBlendRange, Preview.MountainHighlandGain,
+            Preview.MountainDetailAmplitude)};
     const float FullWeights[] = {WeightsSample.Weights[0], WeightsSample.Weights[1],
         WeightsSample.Weights[2], WeightsSample.Weights[3], WeightsSample.Weights[4],
         WeightsSample.Weights[5], WeightsSample.Weights[6]};
@@ -478,7 +516,9 @@ bool FKalmalaBiomeHeightBlendTest::RunTest(const FString& Parameters)
             Preview.MireCompressionScale, Preview.MireResidualDetailAmplitude),
         G::ShapeTundra(SourceHeight, Detail, ElderwoodRelief,
             ElderwoodBroadAmplitude, ElderwoodMiddleAmplitude, ElderwoodLocalAmplitude),
-        G::ShapeMountains(SourceHeight, Detail, 0.0),
+        G::ShapeMountains(SourceHeight, Detail, 0.0, Preview.MountainHighlandThreshold,
+            Preview.MountainHighlandBlendRange, Preview.MountainHighlandGain,
+            Preview.MountainDetailAmplitude),
     };
     const float NoTransitionOceanOffset = 0.0f;
     const float ExpectedTransitionHeight = G::BlendCandidateHeights(
@@ -514,6 +554,22 @@ bool FKalmalaBiomeHeightBlendTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Elderwood/Tundra transition blends the identical shared candidate through both weights"),
         FMath::IsNearlyEqual(G::BlendCandidateHeights(ElderwoodTundraSource, ElderwoodTundraCandidates,
             0.0f, ElderwoodTundraBlendWeights), float(SharedElderwoodCandidate)));
+
+    const FVector2D TundraMountainPosition(-268099.7, 963751.8);
+    const FKalmalaWorldGenerationConfig TundraMountainConfig{418ull};
+    const auto TundraMountainCenterFields = FKalmalaWorldFieldSampler::Sample(
+        TundraMountainConfig, TundraMountainPosition);
+    const auto TundraMountainCenter = G::SampleInternal(TundraMountainCenterFields, false, true);
+    TestTrue(TEXT("Fixed Tundra/Mountain foothill has both continuous biome weights"),
+        TundraMountainCenter.Weights[4] > 0.4f && TundraMountainCenter.Weights[5] > 0.4f);
+    const auto TundraMountainLeftFields = FKalmalaWorldFieldSampler::Sample(
+        TundraMountainConfig, TundraMountainPosition + FVector2D(-10.0, 0.0));
+    const auto TundraMountainRightFields = FKalmalaWorldFieldSampler::Sample(
+        TundraMountainConfig, TundraMountainPosition + FVector2D(10.0, 0.0));
+    const auto TundraMountainLeft = G::SampleInternal(TundraMountainLeftFields, false, true);
+    const auto TundraMountainRight = G::SampleInternal(TundraMountainRightFields, false, true);
+    TestTrue(TEXT("Tundra/Mountain height stays continuous across the fixed foothill transition"),
+        FMath::Abs(TundraMountainLeft.Height - TundraMountainRight.Height) < 10.0f);
     return true;
 }
 

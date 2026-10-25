@@ -31,6 +31,10 @@ struct FKalmalaGenerationPreviewSettings
     double MireTargetHeight = FKalmalaRegionalTuning::MireTargetHeight;
     double MireCompressionScale = FKalmalaRegionalTuning::MireCompressionScale;
     double MireResidualDetailAmplitude = FKalmalaRegionalTuning::MireResidualDetailAmplitude;
+    double MountainHighlandThreshold = FKalmalaRegionalTuning::MountainHighlandThreshold;
+    double MountainHighlandBlendRange = FKalmalaRegionalTuning::MountainHighlandBlendRange;
+    double MountainHighlandGain = FKalmalaRegionalTuning::MountainHighlandGain;
+    double MountainDetailAmplitude = FKalmalaRegionalTuning::MountainDetailAmplitude;
     double LandThreshold = 0;
     double BiomeScale = FKalmalaRegionalTuning::BiomeScale;
     double WarpStrength = FKalmalaRegionalTuning::WarpStrength;
@@ -79,7 +83,11 @@ struct FKalmalaGenerationPreviewSettings
             && InRange(MireCompressionScale, 300.0, 1200.0)
             && InRange(MireResidualDetailAmplitude, 10.0, 60.0)
             && MireTargetHeight * MireCompressionScale / (MireTargetHeight + MireCompressionScale)
-                > MireResidualDetailAmplitude;
+                > MireResidualDetailAmplitude
+            && InRange(MountainHighlandThreshold, 500.0, 2000.0)
+            && InRange(MountainHighlandBlendRange, 500.0, 2000.0)
+            && InRange(MountainHighlandGain, 0.1, 0.8)
+            && InRange(MountainDetailAmplitude, 40.0, 160.0);
     }
 };
 

@@ -623,9 +623,14 @@ run for this goal and may exceed one turn.
     keep snow as presentation rather than a height offset. Source-level
     parity coverage is in BH13a; numeric profile confirmation remains BH25b,
     snow presentation remains BH24, and rendered acceptance remains BH26.
-  - [ ] **BH17 — Shape Thunder Mountains.** Smoothly amplify only high base
-    terrain above a named threshold; bound fine detail and verify continuous
-    foothills instead of uniformly raising every mountain-labelled sample.
+  - [x] **BH17 — Shape Thunder Mountains.** `ShapeMountains` now amplifies only
+    source height above a 1,000 cm threshold, ramps gain smoothly over 1,000 cm,
+    and scales the added gain by the continuous Mountain region field. Fine
+    detail is clamped to ±1 at a provisional 80 cm amplitude; validated preview
+    ranges bound the threshold, blend distance, gain and detail. Focused source
+    coverage checks sub-threshold preservation, bounded detail, threshold
+    continuity, monotonic foothills and the fixed Tundra/Mountain transition.
+    Rendered acceptance remains BH26.
   - [ ] **BH18 — Reapply priority river carving.** Run the existing channel after
     biome relief and coast shaping; preserve Z=0 water, 80 cm bed depth,
     1,800 cm bank extent, lake-disabled behavior, and shared render/collision/map

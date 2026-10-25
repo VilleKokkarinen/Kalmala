@@ -101,7 +101,8 @@ private:
     static double ShapeTundra(double SourceHeight, double Detail,
         const FKalmalaTerrainReliefSample& SharedRelief,
         double BroadAmplitude, double MiddleAmplitude, double LocalAmplitude);
-    static double ShapeMountains(double SourceHeight, double Detail, double MountainRegion);
+    static double ShapeMountains(double SourceHeight, double Detail, double MountainRegion,
+        double HighlandThreshold, double HighlandBlendRange, double HighlandGain, double DetailAmplitude);
     /** Blend complete land candidates by coast-scaled weights, adding the shared base once. */
     static float BlendCandidateHeights(
         float SourceHeight, const double CandidateHeights[6], float OceanOffset, const float Weights[7]);

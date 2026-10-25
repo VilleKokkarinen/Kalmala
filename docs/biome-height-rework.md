@@ -129,13 +129,22 @@ determinism and channel-connectivity acceptance, not an incidental side effect.
   value. Apply snow through biome/slope presentation, not height offsets. Reuse
   original tree presentation where suitable; do not introduce new timber items,
   rewards or harvesting tiers as part of this terrain work.
-- **Thunder Mountains:** Smoothly increase gain above a named high-base-height
-  threshold, retaining the foothill connection. Amplify existing high relief
-  rather than raising every mountain-labelled pixel equally. Bound fine detail
-  to avoid spikes. Add snow coverage and storm presentation using existing
-  original materials and weather paths. Weather selection remains server-owned;
-  no new damage, exposure penalty, shelter requirement or survival mechanic is
-  implied by the requested snowy/stormy touch.
+- **Thunder Mountains:** `ShapeMountains` preserves source height below a named
+  high-base threshold, then smoothly increases gain above it using the continuous
+  Mountain region field. Provisional settings are a 1,000 cm threshold, a
+  1,000 cm smooth blend range, 0.4 gain, and 80 cm fine detail clamped to a
+  ±1 input; bounded preview ranges are 500–2,000 cm, 500–2,000 cm, 0.1–0.8,
+  and 40–160 cm respectively. The candidate is
+  `source + max(source-threshold, 0) * smoothstep(threshold, threshold+range, source) * region * gain + clamp(detail,-1,1) * detailAmplitude`.
+  This amplifies existing high base terrain without lifting every Mountain-
+  labelled sample, and keeps the foothill curve monotonic through the threshold.
+  Focused source checks cover clipped fine detail, no sub-threshold regional
+  lift, gain scaling, threshold continuity, a monotonic height profile and the
+  fixed Tundra/Mountain transition. Settings remain provisional; BH26 owns
+  rendered Mountain/foothill acceptance. Snow coverage and storm presentation
+  remain visual-only BH24 work, using existing materials and server-owned
+  weather without new damage, exposure penalty, shelter requirement or survival
+  mechanic.
 
 ## Forest-factor distribution
 
@@ -887,3 +896,21 @@ summary under a short temporary directory. It neither builds nor selects
 production controls. No build or trial was run for BH14b; BH25d must measure
 the fixed profiles using freshly compiled source and select only measured
 values. Rendered shoreline/traversal acceptance remains BH26.
+
+### BH17 Thunder Mountains high-base shaping
+
+The Mountain candidate now adds bounded detail to the unchanged source height,
+then applies broad amplification only above a 1,000 cm source-height threshold.
+The excess height ramps smoothly over 1,000 cm and scales with the existing
+continuous Mountain region signal. Provisional gain is 0.4; the detail input is
+clamped to ±1 at an 80 cm amplitude. Preview controls are bounded to a 500–2,000
+cm threshold, 500–2,000 cm blend range, 0.1–0.8 gain and 40–160 cm detail. The
+shape adds no new noise sample and leaves classification, distance eligibility,
+coast shaping, river priority and map/collision sampling order intact.
+
+`Kalmala.World.Regional.HeightFunctionBaselines` now covers low and high source
+profiles, regional-gain scaling, bounded detail, threshold continuity and
+monotonic foothills. The regional transition regression checks a fixed
+seed-418 Tundra/Mountain boundary. These source assertions were added but not
+built or executed by BH17; rendered, traversal and integrated acceptance remain
+BH26.

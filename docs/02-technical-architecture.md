@@ -343,6 +343,18 @@ biomes; continuous classification weights still determine each final blend.
 BH25b owns fresh-source trial selection for rolling/Elderwood controls, BH25d
 owns Lakes blend/lowland selection, and BH26 owns rendered profile acceptance.
 
+Thunder Mountains now increase gain only above the named `MountainHighlandThreshold`
+of 1,000 cm. The increase ramps with smoothstep across a further 1,000 cm,
+scales by the existing continuous Mountain region field, and reaches a provisional
+0.4 gain at full region strength. The separate detail term is clamped to ±1 and
+uses a provisional 80 cm amplitude. Commandlet preview bounds are 500–2,000 cm
+for the threshold and blend range, 0.1–0.8 for gain, and 40–160 cm for detail.
+Thus low source-height fallback and foothills retain their base height (apart
+from bounded detail), while only high terrain receives the broad amplification.
+Biome weights, distance eligibility, coast attenuation, river order and seeded
+sampling are unchanged. These source settings are provisional; rendered
+mountain/foothill acceptance remains BH26.
+
 The master seed is a compiled constant. Crop transforms derive from the game seed. Rivers remain enabled and small streams are disabled. Authority, population IDs, collision and maps derive from the same server-owned seed and current build.
 
 ### Sea-level river terrain and hydrology contract

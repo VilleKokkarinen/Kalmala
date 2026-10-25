@@ -8710,3 +8710,47 @@
   detached worktree.
 - **Next task in this directed goal:** BH17 — shape Thunder Mountains with
   bounded amplification above the named high-terrain threshold.
+
+## Run 2026-10-25 — Shape Mountains with highland amplification (BH17)
+
+- **Selected increment:** BH17, the next unchecked biome-height task. The
+  worktree was clean at `b16afd9e`; no other active run was changing this
+  checkout. A10 and monster-population work continued in separate worktrees.
+- **Work completed:** Replaced the Mountain candidate's broad uniform regional
+  offset with a smooth high-base gain. Source heights below 1,000 cm receive no
+  regional lift; the excess ramps across the next 1,000 cm and scales by the
+  existing continuous Mountain region factor, reaching 0.4 gain at full factor.
+  Detail now clamps to ±1 with a provisional 80 cm amplitude. Added bounded
+  commandlet-preview controls and focused source coverage for lowland
+  preservation, highland/region response, clipped detail, continuity at the
+  threshold, monotonic foothills and the fixed Tundra/Mountain transition.
+  Classifier inputs, distance bands, coast attenuation, river order, seeded
+  sampling and candidate blending remain unchanged. Checked BH17; BH26 retains
+  rendered Mountain/foothill acceptance.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`,
+  `Source/KalmalaWorld/Public/KalmalaGenerationPreview.h`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalGeneration.h`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`,
+  `docs/02-technical-architecture.md`, and `docs/biome-height-rework.md`.
+- **Lightweight checks/results:** Inspected all Mountain candidate call sites,
+  the preview bounds, fixed-site transition and source regression assertions.
+  `git diff --check` passed. The new C++ automation assertions were not built or
+  run; no Unreal build or automation was run. Full verification remains deferred
+  to BH26.
+- **Observable impact:** Low-base Mountains keep their existing source
+  landform with bounded detail. Only higher terrain gains additional height,
+  smoothly and in proportion to the regional factor; no new noise sample or
+  classifier/weight change was introduced.
+- **Networking/authority:** All new values are fixed tuning or local
+  commandlet-preview controls. Height still derives from the existing seed and
+  server-owned fields; no RPC, replicated state or save data changed.
+- **Known limitations / remaining scope:** The 1,000 cm threshold, blend range,
+  gain and detail amplitude are provisional bounded settings. Fresh compiled
+  runtime and rendered/traversal Mountain acceptance remain BH26.
+- **Main-checkout handoff:** Synchronized only `BACKLOG.md` and `PROGRESS.md`,
+  preserving the existing Monster S33 updates. Implementation files remain in
+  this detached worktree.
+- **Next task in this directed goal:** BH18 — reapply priority river carving
+  after biome relief while preserving sea level, banks and shared consumers.

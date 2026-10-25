@@ -41,6 +41,11 @@ struct FKalmalaRegionalTuning
     static constexpr double MireTargetHeight = 300.0;
     static constexpr double MireCompressionScale = 700.0;
     static constexpr double MireResidualDetailAmplitude = 25.0;
+    // Provisional Thunder Mountains highland shaping, centimetres except gain.
+    static constexpr double MountainHighlandThreshold = 1000.0;
+    static constexpr double MountainHighlandBlendRange = 1000.0;
+    static constexpr double MountainHighlandGain = 0.4;
+    static constexpr double MountainDetailAmplitude = 80.0;
     static constexpr double ElevationFrequency = 1.0 / 100000.0;
     static constexpr double ClimateFrequency = 1.0 / 150000.0;
     static constexpr double LocalReliefFrequency = 0.00035;

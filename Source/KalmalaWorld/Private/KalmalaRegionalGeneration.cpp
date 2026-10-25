@@ -321,9 +321,26 @@ FKalmalaTerrainCandidateDiagnostics FKalmalaRegionalGeneration::SampleTerrainCan
 }
 
 double FKalmalaRegionalGeneration::ShapeMountains(
-    const double SourceHeight, const double Detail, const double MountainRegion)
+    const double SourceHeight, const double Detail, const double MountainRegion,
+    const double HighlandThreshold, const double HighlandBlendRange, const double HighlandGain,
+    const double DetailAmplitude)
 {
-    return SourceHeight + double(float(160 * Detail + 100 * MountainRegion));
+    if (!FMath::IsFinite(SourceHeight) || !FMath::IsFinite(Detail) || !FMath::IsFinite(MountainRegion)
+        || !FMath::IsFinite(HighlandThreshold) || !FMath::IsFinite(HighlandBlendRange)
+        || !FMath::IsFinite(HighlandGain) || !FMath::IsFinite(DetailAmplitude)
+        || HighlandBlendRange <= 0.0 || HighlandGain < 0.0 || DetailAmplitude < 0.0)
+    {
+        return SourceHeight;
+    }
+
+    const double HighBaseBlend = Smooth(HighlandThreshold,
+        HighlandThreshold + HighlandBlendRange, SourceHeight);
+    const double HeightAboveThreshold = FMath::Max(0.0, SourceHeight - HighlandThreshold);
+    const double HighlandAmplification = HeightAboveThreshold * HighBaseBlend
+        * FMath::Clamp(MountainRegion, 0.0, 1.0) * FMath::Clamp(HighlandGain, 0.0, 0.8);
+    const double BoundedDetail = FMath::Clamp(Detail, -1.0, 1.0)
+        * FMath::Clamp(DetailAmplitude, 0.0, 160.0);
+    return SourceHeight + double(float(HighlandAmplification)) + double(float(BoundedDetail));
 }
 
 float FKalmalaRegionalGeneration::BlendCandidateHeights(
@@ -444,7 +461,9 @@ FKalmalaRegionalSample FKalmalaRegionalGeneration::SampleInternal(const FKalmala
                 Preview.MireCompressionScale, Preview.MireResidualDetailAmplitude),
             ShapeTundra(Source, Detail, ElderwoodRelief,
                 Preview.ElderwoodBroadAmplitude, Preview.ElderwoodMiddleAmplitude, Preview.ElderwoodLocalAmplitude),
-            ShapeMountains(Source, Detail, WarpedRegion(C, Warped, 5)),
+            ShapeMountains(Source, Detail, WarpedRegion(C, Warped, 5),
+                Preview.MountainHighlandThreshold, Preview.MountainHighlandBlendRange,
+                Preview.MountainHighlandGain, Preview.MountainDetailAmplitude),
         };
         const float OceanOffset = float(-60 * (1 - Land) * WarpedRegion(C, Warped, 6));
         R.Height = BlendCandidateHeights(Source, CandidateHeights, OceanOffset, R.Weights);
