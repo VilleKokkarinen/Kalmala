@@ -10653,3 +10653,97 @@
   disposition and final A10 verification remain open.
 - **Next eligible A10 item audit:** Green Jade (`GreenJade`), next in A9 backlog
   order.
+
+## Run 2026-10-25 — A10 per-item audit: A9 Green Jade
+
+- **Selected increment and item registration:** audited only `GreenJade`, next
+  in A9 backlog order. Schema-16 catalogues register the raw material in
+  `items/materials/gems.json`, the Jade Ring profile in
+  `items/accessories.json`, and its Forge recipe in
+  `recipes/stations/a9-gear.json`. Green Jade is stackable to 20 at 0.1 kg and
+  has no equipment, attack, upgrade, direct-craft recipe, or use effect. Its
+  only recipe use is Jade Ring: 2 `Bronze` + 1 `GreenJade` → 1 ring, batch one.
+  The equipped ring grants a global -10% stamina-cost delta; that effect belongs
+  to the ring, not the raw gem. Neither the gem nor the ring has attack data or
+  an authored item upgrade path.
+
+- **Approved source and generation:** the shared contract makes one mutually
+  exclusive roll for existing `lakes-tin-shore-gravel` candidates in Shimmering
+  Lakes: 5% Quartz, the next 2% Green Jade, and 93% Tin. No other biome/source
+  can select Green Jade. Replacement occurs after ordinary and supplemental
+  population decisions and keeps the candidate count, exact location, seed and
+  persistent ID; it adds no node and does not co-drop with Tin. The source maps
+  `gem-jade-rock` to one GreenJade on extraction.
+
+- **Mining authority and save boundary:** the server reconstructs the seeded
+  source and owns each pick hit. It validates a live same-world attacker, 220 cm
+  range, the active server-held mining tool, source pick tier and condition. Each
+  of three accepted hits resolves the approved 10% smash chance using a stable
+  server-derived per-hit seed; condition and sparse gemstone state are saved
+  before hit presentation. A failed write restores condition/state where the
+  rollback write succeeds. The loose gem claim grants exactly one matching item
+  after complete capacity validation, persists the consumed node outcome before
+  replicated depletion, and rolls back the inventory commit on save failure.
+  The schema-2 world-population ledger stores only spawn ID, source, hit count
+  and outcome. Ordinary GreenJade inventory remains session-only and is not
+  restored on restart.
+
+- **Icon and runtime mapping:** manifest row (image batch 81, import batch AL)
+  covers PackInventory and ItemDetail for GreenJade. The original prompt in
+  `docs/icon-provenance.md` specifies the distinct green shard; the original,
+  prepared source and imported texture exist at
+  `Content/Kalmala/UI/Source/IconOriginals/GreenJade.png`,
+  `Content/Kalmala/UI/Source/Icons/GreenJade.png`, and
+  `Content/Kalmala/UI/Icons/Items/GreenJade.uasset`. Runtime mapping uses Rock
+  variant 3; JadeRing uses Ring variant 1. The world node also has a green jade
+  inclusion presentation.
+
+- **Focused and acceptance evidence:** inspected `Kalmala.World.GemstoneContract`
+  assertions over 10,000 seeds for repeatability, near-2% Jade frequency and
+  wrong-biome rejection, and `Kalmala.World.GemstoneGeneration` checks that
+  replacements add no candidates and preserve IDs/locations within approved
+  source/biome combinations. `Kalmala.Gameplay.Inventory.A9GearRecipes` covers
+  the paid Jade Ring exchange and crafted-GUID equip. `Kalmala.Gameplay.Status.AccessoryStats`
+  covers the global -10% cost, support inheritance, Wet/Meal stacking, immediate
+  removal and coexistence with Amethyst. These cases are recorded as passing in
+  the historical A9 187-case queue; they were inspected, not rerun. The live
+  `GemMiningTreasurePeer.ps1` scenario only materializes a canonical Quartz node
+  and a Garnet chest, so it provides no Green Jade delivery or competing Jade
+  claim evidence. Its fresh-process check restores the Quartz mining state and
+  Garnet treasure claim, not Green Jade. The final inventory renders show Opal
+  Helm, Garnet Necklace and Dusk Ring; no Jade Ring or raw Green Jade tile is
+  explicitly recorded. The peer fixture provisions gear/pick and does not prove
+  unassisted fresh-start progression.
+
+- **Cross-cutting documentation gaps:** `docs/02-technical-architecture.md`'s
+  current save-version table still lists generated population deltas as schema
+  1, while source and A9 use schema 2. `AGENTS.md` references
+  `docs/material-icons.md` and the A10 backlog link targets
+  `docs/alpha-item-details.md#a10`; neither file exists in the tracked checkout.
+  Icon provenance and approved Jade behavior are documented in
+  `docs/icon-provenance.md` and `docs/a9-acceptance.md`. These shared gaps were
+  not repaired in this item-scoped increment.
+
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md` only; no gameplay, catalogue,
+  icon, or save source changed.
+- **Lightweight checks:** `python Scripts/Validate-CatalogueReferences.py`
+  passed (61 registered JSON files, 152 definitions, 777 resolved references,
+  152 ledger-backed icon mappings). `Scripts/Validate-UIIcons.ps1 -Category
+  Catalogue -Id GreenJade` passed for the 1254×1254 RGBA original and transparent
+  64×64 runtime texture. Focused PowerShell assertions passed for schema-16
+  registration, raw stack/weight, exact Jade Ring recipe/profile, 2% Lakes Tin
+  source, pick tier, source-test assertions, manifest and runtime mappings.
+  Static inspection confirmed post-generation replacement, server validation,
+  save rollback and session-only inventory. No Unreal build, automation, live
+  peer, or render was run for this audit.
+- **Full verification:** deferred; this is not the final A10 increment.
+- **Networking/authority:** server owns world-source replacement, mining roll,
+  pick condition, sparse hit/claim state and item grant/capacity validation;
+  client-selected source, item ID or quantity is not accepted.
+- **Impact and remaining scope:** tracking-only; no within-item data, source,
+  recipe, profile, icon, authority or persistence defect was found. Jade-specific
+  live claim/restart evidence, raw/ring render, unassisted fresh-start path,
+  broader A10 item/N/A coverage, the earlier Iron/Pick source disposition and
+  final A10 verification remain open.
+- **Next eligible A10 item audit:** Amethyst (`Amethyst`), next in A9 backlog
+  order.
