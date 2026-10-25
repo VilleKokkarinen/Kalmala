@@ -5,7 +5,9 @@
 #include "KalmalaBiomeClassifier.h"
 #include "KalmalaForestLayout.h"
 #include "KalmalaShimmeringLakeSampler.h"
+#include "KalmalaRegionalGeneration.h"
 #include "KalmalaTerrainHeightSampler.h"
+#include "KalmalaTerrainGroundBlend.h"
 #include "KalmalaTerrainPatchLayout.h"
 #include "KalmalaWaterSurfaceMesh.h"
 #include "KalmalaWorldBounds.h"
@@ -381,6 +383,7 @@ bool AKalmalaGeneratedTerrainPatch::BuildVisualSurface()
     VertexColors.Reserve(VerticesPerSide * VerticesPerSide);
     Tangents.Reserve(VerticesPerSide * VerticesPerSide);
     Triangles.Reserve(KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide * KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide * 6);
+    const bool bBiomeDebug = FParse::Param(FCommandLine::Get(), TEXT("KalmalaBiomeDebug"));
 
     for (int32 GridY = 0; GridY < VerticesPerSide; ++GridY)
     {
@@ -389,13 +392,17 @@ bool AKalmalaGeneratedTerrainPatch::BuildVisualSurface()
         {
             const float X = FMath::Lerp(-HalfSurfaceSize, HalfSurfaceSize, static_cast<float>(GridX) / KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide);
             const FVector2D SamplePosition = PatchCenter + FVector2D(X, Y);
-            const float Height = FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, SamplePosition);
+            const FKalmalaRegionalSample FinalSurface = FKalmalaRegionalGeneration::Sample(WorldGenerationConfig, SamplePosition);
+            const FVector SurfaceNormal = FKalmalaTerrainHeightSampler::SampleSurfaceNormal(WorldGenerationConfig, SamplePosition);
+            const FKalmalaWorldFieldSample Fields = FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, SamplePosition);
 
-            Vertices.Add(FVector(X, Y, Height));
-            Normals.Add(FKalmalaTerrainHeightSampler::SampleSurfaceNormal(WorldGenerationConfig, SamplePosition));
+            Vertices.Add(FVector(X, Y, FinalSurface.Height));
+            Normals.Add(SurfaceNormal);
             UVs.Add(FVector2D(static_cast<float>(GridX) / KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide, static_cast<float>(GridY) / KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide));
-            const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, SamplePosition));
-            VertexColors.Add(FParse::Param(FCommandLine::Get(), TEXT("KalmalaBiomeDebug")) ? KalmalaGeneratedTerrainPatch::GetBiomeDebugColor(Biome) : FLinearColor::White);
+            const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(Fields);
+            VertexColors.Add(bBiomeDebug ? KalmalaGeneratedTerrainPatch::GetBiomeDebugColor(Biome)
+                : FKalmalaTerrainGroundBlend::SampleWeights(SurfaceNormal.Z,
+                    FinalSurface.bHasWater ? 1.0f : Fields.Humidity));
             Tangents.Add(FProcMeshTangent(1.0f, 0.0f, 0.0f));
         }
     }
@@ -420,10 +427,13 @@ bool AKalmalaGeneratedTerrainPatch::BuildVisualSurface()
         for (const FVector& V : Vertices)
         {
             const FVector2D P = PatchCenter + FVector2D(V);
-            Normals.Add(FKalmalaTerrainHeightSampler::SampleSurfaceNormal(WorldGenerationConfig, P));
+            const FVector SurfaceNormal = FKalmalaTerrainHeightSampler::SampleSurfaceNormal(WorldGenerationConfig, P);
+            const FKalmalaWorldFieldSample Fields = FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, P);
+            Normals.Add(SurfaceNormal);
             UVs.Add((FVector2D(V) + FVector2D(HalfSurfaceSize)) / (HalfSurfaceSize * 2));
-            const auto Biome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, P));
-            VertexColors.Add(FParse::Param(FCommandLine::Get(), TEXT("KalmalaBiomeDebug")) ? KalmalaGeneratedTerrainPatch::GetBiomeDebugColor(Biome) : FLinearColor::White);
+            const auto Biome = FKalmalaBiomeClassifier::Classify(Fields);
+            VertexColors.Add(bBiomeDebug ? KalmalaGeneratedTerrainPatch::GetBiomeDebugColor(Biome)
+                : FKalmalaTerrainGroundBlend::SampleWeights(SurfaceNormal.Z, Fields.Humidity));
             Tangents.Add(FProcMeshTangent(1, 0, 0));
         }
     }

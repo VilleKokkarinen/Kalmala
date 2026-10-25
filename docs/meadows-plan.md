@@ -148,9 +148,11 @@ These are derived suitability values, not new authoritative environmental maps.
   and seat roots on the final collision surface. Preserve original candidate
   ordinals and spawn IDs through filtering; avoid sequential-random shifts that
   relocate later candidates when a new early rejection is added.
-- Blend grass/soil/rock presentation using final slope and moisture context:
+- Blend the existing generated grass and rock palettes with an original
+  project-generated soil material using final slope and moisture context:
   exposed shoulders receive more soil/rock, gentle ground more grass, and wet
-  banks reduced terrestrial grass. Start with existing materials and rocks.
+  banks reduced terrestrial grass. Do not add grass or reed assets in this
+  material increment.
 - Shallow wet margins can receive reeds only where matching original content
   exists or is separately authored. Grass, saplings and reeds require a later
   bounded cosmetic pass if absent; they are not delivered by height tuning.

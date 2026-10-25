@@ -3609,6 +3609,21 @@ The visualization commandlet accepts `-Revision=7 -Seed=418 -Size=256 -Extent=32
 
 The main biome preview also masks the exterior. `-SkipSplineOverlay` skips only the costly whole-area line-overlay enumeration; each pixel still samples actual hydrology and terrain. At whole-world resolution, small lakes and channels may be subpixel. Render the same seed twice and compare every PPM hash, then render seed 419 and require crop, biome and height variation. No preview image becomes authoritative world data. Restart an open editor or watcher after rebuilding native modules.
 
+### Generated terrain ground materials
+
+After rebuilding the Editor target for BH23, run the project-owned
+`CreateWorldMaterials` commandlet against the project with
+`UnrealEditor-Cmd.exe <project.uproject> -run=CreateWorldMaterials`. It updates
+`Content/Kalmala/World/Materials/M_GeneratedTerrain.uasset` with the
+vertex-color grass/soil/rock blend and creates the original
+`M_GeneratedSoil.uasset`; the existing grass and rock palette remains in place.
+No grass texture or reed material is generated. Run
+`Scripts/Tests/Presentation/PresentationOwnership.ps1` after the material
+generation step so it can check the new soil asset. BH26 owns the Editor build,
+material generation, blend-weight automation and rendered slope/moisture
+acceptance; inspect dry gentle ground, damp shoulders and exposed slopes, and
+confirm `-KalmalaBiomeDebug` still displays classifier colors.
+
 ## Fast world-map PNG export
 
 Run from the repository root:
