@@ -11301,3 +11301,85 @@
 - **Next eligible A10 item audit:** Dusk Ring (`DuskRing`), next in A9 backlog
   order. Repair Stormcut accepted-hit wear with focused authority/persistence
   tests before final A10 verification.
+
+## Run 2026-10-25 — A10 per-item audit: A9 Dusk Ring
+
+- **Selected increment and registration:** audited only `DuskRing`, the final
+  remaining per-item A9 audit. Schema-16 `GameCatalogues.json` registers
+  `items/accessories.json`, `items/materials/gems.json`, and
+  `recipes/stations/a9-gear.json`. Dusk Ring is a one-stack, 1 kg Ring
+  accessory with +10 maximum health, +10 maximum stamina, and +5 integer
+  Armor. It has no durability, attack, upgrade, or repair profile; these
+  categories are explicitly N/A in the A9 accessory contract.
+- **Recipe and approved ingredient source:** the registered enabled Forge
+  recipe consumes 5 Bronze and 1 Dusk Diamond for one Dusk Ring (one
+  batch/output). Dusk Diamond is approved only from credited generated
+  Mireling defeats in Mossy Mire at 1/100. The server binds that reward to the
+  credited owner's persisted pending wildlife payload until claim; the
+  delivered gem and crafted ring then remain ordinary session-only
+  inventory/equipment. No Dusk Ring enemy drop or other direct acquisition
+  route is authored.
+- **Server authority and effect:** `EquipGearFromServer` requires authority
+  and passes the exact carried item GUID through
+  `BuildEquipGearTransaction`, which revalidates the catalogue slot,
+  uniqueness, pack capacity, and replacement return. Equipped gear replicates
+  owner-only. Accessory resolution applies one modifier per Necklace/Ring
+  slot; accepted equip/replace/unequip refreshes maximum health/stamina without
+  refill and clamps on removal. Server wildlife damage sums equipped Armor
+  against physical channels; Dusk's +5 remains active without wear because
+  accessories have no condition capacity. Elemental resistance is not added.
+- **Persistence boundary:** ordinary inventory and `EquippedGear` are not
+  serialized by the current player SaveGame. Dusk Ring and its carried Dusk
+  Diamond/Forge output therefore do not restore after process restart; only
+  the upstream pending Mireling reward is world-save escrow until
+  successfully claimed. No ring-specific save path or migration is present,
+  consistent with the documented session-only gear limit.
+- **Icon and presentation mapping:** original, prepared, and imported Dusk
+  Ring assets exist. The provenance prompt describes the aged bronze band and
+  near-black diamond with violet facets, consistent with the item. Runtime
+  mapping is `DuskRing` → Ring variant 3. The catalogue-reference validator
+  passed for 61 registered JSON files, 152 item/buildable definitions, 777
+  resolved references, and all ledger-backed mappings; focused
+  `Validate-UIIcons.ps1 -Category Catalogue -Id DuskRing` passed (1254×1254
+  RGBA source and transparent 64×64 RGBA imported asset).
+- **Focused tests and actual acceptance:**
+  `Kalmala.Gameplay.Inventory.A9GearRecipes` includes Dusk Ring's exact Forge
+  exchange and crafted-GUID equip.
+  `Kalmala.Gameplay.Status.AccessoryStats` replaces the necklace/ring fixture
+  with Dusk Ring, checks the +10/+10 maxima, and asserts a 20 Slash input
+  resolves to 15 health lost with no repeated-stat stacking. These assertions
+  were inspected, not rerun; both were part of the historical integrated A9
+  187-case passing queue. The successful historical A9 peer fixture
+  grants/equips Dusk Ring on its third owner and checks owner max-stat parity
+  and privacy generically; it does not assert Dusk-specific Armor against a
+  hit. The accepted `-A9Gear` render fixture equips Dusk Ring, and its
+  1280×720 and 1024×768 captures were inspected. No Dusk-specific
+  source-to-Forge peer progression or fresh-process ring restoration is
+  documented; the A9 peer restart checks gem/treasure claim state, not ring
+  persistence. No A10 no-grant progression is claimed.
+- **Stormcut follow-up:** the previously identified A9 contract defect remains
+  required and out of scope for this Dusk Ring increment: accepted Stormcut
+  Sword hits must spend one condition, but current combat damage does not. No
+  Stormcut implementation was changed; the next A10 increment is the
+  server-authoritative accepted-hit wear repair with focused
+  authority/persistence tests.
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md` only; no catalogue,
+  gameplay, save, or icon files changed.
+- **Lightweight checks:** `python Scripts/Validate-CatalogueReferences.py`
+  passed (61 JSON files, 152 definitions, 777 references, 152 icon mappings).
+  `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id DuskRing` passed. No
+  Unreal automation, build, live peer, restart, or render was run in this
+  increment; historical evidence above was inspected only.
+- **Full verification:** deferred; this is not A10 milestone-final
+  verification.
+- **Networking/authority:** Dusk Diamond reward selection/claim, Forge
+  payment, gear-slot transaction, accessory modifier resolution, and physical
+  damage remain server-authored; equipped gear is owner-only replicated and
+  current ring/inventory state is session-only.
+- **Impact and remaining scope:** tracking-only; no within-item data, recipe,
+  source, authority, persistence, or icon defect was established. Keep A10 and
+  its item-audit child open; no-grant fresh-start progression and final
+  integrated verification remain outstanding.
+- **Next eligible A10 increment:** repair Stormcut accepted-hit condition
+  wear and add focused server-authority/persistence tests before final A10
+  verification.
