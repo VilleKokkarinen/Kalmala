@@ -58,25 +58,35 @@ namespace KalmalaGeneratedTerrainPatch
     }
     static void AppendLowPolyRock(
         TArray<FVector>& Vertices, TArray<int32>& Triangles, TArray<FVector>& Normals, TArray<FVector2D>& UVs, TArray<FLinearColor>& VertexColors, TArray<FProcMeshTangent>& Tangents,
-        const FVector Center, const float Radius, const float Height, const float YawDegrees)
+        const FVector Center, const float Radius, const float Height, const float YawDegrees, const FVector& SurfaceNormal)
     {
         constexpr int32 SideCount = 6;
+        const FVector Up = FVector::UpVector;
+        const FVector Normal = SurfaceNormal.GetSafeNormal(SMALL_NUMBER, Up);
+        const FQuat AlignToSurface = FQuat::FindBetweenNormals(Up, Normal);
+        const FQuat RockRotation = FQuat(Normal, FMath::DegreesToRadians(YawDegrees)) * AlignToSurface;
         const int32 FirstVertex = Vertices.Num();
         for (int32 SideIndex = 0; SideIndex < SideCount; ++SideIndex)
         {
-            const float Angle = FMath::DegreesToRadians(YawDegrees + 360.0f * SideIndex / SideCount);
+            const float Angle = FMath::DegreesToRadians(360.0f * SideIndex / SideCount);
             const float RadiusScale = SideIndex % 2 == 0 ? 1.0f : 0.76f;
-            Vertices.Add(Center + FVector(FMath::Cos(Angle) * Radius * RadiusScale, FMath::Sin(Angle) * Radius * RadiusScale, 0.0f));
-            Normals.Add(FVector(FMath::Cos(Angle), FMath::Sin(Angle), 0.45f).GetSafeNormal());
+            const FVector RingOffset(FMath::Cos(Angle) * Radius * RadiusScale,
+                FMath::Sin(Angle) * Radius * RadiusScale, 0.0f);
+            Vertices.Add(Center + RockRotation.RotateVector(RingOffset));
+            Normals.Add(RockRotation.RotateVector(
+                FVector(FMath::Cos(Angle), FMath::Sin(Angle), 0.45f).GetSafeNormal()).GetSafeNormal());
             UVs.Add(FVector2D(static_cast<float>(SideIndex) / SideCount, 0.0f));
             VertexColors.Add(FLinearColor(0.26f, 0.29f, 0.25f));
-            Tangents.Add(FProcMeshTangent(1.0f, 0.0f, 0.0f));
+            const FVector Tangent = AlignToSurface.RotateVector(FVector(1.0f, 0.0f, 0.0f));
+            Tangents.Add(FProcMeshTangent(Tangent.X, Tangent.Y, Tangent.Z));
         }
-        const int32 ApexVertex = Vertices.Add(Center + FVector(Radius * 0.12f, -Radius * 0.08f, Height));
-        Normals.Add(FVector::UpVector);
+        const FVector ApexOffset(Radius * 0.12f, -Radius * 0.08f, Height);
+        const int32 ApexVertex = Vertices.Add(Center + AlignToSurface.RotateVector(ApexOffset));
+        Normals.Add(AlignToSurface.RotateVector(Up));
         UVs.Add(FVector2D(0.5f, 1.0f));
         VertexColors.Add(FLinearColor(0.30f, 0.33f, 0.28f));
-        Tangents.Add(FProcMeshTangent(1.0f, 0.0f, 0.0f));
+        const FVector ApexTangent = AlignToSurface.RotateVector(FVector(1.0f, 0.0f, 0.0f));
+        Tangents.Add(FProcMeshTangent(ApexTangent.X, ApexTangent.Y, ApexTangent.Z));
         for (int32 SideIndex = 0; SideIndex < SideCount; ++SideIndex)
         {
             const int32 NextIndex = (SideIndex + 1) % SideCount;
@@ -482,7 +492,8 @@ bool AKalmalaGeneratedTerrainPatch::BuildMeadowRocks()
         KalmalaGeneratedTerrainPatch::AppendLowPolyRock(
             Vertices, Triangles, Normals, UVs, VertexColors, Tangents,
             FVector(LocalPosition.X, LocalPosition.Y, FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, SamplePosition)),
-            RockRadius, RockHeight, RandomStream.FRandRange(0.0f, 360.0f));
+            RockRadius, RockHeight, RandomStream.FRandRange(0.0f, 360.0f),
+            FKalmalaTerrainHeightSampler::SampleSurfaceNormal(WorldGenerationConfig, SamplePosition));
         ++MeadowRockCount;
     }
 

@@ -9187,3 +9187,49 @@
   `PROGRESS.md` changes to `E:\dev\Kalmala` after inspecting both main versions;
   existing A10 and Monster progress was preserved.
 - **Next eligible task:** BH23 — add terrain-driven ground presentation.
+
+### BH23a — Fit decorative Meadow rocks to final terrain (2026-10-25)
+
+- **Selected increment:** BH23a, the first child after splitting BH23 into
+  decorative-rock alignment and terrain-material blending. The worktree was
+  clean at `62af48c9`; no other autonomous run is modifying this checkout.
+  A10 work remains in its separate worktree; Monster work is also separate.
+- **Work completed:** Existing procedural Meadow rock bases still use the
+  shared final `SampleHeight`, and their local ring, apex, normals and tangents
+  now align to `SampleSurfaceNormal` at the same candidate center. The existing
+  48-candidate budget, candidate positions, rock dimensions, yaw draws,
+  deterministic seed and collision-disabled presentation remain unchanged.
+  Marked BH23a complete and split BH23b for material blending. The material
+  source creates only constant-color `M_GeneratedTerrain` and `M_GeneratedRock`
+  assets; no distinct authored grass/soil ground materials or reed visual mesh
+  or material are present. BH23b remains open until suitable existing material
+  inputs are available; no palette or visual assets were invented.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp`, and
+  `docs/02-technical-architecture.md`.
+- **Lightweight checks/results:** Re-read AGENTS.md, BACKLOG.md, PROGRESS.md,
+  the biome-height and Meadows decoration plans, terrain-material source,
+  runtime patch renderer and architecture/setup notes. Static inspection
+  confirmed the rock center continues to use the final height sampler and the
+  only placement change is normal-based mesh orientation; no random calls,
+  actor authority, collision or gameplay resources changed. Checked available
+  world assets and found no distinct ground grass/soil materials or reed visual
+  asset. `git diff --check` passed. No automation or build was run; full
+  rendered verification remains deferred to BH26.
+- **Observable impact:** Existing low-poly Meadow rocks now sit flush with the
+  local final-surface orientation on gentle terrain. Runtime appearance was not
+  measured.
+- **Networking/authority:** No networking, replication, save, harvest or
+  gameplay-authority path changed. Rocks remain cosmetic and collision-free;
+  terrain collision remains authoritative.
+- **Known limitations / remaining scope:** Alignment uses the final normal at
+  each rock center as a local tangent plane; rendered contact on curved or steep
+  surfaces remains for BH26. Ground material blending remains BH23b pending
+  suitable existing authored grass/soil/rock material inputs. No reed decoration
+  was added because matching original visual content is absent.
+- **Main-checkout handoff:** Synchronized only `BACKLOG.md` and `PROGRESS.md`
+  to `E:\dev\Kalmala` after inspecting both main versions; existing A10 and
+  Monster progress was preserved.
+- **Next eligible task:** None while BH23b is blocked. BH23b is next in order
+  and awaits suitable existing authored ground-material inputs; BH24 remains
+  queued behind the incomplete BH23 parent.

@@ -696,9 +696,20 @@ run for this goal and may exceed one turn.
     stable Flora/forest-factor roll. Final slope and regional/collision-lattice
     water checks restrict placement to suitable dry shoulders without changing
     candidate positions, existing identities or the shared descriptor path.
-  - [ ] **BH23 — Add terrain-driven ground presentation.** Blend existing
-    grass/soil/rock materials and fit existing decorative rocks using final
-    slope/moisture; add reeds only if matching original content already exists.
+  - [ ] **BH23 — Add terrain-driven ground presentation.** Keep open until
+    BH23a–BH23b are complete. No cosmetic reeds are planned without a matching
+    original visual asset.
+    - [x] **BH23a — Fit decorative Meadow rocks to final terrain.** Keep the
+      existing 48 deterministic patch candidates, positions, dimensions and
+      random draws; place rock bases at the shared final height and align them
+      to the final sampled surface normal. Rocks remain cosmetic and
+      collision-free.
+    - [ ] **BH23b — Blend terrain ground materials by slope and moisture.** Use
+      existing authored grass/soil/rock materials only. Current source creates
+      `M_GeneratedTerrain` and `M_GeneratedRock` as constant-color materials;
+      there are no distinct ground grass/soil material assets checked in. Keep
+      blocked until suitable existing material inputs are available; do not
+      invent a palette or add assets in this increment.
   - [ ] **BH24 — Add cold-biome presentation.** Apply Tundra snow and Mountain
     snow/storm visuals through existing materials/weather paths; retain
     server-owned weather selection and add no damage, exposure, or shelter rule.
