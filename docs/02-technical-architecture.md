@@ -3300,3 +3300,59 @@ A9 source audit found Frost Salt mineral deposits existed only as contracts/fixt
 Opal Helm now uses owner-only replicated equipped Level and a server-only same-pawn GUID level ledger. Its Inventory actions submit only the equipped GUID to throttled server Forge maintenance. A visible same-world Forge within 2.5 m is required; paid upgrades match the target item level to the effective Forge level, while free repair accepts that Forge without a target-level gate. Authored costs double with current level through the existing item-level cap 10; existing station attachments currently raise a Forge only to level two, so higher authored tiers retain that existing station prerequisite. Armor/maximum condition grow by 1/10 per level and upgraded condition is restored. Head-slot wear and damage read that equipped level. Levels/wear are not saved or transferred across pawn ownership; this does not add a general gear-save system. Other wearables remain level one through existing actions.
 
 Ordinary third-person interaction extends the camera visibility query for loose gemstones and unclaimed world treasure using the same bounded camera-offset rule as wood drops. The server still checks physical pawn-to-target reach and blocking visibility. This changes camera reach only; intact gemstone mining remains the normal equipped-pick combat route.
+
+## Monster population and camp spawn suppression — 2026-10-25
+
+The accepted source of numeric tuning is [monster-spawning.md](monster-spawning.md). The
+implementation keeps the existing finite deterministic wildlife descriptors,
+species weights, world identity, sparse defeated-ID ledger and durable reward
+claims. Natural admission is server-owned by AKalmalaGameMode; clients do not
+choose a descriptor, species, position, roll, stable spawn ID or creation time.
+
+The scheduler considers loaded 64 m spatial keys in the union of current living
+players' inclusive 96 m horizontal neighborhoods, with no more than nine active
+keys. It wakes every 0.25 server seconds, services at most four due keys, examines
+at most four descriptors per key and at most 16 candidates per wake. Each key is
+serviced every five seconds after a deterministic initial phase; missed wakes
+are skipped. A per-key cursor rotates through descriptors. The admission roll
+is deterministic at 25%; a candidate must be in the inclusive 32–96 m ring of
+at least one living player and at least 36 m from every living player. Time,
+weather and progression gates remain unrestricted for current species. Existing
+per-key, aggregate, area and per-species limits remain enforced with atomic
+three-member Wolf reservations.
+
+All spawn attempts pass the existing species habitat, support, collision and
+world-bound checks. Land slope is at most 32 degrees inclusive. Reef Maw keeps
+its existing Ocean depth/swimming contract. A solid construction roof rejects
+the volume above a proposed creature through the existing 24 m upward trace.
+The server evaluates physical placement at the proposed actor origin and applies
+camp suppression only to new admission.
+
+Workbench and Forge each suppress within an inclusive 18 m horizontal radius
+and vertical interval [-12, +12] m, while existing, complete and undestroyed.
+An intact Camp Bed suppresses inside its inclusive 18 m three-dimensional
+sphere. Campfire and Standing Light use the same sphere only while lit with
+fuel remaining. No other placed object emits a suppression field. Destroyed,
+removed, extinguished and empty sources stop suppressing at the next attempt.
+Roofs retain their separate overhead collision rule. Existing wildlife is not
+destroyed, displaced or excluded from moving into a camp.
+
+The server tracks live wildlife actors by stable ID and current position while
+retaining each actor's charge against its descriptor home key. A living actor
+may unload only when it is outside every living player's inclusive 96 m radius;
+unload grants no reward and does not mark defeat. The same stable slot can be
+recreated at its original descriptor after the 30 second session-only cooldown
+and all current gates pass. Defeated IDs remain depleted through reconnect and
+restart, without a defeat cooldown or save-format change. Existing durable reward
+escrow and authenticated-owner claims remain the only reward delivery path.
+
+The environmental-spawner helpers define a reusable but currently dormant
+policy: there is no configured source registry or world spawner actor. A
+configured source would check every eight seconds, examine at most four fixed
+candidates within the inclusive 12 m 3D radius, and create at most one actor
+per check. It would own at most two living creatures within an inclusive 24 m
+horizontal radius. Each source has two finite
+stable slots. Source reservations share the global 16-candidate wake and the
+same species, home-key, aggregate, habitat, player-distance and camp gates.
+Inactive sources accrue no missed checks. The full stage map and exact values
+remain in [monster-spawning.md](monster-spawning.md).

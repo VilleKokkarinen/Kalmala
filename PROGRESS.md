@@ -8173,7 +8173,7 @@
 - **Known limitations:** The focused automation fixtures remain unrun. S33–S35
   still cover lifecycle/local-source acceptance, verification handoff and
   milestone-final verification.
-- **Next eligible task:** S33 — cover lifecycle and local spawners.
+- **Next eligible task:** S35 — perform milestone-final verification.
 
 
 ### Monster population — S33 lifecycle and local-source coverage
@@ -8207,4 +8207,36 @@
   server-owned live registries, cooldown state, reservations and save claims.
 - **Known limitations:** The focused automation fixtures remain unrun. S34–S35
   still prepare and execute the milestone verification handoff.
-- **Next eligible task:** S34 — prepare verification handoff.
+- **Next eligible task:** S35 — perform milestone-final verification.
+
+### Monster population — S34 verification handoff
+
+- **Selected increment:** S34, prepare the architecture and milestone-final
+  verification handoff.
+- **Work completed:** Documented the accepted natural-spawn scheduler, spatial
+  and species limits, ordered server-owned admission, camp suppression geometry,
+  living-actor unload/reload and durable defeated/reward identity contracts in
+  the technical architecture. Added exact isolated-mirror build, focused
+  population/camp automation, and deterministic host/client/restart commands to
+  the development setup guide. The handoff maps each command to its acceptance
+  evidence and records the dormant environmental-source limitation.
+- **Files changed:** docs/02-technical-architecture.md,
+  docs/07-development-setup.md, BACKLOG.md, and PROGRESS.md.
+- **Lightweight checks:** Reviewed the accepted specification, S26/S29 server
+  paths, all population fixture names, CampBedContract, the EnemyPeers
+  SharedCombat parameters and restart marker, and existing UE 5.8 build/test
+  invocation patterns. The S35 PowerShell command block parsed successfully and
+  git diff --check passed. Full build, automation and peers were not run.
+- **Full verification:** Deferred to S35, the final implementation task in this
+  goal.
+- **Observable impact:** Documentation only; no runtime, save, network or
+  gameplay behavior changed.
+- **Networking/authority:** The architecture and handoff describe server-owned
+  scheduler decisions and creation, existing replicated actor state and
+  authenticated-owner reward claims. No authority paths changed.
+- **Known limitations:** No configured environmental-spawner actor/registry or
+  population-specific live peer runner exists. Native population fixtures cover
+  two-player neighborhood overlap, lifecycle and scheduler bounds; the existing
+  SharedCombat peer runner covers replication, reward delivery and exact-ID
+  restart. S35 must record actual results and not overstate this coverage.
+- **Next eligible task:** S35 — perform milestone-final verification.

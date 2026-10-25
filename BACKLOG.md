@@ -679,7 +679,7 @@ milestone-final verification/repair run and can exceed a normal turn.
     and land/water clearance cases.
   - [x] **S33 — Cover lifecycle and local spawners.** Add unload/reload, cooldown,
     defeat/reward deduplication and local/shared cap cases using narrow fixtures.
-  - [ ] **S34 — Prepare verification handoff.** Update architecture and setup
+  - [x] **S34 — Prepare verification handoff.** Update architecture and setup
     docs with accepted tuning, server authority, lifecycle and exact build,
     automation and host/client/restart commands required for this goal.
   - [ ] **S35 — Perform milestone-final verification.** Inspect the combined
