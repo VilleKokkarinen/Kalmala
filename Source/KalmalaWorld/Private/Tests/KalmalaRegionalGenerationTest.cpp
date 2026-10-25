@@ -986,7 +986,11 @@ bool FKalmalaRiverBankCrossSectionTest::RunTest(const FString& Parameters)
         {
             const auto& P = Points[I];
             const auto Actual = G::Sample(Config, P.Position);
-            const float Expected = FMath::Lerp(P.Base.Height, -float(T::RiverBedDepth), float(P.Influence));
+            const double ChannelWeight = FMath::Clamp(double(Actual.RiverWeight), 0.0, 1.0);
+            const float ChannelShare = float(ChannelWeight * ChannelWeight * (3.0 - 2.0 * ChannelWeight));
+            const float Target = FMath::Lerp(FMath::Min(P.Base.Height, 1.0f),
+                -float(T::RiverBedDepth), ChannelShare);
+            const float Expected = FMath::Lerp(P.Base.Height, FMath::Min(P.Base.Height, Target), float(P.Influence));
             TestTrue(TEXT("Both banks follow the continuous cubic shoulder"),
                 FMath::IsNearlyEqual(Actual.Height, Expected, 0.02f));
             const int32 Side = I < Steps ? 0 : 1;
@@ -1016,6 +1020,57 @@ bool FKalmalaRiverBankCrossSectionTest::RunTest(const FString& Parameters)
     }
     AddError(TEXT("No high-ground basin-free two-bank cross-section found in bounded seed-418 search"));
     return false;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaRiverBankPreservesDryLandTest,
+    "Kalmala.World.Regional.RiverBankPreservesDryLand",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+bool FKalmalaRiverBankPreservesDryLandTest::RunTest(const FString& Parameters)
+{
+    using G = FKalmalaRegionalGeneration;
+    using T = FKalmalaRegionalTuning;
+    const FKalmalaWorldGenerationConfig Config{418ull};
+    const FVector2D Position(207132.4, -325940.4);
+    const auto Fields = FKalmalaWorldFieldSampler::Sample(Config, Position);
+    const auto Sample = G::Sample(Fields);
+
+    TestTrue(TEXT("Fixed river-bank source remains on the land side of the coast"), Fields.Elevation > T::SeaElevation);
+    TestEqual(TEXT("River-bank control has no analytic basin support"), Sample.BasinWeight, 0.0f);
+    TestEqual(TEXT("River-bank control is outside the narrow wet channel"), Sample.RiverWeight, 0.0f);
+    TestEqual(TEXT("River-bank control has no stream support"), Sample.StreamWeight, 0.0f);
+    TestEqual(TEXT("River-bank control retains the sea-level reference plane"), Sample.WaterLevel, 0.0f);
+    TestTrue(TEXT("Positive source-land sign keeps the river bank above sea level"), Sample.Height > 0.0f);
+    TestFalse(TEXT("Terrain relief cannot add sea-level water to the dry bank control"), Sample.bHasWater);
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaCoastSignTransitionTest,
+    "Kalmala.World.Regional.CoastSignTransition",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+bool FKalmalaCoastSignTransitionTest::RunTest(const FString& Parameters)
+{
+    using G = FKalmalaRegionalGeneration;
+    using T = FKalmalaRegionalTuning;
+    const double Source = 900.0;
+    const double Heights[] = {-500.0, -400.0, -300.0, -200.0, -100.0, 0.0, 100.0, 500.0};
+    double Previous = 0.0;
+    for (int32 Index = 0; Index < UE_ARRAY_COUNT(Heights); ++Index)
+    {
+        const double Shaped = G::PreserveSourceLandSign(Heights[Index], Source, T::CoastSignTransitionScale);
+        TestTrue(TEXT("Source-land output stays above sea level"), Shaped > 0.0);
+        if (Index > 0)
+        {
+            TestTrue(TEXT("Soft coast transition remains strictly monotonic"), Shaped > Previous);
+        }
+        Previous = Shaped;
+    }
+
+    const double NearCoast = G::PreserveSourceLandSign(-100.0, 0.001, T::CoastSignTransitionScale);
+    TestTrue(TEXT("Coast transition remains positive for low source clearance"), NearCoast > 0.0);
+    TestTrue(TEXT("Coast transition tapers below source clearance"), NearCoast < 0.001);
+    TestEqual(TEXT("Above-transition terrain retains its shaped height"),
+        G::PreserveSourceLandSign(15000.0, Source, T::CoastSignTransitionScale), 15000.0);
+    return true;
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaRiverSeedRepeatabilityTest,

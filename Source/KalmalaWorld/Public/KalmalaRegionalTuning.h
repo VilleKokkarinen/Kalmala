@@ -35,10 +35,10 @@ struct FKalmalaRegionalTuning
     static constexpr uint64 ForestCandidateGeometrySalt = 0x4B414C4D414C4109ull;
     // Provisional density relative to the existing forest Flora curve; BH25 finalizes this trial.
     static constexpr float FreezingTundraForestDensityMultiplier = 0.85f;
-    // Provisional Elderwood/Tundra shared-relief trials, centimetres.
-    static constexpr double ElderwoodBroadAmplitude = 900.0;
-    static constexpr double ElderwoodMiddleAmplitude = 240.0;
-    static constexpr double ElderwoodLocalAmplitude = 40.0;
+    // BH25b2-selected shared Elderwood/Tundra relief amplitudes, centimetres.
+    static constexpr double ElderwoodBroadAmplitude = 400.0;
+    static constexpr double ElderwoodMiddleAmplitude = 60.0;
+    static constexpr double ElderwoodLocalAmplitude = 10.0;
     // Provisional Shimmering Lakes shoulder/low-pocket trials, centimetres
     // except for the unitless blend share and compression fraction.
     static constexpr double ShimmeringLakesMeadowShare = 0.50;
@@ -72,6 +72,8 @@ struct FKalmalaRegionalTuning
     static constexpr double RiverRange = 28000.0;
     static constexpr double RiverBedDepth = 80.0; // Positive depth below water, cm.
     static constexpr double RiverBankExtent = 1800.0; // Bank shoulder beyond channel width, cm.
+    // Smooth source-land sign transition, centimetres; shrinks to zero at the coast.
+    static constexpr double CoastSignTransitionScale = 300.0;
     static constexpr double SplineAmplitude = 1200.0;
     static constexpr double SplineWavelength = 10000.0;
     static constexpr double SplineStep = 250.0;

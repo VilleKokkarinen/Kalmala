@@ -75,6 +75,7 @@ private:
     friend class FKalmalaMeadowFloorDetailTest;
     friend class FKalmalaMasterMapTest;
     friend class FKalmalaRiverBankCrossSectionTest;
+    friend class FKalmalaCoastSignTransitionTest;
     friend class FKalmalaRiverUnchangedControlsTest;
     // Named candidates keep the existing land-biome shape behavior explicit.
     static double ShapeMeadows(double SourceHeight, double Detail);
@@ -106,6 +107,8 @@ private:
     /** Blend complete land candidates by coast-scaled weights, adding the shared base once. */
     static float BlendCandidateHeights(
         float SourceHeight, const double CandidateHeights[6], float OceanOffset, const float Weights[7]);
+    /** Smoothly preserves the positive source-land sign without a fixed-height shelf. */
+    static double PreserveSourceLandSign(double Height, double SourceHeight, double TransitionScale);
     // Private regression control: retain all land/basin shaping, omit only courses.
     static FKalmalaRegionalSample SampleInternal(const FKalmalaWorldFieldSample& Fields, bool bBiomeOnly, bool bSkipHydrology = false);
 };

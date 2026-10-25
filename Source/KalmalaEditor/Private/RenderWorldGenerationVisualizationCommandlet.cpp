@@ -158,7 +158,7 @@ namespace KalmalaWorldGenerationVisualization
         }
         if (bIncludeElderwoodDiagnostics)
         {
-            Csv += TEXT(",ElderwoodCandidateCm,TundraCandidateCm,ReliefBroad,ReliefMiddle,ReliefLocal,ElderwoodBroadInputCm,ElderwoodMiddleInputCm,ElderwoodLocalInputCm");
+            Csv += TEXT(",ElderwoodCandidateCm,TundraCandidateCm,ReliefBroad,ReliefMiddle,ReliefLocal,ElderwoodBroadInputCm,ElderwoodMiddleInputCm,ElderwoodLocalInputCm,BasinWeight,RiverWeight,StreamWeight");
         }
         if (bIncludeShimmeringLakesDiagnostics)
         {
@@ -255,11 +255,12 @@ namespace KalmalaWorldGenerationVisualization
                 const FKalmalaTerrainCandidateDiagnostics Diagnostics =
                     FKalmalaRegionalGeneration::SampleTerrainCandidateDiagnostics(Config, Fields);
                 const FKalmalaTerrainReliefSample& SharedRelief = Diagnostics.SharedRelief;
-                Csv += FString::Printf(TEXT(",%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g"),
+                Csv += FString::Printf(TEXT(",%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g"),
                     Diagnostics.ElderwoodCandidate, Diagnostics.TundraCandidate, SharedRelief.Broad, SharedRelief.Middle,
                     SharedRelief.Local, SharedRelief.Broad * Preview.ElderwoodBroadAmplitude,
                     SharedRelief.Middle * Preview.ElderwoodMiddleAmplitude,
-                    SharedRelief.Local * Preview.ElderwoodLocalAmplitude);
+                    SharedRelief.Local * Preview.ElderwoodLocalAmplitude,
+                    Region.BasinWeight, Region.RiverWeight, Region.StreamWeight);
             }
             if (bIncludeShimmeringLakesDiagnostics)
             {

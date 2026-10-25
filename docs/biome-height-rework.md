@@ -4,7 +4,9 @@ Status: user-requested design direction, 2026-10-24; implementation is in
 progress under `BACKLOG.md` after A10 acceptance and before Monster Population.
 The fixed baselines, basin policy, shared sampler, preview controls and Meadows
 hill/rolling/floor layers and the provisional Shimmering Lakes blend are
-implemented incrementally. BH15a now integrates the provisional Mossy Mire
+implemented incrementally. BH25b2 selected 4 / 0.6 / 0.1 m shared
+Elderwood/Tundra relief amplitudes after repairing a bank-caused new-water
+regression and a fixed 1 cm source-land shelf. BH15a now integrates the provisional Mossy Mire
 lowland candidate; its profile harness is BH15b, fresh-source tuning remains
 BH25e, and final acceptance remains pending BH26. Fresh-source floor tuning
 remains BH25c and Lakes numeric selection remains BH25d. This plan supersedes
@@ -71,8 +73,10 @@ height and forest character, not those placement bands or biome names.
 5. Keep biome labels selected by the existing classifier. A label boundary
    must not hard-switch geometry. Ocean keeps its master-constrained seabed
    treatment and transitions continuously into land.
-6. Apply the existing priority river channel after biome relief and the coast
-   clamp. Preserve sea-level water, depth and bank behavior initially. Check
+6. Apply the existing priority river channel after biome relief and the smooth
+   source-land sign transition. Preserve sea-level water and channel depth;
+   confirm the bank envelope does not create wet samples outside narrow-channel
+   support. Check
    higher surrounding land does not produce unacceptable bank slopes before
    considering a separately documented bank adjustment.
 
@@ -842,10 +846,60 @@ heights, final regional height/weights/water and collision-triangle slope.
 `BiomeWoodProfiles.ps1` validates the fixed sites, bounds, numeric rows and exact
 Elderwood/Tundra candidate parity, then requires an effective-trial marker so a
 stale binary fails visibly. `-ValidateOnly` validates the fixture without an
-Editor launch. No build or sweep was run for BH13b; BH25b2 runs each
-low/nominal/high layer matrix with freshly compiled source, records the measured
-profiles and selects the smallest accepted amplitudes. Rendered
-biome-transition and terrain acceptance remains in BH26.
+Editor launch. BH25b2 ran each low/nominal/high layer matrix using a freshly
+compiled Editor mirror, recorded the measurements below and selected the
+smallest accepted amplitudes. The six exact center water states matched BH01,
+the only two wet profile rows were confirmed Z=0 river controls, all dry rows
+remained above sea level, and all 594 Elderwood/Tundra candidate pairs matched
+exactly. Rendered biome-transition and terrain acceptance remains in BH26.
+
+### BH25b2 fresh-source Elderwood/Tundra measurements
+
+The Editor mirror included BH25a's selected 400 cm hill default and BH25b1's
+selected 60 cm rolling default before the matrix. Nine separate commandlets
+exported 66 rows apiece with exact low/nominal/high trial markers: broad 4/9/16
+m, middle 0.6/2.4/4 m, and local 0.1/0.4/1 m. Each trial changed one layer only.
+Candidate parity was exact at all 594 points. Every run reported zero basin
+weight and exactly two wet samples: the confirmed seed-419 interior and
+seed-418 wooded river controls at Z=0. No other point became wet, including
+the seed-418 WoodedElderwood BH01 center that the initial bank profile had
+changed from +15.17 cm dry to -45.32 cm wet. All dry samples remained positive;
+the lowest was 16.99 cm. The broad16 WoodedElderwood419 line no longer sat on
+the old exact 1 cm shelf.
+
+Final-height ranges below exclude the two confirmed channel controls. Each
+range column is the minimum / mean / maximum among the six 100 m profile ranges;
+slopes are p50 / p90 / p95 / maximum across the 64 dry collision samples.
+
+| Layer | Amplitude | Candidate range min / mean / max (cm) | Dry final range min / mean / max (cm) | Dry slope p50 / p90 / p95 / max (degrees) | Samples ≥15° / ≥25° |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Broad | 4 m | 59.37 / 104.95 / 165.21 | 62.59 / 212.16 / 561.43 | 1.36 / 4.17 / 10.60 / 23.52 | 3 / 0 |
+| Broad | 9 m | 17.65 / 91.90 / 171.55 | 23.72 / 177.19 / 524.07 | 1.13 / 3.03 / 9.47 / 21.86 | 3 / 0 |
+| Broad | 16 m | 36.18 / 106.38 / 235.55 | 17.03 / 151.54 / 472.99 | 0.91 / 3.07 / 8.13 / 19.55 | 3 / 0 |
+| Middle | 0.6 m | 31.92 / 89.72 / 184.31 | 33.58 / 194.91 / 557.29 | 1.00 / 2.99 / 9.86 / 21.71 | 3 / 0 |
+| Middle | 2.4 m | 17.65 / 91.90 / 171.55 | 23.72 / 177.19 / 524.07 | 1.13 / 3.03 / 9.47 / 21.86 | 3 / 0 |
+| Middle | 4 m | 38.56 / 115.28 / 177.77 | 41.94 / 170.45 / 501.78 | 1.42 / 3.60 / 9.14 / 21.99 | 3 / 0 |
+| Local | 0.1 m | 28.62 / 91.58 / 160.00 | 33.77 / 176.00 / 519.75 | 1.27 / 2.96 / 9.51 / 22.06 | 3 / 0 |
+| Local | 0.4 m | 17.65 / 91.90 / 171.55 | 23.72 / 177.19 / 524.07 | 1.13 / 3.03 / 9.47 / 21.86 | 3 / 0 |
+| Local | 1 m | 51.24 / 118.11 / 194.64 | 49.85 / 189.16 / 537.81 | 1.35 / 4.22 / 9.42 / 21.46 | 3 / 0 |
+
+Every trial had the same three samples at or above 15 degrees and none at or
+above 25 degrees. The selected minimum amplitudes (4 / 0.6 / 0.1 m) retained
+positive variation across all six transects and had the lowest median of the
+six per-profile maximum slopes within their respective layers. They remain
+numeric selections; rendered landform and travel acceptance stays in BH26.
+
+At the six BH01 fixed centers, water state matched in all nine trials. Maximum
+/ mean absolute final-height differences and maximum absolute collision-slope
+differences were: broad 4 m, 174.17 / 70.04 cm and 7.42 degrees; broad 9 m,
+237.59 / 96.43 cm and 10.25 degrees; broad 16 m, 325.83 / 143.67 cm and
+12.90 degrees; middle 0.6 m, 180.05 / 97.18 cm and 9.60 degrees; middle
+2.4 m, 237.59 / 96.43 cm and 10.25 degrees; middle 4 m, 288.52 / 101.38 cm
+and 10.79 degrees; local 0.1 m, 252.80 / 96.18 cm and 10.14 degrees; local
+0.4 m, 237.59 / 96.43 cm and 10.25 degrees; local 1 m, 207.11 / 96.86 cm
+and 10.47 degrees. These center deltas include all active biome relief and
+the coast transition; they are not isolated candidate amplitudes. The repaired
+seed-418 bank point retains its +15.17 cm BH01 dry state.
 
 ### BH14a Shimmering Lakes source integration
 

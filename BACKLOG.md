@@ -452,13 +452,14 @@ save migrations as part of this goal.
 **Implementation trial defaults selected for this plan:** Shared relief scales
 start at 1,000 m / 150 m / 30 m (broad / middle / local). Meadows uses the
 BH25a-selected 160 m / 4 m broad hills and BH25b1-selected 45 m / 0.6 m rolling
-relief; floor detail remains provisional at 12 m / 0.2 m. Tundra forest
-density starts at 0.85 of comparable Elderwood density. Remaining experiment settings are agent-
-selected, not prior user-approved production values; compare low / nominal /
-high documented amplitudes one layer at a time (rolling relief: 0.6 / 1.2 /
-1.8 m; floor detail: 0.1 / 0.2 / 0.3 m), then retain the smallest values that
-satisfy measured acceptance. Do not maximize layers together or leave tuning as
-a later user decision.
+relief, and BH25b2-selected 1,000 m / 4 m, 150 m / 0.6 m, and 30 m / 0.1 m
+shared Elderwood/Tundra relief layers. Meadows floor detail remains provisional
+at 12 m / 0.2 m. Tundra forest density starts at 0.85 of comparable Elderwood
+density. Remaining experiment settings are agent-selected, not prior
+user-approved production values; compare low / nominal / high documented
+amplitudes one layer at a time, then retain the smallest values that satisfy
+measured acceptance. Do not maximize layers together or leave tuning as a later
+user decision.
 
 **Acceptance direction:** Candidate heights blend through existing continuous
 biome weights; labels and ecological fields do not move. Meadows should show
@@ -582,10 +583,9 @@ run for this goal and may exceed one turn.
       amplitude overrides. Sweep 8/12/20 m by 0.1/0.2/0.3 m and reject stale
       binaries; leave numeric selection to BH25c and rendered acceptance to BH26.
   - [x] **BH13 — Shape Elderwood.** The shared uncompressed candidate and its
-    profile sweep harness are complete. Provisional broad/middle/local
-    amplitudes are 9 / 2.4 / 0.4 m within trial ranges of 4–16 / 0.6–4 /
-    0.1–1 m; fresh-source trial selection remains BH25b2 and rendered profile
-    acceptance remains BH26.
+    profile sweep harness are complete. BH25b2 selected measured
+    broad/middle/local amplitudes of 4 / 0.6 / 0.1 m within trial ranges of
+    4–16 / 0.6–4 / 0.1–1 m; rendered profile acceptance remains BH26.
     - [x] **BH13a — Integrate shared Elderwood relief.** Blend the shared
       absolute-world stack plus bounded detail into Elderwood without applying
       Meadows shoulder compression. Make Tundra call the Elderwood function
@@ -593,9 +593,8 @@ run for this goal and may exceed one turn.
       Add source-level parity, bounds, negative-coordinate and transition tests.
     - [x] **BH13b — Add Elderwood/Tundra profile sweep harness.** Provide fixed
       Elderwood and Tundra profile samples plus validated commandlet-only
-      broad/middle/local amplitude overrides. Reject stale binaries; leave
-      fresh-source trial selection to BH25b2 and rendered profile acceptance to
-      BH26.
+      broad/middle/local amplitude overrides. Reject stale binaries; BH25b2
+      selected measured defaults and rendered profile acceptance remains BH26.
   - [x] **BH14 — Shape Shimmering Lakes.** Blend Meadows-like rounded shoulders,
     Elderwood relief, and compressed low pockets continuously, with no basin
     bowl or new perched water surface.
@@ -624,7 +623,7 @@ run for this goal and may exceed one turn.
   - [x] **BH16 — Shape Freezing Tundra.** Reuse the Elderwood height function
     inside the existing outer eligibility band; confirm profile parity and
     keep snow as presentation rather than a height offset. Source-level
-    parity coverage is in BH13a; numeric profile confirmation remains BH25b2,
+    parity coverage is in BH13a; numeric profile confirmation was measured in BH25b2,
     snow presentation remains BH24, and rendered acceptance remains BH26.
   - [x] **BH17 — Shape Thunder Mountains.** `ShapeMountains` now amplifies only
     source height above a 1,000 cm threshold, ramps gain smoothly over 1,000 cm,
@@ -639,7 +638,8 @@ run for this goal and may exceed one turn.
     high-ground and two-bank regressions compare the final sample with its
     post-relief no-course baseline; profile assertions preserve Z=0 water, the
     80 cm bed and 1,800 cm bank extent. Coast controls and seam coverage protect
-    shared consumers. No relief-caused defect was found; rendered acceptance
+    shared consumers. BH25b2 later found and repaired a relief-caused bank
+    water regression at a fixed source-land control; rendered acceptance
     remains BH26.
   - [x] **BH19 — Add independent forest factor.** Shared forest descriptors now
     carry a normalized absolute-world noise sample from a separate seed domain
@@ -742,10 +742,14 @@ run for this goal and may exceed one turn.
         0.6/1.2/1.8 m trials and all 28 BH01 fixed sites, select the smallest
         accepted amplitude and record 30/45/70 m ranges, slopes, river controls
         and patch-seam results. The 0.6 m setting is selected.
-      - [ ] **BH25b2 — Select shared Elderwood/Tundra relief.** Run fresh-source
+      - [x] **BH25b2 — Select shared Elderwood/Tundra relief.** Ran fresh-source
         low/nominal/high broad, middle and local amplitudes one layer at a time,
-        exercise each trial bound, compare BH01 profiles and slopes, confirm
-        Tundra candidate parity, and select measured values.
+        exercised each trial bound, compared BH01 profiles/slopes, confirmed
+        exact Tundra candidate parity, and selected the smallest accepted
+        measured defaults: 4 / 0.6 / 0.1 m. The sweep caught and repaired a
+        relief-caused wet river-bank sample and the fixed 1 cm coast shelf;
+        numeric measurements and remaining render limits are recorded in the
+        biome-height plan.
       - [ ] **BH25b3 — Aggregate terrain tuning and cost contracts.** Update
         architecture/setup and height-preview documentation with raw ranges;
         compare sampler, map, generation, active-patch, collision and decoration

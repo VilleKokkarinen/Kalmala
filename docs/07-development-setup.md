@@ -3518,7 +3518,9 @@ alone proves that the new river cases ran. The regional prefix includes:
 | Case under `Kalmala.World.Regional.` | Required result |
 | --- | --- |
 | `HighGroundRiverCenter` | An actual seed-418 river midpoint with source height at least 400 cm and no basin support has water at Z=0, a bed at or below -80 cm, and wet state. Retain the logged coordinates. |
-| `RiverBankCrossSection` | Both bank shoulders follow the bounded cubic profile, remain continuous, and return to exact course-free terrain/water outside the full bank envelope. |
+| `RiverBankCrossSection` | Both bank shoulders follow the bounded cubic profile with channel-weighted depth, remain continuous, and return to exact course-free terrain/water outside the full bank envelope. |
+| `RiverBankPreservesDryLand` | A fixed BH01 source-land bank point with no basin or narrow-channel support stays above Z=0 and dry after biome relief. |
+| `CoastSignTransition` | The source-relative soft coast floor stays positive and strictly monotonic, tapers with source clearance, and retains terrain well above the transition. |
 | `RiverSeedRepeatability` | Height, water level, wet state and river influence repeat exactly after cache resets, reversed queries and interleaved seeds; fixed-position height/influence vary between seeds 418/419. |
 | `RiverHydrologyGridSeam` | Actual X/Y hydrology-cell crossings for both seeds retain continuous submerged channel height/influence, Z=0 water and exact cache/order reproduction. |
 | `RiverTerrainPatchSeam` | Actual X/Y 3000 cm patch crossings retain matching adjacent collision-triangle heights/depths and nonempty matching clipped sea-water mesh edges. |

@@ -8,21 +8,30 @@ param(
 $ErrorActionPreference = 'Stop'
 $culture = [Globalization.CultureInfo]::InvariantCulture
 $inputPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot 'BiomeWoodProfiles.csv'))
+$baselinePath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot 'BiomeBaseline418419.csv'))
 $expectedProfiles = @(
-    [pscustomobject]@{ Seed = 419; Site = 'ElderwoodInterior419'; X = -205569.1; Y = 91450.9; Axis = 'X'; Group = 'Elderwood' },
-    [pscustomobject]@{ Seed = 418; Site = 'WoodedElderwood418'; X = 207132.4; Y = -325940.4; Axis = 'Y'; Group = 'Elderwood' },
-    [pscustomobject]@{ Seed = 419; Site = 'WoodedElderwood419'; X = 294675.1; Y = 171177.3; Axis = 'X'; Group = 'Elderwood' },
-    [pscustomobject]@{ Seed = 418; Site = 'ElderwoodTundra418'; X = -191499.8; Y = -773033.7; Axis = 'Y'; Group = 'Transition' },
-    [pscustomobject]@{ Seed = 419; Site = 'ElderwoodTundra419'; X = 314997.6; Y = 735515.4; Axis = 'X'; Group = 'Transition' },
-    [pscustomobject]@{ Seed = 419; Site = 'TundraInterior419'; X = -243087.4; Y = 970004.9; Axis = 'Y'; Group = 'Tundra' }
+    [pscustomobject]@{ Seed = 419; Site = 'ElderwoodInterior419'; BaselineSite = 'Elderwoodinterior'; X = -205569.1; Y = 91450.9; Axis = 'X'; Group = 'Elderwood' },
+    [pscustomobject]@{ Seed = 418; Site = 'WoodedElderwood418'; BaselineSite = 'WoodedElderwood'; X = 207132.4; Y = -325940.4; Axis = 'Y'; Group = 'Elderwood' },
+    [pscustomobject]@{ Seed = 419; Site = 'WoodedElderwood419'; BaselineSite = 'WoodedElderwood'; X = 294675.1; Y = 171177.3; Axis = 'X'; Group = 'Elderwood' },
+    [pscustomobject]@{ Seed = 418; Site = 'ElderwoodTundra418'; BaselineSite = 'ElderwoodTundratransition'; X = -191499.8; Y = -773033.7; Axis = 'Y'; Group = 'Transition' },
+    [pscustomobject]@{ Seed = 419; Site = 'ElderwoodTundra419'; BaselineSite = 'ElderwoodTundratransition'; X = 314997.6; Y = 735515.4; Axis = 'X'; Group = 'Transition' },
+    [pscustomobject]@{ Seed = 419; Site = 'TundraInterior419'; BaselineSite = 'FreezingTundra'; X = -243087.4; Y = 970004.9; Axis = 'Y'; Group = 'Tundra' }
 )
 $expectedSamples = $expectedProfiles.Count * 11
-foreach ($path in @($inputPath)) {
+# These exact seed-418/419 profile points cross priority river channels. Lakes
+# diagnostics confirmed RiverWeight 0.9595/0.8110 and sea-level water at both.
+$confirmedRiverChannels = @(
+    [pscustomobject]@{ Seed = 419; Site = 'ElderwoodInterior419'; X = -203569.1; Y = 91450.9 },
+    [pscustomobject]@{ Seed = 418; Site = 'WoodedElderwood418'; X = 207132.4; Y = -324940.4 }
+)
+foreach ($path in @($inputPath, $baselinePath)) {
     if ($path.Length -ge 260) { throw "Path exceeds MAX_PATH: $path" }
 }
 if (-not (Test-Path -LiteralPath $inputPath -PathType Leaf)) { throw "Profile fixture not found: $inputPath" }
+if (-not (Test-Path -LiteralPath $baselinePath -PathType Leaf)) { throw "Fixed-site baseline not found: $baselinePath" }
 
 $inputRows = @(Import-Csv -LiteralPath $inputPath)
+$baselineRows = @(Import-Csv -LiteralPath $baselinePath)
 if ($inputRows.Count -ne $expectedSamples) { throw "Expected $expectedSamples fixed profile rows, found $($inputRows.Count)." }
 $expectedNames = @($expectedProfiles | ForEach-Object { $_.Site })
 $siteGroups = @($inputRows | Group-Object Site)
@@ -53,6 +62,14 @@ foreach ($profile in $expectedProfiles) {
     $centerY = [double]::Parse($group[5].Ycm, $culture)
     if ([math]::Abs($centerX - $profile.X) -gt 0.01 -or [math]::Abs($centerY - $profile.Y) -gt 0.01) {
         throw "Profile $($profile.Site) center differs from its seed-fixed baseline coordinate."
+    }
+    $baselineCenter = @($baselineRows | Where-Object {
+        [int]$_.Seed -eq $profile.Seed -and $_.Site -ceq $profile.BaselineSite
+    })
+    if ($baselineCenter.Count -ne 1 -or
+        [math]::Abs([double]::Parse($baselineCenter[0].Xcm, $culture) - $centerX) -gt 0.01 -or
+        [math]::Abs([double]::Parse($baselineCenter[0].Ycm, $culture) - $centerY) -gt 0.01) {
+        throw "Profile $($profile.Site) center does not match its fixed BH01 baseline row."
     }
 }
 if (@($siteGroups | Where-Object { $_.Name -notin $expectedNames }).Count -ne 0) { throw 'Fixture contains an unexpected site.' }
@@ -148,7 +165,7 @@ foreach ($trial in $trials) {
         $rows = @(Import-Csv -LiteralPath $outputPath)
         if ($rows.Count -ne $expectedSamples) { throw "Trial $trialTag returned $($rows.Count) rows, expected $expectedSamples." }
         foreach ($row in $rows) {
-            foreach ($column in @('FinalHeightCm', 'ElderwoodWeight', 'FreezingTundraWeight', 'WaterLevelCm', 'CollisionTriangleHeightCm', 'CollisionTriangleSlopeDegrees', 'ElderwoodCandidateCm', 'TundraCandidateCm', 'ReliefBroad', 'ReliefMiddle', 'ReliefLocal', 'ElderwoodBroadInputCm', 'ElderwoodMiddleInputCm', 'ElderwoodLocalInputCm')) {
+            foreach ($column in @('FinalHeightCm', 'ElderwoodWeight', 'FreezingTundraWeight', 'WaterLevelCm', 'CollisionTriangleHeightCm', 'CollisionTriangleSlopeDegrees', 'ElderwoodCandidateCm', 'TundraCandidateCm', 'ReliefBroad', 'ReliefMiddle', 'ReliefLocal', 'ElderwoodBroadInputCm', 'ElderwoodMiddleInputCm', 'ElderwoodLocalInputCm', 'BasinWeight', 'RiverWeight', 'StreamWeight')) {
                 $number = 0.0
                 $parsed = [double]::TryParse([string]$row.$column, [Globalization.NumberStyles]::Float, $culture, [ref]$number)
                 if (-not $parsed -or [double]::IsNaN($number) -or [double]::IsInfinity($number)) {
@@ -158,6 +175,16 @@ foreach ($trial in $trials) {
             if ([math]::Abs([double]$row.ElderwoodCandidateCm - [double]$row.TundraCandidateCm) -gt 0.0001) {
                 throw "Trial $trialTag has divergent Elderwood/Tundra candidates for $($row.Site)."
             }
+            if ([math]::Abs([double]$row.BasinWeight) -gt 0.000001) {
+                throw "Trial $trialTag enabled analytic basin support for $($row.Site)."
+            }
+            if ($row.HasWater -eq '1' -and
+                ([double]$row.RiverWeight + [double]$row.StreamWeight + [double]$row.OceanWeight) -le 0.000001) {
+                throw "Trial $trialTag has water without an ocean, river or stream source at $($row.Site) ($($row.Xcm),$($row.Ycm))."
+            }
+            if ($row.HasWater -eq '0' -and [double]$row.FinalHeightCm -le 0.0) {
+                throw "Trial $trialTag has a dry profile sample on or below the sea plane at $($row.Site) ($($row.Xcm),$($row.Ycm))."
+            }
             $weightTotal = 0.0
             foreach ($column in @('MeadowsWeight', 'ShimmeringLakesWeight', 'ElderwoodWeight', 'MossyMireWeight', 'FreezingTundraWeight', 'ThunderMountainsWeight', 'OceanWeight')) {
                 $weightTotal += [double]$row.$column
@@ -166,7 +193,12 @@ foreach ($trial in $trials) {
         }
         foreach ($profile in $expectedProfiles) {
             $center = @($rows | Where-Object { $_.Site -ceq $profile.Site })[5]
-            if ($center.HasWater -ne '0') { throw "Fixed control $($profile.Site) is wet in trial $trialTag." }
+            $baselineCenter = @($baselineRows | Where-Object {
+                [int]$_.Seed -eq $profile.Seed -and $_.Site -ceq $profile.BaselineSite
+            })[0]
+            if ([int]$center.HasWater -ne [int]$baselineCenter.HasWater) {
+                throw "Fixed control $($profile.Site) changed its BH01 water state in trial $trialTag."
+            }
             if ($profile.Group -eq 'Elderwood' -and [double]$center.ElderwoodWeight -lt 0.45) { throw "Fixed Elderwood control lost its biome weight in $trialTag." }
             if ($profile.Group -eq 'Tundra' -and [double]$center.FreezingTundraWeight -lt 0.5) { throw "Fixed Tundra control lost its biome weight in $trialTag." }
             if ($profile.Group -eq 'Transition' -and ([double]$center.ElderwoodWeight -lt 0.35 -or [double]$center.FreezingTundraWeight -lt 0.35)) {
@@ -174,18 +206,49 @@ foreach ($trial in $trials) {
             }
         }
 
+        foreach ($control in $confirmedRiverChannels) {
+            $controlRows = @($rows | Where-Object {
+                [int]$_.Seed -eq $control.Seed -and $_.Site -ceq $control.Site -and
+                [math]::Abs([double]::Parse($_.Xcm, $culture) - $control.X) -le 0.01 -and
+                [math]::Abs([double]::Parse($_.Ycm, $culture) - $control.Y) -le 0.01
+            })
+            if ($controlRows.Count -ne 1 -or $controlRows[0].HasWater -ne '1' -or
+                [double]::Parse($controlRows[0].RiverWeight, $culture) -le 0.0 -or
+                [double]::Parse($controlRows[0].WaterLevelCm, $culture) -ne 0.0 -or
+                [double]::Parse($controlRows[0].FinalHeightCm, $culture) -ge 0.0) {
+                throw "Trial $trialTag changed confirmed sea-level river control $($control.Site) at $($control.X),$($control.Y)."
+            }
+        }
+        foreach ($row in $rows | Where-Object { $_.HasWater -eq '1' }) {
+            $isConfirmedRiverControl = @($confirmedRiverChannels | Where-Object {
+                [int]$row.Seed -eq $_.Seed -and $row.Site -ceq $_.Site -and
+                [math]::Abs([double]::Parse($row.Xcm, $culture) - $_.X) -le 0.01 -and
+                [math]::Abs([double]::Parse($row.Ycm, $culture) - $_.Y) -le 0.01
+            }).Count -eq 1
+            if (-not $isConfirmedRiverControl) { throw "Trial $trialTag has a new or unconfirmed wet profile sample at $($row.Site) ($($row.Xcm),$($row.Ycm))." }
+            if ([double]::Parse($row.WaterLevelCm, $culture) -ne 0.0 -or
+                [double]::Parse($row.FinalHeightCm, $culture) -ge 0.0) {
+                throw "Trial $trialTag changed the sea-level water state at $($row.Site) ($($row.Xcm),$($row.Ycm))."
+            }
+        }
+
         foreach ($group in $rows | Group-Object Site) {
             $candidate = @($group.Group | ForEach-Object { [double]::Parse($_.ElderwoodCandidateCm, $culture) })
             $final = @($group.Group | ForEach-Object { [double]::Parse($_.FinalHeightCm, $culture) })
-            $slopes = @($group.Group | ForEach-Object { [double]::Parse($_.CollisionTriangleSlopeDegrees, $culture) })
+            $dryRows = @($group.Group | Where-Object { $_.HasWater -eq '0' })
+            if ($dryRows.Count -eq 0) { throw "Trial $trialTag has no dry collision samples for $($group.Name)." }
+            $drySlopes = @($dryRows | ForEach-Object { [double]::Parse($_.CollisionTriangleSlopeDegrees, $culture) })
+            $allSlopes = @($group.Group | ForEach-Object { [double]::Parse($_.CollisionTriangleSlopeDegrees, $culture) })
             $summaryRows.Add([pscustomobject]@{
                 Layer = $trial.Layer
                 AmplitudeM = $amplitudeM
                 Site = $group.Name
                 Samples = $group.Count
+                WaterSamples = $group.Count - $dryRows.Count
                 CandidateRangeCm = (($candidate | Measure-Object -Maximum).Maximum - ($candidate | Measure-Object -Minimum).Minimum)
                 FinalHeightRangeCm = (($final | Measure-Object -Maximum).Maximum - ($final | Measure-Object -Minimum).Minimum)
-                MaxTriangleSlopeDegrees = ($slopes | Measure-Object -Maximum).Maximum
+                MaxTriangleSlopeDegrees = ($drySlopes | Measure-Object -Maximum).Maximum
+                MaxTriangleSlopeAllSamplesDegrees = ($allSlopes | Measure-Object -Maximum).Maximum
                 OutputCsv = $outputPath
             })
         }

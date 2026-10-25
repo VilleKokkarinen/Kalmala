@@ -324,6 +324,15 @@ once, then keeps the existing independently weighted ocean offset. Biome labels,
 ecological fields and eligibility bands remain classifier inputs and do not
 select a hard height switch.
 
+After stream shaping and before priority-river carving, source-land samples use
+a source-relative softplus coast transition instead of a fixed 1 cm minimum.
+For shaped height `H`, positive source clearance `S`, and maximum scale `K0 =
+CoastSignTransitionScale` (300 cm), the scale is `k = min(K0, S / ln(2))` and
+the final land height is `k * ln(1 + exp(H / k))`. The stable implementation
+returns `H` above the transition and tapers `k` to zero at the source coast.
+This retains positive land clearance without flattening negative relief onto a
+constant shelf. Sea-side height remains constrained by source elevation.
+
 The Meadows candidate adds separate seed-derived absolute-world hill and
 rolling signals. BH25a selected a 4 m hill amplitude with the 160 m hill scale
 held fixed; BH25b1 selected a 0.6 m rolling amplitude at 45 m. BH12a adds a
@@ -331,18 +340,18 @@ third independently seeded 12 m / 0.2 m floor-detail signal. These layers
 enter the smooth, monotonic shoulder curve; candidates below 10 m remain unchanged and
 the curve approaches a 40 m upper bound. The broad layer replaces the previous
 40 cm Meadows detail term. Rolling is numerically selected; floor detail and
-later biome settings remain provisional pending BH25b2/BH25c/BH25d. BH26
+Lakes tuning remain provisional pending BH25c/BH25d. BH26
 retains rendered gentler-route and under-vegetation inspection; numeric profiles do not claim
 rendered traversal or floor aliasing acceptance.
 
 Elderwood and Tundra share the same uncompressed candidate over the absolute-
-world 1,000 / 150 / 30 m relief stack, plus its bounded legacy detail. The
-provisional broad/middle/local amplitudes are 9 / 2.4 / 0.4 m, with 4–16 /
-0.6–4 / 0.1–1 m trial ranges scheduled for validation. Tundra directly calls
-the Elderwood function, so the candidate height cannot drift between those
-biomes; continuous classification weights still determine each final blend.
-BH25b owns fresh-source trial selection for rolling/Elderwood controls, BH25d
-owns Lakes blend/lowland selection, and BH26 owns rendered profile acceptance.
+world 1,000 / 150 / 30 m relief stack, plus its bounded legacy detail. BH25b2
+selected broad/middle/local amplitudes of 4 / 0.6 / 0.1 m from fresh-source
+one-layer trials spanning 4–16 / 0.6–4 / 0.1–1 m. Tundra directly calls the
+Elderwood function, so the candidate height cannot drift between those biomes;
+continuous classification weights still determine each final blend. BH25b3
+owns aggregate tuning/cost documentation, BH25d owns Lakes blend/lowland
+selection, and BH26 owns rendered profile acceptance.
 
 Thunder Mountains now increase gain only above the named `MountainHighlandThreshold`
 of 1,000 cm. The increase ramps with smoothstep across a further 1,000 cm,
@@ -378,17 +387,23 @@ full central influence and zero derivative at both ends. The maximum B across
 segments is applied once, avoiding cumulative carving at joins. The spatial
 index includes the complete bank envelope, including across hydrology cells.
 The separate narrow `RiverWeight` still ends at `w`; it does not bound the
-carved banks or determine whether final terrain is wet.
+bank envelope or determine whether final terrain is wet. Its smoothstep share
+does control the target depth across that wider bank envelope.
 
 Shaping order is base relief and biome relief, optionally enabled analytic
-bowls, optional stream shaping, source land/coast clamp, then priority river
-carving. With pre-carve height H, bank influence B and the current disabled-basin
-policy, the river bed is `-RiverBedDepth` and final height is
-`lerp(H, min(H, -RiverBedDepth), B)`. High source land cannot refill a channel,
-and already deeper ground is never raised. The central bed reaches at least
-80 cm below sea and river water is exactly Z=0. Shoulders blend back to H;
-points outside every bank envelope retain their prior terrain and source-coast
-sign. The shoulder can remain dry where its final height is above water.
+bowls, optional stream shaping, source-relative land/coast sign transition,
+then priority river carving. For pre-carve height H and bank influence B, the
+source-land bank floor is `min(H, 1 cm)`; sea-side samples retain H. The target
+blends from that floor to the local sea-level bed by
+`C = smoothstep(0, 1, RiverWeight)`, then the bounded bank applies
+`lerp(H, min(H, lerp(BankFloor, -RiverBedDepth, C)), B)` when basins are
+disabled. This keeps the 1,800 cm bank envelope from cutting a full sea-level
+trench where narrow `RiverWeight` is zero, while preserving the full-depth
+central channel. High source land cannot refill a channel, and already deeper
+ground is never raised. The central bed reaches at least 80 cm below sea and
+river water is exactly Z=0. Shoulders blend back to H; points outside every
+bank envelope retain their prior terrain and source-coast sign. The shoulder
+can remain dry where its final height is above water.
 Regional wet state is strictly `WaterLevel > Height`.
 
 Analytic basin generation is currently disabled by the compiled shared policy.

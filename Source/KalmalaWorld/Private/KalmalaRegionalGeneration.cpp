@@ -358,6 +358,25 @@ float FKalmalaRegionalGeneration::BlendCandidateHeights(
     return Result;
 }
 
+double FKalmalaRegionalGeneration::PreserveSourceLandSign(
+    const double Height, const double SourceHeight, const double TransitionScale)
+{
+    if (!FMath::IsFinite(Height) || !FMath::IsFinite(SourceHeight)
+        || !FMath::IsFinite(TransitionScale) || SourceHeight <= 0.0 || TransitionScale <= 0.0)
+    {
+        return Height;
+    }
+
+    // A source-relative cap makes the transition vanish with source clearance
+    // at the coast. Stable softplus is identity far above zero and approaches
+    // zero smoothly below it, avoiding a broad flat minimum-height shelf.
+    constexpr double LnTwo = 0.69314718055994530942;
+    const double Scale = FMath::Min(TransitionScale, SourceHeight / LnTwo);
+    const double ScaledHeight = Height / Scale;
+    if (ScaledHeight >= 40.0) return Height;
+    return Scale * FMath::Loge(1.0 + FMath::Exp(FMath::Max(ScaledHeight, -80.0)));
+}
+
 TArray<FKalmalaHydrologySegment> FKalmalaRegionalGeneration::GetHydrology(const FKalmalaWorldGenerationConfig& C, FIntPoint Cell)
 {
     FScopeLock Lock(&CacheMutex);
@@ -543,22 +562,28 @@ FKalmalaRegionalSample FKalmalaRegionalGeneration::SampleInternal(const FKalmala
     // Shores retain the source sea-level sign outside inland basins/courses.
     if (BasinSupport == 0 && Sum == 0) R.WaterLevel = FMath::Min(0.0f, R.Height - 1.0f);
     {
-        // Preserve the source shore before applying the bounded river override.
+        // Preserve the source coast sign without a fixed-height land shelf.
         R.Height = F.Elevation <= T::SeaElevation ? FMath::Min(R.Height, Source)
-            : FMath::Max(R.Height, FMath::Min(Source, 1.0f));
+            : float(PreserveSourceLandSign(R.Height, Source, T::CoastSignTransitionScale));
         if (F.Elevation <= T::SeaElevation) R.WaterLevel = 0;
     }
     if (RiverBankInfluence > 0 && BasinSupport < 1)
     {
         // Carve after the land clamp so high ground cannot refill the channel.
         // Maximum influence across segments avoids repeated carving at joins.
+        // The bank envelope extends beyond RiverWeight. Fade its target from
+        // the positive land floor into the full bed as narrow channel weight
+        // rises, so relief cannot turn a dry bank into new sea-level water.
         const float W = RiverBankInfluence * (1 - BasinSupport);
         // Lift the channel target toward the retained basin surface through its
         // continuous rim support instead of targeting sea depth throughout a lake.
         // Full basin support keeps both its original bed and water level.
         const float ChannelLevel = FMath::Lerp(0.0f, R.WaterLevel, float(BasinSupport));
         const float Bed = ChannelLevel - float(T::RiverBedDepth);
-        R.Height = FMath::Lerp(R.Height, FMath::Min(R.Height, Bed), W);
+        const float BankFloor = F.Elevation > T::SeaElevation ? FMath::Min(R.Height, 1.0f) : R.Height;
+        const float ChannelShare = float(Smooth(0.0, 1.0, R.RiverWeight));
+        const float CarveTarget = FMath::Lerp(BankFloor, Bed, ChannelShare);
+        R.Height = FMath::Lerp(R.Height, FMath::Min(R.Height, CarveTarget), W);
         if (BasinSupport == 0) R.WaterLevel = 0;
     }
     R.bHasWater = R.WaterLevel > R.Height;

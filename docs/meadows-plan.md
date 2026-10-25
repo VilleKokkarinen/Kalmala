@@ -1,11 +1,12 @@
 # Meadows terrain and biome plan
 
 Status: active implementation plan, updated 2026-10-25. BH25a selected the
-4 m broad-hill amplitude and BH25b1 selected 0.6 m rolling amplitude from
-fresh-source profiles. BH10a/BH11a implement the Meadows hill and rolling
-layers, and BH12a adds a provisional floor-detail layer. BH10b1/BH11b/BH12b
-provide profile harnesses; remaining fresh-source tuning is in BH25b2–BH25c
-and rendered acceptance is in BH26. No gameplay, forest or
+4 m broad-hill amplitude, BH25b1 selected 0.6 m rolling amplitude, and BH25b2
+selected 4 / 0.6 / 0.1 m shared Elderwood/Tundra amplitudes from fresh-source
+profiles. BH10a/BH11a implement the Meadows hill and rolling layers, and BH12a
+adds a provisional floor-detail layer. BH10b1/BH11b/BH12b provide profile
+harnesses; remaining fresh-source tuning is in BH25c–BH25e and aggregate cost
+contracts are in BH25b3. Rendered acceptance is in BH26. No gameplay, forest or
 presentation changes are implemented by this document. Execution is tracked in
 `BACKLOG.md` before Monster Population under the combined biome-height goal.
 
@@ -195,15 +196,20 @@ the actual Character Movement and building-placement limits before finalizing.
 
 Insert the Meadows relief before the existing basin and channel operations.
 Retain this order: source and biome relief, analytic basins, optional debug
-streams, source coast clamp, final priority river carving. Preserve sea-level
+streams, source-relative coast sign transition, final priority river carving. Preserve sea-level
 river water at Z=0, `RiverBedDepth=80` cm, `RiverBankExtent=1800` cm and existing
 lake-support precedence in the first terrain pass. Stronger land relief must
 not refill a river or flatten an elevated enclosed lake to sea level.
 
-Fade new relief continuously toward the atlas shore. A negative noise trough
-on source land must still pass the existing coast clamp. Inspect whether that
-clamp creates long shelves near Z=1 cm; reduce or smoothly bound the additive
-term before the clamp if it does. Do not remove the coast-sign contract.
+Fade new relief continuously toward the atlas shore. The fixed 1 cm source-land
+floor made a long shelf on the seed-419 WoodedElderwood profile during BH25b2.
+The sampler now uses a smooth positive softplus coast transition with a maximum
+300 cm scale reduced in proportion to source-land clearance; the scale reaches
+zero at the source coast. This preserves land sign without a constant-height
+shelf. River carving also fades its target from the positive bank floor to the
+full bed by narrow channel weight, so the wide bank envelope cannot create new
+sea-level water where RiverWeight is zero. The fresh-source profiles verified
+the six BH01 center water states and found no other wet sample or basin support.
 
 The shoreline reference is a profile goal, not authorization to scatter new
 lakes throughout Meadows. First use existing coast, river banks and eligible

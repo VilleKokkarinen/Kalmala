@@ -9556,3 +9556,83 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   and this progress entry were synchronized; unrelated content remains
   preserved.
 - **Next eligible task:** BH25b2 — select shared Elderwood/Tundra relief.
+
+## Run 2026-10-25 — Select shared Elderwood/Tundra relief (BH25b2)
+
+- **Selected increment:** BH25b2. The detached goal worktree had no concurrent
+  writer; only this run modified it. The worktree was at `5d517e38` before the
+  increment. A10 and Monster work remained in their separate worktrees.
+- **Work completed:** Rebuilt the current source in the established temporary
+  UE 5.8 mirror, then ran all nine one-layer-at-a-time low/nominal/high trials:
+  broad 4/9/16 m, middle 0.6/2.4/4 m, and local 0.1/0.4/1 m. The first trial
+  audit found that seed-418 `WoodedElderwood` at `(207132.4,-325940.4)` had
+  changed from the BH01 `+15.1726685 cm`, dry control to `-45.3237 cm`, wet
+  terrain with zero narrow river/stream/ocean/basin support. The wide bank
+  envelope was targeting the full -80 cm bed even where narrow `RiverWeight`
+  was zero. River carving now smoothly shares from the positive land bank floor
+  to the bed using `smoothstep(0,1,RiverWeight)`. The profile matrix also
+  exposed an exact 1 cm shelf on every broad16 sample at seed-419
+  `WoodedElderwood`. Replaced the fixed source-land minimum with a strictly
+  monotonic softplus floor whose maximum 300 cm scale shrinks with source
+  clearance and reaches zero at the coast. Selected the smallest accepted
+  measured defaults: broad/middle/local 4 / 0.6 / 0.1 m.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Scripts/Tests/World/BiomeWoodProfiles.ps1`,
+  `Source/KalmalaEditor/Private/RenderWorldGenerationVisualizationCommandlet.cpp`,
+  `Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalGeneration.h`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`,
+  `docs/02-technical-architecture.md`, `docs/07-development-setup.md`,
+  `docs/biome-height-rework.md`, and `docs/meadows-plan.md`.
+- **Fresh build and trial results:** The disposable `C:\Users\Ville\AppData\Local\Temp\kb25a`
+  mirror included BH25a's 400 cm hill default and BH25b1's 60 cm rolling
+  default. It excluded only the unchanged pre-goal
+  `KalmalaWaterSurfaceMeshTest.cpp` translation unit; the repository test was
+  not edited. The UE 5.8 Editor build succeeded twice with 24 actions, first
+  with the nominal 900/240/40 cm Elderwood controls for the matrix and again
+  after updating the selected 400/60/10 cm defaults; a final four-action
+  incremental rebuild compiled the corrected coast-transition assertion. Build
+  command: `Build.bat KalmalaEditor Win64 Development -Project=C:\Users\Ville\AppData\Local\Temp\kb25a\Kalmala.uproject -WaitMutex -NoHotReload -NoHotReloadFromIDE -MaxParallelActions=4 -DisableAdaptiveUnity -NoUBTMakefiles`.
+  The sweep command was
+  `Scripts/Tests/World/BiomeWoodProfiles.ps1 -Project C:\Users\Ville\AppData\Local\Temp\kb25a\Kalmala.uproject -TimeoutSeconds 900`.
+  All nine fresh runs exported 66 rows with exact override markers. The full
+  measured ranges, slopes and BH01 comparisons are recorded in
+  `docs/biome-height-rework.md`; raw CSV/logs were retained under
+  `C:\Users\Ville\AppData\Local\Temp\bh25b2x\bew76a7ac04`.
+- **Acceptance evidence:** All 594 Elderwood/Tundra candidate pairs matched
+  exactly. Every trial had zero basin support and only the two confirmed
+  seed-418/419 sea-level river controls wet; all other rows remained dry, and
+  each of the six BH01 center water states matched. The minimum dry sample
+  height was `+16.9858 cm`. Each trial had 64 dry collision samples, three
+  slopes at or above 15 degrees, and none at or above 25 degrees. The selected
+  broad4 / middle0.6 / local0.1 m fixed-center maximum absolute height/slope
+  deltas were 174.17 cm / 7.42 degrees, 180.05 cm / 9.60 degrees, and
+  252.80 cm / 10.14 degrees respectively. These changes preserve positive
+  source-land sign, do not enable basin water, and keep the two confirmed river
+  beds at Z=0.
+- **Lightweight checks/results:** PowerShell parsing and the 66-sample
+  `BiomeWoodProfiles.ps1 -ValidateOnly` passed. `git diff --check` and changed
+  path-length checks passed. A focused source automation test for monotonic
+  positive coast transition compiled in the Editor build; automation was not
+  executed.
+- **Full verification:** Deferred to BH26. No full automation suite, render,
+  gameplay traversal, or broad cost measurement was run. The nine numeric
+  commandlets are BH25b2's required measurements, not milestone-final
+  acceptance.
+- **Observable impact:** The source now uses 4 / 0.6 / 0.1 m shared
+  Elderwood/Tundra amplitudes. The repaired bank envelope cannot create
+  sea-level water where narrow channel weight is zero, and source-land relief
+  no longer collapses to a fixed 1 cm shelf. All generation remains deterministic.
+- **Networking/authority:** No network state, authority, persistence, resource
+  identity or save behavior changed. Host and clients still sample the same
+  seed-derived regional terrain.
+- **Known limitations / remaining scope:** The coast transition is numeric and
+  its rendered shoreline remains uninspected. The old unrelated water-mesh test
+  compile issue remains excluded only from the disposable mirror. Rendered
+  relief, connected traversal and integrated generation costs remain pending.
+- **Main-checkout handoff:** Main `BACKLOG.md` and `PROGRESS.md` contain
+  concurrent A10/Monster edits and were inspected before synchronization. Only
+  the Biome goal paragraphs and this BH25b2 progress entry were synchronized;
+  those edits and the unrelated untracked lighting-plan document were preserved.
+- **Next eligible task:** BH25b3 — aggregate terrain tuning and cost contracts.
