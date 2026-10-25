@@ -9323,6 +9323,7 @@
   `M_GeneratedTerrain.uasset` must be updated after the Editor target is built.
   Material compilation and rendered Tundra coverage remain for BH26. Mountain
   snow remains BH24b and Mountain storm presentation remains BH24c.
-- **Main-checkout handoff:** Pending inspection and synchronization of only
-  `BACKLOG.md` and `PROGRESS.md` while preserving current A10/Monster edits.
+- **Main-checkout handoff:** Synchronized only `BACKLOG.md` and `PROGRESS.md`
+  to `E:\dev\Kalmala` after inspecting both main versions; existing A10 and
+  Monster progress and unrelated main-checkout files were preserved.
 - **Next eligible task:** BH24b — add Mountain snow coverage.
