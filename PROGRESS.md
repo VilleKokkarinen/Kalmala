@@ -8674,3 +8674,39 @@
   used to run the sweep.
 - **Next task in this directed goal:** BH16 — shape Freezing Tundra by reusing
   the Elderwood candidate inside the existing outer eligibility band.
+
+## Run 2026-10-25 — Close Tundra height reuse (BH16)
+
+- **Selected increment:** BH16, the next eligible item under the biome height
+  rework goal. The worktree was clean at `7b16f615`; no other active Kalmala
+  run was modifying this checkout. Other active Kalmala work was in separate
+  A10 and monster-spawn worktrees.
+- **Work completed:** Verified that `ShapeTundra` directly returns
+  `ShapeElderwood` with the same source height, detail, shared relief and three
+  amplitudes. The existing classifier and Tundra outer eligibility remain
+  unchanged. Existing focused source coverage compares Elderwood and Tundra at
+  fixed seed-418/419 positions, including negative coordinates and an
+  Elderwood/Tundra transition where both weights blend the identical candidate.
+  The Tundra height path contains no snow offset; snow surface presentation is
+  still scheduled in BH24. Marked BH16 complete; fresh-source numeric parity
+  remains BH25b and rendered acceptance remains BH26.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`.
+- **Lightweight checks/results:** Inspected the Tundra shape and sampler call
+  sites, existing eligibility expression and focused parity assertions.
+  `git diff --check` passed. No Unreal build or automation was run; full
+  verification remains deferred to BH26.
+- **Observable impact:** No runtime sampler change; records that BH16's source
+  implementation and deterministic parity proof are already present from BH13a
+  and closes the implementation checkbox. Numeric and rendered acceptance are
+  still pending their assigned gates.
+- **Networking/authority:** Height remains a deterministic candidate derived
+  from the existing world seed, absolute coordinates and server-owned fields.
+  No RPC, replicated state, gameplay authority or save data changed.
+- **Known limitations / remaining scope:** BH25b must measure fresh-source
+  Elderwood/Tundra profiles; BH24 owns snow presentation; BH26 owns rendered and
+  full integrated verification.
+- **Main-checkout handoff:** Synchronized only BACKLOG.md and PROGRESS.md;
+  preserved pre-existing S32 progress. Implementation code remains in this
+  detached worktree.
+- **Next task in this directed goal:** BH17 — shape Thunder Mountains with
+  bounded amplification above the named high-terrain threshold.

@@ -618,9 +618,11 @@ run for this goal and may exceed one turn.
       tuning logs that reject stale binaries. Export raw heights/slopes and
       candidate diagnostics; do not select values here. Leave fresh-source
       trials to BH25e and rendered acceptance to BH26.
-  - [ ] **BH16 — Shape Freezing Tundra.** Reuse the Elderwood height function
+  - [x] **BH16 — Shape Freezing Tundra.** Reuse the Elderwood height function
     inside the existing outer eligibility band; confirm profile parity and
-    keep snow as presentation rather than a height offset.
+    keep snow as presentation rather than a height offset. Source-level
+    parity coverage is in BH13a; numeric profile confirmation remains BH25b,
+    snow presentation remains BH24, and rendered acceptance remains BH26.
   - [ ] **BH17 — Shape Thunder Mountains.** Smoothly amplify only high base
     terrain above a named threshold; bound fine detail and verify continuous
     foothills instead of uniformly raising every mountain-labelled sample.
