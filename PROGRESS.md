@@ -9698,3 +9698,72 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   BH25b tracking update and progress entry were synchronized. Concurrent
   A10/Monster edits and unrelated content were preserved.
 - **Next eligible task:** BH25c — measure the Meadows floor-detail profile matrix.
+## Run 2026-10-25 — Select Meadows floor detail (BH25c)
+
+- **Selected increment:** BH25c, the next unchecked child under BH25. The
+  detached worktree was at `418c5d7e`; no other autonomous run was modifying
+  this checkout. A10 and Monster work continued in separate worktrees.
+- **Work completed:** Ran the fresh-source 8/12/20 m by 0.1/0.2/0.3 m floor
+  matrix and selected 8 m / 0.1 m, the smallest tested scale and amplitude
+  that retained a resolved floor signal on the fixed collision lattice. Updated
+  the compiled defaults and focused source expectation. The raw nine-trial
+  ranges and fixed-site comparisons are in `docs/meadows-plan.md`.
+- **Fixture and guard repair:** The BH12b floor CSV had quoted fields, unlike
+  the existing simple fixtures; the commandlet's comma parser rejected the
+  literal quotes. Normalized this fixture to the established unquoted format.
+  Trial 1 then identified five exact seed-419 river-control points and twelve
+  dry outer-profile rows with positive Meadows weight below 0.5. The runner now
+  retains and validates only those five known river controls separately, keeps
+  blended dry rows in the profile metrics, and requires all other rows dry with
+  positive Meadows influence. Fixed anchors still require weight above 0.5.
+- **Measurements:** All nine exact override markers and fixture checks passed;
+  each output contains 400 rows, with 387 dry profile points, five fixed wet
+  river controls and eight patch-side controls. The selected floor input ranges
+  from −6.726 to +6.497 cm (13.223 cm peak-to-peak) and changes by at most
+  2.765 cm per 125 cm sample. The 60 m profile spans, including existing relief,
+  range from 43.036 cm to 1,143.148 cm across sites; selected collision-slope
+  p50/p95/max is 1.751 / 28.043 / 34.523 degrees. Maximum final/collision seam
+  deltas are 0.026 / 0.028 cm. No scale-linked slope spike or lattice seam
+  defect appeared. Rendered readability is not claimed.
+- **Fixed sites:** A selected-setting export at all 28 BH01 coordinates matched
+  the retained pre-selection current-source export on water and biome state.
+  Height deltas versus that current-source control were −4.105 to +4.799 cm,
+  maximum collision-height delta was 4.661 cm and maximum slope delta was
+  0.942 degrees. Two water flags differ from BH01, but were already dry in the
+  current-source control before floor selection. The separate river diagnostic
+  confirmed the five controls have water level 0, no basin/stream weight and
+  RiverWeight 0.720–1.000; all remained submerged through the matrix.
+- **Source/build freshness:** Before changing the defaults, all tracked runtime
+  inputs were compared with the documented UE 5.8 mirror. It had 1,071 raw
+  matches, one line-ending-only source difference, and the one unchanged
+  pre-goal `KalmalaWaterSurfaceMeshTest.cpp` excluded. The two current changes
+  (tuning header and regional test source) were copied and hash-verified in the
+  mirror. The incremental `KalmalaEditor Win64 Development` build succeeded in
+  24 actions with normal UnrealBuildTool cache access; the nine trials and the
+  28-site export were rerun on that binary.
+- **Checks:** `BiomeFloorProfiles.ps1 -ValidateOnly` passed for 400 rows, eight
+  profiles, 125 cm spacing and eight patch-side controls. PowerShell parsing of
+  the runner passed. The Editor build and all numeric commandlets passed. No
+  automation suite or rendered preview was run.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Scripts/Tests/World/BiomeFloorProfiles.csv`,
+  `Scripts/Tests/World/BiomeFloorProfiles.ps1`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`,
+  `docs/02-technical-architecture.md`, `docs/07-development-setup.md`,
+  `docs/biome-height-rework.md`, and `docs/meadows-plan.md`.
+- **Full verification:** Deferred to BH26. Under-vegetation readability, rendered
+  aliasing, gameplay traversal and the full required automation suite remain
+  unchecked. No generated assets or gameplay/network behavior changed.
+- **Observable impact:** Runtime Meadows floor detail now uses a deterministic
+  8 m / 0.1 m signal. The fixed 125 cm terrain lattice, biome weights, water
+  state and sampled fixed-site biome labels remain unchanged by this selection.
+- **Networking/authority:** No network fields, RPCs, authority or persistence
+  behavior changed.
+- **Known limitations / remaining scope:** Numeric sampling cannot establish
+  visual readability beneath trees. The unchanged pre-goal water-mesh test
+  translation unit remains excluded only from the disposable build mirror.
+- **Main-checkout handoff:** Main files were inspected before sync; only the
+  BH25c backlog block and this progress entry were synchronized. Active
+  A10/Monster content was preserved.
+- **Next eligible task:** BH25d — run Shimmering Lakes profile trials.

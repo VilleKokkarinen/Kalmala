@@ -7,10 +7,11 @@ hill/rolling/floor layers and the provisional Shimmering Lakes blend are
 implemented incrementally. BH25b2 selected 4 / 0.6 / 0.1 m shared
 Elderwood/Tundra relief amplitudes after repairing a bank-caused new-water
 regression and a fixed 1 cm source-land shelf; BH25b3 consolidated the selected
-profile ranges and measured cost guardrails. BH15a integrates the provisional
-Mossy Mire lowland candidate; its profile harness is BH15b, fresh-source tuning remains
-BH25e, and final acceptance remains pending BH26. Fresh-source floor tuning
-remains BH25c and Lakes numeric selection remains BH25d. This plan supersedes
+profile ranges and measured cost guardrails. BH25c selected 8 m / 0.1 m Meadows
+floor detail from fresh-source trials. BH15a integrates the provisional Mossy
+Mire lowland candidate; its profile harness is BH15b, fresh-source tuning
+remains BH25e, and Lakes numeric selection remains BH25d. Rendered terrain and
+under-vegetation acceptance remains BH26. This plan supersedes
 Meadows-specific height details where they differ.
 
 This plan expands [the Meadows plan](meadows-plan.md) to all land biomes. Where
@@ -727,7 +728,7 @@ non-finite or out-of-range inputs. Bounds are the design ranges, inclusive:
 | `MeadowHillScaleM` / `MeadowHillAmplitudeM` | 160 m / 4 m selected in BH25a | 100–250 m / 4–10 m |
 | `MeadowShoulderHeightM` / `MeadowShoulderCompressionScaleM` | 10 m / 30 m | 6–16 m / 10–60 m |
 | `MeadowRollingScaleM` / `MeadowRollingAmplitudeM` | 45 m / 0.6 m selected in BH25b1 | 30–70 m / 0.6–2 m |
-| `MeadowFloorScaleM` / `MeadowFloorAmplitudeM` | 12 m / 0.2 m | 8–20 m / 0.1–0.35 m |
+| `MeadowFloorScaleM` / `MeadowFloorAmplitudeM` | 8 m / 0.1 m selected in BH25c | 8–20 m / 0.1–0.35 m |
 
 Custom settings are accepted only by the headless preview route and reported in
 `LastRender.txt`; normal gameplay uses the compiled defaults. The fast
@@ -740,9 +741,9 @@ stack remains staged for the later land-biome candidates. BH10b1 supplies fixed
 transects and a validated hill-amplitude override; BH25a runs the fresh-source
 hill comparison and selects its setting. BH11b adds the rolling-profile sweep
 harness; BH25b1 runs fresh-source 0.6/1.2/1.8 m trials and selects the rolling
-setting. BH12b adds the floor-detail profile harness; BH25c runs the fresh-source
-8/12/20 m by 0.1/0.2/0.3 m matrix. Rendered route and under-vegetation
-inspection remain BH26.
+setting. BH12b adds the floor-detail profile harness; BH25c ran the fresh-source
+8/12/20 m by 0.1/0.2/0.3 m matrix and selected 8 m / 0.1 m. Rendered route and
+under-vegetation inspection remain BH26.
 
 ## BH08 shared relief sampler
 
@@ -803,36 +804,57 @@ and connected-gentle-route inspection remain for BH26.
 
 ## BH12a Meadows floor-detail integration
 
-The Meadows candidate now adds an independently seeded local floor signal at
-the provisional 12 m scale and 0.2 m amplitude. The term is sampled in absolute
+The Meadows candidate adds an independently seeded local floor signal at the
+BH25c-selected 8 m scale and 0.1 m amplitude. The term is sampled in absolute
 world coordinates, added after hill and rolling contributions, and passes
 through the existing monotonic shoulder compression. It is applied only through
 the existing continuous Meadows/coast candidate weights and does not change
 ecological fields, biome labels, other biome candidates, or the terrain mesh
-lattice. At the smallest permitted 8 m coordinate scale, the 125 cm mesh
-spacing gives 6.4 samples per scale unit; this source-level bound does not prove
-rendered aliasing acceptance. The 0.1/0.2/0.3 m trials remain provisional
-pending fresh-source measurements in BH25c and rendered inspection beneath
-vegetation in BH26.
+lattice. At the selected 8 m scale, the 125 cm mesh spacing gives 6.4 samples
+per scale length. The fresh-source matrix measured a maximum 2.765 cm floor
+input step over 125 cm at the selected setting, with no scale-linked slope or
+seam spike. Numeric acceptance does not prove rendered aliasing or readability;
+inspection beneath vegetation remains BH26.
 
 ### BH12b floor-detail profile sweep harness
 
-`Scripts/Tests/World/BiomeFloorProfiles.csv` fixes 400 dry Meadows samples:
-eight seed-418/419 starter/outer profiles, each 60 m long with 49 points at
-125 cm spacing, plus eight outer patch-side controls. The commandlet-only sweep
+`Scripts/Tests/World/BiomeFloorProfiles.csv` fixes 400 sample points: eight
+seed-418/419 starter/outer profiles, each 60 m long with 49 points at 125 cm
+spacing, plus eight outer patch-side controls. Five exact seed-419 river rows
+are retained as fixed wet controls and excluded from dry-floor metrics. Profile
+rows with any positive Meadows blend remain eligible; the fixed anchors still
+require Meadows weight above 0.5. The commandlet-only sweep
 exports raw floor noise and the pre-blend floor contribution alongside final
 height, biome weight, water state, collision-triangle height/slope/grade,
 patch/cell coordinates and per-patch forest descriptor counts. Its nine trials
 cover 8/12/20 m scales and 0.1/0.2/0.3 m amplitudes. It checks finite samples,
-dry Meadows classification, signal-to-input amplitude, collision-cell
-progression, forested patch coverage and patch seam continuity. A required
-effective scale/amplitude log marker rejects stale binaries. The runner has a
-fixture-only `-ValidateOnly` mode and does not build or select final tuning;
-BH25c must run all nine combinations with freshly compiled source, then record
-the selected scale/amplitude and measurements. The
+dry status outside fixed river controls, positive Meadows influence, signal-to-
+input amplitude, collision-cell progression, forested patch coverage and patch
+seam continuity. A required effective scale/amplitude log marker rejects stale
+binaries. The runner has a fixture-only `-ValidateOnly` mode and does not
+build or select final tuning. BH25c ran all nine combinations with freshly
+compiled source and selected 8 m / 0.1 m; raw measurements are in the Meadows
+plan. The
 descriptor count is a fixed-patch proxy for under-vegetation sampling, not a
 rendered foliage acceptance result; BH26 inspects aliasing and floor readability
-beneath vegetation. No build, sweep, or rendered result is claimed for BH12b.
+beneath vegetation. BH12b itself did not run a build, sweep, or rendered check.
+
+### BH25c fresh-source floor-detail selection
+
+The current-source Editor rebuilt successfully in the documented disposable
+mirror, excluding only the unchanged pre-goal water-mesh test translation unit.
+All nine explicit trials returned 400 rows with their exact parameter markers;
+387 profile rows were dry, five fixed river controls stayed submerged at Z=0,
+all 125 cm lattice steps were sequential, and the four patch seams stayed below
+0.04 cm. At 8 m / 0.1 m, dry floor contribution ranged from −6.726 to +6.497
+cm, with a maximum 2.765 cm adjacent step and a 13.223 cm peak-to-peak range.
+At the same 28 sites as BH01, the selected setting matched the retained
+pre-selection current-source water and biome state; height deltas ranged
+−4.105 to +4.799 cm, maximum collision-height delta was 4.661 cm, and maximum
+slope delta was 0.942 degrees. BH01-to-current water differences at two sites
+already existed in that control. The full nine-row matrix and four fixed Meadow
+anchor comparisons are in [the Meadows plan](meadows-plan.md). Rendered
+readability remains for BH26.
 
 ### BH13b Elderwood/Tundra profile sweep harness
 

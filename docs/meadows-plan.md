@@ -3,10 +3,11 @@
 Status: active implementation plan, updated 2026-10-25. BH25a selected the
 4 m broad-hill amplitude, BH25b1 selected 0.6 m rolling amplitude, and BH25b2
 selected 4 / 0.6 / 0.1 m shared Elderwood/Tundra amplitudes from fresh-source
-profiles. BH10a/BH11a implement the Meadows hill and rolling layers, and BH12a
-adds a provisional floor-detail layer. BH10b1/BH11b/BH12b provide profile
-harnesses; remaining fresh-source tuning is in BH25c–BH25e and aggregate cost
-contracts are in BH25b3. Rendered acceptance is in BH26. No gameplay, forest or
+profiles. BH25c selected the 8 m / 0.1 m Meadows floor detail. BH10a/BH11a
+implement the Meadows hill and rolling layers, and BH12a adds the selected
+floor-detail layer. BH10b1/BH11b/BH12b provide profile harnesses; remaining
+fresh-source tuning is in BH25d–BH25e and aggregate cost contracts are in
+BH25b3. Rendered acceptance is in BH26. No gameplay, forest or
 presentation changes are implemented by this document. Execution is tracked in
 `BACKLOG.md` before Monster Population under the combined biome-height goal.
 
@@ -103,8 +104,8 @@ Compare the low, middle and high settings separately with fixed seeds.
 | `MeadowShoulderHeight` / `MeadowShoulderCompressionScale` | 10 m / 30 m | 6–16 m / 10–60 m | Preserve lower pockets while gradually softening higher Meadows shoulders. |
 | `MeadowRollingScale` | 45 m | 30–70 m | Rounded shoulders, smaller valleys and grove undulations. |
 | `MeadowRollingAmplitude` | 0.6 m selected (BH25b1) | 0.6–2 m | Smallest tested amplitude with measured 30–70 m profiles and the lowest sampled slope percentiles. |
-| `MeadowFloorScale` | 12 m | 8–20 m | Gentle forest-floor variation; avoid sub-lattice noise. |
-| `MeadowFloorAmplitude` | 0.2 m | 0.1–0.35 m | Small rises and depressions beneath vegetation. |
+| `MeadowFloorScale` | 8 m selected (BH25c) | 8–20 m | Gentle forest-floor variation; sampled at least 6.4 times per scale on the 125 cm lattice. |
+| `MeadowFloorAmplitude` | 0.1 m selected (BH25c) | 0.1–0.35 m | Small rises and depressions beneath vegetation. |
 
 ### BH25a fresh-source hill measurements
 
@@ -191,6 +192,58 @@ shoulders and connected gentler alternatives. Retain naturally flatter pockets
 for camps; do not flatten the entire starter radius or author fixed camp sites.
 Evaluate the distribution from final collision triangles and compare against
 the actual Character Movement and building-placement limits before finalizing.
+
+### BH25c fresh-source Meadows floor-detail measurements
+
+The current-source Editor mirror was refreshed from the selected worktree
+sources and built successfully (24 actions). The BH12b runner then completed all
+nine 8/12/20 m by 0.1/0.2/0.3 m trials with the exact effective-parameter marker.
+Each output contained 400 rows: 387 dry profile samples, five fixed seed-419
+river controls, and eight patch-side controls. The five river controls were
+verified separately at sea level with no basin or stream weight; the runner
+requires them to remain wet and excludes them only from dry-floor metrics. The
+12 outer seed-419 rows below 0.5 Meadows weight retain positive Meadows blend
+and remain in the dry profile metrics. All other samples remained dry, all
+profiles advanced one 125 cm collision cell at a time, and all four patch seams
+passed the 5 cm bound.
+
+| Scale / amplitude | Floor input min–max (cm) | Max adjacent input step (cm) | 60 m profile height-span min / mean / max (cm) | Max final adjacent step (cm) | Collision slope p50 / p95 / max (degrees) | Max height / collision seam delta (cm) |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 8 m / 0.1 m | −6.726 to 6.497 | 2.765 | 43.036 / 249.158 / 1,143.148 | 72.396 | 1.751 / 28.043 / 34.523 | 0.026 / 0.028 |
+| 8 m / 0.2 m | −13.453 to 12.995 | 5.530 | 47.587 / 250.410 / 1,140.367 | 73.775 | 2.021 / 28.129 / 34.614 | 0.033 / 0.029 |
+| 8 m / 0.3 m | −20.179 to 19.492 | 8.296 | 52.141 / 252.633 / 1,137.583 | 75.154 | 2.455 / 28.117 / 34.894 | 0.040 / 0.036 |
+| 12 m / 0.1 m | −5.812 to 7.661 | 1.786 | 40.231 / 248.509 / 1,146.036 | 71.323 | 1.641 / 27.795 / 34.648 | 0.025 / 0.026 |
+| 12 m / 0.2 m | −11.624 to 15.323 | 3.572 | 43.380 / 249.180 / 1,146.145 | 70.796 | 1.868 / 27.654 / 34.648 | 0.023 / 0.024 |
+| 12 m / 0.3 m | −17.435 to 22.984 | 5.358 | 50.684 / 250.681 / 1,146.253 | 70.269 | 2.132 / 27.513 / 34.649 | 0.028 / 0.023 |
+| 20 m / 0.1 m | −5.623 to 5.714 | 1.313 | 47.135 / 249.397 / 1,145.873 | 72.375 | 1.622 / 27.937 / 34.781 | 0.022 / 0.023 |
+| 20 m / 0.2 m | −11.247 to 11.427 | 2.626 | 54.135 / 250.599 / 1,145.819 | 72.900 | 1.595 / 27.917 / 34.913 | 0.025 / 0.020 |
+| 20 m / 0.3 m | −16.870 to 17.141 | 3.939 | 61.171 / 251.958 / 1,145.764 | 73.424 | 1.626 / 27.926 / 35.045 | 0.029 / 0.024 |
+
+Final-height spans, adjacent final steps and collision slopes include the
+existing hill, rolling and regional relief; only the floor contribution range
+and its adjacent step isolate this layer.
+
+The selected 8 m / 0.1 m scale contributes a 13.223 cm peak-to-peak range;
+its maximum adjacent input step is 2.765 cm over 125 cm (about 1.27 degrees of
+local floor-only grade). The sampled floor noise ranges 1.322 across the dry
+profiles. Collision slope percentiles and maximum vary only modestly across
+the matrix, with no scale-linked lattice spike; the selected scale has 6.4
+collision intervals per scale length. The source's fixed BH01 anchor samples
+remain dry and retain their biome labels. At all 28 BH01 sites, selected 8 m /
+0.1 m versus the retained pre-floor-selection current-source export changes no
+water or biome state; height deltas range −4.105 to +4.799 cm, maximum
+collision-height delta is 4.661 cm, and maximum slope delta is 0.942 degrees.
+Two BH01 water flags differ from the selected output, but those sites were
+already dry in the current-source control and their state did not change with
+floor selection. These numeric results select the smallest tested scale and
+amplitude without evidence of numerical aliasing; rendered readability beneath
+vegetation remains part of BH26 and is not claimed here.
+
+The selected defaults are compiled into `KalmalaRegionalTuning.h`; focused
+source assertions now require 8 m / 0.1 m. The corrected fixed fixture uses the
+repository's unquoted simple-CSV convention, while the runner retains the five
+confirmed river controls in raw output and removes only those coordinates from
+dry-floor ranges.
 
 ### Coast, rivers and lakes
 

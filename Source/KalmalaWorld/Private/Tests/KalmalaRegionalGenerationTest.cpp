@@ -701,8 +701,8 @@ bool FKalmalaMeadowFloorDetailTest::RunTest(const FString& Parameters)
     const FKalmalaWorldGenerationConfig OtherSeed{419ull};
 
     TestTrue(TEXT("Documented Meadow floor settings are valid"), Preview.HasValidReliefControls());
-    TestEqual(TEXT("Floor scale uses the documented nominal trial"), Preview.MeadowFloorScale, 1200.0);
-    TestEqual(TEXT("Floor amplitude uses the documented nominal trial"), Preview.MeadowFloorAmplitude, 20.0);
+    TestEqual(TEXT("Floor scale uses the measured default"), Preview.MeadowFloorScale, 800.0);
+    TestEqual(TEXT("Floor amplitude uses the measured default"), Preview.MeadowFloorAmplitude, 10.0);
     TestTrue(TEXT("Floor detail uses at least six collision samples per smallest allowed scale"),
         800.0 / (L::PatchSize / FKalmalaWaterSurfaceMesh::CellsPerSide) >= 6.0);
 

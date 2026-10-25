@@ -14,6 +14,24 @@ $expectedProfileCount = 8
 $expectedSamplesPerProfile = 49
 $sampleSpacingCm = 125.0
 $profileLengthCm = 6000.0
+$fixedRiverControlCoordinates = @(
+    [pscustomobject]@{ Seed = 419; Site = 'S419_StarterMeadows_EW'; Xcm = -3781.6; Ycm = -781.6 },
+    [pscustomobject]@{ Seed = 419; Site = 'S419_StarterMeadows_EW'; Xcm = -3656.6; Ycm = -781.6 },
+    [pscustomobject]@{ Seed = 419; Site = 'S419_StarterMeadows_EW'; Xcm = -3531.6; Ycm = -781.6 },
+    [pscustomobject]@{ Seed = 419; Site = 'S419_StarterMeadows_EW'; Xcm = -3406.6; Ycm = -781.6 },
+    [pscustomobject]@{ Seed = 419; Site = 'S419_StarterMeadows_EW'; Xcm = -3281.6; Ycm = -781.6 }
+)
+
+function Test-FixedRiverControl($row) {
+    foreach ($control in $fixedRiverControlCoordinates) {
+        if ([int]$row.Seed -eq $control.Seed -and $row.Site -eq $control.Site -and
+            [math]::Abs([double]::Parse($row.Xcm, $culture) - $control.Xcm) -le 0.01 -and
+            [math]::Abs([double]::Parse($row.Ycm, $culture) - $control.Ycm) -le 0.01) {
+            return $true
+        }
+    }
+    return $false
+}
 
 foreach ($path in @($inputPath, $baselinePath)) {
     if ($path.Length -ge 260) { throw "Path exceeds MAX_PATH: $path" }
@@ -28,6 +46,10 @@ $profileGroups = @($profileRows | Group-Object Site)
 $seamGroups = @($seamRows | Group-Object Site)
 if ($profileGroups.Count -ne $expectedProfileCount -or $seamGroups.Count -ne 8) {
     throw 'Floor fixture must contain eight profiles and eight patch-side controls.'
+}
+$fixtureRiverControls = @($profileRows | Where-Object { Test-FixedRiverControl $_ })
+if ($fixtureRiverControls.Count -ne $fixedRiverControlCoordinates.Count) {
+    throw 'Floor fixture must retain exactly the five documented seed-419 river-control coordinates.'
 }
 
 $baseline = @(Import-Csv -LiteralPath $baselinePath)
@@ -199,6 +221,7 @@ foreach ($scaleM in @(8, 12, 20)) {
             throw "Trial $trialName returned $($rows.Count) rows, while the log reports $loggedCount (expected exactly $expectedRows fixed input rows)."
         }
         $forestedProfileSamples = 0
+        $riverControlRows = [Collections.Generic.List[object]]::new()
         foreach ($row in $rows) {
             foreach ($column in @('FinalHeightCm', 'MeadowsWeight', 'WaterLevelCm', 'CollisionTriangleHeightCm',
                 'CollisionTriangleSlopeDegrees', 'CollisionTriangleGradePercent', 'MeadowFloorNoise', 'MeadowFloorInputCm')) {
@@ -208,8 +231,18 @@ foreach ($scaleM in @(8, 12, 20)) {
                     throw "Trial $trialName has a non-finite $column at $($row.Site)."
                 }
             }
-            if ([int]$row.HasWater -ne 0 -or [double]::Parse($row.MeadowsWeight, $culture) -le 0.5) {
-                throw "Trial $trialName contains a wet or non-Meadows sample at $($row.Site)."
+            $isFixedRiverControl = Test-FixedRiverControl $row
+            if ($isFixedRiverControl) {
+                $waterLevel = [double]::Parse($row.WaterLevelCm, $culture)
+                $finalHeight = [double]::Parse($row.FinalHeightCm, $culture)
+                if ([int]$row.HasWater -ne 1 -or [math]::Abs($waterLevel) -gt 0.01 -or
+                    $finalHeight -ge $waterLevel -or [double]::Parse($row.MeadowsWeight, $culture) -le 0.5) {
+                    throw "Trial $trialName changed fixed seed-419 river control water at $($row.Xcm),$($row.Ycm)."
+                }
+                $riverControlRows.Add($row)
+            }
+            elseif ([int]$row.HasWater -ne 0 -or [double]::Parse($row.MeadowsWeight, $culture) -le 0.0) {
+                throw "Trial $trialName contains a newly wet sample or a sample with no Meadows influence at $($row.Site)."
             }
             $forestDescriptorCount = 0
             if (-not [int]::TryParse([string]$row.ForestDescriptorCount, [ref]$forestDescriptorCount) -or $forestDescriptorCount -lt 0) {
@@ -223,6 +256,9 @@ foreach ($scaleM in @(8, 12, 20)) {
                 throw "Trial $trialName has a floor signal/input mismatch at $($row.Site)."
             }
         }
+        if ($riverControlRows.Count -ne $fixedRiverControlCoordinates.Count) {
+            throw "Trial $trialName did not return all five fixed river controls."
+        }
         if ($forestedProfileSamples -eq 0) { throw "Trial $trialName contains no fixed sample patches with forest descriptors." }
 
         foreach ($group in $rows | Where-Object { $_.Site -notmatch 'Patch[XY]' } | Group-Object Site) {
@@ -235,11 +271,19 @@ foreach ($scaleM in @(8, 12, 20)) {
                 @($group.Group | Sort-Object { [double]::Parse($_.Ycm, $culture) })
             }
             if ($profile.Count -ne $expectedSamplesPerProfile) { throw "Trial $trialName has an unexpected profile count at $($group.Name)." }
-            $heights = @($profile | ForEach-Object { [double]::Parse($_.FinalHeightCm, $culture) })
-            $signals = @($profile | ForEach-Object { [double]::Parse($_.MeadowFloorNoise, $culture) })
-            $inputs = @($profile | ForEach-Object { [double]::Parse($_.MeadowFloorInputCm, $culture) })
-            $slopes = @($profile | ForEach-Object { [double]::Parse($_.CollisionTriangleSlopeDegrees, $culture) })
-            $grades = @($profile | ForEach-Object { [double]::Parse($_.CollisionTriangleGradePercent, $culture) })
+            $profileRiverControls = @($profile | Where-Object { Test-FixedRiverControl $_ })
+            $expectedControlCount = if ($group.Name -eq 'S419_StarterMeadows_EW') { $fixedRiverControlCoordinates.Count } else { 0 }
+            if ($profileRiverControls.Count -ne $expectedControlCount) { throw "Trial $trialName has an unexpected fixed river-control count at $($group.Name)." }
+            $dryProfile = @($profile | Where-Object { -not (Test-FixedRiverControl $_) })
+            $expectedDrySamples = $expectedSamplesPerProfile - $expectedControlCount
+            if ($dryProfile.Count -ne $expectedDrySamples) { throw "Trial $trialName has an unexpected dry sample count at $($group.Name)." }
+            $heights = @($dryProfile | ForEach-Object { [double]::Parse($_.FinalHeightCm, $culture) })
+            $signals = @($dryProfile | ForEach-Object { [double]::Parse($_.MeadowFloorNoise, $culture) })
+            $inputs = @($dryProfile | ForEach-Object { [double]::Parse($_.MeadowFloorInputCm, $culture) })
+            $slopes = @($dryProfile | ForEach-Object { [double]::Parse($_.CollisionTriangleSlopeDegrees, $culture) })
+            $grades = @($dryProfile | ForEach-Object { [double]::Parse($_.CollisionTriangleGradePercent, $culture) })
+            $controlHeights = @($profileRiverControls | ForEach-Object { [double]::Parse($_.FinalHeightCm, $culture) })
+            $controlSlopes = @($profileRiverControls | ForEach-Object { [double]::Parse($_.CollisionTriangleSlopeDegrees, $culture) })
             $maxInputStep = 0.0
             $maxFinalHeightStep = 0.0
             for ($index = 1; $index -lt $profile.Count; $index++) {
@@ -248,15 +292,22 @@ foreach ($scaleM in @(8, 12, 20)) {
                 $globalCellPrior = if ($axis -eq 'EW') { [int]$prior.PatchX * 24 + [int]$prior.PatchCellX } else { [int]$prior.PatchY * 24 + [int]$prior.PatchCellY }
                 $globalCellCurrent = if ($axis -eq 'EW') { [int]$current.PatchX * 24 + [int]$current.PatchCellX } else { [int]$current.PatchY * 24 + [int]$current.PatchCellY }
                 if ($globalCellCurrent -ne ($globalCellPrior + 1)) { throw "Trial $trialName lost 125 cm collision-grid progression at $($group.Name)." }
-                $maxInputStep = [math]::Max($maxInputStep, [math]::Abs($inputs[$index] - $inputs[$index - 1]))
-                $maxFinalHeightStep = [math]::Max($maxFinalHeightStep, [math]::Abs($heights[$index] - $heights[$index - 1]))
+                if (-not (Test-FixedRiverControl $prior) -and -not (Test-FixedRiverControl $current)) {
+                    $priorFloorInput = [double]::Parse($prior.MeadowFloorInputCm, $culture)
+                    $currentFloorInput = [double]::Parse($current.MeadowFloorInputCm, $culture)
+                    $priorFinalHeight = [double]::Parse($prior.FinalHeightCm, $culture)
+                    $currentFinalHeight = [double]::Parse($current.FinalHeightCm, $culture)
+                    $maxInputStep = [math]::Max($maxInputStep, [math]::Abs($currentFloorInput - $priorFloorInput))
+                    $maxFinalHeightStep = [math]::Max($maxFinalHeightStep, [math]::Abs($currentFinalHeight - $priorFinalHeight))
+                }
             }
             $forestCount = ($profile | Measure-Object -Property ForestDescriptorCount -Maximum).Maximum
             $summaryRows.Add([pscustomobject]@{
                 ScaleM = $scaleText
                 AmplitudeM = $amplitudeText
                 Site = $group.Name
-                Samples = $profile.Count
+                Samples = $dryProfile.Count
+                WetControlSamples = $profileRiverControls.Count
                 SpacingCm = $sampleSpacingCm
                 FloorSignalRange = (($signals | Measure-Object -Maximum).Maximum - ($signals | Measure-Object -Minimum).Minimum)
                 FloorInputRangeCm = (($inputs | Measure-Object -Maximum).Maximum - ($inputs | Measure-Object -Minimum).Minimum)
@@ -266,6 +317,9 @@ foreach ($scaleM in @(8, 12, 20)) {
                 MaxTriangleSlopeDegrees = ($slopes | Measure-Object -Maximum).Maximum
                 MaxTriangleGradePercent = ($grades | Measure-Object -Maximum).Maximum
                 ForestDescriptorCount = $forestCount
+                WetControlHeightMinCm = if ($controlHeights.Count -gt 0) { ($controlHeights | Measure-Object -Minimum).Minimum } else { '' }
+                WetControlHeightMaxCm = if ($controlHeights.Count -gt 0) { ($controlHeights | Measure-Object -Maximum).Maximum } else { '' }
+                WetControlSlopeMaxDegrees = if ($controlSlopes.Count -gt 0) { ($controlSlopes | Measure-Object -Maximum).Maximum } else { '' }
                 SeamHeightDeltaCm = ''
                 SeamCollisionDeltaCm = ''
                 OutputCsv = $outputPath
@@ -297,6 +351,7 @@ foreach ($scaleM in @(8, 12, 20)) {
                     AmplitudeM = $amplitudeText
                     Site = ('S' + $seed + '_Patch' + $axis)
                     Samples = 2
+                    WetControlSamples = 0
                     SpacingCm = 1
                     FloorSignalRange = ''
                     FloorInputRangeCm = ''
@@ -306,6 +361,9 @@ foreach ($scaleM in @(8, 12, 20)) {
                     MaxTriangleSlopeDegrees = ''
                     MaxTriangleGradePercent = ''
                     ForestDescriptorCount = ''
+                    WetControlHeightMinCm = ''
+                    WetControlHeightMaxCm = ''
+                    WetControlSlopeMaxDegrees = ''
                     SeamHeightDeltaCm = $heightDelta
                     SeamCollisionDeltaCm = $collisionDelta
                     OutputCsv = $outputPath

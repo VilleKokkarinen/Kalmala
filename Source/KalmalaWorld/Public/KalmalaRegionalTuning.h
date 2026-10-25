@@ -24,8 +24,8 @@ struct FKalmalaRegionalTuning
     static constexpr double MeadowShoulderCompressionScale = 3000.0;
     static constexpr double MeadowRollingScale = 4500.0;
     static constexpr double MeadowRollingAmplitude = 60.0;
-    static constexpr double MeadowFloorScale = 1200.0;
-    static constexpr double MeadowFloorAmplitude = 20.0;
+    static constexpr double MeadowFloorScale = 800.0;
+    static constexpr double MeadowFloorAmplitude = 10.0;
     // Separate world-space forest placement domain; suitability remains a later gate.
     static constexpr uint64 ForestFactorSalt = 0x4B414C4D414C4107ull;
     static constexpr double ForestFactorScale = 48000.0;

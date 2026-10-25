@@ -339,13 +339,15 @@ held fixed; BH25b1 selected a 0.6 m rolling amplitude at 45 m. Across the eight
 fixed profiles, the selected rolling trial's final-height min/mean/max ranges
 were 42.4/176.2/767.8 cm at 30 m, 49.5/226.8/935.1 cm at 45 m, and
 66.4/286.3/1,074.0 cm at 70 m; dry collision-slope p50/p90/p95/maximum was
-2.31/4.55/28.07/36.20 degrees. BH12a adds a third independently seeded 12 m /
-0.2 m floor-detail signal. These layers enter the smooth, monotonic shoulder
+2.31/4.55/28.07/36.20 degrees. BH12a adds a third independently seeded floor
+signal; BH25c selected 8 m / 0.1 m after the nine-trial fresh-source matrix.
+At 125 cm collision spacing, the selected scale has 6.4 intervals per scale
+length and a maximum 2.765 cm adjacent floor-input step. These layers enter the smooth, monotonic shoulder
 curve; candidates below 10 m remain unchanged and the curve approaches a 40 m
 upper bound. The broad layer replaces the previous 40 cm Meadows detail term.
-Floor detail and Lakes tuning remain provisional pending BH25c/BH25d. BH26
-retains rendered gentler-route and under-vegetation inspection; numeric profiles
-do not claim rendered traversal or floor aliasing acceptance.
+Lakes tuning remains provisional pending BH25d. BH26 retains rendered
+gentler-route and under-vegetation inspection; numeric profiles do not claim
+rendered traversal or floor readability acceptance.
 
 Elderwood and Tundra share the same uncompressed candidate over the absolute-
 world 1,000 / 150 / 30 m relief stack, plus its bounded legacy detail. BH25b2

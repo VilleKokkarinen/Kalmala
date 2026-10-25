@@ -453,8 +453,8 @@ save migrations as part of this goal.
 start at 1,000 m / 150 m / 30 m (broad / middle / local). Meadows uses the
 BH25a-selected 160 m / 4 m broad hills and BH25b1-selected 45 m / 0.6 m rolling
 relief, and BH25b2-selected 1,000 m / 4 m, 150 m / 0.6 m, and 30 m / 0.1 m
-shared Elderwood/Tundra relief layers. Meadows floor detail remains provisional
-at 12 m / 0.2 m. Tundra forest density starts at 0.85 of comparable Elderwood
+shared Elderwood/Tundra relief layers. BH25c selected Meadows floor detail at
+8 m / 0.1 m. Tundra forest density starts at 0.85 of comparable Elderwood
 density. Remaining experiment settings are agent-selected, not prior
 user-approved production values; compare low / nominal / high documented
 amplitudes one layer at a time, then retain the smallest values that satisfy
@@ -572,16 +572,16 @@ run for this goal and may exceed one turn.
       retain confirmed Z=0 river controls separately from dry-land metrics,
       reject stale binaries, and defer numeric selection to BH25b1.
   - [x] **BH12 — Add Meadows floor detail.** The integrated layer and
-    reproducible profile sweep harness are complete. Numeric scale/amplitude
-    selection remains BH25c; rendered under-vegetation acceptance remains BH26.
+    reproducible profile sweep harness are complete. BH25c selected the
+    measured 8 m / 0.1 m default; rendered under-vegetation acceptance remains BH26.
     - [x] **BH12a — Integrate local Meadows floor detail.** Add the separately
-      seeded local signal at provisional 12 m / 0.2 m settings, within the
+      seeded local signal at the BH25c-selected 8 m / 0.1 m settings, within the
       documented 8–20 m / 0.1–0.35 m bounds, before shoulder compression.
       Preserve continuous biome/coast blending, broad hills and rolling relief.
     - [x] **BH12b — Add floor-detail profile harness.** Add fixed-seed local
       profiles, lattice/aliasing metrics and validated commandlet-only scale /
       amplitude overrides. Sweep 8/12/20 m by 0.1/0.2/0.3 m and reject stale
-      binaries; leave numeric selection to BH25c and rendered acceptance to BH26.
+      binaries; numeric selection is in BH25c and rendered acceptance is BH26.
   - [x] **BH13 — Shape Elderwood.** The shared uncompressed candidate and its
     profile sweep harness are complete. BH25b2 selected measured
     broad/middle/local amplitudes of 4 / 0.6 / 0.1 m within trial ranges of
@@ -758,11 +758,14 @@ run for this goal and may exceed one turn.
         collision and decoration budgets with BH01 evidence. No fixed mesh/map
         payload or candidate-loop budget grew; unavailable BH01 generation and
         collision timings remain explicitly assigned to BH26. BH25b is closed.
-    - [ ] **BH25c — Run Meadows floor-detail trials.** With freshly compiled
-      source, run the BH12b 8/12/20 m by 0.1/0.2/0.3 m matrix; compare local
-      height/slope samples and select the smallest readable scale/amplitude
-      combination without corrugation or lattice aliasing, then record the
-      measured ranges.
+    - [x] **BH25c — Run Meadows floor-detail trials.** Freshly rebuilt the
+      current-source Editor and ran all nine 8/12/20 m by 0.1/0.2/0.3 m trials.
+      The smallest numerically resolved setting, 8 m / 0.1 m, sampled at 6.4
+      points per 125 cm lattice interval; its maximum adjacent floor input step
+      was 2.765 cm, fixed-site water/biome state matched current source, and
+      maximum final/collision seam deltas were 0.026 / 0.028 cm. Raw profiles
+      and comparisons are in `docs/meadows-plan.md`. Rendered readability and
+      under-vegetation acceptance remain BH26.
     - [ ] **BH25d — Run Shimmering Lakes profile trials.** With freshly compiled
       BH14b source, compare the fixed Lakes transects and collision slopes
       against BH01. Sweep Meadow share 0.35/0.50/0.65, lowland floor

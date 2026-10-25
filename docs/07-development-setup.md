@@ -3682,7 +3682,7 @@ The file uses one `Name=value` per line, with optional blank lines and full-line
 | `MeadowHillScaleM` / `MeadowHillAmplitudeM` | 160 / 4 | BH25a selected 4 m from fresh 4/6/8 m profiles; 100–250 m / preview bounds 4–10 m. |
 | `MeadowShoulderHeightM` / `MeadowShoulderCompressionScaleM` | 10 / 30 | Meadows upper shoulder begins at 6–16 m and approaches a bounded asymptote with a 10–60 m scale. |
 | `MeadowRollingScaleM` / `MeadowRollingAmplitudeM` | 45 / 0.6 | BH25b1 selected 0.6 m from fresh 0.6/1.2/1.8 m profile trials; 30–70 m / preview bounds 0.6–2 m. |
-| `MeadowFloorScaleM` / `MeadowFloorAmplitudeM` | 12 / 0.2 | Meadow floor detail; 8–20 m / 0.1–0.35 m. |
+| `MeadowFloorScaleM` / `MeadowFloorAmplitudeM` | 8 / 0.1 (selected in BH25c) | Meadow floor detail; 8–20 m / 0.1–0.35 m. |
 | `StarterRadiusKm` | 0.35 | Inclusive Meadows/Ocean-only radius. |
 | `ElderwoodMinimumKm` | 0.75 | Forest eligibility minimum. |
 | `LakesMinimumKm` / `LakesMaximumKm` | 0.35 / 3 | Starter wetland distance range. |
@@ -3694,9 +3694,8 @@ The file uses one `Name=value` per line, with optional blank lines and full-line
 | `MeadowsMaximumKm` | 4 | Meadows cutoff; must exceed the starter radius and be at most 16 km. |
 | `EligibilityBlendKm` | 0.05 | Smooth eligibility ramp; 0.001 km through the Meadows maximum. |
 
-The production regional sampler consumes the selected Meadows hill and rolling
-controls and the shared Elderwood/Tundra relief. Meadows floor detail remains
-provisional. This fast PNG exporter validates and reports its own map controls
+The production regional sampler consumes the selected Meadows hill, rolling
+and floor controls and the shared Elderwood/Tundra relief. This fast PNG exporter validates and reports its own map controls
 but does not display shaped height; use the full visualization commandlet and
 the numeric profile runners below for final-height ranges.
 
@@ -3746,22 +3745,28 @@ part of BH26.
 
 ### Meadows floor-detail profile sweep
 
-After compiling the BH12a regional sampler, run
+After compiling the current regional sampler, run
 `Scripts/Tests/World/BiomeFloorProfiles.ps1 -Project <project-path>` with the
 matching Editor commandlet. `-ValidateOnly` checks the checked-in fixture
 without launching Unreal. The fixture contains 60 m seed-418/419 starter and
 outer Meadows transects at 125 cm collision-cell spacing, plus start-relative
-outer X/Y patch-seam controls. Nine commandlet-only trials cover 8/12/20 m
+outer X/Y patch-seam controls. Five exact seed-419 river rows remain in the raw
+outputs as fixed wet controls and are excluded from dry-floor metrics. Other
+profile rows require dry status and positive Meadows weight; fixed anchors must
+have Meadows weight above 0.5. Nine commandlet-only trials cover 8/12/20 m
 scales and 0.1/0.2/0.3 m amplitudes. The output includes raw floor noise and
 pre-blend input contribution, final height, collision height/slope/grade,
 patch/cell coordinates and descriptor counts for the forest patches crossed by
 the profiles. The runner checks the effective-parameter log marker, so a binary
 without the BH12b sampler export cannot silently produce accepted results; it
-also checks signal/amplitude agreement, dry Meadows samples, collision-cell
-progression and patch seams. It does not build or select production tuning.
-BH25c must run the sweep with freshly compiled source, compare all nine
-combinations, and record the selected scale/amplitude and measured profiles;
-rendered under-vegetation aliasing and readability remain part of BH26.
+also checks signal/amplitude agreement, dry status outside fixed river controls,
+positive Meadows influence, collision-cell progression and patch seams. It
+does not build or select production tuning. BH25c rebuilt current source and
+ran all nine combinations, selecting 8 m / 0.1 m. At this setting, floor input
+ranges from −6.726 to +6.497 cm and its maximum adjacent step is 2.765 cm over
+the 125 cm lattice. Full raw ranges and fixed-site comparisons are in
+[`meadows-plan.md`](meadows-plan.md). Rendered under-vegetation aliasing and
+readability remain part of BH26.
 
 ### Elderwood/Tundra profile sweep
 
