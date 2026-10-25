@@ -10568,3 +10568,88 @@
   verification remain open.
 - **Next eligible A10 item audit:** Garnet (`Garnet`), next in A9 backlog
   order.
+
+## Run 2026-10-25 — A10 per-item audit: A9 Garnet
+
+- **Selected increment and registration:** audited only `Garnet`, next in A9
+  backlog order. Schema-16 catalogue registration includes
+  `items/materials/gems.json`, `items/accessories.json`, and
+  `recipes/stations/a9-gear.json`. Garnet is a raw material (stack 20, 0.1 kg)
+  with no equipment, attack, upgrade, direct-craft recipe, or use effect. Its
+  sole recipe use is the enabled Forge `GarnetNecklace` recipe: 3 `Bronze` +
+  1 `Garnet` → 1 necklace, batch one. The necklace profile provides +20 maximum
+  health while equipped; the raw gem has no such effect.
+
+- **Accepted source and runtime route:** the server selects one Garnet on the
+  domain-separated 1-in-10 roll for existing canonical PointOfInterest
+  discovery descriptors in Elderwood or Shimmering Lakes. No node, enemy, or
+  other Garnet source is registered. Shimmering Lakes can independently roll
+  Aquamarine into the same treasure; the saved state and claim path support the
+  complete bundle.
+
+- **Authority and persistence:** `PrepareWorldTreasure` accepts only server-side,
+  canonical generated descriptors and stores each deterministic result,
+  including empty chests, in the world-population schema-2 ledger before actor
+  presentation. A saved result is returned unchanged on later initialization.
+  Claims validate server authority, same-world living interactor and range,
+  then build and capacity-check the complete inventory grant. The claim ledger
+  transition is saved before success is published; if saving fails after the
+  inventory commit, the server attempts to restore the prior inventory. Treasure
+  records allow only the fixed gem allowlist and one unclaimed-to-claimed
+  transition with unchanged contents. Ordinary Garnet inventory is session-only;
+  the restart record proves the chest stays claimed, not that the stack persists.
+
+- **Icon and mapping:** manifest row (image batch 81, import batch AL)
+  declares the raw Garnet
+  icon for PackInventory and ItemDetail. The original, prepared 64-pixel source,
+  and imported texture exist at
+  `Content/Kalmala/UI/Source/IconOriginals/Garnet.png`,
+  `Content/Kalmala/UI/Source/Icons/Garnet.png`, and
+  `Content/Kalmala/UI/Icons/Items/Garnet.uasset`. Runtime lookup maps Garnet to
+  Rock variant 2; `GarnetNecklace` maps to Necklace variant 1.
+
+- **Focused and acceptance evidence:** inspected the historical
+  `Kalmala.Gameplay.Inventory.A9GearRecipes` paid Forge exchange/crafted-GUID
+  equip case and `Kalmala.Gameplay.Status.AccessoryStats` +20 health, no-refill,
+  recovery-to-120 and full-health rejection coverage. Both are recorded as
+  passing in the final A9 187-case automation queue. `Kalmala.World.GemstoneContract`
+  also passed historically, but its current assertions do not check Garnet's
+  1-in-10 selector rate; its treasure persistence case saves an empty claimed
+  chest. The live `GemMiningTreasurePeer.ps1` acceptance does cover the Garnet
+  source-to-claim route: two owning remote clients target a canonical seeded
+  Garnet discovery, exactly one Garnet is granted and the saved chest is claimed.
+  A fresh host process restored the claimed world ledger. The scenario provisions
+  equipment/materials and therefore does not establish unassisted fresh-start
+  progression. Its full-pack rejection is observed on the mining path; it is not
+  evidence of a full-pack Garnet chest attempt. Final A9 inventory captures show
+  equipped Garnet Necklace, but no raw Garnet inventory/detail render is
+  recorded. These historical checks were inspected, not rerun.
+
+- **Cross-cutting documentation discrepancy:** the current save-version table in
+  `docs/02-technical-architecture.md` lists generated population deltas as
+  schema 1, while `UKalmalaWorldPopulationSaveGame` and the accepted A9 contract
+  use schema 2. This shared mismatch was not edited in the Garnet-scoped audit.
+
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md` only; no gameplay, catalogue,
+  icon, or save source changed.
+- **Lightweight checks:** `python Scripts/Validate-CatalogueReferences.py`
+  passed (61 registered JSON files, 152 definitions, 777 resolved references,
+  152 ledger-backed icon mappings). `Scripts/Validate-UIIcons.ps1 -Category
+  Catalogue -Id Garnet` passed for the 1254×1254 RGBA original and transparent
+  64×64 runtime texture. Focused PowerShell assertions passed for schema-16
+  registration, material bounds, exact Forge recipe/profile, source biome/rate,
+  save version, manifest coverage and runtime icon mapping. Static inspection
+  confirmed canonical server preparation, complete-grant/capacity checks and
+  save rollback order. No Unreal build, automation, live peer, or render was run
+  for this audit.
+- **Full verification:** deferred; this is not the final A10 increment.
+- **Networking/authority:** server owns seeded treasure selection, canonical
+  descriptor validation, claim state, inventory capacity and saved transition;
+  client input supplies no item ID or quantity.
+- **Impact and remaining scope:** tracking-only; no within-item recipe, source,
+  profile, icon, authority, or persistence defect was found. The focused 1-in-10
+  selector assertion and raw-Garnet render remain unproven. Fresh-start
+  progression, broader A10 item/N/A coverage, the earlier Iron/Pick source
+  disposition and final A10 verification remain open.
+- **Next eligible A10 item audit:** Green Jade (`GreenJade`), next in A9 backlog
+  order.

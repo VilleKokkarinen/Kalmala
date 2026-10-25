@@ -464,8 +464,9 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     (`HornBow`), Thunder Maul (`ThunderMaul`), and Reef Harpoon (`ReefHarpoon`)
     are recorded in PROGRESS.md;
     A8b recipe/output audits and per-item audits for Smoky Quartz
-    (`SmokyQuartz`) and Moonstone (`Moonstone`) are recorded in PROGRESS.md;
-    next in A9 backlog order is Garnet (`Garnet`).
+    (`SmokyQuartz`) and Moonstone (`Moonstone`), plus the Garnet (`Garnet`)
+    A9 audit, are recorded in PROGRESS.md; next in A9 backlog order is
+    Green Jade (`GreenJade`).
     Keep this child open until every included item and scope N/A disposition
     is covered.
   - [ ] Run required full verification at each milestone's final increment.
