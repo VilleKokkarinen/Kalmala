@@ -652,9 +652,11 @@ run for this goal and may exceed one turn.
       stable patch/ordinal roll after existing candidate draws. Both decorative
       and harvestable paths see the same filtering; later draws, original
       ordinals and IDs are preserved.
-    - [ ] **BH20b — Apply forest-factor patchiness.** Combine the independent
-      world-space factor with Meadows density using stable per-ID thresholds;
-      create clearings without changing candidate budgets or patch boundaries.
+    - [x] **BH20b — Apply forest-factor patchiness.** Meadow admission
+      probability now multiplies the existing Flora probability by the
+      independent absolute-world factor and compares a stable world/patch/
+      original-ordinal threshold. Low-factor areas become clearings; candidate
+      limits, patch continuity and Elderwood behavior remain unchanged.
     - [ ] **BH20c — Gate on final terrain slope.** Use the shared final surface
       slope for decorative and harvestable descriptors, preserving the
       collision-aligned root and stable candidate identity.

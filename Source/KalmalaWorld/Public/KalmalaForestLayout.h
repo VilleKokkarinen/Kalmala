@@ -32,6 +32,13 @@ struct KALMALAWORLD_API FKalmalaForestLayout
     static float SampleForestFactor(const FKalmalaWorldGenerationConfig& Config,
         const FVector2D& AbsoluteWorldPosition);
 
+    /** Combines the existing Meadows Flora probability with the continuous forest factor. */
+    static float CombineMeadowAcceptanceProbability(float FloraProbability, float ForestFactor);
+
+    /** Stable unit threshold keyed by world, patch center, and original candidate ordinal. */
+    static double SampleForestCandidateThreshold(const FKalmalaWorldGenerationConfig& Config,
+        const FVector2D& PatchCenter, int32 CandidateIndex);
+
     static TArray<FKalmalaForestTreeDescriptor> Generate(
         const FKalmalaWorldGenerationConfig& Config, const FVector2D& PatchCenter);
 };

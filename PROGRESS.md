@@ -8871,3 +8871,45 @@
   Implementation files remain in this detached worktree.
 - **Next task in this directed goal:** BH20b — apply forest-factor patchiness to
   Meadows descriptor admission with stable per-ID thresholds.
+
+## Run 2026-10-25 — Apply forest-factor patchiness (BH20b)
+
+- **Selected increment:** BH20b, the next unchecked child after BH20a. The
+  worktree was clean at `244c9f2b`; A10 and monster-population work remains in
+  separate worktrees, with no concurrent run in this checkout.
+- **Work completed:** Combined Meadow admission probability as the existing
+  Flora probability multiplied by the normalized `ForestFactor`. The shared
+  descriptor path compares that probability against the same stable
+  world/patch/original-ordinal threshold added in BH20a, retaining its strict
+  roll comparison and rejecting zero-probability candidates after existing
+  geometry draws. Higher factor values smoothly increase admission. Candidate
+  limits, IDs, random-stream order, patch-independent absolute-world sampling,
+  and Elderwood behavior stay unchanged. Checked BH20b; BH20c/d remain for
+  slope and dry-ground gates.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Private/KalmalaForestLayout.cpp`,
+  `Source/KalmalaWorld/Public/KalmalaForestLayout.h`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaForestFactorTest.cpp`, and
+  `docs/02-technical-architecture.md`.
+- **Lightweight checks/results:** Re-read AGENTS.md, BACKLOG.md, PROGRESS.md,
+  the forest-factor plan, Meadows plan, architecture and development setup.
+  Inspected the shared descriptor flow, separate factor domain, stable
+  threshold and unchanged random-stream calls. Added focused automation source
+  coverage for probability scaling, stable thresholds, normalized factor range
+  and patch-boundary factor continuity; it was not built or run.
+  `git diff --check` passed. Full verification remains deferred to BH26.
+- **Observable impact:** Meadows density now follows both Flora suitability and
+  the smooth world-space forest factor; low-factor pockets form clearings.
+  Descriptor budgets and the shared rendering/server-materialization path stay
+  intact.
+- **Networking/authority:** No RPC, replicated state, save data or authority
+  path changed. Factor and candidate thresholds remain deterministic from
+  existing seed/world/patch/candidate identity.
+- **Known limitations / remaining scope:** The 48,000 cm factor scale remains
+  provisional. Final slope and dry-ground gating remain BH20c/d; rendered
+  density and compiled behavior are unverified until BH26.
+- **Main-checkout handoff:** Synchronized only `BACKLOG.md` and `PROGRESS.md`,
+  preserving the existing Monster S35 progress. A10 work remains in its
+  separate worktree. Implementation files remain in this detached worktree.
+- **Next task in this directed goal:** BH20c — gate Meadows descriptors by final
+  terrain slope through the shared descriptor path.

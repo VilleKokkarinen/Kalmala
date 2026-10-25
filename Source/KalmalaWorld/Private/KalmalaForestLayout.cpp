@@ -15,31 +15,6 @@ namespace
     constexpr int32 ElderwoodTreeCandidateCount = 72;
     constexpr float TreeEdgeMargin = 260.0f;
     constexpr uint64 TreeSeedSalt = 0xD1B54A32D192ED03ull;
-
-    double CandidateAdmissionRoll(const FKalmalaWorldGenerationConfig& Config,
-        const FVector2D& PatchCenter, const int32 CandidateIndex)
-    {
-        if (!Config.IsValid() || !FMath::IsFinite(PatchCenter.X) || !FMath::IsFinite(PatchCenter.Y)
-            || CandidateIndex < 0)
-        {
-            return 1.0;
-        }
-
-        const double PatchX = PatchCenter.X == 0.0 ? 0.0 : PatchCenter.X;
-        const double PatchY = PatchCenter.Y == 0.0 ? 0.0 : PatchCenter.Y;
-        uint64 PatchXBits = 0, PatchYBits = 0;
-        FMemory::Memcpy(&PatchXBits, &PatchX, sizeof(PatchXBits));
-        FMemory::Memcpy(&PatchYBits, &PatchY, sizeof(PatchYBits));
-
-        uint64 Hash = FKalmalaRegionalGeneration::Seed(
-            Config, T::ForestCandidateGateSalt, FIntPoint(CandidateIndex, 0));
-        Hash ^= PatchXBits * 0xd6e8feb86659fd93ull;
-        Hash ^= PatchYBits * 0xa0761d6478bd642full;
-        Hash = (Hash ^ (Hash >> 30)) * 0xbf58476d1ce4e5b9ull;
-        Hash = (Hash ^ (Hash >> 27)) * 0x94d049bb133111ebull;
-        Hash ^= Hash >> 31;
-        return double(Hash >> 11) * (1.0 / 9007199254740992.0);
-    }
 }
 
 FString FKalmalaForestLayout::GetPersistentSpawnId(const FKalmalaWorldGenerationConfig& Config,
@@ -66,6 +41,38 @@ float FKalmalaForestLayout::SampleForestFactor(const FKalmalaWorldGenerationConf
     const double Noise = FKalmalaRegionalGeneration::Noise(
         Config, T::ForestFactorSalt, AbsoluteWorldPosition, 1.0 / T::ForestFactorScale);
     return float(FMath::Clamp(0.5 + 0.5 * Noise, 0.0, 1.0));
+}
+
+float FKalmalaForestLayout::CombineMeadowAcceptanceProbability(
+    const float FloraProbability, const float ForestFactor)
+{
+    if (!FMath::IsFinite(FloraProbability) || !FMath::IsFinite(ForestFactor)) return 0.0f;
+    return FMath::Clamp(FloraProbability, 0.0f, 1.0f) * FMath::Clamp(ForestFactor, 0.0f, 1.0f);
+}
+
+double FKalmalaForestLayout::SampleForestCandidateThreshold(
+    const FKalmalaWorldGenerationConfig& Config, const FVector2D& PatchCenter, const int32 CandidateIndex)
+{
+    if (!Config.IsValid() || !FMath::IsFinite(PatchCenter.X) || !FMath::IsFinite(PatchCenter.Y)
+        || CandidateIndex < 0 || CandidateIndex >= ElderwoodTreeCandidateCount)
+    {
+        return 1.0;
+    }
+
+    const double PatchX = PatchCenter.X == 0.0 ? 0.0 : PatchCenter.X;
+    const double PatchY = PatchCenter.Y == 0.0 ? 0.0 : PatchCenter.Y;
+    uint64 PatchXBits = 0, PatchYBits = 0;
+    FMemory::Memcpy(&PatchXBits, &PatchX, sizeof(PatchXBits));
+    FMemory::Memcpy(&PatchYBits, &PatchY, sizeof(PatchYBits));
+
+    uint64 Hash = FKalmalaRegionalGeneration::Seed(
+        Config, T::ForestCandidateGateSalt, FIntPoint(CandidateIndex, 0));
+    Hash ^= PatchXBits * 0xd6e8feb86659fd93ull;
+    Hash ^= PatchYBits * 0xa0761d6478bd642full;
+    Hash = (Hash ^ (Hash >> 30)) * 0xbf58476d1ce4e5b9ull;
+    Hash = (Hash ^ (Hash >> 27)) * 0x94d049bb133111ebull;
+    Hash ^= Hash >> 31;
+    return double(Hash >> 11) * (1.0 / 9007199254740992.0);
 }
 
 TArray<FKalmalaForestTreeDescriptor> FKalmalaForestLayout::Generate(
@@ -103,6 +110,10 @@ TArray<FKalmalaForestTreeDescriptor> FKalmalaForestLayout::Generate(
             continue;
         }
 
+        const float ForestFactor = SampleForestFactor(WorldGenerationConfig, SamplePosition);
+        const float MeadowAcceptanceProbability = CombineMeadowAcceptanceProbability(
+            FloraProbability, ForestFactor);
+
         const bool bElderwood = Biome == EKalmalaBiome::Elderwood;
         // Keep the existing candidate positions, dimensions, yaw and IDs. A
         // stable ordinal pattern gives Meadow groves both birch and aspen.
@@ -116,7 +127,9 @@ TArray<FKalmalaForestTreeDescriptor> FKalmalaForestLayout::Generate(
         // Consume the existing candidate draw sequence before applying the new Meadow gate.
         // Its independent per-ID roll cannot shift later positions or dimensions when rejected.
         if (Biome == EKalmalaBiome::Meadows
-            && CandidateAdmissionRoll(WorldGenerationConfig, PatchCenter, CandidateIndex) > FloraProbability)
+            && (MeadowAcceptanceProbability <= 0.0f
+                || SampleForestCandidateThreshold(WorldGenerationConfig, PatchCenter, CandidateIndex)
+                    > MeadowAcceptanceProbability))
         {
             continue;
         }
@@ -124,7 +137,7 @@ TArray<FKalmalaForestTreeDescriptor> FKalmalaForestLayout::Generate(
             FVector(LocalPosition.X, LocalPosition.Y, SurfaceHeight),
             TrunkRadius, TrunkHeight, CanopyRadius, CanopyHeight, TreeYaw, bElderwood, bAspen});
         // This absolute-world noise sample is stateless and consumes no candidate-stream draws.
-        Result.Last().ForestFactor = SampleForestFactor(WorldGenerationConfig, SamplePosition);
+        Result.Last().ForestFactor = ForestFactor;
         Result.Last().PersistentSpawnId = GetPersistentSpawnId(WorldGenerationConfig, PatchCenter, CandidateIndex);
     }
     return Result;

@@ -3200,8 +3200,11 @@ is independent of terrain detail, Flora and candidate-stream draws; it is not an
 additional ecological field or replicated map. Meadows candidates now use the
 existing Flora probability curve through this shared layout, with a stable
 world/patch/original-ordinal roll applied after existing geometry draws so a new
-rejection cannot shift later candidate randomness. The forest-factor, final-slope
-and dry-ground gates remain in BH20b–BH20d.
+rejection cannot shift later candidate randomness. Meadow admission probability
+multiplies the existing Flora probability by the continuous absolute-world
+factor; low-factor areas form clearings without changing the candidate budget or
+resetting at patch boundaries. Final-slope and dry-ground gates remain in
+BH20c–BH20d.
 Each accepted descriptor has a
 `forest:v1:<world-seed>:<patch-x>:<patch-y>:<candidate>` identity. Patch coordinates
 are exact world-space centers formatted with 17 significant digits and normalized
