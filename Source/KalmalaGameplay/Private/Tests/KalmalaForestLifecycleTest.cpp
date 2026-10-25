@@ -2,6 +2,7 @@
 
 #include "KalmalaForestLayout.h"
 #include "KalmalaForestResourceContract.h"
+#include "KalmalaForestTundraTestSupport.h"
 #include "KalmalaHarvestNode.h"
 #include "CollisionQueryParams.h"
 #include "Engine/World.h"
@@ -18,17 +19,13 @@ bool FKalmalaForestLifecycleTest::RunTest(const FString& Parameters)
     const FKalmalaWorldGenerationConfig Config{418ull};
     FVector2D PatchCenter = FVector2D::ZeroVector;
     TArray<FKalmalaForestTreeDescriptor> Trees;
-    // Find a real accepted candidate, without hard-coding a filtered array ordinal.
-    for (int32 Y = -8; Y <= 8 && Trees.IsEmpty(); ++Y)
-    {
-        for (int32 X = -8; X <= 8 && Trees.IsEmpty(); ++X)
-        {
-            PatchCenter = FVector2D(X * 10000.0, Y * 10000.0);
-            Trees = FKalmalaForestLayout::Generate(Config, PatchCenter);
-        }
-    }
-    if (!TestFalse(TEXT("Fixture finds an accepted generated forest candidate"), Trees.IsEmpty())) return false;
+    if (!TestTrue(TEXT("Fixture finds an accepted Freezing Tundra Birch candidate"),
+        KalmalaForestTundraTestSupport::FindPatch(Config, 1, PatchCenter, Trees))) return false;
     const FKalmalaForestTreeDescriptor Tree = Trees[0];
+    TestEqual(TEXT("Shared descriptor keeps Tundra resource kind explicit"),
+        Tree.TreeKind, EKalmalaForestTreeKind::FreezingTundraBirch);
+    TestEqual(TEXT("Tundra descriptor preserves its original candidate identity"),
+        Tree.PersistentSpawnId, FKalmalaForestLayout::GetPersistentSpawnId(Config, PatchCenter, Tree.CandidateIndex));
     UWorld* World = UWorld::CreateWorld(EWorldType::Game, false);
     if (!TestNotNull(TEXT("Forest lifecycle world created"), World)) return false;
 
@@ -128,6 +125,8 @@ bool FKalmalaForestLifecycleTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Reconstruction retains patch relevance owner"), Node->GetOwner() == PatchOwner);
     TestEqual(TEXT("Biome selects canonical trunk source"), Node->GetGatheringSourceId(),
         FKalmalaForestResourceContract::GetSourceId(Tree.TreeKind));
+    TestEqual(TEXT("Tundra materialization uses the existing Birch source"), Node->GetGatheringSourceId(),
+        FName(TEXT("meadows-birch-trunk")));
     TestTrue(TEXT("Standing forest tree accepts axe attacks"), Node->CanReceiveAxeAttack());
     CheckStandingCollision(Node);
     CheckWorldSelection(Node);

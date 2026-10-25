@@ -84,6 +84,7 @@ public:
 
 private:
     friend class FKalmalaForestPatchLifecycleTest;
+    friend class FKalmalaTundraForestPatchLifecycleTest;
     friend class FKalmalaForestRestartTest;
     friend class FKalmalaM9SourceAcceptanceTest;
 

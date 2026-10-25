@@ -667,10 +667,9 @@ run for this goal and may exceed one turn.
       height; original ordinals, IDs, basin policy and lifecycle consumers stay
       unchanged. Focused helper and identity coverage was added; full integrated
       acceptance remains in BH26.
-  - [ ] **BH21 — Add Tundra forest participation.** Reuse the forest factor with
-    reduced density; keep resource identity explicit and consistent across
-    rendering, harvesting, suppression, and persistence. Keep BH21 open until
-    BH21a–BH21c are complete.
+  - [x] **BH21 — Add Tundra forest participation.** Reuse the forest factor
+    with reduced density; keep resource identity explicit and consistent across
+    rendering, harvesting, suppression, and persistence. BH21a–BH21c are complete.
     - [x] **BH21a — Make forest tree kind explicit.** Shared descriptors now
       use explicit Meadows birch, Meadows aspen, Elderwood ironheart and
       Freezing Tundra birch kinds. Existing renderer and harvest consumers use
@@ -684,10 +683,13 @@ run for this goal and may exceed one turn.
       Tundra appearance draws use a separate patch/candidate stream, preserving
       the Meadow/Elderwood candidate stream, counts and IDs; BH25 finalizes the
       multiplier and BH21c proves lifecycle behavior.
-    - [ ] **BH21c — Verify Tundra forest identity and lifecycle.** Add focused
-      source proof for Tundra-only selection, resource/presentation agreement,
-      suppression, depletion, late join and restart identity. Defer integrated
-      rendered and gameplay acceptance to BH26.
+    - [x] **BH21c — Verify Tundra forest identity and lifecycle.** Focused
+      Tundra Birch fixtures now trace the shared descriptor kind and persistent
+      candidate ID through server materialization, original-ordinal cosmetic
+      suppression, sparse depletion and patch reconstruction. The process
+      restart fixture now persists and reloads Tundra identities. Late-join
+      delivery uses the same descriptors and checks source, ID, suppression,
+      replicated transform and stage; integrated peer acceptance remains BH26.
   - [ ] **BH22 — Add eligible Lakes forest shoulders.** Reuse shared forest
     placement only on suitable dry shoulders; reject wet ground and retain
     existing resource/catalogue rules and bounded counts.

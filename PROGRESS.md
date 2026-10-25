@@ -9100,3 +9100,47 @@
   Implementation and source-coverage files remain in this detached worktree.
 - **Next eligible task:** BH21c — verify Tundra resource identity and forest
   lifecycle behavior.
+
+### BH21c — Tundra forest identity and lifecycle source proof (2026-10-25)
+
+- **Work completed:** Added a deterministic Tundra-patch fixture that searches
+  classified Tundra positions for accepted `FreezingTundraBirch` descriptors.
+  The lifecycle fixture now reconstructs a Tundra candidate by its original
+  `CandidateIndex` and checks the stable `PersistentSpawnId` and existing Birch
+  source. The patch fixture traces that descriptor through server node
+  materialization, canonical cosmetic suppression, the production sparse
+  depletion callback, save snapshot reload and patch reactivation. The opt-in
+  process restart fixture now persists and reloads Tundra Birch identities.
+  The existing late-join verifier was inspected: it regenerates the same shared
+  descriptors and checks candidate suppression, persistent ID, source selected
+  by `TreeKind`, replicated transform and tree stage. BH21 is implementation
+  complete; the roadmap milestone remains open for BH22–BH26.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaForestTundraTestSupport.h`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaForestLifecycleTest.cpp`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaForestPatchTest.cpp`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaForestRestartTest.cpp`, and
+  `Source/KalmalaGameplay/Public/KalmalaGameMode.h` (test-fixture friendship).
+- **Lightweight checks/results:** Re-read AGENTS.md, BACKLOG.md, PROGRESS.md,
+  the biome rework plan, architecture identity contract, and development setup
+  coverage for forest reconstruction, patch suppression, depletion, delivery and
+  process restart. Static inspection confirmed server materialization resolves
+  sources from the shared descriptor kind, and the late-join verifier checks
+  regenerated descriptors against replicated nodes. `git diff --check` passed.
+  Automation and builds were not run; full verification remains deferred to
+  BH26.
+- **Observable impact:** Focused source fixtures now exercise Tundra-specific
+  identities through the existing server materialization and persistence paths.
+  No runtime counts or peer behavior were measured.
+- **Networking/authority:** No production RPC, replicated state, save schema or
+  authority behavior changed. The test fixture calls the existing server-bound
+  depletion callback; late-join source/identity checks remain on the existing
+  shared descriptor verifier. Integrated peer verification remains deferred to
+  BH26.
+- **Known limitations / remaining scope:** Fixtures were inspected but not
+  compiled or executed. Rendered behavior, actual client late-join delivery,
+  measured Tundra density and final 0.85 multiplier tuning remain for BH25–BH26.
+- **Main-checkout handoff:** Synchronized only this run's `BACKLOG.md` and
+  `PROGRESS.md` changes to `E:\dev\Kalmala` after inspecting both main versions;
+  existing A10 and Monster progress was preserved.
+- **Next eligible task:** BH22 — add eligible Lakes forest shoulders.
