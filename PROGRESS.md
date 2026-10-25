@@ -9144,3 +9144,46 @@
   `PROGRESS.md` changes to `E:\dev\Kalmala` after inspecting both main versions;
   existing A10 and Monster progress was preserved.
 - **Next eligible task:** BH22 — add eligible Lakes forest shoulders.
+
+### BH22 — Eligible Shimmering Lakes forest shoulders (2026-10-25)
+
+- **Work completed:** The shared layout now admits exact Shimmering Lakes
+  candidates from the existing 18 lowland ordinals, combining the Flora curve
+  with the absolute-world forest factor and stable original-ordinal threshold.
+  Lakes reuse the established Meadows Birch kind, source and presentation; no
+  Lakes-specific timber source, item or catalogue entry was introduced. Their
+  appearance uses a per-candidate geometry seed, leaving existing Meadow,
+  Elderwood and Tundra candidate positions and shared-stream draws unchanged.
+  The shared 0.88 final-slope gate and final regional plus collision-lattice
+  water checks reject unsuitable and wet ground. Rendering and server
+  materialization continue to consume the same descriptors.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Private/KalmalaForestLayout.cpp`,
+  `Source/KalmalaWorld/Public/KalmalaForestLayout.h`,
+  `Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaForestLakesTest.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaForestFactorTest.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaForestSlopeTest.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaForestWetGroundTest.cpp`, and
+  `docs/02-technical-architecture.md`.
+- **Lightweight checks/results:** Re-read AGENTS.md, BACKLOG.md, PROGRESS.md,
+  the biome rework forest plan, forest identity architecture, existing forest
+  materialization/rendering paths and water/slope contracts. Static inspection
+  confirmed both rendering and server activation call `FKalmalaForestLayout::Generate`,
+  and the new Lakes gate uses no shared-stream draws. `git diff --check` passed.
+  The focused source automation was added but not run; no build or full suite
+  was run. Full verification remains deferred to BH26.
+- **Observable impact:** Dry, gently sloped Lakes candidates can join the
+  existing Birch forest presentation while wet ground remains excluded.
+  Runtime counts and rendered results were not measured.
+- **Networking/authority:** No RPC, replicated state, save schema or catalogue
+  authority changed. Cosmetic patches and server harvest nodes continue to use
+  the same deterministic descriptors and existing server-side source mapping.
+- **Known limitations / remaining scope:** The 18-candidate cap and provisional
+  forest settings were not measured at runtime. The focused Lakes test was not
+  compiled or executed; full rendered, water, peer and performance acceptance
+  remains for BH26.
+- **Main-checkout handoff:** Synchronized only this run's `BACKLOG.md` and
+  `PROGRESS.md` changes to `E:\dev\Kalmala` after inspecting both main versions;
+  existing A10 and Monster progress was preserved.
+- **Next eligible task:** BH23 — add terrain-driven ground presentation.

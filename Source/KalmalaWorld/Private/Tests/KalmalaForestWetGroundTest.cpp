@@ -3,19 +3,19 @@
 #include "Misc/AutomationTest.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaForestWetGroundTest,
-    "Kalmala.World.Forest.MeadowWetGroundAndIdentity",
+    "Kalmala.World.Forest.SharedWetGroundAndIdentity",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FKalmalaForestWetGroundTest::RunTest(const FString& Parameters)
 {
     TestTrue(TEXT("Valid dry regional and ocean samples allow placement"),
-        FKalmalaForestLayout::IsMeadowGroundDry(false, true, false));
+        FKalmalaForestLayout::IsForestGroundDry(false, true, false));
     TestFalse(TEXT("Regional river or basin water rejects placement"),
-        FKalmalaForestLayout::IsMeadowGroundDry(true, true, false));
+        FKalmalaForestLayout::IsForestGroundDry(true, true, false));
     TestFalse(TEXT("Collision-lattice ocean water rejects placement"),
-        FKalmalaForestLayout::IsMeadowGroundDry(false, true, true));
+        FKalmalaForestLayout::IsForestGroundDry(false, true, true));
     TestFalse(TEXT("An invalid final ocean sample cannot prove ground is dry"),
-        FKalmalaForestLayout::IsMeadowGroundDry(false, false, false));
+        FKalmalaForestLayout::IsForestGroundDry(false, false, false));
 
     const FKalmalaWorldGenerationConfig Config{418ull};
     const FVector2D PatchCenter(3000.0, -6000.0);

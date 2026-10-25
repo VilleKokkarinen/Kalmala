@@ -690,9 +690,12 @@ run for this goal and may exceed one turn.
       restart fixture now persists and reloads Tundra identities. Late-join
       delivery uses the same descriptors and checks source, ID, suppression,
       replicated transform and stage; integrated peer acceptance remains BH26.
-  - [ ] **BH22 — Add eligible Lakes forest shoulders.** Reuse shared forest
-    placement only on suitable dry shoulders; reject wet ground and retain
-    existing resource/catalogue rules and bounded counts.
+  - [x] **BH22 — Add eligible Lakes forest shoulders.** Shared forest placement
+    now admits only Shimmering Lakes-classified Birch candidates, reuses the
+    existing 18-ordinal lowland cap and resource/presentation, and applies the
+    stable Flora/forest-factor roll. Final slope and regional/collision-lattice
+    water checks restrict placement to suitable dry shoulders without changing
+    candidate positions, existing identities or the shared descriptor path.
   - [ ] **BH23 — Add terrain-driven ground presentation.** Blend existing
     grass/soil/rock materials and fit existing decorative rocks using final
     slope/moisture; add reeds only if matching original content already exists.

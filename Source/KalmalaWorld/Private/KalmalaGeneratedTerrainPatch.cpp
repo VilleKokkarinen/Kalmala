@@ -284,7 +284,7 @@ void AKalmalaGeneratedTerrainPatch::Initialize(const FKalmalaWorldGenerationConf
     }
     if (BuildMeadowTrees())
     {
-        UE_LOG(LogTemp, Display, TEXT("Server built %d deterministic Meadow/Elderwood trees and roots."), MeadowTreeCount);
+        UE_LOG(LogTemp, Display, TEXT("Server built %d deterministic forest trees and roots."), MeadowTreeCount);
     }
     ForceNetUpdate();
 }
@@ -342,7 +342,7 @@ void AKalmalaGeneratedTerrainPatch::OnRep_GenerationData()
         }
         if (BuildMeadowTrees())
         {
-            UE_LOG(LogTemp, Display, TEXT("Client built %d deterministic Meadow/Elderwood trees and roots from the replicated patch descriptor."), MeadowTreeCount);
+            UE_LOG(LogTemp, Display, TEXT("Client built %d deterministic forest trees and roots from the replicated patch descriptor."), MeadowTreeCount);
         }
     }
 }

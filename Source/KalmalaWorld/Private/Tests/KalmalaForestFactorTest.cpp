@@ -10,15 +10,15 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaForestFactorPatchinessTest,
 bool FKalmalaForestFactorPatchinessTest::RunTest(const FString& Parameters)
 {
     const float FloraProbability = 0.64f;
-    const float LowFactorProbability = FKalmalaForestLayout::CombineMeadowAcceptanceProbability(
+    const float LowFactorProbability = FKalmalaForestLayout::CombineForestAcceptanceProbability(
         FloraProbability, 0.1f);
-    const float HighFactorProbability = FKalmalaForestLayout::CombineMeadowAcceptanceProbability(
+    const float HighFactorProbability = FKalmalaForestLayout::CombineForestAcceptanceProbability(
         FloraProbability, 0.9f);
     TestEqual(TEXT("Zero forest factor creates a complete clearing"),
-        FKalmalaForestLayout::CombineMeadowAcceptanceProbability(FloraProbability, 0.0f), 0.0f);
+        FKalmalaForestLayout::CombineForestAcceptanceProbability(FloraProbability, 0.0f), 0.0f);
     TestEqual(TEXT("Forest factor one preserves the existing Flora probability"),
-        FKalmalaForestLayout::CombineMeadowAcceptanceProbability(FloraProbability, 1.0f), FloraProbability);
-    TestTrue(TEXT("Lower forest factor lowers Meadow admission probability"),
+        FKalmalaForestLayout::CombineForestAcceptanceProbability(FloraProbability, 1.0f), FloraProbability);
+    TestTrue(TEXT("Lower forest factor lowers forest admission probability"),
         LowFactorProbability < HighFactorProbability);
     TestTrue(TEXT("Combined probability never exceeds Flora suitability"),
         HighFactorProbability <= FloraProbability);

@@ -40,8 +40,8 @@ struct KALMALAWORLD_API FKalmalaForestLayout
     static float SampleForestFactor(const FKalmalaWorldGenerationConfig& Config,
         const FVector2D& AbsoluteWorldPosition);
 
-    /** Combines the existing Meadows Flora probability with the continuous forest factor. */
-    static float CombineMeadowAcceptanceProbability(float FloraProbability, float ForestFactor);
+    /** Combines lowland forest Flora suitability with the continuous forest factor. */
+    static float CombineForestAcceptanceProbability(float FloraProbability, float ForestFactor);
 
     /** Combines the existing forest Flora probability/factor with provisional reduced Tundra density. */
     static float CombineTundraAcceptanceProbability(float FloraProbability, float ForestFactor);
@@ -50,11 +50,11 @@ struct KALMALAWORLD_API FKalmalaForestLayout
     static double SampleForestCandidateThreshold(const FKalmalaWorldGenerationConfig& Config,
         const FVector2D& PatchCenter, int32 CandidateIndex);
 
-    /** True when the final sampled surface normal is within the Meadows tree-slope limit. */
-    static bool IsMeadowSurfaceSlopeSuitable(float SurfaceNormalZ);
+    /** True when the final sampled surface normal is within the shared forest-slope limit. */
+    static bool IsForestSurfaceSlopeSuitable(float SurfaceNormalZ);
 
     /** True only when final regional water and a valid collision-lattice sea sample both allow placement. */
-    static bool IsMeadowGroundDry(bool bRegionalHasWater, bool bOceanSampleValid, bool bOceanHasWater);
+    static bool IsForestGroundDry(bool bRegionalHasWater, bool bOceanSampleValid, bool bOceanHasWater);
 
     static TArray<FKalmalaForestTreeDescriptor> Generate(
         const FKalmalaWorldGenerationConfig& Config, const FVector2D& PatchCenter);

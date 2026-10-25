@@ -12,10 +12,10 @@
 namespace
 {
     using T = FKalmalaRegionalTuning;
-    constexpr int32 MeadowTreeCandidateCount = 18;
+    constexpr int32 MeadowsLakesTreeCandidateCount = 18;
     constexpr int32 ElderwoodTreeCandidateCount = 72;
     constexpr float TreeEdgeMargin = 260.0f;
-    constexpr float MeadowMinimumSurfaceNormalZ = 0.88f;
+    constexpr float ForestMinimumSurfaceNormalZ = 0.88f;
     constexpr uint64 TreeSeedSalt = 0xD1B54A32D192ED03ull;
 
     uint64 HashForestCandidate(const FKalmalaWorldGenerationConfig& Config,
@@ -66,7 +66,7 @@ float FKalmalaForestLayout::SampleForestFactor(const FKalmalaWorldGenerationConf
     return float(FMath::Clamp(0.5 + 0.5 * Noise, 0.0, 1.0));
 }
 
-float FKalmalaForestLayout::CombineMeadowAcceptanceProbability(
+float FKalmalaForestLayout::CombineForestAcceptanceProbability(
     const float FloraProbability, const float ForestFactor)
 {
     if (!FMath::IsFinite(FloraProbability) || !FMath::IsFinite(ForestFactor)) return 0.0f;
@@ -91,12 +91,12 @@ double FKalmalaForestLayout::SampleForestCandidateThreshold(
     return double(Hash >> 11) * (1.0 / 9007199254740992.0);
 }
 
-bool FKalmalaForestLayout::IsMeadowSurfaceSlopeSuitable(const float SurfaceNormalZ)
+bool FKalmalaForestLayout::IsForestSurfaceSlopeSuitable(const float SurfaceNormalZ)
 {
-    return FMath::IsFinite(SurfaceNormalZ) && SurfaceNormalZ >= MeadowMinimumSurfaceNormalZ;
+    return FMath::IsFinite(SurfaceNormalZ) && SurfaceNormalZ >= ForestMinimumSurfaceNormalZ;
 }
 
-bool FKalmalaForestLayout::IsMeadowGroundDry(const bool bRegionalHasWater,
+bool FKalmalaForestLayout::IsForestGroundDry(const bool bRegionalHasWater,
     const bool bOceanSampleValid, const bool bOceanHasWater)
 {
     return !bRegionalHasWater && bOceanSampleValid && !bOceanHasWater;
@@ -121,14 +121,16 @@ TArray<FKalmalaForestTreeDescriptor> FKalmalaForestLayout::Generate(
         if (!FKalmalaWorldBounds::Contains(WorldGenerationConfig, SamplePosition, 1000)) continue;
         const FKalmalaWorldFieldSample Fields = FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, SamplePosition);
         const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(Fields);
+        const bool bMeadows = Biome == EKalmalaBiome::Meadows;
+        const bool bLakes = Biome == EKalmalaBiome::ShimmeringLakes;
         const bool bElderwood = Biome == EKalmalaBiome::Elderwood;
         const bool bTundra = Biome == EKalmalaBiome::FreezingTundra;
-        if (Biome != EKalmalaBiome::Meadows && !bElderwood && !bTundra)
+        if (!bMeadows && !bLakes && !bElderwood && !bTundra)
         {
             continue;
         }
 
-        if (Biome == EKalmalaBiome::Meadows && CandidateIndex >= MeadowTreeCandidateCount)
+        if ((bMeadows || bLakes) && CandidateIndex >= MeadowsLakesTreeCandidateCount)
         {
             continue;
         }
@@ -140,8 +142,15 @@ TArray<FKalmalaForestTreeDescriptor> FKalmalaForestLayout::Generate(
         }
 
         const float ForestFactor = SampleForestFactor(WorldGenerationConfig, SamplePosition);
-        const float MeadowAcceptanceProbability = CombineMeadowAcceptanceProbability(FloraProbability, ForestFactor);
+        const float MeadowsLakesAcceptanceProbability = CombineForestAcceptanceProbability(FloraProbability, ForestFactor);
         const float TundraAcceptanceProbability = CombineTundraAcceptanceProbability(FloraProbability, ForestFactor);
+        if (bLakes
+            && (MeadowsLakesAcceptanceProbability <= 0.0f
+                || SampleForestCandidateThreshold(WorldGenerationConfig, PatchCenter, CandidateIndex)
+                    > MeadowsLakesAcceptanceProbability))
+        {
+            continue;
+        }
         if (bTundra
             && (TundraAcceptanceProbability <= 0.0f
                 || SampleForestCandidateThreshold(WorldGenerationConfig, PatchCenter, CandidateIndex)
@@ -152,10 +161,12 @@ TArray<FKalmalaForestTreeDescriptor> FKalmalaForestLayout::Generate(
 
         // Keep the existing candidate positions, dimensions, yaw and IDs. A
         // stable ordinal pattern gives Meadow groves both birch and aspen.
-        const bool bAspen = Biome == EKalmalaBiome::Meadows && CandidateIndex % 3 == 0;
+        const bool bAspen = bMeadows && CandidateIndex % 3 == 0;
         float TrunkHeight = 0.0f, TrunkRadius = 0.0f, CanopyRadius = 0.0f, CanopyHeight = 0.0f, TreeYaw = 0.0f;
-        if (bTundra)
+        if (bTundra || bLakes)
         {
+            // New biome candidates use stable per-ID appearance, not the shared
+            // stream that determines existing positions and Meadow/Elderwood geometry.
             const uint64 AppearanceHash = HashForestCandidate(WorldGenerationConfig, PatchCenter,
                 CandidateIndex, T::ForestCandidateGeometrySalt);
             FRandomStream AppearanceStream(static_cast<int32>(AppearanceHash >> 32));
@@ -175,17 +186,17 @@ TArray<FKalmalaForestTreeDescriptor> FKalmalaForestLayout::Generate(
         }
         // Consume the existing candidate draw sequence before applying the new Meadow gate.
         // Its independent per-ID roll cannot shift later positions or dimensions when rejected.
-        if (Biome == EKalmalaBiome::Meadows
-            && (MeadowAcceptanceProbability <= 0.0f
+        if (bMeadows
+            && (MeadowsLakesAcceptanceProbability <= 0.0f
                 || SampleForestCandidateThreshold(WorldGenerationConfig, PatchCenter, CandidateIndex)
-                    > MeadowAcceptanceProbability))
+                    > MeadowsLakesAcceptanceProbability))
         {
             continue;
         }
 
         // Only slope-check Meadows candidates that passed the existing gates.
-        if (Biome == EKalmalaBiome::Meadows
-            && !IsMeadowSurfaceSlopeSuitable(
+        if ((bMeadows || bLakes)
+            && !IsForestSurfaceSlopeSuitable(
                 FKalmalaTerrainHeightSampler::SampleSurfaceNormal(WorldGenerationConfig, SamplePosition).Z))
         {
             continue;
@@ -194,23 +205,25 @@ TArray<FKalmalaForestTreeDescriptor> FKalmalaForestLayout::Generate(
         const FKalmalaRegionalSample FinalSurface =
             FKalmalaRegionalGeneration::Sample(WorldGenerationConfig, SamplePosition);
         FKalmalaOceanSample OceanSurface;
-        if (Biome == EKalmalaBiome::Meadows && !FinalSurface.bHasWater)
+        if ((bMeadows || bLakes) && !FinalSurface.bHasWater)
         {
             OceanSurface = FKalmalaOceanSampler::Sample(WorldGenerationConfig, SamplePosition,
                 PatchCenter - FVector2D(HalfSurfaceSize, HalfSurfaceSize));
         }
-        if (Biome == EKalmalaBiome::Meadows
-            && !IsMeadowGroundDry(FinalSurface.bHasWater, OceanSurface.bIsValid, OceanSurface.IsWater()))
+        if ((bMeadows || bLakes)
+            && !IsForestGroundDry(FinalSurface.bHasWater, OceanSurface.bIsValid, OceanSurface.IsWater()))
         {
             continue;
         }
 
         const float SurfaceHeight = FinalSurface.Height;
+        // Lakes use the already established generic Birch source and presentation.
         const EKalmalaForestTreeKind TreeKind = bTundra
             ? EKalmalaForestTreeKind::FreezingTundraBirch
+            : (bLakes ? EKalmalaForestTreeKind::MeadowsBirch
             : (bElderwood
             ? EKalmalaForestTreeKind::ElderwoodIronheart
-            : (bAspen ? EKalmalaForestTreeKind::MeadowsAspen : EKalmalaForestTreeKind::MeadowsBirch));
+            : (bAspen ? EKalmalaForestTreeKind::MeadowsAspen : EKalmalaForestTreeKind::MeadowsBirch)));
         Result.Add({CandidateIndex, FVector(SamplePosition.X, SamplePosition.Y, SurfaceHeight),
             FVector(LocalPosition.X, LocalPosition.Y, SurfaceHeight),
             TrunkRadius, TrunkHeight, CanopyRadius, CanopyHeight, TreeYaw, TreeKind});

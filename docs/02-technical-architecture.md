@@ -3192,12 +3192,13 @@ Equipped accessories' additive `StaminaCostMultiplier` deltas sum with active We
 
 ### Generated-forest harvesting contract (reconciled 2026-10-17)
 
-`FKalmalaForestLayout::Generate` supplies individual Meadow/Elderwood descriptors
-shared by terrain rendering and server materialization: original candidate ordinal,
-world/local position, biome, dimensions, yaw, and a normalized `ForestFactor`
-sampled from a separate absolute-world noise domain. This derived placement mask
-is independent of terrain detail, Flora and candidate-stream draws; it is not an
-additional ecological field or replicated map. Meadows candidates now use the
+`FKalmalaForestLayout::Generate` supplies individual Meadows, Lakes, Elderwood
+and Tundra descriptors shared by terrain rendering and server materialization:
+original candidate ordinal, world/local position, biome, dimensions, yaw, and a
+normalized `ForestFactor` sampled from a separate absolute-world noise domain.
+This derived placement mask is independent of terrain detail, Flora and
+candidate-stream draws; it is not an additional ecological field or replicated
+map. Meadows candidates now use the
 existing Flora probability curve through this shared layout, with a stable
 world/patch/original-ordinal roll applied after existing geometry draws so a new
 rejection cannot shift later candidate randomness. Meadow admission probability
@@ -3212,6 +3213,13 @@ regional water are rejected; remaining candidates also require a valid dry sea
 sample on the same explicit 125 cm patch triangle lattice used by clipped ocean
 water. This rejects sea, river and policy-enabled basin water without creating
 basins when analytic basin support is disabled. Elderwood behavior is unchanged.
+Shimmering Lakes candidates are admitted only at exact Lakes-classified samples,
+share the existing 18-ordinal Meadows cap and Flora/forest-factor threshold, and
+must pass the same final-slope and dry-water checks on the collision lattice.
+They use the established generic Meadows Birch kind, source and presentation; no
+Lakes timber source or catalogue item is added. Their appearance uses the
+per-candidate geometry seed, so newly eligible Lakes trees do not advance
+existing candidate or geometry draws.
 The same shared descriptors feed cosmetic rendering and server materialization,
 so wet-ground rejection preserves original candidate ordinals and persistent IDs
 for suppression, depletion, late join and restart reconstruction.
