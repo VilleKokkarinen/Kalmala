@@ -1,3 +1,22 @@
+## Planning 2026-10-26 - Developer console and secret-key debug mode
+
+- **Scope:** Planning only. The user explicitly overrode the concurrent-run
+  stop for this backlog edit; no runtime implementation was authorized.
+- **Completed:** Appended DC after existing goals: 21 ordered unchecked tasks
+  for authenticated console UX, teleport/bookmarks, god/heal, flight/speed,
+  grants/repair, debug creatures, time/weather and diagnostic commands.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`. Existing edits are preserved.
+- **Checks:** Inspected task order, command bounds, authority, lifecycle,
+  persistence, existing Enable Console candidate and documentation links;
+  checked patch whitespace and committed path lengths below MAX_PATH.
+  No runtime build/tests run; full verification is deferred to DC21.
+- **Impact/authority:** No runtime change. Plan requires confidential secret
+  login, connection-bound server grants and allowlisted validated commands.
+  Construction still requires direct materials; no portable kits or bypass.
+- **Limitations/next task:** All implementation remains pending; no secret
+  generated/configured. Existing queue priority is unchanged. DC01 is the
+  first child when this goal becomes eligible. This is not milestone acceptance.
+
 ## Run 2026-10-23T07:26:32Z — Add Meadows Rat peer-acceptance runner
 
 - **Selected task:** Continue the first unchecked A8 I4 child for live A8a

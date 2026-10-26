@@ -688,6 +688,161 @@ milestone-final verification/repair run and can exceed a normal turn.
     failures and rerun required checks in this run. Record actual commands/results;
     check the parent only when verification passes, otherwise record the blocker.
 
+### Developer console and secret-key debug mode — user request, 2026-10-26
+
+- [ ] **DC — Add an in-game developer console with authenticated debug commands.**
+  Provide the practical exploration/testing convenience requested by the user,
+  inspired by survival-game consoles, using original Kalmala UI and commands.
+  Append this goal after existing active goals; do not change their priority.
+  Planning only: all implementation children remain unchecked.
+
+  **Implementation defaults chosen for this plan:**
+  - Reuse any existing console/input/settings route; integrate the existing
+    Enable Console option candidate instead of creating a second setting.
+    Default off, persisted locally; F5 toggles when enabled, Escape closes,
+    Enter submits, Up/Down browse 50 session-only history entries, and Tab
+    completes permitted command names/catalogue IDs. Retain 200 output lines.
+    Capture gameplay input while open, restore prior focus on close, and
+    support keyboard/controller focus with a rebindable console action.
+  - Public commands: `help [command]`, `clear`, `status`, `pos`, `login`,
+    `logout`. `status` shows own debug state/build/world seed; `pos` shows own
+    position in metres, biome and heading. Help lists only permitted commands.
+    `login` opens a masked secret field, never a secret-bearing command line;
+    exclude secrets from history, output, logs, autocomplete and replication.
+  - Explicit server opt-in defaults off in solo/listen/dedicated sessions.
+    Configure a minimum 32-character random secret through a server-only
+    environment/configuration source outside tracked/shipped content; no
+    hardcoded/default key and no key/verifier distributed to clients. Missing
+    configuration denies login. Rotate via server restart, revoking sessions.
+    Choose the existing engine-supported encrypted connection/authentication
+    path; reject remote key submission if confidentiality cannot be assured.
+    No new online service or dependency is authorized by this goal.
+  - Authenticate on the server and bind privilege to the owning connection,
+    never a client flag or supplied player ID. Allow at most five attempts per
+    connection in a rolling 60 seconds and 30 attempts server-wide per rolling
+    60 seconds; excess attempts receive a generic denial. Secret length is
+    32–128 characters, comparisons avoid timing-dependent early exit, and
+    privilege expires after 30 minutes absolute time, logout, disconnect,
+    world/session change or server shutdown. Respawn removes pawn overrides
+    but retains an otherwise valid connection authorization.
+  - All privileged commands recheck server authorization at execution, with
+    at most ten requests/second/connection and a maximum 256-character command
+    line. Reject unknown commands/IDs, extra arguments, nonfinite/out-of-range
+    numbers and invalid targets without side effects. Use an explicit allowlist,
+    never arbitrary Unreal console execution, scripts, file paths or asset loads.
+    Audit actor identity, command, sanitized arguments and outcome server-side.
+  - Cheats target the caller only unless a command below explicitly addresses
+    debug-created entities. Debug privilege/flags, flight and time/weather/AI
+    overrides are transient, never saved. Restore captured values on revocation;
+    server restart uses ordinary settings. Reject a global override while held
+    by another authorized connection; restore it when its owner loses privilege.
+    Item grants/repair use existing persistence transactions and rollback on
+    failure; successful changes persist normally. Label this in command help.
+    No save-schema changes, item additions, paid services or release changes.
+
+  **Initial privileged command set and exact boundaries:**
+  - `tp <x> <y> <z>`: absolute world metres, finite values inside the current
+    playable world; require loaded destination, valid capsule clearance and
+    server-safe terrain/water placement. Reject unsafe/unloaded sites rather
+    than changing streaming budgets. `mark <name>` / `goto <name>`: at most
+    ten session-only own-position bookmarks, names 1–24 ASCII letters/digits/
+    underscores; replacement allowed. `goto` uses the same teleport validator.
+  - `god <on|off>`: bypass incoming health damage/death for the living caller
+    only; do not revive, alter attack damage or silently refill stats.
+    `heal`: restore own health/stamina to current maxima and clear negative
+    status effects using existing server APIs, without changing progression.
+    `fly <on|off>` and `speed <multiplier>`: own server-controlled collision-
+    respecting flight and movement multiplier in [0.25,5], default 1; safe
+    grounded exit required. No noclip or interaction-range bypass.
+  - `give <itemId> [quantity]`: default 1, integer [1,100], registered ordinary
+    inventory/equipment IDs only; respect capacity, instance identity and
+    persistence rules, reject the entire grant on failure. Never grant
+    buildables or legacy Kit IDs. `repair`: restore own carried equipment to
+    its current authored condition maximum, without upgrades or new items.
+  - `spawn <creatureId> [count]`: default 1, integer [1,10], registered existing
+    creature profiles only, safe server-selected sites within 10 metres of the
+    caller and at most 20 live debug creatures per session. Replicate through
+    normal creature paths, tag transiently, suppress drops/progression rewards
+    and exclude from saves. `despawn [radius]`: default 10 metres, range
+    (0,50], removes only debug-created creatures in range, never natural
+    creatures, buildings, player inventories or persistent world records.
+  - `time <hour|reset>`: hour in [0,24), freezes the existing server day clock
+    at that hour until reset/revocation. `weather <existingPresetId|reset>`:
+    override only existing authored weather presets through the current server
+    weather system; reject unsupported IDs, restore ordinary simulation on reset.
+    `ai <pause|resume>`: pause/resume only debug-created creatures; natural
+    populations remain unaffected. No new weather, creature or gameplay content.
+  - `inspect`: read-only server trace within the ordinary interaction range,
+    returning target catalogue/type ID, position and public health/state only;
+    no other player's private inventory, save/account identity or entitlement.
+    `debug <coords|biome|collision|net|off>`: local diagnostic overlays using
+    existing data/debug drawing, no hidden inventory disclosure. `perf`:
+    toggle local FPS/frame-time display using existing counters. Require debug
+    authorization for these diagnostics too; clear overlays on revocation.
+  - Arbitrary progression editing, free construction/material-payment bypass,
+    map reveal, world reset, natural-entity mass deletion, save editing,
+    remote-player control and general server administration are out of scope.
+    Console availability must not grant access to existing unrestricted cheats.
+
+  **Run rule:** Complete the first unchecked, unblocked child in order, exactly
+  one per run; split further before implementation if it exceeds one turn.
+  Perform applicable lightweight checks, update backlog/progress, commit only
+  run-owned changes, then stop. Target 10–20 minutes per normal child.
+
+  - [ ] **DC01 — Map existing input, settings, server auth and cheat routes.**
+    Record concrete reuse points and the confidential login transport in this
+    goal; identify and gate any bypass. Keep runtime commands disabled.
+  - [ ] **DC02 — Add the local console panel and enable/rebind controls.**
+    Verify open/close, input capture, focus restore and bounded output.
+  - [ ] **DC03 — Add the bounded parser and explicit command registry.**
+    Verify argument/number rejection; connect public help/clear/status/pos only.
+  - [ ] **DC04 — Add server opt-in and server-only secret configuration.**
+    Verify missing/invalid configuration fails closed without exposing secrets.
+  - [ ] **DC05 — Add masked login and confidential server authentication.**
+    Verify correct/wrong keys, redaction and remote insecure-transport denial.
+  - [ ] **DC06 — Add login limits, connection grants and revocation.**
+    Verify attempt boundaries, absolute expiry, logout/reconnect and respawn.
+  - [ ] **DC07 — Connect the privileged dispatch authorization/rate gate.**
+    Verify forged requests, ownership, audit redaction and no Unreal bypass.
+  - [ ] **DC08 — Add filtered history, completion and command feedback.**
+    Verify bounds, permissions and exclusion of authentication material.
+  - [ ] **DC09 — Add safe teleport and bounded session bookmarks.**
+    Verify valid travel and unsafe/unloaded/out-of-world rejection.
+  - [ ] **DC10 — Add caller-only god/heal and damage-path integration.**
+    Verify incoming damage, death/status behavior and revocation cleanup.
+  - [ ] **DC11 — Add collision-respecting flight and speed controls.**
+    Verify server movement, multiplier bounds and safe grounded restoration.
+  - [ ] **DC12 — Add catalogue-only transactional item grants.**
+    Verify quantity/capacity/ID gates, equipment identity, rollback and Kit denial.
+  - [ ] **DC13 — Add carried-equipment repair through existing transactions.**
+    Verify ownership, authored maxima and persistence-failure rollback.
+  - [ ] **DC14 — Add bounded transient creature spawning.**
+    Verify safe placement, caps, peer visibility, no rewards and save exclusion.
+  - [ ] **DC15 — Add debug-creature despawn and AI pause/resume.**
+    Verify radius bounds, debug ownership tags and natural-population exclusion.
+  - [ ] **DC16 — Add reversible server time override.**
+    Verify hour bounds, single-owner conflict, replication and reset/revocation.
+  - [ ] **DC17 — Add reversible existing-preset weather override.**
+    Verify preset allowlist, single-owner conflict and simulation restoration.
+  - [ ] **DC18 — Add inspect and local diagnostic/performance displays.**
+    Verify range/privacy limits, public data only and revocation cleanup.
+  - [ ] **DC19 — Add focused authorization/lifecycle regression coverage.**
+    Cover direct RPC bypass, concurrent authorized users, secret redaction,
+    logout/expiry/disconnect, respawn and debug-entity shutdown cleanup.
+  - [ ] **DC20 — Document command help and operator setup.**
+    Update existing architecture/setup docs with actual configuration, transport,
+    persistence consequences and reset behavior; never include a working key.
+  - [ ] **DC21 — Perform console milestone-final verification and repairs.**
+    Inspect the combined feature; run applicable full build/automation and
+    solo/listen/dedicated peer checks from `docs/07-development-setup.md`,
+    including unauthorized and authorized remote peers, unsafe input, restart,
+    ordinary gameplay after logout and secret-free logs/history. Verify build
+    configurations fail closed without opt-in, commands affect only permitted
+    targets, normal construction still pays materials, and no debug creatures
+    or privileges survive restart. Repair milestone defects and rerun required
+    verification; record actual commands/results/limits in `PROGRESS.md`.
+    Mark the parent complete only after required verification passes.
+
 ## User-requested fixes
 
 - [x] Rename the camp exposure/recovery runner to ExposureRecoveryPeers.ps1 and update callers and references.
