@@ -1,3 +1,12 @@
+## Lighting plan bootstrap and L01a source audit — 2026-10-26
+
+- **Work completed:** Added the user-provided L01–L06 lighting queue and plan to the master-based feature branch, updated their worktree wording for the per-worktree concurrency rule, and recorded source-verifiable map, environment setup, generated-material, and capture-helper facts. L01a remains unchecked because the live level and renderer state are not observable without Unreal Editor.
+- **Files changed:** `BACKLOG.md`, `docs/valheim-like-lighting-plan.md`, `PROGRESS.md`.
+- **Lightweight checks:** Inspected the startup-map config, project EngineAssociation, setup script, generated-terrain material assignments, baseline capture helper, and project configuration for explicit RHI/GI/reflection/exposure/post-process overrides. No build or automation run; full verification remains deferred.
+- **Observable impact:** Planning and source-audit documentation only; no runtime or asset changes.
+- **Networking/authority:** No gameplay, server-authority, RPC, save, or replicated-state changes.
+- **Known limitations:** No Unreal Editor window was open, so serialized level actor settings, actual renderer methods, current fog/exposure/post-process state, and scene-specific camera positions remain unverified. The setup script values and capture-helper values are not proof of current runtime settings.
+- **Next eligible task:** Complete L01a after opening the project in a usable Unreal Editor window; select and record five visually verified fixed scene views, then proceed to L01b.
 ## Run 2026-10-24T18:09:54Z — Integrate Meadows hills and shoulder curve (BH10a)
 
 - **Selected task:** BH10a, the first ordered child under BH10. BH10 remains

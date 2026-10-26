@@ -4,7 +4,7 @@
 
 M0–M14, world-generation Phases 1–9, and the defined attack-driven
 tree-harvesting increment remain complete under their recorded acceptance
-scope. The following user-requested post-roadmap goal is now queued.
+scope. The user-requested post-roadmap goals below are queued in order.
 
 ### Sea-level rivers and priority terrain carving — user request, 2026-10-18
 
@@ -1037,6 +1037,187 @@ milestone-final verification/repair run and can exceed a normal turn.
 | M12 — Inventory menu and cleaner HUD | Final acceptance passed 2026-10-09. |
 | M13 — Revalidated UI on main | Integrated-main acceptance passed 2026-10-11: 122/122 tests, rendered peers, input/privacy/reconnect and Development/Shipping smoke. [Evidence](docs/evidence/m13/README.md). |
 | M14 — Expanded world map | Integrated-main acceptance passed 2026-10-12: editor build, 123/123 tests, live map runners, rendered/performance matrix. [Evidence](docs/evidence/m14/main-integration.md). |
+
+### Valheim-inspired Kalmala lighting and materials — user request, 2026-10-25
+
+**Goal:** Build an original Kalmala lighting/material stack with readable
+day/night scenes, atmospheric distance, weather-aware surfaces, and optional
+hardware ray-tracing quality levels. The detailed, researched implementation
+contract and acceptance scenes are in the [lighting plan](docs/valheim-like-lighting-plan.md).
+
+**Planning status:** This adds no runtime behavior and makes no release-hardware
+promise. Keep the accepted Kalmala art direction, client-only cosmetic behavior,
+and existing weather/gameplay authority. Hardware ray tracing and DLSS remain
+optional presentation features; the RT-off tier must retain the complete visual
+baseline. Default Lit remains the production shading path unless a later visual
+review accepts a different look.
+
+**Worktree sequence:** L01–L06 are ordered, dependent goals. Assign each goal
+one agent in a dedicated worktree based on integrated `master` after the preceding
+lighting goal has been integrated. Independent Kalmala runs may proceed concurrently
+in distinct worktrees under `AGENTS.md`; this lighting sequence remains ordered
+because later stages depend on earlier lighting outputs.
+
+**Run rule:** In the first unchecked goal, complete exactly its first unchecked
+child in order; split it before coding if it exceeds one turn. Run applicable
+lightweight checks, update backlog and progress, commit only run-owned changes,
+and stop. L06 is the integrated milestone-final verification and repair goal;
+do not mark the lighting milestone complete before it passes.
+
+- [ ] **L01 — Establish the lighting baseline and core post-process look.**
+  Record repeatable scene captures, stabilize the existing light/sky/fog/exposure
+  stack, and use built-in post-process volume controls before custom passes.
+  - [ ] **L01a — Inspect the active prototype map and renderer.** Record the
+    active RHI, GI/reflection method, directional/sky lights, fog, exposure,
+    post-process volumes, generated material assignments, and capture settings
+    in the existing lighting plan. Select and record fixed camera positions for
+    all five baseline scenes. Do not change project behavior in this audit.
+  - [ ] **L01b — Capture seed-418 daylight, forest, and water.** Use the fixed
+    camera poses for Meadows daylight, forest shade, and coast/water. Preserve
+    captures and manifest under `TestResults/LightingBaseline/`; record
+    resolution, exposure, hardware, and renderer settings. Do not write under
+    `Saved/`, `Intermediate/`, or `DerivedDataCache/`.
+  - [ ] **L01c — Capture seed-418 weather and fire scenes.** Capture
+    overcast/rain and fire-lit dusk/night using L01a's matching camera and
+    exposure records; verify all five seed-418 scenes are present.
+  - [ ] **L01d — Capture seed-419 daylight, forest, and water.** Reuse L01a's
+    fixed views and the seed-418 manifest for Meadows daylight, forest shade,
+    and coast/water.
+  - [ ] **L01e — Capture seed-419 weather and fire scenes.** Capture the
+    matching overcast/rain and fire-lit dusk/night views; verify the full
+    two-seed baseline set before changing the rig.
+  - [ ] **L01f — Tune the scene-wide rig and grade.** Keep solid surfaces on
+    Default Lit. Stabilize exposure, balance the existing directional key and
+    sky fill, tune existing fog, then apply a restrained global grade and bloom
+    using built-in settings. Save the selected values with before/after captures.
+  - [ ] **L01g — Add only justified local post-process volumes.** Use bounded
+    volumes only for an existing authored location needing a distinct look;
+    set explicit priority/blend radius and confirm no visible boundary or UI/text
+    treatment. If no such location exists, record this child N/A in the plan.
+  - [ ] **L01h — Pass the core-lighting gate.** Compare all ten fixed views and
+    ordinary third-person movement; confirm readable silhouettes, stable
+    exposure, legible firelight, and no crushed shadows or clipped highlights.
+
+- [ ] **L02 — Build and integrate the shared surface-material family.** Replace
+  flat generated surface materials through project-owned parents and instances,
+  retaining direct light, shadow, indirect fill, water clipping, and runtime
+  material assignment behavior.
+  - [ ] **L02a — Define the shared material interface.** Use the existing
+    `Content/Kalmala/World/Materials/` path and the lighting plan's bounded
+    controls: base tint, roughness, normal strength, broad color variation, and
+    mapping scale. Keep common surface functions in Material Functions.
+  - [ ] **L02b — Integrate terrain and shore.** Replace flat generated terrain
+    and shore expressions with instances of the shared lit parent; verify
+    procedural assignment and biome-debug material override still work.
+  - [ ] **L02c — Integrate rock.** Assign the opaque lit parent to generated
+    rocks and verify visible shape, roughness, and baseline material separation.
+  - [ ] **L02d — Integrate wood and bark.** Assign appropriate instances to
+    generated trunks and authored wood without creating material graphs at runtime.
+  - [ ] **L02e — Add the foliage family.** Use a separate masked/two-sided canopy
+    parent where required; inspect edge aliasing and temporal shimmer in forest
+    shade and daylight.
+  - [ ] **L02f — Integrate water separately.** Use a dedicated water parent or
+    instance; preserve sea/lake clipping and shoreline geometry, and inspect
+    reflections/highlights in the fixed coast and water views.
+  - [ ] **L02g — Pass the material-family gate.** Verify terrain, shore, rock,
+    bark, canopy, and water retain distinct values across all baseline scenes;
+    record material assignments and remaining limitations in the lighting plan.
+
+- [ ] **L03 — Prototype the stylized direct-light response.** Keep Default Lit
+  as the shipped default while measuring a restrained banded alternative; this
+  goal produces evidence and a recommendation, not an unreviewed global style
+  change.
+  - [ ] **L03a — Create an isolated comparison fixture.** Compare Default Lit
+    with a soft two- or three-band direct-light treatment on representative
+    ground, rock, wood, canopy, creature, and construction surfaces using L01's
+    fixed views.
+  - [ ] **L03b — Evaluate UE 5.8 Substrate NPR support.** Prototype its
+    experimental ramp-based shading only if the project's configured renderer,
+    build targets, and materials support it; do not add an engine fork or make
+    the experimental feature a production dependency.
+  - [ ] **L03c — Check lighting integration.** Confirm each candidate preserves
+    cast shadows, indirect fill, camp-light response, silhouette readability,
+    and temporal stability; record per-view GPU cost.
+  - [ ] **L03d — Record the review recommendation.** Keep Default Lit as the
+    production path and report the captures, tradeoffs, and recommended next
+    choice. Any change to the game's overall visual identity requires explicit
+    user review before broad adoption.
+
+- [ ] **L04 — Add supported weather and environment effects.** Use only existing
+  client presentation signals and effects; keep this cosmetic, gradual, and
+  outside gameplay, save, RPC, and replicated-state contracts.
+  - [ ] **L04a — Map existing weather inputs.** Trace currently available
+    client-side precipitation, wetness, snow/biome, sky, fog, and world-space
+    effect inputs. Record which plan effects have valid inputs; do not add a new
+    weather type or network/save field to supply a missing one.
+  - [ ] **L04b — Add subtle wet-surface response.** Apply rain/wet darkening and
+    roughness changes to the plan-selected wood/rock materials using only an
+    existing presentation signal; smooth state changes to avoid popping.
+  - [ ] **L04c — Add eligible snow coverage.** Apply it only to suitable
+    surfaces with an existing client snow/biome signal. Mark unsupported
+    combinations N/A rather than inventing a signal.
+  - [ ] **L04d — Add eligible moss/lichen variation.** Apply it only to suitable
+    surfaces with an existing client biome/surface signal; record unsupported
+    combinations as N/A in the lighting plan.
+  - [ ] **L04e — Tune existing sky and atmospheric effects.** Adjust available
+    cloud, local fog, and weather color treatments through the existing pipeline;
+    add no new sky model or weather type.
+  - [ ] **L04f — Tune existing world-space weather effects.** Adjust available
+    rain, snow, mist, or ember particles and keep them out of key sight lines.
+    Add no full-screen droplets or overlays.
+  - [ ] **L04g — Pass the environment-effects gate.** Review daylight, rain,
+    overcast, and fire-lit captures and transitions; confirm no popping,
+    excessive visual noise, or gameplay/simulation change.
+
+- [ ] **L05 — Add scalable hardware ray-tracing quality levels.** Use the RT-off
+  baseline, Lumen hardware ray tracing for supported Windows DX12/SM6 devices,
+  and the measured levels in the lighting plan. Do not claim a minimum GPU until
+  representative hardware has passed.
+  - [ ] **L05a — Verify the actual renderer support path.** Check project RHI,
+    SM6, Lumen and hardware-ray-tracing settings; record the exact supported
+    device/OS conditions and keep the current `RTX 5090` performance record
+    labelled as the reference system, not a minimum-spec test.
+  - [ ] **L05b — Preserve the RT-off compatibility path.** Confirm the baseline
+    lighting works without hardware RT, using supported Lumen software tracing
+    or the project's selected non-hardware fallback. Make the fallback explicit
+    and test that unsupported adapters do not enter the hardware path.
+  - [ ] **L05c — Implement the Balanced tier.** On supported adapters, enable
+    Lumen hardware tracing for GI/reflections using Surface Cache lighting;
+    compare against RT-off and keep Hit Lighting disabled for this tier.
+  - [ ] **L05d — Implement the High tier selectively.** Scale GI/reflection
+    quality and test ray-traced shadows only on key lights with visible benefit.
+    Set ray-tracing culling/visibility for generated forest, grass, sky, and
+    repeated meshes; do not enable expensive features indiscriminately.
+  - [ ] **L05e — Measure supported hardware.** Compare RT-off, Balanced, and
+    High on the reference PC and the actual lower-tier devices selected for
+    release; include AMD hardware if it is within the support target. Record
+    frame time, resolution, memory, image quality, and artifacts. Do not infer
+    minimum/recommended hardware from UE's compatibility list alone.
+  - [ ] **L05f — Keep upscaling separate.** Record NVIDIA DLSS as optional and
+    separate from ray tracing. Add no vendor plugin/dependency or Frame
+    Generation path in this goal; seek a separate user-approved plan if they
+    become a release requirement.
+
+- [ ] **L06 — Integrate and perform lighting milestone-final verification.**
+  This is the only full verification gate for the lighting milestone; complete
+  it after L01–L05 are integrated.
+  - [ ] **L06a — Inspect the combined implementation.** Review the merged
+    material, lighting, environment, and RT changes; confirm there are no
+    duplicate material assignments, unintended asset changes, or new gameplay,
+    authority, save, or network behavior.
+  - [ ] **L06b — Run the project-prescribed build and focused checks.** Use the
+    applicable Editor build, rendered-world checks, and performance procedures
+    in `docs/07-development-setup.md`. Record actual commands and results.
+  - [ ] **L06c — Capture integrated visual acceptance.** Repeat the ten L01
+    fixed views with the final material/effect stack for RT-off, Balanced, and
+    High where supported; inspect regular third-person camera movement and UI.
+  - [ ] **L06d — Repair lighting regressions.** Fix milestone-related build,
+    rendering, temporal stability, fallback, or performance-check failures, then
+    rerun affected checks and the required full verification.
+  - [ ] **L06e — Finalize the handoff.** Record tested hardware, per-tier GPU
+    costs, accepted captures, remaining limitations, and the actual release
+    support statement in the lighting plan and `PROGRESS.md`. Mark L06 and the
+    lighting milestone complete only after required verification passes.
 
 ## Completed post-roadmap work
 
