@@ -1,3 +1,15 @@
+## L01g local post-process volumes — N/A — 2026-10-26
+
+- **Selected task:** L01g, add local post-process volumes only when an existing authored location needs a distinct look.
+- **Work completed:** Marked L01g N/A based on the tracked map inventory and source-of-truth design. `Content/Kalmala/Maps` contains only `L_Prototype.umap`; the project brief says the slice world is assembled from seed-generated biomes rather than authored areas. The L01a live map audit recorded six serialized actors and no authored local-look location; PIE generated terrain patches. L01f's only post-process volume is explicitly unbound and scene-wide. No bounded volume was added.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, and `docs/valheim-like-lighting-plan.md`.
+- **Lightweight checks:** Confirmed the worktree was clean at the L01f commit and no active modifier remained. Inspected the tracked map inventory, startup-map config, prior live map audit, setup script, runtime terrain-patch spawn source, and project brief/architecture/roadmap/decision context. `git diff --check` passed. No Editor, build, or automation was run because no local volume was authored.
+- **Full verification:** Deferred to L06.
+- **Observable impact:** None; this N/A result adds no local post-process behavior or runtime changes.
+- **Networking/authority:** No gameplay, networking, server-authority, or save behavior changed.
+- **Known limitations / remaining scope:** The prototype has no authored location to justify a bounded treatment. L01h must still assess all ten fixed views and ordinary third-person movement; FireDusk and the other recorded baseline limitations remain unresolved. Full verification is deferred to L06.
+- **Next eligible task:** L01h — evaluate the core-lighting gate across all ten fixed views and ordinary third-person movement.
+
 ## L01f scene-wide rig and grade — 2026-10-26
 
 - **Selected task:** L01f, tune the global lighting rig and built-in grade while keeping solid surfaces Default Lit.

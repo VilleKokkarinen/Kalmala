@@ -304,6 +304,28 @@ The headless map setup commandlet and saved-volume readback, plus the UnrealEdit
 passed; full build, movement and exposure-transition verification remain
 deferred to L06.
 
+### L01g local post-process volumes — N/A — 2026-10-26
+
+No bounded local post-process volume is justified in the current prototype.
+`Content/Kalmala/Maps` contains only `Prototype/L_Prototype.umap`, and
+`Config/DefaultEngine.ini:3-4` sets it as both the game and editor startup map.
+The project brief (`docs/00-project-brief.md:30`) describes this slice as
+seed-generated biomes rather than authored areas. The L01a live map inspection
+recorded the original map's six serialized actors (environment sun, SkyLight,
+SkyAtmosphere, two PlayerStarts and the interaction-test actor), with no
+serialized location-specific volume or authored scene; starting PIE generated
+nine terrain patches. `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:11329-11341`
+confirms that terrain patches are spawned dynamically from patch coordinates.
+
+L01f added one scene-wide `KalmalaEnvironmentPostProcess` volume. The setup
+script sets it `bUnbound=true`, priority 0, blend radius 0 and blend weight 1
+(`Scripts/Setup-PrototypeEnvironment.py:38-43`), so it is the global baseline,
+not a bounded location treatment. The prototype exposes generated biome samples
+and capture-only weather/fire conditions, not an existing authored interior or
+other location with a distinct look. L01g is therefore N/A; no local volume was
+added, so there is no local boundary or UI/text treatment to validate. Revisit
+this only if an authored location is added. L01h remains the next lighting task.
+
 ## Proposed implementation stages
 
 ### 1. Capture a lighting baseline

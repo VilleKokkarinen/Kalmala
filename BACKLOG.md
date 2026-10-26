@@ -1108,7 +1108,7 @@ do not mark the lighting milestone complete before it passes.
     Default Lit. Stabilize exposure, balance the existing directional key and
     sky fill, tune existing fog, then apply a restrained global grade and bloom
     using built-in settings. Save the selected values with before/after captures.
-  - [ ] **L01g — Add only justified local post-process volumes.** Use bounded
+  - [x] **L01g — Add only justified local post-process volumes.** Use bounded
     volumes only for an existing authored location needing a distinct look;
     set explicit priority/blend radius and confirm no visible boundary or UI/text
     treatment. If no such location exists, record this child N/A in the plan.
