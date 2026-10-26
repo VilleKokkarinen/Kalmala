@@ -403,9 +403,222 @@
       "file": "Seed419_FireDusk.png"
     }
   ],
-  "manifestGeneratedAtUtc": "2026-10-26T14:04:46Z",
+  "manifestGeneratedAtUtc": "2026-10-26T14:45:17Z",
   "worldSeeds": [
     418,
     419
-  ]
+  ],
+  "lightingPass": {
+    "selectedAtUtc": "2026-10-26T14:40:18Z",
+    "selectedValues": {
+      "surfaces": "Default Lit; no surface shader or material-family replacement",
+      "directionalSunIntensity": 9.0,
+      "skyFillIntensity": 1.5,
+      "postProcessVolume": {
+        "tag": "KalmalaEnvironmentPostProcess",
+        "enabled": true,
+        "unbound": true,
+        "priority": 0.0,
+        "blendRadius": 0.0,
+        "blendWeight": 1.0
+      },
+      "autoExposure": {
+        "enabled": true,
+        "minBrightness": 0.03,
+        "overrideMin": true,
+        "maxBrightness": 2.0,
+        "overrideMax": true,
+        "lowHistogramPercent": 10.0,
+        "highHistogramPercent": 90.0,
+        "speedUp": 2.0,
+        "speedDown": 2.0,
+        "speedOverrides": true,
+        "units": "UE brightness bounds, not an EV interval"
+      },
+      "builtInGrade": {
+        "contrast": 1.02,
+        "saturation": 1.04,
+        "colorTint": "neutral",
+        "bloomIntensity": 0.3,
+        "customPostProcessMaterial": false
+      },
+      "stormFogSource": {
+        "file": "Source/KalmalaUI/Private/KalmalaWeatherActivitySubsystem.cpp",
+        "maxDensity": 0.004,
+        "maxOpacity": 0.2,
+        "previousMaxDensity": 0.005,
+        "previousMaxOpacity": 0.24,
+        "clientLocal": true,
+        "compiledForCaptures": false
+      }
+    },
+    "exposureTrials": [
+      {
+        "range": "0.1..4.0",
+        "readback": "Both min/max values and override booleans were confirmed on the saved volume",
+        "result": "Seed-418 Meadows daylight produced Colors=10 and NonBlackSamples=0; rejected."
+      },
+      {
+        "range": "0.03..2.0",
+        "readback": "Min=0.03 and Max=2.0; both override booleans true; histogram 10/90 and speeds 2/2",
+        "result": "Selected. Daylight, forest, water and overcast remain close to baseline. At the correct MeadowsFireDusk anchor the procedural ring remains visible, but the scene is still unreadable."
+      },
+      {
+        "range": "0.1..8.0",
+        "readback": "Min=0.1 and Max=8.0; both override booleans true",
+        "result": "Seed-418 MeadowsFireDusk produced Colors=11 and NonBlackSamples=0; rejected because the higher minimum makes fire fully black."
+      }
+    ],
+    "visualSummary": "Sampled mean luminance changed by about -0.3 to -3.1 levels for daylight/forest/water/overcast frames and by +0.08/+0.09 for FireDusk on a 0–255 scale. FireDusk remains nearly black. Seed-419 forest/water/overcast remain visibly unfinished; no visual acceptance is claimed.",
+    "captureEngine": "UE 5.8 UnrealEditor-Cmd.exe via Scripts/Tests/World/BiomeBaselineCapture.ps1; D3D12/SM5; 1024x768; same seeds, fixed anchors, camera and conditions as baseline.",
+    "captures": [
+      {
+        "role": "after-lighting-pass",
+        "bytes": 916258,
+        "height": 768,
+        "site": "MeadowsDaylight",
+        "scene": "MeadowsDaylight",
+        "condition": "Default",
+        "review": "Pale generated terrain, patch seams, sparse angular trees and hard shadows remain; the horizon is black. Slightly darker than baseline.",
+        "sha256": "1096C31C8F89B5026658CC986507D90813AEDD0856F3065B4568DCA6E936EB93",
+        "seed": 418,
+        "width": 1024,
+        "file": "L01f_After_Seed418_MeadowsDaylight.png",
+        "comparedTo": "Seed418_MeadowsDaylight.png"
+      },
+      {
+        "role": "after-lighting-pass",
+        "bytes": 944517,
+        "height": 768,
+        "site": "ForestShade",
+        "scene": "ForestShade",
+        "condition": "Default",
+        "review": "Seed 418 retains pale neutral-gray trees and hard shadows; seed 419 shows a checkerboard-like ground at the reused anchor without a readable forest silhouette.",
+        "sha256": "38BDAB6ADF2FF8BC78EEF6752A310ED33B81AAE310476EAE8E9961790B28F2A0",
+        "seed": 418,
+        "width": 1024,
+        "file": "L01f_After_Seed418_ForestShade.png",
+        "comparedTo": "Seed418_ForestShade.png"
+      },
+      {
+        "role": "after-lighting-pass",
+        "bytes": 801860,
+        "height": 768,
+        "site": "OceanWater",
+        "scene": "OpenWater",
+        "condition": "Default",
+        "review": "Both seeds show a broad checkerboard-like gray water surface and black horizon; no shoreline appears.",
+        "sha256": "8F8F291DFEA18F727BB037CF926C51E3F760526674E98FEFEDAC6FEACFDB6CDA",
+        "seed": 418,
+        "width": 1024,
+        "file": "L01f_After_Seed418_OpenWater.png",
+        "comparedTo": "Seed418_OpenWater.png"
+      },
+      {
+        "role": "after-lighting-pass",
+        "bytes": 614368,
+        "height": 768,
+        "site": "ThunderMountainsStorm",
+        "scene": "OvercastRain",
+        "condition": "OvercastRain",
+        "review": "Seed 418 shows a gray sky and bright green ground with a cyan water band; seed 419 shows a dark horizon and a broad cyan surface. Neither frame shows rain particles or readable mountain framing.",
+        "sha256": "4D5BD5A3AD1707BDA24F13CE706C98429FB1E02E517C39D7B02420B438BA69F6",
+        "seed": 418,
+        "width": 1024,
+        "file": "L01f_After_Seed418_OvercastRain.png",
+        "comparedTo": "Seed418_OvercastRain.png"
+      },
+      {
+        "role": "after-lighting-pass",
+        "bytes": 196786,
+        "height": 768,
+        "site": "MeadowsFireDusk",
+        "scene": "FireDusk",
+        "condition": "FireDusk",
+        "review": "Both fixed Meadows fire frames are almost entirely black; only a tiny procedural stone ring is visible. Ground and firelight spill are unreadable and no modeled flame exists. Not accepted.",
+        "sha256": "34364A0890A364BF8357E762905B97572A8B4575898BB24EAB4796FF8125D6E5",
+        "seed": 418,
+        "width": 1024,
+        "file": "L01f_After_Seed418_FireDusk.png",
+        "comparedTo": "Seed418_FireDusk.png"
+      },
+      {
+        "role": "after-lighting-pass",
+        "bytes": 906676,
+        "height": 768,
+        "site": "MeadowsDaylight",
+        "scene": "MeadowsDaylight",
+        "condition": "Default",
+        "review": "Pale generated terrain, patch seams and hard shadows remain with a black horizon; a checkerboard-like artifact appears at the far right.",
+        "sha256": "136CEB85111A5809D30C27E6BF5E8B68C8268855773D479DA5B3DBEA82E0235B",
+        "seed": 419,
+        "width": 1024,
+        "file": "L01f_After_Seed419_MeadowsDaylight.png",
+        "comparedTo": "Seed419_MeadowsDaylight.png"
+      },
+      {
+        "role": "after-lighting-pass",
+        "bytes": 816445,
+        "height": 768,
+        "site": "ForestShade",
+        "scene": "ForestShade",
+        "condition": "Default",
+        "review": "The reused fixed view has a checkerboard-like gray surface and black horizon with no visible forest silhouette.",
+        "sha256": "945FA9BF727DF1175ED64055A0013A2C29649945454533B0CD69DA2BD70647C7",
+        "seed": 419,
+        "width": 1024,
+        "file": "L01f_After_Seed419_ForestShade.png",
+        "comparedTo": "Seed419_ForestShade.png"
+      },
+      {
+        "role": "after-lighting-pass",
+        "bytes": 825105,
+        "height": 768,
+        "site": "OceanWater",
+        "scene": "OpenWater",
+        "condition": "Default",
+        "review": "Both seeds show a broad checkerboard-like gray water surface and black horizon; no shoreline appears.",
+        "sha256": "7603FF0D6450DFAE24762B6BA013FBD1BB7752F62DA806AC63132A6503A93EE4",
+        "seed": 419,
+        "width": 1024,
+        "file": "L01f_After_Seed419_OpenWater.png",
+        "comparedTo": "Seed419_OpenWater.png"
+      },
+      {
+        "role": "after-lighting-pass",
+        "bytes": 452073,
+        "height": 768,
+        "site": "ThunderMountainsStorm",
+        "scene": "OvercastRain",
+        "condition": "OvercastRain",
+        "review": "Dark sky/horizon and broad cyan surface with only a tiny centered avatar; no rain particles, readable mountains or clear terrain framing.",
+        "sha256": "72737EB800F2C87115684027B8680B97AC1B3E3A973D2E300A326F7CCFDE800F",
+        "seed": 419,
+        "width": 1024,
+        "file": "L01f_After_Seed419_OvercastRain.png",
+        "comparedTo": "Seed419_OvercastRain.png"
+      },
+      {
+        "role": "after-lighting-pass",
+        "bytes": 196104,
+        "height": 768,
+        "site": "MeadowsFireDusk",
+        "scene": "FireDusk",
+        "condition": "FireDusk",
+        "review": "Both fixed Meadows fire frames are almost entirely black; only a tiny procedural stone ring is visible. Ground and firelight spill are unreadable and no modeled flame exists. Not accepted.",
+        "sha256": "5A7F7F7B548A916B3216D9316878774DB6834AE0F898C902657C0448F409FE89",
+        "seed": 419,
+        "width": 1024,
+        "file": "L01f_After_Seed419_FireDusk.png",
+        "comparedTo": "Seed419_FireDusk.png"
+      }
+    ],
+    "verification": "UE 5.8 map setup commandlet succeeded; saved volume values and override flags read back through UE Python commandlet; all ten direct UnrealEditor-Cmd.exe captures passed PNG signature, 1024x768 dimensions, nonblank-sample and seed/site/condition checks. Full build and milestone verification deferred to L06.",
+    "limitations": [
+      "FireDusk remains unreadable and is deferred to L01h.",
+      "The C++ storm-fog source adjustment was not compiled into the capture mirror; its rendered effect is unverified until L06.",
+      "No multi-frame exposure transition or ordinary movement test was performed. Effective EV interval remains unknown.",
+      "Rain particles and a modeled flame are absent; water/forest/overcast remain limited by the generated prototype scene."
+    ]
+  }
 }

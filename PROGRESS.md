@@ -1,3 +1,15 @@
+## L01f scene-wide rig and grade — 2026-10-26
+
+- **Selected task:** L01f, tune the global lighting rig and built-in grade while keeping solid surfaces Default Lit.
+- **Work completed:** Set the prototype sun to intensity 9.0 and movable sky fill to 1.5; added an enabled, unbound global post-process volume with explicit exposure brightness bounds 0.03–2.0, histogram 10/90, adaptation speeds 2/2, neutral contrast 1.02, saturation 1.04, and bloom 0.30. Reduced the existing client-local storm-fog source maxima from density 0.005/opacity 0.24 to 0.004/0.20. Captured and reviewed all five fixed scenes for seeds 418 and 419 at the same anchors as the baseline.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `docs/valheim-like-lighting-plan.md`, `Scripts/Setup-PrototypeEnvironment.py`, `Content/Kalmala/Maps/Prototype/L_Prototype.umap`, `Source/KalmalaUI/Private/KalmalaWeatherActivitySubsystem.cpp`, `TestResults/LightingBaseline/manifest.json`, and ten `TestResults/LightingBaseline/L01f_After_*.png` images.
+- **Lightweight checks:** Python AST parsing passed for the setup script. The UE 5.8 setup commandlet saved the map successfully; a separate commandlet read back the global volume as enabled/unbound with minimum 0.03 and maximum 2.0 and both bound overrides true, histogram 10/90, and speeds 2/2. The capture helper, invoked with UnrealEditor-Cmd.exe, passed PNG signature, 1024x768 dimensions, nonblank-sample and seed/site/condition checks for all ten final frames. The manifest JSON, after-image hashes/byte counts, and `git diff --check` were checked. No build or full test suite was run.
+- **Full verification:** Deferred to L06. The C++ fog edit was not compiled into the capture mirror, and its rendered effect is unverified.
+- **Observable impact:** The selected maximum makes only small changes to the fixed daylight/forest/water/overcast frames (sampled mean-luminance deltas are about -0.3 to -3.1 levels on a 0–255 scale). It preserves the baseline-sized procedural ring in both FireDusk frames, but both remain nearly black. The setup retains Default Lit surfaces and adds no custom post-process material.
+- **Networking/authority:** The map lighting rig is visual-only. The fog source remains client-local; no gameplay, server-authority, networking or save behavior changed.
+- **Known limitations / remaining scope:** FireDusk is unreadable at the wide fixed view and has no modeled flame; seed-419 forest lacks a visible forest silhouette; both water frames show checkerboard surfaces without a shore; overcast frames have no rain particles and poor terrain/mountain framing; generated terrain remains pale and sparse. The selected UE brightness bounds are not an EV interval, and ordinary camera movement or exposure transitions were not tested. L01h remains the visual acceptance gate; full verification remains deferred.
+- **Next eligible task:** L01g — add only justified local post-process volumes, or record N/A if no existing authored location warrants one.
+
 ## L01e seed-419 weather and fire captures — 2026-10-26
 
 - **Selected task:** L01e, capture seed-419 overcast/rain and fire-lit dusk/night at the fixed L01a anchors.

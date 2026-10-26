@@ -262,6 +262,48 @@ supplemental seed-418 coast candidate. The lack of visible rain, the unreadable
 fire-light view, and unknown effective EV bounds remain for later lighting
 review; L01e did not change anchors, lighting, or materials.
 
+### L01f scene-wide rig and grade — 2026-10-26
+
+L01f retains Default Lit surfaces and the original pale northern daylight mood.
+The startup map now has a tagged, enabled, unbound
+`KalmalaEnvironmentPostProcess` volume (priority 0, blend radius 0, weight 1).
+The existing directional sun is 9.0 and the movable sky fill is 1.5. Built-in
+post-processing is neutral and restrained: contrast 1.02, saturation 1.04,
+BloomIntensity 0.30, and no custom post-process material or color tint.
+
+UE 5.8 readback from the saved volume confirmed `AutoExposureMinBrightness=0.03`
+and `AutoExposureMaxBrightness=2.0`, with both override flags true. The
+histogram range is 10–90 percent and adaptation speeds are 2.0/2.0. These are
+UE brightness settings, not an EV interval; the effective EV limits remain
+unknown, and continuous exposure transitions were not tested.
+
+| Exposure trial | Saved-volume readback and fixed-anchor result |
+| --- | --- |
+| 0.1–4.0 | Both min/max overrides read back true. Seed-418 Meadows daylight produced a uniform black capture (10 sampled colors, 0 nonblack samples); rejected. |
+| 0.03–2.0 (selected) | The unchanged minimum and lower maximum preserve the daylight, forest, water and overcast frames within small luminance changes. At the correct Meadows FireDusk anchor, only the baseline-sized procedural ring remains visible; the scene is still not readable. |
+| 0.1–8.0 | Both overrides read back true. At the correct Meadows FireDusk anchor, the frame was entirely black (11 sampled colors, 0 nonblack samples); rejected. |
+
+The seed-418 and seed-419 after captures use the same fixed poses and conditions
+as their baselines. The ten image hashes, byte counts, scene labels and review
+notes are in `TestResults/LightingBaseline/manifest.json`; images are named
+`L01f_After_Seed{418|419}_<Scene>.png`.
+
+| Scene pair | Visual review |
+| --- | --- |
+| Meadows daylight | Terrain remains pale with visible seams, sparse angular trees and hard shadows; the broad black horizon remains. |
+| Forest shade | Seed 418 retains pale gray trees and hard shadows. Seed 419 has a checkerboard-like ground at the reused anchor and no readable forest silhouette. |
+| Open water | Both seeds show a flat checkerboard-like gray surface under a black horizon, with no shoreline. |
+| Overcast/rain | Seed 418 shows a gray sky and bright ground with a cyan water band; seed 419 shows a dark horizon and broad cyan surface. Neither has visible rain or readable mountain framing. |
+| FireDusk | Both frames remain almost black, with only a tiny procedural stone ring visible; surrounding ground and firelight spill are unreadable, and there is no modeled flame. FireDusk remains unresolved for L01h. |
+
+The existing client-local storm-fog source limits changed from maximum density
+0.005 to 0.004 and maximum opacity 0.24 to 0.20. The mirror was not rebuilt, so
+these source-only fog edits are not reflected in the captured runtime. No
+material families, gameplay, networking, authority or save behavior changed.
+The headless map setup commandlet and saved-volume readback, plus the UnrealEditor-Cmd.exe capture helper
+passed; full build, movement and exposure-transition verification remain
+deferred to L06.
+
 ## Proposed implementation stages
 
 ### 1. Capture a lighting baseline

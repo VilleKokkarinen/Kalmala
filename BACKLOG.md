@@ -1104,7 +1104,7 @@ do not mark the lighting milestone complete before it passes.
     two-seed baseline set before changing the rig. Both fixed views passed the
     capture checks and are recorded in the shared manifest; the images retain
     the missing-rain and unreadable-fire baseline limitations.
-  - [ ] **L01f — Tune the scene-wide rig and grade.** Keep solid surfaces on
+  - [x] **L01f — Tune the scene-wide rig and grade.** Keep solid surfaces on
     Default Lit. Stabilize exposure, balance the existing directional key and
     sky fill, tune existing fog, then apply a restrained global grade and bloom
     using built-in settings. Save the selected values with before/after captures.
