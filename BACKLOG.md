@@ -1067,14 +1067,14 @@ do not mark the lighting milestone complete before it passes.
 - [ ] **L01 — Establish the lighting baseline and core post-process look.**
   Record repeatable scene captures, stabilize the existing light/sky/fog/exposure
   stack, and use built-in post-process volume controls before custom passes.
-  - [ ] **L01a — Inspect the active prototype map and renderer.** Record the
+  - [x] **L01a — Inspect the active prototype map and renderer.** Record the
     active RHI, GI/reflection method, directional/sky lights, fog, exposure,
     post-process volumes, generated material assignments, and capture settings
     in the existing lighting plan. Select and record fixed camera positions for
     all five baseline scenes. Do not change project behavior in this audit.
-    Source, raw package-name, and provisional view findings are recorded in
-    `docs/valheim-like-lighting-plan.md`; live map/renderer state and accepted
-    camera positions remain unverified.
+    The live map/renderer audit and five fixed camera anchors are recorded in
+    `docs/valheim-like-lighting-plan.md`; L01b/L01c will validate framing and
+    scene conditions in captured images.
   - [ ] **L01b — Capture seed-418 daylight, forest, and water.** Use the fixed
     camera poses for Meadows daylight, forest shade, and coast/water. Preserve
     captures and manifest under `TestResults/LightingBaseline/`; record

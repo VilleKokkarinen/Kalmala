@@ -83,7 +83,7 @@ capture.
 | Time and weather controls | `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:1014-1045` initializes weather cycle 0 from the world seed and current game elapsed time; `Source/KalmalaWorld/Public/KalmalaWeatherCycle.h:10-54` derives each interval deterministically from the seed and cycle index. The baseline runner supplies the seed but has no weather-cycle or time-of-day selector. The environment setup script sets one fixed sun rotation; no tracked production time-of-day driver was found. |
 | Generated material assignments | Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp:180-264 assigns M_GeneratedTerrain to terrain (or M_GeneratedTerrainBiomeDebug in debug mode), M_GeneratedWater to ocean and lake water, M_GeneratedLakeShore to lake shore, M_GeneratedRock to Meadow rocks, M_GeneratedBark to Meadow trunks, and M_GeneratedCanopy to Meadow canopies. M_GeneratedSoil is not among this constructor's assignments. Source/KalmalaEditor/Private/CreateWorldMaterialsCommandlet.cpp:18-190, 257-264 builds M_GeneratedTerrain from vertex-color R/G/B weights for grass/soil/rock plus alpha snow and roughness 0.92; its generic creator defines constant-color/roughness materials, while its debug material feeds vertex color to base and emissive. The generic creator returns early for an existing package. These are source-generation and constructor facts; package graphs and any map overrides were not inspected. |
 | Campfire baseline support | `Source/KalmalaGameplay/Private/KalmalaCampfire.cpp:20-67,263-268` builds an original procedural stone ring using `M_GeneratedRock` and an orange point light with 600 cm radius; the light is off until the hearth is lit, then scales to 2500 × effective warmth. The baseline capture helper does not spawn or light a hearth, and the setup script does not place one. Whether the serialized map contains a placed hearth remains unknown. |
-| Capture helper and scene anchors | Scripts/Tests/World/BiomeBaselineCapture.ps1:1-45 requires seed 418 or 419, a Site string, caller-supplied Xcm/Ycm/ViewZcm, and an output path; it launches the project map with -game, -windowed, -RenderOffscreen, -ForceRes, and 1024x768, with a separate log and UserDir. It does not set time of day, weather, or exposure. Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:10200-10249 accepts those coordinates directly, activates nearby terrain, then creates a transient camera at (X, Y-2400, ViewZ+1200), aimed at (X, Y, ViewZ+150), with FOV 65, and requests one screenshot. Site is only checked for nonempty and logged; the capture code contains no named-scene-to-coordinate table. The runner checks the PNG signature, 1024x768 dimensions, basic nonblank samples, and the requested seed/site log entry; those checks do not establish scene content or visual suitability. |
+| Capture helper and scene anchors | Scripts/Tests/World/BiomeBaselineCapture.ps1:1-45 requires seed 418 or 419, a Site string, caller-supplied Xcm/Ycm/ViewZcm, and an output path; it launches the project map with -game, -windowed, -RenderOffscreen, -ForceRes, and 1024x768, with a separate log and UserDir. It does not set time of day, weather, or exposure. Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:10200-10249 accepts those coordinates directly, activates nearby terrain, then creates a transient camera at (X, Y-2400, ViewZ+1200), aimed at (X, Y, ViewZ+150), with FOV 65, and requests one screenshot. Site is only checked for nonempty and logged; the capture code contains no named-scene-to-coordinate table. The runner checks the PNG signature, 1024x768 dimensions, basic nonblank samples, and the requested seed/site log entry; those checks do not establish scene content or visual suitability. During this audit the helper exited with code 0 before creating either its requested log or image, so its rendered output remains unavailable. |
 
 Existing world-generation records provide provisional camera poses for three
 lighting-scene classes. They use the same 65-degree, +Y-facing camera convention
@@ -99,11 +99,46 @@ checkout, and do not establish lighting/material acceptance.
 | Coast | Source-coast land-side site `(691744.0, -107083.5)` cm. | The numeric baseline marks the sample wet, but the prior rendered source-coast frame did not show a separate water surface. Do not use this pose as the coast/water view without a better framing. |
 | Overcast/rain and fire-lit dusk/night | No accepted fixed poses. | The capture helper has no named-scene-to-coordinate map and does not control time or weather. Select locations and conditions only after live scene review. |
 
-These candidates narrow the later Editor review but do not complete L01a.
-The loaded map, serialized actors, resolved renderer, current exposure/fog,
-and visually suitable five fixed views remain unverified. Keep L01a and L01
-unchecked; do not promote provisional coordinates to accepted camera positions
-without that review.
+### L01a live Editor inspection — 2026-10-26
+
+The project was built as `KalmalaEditor` in an isolated short mirror and opened
+in Unreal Editor 5.8. The loaded map was
+`/Game/Kalmala/Maps/Prototype/L_Prototype`. The editor Outliner showed six
+serialized actors: the tagged environment sun, SkyLight and SkyAtmosphere, two
+PlayerStarts, and `KalmalaInteractionTestActor0`. No serialized fog or
+PostProcessVolume actor was present. Starting PIE produced 44 runtime actors,
+including nine generated terrain patches; the map had no terrain surface in the
+static editor viewport before those runtime patches were generated. No map
+changes were saved.
+
+| Live area | Observed state and limit |
+| --- | --- |
+| Renderer | The session log reports D3D12 and active feature level SM5 on an RTX 5090. Live Editor console queries returned `r.DynamicGlobalIlluminationMethod=0` (no dynamic GI), `r.ReflectionMethod=2` (Lumen reflections), `r.RayTracing=0`, `r.DefaultFeature.AutoExposure=1`, and `r.EyeAdaptationQuality=2`. Scalability was at quality 3 for global illumination, reflections, and post process; these quality values do not select the GI method. |
+| Directional light | `KalmalaEnvironmentSun`: movable, transform location `(0,0,2000)`, rotation `(-40,-35,0)`, scale `(2.5,2.5,2.5)`; 10 lux, white, source angle 0.5357 degrees, source soft angle 0, temperature disabled, world illumination and shadows enabled. |
+| Sky fill | `KalmalaEnvironmentSkyLight`: movable, real-time capture enabled, captured-scene source, no cubemap, resolution 128, intensity scale 1.0, white, sky distance threshold 150000. |
+| Atmosphere | `KalmalaEnvironmentAtmosphere`: movable, planet top at absolute world origin, ground radius 6360 km, atmosphere height 60 km, multiscattering 1.0. |
+| Fog, exposure and post process | No fog or post-process volume actor appeared in the loaded map. The meadow PIE view had no visible storm fog. Tracked runtime source creates transient client-local exponential fog only for storm activity weighted by Thunder Mountains. Auto exposure is enabled and eye-adaptation quality is 2, but no active volume or tracked runtime writer establishes compensation or min/max EV; those effective exposure bounds remain unknown. |
+| Generated materials | PIE Details verified `M_GeneratedTerrain` in a generated patch terrain slot and `M_GeneratedWater` in its surface-water slot. The source-derived constructor assignments for lake shore, rock, bark, and canopy remain listed above; their loaded runtime slots and material graphs were not individually inspected. `M_GeneratedSoil` remains unassigned by that constructor. |
+| Capture settings | The existing helper uses seed 418 or 419, caller-supplied site/coordinates, `-game -windowed -RenderOffscreen -ForceRes`, 1024x768, a separate log/UserDir, a 65-degree transient camera, and one screenshot. It does not pin time, weather, or exposure, nor spawn/light a hearth. The user-requested isolated `KalmalaEditor` build completed 55/55 actions. The helper then exited 0 without producing a log or PNG, so no image from this run is claimed. |
+
+The following five seed-418 camera anchors are selected as repeatable inputs to
+the next baseline captures. Camera position and aim use the helper's existing
+`(X, Y-2400, ViewZ+1200)` and `(X, Y, ViewZ+150)` convention with 65-degree
+FOV. Selection records stable world locations; it does not claim that all five
+frames or scene conditions have passed visual acceptance.
+
+| Baseline scene | Site and fixed camera / aim (cm) | Capture note |
+| --- | --- | --- |
+| Meadows daylight | Starter Meadows `(-781.6,-781.6)`, `ViewZ=528.94458`; camera `(-781.6,-3181.6,1728.94458)`, aim `(-781.6,-781.6,678.94458)`. | Existing seed-418 terrain review site. Time and exposure are not pinned. |
+| Forest shade | Wooded Elderwood `(207132.4,-325940.4)`, `ViewZ=15.1806488`; camera `(207132.4,-328340.4,1215.1806488)`, aim `(207132.4,-325940.4,165.1806488)`. | CSV records 26 forest descriptors. Shade and framing require the baseline image review. |
+| Coast and water | Source-coast land-side `(691744.0,-107083.5)`, `ViewZ=0`; camera `(691744.0,-109483.5,1200)`, aim `(691744.0,-107083.5,150)`. | Fixed seed-418 coastal candidate. A prior frame at this site did not show a separate water surface; L01b must review/replace the framing. |
+| Overcast / rain | Thunder Mountains `(-970004.9,-243087.4)`, `ViewZ=768.734985`; camera `(-970004.9,-245487.4,1968.734985)`, aim `(-970004.9,-243087.4,918.734985)`. | Chosen to exercise the Thunder Mountains storm-fog presentation. The helper cannot select a storm/weather cycle. |
+| Fire-lit dusk / night | Starter Meadows `(-781.6,-781.6)`, `ViewZ=528.94458`; camera `(-781.6,-3181.6,1728.94458)`, aim `(-781.6,-781.6,678.94458)`. | Shares the daylight anchor; the point at `(-781.6,-781.6,528.9)` cm is the intended hearth center. The map has no placed hearth, and the helper cannot spawn/light one or select dusk/night. |
+
+L01a's map, renderer, light, exposure, fog, material-assignment, capture-input,
+and five-anchor audit is recorded. L01b and L01c must validate these frames and
+provide the missing weather, time, exposure, and hearth capture controls before
+the baseline images can be treated as accepted references.
 
 ## Proposed implementation stages
 

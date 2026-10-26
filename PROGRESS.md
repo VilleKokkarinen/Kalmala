@@ -1,3 +1,15 @@
+## L01a live map and renderer audit — 2026-10-26
+
+- **Selected task:** L01a, the first unchecked child under lighting milestone L01.
+- **Work completed:** Built and opened the UE 5.8 Editor from an isolated short mirror at the user's request. Inspected the loaded L_Prototype map and its six serialized actors, queried the active renderer CVars, inspected the directional light, SkyLight, and SkyAtmosphere, and checked PIE-generated terrain/material slots. Recorded the actual map/renderer state and selected five deterministic seed-418 capture anchors in the lighting plan. No map changes were saved.
+- **Files changed:** `BACKLOG.md`; `docs/valheim-like-lighting-plan.md`; `PROGRESS.md`.
+- **Lightweight checks:** Inspected the live Editor/PIE state, CVar output, runtime material slots, and capture helper source; `git diff --check` passed. The requested `KalmalaEditor` build succeeded with 55/55 actions in the isolated mirror. This was not milestone-final verification. The existing offscreen capture helper exited 0 before writing its log or PNG, so no rendered baseline image was produced.
+- **Full verification:** Deferred to the integrated lighting gate; L01a changes documentation only.
+- **Observable impact:** The plan now records D3D12/SM5, no dynamic GI, Lumen reflections, hardware RT off, current exposure CVars, the loaded light/sky settings, absent map fog/post-process volumes, runtime material assignments, helper limitations, and five fixed anchors. No runtime or asset changes.
+- **Networking/authority:** No gameplay or network behavior changed. Storm fog remains client-local presentation; the map/renderer audit adds no replicated state.
+- **Known limitations / remaining scope:** No baseline PNG was created. The source-coast frame previously lacked a visible separate water surface; the camera anchor is fixed but L01b must validate or replace its framing. The helper does not pin weather, time, or exposure, or create/light the fire-scene hearth; L01c must supply or document those capture conditions. Effective auto-exposure bounds were not visible in the map or volume state.
+- **Next eligible task:** L01b — capture seed-418 Meadows daylight, forest shade, and coast/water at the fixed anchors, then review and adjust framing as needed.
+
 ## L01a prototype map package-name scan — 2026-10-26
 
 - **Selected task:** L01a remains incomplete; this source-only increment scans readable actor paths in the tracked prototype map.
