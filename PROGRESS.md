@@ -2,7 +2,7 @@
 
 - **Selected task:** L01a, still incomplete pending live map/renderer inspection and selection of five visually verified fixed views.
 - **Work completed:** Rechecked tracked map/renderer configuration, environment setup, runtime weather fog, generated-material assignments and generation logic, and the seed-418 capture helper. Refined the lighting plan with source paths and limits: a client-local storm fog effect exists; M_GeneratedTerrain is a vertex-color ground blend; M_GeneratedSoil is not assigned by the terrain-patch constructor; and the capture helper requires caller-supplied coordinates without controlling time, weather, or exposure. No source-defined mapping from the five scene labels to capture coordinates was found. L01a and L01 remain unchecked.
-- **Files changed:** docs/valheim-like-lighting-plan.md; PROGRESS.md.
+- **Files changed:** BACKLOG.md; docs/valheim-like-lighting-plan.md; PROGRESS.md.
 - **Lightweight checks:** Carefully inspected the cited tracked source and config. No build or automation was run. Full verification remains deferred to the integrated lighting gate.
 - **Observable impact:** Documentation now separates source-level setup and capture behavior from unverified map, package, and rendered state. No runtime or asset changes.
 - **Networking/authority:** No code or network behavior changed. The documented storm fog is transient, client-local presentation and does not replicate.
