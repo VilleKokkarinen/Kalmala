@@ -1,3 +1,268 @@
+## DC20 - Operator setup and command reference, 2026-10-26
+
+- Added concrete per-command help and existing architecture/setup documentation
+  for opt-in/env keys, encrypted remote route, controls, lifecycle/persistence,
+  GPS states and final verification criteria. No working key generated/stored.
+- Files: ConsoleComponent source, architecture/setup docs, backlog/progress.
+  Source/link/whitespace inspection only; no builds/tests run yet.
+- Next DC21 milestone-final integration, builds, regression/peer/render checks
+  and repairs. Parent backend async repair remains in progress and must land
+  before acceptance. DC parent remains incomplete awaiting required checks.
+
+## DC19 - Focused console regression coverage, 2026-10-26
+
+- Added malformed/quoted input, numeric grammar/bounds, command visibility,
+  fixed-work key comparison and rolling-attempt boundary tests. Added GPS
+  camera-relative front/back/vertical/arrival geometry coverage. Existing
+  lifecycle/world-owner fixtures cover revoke/expiry/pawn replacement and
+  different-authorized-owner cleanup conflicts.
+- Files: ConsoleContractTest, ConsoleOverlayTest, backlog/progress. Authored
+  and inspected only; no tests claimed run. Actual direct-RPC peer denial,
+  remote encrypted auth, rendered HUD, restart/cleanup remain DC21 gates.
+- Next DC20 operator/command documentation, then milestone-final verification.
+
+## DC18c - GPS directional HUD, 2026-10-26
+
+- Added original shaded 3D arrow mesh projected at top-centre (96-pixel area,
+  top 64), camera-relative yaw/pitch/roll with 0.1-second orientation smoothing.
+  Displays name/distance/arrival; completed absence replaces arrow with a
+  question mark at same anchor; incomplete search shows Searching instead.
+- Files: ConsoleOverlay header/source, backlog/progress. Static geometry/state
+  inspection only; scaled HUD/rendered acceptance remains required at DC21.
+- Next DC19 focused registry/auth/lifecycle regression coverage.
+
+## DC18b - GPS command and private target state, 2026-10-26
+
+- Added gps query/off/status through authorized registry, bounded multiword
+  query and controller session tracking. Backend advances incrementally and
+  publishes selected target/state to owning player at most once per second.
+  Requery clears stale state; revocation/world teardown clears search. Valid
+  connection search survives pawn respawn and uses the current pawn position.
+- Files: ConsoleComponent header/source, backlog/progress. Source/whitespace
+  checks only; full peer/nearest acceptance deferred DC21. Next DC18c HUD arrow.
+
+## DC18a - Incremental whole-world GPS backend, 2026-10-26
+
+- Added parent-authored read-only radial search across resources/forest/world
+  features and saved constructions, plus actual live creatures/actor transforms.
+  No spawn-site-as-creature matches, materialization or private inventory query.
+  Saved/session depletion gates and deterministic 3D nearest/ties included.
+- Files: GpsSearch header/source, GpsSearchTest, GameMode friend, backlog/progress.
+  Static/whitespace checks only. Known development limitation: atomic existing
+  generators can overrun time slice; scheduling repair and measurement remain
+  before DC21 acceptance. Full checks deferred DC21. Next DC18b command/replies.
+
+## DC18 - Inspect and local diagnostics, 2026-10-26
+
+- Added range-limited server inspect returning public type/location/health,
+  excluding player pawns/private inventory. Added authorized owner diagnostic
+  mode and performance display, with local coords/biome/network text and own
+  capsule drawing. All diagnostic flags clear on revocation.
+- Files: ConsoleComponent header/source, ConsoleOverlay header/source,
+  ConsoleSubsystem header/source, backlog/progress. Static checks only; full
+  build/render acceptance deferred DC21. Next DC18a GPS search backend.
+
+## DC17 - Reversible existing weather-family override, 2026-10-26
+
+- Connected weather calm/rain/storm/reset through server owner-bound world
+  setter; natural weather advancement pauses while owned override is active,
+  then resumes from captured baseline. Unsupported names/conflicting owners
+  reject without mutation; release on grant revocation.
+- Corrected plan's nonexistent authored-preset assumption: aliases select
+  actual deterministic outcomes in existing weather families, no new weather.
+- Files: ConsoleComponent/GameMode sources, backlog/progress. Static/diff
+  inspection only; full checks deferred DC21. Next DC18 inspect/diagnostics.
+
+## DC16 - Reversible replicated sun-hour override, 2026-10-26
+
+- Added time hour/reset with [0,24) bounds, single-owner server guard and
+  replicated client sun orientation. Captures/restores exact tagged sun baseline
+  on reset/revocation. Repository has no running day clock; corrected the
+  planning assumption and kept ordinary static lighting unchanged.
+- Parent-authored WorldGenerationGameState override infrastructure also includes
+  the disconnected weather setter needed next. Added ownership/restore fixture.
+- Files: WorldGenerationGameState header/source, DebugWorldTest, ConsoleComponent,
+  backlog/progress. Static/whitespace checks only; full build/tests deferred
+  DC21. Next DC17 existing weather-family command integration.
+
+## DC15 - Debug-only despawn and AI controls, 2026-10-26
+
+- Added radius-bounded despawn restricted to debug-tagged creatures and
+  reversible pause/resume for debug AI only. Other-authorized-owner conflicts
+  reject; logout/expiry resumes paused actors owned by the departing grant.
+  Natural creatures, structures and persistent records remain untouched.
+- Files: ConsoleComponent header/source, backlog/progress. Static/diff checks
+  only; full verification deferred DC21. Next DC16 reversible time override.
+
+## DC14 - Transient developer creature spawning, 2026-10-26
+
+- Added existing-archetype spawn command, integer batch 1-10 and session live
+  debug cap 20. Server chooses bounded safe sites within ten metres using
+  authored body shapes, loaded terrain, slope/clearance and aquatic checks;
+  failed batches roll back. Replicated debug tags suppress defeat rewards and
+  persistent depletion callbacks; no natural scheduler/save registration.
+- Files: Wildlife header/source, ConsoleComponent source, backlog/progress.
+  Static/diff inspection only; full checks deferred DC21. Next DC15 despawn/AI.
+
+## DC13 - Transactional carried-equipment repair, 2026-10-26
+
+- Repair restores carried tool authored condition at current levels and clears
+  own equipped/packed gear wear without upgrades/new items. Existing snapshot
+  persistence must succeed before publication; failure restores tools/gear/wear.
+- Files: ConsoleComponent source, backlog/progress. Source/whitespace inspection
+  only; full verification deferred DC21. Next DC14 transient creature spawning.
+
+## DC12 - Catalogue-only transactional grants, 2026-10-26
+
+- Added give item/count with integer 1-100 bounds, ordinary item catalogue and
+  capacity gates. Tools receive authored level-one condition, unique instance
+  GUIDs and torch fuel. Buildable/legacy Kit IDs are rejected.
+- Candidate stacks/tools persist through existing player snapshot before UI
+  publication; failed save restores exact pre-command contents. Successful
+  grants persist normally, as command feedback states.
+- Files: Inventory header, ConsoleComponent source, backlog/progress. Static
+  inspection/whitespace only; full acceptance deferred DC21. Next DC13 repair.
+
+## DC11d - Movement cleanup regression fixture, 2026-10-26
+
+- Added focused console movement lifecycle fixture: unsafe flight/noclip
+  startup rejection, speed/collision restoration, expiry and pawn replacement.
+  Inspected forced last-safe/spawn fallback and voluntary collision guards.
+- Files: ConsoleComponent header, ConsoleLifecycleTest, backlog/progress.
+  Test authored but not executed (normal development policy); full build/
+  automation and live embedded-pawn cleanup checks remain in DC21.
+- DC11 implementation complete; next DC12 transactional item grants.
+
+## DC11c - Fly/Noclip console settings, 2026-10-26
+
+- Wired separate Fly/Noclip toggles to replicated server-confirmed state;
+  disabled while unauthorized, default off, commands/toggles share dispatch.
+  Rejected requests are corrected by the next UI refresh, with owner feedback.
+- Files: ConsoleSubsystem source, backlog/progress. Source/whitespace inspection
+  only; full checks deferred DC21. Next DC11d movement lifecycle coverage.
+
+## DC11b - Noclip movement, 2026-10-26
+
+- Added server-authorized own-pawn noclip on/off, dependent flight and clear
+  capsule restoration. World XY/Z bounds and loaded-region movement remain
+  enforced on server; crossing unloaded terrain rolls back the movement step.
+- Files: ConsoleComponent/Movement sources, backlog/progress. Static inspection
+  only; full peer checks deferred DC21. Next DC11c state-reflecting toggles.
+
+## DC11a - Authoritative flight and speed, 2026-10-26
+
+- Added server-owned replicated movement overrides, collision-respecting
+  flight and speed [0.25,5]. Flight uses camera pitch for ascend/descend;
+  start requires safe loaded ground and voluntary exit requires safe ground.
+  Forced cleanup restores saved safe position/fallback and ordinary movement.
+- Files: Character/Movement/ConsoleComponent headers/sources, backlog/progress.
+  Source/whitespace inspection only; full verification deferred DC21.
+- Next DC11b noclip; no client-authorable movement privilege flags.
+
+## DC10 - God mode and healing, 2026-10-26
+
+- Added living caller-only god on/off and heal, integrated at wildlife/poison
+  health damage paths. God flag is pawn-transient and cleared on revoke/pawn
+  replacement. Heal restores current maxima and removes Wet/weak/major poison
+  without changing progression. No revival or attack-damage changes.
+- Files: Character header/source, Status header, ConsoleComponent header/source,
+  backlog/progress. Static inspection/whitespace only; full checks deferred
+  DC21. Next DC11a movement controls.
+
+## DC09 - Safe teleport and bookmarks, 2026-10-26
+
+- Added metre-coordinate tp plus ten bounded session bookmarks/mark/goto.
+  Authority validates playable bounds, loaded patch, capsule clearance and
+  walkable floor before teleport; unsafe destinations leave pawn unchanged.
+- Tightened finite numeric grammar to reject repeated signs/dots/exponents
+  rather than accepting parsed prefixes. Files: ConsoleContract/Component,
+  backlog/progress. Static/diff inspection only; full checks deferred DC21.
+- Next DC10 caller-only god/heal. No save/network authority changes beyond
+  explicitly authenticated own-pawn commands.
+
+## DC08 - Console history/completion/feedback, 2026-10-26
+
+- Integrated bounded 50-command session history, permission-filtered command
+  completion and catalogue ID completion for grants/GPS. Password input and
+  rejected inline login never enter history. Output capped at 200 entries with
+  a scrollable 260-pixel viewport; explicit errors arrive owner-only.
+- Files: ConsoleComponent and ConsoleWidget sources, backlog/progress. Static
+  inspection only; full runtime acceptance deferred DC21. Next DC09 teleport.
+
+## DC07 - Privileged command execution gate, 2026-10-26
+
+- Owning-controller RPC dispatch enforces explicit allowlist, current server
+  opt-in/grant/expiry and ten requests per rolling second. Parser rejects
+  malformed input; unimplemented commands fail without side effects.
+  Audit records controller/known command/outcome, never raw untrusted input.
+- Files: ConsoleComponent header/source, backlog/progress. Source/whitespace
+  inspection only; full runtime checks deferred DC21. Next DC08 UI completion.
+
+## DC06 - Connection authorization lifecycle, 2026-10-26
+
+- Added five-attempt connection/30-attempt world rolling minute limits,
+  30-minute monotonic absolute authorization lifetime and explicit logout/
+  EndPlay revocation. Grant lives on controller, surviving only pawn respawn.
+  Server-only secret is cleared on component teardown.
+- Files: ConsoleComponent header/source, backlog/progress. Inspected bounded
+  attempt arrays and expiry paths; no build run, full checks deferred DC21.
+- Next DC07 per-command execution gate. World override cleanup integrates
+  the parent-authored state API, which will be committed with DC16/DC17.
+
+## DC05 - Confidential developer login, 2026-10-26
+
+- Connected masked UI login to owning-controller server RPC, requiring
+  encrypted remote transport on both endpoints; local authority has no hop.
+  Server-only key comparison uses fixed 128-slot work; denies plaintext.
+- Added parent-authored GameInstance AESGCM transport setup and transport key
+  validation test. KALMALA_NET_KEY is a separate out-of-band 64-hex transport
+  key; public EncryptionToken=kalmala-dev-v1 contains no key. Installed engine
+  AESGCM handler enabled, no download/dependency installation.
+- Files: ConsoleComponent, GameInstance, TransportTest, DefaultEngine.ini,
+  Kalmala.uproject, BACKLOG.md/PROGRESS.md. Source/whitespace checks only;
+  actual encrypted peer acceptance remains required at DC21. Next DC06.
+
+## DC04 - Server-only console opt-in/configuration, 2026-10-26
+
+- Reads KALMALA_DEV_CONSOLE=1 and 32-128 character KALMALA_DEV_KEY only
+  on authority. Missing/malformed configuration fails closed; no shipped key,
+  config secret, URL token or client-replicated secret introduced.
+- Files: ConsoleComponent header/source, backlog/progress. Source and diff
+  inspection only; full runtime verification deferred to DC21. Next DC05.
+
+## DC03 - Bounded console command registry, 2026-10-26
+
+- Added explicit bounded parser, finite-number/window/key comparison seams and
+  controller-owned replicated console component. Public command dispatch only;
+  UI connects through the component, never engine Exec. Privileged paths deny.
+- Files: ConsoleContract/ConsoleComponent headers/sources, MapAwareness source,
+  ConsoleSubsystem source, BACKLOG.md, PROGRESS.md. Static inspection/whitespace
+  only; no runtime build, full verification deferred to DC21.
+- Authority: owning-controller RPC, no client-set privilege. Next DC04 server
+  opt-in/secret configuration. Parent transport helper remains unstaged.
+
+## DC02 - Local console panel/input, 2026-10-26
+
+- Added console widget/subsystem, local Enable Console option (off by default),
+  rebindable F5/controller action, modal input/focus capture and close cleanup.
+- Files: console UI headers/sources, SettingsWidget header/source,
+  Config/DefaultInput.ini, BACKLOG.md, PROGRESS.md. Native console disabled.
+- Bounded output/history and masked input scaffold exists; no server dispatch
+  yet. Source/diff inspection only, full runtime verification deferred to DC21.
+- Authority: presentation only. Next: DC03 registry and public command dispatch.
+
+## DC01 - Developer-console integration mapping, 2026-10-26
+
+- Read repository rules/backlog/progress and architecture/setup contracts.
+  User directed DC completion in a master-based isolated worktree, overriding
+  queue selection and single-increment stopping for this goal.
+- Mapped controller-owned component, local UI/settings, encrypted remote login
+  gate and transaction integration. Runtime remains disabled/unimplemented.
+- Files: BACKLOG.md, PROGRESS.md. Inspected source/API availability; whitespace
+  and path-length checks only. Full verification deferred to DC21.
+- Authority: server connection grants; no client flag enables gameplay cheats.
+- Next: DC02 console UI/input skeleton. Parent handles main handoff/merge.
+
 ## Planning 2026-10-26 - GPS developer-console command
 
 - **Scope/completed:** Planning only. Added gps search/off/status, whole-world

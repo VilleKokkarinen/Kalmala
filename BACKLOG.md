@@ -1247,10 +1247,12 @@ do not mark the lighting milestone complete before it passes.
     and exclude from saves. `despawn [radius]`: default 10 metres, range
     (0,50], removes only debug-created creatures in range, never natural
     creatures, buildings, player inventories or persistent world records.
-  - `time <hour|reset>`: hour in [0,24), freezes the existing server day clock
-    at that hour until reset/revocation. `weather <existingPresetId|reset>`:
-    override only existing authored weather presets through the current server
-    weather system; reject unsupported IDs, restore ordinary simulation on reset.
+  - `time <hour|reset>`: hour in [0,24), sets a transient server-owned
+    replicated sun-hour override until reset/revocation. Mapping found no
+    ordinary runtime day clock; preserve baseline static lighting otherwise. `weather <calm|rain|storm|reset>`:
+    select an existing deterministic outcome from the server weather cycle;
+    mapping found numeric generated families, not an authored preset registry.
+    Reject unsupported names and restore ordinary simulation on reset.
     `ai <pause|resume>`: pause/resume only debug-created creatures; natural
     populations remain unaffected. No new weather, creature or gameplay content.
   - `inspect`: read-only server trace within the ordinary interaction range,
@@ -1305,66 +1307,74 @@ do not mark the lighting milestone complete before it passes.
   Perform applicable lightweight checks, update backlog/progress, commit only
   run-owned changes, then stop. Target 10–20 minutes per normal child.
 
-  - [ ] **DC01 — Map existing input, settings, server auth and cheat routes.**
+  - [x] **DC01 — Map existing input, settings, server auth and cheat routes.**
     Record concrete reuse points and the confidential login transport in this
     goal; identify and gate any bypass. Keep runtime commands disabled.
-  - [ ] **DC02 — Add the local console panel and enable/rebind controls.**
+    Mapping: connection lifetime is AKalmalaMapPlayerController; attach a
+    replicated console component there, with UI in a LocalPlayer subsystem.
+    Reuse SettingsWidget local config/action rebinding and normal inventory
+    transactions. Remote secret submission requires UNetConnection encryption
+    on both endpoints; local authority is confidential without a network hop.
+    Disable the native Tilde/four-finger console route; registry never calls
+    ConsoleCommand/Exec. Existing map presentation CVars cannot mutate gameplay
+    and stay outside this authenticated command dispatcher.
+  - [x] **DC02 — Add the local console panel and enable/rebind controls.**
     Verify open/close, input capture, focus restore and bounded output.
-  - [ ] **DC03 — Add the bounded parser and explicit command registry.**
+  - [x] **DC03 — Add the bounded parser and explicit command registry.**
     Verify argument/number rejection; connect public help/clear/status/pos only.
-  - [ ] **DC04 — Add server opt-in and server-only secret configuration.**
+  - [x] **DC04 — Add server opt-in and server-only secret configuration.**
     Verify missing/invalid configuration fails closed without exposing secrets.
-  - [ ] **DC05 — Add masked login and confidential server authentication.**
+  - [x] **DC05 — Add masked login and confidential server authentication.**
     Verify correct/wrong keys, redaction and remote insecure-transport denial.
-  - [ ] **DC06 — Add login limits, connection grants and revocation.**
+  - [x] **DC06 — Add login limits, connection grants and revocation.**
     Verify attempt boundaries, absolute expiry, logout/reconnect and respawn.
-  - [ ] **DC07 — Connect the privileged dispatch authorization/rate gate.**
+  - [x] **DC07 — Connect the privileged dispatch authorization/rate gate.**
     Verify forged requests, ownership, audit redaction and no Unreal bypass.
-  - [ ] **DC08 — Add filtered history, completion and command feedback.**
+  - [x] **DC08 — Add filtered history, completion and command feedback.**
     Verify bounds, permissions and exclusion of authentication material.
-  - [ ] **DC09 — Add safe teleport and bounded session bookmarks.**
+  - [x] **DC09 — Add safe teleport and bounded session bookmarks.**
     Verify valid travel and unsafe/unloaded/out-of-world rejection.
-  - [ ] **DC10 — Add caller-only god/heal and damage-path integration.**
+  - [x] **DC10 — Add caller-only god/heal and damage-path integration.**
     Verify incoming damage, death/status behavior and revocation cleanup.
-  - [ ] **DC11 — Add flight, noclip and speed controls.**
-    - [ ] **DC11a — Add collision-respecting flight and speed commands.**
+  - [x] **DC11 — Add flight, noclip and speed controls.**
+    - [x] **DC11a — Add collision-respecting flight and speed commands.**
       Verify server movement, multiplier bounds and safe grounded restoration.
-    - [ ] **DC11b — Add server-authorized noclip movement.** Verify collision
+    - [x] **DC11b — Add server-authorized noclip movement.** Verify collision
       bypass for the caller only, mode dependencies and world/loaded-area bounds.
-    - [ ] **DC11c — Add separate Fly/Noclip console settings.** Verify default
+    - [x] **DC11c — Add separate Fly/Noclip console settings.** Verify default
       off, server-confirmed UI state, command/toggle parity and denied requests.
-    - [ ] **DC11d — Cover safe movement restoration and revocation.** Verify
+    - [x] **DC11d — Cover safe movement restoration and revocation.** Verify
       disable inside terrain, last-safe/spawn fallback, expiry/logout, death/
       respawn, disconnect and world change; both flags remain unsaved.
-  - [ ] **DC12 — Add catalogue-only transactional item grants.**
+  - [x] **DC12 — Add catalogue-only transactional item grants.**
     Verify quantity/capacity/ID gates, equipment identity, rollback and Kit denial.
-  - [ ] **DC13 — Add carried-equipment repair through existing transactions.**
+  - [x] **DC13 — Add carried-equipment repair through existing transactions.**
     Verify ownership, authored maxima and persistence-failure rollback.
-  - [ ] **DC14 — Add bounded transient creature spawning.**
+  - [x] **DC14 — Add bounded transient creature spawning.**
     Verify safe placement, caps, peer visibility, no rewards and save exclusion.
-  - [ ] **DC15 — Add debug-creature despawn and AI pause/resume.**
+  - [x] **DC15 — Add debug-creature despawn and AI pause/resume.**
     Verify radius bounds, debug ownership tags and natural-population exclusion.
-  - [ ] **DC16 — Add reversible server time override.**
+  - [x] **DC16 — Add reversible server time override.**
     Verify hour bounds, single-owner conflict, replication and reset/revocation.
-  - [ ] **DC17 — Add reversible existing-preset weather override.**
+  - [x] **DC17 — Add reversible existing-preset weather override.**
     Verify preset allowlist, single-owner conflict and simulation restoration.
-  - [ ] **DC18 — Add inspect and local diagnostic/performance displays.**
+  - [x] **DC18 — Add inspect and local diagnostic/performance displays.**
     Verify range/privacy limits, public data only and revocation cleanup.
-  - [ ] **DC18a - Add GPS world-target indexing and matching.** Implement
+  - [x] **DC18a - Add GPS world-target indexing and matching.** Implement
     authoritative live/persisted/descriptor lookup, invalidation and full-world
     coverage within the shared frame budget; verify unloaded features, depleted
     resources and actual living creatures without materializing new actors.
-  - [ ] **DC18b - Add GPS command, nearest selection and owner-only replies.**
+  - [x] **DC18b - Add GPS command, nearest selection and owner-only replies.**
     Verify names/IDs, 3D distances/ties, moving/deleted targets, stale results,
     incremental Searching/No match distinction and authorization cleanup.
-  - [ ] **DC18c - Add the top-centre 3D GPS arrow and question-mark state.**
+  - [x] **DC18c - Add the top-centre 3D GPS arrow and question-mark state.**
     Verify camera-relative front/back/vertical directions, nearest changes,
     arrival, no-match replacement, UI scaling and existing HUD clearance.
-  - [ ] **DC19 — Add focused authorization/lifecycle regression coverage.**
+  - [x] **DC19 — Add focused authorization/lifecycle regression coverage.**
     Cover direct RPC bypass, concurrent authorized users, secret redaction,
     logout/expiry/disconnect, respawn, flight/noclip cleanup and debug-entity
     shutdown cleanup.
-  - [ ] **DC20 — Document command help and operator setup.**
+  - [x] **DC20 — Document command help and operator setup.**
     Update existing architecture/setup docs with actual configuration, transport,
     persistence consequences and reset behavior; never include a working key.
   - [ ] **DC21 — Perform console milestone-final verification and repairs.**
