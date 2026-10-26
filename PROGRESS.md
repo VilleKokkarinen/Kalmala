@@ -1,3 +1,39 @@
+## L01h milestone-final verification — paused before visual acceptance — 2026-10-26
+
+- **Selected task:** L01h, the final implementation task in lighting milestone
+  L01 and therefore the milestone-final verification run.
+- **Work completed before the user stopped the run:** Built a fresh source
+  mirror at `C:/Users/Ville/AppData/Local/Temp/klh1`, excluding the worktree's
+  `Binaries`, `Intermediate`, `Saved` and `DerivedDataCache`; verified normal
+  per-user UnrealBuildTool access. `Build.bat KalmalaEditor Win64 Development`
+  against the mirror passed all 55 actions, including KalmalaGameplay and
+  KalmalaUI. The unattended/null-RHI `Automation RunTests Kalmala` queue passed
+  228 tests, 0 failed, reached `Automation Test Queue Empty`, and exited 0.
+  Re-rendered all ten fixed baseline views from the built source through
+  `Scripts/Tests/World/BiomeBaselineCapture.ps1` with `UnrealEditor-Cmd.exe`;
+  all passed the runner's PNG, dimension, nonblank and seed/site/condition
+  checks. This build includes the L01f storm-fog source change.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, and
+  `docs/valheim-like-lighting-plan.md`. The rebuilt-source captures were not
+  added to the worktree.
+- **Full verification:** The full Editor build and automation queue succeeded.
+  The ten built-source captures passed their mechanical checks. No build/test
+  failures or L01h repairs occurred before the stop.
+- **Acceptance still pending:** The user stopped the run during visual review.
+  The rebuilt-source frames have not been visually assessed as a set, and
+  ordinary third-person movement/exposure transitions were not evaluated. The
+  previously reviewed L01f frames still show nearly black FireDusk, a seed-419
+  forest frame without a visible forest, checkerboard-like water, and poor
+  overcast framing; these are known limitations, not proof the rebuilt fog
+  renders identically.
+- **Networking/authority:** Verification only; no source or gameplay behavior
+  changed in L01h.
+- **Final milestone status:** Awaiting visual and movement acceptance. L01h and
+  parent L01 remain unchecked. Do not treat the milestone as complete.
+- **Next eligible task:** Resume L01h by visually reviewing the ten built-source
+  views and assessing ordinary third-person movement/exposure, then repair and
+  rerun full verification if an L01 defect is found.
+
 ## L01g local post-process volumes — N/A — 2026-10-26
 
 - **Selected task:** L01g, add local post-process volumes only when an existing authored location needs a distinct look.

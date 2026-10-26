@@ -1115,6 +1115,9 @@ do not mark the lighting milestone complete before it passes.
   - [ ] **L01h — Pass the core-lighting gate.** Compare all ten fixed views and
     ordinary third-person movement; confirm readable silhouettes, stable
     exposure, legible firelight, and no crushed shadows or clipped highlights.
+    The milestone-final run has passed the Editor build, full automation queue,
+    and ten rebuilt-source capture checks; visual review and movement acceptance
+    remain pending, so keep L01h and L01 open.
 
 - [ ] **L02 — Build and integrate the shared surface-material family.** Replace
   flat generated surface materials through project-owned parents and instances,

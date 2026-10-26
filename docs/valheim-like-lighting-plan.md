@@ -1,7 +1,8 @@
 # Valheim-inspired material and lighting plan
 
-**Status:** Research and implementation plan. This file records no runtime
-change. The ordered L01–L06 lighting goals are now queued in `BACKLOG.md`.
+**Status:** The L01 baseline, global rig and grade are implemented; L01h is
+awaiting visual and movement acceptance. L02–L06 remain queued in `BACKLOG.md`.
+This file records the research, implementation choices, and verification evidence.
 
 ## Goal
 
@@ -324,7 +325,32 @@ not a bounded location treatment. The prototype exposes generated biome samples
 and capture-only weather/fire conditions, not an existing authored interior or
 other location with a distinct look. L01g is therefore N/A; no local volume was
 added, so there is no local boundary or UI/text treatment to validate. Revisit
-this only if an authored location is added. L01h remains the next lighting task.
+this only if an authored location is added. L01h remains the open lighting gate;
+its partial milestone-final verification is recorded below.
+
+### L01h milestone-final verification — paused before visual acceptance — 2026-10-26
+
+A fresh source mirror at `C:/Users/Ville/AppData/Local/Temp/klh1` excluded the
+worktree's `Binaries`, `Intermediate`, `Saved` and `DerivedDataCache`, and the
+build confirmed normal per-user UnrealBuildTool access. The UE 5.8
+`KalmalaEditor Win64 Development` build passed 55 actions, including compilation
+and link of KalmalaGameplay and KalmalaUI. The unattended, null-RHI
+`Automation RunTests Kalmala` queue passed 228 tests with 0 failures, reported
+`Automation Test Queue Empty`, and exited 0.
+
+The ten fixed views were re-rendered from this built source through
+`Scripts/Tests/World/BiomeBaselineCapture.ps1` using `UnrealEditor-Cmd.exe`.
+All ten passed the helper's PNG signature, 1024x768, nonblank-sample and
+seed/site/condition checks, so the L01f storm-fog C++ change was present in the
+runtime used for capture. The user then requested that work stop while the new
+frames were being reviewed. No visual-set review or third-person movement and
+exposure-transition assessment was completed; no repairs were made in this run.
+
+L01h remains awaiting visual and movement acceptance. Prior L01f review records
+the nearly black fire view, missing seed-419 forest silhouette, checkerboard-like
+water and weak overcast framing, but those notes do not substitute for reviewing
+the rebuilt-source images. Keep L01h and L01 unchecked until the remaining gate
+checks are completed and any L01-introduced defects are repaired and reverified.
 
 ## Proposed implementation stages
 
